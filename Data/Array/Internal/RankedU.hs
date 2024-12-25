@@ -115,12 +115,12 @@ toList = G.toList . unA
 -- | Convert from a list with the elements given in the linearization order.
 -- Fails if the given shape does not have the same number of elements as the list.
 -- O(n) time.
-fromList :: (Unbox a, KnownNat n) => ShapeL -> [a] -> Array n a
+fromList :: forall n a . (Unbox a, KnownNat n) => ShapeL -> [a] -> Array n a
 fromList ss = A . G.fromList ss
 
 -- | Convert to a vector with the elements in the linearization order.
 -- O(n) or O(1) time (the latter if the vector is already in the linearization order).
-toVector :: (Unbox a) => Array n a -> V.Vector a
+toVector :: forall n a . (Unbox a) => Array n a -> V.Vector a
 toVector = G.toVector . unA
 
 -- | Convert from a vector with the elements given in the linearization order.
