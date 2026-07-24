@@ -1,42 +1,117 @@
-# regime-3 micro-benchmark (the PR change is a mixed picture)
+# regime-3 micro-benchmark (the fix: bq-expand)
 
-This branch (`speedup-strided-tovector`) changes `toVectorListT`'s
-regime-3 fallback in `Data/Array/Internal.hs` — the per-element path
-taken when the innermost dimension is strided, so no contiguous run
-longer than one element can be sliced out. The commit before this one
-replaces the fallback
+This branch (`speedup-strided-tovector`) changes `toVectorListT`'s regime-3
+fallback in `Data/Array/Internal.hs` — the per-element path taken when the
+innermost dimension is strided, so no contiguous run longer than one
+element can be sliced out.
+
+The previous attempt, benchmarked as `gen-quotrem` resulted in
+a **mixed picture**: it had replaced the original `list` fallback
 
     [vFromListN l $ toListT sh a]                       -- build/foldr list
 
-with a `vGenerate` over a linear-index-to-offset computation (per-element
-`quotRem`). It was meant to speed that path up everywhere. This
-benchmark shows it does not: it is a **mixed picture** — a win on some
-shapes, a loss on others — so the change is not a general improvement and
-this branch is kept as evidence rather than for merging.
+with a `vGenerate` over a per-element `quotRem` (one division *per
+dimension*), which sped up the large, many-channel shapes but *slowed* the
+small, shallow, high-rank shapes that dominate horde-ad's convolutions (up
+to ~2×).
 
-## What it does
+The fix now in `Data/Array/Internal.hs` is **`bq-expand`**: precompute the
+base-offset of each innermost run once — the outer-base grid is separable
+(`o0 + sum idx_d * stride_d`), so it is built by iterated `concatMap` /
+`enumFromStepN` expansion, no division and no thunk-list — then fill the
+result with a single `vGenerate` doing **one** `quotRem` per element. It
+beats the original `list` fallback on every one of the 30 benchmarked
+shapes with no regression and needs no extension to orthotope classes.
+
+A direct mutable result buffer is faster still (`mut-odo`/`build`, ~1.5×
+over `bq-expand`), but only by adding a new `Vector`-class method. This was
+measured and deliberately **not** taken, to keep orthotope's `Vector` API
+pure and minimal ([below](#the-mutable-ceiling-not-taken)).
+
+## How the strictly positive picture was achieved
+
+Four findings turned the mixed picture into `bq-expand`:
+
+1. **Split off the innermost dimension and price the outer multi-index
+   once per run, not once per element.** The first attempt's per-element,
+   per-*dimension* `quotRem` was the whole cost on the small high-rank shapes;
+   precomputing an `m`-element base-offsets table drops the output to
+   one `quotRem` per element (`m` = number of runs = `product (init sh)`).
+2. **The build of run base-offsets is itself the remaining cost, and it is a
+   separable grid** — so `concatMap`/`enumFromStepN` builds it with no
+   division and no lazy cons-list, which a `foldl'`-over-a-`build`-list
+   does not fuse away. That is `bq-expand`'s edge over `offsets-quot`.
+3. **Strictness bangs on the hot loop are performance-essential, not
+   cosmetic** — the `quotRem` result tuple and the loop invariants — worth
+   ~2× on their own (unbanged, the odometer/output accretes thunks). They
+   are copied into `Data/Array/Internal.hs`.
+4. **A hardened harness makes the ranking trustworthy** — criterion `env`
+   (input built once, forced to NF, excluded from timing), `NOINLINE` on
+   the benchmark-facing functions (so no result is hoisted out of the
+   timed loop), and the agreement check moved to a separate `check` mode
+   (so it never shares a computation, via CSE, with the benchmark). Under
+   this harness the ranking is stable and every time scales with `l`, so
+   nothing is being optimised away.
+
+## What the benchmark does
 
 `Main.hs` replicates orthotope's `T` representation and its `toListT`
-faithfully (specialised to `Storable Double`, horde-ad's element
-storage), then compares four regime-3 strategies in one binary — the
-real orthotope compiles only one at a time, so a replica is the only way
-to A/B them:
+faithfully (specialised to `Storable Double`, horde-ad's element storage),
+then compares 20 regime-3 strategies in one binary — the real orthotope
+compiles only one at a time, so a replica is the only way to A/B them.
 
-    list         current fallback: vFromListN l . toListT
-    gen-quotrem  this branch's change: vGenerate + per-element quotRem
+The originals and the first attempt:
+
+    list         original fallback: vFromListN l . toListT (lazy cons-list)
+    gen-quotrem  first attempt: vGenerate + per-element quotRem (one per rank)
     gen-unsafe   gen-quotrem with unsafeIndex, to price the bounds check
-    unfold-add   unfoldrExactN with an additive odometer state (no division)
+    unfold-add   unfoldrExactN with an allocating immutable-list odometer
 
-Each shape is checked to actually take regime 3 (`regimeOf`) and all four
-strategies are asserted to produce identical vectors before timing.
+The **run base-offsets family** — identical output (one `vGenerate` with one
+`quotRem` per element, reading a precomputed `m`-element run base-offsets
+table); they differ *only* in how that table is built:
+
+    offsets-quot base-offsets via fromListN . runBaseOffsets (a lazy build/foldr list)
+    bq-unfold    base-offsets via VS.unfoldrExactN (pure-typed, immutable-list state)
+    bq-gen       base-offsets via VS.generate + one quotRem per run
+    bq-mut       base-offsets via a VS.create mutable odometer (concrete Int scratch)
+    bq-expand    base-offsets via iterated VS.concatMap expansion   <-- SHIPPED
+    bq-expand-zf bq-expand with the zip and fold fused into one recursion
+    bq-expand-b  bq-expand seeded from the first dim's enumFromStepN
+
+Whole-offset / alternative-gather variants:
+
+    backperm     build the full l-length offset vector, then unsafeBackpermute
+    cm-gather    fused map . concatMap gather (no output quotRem at all)
+    all-expand   full offset grid via concatMap expansion, then map gather
+    offtab       full offset table via a mutable odometer, then vGenerate gather
+
+Direct mutable result-buffer fills (need a class extension / mutation):
+
+    mut-odo      walk the outer odometer, write each run with a tight
+                 additive inner loop straight into the result buffer
+    mut-offsets  as mut-odo but iterating the precomputed run base-offsets list
+    build        mut-odo through vBuildVS, a prototype of the one new Vector
+                 method such a fill would need (prices the abstraction)
+
+    concat-runs  class-methods-only: per-run vGenerate + vConcat (mirrors
+                 the regime-2 branch, but with strided runs)
+
+The `check` mode (below) asserts all 20 strategies produce byte-identical
+vectors on all 30 shapes, and that each shape actually takes regime 3.
 
 ## Running it
 
-Self-contained (base + vector + criterion):
+Self-contained (base + vector + criterion + deepseq):
 
-    cd micro-regime3 && cabal run micro          # ~10 min, 5s per bench
-    cd micro-regime3 && cabal run micro -- -L1   # ~2 min, rougher
-    cd micro-regime3 && cabal run micro -- vgg   # one group by name prefix
+    cd micro-regime3 && cabal run micro              # ~50 min, 5s per bench
+    cd micro-regime3 && cabal run micro -- -L1       # ~10 min, rougher
+    cd micro-regime3 && cabal run micro -- check     # correctness only, fast
+    cd micro-regime3 && cabal run micro -- diag      # per-build allocations
+    cd micro-regime3 && cabal run micro -- vgg       # one group by name prefix
+
+Add `--regress allocated:iters` to a benchmark run for reliable per-call
+allocations (well-conditioned at 5s).
 
 ## Where the shapes come from
 
@@ -82,8 +157,7 @@ in general training).
 
 `tooBig` (in `Main.hs`) lists realistic layers excluded because even one
 image's patch tensor (7M–29M elements) makes a run too long and
-memory-hungry — the startup correctness check alone builds all four
-strategies' vectors at once. `Cin` and the spatial dims scale `l` linearly too (in the
+memory-hungry. `Cin` and the spatial dims scale `l` linearly too (in the
 full run, doubling `Cin` ~doubles the cost, quadrupling the spatial area
 ~quadruples it), but reducing them reproduces a shape already here — a
 per-position slice, or a smaller conv — so `nImgs` is the only dimension
@@ -91,75 +165,159 @@ genuinely free to drop.
 
 ## Results
 
-criterion, GHC 9.12.4, -O1, means; representative rows. `q/l` is
-`gen-quotrem / list`: below 1 the change wins, above 1 it loses.
+Run 4: criterion, GHC 9.12.4, -O1, hardened harness (`env`, `NOINLINE` on
+the benchmark-facing functions, separate `check` mode). **Time** is the
+geomean over all 30 shapes of the per-shape mean ÷ `list`'s mean (below 1 =
+faster than the original fallback). **Alloc** is bytes allocated per call as
+a multiple of the result vector (`8·l`), from the `--regress allocated`
+fit on `vgg-28-c256-k3`. Fastest first.
 
-| shape                          | list     | gen-quotrem | unfold  | q/l  |
-|--------------------------------|----------|-------------|---------|------|
-| cnn-L1-24x24-c1  [24,24,1,3,3] | 117 µs   | 178 µs      | 154 µs  | 1.51 |
-| lenet-L1-28-c1-k5              | 380 µs   | 637 µs      | 447 µs  | 1.67 |
-| cifar-L1-32-c3-k3              | 620 µs   | 915 µs      | 731 µs  | 1.48 |
-| gather48-src-50  [50,3,3,50]   | 438 µs   | 616 µs      | 523 µs  | 1.41 |
-| resnet-stem-112-c3-k7          | 34.1 ms  | 43.3 ms     | 35.3 ms | 1.27 |
-| alexnet-L1-55-c3-k11           | 19.3 ms  | 25.7 ms     | 20.5 ms | 1.33 |
-| stretch-rank10  [3×10]         | 1.38 ms  | 3.06 ms     | 1.58 ms | 2.21 |
-| vgg-28-c256-k3                 | 67.7 ms  | **42.2 ms** | 44.5 ms | 0.62 |
-| vgg-14-c512-k3                 | 33.0 ms  | **21.4 ms** | 22.5 ms | 0.65 |
-| deep-7-c512-k3                 | 7.79 ms  | **5.56 ms** | 5.55 ms | 0.71 |
-| alexnet-L2-27-c48-k5           | 30.0 ms  | 20.7 ms     | **18.0 ms** | 0.69 |
-| stretch-wide-2xM  [2,1000000]  | 42.6 ms  | **21.3 ms** | 48.8 ms | 0.50 |
-| stretch-square-1400            | 33.1 ms  | **21.7 ms** | 32.3 ms | 0.65 |
-
-Over all 30: `list` fastest on 17, the change (`gen-quotrem`/`gen-unsafe`)
-on 11, `unfold-add` on 2.
+| strategy        | time ×list | alloc ×result | needs                      |
+|-----------------|-----------:|--------------:|----------------------------|
+| mut-odo         |      0.118 |          1.0× | class extension / mutation |
+| build           |      0.127 |          1.0× | new `Vector` method        |
+| offtab          |      0.134 |          2.0× | mutation                   |
+| bq-mut          |      0.174 |          1.3× | mutation                   |
+| bq-expand-b     |      0.174 |          4.2× | nothing (pure)             |
+| **bq-expand**   |  **0.175** |      **4.2×** | **nothing — SHIPPED**      |
+| bq-expand-zf    |      0.177 |          4.2× | nothing (pure)             |
+| offsets-quot    |      0.246 |          6.7× | nothing (pure)             |
+| mut-offsets     |      0.298 |          7.6× | mutation                   |
+| bq-unfold       |      0.316 |         10.2× | nothing (pure)             |
+| bq-gen          |      0.370 |          4.7× | nothing (pure)             |
+| all-expand      |      0.446 |         12.6× | nothing (pure)             |
+| fused           |      0.467 |         20.7× | concrete `Int` scratch     |
+| backperm        |      0.559 |         18.4× | nothing (pure)             |
+| concat-runs     |      0.577 |         11.2× | nothing (class-only)       |
+| cm-gather       |      0.680 |         23.2× | nothing (pure)             |
+| unfold-add      |      0.987 |         29.9× | nothing (pure)             |
+| list (baseline) |      1.000 |         27.7× | —                          |
+| gen-quotrem     |      1.121 |         13.0× | 1st attempt                |
+| gen-unsafe      |      1.123 |         13.0× | —                          |
 
 ## Reading the results
 
-- The change **loses** on the small, shallow, high-rank shapes — where
-  the per-element `quotRem` count (one per dimension) dominates and `l`
-  is modest. That is horde-ad's own CNN, LeNet, CIFAR, and the gather48
-  layout, and most steeply the rank-10 stretch (2.2×). End to end in
-  horde-ad's `bench/ConvVjpBench.hs` (this branch's orthotope wired in),
-  the gather chains — 48-spatial, 3-channel, exactly this region —
-  regress ~1.5–2.1× while the pure-scatter control is unchanged.
-- The change **wins**, by up to ~2×, on the large mid-network layers with
-  many channels (VGG/ResNet 256–512-channel 3×3) and on low-rank bulk
-  transposes, where `l` is large and the list's per-element allocation
-  dominates the few divisions.
-- `gen-unsafe == gen-quotrem`: the bounds check is free (predicted /
-  hidden under ILP); the division is the whole cost difference from
-  `list`.
-- `unfold-add` is division-free but its immutable odometer state
-  allocates per step, so it rarely beats either of the others outright.
+- **The output method: `vGenerate` + one `quotRem` wins.** Every
+  run base-offsets-family strategy (`bq-*`, `offsets-quot`) uses it
+  and lands ahead of the fancier gathers — `fused`'s `unfoldrExactN` (0.467),
+  `backperm` (0.559), `cm-gather` (0.680), `all-expand` (0.446).
+  A single in-order `vGenerate` fuses tighter than a stepped `unfoldrExactN`
+  state or a two-pass build-then-gather, and its per-element `quotRem`
+  is hidden under the scattered read.
+- **The base-offsets build decides within that family, and `concatMap` wins the
+  pure builds.** Same output, only the `m`-element table build differs:
+  `concatMap` (`bq-expand`, 0.175) ties the explicit mutable fill (`bq-mut`,
+  0.174) and beats the lazy list (`offsets-quot`, 0.246), `unfoldrExactN`
+  (`bq-unfold`, 0.316) and `generate`+per-run-quotRem (`bq-gen`, 0.370).
+  The list route pays for a non-fusing cons-list of thunks; `concatMap`
+  builds the separable grid inside vector's stream framework instead. So
+  `bq-expand` is the fastest build that needs neither a class extension nor
+  explicit mutation.
+- **`bq-mut` ties `bq-expand` on time but allocates far less** (1.3× vs
+  4.2× the result) — a mutable `Int` scratch vs `concatMap` intermediates
+  — at the cost of explicit mutation; `bq-expand` is the pure choice.
+- **The `bq-expand` variants add nothing.** `bq-expand-zf` (zip and fold
+  fused into one recursion) and `bq-expand-b` (first-dim special-case) are
+  within noise of `bq-expand`; the zip list is only rank-1 long and
+  `foldl'` is already well-tuned, so there is nothing to gain. `bq-expand`
+  is kept as the plainest form.
+- **`gen-quotrem` (the first attempt) is still slower than `list`** (1.121)
+  — the mixed picture, reproduced: one `quotRem` per *dimension* per
+  element costs more than the list's allocation on the shapes that matter.
+- **Allocation:** `bq-expand` allocates ~4.2× the result vector (`concatMap`
+  intermediates over the `m`-element base-offsets); `offsets-quot` ~6.7×
+  (the cons list); the direct mutable fills ~1.0× (just the result); `list` ~28×
+  (thunks). Lower allocation tracks lower time across the table.
 
-## Why the change is not the fix
+## The fix in Data/Array/Internal.hs
 
-Whichever pure-Haskell strategy wins a given shape, none closes the gap
-to the stride-aware C kernels — roughly an order of magnitude on
-comparable traffic: horde-ad's concrete *scatter*, which routes through
-those kernels, runs the analogous chain in ~0.5 ms in `ConvVjpBench`
-where the fastest gather strategy is several ms. Regime 3 has no
-contiguous runs to hand a bulk kernel, so the transfer stays per-element
-in Haskell no matter how the fallback is written. The win must move the transfer into C — the
-client-side add-zero gather, or an upstream normalize-in-C /
-strided-copy kernel — which is why this pure-Haskell change is kept as
-evidence, not merged.
+Regime 3 now builds the run base-offsets by expansion and fills with one
+`vGenerate`:
 
-## Further untested ideas
+    runBaseOffsetsT o0 osh oats = foldl' expand (VU.singleton o0) (zip osh oats)
+      where expand !acc (!nd, !sd) = VU.concatMap (\a -> VU.enumFromStepN a sd nd) acc
 
-Two pure-Haskell variants this benchmark does not settle, recorded here
-so the branch is self-contained:
+    -- in toVectorListT, innermost-strided branch:
+    let !sInner = last sh
+        !tInner = last ats
+        !baseOffsets = runBaseOffsetsT ao (init sh) (init ats)     -- unboxed Int scratch
+        gen i = case i `quotRem` sInner of
+          (!q, !r) -> vIndex v (VU.unsafeIndex baseOffsets q + r * tInner)
+    in  [vGenerate l gen]
 
-- A fusion-friendly `Vector` class method (in the spirit of vector's
-  `unfoldrExactN`) that steps a multi-index by stride additions — no
-  `quotRem` — so stream fusion collapses the strict state to a register
-  loop, still behind a pure API. This is *not* the `unfold-add` strategy
-  above: that uses an allocating immutable-list odometer (a proxy that
-  loses), so the truly fused, allocation-free form is unmeasured.
+The run base-offsets live in an unboxed `Int` vector — index scratch,
+independent of the abstract element storage `v` — so the only new dependency
+is a qualified `Data.Vector.Unboxed` import (already a library dependency).
+The bang patterns are performance-essential, ported from the benchmarked
+`bq-expand` (finding 3 above).
+
+Validation on this branch:
+
+- orthotope's own test suite: **407/407 pass** (Dynamic/Ranked/Shaped ×
+  boxed/storable/unboxed).
+- Non-vacuity: deliberately dropping the `r * tInner` term fails 63 cases,
+  among them `transpose_2/4/5/6`, `stride_1`, `rev_1/2` — so the pass is not
+  vacuous.
+- This benchmark: all 20 strategies agree with `list` on all 30 shapes.
+
+End-to-end confirmation in horde-ad's `bench/ConvVjpBench.hs` (wiring this
+branch's orthotope in and rebuilding ox-arrays + horde-ad) is not yet run;
+the numbers above are from the replica.
+
+## The mutable ceiling (not taken)
+
+The `bq-*` strategies still fill the result one element at a time. The
+tightest possible shape drops to a **mutable result buffer**: allocate it
+once, walk the outer odometer, and write each innermost run with a tight
+additive inner loop — no `quotRem`, no base-offsets table, no per-element step.
+That is `mut-odo` (0.118), `build` (0.127) and `offtab` (0.134) — ~1.5×
+over `bq-expand`, allocating essentially just the result vector.
+
+The catch is the API: a buffer filled across runs cannot be expressed by
+the per-element `vGenerate`; it needs a new `Vector`-class method exposing
+a fill. `build` prices exactly that — `mut-odo` driven through `vBuildVS`, a
+prototype of
+
+    vBuild :: Int -> (forall s. (Int -> a -> ST s ()) -> ST s ()) -> v a
+
+— and matches `mut-odo` on every shape, so **the class method is free**
+(it inlines to the identical loop). A pure-typed alternative (a
+strided-gather method taking the shape/stride/source and hiding the
+mutation inside each instance, as `vGenerate` already does) would keep the
+speed without `ST` in the signature.
+
+This was **deliberately not taken.** Orthotope keeps its `Vector` API pure
+and minimal, and a ~1.5× gain over `bq-expand` (pure-Haskell either way, so
+[the C-gap](#the-c-gap-still-a-deeper-ceiling) bounds both) did not justify
+a new class method across all four instances. The strategies stay here as
+the measured evidence for that ruling, so it is not re-proposed.
+
+## The C-gap: still a deeper ceiling
+
+`bq-expand` is a pure-Haskell win over the fallback, but no pure-Haskell
+strategy closes the gap to the stride-aware C kernels — roughly an order of
+magnitude on comparable traffic: horde-ad's concrete *scatter*, which
+routes through those kernels, runs the analogous chain in ~0.5 ms in
+`ConvVjpBench` where the fastest gather strategy here is several ms.
+Regime 3 has no contiguous runs to hand a bulk kernel, so the transfer
+stays per-element in Haskell no matter how the fallback is written.
+Closing that gap needs the transfer moved into C — the client-side
+add-zero gather, or an upstream normalize-in-C / strided-copy kernel.
+`bq-expand` is the incremental pure win to take meanwhile, not a
+replacement for that work.
+
+## Further ideas
+
+The truly-fused allocation-free odometer is the `fused` strategy (it
+works, but loses to `bq-expand` here), and the faster-still mutable fill is
+`mut-odo`/`build` ([above](#the-mutable-ceiling-not-taken), measured but
+not taken). One pure-Haskell idea remains untested:
+
 - Tightening *regime 2* (innermost-normal, not exercised here) with a
-  `toVectorT` that folds the contiguous runs directly instead of
-  building the intermediate run list.
+  `toVectorT` that folds the contiguous runs directly instead of building
+  the intermediate run list.
 
-Both are pure Haskell, so the [C-gap](#why-the-change-is-not-the-fix)
-above bounds them: they could shift the mixed picture but cannot bring
-regime 2/3 within reach of the stride-aware C kernels.
+Being pure Haskell, it is bounded by the
+[C-gap](#the-c-gap-still-a-deeper-ceiling)
+above: it could sharpen regime 2 but cannot bring it within reach of the
+stride-aware C kernels.

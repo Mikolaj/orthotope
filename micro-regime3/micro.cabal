@@ -6,8 +6,9 @@ build-type:         Simple
 executable micro
     main-is:          Main.hs
     default-language: GHC2021
-    ghc-options:      -O1
+    ghc-options:      -O1 -rtsopts "-with-rtsopts=-T"
     build-depends:
         base,
         vector,
-        criterion
+        criterion,
+        deepseq
