@@ -1,0 +1,13 @@
+cabal-version:      2.4
+name:               micro
+version:            0.1
+build-type:         Simple
+
+executable micro
+    main-is:          Main.hs
+    default-language: GHC2021
+    ghc-options:      -O1
+    build-depends:
+        base,
+        vector,
+        criterion
