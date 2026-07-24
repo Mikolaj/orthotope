@@ -231,6 +231,14 @@ toVectorListT sh a@(T ats ao v) =
           -- Strides are not normal, collect slices.
           DL.concat [ loop bs ss ts (i*t + o) | i <- [0 .. s-1] ]
       loop _ _ _ _ = error "impossible"  -- due to how @loop@ is called
+      -- Offset into @v@ of the element at linear (row-major) index @i@,
+      -- computed from the natural strides @ts'@ and the actual strides @ats@:
+      -- decompose @i@ into a multi-index by @quotRem@ against @ts'@ and
+      -- redot it with @ats@.  Used only when the innermost dimension is
+      -- strided, so no contiguous run can be sliced out.
+      offsetOf i (t:ts) (s:ss) = case i `quotRem` t of
+                                   (q, r) -> q * s + offsetOf r ts ss
+      offsetOf _ _      _      = 0
   in  if ats == ts' && vLength v == l then
         -- All strides are normal, return entire vector
         [v]
@@ -240,8 +248,12 @@ toVectorListT sh a@(T ats ao v) =
         -- Innermost dimension is normal, so slices are non-trivial.
         DL.toList $ loop oks sh ats ao
       else
-        -- All slices would have length 1, going via a list is faster.
-        [vFromListN l $ toListT sh a]
+        -- Innermost dimension is strided, so every contiguous run would have
+        -- length 1.  Generate the result vector directly instead of going via
+        -- a list (a cons and a thunk per element): each element is a strided
+        -- read of @v@, its offset computed by machine-Int arithmetic with no
+        -- allocation.
+        [vGenerate l (\i -> vIndex v (ao + offsetOf i ts' ats))]
 
 {-# INLINE toVectorT #-}
 toVectorT :: (Vector v, VecElem v a) => ShapeL -> T v a -> v a
