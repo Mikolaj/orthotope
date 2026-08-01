@@ -599,8 +599,12 @@ convShapes =
   , ("slice-c512",          [512, 3, 3])              -- 4608  (one position)
   ]
 
--- Six non-conv shapes stretching the space beyond convolution
+-- Non-conv shapes stretching the space beyond convolution
 -- (README.md#the-shape-set); each is annotated inline with what it probes.
+-- The later entries push past the ranges the earlier ones cover, in the
+-- terms the strategies are sensitive to: the view's innermost extent
+-- @sInner@, which sets how many base offsets a table costs (@l \/ sInner@
+-- of them); its innermost stride @tInner@; the rank; and @l@.
 stretchShapes :: [(String, ShapeL)]
 stretchShapes =
   [ ("stretch-rank10",      [3,3,3,3,3,3,3,3,3,3])    -- 59049, quotRem x10/elem
@@ -609,10 +613,15 @@ stretchShapes =
   , ("stretch-bigstride",   [3, 3, 200000])           -- 1800000, huge innermost stride
   , ("stretch-square-1400", [1400, 1400])             -- 1960000, rank-2 near-square
   , ("stretch-r5-8x512",    [8, 8, 8, 8, 512])        -- 2097152, big rank-5
+  , ("stretch-inner1",      [1, 500000])              -- 500000, sInner 1
+  , ("stretch-tall-Mx2",    [1000000, 2])             -- 2000000, 2 base offsets
+  , ("stretch-coprime-r7",  [2, 3, 5, 7, 11, 13, 2])  -- 60060, rank 7, coprime
+  , ("stretch-rank12",      [2,2,2,2,2,2,2,2,2,2,2,2])  -- 4096, deepest rank
+  , ("stretch-tab16MB",     [2000, 2, 1000])          -- 4000000, 2M-entry table
   ]
 
 shapes :: [(String, ShapeL)]
-shapes = convShapes ++ stretchShapes  -- 24 + 6 = 30
+shapes = convShapes ++ stretchShapes  -- 24 + 11 = 35
 
 -- Realistic conv layers excluded because their patch tensor (7M-29M
 -- elements) is too large to benchmark even for one image; printed at

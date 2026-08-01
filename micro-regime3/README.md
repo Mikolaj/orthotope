@@ -20,8 +20,8 @@ base-offset of each innermost run once — the outer-base grid is separable
 (`o0 + sum idx_d * stride_d`), so it is built by iterated `concatMap` /
 `enumFromStepN` expansion, no division and no thunk-list — then fill the
 result with a single `vGenerate` doing **one** `quotRem` per element. It
-beats the original `list` fallback on every one of the 30 benchmarked
-shapes with no regression and needs no extension to orthotope classes.
+beats the original `list` fallback on every benchmarked shape with no
+regression and needs no extension to orthotope classes.
 
 A direct mutable result buffer is faster still (`mut-odo`/`build`, ~1.5×
 over `bq-expand`), but only by adding a new `Vector`-class method. This was
@@ -130,16 +130,17 @@ input `mkStrided` builds (see its comment in `Main.hs` for how).
 
 ## The shape set
 
-24 conv-derived shapes: the patch tensor, per image, laid out
+The conv-derived shapes: the patch tensor, per image, laid out
 `[outH, outW, Cin, KH, KW]` — the per-image `[nAh, nAw, nCinp, nKh, nKw]`
 of the patch tensor above, renamed to the conventional axes (output
 spatial, input channels, kernel) — and its per-position `[Cin, KH, KW]`
 slices, with dims from real nets — kernels 3×3 (VGG/ResNet, horde-ad's own CNN),
 5×5 (LeNet), 7×7 (ResNet stem), 11×11 (AlexNet); channels 1/3 up to 512;
-spatial from horde-ad's 6/12/24 to ImageNet's 224/112/56/28/14/7. Six
-further shapes (`stretch-*`) are not conv-derived — extreme rank, extreme
-aspect ratio, non-power-of-two dims, a cache-hostile innermost stride —
-to probe the space beyond convolution. See `convShapes`/`stretchShapes`
+spatial from horde-ad's 6/12/24 to ImageNet's 224/112/56/28/14/7. The
+`stretch-*` shapes are not conv-derived — extreme rank, extreme aspect
+ratio, non-power-of-two dims, a cache-hostile innermost stride, a run
+length of one element, a base-offset table as long as the result — to
+probe the space beyond convolution. See `convShapes`/`stretchShapes`
 in `Main.hs` for the full list.
 
 ## Dropping the minibatch dimension
@@ -165,35 +166,40 @@ genuinely free to drop.
 
 ## Results
 
-Run 4: criterion, GHC 9.12.4, -O1, hardened harness (`env`, `NOINLINE` on
+Run 5: criterion, GHC 9.12.4, -O1, hardened harness (`env`, `NOINLINE` on
 the benchmark-facing functions, separate `check` mode). **Time** is the
-geomean over all 30 shapes of the per-shape mean ÷ `list`'s mean (below 1 =
+geomean over every shape of the per-shape mean ÷ `list`'s mean (below 1 =
 faster than the original fallback). **Alloc** is bytes allocated per call as
 a multiple of the result vector (`8·l`), from the `--regress allocated`
 fit on `vgg-28-c256-k3`. Fastest first.
 
 | strategy        | time ×list | alloc ×result | needs                      |
 |-----------------|-----------:|--------------:|----------------------------|
-| mut-odo         |      0.118 |          1.0× | class extension / mutation |
-| build           |      0.127 |          1.0× | new `Vector` method        |
-| offtab          |      0.134 |          2.0× | mutation                   |
-| bq-mut          |      0.174 |          1.3× | mutation                   |
-| bq-expand-b     |      0.174 |          4.2× | nothing (pure)             |
-| **bq-expand**   |  **0.175** |      **4.2×** | **nothing — SHIPPED**      |
-| bq-expand-zf    |      0.177 |          4.2× | nothing (pure)             |
-| offsets-quot    |      0.246 |          6.7× | nothing (pure)             |
-| mut-offsets     |      0.298 |          7.6× | mutation                   |
-| bq-unfold       |      0.316 |         10.2× | nothing (pure)             |
-| bq-gen          |      0.370 |          4.7× | nothing (pure)             |
+| mut-odo         |      0.115 |          1.0× | class extension / mutation |
+| build           |      0.125 |          1.0× | new `Vector` method        |
+| offtab          |      0.133 |          2.0× | mutation                   |
+| bq-expand-b     |      0.170 |          4.2× | nothing (pure)             |
+| bq-mut          |      0.172 |          1.3× | mutation                   |
+| **bq-expand**   |  **0.173** |      **4.2×** | **nothing — SHIPPED**      |
+| bq-expand-zf    |      0.174 |          4.2× | nothing (pure)             |
+| offsets-quot    |      0.241 |          6.7× | nothing (pure)             |
+| mut-offsets     |      0.293 |          7.6× | mutation                   |
+| bq-unfold       |      0.312 |         10.2× | nothing (pure)             |
+| bq-gen          |      0.366 |          4.7× | nothing (pure)             |
 | all-expand      |      0.446 |         12.6× | nothing (pure)             |
-| fused           |      0.467 |         20.7× | concrete `Int` scratch     |
-| backperm        |      0.559 |         18.4× | nothing (pure)             |
-| concat-runs     |      0.577 |         11.2× | nothing (class-only)       |
-| cm-gather       |      0.680 |         23.2× | nothing (pure)             |
-| unfold-add      |      0.987 |         29.9× | nothing (pure)             |
+| fused           |      0.465 |         20.7× | concrete `Int` scratch     |
+| backperm        |      0.550 |         18.4× | nothing (pure)             |
+| concat-runs     |      0.576 |         11.2× | nothing (class-only)       |
+| cm-gather       |      0.679 |         23.2× | nothing (pure)             |
+| unfold-add      |      0.983 |         29.9× | nothing (pure)             |
 | list (baseline) |      1.000 |         27.7× | —                          |
-| gen-quotrem     |      1.121 |         13.0× | 1st attempt                |
-| gen-unsafe      |      1.123 |         13.0× | —                          |
+| gen-unsafe      |      1.082 |         13.0× | —                          |
+| gen-quotrem     |      1.100 |         13.0× | 1st attempt                |
+
+`bq-expand-b`, `bq-mut`, `bq-expand` and `bq-expand-zf` are a four-way tie:
+they span 2% here, and their order differs between runs. The table is sorted
+because a table has to be, not because it ranks them; what separates them is
+the `needs` column, and that is what the choice rested on.
 
 ## Reading the results
 
@@ -206,9 +212,9 @@ fit on `vgg-28-c256-k3`. Fastest first.
   is hidden under the scattered read.
 - **The base-offsets build decides within that family, and `concatMap` wins the
   pure builds.** Same output, only the `m`-element table build differs:
-  `concatMap` (`bq-expand`, 0.175) ties the explicit mutable fill (`bq-mut`,
-  0.174) and beats the lazy list (`offsets-quot`, 0.246), `unfoldrExactN`
-  (`bq-unfold`, 0.316) and `generate`+per-run-quotRem (`bq-gen`, 0.370).
+  `concatMap` (`bq-expand`, 0.173) ties the explicit mutable fill (`bq-mut`,
+  0.172) and beats the lazy list (`offsets-quot`, 0.241), `unfoldrExactN`
+  (`bq-unfold`, 0.312) and `generate`+per-run-quotRem (`bq-gen`, 0.366).
   The list route pays for a non-fusing cons-list of thunks; `concatMap`
   builds the separable grid inside vector's stream framework instead. So
   `bq-expand` is the fastest build that needs neither a class extension nor
@@ -217,17 +223,50 @@ fit on `vgg-28-c256-k3`. Fastest first.
   4.2× the result) — a mutable `Int` scratch vs `concatMap` intermediates
   — at the cost of explicit mutation; `bq-expand` is the pure choice.
 - **The `bq-expand` variants add nothing.** `bq-expand-zf` (zip and fold
-  fused into one recursion) and `bq-expand-b` (first-dim special-case) are
-  within noise of `bq-expand`; the zip list is only rank-1 long and
-  `foldl'` is already well-tuned, so there is nothing to gain. `bq-expand`
-  is kept as the plainest form.
-- **`gen-quotrem` (the first attempt) is still slower than `list`** (1.121)
+  fused into one recursion) and `bq-expand-b` (first-dim special-case) tie
+  `bq-expand`, here and on the shapes chosen to separate them; the zip list
+  is only rank-1 long and `foldl'` is already well-tuned, so there is
+  nothing to gain. `bq-expand` is kept as the plainest form.
+- **`gen-quotrem` (the first attempt) is still slower than `list`** (1.100)
   — the mixed picture, reproduced: one `quotRem` per *dimension* per
   element costs more than the list's allocation on the shapes that matter.
 - **Allocation:** `bq-expand` allocates ~4.2× the result vector (`concatMap`
   intermediates over the `m`-element base-offsets); `offsets-quot` ~6.7×
   (the cons list); the direct mutable fills ~1.0× (just the result); `list` ~28×
   (thunks). Lower allocation tracks lower time across the table.
+
+## Per shape, where the geomean hides the ordering
+
+The geomean is stable but flattens. Below are the `stretch-*` shapes added
+last — chosen to push past the ranges the rest cover, and named here without
+their prefix — against the strategies nearest the decision, each as a
+multiple of `list` on the same shape:
+
+| shape      | bq-expand | bq-expand-b | bq-expand-zf | build | offsets-quot |
+|------------|----------:|------------:|-------------:|------:|-------------:|
+| inner1     |     0.196 |       0.165 |        0.182 | 0.227 |        0.457 |
+| tall-Mx2   |     0.106 |       0.106 |        0.106 | 0.054 |        0.106 |
+| coprime-r7 |     0.140 |       0.141 |        0.142 | 0.077 |        0.162 |
+| rank12     |     0.376 |       0.384 |        0.394 | 0.316 |        0.472 |
+| tab16MB    |     0.195 |       0.189 |        0.189 | 0.170 |        0.289 |
+
+- **Which strategy wins is decided by the innermost extent (the size of the
+  innermost dimension, `sInner` below) — not by the rank, not by the element
+  count.** `stretch-inner1` is the only shape where
+  `bq-expand` beats `build`, and the only one where `bq-expand{,-b,-zf}`
+  take the top three of the twenty, ahead of every mutable strategy. Its
+  innermost extent is 1, so each base offset covers a single element: the
+  odometer that `mut-odo`/`build` step has nothing to amortize over, while
+  the expansion build has no per-element odometer to begin with. At the
+  other end `stretch-tall-Mx2` has an innermost extent of a million, and
+  `build` wins by 2×. The geomean reports that second case and averages the
+  first away, which is why this table is here.
+- **Per-shape figures are far noisier than the geomean: trust the first
+  digit only.** Two independent runs of these shapes agree within 1–5% on
+  most cells, but differ by 15% on `stretch-rank12/build` and 27% on
+  `stretch-inner1/bq-expand-b`, and the order of `bq-expand{,-b,-zf}` within
+  their sweep of `stretch-inner1` flipped between them. The sweep itself
+  reproduced in both runs; which of the three led did not.
 
 ## The fix in Data/Array/Internal.hs
 
