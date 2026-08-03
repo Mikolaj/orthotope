@@ -7,10 +7,15 @@ executable micro
     main-is:          Main.hs
     default-language: GHC2021
     -- -M2G turns a mistyped shape into a heap-overflow exception instead of
-    -- an OOM: a full run peaks at 297 MiB in use (162 MB max residency), so
-    -- the cap is ~7x the real high-water mark and cannot fire on a shape
-    -- anyone means to add, while `[10000,10000,10]` would want 80GB.
-    ghc-options:      -O1 -rtsopts "-with-rtsopts=-T -M2G"
+    -- an OOM: the cap is many times the real high-water mark, which every
+    -- run now prints for itself from the -T stats below, so it cannot fire
+    -- on a shape anyone means to add, while `[10000,10000,10]` would want
+    -- 80GB. -T is what those printed heap figures need.
+    -- -fno-ignore-asserts because GHC drops `assert` at -O, and the size
+    -- preconditions in Main.hs are asserted rather than dispatched on. Each
+    -- is one test per call, not per element, so it cannot move a per-element
+    -- figure; without the flag they would document without checking.
+    ghc-options:      -O1 -fno-ignore-asserts -rtsopts "-with-rtsopts=-T -M2G"
     build-depends:
         base,
         vector,
