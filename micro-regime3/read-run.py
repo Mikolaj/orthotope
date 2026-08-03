@@ -24,12 +24,17 @@ Definitions, once:
           over shapes: 1.00 is an ordinary bench. It is what identifies a
           bench whose own figures are least trustworthy, and so the one to
           suspect of disturbing whatever shares its process -- `concat-runs`
-          read 2.45 here and has since left the roster.
+          read 2.45 here and is no longer timed.
   alloc   `anRegress[allocated].regCoeffs.iters.estPoint` / (8 * l), i.e. per
           call as a multiple of the result vector, median over shapes, which
-          is what README's column is. The multiples are shape-independent to
-          within half a percent, so the median smooths nothing; it just
-          avoids privileging one shape. `l` is not in the JSON, so it
+          is what README's column is. The multiples were held shape-independent
+          to within half a percent, so that the median smoothed nothing and
+          merely avoided privileging one shape. That is wrong: over the whole
+          shape set they vary by a median 3.93x and a worst 22x, every
+          allocated fit at R2 1.000. The median over a PINNED shape set does
+          reproduce, which is what keeps the column meaningful, so it is a
+          statistic of a strategy and a shape set both (README.md's alloc
+          bullet). `l` is not in the JSON, so it
           is computed from the shape lists in Main.hs; a shape the current
           Main.hs no longer defines reports alloc in bytes instead.
 
@@ -51,7 +56,10 @@ Controls, not strategies: the `*-aa-*` rows (an existing strategy run twice
 under a second name, true ratio exactly 1, so their spread is the noise
 floor) and `sum-only*` (a shared term, and subtracting it from itself divides
 by zero). --no-controls drops them from the aggregates; they are always
-listed by --aa, which is where they say what they are for.
+listed by --aa, which is where they say what they are for. That a control
+carries such a name is what --lint holds Main.hs's roster to, this test
+being the only thing standing between a renamed control and its silently
+entering the aggregates as a strategy.
 
 The one field this script does not read, written down because criterion
 documents it nowhere near to hand: `reportMeasured` is the raw sample list,
@@ -62,7 +70,8 @@ were.
 
 Every mode also warns on stderr about the cells README says to distrust:
 R2 under 0.99, fewer than ten samples, a fit too starved for a confidence
-interval at all. Warnings, not a verdict.
+interval at all, and an ALLOCATED fit under 0.99 where there was allocation
+to fit. Warnings, not a verdict.
 
 Modes:
   (default)         roster summary and the README strategy table
@@ -73,8 +82,8 @@ Modes:
   --exclude S       drop strategy S from every aggregate (repeatable)
   --exclude-shape H drop shape H likewise (repeatable)
   --selftest        check this reader's invariants against the run given
-  --lint            check Main.hs against README and against check's own
-                    agreement chain -- no run file needed
+  --lint            check Main.hs's roster against README and against
+                    itself -- no run file needed
 
 No run artifacts are kept in this directory: the normal state is none, and
 one is made when a question needs it. That is also when this script runs, so
@@ -174,7 +183,14 @@ def load(path, main_hs):
         an = r['reportAnalysis']
         fits = {g['regResponder']: g for g in an['anRegress']}
         t = fits['time']['regCoeffs']['iters']
+        # Criterion writes the two bounds independently, and on a starved fit
+        # it can write ONE of them null -- 4 samples on
+        # stretch-wide-2xM/cm-gather did it. A half-interval is no interval,
+        # so both must be present for a CI at all; guarding on `lo` alone
+        # crashed the reader on the run that first produced such a cell.
         lo, hi = t['estError']['confIntLDX'], t['estError']['confIntUDX']
+        if lo is None or hi is None:
+            lo = hi = None
         slope = t['estPoint']
         alloc = fits.get('allocated')
         alloc_b = alloc['regCoeffs']['iters']['estPoint'] if alloc else None
@@ -185,6 +201,7 @@ def load(path, main_hs):
             ci=None if lo is None else (lo + hi) / 2 / slope * 100,
             ci_hi=None if lo is None else max(lo, hi) / slope * 100,
             alloc_bytes=alloc_b,
+            alloc_r2=(alloc['regRSquare']['estPoint'] if alloc else None),
             alloc=None if (alloc_b is None or not l) else alloc_b / (8 * l))
         if shape not in shapes:
             shapes.append(shape)
@@ -202,9 +219,24 @@ def health(cells, shapes, strategies):
     """What README says to distrust, counted: bad fits and starved cells.
 
     Warnings, not a verdict -- a ramped bench is normal here and shows up as
-    a high mean rather than a low R2 (README.md#r2-is-the-ramp-detector).
+    a high mean rather than a low R2
+    (README.md#r2-is-the-ramp-detector-not-the-noise-detector).
+
+    The ALLOCATED fit is checked too, and used not to be, so a bad one
+    reached the alloc column with nothing saying so. Allocation is
+    near-deterministic per call, so its fit is normally exact -- R2 1.000000
+    is the median over a run -- and anything short of 0.99 means the column's
+    figure for that cell is not to be read. Cells allocating under a tenth of
+    their result are exempt: there is no slope to fit there and the R2 is
+    noise about zero, which is `sum-only` by construction and nothing else so
+    far.
+
+    Non-vacuity, both halves: setting a strategy's allocated R2 to 0.5 warns,
+    and lifting a `sum-only` cell's allocation past the exemption warns on the
+    bad R2 it already had -- so the exemption is what silences those and not
+    something else.
     """
-    bad_fit, starved, no_ci = [], [], []
+    bad_fit, starved, no_ci, bad_alloc = [], [], [], []
     for sh in shapes:
         for st in strategies:
             c = cells[sh][st]
@@ -214,6 +246,9 @@ def health(cells, shapes, strategies):
                 starved.append((c['n'], sh, st))
             if c['ci'] is None:
                 no_ci.append((sh, st))
+            if (c.get('alloc_r2') is not None and c['alloc_r2'] < 0.99
+                    and (c['alloc'] or 0) >= 0.1):
+                bad_alloc.append((c['alloc_r2'], sh, st))
     out = []
     if bad_fit:
         r2, sh, st = min(bad_fit)
@@ -226,6 +261,11 @@ def health(cells, shapes, strategies):
     if no_ci:
         out.append('%d cell(s) with no confidence interval (starved fit): %s'
                    % (len(no_ci), ', '.join('%s/%s' % p for p in no_ci[:3])))
+    if bad_alloc:
+        r2, sh, st = min(bad_alloc)
+        out.append('%d cell(s) with an allocated R2 < 0.99, worst %.4f on'
+                   ' %s/%s -- their alloc column figures are not readable'
+                   % (len(bad_alloc), r2, sh, st))
     for line in out:
         sys.stderr.write('warning: ' + line + '\n')
 
@@ -428,14 +468,51 @@ def cell_dump(cells, shapes, strategies):
                      'NA' if c['alloc'] is None else '%.4f' % c['alloc']))
 
 
+ARM_RE = re.compile(r'^\s*[\[,]\s*\("([^"]+)",\s*'
+                    r'(Base|Fill|Twin|Term|Only)(?:\s+(fb\w+))?\)')
+
+
+def roster_of(main):
+    """Main.hs's `roster` as (name, role, function) triples, in run order.
+
+    That list is the single source both the benchmark and `check` are built
+    from, so what this parses is what actually runs and what is actually
+    checked -- there is no second list left to compare it against.
+    """
+    out = []
+    lines = main.split('\n')
+    try:
+        i = next(k for k, l in enumerate(lines) if l.startswith('roster ='))
+    except StopIteration:
+        return out
+    for line in lines[i + 1:]:
+        m = ARM_RE.match(line)
+        if m:
+            out.append((m.group(1), m.group(2), m.group(3)))
+        elif line.strip() == ']':
+            break
+    return out
+
+
 def lint(main_hs, readme):
     """Static checks over Main.hs and README.md, needing no run at all.
 
-    Two questions that came up repeatedly and were answered by one-liners
-    each time: is every bench documented, and is every benchmarked strategy
-    also held to the reference by @check@? Both go stale silently -- a
-    strategy added to the roster and to nothing else still runs, still
-    passes, and is described nowhere.
+    The question this used to ask second -- is every benchmarked strategy
+    also held to the reference by `check`? -- is gone, and deliberately: the
+    roster and the agreement chain were two hand-written lists of the same
+    strategies, one list now builds both, and the drift cannot happen rather
+    than being merely detectable. A check that cannot fail is a silent
+    search, so what replaced it are the ways that one list can still be
+    wrong: an arm nobody documented, a strategy defined and rostered
+    nowhere, an A/A control not duplicating what its name claims, a control
+    named so that this reader counts it as a strategy.
+
+    Non-vacuity, each confirmed by breaking it: renaming a bench in the
+    roster fails the README check, commenting an entry out fails the
+    rostered check, pointing a `-aa` arm at another function fails the twin
+    check, renaming a `Twin` arm to drop its `-aa` fails both the twin and
+    the control-naming ones, and a second `Base` entry fails the reference
+    check. Each names the arm at fault rather than only the count.
     """
     try:
         main = open(main_hs).read()
@@ -443,31 +520,72 @@ def lint(main_hs, readme):
     except OSError as e:
         sys.stderr.write('lint: %s\n' % e)
         return 2
-    benches = sorted(set(re.findall(r'bench "([^"]+)"', main)))
-    undocumented = [b for b in benches if b not in doc]
-    # 'fbList' is the reference the chain compares against, not a conjunct.
-    benched = set(re.findall(r'whnf \(VS\.sum \. (fb\w+) sh\)', main))
-    chained = set(re.findall(r'rList == (fb\w+)', main)) | {'fbList'}
-    unchecked = sorted(benched - chained)
-    unbenched = sorted(chained - benched - {'fbList'})
+    roster = roster_of(main)
+    if not roster:
+        print('FAIL: no roster parsed out of %s, so none of the checks below'
+              ' happened' % main_hs)
+        return 1
+    names = [n for n, _, _ in roster]
+    timed = [n for n, r, _ in roster if r != 'Only']
+    fun = {n: f for n, _, f in roster}
+    defined = set(re.findall(r'^(fb\w+)\s*::', main, re.M))
+    rostered = {f for _, _, f in roster if f}
+    twins = [(n, f) for n, r, f in roster if r == 'Twin']
 
     bad = []
+    undocumented = [n for n in names if n not in doc]
     if undocumented:
-        bad.append('%d bench(es) named nowhere in README: %s'
+        bad.append('%d roster arm(s) named nowhere in README: %s'
                    % (len(undocumented), ', '.join(undocumented)))
     else:
-        print('ok:   all %d benches are named somewhere in README'
-              % len(benches))
-    if unchecked:
-        bad.append('%d benchmarked function(s) missing from check\'s'
-                   ' agreement chain: %s' % (len(unchecked),
-                                             ', '.join(unchecked)))
+        print('ok:   all %d roster arms are named somewhere in README, %d of'
+              ' them timed' % (len(names), len(timed)))
+
+    unrostered = sorted(defined - rostered)
+    if unrostered:
+        bad.append('%d strategy function(s) defined but absent from the'
+                   ' roster, so neither timed nor checked: %s'
+                   % (len(unrostered), ', '.join(unrostered)))
     else:
-        print('ok:   every benchmarked function is in check\'s chain (%d of'
-              ' them, plus fbList as the reference)' % len(benched))
-    if unbenched:
-        print('note: checked but not benchmarked, which is deliberate for a'
-              ' strategy dropped from the roster: %s' % ', '.join(unbenched))
+        print('ok:   every fb function defined in Main.hs is in the roster'
+              ' (%d of them, one of which is the reference)' % len(rostered))
+
+    off = []
+    for n, f in twins:
+        base = twin_of(n)
+        if base is None:
+            off.append('%s is an A/A control whose name has no -aa' % n)
+        elif base not in fun:
+            off.append('%s names %s, which is not in the roster' % (n, base))
+        elif fun[base] != f:
+            off.append('%s runs %s where %s runs %s'
+                       % (n, f, base, fun[base]))
+    if off:
+        bad.append('A/A control(s) not duplicating what the name says: %s'
+                   % '; '.join(off))
+    elif twins:
+        print('ok:   each of the %d A/A controls runs the same function as'
+              ' the arm its name duplicates' % len(twins))
+
+    mislabelled = [n for n, r, _ in roster
+                   if is_control(n) != (r in ('Twin', 'Term'))]
+    bases = [n for n, r, _ in roster if r == 'Base']
+    if mislabelled:
+        bad.append('%d arm(s) whose name and role disagree, so this reader'
+                   ' would file them in the wrong column: %s'
+                   % (len(mislabelled), ', '.join(mislabelled)))
+    if len(bases) != 1:
+        bad.append('%d Base arm(s), want exactly one -- the reference every'
+                   ' other arm is held to: %s'
+                   % (len(bases), ', '.join(bases) or 'none'))
+    if not mislabelled and len(bases) == 1:
+        print('ok:   every control is named as this reader\'s own control'
+              ' test reads it, and %s alone is the reference' % bases[0])
+
+    only = [n for n, r, _ in roster if r == 'Only']
+    if only:
+        print('note: rostered and checked but deliberately not timed, with'
+              ' the reason at the entry: %s' % ', '.join(only))
     for line in bad:
         print('FAIL: ' + line)
     return 1 if bad else 0

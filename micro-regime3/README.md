@@ -70,33 +70,76 @@ faithfully (specialised to `Storable Double`, horde-ad's element storage),
 then compares the regime-3 strategies in one binary — the real orthotope
 compiles only one at a time, so a replica is the only way to A/B them.
 
-The originals and the first attempt:
+The originals, the first attempt, and the two odometer fills:
 
     list         original fallback: vFromListN l . toListT (lazy cons-list)
     gen-quotrem  first attempt: vGenerate + per-element quotRem (one per rank)
     gen-unsafe   gen-quotrem with unsafeIndex, to price the bounds check
     unfold-add   unfoldrExactN with an allocating immutable-list odometer
+    fused        unfold-add's allocation-free completion: run base-offsets
+                 precomputed, then a strict three-Int unfoldrExactN state
+                 whose hot path is a single add
 
 The **run base-offsets family** — same output (one `vGenerate` with one
 `quotRem` per element, reading a precomputed `m`-element run base-offsets
-table); they differ *only* in how that table is built, except the last, which
-holds the build at `bq-expand` and varies that output instead:
+table); these differ *only* in how that table is built:
 
     offsets-quot base-offsets via fromListN . runBaseOffsets (a lazy build/foldr list)
+    bq-mut       base-offsets via a VS.create mutable odometer (concrete Int scratch)
+    bq-mut-runs  bq-mut with the innermost outer dim written by an additive loop
     bq-unfold    base-offsets via VS.unfoldrExactN (pure-typed, immutable-list state)
     bq-gen       base-offsets via VS.generate + one quotRem per run
-    bq-mut       base-offsets via a VS.create mutable odometer (concrete Int scratch)
-    bq-expand    base-offsets via iterated VS.concatMap expansion   <-- SHIPPED
-    bq-expand-zf bq-expand with the zip and fold fused into one recursion
-    bq-expand-b  bq-expand seeded from the first dim's enumFromStepN
     bq-gen-lemire
                  bq-gen with its per-run, per-dimension build quotRems replaced
                  by Lemire multiply-highs (1.30x SLOWER; the losing measurement
                  is kept in the suite so the idea is not proposed again)
+    bq-expand    base-offsets via iterated VS.concatMap expansion   <-- SHIPPED
+    bq-expand-zf bq-expand with the zip and fold fused into one recursion
+    bq-expand-b  bq-expand seeded from the first dim's enumFromStepN
+
+and these hold the build at one of the above and vary the per-element output
+instead — the line every member of the family ends in, so pricing it once
+prices it for all of them:
+
+    bq-expand-qr-prim
+                 bq-expand with the output quotRem replaced by the primop it
+                 wraps, which prices GHC's two guards on it apart from
+                 deleting the division
     bq-expand-lemire-out
                  bq-expand with the shared per-element OUTPUT quotRem replaced
                  by a Lemire multiply-high (see Results; faster pure
                  strategies have been measured since)
+    bq-expand-lemire-mulback
+                 lemire-out in the leaner form orthotope would ship: the
+                 quotient from the multiply-high, the remainder as i - q*s
+    bq-expand32-lemire-mulback
+                 that, with the table and every concatMap intermediate at Int32
+    bq-mut-lemire-out
+                 the same output substitution against bq-mut's unrelated build
+    bq-mut-lemire-mulback
+                 and the mul-back form of it
+    bq-mut-runs-mulback
+                 the fastest build and the fastest output put together
+    bq-mut-runs-gm-mulback
+                 that, with a Granlund-Montgomery quotient instead: one extra
+                 shift per element and no l < 2^32 bound
+    bq-scan-mulback
+                 the mul-back output over a table built as a prefix sum of a
+                 generated delta stream -- pure, no mutable scratch
+    bq-scan-rem-mulback
+                 bq-scan-mulback with the build's divisibility test by quotRem
+                 rather than multiply-high, shedding the builder's own bound
+    bq-scan-gm-mulback
+                 bq-scan-mulback with the Granlund-Montgomery quotient
+    bq-scan-rem-gm-mulback
+                 both of those at once: the one composition here carrying no
+                 size precondition anywhere
+    bq-odo-mulback
+                 the scan's table by an adds-only unfoldrExactN odometer, no
+                 per-entry division or multiplication at all
+    bq-scan-packed-mulback
+                 the scan's stream state packed into one Int, the constructive
+                 test of the bare-Int-state law
 
 Whole-offset / alternative-gather variants:
 
@@ -104,21 +147,44 @@ Whole-offset / alternative-gather variants:
     cm-gather    fused map . concatMap gather (no output quotRem at all)
     all-expand   full offset grid via concatMap expansion, then map gather
     offtab       full offset table via a mutable odometer, then vGenerate gather
+    offtab32     offtab with that table narrowed to Int32
+    offtab-scan  offtab with that table built by the scan, so nothing of it is
+                 mutable -- the bet did not survive measurement
 
 Direct mutable result-buffer fills (need a class extension / mutation):
 
     mut-odo      walk the outer odometer, write each run with a tight
                  additive inner loop straight into the result buffer
+    mut-odo-vecdims
+                 mut-odo with the odometer's dimension lists replaced by
+                 unboxed vectors -- the fastest strategy measured
     mut-offsets  as mut-odo but iterating the precomputed run base-offsets list
     build        mut-odo through vBuildVS, a prototype of the one new Vector
                  method such a fill would need (prices the abstraction)
+    mut-flat     bq-mut-runs-mulback's table and per-element arithmetic in a
+                 flat ST loop rather than a vGenerate, so the pair prices the
+                 output mechanism alone
 
     concat-runs  class-methods-only: per-run vGenerate + vConcat (mirrors
                  the regime-2 branch, but with strided runs) -- checked but
                  no longer timed, see below
 
+That is the order `Main.hs` defines them in, and the order to read them in.
+The order they are *run* in is deliberately a different one, fixed by
+`roster` in that file so the controls straddle what they price; the Results
+table below is sorted by time, a third. Sharing that roster with the
+strategies, and not strategies themselves, are three A/A controls and the
+`sum-only` pair — [the noise floor](#the-noise-floor-is-2-not-the-ci) and
+[sum-only](#sum-only-and-why-no-corrected-column-is-published) say what each
+is for.
+
 The `check` mode (below) asserts every strategy produces byte-identical
-vectors on every shape, and that each shape actually takes regime 3.
+vectors on every shape, and that each shape actually takes regime 3. It is
+built from that same `roster`, so a strategy cannot be timed without being
+checked; what that leaves to go stale, `read-run.py --lint` holds — every arm
+named here, every strategy defined in `Main.hs` rostered, each A/A control
+running the arm its name duplicates, and every control named as the reader's
+own control test reads it.
 
 `concat-runs` is the one strategy `check` covers and the benchmark does not.
 It was by a clear margin the noisiest bench of the set — Failed Run 6's single
@@ -155,21 +221,44 @@ after the cabal file's so the later `-O` wins: `-fspec-constr` for Run 7
 (SpecConstr), `-O2` for the half of the scan-fusion refutation
 that inverts there (a `diag` at -O2 is what measures it).
 
-The allocation fit `--regress allocated:iters` is on by default (it is
-well-conditioned at 5s), so `alloc` comes out of the same process as the
-times rather than a side run. Passing `--regress` explicitly replaces it.
+Those are all probes. A run whose numbers are meant to be kept and written
+into this file is a different undertaking, and has a procedure of its own:
+[Making a major benchmark run](#making-a-major-benchmark-run).
 
-A run also prints its own provenance to stderr when it finishes — roster
-size, shape count, wall clock and the two heap peaks — so a document quoting
-its scale copies a measured number rather than counting benches by hand, and
-so the `-M2G` headroom claim in `micro.cabal` has a current source. Redirect
-stderr into the log (`> run.log 2>&1`) to keep it. That leaves `--json FILE`
-as the only thing a full run needs from the invoker, plus the build flag when
-the run is Run 7 (SpecConstr).
+## Making a major benchmark run
 
-The JSON it writes is then read by `read-run.py` in this directory, which is
-where every table in this document comes from — see [Reading the
-results](#reading-the-results) before writing any analysis of a run.
+A *major run* is the whole roster over the whole shape set at criterion's
+default budget, analysed and written into this file; everything above is a
+probe beside it. What follows is the procedure, and it is written to outlive
+any one run.
+
+**Where.** A session starts in `~/r/horde-ad`, which leaves *that*
+repository's `CLAUDE.md` resident while this one is not governed by it; read
+this file and `read-run.py`'s docstring instead, orthotope carrying no
+`CLAUDE.md` of its own. Then:
+
+    cd ~/r/orthotope/micro-regime3
+
+**Before spending the hours**, three cheap checks:
+
+    cabal build micro
+    cabal run micro -- check     # every strategy agrees, every shape regime 3
+    ./read-run.py --lint         # the roster, against this file and itself
+
+**The run** is one command, the build flag going before the `--` when the
+name asks for one:
+
+    cabal run micro -- --json RUN.json > run.log 2>&1
+    cabal run micro --ghc-options=-fspec-constr -- --json RUN.json > run.log 2>&1
+
+Everything else is already a default. The allocation fit
+`--regress allocated:iters` is on (it is well-conditioned at 5s), so `alloc`
+comes out of the same process as the times rather than a side run; passing
+`--regress` explicitly would replace it. The run prints its own provenance to
+stderr as it finishes — roster size, shape count, wall clock and the two heap
+peaks — so a document quoting its scale copies a measured number rather than
+counting benches by hand, and so `micro.cabal`'s `-M2G` headroom claim has a
+current source; the stderr redirect above is what keeps it.
 
 **The time budget is always criterion's default.** Raising `-L` would buy
 samples for the slowest shapes -- they bottom out around 6 where the fastest
@@ -178,6 +267,28 @@ hours. Every recorded run therefore uses the default, so figures stay
 comparable between runs and the sample counts in the tables mean the same
 thing throughout. Where that leaves a shape thinly measured, the `smp` and
 `CI%` columns say so rather than the budget hiding it.
+
+Expect a couple of hours, so run it in the background — and **run nothing
+else on this machine while it does**. Every strategy shares one process
+precisely so that the figures are commensurable, and the [noise
+floor](#the-noise-floor-is-2-not-the-ci) section is the measured evidence that
+they move with what shares that process. What the rest of the machine does on
+top of that is unmeasured, and a recorded run is the wrong place to find out.
+
+**After it lands:**
+
+- analyse with `./read-run.py`, which is where every table in this file comes
+  from — read [Reading the results](#reading-the-results) first, and do not
+  write another reader;
+- walk the list under [Provenance](#provenance) of what the new numbers
+  replace, and do not trust it to be complete: re-run the two sweeps it names,
+  since it has been wrong before;
+- record beside the numbers the run's name and regime, its stderr provenance
+  line, and which machine (this page's figures are one desktop's and are not
+  portable — see [Provenance](#provenance));
+- keep no JSON here afterwards. The normal state of this directory is no run
+  artifact at all, which is decided rather than an oversight; the numbers live
+  in this file and the artifact does not.
 
 ## Where the shapes come from
 
@@ -274,10 +385,21 @@ How to read the columns:
   slow call buys fewer samples; this is where that shows.
 - **alloc** is bytes per call as a multiple of the result vector (`8*l`), the
   median over shapes of the `allocated` fit the harness now runs on every
-  bench of every shape. The multiples are shape-independent — refitted on a
-  different shape, every one reproduced to within 0.4% — so the median is a
-  formality rather than a smoothing, and the column does not move with what
-  it was fitted on.
+  bench of every shape. The multiples were held to be shape-independent —
+  refitted on a different shape, every one reproduced to within 0.4% — so that
+  the median was a formality rather than a smoothing and the column did not
+  move with what it was fitted on. **That is wrong.** Over the whole shape set
+  41 of 42 strategies vary by more than 5% from shape to shape, the median
+  strategy by 3.93× and the worst by 22×, and three shapes of identical
+  `l` = 1800000 give `bq-expand` 2.778×, 3.000× and 3.642×. Every allocated
+  fit sits at R² 1.000, so the spread is the quantity and not the measurement,
+  and allocation being deterministic per call the budget does not bear on it —
+  the run behind this was a rough one and that costs the figures nothing.
+  What does survive is the column: a median over a *pinned* shape set
+  reproduces, this run landing `list` at 27.67× and `unfold-add` at 29.89×
+  where Failed Run 6's 35 shapes gave 27.67× and 29.90×. So read `alloc` as a
+  statistic of a strategy **and** a shape set, and pin the shape set before
+  comparing it across runs, exactly as the `time` column already asks.
 
 | strategy | time | CI% | smp | alloc | needs | precondition |
 |---|---:|---:|---:|---:|---|---|
@@ -319,7 +441,7 @@ How to read the columns:
 | all-expand | 0.460 | 0.34 | 76 | 12.65x | nothing (pure) | |
 | bq-gen-lemire | 0.506 | 0.89 | 65 | 4.00x | nothing (pure) -- refuted | `l < 2^32` |
 | backperm | 0.563 | 0.53 | 69 | 18.40x | nothing (pure) | |
-| *concat-runs* | *0.583* | *0.82* | *70* | *11.23x* | *nothing (class-only) -- dropped from the roster since, see above* | |
+| *concat-runs* | *0.583* | *0.82* | *70* | *11.23x* | *nothing (class-only) -- no longer timed, see above* | |
 | cm-gather | 0.686 | 0.51 | 64 | 23.15x | nothing (pure) | |
 | list (baseline) | 1.000 | 0.38 | 58 | 27.67x | -- | |
 | unfold-add | 1.005 | 0.68 | 57 | 29.90x | nothing (pure) | |
@@ -446,7 +568,7 @@ now `stretch-tab7MB`, `stretch-square-1400` is `stretch-square-1341`,
 `stretch-tall-Mx2` keep their names on smaller dimensions, and
 `vgg-28-c256-k3` and `resnet-stem-112-c3-k7` are flagged rather than run. The
 single `sum-only` bench has become the pair described above, and `concat-runs`
-has left the roster for the reason given with the strategy list. All of that
+is no longer timed, for the reason given with the strategy list. All of that
 postdates these numbers — and the roster changes among them are the kind this
 page's own noise-floor section says to pin before comparing across runs, so
 Run 6 (-O1) is a fresh baseline rather than a continuation of this one.
@@ -457,28 +579,72 @@ section](#lemire-multiplicative-inverses-at-the-two-division-sites) rests on.
 None of it is portable, so a run elsewhere is a different measurement rather
 than a repetition, and should say which machine here.
 
-**What Run 6 (-O1) replaces.** Failed Run 6's numbers live in these places
-and nowhere else, so this is the list to walk when the new ones land:
+**What Run 6 (-O1) replaces.** Failed Run 6's numbers reach well past the
+Results table, so this is the list to walk when the new ones land. It is only
+as good as its own completeness, and it has not been: six of the sections
+below were on no earlier version of it, and the previous update leaked past
+it in a way still visible in the `gen-lemire` entry. Both sweeps that found
+them are cheap to repeat — grep this file for figure-shaped numerals outside
+the tables, and grep it for `Failed Run 6` — so repeat them rather than
+trusting this list to have stayed complete.
 
 - the Results table, all four columns, from `./read-run.py RUN.json`;
 - the noise-floor table, from `--aa` — and mind which pairs' arms dropped the
-  same shape, since only those two ratios mean the same thing;
+  same shape, since only those two ratios mean the same thing — with the
+  prose around it, which carries 0.074/0.092/0.099 and the 1.33x-against-4.17x
+  argument that the floor tracks 1/time rather than GC pressure;
 - the opening section's headline claims: `mut-odo` 1.2× and `mut-odo-vecdims`
   2.4× over `bq-expand`, `bq-scan-packed-mulback` 0.124 against 0.179,
   `bq-scan-rem-gm-mulback` 0.160;
-- `bq-expand-lemire-out`'s 0.936× and its 0.165-against-0.179 pair;
-- the Lemire section's `gen-quotrem` against `bq-expand` gap;
+- **What the table says**, where every bullet is a Failed Run 6 figure: the
+  build ordering 0.179/0.166/0.257/0.333/0.391, `gen-quotrem` at 1.060, and
+  the allocation multiples 4.2×/6.7×/1.0×/28×;
+- **The mutable ceiling (not taken)**: 0.148 for `mut-odo`, `build` and
+  `offtab`, 0.074, 0.124, and the "1.7×, not 2.4×" that closes it. This one
+  and the next are rulings resting on figures, so stale numbers there re-open
+  a decision rather than merely misreport one;
+- **Why there is no gen-lemire**: 1.096 against 0.179, the 13.0× allocation,
+  4.2×. Two of its figures are already stale and disagree with each other —
+  it calls `gen-quotrem` and `gen-unsafe` "both 1.060" and the gap 5.9× where
+  the Results table says 1.096 and 1.067 and the same section says 6.1×, the
+  last update having moved the headline and left the argument. Settle which,
+  and note that a tie is what made the bounds-check control "buy nothing":
+  1.096 against 1.067 is 2.7%, just outside this page's own ~2% floor;
+- **sum-only**: the 0.179→0.155 and 0.124→0.099 corrections and the 11-15%.
+  This is also the run that decides whether the correction is published at
+  all, its two halves being the test;
+- `concat-runs`' "2.5× the shape's typical CI", in **What the benchmark does**
+  and again in `Main.hs`'s `roster`;
+- **R2 is the ramp detector**: "13 cells of 1540", a count over a roster and
+  shape set that no longer exist;
+- the Lemire section's `gen-quotrem`-against-`bq-expand` gap, and
+  `bq-expand-lemire-out`'s 0.936×, its 0.934× slope, its 0.875-to-0.987 range
+  and its 0.165-against-0.179 pair;
 - `bq-gen-lemire`'s 1.30× loss, in the strategy list as well as in Results;
+- the `alloc` column's shape-independence, which is refuted rather than open:
+  the multiples vary across shapes by a median 3.93× where this page and
+  `read-run.py` said half a percent, so the median over shapes is a smoothing
+  and not the formality they call it. Both now say so; what is left for a run
+  is to confirm it at full budget and to carry the consequence through — every
+  multiple quoted in a `Main.hs` comment is a property of a strategy *and* a
+  shape set, and the column wants the shape set pinned before it is compared
+  across runs, as the `time` column already does;
+- the per-shape `stretch-*` table, which says it predates Failed Run 6: Run 6
+  can replace it or leave it saying so, but not silently inherit it;
 - this section, which becomes Run 6 (-O1)'s own provenance;
-- `read-run.py`'s docstring, whose validation paragraph names Failed Run 6;
+- `read-run.py`'s docstring, whose validation paragraph names Failed Run 6 and
+  whose `alloc` definition carries the shape-independence claim above;
 - `micro.cabal`'s `-M2G` note, if the heap peaks the run prints have moved;
-- `Main.hs`, wherever a comment cites a figure: the A/A spread in `mkBench`,
-  the allocation multiples at `baseOffsetsScan` and `fbBQscanPackedMulback`,
-  the tie at `fbBQscanRemGmMulback`.
+- `Main.hs`, wherever a comment cites a figure: the A/A spread and the
+  `concat-runs` case, both in `roster`; the allocation multiples at
+  `baseOffsetsScan` and `fbBQscanPackedMulback`; the tie at
+  `fbBQscanRemGmMulback`; `fbMutOdoVecdims`' "half its control's time" and
+  "fastest of everything measured"; `fbBQmutRunsGmMulback`'s "~10% behind";
+  and `fbBQscanMulback`'s 1.33x "at the fastest pure time in the table".
 
-Keep the run's own stderr line — roster, wall clock, heap peaks — beside the
-numbers it produced, and say which optimisation regime built it: the JSON
-records neither, and Run 7 (SpecConstr) will look identical.
+How a run is made, and what to record beside its numbers, is [Making a major
+benchmark run](#making-a-major-benchmark-run) — which is also where the walk
+of the list above is one of the steps.
 
 Four rows are not comparable to earlier runs, all from strictness fixes that
 moved code toward what its comment already claimed: `bq-scan-packed-mulback`
@@ -506,7 +672,8 @@ script rather than starting over.
     ./read-run.py RUN.json --cells          # every cell as TSV, for the rest
     ./read-run.py RUN.json --selftest       # check the reader's own invariants
     ./read-run.py RUN.json --exclude concat-runs --exclude-shape deep-7-c512-k3
-    ./read-run.py --lint                    # Main.hs against README and check
+    ./read-run.py --lint                    # Main.hs's roster, against README
+                                            # and against itself
 
 **No run artifacts are kept here.** The normal state of this directory is no
 JSON at all, and one is made when a question needs it — which is the same
@@ -521,13 +688,23 @@ so and skips the trim rather than dividing by an empty set. Failed Run 6's
 JSON is gone with the rest, so the tables in this document cannot be
 re-derived — Run 6 (-O1) replaces them.
 
-`--lint` needs no run at all, which is this directory's usual state. It asks
-the two questions that go stale silently: is every bench named somewhere in
-this file, and is every benchmarked strategy also held to the reference by
-`check`? A strategy added to the roster and to nothing else still runs, still
-passes, and is described nowhere. It reports the reverse direction — checked
-but not benchmarked — as a note rather than a failure, that being deliberate
-for `concat-runs`.
+`--lint` needs no run at all, which is this directory's usual state. It reads
+`roster` out of `Main.hs` — the one list both the benchmark and `check` are
+built from — and asks the four things about it that go stale silently: is
+every arm named somewhere in this file; is every strategy defined in
+`Main.hs` rostered, so that none is left neither timed nor checked; does each
+A/A control run the same function as the arm its name duplicates; and is
+every control named as the reader's own control test reads it, since a
+renamed one would enter the aggregates as a strategy. An arm rostered and
+deliberately not timed is a note rather than a failure, that being the case
+of `concat-runs`.
+
+The question it used to ask second — is every benchmarked strategy also held
+to the reference by `check`? — is gone, and deliberately. The roster and the
+agreement chain were two hand-written lists of the same strategies, and that
+check compared them; one list now builds both, so the drift cannot happen
+rather than being merely detectable. A check that cannot fail is a silent
+search, so it was replaced rather than kept.
 
 `--selftest` checks invariants of whatever run it is given: that the dims it
 parses out of `Main.hs` match that file's own `l` annotations, that every cell

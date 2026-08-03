@@ -9,6 +9,10 @@
 -- 'regimeOf' checks it really is one, and the @check@ main mode asserts all
 -- strategies agree.
 --
+-- The strategies are defined below in the four families README.md groups them
+-- into, base before variant; 'roster' holds the different order they are RUN
+-- in, and is the one list both the benchmark and @check@ are built from.
+--
 -- @README.md@ next to this file is the standalone account -- the full
 -- strategy list, shape rationale, the numbers and the verdicts (kept there,
 -- not in source, so they don't go stale).
@@ -22,7 +26,7 @@ import Data.Bits ((.&.), countLeadingZeros, shiftR)
 import Data.Int (Int32)
 import Data.List (foldl')
 import Criterion.Main
-import Criterion.Types (Config(regressions), benchNames)
+import Criterion.Types (Config(regressions))
 import qualified Data.Vector.Storable as VS
 import qualified Data.Vector.Storable.Mutable as VSM
 import GHC.Exts (build, int2Word#, quotRemInt#, timesWord2#, word2Int#,
@@ -111,53 +115,81 @@ lemireFits l = l <= 4294967296  -- 2^32
 int32Fits :: VS.Vector Double -> Bool
 int32Fits v = VS.length v <= 2147483648  -- 2^31
 
--- The strategies compared (README.md#what-the-benchmark-does).
+-- The division tricks the builders and the strategies below both reach for.
 
--- Strategy A: the original fallback.
-{-# NOINLINE fbList #-}
-fbList :: ShapeL -> T -> VS.Vector Double
-fbList sh a = VS.fromListN l (toListT sh a) where l = product sh
+-- Lemire's multiplicative-inverse division (arXiv 2012.12369): with
+-- @M = floor(2^64/d) + 1@ precomputed once per divisor, @n div d@ is the high
+-- word of @M*n@ and @n mod d@ the high word of @(M*n)*d@ -- two 64x64->128
+-- multiplies instead of a division.  Valid for @d, n < 2^32@, which every
+-- outer natural stride and run index here is.  @d == 1@ is the one case the
+-- formula overflows (M would be 2^64), so it is taken separately and flagged
+-- by a 0 magic, which no legal divisor can produce.  @d == 0@ takes the same
+-- exit for a different reason: the formula would divide by zero, and a zero
+-- extent means @l == 0@, so whatever magic it yields is never read.  Keeping
+-- 'magicOf' total on non-negative divisors is what lets the degenerate shapes
+-- in 'degenerateShapes' reach 'check' at all.
+{-# INLINE mulhi #-}
+mulhi :: Word -> Word -> Word
+mulhi (W# a) (W# b) = case timesWord2# a b of (# hi, _ #) -> W# hi
 
--- Strategy B: the first attempt -- vGenerate + linear-index-to-offset by
--- quotRem (the PR's point 1), one division per rank. Why it is a mixed
--- picture rather than a fix: README.md#reading-the-results.
-{-# NOINLINE fbGenQuotRem #-}
-fbGenQuotRem :: ShapeL -> T -> VS.Vector Double
-fbGenQuotRem sh (T ats ao v) =
-  VS.generate l (\i -> v VS.! (ao + offsetOf i ts' ats))
-  where l : ts' = getStridesT sh
-        offsetOf i (t:ts) (s:ss) = case i `quotRem` t of
-                                     (!q, !r) -> q * s + offsetOf r ts ss
-        offsetOf _ _      _      = 0
+{-# INLINE magicOf #-}
+magicOf :: Int -> Word
+magicOf d | d <= 1 = 0
+          | otherwise = (maxBound `quot` fromIntegral d) + 1
 
--- Strategy C: as B but with unsafeIndex, to isolate the bounds-check cost.
-{-# NOINLINE fbGenUnsafe #-}
-fbGenUnsafe :: ShapeL -> T -> VS.Vector Double
-fbGenUnsafe sh (T ats ao v) =
-  VS.generate l (\i -> VS.unsafeIndex v (ao + offsetOf i ts' ats))
-  where l : ts' = getStridesT sh
-        offsetOf i (t:ts) (s:ss) = case i `quotRem` t of
-                                     (!q, !r) -> q * s + offsetOf r ts ss
-        offsetOf _ _      _      = 0
+-- One 'timesWord2#' yields both halves of @M*n@: the quotient is its high
+-- word, and its low word is exactly the product the remainder step needs. An
+-- earlier version took the quotient from 'mulhi' and then recomputed the low
+-- half as a separate @m * nw@, which is a third multiply the algorithm does
+-- not call for; a Core dump is what showed it, and fixing it is what turned
+-- the output site into a win
+-- (README.md#lemire-multiplicative-inverses-at-the-two-division-sites).
+-- Both result components are forced here rather than left to the caller's
+-- @(!q, !j)@ pattern: inlined into a strict case GHC fuses the tuple away
+-- either way, but the bangs are what keep a context where it does not inline
+-- -- another GHC, a bigger enclosing loop -- from building a remainder thunk
+-- per element.
+{-# INLINE fastQR #-}
+fastQR :: Word -> Int -> Int -> (Int, Int)
+fastQR 0 _ n = (n, 0)
+fastQR (W# m) d (I# n) = case timesWord2# m (int2Word# n) of
+  (# hi, lo #) -> let !q = I# (word2Int# hi)
+                      !r = fromIntegral (mulhi (W# lo) (fromIntegral d))
+                  in  (q, r)
 
--- Strategy D: unfoldrExactN with an additive odometer state (point 2) --
--- no division, but an immutable list state rebuilt each step. It is an
--- allocating proxy for the truly fused, allocation-free form, which is
--- 'fbFused' below (README.md#reading-the-results).
-{-# NOINLINE fbUnfoldAdd #-}
-fbUnfoldAdd :: ShapeL -> T -> VS.Vector Double
-fbUnfoldAdd sh (T ats ao v) =
-  VS.unfoldrExactN l step (ao, replicate (length sh) 0)
-  where l = product sh
-        rsh = reverse sh
-        rts = reverse ats
-        step (!o, is) = (v VS.! o, adv o is rsh rts)
-        adv !o []       _        _        = (o, [])
-        adv !o (i : js) (n : ns) (s : ss)
-          | i + 1 < n = (o + s, (i + 1) : js)
-          | otherwise = let (!o', js') = adv (o - i * s) js ns ss
-                        in  (o', 0 : js')
-        adv !o _ _ _ = (o, [])
+-- Granlund-Montgomery round-up magic for dividends below 2^63 -- which is
+-- every nonnegative Int, so every vector index -- against the Lemire form's
+-- @n < 2^32@. With @L = ceil(log2 d)@ and @M = 2^(63+L) `div` d + 1@, the
+-- quotient of any such n by d is @mulhi M n >> (L-1)@: one multiply-high
+-- and one shift, no fixup branch, no bound on the array. The magic-width
+-- theorem behind it: a round-up magic of width dividend-bits + L is exact,
+-- and Int dividends spend only 63 bits, so M always fits one Word for
+-- d >= 2 and the general form's 65-bit add-fixup never arises. Powers of
+-- two need no special case (d = 2^L gives M = 2^63 + 1, whose
+-- multiply-and-shift is exactly @n >> L@); @d <= 1@ returns the (0, 0)
+-- sentinel, total for the same reason 'magicOf' is -- the callers' banged
+-- bindings force it on paths their @s == 1@ guard never uses. The setup
+-- division runs through Integer, once per call. Correctness is gated by
+-- the agreement check like everything else, but its hard cases (l at and
+-- past 2^32) are unreachable by any buildable shape -- a shipped form owes
+-- the helper a standalone property test against 'quotRem' over adversarial
+-- (n, d).
+{-# INLINE gmMagic #-}
+gmMagic :: Int -> (Word, Int)
+gmMagic d
+  | d <= 1 = (0, 0)
+    -- Both components forced here rather than left to the callers' banged
+    -- bindings, for the reason 'fastQR' gives: it costs nothing where the
+    -- caller does force them, and keeps a context that does not from
+    -- carrying two thunks into a per-element loop.
+  | otherwise = let !mg = fromInteger (2 ^ (63 + lg) `div` toInteger d + 1)
+                    !sh = lg - 1
+                in  (mg, sh)
+  where !lg = 64 - countLeadingZeros (fromIntegral d - 1 :: Word)
+
+-- The run base-offsets table: the same @product (init sh)@ offsets, built
+-- every way the strategies below want them. 'baseOffsetsList' is the
+-- reference @check@'s @builds@ arm holds the rest to.
 
 -- Base offset of each innermost run, row-major over the outer dims (all
 -- dims but the innermost). Built by the same shared-offset odometer
@@ -286,76 +318,6 @@ baseOffsetsGen o0 osh oats = VS.generate (product osh) baseOffset
         go qq (nt : nts') (st : sts') = case qq `quotRem` nt of
                                           (!a, !b) -> a * st + go b nts' sts'
         go _  _          _          = 0
-
--- Lemire's multiplicative-inverse division (arXiv 2012.12369): with
--- @M = floor(2^64/d) + 1@ precomputed once per divisor, @n div d@ is the high
--- word of @M*n@ and @n mod d@ the high word of @(M*n)*d@ -- two 64x64->128
--- multiplies instead of a division.  Valid for @d, n < 2^32@, which every
--- outer natural stride and run index here is.  @d == 1@ is the one case the
--- formula overflows (M would be 2^64), so it is taken separately and flagged
--- by a 0 magic, which no legal divisor can produce.  @d == 0@ takes the same
--- exit for a different reason: the formula would divide by zero, and a zero
--- extent means @l == 0@, so whatever magic it yields is never read.  Keeping
--- 'magicOf' total on non-negative divisors is what lets the degenerate shapes
--- in 'degenerateShapes' reach 'check' at all.
-{-# INLINE mulhi #-}
-mulhi :: Word -> Word -> Word
-mulhi (W# a) (W# b) = case timesWord2# a b of (# hi, _ #) -> W# hi
-
-{-# INLINE magicOf #-}
-magicOf :: Int -> Word
-magicOf d | d <= 1 = 0
-          | otherwise = (maxBound `quot` fromIntegral d) + 1
-
--- One 'timesWord2#' yields both halves of @M*n@: the quotient is its high
--- word, and its low word is exactly the product the remainder step needs. An
--- earlier version took the quotient from 'mulhi' and then recomputed the low
--- half as a separate @m * nw@, which is a third multiply the algorithm does
--- not call for; a Core dump is what showed it, and fixing it is what turned
--- the output site into a win
--- (README.md#lemire-multiplicative-inverses-at-the-two-division-sites).
--- Both result components are forced here rather than left to the caller's
--- @(!q, !j)@ pattern: inlined into a strict case GHC fuses the tuple away
--- either way, but the bangs are what keep a context where it does not inline
--- -- another GHC, a bigger enclosing loop -- from building a remainder thunk
--- per element.
-{-# INLINE fastQR #-}
-fastQR :: Word -> Int -> Int -> (Int, Int)
-fastQR 0 _ n = (n, 0)
-fastQR (W# m) d (I# n) = case timesWord2# m (int2Word# n) of
-  (# hi, lo #) -> let !q = I# (word2Int# hi)
-                      !r = fromIntegral (mulhi (W# lo) (fromIntegral d))
-                  in  (q, r)
-
--- Granlund-Montgomery round-up magic for dividends below 2^63 -- which is
--- every nonnegative Int, so every vector index -- against the Lemire form's
--- @n < 2^32@. With @L = ceil(log2 d)@ and @M = 2^(63+L) `div` d + 1@, the
--- quotient of any such n by d is @mulhi M n >> (L-1)@: one multiply-high
--- and one shift, no fixup branch, no bound on the array. The magic-width
--- theorem behind it: a round-up magic of width dividend-bits + L is exact,
--- and Int dividends spend only 63 bits, so M always fits one Word for
--- d >= 2 and the general form's 65-bit add-fixup never arises. Powers of
--- two need no special case (d = 2^L gives M = 2^63 + 1, whose
--- multiply-and-shift is exactly @n >> L@); @d <= 1@ returns the (0, 0)
--- sentinel, total for the same reason 'magicOf' is -- the callers' banged
--- bindings force it on paths their @s == 1@ guard never uses. The setup
--- division runs through Integer, once per call. Correctness is gated by
--- the agreement check like everything else, but its hard cases (l at and
--- past 2^32) are unreachable by any buildable shape -- a shipped form owes
--- the helper a standalone property test against 'quotRem' over adversarial
--- (n, d).
-{-# INLINE gmMagic #-}
-gmMagic :: Int -> (Word, Int)
-gmMagic d
-  | d <= 1 = (0, 0)
-    -- Both components forced here rather than left to the callers' banged
-    -- bindings, for the reason 'fastQR' gives: it costs nothing where the
-    -- caller does force them, and keeps a context that does not from
-    -- carrying two thunks into a per-element loop.
-  | otherwise = let !mg = fromInteger (2 ^ (63 + lg) `div` toInteger d + 1)
-                    !sh = lg - 1
-                in  (mg, sh)
-  where !lg = 64 - countLeadingZeros (fromIntegral d - 1 :: Word)
 
 -- 'baseOffsetsGen' with its per-run quotRems replaced by 'fastQR', and
 -- nothing else changed. This is the per-dimension division site -- one per
@@ -678,11 +640,68 @@ baseOffsetsScanPacked o0 osh oats
             carry !_ _ !acc = negate acc  -- reachable once, for the final
               -- step's discarded successor, as in 'baseOffsetsOdo'
 
+-- The strategies compared, in the four families README.md's strategy list
+-- uses and in its order (README.md#what-the-benchmark-does), base before
+-- variant. That is the reading order. The RUN order is a different one,
+-- stated at 'roster' below, and the Results table is sorted by time, a third.
+--
+-- Family 1: the originals, the first attempt, and the two odometer fills.
+
+-- The original fallback.
+{-# NOINLINE fbList #-}
+fbList :: ShapeL -> T -> VS.Vector Double
+fbList sh a = VS.fromListN l (toListT sh a) where l = product sh
+
+-- The first attempt -- vGenerate + linear-index-to-offset by
+-- quotRem (the PR's point 1), one division per rank. Why it is a mixed
+-- picture rather than a fix: README.md#reading-the-results.
+{-# NOINLINE fbGenQuotRem #-}
+fbGenQuotRem :: ShapeL -> T -> VS.Vector Double
+fbGenQuotRem sh (T ats ao v) =
+  VS.generate l (\i -> v VS.! (ao + offsetOf i ts' ats))
+  where l : ts' = getStridesT sh
+        offsetOf i (t:ts) (s:ss) = case i `quotRem` t of
+                                     (!q, !r) -> q * s + offsetOf r ts ss
+        offsetOf _ _      _      = 0
+
+-- 'fbGenQuotRem' with unsafeIndex, to isolate the bounds-check cost.
+--
+-- The third one-line variant of it -- those per-dimension divisions
+-- replaced by 'fastQR' -- is deliberately not written; the numbers that
+-- rule it out are in README.md#why-there-is-no-gen-lemire.
+{-# NOINLINE fbGenUnsafe #-}
+fbGenUnsafe :: ShapeL -> T -> VS.Vector Double
+fbGenUnsafe sh (T ats ao v) =
+  VS.generate l (\i -> VS.unsafeIndex v (ao + offsetOf i ts' ats))
+  where l : ts' = getStridesT sh
+        offsetOf i (t:ts) (s:ss) = case i `quotRem` t of
+                                     (!q, !r) -> q * s + offsetOf r ts ss
+        offsetOf _ _      _      = 0
+
+-- unfoldrExactN with an additive odometer state (point 2) --
+-- no division, but an immutable list state rebuilt each step. It is an
+-- allocating proxy for the truly fused, allocation-free form, which is
+-- 'fbFused' below (README.md#reading-the-results).
+{-# NOINLINE fbUnfoldAdd #-}
+fbUnfoldAdd :: ShapeL -> T -> VS.Vector Double
+fbUnfoldAdd sh (T ats ao v) =
+  VS.unfoldrExactN l step (ao, replicate (length sh) 0)
+  where l = product sh
+        rsh = reverse sh
+        rts = reverse ats
+        step (!o, is) = (v VS.! o, adv o is rsh rts)
+        adv !o []       _        _        = (o, [])
+        adv !o (i : js) (n : ns) (s : ss)
+          | i + 1 < n = (o + s, (i + 1) : js)
+          | otherwise = let (!o', js') = adv (o - i * s) js ns ss
+                        in  (o', 0 : js')
+        adv !o _ _ _ = (o, [])
+
 -- Strict, unpackable state for the fused odometer: current source
 -- @offset@, position @j@ within the current run, and run index @q@.
 data S3 = S3 !Int !Int !Int
 
--- Strategy E: the truly-fused, allocation-free additive odometer that
+-- The truly-fused, allocation-free additive odometer that
 -- 'fbUnfoldAdd' only approximated (its immutable-list state allocated per
 -- step). Split off the innermost dim (size @s@, stride @t@):
 -- precompute the @m@ run base-offsets once, then step with a strict
@@ -716,10 +735,14 @@ fbFused sh (T ats ao v) = VS.unfoldrExactN l step (S3 ao 0 0)
                                   else S3 0 0 q1  -- last element; state unused
           in  (x, next)
 
--- Strategy F: precompute the run base-offsets as in E, but fill with a single
+-- Family 2: the run base-offsets family. One 'VS.generate' over the result
+-- doing one quotRem per element, reading a precomputed @m@-element table of
+-- run base-offsets. These vary the TABLE BUILD, the output held fixed.
+
+-- Precompute the run base-offsets as 'fbFused' does, but fill with a single
 -- 'VS.generate' doing one 'quotRem' (by the innermost size @s@) per
 -- element instead of one per rank -- to price the division-count
--- reduction on its own, without E's fully-fused loop.
+-- reduction on its own, without that strategy's fully-fused loop.
 {-# NOINLINE fbBaseOffsetsQuot #-}
 fbBaseOffsetsQuot :: ShapeL -> T -> VS.Vector Double
 fbBaseOffsetsQuot sh (T ats ao v) = VS.generate l get
@@ -730,184 +753,7 @@ fbBaseOffsetsQuot sh (T ats ao v) = VS.generate l get
         get i = case i `quotRem` s of
           (!q, !j) -> VS.unsafeIndex v (VS.unsafeIndex baseOffsets q + j * t)
 
--- Offsets of every element, row-major over (sh, ats), starting at @o0@:
--- 'enumFromStepN' generates each innermost run directly (constant stride,
--- no division) and 'concatMap' nests the outer dims. Pure 'Vector' ops,
--- no intermediate list.
-{-# INLINE strideOffsets #-}
-strideOffsets :: Int -> [Int] -> [Int] -> VS.Vector Int
-strideOffsets o0 sh0 ats0 = go o0 sh0 ats0
-  where go o []       []         = VS.singleton o
-        go o [n]      [st]       = VS.enumFromStepN o st n
-        go o (n : ns) (st : sts) =
-          VS.concatMap (\b -> go b ns sts) (VS.enumFromStepN o st n)
-        go o _        _          = VS.singleton o
-
--- Strategy G: build the whole offset vector with the all-'Vector'
--- 'strideOffsets', then gather through 'unsafeBackpermute' (vector's
--- tight, fused indexing loop). Two passes over @l@ and an extra
--- 'Int'-vector, but every step is a plain memory read.
-{-# NOINLINE fbBackperm #-}
-fbBackperm :: ShapeL -> T -> VS.Vector Double
-fbBackperm sh (T ats ao v) = VS.unsafeBackpermute v (strideOffsets ao sh ats)
-
--- Strategy H: the class-methods-only shape -- the only one expressible
--- in orthotope's abstract 'Data.Array.Internal' without a new 'Vector'
--- method or a concrete 'Int' scratch. It mirrors the existing regime-2
--- branch (recurse over the outer dims collecting a DList, then 'vConcat')
--- but, since the innermost dim is strided, emits each run as a strided
--- 'VS.generate' (constant-stride reads, no division) rather than an
--- @O(1)@ 'VS.slice'. Costs @m@ small allocations plus the concat copy;
--- whether that beats the single-vector strategies is what this measures.
-{-# NOINLINE fbConcatRuns #-}
-fbConcatRuns :: ShapeL -> T -> VS.Vector Double
-fbConcatRuns sh (T ats ao v) = VS.concat (go (init sh) (init ats) ao [])
-  where s = last sh
-        !t = last ats
-        run !baseOff = VS.generate s (\j -> VS.unsafeIndex v (baseOff + j * t))
-        go []       []         !o rest = run o : rest
-        go (n : ns) (st : sts) !o rest =
-          foldr (\i r -> go ns sts (o + i * st) r) rest [0 .. n - 1]
-        go _        _          !o rest = run o : rest
-
--- Strategy I: the mutable run-fill -- the tightest pure-'Vector' shape,
--- but needing an escape to a mutable buffer that orthotope's class does
--- not expose (this prototypes what a new class method would enable).
--- Allocate the result once ('VS.create'), walk the outer odometer, and
--- for each innermost run write @sInner@ elements with a tight inner loop
--- of pure additions -- no quotRem, no run base-offsets list, no per-run
--- allocation, no per-element state machine. @go@ returns the next output
--- position so siblings advance it without arithmetic.
-{-# NOINLINE fbMutOdo #-}
-fbMutOdo :: ShapeL -> T -> VS.Vector Double
-fbMutOdo sh (T ats ao v) = VS.create $ do
-  out <- VSM.unsafeNew l
-  let writeRun !outPos !baseOff =
-        let inner !j !src
-              | j >= sInner = return ()
-              | otherwise   = do
-                  VSM.unsafeWrite out (outPos + j) (VS.unsafeIndex v src)
-                  inner (j + 1) (src + tInner)
-        in  inner 0 baseOff
-      go []       []         !outPos !baseOff =
-        writeRun outPos baseOff >> return (outPos + sInner)
-      go (n : ns) (st : sts) !outPos !baseOff =
-        let dim !i !op | i >= n    = return op
-                       | otherwise = go ns sts op (baseOff + i * st)
-                                     >>= dim (i + 1)
-        in  dim 0 outPos
-      go _        _          !outPos !baseOff =
-        writeRun outPos baseOff >> return (outPos + sInner)
-  _ <- go (init sh) (init ats) 0 ao
-  return out
-  where l = product sh
-        !sInner = last sh
-        !tInner = last ats
-
--- 'fbMutOdo' with the odometer's dimension lists replaced by unboxed
--- vectors walked with a bare-Int level index -- one change, so 'mut-odo'
--- is its control. It was written as a diagnostic and answered decisively:
--- the direct fill's per-run cost WAS the cons-list traffic of the odometer
--- recursion, not the nested structure. Failed Run 6 puts it at half its control's
--- time and fastest of everything measured, which reopens the class-method
--- tier the README had closed at ~1.4x. 'writeRun' is kept character-identical to 'fbMutOdo''s so the build
--- of each run cannot differ.
-{-# NOINLINE fbMutOdoVecdims #-}
-fbMutOdoVecdims :: ShapeL -> T -> VS.Vector Double
-fbMutOdoVecdims sh (T ats ao v) = VS.create $ do
-  out <- VSM.unsafeNew l
-  let writeRun !outPos !baseOff =
-        let inner !j !src
-              | j >= sInner = return ()
-              | otherwise   = do
-                  VSM.unsafeWrite out (outPos + j) (VS.unsafeIndex v src)
-                  inner (j + 1) (src + tInner)
-        in  inner 0 baseOff
-      go !lev !outPos !baseOff
-        | lev >= rOuter = writeRun outPos baseOff >> return (outPos + sInner)
-        | otherwise =
-            let !n  = VS.unsafeIndex oshV lev
-                !st = VS.unsafeIndex oatsV lev
-                dim !i !op
-                  | i >= n    = return op
-                  | otherwise = go (lev + 1) op (baseOff + i * st)
-                                >>= dim (i + 1)
-            in  dim 0 outPos
-  _ <- go 0 0 ao
-  return out
-  where l = product sh
-        !sInner = last sh
-        !tInner = last ats
-        !rOuter = length sh - 1
-        oshV, oatsV :: VS.Vector Int
-        !oshV  = VS.fromList (init sh)
-        !oatsV = VS.fromList (init ats)
-
--- Strategy J: as I but iterating the precomputed run base-offsets list,
--- to price what the base-offsets list (a factor @sInner@ smaller than @l@)
--- costs the odometer-free variant against 'fbMutOdo'.
-{-# NOINLINE fbMutBaseOffsets #-}
-fbMutBaseOffsets :: ShapeL -> T -> VS.Vector Double
-fbMutBaseOffsets sh (T ats ao v) = VS.create $ do
-  out <- VSM.unsafeNew l
-  let writeRun !outPos !baseOff =
-        let inner !j !src
-              | j >= sInner = return ()
-              | otherwise   = do
-                  VSM.unsafeWrite out (outPos + j) (VS.unsafeIndex v src)
-                  inner (j + 1) (src + tInner)
-        in  inner 0 baseOff
-  foldM_ (\ !outPos !baseOff -> writeRun outPos baseOff
-                                >> return (outPos + sInner))
-         0 (runBaseOffsets ao (init sh) (init ats))
-  return out
-  where l = product sh
-        !sInner = last sh
-        !tInner = last ats
-
--- Prototype of the one new 'Vector'-class method a mutable run-fill would
--- need: allocate a length-@n@ vector and let the caller populate every
--- index once through an unsafe writer, hidden behind @forall s@ so the
--- mutable buffer cannot leak. This mirrors exactly what the orthotope
--- instance would implement; 'fbBuild' below drives it with the same
--- odometer as 'fbMutOdo', so timing 'build' against 'mut-odo' prices
--- whether wrapping the fill in this general method costs the tight loop.
-vBuildVS :: Int
-         -> (forall s. (Int -> Double -> ST s ()) -> ST s ())
-         -> VS.Vector Double
-{-# INLINE vBuildVS #-}
-vBuildVS n fill = VS.create $ do
-  out <- VSM.unsafeNew n
-  fill (VSM.unsafeWrite out)
-  return out
-
--- Strategy K: 'fbMutOdo' expressed through the general 'vBuildVS' method,
--- to confirm the class-method abstraction is free (i.e. it inlines to the
--- same code as the hand-written mutable fill).
-{-# NOINLINE fbBuild #-}
-fbBuild :: ShapeL -> T -> VS.Vector Double
-fbBuild sh (T ats ao v) = vBuildVS l $ \write ->
-  let writeRun !outPos !baseOff =
-        let inner !j !src
-              | j >= sInner = return ()
-              | otherwise   = write (outPos + j) (VS.unsafeIndex v src)
-                              >> inner (j + 1) (src + tInner)
-        in  inner 0 baseOff
-      go []       []         !outPos !baseOff =
-        writeRun outPos baseOff >> return (outPos + sInner)
-      go (n : ns) (st : sts) !outPos !baseOff =
-        let dim !i !op | i >= n    = return op
-                       | otherwise = go ns sts op (baseOff + i * st)
-                                     >>= dim (i + 1)
-        in  dim 0 outPos
-      go _        _          !outPos !baseOff =
-        writeRun outPos baseOff >> return (outPos + sInner)
-  in  go (init sh) (init ats) 0 ao >> return ()
-  where l = product sh
-        !sInner = last sh
-        !tInner = last ats
-
--- Strategy L: 'fbBaseOffsetsQuot' with the run base-offsets built by a mutable
+-- 'fbBaseOffsetsQuot' with the run base-offsets built by a mutable
 -- odometer fill of a concrete 'Int' scratch ('VS.create'/'VSM') instead of
 -- @VS.fromListN (runBaseOffsets ...)@ -- dropping the @l/sInner@-element
 -- intermediate list. This is NOT a class extension: the abstract output is
@@ -942,7 +788,34 @@ fbBQmutRuns sh (T ats ao v) = VS.generate l get
         get i = case i `quotRem` s of
           (!q, !j) -> VS.unsafeIndex v (VS.unsafeIndex baseOffsets q + j * t)
 
--- Strategy M: 'fbBQmut' but with the run base-offsets built by the pure
+-- 'fbBQmut' but building the base-offsets with 'VS.unfoldrExactN'
+-- (a pure-typed builder whose mutation stays inside the vector library,
+-- like 'VS.generate') instead of the explicit 'VS.create'/'VSM' fill of
+-- 'fbBQmut'. No list, no explicit mutation in this module -- but the
+-- odometer state is an immutable @[Int]@ rebuilt per run. Prices whether
+-- the no-list base-offsets win survives without explicit mutation.
+{-# NOINLINE fbBQunfold #-}
+fbBQunfold :: ShapeL -> T -> VS.Vector Double
+fbBQunfold sh (T ats ao v) = VS.generate l get
+  where l = product sh
+        !s = last sh
+        !t = last ats
+        m = l `div` max 1 s
+        rosh = reverse (init sh)
+        roats = reverse (init ats)
+        baseOffsets :: VS.Vector Int
+        !baseOffsets = VS.unfoldrExactN m step (ao, replicate (length sh - 1) 0)
+          where step (!o, is) = (o, adv o is rosh roats)
+                adv !o []       _        _        = (o, [])
+                adv !o (i : js) (n : ns) (st : sts)
+                  | i + 1 < n = (o + st, (i + 1) : js)
+                  | otherwise = let (!o', js') = adv (o - i * st) js ns sts
+                                in  (o', 0 : js')
+                adv !o _ _ _ = (o, [])
+        get i = case i `quotRem` s of
+          (!q, !j) -> VS.unsafeIndex v (VS.unsafeIndex baseOffsets q + j * t)
+
+-- 'fbBQmut' but with the run base-offsets built by the pure
 -- 'baseOffsetsGen' ('VS.generate', no explicit mutation) instead
 -- of 'baseOffsetsMut'. Answers "can the base-offsets be built fast without
 -- explicit vector mutation?".
@@ -956,7 +829,21 @@ fbBQgen sh (T ats ao v) = VS.generate l get
         get i = case i `quotRem` s of
           (!q, !j) -> VS.unsafeIndex v (VS.unsafeIndex baseOffsets q + j * t)
 
--- Strategy N: 'fbBQmut' but with the run base-offsets built by the pure
+-- The per-dimension site: 'fbBQgen' with the run base-offsets built by
+-- 'baseOffsetsGenLemire' instead of 'baseOffsetsGen', so 'bq-gen' is its
+-- control.
+{-# NOINLINE fbBQgenLemire #-}
+fbBQgenLemire :: ShapeL -> T -> VS.Vector Double
+fbBQgenLemire sh (T ats ao v) = VS.generate l get
+  where l = product sh
+        !s = last sh
+        !t = last ats
+        -- Lemire is in the build here, so the bound is asserted there.
+        !baseOffsets = baseOffsetsGenLemire ao (init sh) (init ats)
+        get i = case i `quotRem` s of
+          (!q, !j) -> VS.unsafeIndex v (VS.unsafeIndex baseOffsets q + j * t)
+
+-- 'fbBQmut' but with the run base-offsets built by the pure
 -- 'baseOffsetsExpand' ('VS.concatMap', no explicit mutation) instead of
 -- 'baseOffsetsMut'. The concatMap route to answering the no-mutation question.
 {-# NOINLINE fbBQexpand #-}
@@ -969,7 +856,7 @@ fbBQexpand sh (T ats ao v) = VS.generate l get
         get i = case i `quotRem` s of
           (!q, !j) -> VS.unsafeIndex v (VS.unsafeIndex baseOffsets q + j * t)
 
--- Strategy O: fbBQexpand' with the fused zip-fold 'baseOffsetsExpandZF'
+-- 'fbBQexpand' with the fused zip-fold 'baseOffsetsExpandZF'
 -- base-offsets build.
 {-# NOINLINE fbBQexpandZF #-}
 fbBQexpandZF :: ShapeL -> T -> VS.Vector Double
@@ -981,7 +868,7 @@ fbBQexpandZF sh (T ats ao v) = VS.generate l get
         get i = case i `quotRem` s of
           (!q, !j) -> VS.unsafeIndex v (VS.unsafeIndex baseOffsets q + j * t)
 
--- Strategy P: 'fbBQexpand' with the micro-optimised 'baseOffsetsExpandB'.
+-- 'fbBQexpand' with the micro-optimised 'baseOffsetsExpandB'.
 {-# NOINLINE fbBQexpandB #-}
 fbBQexpandB :: ShapeL -> T -> VS.Vector Double
 fbBQexpandB sh (T ats ao v) = VS.generate l get
@@ -991,6 +878,9 @@ fbBQexpandB sh (T ats ao v) = VS.generate l get
         !baseOffsets = baseOffsetsExpandB ao (init sh) (init ats)
         get i = case i `quotRem` s of
           (!q, !j) -> VS.unsafeIndex v (VS.unsafeIndex baseOffsets q + j * t)
+
+-- Family 2 continued: the OUTPUT varied instead, each against a build already
+-- above.
 
 -- 'fbBQexpand' with the output 'quotRem' replaced by the primop it wraps.
 -- GHC guards 'quotRemInt#' against a zero divisor and against the
@@ -1022,27 +912,6 @@ fbBQexpandQRprim sh (T ats ao v) =
           (# q, j #) -> VS.unsafeIndex v
                           (VS.unsafeIndex baseOffsets (I# q) + I# j * t)
 
--- The Lemire strategies, kept adjacent because they are read together: each
--- substitutes 'fastQR' for a 'quotRem' against a control already in the
--- table, at one of the two sites a run base-offsets strategy divides at. A
--- further such substitution, on the per-element per-dimension division of
--- 'fbGenQuotRem', is deliberately not written -- the numbers that rule it out
--- are in README.md#why-there-is-no-gen-lemire.
---
--- The per-dimension site: 'fbBQgen' with the run base-offsets built by
--- 'baseOffsetsGenLemire' instead of 'baseOffsetsGen', so 'bq-gen' is its
--- control.
-{-# NOINLINE fbBQgenLemire #-}
-fbBQgenLemire :: ShapeL -> T -> VS.Vector Double
-fbBQgenLemire sh (T ats ao v) = VS.generate l get
-  where l = product sh
-        !s = last sh
-        !t = last ats
-        -- Lemire is in the build here, so the bound is asserted there.
-        !baseOffsets = baseOffsetsGenLemire ao (init sh) (init ats)
-        get i = case i `quotRem` s of
-          (!q, !j) -> VS.unsafeIndex v (VS.unsafeIndex baseOffsets q + j * t)
-
 -- The per-element output site: 'fbBQexpand' with the shared @i quotRem s@
 -- replaced, the table build held at the shipped 'baseOffsetsExpand', so
 -- 'bq-expand' is its control. Every run base-offsets strategy ends in that
@@ -1059,25 +928,6 @@ fbBQexpandLemireOut sh (T ats ao v) = VS.generate l get
         !t = last ats
         !mg = assert (lemireFits l) $ magicOf s
         !baseOffsets = baseOffsetsExpand ao (init sh) (init ats)
-        get i = case fastQR mg s i of
-          (!q, !j) -> VS.unsafeIndex v (VS.unsafeIndex baseOffsets q + j * t)
-
--- The same output substitution against a second, unrelated table build:
--- 'fbBQmut', whose base-offsets come from a mutable odometer rather than
--- 'concatMap'. Every run base-offsets strategy shares the output line, so the
--- claim is that pricing it once prices it for all of them -- but that is an
--- inference from the shared source line, and this is the measurement of it.
--- It is also the interesting combination in its own right: 'bq-mut' ties
--- 'bq-expand' on time at a third of its allocation, so if the win carries,
--- this is the cheapest form of the fastest output.
-{-# NOINLINE fbBQmutLemireOut #-}
-fbBQmutLemireOut :: ShapeL -> T -> VS.Vector Double
-fbBQmutLemireOut sh (T ats ao v) = VS.generate l get
-  where l = product sh
-        !s = last sh
-        !t = last ats
-        !mg = assert (lemireFits l) $ magicOf s
-        !baseOffsets = baseOffsetsMut ao (init sh) (init ats)
         get i = case fastQR mg s i of
           (!q, !j) -> VS.unsafeIndex v (VS.unsafeIndex baseOffsets q + j * t)
 
@@ -1147,6 +997,25 @@ fbBQexpand32LemireMulback sh (T ats ao v)
                       (fromIntegral (VS.unsafeIndex baseOffsets q)
                        + (i - q * s) * t)
 
+-- The same output substitution against a second, unrelated table build:
+-- 'fbBQmut', whose base-offsets come from a mutable odometer rather than
+-- 'concatMap'. Every run base-offsets strategy shares the output line, so the
+-- claim is that pricing it once prices it for all of them -- but that is an
+-- inference from the shared source line, and this is the measurement of it.
+-- It is also the interesting combination in its own right: 'bq-mut' ties
+-- 'bq-expand' on time at a third of its allocation, so if the win carries,
+-- this is the cheapest form of the fastest output.
+{-# NOINLINE fbBQmutLemireOut #-}
+fbBQmutLemireOut :: ShapeL -> T -> VS.Vector Double
+fbBQmutLemireOut sh (T ats ao v) = VS.generate l get
+  where l = product sh
+        !s = last sh
+        !t = last ats
+        !mg = assert (lemireFits l) $ magicOf s
+        !baseOffsets = baseOffsetsMut ao (init sh) (init ats)
+        get i = case fastQR mg s i of
+          (!q, !j) -> VS.unsafeIndex v (VS.unsafeIndex baseOffsets q + j * t)
+
 -- 'fbBQmutLemireOut' with the output changed to the single-multiply mul-back
 -- form, sharing 'fbBQexpandLemireMulback''s hoisted @s == 1@ branch. One line
 -- differs from 'bq-mut-lemire-out' and one build differs from
@@ -1197,46 +1066,6 @@ fbBQmutRunsMulback sh (T ats ao v)
         get i = let !q = fromIntegral (mulhi magic (fromIntegral i))
                 in  VS.unsafeIndex v
                       (VS.unsafeIndex baseOffsets q + (i - q * s) * t)
-
--- 'fbBQmutRunsMulback' with the output written by an explicit flat ST loop
--- instead of 'VS.generate' -- same table, same per-element arithmetic, so
--- the pair prices the output MECHANISM alone. It is also the missing
--- corner of a factorial whose other diagonal is 'fbMutOdo': generate/flat
--- ('fbBQmutRunsMulback'), ST/nested ('fbMutOdo'), ST/flat (this); a
--- generate/nested corner cannot exist, 'VS.generate' being inherently
--- flat. The factorial is what tests the hypothesis that the direct fill
--- loses to the table strategies because it answers "which run am I in"
--- with per-run control flow where they answer it with per-element
--- arithmetic in one counted loop: if this arm matches 'fbBQmutRunsMulback'
--- the loop structure is the story and generate is not special; if it
--- lands near 'fbMutOdo', the structure hypothesis dies.
-{-# NOINLINE fbMutFlat #-}
-fbMutFlat :: ShapeL -> T -> VS.Vector Double
-fbMutFlat sh (T ats ao v) = VS.create $ do
-  out <- VSM.unsafeNew l
-  let goCopy !i
-        | i >= l = return ()
-        | otherwise = do
-            VSM.unsafeWrite out i
-              (VS.unsafeIndex v (VS.unsafeIndex baseOffsets i))
-            goCopy (i + 1)
-      go !i
-        | i >= l = return ()
-        | otherwise = do
-            let !q = fromIntegral (mulhi magic (fromIntegral i))
-            VSM.unsafeWrite out i
-              (VS.unsafeIndex v
-                 (VS.unsafeIndex baseOffsets q + (i - q * s) * t))
-            go (i + 1)
-  if s == 1 then goCopy 0 else go 0
-  return out
-  where l = product sh
-        !s = last sh
-        !t = last ats
-        !magic = assert (lemireFits l)
-                 $ if s <= 1 then 0
-                   else (maxBound `quot` fromIntegral s) + 1 :: Word
-        !baseOffsets = baseOffsetsMutRuns ao (init sh) (init ats)
 
 -- 'fbBQmutRunsMulback' with the quotient by the Granlund-Montgomery magic
 -- ('gmMagic') instead of the Lemire multiply-high -- one change, so that
@@ -1416,7 +1245,31 @@ fbBQscanPackedMulback sh (T ats ao v)
                 in  VS.unsafeIndex v
                       (VS.unsafeIndex baseOffsets q + (i - q * s) * t)
 
--- Strategy Q: also drop the output's per-element quotRem. The output is a
+-- Family 3: whole-offset and alternative-gather variants -- offsets for every
+-- element rather than for every run, or a gather with no output division.
+
+-- Offsets of every element, row-major over (sh, ats), starting at @o0@:
+-- 'enumFromStepN' generates each innermost run directly (constant stride,
+-- no division) and 'concatMap' nests the outer dims. Pure 'Vector' ops,
+-- no intermediate list.
+{-# INLINE strideOffsets #-}
+strideOffsets :: Int -> [Int] -> [Int] -> VS.Vector Int
+strideOffsets o0 sh0 ats0 = go o0 sh0 ats0
+  where go o []       []         = VS.singleton o
+        go o [n]      [st]       = VS.enumFromStepN o st n
+        go o (n : ns) (st : sts) =
+          VS.concatMap (\b -> go b ns sts) (VS.enumFromStepN o st n)
+        go o _        _          = VS.singleton o
+
+-- Build the whole offset vector with the all-'Vector'
+-- 'strideOffsets', then gather through 'unsafeBackpermute' (vector's
+-- tight, fused indexing loop). Two passes over @l@ and an extra
+-- 'Int'-vector, but every step is a plain memory read.
+{-# NOINLINE fbBackperm #-}
+fbBackperm :: ShapeL -> T -> VS.Vector Double
+fbBackperm sh (T ats ao v) = VS.unsafeBackpermute v (strideOffsets ao sh ats)
+
+-- Drop the per-element output quotRem as well. The output is a
 -- separable gather (offset[q*s+j] = baseOffsets[q] + j*t), so expand the outer
 -- base-offsets as before, then gather with a FUSED 'map . concatMap': for each
 -- base-offset, 'enumFromStepN' the inner run and read @v@. vector fuses
@@ -1432,15 +1285,15 @@ fbCMGather sh (T ats ao v) =
         !t = last ats
         !baseOffsets = baseOffsetsExpand ao (init sh) (init ats)
 
--- Strategy R: the whole offset grid over ALL dims via 'baseOffsetsExpand', then
+-- The whole offset grid over ALL dims via 'baseOffsetsExpand', then
 -- one gather. Materialises the full l-length offset table (foldl' forces
--- each level), so it prices what strategy Q's fused inner run avoids.
+-- each level), so it prices what 'fbCMGather''s fused inner run avoids.
 {-# NOINLINE fbAllExpand #-}
 fbAllExpand :: ShapeL -> T -> VS.Vector Double
 fbAllExpand sh (T ats ao v) =
   VS.map (VS.unsafeIndex v) (baseOffsetsExpand ao sh ats)
 
--- Strategy S: the full offset table (length @l@) built by the same mutable
+-- The full offset table (length @l@) built by the same mutable
 -- odometer as 'fbMutOdo', then gathered with a single 'VS.generate' whose
 -- callback is one contiguous Int read plus one strided value read -- no
 -- quotRem, no multiply. Class-only (output via 'VS.generate'), but two
@@ -1546,32 +1399,205 @@ fbOffTabScan sh (T ats ao v) =
   where l = product sh
         !offs = baseOffsetsScan ao sh ats
 
--- Strategy T: 'fbBQmut' but building the base-offsets with 'VS.unfoldrExactN'
--- (a pure-typed builder whose mutation stays inside the vector library,
--- like 'VS.generate') instead of the explicit 'VS.create'/'VSM' fill of
--- 'fbBQmut'. No list, no explicit mutation in this module -- but the
--- odometer state is an immutable @[Int]@ rebuilt per run. Prices whether
--- the no-list base-offsets win survives without explicit mutation.
-{-# NOINLINE fbBQunfold #-}
-fbBQunfold :: ShapeL -> T -> VS.Vector Double
-fbBQunfold sh (T ats ao v) = VS.generate l get
+-- Family 4: direct mutable result-buffer fills, which need a class extension
+-- or explicit mutation, and the class-methods-only 'fbConcatRuns' that closes
+-- the family needing neither.
+
+-- The mutable run-fill -- the tightest pure-'Vector' shape,
+-- but needing an escape to a mutable buffer that orthotope's class does
+-- not expose (this prototypes what a new class method would enable).
+-- Allocate the result once ('VS.create'), walk the outer odometer, and
+-- for each innermost run write @sInner@ elements with a tight inner loop
+-- of pure additions -- no quotRem, no run base-offsets list, no per-run
+-- allocation, no per-element state machine. @go@ returns the next output
+-- position so siblings advance it without arithmetic.
+{-# NOINLINE fbMutOdo #-}
+fbMutOdo :: ShapeL -> T -> VS.Vector Double
+fbMutOdo sh (T ats ao v) = VS.create $ do
+  out <- VSM.unsafeNew l
+  let writeRun !outPos !baseOff =
+        let inner !j !src
+              | j >= sInner = return ()
+              | otherwise   = do
+                  VSM.unsafeWrite out (outPos + j) (VS.unsafeIndex v src)
+                  inner (j + 1) (src + tInner)
+        in  inner 0 baseOff
+      go []       []         !outPos !baseOff =
+        writeRun outPos baseOff >> return (outPos + sInner)
+      go (n : ns) (st : sts) !outPos !baseOff =
+        let dim !i !op | i >= n    = return op
+                       | otherwise = go ns sts op (baseOff + i * st)
+                                     >>= dim (i + 1)
+        in  dim 0 outPos
+      go _        _          !outPos !baseOff =
+        writeRun outPos baseOff >> return (outPos + sInner)
+  _ <- go (init sh) (init ats) 0 ao
+  return out
+  where l = product sh
+        !sInner = last sh
+        !tInner = last ats
+
+-- 'fbMutOdo' with the odometer's dimension lists replaced by unboxed
+-- vectors walked with a bare-Int level index -- one change, so 'mut-odo'
+-- is its control. It was written as a diagnostic and answered decisively:
+-- the direct fill's per-run cost WAS the cons-list traffic of the odometer
+-- recursion, not the nested structure. Failed Run 6 puts it at half its control's
+-- time and fastest of everything measured, which reopens the class-method
+-- tier the README had closed at ~1.4x. 'writeRun' is kept character-identical to 'fbMutOdo''s so the build
+-- of each run cannot differ.
+{-# NOINLINE fbMutOdoVecdims #-}
+fbMutOdoVecdims :: ShapeL -> T -> VS.Vector Double
+fbMutOdoVecdims sh (T ats ao v) = VS.create $ do
+  out <- VSM.unsafeNew l
+  let writeRun !outPos !baseOff =
+        let inner !j !src
+              | j >= sInner = return ()
+              | otherwise   = do
+                  VSM.unsafeWrite out (outPos + j) (VS.unsafeIndex v src)
+                  inner (j + 1) (src + tInner)
+        in  inner 0 baseOff
+      go !lev !outPos !baseOff
+        | lev >= rOuter = writeRun outPos baseOff >> return (outPos + sInner)
+        | otherwise =
+            let !n  = VS.unsafeIndex oshV lev
+                !st = VS.unsafeIndex oatsV lev
+                dim !i !op
+                  | i >= n    = return op
+                  | otherwise = go (lev + 1) op (baseOff + i * st)
+                                >>= dim (i + 1)
+            in  dim 0 outPos
+  _ <- go 0 0 ao
+  return out
+  where l = product sh
+        !sInner = last sh
+        !tInner = last ats
+        !rOuter = length sh - 1
+        oshV, oatsV :: VS.Vector Int
+        !oshV  = VS.fromList (init sh)
+        !oatsV = VS.fromList (init ats)
+
+-- 'fbMutOdo' but iterating the precomputed run base-offsets list, to
+-- price what that list (a factor @sInner@ smaller than @l@) costs the
+-- odometer-free variant against its control.
+{-# NOINLINE fbMutBaseOffsets #-}
+fbMutBaseOffsets :: ShapeL -> T -> VS.Vector Double
+fbMutBaseOffsets sh (T ats ao v) = VS.create $ do
+  out <- VSM.unsafeNew l
+  let writeRun !outPos !baseOff =
+        let inner !j !src
+              | j >= sInner = return ()
+              | otherwise   = do
+                  VSM.unsafeWrite out (outPos + j) (VS.unsafeIndex v src)
+                  inner (j + 1) (src + tInner)
+        in  inner 0 baseOff
+  foldM_ (\ !outPos !baseOff -> writeRun outPos baseOff
+                                >> return (outPos + sInner))
+         0 (runBaseOffsets ao (init sh) (init ats))
+  return out
+  where l = product sh
+        !sInner = last sh
+        !tInner = last ats
+
+-- Prototype of the one new 'Vector'-class method a mutable run-fill would
+-- need: allocate a length-@n@ vector and let the caller populate every
+-- index once through an unsafe writer, hidden behind @forall s@ so the
+-- mutable buffer cannot leak. This mirrors exactly what the orthotope
+-- instance would implement; 'fbBuild' below drives it with the same
+-- odometer as 'fbMutOdo', so timing 'build' against 'mut-odo' prices
+-- whether wrapping the fill in this general method costs the tight loop.
+vBuildVS :: Int
+         -> (forall s. (Int -> Double -> ST s ()) -> ST s ())
+         -> VS.Vector Double
+{-# INLINE vBuildVS #-}
+vBuildVS n fill = VS.create $ do
+  out <- VSM.unsafeNew n
+  fill (VSM.unsafeWrite out)
+  return out
+
+-- 'fbMutOdo' expressed through the general 'vBuildVS' method,
+-- to confirm the class-method abstraction is free (i.e. it inlines to the
+-- same code as the hand-written mutable fill).
+{-# NOINLINE fbBuild #-}
+fbBuild :: ShapeL -> T -> VS.Vector Double
+fbBuild sh (T ats ao v) = vBuildVS l $ \write ->
+  let writeRun !outPos !baseOff =
+        let inner !j !src
+              | j >= sInner = return ()
+              | otherwise   = write (outPos + j) (VS.unsafeIndex v src)
+                              >> inner (j + 1) (src + tInner)
+        in  inner 0 baseOff
+      go []       []         !outPos !baseOff =
+        writeRun outPos baseOff >> return (outPos + sInner)
+      go (n : ns) (st : sts) !outPos !baseOff =
+        let dim !i !op | i >= n    = return op
+                       | otherwise = go ns sts op (baseOff + i * st)
+                                     >>= dim (i + 1)
+        in  dim 0 outPos
+      go _        _          !outPos !baseOff =
+        writeRun outPos baseOff >> return (outPos + sInner)
+  in  go (init sh) (init ats) 0 ao >> return ()
+  where l = product sh
+        !sInner = last sh
+        !tInner = last ats
+
+-- 'fbBQmutRunsMulback' with the output written by an explicit flat ST loop
+-- instead of 'VS.generate' -- same table, same per-element arithmetic, so
+-- the pair prices the output MECHANISM alone. It is also the missing
+-- corner of a factorial whose other diagonal is 'fbMutOdo': generate/flat
+-- ('fbBQmutRunsMulback'), ST/nested ('fbMutOdo'), ST/flat (this); a
+-- generate/nested corner cannot exist, 'VS.generate' being inherently
+-- flat. The factorial is what tests the hypothesis that the direct fill
+-- loses to the table strategies because it answers "which run am I in"
+-- with per-run control flow where they answer it with per-element
+-- arithmetic in one counted loop: if this arm matches 'fbBQmutRunsMulback'
+-- the loop structure is the story and generate is not special; if it
+-- lands near 'fbMutOdo', the structure hypothesis dies.
+{-# NOINLINE fbMutFlat #-}
+fbMutFlat :: ShapeL -> T -> VS.Vector Double
+fbMutFlat sh (T ats ao v) = VS.create $ do
+  out <- VSM.unsafeNew l
+  let goCopy !i
+        | i >= l = return ()
+        | otherwise = do
+            VSM.unsafeWrite out i
+              (VS.unsafeIndex v (VS.unsafeIndex baseOffsets i))
+            goCopy (i + 1)
+      go !i
+        | i >= l = return ()
+        | otherwise = do
+            let !q = fromIntegral (mulhi magic (fromIntegral i))
+            VSM.unsafeWrite out i
+              (VS.unsafeIndex v
+                 (VS.unsafeIndex baseOffsets q + (i - q * s) * t))
+            go (i + 1)
+  if s == 1 then goCopy 0 else go 0
+  return out
   where l = product sh
         !s = last sh
         !t = last ats
-        m = l `div` max 1 s
-        rosh = reverse (init sh)
-        roats = reverse (init ats)
-        baseOffsets :: VS.Vector Int
-        !baseOffsets = VS.unfoldrExactN m step (ao, replicate (length sh - 1) 0)
-          where step (!o, is) = (o, adv o is rosh roats)
-                adv !o []       _        _        = (o, [])
-                adv !o (i : js) (n : ns) (st : sts)
-                  | i + 1 < n = (o + st, (i + 1) : js)
-                  | otherwise = let (!o', js') = adv (o - i * st) js ns sts
-                                in  (o', 0 : js')
-                adv !o _ _ _ = (o, [])
-        get i = case i `quotRem` s of
-          (!q, !j) -> VS.unsafeIndex v (VS.unsafeIndex baseOffsets q + j * t)
+        !magic = assert (lemireFits l)
+                 $ if s <= 1 then 0
+                   else (maxBound `quot` fromIntegral s) + 1 :: Word
+        !baseOffsets = baseOffsetsMutRuns ao (init sh) (init ats)
+
+-- The class-methods-only shape -- the only one expressible
+-- in orthotope's abstract 'Data.Array.Internal' without a new 'Vector'
+-- method or a concrete 'Int' scratch. It mirrors the existing regime-2
+-- branch (recurse over the outer dims collecting a DList, then 'vConcat')
+-- but, since the innermost dim is strided, emits each run as a strided
+-- 'VS.generate' (constant-stride reads, no division) rather than an
+-- @O(1)@ 'VS.slice'. Costs @m@ small allocations plus the concat copy;
+-- whether that beats the single-vector strategies is what this measures.
+{-# NOINLINE fbConcatRuns #-}
+fbConcatRuns :: ShapeL -> T -> VS.Vector Double
+fbConcatRuns sh (T ats ao v) = VS.concat (go (init sh) (init ats) ao [])
+  where s = last sh
+        !t = last ats
+        run !baseOff = VS.generate s (\j -> VS.unsafeIndex v (baseOff + j * t))
+        go []       []         !o rest = run o : rest
+        go (n : ns) (st : sts) !o rest =
+          foldr (\i r -> go ns sts (o + i * st) r) rest [0 .. n - 1]
+        go _        _          !o rest = run o : rest
 
 -- Build a strided regime-3 T: a normal array of shape `normalSh` viewed
 -- with its two innermost dims transposed, so the innermost stride becomes
@@ -1732,6 +1758,181 @@ partitioned :: Bool
 partitioned = all ((<= sizeCap) . product . snd) shapes
            && all ((> sizeCap) . product . snd) tooBig
 
+-- One roster entry: what 'mkBench' declares and what 'check' holds to the
+-- reference. Both read the same list, so the two cannot come apart; they used
+-- to be two hand-written lists of the same strategies, with @--lint@
+-- comparing them. The constructor is where every deliberate asymmetry is
+-- stated:
+--
+--   Base  'fbList': timed like the rest, and the vector every other arm is
+--         held to, so it has nothing of its own left to check.
+--   Fill  an ordinary strategy: timed as @VS.sum . f sh@, and checked.
+--   Twin  an A/A control -- a 'Fill' arm run again under a second name, so
+--         its own entry does the checking and this one only takes a slot.
+--   Term  the @sum-only@ pair: the shared forcing term every other arm
+--         carries, timed on a pre-built vector, with no fill of its own.
+--   Only  checked but deliberately not timed; the reason is at the entry.
+--
+-- @read-run.py --lint@ reads the list below and holds it to what a reader of
+-- either file assumes: every name documented in README.md, every @fb@
+-- function defined here rostered, each 'Twin' naming the arm it duplicates,
+-- and the controls named as that script's own control test recognises them.
+data Arm = Base (ShapeL -> T -> VS.Vector Double)
+         | Fill (ShapeL -> T -> VS.Vector Double)
+         | Twin (ShapeL -> T -> VS.Vector Double)
+         | Term
+         | Only (ShapeL -> T -> VS.Vector Double)
+
+-- Every arm, in RUN order -- which is neither the reading order of the
+-- definitions above nor the Results table's, that one being sorted by time.
+-- This order is placed for measurement: the A/A controls straddle what they
+-- price, the Lemire arms straddle their controls, and the @sum-only@ pair
+-- sits at both ends. Moving an entry takes a control off what it was aimed at
+-- and breaks comparability with earlier runs, so it stays put; the families
+-- are expressed in the definition order above instead.
+roster :: [(String, Arm)]
+roster =
+  [ ("list",                       Base fbList)
+    -- A/A controls, three of them, none a strategy: each runs an
+    -- existing function twice so its true ratio is known to be exactly 1,
+    -- and what it measures instead is what two identical things differ by.
+    -- A margin narrower than they are is not a result.
+    --
+    -- They are aimed where comparisons are close, which Failed Run 6 showed is
+    -- NOT the top of the table (0.074/0.092/0.099 are 20-35% apart) but
+    -- two bands lower down. This one duplicates 'bq-scan-mulback' from
+    -- ~28 slots away, so it prices the scan band -- which holds an exact
+    -- tie, 'bq-scan-mulback' against 'bq-scan-rem-gm-mulback', and that
+    -- tie is the shipping question -- and simultaneously spans the group,
+    -- keeping position monitored rather than assumed now that SpecConstr
+    -- changes code layout. Failed Run 6 found no position effect at -O1:
+    -- the distant pair agreed to 0.14% against the adjacent one's 1.2% --
+    -- published ratios, i.e. of the two trimmed columns, where the arms
+    -- may drop different shapes; paired shape by shape the two read 0.34%
+    -- and 0.36%, the same verdict by a cleaner route
+    -- (README.md#the-noise-floor-is-2-not-the-ci).
+  , ("bq-scan-mulback-aa-distant", Twin fbBQscanMulback)
+    -- The early half of the 'sum-only' pair; the late half is the last
+    -- bench in the group. Subtracting the shared forcing term from every
+    -- other row is only sound if that term is a CONSTANT, and this bench
+    -- is the one place in the suite where that is in doubt: every other
+    -- bench allocates its own result each iteration and so is indifferent
+    -- to what ran before it, while this one re-reads a FIXED vector and
+    -- therefore depends on whether that vector survived in cache. The A/A
+    -- pair's agreement does not license the assumption -- it duplicates a
+    -- self-allocating bench, the insensitive kind. If the two halves
+    -- agree the correction is sound; if they diverge, the term is not a
+    -- constant and the correction must be dropped rather than applied.
+  , ("sum-only-early",             Term)
+  , ("gen-quotrem",                Fill fbGenQuotRem)
+  , ("gen-unsafe",                 Fill fbGenUnsafe)
+  , ("unfold-add",                 Fill fbUnfoldAdd)
+  , ("fused",                      Fill fbFused)
+  , ("offsets-quot",               Fill fbBaseOffsetsQuot)
+  , ("backperm",                   Fill fbBackperm)
+    -- 'fbConcatRuns' is deliberately NOT benchmarked, though @check@
+    -- still holds it to the reference. It is by a clear margin the
+    -- noisiest bench of the set -- Failed Run 6's single worst cell, the
+    -- worst cell on five of its shapes, and a median cell some 2.5x the
+    -- shape's typical CI -- and it sits in the heavy tail of both time
+    -- and allocation, though 'list', 'unfold-add' and 'cm-gather' all
+    -- allocate more. Every time figure is a ratio to 'list', which runs
+    -- first in the group, so an aftermath outliving one bench would tilt
+    -- the whole group one way instead of cancelling. The direct probes
+    -- find nothing: its successor times the same after it as after a
+    -- benign predecessor, and the A/A pair that straddles it agrees
+    -- better than the two that do not. What is not probed is the roster
+    -- effect (README.md#the-noise-floor-is-2-not-the-ci): 20% in
+    -- horde-ad's ConvVjpBench, a property of what shares the process
+    -- rather than of any one bench, and persisting for a whole run. The
+    -- bench likeliest to trigger it is the one with the most extreme
+    -- footprint, which is this one, and it is refuted on its own numbers
+    -- anyway -- so timing it buys nothing to set against that risk. It
+    -- keeps a roster entry, and with it an agreement check, but takes no
+    -- slot in the run; the entry sits where the slot used to be.
+  , ("concat-runs",                Only fbConcatRuns)
+  , ("mut-odo",                    Fill fbMutOdo)
+  , ("mut-odo-vecdims",            Fill fbMutOdoVecdims)
+    -- The fast-end control, on the fastest strategy measured. Failed Run 6 put
+    -- the floor at 2.0% duplicating a 0.099 arm against 0.14-1.2% on a
+    -- 0.179 one -- and the noisier arm was the one allocating LESS, so
+    -- the floor tracks 1/time rather than GC pressure. That predicts a
+    -- larger floor still here, at 0.074, which nothing has measured.
+  , ("mut-odo-vecdims-aa",         Twin fbMutOdoVecdims)
+  , ("mut-offsets",                Fill fbMutBaseOffsets)
+  , ("build",                      Fill fbBuild)
+  , ("bq-mut",                     Fill fbBQmut)
+  , ("bq-mut-runs",                Fill fbBQmutRuns)
+  , ("bq-mut-runs-mulback",        Fill fbBQmutRunsMulback)
+  , ("mut-flat",                   Fill fbMutFlat)
+  , ("bq-mut-runs-gm-mulback",     Fill fbBQmutRunsGmMulback)
+  , ("bq-mut-lemire-out",          Fill fbBQmutLemireOut)
+  , ("bq-mut-lemire-mulback",      Fill fbBQmutLemireMulback)
+  , ("offtab",                     Fill fbOffTab)
+  , ("offtab32",                   Fill fbOffTab32)
+  , ("offtab-scan",                Fill fbOffTabScan)
+  , ("bq-unfold",                  Fill fbBQunfold)
+  , ("bq-gen",                     Fill fbBQgen)
+    -- The Lemire arms are placed to straddle their controls: this one
+    -- runs just after 'bq-gen', and the output-substitution arms run
+    -- ahead of 'bq-expand'. A group's later slots are the warmer ones,
+    -- so any position bias flatters one side and penalises the other,
+    -- and cannot manufacture a verdict that agrees across both.
+  , ("bq-gen-lemire",              Fill fbBQgenLemire)
+  , ("bq-expand-lemire-out",       Fill fbBQexpandLemireOut)
+  , ("bq-expand-lemire-mulback",   Fill fbBQexpandLemireMulback)
+  , ("bq-expand32-lemire-mulback", Fill fbBQexpand32LemireMulback)
+  , ("bq-scan-mulback",            Fill fbBQscanMulback)
+  , ("bq-scan-rem-mulback",        Fill fbBQscanRemMulback)
+  , ("bq-scan-gm-mulback",         Fill fbBQscanGmMulback)
+  , ("bq-scan-rem-gm-mulback",     Fill fbBQscanRemGmMulback)
+  , ("bq-odo-mulback",             Fill fbBQodoMulback)
+  , ("bq-scan-packed-mulback",     Fill fbBQscanPackedMulback)
+  , ("bq-expand-qr-prim",          Fill fbBQexpandQRprim)
+  , ("bq-expand",                  Fill fbBQexpand)
+  , ("bq-expand-aa-adjacent",      Twin fbBQexpand)
+  , ("bq-expand-zf",               Fill fbBQexpandZF)
+  , ("bq-expand-b",                Fill fbBQexpandB)
+  , ("cm-gather",                  Fill fbCMGather)
+  , ("all-expand",                 Fill fbAllExpand)
+    -- Not a strategy: the shared forcing term every other bench carries.
+    -- Each of them is @whnf (VS.sum . fb sh) a@, so each timing is fill
+    -- PLUS this sum, and every ratio reported anywhere is @(B+S)/(A+S)@ --
+    -- compressed toward 1 by an amount nothing measured until now, and
+    -- compressed most for the fastest arms, which is where the table is
+    -- closest. With @S@ in hand every margin in the record becomes
+    -- correctable after the fact, which is why it is worth a row in the
+    -- last run at this optimisation level.
+    --
+    -- The late half of the pair; the early half sits third in the group
+    -- and the two together test whether the term is position-independent
+    -- (see there). Last in the group deliberately: its 'env' materialises
+    -- a second l-element vector, and nothing after it can be perturbed by
+    -- that -- nothing follows.
+  , ("sum-only-late",              Term)
+  ]
+
+-- The reference every other arm is held to, and the bench named @list@: read
+-- off the roster rather than named a second time here, so the arm that gets
+-- timed and the vector 'check' compares against cannot come apart.
+reference :: ShapeL -> T -> VS.Vector Double
+reference sh a = case [f | (_, Base f) <- roster] of
+  f : _ -> f sh a
+  []    -> error "roster: no Base entry to serve as the reference"
+
+-- The arms 'check' holds to that reference. The reference has nothing to
+-- compare itself against, a 'Twin' duplicates an arm already checked, and a
+-- 'Term' has no fill of its own -- so those three are absent by construction
+-- rather than by omission, which is what a hand-written chain could not say.
+--
+-- Proved non-vacuous by shortening 'fbBQexpandB''s result by one element:
+-- @check@ then failed at the first shape, naming @bq-expand-b@.
+checkedArms :: [(String, ShapeL -> T -> VS.Vector Double)]
+checkedArms = [(n, f) | (n, arm) <- roster, f <- fills arm]
+  where fills (Fill f) = [f]
+        fills (Only f) = [f]
+        fills _        = []
+
 -- Print the flagged (too-big) shapes, then benchmark every shape in
 -- 'shapes'. How to run: README.md#running-it. The numbers and how to
 -- read them: README.md#results, README.md#reading-the-results.
@@ -1750,7 +1951,7 @@ main = assert partitioned $ do
         let bs = map mkBench shapes
         defaultMainWith
           defaultConfig { regressions = [(["iters"], "allocated")] } bs
-        provenance (length (concatMap benchNames bs))
+        provenance
 
 -- What a run records about itself, so that a document quoting its scale
 -- copies a measured number instead of counting benches by hand -- which is
@@ -1760,170 +1961,60 @@ main = assert partitioned $ do
 -- for, so nothing here needs a flag from the invoker. It goes to stderr,
 -- leaving @--list@ and criterion's own stdout machine-readable, and it
 -- reports the roster rather than what a filtered run selected.
-provenance :: Int -> IO ()
-provenance benches = do
+--
+-- The count is the roster's timed arms, not the 'Benchmark' nodes 'mkBench'
+-- built. Those are one per timed arm per SHAPE, so counting them reported
+-- their product -- 1452 where 44 was meant, in a line whose whole purpose is
+-- to be quoted. Reading the roster is not the weaker check it looks like:
+-- 'mkBench' emits exactly one bench per timed arm, so the two cannot differ.
+provenance :: IO ()
+provenance = do
   s <- getRTSStats
   let secs = fromIntegral (elapsed_ns s) / 1e9 :: Double
       (h, r) = (round secs :: Int) `divMod` 3600
       (m, sec) = r `divMod` 60
       mib b = show (round (fromIntegral b / 1048576 :: Double) :: Int)
+      timed = [n | (n, arm) <- roster, notOnly arm]
+      notOnly (Only _) = False
+      notOnly _        = True
   hPutStrLn stderr $
-    "=== roster " ++ show benches ++ " benchmarks over " ++ show (length shapes)
+    "=== roster " ++ show (length timed) ++ " benchmarks over "
+    ++ show (length shapes)
     ++ " shapes; elapsed " ++ show h ++ "h" ++ show m ++ "m" ++ show sec
     ++ "s; peak " ++ mib (max_mem_in_use_bytes s) ++ " MiB in use, "
     ++ mib (max_live_bytes s) ++ " MiB max residency"
 
--- Benchmark one shape. Criterion's 'env' builds the input once and forces it
--- to normal form before the clock starts, so input construction is excluded
--- from timing and the source vector is fully materialised. The
--- agreement/regime check is deliberately NOT here -- it lives in the separate
--- 'check' mode, so the timed program never even computes it and thus cannot
--- share (CSE) a strategy's result between the check and the benchmark.
+-- Benchmark one shape: every 'roster' arm, in that list's order, which is
+-- where each arm's slot and the reason for it are recorded. Criterion's 'env'
+-- builds the input once and forces it to normal form before the clock starts,
+-- so input construction is excluded from timing and the source vector is
+-- fully materialised. The agreement/regime check is deliberately NOT here --
+-- it lives in the separate 'check' mode, so the timed program never even
+-- computes it and thus cannot share (CSE) a strategy's result between the
+-- check and the benchmark.
+--
+-- Each fill reaches the timed loop as a closure out of 'roster' rather than
+-- as a literal composition, which is what deriving both consumers from one
+-- list costs, and it costs it in every arm alike.
 mkBench :: (String, ShapeL) -> Benchmark
 mkBench (name, normalSh) =
   env (evaluate (force (mkStrided normalSh))) $ \ ~(sh, a) ->
-    bgroup name
-      [ bench "list"        $ whnf (VS.sum . fbList sh) a
-        -- A/A controls, three of them, none a strategy: each runs an
-        -- existing function twice so its true ratio is known to be exactly 1,
-        -- and what it measures instead is what two identical things differ by.
-        -- A margin narrower than they are is not a result.
-        --
-        -- They are aimed where comparisons are close, which Failed Run 6 showed is
-        -- NOT the top of the table (0.074/0.092/0.099 are 20-35% apart) but
-        -- two bands lower down. This one duplicates 'bq-scan-mulback' from
-        -- ~28 slots away, so it prices the scan band -- which holds an exact
-        -- tie, 'bq-scan-mulback' against 'bq-scan-rem-gm-mulback', and that
-        -- tie is the shipping question -- and simultaneously spans the group,
-        -- keeping position monitored rather than assumed now that SpecConstr
-        -- changes code layout. Failed Run 6 found no position effect at -O1:
-        -- the distant pair agreed to 0.14% against the adjacent one's 1.2% --
-        -- published ratios, i.e. of the two trimmed columns, where the arms
-        -- may drop different shapes; paired shape by shape the two read 0.34%
-        -- and 0.36%, the same verdict by a cleaner route
-        -- (README.md#the-noise-floor-is-2-not-the-ci).
-      , bench "bq-scan-mulback-aa-distant"
-                            $ whnf (VS.sum . fbBQscanMulback sh) a
-        -- The early half of the 'sum-only' pair; the late half is the last
-        -- bench in the group. Subtracting the shared forcing term from every
-        -- other row is only sound if that term is a CONSTANT, and this bench
-        -- is the one place in the suite where that is in doubt: every other
-        -- bench allocates its own result each iteration and so is indifferent
-        -- to what ran before it, while this one re-reads a FIXED vector and
-        -- therefore depends on whether that vector survived in cache. The A/A
-        -- pair's agreement does not license the assumption -- it duplicates a
-        -- self-allocating bench, the insensitive kind. If the two halves
-        -- agree the correction is sound; if they diverge, the term is not a
-        -- constant and the correction must be dropped rather than applied.
-      , env (evaluate (force (fbList sh a))) $ \r ->
-          bench "sum-only-early" $ whnf VS.sum r
-      , bench "gen-quotrem" $ whnf (VS.sum . fbGenQuotRem sh) a
-      , bench "gen-unsafe"  $ whnf (VS.sum . fbGenUnsafe sh) a
-      , bench "unfold-add"  $ whnf (VS.sum . fbUnfoldAdd sh) a
-      , bench "fused"       $ whnf (VS.sum . fbFused sh) a
-      , bench "offsets-quot" $ whnf (VS.sum . fbBaseOffsetsQuot sh) a
-      , bench "backperm"    $ whnf (VS.sum . fbBackperm sh) a
-        -- 'fbConcatRuns' is deliberately NOT benchmarked, though @check@
-        -- still holds it to the reference. It is by a clear margin the
-        -- noisiest bench of the set -- Failed Run 6's single worst cell, the
-        -- worst cell on five of its shapes, and a median cell some 2.5x the
-        -- shape's typical CI -- and it sits in the heavy tail of both time
-        -- and allocation, though 'list', 'unfold-add' and 'cm-gather' all
-        -- allocate more. Every time figure is a ratio to 'list', which runs
-        -- first in the group, so an aftermath outliving one bench would tilt
-        -- the whole group one way instead of cancelling. The direct probes
-        -- find nothing: its successor times the same after it as after a
-        -- benign predecessor, and the A/A pair that straddles it agrees
-        -- better than the two that do not. What is not probed is the roster
-        -- effect (README.md#the-noise-floor-is-2-not-the-ci): 20% in
-        -- horde-ad's ConvVjpBench, a property of what shares the process
-        -- rather than of any one bench, and persisting for a whole run. The
-        -- bench likeliest to trigger it is the one with the most extreme
-        -- footprint, which is this one, and it is refuted on its own numbers
-        -- anyway -- so timing it buys nothing to set against that risk.
-      , bench "mut-odo"     $ whnf (VS.sum . fbMutOdo sh) a
-      , bench "mut-odo-vecdims"
-                            $ whnf (VS.sum . fbMutOdoVecdims sh) a
-        -- The fast-end control, on the fastest strategy measured. Failed Run 6 put
-        -- the floor at 2.0% duplicating a 0.099 arm against 0.14-1.2% on a
-        -- 0.179 one -- and the noisier arm was the one allocating LESS, so
-        -- the floor tracks 1/time rather than GC pressure. That predicts a
-        -- larger floor still here, at 0.074, which nothing has measured.
-      , bench "mut-odo-vecdims-aa"
-                            $ whnf (VS.sum . fbMutOdoVecdims sh) a
-      , bench "mut-offsets" $ whnf (VS.sum . fbMutBaseOffsets sh) a
-      , bench "build"       $ whnf (VS.sum . fbBuild sh) a
-      , bench "bq-mut"      $ whnf (VS.sum . fbBQmut sh) a
-      , bench "bq-mut-runs" $ whnf (VS.sum . fbBQmutRuns sh) a
-      , bench "bq-mut-runs-mulback"
-                            $ whnf (VS.sum . fbBQmutRunsMulback sh) a
-      , bench "mut-flat"    $ whnf (VS.sum . fbMutFlat sh) a
-      , bench "bq-mut-runs-gm-mulback"
-                            $ whnf (VS.sum . fbBQmutRunsGmMulback sh) a
-      , bench "bq-mut-lemire-out"
-                            $ whnf (VS.sum . fbBQmutLemireOut sh) a
-      , bench "bq-mut-lemire-mulback"
-                            $ whnf (VS.sum . fbBQmutLemireMulback sh) a
-      , bench "offtab"      $ whnf (VS.sum . fbOffTab sh) a
-      , bench "offtab32"    $ whnf (VS.sum . fbOffTab32 sh) a
-      , bench "offtab-scan" $ whnf (VS.sum . fbOffTabScan sh) a
-      , bench "bq-unfold"   $ whnf (VS.sum . fbBQunfold sh) a
-      , bench "bq-gen"      $ whnf (VS.sum . fbBQgen sh) a
-        -- The Lemire arms are deliberately placed here rather than in
-        -- definition order, so that they straddle their controls: this one
-        -- runs just after 'bq-gen', and the output-substitution arms run
-        -- ahead of 'bq-expand'. A group's later slots are the warmer ones,
-        -- so any position bias flatters one side and penalises the other,
-        -- and cannot manufacture a verdict that agrees across both.
-      , bench "bq-gen-lemire" $ whnf (VS.sum . fbBQgenLemire sh) a
-      , bench "bq-expand-lemire-out"
-                            $ whnf (VS.sum . fbBQexpandLemireOut sh) a
-      , bench "bq-expand-lemire-mulback"
-                            $ whnf (VS.sum . fbBQexpandLemireMulback sh) a
-      , bench "bq-expand32-lemire-mulback"
-                            $ whnf (VS.sum . fbBQexpand32LemireMulback sh) a
-      , bench "bq-scan-mulback"
-                            $ whnf (VS.sum . fbBQscanMulback sh) a
-      , bench "bq-scan-rem-mulback"
-                            $ whnf (VS.sum . fbBQscanRemMulback sh) a
-      , bench "bq-scan-gm-mulback"
-                            $ whnf (VS.sum . fbBQscanGmMulback sh) a
-      , bench "bq-scan-rem-gm-mulback"
-                            $ whnf (VS.sum . fbBQscanRemGmMulback sh) a
-      , bench "bq-odo-mulback"
-                            $ whnf (VS.sum . fbBQodoMulback sh) a
-      , bench "bq-scan-packed-mulback"
-                            $ whnf (VS.sum . fbBQscanPackedMulback sh) a
-      , bench "bq-expand-qr-prim"
-                            $ whnf (VS.sum . fbBQexpandQRprim sh) a
-      , bench "bq-expand"   $ whnf (VS.sum . fbBQexpand sh) a
-      , bench "bq-expand-aa-adjacent"
-                            $ whnf (VS.sum . fbBQexpand sh) a
-      , bench "bq-expand-zf" $ whnf (VS.sum . fbBQexpandZF sh) a
-      , bench "bq-expand-b" $ whnf (VS.sum . fbBQexpandB sh) a
-      , bench "cm-gather"   $ whnf (VS.sum . fbCMGather sh) a
-      , bench "all-expand"  $ whnf (VS.sum . fbAllExpand sh) a
-        -- Not a strategy: the shared forcing term every other bench carries.
-        -- Each of them is @whnf (VS.sum . fb sh) a@, so each timing is fill
-        -- PLUS this sum, and every ratio reported anywhere is @(B+S)/(A+S)@ --
-        -- compressed toward 1 by an amount nothing measured until now, and
-        -- compressed most for the fastest arms, which is where the table is
-        -- closest. With @S@ in hand every margin in the record becomes
-        -- correctable after the fact, which is why it is worth a row in the
-        -- last run at this optimisation level.
-        --
-        -- The late half of the pair; the early half sits third in the group
-        -- and the two together test whether the term is position-independent
-        -- (see there). Last in the group deliberately: its 'env' materialises
-        -- a second l-element vector, and nothing after it can be perturbed by
-        -- that -- nothing follows.
-      , env (evaluate (force (fbList sh a))) $ \r ->
-          bench "sum-only-late" $ whnf VS.sum r
-      ]
+    bgroup name (concatMap (arm sh a) roster)
+  where
+    arm sh a (n, Base f) = [bench n $ whnf (VS.sum . f sh) a]
+    arm sh a (n, Fill f) = [bench n $ whnf (VS.sum . f sh) a]
+    arm sh a (n, Twin f) = [bench n $ whnf (VS.sum . f sh) a]
+    arm sh a (n, Term)   = [env (evaluate (force (reference sh a))) $ \r ->
+                              bench n $ whnf VS.sum r]
+    arm _  _ (_, Only _) = []
 
 -- Correctness / non-vacuity, in its own mode (@cabal run micro -- check@) so
 -- it runs as a separate process from the timed benchmark: every shape must
--- take regime 3 and every strategy must produce the same vector as 'fbList'.
+-- take regime 3 and every strategy must produce the same vector as the
+-- reference. Which arms those are is 'checkedArms', read off the same
+-- 'roster' the benchmark is built from, so a strategy cannot be timed
+-- without being checked; a disagreeing arm is named rather than merely
+-- counted, which a chain of @&&@ could not do.
 check :: IO ()
 check = do
   mapM_ (\(n, s) -> putStrLn $ "FLAGGED too big, excluded: " ++ n ++ " "
@@ -1933,7 +2024,7 @@ check = do
   where
     one (name, normalSh) = do
       let (sh, a@(T ats ao _)) = mkStrided normalSh
-          rList   = fbList sh a
+          rList   = reference sh a
           -- The builders compared directly, not only through the strategies
           -- that consume them. End-to-end agreement hides a table that is
           -- wrong past the entries a fill happens to read, or right in its
@@ -1967,45 +2058,8 @@ check = do
                  && rBuild == baseOffsetsMutRuns    ao osh oats
                  && rBuild == w32 (baseOffsetsExpand32 ao osh oats)
                  && rBuild == w32 (baseOffsetsMut32    ao osh oats)
-          agree   = rList == fbGenQuotRem sh a
-                 && rList == fbGenUnsafe sh a
-                 && rList == fbUnfoldAdd sh a
-                 && rList == fbFused sh a
-                 && rList == fbBaseOffsetsQuot sh a
-                 && rList == fbBackperm sh a
-                 && rList == fbConcatRuns sh a
-                 && rList == fbMutOdo sh a
-                 && rList == fbMutOdoVecdims sh a
-                 && rList == fbMutBaseOffsets sh a
-                 && rList == fbBuild sh a
-                 && rList == fbBQmut sh a
-                 && rList == fbBQmutRuns sh a
-                 && rList == fbBQmutRunsMulback sh a
-                 && rList == fbMutFlat sh a
-                 && rList == fbBQmutRunsGmMulback sh a
-                 && rList == fbBQmutLemireOut sh a
-                 && rList == fbBQmutLemireMulback sh a
-                 && rList == fbOffTab sh a
-                 && rList == fbOffTab32 sh a
-                 && rList == fbOffTabScan sh a
-                 && rList == fbBQunfold sh a
-                 && rList == fbBQgen sh a
-                 && rList == fbBQgenLemire sh a
-                 && rList == fbBQexpandLemireOut sh a
-                 && rList == fbBQexpandLemireMulback sh a
-                 && rList == fbBQexpand32LemireMulback sh a
-                 && rList == fbBQscanMulback sh a
-                 && rList == fbBQscanRemMulback sh a
-                 && rList == fbBQscanGmMulback sh a
-                 && rList == fbBQscanRemGmMulback sh a
-                 && rList == fbBQodoMulback sh a
-                 && rList == fbBQscanPackedMulback sh a
-                 && rList == fbBQexpandQRprim sh a
-                 && rList == fbBQexpand sh a
-                 && rList == fbBQexpandZF sh a
-                 && rList == fbBQexpandB sh a
-                 && rList == fbCMGather sh a
-                 && rList == fbAllExpand sh a
+          bad     = [n | (n, f) <- checkedArms, f sh a /= rList]
+          agree   = null bad
           reg     = regimeOf sh a
       putStrLn $ name ++ ": normalSh " ++ show normalSh ++ " -> strided "
                  ++ show sh ++ ", l=" ++ show (product sh)
@@ -2013,7 +2067,9 @@ check = do
                  ++ ", builds=" ++ show builds
       if agree && builds && reg == 3
         then return ()
-        else error ("CHECK FAILED: " ++ name)
+        else error ("CHECK FAILED: " ++ name
+                    ++ (if null bad then ""
+                        else ", disagreeing: " ++ unwords bad))
 
 -- Allocation diagnostic (run with @cabal run micro -- diag@): why is
 -- 'fbBQmut' faster than 'fbBaseOffsetsQuot' when they share the same
