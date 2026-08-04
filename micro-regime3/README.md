@@ -179,8 +179,11 @@ That is the order `Main.hs` defines them in, and the order to read them in.
 The order they are *run* in is deliberately a different one, fixed by
 `roster` in that file so the controls straddle what they price; the Results
 table below is sorted by time, a third. Sharing that roster with the
-strategies, and not strategies themselves, are three A/A controls and the
-`sum-only` pair — [the noise floor](#the-noise-floor-is-3-not-the-ci) and
+strategies, and not strategies themselves, are three A/A controls, the
+`sum-only` pair, and `bq-expand-nosum` and `mut-odo-vecdims-nosum` — each of
+those last two its base arm run again and forced with one element instead of
+the sum, so that subtracting it from its base gives that sum over a vector the
+fill has just written. [The noise floor](#the-noise-floor-is-3-not-the-ci) and
 [sum-only](#sum-only-and-the-correction-now-applied) say what each
 is for.
 
@@ -298,14 +301,14 @@ not a method.
   write another reader;
 - **gate on the correction, before reading anything else.** `--selftest`
   checks that the forcing term scales with `l` — one pass over the elements,
-  not something whose size varies with the shape — and `--aa` prints whether
-  the two `sum-only` halves agree. The two are independent and the correction
-  needs both: the halves fix the term's dependence on *position*, the scaling
-  invariant its dependence on *size*, and a term wrong in the second way would
-  be wrong in both halves alike, so their agreement would not notice
-  ([sum-only](#sum-only-and-the-correction-now-applied)). Either failing
+  not something whose size varies with the shape — and `--aa` prints both
+  whether the two `sum-only` halves agree and how the term compares with the
+  same pass measured in situ, off the `-nosum` arms. The three are independent
+  and the correction needs all of them: position, size, and the read itself,
+  each blind to what the others catch
+  ([sum-only](#sum-only-and-the-correction-now-applied)). Any of them failing
   invalidates the whole time column rather than merely leaving it uncorrected,
-  and both have to be re-passed by every run rather than inherited;
+  and all have to be re-passed by every run rather than inherited;
 - walk the list under [Provenance](#provenance) of what the new numbers
   replace, and do not trust it to be complete: re-run the two sweeps it names
   and map each hit to the bullet covering it, since running the sweeps is not
@@ -654,21 +657,44 @@ position-independent, which is the test the previous version of this section
 set, and `read-run.py` now takes it per shape as the mean of the two halves
 and divides net of it. `bq-expand` 0.179 becomes 0.155 and
 `bq-scan-packed-mulback` 0.121 becomes 0.097, the first exactly the figure
-that version predicted from Failed Run 6's numbers.
+that version predicted from Failed Run 6's numbers. That agreement is flat in
+shape size as well as position -- regressed against `ln l` the halves' ratio
+rises 0.1% across the whole 6250x range, which is a twentieth of its own
+scatter -- so it is not a large-shape bias cancelling a small-shape one.
 
-That test alone would not have been enough, and the second one is now an
-invariant rather than a judgement. The term is subtracted **per shape**, so it
-must also be the same pass on every shape -- one sum over `l` elements -- and
-a term that were not could be wrong in both halves alike, leaving their
-agreement to notice nothing. It is: 0.588 to 0.608 ns per element across the
-whole shape set, a 1.04x spread over a 6250x range of `l`, with the largest
-shapes 0.7% dearer per element than the smallest and no trend beyond that.
-`--selftest` checks it on every run and fails the run if the spread passes
-1.5x, so the two legs of the correction -- position and size -- are both
-gates rather than one gate and one assumption.
+**The term now passes three gates, and it needed all three**, each blind to
+what the others catch:
 
-Three things follow, and two of them contradict the reasons that version gave
-for *not* publishing it.
+1. *Position*, the halves above.
+2. *Size.* The term is subtracted **per shape**, so it must be the same pass
+   on every shape -- one sum over `l` elements -- and a term that were not
+   could be wrong in both halves alike, leaving their agreement to notice
+   nothing. It is: 0.588 to 0.608 ns per element across the whole shape set, a
+   1.04x spread over that 6250x range of `l`, with the largest shapes 0.7%
+   dearer per element than the smallest and no trend beyond that. `--selftest`
+   checks it on every run and fails the run past a 1.5x spread.
+3. *The read itself.* `sum-only` re-reads one **fixed** vector, where a
+   strategy sums one its own fill has just written -- a different cache state,
+   and the one thing neither gate above can see, since a term biased by it
+   would be biased alike on every shape and in both halves. This is what
+   `bq-expand-nosum` and `mut-odo-vecdims-nosum` are for: each is its base arm
+   run again and forced with a single element instead of the sum, so *base
+   minus arm* is that sum in situ. Measured against `sum-only` they read
+   **0.990** and **1.008** -- within 1%, on the two arms where the term is the
+   smallest and largest share of the bench (an eighth of `bq-expand`, a third
+   of `mut-odo-vecdims`), so the test spans the range over which a bias would
+   matter. They also *bracket* 1, where a systematically warmer fixed-vector
+   read would have put both on one side of it. Per-cell scatter is 4.2% and
+   4.3%, worst on `stretch-square-1341` as usual.
+
+So the second of the two reasons the previous version gave for withholding the
+correction -- that the term's own accuracy was unproven -- is answered rather
+than outstanding. What backs it is a 20-minute probe of seven arms over the
+whole shape set, not a full run: the `-nosum` arms sit adjacent to their bases
+precisely so the difference survives a different process around it.
+
+Two things follow, and both contradict the reasons that version gave for *not*
+publishing it.
 
 - **It is not comparable to anything.** Every earlier figure on this page and
   in `Main.hs` was uncorrected, and Run 7's will be unless it subtracts the
@@ -684,13 +710,12 @@ for *not* publishing it.
   `offtab` past `bq-scan-gm-mulback` and `bq-expand-lemire-out`. All three
   swaps are inside the floor, so no ordering the page treats as real moves --
   but the reason as stated was wrong, not merely unnecessary.
-- **The second objection stands, untouched.** `sum-only` re-reads one fixed
-  vector while the strategies sum a vector their own fill has just written, a
-  warmer and less contended read. Neither gate reaches it: the halves fix the
-  term against position and the invariant fixes it against size, while a term
-  biased low by a colder read would be biased low on every shape and in both
-  halves, passing both. Nothing here measures it, and a run that wants to
-  would need a `sum-only` whose vector was written by the fill it follows.
+
+What remains open is narrower than the objection was: the `-nosum` pairs price
+two arms, not forty-four, so a fill whose write pattern leaves the cache in
+some quite different state could still be summed at a cost `sum-only` misses.
+Two arms an octave apart in speed agreeing to 1% makes that unlikely rather
+than impossible, and the arms are in the roster so every run reprices them.
 
 A one-shape smoke run had said as much before the run did: on `cnn-slice-c32`
 at `-L1` the halves read 169.9 ns and 170.1 ns, 0.12% apart.
@@ -765,9 +790,11 @@ five entries the previous list did not name, which are marked below.
   section's argument needs;
 - [sum-only](#sum-only-and-the-correction-now-applied), the whole section: the
   correction is now applied, so what a run decides there is no longer
-  *whether* but whether the term still passes both its gates — the halves and
-  the scaling invariant must be re-checked every run, since either failing
-  would invalidate the column rather than merely inform it;
+  *whether* but whether the term still passes its three gates — position,
+  size, and the in-situ read off the `-nosum` arms — each of which must be
+  re-checked every run, since any failing would invalidate the column rather
+  than merely inform it; **new to this list:** the 0.990 and 1.008 those arms
+  measured, and the halves' flatness against `ln l`;
 - `concat-runs`' "2.5× the shape's typical CI", in **What the benchmark does**
   and again in `Main.hs`'s `roster` — a Failed Run 6 figure, kept as history
   because the bench is no longer timed and no run replaces it;

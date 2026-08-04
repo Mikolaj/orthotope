@@ -1786,6 +1786,12 @@ partitioned = all ((<= sizeCap) . product . snd) shapes
 --         its own entry does the checking and this one only takes a slot.
 --   Term  the @sum-only@ pair: the shared forcing term every other arm
 --         carries, timed on a pre-built vector, with no fill of its own.
+--   Force a 'Fill' arm run again under a second name and forced with ONE
+--         element instead of the sum, so that subtracting it from its base
+--         gives that sum as it actually occurs -- over a vector the fill has
+--         just written, which is the one thing 'Term' cannot measure about
+--         itself. Like 'Twin' it runs an already-checked function, so its own
+--         entry checks nothing.
 --   Only  checked but deliberately not timed; the reason is at the entry.
 --
 -- @read-run.py --lint@ reads the list below and holds it to what a reader of
@@ -1796,6 +1802,7 @@ data Arm = Base (ShapeL -> T -> VS.Vector Double)
          | Fill (ShapeL -> T -> VS.Vector Double)
          | Twin (ShapeL -> T -> VS.Vector Double)
          | Term
+         | Force (ShapeL -> T -> VS.Vector Double)
          | Only (ShapeL -> T -> VS.Vector Double)
 
 -- Every arm, in RUN order -- which is neither the reading order of the
@@ -1846,12 +1853,15 @@ roster =
     -- agree the correction is sound; if they diverge, the term is not a
     -- constant and the correction must be dropped rather than applied.
     --
-    -- Run 6 (-O1): they agree, to 1.0001 paired and 0.21% per cell, and
-    -- the correction is now applied to every published figure
+    -- Run 6 (-O1): they agree, to 1.0001 paired and 0.21% per cell, with no
+    -- trend against shape size either, and the correction is now applied to
+    -- every published figure
     -- (README.md#sum-only-and-the-correction-now-applied). Both halves
     -- stay in the roster, because this is a test every run must repeat:
     -- a run whose halves diverged would invalidate its whole time column,
-    -- not merely decline to correct it.
+    -- not merely decline to correct it. What this pair CANNOT test about
+    -- itself -- that a fixed vector is read at the same cost as one the fill
+    -- has just written -- is what the two 'Force' arms measure.
   , ("sum-only-early",             Term)
   , ("gen-quotrem",                Fill fbGenQuotRem)
   , ("gen-unsafe",                 Fill fbGenUnsafe)
@@ -1882,6 +1892,13 @@ roster =
   , ("concat-runs",                Only fbConcatRuns)
   , ("mut-odo",                    Fill fbMutOdo)
   , ("mut-odo-vecdims",            Fill fbMutOdoVecdims)
+    -- The second of the two 'Force' pairs, on the fastest strategy measured
+    -- and so the one where the forcing term is the largest share of the
+    -- bench (a median third of it, against an eighth of 'bq-expand'). If the
+    -- term is biased at all, this is the arm the bias distorts most, and one
+    -- pair on its own could not tell a biased term from a size-dependent
+    -- one -- two pairs an octave apart in speed can.
+  , ("mut-odo-vecdims-nosum",      Force fbMutOdoVecdims)
     -- The fast-end control, on the fastest strategy measured. Failed Run 6 put
     -- the floor at 2.0% duplicating a 0.099 arm against 0.14-1.2% on a
     -- 0.179 one -- and the noisier arm was the one allocating LESS, so
@@ -1924,6 +1941,26 @@ roster =
   , ("bq-scan-packed-mulback",     Fill fbBQscanPackedMulback)
   , ("bq-expand-qr-prim",          Fill fbBQexpandQRprim)
   , ("bq-expand",                  Fill fbBQexpand)
+    -- The same fill, forced with one element instead of the sum, so that
+    -- 'bq-expand' minus this one is the forcing pass AS IT OCCURS: over a
+    -- vector this fill has just written. That is the half of the
+    -- @sum-only@ objection its own pair cannot reach -- both halves re-read
+    -- one FIXED vector, a warmer and less contended read than summing what
+    -- you have just produced, and a term biased by that would be biased
+    -- alike on every shape and in both halves, so position-independence and
+    -- scaling both pass and neither notices.
+    --
+    -- Adjacent to its base on purpose, against the roster's usual rule that
+    -- controls straddle what they price: this pair is subtracted rather than
+    -- divided, so what matters is that the two see the same cache and GC
+    -- state, not that they span the group.
+    --
+    -- First measured on a seven-arm probe over the whole shape set: the
+    -- in-situ term reads 0.990 of @sum-only@ here and 1.008 at
+    -- 'fbMutOdoVecdims', so the objection is answered and the two bracket 1
+    -- rather than sitting on one side of it, which a warmer fixed-vector read
+    -- would have produced.
+  , ("bq-expand-nosum",            Force fbBQexpand)
   , ("bq-expand-aa-adjacent",      Twin fbBQexpand)
   , ("bq-expand-zf",               Fill fbBQexpandZF)
   , ("bq-expand-b",                Fill fbBQexpandB)
@@ -1966,6 +2003,9 @@ checkedArms = [(n, f) | (n, arm) <- roster, f <- fills arm]
   where fills (Fill f) = [f]
         fills (Only f) = [f]
         fills _        = []
+        -- 'Force' joins 'Twin' among the absent: it runs a function its base
+        -- entry already checks, and checking it again would only assert that
+        -- the same call gives the same answer.
 
 -- Print the flagged (too-big) shapes, then benchmark every shape in
 -- 'shapes'. How to run: README.md#running-it. The numbers and how to
@@ -2030,17 +2070,34 @@ provenance = do
 -- Each fill reaches the timed loop as a closure out of 'roster' rather than
 -- as a literal composition, which is what deriving both consumers from one
 -- list costs, and it costs it in every arm alike.
+-- What a 'Force' arm forces with: the fill runs in full -- every strategy
+-- here writes its whole buffer before returning a vector at all -- and then
+-- ONE element is read, in place of the O(l) sum every other arm carries.
+--
+-- Reading an element rather than taking 'VS.length' is deliberate: a length
+-- does not depend on the buffer's contents, so it is the one thing an
+-- optimiser could serve without the fill having happened, and the point of
+-- this arm is that the fill DID happen and the sum did not. 'NOINLINE' here
+-- and on every @fb@ is what stops the pair being fused into a single
+-- indexing expression, which is the same protection the sum arms rely on.
+-- The 'VS.null' guard costs one test per call and keeps the arm defined on a
+-- degenerate shape, which nothing benchmarks today but @check@ carries.
+touchLast :: VS.Vector Double -> Double
+touchLast v = if VS.null v then 0 else VS.unsafeLast v
+{-# NOINLINE touchLast #-}
+
 mkBench :: (String, ShapeL) -> Benchmark
 mkBench (name, normalSh) =
   env (evaluate (force (mkStrided normalSh))) $ \ ~(sh, a) ->
     bgroup name (concatMap (arm sh a) roster)
   where
-    arm sh a (n, Base f) = [bench n $ whnf (VS.sum . f sh) a]
-    arm sh a (n, Fill f) = [bench n $ whnf (VS.sum . f sh) a]
-    arm sh a (n, Twin f) = [bench n $ whnf (VS.sum . f sh) a]
-    arm sh a (n, Term)   = [env (evaluate (force (reference sh a))) $ \r ->
-                              bench n $ whnf VS.sum r]
-    arm _  _ (_, Only _) = []
+    arm sh a (n, Base f)  = [bench n $ whnf (VS.sum . f sh) a]
+    arm sh a (n, Fill f)  = [bench n $ whnf (VS.sum . f sh) a]
+    arm sh a (n, Twin f)  = [bench n $ whnf (VS.sum . f sh) a]
+    arm sh a (n, Term)    = [env (evaluate (force (reference sh a))) $ \r ->
+                               bench n $ whnf VS.sum r]
+    arm sh a (n, Force f) = [bench n $ whnf (touchLast . f sh) a]
+    arm _  _ (_, Only _)  = []
 
 -- Correctness / non-vacuity, in its own mode (@cabal run micro -- check@) so
 -- it runs as a separate process from the timed benchmark: every shape must

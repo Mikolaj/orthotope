@@ -74,8 +74,15 @@ disagreement too, which is what took it from ~2% to ~3%.
 
 Controls, not strategies: the `*-aa-*` rows (an existing strategy run twice
 under a second name, true ratio exactly 1, so their spread is the noise
-floor) and `sum-only*` (the shared term every other row now has subtracted,
-so its own net is zero and its time reads --). --no-controls drops them from
+floor), `sum-only*` (the shared term every other row now has subtracted,
+so its own net is zero and its time reads --), and `*-nosum` (a strategy run
+again and forced with one element instead of the sum, so its BASE minus it is
+that sum in situ -- what `sum-only` is a proxy for, and the one thing
+`sum-only`'s own two halves cannot test about it, both of them re-reading a
+fixed vector. --aa prints the comparison; neither a `-nosum` arm nor
+`sum-only` has a corrected time to give, since subtracting the forcing pass
+from a bench that never ran it would report a fill as cheaper than it is).
+--no-controls drops them from
 the aggregates but not from the correction, which is computed before it, so
 the column means the same with the flag as without; they are always listed
 by --aa, which is where they say what they are for. That a control
@@ -99,7 +106,8 @@ Modes:
   (default)         roster summary and the README strategy table
   --shapes          per shape: CI% max / median / mean, trimmed and not
   --drops           which cells the trim removes, grouped by shape
-  --aa              the A/A and sum-only control pairs, with their spans
+  --aa              the A/A and sum-only control pairs with their spans,
+                    and the in-situ forcing term off the `-nosum` arms
   --cells           every cell as TSV, for anything not covered above
   --exclude S       drop strategy S from every aggregate (repeatable)
   --exclude-shape H drop shape H likewise (repeatable)
@@ -335,9 +343,14 @@ def health(cells, shapes, strategies, terms):
         out.append('no `sum-only` bench in this run, so the time column is'
                    ' UNCORRECTED and not comparable to a full run\'s')
     else:
+        # A `-nosum` arm is exempt with `sum-only`, and for the mirror-image
+        # reason: it is the one kind of arm that never ran the forcing pass,
+        # so on a fast fill its whole cost can legitimately fall below the
+        # term, and subtracting one from the other was never meaningful.
         sunk = [(cells[sh][st]['net'], sh, st) for sh in shapes
                 for st in strategies
                 if not st.startswith('sum-only')
+                and not st.endswith('-nosum')
                 and cells[sh][st]['net'] <= 0]
         if sunk:
             n, sh, st = min(sunk)
@@ -349,12 +362,18 @@ def health(cells, shapes, strategies, terms):
 
 
 def is_control(name):
-    return '-aa' in name or name.startswith('sum-only')
+    return ('-aa' in name or name.startswith('sum-only')
+            or name.endswith('-nosum'))
 
 
 def twin_of(name):
     """The row an A/A control duplicates: strip from '-aa' onward."""
     return name[:name.index('-aa')] if '-aa' in name else None
+
+
+def base_of(name):
+    """The row a `-nosum` control is subtracted from."""
+    return name[:-len('-nosum')] if name.endswith('-nosum') else None
 
 
 def geomean(xs):
@@ -402,7 +421,12 @@ def time_of(cells, shapes, strategy):
     cell the term did not leave positive -- `health` reports that one.
     """
     kept = trimmed_cells(cells, shapes, strategy)
-    if strategy.startswith('sum-only'):
+    # `sum-only` IS the correction, and a `-nosum` arm is its base minus the
+    # correction's subject, so neither has a corrected time to give:
+    # subtracting the forcing pass from a bench that never ran it would
+    # report a fill as cheaper than it is. --aa is where both explain
+    # themselves.
+    if strategy.startswith('sum-only') or strategy.endswith('-nosum'):
         return float('nan')
     if any('list' not in cells[s] for s in kept):
         return float('nan')
@@ -515,7 +539,7 @@ def drop_table(cells, shapes, strategies):
                   % ('starved' if ci is None else '%6.2f' % ci, st))
 
 
-def aa_table(cells, shapes, strategies):
+def aa_table(cells, shapes, strategies, terms):
     pos = {st: i for i, st in enumerate(strategies)}
     pairs = [(st, twin_of(st)) for st in strategies if twin_of(st)]
     if 'sum-only-early' in pos and 'sum-only-late' in pos:
@@ -545,6 +569,34 @@ def aa_table(cells, shapes, strategies):
         print('%56s trim drops %s / %s%s'
               % ('', wa, wb, '' if wa == wb else '   <-- DIFFERENT shapes, so'
                  ' the published ratio compares different shape sets'))
+    insitu = [(b, base_of(b)) for b in strategies
+              if base_of(b) in strategies]
+    if insitu and any(terms.values()):
+        print('\n%-28s %-24s %9s %8s %7s'
+              % ('in-situ forcing term', 'against sum-only', 'ratio',
+                 'median', 'mean|d|'))
+        for arm, base in insitu:
+            r = []
+            for s in shapes:
+                gap = cells[s][base]['slope'] - cells[s][arm]['slope']
+                term = cells[s][base]['slope'] - cells[s][base]['net']
+                if gap > 0 and term > 0:
+                    r.append(gap / term)
+            if not r:
+                continue
+            dev = [abs(x - 1) * 100 for x in r]
+            worst = max(zip(dev, shapes))
+            print('%-28s %-24s %9.4f %8.4f %6.2f%%'
+                  % (base + ' - ' + arm, 'sum-only', geomean(r),
+                     stats.median(r), stats.fmean(dev)))
+            print('%64s worst cell %.2f%% on %s' % ('', worst[0], worst[1]))
+        print('\nA `-nosum` arm is its base run again and forced with one')
+        print('element rather than the sum, so base minus it is that sum over')
+        print('a vector the fill has just written. `sum-only` re-reads a')
+        print('FIXED vector instead, which is the one thing its own two')
+        print('halves cannot test about it: a ratio of 1 here says the two')
+        print('reads cost the same and the subtracted term is unbiased.')
+
     print('\nspan is how many benches run between the pair: a pair spanning a')
     print('bench measures whatever that bench leaves behind it. published is')
     print('the ratio of the two `time` columns, what a reader comparing two')
@@ -576,7 +628,7 @@ def cell_dump(cells, shapes, strategies):
 
 
 ARM_RE = re.compile(r'^\s*[\[,]\s*\("([^"]+)",\s*'
-                    r'(Base|Fill|Twin|Term|Only)(?:\s+(fb\w+))?\)')
+                    r'(Base|Fill|Twin|Term|Force|Only)(?:\s+(fb\w+))?\)')
 
 
 def roster_of(main):
@@ -638,6 +690,7 @@ def lint(main_hs, readme):
     defined = set(re.findall(r'^(fb\w+)\s*::', main, re.M))
     rostered = {f for _, _, f in roster if f}
     twins = [(n, f) for n, r, f in roster if r == 'Twin']
+    forces = [(n, f) for n, r, f in roster if r == 'Force']
 
     bad = []
     undocumented = [n for n in names if n not in doc]
@@ -674,8 +727,29 @@ def lint(main_hs, readme):
         print('ok:   each of the %d A/A controls runs the same function as'
               ' the arm its name duplicates' % len(twins))
 
+    # Same question for the `-nosum` arms, and it matters more: a Force arm
+    # pointed at the wrong function would not be a noisy control, it would
+    # make `base - arm` a difference of two unrelated fills and report it as
+    # a forcing term.
+    off = []
+    for n, f in forces:
+        base = base_of(n)
+        if base is None:
+            off.append('%s is a Force arm whose name has no -nosum' % n)
+        elif base not in fun:
+            off.append('%s names %s, which is not in the roster' % (n, base))
+        elif fun[base] != f:
+            off.append('%s runs %s where %s runs %s'
+                       % (n, f, base, fun[base]))
+    if off:
+        bad.append('Force control(s) not duplicating what the name says: %s'
+                   % '; '.join(off))
+    elif forces:
+        print('ok:   each of the %d -nosum controls runs the same function as'
+              ' the arm its name subtracts from' % len(forces))
+
     mislabelled = [n for n, r, _ in roster
-                   if is_control(n) != (r in ('Twin', 'Term'))]
+                   if is_control(n) != (r in ('Twin', 'Term', 'Force'))]
     bases = [n for n, r, _ in roster if r == 'Base']
     if mislabelled:
         bad.append('%d arm(s) whose name and role disagree, so this reader'
@@ -764,7 +838,8 @@ def selftest(cells, shapes, strategies, meta):
         term_bad = [sh for sh in shapes
                     if not 0 < cells[sh][halves[0]]['slope']]
         sunk = [(sh, st) for sh in shapes for st in strategies
-                if st not in halves and cells[sh][st]['net'] <= 0]
+                if st not in halves and not st.endswith('-nosum')
+                and cells[sh][st]['net'] <= 0]
         if term_bad or sunk:
             bad.append('correction: %d shape(s) with a non-positive forcing'
                        ' term and %d cell(s) it did not leave positive'
@@ -809,7 +884,9 @@ def selftest(cells, shapes, strategies, meta):
                     ' are unexercised')
     else:
         for st in strategies:
-            if st.startswith('sum-only'):
+            # The arms `time_of` declines to give a figure for: correcting
+            # them is meaningless, so there is no geomean to bracket.
+            if st.startswith('sum-only') or st.endswith('-nosum'):
                 continue
             kept = trimmed_cells(cells, shapes, st)
             ratios = [cells[sh][st]['net'] / cells[sh]['list']['net']
@@ -931,7 +1008,7 @@ def main():
     elif args.drops:
         drop_table(cells, shapes, strategies)
     elif args.aa:
-        aa_table(cells, shapes, strategies)
+        aa_table(cells, shapes, strategies, terms)
     elif args.cells:
         cell_dump(cells, shapes, strategies)
     else:
