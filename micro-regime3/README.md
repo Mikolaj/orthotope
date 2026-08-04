@@ -86,6 +86,16 @@ the rest of this file exists to have reached. Figures do appear here, inside
 rulings that rest on them, and those are re-quoted when a run moves them; the
 *rulings* are not re-verified each run.
 
+Those rulings are architecture decision records in all but format — context,
+decision, consequence, and an evidence trail that makes them re-openable
+rather than merely re-readable. The prose form is kept deliberately, since the
+evidence is the point and a template tends to shed it. What the resemblance is
+worth is a warning about growth: if the rulings outgrow the chapter, the ADR
+answer is one record per file with an explicit *status* — and the thing to
+carry over would be that field, since what this page keeps getting wrong is
+not stating a ruling but noticing when a later measurement has superseded
+one.
+
 ### How the strictly positive picture was achieved
 
 Four findings turned the mixed picture into `bq-expand`. **Price the outer
@@ -493,6 +503,13 @@ faithfully (specialised to `Storable Double`, horde-ad's element storage),
 then compares the regime-3 strategies in one binary — the real orthotope
 compiles only one at a time, so a replica is the only way to A/B them.
 
+**One element type, where the fix serves them all.** Everything here is
+`Storable Double`; the fallback is polymorphic over the `Vector` class and the
+element type. Element width sets how many elements a cache line holds and
+boxed elements change the copy entirely, so the *ranking* and not only the
+magnitudes may differ for the instances the shipped code actually serves.
+Nothing here probes that.
+
 The strategies are named here and *described* in `Main.hs`, each at its own
 definition, where a reader meets the code the description is about. This list
 is the index, in that file's definition order — base before variant, which is
@@ -578,6 +595,13 @@ Self-contained (base + vector + criterion + deepseq):
     cd micro-regime3 && cabal run micro -- vgg       # one group by name prefix
     cd micro-regime3 && cabal run micro --ghc-options=-fspec-constr
     cd micro-regime3 && cabal run micro --ghc-options=-O2 -- diag
+
+`cabal.project.freeze` pins the resolved plan — `vector`, `criterion`, `base`
+and the rest, with an index-state — so that a recorded run's source commit and
+its dependencies are both known. One pin is load-bearing rather than
+housekeeping: `vector` is built `+boundschecks -unsafechecks`, which is what
+makes the `gen-quotrem`/`gen-unsafe` pair price a bounds check at all, since
+one uses `VS.!` and the other `VS.unsafeIndex`.
 
 `micro.cabal` builds at -O1, the regime a default `cabal build` of orthotope
 compiles under. Other regimes are command-line only, the flag landing

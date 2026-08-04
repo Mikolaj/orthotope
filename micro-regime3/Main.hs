@@ -149,6 +149,11 @@ magicOf d | d <= 1 = 0
 -- either way, but the bangs are what keep a context where it does not inline
 -- -- another GHC, a bigger enclosing loop -- from building a remainder thunk
 -- per element.
+-- TODO, owed before any shipped form: a standalone property test against
+-- 'quotRem' over adversarial (n, d). Correctness here rests on @check@
+-- agreeing on benchmarked shapes, which exercise neither the @d == 1@ path
+-- nor anything near the @n < 2^32@ bound the identity needs -- so the
+-- helper is tested only where it is easiest to be right.
 {-# INLINE fastQR #-}
 fastQR :: Word -> Int -> Int -> (Int, Int)
 fastQR 0 _ n = (n, 0)
@@ -171,9 +176,12 @@ fastQR (W# m) d (I# n) = case timesWord2# m (int2Word# n) of
 -- bindings force it on paths their @s == 1@ guard never uses. The setup
 -- division runs through Integer, once per call. Correctness is gated by
 -- the agreement check like everything else, but its hard cases (l at and
--- past 2^32) are unreachable by any buildable shape -- a shipped form owes
--- the helper a standalone property test against 'quotRem' over adversarial
--- (n, d).
+-- past 2^32) are unreachable by any buildable shape.
+--
+-- TODO, owed before any shipped form and the same debt 'fastQR' carries: a
+-- standalone property test against 'quotRem' over adversarial (n, d).
+-- orthotope's own test suite is where it goes; QuickCheck over the whole
+-- Int range costs nothing and covers what no benchmarked shape reaches.
 --
 -- This helper's lazy result tuple was a bug: forcing it moved both
 -- Granlund-Montgomery arms, as the analogous strictness fixes moved
