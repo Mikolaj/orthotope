@@ -1656,10 +1656,18 @@ regimeOf sh (T ats _ v)
 -- three -- 'mnist-28-c1-k3' against 'cnn-L1-24x24-c1', 'vgg-14-c256-k3' and
 -- 'deep-7-c512-k3' against 'vgg-14-c512-k3', 'cnn-slice-c64' against
 -- 'cnn-slice-c32', and so on -- so they cost a proportional share of every
--- run's wall clock and moved the equally-weighted geomean by nothing they
--- did not already move. The freed time went to A/A controls, which
--- calibrate every other figure and were the roster's scarce resource
--- (README.md#the-noise-floor-is-3-not-the-ci).
+-- run's wall clock for coverage already held. The freed time went to A/A
+-- controls, which calibrate every other figure and were the roster's scarce
+-- resource (README.md#the-noise-floor-is-3-not-the-ci).
+--
+-- It DOES move the published geomean, which an earlier version of this
+-- comment denied: the eleven skew small, and the base-offsets build is a
+-- larger share of a small shape, so 'bq-expand' reads 6.5% lower over the
+-- surviving set and ratios between strategies shift by up to ~6% -- both
+-- past the noise floor. That is a change of population, not of any
+-- strategy, and it is why README pins Run 6's figures restricted to these
+-- shapes rather than leaving the published column as the thing to compare
+-- against (README.md#results).
 --
 -- Two of the kept eleven are load-bearing beyond their workload and must
 -- not be dropped in a later trim. 'gather48-src-50' and 'conv1d-24' are the
