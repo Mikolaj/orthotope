@@ -56,8 +56,9 @@ it with no division and no lazy cons-list — a `foldl'`-over-a-`build`-list
 does not fuse away, and that is `bq-expand`'s edge over `offsets-quot`.
 **Strictness bangs on the hot loop are performance-essential**, worth ~2× on
 their own, and are carried into `Data/Array/Internal.hs` with the logic.
-**And the harness has to be hardened before any of that is believable** —
-criterion `env` so input construction is outside the clock, `NOINLINE` so no
+
+**While this was achieved, the harness had to be hardened** — criterion `env`
+employed to move input construction outside the clock, `NOINLINE` so no
 result is hoisted out of the timed loop, and the agreement check in a separate
 `check` mode so it cannot share a computation with the benchmark via CSE.
 Under it the ranking is stable and every time scales with `l`, so nothing is
@@ -128,20 +129,20 @@ own control test reads it.
 
 `concat-runs` is the one strategy `check` covers and the benchmark does not.
 It was by a clear margin the noisiest bench of the set — Failed Run 6's single
-worst cell, the worst cell on five of its shapes, and a median cell some 2.5×
-the shape's typical CI — and it sits in the heavy tail of both time and
-allocation, though `list`, `unfold-add` and `cm-gather` all allocate more.
-Since every `time` figure is a ratio to `list`, which runs first in the group,
-an aftermath that outlived one bench would tilt the whole group one way rather
-than cancelling out. Nothing was caught doing that: its successor times the
-same after it as after a benign predecessor, and of the three A/A pairs the
-one that straddles it agrees best. The unprobed risk is the [roster
-effect](#the-noise-floor-is-3-not-the-ci) — a property of what shares a
-process, worth 20% in horde-ad's `ConvVjpBench`, and one that persists for a
-whole run rather than for one bench. What would trigger it is a bench extreme
-enough to change the process it runs in, and this one is extreme where it
-counts least defensibly: in how little its own figures can be trusted. They
-refute it anyway, so timing it bought nothing to weigh against that.
+worst cell, and a median cell some 2.5× the shape's typical CI — so excluding
+it costs no information the run needs, and it is one of the changes preceding
+the current, quieter run, though nothing separates its contribution from the
+others'.
+
+The worry was never its own figures but its neighbours': every `time` is a
+ratio to `list`, which runs first, so an aftermath outliving one bench would
+tilt the group rather than cancel. The probes found nothing — its successor
+timed the same after it as after a benign predecessor, and of the three A/A
+pairs the one straddling it agreed best. What stays unprobed is the [roster
+effect][floor], worth 20% in horde-ad's `ConvVjpBench` and persisting for a
+whole run rather than one bench: unretired rather than absent, since that case
+ran benchmarks of a different scale, which may be why it has not shown up here
+— a guess with no measurement behind it.
 
 ## Running it
 
@@ -156,10 +157,11 @@ Self-contained (base + vector + criterion + deepseq):
     cd micro-regime3 && cabal run micro --ghc-options=-O2 -- diag
 
 `micro.cabal` builds at -O1, the regime a default `cabal build` of orthotope
-compiles under. The other two regimes are command-line only, the flag landing
-after the cabal file's so the later `-O` wins: `-fspec-constr` for Run 7
-(SpecConstr), `-O2` for the half of the scan-fusion refutation
-that inverts there (a `diag` at -O2 is what measures it).
+compiles under. Other regimes are command-line only, the flag landing
+after the cabal file's so the later `-O` wins: `-fspec-constr`
+when testing the `SpecConstr` optimization effect, `-O2` for the half
+of the scan-fusion refutation that inverts there (a `diag` at `-O2`
+is what measures it).
 
 Those are all probes. A run whose numbers are meant to be kept and written
 into this file is a different undertaking, and has a procedure of its own:
@@ -174,21 +176,23 @@ procedure, and it is written to outlive any one run.
 **Where the effort actually goes, because it is not where it looks.** The run
 is about two hours and *unattended* — it costs patience and a quiet machine,
 nothing else. Everything expensive happens after it, in the write-up, and that
-is where a session's budget is spent and where its mistakes are made. Two
-consequences worth having in mind before starting. Prefer analysis that
+is where a session's token budget is spent and where its mistakes are made.
+Two consequences worth having in mind before starting. Prefer analysis that
 localises — per shape, per control — over re-quoting figures that moved a few
-percent and changed nothing; the first is where every surprise has come from
-and the second is what has gone stale twice. And **a probe is not a lesser
-instrument than a major run**: the measurements that closed the `sum-only`
-objection, established that the forcing term scales, and settled the floor's
-mechanism cost twenty minutes, zero extra machine time, and zero extra machine
-time respectively, while the major run they hang off changed no decision at
-all. A question with a discriminating measurement usually deserves a filtered
+percent and changed nothing; the first is where the surprises have come from
+and the second is what has gone stale twice.
+And **a probe is not a lesser instrument than a major run**:
+the measurements that closed the `sum-only` objection,
+established that the forcing term scales, and settled the floor's mechanism
+cost twenty minutes and, for the latter two, no extra machine time at all,
+while the major run they hang off changed no decision.
+A question with a discriminating measurement usually deserves a filtered
 run now rather than a slot in the next full one.
 
 **Where.** A session starts in `~/r/horde-ad`, which leaves *that*
-repository's `CLAUDE.md` resident while this one is not governed by it; read
-this file and `read-run.py`'s docstring instead, orthotope carrying no
+repository's `CLAUDE.md` resident while this repo is not governed by it,
+even though all generalizable preferences apply; read this file
+and `read-run.py`'s docstring instead, orthotope carrying no
 `CLAUDE.md` of its own. Then:
 
     cd ~/r/orthotope/micro-regime3
@@ -215,8 +219,8 @@ the correction, the controls, the table generator — through its paces. A
 reader broken by a roster change fails here in five minutes instead of after
 the run.
 
-**The run** is one command, the build flag going before the `--` when the
-name asks for one:
+**The run** is one command, any build flags going before the `--`
+when requested:
 
     cabal run micro -- --json RUN.json > run.log 2>&1
     cabal run micro --ghc-options=-fspec-constr -- --json RUN.json > run.log 2>&1
@@ -322,17 +326,19 @@ not a method.
   does not survive, so the source is the only thing that makes a run
   reproducible even in principle — this page's figures are one desktop's and
   are not portable, see [Provenance](#provenance));
-- **only then** delete the JSON. The normal state of this directory is no run
+- **only then** and after asking the user, delete the JSON.
+  The normal state of this directory is no run
   artifact at all, which is decided rather than an oversight; the numbers live
   in this file and the artifact does not. But "afterwards" means after the
-  verification above, not after the writing: Run 6's artifact was deleted as
+  verification above is done, presented to the user and accepted,
+  not after the writing: Run 6's artifact was deleted as
   soon as its write-up was drafted, which cost the ability to re-check
   anything needing the raw samples when the write-up was later questioned.
 
 ## Where the shapes come from
 
 The benchmarked shapes are regime-3 arrays as horde-ad's shaped `conv2d`
-produces them: it compiles to an im2col patch gather
+and other programs produce them: it compiles to an im2col patch gather
 (`CommonShapedOps.slicezS` builds a `[1, nCinp, nKh, nKw]` patch per
 output position of `[nImgs, nCout, nAh, nAw]`), whose strided view is
 normalized through `toVectorListT`. The patch depends on the image and
@@ -397,13 +403,13 @@ smaller conv — so `nImgs` is the only dimension genuinely free to drop.
 
 Run 6 (-O1): criterion, GHC 9.12.4, **-O1**, hardened harness (`env`,
 `NOINLINE` on
-the benchmark-facing functions, separate `check` mode); every strategy in one
-process, so the figures are commensurable. 44 benchmarks over 33 shapes,
+the benchmark-facing functions, separate `check` mode); every strategy in the
+same process, so the figures are commensurable. 44 benchmarks over 33 shapes,
 2h5m2s, peak 397 MiB in use and 134 MiB max residency, on the desktop named
 under [Provenance](#provenance). -O1 is the regime a default `cabal build` of
 orthotope compiles under today, which is why the record is taken there first;
-Run 7 (SpecConstr) comes after it, and changes the answer for a whole class of
-strategies rather than nudging it (below).
+Run 7 (Harness) keeps that regime and Run 8 (SpecConstr) follows, changing
+the answer for a whole class of strategies rather than nudging it (below).
 
 This is the first run whose figures have the shared forcing pass subtracted,
 so **no figure here is comparable to one from any earlier run**, and Run 7's
@@ -544,9 +550,13 @@ Restricted to the 22 that survive, untrimmed, Run 6 reads:
 | `bq-scan-rem-gm-mulback` | 0.132 | **0.128** |
 | `bq-expand` | 0.155 | **0.144** |
 
-The right column is the one to hold Run 7 against. The gap between the two is
-population, not any strategy: the eleven dropped shapes skew small, and the
-base-offsets build is a larger share of a small shape, so `bq-expand` loses
+The right column is the one to hold Run 7 against, and Run 7 only: it keeps
+Run 6's regime and measures exactly these shapes, so the comparison is
+like-for-like but for the roster. Run 8 changes the regime, which makes this
+column a yardstick for nothing — regenerate it from Run 7 before Run 8 runs.
+The gap between the two columns is population, not any strategy: the eleven
+dropped shapes skew small, and the base-offsets build is a larger share of a
+small shape, so `bq-expand` loses
 6.5% of its published figure and ratios between strategies move by up to ~6% —
 both past the floor. A run that ignored this would read a shape-set change as
 a code change.
@@ -607,7 +617,7 @@ restricted basis above with a margin past the floor, the one tie marked:
    1.33x, `offtab` and `bq-scan-packed-mulback` 2.00x, `bq-expand` 3.33x,
    `gen-quotrem` 13.0x, `list` 27.0x.
 
-A break in 2 is expected under SpecConstr and is Run 7's point. A break in 6
+A break in 2 is expected under SpecConstr and is Run 8's point. A break in 6
 would mean something changed in `list` or in GHC, not in a strategy — check
 the anchor before anything else.
 
@@ -845,15 +855,18 @@ section](#lemire-multiplicative-inverses-at-the-two-division-sites) rests on.
 None of it is portable, so a run elsewhere is a different measurement rather
 than a repetition, and should say which machine here.
 
-**And the ground has moved again since.** The conv set was halved and the
-roster gained five arms — three A/A controls completing the crossed design,
-and the two `-nosum` arms. So Run 7 stands to Run 6 exactly as Run 6 stood to
-Failed Run 6, for the same two compounding reasons: a different shape set
-makes `alloc` and `time` statistics of a different population, and a different
-roster makes every bench share a different process. Neither change is a
-defect — each bought something this page names — but a figure here and a
-figure from Run 7 are not two measurements of one quantity, and the ratio
-between them is not a result.
+**And the ground has moved again since** — but less than it did last time,
+which is the point. The conv set was halved and the roster gained five arms:
+three A/A controls completing the crossed design, and the two `-nosum` arms.
+Against the **published** column that is the same discontinuity Run 6 had
+against Failed Run 6, a different shape set making `alloc` and `time`
+statistics of a different population, so the ratio between a figure there and
+one from Run 7 is not a result. Against the **restricted** column it is not a
+discontinuity at all: Run 7 keeps this regime and measures exactly the 22
+shapes that column covers, so the roster is the only thing that differs — and
+the roster's own effect is what the six crossed controls are there to price.
+Run 7 will therefore be the closest thing to a repeat measurement this page
+has had. Run 8 changes the regime and gives that up again.
 
 **The delta, so the population is recoverable.** What follows is the *only*
 form in which a shape set or roster is recorded here: its difference from
@@ -916,8 +929,8 @@ for `Run 6` — before trusting the list.
 - [the opening section][opening]'s headline ratios;
 - [What the table says](#what-the-table-says), where every bullet is a run
   figure;
-- [The mutable ceiling (not taken)](#the-mutable-ceiling-not-taken) and
-  [Why there is no gen-lemire](#why-there-is-no-gen-lemire). These two are
+- [The mutable ceiling (not taken)](#the-mutable-ceiling-not-taken) and the
+  shipping paragraph closing [the Lemire section][lemire]. These are
   *rulings resting on figures*, so a stale number re-opens a decision rather
   than merely misreporting one — and a ruling's number moves for reasons its
   verdict does not. Every decision-bearing ratio was checked in both columns
@@ -934,8 +947,8 @@ for `Run 6` — before trusting the list.
   budget: every multiple quoted anywhere is a property of a strategy *and* a
   shape set, so pin the shape set before comparing across runs, as `time`
   already asks;
-- [What the next run has to decide](#what-the-next-run-has-to-decide), whose
-  whole content is questions a run answers and figures a run moves;
+- [What the next runs have to decide](#what-the-next-runs-have-to-decide),
+  whose whole content is questions a run answers and figures a run moves;
 - this section, which becomes the next run's own provenance;
 - `read-run.py`'s docstring, whose `time`, `corr` and `net` definitions and
   A/A paragraph quote the run;
@@ -959,12 +972,6 @@ quietly.
 How a run is made, and what to record beside its numbers, is [Making a major
 benchmark run](#making-a-major-benchmark-run) — which is also where the walk
 of the list above is one of the steps.
-
-Four rows are not comparable to runs before Failed Run 6, all from strictness
-fixes that moved code toward what its comment already claimed:
-`bq-scan-packed-mulback` and the two Granlund-Montgomery arms (a lazy tuple in
-`gmMagic`), and `fused`, whose per-step state thunk had been inflating its
-allocation -- 20.7x before the fix, 10.68x here.
 
 ## Reading the results
 
@@ -1014,12 +1021,13 @@ The second takes seconds and still exercises the reader; a one-shape run says
 so and skips the trim rather than dividing by an empty set. A filtered run
 like it carries no `sum-only` bench, so its figures are uncorrected and not
 comparable to the tables here — the reader warns on stderr when that is what
-it is reading. Run 6 (-O1)'s JSON is gone with Failed Run 6's, so the tables
-in this document cannot be re-derived; the next run replaces them.
+it is reading. Each run's JSON is gone when fully processed and the deletion
+accepted by the user, so the tables in this document cannot be re-derived;
+the next run replaces them.
 
-`--lint` needs no run at all, which is this directory's usual state. It reads
-`roster` out of `Main.hs` — the one list both the benchmark and `check` are
-built from — and asks the four things about it that go stale silently: is
+`--lint` needs no run JSON at all, which is this directory's usual state. It
+reads `roster` out of `Main.hs` — the one list both the benchmark and `check`
+are built from — and asks the four things about it that go stale silently: is
 every arm named somewhere in this file; is every strategy defined in
 `Main.hs` rostered, so that none is left neither timed nor checked; does each
 A/A control run the same function as the arm its name duplicates; and is
@@ -1188,48 +1196,6 @@ loop-invariant and chosen once per call, but it must be there, since orthotope
 does not otherwise cap array length. Weigh 7.4% against that; this
 benchmark's job is to price it, not to decide it.
 
-### Why there is no gen-lemire
-
-**Don't write it.** A third such benchmark is easy to specify and is
-deliberately absent: `gen-lemire` would be `gen-quotrem` with its
-per-dimension divisions replaced by `fastQR`, standing to it exactly as
-`gen-unsafe` does. That is the form the idea is most naturally proposed in —
-inverses of the array sizes, plural, one per dimension — and it is the form
-the two measurements above already refute, which is why it stays unwritten
-rather than being tried again.
-
-It looks promising because `gen-quotrem` trails `bq-expand` by 7.0× while
-differing chiefly in dividing once per *rank* per element, and because a
-per-dimension decomposition needs no base-offsets table and so promised the
-mutable fills' ~1× allocation while staying pure. Both grounds fail against
-figures already in the table.
-
-1. **The same substitution loses at the sibling site.** `bq-gen-lemire` is
-   structurally what `gen-lemire` would be, per run rather than per element,
-   and it is 1.401× *slower* with a loss that grows with rank. A per-dimension
-   cost that rises when a division becomes a multiply says the division was
-   never the per-dimension cost; `gen-lemire` differs only in paying that same
-   cost once per element instead of once per run.
-2. **The output site caps the prize at 7.4%**, measured at the friendliest
-   division in the suite, which does not close a 7.0× gap. Most of that gap is
-   not division at all: `gen-quotrem` walks two `[Int]` lists per element, and
-   Lemire adds a third to walk.
-3. **The allocation ground is inverted**, not merely unproven: `gen-quotrem`
-   and `gen-unsafe` allocate 13.0× the result against `bq-expand`'s 3.9×, so
-   dropping the table costs allocation rather than buying it.
-
-The bounds-check control is what makes point 2 safe to assert: `gen-unsafe` is
-`gen-quotrem` minus the bounds checks and buys nothing (0.06% apart), so the
-gap is arithmetic and bookkeeping, not indexing. That tie is Run 6's and
-settles a disagreement this page carried for two runs, Failed Run 6 having put
-the pair 2.7% apart — just outside its own floor, which would have left the
-control saying something rather than nothing.
-
-A `gen-lemire` surviving all three would still lose, because its ceiling is a
-design already beaten: the base-offsets family pays one division and one table
-read per element against rank-many divisions *plus* rank-many list steps, so
-even a free division leaves the walking.
-
 ## Per shape, where the geomean hides the ordering
 
 The geomean is stable but flattens. Below are the `stretch-*` shapes — chosen
@@ -1330,9 +1296,9 @@ Validation on this branch:
   vacuous.
 - This benchmark: every strategy agrees with `list` on every shape.
 
-End-to-end confirmation in horde-ad's `bench/ConvVjpBench.hs` (wiring this
-branch's orthotope in and rebuilding ox-arrays + horde-ad) is not yet run;
-the numbers above are from the replica.
+End-to-end confirmation in horde-ad's `bench/ConvVjpBench.hs` — wiring this
+branch's orthotope in and rebuilding ox-arrays + horde-ad — has been done and
+is reported in that repo, not here.
 
 ## The mutable ceiling (not taken)
 
@@ -1387,55 +1353,45 @@ here is several ms. The table spans a range narrower than the step it does not
 take, so read this section before the Results one.
 
 Regime 3 has no contiguous runs to hand a bulk kernel, so the transfer stays
-per-element in Haskell however the fallback is written. Closing it needs C, by
-one of two routes this benchmark cannot price:
-
-- an **upstream strided-copy kernel** in ox-arrays' cbits, serving every
-  client of the fallback;
-- the **client-side add-zero gather**, rebuilding gather on the scatter model
-  so the C arith kernels do the densifying — priced against a `scatter48`
-  bound a later orthotope fix largely measured away, so its arithmetic needs
-  redoing before it is proposed again.
-
+per-element in Haskell however the fallback is written. Closing it needs C.
 `bq-expand` is the pure win to take meanwhile, not a replacement for it.
+This is discussed further in the horde-ad repo.
 
-## What the next run has to decide
+## What the next runs have to decide
 
-The open questions, each with the measurement that would settle it, collected
-here because they otherwise sit one per section and get reconstructed every
-time.
+The open questions, each with the measurement that would settle it and the
+run that can supply it, collected here because they otherwise sit one per
+section and get reconstructed every time.
+
+**Run 7 answers three**, keeping -O1 so that its figures are readable against
+the restricted column:
 
 - **Does position move a bench, or was that one arm?** Run 6 found a +2.9%
   bias on its distant control and could not attribute it, its distant slot
   holding a strategy its adjacent slot did not. The roster now crosses three
   strategies against both positions, so `--aa` decides it directly: a bias
   that follows the slot is position, one that follows the name is not.
-- **Ship `bq-expand-lemire-out`?** It is worth 7.4% and costs an `l < 2^32`
-  dispatch plus `MagicHash`/`UnboxedTuples` upstream. Nothing further needs
-  measuring; this is a judgement someone has to make.
+- **Is the ~3% floor real or an artifact of three points?** Six controls
+  replace three; if the spread stays, the floor is a property of the machine
+  rather than of the sample. This one and the last share a roster, so a run
+  that settles either settles both.
+- **Does the halved shape set change any conclusion?** That it moves the
+  geomean is already measured, from Run 6's own cells: `bq-expand` reads 6.5%
+  lower over the surviving shapes, the dropped eleven skewing small. What is
+  not measured is whether any *ordering* moves with it — which is why the
+  restricted column and the claims below are both stated on the surviving
+  shapes, so Run 7 can check it directly rather than by inference.
+
+**Run 8 answers one**, and gives up the comparison above to do it:
+
 - **Does SpecConstr invert the scan family?** `baseOffsetsScan` boxes its
   stream state at -O1 and is predicted allocation-free at -O2, which would put
   `bq-scan-mulback` at 1.33x allocation and the fastest pure time. That is
-  Run 7's whole point and nothing here has tested it.
-- **Is the ~3% floor real or an artifact of three points?** Six controls now
-  replace three; if the spread stays, the floor is a property of the machine
-  rather than of the sample.
-- **Does the halved shape set move the geomean?** It should not — the eleven
-  dropped shapes each duplicated a kept one on `sInner`, rank and `l` — but no
-  run has confirmed that, and the first run on the new set is the one that
-  can, by comparing the strategies whose ordering the trim never touched.
+  Run 8's whole point and nothing here has tested it.
 
-## Further ideas
+## Dead ideas
 
-One pure-Haskell item is open and not listed under
-[what the next run decides](#what-the-next-run-has-to-decide), because no run
-bears on it: tightening *regime 2* (innermost-normal, not exercised here) with
-a `toVectorT` folding the contiguous runs directly rather than building the
-intermediate run list. Being pure Haskell it sits under the
-[C-gap](#the-c-gap-still-a-deeper-ceiling) like everything else here.
-
-The rest of this section is ideas that **died on paper**, recorded so they are
-not re-proposed:
+Ideas that **died on paper**, recorded so they are not re-proposed:
 
 - **Delta-compressing an offset table** (storing Int8/Int16 steps, mostly
   the constant `tInner`, instead of absolute offsets) fails `vGenerate`'s
@@ -1494,7 +1450,7 @@ not re-proposed:
   always fits one `Word` — one multiply-high and one shift per element,
   no bound on `l` (`gmMagic` in `Main.hs`).
 
-## TODO
+## Non-urgent TODO list
 
 - **No build-vs-output time decomposition.** `diag` measures per-builder
   *allocation* only, so a claim like "the table build is a third of the cost"

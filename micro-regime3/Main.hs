@@ -174,6 +174,13 @@ fastQR (W# m) d (I# n) = case timesWord2# m (int2Word# n) of
 -- past 2^32) are unreachable by any buildable shape -- a shipped form owes
 -- the helper a standalone property test against 'quotRem' over adversarial
 -- (n, d).
+--
+-- This helper's lazy result tuple was a bug: forcing it moved both
+-- Granlund-Montgomery arms, as the analogous strictness fixes moved
+-- 'fbBQscanPackedMulback' and 'fbFused'. Those four rows are therefore not
+-- comparable to any run before Failed Run 6 -- a CODE change, where the shape
+-- set and roster deltas README records are population changes, and the two
+-- want telling apart when an old figure looks wrong.
 {-# INLINE gmMagic #-}
 gmMagic :: Int -> (Word, Int)
 gmMagic d
@@ -668,8 +675,14 @@ fbGenQuotRem sh (T ats ao v) =
 -- 'fbGenQuotRem' with unsafeIndex, to isolate the bounds-check cost.
 --
 -- The third one-line variant of it -- those per-dimension divisions
--- replaced by 'fastQR' -- is deliberately not written; the numbers that
--- rule it out are in README.md#why-there-is-no-gen-lemire.
+-- replaced by 'fastQR' -- is deliberately not written, and the numbers that
+-- rule it out are 'fbBQgenLemire' losing 1.4x at the sibling site with the
+-- loss growing in rank (so the division was never the per-dimension cost),
+-- the output site capping the prize at 7.4% against a 7.0x gap to close, and
+-- this arm and 'fbGenQuotRem' allocating 13x the result against
+-- 'fbBQexpand''s 3.9x (so dropping the table costs allocation rather than
+-- buying it). Recorded here rather than in README because that is where the
+-- variant would be written.
 {-# NOINLINE fbGenUnsafe #-}
 fbGenUnsafe :: ShapeL -> T -> VS.Vector Double
 fbGenUnsafe sh (T ats ao v) =
