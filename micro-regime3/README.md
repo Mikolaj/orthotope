@@ -76,116 +76,50 @@ faithfully (specialised to `Storable Double`, horde-ad's element storage),
 then compares the regime-3 strategies in one binary — the real orthotope
 compiles only one at a time, so a replica is the only way to A/B them.
 
-The originals, the first attempt, and the two odometer fills:
+The strategies are named here and *described* in `Main.hs`, each at its own
+definition, where a reader meets the code the description is about. This list
+is the index, in that file's definition order — base before variant, which is
+also the order to read them in:
 
-    list         original fallback: vFromListN l . toListT (lazy cons-list)
-    gen-quotrem  first attempt: vGenerate + per-element quotRem (one per rank)
-    gen-unsafe   gen-quotrem with unsafeIndex, to price the bounds check
-    unfold-add   unfoldrExactN with an allocating immutable-list odometer
-    fused        unfold-add's allocation-free completion: run base-offsets
-                 precomputed, then a strict three-Int unfoldrExactN state
-                 whose hot path is a single add
+- **The originals and the first attempt.** `list` (the fallback being
+  replaced: `vFromListN l . toListT`, a lazy cons-list), `gen-quotrem` (a
+  `vGenerate` over one `quotRem` per *dimension* per element), `gen-unsafe`
+  (that minus the bounds checks, to price them), `unfold-add` and `fused` (an
+  `unfoldrExactN` odometer, allocating and then allocation-free).
+- **The run base-offsets family**, all with the same output — one `vGenerate`
+  doing one `quotRem` per element against a precomputed `m`-element table —
+  and differing only in how that table is built: `offsets-quot` (lazy list),
+  `bq-mut` and `bq-mut-runs` (mutable odometer), `bq-unfold`, `bq-gen`,
+  `bq-gen-lemire` (Lemire at the build site; kept because it *lost*, so the
+  idea is not re-proposed), `bq-expand` (**shipped**), `bq-expand-zf` and
+  `bq-expand-b`.
+- **The same family varying the per-element output instead**, which is the
+  line every member ends in, so pricing it once prices it for all:
+  `bq-expand-qr-prim`, `bq-expand-lemire-out`, `bq-expand-lemire-mulback`,
+  `bq-expand32-lemire-mulback`, `bq-mut-lemire-out`, `bq-mut-lemire-mulback`,
+  `bq-mut-runs-mulback`, `bq-mut-runs-gm-mulback`, `bq-scan-mulback`,
+  `bq-scan-rem-mulback`, `bq-scan-gm-mulback`, `bq-scan-rem-gm-mulback`
+  (the one composition with no size precondition anywhere), `bq-odo-mulback`
+  and `bq-scan-packed-mulback`.
+- **Whole-offset and alternative gathers**, which build an `l`-length offset
+  vector rather than an `m`-length one: `backperm`, `cm-gather`, `all-expand`,
+  `offtab`, `offtab32`, `offtab-scan`.
+- **Direct mutable result-buffer fills**, which need a class extension or
+  explicit mutation and are the [ceiling](#the-mutable-ceiling-not-taken):
+  `mut-odo`, `mut-odo-vecdims`, `mut-offsets`, `build`, `mut-flat`. And
+  `concat-runs`, class-methods-only, checked but no longer timed (below).
 
-The **run base-offsets family** — same output (one `vGenerate` with one
-`quotRem` per element, reading a precomputed `m`-element run base-offsets
-table); these differ *only* in how that table is built:
-
-    offsets-quot base-offsets via fromListN . runBaseOffsets (a lazy build/foldr list)
-    bq-mut       base-offsets via a VS.create mutable odometer (concrete Int scratch)
-    bq-mut-runs  bq-mut with the innermost outer dim written by an additive loop
-    bq-unfold    base-offsets via VS.unfoldrExactN (pure-typed, immutable-list state)
-    bq-gen       base-offsets via VS.generate + one quotRem per run
-    bq-gen-lemire
-                 bq-gen with its per-run, per-dimension build quotRems replaced
-                 by Lemire multiply-highs (1.30x SLOWER; the losing measurement
-                 is kept in the suite so the idea is not proposed again)
-    bq-expand    base-offsets via iterated VS.concatMap expansion   <-- SHIPPED
-    bq-expand-zf bq-expand with the zip and fold fused into one recursion
-    bq-expand-b  bq-expand seeded from the first dim's enumFromStepN
-
-and these hold the build at one of the above and vary the per-element output
-instead — the line every member of the family ends in, so pricing it once
-prices it for all of them:
-
-    bq-expand-qr-prim
-                 bq-expand with the output quotRem replaced by the primop it
-                 wraps, which prices GHC's two guards on it apart from
-                 deleting the division
-    bq-expand-lemire-out
-                 bq-expand with the shared per-element OUTPUT quotRem replaced
-                 by a Lemire multiply-high (see Results; faster pure
-                 strategies have been measured since)
-    bq-expand-lemire-mulback
-                 lemire-out in the leaner form orthotope would ship: the
-                 quotient from the multiply-high, the remainder as i - q*s
-    bq-expand32-lemire-mulback
-                 that, with the table and every concatMap intermediate at Int32
-    bq-mut-lemire-out
-                 the same output substitution against bq-mut's unrelated build
-    bq-mut-lemire-mulback
-                 and the mul-back form of it
-    bq-mut-runs-mulback
-                 the fastest build and the fastest output put together
-    bq-mut-runs-gm-mulback
-                 that, with a Granlund-Montgomery quotient instead: one extra
-                 shift per element and no l < 2^32 bound
-    bq-scan-mulback
-                 the mul-back output over a table built as a prefix sum of a
-                 generated delta stream -- pure, no mutable scratch
-    bq-scan-rem-mulback
-                 bq-scan-mulback with the build's divisibility test by quotRem
-                 rather than multiply-high, shedding the builder's own bound
-    bq-scan-gm-mulback
-                 bq-scan-mulback with the Granlund-Montgomery quotient
-    bq-scan-rem-gm-mulback
-                 both of those at once: the one composition here carrying no
-                 size precondition anywhere
-    bq-odo-mulback
-                 the scan's table by an adds-only unfoldrExactN odometer, no
-                 per-entry division or multiplication at all
-    bq-scan-packed-mulback
-                 the scan's stream state packed into one Int, the constructive
-                 test of the bare-Int-state law
-
-Whole-offset / alternative-gather variants:
-
-    backperm     build the full l-length offset vector, then unsafeBackpermute
-    cm-gather    fused map . concatMap gather (no output quotRem at all)
-    all-expand   full offset grid via concatMap expansion, then map gather
-    offtab       full offset table via a mutable odometer, then vGenerate gather
-    offtab32     offtab with that table narrowed to Int32
-    offtab-scan  offtab with that table built by the scan, so nothing of it is
-                 mutable -- the bet did not survive measurement
-
-Direct mutable result-buffer fills (need a class extension / mutation):
-
-    mut-odo      walk the outer odometer, write each run with a tight
-                 additive inner loop straight into the result buffer
-    mut-odo-vecdims
-                 mut-odo with the odometer's dimension lists replaced by
-                 unboxed vectors -- the fastest strategy measured
-    mut-offsets  as mut-odo but iterating the precomputed run base-offsets list
-    build        mut-odo through vBuildVS, a prototype of the one new Vector
-                 method such a fill would need (prices the abstraction)
-    mut-flat     bq-mut-runs-mulback's table and per-element arithmetic in a
-                 flat ST loop rather than a vGenerate, so the pair prices the
-                 output mechanism alone
-
-    concat-runs  class-methods-only: per-run vGenerate + vConcat (mirrors
-                 the regime-2 branch, but with strided runs) -- checked but
-                 no longer timed, see below
-
-That is the order `Main.hs` defines them in, and the order to read them in.
-The order they are *run* in is deliberately a different one, fixed by
-`roster` in that file so the controls straddle what they price; the Results
-table below is sorted by time, a third. Sharing that roster with the
-strategies, and not strategies themselves, are three A/A controls, the
-`sum-only` pair, and `bq-expand-nosum` and `mut-odo-vecdims-nosum` — each of
-those last two its base arm run again and forced with one element instead of
-the sum, so that subtracting it from its base gives that sum over a vector the
-fill has just written. [The noise floor](#the-noise-floor-is-3-not-the-ci) and
-[sum-only](#sum-only-and-the-correction-now-applied) say what each
-is for.
+The order they are *run* in is deliberately a different one, fixed by `roster`
+in `Main.hs`; the Results table below is sorted by time, a third. Sharing that
+roster with the strategies, and not strategies themselves, are nine controls:
+six A/A arms — `bq-expand-aa-adjacent` and `bq-expand-aa-distant`,
+`bq-scan-mulback-aa-adjacent` and `bq-scan-mulback-aa-distant`,
+`mut-odo-vecdims-aa` and `mut-odo-vecdims-aa-distant`, three strategies each
+duplicated in both positions — the `sum-only-early`/`sum-only-late` pair, and
+`bq-expand-nosum` and `mut-odo-vecdims-nosum`, each its base arm forced with
+one element instead of the sum.
+[The noise floor](#the-noise-floor-is-3-not-the-ci) and
+[sum-only](#sum-only-and-the-correction-now-applied) say what each is for.
 
 The `check` mode (below) asserts every strategy produces byte-identical
 vectors on every shape, that each shape actually takes regime 3, and that the
@@ -329,22 +263,19 @@ not a method.
     = 0.2161 against the reader's 0.216. Recomputing from `--cells` is worth
     doing too, but it shares the reader's arithmetic and cannot catch a wrong
     definition, only a wrong transcription;
-  - **paste `--markdown`'s output over the Results table rather than editing
-    it.** The numbers come from the same call the terminal table renders, so
-    the two cannot disagree, and `needs`, `precondition` and the emphasis are
-    carried forward from the table already there — the columns no run can
-    produce, and the ones that used to be hand-retyped through a re-sort of
-    forty-odd rows. What it could not carry it names on stderr: a row new
-    since that table gets `?` in both columns for you to fill in, a row that
-    has left the roster is dropped and flagged so the prose around the table
-    can follow. Read those warnings; they are the whole of what is left to do
-    by hand;
-  - **check that every `](#...)` resolves**, in this file and in `Main.hs`'s
-    `README.md#...` references. Findings rename headings, and a renamed
-    heading breaks links silently;
-  - **read the document end to end.** The greps above do not catch a bullet
-    contradicting the table three lines below it, which is how "`bq-mut` ties
-    `bq-expand`" survived two runs beside a build ordering that refuted it;
+  - **paste `--markdown`'s output over the Results table**; do not edit the
+    table. It renders the same rows the terminal does, and carries `needs`,
+    `precondition` and the emphasis forward from the table already there.
+    Its stderr is the whole of what is left by hand: a row new to the roster
+    comes out with `?`, a departed row is dropped with a warning;
+  - **check that every `](#...)` resolves**, here and in `Main.hs`'s
+    `README.md#...` references, and that every figure-bearing section is
+    linked from the Provenance list. Findings rename headings, and a renamed
+    heading breaks a link silently;
+  - **read the document end to end.** The mechanical passes above do not catch
+    a bullet contradicting the table three lines below it, which is how
+    "`bq-mut` ties `bq-expand`" survived two runs beside a build ordering that
+    refuted it. This is the pass that keeps finding real errors;
 - rebuild and re-run `--lint` and `check` after editing `Main.hs`, even when
   only comments changed: the reader parses that file for the roster and the
   shape dims, so a comment edit can break a check that passed before it;
@@ -382,13 +313,25 @@ The conv-derived shapes: the patch tensor, per image, laid out
 of the patch tensor above, renamed to the conventional axes (output
 spatial, input channels, kernel) — and its per-position `[Cin, KH, KW]`
 slices, with dims from real nets — kernels 3×3 (VGG/ResNet, horde-ad's own CNN),
-5×5 (LeNet), 7×7 (ResNet stem), 11×11 (AlexNet); channels 1/3 up to 512;
-spatial from horde-ad's 6/12/24 to ImageNet's 224/112/56/28/14/7. The
+5×5 (LeNet), 11×11 (AlexNet); channels 1 up to 512; spatial from horde-ad's
+6/24 to AlexNet's 55. The
 `stretch-*` shapes are not conv-derived — extreme rank, extreme aspect
 ratio, non-power-of-two dims, a cache-hostile innermost stride, a run
 length of one element, a base-offset table as long as the result — to
 probe the space beyond convolution. See `convShapes`/`stretchShapes`
 in `Main.hs` for the full list.
+
+**The conv set was halved after Run 6, and the eleven that went are not to
+come back one at a time.** A strategy sees a shape as its innermost extent
+`sInner`, its rank and its `l`, and nothing else — not which paper the dims
+came from — and each dropped shape duplicated a kept one on all three while
+costing a proportional share of every run. The freed wall clock went to A/A
+controls, which calibrate every other figure and were the roster's scarce
+resource. The ruling and the full reasoning sit at `convShapes` in `Main.hs`,
+beside the list, along with the two shapes that must survive any later trim
+for a reason unrelated to their workload: `gather48-src-50` and `conv1d-24`
+are the only ones whose two innermost listed dims differ, which is what keeps
+`check`'s `sInner` assertion from passing vacuously.
 
 ## Dropping the minibatch dimension
 
@@ -615,15 +558,13 @@ second and a mid-table one worst, which is not 1/time in any order.
 
 *Position* is **not refuted, and not supported either**. What does not cancel
 is a bias, and only the distant pair carries it: +2.9%, on a bench quieter by
-CI% than either of the others. That is consistent with a position effect and
-equally consistent with a property of that one arm, because the re-aiming for
-Run 6 changed strategy and position together where Failed Run 6 had run
-`bq-expand` in **both** slots and so varied position alone. So the earlier
-exoneration no longer has a run behind it, which is a weaker thing than being
-wrong: nothing here licenses either verdict. That is a control-design
-regression worth not repeating -- Run 7 should put one strategy back in both
-slots, and price the scan band with a fourth control rather than by spending
-the distant one on it.
+CI% than either of the others. That is equally consistent with a position
+effect and with a property of that one arm, because the re-aiming for Run 6
+changed strategy and position together where Failed Run 6 had varied position
+alone. The earlier exoneration has lost the run behind it, which is weaker
+than being wrong: nothing licenses either verdict. The roster now crosses
+three strategies against both slots, which decides it directly -- a bias
+following the slot is position, one following the name is not.
 
 Three A/A points remain a poor estimate of a noise floor. Their own published
 spread -- 1.001, 1.007, 1.031 -- is the evidence that it is variable and
@@ -658,19 +599,18 @@ rather than merely noisy. In Run 6 (-O1) that is 4 cells of 1452, the worst
 0.9857: `mut-odo` on the two smallest `cnn-L1` shapes, `build` on
 `alexnet-L2-27-c48-k5`, and `bq-expand-lemire-out` on `stretch-square-1341`.
 
-The two worst have a cause, and it is the one this suite already argues for
-elsewhere. `mut-odo` carries the run's highest CI cell on both of those shapes
-(4.94% and 5.86%, against shape medians of 0.23% and 0.17%) while `build` --
-which drives the identical fill through `vBuildVS` from a different roster
-slot -- reads 0.39% and 0.16% on the same two shapes, and `mut-odo-vecdims`,
-the same fill with the odometer's cons-lists replaced by unboxed vectors,
-reads 0.90% and 0.16%. Same shape, same process, so it is neither the shape
-nor a disturbance in that stretch of the run: it is the odometer's list
-traffic showing up as a GC ramp where `l` is small enough for it to dominate,
-which is exactly the cost `mut-odo-vecdims` was written to remove and does.
-Checking whether a suspicious cell is positional (a contiguous window of
-roster slots) or strategy-intrinsic (one slot, several shapes) is cheap from
-`--cells` and worth doing before reaching for either explanation.
+The two worst have a cause worth the space, because it is a method as much as
+a finding. `mut-odo` carried the run's highest CI cell on both of those
+shapes, while `build` -- the identical fill through `vBuildVS`, from a
+different roster slot -- and `mut-odo-vecdims` -- the same fill with the
+odometer's cons-lists replaced by unboxed vectors -- were clean on the same
+two. Same shape, same process, so it is neither the shape nor a disturbance in
+that stretch of the run: it is the odometer's list traffic as a GC ramp where
+`l` is small enough for it to dominate, which is the cost `mut-odo-vecdims`
+exists to remove. **Positional or strategy-intrinsic is the question to ask
+first of any suspicious cell**, and `--cells` answers it cheaply: a
+disturbance shows as a contiguous window of roster slots, a property of the
+code shows as one slot across several shapes.
 
 ### sum-only, and the correction now applied
 
@@ -780,88 +720,63 @@ section](#lemire-multiplicative-inverses-at-the-two-division-sites) rests on.
 None of it is portable, so a run elsewhere is a different measurement rather
 than a repetition, and should say which machine here.
 
-**What the next run replaces.** Run 6's numbers reach well past the Results
-table, so this is the list to walk when Run 7's land. It is only as good as
-its own completeness, and its predecessor was not: six sections were missing
-from one version of it, and the update before that leaked past it. Both sweeps
-that find such things are cheap to repeat — grep this file for figure-shaped
-numerals outside the tables, and grep it for `Run 6` — so repeat them rather
-than trusting this list to have stayed complete. Walking it for Run 6 found
-five entries the previous list did not name, which are marked below.
+**And the ground has moved again since.** The conv set was halved and the
+roster gained five arms — three A/A controls completing the crossed design,
+and the two `-nosum` arms. So Run 7 stands to Run 6 exactly as Run 6 stood to
+Failed Run 6, for the same two compounding reasons: a different shape set
+makes `alloc` and `time` statistics of a different population, and a different
+roster makes every bench share a different process. Neither change is a
+defect — each bought something this page names — but a figure here and a
+figure from Run 7 are not two measurements of one quantity, and the ratio
+between them is not a result.
 
-- [the Results table](#results), all four columns, from
-  `./read-run.py RUN.json`;
-- [the noise-floor table][floor], from `--aa`, with the prose around it —
-  which now carries the raw-slope triple 1.0010/1.0031/1.0260 as well as the
-  corrected one, the per-cell scatter figures, and the ruling that the distant
-  control must go back to the adjacent one's strategy;
-- [the opening section][opening]'s headline claims: `mut-odo` 1.46× and
-  `mut-odo-vecdims` 3.03× over `bq-expand`, `bq-scan-packed-mulback` 0.097
-  against 0.155, `bq-scan-rem-gm-mulback` 0.132;
-- [What the table says](#what-the-table-says), where every bullet is a Run 6
-  figure: the build ordering 0.155/0.143/0.223/0.310/0.360, `gen-quotrem` at
-  1.087, and the allocation multiples 3.9×/6.7×/1.0×/28×;
-- [The mutable ceiling (not taken)](#the-mutable-ceiling-not-taken): 0.107
-  and 0.108 for `mut-odo` and `build`, 0.141 for `offtab`, 0.051, 0.097, and
-  the "1.89×, not 3.03×" that closes it. This one and the next are rulings
-  resting on figures, so stale
-  numbers there re-open a decision rather than merely misreport one — and a
-  ruling's *number* moves for reasons its *verdict* does not. Every
-  decision-bearing ratio on this page was checked in both columns when the
-  correction landed: none changes direction, but the magnitudes move by up to
-  +31% (this bullet's 3.03×, 2.31× uncorrected), because subtracting a shared
-  term inflates a ratio the more the two arms it compares are fast. So requote
-  a ruling's figure from the run rather than carrying it, even when the ruling
-  itself is untouched;
-- [Why there is no gen-lemire](#why-there-is-no-gen-lemire): 1.087 against
-  0.155, the 13.0× allocation, 3.9×, and the 7.0× gap. Its old internal
-  contradiction is settled: Run 6 has `gen-quotrem` and `gen-unsafe` tied to
-  0.06%, so the bounds-check control buys nothing, which is what the
-  section's argument needs;
-- [sum-only](#sum-only-and-the-correction-now-applied), the whole section: the
-  correction is now applied, so what a run decides there is no longer
-  *whether* but whether the term still passes its three gates — position,
-  size, and the in-situ read off the `-nosum` arms — each of which must be
-  re-checked every run, since any failing would invalidate the column rather
-  than merely inform it; **new to this list:** the 0.990 and 1.008 those arms
-  measured, and the halves' flatness against `ln l`;
-- `concat-runs`' "2.5× the shape's typical CI", in **What the benchmark does**
-  and again in `Main.hs`'s `roster` — a Failed Run 6 figure, kept as history
-  because the bench is no longer timed and no run replaces it;
-- [R2 is the ramp detector][ramp]: "4 cells of 1452", the four cells named,
-  and the positional-versus-intrinsic reading of the worst two;
-- [the Lemire section][lemire]'s `gen-quotrem`-against-`bq-expand` gap, and
-  `bq-expand-lemire-out`'s 0.926× paired, its 0.915× published, its
-  0.796-to-0.982 range, its one losing shape and its 0.142-against-0.155 pair;
-  **new to this list:** its "faster on 32 of 33" and "30 of 33" and "17 of 33"
-  counts, which move with the shape set as much as the geomean does;
-- `bq-gen-lemire`'s 1.38× loss, in the strategy list as well as in Results;
-  **new to this list:** its per-rank series, 1.102 at rank 2 up to 1.588 at
-  rank 12, which the Lemire section quotes rank by rank;
-- the `alloc` column's shape-independence, refuted and now confirmed refuted
-  at full budget: a median 3.93× spread and a worst 22.0× where this page and
-  `read-run.py` once said half a percent. What is left is to carry the
-  consequence through — every multiple quoted in a `Main.hs` comment is a
-  property of a strategy *and* a shape set, and the column wants the shape set
-  pinned before it is compared across runs, as `time` already does;
-- [the per-shape `stretch-*` table][pershape], now Run 6's own rather than
-  inherited; **new to this list:** the bullets under it, one of which Run 6
-  refuted outright;
+**What the next run replaces.** Run 6's numbers reach past the Results table,
+so this is the list to walk when Run 7's land. It names *sections*, not
+figures: a list of figures is a second copy of them, and enumerating it was
+how the previous two versions of this list went stale — one missing six
+sections, its predecessor leaking past it. What now guarantees completeness is
+mechanical instead. Every section below is reached by an anchor, and the
+coverage check is: no section carrying a figure outside a table may be absent
+from these links. Run that check, and repeat the two sweeps it cannot replace
+— grep this file for figure-shaped numerals outside the tables, and grep it
+for `Run 6` — before trusting the list.
+
+- [the Results table](#results), which `--markdown` emits whole;
+- [the noise-floor table][floor] and its prose, from `--aa` — including the
+  raw-slope triple it compares against, and the crossed-control design that
+  Run 6 could not supply;
+- [the opening section][opening]'s headline ratios;
+- [What the table says](#what-the-table-says), where every bullet is a run
+  figure;
+- [The mutable ceiling (not taken)](#the-mutable-ceiling-not-taken) and
+  [Why there is no gen-lemire](#why-there-is-no-gen-lemire). These two are
+  *rulings resting on figures*, so a stale number re-opens a decision rather
+  than merely misreporting one — and a ruling's number moves for reasons its
+  verdict does not. Every decision-bearing ratio was checked in both columns
+  when the correction landed: none changed direction, but magnitudes moved by
+  up to +31%, because subtracting a shared term inflates a ratio the more the
+  arms it compares are fast. Requote from the run; do not carry forward;
+- [sum-only](#sum-only-and-the-correction-now-applied), where what a run
+  decides is no longer *whether* to correct but whether the term still passes
+  its three gates, any failure invalidating the column rather than informing
+  it;
+- [R2 is the ramp detector][ramp], [the Lemire section][lemire], and
+  [the per-shape `stretch-*` table][pershape];
+- the `alloc` column's shape-dependence, refuted and confirmed refuted at full
+  budget: every multiple quoted anywhere is a property of a strategy *and* a
+  shape set, so pin the shape set before comparing across runs, as `time`
+  already asks;
+- [What the next run has to decide](#what-the-next-run-has-to-decide), whose
+  whole content is questions a run answers and figures a run moves;
 - this section, which becomes the next run's own provenance;
-- `read-run.py`'s docstring, whose `time`, `corr` and `net` definitions, A/A
-  paragraph and validation paragraph all quote Run 6;
-- `micro.cabal`'s `-M2G` note, if the heap peaks the run prints have moved;
-- `Main.hs`, wherever a comment cites a figure: the A/A spread and the
-  `concat-runs` case, both in `roster`; the allocation multiples at
-  `baseOffsetsScan` and `fbBQscanPackedMulback`; the tie at
-  `fbBQscanRemGmMulback`; `fbMutOdoVecdims`' "half its control's time" and
-  "fastest of everything measured"; `fbBQmutRunsGmMulback`'s "~10% behind";
-  and `fbBQscanMulback`'s 1.33x "at the fastest pure time in the table".
-  **New to this list:** the allocation cluster at `expandCost` (10x, 20.7x,
-  10.2x, 29.9x), the "20x allocation" at `fbFused`, `fbOffTabScan`'s
-  ~0.35x-against-~0.17x and its 11x, and the "~1.4x" class-method tier at
-  `fbMutOdoVecdims` — none of which the previous list named, which is the
-  fifth and last of the gaps this walk found.
+- `read-run.py`'s docstring, whose `time`, `corr` and `net` definitions and
+  A/A paragraph quote the run;
+- `micro.cabal`'s `-M2G` note, if the printed heap peaks have moved;
+- `Main.hs`, wherever a comment cites a figure — `roster`, `expandCost`,
+  `baseOffsetsScan`, `fbFused`, `fbOffTab32`, `fbOffTabScan`,
+  `fbBQscanMulback`, `fbBQscanRemGmMulback`, `fbBQmutRunsGmMulback`,
+  `fbMutOdoVecdims`. `concat-runs`' figure there is Failed Run 6's and stays,
+  the bench being untimed since, so no run replaces it.
 
 How a run is made, and what to record beside its numbers, is [Making a major
 benchmark run](#making-a-major-benchmark-run) — which is also where the walk
@@ -1035,44 +950,33 @@ at each. Both benchmarks below are one-line substitutions of `fastQR` for a
 `quotRem` against a control already in the table, so each measures its site
 and nothing else.
 
-**At the per-element output site it wins.** (It was the fastest pure strategy
-when written; Run 6 has since put eight pure strategies ahead of it, and
-nineteen strategies in all.) `bq-expand-lemire-out` is `bq-expand` with the
-shared
-`i quotRem sInner` replaced, the table build held at `baseOffsetsExpand`. It
-is **faster on 32 of 33 shapes, geomean 0.926× `bq-expand`** (Run 6: 0.142
-against 0.155) — range 0.796 to
-0.982 over those 32, and the published `time` columns give 0.915×, so no part
-of it rests on the warm-up ramp. The exception is `stretch-square-1341`, at
-1.357 — the run's worst-measured shape, whose cells the trim drops for 24 of
-the 44 benches, so read it as the shape and not as the strategy. That takes it
-clear of the four-way tie: it beats `bq-expand-b` on 30 of 33 shapes, though
-`bq-mut`, which needs mutation, is now a coin flip at 17 of 33 and a dead heat
-in the table (0.142 against 0.143). Two controls back it. Its allocation is
-identical to
-`bq-expand`'s to within 5e-7 on every shape, which is what a build-identical
-arm must show; and it runs *before* `bq-expand` in the group where
-`bq-gen-lemire` runs *after* `bq-gen`, so a warmer-later-slot bias would
-flatter one and penalise the other and cannot produce this pair of results.
+**At the per-element output site it wins**, by 7.4%.
+`bq-expand-lemire-out` is `bq-expand` with the shared `i quotRem sInner`
+replaced, the table build held at `baseOffsetsExpand`. It was the fastest pure
+strategy when written and Run 6 has since put eight pure ones ahead of it, but
+the substitution itself still pays: faster than its control on all but one
+shape, and the published columns agree with the per-shape geomean, so no part
+of it rests on the warm-up ramp. The exception is `stretch-square-1341`, the
+run's worst-measured shape and the one the trim drops for over half the
+benches — read it as the shape, not the strategy. Two controls back the
+result. Its allocation is identical to `bq-expand`'s on every shape, which is
+what a build-identical arm must show; and it runs *before* `bq-expand` in the
+group where `bq-gen-lemire` runs *after* `bq-gen`, so a warmer-later-slot bias
+would flatter one and penalise the other and cannot produce both.
 
 **At the per-dimension build site it loses by 40%.** `bq-gen-lemire` is
-`bq-gen` with the per-run, per-rank `quotRem`s replaced, and it is **1.401×
-slower** paired, 1.382× on the published columns, faster on 1 shape of 33. The
-shape of the loss says why: it tracks
-*rank*, not element count — 1.102 at rank 2, 1.335 at rank 3, 1.511 at rank 4,
-1.464 at rank 5, 1.560 at rank 7, 1.484 at rank 10, 1.588 at rank 12. The rise
-is no longer monotone, ranks 4 and 7 sitting above their successors on one and
-two shapes apiece, but the trend across the ranks carrying real weight is
-unchanged. The cost is paid per
+`bq-gen` with the per-run, per-rank `quotRem`s replaced, and it is 1.401×
+slower, faster on one shape of the set. The shape of the loss says why: it
+tracks *rank*, not element count, rising from about a tenth at rank 2 to about
+a half at rank 12. The cost is paid per
 dimension, so the division was never what dominated there. Two reasons.
 (i) The paper's win assumes you want a quotient *or* a remainder; an odometer
 decomposition wants both, so the trick pays twice and collects once — where
 `quotRemInt#` is one `idiv` yielding both. (ii) The magic table is a third
 list to walk in step with `nts` and `sts`, adding a dereference and a pattern
 match per dimension to the very loop whose per-dimension work was the target.
-Rank 2 costs least because there is only one dimension to walk — 10%, where
-Failed Run 6 read it as free at 0.997; the ordering the argument needs is the
-same, but "costs nothing" is not what the run says any more.
+Rank 2 costs least because there is only one dimension to walk, though not
+nothing, as an earlier run had it.
 
 What separates the two sites is exactly what (i) and (ii) describe. At the
 output the divisor is a single loop invariant, so `M` is computed once for the
@@ -1108,71 +1012,47 @@ loop-invariant and chosen once per call, but it must be there, since orthotope
 does not otherwise cap array length. Weigh 7.4% against that; this
 benchmark's job is to price it, not to decide it.
 
-## Why there is no gen-lemire
+### Why there is no gen-lemire
 
-A third such benchmark is easy to specify and is deliberately not written.
-**`gen-lemire`** would be `gen-quotrem` — the first attempt's `vGenerate` over
-a per-element, per-*dimension* `quotRem` — with those divisions replaced by
-`fastQR`, standing to `gen-quotrem` exactly as `gen-unsafe` does: the same
-base, one line changed. It is the form the idea is most naturally proposed in
-— inverses of the array sizes, plural, one per dimension.
+**Don't write it.** A third such benchmark is easy to specify and is
+deliberately absent: `gen-lemire` would be `gen-quotrem` with its
+per-dimension divisions replaced by `fastQR`, standing to it exactly as
+`gen-unsafe` does. That is the form the idea is most naturally proposed in —
+inverses of the array sizes, plural, one per dimension — and it is the form
+the two measurements above already refute, which is why it stays unwritten
+rather than being tried again.
 
-It looked the most promising of the three, on two independent grounds.
+It looks promising because `gen-quotrem` trails `bq-expand` by 7.0× while
+differing chiefly in dividing once per *rank* per element, and because a
+per-dimension decomposition needs no base-offsets table and so promised the
+mutable fills' ~1× allocation while staying pure. Both grounds fail against
+figures already in the table.
 
-**Time.** `gen-quotrem` measures 1.087 against `bq-expand`'s 0.155, a 7.0×
-gap, and the two differ chiefly in dividing once per rank per element rather
-than once per element. Read that gap as division count and Lemire should
-recover most of it — reaching the shipped strategy from a design needing no
-base-offsets table at all. The bounds-check control corroborates:
-`gen-unsafe` is `gen-quotrem` minus the bounds checks and buys nothing here
-(1.087 against 1.087, 0.06% apart), so the cost is arithmetic rather than
-indexing. That tie is Run 6's, and it settles a disagreement this page carried
-for two runs: Failed Run 6 had put them 2.7% apart, just outside its own
-floor, which would have left the control saying something rather than nothing.
+1. **The same substitution loses at the sibling site.** `bq-gen-lemire` is
+   structurally what `gen-lemire` would be, per run rather than per element,
+   and it is 1.401× *slower* with a loss that grows with rank. A per-dimension
+   cost that rises when a division becomes a multiply says the division was
+   never the per-dimension cost; `gen-lemire` differs only in paying that same
+   cost once per element instead of once per run.
+2. **The output site caps the prize at 7.4%**, measured at the friendliest
+   division in the suite, which does not close a 7.0× gap. Most of that gap is
+   not division at all: `gen-quotrem` walks two `[Int]` lists per element, and
+   Lemire adds a third to walk.
+3. **The allocation ground is inverted**, not merely unproven: `gen-quotrem`
+   and `gen-unsafe` allocate 13.0× the result against `bq-expand`'s 3.9×, so
+   dropping the table costs allocation rather than buying it.
 
-**Allocation.** `bq-expand` allocates 3.9× the result, all of it the
-base-offsets table and the `concatMap` intermediates building it. A
-per-dimension decomposition needs no table — O(rank) magic numbers instead of
-O(l/sInner) offsets — so it promised the mutable fills' ~1× allocation while
-staying pure, which would be worth taking even on a time tie, since
-allocation tracks time across this whole table.
+The bounds-check control is what makes point 2 safe to assert: `gen-unsafe` is
+`gen-quotrem` minus the bounds checks and buys nothing (0.06% apart), so the
+gap is arithmetic and bookkeeping, not indexing. That tie is Run 6's and
+settles a disagreement this page carried for two runs, Failed Run 6 having put
+the pair 2.7% apart — just outside its own floor, which would have left the
+control saying something rather than nothing.
 
-Four numbers already in the tables above rule it out.
-
-1. **The same substitution, measured at a sibling site, loses.**
-   `bq-gen-lemire` is a per-dimension odometer decomposition with its
-   `quotRem`s replaced by `fastQR` — structurally what `gen-lemire` would be,
-   per run rather than per element. It is 1.401× slower with a loss that
-   grows with rank. A per-dimension cost that *rises* when the
-   division is replaced by a multiply says the division was not the
-   per-dimension cost, and `gen-lemire` differs only in doing more of that
-   same per-dimension work, once per element instead of once per run.
-2. **The 7.0× gap is not mostly division.** `gen-quotrem` does not only
-   divide per dimension; it walks two `[Int]` lists per element, a
-   dereference and a pattern match per rank. The bounds-check control
-   separates *indexing* from *arithmetic*, and that list-walking falls on the
-   arithmetic side of the split — so the control never distinguished the
-   division from the bookkeeping around it. Lemire adds to that bookkeeping:
-   the magic table is a third list to walk, which is reason (ii) above.
-3. **The allocation ground is contradicted by the strategies that already
-   drop the table.** `gen-quotrem` and `gen-unsafe` allocate **13.0×** the
-   result — over three times `bq-expand`'s 3.9×, not a quarter of it. The
-   per-element list recursion is itself what allocates, so dropping the
-   base-offsets table costs allocation rather than buying it. No pure
-   per-dimension strategy here allocates anything like the mutable fills.
-4. **The output site caps what deleting a division can be worth.**
-   `bq-expand-lemire-out` runs Lemire at the friendliest division in the
-   benchmark — one divisor, magic computed once per fill, no list beside it,
-   two multiplies — and it is worth 7.4%. A 7.4% ceiling does not close a
-   7.0× gap.
-
-And a `gen-lemire` that somehow survived all four would still not win, because
-its ceiling is a design already beaten. The run base-offsets family's advantage
-is structural — one division plus one table read per element, against rank-many
-divisions *plus* rank-many list steps — so a free division still leaves the
-walking. The division-free answer is already here and already faster:
-`mut-odo` and `fused` remove the per-element index arithmetic instead of
-accelerating it, which is the argument the whole table makes.
+A `gen-lemire` surviving all three would still lose, because its ceiling is a
+design already beaten: the base-offsets family pays one division and one table
+read per element against rank-many divisions *plus* rank-many list steps, so
+even a free division leaves the walking.
 
 ## Per shape, where the geomean hides the ordering
 
@@ -1322,17 +1202,53 @@ run.
 
 ## The C-gap: still a deeper ceiling
 
-`bq-expand` is a pure-Haskell win over the fallback, but no pure-Haskell
-strategy closes the gap to the stride-aware C kernels — roughly an order of
-magnitude on comparable traffic: horde-ad's concrete *scatter*, which
-routes through those kernels, runs the analogous chain in ~0.5 ms in
-`ConvVjpBench` where the fastest gather strategy here is several ms.
-Regime 3 has no contiguous runs to hand a bulk kernel, so the transfer
-stays per-element in Haskell no matter how the fallback is written.
-Closing that gap needs the transfer moved into C — the client-side
-add-zero gather, or an upstream normalize-in-C / strided-copy kernel.
-`bq-expand` is the incremental pure win to take meanwhile, not a
-replacement for that work.
+**Everything in this document lives under this ceiling.** Every strategy in
+the table, every ruling resting on one, and every margin the ~3% floor
+adjudicates are rearrangements *within* pure Haskell — and no pure-Haskell
+strategy closes the gap to the stride-aware C kernels, roughly an order of
+magnitude on comparable traffic: horde-ad's concrete *scatter* routes through
+them and runs the analogous chain in ~0.5 ms where the fastest gather strategy
+here is several ms. The table spans a range narrower than the step it does not
+take, so read this section before the Results one.
+
+Regime 3 has no contiguous runs to hand a bulk kernel, so the transfer stays
+per-element in Haskell however the fallback is written. Closing it needs C, by
+one of two routes this benchmark cannot price:
+
+- an **upstream strided-copy kernel** in ox-arrays' cbits, serving every
+  client of the fallback;
+- the **client-side add-zero gather**, rebuilding gather on the scatter model
+  so the C arith kernels do the densifying — priced against a `scatter48`
+  bound a later orthotope fix largely measured away, so its arithmetic needs
+  redoing before it is proposed again.
+
+`bq-expand` is the pure win to take meanwhile, not a replacement for it.
+
+## What the next run has to decide
+
+The open questions, each with the measurement that would settle it, collected
+here because they otherwise sit one per section and get reconstructed every
+time.
+
+- **Does position move a bench, or was that one arm?** Run 6 found a +2.9%
+  bias on its distant control and could not attribute it, its distant slot
+  holding a strategy its adjacent slot did not. The roster now crosses three
+  strategies against both positions, so `--aa` decides it directly: a bias
+  that follows the slot is position, one that follows the name is not.
+- **Ship `bq-expand-lemire-out`?** It is worth 7.4% and costs an `l < 2^32`
+  dispatch plus `MagicHash`/`UnboxedTuples` upstream. Nothing further needs
+  measuring; this is a judgement someone has to make.
+- **Does SpecConstr invert the scan family?** `baseOffsetsScan` boxes its
+  stream state at -O1 and is predicted allocation-free at -O2, which would put
+  `bq-scan-mulback` at 1.33x allocation and the fastest pure time. That is
+  Run 7's whole point and nothing here has tested it.
+- **Is the ~3% floor real or an artifact of three points?** Six controls now
+  replace three; if the spread stays, the floor is a property of the machine
+  rather than of the sample.
+- **Does the halved shape set move the geomean?** It should not — the eleven
+  dropped shapes each duplicated a kept one on `sInner`, rank and `l` — but no
+  run has confirmed that, and the first run on the new set is the one that
+  can, by comparing the strategies whose ordering the trim never touched.
 
 ## Further ideas
 

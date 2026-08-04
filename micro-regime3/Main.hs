@@ -1647,36 +1647,46 @@ regimeOf sh (T ats _ v)
 -- README.md#the-shape-set for where they come from): a full patch tensor
 -- is [outH, outW, Cin, KH, KW] -- output spatial, input channels, kernel
 -- -- and a per-position slice is [Cin, KH, KW].
+--
+-- HALVED, and the eleven that went are not to come back one at a time.
+-- What a shape exercises here is the view's innermost extent @sInner@ (the
+-- second-to-last dim listed, so for a patch tensor the kernel height), the
+-- rank, and @l@; a strategy has no way to see that two shapes came from
+-- different papers. The dropped eleven each duplicated a kept one on all
+-- three -- 'mnist-28-c1-k3' against 'cnn-L1-24x24-c1', 'vgg-14-c256-k3' and
+-- 'deep-7-c512-k3' against 'vgg-14-c512-k3', 'cnn-slice-c64' against
+-- 'cnn-slice-c32', and so on -- so they cost a proportional share of every
+-- run's wall clock and moved the equally-weighted geomean by nothing they
+-- did not already move. The freed time went to A/A controls, which
+-- calibrate every other figure and were the roster's scarce resource
+-- (README.md#the-noise-floor-is-3-not-the-ci).
+--
+-- Two of the kept eleven are load-bearing beyond their workload and must
+-- not be dropped in a later trim. 'gather48-src-50' and 'conv1d-24' are the
+-- only shapes whose two innermost listed dims DIFFER, which is what makes
+-- @check@'s @sInner@ assertion non-vacuous; every other conv shape ends in a
+-- square kernel, where the assertion's two readings coincide and it would
+-- pass however it was written.
 convShapes :: [(String, ShapeL)]
 convShapes =
   [ -- horde-ad shaped CNN (MnistCnnShaped2; kernel kh+1 = 3)
     ("cnn-L1-6x6-c1",       [6, 6, 1, 3, 3])          -- 324
-  , ("cnn-L1-12x12-c1",     [12, 12, 1, 3, 3])        -- 1296
   , ("cnn-L1-24x24-c1",     [24, 24, 1, 3, 3])        -- 5184
-  , ("cnn-L2-12x12-c16",    [12, 12, 16, 3, 3])       -- 20736
   , ("cnn-L2-24x24-c32",    [24, 24, 32, 3, 3])       -- 165888
   , ("cnn-slice-c32",       [32, 3, 3])               -- 288  (one position)
-  , ("cnn-slice-c64",       [64, 3, 3])               -- 576  (one position)
     -- MNIST LeNet-5
   , ("lenet-L1-28-c1-k5",   [28, 28, 1, 5, 5])        -- 19600
-  , ("lenet-L2-14-c6-k5",   [14, 14, 6, 5, 5])        -- 29400
-  , ("mnist-28-c1-k3",      [28, 28, 1, 3, 3])        -- 7056
     -- CIFAR-10 scale
-  , ("cifar-L1-32-c3-k3",   [32, 32, 3, 3, 3])        -- 27648
   , ("cifar-L2-16-c64-k3",  [16, 16, 64, 3, 3])       -- 147456
-  , ("cifar-L3-8-c128-k3",  [8, 8, 128, 3, 3])        -- 73728
-  , ("cifar-32-c3-k5",      [32, 32, 3, 5, 5])        -- 76800
     -- ImageNet scale (only the layers whose per-call cost still buys, at
     -- criterion's default budget, the samples a tight fit needs)
   , ("vgg-14-c512-k3",      [14, 14, 512, 3, 3])      -- 903168
-  , ("vgg-14-c256-k3",      [14, 14, 256, 3, 3])      -- 451584
-  , ("deep-7-c512-k3",      [7, 7, 512, 3, 3])        -- 225792
   , ("alexnet-L1-55-c3-k11",[55, 55, 3, 11, 11])      -- 1098075
   , ("alexnet-L2-27-c48-k5",[27, 27, 48, 5, 5])       -- 874800
-    -- horde-ad gather48 benchmark layout [S, K, K, S]
+    -- horde-ad gather48 benchmark layout [S, K, K, S]; both keep the
+    -- @sInner@ assertion honest, see above
   , ("gather48-src-50",     [50, 3, 3, 50])           -- 22500
   , ("conv1d-24",           [24, 3, 3, 24])           -- 5184
-  , ("slice-c512",          [512, 3, 3])              -- 4608  (one position)
   ]
 
 -- Non-conv shapes stretching the space beyond convolution
@@ -1841,6 +1851,19 @@ roster =
     -- price the scan band with a fourth control
     -- (README.md#the-noise-floor-is-3-not-the-ci).
   , ("bq-scan-mulback-aa-distant", Twin fbBQscanMulback)
+    -- The other two distant twins, added with the time the halved shape set
+    -- freed. With these the controls are CROSSED: three strategies
+    -- ('bq-expand', 'bq-scan-mulback', 'fbMutOdoVecdims') each duplicated
+    -- once here and once beside its base, so position varies within a
+    -- strategy and strategy varies within a position. Run 6 (-O1) could do
+    -- neither -- its distant slot held a strategy its adjacent slot did not,
+    -- so the +2.9% bias it found was a position effect or a property of that
+    -- one arm and nothing could say which. That is the question these two
+    -- arms exist to answer, and until they report, the answer is neither
+    -- verdict rather than the earlier "no position effect"
+    -- (README.md#the-noise-floor-is-3-not-the-ci).
+  , ("bq-expand-aa-distant",       Twin fbBQexpand)
+  , ("mut-odo-vecdims-aa-distant", Twin fbMutOdoVecdims)
     -- The early half of the 'sum-only' pair; the late half is the last
     -- bench in the group. Subtracting the shared forcing term from every
     -- other row is only sound if that term is a CONSTANT, and this bench
@@ -1934,6 +1957,10 @@ roster =
   , ("bq-expand-lemire-mulback",   Fill fbBQexpandLemireMulback)
   , ("bq-expand32-lemire-mulback", Fill fbBQexpand32LemireMulback)
   , ("bq-scan-mulback",            Fill fbBQscanMulback)
+    -- The adjacent half of 'bq-scan-mulback''s pair, so this strategy has a
+    -- twin in both positions exactly as 'bq-expand' does; the two together
+    -- are what separate position from strategy.
+  , ("bq-scan-mulback-aa-adjacent", Twin fbBQscanMulback)
   , ("bq-scan-rem-mulback",        Fill fbBQscanRemMulback)
   , ("bq-scan-gm-mulback",         Fill fbBQscanGmMulback)
   , ("bq-scan-rem-gm-mulback",     Fill fbBQscanRemGmMulback)
