@@ -66,7 +66,7 @@ that does not subtract it.
   - [R2 is the ramp detector, not the noise detector](#r2-is-the-ramp-detector-not-the-noise-detector)
   - [sum-only, and the correction now applied](#sum-only-and-the-correction-now-applied)
   - [Non-urgent TODO list](#non-urgent-todo-list)
-- [About the last run](#about-the-last-run)
+- [About the last run (Run 6)](#about-the-last-run-run-6)
   - [Results](#results)
   - [What Run 7 compares against](#what-run-7-compares-against)
   - [The claims Run 7 should test](#the-claims-run-7-should-test)
@@ -141,10 +141,12 @@ of the patch tensor above, renamed to the conventional axes (output
 spatial, input channels, kernel) — and its per-position `[Cin, KH, KW]`
 slices, with dims from real nets — kernels 3×3 (VGG/ResNet, horde-ad's own CNN),
 5×5 (LeNet), 11×11 (AlexNet); channels 1 up to 512; spatial from horde-ad's
-6/24 to AlexNet's 55. The
-`stretch-*` shapes are not conv-derived — extreme rank, extreme aspect
+6/24 to AlexNet's 55.
+
+The `stretch-*` shapes are not conv-derived — extreme rank, extreme aspect
 ratio, non-power-of-two dims, a cache-hostile innermost stride, a run
-length of one element, a base-offset table as long as the result — to
+length of one element, a base-offset table as long as the result, a
+page-aliasing power-of-two stride, and a mid-range innermost extent — to
 probe the space beyond convolution. See `convShapes`/`stretchShapes`
 in `Main.hs` for the full list.
 
@@ -155,7 +157,7 @@ came from — and each dropped shape duplicated a kept one on all three while
 costing a proportional share of every run. The freed wall clock went to A/A
 controls, which calibrate every other figure and were the roster's scarce
 resource. The ruling and the full reasoning sit at `convShapes` in `Main.hs`,
-beside the list, along with the two shapes that must survive any later trim
+beside the list, along with the two shapes that must survive any later cut
 for a reason unrelated to their workload: `gather48-src-50` and `conv1d-24`
 are the only ones whose two innermost listed dims differ, which is what keeps
 `check`'s `sInner` assertion from passing vacuously.
@@ -205,8 +207,8 @@ strategy when written and Run 6 has since put eight pure ones ahead of it, but
 the substitution itself still pays: faster than its control on all but one
 shape, and the published columns agree with the per-shape geomean, so no part
 of it rests on the warm-up ramp. The exception is `stretch-square-1341`, the
-run's worst-measured shape and the one the trim drops for over half the
-benches — read it as the shape, not the strategy. Two controls back the
+run's worst-measured shape — read it as the shape, not the strategy. Two
+controls back the
 result. Its allocation is identical to `bq-expand`'s on every shape, which is
 what a build-identical arm must show; and it runs *before* `bq-expand` in the
 group where `bq-gen-lemire` runs *after* `bq-gen`, so a warmer-later-slot bias
@@ -311,8 +313,8 @@ the axis the orderings turn on; the fuller per-shape record is
   `bq-expand{,-b,-zf}` within their sweep of `stretch-inner1` flips between
   runs. The sweep itself reproduces; which of the three leads does not.
   `stretch-square-1341` is this run's standing warning on the point: it is
-  the one shape where `bq-expand-lemire-out` loses, and the trim drops it for
-  over half the arms. That strategy's own margin is the exception surviving
+  the one shape where `bq-expand-lemire-out` loses, and it stays in the
+  column, capped. That margin survives
   this caveat, being the whole shape set wide rather than one cell.
 - **But check for a structural reason before discounting a cell as scatter,
   and check `stretch-inner1` in particular.** It is the shape whose innermost
@@ -510,6 +512,24 @@ boxed elements change the copy entirely, so the *ranking* and not only the
 magnitudes may differ for the instances the shipped code actually serves.
 Nothing here probes that.
 
+**Don't generalise the suite to run every arm at every element type.** The
+typing is the cheap part — the payload is only ever loaded and stored, all the
+arithmetic being `Int`, so `T a` and a `Storable a` context would cost about
+sixty lines of signature. What it would really cost is a run per type, and the
+roster shared by both is what makes figures commensurable, so the choice is
+between interleaving them — doubling the roster and re-collapsing the A/A
+spans the crossed controls need — and two processes, whose comparison then
+crosses processes and inherits the roster effect. The code cost is worse than
+it looks too: `NOINLINE` on a polymorphic function blocks specialisation, so
+every arm would time a dictionary rather than a fill unless roughly forty
+`SPECIALISE` pragmas are added, **and each of those has to be confirmed in
+Core** — an unverified one leaves the dictionary in place and the suite then
+measures dispatch while reporting it as a strategy, which is the failure mode
+that looks most like a result. Probe instead: a handful of shapes at one other
+type, asking only whether the ranking inverts. The property that has to hold
+for every instance is not the ranking but `worst` staying under 1 — never
+slower than the fallback being replaced — and six shapes will show that.
+
 The strategies are named here and *described* in `Main.hs`, each at its own
 definition, where a reader meets the code the description is about. This list
 is the index, in that file's definition order — base before variant, which is
@@ -657,15 +677,24 @@ above exercise the *benchmark* while nothing exercises the *reader* until two
 hours later:
 
     cabal run micro -- cnn-slice-c32 --json smoke.json   # every arm, one shape
-    ./read-run.py smoke.json --selftest
-    ./read-run.py smoke.json --aa
-    ./read-run.py smoke.json --markdown >/dev/null
+    for m in --selftest --aa --shapes --markdown --cells \
+             "--pair bq-expand list" ""; do
+      ./read-run.py smoke.json $m >/dev/null || echo "BROKEN: $m"
+    done
     rm smoke.json
 
 That runs every roster arm on one shape and puts the whole analysis path —
 the correction, the controls, the table generator — through its paces. A
 reader broken by a roster change fails here in five minutes instead of after
 the run.
+
+**Run every mode, not the interesting ones.** The loop above is written as a
+loop because a partial sweep has already missed a real break: after the trim
+came out, `--pair` and `--aa` both died on a name that a removal had taken
+with it, while `check`, `--lint`, `--check-doc` and `--selftest` all passed —
+the failure lived in the two modes nobody had thought to run. Modes are cheap
+to run and expensive to be missing, and the run artifact is the only thing
+that can reproduce one, so sweep before deleting it rather than after.
 
 **The run** is one command, any build flags going before the `--`
 when requested:
@@ -789,7 +818,7 @@ not a method.
 Every figure below comes out of `read-run.py` in this directory, and the
 table above is *emitted* by it rather than copied from it. **Use it; do not
 write another reader.** The
-definitions it encodes — which cell the trim drops, that `CI%` is a mean
+definitions it encodes — which cells the column caps, that `CI%` is a mean
 half-width rather than a bound, that `alloc` needs an `l` the JSON does not
 carry (it parses `Main.hs` for it), that the `*-aa-*`, `sum-only*` and
 `*-nosum` rows are
@@ -801,7 +830,6 @@ script rather than starting over.
     ./read-run.py RUN.json                  # roster, then the strategy table
     ./read-run.py RUN.json --markdown       # that table as README markdown
     ./read-run.py RUN.json --shapes         # per shape: CI% max / median / mean
-    ./read-run.py RUN.json --drops          # what the trim removes, by shape
     ./read-run.py RUN.json --aa             # controls, spans, in-situ term
     ./read-run.py RUN.json --pair A B       # two arms, paired, with an interval
     ./read-run.py RUN.json --cells          # every cell as TSV, for the rest
@@ -847,7 +875,7 @@ well as a full one:
     micro -m glob 'cnn-slice-c32/list' 'cnn-slice-c32/bq-expand' --json x.json
 
 The second takes seconds and still exercises the reader; a one-shape run says
-so and skips the trim rather than dividing by an empty set. A filtered run
+so. A filtered run
 like it carries no `sum-only` bench, so its figures are uncorrected and not
 comparable to the tables here — the reader warns on stderr when that is what
 it is reading. Each run's JSON is gone when fully processed and the deletion
@@ -884,19 +912,18 @@ larger than the cell it is subtracted from, a term that does not scale with
 parses out of `Main.hs` match that file's own `l` annotations, that every cell
 has a positive slope and a sane R², that the forcing term is positive on every
 shape and leaves every cell's net positive, that the same term scales with `l`
-as one pass over the elements must, that the trim drops exactly one
-shape per strategy and lands inside its own per-shape range, that `list`
-against itself is 1, and that an A/A pair dropping the same shape from both
-arms has its published ratio equal to its paired one. The one thing it still
+as one pass over the elements must, that every row's winsorized geomean
+covers all shapes and lands inside its own per-shape range, that `list`
+against itself is 1, and that an A/A pair with no capped cell has its
+published ratio equal to its paired one. The one thing it still
 cannot reach — that `sInner` is the second-to-last listed dim — it now names
 as `check`'s rather than as nobody's. It names what it could
 not exercise
 rather than passing silently, and exits 2 when the run file is absent. That
 last invariant is a finding: the A/A ratios in the noise-floor table are
-ratios of two *trimmed* columns, and each arm drops its own worst-CI shape —
-so unless that is the same shape, the two columns are geomeans over different
-shape sets. `--aa` prints both that published ratio and the paired per-shape
-one, and flags the pairs whose dropped shapes differ.
+geomeans over every shape, so a published ratio is the paired one whenever
+neither arm had a cell capped. `--aa` prints both and `--selftest` asserts
+the identity where it holds.
 
 
 ### The noise floor is 3%, not the CI
@@ -924,6 +951,22 @@ order of magnitude: it measures sampling error *within* one benchmark, while
 two separately placed benchmarks also differ in code layout, cache occupancy
 and inherited GC state. The A/A is the only column that sees that, and it is
 what a margin should be compared against.
+
+**Position moves a bench, and the effect is monotone in span.** A probe with
+the full crossed roster measured all three strategies at two spans each:
+`bq-scan-mulback` 0.9929 at span 0 and 1.0212 at 31, `bq-expand` 0.9980 at 1
+and 1.0472 at 38, `mut-odo-vecdims` 0.9937 at 1 and 1.0033 at 8. The bias
+appears *inside* each strategy, so it cannot be a property of one arm — which
+is what Run 6 could not distinguish — and it grows with span at about
+**+0.12% per bench slot**, some 5% across a 45-slot roster. The distant twins
+sit early and their bases late, so the sign says the earlier slot is slower:
+**the group warms up**, which is the same effect the R2 section sees within a
+bench. `list` runs first, in the coldest slot, so every ratio divides by an
+inflated baseline and arms far down the roster are flattered — by up to ~5%,
+which is larger than the floor and systematic rather than noise. Comparisons
+between roster-adjacent arms are nearly unbiased; cross-roster ones are not.
+Those figures are a probe's, not a recorded run's, and Run 7 is what confirms
+them.
 
 **A filtered run cannot answer the position question**, and the trap is quiet
 enough to be worth stating: criterion's selection removes the intervening
@@ -996,13 +1039,13 @@ held still.
 ### R2 is the ramp detector, not the noise detector
 
 The two columns catch disjoint failures. **CI%** finds sampling noise, which
-the trim then removes. **R2** finds *curvature* -- early, low-iteration
+the capping then bounds. **R2** finds *curvature* -- early, low-iteration
 samples running slower than late ones, because criterion forces only a minor
 GC between samples and a full one just once per benchmark, so promoted data
 accumulates as the sample count climbs.
 
 A ramp is systematic, so it yields a *narrow* CI around a *biased* slope: the
-trim cannot see it and will not remove it. The bias tilts the fit shallow, so
+capping cannot see it and will not bound it. The bias tilts the fit shallow, so
 a ramped strategy reads slightly **faster** than it is -- and not uniformly,
 since strategies allocating a large scratch ramp harder than in-place fills,
 making the flattery differential exactly where the comparison is decided.
@@ -1087,8 +1130,7 @@ publishing it.
   one.
 - **It does change ordering**, where that version argued it could not.
   `(B+S)/(A+S) < 1` exactly when `B < A` holds *per shape*, but the column is
-  a geomean over shapes after a trim that drops a different shape for
-  different strategies, and neither step preserves the argument. Three
+  a geomean over shapes, and that step does not preserve the argument. Three
   adjacent pairs swap: `bq-mut-runs-gm-mulback` with `bq-mut-runs`, and
   `offtab` past `bq-scan-gm-mulback` and `bq-expand-lemire-out`. All three
   swaps are inside the floor, so no ordering the page treats as real moves --
@@ -1106,6 +1148,23 @@ at `-L1` the halves read 169.9 ns and 170.1 ns, 0.12% apart.
 
 ### Non-urgent TODO list
 
+- **Zero and negative strides are unreachable.** `mkStrided` transposes the
+  two innermost dims of a dense array, so every stride it makes is positive,
+  while the library's two commonest regime-3 inputs are not: a broadcast is
+  stride 0 and `rev` is negative. Both want a generator variant, and adding
+  one is a shape-set change, to be pinned like any other.
+- **Runs never overlap.** That index map is a bijection onto `[0, l)`, where
+  im2col patches — the workload this page opens by naming — overlap heavily
+  and so reuse cache. The figures here are pessimistic about the case they
+  model, by an amount nothing has measured.
+- **The roster order biases the table, and nothing corrects for it.** The
+  warm-up drift above means a strategy's figure depends on its slot, `list`
+  being in the coldest one. The fixes are all real changes rather than
+  write-ups — a warm-up bench before `list`, interleaving or randomising the
+  order, or correcting each row by its slot — and each breaks comparability
+  with every run so far, which is why none is taken yet. Run 7 should confirm
+  the drift on a recorded run first; the choice belongs after that, not
+  before.
 - **No build-vs-output time decomposition.** `diag` measures per-builder
   *allocation* only, so a claim like "the table build is a third of the cost"
   -- the natural reading of `bq-mut-runs` beating `bq-mut` by 39% -- cannot be
@@ -1121,7 +1180,7 @@ at `-L1` the halves read 169.9 ns and 170.1 ns, 0.12% apart.
 [ramp]: #r2-is-the-ramp-detector-not-the-noise-detector
 [pos-effect]: https://github.com/Mikolaj/horde-ad/blob/master/docs/position-effect.md
 
-## About the last run
+## About the last run (Run 6)
 
 **Run 6 (-O1).** Criterion, GHC 9.12.4, **-O1**, hardened harness; every
 strategy in one process, so the figures are commensurable. 44 benchmarks over
@@ -1155,28 +1214,41 @@ nothing under ~3% is a result.
 
 How to read the columns:
 
-- **time** is the geomean over shapes of the per-shape OLS *slope*, less that
-  shape's forcing term, over `list`'s slope less the same term, with each
-  strategy's single highest-CI shape dropped first. The trim
-  matters: a 33-shape geomean divides ordinary noise by sqrt 33 but a lone
-  wild cell by only 33, so one cell measured to +-70% moves the average more
-  than all the well-measured cells together. Dropping one cell of 33 costs
-  little and removes the larger error. The trim reads the *raw* CI%, as do the
-  `CI%`, `smp` and `alloc` columns: subtracting a shared term moves a point
-  estimate, it does not make a cell better measured.
+- **time** is the geomean over **every** shape of the per-shape OLS *slope*,
+  less that shape's forcing term, over `list`'s slope less the same term,
+  with the per-shape log-ratios *winsorized* first — capped at the row's own
+  median plus or minus three MADs. Nothing is dropped, so all rows cover one
+  population and any two columns are comparable; a cell far enough out to
+  distort the mean has its influence bounded instead of its evidence deleted.
+  The `CI%`, `worst`, `smp` and `alloc` columns stay raw: subtracting a shared
+  term moves a point estimate, it does not make a cell better measured.
 
-  That choice was tested rather than assumed, and it is **not** free, so it is
-  recorded here instead of being re-litigated. Reading the trim off the
-  correction-relative CI% instead -- the half-width as a share of the *net*,
-  which is larger, and most so for the fastest cells -- changes which shape is
-  dropped for 4 strategies of 42 and moves their columns by +1.3% to +5.0%
-  (`bq-gen-lemire` 0.498 to 0.523, the one past the floor); three of the four
-  then drop `stretch-square-1341`, the run's worst-measured shape. Every other
-  row is unmoved and no ruling on this page turns on any of the four. The raw
-  rule is kept because measurement quality is a property of the measurement,
-  and letting the correction pick the dropped cell would make the trim depend
-  on the thing it is supposed to be independent of; the cost of keeping it is
-  those four rows.
+  **This replaced a trim** — drop each strategy's single highest-CI shape —
+  and the ruling is worth keeping because the trim looks obviously right and
+  is not. It selected on CI, and criterion spends a *time* budget, so a slow
+  cell buys fewer samples and a wider CI: measured on Run 6, the cell it
+  removed was above its own row's geomean in **30 of 41** rows, p about 0.003.
+  It therefore deleted each strategy's worst evidence, differentially, and a
+  catastrophic shape is exactly the shape it would remove:
+  `bq-expand-lemire-out` loses on one shape of 33, and that shape was the one
+  trimmed from its column.
+  Because the cell removed differed by row, two published columns were also
+  geomeans over different shape sets, which is why a published A/A ratio used
+  to disagree with its paired one. Swapping estimators costs a median 2% and
+  moves one row (`mut-offsets`) by 14%, that row having been flattered all
+  along; it buys back exact comparability, and `--selftest` now asserts
+  published == paired for every uncapped pair.
+
+  **Don't reach for inverse-variance weighting**, which is the
+  standard-looking repair and is worse than what it repairs. It assumes every
+  shape estimates one ratio and differs only in precision, where here the
+  between-shape variance runs a median 5,000x the within-shape kind — the
+  heterogeneity is this page's finding, not its error — so weighting by
+  precision collapses the effective shape count from 33 to about nine and
+  hands a quarter of the weight to the smallest shape in the set. Worse for
+  the purpose: a catastrophically slow cell buys fewer samples, so it has a
+  wider CI, so IVW discounts precisely the cells the trim used to delete —
+  the same failure made continuous, not a repair of it.
 
   The *slope* rather than criterion's mean, because criterion never times one
   call: it times batches — one call, then four, then twenty — and every batch
@@ -1265,14 +1337,20 @@ How to read the columns:
 | gen-unsafe | 1.087 | 0.65 | 55 | 13.00x | -- | |
 
 `concat-runs` has no row: it is rostered and checked but no longer timed, for
-the reason given with the strategy list above.
+the reason given with the strategy list above. And **this table was trimmed,
+not winsorized** — it is Run 6's, which predates the estimator described
+above; the two differ by a median 2%, and Provenance says what else that
+means. It predates the `worst` column too, which `--markdown` emits and the
+next run's table will carry.
 
 
 ### What Run 7 compares against
 
 The table above is a geomean over Run 6's 33 shapes, eleven of which are gone
 ([Provenance](#provenance)). **Do not compare a Run 7 figure with it.**
-Restricted to the 22 that survive, untrimmed, Run 6 reads:
+Restricted to the 22 that survive, Run 6 reads — as a plain geomean, which
+for these rows is also the winsorized one, no cell of theirs being far enough
+out to cap, so it is a valid yardstick for a run using the current estimator:
 
 | strategy | published (33) | restricted (22) |
 |---|---:|---:|
@@ -1323,8 +1401,8 @@ are kept so a future disagreement can be localised rather than only noticed:
 | `stretch-wide-2xM` | 2 | 1800000 | 0.159 | 0.129 |
 
 Two rows to read first. `stretch-square-1341` is the only shape where the
-fastest pure strategy *loses* to `bq-expand`, and it is the one the trim
-drops for over half the arms — treat a disagreement there as the shape.
+fastest pure strategy *loses* to `bq-expand` — treat a disagreement there as
+the shape.
 `stretch-inner1` has `sInner` 1, so anything special-casing a unit dimension
 behaves differently there by construction.
 
@@ -1466,17 +1544,18 @@ whatever `Main.hs` holds now. A snapshot would need rewriting at every change
 and would be a second copy of a list that already exists; a delta costs what
 actually moved and shrinks to nothing when the two agree.
 
-- Run 6 measured today's shapes **plus eleven since dropped**:
+- Run 6 measured today's shapes **minus `stretch-pow2stride` and
+  `stretch-inner256`, and plus eleven since dropped**:
   `cnn-L1-12x12-c1`, `cnn-L2-12x12-c16`, `cnn-slice-c64`, `lenet-L2-14-c6-k5`,
   `mnist-28-c1-k3`, `cifar-L1-32-c3-k3`, `cifar-L3-8-c128-k3`,
   `cifar-32-c3-k5`, `vgg-14-c256-k3`, `deep-7-c512-k3`, `slice-c512`.
 - Run 6's roster was today's **minus five arms**: `bq-expand-aa-distant`,
   `mut-odo-vecdims-aa-distant`, `bq-scan-mulback-aa-adjacent`,
   `bq-expand-nosum`, `mut-odo-vecdims-nosum`.
-- Its trim dropped `stretch-square-1341` for 24 of the 44 arms; the remaining
-  20 drops fell on 16 other shapes. That asymmetry is why two published
-  columns can differ from their paired ratio, and it is the shape to expect
-  the same of next time.
+- Its figures were trimmed, not winsorized: one cell dropped per row,
+  `stretch-square-1341` for 24 of the 44 arms. That is the estimator change
+  described under `time`, and it is why a Run 6 figure and a later one differ
+  a median 2% for no reason in the code.
 
 **The anchor, so a moved baseline is visible.** Every published figure is a
 ratio to `list`, so a change in `list` itself — a new compiler, a new machine,
@@ -1508,7 +1587,7 @@ from these links. Run that check, and repeat the two sweeps it cannot replace
 — grep this file for figure-shaped numerals outside the tables, and grep it
 for `Run 6` — before trusting the list.
 
-- [the head of this chapter](#about-the-last-run), which carries the run's
+- [the head of this chapter](#about-the-last-run-run-6), which carries the run's
   name, regime, scale and source commit;
 - [the Results table](#results), which `--markdown` emits whole;
 - [What Run 7 compares against](#what-run-7-compares-against) — the restricted

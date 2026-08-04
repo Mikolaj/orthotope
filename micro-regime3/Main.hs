@@ -1,7 +1,7 @@
-{-# LANGUAGE BangPatterns #-}
-{-# LANGUAGE MagicHash #-}
+{-# LANGUAGE BangPatterns  #-}
+{-# LANGUAGE MagicHash     #-}
+{-# LANGUAGE RankNTypes    #-}
 {-# LANGUAGE UnboxedTuples #-}
-{-# LANGUAGE RankNTypes #-}
 -- | Self-contained benchmark isolating orthotope's toVectorListT regime 3
 -- (the per-element fallback for an innermost-strided array), so the
 -- candidate fallbacks can be A/B'd without an ox-arrays + horde-ad rebuild.
@@ -18,25 +18,25 @@
 -- not in source, so they don't go stale).
 module Main (main) where
 
-import Control.DeepSeq (NFData(..), force)
-import Control.Exception (assert, evaluate)
-import Control.Monad (foldM_)
-import Control.Monad.ST (ST)
-import Data.Bits ((.&.), countLeadingZeros, shiftR)
-import Data.Int (Int32)
-import Data.List (foldl')
-import Criterion.Main
-import Criterion.Types (Config(regressions))
-import qualified Data.Vector.Storable as VS
+import           Control.DeepSeq              (NFData (..), force)
+import           Control.Exception            (assert, evaluate)
+import           Control.Monad                (foldM_)
+import           Control.Monad.ST             (ST)
+import           Criterion.Main
+import           Criterion.Types              (Config (regressions))
+import           Data.Bits                    (countLeadingZeros, shiftR, (.&.))
+import           Data.Int                     (Int32)
+import           Data.List                    (foldl')
+import qualified Data.Vector.Storable         as VS
 import qualified Data.Vector.Storable.Mutable as VSM
-import GHC.Exts (build, int2Word#, quotRemInt#, timesWord2#, word2Int#,
-                 Int(..), Word(..))
-import GHC.Stats (getRTSStats,
-                  RTSStats(allocated_bytes, elapsed_ns, max_live_bytes,
-                           max_mem_in_use_bytes))
-import System.Environment (getArgs)
-import System.IO (hPutStrLn, stderr)
-import System.Mem (performGC)
+import           GHC.Exts                     (Int (..), Word (..), build,
+                                               int2Word#, quotRemInt#,
+                                               timesWord2#, word2Int#)
+import           GHC.Stats                    (RTSStats (allocated_bytes, elapsed_ns, max_live_bytes, max_mem_in_use_bytes),
+                                               getRTSStats)
+import           System.Environment           (getArgs)
+import           System.IO                    (hPutStrLn, stderr)
+import           System.Mem                   (performGC)
 
 type ShapeL = [Int]
 
@@ -54,7 +54,7 @@ getStridesT = scanr (*) 1
 
 indexT :: T -> Int -> T
 indexT (T (s : ss) o v) i = T ss (o + i * s) v
-indexT _ _ = error "indexT"
+indexT _ _                = error "indexT"
 
 unScalarT :: T -> Double
 unScalarT (T _ o v) = v VS.! o
@@ -176,7 +176,8 @@ fastQR (W# m) d (I# n) = case timesWord2# m (int2Word# n) of
 -- bindings force it on paths their @s == 1@ guard never uses. The setup
 -- division runs through Integer, once per call. Correctness is gated by
 -- the agreement check like everything else, but its hard cases (l at and
--- past 2^32) are unreachable by any buildable shape.
+-- past 2^32) are unreachable under 'sizeCap', which bounds this harness and
+-- not the library.
 --
 -- TODO, owed before any shipped form and the same debt 'fastQR' carries: a
 -- standalone property test against 'quotRem' over adversarial (n, d).
@@ -613,8 +614,10 @@ baseOffsetsOdo o0 osh oats
 -- unboxed emit would have given. Preconditions of the
 -- packing, asserted: offsets below 2^32 (their field), m at most 2^31
 -- (the index field), on top of the mulhi test's own bound -- and the
--- offset-bound arithmetic assumes non-negative strides, true of every
--- 'mkStrided' input.
+-- offset-bound arithmetic assumes non-negative strides. True of every
+-- 'mkStrided' input and NOT of orthotope, whose rev'd views are negative, so
+-- a shipped form owes that bound a restatement -- as 'baseOffsetsExpand32'
+-- already notes for its own.
 {-# INLINE baseOffsetsScanPacked #-}
 baseOffsetsScanPacked :: Int -> [Int] -> [Int] -> VS.Vector Int
 baseOffsetsScanPacked o0 osh oats
@@ -1691,7 +1694,7 @@ regimeOf sh (T ats _ v)
 -- against (README.md#results).
 --
 -- Two of the kept eleven are load-bearing beyond their workload and must
--- not be dropped in a later trim. 'gather48-src-50' and 'conv1d-24' are the
+-- not be dropped in a later cut. 'gather48-src-50' and 'conv1d-24' are the
 -- only shapes whose two innermost listed dims DIFFER, which is what makes
 -- @check@'s @sInner@ assertion non-vacuous; every other conv shape ends in a
 -- square kernel, where the assertion's two readings coincide and it would
@@ -1733,6 +1736,14 @@ stretchShapes =
   , ("stretch-square-1341", [1341, 1341])             -- 1798281, rank-2 near-square
   , ("stretch-r5-8x432",    [8, 8, 8, 8, 432])        -- 1769472, big rank-5
   , ("stretch-inner1",      [1, 500000])              -- 500000, sInner 1
+    -- Two base offsets, and that is the floor THIS GENERATOR reaches.
+    -- 'mkStrided' transposes the two innermost listed dims, so for @[.., b,
+    -- c]@ the view has @m == product (init sh) * c@; forcing that to 1 forces
+    -- @c == 1@, which makes the innermost stride 1 and the array regime 2.
+    -- The only other route to one run is rank 1, and 'mkStrided' needs two
+    -- innermost dims to transpose. So no shape here can reach @m == 1@.
+    -- The orthotope library can produce such strides, though (stride or slice
+    -- operation on a rank-1 array).
   , ("stretch-tall-Mx2",    [900000, 2])              -- 1800000, 2 base offsets
   , ("stretch-coprime-r7",  [2, 3, 5, 7, 11, 13, 2])  -- 60060, rank 7, coprime
   , ("stretch-rank12",      [2,2,2,2,2,2,2,2,2,2,2,2])  -- 4096, deepest rank
@@ -1742,6 +1753,27 @@ stretchShapes =
     -- outer odometer, which is what separates it from that shape's rank-2
     -- grid of the same size.
   , ("stretch-tab7MB",      [900, 2, 1000])           -- 1800000, 900k-entry table
+    -- The one shape here aimed at the CACHE rather than at the arithmetic.
+    -- Every other stride in the set is odd, prime or huge; this one is 512
+    -- elements, which for Double is 4096 bytes, which is one page and an
+    -- exact multiple of the L1 way stride. So all 64 elements of a run land
+    -- in one cache set on an 8-way L1 and 56 of them must miss, where a run
+    -- of the same length at a stride of 3 costs a handful of lines. A
+    -- power-of-two stride is the classic pathological gather, it is what an
+    -- unforeseen caller is most likely to hand this code, and nothing else
+    -- in the set produced one. It bounds the DAMAGE rather than the ranking:
+    -- 'fbList' walks the same elements in the same order, so a cache
+    -- catastrophe here is one the fallback being replaced shares.
+  , ("stretch-pow2stride",  [54, 64, 512])            -- 1769472, page-aliased
+    -- Fills the gap in the axis that decides which strategy wins. The set
+    -- jumped 13 -> 1341 in @sInner@ with nothing between, which is most of
+    -- the range where the base-offsets table stops dominating and the run
+    -- copy starts to; 256 sits in it. Being a power of two it also prices
+    -- what the output division would cost if it could be a shift, which is
+    -- the measurement the padding idea died without (README.md#dead-ideas).
+    -- Its stride is prime so the cache shape above is not confounded into
+    -- it.
+  , ("stretch-inner256",    [7, 256, 977])            -- 1750784, mid sInner
   ]
 
 shapes :: [(String, ShapeL)]
@@ -1849,7 +1881,7 @@ partitioned = all ((<= sizeCap) . product . snd) shapes
 --      enters the aggregates as one;
 --   4. 'time_of', if a corrected time would be meaningless for it, as it is
 --      for anything that never ran the forcing pass;
---   5. the 'health' sunk-cell warning and @--selftest@'s trim check, both of
+--   5. the 'health' sunk-cell warning and @--selftest@'s winsorizing check,
 --      which assume every timed arm carries that pass.
 --
 -- 3 to 5 are one question asked three times -- is this arm a strategy? -- and

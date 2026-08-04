@@ -4,7 +4,8 @@
 Every per-strategy and per-shape figure quoted in README.md comes from here.
 Extend this script rather than writing a new one: the definitions below took
 a session to settle, and an ad-hoc reader gets them subtly wrong -- which
-statistic the trim drops, that CI% is a half-width and not a bound, that the
+statistic the column winsorizes, that CI% is a half-width and not a
+bound, that the
 A/A and sum-only rows are controls, that `l` is not in the JSON at all.
 
 Definitions, once:
@@ -25,16 +26,17 @@ Definitions, once:
           this reader forms divides. A run with no `sum-only` bench has
           corr = 0 and net = slope, and says so on stderr rather than
           publishing an uncorrected column silently.
-  time    geomean over shapes of net / `list`'s net on the same shape,
-          with each strategy's own highest-CI shape dropped first (README's
-          aggregate: one wild cell moves a 33-shape geomean by 1/33 while
-          ordinary noise divides by sqrt 33). The trim reads raw CI%, and so
-          do the CI%, noise, smp and alloc columns: the correction shifts a
-          point estimate, it does not make a cell better measured, and
-          letting it move the trim would change which cell is dropped for
-          reasons having nothing to do with measurement quality.
-          `sum-only*` rows net to zero by construction, so their time reads
-          `--` rather than a figure of a different kind in the same column.
+  time    winsorized geomean over EVERY shape of net / `list`'s net on the
+          same shape: nothing dropped, outliers capped at 3 MADs. So all rows
+          cover one population and two columns are comparable, and a wild
+          cell is bounded rather than deleted. The CI%, noise, smp and alloc
+          columns stay raw -- the correction shifts a point estimate, it does
+          not make a cell better measured. `sum-only*` and `*-nosum` rows
+          have no corrected time and read `--`.
+  worst   the row's worst shape as a ratio to `list`, over every shape. A
+          geomean answers "typical"; this answers "how bad does it get",
+          which for a library fallback is the disqualifying question, no
+          average can reach it, and no estimator choice can flatter it.
   noise   this row's CI% against the median CI% of the same shape, medianed
           over shapes: 1.00 is an ordinary bench. It is what identifies a
           bench whose own figures are least trustworthy, and so the one to
@@ -55,22 +57,15 @@ Definitions, once:
           is computed from the shape lists in Main.hs; a shape the current
           Main.hs no longer defines reports alloc in bytes instead.
 
-An A/A pair has two ratios and they answer different questions. The ratio of
-the two published `time` columns is what a reader comparing two rows of the
-table would compute, and it carries the trim's own asymmetry: each arm drops
-its own worst-CI shape, so unless that is the same shape the two columns are
-geomeans over different shape sets. The paired ratio -- geomean over shapes
-of the two nets on the same shape -- carries measurement noise alone. On
-Run 6 (-O1) they part company where the dropped shapes differ: 1.0066
-published against 0.9942 paired, where the two pairs dropping the same shape
-from both arms read 1.0309 against 1.0292 and 1.0012 against 1.0011, those
-gaps being the one extra shape --aa's paired figure keeps rather than a
-shape-set mismatch. So README's floor is the right thing to compare two
-published rows against, and a margin measured per-shape should be compared
-against the paired figure instead. --aa prints both, and says which shape
-each arm dropped. That floor is a consequence of the correction as much as
-the margins are: subtracting a term common to both arms magnifies their
-disagreement too, which is what took it from ~2% to ~3%.
+An A/A pair has two ratios and they now usually agree. With nothing dropped
+both arms cover every shape, so the ratio of two published columns IS the
+paired ratio whenever neither arm had a cell capped -- the geomeans divide
+term by term. They part only where capping is asymmetric, a cell being capped
+against its own row's median.
+--aa prints both and --selftest asserts the identity for the uncapped pairs.
+The floor is a consequence of the correction as much as the margins are:
+subtracting a term common to both arms magnifies their disagreement too,
+which is what took it from ~2% to ~3%.
 
 Controls, not strategies: the `*-aa-*` rows (an existing strategy run twice
 under a second name, true ratio exactly 1, so their spread is the noise
@@ -104,8 +99,7 @@ to fit. Warnings, not a verdict.
 
 Modes:
   (default)         roster summary and the README strategy table
-  --shapes          per shape: CI% max / median / mean, trimmed and not
-  --drops           which cells the trim removes, grouped by shape
+  --shapes          per shape: CI% max / median / mean, and sample count
   --aa              the A/A and sum-only control pairs with their spans,
                     and the in-situ forcing term off the `-nosum` arms
   --pair A B        compare two arms shape by shape: paired geomean, a
@@ -124,7 +118,7 @@ Modes:
 No run artifacts are kept in this directory: the normal state is none, and
 one is made when a question needs it. That is also when this script runs, so
 it is written to be useful on a partial run -- a filtered handful of benches,
-or a single shape, where the trim has nothing to drop and says so:
+or a single shape:
 
     micro -m glob 'cnn-slice-c32/list' 'cnn-slice-c32/bq-expand' --json x.json
 
@@ -147,8 +141,9 @@ uncorrected figures, and then all 44 corrected ones, were recomputed from
 decided, not an oversight -- so do not restore a table-pinned EXPECTED
 against it: the reader is guarded by invariants and by --lint, and by nothing
 that would notice the published table drifting. Each invariant is
-non-vacuous: breaking the dims regex, the trim, the correction or the A/A
-identity fails the matching check, and all four were broken to confirm it.
+non-vacuous: breaking the dims regex, the winsorizing, the correction or the
+A/A identity fails the matching check, and all four were broken to confirm
+it.
 It exits 2, not 0,
 when the run file is missing: a refusal is information.
 """
@@ -418,46 +413,79 @@ def med_or_nan(xs):
     return stats.median(xs) if xs else float('nan')
 
 
-def worst_shape(cells, shapes, strategy):
-    """The cell the trim drops: this strategy's highest-CI shape."""
-    return max(shapes, key=lambda s: cells[s][strategy]['ci'] or 1e9)
 
 
-def trimmed_cells(cells, shapes, strategy):
-    """Shapes for `strategy` minus its own highest-CI one (README's trim).
+WINSOR_K = 3.0
 
-    A run of one shape (a filtered run, say) has nothing to trim, and
-    dropping its only cell would leave an empty geomean, so it is left whole.
+
+def winsorize(logs, k=WINSOR_K):
+    """Cap, do not drop: pull outliers to median +- k MADs and keep them.
+
+    This is what replaced the trim, and it differs in what it is afraid of.
+    Trimming deleted each strategy's worst-MEASURED cell, which on a time
+    budget is usually its slowest, so a strategy catastrophic on one shape
+    had that shape removed -- and since the cell removed differed by
+    strategy, two columns ended up geomeans over different shape sets.
+    Capping bounds a cell's influence without removing its evidence: the
+    catastrophe still counts, at a weight it cannot dominate, and every row
+    still covers every shape.
+
+    MAD scaled by 1.4826 so k is in standard deviations for a normal; k = 3
+    touches only what is genuinely far out. A zero MAD (half the cells
+    identical) caps nothing rather than collapsing the row. Returns the
+    capped logs and how many were capped, the count being what `--selftest`
+    needs to know which identities it may still assert.
     """
-    if len(shapes) < 2:
-        return list(shapes)
-    worst = worst_shape(cells, shapes, strategy)
-    return [s for s in shapes if s != worst]
+    med = stats.median(logs)
+    mad = stats.median([abs(x - med) for x in logs]) * 1.4826
+    if mad <= 0:
+        return logs, 0
+    lo, hi = med - k * mad, med + k * mad
+    out = [min(max(x, lo), hi) for x in logs]
+    return out, sum(1 for a, b in zip(logs, out) if a != b)
+
+
+def worst_of(cells, shapes, strategy):
+    """The strategy's worst shape, as a ratio to `list`.
+
+    A geomean answers "typical" and no robust version of it can answer "how
+    bad does this get" -- the two questions want different statistics. For a
+    library fallback the second is the disqualifying one: a strategy three
+    times its own average on some shape is not shippable whatever its mean
+    says. Being a maximum it is also the one figure no estimator choice can
+    flatter.
+    """
+    if any('list' not in cells[s] for s in shapes):
+        return float('nan')
+    if strategy.startswith('sum-only') or strategy.endswith('-nosum'):
+        return float('nan')
+    return max(cells[s][strategy]['net'] / cells[s]['list']['net']
+               for s in shapes)
 
 
 def time_of(cells, shapes, strategy):
-    """README's `time` column: trimmed geomean of net / `list`'s net.
+    """README's `time` column: winsorized geomean of net / `list`'s net.
+
+    Over EVERY shape. Nothing is dropped, so all rows cover one population
+    and two columns are comparable; a cell far enough out to distort the mean
+    is capped instead, which bounds its influence without deleting its
+    evidence; 'winsorize' records why that beats dropping a cell.
 
     A filtered run need not contain the baseline; then there is no ratio to
     give and the column reads nan rather than the reader stopping. So does a
-    `sum-only` arm, which is the correction itself and nets to zero, and any
+    `sum-only` or `-nosum` arm, which never ran the forcing pass, and any
     cell the term did not leave positive -- `health` reports that one.
     """
-    kept = trimmed_cells(cells, shapes, strategy)
-    # `sum-only` IS the correction, and a `-nosum` arm is its base minus the
-    # correction's subject, so neither has a corrected time to give:
-    # subtracting the forcing pass from a bench that never ran it would
-    # report a fill as cheaper than it is. --aa is where both explain
-    # themselves.
     if strategy.startswith('sum-only') or strategy.endswith('-nosum'):
         return float('nan')
-    if any('list' not in cells[s] for s in kept):
+    if any('list' not in cells[s] for s in shapes):
         return float('nan')
     if any(cells[s][strategy]['net'] <= 0 or cells[s]['list']['net'] <= 0
-           for s in kept):
+           for s in shapes):
         return float('nan')
-    return geomean([cells[s][strategy]['net'] / cells[s]['list']['net']
-                    for s in kept])
+    logs = [math.log(cells[s][strategy]['net'] / cells[s]['list']['net'])
+            for s in shapes]
+    return math.exp(stats.fmean(winsorize(logs)[0]))
 
 
 def strategy_rows(cells, shapes, strategies):
@@ -483,7 +511,9 @@ def strategy_rows(cells, shapes, strategies):
         rows.append((time_of(cells, shapes, st) if have_list else float('nan'),
                      st, med_or_nan(ci), noise,
                      stats.median(cells[s][st]['n'] for s in shapes),
-                     stats.median(alloc) if alloc else None))
+                     stats.median(alloc) if alloc else None,
+                     worst_of(cells, shapes, st) if have_list
+                     else float('nan')))
     # A `sum-only` row has no time by construction rather than by mishap, so
     # it sorts to the head, where it reads as the term the column subtracts.
     rows.sort(key=lambda r: (-1.0 if r[0] != r[0] else r[0], r[1]))
@@ -492,14 +522,15 @@ def strategy_rows(cells, shapes, strategies):
 
 def strategy_table(cells, shapes, strategies, meta, args, terms):
     rows, have_list = strategy_rows(cells, shapes, strategies)
-    print('%-28s %7s %6s %6s %5s %8s'
-          % ('strategy', 'time', 'CI%', 'noise', 'smp', 'alloc'))
-    for time, st, ci, noise, smp, alloc in rows:
+    print('%-28s %7s %6s %6s %6s %5s %8s'
+          % ('strategy', 'time', 'worst', 'CI%', 'noise', 'smp', 'alloc'))
+    for time, st, ci, noise, smp, alloc, worst in rows:
         mark = ' *' if is_control(st) else ''
         a = '%7.2fx' % alloc if alloc is not None else '      --'
         t = '     --' if time != time else '%7.3f' % time
-        print('%-28s %s %6.2f %6.2f %5.0f %s%s'
-              % (st, t, ci, noise, smp, a, mark))
+        w = '     --' if worst != worst else '%6.3f' % worst
+        print('%-28s %s %s %6.2f %6.2f %5.0f %s%s'
+              % (st, t, w, ci, noise, smp, a, mark))
     if not have_list:
         print('\ntime is --: this run has no `list` bench to divide by')
     print('\n* control, not a strategy (--aa explains; --no-controls omits)')
@@ -514,6 +545,10 @@ def strategy_table(cells, shapes, strategies, meta, args, terms):
             print('that term is a median ' + known + ' over shapes.')
         print('The `sum-only` rows are that term, so they read -- rather than')
         print('a figure of a different kind in the same column.')
+    print('worst is the row\'s worst shape: how bad it gets, which no average')
+    print('answers. time is a winsorized geomean over every shape -- nothing')
+    print('dropped, outliers capped at %.0f MADs -- so all rows compare.'
+          % WINSOR_K)
     print('noise is this row\'s CI% against the median CI% of the same shape,')
     print('medianed over shapes: 1.00 is an ordinary bench, and the')
     print('outlier is the bench to suspect of disturbing whatever shares')
@@ -545,14 +580,17 @@ def readme_rows(readme, strategies):
         if not line.lstrip().startswith('|'):
             continue
         cell = [c.strip() for c in line.strip().strip('|').split('|')]
-        if len(cell) != 7:
+        # 7 columns is the table before `worst` existed, 8 with it; the two
+        # editorial cells are the last two either way, so a run emitting the
+        # wider table still carries them forward from the narrower one.
+        if len(cell) not in (7, 8):
             continue
         bare = re.sub(r'[*`]', '', cell[0]).replace('(baseline)', '').strip()
         if bare not in strategies:
             continue
         style = ('bold' if cell[0].startswith('**')
                  else 'italic' if cell[0].startswith('*') else 'plain')
-        out[bare] = (cell[0], style, cell[5], cell[6])
+        out[bare] = (cell[0], style, cell[-2], cell[-1])
     return out
 
 
@@ -570,9 +608,10 @@ def markdown_table(cells, shapes, strategies, meta, args, terms):
     rows, have_list = strategy_rows(cells, shapes, strategies)
     prev = readme_rows(args.readme, set(strategies))
     fresh, gone = [], [n for n in prev if n not in strategies]
-    print('| strategy | time | CI% | smp | alloc | needs | precondition |')
-    print('|---|---:|---:|---:|---:|---|---|')
-    for time, st, ci, noise, smp, alloc in rows:
+    print('| strategy | time | worst | CI% | smp | alloc'
+          ' | needs | precondition |')
+    print('|---|---:|---:|---:|---:|---:|---|---|')
+    for time, st, ci, noise, smp, alloc, worst in rows:
         if st in prev:
             label, style, needs, pre = prev[st]
         else:
@@ -580,7 +619,8 @@ def markdown_table(cells, shapes, strategies, meta, args, terms):
             label = st
             style = 'italic' if is_control(st) else 'plain'
             needs, pre = '?', '?'
-        num = ['--' if time != time else '%.3f' % time, '%.2f' % ci,
+        num = ['--' if time != time else '%.3f' % time,
+               '--' if worst != worst else '%.3f' % worst, '%.2f' % ci,
                '%.0f' % smp, '--' if alloc is None else '%.2fx' % alloc]
         if style == 'italic':
             label = label if label.startswith('*') else '*%s*' % label
@@ -607,54 +647,32 @@ def markdown_table(cells, shapes, strategies, meta, args, terms):
 
 
 def shape_table(cells, shapes, strategies, meta):
-    dropped = {(worst_shape(cells, shapes, st), st) for st in strategies}
-    print('%-22s %9s %8s %7s %7s %7s %7s %5s %4s  %s'
-          % ('shape', 'l', 'm', 'CImax', 'CImaxT', 'CImed', 'CImean',
-             'smp', 'drop', 'worst cell'))
+    print('%-22s %9s %8s %7s %7s %7s %5s  %s'
+          % ('shape', 'l', 'm', 'CImax', 'CImed', 'CImean', 'smp',
+             'worst cell'))
     rows = []
     for sh in shapes:
         ci = {st: cells[sh][st]['ci'] for st in strategies
               if cells[sh][st]['ci'] is not None}
-        kept = {st: c for st, c in ci.items() if (sh, st) not in dropped}
         if not ci:
             continue
         mx = max(ci, key=ci.get)
-        mxt = max(kept, key=kept.get) if kept else None
         l, m, _ = (shape_facts(meta['dims'][sh]) if sh in meta['dims']
                    else (0, 0, 0))
-        rows.append((ci[mx], sh, l, m, kept[mxt] if mxt else float('nan'),
+        rows.append((ci[mx], sh, l, m,
                      stats.median(ci.values()), stats.fmean(ci.values()),
                      stats.median(cells[sh][st]['n'] for st in strategies),
-                     sum(1 for s, _ in dropped if s == sh),
-                     mx + ('' if mxt in (None, mx) else ' -> ' + mxt)))
-    for mx, sh, l, m, mxt, med, mean, smp, nd, who in sorted(rows,
-                                                             reverse=True):
-        print('%-22s %9s %8s %7.2f %7.2f %7.3f %7.3f %5.0f %4d  %s'
-              % (sh, l or '?', m or '?', mx, mxt, med, mean, smp, nd, who))
+                     mx))
+    for mx, sh, l, m, med, mean, smp, who in sorted(rows, reverse=True):
+        print('%-22s %9s %8s %7.2f %7.3f %7.3f %5.0f  %s'
+              % (sh, l or '?', m or '?', mx, med, mean, smp, who))
     print('\nl and m come from Main.hs (m = run count = base-offsets table')
     print('size; sInner = l / m); ? means Main.hs no longer defines it.')
-    print('CImaxT is the max after the trim, and drop counts the cells the')
-    print('trim removes from that shape. The worst-cell column names the')
-    print('strategy, and "a -> b" means the trim took a and left b worst.')
+    print('The worst-cell column names the strategy whose CI% is widest')
+    print('here; nothing is dropped, so it is also what the winsorizing')
+    print('geomean is most likely to have capped.')
 
 
-def drop_table(cells, shapes, strategies):
-    by_shape = collections.defaultdict(list)
-    for st in strategies:
-        sh = max(shapes, key=lambda s: cells[s][st]['ci'] or 1e9)
-        by_shape[sh].append((cells[sh][st]['ci'], st))
-    total = sum(ci for v in by_shape.values() for ci, _ in v
-                if ci is not None)
-    print('the trim drops one cell per strategy; they land on %d of %d shapes'
-          % (len(by_shape), len(shapes)))
-    for sh in sorted(by_shape, key=lambda s: -sum(c for c, _ in by_shape[s])):
-        v = by_shape[sh]
-        s = sum(c for c, _ in v if c is not None)
-        print('\n%-24s %d cell(s), CI%% sum %.2f (%.1f%% of %.2f), mean %.2f'
-              % (sh, len(v), s, s / total * 100, total, s / len(v)))
-        for ci, st in sorted(v, key=lambda x: -(x[0] or 0)):
-            print('    %6s  %s'
-                  % ('starved' if ci is None else '%6.2f' % ci, st))
 
 
 # Fixed so that re-running the reader on one JSON gives one answer; a
@@ -687,8 +705,8 @@ def sign_p(k, n):
 
     The assumption-free backstop to the geomean. It never forms a mean, so a
     cell measured to +-70% casts one vote like every other shape and cannot
-    distort it -- which is the whole job the trim was invented for. What it
-    gives up is magnitude: it says A beats B, never by how much.
+    distort it. What it gives up is magnitude: it says A beats B, never by
+    how much.
     """
     k = max(k, n - k)
     tail = sum(math.comb(n, i) for i in range(k, n + 1))
@@ -746,7 +764,7 @@ def pair_table(cells, shapes, strategies, pairs):
     print('\npaired is the geomean of the per-shape ratio, which is what a')
     print('margin measured per shape should be compared against; the')
     print('published-column ratio is what a reader of the table computes,')
-    print('trim asymmetry included. `A wins` counts shapes where A < B, and')
+    print('capping asymmetry aside. `A wins` counts shapes where A < B, and')
     print('sign p is that count under a fair coin -- no distributional')
     print('assumption, immune to a wild cell, and blind to magnitude.')
 
@@ -782,7 +800,6 @@ def aa_table(cells, shapes, strategies, terms, meta):
         r = [cells[s][a][key] / cells[s][b][key] for s in shapes]
         dev = [abs(x - 1) * 100 for x in r]
         worst = max(zip(dev, shapes))
-        wa, wb = worst_shape(cells, shapes, a), worst_shape(cells, shapes, b)
         pub = time_of(cells, shapes, a) / time_of(cells, shapes, b)
         print('%-28s %-24s %5d %9s %8.4f %6.2f%%'
               % (a, b, abs(pos[a] - pos[b]) - 1,
@@ -797,9 +814,6 @@ def aa_table(cells, shapes, strategies, terms, meta):
                   % ('', ci[0], ci[1], half,
                      'covers' if covers else 'MISSES'))
         print('%56s worst cell %.2f%% on %s' % ('', worst[0], worst[1]))
-        print('%56s trim drops %s / %s%s'
-              % ('', wa, wb, '' if wa == wb else '   <-- DIFFERENT shapes, so'
-                 ' the published ratio compares different shape sets'))
     insitu = [(b, base_of(b)) for b in strategies
               if base_of(b) in strategies]
     if insitu and any(terms.values()):
@@ -859,7 +873,7 @@ def aa_table(cells, shapes, strategies, terms, meta):
     print('\nspan is how many benches run between the pair: a pair spanning a')
     print('bench measures whatever that bench leaves behind it. published is')
     print('the ratio of the two `time` columns, what a reader comparing two')
-    print('rows gets, trim asymmetry included -- the ~2% floor. paired is the')
+    print('rows gets. paired is the')
     print('per-shape geomean, measurement noise alone; compare a per-shape')
     print('margin against that one. Both have the forcing pass subtracted,')
     print('as the table does -- except the `sum-only` pair, which is that')
@@ -1192,7 +1206,8 @@ def selftest(cells, shapes, strategies, meta):
 
     Non-vacuity of the two correction checks, confirmed by breaking them:
     inflating the forcing term 50x fails the positivity one on 1353 cells and
-    takes the trim check down with it; tightening the scaling tolerance to
+    takes the winsorizing check down with it; tightening the scaling
+    tolerance to
     1.01 fails the scaling one and names the two shapes it compared; and
     excluding both `sum-only` arms turns the first into a named skip rather
     than a silent pass, as a one-shape run does to the second.
@@ -1290,27 +1305,26 @@ def selftest(cells, shapes, strategies, meta):
                           % (lo[0] * 1e9, hi_[0] * 1e9, len(per), spread))
 
     if len(shapes) < 2:
-        skip.append('one shape only, so the trim and the A/A identity below'
-                    ' are unexercised')
+        skip.append('one shape only, so the winsorizing and the A/A identity'
+                    ' below are unexercised')
     else:
+        capped = 0
         for st in strategies:
             # The arms `time_of` declines to give a figure for: correcting
             # them is meaningless, so there is no geomean to bracket.
             if st.startswith('sum-only') or st.endswith('-nosum'):
                 continue
-            kept = trimmed_cells(cells, shapes, st)
             ratios = [cells[sh][st]['net'] / cells[sh]['list']['net']
                       for sh in shapes]
+            capped += winsorize([math.log(r) for r in ratios])[1]
             got = time_of(cells, shapes, st)
-            if len(kept) != len(shapes) - 1:
-                bad.append('%s: trim kept %d of %d shapes, want one fewer'
-                           % (st, len(kept), len(shapes)))
-            elif not min(ratios) - TOL <= got <= max(ratios) + TOL:
-                bad.append('%s: trimmed geomean %.6g outside the per-shape'
+            if not min(ratios) - TOL <= got <= max(ratios) + TOL:
+                bad.append('%s: winsorized geomean %.6g outside the per-shape'
                            ' range %.6g..%.6g' % (st, got, min(ratios),
                                                   max(ratios)))
-        ok.append('trim: one cell dropped per strategy, each trimmed geomean'
-                  ' inside its own per-shape range')
+        ok.append('winsorizing: every row covers all %d shapes and its geomean'
+                  ' lands inside its own per-shape range (%d cell(s) capped'
+                  ' in all)' % (len(shapes), capped))
 
         if 'list' in strategies:
             one = time_of(cells, shapes, 'list')
@@ -1319,28 +1333,35 @@ def selftest(cells, shapes, strategies, meta):
             else:
                 ok.append('baseline: list against itself is exactly 1')
 
+        # With nothing dropped, a published ratio is the paired one WHENEVER
+        # neither arm had a cell capped -- the geomeans then divide term by
+        # term. A capped cell is capped against its own row's median, so a
+        # pair where one arm was capped may legitimately differ.
         pairs = [(a, twin_of(a)) for a in strategies
                  if twin_of(a) in strategies]
-        matched = [(a, b) for a, b in pairs
-                   if worst_shape(cells, shapes, a)
-                   == worst_shape(cells, shapes, b)]
-        if not matched:
-            skip.append('no control pair drops the same shape from both arms,'
-                        ' so the published-equals-paired identity is'
-                        ' unexercised (%d pair(s) present)' % len(pairs))
-        for a, b in matched:
-            dropped = worst_shape(cells, shapes, a)
-            common = [sh for sh in shapes if sh != dropped]
+        clean = []
+        for a, b in pairs:
+            na = winsorize([math.log(cells[sh][a]['net']
+                                     / cells[sh]['list']['net'])
+                            for sh in shapes])[1]
+            nb = winsorize([math.log(cells[sh][b]['net']
+                                     / cells[sh]['list']['net'])
+                            for sh in shapes])[1]
+            (clean if na == nb == 0 else None) is None or clean.append((a, b))
+        if not clean:
+            skip.append('every control pair had a cell capped, so the'
+                        ' published-equals-paired identity is unexercised'
+                        ' (%d pair(s) present)' % len(pairs))
+        for a, b in clean:
             published = time_of(cells, shapes, a) / time_of(cells, shapes, b)
             paired = geomean([cells[sh][a]['net'] / cells[sh][b]['net']
-                              for sh in common])
+                              for sh in shapes])
             if abs(published - paired) > 1e-6 * paired:
-                bad.append('%s/%s drop the same shape yet published %.6f !='
-                           ' paired %.6f' % (a, b, published, paired))
+                bad.append('%s/%s uncapped yet published %.6f != paired %.6f'
+                           % (a, b, published, paired))
             else:
-                ok.append('A/A identity: %s/%s drop %s from both arms and'
-                          ' published == paired (%.4f)'
-                          % (a, b, dropped, published))
+                ok.append('A/A identity: %s/%s uncapped, so published =='
+                          ' paired (%.4f)' % (a, b, published))
 
     for line in ok:
         print('ok:   ' + line)
@@ -1363,7 +1384,6 @@ def main():
                    help='Main.hs to read shape sizes from'
                         ' (default: alongside)')
     p.add_argument('--shapes', action='store_true')
-    p.add_argument('--drops', action='store_true')
     p.add_argument('--aa', action='store_true')
     p.add_argument('--cells', action='store_true')
     p.add_argument('--pair', nargs=2, action='append', default=[],
@@ -1416,13 +1436,11 @@ def main():
           % (os.path.basename(args.run), meta['version'], meta['reports'],
              roster,
              '  (RAGGED: some cells missing)' if meta['ragged'] else '',
-             '' if len(shapes) > 1 else '  (one shape: nothing to trim)'))
+             '' if len(shapes) > 1 else '  (one shape: nothing to spread)'))
     print()
     health(cells, shapes, strategies, terms)
     if args.shapes:
         shape_table(cells, shapes, strategies, meta)
-    elif args.drops:
-        drop_table(cells, shapes, strategies)
     elif args.aa:
         aa_table(cells, shapes, strategies, terms, meta)
     elif args.pair:
