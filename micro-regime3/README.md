@@ -281,26 +281,72 @@ floor](#the-noise-floor-is-3-not-the-ci) section is the measured evidence that
 they move with what shares that process. What the rest of the machine does on
 top of that is unmeasured, and a recorded run is the wrong place to find out.
 
+If something did run anyway, **record the wall-clock window** rather than
+hoping: the run's own log is timestamped only at the end, so without the
+window there is no way to say which shapes were exposed, and a suspicious cell
+can then be neither blamed on it nor cleared of it. Run 6 (-O1) had three
+short greps in its first minutes and the exposure was settled from the cell
+data instead — the anomalies were strategy-intrinsic, not a time window
+([R2](#r2-is-the-ramp-detector-not-the-noise-detector)) — but that worked only
+because the suspects sat at one roster slot on two shapes, which is luck and
+not a method.
+
 **After it lands:**
 
 - analyse with `./read-run.py`, which is where every table in this file comes
   from — read [Reading the results](#reading-the-results) first, and do not
   write another reader;
-- check the `sum-only` halves in `--aa` **before reading anything else**.
-  Every published figure is net of that term, so if the two halves disagree by
-  more than the floor the term is not a constant and the whole time column is
-  invalid, not merely uncorrected
-  ([sum-only](#sum-only-and-the-correction-now-applied)). It is a gate on the
-  run, and it has to be re-passed by every run rather than inherited;
+- **gate on the correction, before reading anything else.** `--selftest`
+  checks that the forcing term scales with `l` — one pass over the elements,
+  not something whose size varies with the shape — and `--aa` prints whether
+  the two `sum-only` halves agree. The two are independent and the correction
+  needs both: the halves fix the term's dependence on *position*, the scaling
+  invariant its dependence on *size*, and a term wrong in the second way would
+  be wrong in both halves alike, so their agreement would not notice
+  ([sum-only](#sum-only-and-the-correction-now-applied)). Either failing
+  invalidates the whole time column rather than merely leaving it uncorrected,
+  and both have to be re-passed by every run rather than inherited;
 - walk the list under [Provenance](#provenance) of what the new numbers
-  replace, and do not trust it to be complete: re-run the two sweeps it names,
-  since it has been wrong before;
+  replace, and do not trust it to be complete: re-run the two sweeps it names
+  and map each hit to the bullet covering it, since running the sweeps is not
+  the same as reading them, and the list has been wrong before;
+- **verify the write-up before deleting anything.** These are the checks the
+  procedure used to leave to judgement, each of which has caught something:
+  - **derive every count and ratio in the prose from `--cells`, never by
+    eye.** "32 of 33", "30th of its 33 shapes", "the only two past 7%" are all
+    claims a glance at a sorted table gets wrong; two of Run 6's were wrong
+    until recomputed;
+  - **reproduce any newly-derived column by a route that shares no code with
+    the reader.** A four-bench filtered run carrying both `sum-only` halves
+    takes seconds, and criterion's own printed `time` lines then give the
+    ratio by hand: on `cnn-slice-c32`, `(1.506 - 0.1739) / (6.339 - 0.1739)`
+    = 0.2161 against the reader's 0.216. Recomputing from `--cells` is worth
+    doing too, but it shares the reader's arithmetic and cannot catch a wrong
+    definition, only a wrong transcription;
+  - **diff the table's `needs` and `precondition` columns against the previous
+    run's.** They are hand-carried through a re-sort of forty-odd rows every
+    time, and nothing else checks them; every difference should be one you
+    meant;
+  - **check that every `](#...)` resolves**, in this file and in `Main.hs`'s
+    `README.md#...` references. Findings rename headings, and a renamed
+    heading breaks links silently;
+  - **read the document end to end.** The greps above do not catch a bullet
+    contradicting the table three lines below it, which is how "`bq-mut` ties
+    `bq-expand`" survived two runs beside a build ordering that refuted it;
+- rebuild and re-run `--lint` and `check` after editing `Main.hs`, even when
+  only comments changed: the reader parses that file for the roster and the
+  shape dims, so a comment edit can break a check that passed before it;
 - record beside the numbers the run's name and regime, its stderr provenance
-  line, and which machine (this page's figures are one desktop's and are not
-  portable — see [Provenance](#provenance));
-- keep no JSON here afterwards. The normal state of this directory is no run
+  line, which machine, **and the commit the binary was built from** (the JSON
+  does not survive, so the source is the only thing that makes a run
+  reproducible even in principle — this page's figures are one desktop's and
+  are not portable, see [Provenance](#provenance));
+- **only then** delete the JSON. The normal state of this directory is no run
   artifact at all, which is decided rather than an oversight; the numbers live
-  in this file and the artifact does not.
+  in this file and the artifact does not. But "afterwards" means after the
+  verification above, not after the writing: Run 6's artifact was deleted as
+  soon as its write-up was drafted, which cost the ability to re-check
+  anything needing the raw samples when the write-up was later questioned.
 
 ## Where the shapes come from
 
@@ -382,6 +428,19 @@ How to read the columns:
   little and removes the larger error. The trim reads the *raw* CI%, as do the
   `CI%`, `smp` and `alloc` columns: subtracting a shared term moves a point
   estimate, it does not make a cell better measured.
+
+  That choice was tested rather than assumed, and it is **not** free, so it is
+  recorded here instead of being re-litigated. Reading the trim off the
+  correction-relative CI% instead -- the half-width as a share of the *net*,
+  which is larger, and most so for the fastest cells -- changes which shape is
+  dropped for 4 strategies of 42 and moves their columns by +1.3% to +5.0%
+  (`bq-gen-lemire` 0.498 to 0.523, the one past the floor); three of the four
+  then drop `stretch-square-1341`, the run's worst-measured shape. Every other
+  row is unmoved and no ruling on this page turns on any of the four. The raw
+  rule is kept because measurement quality is a property of the measurement,
+  and letting the correction pick the dropped cell would make the trim depend
+  on the thing it is supposed to be independent of; the cost of keeping it is
+  those four rows.
 
   The *slope* rather than criterion's mean, because criterion never times one
   call: it times batches — one call, then four, then twenty — and every batch
@@ -566,6 +625,20 @@ rather than merely noisy. In Run 6 (-O1) that is 4 cells of 1452, the worst
 0.9857: `mut-odo` on the two smallest `cnn-L1` shapes, `build` on
 `alexnet-L2-27-c48-k5`, and `bq-expand-lemire-out` on `stretch-square-1341`.
 
+The two worst have a cause, and it is the one this suite already argues for
+elsewhere. `mut-odo` carries the run's highest CI cell on both of those shapes
+(4.94% and 5.86%, against shape medians of 0.23% and 0.17%) while `build` --
+which drives the identical fill through `vBuildVS` from a different roster
+slot -- reads 0.39% and 0.16% on the same two shapes, and `mut-odo-vecdims`,
+the same fill with the odometer's cons-lists replaced by unboxed vectors,
+reads 0.90% and 0.16%. Same shape, same process, so it is neither the shape
+nor a disturbance in that stretch of the run: it is the odometer's list
+traffic showing up as a GC ramp where `l` is small enough for it to dominate,
+which is exactly the cost `mut-odo-vecdims` was written to remove and does.
+Checking whether a suspicious cell is positional (a contiguous window of
+roster slots) or strategy-intrinsic (one slot, several shapes) is cheap from
+`--cells` and worth doing before reaching for either explanation.
+
 ### sum-only, and the correction now applied
 
 Every strategy is timed as `VS.sum . fb`, so every measurement carries the
@@ -582,6 +655,17 @@ set, and `read-run.py` now takes it per shape as the mean of the two halves
 and divides net of it. `bq-expand` 0.179 becomes 0.155 and
 `bq-scan-packed-mulback` 0.121 becomes 0.097, the first exactly the figure
 that version predicted from Failed Run 6's numbers.
+
+That test alone would not have been enough, and the second one is now an
+invariant rather than a judgement. The term is subtracted **per shape**, so it
+must also be the same pass on every shape -- one sum over `l` elements -- and
+a term that were not could be wrong in both halves alike, leaving their
+agreement to notice nothing. It is: 0.588 to 0.608 ns per element across the
+whole shape set, a 1.04x spread over a 6250x range of `l`, with the largest
+shapes 0.7% dearer per element than the smallest and no trend beyond that.
+`--selftest` checks it on every run and fails the run if the spread passes
+1.5x, so the two legs of the correction -- position and size -- are both
+gates rather than one gate and one assumption.
 
 Three things follow, and two of them contradict the reasons that version gave
 for *not* publishing it.
@@ -602,10 +686,11 @@ for *not* publishing it.
   but the reason as stated was wrong, not merely unnecessary.
 - **The second objection stands, untouched.** `sum-only` re-reads one fixed
   vector while the strategies sum a vector their own fill has just written, a
-  warmer and less contended read. The halves test position, not that; the term
-  could be biased low for every row alike and both halves would still agree.
-  Nothing here measures it, and a run that wants to would need a `sum-only`
-  whose vector was written by the fill it follows.
+  warmer and less contended read. Neither gate reaches it: the halves fix the
+  term against position and the invariant fixes it against size, while a term
+  biased low by a colder read would be biased low on every shape and in both
+  halves, passing both. Nothing here measures it, and a run that wants to
+  would need a `sum-only` whose vector was written by the fill it follows.
 
 A one-shape smoke run had said as much before the run did: on `cnn-slice-c32`
 at `-L1` the halves read 169.9 ns and 170.1 ns, 0.12% apart.
@@ -614,10 +699,13 @@ at `-L1` the halves read 169.9 ns and 170.1 ns, 0.12% apart.
 
 Run 6 (-O1) is the run every figure above and below comes from: the whole
 roster over the whole shape set at criterion's default budget, one process,
-2h5m2s. Its stderr provenance line reads *roster 44 benchmarks over 33 shapes;
+2h5m2s, built from commit `db1b20b` with a clean tree. Its stderr provenance
+line reads *roster 44 benchmarks over 33 shapes;
 elapsed 2h5m2s; peak 397 MiB in use, 134 MiB max residency* -- comfortably
 inside `micro.cabal`'s `-M2G`, which is why that note still stands unchanged.
-Its JSON is not kept, by the rule below.
+Its JSON is not kept, by the rule above; the commit is what remains of it, and
+is here because a run whose artifact is deleted and whose source is unrecorded
+cannot be repeated even in principle.
 
 It is a fresh baseline rather than a continuation of Failed Run 6, on two
 counts that compound. The shape set moved first: every shape over `sizeCap`
@@ -646,34 +734,46 @@ numerals outside the tables, and grep it for `Run 6` — so repeat them rather
 than trusting this list to have stayed complete. Walking it for Run 6 found
 five entries the previous list did not name, which are marked below.
 
-- the Results table, all four columns, from `./read-run.py RUN.json`;
-- the noise-floor table, from `--aa`, with the prose around it — which now
-  carries the raw-slope triple 1.0010/1.0031/1.0260 as well as the corrected
-  one, the per-cell scatter figures, and the ruling that the distant control
-  must go back to the adjacent one's strategy;
-- the opening section's headline claims: `mut-odo` 1.46× and `mut-odo-vecdims`
-  3.03× over `bq-expand`, `bq-scan-packed-mulback` 0.097 against 0.155,
-  `bq-scan-rem-gm-mulback` 0.132;
-- **What the table says**, where every bullet is a Run 6 figure: the build
-  ordering 0.155/0.143/0.223/0.310/0.360, `gen-quotrem` at 1.087, and the
-  allocation multiples 3.9×/6.7×/1.0×/28×;
-- **The mutable ceiling (not taken)**: 0.107 and 0.108 for `mut-odo` and
-  `build`, 0.141 for `offtab`, 0.051, 0.097, and the "1.89×, not 3.03×" that
-  closes it. This one and the next are rulings resting on figures, so stale
-  numbers there re-open a decision rather than merely misreport one;
-- **Why there is no gen-lemire**: 1.087 against 0.155, the 13.0× allocation,
-  3.9×, and the 7.0× gap. Its old internal contradiction is settled: Run 6 has
-  `gen-quotrem` and `gen-unsafe` tied to 0.06%, so the bounds-check control
-  buys nothing, which is what the section's argument needs;
-- **sum-only**, the whole section: the correction is now applied, so what a
-  run decides there is no longer *whether* but whether the term is still
-  position-independent — the halves must be re-checked every run, since a
-  divergence would invalidate the column rather than merely inform it;
+- [the Results table](#results), all four columns, from
+  `./read-run.py RUN.json`;
+- [the noise-floor table][floor], from `--aa`, with the prose around it —
+  which now carries the raw-slope triple 1.0010/1.0031/1.0260 as well as the
+  corrected one, the per-cell scatter figures, and the ruling that the distant
+  control must go back to the adjacent one's strategy;
+- [the opening section][opening]'s headline claims: `mut-odo` 1.46× and
+  `mut-odo-vecdims` 3.03× over `bq-expand`, `bq-scan-packed-mulback` 0.097
+  against 0.155, `bq-scan-rem-gm-mulback` 0.132;
+- [What the table says](#what-the-table-says), where every bullet is a Run 6
+  figure: the build ordering 0.155/0.143/0.223/0.310/0.360, `gen-quotrem` at
+  1.087, and the allocation multiples 3.9×/6.7×/1.0×/28×;
+- [The mutable ceiling (not taken)](#the-mutable-ceiling-not-taken): 0.107
+  and 0.108 for `mut-odo` and `build`, 0.141 for `offtab`, 0.051, 0.097, and
+  the "1.89×, not 3.03×" that closes it. This one and the next are rulings
+  resting on figures, so stale
+  numbers there re-open a decision rather than merely misreport one — and a
+  ruling's *number* moves for reasons its *verdict* does not. Every
+  decision-bearing ratio on this page was checked in both columns when the
+  correction landed: none changes direction, but the magnitudes move by up to
+  +31% (this bullet's 3.03×, 2.31× uncorrected), because subtracting a shared
+  term inflates a ratio the more the two arms it compares are fast. So requote
+  a ruling's figure from the run rather than carrying it, even when the ruling
+  itself is untouched;
+- [Why there is no gen-lemire](#why-there-is-no-gen-lemire): 1.087 against
+  0.155, the 13.0× allocation, 3.9×, and the 7.0× gap. Its old internal
+  contradiction is settled: Run 6 has `gen-quotrem` and `gen-unsafe` tied to
+  0.06%, so the bounds-check control buys nothing, which is what the
+  section's argument needs;
+- [sum-only](#sum-only-and-the-correction-now-applied), the whole section: the
+  correction is now applied, so what a run decides there is no longer
+  *whether* but whether the term still passes both its gates — the halves and
+  the scaling invariant must be re-checked every run, since either failing
+  would invalidate the column rather than merely inform it;
 - `concat-runs`' "2.5× the shape's typical CI", in **What the benchmark does**
   and again in `Main.hs`'s `roster` — a Failed Run 6 figure, kept as history
   because the bench is no longer timed and no run replaces it;
-- **R2 is the ramp detector**: "4 cells of 1452" and the four cells named;
-- the Lemire section's `gen-quotrem`-against-`bq-expand` gap, and
+- [R2 is the ramp detector][ramp]: "4 cells of 1452", the four cells named,
+  and the positional-versus-intrinsic reading of the worst two;
+- [the Lemire section][lemire]'s `gen-quotrem`-against-`bq-expand` gap, and
   `bq-expand-lemire-out`'s 0.926× paired, its 0.915× published, its
   0.796-to-0.982 range, its one losing shape and its 0.142-against-0.155 pair;
   **new to this list:** its "faster on 32 of 33" and "30 of 33" and "17 of 33"
@@ -687,9 +787,9 @@ five entries the previous list did not name, which are marked below.
   consequence through — every multiple quoted in a `Main.hs` comment is a
   property of a strategy *and* a shape set, and the column wants the shape set
   pinned before it is compared across runs, as `time` already does;
-- the per-shape `stretch-*` table, now Run 6's own rather than inherited;
-  **new to this list:** the bullets under it, one of which Run 6 refuted
-  outright;
+- [the per-shape `stretch-*` table][pershape], now Run 6's own rather than
+  inherited; **new to this list:** the bullets under it, one of which Run 6
+  refuted outright;
 - this section, which becomes the next run's own provenance;
 - `read-run.py`'s docstring, whose `time`, `corr` and `net` definitions, A/A
   paragraph and validation paragraph all quote Run 6;
@@ -773,10 +873,19 @@ check compared them; one list now builds both, so the drift cannot happen
 rather than being merely detectable. A check that cannot fail is a silent
 search, so it was replaced rather than kept.
 
+That is the standing rule for everything under `--lint`, `--selftest` and the
+`health` warnings, and it is why each carries a recorded proof in its
+docstring: **a new check is not finished until it has been made to fail on
+purpose**, with what was broken and what it then said written down beside it.
+Several here can only fail on data no real run produces — a forcing term
+larger than the cell it is subtracted from, a term that does not scale with
+`l` — so provoking them is the only way to know they are wired to anything.
+
 `--selftest` checks invariants of whatever run it is given: that the dims it
 parses out of `Main.hs` match that file's own `l` annotations, that every cell
 has a positive slope and a sane R², that the forcing term is positive on every
-shape and leaves every cell's net positive, that the trim drops exactly one
+shape and leaves every cell's net positive, that the same term scales with `l`
+as one pass over the elements must, that the trim drops exactly one
 shape per strategy and lands inside its own per-shape range, that `list`
 against itself is 1, and that an A/A pair dropping the same shape from both
 arms has its published ratio equal to its paired one. It names what it could
@@ -1242,4 +1351,9 @@ Two ideas died on paper, recorded so they are not re-proposed:
   prescribes (`-n 200` minus `-n 100`, fresh processes) rather than criterion,
   since the builders are not benchmarks.
 
+[floor]: #the-noise-floor-is-3-not-the-ci
+[lemire]: #lemire-multiplicative-inverses-at-the-two-division-sites
+[opening]: #regime-3-micro-benchmark-the-fix-bq-expand
+[pershape]: #per-shape-where-the-geomean-hides-the-ordering
+[ramp]: #r2-is-the-ramp-detector-not-the-noise-detector
 [pos-effect]: https://github.com/Mikolaj/horde-ad/blob/master/docs/position-effect.md

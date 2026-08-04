@@ -708,10 +708,12 @@ def selftest(cells, shapes, strategies, meta):
     what holds of any run this reader is handed, which keeps the check live
     in the normal case: no artifacts in the tree, one made when wanted.
 
-    Non-vacuity of the correction check, confirmed by breaking it: inflating
-    the forcing term 50x fails it on 1353 cells and takes the trim check down
-    with it, while excluding both `sum-only` arms turns it into a named skip
-    rather than a silent pass.
+    Non-vacuity of the two correction checks, confirmed by breaking them:
+    inflating the forcing term 50x fails the positivity one on 1353 cells and
+    takes the trim check down with it; tightening the scaling tolerance to
+    1.01 fails the scaling one and names the two shapes it compared; and
+    excluding both `sum-only` arms turns the first into a named skip rather
+    than a silent pass, as a one-shape run does to the second.
     """
     ok, bad, skip = [], [], []
 
@@ -771,6 +773,36 @@ def selftest(cells, shapes, strategies, meta):
             ok.append('correction: the forcing term is positive on all %d'
                       ' shape(s) and leaves every cell\'s net positive, from'
                       ' %d half/halves' % (len(shapes), len(halves)))
+
+        # The term is subtracted per shape, so it must be the SAME pass on
+        # every shape -- one sum over l elements. If it were not, both halves
+        # would be wrong together and their agreement would not notice: that
+        # test fixes the term's dependence on position, this one its
+        # dependence on size, and the correction needs both.
+        known = [sh for sh in shapes if sh in meta['dims']]
+        per = [(stats.fmean([cells[sh][h]['slope'] for h in halves])
+                / math.prod(meta['dims'][sh]), sh) for sh in known
+               if math.prod(meta['dims'][sh])]
+        if len(per) < 2:
+            skip.append('fewer than two shapes with known dims, so the'
+                        ' forcing term\'s scaling with l is unexercised')
+        else:
+            lo, hi_ = min(per), max(per)
+            spread = hi_[0] / lo[0]
+            # 1.5x is loose enough for cache effects across a 6000x range of
+            # l (Run 6 (-O1) spans 1.04x) and tight enough that a term
+            # measuring a different quantity on some shape cannot pass.
+            if spread > 1.5:
+                bad.append('correction: the forcing term is %.2fx as costly'
+                           ' per element on %s as on %s, so it is not one'
+                           ' pass over l elements and subtracting it per'
+                           ' shape is unsound'
+                           % (spread, hi_[1], lo[1]))
+            else:
+                ok.append('correction: the forcing term is %.3f-%.3f ns per'
+                          ' element over %d shape(s), a %.2fx spread, so it'
+                          ' scales with l as one pass must'
+                          % (lo[0] * 1e9, hi_[0] * 1e9, len(per), spread))
 
     if len(shapes) < 2:
         skip.append('one shape only, so the trim and the A/A identity below'
