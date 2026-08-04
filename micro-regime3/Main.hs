@@ -363,7 +363,7 @@ baseOffsetsExpandZF o0 osh oats = go (VS.singleton o0) osh oats
           go (VS.concatMap (\a -> VS.enumFromStepN a sd nd) acc) nds sds
         go !acc _          _          = acc
 
--- Micro-optimised 'baseOffsetsExpand': seed the fold from the first dimension's
+-- Micro-optimised 'baseOffsetsExpand': seed the fold from the first dim's
 -- 'enumFromStepN' (one fewer concatMap layer everywhere, and pure
 -- enumFromStepN with no concatMap at all when there is a single outer dim).
 {-# INLINE baseOffsetsExpandB #-}
@@ -1816,6 +1816,24 @@ partitioned = all ((<= sizeCap) . product . snd) shapes
 -- either file assumes: every name documented in README.md, every @fb@
 -- function defined here rostered, each 'Twin' naming the arm it duplicates,
 -- and the controls named as that script's own control test recognises them.
+--
+-- ADDING AN ARM touches five places, listed because the last time they were
+-- found one failing check at a time, after the arm had already been measured:
+--
+--   1. this 'roster', with the reason for the SLOT at the entry -- an arm's
+--      position is part of what it measures;
+--   2. README.md, or @--lint@ fails: the strategy list there is the index
+--      every name has to appear in;
+--   3. @read-run.py@'s 'is_control', if the arm is not a strategy, or it
+--      enters the aggregates as one;
+--   4. 'time_of', if a corrected time would be meaningless for it, as it is
+--      for anything that never ran the forcing pass;
+--   5. the 'health' sunk-cell warning and @--selftest@'s trim check, both of
+--      which assume every timed arm carries that pass.
+--
+-- 3 to 5 are one question asked three times -- is this arm a strategy? -- and
+-- the 'Force' arms needed all three answered NO. An ordinary strategy needs
+-- only 1 and 2.
 data Arm = Base (ShapeL -> T -> VS.Vector Double)
          | Fill (ShapeL -> T -> VS.Vector Double)
          | Twin (ShapeL -> T -> VS.Vector Double)

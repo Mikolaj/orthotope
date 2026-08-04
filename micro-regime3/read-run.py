@@ -116,6 +116,8 @@ Modes:
   --selftest        check this reader's invariants against the run given
   --lint            check Main.hs's roster against README and against
                     itself -- no run file needed
+  --check-doc       anchors, replace-list coverage, widths, and a sweep of
+                    the superseded figures still quoted -- no run needed
 
 No run artifacts are kept in this directory: the normal state is none, and
 one is made when a question needs it. That is also when this script runs, so
@@ -757,6 +759,150 @@ def roster_of(main):
     return out
 
 
+FIGURE_RE = re.compile(r'\b0\.\d{3}\b|\d+\.\d+\s*[×x]\b'
+                       r'|\b\d{1,2}\.\d%|\b\d+\.\d{2,}\b')
+
+# A sentence quoting a figure this page no longer publishes. Each has to earn
+# its place -- README's own rule is that a superseded NUMBER is cut while a
+# superseded DECISION is kept, and the test is whether someone would redo the
+# work without it. That is a judgement, so these are listed for adjudication
+# rather than failed: the check exists because the rule fires while writing
+# and needs something that fires while reviewing.
+COMPARATIVE_RE = [re.compile(p, re.I) for p in (
+    r'where (?:Failed )?Run \d', r'where it (?:read|had|was)',
+    r'\bwas \d+[\d.]*[%x×]?\b', r'had (?:read|been|put)',
+    r'against its (?:published|own) \d', r'\(was \d',
+    r'used to (?:say|call|read|be)', r'once said', r'earlier version')]
+
+
+def headings_of(text):
+    """Every heading and the anchor GitHub gives it."""
+    out = {}
+    for h in re.findall(r'^#+\s+(.*)$', text, re.M):
+        s = re.sub(r'[`*_]', '', h.lower())
+        out[re.sub(r'[^a-z0-9 -]', '', s).strip().replace(' ', '-')] = h
+    return out
+
+
+def check_doc(readme, main_hs):
+    """The mechanical half of verifying the write-up, as one command.
+
+    Four checks that used to be four throwaway scripts, rewritten from memory
+    each run and deleted after -- which is how a heading rename came to be
+    verified by something that no longer existed. Anchors and coverage FAIL;
+    the two sweeps only list, because what they find needs judging.
+
+    Non-vacuity, each confirmed by breaking it: renaming a heading fails the
+    anchor check and names the dead link; deleting a bullet from the replace
+    list fails coverage and names all three sections that bullet covered;
+    lengthening a line fails the width check; and renaming the marker the
+    replace list is found by fails loudly rather than silently checking
+    nothing. The second of those took two attempts -- the first edited a
+    string the list no longer contained, so the break itself did nothing and
+    the check was credited with a pass it had not earned. Verify that a
+    deliberate break landed before believing what it proves.
+    """
+    try:
+        doc = open(readme).read()
+        main = open(main_hs).read()
+    except OSError as e:
+        sys.stderr.write('check-doc: %s\n' % e)
+        return 2
+    lines = doc.split('\n')
+    anchors = headings_of(doc)
+    bad, note = [], []
+
+    refs = dict(re.findall(r'^\[([a-z0-9-]+)\]:\s*#([a-z0-9-]+)\s*$', doc,
+                           re.M))
+    dead = [a for a in re.findall(r'\]\(#([a-z0-9-]+)\)', doc)
+            if a not in anchors]
+    dead += ['[%s]:' % k for k, v in refs.items() if v not in anchors]
+    dead += ['%s (used, undefined)' % u
+             for u in set(re.findall(r'\]\[([a-z0-9-]+)\]', doc))
+             if u not in refs and not re.search(r'^\[%s\]:' % u, doc, re.M)]
+    dead += ['Main.hs -> ' + m for m in re.findall(r'README\.md#([a-z0-9-]+)',
+                                                   main) if m not in anchors]
+    if dead:
+        bad.append('%d dead anchor(s): %s' % (len(dead), ', '.join(dead)))
+    else:
+        note.append('every anchor resolves, in %s and in %s'
+                    % (os.path.basename(readme), os.path.basename(main_hs)))
+
+    # Which section each line sits in, for both the coverage check and the
+    # figure sweep.
+    sec, cur = [], '(preamble)'
+    for line in lines:
+        m = re.match(r'^#+\s+(.*)$', line)
+        if m:
+            cur = m.group(1)
+        sec.append(cur)
+    head = [i for i, l in enumerate(lines)
+            if l.startswith('**What the next run replaces.**')]
+    tail = [i for i, l in enumerate(lines)
+            if l.startswith('How a run is made')]
+    if not head or not tail or tail[0] < head[0]:
+        # A search that cannot find its subject has checked nothing.
+        bad.append('could not locate the replace-list between its markers, so'
+                   ' the coverage check did not run')
+    else:
+        block = '\n'.join(lines[head[0]:tail[0]])
+        covered = set(re.findall(r'\]\(#([a-z0-9-]+)\)', block))
+        covered |= {refs[k] for k in re.findall(r'\]\[([a-z0-9-]+)\]', block)
+                    if k in refs}
+        slug = {v: k for k, v in anchors.items()}
+        gaps = []
+        for i, line in enumerate(lines):
+            if (line.lstrip().startswith('|') or line.startswith('    ')
+                    or sec[i] == 'Provenance'):
+                continue
+            s = slug.get(sec[i])
+            if FIGURE_RE.search(line) and s and s not in covered \
+                    and sec[i] not in gaps:
+                gaps.append(sec[i])
+        if gaps:
+            bad.append('%d figure-bearing section(s) no replace-list bullet'
+                       ' links: %s' % (len(gaps), '; '.join(gaps)))
+        else:
+            note.append('every figure-bearing section is linked from the'
+                        ' replace list')
+
+    wide = []
+    for path, limit, comment_only in ((readme, 80, False), (main_hs, 79, True),
+                                      (os.path.abspath(__file__), 79, False)):
+        for i, line in enumerate(open(path).read().split('\n'), 1):
+            if len(line) <= limit:
+                continue
+            if path == readme and (line.lstrip().startswith('|')
+                                   or line.startswith('    ')
+                                   or re.match(r'^\[[a-z0-9-]+\]:\s*\S+$',
+                                               line)):
+                continue
+            if comment_only and not line.strip().startswith('--'):
+                continue
+            wide.append('%s:%d (%d)' % (os.path.basename(path), i, len(line)))
+    if wide:
+        bad.append('%d line(s) past the width: %s'
+                   % (len(wide), ', '.join(wide[:6])))
+    else:
+        note.append('prose, comments and this script are inside their widths')
+
+    comparatives = [(i, l.strip()) for i, l in enumerate(lines, 1)
+                    if not l.lstrip().startswith('|')
+                    and any(p.search(l) for p in COMPARATIVE_RE)]
+
+    for line in note:
+        print('ok:   ' + line)
+    if comparatives:
+        print('note: %d superseded figure(s) quoted; each has to earn its'
+              ' place by the redo test, so adjudicate rather than assume:'
+              % len(comparatives))
+        for i, l in comparatives:
+            print('        %d: %s' % (i, l[:66]))
+    for line in bad:
+        print('FAIL: ' + line)
+    return 1 if bad else 0
+
+
 def lint(main_hs, readme):
     """Static checks over Main.hs and README.md, needing no run at all.
 
@@ -1065,6 +1211,7 @@ def main():
     p.add_argument('--markdown', action='store_true')
     p.add_argument('--selftest', action='store_true')
     p.add_argument('--lint', action='store_true')
+    p.add_argument('--check-doc', action='store_true')
     p.add_argument('--readme', default=os.path.join(here, 'README.md'),
                    help='README.md to check bench names against'
                         ' (default: alongside)')
@@ -1075,6 +1222,8 @@ def main():
                    metavar='SHAPE')
     args = p.parse_args()
 
+    if args.check_doc:
+        sys.exit(check_doc(args.readme, args.main))
     if args.lint:
         sys.exit(lint(args.main, args.readme))
     if args.run is None:

@@ -168,9 +168,23 @@ into this file is a different undertaking, and has a procedure of its own:
 ## Making a major benchmark run
 
 A *major run* is the whole roster over the whole shape set at criterion's
-default budget, analysed and written into this file; everything above is a
-probe beside it. What follows is the procedure, and it is written to outlive
-any one run.
+default budget, analysed and written into this file. What follows is the
+procedure, and it is written to outlive any one run.
+
+**Where the effort actually goes, because it is not where it looks.** The run
+is about two hours and *unattended* — it costs patience and a quiet machine,
+nothing else. Everything expensive happens after it, in the write-up, and that
+is where a session's budget is spent and where its mistakes are made. Two
+consequences worth having in mind before starting. Prefer analysis that
+localises — per shape, per control — over re-quoting figures that moved a few
+percent and changed nothing; the first is where every surprise has come from
+and the second is what has gone stale twice. And **a probe is not a lesser
+instrument than a major run**: the measurements that closed the `sum-only`
+objection, established that the forcing term scales, and settled the floor's
+mechanism cost twenty minutes, zero extra machine time, and zero extra machine
+time respectively, while the major run they hang off changed no decision at
+all. A question with a discriminating measurement usually deserves a filtered
+run now rather than a slot in the next full one.
 
 **Where.** A session starts in `~/r/horde-ad`, which leaves *that*
 repository's `CLAUDE.md` resident while this one is not governed by it; read
@@ -184,6 +198,22 @@ this file and `read-run.py`'s docstring instead, orthotope carrying no
     cabal build micro
     cabal run micro -- check     # every strategy agrees, every shape regime 3
     ./read-run.py --lint         # the roster, against this file and itself
+    ./read-run.py --check-doc    # anchors, coverage, widths, stale figures
+
+and one more that costs five minutes and is worth them, because the three
+above exercise the *benchmark* while nothing exercises the *reader* until two
+hours later:
+
+    cabal run micro -- cnn-slice-c32 --json smoke.json   # every arm, one shape
+    ./read-run.py smoke.json --selftest
+    ./read-run.py smoke.json --aa
+    ./read-run.py smoke.json --markdown >/dev/null
+    rm smoke.json
+
+That runs every roster arm on one shape and puts the whole analysis path —
+the correction, the controls, the table generator — through its paces. A
+reader broken by a roster change fails here in five minutes instead of after
+the run.
 
 **The run** is one command, the build flag going before the `--` when the
 name asks for one:
@@ -243,7 +273,12 @@ not a method.
 - walk the list under [Provenance](#provenance) of what the new numbers
   replace, and do not trust it to be complete: re-run the two sweeps it names
   and map each hit to the bullet covering it, since running the sweeps is not
-  the same as reading them, and the list has been wrong before;
+  the same as reading them, and the list has been wrong before. **Replace;
+  do not annotate.** Walking a list of what to replace makes "now X, where it
+  was Y" the natural sentence, and a superseded number has to earn its place
+  by the test in the user-scope `CLAUDE.md` — would someone redo the work
+  without it — which most do not meet. `--check-doc` lists the ones already
+  here for adjudication;
 - **verify the write-up before deleting anything.** These are the checks the
   procedure used to leave to judgement, each of which has caught something:
   - **derive every count and ratio in the prose from `--cells`, never by
@@ -270,6 +305,15 @@ not a method.
     a bullet contradicting the table three lines below it, which is how
     "`bq-mut` ties `bq-expand`" survived two runs beside a build ordering that
     refuted it. This is the pass that keeps finding real errors;
+
+  Two conventions this page holds to, both of which exist because breaking
+  them has cost something here. **A figure in prose names its run and its
+  basis, or it belongs in a table with the prose pointing at it** — a bare
+  numeral carries no provenance, and that is how one sentence came to put a
+  Failed Run 6 figure beside a Run 6 one, and another to compare a *published*
+  ratio with a *paired* one. **An anchor longer than about thirty characters
+  goes reference-style**, defined at the foot of the file: inline it overflows
+  the width and the rewrapping that follows is pure churn;
 - rebuild and re-run `--lint` and `check` after editing `Main.hs`, even when
   only comments changed: the reader parses that file for the roster and the
   shape dims, so a comment edit can break a check that passed before it;
@@ -902,6 +946,16 @@ for `Run 6` — before trusting the list.
   `fbMutOdoVecdims`. `concat-runs`' figure there is Failed Run 6's and stays,
   the bench being untimed since, so no run replaces it.
 
+**And what a run does not touch.** The converse of that list is worth stating,
+because a session told to make a run will reach for everything: a new
+measurement bears on figures and on rulings whose figures moved, and on
+nothing else. It does not bear on the *reasoning* behind a decision, on the
+ideas recorded as having died on paper, on the shape-set and roster rulings,
+or on the account of how the fix was found. Those change when an argument
+changes, which a run is not. If a run seems to call for rewriting one of them,
+that is a finding worth its own paragraph, not an edit to be folded in
+quietly.
+
 How a run is made, and what to record beside its numbers, is [Making a major
 benchmark run](#making-a-major-benchmark-run) — which is also where the walk
 of the list above is one of the steps.
@@ -1224,13 +1278,13 @@ the axis the orderings turn on; the fuller per-shape record is
   digit only.** Independent runs of these shapes agree within 1–5% on most
   cells but differ by up to 27% on `stretch-inner1/bq-expand-b` — runs
   whose rosters also differed, making the
-  [roster effect above](#the-noise-floor-is-3-not-the-ci) a candidate
-  cause — and the order of `bq-expand{,-b,-zf}` within their sweep of
-  `stretch-inner1` flips between runs. The sweep itself reproduces; which of the three leads does
-  not. `stretch-square-1341` is this run's standing warning on the point: it
-  is the one shape where `bq-expand-lemire-out` loses, and the trim drops it
-  for 24 of the 44 benches. `bq-expand-lemire-out`'s margin is the exception
-  that survives this caveat, being 33 shapes wide rather than one cell.
+  [roster effect above][floor] a candidate cause — and the order of
+  `bq-expand{,-b,-zf}` within their sweep of `stretch-inner1` flips between
+  runs. The sweep itself reproduces; which of the three leads does not.
+  `stretch-square-1341` is this run's standing warning on the point: it is
+  the one shape where `bq-expand-lemire-out` loses, and the trim drops it for
+  over half the arms. That strategy's own margin is the exception surviving
+  this caveat, being the whole shape set wide rather than one cell.
 - **But check for a structural reason before discounting a cell as scatter,
   and check `stretch-inner1` in particular.** It is the shape whose innermost
   extent is 1, so a strategy that special-cases or elides a unit dimension
