@@ -2152,13 +2152,44 @@ check = do
           bad     = [n | (n, f) <- checkedArms, f sh a /= rList]
           agree   = null bad
           reg     = regimeOf sh a
+          -- What @read-run.py@ can only assume, asserted where the view is
+          -- actually in hand. That reader has no strided shape in its JSON,
+          -- so it takes the innermost extent to be the second-to-last dim as
+          -- LISTED here, on a reading of 'mkStrided' -- and every @m@ and
+          -- every @alloc@ multiple it prints inherits that reading unchecked.
+          -- Wrong, it would scale a whole column by a constant with nothing
+          -- to notice, which is the one way that column could be silently
+          -- wrong for every strategy at once. Here the transposed view exists,
+          -- so the reading is a fact about it and is tested rather than
+          -- trusted: its innermost extent against that listed dim, and the
+          -- run count the reader derives from it against the view's own.
+          -- Non-vacuity: taking the LAST listed dim instead of the
+          -- second-to-last fails at @gather48-src-50@, [50,3,3,50] viewed as
+          -- [50,3,50,3] -- the first shape in run order whose two innermost
+          -- dims differ, every conv shape before it ending in a square kernel
+          -- where the two readings coincide. That coincidence is the reason
+          -- the check has to run over the whole shape set and not a
+          -- representative handful of it.
+          sInnerView   = if null sh then 1 else last sh
+          sInnerListed = case reverse normalSh of
+                           _ : d : _ -> d
+                           _         -> 1
+          mView        = product (init sh)
+          sInnerOK     = sInnerView == sInnerListed
+                      && (sInnerView == 0 || mView == product sh `div`
+                                             sInnerView)
       putStrLn $ name ++ ": normalSh " ++ show normalSh ++ " -> strided "
                  ++ show sh ++ ", l=" ++ show (product sh)
                  ++ ", regime=" ++ show reg ++ ", agree=" ++ show agree
                  ++ ", builds=" ++ show builds
-      if agree && builds && reg == 3
+                 ++ ", sInner=" ++ show sInnerView
+                 ++ (if sInnerOK then "" else " MISMATCHED")
+      if agree && builds && reg == 3 && sInnerOK
         then return ()
         else error ("CHECK FAILED: " ++ name
+                    ++ (if sInnerOK then "" else ", sInner from the view is "
+                        ++ show sInnerView ++ " where the listing's"
+                        ++ " second-to-last dim is " ++ show sInnerListed)
                     ++ (if null bad then ""
                         else ", disagreeing: " ++ unwords bad))
 

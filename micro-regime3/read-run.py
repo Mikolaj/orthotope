@@ -170,6 +170,13 @@ def dims_by_shape(main_hs):
     and its stride tInner is the last. Hence l = product, m = l / sInner is
     the run count -- the size of the base-offsets table every strategy here
     builds -- and sInner = l / m is how long each copied run is.
+
+    That reading is this script's one unverifiable assumption -- no JSON
+    carries the strided shape -- and `m` and every `alloc` multiple rest on
+    it, so getting it wrong would scale a whole column for every strategy at
+    once. `micro -- check` now asserts it per shape against the view itself,
+    which is the only place it can be checked; --selftest says so where it
+    used to record the gap as permanent.
     """
     entry = re.compile(r'^\s*(?:[\[,] )?\("([^"]+)",\s*(\[[^\]]*\])\)'
                        r'(?:\s*--\s*(\d+))?')
@@ -912,8 +919,10 @@ def selftest(cells, shapes, strategies, meta):
             skip.append('no shape in Main.hs carries an l annotation, so the'
                         ' dims parse has no oracle here')
         skip.append('sInner = the second-to-last listed dim is a reading of'
-                    ' mkStrided, not something a run can confirm: m and'
-                    ' alloc inherit it unchecked')
+                    ' mkStrided, which no JSON carries and so nothing here'
+                    ' can confirm: m and alloc inherit it. `micro -- check`'
+                    ' asserts it per shape against the actual view, which is'
+                    ' where it CAN be confirmed')
 
     malformed = [(sh, st) for sh in shapes for st in strategies
                  if not (cells[sh][st]['slope'] > 0

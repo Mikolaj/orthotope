@@ -188,7 +188,10 @@ fill has just written. [The noise floor](#the-noise-floor-is-3-not-the-ci) and
 is for.
 
 The `check` mode (below) asserts every strategy produces byte-identical
-vectors on every shape, and that each shape actually takes regime 3. It is
+vectors on every shape, that each shape actually takes regime 3, and that the
+view's innermost extent is the second-to-last dim as listed — which is the one
+thing `read-run.py` has to assume, since no JSON carries the strided shape,
+and which `m` and every `alloc` multiple rest on. It is
 built from that same `roster`, so a strategy cannot be timed without being
 checked; what that leaves to go stale, `read-run.py --lint` holds — every arm
 named here, every strategy defined in `Main.hs` rostered, each A/A control
@@ -595,23 +598,32 @@ against 1.189 on `bq-scan-mulback`, and a looser 1.230 against 1.153 on
 mostly noise. So the floor's growth is the correction's own arithmetic, not a
 second effect riding along with it.
 
-**Both of Failed Run 6's conclusions here fail.** It held that the floor
-tracks *1/time, not GC pressure*, and that *position is not the cause* -- the
+**One of Failed Run 6's two conclusions here is refuted; the other has merely
+lost its evidence**, and the difference between those is the point. It held
+that the floor tracks *1/time, not GC pressure*, and that *position is not the
+cause* -- the
 first because its noisier arm allocated 1.33x against the quieter one's 4.17x,
-the second because its distant pair agreed better than its adjacent one. Run 6
-splits those apart. Per-cell *scatter* does track 1/time: `mut-odo-vecdims`,
-the fastest strategy and a 1.00x allocator, scatters 2.87% per cell where
-`bq-expand` scatters 0.24%. But scatter cancels -- that pair's geomean is
-0.9942 -- and what does not cancel is a *bias*, which only the distant pair
-carries: +2.9%, on a bench quieter by CI% than either of the others.
+the second because its distant pair agreed better than its adjacent one.
 
-That bias cannot be attributed, and the reason is a control-design regression
-worth not repeating. Failed Run 6 ran `bq-expand` in **both** the adjacent and
-the distant slot, varying position alone; the re-aiming for Run 6 put a
-different strategy in the distant slot, so position and strategy moved
-together and neither run has isolated the question cleanly. Run 7 should put
-one strategy back in both slots, and price the scan band with a fourth control
-rather than by spending the distant one on it.
+*1/time* is **refuted**, with evidence rather than for want of it. Run 6 splits
+the claim in two: per-cell *scatter* does track 1/time -- `mut-odo-vecdims`,
+the fastest strategy and a 1.00x allocator, scatters 2.87% per cell where
+`bq-expand` scatters 0.24% -- but scatter cancels, that pair's geomean landing
+at 0.9942, and the floor is what survives cancelling. Ranked by published
+deviation the three pairs read 0.12%, 0.66% and 3.09%, with the fastest arm
+second and a mid-table one worst, which is not 1/time in any order.
+
+*Position* is **not refuted, and not supported either**. What does not cancel
+is a bias, and only the distant pair carries it: +2.9%, on a bench quieter by
+CI% than either of the others. That is consistent with a position effect and
+equally consistent with a property of that one arm, because the re-aiming for
+Run 6 changed strategy and position together where Failed Run 6 had run
+`bq-expand` in **both** slots and so varied position alone. So the earlier
+exoneration no longer has a run behind it, which is a weaker thing than being
+wrong: nothing here licenses either verdict. That is a control-design
+regression worth not repeating -- Run 7 should put one strategy back in both
+slots, and price the scan band with a fourth control rather than by spending
+the distant one on it.
 
 Three A/A points remain a poor estimate of a noise floor. Their own published
 spread -- 1.001, 1.007, 1.031 -- is the evidence that it is variable and
@@ -945,7 +957,9 @@ shape and leaves every cell's net positive, that the same term scales with `l`
 as one pass over the elements must, that the trim drops exactly one
 shape per strategy and lands inside its own per-shape range, that `list`
 against itself is 1, and that an A/A pair dropping the same shape from both
-arms has its published ratio equal to its paired one. It names what it could
+arms has its published ratio equal to its paired one. The one thing it still
+cannot reach — that `sInner` is the second-to-last listed dim — it now names
+as `check`'s rather than as nobody's. It names what it could
 not exercise
 rather than passing silently, and exits 2 when the run file is absent. That
 last invariant is a finding: the A/A ratios in the noise-floor table are
