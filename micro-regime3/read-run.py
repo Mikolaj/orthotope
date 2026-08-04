@@ -16,10 +16,25 @@ Definitions, once:
           as a percentage of the slope, "how many digits are real". Criterion
           reports the two deviations separately and they differ by up to 1.4x;
           the max is available as ci_hi.
-  time    geomean over shapes of slope / `list`'s slope on the same shape,
+  corr    the shared forcing pass every strategy is timed through, taken per
+          shape as the mean of whatever `sum-only*` benches the run carries.
+          Run 6 (-O1) is the run that licensed subtracting it, its two halves
+          agreeing to 0.01% paired; README's sum-only section carries the
+          decision and the caveat the halves do not settle.
+  net     slope - corr: what the fill itself costs, and what every ratio
+          this reader forms divides. A run with no `sum-only` bench has
+          corr = 0 and net = slope, and says so on stderr rather than
+          publishing an uncorrected column silently.
+  time    geomean over shapes of net / `list`'s net on the same shape,
           with each strategy's own highest-CI shape dropped first (README's
-          aggregate: one wild cell moves a 35-shape geomean by 1/35 while
-          ordinary noise divides by sqrt 35).
+          aggregate: one wild cell moves a 33-shape geomean by 1/33 while
+          ordinary noise divides by sqrt 33). The trim reads raw CI%, and so
+          do the CI%, noise, smp and alloc columns: the correction shifts a
+          point estimate, it does not make a cell better measured, and
+          letting it move the trim would change which cell is dropped for
+          reasons having nothing to do with measurement quality.
+          `sum-only*` rows net to zero by construction, so their time reads
+          `--` rather than a figure of a different kind in the same column.
   noise   this row's CI% against the median CI% of the same shape, medianed
           over shapes: 1.00 is an ordinary bench. It is what identifies a
           bench whose own figures are least trustworthy, and so the one to
@@ -31,7 +46,9 @@ Definitions, once:
           to within half a percent, so that the median smoothed nothing and
           merely avoided privileging one shape. That is wrong: over the whole
           shape set they vary by a median 3.93x and a worst 22x, every
-          allocated fit at R2 1.000. The median over a PINNED shape set does
+          allocated fit at R2 1.000 -- figures a rough pass found and Run 6
+          (-O1) then reproduced to three digits at full budget, over a shape
+          set of its own. The median over a PINNED shape set does
           reproduce, which is what keeps the column meaningful, so it is a
           statistic of a strategy and a shape set both (README.md's alloc
           bullet). `l` is not in the JSON, so it
@@ -43,20 +60,25 @@ the two published `time` columns is what a reader comparing two rows of the
 table would compute, and it carries the trim's own asymmetry: each arm drops
 its own worst-CI shape, so unless that is the same shape the two columns are
 geomeans over different shape sets. The paired ratio -- geomean over shapes
-of the two slopes on the same shape -- carries measurement noise alone. On
-Failed Run 6 they part company exactly where the dropped shapes differ:
-1.0200 published against 0.9991 paired, 0.9882 against 0.9999, while the one
-pair that drops the same shape from both arms reads 1.0014 either way. So
-README's ~2% floor is the right thing to compare two published rows against,
-and most of it is the trim rather than the machine; a margin measured
-per-shape should be compared against the paired figure instead. --aa prints
-both, and says which shape each arm dropped.
+of the two nets on the same shape -- carries measurement noise alone. On
+Run 6 (-O1) they part company where the dropped shapes differ: 1.0066
+published against 0.9942 paired, where the two pairs dropping the same shape
+from both arms read 1.0309 against 1.0292 and 1.0012 against 1.0011, those
+gaps being the one extra shape --aa's paired figure keeps rather than a
+shape-set mismatch. So README's floor is the right thing to compare two
+published rows against, and a margin measured per-shape should be compared
+against the paired figure instead. --aa prints both, and says which shape
+each arm dropped. That floor is a consequence of the correction as much as
+the margins are: subtracting a term common to both arms magnifies their
+disagreement too, which is what took it from ~2% to ~3%.
 
 Controls, not strategies: the `*-aa-*` rows (an existing strategy run twice
 under a second name, true ratio exactly 1, so their spread is the noise
-floor) and `sum-only*` (a shared term, and subtracting it from itself divides
-by zero). --no-controls drops them from the aggregates; they are always
-listed by --aa, which is where they say what they are for. That a control
+floor) and `sum-only*` (the shared term every other row now has subtracted,
+so its own net is zero and its time reads --). --no-controls drops them from
+the aggregates but not from the correction, which is computed before it, so
+the column means the same with the flag as without; they are always listed
+by --aa, which is where they say what they are for. That a control
 carries such a name is what --lint holds Main.hs's roster to, this test
 being the only thing standing between a renamed control and its silently
 entering the aggregates as a strategy.
@@ -103,12 +125,17 @@ evidence that the definitions above are the published ones, which outlives
 the artifact. --selftest asserted exactly those figures while they could be
 asserted; with the artifact gone, and no later run able to reproduce a
 deleted roster, it checks invariants of whatever run it is handed instead,
-which is what keeps it live. Run 6 (-O1)'s JSON is not kept either -- that is
+which is what keeps it live. The correction added for Run 6 (-O1) was checked
+the same way before its column was published: all 44 of that run's
+uncorrected figures, and then all 44 corrected ones, were recomputed from
+--cells by a throwaway script and agreed to the printed precision. Run 6
+(-O1)'s JSON is not kept either -- that is
 decided, not an oversight -- so do not restore a table-pinned EXPECTED
 against it: the reader is guarded by invariants and by --lint, and by nothing
 that would notice the published table drifting. Each invariant is
-non-vacuous: breaking the dims regex, the trim, or the A/A identity fails the
-matching check, and all three were broken to confirm it. It exits 2, not 0,
+non-vacuous: breaking the dims regex, the trim, the correction or the A/A
+identity fails the matching check, and all four were broken to confirm it.
+It exits 2, not 0,
 when the run file is missing: a refusal is information.
 """
 
@@ -215,7 +242,36 @@ def load(path, main_hs):
     return cells, shapes, strategies, meta
 
 
-def health(cells, shapes, strategies):
+def apply_correction(cells, shapes, strategies):
+    """Set each cell's `net` = slope - the shape's shared forcing term.
+
+    Every strategy is timed as `VS.sum . fb`, so every slope carries one
+    forcing pass; `sum-only*` times that pass alone, and subtracting it is
+    what leaves the fill. The term is taken per shape, as the mean of
+    whichever halves the run carries, because it is a property of the shape's
+    vector and not of the strategy reading it.
+
+    It is computed from the strategies present before --no-controls, so
+    dropping the controls from the aggregates cannot silently change the
+    published column; an explicit --exclude of a `sum-only` arm does change
+    it, that being what asking for it means.
+
+    A run carrying no such bench gets a zero term and an uncorrected column,
+    which `health` reports rather than leaving to be inferred -- the case of
+    the two-bench filtered runs this reader is meant to stay useful on.
+    """
+    terms = {}
+    for sh in shapes:
+        halves = [cells[sh][st]['slope'] for st in strategies
+                  if st.startswith('sum-only') and st in cells[sh]]
+        terms[sh] = stats.fmean(halves) if halves else 0.0
+    for sh in shapes:
+        for st in cells[sh]:
+            cells[sh][st]['net'] = cells[sh][st]['slope'] - terms[sh]
+    return terms
+
+
+def health(cells, shapes, strategies, terms):
     """What README says to distrust, counted: bad fits and starved cells.
 
     Warnings, not a verdict -- a ramped bench is normal here and shows up as
@@ -231,10 +287,19 @@ def health(cells, shapes, strategies):
     noise about zero, which is `sum-only` by construction and nothing else so
     far.
 
+    The correction is reported here too, in both directions it can go wrong:
+    absent, so the column is uncorrected, and larger than a cell it is
+    subtracted from, which would make a net non-positive and a ratio
+    meaningless.
+
     Non-vacuity, both halves: setting a strategy's allocated R2 to 0.5 warns,
     and lifting a `sum-only` cell's allocation past the exemption warns on the
     bad R2 it already had -- so the exemption is what silences those and not
-    something else.
+    something else. The two correction warnings likewise: `--exclude
+    sum-only-early --exclude sum-only-late` reports the uncorrected column and
+    reproduces the raw figures, and inflating the term 50x reports 1353 sunk
+    cells of 1452 -- neither of which a real run here has produced, which is
+    why both were provoked.
     """
     bad_fit, starved, no_ci, bad_alloc = [], [], [], []
     for sh in shapes:
@@ -266,6 +331,19 @@ def health(cells, shapes, strategies):
         out.append('%d cell(s) with an allocated R2 < 0.99, worst %.4f on'
                    ' %s/%s -- their alloc column figures are not readable'
                    % (len(bad_alloc), r2, sh, st))
+    if not any(terms.values()):
+        out.append('no `sum-only` bench in this run, so the time column is'
+                   ' UNCORRECTED and not comparable to a full run\'s')
+    else:
+        sunk = [(cells[sh][st]['net'], sh, st) for sh in shapes
+                for st in strategies
+                if not st.startswith('sum-only')
+                and cells[sh][st]['net'] <= 0]
+        if sunk:
+            n, sh, st = min(sunk)
+            out.append('%d cell(s) whose forcing term is not smaller than the'
+                       ' cell itself, worst %s/%s -- their ratios are not'
+                       ' readable' % (len(sunk), sh, st))
     for line in out:
         sys.stderr.write('warning: ' + line + '\n')
 
@@ -316,26 +394,30 @@ def trimmed_cells(cells, shapes, strategy):
 
 
 def time_of(cells, shapes, strategy):
-    """README's `time` column: trimmed geomean of slope / `list`'s slope.
+    """README's `time` column: trimmed geomean of net / `list`'s net.
 
     A filtered run need not contain the baseline; then there is no ratio to
-    give and the column reads nan rather than the reader stopping.
+    give and the column reads nan rather than the reader stopping. So does a
+    `sum-only` arm, which is the correction itself and nets to zero, and any
+    cell the term did not leave positive -- `health` reports that one.
     """
     kept = trimmed_cells(cells, shapes, strategy)
+    if strategy.startswith('sum-only'):
+        return float('nan')
     if any('list' not in cells[s] for s in kept):
         return float('nan')
-    return geomean([cells[s][strategy]['slope'] / cells[s]['list']['slope']
+    if any(cells[s][strategy]['net'] <= 0 or cells[s]['list']['net'] <= 0
+           for s in kept):
+        return float('nan')
+    return geomean([cells[s][strategy]['net'] / cells[s]['list']['net']
                     for s in kept])
 
 
-def strategy_table(cells, shapes, strategies, meta, args):
+def strategy_table(cells, shapes, strategies, meta, args, terms):
     have_list = all('list' in cells[sh] for sh in shapes)
     typical = {sh: med_or_nan(cis(cells, sh, strategies)) for sh in shapes}
     rows = []
     for st in strategies:
-        kept = trimmed_cells(cells, shapes, st)
-        ratios = ([cells[s][st]['slope'] / cells[s]['list']['slope']
-                   for s in kept] if have_list else [])
         ci = [cells[s][st]['ci'] for s in shapes
               if cells[s][st]['ci'] is not None]
         alloc = [cells[s][st]['alloc'] for s in shapes
@@ -344,21 +426,35 @@ def strategy_table(cells, shapes, strategies, meta, args):
                             for sh in shapes
                             if typical[sh] and typical[sh] == typical[sh]
                             and cells[sh][st]['ci'] is not None])
-        rows.append((geomean(ratios) if ratios else float('nan'),
+        rows.append((time_of(cells, shapes, st) if have_list else float('nan'),
                      st, med_or_nan(ci), noise,
                      stats.median(cells[s][st]['n'] for s in shapes),
                      stats.median(alloc) if alloc else None))
-    rows.sort()
+    # A `sum-only` row has no time by construction rather than by mishap, so
+    # it sorts to the head, where it reads as the term the column subtracts.
+    rows.sort(key=lambda r: (-1.0 if r[0] != r[0] else r[0], r[1]))
     print('%-28s %7s %6s %6s %5s %8s'
           % ('strategy', 'time', 'CI%', 'noise', 'smp', 'alloc'))
     for time, st, ci, noise, smp, alloc in rows:
         mark = ' *' if is_control(st) else ''
         a = '%7.2fx' % alloc if alloc is not None else '      --'
-        print('%-28s %7.3f %6.2f %6.2f %5.0f %s%s'
-              % (st, time, ci, noise, smp, a, mark))
+        t = '     --' if time != time else '%7.3f' % time
+        print('%-28s %s %6.2f %6.2f %5.0f %s%s'
+              % (st, t, ci, noise, smp, a, mark))
     if not have_list:
-        print('\ntime is nan: this run has no `list` bench to divide by')
+        print('\ntime is --: this run has no `list` bench to divide by')
     print('\n* control, not a strategy (--aa explains; --no-controls omits)')
+    if any(terms.values()) and have_list:
+        share = {st: med_or_nan([terms[sh] / cells[sh][st]['slope']
+                                 for sh in shapes if st in cells[sh]])
+                 for st in ('list', 'bq-expand')}
+        known = ' and '.join('%.1f%% of %s' % (100 * v, k)
+                             for k, v in share.items() if v == v)
+        print('time has the shared forcing pass subtracted from every row;')
+        if known:
+            print('that term is a median ' + known + ' over shapes.')
+        print('The `sum-only` rows are that term, so they read -- rather than')
+        print('a figure of a different kind in the same column.')
     print('noise is this row\'s CI% against the median CI% of the same shape,')
     print('medianed over shapes: 1.00 is an ordinary bench, and the')
     print('outlier is the bench to suspect of disturbing whatever shares')
@@ -432,13 +528,18 @@ def aa_table(cells, shapes, strategies):
     for a, b in pairs:
         if b not in pos:
             continue
-        r = [cells[s][a]['slope'] / cells[s][b]['slope'] for s in shapes]
+        # The `sum-only` pair is the correction, so netting it would divide
+        # zero by zero; its raw ratio IS the position test the correction
+        # rests on, and is the one figure here that must stay uncorrected.
+        key = 'slope' if a.startswith('sum-only') else 'net'
+        r = [cells[s][a][key] / cells[s][b][key] for s in shapes]
         dev = [abs(x - 1) * 100 for x in r]
         worst = max(zip(dev, shapes))
         wa, wb = worst_shape(cells, shapes, a), worst_shape(cells, shapes, b)
-        print('%-28s %-24s %5d %9.4f %8.4f %6.2f%%'
+        pub = time_of(cells, shapes, a) / time_of(cells, shapes, b)
+        print('%-28s %-24s %5d %9s %8.4f %6.2f%%'
               % (a, b, abs(pos[a] - pos[b]) - 1,
-                 time_of(cells, shapes, a) / time_of(cells, shapes, b),
+                 '       --' if pub != pub else '%9.4f' % pub,
                  geomean(r), stats.fmean(dev)))
         print('%56s worst cell %.2f%% on %s' % ('', worst[0], worst[1]))
         print('%56s trim drops %s / %s%s'
@@ -449,17 +550,23 @@ def aa_table(cells, shapes, strategies):
     print('the ratio of the two `time` columns, what a reader comparing two')
     print('rows gets, trim asymmetry included -- the ~2% floor. paired is the')
     print('per-shape geomean, measurement noise alone; compare a per-shape')
-    print('margin against that one. See this script\'s docstring.')
+    print('margin against that one. Both have the forcing pass subtracted,')
+    print('as the table does -- except the `sum-only` pair, which is that')
+    print('pass, reads raw, and has no published ratio to give. See this')
+    print('script\'s docstring.')
 
 
 def cell_dump(cells, shapes, strategies):
-    print('shape\tstrategy\tslope_s\tci_pct\tci_hi_pct\tr2\tsamples'
-          '\talloc_bytes\talloc_mult')
+    # `slope_net_s` is here so that a ratio taken from this dump is the one
+    # the tables publish: raw slopes alone would silently give uncorrected
+    # figures to anything recomputing from the TSV.
+    print('shape\tstrategy\tslope_s\tslope_net_s\tci_pct\tci_hi_pct\tr2'
+          '\tsamples\talloc_bytes\talloc_mult')
     for sh in shapes:
         for st in strategies:
             c = cells[sh][st]
-            print('%s\t%s\t%.9g\t%s\t%s\t%.6f\t%d\t%s\t%s'
-                  % (sh, st, c['slope'],
+            print('%s\t%s\t%.9g\t%.9g\t%s\t%s\t%.6f\t%d\t%s\t%s'
+                  % (sh, st, c['slope'], c['net'],
                      'NA' if c['ci'] is None else '%.4f' % c['ci'],
                      'NA' if c['ci_hi'] is None else '%.4f' % c['ci_hi'],
                      c['r2'], c['n'],
@@ -600,6 +707,11 @@ def selftest(cells, shapes, strategies, meta):
     a different roster and shape set by construction. So what is checked now is
     what holds of any run this reader is handed, which keeps the check live
     in the normal case: no artifacts in the tree, one made when wanted.
+
+    Non-vacuity of the correction check, confirmed by breaking it: inflating
+    the forcing term 50x fails it on 1353 cells and takes the trim check down
+    with it, while excluding both `sum-only` arms turns it into a named skip
+    rather than a silent pass.
     """
     ok, bad, skip = [], [], []
 
@@ -642,13 +754,33 @@ def selftest(cells, shapes, strategies, meta):
         ok.append('cells: %d parsed, all with a positive slope, R2 in [0,1]'
                   ' and at least one sample' % (len(shapes) * len(strategies)))
 
+    halves = [st for st in strategies if st.startswith('sum-only')]
+    if not halves:
+        skip.append('no `sum-only` bench in this run, so the correction is'
+                    ' zero and the time column uncorrected -- untested here')
+    else:
+        term_bad = [sh for sh in shapes
+                    if not 0 < cells[sh][halves[0]]['slope']]
+        sunk = [(sh, st) for sh in shapes for st in strategies
+                if st not in halves and cells[sh][st]['net'] <= 0]
+        if term_bad or sunk:
+            bad.append('correction: %d shape(s) with a non-positive forcing'
+                       ' term and %d cell(s) it did not leave positive'
+                       % (len(term_bad), len(sunk)))
+        else:
+            ok.append('correction: the forcing term is positive on all %d'
+                      ' shape(s) and leaves every cell\'s net positive, from'
+                      ' %d half/halves' % (len(shapes), len(halves)))
+
     if len(shapes) < 2:
         skip.append('one shape only, so the trim and the A/A identity below'
                     ' are unexercised')
     else:
         for st in strategies:
+            if st.startswith('sum-only'):
+                continue
             kept = trimmed_cells(cells, shapes, st)
-            ratios = [cells[sh][st]['slope'] / cells[sh]['list']['slope']
+            ratios = [cells[sh][st]['net'] / cells[sh]['list']['net']
                       for sh in shapes]
             got = time_of(cells, shapes, st)
             if len(kept) != len(shapes) - 1:
@@ -681,7 +813,7 @@ def selftest(cells, shapes, strategies, meta):
             dropped = worst_shape(cells, shapes, a)
             common = [sh for sh in shapes if sh != dropped]
             published = time_of(cells, shapes, a) / time_of(cells, shapes, b)
-            paired = geomean([cells[sh][a]['slope'] / cells[sh][b]['slope']
+            paired = geomean([cells[sh][a]['net'] / cells[sh][b]['net']
                               for sh in common])
             if abs(published - paired) > 1e-6 * paired:
                 bad.append('%s/%s drop the same shape yet published %.6f !='
@@ -738,6 +870,9 @@ def main():
     cells, shapes, strategies, meta = load(args.run, args.main)
     shapes = [s for s in shapes if s not in args.exclude_shape]
     strategies = [s for s in strategies if s not in args.exclude]
+    # Before --no-controls, so that omitting the controls from the aggregates
+    # cannot change what the published column means.
+    terms = apply_correction(cells, shapes, strategies)
     if args.no_controls:
         strategies = [s for s in strategies if not is_control(s)]
     if not shapes or not strategies:
@@ -758,7 +893,7 @@ def main():
              '  (RAGGED: some cells missing)' if meta['ragged'] else '',
              '' if len(shapes) > 1 else '  (one shape: nothing to trim)'))
     print()
-    health(cells, shapes, strategies)
+    health(cells, shapes, strategies, terms)
     if args.shapes:
         shape_table(cells, shapes, strategies, meta)
     elif args.drops:
@@ -768,7 +903,7 @@ def main():
     elif args.cells:
         cell_dump(cells, shapes, strategies)
     else:
-        strategy_table(cells, shapes, strategies, meta, args)
+        strategy_table(cells, shapes, strategies, meta, args, terms)
 
 
 if __name__ == '__main__':
