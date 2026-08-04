@@ -108,6 +108,8 @@ Modes:
   --drops           which cells the trim removes, grouped by shape
   --aa              the A/A and sum-only control pairs with their spans,
                     and the in-situ forcing term off the `-nosum` arms
+  --pair A B        compare two arms shape by shape: paired geomean, a
+                    bootstrap interval, win count and sign test
   --cells           every cell as TSV, for anything not covered above
   --markdown        README's Results table, numbers recomputed and the
                     editorial columns carried over from the one there
@@ -156,6 +158,7 @@ import collections
 import json
 import math
 import os
+import random
 import re
 import signal
 import statistics as stats
@@ -253,7 +256,16 @@ def load(path, main_hs):
             shapes.append(shape)
         if strategy not in strategies:
             strategies.append(strategy)
+    # The roster's own size, which is what says whether this run is the
+    # whole thing; `benches` counts only what the JSON holds, so on a
+    # filtered run the two differ and several figures change meaning.
+    try:
+        rostered = len([n for n, r, _ in roster_of(open(main_hs).read())
+                        if r != 'Only'])
+    except OSError:
+        rostered = 0
     meta = dict(version=raw[1], reports=len(raw[2]), path=path,
+                rostered=rostered,
                 benches=len(strategies), shapes=len(shapes), dims=dims,
                 ann=ann,
                 ragged=len(raw[2]) != len(shapes) * len(strategies),
@@ -645,7 +657,101 @@ def drop_table(cells, shapes, strategies):
                   % ('starved' if ci is None else '%6.2f' % ci, st))
 
 
-def aa_table(cells, shapes, strategies, terms):
+# Fixed so that re-running the reader on one JSON gives one answer; a
+# published interval that moved between readings would be worse than none.
+BOOT_SEED, BOOT_REPS = 20260804, 10000
+
+
+def paired_ci(ratios, lo=2.5, hi=97.5):
+    """Percentile bootstrap of the geomean of per-shape ratios.
+
+    Resamples SHAPES, not samples within a bench -- criterion already
+    bootstraps the latter, and what is unknown here is how much of a pair's
+    disagreement is the shape set it was measured over. Paired by shape on
+    purpose: `list` cancels out of A_s/B_s, so the interval owes nothing to
+    the baseline, and shape-to-shape spread, which is six-fold across this
+    set, cancels with it.
+    """
+    if len(ratios) < 2:
+        return None
+    rng = random.Random(BOOT_SEED)
+    logs = [math.log(r) for r in ratios]
+    n = len(logs)
+    out = sorted(math.exp(sum(rng.choices(logs, k=n)) / n)
+                 for _ in range(BOOT_REPS))
+    return out[int(BOOT_REPS * lo / 100)], out[int(BOOT_REPS * hi / 100)]
+
+
+def sign_p(k, n):
+    """Two-sided sign test: how lopsided k wins of n is under a fair coin.
+
+    The assumption-free backstop to the geomean. It never forms a mean, so a
+    cell measured to +-70% casts one vote like every other shape and cannot
+    distort it -- which is the whole job the trim was invented for. What it
+    gives up is magnitude: it says A beats B, never by how much.
+    """
+    k = max(k, n - k)
+    tail = sum(math.comb(n, i) for i in range(k, n + 1))
+    return min(1.0, 2.0 * tail / 2 ** n)
+
+
+def pair_table(cells, shapes, strategies, pairs):
+    """Compare two arms shape by shape, which is the sharp way to compare them.
+
+    A strategy's ratio to `list` spans six-fold across this shape set, so an
+    unpaired comparison of two columns fights that spread; the ratio A_s/B_s
+    does not, both arms moving together with the shape. `list` cancels out of
+    it too, so nothing here depends on the baseline -- the one figure the
+    absolute anchor exists to police.
+
+    This exists because the alternative was a throwaway script per session:
+    the paired geomeans and win counts quoted in README (0.926 against
+    `bq-expand`, "faster on 32 of 33") were each recomputed by hand and
+    deleted, which is how one of them came to be quoted beside a figure from
+    a different run. The published ratio is printed beside the paired one
+    because they answer different questions -- this script's docstring says
+    which -- and the interval wants multiplying by the factor `--aa`
+    calibrates before it is believed.
+    """
+    print('%-46s %8s %19s %8s %9s'
+          % ('A / B', 'paired', '95% CI', 'A wins', 'sign p'))
+    for a, b in pairs:
+        missing = [x for x in (a, b) if x not in strategies]
+        if missing:
+            print('%-46s not in this run: %s' % (a + ' / ' + b,
+                                                 ', '.join(missing)))
+            continue
+        # Netting an arm that never ran the forcing pass is meaningless, so
+        # such a pair is compared raw and said to be.
+        raw = any(x.startswith('sum-only') or x.endswith('-nosum')
+                  for x in (a, b))
+        key = 'slope' if raw else 'net'
+        r = [cells[s][a][key] / cells[s][b][key] for s in shapes]
+        g, n = geomean(r), len(r)
+        k = sum(1 for x in r if x < 1)
+        ci = paired_ci(r)
+        pub = (time_of(cells, shapes, a) / time_of(cells, shapes, b)
+               if not raw else float('nan'))
+        print('%-46s %8.4f %19s %8s %9.2g'
+              % (a + ' / ' + b, g,
+                 '--' if not ci else '%.4f..%.4f' % ci,
+                 '%d/%d' % (k, n), sign_p(k, n)))
+        lo, hi = min(zip(r, shapes)), max(zip(r, shapes))
+        print('%46s range %.3f (%s) .. %.3f (%s)'
+              % ('', lo[0], lo[1], hi[0], hi[1]))
+        print('%46s published-column ratio %s%s'
+              % ('', '--' if pub != pub else '%.4f' % pub,
+                 '; compared RAW, one arm has no corrected time' if raw
+                 else ''))
+    print('\npaired is the geomean of the per-shape ratio, which is what a')
+    print('margin measured per shape should be compared against; the')
+    print('published-column ratio is what a reader of the table computes,')
+    print('trim asymmetry included. `A wins` counts shapes where A < B, and')
+    print('sign p is that count under a fair coin -- no distributional')
+    print('assumption, immune to a wild cell, and blind to magnitude.')
+
+
+def aa_table(cells, shapes, strategies, terms, meta):
     pos = {st: i for i, st in enumerate(strategies)}
     pairs = [(st, twin_of(st)) for st in strategies if twin_of(st)]
     if 'sum-only-early' in pos and 'sum-only-late' in pos:
@@ -653,6 +759,17 @@ def aa_table(cells, shapes, strategies, terms):
     if not pairs:
         print('no control pairs in this run')
         return
+    calib = []
+    # A filtered run removes the benches a distant pair was placed to span,
+    # so its `span` is not the roster's and the crossed design it is half of
+    # collapses. Measured: a 12-arm selection put spans of 28 and 0 at 5 and
+    # 0, which is not a position contrast at all. Say so rather than let a
+    # cheap probe look like an answer to the position question.
+    if meta['rostered'] and len(strategies) < meta['rostered']:
+        print('NOTE: %d of the roster\'s %d arms are in this run, so every'
+              ' span below is\n      shorter than the roster places it and'
+              ' no distant pair is distant.\n      Position needs a full run.'
+              % (len(strategies), meta['rostered']))
     print('%-28s %-24s %5s %9s %8s %7s'
           % ('control', 'twin', 'span', 'published', 'paired', 'mean|d|'))
     for a, b in pairs:
@@ -671,6 +788,14 @@ def aa_table(cells, shapes, strategies, terms):
               % (a, b, abs(pos[a] - pos[b]) - 1,
                  '       --' if pub != pub else '%9.4f' % pub,
                  geomean(r), stats.fmean(dev)))
+        ci = paired_ci(r)
+        if ci:
+            half = (ci[1] - ci[0]) / 2 * 100
+            covers = ci[0] <= 1.0 <= ci[1]
+            calib.append((a, b, geomean(r), half, covers))
+            print('%56s 95%% CI %.4f..%.4f (+-%.2f%%), %s 1'
+                  % ('', ci[0], ci[1], half,
+                     'covers' if covers else 'MISSES'))
         print('%56s worst cell %.2f%% on %s' % ('', worst[0], worst[1]))
         print('%56s trim drops %s / %s%s'
               % ('', wa, wb, '' if wa == wb else '   <-- DIFFERENT shapes, so'
@@ -702,6 +827,34 @@ def aa_table(cells, shapes, strategies, terms):
         print('FIXED vector instead, which is the one thing its own two')
         print('halves cannot test about it: a ratio of 1 here says the two')
         print('reads cost the same and the subtracted term is unbiased.')
+
+    # 1.5.4: the pairs whose true ratio is exactly 1 are the only place the
+    # computed interval can be held to an answer, so they are what says
+    # whether it may be believed.
+    known = [c for c in calib if not c[0].startswith('sum-only')]
+    if len(known) >= 2:
+        miss = [c for c in known if not c[4]]
+        halves = sorted(c[3] for c in known)
+        typical = stats.median(halves)
+        spread = max(abs(c[2] - 1) for c in known) * 100
+        print('\ncalibration: %d pair(s) with a true ratio of exactly 1, so'
+              ' the interval\ncan be held to an answer here and nowhere else.'
+              % len(known))
+        print('  %d of %d intervals cover 1%s' % (len(known) - len(miss),
+              len(known),
+              '' if not miss else '; missing: '
+              + ', '.join(c[0] for c in miss)))
+        print('  median half-width %.2f%% against an observed spread of'
+              ' %.2f%%,' % (typical, spread))
+        if typical > 0:
+            print('  so a computed interval understates real variability by'
+                  ' about %.0fx.' % (spread / typical))
+        print('  Multiply by that before believing any interval this reader'
+              ' prints,\n  and read the factor as an order of magnitude: it'
+              ' rests on %d pairs.' % len(known))
+    elif calib:
+        print('\ncalibration: fewer than two pairs of known ratio, so nothing'
+              ' here says\nwhat the intervals above are worth.')
 
     print('\nspan is how many benches run between the pair: a pair spanning a')
     print('bench measures whatever that bench leaves behind it. published is')
@@ -1213,6 +1366,8 @@ def main():
     p.add_argument('--drops', action='store_true')
     p.add_argument('--aa', action='store_true')
     p.add_argument('--cells', action='store_true')
+    p.add_argument('--pair', nargs=2, action='append', default=[],
+                   metavar=('A', 'B'))
     p.add_argument('--markdown', action='store_true')
     p.add_argument('--selftest', action='store_true')
     p.add_argument('--lint', action='store_true')
@@ -1269,7 +1424,9 @@ def main():
     elif args.drops:
         drop_table(cells, shapes, strategies)
     elif args.aa:
-        aa_table(cells, shapes, strategies, terms)
+        aa_table(cells, shapes, strategies, terms, meta)
+    elif args.pair:
+        pair_table(cells, shapes, strategies, args.pair)
     elif args.cells:
         cell_dump(cells, shapes, strategies)
     elif args.markdown:

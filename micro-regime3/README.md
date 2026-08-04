@@ -803,11 +803,31 @@ script rather than starting over.
     ./read-run.py RUN.json --shapes         # per shape: CI% max / median / mean
     ./read-run.py RUN.json --drops          # what the trim removes, by shape
     ./read-run.py RUN.json --aa             # controls, spans, in-situ term
+    ./read-run.py RUN.json --pair A B       # two arms, paired, with an interval
     ./read-run.py RUN.json --cells          # every cell as TSV, for the rest
     ./read-run.py RUN.json --selftest       # check the reader's own invariants
     ./read-run.py RUN.json --exclude concat-runs --exclude-shape deep-7-c512-k3
     ./read-run.py --lint                    # Main.hs's roster, against README
                                             # and against itself
+
+`--pair` compares two arms **shape by shape**, and it is the right way to
+compare any two: a strategy's ratio to `list` spans six-fold across the shape
+set, so an unpaired comparison of two table columns fights that spread, while
+`A_s/B_s` does not — both arms move together with the shape. `list` cancels
+out of it too, so a paired figure owes nothing to the baseline. It prints the
+paired geomean, a bootstrap interval, the win count and its sign test, and the
+published-column ratio beside them, those last two answering different
+questions. **Reach for it instead of writing a script.** Every paired figure
+this page quotes was once recomputed by hand and thrown away, which is how one
+came to be printed beside a figure from a different run.
+
+The interval wants multiplying before it is believed, and `--aa` says by how
+much: the A/A pairs are the only comparisons whose true answer is known to be
+exactly 1, so they are the only place an interval can be held to an answer.
+`--aa` reports whether each covers 1 and how its half-width compares with the
+spread the pairs actually show, which turns the floor from a threshold someone
+chose into a factor a run measured. Read that factor as an order of magnitude:
+it rests on six pairs.
 
 `--markdown` renders the same rows the plain table does, from one shared
 call, so the published figures cannot drift from the terminal's. It reads the
@@ -904,6 +924,14 @@ order of magnitude: it measures sampling error *within* one benchmark, while
 two separately placed benchmarks also differ in code layout, cache occupancy
 and inherited GC state. The A/A is the only column that sees that, and it is
 what a margin should be compared against.
+
+**A filtered run cannot answer the position question**, and the trap is quiet
+enough to be worth stating: criterion's selection removes the intervening
+benches, so a pair placed 28 slots apart in the roster ends up adjacent, and
+the crossed design collapses to six near-identical adjacent pairs. Measured on
+a twelve-arm probe, spans of 28 and 0 both came out under 6. `--aa` says so
+when the run is filtered. Position is the one question here that needs the
+whole roster in the process.
 
 The floor grew with the margins, and for the same reason: subtracting a term
 common to both arms magnifies their disagreement exactly as it magnifies a
@@ -1322,9 +1350,12 @@ restricted basis above with a margin past the floor, the one tie marked:
    1.33x, `offtab` and `bq-scan-packed-mulback` 2.00x, `bq-expand` 3.33x,
    `gen-quotrem` 13.0x, `list` 27.0x.
 
-A break in 2 is expected under SpecConstr and is Run 8's point. A break in 6
-would mean something changed in `list` or in GHC, not in a strategy — check
-the anchor before anything else.
+Each is `./read-run.py RUN.json --pair A B`, which gives the paired geomean,
+an interval and a sign test in one line — so a run reports which claims held
+rather than re-deriving them from the table. A break in 2 is expected under
+SpecConstr and is Run 8's point. A break in 6 would mean something changed in
+`list` or in GHC, not in a strategy — check the anchor before anything
+else.
 
 Two caveats on the columns. The `needs` tier for `backperm`, `cm-gather` and
 `all-expand` is **doubtful**: each produces its result by mapping a concrete
