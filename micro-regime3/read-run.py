@@ -109,6 +109,8 @@ Modes:
   --aa              the A/A and sum-only control pairs with their spans,
                     and the in-situ forcing term off the `-nosum` arms
   --cells           every cell as TSV, for anything not covered above
+  --markdown        README's Results table, numbers recomputed and the
+                    editorial columns carried over from the one there
   --exclude S       drop strategy S from every aggregate (repeatable)
   --exclude-shape H drop shape H likewise (repeatable)
   --selftest        check this reader's invariants against the run given
@@ -437,7 +439,14 @@ def time_of(cells, shapes, strategy):
                     for s in kept])
 
 
-def strategy_table(cells, shapes, strategies, meta, args, terms):
+def strategy_rows(cells, shapes, strategies):
+    """The table's rows, sorted: (time, name, CI%, noise, smp, alloc).
+
+    The plain table and --markdown both render this and neither computes it,
+    so the published markdown cannot drift from what the terminal shows --
+    which is the same reason README says to extend this script rather than
+    write a second reader, applied inside the script.
+    """
     have_list = all('list' in cells[sh] for sh in shapes)
     typical = {sh: med_or_nan(cis(cells, sh, strategies)) for sh in shapes}
     rows = []
@@ -457,6 +466,11 @@ def strategy_table(cells, shapes, strategies, meta, args, terms):
     # A `sum-only` row has no time by construction rather than by mishap, so
     # it sorts to the head, where it reads as the term the column subtracts.
     rows.sort(key=lambda r: (-1.0 if r[0] != r[0] else r[0], r[1]))
+    return rows, have_list
+
+
+def strategy_table(cells, shapes, strategies, meta, args, terms):
+    rows, have_list = strategy_rows(cells, shapes, strategies)
     print('%-28s %7s %6s %6s %5s %8s'
           % ('strategy', 'time', 'CI%', 'noise', 'smp', 'alloc'))
     for time, st, ci, noise, smp, alloc in rows:
@@ -486,6 +500,89 @@ def strategy_table(cells, shapes, strategies, meta, args, terms):
     if meta['known_l'] < len(shapes):
         print('alloc missing for %d shape(s) Main.hs no longer defines'
               % (len(shapes) - meta['known_l']))
+
+
+def readme_rows(readme, strategies):
+    """README's Results table, keyed by strategy: (label, style, needs, pre).
+
+    Only the two rightmost columns and the emphasis are read. Those are
+    editorial -- which tier a strategy needs, what it assumes, which rows the
+    prose calls out -- and no run can produce them, so --markdown carries them
+    forward instead of asking for them again. Everything numeric is recomputed.
+
+    Rows are matched by stripping emphasis and the `(baseline)` suffix, and
+    only names the run actually carries are taken, so the other markdown
+    tables on the page cannot be mistaken for this one however their column
+    count lands.
+    """
+    out = {}
+    try:
+        text = open(readme).read().split('\n')
+    except OSError:
+        return out
+    for line in text:
+        if not line.lstrip().startswith('|'):
+            continue
+        cell = [c.strip() for c in line.strip().strip('|').split('|')]
+        if len(cell) != 7:
+            continue
+        bare = re.sub(r'[*`]', '', cell[0]).replace('(baseline)', '').strip()
+        if bare not in strategies:
+            continue
+        style = ('bold' if cell[0].startswith('**')
+                 else 'italic' if cell[0].startswith('*') else 'plain')
+        out[bare] = (cell[0], style, cell[5], cell[6])
+    return out
+
+
+def markdown_table(cells, shapes, strategies, meta, args, terms):
+    """Emit README's Results table, ready to paste over the one there.
+
+    The numbers come from `strategy_rows`, the same call the terminal table
+    renders, so the two cannot disagree; what a run cannot know is carried
+    over from the table already in README. Anything it could not carry is
+    named on stderr rather than silently emitted blank -- a new strategy needs
+    its `needs` and `precondition` written by hand, and a strategy that has
+    left the roster needs deleting from the prose around the table, which no
+    generator can do.
+    """
+    rows, have_list = strategy_rows(cells, shapes, strategies)
+    prev = readme_rows(args.readme, set(strategies))
+    fresh, gone = [], [n for n in prev if n not in strategies]
+    print('| strategy | time | CI% | smp | alloc | needs | precondition |')
+    print('|---|---:|---:|---:|---:|---|---|')
+    for time, st, ci, noise, smp, alloc in rows:
+        if st in prev:
+            label, style, needs, pre = prev[st]
+        else:
+            fresh.append(st)
+            label = st
+            style = 'italic' if is_control(st) else 'plain'
+            needs, pre = '?', '?'
+        num = ['--' if time != time else '%.3f' % time, '%.2f' % ci,
+               '%.0f' % smp, '--' if alloc is None else '%.2fx' % alloc]
+        if style == 'italic':
+            label = label if label.startswith('*') else '*%s*' % label
+            num = ['*%s*' % v for v in num]
+        elif style == 'bold':
+            label = label if label.startswith('**') else '**%s**' % label
+            num[0] = '**%s**' % num[0]
+        print('| %s | %s | %s |' % (label, ' | '.join(num),
+                                    ' | '.join((needs, pre))))
+    if not have_list:
+        sys.stderr.write('warning: no `list` bench, so every time reads --\n')
+    if fresh:
+        sys.stderr.write('warning: %d row(s) new since the table in %s, with'
+                         ' needs/precondition left as `?` for you to write:'
+                         ' %s\n' % (len(fresh), os.path.basename(args.readme),
+                                    ', '.join(fresh)))
+    if gone:
+        sys.stderr.write('warning: %d row(s) in that table are absent from'
+                         ' this run and have been dropped; check the prose'
+                         ' still holds: %s\n' % (len(gone), ', '.join(gone)))
+    if not fresh and not gone:
+        sys.stderr.write('ok: needs/precondition carried forward for all %d'
+                         ' rows, none added, none dropped\n' % len(rows))
 
 
 def shape_table(cells, shapes, strategies, meta):
@@ -956,6 +1053,7 @@ def main():
     p.add_argument('--drops', action='store_true')
     p.add_argument('--aa', action='store_true')
     p.add_argument('--cells', action='store_true')
+    p.add_argument('--markdown', action='store_true')
     p.add_argument('--selftest', action='store_true')
     p.add_argument('--lint', action='store_true')
     p.add_argument('--readme', default=os.path.join(here, 'README.md'),
@@ -1011,6 +1109,8 @@ def main():
         aa_table(cells, shapes, strategies, terms)
     elif args.cells:
         cell_dump(cells, shapes, strategies)
+    elif args.markdown:
+        markdown_table(cells, shapes, strategies, meta, args, terms)
     else:
         strategy_table(cells, shapes, strategies, meta, args, terms)
 

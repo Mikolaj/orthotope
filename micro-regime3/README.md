@@ -326,10 +326,16 @@ not a method.
     = 0.2161 against the reader's 0.216. Recomputing from `--cells` is worth
     doing too, but it shares the reader's arithmetic and cannot catch a wrong
     definition, only a wrong transcription;
-  - **diff the table's `needs` and `precondition` columns against the previous
-    run's.** They are hand-carried through a re-sort of forty-odd rows every
-    time, and nothing else checks them; every difference should be one you
-    meant;
+  - **paste `--markdown`'s output over the Results table rather than editing
+    it.** The numbers come from the same call the terminal table renders, so
+    the two cannot disagree, and `needs`, `precondition` and the emphasis are
+    carried forward from the table already there — the columns no run can
+    produce, and the ones that used to be hand-retyped through a re-sort of
+    forty-odd rows. What it could not carry it names on stderr: a row new
+    since that table gets `?` in both columns for you to fill in, a row that
+    has left the roster is dropped and flagged so the prose around the table
+    can follow. Read those warnings; they are the whole of what is left to do
+    by hand;
   - **check that every `](#...)` resolves**, in this file and in `Main.hs`'s
     `README.md#...` references. Findings rename headings, and a renamed
     heading breaks links silently;
@@ -573,9 +579,21 @@ what a margin should be compared against.
 The floor grew with the margins, and for the same reason: subtracting a term
 common to both arms magnifies their disagreement exactly as it magnifies a
 real difference. On raw slopes these three pairs read 1.0010, 1.0031 and
-1.0260, so the threshold was ~2% before the correction and is ~3% after it.
-Correcting the table without correcting the floor would have been the whole
-error.
+1.0260, so the largest deviation was 2.60% before the correction and is 3.09%
+after it. Correcting the table without correcting the floor would have been
+the whole error.
+
+That is a mechanism rather than an observation, so it was checked. Subtracting
+a shared term scales a pair's deviation from 1 by `1/(1-f)`, `f` being the
+term as a share of the arm — an identity *per shape*, and therefore worth
+nothing until it has survived the geomean over shapes. It does, to within 0.01
+percentage points on all three pairs: predicted 1.0010, 0.9943 and 1.0293
+against observed 1.0011, 0.9942 and 1.0292. The amplification tracks `1/(1-f)`
+arm by arm too — 1.497 against a predicted 1.487 on `mut-odo-vecdims`, 1.186
+against 1.189 on `bq-scan-mulback`, and a looser 1.230 against 1.153 on
+`bq-expand`, whose deviation is small enough that the ratio of two of them is
+mostly noise. So the floor's growth is the correction's own arithmetic, not a
+second effect riding along with it.
 
 **Both of Failed Run 6's conclusions here fail.** It held that the floor
 tracks *1/time, not GC pressure*, and that *position is not the cause* -- the
@@ -847,25 +865,37 @@ allocation -- 20.7x before the fix, 10.68x here.
 
 ### The reader: read-run.py
 
-Every figure below, and every column of the table above, comes out of
-`read-run.py` in this directory. **Use it; do not write another reader.** The
+Every figure below comes out of `read-run.py` in this directory, and the
+table above is *emitted* by it rather than copied from it. **Use it; do not
+write another reader.** The
 definitions it encodes — which cell the trim drops, that `CI%` is a mean
 half-width rather than a bound, that `alloc` needs an `l` the JSON does not
-carry (it parses `Main.hs` for it), that the `*-aa-*` and `sum-only*` rows are
+carry (it parses `Main.hs` for it), that the `*-aa-*`, `sum-only*` and
+`*-nosum` rows are
 controls, that every ratio is net of the forcing pass while every other column
 is raw — each cost a session to settle, and an ad-hoc script gets them
 subtly wrong. Its docstring is the reference for all of them; extend the
 script rather than starting over.
 
     ./read-run.py RUN.json                  # roster, then the strategy table
+    ./read-run.py RUN.json --markdown       # that table as README markdown
     ./read-run.py RUN.json --shapes         # per shape: CI% max / median / mean
     ./read-run.py RUN.json --drops          # what the trim removes, by shape
-    ./read-run.py RUN.json --aa             # the control pairs and their spans
+    ./read-run.py RUN.json --aa             # controls, spans, in-situ term
     ./read-run.py RUN.json --cells          # every cell as TSV, for the rest
     ./read-run.py RUN.json --selftest       # check the reader's own invariants
     ./read-run.py RUN.json --exclude concat-runs --exclude-shape deep-7-c512-k3
     ./read-run.py --lint                    # Main.hs's roster, against README
                                             # and against itself
+
+`--markdown` renders the same rows the plain table does, from one shared
+call, so the published figures cannot drift from the terminal's. It reads the
+Results table already in this file for the two columns a run cannot know —
+`needs` and `precondition` — and for which rows the prose emphasises, carries
+those forward, and says on stderr what it could not: a strategy new to the
+roster comes out with `?` to be written by hand, and one that has left it is
+dropped with a warning. The `bq-expand-nosum` and `mut-odo-vecdims-nosum` arms
+are in exactly that state until a run at this optimisation level times them.
 
 **No run artifacts are kept here.** The normal state of this directory is no
 JSON at all, and one is made when a question needs it — which is the same
