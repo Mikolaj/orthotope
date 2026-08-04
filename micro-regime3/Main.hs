@@ -662,7 +662,7 @@ fbList sh a = VS.fromListN l (toListT sh a) where l = product sh
 
 -- The first attempt -- vGenerate + linear-index-to-offset by
 -- quotRem (the PR's point 1), one division per rank. Why it is a mixed
--- picture rather than a fix: README.md#reading-the-results.
+-- picture rather than a fix: README.md#the-reader-read-runpy.
 {-# NOINLINE fbGenQuotRem #-}
 fbGenQuotRem :: ShapeL -> T -> VS.Vector Double
 fbGenQuotRem sh (T ats ao v) =
@@ -695,7 +695,7 @@ fbGenUnsafe sh (T ats ao v) =
 -- unfoldrExactN with an additive odometer state (point 2) --
 -- no division, but an immutable list state rebuilt each step. It is an
 -- allocating proxy for the truly fused, allocation-free form, which is
--- 'fbFused' below (README.md#reading-the-results).
+-- 'fbFused' below (README.md#the-reader-read-runpy).
 {-# NOINLINE fbUnfoldAdd #-}
 fbUnfoldAdd :: ShapeL -> T -> VS.Vector Double
 fbUnfoldAdd sh (T ats ao v) =
@@ -2075,7 +2075,7 @@ checkedArms = [(n, f) | (n, arm) <- roster, f <- fills arm]
 
 -- Print the flagged (too-big) shapes, then benchmark every shape in
 -- 'shapes'. How to run: README.md#running-it. The numbers and how to
--- read them: README.md#results, README.md#reading-the-results.
+-- read them: README.md#results, README.md#the-reader-read-runpy.
 main :: IO ()
 main = assert partitioned $ do
   args <- getArgs

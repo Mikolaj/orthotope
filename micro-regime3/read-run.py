@@ -759,6 +759,8 @@ def roster_of(main):
     return out
 
 
+TOC_RE = r'^\s*- \[[^]]+\]\(#[a-z0-9-]+\)$'
+
 FIGURE_RE = re.compile(r'\b0\.\d{3}\b|\d+\.\d+\s*[×x]\b'
                        r'|\b\d{1,2}\.\d%|\b\d+\.\d{2,}\b')
 
@@ -872,10 +874,13 @@ def check_doc(readme, main_hs):
         for i, line in enumerate(open(path).read().split('\n'), 1):
             if len(line) <= limit:
                 continue
+            # Tables, code, link definitions and table-of-contents entries
+            # are all lines with nowhere to wrap.
             if path == readme and (line.lstrip().startswith('|')
                                    or line.startswith('    ')
                                    or re.match(r'^\[[a-z0-9-]+\]:\s*\S+$',
-                                               line)):
+                                               line)
+                                   or re.match(TOC_RE, line)):
                 continue
             if comment_only and not line.strip().startswith('--'):
                 continue
