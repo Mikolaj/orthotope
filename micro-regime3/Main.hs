@@ -1725,7 +1725,8 @@ regimeOf sh (T (Strides ats) _ v)
 -- reaches through operations other than the merged transpose -- each
 -- generator below models one producing operation, named at its comment.
 -- Each class is its own pinned population, published beside the existing
--- geomean and never folded into it (README.md#non-urgent-todo-list):
+-- geomean and never folded into it
+-- (README.md#the-stride-classes-and-what-they-cover):
 -- 'check' holds every strategy and builder to the reference on all of
 -- them, the @classes@ benchmark mode times them -- one population per
 -- process, per the protocol at 'classBenches' -- while the default run

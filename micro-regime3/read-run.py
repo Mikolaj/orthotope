@@ -85,6 +85,14 @@ carries such a name is what --lint holds Main.hs's roster to, this test
 being the only thing standing between a renamed control and its silently
 entering the aggregates as a strategy.
 
+One run, one population. Every aggregate here is over the shapes the file
+holds, so it belongs to the main set or to one stride class and to nothing
+in between: `population_of` names which, every mode says so in its first
+line, --selftest fails a file spanning two, and --markdown declines to
+publish a table for one. A major run is one process per population for
+exactly this reason (README.md#making-a-major-benchmark-run), and the way
+to get a mixed file is `classes` with no prefix.
+
 The one field this script does not read, written down because criterion
 documents it nowhere near to hand: `reportMeasured` is the raw sample list,
 each sample itself a list whose [0] is the time and [3] the iteration count.
@@ -106,7 +114,9 @@ Modes:
                     bootstrap interval, win count and sign test
   --cells           every cell as TSV, for anything not covered above
   --markdown        README's Results table, numbers recomputed and the
-                    editorial columns carried over from the one there
+                    editorial columns carried over from the one there --
+                    six columns instead for a stride-class run, and none
+                    at all for a run spanning two populations
   --exclude S       drop strategy S from every aggregate (repeatable)
   --exclude-shape H drop shape H likewise (repeatable)
   --selftest        check this reader's invariants against the run given
@@ -182,6 +192,9 @@ def dims_by_shape(main_hs):
     per main-set shape against the view itself, and each entry's leading
     trailing-comment number annotates its true l, which --selftest holds
     the parse to for whatever population its run carries.
+
+    Each entry also records the list it came from, as `lst`, which is what
+    `population_of` reads: the lists are the populations.
     """
     def strided(ds, _):
         return math.prod(ds), (ds[-2] if len(ds) > 1 else 1)
@@ -235,13 +248,52 @@ def dims_by_shape(main_hs):
                      if 'b' in m.groupdict() and m.group('b') else None)
                 l, s_inner = rule(ds, b)
                 out[m.group(1)] = dict(
-                    dims=ds, l=l, s_inner=s_inner,
+                    dims=ds, l=l, s_inner=s_inner, lst=start,
                     m=(l // s_inner if s_inner else 0))
                 if m.group('ann'):
                     ann[m.group(1)] = int(m.group('ann'))
             elif line.strip() == ']':
                 break
     return out, ann
+
+
+# The two lists that make up the main set. Every other list dims_by_shape
+# reads is one stride-class population, timed one process per class
+# (README.md#making-a-major-benchmark-run).
+MAIN_LISTS = ('convShapes', 'stretchShapes')
+
+
+def class_label(members):
+    """A class population's name: the prefix its shapes share, which is
+    also what selects it for a run (`classes rev-`)."""
+    return 'the %s class' % '/'.join(sorted({sh.split('-')[0]
+                                             for sh in members}))
+
+
+def population_of(shapes, dims):
+    """(kind, label): which population a run's shapes come from.
+
+    `main` when they are all conv/stretch shapes, `class` when they all
+    come from one stride-class list, `mixed` when they span more than one
+    -- which `classes` without a prefix produces, and which README's
+    one-JSON-at-a-time rule forbids, a geomean over two populations being
+    a statistic of neither. `unknown` when Main.hs defines none of them,
+    the case of a run whose shapes were renamed since. Shapes Main.hs does
+    not define cast no vote; the rest still decide.
+    """
+    groups = {}
+    for sh in shapes:
+        d = dims.get(sh)
+        if d:
+            groups.setdefault('main' if d['lst'] in MAIN_LISTS else d['lst'],
+                              []).append(sh)
+    if not groups:
+        return 'unknown', 'a population Main.hs does not define'
+    named = sorted('the main set' if k == 'main' else class_label(v)
+                   for k, v in groups.items())
+    if len(groups) > 1:
+        return 'mixed', ' + '.join(named)
+    return ('main' if 'main' in groups else 'class'), named[0]
 
 
 def load(path, main_hs):
@@ -638,32 +690,59 @@ def markdown_table(cells, shapes, strategies, meta, args, terms):
     its `needs` and `precondition` written by hand, and a strategy that has
     left the roster needs deleting from the prose around the table, which no
     generator can do.
+
+    A stride-class run gets the same table SIX columns wide instead: `needs`
+    and `precondition` are properties of a strategy, not of a population, so
+    they are stated once in the main table and a class table points at it.
+    That also keeps the carry-forward anchored -- `readme_rows` matches a
+    table by its width and its strategy names, and a class table repeating
+    those two columns would match it too, leaving every population's table
+    competing to be the one a later run copies from. A mixed run gets no
+    table at all.
     """
     rows, have_list = strategy_rows(cells, shapes, strategies)
+    kind, label = population_of(shapes, meta['dims'])
+    if kind == 'mixed':
+        sys.stderr.write('refusing to emit a table for %s: one JSON at a'
+                         ' time, never merged, so that a geomean is some'
+                         ' population\'s -- see\n'
+                         '  README.md#making-a-major-benchmark-run\n' % label)
+        sys.exit(1)
+    # A class table drops the two editorial columns but keeps the emphasis:
+    # which row shipped and which leads is what a reader looks for first,
+    # and it is the same row in every population's table.
+    editorial = kind != 'class'
     prev = readme_rows(args.readme, set(strategies))
     fresh, gone = [], [n for n in prev if n not in strategies]
     print('| strategy | time | worst | CI% | smp | alloc'
-          ' | needs | precondition |')
-    print('|---|---:|---:|---:|---:|---:|---|---|')
+          + (' | needs | precondition |' if editorial else ' |'))
+    print('|---|---:|---:|---:|---:|---:' + ('|---|---|' if editorial
+                                             else '|'))
     for time, st, ci, noise, smp, alloc, worst in rows:
         if st in prev:
-            label, style, needs, pre = prev[st]
+            label_, style, needs, pre = prev[st]
         else:
-            fresh.append(st)
-            label = st
+            if editorial:
+                fresh.append(st)
+            label_ = st
             style = 'italic' if is_control(st) else 'plain'
             needs, pre = '?', '?'
         num = ['--' if time != time else '%.3f' % time,
                '--' if worst != worst else '%.3f' % worst, '%.2f' % ci,
                '%.0f' % smp, '--' if alloc is None else '%.2fx' % alloc]
         if style == 'italic':
-            label = label if label.startswith('*') else '*%s*' % label
+            label_ = label_ if label_.startswith('*') else '*%s*' % label_
             num = ['*%s*' % v for v in num]
         elif style == 'bold':
-            label = label if label.startswith('**') else '**%s**' % label
+            label_ = label_ if label_.startswith('**') else '**%s**' % label_
             num[0] = '**%s**' % num[0]
-        print('| %s | %s | %s |' % (label, ' | '.join(num),
-                                    ' | '.join((needs, pre))))
+        tail = ' | '.join((needs, pre)) + ' |' if editorial else ''
+        print('| %s | %s |%s' % (label_, ' | '.join(num),
+                                 ' ' + tail if tail else ''))
+    if not editorial:
+        sys.stderr.write('ok: six columns, for %s: needs and precondition'
+                         ' are the main table\'s, being properties of a'
+                         ' strategy and not of a population\n' % label)
     if not have_list:
         sys.stderr.write('warning: no `list` bench, so every time reads --\n')
     if fresh:
@@ -671,11 +750,11 @@ def markdown_table(cells, shapes, strategies, meta, args, terms):
                          ' needs/precondition left as `?` for you to write:'
                          ' %s\n' % (len(fresh), os.path.basename(args.readme),
                                     ', '.join(fresh)))
-    if gone:
+    if gone and editorial:
         sys.stderr.write('warning: %d row(s) in that table are absent from'
                          ' this run and have been dropped; check the prose'
                          ' still holds: %s\n' % (len(gone), ', '.join(gone)))
-    if not fresh and not gone:
+    if editorial and not fresh and not gone:
         sys.stderr.write('ok: needs/precondition carried forward for all %d'
                          ' rows, none added, none dropped\n' % len(rows))
 
@@ -1145,14 +1224,20 @@ def lint(main_hs, readme):
     search, so what replaced it are the ways that one list can still be
     wrong: an arm nobody documented, a strategy defined and rostered
     nowhere, an A/A control not duplicating what its name claims, a control
-    named so that this reader counts it as a strategy.
+    named so that this reader counts it as a strategy. A fifth check is
+    about the shape lists rather than the roster, the roster being not the
+    only thing in Main.hs that goes stale silently.
 
     Non-vacuity, each confirmed by breaking it: renaming a bench in the
     roster fails the README check, commenting an entry out fails the
     rostered check, pointing a `-aa` arm at another function fails the twin
     check, renaming a `Twin` arm to drop its `-aa` fails both the twin and
-    the control-naming ones, and a second `Base` entry fails the reference
-    check. Each names the arm at fault rather than only the count. The
+    the control-naming ones, a second `Base` entry fails the reference
+    check, and misannotating window-28x28-k5's l by one fails the
+    annotation check with both numbers -- as does mistyping a dimension,
+    confirmed on one entry of each list rule that computes l differently
+    (window, bcastmid, reshape1 and the strided rule the main set shares).
+    Each names the arm or entry at fault rather than only the count. The
     README check reads names as delimited tokens: against a scratch README
     saying only `mut-odo-vecdims`, a rostered `mut-odo` fails, where
     substring containment had passed it.
@@ -1251,6 +1336,25 @@ def lint(main_hs, readme):
         print('ok:   every control is named as this reader\'s own control'
               ' test reads it, and %s alone is the reference' % bases[0])
 
+    # The l annotations, statically: each entry's leading trailing-comment
+    # number must equal what its list's rule computes, so a mistyped shape
+    # or annotation is caught at edit time -- the oracle used to be
+    # run-gated, firing in --selftest only for the shapes a JSON happened
+    # to hold, which for a class list meant after its process had run.
+    # An entry without an annotation is counted rather than failed: the
+    # annotation is the oracle, not a requirement, and the count is what
+    # keeps an absence visible.
+    dims, ann = dims_by_shape(main_hs)
+    wrong = [(sh, ann[sh], dims[sh]['l']) for sh in ann
+             if dims[sh]['l'] != ann[sh]]
+    if wrong:
+        bad.append('l annotation(s) disagreeing with their list\'s rule: %s'
+                   % '; '.join('%s annotated %d where the rule gives %d'
+                               % w for w in wrong))
+    else:
+        print('ok:   every l annotation matches its list\'s rule (%d of %d'
+              ' entries annotated)' % (len(ann), len(dims)))
+
     only = [n for n, r, _ in roster if r == 'Only']
     if only:
         print('note: rostered and checked but deliberately not timed, with'
@@ -1277,6 +1381,12 @@ def selftest(cells, shapes, strategies, meta):
     1.01 fails the scaling one and names the two shapes it compared; and
     excluding both `sum-only` arms turns the first into a named skip rather
     than a silent pass, as a one-shape run does to the second.
+
+    The population check likewise: concatenating a one-shape main run's
+    reports with a one-shape window-class run's failed it, naming both
+    populations, while every other invariant on that file passed -- which
+    is what the check is for, a merged run looking healthy from every
+    other angle. --markdown refused the same file.
     """
     ok, bad, skip = [], [], []
 
@@ -1312,6 +1422,20 @@ def selftest(cells, shapes, strategies, meta):
                     ' `micro -- check` asserts each class\'s structure'
                     ' against the actual view, which is where it CAN be'
                     ' confirmed')
+
+    # One population per file. Every aggregate below is a geomean over
+    # whatever shapes the file holds, so a merged run publishes figures
+    # belonging to no population at all.
+    kind, label = population_of(shapes, meta['dims'])
+    if kind == 'mixed':
+        bad.append('this run spans %s, and one JSON holds one population:'
+                   ' a geomean over two of them is a statistic of neither'
+                   ' (README.md#making-a-major-benchmark-run)' % label)
+    elif kind == 'unknown':
+        skip.append('Main.hs defines none of this run\'s shapes, so which'
+                    ' population it measured cannot be checked here')
+    else:
+        ok.append('population: every shape of this run is %s' % label)
 
     malformed = [(sh, st) for sh in shapes for st in strategies
                  if not (cells[sh][st]['slope'] > 0
@@ -1496,9 +1620,10 @@ def main():
 
     if args.selftest:
         sys.exit(selftest(cells, shapes, strategies, meta))
-    roster = ('%d benchmarks over %d shape%s'
+    roster = ('%d benchmarks over %d shape%s of %s'
               % (meta['benches'], meta['shapes'],
-                 '' if meta['shapes'] == 1 else 's'))
+                 '' if meta['shapes'] == 1 else 's',
+                 population_of(shapes, meta['dims'])[1]))
     if (len(strategies), len(shapes)) != (meta['benches'], meta['shapes']):
         roster += ('; reading %d of them over %d shape%s'
                    % (len(strategies), len(shapes),

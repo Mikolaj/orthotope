@@ -45,6 +45,14 @@ is timed through, which Run 6 (-O1) is the first run licensed to subtract
 them comparable to a figure from an earlier run, or to one from a later run
 that does not subtract it.
 
+Every figure is also **one population's**. The measured ones above are the
+main set's — the positive-stride views a merged transpose builds — while the
+regime-3 views the library's other operations produce (reversed, broadcast,
+sliced, windowed, scaled) are the [stride
+classes](#the-stride-classes-and-what-they-cover), each its own population,
+run in its own process and tabled beside the main set rather than folded into
+it.
+
 ## Contents
 
 - [The goal of these benchmarks](#the-goal-of-these-benchmarks)
@@ -52,6 +60,7 @@ that does not subtract it.
   - [Where the shapes come from](#where-the-shapes-come-from)
   - [The shape set](#the-shape-set)
   - [Dropping the minibatch dimension](#dropping-the-minibatch-dimension)
+  - [The stride classes and what they cover](#the-stride-classes-and-what-they-cover)
   - [Lemire multiplicative inverses, at the two division sites](#lemire-multiplicative-inverses-at-the-two-division-sites)
   - [Per shape, where the geomean hides the ordering](#per-shape-where-the-geomean-hides-the-ordering)
   - [The fix in Data/Array/Internal.hs](#the-fix-in-dataarrayinternalhs)
@@ -72,6 +81,7 @@ that does not subtract it.
   - [What Run 7 compares against](#what-run-7-compares-against)
   - [The claims Run 7 should test](#the-claims-run-7-should-test)
   - [What the table says](#what-the-table-says)
+  - [The stride classes, run by run](#the-stride-classes-run-by-run)
   - [Provenance](#provenance)
   - [What the next runs have to decide](#what-the-next-runs-have-to-decide)
 
@@ -131,7 +141,10 @@ tensor is `[nImgs, nAh, nAw]` × `[nCinp, nKh, nKw]`.
 
 In general the source's transposes merge into that view, so its innermost
 dimension is strided and normalizing it takes regime 3 — which is the
-input `mkStrided` builds (see its comment in `Main.hs` for how).
+input `mkStrided` builds (see its comment in `Main.hs` for how). Other
+operations reach regime 3 by other routes, and those are the
+[stride classes](#the-stride-classes-and-what-they-cover), populations of
+their own beside this one.
 
 
 ### The shape set
@@ -187,6 +200,65 @@ starve the sample count, and the run is long and memory-hungry with it.
 `Cin` ~doubles the cost, quadrupling the spatial area ~quadruples it), but
 reducing them reproduces a shape already here — a per-position slice, or a
 smaller conv — so `nImgs` is the only dimension genuinely free to drop.
+
+
+### The stride classes and what they cover
+
+`mkStrided` transposes the two innermost dims of a dense array, so every
+stride the main set carries is positive and its offset is zero. The library
+reaches regime 3 through other operations too — its two commonest inputs of
+that kind among them, a broadcast being stride 0 and `rev` negative — and the
+**stride classes** are one population per producing operation, named by the
+prefix that selects them: `rev` (every stride negated, offset at the top),
+`revsome` (a strict subset reversed, so the signs are mixed), `bcast` (an
+innermost stride of 0, every run re-reading one element), `bcastmid` (the
+stretched axis in the middle instead), `reshape1` (the `[n] -> [n, 1]` trap,
+innermost extent 1), `slice` (a view of a larger source, so a non-zero offset
+with positive strides), `window` (overlapping im2col patches — the workload
+this page opens by naming, carrying the overlap that the main set's bijective
+index map drops) and `scaled` (superincreasing strides, none of them 1). Each
+is a short list in `Main.hs`, reusing a main-set shape where one fits so that
+a class figure has a positive-stride counterpart to stand next to; each
+generator's comment there says what it models, and the comment heading them
+all, above `mkRev`, carries the coverage argument — a hypothesis about what a
+valid hand-built view can recombine, not a theorem — which is not repeated
+here. *Class* unqualified means one of these; the other sense on this page
+always keeps its noun, *method* — a `class method`, the class-method tier,
+or in full a `Vector`-class method.
+
+Two rulings govern how they are measured and published, both taken
+2026-08-07, ahead of the implementation:
+
+- **Each class is its own pinned population**, published beside the main
+  geomean and never folded into it. The geomean is a ranking statistic over a
+  pinned set and a change of population moves it, as the conv-set halving
+  measured; there is no combined figure to compute, so a sentence comparing
+  populations compares their tables. One process per class follows from the
+  same ruling, and `read-run.py` enforces it — it names the population it
+  read, fails a file spanning two, and refuses to emit a table for one.
+- **No strategy is excluded from any class.** Every one is to be fixed to
+  work on all of them, seen failing first wherever the failure can be fired.
+  The see-it-fail run found nothing to fix: the Int32 strategies' partial sums
+  are each the offset of a real element, in-bounds for any valid view whatever
+  the stride signs, so the feared failure cannot fire below a 2^31-element
+  source — `int32Fits`'s own unfireable case. What mixed signs did break was
+  the packed scan's assert — a corner formula, maximal only for positive
+  strides, with no lower bound, its claimed maximum observed sitting below a
+  real entry of `revsome-mid-cnn-L2`'s own base-offsets table — fixed at the
+  builder, the numbers and the argument recorded at the assert and both Int32
+  comment sites.
+
+**A class population is two or three shapes**, against the main set's
+two dozen, which is deliberate — the classes are there to vary the
+*mechanism*, and varying size and rank within one is the main set's job —
+but it decides how their results read. A class geomean rests on two or three
+cells, so it is a summary of a handful of numbers rather than a statistic
+over a spread; the per-shape figures are nearly the whole population and are
+worth quoting where the main set's would be flattened away; winsorizing has
+almost nothing to cap and `--pair`'s bootstrap interval almost nothing to
+resample. What a class run can decide is whether an *ordering* inverts under
+its mechanism and whether any strategy's `worst` crosses 1 there. What it
+cannot do is be compared with a main-set number, in either direction.
 
 
 ### Lemire multiplicative inverses, at the two division sites
@@ -334,6 +406,14 @@ the axis the orderings turn on; the fuller per-shape record is in
   against 0.075 — its best cell of all 33. Read that cell first and average it
   away last.
 
+All three bullets are measured on positive-stride views. The
+[stride classes](#the-stride-classes-and-what-they-cover) put the same axis
+under other mechanisms — `bcast`'s innermost stride of 0 has every run
+re-read one element whatever its extent, `reshape1`'s extent is 1 by
+construction, `scaled-rank1-m1` is a single run — so each class run is a test
+of whether `sInner` still decides, and a class table that contradicts this
+ruling is a finding to write up rather than a cell to average away.
+
 
 ### The fix in Data/Array/Internal.hs
 
@@ -364,7 +444,10 @@ Validation on this branch:
 - Non-vacuity: deliberately dropping the `r * tInner` term fails 63 cases,
   among them `transpose_2/4/5/6`, `stride_1`, `rev_1/2` — so the pass is not
   vacuous.
-- This benchmark: every strategy agrees with `list` on every shape.
+- This benchmark: every strategy agrees with `list` on every shape, the
+  [stride classes](#the-stride-classes-and-what-they-cover) included, so the
+  agreement covers negative, mixed-sign, zero and overlapping strides and not
+  only the positive ones the main set carries.
 
 End-to-end confirmation in horde-ad's `bench/ConvVjpBench.hs` — wiring this
 branch's orthotope in and rebuilding ox-arrays + horde-ad — has been done and
@@ -517,7 +600,10 @@ Ideas that **died on paper**, recorded so they are not re-proposed:
 **This chapter normally does not change from run to run either**, but for a
 different reason: it describes the instrument rather than any result. Every
 generic instruction for making, reading and checking a run is here, and a
-session told to make one can work from this chapter alone. What is *not* here
+session told to make one can work from this chapter alone — but for the two
+layouts a write-up pastes into, which sit beside the figures they explain:
+the [Results](#results) columns and the
+[per-class blocks](#the-stride-classes-run-by-run). What is *not* here
 is anything a particular future run has to settle — that is
 [What the next runs have to decide](#what-the-next-runs-have-to-decide), at
 the end of the last chapter, because it goes stale as soon as that run
@@ -604,12 +690,18 @@ The `check` mode (below) asserts every strategy produces byte-identical
 vectors on every shape, that each shape actually takes regime 3, and that the
 view's innermost extent is the second-to-last dim as listed — which is the one
 thing `read-run.py` has to assume, since no JSON carries the strided shape,
-and which `m` and every `alloc` multiple rest on. It is
+and which `m` and every `alloc` multiple rest on. The
+[stride classes](#the-stride-classes-and-what-they-cover) go through the same
+mode, each held to its own structural conditions — negative strides, mixed
+signs, a stride-0 axis — with a deliberate-breakage proof per conjunct, and
+each class list has its own reading of the innermost extent in the reader,
+which `check` is again the only place to confirm. It is
 built from that same `roster`, so a strategy cannot be timed without being
 checked; what that leaves to go stale, `read-run.py --lint` holds — every arm
 named here, every strategy defined in `Main.hs` rostered, each A/A control
-running the arm its name duplicates, and every control named as the reader's
-own control test reads it.
+running the arm its name duplicates, every control named as the reader's
+own control test reads it, and every shape's `l` annotation agreeing with
+what its list's rule computes.
 
 `concat-runs` is the one strategy `check` covers and the benchmark does not.
 It was by a clear margin the noisiest bench of the set — Failed Run 6's single
@@ -638,8 +730,15 @@ Self-contained (base + vector + criterion + deepseq):
     cd micro-regime3 && cabal run micro -- check     # correctness only, fast
     cd micro-regime3 && cabal run micro -- diag      # per-build allocations
     cd micro-regime3 && cabal run micro -- vgg       # one group by name prefix
+    cd micro-regime3 && cabal run micro -- classes rev-   # one stride class
     cd micro-regime3 && cabal run micro --ghc-options=-fspec-constr
     cd micro-regime3 && cabal run micro --ghc-options=-O2 -- diag
+
+The `classes` mode replaces the main set with the
+[stride-class](#the-stride-classes-and-what-they-cover) populations, one
+selected per process by its name prefix; without a prefix it runs all of
+them into one process, which is a probe and never a recorded run, the reader
+declining to publish a table over two populations.
 
 `cabal.project.freeze` pins the resolved plan — `vector`, `criterion`, `base`
 and the rest, with an index-state — so that a recorded run's source commit and
@@ -701,7 +800,7 @@ and `read-run.py`'s docstring instead, orthotope carrying no
 
     cabal build micro
     cabal run micro -- check     # every strategy agrees, every shape regime 3
-    ./read-run.py --lint         # the roster, against this file and itself
+    ./read-run.py --lint         # the roster and the shape annotations
     ./read-run.py --check-doc    # anchors, coverage, widths, stale figures
 
 and one more that costs five minutes and is worth them, because the three
@@ -709,19 +808,21 @@ above exercise the *benchmark* while nothing exercises the *reader* until two
 hours later:
 
     cabal run micro -- cnn-slice-c32 --json smoke.json   # every arm, one shape
-    for m in --selftest --aa --shapes --markdown --cells \
-             "--pair bq-expand list" ""; do
-      ./read-run.py smoke.json $m >/dev/null || echo "BROKEN: $m"
+    cabal run micro -- classes window-28x28-k5 --json smoke-class.json
+    for f in smoke.json smoke-class.json; do
+      for m in --selftest --aa --shapes --markdown --cells \
+               "--pair bq-expand list" ""; do
+        ./read-run.py $f $m >/dev/null || echo "BROKEN: $f $m"
+      done
     done
-    rm smoke.json
-    cabal run micro -- classes window-28x28-k5 --json smoke.json
-    ./read-run.py smoke.json --selftest >/dev/null || echo "BROKEN: classes"
-    rm smoke.json
+    rm smoke.json smoke-class.json
 
 The first runs every roster arm on one shape and puts the whole analysis
 path — the correction, the controls, the table generator — through its
-paces; the second does the same for the `classes` plumbing and the
-reader's per-list shape rules, on the class whose rule is least trivial. A
+paces; the second does the same for the `classes` plumbing, the reader's
+per-list shape rules and the six-column class table, on the class whose
+rule is least trivial. Both go through every mode, because the two files
+take different paths through the reader from the population line onwards. A
 reader broken by a roster or shape-list change fails here in minutes
 instead of after the run.
 
@@ -751,11 +852,13 @@ every command alike (e.g. `--ghc-options=-fspec-constr` for that regime):
 Everything else is already a default. The allocation fit
 `--regress allocated:iters` is on (it is well-conditioned at 5s), so `alloc`
 comes out of the same process as the times rather than a side run; passing
-`--regress` explicitly would replace it. The run prints its own provenance to
-stderr as it finishes — roster size, shape count, wall clock and the two heap
-peaks — so a document quoting its scale copies a measured number rather than
-counting benches by hand, and so `micro.cabal`'s `-M2G` headroom claim has a
-current source; the stderr redirect above is what keeps it.
+`--regress` explicitly would replace it. Each process prints its own
+provenance to stderr as it finishes — roster size, shape count, wall clock and
+the two heap peaks — so a document quoting its scale copies a measured number
+rather than counting benches by hand, and so `micro.cabal`'s `-M2G` headroom
+claim has a current source; the stderr redirect above is what keeps it. In a
+class process every part of that line is its own but the shape count, which
+is fixed before criterion selects and so names the whole class set.
 
 **The time budget is always criterion's default.** Raising `-L` would buy
 samples for the slowest shapes -- they bottom out around 6 where the fastest
@@ -789,10 +892,13 @@ not a method.
   from — read [the reader's own section](#the-reader-read-runpy) first, and
   do not write another reader;
 - **one JSON at a time, never merged.** The reader takes one file, and its
-  geomean is that file's population — the main set's or one class's. The
-  class tables stand beside the main geomean, per the ruling in the
-  [TODO list](#non-urgent-todo-list), and there is no combined figure to
-  compute, so a sentence comparing populations compares their tables;
+  geomean is that file's population — the main set's or one class's. Every
+  mode names that population in its first line, `--selftest` fails a file
+  spanning two and `--markdown` declines to emit a table for one, so a merged
+  run is caught rather than published. The class tables stand beside the main
+  geomean, per [the ruling](#the-stride-classes-and-what-they-cover), and
+  there is no combined figure to compute, so a sentence comparing populations
+  compares their tables;
 - **gate on the correction, before reading anything else.** `--selftest`
   checks that the forcing term scales with `l` — one pass over the elements,
   not something whose size varies with the shape — and `--aa` prints both
@@ -802,7 +908,11 @@ not a method.
   each blind to what the others catch
   ([sum-only](#sum-only-and-the-correction-now-applied)). Any of them failing
   invalidates the whole time column rather than merely leaving it uncorrected,
-  and all have to be re-passed by every run rather than inherited;
+  and all have to be re-passed by every run rather than inherited — by every
+  *population* too, each process carrying its own `sum-only` pair, its own six
+  A/A controls and its own two `-nosum` arms, so a class run passes or fails
+  the gates on its own evidence and a failure there invalidates that class's
+  column and no other;
 - walk the list under [Provenance](#provenance) of what the new numbers
   replace, and do not trust it to be complete: re-run the two sweeps it names
   and map each hit to the bullet covering it, since running the sweeps is not
@@ -829,7 +939,17 @@ not a method.
     table. It renders the same rows the terminal does, and carries `needs`,
     `precondition` and the emphasis forward from the table already there.
     Its stderr is the whole of what is left by hand: a row new to the roster
-    comes out with `?`, a departed row is dropped with a warning;
+    comes out with `?`, a departed row is dropped with a warning. Each class
+    JSON emits its own table the same way and is pasted the same way, into
+    its block in [The stride classes, run by
+    run](#the-stride-classes-run-by-run); those come out six columns wide,
+    `needs` and `precondition` being properties of a strategy rather than of
+    a population and so stated in the main table alone;
+  - **assemble the cross-class summary last, from the tables and not from
+    the JSONs.** Every cell of it appears in one of the class tables above
+    it, so it is a transcription and is checked as one — cell against table,
+    each in turn — where recomputing it from the runs would be a second
+    derivation able to disagree with the tables it summarises;
   - **check that every `](#...)` resolves**, here and in `Main.hs`'s
     `README.md#...` references, and that every figure-bearing section is
     linked from the Provenance list. Findings rename headings, and a renamed
@@ -840,11 +960,14 @@ not a method.
     refuted it. This is the pass that keeps finding real errors;
 
   Two conventions this page holds to, both of which exist because breaking
-  them has cost something here. **A figure in prose names its run and its
-  basis, or it belongs in a table with the prose pointing at it** — a bare
-  numeral carries no provenance, and that is how one sentence came to put a
-  Failed Run 6 figure beside a Run 6 one, and another to compare a *published*
-  ratio with a *paired* one. **An anchor longer than about thirty characters
+  them has cost something here. **A figure in prose names its run, its basis
+  and its population, or it belongs in a table with the prose pointing at
+  it** — a bare numeral carries no provenance, and that is how one sentence
+  came to put a Failed Run 6 figure beside a Run 6 one, and another to compare
+  a *published* ratio with a *paired* one. The population is the newest way to
+  make that mistake and the easiest, a class figure and a main-set one being
+  the same kind of number over different shapes. **An anchor longer than about
+  thirty characters
   goes reference-style**, defined at the foot of the file: inline it overflows
   the width and the rewrapping that follows is pure churn;
 - rebuild and re-run `--lint` and `check` after editing `Main.hs`, even when
@@ -854,7 +977,11 @@ not a method.
   provenance line, which machine, **and the commit the binary was built
   from** (the JSONs do not survive, so the source is the only thing that
   makes a run reproducible even in principle — this page's figures are one
-  desktop's and are not portable, see [Provenance](#provenance));
+  desktop's and are not portable, see [Provenance](#provenance)). A class
+  process's line is measured for its elapsed time and its two heap peaks but
+  not for its shape count: that count is fixed before criterion does the
+  selecting, so it reads every class view rather than the population that
+  ran, and the population's own size comes from the reader's first line;
 - **only then** and after asking the user, delete the JSONs.
   The normal state of this directory is no run
   artifact at all, which is decided rather than an oversight; the numbers live
@@ -887,8 +1014,16 @@ script rather than starting over.
     ./read-run.py RUN.json --cells          # every cell as TSV, for the rest
     ./read-run.py RUN.json --selftest       # check the reader's own invariants
     ./read-run.py RUN.json --exclude concat-runs --exclude-shape deep-7-c512-k3
-    ./read-run.py --lint                    # Main.hs's roster, against README
+    ./read-run.py --lint                    # Main.hs's roster and shape
+                                            # annotations, against README
                                             # and against itself
+
+Every mode's first line names the run's **population** — the main set or one
+[stride class](#the-stride-classes-and-what-they-cover) — which the reader
+works out from the shape lists in `Main.hs`. It is the one property of a run
+that no column shows and every figure depends on, so `--selftest` fails a
+file spanning two populations and `--markdown` emits no table for one: a
+geomean over two of them is a statistic of neither.
 
 `--pair` compares two arms **shape by shape**, and it is the right way to
 compare any two: a strategy's ratio to `list` spans six-fold across the shape
@@ -944,6 +1079,13 @@ every control named as the reader's own control test reads it, since a
 renamed one would enter the aggregates as a strategy. An arm rostered and
 deliberately not timed is a note rather than a failure, that being the case
 of `concat-runs`.
+
+It asks a fifth about the shape lists rather than the roster: does every
+entry's `l` annotation agree with what its list's rule computes, so that a
+mistyped dimension or annotation is caught at edit time. `--selftest` had
+that oracle first and still carries it, but only for the shapes a run's JSON
+happens to hold — which for a class list is after that population's process
+has finished, hours past the point where the check is worth anything.
 
 The question it used to ask second — is every benchmarked strategy also held
 to the reference by `check`? — is gone, and deliberately. The roster and the
@@ -1087,6 +1229,14 @@ comparison that crosses runs should pin the benchmark selection along
 with the binary, and between recorded runs here the roster has rarely
 held still.
 
+**Each population measures its own floor.** The same six controls ride every
+process, so a stride-class run prices the noise of the process its own
+figures came out of — which is the only process they can be judged in — but
+it prices it over two or three cells where the main set has two dozen. Read a
+class's controls as this floor confirmed there or not, rather than as a
+threshold of that class's own, and never carry the main set's ~3% into a
+class comparison or the other way about.
+
 
 ### R2 is the ramp detector, not the noise detector
 
@@ -1118,6 +1268,12 @@ exists to remove. **Positional or strategy-intrinsic is the question to ask
 first of any suspicious cell**, and `--cells` answers it cheaply: a
 disturbance shows as a contiguous window of roster slots, a property of the
 code shows as one slot across several shapes.
+
+That second reading needs several shapes to see the slot across, which a
+[stride class](#the-stride-classes-and-what-they-cover) does not have: with
+two or three, a ramped cell is a large share of its column and only the first
+reading is available. Whether it is the shape or the strategy is then a
+question for the main set, where the same strategy has two dozen cells.
 
 
 ### sum-only, and the correction now applied
@@ -1165,6 +1321,16 @@ what the others catch:
    read would have put both on one side of it. Per-cell scatter is 4.2% and
    4.3%, worst on `stretch-square-1341` as usual.
 
+**The three gates are a population's, not a run's.** Every process carries the
+`sum-only` pair and the two `-nosum` arms, so a
+[stride class](#the-stride-classes-and-what-they-cover) measures its own term
+and re-passes all three on its own cells; the main set's term licenses
+nothing about a class's, in either direction. What a small population weakens
+is gate 2 alone: it reads the term's cost per element across the shape set,
+and a class spans a fraction of the main set's range of `l` — two shapes of
+nearly equal `l` leave it almost nothing to see. Gates 1 and 3 are as strong
+there as here, being about position and about the read.
+
 So the second of the two reasons the previous version gave for withholding the
 correction -- that the term's own accuracy was unproven -- is answered rather
 than outstanding. What backs it is a 20-minute probe of seven arms over the
@@ -1201,39 +1367,29 @@ at `-L1` the halves read 169.9 ns and 170.1 ns, 0.12% apart.
 ### Non-urgent TODO list
 
 - **The stride classes are built and smoke-verified; their recorded runs
-  remain.** `mkStrided` transposes the two innermost dims of a dense
-  array, so every stride it makes is positive, while the library's two
-  commonest regime-3 inputs are not: a broadcast is stride 0 and `rev` is
-  negative. The classes now exist — `mkRev` through `mkScaled` in
-  `Main.hs` cover rev'd (whole and partial, so all-negative and mixed-sign
-  strides), broadcast (innermost and middle axis), reshape-appended-1,
-  sliced-from-larger, windowed-overlap and no-unit-stride views — `check`
-  holds them to per-class conditions with a deliberate-breakage proof per
-  conjunct, the `classes` benchmark mode times them one population per
-  process by prefix (`classes rev-` and so on) with the default run
+  remain.** What they are, what each models and the two rulings that govern
+  how they are published are
+  [above](#the-stride-classes-and-what-they-cover). `check` holds them to
+  per-class conditions with a deliberate-breakage proof per conjunct, the
+  `classes` mode times them one population per process with the default run
   staying the main set alone, and a short smoke run over every class came
   back whole: every cell of every arm well-formed, no crash, no assert
-  failure, the reader's selftest green. What remains is the recorded
-  runs: a per-class baseline at criterion's default budget under the -O1
-  regime, and its results table here, for each class — the populations
-  then frozen through Run 8's regime flip, so regime is never confounded
-  with membership.
-  Two rulings, taken 2026-08-07 ahead of the implementation, govern those
-  runs. Each class is its own pinned population, published beside the
-  existing geomean and never folded into it: the geomean is a ranking
-  statistic over a pinned set, and a change of population moves it, as
-  the conv-set halving measured. And no strategy is excluded from any
-  class — every one is to be fixed to work on all of them, seen failing
-  first wherever the failure can be fired. The see-it-fail run found
-  nothing to fix: the Int32 strategies' partial sums are each the offset
-  of a real element, in-bounds for any valid view whatever the stride
-  signs, so the feared failure cannot fire below a 2^31-element source —
-  `int32Fits`'s own unfireable class. What mixed signs did break was the
-  packed scan's assert — a corner formula, maximal only for positive
-  strides, with no lower bound, its claimed maximum observed sitting
-  below a real entry of `revsome-mid-cnn-L2`'s own base-offsets table —
-  fixed at the builder, the numbers and the argument recorded at the
-  assert and both Int32 comment sites.
+  failure, the reader's selftest green. What remains is the measurement — a
+  per-class baseline at criterion's default budget under the -O1 regime,
+  written into [The stride classes, run by
+  run](#the-stride-classes-run-by-run), which says what each class's write-up
+  carries — the populations then frozen through Run 8's regime flip, so
+  regime is never confounded with membership.
+- **A class process's provenance line counts every class view, not the
+  population that ran.** The count is fixed before criterion does the
+  selecting, so each class process reports the whole class set's size beside
+  its own elapsed time and heap peaks, both of which are its own; the
+  write-up takes the population's size from the reader instead, which costs a
+  sentence every run. The fix would have `provenance` told what was selected,
+  and that means `Main.hs` parsing a criterion argument it currently passes
+  through untouched — a second source of truth for criterion's own matching
+  rules, wrong the moment a run reaches for `-m glob`, which is why the
+  sentence is preferred to the code.
 - **Runs never overlap in the benchmarked set.** `mkStrided`'s index map is
   a bijection onto `[0, l)`, where im2col patches — the workload this page
   opens by naming — overlap heavily and so reuse cache. The window class
@@ -1269,8 +1425,15 @@ stands unchanged. The JSON is not kept; the commit is what remains of it.
 
 -O1 is the regime a default `cabal build` of orthotope compiles under today,
 which is why the record is taken there first. Run 7 (Harness) keeps that
-regime and Run 8 (SpecConstr) follows, changing the answer for a whole class
+regime and Run 8 (SpecConstr) follows, changing the answer for a whole family
 of strategies rather than nudging it.
+
+**Run 6 is the main set alone**, no stride-class population having been
+recorded when it ran. A run that includes them is one process per population,
+so its provenance lines are one per process: the main set's at this head, each
+class's beside its own table in [The stride classes, run by
+run](#the-stride-classes-run-by-run). The regime, the machine and the commit
+are the whole run's and stay here, stated once.
 
 **Everything in this chapter is replaced by the next run.** What exactly, and
 in which other files, is [Provenance](#provenance). None of it is portable: a
@@ -1288,6 +1451,11 @@ against is [What Run 7 compares against](#what-run-7-compares-against), the
 claims to test are [the ones after it](#the-claims-run-7-should-test), the
 population and the absolute anchor are in [Provenance](#provenance), and
 nothing under ~3% is a result.
+
+**It is the main set's table**, and every column below is a statistic of that
+population: each stride class has a table of its own, on the same rows and in
+the same columns but its own basis, in [The stride classes, run by
+run](#the-stride-classes-run-by-run). No figure crosses between them.
 
 How to read the columns:
 
@@ -1448,6 +1616,11 @@ small shape, so `bq-expand` loses
 both past the floor. A run that ignored this would read a shape-set change as
 a code change.
 
+**A stride class compares against nothing yet**, Run 7 being the first
+measurement of any of them. Its tables become the yardstick Run 8 is read
+against, class by class and with no restricting to do, the populations being
+pinned across that regime flip on purpose.
+
 And because a geomean cannot say *where* it moved, these two columns per
 shape — the shipped strategy and the fastest pure one, net, against `list` —
 are kept so a future disagreement can be localised rather than only noticed:
@@ -1513,6 +1686,33 @@ SpecConstr and is Run 8's point. A break in 6 would mean something changed in
 `list` or in GHC, not in a strategy — check the anchor before anything
 else.
 
+**And for each stride class, three properties rather than claims.** None of
+the seven above transfers — they are geomeans over the main set, and a class
+is its own basis — and nothing has yet measured a class, so what follows is
+what to check on each class JSON; the first run to report turns them into
+claims with margins, stated per class beside its table:
+
+1. **`bq-expand`'s `worst` stays under 1.** The shipped fallback is never
+   slower than the `list` it replaced, on any shape of any class the library
+   can produce. This is the property the classes exist to test, no geomean can
+   state it, and a break is a finding rather than a ranking change — the one
+   result here that would bear on `Data/Array/Internal.hs` directly.
+2. **The top of the table keeps its order**: `mut-odo-vecdims` fastest,
+   `bq-scan-packed-mulback` the fastest pure arm, `bq-expand` behind both. An
+   inversion under one mechanism is the most interesting thing a class run can
+   report, and [the `sInner`
+   ruling](#per-shape-where-the-geomean-hides-the-ordering) is what it would
+   bear on.
+3. **The allocation tiers survive**: the mutable fills at about the result
+   vector, `bq-expand` at several times it, `list` at an order of magnitude
+   more. `alloc` is per call over `8*l`, and a class changes what the source
+   looks like rather than what a strategy builds per position, so a tier that
+   moves is about the class's own `m`, which its shapes give.
+
+`--pair` works within a class JSON exactly as within the main one, and is
+still the way to compare two arms; its bootstrap interval, over two or three
+shapes, is worth less there than its win count.
+
 Two notes on the columns. The `needs` column splits the class-method tier in
 two. A **new pure `Vector` method** delegates to a pure function the vector
 package already ships for every carrier -- `unfoldrExactN`, `backpermute`,
@@ -1521,9 +1721,9 @@ orthotope's pure-and-minimal API rule; the **new mutating `Vector` method**
 the direct fills need is the [mutable
 ceiling](#the-mutable-ceiling-not-taken)'s ask, which *pure* barred outright
 until the amendment there turned the bar into a weight.
-`offtab` is the class-expressible shape of these gathers -- output by plain
-`vGenerate` over a concrete offset table -- so its own cell names only its
-mutable `Int` scratch. And the geomean weights every benchmarked shape
+`offtab` is the `Vector`-class-expressible shape of these gathers -- output by
+plain `vGenerate` over a concrete offset table -- so its own cell names only
+its mutable `Int` scratch. And the geomean weights every benchmarked shape
 **equally**, so a
 figure here is a ranking statistic, not a claim about total work saved: the
 small shapes count as much as the largest.
@@ -1578,6 +1778,68 @@ small shapes count as much as the largest.
   (the cons list); the direct mutable fills ~1.0× (just the result); `list` ~28×
   (thunks). Lower allocation tracks lower time across the table. Read each as
   a median over *this* shape set, per the `alloc` column's own caveat.
+
+
+### The stride classes, run by run
+
+**No class run is recorded yet.** The populations exist, `check` holds them
+and the `classes` mode times them; what is missing is the measurement, which
+the next major run supplies as one process per class, in
+[the sequence](#making-a-major-benchmark-run). This section is where their
+results land, and it fixes the form now, so that a class is written up the way
+the main set is rather than however the session that ran it chose. The form is
+this section's own prose and is not a run's to rewrite, exactly as the column
+definitions under [Results](#results) outlive the table they explain; what a
+run replaces is everything below it. What a class *is*, and the two rulings
+that keep it a population of its own, are
+[in the goal chapter](#the-stride-classes-and-what-they-cover).
+
+First, one table over all of them, so that an inversion is visible without
+reading every class's table. Every figure in it is transcribed from a class's
+own table below — none is computed here, and none is an average across
+classes, there being no such population to average over:
+
+    | class | shapes | bq-expand | worst | fastest pure | ceiling | floor |
+
+`bq-expand` and `worst` are the shipped row's two columns in that class's
+table; *fastest pure* and *ceiling* are the leading pure and mutable arms,
+each with its name, since which arm leads is half of what the column says;
+*floor* is the largest deviation from 1 among that process's six A/A
+controls. A cell that breaks one of [the three
+properties](#the-claims-run-7-should-test) is bolded, and the class's own
+paragraph says what broke.
+
+Then one block per class, in `classViews`' order — `rev`, `revsome`, `bcast`,
+`bcastmid`, `reshape1`, `slice`, `window`, `scaled` — each carrying the same
+five things and nothing else:
+
+1. a bolded lead naming the class, the mechanism it models in a clause, and
+   its shapes with their `l` and `sInner`, which is what makes the table under
+   it readable without `Main.hs` open;
+2. the table `./read-run.py $R-$c.json --markdown` emits, pasted whole and
+   never edited — six columns, with the emphasis carried over from the main
+   table so the shipped row is found at a glance, and `needs` and
+   `precondition` left to that table as properties of a strategy rather than
+   of a population;
+3. its own controls, off `--aa`: the A/A deviations with their spans, the two
+   `sum-only` halves, and the in-situ term from the `-nosum` arms — this
+   process's own floor and its own three gates, neither inherited nor lent;
+4. its provenance and its anchor: elapsed time and the two heap peaks from
+   that process's stderr line, its population's size from the reader's first
+   line ([why not both from one place](#making-a-major-benchmark-run)), and
+   `list`'s absolute per-call time on one of its shapes, raw and net. The main
+   set's three anchors guard a baseline that moves for every population at
+   once; this one guards a baseline that could move for this mechanism alone,
+   which is the case a table of ratios hides completely;
+5. one paragraph of what the class says, and none where it says nothing: an
+   ordering that inverted, a `worst` above 1, an allocation tier that moved, a
+   mechanism showing through a single cell. A class that reproduces the main
+   ordering gets one sentence saying so, that being a result and reading as
+   one.
+
+The blocks carry no headings of their own. Eight more would crowd the contents
+and the replace list alike, where a bolded lead reads the same and lets one
+link cover the section — which is what `--check-doc`'s coverage check counts.
 
 
 ### Provenance
@@ -1636,6 +1898,10 @@ actually moved and shrinks to nothing when the two agree.
   `stretch-square-1341` for 24 of the 44 arms. That is the estimator change
   described under `time`, and it is why a Run 6 figure and a later one differ
   a median 2% for no reason in the code.
+- Run 6 measured **no stride class**, the populations not yet existing. A run
+  that includes them adds one line per class here, in this same form — that
+  class's shapes as a difference from today's list — since a population that
+  gained or lost a shape moves its own geomean and no other's.
 
 **The anchor, so a moved baseline is visible.** Every published figure is a
 ratio to `list`, so a change in `list` itself — a new compiler, a new machine,
@@ -1648,6 +1914,11 @@ all on shapes that survive:
 | `cnn-slice-c32` | 288 | 6.06 µs | 5.89 µs |
 | `cifar-L2-16-c64-k3` | 147456 | 3.68 ms | 3.59 ms |
 | `stretch-wide-2xM` | 1800000 | 37.6 ms | 36.5 ms |
+
+Each stride class carries an anchor of its own, beside its table: these three
+would not move at all if `list` changed for one mechanism only — under
+negative strides, say, or a stride-0 read — which is exactly the change a
+population of ratios cannot show.
 
 **The correction is invertible, so pre-correction figures stay comparable.**
 The forcing term is 0.587–0.608 ns per element across the whole set, median
@@ -1682,6 +1953,12 @@ for `Run 6` — before trusting the list.
 - [the opening section][opening]'s headline ratios;
 - [What the table says](#what-the-table-says), where every bullet is a run
   figure;
+- [The stride classes, run by run](#the-stride-classes-run-by-run) — the
+  summary table, and each class's own table, controls, provenance, anchor and
+  paragraph. All of that is a run's, in the way the Results table is; the
+  layout above them is not, in the way the column definitions are not. A run
+  that leaves a population out says so there, rather than leaving the previous
+  run's table standing under a new run's name;
 - [The mutable ceiling (not taken)](#the-mutable-ceiling-not-taken) and the
   shipping paragraph closing [the Lemire section][lemire]. These are
   *rulings resting on figures*, so a stale number re-opens a decision rather
@@ -1720,11 +1997,11 @@ for `Run 6` — before trusting the list.
 because a session told to make a run will reach for everything: a new
 measurement bears on figures and on rulings whose figures moved, and on
 nothing else. It does not bear on the *reasoning* behind a decision, on the
-ideas recorded as having died on paper, on the shape-set and roster rulings,
-or on the account of how the fix was found. Those change when an argument
-changes, which a run is not. If a run seems to call for rewriting one of them,
-that is a finding worth its own paragraph, not an edit to be folded in
-quietly.
+ideas recorded as having died on paper, on the shape-set, roster and
+stride-class rulings, or on the account of how the fix was found. Those
+change when an argument changes, which a run is not. If a run seems to call
+for rewriting one of them, that is a finding worth its own paragraph, not an
+edit to be folded in quietly.
 
 How a run is made, and what to record beside its numbers, is [Making a major
 benchmark run](#making-a-major-benchmark-run) — which is also where the walk
@@ -1757,12 +2034,36 @@ the restricted column:
   stated on the surviving shapes, so Run 7 can check it directly rather than
   by inference.
 
+**And its class processes answer three more**, none of which has ever been
+asked, no stride class having been timed:
+
+- **Is the shipped fallback ever slower than the `list` it replaced?**
+  `bq-expand`'s `worst` in each class table answers it outright, and a figure
+  above 1 is the one result here that would bear on
+  `Data/Array/Internal.hs` rather than on this page.
+- **Does any mechanism invert the ordering?** The strategies are ranked on
+  positive strides and a zero offset; a stride of 0, negative strides and an
+  overlapping read are three things none was tuned against. `--pair` between
+  the arms that lead a class's table settles it for that class, and [the
+  `sInner` ruling](#per-shape-where-the-geomean-hides-the-ordering) is what an
+  inversion would bear on.
+- **How pessimistic is the main set about overlapping patches?** `mkStrided`'s
+  index map is a bijection onto `[0, l)`, where the im2col patch tensor this
+  page opens by naming re-reads its source heavily and so reuses cache. The
+  window class is that workload with the overlap put back, so the distance
+  between the two tables' shipped rows is the size of the pessimism — the one
+  figure the [TODO bullet](#non-urgent-todo-list) says is missing.
+
 **Run 8 answers one**, and gives up the comparison above to do it:
 
 - **Does SpecConstr invert the scan family?** `baseOffsetsScan` boxes its
   stream state at -O1 and is predicted allocation-free at -O2, which would put
   `bq-scan-mulback` at 1.33x allocation and the fastest pure time. That is
   Run 8's whole point and nothing here has tested it.
+
+Run 8 keeps the class populations Run 7 pins, so each class's two tables are
+readable against each other exactly as the main set's are, and the regime is
+never confounded with membership.
 
 [floor]: #the-noise-floor-is-3-not-the-ci
 [lemire]: #lemire-multiplicative-inverses-at-the-two-division-sites
