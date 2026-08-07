@@ -655,11 +655,15 @@ baseOffsetsScanPacked o0 osh (Strides oats)
       -- positive-stride dims, 'minOff' the negative ones. The first draft
       -- summed every dim's top into 'maxOff' -- the maximum only for
       -- non-negative strides; on a rev'd view it lands mid-range -- and
-      -- carried no lower bound at all, which 'revShapes' is what exposed.
-      -- Flipping the new conjunct to @minOff > 0@ fails the first shape's
-      -- assert, so it is compiled in -- the proof route the size-precondition
-      -- comment near 'lemireFits' prescribes, this precondition being no
-      -- more fireable at harness scale than those.
+      -- carried no lower bound at all, which 'revShapes' is what exposed
+      -- and 'revsome-mid-cnn-L2' is what observes: there the retired
+      -- formula reads 158978 while the table's own maximum entry is
+      -- 165881 (this bound reads exactly that), so the claimed maximum
+      -- sat below a real offset. Only the CONSEQUENCE -- a 2^32 crossing
+      -- admitted -- stays unfireable at harness scale, like the size
+      -- preconditions near 'lemireFits'. Flipping the new conjunct to
+      -- @minOff > 0@ fails the first shape's assert, so it is compiled
+      -- in, by that comment's own proof route.
   | otherwise =
       assert (m <= 2147483648 && maxOff < 4294967296 && minOff >= 0)
       $ scanned [(n, st) | (n, st) <- zip osh oats, n /= 1]
@@ -2522,6 +2526,8 @@ mkBench (name, normalSh) = benchView name (mkStrided normalSh)
 -- reader never has to partition a geomean, and no class's figures owe
 -- anything to another class's leftover heap state -- the position effect
 -- the main set accepts WITHIN a pinned order, not across populations.
+-- The full sequence, which a major run includes by default:
+-- README.md#making-a-major-benchmark-run.
 classBenches :: [Benchmark]
 classBenches = [benchView n view | (n, view) <- classViews]
 

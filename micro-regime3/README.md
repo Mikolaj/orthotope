@@ -663,13 +663,20 @@ into this file is a different undertaking, and has a procedure of its own:
 ### Making a major benchmark run
 
 A *major run* is the whole roster over the whole shape set at criterion's
-default budget, analysed and written into this file. What follows is the
-procedure, and it is written to outlive any one run.
+default budget — the main set and, by default, **every stride-class
+population with it**: one process for the main set, one per class, in the
+order of the sequence below. Asking for a major run asks for all of them;
+leaving a population out is an explicit exception to be stated, not a
+choice this page leaves open. The whole is analysed and written into this
+file. What follows is the procedure, and it is written to outlive any one
+run.
 
-**Where the effort actually goes, because it is not where it looks.** The run
-is about two hours and *unattended* — it costs patience and a quiet machine,
-nothing else. Everything expensive happens after it, in the write-up, and that
-is where a session's token budget is spent and where its mistakes are made.
+**Where the effort actually goes, because it is not where it looks.** The
+run is several hours — about two for the main set and a couple more for
+the classes together — and *unattended*; it costs patience and a quiet
+machine, nothing else. Everything expensive happens after it, in the
+write-up, and that is where a session's token budget is spent and where its
+mistakes are made.
 Two consequences worth having in mind before starting. Prefer analysis that
 localises — per shape, per control — over re-quoting figures that moved a few
 percent and changed nothing; the first is where the surprises have come from
@@ -707,11 +714,16 @@ hours later:
       ./read-run.py smoke.json $m >/dev/null || echo "BROKEN: $m"
     done
     rm smoke.json
+    cabal run micro -- classes window-28x28-k5 --json smoke.json
+    ./read-run.py smoke.json --selftest >/dev/null || echo "BROKEN: classes"
+    rm smoke.json
 
-That runs every roster arm on one shape and puts the whole analysis path —
-the correction, the controls, the table generator — through its paces. A
-reader broken by a roster change fails here in five minutes instead of after
-the run.
+The first runs every roster arm on one shape and puts the whole analysis
+path — the correction, the controls, the table generator — through its
+paces; the second does the same for the `classes` plumbing and the
+reader's per-list shape rules, on the class whose rule is least trivial. A
+reader broken by a roster or shape-list change fails here in minutes
+instead of after the run.
 
 **Run every mode, not the interesting ones.** The loop above is written as a
 loop because a partial sweep has already missed a real break: after the trim
@@ -721,11 +733,20 @@ the failure lived in the two modes nobody had thought to run. Modes are cheap
 to run and expensive to be missing, and the run artifact is the only thing
 that can reproduce one, so sweep before deleting it rather than after.
 
-**The run** is one command, any build flags going before the `--`
-when requested:
+**The run** is one sequence — the main set, then each stride-class
+population in its own process, in `classViews`' order. Each `$c-` argument
+selects a class by name prefix, the prefixes being disjoint by
+construction (`bcast-` does not match `bcastmid-*`); one process per
+population is the recorded protocol at `classBenches`, so no population's
+figures owe anything to another's leftover heap state and each JSON is
+single-population by construction. Any build flags go before the `--` of
+every command alike (e.g. `--ghc-options=-fspec-constr` for that regime):
 
-    cabal run micro -- --json RUN.json > run.log 2>&1
-    cabal run micro --ghc-options=-fspec-constr -- --json RUN.json > run.log 2>&1
+    R=RUN   # one name for the run's artifacts, e.g. run7
+    cabal run micro -- --json $R-main.json > $R-main.log 2>&1
+    for c in rev revsome bcast bcastmid reshape1 slice window scaled; do
+      cabal run micro -- classes $c- --json $R-$c.json > $R-$c.log 2>&1
+    done
 
 Everything else is already a default. The allocation fit
 `--regress allocated:iters` is on (it is well-conditioned at 5s), so `alloc`
@@ -744,9 +765,10 @@ comparable between runs and the sample counts in the tables mean the same
 thing throughout. Where that leaves a shape thinly measured, the `smp` and
 `CI%` columns say so rather than the budget hiding it.
 
-Expect a couple of hours, so run it in the background — and **run nothing
-else on this machine while it does**. Every strategy shares one process
-precisely so that the figures are commensurable, and the [noise
+Expect several hours for the sequence, so run it in the background — and
+**run nothing else on this machine while it does**. Every strategy of a
+population shares that population's process precisely so its figures are
+commensurable, and the [noise
 floor](#the-noise-floor-is-3-not-the-ci) section is the measured evidence that
 they move with what shares that process. What the rest of the machine does on
 top of that is unmeasured, and a recorded run is the wrong place to find out.
@@ -766,6 +788,11 @@ not a method.
 - analyse with `./read-run.py`, which is where every table in this file comes
   from — read [the reader's own section](#the-reader-read-runpy) first, and
   do not write another reader;
+- **one JSON at a time, never merged.** The reader takes one file, and its
+  geomean is that file's population — the main set's or one class's. The
+  class tables stand beside the main geomean, per the ruling in the
+  [TODO list](#non-urgent-todo-list), and there is no combined figure to
+  compute, so a sentence comparing populations compares their tables;
 - **gate on the correction, before reading anything else.** `--selftest`
   checks that the forcing term scales with `l` — one pass over the elements,
   not something whose size varies with the shape — and `--aa` prints both
@@ -823,15 +850,15 @@ not a method.
 - rebuild and re-run `--lint` and `check` after editing `Main.hs`, even when
   only comments changed: the reader parses that file for the roster and the
   shape dims, so a comment edit can break a check that passed before it;
-- record beside the numbers the run's name and regime, its stderr provenance
-  line, which machine, **and the commit the binary was built from** (the JSON
-  does not survive, so the source is the only thing that makes a run
-  reproducible even in principle — this page's figures are one desktop's and
-  are not portable, see [Provenance](#provenance));
-- **only then** and after asking the user, delete the JSON.
+- record beside the numbers the run's name and regime, each process's stderr
+  provenance line, which machine, **and the commit the binary was built
+  from** (the JSONs do not survive, so the source is the only thing that
+  makes a run reproducible even in principle — this page's figures are one
+  desktop's and are not portable, see [Provenance](#provenance));
+- **only then** and after asking the user, delete the JSONs.
   The normal state of this directory is no run
   artifact at all, which is decided rather than an oversight; the numbers live
-  in this file and the artifact does not. But "afterwards" means after the
+  in this file and the artifacts do not. But "afterwards" means after the
   verification above is done, presented to the user and accepted,
   not after the writing: Run 6's artifact was deleted as
   soon as its write-up was drafted, which cost the ability to re-check
@@ -1173,41 +1200,47 @@ at `-L1` the halves read 169.9 ns and 170.1 ns, 0.12% apart.
 
 ### Non-urgent TODO list
 
-- **Zero and negative strides are checked, not yet benchmarked.**
-  `mkStrided` transposes the two innermost dims of a dense array, so every
-  stride it makes is positive, while the library's two commonest regime-3
-  inputs are not: a broadcast is stride 0 and `rev` is negative. Both now
-  have generator variants — `mkRev` through `mkScaled` in `Main.hs` cover
-  rev'd (whole and partial, so all-negative and mixed-sign strides),
-  broadcast (innermost and middle axis), reshape-appended-1,
-  sliced-from-larger, windowed-overlap and no-unit-stride views — which
-  `check` runs with per-class conditions, each conjunct carrying a
-  deliberate-breakage proof. The `classes` benchmark mode times them, one
-  population per process by prefix (`classes rev-` and so on), the default
-  run staying the main set alone; no class run is recorded yet, so there
-  are no class figures to publish.
-  Two rulings, taken 2026-08-07 ahead of the implementation and covering
-  every stride-class variant (the overlap item below included). Each new
-  class is its own pinned population, published beside the existing geomean
-  and never folded into it: the geomean is a ranking statistic over a pinned
-  set, and a change of population moves it, as the conv-set halving
-  measured. And no strategy is excluded from any class — every one is to be
-  fixed to work on all of them — though a fix may follow the first run: a
-  strategy expected to fail unfixed must first be seen actually failing, on
-  a shape chosen to fire the failure, before the fix lands. That run has
-  happened and nothing failed: the Int32 strategies' partial sums are each
-  the offset of a real element, in-bounds for any valid view whatever the
-  stride signs, so the feared failure cannot fire below a 2^31-element
-  source — `int32Fits`'s own unfireable class. What mixed signs did break
-  was the packed scan's assert (a corner formula, maximal only for positive
-  strides, and no lower bound); fixed at the builder, with the argument
-  restated at both Int32 comment sites.
+- **The stride classes are built and smoke-verified; their recorded runs
+  remain.** `mkStrided` transposes the two innermost dims of a dense
+  array, so every stride it makes is positive, while the library's two
+  commonest regime-3 inputs are not: a broadcast is stride 0 and `rev` is
+  negative. The classes now exist — `mkRev` through `mkScaled` in
+  `Main.hs` cover rev'd (whole and partial, so all-negative and mixed-sign
+  strides), broadcast (innermost and middle axis), reshape-appended-1,
+  sliced-from-larger, windowed-overlap and no-unit-stride views — `check`
+  holds them to per-class conditions with a deliberate-breakage proof per
+  conjunct, the `classes` benchmark mode times them one population per
+  process by prefix (`classes rev-` and so on) with the default run
+  staying the main set alone, and a short smoke run over every class came
+  back whole: every cell of every arm well-formed, no crash, no assert
+  failure, the reader's selftest green. What remains is the recorded
+  runs: a per-class baseline at criterion's default budget under the -O1
+  regime, and its results table here, for each class — the populations
+  then frozen through Run 8's regime flip, so regime is never confounded
+  with membership.
+  Two rulings, taken 2026-08-07 ahead of the implementation, govern those
+  runs. Each class is its own pinned population, published beside the
+  existing geomean and never folded into it: the geomean is a ranking
+  statistic over a pinned set, and a change of population moves it, as
+  the conv-set halving measured. And no strategy is excluded from any
+  class — every one is to be fixed to work on all of them, seen failing
+  first wherever the failure can be fired. The see-it-fail run found
+  nothing to fix: the Int32 strategies' partial sums are each the offset
+  of a real element, in-bounds for any valid view whatever the stride
+  signs, so the feared failure cannot fire below a 2^31-element source —
+  `int32Fits`'s own unfireable class. What mixed signs did break was the
+  packed scan's assert — a corner formula, maximal only for positive
+  strides, with no lower bound, its claimed maximum observed sitting
+  below a real entry of `revsome-mid-cnn-L2`'s own base-offsets table —
+  fixed at the builder, the numbers and the argument recorded at the
+  assert and both Int32 comment sites.
 - **Runs never overlap in the benchmarked set.** `mkStrided`'s index map is
   a bijection onto `[0, l)`, where im2col patches — the workload this page
   opens by naming — overlap heavily and so reuse cache. The window class
-  (`mkWindow`, check-only) now builds exactly those overlapping patch views,
-  but until it is benchmarked the figures here stay pessimistic about the
-  case they model, by an amount nothing has measured.
+  (`mkWindow`) builds exactly those overlapping patch views and the
+  `classes` mode times them, but until a window run is recorded the
+  figures here stay pessimistic about the case they model, by an amount
+  nothing has measured.
 - **The roster order biases the table, and nothing corrects for it.** The
   warm-up drift above means a strategy's figure depends on its slot, `list`
   being in the coldest one. The fixes are all real changes rather than
