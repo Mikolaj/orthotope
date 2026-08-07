@@ -1290,16 +1290,16 @@ How to read the columns:
 |---|---:|---:|---:|---:|---|---|
 | *sum-only-early* | *--* | *0.09* | *134* | *0.00x* | *the term every row has subtracted* | |
 | *sum-only-late* | *--* | *0.07* | *134* | *0.00x* | *the same, at the other end* | |
-| **mut-odo-vecdims** | **0.051** | 0.25 | 112 | 1.00x | new `Vector` method | |
+| **mut-odo-vecdims** | **0.051** | 0.25 | 112 | 1.00x | new mutating `Vector` method | |
 | *mut-odo-vecdims-aa* | *0.052* | *0.19* | *113* | *1.00x* | *A/A control* | |
-| mut-flat | 0.071 | 0.33 | 106 | 1.33x | new `Vector` method | `l < 2^32` |
+| mut-flat | 0.071 | 0.33 | 106 | 1.33x | new mutating `Vector` method | `l < 2^32` |
 | **bq-mut-runs-mulback** | **0.075** | 0.26 | 106 | 1.33x | mutable `Int` scratch | `l < 2^32` |
 | bq-mut-runs-gm-mulback | 0.087 | 0.45 | 105 | 1.34x | mutable `Int` scratch | none |
 | bq-mut-runs | 0.088 | 0.34 | 104 | 1.33x | mutable `Int` scratch | |
 | **bq-scan-packed-mulback** | **0.097** | 0.15 | 104 | 2.00x | nothing (pure) | `l`, offsets < 2^32; m <= 2^31 |
 | bq-odo-mulback | 0.104 | 0.13 | 103 | 3.45x | nothing (pure) | `l < 2^32` |
-| mut-odo | 0.107 | 0.49 | 98 | 1.00x | new `Vector` method | |
-| build | 0.108 | 0.51 | 99 | 1.00x | new `Vector` method | |
+| mut-odo | 0.107 | 0.49 | 98 | 1.00x | new mutating `Vector` method | |
+| build | 0.108 | 0.51 | 99 | 1.00x | new mutating `Vector` method | |
 | bq-scan-rem-mulback | 0.121 | 0.13 | 100 | 4.34x | nothing (pure) | `l < 2^32` |
 | bq-scan-mulback | 0.129 | 0.15 | 99 | 4.34x | nothing (pure) | `l < 2^32` |
 | bq-mut-lemire-mulback | 0.130 | 0.49 | 98 | 1.33x | mutable `Int` scratch | `l < 2^32` |
@@ -1319,17 +1319,17 @@ How to read the columns:
 | bq-expand-zf | 0.157 | 0.20 | 93 | 3.90x | nothing (pure) | |
 | bq-expand-qr-prim | 0.158 | 0.15 | 94 | 3.90x | nothing (pure) | shape well-formed |
 | offsets-quot | 0.223 | 0.51 | 87 | 6.68x | nothing (pure) | |
-| mut-offsets | 0.266 | 0.51 | 87 | 7.57x | new `Vector` method | |
-| fused | 0.300 | 0.68 | 84 | 10.68x | new `Vector` method | |
+| mut-offsets | 0.266 | 0.51 | 87 | 7.57x | new mutating `Vector` method | |
+| fused | 0.300 | 0.68 | 84 | 10.68x | new pure `Vector` method | |
 | bq-unfold | 0.310 | 0.34 | 82 | 10.23x | nothing (pure) | |
 | offtab-scan | 0.319 | 0.30 | 79 | 11.00x | nothing (pure) | `l < 2^32` (builder) |
 | bq-gen | 0.360 | 0.66 | 79 | 4.03x | nothing (pure) | |
-| all-expand | 0.409 | 0.18 | 79 | 11.58x | nothing (pure) | |
+| all-expand | 0.409 | 0.18 | 79 | 11.58x | new pure `Vector` method | |
 | bq-gen-lemire | 0.498 | 0.72 | 71 | 3.37x | nothing (pure) -- refuted | `l < 2^32` |
-| backperm | 0.522 | 0.51 | 70 | 17.06x | nothing (pure) | |
-| cm-gather | 0.663 | 0.55 | 67 | 23.58x | nothing (pure) | |
+| backperm | 0.522 | 0.51 | 70 | 17.06x | new pure `Vector` method | |
+| cm-gather | 0.663 | 0.55 | 67 | 23.58x | new pure `Vector` method | |
 | list (baseline) | 1.000 | 0.38 | 60 | 27.67x | -- | |
-| unfold-add | 1.000 | 0.39 | 59 | 29.89x | nothing (pure) | |
+| unfold-add | 1.000 | 0.39 | 59 | 29.89x | new pure `Vector` method | |
 | gen-quotrem | 1.087 | 0.75 | 54 | 13.00x | 1st attempt | |
 | gen-unsafe | 1.087 | 0.65 | 55 | 13.00x | -- | |
 
@@ -1433,13 +1433,17 @@ SpecConstr and is Run 8's point. A break in 6 would mean something changed in
 `list` or in GHC, not in a strategy — check the anchor before anything
 else.
 
-Two caveats on the columns. The `needs` tier for `backperm`, `cm-gather` and
-`all-expand` is **doubtful**: each produces its result by mapping a concrete
-`Int` vector into the abstract element type, and the class has no method for
-that (`vMap` is `v a -> v b`), so on the reasoning that re-tiered `fused` they
-may need a class method too. An equivalent `vGenerate` form exists -- that is
-`offtab`'s shape -- so the strategies are not ruled out, only the labels
-suspect. And the geomean weights every benchmarked shape **equally**, so a
+Two notes on the columns. The `needs` column splits the class-method tier in
+two. A **new pure `Vector` method** delegates to a pure function the vector
+package already ships for every carrier -- `unfoldrExactN`, `backpermute`,
+the `concatMap`/`enumFromStepN` pipeline -- so it fights only *minimal* in
+orthotope's pure-and-minimal API rule; the **new mutating `Vector` method**
+the direct fills need is the [mutable
+ceiling](#the-mutable-ceiling-not-taken)'s ask, and *pure* bars it outright.
+`offtab` is the class-expressible shape of these gathers -- output by plain
+`vGenerate` over a concrete offset table -- so its own cell names only its
+mutable `Int` scratch. And the geomean weights every benchmarked shape
+**equally**, so a
 figure here is a ranking statistic, not a claim about total work saved: the
 small shapes count as much as the largest.
 

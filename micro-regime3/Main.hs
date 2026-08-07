@@ -708,6 +708,9 @@ fbGenUnsafe sh (T ats ao v) =
 -- no division, but an immutable list state rebuilt each step. It is an
 -- allocating proxy for the truly fused, allocation-free form, which is
 -- 'fbFused' below (README.md#the-reader-read-runpy).
+-- 'VS.unfoldrExactN' is no method of orthotope's class, so this strategy
+-- and 'fbFused' sit in the needs column's new-PURE-method tier: the method
+-- is one delegation per instance to a pure builder vector already ships.
 {-# NOINLINE fbUnfoldAdd #-}
 fbUnfoldAdd :: ShapeL -> T -> VS.Vector Double
 fbUnfoldAdd sh (T ats ao v) =
@@ -1298,7 +1301,9 @@ strideOffsets o0 sh0 ats0 = go o0 sh0 ats0
 -- Build the whole offset vector with the all-'Vector'
 -- 'strideOffsets', then gather through 'unsafeBackpermute' (vector's
 -- tight, fused indexing loop). Two passes over @l@ and an extra
--- 'Int'-vector, but every step is a plain memory read.
+-- 'Int'-vector, but every step is a plain memory read. Orthotope's class
+-- has no backpermute, so the README's needs column puts this in the
+-- new-pure-method tier: 'vBackpermute', one delegation per instance.
 {-# NOINLINE fbBackperm #-}
 fbBackperm :: ShapeL -> T -> VS.Vector Double
 fbBackperm sh (T ats ao v) = VS.unsafeBackpermute v (strideOffsets ao sh ats)
@@ -1310,6 +1315,11 @@ fbBackperm sh (T ats ao v) = VS.unsafeBackpermute v (strideOffsets ao sh ats)
 -- @map f (concatMap g x)@ into one stream, so there is no quotRem anywhere
 -- and no full l-length offset table -- only the m-length base-offsets
 -- materialise.
+-- That fused pipeline is what the class cannot express: not for 'vMap''s
+-- shape -- @v Int -> v Double@ is fine on every instance -- but because
+-- 'concatMap' and 'enumFromStepN' are no methods of it, and the concrete
+-- scratch they build here cannot feed a @v@-typed map. Hence the
+-- new-pure-method tier: each is a one-line delegation, several of them.
 {-# NOINLINE fbCMGather #-}
 fbCMGather :: ShapeL -> T -> VS.Vector Double
 fbCMGather sh (T ats ao v) =
@@ -1322,6 +1332,7 @@ fbCMGather sh (T ats ao v) =
 -- The whole offset grid over ALL dims via 'baseOffsetsExpand', then
 -- one gather. Materialises the full l-length offset table (foldl' forces
 -- each level), so it prices what 'fbCMGather''s fused inner run avoids.
+-- Same new-pure-method tier as 'fbCMGather', for the same reason.
 {-# NOINLINE fbAllExpand #-}
 fbAllExpand :: ShapeL -> T -> VS.Vector Double
 fbAllExpand sh (T ats ao v) =
