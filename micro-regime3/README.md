@@ -28,7 +28,8 @@ further: `mut-odo` is 1.45× over `bq-expand`, and `mut-odo-vecdims` — the sam
 fill with its dimension lists replaced by unboxed vectors — is **3.03×**, the
 fastest strategy measured here. Both need a new `Vector`-class method, which
 was measured and deliberately **not** taken, to keep orthotope's `Vector` API
-pure and minimal ([below](#the-mutable-ceiling-not-taken)).
+pure and minimal — a bar an in-tree precedent has since softened to a weight
+([below](#the-mutable-ceiling-not-taken), amended).
 
 Several strategies measured since are faster than what shipped and need no
 class method. The fastest pure one is **`bq-scan-packed-mulback`**, 0.097
@@ -253,7 +254,8 @@ nowhere near enough to reverse it. Why the low half must not be recomputed is
 recorded as a comment on `fastQR`, so the loose form is not written again.
 
 **On shipping it.** `bq-expand-lemire-out` is pure, so the argument that kept
-`mut-odo` out does not apply; what it costs is `MagicHash` and `UnboxedTuples`
+`mut-odo` out (a bar then, a weight since the mutable ceiling's amendment)
+does not apply; what it costs is `MagicHash` and `UnboxedTuples`
 in `Data/Array/Internal.hs`, about a dozen lines of helper, and a
 precondition. The precondition is the substantive part: Lemire's identity
 holds for `d, n < 2^32`, and `n` here is the linear output index, so a shipped
@@ -386,7 +388,8 @@ numbers it is no longer the cheap way to most of the gain.
 
 The catch is the API: a buffer filled across runs cannot be expressed by
 the per-element `vGenerate`; it needs a new `Vector`-class method exposing
-a fill. `build` prices exactly that — `mut-odo` driven through `vBuildVS`, a
+a fill (or the `Storable`-only `unsafeCast` escape the amendment below
+records). `build` prices exactly that — `mut-odo` driven through `vBuildVS`, a
 prototype of
 
     vBuild :: Int -> (forall s. (Int -> a -> ST s ()) -> ST s ()) -> v a
@@ -397,11 +400,12 @@ strided-gather method taking the shape/stride/source and hiding the
 mutation inside each instance, as `vGenerate` already does) would keep the
 speed without `ST` in the signature.
 
-This was **deliberately not taken.** Orthotope keeps its `Vector` API pure
-and minimal, and the gain over `bq-expand` (pure-Haskell either way, so
+This was **deliberately not taken.** Orthotope's `Vector` API was to stay
+pure and minimal, and the gain over `bq-expand` (pure-Haskell either way, so
 [the C-gap](#the-c-gap-still-a-deeper-ceiling) bounds both) did not justify
 a new class method across all four instances. The strategies stay here as
-the measured evidence for that ruling, so it is not re-proposed.
+the measured evidence for that ruling — since amended below: the evidence
+now prices the option instead of closing it.
 Run 6 raises the stake again rather than settling it: `mut-odo-vecdims` shows
 the fill's real cost was the odometer's cons-list traffic, not the fill
 itself, taking the class-method tier to 3.03× over `bq-expand`, where Failed
@@ -409,6 +413,21 @@ Run 6 read 2.4× and the run before it ~1.4×. Against that, the best pure
 strategy now reaches 0.097, so the gap the class method would buy is 1.89×,
 not 3.03× — the figure the ruling turns on, and the one that has grown each
 run.
+
+**Amended 2026-08-07: the bar is now a weight.** The tree itself carries a
+precedent this section did not weigh: `Data/Array/Internal/FastReshape.hs`,
+a `runST` flattener over this same fallback territory — structurally
+`mut-odo`, an allocate-once mutable result filled through an outer odometer
+recursion with a per-element strided inner copy loop, its outer offsets
+stepped additively where `mut-odo` multiplies — which sidesteps the `Vector`
+class altogether by `unsafeCast` to `Double`/`Float` on element size. So
+neither mutability nor needing a new class method *disqualifies* a strategy
+any longer. What keeps both as weights against one is that FastReshape.hs is
+not in use — absent from the cabal file, and still declaring its source
+project's module name and imports (`CoreCompiler.ArrayReshape`;
+`Utils.Misc`, `CoreCompiler.Error`), so it does not even compile in place: precedent for writing
+such a module, not for shipping one. A mutable or class-method strategy is
+now priced against that weight rather than refused at the door.
 
 
 ### The C-gap: still a deeper ceiling
@@ -448,8 +467,9 @@ Ideas that **died on paper**, recorded so they are not re-proposed:
   the table at `q = i div sInner`, which ascends monotonically, so the two
   passes could stream in lockstep; but the callback would then carry
   odometer state, and a stateful fill is exactly what the mutable ceiling's
-  class extension exists to provide. The table exists because `vGenerate`
-  is stateless.
+  class extension exists to provide — so since that ceiling's amendment
+  this idea is priced with it, not dead outright. The table exists because
+  `vGenerate` is stateless.
 - **Caching the table across calls** (horde-ad normalizes the same shapes
   over and over) — `toVectorListT` is a pure per-array function with
   nowhere to keep a cache.
@@ -1439,7 +1459,8 @@ package already ships for every carrier -- `unfoldrExactN`, `backpermute`,
 the `concatMap`/`enumFromStepN` pipeline -- so it fights only *minimal* in
 orthotope's pure-and-minimal API rule; the **new mutating `Vector` method**
 the direct fills need is the [mutable
-ceiling](#the-mutable-ceiling-not-taken)'s ask, and *pure* bars it outright.
+ceiling](#the-mutable-ceiling-not-taken)'s ask, which *pure* barred outright
+until the amendment there turned the bar into a weight.
 `offtab` is the class-expressible shape of these gathers -- output by plain
 `vGenerate` over a concrete offset table -- so its own cell names only its
 mutable `Int` scratch. And the geomean weights every benchmarked shape
@@ -1628,11 +1649,12 @@ for `Run 6` — before trusting the list.
 - `read-run.py`'s docstring, whose `time`, `corr` and `net` definitions and
   A/A paragraph quote the run;
 - `micro.cabal`'s `-M2G` note, if the printed heap peaks have moved;
-- `Main.hs`, wherever a comment cites a figure — `roster`, `expandCost`,
-  `baseOffsetsScan`, `fbFused`, `fbOffTab32`, `fbOffTabScan`,
-  `fbBQscanMulback`, `fbBQscanRemGmMulback`, `fbBQmutRunsGmMulback`,
-  `fbMutOdoVecdims`. `concat-runs`' figure there is Failed Run 6's and stays,
-  the bench being untimed since, so no run replaces it.
+- `Main.hs`, wherever a comment cites a figure — `roster`,
+  `baseOffsetsScan`, `baseOffsetsScanPacked`, `fbGenUnsafe`, `fbFused`,
+  `fbOffTab32`, `fbOffTabScan`, `fbBQscanMulback`, `fbBQscanRemGmMulback`,
+  `fbBQmutRunsGmMulback`, `fbMutOdoVecdims`. `concat-runs`' figure there is
+  Failed Run 6's and stays, the bench being untimed since, so no run
+  replaces it.
 
 **And what a run does not touch.** The converse of that list is worth stating,
 because a session told to make a run will reach for everything: a new
