@@ -842,7 +842,7 @@ def aa_table(cells, shapes, strategies, terms, meta):
         print('halves cannot test about it: a ratio of 1 here says the two')
         print('reads cost the same and the subtracted term is unbiased.')
 
-    # 1.5.4: the pairs whose true ratio is exactly 1 are the only place the
+    # The pairs whose true ratio is exactly 1 are the only place the
     # computed interval can be held to an answer, so they are what says
     # whether it may be believed.
     known = [c for c in calib if not c[0].startswith('sum-only')]
@@ -943,6 +943,11 @@ COMPARATIVE_RE = [re.compile(p, re.I) for p in (
     r'against its (?:published|own) \d', r'\(was \d',
     r'used to (?:say|call|read|be)', r'once said', r'earlier version')]
 
+# An absolute millisecond figure is foreign here -- a run's own figures are
+# ratios -- so it was measured in another repo and no run here replaces it.
+# Like the sweep above, listed for judging: check it against its source.
+MS_RE = re.compile(r'\b\d+(?:\.\d+)?\s*ms\b')
+
 
 def headings_of(text):
     """Every heading and the anchor GitHub gives it."""
@@ -956,10 +961,10 @@ def headings_of(text):
 def check_doc(readme, main_hs):
     """The mechanical half of verifying the write-up, as one command.
 
-    Four checks that used to be four throwaway scripts, rewritten from memory
+    Checks that used to be as many throwaway scripts, rewritten from memory
     each run and deleted after -- which is how a heading rename came to be
     verified by something that no longer existed. Anchors and coverage FAIL;
-    the two sweeps only list, because what they find needs judging.
+    the sweeps only list, because what they find needs judging.
 
     Non-vacuity, each confirmed by breaking it: renaming a heading fails the
     anchor check and names the dead link; deleting a bullet from the replace
@@ -969,7 +974,13 @@ def check_doc(readme, main_hs):
     nothing. The second of those took two attempts -- the first edited a
     string the list no longer contained, so the break itself did nothing and
     the check was credited with a pass it had not earned. Verify that a
-    deliberate break landed before believing what it proves.
+    deliberate break landed before believing what it proves. The ms sweep's
+    break: `9.9 ms` appended to a prose, a table and an indented code line
+    was listed for the prose line alone, the other two exempt as meant. The
+    script's own anchor scan: appending a bogus README anchor
+    (`no-such-anchor`) here failed the run and named this file -- and so did
+    this sentence's first draft, which spelled the anchor out in the very
+    form the scan reads.
     """
     try:
         doc = open(readme).read()
@@ -991,10 +1002,14 @@ def check_doc(readme, main_hs):
              if u not in refs and not re.search(r'^\[%s\]:' % u, doc, re.M)]
     dead += ['Main.hs -> ' + m for m in re.findall(r'README\.md#([a-z0-9-]+)',
                                                    main) if m not in anchors]
+    me = open(os.path.abspath(__file__)).read()
+    dead += ['read-run.py -> ' + m
+             for m in re.findall(r'README\.md#([a-z0-9-]+)', me)
+             if m not in anchors]
     if dead:
         bad.append('%d dead anchor(s): %s' % (len(dead), ', '.join(dead)))
     else:
-        note.append('every anchor resolves, in %s and in %s'
+        note.append('every anchor resolves, in %s, in %s and in this script'
                     % (os.path.basename(readme), os.path.basename(main_hs)))
 
     # Which section each line sits in, for both the coverage check and the
@@ -1061,6 +1076,10 @@ def check_doc(readme, main_hs):
     comparatives = [(i, l.strip()) for i, l in enumerate(lines, 1)
                     if not l.lstrip().startswith('|')
                     and any(p.search(l) for p in COMPARATIVE_RE)]
+    foreign = [(i, l.strip()) for i, l in enumerate(lines, 1)
+               if not l.lstrip().startswith('|')
+               and not l.startswith('    ')
+               and MS_RE.search(l)]
 
     for line in note:
         print('ok:   ' + line)
@@ -1069,6 +1088,12 @@ def check_doc(readme, main_hs):
               ' place by the redo test, so adjudicate rather than assume:'
               % len(comparatives))
         for i, l in comparatives:
+            print('        %d: %s' % (i, l[:66]))
+    if foreign:
+        print('note: %d absolute ms figure(s) quoted; no run here replaces'
+              ' them, so check each against the repo it came from:'
+              % len(foreign))
+        for i, l in foreign:
             print('        %d: %s' % (i, l[:66]))
     for line in bad:
         print('FAIL: ' + line)
@@ -1093,7 +1118,10 @@ def lint(main_hs, readme):
     rostered check, pointing a `-aa` arm at another function fails the twin
     check, renaming a `Twin` arm to drop its `-aa` fails both the twin and
     the control-naming ones, and a second `Base` entry fails the reference
-    check. Each names the arm at fault rather than only the count.
+    check. Each names the arm at fault rather than only the count. The
+    README check reads names as delimited tokens: against a scratch README
+    saying only `mut-odo-vecdims`, a rostered `mut-odo` fails, where
+    substring containment had passed it.
     """
     try:
         main = open(main_hs).read()
@@ -1115,7 +1143,11 @@ def lint(main_hs, readme):
     forces = [(n, f) for n, r, f in roster if r == 'Force']
 
     bad = []
-    undocumented = [n for n in names if n not in doc]
+    # As a delimited token, not a substring: `mut-odo` inside
+    # `mut-odo-vecdims` documents only the longer name.
+    undocumented = [n for n in names
+                    if not re.search(r'(?<![\w-])%s(?![\w-])' % re.escape(n),
+                                     doc)]
     if undocumented:
         bad.append('%d roster arm(s) named nowhere in README: %s'
                    % (len(undocumented), ', '.join(undocumented)))
@@ -1379,7 +1411,7 @@ def main():
     here = os.path.dirname(os.path.abspath(__file__))
     p = argparse.ArgumentParser(description=__doc__.split('\n')[0])
     p.add_argument('run', nargs='?', help='criterion --json output'
-                   ' (not needed by --lint)')
+                   ' (not needed by --lint or --check-doc)')
     p.add_argument('--main', default=os.path.join(here, 'Main.hs'),
                    help='Main.hs to read shape sizes from'
                         ' (default: alongside)')
@@ -1407,7 +1439,8 @@ def main():
     if args.lint:
         sys.exit(lint(args.main, args.readme))
     if args.run is None:
-        p.error('a run file is required for everything but --lint')
+        p.error('a run file is required for everything but --lint and'
+                ' --check-doc')
     if not os.path.exists(args.run):
         sys.stderr.write('%s: no such run file; the analysis did not happen\n'
                          % args.run)

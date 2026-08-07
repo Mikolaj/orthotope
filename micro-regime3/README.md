@@ -24,7 +24,7 @@ beats the original `list` fallback on every benchmarked shape with no
 regression and needs no extension to orthotope classes.
 
 A direct mutable result buffer is faster still, and Run 6 (-O1) widens the gap
-further: `mut-odo` is 1.46× over `bq-expand`, and `mut-odo-vecdims` — the same
+further: `mut-odo` is 1.45× over `bq-expand`, and `mut-odo-vecdims` — the same
 fill with its dimension lists replaced by unboxed vectors — is **3.03×**, the
 fastest strategy measured here. Both need a new `Vector`-class method, which
 was measured and deliberately **not** taken, to keep orthotope's `Vector` API
@@ -32,8 +32,8 @@ pure and minimal ([below](#the-mutable-ceiling-not-taken)).
 
 Several strategies measured since are faster than what shipped and need no
 class method. The fastest pure one is **`bq-scan-packed-mulback`**, 0.097
-against `bq-expand`'s 0.155; the fastest carrying **no size precondition at
-all** is `bq-scan-rem-gm-mulback` at 0.132. None is what
+against `bq-expand`'s 0.155; the fastest pure one carrying **no size
+precondition at all** is `bq-scan-rem-gm-mulback` at 0.132. None is what
 `Data/Array/Internal.hs` does today, and the trade-offs — preconditions,
 allocation, and a noise floor of about 3% — are in [Results](#results) and in
 [the Lemire section](#lemire-multiplicative-inverses-at-the-two-division-sites).
@@ -159,8 +159,10 @@ controls, which calibrate every other figure and were the roster's scarce
 resource. The ruling and the full reasoning sit at `convShapes` in `Main.hs`,
 beside the list, along with the two shapes that must survive any later cut
 for a reason unrelated to their workload: `gather48-src-50` and `conv1d-24`
-are the only ones whose two innermost listed dims differ, which is what keeps
-`check`'s `sInner` assertion from passing vacuously.
+are the only conv shapes whose two innermost listed dims differ, and the
+first in run order to exercise `check`'s `sInner` assertion — several
+`stretch-*` shapes differ too, so the assertion survives without them; what
+would not is the conv set's own coverage of it.
 
 
 ### Dropping the minibatch dimension
@@ -279,8 +281,8 @@ forcing pass like the rest of the page:
 | tall-Mx2   |     0.076 |       0.076 |      0.061 |   0.020 |   0.025 |
 
 Ordered by `sInner`, 1 at the top and half the length at the bottom, which is
-the axis the orderings turn on; the fuller per-shape record is
-[above](#what-run-7-compares-against).
+the axis the orderings turn on; the fuller per-shape record is in
+[What Run 7 compares against](#what-run-7-compares-against).
 
 - **Which strategy wins is decided by the innermost extent (the size of the
   innermost dimension, `sInner` below) — not by the rank, not by the element
@@ -309,7 +311,7 @@ the axis the orderings turn on; the fuller per-shape record is
   digit only.** Independent runs of these shapes agree within 1–5% on most
   cells but differ by up to 27% on `stretch-inner1/bq-expand-b` — runs
   whose rosters also differed, making the
-  [roster effect above][floor] a candidate cause — and the order of
+  [roster effect][floor] a candidate cause — and the order of
   `bq-expand{,-b,-zf}` within their sweep of `stretch-inner1` flips between
   runs. The sweep itself reproduces; which of the three leads does not.
   `stretch-square-1341` is this run's standing warning on the point: it is
@@ -414,11 +416,13 @@ run.
 **Everything in this document lives under this ceiling.** Every strategy in
 the table, every ruling resting on one, and every margin the ~3% floor
 adjudicates are rearrangements *within* pure Haskell — and no pure-Haskell
-strategy closes the gap to the stride-aware C kernels, roughly an order of
-magnitude on comparable traffic: horde-ad's concrete *scatter* routes through
-them and runs the analogous chain in ~0.5 ms where the fastest gather strategy
-here is several ms. The table spans a range narrower than the step it does not
-take, so read this section before the Results one.
+strategy closes the gap to the stride-aware C kernels. Measured on the
+analogous chain (horde-ad's interleaved A/B of 2026-07-31, recorded in that
+repo): concrete *scatter*, which routes through them, runs it in ~0.5 ms,
+and the gather over this branch's fix takes 2.55× that in its natural
+orientation, 1.32× in its fastest — a 1.3–2.6× gap, down from the order of
+magnitude the released fallback showed. What a C strided copy would leave
+of it is unmeasured.
 
 Regime 3 has no contiguous runs to hand a bulk kernel, so the transfer stays
 per-element in Haskell however the fallback is written. Closing it needs C.
@@ -553,8 +557,8 @@ also the order to read them in:
   `bq-expand32-lemire-mulback`, `bq-mut-lemire-out`, `bq-mut-lemire-mulback`,
   `bq-mut-runs-mulback`, `bq-mut-runs-gm-mulback`, `bq-scan-mulback`,
   `bq-scan-rem-mulback`, `bq-scan-gm-mulback`, `bq-scan-rem-gm-mulback`
-  (the one composition with no size precondition anywhere), `bq-odo-mulback`
-  and `bq-scan-packed-mulback`.
+  (the one pure composition with no size precondition anywhere),
+  `bq-odo-mulback` and `bq-scan-packed-mulback`.
 - **Whole-offset and alternative gathers**, which build an `l`-length offset
   vector rather than an `m`-length one: `backperm`, `cm-gather`, `all-expand`,
   `offtab`, `offtab32`, `offtab-scan`.
@@ -565,7 +569,7 @@ also the order to read them in:
 
 The order they are *run* in is deliberately a different one, fixed by `roster`
 in `Main.hs`; the Results table below is sorted by time, a third. Sharing that
-roster with the strategies, and not strategies themselves, are nine controls:
+roster with the strategies, and not strategies themselves, are ten controls:
 six A/A arms — `bq-expand-aa-adjacent` and `bq-expand-aa-distant`,
 `bq-scan-mulback-aa-adjacent` and `bq-scan-mulback-aa-distant`,
 `mut-odo-vecdims-aa` and `mut-odo-vecdims-aa-distant`, three strategies each
@@ -598,7 +602,7 @@ ratio to `list`, which runs first, so an aftermath outliving one bench would
 tilt the group rather than cancel. The probes found nothing — its successor
 timed the same after it as after a benign predecessor, and of the three A/A
 pairs the one straddling it agreed best. What stays unprobed is the [roster
-effect][floor], worth 20% in horde-ad's `ConvVjpBench` and persisting for a
+effect][floor], worth ~18% in horde-ad's `ConvVjpBench` and persisting for a
 whole run rather than one bench: unretired rather than absent, since that case
 ran benchmarks of a different scale, which may be why it has not shown up here
 — a guess with no measurement behind it.
@@ -1027,7 +1031,7 @@ computed bound.
 
 The floor above is also measured within one roster, and the roster is a
 variable of its own: RTS pool state a predecessor leaves in the process
-moved a horde-ad benchmark 20% ([the full account][pos-effect] -- which
+moved a horde-ad benchmark ~18% ([the full account][pos-effect] -- which
 includes this suite's own floor measured isolated against in-process, on
 both harness generations). Every strategy sharing one process is what
 protects the tables above, ratios cancelling the shared process draw; a
@@ -1172,13 +1176,6 @@ at `-L1` the halves read 169.9 ns and 170.1 ns, 0.12% apart.
   using the fixed-iteration differencing the horde-ad performance model
   prescribes (`-n 200` minus `-n 100`, fresh processes) rather than criterion,
   since the builders are not benchmarks.
-
-[floor]: #the-noise-floor-is-3-not-the-ci
-[lemire]: #lemire-multiplicative-inverses-at-the-two-division-sites
-[opening]: #regime-3-micro-benchmark-the-fix-bq-expand
-[pershape]: #per-shape-where-the-geomean-hides-the-ordering
-[ramp]: #r2-is-the-ramp-detector-not-the-noise-detector
-[pos-effect]: https://github.com/Mikolaj/horde-ad/blob/master/docs/position-effect.md
 
 ## About the last run (Run 6)
 
@@ -1424,9 +1421,10 @@ restricted basis above with a margin past the floor, the one tie marked:
    ordering, ending in Lemire losing at the build site.
 6. `cm-gather` < `list` < `gen-quotrem`: the first attempt is still slower
    than the fallback it replaced, which is the whole reason this suite exists.
-7. Allocation, median multiples of the result: mutable fills 1.00x, `bq-mut`
-   1.33x, `offtab` and `bq-scan-packed-mulback` 2.00x, `bq-expand` 3.33x,
-   `gen-quotrem` 13.0x, `list` 27.0x.
+7. Allocation, median multiples of the result on the restricted basis, so
+   not the published column's: mutable fills 1.00x, `bq-mut` 1.33x, `offtab`
+   and `bq-scan-packed-mulback` 2.00x, `bq-expand` 3.33x, `gen-quotrem`
+   13.0x, `list` 27.0x.
 
 Each is `./read-run.py RUN.json --pair A B`, which gives the paired geomean,
 an interval and a sign test in one line — so a run reports which claims held
@@ -1443,18 +1441,15 @@ may need a class method too. An equivalent `vGenerate` form exists -- that is
 `offtab`'s shape -- so the strategies are not ruled out, only the labels
 suspect. And the geomean weights every benchmarked shape **equally**, so a
 figure here is a ranking statistic, not a claim about total work saved: the
-small shapes count as much as the 4M-element ones.
+small shapes count as much as the largest.
 
 
 ### What the table says
 
-- **The output method: a single in-order `vGenerate` wins.** Every
-  run base-offsets-family strategy (`bq-*`, `offsets-quot`) uses it —
-  `bq-expand-lemire-out` changes what the division is, not the `vGenerate` —
-  and lands ahead of the fancier gathers: `fused`'s `unfoldrExactN`,
-  `backperm`, `cm-gather` and `all-expand`, whose figures are in the table
-  above rather than repeated here, four of them having drifted while they
-  were.
+- **The output method: a single in-order `vGenerate` wins.** Every pure
+  strategy ahead of `fused` (0.300) in the table above uses it, and the
+  three `bq-*` arms behind `fused` — `bq-unfold`, `bq-gen` and
+  `bq-gen-lemire` — lose on their table build, not their output.
   A single in-order `vGenerate` fuses tighter than a stepped `unfoldrExactN`
   state or a two-pass build-then-gather.
 - **The base-offsets build decides within that family, and `concatMap` wins the
@@ -1610,6 +1605,9 @@ for `Run 6` — before trusting the list.
   when the correction landed: none changed direction, but magnitudes moved by
   up to +31%, because subtracting a shared term inflates a ratio the more the
   arms it compares are fast. Requote from the run; do not carry forward;
+- [The C-gap](#the-c-gap-still-a-deeper-ceiling), whose figures are
+  horde-ad's, not a run's: no run here replaces them, and they move when
+  that repo re-measures — so the walk checks their currency instead;
 - [sum-only](#sum-only-and-the-correction-now-applied), where what a run
   decides is no longer *whether* to correct but whether the term still passes
   its three gates, any failure invalidating the column rather than informing
@@ -1669,8 +1667,9 @@ the restricted column:
   geomean is already measured, from Run 6's own cells: `bq-expand` reads 6.5%
   lower over the surviving shapes, the dropped eleven skewing small. What is
   not measured is whether any *ordering* moves with it — which is why the
-  restricted column and the claims below are both stated on the surviving
-  shapes, so Run 7 can check it directly rather than by inference.
+  restricted column and [the claims](#the-claims-run-7-should-test) are both
+  stated on the surviving shapes, so Run 7 can check it directly rather than
+  by inference.
 
 **Run 8 answers one**, and gives up the comparison above to do it:
 
@@ -1678,3 +1677,10 @@ the restricted column:
   stream state at -O1 and is predicted allocation-free at -O2, which would put
   `bq-scan-mulback` at 1.33x allocation and the fastest pure time. That is
   Run 8's whole point and nothing here has tested it.
+
+[floor]: #the-noise-floor-is-3-not-the-ci
+[lemire]: #lemire-multiplicative-inverses-at-the-two-division-sites
+[opening]: #regime-3-micro-benchmark-the-fix-bq-expand
+[pershape]: #per-shape-where-the-geomean-hides-the-ordering
+[ramp]: #r2-is-the-ramp-detector-not-the-noise-detector
+[pos-effect]: https://github.com/Mikolaj/horde-ad/blob/master/docs/position-effect.md

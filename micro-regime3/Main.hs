@@ -105,7 +105,7 @@ toListT sh (T ss0 o0 v) = build $ \cons nil ->
 -- so bounding @l@ bounds both.
 {-# INLINE lemireFits #-}
 lemireFits :: Int -> Bool
-lemireFits l = l <= 4294967296  -- 2^32
+lemireFits l = l < 4294967296  -- 2^32
 
 -- An Int32 offset table needs every offset it stores to fit. Offsets are
 -- indices into the source vector, so its length bounds them; Int32 is signed,
@@ -184,12 +184,13 @@ fastQR (W# m) d (I# n) = case timesWord2# m (int2Word# n) of
 -- orthotope's own test suite is where it goes; QuickCheck over the whole
 -- Int range costs nothing and covers what no benchmarked shape reaches.
 --
--- This helper's lazy result tuple was a bug: forcing it moved both
--- Granlund-Montgomery arms, as the analogous strictness fixes moved
--- 'fbBQscanPackedMulback' and 'fbFused'. Those four rows are therefore not
--- comparable to any run before Failed Run 6 -- a CODE change, where the shape
--- set and roster deltas README records are population changes, and the two
--- want telling apart when an old figure looks wrong.
+-- This helper's lazy result tuple was a bug: forcing it moved the
+-- Granlund-Montgomery arms rostered at the time, as the analogous
+-- strictness fixes moved 'fbBQscanPackedMulback' and 'fbFused'. Those rows
+-- are therefore not comparable to any run before Failed Run 6 -- a CODE
+-- change, where the shape set and roster deltas README records are
+-- population changes, and the two want telling apart when an old figure
+-- looks wrong.
 {-# INLINE gmMagic #-}
 gmMagic :: Int -> (Word, Int)
 gmMagic d
@@ -469,12 +470,14 @@ baseOffsetsExpand32 o0 osh oats =
 -- method: the table is concrete index scratch, as the shipped
 -- 'baseOffsetsExpand' one already is. Orthotope's library carries no mutable
 -- code, so that is the difference between a shipping candidate and a mere
--- bound on what purity costs. 'fbOffTab' is the fastest strategy needing no
--- new class method, and the fastest pure strategy is well behind it, so if
--- 'fbOffTabScan' holds its control then the pure frontier moves further than
--- every Lemire substitution here moved it -- and two rows of the README's
--- @needs@ column become "nothing (pure)". Figures stay in README.md, as
--- everywhere else in this file.
+-- bound on what purity costs. When this was written 'fbOffTab' was the
+-- fastest strategy needing no new class method and the fastest pure strategy
+-- was well behind it; Run 6 (-O1) reordered both ends -- the scan consumers'
+-- rows now carry "nothing (pure)" in README's @needs@ column,
+-- 'fbBQscanMulback' runs ahead of 'fbOffTab', and 'fbOffTabScan' lost its
+-- control, with the figures at its own comment -- so what this paragraph
+-- still carries is the tier argument, not any ordering.
+-- Figures stay in README.md, as everywhere else in this file.
 --
 -- The @m == 0@ guard keeps the LENGTH CONTRACT, and that alone. A zero
 -- dimension passes the unit-dim filter (@n /= 1@ keeps 0); without the guard
@@ -609,9 +612,7 @@ baseOffsetsOdo o0 osh oats
 -- already in: 16 bytes per entry against the scan's 72 -- the state
 -- boxing is gone, confirming the law's constructive half for the state,
 -- but one boxed Int per step survives in 'VS.unfoldrExactN''s emit pair,
--- which no state shape can reach. So the strategy is expected near 2.0x
--- allocation at -O1, between the scan's 4.34x and the 1.33x that a fully
--- unboxed emit would have given. Preconditions of the
+-- which no state shape can reach. Preconditions of the
 -- packing, asserted: offsets below 2^32 (their field), m at most 2^31
 -- (the index field), on top of the mulhi test's own bound -- and the
 -- offset-bound arithmetic assumes non-negative strides. True of every
@@ -622,7 +623,7 @@ baseOffsetsOdo o0 osh oats
 baseOffsetsScanPacked :: Int -> [Int] -> [Int] -> VS.Vector Int
 baseOffsetsScanPacked o0 osh oats
   | m == 0 = VS.empty
-      -- Strict bounds, unlike 'lemireFits': an offset of exactly 2^32 would
+      -- Strict bounds of their own: an offset of exactly 2^32 would
       -- mask to 0 in the low field, and m <= 2^31 keeps every EMITTED index
       -- out of the sign bit (the discarded final successor may set it;
       -- nothing reads it). lemireFits m for the mulhi test is implied.
@@ -1028,7 +1029,7 @@ fbBQexpand32LemireMulback sh (T ats ao v)
 -- 'concatMap'. Every run base-offsets strategy shares the output line, so the
 -- claim is that pricing it once prices it for all of them -- but that is an
 -- inference from the shared source line, and this is the measurement of it.
--- It is also the interesting combination in its own right: 'bq-mut' ties
+-- It is also the interesting combination in its own right: 'bq-mut' beats
 -- 'bq-expand' on time at a third of its allocation, so if the win carries,
 -- this is the cheapest form of the fastest output.
 {-# NOINLINE fbBQmutLemireOut #-}
@@ -1478,7 +1479,7 @@ fbMutOdo sh (T ats ao v) = VS.create $ do
 -- vectors walked with a bare-Int level index -- one change, so 'mut-odo'
 -- is its control. It was written as a diagnostic and answered decisively:
 -- the direct fill's per-run cost WAS the cons-list traffic of the odometer
--- recursion, not the nested structure. Run 6 (-O1) puts it at 57% of its
+-- recursion, not the nested structure. Run 6 (-O1) puts it at 48% of its
 -- control's time (0.051 against 0.107) and fastest of everything measured,
 -- which reopens the class-method tier the README had closed at ~1.4x and
 -- now prices at 3.03x over 'bq-expand'.
@@ -1695,10 +1696,12 @@ regimeOf sh (T ats _ v)
 --
 -- Two of the kept eleven are load-bearing beyond their workload and must
 -- not be dropped in a later cut. 'gather48-src-50' and 'conv1d-24' are the
--- only shapes whose two innermost listed dims DIFFER, which is what makes
--- @check@'s @sInner@ assertion non-vacuous; every other conv shape ends in a
--- square kernel, where the assertion's two readings coincide and it would
--- pass however it was written.
+-- only CONV shapes whose two innermost listed dims DIFFER -- every other
+-- conv shape ends in a square kernel, where @check@'s @sInner@ assertion's
+-- two readings coincide and it would pass however it was written -- and the
+-- first in run order to exercise it. Several stretch shapes differ too, so
+-- the assertion does not go vacuous without these two; what would is the
+-- conv set's own coverage of it.
 convShapes :: [(String, ShapeL)]
 convShapes =
   [ -- horde-ad shaped CNN (MnistCnnShaped2; kernel kh+1 = 3)
@@ -1910,7 +1913,7 @@ roster =
     -- A margin narrower than they are is not a result.
     --
     -- They are aimed where comparisons are close, which Failed Run 6 showed is
-    -- NOT the top of the table (0.074/0.092/0.099 are 20-35% apart) but
+    -- NOT the top of the table (0.074/0.092/0.099 are 8-34% apart) but
     -- two bands lower down. This one duplicates 'bq-scan-mulback' from
     -- ~28 slots away, so it prices the scan band -- which holds a tie,
     -- 'bq-scan-mulback' against 'bq-scan-rem-gm-mulback', and that
@@ -1926,8 +1929,9 @@ roster =
     -- changed strategy and position together, and the distant pair now
     -- reads a +2.9% bias that the adjacent one does not. That is either
     -- a position effect or a property of this arm, and nothing here can
-    -- say which. Run 7 should put ONE strategy back in both slots and
-    -- price the scan band with a fourth control
+    -- say which. The crossed twins below now supply exactly that -- three
+    -- strategies each in both slots, the scan band priced by its own
+    -- adjacent twin -- and Run 7 runs them
     -- (README.md#the-noise-floor-is-3-not-the-ci).
   , ("bq-scan-mulback-aa-distant", Twin fbBQscanMulback)
     -- The other two distant twins, added with the time the halved shape set
@@ -1983,7 +1987,7 @@ roster =
     -- find nothing: its successor times the same after it as after a
     -- benign predecessor, and the A/A pair that straddles it agrees
     -- better than the two that do not. What is not probed is the roster
-    -- effect (README.md#the-noise-floor-is-3-not-the-ci): 20% in
+    -- effect (README.md#the-noise-floor-is-3-not-the-ci): ~18% in
     -- horde-ad's ConvVjpBench, a property of what shares the process
     -- rather than of any one bench, and persisting for a whole run. The
     -- bench likeliest to trigger it is the one with the most extreme
