@@ -425,9 +425,10 @@ neither mutability nor needing a new class method *disqualifies* a strategy
 any longer. What keeps both as weights against one is that FastReshape.hs is
 not in use — absent from the cabal file, and still declaring its source
 project's module name and imports (`CoreCompiler.ArrayReshape`;
-`Utils.Misc`, `CoreCompiler.Error`), so it does not even compile in place: precedent for writing
-such a module, not for shipping one. A mutable or class-method strategy is
-now priced against that weight rather than refused at the door.
+`Utils.Misc`, `CoreCompiler.Error`), so it does not even compile in place:
+precedent for writing such a module, not for shipping one. A mutable or
+class-method strategy is now priced against that weight rather than refused
+at the door.
 
 
 ### The C-gap: still a deeper ceiling
@@ -1180,8 +1181,11 @@ at `-L1` the halves read 169.9 ns and 170.1 ns, 0.12% apart.
   rev'd (whole and partial, so all-negative and mixed-sign strides),
   broadcast (innermost and middle axis), reshape-appended-1,
   sliced-from-larger, windowed-overlap and no-unit-stride views — which
-  `check` runs with per-class conditions,
-  each conjunct carrying a deliberate-breakage proof; none is benchmarked.
+  `check` runs with per-class conditions, each conjunct carrying a
+  deliberate-breakage proof. The `classes` benchmark mode times them, one
+  population per process by prefix (`classes rev-` and so on), the default
+  run staying the main set alone; no class run is recorded yet, so there
+  are no class figures to publish.
   Two rulings, taken 2026-08-07 ahead of the implementation and covering
   every stride-class variant (the overlap item below included). Each new
   class is its own pinned population, published beside the existing geomean

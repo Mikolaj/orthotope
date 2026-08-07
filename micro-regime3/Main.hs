@@ -7,9 +7,10 @@
 -- candidate fallbacks can be A/B'd without an ox-arrays + horde-ad rebuild.
 -- It compares the candidate strategies; 'mkStrided' builds a regime-3 input
 -- (the stride-class generators beside it, 'mkRev' through 'mkScaled', build
--- the regime-3 inputs other library operations produce -- checked, not
--- benchmarked), 'regimeOf' checks each really is one, and the @check@ main
--- mode asserts all strategies agree.
+-- the regime-3 inputs other library operations produce -- always checked,
+-- timed only by the @classes@ mode as their own populations), 'regimeOf'
+-- checks each really is one, and the @check@ main mode asserts all
+-- strategies agree.
 --
 -- The strategies are defined below in the four families README.md groups them
 -- into, base before variant; 'roster' holds the different order they are RUN
@@ -36,7 +37,7 @@ import           GHC.Exts                     (Int (..), Word (..), build,
                                                timesWord2#, word2Int#)
 import           GHC.Stats                    (RTSStats (allocated_bytes, elapsed_ns, max_live_bytes, max_mem_in_use_bytes),
                                                getRTSStats)
-import           System.Environment           (getArgs)
+import           System.Environment           (getArgs, withArgs)
 import           System.IO                    (hPutStrLn, stderr)
 import           System.Mem                   (performGC)
 
@@ -1719,11 +1720,13 @@ regimeOf sh (T (Strides ats) _ v)
 -- The stride classes beyond 'mkStrided''s: regime-3 views the library
 -- reaches through operations other than the merged transpose -- each
 -- generator below models one producing operation, named at its comment.
--- All are CHECK-ONLY today: 'check' holds every strategy and builder to
--- the reference on them, but none is benchmarked, since each class is
--- ruled its own pinned population, published beside the existing geomean
--- and never folded into it (README.md#non-urgent-todo-list). The listed
--- shapes stay within 'sizeCap' so that step stays open. @rotate@
+-- Each class is its own pinned population, published beside the existing
+-- geomean and never folded into it (README.md#non-urgent-todo-list):
+-- 'check' holds every strategy and builder to the reference on all of
+-- them, the @classes@ benchmark mode times them -- one population per
+-- process, per the protocol at 'classBenches' -- while the default run
+-- stays the main set alone, and 'partitioned' holds every entry to
+-- 'sizeCap'. @rotate@
 -- deliberately has no generator: it is a composite of stretch, reshape,
 -- window, stride and rev whose own output keeps innermost stride 1
 -- (regime 2), and the strides a further transpose exposes -- negated sums
@@ -2011,72 +2014,88 @@ degenerateShapes =
   ]
 
 -- The stride-class input lists, one per generator above, checked in this
--- order after the main set. Check-only (see the class comment at the
--- generators); every @l@ stays within 'sizeCap' so promotion to a
--- benchmarked population needs no resizing. Each class reuses a listed
--- shape of the main set where one fits, so a figure, once benchmarked, has
--- a positive-stride counterpart to stand next to.
+-- order after the main set and timed by the @classes@ mode through
+-- 'classViews' (which also carries their 'sizeCap' conformity into
+-- 'partitioned'). Each class reuses a listed shape of the main set where
+-- one fits, so a figure, once recorded, has a positive-stride counterpart
+-- to stand next to.
 revShapes :: [(String, ShapeL)]
 revShapes =
-  [ ("rev-cnn-L1-24x24-c1", [24, 24, 1, 3, 3])  -- rev'd main-set workhorse
+  [ ("rev-cnn-L1-24x24-c1", [24, 24, 1, 3, 3])  -- 5184, rev'd main workhorse
     -- innermost-two dims differ, keeping the swap under the rev honest
-  , ("rev-gather48-src-50", [50, 3, 3, 50])
-  , ("rev-primes",          [97, 89, 29])       -- rev'd stretch-primes
+  , ("rev-gather48-src-50", [50, 3, 3, 50])     -- 22500
+  , ("rev-primes",          [97, 89, 29])       -- 250357, rev'd stretch-primes
   ]
 
 -- Dims to reverse (of the VIEW) beside the listed shape; strict non-empty
 -- subsets -- innermost, outermost, and a middle pair.
 revSomeShapes :: [(String, [Int], ShapeL)]
 revSomeShapes =
-  [ ("revsome-inner-primes", [2],    [97, 89, 29])
-  , ("revsome-outer-g48",    [0],    [50, 3, 3, 50])
+  [ ("revsome-inner-primes", [2],    [97, 89, 29])    -- 250357
+  , ("revsome-outer-g48",    [0],    [50, 3, 3, 50])  -- 22500
     -- mixed signs among the OUTER strides alone: the partial sums the
     -- packed scan's bounds extremize per dimension for
-  , ("revsome-mid-cnn-L2",   [1, 2], [24, 24, 32, 3, 3])
+  , ("revsome-mid-cnn-L2",   [1, 2], [24, 24, 32, 3, 3])  -- 165888
   ]
 
 -- Listed shape IS the view shape; the backing is its outer dims alone.
 broadcastShapes :: [(String, ShapeL)]
 broadcastShapes =
-  [ ("bcast-inner8",   [64, 100, 8])    -- l=51200 over a 6400-elem source
-  , ("bcast-inner900", [50, 40, 900])   -- long re-read runs, tiny source
-  , ("bcast-tall-Mx2", [900000, 2])     -- the 900k-run table, all hits
+  [ ("bcast-inner8",   [64, 100, 8])    -- 51200, over a 6400-elem source
+  , ("bcast-inner900", [50, 40, 900])   -- 1800000, long runs, tiny source
+  , ("bcast-tall-Mx2", [900000, 2])     -- 1800000, 900k-run table, all hits
   ]
 
 -- The stretch factor beside the dense shape whose middle axis broadcasts.
 broadcastMidShapes :: [(String, Int, ShapeL)]
 broadcastMidShapes =
-  [ ("bcastmid-c32-cnn", 32, [24, 24, 3, 3])  -- l mirrors cnn-L2-24x24-c32
-  , ("bcastmid-primes",  89, [97, 29])
+  [ ("bcastmid-c32-cnn", 32, [24, 24, 3, 3])  -- 165888, mirrors cnn-L2-c32
+  , ("bcastmid-primes",  89, [97, 29])        -- 250357
   ]
 
 -- Listed shape is the dense array; the view appends the size-1 dim.
 reshape1Shapes :: [(String, ShapeL)]
 reshape1Shapes =
-  [ ("reshape1-500k", [500000])         -- the reshape [n] -> [n, 1] trap
-  , ("reshape1-r3",   [100, 50, 36])    -- differing trailing dims
+  [ ("reshape1-500k", [500000])         -- 500000, the [n] -> [n, 1] trap
+  , ("reshape1-r3",   [100, 50, 36])    -- 180000, differing trailing dims
   ]
 
 slicedShapes :: [(String, ShapeL)]
 slicedShapes =
-  [ ("slice-cnn-L2-24x24-c32", [24, 24, 32, 3, 3])  -- sliced main workhorse
-  , ("slice-primes",           [97, 89, 29])        -- sliced stretch-primes
+  [ ("slice-cnn-L2-24x24-c32", [24, 24, 32, 3, 3])  -- 165888, sliced c32
+  , ("slice-primes",           [97, 89, 29])        -- 250357, sliced primes
   ]
 
 -- Listed as [h, w, kh, kw]: image and kernel, not the view shape.
 windowShapes :: [(String, ShapeL)]
 windowShapes =
-  [ ("window-28x28-k5",   [28, 28, 5, 5])    -- l=14400 over 784 elements
-  , ("window-224x224-k3", [224, 224, 3, 3])  -- l=443556 over 50176
+  [ ("window-28x28-k5",   [28, 28, 5, 5])    -- 14400, over 784 elements
+  , ("window-224x224-k3", [224, 224, 3, 3])  -- 443556, over 50176
   ]
 
 -- Views, not shapes like its siblings: explicit strides beside the shape,
 -- superincreasing, none 1.
 scaledViews :: [(String, ShapeL, Strides)]
 scaledViews =
-  [ ("scaled-super-r3", [40, 50, 30], Strides [4547, 91, 3])
-  , ("scaled-rank1-m1", [300000], Strides [5])  -- the m == 1 floor
+  [ ("scaled-super-r3", [40, 50, 30], Strides [4547, 91, 3])  -- 60000
+  , ("scaled-rank1-m1", [300000], Strides [5])  -- 300000, the m == 1 floor
   ]
+
+-- Every stride-class entry beside its built view, in the lists' order --
+-- the one list the @classes@ benchmark mode and 'partitioned' both read,
+-- so an entry cannot be timed at a size the cap never saw. The views are
+-- thunks: nothing here forces a source vector until criterion's @env@
+-- builds that group's input, and 'partitioned' forces shapes alone.
+classViews :: [(String, (ShapeL, T))]
+classViews =
+  [(n, mkRev s) | (n, s) <- revShapes]
+  ++ [(n, mkRevSome rs s) | (n, rs, s) <- revSomeShapes]
+  ++ [(n, mkBroadcast s) | (n, s) <- broadcastShapes]
+  ++ [(n, mkBroadcastMid b s) | (n, b, s) <- broadcastMidShapes]
+  ++ [(n, mkReshape1 s) | (n, s) <- reshape1Shapes]
+  ++ [(n, mkSliced s) | (n, s) <- slicedShapes]
+  ++ [(n, mkWindow s) | (n, s) <- windowShapes]
+  ++ [(n, mkScaled s sts) | (n, s, sts) <- scaledViews]
 
 -- The cap that partitions the shape set: benchmarked iff @l <= sizeCap@,
 -- flagged and excluded otherwise. 'stretchShapes' is written to it exactly.
@@ -2115,6 +2134,9 @@ tooBig =
 partitioned :: Bool
 partitioned = all ((<= sizeCap) . product . snd) shapes
            && all ((> sizeCap) . product . snd) tooBig
+           -- the class populations obey the same cap, on their VIEW
+           -- shapes, whose product is each entry's @l@
+           && all ((<= sizeCap) . product . fst . snd) classViews
 
 -- One roster entry: what 'mkBench' declares and what 'check' holds to the
 -- reference. Both read the same list, so the two cannot come apart; they used
@@ -2387,8 +2409,11 @@ checkedArms = [(n, f) | (n, arm) <- roster, f <- fills arm]
         -- the same call gives the same answer.
 
 -- Print the flagged (too-big) shapes, then benchmark every shape in
--- 'shapes'. How to run: README.md#running-it. The numbers and how to
--- read them: README.md#results, README.md#the-reader-read-runpy.
+-- 'shapes' -- or, given the @classes@ argument, the stride-class
+-- populations of 'classBenches' instead, any remaining arguments going to
+-- criterion as usual, which is how one population is selected per process
+-- (@classes rev-@). How to run: README.md#running-it. The numbers and how
+-- to read them: README.md#results, README.md#the-reader-read-runpy.
 main :: IO ()
 main = assert partitioned $ do
   args <- getArgs
@@ -2401,10 +2426,14 @@ main = assert partitioned $ do
       -- instead of a side run, and cannot be forgotten. Criterion's
       -- 'manyDefault' means an explicit @--regress@ still replaces this.
       else do
-        let bs = map mkBench shapes
-        defaultMainWith
-          defaultConfig { regressions = [(["iters"], "allocated")] } bs
-        provenance
+        let cfg = defaultConfig { regressions = [(["iters"], "allocated")] }
+        if "classes" `elem` args
+          then withArgs (filter (/= "classes") args) $ do
+            defaultMainWith cfg classBenches
+            provenance (length classBenches)
+          else do
+            defaultMainWith cfg (map mkBench shapes)
+            provenance (length shapes)
 
 -- What a run records about itself, so that a document quoting its scale
 -- copies a measured number instead of counting benches by hand -- which is
@@ -2415,13 +2444,15 @@ main = assert partitioned $ do
 -- leaving @--list@ and criterion's own stdout machine-readable, and it
 -- reports the roster rather than what a filtered run selected.
 --
--- The count is the roster's timed arms, not the 'Benchmark' nodes 'mkBench'
--- built. Those are one per timed arm per SHAPE, so counting them reported
--- their product -- 1452 where 44 was meant, in a line whose whole purpose is
--- to be quoted. Reading the roster is not the weaker check it looks like:
--- 'mkBench' emits exactly one bench per timed arm, so the two cannot differ.
-provenance :: IO ()
-provenance = do
+-- The count is the roster's timed arms, not the 'Benchmark' nodes
+-- 'benchView' built. Those are one per timed arm per GROUP, so counting
+-- them reported their product -- 1452 where 44 was meant, in a line whose
+-- whole purpose is to be quoted. Reading the roster is not the weaker
+-- check it looks like: 'benchView' emits exactly one bench per timed arm,
+-- so the two cannot differ. The group count is the caller's, naming the
+-- benchmark list of the mode that ran.
+provenance :: Int -> IO ()
+provenance nGroups = do
   s <- getRTSStats
   let secs = fromIntegral (elapsed_ns s) / 1e9 :: Double
       (h, r) = (round secs :: Int) `divMod` 3600
@@ -2432,12 +2463,13 @@ provenance = do
       notOnly _        = True
   hPutStrLn stderr $
     "=== roster " ++ show (length timed) ++ " benchmarks over "
-    ++ show (length shapes)
+    ++ show nGroups
     ++ " shapes; elapsed " ++ show h ++ "h" ++ show m ++ "m" ++ show sec
     ++ "s; peak " ++ mib (max_mem_in_use_bytes s) ++ " MiB in use, "
     ++ mib (max_live_bytes s) ++ " MiB max residency"
 
--- Benchmark one shape: every 'roster' arm, in that list's order, which is
+-- Benchmark one view ('benchView'; 'mkBench' builds the main set's view
+-- with 'mkStrided'): every 'roster' arm, in that list's order, which is
 -- where each arm's slot and the reason for it are recorded. Criterion's 'env'
 -- builds the input once and forces it to normal form before the clock starts,
 -- so input construction is excluded from timing and the source vector is
@@ -2465,9 +2497,9 @@ touchLast :: VS.Vector Double -> Double
 touchLast v = if VS.null v then 0 else VS.unsafeLast v
 {-# NOINLINE touchLast #-}
 
-mkBench :: (String, ShapeL) -> Benchmark
-mkBench (name, normalSh) =
-  env (evaluate (force (mkStrided normalSh))) $ \ ~(sh, a) ->
+benchView :: String -> (ShapeL, T) -> Benchmark
+benchView name view =
+  env (evaluate (force view)) $ \ ~(sh, a) ->
     bgroup name (concatMap (arm sh a) roster)
   where
     arm sh a (n, Base f)  = [bench n $ whnf (VS.sum . f sh) a]
@@ -2477,6 +2509,21 @@ mkBench (name, normalSh) =
                                bench n $ whnf VS.sum r]
     arm sh a (n, Force f) = [bench n $ whnf (touchLast . f sh) a]
     arm _  _ (_, Only _)  = []
+
+mkBench :: (String, ShapeL) -> Benchmark
+mkBench (name, normalSh) = benchView name (mkStrided normalSh)
+
+-- The stride-class populations as benchmarks, one 'bgroup' per
+-- 'classViews' entry in that list's order -- reachable only through the
+-- @classes@ mode, so the default run's composition and slot order stay
+-- those of every recorded run. The recorded-run protocol for these is one
+-- population per process, selected by prefix (@classes rev-@,
+-- @classes bcast-@, ...): each JSON is then single-population, so the
+-- reader never has to partition a geomean, and no class's figures owe
+-- anything to another class's leftover heap state -- the position effect
+-- the main set accepts WITHIN a pinned order, not across populations.
+classBenches :: [Benchmark]
+classBenches = [benchView n view | (n, view) <- classViews]
 
 -- The builders compared directly, not only through the strategies
 -- that consume them. End-to-end agreement hides a table that is

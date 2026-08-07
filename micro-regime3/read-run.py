@@ -163,29 +163,65 @@ TOL = 1e-9
 
 
 def dims_by_shape(main_hs):
-    """Map shape name -> its dims, from the shape lists in Main.hs.
+    """Map shape name -> dict(dims, l, m, s_inner), from Main.hs's lists.
 
-    'mkStrided' views a shape with its two innermost dims transposed, so for
-    the listed dims the view's innermost extent sInner is the second-to-last
-    and its stride tInner is the last. Hence l = product, m = l / sInner is
-    the run count -- the size of the base-offsets table every strategy here
-    builds -- and sInner = l / m is how long each copied run is.
+    One (l, sInner) rule per list, mirroring the generator that builds
+    that list's views. 'mkStrided' (and 'mkRev'/'mkRevSome'/'mkSliced',
+    which keep its view shape) transposes the two innermost dims, so the
+    view's innermost extent sInner is the second-to-last listed dim;
+    'mkBroadcast' and 'mkScaled' keep the listed shape, so sInner is the
+    last; 'mkBroadcastMid' inserts a stretch factor b, so l = b * product;
+    'mkReshape1' appends a size-1 dim; 'mkWindow' lists image and kernel,
+    the view being neither. In every case m = l / sInner is the run count
+    -- the size of the base-offsets table every strategy here builds.
 
-    That reading is this script's one unverifiable assumption -- no JSON
-    carries the strided shape -- and `m` and every `alloc` multiple rest on
-    it, so getting it wrong would scale a whole column for every strategy at
-    once. `micro -- check` now asserts it per shape against the view itself,
-    which is the only place it can be checked; --selftest says so where it
-    used to record the gap as permanent.
+    These readings are this script's one unverifiable assumption -- no
+    JSON carries the strided shape -- and `m` and every `alloc` multiple
+    rest on them, so getting one wrong would scale a whole column for
+    every strategy at once. `micro -- check` asserts the mkStrided reading
+    per main-set shape against the view itself, and each entry's leading
+    trailing-comment number annotates its true l, which --selftest holds
+    the parse to for whatever population its run carries.
     """
-    entry = re.compile(r'^\s*(?:[\[,] )?\("([^"]+)",\s*(\[[^\]]*\])\)'
-                       r'(?:\s*--\s*(\d+))?')
+    def strided(ds, _):
+        return math.prod(ds), (ds[-2] if len(ds) > 1 else 1)
+
+    # the listed shape IS the view shape, so sInner is its last dim --
+    # true of the broadcast and scaled lists both
+    def listed(ds, _):
+        return math.prod(ds), (ds[-1] if ds else 1)
+
+    def bcastmid(ds, b):
+        return b * math.prod(ds), (ds[-2] if len(ds) > 1 else 1)
+
+    def reshape1(ds, _):
+        return math.prod(ds), 1
+
+    def window(ds, _):
+        h, w, kh, kw = ds
+        return (h - kh + 1) * (w - kw + 1) * kh * kw, kh
+
+    sh_re = r'(?P<dims>\[[^\]]*\])'
+    blocks = [
+        ('convShapes', sh_re, strided),
+        ('stretchShapes', sh_re, strided),
+        ('revShapes', sh_re, strided),
+        ('revSomeShapes', r'\[[^\]]*\],\s*' + sh_re, strided),
+        ('broadcastShapes', sh_re, listed),
+        ('broadcastMidShapes', r'(?P<b>\d+),\s*' + sh_re, bcastmid),
+        ('reshape1Shapes', sh_re, reshape1),
+        ('slicedShapes', sh_re, strided),
+        ('windowShapes', sh_re, window),
+        ('scaledViews', sh_re + r',\s*Strides\s*\[[^\]]*\]', listed),
+    ]
     out, ann = {}, {}
     try:
         text = open(main_hs).read().split('\n')
     except OSError:
         return out, ann
-    for start in ('convShapes', 'stretchShapes'):
+    for start, mid, rule in blocks:
+        entry = re.compile(r'^\s*(?:[\[,] )?\("([^"]+)",\s*' + mid
+                           + r'\)(?:\s*--\s*(?P<ann>\d+))?')
         try:
             i = next(k for k, l in enumerate(text)
                      if l.startswith(start + ' ='))
@@ -194,20 +230,18 @@ def dims_by_shape(main_hs):
         for line in text[i + 1:]:
             m = entry.match(line)
             if m:
-                out[m.group(1)] = [int(d) for d in re.findall(r'\d+',
-                                                              m.group(2))]
-                if m.group(3):
-                    ann[m.group(1)] = int(m.group(3))
+                ds = [int(d) for d in re.findall(r'\d+', m.group('dims'))]
+                b = (int(m.group('b'))
+                     if 'b' in m.groupdict() and m.group('b') else None)
+                l, s_inner = rule(ds, b)
+                out[m.group(1)] = dict(
+                    dims=ds, l=l, s_inner=s_inner,
+                    m=(l // s_inner if s_inner else 0))
+                if m.group('ann'):
+                    ann[m.group(1)] = int(m.group('ann'))
             elif line.strip() == ']':
                 break
     return out, ann
-
-
-def shape_facts(dims):
-    """(l, m, sInner) for listed dims; see 'dims_by_shape'."""
-    l = math.prod(dims)
-    s_inner = dims[-2] if len(dims) > 1 else 1
-    return l, (l // s_inner if s_inner else 0), s_inner
 
 
 def load(path, main_hs):
@@ -219,7 +253,7 @@ def load(path, main_hs):
         sys.exit(2)
     raw = json.load(open(path))
     dims, ann = dims_by_shape(main_hs)
-    ell = {s: shape_facts(d)[0] for s, d in dims.items()}
+    ell = {s: d['l'] for s, d in dims.items()}
     cells = collections.defaultdict(dict)
     shapes, strategies = [], []
     for r in raw[2]:
@@ -657,8 +691,8 @@ def shape_table(cells, shapes, strategies, meta):
         if not ci:
             continue
         mx = max(ci, key=ci.get)
-        l, m, _ = (shape_facts(meta['dims'][sh]) if sh in meta['dims']
-                   else (0, 0, 0))
+        d = meta['dims'].get(sh)
+        l, m = (d['l'], d['m']) if d else (0, 0)
         rows.append((ci[mx], sh, l, m,
                      stats.median(ci.values()), stats.fmean(ci.values()),
                      stats.median(cells[sh][st]['n'] for st in strategies),
@@ -1253,27 +1287,31 @@ def selftest(cells, shapes, strategies, meta):
     else:
         checked = 0
         for sh in known:
-            dims = meta['dims'][sh]
+            d = meta['dims'][sh]
             want = meta['ann'].get(sh)
             if want is None:
                 continue
             checked += 1
-            if math.prod(dims) != want:
+            if d['l'] != want:
                 bad.append('%s %s: parsed l=%d against Main.hs\'s own'
                            ' annotation %d'
-                           % (sh, dims, math.prod(dims), want))
-        if checked:
+                           % (sh, d['dims'], d['l'], want))
+        if checked and not bad:
+            # `bad` holds only this check's mismatches here: it is the
+            # first check run, so an "each matching" claim beside a FAIL
+            # naming a mismatch cannot both print, as they once did.
             ok.append('shape parse: %d of %d shapes found in Main.hs, %d with'
                       ' an l annotation, each matching the dims parsed'
                       % (len(known), len(shapes), checked))
         else:
             skip.append('no shape in Main.hs carries an l annotation, so the'
                         ' dims parse has no oracle here')
-        skip.append('sInner = the second-to-last listed dim is a reading of'
-                    ' mkStrided, which no JSON carries and so nothing here'
-                    ' can confirm: m and alloc inherit it. `micro -- check`'
-                    ' asserts it per shape against the actual view, which is'
-                    ' where it CAN be confirmed')
+        skip.append('sInner comes from a per-list reading of the generator'
+                    ' (see dims_by_shape), which no JSON carries and so'
+                    ' nothing here can confirm: m and alloc inherit it.'
+                    ' `micro -- check` asserts each class\'s structure'
+                    ' against the actual view, which is where it CAN be'
+                    ' confirmed')
 
     malformed = [(sh, st) for sh in shapes for st in strategies
                  if not (cells[sh][st]['slope'] > 0
@@ -1313,8 +1351,8 @@ def selftest(cells, shapes, strategies, meta):
         # dependence on size, and the correction needs both.
         known = [sh for sh in shapes if sh in meta['dims']]
         per = [(stats.fmean([cells[sh][h]['slope'] for h in halves])
-                / math.prod(meta['dims'][sh]), sh) for sh in known
-               if math.prod(meta['dims'][sh])]
+                / meta['dims'][sh]['l'], sh) for sh in known
+               if meta['dims'][sh]['l']]
         if len(per) < 2:
             skip.append('fewer than two shapes with known dims, so the'
                         ' forcing term\'s scaling with l is unexercised')
