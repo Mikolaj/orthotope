@@ -5,9 +5,11 @@
 -- | Self-contained benchmark isolating orthotope's toVectorListT regime 3
 -- (the per-element fallback for an innermost-strided array), so the
 -- candidate fallbacks can be A/B'd without an ox-arrays + horde-ad rebuild.
--- It compares the candidate strategies; 'mkStrided' builds a regime-3 input,
--- 'regimeOf' checks it really is one, and the @check@ main mode asserts all
--- strategies agree.
+-- It compares the candidate strategies; 'mkStrided' builds a regime-3 input
+-- (the stride-class generators beside it, 'mkRev' through 'mkScaled', build
+-- the regime-3 inputs other library operations produce -- checked, not
+-- benchmarked), 'regimeOf' checks each really is one, and the @check@ main
+-- mode asserts all strategies agree.
 --
 -- The strategies are defined below in the four families README.md groups them
 -- into, base before variant; 'roster' holds the different order they are RUN
@@ -40,21 +42,31 @@ import           System.Mem                   (performGC)
 
 type ShapeL = [Int]
 
+-- The strides of a view, one stride (a vector-index step) per dimension --
+-- a list like a shape, which is what the wrapper is for: a builder takes a
+-- shape and strides side by side, and bare [Int]s would let a call swap
+-- them silently. Where a shape is CONVERTED into strides ('getStridesT'
+-- and the natural-stride locals derived from it), the raw list stays.
+newtype Strides = Strides [Int]
+
 -- A faithful copy of orthotope's internal array representation and the
 -- pieces of Data.Array.Internal that regime 3 uses, specialised to
 -- Storable Double (horde-ad's element storage).
-data T = T ![Int] !Int !(VS.Vector Double)  -- strides, offset, values
+data T = T !Strides !Int !(VS.Vector Double)  -- strides, offset, values
 
 -- So criterion's 'env' can force the input to normal form before timing.
 instance NFData T where
-  rnf (T s o v) = rnf s `seq` rnf o `seq` rnf v
+  rnf (T (Strides s) o v) = rnf s `seq` rnf o `seq` rnf v
 
+-- The result is the total size prefixed to the shape's natural strides --
+-- one element longer than the rank, so not a 'Strides'; every caller
+-- splits it.
 getStridesT :: ShapeL -> [Int]
 getStridesT = scanr (*) 1
 
 indexT :: T -> Int -> T
-indexT (T (s : ss) o v) i = T ss (o + i * s) v
-indexT _ _                = error "indexT"
+indexT (T (Strides (s : ss)) o v) i = T (Strides ss) (o + i * s) v
+indexT _ _                          = error "indexT"
 
 unScalarT :: T -> Double
 unScalarT (T _ o v) = v VS.! o
@@ -62,10 +74,11 @@ unScalarT (T _ o v) = v VS.! o
 -- Exactly orthotope's toListT (the otherwise branch; our inputs are
 -- never canonical).
 toListT :: ShapeL -> T -> [Double]
-toListT sh (T ss0 o0 v) = build $ \cons nil ->
-  let go []     ss o rest = cons (unScalarT (T ss o v)) rest
+toListT sh (T (Strides ss0) o0 v) = build $ \cons nil ->
+  let go []     ss o rest = cons (unScalarT (T (Strides ss) o v)) rest
       go (n:ns) ss o rest = foldr
-        (\i -> case indexT (T ss o v) i of T ss' o' _ -> go ns ss' o')
+        (\i -> case indexT (T (Strides ss) o v) i of
+                 T (Strides ss') o' _ -> go ns ss' o')
         rest
         [0..n-1]
   in  go sh ss0 o0 nil
@@ -93,12 +106,15 @@ toListT sh (T ss0 o0 v) = build $ \cons nil ->
 -- because timing a branch that is never taken would only ever time the branch.
 --
 -- The two bounds are on DIFFERENT quantities and neither implies the other --
--- which is exactly what this harness cannot show, since 'mkStrided' gives
--- every view a source of its own length, so here the two differ only by a
--- factor of two. In orthotope a strided view is a window onto someone else's
--- buffer, so a two-element view of a three-billion-element array clears
--- 'lemireFits' by nine orders of magnitude and fails 'int32Fits'. A shipped
--- dispatch therefore needs both tests, not one standing in for the other.
+-- which the main set cannot show, since 'mkStrided' gives every view a
+-- source of its own length, so there the two differ only by a factor of
+-- two. The sliced and scaled classes ('mkSliced', 'mkScaled') separate them
+-- structurally -- the backing strictly exceeds what the view reads -- though
+-- at magnitudes where both bounds still hold. In orthotope a strided view is
+-- a window onto someone else's buffer, so a two-element view of a
+-- three-billion-element array clears 'lemireFits' by nine orders of
+-- magnitude and fails 'int32Fits'. A shipped dispatch therefore needs both
+-- tests, not one standing in for the other.
 
 -- Lemire's identity holds for @d, n < 2^32@. Here @n@ is the linear output
 -- index, bounded by @l@, and @d@ is the innermost extent, which divides @l@ --
@@ -216,8 +232,8 @@ gmMagic d
 -- number of runs @m@. The list is short (a factor @s@ smaller than @l@)
 -- and consumed immediately by 'VS.fromListN'.
 {-# INLINE runBaseOffsets #-}
-runBaseOffsets :: Int -> [Int] -> [Int] -> [Int]
-runBaseOffsets o0 osh oats = build $ \cons nil ->
+runBaseOffsets :: Int -> ShapeL -> Strides -> [Int]
+runBaseOffsets o0 osh (Strides oats) = build $ \cons nil ->
   let go []       []         !o rest = cons o rest
       go (n : ns) (st : sts) !o rest =
         foldr (\i r -> go ns sts (o + i * st) r) rest [0 .. n - 1]
@@ -229,15 +245,15 @@ runBaseOffsets o0 osh oats = build $ \cons nil ->
 -- the 'runBaseOffsets' list fed to 'VS.fromListN'. Extracted so the allocation
 -- diagnostic (see 'diag') measures the exact benchmarked build.
 {-# INLINE baseOffsetsList #-}
-baseOffsetsList :: Int -> [Int] -> [Int] -> VS.Vector Int
-baseOffsetsList o0 osh oats =
-  VS.fromListN (product osh) (runBaseOffsets o0 osh oats)
+baseOffsetsList :: Int -> ShapeL -> Strides -> VS.Vector Int
+baseOffsetsList o0 osh (Strides oats) =
+  VS.fromListN (product osh) (runBaseOffsets o0 osh (Strides oats))
 
 -- The same table as 'fbBQmut' builds it: a mutable odometer fill of the
 -- concrete Int scratch, no intermediate list.
 {-# INLINE baseOffsetsMut #-}
-baseOffsetsMut :: Int -> [Int] -> [Int] -> VS.Vector Int
-baseOffsetsMut o0 osh oats = VS.create $ do
+baseOffsetsMut :: Int -> ShapeL -> Strides -> VS.Vector Int
+baseOffsetsMut o0 osh (Strides oats) = VS.create $ do
   b <- VSM.unsafeNew (product osh)
   let go [] [] !q !baseOff = VSM.unsafeWrite b q baseOff >> return (q + 1)
       go (n : ns) (st : sts) !q !baseOff =
@@ -266,8 +282,8 @@ baseOffsetsMut o0 osh oats = VS.create $ do
 -- needs both. Kept a monomorphic copy like the rest of the 'baseOffsets*'
 -- family, so the fill's inner loop stays concrete.
 {-# INLINE baseOffsetsMut32 #-}
-baseOffsetsMut32 :: Int -> [Int] -> [Int] -> VS.Vector Int32
-baseOffsetsMut32 o0 osh oats = VS.create $ do
+baseOffsetsMut32 :: Int -> ShapeL -> Strides -> VS.Vector Int32
+baseOffsetsMut32 o0 osh (Strides oats) = VS.create $ do
   b <- VSM.unsafeNew (product osh)
   let go [] [] !q !baseOff = VSM.unsafeWrite b q (fromIntegral baseOff)
                              >> return (q + 1)
@@ -295,8 +311,8 @@ baseOffsetsMut32 o0 osh oats = VS.create $ do
 -- first draft of this function had the guards of @dim@ inverted, wrote
 -- nothing, and the agreement check failed at the first shape.
 {-# INLINE baseOffsetsMutRuns #-}
-baseOffsetsMutRuns :: Int -> [Int] -> [Int] -> VS.Vector Int
-baseOffsetsMutRuns o0 osh oats = VS.create $ do
+baseOffsetsMutRuns :: Int -> ShapeL -> Strides -> VS.Vector Int
+baseOffsetsMutRuns o0 osh (Strides oats) = VS.create $ do
   b <- VSM.unsafeNew (product osh)
   if null osh
     then VSM.unsafeWrite b 0 o0
@@ -327,8 +343,8 @@ baseOffsetsMutRuns o0 osh oats = VS.create $ do
 -- outer strides. No list, so no transient garbage -- but @rank-1@ quotRems
 -- per run instead of the odometer's shared adds.
 {-# INLINE baseOffsetsGen #-}
-baseOffsetsGen :: Int -> [Int] -> [Int] -> VS.Vector Int
-baseOffsetsGen o0 osh oats = VS.generate (product osh) baseOffset
+baseOffsetsGen :: Int -> ShapeL -> Strides -> VS.Vector Int
+baseOffsetsGen o0 osh (Strides oats) = VS.generate (product osh) baseOffset
   where nts = drop 1 (scanr (*) 1 osh)  -- outer natural (row-major) strides
         baseOffset q = o0 + go q nts oats
         go _  []         []         = 0
@@ -342,8 +358,8 @@ baseOffsetsGen o0 osh oats = VS.generate (product osh) baseOffset
 -- site Lemire is measured at is the per-element output, in
 -- 'fbBQexpandLemireOut' below.
 {-# INLINE baseOffsetsGenLemire #-}
-baseOffsetsGenLemire :: Int -> [Int] -> [Int] -> VS.Vector Int
-baseOffsetsGenLemire o0 osh oats =
+baseOffsetsGenLemire :: Int -> ShapeL -> Strides -> VS.Vector Int
+baseOffsetsGenLemire o0 osh (Strides oats) =
     -- In the builder for the same reason as in 'baseOffsetsScan': run
     -- indices and outer natural strides are both bounded by the run count.
     assert (lemireFits (product osh))
@@ -363,8 +379,8 @@ baseOffsetsGenLemire o0 osh oats =
 -- stride_d n_d@ -- the odometer's shared adds, but expressed in vector's
 -- stream framework rather than a hand-written loop.
 {-# INLINE baseOffsetsExpand #-}
-baseOffsetsExpand :: Int -> [Int] -> [Int] -> VS.Vector Int
-baseOffsetsExpand o0 osh oats = foldl' expand (VS.singleton o0) (zip osh oats)
+baseOffsetsExpand :: Int -> ShapeL -> Strides -> VS.Vector Int
+baseOffsetsExpand o0 osh (Strides oats) = foldl' expand (VS.singleton o0) (zip osh oats)
   where expand !acc (!nd, !sd) =
           VS.concatMap (\a -> VS.enumFromStepN a sd nd) acc
 
@@ -374,8 +390,8 @@ baseOffsetsExpand o0 osh oats = foldl' expand (VS.singleton o0) (zip osh oats)
 -- of tuples is never built. The tuple list is only rank-1 long,
 -- so this can matter at most marginally.
 {-# INLINE baseOffsetsExpandZF #-}
-baseOffsetsExpandZF :: Int -> [Int] -> [Int] -> VS.Vector Int
-baseOffsetsExpandZF o0 osh oats = go (VS.singleton o0) osh oats
+baseOffsetsExpandZF :: Int -> ShapeL -> Strides -> VS.Vector Int
+baseOffsetsExpandZF o0 osh (Strides oats) = go (VS.singleton o0) osh oats
   where go !acc (nd : nds) (sd : sds) =
           go (VS.concatMap (\a -> VS.enumFromStepN a sd nd) acc) nds sds
         go !acc _          _          = acc
@@ -384,8 +400,8 @@ baseOffsetsExpandZF o0 osh oats = go (VS.singleton o0) osh oats
 -- 'enumFromStepN' (one fewer concatMap layer everywhere, and pure
 -- enumFromStepN with no concatMap at all when there is a single outer dim).
 {-# INLINE baseOffsetsExpandB #-}
-baseOffsetsExpandB :: Int -> [Int] -> [Int] -> VS.Vector Int
-baseOffsetsExpandB o0 osh oats =
+baseOffsetsExpandB :: Int -> ShapeL -> Strides -> VS.Vector Int
+baseOffsetsExpandB o0 osh (Strides oats) =
   case zip osh oats of
     []                -> VS.singleton o0
     ((n0, s0) : rest) -> foldl' expand (VS.enumFromStepN o0 s0 n0) rest
@@ -395,17 +411,19 @@ baseOffsetsExpandB o0 osh oats =
 -- Int32 twin of 'baseOffsetsExpand'. Unlike 'baseOffsetsMut32' the
 -- arithmetic itself runs in Int32 -- 'enumFromStepN' generates in the
 -- element type -- so every 'concatMap' intermediate halves too, not only
--- the final table. Sound whenever every offset fits in Int32: the partial
--- base-offsets are sums of non-negative index*stride terms, each bounded
--- by a full offset, so no intermediate exceeds what the final table holds.
---
--- TODO: that soundness argument is harness-scoped -- every 'mkStrided'
--- stride is positive, but orthotope's rev'd views carry negative strides,
--- under which the partial sums are mixed-sign and need their own bound; a
--- shipped Int32 variant must restate it for those.
+-- the final table. Sound whenever every offset fits in Int32, whatever
+-- the strides' signs: a partial base-offset after the first k dims is
+-- @o0 + sum of the first k index*stride terms@, which is the offset of
+-- the element whose remaining indices are all 0 -- a real element of the
+-- view -- so for a valid view every intermediate lies within the source
+-- and 'int32Fits' is the whole precondition. An earlier version argued
+-- this from the terms being non-negative and flagged rev'd views as
+-- needing their own bound; 'revShapes' now runs mixed-sign terms through
+-- this builder, and the element-offset argument is the restatement that
+-- flag asked for.
 {-# INLINE baseOffsetsExpand32 #-}
-baseOffsetsExpand32 :: Int -> [Int] -> [Int] -> VS.Vector Int32
-baseOffsetsExpand32 o0 osh oats =
+baseOffsetsExpand32 :: Int -> ShapeL -> Strides -> VS.Vector Int32
+baseOffsetsExpand32 o0 osh (Strides oats) =
   foldl' expand (VS.singleton (fromIntegral o0)) (zip osh oats)
   where expand !acc (!nd, !sd) =
           VS.concatMap (\a -> VS.enumFromStepN a (fromIntegral sd) nd) acc
@@ -492,8 +510,8 @@ baseOffsetsExpand32 o0 osh oats =
 -- dimension -- but orthotope has zero-size arrays, and this builder is
 -- proposed for it.
 {-# INLINE baseOffsetsScan #-}
-baseOffsetsScan :: Int -> [Int] -> [Int] -> VS.Vector Int
-baseOffsetsScan o0 osh oats
+baseOffsetsScan :: Int -> ShapeL -> Strides -> VS.Vector Int
+baseOffsetsScan o0 osh (Strides oats)
   | m == 0 = VS.empty
   | otherwise =
       -- Asserted in the builder, not at the call sites: the multiply-high is
@@ -531,8 +549,8 @@ baseOffsetsScan o0 osh oats
 -- as free on a loop-invariant divisor. The quotient the carry cascade
 -- needs comes out of the same 'quotRem', so nothing is computed twice.
 {-# INLINE baseOffsetsScanRem #-}
-baseOffsetsScanRem :: Int -> [Int] -> [Int] -> VS.Vector Int
-baseOffsetsScanRem o0 osh oats
+baseOffsetsScanRem :: Int -> ShapeL -> Strides -> VS.Vector Int
+baseOffsetsScanRem o0 osh (Strides oats)
   | m == 0 = VS.empty
   | otherwise = scanned [(n, st) | (n, st) <- zip osh oats, n /= 1]
   where
@@ -572,8 +590,8 @@ data SOdo = SOdo !Int !Int !Int
 -- step's successor state, which 'VS.unfoldrExactN' discards -- so it must
 -- not crash and does not.
 {-# INLINE baseOffsetsOdo #-}
-baseOffsetsOdo :: Int -> [Int] -> [Int] -> VS.Vector Int
-baseOffsetsOdo o0 osh oats
+baseOffsetsOdo :: Int -> ShapeL -> Strides -> VS.Vector Int
+baseOffsetsOdo o0 osh (Strides oats)
   | m == 0 = VS.empty
   | otherwise = built [(n, st) | (n, st) <- zip osh oats, n /= 1]
   where
@@ -613,26 +631,41 @@ baseOffsetsOdo o0 osh oats
 -- boxing is gone, confirming the law's constructive half for the state,
 -- but one boxed Int per step survives in 'VS.unfoldrExactN''s emit pair,
 -- which no state shape can reach. Preconditions of the
--- packing, asserted: offsets below 2^32 (their field), m at most 2^31
--- (the index field), on top of the mulhi test's own bound -- and the
--- offset-bound arithmetic assumes non-negative strides. True of every
--- 'mkStrided' input and NOT of orthotope, whose rev'd views are negative, so
--- a shipped form owes that bound a restatement -- as 'baseOffsetsExpand32'
--- already notes for its own.
+-- packing, asserted: every offset within its field, non-negative and
+-- below 2^32, m at most 2^31 (the index field), on top of the mulhi
+-- test's own bound. The offset bounds take each dimension at its
+-- extremizing end, so they are exact for the mixed-sign strides
+-- 'revShapes' feeds this builder, which an earlier corner formula was
+-- not -- the restatement at the assert says how it was wrong. The
+-- ARITHMETIC needed no change: the running offset is always the offset
+-- of a real element of a valid view, so the low field never leaves
+-- [0, source length) however the strides are signed.
 {-# INLINE baseOffsetsScanPacked #-}
-baseOffsetsScanPacked :: Int -> [Int] -> [Int] -> VS.Vector Int
-baseOffsetsScanPacked o0 osh oats
+baseOffsetsScanPacked :: Int -> ShapeL -> Strides -> VS.Vector Int
+baseOffsetsScanPacked o0 osh (Strides oats)
   | m == 0 = VS.empty
-      -- Strict bounds of their own: an offset of exactly 2^32 would
-      -- mask to 0 in the low field, and m <= 2^31 keeps every EMITTED index
-      -- out of the sign bit (the discarded final successor may set it;
-      -- nothing reads it). lemireFits m for the mulhi test is implied.
+      -- Strict bounds of their own: an offset of exactly 2^32 would mask to
+      -- 0 in the low field, a negative one would borrow into the index
+      -- field, and m <= 2^31 keeps every EMITTED index out of the sign bit
+      -- (the discarded final successor may set it; nothing reads it).
+      -- lemireFits m for the mulhi test is implied. The extreme offsets are
+      -- per-dimension separable, so each bound takes every dimension at
+      -- whichever end of its range extremizes it: 'maxOff' tops up the
+      -- positive-stride dims, 'minOff' the negative ones. The first draft
+      -- summed every dim's top into 'maxOff' -- the maximum only for
+      -- non-negative strides; on a rev'd view it lands mid-range -- and
+      -- carried no lower bound at all, which 'revShapes' is what exposed.
+      -- Flipping the new conjunct to @minOff > 0@ fails the first shape's
+      -- assert, so it is compiled in -- the proof route the size-precondition
+      -- comment near 'lemireFits' prescribes, this precondition being no
+      -- more fireable at harness scale than those.
   | otherwise =
-      assert (m <= 2147483648 && maxOff < 4294967296)
+      assert (m <= 2147483648 && maxOff < 4294967296 && minOff >= 0)
       $ scanned [(n, st) | (n, st) <- zip osh oats, n /= 1]
   where
     m = product osh
-    maxOff = o0 + sum [(n - 1) * st | (n, st) <- zip osh oats]
+    maxOff = o0 + sum [max 0 ((n - 1) * st) | (n, st) <- zip osh oats]
+    minOff = o0 + sum [min 0 ((n - 1) * st) | (n, st) <- zip osh oats]
     scanned []   = VS.singleton o0
     scanned dims = VS.unfoldrExactN m step o0
       where !lastDim    = last dims
@@ -677,7 +710,7 @@ fbList sh a = VS.fromListN l (toListT sh a) where l = product sh
 -- picture rather than a fix: README.md#the-reader-read-runpy.
 {-# NOINLINE fbGenQuotRem #-}
 fbGenQuotRem :: ShapeL -> T -> VS.Vector Double
-fbGenQuotRem sh (T ats ao v) =
+fbGenQuotRem sh (T (Strides ats) ao v) =
   VS.generate l (\i -> v VS.! (ao + offsetOf i ts' ats))
   where l : ts' = getStridesT sh
         offsetOf i (t:ts) (s:ss) = case i `quotRem` t of
@@ -697,7 +730,7 @@ fbGenQuotRem sh (T ats ao v) =
 -- variant would be written.
 {-# NOINLINE fbGenUnsafe #-}
 fbGenUnsafe :: ShapeL -> T -> VS.Vector Double
-fbGenUnsafe sh (T ats ao v) =
+fbGenUnsafe sh (T (Strides ats) ao v) =
   VS.generate l (\i -> VS.unsafeIndex v (ao + offsetOf i ts' ats))
   where l : ts' = getStridesT sh
         offsetOf i (t:ts) (s:ss) = case i `quotRem` t of
@@ -713,7 +746,7 @@ fbGenUnsafe sh (T ats ao v) =
 -- is one delegation per instance to a pure builder vector already ships.
 {-# NOINLINE fbUnfoldAdd #-}
 fbUnfoldAdd :: ShapeL -> T -> VS.Vector Double
-fbUnfoldAdd sh (T ats ao v) =
+fbUnfoldAdd sh (T (Strides ats) ao v) =
   VS.unfoldrExactN l step (ao, replicate (length sh) 0)
   where l = product sh
         rsh = reverse sh
@@ -740,7 +773,7 @@ data S3 = S3 !Int !Int !Int
 -- multiply, no per-step allocation.
 {-# NOINLINE fbFused #-}
 fbFused :: ShapeL -> T -> VS.Vector Double
-fbFused sh (T ats ao v) = VS.unfoldrExactN l step (S3 ao 0 0)
+fbFused sh (T (Strides ats) ao v) = VS.unfoldrExactN l step (S3 ao 0 0)
   where l = product sh
         !s = last sh
         !t = last ats
@@ -748,7 +781,7 @@ fbFused sh (T ats ao v) = VS.unfoldrExactN l step (S3 ao 0 0)
         -- by zero here, and the bang forces it even though @l == 0@ makes the
         -- run count irrelevant. 'degenerateShapes' is what reaches this.
         !m = l `div` max 1 s
-        !baseOffsets = VS.fromListN m (runBaseOffsets ao (init sh) (init ats))
+        !baseOffsets = VS.fromListN m (runBaseOffsets ao (init sh) (Strides (init ats)))
                          :: VS.Vector Int
         step (S3 o j q) =
           -- @next@ is forced: unbanged it is a thunk per step, which is
@@ -775,11 +808,11 @@ fbFused sh (T ats ao v) = VS.unfoldrExactN l step (S3 ao 0 0)
 -- reduction on its own, without that strategy's fully-fused loop.
 {-# NOINLINE fbBaseOffsetsQuot #-}
 fbBaseOffsetsQuot :: ShapeL -> T -> VS.Vector Double
-fbBaseOffsetsQuot sh (T ats ao v) = VS.generate l get
+fbBaseOffsetsQuot sh (T (Strides ats) ao v) = VS.generate l get
   where l = product sh
         !s = last sh
         !t = last ats
-        !baseOffsets = baseOffsetsList ao (init sh) (init ats)
+        !baseOffsets = baseOffsetsList ao (init sh) (Strides (init ats))
         get i = case i `quotRem` s of
           (!q, !j) -> VS.unsafeIndex v (VS.unsafeIndex baseOffsets q + j * t)
 
@@ -792,11 +825,11 @@ fbBaseOffsetsQuot sh (T ats ao v) = VS.generate l get
 -- Tests how much of 'fbMutOdo's edge is just the base-offsets list.
 {-# NOINLINE fbBQmut #-}
 fbBQmut :: ShapeL -> T -> VS.Vector Double
-fbBQmut sh (T ats ao v) = VS.generate l get
+fbBQmut sh (T (Strides ats) ao v) = VS.generate l get
   where l = product sh
         !s = last sh
         !t = last ats
-        !baseOffsets = baseOffsetsMut ao (init sh) (init ats)
+        !baseOffsets = baseOffsetsMut ao (init sh) (Strides (init ats))
         get i = case i `quotRem` s of
           (!q, !j) -> VS.unsafeIndex v (VS.unsafeIndex baseOffsets q + j * t)
 
@@ -810,11 +843,11 @@ fbBQmut sh (T ats ao v) = VS.generate l get
 -- deliberately absent: a second change would confound the control.
 {-# NOINLINE fbBQmutRuns #-}
 fbBQmutRuns :: ShapeL -> T -> VS.Vector Double
-fbBQmutRuns sh (T ats ao v) = VS.generate l get
+fbBQmutRuns sh (T (Strides ats) ao v) = VS.generate l get
   where l = product sh
         !s = last sh
         !t = last ats
-        !baseOffsets = baseOffsetsMutRuns ao (init sh) (init ats)
+        !baseOffsets = baseOffsetsMutRuns ao (init sh) (Strides (init ats))
         get i = case i `quotRem` s of
           (!q, !j) -> VS.unsafeIndex v (VS.unsafeIndex baseOffsets q + j * t)
 
@@ -826,7 +859,7 @@ fbBQmutRuns sh (T ats ao v) = VS.generate l get
 -- the no-list base-offsets win survives without explicit mutation.
 {-# NOINLINE fbBQunfold #-}
 fbBQunfold :: ShapeL -> T -> VS.Vector Double
-fbBQunfold sh (T ats ao v) = VS.generate l get
+fbBQunfold sh (T (Strides ats) ao v) = VS.generate l get
   where l = product sh
         !s = last sh
         !t = last ats
@@ -851,11 +884,11 @@ fbBQunfold sh (T ats ao v) = VS.generate l get
 -- explicit vector mutation?".
 {-# NOINLINE fbBQgen #-}
 fbBQgen :: ShapeL -> T -> VS.Vector Double
-fbBQgen sh (T ats ao v) = VS.generate l get
+fbBQgen sh (T (Strides ats) ao v) = VS.generate l get
   where l = product sh
         !s = last sh
         !t = last ats
-        !baseOffsets = baseOffsetsGen ao (init sh) (init ats)
+        !baseOffsets = baseOffsetsGen ao (init sh) (Strides (init ats))
         get i = case i `quotRem` s of
           (!q, !j) -> VS.unsafeIndex v (VS.unsafeIndex baseOffsets q + j * t)
 
@@ -864,12 +897,12 @@ fbBQgen sh (T ats ao v) = VS.generate l get
 -- control.
 {-# NOINLINE fbBQgenLemire #-}
 fbBQgenLemire :: ShapeL -> T -> VS.Vector Double
-fbBQgenLemire sh (T ats ao v) = VS.generate l get
+fbBQgenLemire sh (T (Strides ats) ao v) = VS.generate l get
   where l = product sh
         !s = last sh
         !t = last ats
         -- Lemire is in the build here, so the bound is asserted there.
-        !baseOffsets = baseOffsetsGenLemire ao (init sh) (init ats)
+        !baseOffsets = baseOffsetsGenLemire ao (init sh) (Strides (init ats))
         get i = case i `quotRem` s of
           (!q, !j) -> VS.unsafeIndex v (VS.unsafeIndex baseOffsets q + j * t)
 
@@ -878,11 +911,11 @@ fbBQgenLemire sh (T ats ao v) = VS.generate l get
 -- 'baseOffsetsMut'. The concatMap route to answering the no-mutation question.
 {-# NOINLINE fbBQexpand #-}
 fbBQexpand :: ShapeL -> T -> VS.Vector Double
-fbBQexpand sh (T ats ao v) = VS.generate l get
+fbBQexpand sh (T (Strides ats) ao v) = VS.generate l get
   where l = product sh
         !s = last sh
         !t = last ats
-        !baseOffsets = baseOffsetsExpand ao (init sh) (init ats)
+        !baseOffsets = baseOffsetsExpand ao (init sh) (Strides (init ats))
         get i = case i `quotRem` s of
           (!q, !j) -> VS.unsafeIndex v (VS.unsafeIndex baseOffsets q + j * t)
 
@@ -890,22 +923,22 @@ fbBQexpand sh (T ats ao v) = VS.generate l get
 -- base-offsets build.
 {-# NOINLINE fbBQexpandZF #-}
 fbBQexpandZF :: ShapeL -> T -> VS.Vector Double
-fbBQexpandZF sh (T ats ao v) = VS.generate l get
+fbBQexpandZF sh (T (Strides ats) ao v) = VS.generate l get
   where l = product sh
         !s = last sh
         !t = last ats
-        !baseOffsets = baseOffsetsExpandZF ao (init sh) (init ats)
+        !baseOffsets = baseOffsetsExpandZF ao (init sh) (Strides (init ats))
         get i = case i `quotRem` s of
           (!q, !j) -> VS.unsafeIndex v (VS.unsafeIndex baseOffsets q + j * t)
 
 -- 'fbBQexpand' with the micro-optimised 'baseOffsetsExpandB'.
 {-# NOINLINE fbBQexpandB #-}
 fbBQexpandB :: ShapeL -> T -> VS.Vector Double
-fbBQexpandB sh (T ats ao v) = VS.generate l get
+fbBQexpandB sh (T (Strides ats) ao v) = VS.generate l get
   where l = product sh
         !s = last sh
         !t = last ats
-        !baseOffsets = baseOffsetsExpandB ao (init sh) (init ats)
+        !baseOffsets = baseOffsetsExpandB ao (init sh) (Strides (init ats))
         get i = case i `quotRem` s of
           (!q, !j) -> VS.unsafeIndex v (VS.unsafeIndex baseOffsets q + j * t)
 
@@ -924,7 +957,7 @@ fbBQexpandB sh (T ats ao v) = VS.generate l get
 -- number and no bound on @l@.
 {-# NOINLINE fbBQexpandQRprim #-}
 fbBQexpandQRprim :: ShapeL -> T -> VS.Vector Double
-fbBQexpandQRprim sh (T ats ao v) =
+fbBQexpandQRprim sh (T (Strides ats) ao v) =
   -- Stands in for the two tests 'quotRem' makes and 'quotRemInt#' does not.
   -- It holds because @s@ is a shape dimension, hence never negative, so the
   -- @minBound quot (-1)@ overflow needs a divisor this can never have; and a
@@ -937,7 +970,7 @@ fbBQexpandQRprim sh (T ats ao v) =
         !s = last sh
         !(I# s#) = s
         !t = last ats
-        !baseOffsets = baseOffsetsExpand ao (init sh) (init ats)
+        !baseOffsets = baseOffsetsExpand ao (init sh) (Strides (init ats))
         get (I# i) = case quotRemInt# i s# of
           (# q, j #) -> VS.unsafeIndex v
                           (VS.unsafeIndex baseOffsets (I# q) + I# j * t)
@@ -952,12 +985,12 @@ fbBQexpandQRprim sh (T ats ao v) =
 -- changes ('stretch-inner1' is the shape that takes it).
 {-# NOINLINE fbBQexpandLemireOut #-}
 fbBQexpandLemireOut :: ShapeL -> T -> VS.Vector Double
-fbBQexpandLemireOut sh (T ats ao v) = VS.generate l get
+fbBQexpandLemireOut sh (T (Strides ats) ao v) = VS.generate l get
   where l = product sh
         !s = last sh
         !t = last ats
         !mg = assert (lemireFits l) $ magicOf s
-        !baseOffsets = baseOffsetsExpand ao (init sh) (init ats)
+        !baseOffsets = baseOffsetsExpand ao (init sh) (Strides (init ats))
         get i = case fastQR mg s i of
           (!q, !j) -> VS.unsafeIndex v (VS.unsafeIndex baseOffsets q + j * t)
 
@@ -980,7 +1013,7 @@ fbBQexpandLemireOut sh (T ats ao v) = VS.generate l get
 -- carry the same guard.
 {-# NOINLINE fbBQexpandLemireMulback #-}
 fbBQexpandLemireMulback :: ShapeL -> T -> VS.Vector Double
-fbBQexpandLemireMulback sh (T ats ao v)
+fbBQexpandLemireMulback sh (T (Strides ats) ao v)
   | s == 1 = VS.generate l (VS.unsafeIndex v . VS.unsafeIndex baseOffsets)
   | otherwise = VS.generate l get
   where l = product sh
@@ -989,7 +1022,7 @@ fbBQexpandLemireMulback sh (T ats ao v)
         !magic = assert (lemireFits l)
                  $ if s <= 1 then 0
                    else (maxBound `quot` fromIntegral s) + 1 :: Word
-        !baseOffsets = baseOffsetsExpand ao (init sh) (init ats)
+        !baseOffsets = baseOffsetsExpand ao (init sh) (Strides (init ats))
         get i = let !q = fromIntegral (mulhi magic (fromIntegral i))
                 in  VS.unsafeIndex v
                       (VS.unsafeIndex baseOffsets q + (i - q * s) * t)
@@ -1004,7 +1037,7 @@ fbBQexpandLemireMulback sh (T ats ao v)
 -- version needs both branches, not one covering the other.
 {-# NOINLINE fbBQexpand32LemireMulback #-}
 fbBQexpand32LemireMulback :: ShapeL -> T -> VS.Vector Double
-fbBQexpand32LemireMulback sh (T ats ao v)
+fbBQexpand32LemireMulback sh (T (Strides ats) ao v)
   | s == 1 = VS.generate l
                (VS.unsafeIndex v . fromIntegral . VS.unsafeIndex baseOffsets)
   | otherwise = VS.generate l get
@@ -1021,7 +1054,7 @@ fbBQexpand32LemireMulback sh (T ats ao v)
         -- implies that only while every stride is non-negative. See the TODO
         -- on 'baseOffsetsExpand32'.
         !baseOffsets = assert (int32Fits v)
-                       $ baseOffsetsExpand32 ao (init sh) (init ats)
+                       $ baseOffsetsExpand32 ao (init sh) (Strides (init ats))
         get i = let !q = fromIntegral (mulhi magic (fromIntegral i))
                 in  VS.unsafeIndex v
                       (fromIntegral (VS.unsafeIndex baseOffsets q)
@@ -1037,12 +1070,12 @@ fbBQexpand32LemireMulback sh (T ats ao v)
 -- this is the cheapest form of the fastest output.
 {-# NOINLINE fbBQmutLemireOut #-}
 fbBQmutLemireOut :: ShapeL -> T -> VS.Vector Double
-fbBQmutLemireOut sh (T ats ao v) = VS.generate l get
+fbBQmutLemireOut sh (T (Strides ats) ao v) = VS.generate l get
   where l = product sh
         !s = last sh
         !t = last ats
         !mg = assert (lemireFits l) $ magicOf s
-        !baseOffsets = baseOffsetsMut ao (init sh) (init ats)
+        !baseOffsets = baseOffsetsMut ao (init sh) (Strides (init ats))
         get i = case fastQR mg s i of
           (!q, !j) -> VS.unsafeIndex v (VS.unsafeIndex baseOffsets q + j * t)
 
@@ -1055,7 +1088,7 @@ fbBQmutLemireOut sh (T ats ao v) = VS.generate l get
 -- 'fbOffTab32' price the Int32 narrowing separately.
 {-# NOINLINE fbBQmutLemireMulback #-}
 fbBQmutLemireMulback :: ShapeL -> T -> VS.Vector Double
-fbBQmutLemireMulback sh (T ats ao v)
+fbBQmutLemireMulback sh (T (Strides ats) ao v)
   | s == 1 = VS.generate l (VS.unsafeIndex v . VS.unsafeIndex baseOffsets)
   | otherwise = VS.generate l get
   where l = product sh
@@ -1064,7 +1097,7 @@ fbBQmutLemireMulback sh (T ats ao v)
         !magic = assert (lemireFits l)
                  $ if s <= 1 then 0
                    else (maxBound `quot` fromIntegral s) + 1 :: Word
-        !baseOffsets = baseOffsetsMut ao (init sh) (init ats)
+        !baseOffsets = baseOffsetsMut ao (init sh) (Strides (init ats))
         get i = let !q = fromIntegral (mulhi magic (fromIntegral i))
                 in  VS.unsafeIndex v
                       (VS.unsafeIndex baseOffsets q + (i - q * s) * t)
@@ -1083,7 +1116,7 @@ fbBQmutLemireMulback sh (T ats ao v)
 -- measurement, not the transfer of anyone else's.
 {-# NOINLINE fbBQmutRunsMulback #-}
 fbBQmutRunsMulback :: ShapeL -> T -> VS.Vector Double
-fbBQmutRunsMulback sh (T ats ao v)
+fbBQmutRunsMulback sh (T (Strides ats) ao v)
   | s == 1 = VS.generate l (VS.unsafeIndex v . VS.unsafeIndex baseOffsets)
   | otherwise = VS.generate l get
   where l = product sh
@@ -1092,7 +1125,7 @@ fbBQmutRunsMulback sh (T ats ao v)
         !magic = assert (lemireFits l)
                  $ if s <= 1 then 0
                    else (maxBound `quot` fromIntegral s) + 1 :: Word
-        !baseOffsets = baseOffsetsMutRuns ao (init sh) (init ats)
+        !baseOffsets = baseOffsetsMutRuns ao (init sh) (Strides (init ats))
         get i = let !q = fromIntegral (mulhi magic (fromIntegral i))
                 in  VS.unsafeIndex v
                       (VS.unsafeIndex baseOffsets q + (i - q * s) * t)
@@ -1109,7 +1142,7 @@ fbBQmutRunsMulback sh (T ats ao v)
 -- so the bound is worth keeping where it holds.
 {-# NOINLINE fbBQmutRunsGmMulback #-}
 fbBQmutRunsGmMulback :: ShapeL -> T -> VS.Vector Double
-fbBQmutRunsGmMulback sh (T ats ao v)
+fbBQmutRunsGmMulback sh (T (Strides ats) ao v)
   | s == 1 = VS.generate l (VS.unsafeIndex v . VS.unsafeIndex baseOffsets)
   | otherwise = VS.generate l get
   where l = product sh
@@ -1118,7 +1151,7 @@ fbBQmutRunsGmMulback sh (T ats ao v)
         !gm = gmMagic s
         !magic = fst gm
         !gsh = snd gm
-        !baseOffsets = baseOffsetsMutRuns ao (init sh) (init ats)
+        !baseOffsets = baseOffsetsMutRuns ao (init sh) (Strides (init ats))
         get i = let !q = fromIntegral
                            (mulhi magic (fromIntegral i) `shiftR` gsh)
                 in  VS.unsafeIndex v
@@ -1141,7 +1174,7 @@ fbBQmutRunsGmMulback sh (T ats ao v)
 -- verbatim; the difference against the control stays the build alone.
 {-# NOINLINE fbBQscanMulback #-}
 fbBQscanMulback :: ShapeL -> T -> VS.Vector Double
-fbBQscanMulback sh (T ats ao v)
+fbBQscanMulback sh (T (Strides ats) ao v)
   | s == 1 = VS.generate l (VS.unsafeIndex v . VS.unsafeIndex baseOffsets)
   | otherwise = VS.generate l get
   where l = product sh
@@ -1150,7 +1183,7 @@ fbBQscanMulback sh (T ats ao v)
         !magic = assert (lemireFits l)
                  $ if s <= 1 then 0
                    else (maxBound `quot` fromIntegral s) + 1 :: Word
-        !baseOffsets = baseOffsetsScan ao (init sh) (init ats)
+        !baseOffsets = baseOffsetsScan ao (init sh) (Strides (init ats))
         get i = let !q = fromIntegral (mulhi magic (fromIntegral i))
                 in  VS.unsafeIndex v
                       (VS.unsafeIndex baseOffsets q + (i - q * s) * t)
@@ -1163,7 +1196,7 @@ fbBQscanMulback sh (T ats ao v)
 -- Data/Array/Internal.hs, and the builder's own size bound gone.
 {-# NOINLINE fbBQscanRemMulback #-}
 fbBQscanRemMulback :: ShapeL -> T -> VS.Vector Double
-fbBQscanRemMulback sh (T ats ao v)
+fbBQscanRemMulback sh (T (Strides ats) ao v)
   | s == 1 = VS.generate l (VS.unsafeIndex v . VS.unsafeIndex baseOffsets)
   | otherwise = VS.generate l get
   where l = product sh
@@ -1172,7 +1205,7 @@ fbBQscanRemMulback sh (T ats ao v)
         !magic = assert (lemireFits l)
                  $ if s <= 1 then 0
                    else (maxBound `quot` fromIntegral s) + 1 :: Word
-        !baseOffsets = baseOffsetsScanRem ao (init sh) (init ats)
+        !baseOffsets = baseOffsetsScanRem ao (init sh) (Strides (init ats))
         get i = let !q = fromIntegral (mulhi magic (fromIntegral i))
                 in  VS.unsafeIndex v
                       (VS.unsafeIndex baseOffsets q + (i - q * s) * t)
@@ -1186,7 +1219,7 @@ fbBQscanRemMulback sh (T ats ao v)
 -- further swap, deliberately not taken until each half is priced alone.
 {-# NOINLINE fbBQscanGmMulback #-}
 fbBQscanGmMulback :: ShapeL -> T -> VS.Vector Double
-fbBQscanGmMulback sh (T ats ao v)
+fbBQscanGmMulback sh (T (Strides ats) ao v)
   | s == 1 = VS.generate l (VS.unsafeIndex v . VS.unsafeIndex baseOffsets)
   | otherwise = VS.generate l get
   where l = product sh
@@ -1195,7 +1228,7 @@ fbBQscanGmMulback sh (T ats ao v)
         !gm = gmMagic s
         !magic = fst gm
         !gsh = snd gm
-        !baseOffsets = baseOffsetsScan ao (init sh) (init ats)
+        !baseOffsets = baseOffsetsScan ao (init sh) (Strides (init ats))
         get i = let !q = fromIntegral
                            (mulhi magic (fromIntegral i) `shiftR` gsh)
                 in  VS.unsafeIndex v
@@ -1221,7 +1254,7 @@ fbBQscanGmMulback sh (T ats ao v)
 -- where the dispatch stops being a formality.
 {-# NOINLINE fbBQscanRemGmMulback #-}
 fbBQscanRemGmMulback :: ShapeL -> T -> VS.Vector Double
-fbBQscanRemGmMulback sh (T ats ao v)
+fbBQscanRemGmMulback sh (T (Strides ats) ao v)
   | s == 1 = VS.generate l (VS.unsafeIndex v . VS.unsafeIndex baseOffsets)
   | otherwise = VS.generate l get
   where l = product sh
@@ -1230,7 +1263,7 @@ fbBQscanRemGmMulback sh (T ats ao v)
         !gm = gmMagic s
         !magic = fst gm
         !gsh = snd gm
-        !baseOffsets = baseOffsetsScanRem ao (init sh) (init ats)
+        !baseOffsets = baseOffsetsScanRem ao (init sh) (Strides (init ats))
         get i = let !q = fromIntegral
                            (mulhi magic (fromIntegral i) `shiftR` gsh)
                 in  VS.unsafeIndex v
@@ -1247,7 +1280,7 @@ fbBQscanRemGmMulback sh (T ats ao v)
 -- dies with a number attached.
 {-# NOINLINE fbBQodoMulback #-}
 fbBQodoMulback :: ShapeL -> T -> VS.Vector Double
-fbBQodoMulback sh (T ats ao v)
+fbBQodoMulback sh (T (Strides ats) ao v)
   | s == 1 = VS.generate l (VS.unsafeIndex v . VS.unsafeIndex baseOffsets)
   | otherwise = VS.generate l get
   where l = product sh
@@ -1256,7 +1289,7 @@ fbBQodoMulback sh (T ats ao v)
         !magic = assert (lemireFits l)
                  $ if s <= 1 then 0
                    else (maxBound `quot` fromIntegral s) + 1 :: Word
-        !baseOffsets = baseOffsetsOdo ao (init sh) (init ats)
+        !baseOffsets = baseOffsetsOdo ao (init sh) (Strides (init ats))
         get i = let !q = fromIntegral (mulhi magic (fromIntegral i))
                 in  VS.unsafeIndex v
                       (VS.unsafeIndex baseOffsets q + (i - q * s) * t)
@@ -1268,7 +1301,7 @@ fbBQodoMulback sh (T ats ao v)
 -- itself the control.
 {-# NOINLINE fbBQscanPackedMulback #-}
 fbBQscanPackedMulback :: ShapeL -> T -> VS.Vector Double
-fbBQscanPackedMulback sh (T ats ao v)
+fbBQscanPackedMulback sh (T (Strides ats) ao v)
   | s == 1 = VS.generate l (VS.unsafeIndex v . VS.unsafeIndex baseOffsets)
   | otherwise = VS.generate l get
   where l = product sh
@@ -1277,7 +1310,7 @@ fbBQscanPackedMulback sh (T ats ao v)
         !magic = assert (lemireFits l)
                  $ if s <= 1 then 0
                    else (maxBound `quot` fromIntegral s) + 1 :: Word
-        !baseOffsets = baseOffsetsScanPacked ao (init sh) (init ats)
+        !baseOffsets = baseOffsetsScanPacked ao (init sh) (Strides (init ats))
         get i = let !q = fromIntegral (mulhi magic (fromIntegral i))
                 in  VS.unsafeIndex v
                       (VS.unsafeIndex baseOffsets q + (i - q * s) * t)
@@ -1290,8 +1323,8 @@ fbBQscanPackedMulback sh (T ats ao v)
 -- no division) and 'concatMap' nests the outer dims. Pure 'Vector' ops,
 -- no intermediate list.
 {-# INLINE strideOffsets #-}
-strideOffsets :: Int -> [Int] -> [Int] -> VS.Vector Int
-strideOffsets o0 sh0 ats0 = go o0 sh0 ats0
+strideOffsets :: Int -> ShapeL -> Strides -> VS.Vector Int
+strideOffsets o0 sh0 (Strides ats0) = go o0 sh0 ats0
   where go o []       []         = VS.singleton o
         go o [n]      [st]       = VS.enumFromStepN o st n
         go o (n : ns) (st : sts) =
@@ -1306,7 +1339,7 @@ strideOffsets o0 sh0 ats0 = go o0 sh0 ats0
 -- new-pure-method tier: 'vBackpermute', one delegation per instance.
 {-# NOINLINE fbBackperm #-}
 fbBackperm :: ShapeL -> T -> VS.Vector Double
-fbBackperm sh (T ats ao v) = VS.unsafeBackpermute v (strideOffsets ao sh ats)
+fbBackperm sh (T strides ao v) = VS.unsafeBackpermute v (strideOffsets ao sh strides)
 
 -- Drop the per-element output quotRem as well. The output is a
 -- separable gather (offset[q*s+j] = baseOffsets[q] + j*t), so expand the outer
@@ -1322,12 +1355,12 @@ fbBackperm sh (T ats ao v) = VS.unsafeBackpermute v (strideOffsets ao sh ats)
 -- new-pure-method tier: each is a one-line delegation, several of them.
 {-# NOINLINE fbCMGather #-}
 fbCMGather :: ShapeL -> T -> VS.Vector Double
-fbCMGather sh (T ats ao v) =
+fbCMGather sh (T (Strides ats) ao v) =
   VS.map (VS.unsafeIndex v)
          (VS.concatMap (\b -> VS.enumFromStepN b t s) baseOffsets)
   where s = last sh
         !t = last ats
-        !baseOffsets = baseOffsetsExpand ao (init sh) (init ats)
+        !baseOffsets = baseOffsetsExpand ao (init sh) (Strides (init ats))
 
 -- The whole offset grid over ALL dims via 'baseOffsetsExpand', then
 -- one gather. Materialises the full l-length offset table (foldl' forces
@@ -1335,8 +1368,8 @@ fbCMGather sh (T ats ao v) =
 -- Same new-pure-method tier as 'fbCMGather', for the same reason.
 {-# NOINLINE fbAllExpand #-}
 fbAllExpand :: ShapeL -> T -> VS.Vector Double
-fbAllExpand sh (T ats ao v) =
-  VS.map (VS.unsafeIndex v) (baseOffsetsExpand ao sh ats)
+fbAllExpand sh (T strides ao v) =
+  VS.map (VS.unsafeIndex v) (baseOffsetsExpand ao sh strides)
 
 -- The full offset table (length @l@) built by the same mutable
 -- odometer as 'fbMutOdo', then gathered with a single 'VS.generate' whose
@@ -1346,7 +1379,7 @@ fbAllExpand sh (T ats ao v) =
 -- per-element arithmetic is worth the extra pass 'fbMutOdo' avoids.
 {-# NOINLINE fbOffTab #-}
 fbOffTab :: ShapeL -> T -> VS.Vector Double
-fbOffTab sh (T ats ao v) =
+fbOffTab sh (T (Strides ats) ao v) =
   VS.generate l (\i -> VS.unsafeIndex v (VS.unsafeIndex offs i))
   where l = product sh
         !s = last sh
@@ -1386,7 +1419,7 @@ fbOffTab sh (T ats ao v) =
 -- and so needs nothing from 'lemireFits'.
 {-# NOINLINE fbOffTab32 #-}
 fbOffTab32 :: ShapeL -> T -> VS.Vector Double
-fbOffTab32 sh (T ats ao v) =
+fbOffTab32 sh (T (Strides ats) ao v) =
   VS.generate l
     (\i -> VS.unsafeIndex v (fromIntegral (VS.unsafeIndex offs i)))
   where l = product sh
@@ -1443,10 +1476,10 @@ fbOffTab32 sh (T ats ao v) =
 -- degenerates to a sequential fill.
 {-# NOINLINE fbOffTabScan #-}
 fbOffTabScan :: ShapeL -> T -> VS.Vector Double
-fbOffTabScan sh (T ats ao v) =
+fbOffTabScan sh (T strides ao v) =
   VS.generate l (\i -> VS.unsafeIndex v (VS.unsafeIndex offs i))
   where l = product sh
-        !offs = baseOffsetsScan ao sh ats
+        !offs = baseOffsetsScan ao sh strides
 
 -- Family 4: direct mutable result-buffer fills, which need a class extension
 -- or explicit mutation, and the class-methods-only 'fbConcatRuns' that closes
@@ -1462,7 +1495,7 @@ fbOffTabScan sh (T ats ao v) =
 -- position so siblings advance it without arithmetic.
 {-# NOINLINE fbMutOdo #-}
 fbMutOdo :: ShapeL -> T -> VS.Vector Double
-fbMutOdo sh (T ats ao v) = VS.create $ do
+fbMutOdo sh (T (Strides ats) ao v) = VS.create $ do
   out <- VSM.unsafeNew l
   let writeRun !outPos !baseOff =
         let inner !j !src
@@ -1498,7 +1531,7 @@ fbMutOdo sh (T ats ao v) = VS.create $ do
 -- of each run cannot differ.
 {-# NOINLINE fbMutOdoVecdims #-}
 fbMutOdoVecdims :: ShapeL -> T -> VS.Vector Double
-fbMutOdoVecdims sh (T ats ao v) = VS.create $ do
+fbMutOdoVecdims sh (T (Strides ats) ao v) = VS.create $ do
   out <- VSM.unsafeNew l
   let writeRun !outPos !baseOff =
         let inner !j !src
@@ -1532,7 +1565,7 @@ fbMutOdoVecdims sh (T ats ao v) = VS.create $ do
 -- odometer-free variant against its control.
 {-# NOINLINE fbMutBaseOffsets #-}
 fbMutBaseOffsets :: ShapeL -> T -> VS.Vector Double
-fbMutBaseOffsets sh (T ats ao v) = VS.create $ do
+fbMutBaseOffsets sh (T (Strides ats) ao v) = VS.create $ do
   out <- VSM.unsafeNew l
   let writeRun !outPos !baseOff =
         let inner !j !src
@@ -1543,7 +1576,7 @@ fbMutBaseOffsets sh (T ats ao v) = VS.create $ do
         in  inner 0 baseOff
   foldM_ (\ !outPos !baseOff -> writeRun outPos baseOff
                                 >> return (outPos + sInner))
-         0 (runBaseOffsets ao (init sh) (init ats))
+         0 (runBaseOffsets ao (init sh) (Strides (init ats)))
   return out
   where l = product sh
         !sInner = last sh
@@ -1570,7 +1603,7 @@ vBuildVS n fill = VS.create $ do
 -- same code as the hand-written mutable fill).
 {-# NOINLINE fbBuild #-}
 fbBuild :: ShapeL -> T -> VS.Vector Double
-fbBuild sh (T ats ao v) = vBuildVS l $ \write ->
+fbBuild sh (T (Strides ats) ao v) = vBuildVS l $ \write ->
   let writeRun !outPos !baseOff =
         let inner !j !src
               | j >= sInner = return ()
@@ -1605,7 +1638,7 @@ fbBuild sh (T ats ao v) = vBuildVS l $ \write ->
 -- lands near 'fbMutOdo', the structure hypothesis dies.
 {-# NOINLINE fbMutFlat #-}
 fbMutFlat :: ShapeL -> T -> VS.Vector Double
-fbMutFlat sh (T ats ao v) = VS.create $ do
+fbMutFlat sh (T (Strides ats) ao v) = VS.create $ do
   out <- VSM.unsafeNew l
   let goCopy !i
         | i >= l = return ()
@@ -1629,7 +1662,7 @@ fbMutFlat sh (T ats ao v) = VS.create $ do
         !magic = assert (lemireFits l)
                  $ if s <= 1 then 0
                    else (maxBound `quot` fromIntegral s) + 1 :: Word
-        !baseOffsets = baseOffsetsMutRuns ao (init sh) (init ats)
+        !baseOffsets = baseOffsetsMutRuns ao (init sh) (Strides (init ats))
 
 -- The class-methods-only shape -- the only one expressible
 -- in orthotope's abstract 'Data.Array.Internal' without a new 'Vector'
@@ -1641,7 +1674,7 @@ fbMutFlat sh (T ats ao v) = VS.create $ do
 -- whether that beats the single-vector strategies is what this measures.
 {-# NOINLINE fbConcatRuns #-}
 fbConcatRuns :: ShapeL -> T -> VS.Vector Double
-fbConcatRuns sh (T ats ao v) = VS.concat (go (init sh) (init ats) ao [])
+fbConcatRuns sh (T (Strides ats) ao v) = VS.concat (go (init sh) (init ats) ao [])
   where s = last sh
         !t = last ats
         run !baseOff = VS.generate s (\j -> VS.unsafeIndex v (baseOff + j * t))
@@ -1649,6 +1682,12 @@ fbConcatRuns sh (T ats ao v) = VS.concat (go (init sh) (init ats) ao [])
         go (n : ns) (st : sts) !o rest =
           foldr (\i r -> go ns sts (o + i * st) r) rest [0 .. n - 1]
         go _        _          !o rest = run o : rest
+
+-- The innermost-two transpose shared by the generators that model the
+-- transpose a conv gather merges in ('mkStrided', 'mkSliced').
+swapLast2 :: [a] -> [a]
+swapLast2 xs = case reverse xs of
+  (a:b:rest) -> reverse (b:a:rest); _ -> xs
 
 -- Build a strided regime-3 T: a normal array of shape `normalSh` viewed
 -- with its two innermost dims transposed, so the innermost stride becomes
@@ -1660,24 +1699,174 @@ mkStrided normalSh =
   let l = product normalSh
       v = VS.enumFromN (0 :: Double) l
       normalStrides = drop 1 (getStridesT normalSh)
-      swapLast2 xs = case reverse xs of
-        (a:b:rest) -> reverse (b:a:rest); _ -> xs
       sh' = swapLast2 normalSh
-      st' = swapLast2 normalStrides
-  in  (sh', T st' 0 v)
+      strides' = swapLast2 normalStrides
+  in  (sh', T (Strides strides') 0 v)
 
 -- Which of toVectorListT's regimes a (shape, T) pair takes: 1 whole-vector
 -- memcpy, 2 innermost-normal per-run loop, 3 innermost-strided
 -- per-element fallback (the one this benchmark is about). Mirrors the
 -- branch logic in Data.Array.Internal.toVectorListT.
 regimeOf :: ShapeL -> T -> Int
-regimeOf sh (T ats _ v)
+regimeOf sh (T (Strides ats) _ v)
   | ats == ts' && VS.length v == l = 1
   | null sh                        = 1
   | oks !! (length sh - 1)         = 2
   | otherwise                      = 3
   where l : ts' = getStridesT sh
         oks = scanr (&&) True (zipWith (==) ats ts')
+
+-- The stride classes beyond 'mkStrided''s: regime-3 views the library
+-- reaches through operations other than the merged transpose -- each
+-- generator below models one producing operation, named at its comment.
+-- All are CHECK-ONLY today: 'check' holds every strategy and builder to
+-- the reference on them, but none is benchmarked, since each class is
+-- ruled its own pinned population, published beside the existing geomean
+-- and never folded into it (README.md#non-urgent-todo-list). The listed
+-- shapes stay within 'sizeCap' so that step stays open. @rotate@
+-- deliberately has no generator: it is a composite of stretch, reshape,
+-- window, stride and rev whose own output keeps innermost stride 1
+-- (regime 2), and the strides a further transpose exposes -- negated sums
+-- of dim products -- add no mechanism the rev and scaled classes do not
+-- already cover. A general transpose likewise has no generator: no class
+-- permutes the outer dims among themselves, the innermost-two swap aside.
+-- Non-monotonic stride orders do occur incidentally ('gather48-src-50',
+-- 'stretch-wide-2xM', 'bcastmid-primes'), the kernel walks the dims in
+-- whatever order it is given with no order-sensitive branch, and
+-- outer-dim order is the one axis with a measured null result behind it:
+-- horde-ad's shm-reorder experiment moved nothing, in time or in
+-- allocation. Add a permuting generator only if that measurement is ever
+-- contradicted.
+--
+-- Why this coverage survives hand-built views: the constructors are
+-- exported, so a program can write any strides and offset directly, yet a
+-- VALID hand-built view (every box index in bounds; invalid views are
+-- outside every contract here) can only recombine mechanisms these
+-- classes exercise, because the fallback reads a view at three sites
+-- only -- the regime test, the base-offsets build over the outer strides,
+-- and the @base + j * tInner@ addressing. The claim is a HYPOTHESIS about
+-- BENCHMARKING coverage, not a theorem: that strides and offset influence
+-- the kernel's TIME only through regime membership, read locality within
+-- and across runs, aliasing (cache warmth), and the magnitudes @sInner@,
+-- @m@ and @l@ -- so one class per mechanism spans the performance space
+-- although the value space is infinite. A separate and weaker claim: if
+-- that hypothesis holds, the same classes are likely an EFFICIENT
+-- coverage for correctness too, plausibly driving every conditional
+-- branch a plausible strategy contains -- the @s == 1@ and @m == 0@
+-- exits, the carry cascades, the sign-sensitive bounds -- though not
+-- every branch on every input, which no finite set can.
+
+-- Regime-3 view as @rev@ produces it: 'mkStrided''s view with EVERY
+-- dimension reversed -- each stride negated, the offset moved to where the
+-- reversed index map now starts. The un-reversed view is a permutation of
+-- its dense source, so that offset is exactly @l - 1@ (the top), which the
+-- class condition in 'check' pins. Negative strides and a non-zero offset
+-- are the class's whole point: no 'mkStrided' input has either.
+mkRev :: ShapeL -> (ShapeL, T)
+mkRev normalSh =
+  let (sh, T (Strides ats) _ v) = mkStrided normalSh
+      ao = sum [(n - 1) * t | (n, t) <- zip sh ats]
+  in  (sh, T (Strides (map negate ats)) ao v)
+
+-- Regime-3 view as @rev@ of a SUBSET of the dims produces it:
+-- 'mkStrided''s view with the dims named by the entry reversed, so the
+-- strides are MIXED-sign -- the case 'mkRev''s all-negative form cannot
+-- reach, and the one 'baseOffsetsScanPacked''s offset bounds extremize
+-- per dimension for. The entries keep the subset strict and non-empty,
+-- which the mixed-signs condition pins.
+mkRevSome :: [Int] -> ShapeL -> (ShapeL, T)
+mkRevSome rs normalSh =
+  let (sh, T (Strides ats) _ v) = mkStrided normalSh
+      ao = sum [(n - 1) * t | (r, (n, t)) <- zip [0 ..] (zip sh ats)
+                            , r `elem` rs]
+      ats' = [if r `elem` rs then negate t else t
+             | (r, t) <- zip [0 ..] ats]
+  in  (sh, T (Strides ats') ao v)
+
+-- Regime-3 view as a broadcast produces it: the given shape read as the
+-- VIEW shape, its innermost dimension stride-0 over a dense source of the
+-- outer dimensions alone -- orthotope's @stretch@ (ox-arrays'
+-- @X.replicate@) applied to a trailing size-1 array. Every run re-reads
+-- one element @sInner@ times: the all-hits extreme no positive stride can
+-- produce.
+mkBroadcast :: ShapeL -> (ShapeL, T)
+mkBroadcast sh =
+  let osh = init sh
+      v = VS.enumFromN (0 :: Double) (product osh)
+      strides = Strides (drop 1 (getStridesT osh) ++ [0])
+  in  (sh, T strides 0 v)
+
+-- Regime-3 view as a broadcast of a MIDDLE axis produces it -- @reshape@
+-- inserting a size-1 dim after the outermost, @stretch@ to @b@, then the
+-- usual innermost-two transpose: a zero stride among the OUTER strides
+-- with the innermost still strided, so the base-offsets TABLE carries
+-- duplicated entries, where 'mkBroadcast''s innermost zero multiplies
+-- runs and never table entries.
+mkBroadcastMid :: Int -> ShapeL -> (ShapeL, T)
+mkBroadcastMid b normalSh =
+  case mkStrided normalSh of
+    (s0 : srest, T (Strides (t0 : trest)) _ v) ->
+      (s0 : b : srest, T (Strides (t0 : 0 : trest)) 0 v)
+    _ -> error ("mkBroadcastMid: non-scalar shape expected: " ++ show normalSh)
+
+-- Regime-3 view of a CONTIGUOUS array: @reshape@ appending a size-1
+-- innermost dimension goes through orthotope's @simpleReshape@, which
+-- gives every new size-1 dimension stride 0 -- so the data is dense and in
+-- order, yet @last strides /= 1@ sends toVectorListT to regime 3, with
+-- @sInner == 1@ and a base-offsets table as long as the result. The listed
+-- shape is the dense one; the view appends the 1.
+mkReshape1 :: ShapeL -> (ShapeL, T)
+mkReshape1 normalSh = mkBroadcast (normalSh ++ [1])
+
+-- Regime-3 view as @slice@ of a transposed enclosure produces it: the
+-- dense source is the ENCLOSING shape, every dimension 2 larger, the view
+-- cut at offset 1 in each and then innermost-two transposed as usual. So
+-- the offset is non-zero, the backing is strictly larger than the view
+-- spans, and the stride values are suffix products of a shape the view
+-- does not show -- three things no 'mkStrided' input exhibits, and the
+-- first structural separation of the source-bound ('int32Fits') from the
+-- result-bound ('lemireFits') quantities (see the comment above those
+-- predicates).
+mkSliced :: ShapeL -> (ShapeL, T)
+mkSliced normalSh =
+  let esh = map (+ 2) normalSh
+      v = VS.enumFromN (0 :: Double) (product esh)
+      enclosingStrides = drop 1 (getStridesT esh)
+      ao = sum enclosingStrides  -- slice offset 1 in every dimension
+      sh' = swapLast2 normalSh
+      strides' = swapLast2 enclosingStrides
+  in  (sh', T (Strides strides') ao v)
+
+-- Regime-3 view as @window@ produces it: the im2col patch tensor itself --
+-- dense @[h, w]@ windowed to @[h-kh+1, w-kw+1, kh, kw]@ with strides
+-- @[w, 1, w, 1]@, then the same innermost-two transpose the conv gather
+-- merges in. The windowed strides DUPLICATE the source's, so distinct
+-- output positions read the same element through distinct non-zero
+-- strides: @l@ exceeds the backing and runs overlap, which is the overlap
+-- README.md#non-urgent-todo-list records the main set as pessimistic
+-- about.
+mkWindow :: ShapeL -> (ShapeL, T)
+mkWindow [h, w, kh, kw] =
+  let v = VS.enumFromN (0 :: Double) (h * w)
+      sh = [h - kh + 1, w - kw + 1, kw, kh]
+      strides = Strides [w, 1, 1, w]
+  in  (sh, T strides 0 v)
+mkWindow sh = error ("mkWindow: [h, w, kh, kw] expected: " ++ show sh)
+
+-- Regime-3 view with NO unit stride anywhere, as @stride@ composed over
+-- @window@ and @slice@ reaches -- or as a hand-built T, the constructors
+-- being exported: explicit strides over the tightest backing they span.
+-- The entries keep the strides superincreasing (each exceeds the span of
+-- the dims within it), so the map stays injective and the class stays
+-- distinct from 'mkWindow''s overlap. Where every 'mkStrided' view keeps a
+-- stride-1 second-innermost slot, this one has no stride-1 slot at all;
+-- and its rank-1 entry reaches @m == 1@, the floor 'stretch-tall-Mx2''s
+-- comment records as out of 'mkStrided''s reach.
+mkScaled :: ShapeL -> Strides -> (ShapeL, T)
+mkScaled sh strides@(Strides ats) =
+  let n = 1 + sum (zipWith (\s t -> (s - 1) * t) sh ats)
+      v = VS.enumFromN (0 :: Double) n
+  in  (sh, T strides 0 v)
 
 -- The conv-derived shapes (grouped inline below; see
 -- README.md#the-shape-set for where they come from): a full patch tensor
@@ -1757,7 +1946,8 @@ stretchShapes =
     -- The only other route to one run is rank 1, and 'mkStrided' needs two
     -- innermost dims to transpose. So no shape here can reach @m == 1@.
     -- The orthotope library can produce such strides, though (stride or slice
-    -- operation on a rank-1 array).
+    -- operation on a rank-1 array) -- now exercised, check-only, by
+    -- 'scaled-rank1-m1' in 'scaledViews'.
   , ("stretch-tall-Mx2",    [900000, 2])              -- 1800000, 2 base offsets
   , ("stretch-coprime-r7",  [2, 3, 5, 7, 11, 13, 2])  -- 60060, rank 7, coprime
   , ("stretch-rank12",      [2,2,2,2,2,2,2,2,2,2,2,2])  -- 4096, deepest rank
@@ -1818,6 +2008,74 @@ degenerateShapes :: [(String, ShapeL)]
 degenerateShapes =
   [ ("degenerate-m0",      [100000, 0])  -- -> [0, 100000], l=0, m=0
   , ("degenerate-sinner0", [0, 100000])  -- -> [100000, 0], l=0, sInner=0
+  ]
+
+-- The stride-class input lists, one per generator above, checked in this
+-- order after the main set. Check-only (see the class comment at the
+-- generators); every @l@ stays within 'sizeCap' so promotion to a
+-- benchmarked population needs no resizing. Each class reuses a listed
+-- shape of the main set where one fits, so a figure, once benchmarked, has
+-- a positive-stride counterpart to stand next to.
+revShapes :: [(String, ShapeL)]
+revShapes =
+  [ ("rev-cnn-L1-24x24-c1", [24, 24, 1, 3, 3])  -- rev'd main-set workhorse
+    -- innermost-two dims differ, keeping the swap under the rev honest
+  , ("rev-gather48-src-50", [50, 3, 3, 50])
+  , ("rev-primes",          [97, 89, 29])       -- rev'd stretch-primes
+  ]
+
+-- Dims to reverse (of the VIEW) beside the listed shape; strict non-empty
+-- subsets -- innermost, outermost, and a middle pair.
+revSomeShapes :: [(String, [Int], ShapeL)]
+revSomeShapes =
+  [ ("revsome-inner-primes", [2],    [97, 89, 29])
+  , ("revsome-outer-g48",    [0],    [50, 3, 3, 50])
+    -- mixed signs among the OUTER strides alone: the partial sums the
+    -- packed scan's bounds extremize per dimension for
+  , ("revsome-mid-cnn-L2",   [1, 2], [24, 24, 32, 3, 3])
+  ]
+
+-- Listed shape IS the view shape; the backing is its outer dims alone.
+broadcastShapes :: [(String, ShapeL)]
+broadcastShapes =
+  [ ("bcast-inner8",   [64, 100, 8])    -- l=51200 over a 6400-elem source
+  , ("bcast-inner900", [50, 40, 900])   -- long re-read runs, tiny source
+  , ("bcast-tall-Mx2", [900000, 2])     -- the 900k-run table, all hits
+  ]
+
+-- The stretch factor beside the dense shape whose middle axis broadcasts.
+broadcastMidShapes :: [(String, Int, ShapeL)]
+broadcastMidShapes =
+  [ ("bcastmid-c32-cnn", 32, [24, 24, 3, 3])  -- l mirrors cnn-L2-24x24-c32
+  , ("bcastmid-primes",  89, [97, 29])
+  ]
+
+-- Listed shape is the dense array; the view appends the size-1 dim.
+reshape1Shapes :: [(String, ShapeL)]
+reshape1Shapes =
+  [ ("reshape1-500k", [500000])         -- the reshape [n] -> [n, 1] trap
+  , ("reshape1-r3",   [100, 50, 36])    -- differing trailing dims
+  ]
+
+slicedShapes :: [(String, ShapeL)]
+slicedShapes =
+  [ ("slice-cnn-L2-24x24-c32", [24, 24, 32, 3, 3])  -- sliced main workhorse
+  , ("slice-primes",           [97, 89, 29])        -- sliced stretch-primes
+  ]
+
+-- Listed as [h, w, kh, kw]: image and kernel, not the view shape.
+windowShapes :: [(String, ShapeL)]
+windowShapes =
+  [ ("window-28x28-k5",   [28, 28, 5, 5])    -- l=14400 over 784 elements
+  , ("window-224x224-k3", [224, 224, 3, 3])  -- l=443556 over 50176
+  ]
+
+-- Views, not shapes like its siblings: explicit strides beside the shape,
+-- superincreasing, none 1.
+scaledViews :: [(String, ShapeL, Strides)]
+scaledViews =
+  [ ("scaled-super-r3", [40, 50, 30], Strides [4547, 91, 3])
+  , ("scaled-rank1-m1", [300000], Strides [5])  -- the m == 1 floor
   ]
 
 -- The cap that partitions the shape set: benchmarked iff @l <= sizeCap@,
@@ -2220,56 +2478,102 @@ mkBench (name, normalSh) =
     arm sh a (n, Force f) = [bench n $ whnf (touchLast . f sh) a]
     arm _  _ (_, Only _)  = []
 
+-- The builders compared directly, not only through the strategies
+-- that consume them. End-to-end agreement hides a table that is
+-- wrong past the entries a fill happens to read, or right in its
+-- entries and wrong in its length -- which is exactly how
+-- 'baseOffsetsScan' came to return a one-element table at @m == 0@
+-- while every strategy built on it still produced the right vector.
+-- 'baseOffsetsList' is the reference because it is the one nothing
+-- else is derived from. Every builder 'diag' measures is here: a
+-- builder reached only through a consumer has its entries checked
+-- where that consumer reads them and its length checked nowhere,
+-- which is the gap this check exists to close, so add to both lists
+-- together. Non-vacuity, per conjunct and not merely for the whole:
+-- lengthening 'baseOffsetsScanRem', 'baseOffsetsOdo' or
+-- 'baseOffsetsScanPacked' by one entry fails at the first shape
+-- with @agree=True, builds=False@ -- the very split this check is
+-- here for.
+buildersMatch :: Int -> ShapeL -> Strides -> Bool
+buildersMatch ao osh oats =
+     rBuild == baseOffsetsGen        ao osh oats
+  && rBuild == baseOffsetsGenLemire  ao osh oats
+  && rBuild == baseOffsetsExpand     ao osh oats
+  && rBuild == baseOffsetsExpandZF   ao osh oats
+  && rBuild == baseOffsetsExpandB    ao osh oats
+  && rBuild == baseOffsetsScan       ao osh oats
+  && rBuild == baseOffsetsScanRem    ao osh oats
+  && rBuild == baseOffsetsOdo        ao osh oats
+  && rBuild == baseOffsetsScanPacked ao osh oats
+  && rBuild == baseOffsetsMut        ao osh oats
+  && rBuild == baseOffsetsMutRuns    ao osh oats
+  && rBuild == w32 (baseOffsetsExpand32 ao osh oats)
+  && rBuild == w32 (baseOffsetsMut32    ao osh oats)
+  where rBuild = baseOffsetsList ao osh oats
+        w32    = VS.map fromIntegral  -- Int32 table read back as the rest
+
+-- The shared core of the stride-class checks: what the legacy 'one' asserts
+-- of a 'mkStrided' view -- regime 3, every strategy agreeing with the
+-- reference, every builder agreeing with 'baseOffsetsList' -- asserted of a
+-- view from any generator, plus the CLASS CONDITIONS the caller computes
+-- from the view in hand: the named structural properties that make the
+-- class what it claims to be, so that a generator drifting out of its class
+-- fails by name rather than passing as a different, weaker input. A failed
+-- condition is named in the error like a disagreeing arm is.
+oneView :: String -> ShapeL -> T -> [(String, Bool)] -> IO ()
+oneView name sh a@(T (Strides ats) ao v) conds = do
+  let rList  = reference sh a
+      builds = buildersMatch ao (init sh) (Strides (init ats))
+      bad    = [n | (n, f) <- checkedArms, f sh a /= rList]
+      agree  = null bad
+      reg    = regimeOf sh a
+      failedConds = [c | (c, ok) <- conds, not ok]
+  putStrLn $ name ++ ": view " ++ show sh ++ ", strides " ++ show ats
+             ++ ", offset " ++ show ao
+             ++ ", l=" ++ show (product sh)
+             ++ ", backing=" ++ show (VS.length v)
+             ++ ", regime=" ++ show reg
+             ++ ", agree=" ++ show agree ++ ", builds=" ++ show builds
+             ++ (if null failedConds then ""
+                 else " FAILED " ++ unwords failedConds)
+  if agree && builds && reg == 3 && null failedConds
+    then return ()
+    else error ("CHECK FAILED: " ++ name
+                ++ (if null failedConds then ""
+                    else ", class conditions failed: "
+                         ++ unwords failedConds)
+                ++ (if null bad then "" else ", disagreeing: " ++ unwords bad))
+
 -- Correctness / non-vacuity, in its own mode (@cabal run micro -- check@) so
 -- it runs as a separate process from the timed benchmark: every shape must
 -- take regime 3 and every strategy must produce the same vector as the
 -- reference. Which arms those are is 'checkedArms', read off the same
 -- 'roster' the benchmark is built from, so a strategy cannot be timed
 -- without being checked; a disagreeing arm is named rather than merely
--- counted, which a chain of @&&@ could not do.
+-- counted, which a chain of @&&@ could not do. After the main set and the
+-- degenerates, the stride-class lists run through 'oneView' with their
+-- class conditions, in the order the lists are defined.
 check :: IO ()
 check = do
   mapM_ (\(n, s) -> putStrLn $ "FLAGGED too big, excluded: " ++ n ++ " "
                                ++ show s ++ ", l=" ++ show (product s))
         tooBig
   mapM_ one (shapes ++ degenerateShapes)
+  mapM_ oneRev revShapes
+  mapM_ oneRevSome revSomeShapes
+  mapM_ oneBroadcast broadcastShapes
+  mapM_ oneBroadcastMid broadcastMidShapes
+  mapM_ oneReshape1 reshape1Shapes
+  mapM_ oneSliced slicedShapes
+  mapM_ oneWindow windowShapes
+  mapM_ oneScaled scaledViews
   where
     one (name, normalSh) = do
-      let (sh, a@(T ats ao _)) = mkStrided normalSh
+      let (sh, a@(T (Strides ats) ao _)) = mkStrided normalSh
           rList   = reference sh a
-          -- The builders compared directly, not only through the strategies
-          -- that consume them. End-to-end agreement hides a table that is
-          -- wrong past the entries a fill happens to read, or right in its
-          -- entries and wrong in its length -- which is exactly how
-          -- 'baseOffsetsScan' came to return a one-element table at @m == 0@
-          -- while every strategy built on it still produced the right vector.
-          -- 'baseOffsetsList' is the reference because it is the one nothing
-          -- else is derived from. Every builder 'diag' measures is here: a
-          -- builder reached only through a consumer has its entries checked
-          -- where that consumer reads them and its length checked nowhere,
-          -- which is the gap this arm exists to close, so add to both lists
-          -- together. Non-vacuity, per conjunct and not merely for the arm:
-          -- lengthening 'baseOffsetsScanRem', 'baseOffsetsOdo' or
-          -- 'baseOffsetsScanPacked' by one entry fails at the first shape
-          -- with @agree=True, builds=False@ -- the very split this arm is
-          -- here for.
-          osh     = init sh
-          oats    = init ats
-          rBuild  = baseOffsetsList ao osh oats
-          w32     = VS.map fromIntegral  -- Int32 table read back as the rest
-          builds  = rBuild == baseOffsetsGen        ao osh oats
-                 && rBuild == baseOffsetsGenLemire  ao osh oats
-                 && rBuild == baseOffsetsExpand     ao osh oats
-                 && rBuild == baseOffsetsExpandZF   ao osh oats
-                 && rBuild == baseOffsetsExpandB    ao osh oats
-                 && rBuild == baseOffsetsScan       ao osh oats
-                 && rBuild == baseOffsetsScanRem    ao osh oats
-                 && rBuild == baseOffsetsOdo        ao osh oats
-                 && rBuild == baseOffsetsScanPacked ao osh oats
-                 && rBuild == baseOffsetsMut        ao osh oats
-                 && rBuild == baseOffsetsMutRuns    ao osh oats
-                 && rBuild == w32 (baseOffsetsExpand32 ao osh oats)
-                 && rBuild == w32 (baseOffsetsMut32    ao osh oats)
+          -- The builders' direct comparison lives in 'buildersMatch', whose
+          -- comment carries the reason and the per-conjunct non-vacuity.
+          builds  = buildersMatch ao (init sh) (Strides (init ats))
           bad     = [n | (n, f) <- checkedArms, f sh a /= rList]
           agree   = null bad
           reg     = regimeOf sh a
@@ -2313,6 +2617,95 @@ check = do
                         ++ " second-to-last dim is " ++ show sInnerListed)
                     ++ (if null bad then ""
                         else ", disagreeing: " ++ unwords bad))
+    -- The class conditions, one runner per stride class. Each names the
+    -- structural properties its generator owes the class, computed from the
+    -- view in hand and asserted by 'oneView' beside the shared regime,
+    -- agreement and builder checks. Every conjunct is proven non-vacuous by
+    -- a deliberate breakage that keeps the view VALID -- regime 3, agree and
+    -- builds all still green, so the named condition is the only thing
+    -- standing -- except where a record below says the conjunct's space is
+    -- guarded elsewhere. Each record names its breakage and what fired.
+    --
+    -- Non-vacuity: leaving the outermost dim un-reversed (a valid partial
+    -- rev) fails all-negative and offset-top together at the first rev
+    -- shape; growing the backing by 7 with the offset at its top fails
+    -- offset-top alone.
+    oneRev (name, normalSh) =
+      let (sh, a@(T (Strides ats) ao _)) = mkRev normalSh
+      in  oneView name sh a
+            [ ("all-negative", all (< 0) ats)
+            , ("offset-top",   ao == product sh - 1) ]
+    -- Non-vacuity: reversing every dim regardless of the entry's subset (a
+    -- valid full rev) fails mixed-signs alone -- offset-rev-sum passes,
+    -- deriving from the view; growing the backing by 7 with the offset
+    -- shifted by 6 fails offset-rev-sum alone.
+    oneRevSome (name, rs, normalSh) =
+      let (sh, a@(T (Strides ats) ao _)) = mkRevSome rs normalSh
+      in  oneView name sh a
+            [ ("mixed-signs",    any (< 0) ats && any (> 0) ats)
+            , ("offset-rev-sum", ao == sum [(n - 1) * negate t
+                                           | (n, t) <- zip sh ats, t < 0]) ]
+    -- Non-vacuity: doubling the backing fails one-elem-per-run alone.
+    -- stride0-inner has no valid same-backing falsification: an innermost
+    -- stride of 1 over the tight backing reads past the source and died on
+    -- the reference's bounds check when tried, and a backing that admits it
+    -- makes the view regime 2 -- so that conjunct's space is guarded by the
+    -- bounds and regime checks, and it stands here as the class's
+    -- definition rather than as a live tripwire.
+    oneBroadcast (name, sh) =
+      let (sh', a@(T (Strides ats) _ v)) = mkBroadcast sh
+      in  oneView name sh' a
+            [ ("stride0-inner",    last ats == 0)
+            , ("one-elem-per-run", VS.length v == product (init sh')) ]
+    -- Non-vacuity: appending the broadcast axis innermost instead of
+    -- inserting it (a valid 'mkBroadcast'-shaped view) fails stride0-outer
+    -- alone, stretch-factor staying true; doubling the backing fails
+    -- stretch-factor alone.
+    oneBroadcastMid (name, b, normalSh) =
+      let (sh, a@(T (Strides ats) _ v)) = mkBroadcastMid b normalSh
+      in  oneView name sh a
+            [ ("stride0-outer",  0 `elem` init ats && last ats /= 0)
+            , ("stretch-factor", VS.length v * b == product sh) ]
+    -- Non-vacuity: building the dense strides innermost-two-swapped (a
+    -- valid transposed view) fails contiguous alone -- at reshape1-r3, the
+    -- rank-1 entry passing because the swap is the identity there, which is
+    -- why the class keeps an entry with differing trailing dims.
+    oneReshape1 (name, normalSh) =
+      let (sh, a@(T (Strides ats) _ v)) = mkReshape1 normalSh
+      in  oneView name sh a
+            [ ("stride0-inner", last ats == 0)
+            , ("contiguous",    VS.length v == product sh
+                                && init ats
+                                   == drop 1 (getStridesT (init sh))) ]
+    -- Non-vacuity: slicing at the origin fails offset-positive alone;
+    -- zeroing the margins as well fails both conditions, the view then
+    -- being 'mkStrided''s own.
+    oneSliced (name, normalSh) =
+      let (sh, a@(T _ ao v)) = mkSliced normalSh
+      in  oneView name sh a
+            [ ("offset-positive",   ao > 0)
+            , ("backing-enclosing", VS.length v
+                                    == product (map (+ 2) normalSh)) ]
+    -- Non-vacuity: an innermost stride of 2 in place of the duplicated one
+    -- (still in-bounds) fails dup-stride alone; shrinking the view to a
+    -- single patch fails aliasing alone.
+    oneWindow (name, hwkk) =
+      let (sh, a@(T (Strides ats) _ v)) = mkWindow hwkk
+          dup = case ats of t : _ -> t == last ats
+                            []    -> False
+      in  oneView name sh a
+            [ ("aliasing",   VS.length v < product sh)
+            , ("dup-stride", dup) ]
+    -- Non-vacuity: a 1 in an entry's stride list fails no-unit-stride
+    -- alone -- the mistyped entry being exactly what it guards -- and five
+    -- elements of backing slack fail tight-backing alone.
+    oneScaled (name, sh, strides) =
+      let (sh', a@(T (Strides ats) _ v)) = mkScaled sh strides
+      in  oneView name sh' a
+            [ ("no-unit-stride", all (>= 2) ats)
+            , ("tight-backing",  VS.length v
+                                 == 1 + sum (zipWith (\s t -> (s - 1) * t)
+                                             sh' ats)) ]
 
 -- Allocation diagnostic (run with @cabal run micro -- diag@): why is
 -- 'fbBQmut' faster than 'fbBaseOffsetsQuot' when they share the same
@@ -2331,9 +2724,9 @@ diag = do
             , ("vgg-14-c512  [14,14,512,3,3]", [14, 14, 512, 3, 3]) ]
   where
     one (name, normalSh) = do
-      let (sh, T ats _ _) = mkStrided normalSh
+      let (sh, T (Strides ats) _ _) = mkStrided normalSh
           osh  = init sh
-          oats = init ats
+          oats = Strides (init ats)
           m    = product osh
       putStrLn $ "\n" ++ name ++ "  (m = " ++ show m ++ " base-offsets, "
                  ++ show (VS.length (baseOffsetsMut 0 osh oats)) ++ " built)"

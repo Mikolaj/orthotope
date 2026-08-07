@@ -1172,15 +1172,38 @@ at `-L1` the halves read 169.9 ns and 170.1 ns, 0.12% apart.
 
 ### Non-urgent TODO list
 
-- **Zero and negative strides are unreachable.** `mkStrided` transposes the
-  two innermost dims of a dense array, so every stride it makes is positive,
-  while the library's two commonest regime-3 inputs are not: a broadcast is
-  stride 0 and `rev` is negative. Both want a generator variant, and adding
-  one is a shape-set change, to be pinned like any other.
-- **Runs never overlap.** That index map is a bijection onto `[0, l)`, where
-  im2col patches — the workload this page opens by naming — overlap heavily
-  and so reuse cache. The figures here are pessimistic about the case they
-  model, by an amount nothing has measured.
+- **Zero and negative strides are checked, not yet benchmarked.**
+  `mkStrided` transposes the two innermost dims of a dense array, so every
+  stride it makes is positive, while the library's two commonest regime-3
+  inputs are not: a broadcast is stride 0 and `rev` is negative. Both now
+  have generator variants — `mkRev` through `mkScaled` in `Main.hs` cover
+  rev'd (whole and partial, so all-negative and mixed-sign strides),
+  broadcast (innermost and middle axis), reshape-appended-1,
+  sliced-from-larger, windowed-overlap and no-unit-stride views — which
+  `check` runs with per-class conditions,
+  each conjunct carrying a deliberate-breakage proof; none is benchmarked.
+  Two rulings, taken 2026-08-07 ahead of the implementation and covering
+  every stride-class variant (the overlap item below included). Each new
+  class is its own pinned population, published beside the existing geomean
+  and never folded into it: the geomean is a ranking statistic over a pinned
+  set, and a change of population moves it, as the conv-set halving
+  measured. And no strategy is excluded from any class — every one is to be
+  fixed to work on all of them — though a fix may follow the first run: a
+  strategy expected to fail unfixed must first be seen actually failing, on
+  a shape chosen to fire the failure, before the fix lands. That run has
+  happened and nothing failed: the Int32 strategies' partial sums are each
+  the offset of a real element, in-bounds for any valid view whatever the
+  stride signs, so the feared failure cannot fire below a 2^31-element
+  source — `int32Fits`'s own unfireable class. What mixed signs did break
+  was the packed scan's assert (a corner formula, maximal only for positive
+  strides, and no lower bound); fixed at the builder, with the argument
+  restated at both Int32 comment sites.
+- **Runs never overlap in the benchmarked set.** `mkStrided`'s index map is
+  a bijection onto `[0, l)`, where im2col patches — the workload this page
+  opens by naming — overlap heavily and so reuse cache. The window class
+  (`mkWindow`, check-only) now builds exactly those overlapping patch views,
+  but until it is benchmarked the figures here stay pessimistic about the
+  case they model, by an amount nothing has measured.
 - **The roster order biases the table, and nothing corrects for it.** The
   warm-up drift above means a strategy's figure depends on its slot, `list`
   being in the coldest one. The fixes are all real changes rather than
