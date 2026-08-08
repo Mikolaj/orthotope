@@ -36,12 +36,16 @@ way, on an interval covering 1), where Run 7 (Harness), at -O1, had it 1.51×
 ahead.
 
 Several strategies measured since are faster than what shipped and need no
-class method. The fastest pure one is **`bq-odo-mulback`**, 0.089
-against `bq-expand`'s 0.102; the fastest pure one carrying **no size
-precondition at all** is `bq-scan-rem-gm-mulback` at 0.090. None is what
-`Data/Array/Internal.hs` does today, and the trade-offs — preconditions,
-allocation, and a noise floor this run measures at under 2% — are in
-[Results](#results) and in
+class method. The fastest pure one on Run 8 was **`bq-odo-mulback`**, 0.089
+against `bq-expand`'s 0.102, and it is no longer measured at all: it needs
+`l < 2^32`, and a ruling since has stopped this suite timing any arm that
+needs anything ([what the benchmark does](#what-the-benchmark-does)). So the
+arm to watch is `bq-scan-rem-gm-mulback`, 0.090 and carrying **no size
+precondition at all**. Neither is what
+`Data/Array/Internal.hs` does today. Of the trade-offs, allocation and a
+noise floor this run measures at under 2% are in [Results](#results), each
+arm's precondition is at its entry in `Main.hs`'s roster, and the division
+sites are in
 [the Lemire section](#lemire-multiplicative-inverses-at-the-two-division-sites).
 
 Every figure on this page is **net of the shared forcing pass** every strategy
@@ -626,11 +630,15 @@ the axis the orderings turn on; the fuller per-shape record is in
   the mul-back output hoists `s == 1` out of its loop entirely, and
   `baseOffsetsScan` elides unit dims, which on this shape leaves one real
   radix so no carry ever fires and the scan degenerates to a sequential fill.
-  Both are now in the tables, and on that shape both sit far from their own
+  On that shape both sit far from their own
   averages: `bq-scan-packed-mulback` reads 0.129 there against a 0.108
   geomean, while `bq-mut-runs-mulback`
   reads 0.030
-  against 0.078 — its best cell of all 24, as it was at -O1. Read that cell
+  against 0.078 — its best cell of all 24, as it was at -O1. Those four
+  figures are quoted rather than looked up because both arms have since left
+  the timed roster and their per-shape columns left the fingerprint with
+  them; the reading is Run 8's and is what a later run would have to
+  re-establish before using it. Read such a cell
   first and average it away last.
 
 All three bullets are measured on positive-stride views. The
@@ -1069,9 +1077,11 @@ whose base is not measured is not a control:
   pair's whole subject is the bound this rule now refuses;
 - claim 4's controlled pair, `bq-scan-mulback` against
   `bq-expand-lemire-mulback`, loses both halves, and the Lemire output
-  substitution loses its arm. Those readings stand as Run 8's and cannot be
+  substitution loses its arm. Those *readings* stand as Run 8's and cannot be
   re-measured under this roster, which is the price of the rule and is
-  recorded rather than worked around.
+  recorded rather than worked around. Both *questions* survive on the
+  counterparts written below, and [the claims
+  list](#the-claims-run-9-should-test) has been re-aimed onto them.
 
 **The crossed A/A design survives the cut, at about two thirds the span.** Its
 three distant twins are placed early and their bases late, and 23 of the
@@ -1464,7 +1474,17 @@ not a method.
       the same way. If you paste by hand anyway, do not edit the table. It renders the same rows the terminal does, and carries `needs`
       and the emphasis forward from the table already there.
       Its stderr is the whole of what is left by hand: a row new to the roster
-      comes out with `?`, a departed row is dropped with a warning. Each class
+      comes out with `?`, a departed row is dropped with a warning. **Run 9's
+      ten `?` rows are written out here**, so that the cell is transcribed
+      rather than invented at the end of a long day — the ten being every arm
+      added or renamed since Run 8 emitted the table they carry forward from.
+      The cell reads "new mutating `Vector` method" for `mut-flat-gm` and the
+      four `mut-odo-vecdims-add-*`, "nothing (pure)" for
+      `bq-expand-gm-mulback`, `bq-odo-gm-mulback` and `offtab-scan-rem`, and
+      "*A/A control*" with its asterisks for
+      `bq-scan-rem-gm-mulback-aa-adjacent` and its `-aa-distant` half, those
+      two being the old `bq-scan-mulback` pair re-pointed and so new to the
+      table under these names. Delete this note once it is spent. Each class
       JSON emits its own table the same way and is pasted the same way, into
       its block in [The stride classes, run by
       run](#the-stride-classes-run-by-run); those come out six columns wide,
@@ -2231,7 +2251,7 @@ How to read the columns:
 | *mut-odo-vecdims-aa-distant* | *0.053* | *0.105* | *0.07* | *80* | *1.00x* | *A/A control* |
 | *mut-odo-vecdims-aa* | *0.053* | *0.105* | *0.07* | *81* | *1.00x* | *A/A control* |
 | mut-flat | 0.074 | 0.182 | 0.14 | 84 | 1.33x | new mutating `Vector` method |
-| **bq-mut-runs-mulback** | **0.078** | 0.196 | 0.11 | 83 | 1.33x | mutable `Int` scratch |
+| bq-mut-runs-mulback | 0.078 | 0.196 | 0.11 | 83 | 1.33x | mutable `Int` scratch |
 | bq-mut-runs-gm-mulback | 0.086 | 0.199 | 0.12 | 82 | 1.33x | mutable `Int` scratch |
 | bq-odo-mulback | 0.089 | 0.179 | 0.14 | 80 | 1.50x | nothing (pure) |
 | **bq-scan-rem-gm-mulback** | **0.090** | 0.160 | 0.08 | 76 | 1.33x | nothing (pure) |
@@ -2251,7 +2271,7 @@ How to read the columns:
 | *bq-expand-aa-distant* | *0.103* | *0.227* | *0.08* | *76* | *2.35x* | *A/A control* |
 | bq-expand-qr-prim | 0.104 | 0.230 | 0.17 | 75 | 2.35x | nothing (pure) |
 | bq-expand-zf | 0.105 | 0.249 | 0.12 | 75 | 2.35x | nothing (pure) |
-| **bq-scan-packed-mulback** | **0.108** | 0.164 | 0.15 | 72 | 1.33x | nothing (pure) |
+| bq-scan-packed-mulback | 0.108 | 0.164 | 0.15 | 72 | 1.33x | nothing (pure) |
 | mut-odo | 0.109 | 0.340 | 0.12 | 70 | 1.00x | new mutating `Vector` method |
 | offtab32 | 0.128 | 0.320 | 0.60 | 68 | 1.50x | mutable `Int` scratch |
 | bq-mut-lemire-out | 0.132 | 0.346 | 0.41 | 66 | 1.33x | mutable `Int` scratch |
@@ -2344,14 +2364,15 @@ noticed. Its membership is a rule, not a habit: the shipped arm, the rows
 the Results table bolds, and any arm an open question names — `mut-odo`
 and `build` sit here on [the broken-identity
 question](#what-the-next-runs-have-to-decide) — and an arm leaves when its
-question closes. **Two of its seven are arms Run 9 does not time**,
-`bq-mut-runs-mulback` and `bq-scan-packed-mulback`, whose question the
-precondition ruling closed after this table was emitted; the rule as written
-takes them out, and taking them out means un-bolding their Results rows too,
-which `--lint` holds to the same membership. That is a decision for whoever
-writes Run 9's tables, since it edits Run 8's record, and until it is taken
-those two columns will emit `--`. `list`'s own net per call rides along,
-guarding the
+question closes. **Two left on 2026-08-09 by that last clause**,
+`bq-mut-runs-mulback` and `bq-scan-packed-mulback`: the precondition ruling
+stopped timing both, which closes their questions as firmly as an answer
+would, and an arm nothing measures cannot be the subject of a future
+disagreement to localise. Their Results rows lost their emphasis in the same
+edit, here and in every class table, `--lint` holding the two to one
+membership; their geomeans stay in the yardstick table above as Run 8's
+record, and it is the per-shape half that is given up.
+`list`'s own net per call rides along, guarding the
 baseline at every shape where the anchors guard three, and converting any
 ratio beside it back to absolute time. Allocation stays medians-only on
 purpose: deterministic per call, so a run that raises an allocation
@@ -2360,66 +2381,65 @@ question re-derives it within itself. `./read-run.py RUN.json
 by hand, since hand-carrying this table once left two of Run 6's cells
 standing under Run 7's name, and the first emitted paste is what caught
 them. The column heads shorten the arm names as the stretch table's do:
-scan-packed is `bq-scan-packed-mulback`, scan-rem-gm
-`bq-scan-rem-gm-mulback`, mut-runs-mulback `bq-mut-runs-mulback`, vecdims
+scan-rem-gm is `bq-scan-rem-gm-mulback` and vecdims
 `mut-odo-vecdims`. And the [stretch table][pershape] is the same kind of
 record for `bq-expand-b` and `bq-expand-lemire-out`, on the shapes chosen
 to stress orderings — compare it the same way; its `lemire-out` column is
 untimed too, so Run 9 leaves that one as Run 8's as well.
 
-| shape | `sInner` | `l` | `list`, net | bq-expand | scan-packed |
-|---|---:|---:|---:|---:|---:|
-| `cnn-slice-c32` | 3 | 288 | 5.27 µs | 0.150 | 0.155 |
-| `cnn-L1-6x6-c1` | 3 | 324 | 6.48 µs | 0.203 | 0.150 |
-| `stretch-rank12` | 2 | 4096 | 99.1 µs | 0.227 | 0.164 |
-| `cnn-L1-24x24-c1` | 3 | 5184 | 102 µs | 0.170 | 0.121 |
-| `conv1d-24` | 3 | 5184 | 89.1 µs | 0.105 | 0.137 |
-| `lenet-L1-28-c1-k5` | 5 | 19600 | 322 µs | 0.129 | 0.119 |
-| `gather48-src-50` | 3 | 22500 | 385 µs | 0.099 | 0.134 |
-| `stretch-rank10` | 3 | 59049 | 1.23 ms | 0.134 | 0.121 |
-| `stretch-coprime-r7` | 13 | 60060 | 1.1 ms | 0.097 | 0.087 |
-| `cifar-L2-16-c64-k3` | 3 | 147456 | 3.24 ms | 0.108 | 0.109 |
-| `cnn-L2-24x24-c32` | 3 | 165888 | 3.69 ms | 0.109 | 0.108 |
-| `stretch-primes` | 89 | 250357 | 3.82 ms | 0.093 | 0.094 |
-| `stretch-inner1` | 1 | 500000 | 12.2 ms | 0.072 | 0.129 |
-| `alexnet-L2-27-c48-k5` | 5 | 874800 | 25.5 ms | 0.062 | 0.067 |
-| `vgg-14-c512-k3` | 3 | 903168 | 29 ms | 0.091 | 0.077 |
-| `alexnet-L1-55-c3-k11` | 11 | 1098075 | 16.3 ms | 0.104 | 0.108 |
-| `stretch-inner256` | 256 | 1750784 | 44 ms | 0.074 | 0.056 |
-| `stretch-pow2stride` | 64 | 1769472 | 52.7 ms | 0.064 | 0.084 |
-| `stretch-r5-8x432` | 8 | 1769472 | 49.9 ms | 0.054 | 0.061 |
-| `stretch-square-1341` | 1341 | 1798281 | 25.5 ms | 0.125 | 0.161 |
-| `stretch-bigstride` | 3 | 1800000 | 43.8 ms | 0.067 | 0.092 |
-| `stretch-tab7MB` | 2 | 1800000 | 33.8 ms | 0.096 | 0.146 |
-| `stretch-tall-Mx2` | 900000 | 1800000 | 30.2 ms | 0.085 | 0.081 |
-| `stretch-wide-2xM` | 2 | 1800000 | 33.7 ms | 0.087 | 0.144 |
+| shape | `sInner` | `l` | `list`, net | bq-expand |
+|---|---:|---:|---:|---:|
+| `cnn-slice-c32` | 3 | 288 | 5.27 µs | 0.150 |
+| `cnn-L1-6x6-c1` | 3 | 324 | 6.48 µs | 0.203 |
+| `stretch-rank12` | 2 | 4096 | 99.1 µs | 0.227 |
+| `cnn-L1-24x24-c1` | 3 | 5184 | 102 µs | 0.170 |
+| `conv1d-24` | 3 | 5184 | 89.1 µs | 0.105 |
+| `lenet-L1-28-c1-k5` | 5 | 19600 | 322 µs | 0.129 |
+| `gather48-src-50` | 3 | 22500 | 385 µs | 0.099 |
+| `stretch-rank10` | 3 | 59049 | 1.23 ms | 0.134 |
+| `stretch-coprime-r7` | 13 | 60060 | 1.1 ms | 0.097 |
+| `cifar-L2-16-c64-k3` | 3 | 147456 | 3.24 ms | 0.108 |
+| `cnn-L2-24x24-c32` | 3 | 165888 | 3.69 ms | 0.109 |
+| `stretch-primes` | 89 | 250357 | 3.82 ms | 0.093 |
+| `stretch-inner1` | 1 | 500000 | 12.2 ms | 0.072 |
+| `alexnet-L2-27-c48-k5` | 5 | 874800 | 25.5 ms | 0.062 |
+| `vgg-14-c512-k3` | 3 | 903168 | 29 ms | 0.091 |
+| `alexnet-L1-55-c3-k11` | 11 | 1098075 | 16.3 ms | 0.104 |
+| `stretch-inner256` | 256 | 1750784 | 44 ms | 0.074 |
+| `stretch-pow2stride` | 64 | 1769472 | 52.7 ms | 0.064 |
+| `stretch-r5-8x432` | 8 | 1769472 | 49.9 ms | 0.054 |
+| `stretch-square-1341` | 1341 | 1798281 | 25.5 ms | 0.125 |
+| `stretch-bigstride` | 3 | 1800000 | 43.8 ms | 0.067 |
+| `stretch-tab7MB` | 2 | 1800000 | 33.8 ms | 0.096 |
+| `stretch-tall-Mx2` | 900000 | 1800000 | 30.2 ms | 0.085 |
+| `stretch-wide-2xM` | 2 | 1800000 | 33.7 ms | 0.087 |
 
-| shape | scan-rem-gm | mut-runs-mulback | vecdims | mut-odo | build |
-|---|---:|---:|---:|---:|---:|
-| `cnn-slice-c32` | 0.149 | 0.121 | 0.090 | 0.208 | 0.178 |
-| `cnn-L1-6x6-c1` | 0.136 | 0.168 | 0.104 | 0.231 | 0.205 |
-| `stretch-rank12` | 0.135 | 0.196 | 0.106 | 0.340 | 0.273 |
-| `cnn-L1-24x24-c1` | 0.103 | 0.133 | 0.075 | 0.222 | 0.193 |
-| `conv1d-24` | 0.106 | 0.077 | 0.065 | 0.164 | 0.135 |
-| `lenet-L1-28-c1-k5` | 0.099 | 0.099 | 0.056 | 0.135 | 0.129 |
-| `gather48-src-50` | 0.105 | 0.075 | 0.064 | 0.158 | 0.137 |
-| `stretch-rank10` | 0.099 | 0.100 | 0.067 | 0.180 | 0.172 |
-| `stretch-coprime-r7` | 0.079 | 0.077 | 0.034 | 0.071 | 0.055 |
-| `cifar-L2-16-c64-k3` | 0.088 | 0.083 | 0.059 | 0.154 | 0.147 |
-| `cnn-L2-24x24-c32` | 0.088 | 0.080 | 0.060 | 0.138 | 0.119 |
-| `stretch-primes` | 0.087 | 0.077 | 0.031 | 0.035 | 0.028 |
-| `stretch-inner1` | 0.074 | 0.030 | 0.093 | 0.275 | 0.265 |
-| `alexnet-L2-27-c48-k5` | 0.055 | 0.047 | 0.027 | 0.068 | 0.062 |
-| `vgg-14-c512-k3` | 0.060 | 0.056 | 0.037 | 0.107 | 0.092 |
-| `alexnet-L1-55-c3-k11` | 0.093 | 0.080 | 0.041 | 0.072 | 0.055 |
-| `stretch-inner256` | 0.056 | 0.047 | 0.019 | 0.019 | 0.017 |
-| `stretch-pow2stride` | 0.073 | 0.074 | 0.066 | 0.066 | 0.066 |
-| `stretch-r5-8x432` | 0.051 | 0.043 | 0.021 | 0.043 | 0.034 |
-| `stretch-square-1341` | 0.160 | 0.143 | 0.089 | 0.089 | 0.088 |
-| `stretch-bigstride` | 0.070 | 0.050 | 0.040 | 0.107 | 0.084 |
-| `stretch-tab7MB` | 0.106 | 0.071 | 0.072 | 0.189 | 0.143 |
-| `stretch-tall-Mx2` | 0.075 | 0.067 | 0.027 | 0.027 | 0.021 |
-| `stretch-wide-2xM` | 0.104 | 0.069 | 0.074 | 0.195 | 0.164 |
+| shape | scan-rem-gm | vecdims | mut-odo | build |
+|---|---:|---:|---:|---:|
+| `cnn-slice-c32` | 0.149 | 0.090 | 0.208 | 0.178 |
+| `cnn-L1-6x6-c1` | 0.136 | 0.104 | 0.231 | 0.205 |
+| `stretch-rank12` | 0.135 | 0.106 | 0.340 | 0.273 |
+| `cnn-L1-24x24-c1` | 0.103 | 0.075 | 0.222 | 0.193 |
+| `conv1d-24` | 0.106 | 0.065 | 0.164 | 0.135 |
+| `lenet-L1-28-c1-k5` | 0.099 | 0.056 | 0.135 | 0.129 |
+| `gather48-src-50` | 0.105 | 0.064 | 0.158 | 0.137 |
+| `stretch-rank10` | 0.099 | 0.067 | 0.180 | 0.172 |
+| `stretch-coprime-r7` | 0.079 | 0.034 | 0.071 | 0.055 |
+| `cifar-L2-16-c64-k3` | 0.088 | 0.059 | 0.154 | 0.147 |
+| `cnn-L2-24x24-c32` | 0.088 | 0.060 | 0.138 | 0.119 |
+| `stretch-primes` | 0.087 | 0.031 | 0.035 | 0.028 |
+| `stretch-inner1` | 0.074 | 0.093 | 0.275 | 0.265 |
+| `alexnet-L2-27-c48-k5` | 0.055 | 0.027 | 0.068 | 0.062 |
+| `vgg-14-c512-k3` | 0.060 | 0.037 | 0.107 | 0.092 |
+| `alexnet-L1-55-c3-k11` | 0.093 | 0.041 | 0.072 | 0.055 |
+| `stretch-inner256` | 0.056 | 0.019 | 0.019 | 0.017 |
+| `stretch-pow2stride` | 0.073 | 0.066 | 0.066 | 0.066 |
+| `stretch-r5-8x432` | 0.051 | 0.021 | 0.043 | 0.034 |
+| `stretch-square-1341` | 0.160 | 0.089 | 0.089 | 0.088 |
+| `stretch-bigstride` | 0.070 | 0.040 | 0.107 | 0.084 |
+| `stretch-tab7MB` | 0.106 | 0.072 | 0.189 | 0.143 |
+| `stretch-tall-Mx2` | 0.075 | 0.027 | 0.027 | 0.021 |
+| `stretch-wide-2xM` | 0.104 | 0.074 | 0.195 | 0.164 |
 
 Two rows to read first. `stretch-square-1341` is one of the two shapes where
 the fastest pure strategy *loses* to `bq-expand` — treat a disagreement
@@ -2492,57 +2512,87 @@ reading it rests on. **All of them are `-fspec-constr` claims**: a Run 9 at
 -O1 tests Run 7's set instead, and the two sets differ in more than their
 numbers.
 
-**And most of them Run 9 cannot test**, the roster cut having come after this
-list was written: a claim needs every arm it names still timed. Whole: 2 and
-9. Not at all: 1, 3, 4 and 8, each resting on an arm one of the two rulings
-dropped — 3 and 4 are the pair [the cut's own
-account](#what-the-benchmark-does) names, and 1 and 8 it does not.
-Partly: 5 keeps `bq-expand` < `bq-gen` and the `bq-mut-runs` reading and loses
-the two ends; 6 keeps the `gen-quotrem` half, which is the half it turns on; 7
-keeps every tier, `bq-odo-gm-mulback` standing in at 1.51x for the arm that
-set the 1.50x one. Of the class properties the second names three arms and
-times none of them. What cannot be re-tested stands as Run 8's record, as
-claim 4's controlled pair does.
+**Seven of the nine were rewritten on 2026-08-09 for the roster cut**, which
+came after the list was written and left most of them naming arms nothing
+times; only 2 and 9 stood. The rewrite's rule was to keep the *question* and
+change the *arm*, which the cut's own unconditional counterparts make
+possible: 1, 3 and 4 are re-aimed at `mut-flat-gm`,
+`bq-mut-runs-gm-mulback`, `bq-odo-gm-mulback` and `bq-expand-gm-mulback`, the
+arms written so that dropping a precondition would not drop a question with
+it, and each says which of its readings is a first rather than a re-test. 8
+loses the threshold it was read against and keeps its structural half. 5, 6
+and the second class property are trimmed to their timed arms and say what
+went. Every superseded reading stands where it was published, in the Run 8
+table and in [what the cut breaks](#what-the-benchmark-does), and nothing
+here is a new measurement.
 
-1. `mut-odo-vecdims` < `mut-flat` < `bq-mut-runs-mulback` < everything pure
-   (0.713, 0.947, then 0.882 against `bq-odo-mulback`), each at 21 wins of
-   24. The ceiling's own ordering is the one thing the regime leaves
-   untouched.
+1. `mut-odo-vecdims` < `mut-flat-gm` < `bq-mut-runs-gm-mulback` < everything
+   pure, against `bq-odo-gm-mulback` — the claim restated onto the
+   unconditional counterparts, the three arms it named having left the timed
+   roster. Run 8 read those three at 0.074, 0.078 and 0.089 against
+   `mut-odo-vecdims`' 0.053 (0.713, 0.947 and 0.882 paired, each at 21 wins
+   of 24), and each pair differs in the Granlund-Montgomery output and in
+   nothing else, so the ordering should survive the substitution and a wide
+   gap is itself the finding. `bq-mut-runs-gm-mulback` alone carries a figure
+   of its own, 0.086; for the other two this is a first reading and not a
+   re-test, so a break in them is a reading rather than a break. The
+   ceiling's own ordering is the one thing the regime left untouched, and
+   restating is what keeps it measurable at all.
 2. `bq-expand` < `bq-mut` (0.695, 20 of 24) while `offtab` is now 1.440
    *behind* `bq-expand` (four of 24): the `m`-length table beats both the
    mutable scratch that builds it and the `l`-length table that replaces it.
-3. `bq-expand-lemire-out` ties `bq-expand` (1.0015, 12 of 24): under this
-   flag the Lemire output substitution buys nothing, where at -O1 it buys
-   6.0%. A regime-conditional result, and the sharpest one here.
-4. `bq-scan-mulback` ties its own build control `bq-expand-lemire-mulback`
-   (1.0004, 15 of 24) while beating `bq-expand` by 4.5% (15 of 24, interval
-   covering 1). Both readings are the claim; quoting only the second is how
-   the tie gets reported as a win.
-5. `bq-expand` < `offsets-quot` < `bq-gen` < `bq-gen-lemire` (0.502, 0.600,
-   0.704): the build ordering, unbroken and every gap wider than at -O1,
-   still ending in Lemire losing at the build site — by 42% now, against 35%.
-   Among the builds only the mutable odometer still beats it, `bq-mut-runs`
-   at 0.902 against `bq-expand` on 24 shapes of 24, the scan build having
-   come level rather than ahead (claim 4). So `bq-expand` is still the
-   fastest build that needs neither a class extension nor explicit
-   mutation.
-6. `cm-gather` < `list` (0.287, 24 of 24), and `gen-quotrem` ties `list`
+3. `bq-expand-gm-mulback` against `bq-expand`: does a mul-back output pay on
+   the shipped build under this flag? Re-aimed from `bq-expand-lemire-out`,
+   whose `l < 2^32` left it untimed and which has no unconditional form,
+   Granlund-Montgomery having no `out` analogue that yields quotient and
+   remainder together. The Lemire mul-back form read 0.098 against
+   `bq-expand`'s 0.102 on Run 8, so a few percent is the expectation; the
+   flat -O1-against-SpecConstr contrast the old claim carried is in [the
+   Lemire section][lemire], in both regimes.
+4. `bq-scan-rem-gm-mulback` ties its own build control
+   `bq-expand-gm-mulback` while beating `bq-expand`. Restated onto
+   unconditional arms, both halves of Run 8's pair having left the timed
+   roster; the two differ in `baseOffsetsScanRem` against
+   `baseOffsetsExpand` and in nothing else, their output code being
+   identical. Run 8 read that same builder pair at the Lemire output as
+   0.093 against 0.098, and the arm against `bq-expand` as 0.090 against
+   0.102 — where the pair it replaces read 1.0004 at 15 wins of 24 and
+   4.5% at 15 of 24 on an interval covering 1. The scan builder under test
+   is now the `rem` variant, so a departure from that tie may be the builder
+   and not the flag. Both readings are the claim; quoting only the second is
+   how the tie gets reported as a win.
+5. `bq-expand` < `bq-gen` (0.600): the build ordering, trimmed to its timed
+   arms — `offsets-quot` and `bq-gen-lemire` were its two ends and are both
+   untimed, so the run cannot re-read the gap widening or the ending, Lemire
+   losing at the build site by 42% against -O1's 35%. That refutation stands
+   on Run 7 and Run 8, which is enough for an idea kept only so that it is
+   not re-proposed. Among the builds only the mutable odometer still beats
+   `bq-expand`, `bq-mut-runs` at 0.902 on 24 shapes of 24, the scan build
+   having come level rather than ahead (claim 4). So `bq-expand` is still
+   the fastest build that needs neither a class extension nor explicit
+   mutation — now against more unconditional builds than Run 8 timed.
+6. `gen-quotrem` ties `list`
    (0.929 on the geomean, 12 of 24) — the first attempt's arithmetic stops
    being dearer than the list's allocation once the flag takes its own
    allocation from 12.0x to 1.00x and leaves the list's at 23.5x, which is
    the mixed picture this suite exists to have
-   refuted, arriving by a route nobody proposed.
+   refuted, arriving by a route nobody proposed. The `cm-gather` < `list`
+   half is untimed and stands as Run 8's.
 7. Allocation, median multiples of the result on this basis: the mutable
-   fills 1.00x, `gen-quotrem` also 1.00x, the whole scan family and `bq-mut`
-   1.33x, `bq-odo-mulback` 1.50x, `offtab` 2.00x, `bq-expand` 2.35x, `list`
+   fills 1.00x, `gen-quotrem` also 1.00x, `bq-mut` and the scan family
+   1.33x — now witnessed by `bq-scan-rem-gm-mulback` alone —
+   `bq-odo-gm-mulback` 1.51x in place of the `bq-odo-mulback` that set that
+   tier at 1.50x, `offtab` 2.00x, `bq-expand` 2.35x, `list`
    23.5x. The tiers keep their order and three levels moved: the scan rows
    from 4.33x, `bq-expand` from 3.11x, `gen-quotrem` from 12.0x. The `diag`
    in this regime predicted the first of those exactly.
-8. Every pure strategy ahead of `fused` (0.155) runs its output through the
-   single in-order `vGenerate`, and the `bq-*` arms behind it lose on their
-   table build, not their output — now three of them, `bq-unfold` having
-   joined `bq-gen` and `bq-gen-lemire`, its stepped `unfoldrExactN` being
-   exactly the build the claim names.
+8. Every pure arm in the fast tier runs its output through the single
+   in-order `vGenerate` over an `m`-length table, and a `bq-*` arm that falls
+   behind loses on its table build and not on its output. The threshold this
+   was stated against, `fused` at 0.155, is untimed, and so is the gap it
+   read: every timed pure arm now sits at 0.105 or better or at 0.339 or
+   worse. Two of the three arms behind it are untimed too, so `bq-gen`
+   (0.339) is the whole of what witnesses the second half.
 9. `bq-expand-b` ties `bq-expand` (0.996, 8 of 24) while `bq-expand-zf` runs
    3.6% behind it on 23 shapes of 24. `bq-expand-b`'s design still shows
    through where it should — its two best cells are `stretch-inner1` (0.920)
@@ -2568,12 +2618,15 @@ verdicts**, the details beside each class's table:
    exist to test, no geomean can state it, and a break would have been the one
    result here to bear on `Data/Array/Internal.hs` directly.
 2. **The top of the table keeps its order**: `mut-odo-vecdims` fastest,
-   `bq-scan-packed-mulback` the fastest pure arm, `bq-expand` behind both.
-   Its second clause is now false in **every** population, main set included:
-   the packed scan leads nothing anywhere, the slot going to
-   `bq-scan-rem-gm-mulback` in five classes, `bq-odo-mulback` in `revsome`
-   and in the main set, and `bq-expand32-lemire-mulback` in `bcast` and
-   `reshape1`. The first
+   `bq-scan-rem-gm-mulback` the fastest pure arm, `bq-expand` behind both.
+   The second clause is re-aimed, and Run 8 is why: it read
+   `bq-scan-packed-mulback` there and that was false in **every**
+   population, main set included — the packed scan led nothing anywhere, the
+   slot going to `bq-scan-rem-gm-mulback` in five classes, `bq-odo-mulback`
+   in `revsome` and in the main set, and `bq-expand32-lemire-mulback` in
+   `bcast` and `reshape1`. Of those four arms only
+   `bq-scan-rem-gm-mulback` is still timed, so it is both the new claim and
+   the only one of Run 8's leaders a break could name. The first
    clause held in six of eight, breaking where it broke at -O1 — `reshape1`,
    whose top the flat fills own outright, and `scaled`, which now puts
    `build` ahead. The third held everywhere. Each break is read in its
@@ -2712,7 +2765,7 @@ axis builds.** Shapes: `rev-cnn-L1-24x24-c1` (`l` 5184, `sInner` 3),
 | *mut-odo-vecdims-aa* | *0.058* | *0.091* | *0.07* | *137* | *1.00x* |
 | *mut-odo-vecdims-aa-distant* | *0.059* | *0.088* | *0.30* | *136* | *1.00x* |
 | mut-flat | 0.088 | 0.151 | 0.07 | 136 | 1.34x |
-| **bq-mut-runs-mulback** | **0.095** | 0.139 | 0.04 | 135 | 1.34x |
+| bq-mut-runs-mulback | 0.095 | 0.139 | 0.04 | 135 | 1.34x |
 | **bq-scan-rem-gm-mulback** | **0.102** | 0.107 | 0.02 | 130 | 1.34x |
 | bq-expand-qr-prim | 0.102 | 0.183 | 0.04 | 130 | 2.52x |
 | bq-odo-mulback | 0.103 | 0.120 | 0.06 | 132 | 1.41x |
@@ -2733,7 +2786,7 @@ axis builds.** Shapes: `rev-cnn-L1-24x24-c1` (`l` 5184, `sInner` 3),
 | *bq-scan-mulback-aa-distant* | *0.111* | *0.120* | *0.03* | *128* | *1.34x* |
 | bq-mut-runs | 0.112 | 0.161 | 0.05 | 132 | 1.34x |
 | bq-expand32-lemire-mulback | 0.113 | 0.170 | 0.03 | 132 | 1.77x |
-| **bq-scan-packed-mulback** | **0.120** | 0.133 | 0.04 | 126 | 1.34x |
+| bq-scan-packed-mulback | 0.120 | 0.133 | 0.04 | 126 | 1.34x |
 | offtab32 | 0.130 | 0.231 | 0.34 | 123 | 1.50x |
 | bq-mut-lemire-out | 0.153 | 0.256 | 0.08 | 121 | 1.34x |
 | offtab | 0.157 | 0.291 | 0.07 | 120 | 2.00x |
@@ -2805,7 +2858,7 @@ Shapes: `revsome-inner-primes` (`l` 250357, `sInner` 89),
 | **mut-odo-vecdims** | **0.057** | 0.061 | 0.02 | 97 | 1.00x |
 | *mut-odo-vecdims-aa-distant* | *0.058* | *0.065* | *0.03* | *97* | *1.00x* |
 | mut-flat | 0.087 | 0.088 | 0.07 | 89 | 1.33x |
-| **bq-mut-runs-mulback** | **0.093** | 0.095 | 0.08 | 88 | 1.33x |
+| bq-mut-runs-mulback | 0.093 | 0.095 | 0.08 | 88 | 1.33x |
 | bq-mut-runs-gm-mulback | 0.096 | 0.108 | 0.05 | 88 | 1.33x |
 | bq-mut-runs | 0.099 | 0.106 | 0.05 | 87 | 1.33x |
 | bq-odo-mulback | 0.103 | 0.110 | 0.03 | 86 | 1.41x |
@@ -2824,7 +2877,7 @@ Shapes: `revsome-inner-primes` (`l` 250357, `sInner` 89),
 | bq-scan-rem-mulback | 0.110 | 0.111 | 0.08 | 87 | 1.33x |
 | bq-expand-qr-prim | 0.110 | 0.123 | 0.05 | 84 | 2.52x |
 | bq-expand-zf | 0.112 | 0.127 | 0.03 | 84 | 2.52x |
-| **bq-scan-packed-mulback** | **0.119** | 0.135 | 0.10 | 85 | 1.33x |
+| bq-scan-packed-mulback | 0.119 | 0.135 | 0.10 | 85 | 1.33x |
 | build | 0.155 | 0.162 | 0.10 | 97 | 1.00x |
 | mut-odo | 0.163 | 0.178 | 0.18 | 96 | 1.00x |
 | offtab32 | 0.163 | 0.182 | 0.35 | 91 | 1.50x |
@@ -2887,7 +2940,7 @@ broadcast's view.** Shapes: `bcast-inner8` (`l` 51200, `sInner` 8),
 | *mut-odo-vecdims-aa-distant* | *0.036* | *0.072* | *0.33* | *59* | *1.00x* |
 | build | 0.047 | 0.167 | 0.30 | 62 | 1.00x |
 | mut-flat | 0.056 | 0.072 | 0.08 | 50 | 1.13x |
-| **bq-mut-runs-mulback** | **0.060** | 0.077 | 0.10 | 50 | 1.13x |
+| bq-mut-runs-mulback | 0.060 | 0.077 | 0.10 | 50 | 1.13x |
 | bq-mut-runs-gm-mulback | 0.067 | 0.088 | 0.37 | 48 | 1.13x |
 | mut-odo | 0.067 | 0.208 | 0.86 | 59 | 1.00x |
 | bq-expand32-lemire-mulback | 0.070 | 0.092 | 0.11 | 47 | 1.19x |
@@ -2910,7 +2963,7 @@ broadcast's view.** Shapes: `bcast-inner8` (`l` 51200, `sInner` 8),
 | *bq-scan-mulback-aa-distant* | *0.090* | *0.118* | *0.35* | *48* | *1.13x* |
 | **bq-scan-rem-gm-mulback** | **0.091** | 0.104 | 0.36 | 48 | 1.13x |
 | offtab | 0.093 | 0.236 | 0.64 | 52 | 2.00x |
-| **bq-scan-packed-mulback** | **0.093** | 0.143 | 0.45 | 47 | 1.13x |
+| bq-scan-packed-mulback | 0.093 | 0.143 | 0.45 | 47 | 1.13x |
 | bq-scan-rem-mulback | 0.095 | 0.109 | 0.43 | 47 | 1.13x |
 | bq-mut-lemire-mulback | 0.098 | 0.178 | 0.63 | 49 | 1.13x |
 | mut-offsets | 0.103 | 0.508 | 0.54 | 61 | 2.89x |
@@ -2973,7 +3026,7 @@ outer dimension.** Shapes: `bcastmid-c32-cnn` (`l` 165888, `sInner` 3),
 | build | 0.058 | 0.160 | 0.13 | 91 | 1.00x |
 | mut-odo | 0.075 | 0.173 | 0.12 | 89 | 1.00x |
 | mut-flat | 0.082 | 0.096 | 0.12 | 89 | 1.17x |
-| **bq-mut-runs-mulback** | **0.088** | 0.104 | 0.04 | 88 | 1.17x |
+| bq-mut-runs-mulback | 0.088 | 0.104 | 0.04 | 88 | 1.17x |
 | offtab32 | 0.096 | 0.176 | 0.18 | 86 | 1.50x |
 | fused | 0.097 | 0.259 | 0.16 | 85 | 3.82x |
 | **bq-scan-rem-gm-mulback** | **0.097** | 0.110 | 0.04 | 87 | 1.17x |
@@ -2987,7 +3040,7 @@ outer dimension.** Shapes: `bcastmid-c32-cnn` (`l` 165888, `sInner` 3),
 | *bq-scan-mulback-aa-adjacent* | *0.106* | *0.124* | *0.05* | *86* | *1.17x* |
 | bq-expand32-lemire-mulback | 0.108 | 0.130 | 0.15 | 85 | 1.64x |
 | bq-expand-lemire-mulback | 0.110 | 0.133 | 0.05 | 85 | 2.10x |
-| **bq-scan-packed-mulback** | **0.110** | 0.131 | 0.06 | 85 | 1.17x |
+| bq-scan-packed-mulback | 0.110 | 0.131 | 0.06 | 85 | 1.17x |
 | bq-expand-lemire-out | 0.111 | 0.138 | 0.04 | 84 | 2.10x |
 | offtab | 0.113 | 0.210 | 0.07 | 84 | 2.00x |
 | **bq-expand** | **0.115** | 0.138 | 0.06 | 84 | 2.10x |
@@ -3043,7 +3096,7 @@ axis.** Shapes: `reshape1-500k` (`l` 500000, `sInner` 1), `reshape1-r3` (`l`
 | *sum-only-early* | *--* | *--* | *0.09* | *104* | *0.00x* |
 | *sum-only-late* | *--* | *--* | *0.02* | *105* | *0.00x* |
 | bq-mut-runs-gm-mulback | 0.030 | 0.030 | 0.09 | 90 | 2.00x |
-| **bq-mut-runs-mulback** | **0.034** | 0.035 | 0.03 | 88 | 2.00x |
+| bq-mut-runs-mulback | 0.034 | 0.035 | 0.03 | 88 | 2.00x |
 | mut-flat | 0.034 | 0.035 | 0.05 | 88 | 2.00x |
 | bq-expand32-lemire-mulback | 0.036 | 0.043 | 0.06 | 87 | 2.62x |
 | bq-odo-mulback | 0.041 | 0.044 | 0.09 | 86 | 2.15x |
@@ -3066,7 +3119,7 @@ axis.** Shapes: `reshape1-500k` (`l` 500000, `sInner` 1), `reshape1-r3` (`l`
 | *mut-odo-vecdims-aa* | *0.101* | *0.103* | *0.02* | *74* | *1.00x* |
 | **mut-odo-vecdims** | **0.101** | 0.104 | 0.02 | 74 | 1.00x |
 | *mut-odo-vecdims-aa-distant* | *0.102* | *0.103* | *0.03* | *74* | *1.00x* |
-| **bq-scan-packed-mulback** | **0.139** | 0.142 | 0.10 | 68 | 2.00x |
+| bq-scan-packed-mulback | 0.139 | 0.142 | 0.10 | 68 | 2.00x |
 | bq-mut-lemire-mulback | 0.258 | 0.296 | 1.59 | 58 | 2.00x |
 | build | 0.260 | 0.269 | 2.06 | 58 | 1.00x |
 | bq-mut | 0.264 | 0.290 | 0.17 | 58 | 2.00x |
@@ -3130,7 +3183,7 @@ Shapes: `slice-cnn-L2-24x24-c32` (`l` 165888, `sInner` 3), `slice-primes`
 | build | 0.072 | 0.165 | 0.07 | 89 | 1.00x |
 | mut-odo | 0.084 | 0.183 | 0.05 | 88 | 1.00x |
 | mut-flat | 0.090 | 0.099 | 0.39 | 88 | 1.17x |
-| **bq-mut-runs-mulback** | **0.095** | 0.103 | 0.52 | 88 | 1.17x |
+| bq-mut-runs-mulback | 0.095 | 0.103 | 0.52 | 88 | 1.17x |
 | **bq-scan-rem-gm-mulback** | **0.105** | 0.109 | 0.04 | 86 | 1.17x |
 | bq-mut-runs-gm-mulback | 0.107 | 0.113 | 0.11 | 86 | 1.17x |
 | bq-mut-runs | 0.108 | 0.117 | 0.08 | 86 | 1.17x |
@@ -3144,7 +3197,7 @@ Shapes: `slice-cnn-L2-24x24-c32` (`l` 165888, `sInner` 3), `slice-primes`
 | fused | 0.114 | 0.257 | 0.29 | 84 | 3.82x |
 | bq-expand32-lemire-mulback | 0.116 | 0.131 | 0.06 | 84 | 1.66x |
 | bq-expand-lemire-out | 0.118 | 0.137 | 0.05 | 84 | 2.16x |
-| **bq-scan-packed-mulback** | **0.118** | 0.133 | 0.08 | 84 | 1.17x |
+| bq-scan-packed-mulback | 0.118 | 0.133 | 0.08 | 84 | 1.17x |
 | bq-expand-lemire-mulback | 0.118 | 0.137 | 0.09 | 84 | 2.16x |
 | bq-expand-b | 0.119 | 0.140 | 0.07 | 84 | 2.16x |
 | **bq-expand** | **0.119** | 0.140 | 0.05 | 84 | 2.16x |
@@ -3199,7 +3252,7 @@ naming, with the overlap the main set's bijective map drops.** Shapes:
 | *mut-odo-vecdims-aa* | *0.057* | *0.063* | *0.05* | *112* | *1.00x* |
 | *mut-odo-vecdims-aa-distant* | *0.062* | *0.064* | *1.37* | *112* | *1.00x* |
 | mut-flat | 0.087 | 0.088 | 0.07 | 107 | 1.27x |
-| **bq-mut-runs-mulback** | **0.093** | 0.094 | 0.76 | 106 | 1.27x |
+| bq-mut-runs-mulback | 0.093 | 0.094 | 0.76 | 106 | 1.27x |
 | bq-mut-runs-gm-mulback | 0.102 | 0.103 | 0.15 | 104 | 1.27x |
 | **bq-scan-rem-gm-mulback** | **0.104** | 0.106 | 0.08 | 104 | 1.27x |
 | bq-scan-rem-mulback | 0.108 | 0.110 | 0.06 | 104 | 1.27x |
@@ -3217,7 +3270,7 @@ naming, with the overlap the main set's bijective map drops.** Shapes:
 | bq-expand-b | 0.124 | 0.127 | 0.05 | 102 | 2.48x |
 | *bq-expand-aa-adjacent* | *0.124* | *0.127* | *0.08* | *102* | *2.48x* |
 | bq-expand-qr-prim | 0.126 | 0.131 | 0.15 | 102 | 2.48x |
-| **bq-scan-packed-mulback** | **0.128** | 0.130 | 0.08 | 102 | 1.27x |
+| bq-scan-packed-mulback | 0.128 | 0.130 | 0.08 | 102 | 1.27x |
 | bq-expand-zf | 0.129 | 0.134 | 0.12 | 101 | 2.48x |
 | build | 0.130 | 0.156 | 2.42 | 101 | 1.00x |
 | mut-odo | 0.157 | 0.182 | 0.52 | 98 | 1.00x |
@@ -3283,7 +3336,7 @@ the whole view is one strided run).
 | mut-flat | 0.077 | 0.078 | 0.03 | 101 | 1.02x |
 | bq-mut-lemire-out | 0.077 | 0.086 | 0.22 | 101 | 1.02x |
 | backperm | 0.082 | 0.138 | 0.56 | 100 | 4.97x |
-| **bq-mut-runs-mulback** | **0.083** | 0.084 | 0.05 | 100 | 1.02x |
+| bq-mut-runs-mulback | 0.083 | 0.084 | 0.05 | 100 | 1.02x |
 | bq-mut-lemire-mulback | 0.090 | 0.099 | 0.11 | 99 | 1.02x |
 | bq-mut-runs-gm-mulback | 0.093 | 0.095 | 0.09 | 98 | 1.02x |
 | **bq-scan-rem-gm-mulback** | **0.095** | 0.098 | 0.05 | 98 | 1.02x |
@@ -3297,7 +3350,7 @@ the whole view is one strided run).
 | *bq-scan-mulback-aa-distant* | *0.102* | *0.105* | *0.03* | *97* | *1.02x* |
 | bq-scan-rem-mulback | 0.103 | 0.105 | 0.07 | 97 | 1.02x |
 | bq-mut-runs | 0.105 | 0.106 | 0.03 | 97 | 1.02x |
-| **bq-scan-packed-mulback** | **0.105** | 0.109 | 0.34 | 97 | 1.02x |
+| bq-scan-packed-mulback | 0.105 | 0.109 | 0.34 | 97 | 1.02x |
 | bq-expand-b | 0.106 | 0.108 | 0.04 | 97 | 1.07x |
 | **bq-expand** | **0.106** | 0.108 | 0.10 | 96 | 1.07x |
 | bq-expand-qr-prim | 0.106 | 0.108 | 0.05 | 96 | 1.07x |

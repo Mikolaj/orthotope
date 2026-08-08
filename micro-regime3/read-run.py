@@ -1137,13 +1137,18 @@ def cell_dump(cells, shapes, strategies):
 # closes -- and the grouping keeps every emitted row inside README's
 # width. The short column heads are the stretch table's convention; the
 # README intro above the tables maps them back to full arm names.
+# `bq-scan-packed-mulback` and `bq-mut-runs-mulback` left on 2026-08-09, by
+# the membership rule's own clause: an arm leaves when its question closes,
+# and the precondition ruling closed both by stopping their benches. Their
+# columns went from README's tables in the same edit -- `install` matches a
+# table by its whole header line, so a narrowed emitter and a wide table on
+# the page would refuse rather than install.
 FINGERPRINT_TABLES = [
-    ('| shape | `sInner` | `l` | `list`, net | bq-expand | scan-packed |',
-     True, ['bq-expand', 'bq-scan-packed-mulback']),
-    ('| shape | scan-rem-gm | mut-runs-mulback | vecdims | mut-odo'
-     ' | build |',
-     False, ['bq-scan-rem-gm-mulback', 'bq-mut-runs-mulback',
-             'mut-odo-vecdims', 'mut-odo', 'build']),
+    ('| shape | `sInner` | `l` | `list`, net | bq-expand |',
+     True, ['bq-expand']),
+    ('| shape | scan-rem-gm | vecdims | mut-odo | build |',
+     False, ['bq-scan-rem-gm-mulback', 'mut-odo-vecdims', 'mut-odo',
+             'build']),
 ]
 
 
