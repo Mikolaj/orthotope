@@ -61,6 +61,7 @@ it.
   - [The shape set](#the-shape-set)
   - [Dropping the minibatch dimension](#dropping-the-minibatch-dimension)
   - [The stride classes and what they cover](#the-stride-classes-and-what-they-cover)
+  - [The scratch vector flavour](#the-scratch-vector-flavour)
   - [Lemire multiplicative inverses, at the two division sites](#lemire-multiplicative-inverses-at-the-two-division-sites)
   - [Per shape, where the geomean hides the ordering](#per-shape-where-the-geomean-hides-the-ordering)
   - [The fix in Data/Array/Internal.hs](#the-fix-in-dataarrayinternalhs)
@@ -259,6 +260,70 @@ almost nothing to cap and `--pair`'s bootstrap interval almost nothing to
 resample. What a class run can decide is whether an *ordering* inverts under
 its mechanism and whether any strategy's `worst` crosses 1 there. What it
 cannot do is be compared with a main-set number, in either direction.
+
+
+### The scratch vector flavour
+
+Every table this suite builds — the `m`-element base-offsets of the `bq-*`
+family, the `l`-element offset tables, the odometer's dimension vectors —
+used to live in a **Storable** `Int` vector, because the payload is Storable
+and nothing said the scratch had to follow. The fallback in
+`Data/Array/Internal.hs` builds an **unboxed** one, deliberately: index
+scratch is independent of the abstract element storage `v`, and the section
+above says so in as many words. Nobody had noticed that the arm labelled
+*shipped* in the results table therefore measured a vector flavour the shipped
+code does not use, and no figure on this page had ever priced the difference.
+
+The probe that settled it, 2026-08-08 at -O1: a twin differing from
+`bq-expand` in the table's flavour and in nothing else, in the roster slot
+beside it, five arms over the whole shape set so the correction rode along.
+Paired, which is what a margin measured per shape wants:
+
+| | unboxed vs Storable |
+|---|---:|
+| paired geomean | **0.9433** |
+| 95% interval | 0.9103..0.9817 |
+| shapes won | 19 of 24, sign p 0.0066 |
+| `worst` cell | 0.302 against 0.369 |
+| `alloc` | 3.11x against 3.15x |
+
+**The unboxed table is 5.7% faster, roughly twice the floor**, its interval
+clears 1, and it wins on the worst shape by more than it wins on the geomean.
+Allocation is unmoved, so this is speed and not volume — the same bytes, held
+differently. The mechanism to suspect is pinning, Storable allocating pinned
+where unboxed does not and this table reaching megabytes on the largest
+shapes, which is the regime a GHC block-pool issue filed from horde-ad
+describes; that attribution is a guess with no measurement behind it, and the
+probe does not need it. The one shape it loses is `stretch-square-1341`, which
+was the worst-measured shape of both runs and is this page's standing warning
+about reading a single cell.
+
+**It was measured twice, with the arms' roles exchanged**, which is why the
+figure is quoted flatly rather than hedged. The first run put an unboxed twin
+beside a Storable roster, on a machine with other work on it, and read 0.9377
+(interval 0.9081..0.9690); the second put a Storable twin beside an unboxed
+roster — after the conversion below, so the roster was by then the other
+flavour — on a quiet machine, and read 0.9433. They agree to 0.6%, inside the
+floor, winning on the same 19 shapes of 24, and their tables agree to three
+digits on `alloc` and to two on `worst`. A margin that survives exchanging
+which arm is the twin, the machine's load and the direction of the change is
+the code's and not the harness's.
+
+**So every scratch vector here is now unboxed, matching what ships.** Three
+arms keep a Storable table and must: `backperm` hands it to
+`unsafeBackpermute`, `cm-gather` and `all-expand` to `map`, and each of those
+takes one vector family, so for them the table's flavour *is* the payload's
+and unboxing it would change the strategy rather than its scratch. They are
+the new-pure-`Vector`-method tier, and that is the same fact seen from the
+other side. `strideOffsets` and `baseOffsetsExpandVS` exist for exactly those
+three and say so.
+
+What this costs the record: **every figure in the tables predates the
+conversion**, so the whole `bq-*` family moves by roughly the probe's factor
+while those three arms do not, and the next run is the first to measure what
+the library actually does. `mut-odo-vecdims`'s dimension vectors were Storable
+when its 0.051 was taken, which is also why this page's calling them *unboxed*
+was wrong then and is right now.
 
 
 ### Lemire multiplicative inverses, at the two division sites
@@ -1970,6 +2035,9 @@ for `Run 6` — before trusting the list.
 - [The C-gap](#the-c-gap-still-a-deeper-ceiling), whose figures are
   horde-ad's, not a run's: no run here replaces them, and they move when
   that repo re-measures — so the walk checks their currency instead;
+- [The scratch vector flavour](#the-scratch-vector-flavour), whose figures
+  are a probe's too, and whose conversion is why no `bq-*` figure predating
+  it is comparable with one after it;
 - [sum-only](#sum-only-and-the-correction-now-applied), where what a run
   decides is no longer *whether* to correct but whether the term still passes
   its three gates, any failure invalidating the column rather than informing

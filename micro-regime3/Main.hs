@@ -32,6 +32,8 @@ import           Data.Int                     (Int32)
 import           Data.List                    (foldl')
 import qualified Data.Vector.Storable         as VS
 import qualified Data.Vector.Storable.Mutable as VSM
+import qualified Data.Vector.Unboxed          as VU
+import qualified Data.Vector.Unboxed.Mutable  as VUM
 import           GHC.Exts                     (Int (..), Word (..), build,
                                                int2Word#, quotRemInt#,
                                                timesWord2#, word2Int#)
@@ -231,7 +233,7 @@ gmMagic d
 -- across siblings, no division -- but stopping one dim short and
 -- collecting offsets, not values. Length is @product (init sh)@ = the
 -- number of runs @m@. The list is short (a factor @s@ smaller than @l@)
--- and consumed immediately by 'VS.fromListN'.
+-- and consumed immediately by 'VU.fromListN'.
 {-# INLINE runBaseOffsets #-}
 runBaseOffsets :: Int -> ShapeL -> Strides -> [Int]
 runBaseOffsets o0 osh (Strides oats) = build $ \cons nil ->
@@ -243,26 +245,26 @@ runBaseOffsets o0 osh (Strides oats) = build $ \cons nil ->
 
 -- The run base-offsets table (length @product osh@) as 'fbBaseOffsetsQuot'
 -- builds it:
--- the 'runBaseOffsets' list fed to 'VS.fromListN'. Extracted so the allocation
+-- the 'runBaseOffsets' list fed to 'VU.fromListN'. Extracted so the allocation
 -- diagnostic (see 'diag') measures the exact benchmarked build.
 {-# INLINE baseOffsetsList #-}
-baseOffsetsList :: Int -> ShapeL -> Strides -> VS.Vector Int
+baseOffsetsList :: Int -> ShapeL -> Strides -> VU.Vector Int
 baseOffsetsList o0 osh (Strides oats) =
-  VS.fromListN (product osh) (runBaseOffsets o0 osh (Strides oats))
+  VU.fromListN (product osh) (runBaseOffsets o0 osh (Strides oats))
 
 -- The same table as 'fbBQmut' builds it: a mutable odometer fill of the
 -- concrete Int scratch, no intermediate list.
 {-# INLINE baseOffsetsMut #-}
-baseOffsetsMut :: Int -> ShapeL -> Strides -> VS.Vector Int
-baseOffsetsMut o0 osh (Strides oats) = VS.create $ do
-  b <- VSM.unsafeNew (product osh)
-  let go [] [] !q !baseOff = VSM.unsafeWrite b q baseOff >> return (q + 1)
+baseOffsetsMut :: Int -> ShapeL -> Strides -> VU.Vector Int
+baseOffsetsMut o0 osh (Strides oats) = VU.create $ do
+  b <- VUM.unsafeNew (product osh)
+  let go [] [] !q !baseOff = VUM.unsafeWrite b q baseOff >> return (q + 1)
       go (n : ns) (st : sts) !q !baseOff =
         let dim !i !qq
              | i >= n    = return qq
              | otherwise = go ns sts qq (baseOff + i * st) >>= dim (i + 1)
         in  dim 0 q
-      go _ _ !q !baseOff = VSM.unsafeWrite b q baseOff >> return (q + 1)
+      go _ _ !q !baseOff = VUM.unsafeWrite b q baseOff >> return (q + 1)
   _ <- go osh oats 0 o0
   return b
 
@@ -283,17 +285,17 @@ baseOffsetsMut o0 osh (Strides oats) = VS.create $ do
 -- needs both. Kept a monomorphic copy like the rest of the 'baseOffsets*'
 -- family, so the fill's inner loop stays concrete.
 {-# INLINE baseOffsetsMut32 #-}
-baseOffsetsMut32 :: Int -> ShapeL -> Strides -> VS.Vector Int32
-baseOffsetsMut32 o0 osh (Strides oats) = VS.create $ do
-  b <- VSM.unsafeNew (product osh)
-  let go [] [] !q !baseOff = VSM.unsafeWrite b q (fromIntegral baseOff)
+baseOffsetsMut32 :: Int -> ShapeL -> Strides -> VU.Vector Int32
+baseOffsetsMut32 o0 osh (Strides oats) = VU.create $ do
+  b <- VUM.unsafeNew (product osh)
+  let go [] [] !q !baseOff = VUM.unsafeWrite b q (fromIntegral baseOff)
                              >> return (q + 1)
       go (n : ns) (st : sts) !q !baseOff =
         let dim !i !qq
              | i >= n    = return qq
              | otherwise = go ns sts qq (baseOff + i * st) >>= dim (i + 1)
         in  dim 0 q
-      go _ _ !q !baseOff = VSM.unsafeWrite b q (fromIntegral baseOff)
+      go _ _ !q !baseOff = VUM.unsafeWrite b q (fromIntegral baseOff)
                            >> return (q + 1)
   _ <- go osh oats 0 o0
   return b
@@ -312,18 +314,18 @@ baseOffsetsMut32 o0 osh (Strides oats) = VS.create $ do
 -- first draft of this function had the guards of @dim@ inverted, wrote
 -- nothing, and the agreement check failed at the first shape.
 {-# INLINE baseOffsetsMutRuns #-}
-baseOffsetsMutRuns :: Int -> ShapeL -> Strides -> VS.Vector Int
-baseOffsetsMutRuns o0 osh (Strides oats) = VS.create $ do
-  b <- VSM.unsafeNew (product osh)
+baseOffsetsMutRuns :: Int -> ShapeL -> Strides -> VU.Vector Int
+baseOffsetsMutRuns o0 osh (Strides oats) = VU.create $ do
+  b <- VUM.unsafeNew (product osh)
   if null osh
-    then VSM.unsafeWrite b 0 o0
+    then VUM.unsafeWrite b 0 o0
     else do
       let !nLast  = last osh
           !stLast = last oats
           writeRun !q0 !off0 =
             let inner !j !off
                   | j >= nLast = return ()
-                  | otherwise  = VSM.unsafeWrite b (q0 + j) off
+                  | otherwise  = VUM.unsafeWrite b (q0 + j) off
                                  >> inner (j + 1) (off + stLast)
             in  inner 0 off0
           go [] [] !q !off = writeRun q off >> return (q + nLast)
@@ -337,15 +339,15 @@ baseOffsetsMutRuns o0 osh (Strides oats) = VS.create $ do
       return ()
   return b
 
--- The same table via a pure 'VS.generate' (no explicit mutation -- the fill
--- is vector's own, hidden like 'VS.fromListN'/'VS.generate' already are in
+-- The same table via a pure 'VU.generate' (no explicit mutation -- the fill
+-- is vector's own, hidden like 'VU.fromListN'/'VU.generate' already are in
 -- orthotope): each run's base-offset is computed independently by decomposing
 -- the run index over the outer natural strides and re-dotting with the actual
 -- outer strides. No list, so no transient garbage -- but @rank-1@ quotRems
 -- per run instead of the odometer's shared adds.
 {-# INLINE baseOffsetsGen #-}
-baseOffsetsGen :: Int -> ShapeL -> Strides -> VS.Vector Int
-baseOffsetsGen o0 osh (Strides oats) = VS.generate (product osh) baseOffset
+baseOffsetsGen :: Int -> ShapeL -> Strides -> VU.Vector Int
+baseOffsetsGen o0 osh (Strides oats) = VU.generate (product osh) baseOffset
   where nts = drop 1 (scanr (*) 1 osh)  -- outer natural (row-major) strides
         baseOffset q = o0 + go q nts oats
         go _  []         []         = 0
@@ -359,12 +361,12 @@ baseOffsetsGen o0 osh (Strides oats) = VS.generate (product osh) baseOffset
 -- site Lemire is measured at is the per-element output, in
 -- 'fbBQexpandLemireOut' below.
 {-# INLINE baseOffsetsGenLemire #-}
-baseOffsetsGenLemire :: Int -> ShapeL -> Strides -> VS.Vector Int
+baseOffsetsGenLemire :: Int -> ShapeL -> Strides -> VU.Vector Int
 baseOffsetsGenLemire o0 osh (Strides oats) =
     -- In the builder for the same reason as in 'baseOffsetsScan': run
     -- indices and outer natural strides are both bounded by the run count.
     assert (lemireFits (product osh))
-  $ VS.generate (product osh) baseOffset
+  $ VU.generate (product osh) baseOffset
   where nts = drop 1 (scanr (*) 1 osh)
         ms  = map magicOf nts
         baseOffset q = o0 + go q ms nts oats
@@ -373,15 +375,30 @@ baseOffsetsGenLemire o0 osh (Strides oats) =
                                           (!a, !b) -> a * st + go b ms' nts' sts'
         go _  _         _           _          = 0
 
--- The same table by iterated expansion with 'VS.concatMap' (pure vector,
--- no 'VS.generate', no explicit mutation, no division): the base-offsets grid
+-- The same table by iterated expansion with 'VU.concatMap' (pure vector,
+-- no 'VU.generate', no explicit mutation, no division): the base-offsets grid
 -- is separable (@o0 + sum idx_d * stride_d@), so starting from @[o0]@ each
 -- outer dimension expands every partial base-offset @a@ into @enumFromStepN a
 -- stride_d n_d@ -- the odometer's shared adds, but expressed in vector's
 -- stream framework rather than a hand-written loop.
 {-# INLINE baseOffsetsExpand #-}
-baseOffsetsExpand :: Int -> ShapeL -> Strides -> VS.Vector Int
-baseOffsetsExpand o0 osh (Strides oats) = foldl' expand (VS.singleton o0) (zip osh oats)
+baseOffsetsExpand :: Int -> ShapeL -> Strides -> VU.Vector Int
+baseOffsetsExpand o0 osh (Strides oats) = foldl' expand (VU.singleton o0) (zip osh oats)
+  where expand !acc (!nd, !sd) =
+          VU.concatMap (\a -> VU.enumFromStepN a sd nd) acc
+
+-- 'baseOffsetsExpand''s table in a STORABLE vector, which is what every table
+-- here used to be. It survives for the three arms that hand a table to a
+-- payload-flavour 'Vector' combinator -- 'fbBackperm''s 'unsafeBackpermute'
+-- and 'fbCMGather''s and 'fbAllExpand''s 'map' all take one vector family, so
+-- for those the table's flavour IS the payload's and unboxing it would change
+-- the strategy rather than its scratch. Every other table here is unboxed,
+-- the flavour 'Data/Array/Internal.hs' ships; the probe that settled it, and
+-- what it cost, are at README.md#the-scratch-vector-flavour.
+{-# INLINE baseOffsetsExpandVS #-}
+baseOffsetsExpandVS :: Int -> ShapeL -> Strides -> VS.Vector Int
+baseOffsetsExpandVS o0 osh (Strides oats) =
+  foldl' expand (VS.singleton o0) (zip osh oats)
   where expand !acc (!nd, !sd) =
           VS.concatMap (\a -> VS.enumFromStepN a sd nd) acc
 
@@ -391,23 +408,23 @@ baseOffsetsExpand o0 osh (Strides oats) = foldl' expand (VS.singleton o0) (zip o
 -- of tuples is never built. The tuple list is only rank-1 long,
 -- so this can matter at most marginally.
 {-# INLINE baseOffsetsExpandZF #-}
-baseOffsetsExpandZF :: Int -> ShapeL -> Strides -> VS.Vector Int
-baseOffsetsExpandZF o0 osh (Strides oats) = go (VS.singleton o0) osh oats
+baseOffsetsExpandZF :: Int -> ShapeL -> Strides -> VU.Vector Int
+baseOffsetsExpandZF o0 osh (Strides oats) = go (VU.singleton o0) osh oats
   where go !acc (nd : nds) (sd : sds) =
-          go (VS.concatMap (\a -> VS.enumFromStepN a sd nd) acc) nds sds
+          go (VU.concatMap (\a -> VU.enumFromStepN a sd nd) acc) nds sds
         go !acc _          _          = acc
 
 -- Micro-optimised 'baseOffsetsExpand': seed the fold from the first dim's
 -- 'enumFromStepN' (one fewer concatMap layer everywhere, and pure
 -- enumFromStepN with no concatMap at all when there is a single outer dim).
 {-# INLINE baseOffsetsExpandB #-}
-baseOffsetsExpandB :: Int -> ShapeL -> Strides -> VS.Vector Int
+baseOffsetsExpandB :: Int -> ShapeL -> Strides -> VU.Vector Int
 baseOffsetsExpandB o0 osh (Strides oats) =
   case zip osh oats of
-    []                -> VS.singleton o0
-    ((n0, s0) : rest) -> foldl' expand (VS.enumFromStepN o0 s0 n0) rest
+    []                -> VU.singleton o0
+    ((n0, s0) : rest) -> foldl' expand (VU.enumFromStepN o0 s0 n0) rest
   where expand !acc (!nd, !sd) =
-          VS.concatMap (\a -> VS.enumFromStepN a sd nd) acc
+          VU.concatMap (\a -> VU.enumFromStepN a sd nd) acc
 
 -- Int32 twin of 'baseOffsetsExpand'. Unlike 'baseOffsetsMut32' the
 -- arithmetic itself runs in Int32 -- 'enumFromStepN' generates in the
@@ -423,20 +440,20 @@ baseOffsetsExpandB o0 osh (Strides oats) =
 -- this builder, and the element-offset argument is the restatement that
 -- flag asked for.
 {-# INLINE baseOffsetsExpand32 #-}
-baseOffsetsExpand32 :: Int -> ShapeL -> Strides -> VS.Vector Int32
+baseOffsetsExpand32 :: Int -> ShapeL -> Strides -> VU.Vector Int32
 baseOffsetsExpand32 o0 osh (Strides oats) =
-  foldl' expand (VS.singleton (fromIntegral o0)) (zip osh oats)
+  foldl' expand (VU.singleton (fromIntegral o0)) (zip osh oats)
   where expand !acc (!nd, !sd) =
-          VS.concatMap (\a -> VS.enumFromStepN a (fromIntegral sd) nd) acc
+          VU.concatMap (\a -> VU.enumFromStepN a (fromIntegral sd) nd) acc
 
 -- The run base-offsets as a prefix sum. Consecutive table entries differ by
 -- only rank-many distinct values: @st_last@ within a stretch of the
 -- innermost outer dimension, and at each odometer carry a per-level
 -- constant -- the increment at the carrying level minus the rewind of every
 -- level below it, @st_c - sum_{j>c} (n_j - 1) * st_j@. So the table is
--- @scanl' (+) o0@ over a delta stream, and 'VS.scanl'' is the one
+-- @scanl' (+) o0@ over a delta stream, and 'VU.scanl'' is the one
 -- pure-typed builder whose contract IS stateful-in-order -- the loophole in
--- "'VS.generate' is stateless" that no other strategy here uses.
+-- "'VU.generate' is stateless" that no other strategy here uses.
 --
 -- The allocation half of that hope is REFUTED, by @diag@ and not by
 -- argument: its figures are this comment's.
@@ -446,12 +463,12 @@ baseOffsetsExpand32 o0 osh (Strides oats) =
 -- = 9 words = 72 bytes per entry, measured exactly by @diag@ (10x the
 -- table's own bytes on vgg-14-c512, against 1.00x for the mutable fills)
 -- and visible in Core as boxed joinrec state. Dissolving compound stream
--- state is SpecConstr's job, and SpecConstr runs only at -O2; 'VS.generate'
+-- state is SpecConstr's job, and SpecConstr runs only at -O2; 'VU.generate'
 -- escapes at -O1 only because its state is a bare Int index, which
 -- worker/wrapper alone unboxes. The same tax is what the fused (10.7x),
 -- bq-unfold (10.2x) and unfold-add (29.9x) rows were already paying: at
 -- -O1, every stateful pure-typed builder boxes its state per step, and
--- only index-only 'VS.generate' and explicit mutable fills do not. So the
+-- only index-only 'VU.generate' and explicit mutable fills do not. So the
 -- scan build allocates like 'baseOffsetsExpand' (a few percent apart on
 -- the diag), not like 'baseOffsetsMut', and its strategies inherit
 -- bq-expand-class allocation.
@@ -483,7 +500,7 @@ baseOffsetsExpand32 o0 osh (Strides oats) =
 --
 -- What this builder buys is a TIER, not a percentage, and that is the reason
 -- to care about it. Both consumers -- 'fbBQscanMulback' and 'fbOffTabScan' --
--- produce their result through 'VS.generate' and build their table with this
+-- produce their result through 'VU.generate' and build their table with this
 -- scan, so neither needs the mutable concrete-Int scratch that their controls
 -- 'fbBQmut' and 'fbOffTab' rest on, and neither needs a new 'Vector' class
 -- method: the table is concrete index scratch, as the shipped
@@ -501,7 +518,7 @@ baseOffsetsExpand32 o0 osh (Strides oats) =
 -- The @m == 0@ guard keeps the LENGTH CONTRACT, and that alone. A zero
 -- dimension passes the unit-dim filter (@n /= 1@ keeps 0); without the guard
 -- the scan returns a one-element table where 'baseOffsetsExpand' and
--- 'baseOffsetsMut' return none, since 'VS.generate' of a negative length is
+-- 'baseOffsetsMut' return none, since 'VU.generate' of a negative length is
 -- empty and 'scanl'' still prepends the seed (both measured, not reasoned) --
 -- which is what the @builds@ arm of @check@ reports and end-to-end agreement
 -- does not. What the guard does NOT protect against is a division: 'magicOf'
@@ -511,9 +528,9 @@ baseOffsetsExpand32 o0 osh (Strides oats) =
 -- dimension -- but orthotope has zero-size arrays, and this builder is
 -- proposed for it.
 {-# INLINE baseOffsetsScan #-}
-baseOffsetsScan :: Int -> ShapeL -> Strides -> VS.Vector Int
+baseOffsetsScan :: Int -> ShapeL -> Strides -> VU.Vector Int
 baseOffsetsScan o0 osh (Strides oats)
-  | m == 0 = VS.empty
+  | m == 0 = VU.empty
   | otherwise =
       -- Asserted in the builder, not at the call sites: the multiply-high is
       -- internal to this function, so a caller with no Lemire of its own still
@@ -523,8 +540,8 @@ baseOffsetsScan o0 osh (Strides oats)
       $ scanned [(n, st) | (n, st) <- zip osh oats, n /= 1]
   where
     m = product osh
-    scanned []   = VS.singleton o0
-    scanned dims = VS.scanl' (+) o0 (VS.generate (m - 1) delta)
+    scanned []   = VU.singleton o0
+    scanned dims = VU.scanl' (+) o0 (VU.generate (m - 1) delta)
       where !lastDim    = last dims
             !nLast      = fst lastDim
             !stLast     = snd lastDim
@@ -550,14 +567,14 @@ baseOffsetsScan o0 osh (Strides oats)
 -- as free on a loop-invariant divisor. The quotient the carry cascade
 -- needs comes out of the same 'quotRem', so nothing is computed twice.
 {-# INLINE baseOffsetsScanRem #-}
-baseOffsetsScanRem :: Int -> ShapeL -> Strides -> VS.Vector Int
+baseOffsetsScanRem :: Int -> ShapeL -> Strides -> VU.Vector Int
 baseOffsetsScanRem o0 osh (Strides oats)
-  | m == 0 = VS.empty
+  | m == 0 = VU.empty
   | otherwise = scanned [(n, st) | (n, st) <- zip osh oats, n /= 1]
   where
     m = product osh
-    scanned []   = VS.singleton o0
-    scanned dims = VS.scanl' (+) o0 (VS.generate (m - 1) delta)
+    scanned []   = VU.singleton o0
+    scanned dims = VU.scanl' (+) o0 (VU.generate (m - 1) delta)
       where !lastDim    = last dims
             !nLast      = fst lastDim
             !stLast     = snd lastDim
@@ -588,17 +605,17 @@ data SOdo = SOdo !Int !Int !Int
 -- 'quotRem', a 1/nLast fraction of entries, exactly as in
 -- 'baseOffsetsScan', whose unit-dim elision this shares. Unlike the scan's,
 -- the carry catch-all here is reachable -- once, computing the final
--- step's successor state, which 'VS.unfoldrExactN' discards -- so it must
+-- step's successor state, which 'VU.unfoldrExactN' discards -- so it must
 -- not crash and does not.
 {-# INLINE baseOffsetsOdo #-}
-baseOffsetsOdo :: Int -> ShapeL -> Strides -> VS.Vector Int
+baseOffsetsOdo :: Int -> ShapeL -> Strides -> VU.Vector Int
 baseOffsetsOdo o0 osh (Strides oats)
-  | m == 0 = VS.empty
+  | m == 0 = VU.empty
   | otherwise = built [(n, st) | (n, st) <- zip osh oats, n /= 1]
   where
     m = product osh
-    built []   = VS.singleton o0
-    built dims = VS.unfoldrExactN m step (SOdo o0 nLast 0)
+    built []   = VU.singleton o0
+    built dims = VU.unfoldrExactN m step (SOdo o0 nLast 0)
       where !lastDim    = last dims
             !nLast      = fst lastDim
             !stLast     = snd lastDim
@@ -622,7 +639,7 @@ baseOffsetsOdo o0 osh (Strides oats)
 -- meaningful WITHOUT SpecConstr: the law says a fused loop's state
 -- unboxes at plain -O1 iff it is a bare Int -- measured in one direction
 -- ('scanl''s Either-of-pair boxes 72 bytes per entry; index-only
--- 'VS.generate' does not) but never in the constructive one, and under
+-- 'VU.generate' does not) but never in the constructive one, and under
 -- -fspec-constr every state shape unboxes, so this arm is
 -- indistinguishable from its control there. Failed Run 6 bore the prediction
 -- out exactly and Run 6 (-O1) repeated it:
@@ -630,7 +647,7 @@ baseOffsetsOdo o0 osh (Strides oats)
 -- unboxed emit would give. The diag verdict at -O1 is
 -- already in: 16 bytes per entry against the scan's 72 -- the state
 -- boxing is gone, confirming the law's constructive half for the state,
--- but one boxed Int per step survives in 'VS.unfoldrExactN''s emit pair,
+-- but one boxed Int per step survives in 'VU.unfoldrExactN''s emit pair,
 -- which no state shape can reach. Preconditions of the
 -- packing, asserted: every offset within its field, non-negative and
 -- below 2^32, m at most 2^31 (the index field), on top of the mulhi
@@ -642,9 +659,9 @@ baseOffsetsOdo o0 osh (Strides oats)
 -- of a real element of a valid view, so the low field never leaves
 -- [0, source length) however the strides are signed.
 {-# INLINE baseOffsetsScanPacked #-}
-baseOffsetsScanPacked :: Int -> ShapeL -> Strides -> VS.Vector Int
+baseOffsetsScanPacked :: Int -> ShapeL -> Strides -> VU.Vector Int
 baseOffsetsScanPacked o0 osh (Strides oats)
-  | m == 0 = VS.empty
+  | m == 0 = VU.empty
       -- Strict bounds of their own: an offset of exactly 2^32 would mask to
       -- 0 in the low field, a negative one would borrow into the index
       -- field, and m <= 2^31 keeps every EMITTED index out of the sign bit
@@ -671,8 +688,8 @@ baseOffsetsScanPacked o0 osh (Strides oats)
     m = product osh
     maxOff = o0 + sum [max 0 ((n - 1) * st) | (n, st) <- zip osh oats]
     minOff = o0 + sum [min 0 ((n - 1) * st) | (n, st) <- zip osh oats]
-    scanned []   = VS.singleton o0
-    scanned dims = VS.unfoldrExactN m step o0
+    scanned []   = VU.singleton o0
+    scanned dims = VU.unfoldrExactN m step o0
       where !lastDim    = last dims
             !nLast      = fst lastDim
             !stLast     = snd lastDim
@@ -786,8 +803,8 @@ fbFused sh (T (Strides ats) ao v) = VS.unfoldrExactN l step (S3 ao 0 0)
         -- by zero here, and the bang forces it even though @l == 0@ makes the
         -- run count irrelevant. 'degenerateShapes' is what reaches this.
         !m = l `div` max 1 s
-        !baseOffsets = VS.fromListN m (runBaseOffsets ao (init sh) (Strides (init ats)))
-                         :: VS.Vector Int
+        !baseOffsets = VU.fromListN m (runBaseOffsets ao (init sh) (Strides (init ats)))
+                         :: VU.Vector Int
         step (S3 o j q) =
           -- @next@ is forced: unbanged it is a thunk per step, which is
           -- precisely the "no per-step allocation" this strategy claims. The
@@ -799,7 +816,7 @@ fbFused sh (T (Strides ats) ao v) = VS.unfoldrExactN l step (S3 ao 0 0)
                 | j + 1 < s = S3 (o + t) (j + 1) q
                 | otherwise = let !q1 = q + 1
                               in  if q1 < m
-                                  then S3 (VS.unsafeIndex baseOffsets q1) 0 q1
+                                  then S3 (VU.unsafeIndex baseOffsets q1) 0 q1
                                   else S3 0 0 q1  -- last element; state unused
           in  (x, next)
 
@@ -819,11 +836,11 @@ fbBaseOffsetsQuot sh (T (Strides ats) ao v) = VS.generate l get
         !t = last ats
         !baseOffsets = baseOffsetsList ao (init sh) (Strides (init ats))
         get i = case i `quotRem` s of
-          (!q, !j) -> VS.unsafeIndex v (VS.unsafeIndex baseOffsets q + j * t)
+          (!q, !j) -> VS.unsafeIndex v (VU.unsafeIndex baseOffsets q + j * t)
 
 -- 'fbBaseOffsetsQuot' with the run base-offsets built by a mutable
--- odometer fill of a concrete 'Int' scratch ('VS.create'/'VSM') instead of
--- @VS.fromListN (runBaseOffsets ...)@ -- dropping the @l/sInner@-element
+-- odometer fill of a concrete 'Int' scratch ('VU.create'/'VUM') instead of
+-- @VU.fromListN (runBaseOffsets ...)@ -- dropping the @l/sInner@-element
 -- intermediate list. This is NOT a class extension: the abstract output is
 -- still produced by the ordinary 'VS.generate', and only the concrete Int
 -- scratch (which 'fbBaseOffsetsQuot' already uses) is built differently.
@@ -836,7 +853,7 @@ fbBQmut sh (T (Strides ats) ao v) = VS.generate l get
         !t = last ats
         !baseOffsets = baseOffsetsMut ao (init sh) (Strides (init ats))
         get i = case i `quotRem` s of
-          (!q, !j) -> VS.unsafeIndex v (VS.unsafeIndex baseOffsets q + j * t)
+          (!q, !j) -> VS.unsafeIndex v (VU.unsafeIndex baseOffsets q + j * t)
 
 -- 'fbBQmut' with the run base-offsets built by 'baseOffsetsMutRuns' instead
 -- of 'baseOffsetsMut' -- one change, so 'bq-mut' is its control and the pair
@@ -854,11 +871,11 @@ fbBQmutRuns sh (T (Strides ats) ao v) = VS.generate l get
         !t = last ats
         !baseOffsets = baseOffsetsMutRuns ao (init sh) (Strides (init ats))
         get i = case i `quotRem` s of
-          (!q, !j) -> VS.unsafeIndex v (VS.unsafeIndex baseOffsets q + j * t)
+          (!q, !j) -> VS.unsafeIndex v (VU.unsafeIndex baseOffsets q + j * t)
 
--- 'fbBQmut' but building the base-offsets with 'VS.unfoldrExactN'
+-- 'fbBQmut' but building the base-offsets with 'VU.unfoldrExactN'
 -- (a pure-typed builder whose mutation stays inside the vector library,
--- like 'VS.generate') instead of the explicit 'VS.create'/'VSM' fill of
+-- like 'VU.generate') instead of the explicit 'VU.create'/'VUM' fill of
 -- 'fbBQmut'. No list, no explicit mutation in this module -- but the
 -- odometer state is an immutable @[Int]@ rebuilt per run. Prices whether
 -- the no-list base-offsets win survives without explicit mutation.
@@ -871,8 +888,8 @@ fbBQunfold sh (T (Strides ats) ao v) = VS.generate l get
         m = l `div` max 1 s
         rosh = reverse (init sh)
         roats = reverse (init ats)
-        baseOffsets :: VS.Vector Int
-        !baseOffsets = VS.unfoldrExactN m step (ao, replicate (length sh - 1) 0)
+        baseOffsets :: VU.Vector Int
+        !baseOffsets = VU.unfoldrExactN m step (ao, replicate (length sh - 1) 0)
           where step (!o, is) = (o, adv o is rosh roats)
                 adv !o []       _        _        = (o, [])
                 adv !o (i : js) (n : ns) (st : sts)
@@ -881,10 +898,10 @@ fbBQunfold sh (T (Strides ats) ao v) = VS.generate l get
                                 in  (o', 0 : js')
                 adv !o _ _ _ = (o, [])
         get i = case i `quotRem` s of
-          (!q, !j) -> VS.unsafeIndex v (VS.unsafeIndex baseOffsets q + j * t)
+          (!q, !j) -> VS.unsafeIndex v (VU.unsafeIndex baseOffsets q + j * t)
 
 -- 'fbBQmut' but with the run base-offsets built by the pure
--- 'baseOffsetsGen' ('VS.generate', no explicit mutation) instead
+-- 'baseOffsetsGen' ('VU.generate', no explicit mutation) instead
 -- of 'baseOffsetsMut'. Answers "can the base-offsets be built fast without
 -- explicit vector mutation?".
 {-# NOINLINE fbBQgen #-}
@@ -895,7 +912,7 @@ fbBQgen sh (T (Strides ats) ao v) = VS.generate l get
         !t = last ats
         !baseOffsets = baseOffsetsGen ao (init sh) (Strides (init ats))
         get i = case i `quotRem` s of
-          (!q, !j) -> VS.unsafeIndex v (VS.unsafeIndex baseOffsets q + j * t)
+          (!q, !j) -> VS.unsafeIndex v (VU.unsafeIndex baseOffsets q + j * t)
 
 -- The per-dimension site: 'fbBQgen' with the run base-offsets built by
 -- 'baseOffsetsGenLemire' instead of 'baseOffsetsGen', so 'bq-gen' is its
@@ -909,10 +926,10 @@ fbBQgenLemire sh (T (Strides ats) ao v) = VS.generate l get
         -- Lemire is in the build here, so the bound is asserted there.
         !baseOffsets = baseOffsetsGenLemire ao (init sh) (Strides (init ats))
         get i = case i `quotRem` s of
-          (!q, !j) -> VS.unsafeIndex v (VS.unsafeIndex baseOffsets q + j * t)
+          (!q, !j) -> VS.unsafeIndex v (VU.unsafeIndex baseOffsets q + j * t)
 
 -- 'fbBQmut' but with the run base-offsets built by the pure
--- 'baseOffsetsExpand' ('VS.concatMap', no explicit mutation) instead of
+-- 'baseOffsetsExpand' ('VU.concatMap', no explicit mutation) instead of
 -- 'baseOffsetsMut'. The concatMap route to answering the no-mutation question.
 {-# NOINLINE fbBQexpand #-}
 fbBQexpand :: ShapeL -> T -> VS.Vector Double
@@ -922,7 +939,7 @@ fbBQexpand sh (T (Strides ats) ao v) = VS.generate l get
         !t = last ats
         !baseOffsets = baseOffsetsExpand ao (init sh) (Strides (init ats))
         get i = case i `quotRem` s of
-          (!q, !j) -> VS.unsafeIndex v (VS.unsafeIndex baseOffsets q + j * t)
+          (!q, !j) -> VS.unsafeIndex v (VU.unsafeIndex baseOffsets q + j * t)
 
 -- 'fbBQexpand' with the fused zip-fold 'baseOffsetsExpandZF'
 -- base-offsets build.
@@ -934,7 +951,7 @@ fbBQexpandZF sh (T (Strides ats) ao v) = VS.generate l get
         !t = last ats
         !baseOffsets = baseOffsetsExpandZF ao (init sh) (Strides (init ats))
         get i = case i `quotRem` s of
-          (!q, !j) -> VS.unsafeIndex v (VS.unsafeIndex baseOffsets q + j * t)
+          (!q, !j) -> VS.unsafeIndex v (VU.unsafeIndex baseOffsets q + j * t)
 
 -- 'fbBQexpand' with the micro-optimised 'baseOffsetsExpandB'.
 {-# NOINLINE fbBQexpandB #-}
@@ -945,7 +962,7 @@ fbBQexpandB sh (T (Strides ats) ao v) = VS.generate l get
         !t = last ats
         !baseOffsets = baseOffsetsExpandB ao (init sh) (Strides (init ats))
         get i = case i `quotRem` s of
-          (!q, !j) -> VS.unsafeIndex v (VS.unsafeIndex baseOffsets q + j * t)
+          (!q, !j) -> VS.unsafeIndex v (VU.unsafeIndex baseOffsets q + j * t)
 
 -- Family 2 continued: the OUTPUT varied instead, each against a build already
 -- above.
@@ -978,7 +995,7 @@ fbBQexpandQRprim sh (T (Strides ats) ao v) =
         !baseOffsets = baseOffsetsExpand ao (init sh) (Strides (init ats))
         get (I# i) = case quotRemInt# i s# of
           (# q, j #) -> VS.unsafeIndex v
-                          (VS.unsafeIndex baseOffsets (I# q) + I# j * t)
+                          (VU.unsafeIndex baseOffsets (I# q) + I# j * t)
 
 -- The per-element output site: 'fbBQexpand' with the shared @i quotRem s@
 -- replaced, the table build held at the shipped 'baseOffsetsExpand', so
@@ -997,7 +1014,7 @@ fbBQexpandLemireOut sh (T (Strides ats) ao v) = VS.generate l get
         !mg = assert (lemireFits l) $ magicOf s
         !baseOffsets = baseOffsetsExpand ao (init sh) (Strides (init ats))
         get i = case fastQR mg s i of
-          (!q, !j) -> VS.unsafeIndex v (VS.unsafeIndex baseOffsets q + j * t)
+          (!q, !j) -> VS.unsafeIndex v (VU.unsafeIndex baseOffsets q + j * t)
 
 -- 'fbBQexpandLemireOut' in the leaner form orthotope would actually ship:
 -- take only the quotient from the multiply-high and recover the remainder as
@@ -1019,7 +1036,7 @@ fbBQexpandLemireOut sh (T (Strides ats) ao v) = VS.generate l get
 {-# NOINLINE fbBQexpandLemireMulback #-}
 fbBQexpandLemireMulback :: ShapeL -> T -> VS.Vector Double
 fbBQexpandLemireMulback sh (T (Strides ats) ao v)
-  | s == 1 = VS.generate l (VS.unsafeIndex v . VS.unsafeIndex baseOffsets)
+  | s == 1 = VS.generate l (VS.unsafeIndex v . VU.unsafeIndex baseOffsets)
   | otherwise = VS.generate l get
   where l = product sh
         !s = last sh
@@ -1030,7 +1047,7 @@ fbBQexpandLemireMulback sh (T (Strides ats) ao v)
         !baseOffsets = baseOffsetsExpand ao (init sh) (Strides (init ats))
         get i = let !q = fromIntegral (mulhi magic (fromIntegral i))
                 in  VS.unsafeIndex v
-                      (VS.unsafeIndex baseOffsets q + (i - q * s) * t)
+                      (VU.unsafeIndex baseOffsets q + (i - q * s) * t)
 
 -- 'fbBQexpandLemireMulback' with the base-offsets table narrowed to Int32
 -- ('baseOffsetsExpand32'); the reconversion on read is a sign-extending
@@ -1044,7 +1061,7 @@ fbBQexpandLemireMulback sh (T (Strides ats) ao v)
 fbBQexpand32LemireMulback :: ShapeL -> T -> VS.Vector Double
 fbBQexpand32LemireMulback sh (T (Strides ats) ao v)
   | s == 1 = VS.generate l
-               (VS.unsafeIndex v . fromIntegral . VS.unsafeIndex baseOffsets)
+               (VS.unsafeIndex v . fromIntegral . VU.unsafeIndex baseOffsets)
   | otherwise = VS.generate l get
   where l = product sh
         !s = last sh
@@ -1052,7 +1069,7 @@ fbBQexpand32LemireMulback sh (T (Strides ats) ao v)
         !magic = assert (lemireFits l)
                  $ if s <= 1 then 0
                    else (maxBound `quot` fromIntegral s) + 1 :: Word
-        baseOffsets :: VS.Vector Int32
+        baseOffsets :: VU.Vector Int32
         -- NB 'int32Fits' is NOT the whole precondition here, unlike for
         -- 'baseOffsetsMut32': this builder does its arithmetic in Int32, so
         -- the partial base-offsets must fit too, and a source-length bound
@@ -1062,7 +1079,7 @@ fbBQexpand32LemireMulback sh (T (Strides ats) ao v)
                        $ baseOffsetsExpand32 ao (init sh) (Strides (init ats))
         get i = let !q = fromIntegral (mulhi magic (fromIntegral i))
                 in  VS.unsafeIndex v
-                      (fromIntegral (VS.unsafeIndex baseOffsets q)
+                      (fromIntegral (VU.unsafeIndex baseOffsets q)
                        + (i - q * s) * t)
 
 -- The same output substitution against a second, unrelated table build:
@@ -1082,7 +1099,7 @@ fbBQmutLemireOut sh (T (Strides ats) ao v) = VS.generate l get
         !mg = assert (lemireFits l) $ magicOf s
         !baseOffsets = baseOffsetsMut ao (init sh) (Strides (init ats))
         get i = case fastQR mg s i of
-          (!q, !j) -> VS.unsafeIndex v (VS.unsafeIndex baseOffsets q + j * t)
+          (!q, !j) -> VS.unsafeIndex v (VU.unsafeIndex baseOffsets q + j * t)
 
 -- 'fbBQmutLemireOut' with the output changed to the single-multiply mul-back
 -- form, sharing 'fbBQexpandLemireMulback''s hoisted @s == 1@ branch. One line
@@ -1094,7 +1111,7 @@ fbBQmutLemireOut sh (T (Strides ats) ao v) = VS.generate l get
 {-# NOINLINE fbBQmutLemireMulback #-}
 fbBQmutLemireMulback :: ShapeL -> T -> VS.Vector Double
 fbBQmutLemireMulback sh (T (Strides ats) ao v)
-  | s == 1 = VS.generate l (VS.unsafeIndex v . VS.unsafeIndex baseOffsets)
+  | s == 1 = VS.generate l (VS.unsafeIndex v . VU.unsafeIndex baseOffsets)
   | otherwise = VS.generate l get
   where l = product sh
         !s = last sh
@@ -1105,7 +1122,7 @@ fbBQmutLemireMulback sh (T (Strides ats) ao v)
         !baseOffsets = baseOffsetsMut ao (init sh) (Strides (init ats))
         get i = let !q = fromIntegral (mulhi magic (fromIntegral i))
                 in  VS.unsafeIndex v
-                      (VS.unsafeIndex baseOffsets q + (i - q * s) * t)
+                      (VU.unsafeIndex baseOffsets q + (i - q * s) * t)
 
 -- The fastest build and the fastest output measured so far, put together:
 -- 'baseOffsetsMutRuns' for the table, the single-multiply mul-back for the
@@ -1122,7 +1139,7 @@ fbBQmutLemireMulback sh (T (Strides ats) ao v)
 {-# NOINLINE fbBQmutRunsMulback #-}
 fbBQmutRunsMulback :: ShapeL -> T -> VS.Vector Double
 fbBQmutRunsMulback sh (T (Strides ats) ao v)
-  | s == 1 = VS.generate l (VS.unsafeIndex v . VS.unsafeIndex baseOffsets)
+  | s == 1 = VS.generate l (VS.unsafeIndex v . VU.unsafeIndex baseOffsets)
   | otherwise = VS.generate l get
   where l = product sh
         !s = last sh
@@ -1133,7 +1150,7 @@ fbBQmutRunsMulback sh (T (Strides ats) ao v)
         !baseOffsets = baseOffsetsMutRuns ao (init sh) (Strides (init ats))
         get i = let !q = fromIntegral (mulhi magic (fromIntegral i))
                 in  VS.unsafeIndex v
-                      (VS.unsafeIndex baseOffsets q + (i - q * s) * t)
+                      (VU.unsafeIndex baseOffsets q + (i - q * s) * t)
 
 -- 'fbBQmutRunsMulback' with the quotient by the Granlund-Montgomery magic
 -- ('gmMagic') instead of the Lemire multiply-high -- one change, so that
@@ -1148,7 +1165,7 @@ fbBQmutRunsMulback sh (T (Strides ats) ao v)
 {-# NOINLINE fbBQmutRunsGmMulback #-}
 fbBQmutRunsGmMulback :: ShapeL -> T -> VS.Vector Double
 fbBQmutRunsGmMulback sh (T (Strides ats) ao v)
-  | s == 1 = VS.generate l (VS.unsafeIndex v . VS.unsafeIndex baseOffsets)
+  | s == 1 = VS.generate l (VS.unsafeIndex v . VU.unsafeIndex baseOffsets)
   | otherwise = VS.generate l get
   where l = product sh
         !s = last sh
@@ -1160,7 +1177,7 @@ fbBQmutRunsGmMulback sh (T (Strides ats) ao v)
         get i = let !q = fromIntegral
                            (mulhi magic (fromIntegral i) `shiftR` gsh)
                 in  VS.unsafeIndex v
-                      (VS.unsafeIndex baseOffsets q + (i - q * s) * t)
+                      (VU.unsafeIndex baseOffsets q + (i - q * s) * t)
 
 -- 'fbBQexpandLemireMulback' with the table built by 'baseOffsetsScan'
 -- instead of 'baseOffsetsExpand' -- one change, so that strategy is its
@@ -1180,7 +1197,7 @@ fbBQmutRunsGmMulback sh (T (Strides ats) ao v)
 {-# NOINLINE fbBQscanMulback #-}
 fbBQscanMulback :: ShapeL -> T -> VS.Vector Double
 fbBQscanMulback sh (T (Strides ats) ao v)
-  | s == 1 = VS.generate l (VS.unsafeIndex v . VS.unsafeIndex baseOffsets)
+  | s == 1 = VS.generate l (VS.unsafeIndex v . VU.unsafeIndex baseOffsets)
   | otherwise = VS.generate l get
   where l = product sh
         !s = last sh
@@ -1191,7 +1208,7 @@ fbBQscanMulback sh (T (Strides ats) ao v)
         !baseOffsets = baseOffsetsScan ao (init sh) (Strides (init ats))
         get i = let !q = fromIntegral (mulhi magic (fromIntegral i))
                 in  VS.unsafeIndex v
-                      (VS.unsafeIndex baseOffsets q + (i - q * s) * t)
+                      (VU.unsafeIndex baseOffsets q + (i - q * s) * t)
 
 -- 'fbBQscanMulback' with the table built by 'baseOffsetsScanRem' -- one
 -- change, so that strategy is its control, and the pair prices the
@@ -1202,7 +1219,7 @@ fbBQscanMulback sh (T (Strides ats) ao v)
 {-# NOINLINE fbBQscanRemMulback #-}
 fbBQscanRemMulback :: ShapeL -> T -> VS.Vector Double
 fbBQscanRemMulback sh (T (Strides ats) ao v)
-  | s == 1 = VS.generate l (VS.unsafeIndex v . VS.unsafeIndex baseOffsets)
+  | s == 1 = VS.generate l (VS.unsafeIndex v . VU.unsafeIndex baseOffsets)
   | otherwise = VS.generate l get
   where l = product sh
         !s = last sh
@@ -1213,7 +1230,7 @@ fbBQscanRemMulback sh (T (Strides ats) ao v)
         !baseOffsets = baseOffsetsScanRem ao (init sh) (Strides (init ats))
         get i = let !q = fromIntegral (mulhi magic (fromIntegral i))
                 in  VS.unsafeIndex v
-                      (VS.unsafeIndex baseOffsets q + (i - q * s) * t)
+                      (VU.unsafeIndex baseOffsets q + (i - q * s) * t)
 
 -- 'fbBQscanMulback' with the quotient by the Granlund-Montgomery magic
 -- ('gmMagic') instead of the Lemire multiply-high -- one change, so that
@@ -1225,7 +1242,7 @@ fbBQscanRemMulback sh (T (Strides ats) ao v)
 {-# NOINLINE fbBQscanGmMulback #-}
 fbBQscanGmMulback :: ShapeL -> T -> VS.Vector Double
 fbBQscanGmMulback sh (T (Strides ats) ao v)
-  | s == 1 = VS.generate l (VS.unsafeIndex v . VS.unsafeIndex baseOffsets)
+  | s == 1 = VS.generate l (VS.unsafeIndex v . VU.unsafeIndex baseOffsets)
   | otherwise = VS.generate l get
   where l = product sh
         !s = last sh
@@ -1237,7 +1254,7 @@ fbBQscanGmMulback sh (T (Strides ats) ao v)
         get i = let !q = fromIntegral
                            (mulhi magic (fromIntegral i) `shiftR` gsh)
                 in  VS.unsafeIndex v
-                      (VS.unsafeIndex baseOffsets q + (i - q * s) * t)
+                      (VU.unsafeIndex baseOffsets q + (i - q * s) * t)
 
 -- The swap the two arms above each leave open, taken: 'baseOffsetsScanRem'
 -- for the table and the Granlund-Montgomery quotient for the output. One
@@ -1260,7 +1277,7 @@ fbBQscanGmMulback sh (T (Strides ats) ao v)
 {-# NOINLINE fbBQscanRemGmMulback #-}
 fbBQscanRemGmMulback :: ShapeL -> T -> VS.Vector Double
 fbBQscanRemGmMulback sh (T (Strides ats) ao v)
-  | s == 1 = VS.generate l (VS.unsafeIndex v . VS.unsafeIndex baseOffsets)
+  | s == 1 = VS.generate l (VS.unsafeIndex v . VU.unsafeIndex baseOffsets)
   | otherwise = VS.generate l get
   where l = product sh
         !s = last sh
@@ -1272,7 +1289,7 @@ fbBQscanRemGmMulback sh (T (Strides ats) ao v)
         get i = let !q = fromIntegral
                            (mulhi magic (fromIntegral i) `shiftR` gsh)
                 in  VS.unsafeIndex v
-                      (VS.unsafeIndex baseOffsets q + (i - q * s) * t)
+                      (VU.unsafeIndex baseOffsets q + (i - q * s) * t)
 
 -- 'fbBQscanMulback' with the table built by 'baseOffsetsOdo' -- one
 -- change, so that strategy is its control, and the pair prices the last
@@ -1286,7 +1303,7 @@ fbBQscanRemGmMulback sh (T (Strides ats) ao v)
 {-# NOINLINE fbBQodoMulback #-}
 fbBQodoMulback :: ShapeL -> T -> VS.Vector Double
 fbBQodoMulback sh (T (Strides ats) ao v)
-  | s == 1 = VS.generate l (VS.unsafeIndex v . VS.unsafeIndex baseOffsets)
+  | s == 1 = VS.generate l (VS.unsafeIndex v . VU.unsafeIndex baseOffsets)
   | otherwise = VS.generate l get
   where l = product sh
         !s = last sh
@@ -1297,7 +1314,7 @@ fbBQodoMulback sh (T (Strides ats) ao v)
         !baseOffsets = baseOffsetsOdo ao (init sh) (Strides (init ats))
         get i = let !q = fromIntegral (mulhi magic (fromIntegral i))
                 in  VS.unsafeIndex v
-                      (VS.unsafeIndex baseOffsets q + (i - q * s) * t)
+                      (VU.unsafeIndex baseOffsets q + (i - q * s) * t)
 
 -- 'fbBQscanMulback' with the table built by 'baseOffsetsScanPacked' -- one
 -- change, so that strategy is its control. The pair is only informative
@@ -1307,7 +1324,7 @@ fbBQodoMulback sh (T (Strides ats) ao v)
 {-# NOINLINE fbBQscanPackedMulback #-}
 fbBQscanPackedMulback :: ShapeL -> T -> VS.Vector Double
 fbBQscanPackedMulback sh (T (Strides ats) ao v)
-  | s == 1 = VS.generate l (VS.unsafeIndex v . VS.unsafeIndex baseOffsets)
+  | s == 1 = VS.generate l (VS.unsafeIndex v . VU.unsafeIndex baseOffsets)
   | otherwise = VS.generate l get
   where l = product sh
         !s = last sh
@@ -1318,7 +1335,7 @@ fbBQscanPackedMulback sh (T (Strides ats) ao v)
         !baseOffsets = baseOffsetsScanPacked ao (init sh) (Strides (init ats))
         get i = let !q = fromIntegral (mulhi magic (fromIntegral i))
                 in  VS.unsafeIndex v
-                      (VS.unsafeIndex baseOffsets q + (i - q * s) * t)
+                      (VU.unsafeIndex baseOffsets q + (i - q * s) * t)
 
 -- Family 3: whole-offset and alternative-gather variants -- offsets for every
 -- element rather than for every run, or a gather with no output division.
@@ -1327,6 +1344,11 @@ fbBQscanPackedMulback sh (T (Strides ats) ao v)
 -- 'enumFromStepN' generates each innermost run directly (constant stride,
 -- no division) and 'concatMap' nests the outer dims. Pure 'Vector' ops,
 -- no intermediate list.
+--
+-- Storable, where every table but this one and 'baseOffsetsExpandVS' is
+-- unboxed: its one consumer hands it to 'unsafeBackpermute', which takes a
+-- single vector family, so here the table's flavour IS the payload's
+-- (README.md#the-scratch-vector-flavour).
 {-# INLINE strideOffsets #-}
 strideOffsets :: Int -> ShapeL -> Strides -> VS.Vector Int
 strideOffsets o0 sh0 (Strides ats0) = go o0 sh0 ats0
@@ -1365,16 +1387,20 @@ fbCMGather sh (T (Strides ats) ao v) =
          (VS.concatMap (\b -> VS.enumFromStepN b t s) baseOffsets)
   where s = last sh
         !t = last ats
-        !baseOffsets = baseOffsetsExpand ao (init sh) (Strides (init ats))
+        -- Storable, where every other table here is unboxed: the map below
+        -- takes one vector family, so for this arm the table's flavour IS
+        -- the payload's ('baseOffsetsExpandVS').
+        !baseOffsets = baseOffsetsExpandVS ao (init sh) (Strides (init ats))
 
--- The whole offset grid over ALL dims via 'baseOffsetsExpand', then
+-- The whole offset grid over ALL dims via 'baseOffsetsExpandVS', then
 -- one gather. Materialises the full l-length offset table (foldl' forces
 -- each level), so it prices what 'fbCMGather''s fused inner run avoids.
--- Same new-pure-method tier as 'fbCMGather', for the same reason.
+-- Same new-pure-method tier as 'fbCMGather', for the same reason, and
+-- Storable for the same reason too -- the map takes one vector family.
 {-# NOINLINE fbAllExpand #-}
 fbAllExpand :: ShapeL -> T -> VS.Vector Double
 fbAllExpand sh (T strides ao v) =
-  VS.map (VS.unsafeIndex v) (baseOffsetsExpand ao sh strides)
+  VS.map (VS.unsafeIndex v) (baseOffsetsExpandVS ao sh strides)
 
 -- The full offset table (length @l@) built by the same mutable
 -- odometer as 'fbMutOdo', then gathered with a single 'VS.generate' whose
@@ -1385,17 +1411,17 @@ fbAllExpand sh (T strides ao v) =
 {-# NOINLINE fbOffTab #-}
 fbOffTab :: ShapeL -> T -> VS.Vector Double
 fbOffTab sh (T (Strides ats) ao v) =
-  VS.generate l (\i -> VS.unsafeIndex v (VS.unsafeIndex offs i))
+  VS.generate l (\i -> VS.unsafeIndex v (VU.unsafeIndex offs i))
   where l = product sh
         !s = last sh
         !t = last ats
-        offs :: VS.Vector Int
-        !offs = VS.create $ do
-          o <- VSM.unsafeNew l
+        offs :: VU.Vector Int
+        !offs = VU.create $ do
+          o <- VUM.unsafeNew l
           let writeRun !outPos !baseOff =
                 let inner !j !src
                       | j >= s    = return ()
-                      | otherwise = VSM.unsafeWrite o (outPos + j) src
+                      | otherwise = VUM.unsafeWrite o (outPos + j) src
                                     >> inner (j + 1) (src + t)
                 in  inner 0 baseOff
               go [] [] !outPos !baseOff =
@@ -1426,17 +1452,17 @@ fbOffTab sh (T (Strides ats) ao v) =
 fbOffTab32 :: ShapeL -> T -> VS.Vector Double
 fbOffTab32 sh (T (Strides ats) ao v) =
   VS.generate l
-    (\i -> VS.unsafeIndex v (fromIntegral (VS.unsafeIndex offs i)))
+    (\i -> VS.unsafeIndex v (fromIntegral (VU.unsafeIndex offs i)))
   where l = product sh
         !s = last sh
         !t = last ats
-        offs :: VS.Vector Int32
-        !offs = assert (int32Fits v) $ VS.create $ do
-          o <- VSM.unsafeNew l
+        offs :: VU.Vector Int32
+        !offs = assert (int32Fits v) $ VU.create $ do
+          o <- VUM.unsafeNew l
           let writeRun !outPos !baseOff =
                 let inner !j !src
                       | j >= s    = return ()
-                      | otherwise = VSM.unsafeWrite o (outPos + j)
+                      | otherwise = VUM.unsafeWrite o (outPos + j)
                                       (fromIntegral src)
                                     >> inner (j + 1) (src + t)
                 in  inner 0 baseOff
@@ -1455,7 +1481,7 @@ fbOffTab32 sh (T (Strides ats) ao v) =
 -- 'fbOffTab' with the offset table built by 'baseOffsetsScan' over ALL the
 -- dims instead of by the mutable odometer: the full offset grid is the run
 -- base-offsets grid of a shape whose "outer" dims are all of them, so the
--- builder is reused verbatim and no 'VS.create' remains -- the first pure
+-- builder is reused verbatim and no 'VU.create' remains -- the first pure
 -- strategy with offtab's shape, an arithmetic-free gather off a
 -- sequentially-read table. What it prices: whether offtab's pass-split
 -- advantage (it beats 'bq-mut' despite strictly more traffic, because no
@@ -1482,7 +1508,7 @@ fbOffTab32 sh (T (Strides ats) ao v) =
 {-# NOINLINE fbOffTabScan #-}
 fbOffTabScan :: ShapeL -> T -> VS.Vector Double
 fbOffTabScan sh (T strides ao v) =
-  VS.generate l (\i -> VS.unsafeIndex v (VS.unsafeIndex offs i))
+  VS.generate l (\i -> VS.unsafeIndex v (VU.unsafeIndex offs i))
   where l = product sh
         !offs = baseOffsetsScan ao sh strides
 
@@ -1548,8 +1574,8 @@ fbMutOdoVecdims sh (T (Strides ats) ao v) = VS.create $ do
       go !lev !outPos !baseOff
         | lev >= rOuter = writeRun outPos baseOff >> return (outPos + sInner)
         | otherwise =
-            let !n  = VS.unsafeIndex oshV lev
-                !st = VS.unsafeIndex oatsV lev
+            let !n  = VU.unsafeIndex oshV lev
+                !st = VU.unsafeIndex oatsV lev
                 dim !i !op
                   | i >= n    = return op
                   | otherwise = go (lev + 1) op (baseOff + i * st)
@@ -1561,9 +1587,9 @@ fbMutOdoVecdims sh (T (Strides ats) ao v) = VS.create $ do
         !sInner = last sh
         !tInner = last ats
         !rOuter = length sh - 1
-        oshV, oatsV :: VS.Vector Int
-        !oshV  = VS.fromList (init sh)
-        !oatsV = VS.fromList (init ats)
+        oshV, oatsV :: VU.Vector Int
+        !oshV  = VU.fromList (init sh)
+        !oatsV = VU.fromList (init ats)
 
 -- 'fbMutOdo' but iterating the precomputed run base-offsets list, to
 -- price what that list (a factor @sInner@ smaller than @l@) costs the
@@ -1649,7 +1675,7 @@ fbMutFlat sh (T (Strides ats) ao v) = VS.create $ do
         | i >= l = return ()
         | otherwise = do
             VSM.unsafeWrite out i
-              (VS.unsafeIndex v (VS.unsafeIndex baseOffsets i))
+              (VS.unsafeIndex v (VU.unsafeIndex baseOffsets i))
             goCopy (i + 1)
       go !i
         | i >= l = return ()
@@ -1657,7 +1683,7 @@ fbMutFlat sh (T (Strides ats) ao v) = VS.create $ do
             let !q = fromIntegral (mulhi magic (fromIntegral i))
             VSM.unsafeWrite out i
               (VS.unsafeIndex v
-                 (VS.unsafeIndex baseOffsets q + (i - q * s) * t))
+                 (VU.unsafeIndex baseOffsets q + (i - q * s) * t))
             go (i + 1)
   if s == 1 then goCopy 0 else go 0
   return out
@@ -2564,7 +2590,7 @@ buildersMatch ao osh oats =
   && rBuild == w32 (baseOffsetsExpand32 ao osh oats)
   && rBuild == w32 (baseOffsetsMut32    ao osh oats)
   where rBuild = baseOffsetsList ao osh oats
-        w32    = VS.map fromIntegral  -- Int32 table read back as the rest
+        w32    = VU.map fromIntegral  -- Int32 table read back as the rest
 
 -- The shared core of the stride-class checks: what the legacy 'one' asserts
 -- of a 'mkStrided' view -- regime 3, every strategy agreeing with the
@@ -2765,7 +2791,7 @@ check = do
 -- 'fbBQmut' faster than 'fbBaseOffsetsQuot' when they share the same
 -- 'VS.generate' output and the same @m@-element run base-offsets table?
 -- Measure the heap a single base-offsets build allocates.
--- 'baseOffsetsList' feeds a lazy 'runBaseOffsets' list to 'VS.fromListN';
+-- 'baseOffsetsList' feeds a lazy 'runBaseOffsets' list to 'VU.fromListN';
 -- if that fused, no list would be materialized and its allocation
 -- would match 'baseOffsetsMut' (a direct mutable fill of the same @m@ Ints).
 -- The offset seed varies per build to defeat CSE; 'VS.sum' forces
@@ -2783,18 +2809,18 @@ diag = do
           oats = Strides (init ats)
           m    = product osh
       putStrLn $ "\n" ++ name ++ "  (m = " ++ show m ++ " base-offsets, "
-                 ++ show (VS.length (baseOffsetsMut 0 osh oats)) ++ " built)"
+                 ++ show (VU.length (baseOffsetsMut 0 osh oats)) ++ " built)"
       measure "  baseOffsetsList   fromListN . runBaseOffsets (lazy list) " (\k -> baseOffsetsList   k osh oats)
-      measure "  baseOffsetsGen    VS.generate + per-run quotRem          " (\k -> baseOffsetsGen    k osh oats)
+      measure "  baseOffsetsGen    VU.generate + per-run quotRem          " (\k -> baseOffsetsGen    k osh oats)
       measure "  baseOffsetsGenLemire  Gen with 'fastQR'                  " (\k -> baseOffsetsGenLemire k osh oats)
-      measure "  baseOffsetsExpand VS.concatMap iterated expansion        " (\k -> baseOffsetsExpand k osh oats)
+      measure "  baseOffsetsExpand VU.concatMap iterated expansion        " (\k -> baseOffsetsExpand k osh oats)
       measure "  baseOffsetsExpandZF  Expand, zip and fold fused          " (\k -> baseOffsetsExpandZF k osh oats)
       measure "  baseOffsetsExpandB   Expand seeded from the first dim    " (\k -> baseOffsetsExpandB  k osh oats)
       measure "  baseOffsetsScan   scanl' over a generated delta stream   " (\k -> baseOffsetsScan   k osh oats)
       measure "  baseOffsetsScanRem  Scan with quotRem divisibility       " (\k -> baseOffsetsScanRem k osh oats)
       measure "  baseOffsetsOdo    unfoldrExactN 3-Int odometer state     " (\k -> baseOffsetsOdo    k osh oats)
       measure "  baseOffsetsScanPacked  Scan with one-Int packed state    " (\k -> baseOffsetsScanPacked k osh oats)
-      measure "  baseOffsetsMut    VS.create mutable odometer             " (\k -> baseOffsetsMut    k osh oats)
+      measure "  baseOffsetsMut    VU.create mutable odometer             " (\k -> baseOffsetsMut    k osh oats)
       measure "  baseOffsetsMutRuns  Mut with leaf run-writes             " (\k -> baseOffsetsMutRuns k osh oats)
       measure32 "  baseOffsetsExpand32  Expand at Int32                   " (\k -> baseOffsetsExpand32 k osh oats)
       measure32 "  baseOffsetsMut32  Mut at Int32                         " (\k -> baseOffsetsMut32  k osh oats)
@@ -2807,7 +2833,7 @@ diag = do
       let loop !acc !k
             | k >= n    = acc
             | otherwise =
-                loop (acc + VS.foldl' (\a x -> a + fromIntegral x) 0 (build k))
+                loop (acc + VU.foldl' (\a x -> a + fromIntegral x) 0 (build k))
                      (k + 1)
       tot <- evaluate (loop (0 :: Int) 0)
       -- Both readings are GC'd, not just the first: 'allocated_bytes' only
@@ -2827,7 +2853,7 @@ diag = do
       performGC
       s0 <- getRTSStats
       let loop !acc !k | k >= n    = acc
-                      | otherwise = loop (acc + VS.sum (build k)) (k + 1)
+                      | otherwise = loop (acc + VU.sum (build k)) (k + 1)
       tot <- evaluate (loop (0 :: Int) 0)
       -- Both readings are GC'd, not just the first: 'allocated_bytes' only
       -- advances at a GC, so without this the tail since the last one goes
