@@ -984,6 +984,64 @@ it costs no information the run needs, and it is one of the changes preceding
 the current, quieter run, though nothing separates its contribution from the
 others'.
 
+**Two rulings taken 2026-08-08 cut the timed roster from 38 strategies to 15,
+and they are the roster Run 9 measures.** Both are about what is worth
+spending a bench on, not about what is worth keeping: every dropped strategy
+stays in `Main.hs` and stays in the roster as `concat-runs` is — checked
+against the reference on every shape of every class, and not timed — so the
+agreement net does not shrink and nothing has to be rewritten if a ruling is
+later reopened.
+
+- **A strategy with a precondition is not measured.** The column allowed
+  `none`, an empty cell, and `shape well-formed`, which is a condition on
+  being a valid view at all rather than on size; everything else is a size
+  bound the caller would have to discharge. What that costs is real — it
+  takes `bq-odo-mulback` (0.089), the fastest pure arm of Run 8, and the
+  whole `mulback` output family with it — and the ruling is that the speed
+  does not make up for the restriction: a fallback that needs `l < 2^32`
+  tested and a second fill kept for when it fails is a different proposition
+  from one that does not, and this suite exists to find the second kind. The
+  column goes with them, having nothing left to say: after the cut every
+  surviving row's cell is empty.
+- **A strategy allocating 2.4x the result or more is not measured**, at
+  `-fspec-constr`, which is the regime the cut was taken in and Run 9's.
+  Allocation is the one column here that is deterministic per call,
+  independent of what shares the process, and reproducible across rebuilds
+  when time is not; it is also, across this table, no worse a predictor of
+  rank than most single facts about a strategy. The threshold keeps
+  `bq-expand` (2.35x) and drops the tier above it, which is the whole of the
+  `new pure Vector method` group — `fused`, `all-expand`, `cm-gather`,
+  `backperm`, `unfold-add` — plus `offsets-quot`, `bq-unfold` and
+  `mut-offsets`.
+
+`list` is exempt: it is the reference every ratio divides by, not a candidate,
+and its 23.5x is the thing being beaten. `gen-quotrem` and `gen-unsafe`
+survive both cuts at 1.00x, which the page needs — the first attempt is what
+the fix is measured against.
+
+**What the cut breaks, and has to be repaired when the roster is built.**
+Several control relationships name an arm that is now untimed, and a control
+whose base is not measured is not a control:
+
+- the `bq-scan-mulback` A/A twins duplicate an arm the precondition rule
+  drops, so they must be re-pointed at a surviving arm —
+  `bq-scan-rem-gm-mulback` is the natural one, being the fastest pure arm
+  left and carrying no precondition;
+- `bq-mut-runs-gm-mulback` survives while its stated control
+  `bq-mut-runs-mulback` does not, so the pair that prices dropping the size
+  bound no longer exists — which is the ruling doing its work, since that
+  pair's whole subject is the bound this rule now refuses;
+- claim 4's controlled pair, `bq-scan-mulback` against
+  `bq-expand-lemire-mulback`, loses both halves, and the Lemire output
+  substitution loses its arm. Those readings stand as Run 8's and cannot be
+  re-measured under this roster, which is the price of the rule and is
+  recorded rather than worked around.
+
+`--lint` and `--markdown` both need the change: the first asserts every
+defined `fb` function is rostered, which the not-timed mechanism satisfies,
+and the second carries `needs` and `precondition` forward from the table
+above, so the column has to leave the reader and the table together.
+
 The worry was never its own figures but its neighbours': every `time` is a
 ratio to `list`, which runs first, so an aftermath outliving one bench would
 tilt the group rather than cancel. The probes found nothing — its successor
@@ -1577,6 +1635,20 @@ unknown; what that protects is orderings and tiers, which several arms
 witness at once, and what it does not protect is any single arm's figure read
 across a rebuild.
 
+**And the third of those is a bias, not a floor, which is the distinction to
+keep.** A floor is a threshold below which a margin might be noise, and it
+shrinks as samples accumulate; this does not. Each binary's figure is
+*correct for that binary* — the pad probe's cells are geomeans over 24 shapes
+with per-cell intervals of a fraction of a percent — so collecting more
+samples inside one build cannot reduce it, and only averaging over several
+builds would. The per-shape picture says the same: across rebuilds `list`
+scatters 2.2-2.5% per shape while its geomean holds to 0.5%, where the two
+susceptible arms scatter 5-10% per shape *and* move their geomeans. So do not
+read 18% as a new floor for this page's tables. Every comparison inside the
+Results table is two rows of one binary and is governed by the A/A twins as
+before; what the 18% governs is the sentences that cross a build, which on
+this page means the cross-regime absolute figures and nothing else.
+
 **A filtered run cannot answer the position question**, and the trap is quiet
 enough to be worth stating: criterion's selection removes the intervening
 benches, so a pair placed 28 slots apart in the roster ends up adjacent, and
@@ -2060,14 +2132,13 @@ reordering underneath it would suggest.
 
 ### What Run 9 compares against
 
-**What Run 9's basis is depends on the regime it chooses, and that is the
-first thing to settle.** Against a -O1 successor the yardstick is Run 7's
-column, not the one above, this run's figures being another regime's; against
-a `-fspec-constr` successor it is the column above, with the shape set and
-roster unmoved either way. Choosing the flag again would also make Run 8 the
-first measurement any run here has ever been able to repeat exactly. The five
-rows nearest the decisions, in both regimes, so neither comparison needs the
-other section:
+**Run 9 is decided: `-fspec-constr`, with a different roster** — the 15
+strategies the two rulings under [what the benchmark
+does](#what-the-benchmark-does) leave timed. So its
+yardstick is the Run 8 column below, and the -O1 column beside it is kept for
+a later run rather than for this one. The two together are what a third
+regime, or a return to -O1, would read against. The five rows nearest the
+decisions, in both regimes, so neither comparison needs the other section:
 
 | strategy | Run 8 (SpecConstr) | Run 7 (Harness, -O1) |
 |---|---:|---:|
@@ -3218,6 +3289,10 @@ for `Run 8` — before trusting the list.
   it;
 - [R2 is the ramp detector][ramp], [the Lemire section][lemire], and
   [the per-shape `stretch-*` table][pershape];
+- [what the benchmark does](#what-the-benchmark-does), whose two roster
+  rulings quote the run they were cut on — the arms they drop and the
+  allocation tier the threshold sits above — and whose membership a later
+  ruling can reopen;
 - [the non-urgent TODO list](#non-urgent-todo-list), whose roster-order entry
   cites the position figures a run measures and whose decomposition entry
   cites the question a run leaves open — the one part of the harness chapter
@@ -3286,14 +3361,22 @@ the builder's own allocation does survive, at 4.67x an entry in this regime,
 but the arm rose anyway — 19% faster per call, and it now leads the pure
 tier outright.
 
-**Run 7's leftover is still open and Run 8 could not touch it**, exactly as
-its entry said: *what moved `mut-odo-vecdims` by the remaining ~13%?* The arm
-is the steadiest thing in the table across the regime flip (0.054 to 0.053,
-0.904 in absolute time), so nothing here bears on it. It still needs two
-full-roster runs differing only in membership, and Run 8 pinned the roster.
-What Run 8 adds is a reason to want it sooner: this arm's A/A pairs carry the
-largest deviation in seven of the eight class processes, `reshape1` alone
-excepted.
+**Run 7's leftover is what Run 9 is now designed around.** *What moved
+`mut-odo-vecdims` by the remaining ~13%?* Run 8 could not touch it, exactly
+as its entry said — the arm is the steadiest thing in the table across the
+regime flip (0.054 to 0.053, 0.904 in absolute time) and the roster was
+pinned. Run 9 unpins it at the same regime, which is the two-runs-differing-
+only-in-membership the question has been waiting for. Two things to hold on
+to while designing it. The arm and its two twins have to survive the roster
+change, or the run answers about an arm it no longer measures; and a roster
+change moves membership and code layout **together**, so it still cannot
+separate them — what it can do is bound the pair, because the layout half is
+now measured on its own at up to 18% (the placement entry below).
+A ~13% move would therefore be consistent with layout alone and would need no
+roster effect at all, which is the prediction to record before the run rather
+than after. What Run 8 adds is a reason to want the answer: this arm's A/A
+pairs carry the largest deviation in seven of the eight class processes,
+`reshape1` alone excepted.
 
 **Three of these were answered the same day**, each by the probe its own
 entry specified — the rule about a discriminating measurement deserving one
@@ -3419,9 +3502,13 @@ now rather than a slot in the next run, observed again:
   is simply the next run's own gate, read for the sign rather than only for
   the threshold; if it is one-sided again, the `-nosum` arms are pricing
   something `sum-only` does not.
-Run 9's first decision is its regime, because that fixes its yardstick: -O1
-reads against Run 7 and `-fspec-constr` against Run 8, and only the second
-would be the first exact repetition this page has ever had.
+Run 9's regime and roster are decided — `-fspec-constr`, membership changed —
+so its yardstick is Run 8's column and its delta is the first non-empty one
+this page has recorded since Run 6. What that buys is the membership
+experiment; what it gives up is the exact repetition the same regime with the
+same roster would have been, and with it the only clean measurement of
+run-to-run drift this page could have taken. That measurement is now owed by
+some later run.
 
 [floor]: #the-noise-floor-is-the-aa-controls-not-the-ci
 [lemire]: #lemire-multiplicative-inverses-at-the-two-division-sites
