@@ -65,7 +65,7 @@ against its own row's median.
 --aa prints both and --selftest asserts the identity for the uncapped pairs.
 The floor is a consequence of the correction as much as the margins are:
 subtracting a term common to both arms magnifies their disagreement too,
-which is what took it from ~2% to ~3%.
+which on Run 8 took it from 1.41% to 1.68%.
 
 Controls, not strategies: the `*-aa-*` rows (an existing strategy run twice
 under a second name, true ratio exactly 1, so their spread is the noise

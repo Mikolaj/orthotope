@@ -642,10 +642,17 @@ baseOffsetsOdo o0 osh (Strides oats)
 -- unboxes at plain -O1 iff it is a bare Int -- measured in one direction
 -- ('scanl''s Either-of-pair boxes 72 bytes per entry; index-only
 -- 'VU.generate' does not) but never in the constructive one, and under
--- -fspec-constr every state shape unboxes, so this arm is
--- indistinguishable from its control there. Every run since has borne the
--- prediction out, at the allocation multiple README's table carries: below
--- the scan's and above what a fully unboxed emit would give. The diag
+-- -fspec-constr every state shape unboxes, so this arm was predicted
+-- indistinguishable from its control there. Run 8 halves that: the
+-- ALLOCATION is indistinguishable, both arms landing at 1.33x, while the
+-- TIME is not -- this arm runs 1.11x its control on 24 shapes of 24, sign p
+-- 1.2e-07, and is the one pure arm the flag demotes in all nine
+-- populations. Cheaper and slower on every shape is the shape of a
+-- specialisation that fired and hurt; a Core diff of this arm between the
+-- two regimes is what would settle it (README.md's open list). At -O1 the
+-- prediction still stands, at the allocation multiple README's table
+-- carries: below the scan's and above what a fully unboxed emit would
+-- give. The diag
 -- verdict at -O1 is already in: 16 bytes per entry against the scan's 72 --
 -- the state boxing is gone, confirming the law's constructive half for the
 -- state, but one boxed Int per step survives in 'VU.unfoldrExactN''s emit
@@ -1159,8 +1166,9 @@ fbBQmutRunsMulback sh (T (Strides ats) ao v)
 -- strategy is its control, and the pair prices dropping the l < 2^32
 -- restriction: same table, same mul-back remainder, one extra shift per
 -- element, and no 'lemireFits' anywhere in the arm. Predicted within noise
--- of the control and is NOT: Run 7 (Harness) has it ~8% behind, past the
--- floor as on every run since the pair was written. Dropping the size bound
+-- of the control and is NOT: Run 8 (SpecConstr) has it ~9% behind at two
+-- wins of 24, past the floor as on every run since the pair was written and
+-- now in both regimes. Dropping the size bound
 -- costs real time on this build, so the bound is worth keeping where it
 -- holds.
 {-# NOINLINE fbBQmutRunsGmMulback #-}
@@ -1183,15 +1191,17 @@ fbBQmutRunsGmMulback sh (T (Strides ats) ao v)
 -- 'fbBQexpandLemireMulback' with the table built by 'baseOffsetsScan'
 -- instead of 'baseOffsetsExpand' -- one change, so that strategy is its
 -- control. The pure sweet spot it was built to be, conditional on
--- SpecConstr, which is the standing assumption: under -fspec-constr the
--- build is allocation-free (diag, table + ~500 bytes) and the strategy is
--- predicted at 1.33x allocation and the fastest pure time in the table,
--- ahead of the class-extension tier. That prediction is Run 8's to settle
--- and nothing here has tested it: at plain -O1 the builder's stream state
--- boxes per entry, this inherits bq-expand-class allocation instead
--- (the record of that regime is the comment at 'baseOffsetsScan'), and
--- Run 7 (Harness) leaves it mid-pack among the pure arms, behind
--- 'fbBQscanPackedMulback'.
+-- SpecConstr, which is the standing assumption. Run 8 settled that
+-- prediction and it came out a third right: under -fspec-constr the
+-- allocation is the predicted 1.33x exactly and the arm's absolute per-call
+-- time falls 31%, the largest gain of any arm in that run -- but it lands
+-- level with its own build control rather than ahead of it (1.0004 over 24
+-- shapes), so the builder does not beat the expansion it replaces, and the
+-- fastest pure time went to 'fbBQodoMulback' instead. At plain -O1 the
+-- builder's stream state boxes per entry and this inherits
+-- bq-expand-class allocation
+-- (the record of that regime is the comment at 'baseOffsetsScan'), leaving
+-- it mid-pack among the pure arms. Orderings, as ever, are README.md's.
 -- Tunings to 'baseOffsetsScan' move this strategy and 'fbOffTabScan'
 -- together -- deliberate coupling, the price of reusing the builder
 -- verbatim; the difference against the control stays the build alone.
@@ -1913,7 +1923,7 @@ mkScaled sh strides@(Strides ats) =
 -- 'cnn-slice-c32', and so on -- so they cost a proportional share of every
 -- run's wall clock for coverage already held. The freed time went to A/A
 -- controls, which calibrate every other figure and were the roster's scarce
--- resource (README.md#the-noise-floor-is-3-not-the-ci).
+-- resource (README.md#the-noise-floor-is-the-aa-controls-not-the-ci).
 --
 -- It DOES move the published geomean, which an earlier version of this
 -- comment denied: the eleven skew small, and the base-offsets build is a
@@ -2240,7 +2250,7 @@ roster =
     -- read neither way. The crossed twins below are what fixed that --
     -- three strategies each in both slots, the scan band priced by its
     -- own adjacent twin -- and the verdict they reached is at
-    -- README.md#the-noise-floor-is-3-not-the-ci.
+    -- README.md#the-noise-floor-is-the-aa-controls-not-the-ci.
   , ("bq-scan-mulback-aa-distant", Twin fbBQscanMulback)
     -- The other two distant twins, added with the time the halved shape set
     -- freed. With these the controls are CROSSED: three strategies
@@ -2301,7 +2311,8 @@ roster =
     -- allocating LESS. The runs since split that prediction: per-cell
     -- scatter does track 1/time, but it CANCELS, where the distant pairs
     -- carry span-ordered biases that do not
-    -- (README.md#the-noise-floor-is-3-not-the-ci). So keep this arm for the
+    -- (README.md#the-noise-floor-is-the-aa-controls-not-the-ci).
+    -- So keep this arm for the
     -- scatter it measures, and read the floor off the pairs that are
     -- biased, not the one that is merely noisy.
   , ("mut-odo-vecdims-aa",         Twin fbMutOdoVecdims)
