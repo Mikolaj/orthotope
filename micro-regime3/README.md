@@ -1768,11 +1768,13 @@ than impossible, and the arms are in the roster so every run reprices them.
   without. `diag` measures per-builder
   *allocation* only, so a claim like "the table build is a third of the cost"
   -- the natural reading of `bq-mut-runs` beating `bq-mut` by 39% -- cannot be
-  checked here, and neither can the question claim 4 turns on: the flag took
-  the scan build's allocation to the table and left the arm level with its
-  expansion control, which is either a build that got cheaper against an
-  output that got dearer or two effects that cancel, and nothing here
-  separates them. It needs a timing mode alongside `diag`'s allocation one,
+  checked here. Claim 4 no longer needs it — a Core diff identified what the
+  flag deletes from the scan builder and the ~4% it is worth accounts for
+  where the pair lands, the two arms sharing their output code exactly — but
+  the residue does: how much of each arm's own ~25% absolute gain is build
+  and how much output is still unmeasured, and the same question stands for
+  every other arm in the table. It needs a timing mode alongside `diag`'s
+  allocation one,
   using the fixed-iteration differencing the horde-ad performance model
   prescribes (`-n 200` minus `-n 100`, fresh processes) rather than criterion,
   since the builders are not benchmarks.
@@ -2137,13 +2139,26 @@ half-broke: `bq-expand-b` still ties (0.9963, 8 of 24) but `bq-expand-zf` is
 now 3.6% behind on 23 shapes of 24, sign p 3e-06 — a consistent loss where it
 was an inside-the-floor 1.6%.
 
-**Claim 4 is the one Run 8 was made for, and it half-answers.** Against
+**Claim 4 is the one Run 8 was made for, and it answers in full.** Against
 `bq-expand` the scan reads 0.9548, past this run's floor — but at 15 wins of
 24, sign p 0.31, and an interval covering 1. Against its own control, which
-is the comparison the claim is really about, it does not move at all:
+is the comparison the claim is really about, it lands exactly level:
 `bq-scan-mulback` differs from `bq-expand-lemire-mulback` in the table
 builder and nothing else, and reads **1.0004** at 15 of 24. So the flag did
-*not* make the scan build beat the expansion build. What it did do is
+*not* make the scan build beat the expansion build.
+
+**Why it lands there is now measured rather than inferred**, by the Core
+diff [the packed arm's entry](#what-the-next-runs-have-to-decide) describes:
+the flag deletes from the scan builder exactly the boxed `Either` of a boxed
+pair, and its per-step allocation, that the law at `baseOffsetsScanPacked`
+names. What that is worth is about 4% of the whole arm — the pair reads
+0.9946 published here against 1.034 at -O1, that second figure a division of
+published cells and so good to about a percent — and it started some 3%
+apart the other way, so it closes to level and stops. Nothing about the pair
+is
+left over: the builder's gain is identified, the arithmetic accounts for
+where it lands, and the reason it does not pass the expansion build is that
+the flag cheapens that build too. What it did do besides is
 everything around that: the family's allocation collapsed to the predicted
 1.33x, its absolute per-call time fell 31% — more than any arm ahead of it
 in the table — and `bq-scan-rem-gm-mulback`, the arm with no size precondition
@@ -3226,7 +3241,62 @@ What Run 8 adds is a reason to want it sooner: this arm's A/A pairs carry the
 largest deviation in seven of the eight class processes, `reshape1` alone
 excepted.
 
-**What Run 8 opens**, each with what would settle it:
+**One of Run 8's own is already answered**, by the Core diff its entry
+specified and on the same day — the rule about a discriminating measurement
+deserving a probe now, observed again:
+
+- **`bq-scan-packed-mulback` gets worse because SpecConstr gives its control,
+  for free, exactly what the packing was hand-rolled to buy — and the packing
+  keeps charging for it.** Dumped in both regimes from Run 8's commit
+  (2026-08-08, `-dsuppress-all -dsuppress-uniques`), the two arms' table
+  builds differ like this. At -O1 the control's loop carries its state as a
+  boxed `Either` of a boxed pair of a boxed `Int`, allocating a `Right` per
+  step — the 72-bytes-an-entry the law at `baseOffsetsScanPacked` records —
+  while the packed arm unwraps one `I#` and is otherwise unboxed, which is
+  the 21% lead it held there. Under `-fspec-constr` both loops specialise to
+  four raw arguments and *neither* boxes: the control's `Either`, pair, `I#`
+  and its per-step allocation all vanish, and the packed arm loses only its
+  one `I#` unwrap. What survives on one side and not the other is the
+  packing's own arithmetic — `uncheckedIShiftRA# … 32#` and `andI# …
+  4294967295#` on every element, against the control's two plain `+#` — so
+  the flag pays off the debt the packing existed to avoid and leaves the
+  packing's interest still due. Hence cheaper (1.33x on both) and slower
+  (1.11× on 24 shapes of 24).
+
+  Two consequences. The law at `baseOffsetsScanPacked` is confirmed in its
+  constructive half and its corollary refuted: every state shape does unbox
+  under the flag, but "indistinguishable from its control" does not follow,
+  because unboxing removes the control's cost and not the packed arm's. And
+  the packed representation is now known to be a **-O1-only** optimisation:
+  wherever SpecConstr runs it is strictly dominated by the plainer arm it was
+  built to beat, which is a thing to have settled before the flag question
+  below is answered rather than after.
+
+- **It does not generalise to the other hand-packed arms, and why not is the
+  useful half.** Three benchmarked pairs differ from their control in a
+  hand-managed compact representation and in nothing else, and the flag moves
+  all three differently. The -O1 column is a ratio of published columns, that
+  run's artifact being gone; Run 8's is paired, and the last two columns are
+  each arm's own absolute per-call move:
+
+  | arm / its control | hand-packed how | -O1 | Run 8 | arm | control |
+  |---|---|---:|---:|---:|---:|
+  | `bq-scan-packed-mulback` / `bq-scan-mulback` | loop state, two fields in one `Int` | 0.789 | **1.113** | 1.022 | 0.724 |
+  | `bq-expand32-lemire-mulback` / `bq-expand-lemire-mulback` | the `m`-length table at `Int32` | 0.983 | **0.949** | 0.729 | 0.756 |
+  | `offtab32` / `offtab` | the `l`-length table at `Int32` | 1.136 | **0.877** | 0.940 | 1.218 |
+
+  **Hand-packing survives the flag exactly when what it buys is something the
+  specialiser cannot buy.** The packed state buys unboxed loop state, which
+  is SpecConstr's own job, so the flag hands the control the same thing for
+  nothing and leaves the packing holding its shift and mask. The two `Int32`
+  tables buy heap footprint, which SpecConstr has no opinion about, and the
+  Core says so: their distinguishing operations — two `intToInt32#`, a
+  `writeInt32Array#`, no boxing — are identical in the two regimes, as are
+  their controls', so the `expand32` pair barely moves. The `offtab32` pair
+  moves furthest of the three and not for its packing at all: its arm
+  improves 6% while its *control* regresses 22%.
+
+**What Run 8 leaves open**, each with what would settle it:
 
 - **Should orthotope itself compile with `-fspec-constr`?** The flag is worth
   27% per call to `bq-expand` — the shipped fallback — on this replica, and
@@ -3240,24 +3310,14 @@ excepted.
   `convVjpBench` A/B over
   the pair, which is the same harness that priced the fallback fix — and it
   belongs in that repo's issue, not in a run here.
-- **Why does `bq-scan-packed-mulback` get worse?** Ten rows come out slower
-  under the flag and it is not the worst of them, but it is the only one that
-  loses its rank: eleven pure arms now sit ahead of it where none did at -O1.
-  Its published ratio rises in **all nine populations**
-  (main set 0.097 to 0.108, every class by between 1.7% and 25% of its Run 7
-  figure) — where the arms around it fall, and where the baseline moving 8%
-  would have to be argued past to call that flattery. One reading pins it
-  within Run 8 alone, owing nothing to the cross-run comparison: it is 1.11×
-  its own build control `bq-scan-mulback` on **24 shapes of 24**, sign p
-  1.2e-07, at identical 1.33x allocation — same output, same table size, one
-  builder apart. Cheaper
-  and slower on every shape is the shape of a specialisation that fired and
-  hurt, and it refutes in time what the law recorded at
-  `baseOffsetsScanPacked` predicted — that under this flag the arm would be
-  indistinguishable from that control, which it is in allocation and is not
-  in time. The measurement is a Core diff of that
-  one arm between the two regimes — the same instrument that settled
-  `build`/`mut-odo` twice — and it costs one build, not a run.
+- **What regresses `offtab` by 22%?** It is the largest absolute setback in
+  the run, it is what inverts the `offtab32` pair rather than anything about
+  `Int32`, and the Core offers no reason: the flag specialises its build loop
+  as it does every other, taking it from four arguments to three, and removes
+  no boxing because it had none. The arm is also among the run's noisiest
+  benches (`noise` 2.22, CI% 0.75), so the first measurement is whether it
+  reproduces at all — the pair filtered into a process of its own, one build
+  per regime, which costs minutes rather than a run.
 - **What is the `build`/`mut-odo` gap?** Their Core is identical in both
   regimes and their published ratio is 1.24× at -O1 and 0.86× under the flag,
   on 22 and 23 shapes of 24. Since the code is the same, the difference is

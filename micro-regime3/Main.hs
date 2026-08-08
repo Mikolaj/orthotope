@@ -643,16 +643,23 @@ baseOffsetsOdo o0 osh (Strides oats)
 -- ('scanl''s Either-of-pair boxes 72 bytes per entry; index-only
 -- 'VU.generate' does not) but never in the constructive one, and under
 -- -fspec-constr every state shape unboxes, so this arm was predicted
--- indistinguishable from its control there. Run 8 halves that: the
--- ALLOCATION is indistinguishable, both arms landing at 1.33x, while the
--- TIME is not -- this arm runs 1.11x its control on 24 shapes of 24, sign p
--- 1.2e-07, and is the one pure arm the flag demotes in all nine
--- populations. Cheaper and slower on every shape is the shape of a
--- specialisation that fired and hurt; a Core diff of this arm between the
--- two regimes is what would settle it (README.md's open list). At -O1 the
--- prediction still stands, at the allocation multiple README's table
--- carries: below the scan's and above what a fully unboxed emit would
--- give. The diag
+-- indistinguishable from its control there. Run 8 refuted the corollary and
+-- a Core diff in both regimes said why. The premise holds: under the flag
+-- both loops specialise to four raw arguments and neither boxes. What does
+-- not follow is indistinguishability, because the unboxing removes the
+-- CONTROL's cost and not this arm's -- at -O1 the control's loop carries a
+-- boxed Either of a boxed pair of a boxed Int and allocates a Right per
+-- step, all of which the flag deletes, while this arm loses only one 'I#'
+-- unwrap and goes on paying its shift and mask ('uncheckedIShiftRA#' 32,
+-- 'andI#' 0xffffffff) per element against the control's two plain adds. So
+-- the flag pays off the debt the packing exists to avoid and leaves the
+-- packing's interest due: identical 1.33x allocation, 1.11x the time on 24
+-- shapes of 24. THE PACKING IS A -O1-ONLY OPTIMIZATION -- wherever
+-- SpecConstr runs this arm is dominated by the plainer 'fbBQscanMulback' it
+-- was built to beat, and it should not be proposed for a build carrying the
+-- flag. At -O1 the prediction still stands, at the allocation multiple
+-- README's table carries: below the scan's and above what a fully unboxed
+-- emit would give. The diag
 -- verdict at -O1 is already in: 16 bytes per entry against the scan's 72 --
 -- the state boxing is gone, confirming the law's constructive half for the
 -- state, but one boxed Int per step survives in 'VU.unfoldrExactN''s emit
@@ -1326,10 +1333,15 @@ fbBQodoMulback sh (T (Strides ats) ao v)
                       (VU.unsafeIndex baseOffsets q + (i - q * s) * t)
 
 -- 'fbBQscanMulback' with the table built by 'baseOffsetsScanPacked' -- one
--- change, so that strategy is its control. The pair is only informative
--- at plain -O1 (see the builder's comment); under -fspec-constr the two
--- should be indistinguishable, and measuring that indistinguishability is
--- itself the control.
+-- change, so that strategy is its control. The pair was held to be
+-- informative only at plain -O1, its -fspec-constr reading expected to be a
+-- null and to serve as a control on the harness rather than as a result.
+-- Run 8 refuted that: 1.11x apart there on 24 shapes of 24 at identical
+-- allocation. A Core diff placed the fault in the inference and not in the
+-- harness -- the premise holds, both loops specialising and neither boxing,
+-- but unboxing deletes the CONTROL's Either-of-pair and leaves this arm's
+-- shift and mask standing. The builder's comment carries the mechanism and
+-- the -O1-only ruling that follows from it.
 {-# NOINLINE fbBQscanPackedMulback #-}
 fbBQscanPackedMulback :: ShapeL -> T -> VS.Vector Double
 fbBQscanPackedMulback sh (T (Strides ats) ao v)
@@ -1450,8 +1462,14 @@ fbOffTab sh (T (Strides ats) ao v) =
 -- and this halves both, taking the table's share of the allocation with
 -- them. 'fbOffTab' was the fastest strategy needing no class extension when
 -- this was written, so this asks whether narrowing moves it toward
--- 'fbMutOdo', whose lead over it is exactly that extra pass. It does not:
--- Run 7 (Harness) has the narrowing costing time rather than buying it.
+-- 'fbMutOdo', whose lead over it is exactly that extra pass. The answer is
+-- the regime's, not the narrowing's: at -O1 (Run 7) the narrowing costs time
+-- rather than buying it, and under -fspec-constr (Run 8) it buys 12% on 24
+-- shapes of 24 -- but the pair inverts because the CONTROL regresses 22% in
+-- absolute time there, the largest setback of that run and unexplained,
+-- while this arm improves 6%. The narrowing's own Core is regime-invariant,
+-- two 'intToInt32#' and a 'writeInt32Array#' in both, which is why it moves
+-- with what it is measured against rather than with the flag.
 -- Odometer arithmetic stays in Int; only the store narrows, so
 -- 'int32Fits' is the whole of its precondition -- it uses no multiply-high,
 -- and so needs nothing from 'lemireFits'.
