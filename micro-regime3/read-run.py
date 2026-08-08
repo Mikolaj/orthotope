@@ -1321,7 +1321,9 @@ def check_doc(readme, main_hs):
     script's own anchor scan: appending a bogus README anchor
     (`no-such-anchor`) here failed the run and named this file -- and so did
     this sentence's first draft, which spelled the anchor out in the very
-    form the scan reads.
+    form the scan reads. The yardstick check: deleting the older regime's
+    column from that table failed with the regime it still named, and
+    deleting the table's header failed with the other message.
     """
     try:
         doc = open(readme).read()
@@ -1444,6 +1446,29 @@ def check_doc(readme, main_hs):
               % len(foreign))
         for i, l in foreign:
             print('        %d: %s' % (i, l[:66]))
+
+    # The yardstick table keeps a column for the regime this run is NOT in,
+    # which reads like a leftover and is the opposite: it is the only place
+    # the previous run's basis survives once this chapter has replaced
+    # everything else of it, and a return to that regime would have nothing
+    # to read against. Prose asks for it to be kept; this makes the asking
+    # stick.
+    yard = [l for l in lines if l.startswith('| strategy |') and '(' in l]
+    if not yard:
+        bad.append('the yardstick table is gone: no `| strategy |` header'
+                   ' naming its runs, so no run has a basis to be read'
+                   ' against')
+    else:
+        regimes = set(re.findall(r'\(([^)]*)\)', yard[0]))
+        if len(regimes) < 2:
+            bad.append('the yardstick table names one regime (%s); the'
+                       " other regime's column is the only surviving record"
+                       ' of that run and is not to be pruned'
+                       % (', '.join(sorted(regimes)) or 'none'))
+        else:
+            print('ok:   the yardstick keeps a column per regime (%s)'
+                  % ', '.join(sorted(regimes)))
+
     for line in bad:
         print('FAIL: ' + line)
     return 1 if bad else 0

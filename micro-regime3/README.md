@@ -66,7 +66,12 @@ by 27% and the plain scan family by 31%, leaves `bq-mut-runs-mulback` where
 it was, and *slows* `mut-odo` by 19% ([the head of the run
 chapter](#about-the-last-run-run-8)). So what to ship is decided on Run 7's
 regime and what SpecConstr would buy on this one, and a figure quoted from
-either says which.
+either says which. **Whether orthotope should carry the flag is not this
+page's question** and is deliberately not on its open list: this is a replica
+of one function, where that decision is a library-wide one about compile time
+and code size, and the measurement that would settle it is horde-ad's
+`convVjpBench` over a real build. The 27% is what this page contributes to
+it.
 
 ## Contents
 
@@ -2034,11 +2039,9 @@ desktop — Zen 3, a Ryzen 7 5800X. The main process's stderr provenance line
 reads *roster 49
 benchmarks over 24 shapes; elapsed 1h41m19s; peak 365 MiB in use, 137 MiB max
 residency*, comfortably inside `micro.cabal`'s `-M2G`, which is why that note
-stands unchanged. This run's nine JSONs are, unusually, kept for now — the
-normal state of the directory is none, and Run 6's went as soon as its
-write-up was drafted, which cost the ability to re-check anything needing the
-raw samples when that write-up was later questioned. When they go, the commit
-is what remains of them.
+stands unchanged. The JSONs were kept through the write-up and the probes
+that followed it, which is what Run 6's deletion cost and this one did not,
+and are now gone: the commit is what remains of them.
 
 **The flag was confirmed in the binary before the hours were spent**, which
 nothing afterwards can: a `diag` in the run's own regime puts
@@ -2256,9 +2259,16 @@ reordering underneath it would suggest.
 **Run 9 is decided: `-fspec-constr`, with a different roster** — the 15
 strategies the two rulings under [what the benchmark
 does](#what-the-benchmark-does) leave timed. So its
-yardstick is the Run 8 column below, and the -O1 column beside it is kept for
-a later run rather than for this one. The two together are what a third
-regime, or a return to -O1, would read against. The five rows nearest the
+yardstick is the Run 8 column below.
+
+**The -O1 column beside it is deliberate and is not to be pruned**, however
+much it looks like a Run 7 leftover in a Run 8 chapter. It is the only place
+that run's basis survives — this chapter replaced everything else of Run 7's
+— so deleting it leaves any future return to -O1, which is the regime
+`Data/Array/Internal.hs` actually compiles under, with no yardstick at all
+and nothing to recover one from once the artifacts are gone. It goes when a
+-O1 run replaces it, not before, and `--check-doc` fails if the column
+disappears meanwhile. The five rows nearest the
 decisions, in both regimes, so neither comparison needs the other section:
 
 | strategy | Run 8 (SpecConstr) | Run 7 (Harness, -O1) |
@@ -3573,18 +3583,6 @@ now rather than a slot in the next run, observed again:
 
 **What Run 8 leaves open**, each with what would settle it:
 
-- **Should orthotope itself compile with `-fspec-constr`?** The flag is worth
-  27% per call to `bq-expand` — the shipped fallback — on this replica, and
-  8% to `list` beside it, so the question is no longer academic. What it is
-  *not* is evidence about
-  orthotope: this suite is a replica, its regime-3 fallback is one function
-  among fifty in one module, and a library-wide flag is a library-wide
-  decision with compile-time and code-size costs nothing here measures. The
-  discriminating measurement is one level up and cheap — build this
-  repository itself with and without the flag and run horde-ad's
-  `convVjpBench` A/B over
-  the pair, which is the same harness that priced the fallback fix — and it
-  belongs in that repo's issue, not in a run here.
 - **What does code placement cost?** **A rebuild is worth up to 18% on a
   susceptible arm and 0.5% on the baseline** — which is the size of every
   unexplained regression in Run 8, and the largest effect this page has
