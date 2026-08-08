@@ -1067,6 +1067,32 @@ fbBQexpandLemireMulback sh (T (Strides ats) ao v)
                 in  VS.unsafeIndex v
                       (VU.unsafeIndex baseOffsets q + (i - q * s) * t)
 
+-- 'fbBQexpandLemireMulback' with the quotient by the Granlund-Montgomery
+-- magic ('gmMagic') instead of the Lemire multiply-high -- one change, so
+-- that strategy is its control, and the pair prices dropping the l < 2^32
+-- bound on the SHIPPED build where 'fbBQmutRunsGmMulback' prices it on a
+-- mutable one. Added when the precondition ruling
+-- (README.md#what-the-benchmark-does) stopped timing every Lemire arm: the
+-- mul-back output was worth ~4% over plain 'quotRem' on this build at Run 8,
+-- and without this arm that idea would have left the timed set with no
+-- unconditional form to be measured in.
+{-# NOINLINE fbBQexpandGmMulback #-}
+fbBQexpandGmMulback :: ShapeL -> T -> VS.Vector Double
+fbBQexpandGmMulback sh (T (Strides ats) ao v)
+  | s == 1 = VS.generate l (VS.unsafeIndex v . VU.unsafeIndex baseOffsets)
+  | otherwise = VS.generate l get
+  where l = product sh
+        !s = last sh
+        !t = last ats
+        !gm = gmMagic s
+        !magic = fst gm
+        !gsh = snd gm
+        !baseOffsets = baseOffsetsExpand ao (init sh) (Strides (init ats))
+        get i = let !q = fromIntegral
+                           (mulhi magic (fromIntegral i) `shiftR` gsh)
+                in  VS.unsafeIndex v
+                      (VU.unsafeIndex baseOffsets q + (i - q * s) * t)
+
 -- 'fbBQexpandLemireMulback' with the base-offsets table narrowed to Int32
 -- ('baseOffsetsExpand32'); the reconversion on read is a sign-extending
 -- register move, free on x86-64. The pure candidate at reduced allocation:
@@ -1334,6 +1360,29 @@ fbBQodoMulback sh (T (Strides ats) ao v)
                 in  VS.unsafeIndex v
                       (VU.unsafeIndex baseOffsets q + (i - q * s) * t)
 
+-- 'fbBQodoMulback' with the Granlund-Montgomery quotient -- one change, so
+-- that strategy is its control. This is the only unconditional arm built on
+-- 'baseOffsetsOdo', and without it the odometer BUILD leaves the timed set
+-- altogether under the precondition ruling, taking Run 8's fastest pure arm
+-- (0.089) with it. Whether the build is worth its 4.67x-an-entry allocation
+-- once the output costs a shift more is what Run 9 measures.
+{-# NOINLINE fbBQodoGmMulback #-}
+fbBQodoGmMulback :: ShapeL -> T -> VS.Vector Double
+fbBQodoGmMulback sh (T (Strides ats) ao v)
+  | s == 1 = VS.generate l (VS.unsafeIndex v . VU.unsafeIndex baseOffsets)
+  | otherwise = VS.generate l get
+  where l = product sh
+        !s = last sh
+        !t = last ats
+        !gm = gmMagic s
+        !magic = fst gm
+        !gsh = snd gm
+        !baseOffsets = baseOffsetsOdo ao (init sh) (Strides (init ats))
+        get i = let !q = fromIntegral
+                           (mulhi magic (fromIntegral i) `shiftR` gsh)
+                in  VS.unsafeIndex v
+                      (VU.unsafeIndex baseOffsets q + (i - q * s) * t)
+
 -- 'fbBQscanMulback' with the table built by 'baseOffsetsScanPacked' -- one
 -- change, so that strategy is its control. The pair was held to be
 -- informative only at plain -O1, its -fspec-constr reading expected to be a
@@ -1539,6 +1588,23 @@ fbOffTabScan sh (T strides ao v) =
   where l = product sh
         !offs = baseOffsetsScan ao sh strides
 
+-- 'fbOffTabScan' with the table built by 'baseOffsetsScanRem' -- one change,
+-- so that strategy is its control, and the pair prices the divisibility
+-- cascade against the multiply-high at the BUILD site rather than the
+-- output one. Added with the precondition ruling
+-- (README.md#what-the-benchmark-does), which drops the control: its bound
+-- is the builder's 'lemireFits' and not an output division, so the
+-- Granlund-Montgomery substitution that rescues the other Lemire arms does
+-- nothing here and only the other builder does. Without this arm the pure
+-- l-length-table gather leaves the timed set, 'fbOffTab' being the same
+-- shape over a mutable Int scratch and so a tier away.
+{-# NOINLINE fbOffTabScanRem #-}
+fbOffTabScanRem :: ShapeL -> T -> VS.Vector Double
+fbOffTabScanRem sh (T strides ao v) =
+  VS.generate l (\i -> VS.unsafeIndex v (VU.unsafeIndex offs i))
+  where l = product sh
+        !offs = baseOffsetsScanRem ao sh strides
+
 -- Family 4: direct mutable result-buffer fills, which need a class extension
 -- or explicit mutation, and the class-methods-only 'fbConcatRuns' that closes
 -- the family needing neither.
@@ -1719,6 +1785,40 @@ fbMutFlat sh (T (Strides ats) ao v) = VS.create $ do
         !magic = assert (lemireFits l)
                  $ if s <= 1 then 0
                    else (maxBound `quot` fromIntegral s) + 1 :: Word
+        !baseOffsets = baseOffsetsMutRuns ao (init sh) (Strides (init ats))
+
+
+-- 'fbMutFlat' with the Granlund-Montgomery quotient -- one change, so that
+-- strategy is its control. It is the only unconditional FLAT fill: every
+-- other direct-buffer arm ('fbMutOdo', 'fbMutOdoVecdims', 'fbBuild') walks
+-- an odometer, so without this one the flat shape leaves the timed set under
+-- the precondition ruling, and it left Run 8 second overall at 0.074.
+{-# NOINLINE fbMutFlatGm #-}
+fbMutFlatGm :: ShapeL -> T -> VS.Vector Double
+fbMutFlatGm sh (T (Strides ats) ao v) = VS.create $ do
+  out <- VSM.unsafeNew l
+  let goCopy !i
+        | i >= l = return ()
+        | otherwise = do
+            VSM.unsafeWrite out i
+              (VS.unsafeIndex v (VU.unsafeIndex baseOffsets i))
+            goCopy (i + 1)
+      go !i
+        | i >= l = return ()
+        | otherwise = do
+            let !q = fromIntegral (mulhi magic (fromIntegral i) `shiftR` gsh)
+            VSM.unsafeWrite out i
+              (VS.unsafeIndex v
+                 (VU.unsafeIndex baseOffsets q + (i - q * s) * t))
+            go (i + 1)
+  if s == 1 then goCopy 0 else go 0
+  return out
+  where l = product sh
+        !s = last sh
+        !t = last ats
+        !gm = gmMagic s
+        !magic = fst gm
+        !gsh = snd gm
         !baseOffsets = baseOffsetsMutRuns ao (init sh) (Strides (init ats))
 
 -- The class-methods-only shape -- the only one expressible
@@ -2343,12 +2443,14 @@ roster =
   , ("bq-mut-runs",                Fill fbBQmutRuns)
   , ("bq-mut-runs-mulback",        Fill fbBQmutRunsMulback)
   , ("mut-flat",                   Fill fbMutFlat)
+  , ("mut-flat-gm",                Fill fbMutFlatGm)
   , ("bq-mut-runs-gm-mulback",     Fill fbBQmutRunsGmMulback)
   , ("bq-mut-lemire-out",          Fill fbBQmutLemireOut)
   , ("bq-mut-lemire-mulback",      Fill fbBQmutLemireMulback)
   , ("offtab",                     Fill fbOffTab)
   , ("offtab32",                   Fill fbOffTab32)
   , ("offtab-scan",                Fill fbOffTabScan)
+  , ("offtab-scan-rem",            Fill fbOffTabScanRem)
   , ("bq-unfold",                  Fill fbBQunfold)
   , ("bq-gen",                     Fill fbBQgen)
     -- The Lemire arms are placed to straddle their controls: this one
@@ -2359,6 +2461,7 @@ roster =
   , ("bq-gen-lemire",              Fill fbBQgenLemire)
   , ("bq-expand-lemire-out",       Fill fbBQexpandLemireOut)
   , ("bq-expand-lemire-mulback",   Fill fbBQexpandLemireMulback)
+  , ("bq-expand-gm-mulback",       Fill fbBQexpandGmMulback)
   , ("bq-expand32-lemire-mulback", Fill fbBQexpand32LemireMulback)
   , ("bq-scan-mulback",            Fill fbBQscanMulback)
   , ("bq-scan-rem-mulback",        Fill fbBQscanRemMulback)
@@ -2374,6 +2477,7 @@ roster =
     -- shipping question now turns on.
   , ("bq-scan-rem-gm-mulback-aa-adjacent", Twin fbBQscanRemGmMulback)
   , ("bq-odo-mulback",             Fill fbBQodoMulback)
+  , ("bq-odo-gm-mulback",          Fill fbBQodoGmMulback)
   , ("bq-scan-packed-mulback",     Fill fbBQscanPackedMulback)
   , ("bq-expand-qr-prim",          Fill fbBQexpandQRprim)
   , ("bq-expand",                  Fill fbBQexpand)

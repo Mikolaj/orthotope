@@ -937,15 +937,21 @@ also the order to read them in:
   `bq-expand-qr-prim`, `bq-expand-lemire-out`, `bq-expand-lemire-mulback`,
   `bq-expand32-lemire-mulback`, `bq-mut-lemire-out`, `bq-mut-lemire-mulback`,
   `bq-mut-runs-mulback`, `bq-mut-runs-gm-mulback`, `bq-scan-mulback`,
-  `bq-scan-rem-mulback`, `bq-scan-gm-mulback`, `bq-scan-rem-gm-mulback`
-  (the one pure composition with no size precondition anywhere),
-  `bq-odo-mulback` and `bq-scan-packed-mulback`.
+  `bq-scan-rem-mulback`, `bq-scan-gm-mulback`, `bq-scan-rem-gm-mulback`,
+  `bq-odo-mulback`, `bq-scan-packed-mulback`, and the two added when the
+  precondition ruling left their builds with no unconditional output form,
+  `bq-expand-gm-mulback` and `bq-odo-gm-mulback`. Three of those carry no
+  size precondition anywhere: the two new ones and `bq-scan-rem-gm-mulback`,
+  whose builder drops the bound as well as its output.
 - **Whole-offset and alternative gathers**, which build an `l`-length offset
   vector rather than an `m`-length one: `backperm`, `cm-gather`, `all-expand`,
-  `offtab`, `offtab32`, `offtab-scan`.
+  `offtab`, `offtab32`, `offtab-scan` and `offtab-scan-rem`, the last being
+  the unconditional twin of the one before it — its bound is the builder's,
+  which no output substitution reaches.
 - **Direct mutable result-buffer fills**, which need a class extension or
   explicit mutation and are the [ceiling](#the-mutable-ceiling-not-taken):
-  `mut-odo`, `mut-odo-vecdims`, `mut-offsets`, `build`, `mut-flat`. And
+  `mut-odo`, `mut-odo-vecdims`, `mut-offsets`, `build`, `mut-flat` and
+  `mut-flat-gm`, the unconditional twin of the last. And
   `concat-runs`, class-methods-only, checked but no longer timed (below).
 
 The order they are *run* in is deliberately a different one, fixed by `roster`
@@ -1039,6 +1045,37 @@ whose base is not measured is not a control:
   substitution loses its arm. Those readings stand as Run 8's and cannot be
   re-measured under this roster, which is the price of the rule and is
   recorded rather than worked around.
+
+**Every dropped arm was then checked for a surviving counterpart that differs
+only in not using the trick that costs the bound**, and the check turns on
+splitting the bound by where it arises, since a substitution at one site does
+nothing for the other. `baseOffsetsScan`, `baseOffsetsScanPacked` and
+`baseOffsetsGenLemire` carry a bound of their own, which is what the
+`(builder)` tag marks; `baseOffsetsExpand`, `baseOffsetsOdo`,
+`baseOffsetsScanRem` and `baseOffsetsMutRuns` carry none. Eleven of the
+fifteen dropped arms had a counterpart already timed — the mutable-scratch
+family through `bq-mut`, `bq-mut-runs` and `bq-mut-runs-gm-mulback`, the scan
+family through `bq-scan-rem-gm-mulback`, whose builder drops the bound the
+Granlund-Montgomery output cannot reach, and `bq-gen-lemire` through `bq-gen`,
+its Lemire being at the build site. Four had none and were written:
+`bq-expand-gm-mulback`, `bq-odo-gm-mulback`, `mut-flat-gm` and
+`offtab-scan-rem`, the last not a Granlund-Montgomery twin because its bound
+is its builder's. All four clear the allocation bar already, at 1.33x, 1.51x,
+2.00x and 2.35x — measured twice, on a quiet machine and a busy one, to the
+same digits, which is the property the bar was chosen for. What Run 9 still
+has to say about them is only whether they are fast.
+
+Two of the eleven are covered at the level of the idea rather than
+line-for-line, and say so here rather than being counted quietly.
+`bq-expand-lemire-out`'s counterpart is the mul-back output, Granlund-
+Montgomery having no `out` analogue that yields quotient and remainder
+together. And **the `Int32` narrowing cannot be rescued at all**: its bound is
+`int32Fits` on the source, which is what narrowing *means*, so `offtab32` and
+`bq-expand32-lemire-mulback` leave with no unconditional form possible. That
+is the ruling's sharpest cost, because the narrowing is the one hand-packing
+that survives the flag — 0.877 of its control for `offtab32` and 0.949 for the
+expansion pair, where the packed state is dominated. The ruling stands as
+taken; what it gives up is measured and recorded rather than assumed small.
 
 `--lint` and `--markdown` both need the change: the first asserts every
 defined `fb` function is rostered, which the not-timed mechanism satisfies,
