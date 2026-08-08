@@ -644,7 +644,8 @@ Validation on this branch:
 - This benchmark: every strategy agrees with `list` on every shape, the
   [stride classes](#the-stride-classes-and-what-they-cover) included, so the
   agreement covers negative, mixed-sign, zero and overlapping strides and not
-  only the positive ones the main set carries.
+  only the positive ones the main set carries — and in both regimes, `check`
+  having been re-run under `-fspec-constr` as well as at -O1.
 
 End-to-end confirmation in horde-ad's `bench/ConvVjpBench.hs` — wiring this
 branch's orthotope in and rebuilding ox-arrays + horde-ad — has been done and
@@ -716,7 +717,8 @@ exactly 1, which is what the A/A controls are built to supply — and this pair
 disagrees by far more than they do, 1.24× at -O1 and 0.86× under
 `-fspec-constr`, on 22 and 23 shapes of 24, where that run's six A/A twins
 span 1.7%. The sign reverses with the regime, so nothing about either arm
-explains it; what differs between the two names is where their code lands.
+explains it; what differs between the two names is where their code lands,
+and the flag moves 12 KiB of `.text` under them all.
 Read it as the A/A floor understating what code placement can do to two
 *separately compiled* arms, the twins measuring only what it does to two
 calls of one — and as a reason not to price any margin between distant rows
@@ -3225,12 +3227,14 @@ The probe's three side predictions came out one right and two not. `bq-gen`
 and `bq-gen-lemire` did collapse to the table in allocation, 3.58x and 2.95x
 to 1.33x each — and got *slower*, 0.279 to 0.339 and 0.377 to 0.479, 11%
 worse in absolute time for the first, which no reading of the `diag` had
-suggested. The expansion builders dropped without vanishing as predicted,
-`bq-expand`'s tier going 3.11x to 2.35x. And `bq-odo-mulback` was predicted
-not to follow the family up, on the ground that its three-`Int` constructor
-state survives where a bare `Int` does not; the builder's own allocation does
-survive, at 4.67x an entry in this regime, but the arm rose anyway — 19%
-faster per call, and it now leads the pure tier outright.
+suggested and which the Core does not account for either, `bq-gen` having
+joined the placement question below. The expansion builders dropped without
+vanishing as predicted, `bq-expand`'s tier going 3.11x to 2.35x. And
+`bq-odo-mulback` was predicted not to follow the family up, on the ground
+that its three-`Int` constructor state survives where a bare `Int` does not;
+the builder's own allocation does survive, at 4.67x an entry in this regime,
+but the arm rose anyway — 19% faster per call, and it now leads the pure
+tier outright.
 
 **Run 7's leftover is still open and Run 8 could not touch it**, exactly as
 its entry said: *what moved `mut-odo-vecdims` by the remaining ~13%?* The arm
@@ -3266,7 +3270,13 @@ deserving a probe now, observed again:
   Two consequences. The law at `baseOffsetsScanPacked` is confirmed in its
   constructive half and its corollary refuted: every state shape does unbox
   under the flag, but "indistinguishable from its control" does not follow,
-  because unboxing removes the control's cost and not the packed arm's. And
+  because unboxing removes the control's cost and not the packed arm's. The
+  `diag` behind all of this was re-measured in Run 8's own regime and every
+  figure quoted above reproduces, including the controls that say the
+  instrument did not move; what it adds is that `baseOffsetsScanPacked` goes
+  3.00x to 1.00x, so under the flag even the boxed `Int` in
+  `unfoldrExactN`'s emit pair — which the -O1 reading called out of reach of
+  any state shape — is gone. And
   the packed representation is now known to be a **-O1-only** optimisation:
   wherever SpecConstr runs it is strictly dominated by the plainer arm it was
   built to beat, which is a thing to have settled before the flag question
@@ -3310,22 +3320,27 @@ deserving a probe now, observed again:
   `convVjpBench` A/B over
   the pair, which is the same harness that priced the fallback fix — and it
   belongs in that repo's issue, not in a run here.
-- **What regresses `offtab` by 22%?** It is the largest absolute setback in
-  the run, it is what inverts the `offtab32` pair rather than anything about
-  `Int32`, and the Core offers no reason: the flag specialises its build loop
-  as it does every other, taking it from four arguments to three, and removes
-  no boxing because it had none. The arm is also among the run's noisiest
-  benches (`noise` 2.22, CI% 0.75), so the first measurement is whether it
-  reproduces at all — the pair filtered into a process of its own, one build
-  per regime, which costs minutes rather than a run.
-- **What is the `build`/`mut-odo` gap?** Their Core is identical in both
-  regimes and their published ratio is 1.24× at -O1 and 0.86× under the flag,
-  on 22 and 23 shapes of 24. Since the code is the same, the difference is
-  where it lands, and the pair is a sharper instrument for that than the six
-  A/A twins ([the floor][floor]). The measurement is the pair timed at
-  several roster positions in one process — padding arms inserted between
-  them, as the probe that failed to reproduce the -O1 gap already did once —
-  which prices code placement directly instead of inferring it.
+- **What does code placement cost, and is it what the flag's regressions
+  are?** Three strands now point one way and the Core has been read out of
+  all three, which is what makes this one question rather than three.
+  (i) `build` and `mut-odo` compile to the same worker in both regimes and
+  moved in **opposite** directions under the flag, 17% faster and 19%
+  slower; identical code cannot explain opposite moves. (ii) `offtab` (1.22)
+  and `bq-gen` (1.12), the run's other two large regressions, have no
+  codegen reason either — dumped in both regimes, each has its build loop
+  specialised as every other arm's is, four arguments to three, with nothing
+  added and no boxing to remove; `bq-gen`'s build even goes
+  allocation-free, 11.00x an entry to 1.00x, while the arm gets slower.
+  (iii) The flag moves 12 KiB of `.text` (20,349,125 bytes to 20,336,837),
+  so every arm's address and alignment shift whether or not its own code
+  changed. What is left is to price placement rather than infer it, and the
+  measurement is the same for all three: arms timed at several roster
+  positions in one process, padding inserted between them, as the probe that
+  failed to reproduce the -O1 `build`/`mut-odo` gap already did once. It
+  needs a quiet machine, which is why Run 8 could not do it after the fact.
+  `offtab` carries one extra caveat: it is among the run's noisiest benches
+  (`noise` 2.22, CI% 0.75), so for that arm the first question is whether
+  the regression reproduces at all.
 - **Is the term still unbiased?** Gate 3 passed but stopped bracketing 1:
   every `bq-expand` in-situ median in every one of the nine populations sits
   below it, 0.969 to 0.985

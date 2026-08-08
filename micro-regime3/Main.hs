@@ -663,7 +663,9 @@ baseOffsetsOdo o0 osh (Strides oats)
 -- verdict at -O1 is already in: 16 bytes per entry against the scan's 72 --
 -- the state boxing is gone, confirming the law's constructive half for the
 -- state, but one boxed Int per step survives in 'VU.unfoldrExactN''s emit
--- pair, which no state shape can reach. Preconditions of the
+-- pair, which no state shape can reach. The flag reaches it: the same diag
+-- under -fspec-constr puts this builder at 1.00x, so there the emit pair
+-- unboxes too and the packing has nothing left to buy. Preconditions of the
 -- packing, asserted: every offset within its field, non-negative and
 -- below 2^32, m at most 2^31 (the index field), on top of the mulhi
 -- test's own bound. The offset bounds take each dimension at its
