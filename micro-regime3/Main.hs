@@ -2259,9 +2259,9 @@ roster =
     --
     -- They are aimed where comparisons are close, which Failed Run 6
     -- showed is NOT the top of the table but two bands lower down. This
-    -- one duplicates 'bq-scan-mulback' from ~28 slots away, so it prices
-    -- the scan band -- which holds the shipping question,
-    -- 'bq-scan-mulback' against 'bq-scan-rem-gm-mulback' -- and
+    -- one duplicates 'bq-scan-rem-gm-mulback' from ~30 slots away, so it
+    -- prices the scan band -- which holds the shipping question, that arm
+    -- being the fastest pure one carrying no precondition -- and
     -- simultaneously spans the group, keeping position monitored rather
     -- than assumed now that SpecConstr changes code layout.
     --
@@ -2271,10 +2271,11 @@ roster =
     -- three strategies each in both slots, the scan band priced by its
     -- own adjacent twin -- and the verdict they reached is at
     -- README.md#the-noise-floor-is-the-aa-controls-not-the-ci.
-  , ("bq-scan-mulback-aa-distant", Twin fbBQscanMulback)
+  , ("bq-scan-rem-gm-mulback-aa-distant", Twin fbBQscanRemGmMulback)
     -- The other two distant twins, added with the time the halved shape set
     -- freed. With these the controls are CROSSED: three strategies
-    -- ('bq-expand', 'bq-scan-mulback', 'fbMutOdoVecdims') each duplicated
+    -- ('bq-expand', 'bq-scan-rem-gm-mulback', 'fbMutOdoVecdims') each
+    -- duplicated
     -- once here and once beside its base, so position varies within a
     -- strategy and strategy varies within a position -- which is what the
     -- slot above could not do, and what settled the position question.
@@ -2360,13 +2361,18 @@ roster =
   , ("bq-expand-lemire-mulback",   Fill fbBQexpandLemireMulback)
   , ("bq-expand32-lemire-mulback", Fill fbBQexpand32LemireMulback)
   , ("bq-scan-mulback",            Fill fbBQscanMulback)
-    -- The adjacent half of 'bq-scan-mulback''s pair, so this strategy has a
-    -- twin in both positions exactly as 'bq-expand' does; the two together
-    -- are what separate position from strategy.
-  , ("bq-scan-mulback-aa-adjacent", Twin fbBQscanMulback)
   , ("bq-scan-rem-mulback",        Fill fbBQscanRemMulback)
   , ("bq-scan-gm-mulback",         Fill fbBQscanGmMulback)
   , ("bq-scan-rem-gm-mulback",     Fill fbBQscanRemGmMulback)
+    -- The adjacent half of 'bq-scan-rem-gm-mulback''s pair, so that strategy
+    -- has a twin in both positions exactly as 'bq-expand' does; the two
+    -- together are what separate position from strategy. Both halves aimed
+    -- at 'bq-scan-mulback' until the precondition ruling stopped timing it
+    -- (README.md#what-the-benchmark-does): a control whose base is not
+    -- measured is not a control, so they were re-pointed at the fastest
+    -- surviving pure arm, which carries no precondition and is the one the
+    -- shipping question now turns on.
+  , ("bq-scan-rem-gm-mulback-aa-adjacent", Twin fbBQscanRemGmMulback)
   , ("bq-odo-mulback",             Fill fbBQodoMulback)
   , ("bq-scan-packed-mulback",     Fill fbBQscanPackedMulback)
   , ("bq-expand-qr-prim",          Fill fbBQexpandQRprim)

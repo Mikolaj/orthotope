@@ -952,7 +952,8 @@ The order they are *run* in is deliberately a different one, fixed by `roster`
 in `Main.hs`; the Results table below is sorted by time, a third. Sharing that
 roster with the strategies, and not strategies themselves, are ten controls:
 six A/A arms — `bq-expand-aa-adjacent` and `bq-expand-aa-distant`,
-`bq-scan-mulback-aa-adjacent` and `bq-scan-mulback-aa-distant`,
+`bq-scan-rem-gm-mulback-aa-adjacent` and
+`bq-scan-rem-gm-mulback-aa-distant`,
 `mut-odo-vecdims-aa` and `mut-odo-vecdims-aa-distant`, three strategies each
 duplicated in both positions — the `sum-only-early`/`sum-only-late` pair, and
 `bq-expand-nosum` and `mut-odo-vecdims-nosum`, each its base arm forced with
@@ -1023,10 +1024,12 @@ the fix is measured against.
 Several control relationships name an arm that is now untimed, and a control
 whose base is not measured is not a control:
 
-- the `bq-scan-mulback` A/A twins duplicate an arm the precondition rule
-  drops, so they must be re-pointed at a surviving arm —
-  `bq-scan-rem-gm-mulback` is the natural one, being the fastest pure arm
-  left and carrying no precondition;
+- the `bq-scan-mulback` A/A twins duplicated an arm the precondition rule
+  drops, and **have been re-pointed** at `bq-scan-rem-gm-mulback`, the
+  fastest pure arm left and the one carrying no precondition: the pair is now
+  `bq-scan-rem-gm-mulback-aa-adjacent`, moved to sit beside its new base, and
+  `bq-scan-rem-gm-mulback-aa-distant`, kept early so the span stays. Run 8's
+  tables name the old pair because that is what ran in them;
 - `bq-mut-runs-gm-mulback` survives while its stated control
   `bq-mut-runs-mulback` does not, so the pair that prices dropping the size
   bound no longer exists — which is the ruling doing its work, since that
