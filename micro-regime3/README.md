@@ -165,19 +165,19 @@ page-aliasing power-of-two stride, and a mid-range innermost extent — to
 probe the space beyond convolution. See `convShapes`/`stretchShapes`
 in `Main.hs` for the full list.
 
-**The conv set was halved after Run 6, and the eleven that went are not to
+**The conv set was halved after Run 6, and the shapes that went are not to
 come back one at a time.** A strategy sees a shape as its innermost extent
 `sInner`, its rank and its `l`, and nothing else — not which paper the dims
 came from — and each dropped shape duplicated a kept one on all three while
 costing a proportional share of every run. The freed wall clock went to A/A
 controls, which calibrate every other figure and were the roster's scarce
-resource. The ruling and the full reasoning sit at `convShapes` in `Main.hs`,
-beside the list, along with the two shapes that must survive any later cut
-for a reason unrelated to their workload: `gather48-src-50` and `conv1d-24`
-are the only conv shapes whose two innermost listed dims differ, and the
-first in run order to exercise `check`'s `sInner` assertion — several
-`stretch-*` shapes differ too, so the assertion survives without them; what
-would not is the conv set's own coverage of it.
+resource. The halving moved the published geomean and the ratios between
+strategies past the noise floor — a change of population and not of any
+strategy, which is why Run 7 was read against Run 6 restricted to the
+surviving shapes. The
+ruling, and the two shapes that must survive any later cut for a reason
+unrelated to their workload, sit at `convShapes` in `Main.hs`, beside the
+list.
 
 
 ### Dropping the minibatch dimension
@@ -290,11 +290,8 @@ Paired, which is what a margin measured per shape wants:
 **The unboxed table is 5.7% faster, roughly twice the floor**, its interval
 clears 1, and it wins on the worst shape by more than it wins on the geomean.
 Allocation is unmoved, so this is speed and not volume — the same bytes, held
-differently. The mechanism to suspect is pinning, Storable allocating pinned
-where unboxed does not and this table reaching megabytes on the largest
-shapes, which is the regime a GHC block-pool issue filed from horde-ad
-describes; that attribution is a guess with no measurement behind it, and the
-probe does not need it. The one shape it loses is `stretch-square-1341`, which
+differently, by a mechanism nothing here measured and the probe does not
+need. The one shape it loses is `stretch-square-1341`, which
 was the worst-measured shape of both runs and is this page's standing warning
 about reading a single cell.
 
@@ -322,14 +319,34 @@ Run 7 (Harness) is the first run to measure the converted suite, so the
 tables now say what the library actually does. On the shapes the two runs
 share, `bq-expand` moved by −6.3% against the probe's −5.7% — the prediction
 met at full budget — while the family did not move as one:
-`bq-scan-packed-mulback` came out 4% *slower*, spread evenly over the shapes.
-And `mut-odo-vecdims`, whose dimension vectors were Storable when its 0.051
-was taken (this page's calling them *unboxed* was wrong then and is right
-now), reads 0.056 on those same shapes — a shift past the floor that the
-probe never priced, having measured the `m`-table's flavour and not the
-dimension vectors'. Whether that is the flavour or the reshuffled roster is a
-twin probe's question, and it is on [the open
-list](#what-the-next-runs-have-to-decide).
+`bq-scan-packed-mulback` came out 4% *slower*, spread evenly over the shapes,
+and `mut-odo-vecdims`, whose dimension vectors were Storable when its 0.051
+was taken, read 0.056 on those same shapes — neither priced by a probe that
+had measured the `m`-table's flavour and not theirs.
+
+**Both were put to a twin probe, 2026-08-08 at -O1**, each twin differing
+from its base in that flavour alone and sitting in the slot beside it, ten
+arms over the whole shape set with `list` and both `sum-only` halves so the
+correction rode along. Paired, and restricted to the 22 shapes the two runs
+share, which is the basis the two moves above were stated on:
+
+| | the flavour's own effect |
+|---|---:|
+| `mut-odo-vecdims` / its Storable-dims twin | **0.9658** (0.9528..0.9793), 17 of 22 |
+| `bq-scan-packed-mulback` / its Storable-table twin | **1.0369** (1.0243..1.0520), 0 of 22 |
+
+**The packed scan's 4% is the flavour; the vecdims arm's is not.** Unboxing
+that table costs `bq-scan-packed-mulback` 3.7%, on every shape of the set and
+by a margin matching what the conversion was seen to cost it — the one arm
+the conversion hurt, and unexplained. The dimension vectors go the other way:
+unboxed is 3.4% *faster*, so the conversion was worth −3.4% to
+`mut-odo-vecdims` and removing the suspect deepens its move to about +13%.
+What is left is position and code layout, which only a full roster can
+separate. Allocation is identical within each pair, as two build-identical
+arms must be. The probe's own gates: the `sum-only` halves agreed at 0.9991
+and the term scaled 1.03× across the set, while its one in-situ arm read
+0.982; with no A/A pair in the process its floor is Run 7's, which both
+margins clear.
 
 
 ### One element type, and what the probe found
@@ -422,11 +439,11 @@ and nothing else.
 
 **At the per-element output site it wins**, by 6.0%.
 `bq-expand-lemire-out` is `bq-expand` with the shared `i quotRem sInner`
-replaced, the table build held at `baseOffsetsExpand`. It was the fastest pure
-strategy when written — others have passed it since — but
-the substitution itself still pays: faster than its control on 22 shapes of
-24, and the published columns agree with the per-shape geomean, so no part
-of it rests on the warm-up ramp. One exception is `stretch-square-1341`, the
+replaced, the table build held at `baseOffsetsExpand`. Other pure strategies
+have passed it since, and the substitution itself still pays: faster than its
+control on 22 shapes of 24, and the published columns agree with the
+per-shape geomean, so no part of it rests on the warm-up ramp. One exception
+is `stretch-square-1341`, the
 run's worst-measured shape — read it as the shape, not the strategy. The
 other is `stretch-pow2stride`, new to the set — and not the power-of-two
 `sInner`, which `stretch-inner256` shares while being this arm's best cell.
@@ -448,7 +465,7 @@ decomposition wants both, so the trick pays twice and collects once — where
 list to walk in step with `nts` and `sts`, adding a dereference and a pattern
 match per dimension to the very loop whose per-dimension work was the target.
 Rank 2 costs least because there is only one dimension to walk, though not
-nothing, as an earlier run had it.
+nothing.
 
 What separates the two sites is (i) and (ii): at the output the divisor is a
 loop invariant, so `M` is computed once for the whole fill with no list beside
@@ -466,10 +483,9 @@ asymmetry it looked like, the baseline carries two of its own. And **the first
 `fastQR` spent three multiplies where the algorithm needs two**, taking the
 quotient from `timesWord2# m n` and then recomputing the low half as a
 separate `timesWord# m n` when the one `timesWord2#` already yields both.
-Fixing that is what turned the output site from a 2% curiosity into the win it
-now measures, and it recovered part of the build site's loss too — enough to
-see,
-nowhere near enough to reverse it. Why the low half must not be recomputed is
+Fixing that is what turned the output site into the win it now measures, and
+it recovered part of the build site's loss too — enough to see, nowhere near
+enough to reverse it. Why the low half must not be recomputed is
 recorded as a comment on `fastQR`, so the loose form is not written again.
 
 **On shipping it.** `bq-expand-lemire-out` is pure, so the argument that kept
@@ -595,9 +611,9 @@ Validation on this branch:
 
 - orthotope's own test suite: **407/407 pass** (Dynamic/Ranked/Shaped ×
   boxed/storable/unboxed).
-- Non-vacuity: deliberately dropping the `r * tInner` term fails 63 cases,
-  among them `transpose_2/4/5/6`, `stride_1`, `rev_1/2` — so the pass is not
-  vacuous.
+- Non-vacuity: deliberately dropping the `r * tInner` term fails the suite at
+  `transpose_2/4/5/6`, `stride_1` and `rev_1/2` among others — so the pass is
+  not vacuous.
 - This benchmark: every strategy agrees with `list` on every shape, the
   [stride classes](#the-stride-classes-and-what-they-cover) included, so the
   agreement covers negative, mixed-sign, zero and overlapping strides and not
@@ -620,8 +636,8 @@ in the table. All allocate essentially just the result
 vector. `offtab` (0.110) does not go that far — its output is an ordinary
 `vGenerate` and only its `l`-sized `Int` offset table is filled mutably, so it
 needs no class method, just a mutable scratch — and Run 7 puts it 31% behind
-`mut-odo` for it, where Failed Run 6 had the two tied at 0.148. On these
-numbers it is no longer the cheap way to most of the gain.
+`mut-odo` for it, where Failed Run 6 had the two tied. On these numbers it is
+no longer the cheap way to most of the gain.
 
 The catch is the API: a buffer filled across runs cannot be expressed by
 the per-element `vGenerate`; it needs a new `Vector`-class method exposing
@@ -632,14 +648,25 @@ prototype of
     vBuild :: Int -> (forall s. (Int -> a -> ST s ()) -> ST s ()) -> v a
 
 — and Run 6 had it matching `mut-odo` on every shape, so **the class method
-was free there** (it inlines to the identical loop). Run 7 (Harness) breaks
-that identity: `build` reads 1.24× behind `mut-odo` paired, slower on 22
-shapes of 24 and up to 1.55× on `vgg-14-c512-k3`, on cells whose own CIs are
-hundredths of a percent — and neither arm's source changed between the two
-binaries. So the freeness is a property of a particular build, not of the
-signature, and wants confirming in Core before any `vBuild` ships; which of
-the two binaries is the odd one out is
-[an open question](#what-the-next-runs-have-to-decide). A pure-typed
+was free there** (it inlines to the identical loop). Run 7 (Harness) broke
+that identity, `build` reading 1.24× behind `mut-odo` paired and slower on 22
+shapes of 24, on cells whose own CIs are hundredths of a percent, with
+neither arm's source changed between the two binaries.
+
+**The Core says the identity holds and the gap was the measurement.** Dumped
+from Run 6's source and Run 7's against one pinned dependency set,
+`$wfbBuild` and `$wfbMutOdo` are the same worker in both binaries —
+byte-identical once GHC's numbering is normalised, with `vBuildVS` surviving
+as no top-level binding in either — and the two sources differ only by the
+`Strides` newtype's zero-cost cast, which falls in both arms alike, so
+neither binary is the odd one out. Nor is a dependency: `vector` and
+`criterion` have been the same versions across those runs. A probe then
+failed to reproduce the gap at all — in a binary relaid out by two inserted
+arms the pair reads 1.004 paired (0.976..1.032, 11 shapes of 22), 1.24×
+falling outside its whole per-shape range. So **the signature is free**, and
+no `vBuild` is to be held back on Run 7's figure; what produced that figure
+is unsettled, position and code placement both being live and `mut-odo` being
+the noisiest bench of the set. A pure-typed
 alternative (a
 strided-gather method taking the shape/stride/source and hiding the
 mutation inside each instance, as `vGenerate` already does) would keep the
@@ -654,13 +681,8 @@ now prices the option instead of closing it.
 `mut-odo-vecdims` keeps the stake high rather than settling it: the fill's
 real cost was the odometer's cons-list traffic, not the fill itself, and Run
 7 (Harness) prices the class-method tier at 2.35× over `bq-expand`. Against
-that,
-the best pure strategy reaches 0.097, so the gap the class method would buy
-is 1.80×, not 2.35× — the figure the ruling turns on, receding for the
-first time after growing run over run: the scratch conversion moved both
-ends, `bq-expand`
-faster on the unboxed table and `mut-odo-vecdims` slower than its
-Storable-dims 0.051.
+that, the best pure strategy reaches 0.097, so the gap the class method would
+buy is 1.80×, not 2.35× — which is the figure the ruling turns on.
 
 **Amended 2026-08-07: the bar is now a weight.** The tree itself carries a
 precedent this section did not weigh: `Data/Array/Internal/FastReshape.hs`,
@@ -884,9 +906,8 @@ tilt the group rather than cancel. The probes found nothing — its successor
 timed the same after it as after a benign predecessor, and of the three A/A
 pairs the one straddling it agreed best. What stays unprobed is the [roster
 effect][floor], worth ~18% in horde-ad's `ConvVjpBench` and persisting for a
-whole run rather than one bench: unretired rather than absent, since that case
-ran benchmarks of a different scale, which may be why it has not shown up here
-— a guess with no measurement behind it.
+whole run rather than one bench: unretired rather than absent, since that
+case ran benchmarks of a different scale.
 
 
 ### Running it
@@ -919,7 +940,11 @@ declining to publish a table over two populations.
 
 `cabal.project.freeze` pins the resolved plan — `vector`, `criterion`, `base`
 and the rest, with an index-state — so that a recorded run's source commit and
-its dependencies are both known. One pin is load-bearing rather than
+its dependencies are both known. It postdates the earliest runs recorded here
+and so cannot pin theirs; what covers those is a hand check that `vector` and
+`criterion` have been the same versions since Failed Run 6 inclusive, which is
+what lets a question about generated code be asked across those runs at all.
+One pin is load-bearing rather than
 housekeeping: `vector` is built `+boundschecks -unsafechecks`, which is what
 makes the `gen-quotrem`/`gen-unsafe` pair price a bounds check at all, since
 one uses `VS.!` and the other `VS.unsafeIndex`.
@@ -948,8 +973,7 @@ file. What follows is the procedure, and it is written to outlive any one
 run.
 
 **Where the effort actually goes, because it is not where it looks.** The
-run is several hours — about two for the main set and a couple more for
-the classes together — and *unattended*; it costs patience and a quiet
+run is several hours and *unattended*; it costs patience and a quiet
 machine, nothing else. Everything expensive happens after it, in the
 write-up, and that is where a session's token budget is spent and where its
 mistakes are made.
@@ -973,15 +997,29 @@ and `read-run.py`'s docstring instead, orthotope carrying no
 
     cd ~/r/orthotope/micro-regime3
 
-**Before spending the hours**, three cheap checks:
+**Before spending the hours**, three cheap checks — in the run's own
+`$REGIME`, since a regime change is a codegen change and agreement is what
+would notice one going wrong:
 
-    cabal build micro
-    cabal run micro -- check     # every strategy agrees, every shape regime 3
+    cabal build micro $REGIME
+    cabal run micro $REGIME -- check   # every strategy agrees, every shape regime 3
     ./read-run.py --lint         # the roster and the shape annotations
     ./read-run.py --check-doc    # anchors, coverage, widths, stale figures
 
-and one more, nearly free, because the three
-above exercise the *benchmark* while nothing exercises the *reader* until
+**Then confirm the regime is the one intended**, which nothing later can:
+
+    cabal run micro $REGIME -- diag
+
+and read one row of it — `baseOffsetsScan` against `baseOffsetsMut` on
+`vgg-14-c512`. They are equal under SpecConstr and ten times apart at plain
+-O1, a separation no eye misreads, and both ends of it are measured
+(2026-08-08), the flag being the only thing that moves them. This costs the
+seconds after a rebuild the flag forces anyway, and it is the only check
+standing between a mistyped regime and a run that refutes the design it was
+built to test.
+
+**And one more, nearly free**, because everything above exercises the
+*benchmark* while nothing exercises the *reader* until
 hours later — at `-L1`, since the smoke tests the reader's code paths, not
 its statistics:
 
@@ -1019,18 +1057,25 @@ selects a class by name prefix, the prefixes being disjoint by
 construction (`bcast-` does not match `bcastmid-*`); one process per
 population is the recorded protocol at `classBenches`, so no population's
 figures owe anything to another's leftover heap state and each JSON is
-single-population by construction. Any build flags go before the `--` of
-every command alike (e.g. `--ghc-options=-fspec-constr` for that regime):
+single-population by construction. **The regime is a variable of the script,
+not a flag to remember**: it goes before the `--` of every command alike, and
+it is set once at the top beside the run's name, so that copying the script
+carries the choice and leaving it empty is a deliberate act. A run made in
+the wrong regime is not detectably wrong — the roster, the shapes, the gates
+and the reader all pass, the JSON records no compiler flag, and the only
+symptom is the regime's own effect failing to appear, which reads as a
+refutation of the design rather than as a missing flag:
 
     R=RUN   # one name for the run's artifacts, e.g. run7
+    REGIME=--ghc-options=-fspec-constr   # Run 8's; empty for plain -O1
     git log -1 --format=%h && git status --porcelain  # the write-up's commit
     uptime                                # quiet, or note what was not
     {
       date -Is
-      cabal run micro -- --json $R-main.json > $R-main.log 2>&1
+      cabal run micro $REGIME -- --json $R-main.json > $R-main.log 2>&1
       echo "main exit=$? $(date -Is)"
       for c in rev revsome bcast bcastmid reshape1 slice window scaled; do
-        cabal run micro -- classes $c- --json $R-$c.json > $R-$c.log 2>&1
+        cabal run micro $REGIME -- classes $c- --json $R-$c.json > $R-$c.log 2>&1
         echo "$c exit=$? $(date -Is)"
       done
     } >> $R-wallclock.log 2>&1
@@ -1282,7 +1327,7 @@ Results table already in this file for the two columns a run cannot know —
 `needs` and `precondition` — and for which rows the prose emphasises, carries
 those forward, and says on stderr what it could not: a strategy new to the
 roster comes out with `?` to be written by hand, and one that has left it is
-dropped with a warning. The five arms added after Run 6 sat in exactly that
+dropped with a warning. The arms added after Run 6 sat in exactly that
 state until Run 7 timed them, which is what the mechanism is for.
 
 **No run artifacts are kept here.** The normal state of this directory is no
@@ -1398,8 +1443,8 @@ reads above the adjacent one — +4.0pp on `bq-expand` over 37 slots of
 separation, +1.7pp on `bq-scan-mulback` over 31, +1.3pp on `mut-odo-vecdims`
 over 7 — so the bias appears *inside* every strategy and grows with span:
 position, not a property of any arm, at roughly +0.05% to +0.18% per bench
-slot (the probe that preceded the run had read +0.12%). The distant twins
-sit early and their bases late, so the sign says the earlier slot is slower:
+slot. The distant twins sit early and their bases late, so the sign says the
+earlier slot is slower:
 **the group warms up**, which is the same effect the R2 section sees within a
 bench. `list` runs first, in the coldest slot, so every ratio divides by an
 inflated baseline and arms far down the roster are flattered — by up to ~4%,
@@ -1754,8 +1799,7 @@ How to read the columns:
   and allocation being deterministic per call the budget does not bear on it.
   What does survive is the column: a median over a *pinned* shape set
   reproduces, `list` landing at 27.67× and `unfold-add` at 29.89× on both the
-  rough pass and Run 6, where Failed Run 6's 35 shapes gave 27.67× and
-  29.90×. So read `alloc` as a
+  rough pass and Run 6. So read `alloc` as a
   statistic of a strategy **and** a shape set, and pin the shape set before
   comparing it across runs, exactly as the `time` column already asks. It is
   the one column the correction does not touch.
@@ -1936,10 +1980,9 @@ behaves differently there by construction.
 
 **Run 7's verdicts on Run 6's seven claims first**, since a run reports
 breaks rather than re-deriving the table. Claims 1 and 5 held whole, as did
-the second halves of 3 and 4 and the first half of 6, and claim 7 to the
-digit but for
-`bq-expand`'s 3.30x against the claimed 3.33x — the conversion's own
-allocation shift. What moved: the tie in 2 broke without SpecConstr's help,
+the second halves of 3 and 4 and the first half of 6, and claim 7 but for
+`bq-expand`'s allocation, which the scratch conversion shifted. What moved:
+the tie in 2 broke without SpecConstr's help,
 `bq-scan-packed-mulback`/`mut-odo` reading 1.096 on the shared shapes — but
 at 13 wins of 22 and a 0.61–3.26 per-shape spread that is a geomean shift
 with no per-shape ordering behind it. 3's first half collapsed into the
@@ -1961,9 +2004,9 @@ reading it rests on:
 2. `bq-expand` < `bq-mut` (1.089 the other way, 20 wins of 24) and `offtab`
    < `bq-expand` (0.869): after the conversion the pure `concatMap` build
    beats the mutable scratch table, while the `l`-table gather still beats
-   both. Run 6 had `bq-mut` ahead, outside the floor, and a bullet of this
-   page once said *ties*; the inversion is the conversion's doing rather
-   than a ranking wobble, at two wins of 22 on the shapes the runs share.
+   both. Run 6 had `bq-mut` ahead, outside the floor; the inversion is the
+   conversion's doing rather than a ranking wobble, at two wins of 22 on the
+   shapes the runs share.
 3. `bq-expand-lemire-out` < `bq-expand` (0.940, 22 of 24): the Lemire output
    substitution keeps paying ([the Lemire section][lemire] carries both
    division sites' story).
@@ -1988,8 +2031,10 @@ reading it rests on:
    intermediates over the `m`-element table), `gen-quotrem` 12.0x, `list`
    26.2x (thunks). Lower allocation tracks lower time across the table's
    span, though no longer pair by pair — `bq-expand` beats `bq-mut` at
-   2.3× its allocation. SpecConstr is
-   predicted to take the plain scan rows from 4.33x to 1.33x.
+   2.3× its allocation. SpecConstr is predicted to take the plain scan rows
+   from 4.33x to 1.33x, and, on the `diag` in its own regime, to move the
+   `bq-gen` pair and `bq-expand` with them ([the Run 8
+   question](#what-the-next-runs-have-to-decide)).
 8. Every pure strategy ahead of `fused` (0.256) runs its output through the
    single in-order `vGenerate`, and the `bq-*` arms behind `fused` —
    `bq-gen` and `bq-gen-lemire` — lose on their table build, not their
@@ -2077,7 +2122,8 @@ that keep it a population of its own, are
 First, one table over all of them, so that an inversion is visible without
 reading every class's table. Every figure in it is transcribed from a class's
 own table below — none is computed here, and none is an average across
-classes, there being no such population to average over:
+classes, there being no such population to average over. Its header, fixed
+here so a run fills rows and never reshapes columns:
 
     | class | shapes | bq-expand | worst | fastest pure | ceiling | floor |
 
@@ -2126,9 +2172,10 @@ parts in one call — table, controls, the provenance and anchor skeleton,
 and a three-shape population's per-shape line; the lead and the paragraph
 stay the author's, a skeleton writing no findings.
 
-The blocks carry no headings of their own. Eight more would crowd the contents
-and the replace list alike, where a bolded lead reads the same and lets one
-link cover the section — which is what `--check-doc`'s coverage check counts.
+The blocks carry no headings of their own. One per class would crowd the
+contents and the replace list alike, where a bolded lead reads the same and
+lets one link cover the section — which is what `--check-doc`'s coverage
+check counts.
 
 | class | shapes | bq-expand | worst | fastest pure | ceiling | floor |
 |---|---:|---:|---:|---|---|---:|
@@ -2892,12 +2939,11 @@ for `Run 7` — before trusting the list.
 - `read-run.py`'s docstring, whose `time`, `corr` and `net` definitions and
   A/A paragraph quote the run;
 - `micro.cabal`'s `-M2G` note, if the printed heap peaks have moved;
-- `Main.hs`, wherever a comment cites a figure — `roster`,
-  `baseOffsetsScan`, `baseOffsetsScanPacked`, `fbGenUnsafe`, `fbFused`,
-  `fbOffTab32`, `fbOffTabScan`, `fbBQscanMulback`, `fbBQscanRemGmMulback`,
-  `fbBQmutRunsGmMulback`, `fbMutOdoVecdims`. `concat-runs`' figure there is
-  Failed Run 6's and stays, the bench being untimed since, so no run
-  replaces it.
+- `Main.hs`, wherever a comment cites a figure — now `fbBQmutRunsGmMulback`'s
+  margin over its control and `fbBQscanMulback`'s prediction for Run 8, every
+  other comment having been rewritten to name an ordering and point here for
+  the number. The `diag` allocations at `baseOffsetsScan` and
+  `baseOffsetsScanPacked` move with the regime rather than with a run.
 
 **And what a run does not touch.** The converse of that list is worth stating,
 because a session told to make a run will reach for everything: a new
@@ -2935,34 +2981,58 @@ the ratios lifting instead.
 **Run 8 answers one**, and gives up cross-run margins to do it:
 
 - **Does SpecConstr invert the scan family?** `baseOffsetsScan` boxes its
-  stream state at -O1 and is predicted allocation-free at -O2, which would put
-  `bq-scan-mulback` at 1.33x allocation and the fastest pure time. That is
-  Run 8's whole point and nothing here has tested it.
+  stream state at -O1, and its allocation half is now measured **in Run 8's
+  own regime rather than at -O2**: a `diag` at `--ghc-options=-fspec-constr`,
+  2026-08-08, puts that builder and `baseOffsetsScanRem` at the table and
+  nothing else, 10.00x to 1.00x on `vgg-14-c512`. So the flag alone
+  dissolves the state and the premise holds; what Run 8 still has to settle
+  is the *time*, which no `diag` measures.
+
+  That probe carries three predictions past the one this question was
+  written for, so Run 8 is read against them too. `baseOffsetsGen` and
+  `baseOffsetsGenLemire` also collapse to the table (11.00x and 9.00x to
+  1.00x), so `bq-gen` and `bq-gen-lemire` should fall with the scan rows and
+  not only behind them. The expansion builders drop without vanishing
+  (8.82x to 5.49x, 36 spare bytes an entry), so `bq-expand`'s own tier
+  improves by about a third — a shipped-arm move nothing had predicted.
+  And `baseOffsetsOdo` keeps 29 bytes an entry (7.33x to 4.67x) where
+  `baseOffsetsScanPacked`, an `unfoldrExactN` like it, goes to 1.00x: the
+  un-refutation carries to a produced stream whose state is a bare `Int` and
+  not to one whose state is a three-`Int` constructor, so `bq-odo-mulback`
+  is predicted *not* to follow the family up. `baseOffsetsMut` and
+  `baseOffsetsMutRuns` sit at 1.00x in both regimes, which is the control
+  saying the diag itself did not move.
 
 Run 8 keeps the populations Run 7 pins, main set and classes alike, so each
 table is readable against its Run 7 counterpart, and the regime is
 never confounded with membership.
 
-**And three questions Run 7 raised that no scheduled run settles** — each a
-probe's, per the rule that a discriminating measurement deserves a filtered
-run now rather than a slot in the next full one:
+**The three questions Run 7 raised are answered**, each by the probe its own
+entry specified and none by a scheduled run — which is the rule about a
+discriminating measurement deserving a filtered run now, observed:
 
-- **What moved `mut-odo-vecdims` by +9.8%?** The dimension vectors' flavour
-  is the suspect the conversion supplies and the flavour probe never priced;
-  a twin differing in that flavour alone, in the adjacent slot, settles it
-  in minutes ([the scratch vector flavour](#the-scratch-vector-flavour)).
-- **Why is `build` no longer free?** Run 6 measured `vBuildVS` matching the
-  direct loop on every shape; Run 7's binary has it 1.24× behind on 22
-  shapes of 24, neither arm's source having changed. A Core diff of the two
-  arms in each binary says whether the inlining broke and which binary is
-  the odd one out ([the mutable ceiling](#the-mutable-ceiling-not-taken)) —
-  and a relink with the module order perturbed prices the layout account
-  first, swings of 1–10% from code placement alone being documented as
-  ordinary (Curtsinger and Berger's STABILIZER work), a prior this
-  question and the next one share.
-- **Is `bq-scan-packed-mulback`'s +4% real?** It moved against the
-  conversion's grain, uniformly across shapes — position, code layout or the
-  packed table's own flavour; the same twin-probe shape answers it.
+- `bq-scan-packed-mulback`'s +4% is **real, and is the packed table's
+  flavour**: unboxing it costs 3.7%, on every shape of the set
+  ([the scratch vector flavour](#the-scratch-vector-flavour)).
+- `mut-odo-vecdims`'s +9.8% is **not** its dimension vectors' flavour, which
+  runs the other way at −3.4% and so deepens the move to about +13% with the
+  suspect removed (same section).
+- `build` **is free**: its Core is `mut-odo`'s in Run 6's binary and Run 7's
+  alike, and the gap does not reproduce in a third
+  ([the mutable ceiling](#the-mutable-ceiling-not-taken)).
+
+**What the first two leave is one question, and it needs a full roster**, so
+it is the next run's rather than a probe's:
+
+- **What moved `mut-odo-vecdims` by the remaining ~13%?** Not its slot: Run
+  7's crossed controls price position at +0.05% to +0.18% a slot
+  ([the floor][floor]) and this arm moved three of them. The right size is
+  the roster *effect* and code placement — what shares the process and where
+  the code lands, rather than where in the order — which the flavour probe
+  moved together and by more than enough: its ten-bench process read 0.044
+  on this arm where the full roster published 0.054. Two full-roster runs
+  differing only in membership would separate them; no probe can, and Run 8
+  pins the roster, so nothing scheduled will.
 
 [floor]: #the-noise-floor-is-3-not-the-ci
 [lemire]: #lemire-multiplicative-inverses-at-the-two-division-sites
