@@ -23,7 +23,7 @@ module Main (main) where
 
 import           Control.DeepSeq              (NFData (..), force)
 import           Control.Exception            (assert, evaluate)
-import           Control.Monad                (foldM_)
+import           Control.Monad                (foldM_, unless, void)
 import           Control.Monad.ST             (ST)
 import           Criterion.Main
 import           Criterion.Types              (Config (regressions))
@@ -465,8 +465,9 @@ baseOffsetsExpand32 o0 osh (Strides oats) =
 -- and visible in Core as boxed joinrec state. Dissolving compound stream
 -- state is SpecConstr's job, and SpecConstr runs only at -O2; 'VU.generate'
 -- escapes at -O1 only because its state is a bare Int index, which
--- worker/wrapper alone unboxes. The same tax is what the fused (10.7x),
--- bq-unfold (10.2x) and unfold-add (29.9x) rows were already paying: at
+-- worker/wrapper alone unboxes. The same tax is what the fused (9.2x on
+-- Run 7's shapes), bq-unfold (8.3x) and unfold-add (27.9x) rows were
+-- already paying: at
 -- -O1, every stateful pure-typed builder boxes its state per step, and
 -- only index-only 'VU.generate' and explicit mutable fills do not. So the
 -- scan build allocates like 'baseOffsetsExpand' (a few percent apart on
@@ -508,10 +509,11 @@ baseOffsetsExpand32 o0 osh (Strides oats) =
 -- code, so that is the difference between a shipping candidate and a mere
 -- bound on what purity costs. When this was written 'fbOffTab' was the
 -- fastest strategy needing no new class method and the fastest pure strategy
--- was well behind it; Run 6 (-O1) reordered both ends -- the scan consumers'
+-- was well behind it; Run 6 (-O1) reordered both ends and Run 7 (Harness)
+-- swung one back -- the scan consumers'
 -- rows now carry "nothing (pure)" in README's @needs@ column,
--- 'fbBQscanMulback' runs ahead of 'fbOffTab', and 'fbOffTabScan' lost its
--- control, with the figures at its own comment -- so what this paragraph
+-- 'fbOffTab' runs ahead of 'fbBQscanMulback' again, and 'fbOffTabScan' lost
+-- its control, with the figures at its own comment -- so what this paragraph
 -- still carries is the tier argument, not any ordering.
 -- Figures stay in README.md, as everywhere else in this file.
 --
@@ -642,8 +644,8 @@ baseOffsetsOdo o0 osh (Strides oats)
 -- 'VU.generate' does not) but never in the constructive one, and under
 -- -fspec-constr every state shape unboxes, so this arm is
 -- indistinguishable from its control there. Failed Run 6 bore the prediction
--- out exactly and Run 6 (-O1) repeated it:
--- 2.00x allocation, against the scan's 4.34x and the 1.33x a fully
+-- out exactly and Run 6 (-O1) and Run 7 (Harness) repeated it:
+-- 2.00x allocation, against the scan's 4.33x and the 1.33x a fully
 -- unboxed emit would give. The diag verdict at -O1 is
 -- already in: 16 bytes per entry against the scan's 72 -- the state
 -- boxing is gone, confirming the law's constructive half for the state,
@@ -743,11 +745,12 @@ fbGenQuotRem sh (T (Strides ats) ao v) =
 --
 -- The third one-line variant of it -- those per-dimension divisions
 -- replaced by 'fastQR' -- is deliberately not written, and the numbers that
--- rule it out are 'fbBQgenLemire' losing 1.4x at the sibling site with the
+-- rule it out are, on Run 7 (Harness), 'fbBQgenLemire' losing 1.35x at the
+-- sibling site with the
 -- loss growing in rank (so the division was never the per-dimension cost),
--- the output site capping the prize at 7.4% against a 7.0x gap to close, and
--- this arm and 'fbGenQuotRem' allocating 13x the result against
--- 'fbBQexpand''s 3.9x (so dropping the table costs allocation rather than
+-- the output site capping the prize at 6.0% against a 7.9x gap to close, and
+-- this arm and 'fbGenQuotRem' allocating 12x the result against
+-- 'fbBQexpand''s 3.1x (so dropping the table costs allocation rather than
 -- buying it). Recorded here rather than in README because that is where the
 -- variant would be written.
 {-# NOINLINE fbGenUnsafe #-}
@@ -809,8 +812,10 @@ fbFused sh (T (Strides ats) ao v) = VS.unfoldrExactN l step (S3 ao 0 0)
           -- @next@ is forced: unbanged it is a thunk per step, which is
           -- precisely the "no per-step allocation" this strategy claims. The
           -- 'S3' boxes and 'unfoldrExactN''s emit pair remain, and at plain
-          -- -O1 those are what the 10.7x allocation is; the thunk had been
-          -- another 10x on top, which is why the pre-fix row read 20.7x.
+          -- -O1 those are what the row's allocation multiple is (9.2x on
+          -- Run 7's shapes); the thunk had been another 10x on top, which
+          -- is why the pre-fix row read 20.7x beside a then-10.7x fixed
+          -- one.
           let !x = VS.unsafeIndex v o
               !next
                 | j + 1 < s = S3 (o + t) (j + 1) q
@@ -886,8 +891,8 @@ fbBQunfold sh (T (Strides ats) ao v) = VS.generate l get
         !s = last sh
         !t = last ats
         m = l `div` max 1 s
-        rosh = reverse (init sh)
-        roats = reverse (init ats)
+        rosh = tail (reverse sh)
+        roats = tail (reverse ats)
         baseOffsets :: VU.Vector Int
         !baseOffsets = VU.unfoldrExactN m step (ao, replicate (length sh - 1) 0)
           where step (!o, is) = (o, adv o is rosh roats)
@@ -1157,9 +1162,9 @@ fbBQmutRunsMulback sh (T (Strides ats) ao v)
 -- strategy is its control, and the pair prices dropping the l < 2^32
 -- restriction: same table, same mul-back remainder, one extra shift per
 -- element, and no 'lemireFits' anywhere in the arm. Predicted within noise
--- of the control and is NOT: Run 6 (-O1) has it ~16% behind, against a
--- measured A/A floor of ~3% (Failed Run 6 read ~10% against ~2%, so the
--- verdict has held across both and widened).
+-- of the control and is NOT: Run 7 (Harness) has it ~8% behind (1.077
+-- paired, 3 wins of 24), the third run on which the verdict has held past
+-- the floor.
 -- Dropping the size bound costs real time on this build,
 -- so the bound is worth keeping where it holds.
 {-# NOINLINE fbBQmutRunsGmMulback #-}
@@ -1185,12 +1190,12 @@ fbBQmutRunsGmMulback sh (T (Strides ats) ao v)
 -- SpecConstr, which is the standing assumption: under -fspec-constr the
 -- build is allocation-free (diag, table + ~500 bytes) and the strategy is
 -- predicted at 1.33x allocation and the fastest pure time in the table,
--- ahead of the class-extension tier. That prediction is Run 7's to settle
+-- ahead of the class-extension tier. That prediction is Run 8's to settle
 -- and nothing here has tested it: at plain -O1 the builder's stream state
 -- boxes per entry, this inherits bq-expand-class allocation instead
 -- (the record of that regime is the comment at 'baseOffsetsScan'), and
--- Run 6 (-O1) puts it at 4.34x and 0.129, with three pure strategies ahead
--- of it -- 'fbBQscanPackedMulback' fastest of them at 0.097.
+-- Run 7 (Harness) puts it at 4.33x and 0.123, mid-pack among the pure
+-- arms -- 'fbBQscanPackedMulback' the fastest of them at 0.097.
 -- Tunings to 'baseOffsetsScan' move this strategy and 'fbOffTabScan'
 -- together -- deliberate coupling, the price of reusing the builder
 -- verbatim; the difference against the control stays the build alone.
@@ -1267,11 +1272,12 @@ fbBQscanGmMulback sh (T (Strides ats) ao v)
 -- The scan-rem build tests divisibility with plain 'quotRem', so it carries
 -- no magic and no bound; GM's quotient is exact for every non-negative Int,
 -- so it carries none either. Grep this arm for 'lemireFits' and there is
--- nothing to find. Run 6 (-O1): it still ties 'bq-scan-mulback', now at
--- 0.132 against 0.129 -- 1.9% apart, inside the ~3% floor, where Failed Run 6
--- had them equal to three digits at 0.160 -- and trails 'bq-scan-rem-mulback'
--- by 8%, where that read ~5%. So a shipped form CAN drop the size
--- dispatch entirely, at a price of under a tenth against the best scan
+-- nothing to find. Run 7 (Harness): it edges 'bq-scan-mulback', 0.119
+-- against 0.123 (0.961 paired, 19 wins of 24), and trails
+-- 'bq-scan-rem-mulback'
+-- by 2.8%. So a shipped form CAN drop the
+-- size
+-- dispatch entirely, at a price of a few percent against the best scan
 -- variant -- which is the trade to weigh on a machine whose arrays pass 2^32,
 -- where the dispatch stops being a formality.
 {-# NOINLINE fbBQscanRemGmMulback #-}
@@ -1443,8 +1449,10 @@ fbOffTab sh (T (Strides ats) ao v) =
 -- with them: 1.50x measured against 'fbOffTab''s 2.00x. 'fbOffTab' was the
 -- fastest strategy needing no class extension when this was written, so this
 -- asks whether narrowing moves it toward 'fbMutOdo', whose lead over it is
--- exactly that extra pass. Run 6 (-O1) says barely: 0.139 against 0.141,
--- inside the floor, while 'fbMutOdo' has pulled out to 0.107.
+-- exactly that extra pass. Run 6 (-O1) said barely, inside the floor;
+-- Run 7 (Harness) says the narrowing costs: 0.125
+-- against 0.110 (1.133 paired, 5 wins of 24), while 'fbMutOdo' sits at
+-- 0.084.
 -- Odometer arithmetic stays in Int; only the store narrows, so
 -- 'int32Fits' is the whole of its precondition -- it uses no multiply-high,
 -- and so needs nothing from 'lemireFits'.
@@ -1491,8 +1499,8 @@ fbOffTab32 sh (T (Strides ats) ao v) =
 -- division to guard.
 --
 -- The bet did not survive measurement: at 0.319 list against 'fbOffTab''s
--- 0.141 (Run 6 (-O1); a rough pass before it had read ~0.35x against
--- ~0.17x, so the verdict is twice measured), the builder's
+-- 0.110 (Run 7 (Harness); Run 6 and a rough pass before it gave the same
+-- verdict, so it is thrice measured), the builder's
 -- per-entry state boxing (see 'baseOffsetsScan') runs l times here and
 -- costs more than the arithmetic-free gather saves, and the allocation
 -- lands at 11x the result against the 2.0x the fused form promised. Two
@@ -1554,10 +1562,11 @@ fbMutOdo sh (T (Strides ats) ao v) = VS.create $ do
 -- vectors walked with a bare-Int level index -- one change, so 'mut-odo'
 -- is its control. It was written as a diagnostic and answered decisively:
 -- the direct fill's per-run cost WAS the cons-list traffic of the odometer
--- recursion, not the nested structure. Run 6 (-O1) puts it at 48% of its
--- control's time (0.051 against 0.107) and fastest of everything measured,
+-- recursion, not the nested structure. Run 7 (Harness) puts it at 64% of its
+-- control's time (0.054 against 0.084, 0.635 paired) and fastest of
+-- everything measured,
 -- which reopens the class-method tier the README had closed at ~1.4x and
--- now prices at 3.03x over 'bq-expand'.
+-- now prices at 2.35x over 'bq-expand'.
 -- 'writeRun' is kept character-identical to 'fbMutOdo''s so the build
 -- of each run cannot differ.
 {-# NOINLINE fbMutOdoVecdims #-}
@@ -1650,7 +1659,7 @@ fbBuild sh (T (Strides ats) ao v) = vBuildVS l $ \write ->
         in  dim 0 outPos
       go _        _          !outPos !baseOff =
         writeRun outPos baseOff >> return (outPos + sInner)
-  in  go (init sh) (init ats) 0 ao >> return ()
+  in  void (go (init sh) (init ats) 0 ao)
   where l = product sh
         !sInner = last sh
         !tInner = last ats
@@ -1924,9 +1933,9 @@ mkScaled sh strides@(Strides ats) =
 -- larger share of a small shape, so 'bq-expand' reads 6.5% lower over the
 -- surviving set and ratios between strategies shift by up to ~6% -- both
 -- past the noise floor. That is a change of population, not of any
--- strategy, and it is why README pins Run 6's figures restricted to these
--- shapes rather than leaving the published column as the thing to compare
--- against (README.md#results).
+-- strategy, and it is why Run 7 was read against Run 6 restricted to these
+-- shapes rather than against its published column
+-- (README.md#what-run-8-compares-against).
 --
 -- Two of the kept eleven are load-bearing beyond their workload and must
 -- not be dropped in a later cut. 'gather48-src-50' and 'conv1d-24' are the
@@ -2237,9 +2246,9 @@ roster =
     -- They are aimed where comparisons are close, which Failed Run 6 showed is
     -- NOT the top of the table (0.074/0.092/0.099 are 8-34% apart) but
     -- two bands lower down. This one duplicates 'bq-scan-mulback' from
-    -- ~28 slots away, so it prices the scan band -- which holds a tie,
-    -- 'bq-scan-mulback' against 'bq-scan-rem-gm-mulback', and that
-    -- tie is the shipping question -- and simultaneously spans the group,
+    -- ~28 slots away, so it prices the scan band -- which holds the
+    -- shipping question, 'bq-scan-mulback' against 'bq-scan-rem-gm-mulback'
+    -- -- and simultaneously spans the group,
     -- keeping position monitored rather than assumed now that SpecConstr
     -- changes code layout.
     --
@@ -2253,8 +2262,8 @@ roster =
     -- a position effect or a property of this arm, and nothing here can
     -- say which. The crossed twins below now supply exactly that -- three
     -- strategies each in both slots, the scan band priced by its own
-    -- adjacent twin -- and Run 7 runs them
-    -- (README.md#the-noise-floor-is-3-not-the-ci).
+    -- adjacent twin -- and Run 7 ran them: the bias follows the slot,
+    -- monotone in span (README.md#the-noise-floor-is-3-not-the-ci).
   , ("bq-scan-mulback-aa-distant", Twin fbBQscanMulback)
     -- The other two distant twins, added with the time the halved shape set
     -- freed. With these the controls are CROSSED: three strategies
@@ -2263,10 +2272,10 @@ roster =
     -- strategy and strategy varies within a position. Run 6 (-O1) could do
     -- neither -- its distant slot held a strategy its adjacent slot did not,
     -- so the +2.9% bias it found was a position effect or a property of that
-    -- one arm and nothing could say which. That is the question these two
-    -- arms exist to answer, and until they report, the answer is neither
-    -- verdict rather than the earlier "no position effect"
-    -- (README.md#the-noise-floor-is-3-not-the-ci).
+    -- one arm and nothing could say which. That was the question these two
+    -- arms existed to answer, and Run 7 answered it: the bias follows the
+    -- slot across all three strategies, at +0.05% to +0.18% per slot of
+    -- separation (README.md#the-noise-floor-is-3-not-the-ci).
   , ("bq-expand-aa-distant",       Twin fbBQexpand)
   , ("mut-odo-vecdims-aa-distant", Twin fbMutOdoVecdims)
     -- The early half of the 'sum-only' pair; the late half is the last
@@ -2281,9 +2290,9 @@ roster =
     -- agree the correction is sound; if they diverge, the term is not a
     -- constant and the correction must be dropped rather than applied.
     --
-    -- Run 6 (-O1): they agree, to 1.0001 paired and 0.21% per cell, with no
-    -- trend against shape size either, and the correction is now applied to
-    -- every published figure
+    -- Run 6 (-O1) licensed it -- 1.0001 paired, 0.21% per cell, no trend
+    -- against shape size -- and Run 7 (Harness) re-passed it at 0.9989 and
+    -- 0.23%; the correction is applied to every published figure
     -- (README.md#sum-only-and-the-correction-now-applied). Both halves
     -- stay in the roster, because this is a test every run must repeat:
     -- a run whose halves diverged would invalidate its whole time column,
@@ -2331,12 +2340,13 @@ roster =
     -- the floor at 2.0% duplicating a 0.099 arm against 0.14-1.2% on a
     -- 0.179 one -- and the noisier arm was the one allocating LESS, so
     -- the floor tracks 1/time rather than GC pressure. That predicted a
-    -- larger floor still here, and Run 6 (-O1) splits the prediction:
-    -- per-cell scatter does track 1/time (2.87% here against 0.24% on the
-    -- 0.155 arm), but it CANCELS, this pair's geomean landing at 0.9942
-    -- where the distant pair carries a +2.9% bias that does not. So keep
+    -- larger floor still here, and the runs since split the prediction:
+    -- per-cell scatter does track 1/time (1.13% here against 0.29% on the
+    -- 'bq-expand' pair, Run 7), but it CANCELS, this pair's geomean landing
+    -- at 0.9890 while the distant pairs carry span-ordered biases that do
+    -- not. So keep
     -- this arm for the scatter it measures, and read the floor off the
-    -- pair that is biased, not the one that is merely noisy.
+    -- pairs that are biased, not the one that is merely noisy.
   , ("mut-odo-vecdims-aa",         Twin fbMutOdoVecdims)
   , ("mut-offsets",                Fill fbMutBaseOffsets)
   , ("build",                      Fill fbBuild)
@@ -2536,8 +2546,8 @@ benchView name view =
     arm sh a (n, Base f)  = [bench n $ whnf (VS.sum . f sh) a]
     arm sh a (n, Fill f)  = [bench n $ whnf (VS.sum . f sh) a]
     arm sh a (n, Twin f)  = [bench n $ whnf (VS.sum . f sh) a]
-    arm sh a (n, Term)    = [env (evaluate (force (reference sh a))) $ \r ->
-                               bench n $ whnf VS.sum r]
+    arm sh a (n, Term)    = [env (evaluate (force (reference sh a))) $
+                               bench n . whnf VS.sum]
     arm sh a (n, Force f) = [bench n $ whnf (touchLast . f sh) a]
     arm _  _ (_, Only _)  = []
 
@@ -2616,13 +2626,12 @@ oneView name sh a@(T (Strides ats) ao v) conds = do
              ++ ", agree=" ++ show agree ++ ", builds=" ++ show builds
              ++ (if null failedConds then ""
                  else " FAILED " ++ unwords failedConds)
-  if agree && builds && reg == 3 && null failedConds
-    then return ()
-    else error ("CHECK FAILED: " ++ name
-                ++ (if null failedConds then ""
-                    else ", class conditions failed: "
-                         ++ unwords failedConds)
-                ++ (if null bad then "" else ", disagreeing: " ++ unwords bad))
+  unless (agree && builds && reg == 3 && null failedConds) $
+    error ("CHECK FAILED: " ++ name
+           ++ (if null failedConds then ""
+               else ", class conditions failed: "
+                    ++ unwords failedConds)
+           ++ (if null bad then "" else ", disagreeing: " ++ unwords bad))
 
 -- Correctness / non-vacuity, in its own mode (@cabal run micro -- check@) so
 -- it runs as a separate process from the timed benchmark: every shape must
@@ -2689,14 +2698,13 @@ check = do
                  ++ ", builds=" ++ show builds
                  ++ ", sInner=" ++ show sInnerView
                  ++ (if sInnerOK then "" else " MISMATCHED")
-      if agree && builds && reg == 3 && sInnerOK
-        then return ()
-        else error ("CHECK FAILED: " ++ name
-                    ++ (if sInnerOK then "" else ", sInner from the view is "
-                        ++ show sInnerView ++ " where the listing's"
-                        ++ " second-to-last dim is " ++ show sInnerListed)
-                    ++ (if null bad then ""
-                        else ", disagreeing: " ++ unwords bad))
+      unless (agree && builds && reg == 3 && sInnerOK) $
+        error ("CHECK FAILED: " ++ name
+               ++ (if sInnerOK then "" else ", sInner from the view is "
+                   ++ show sInnerView ++ " where the listing's"
+                   ++ " second-to-last dim is " ++ show sInnerListed)
+               ++ (if null bad then ""
+                   else ", disagreeing: " ++ unwords bad))
     -- The class conditions, one runner per stride class. Each names the
     -- structural properties its generator owes the class, computed from the
     -- view in hand and asserted by 'oneView' beside the shared regime,

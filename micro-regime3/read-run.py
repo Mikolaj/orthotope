@@ -117,13 +117,20 @@ Modes:
                     editorial columns carried over from the one there --
                     six columns instead for a stride-class run, and none
                     at all for a run spanning two populations
+  --fingerprint     the kept per-shape record (What Run N compares
+                    against): dims, `list`'s net per call, and the
+                    fingerprint arms' net ratios, as two README tables
+  --block           a stride-class block's mechanical parts in the form's
+                    order: table, controls, provenance/anchor skeleton,
+                    and a three-shape population's per-shape line
   --exclude S       drop strategy S from every aggregate (repeatable)
   --exclude-shape H drop shape H likewise (repeatable)
   --selftest        check this reader's invariants against the run given
   --lint            check Main.hs's roster against README and against
                     itself -- no run file needed
   --check-doc       anchors, replace-list coverage, widths, and a sweep of
-                    the superseded figures still quoted -- no run needed
+                    the superseded figures still quoted, in README prose
+                    and Main.hs comments alike -- no run needed
 
 No run artifacts are kept in this directory: the normal state is none, and
 one is made when a question needs it. That is also when this script runs, so
@@ -1013,6 +1020,113 @@ def cell_dump(cells, shapes, strategies):
                      'NA' if c['alloc'] is None else '%.4f' % c['alloc']))
 
 
+# The per-shape record README keeps between runs, in the two-table form
+# What Run N compares against pastes whole. Membership mirrors that
+# section's rule -- the shipped arm, the rows the Results table bolds,
+# and any arm an open question names; an arm leaves when its question
+# closes -- and the grouping keeps every emitted row inside README's
+# width. The short column heads are the stretch table's convention; the
+# README intro above the tables maps them back to full arm names.
+FINGERPRINT_TABLES = [
+    ('| shape | `sInner` | `l` | `list`, net | bq-expand | scan-packed |',
+     True, ['bq-expand', 'bq-scan-packed-mulback']),
+    ('| shape | scan-rem-gm | mut-runs-mulback | vecdims | mut-odo'
+     ' | build |',
+     False, ['bq-scan-rem-gm-mulback', 'bq-mut-runs-mulback',
+             'mut-odo-vecdims', 'mut-odo', 'build']),
+]
+
+
+def fmt_abs(seconds):
+    """A per-call time at reading precision, in README's units."""
+    for unit, scale in (('s', 1), ('ms', 1e-3), ('µs', 1e-6),
+                        ('ns', 1e-9)):
+        if seconds >= scale:
+            return '%.3g %s' % (seconds / scale, unit)
+    return '%.3g s' % seconds
+
+
+def fingerprint_table(cells, shapes, strategies, meta):
+    """The kept per-shape record: dims, `list`'s net per call (absolute,
+    so every ratio beside it converts back and the baseline is guarded at
+    every shape), and the fingerprint arms' net ratios. Shapes sorted by
+    l then name; an arm the run does not carry prints `--`.
+
+    Born checked: pointed at a run without `list` (--exclude list) it
+    refuses with exit 1, and its first emitted paste caught two Run 6
+    cells still standing in README's hand-carried table --
+    `alexnet-L1-55-c3-k11`'s scan-packed column and `stretch-bigstride`'s
+    shipped one -- which is why the intro above the tables says to
+    transcribe nothing by hand."""
+    if 'list' not in strategies:
+        sys.exit('--fingerprint needs the `list` baseline in the run')
+    dims = meta['dims']
+    ordered = sorted(shapes, key=lambda sh: (
+        dims[sh]['l'] if sh in dims else float('inf'), sh))
+    for i, (header, with_dims, arms) in enumerate(FINGERPRINT_TABLES):
+        if i:
+            print()
+        print(header)
+        print('|---' + '|---:' * (header.count('|') - 2) + '|')
+        for sh in ordered:
+            d = dims.get(sh)
+            base = cells[sh]['list']['net']
+            row = ['`%s`' % sh]
+            if with_dims:
+                row += [str(d['s_inner']), str(d['l'])] if d else ['?', '?']
+                row.append(fmt_abs(base))
+            for arm in arms:
+                c = cells[sh].get(arm)
+                row.append('%.3f' % (c['net'] / base) if c else '--')
+            print('| ' + ' | '.join(row) + ' |')
+
+
+def block_skeleton(cells, shapes, strategies, meta, args, terms):
+    """A stride-class block's mechanical parts in one place, in the form's
+    order (README.md#the-stride-classes-run-by-run): the six-column table,
+    the controls off the same computation `--aa` prints, the provenance
+    and anchor skeleton -- elapsed time and heap peaks left blank, to be
+    copied from the process's stderr line rather than guessed -- and, for
+    a three-shape population, the bolded rows' per-shape ratios in run
+    order, which is the order the block's lead lists its shapes in. The
+    judgement stays with the author: the lead and the class's paragraph
+    are deliberately not scaffolded, a skeleton writing no findings.
+
+    Born checked: pointed at the main set it refuses with exit 1 naming
+    the population, and its rev output matched the hand-written rev block
+    to the digit, the per-shape line and the anchor both."""
+    kind, label = population_of(shapes, meta['dims'])
+    if kind != 'class':
+        sys.exit('--block is for a stride-class run, and this run is %s'
+                 % label)
+    if 'list' not in strategies:
+        sys.exit('--block needs the `list` baseline in the run')
+    markdown_table(cells, shapes, strategies, meta, args, terms)
+    print()
+    aa_table(cells, shapes, strategies, terms, meta)
+    dims = meta['dims']
+    anchor = max(shapes, key=lambda sh: dims.get(sh, {}).get('l', 0))
+    print()
+    print('Provenance: elapsed ___, peak ___ MiB in use, ___ MiB max'
+          ' residency (copy')
+    print("from the process's stderr line); the reader reads %d benchmarks"
+          ' over %d' % (meta['benches'], meta['shapes']))
+    print('shapes of %s. Anchor: `%s`, `list` at' % (label, anchor))
+    print('%s per call raw, %s net.'
+          % (fmt_abs(cells[anchor]['list']['slope']),
+             fmt_abs(cells[anchor]['list']['net'])))
+    if len(shapes) > 2:
+        rows = readme_rows(args.readme, strategies)
+        bold = [st for st in strategies
+                if rows.get(st, ('', '', '', ''))[1] == 'bold']
+        print()
+        print("Per shape, in the lead's order (%s):" % ', '.join(shapes))
+        for st in bold:
+            print('  `%s` %s' % (st, '/'.join(
+                '%.3f' % (cells[sh][st]['net'] / cells[sh]['list']['net'])
+                for sh in shapes)))
+
+
 ARM_RE = re.compile(r'^\s*[\[,]\s*\("([^"]+)",\s*'
                     r'(Base|Fill|Twin|Term|Force|Only)(?:\s+(fb\w+))?\)')
 
@@ -1049,7 +1163,9 @@ FIGURE_RE = re.compile(r'\b0\.\d{3}\b|\d+\.\d+\s*[×x]\b'
 # superseded DECISION is kept, and the test is whether someone would redo the
 # work without it. That is a judgement, so these are listed for adjudication
 # rather than failed: the check exists because the rule fires while writing
-# and needs something that fires while reviewing.
+# and needs something that fires while reviewing. Main.hs comments are swept
+# too, since Run 7's write-up put its hard cases exactly there -- the one
+# file the sweep did not then read.
 COMPARATIVE_RE = [re.compile(p, re.I) for p in (
     r'where (?:Failed )?Run \d', r'where it (?:read|had|was)',
     r'\bwas \d+[\d.]*[%x×]?\b', r'had (?:read|been|put)',
@@ -1087,7 +1203,10 @@ def check_doc(readme, main_hs):
     nothing. The second of those took two attempts -- the first edited a
     string the list no longer contained, so the break itself did nothing and
     the check was credited with a pass it had not earned. Verify that a
-    deliberate break landed before believing what it proves. The ms sweep's
+    deliberate break landed before believing what it proves. The figure
+    sweep's Main.hs half: a planted `where Run 6 read 0.500` comment was
+    listed as Main.hs with its line, beside the README entries, and was
+    gone on revert. The ms sweep's
     break: `9.9 ms` appended to a prose, a table and an indented code line
     was listed for the prose line alone, the other two exempt as meant. The
     script's own anchor scan: appending a bogus README anchor
@@ -1186,9 +1305,16 @@ def check_doc(readme, main_hs):
     else:
         note.append('prose, comments and this script are inside their widths')
 
-    comparatives = [(i, l.strip()) for i, l in enumerate(lines, 1)
+    comparatives = [('%s:%d' % (os.path.basename(readme), i), l.strip())
+                    for i, l in enumerate(lines, 1)
                     if not l.lstrip().startswith('|')
                     and any(p.search(l) for p in COMPARATIVE_RE)]
+    comparatives += [('%s:%d' % (os.path.basename(main_hs), i),
+                      l.split('--', 1)[1].strip())
+                     for i, l in enumerate(main.split('\n'), 1)
+                     if '--' in l
+                     and any(p.search(l.split('--', 1)[1])
+                             for p in COMPARATIVE_RE)]
     foreign = [(i, l.strip()) for i, l in enumerate(lines, 1)
                if not l.lstrip().startswith('|')
                and not l.startswith('    ')
@@ -1201,10 +1327,11 @@ def check_doc(readme, main_hs):
               ' place by the redo test, so adjudicate rather than assume:'
               % len(comparatives))
         for i, l in comparatives:
-            print('        %d: %s' % (i, l[:66]))
+            print('        %s: %s' % (i, l[:60]))
     if foreign:
-        print('note: %d absolute ms figure(s) quoted; no run here replaces'
-              ' them, so check each against the repo it came from:'
+        print('note: %d absolute time figure(s) quoted in prose; a class'
+              " block's anchor is its run's, replaced with its block --"
+              ' check any other against the repo it came from:'
               % len(foreign))
         for i, l in foreign:
             print('        %d: %s' % (i, l[:66]))
@@ -1336,6 +1463,31 @@ def lint(main_hs, readme):
         print('ok:   every control is named as this reader\'s own control'
               ' test reads it, and %s alone is the reference' % bases[0])
 
+    # The fingerprint's membership has two sources -- FINGERPRINT_TABLES
+    # here, and README's rule that the Results table's bolded rows are in
+    # it -- so this holds them together: every bolded Results row is a
+    # fingerprint arm, and every fingerprint arm is rostered. The rule's
+    # open-question half (`mut-odo`, `build` today) cannot be read
+    # mechanically, so an extra fingerprint arm is fine; a bolded row left
+    # out is not.
+    #
+    # Non-vacuity: against a scratch README with `offtab`'s row bolded it
+    # fails naming offtab; against a scratch Main.hs whose roster drops
+    # ("build", ...) it fails naming build, beside the rostered check
+    # losing fbBuild.
+    fp_arms = {a for _, _, arms in FINGERPRINT_TABLES for a in arms}
+    bolded = [st for st, (_, style, _, _) in
+              readme_rows(readme, names).items() if style == 'bold']
+    off = ([b for b in bolded if b not in fp_arms]
+           + ['%s (not rostered)' % a for a in sorted(fp_arms)
+              if a not in names])
+    if off:
+        bad.append('fingerprint membership drifted: %s' % ', '.join(off))
+    else:
+        print('ok:   every bolded Results row is among the %d fingerprint'
+              ' arms (%d bolded), and every fingerprint arm is rostered'
+              % (len(fp_arms), len(bolded)))
+
     # The l annotations, statically: each entry's leading trailing-comment
     # number must equal what its list's rule computes, so a mistyped shape
     # or annotation is caught at edit time -- the oracle used to be
@@ -1370,8 +1522,13 @@ def lint(main_hs, readme):
     try:
         ptext = open(probe).read()
     except OSError:
-        note.append('no Probe.hs beside Main.hs, so its shape copies are'
-                    ' unchecked')
+        # Printed directly, as lint's notes are. This branch appended to a
+        # list no code defined -- a NameError from its birth -- until a
+        # scratch --main run first reached it during Run 7's write-up: the
+        # one lint branch the real directory can never fire, and the
+        # silent-search rule caught up with it.
+        print('note: no Probe.hs beside Main.hs, so its shape copies are'
+              ' unchecked')
     else:
         entry = re.compile(r'^\s*[\[,] \("([^"]+)",\s*(\[[^\]]*\])\)', re.M)
         block = ptext[ptext.index('probeShapes ='):] if 'probeShapes =' \
@@ -1621,6 +1778,8 @@ def main():
     p.add_argument('--pair', nargs=2, action='append', default=[],
                    metavar=('A', 'B'))
     p.add_argument('--markdown', action='store_true')
+    p.add_argument('--fingerprint', action='store_true')
+    p.add_argument('--block', action='store_true')
     p.add_argument('--selftest', action='store_true')
     p.add_argument('--lint', action='store_true')
     p.add_argument('--check-doc', action='store_true')
@@ -1683,6 +1842,10 @@ def main():
         cell_dump(cells, shapes, strategies)
     elif args.markdown:
         markdown_table(cells, shapes, strategies, meta, args, terms)
+    elif args.fingerprint:
+        fingerprint_table(cells, shapes, strategies, meta)
+    elif args.block:
+        block_skeleton(cells, shapes, strategies, meta, args, terms)
     else:
         strategy_table(cells, shapes, strategies, meta, args, terms)
 
