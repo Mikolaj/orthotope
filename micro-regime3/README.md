@@ -789,6 +789,19 @@ precedent for writing such a module, not for shipping one. A mutable or
 class-method strategy is now priced against that weight rather than refused
 at the door.
 
+**And now weighed in code, 2026-08-08: the four FastReshape arms.** They
+port the precedent's loop arithmetic onto `mut-odo-vecdims` one axis at a
+time, a 2×2 plus one over that shared control: `mut-odo-vecdims-add-in`,
+the input offset stepped additively in place of the loop's one multiply;
+`mut-odo-vecdims-add-out`, the output position through a precomputed
+stride table in place of the threaded return — the axis that can lose;
+`mut-odo-vecdims-add-both`, the corner, doubling as the endpoint contrast
+that still reads if the solo margins sit inside the floor; and
+`mut-odo-vecdims-add-both-down`, both loops in the count-down-to-zero
+form, over the corner as its control. What Run 9 says about them prices
+the precedent's arithmetic axis by axis — and any close pair among them is
+to be read workers-first, per the `build` lesson above.
+
 
 ### The C-gap: still a deeper ceiling
 
@@ -996,8 +1009,9 @@ it costs no information the run needs, and it is one of the changes preceding
 the current, quieter run, though nothing separates its contribution from the
 others'.
 
-**Two rulings taken 2026-08-08 cut the timed roster from 38 strategies to 15,
-and they are the roster Run 9 measures.** Both are about what is worth
+**Two rulings taken 2026-08-08 cut the timed roster from 38 strategies to 15;
+those 15, plus the four FastReshape arms added after the cut ([the mutable
+ceiling](#the-mutable-ceiling-not-taken)), are the roster Run 9 measures.** Both are about what is worth
 spending a bench on, not about what is worth keeping: every dropped strategy
 stays in `Main.hs` and stays in the roster as `concat-runs` is — checked
 against the reference on every shape of every class, and not timed — so the
@@ -2258,7 +2272,8 @@ reordering underneath it would suggest.
 
 **Run 9 is decided: `-fspec-constr`, with a different roster** — the 15
 strategies the two rulings under [what the benchmark
-does](#what-the-benchmark-does) leave timed. So its
+does](#what-the-benchmark-does) leave timed, plus the four FastReshape
+arms ([the mutable ceiling](#the-mutable-ceiling-not-taken)). So its
 yardstick is the Run 8 column below.
 
 **The -O1 column beside it is deliberate and is not to be pruned**, however

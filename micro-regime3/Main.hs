@@ -1683,6 +1683,188 @@ fbMutOdoVecdims sh (T (Strides ats) ao v) = VS.create $ do
         !oshV  = VU.fromList (init sh)
         !oatsV = VU.fromList (init ats)
 
+-- The four FastReshape arms. The tree's own precedent for this family,
+-- Data/Array/Internal/FastReshape.hs
+-- (README.md#the-mutable-ceiling-not-taken, the amendment), differs from
+-- 'fbMutOdoVecdims' -- once its cons-list odometer is put aside as the
+-- representation 'mut-odo' already prices -- in loop arithmetic alone:
+-- offsets stepped additively where this family multiplies or threads,
+-- and loops counted down to zero. These arms port that difference one
+-- axis at a time over the shared control: input axis, output axis, both
+-- (the corner, doubling as the endpoint contrast -- read directly
+-- against 'mut-odo-vecdims', not summed from marginals, which is the
+-- reading that still stands if the solo margins sit inside the floor),
+-- and the loop form on top of the corner. Margins in this band are
+-- close, so before pricing any pair here, ask the question 'build'
+-- taught (same README section): whether the two workers differ in Core
+-- at all -- a pair with identical workers is a placement instrument, not
+-- a measurement.
+--
+-- The bangs follow FastReshape's discipline -- every loop-carried
+-- variable banged, per-level reads rebound through banged locals, bangs
+-- kept where they look unneeded -- except its one structural habit: its
+-- loops take the base case as a separate equation wildcarding the
+-- accumulators (@recLoop 0 _ _ = return ()@), which leaves the loop
+-- formally lazy in them, the bangs binding only the taken branch. All
+-- four arms keep the family's single-equation guard form instead, banged
+-- on every path.
+
+-- 'fbMutOdoVecdims' with the input offset stepped additively -- @boff@
+-- carried down and advanced by @st@ where the control computes
+-- @baseOff + i * st@, the counter staying for the bound alone -- one
+-- change, so that arm is its control. The axis FastReshape's @recLoop@
+-- takes (@ioffs + is@); what it drops is the loop's one multiply.
+{-# NOINLINE fbMutOdoVecdimsAddIn #-}
+fbMutOdoVecdimsAddIn :: ShapeL -> T -> VS.Vector Double
+fbMutOdoVecdimsAddIn sh (T (Strides ats) ao v) = VS.create $ do
+  out <- VSM.unsafeNew l
+  let writeRun !outPos !baseOff =
+        let inner !j !src
+              | j >= sInner = return ()
+              | otherwise   = do
+                  VSM.unsafeWrite out (outPos + j) (VS.unsafeIndex v src)
+                  inner (j + 1) (src + tInner)
+        in  inner 0 baseOff
+      go !lev !outPos !baseOff
+        | lev >= rOuter = writeRun outPos baseOff >> return (outPos + sInner)
+        | otherwise =
+            let !n  = VU.unsafeIndex oshV lev
+                !st = VU.unsafeIndex oatsV lev
+                dim !i !op !boff
+                  | i >= n    = return op
+                  | otherwise = go (lev + 1) op boff
+                                >>= \op' -> dim (i + 1) op' (boff + st)
+            in  dim 0 outPos baseOff
+  _ <- go 0 0 ao
+  return out
+  where l = product sh
+        !sInner = last sh
+        !tInner = last ats
+        !rOuter = length sh - 1
+        oshV, oatsV :: VU.Vector Int
+        !oshV  = VU.fromList (init sh)
+        !oatsV = VU.fromList (init ats)
+
+-- 'fbMutOdoVecdims' with the output position stepped additively through
+-- a precomputed outer output-strides table, the recursion returning unit
+-- where the control returns the next position through the bind -- one
+-- change, so that arm is its control. The axis FastReshape carries with
+-- its precomputed @ost@ (@ooffs + os@). It can lose: the table costs one
+-- more 'VU.unsafeIndex' per level entry, priced against a returned Int.
+{-# NOINLINE fbMutOdoVecdimsAddOut #-}
+fbMutOdoVecdimsAddOut :: ShapeL -> T -> VS.Vector Double
+fbMutOdoVecdimsAddOut sh (T (Strides ats) ao v) = VS.create $ do
+  out <- VSM.unsafeNew l
+  let writeRun !outPos !baseOff =
+        let inner !j !src
+              | j >= sInner = return ()
+              | otherwise   = do
+                  VSM.unsafeWrite out (outPos + j) (VS.unsafeIndex v src)
+                  inner (j + 1) (src + tInner)
+        in  inner 0 baseOff
+      go !lev !outPos !baseOff
+        | lev >= rOuter = writeRun outPos baseOff
+        | otherwise =
+            let !n  = VU.unsafeIndex oshV lev
+                !st = VU.unsafeIndex oatsV lev
+                !os = VU.unsafeIndex oostV lev
+                dim !i !op
+                  | i >= n    = return ()
+                  | otherwise = go (lev + 1) op (baseOff + i * st)
+                                >> dim (i + 1) (op + os)
+            in  dim 0 outPos
+  go 0 0 ao
+  return out
+  where l = product sh
+        !sInner = last sh
+        !tInner = last ats
+        !rOuter = length sh - 1
+        oshV, oatsV, oostV :: VU.Vector Int
+        !oshV  = VU.fromList (init sh)
+        !oatsV = VU.fromList (init ats)
+        !oostV = VU.fromList (init (drop 1 (getStridesT sh)))
+
+-- Both axes at once, so the 2x2 over the shared control closes: this arm
+-- moving by more than the two solo arms combined is the interaction,
+-- measured. Against 'mut-odo-vecdims' it is also the endpoint contrast
+-- -- the whole of FastReshape's offset arithmetic in one reading.
+{-# NOINLINE fbMutOdoVecdimsAddBoth #-}
+fbMutOdoVecdimsAddBoth :: ShapeL -> T -> VS.Vector Double
+fbMutOdoVecdimsAddBoth sh (T (Strides ats) ao v) = VS.create $ do
+  out <- VSM.unsafeNew l
+  let writeRun !outPos !baseOff =
+        let inner !j !src
+              | j >= sInner = return ()
+              | otherwise   = do
+                  VSM.unsafeWrite out (outPos + j) (VS.unsafeIndex v src)
+                  inner (j + 1) (src + tInner)
+        in  inner 0 baseOff
+      go !lev !outPos !baseOff
+        | lev >= rOuter = writeRun outPos baseOff
+        | otherwise =
+            let !n  = VU.unsafeIndex oshV lev
+                !st = VU.unsafeIndex oatsV lev
+                !os = VU.unsafeIndex oostV lev
+                dim !i !op !boff
+                  | i >= n    = return ()
+                  | otherwise = go (lev + 1) op boff
+                                >> dim (i + 1) (op + os) (boff + st)
+            in  dim 0 outPos baseOff
+  go 0 0 ao
+  return out
+  where l = product sh
+        !sInner = last sh
+        !tInner = last ats
+        !rOuter = length sh - 1
+        oshV, oatsV, oostV :: VU.Vector Int
+        !oshV  = VU.fromList (init sh)
+        !oatsV = VU.fromList (init ats)
+        !oostV = VU.fromList (init (drop 1 (getStridesT sh)))
+
+-- 'fbMutOdoVecdimsAddBoth' with FastReshape's count-down-to-zero loop
+-- form -- one change, the form, applied at both loops, so that arm is
+-- its control. The counters compare against 0 rather than a
+-- register-held bound, which 'add-both' freed them for, its counters
+-- being bounds and nothing else. The run loop cannot compute
+-- @outPos + j@ from a falling counter, so the write position becomes a
+-- carried cursor, and this is the one arm of the four whose run loop is
+-- deliberately NOT character-identical to the family's 'writeRun': the
+-- form under test lives in that loop, and the shared build would keep it
+-- untested. The interface is unchanged, so the calls to it stay
+-- identical.
+{-# NOINLINE fbMutOdoVecdimsAddBothDown #-}
+fbMutOdoVecdimsAddBothDown :: ShapeL -> T -> VS.Vector Double
+fbMutOdoVecdimsAddBothDown sh (T (Strides ats) ao v) = VS.create $ do
+  out <- VSM.unsafeNew l
+  let writeRun !outPos !baseOff =
+        let inner !d !src !o
+              | d <= 0    = return ()
+              | otherwise = do
+                  VSM.unsafeWrite out o (VS.unsafeIndex v src)
+                  inner (d - 1) (src + tInner) (o + 1)
+        in  inner sInner baseOff outPos
+      go !lev !outPos !baseOff
+        | lev >= rOuter = writeRun outPos baseOff
+        | otherwise =
+            let !n  = VU.unsafeIndex oshV lev
+                !st = VU.unsafeIndex oatsV lev
+                !os = VU.unsafeIndex oostV lev
+                dim !k !op !boff
+                  | k <= 0    = return ()
+                  | otherwise = go (lev + 1) op boff
+                                >> dim (k - 1) (op + os) (boff + st)
+            in  dim n outPos baseOff
+  go 0 0 ao
+  return out
+  where l = product sh
+        !sInner = last sh
+        !tInner = last ats
+        !rOuter = length sh - 1
+        oshV, oatsV, oostV :: VU.Vector Int
+        !oshV  = VU.fromList (init sh)
+        !oatsV = VU.fromList (init ats)
+        !oostV = VU.fromList (init (drop 1 (getStridesT sh)))
+
 -- 'fbMutOdo' but iterating the precomputed run base-offsets list, to
 -- price what that list (a factor @sInner@ smaller than @l@) costs the
 -- odometer-free variant against its control.
@@ -2437,6 +2619,14 @@ roster =
     -- scatter it measures, and read the floor off the pairs that are
     -- biased, not the one that is merely noisy.
   , ("mut-odo-vecdims-aa",         Twin fbMutOdoVecdims)
+    -- The FastReshape decomposition, four arms after their shared control
+    -- above (README.md#the-mutable-ceiling-not-taken): solo input axis,
+    -- solo output axis, the corner, the loop form on the corner. A block
+    -- after the control's own pair, so no existing control moves.
+  , ("mut-odo-vecdims-add-in",     Fill fbMutOdoVecdimsAddIn)
+  , ("mut-odo-vecdims-add-out",    Fill fbMutOdoVecdimsAddOut)
+  , ("mut-odo-vecdims-add-both",   Fill fbMutOdoVecdimsAddBoth)
+  , ("mut-odo-vecdims-add-both-down", Fill fbMutOdoVecdimsAddBothDown)
   , ("mut-offsets",                Fill fbMutBaseOffsets)
   , ("build",                      Fill fbBuild)
   , ("bq-mut",                     Fill fbBQmut)
