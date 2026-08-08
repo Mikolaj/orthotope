@@ -114,7 +114,7 @@ Modes:
                     bootstrap interval, win count and sign test
   --cells           every cell as TSV, for anything not covered above
   --markdown        README's Results table, numbers recomputed and the
-                    editorial columns carried over from the one there --
+                    editorial column carried over from the one there --
                     six columns instead for a stride-class run, and none
                     at all for a run spanning two populations
   --fingerprint     the kept per-shape record (What Run N compares
@@ -181,6 +181,7 @@ import re
 import signal
 import statistics as stats
 import sys
+import textwrap
 
 TOL = 1e-9
 
@@ -658,17 +659,23 @@ def strategy_table(cells, shapes, strategies, meta, args, terms):
 
 
 def readme_rows(readme, strategies):
-    """README's Results table, keyed by strategy: (label, style, needs, pre).
+    """README's Results table, keyed by strategy: (label, style, needs).
 
-    Only the two rightmost columns and the emphasis are read. Those are
-    editorial -- which tier a strategy needs, what it assumes, which rows the
-    prose calls out -- and no run can produce them, so --markdown carries them
-    forward instead of asking for them again. Everything numeric is recomputed.
+    Only the rightmost column and the emphasis are read. Those are editorial
+    -- which tier a strategy needs, which rows the prose calls out -- and no
+    run can produce them, so --markdown carries them forward instead of asking
+    for them again. Everything numeric is recomputed.
+
+    A `precondition` column sat beside `needs` until the precondition ruling
+    (README.md#what-the-benchmark-does) stopped timing every strategy that had
+    one, leaving every surviving row's cell empty; what it recorded is now at
+    those strategies' roster entries in Main.hs.
 
     Rows are matched by stripping emphasis and the `(baseline)` suffix, and
     only names the run actually carries are taken, so the other markdown
     tables on the page cannot be mistaken for this one however their column
-    count lands.
+    count lands -- which the name filter now does alone, the cross-class
+    summary being seven columns wide too since the eighth went.
     """
     out = {}
     try:
@@ -679,17 +686,14 @@ def readme_rows(readme, strategies):
         if not line.lstrip().startswith('|'):
             continue
         cell = [c.strip() for c in line.strip().strip('|').split('|')]
-        # 7 columns is the table before `worst` existed, 8 with it; the two
-        # editorial cells are the last two either way, so a run emitting the
-        # wider table still carries them forward from the narrower one.
-        if len(cell) not in (7, 8):
+        if len(cell) != 7:
             continue
         bare = re.sub(r'[*`]', '', cell[0]).replace('(baseline)', '').strip()
         if bare not in strategies:
             continue
         style = ('bold' if cell[0].startswith('**')
                  else 'italic' if cell[0].startswith('*') else 'plain')
-        out[bare] = (cell[0], style, cell[-2], cell[-1])
+        out[bare] = (cell[0], style, cell[-1])
     return out
 
 
@@ -803,18 +807,16 @@ def markdown_table(cells, shapes, strategies, meta, args, terms):
     renders, so the two cannot disagree; what a run cannot know is carried
     over from the table already in README. Anything it could not carry is
     named on stderr rather than silently emitted blank -- a new strategy needs
-    its `needs` and `precondition` written by hand, and a strategy that has
-    left the roster needs deleting from the prose around the table, which no
-    generator can do.
+    its `needs` written by hand, and a strategy that has left the roster needs
+    deleting from the prose around the table, which no generator can do.
 
     A stride-class run gets the same table SIX columns wide instead: `needs`
-    and `precondition` are properties of a strategy, not of a population, so
-    they are stated once in the main table and a class table points at it.
-    That also keeps the carry-forward anchored -- `readme_rows` matches a
-    table by its width and its strategy names, and a class table repeating
-    those two columns would match it too, leaving every population's table
-    competing to be the one a later run copies from. A mixed run gets no
-    table at all.
+    is a property of a strategy, not of a population, so it is stated once in
+    the main table and a class table points at it. That also keeps the
+    carry-forward anchored -- `readme_rows` matches a table by its width and
+    its strategy names, and a class table repeating that column would match it
+    too, leaving every population's table competing to be the one a later run
+    copies from. A mixed run gets no table at all.
     """
     rows, have_list = strategy_rows(cells, shapes, strategies)
     kind, label = population_of(shapes, meta['dims'])
@@ -824,25 +826,24 @@ def markdown_table(cells, shapes, strategies, meta, args, terms):
                          ' population\'s -- see\n'
                          '  README.md#making-a-major-benchmark-run\n' % label)
         sys.exit(1)
-    # A class table drops the two editorial columns but keeps the emphasis:
+    # A class table drops the editorial column but keeps the emphasis:
     # which row shipped and which leads is what a reader looks for first,
     # and it is the same row in every population's table.
     editorial = kind != 'class'
     prev = readme_rows(args.readme, set(strategies))
     fresh, gone = [], [n for n in prev if n not in strategies]
     print('| strategy | time | worst | CI% | smp | alloc'
-          + (' | needs | precondition |' if editorial else ' |'))
-    print('|---|---:|---:|---:|---:|---:' + ('|---|---|' if editorial
-                                             else '|'))
+          + (' | needs |' if editorial else ' |'))
+    print('|---|---:|---:|---:|---:|---:' + ('|---|' if editorial else '|'))
     for time, st, ci, noise, smp, alloc, worst in rows:
         if st in prev:
-            label_, style, needs, pre = prev[st]
+            label_, style, needs = prev[st]
         else:
             if editorial:
                 fresh.append(st)
             label_ = st
             style = 'italic' if is_control(st) else 'plain'
-            needs, pre = '?', '?'
+            needs = '?'
         num = ['--' if time != time else '%.3f' % time,
                '--' if worst != worst else '%.3f' % worst, '%.2f' % ci,
                '%.0f' % smp, '--' if alloc is None else '%.2fx' % alloc]
@@ -852,18 +853,18 @@ def markdown_table(cells, shapes, strategies, meta, args, terms):
         elif style == 'bold':
             label_ = label_ if label_.startswith('**') else '**%s**' % label_
             num[0] = '**%s**' % num[0]
-        tail = ' | '.join((needs, pre)) + ' |' if editorial else ''
+        tail = needs + ' |' if editorial else ''
         print('| %s | %s |%s' % (label_, ' | '.join(num),
                                  ' ' + tail if tail else ''))
     if not editorial:
-        sys.stderr.write('ok: six columns, for %s: needs and precondition'
-                         ' are the main table\'s, being properties of a'
-                         ' strategy and not of a population\n' % label)
+        sys.stderr.write('ok: six columns, for %s: needs is the main'
+                         " table's, being a property of a strategy and not"
+                         ' of a population\n' % label)
     if not have_list:
         sys.stderr.write('warning: no `list` bench, so every time reads --\n')
     if fresh:
         sys.stderr.write('warning: %d row(s) new since the table in %s, with'
-                         ' needs/precondition left as `?` for you to write:'
+                         ' needs left as `?` for you to write:'
                          ' %s\n' % (len(fresh), os.path.basename(args.readme),
                                     ', '.join(fresh)))
     if gone and editorial:
@@ -871,8 +872,8 @@ def markdown_table(cells, shapes, strategies, meta, args, terms):
                          ' this run and have been dropped; check the prose'
                          ' still holds: %s\n' % (len(gone), ', '.join(gone)))
     if editorial and not fresh and not gone:
-        sys.stderr.write('ok: needs/precondition carried forward for all %d'
-                         ' rows, none added, none dropped\n' % len(rows))
+        sys.stderr.write('ok: needs carried forward for all %d rows, none'
+                         ' added, none dropped\n' % len(rows))
 
 
 def shape_table(cells, shapes, strategies, meta):
@@ -1227,7 +1228,7 @@ def block_skeleton(cells, shapes, strategies, meta, args, terms):
     if len(shapes) > 2:
         rows = readme_rows(args.readme, strategies)
         bold = [st for st in strategies
-                if rows.get(st, ('', '', '', ''))[1] == 'bold']
+                if rows.get(st, ('', '', ''))[1] == 'bold']
         print()
         print("Per shape, in the lead's order (%s):" % ', '.join(shapes))
         for st in bold:
@@ -1610,7 +1611,7 @@ def lint(main_hs, readme):
     # ("build", ...) it fails naming build, beside the rostered check
     # losing fbBuild.
     fp_arms = {a for _, _, arms in FINGERPRINT_TABLES for a in arms}
-    bolded = [st for st, (_, style, _, _) in
+    bolded = [st for st, (_, style, _) in
               readme_rows(readme, names).items() if style == 'bold']
     off = ([b for b in bolded if b not in fp_arms]
            + ['%s (not rostered)' % a for a in sorted(fp_arms)
@@ -1684,10 +1685,23 @@ def lint(main_hs, readme):
                 print('ok:   all %d Probe.hs shapes match Main.hs\'s own dims'
                       % len(pshapes))
 
+    # This named `concat-runs` alone until the two rulings
+    # (README.md#what-the-benchmark-does) made the not-timed set the larger
+    # half of the strategies. So it reports the split rather than only the
+    # names, and wraps them: a note that runs off the line is one nobody
+    # reads, and which arms are checked-but-untimed is the one thing about
+    # the roster no run's output shows.
     only = [n for n, r, _ in roster if r == 'Only']
     if only:
-        print('note: rostered and checked but deliberately not timed, with'
-              ' the reason at the entry: %s' % ', '.join(only))
+        print('note: %d of the %d roster arms are rostered and checked but'
+              ' deliberately not' % (len(only), len(names)))
+        print('      timed, each with the reason at its entry:')
+        # Not at hyphens: every one of these names carries them, and a name
+        # split across two lines is one no grep of this output can find.
+        for line in textwrap.wrap(', '.join(only), 66,
+                                  break_on_hyphens=False,
+                                  break_long_words=False):
+            print('        ' + line)
     for line in bad:
         print('FAIL: ' + line)
     return 1 if bad else 0

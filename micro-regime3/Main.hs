@@ -2494,6 +2494,12 @@ partitioned = all ((<= sizeCap) . product . snd) shapes
 --         itself. Like 'Twin' it runs an already-checked function, so its own
 --         entry checks nothing.
 --   Only  checked but deliberately not timed; the reason is at the entry.
+--         For all but 'concat-runs', which predates them, that reason is one
+--         of the two rulings of 2026-08-08
+--         (README.md#what-the-benchmark-does) -- a size precondition, or 2.4x
+--         the result in allocation -- and the entry names the disqualifying
+--         fact alone. With the column those preconditions used to occupy gone
+--         from README's table, these entries are where they are recorded.
 --
 -- @read-run.py --lint@ reads the list below and holds it to what a reader of
 -- either file assumes: every name documented in README.md, every @fb@
@@ -2531,6 +2537,12 @@ data Arm = Base (ShapeL -> T -> VS.Vector Double)
 -- sits at both ends. Moving an entry takes a control off what it was aimed at
 -- and breaks comparability with earlier runs, so it stays put; the families
 -- are expressed in the definition order above instead.
+--
+-- An 'Only' entry takes no slot, so what is actually run is the sublist of
+-- the rest, and every such entry still sits where its slot used to be: the
+-- placements below are stated for the roster they were chosen in, and a
+-- placement reasoned about an arm that is now 'Only' says why the slot is
+-- there rather than what it currently measures.
 roster :: [(String, Arm)]
 roster =
   [ ("list",                       Base fbList)
@@ -2586,10 +2598,14 @@ roster =
   , ("sum-only-early",             Term)
   , ("gen-quotrem",                Fill fbGenQuotRem)
   , ("gen-unsafe",                 Fill fbGenUnsafe)
-  , ("unfold-add",                 Fill fbUnfoldAdd)
-  , ("fused",                      Fill fbFused)
-  , ("offsets-quot",               Fill fbBaseOffsetsQuot)
-  , ("backperm",                   Fill fbBackperm)
+    -- not timed: 27.94x the result
+  , ("unfold-add",                 Only fbUnfoldAdd)
+    -- not timed: 5.19x the result
+  , ("fused",                      Only fbFused)
+    -- not timed: 5.19x the result
+  , ("offsets-quot",               Only fbBaseOffsetsQuot)
+    -- not timed: 11.89x the result
+  , ("backperm",                   Only fbBackperm)
     -- 'fbConcatRuns' is deliberately NOT benchmarked, though @check@ still
     -- holds it to the reference. It is by a clear margin the noisiest
     -- bench of the set and the one with the most extreme footprint, so it
@@ -2627,35 +2643,52 @@ roster =
   , ("mut-odo-vecdims-add-out",    Fill fbMutOdoVecdimsAddOut)
   , ("mut-odo-vecdims-add-both",   Fill fbMutOdoVecdimsAddBoth)
   , ("mut-odo-vecdims-add-both-down", Fill fbMutOdoVecdimsAddBothDown)
-  , ("mut-offsets",                Fill fbMutBaseOffsets)
+    -- not timed: 6.20x the result
+  , ("mut-offsets",                Only fbMutBaseOffsets)
   , ("build",                      Fill fbBuild)
   , ("bq-mut",                     Fill fbBQmut)
   , ("bq-mut-runs",                Fill fbBQmutRuns)
-  , ("bq-mut-runs-mulback",        Fill fbBQmutRunsMulback)
-  , ("mut-flat",                   Fill fbMutFlat)
+    -- not timed: l < 2^32
+  , ("bq-mut-runs-mulback",        Only fbBQmutRunsMulback)
+    -- not timed: l < 2^32
+  , ("mut-flat",                   Only fbMutFlat)
   , ("mut-flat-gm",                Fill fbMutFlatGm)
   , ("bq-mut-runs-gm-mulback",     Fill fbBQmutRunsGmMulback)
-  , ("bq-mut-lemire-out",          Fill fbBQmutLemireOut)
-  , ("bq-mut-lemire-mulback",      Fill fbBQmutLemireMulback)
+    -- not timed: l < 2^32
+  , ("bq-mut-lemire-out",          Only fbBQmutLemireOut)
+    -- not timed: l < 2^32
+  , ("bq-mut-lemire-mulback",      Only fbBQmutLemireMulback)
   , ("offtab",                     Fill fbOffTab)
-  , ("offtab32",                   Fill fbOffTab32)
-  , ("offtab-scan",                Fill fbOffTabScan)
+    -- not timed: 'int32Fits' on the source, i.e. at most 2^31 elements
+  , ("offtab32",                   Only fbOffTab32)
+    -- not timed: m < 2^32, its builder's
+  , ("offtab-scan",                Only fbOffTabScan)
   , ("offtab-scan-rem",            Fill fbOffTabScanRem)
-  , ("bq-unfold",                  Fill fbBQunfold)
+    -- not timed: 8.27x the result
+  , ("bq-unfold",                  Only fbBQunfold)
   , ("bq-gen",                     Fill fbBQgen)
     -- The Lemire arms are placed to straddle their controls: this one
     -- runs just after 'bq-gen', and the output-substitution arms run
     -- ahead of 'bq-expand'. A group's later slots are the warmer ones,
     -- so any position bias flatters one side and penalises the other,
-    -- and cannot manufacture a verdict that agrees across both.
-  , ("bq-gen-lemire",              Fill fbBQgenLemire)
-  , ("bq-expand-lemire-out",       Fill fbBQexpandLemireOut)
-  , ("bq-expand-lemire-mulback",   Fill fbBQexpandLemireMulback)
+    -- and cannot manufacture a verdict that agrees across both. All three
+    -- are 'Only' since the precondition ruling, so the straddle is inert
+    -- and this is the record of where they go if it is ever reopened.
+    -- not timed: m < 2^32, its builder's
+  , ("bq-gen-lemire",              Only fbBQgenLemire)
+    -- not timed: l < 2^32
+  , ("bq-expand-lemire-out",       Only fbBQexpandLemireOut)
+    -- not timed: l < 2^32
+  , ("bq-expand-lemire-mulback",   Only fbBQexpandLemireMulback)
   , ("bq-expand-gm-mulback",       Fill fbBQexpandGmMulback)
-  , ("bq-expand32-lemire-mulback", Fill fbBQexpand32LemireMulback)
-  , ("bq-scan-mulback",            Fill fbBQscanMulback)
-  , ("bq-scan-rem-mulback",        Fill fbBQscanRemMulback)
-  , ("bq-scan-gm-mulback",         Fill fbBQscanGmMulback)
+    -- not timed: l < 2^32, and 'int32Fits' on the source
+  , ("bq-expand32-lemire-mulback", Only fbBQexpand32LemireMulback)
+    -- not timed: l < 2^32
+  , ("bq-scan-mulback",            Only fbBQscanMulback)
+    -- not timed: l < 2^32
+  , ("bq-scan-rem-mulback",        Only fbBQscanRemMulback)
+    -- not timed: m < 2^32, its builder's
+  , ("bq-scan-gm-mulback",         Only fbBQscanGmMulback)
   , ("bq-scan-rem-gm-mulback",     Fill fbBQscanRemGmMulback)
     -- The adjacent half of 'bq-scan-rem-gm-mulback''s pair, so that strategy
     -- has a twin in both positions exactly as 'bq-expand' does; the two
@@ -2666,9 +2699,12 @@ roster =
     -- surviving pure arm, which carries no precondition and is the one the
     -- shipping question now turns on.
   , ("bq-scan-rem-gm-mulback-aa-adjacent", Twin fbBQscanRemGmMulback)
-  , ("bq-odo-mulback",             Fill fbBQodoMulback)
+    -- not timed: l < 2^32
+  , ("bq-odo-mulback",             Only fbBQodoMulback)
   , ("bq-odo-gm-mulback",          Fill fbBQodoGmMulback)
-  , ("bq-scan-packed-mulback",     Fill fbBQscanPackedMulback)
+    -- not timed: l < 2^32, plus its builder's m <= 2^31 and every offset
+    -- in [0, 2^32)
+  , ("bq-scan-packed-mulback",     Only fbBQscanPackedMulback)
   , ("bq-expand-qr-prim",          Fill fbBQexpandQRprim)
   , ("bq-expand",                  Fill fbBQexpand)
     -- The same fill, forced with one element instead of the sum, so that
@@ -2693,8 +2729,10 @@ roster =
   , ("bq-expand-aa-adjacent",      Twin fbBQexpand)
   , ("bq-expand-zf",               Fill fbBQexpandZF)
   , ("bq-expand-b",                Fill fbBQexpandB)
-  , ("cm-gather",                  Fill fbCMGather)
-  , ("all-expand",                 Fill fbAllExpand)
+    -- not timed: 10.73x the result
+  , ("cm-gather",                  Only fbCMGather)
+    -- not timed: 8.21x the result
+  , ("all-expand",                 Only fbAllExpand)
     -- Not a strategy: the shared forcing term every other bench carries.
     -- Each of them is @whnf (VS.sum . fb sh) a@, so each timing is fill
     -- PLUS this sum, and every ratio reported anywhere is @(B+S)/(A+S)@ --
@@ -2726,7 +2764,11 @@ reference sh a = case [f | (_, Base f) <- roster] of
 -- rather than by omission, which is what a hand-written chain could not say.
 --
 -- Proved non-vacuous by shortening 'fbBQexpandB''s result by one element:
--- @check@ then failed at the first shape, naming @bq-expand-b@.
+-- @check@ then failed at the first shape, naming @bq-expand-b@. Proved again
+-- for the 'Only' half, which is the half a passing run cannot show and which
+-- the roster now leans on for a majority of its strategies: the same
+-- shortening of 'fbBQodoMulback' fails at the first shape naming
+-- @bq-odo-mulback@, an arm nothing times.
 checkedArms :: [(String, ShapeL -> T -> VS.Vector Double)]
 checkedArms = [(n, f) | (n, arm) <- roster, f <- fills arm]
   where fills (Fill f) = [f]

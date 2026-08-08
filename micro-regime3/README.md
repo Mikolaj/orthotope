@@ -970,10 +970,12 @@ also the order to read them in:
   explicit mutation and are the [ceiling](#the-mutable-ceiling-not-taken):
   `mut-odo`, `mut-odo-vecdims`, `mut-offsets`, `build`, `mut-flat` and
   `mut-flat-gm`, the unconditional twin of the last. And
-  `concat-runs`, class-methods-only, checked but no longer timed (below).
+  `concat-runs`, class-methods-only and the first arm to be checked without
+  being timed (below).
 
 The order they are *run* in is deliberately a different one, fixed by `roster`
-in `Main.hs`; the Results table below is sorted by time, a third. Sharing that
+in `Main.hs`, where a majority of them now take no slot at all, being checked
+and not timed; the Results table below is sorted by time, a third. Sharing that
 roster with the strategies, and not strategies themselves, are ten controls:
 six A/A arms — `bq-expand-aa-adjacent` and `bq-expand-aa-distant`,
 `bq-scan-rem-gm-mulback-aa-adjacent` and
@@ -1002,21 +1004,26 @@ running the arm its name duplicates, every control named as the reader's
 own control test reads it, and every shape's `l` annotation agreeing with
 what its list's rule computes.
 
-`concat-runs` is the one strategy `check` covers and the benchmark does not.
-It was by a clear margin the noisiest bench of the set — Failed Run 6's single
-worst cell, and a median cell some 2.5× the shape's typical CI — so excluding
-it costs no information the run needs, and it is one of the changes preceding
-the current, quieter run, though nothing separates its contribution from the
-others'.
+`concat-runs` was the first strategy `check` covers and the benchmark does
+not, and is the only one excluded on its own noise rather than by a ruling
+below. It was by a clear margin the noisiest bench of the set — Failed Run 6's
+single worst cell, and a median cell some 2.5× the shape's typical CI — so
+excluding it costs no information the run needs, and it is one of the changes
+preceding the current, quieter run, though nothing separates its contribution
+from the others'.
 
-**Two rulings taken 2026-08-08 cut the timed roster from 38 strategies to 15;
-those 15, plus the four FastReshape arms added after the cut ([the mutable
-ceiling](#the-mutable-ceiling-not-taken)), are the roster Run 9 measures.** Both are about what is worth
+**Two rulings taken 2026-08-08 cut the timed roster from 38 strategies to 15,
+and the arms written since bring Run 9's back to 23** — the four unconditional
+forms the precondition ruling itself called for (below) and the four
+FastReshape arms ([the mutable
+ceiling](#the-mutable-ceiling-not-taken)). Both rulings are about what is worth
 spending a bench on, not about what is worth keeping: every dropped strategy
 stays in `Main.hs` and stays in the roster as `concat-runs` is — checked
 against the reference on every shape of every class, and not timed — so the
 agreement net does not shrink and nothing has to be rewritten if a ruling is
-later reopened.
+later reopened. The 23 arms the rulings dropped carry `Only` in that roster,
+each naming the bound or the multiple that disqualified it; with the controls
+the run is 34 benches.
 
 - **A strategy with a precondition is not measured.** The column allowed
   `none`, an empty cell, and `shape well-formed`, which is a condition on
@@ -1027,8 +1034,9 @@ later reopened.
   does not make up for the restriction: a fallback that needs `l < 2^32`
   tested and a second fill kept for when it fails is a different proposition
   from one that does not, and this suite exists to find the second kind. The
-  column goes with them, having nothing left to say: after the cut every
-  surviving row's cell is empty.
+  column went with them, having nothing left to say once every surviving
+  row's cell was empty; each dropped arm's bound is now at its roster entry,
+  spelled as that arm's own assert spells it.
 - **A strategy allocating 2.4x the result or more is not measured**, at
   `-fspec-constr`, which is the regime the cut was taken in and Run 9's.
   Allocation is the one column here that is deterministic per call,
@@ -1065,12 +1073,22 @@ whose base is not measured is not a control:
   re-measured under this roster, which is the price of the rule and is
   recorded rather than worked around.
 
+**The crossed A/A design survives the cut, at about two thirds the span.** Its
+three distant twins are placed early and their bases late, and 23 of the
+benches between them have gone: the widest span falls from 38 intervening
+benches to 25, the other two in proportion. That is still nothing like the
+twelve-arm probe where [spans of 28 and 0 read alike][floor], so the design
+keeps doing what it was built for; what it does not keep is comparability
+with Run 8's span column, a Run 9 pair being a different distance apart under
+the same name.
+
 **Every dropped arm was then checked for a surviving counterpart that differs
 only in not using the trick that costs the bound**, and the check turns on
 splitting the bound by where it arises, since a substitution at one site does
 nothing for the other. `baseOffsetsScan`, `baseOffsetsScanPacked` and
-`baseOffsetsGenLemire` carry a bound of their own, which is what the
-`(builder)` tag marks; `baseOffsetsExpand`, `baseOffsetsOdo`,
+`baseOffsetsGenLemire` carry a bound of their own — on `m` rather than on `l`,
+which is what their consumers' roster entries mark as *its builder's*;
+`baseOffsetsExpand`, `baseOffsetsOdo`,
 `baseOffsetsScanRem` and `baseOffsetsMutRuns` carry none. Eleven of the
 fifteen dropped arms had a counterpart already timed — the mutable-scratch
 family through `bq-mut`, `bq-mut-runs` and `bq-mut-runs-gm-mulback`, the scan
@@ -1096,10 +1114,12 @@ that survives the flag — 0.877 of its control for `offtab32` and 0.949 for the
 expansion pair, where the packed state is dominated. The ruling stands as
 taken; what it gives up is measured and recorded rather than assumed small.
 
-`--lint` and `--markdown` both need the change: the first asserts every
-defined `fb` function is rostered, which the not-timed mechanism satisfies,
-and the second carries `needs` and `precondition` forward from the table
-above, so the column has to leave the reader and the table together.
+`--lint` and `--markdown` both took the change with the roster: the first
+asserts every defined `fb` function is rostered, which the not-timed mechanism
+satisfies, and reports the not-timed set as a note rather than a failure; the
+second carried `needs` and `precondition` forward from the table above, so the
+column left the reader and the table in the same commit — a column dropped
+from one alone would be reinstated by the next install.
 
 The worry was never its own figures but its neighbours': every `time` is a
 ratio to `list`, which runs first, so an aftermath outliving one bench would
@@ -1258,7 +1278,7 @@ the check from passing on an installer that found nothing and said nothing.
 Run the copy's own diff by eye if a table looks wrong; the copy is deleted
 with the rest.
 
-The first runs every roster arm on one shape and puts the whole analysis
+The first runs every timed arm on one shape and puts the whole analysis
 path — the correction, the controls, the table generator — through its
 paces; the second does the same for the `classes` plumbing, the reader's
 per-list shape rules and the six-column class table, on the class whose
@@ -1441,14 +1461,14 @@ not a method.
       the spec that fixes the columns, and a session locating the table by
       searching for that text put Run 8's rows under the spec and left Run 7's
       table standing, with every check green because the check looked it up
-      the same way. If you paste by hand anyway, do not edit the table. It renders the same rows the terminal does, and carries `needs`,
-      `precondition` and the emphasis forward from the table already there.
+      the same way. If you paste by hand anyway, do not edit the table. It renders the same rows the terminal does, and carries `needs`
+      and the emphasis forward from the table already there.
       Its stderr is the whole of what is left by hand: a row new to the roster
       comes out with `?`, a departed row is dropped with a warning. Each class
       JSON emits its own table the same way and is pasted the same way, into
       its block in [The stride classes, run by
       run](#the-stride-classes-run-by-run); those come out six columns wide,
-      `needs` and `precondition` being properties of a strategy rather than of
+      `needs` being a property of a strategy rather than of
       a population and so stated in the main table alone. The per-shape
       fingerprint is pasted the same way, whole, from `--fingerprint`;
    4. **assemble the cross-class summary last, from the tables and not from
@@ -1595,8 +1615,8 @@ it rests on six pairs.
 
 `--markdown` renders the same rows the plain table does, from one shared
 call, so the published figures cannot drift from the terminal's. It reads the
-Results table already in this file for the two columns a run cannot know —
-`needs` and `precondition` — and for which rows the prose emphasises, carries
+Results table already in this file for the one column a run cannot know —
+`needs` — and for which rows the prose emphasises, carries
 those forward, and says on stderr what it could not: a strategy new to the
 roster comes out with `?` to be written by hand, and one that has left it is
 dropped with a warning. The arms added after Run 6 sat in exactly that
@@ -1632,8 +1652,10 @@ every arm named somewhere in this file; is every strategy defined in
 A/A control run the same function as the arm its name duplicates; and is
 every control named as the reader's own control test reads it, since a
 renamed one would enter the aggregates as a strategy. An arm rostered and
-deliberately not timed is a note rather than a failure, that being the case
-of `concat-runs`.
+deliberately not timed is a note rather than a failure, and since the two
+rulings that note is the larger half of the strategies: it prints the split
+and wraps the names, being the one place the checked-but-untimed set is
+listed at all.
 
 It asks a fifth about the shape lists rather than the roster: does every
 entry's `l` annotation agree with what its list's rule computes, so that a
@@ -2199,60 +2221,63 @@ How to read the columns:
   comparing it across runs, exactly as the `time` column already asks. It is
   the one column the correction does not touch.
 
-| strategy | time | worst | CI% | smp | alloc | needs | precondition |
-|---|---:|---:|---:|---:|---:|---|---|
-| *bq-expand-nosum* | *--* | *--* | *0.13* | *80* | *2.35x* | *its base arm, forced with one element* |  |
-| *mut-odo-vecdims-nosum* | *--* | *--* | *0.08* | *90* | *1.00x* | *the same, on the fastest arm* |  |
-| *sum-only-early* | *--* | *--* | *0.02* | *102* | *0.00x* | *the term every row has subtracted* |  |
-| *sum-only-late* | *--* | *--* | *0.01* | *102* | *0.00x* | *the same, at the other end* |  |
-| **mut-odo-vecdims** | **0.053** | 0.106 | 0.04 | 80 | 1.00x | new mutating `Vector` method |  |
-| *mut-odo-vecdims-aa-distant* | *0.053* | *0.105* | *0.07* | *80* | *1.00x* | *A/A control* |  |
-| *mut-odo-vecdims-aa* | *0.053* | *0.105* | *0.07* | *81* | *1.00x* | *A/A control* |  |
-| mut-flat | 0.074 | 0.182 | 0.14 | 84 | 1.33x | new mutating `Vector` method | `l < 2^32` |
-| **bq-mut-runs-mulback** | **0.078** | 0.196 | 0.11 | 83 | 1.33x | mutable `Int` scratch | `l < 2^32` |
-| bq-mut-runs-gm-mulback | 0.086 | 0.199 | 0.12 | 82 | 1.33x | mutable `Int` scratch | none |
-| bq-odo-mulback | 0.089 | 0.179 | 0.14 | 80 | 1.50x | nothing (pure) | `l < 2^32` |
-| **bq-scan-rem-gm-mulback** | **0.090** | 0.160 | 0.08 | 76 | 1.33x | nothing (pure) | **none** |
-| bq-mut-runs | 0.092 | 0.197 | 0.07 | 76 | 1.33x | mutable `Int` scratch |  |
-| bq-scan-rem-mulback | 0.093 | 0.162 | 0.07 | 76 | 1.33x | nothing (pure) | `l < 2^32` |
-| bq-expand32-lemire-mulback | 0.093 | 0.223 | 0.06 | 82 | 1.74x | nothing (pure) | `l < 2^32`; src < 2^31 |
-| bq-scan-gm-mulback | 0.095 | 0.159 | 0.09 | 74 | 1.33x | nothing (pure) | `l < 2^32` (builder) |
-| build | 0.095 | 0.273 | 0.34 | 72 | 1.00x | new mutating `Vector` method |  |
-| bq-scan-mulback | 0.097 | 0.155 | 0.06 | 74 | 1.33x | nothing (pure) | `l < 2^32` |
-| *bq-scan-mulback-aa-adjacent* | *0.097* | *0.159* | *0.11* | *74* | *1.33x* | *A/A control* |  |
-| *bq-scan-mulback-aa-distant* | *0.097* | *0.158* | *0.05* | *74* | *1.33x* | *A/A control* |  |
-| bq-expand-lemire-mulback | 0.098 | 0.226 | 0.06 | 81 | 2.35x | nothing (pure) | `l < 2^32` |
-| bq-expand-b | 0.101 | 0.230 | 0.22 | 76 | 2.18x | nothing (pure) |  |
-| **bq-expand** | **0.102** | 0.227 | 0.11 | 76 | 2.35x | **nothing -- SHIPPED** |  |
-| bq-expand-lemire-out | 0.102 | 0.232 | 0.08 | 76 | 2.35x | nothing (pure) | `l < 2^32` |
-| *bq-expand-aa-adjacent* | *0.102* | *0.227* | *0.12* | *76* | *2.35x* | *A/A control* |  |
-| *bq-expand-aa-distant* | *0.103* | *0.227* | *0.08* | *76* | *2.35x* | *A/A control* |  |
-| bq-expand-qr-prim | 0.104 | 0.230 | 0.17 | 75 | 2.35x | nothing (pure) | shape well-formed |
-| bq-expand-zf | 0.105 | 0.249 | 0.12 | 75 | 2.35x | nothing (pure) |  |
-| **bq-scan-packed-mulback** | **0.108** | 0.164 | 0.15 | 72 | 1.33x | nothing (pure) | `l`, offsets < 2^32; m <= 2^31 |
-| mut-odo | 0.109 | 0.340 | 0.12 | 70 | 1.00x | new mutating `Vector` method |  |
-| offtab32 | 0.128 | 0.320 | 0.60 | 68 | 1.50x | mutable `Int` scratch | src < 2^31 |
-| bq-mut-lemire-out | 0.132 | 0.346 | 0.41 | 66 | 1.33x | mutable `Int` scratch | `l < 2^32` |
-| bq-mut-lemire-mulback | 0.143 | 0.376 | 0.88 | 66 | 1.33x | mutable `Int` scratch | `l < 2^32` |
-| offtab-scan | 0.145 | 0.259 | 0.18 | 72 | 2.00x | nothing (pure) | `l < 2^32` (builder) |
-| bq-mut | 0.146 | 0.338 | 0.26 | 64 | 1.33x | mutable `Int` scratch |  |
-| offtab | 0.146 | 0.396 | 0.75 | 65 | 2.00x | mutable `Int` scratch |  |
-| fused | 0.155 | 0.459 | 0.26 | 64 | 5.19x | new pure `Vector` method |  |
-| offsets-quot | 0.202 | 0.517 | 0.20 | 58 | 5.19x | nothing (pure) |  |
-| all-expand | 0.246 | 0.516 | 0.14 | 57 | 8.21x | new pure `Vector` method |  |
-| bq-unfold | 0.259 | 0.813 | 0.42 | 54 | 8.27x | nothing (pure) |  |
-| mut-offsets | 0.266 | 0.789 | 0.37 | 60 | 6.20x | new mutating `Vector` method |  |
-| cm-gather | 0.287 | 0.553 | 0.70 | 52 | 10.73x | new pure `Vector` method |  |
-| bq-gen | 0.339 | 2.123 | 0.42 | 51 | 1.33x | nothing (pure) |  |
-| backperm | 0.358 | 1.141 | 0.55 | 51 | 11.89x | new pure `Vector` method |  |
-| bq-gen-lemire | 0.479 | 3.503 | 0.73 | 48 | 1.33x | nothing (pure) -- refuted | `l < 2^32` |
-| gen-unsafe | 0.912 | 3.743 | 0.47 | 42 | 1.00x | -- |  |
-| gen-quotrem | 0.929 | 3.712 | 0.47 | 41 | 1.00x | 1st attempt |  |
-| list (baseline) | 1.000 | 1.000 | 0.37 | 36 | 23.51x | -- |  |
-| unfold-add | 1.004 | 1.485 | 0.50 | 34 | 27.94x | new pure `Vector` method |  |
+| strategy | time | worst | CI% | smp | alloc | needs |
+|---|---:|---:|---:|---:|---:|---|
+| *bq-expand-nosum* | *--* | *--* | *0.13* | *80* | *2.35x* | *its base arm, forced with one element* |
+| *mut-odo-vecdims-nosum* | *--* | *--* | *0.08* | *90* | *1.00x* | *the same, on the fastest arm* |
+| *sum-only-early* | *--* | *--* | *0.02* | *102* | *0.00x* | *the term every row has subtracted* |
+| *sum-only-late* | *--* | *--* | *0.01* | *102* | *0.00x* | *the same, at the other end* |
+| **mut-odo-vecdims** | **0.053** | 0.106 | 0.04 | 80 | 1.00x | new mutating `Vector` method |
+| *mut-odo-vecdims-aa-distant* | *0.053* | *0.105* | *0.07* | *80* | *1.00x* | *A/A control* |
+| *mut-odo-vecdims-aa* | *0.053* | *0.105* | *0.07* | *81* | *1.00x* | *A/A control* |
+| mut-flat | 0.074 | 0.182 | 0.14 | 84 | 1.33x | new mutating `Vector` method |
+| **bq-mut-runs-mulback** | **0.078** | 0.196 | 0.11 | 83 | 1.33x | mutable `Int` scratch |
+| bq-mut-runs-gm-mulback | 0.086 | 0.199 | 0.12 | 82 | 1.33x | mutable `Int` scratch |
+| bq-odo-mulback | 0.089 | 0.179 | 0.14 | 80 | 1.50x | nothing (pure) |
+| **bq-scan-rem-gm-mulback** | **0.090** | 0.160 | 0.08 | 76 | 1.33x | nothing (pure) |
+| bq-mut-runs | 0.092 | 0.197 | 0.07 | 76 | 1.33x | mutable `Int` scratch |
+| bq-scan-rem-mulback | 0.093 | 0.162 | 0.07 | 76 | 1.33x | nothing (pure) |
+| bq-expand32-lemire-mulback | 0.093 | 0.223 | 0.06 | 82 | 1.74x | nothing (pure) |
+| bq-scan-gm-mulback | 0.095 | 0.159 | 0.09 | 74 | 1.33x | nothing (pure) |
+| build | 0.095 | 0.273 | 0.34 | 72 | 1.00x | new mutating `Vector` method |
+| bq-scan-mulback | 0.097 | 0.155 | 0.06 | 74 | 1.33x | nothing (pure) |
+| *bq-scan-mulback-aa-adjacent* | *0.097* | *0.159* | *0.11* | *74* | *1.33x* | *A/A control* |
+| *bq-scan-mulback-aa-distant* | *0.097* | *0.158* | *0.05* | *74* | *1.33x* | *A/A control* |
+| bq-expand-lemire-mulback | 0.098 | 0.226 | 0.06 | 81 | 2.35x | nothing (pure) |
+| bq-expand-b | 0.101 | 0.230 | 0.22 | 76 | 2.18x | nothing (pure) |
+| **bq-expand** | **0.102** | 0.227 | 0.11 | 76 | 2.35x | **nothing -- SHIPPED** |
+| bq-expand-lemire-out | 0.102 | 0.232 | 0.08 | 76 | 2.35x | nothing (pure) |
+| *bq-expand-aa-adjacent* | *0.102* | *0.227* | *0.12* | *76* | *2.35x* | *A/A control* |
+| *bq-expand-aa-distant* | *0.103* | *0.227* | *0.08* | *76* | *2.35x* | *A/A control* |
+| bq-expand-qr-prim | 0.104 | 0.230 | 0.17 | 75 | 2.35x | nothing (pure) |
+| bq-expand-zf | 0.105 | 0.249 | 0.12 | 75 | 2.35x | nothing (pure) |
+| **bq-scan-packed-mulback** | **0.108** | 0.164 | 0.15 | 72 | 1.33x | nothing (pure) |
+| mut-odo | 0.109 | 0.340 | 0.12 | 70 | 1.00x | new mutating `Vector` method |
+| offtab32 | 0.128 | 0.320 | 0.60 | 68 | 1.50x | mutable `Int` scratch |
+| bq-mut-lemire-out | 0.132 | 0.346 | 0.41 | 66 | 1.33x | mutable `Int` scratch |
+| bq-mut-lemire-mulback | 0.143 | 0.376 | 0.88 | 66 | 1.33x | mutable `Int` scratch |
+| offtab-scan | 0.145 | 0.259 | 0.18 | 72 | 2.00x | nothing (pure) |
+| bq-mut | 0.146 | 0.338 | 0.26 | 64 | 1.33x | mutable `Int` scratch |
+| offtab | 0.146 | 0.396 | 0.75 | 65 | 2.00x | mutable `Int` scratch |
+| fused | 0.155 | 0.459 | 0.26 | 64 | 5.19x | new pure `Vector` method |
+| offsets-quot | 0.202 | 0.517 | 0.20 | 58 | 5.19x | nothing (pure) |
+| all-expand | 0.246 | 0.516 | 0.14 | 57 | 8.21x | new pure `Vector` method |
+| bq-unfold | 0.259 | 0.813 | 0.42 | 54 | 8.27x | nothing (pure) |
+| mut-offsets | 0.266 | 0.789 | 0.37 | 60 | 6.20x | new mutating `Vector` method |
+| cm-gather | 0.287 | 0.553 | 0.70 | 52 | 10.73x | new pure `Vector` method |
+| bq-gen | 0.339 | 2.123 | 0.42 | 51 | 1.33x | nothing (pure) |
+| backperm | 0.358 | 1.141 | 0.55 | 51 | 11.89x | new pure `Vector` method |
+| bq-gen-lemire | 0.479 | 3.503 | 0.73 | 48 | 1.33x | nothing (pure) -- refuted |
+| gen-unsafe | 0.912 | 3.743 | 0.47 | 42 | 1.00x | -- |
+| gen-quotrem | 0.929 | 3.712 | 0.47 | 41 | 1.00x | 1st attempt |
+| list (baseline) | 1.000 | 1.000 | 0.37 | 36 | 23.51x | -- |
+| unfold-add | 1.004 | 1.485 | 0.50 | 34 | 27.94x | new pure `Vector` method |
 
-`concat-runs` has no row: it is rostered and checked but no longer timed, for
-the reason given with the strategy list above.
+`concat-runs` has no row: it is rostered and checked but not timed, for the
+reason given with the strategy list above. Every other row above ran in Run 8,
+and 23 of the strategy rows will not run again — the two rulings stopped
+timing them after this table was published — while the eight arms written
+since have no row here yet.
 
 **Three things in the table are the run's findings rather than its numbers.**
 The pure tier reordered under the flag: `bq-odo-mulback` (0.089) and
@@ -2272,9 +2297,14 @@ reordering underneath it would suggest.
 
 **Run 9 is decided: `-fspec-constr`, with a different roster** — the 15
 strategies the two rulings under [what the benchmark
-does](#what-the-benchmark-does) leave timed, plus the four FastReshape
-arms ([the mutable ceiling](#the-mutable-ceiling-not-taken)). So its
-yardstick is the Run 8 column below.
+does](#what-the-benchmark-does) leave timed, plus the four unconditional
+forms those rulings called for and the four FastReshape arms ([the mutable
+ceiling](#the-mutable-ceiling-not-taken)): 23 strategies and `list`. So its
+yardstick is the Run 8 column below — of whose seven rows Run 9 measures
+three, `mut-odo-vecdims`, `bq-scan-rem-gm-mulback` and `bq-expand`, the other
+four having left the timed roster since. Those four stand as Run 8's record
+and get no successor figure, and the eight arms written since Run 8 get their
+first.
 
 **The -O1 column beside it is deliberate and is not to be pruned**, however
 much it looks like a Run 7 leftover in a Run 8 chapter. It is the only place
@@ -2314,7 +2344,14 @@ noticed. Its membership is a rule, not a habit: the shipped arm, the rows
 the Results table bolds, and any arm an open question names — `mut-odo`
 and `build` sit here on [the broken-identity
 question](#what-the-next-runs-have-to-decide) — and an arm leaves when its
-question closes. `list`'s own net per call rides along, guarding the
+question closes. **Two of its seven are arms Run 9 does not time**,
+`bq-mut-runs-mulback` and `bq-scan-packed-mulback`, whose question the
+precondition ruling closed after this table was emitted; the rule as written
+takes them out, and taking them out means un-bolding their Results rows too,
+which `--lint` holds to the same membership. That is a decision for whoever
+writes Run 9's tables, since it edits Run 8's record, and until it is taken
+those two columns will emit `--`. `list`'s own net per call rides along,
+guarding the
 baseline at every shape where the anchors guard three, and converting any
 ratio beside it back to absolute time. Allocation stays medians-only on
 purpose: deterministic per call, so a run that raises an allocation
@@ -2327,7 +2364,8 @@ scan-packed is `bq-scan-packed-mulback`, scan-rem-gm
 `bq-scan-rem-gm-mulback`, mut-runs-mulback `bq-mut-runs-mulback`, vecdims
 `mut-odo-vecdims`. And the [stretch table][pershape] is the same kind of
 record for `bq-expand-b` and `bq-expand-lemire-out`, on the shapes chosen
-to stress orderings — compare it the same way.
+to stress orderings — compare it the same way; its `lemire-out` column is
+untimed too, so Run 9 leaves that one as Run 8's as well.
 
 | shape | `sInner` | `l` | `list`, net | bq-expand | scan-packed |
 |---|---:|---:|---:|---:|---:|
@@ -2453,6 +2491,18 @@ paired geomeans, past the floor unless marked, each claim carrying the
 reading it rests on. **All of them are `-fspec-constr` claims**: a Run 9 at
 -O1 tests Run 7's set instead, and the two sets differ in more than their
 numbers.
+
+**And most of them Run 9 cannot test**, the roster cut having come after this
+list was written: a claim needs every arm it names still timed. Whole: 2 and
+9. Not at all: 1, 3, 4 and 8, each resting on an arm one of the two rulings
+dropped — 3 and 4 are the pair [the cut's own
+account](#what-the-benchmark-does) names, and 1 and 8 it does not.
+Partly: 5 keeps `bq-expand` < `bq-gen` and the `bq-mut-runs` reading and loses
+the two ends; 6 keeps the `gen-quotrem` half, which is the half it turns on; 7
+keeps every tier, `bq-odo-gm-mulback` standing in at 1.51x for the arm that
+set the 1.50x one. Of the class properties the second names three arms and
+times none of them. What cannot be re-tested stands as Run 8's record, as
+claim 4's controlled pair does.
 
 1. `mut-odo-vecdims` < `mut-flat` < `bq-mut-runs-mulback` < everything pure
    (0.713, 0.947, then 0.882 against `bq-odo-mulback`), each at 21 wins of
@@ -2604,9 +2654,8 @@ five things and nothing else:
    it readable without `Main.hs` open;
 2. the table `./read-run.py $R-$c.json --markdown` emits, pasted whole and
    never edited — six columns, with the emphasis carried over from the main
-   table so the shipped row is found at a glance, and `needs` and
-   `precondition` left to that table as properties of a strategy rather than
-   of a population;
+   table so the shipped row is found at a glance, and `needs` left to that
+   table as a property of a strategy rather than of a population;
 3. its own controls, off `--aa`: the A/A deviations with their spans, the two
    `sum-only` halves, and the in-situ term from the `-nosum` arms — this
    process's own floor and its own three gates, neither inherited nor lent;
@@ -3316,20 +3365,27 @@ section](#lemire-multiplicative-inverses-at-the-two-division-sites) rests on.
 A run elsewhere is a different measurement rather than a repetition, and
 should say which machine here.
 
-**And the ground has not moved**, for the second run running: Run 8 measured
-exactly the shapes and roster `Main.hs` holds today, in every population, so
-Run 9 inherits a pinned set everywhere.
+**The shapes have not moved**, as they did not between Run 7 and Run 8: Run 8
+measured exactly the shapes `Main.hs` holds today, in every population, so
+Run 9 inherits a pinned set there. The roster is the part that moved, and only
+after Run 8 was written up — the two rulings above and the arms they called
+for.
 
 **The delta, so the population is recoverable.** What follows is the *only*
 form in which a shape set or roster is recorded here: its difference from
 whatever `Main.hs` holds now. A snapshot would need rewriting at every change
 and would be a second copy of a list that already exists; a delta costs what
-actually moved and shrinks to nothing when the two agree.
+actually moved and shrinks to nothing when the two agree. A roster delta has
+two halves now that membership no longer settles what ran: which arms the
+roster held, and which of them it timed.
 
-- Run 8's delta is empty: today's shapes, today's roster, today's class
-  lists, winsorized per the estimator under `time`. Its regime is the only
-  thing separating it from Run 7, whose delta is empty too — which is what
-  makes the two columns in [What Run 9 compares
+- Run 8 measured today's shapes and today's class lists, on today's roster
+  **minus the eight arms written since** (`bq-expand-gm-mulback`,
+  `bq-odo-gm-mulback`, `mut-flat-gm`, `offtab-scan-rem` and the four
+  `mut-odo-vecdims-add-*`), **timing all of it but `concat-runs`** where today
+  leaves 24 untimed, winsorized per the estimator under `time`. Its regime is
+  still the only thing separating it from Run 7, whose delta is the same one —
+  which is what keeps the two columns in [What Run 9 compares
   against](#what-run-9-compares-against) a controlled pair.
 - Run 6, still quoted here for the estimator ruling under `time`, for the
   `alloc` column's shape-dependence and for the correction's amplification
@@ -3340,8 +3396,9 @@ actually moved and shrinks to nothing when the two agree.
   `lenet-L2-14-c6-k5`,
   `mnist-28-c1-k3`, `cifar-L1-32-c3-k3`, `cifar-L3-8-c128-k3`,
   `cifar-32-c3-k5`, `vgg-14-c256-k3`, `deep-7-c512-k3`, `slice-c512`), on
-  today's roster **minus five arms** (the three crossed A/A twins and the
-  two `-nosum` controls), trimmed rather than winsorized, on the Storable
+  today's roster **minus thirteen arms** (the three crossed A/A twins, the
+  two `-nosum` controls and the eight Run 8 also lacked), **timing all of it**,
+  trimmed rather than winsorized, on the Storable
   scratch the conversion since replaced, and with no stride class in
   existence. That is the whole chain between its figures and this run's.
 
