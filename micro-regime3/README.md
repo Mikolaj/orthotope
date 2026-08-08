@@ -1208,8 +1208,8 @@ built to test.
 hours later — at `-L1`, since the smoke tests the reader's code paths, not
 its statistics:
 
-    cabal run micro -- -L1 cnn-slice-c32 --json smoke.json   # every arm, one shape
-    cabal run micro -- classes window-28x28-k5 -L1 --json smoke-class.json
+    cabal run micro $REGIME -- -L1 cnn-slice-c32 --json smoke.json
+    cabal run micro $REGIME -- classes window-28x28-k5 -L1 --json smoke-class.json
     for f in smoke.json smoke-class.json; do
       for m in --selftest --aa --shapes --markdown --cells --fingerprint \
                "--pair bq-expand list" ""; do
@@ -1217,7 +1217,27 @@ its statistics:
       done
     done
     ./read-run.py smoke-class.json --block >/dev/null || echo "BROKEN: --block"
-    rm smoke.json smoke-class.json
+    cp README.md README.smoke.md            # --in-place WRITES; never at README
+    for m in --markdown --fingerprint; do
+      ./read-run.py smoke.json $m --in-place --readme README.smoke.md \
+        >/dev/null || echo "BROKEN: $m --in-place"
+    done
+    ./read-run.py smoke-class.json --block --in-place --readme README.smoke.md \
+      >/dev/null || echo "BROKEN: --block --in-place"
+    cmp -s README.smoke.md README.md \
+      && echo "BROKEN: --in-place wrote nothing"
+    rm smoke.json smoke-class.json README.smoke.md
+
+These carry `$REGIME` like everything else, though they exercise the reader
+rather than the regime: leaving it off costs two rebuilds and leaves the
+binary in the wrong regime for whatever runs next.
+
+`--in-place` earns its three lines because it is the one mode that writes:
+pointed at `README.md` it would install a one-shape smoke table over the
+published one, so the copy is the point, and `cmp` afterwards is what keeps
+the check from passing on an installer that found nothing and said nothing.
+Run the copy's own diff by eye if a table looks wrong; the copy is deleted
+with the rest.
 
 The first runs every roster arm on one shape and puts the whole analysis
 path — the correction, the controls, the table generator — through its
@@ -1377,7 +1397,15 @@ not a method.
    1. **derive every count and ratio in the prose from `--cells`, never by
       eye.** "32 of 33", "30th of its 33 shapes", "the only two past 7%" are all
       claims a glance at a sorted table gets wrong; two of Run 6's were wrong
-      until recomputed;
+      until recomputed. Two shapes of claim need naming because counting is
+      not what they look like. **Every *only*, *largest*, *fastest* or *never*
+      is a claim about the whole table** and is derived by sorting it, not by
+      looking at the arms the sentence is about: Run 8's write-up carried four
+      such — "the only arm the flag demotes", "the largest gain of any arm"
+      among them — each false, and each caught late or by a reader. And **a
+      ratio between two published cells comes from `--pair`, never from
+      dividing the printed figures**, which are rounded to three digits: the
+      same write-up quoted 0.9898 for a pair the reader puts at 0.9946;
    2. **reproduce any newly-derived column by a route that shares no code with
       the reader.** A four-bench filtered run carrying both `sum-only` halves
       takes seconds, and criterion's own printed `time` lines then give the
@@ -1385,8 +1413,16 @@ not a method.
       = 0.2161 against the reader's 0.216. Recomputing from `--cells` is worth
       doing too, but it shares the reader's arithmetic and cannot catch a wrong
       definition, only a wrong transcription;
-   3. **paste `--markdown`'s output over the Results table**; do not edit the
-      table. It renders the same rows the terminal does, and carries `needs`,
+   3. **install the tables with `--in-place` rather than pasting them.**
+      `--markdown`, `--fingerprint` and `--block` each take it, and each
+      refuses rather than guessing: the match is by whole line, the count is
+      asserted, and a class table is narrowed by its block's bolded lead.
+      Hand-pasting is what this replaces, and the reason is on the record —
+      the cross-class summary's header is written out twice, once indented as
+      the spec that fixes the columns, and a session locating the table by
+      searching for that text put Run 8's rows under the spec and left Run 7's
+      table standing, with every check green because the check looked it up
+      the same way. If you paste by hand anyway, do not edit the table. It renders the same rows the terminal does, and carries `needs`,
       `precondition` and the emphasis forward from the table already there.
       Its stderr is the whole of what is left by hand: a row new to the roster
       comes out with `?`, a departed row is dropped with a warning. Each class
@@ -1413,10 +1449,18 @@ not a method.
       candidates, `Main.hs` comments included, but the redo test itself is
       the reader's. Run 7's write-up carried fifteen-odd such sentences past
       every green check here, found only when a reader asked;
-   7. **read the document end to end.** The mechanical passes above do not catch
+   7. **read the document end to end**, and aim the reading at what the
+      instruments cannot see. The mechanical passes above do not catch
       a bullet contradicting the table three lines below it, which is how
       "`bq-mut` ties `bq-expand`" survived two runs beside a build ordering that
-      refuted it. This is the pass that keeps finding real errors;
+      refuted it. Nor do they see the three things Run 8's write-up got wrong:
+      a table installed in the wrong place, an exclusivity claim about arms
+      nobody sorted, and a figure quoted on a basis it was not measured on.
+      That the checkers here are good is itself the hazard — green instruments
+      make the remaining gap feel small, and the gap is exactly where they do
+      not look, so read for placement, for *only* and *largest*, and for which
+      run and basis each figure belongs to. This is the pass that keeps
+      finding real errors;
 
    Two conventions this page holds to, both of which exist because breaking
    them has cost something here. **A figure in prose names its run, its basis
@@ -1441,7 +1485,25 @@ not a method.
    not for its shape count: that count is fixed before criterion does the
    selecting, so it reads every class view rather than the population that
    ran, and the population's own size comes from the reader's first line;
-9. **Only then**, and after asking the user, delete the artifacts —
+9. **Walk the open list against what this session actually did**, which
+   nothing checks. A run answers some of its own questions and a write-up
+   raises others, and both go stale in place: Run 8 answered the element-type
+   entry with the probe that entry specified and left it standing open, and
+   answered the packed-arm entry the same day. Move what was answered into
+   the answered block with its measurement, leave what a probe narrowed as
+   narrowed, and add the run's surprises with the measurement that would
+   settle each.
+10. **Spend the load-independent measurements before the artifacts go.**
+   Allocation is deterministic per call, Core is a compile, and a binary's
+   size is a `size` invocation — none of them wants a quiet machine or a run
+   slot, and each is minutes. Run 8 stopped at the write-up and left a Core
+   diff, a two-regime `diag` and a code-size figure undone; all three were
+   done later, two of them changed rulings, and one answered an open question
+   outright. So before step 11, take every question on the open list whose
+   measurement is a compile, an allocation or an arithmetic re-derivation,
+   and take it now. What is left over is the timing work, which is what a
+   quiet machine is for.
+11. **Only then**, and after asking the user, delete the artifacts —
    the JSONs, the logs and the wall-clock file alike.
    The normal state of this directory is no run
    artifact at all, which is decided rather than an oversight; the numbers live
@@ -1450,6 +1512,11 @@ not a method.
    not after the writing: Run 6's artifact was deleted as
    soon as its write-up was drafted, which cost the ability to re-check
    anything needing the raw samples when the write-up was later questioned.
+   What they buy while they live is worth knowing before answering: every
+   `--pair` a later question wants, every per-shape spread that separates a
+   bias from noise, and every count re-derived from `--cells` needs the JSON
+   and nothing else does. Run 8's were kept and drawn on a dozen times in the
+   days after, for questions its write-up had not thought to ask.
 
 
 ### The reader: read-run.py
@@ -1474,6 +1541,7 @@ script rather than starting over.
     ./read-run.py RUN.json --cells          # every cell as TSV, for the rest
     ./read-run.py RUN.json --fingerprint    # the kept per-shape record
     ./read-run.py RUN.json --block          # a class block's mechanical parts
+    ./read-run.py RUN.json --markdown --in-place   # install it, do not paste
     ./read-run.py RUN.json --selftest       # check the reader's own invariants
     ./read-run.py RUN.json --exclude concat-runs --exclude-shape deep-7-c512-k3
     ./read-run.py --lint                    # Main.hs's roster and shape
@@ -1741,6 +1809,19 @@ protects the tables above, ratios cancelling the shared process draw; a
 comparison that crosses runs should pin the benchmark selection along
 with the binary, and Run 8 is the first run here to have pinned everything
 but the compiler flag.
+
+**Every kind of comparison this page makes wants an instrument, and only
+some have one.** Worth asking outright of any new claim, because the three
+answers known so far differ by two orders of magnitude and were not all found
+on purpose: an arm against itself in one binary is the A/A twins at 0.4%; two
+different arms in one binary carry placement, which `build`/`mut-odo` puts at
+14-24% for a pair whose code is identical; one arm across two binaries
+carries the rebuild, up to 18% on a susceptible arm. The third turned up by
+accident, after eight runs of cross-build claims made with nothing behind
+them. So when a sentence compares something new — two populations, two
+machines, two GHC versions, an arm against a prediction — ask which of these
+bounds it, and if none does, say so in the sentence rather than borrowing the
+nearest number.
 
 **Each population measures its own floor.** The same six controls ride every
 process, so a stride-class run prices the noise of the process its own

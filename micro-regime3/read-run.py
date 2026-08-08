@@ -123,6 +123,10 @@ Modes:
   --block           a stride-class block's mechanical parts in the form's
                     order: table, controls, provenance/anchor skeleton,
                     and a three-shape population's per-shape line
+  --in-place        with --markdown, --fingerprint or --block, install the
+                    tables into README instead of printing them: matched by
+                    whole line, count asserted, a class table narrowed by
+                    its block's lead, and refusing rather than guessing
   --exclude S       drop strategy S from every aggregate (repeatable)
   --exclude-shape H drop shape H likewise (repeatable)
   --selftest        check this reader's invariants against the run given
@@ -167,6 +171,8 @@ when the run file is missing: a refusal is information.
 
 import argparse
 import collections
+import contextlib
+import io
 import json
 import math
 import os
@@ -685,6 +691,109 @@ def readme_rows(readme, strategies):
                  else 'italic' if cell[0].startswith('*') else 'plain')
         out[bare] = (cell[0], style, cell[-2], cell[-1])
     return out
+
+
+def capture(fn, *a):
+    """What an emitter prints, so it can be installed instead of pasted."""
+    buf = io.StringIO()
+    with contextlib.redirect_stdout(buf):
+        fn(*a)
+    return buf.getvalue()
+
+
+def tables_in(text):
+    """The pipe-tables in an emitter's output, each as a list of lines."""
+    out, cur = [], []
+    for line in text.split('\n'):
+        if line.startswith('|'):
+            cur.append(line)
+        elif cur:
+            out.append(cur)
+            cur = []
+    if cur:
+        out.append(cur)
+    return out
+
+
+def install(readme, table, after=None):
+    """Replace README's copy of `table` with it, or refuse.
+
+    Pasting by hand is what this exists to stop: the cross-class summary's
+    header is written out twice, once indented as the spec that fixes the
+    columns and once as the table's own, and a session that located the
+    table by searching for that text hit the spec first -- putting a run's
+    rows under the wrong paragraph and leaving the previous run's table
+    standing, with every mechanical check still green because the check
+    looked the table up the same wrong way.
+
+    So the match is by whole line, which an indented copy cannot satisfy,
+    and the count is asserted rather than assumed: a header occurring more
+    than once must be narrowed by `after`, the first line of the block the
+    right table belongs to. Refusal is the failure mode, never a silent
+    write to the wrong place.
+
+    Born checked, four ways deliberately (2026-08-08). Pointed at a header
+    no line equals, it exits 1 saying so. Pointed at the six-column class
+    header with no `after`, it exits 1 naming eight matches rather than
+    taking the first. Given an `after` no line starts with, it exits 1
+    rather than falling back. And installed over a table it already agrees
+    with -- the main Results table, both fingerprint tables and a class
+    block's -- it leaves README byte-identical, which is the check that the
+    right table was found and not merely a table.
+    """
+    with open(readme) as f:
+        lines = f.read().split('\n')
+    hdr = table[0]
+    hits = [i for i, line in enumerate(lines) if line == hdr]
+    if after is not None:
+        start = [i for i, line in enumerate(lines) if line.startswith(after)]
+        if len(start) != 1:
+            sys.exit('--in-place: %d line(s) start with %r, need exactly one'
+                     % (len(start), after))
+        hits = [i for i in hits if i > start[0]][:1]
+    if len(hits) != 1:
+        sys.exit('--in-place: %d line(s) equal the header, need exactly one;'
+                 ' refusing to guess\n  %s' % (len(hits), hdr[:68]))
+    i = hits[0]
+    j = i
+    while j < len(lines) and lines[j].startswith('|'):
+        j += 1
+    was = j - i
+    lines[i:j] = table
+    with open(readme, 'w') as f:
+        f.write('\n'.join(lines))
+    sys.stderr.write('installed at %s:%d, %d row(s) replacing %d\n'
+                     % (os.path.basename(readme), i + 1, len(table), was))
+
+
+def emit_or_install(text, args, shapes, meta, block=False):
+    """Print an emitter's output, or install its tables into README.
+
+    A class table's header is one of eight identical lines, so it is
+    narrowed by the bolded lead of its own block -- which is also the thing
+    a reader would use, and which fails loudly if the class has no block
+    yet. A block's prose is not installed: the controls sentence and the
+    paragraph are the author's, and only the table it carries is mechanical.
+    """
+    if not args.in_place:
+        sys.stdout.write(text)
+        return
+    kind, label = population_of(shapes, meta['dims'])
+    after = None
+    if kind == 'class':
+        after = '**`%s`' % label.replace('the ', '').replace(' class', '')
+    tables = tables_in(text)
+    if not tables:
+        sys.exit('--in-place: this mode emitted no table')
+    install(args.readme, tables[0], after)
+    for extra in tables[1:]:
+        install(args.readme, extra, after)
+    if block:
+        sys.stderr.write('the block\'s prose is yours: controls, provenance'
+                         ' and the paragraph are not installed\n')
+        for line in text.split('\n'):
+            if not line.startswith('|'):
+                sys.stdout.write(line + '\n')
 
 
 def markdown_table(cells, shapes, strategies, meta, args, terms):
@@ -1780,6 +1889,9 @@ def main():
     p.add_argument('--markdown', action='store_true')
     p.add_argument('--fingerprint', action='store_true')
     p.add_argument('--block', action='store_true')
+    p.add_argument('--in-place', action='store_true',
+                   help='install --markdown/--fingerprint/--block tables into'
+                        ' README instead of printing them')
     p.add_argument('--selftest', action='store_true')
     p.add_argument('--lint', action='store_true')
     p.add_argument('--check-doc', action='store_true')
@@ -1841,11 +1953,16 @@ def main():
     elif args.cells:
         cell_dump(cells, shapes, strategies)
     elif args.markdown:
-        markdown_table(cells, shapes, strategies, meta, args, terms)
+        text = capture(markdown_table, cells, shapes, strategies, meta,
+                       args, terms)
+        emit_or_install(text, args, shapes, meta)
     elif args.fingerprint:
-        fingerprint_table(cells, shapes, strategies, meta)
+        text = capture(fingerprint_table, cells, shapes, strategies, meta)
+        emit_or_install(text, args, shapes, meta)
     elif args.block:
-        block_skeleton(cells, shapes, strategies, meta, args, terms)
+        text = capture(block_skeleton, cells, shapes, strategies, meta,
+                       args, terms)
+        emit_or_install(text, args, shapes, meta, block=True)
     else:
         strategy_table(cells, shapes, strategies, meta, args, terms)
 
