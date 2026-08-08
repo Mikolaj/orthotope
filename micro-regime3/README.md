@@ -385,7 +385,7 @@ Double`: `Storable Float` is the same instance at half the width, unboxed
 at the narrowest width there is. Each figure is that type's own geomean
 against that type's own `list`:
 
-| element type | `bq-expand` | worst | `alloc` | `mut-odo-vecdims` | worst |
+| element type, at -O1 | `bq-expand` | worst | `alloc` | `mut-odo-vecdims` | worst |
 |---|---:|---:|---:|---:|---:|
 | `Storable Double` | 0.189 | 0.317 | 3.73x | 0.084 | 0.112 |
 | `Storable Float` | 0.189 | 0.321 | 3.23x | 0.095 | 0.137 |
@@ -417,6 +417,31 @@ exactly the result vector's own share: predicted 0.50x below `Double` at
 `Float` and 0.875x below at `Word8`, observed 3.23x and 2.85x against 3.73x —
 both to the digit, which makes that column a consistency check as much as a
 caveat. And three arms over six shapes is a probe, not a run.
+
+**Re-probed under `-fspec-constr`, 2026-08-08, and the ordering holds
+there too.** Run 8 moved the ordering at `Storable Double`, which is this
+section's own trigger for re-probing, so the four types were re-run in that
+regime, same six shapes, same three arms, one process per type:
+
+| element type, at `-fspec-constr` | `bq-expand` | worst | `alloc` | `mut-odo-vecdims` | worst |
+|---|---:|---:|---:|---:|---:|
+| `Storable Double` | 0.148 | 0.245 | 2.61x | 0.092 | 0.123 |
+| `Storable Float` | 0.156 | 0.248 | 2.11x | 0.098 | 0.140 |
+| unboxed `Int` | 0.159 | 0.267 | 2.60x | 0.093 | 0.133 |
+| `Storable Word8` | 0.153 | 0.247 | 1.73x | 0.093 | 0.123 |
+
+Everything the -O1 table is read for survives. The ranking is the same at
+every type, `bq-expand` spans 7% across the four where -O1 gave 3%, and its
+`worst` sits between 0.245 and 0.267 — so on no shape of any type does the
+shipped arm come within three times of the fallback it replaced, in either
+regime. The `alloc` column's consistency check reproduces to the digit:
+dividing by `8*l` whatever the element predicts `Float` 0.50x below `Double`
+and `Word8` 0.875x below, and the observed gaps are 0.50x and 0.88x. So does
+the width oddity — `Float` is again *worse* than `Double` for
+`mut-odo-vecdims` despite half the width, which is now a two-regime
+observation and still unexplained. The one thing that does not carry is the
+comparison itself: these figures are the probe's, uncorrected, and belong
+beside the -O1 table above rather than beside any run.
 
 **These figures are the probe's own.** `Probe.hs` is a separate program with
 its own transcribed arms — all four types, `Double` included, so that none of
@@ -1400,6 +1425,12 @@ well as a full one:
     micro --json RUN.json                                    # the whole thing
     micro -m glob 'cnn-slice-c32/list' 'cnn-slice-c32/bq-expand' --json x.json
 
+**Quote every glob**, as those are: unquoted, the shell expands them first,
+and in this directory `*/build` becomes `dist-newstyle/build` while
+`*/mut-odo` finds no match and survives — so one arm silently leaves the run
+and criterion reports nothing wrong. That cost a placement probe its whole
+point once, the arm dropped being the only one the probe was about.
+
 The second takes seconds and still exercises the reader; a one-shape run says
 so. A filtered run
 like it carries no `sum-only` bench, so its figures are uncorrected and not
@@ -1529,6 +1560,22 @@ they disagree by 1.24× on Run 7 and 0.86× on Run 8, on 22 and 23 shapes of
 copies of one worker at two addresses, and the gap between what the two
 instruments read is the part of layout the twins cannot see. Do not price a
 margin between distant rows at the twins' floor.
+
+**And a probe has since priced the rebuild itself, which is what neither the
+twins nor that pair measure.** Four binaries built from sources differing
+only in inert pad arms, the run filtered so the pads never execute, leave
+`list` inside 0.5% and move `mut-odo` and `offtab` by up to 18% ([the open
+list](#what-the-next-runs-have-to-decide) carries the figures). So this page
+has three uncertainties of quite different size and only the smallest is on
+the table above. An arm against **itself in one binary** is the A/A twins,
+0.4%. Two **different arms in one binary** carry placement, which
+`build`/`mut-odo` puts at 14-24% for a pair whose code is identical. One arm
+across **two binaries** carries the rebuild, up to 18% on a susceptible arm
+and almost nothing on an insusceptible one. Susceptibility is a property of
+the arm and has been measured for three of them, so for the rest it is
+unknown; what that protects is orderings and tiers, which several arms
+witness at once, and what it does not protect is any single arm's figure read
+across a rebuild.
 
 **A filtered run cannot answer the position question**, and the trap is quiet
 enough to be worth stating: criterion's selection removes the intervening
@@ -1819,7 +1866,10 @@ baseline by 8% and most of the table by more — which is why so many ratios
 fall — while, of these eight, two arms sit still and one gets materially
 worse. Every ratio in
 this chapter understates its arm's absolute gain by the baseline's own 8%,
-and cross-run ratio comparisons are read with that in hand. Ten of the 38
+and cross-run ratio comparisons are read with that in hand — and with the
+rebuild caveat [the floor section][floor] carries, since a susceptible arm
+moves up to 18% between two builds of the same source, which is the size of
+the smaller figures above and unmeasured for most arms. Ten of the 38
 strategies besides `list` do come out slower under the flag, `offtab` (1.22)
 and `mut-odo` worst of them, so "the flag helps" is a majority and not a
 rule. The eight
@@ -3245,9 +3295,9 @@ What Run 8 adds is a reason to want it sooner: this arm's A/A pairs carry the
 largest deviation in seven of the eight class processes, `reshape1` alone
 excepted.
 
-**One of Run 8's own is already answered**, by the Core diff its entry
-specified and on the same day — the rule about a discriminating measurement
-deserving a probe now, observed again:
+**Three of these were answered the same day**, each by the probe its own
+entry specified — the rule about a discriminating measurement deserving one
+now rather than a slot in the next run, observed again:
 
 - **`bq-scan-packed-mulback` gets worse because SpecConstr gives its control,
   for free, exactly what the packing was hand-rolled to buy — and the packing
@@ -3306,6 +3356,17 @@ deserving a probe now, observed again:
   moves furthest of the three and not for its packing at all: its arm
   improves 6% while its *control* regresses 22%.
 
+- **The element-type ordering still follows `Storable Double`.** [That
+  section's](#one-element-type-and-what-the-probe-found) own re-probe trigger
+  is a run that moves the ordering at `Storable Double`, which Run 8 does, so
+  all four types were re-run under the flag: the ranking is unchanged at every
+  one of them, `bq-expand`'s `worst` stays between 0.245 and 0.267, and the
+  column's arithmetic check reproduces to the digit. The figures are in that
+  section beside the -O1 ones. What the re-probe does not settle is the
+  question behind the trigger — whether the flag's reordering is an
+  `Int`-arithmetic effect or an element-width one — since the ordering it
+  moved is among the roster's arms and not among the types.
+
 **What Run 8 leaves open**, each with what would settle it:
 
 - **Should orthotope itself compile with `-fspec-constr`?** The flag is worth
@@ -3320,27 +3381,36 @@ deserving a probe now, observed again:
   `convVjpBench` A/B over
   the pair, which is the same harness that priced the fallback fix — and it
   belongs in that repo's issue, not in a run here.
-- **What does code placement cost, and is it what the flag's regressions
-  are?** Three strands now point one way and the Core has been read out of
-  all three, which is what makes this one question rather than three.
-  (i) `build` and `mut-odo` compile to the same worker in both regimes and
-  moved in **opposite** directions under the flag, 17% faster and 19%
-  slower; identical code cannot explain opposite moves. (ii) `offtab` (1.22)
-  and `bq-gen` (1.12), the run's other two large regressions, have no
-  codegen reason either — dumped in both regimes, each has its build loop
-  specialised as every other arm's is, four arguments to three, with nothing
-  added and no boxing to remove; `bq-gen`'s build even goes
-  allocation-free, 11.00x an entry to 1.00x, while the arm gets slower.
-  (iii) The flag moves 12 KiB of `.text` (20,349,125 bytes to 20,336,837),
-  so every arm's address and alignment shift whether or not its own code
-  changed. What is left is to price placement rather than infer it, and the
-  measurement is the same for all three: arms timed at several roster
-  positions in one process, padding inserted between them, as the probe that
-  failed to reproduce the -O1 `build`/`mut-odo` gap already did once. It
-  needs a quiet machine, which is why Run 8 could not do it after the fact.
-  `offtab` carries one extra caveat: it is among the run's noisiest benches
-  (`noise` 2.22, CI% 0.75), so for that arm the first question is whether
-  the regression reproduces at all.
+- **What does code placement cost?** **A rebuild is worth up to 18% on a
+  susceptible arm and 0.5% on the baseline** — which is the size of every
+  unexplained regression in Run 8, and the largest effect this page has
+  measured that is not a strategy. Four binaries were built from sources
+  differing only in inert pad arms, the run filtered so the pads never
+  execute; against the first of them the other three read `list` 0.9949,
+  1.0019 and 1.0031, `mut-odo` 1.0389, 0.8808 and 1.0401, and `offtab`
+  0.8241, 0.9524 and 0.9126 (2026-08-08, `-fspec-constr`, 24 shapes,
+  per-shape geomeans of absolute net time). So susceptibility is a property
+  of the arm: the baseline has almost none and two arms have a great deal,
+  and they are the same two the flag sets back hardest.
+
+  Around that sit the readings it explains. `offtab`'s own regression is
+  **not** roster or noise: filtered into a five-bench process it reads 1.2236
+  across the regimes over 24 shapes, slower on 24 of 24, against the full
+  run's 1.218 — but that used one binary for both regimes, so it rules out
+  everything except placement. `build` and `mut-odo` compile to the same
+  worker and moved in *opposite* directions under the flag, 17% faster and
+  19% slower, which identical code cannot do. `bq-gen` regressed 12% with its
+  build loop specialised like every other and its build allocation-free. And
+  the flag moves 12 KiB of `.text` (20,349,125 bytes to 20,336,837), so every
+  arm's address and alignment shift whether its code changed or not.
+
+  What is left is narrower than the question was. The pad probe should have
+  timed `build` across the four layouts and did not — a shell glob ate the
+  arm ([the reader's section](#the-reader-read-runpy)) — so the pair's own
+  swing is still unmeasured, and no probe has yet varied a *susceptible*
+  arm's address deliberately rather than incidentally. Both want a quiet
+  machine. What no longer needs asking is whether placement can be this
+  large: it is.
 - **Is the term still unbiased?** Gate 3 passed but stopped bracketing 1:
   every `bq-expand` in-situ median in every one of the nine populations sits
   below it, 0.969 to 0.985
@@ -3349,16 +3419,6 @@ deserving a probe now, observed again:
   is simply the next run's own gate, read for the sign rather than only for
   the threshold; if it is one-sided again, the `-nosum` arms are pricing
   something `sum-only` does not.
-- **Does the element-type ordering still follow `Storable Double`?** [The
-  probe](#one-element-type-and-what-the-probe-found) rests on the claim that
-  the other three types track the ordering at `Storable Double`, and its own
-  re-probe trigger is a run that moves that ordering. Run 8 moves it — but in
-  a regime the probe has never run in, so the trigger fires against a
-  comparison that does not exist. `cabal run probe -- f32` and its siblings
-  under `-fspec-constr`, six shapes and three arms per type, answer it in
-  minutes and would say whether the flag's reordering is an `Int`-arithmetic
-  effect or an element-width one.
-
 Run 9's first decision is its regime, because that fixes its yardstick: -O1
 reads against Run 7 and `-fspec-constr` against Run 8, and only the second
 would be the first exact repetition this page has ever had.
