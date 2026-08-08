@@ -62,6 +62,7 @@ it.
   - [Dropping the minibatch dimension](#dropping-the-minibatch-dimension)
   - [The stride classes and what they cover](#the-stride-classes-and-what-they-cover)
   - [The scratch vector flavour](#the-scratch-vector-flavour)
+  - [One element type, and what the probe found](#one-element-type-and-what-the-probe-found)
   - [Lemire multiplicative inverses, at the two division sites](#lemire-multiplicative-inverses-at-the-two-division-sites)
   - [Per shape, where the geomean hides the ordering](#per-shape-where-the-geomean-hides-the-ordering)
   - [The fix in Data/Array/Internal.hs](#the-fix-in-dataarrayinternalhs)
@@ -324,6 +325,80 @@ while those three arms do not, and the next run is the first to measure what
 the library actually does. `mut-odo-vecdims`'s dimension vectors were Storable
 when its 0.051 was taken, which is also why this page's calling them *unboxed*
 was wrong then and is right now.
+
+
+### One element type, and what the probe found
+
+Everything timed here is `Storable Double`, horde-ad's element storage, while
+the fallback all of it justifies is polymorphic over the `Vector` class *and*
+the element type. What the element changes is the copy — its width sets how
+many elements a cache line holds, and the instance sets what a write costs —
+and what it does not change is the index arithmetic, which is the only thing
+the strategies differ in. So the question was never whether the magnitudes
+move but whether the **ordering** does, and whether the shipped arm stays
+under `list` at every instance the library serves.
+
+The probe, run 2026-08-08 at -O1 on the desktop this page's other figures come
+from: three arms — `list`, `bq-expand` and `mut-odo-vecdims`, spanning the
+list, the per-element generate and the run copy — over six shapes chosen to
+span `sInner` and `l`, one process per type, by `cabal run probe -- f32` and
+its siblings. Three further points, each varying one thing against `Storable
+Double`: `Storable Float` is the same instance at half the width, unboxed
+`Int` the same width in another instance, `Storable Word8` the same instance
+at the narrowest width there is. Each figure is that type's own geomean
+against that type's own `list`:
+
+| element type | `bq-expand` | worst | `alloc` | `mut-odo-vecdims` | worst |
+|---|---:|---:|---:|---:|---:|
+| `Storable Double` | 0.189 | 0.317 | 3.73x | 0.084 | 0.112 |
+| `Storable Float` | 0.189 | 0.321 | 3.23x | 0.095 | 0.137 |
+| unboxed `Int` | 0.187 | 0.321 | 3.72x | 0.080 | 0.116 |
+| `Storable Word8` | 0.193 | 0.322 | 2.85x | 0.073 | 0.106 |
+
+**The ordering holds at every type, and the shipped arm is never close to
+`list`.** `bq-expand` spans 3.2% across the four, about the floor, and its
+`worst` — the column that answers what a geomean cannot — sits between 0.317
+and 0.322, so on no shape of any type did it come within three times of the
+fallback it replaced. That is the property that had to hold for every
+instance, and it holds with room to spare and almost no variation, across an
+eightfold range of element width and two `Vector` instances.
+
+**What does not hold is the tidy width story.** `mut-odo-vecdims` is not
+monotone in width: `Float` (0.095) is *worse* than `Double` (0.084) though its
+elements are half the size, while `Word8` (0.073) is the best of the four.
+That is a property of the measurement and not a stray cell — it reproduced on
+two independent runs, before and after the probe became a program of its own —
+and it is unexplained. It is also nowhere near an inversion, so it bears on
+the width intuition rather than on any ruling here.
+
+Three cautions on the table. It is **uncorrected** — a probe carries no
+`sum-only` bench — so every column is compressed toward 1 by the forcing pass;
+that cannot flip an under-1 verdict, the correction only moving a ratio
+further from 1, and it falls on all three arms of a type alike. The `alloc`
+column divides by `8*l` whatever the element, so a narrower type reads low by
+exactly the result vector's own share: predicted 0.50x below `Double` at
+`Float` and 0.875x below at `Word8`, observed 3.23x and 2.85x against 3.73x —
+both to the digit, which makes that column a consistency check as much as a
+caveat. And three arms over six shapes is a probe, not a run.
+
+**These figures are the probe's own.** `Probe.hs` is a separate program with
+its own transcribed arms — all four types, `Double` included, so that none of
+them is served by the roster's originals while the others run copies and a
+difference could be an artifact of the copying. The price is that its
+`bq-expand` is bq-expand-*shaped* rather than the roster's, so a figure here
+never belongs beside one from a run. Its six shapes are copies too, and those
+*are* held to `Main.hs`'s own dims by `--lint`, which is not a hypothetical
+guard: three of the six were transposed when first written and the check named
+all three.
+
+**So one element type stays, and generalising the suite stays refused** — now
+on evidence rather than on cost alone. The cost argument is unchanged and is
+under [what the benchmark does](#what-the-benchmark-does); what has changed is
+that the coverage it buys is measured. Boxed elements are deliberately absent,
+and not for cost — their elements are thunks, so each arm would defer a
+different share of its copy into the forcing sum and the fill/forcing split
+every figure on this page rests on would not hold. Probing boxed needs a
+design of its own, not another duplicate.
 
 
 ### Lemire multiplicative inverses, at the two division sites
@@ -686,7 +761,10 @@ compiles only one at a time, so a replica is the only way to A/B them.
 element type. Element width sets how many elements a cache line holds and
 boxed elements change the copy entirely, so the *ranking* and not only the
 magnitudes may differ for the instances the shipped code actually serves.
-Nothing here probes that.
+Nothing in the roster probes that; `Probe.hs`, a program of its own, does at
+three further types and found the ordering unmoved —
+[the probe](#one-element-type-and-what-the-probe-found) is the evidence this
+restriction now rests on, boxed excepted.
 
 **Don't generalise the suite to run every arm at every element type.** The
 typing is the cheap part — the payload is only ever loaded and stored, all the
@@ -798,6 +876,15 @@ Self-contained (base + vector + criterion + deepseq):
     cd micro-regime3 && cabal run micro -- classes rev-   # one stride class
     cd micro-regime3 && cabal run micro --ghc-options=-fspec-constr
     cd micro-regime3 && cabal run micro --ghc-options=-O2 -- diag
+    cd micro-regime3 && cabal run probe -- check     # the element-type probe
+    cd micro-regime3 && cabal run probe -- f32       # one element type
+
+`probe` is a second executable and not part of the roster:
+[the element-type probe](#one-element-type-and-what-the-probe-found), whose
+own header in `Probe.hs` says why it is a separate program and what its
+separateness costs. Both are executables rather than benchmark stanzas, which
+is what lets every mode above take its arguments directly — and what keeps a
+bare `cabal bench` from launching a multi-hour run.
 
 The `classes` mode replaces the main set with the
 [stride-class](#the-stride-classes-and-what-they-cover) populations, one
@@ -1151,6 +1238,13 @@ mistyped dimension or annotation is caught at edit time. `--selftest` had
 that oracle first and still carries it, but only for the shapes a run's JSON
 happens to hold — which for a class list is after that population's process
 has finished, hours past the point where the check is worth anything.
+
+And a sixth about a second file: do `Probe.hs`'s six copied shapes still
+match the dims `Main.hs` gives those names. The probe is a separate program
+and its shapes are copies (its header says why), so this is the one thing
+standing between a transposed dim there and a probe measuring a shape it
+still names after — which is not hypothetical, three of the six being wrong
+when they were first written and named by this check.
 
 The question it used to ask second — is every benchmarked strategy also held
 to the reference by `check`? — is gone, and deliberately. The roster and the
@@ -2038,6 +2132,10 @@ for `Run 6` — before trusting the list.
 - [The scratch vector flavour](#the-scratch-vector-flavour), whose figures
   are a probe's too, and whose conversion is why no `bq-*` figure predating
   it is comparable with one after it;
+- [One element type](#one-element-type-and-what-the-probe-found), whose
+  figures are a probe's and which no run replaces either. What would call for
+  re-probing is a run that moves the ordering at `Storable Double`, since the
+  claim is that the other types follow it;
 - [sum-only](#sum-only-and-the-correction-now-applied), where what a run
   decides is no longer *whether* to correct but whether the term still passes
   its three gates, any failure invalidating the column rather than informing

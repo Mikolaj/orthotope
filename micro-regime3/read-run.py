@@ -1355,6 +1355,44 @@ def lint(main_hs, readme):
         print('ok:   every l annotation matches its list\'s rule (%d of %d'
               ' entries annotated)' % (len(ann), len(dims)))
 
+    # Probe.hs is a separate program with copies of six of Main.hs's shapes,
+    # so that all four of its element types run transcribed code rather than
+    # three copies against one original. The copy is what this checks: a dim
+    # that stopped matching would leave the probe measuring a shape it still
+    # names after. Its base-offsets build is deliberately NOT checked -- see
+    # that file's header on why its figures are its own.
+    #
+    # Non-vacuity: it was written from a wrong copy and caught it. Three of
+    # the six were transposed or re-ranked on first writing
+    # (cnn-slice-c32, stretch-inner1, stretch-tall-Mx2) and this named all
+    # three; restoring one wrong dim fails it again with both shapes printed.
+    probe = os.path.join(os.path.dirname(os.path.abspath(main_hs)), 'Probe.hs')
+    try:
+        ptext = open(probe).read()
+    except OSError:
+        note.append('no Probe.hs beside Main.hs, so its shape copies are'
+                    ' unchecked')
+    else:
+        entry = re.compile(r'^\s*[\[,] \("([^"]+)",\s*(\[[^\]]*\])\)', re.M)
+        block = ptext[ptext.index('probeShapes ='):] if 'probeShapes =' \
+            in ptext else ''
+        pshapes = {n: [int(d) for d in re.findall(r'\d+', ds)]
+                   for n, ds in entry.findall(block.split('\n  ]')[0])}
+        mine = dims_by_shape(main_hs)[0]
+        if not pshapes:
+            bad.append('Probe.hs defines no probeShapes, so the shape-copy'
+                       ' check read nothing')
+        else:
+            off = ['%s %s in Probe.hs against %s in Main.hs'
+                   % (n, ds, mine[n]['dims']) for n, ds in pshapes.items()
+                   if n not in mine or mine[n]['dims'] != ds]
+            if off:
+                bad.append('%d probe shape(s) disagreeing with Main.hs: %s'
+                           % (len(off), '; '.join(off)))
+            else:
+                print('ok:   all %d Probe.hs shapes match Main.hs\'s own dims'
+                      % len(pshapes))
+
     only = [n for n, r, _ in roster if r == 'Only']
     if only:
         print('note: rostered and checked but deliberately not timed, with'
