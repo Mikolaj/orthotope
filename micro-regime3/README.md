@@ -815,10 +815,42 @@ ties the shared control outright (1.0183, 13 of 24, sign p 0.84). Allocation
 was not in doubt and is not — all four read 1.00x, the stride table costing
 about 1.3 KB against a megabyte-scale result.
 
+**Why the count-down form pays is now in the Core, and why the other three
+lose is not what this section took it to be** (2026-08-09, `-fspec-constr`).
+`add-both-down`'s innermost run-fill is seven instructions where every
+sibling's is eight: it carries the output position in a register and steps
+it, where the others rebuild `outPos + j` with a move and an add on every
+element. That is a per-element change, and Run 9 agrees it behaves like one
+— its advantage grows with `sInner`, r −0.29 against log `sInner`, 1.052
+where `sInner` is 3 or less against 0.972 where it is 8 or more. The other
+three do not. `add-in`'s counted loops are identical to its control's
+instruction for instruction, its whole code difference sitting in the
+odometer recursion, where one multiply becomes an accumulated add threaded
+as a further argument — a per-*run* change. And a per-run change is not what
+the run measured: the penalty is flat in `sInner` (r +0.21), and its largest
+cell is `stretch-tall-Mx2`, shape [2, 900000], where the odometer descends
+twice per call and `add-in` still reads 1.3152. Two multiplies do not cost
+31%. `add-out` and `add-both` do carry real extra code — a `scanr (*)` over
+the shape, built into a byte array once per call and read once per run — but
+it adds nothing to the per-element loop, and the same shape disposes of it:
+at rank 2 and two runs their entire extra work is a two-element table and
+two reads, and they read 1.2930 and 1.2901 there.
+
+**So the two solo axis figures are suspended, not replaced.** What costs 16%
+on them is not the arithmetic they port, the loop doing the per-element work
+being the same code in all four arms; and it is the size the layout span is,
+on arms whose executed copy of that loop straddles a cache line where their
+control's does not ([the floor section][floor]). The ruling below keeps its
+conclusion, since the axis that is genuinely per-element is the count-down
+one and it ties. What it loses is the price: +15.5% and +18.0% are not what
+FastReshape's arithmetic costs, and the honest reading of these four is that
+the precedent's arithmetic is neutral here rather than harmful.
+
 **What that does to the precedent's weight.** FastReshape's arithmetic, ported
-one axis at a time onto this page's fastest arm, is worth nothing here and
-costs 16% unless the loops are also counted down — at which point it is a
-tie. So the in-tree precedent argues for the *shape* of a mutable fill and
+one axis at a time onto this page's fastest arm, buys nothing here: the
+count-down form ties the control, and the two solo axes' losses are not the
+arithmetic's to pay (above). So the in-tree precedent argues for the *shape*
+of a mutable fill and
 not for its arithmetic, and the ruling above is unmoved: what a new class
 method would buy is still `mut-odo-vecdims`, at [the 1.87×](#results) the
 ceiling section prices, and none of these four adds to it.
@@ -2105,6 +2137,57 @@ copies of one worker at two addresses, and the gap between what the two
 instruments read is the part of layout the twins cannot see. Do not price a
 margin between distant rows at the twins' floor.
 
+**And those two addresses now have a candidate consequence, read out of the
+binary** (2026-08-09, `-fspec-constr`). The innermost run-fill is 28 bytes —
+seven instructions and a backward branch — and the binary carries four
+byte-identical copies of it, two per arm, the only alignment directive
+anywhere in either procedure being `.align 8`. One copy per arm is the
+mismatched-length `fail` join and cannot run on a well-formed shape; the
+copies that do run are `mut-odo`'s at byte 29 of its cache line, which fits,
+and `build`'s at 53, which straddles two. The dead copies fall the other way
+round, which is why the pair looks like a wash until the executed one is
+identified. That is one bit against one gap, so it is a candidate and not an
+account — but it is one the pad probe can test, nothing pinning these loops
+to a line: pad in eight-byte steps until `build`'s executed copy lands whole
+and see whether the gap goes with it. The instrument is steady meanwhile,
+the flag's 12 KiB of `.text` reproducing to the byte on a base the arms
+written since have grown.
+
+**And a second family reads the same way, which is what takes it past one
+point.** The four `mut-odo-vecdims` arms carry one copy each of that same
+28-byte fill, the FastReshape three differing from their control nowhere
+inside it ([the mutable ceiling](#the-mutable-ceiling-not-taken)), so their
+copies stand beside `build`/`mut-odo`'s:
+
+| arm | loop | mod 64 | lines | Run 9 against its control |
+|---|---:|---:|---:|---:|
+| `mut-odo-vecdims` | 28 B | 24 | 1 | — |
+| `mut-odo-vecdims-add-in` | 28 B | 40 | 2 | 1.1552 |
+| `mut-odo-vecdims-add-out` | 28 B | 44 | 2 | 1.1795 |
+| `mut-odo-vecdims-add-both` | 28 B | 44 | 2 | 1.1645 |
+| `mut-odo-vecdims-add-both-down` | 24 B | 33 | 1 | 1.0183 |
+| `mut-odo` | 28 B | 29 | 1 | — |
+| `build` | 28 B | 53 | 2 | 1.13 |
+
+Every copy that fits inside one line reads level or ahead, every copy that
+straddles reads 13–18% behind, and no arm of either family dissents. The
+count-down form is the one row whose loop is not that code — it is the
+shorter one, and line-resident as well — so it sits here for completeness
+and is read in its own section. This is still a correlation inside one
+binary, and 64 bytes is the granularity of more than the cache line, the op
+cache included, so the pad probe stays the test rather than the
+confirmation. What it stops being is a guess.
+
+**And the identical-code pair reads the same way in all nine of Run 9's
+populations**, one binary throughout, so the gap owes nothing to the main
+set's choice of shapes: `build`/`mut-odo` runs 1.078 (`window`) to 1.375
+(`bcastmid`), above 1 in every population, with `build` slower on 39 of the
+43 shapes between them. That widens the range as much as it confirms it — 8
+to 37% across populations against the 13 to 18% the main set alone shows —
+and it is smallest in the class whose views overlap and reuse cache, which
+is the direction a front-end cost would take, though nothing here measures
+that.
+
 **And a probe has since priced the rebuild itself, which is what neither the
 twins nor that pair measure.** Four binaries built from sources differing
 only in inert pad arms, the run filtered so the pads never execute, leave
@@ -2361,6 +2444,46 @@ what the others catch:
    *more than a few percent*; what it has stopped doing is passing for the
    reason the test assumes. [The open
    list](#what-the-next-runs-have-to-decide) carries what would settle it.
+
+   **The cells under those medians say the same, and add a gradient the
+   medians hide** (2026-08-09, off Run 9's artifacts). Taken per shape
+   instead of as a median, over both arms and all nine populations, the
+   in-situ readings sit below 1 on 73
+   cells of 86, sign p 2.7e-11 — and not because differencing two nearly
+   equal numbers is noisy: calibrated on each arm's own A/A cells and
+   amplified by the differencing, the scatter to expect is a fraction of a
+   percent to a couple of percent, and three `bq-expand` cells of 24 and no
+   `mut-odo-vecdims` cell fall inside it. The two arms also order the main
+   set's shapes alike — Spearman 0.82, and 0.85 with the three cells above
+   1.03 set aside — and two fills an octave apart in speed, at roster slots
+   13 and 50, agreeing shape by shape is what a property of the read looks
+   like rather than one of either arm. The gradient is in `l`: the shortfall
+   runs about a tenth of the term at the smallest shapes and vanishes at the
+   largest (smallest twelve shapes 0.955 and 0.960 by geomean, largest twelve
+   1.027 and 1.002; r against log `l` 0.60 and 0.58), which is neither a
+   per-call constant nor a per-element rate. Where it concentrates is the
+   shapes whose result is L1-resident: the three at 32 KiB of result or
+   under read 0.898 and 0.925 by geomean against 0.98 to 0.99 for everything
+   larger, and between the L2 and L3 buckets it barely moves at all.
+   Whether that is a step at the L1 boundary or a smooth trend three shapes
+   cannot settle — with the cells above 1.03 kept a line in log `l` fits
+   better and with them dropped a three-level step does, decisively for
+   `bq-expand` and marginally for `mut-odo-vecdims` — so read it as
+   concentrated in the L1-resident shapes rather than as a boundary effect.
+   None of this replaces the third `-nosum` arm: a third write
+   pattern is still the only thing that separates the read from these two
+   arms, and this is evidence pointing that way rather than a substitute.
+
+   **Priced, it is under a point.** Re-pricing each arm's own numerator with
+   its in-situ term, the `list` denominator left alone at 2.7% of itself,
+   moves Run 9's published main-set geomean to 0.9993 for `bq-expand` and
+   1.0088 for `mut-odo-vecdims`, and each class's to between 1.0015 and
+   1.0288, the largest under `bcastmid`, `scaled` and `bcast`. Per shape it
+   reaches +3% and −8%, and the cells that move a published figure most are
+   the three reading *above* 1 rather than the systematic shortfall. So the
+   flattery is real, sits inside the layout span everywhere, and is worth a
+   sentence about a particular cell rather than a second correction to the
+   column.
 
 **The three gates are a population's, not a run's.** Every process carries the
 `sum-only` pair and the two `-nosum` arms, so a
@@ -3457,7 +3580,13 @@ clauses of the second property at once: the fastest pure arm is
 *ahead* of `mut-odo-vecdims` — the only population anywhere where the shipped
 arm beats the ceiling's own arm. `m = l` here, which is what puts
 `bq-expand`'s allocation at 4.22x, its highest in any class and the level the
-third property names.
+third property names. That level carries a nursery consequence with it:
+`bq-expand` holds 6–8 MB of excess allocation on both shapes and
+`mut-odo-vecdims` none at all, against `list`'s 43 and 118 MB, so the default
+4 MB area penalises the baseline hardest and the ceiling's arm not at all. A
+larger nursery would raise `mut-odo-vecdims`'s ratio more than `bq-expand`'s,
+so the inversion above is a floor rather than an artifact — it would widen
+([the predictor](#what-the-next-runs-have-to-decide)).
 
 **`slice` — a view of a larger source: non-zero offset, positive strides.**
 Shapes: `slice-cnn-L2-24x24-c32` (`l` 165888, `sInner` 3), `slice-primes`
@@ -3957,6 +4086,20 @@ they calibrate. On the moved roster the 41% cell reads 0.24%.
   untouched; if it collapses instead, this predictor is wrong and what this
   page calls placement is really the allocator.
 
+  **And the eight class populations, which that count left out**
+  (2026-08-09, the same arithmetic over the kept JSONs; it reproduces the
+  main set's 131 of 782 exactly, which is what makes the rest worth
+  quoting). `list` crosses the nursery in **every** population, so no class
+  table divides by an unaffected baseline — 336 MB of excess on
+  `bcast-tall-Mx2`, 118 on `reshape1-500k`, 34 to 81 elsewhere. The
+  strategies cross in three classes only, `bcast` (24 cells of 96),
+  `reshape1` (17 of 64) and `window` (10 of 66); in `bcastmid`, `rev`,
+  `revsome`, `scaled` and `slice` nothing but the baseline does. So those
+  five are penalised in one direction throughout, which leaves their
+  orderings alone and their levels flattered, while the three are penalised
+  unevenly and are where a nursery A/B would move a table. Whichever run
+  takes the `-A32m` pair should take the classes with it.
+
   **That second half was tested the same day and the prediction holds.** Both
   arms plus a `sum-only` half, filtered over all 24 shapes, run twice from
   one binary with the nursery as the only difference (2026-08-09): the pair
@@ -4073,7 +4216,10 @@ now rather than a slot in the next run, observed again:
   swing is still unmeasured, and no probe has yet varied a *susceptible*
   arm's address deliberately rather than incidentally. Both want a quiet
   machine. What no longer needs asking is whether placement can be this
-  large: it is.
+  large: it is. And the *how* has come one step down since, in the binary
+  rather than in a run: the pair's disagreement now has a 28-byte loop under
+  it that GHC aligns to eight bytes, with the two arms' executed copies
+  falling either side of a cache-line boundary ([the floor section][floor]).
 
   **Run 9 makes this the page's central question rather than a caveat on it.**
   A membership change alone moved five fingerprint arms from 0.910 to 1.192 in
@@ -4106,7 +4252,12 @@ now rather than a slot in the next run, observed again:
      through the roster is blocked, and it is **not** shrunk by 1: the
      `build`/`mut-odo` gap was measured across the nursery change the same
      day and did not move, so placement and the allocator are separate
-     effects and this probe has to be run for its own sake.
+     effects and this probe has to be run for its own sake. **The step is
+     eight bytes**, which is all GHC aligns the loop in question to, and the
+     pair now carries a prediction to aim at: [the floor section][floor]
+     reads the executed copy of `build`'s innermost loop across a cache-line
+     boundary and `mut-odo`'s inside one, so pad until `build`'s lands whole
+     and see whether the gap goes with it.
   3. **A third `-nosum` arm, on a flat fill** — a `Main.hs` addition and then
      a filtered run over the shape set. The two existing `-nosum` arms are an
      odometer and an expansion, so a flat fill is the one probe that
@@ -4128,7 +4279,27 @@ now rather than a slot in the next run, observed again:
   assumes, so the next measurement is not another gate reading: it is a third
   `-nosum` arm on a strategy whose write pattern differs from both — a flat
   fill rather than an odometer or an expansion — which is the one thing that
-  would say whether the bias is the *read* or those two arms.
+  would say whether the bias is the *read* or those two arms. Run 9's cells
+  have since been read under those medians and narrow everything except that
+  ([sum-only](#sum-only-and-the-correction-now-applied)): the shortfall is
+  systematic per cell rather than differencing noise, the two arms order the
+  shapes alike, it runs about a tenth of the term at the smallest shapes and
+  vanishes at the largest, and re-pricing both arms by it moves no published
+  geomean by a point. So the flat fill is the only thing left to ask, and the
+  bias it would characterise is small enough that the column stands either
+  way.
+- **Before crediting a margin to a strategy, check whether the two arms' hot
+  loops are the same code and where each landed.** Two families now read
+  that way ([the floor section][floor]), and in one of them it suspended an
+  axis figure the run had just published. What it does **not** extend to is
+  a sweep of the roster, which was tried: the reading needs two arms whose
+  hot loop is identical *and* which differ nowhere else, and the timed
+  roster holds exactly the two groups already read. Everywhere else the
+  shared loop is a table build while the arms differ in the output loop that
+  distinguishes them, so a line span there competes with real arithmetic and
+  says nothing; and `bq-gen`, whose 11% is still unaccounted for, has no
+  counterpart sharing its per-element loop at all, so this instrument cannot
+  reach it. Recorded so the sweep is not attempted a second time.
 - **What does the roster owe the next run?** Run 9's delta is empty and Run
   10 inherits shapes, roster and regime all pinned, so a Run 10 at
   `-fspec-constr` would be the exact repetition this page has never had and
