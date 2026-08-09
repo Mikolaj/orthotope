@@ -2708,16 +2708,19 @@ How to read the columns:
   refitted on a different shape, every one reproduced to within 0.4% — so that
   the median was a formality rather than a smoothing and the column did not
   move with what it was fitted on. **That is wrong**, and Run 6 (-O1)
-  reproduced the refutation at full budget where a rough pass had found it:
-  41 of 42 strategies vary by more than 5% from shape to shape, the median
-  strategy by 3.93× and the worst by 22× (`bq-unfold`, 1.00× to 22.00×), and
-  the four shapes of identical `l` = 1800000 give `bq-expand` 1.000×, 2.778×,
-  3.000× and 3.642×. Every allocated
-  fit sits at R² 1.000, so the spread is the quantity and not the measurement,
-  and allocation being deterministic per call the budget does not bear on it.
+  reproduced the refutation at full budget where a rough pass had found it.
+  Re-derived on Run 9's cells and roster it is unanimous: **every one of the
+  32 benched rows** varies by more than 5% from shape to shape, the median
+  row by 2.00× and the worst by 5.10× (`bq-expand-b`, 1.00× to 5.10×), and
+  the four shapes of identical `l` = 1800000 give `bq-expand` 2.000×,
+  2.111×, 1.000× and 2.639×. The spread narrowed as the roster was cut —
+  Run 6's worst was an arm nothing times any more — and the property it
+  measures did not. Every allocated fit sat at R² 1.000 on Run 6, so the
+  spread is the quantity and not the measurement, and allocation being
+  deterministic per call the budget does not bear on it either way.
   What does survive is the column: a median over a *pinned* shape set
-  reproduces, `list` landing at 27.67× and `unfold-add` at 29.89× on both the
-  rough pass and Run 6. So read `alloc` as a
+  reproduces, which claim 7 now carries on a live basis, every allocation
+  tier returning on its own level across a roster change. So read `alloc` as a
   statistic of a strategy **and** a shape set, and pin the shape set before
   comparing it across runs, exactly as the `time` column already asks. It is
   the one column the correction does not touch.
