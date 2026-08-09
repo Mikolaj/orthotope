@@ -79,39 +79,6 @@ and code size, and the measurement that would settle it is horde-ad's
 `convVjpBench` over a real build. The 27% is what this page contributes to
 it.
 
-## Contents
-
-- [The goal of these benchmarks](#the-goal-of-these-benchmarks)
-  - [How the strictly positive picture was achieved](#how-the-strictly-positive-picture-was-achieved)
-  - [Where the shapes come from](#where-the-shapes-come-from)
-  - [The shape set](#the-shape-set)
-  - [Dropping the minibatch dimension](#dropping-the-minibatch-dimension)
-  - [The stride classes and what they cover](#the-stride-classes-and-what-they-cover)
-  - [The scratch vector flavour](#the-scratch-vector-flavour)
-  - [One element type, and what the probe found](#one-element-type-and-what-the-probe-found)
-  - [Lemire multiplicative inverses, at the two division sites](#lemire-multiplicative-inverses-at-the-two-division-sites)
-  - [Per shape, where the geomean hides the ordering](#per-shape-where-the-geomean-hides-the-ordering)
-  - [The fix in Data/Array/Internal.hs](#the-fix-in-dataarrayinternalhs)
-  - [The mutable ceiling (not taken)](#the-mutable-ceiling-not-taken)
-  - [The C-gap: still a deeper ceiling](#the-c-gap-still-a-deeper-ceiling)
-  - [Dead ideas](#dead-ideas)
-- [About the current harness](#about-the-current-harness)
-  - [What the benchmark does](#what-the-benchmark-does)
-  - [Running it](#running-it)
-  - [Making a major benchmark run](#making-a-major-benchmark-run)
-  - [The reader: read-run.py](#the-reader-read-runpy)
-  - [The noise floor is the A/A controls, not the CI](#the-noise-floor-is-the-aa-controls-not-the-ci)
-  - [R2 is the ramp detector, not the noise detector](#r2-is-the-ramp-detector-not-the-noise-detector)
-  - [sum-only, and the correction now applied](#sum-only-and-the-correction-now-applied)
-  - [Non-urgent TODO list](#non-urgent-todo-list)
-- [About the last run (Run 9)](#about-the-last-run-run-9)
-  - [Results](#results)
-  - [What Run 10 compares against](#what-run-10-compares-against)
-  - [The claims Run 10 should test](#the-claims-run-10-should-test)
-  - [The stride classes, run by run](#the-stride-classes-run-by-run)
-  - [Provenance](#provenance)
-  - [What the next runs have to decide](#what-the-next-runs-have-to-decide)
-
 ## The goal of these benchmarks
 
 **Nothing in this chapter changes from run to run.** It changes when the

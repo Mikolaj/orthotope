@@ -1401,8 +1401,6 @@ def roster_of(main):
     return out
 
 
-TOC_RE = r'^\s*- \[[^]]+\]\(#[a-z0-9-]+\)$'
-
 FIGURE_RE = re.compile(r'\b0\.\d{3}\b|\d+\.\d+\s*[×x]\b'
                        r'|\b\d{1,2}\.\d%|\b\d+\.\d{2,}\b')
 
@@ -1457,9 +1455,13 @@ def unwrappable(lines):
     what lets a top-level bullet's own 2-space continuation stay inside the
     bullet rather than ending it.
 
-    Non-vacuous: over this README it exempts the code blocks and the contents
-    entries while flagging a 130-character list continuation the previous
-    test passed, and shortening that line is what makes --check-doc go green.
+    Non-vacuous: over this README it exempts the code blocks while flagging
+    a 130-character list continuation the previous test passed, and
+    shortening that line is what makes --check-doc go green. Re-confirmed by
+    lengthening a continuation on purpose, which fails, and shortening it,
+    which passes. The contents list was a third control until it was removed
+    from the document; its exemption went with it, so a re-added table of
+    contents will be flagged for width and wants this branch back.
     """
     out = set()
     owner_is_list = False
@@ -1472,8 +1474,7 @@ def unwrappable(lines):
         elif LIST_MARKER_RE.match(line):
             owner_is_list = True
         if (line.lstrip().startswith('|')
-                or re.match(r'^\[[a-z0-9-]+\]:\s*\S+$', line)
-                or re.match(TOC_RE, line)):
+                or re.match(r'^\[[a-z0-9-]+\]:\s*\S+$', line)):
             out.add(i)
         elif indent >= 4 and not owner_is_list:
             out.add(i)
