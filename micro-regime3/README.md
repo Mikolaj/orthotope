@@ -142,9 +142,436 @@ by being a thing a later session might otherwise redo.
   strategy here: [the C-gap][cgap].
 - **How a run is made and analysed**, including what a run does *not* touch:
   [the procedure][procedure], [the reader][reader] and [Provenance][prov].
-- **What is open**, each with the measurement that would settle it and what a
-  quiet machine is needed for: [the open list][open], with the harness's own
-  backlog under [the TODO list][todo].
+- **What is open** is the chapter directly below, this index's complement,
+  each question carrying the measurement that would settle it and what needs
+  a quiet machine: [the open list][open], with the harness's own backlog
+  folded in under [the TODO list][todo]. Nothing open is recorded anywhere
+  else.
+
+## What the next runs have to decide
+
+**The complement of the index above, and read with it.** That one says what
+is settled and where; this says what is not, each question with the
+measurement that would settle it and the run that can supply it. Between
+them a session knows what it must not re-derive and what is worth deriving,
+which is the pair the file opens with rather than the two lists it used to
+end its chapters with.
+
+**This is the only home for an open question.** They are collected here
+because otherwise they sit one per section and get reconstructed every time
+— and worse, get missed: the question of why the count-down FastReshape form
+pays was raised inside [the mutable ceiling][ceiling]'s own write-up and
+never migrated, so a session that mined this list and its queue walked past
+it. A question recorded anywhere else is a bug to be moved here, not a note
+to be left where it was written. The harness's own backlog is folded in
+below, for the same reason: two backlogs a thousand lines apart is how one
+belongs to neither.
+
+**Run 9 answered its one, and the answer is the prediction.** *What moved
+`mut-odo-vecdims` by the remaining ~13%?* The entry below asked for a run
+differing from its predecessor in membership alone and predicted, before the
+run, that a move of that size would be consistent with **layout alone**. Run
+9 is that run and the prediction holds: the arm moved 9.0% in absolute time
+against an unmoved baseline, which is inside the 18% a rebuild was already
+known to be worth, and it did not move alone — `mut-odo` moved 9.0% the same
+way and `build` moved 19.2% the other, the two of them compiling to one
+worker. A membership change that improves one arm 9% and worsens its own
+code-twin 19% has not told you anything about membership. So the question
+closes as **unanswerable by this design**, not as answered: roster and layout
+move together and no run that changes the roster can separate them. What
+would separate them is the pad probe done properly — vary a *susceptible*
+arm's address deliberately, with membership fixed — which is the entry below
+and now the only route left to this question.
+
+The probe's three side predictions came out one right and two not. `bq-gen`
+and `bq-gen-lemire` did collapse to the table in allocation, 3.58x and 2.95x
+to 1.33x each — and got *slower*, 0.279 to 0.339 and 0.377 to 0.479, 11%
+worse in absolute time for the first, which no reading of the `diag` had
+suggested and which the Core does not account for either, `bq-gen` having
+joined the placement question below. The expansion builders dropped without
+vanishing as predicted, `bq-expand`'s tier going 3.11x to 2.35x. And
+`bq-odo-mulback` was predicted not to follow the family up, on the ground
+that its three-`Int` constructor state survives where a bare `Int` does not;
+the builder's own allocation does survive, at 4.67x an entry in this regime,
+but the arm rose anyway — 19% faster per call, and it now leads the pure
+tier outright.
+
+**And it raised a larger one in the same breath, which was then answered the
+same day.** *What warms the expansion family?* On `vgg-14-c512-k3`,
+`bq-expand` and three arms beside it run 35–40% slower in a small process
+than at their published roster slots, reproducibly, while the scan and
+mutable families do not move at all — the largest effect this page has
+measured that is not a strategy, and it lands on the **shipped** arm. A dozen
+probes settled it: not GC time (5.8% of the cold process), but the **default
+4 MB nursery** against an arm allocating 13.2 MB per call beyond its result,
+warmed by exactly one predecessor — `sum-only-early`, whose one-off
+`l`-sized setup allocation grows the block pool and leaves it grown. A
+nine-point `-A` sweep shows a larger nursery rescuing the *cold* arm, and
+shows `-A1G`'s cliff to be a collision with the `-M2G` cap rather than the
+nursery. The account is [in the floor
+section][floor], and it carried **a roster fix, since applied**:
+`sum-only-early` has moved from slot 5 to slot 2, ahead of the three distant
+A/A twins, which were being calibrated against a colder heap than everything
+they calibrate. On the moved roster the 41% cell reads 0.24%.
+
+  **The acute symptom is gone**, by the roster move rather than by any flag.
+  What the flag question became instead was settled on a quiet machine the
+  same day, and the answer is bigger than the question: a larger nursery
+  helps a warm arm by about 10%, the cost it removes is *kernel* time, and
+  **`list` is the arm it helps most of all** — 1.79× on `vgg-14-c512-k3`,
+  which takes `bq-expand`/`list` there from 0.098 to 0.157 ([the floor
+  section][floor]).
+
+  **So the decision is no, and for a better reason than "it buys nothing".**
+  The default 4 MB area is what a GHC program gets unless it says otherwise,
+  so the published column answers *what does a caller see today*; `-A32m`
+  answers a question nobody asked, at the price of re-basing every figure the
+  page has published and forfeiting the clean repetition Run 10 is positioned
+  to give. Keep the default. What changes is not the setting but the
+  **caveat**: the headline ratios are partly a statement about the allocation
+  area, they are not a nursery-independent property of the algorithms, and
+  the effect is confined to shapes where an arm's excess outruns 4 MB — which
+  the `cifar` control shows the small shapes do not. What is *not* known is
+  how much of the published geomean moves, since one shape is not the table;
+  that is a run rather than a probe, and worth appending to whichever run
+  comes next rather than commissioning on its own.
+
+  **The predictor, recorded before the run that would test it.** What decides
+  whether an arm feels the nursery is not its total allocation but its
+  allocation **in excess of the result buffer**, `(alloc − 1) × 8l`: the
+  result is one large object and goes straight to the large-object list,
+  bypassing the nursery, while the excess is the part that churns through it.
+  On the six arms whose `vgg-14-c512-k3` behaviour is already measured the
+  rule separates them outright, and the line falls on the nursery itself —
+  affected at 11.2 to 13.2 MB of excess (`bq-expand` and its two
+  output variants, `bq-odo-gm-mulback`), unaffected at 2.4 MB
+  (`bq-scan-rem-gm-mulback`) and 0 (`mut-odo-vecdims`). Total allocation does
+  *not* separate them, putting an unaffected arm at 9.6 MB and an affected
+  one at 18.5 MB with no line between that means anything. Applied to the
+  kept Run 9 cells the rule predicts **131 of 782** cells move, concentrated
+  on the large shapes, and names **14 arms that should not move on any
+  shape** — the whole `mut-odo-vecdims` family, `build`, `mut-odo`,
+  `gen-quotrem`, `gen-unsafe` and both `sum-only` halves. Two consequences
+  worth having in writing before the measurement. `list` itself is predicted
+  affected on 17 shapes, by up to 353 MB of excess, so **the baseline is
+  expected to move and every ratio with it** — which is most of the case
+  against adopting the flag casually. And `build` and `mut-odo` are both
+  predicted *unaffected*, so their 1.13× gap should survive `-A32m`
+  untouched; if it collapses instead, this predictor is wrong and what this
+  page calls placement is really the allocator.
+
+  **And the eight class populations, which that count left out**
+  (2026-08-09, the same arithmetic over the kept JSONs; it reproduces the
+  main set's 131 of 782 exactly, which is what makes the rest worth
+  quoting). `list` crosses the nursery in **every** population, so no class
+  table divides by an unaffected baseline — 336 MB of excess on
+  `bcast-tall-Mx2`, 118 on `reshape1-500k`, 34 to 81 elsewhere. The
+  strategies cross in three classes only, `bcast` (24 cells of 96),
+  `reshape1` (17 of 64) and `window` (10 of 66); in `bcastmid`, `rev`,
+  `revsome`, `scaled` and `slice` nothing but the baseline does. So those
+  five are penalised in one direction throughout, which leaves their
+  orderings alone and their levels flattered, while the three are penalised
+  unevenly and are where a nursery A/B would move a table. Whichever run
+  takes the `-A32m` pair should take the classes with it.
+
+  **That second half was tested the same day and the prediction holds.** Both
+  arms plus a `sum-only` half, filtered over all 24 shapes, run twice from
+  one binary with the nursery as the only difference (2026-08-09): the pair
+  reads **1.1604** at the default and **1.1433** at `-A32m`, each at three
+  wins of 24 and sign p 0.00028. The gap does not move. Nor do the arms
+  themselves, 1.028 and 1.043 in absolute time across the change, against the
+  35–40% the excess-allocating arms show. Two things follow. The predictor
+  survives a test it could have failed, on the side where failure was
+  cheapest to detect. And **the placement question is now confirmed
+  independent of the allocator**, so the pad probe is unavoidable rather than
+  possibly-subsumed: this pair's 1.16× is not filtering either, the full run
+  reading 1.13× over the same shapes with 31 benches between the two arms.
+
+**Three of Run 8's were answered the same day**, each by the probe its own
+entry specified — the rule about a discriminating measurement deserving one
+now rather than a slot in the next run, observed again:
+
+- **`bq-scan-packed-mulback` gets worse because SpecConstr gives its control,
+  for free, exactly what the packing was hand-rolled to buy — and the packing
+  keeps charging for it.** Dumped in both regimes from Run 8's commit
+  (2026-08-08, `-dsuppress-all -dsuppress-uniques`), the two arms' table
+  builds differ like this. At -O1 the control's loop carries its state as a
+  boxed `Either` of a boxed pair of a boxed `Int`, allocating a `Right` per
+  step — the 72-bytes-an-entry the law at `baseOffsetsScanPacked` records —
+  while the packed arm unwraps one `I#` and is otherwise unboxed, which is
+  the 21% lead it held there. Under `-fspec-constr` both loops specialise to
+  four raw arguments and *neither* boxes: the control's `Either`, pair, `I#`
+  and its per-step allocation all vanish, and the packed arm loses only its
+  one `I#` unwrap. What survives on one side and not the other is the
+  packing's own arithmetic — `uncheckedIShiftRA# … 32#` and `andI# …
+  4294967295#` on every element, against the control's two plain `+#` — so
+  the flag pays off the debt the packing existed to avoid and leaves the
+  packing's interest still due. Hence cheaper (1.33x on both) and slower
+  (1.11× on 24 shapes of 24).
+
+  Two consequences. The law at `baseOffsetsScanPacked` is confirmed in its
+  constructive half and its corollary refuted: every state shape does unbox
+  under the flag, but "indistinguishable from its control" does not follow,
+  because unboxing removes the control's cost and not the packed arm's. The
+  `diag` behind all of this was re-measured in Run 8's own regime and every
+  figure quoted above reproduces, including the controls that say the
+  instrument did not move; what it adds is that `baseOffsetsScanPacked` goes
+  3.00x to 1.00x, so under the flag even the boxed `Int` in
+  `unfoldrExactN`'s emit pair — which the -O1 reading called out of reach of
+  any state shape — is gone. And
+  the packed representation is now known to be a **-O1-only** optimisation:
+  wherever SpecConstr runs it is strictly dominated by the plainer arm it was
+  built to beat, which is a thing to have settled before the flag question
+  below is answered rather than after.
+
+- **It does not generalise to the other hand-packed arms, and why not is the
+  useful half.** Three benchmarked pairs differ from their control in a
+  hand-managed compact representation and in nothing else, and the flag moves
+  all three differently. The -O1 column is a ratio of published columns, that
+  run's artifact being gone; Run 8's is paired, and the last two columns are
+  each arm's own absolute per-call move:
+
+  | arm / its control | hand-packed how | -O1 | Run 8 | arm | control |
+  |---|---|---:|---:|---:|---:|
+  | `bq-scan-packed-mulback` / `bq-scan-mulback` | loop state, two fields in one `Int` | 0.789 | **1.113** | 1.022 | 0.724 |
+  | `bq-expand32-lemire-mulback` / `bq-expand-lemire-mulback` | the `m`-length table at `Int32` | 0.983 | **0.949** | 0.729 | 0.756 |
+  | `offtab32` / `offtab` | the `l`-length table at `Int32` | 1.136 | **0.877** | 0.940 | 1.218 |
+
+  **Hand-packing survives the flag exactly when what it buys is something the
+  specialiser cannot buy.** The packed state buys unboxed loop state, which
+  is SpecConstr's own job, so the flag hands the control the same thing for
+  nothing and leaves the packing holding its shift and mask. The two `Int32`
+  tables buy heap footprint, which SpecConstr has no opinion about, and the
+  Core says so: their distinguishing operations — two `intToInt32#`, a
+  `writeInt32Array#`, no boxing — are identical in the two regimes, as are
+  their controls', so the `expand32` pair barely moves. The `offtab32` pair
+  moves furthest of the three and not for its packing at all: its arm
+  improves 6% while its *control* regresses 22%.
+
+- **The element-type ordering still follows `Storable Double`.** [That
+  section's](#one-element-type-and-what-the-probe-found) own re-probe trigger
+  is a run that moves the ordering at `Storable Double`, which Run 8 does, so
+  all four types were re-run under the flag: the ranking is unchanged at every
+  one of them, `bq-expand`'s `worst` stays between 0.245 and 0.267, and the
+  column's arithmetic check reproduces to the digit. The figures are in that
+  section beside the -O1 ones. What the re-probe does not settle is the
+  question behind the trigger — whether the flag's reordering is an
+  `Int`-arithmetic effect or an element-width one — since the ordering it
+  moved is among the roster's arms and not among the types.
+
+**What Run 9 leaves open**, each with what would settle it:
+
+- **What does code placement cost?** **A rebuild is worth up to 18% on a
+  susceptible arm and 0.5% on the baseline** — which is the size of every
+  unexplained regression in Run 8, and the largest effect this page has
+  measured that is not a strategy. Four binaries were built from sources
+  differing only in inert pad arms, the run filtered so the pads never
+  execute; against the first of them the other three read `list` 0.9949,
+  1.0019 and 1.0031, `mut-odo` 1.0389, 0.8808 and 1.0401, and `offtab`
+  0.8241, 0.9524 and 0.9126 (2026-08-08, `-fspec-constr`, 24 shapes,
+  per-shape geomeans of absolute net time). So susceptibility is a property
+  of the arm: the baseline has almost none and two arms have a great deal,
+  and they are the same two the flag sets back hardest.
+
+  Around that sit the readings it explains. `offtab`'s own regression is
+  **not** roster or noise: filtered into a five-bench process it reads 1.2236
+  across the regimes over 24 shapes, slower on 24 of 24, against the full
+  run's 1.218 — but that used one binary for both regimes, so it rules out
+  everything except placement. `build` and `mut-odo` compile to the same
+  worker and moved in *opposite* directions under the flag, 17% faster and
+  19% slower, which identical code cannot do. `bq-gen` regressed 12% with its
+  build loop specialised like every other and its build allocation-free. And
+  the flag moves 12 KiB of `.text` (20,349,125 bytes to 20,336,837), so every
+  arm's address and alignment shift whether its code changed or not.
+
+  What is left is narrower than the question was. The pad probe should have
+  timed `build` across the four layouts and did not — a shell glob ate the
+  arm ([the reader's section](#the-reader-read-runpy)) — so the pair's own
+  swing is still unmeasured, and no probe has yet varied a *susceptible*
+  arm's address deliberately rather than incidentally. Both want a quiet
+  machine. What no longer needs asking is whether placement can be this
+  large: it is. And the *how* has come one step down since, in the binary
+  rather than in a run: the pair's disagreement now has a 28-byte loop under
+  it that GHC aligns to eight bytes, with the two arms' executed copies
+  falling either side of a cache-line boundary ([the floor section][floor]).
+
+  **Run 9 makes this the page's central question rather than a caveat on it.**
+  A membership change alone moved five fingerprint arms from 0.910 to 1.192 in
+  absolute time against a baseline that held to 0.998, and moved
+  `build`/`mut-odo` — one worker, two slots — to 1.13 where Run 8 read 0.86
+  and Run 7 1.24. So the closing question above is now answerable only here:
+  every route through the roster is blocked, because the roster is one of the
+  things that sets the layout. The probe to build is the pad probe with
+  `build` and `mut-odo` both timed and a susceptible arm's address stepped
+  deliberately across a handful of binaries, membership fixed throughout.
+- **The queue of experiments that want a quiet machine**, ranked, so that the
+  next quiet window is not spent deciding what to spend it on. Written down
+  2026-08-09 with Run 9's artifacts still alive, and the ranking turns on one
+  thing worth stating: *the binary must not be rebuilt between the arms of a
+  comparison*, since a rebuild is worth up to 18% on a susceptible arm and
+  swamps most of what is being asked.
+  1. **The main set at `+RTS -A32m`, paired with a main set at the
+     default** — about 2h15m for both, and the cleanest A/B this page can
+     run, because an RTS flag needs **no rebuild**: the placement and rebuild
+     confounds that qualify every other cross-run sentence here do not apply,
+     and the only thing to pin besides is the benchmark selection. It tests
+     the predictor above over 782 cells instead of six, and its
+     default-nursery half doubles as the run-to-run drift measurement
+     [Provenance](#provenance) says is owed. Do this one first.
+  2. **The pad probe done properly** — four to six binaries differing only in
+     inert pad arms, with `build` and `mut-odo` both timed this time (the
+     first attempt lost them to a shell glob) and a *susceptible* arm's
+     address stepped deliberately rather than incidentally. Half a day. It is
+     the only route left to the placement question now that every route
+     through the roster is blocked, and it is **not** shrunk by 1: the
+     `build`/`mut-odo` gap was measured across the nursery change the same
+     day and did not move, so placement and the allocator are separate
+     effects and this probe has to be run for its own sake. **The step is
+     eight bytes**, which is all GHC aligns the loop in question to, and the
+     pair now carries a prediction to aim at: [the floor section][floor]
+     reads the executed copy of `build`'s innermost loop across a cache-line
+     boundary and `mut-odo`'s inside one, so pad until `build`'s lands whole
+     and see whether the gap goes with it.
+  3. **A third `-nosum` arm, on a flat fill** — a `Main.hs` addition and then
+     a filtered run over the shape set. The two existing `-nosum` arms are an
+     odometer and an expansion, so a flat fill is the one probe that
+     separates *the read is biased* from *those two arms are*, which is what
+     gate 3's entry below now needs.
+
+  And two things **not** worth a quiet window, recorded so they are not
+  reached for: the *how many preceding benches warm it* sweep, which the
+  nursery finding supersedes — the bench count is the symptom and the
+  allocation area is the cause; and the element-type re-probe, whose trigger
+  is a run that moves the ordering at `Storable Double`, which Run 9 does
+  only through layout and membership rather than anything an element type
+  would feel.
+- **Is the term still unbiased?** Gate 3 passed but stopped bracketing 1:
+  every in-situ median of both arms in all nine populations sits below it,
+  0.960 to 0.999, for the **second** run running
+  ([sum-only](#sum-only-and-the-correction-now-applied)). Eighteen readings
+  on one side across two runs is no longer the coin-flip the failure test
+  assumes, so the next measurement is not another gate reading: it is a third
+  `-nosum` arm on a strategy whose write pattern differs from both — a flat
+  fill rather than an odometer or an expansion — which is the one thing that
+  would say whether the bias is the *read* or those two arms. Run 9's cells
+  have since been read under those medians and narrow everything except that
+  ([sum-only](#sum-only-and-the-correction-now-applied)): the shortfall is
+  systematic per cell rather than differencing noise, the two arms order the
+  shapes alike, it runs about a tenth of the term at the smallest shapes and
+  vanishes at the largest, and re-pricing both arms by it moves no published
+  geomean by a point. So the flat fill is the only thing left to ask, and the
+  bias it would characterise is small enough that the column stands either
+  way.
+- **Before crediting a margin to a strategy, check whether the two arms' hot
+  loops are the same code and where each landed.** Two families now read
+  that way ([the floor section][floor]), and in one of them it suspended an
+  axis figure the run had just published. What it does **not** extend to is
+  a sweep of the roster, which was tried: the reading needs two arms whose
+  hot loop is identical *and* which differ nowhere else, and the timed
+  roster holds exactly the two groups already read. Everywhere else the
+  shared loop is a table build while the arms differ in the output loop that
+  distinguishes them, so a line span there competes with real arithmetic and
+  says nothing; and `bq-gen`, whose 11% is still unaccounted for, has no
+  counterpart sharing its per-element loop at all, so this instrument cannot
+  reach it. Recorded so the sweep is not attempted a second time.
+- **Run 10's two predictions, registered before it runs.** Its order was
+  chosen for heap state — `sum-only-early` above `list`, so nothing is
+  measured on an ungrown pool — and the layout it happens to give was then
+  read off the binary rather than shopped for, which is the distinction that
+  keeps the run from being confirmatory. Against Run 9's offsets, both of
+  the straddle hypothesis's arms move, in opposite directions:
+  1. **The FastReshape three go straddling to resident** (mod 40, 44, 44 to
+     mod 0, 36, 36) while their control stays resident (24 to 16). The
+     hypothesis predicts 1.1552, 1.1795 and 1.1645 collapse toward 1.00. If
+     they hold near 1.16, the hypothesis is dead and [the suspension of
+     those axis figures](#the-mutable-ceiling-not-taken) is withdrawn —
+     which is the outcome this page has the most reason to want detectable,
+     the suspension being its own.
+  2. **`mut-odo` goes resident to straddling** (29 to 53) while `build` stays
+     straddling (53 to 45). The hypothesis predicts their 1.13 closes toward
+     1.0. If it holds or widens, the hypothesis is dead by the other route.
+  3. **The anchors move, and one of them is a control.** Warming `list` is
+     the object of the swap, so the absolute anchors should fall and every
+     ratio rise with them — but not uniformly, and the excess-allocation
+     rule says which. Ten of the eleven anchor cells carry 27 to 336 MB of
+     excess and should move; `cnn-slice-c32`, at 0.05 MB, sits under the
+     nursery and should hold, which makes it a control inside the anchor
+     table. If it moves too, what warming does is not the nursery; if the
+     other ten do not, warming does not reach the baseline and the swap
+     bought nothing. And a fall shared by all nine populations is one effect
+     rather than nine findings, so read the anchors together before reading
+     any class paragraph.
+
+  Two arms of one prediction, either of which can kill it, on arms already
+  rostered and at no extra machine time. Read them before reading anything
+  else in Run 10, and record the verdict here rather than in the run's own
+  chapter, which the run after replaces.
+- **What does the roster owe the next run?** Run 9's delta is empty and Run
+  10 inherits shapes, roster and regime all pinned, so a Run 10 at
+  `-fspec-constr` would be the exact repetition this page has never had and
+  the only clean measurement of run-to-run drift available. Run 9 supplies a
+  partial one already — `list`'s own figures, whose code and slot did not
+  move, held to 0.2% in geomean and scattered up to 5% per shape — but that
+  is one arm. **Decided for Run 10: `-fspec-constr`, and the repetition
+  spent** — the roster order buys the pool fix and the two predictions above
+  instead, which is a trade of a measurement this page has never made for
+  two it can act on. So the drift measurement stays owed and `list`'s 0.2%
+  is still the only bound on it, and a return to -O1 — the regime
+  `Data/Array/Internal.hs` actually compiles under, unvisited since Run 7 —
+  stays open for the run after.
+
+### Non-urgent TODO list
+
+- **A class process's provenance line counts every class view, not the
+  population that ran.** The count is fixed before criterion does the
+  selecting, so each class process reports the whole class set's size beside
+  its own elapsed time and heap peaks, both of which are its own; the
+  write-up takes the population's size from the reader instead, which costs a
+  sentence every run. The fix would have `provenance` told what was selected,
+  and that means `Main.hs` parsing a criterion argument it currently passes
+  through untouched — a second source of truth for criterion's own matching
+  rules, wrong the moment a run reaches for `-m glob`, which is why the
+  sentence is preferred to the code.
+- **Runs never overlap in the benchmarked set.** `mkStrided`'s index map is
+  a bijection onto `[0, l)`, where im2col patches — the workload this page
+  opens by naming — overlap heavily and so reuse cache. The window class
+  (`mkWindow`) builds exactly those overlapping patch views, and both
+  recorded runs agree: the overlap *lifts* every ratio rather than
+  lowering it, so the main
+  set's pessimism about this case was about absolute cost, never about the
+  fallback's standing against `list`. The window block in [The stride
+  classes, run by run](#the-stride-classes-run-by-run) carries the figures.
+- **The roster order biases the table, and nothing corrects for it.** The
+  warm-up drift above means a strategy's figure depends on its slot, `list`
+  being in the coldest one. The fixes are all real changes rather than
+  write-ups — a warm-up bench before `list`, interleaving or randomising the
+  order, or correcting each row by its slot — and each breaks comparability
+  with every run so far, which is why none is taken yet. Run 7 confirmed the
+  drift, Run 8 mostly did not, and Run 9 shows why both readings were of the
+  wrong quantity ([the floor section][floor]): the effect is not a per-slot
+  gradient to fit but a step, worth nothing on most arms and 35–40% on one
+  family at one shape. **So a slot correction is now refuted rather than
+  merely unmeasured** — a linear fit in slot number cannot express a step
+  that depends on the arm, and fitting one would smear a real 40% across
+  thirty rows that do not have it. What the drift needs instead is the
+  warm-up bench, which addresses the step directly and is the only one of the
+  three fixes Run 9 leaves standing. The placement gap the `build`/`mut-odo`
+  pair shows is a separate and larger target, and no reordering addresses it.
+- **No build-vs-output time decomposition**, which Run 8 wanted and did
+  without. `diag` measures per-builder
+  *allocation* only, so a claim like "the table build is a third of the cost"
+  -- the natural reading of `bq-mut-runs` beating `bq-mut` by 39% -- cannot be
+  checked here. Claim 4 no longer needs it — a Core diff identified what the
+  flag deletes from the scan builder and the ~4% it is worth accounts for
+  where the pair lands, the two arms sharing their output code exactly — but
+  the residue does: how much of each arm's own ~25% absolute gain is build
+  and how much output is still unmeasured, and the same question stands for
+  every other arm in the table. It needs a timing mode alongside `diag`'s
+  allocation one,
+  using the fixed-iteration differencing the horde-ad performance model
+  prescribes (`-n 200` minus `-n 100`, fresh processes) rather than criterion,
+  since the builders are not benchmarks.
+
 
 ## The goal of these benchmarks
 
@@ -2571,58 +2998,6 @@ Two arms an octave apart in speed agreeing to 1% makes that unlikely rather
 than impossible, and the arms are in the roster so every run reprices them.
 
 
-### Non-urgent TODO list
-
-- **A class process's provenance line counts every class view, not the
-  population that ran.** The count is fixed before criterion does the
-  selecting, so each class process reports the whole class set's size beside
-  its own elapsed time and heap peaks, both of which are its own; the
-  write-up takes the population's size from the reader instead, which costs a
-  sentence every run. The fix would have `provenance` told what was selected,
-  and that means `Main.hs` parsing a criterion argument it currently passes
-  through untouched — a second source of truth for criterion's own matching
-  rules, wrong the moment a run reaches for `-m glob`, which is why the
-  sentence is preferred to the code.
-- **Runs never overlap in the benchmarked set.** `mkStrided`'s index map is
-  a bijection onto `[0, l)`, where im2col patches — the workload this page
-  opens by naming — overlap heavily and so reuse cache. The window class
-  (`mkWindow`) builds exactly those overlapping patch views, and both
-  recorded runs agree: the overlap *lifts* every ratio rather than
-  lowering it, so the main
-  set's pessimism about this case was about absolute cost, never about the
-  fallback's standing against `list`. The window block in [The stride
-  classes, run by run](#the-stride-classes-run-by-run) carries the figures.
-- **The roster order biases the table, and nothing corrects for it.** The
-  warm-up drift above means a strategy's figure depends on its slot, `list`
-  being in the coldest one. The fixes are all real changes rather than
-  write-ups — a warm-up bench before `list`, interleaving or randomising the
-  order, or correcting each row by its slot — and each breaks comparability
-  with every run so far, which is why none is taken yet. Run 7 confirmed the
-  drift, Run 8 mostly did not, and Run 9 shows why both readings were of the
-  wrong quantity ([the floor section][floor]): the effect is not a per-slot
-  gradient to fit but a step, worth nothing on most arms and 35–40% on one
-  family at one shape. **So a slot correction is now refuted rather than
-  merely unmeasured** — a linear fit in slot number cannot express a step
-  that depends on the arm, and fitting one would smear a real 40% across
-  thirty rows that do not have it. What the drift needs instead is the
-  warm-up bench, which addresses the step directly and is the only one of the
-  three fixes Run 9 leaves standing. The placement gap the `build`/`mut-odo`
-  pair shows is a separate and larger target, and no reordering addresses it.
-- **No build-vs-output time decomposition**, which Run 8 wanted and did
-  without. `diag` measures per-builder
-  *allocation* only, so a claim like "the table build is a third of the cost"
-  -- the natural reading of `bq-mut-runs` beating `bq-mut` by 39% -- cannot be
-  checked here. Claim 4 no longer needs it — a Core diff identified what the
-  flag deletes from the scan builder and the ~4% it is worth accounts for
-  where the pair lands, the two arms sharing their output code exactly — but
-  the residue does: how much of each arm's own ~25% absolute gain is build
-  and how much output is still unmeasured, and the same question stands for
-  every other arm in the table. It needs a timing mode alongside `diag`'s
-  allocation one,
-  using the fixed-iteration differencing the horde-ad performance model
-  prescribes (`-n 200` minus `-n 100`, fresh processes) rather than criterion,
-  since the builders are not benchmarks.
-
 ## About the last run (Run 9)
 
 **Run 9 (SpecConstr).** Criterion, GHC 9.12.4,
@@ -4063,364 +4438,6 @@ benchmark run](#making-a-major-benchmark-run) — which is also where the walk
 of the list above is one of the steps.
 
 
-### What the next runs have to decide
-
-The open questions, each with the measurement that would settle it and the
-run that can supply it, collected here because they otherwise sit one per
-section and get reconstructed every time.
-
-**Run 9 answered its one, and the answer is the prediction.** *What moved
-`mut-odo-vecdims` by the remaining ~13%?* The entry below asked for a run
-differing from its predecessor in membership alone and predicted, before the
-run, that a move of that size would be consistent with **layout alone**. Run
-9 is that run and the prediction holds: the arm moved 9.0% in absolute time
-against an unmoved baseline, which is inside the 18% a rebuild was already
-known to be worth, and it did not move alone — `mut-odo` moved 9.0% the same
-way and `build` moved 19.2% the other, the two of them compiling to one
-worker. A membership change that improves one arm 9% and worsens its own
-code-twin 19% has not told you anything about membership. So the question
-closes as **unanswerable by this design**, not as answered: roster and layout
-move together and no run that changes the roster can separate them. What
-would separate them is the pad probe done properly — vary a *susceptible*
-arm's address deliberately, with membership fixed — which is the entry below
-and now the only route left to this question.
-
-The probe's three side predictions came out one right and two not. `bq-gen`
-and `bq-gen-lemire` did collapse to the table in allocation, 3.58x and 2.95x
-to 1.33x each — and got *slower*, 0.279 to 0.339 and 0.377 to 0.479, 11%
-worse in absolute time for the first, which no reading of the `diag` had
-suggested and which the Core does not account for either, `bq-gen` having
-joined the placement question below. The expansion builders dropped without
-vanishing as predicted, `bq-expand`'s tier going 3.11x to 2.35x. And
-`bq-odo-mulback` was predicted not to follow the family up, on the ground
-that its three-`Int` constructor state survives where a bare `Int` does not;
-the builder's own allocation does survive, at 4.67x an entry in this regime,
-but the arm rose anyway — 19% faster per call, and it now leads the pure
-tier outright.
-
-**And it raised a larger one in the same breath, which was then answered the
-same day.** *What warms the expansion family?* On `vgg-14-c512-k3`,
-`bq-expand` and three arms beside it run 35–40% slower in a small process
-than at their published roster slots, reproducibly, while the scan and
-mutable families do not move at all — the largest effect this page has
-measured that is not a strategy, and it lands on the **shipped** arm. A dozen
-probes settled it: not GC time (5.8% of the cold process), but the **default
-4 MB nursery** against an arm allocating 13.2 MB per call beyond its result,
-warmed by exactly one predecessor — `sum-only-early`, whose one-off
-`l`-sized setup allocation grows the block pool and leaves it grown. A
-nine-point `-A` sweep shows a larger nursery rescuing the *cold* arm, and
-shows `-A1G`'s cliff to be a collision with the `-M2G` cap rather than the
-nursery. The account is [in the floor
-section][floor], and it carried **a roster fix, since applied**:
-`sum-only-early` has moved from slot 5 to slot 2, ahead of the three distant
-A/A twins, which were being calibrated against a colder heap than everything
-they calibrate. On the moved roster the 41% cell reads 0.24%.
-
-  **The acute symptom is gone**, by the roster move rather than by any flag.
-  What the flag question became instead was settled on a quiet machine the
-  same day, and the answer is bigger than the question: a larger nursery
-  helps a warm arm by about 10%, the cost it removes is *kernel* time, and
-  **`list` is the arm it helps most of all** — 1.79× on `vgg-14-c512-k3`,
-  which takes `bq-expand`/`list` there from 0.098 to 0.157 ([the floor
-  section][floor]).
-
-  **So the decision is no, and for a better reason than "it buys nothing".**
-  The default 4 MB area is what a GHC program gets unless it says otherwise,
-  so the published column answers *what does a caller see today*; `-A32m`
-  answers a question nobody asked, at the price of re-basing every figure the
-  page has published and forfeiting the clean repetition Run 10 is positioned
-  to give. Keep the default. What changes is not the setting but the
-  **caveat**: the headline ratios are partly a statement about the allocation
-  area, they are not a nursery-independent property of the algorithms, and
-  the effect is confined to shapes where an arm's excess outruns 4 MB — which
-  the `cifar` control shows the small shapes do not. What is *not* known is
-  how much of the published geomean moves, since one shape is not the table;
-  that is a run rather than a probe, and worth appending to whichever run
-  comes next rather than commissioning on its own.
-
-  **The predictor, recorded before the run that would test it.** What decides
-  whether an arm feels the nursery is not its total allocation but its
-  allocation **in excess of the result buffer**, `(alloc − 1) × 8l`: the
-  result is one large object and goes straight to the large-object list,
-  bypassing the nursery, while the excess is the part that churns through it.
-  On the six arms whose `vgg-14-c512-k3` behaviour is already measured the
-  rule separates them outright, and the line falls on the nursery itself —
-  affected at 11.2 to 13.2 MB of excess (`bq-expand` and its two
-  output variants, `bq-odo-gm-mulback`), unaffected at 2.4 MB
-  (`bq-scan-rem-gm-mulback`) and 0 (`mut-odo-vecdims`). Total allocation does
-  *not* separate them, putting an unaffected arm at 9.6 MB and an affected
-  one at 18.5 MB with no line between that means anything. Applied to the
-  kept Run 9 cells the rule predicts **131 of 782** cells move, concentrated
-  on the large shapes, and names **14 arms that should not move on any
-  shape** — the whole `mut-odo-vecdims` family, `build`, `mut-odo`,
-  `gen-quotrem`, `gen-unsafe` and both `sum-only` halves. Two consequences
-  worth having in writing before the measurement. `list` itself is predicted
-  affected on 17 shapes, by up to 353 MB of excess, so **the baseline is
-  expected to move and every ratio with it** — which is most of the case
-  against adopting the flag casually. And `build` and `mut-odo` are both
-  predicted *unaffected*, so their 1.13× gap should survive `-A32m`
-  untouched; if it collapses instead, this predictor is wrong and what this
-  page calls placement is really the allocator.
-
-  **And the eight class populations, which that count left out**
-  (2026-08-09, the same arithmetic over the kept JSONs; it reproduces the
-  main set's 131 of 782 exactly, which is what makes the rest worth
-  quoting). `list` crosses the nursery in **every** population, so no class
-  table divides by an unaffected baseline — 336 MB of excess on
-  `bcast-tall-Mx2`, 118 on `reshape1-500k`, 34 to 81 elsewhere. The
-  strategies cross in three classes only, `bcast` (24 cells of 96),
-  `reshape1` (17 of 64) and `window` (10 of 66); in `bcastmid`, `rev`,
-  `revsome`, `scaled` and `slice` nothing but the baseline does. So those
-  five are penalised in one direction throughout, which leaves their
-  orderings alone and their levels flattered, while the three are penalised
-  unevenly and are where a nursery A/B would move a table. Whichever run
-  takes the `-A32m` pair should take the classes with it.
-
-  **That second half was tested the same day and the prediction holds.** Both
-  arms plus a `sum-only` half, filtered over all 24 shapes, run twice from
-  one binary with the nursery as the only difference (2026-08-09): the pair
-  reads **1.1604** at the default and **1.1433** at `-A32m`, each at three
-  wins of 24 and sign p 0.00028. The gap does not move. Nor do the arms
-  themselves, 1.028 and 1.043 in absolute time across the change, against the
-  35–40% the excess-allocating arms show. Two things follow. The predictor
-  survives a test it could have failed, on the side where failure was
-  cheapest to detect. And **the placement question is now confirmed
-  independent of the allocator**, so the pad probe is unavoidable rather than
-  possibly-subsumed: this pair's 1.16× is not filtering either, the full run
-  reading 1.13× over the same shapes with 31 benches between the two arms.
-
-**Three of Run 8's were answered the same day**, each by the probe its own
-entry specified — the rule about a discriminating measurement deserving one
-now rather than a slot in the next run, observed again:
-
-- **`bq-scan-packed-mulback` gets worse because SpecConstr gives its control,
-  for free, exactly what the packing was hand-rolled to buy — and the packing
-  keeps charging for it.** Dumped in both regimes from Run 8's commit
-  (2026-08-08, `-dsuppress-all -dsuppress-uniques`), the two arms' table
-  builds differ like this. At -O1 the control's loop carries its state as a
-  boxed `Either` of a boxed pair of a boxed `Int`, allocating a `Right` per
-  step — the 72-bytes-an-entry the law at `baseOffsetsScanPacked` records —
-  while the packed arm unwraps one `I#` and is otherwise unboxed, which is
-  the 21% lead it held there. Under `-fspec-constr` both loops specialise to
-  four raw arguments and *neither* boxes: the control's `Either`, pair, `I#`
-  and its per-step allocation all vanish, and the packed arm loses only its
-  one `I#` unwrap. What survives on one side and not the other is the
-  packing's own arithmetic — `uncheckedIShiftRA# … 32#` and `andI# …
-  4294967295#` on every element, against the control's two plain `+#` — so
-  the flag pays off the debt the packing existed to avoid and leaves the
-  packing's interest still due. Hence cheaper (1.33x on both) and slower
-  (1.11× on 24 shapes of 24).
-
-  Two consequences. The law at `baseOffsetsScanPacked` is confirmed in its
-  constructive half and its corollary refuted: every state shape does unbox
-  under the flag, but "indistinguishable from its control" does not follow,
-  because unboxing removes the control's cost and not the packed arm's. The
-  `diag` behind all of this was re-measured in Run 8's own regime and every
-  figure quoted above reproduces, including the controls that say the
-  instrument did not move; what it adds is that `baseOffsetsScanPacked` goes
-  3.00x to 1.00x, so under the flag even the boxed `Int` in
-  `unfoldrExactN`'s emit pair — which the -O1 reading called out of reach of
-  any state shape — is gone. And
-  the packed representation is now known to be a **-O1-only** optimisation:
-  wherever SpecConstr runs it is strictly dominated by the plainer arm it was
-  built to beat, which is a thing to have settled before the flag question
-  below is answered rather than after.
-
-- **It does not generalise to the other hand-packed arms, and why not is the
-  useful half.** Three benchmarked pairs differ from their control in a
-  hand-managed compact representation and in nothing else, and the flag moves
-  all three differently. The -O1 column is a ratio of published columns, that
-  run's artifact being gone; Run 8's is paired, and the last two columns are
-  each arm's own absolute per-call move:
-
-  | arm / its control | hand-packed how | -O1 | Run 8 | arm | control |
-  |---|---|---:|---:|---:|---:|
-  | `bq-scan-packed-mulback` / `bq-scan-mulback` | loop state, two fields in one `Int` | 0.789 | **1.113** | 1.022 | 0.724 |
-  | `bq-expand32-lemire-mulback` / `bq-expand-lemire-mulback` | the `m`-length table at `Int32` | 0.983 | **0.949** | 0.729 | 0.756 |
-  | `offtab32` / `offtab` | the `l`-length table at `Int32` | 1.136 | **0.877** | 0.940 | 1.218 |
-
-  **Hand-packing survives the flag exactly when what it buys is something the
-  specialiser cannot buy.** The packed state buys unboxed loop state, which
-  is SpecConstr's own job, so the flag hands the control the same thing for
-  nothing and leaves the packing holding its shift and mask. The two `Int32`
-  tables buy heap footprint, which SpecConstr has no opinion about, and the
-  Core says so: their distinguishing operations — two `intToInt32#`, a
-  `writeInt32Array#`, no boxing — are identical in the two regimes, as are
-  their controls', so the `expand32` pair barely moves. The `offtab32` pair
-  moves furthest of the three and not for its packing at all: its arm
-  improves 6% while its *control* regresses 22%.
-
-- **The element-type ordering still follows `Storable Double`.** [That
-  section's](#one-element-type-and-what-the-probe-found) own re-probe trigger
-  is a run that moves the ordering at `Storable Double`, which Run 8 does, so
-  all four types were re-run under the flag: the ranking is unchanged at every
-  one of them, `bq-expand`'s `worst` stays between 0.245 and 0.267, and the
-  column's arithmetic check reproduces to the digit. The figures are in that
-  section beside the -O1 ones. What the re-probe does not settle is the
-  question behind the trigger — whether the flag's reordering is an
-  `Int`-arithmetic effect or an element-width one — since the ordering it
-  moved is among the roster's arms and not among the types.
-
-**What Run 9 leaves open**, each with what would settle it:
-
-- **What does code placement cost?** **A rebuild is worth up to 18% on a
-  susceptible arm and 0.5% on the baseline** — which is the size of every
-  unexplained regression in Run 8, and the largest effect this page has
-  measured that is not a strategy. Four binaries were built from sources
-  differing only in inert pad arms, the run filtered so the pads never
-  execute; against the first of them the other three read `list` 0.9949,
-  1.0019 and 1.0031, `mut-odo` 1.0389, 0.8808 and 1.0401, and `offtab`
-  0.8241, 0.9524 and 0.9126 (2026-08-08, `-fspec-constr`, 24 shapes,
-  per-shape geomeans of absolute net time). So susceptibility is a property
-  of the arm: the baseline has almost none and two arms have a great deal,
-  and they are the same two the flag sets back hardest.
-
-  Around that sit the readings it explains. `offtab`'s own regression is
-  **not** roster or noise: filtered into a five-bench process it reads 1.2236
-  across the regimes over 24 shapes, slower on 24 of 24, against the full
-  run's 1.218 — but that used one binary for both regimes, so it rules out
-  everything except placement. `build` and `mut-odo` compile to the same
-  worker and moved in *opposite* directions under the flag, 17% faster and
-  19% slower, which identical code cannot do. `bq-gen` regressed 12% with its
-  build loop specialised like every other and its build allocation-free. And
-  the flag moves 12 KiB of `.text` (20,349,125 bytes to 20,336,837), so every
-  arm's address and alignment shift whether its code changed or not.
-
-  What is left is narrower than the question was. The pad probe should have
-  timed `build` across the four layouts and did not — a shell glob ate the
-  arm ([the reader's section](#the-reader-read-runpy)) — so the pair's own
-  swing is still unmeasured, and no probe has yet varied a *susceptible*
-  arm's address deliberately rather than incidentally. Both want a quiet
-  machine. What no longer needs asking is whether placement can be this
-  large: it is. And the *how* has come one step down since, in the binary
-  rather than in a run: the pair's disagreement now has a 28-byte loop under
-  it that GHC aligns to eight bytes, with the two arms' executed copies
-  falling either side of a cache-line boundary ([the floor section][floor]).
-
-  **Run 9 makes this the page's central question rather than a caveat on it.**
-  A membership change alone moved five fingerprint arms from 0.910 to 1.192 in
-  absolute time against a baseline that held to 0.998, and moved
-  `build`/`mut-odo` — one worker, two slots — to 1.13 where Run 8 read 0.86
-  and Run 7 1.24. So the closing question above is now answerable only here:
-  every route through the roster is blocked, because the roster is one of the
-  things that sets the layout. The probe to build is the pad probe with
-  `build` and `mut-odo` both timed and a susceptible arm's address stepped
-  deliberately across a handful of binaries, membership fixed throughout.
-- **The queue of experiments that want a quiet machine**, ranked, so that the
-  next quiet window is not spent deciding what to spend it on. Written down
-  2026-08-09 with Run 9's artifacts still alive, and the ranking turns on one
-  thing worth stating: *the binary must not be rebuilt between the arms of a
-  comparison*, since a rebuild is worth up to 18% on a susceptible arm and
-  swamps most of what is being asked.
-  1. **The main set at `+RTS -A32m`, paired with a main set at the
-     default** — about 2h15m for both, and the cleanest A/B this page can
-     run, because an RTS flag needs **no rebuild**: the placement and rebuild
-     confounds that qualify every other cross-run sentence here do not apply,
-     and the only thing to pin besides is the benchmark selection. It tests
-     the predictor above over 782 cells instead of six, and its
-     default-nursery half doubles as the run-to-run drift measurement
-     [Provenance](#provenance) says is owed. Do this one first.
-  2. **The pad probe done properly** — four to six binaries differing only in
-     inert pad arms, with `build` and `mut-odo` both timed this time (the
-     first attempt lost them to a shell glob) and a *susceptible* arm's
-     address stepped deliberately rather than incidentally. Half a day. It is
-     the only route left to the placement question now that every route
-     through the roster is blocked, and it is **not** shrunk by 1: the
-     `build`/`mut-odo` gap was measured across the nursery change the same
-     day and did not move, so placement and the allocator are separate
-     effects and this probe has to be run for its own sake. **The step is
-     eight bytes**, which is all GHC aligns the loop in question to, and the
-     pair now carries a prediction to aim at: [the floor section][floor]
-     reads the executed copy of `build`'s innermost loop across a cache-line
-     boundary and `mut-odo`'s inside one, so pad until `build`'s lands whole
-     and see whether the gap goes with it.
-  3. **A third `-nosum` arm, on a flat fill** — a `Main.hs` addition and then
-     a filtered run over the shape set. The two existing `-nosum` arms are an
-     odometer and an expansion, so a flat fill is the one probe that
-     separates *the read is biased* from *those two arms are*, which is what
-     gate 3's entry below now needs.
-
-  And two things **not** worth a quiet window, recorded so they are not
-  reached for: the *how many preceding benches warm it* sweep, which the
-  nursery finding supersedes — the bench count is the symptom and the
-  allocation area is the cause; and the element-type re-probe, whose trigger
-  is a run that moves the ordering at `Storable Double`, which Run 9 does
-  only through layout and membership rather than anything an element type
-  would feel.
-- **Is the term still unbiased?** Gate 3 passed but stopped bracketing 1:
-  every in-situ median of both arms in all nine populations sits below it,
-  0.960 to 0.999, for the **second** run running
-  ([sum-only](#sum-only-and-the-correction-now-applied)). Eighteen readings
-  on one side across two runs is no longer the coin-flip the failure test
-  assumes, so the next measurement is not another gate reading: it is a third
-  `-nosum` arm on a strategy whose write pattern differs from both — a flat
-  fill rather than an odometer or an expansion — which is the one thing that
-  would say whether the bias is the *read* or those two arms. Run 9's cells
-  have since been read under those medians and narrow everything except that
-  ([sum-only](#sum-only-and-the-correction-now-applied)): the shortfall is
-  systematic per cell rather than differencing noise, the two arms order the
-  shapes alike, it runs about a tenth of the term at the smallest shapes and
-  vanishes at the largest, and re-pricing both arms by it moves no published
-  geomean by a point. So the flat fill is the only thing left to ask, and the
-  bias it would characterise is small enough that the column stands either
-  way.
-- **Before crediting a margin to a strategy, check whether the two arms' hot
-  loops are the same code and where each landed.** Two families now read
-  that way ([the floor section][floor]), and in one of them it suspended an
-  axis figure the run had just published. What it does **not** extend to is
-  a sweep of the roster, which was tried: the reading needs two arms whose
-  hot loop is identical *and* which differ nowhere else, and the timed
-  roster holds exactly the two groups already read. Everywhere else the
-  shared loop is a table build while the arms differ in the output loop that
-  distinguishes them, so a line span there competes with real arithmetic and
-  says nothing; and `bq-gen`, whose 11% is still unaccounted for, has no
-  counterpart sharing its per-element loop at all, so this instrument cannot
-  reach it. Recorded so the sweep is not attempted a second time.
-- **Run 10's two predictions, registered before it runs.** Its order was
-  chosen for heap state — `sum-only-early` above `list`, so nothing is
-  measured on an ungrown pool — and the layout it happens to give was then
-  read off the binary rather than shopped for, which is the distinction that
-  keeps the run from being confirmatory. Against Run 9's offsets, both of
-  the straddle hypothesis's arms move, in opposite directions:
-  1. **The FastReshape three go straddling to resident** (mod 40, 44, 44 to
-     mod 0, 36, 36) while their control stays resident (24 to 16). The
-     hypothesis predicts 1.1552, 1.1795 and 1.1645 collapse toward 1.00. If
-     they hold near 1.16, the hypothesis is dead and [the suspension of
-     those axis figures](#the-mutable-ceiling-not-taken) is withdrawn —
-     which is the outcome this page has the most reason to want detectable,
-     the suspension being its own.
-  2. **`mut-odo` goes resident to straddling** (29 to 53) while `build` stays
-     straddling (53 to 45). The hypothesis predicts their 1.13 closes toward
-     1.0. If it holds or widens, the hypothesis is dead by the other route.
-  3. **The anchors move, and one of them is a control.** Warming `list` is
-     the object of the swap, so the absolute anchors should fall and every
-     ratio rise with them — but not uniformly, and the excess-allocation
-     rule says which. Ten of the eleven anchor cells carry 27 to 336 MB of
-     excess and should move; `cnn-slice-c32`, at 0.05 MB, sits under the
-     nursery and should hold, which makes it a control inside the anchor
-     table. If it moves too, what warming does is not the nursery; if the
-     other ten do not, warming does not reach the baseline and the swap
-     bought nothing. And a fall shared by all nine populations is one effect
-     rather than nine findings, so read the anchors together before reading
-     any class paragraph.
-
-  Two arms of one prediction, either of which can kill it, on arms already
-  rostered and at no extra machine time. Read them before reading anything
-  else in Run 10, and record the verdict here rather than in the run's own
-  chapter, which the run after replaces.
-- **What does the roster owe the next run?** Run 9's delta is empty and Run
-  10 inherits shapes, roster and regime all pinned, so a Run 10 at
-  `-fspec-constr` would be the exact repetition this page has never had and
-  the only clean measurement of run-to-run drift available. Run 9 supplies a
-  partial one already — `list`'s own figures, whose code and slot did not
-  move, held to 0.2% in geomean and scattered up to 5% per shape — but that
-  is one arm. **Decided for Run 10: `-fspec-constr`, and the repetition
-  spent** — the roster order buys the pool fix and the two predictions above
-  instead, which is a trade of a measurement this page has never made for
-  two it can act on. So the drift measurement stays owed and `list`'s 0.2%
-  is still the only bound on it, and a return to -O1 — the regime
-  `Data/Array/Internal.hs` actually compiles under, unvisited since Run 7 —
-  stays open for the run after.
 
 [achieved]: #how-the-strictly-positive-picture-was-achieved
 [bench]: #what-the-benchmark-does
