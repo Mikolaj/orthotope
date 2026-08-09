@@ -658,7 +658,7 @@ def strategy_table(cells, shapes, strategies, meta, args, terms):
               % (len(shapes) - meta['known_l']))
 
 
-def readme_rows(readme, strategies):
+def readme_rows(readme, strategies, recognise=None):
     """README's Results table, keyed by strategy: (label, style, needs).
 
     Only the rightmost column and the emphasis are read. Those are editorial
@@ -672,10 +672,32 @@ def readme_rows(readme, strategies):
     those strategies' roster entries in Main.hs.
 
     Rows are matched by stripping emphasis and the `(baseline)` suffix, and
-    only names the run actually carries are taken, so the other markdown
-    tables on the page cannot be mistaken for this one however their column
-    count lands -- which the name filter now does alone, the cross-class
-    summary being seven columns wide too since the eighth went.
+    only names in `recognise` are taken, so the other markdown tables on the
+    page cannot be mistaken for this one however their column count lands --
+    which the name filter now does alone, the cross-class summary being seven
+    columns wide too since the eighth went.
+
+    `recognise` defaults to the run's own arms, which is what a caller
+    carrying figures forward wants. --markdown widens it to the whole roster,
+    because a row this run does NOT carry is exactly what its departed-row
+    warning is about, and reading only the carried ones made that warning
+    unreachable: `gone` was computed as the keys of this dict not in
+    `strategies`, and every key was in `strategies` by construction. It had
+    never fired. Widening keeps the set closed -- a name has to be rostered --
+    so the cross-class summary, whose first cell is a class name, still cannot
+    match.
+
+    What the closed set costs, since it is the price of that disambiguation: a
+    row whose NAME has left the roster is neither carried nor rostered, so it
+    is neither fresh nor gone and its disappearance is reported by nothing.
+    The `bq-scan-mulback-aa-*` pair is in that state today, re-pointed and
+    renamed after Run 8 published it.
+
+    Non-vacuity, confirmed rather than argued: against the 49-row Run 8 table
+    and a one-shape run of today's 34-arm roster, --markdown reports 23 gone,
+    naming every arm the two rulings stopped timing and no other, alongside
+    the 10 fresh it already reported. Before this change the same call
+    reported none.
     """
     out = {}
     try:
@@ -689,7 +711,7 @@ def readme_rows(readme, strategies):
         if len(cell) != 7:
             continue
         bare = re.sub(r'[*`]', '', cell[0]).replace('(baseline)', '').strip()
-        if bare not in strategies:
+        if bare not in (strategies if recognise is None else recognise):
             continue
         style = ('bold' if cell[0].startswith('**')
                  else 'italic' if cell[0].startswith('*') else 'plain')
@@ -830,7 +852,14 @@ def markdown_table(cells, shapes, strategies, meta, args, terms):
     # which row shipped and which leads is what a reader looks for first,
     # and it is the same row in every population's table.
     editorial = kind != 'class'
-    prev = readme_rows(args.readme, set(strategies))
+    # Read the table by the ROSTER, not by this run's arms, so that a row the
+    # run has dropped is still seen and can be reported. See `readme_rows`.
+    try:
+        rostered = {n for n, _, _ in roster_of(open(args.main).read())}
+    except OSError:
+        rostered = set(strategies)
+    prev = readme_rows(args.readme, set(strategies),
+                       rostered or set(strategies))
     fresh, gone = [], [n for n in prev if n not in strategies]
     print('| strategy | time | worst | CI% | smp | alloc'
           + (' | needs |' if editorial else ' |'))
@@ -1498,7 +1527,10 @@ def lint(main_hs, readme):
     Non-vacuity, each confirmed by breaking it: renaming a bench in the
     roster fails the README check, commenting an entry out fails the
     rostered check, pointing a `-aa` arm at another function fails the twin
-    check, renaming a `Twin` arm to drop its `-aa` fails both the twin and
+    check, pointing a `-nosum` arm at another function fails the Force check
+    with the arm and both function names -- the one check here that had gone
+    unproven, settled 2026-08-09 -- renaming a `Twin` arm to drop its `-aa`
+    fails both the twin and
     the control-naming ones, a second `Base` entry fails the reference
     check, and misannotating window-28x28-k5's l by one fails the
     annotation check with both numbers -- as does mistyping a dimension,
@@ -1734,7 +1766,19 @@ def selftest(cells, shapes, strategies, meta):
     reports with a one-shape window-class run's failed it, naming both
     populations, while every other invariant on that file passed -- which
     is what the check is for, a merged run looking healthy from every
-    other angle. --markdown refused the same file.
+    other angle. --markdown refused the same file. A cheaper provocation
+    than concatenating anything, since a recipe nobody will run is worth
+    little: `classes rev-primes bcast-inner8` selects across two class lists
+    in one process and the reader names both.
+
+    The baseline identity likewise, the last check here to have gone unproven
+    (2026-08-09): dividing the corrected numerator by the UNcorrected
+    baseline -- `list`'s slope where its net belongs, which is the mistake the
+    identity exists to catch -- makes `list` against itself read 0.9688 and
+    fails, where the intact reader on the same file says exactly 1. It needs
+    two shapes to run at all: on one, this whole block is skipped along with
+    winsorizing and the A/A identity, so a one-shape smoke exercises none of
+    the three.
     """
     ok, bad, skip = [], [], []
 

@@ -1323,12 +1323,14 @@ that can reproduce one, so sweep before deleting it rather than after.
 
 **After a roster change, add a `-L1` pass over the main set and one
 three-shape class**, which is about twenty minutes and reaches three things a
-one-shape smoke cannot: `--selftest`'s six A/A identities, which need a
-population to be identities of; every claim's `--pair` line, since a claim
-re-aimed at an arm the run does not carry fails only when someone runs it;
-and `--block`'s per-shape line, guarded by `len(shapes) > 2` and so dead on a
-one-shape file — a guard that hid an edited line of this reader through a
-whole smoke sweep. `rev`, `revsome` and `bcast` are the three-shape classes.
+one-shape smoke cannot. `--selftest` skips a whole block on one shape and
+says so — winsorizing, the six A/A identities and the baseline identity,
+none of which is an identity of anything until there are shapes to be one
+over. Every claim's `--pair` line goes unrun, and a claim re-aimed at an arm
+the run does not carry fails only when someone runs it. And `--block`'s
+per-shape line is guarded by `len(shapes) > 2`, so it is dead on a one-shape
+file — a guard that hid an edited line of this reader through a whole smoke
+sweep. `rev`, `revsome` and `bcast` are the three-shape classes.
 Its numbers go nowhere: `-L1` is a rougher budget than any recorded run's,
 and this pass is a test of the reader, not a measurement.
 
