@@ -1203,9 +1203,12 @@ fbBQmutRunsMulback sh (T (Strides ats) ao v)
 -- element, and no 'lemireFits' anywhere in the arm. Predicted within noise
 -- of the control and is NOT: Run 8 (SpecConstr) has it ~9% behind at two
 -- wins of 24, past the floor as on every run since the pair was written and
--- now in both regimes. Dropping the size bound
+-- in both regimes. Dropping the size bound
 -- costs real time on this build, so the bound is worth keeping where it
--- holds.
+-- holds. That reading is now frozen: the precondition ruling stopped timing
+-- the control, so Run 9 could not re-read the pair and no later run can
+-- either while the ruling stands. What the ruling leaves measurable is this
+-- arm against the other unconditional builds, which is claim 1.
 {-# NOINLINE fbBQmutRunsGmMulback #-}
 fbBQmutRunsGmMulback :: ShapeL -> T -> VS.Vector Double
 fbBQmutRunsGmMulback sh (T (Strides ats) ao v)
@@ -1229,10 +1232,13 @@ fbBQmutRunsGmMulback sh (T (Strides ats) ao v)
 -- SpecConstr, which is the standing assumption. Run 8 settled that
 -- prediction and it came out a third right: under -fspec-constr the
 -- allocation is the predicted 1.33x exactly and the arm's absolute per-call
--- time falls 31%, the largest gain of any arm in that run -- but it lands
+-- time falls 31% -- but it lands
 -- level with its own build control rather than ahead of it (1.0004 over 24
 -- shapes), so the builder does not beat the expansion it replaces, and the
--- fastest pure time went to 'fbBQodoMulback' instead. At plain -O1 the
+-- fastest pure time went to 'fbBQodoMulback' instead. Both halves of that
+-- pair are untimed since the precondition ruling, so the reading is frozen
+-- where Run 8 left it; the same builder comparison on unconditional arms is
+-- claim 4, which Run 9 reads as a tie by the sign test. At plain -O1 the
 -- builder's stream state boxes per entry and this inherits
 -- bq-expand-class allocation
 -- (the record of that regime is the comment at 'baseOffsetsScan'), leaving

@@ -65,7 +65,7 @@ against its own row's median.
 --aa prints both and --selftest asserts the identity for the uncapped pairs.
 The floor is a consequence of the correction as much as the margins are:
 subtracting a term common to both arms magnifies their disagreement too,
-which on Run 8 took it from 1.41% to 1.68%.
+which on Run 9 took it from 1.30% to 1.52%.
 
 Controls, not strategies: the `*-aa-*` rows (an existing strategy run twice
 under a second name, true ratio exactly 1, so their spread is the noise
@@ -122,7 +122,8 @@ Modes:
                     fingerprint arms' net ratios, as two README tables
   --block           a stride-class block's mechanical parts in the form's
                     order: table, controls, provenance/anchor skeleton,
-                    and a three-shape population's per-shape line
+                    a three-shape population's per-shape line, and the
+                    three properties' verdicts derived rather than eyeballed
   --in-place        with --markdown, --fingerprint or --block, install the
                     tables into README instead of printing them: matched by
                     whole line, count asserted, a class table narrowed by
@@ -1225,6 +1226,108 @@ def fingerprint_table(cells, shapes, strategies, meta):
             print('| ' + ' | '.join(row) + ' |')
 
 
+# The three arms the second class property names
+# (README.md#the-claims-run-10-should-test). Constants rather than literals
+# because the property has been re-aimed twice, and a re-aim that misses one
+# use of a name is how a verdict starts disagreeing with the claim it checks.
+PROP2_FASTEST = 'mut-odo-vecdims'
+PROP2_PURE = 'bq-scan-rem-gm-mulback'
+SHIPPED = 'bq-expand'
+
+
+def is_pure(needs):
+    """Does this `needs` cell say the arm requires nothing of the API?
+
+    The shipped arm's cell reads `**nothing -- SHIPPED**` and the others
+    `nothing (pure)`, so the test is the shared word once emphasis is gone.
+    A cell left as `?` -- a row newer than the table it is carried from --
+    is not pure and not impure, and the caller is told rather than guessed
+    at, since a silent wrong answer here is exactly what this function is
+    here to stop.
+    """
+    return needs.strip().strip('*').lower().startswith('nothing')
+
+
+def block_verdicts(cells, shapes, strategies, meta, args):
+    """The claims a class paragraph makes, derived instead of eyeballed.
+
+    Everything here is readable off the table printed two inches above, and
+    that is the problem: reading it off by eye is what the procedure's
+    derive-from---cells rule forbids and what a session does anyway, the
+    table being right there while the paragraph is being written. Three of
+    Run 9's class sentences were wrong that way -- a `build`/`offtab`
+    ordering, an `offtab`-trails-`bq-expand` count given as one class when
+    it was four, and a pair quoted backwards -- each caught only by
+    recomputing afterwards. So the recomputation moves to where the prose is
+    written.
+
+    It states the three properties' verdicts and nothing else: no adjectives,
+    no mechanism, no comparison to another run. Those are the author's, and a
+    skeleton that guessed at them would be trusted for more than it knows.
+
+    Property 2 is read on the arms the claim NAMES, which is the reading the
+    claim makes; where a class's actual leaders differ, the first two lines
+    say so and the author decides. Both readings are wanted -- Run 9's
+    `reshape1` breaks the named one and holds the leaders one.
+
+    Non-vacuous: on Run 9 it says HOLDS for property 2 on `window` and names
+    a different, correct break on each of `rev`, `bcast`, `reshape1`,
+    `bcastmid` and `slice`, so it is not a constant; and `is_pure` separates
+    `nothing (pure)` and `**nothing -- SHIPPED**` from `mutable \\`Int\\`
+    scratch` and from an unwritten `?`.
+    """
+    rows, have_list = strategy_rows(cells, shapes, strategies)
+    if not have_list:
+        return
+    needs = {st: n for st, (_, _, n)
+             in readme_rows(args.readme, strategies).items()}
+    timed = [r for r in rows if not is_control(r[1]) and r[0] == r[0]]
+    if not timed:
+        return
+    unknown = [r[1] for r in timed if r[1] not in needs
+               or needs[r[1]].strip() in ('?', '')]
+    pure = [r for r in timed if is_pure(needs.get(r[1], '?'))]
+    print()
+    print('Verdicts, derived from the cells above; the paragraph is yours:')
+    print('  fastest timed arm   %-30s %.3f' % (timed[0][1], timed[0][0]))
+    if pure:
+        print('  fastest pure arm    %-30s %.3f' % (pure[0][1], pure[0][0]))
+    shipped = next((r for r in timed if r[1] == SHIPPED), None)
+    if shipped:
+        print('  %-19s %-30s %.3f   worst %.3f'
+              % (SHIPPED, '(shipped)', shipped[0], shipped[6]))
+        print('  property 1, `worst` under 1: %s'
+              % ('HOLDS' if shipped[6] < 1 else '**BREAKS**'))
+    clauses = []
+    if timed[0][1] != PROP2_FASTEST:
+        clauses.append('fastest is `%s`, not `%s`' % (timed[0][1],
+                                                      PROP2_FASTEST))
+    if pure and pure[0][1] != PROP2_PURE:
+        clauses.append('fastest pure is `%s`, not `%s`' % (pure[0][1],
+                                                           PROP2_PURE))
+    if shipped:
+        # Against the arms the claim NAMES, not against whichever arms lead:
+        # `reshape1` breaks this clause only on the named reading, the flat
+        # fills having taken its top, and the named reading is the claim's.
+        by = dict((r[1], r[0]) for r in timed)
+        ahead = [n for n in (PROP2_FASTEST, PROP2_PURE)
+                 if n in by and shipped[0] < by[n]]
+        if ahead:
+            clauses.append('`%s` is AHEAD of %s'
+                           % (SHIPPED, ', '.join('`%s`' % a for a in ahead)))
+    verdict2 = ('HOLDS' if not clauses
+                else '**BREAKS** -- ' + '; '.join(clauses))
+    print('  property 2, top of the table: %s' % verdict2)
+    tiers = [(st, dict((r[1], r[5]) for r in rows).get(st))
+             for st in (PROP2_FASTEST, SHIPPED, 'list')]
+    print('  property 3, allocation: %s'
+          % ', '.join('%s %s' % (st, '--' if a is None else '%.2fx' % a)
+                      for st, a in tiers))
+    if unknown:
+        print('  NOT classified pure or impure, `needs` unwritten: %s'
+              % ', '.join(unknown))
+
+
 def block_skeleton(cells, shapes, strategies, meta, args, terms):
     """A stride-class block's mechanical parts in one place, in the form's
     order (README.md#the-stride-classes-run-by-run): the six-column table,
@@ -1269,6 +1372,7 @@ def block_skeleton(cells, shapes, strategies, meta, args, terms):
             print('  `%s` %s' % (st, '/'.join(
                 '%.3f' % (cells[sh][st]['net'] / cells[sh]['list']['net'])
                 for sh in shapes)))
+    block_verdicts(cells, shapes, strategies, meta, args)
 
 
 ARM_RE = re.compile(r'^\s*[\[,]\s*\("([^"]+)",\s*'
@@ -1328,6 +1432,51 @@ def headings_of(text):
     for h in re.findall(r'^#+\s+(.*)$', text, re.M):
         s = re.sub(r'[`*_]', '', h.lower())
         out[re.sub(r'[^a-z0-9 -]', '', s).strip().replace(' ', '-')] = h
+    return out
+
+
+LIST_MARKER_RE = re.compile(r'^\s*(?:[-*]\s|\d+\.\s)')
+
+
+def unwrappable(lines):
+    """1-based line numbers with nowhere to wrap: tables, code, link
+    definitions and contents entries.
+
+    Code is the hard one, and getting it wrong is not hypothetical. Indenting
+    by four is how this file writes a code block AND how a nested list
+    continues its prose, so a plain `startswith("    ")` cannot tell them
+    apart -- and the width check used one, which let a 130-character line
+    inside a numbered sub-list pass while the check reported the whole file
+    inside its widths. Indent size cannot separate them either: a code block
+    indents deeper for its own nesting, as the Haskell in `the fix` does.
+
+    What separates them is what the indent hangs off. A continuation traces
+    back to a list marker; a code block traces back to a paragraph. So track
+    the owner: a marker at any indent claims what follows, an unindented
+    non-marker line releases it, and lines between leave it alone -- which is
+    what lets a top-level bullet's own 2-space continuation stay inside the
+    bullet rather than ending it.
+
+    Non-vacuous: over this README it exempts the code blocks and the contents
+    entries while flagging a 130-character list continuation the previous
+    test passed, and shortening that line is what makes --check-doc go green.
+    """
+    out = set()
+    owner_is_list = False
+    for i, line in enumerate(lines, 1):
+        if not line.strip():
+            continue
+        indent = len(line) - len(line.lstrip())
+        if indent == 0:
+            owner_is_list = bool(LIST_MARKER_RE.match(line))
+        elif LIST_MARKER_RE.match(line):
+            owner_is_list = True
+        if (line.lstrip().startswith('|')
+                or re.match(r'^\[[a-z0-9-]+\]:\s*\S+$', line)
+                or re.match(TOC_RE, line)):
+            out.add(i)
+        elif indent >= 4 and not owner_is_list:
+            out.add(i)
     return out
 
 
@@ -1429,18 +1578,13 @@ def check_doc(readme, main_hs):
                         ' replace list')
 
     wide = []
+    nowrap = unwrappable(lines)
     for path, limit, comment_only in ((readme, 80, False), (main_hs, 79, True),
                                       (os.path.abspath(__file__), 79, False)):
         for i, line in enumerate(open(path).read().split('\n'), 1):
             if len(line) <= limit:
                 continue
-            # Tables, code, link definitions and table-of-contents entries
-            # are all lines with nowhere to wrap.
-            if path == readme and (line.lstrip().startswith('|')
-                                   or line.startswith('    ')
-                                   or re.match(r'^\[[a-z0-9-]+\]:\s*\S+$',
-                                               line)
-                                   or re.match(TOC_RE, line)):
+            if path == readme and i in nowrap:
                 continue
             if comment_only and not line.strip().startswith('--'):
                 continue
