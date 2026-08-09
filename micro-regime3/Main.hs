@@ -2551,7 +2551,6 @@ data Arm = Base (ShapeL -> T -> VS.Vector Double)
 -- there rather than what it currently measures.
 roster :: [(String, Arm)]
 roster =
-  [ ("list",                       Base fbList)
     -- The early half of the 'sum-only' pair; the late half is the last
     -- bench in the group. Subtracting the shared forcing term from every
     -- other row is only sound if that term is a CONSTANT, and this bench
@@ -2588,13 +2587,31 @@ roster =
     -- slot changes nothing
     -- (README.md#the-noise-floor-is-the-aa-controls-not-the-ci).
     --
-    -- It stays AFTER 'list' rather than before it: warming the baseline
-    -- would move the denominator of every published ratio, which is a
-    -- different and much larger change, and 'list' being the coldest bench
-    -- is a known bias recorded separately
-    -- (README.md#non-urgent-todo-list). Anything added above the twins
-    -- from now on has to be checked for the same property.
-  , ("sum-only-early",             Term)
+    -- MOVED AGAIN BEFORE RUN 10, this time above 'list', which leaves
+    -- nothing in the group measured on an ungrown pool. Through Run 9 it
+    -- sat below the baseline deliberately, the argument being that warming
+    -- 'list' moves the denominator of every published ratio and so is a
+    -- larger change than the one being made -- true, and the reason it
+    -- waited for a run willing to pay it. What made this that run is that
+    -- the pool asymmetry had been narrowed to exactly one bench: after the
+    -- move above, every timed arm is measured warm EXCEPT the one every
+    -- figure divides by, which is also the arm the nursery punishes hardest
+    -- (README.md#the-noise-floor-is-the-aa-controls-not-the-ci). This is
+    -- the warm-up bench the TODO list asks for, spent from the roster
+    -- rather than added to it, so the delta stays order-only.
+    --
+    -- Two consequences to expect rather than to discover. The three
+    -- absolute 'list' anchors are built to detect a moved baseline and this
+    -- moves it on purpose, so they fire by construction. And unlike the
+    -- previous move, this one relocates code: swapping these two entries
+    -- shifts every worker by ~40 KB and rerolls every hot loop's alignment,
+    -- measured on the two binaries, where the slot-5-to-2 move left all
+    -- eight measured loops byte-identical
+    -- (README.md#what-the-next-runs-have-to-decide). Anything added above
+    -- the twins from now on has to be checked for the pool property, and
+    -- any reorder at all for this one.
+  [ ("sum-only-early",             Term)
+  , ("list",                       Base fbList)
     -- A/A controls, three of them, none a strategy: each runs an
     -- existing function twice so its true ratio is known to be exactly 1,
     -- and what it measures instead is what two identical things differ by.

@@ -3815,10 +3815,15 @@ and would be a second copy of a list that already exists; a delta costs what
 actually moved and shrinks to nothing when the two agree. A roster delta has
 two halves now that membership no longer settles what ran: which arms the
 roster held, and which of them it timed. **And a third: the ORDER they ran
-in.** Order is not membership, it moves code layout, and Run 9 measured
+in.** Order is not membership, it *can* move code layout, and Run 9 measured
 layout at up to 19% on an arm -- so a delta stated in membership alone can
-read empty while the run is not repeatable, which is exactly what happened
-when `sum-only-early` moved slot.
+read empty while the run is not repeatable. Whether a given reorder moves
+anything is now a thing to measure rather than assume, both answers having
+turned up in one afternoon: `sum-only-early`'s slot-5-to-2 move left all
+eight loops this page tracks byte-identical, while lifting it one further
+place, above `list`, shifts every worker by ~40 KB and rerolls every
+alignment. So record the order, and read the binary before deciding what the
+record costs.
 
 - Run 9 measured today's shapes, today's class lists and today's roster
   membership, timing today's 24 of it, winsorized per the estimator under
@@ -3826,13 +3831,14 @@ when `sum-only-early` moved slot.
   moved from slot 5 to slot 2, ahead of the three distant A/A twins ([the
   floor section][floor]). Membership is unchanged, so a delta stated in
   membership alone would read empty and be wrong, which is a gap in this
-  form worth naming: order is not membership, and order moves code layout,
-  which this run measured at up to 19% on an arm. Treat Run 9 as one roster
-  change away from today's tree, and note what that costs — Run 9 had just
-  achieved the empty delta in which a Run 10 at the same regime would have
-  been the exact repetition [the open
-  list](#what-the-next-runs-have-to-decide) says is owed. That repetition is
-  forfeited unless it is run against Run 9's order.
+  form worth naming. What that move costs is now measured rather than
+  feared: a binary rebuilt from Run 9's own commit `96378d2` puts all eight
+  tracked loops at the same offsets as the moved roster does, to the byte,
+  so the two orders differ in heap state and not in layout — which is what
+  lets [the floor section][floor]'s loop table hold Run 9's ratios against
+  offsets read off a later binary at all. Run 10 forfeits the repetition for
+  a different reason and deliberately: it lifts `sum-only-early` one place
+  further, above `list`, and that swap *does* relocate everything.
 - Run 8 measured today's shapes and today's class lists, on today's roster
   **minus the eight arms written since** (`bq-expand-gm-mulback`,
   `bq-odo-gm-mulback`, `mut-flat-gm`, `offtab-scan-rem` and the four
@@ -4300,15 +4306,51 @@ now rather than a slot in the next run, observed again:
   says nothing; and `bq-gen`, whose 11% is still unaccounted for, has no
   counterpart sharing its per-element loop at all, so this instrument cannot
   reach it. Recorded so the sweep is not attempted a second time.
+- **Run 10's two predictions, registered before it runs.** Its order was
+  chosen for heap state — `sum-only-early` above `list`, so nothing is
+  measured on an ungrown pool — and the layout it happens to give was then
+  read off the binary rather than shopped for, which is the distinction that
+  keeps the run from being confirmatory. Against Run 9's offsets, both of
+  the straddle hypothesis's arms move, in opposite directions:
+  1. **The FastReshape three go straddling to resident** (mod 40, 44, 44 to
+     mod 0, 36, 36) while their control stays resident (24 to 16). The
+     hypothesis predicts 1.1552, 1.1795 and 1.1645 collapse toward 1.00. If
+     they hold near 1.16, the hypothesis is dead and [the suspension of
+     those axis figures](#the-mutable-ceiling-not-taken) is withdrawn —
+     which is the outcome this page has the most reason to want detectable,
+     the suspension being its own.
+  2. **`mut-odo` goes resident to straddling** (29 to 53) while `build` stays
+     straddling (53 to 45). The hypothesis predicts their 1.13 closes toward
+     1.0. If it holds or widens, the hypothesis is dead by the other route.
+  3. **The anchors move, and one of them is a control.** Warming `list` is
+     the object of the swap, so the absolute anchors should fall and every
+     ratio rise with them — but not uniformly, and the excess-allocation
+     rule says which. Ten of the eleven anchor cells carry 27 to 336 MB of
+     excess and should move; `cnn-slice-c32`, at 0.05 MB, sits under the
+     nursery and should hold, which makes it a control inside the anchor
+     table. If it moves too, what warming does is not the nursery; if the
+     other ten do not, warming does not reach the baseline and the swap
+     bought nothing. And a fall shared by all nine populations is one effect
+     rather than nine findings, so read the anchors together before reading
+     any class paragraph.
+
+  Two arms of one prediction, either of which can kill it, on arms already
+  rostered and at no extra machine time. Read them before reading anything
+  else in Run 10, and record the verdict here rather than in the run's own
+  chapter, which the run after replaces.
 - **What does the roster owe the next run?** Run 9's delta is empty and Run
   10 inherits shapes, roster and regime all pinned, so a Run 10 at
   `-fspec-constr` would be the exact repetition this page has never had and
   the only clean measurement of run-to-run drift available. Run 9 supplies a
   partial one already — `list`'s own figures, whose code and slot did not
   move, held to 0.2% in geomean and scattered up to 5% per shape — but that
-  is one arm. The choice for Run 10 is between that repetition and a return
-  to -O1, which is the regime `Data/Array/Internal.hs` actually compiles
-  under and which no run has visited since Run 7.
+  is one arm. **Decided for Run 10: `-fspec-constr`, and the repetition
+  spent** — the roster order buys the pool fix and the two predictions above
+  instead, which is a trade of a measurement this page has never made for
+  two it can act on. So the drift measurement stays owed and `list`'s 0.2%
+  is still the only bound on it, and a return to -O1 — the regime
+  `Data/Array/Internal.hs` actually compiles under, unvisited since Run 7 —
+  stays open for the run after.
 
 [floor]: #the-noise-floor-is-the-aa-controls-not-the-ci
 [lemire]: #lemire-multiplicative-inverses-at-the-two-division-sites
