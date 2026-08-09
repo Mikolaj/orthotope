@@ -564,18 +564,23 @@ The geomean is stable but flattens. Below are the `stretch-*` shapes — chosen
 to push past the ranges the rest cover, and named here without their prefix —
 against the strategies nearest the decision, each as a multiple of `list` on
 the same shape. These are Run 8 (SpecConstr)'s own figures, all of them net
-of the forcing pass like the rest of the page:
+of the forcing pass like the rest of the page. A `lemire-out` column stood
+between `bq-expand-b` and `mut-odo` until 2026-08-09 and left with the
+fingerprint's two, by the same rule and on the same day: `bq-expand-lemire-out`
+is untimed, so a later run could only leave the column standing under its own
+name. What that arm's per-shape behaviour showed is in
+[the Lemire section][lemire], which is where its decision lives anyway:
 
-| shape      | bq-expand | bq-expand-b | lemire-out | mut-odo | vecdims |
-|------------|----------:|------------:|-----------:|--------:|--------:|
-| inner1     |     0.072 |       0.066 |      0.068 |   0.275 |   0.093 |
-| rank12     |     0.227 |       0.230 |      0.232 |   0.340 |   0.106 |
-| wide-2xM   |     0.087 |       0.081 |      0.089 |   0.195 |   0.074 |
-| coprime-r7 |     0.097 |       0.097 |      0.094 |   0.071 |   0.034 |
-| pow2stride |     0.064 |       0.064 |      0.079 |   0.066 |   0.066 |
-| primes     |     0.093 |       0.093 |      0.091 |   0.035 |   0.031 |
-| inner256   |     0.074 |       0.075 |      0.055 |   0.019 |   0.019 |
-| tall-Mx2   |     0.085 |       0.085 |      0.080 |   0.027 |   0.027 |
+| shape      | bq-expand | bq-expand-b | mut-odo | vecdims |
+|------------|----------:|------------:|--------:|--------:|
+| inner1     |     0.072 |       0.066 |   0.275 |   0.093 |
+| rank12     |     0.227 |       0.230 |   0.340 |   0.106 |
+| wide-2xM   |     0.087 |       0.081 |   0.195 |   0.074 |
+| coprime-r7 |     0.097 |       0.097 |   0.071 |   0.034 |
+| pow2stride |     0.064 |       0.064 |   0.066 |   0.066 |
+| primes     |     0.093 |       0.093 |   0.035 |   0.031 |
+| inner256   |     0.074 |       0.075 |   0.019 |   0.019 |
+| tall-Mx2   |     0.085 |       0.085 |   0.027 |   0.027 |
 
 Ordered by `sInner`, 1 at the top and half the length at the bottom, which is
 the axis the orderings turn on; the fuller per-shape record is in
@@ -809,6 +814,17 @@ that still reads if the solo margins sit inside the floor; and
 form, over the corner as its control. What Run 9 says about them prices
 the precedent's arithmetic axis by axis — and any close pair among them is
 to be read workers-first, per the `build` lesson above.
+
+**And the reading taken before the run, recorded here rather than left to be
+remembered.** On one shape, in Run 8's regime, all four sit *behind* their
+control, +4% to +12% against an adjacent A/A spread of about 0.2%, with the
+corner sub-additive and the count-down form recovering two thirds of its
+loss. One shape settles nothing and the roster it was taken in is not Run
+9's. What it fixes is the sign to watch: the precedent's loop arithmetic may
+simply lose under this compiler and this flag, in which case the 2×2 prices
+how much of the loss each axis owns rather than which axis wins. Allocation
+is not in doubt — all four read 1.00x their control on `cnn-L2-24x24-c32`,
+the stride table costing about 1.3 KB against a 1.33 MB result.
 
 
 ### The C-gap: still a deeper ceiling
@@ -1083,10 +1099,10 @@ whose base is not measured is not a control:
   counterparts written below, and [the claims
   list](#the-claims-run-9-should-test) has been re-aimed onto them.
 
-**The crossed A/A design survives the cut, at about two thirds the span.** Its
-three distant twins are placed early and their bases late, and 23 of the
-benches between them have gone: the widest span falls from 38 intervening
-benches to 25, the other two in proportion. That is still nothing like the
+**The crossed A/A design survives the cut, at half to two thirds the span.**
+Its three distant twins are placed early and their bases late, and 23 of the
+benches between them have gone: the spans fall to 25, 22 and 4 intervening
+benches, from 38, 31 and 8. That is still nothing like the
 twelve-arm probe where [spans of 28 and 0 read alike][floor], so the design
 keeps doing what it was built for; what it does not keep is comparability
 with Run 8's span column, a Run 9 pair being a different distance apart under
@@ -1304,6 +1320,17 @@ with it, while `check`, `--lint`, `--check-doc` and `--selftest` all passed —
 the failure lived in the two modes nobody had thought to run. Modes are cheap
 to run and expensive to be missing, and the run artifact is the only thing
 that can reproduce one, so sweep before deleting it rather than after.
+
+**After a roster change, add a `-L1` pass over the main set and one
+three-shape class**, which is about twenty minutes and reaches three things a
+one-shape smoke cannot: `--selftest`'s six A/A identities, which need a
+population to be identities of; every claim's `--pair` line, since a claim
+re-aimed at an arm the run does not carry fails only when someone runs it;
+and `--block`'s per-shape line, guarded by `len(shapes) > 2` and so dead on a
+one-shape file — a guard that hid an edited line of this reader through a
+whole smoke sweep. `rev`, `revsome` and `bcast` are the three-shape classes.
+Its numbers go nowhere: `-L1` is a rougher budget than any recorded run's,
+and this pass is a test of the reader, not a measurement.
 
 **The run** is one sequence — the main set, then each stride-class
 population in its own process, in `classViews`' order. Each `$c-` argument
@@ -2383,9 +2410,9 @@ standing under Run 7's name, and the first emitted paste is what caught
 them. The column heads shorten the arm names as the stretch table's do:
 scan-rem-gm is `bq-scan-rem-gm-mulback` and vecdims
 `mut-odo-vecdims`. And the [stretch table][pershape] is the same kind of
-record for `bq-expand-b` and `bq-expand-lemire-out`, on the shapes chosen
-to stress orderings — compare it the same way; its `lemire-out` column is
-untimed too, so Run 9 leaves that one as Run 8's as well.
+record for `bq-expand-b`, on the shapes chosen
+to stress orderings — compare it the same way. It lost a `lemire-out` column
+to this same rule on the same day, and says so.
 
 | shape | `sInner` | `l` | `list`, net | bq-expand |
 |---|---:|---:|---:|---:|
