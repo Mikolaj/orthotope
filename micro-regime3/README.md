@@ -214,78 +214,13 @@ section][floor], and it carried **a roster fix, since applied**:
 A/A twins, which were being calibrated against a colder heap than everything
 they calibrate. On the moved roster the 41% cell reads 0.24%.
 
-  **The acute symptom is gone**, by the roster move rather than by any flag.
-  What the flag question became instead was settled on a quiet machine the
-  same day, and the answer is bigger than the question: a larger nursery
-  helps a warm arm by about 10%, the cost it removes is *kernel* time, and
-  **`list` is the arm it helps most of all** — 1.79× on `vgg-14-c512-k3`,
-  which takes `bq-expand`/`list` there from 0.098 to 0.157 ([the floor
-  section][floor]).
-
-  **So the decision is no, and for a better reason than "it buys nothing".**
-  The default 4 MB area is what a GHC program gets unless it says otherwise,
-  so the published column answers *what does a caller see today*; `-A32m`
-  answers a question nobody asked, at the price of re-basing every figure the
-  page has published and forfeiting the clean repetition Run 10 is positioned
-  to give. Keep the default. What changes is not the setting but the
-  **caveat**: the headline ratios are partly a statement about the allocation
-  area, they are not a nursery-independent property of the algorithms, and
-  the effect is confined to shapes where an arm's excess outruns 4 MB — which
-  the `cifar` control shows the small shapes do not. What is *not* known is
-  how much of the published geomean moves, since one shape is not the table;
-  that is a run rather than a probe, and worth appending to whichever run
-  comes next rather than commissioning on its own.
-
-  **The predictor, recorded before the run that would test it.** What decides
-  whether an arm feels the nursery is not its total allocation but its
-  allocation **in excess of the result buffer**, `(alloc − 1) × 8l`: the
-  result is one large object and goes straight to the large-object list,
-  bypassing the nursery, while the excess is the part that churns through it.
-  On the six arms whose `vgg-14-c512-k3` behaviour is already measured the
-  rule separates them outright, and the line falls on the nursery itself —
-  affected at 11.2 to 13.2 MB of excess (`bq-expand` and its two
-  output variants, `bq-odo-gm-mulback`), unaffected at 2.4 MB
-  (`bq-scan-rem-gm-mulback`) and 0 (`mut-odo-vecdims`). Total allocation does
-  *not* separate them, putting an unaffected arm at 9.6 MB and an affected
-  one at 18.5 MB with no line between that means anything. Applied to the
-  kept Run 9 cells the rule predicts **131 of 782** cells move, concentrated
-  on the large shapes, and names **14 arms that should not move on any
-  shape** — the whole `mut-odo-vecdims` family, `build`, `mut-odo`,
-  `gen-quotrem`, `gen-unsafe` and both `sum-only` halves. Two consequences
-  worth having in writing before the measurement. `list` itself is predicted
-  affected on 17 shapes, by up to 353 MB of excess, so **the baseline is
-  expected to move and every ratio with it** — which is most of the case
-  against adopting the flag casually. And `build` and `mut-odo` are both
-  predicted *unaffected*, so their 1.13× gap should survive `-A32m`
-  untouched; if it collapses instead, this predictor is wrong and what this
-  page calls placement is really the allocator.
-
-  **And the eight class populations, which that count left out**
-  (2026-08-09, the same arithmetic over the kept JSONs; it reproduces the
-  main set's 131 of 782 exactly, which is what makes the rest worth
-  quoting). `list` crosses the nursery in **every** population, so no class
-  table divides by an unaffected baseline — 336 MB of excess on
-  `bcast-tall-Mx2`, 118 on `reshape1-500k`, 34 to 81 elsewhere. The
-  strategies cross in three classes only, `bcast` (24 cells of 96),
-  `reshape1` (17 of 64) and `window` (10 of 66); in `bcastmid`, `rev`,
-  `revsome`, `scaled` and `slice` nothing but the baseline does. So those
-  five are penalised in one direction throughout, which leaves their
-  orderings alone and their levels flattered, while the three are penalised
-  unevenly and are where a nursery A/B would move a table. Whichever run
-  takes the `-A32m` pair should take the classes with it.
-
-  **That second half was tested the same day and the prediction holds.** Both
-  arms plus a `sum-only` half, filtered over all 24 shapes, run twice from
-  one binary with the nursery as the only difference (2026-08-09): the pair
-  reads **1.1604** at the default and **1.1433** at `-A32m`, each at three
-  wins of 24 and sign p 0.00028. The gap does not move. Nor do the arms
-  themselves, 1.028 and 1.043 in absolute time across the change, against the
-  35–40% the excess-allocating arms show. Two things follow. The predictor
-  survives a test it could have failed, on the side where failure was
-  cheapest to detect. And **the placement question is now confirmed
-  independent of the allocator**, so the pad probe is unavoidable rather than
-  possibly-subsumed: this pair's 1.16× is not filtering either, the full run
-  reading 1.13× over the same shapes with 31 benches between the two arms.
+  **It was answered the same day, and the decision it forced is kept
+  with the account**: keep the default area, and carry the caveat that
+  the headline ratios are partly a statement about it ([the floor
+  section][floor], which also holds the predictor for which cells the
+  setting reaches, and the nine populations it has been applied to).
+  What stays open is the size of it — how much of a published geomean
+  moves is a run and not a probe, and it heads the queue below.
 
 **Three of Run 8's were answered the same day**, each by the probe its own
 entry specified — the rule about a discriminating measurement deserving one
@@ -2489,7 +2424,8 @@ arm and the same shape, so it is not a fluke, and five filtered probes
   inherited from horde-ad says "wall and user time agree on it", which was
   true of the workload it was written for and is false here.
 
-  **The predictor called it, on a control shape.** `cifar-L2-16-c64-k3` has
+  **The predictor called it, on a control shape** — the excess-allocation
+  rule stated in full below. `cifar-L2-16-c64-k3` has
   1.59 MB of excess per call, below the 4 MB area, so it should show neither
   kernel time nor benefit. It shows neither: system time is 0.00-0.01 s at
   both settings and does not scale with `n`, and `-A32m` is if anything 6%
@@ -2606,6 +2542,57 @@ nursery-independent property of the two algorithms, and the headline ratios
 should not be read as one. Quantifying it over the whole table is a run, not
 a probe: one shape is not the geomean, and the small shapes — where every
 arm's excess is under 4 MB, as the `cifar` control shows — will move nothing.
+
+**The predictor, recorded before the run that would test it.** What decides
+whether an arm feels the nursery is not its total allocation but its
+allocation **in excess of the result buffer**, `(alloc − 1) × 8l`: the
+result is one large object and goes straight to the large-object list,
+bypassing the nursery, while the excess is the part that churns through it.
+On the six arms whose `vgg-14-c512-k3` behaviour is already measured the
+rule separates them outright, and the line falls on the nursery itself —
+affected at 11.2 to 13.2 MB of excess (`bq-expand` and its two
+output variants, `bq-odo-gm-mulback`), unaffected at 2.4 MB
+(`bq-scan-rem-gm-mulback`) and 0 (`mut-odo-vecdims`). Total allocation does
+*not* separate them, putting an unaffected arm at 9.6 MB and an affected
+one at 18.5 MB with no line between that means anything. Applied to the
+kept Run 9 cells the rule predicts **131 of 782** cells move, concentrated
+on the large shapes, and names **14 arms that should not move on any
+shape** — the whole `mut-odo-vecdims` family, `build`, `mut-odo`,
+`gen-quotrem`, `gen-unsafe` and both `sum-only` halves. Two consequences
+worth having in writing before the measurement. `list` itself is predicted
+affected on 17 shapes, by up to 353 MB of excess, so **the baseline is
+expected to move and every ratio with it** — which is most of the case
+against adopting the flag casually. And `build` and `mut-odo` are both
+predicted *unaffected*, so their 1.13× gap should survive `-A32m`
+untouched; if it collapses instead, this predictor is wrong and what this
+page calls placement is really the allocator.
+
+**And the eight class populations, which that count left out**
+(2026-08-09, the same arithmetic over the kept JSONs; it reproduces the
+main set's 131 of 782 exactly, which is what makes the rest worth
+quoting). `list` crosses the nursery in **every** population, so no class
+table divides by an unaffected baseline — 336 MB of excess on
+`bcast-tall-Mx2`, 118 on `reshape1-500k`, 34 to 81 elsewhere. The
+strategies cross in three classes only, `bcast` (24 cells of 96),
+`reshape1` (17 of 64) and `window` (10 of 66); in `bcastmid`, `rev`,
+`revsome`, `scaled` and `slice` nothing but the baseline does. So those
+five are penalised in one direction throughout, which leaves their
+orderings alone and their levels flattered, while the three are penalised
+unevenly and are where a nursery A/B would move a table. Whichever run
+takes the `-A32m` pair should take the classes with it.
+
+**That second half was tested the same day and the prediction holds.** Both
+arms plus a `sum-only` half, filtered over all 24 shapes, run twice from
+one binary with the nursery as the only difference (2026-08-09): the pair
+reads **1.1604** at the default and **1.1433** at `-A32m`, each at three
+wins of 24 and sign p 0.00028. The gap does not move. Nor do the arms
+themselves, 1.028 and 1.043 in absolute time across the change, against the
+35–40% the excess-allocating arms show. Two things follow. The predictor
+survives a test it could have failed, on the side where failure was
+cheapest to detect. And **the placement question is now confirmed
+independent of the allocator**, so the pad probe is unavoidable rather than
+possibly-subsumed: this pair's 1.16× is not filtering either, the full run
+reading 1.13× over the same shapes with 31 benches between the two arms.
 
 **So position reproduced after all, and much larger than the twins price
 it.** Run 7 read the distant twin above the adjacent one within every
@@ -4031,7 +4018,7 @@ third property names. That level carries a nursery consequence with it:
 4 MB area penalises the baseline hardest and the ceiling's arm not at all. A
 larger nursery would raise `mut-odo-vecdims`'s ratio more than `bq-expand`'s,
 so the inversion above is a floor rather than an artifact — it would widen
-([the predictor](#what-the-next-runs-have-to-decide)).
+([the predictor][floor]).
 
 **`slice` — a view of a larger source: non-zero offset, positive strides.**
 Shapes: `slice-cnn-L2-24x24-c32` (`l` 165888, `sInner` 3), `slice-primes`
