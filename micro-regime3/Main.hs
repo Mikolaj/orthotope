@@ -2546,6 +2546,49 @@ data Arm = Base (ShapeL -> T -> VS.Vector Double)
 roster :: [(String, Arm)]
 roster =
   [ ("list",                       Base fbList)
+    -- The early half of the 'sum-only' pair; the late half is the last
+    -- bench in the group. Subtracting the shared forcing term from every
+    -- other row is only sound if that term is a CONSTANT, and this bench
+    -- is the one place in the suite where that is in doubt: every other
+    -- bench allocates its own result each iteration and so is indifferent
+    -- to what ran before it, while this one re-reads a FIXED vector and
+    -- therefore depends on whether that vector survived in cache. The A/A
+    -- pair's agreement does not license the assumption -- it duplicates a
+    -- self-allocating bench, the insensitive kind. If the two halves
+    -- agree the correction is sound; if they diverge, the term is not a
+    -- constant and the correction must be dropped rather than applied.
+    --
+    -- Every run since has licensed it, and the correction is applied to
+    -- every published figure
+    -- (README.md#sum-only-and-the-correction-now-applied). Both halves
+    -- stay in the roster, because this is a test every run must repeat:
+    -- a run whose halves diverged would invalidate its whole time column,
+    -- not merely decline to correct it. What this pair CANNOT test about
+    -- itself -- that a fixed vector is read at the same cost as one the fill
+    -- has just written -- is what the two 'Force' arms measure.
+    --
+    -- THIS SLOT IS LOAD-BEARING and was moved here after Run 9, from
+    -- below the three distant twins. Timing a sum over a FIXED vector
+    -- means allocating that vector once in setup and almost nothing per
+    -- call, and that one large allocation grows the block pool and leaves
+    -- it grown -- so this bench silently divides the group into a cold
+    -- prefix and a warm remainder. With it below the twins, all three were
+    -- measured cold against bases measured warm, which is a heap-state
+    -- difference where the crossed design intends a POSITION difference,
+    -- and on 'vgg-14-c512-k3' it put 'bq-expand-aa-distant' 41% above its
+    -- own base for two runs running. Measured, not reasoned: inserting
+    -- this bench between the twin and the base is alone enough to move the
+    -- base from 4.58 ms to 3.35 ms, where 'mut-odo-vecdims' in the same
+    -- slot changes nothing
+    -- (README.md#the-noise-floor-is-the-aa-controls-not-the-ci).
+    --
+    -- It stays AFTER 'list' rather than before it: warming the baseline
+    -- would move the denominator of every published ratio, which is a
+    -- different and much larger change, and 'list' being the coldest bench
+    -- is a known bias recorded separately
+    -- (README.md#non-urgent-todo-list). Anything added above the twins
+    -- from now on has to be checked for the same property.
+  , ("sum-only-early",             Term)
     -- A/A controls, three of them, none a strategy: each runs an
     -- existing function twice so its true ratio is known to be exactly 1,
     -- and what it measures instead is what two identical things differ by.
@@ -2575,27 +2618,6 @@ roster =
     -- slot above could not do, and what settled the position question.
   , ("bq-expand-aa-distant",       Twin fbBQexpand)
   , ("mut-odo-vecdims-aa-distant", Twin fbMutOdoVecdims)
-    -- The early half of the 'sum-only' pair; the late half is the last
-    -- bench in the group. Subtracting the shared forcing term from every
-    -- other row is only sound if that term is a CONSTANT, and this bench
-    -- is the one place in the suite where that is in doubt: every other
-    -- bench allocates its own result each iteration and so is indifferent
-    -- to what ran before it, while this one re-reads a FIXED vector and
-    -- therefore depends on whether that vector survived in cache. The A/A
-    -- pair's agreement does not license the assumption -- it duplicates a
-    -- self-allocating bench, the insensitive kind. If the two halves
-    -- agree the correction is sound; if they diverge, the term is not a
-    -- constant and the correction must be dropped rather than applied.
-    --
-    -- Every run since has licensed it, and the correction is applied to
-    -- every published figure
-    -- (README.md#sum-only-and-the-correction-now-applied). Both halves
-    -- stay in the roster, because this is a test every run must repeat:
-    -- a run whose halves diverged would invalidate its whole time column,
-    -- not merely decline to correct it. What this pair CANNOT test about
-    -- itself -- that a fixed vector is read at the same cost as one the fill
-    -- has just written -- is what the two 'Force' arms measure.
-  , ("sum-only-early",             Term)
   , ("gen-quotrem",                Fill fbGenQuotRem)
   , ("gen-unsafe",                 Fill fbGenUnsafe)
     -- not timed: 27.94x the result
