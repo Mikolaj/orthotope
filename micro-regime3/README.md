@@ -79,6 +79,73 @@ and code size, and the measurement that would settle it is horde-ad's
 `convVjpBench` over a real build. The 27% is what this page contributes to
 it.
 
+## What is settled, and where
+
+**One line per thing this page has established, and the section that holds
+it.** It exists because the file is long enough to re-derive itself: the
+`build`/`mut-odo` Core identity was dumped, diffed and drafted as a new
+finding, and found afterwards to have been recorded at [the mutable
+ceiling][ceiling] since Run 8, a thousand lines from where the session was
+working. Read this before deriving anything and grep it before writing
+anything up.
+
+**It carries no figures, and that is the design.** A figure here would be a
+second copy of one kept elsewhere, which is how two versions of
+[Provenance][prov]'s replace list went stale before it was rewritten to name
+sections rather than numbers. Each entry names a subject and a home and stops;
+the numbers live at the home and move with the run. An entry earns its place
+by being a thing a later session might otherwise redo.
+
+- **The fix that shipped** and why the base-offsets table is built by
+  expansion rather than by division: [the fix][fix], with the four findings
+  behind it in [how the picture was achieved][achieved].
+- **The mutable ceiling**, why a direct mutable fill was not taken, and the
+  amendment that turned that bar into a weight: [the ceiling][ceiling].
+- **The class-method signature is free** — `build` and `mut-odo` compile to
+  the same worker, dumped in both regimes — so no `vBuild` is held back on a
+  figure: [the ceiling][ceiling].
+- **Code placement moves figures**, and by more than the A/A controls can
+  see: the identical-code pair, the rebuild bias, the per-loop reading and
+  the cache-line table are all [in the floor section][floor]. What is still
+  open about it is [on the open list][open].
+- **The allocation area moves figures too** — the default nursery against an
+  arm's allocation in excess of its result — with the predictor and the
+  populations it reaches [in the floor section][floor].
+- **The A/A controls are the noise floor**, not the printed CI, and what they
+  do and do not bound is [in the floor section][floor]; R² is the ramp
+  detector rather than the noise detector, [here][ramp].
+- **The forcing pass is subtracted from every figure**, on three gates that
+  every run and every population re-passes, and gate 3's standing bias:
+  [sum-only][correction].
+- **`alloc` is deterministic per call** and is a statistic of a strategy
+  *and* a shape set, so pin the shape set before comparing it: the column
+  definitions under [Results][results].
+- **Which strategy wins is decided by the innermost extent**, not by the rank
+  and not by the element count, which is what the geomean hides: the `sInner`
+  ruling, [per shape][pershape].
+- **Division is priced at two sites**, and which multiplicative-inverse form
+  survives which regime: [Lemire][lemire].
+- **The element-type restriction is evidenced**, the ranking holding at four
+  types: [the probe][probe]. **The scratch vector's flavour** severed
+  comparability at a known point: [there][scratch].
+- **The roster is cut by two rulings** — a size precondition disqualifies an
+  arm, and so does allocating past a bar — and a majority of the roster is
+  checked without being timed: [what the benchmark does][bench].
+- **The shape set was halved and is not to grow back one shape at a time**:
+  [the shape set][shapeset], the ruling itself beside `convShapes` in
+  `Main.hs`.
+- **The stride classes are separate populations**, tabled beside the main set
+  and never merged into it: [the classes][classes].
+- **Ideas that died on paper** are recorded so they are not re-proposed:
+  [dead ideas][dead].
+- **Pure Haskell cannot close the gap to the C kernels**, which bounds every
+  strategy here: [the C-gap][cgap].
+- **How a run is made and analysed**, including what a run does *not* touch:
+  [the procedure][procedure], [the reader][reader] and [Provenance][prov].
+- **What is open**, each with the measurement that would settle it and what a
+  quiet machine is needed for: [the open list][open], with the harness's own
+  backlog under [the TODO list][todo].
+
 ## The goal of these benchmarks
 
 **Nothing in this chapter changes from run to run.** It changes when the
@@ -734,19 +801,17 @@ worker, identical once the numbering is normalised down to the four floated
 still no top-level binding. So **the signature is free**, and
 no `vBuild` is to be held back on either run's figure.
 
-**What the pair has become is a second instrument, and it reads worse than
-the first.** Two top-level names with identical Core are a true ratio of
-exactly 1, which is what the A/A controls are built to supply — and this pair
-disagrees by far more than they do, 1.24× at -O1 and 0.86× under
-`-fspec-constr`, on 22 and 23 shapes of 24, where that run's six A/A twins
-span 1.7%. The sign reverses with the regime, so nothing about either arm
-explains it; what differs between the two names is where their code lands,
-and the flag moves 12 KiB of `.text` under them all.
-Read it as the A/A floor understating what code placement can do to two
-*separately compiled* arms, the twins measuring only what it does to two
-calls of one — and as a reason not to price any margin between distant rows
-at the twins' floor. A pure-typed
-alternative (a
+**What the pair has become is a second instrument, and it is read where the
+other instruments are.** Two top-level names with identical Core are a true
+ratio of exactly 1, which is what the A/A controls are built to supply, and
+this pair disagrees by far more than they do — so it prices what placement
+does to two *separately compiled* arms, where the twins price only what it
+does to two calls of one. That reading, its figures in every run and
+population, and the per-loop account underneath it are [in the floor
+section][floor] and are deliberately not repeated here: what this section
+needs from the pair is only that its disagreement is placement rather than
+the abstraction, which is what leaves the identity above licensing `vBuild`.
+A pure-typed alternative (a
 strided-gather method taking the shape/stride/source and hiding the
 mutation inside each instance, as `vGenerate` already does) would keep the
 speed without `ST` in the signature.
@@ -2127,7 +2192,9 @@ penalised, and now there is a measured case of by how much.
 
 **What did turn up is a bigger placement effect, from an accident.** `build`
 and `mut-odo` compile to the same worker — checked in Core at -O1 and again
-under `-fspec-constr` — so they are a seventh known-true-ratio-1 pair, and
+under `-fspec-constr`, the dumps being [the mutable ceiling][ceiling]'s,
+which is where that identity is kept — so they are a seventh
+known-true-ratio-1 pair, and
 they disagree by 1.24× on Run 7, 0.86× on Run 8 and **1.13×** on Run 9 (3
 wins of 24, sign p 0.00028). Three runs, one of them differing from its
 predecessor in membership alone, and the pair spans 0.86 to 1.24: that range
@@ -4355,9 +4422,26 @@ now rather than a slot in the next run, observed again:
   `Data/Array/Internal.hs` actually compiles under, unvisited since Run 7 —
   stays open for the run after.
 
+[achieved]: #how-the-strictly-positive-picture-was-achieved
+[bench]: #what-the-benchmark-does
+[ceiling]: #the-mutable-ceiling-not-taken
+[cgap]: #the-c-gap-still-a-deeper-ceiling
+[classes]: #the-stride-classes-and-what-they-cover
+[correction]: #sum-only-and-the-correction-now-applied
+[dead]: #dead-ideas
+[fix]: #the-fix-in-dataarrayinternalhs
 [floor]: #the-noise-floor-is-the-aa-controls-not-the-ci
 [lemire]: #lemire-multiplicative-inverses-at-the-two-division-sites
+[open]: #what-the-next-runs-have-to-decide
 [opening]: #regime-3-micro-benchmark-the-fix-bq-expand
 [pershape]: #per-shape-where-the-geomean-hides-the-ordering
-[ramp]: #r2-is-the-ramp-detector-not-the-noise-detector
 [pos-effect]: https://github.com/Mikolaj/horde-ad/blob/master/docs/position-effect.md
+[probe]: #one-element-type-and-what-the-probe-found
+[procedure]: #making-a-major-benchmark-run
+[prov]: #provenance
+[ramp]: #r2-is-the-ramp-detector-not-the-noise-detector
+[reader]: #the-reader-read-runpy
+[results]: #results
+[scratch]: #the-scratch-vector-flavour
+[shapeset]: #the-shape-set
+[todo]: #non-urgent-todo-list
