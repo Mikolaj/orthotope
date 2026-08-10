@@ -112,6 +112,8 @@ Modes:
                     and the in-situ forcing term off the `-nosum` arms
   --pair A B        compare two arms shape by shape: paired geomean, a
                     bootstrap interval, win count and sign test
+  --compare OTHER   compare one arm across two runs of the same population,
+                    every arm at once -- what a paired run's two halves want
   --cells           every cell as TSV, for anything not covered above
   --markdown        README's Results table, numbers recomputed and the
                     editorial column carried over from the one there --
@@ -1029,6 +1031,75 @@ def pair_table(cells, shapes, strategies, pairs):
     print('assumption, immune to a wild cell, and blind to magnitude.')
 
 
+def compare_table(cells, shapes, strategies, meta, other, main_hs):
+    """One arm's figure in this run against the same arm in another.
+
+    `--pair` compares two arms inside one run; this compares one arm across
+    two runs of the same population, which is what a paired run asks for --
+    Run 10's aligned half against its unaligned one, arm by arm, is its
+    fourth prediction. Both sides are corrected before dividing, since the
+    forcing term is not identical between two builds (README's open list
+    measures it moving 0.6% across an alignment change), so subtracting each
+    run's own is the only reading that means anything.
+
+    Shapes and arms present in both are what it reports; anything else is
+    named and skipped, a silently narrowed comparison being the failure this
+    whole file is written against.
+    """
+    b_cells, b_shapes, b_strategies, b_meta = load(other, main_hs)
+    apply_correction(b_cells, b_shapes, b_strategies)
+    mine = population_of(shapes, meta['dims'])[1]
+    theirs = population_of(b_shapes, b_meta['dims'])[1]
+    if mine != theirs:
+        sys.exit('this run is %s and %s is %s: different populations, and no'
+                 ' figure crosses between them'
+                 % (mine, os.path.basename(other), theirs))
+
+    both_sh = [s for s in shapes if s in b_shapes]
+    both_st = [t for t in strategies if t in b_strategies]
+    missing = ([s for s in shapes if s not in b_shapes]
+               + [s for s in b_shapes if s not in shapes])
+    print('\nthis run / %s, per arm, over %d shared shape(s)'
+          % (os.path.basename(other), len(both_sh)))
+    if missing:
+        print('  shapes in one run only, skipped: %s'
+              % ', '.join(sorted(set(missing))))
+    if len(both_st) != len(strategies) or len(both_st) != len(b_strategies):
+        print('  arms in one run only, skipped: %s'
+              % ', '.join(sorted(set(strategies) ^ set(b_strategies))))
+
+    rows = []
+    for st in both_st:
+        # The arms with no corrected time: their net is the forcing term
+        # subtracted from itself, so a ratio of two of them is a ratio of two
+        # near-zeros. `--aa` is where those two are compared.
+        if st.startswith('sum-only') or st.endswith('-nosum'):
+            continue
+        rs = []
+        for sh in both_sh:
+            a, b = cells[sh][st]['net'], b_cells[sh][st]['net']
+            if a > 0 and b > 0:
+                rs.append(a / b)
+        if rs:
+            rows.append((geomean(rs), sum(1 for r in rs if r < 1),
+                         len(rs), st))
+    print('\n%-34s %8s %8s %10s' % ('arm', 'ratio', 'faster', 'range'))
+    for g, wins, n, st in sorted(rows):
+        rs = sorted(cells[sh][st]['net'] / b_cells[sh][st]['net']
+                    for sh in both_sh
+                    if cells[sh][st]['net'] > 0 and b_cells[sh][st]['net'] > 0)
+        print('%-34s %8.4f %5d/%-3d %5.3f..%.3f'
+              % (st, g, wins, n, rs[0], rs[-1]))
+    print('\nsum-only and -nosum arms are left out, having no corrected time'
+          '\nto divide; --aa is where those are read.'
+          '\nBelow 1 means this run is faster. The ratio is the geomean of the'
+          '\nper-shape ratio, both sides corrected by their own forcing term;'
+          '\n`faster` counts shapes where this run wins. A run-to-run figure'
+          '\ncarries whatever the two builds differ in, which for anything but'
+          '\na pinned pair includes code placement (README, the floor'
+          '\nsection).')
+
+
 def aa_table(cells, shapes, strategies, terms, meta):
     pos = {st: i for i, st in enumerate(strategies)}
     pairs = [(st, twin_of(st)) for st in strategies if twin_of(st)]
@@ -1647,7 +1718,25 @@ def check_doc(readme, main_hs):
                        % (', '.join(sorted(regimes)) or 'none'))
         else:
             print('ok:   the yardstick keeps a column per regime (%s)'
-                  % ', '.join(sorted(regimes)))
+                  % ' / '.join(sorted(regimes)))
+
+        # A paired run puts two columns here, one per half, and neither may
+        # be dropped or folded into the other: an aligned build is a regime
+        # and not a second reading of the one beside it. Keyed off the run
+        # number so this holds for any later pairing and not just Run 10.
+        # NO LIVE CONTROL until a paired run lands -- no header here names a
+        # half yet, so this branch cannot fire on the current file. It was
+        # exercised by hand instead: a copy of README.md carrying both Run 10
+        # columns passes, and the same copy with either one deleted fails.
+        halves = collections.defaultdict(set)
+        for run, regime in re.findall(r'Run (\d+) \(([^)]*)\)', yard[0]):
+            halves[run].add('aligned' in regime)
+        for run, kinds in sorted(halves.items()):
+            if kinds == {True}:
+                bad.append('the yardstick names Run %s aligned and not'
+                           ' unaligned: a paired run keeps both columns, the'
+                           ' unaligned one being what succeeds the previous'
+                           " run's basis" % run)
 
     for line in bad:
         print('FAIL: ' + line)
@@ -2038,6 +2127,13 @@ def selftest(cells, shapes, strategies, meta):
     if len(shapes) < 2:
         skip.append('one shape only, so the winsorizing and the A/A identity'
                     ' below are unexercised')
+    elif any('list' not in cells[sh] for sh in shapes):
+        # A filtered run that leaves the baseline out has no ratios to check.
+        # Saying so beats the KeyError this used to raise: the docstring
+        # promises this reader is useful on a partial run, and a four-bench
+        # gate is exactly that.
+        ok.append('winsorizing: not checked, the run carries no `list` to'
+                  ' divide by -- add `*/list` to the selection to exercise it')
     else:
         capped = 0
         for st in strategies:
@@ -2119,6 +2215,9 @@ def main():
     p.add_argument('--cells', action='store_true')
     p.add_argument('--pair', nargs=2, action='append', default=[],
                    metavar=('A', 'B'))
+    p.add_argument('--compare', metavar='OTHER.json',
+                   help='this run against another of the same population,'
+                        ' one arm at a time')
     p.add_argument('--markdown', action='store_true')
     p.add_argument('--fingerprint', action='store_true')
     p.add_argument('--block', action='store_true')
@@ -2162,6 +2261,10 @@ def main():
 
     if args.selftest:
         sys.exit(selftest(cells, shapes, strategies, meta))
+    if args.compare and not os.path.exists(args.compare):
+        sys.stderr.write('%s: no such run file; the comparison did not'
+                         ' happen\n' % args.compare)
+        sys.exit(2)
     roster = ('%d benchmarks over %d shape%s of %s'
               % (meta['benches'], meta['shapes'],
                  '' if meta['shapes'] == 1 else 's',
@@ -2183,6 +2286,9 @@ def main():
         aa_table(cells, shapes, strategies, terms, meta)
     elif args.pair:
         pair_table(cells, shapes, strategies, args.pair)
+    elif args.compare:
+        compare_table(cells, shapes, strategies, meta, args.compare,
+                      args.main)
     elif args.cells:
         cell_dump(cells, shapes, strategies)
     elif args.markdown:

@@ -20,18 +20,20 @@ Reading the output: the copies are listed in address order, and for the
 `fail` join, which cannot run on a well-formed shape, and it is the executed
 one that the penalty applies to.
 
-Non-vacuity, and it is a known-answer control rather than an assertion: run
-against the probe binaries this reproduces every offset README records for
-them -- micro-pad0 [3, 53, 59, 45], micro-pad1 [27, 13, 19, 5], micro-pad6
-[19, 5, 11, 61], whose second and fourth entries are the documented `mut-odo`
-and `build` offsets 53/45, 13/5 and 5/61. Those binaries are untracked in
-pad-probe/ and are to be deleted; after that the control is the per-offset
-table in README's floor section, which lists the same values. It was checked
-against all three before being pointed at a binary whose answer was unknown,
-which is the whole of its warrant.
+Non-vacuity, and it is a known-answer control rather than an assertion. It
+was settled against the pad probe's binaries, reproducing every offset README
+records for them -- micro-pad0 [3, 53, 59, 45], micro-pad1 [27, 13, 19, 5],
+micro-pad6 [19, 5, 11, 61], whose second and fourth entries are the
+documented `mut-odo` and `build` offsets -- before it was pointed at a binary
+whose answer was unknown, which is the whole of its warrant. Those binaries
+are deleted. The live control is now `micro-unaligned`, whose two groups must
+read [3, 53, 59, 45] and [16, 0, 36, 36] while its aligned twin reads all
+zeroes; both are recorded in README's open list and in run10-binaries.txt, so
+the check outlives the binaries it was born on.
 
     ./loop-offsets.py BINARY...          # 28-byte loop, the one this page prices
     ./loop-offsets.py --len 24 BINARY    # e.g. the count-down form
+    ./loop-offsets.py --survey BINARY    # every loop that could fit a line
 """
 import argparse
 import collections
@@ -70,18 +72,53 @@ def scan(path, length):
         if not t:
             continue
         tgt = int(t.group(1), 16)
-        if tgt >= addr or (addr + nb) - tgt != length:
+        if tgt >= addr:
+            continue
+        span = (addr + nb) - tgt
+        # length=None surveys every loop that could fit a line; otherwise the
+        # span must be exactly the length asked for.
+        if length is None:
+            if span > LINE:
+                continue
+        elif span != length:
             continue
         k = at.get(tgt)
         if k is None:
             continue
         body = ''.join(i[2] for i in insns[k:n + 1])
-        if len(body) != 2 * length:   # a jump into the middle of an instruction
+        if len(body) != 2 * span:     # a jump into the middle of an instruction
             continue
         found.append({'start': tgt, 'bytes': body, 'sym': insns[k][5],
-                      'ninsn': n - k + 1, 'mod': tgt % LINE,
-                      'straddles': tgt % LINE + length > LINE})
+                      'len': span, 'ninsn': n - k + 1, 'mod': tgt % LINE,
+                      'straddles': tgt % LINE + span > LINE})
     return found
+
+
+def survey(path, want='_Main_'):
+    """Every self-loop of any length, and how many can still straddle.
+
+    Only a loop no longer than a line can be rescued by an offset at all, so
+    that is the population the count is about; everything longer spans several
+    lines in any build. The default `want` restricts this to code GHC compiled
+    here rather than to the libraries linked in, which no shim on -pgma
+    reaches.
+    """
+    heads = {}
+    for f in scan(path, None):
+        cur = heads.get(f['start'])
+        if cur is None or f['len'] < cur['len']:   # innermost loop at a head
+            heads[f['start']] = f
+    found = list(heads.values())
+    mine = [f for f in found if want in (f['sym'] or '')]
+    at0 = [f for f in mine if f['mod'] == 0]
+    strad = [f for f in mine if f['straddles']]
+    print(f'{path}: {len(mine)} self-loops of at most {LINE} B in '
+          f'{want}-compiled code')
+    print(f'   at offset 0        : {len(at0)}')
+    print(f'   still straddling   : {len(strad)}')
+    for f in sorted(strad, key=lambda x: -x['len'])[:10]:
+        print(f'      0x{f["start"]:x}  mod {LINE} = {f["mod"]:2d}, '
+              f'{f["len"]} B  {f["sym"]}')
 
 
 def main():
@@ -91,7 +128,15 @@ def main():
                    help='loop length in bytes (default 28)')
     p.add_argument('--min-copies', type=int, default=2,
                    help='only report groups with at least this many copies')
+    p.add_argument('--survey', action='store_true',
+                   help='every self-loop of any length in this binary\'s own '
+                        'compiled code, and how many can still straddle')
     args = p.parse_args()
+
+    if args.survey:
+        for path in args.binary:
+            survey(path)
+        return
 
     for path in args.binary:
         found = scan(path, args.len)

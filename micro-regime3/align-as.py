@@ -26,10 +26,17 @@ that issue's workaround and adds a LOOP_SKEW variable for stepping one loop
 through the eight positions of a line. This copy is the one the suite builds
 with; keep the two in step if either changes.
 
+This is what Run 10's aligned half is built with, against an unaligned half
+from the same source; README.md's run procedure has the build and check
+sequence, and the two must not be rebuilt between the halves.
+
 Measured on the suite (2026-08-10, `Main.hs` at the Run 10 roster,
--fspec-constr): 395 loop heads aligned, every copy of the 28-byte fill and of
-the `mut-odo-vecdims` fill at offset 0, `.text` up 0.13%, and `micro check`
-green -- 45 shapes at agree=True and none at agree=False.
+-fspec-constr): 395 loop heads aligned in the assembly, which in the binary
+leaves 100 of 101 short self-loops of Main's own code at offset 0 and none of
+them straddling, against 50 straddling of 115 without it -- `loop-offsets.py
+--survey` counts that population, and the shim's own 395 counts labels rather
+than loops. `.text` up 0.13%, and `micro check` green: 45 shapes at
+agree=True and none at agree=False.
 
 **Pad only between two instructions.** The first version of this aligned every
 `.L` label a backward jump targeted, which is 928 of them, and the binary it
@@ -38,8 +45,9 @@ produced failed `check` on the first shape with `index out of bounds
 a return point, which is also a local label, and a `.p2align` inserted there
 separates the table from the code it belongs to. Requiring the preceding line
 to be an instruction drops the count to 395 and fixes it. Loops whose head
-follows a table are therefore left unaligned; the ones this page measures are
-not among them. That failure is also this script's non-vacuity proof: the
+follows a table are therefore left unaligned -- and the survey above says
+that costs nothing here, none of the skipped heads being a short loop that
+would have straddled. That failure is also this script's non-vacuity proof: the
 suite's own `check` distinguishes a working build from a broken one, so a
 green `check` here means something.
 """
