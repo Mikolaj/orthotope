@@ -9,13 +9,15 @@
 # rebuilt between the halves, which is what the pairing measures; this
 # refuses to start without both binaries.
 #
-# What it adds over pasting the sequence is the counting: each main process's
+# What it adds over pasting the sequence is the counting: every process's
 # bench count is checked against what the roster actually holds, so a
 # selection that silently caught the wrong set is loud at once rather than at
 # the write-up. The expected count is READ FROM THE BINARY rather than
 # written down -- a literal would be wrong for the next roster, and Run 11
 # already plans an arm, which would make a correct run trip the alarm on
-# every process.
+# every process. A class process gets the same treatment as a main one: its
+# count is its prefix's share of `classes --list`, and a prefix matching
+# nothing is reported rather than passing as a run of zero benches.
 
 set -u
 cd "$(dirname "$0")" || exit 1
@@ -28,36 +30,80 @@ if [ $# -lt 1 ]; then
   exit 2
 fi
 R=$1
+PREFIX=micro                 # the binaries and their note are all one name
+
+# The run's name identifies it against the NEXT run; this guards it against
+# itself. Relaunching with a name already used overwrites every JSON and log
+# of the first attempt in place, which is hours gone and nothing said.
+# `ls a b c` exits nonzero when ANY operand is missing, so testing its status
+# would let a half-finished run through -- which is the very state you would
+# relaunch from. Test the listing instead.
+EXISTING=$(ls -1 "$R"-*.json "$R"-*.log "$R-wallclock.log" 2>/dev/null)
+if [ -n "$EXISTING" ]; then
+  echo "$R already has artifacts here:"
+  printf '%s\n' "$EXISTING" | sed 's/^/  /'
+  echo "relaunching would overwrite them. Move them aside, or pick another"
+  echo "name -- and if the first attempt died mid-sequence, read its"
+  echo "wall-clock log for how far it got before deciding which."
+  exit 1
+fi
 CLASSES="rev revsome bcast bcastmid reshape1 slice window scaled"
 
 for h in unaligned aligned; do
-  [ -x "./micro-$h" ] || { echo "missing ./micro-$h -- run ./make-pair.py"; exit 1; }
+  [ -x "./$PREFIX-$h" ] || { echo "missing ./$PREFIX-$h -- run ./make-pair.py"; exit 1; }
 done
+NOTE="$PREFIX-pair.txt"
 
-MAIN_BENCHES=$(./micro-aligned --list 2>/dev/null | wc -l)
+MAIN_BENCHES=$(./"$PREFIX-aligned" --list 2>/dev/null | wc -l)
 [ "$MAIN_BENCHES" -gt 0 ] || { echo "--list gave nothing; wrong binary?"; exit 1; }
+CLASS_LIST=$(./"$PREFIX-aligned" classes --list 2>/dev/null)
+[ -n "$CLASS_LIST" ] || { echo "classes --list gave nothing; wrong binary?"; exit 1; }
 
 log () { echo "=== $(date -Is) $*" | tee -a "$R-wallclock.log"; }
 
-run () {   # $1 = binary half, $2 = artifact tag, $3.. = extra args
-  local h=$1 tag=$2; shift 2
+run () {   # $1 = half, $2 = artifact tag, $3 = benches expected, $4.. = args
+  local h=$1 tag=$2 want=$3; shift 3
   local out="$R-$tag" rc nb
   log "start $out"
-  ./micro-"$h" "$@" --json "$out.json" > "$out.log" 2>&1
+  ./"$PREFIX-$h" "$@" --json "$out.json" > "$out.log" 2>&1
   rc=$?
   nb=$(grep -c '^benchmarking ' "$out.log")
   log "done  $out rc=$rc benchmarking=$nb"
   [ "$rc" = 0 ] || log "  !! nonzero exit -- read $out.log before trusting anything after"
-  if [ "$tag" != "${tag%main}" ] && [ "$nb" != "$MAIN_BENCHES" ]; then
-    log "  !! expected $MAIN_BENCHES benches, got $nb -- the selection is not the roster"
-  fi
+  [ "$nb" = "$want" ] || log "  !! expected $want benches, got $nb -- the selection is not what was asked for"
 }
 
-log "major run begins; $(git log -1 --format=%h); roster is $MAIN_BENCHES benches"
+# TWO commits, because HEAD is not what the binaries were built from and
+# saying so once cost a wrong provenance line: HEAD dates the tree the run was
+# launched from, while the Main.hs commit is the pair's own and is what
+# README's recording step wants. A dirty tree is what makes either a lie, so
+# the count goes in too.
+log "major run begins; tree at $(git log -1 --format=%h), Main.hs at \
+$(git log -1 --format=%h -- Main.hs); roster is $MAIN_BENCHES benches"
+log "tree: $(git status --porcelain | wc -l) path(s) untracked or modified"
+git status --porcelain | tee -a "$R-wallclock.log"
 uptime | tee -a "$R-wallclock.log"
 
-for h in unaligned aligned; do run "$h" "$h-main"; done
-for c in $CLASSES; do run aligned "aligned-$c" classes "$c-"; done
+# Which gate this run stands on, COPIED and not judged: the note's wording is
+# a person's, and a predicate over it would be guessing at the one fact worth
+# a quiet hour. If the lines below say the gate has not run, or that it
+# failed, stop and read README's gate step -- nothing here will.
+if [ -f "$NOTE" ]; then
+  log "$NOTE says, about the gate:"
+  grep -i 'gate' "$NOTE" | sed 's/^/      /' | tee -a "$R-wallclock.log"
+else
+  log "!! no $NOTE -- this run's provenance is the commit and nothing else"
+fi
+
+for h in unaligned aligned; do run "$h" "$h-main" "$MAIN_BENCHES"; done
+for c in $CLASSES; do
+  want=$(printf '%s\n' "$CLASS_LIST" | grep -c "^$c-")
+  if [ "$want" -eq 0 ]; then
+    log "  !! class prefix $c- matches no bench -- skipped, not run empty"
+    continue
+  fi
+  run aligned "aligned-$c" "$want" classes "$c-"
+done
 
 log "major run complete"
 echo
@@ -66,4 +112,7 @@ echo "  ./read-run.py $R-unaligned-main.json            # succeeds the last run'
 echo "  ./read-run.py $R-aligned-main.json              # the new regime"
 echo "  ./read-run.py $R-aligned-main.json --compare $R-unaligned-main.json"
 echo "                                                  # the per-arm layout term"
-echo "Install from the UNALIGNED half only (README, the run's plan)."
+echo "Install each table from the half it belongs to (README, the run's plan):"
+echo "  --markdown    from the unaligned half, succeeding the last run's basis"
+echo "  --fingerprint from the aligned half, being what the NEXT run reads"
+echo "  --block       from the aligned half, the classes running there alone"

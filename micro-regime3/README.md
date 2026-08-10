@@ -398,32 +398,13 @@ now rather than a slot in the next run, observed again:
   below are quiet-machine costs, derived from the elapsed time and bench
   count a run's own provenance line reports — about five seconds a
   bench-shape cell, criterion spending its budget whether the call is fast or
-  slow — and nothing here measures what contention does to them. **Entry 4
-  has since been folded into Run 10 rather than queued behind it**, alignment
-  having turned out to be the thing that decides whether the rest of the
-  queue is measuring anything; what stays there is the cheap gate that runs
-  before the run does.
-  1. **The main set at `+RTS -A32m`, paired with a main set at the
-     default** — about 2h15m for both, and the cleanest A/B this page can
-     run, because an RTS flag needs **no rebuild**: the placement and rebuild
-     confounds that qualify every other cross-run sentence here do not apply,
-     and the only thing to pin besides is the benchmark selection. It tests
-     the predictor above over 782 cells instead of six, and its
-     default-nursery half doubles as the run-to-run drift measurement
-     [Provenance](#provenance) says is owed. **"Do this one first" is
-     superseded: it goes immediately *after* Run 10**, whose main-set process
-     is that default half, on the same binary in the same session — about
-     1h10m that way against 2h15m standing alone, for the same pairing.
-     Nothing in it bears on how Run 10 is run, the decision to keep the
-     default nursery being already taken. **Take the aligned half as the
-     default-nursery member of the pair**, now that Run 10 has two: the
-     nursery predictor is about excess allocation and cares nothing for
-     layout, so pairing it with the aligned binary buys a cleaner reading at
-     no cost, and it keeps the `-A32m` figures on the regime that is to
-     become standing. Build the `-A32m` member from that same binary — the
-     flag is an RTS one, so this pairing still needs no rebuild, which is what
-     made it the cleanest A/B here and is now the only one that still is.
-  2. **The pad probe done properly — run 2026-08-10, and the hypothesis
+  slow — and nothing here measures what contention does to them. **The gate
+  entry below has since been folded into Run 10 rather than queued behind
+  it**, alignment having turned out to be the thing that decides whether the
+  rest of the queue is measuring anything; what stays there is the cheap gate
+  that runs before the run does. Entries are referred to by name and not by
+  number, one having been removed from under a reference already.
+  1. **The pad probe done properly — run 2026-08-10, and the hypothesis
      survives.** Eight binaries differing only in inert pad arms, two
      interleaved passes over all eight, 2h12m, with `build` and `mut-odo`
      both timed this time (the first attempt lost them to a shell glob) and
@@ -467,7 +448,7 @@ now rather than a slot in the next run, observed again:
      the sixteen run files were untracked in `pad-probe/`, ~280 MB, and are
      deleted: this page carries what they showed, and the effect has a
      self-contained public reproducer in the filed issue.
-  3. **A third `-nosum` arm, on a flat fill** — a `Main.hs` addition and then
+  2. **A third `-nosum` arm, on a flat fill** — a `Main.hs` addition and then
      a filtered run over the shape set. The two existing `-nosum` arms are an
      odometer and an expansion, so a flat fill is the one probe that
      separates *the read is biased* from *those two arms are*, which is what
@@ -482,14 +463,16 @@ now rather than a slot in the next run, observed again:
      thing alignment buys the queue rather than the tables: a membership
      change stops being a layout change, so an arm can be added between runs
      without spending the comparison.
-  4. **The five-bench gate before Run 10's aligned half — run 2026-08-10 and
+  3. **The five-bench gate before Run 10's aligned half — run 2026-08-10 and
      it passes**, its verdicts and two corrections being with the predictions
      above. Kept because a later paired run wants the same gate before its own
      evening:
 
-         ./micro-aligned -m glob '*/list' '*/build' '*/mut-odo' \
-             '*/sum-only-early' '*/sum-only-late' --json gate-aligned.json
-         ./read-run.py gate-aligned.json --pair build mut-odo
+         ./run-gate.sh        # the two-process form this entry used to spell
+                              # out is superseded: the script runs four, in a
+                              # palindrome, and names its files
+                              # gate-<half>-<pass>.json, which is what the
+                              # procedure's read commands expect
 
      run against `micro-unaligned` too, and expect 120 `benchmarking` lines
      each, then `--compare` one against the other, which is the reader's mode
@@ -610,7 +593,12 @@ now rather than a slot in the next run, observed again:
      enter one effect as two findings. That last step is prediction 5's to
      establish, not this one's to assume: read 5 first, and if `list` does
      move between the halves then this prediction has no fixed anchor to be
-     read against and waits.
+     read against and waits. The nine populations' anchors are commensurable
+     as printed, the fingerprint this run publishes being the aligned one and
+     the eight class blocks aligned with it, so the reading-together above can
+     be done off the page. That is a ruling and not a coincidence: had the
+     unaligned fingerprint been the published one, exactly one of the nine
+     would have crossed a basis, and the run's plan says why it is not.
   4. **The two halves differ, and for six arms by how much is registered
      here.** This is what the second binary is for. It was to have been a
      per-arm prediction over the whole roster, and **that is not available**:
@@ -675,6 +663,20 @@ now rather than a slot in the next run, observed again:
      measurement and not on mechanism — 0.5% across four rebuilds, which
      rerolled the libraries too — which is weaker ground than the six arms
      stand on and worth saying before the number is read.
+
+     **Three things rest on this one, and no other prediction here carries
+     more than itself** — which is why it is read first and why a failure is
+     not one prediction lost but the run's arrangement to reconsider.
+     Prediction 3 has no fixed anchor without it and says so. Run 10's mixed
+     basis, its main table unaligned and its eight class blocks aligned, is
+     tolerable only while the two halves' baselines agree. And the transition
+     to Run 11 turns on Run 11's unaligned column succeeding Run 10's
+     unaligned table, which a moving denominator would put in doubt as well.
+     The gate below already reads it on every shape and at the ordinary
+     budget, so what the run adds is not coverage but company: `list` there
+     shares a process with 33 other arms instead of four, and heap state and
+     code position are exactly what this page has measured moving a figure
+     when no strategy changed. That is the reading all three wait on.
 
   **The gate has been run and the three testable predictions hold**
   (2026-08-10, five benches over the 24 shapes, two passes per half in the
@@ -758,8 +760,10 @@ now rather than a slot in the next run, observed again:
   without spending anything for it ([Provenance](#provenance)). That also
   puts a fourth column on the yardstick, which [What Run 10 compares
   against](#what-run-10-compares-against) now rules on and `--check-doc`
-  enforces: a paired run keeps a column per half, and dropping either fails
-  the check rather than the reading.
+  enforces in the one direction it safely can: a run named aligned must also
+  be named unaligned, so dropping the unaligned column fails the check.
+  Dropping the *aligned* one cannot be checked, an unpaired run being what
+  every column before Run 10 is, and stays the reading's job.
 
 ### Non-urgent TODO list
 
@@ -2035,34 +2039,127 @@ and a shell that has not set them will silently do the wrong thing: an empty
 `$REGIME` is a -O1 build that every gate here passes.
 
     R=run10                              # names every artifact; no default
-    REGIME=--ghc-options=-fspec-constr   # Runs 8 and 9's; empty for -O1
+    REGIME=-fspec-constr                 # Runs 8 and 9's; empty for -O1
 
-**Then build what will actually be timed.** For a paired run that is
-`make-pair.py`, and the regime goes to it rather than being assumed, since
-it has a default of its own:
+**And in a session they will not survive to the next command.** Each tool
+call gets a fresh shell, so a `cd` and an assignment made in one are gone by
+the next, and the commands below are spread over a dozen of them — which is
+to say the shell this warning is about is the ordinary one here, not a
+careless one. Inline the two literals into every command, or re-set them at
+the head of each: `cd ~/r/orthotope/micro-regime3 && R=run10
+REGIME=-fspec-constr && …`. The two do not fail alike, which is the reason to
+spell this out rather than trust care. `./run-major.sh $R` with `$R` empty is
+loud, the driver refusing without a name. `./make-pair.py --regime="$REGIME"`
+with `$REGIME` empty is not: it degrades to a plain -O1 build, which is
+exactly the silent wrong thing the paragraph above describes and nothing
+downstream detects.
 
-    ./make-pair.py --regime "$REGIME"    # four builds, ~5 min, and it verifies
+`$REGIME` is the bare GHC flag and not a `--ghc-options=` spelling of it,
+because `make-pair.py` composes it with a `-pgma` of its own and would wrap
+it twice. The one site that hands it to `cabal` wraps it there instead. Its
+value begins with a dash, so every option taking it wants `--opt="$REGIME"`
+and not `--opt "$REGIME"`: argparse reads a dash-leading word as the next
+option and exits 2 saying the argument expected one, which is loud but reads
+as a broken script rather than as a quoting rule.
+
+**Everything below that writes runs unsandboxed**, which is every step that
+builds, benchmarks or leaves a file: `make-pair.py` either way round, the
+smoke block, `run-gate.sh`, `run-major.sh`. The read-only ones — both
+`check`s, `diag`, `--lint`, `--check-doc`, `loop-offsets.py`, `--list`, a
+`grep` of the note — are fine sandboxed and are worth having cheap, so this
+is not a blanket instruction to drop the sandbox for the afternoon. A session
+starts in `~/r/horde-ad`, so its sandbox permits writes
+there and to its own temp directory and nowhere else; this directory is
+outside it, and `run-major.sh` moves here before doing anything. Sandboxed,
+every `--json` and every `> $out.log` is refused — and the two refusals do
+not look alike. A redirection on a simple command is checked before exec, so
+the benchmark never starts at all, while `log`'s `tee` is a pipeline whose
+`echo` still prints: you get the sequence's start lines on the console, no
+wall-clock file, no JSON and no run. That reads as a run in progress, which
+is how two copies once ended up on this machine at the same time. Confirm a
+launch by an unsandboxed process list, never by the launching shell.
+
+**Then build what will actually be timed — but first, is there a pair here
+already?** That is the fork, and it comes before the build command rather
+than after it, because `make-pair.py` overwrites both halves in place: the
+offsets the predictions are registered against are the present pair's, and a
+rebuild coming out even slightly different would retire them in silence.
+Where the binaries and the note recording what they were built from are
+already there, confirm them instead of rebuilding:
+
+    ./make-pair.py --verify-only         # every gate again; builds nothing,
+                                         # but DOES append to the pair note
+
+which re-runs `check` on both halves, compares the two listings and reads the
+fills off the binaries, and appends what it found to the note rather than
+overwriting it. Two gates it cannot run, both needing the plain build that a
+rebuild would have made: PAD_BYTES is not re-derived and the moved-fill
+comparison has nothing to compare against. It says so, in the note and in the
+verdict, so a re-verification does not read as a fresh build's clean sheet.
+
+The fork's three questions are answerable in three commands, none of which
+the page should make you invent. Is there a pair — `ls micro-unaligned
+micro-aligned micro-pair.txt`. Is it the pair the note describes — `md5sum
+micro-unaligned micro-aligned` against the note's two `md5` lines. Has the
+source moved under it — `git log -1 --format=%h -- Main.hs` against the
+commit the note records. The regime is the fourth and is not answerable this
+way, the JSON recording no compiler flag; the `diag` step below is what
+answers it.
+
+Only where there is no pair, or where `Main.hs` or the regime has moved since
+the note was written, is the build the thing to run — and the regime goes to
+it rather than being assumed, since it has a default of its own:
+
+    ./make-pair.py --regime="$REGIME"    # four builds, ~5 min, and it verifies
     ./loop-offsets.py micro-unaligned micro-aligned
 
-For a single-binary run it is `cabal build micro $REGIME`, and `./micro-run`
-below is then `cabal run micro $REGIME --`.
+There is no single-binary form of a major run any more, the pairing being
+permanent: `run-major.sh` and `run-gate.sh` both refuse to start without both
+halves, so a lone binary has no driver. What `cabal build micro
+${REGIME:+--ghc-options=$REGIME}` is still for is a probe — a filtered handful
+of benches answering one question — and those are run with `cabal run micro
+${REGIME:+--ghc-options=$REGIME} --`, never through the sequence below.
 
-**Before spending the hours**, the cheap checks — against the binary that
-will be timed, not a third one built beside it:
+**Before spending the hours**, the cheap checks — the first two against the
+binaries that will be timed, not a third built beside them, and the last two
+against `Main.hs` and this file, which open no binary at all:
 
     ./micro-unaligned check      # every strategy agrees, every shape regime 3
+    ./micro-aligned check        # the half the shim rewrote
     ./read-run.py --lint         # the roster and the shape annotations
     ./read-run.py --check-doc    # anchors, coverage, widths, stale figures
+
+**The exit code is the verdict; the `note:` lines are not.** A clean
+`--check-doc` here still prints dozens of them — every superseded figure and
+every absolute time the page quotes, listed for adjudication during the
+write-up and not before it. `--lint` is the same, noting the rostered arms it
+knows are deliberately untimed. Both exit 0 when they pass, and a `FAIL:`
+line is the only thing that should stop you at this point.
+
+Both halves, and the aligned one is the half that needs it, being the only
+one whose own code the shim rewrote — `pad-as.py` only appends dead bytes
+after the unaligned half's, where `align-as.py` moves the aligned half's
+labels about. `make-pair.py` now runs both itself and refuses on either, and
+holds them to each other besides — a sound pair makes the two
+logs byte-identical, agreement on every shape being a property of the
+strategies and not of where their loops landed. It checked the unaligned half
+alone until 2026-08-10, which is to say its gate was pointed at the binary
+that could not fail; the two lines above are then a re-check rather than the
+only check, and cost seconds.
 
 **Then confirm the regime is the one intended**, which nothing later can:
 
     ./micro-unaligned diag
 
 and read one row of it — `baseOffsetsScan` against `baseOffsetsMut` on
-`vgg-14-c512`. They are equal under SpecConstr and ten times apart at plain
--O1, a separation no eye misreads, and both ends of it are measured
-(2026-08-08), the flag being the only thing that moves them. This costs the
-seconds after a rebuild the flag forces anyway, and it is the only check
+`vgg-14-c512`, which is a `diag` label rather than a shape and so will not be
+found in the shape set. They are equal under SpecConstr and ten times apart
+at plain -O1, a separation no eye misreads, and both ends of it are measured
+(2026-08-08), the flag being the only thing that moves them. Seconds either
+way — on the build path, the seconds after a rebuild the flag forces anyway;
+on the confirm path, its own, and the only ones spent there that matter,
+since with no build to carry the regime this is the only
+check
 standing between a mistyped regime and a run that refutes the design it was
 built to test.
 
@@ -2106,38 +2203,53 @@ and in nothing else an offset can see, and `micro-unaligned` keeps every
 offset the unpadded build had: the same fills at [3, 53, 59, 45] and
 [16, 0, 36, 36], the same 115 short loops with 50 straddling.
 
-**Name the artifacts by half, and drive `--in-place` from the unaligned
-one.** The sequence below builds every filename off `$R`, which a paired run
-has to split: `$R-unaligned-main.json` and `$R-aligned-main.json`, and the
-class files `$R-aligned-$c.json`, there being no unaligned ones — the infix
-being the binary's own name, so an artifact cannot be traced to the wrong
-half. Which half writes the
-tables is not a matter of taste, it follows from what each replaces: the
-unaligned half succeeds Run 9 section by section, so it is what `--markdown`,
-`--fingerprint` and `--block` install; the aligned half has no predecessor to
-overwrite and is written up beside them. Running `--in-place` from the
-aligned half would retire a basis nothing has yet compared against, silently
-and in one command.
+**Name the artifacts by half, and drive each `--in-place` from the half its
+table belongs to.** The sequence below builds every filename off `$R`, which a
+paired run has to split: `$R-unaligned-main.json` and `$R-aligned-main.json`,
+and the class files `$R-aligned-$c.json`, there being no unaligned ones — the
+infix being the binary's own name, so an artifact cannot be traced to the
+wrong half. Which half writes which table is not a matter of taste, it follows
+from what each replaces, and the three installing modes do not answer alike:
 
-**And the aligned half does not get a Results table of its own.** It would be
-a second copy of the same thirty-odd rows, published for a reader who does not
-yet exist, and the page's own rule against a second copy of a figure applies
-to a table as much as to a number. What the aligned half publishes is the
-*difference* — the per-arm aligned-over-unaligned ratios prediction 4 asks
-for — and one column on the yardstick. That is the whole of it for Run 10.
-When alignment becomes the standing regime the relation inverts and the
-aligned half becomes the table, the unaligned one keeping a column as the
-older basis; that is Run 11's decision to make and this is the ruling it
-inherits.
+- `--markdown` from the **unaligned** half. The Results table succeeds Run 9
+  section by section, and installing it from the aligned half would retire a
+  basis nothing has yet compared against, silently and in one command.
+- `--fingerprint` from the **aligned** half. The per-shape record exists to
+  serve the next run, and nothing after Run 10 reads against an unaligned
+  basis, so what this run leaves behind has to be what Run 11 reads. The
+  unaligned per-shape figures are working material for succeeding Run 9 and
+  are not published beside them: one basis in that section, not one per half.
+- `--block` from the **aligned** half, there being nothing else — the classes
+  run on that half alone.
+
+Why those three and not three others — why Run 10's page ends up
+mixed-basis, why the aligned half gets no Results table, and why the
+inversion lands at Run 11 — is [the transition section][transition], which
+is a ruling and not a step, and is kept out of the sequence so that
+reading straight down this section reaches the next command rather than
+eighty lines of adjudication.
+
+**What the unaligned half is for once it stops being the basis**, since a run
+that publishes no table from it will otherwise be asked why it spends an hour
+building and timing it. Two things. It is the layout control, the per-arm term
+being measured afresh each run rather than inherited from Run 10's reading of
+it. And it is the yardstick for GHC itself: the native backend aligns no loop
+today ([the floor section][floor]), and when that is fixed the same pairing is
+what prices how well GHC does it against the assembler shim here — a
+comparison no single build can make.
 
 **The pairing doubles the main set and not the classes.** Both halves run the
 main set, since that is where the per-arm comparison lives; the eight class
 populations run on the aligned half alone, class blocks existing for
 orderings within a population and those being exactly what alignment makes
-readable. That keeps a paired run near the cost of an ordinary one plus an
-hour, and it is an explicit exception to the rule above that a major run
+readable. It is an explicit exception to the rule above that a major run
 covers every population — stated here rather than left to the runner, which
-is what that rule asks for.
+is what that rule asks for — and a **standing** one rather than a concession
+made once, now that every run is paired. The hour it saves is not the reason
+and would not survive as one, an hour being cheap against a population's
+worth of figures; the reason is the sentence before it, that a class block is
+read for the ordering inside its own population and the aligned half is where
+that ordering is legible.
 
 **And one more, nearly free**, because everything above exercises the
 *benchmark* while nothing exercises the *reader* until
@@ -2145,7 +2257,8 @@ hours later — at `-L1`, since the smoke tests the reader's code paths, not
 its statistics:
 
     ./micro-unaligned -L1 cnn-slice-c32 --json smoke.json
-    ./micro-unaligned classes window-28x28-k5 -L1 --json smoke-class.json
+    ./micro-aligned   -L1 cnn-slice-c32 --json smoke-aligned.json
+    ./micro-aligned   classes window-28x28-k5 -L1 --json smoke-class.json
     for f in smoke.json smoke-class.json; do
       for m in --selftest --aa --shapes --markdown --cells --fingerprint \
                "--pair bq-expand list" ""; do
@@ -2153,36 +2266,49 @@ its statistics:
       done
     done
     ./read-run.py smoke-class.json --block >/dev/null || echo "BROKEN: --block"
+    ./read-run.py smoke.json --compare smoke-aligned.json >/dev/null \
+      || echo "BROKEN: --compare"
     cp README.md README.smoke.md            # --in-place WRITES; never at README
-    for m in --markdown --fingerprint; do
-      ./read-run.py smoke.json $m --in-place --readme README.smoke.md \
-        >/dev/null || echo "BROKEN: $m --in-place"
-    done
+    ./read-run.py smoke.json --markdown --in-place --readme README.smoke.md \
+      >/dev/null || echo "BROKEN: --markdown --in-place"
+    ./read-run.py smoke-aligned.json --fingerprint --in-place \
+      --readme README.smoke.md >/dev/null || echo "BROKEN: --fingerprint --in-place"
     ./read-run.py smoke-class.json --block --in-place --readme README.smoke.md \
       >/dev/null || echo "BROKEN: --block --in-place"
-    cmp -s README.smoke.md README.md \
-      && echo "BROKEN: --in-place wrote nothing"
-    rm smoke.json smoke-class.json README.smoke.md
+    ! cmp -s README.smoke.md README.md \
+      || echo "BROKEN: --in-place wrote nothing"
+    rm smoke.json smoke-aligned.json smoke-class.json README.smoke.md
 
 These use a binary already built rather than `cabal run`, which would build a
 third one in whatever regime the shell happens to carry; they exercise the
 reader rather than the regime either way.
 
-`--in-place` earns its three lines because it is the one mode that writes:
+`--in-place` earns its own block because it is the one mode that writes:
 pointed at `README.md` it would install a one-shape smoke table over the
 published one, so the copy is the point, and `cmp` afterwards is what keeps
 the check from passing on an installer that found nothing and said nothing.
 Run the copy's own diff by eye if a table looks wrong; the copy is deleted
-with the rest.
+with the rest. **Each install is smoked from the half it will really come
+from** — `--markdown` from the unaligned JSON, `--fingerprint` and `--block`
+from aligned ones — which is why these are three commands and not a loop.
+Installing the fingerprint from the aligned half is the newest path here and
+so the likeliest to break, and the write-up is hours too late to find out.
 
 The first runs every timed arm on one shape and puts the whole analysis
 path — the correction, the controls, the table generator — through its
-paces; the second does the same for the `classes` plumbing, the reader's
+paces; the third does the same for the `classes` plumbing, the reader's
 per-list shape rules and the six-column class table, on the class whose
-rule is least trivial. Both go through every mode, because the two files
-take different paths through the reader from the population line onwards. A
-reader broken by a roster or shape-list change fails here in minutes
-instead of after the run.
+rule is least trivial. Those two go through every single-file mode, because
+they take different paths through the reader from the population line
+onwards. A reader broken by a roster or shape-list change fails here in
+minutes instead of after the run.
+
+The second file exists for `--compare`, which no single file can reach: it
+is the reader's only two-run mode and the one a paired run is read with, so
+leaving it out of the sweep would leave the pairing's own instrument
+untested until the write-up. It is also the only point before the evening at
+which the aligned binary writes a JSON, and a pair whose halves turn out not
+to be comparable has cost the hours twice.
 
 **Run every mode, not the interesting ones.** The loop above is written as a
 loop because a partial sweep has already missed a real break: after the trim
@@ -2205,6 +2331,61 @@ sweep. `rev`, `revsome` and `bcast` are the three-shape classes.
 Its numbers go nowhere: `-L1` is a rougher budget than any recorded run's,
 and this pass is a test of the reader, not a measurement.
 
+**"Roster change" here means membership, and the test is `--list`**: the
+binary's listing differs from what the previous run's did, in its set of
+names rather than their order. Criterion emits it sorted, so an arm moving
+slot cannot produce a false positive — which is the only thing making the
+test sound and is worth knowing, since order *is* a change, of the kind
+[Provenance](#provenance) deals with rather than this pass. An edit to the
+reader or to a claim is not a roster change either, though the three reasons
+above are worded in their terms because a roster change is the only thing
+that has ever broken them. What the test cannot do is run itself: the
+previous run's binary is deleted and its listing recorded nowhere, so the
+comparison is against the roster delta under [Provenance](#provenance), which
+is kept for exactly this. Spelled out because two readings of this paragraph
+have split on it: with membership unmoved the pass is not owed however much
+else changed, and Run 10 is such a run.
+
+**A paired run has one gate more, and the first thing to do about it is read
+rather than run it. The gate belongs to the pair, not to the session**, which
+is what stops it being paid for twice. `make-pair.py` writes a
+`<prefix>-pair.txt` beside the binaries — `micro-pair.txt`, the prefix being
+the one everything here is named for — with what it verified and a `GATE:`
+line saying it has not been run; `run-gate.sh` appends to that file. So read
+what the note says about the gate first — `grep -i gate micro-pair.txt`,
+case-insensitive and not anchored on the `GATE:` token, because a note
+written by hand says it in prose and grepping for the token finds nothing in
+one, which reads as *no gate* and costs the hour it was meant to save. If it
+records a pass, this step is already done and the next action is the run
+itself. A `--verify-only` run earlier in this procedure does not disturb
+that: it appends its measurements alone, the `GATE:` line going in only when
+a note is written fresh, so re-verifying a pair cannot restate *not yet run*
+over a verdict saying otherwise. `make-pair.py` being deterministic, a
+rebuild that comes out md5-identical inherits the gate too, and one that
+does not — a
+changed `Main.hs`, a changed regime — needs its own. Re-running it on a pair
+that has already passed costs a quiet hour and can only reproduce what the
+note says.
+
+**If that line says the gate has not run**, it is the last thing before the
+evening. `run-gate.sh` takes five benches over the shape set from each half,
+twice each, in a palindrome — unaligned, aligned, aligned, unaligned — so that
+drift over the hour cannot read as a difference between the binaries, which is
+the part a person retyping the command would drop:
+
+    ./run-gate.sh
+    ./read-run.py gate-aligned-a.json --compare gate-unaligned-a.json
+
+It wants the same quiet the run does and costs the better part of an hour, so
+it is not one of the cheap checks above; what it buys is finding out that the
+aligned binary is wrong before an hour of main set is spent on it, and a first
+reading of the arms the pairing is predicted on. What the script writes back
+into the note is the mechanical half alone — four exit codes and four bench
+counts — because that is what it knows; whether the pair is sound is the
+reading's verdict and is written there by hand. What the predictions are, and
+what the gate read when it was last run, are in [the open
+list](#what-is-open) with the rest of the run's registrations.
+
 **The run** is one sequence — the main set from each binary the run has,
 then each stride-class population in its own process, in `classViews`'
 order. Each `$c-` argument
@@ -2214,8 +2395,12 @@ population is the recorded protocol at `classBenches`, so no population's
 figures owe anything to another's leftover heap state and each JSON is
 single-population by construction. **The regime is a variable of the procedure,
 not a flag to remember**: it is set once at the top beside the run's name and
-reaches the build, the checks and `make-pair.py` alike, so that leaving it
-empty is a deliberate act rather than an omission. A run made in
+goes to `make-pair.py`, so that leaving it empty is a deliberate act rather
+than an omission. It reaches the *build* and nothing else — no check mode
+takes a regime, and on the confirm-don't-rebuild path nothing consumes it at
+all, `--verify-only` building nothing to apply it to. There the whole guard
+is the `diag` reading above, which is why that step is not optional on a path
+that skipped the build. A run made in
 the wrong regime is not detectably wrong — the roster, the shapes, the gates
 and the reader all pass, the JSON records no compiler flag, and the only
 symptom is the regime's own effect failing to appear, which reads as a
@@ -2228,6 +2413,9 @@ refutation of the design rather than as a missing flag:
     # nothing. Toggling -fspec-constr itself is safe: GHC notices that one,
     # and it is the control that proved the rest are missed. The floor
     # section, under what moves a figure when no strategy changed, has why.
+    # These two are what the run records about its own provenance, and the
+    # driver below already runs both -- they are here to say what belongs in
+    # the log, not to be typed when run-major.sh is what launches the run.
     git log -1 --format=%h && git status --porcelain  # the write-up's commit
     uptime                                # quiet, or note what was not
 
@@ -2238,20 +2426,26 @@ rather than a variable it inherits:
 
 It refuses without one, the prefix being the run's identity: artifacts called
 `run-*` would not say which run made them and the next run would overwrite
-them. What it adds over pasting the sequence is the counting: each main
+them. What it adds over pasting the sequence is the counting: every
 process's bench count is checked against what the roster holds, so a selection
-that silently caught the wrong set is loud at once instead of at the write-up.
+that silently caught the wrong set is loud in the log at once instead of at
+the write-up — loud rather than fatal: the sequence carries on to the next
+process, there being no reading in which eight sound populations are worth
+discarding for one that is not, so the wall-clock log is what has to be read
+before any figure is.
 The expected count is read from the binary's own `--list` rather than written
 down, because a literal would be wrong for the next roster and would turn a
 correct run into an alarm on every process; `run-gate.sh` derives its own the
-same way. Neither builds anything, and both refuse to start without the pair.
+same way, and a class process's is its prefix's share of `classes --list`,
+a prefix matching nothing being reported rather than run as a process of no
+benches. Neither builds anything, and both refuse to start without the pair.
 The sequence:
 
     {
       date -Is
       # A paired run: both halves take the main set, the classes go to the
       # aligned half alone, and each half is its own binary -- never rebuild
-      # between them. A single run drops the second line and the -$h infix.
+      # between them.
       for h in unaligned aligned; do
         ./micro-$h --json $R-$h-main.json > $R-$h-main.log 2>&1
         echo "$h main exit=$? $(date -Is)"
@@ -2281,7 +2475,10 @@ fast run and cost one probe here before the zero timings gave it away. Count
 the `benchmarking` lines against what was asked for before reading any
 number out of a filtered run; it is the prove-a-search-non-vacuous rule
 applied to bench selection, and the same count catches a pattern that
-silently caught more arms than intended.
+silently caught more arms than intended. The sequence's own processes have
+this done for them by `run-major.sh`, class ones included; what is left to
+the runner is every filtered probe made by hand, which is where the rule was
+learned and where nothing counts on its behalf.
 
 **Probes whose designs predate the run ride the same script.** The machine
 is quiet for the whole sequence either way, so a question already on [the
@@ -2362,7 +2559,13 @@ not a method.
 3. Analyse with `./read-run.py`, which is where every table in this file
    comes
    from — read [the reader's own section](#the-reader-read-runpy) first, and
-   do not write another reader.
+   do not write another reader. **A paired run's own mode is `--compare`, and
+   its direction is a convention worth stating**: the run given first is the
+   one the ratios are *of*, the `--compare` argument being what they are
+   divided by, so `aligned --compare unaligned` puts a figure below 1 where
+   alignment is faster. Prediction 4's per-arm term and the aligned half's
+   published column both read that way round; reversed, every one of them
+   inverts and nothing in the output says so.
 4. **One JSON at a time, never merged.** The reader takes one file, and its
    geomean is that file's population — the main set's or one class's. Every
    mode names that population in its first line, `--selftest` fails a file
@@ -2374,8 +2577,11 @@ not a method.
    there is no combined figure to compute, so a sentence comparing
    populations
    compares their tables.
-5. **Rename the three run-numbered headings** -- the chapter head, *What Run
-   N compares against* and *The claims Run N should test* -- and repoint every
+5. **Rename the three run-numbered headings, which do not all take the same
+   number** -- the chapter head goes from the last run to this one, while
+   *What Run N compares against* and *The claims Run N should test* look
+   forward and go from this run to the next, so a write-up of Run 10 leaves
+   the three reading 10, 11 and 11. Repoint every
    link to them. It is mechanical, it is easy to forget because nothing in
    the numbers asks for it, and `--check-doc` catches the fallout as dead
    anchors rather than as the rename it was: Run 9 left eleven.
@@ -2502,12 +2708,23 @@ not a method.
    thirty characters
    goes reference-style**, defined at the foot of the file: inline it overflows
    the width and the rewrapping that follows is pure churn;
-8. Rebuild and re-run `--lint` and `check` after editing `Main.hs`, even when
-   only comments changed: the reader parses that file for the roster and the
-   shape dims, so a comment edit can break a check that passed before it;
+8. Re-run `--lint` after editing `Main.hs`, even when only comments changed:
+   the reader parses that file for the roster and the shape dims, so a comment
+   edit can break a check that passed before it. `--lint` reads the source and
+   needs no build, which is the whole of what that reason asks for. **Do not
+   rebuild the pair to satisfy this step.** Steps 6 and 7.7 send you into
+   `Main.hs`'s comments on purpose, and `make-pair.py` would overwrite both
+   halves and append a block to `<prefix>-pair.txt` stamped with today's date
+   and commit — which is the file the next step transcribes the binary's
+   provenance out of. A comment edit after the run leaves the timed binaries
+   correct and the source they were built from moved by a comment; say so in
+   the write-up rather than rebuilding to hide it;
 9. Record beside the numbers the run's name and regime, each process's stderr
    provenance line, which machine, **and the commit the binary was built
-   from** (the JSONs do not survive, so the source is the only thing that
+   from** — for a paired run, transcribed from `<prefix>-pair.txt`, which
+   carries the commit, the regime, the GHC and both md5s because this step
+   asks for them and the note outlives the session that built the pair (the
+   JSONs do not survive, so the source is the only thing that
    makes a run reproducible even in principle — this page's figures are one
    desktop's and are not portable, see [Provenance](#provenance)). A class
    process's line is measured for its elapsed time and its two heap peaks but
@@ -2533,7 +2750,18 @@ not a method.
    and take it now. What is left over is the timing work, which is what a
    quiet machine is for.
 12. **Only then**, and after asking the user, delete the artifacts —
-   the JSONs, the logs and the wall-clock file alike.
+   the JSONs, the logs and the wall-clock file alike, and for a paired run
+   the two binaries and their `<prefix>-pair.txt` with them, that note being
+   about a pair and worthless once the pair is gone. **A change of basis at
+   the next run buys no exception here**, which was proposed and refused.
+   The argument for keeping Run 10's JSONs was that Run 11 reads against an
+   aligned fingerprint Run 10 would never have published; the answer is to
+   publish it, which the plan above now does. Keeping a JSON to regenerate a
+   record this page already has a mechanism for would trade a durable
+   artifact for a fragile one, and would make the no-artifacts rule
+   conditional in a way that does not stay temporary — the fingerprint exists
+   precisely so that a per-shape record outlives its run, and Run 6's deleted
+   artifact is the precedent it was built on.
    The normal state of this directory is no run
    artifact at all, which is decided rather than an oversight; the numbers live
    in this file and the artifacts do not. But "afterwards" means after the
@@ -2546,6 +2774,62 @@ not a method.
    bias from noise, and every count re-derived from `--cells` needs the JSON
    and nothing else does. Run 8's were kept and drawn on a dozen times in the
    days after, for questions its write-up had not thought to ask.
+
+
+### The Run 10 transition, to be dissolved after it
+
+**This whole section is temporary and is meant to be deleted.** It exists
+because Run 10 changes which half of a pair publishes what, and a change of
+basis is a thing this page treats as a major event. Once Run 10 is written
+up and Run 11 has run, nothing here is a live rule and all of it goes,
+together with the pointer to it from [the procedure][procedure]. What
+survives the deletion is one sentence, and it belongs in the procedure at
+that point: *the aligned half is the table, the unaligned half is the control
+that yields the per-arm layout term.*
+
+**What simplifies then is the rules, not the tools.** `make-pair.py`,
+`pad-as.py` and the phase matching all stay, the pairing being permanent and
+the difference being the measurement. What collapses is the transitional
+apparatus — which half drives which `--in-place`, the ruling against a second
+Results table, and the two-basis reading of the page.
+
+**Run 10's page is mixed-basis, and the Results table is the part
+that is unaligned**, the fingerprint and all eight class blocks being aligned.
+That is tolerable because the parts the next run reads agree with each other
+and with the predictions, and what stands apart is the geomean column, which
+succeeds Run 9 and has to. What it forbids is a sentence setting a class
+figure beside a Results figure without saying so: those differ in basis as
+well as in population, and the rule that a figure names its run, its basis and
+its population is the whole of what keeps that visible. It lasts one run —
+from Run 11 the whole page is aligned.
+
+**And the aligned half does not get a Results table of its own.** It would be
+a second copy of the same thirty-odd rows, published for a reader who does not
+yet exist, and the page's own rule against a second copy of a figure applies
+to a table as much as to a number. What the aligned half publishes is the
+*difference* — the per-arm aligned-over-unaligned ratios prediction 4 asks
+for — one column on the yardstick, and the per-shape fingerprint. **The
+yardstick column is geomeans against `list`, like every other column there**,
+and not the per-arm ratios of the sentence before it. The two are different
+quantities and about an order of magnitude apart, so the mistake is not a
+rounding one: a column meaning something other than its neighbours is the one
+thing that table, built to outlive every artifact, cannot survive. That last
+is not an exception to the rule but the reason behind it: the fingerprint is
+the object this page invented so that a per-shape record outlives its JSON,
+which is what let Run 6's artifact be deleted on purpose, and it is a far
+smaller thing than a Results table. Publishing it aligned is what makes Run
+11's change of basis readable rather than a discontinuity.
+
+**The inversion lands at Run 11 and not at Run 10.** Every run from here is
+paired, so from Run 11 the aligned half becomes the table and the
+unaligned one keeps a column as the older basis. Run 10 itself stays as the
+procedure describes, and that is what keeps the series continuous: Run 10's
+unaligned table succeeds Run 9's basis directly, and Run 11's unaligned column
+succeeds Run 10's table directly, so no comparison this page draws needs a
+conversion applied to it. Inverting at Run 10 instead would have put one
+between Run 9 and Run 10 and left it there for good. And it costs no kept
+artifact: what Run 11 reads against is Run 10's aligned fingerprint, which is
+published, so nothing has to be remembered out of a JSON.
 
 
 ### The reader: read-run.py
@@ -3014,8 +3298,7 @@ strategies cross in three classes only, `bcast` (24 cells of 96),
 `revsome`, `scaled` and `slice` nothing but the baseline does. So those
 five are penalised in one direction throughout, which leaves their
 orderings alone and their levels flattered, while the three are penalised
-unevenly and are where a nursery A/B would move a table. Whichever run
-takes the `-A32m` pair should take the classes with it.
+unevenly and are where a nursery A/B would move a table.
 
 **That second half was tested the same day and the prediction holds.** Both
 arms plus a `sum-only` half, filtered over all 24 shapes, run twice from
@@ -3876,9 +4159,11 @@ carried, sitting beside `Harness, -O1` and `SpecConstr` as a third kind of
 build rather than a fourth run of the second. The rule against pruning a
 column is joined by one against **merging** two: folding the aligned figures
 into the SpecConstr column would put back, in the one table built to outlive
-every artifact, exactly the term alignment removes. `--check-doc` now holds a
-paired run to both of its columns, so dropping either fails the check rather
-than the reading.
+every artifact, exactly the term alignment removes. `--check-doc` catches one
+half of that: a run named aligned must also be named unaligned, so pruning
+the unaligned column fails it. Pruning the aligned one, and merging the two,
+are the reading's to catch — the check cannot demand an aligned column of
+every run without failing Runs 6 through 9, which had none.
 
 **Its aligned half reads against nothing here, and that is the point.** No
 column on this page was taken from a build whose loops were aligned, so the
@@ -4298,7 +4583,7 @@ five things and nothing else:
 1. a bolded lead naming the class, the mechanism it models in a clause, and
    its shapes with their `l` and `sInner`, which is what makes the table under
    it readable without `Main.hs` open;
-2. the table `./read-run.py $R-$c.json --markdown` emits, pasted whole and
+2. the table `--block --in-place` installs from `$R-aligned-$c.json`, whole and
    never edited — six columns, with the emphasis carried over from the main
    table so the shipped row is found at a glance, and `needs` left to that
    table as a property of a strategy rather than of a population;
@@ -5023,7 +5308,10 @@ mechanical instead. Every section below is reached by an anchor, and the
 coverage check is: no section carrying a figure outside a table may be absent
 from these links. Run that check, and repeat the two sweeps it cannot replace
 — grep this file for figure-shaped numerals outside the tables, and grep it
-for `Run 9` — before trusting the list.
+for the name of the run being superseded, which is the one the chapter head
+above still carries — before trusting the list. The second sweep is written
+without its numeral on purpose: spelled out, it is a run number the rename
+step does not reach, so it would go on naming a run two runs back.
 
 - [the head of this chapter](#about-the-last-run-run-9), which carries the run's
   name, regime, scale and source commit, and now the layout span a membership
@@ -5138,3 +5426,4 @@ of the list above is one of the steps.
 [scratch]: #the-scratch-vector-flavour
 [shapeset]: #the-shape-set
 [todo]: #non-urgent-todo-list
+[transition]: #the-run-10-transition-to-be-dissolved-after-it

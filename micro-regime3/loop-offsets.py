@@ -28,8 +28,9 @@ documented `mut-odo` and `build` offsets -- before it was pointed at a binary
 whose answer was unknown, which is the whole of its warrant. Those binaries
 are deleted. The live control is now `micro-unaligned`, whose two groups must
 read [3, 53, 59, 45] and [16, 0, 36, 36] while its aligned twin reads all
-zeroes; both are recorded in README's open list and in run10-binaries.txt, so
-the check outlives the binaries it was born on.
+zeroes; both are recorded in README's open list and in the pair's own
+`<prefix>-pair.txt`, which `make-pair.py` writes beside the binaries, so the
+check outlives the binaries it was born on.
 
     ./loop-offsets.py BINARY...          # 28-byte loop, the one this page prices
     ./loop-offsets.py --len 24 BINARY    # e.g. the count-down form
