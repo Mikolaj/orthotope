@@ -106,8 +106,23 @@ by being a thing a later session might otherwise redo.
   figure: [the ceiling][ceiling].
 - **Code placement moves figures**, and by more than the A/A controls can
   see: the identical-code pair, the rebuild bias, the per-loop reading and
-  the cache-line table are all [in the floor section][floor]. What is still
-  open about it is [on the open list][open].
+  the cache-line table are all [in the floor section][floor]. **Straddling a
+  cache line is a cost and not a correlation** — the pad probe stepped two
+  arms through every offset — **and the penalty is graded** by where the
+  split falls: same section. The probe's own design, including the two kinds
+  of pad that relocate nothing, is [on the open list][open] with what is
+  still open about placement.
+- **GHC's native backend aligns no loop**, where GCC, clang and GHC's own
+  LLVM backend all do; `-fproc-alignment=64` pins the offsets rather than
+  choosing them, and an assembler shim on `-pgma` aligns the loops outright,
+  which is the instrument fix. What it costs and buys in time is [on the open
+  list][open]; the rest is [in the floor section][floor], including why the
+  shim must pad only between instructions. Two tools beside this file:
+  `loop-offsets.py` reads a binary's copies, which makes the question a
+  minute's work rather than a run's, and `align-as.py` is the shim. Both this
+  and the recompilation trap beside it are written up and filed as GHC issues
+  from horde-ad's `docs/`, which is where a reader outside this page should
+  go; what stays here is what they cost this benchmark.
 - **The allocation area moves figures too** — the default nursery against an
   arm's allocation in excess of its result — with the predictor and the
   populations it reaches [in the floor section][floor].
@@ -181,7 +196,12 @@ closes as **unanswerable by this design**, not as answered: roster and layout
 move together and no run that changes the roster can separate them. What
 would separate them is the pad probe done properly — vary a *susceptible*
 arm's address deliberately, with membership fixed — which is the entry below
-and now the only route left to this question.
+and was then the only route left to this question. **It has since been run**
+and prices layout alone at 1.16 to 1.19 on a shared loop ([the floor
+section][floor]), which is more than the 13% asked about here, so layout
+remains a sufficient account of it; what the probe does not supply is this
+arm's own offsets across the two runs, and Run 10's first prediction is where
+its family is read.
 
 The probe's three side predictions came out one right and two not. `bq-gen`
 and `bq-gen-lemire` did collapse to the table in allocation, 3.58x and 2.95x
@@ -322,26 +342,35 @@ now rather than a slot in the next run, observed again:
   the flag moves 12 KiB of `.text` (20,349,125 bytes to 20,336,837), so every
   arm's address and alignment shift whether its code changed or not.
 
-  What is left is narrower than the question was. The pad probe should have
-  timed `build` across the four layouts and did not — a shell glob ate the
-  arm ([the reader's section](#the-reader-read-runpy)) — so the pair's own
-  swing is still unmeasured, and no probe has yet varied a *susceptible*
-  arm's address deliberately rather than incidentally. Both want a quiet
-  machine. What no longer needs asking is whether placement can be this
-  large: it is. And the *how* has come one step down since, in the binary
-  rather than in a run: the pair's disagreement now has a 28-byte loop under
-  it that GHC aligns to eight bytes, with the two arms' executed copies
-  falling either side of a cache-line boundary ([the floor section][floor]).
+  **Answered, 2026-08-10: for a loop this size, placement costs 1.16 to
+  1.19.** The first attempt at this left the question narrower than it found
+  it — it should have timed `build` across the four layouts and did not, a
+  shell glob having eaten the arm ([the reader's
+  section](#the-reader-read-runpy)) — and what settled it instead was the pad
+  probe done properly, eight binaries stepping each arm through all eight
+  8-byte offsets with membership fixed ([the floor section][floor] carries the
+  figures and the graded penalty; `pad-probe/README.md` the tables, while that
+  directory lasts). So the *how* is now measured and not merely read off a
+  binary: a straddled copy of the 28-byte fill costs 1.19, or 1.10 where only
+  three bytes precede the boundary, and that is what the pair's 0.86-to-1.24
+  span across runs was made of.
 
-  **Run 9 makes this the page's central question rather than a caveat on it.**
-  A membership change alone moved five fingerprint arms from 0.910 to 1.192 in
-  absolute time against a baseline that held to 0.998, and moved
-  `build`/`mut-odo` — one worker, two slots — to 1.13 where Run 8 read 0.86
-  and Run 7 1.24. So the closing question above is now answerable only here:
-  every route through the roster is blocked, because the roster is one of the
-  things that sets the layout. The probe to build is the pad probe with
-  `build` and `mut-odo` both timed and a susceptible arm's address stepped
-  deliberately across a handful of binaries, membership fixed throughout.
+  What the probe does **not** reach is the rest of this entry. The 18% a
+  rebuild is worth stands as measured, since a rebuild moves more than one
+  loop's offset; `offtab`'s and `bq-gen`'s regressions have no shared-loop
+  counterpart to be read this way, which is the entry below on crediting a
+  margin to a strategy; and susceptibility remains a property of the arm, now
+  with a mechanism for the two arms that share a loop and none for the
+  others.
+
+  **Run 9 had made this the page's central question rather than a caveat on
+  it**, and that is the framing the answer inherits. A membership change alone
+  moved five fingerprint arms from 0.910 to 1.192 in absolute time against a
+  baseline that held to 0.998, and moved `build`/`mut-odo` — one worker, two
+  slots — to 1.13 where Run 8 read 0.86 and Run 7 1.24. Every route through
+  the roster was blocked, the roster being one of the things that sets the
+  layout, which is why the answer had to come from a probe that holds
+  membership still.
 - **The queue of experiments that want a quiet machine**, ranked, so that the
   next quiet window is not spent deciding what to spend it on. Written down
   2026-08-09 with Run 9's artifacts still alive, and the ranking turns on one
@@ -371,45 +400,41 @@ now rather than a slot in the next run, observed again:
      1h10m that way against 2h15m standing alone, for the same pairing.
      Nothing in it bears on how Run 10 is run, the decision to keep the
      default nursery being already taken.
-  2. **The pad probe done properly** — four to six binaries differing only in
-     inert pad arms, with `build` and `mut-odo` both timed this time (the
-     first attempt lost them to a shell glob) and a *susceptible* arm's
-     address stepped deliberately rather than incidentally. Half a day. It is
-     the only route left to the placement question now that every route
-     through the roster is blocked, and it is **not** shrunk by 1: the
-     `build`/`mut-odo` gap was measured across the nursery change the same
-     day and did not move, so placement and the allocator are separate
-     effects and this probe has to be run for its own sake. **The step is
-     eight bytes**, which is all GHC aligns the loop in question to, and the
-     pair now carries a prediction to aim at: [the floor section][floor]
-     reads the executed copy of `build`'s innermost loop across a cache-line
-     boundary and `mut-odo`'s inside one, so pad until `build`'s lands whole
-     and see whether the gap goes with it.
+  2. **The pad probe done properly — run 2026-08-10, and the hypothesis
+     survives.** Eight binaries differing only in inert pad arms, two
+     interleaved passes over all eight, 2h12m, with `build` and `mut-odo`
+     both timed this time (the first attempt lost them to a shell glob) and
+     each stepped through all eight 8-byte offsets — the step being all GHC
+     aligns the loop to — with membership fixed throughout. A straddled copy
+     costs 1.19, or 1.10 where only three bytes precede the boundary, and the
+     two discriminating binaries invert as predicted: [the floor
+     section][floor] carries the verdict, the graded penalty and the
+     controls. Placement and the allocator are separate effects, which is why
+     this wanted a window of its own rather than being shrunk by 1: the
+     `build`/`mut-odo` gap was measured across the nursery change and did not
+     move.
 
-     **The binaries are built and only the timing is left** (2026-08-10,
-     untracked in `pad-probe/`, ~250 MB, delete when the probe is answered).
-     Eight of them, each carrying inert pad arms rostered `Only` — checked
-     on every shape and timed in none — which shift both arms 24 bytes
-     apart, so the executed copy walks eight distinct offsets. Two are the
-     probe: `micro-pad2` puts the straddle on `mut-odo` alone and
-     `micro-pad6` on `build` alone, so the hypothesis predicts the gap
-     *changes sign* between them, with the other six as controls where the
-     straddle is symmetric and no gap is predicted. `pad-probe/README.md`
-     carries the offsets, the selection command, the correction caveat and
-     the two pad designs that were measured to relocate nothing, so they are
-     not retried. About 1h05m for the discriminating four, 2h15m for all
-     eight with the replication that buys.
+     **Two pad designs relocate nothing, so they are not retried** — measured
+     on 2026-08-10 rather than reasoned about, and recorded here because the
+     directory that first held them is to be deleted. Module-level inert pads
+     that nothing rosters left both arms exactly where they were, across six
+     variants. So did permuting two untimed roster entries deep in the list,
+     which relocates only each other. What works is a pad rostered *before*
+     the arm it must displace, emission order tracking first reference from
+     `roster`; a pad kept inert by rostering it `Only` is checked on every
+     shape and timed on none, so the selection stays what it was.
 
-     **This is the one entry that goes before Run 10.** Two of Run 10's three
-     registered predictions *are* the straddle hypothesis, and Run 10 tests
-     it while moving roster order, heap warmth and code layout together,
-     where these binaries move one thing and hold the rest — same code, same
-     bench order, no rebuild between arms. Answering it first makes Run 10 a
-     replication rather than the evidence. The risk is asymmetric besides:
-     [the floor section][floor]'s loop table and [the suspension of two
-     FastReshape axis figures][ceiling] are claims of this page resting on a
-     correlation inside one binary, and if the probe refutes them they want
-     softening before a write-up leans on them.
+     **It went before Run 10, which makes Run 10 a replication rather than
+     the evidence** — the point of that ordering, two of Run 10's three
+     registered predictions being the straddle hypothesis, and Run 10 testing
+     it while moving roster order, heap warmth and code layout together where
+     these binaries moved one thing and held the rest. The asymmetric risk it
+     was run against did not materialise: [the floor section][floor]'s loop
+     table and [the suspension of two FastReshape axis figures][ceiling] both
+     rested on a correlation inside one binary, and both stand, the
+     suspension now with an out-of-sample check of its own. The binaries and
+     the sixteen run files are untracked in `pad-probe/`, ~280 MB, to be
+     deleted once this page carries what they show.
   3. **A third `-nosum` arm, on a flat fill** — a `Main.hs` addition and then
      a filtered run over the shape set. The two existing `-nosum` arms are an
      odometer and an expansion, so a flat fill is the one probe that
@@ -420,6 +445,26 @@ now rather than a slot in the next run, observed again:
      loop offsets that a membership change rerolls. It also wants a full run
      rather than a filtered one, so its reading is comparable with the
      eighteen already taken, which costs nothing once the arm is rostered.
+  4. **What an aligned build costs and buys in time** — the layout half is
+     already answered ([the floor section][floor]: `-fproc-alignment=64` pins
+     the offsets, and the `-pgma` shim puts every copy of both fills at
+     offset 0), so what is left is time, and the aligned build carries the
+     sharpest prediction this page has. Four benches settle it: with both
+     executed copies resident at 0, `build`/`mut-odo` must read **1.00**, and
+     both arms must run at the resident level, which against Run 9's
+     placement is 10 to 19% faster rather than merely equal. A pair that
+     reads 1.00 while neither arm moves would refute the penalty while
+     confirming the symmetry, and that is a distinction no run so far can
+     draw. Minutes. The dear question follows only if the cheap one lands:
+     a main set in that build against one without, which prices the 0.13% of
+     padding over the whole roster and says whether the suite should be built
+     this way from Run 11 on. An hour. Build with `-fforce-recomp` or a fresh
+     `--builddir` either way — GHC treats neither `-pgma` nor
+     `-fproc-alignment` as a change — and run `check` before believing any of
+     it, since a wrongly padded binary has correct-looking offsets. The shim
+     reaches only the modules this GHC compiles, so `Main.hs` and its
+     strategies are aligned and `vector`'s loops are not, which is the right
+     scope here and would not be for a claim about the whole program.
 
   And three things **not** worth a quiet window, recorded so they are not
   reached for. The *how many preceding benches warm it* sweep, which the
@@ -474,10 +519,21 @@ now rather than a slot in the next run, observed again:
      they hold near 1.16, the hypothesis is dead and [the suspension of
      those axis figures](#the-mutable-ceiling-not-taken) is withdrawn —
      which is the outcome this page has the most reason to want detectable,
-     the suspension being its own.
+     the suspension being its own. **Sharpened by the pad probe**, which
+     prices each offset instead of each side of the boundary: their present
+     values are what a deep straddle over a resident control predicts, 1.18,
+     and after the move all four copies sit resident, where the probe's own
+     resident offsets span 0.904 to 0.956. So the collapse should be to
+     between 1.00 and 1.05, and anything near 1.16 still kills it. Do not
+     interpolate the 36 across the boundary — the penalty steps between 36
+     and 37 rather than ramping.
   2. **`mut-odo` goes resident to straddling** (29 to 53) while `build` stays
      straddling (53 to 45). The hypothesis predicts their 1.13 closes toward
-     1.0. If it holds or widens, the hypothesis is dead by the other route.
+     1.0, and **the pad probe makes that a point prediction, 0.998**: two deep
+     straddles, whose penalties cancel, so the pair should land on 1.0 rather
+     than merely approach it. The same penalties reproduce Run 9's own 1.13,
+     at 1.144. If it holds or widens, the hypothesis is dead by the other
+     route.
   3. **The anchors move, and one of them is a control.** Warming `list` is
      the object of the swap, so the absolute anchors should fall and every
      ratio rise with them — but not uniformly, and the excess-allocation
@@ -494,7 +550,10 @@ now rather than a slot in the next run, observed again:
   arms already rostered and at no extra machine time; the third prices what
   the order change itself was for and carries its own control. Read all three
   before reading anything else in Run 10, and record the verdicts here rather
-  than in the run's own chapter, which the run after replaces.
+  than in the run's own chapter, which the run after replaces. The pad probe
+  having answered the hypothesis first, the first two are now replications
+  carrying point predictions rather than the evidence — which is what that
+  probe's window was spent to buy.
 - **What does the roster owe the next run?** Run 9's delta was empty and a
   Run 10 inheriting shapes, roster and regime all pinned would have been the
   exact repetition this page has never had, and the only clean measurement of
@@ -1334,6 +1393,12 @@ one and it ties. What it loses is the price: +15.5% and +18.0% are not what
 FastReshape's arithmetic costs, and the honest reading of these four is that
 the precedent's arithmetic is neutral here rather than harmful.
 
+**The pad probe upholds the suspension rather than withdrawing it.** Stepping
+a shared loop through all eight offsets prices a deep straddle at 1.19
+against a resident copy, and these three sit at mod 40, 44 and 44 against a
+control at 24 — a predicted 1.18 against the 1.155 to 1.180 they read, on a
+family and a binary the probe never touched ([the floor section][floor]).
+
 **What that does to the precedent's weight.** FastReshape's arithmetic, ported
 one axis at a time onto this page's fastest arm, buys nothing here: the
 count-down form ties the control, and the two solo axes' losses are not the
@@ -1876,6 +1941,12 @@ refutation of the design rather than as a missing flag:
 
     R=RUN   # one name for the run's artifacts, e.g. run7
     REGIME=--ghc-options=-fspec-constr   # Runs 8 and 9's; empty for -O1
+    # Anything added to REGIME that carries a VALUE -- -fllvm, -pgma and the
+    # alignment shim, an inliner threshold -- wants -fforce-recomp or a fresh
+    # --builddir beside it, or the run measures the previous binary and says
+    # nothing. Toggling -fspec-constr itself is safe: GHC notices that one,
+    # and it is the control that proved the rest are missed. The floor
+    # section, under what moves a figure when no strategy changed, has why.
     git log -1 --format=%h && git status --porcelain  # the write-up's commit
     uptime                                # quiet, or note what was not
     {
@@ -2650,7 +2721,7 @@ themselves, 1.028 and 1.043 in absolute time across the change, against the
 35–40% the excess-allocating arms show. Two things follow. The predictor
 survives a test it could have failed, on the side where failure was
 cheapest to detect. And **the placement question is now confirmed
-independent of the allocator**, so the pad probe is unavoidable rather than
+independent of the allocator**, so the pad probe was unavoidable rather than
 possibly-subsumed: this pair's 1.16× is not filtering either, the full run
 reading 1.13× over the same shapes with 31 benches between the two arms.
 
@@ -2687,12 +2758,12 @@ mismatched-length `fail` join and cannot run on a well-formed shape; the
 copies that do run are `mut-odo`'s at byte 29 of its cache line, which fits,
 and `build`'s at 53, which straddles two. The dead copies fall the other way
 round, which is why the pair looks like a wash until the executed one is
-identified. That is one bit against one gap, so it is a candidate and not an
-account — but it is one the pad probe can test, nothing pinning these loops
-to a line: pad in eight-byte steps until `build`'s executed copy lands whole
-and see whether the gap goes with it. The instrument is steady meanwhile,
-the flag's 12 KiB of `.text` reproducing to the byte on a base the arms
-written since have grown.
+identified. That is one bit against one gap, so it was a candidate and not an
+account — but one the pad probe could test, nothing pinning these loops to a
+line: pad in eight-byte steps until `build`'s executed copy lands whole and
+see whether the gap goes with it. It did — the confirmation is below the loop
+table. The instrument is steady meanwhile, the flag's 12 KiB of `.text`
+reproducing to the byte on a base the arms written since have grown.
 
 **And a second family reads the same way, which is what takes it past one
 point.** The four `mut-odo-vecdims` arms carry one copy each of that same
@@ -2714,10 +2785,192 @@ Every copy that fits inside one line reads level or ahead, every copy that
 straddles reads 13–18% behind, and no arm of either family dissents. The
 count-down form is the one row whose loop is not that code — it is the
 shorter one, and line-resident as well — so it sits here for completeness
-and is read in its own section. This is still a correlation inside one
-binary, and 64 bytes is the granularity of more than the cache line, the op
-cache included, so the pad probe stays the test rather than the
-confirmation. What it stops being is a guess.
+and is read in its own section. That was a correlation inside one binary, and
+64 bytes is the granularity of more than the cache line, the op cache
+included, so it was left to the pad probe to test rather than to confirm.
+
+**The probe has since confirmed it, and found the penalty graded**
+(2026-08-10, `-fspec-constr`, eight binaries differing only in inert pad arms,
+two interleaved passes over the shape set, no rebuild anywhere in it;
+`pad-probe/README.md` holds the tables while that directory lasts). Each arm
+was stepped through all eight 8-byte offsets with code, membership and bench
+order fixed, so each is a reading of one penalty in its own right: `build`
+runs **1.169×** slower where its executed copy straddles and `mut-odo`
+**1.162×**, every straddling placement of an arm slower than every resident
+one. The discriminating pair inverts as predicted — 0.874 where only
+`mut-odo` straddles, 1.102 where only `build` does. And the penalty turns on
+*where* the split falls, which no reading inside one binary could have shown:
+offsets 37, 45 and 53 cost 1.19 where offset 61, three bytes short of the
+boundary, costs 1.10 — which is why the one control with both arms straddling
+reads 1.069 instead of level, `build` at 53 paying full where `mut-odo` at 61
+pays half. Evaluated at Run 9's own offsets those penalties give 1.144
+against the 1.13 it read, on a binary not among the eight. The binaries
+differ in placement and in nothing else: fitted allocation agrees to
+1.000008 across the sixteen runs, and the subtracted forcing term spreads
+1.0046 where the arms spread 1.20. So the table above stands, and the 13–18%
+it spans is the distance between a deep straddle and a resident copy rather
+than a range still to be explained.
+
+**What that span bounds is every margin under about a fifth.** The per-offset
+figures run 0.9040 at offset 13 to 1.1051 at 37, so one loop's placement is
+worth **1.22×** best to worst, and that is the number a margin has to clear
+rather than the 1.169. Two rows of the Results table differing by less can be
+layout entire, and the A/A twins cannot see it: they call one worker from two
+slots, executing one copy at one address, where `build` and `mut-odo` are two
+copies at two. Reading the offsets is minutes of `objdump` against a
+quiet-machine window, so it is the cheap first question about a gap this size.
+`loop-offsets.py` beside this file finds the copies structurally — a backward
+branch whose target is one loop length back, grouped by raw bytes, so
+"byte-identical copies" is read rather than assumed — and it was proved
+non-vacuous by reproducing three of the probe binaries' documented offsets
+before it was pointed at anything new.
+
+**But the table corrects only where the loop is the same code; elsewhere it
+screens.** As 0.9973 × pen(A's offset) / pen(B's offset) it reproduces the
+eight binaries to a median 1.0% and a worst 3.8%, Run 9's pair to 1.144
+against the 1.13 read, and the FastReshape three to 1.18 against 1.155–1.180.
+Its resolution floor is the 5.9% by which the two arms disagree at offset 13,
+so it settles a 17% gap and cannot touch a 5% one. And it reaches the six arms
+carrying this fill and no others: dividing layout out of two *different*
+algorithms needs each one's own penalty curve, which only stepping that arm's
+address supplies. Everywhere else this is a quantified caveat, not a
+correction.
+
+**GHC's native backend aligns no loop, and every other compiler to hand
+does** (verified 2026-08-10 on this machine). GCC 13.3 at -O2 emits
+`.p2align 4,,10` at each loop head, on by default as `-falign-loops=16:11:8`;
+clang 18 emits `.p2align 4` above every block LLVM marks an inner loop header,
+with nothing asked for. GHC's NCG emits `.align 8` at procedure starts and
+nothing inside them — on 9.10.3, 9.12.4, 9.14.1 and HEAD (10.1.20260803)
+alike, and `-fproc-alignment=64` adds none of it either — which is what leaves
+this loop wherever it falls. The
+exposure follows: at 8-byte alignment three or four of the eight reachable
+offsets straddle, four of eight for this one; at 16 bytes one of four; at 32
+or more none at all, a 28-byte loop starting at 0 or 32 ending inside its line
+either way.
+
+**An isolated reproducer prices the same effect at 1.58×, and names what it
+needs to appear** — horde-ad's `docs/ghc-issue-no-loop-alignment.md`, filed as
+[GHC work item
+27668](https://gitlab.haskell.org/ghc/ghc/-/work_items/27668), which is where
+this belongs written up and which cites this
+benchmark for what `-fproc-alignment=64` does in a larger program and what the
+correction costs there. A 23-byte loop stepped through all eight 8-byte
+positions of a line runs 0.256 to 0.261 ns an iteration at the six that keep
+it whole and 0.410 at the two that divide it, alike on the four compilers.
+Two things that adds here. It is outside this harness entirely — no criterion,
+no shape set, no forcing term — so the pad probe's verdict no longer rests on
+one instrument. And it names the condition: that loop carries four independent
+accumulators and is fetch-bound, where the first attempt at the reproducer
+used one accumulator with each iteration waiting on the last and measured
+**no** difference at any position. So a straddle costs where the processor is
+fetching ahead and is free where it is waiting — a sharper statement of scope
+than two arms here could reach, and a candidate for why 1.19 here is smaller
+than 1.58 there, the run-fill copying memory rather than only adding, though
+nothing here measures that.
+
+**Its LLVM backend does align them, which makes this a backend choice rather
+than a property of the compiler.** `-fllvm` emits that same `.p2align 4` above
+the inner loop header, on all four of those compilers, and `-optlc
+-align-loops=64` (bytes) or `-optlc
+-x86-experimental-pref-innermost-loop-alignment=6` (log2) raises it to 64,
+each checked by reading the directive that came out. Read it rather than
+trusting it: these feed a heuristic, and
+`-x86-experimental-pref-loop-alignment` at 5 and at 6 gave 64 and 4 bytes.
+What it would cost is a whole regime, `-fllvm` being a different code
+generator that no figure here would survive; what it would buy is the first
+regime in which layout is controlled rather than measured around, and in which
+the identical-code pair must read 1.00.
+
+**`-fproc-alignment=64` pins the offsets, which is the instrument fix**
+(2026-08-10; the pad0, pad1 and pad2 sources rebuilt with and without it and
+the offsets read out of the binaries — a claim about layout, so no quiet
+machine is involved). Without it the four copies walk 24 bytes a pad: `[3, 53,
+59, 45]`, `[27, 13, 19, 5]`, `[51, 37, 43, 29]`. With it all three builds read
+`[3, 53, 3, 53]`, and the `mut-odo-vecdims` family `[8, 8, 4, 4]`. A
+membership change no longer rerolls layout, which is the confound that made
+Run 9's question unanswerable and this probe necessary. It does more than pin
+them: the two procedures holding the copies are then 64-aligned and internally
+identical, so the paired arms land on the *same* offset and the pair is
+layout-neutral by construction. Two things it does not do. It freezes this
+pair at 53, which straddles — the variance goes, the penalty stays, and the
+offset frozen at is set by the procedure's own internals rather than chosen.
+That the option stops at functions is deliberate and known: GHC
+[#14701](https://gitlab.haskell.org/ghc/ghc/-/work_items/14701) has the person
+who added it saying loops could be done too and were not looked at closely.
+And it is untimed: `.text` grows 0.14%, and whether that moves a number is the
+one part of this that does want a quiet machine.
+
+**The loops can be aligned outright, though, by standing in for the
+assembler** (2026-08-10). `-pgma` replaces the program GHC assembles with, so
+`align-as.py` beside this file rewrites the `.s` on the way past: every local
+label that a later instruction jumps backwards to — which is what a loop head
+is in the NCG's output — gets a `.p2align 6`. On this suite that aligns 395
+heads and puts **every copy of both fills at offset 0**, grows `.text` by
+0.13%, and leaves `micro check` green, 45 shapes agreeing and none dissenting.
+So the straddle can be removed rather than merely frozen, and with it the
+penalty — which turns the whole finding into a two-bench question ([the open
+list][open]).
+
+**Pad only between two instructions, which is what the first attempt did
+not.** Aligning every backward-jump target, 928 of them, produced a binary
+that failed `check` on the first shape with `index out of bounds
+(-1378,324)`. Tables-next-to-code puts an info table immediately before a
+return point, which is a local label too, and a `.p2align` inserted there
+separates the table from the code it belongs to. Requiring the preceding line
+to be an instruction fixes it, at the cost of the loops whose head follows a
+table — none of which this page measures. It is also why `check` is the gate
+to run on such a build and the offsets are not: the offsets looked right in
+the broken one.
+
+**And a trap that would have ruined that experiment silently**, on all four
+of those compilers. GHC does not
+count `-fproc-alignment` as a flag change, so an incremental build that only
+adds or drops it keeps the old object code and says nothing: `ghc -O1` then
+`ghc -O1 -fproc-alignment=64` leaves a byte-identical binary, where adding
+`-fforce-recomp` gives a different one. Cabal is not at fault — it reports
+`(configuration changed)` and re-invokes GHC every time, and the same toggle
+on `-fspec-constr` recompiles with `[Optimisation flags changed]`.
+
+**And the trap is far wider than the flag that found it**, which is what makes
+it a standing rule here rather than a note about one probe. Recompilation
+checking hashes boolean `GeneralFlag`s and a fixed list of fields, so every
+setting that carries a *value* is outside it — `-pgma` and `-optlo`/`-optlc`,
+the inliner's `-funfolding-use-threshold` and `-funfolding-fun-discount`,
+`-fmax-worker-args`, `-fdmd-unbox-width`, and **`-fllvm`**, so that switching
+the whole code generator reuses the native backend's objects in silence. All
+of them confirmed missed on all four compilers, and that list is a floor: it
+is what one test module could exercise. So **any A/B on this page that toggles
+a flag must force the rebuild** — `-fforce-recomp` or a fresh `--builddir` —
+and the regime comparisons already run that way only because they were built
+in separate trees. The first round of the alignment experiment had neither and
+read its flag as inert. Written up as
+`docs/ghc-issue-recompilation-ignores-codegen-flags.md` in horde-ad, beside
+the block-pool issue and in the same form, and filed from there as [GHC work
+item 27667](https://gitlab.haskell.org/ghc/ghc/-/work_items/27667) — that file
+carries the cause in GHC's own source and the list of settings, and is the
+copy to read.
+
+**What is comparable across an alignment change, and what is not.** `list` is
+the one arm measured insusceptible to placement — 0.9949, 1.0019 and 1.0031
+across the rebuild probe's four binaries — so the denominator of every ratio
+this page publishes, and the absolute anchor cells beside them, stay
+comparable across the change. A susceptible arm's absolute figure does not,
+which is why an aligned build wants a column of its own beside the regimes
+rather than a splice into one: folding aligned figures into `-fspec-constr`'s
+column would reintroduce in silence the term that alignment exists to remove.
+And once an aligned build is the standing regime, the per-shape record a later
+run compares against is taken from *it*, a fingerprint kept from an unaligned
+run passing the layout term forward into every run that reads it.
+
+**An aligned figure read against an unaligned one is a diagnosis, not a
+continuation.** An arm that moves between the two has had its old figure's
+layout term subtracted, which is neither a regression to explain nor the
+roster doing something, and it wants writing up in those words. Such a pairing
+also carries its own control, and the control is `list`: it is predicted not
+to move, and if it does then the baseline was carrying layout too, every
+published ratio has been divided by a moving denominator, and that is a larger
+finding than whatever the pairing was run for.
 
 **And the identical-code pair reads the same way in all nine of Run 9's
 populations**, one binary throughout, so the gap owes nothing to the main
@@ -2748,12 +3001,13 @@ across a rebuild.
 **And the third of those is a bias, not a floor, which is the distinction to
 keep.** A floor is a threshold below which a margin might be noise, and it
 shrinks as samples accumulate; this does not. Each binary's figure is
-*correct for that binary* — the pad probe's cells are geomeans over 24 shapes
-with per-cell intervals of a fraction of a percent — so collecting more
-samples inside one build cannot reduce it, and only averaging over several
-builds would. The per-shape picture says the same: across rebuilds `list`
-scatters 2.2-2.5% per shape while its geomean holds to 0.5%, where the two
-susceptible arms scatter 5-10% per shape *and* move their geomeans. So do not
+*correct for that binary* — the four-binary rebuild probe's cells are
+geomeans over 24 shapes with per-cell intervals of a fraction of a percent —
+so collecting more samples inside one build cannot reduce it, and only
+averaging over several builds would. The per-shape picture says the same:
+across rebuilds `list` scatters 2.2-2.5% per shape while its geomean holds to
+0.5%, where the two susceptible arms scatter 5-10% per shape *and* move their
+geomeans. So do not
 read 18% as a new floor for this page's tables. Every comparison inside the
 Results table is two rows of one binary and is governed by the A/A twins as
 before; what the 18% governs is the sentences that cross a build, which on
