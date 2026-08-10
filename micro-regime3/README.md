@@ -148,7 +148,7 @@ by being a thing a later session might otherwise redo.
   folded in under [the TODO list][todo]. Nothing open is recorded anywhere
   else.
 
-## What the next runs have to decide
+## What is open
 
 **The complement of the index above, and read with it.** That one says what
 is settled and where; this says what is not, each question with the
@@ -1374,9 +1374,8 @@ layouts a write-up pastes into, which sit beside the figures they explain:
 the [Results](#results) columns and the
 [per-class blocks](#the-stride-classes-run-by-run). What is *not* here
 is anything a particular future run has to settle — that is
-[What the next runs have to decide](#what-the-next-runs-have-to-decide), at
-the end of the last chapter, because it goes stale as soon as that run
-reports.
+[What is open](#what-is-open), the chapter at the front, which is where
+everything that goes stale as soon as a run reports is now collected.
 
 ### What the benchmark does
 
@@ -1464,7 +1463,7 @@ six A/A arms — `bq-expand-aa-adjacent` and `bq-expand-aa-distant`,
 duplicated in both positions — the `sum-only-early`/`sum-only-late` pair, and
 `bq-expand-nosum` and `mut-odo-vecdims-nosum`, each its base arm forced with
 one element instead of the sum.
-[The noise floor](#the-noise-floor-is-the-aa-controls-not-the-ci) and
+[The noise floor](#what-moves-a-figure-when-no-strategy-changed) and
 [sum-only](#sum-only-and-the-correction-now-applied) say what each is for.
 
 The `check` mode (below) asserts every strategy produces byte-identical
@@ -1850,7 +1849,7 @@ silently caught more arms than intended.
 
 **Probes whose designs predate the run ride the same script.** The machine
 is quiet for the whole sequence either way, so a question already on [the
-open list](#what-the-next-runs-have-to-decide) with its measurement written
+open list](#what-is-open) with its measurement written
 — a twin in a named slot, a filtered A/B — is appended after the classes
 and answered the same day, pre-registered rather than improvised. What this
 does not cover is the run's own surprises, which need the run read first;
@@ -2262,7 +2261,7 @@ neither arm had a cell capped. `--aa` prints both and `--selftest` asserts
 the identity where it holds.
 
 
-### The noise floor is the A/A controls, not the CI
+### What moves a figure when no strategy changed
 
 Six A/A controls run an existing strategy twice under a second name — three
 strategies, each duplicated once beside its base and once at a distance, so
@@ -2673,7 +2672,7 @@ that.
 twins nor that pair measure.** Four binaries built from sources differing
 only in inert pad arms, the run filtered so the pads never execute, leave
 `list` inside 0.5% and move `mut-odo` and `offtab` by up to 18% ([the open
-list](#what-the-next-runs-have-to-decide) carries the figures). So this page
+list](#what-is-open) carries the figures). So this page
 has three uncertainties of quite different size and only the smallest is on
 the table above. An arm against **itself in one binary** is the A/A twins,
 0.4%. Two **different arms in one binary** carry placement, which
@@ -2924,7 +2923,7 @@ what the others catch:
    flattery about 1%. The gate still passes on its own test, which asks for
    *more than a few percent*; what it has stopped doing is passing for the
    reason the test assumes. [The open
-   list](#what-the-next-runs-have-to-decide) carries what would settle it.
+   list](#what-is-open) carries what would settle it.
 
    **The cells under those medians say the same, and add a gradient the
    medians hide** (2026-08-09, off Run 9's artifacts). Taken per shape
@@ -3024,7 +3023,7 @@ own: `mut-odo-vecdims` **0.910**, `mut-odo` **0.910**, `bq-scan-rem-gm-mulback`
 verdict**: a change that touched no line of any arm's code moved five arms
 from 9% faster to 19% slower, and the two ends of it are `mut-odo` and
 `build`, which [the placement
-entry](#what-the-next-runs-have-to-decide) records as compiling to the same
+entry](#what-is-open) records as compiling to the same
 worker. Identical code cannot move in opposite directions for a reason of its
 own, so what the span measures is layout and placement, which membership
 drags along with it. These five come from the two runs' fingerprint tables,
@@ -3275,7 +3274,7 @@ below is kept so a future disagreement can be localised rather than only
 noticed. Its membership is a rule, not a habit: the shipped arm, the rows
 the Results table bolds, and any arm an open question names — `mut-odo`
 and `build` sit here on [the placement
-question](#what-the-next-runs-have-to-decide), which this run has just made
+question](#what-is-open), which this run has just made
 the sharpest one on the list — and an arm leaves when its question closes,
 the roster cut having taken two out that way. An arm nothing measures cannot
 be the subject of a future disagreement to localise, and what is given up
@@ -3388,7 +3387,7 @@ this run measures a slot to be worth.
 four of 24 — the `l`-length table is still behind the `m`-length one, but
 barely. Neither side is innocent: `offtab` gained 21% in absolute time and
 `bq-expand` lost 3%, and `offtab` is one of the two arms [the placement
-entry](#what-the-next-runs-have-to-decide) names as susceptible. So this is
+entry](#what-is-open) names as susceptible. So this is
 the placement finding showing up inside a claim, not a table build getting
 better.
 
@@ -4378,7 +4377,7 @@ for `Run 9` — before trusting the list.
   re-probing is a run that moves the ordering at `Storable Double`, since the
   claim is that the other types follow it — which Run 8 does, in a regime the
   probe was not run in, so the trigger is live and is [on the open
-  list](#what-the-next-runs-have-to-decide) rather than discharged here;
+  list](#what-is-open) rather than discharged here;
 - [sum-only](#sum-only-and-the-correction-now-applied), where what a run
   decides is no longer *whether* to correct but whether the term still passes
   its three gates, any failure invalidating the column rather than informing
@@ -4398,8 +4397,8 @@ for `Run 9` — before trusting the list.
   shape set, so pin the shape set before comparing across runs, as `time`
   already asks — and now a property of the regime too, three of the column's
   levels having moved with the flag alone;
-- [What the next runs have to decide](#what-the-next-runs-have-to-decide),
-  whose whole content is questions a run answers and figures a run moves;
+- [What is open](#what-is-open), whose whole content is questions a run
+  answers and figures a run moves;
 - this section, which becomes the next run's own provenance;
 - `read-run.py`'s docstring, whose `time`, `corr` and `net` definitions and
   A/A paragraph quote the run;
@@ -4434,9 +4433,9 @@ of the list above is one of the steps.
 [correction]: #sum-only-and-the-correction-now-applied
 [dead]: #dead-ideas
 [fix]: #the-fix-in-dataarrayinternalhs
-[floor]: #the-noise-floor-is-the-aa-controls-not-the-ci
+[floor]: #what-moves-a-figure-when-no-strategy-changed
 [lemire]: #lemire-multiplicative-inverses-at-the-two-division-sites
-[open]: #what-the-next-runs-have-to-decide
+[open]: #what-is-open
 [opening]: #regime-3-micro-benchmark-the-fix-bq-expand
 [pershape]: #per-shape-where-the-geomean-hides-the-ordering
 [pos-effect]: https://github.com/Mikolaj/horde-ad/blob/master/docs/position-effect.md

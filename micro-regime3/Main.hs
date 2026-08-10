@@ -2231,7 +2231,7 @@ mkScaled sh strides@(Strides ats) =
 -- 'cnn-slice-c32', and so on -- so they cost a proportional share of every
 -- run's wall clock for coverage already held. The freed time went to A/A
 -- controls, which calibrate every other figure and were the roster's scarce
--- resource (README.md#the-noise-floor-is-the-aa-controls-not-the-ci).
+-- resource (README.md#what-moves-a-figure-when-no-strategy-changed).
 --
 -- It DOES move the published geomean, which an earlier version of this
 -- comment denied: the eleven skew small, and the base-offsets build is a
@@ -2585,7 +2585,7 @@ roster =
     -- this bench between the twin and the base is alone enough to move the
     -- base from 4.58 ms to 3.35 ms, where 'mut-odo-vecdims' in the same
     -- slot changes nothing
-    -- (README.md#the-noise-floor-is-the-aa-controls-not-the-ci).
+    -- (README.md#what-moves-a-figure-when-no-strategy-changed).
     --
     -- MOVED AGAIN BEFORE RUN 10, this time above 'list', which leaves
     -- nothing in the group measured on an ungrown pool. Through Run 9 it
@@ -2596,7 +2596,7 @@ roster =
     -- the pool asymmetry had been narrowed to exactly one bench: after the
     -- move above, every timed arm is measured warm EXCEPT the one every
     -- figure divides by, which is also the arm the nursery punishes hardest
-    -- (README.md#the-noise-floor-is-the-aa-controls-not-the-ci). This is
+    -- (README.md#what-moves-a-figure-when-no-strategy-changed). This is
     -- the warm-up bench the TODO list asks for, spent from the roster
     -- rather than added to it, so the delta stays order-only.
     --
@@ -2607,7 +2607,7 @@ roster =
     -- shifts every worker by ~40 KB and rerolls every hot loop's alignment,
     -- measured on the two binaries, where the slot-5-to-2 move left all
     -- eight measured loops byte-identical
-    -- (README.md#what-the-next-runs-have-to-decide). Anything added above
+    -- (README.md#what-is-open). Anything added above
     -- the twins from now on has to be checked for the pool property, and
     -- any reorder at all for this one.
   [ ("sum-only-early",             Term)
@@ -2630,7 +2630,7 @@ roster =
     -- read neither way. The crossed twins below are what fixed that --
     -- three strategies each in both slots, the scan band priced by its
     -- own adjacent twin -- and the verdict they reached is at
-    -- README.md#the-noise-floor-is-the-aa-controls-not-the-ci.
+    -- README.md#what-moves-a-figure-when-no-strategy-changed.
   , ("bq-scan-rem-gm-mulback-aa-distant", Twin fbBQscanRemGmMulback)
     -- The other two distant twins, added with the time the halved shape set
     -- freed. With these the controls are CROSSED: three strategies
@@ -2675,7 +2675,7 @@ roster =
     -- allocating LESS. The runs since split that prediction: per-cell
     -- scatter does track 1/time, but it CANCELS, where the distant pairs
     -- carry span-ordered biases that do not
-    -- (README.md#the-noise-floor-is-the-aa-controls-not-the-ci).
+    -- (README.md#what-moves-a-figure-when-no-strategy-changed).
     -- So keep this arm for the
     -- scatter it measures, and read the floor off the pairs that are
     -- biased, not the one that is merely noisy.
