@@ -209,10 +209,13 @@ warmed by exactly one predecessor — `sum-only-early`, whose one-off
 nine-point `-A` sweep shows a larger nursery rescuing the *cold* arm, and
 shows `-A1G`'s cliff to be a collision with the `-M2G` cap rather than the
 nursery. The account is [in the floor
-section][floor], and it carried **a roster fix, since applied**:
-`sum-only-early` has moved from slot 5 to slot 2, ahead of the three distant
-A/A twins, which were being calibrated against a colder heap than everything
-they calibrate. On the moved roster the 41% cell reads 0.24%.
+section][floor], and it carried **a roster fix, since applied twice**:
+`sum-only-early` moved first from slot 5 to slot 2, ahead of the three
+distant A/A twins, which were being calibrated against a colder heap than
+everything they calibrate — on that roster the 41% cell reads 0.24% — and
+then, for Run 10, above `list` as well, which is the warm-up bench [the TODO
+list][todo] had been asking for and leaves nothing measured on an ungrown
+pool.
 
   **It was answered the same day, and the decision it forced is kept
   with the account**: keep the default area, and carry the caveat that
@@ -459,7 +462,7 @@ now rather than a slot in the next run, observed again:
   says nothing; and `bq-gen`, whose 11% is still unaccounted for, has no
   counterpart sharing its per-element loop at all, so this instrument cannot
   reach it. Recorded so the sweep is not attempted a second time.
-- **Run 10's two predictions, registered before it runs.** Its order was
+- **Run 10's three predictions, registered before it runs.** Its order was
   chosen for heap state — `sum-only-early` above `list`, so nothing is
   measured on an ungrown pool — and the layout it happens to give was then
   read off the binary rather than shopped for, which is the distinction that
@@ -487,14 +490,15 @@ now rather than a slot in the next run, observed again:
      rather than nine findings, so read the anchors together before reading
      any class paragraph.
 
-  Two arms of one prediction, either of which can kill it, on arms already
-  rostered and at no extra machine time. Read them before reading anything
-  else in Run 10, and record the verdict here rather than in the run's own
-  chapter, which the run after replaces.
-- **What does the roster owe the next run?** Run 9's delta is empty and Run
-  10 inherits shapes, roster and regime all pinned, so a Run 10 at
-  `-fspec-constr` would be the exact repetition this page has never had and
-  the only clean measurement of run-to-run drift available. Run 9 supplies a
+  The first two are arms of one prediction, either of which can kill it, on
+  arms already rostered and at no extra machine time; the third prices what
+  the order change itself was for and carries its own control. Read all three
+  before reading anything else in Run 10, and record the verdicts here rather
+  than in the run's own chapter, which the run after replaces.
+- **What does the roster owe the next run?** Run 9's delta was empty and a
+  Run 10 inheriting shapes, roster and regime all pinned would have been the
+  exact repetition this page has never had, and the only clean measurement of
+  run-to-run drift available. Run 9 supplies a
   partial one already — `list`'s own figures, whose code and slot did not
   move, held to 0.2% in geomean and scattered up to 5% per shape — but that
   is one arm. **Decided for Run 10: `-fspec-constr`, and the repetition
@@ -531,17 +535,22 @@ now rather than a slot in the next run, observed again:
   being in the coldest one. The fixes are all real changes rather than
   write-ups — a warm-up bench before `list`, interleaving or randomising the
   order, or correcting each row by its slot — and each breaks comparability
-  with every run so far, which is why none is taken yet. Run 7 confirmed the
+  with every run so far, which is why none was taken for eight runs. Run 7
+  confirmed the
   drift, Run 8 mostly did not, and Run 9 shows why both readings were of the
   wrong quantity ([the floor section][floor]): the effect is not a per-slot
   gradient to fit but a step, worth nothing on most arms and 35–40% on one
   family at one shape. **So a slot correction is now refuted rather than
   merely unmeasured** — a linear fit in slot number cannot express a step
   that depends on the arm, and fitting one would smear a real 40% across
-  thirty rows that do not have it. What the drift needs instead is the
-  warm-up bench, which addresses the step directly and is the only one of the
-  three fixes Run 9 leaves standing. The placement gap the `build`/`mut-odo`
-  pair shows is a separate and larger target, and no reordering addresses it.
+  thirty rows that do not have it. What the drift needed instead was the
+  warm-up bench, the only one of the three fixes Run 9 left standing, and
+  **Run 10 takes it**: `sum-only-early` above `list`, so the baseline is
+  measured on a grown pool like everything else, at the cost of re-basing
+  every published ratio — which is what the entry above says none of these
+  fixes could avoid. What it does not address is the placement gap the
+  `build`/`mut-odo` pair shows, a separate and larger target that no
+  reordering reaches.
 - **No build-vs-output time decomposition**, which Run 8 wanted and did
   without. `diag` measures per-builder
   *allocation* only, so a claim like "the table build is a third of the cost"
@@ -1280,10 +1289,12 @@ four behind their control by +4% to +12%, the corner sub-additive and the
 count-down form recovering two thirds of its loss. Over 24 shapes:
 `add-in` **1.1552** (0 wins of 24), `add-out` **1.1795** (1 of 24),
 `add-both` **1.1645** (1 of 24), each against `mut-odo-vecdims` and each with
-sign p at or below 3e-06. So the precedent's loop arithmetic **loses on both
-axes**, by more than the one-shape probe suggested, and near-unanimously
-across shapes — the 2×2 therefore prices how much of the loss each axis owns,
-as the pre-run reading warned it might, and not which axis wins. The corner
+sign p at or below 3e-06. So all three solo-or-corner arms sit behind their
+control by more than the one-shape probe suggested, and near-unanimously
+across shapes — which the write-up first read as the precedent's arithmetic
+losing on both axes, and which the Core reading two paragraphs down
+withdraws: near-unanimity across shapes is what the identical-code pair shows
+too, so it separates nothing. The corner
 is sharply sub-additive, 16.5% where the two solo losses sum to 33.5%, so the
 two axes are largely paying for the same thing. The count-down form is the
 one that pays: `add-both-down` reads **0.8745** against the corner on 23
@@ -3783,7 +3794,8 @@ fastest-pure slot goes to an arm that did not exist for Run 8 —
 `bq-scan-rem-gm-mulback`, `bq-expand-qr-prim`, `bq-expand-b` and `bq-expand`
 itself all sit. So under negated strides the mul-back output is worth
 7% where the main set gives it 8%, and it is the *builder* comparison that
-collapses: every expansion arm within a thousandth of the scan. The other
+collapses: `bq-expand`, `bq-expand-qr-prim` and `bq-expand-b` land on the
+scan's own 0.104, with `bq-expand-zf` two thousandths behind it. The other
 reading here is the ceiling's, and it is the widest in any population —
 `mut-odo` at 0.094 beats **every** pure arm, which it does nowhere else, and
 the vecdims family sits at 0.050. What survives every regime and roster is
@@ -3988,10 +4000,13 @@ reader reads 34 benchmarks over 2 shapes of the bcastmid class. Anchor:
 `bcastmid-primes`, `list` at 3.64 ms per call raw, 3.49 ms net.
 
 What the class says: the main ordering holds at the top and in the pure tier
-both — `mut-odo-vecdims` (0.037) leads, `bq-scan-rem-gm-mulback` (0.100) is
+both — the vecdims family leads (`mut-odo-vecdims-add-both-down` 0.036,
+`mut-odo-vecdims` 0.037), `bq-scan-rem-gm-mulback` (0.100) is
 the fastest pure arm, `bq-expand` (0.121) sits behind both — which is all
-three clauses of the second property in one population, and only `revsome`
-does the same. Behind the vecdims family come `mut-odo` (0.062), `build`
+three clauses of the second property in one population, as it is in
+`revsome`, `slice`, `window` and `scaled`: five of the eight, the three
+breaks being `rev`, `bcast` and `reshape1`. Behind the vecdims family come
+`mut-odo` (0.062), `build`
 (0.085) and `offtab` (0.094) in that order, the two placement-susceptible
 arms adjacent and both ahead of every pure arm.
 
