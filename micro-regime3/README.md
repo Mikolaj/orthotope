@@ -345,6 +345,16 @@ now rather than a slot in the next run, observed again:
   thing worth stating: *the binary must not be rebuilt between the arms of a
   comparison*, since a rebuild is worth up to 18% on a susceptible arm and
   swamps most of what is being asked.
+
+  **Ordered against Run 10 rather than by value, 2026-08-10, now that its
+  regime and roster are fixed.** One entry goes before it and the rest after,
+  and the reasons are the schedule rather than the ranking: an experiment
+  whose answer changes how Run 10 is *read* is worth its window first, while
+  one Run 10 supplies half of for nothing is worth waiting for. Durations
+  below are quiet-machine costs, derived from the elapsed time and bench
+  count a run's own provenance line reports — about five seconds a
+  bench-shape cell, criterion spending its budget whether the call is fast or
+  slow — and nothing here measures what contention does to them.
   1. **The main set at `+RTS -A32m`, paired with a main set at the
      default** — about 2h15m for both, and the cleanest A/B this page can
      run, because an RTS flag needs **no rebuild**: the placement and rebuild
@@ -352,7 +362,12 @@ now rather than a slot in the next run, observed again:
      and the only thing to pin besides is the benchmark selection. It tests
      the predictor above over 782 cells instead of six, and its
      default-nursery half doubles as the run-to-run drift measurement
-     [Provenance](#provenance) says is owed. Do this one first.
+     [Provenance](#provenance) says is owed. **"Do this one first" is
+     superseded: it goes immediately *after* Run 10**, whose main-set process
+     is that default half, on the same binary in the same session — about
+     1h10m that way against 2h15m standing alone, for the same pairing.
+     Nothing in it bears on how Run 10 is run, the decision to keep the
+     default nursery being already taken.
   2. **The pad probe done properly** — four to six binaries differing only in
      inert pad arms, with `build` and `mut-odo` both timed this time (the
      first attempt lost them to a shell glob) and a *susceptible* arm's
@@ -367,19 +382,54 @@ now rather than a slot in the next run, observed again:
      reads the executed copy of `build`'s innermost loop across a cache-line
      boundary and `mut-odo`'s inside one, so pad until `build`'s lands whole
      and see whether the gap goes with it.
+
+     **The binaries are built and only the timing is left** (2026-08-10,
+     untracked in `pad-probe/`, ~250 MB, delete when the probe is answered).
+     Eight of them, each carrying inert pad arms rostered `Only` — checked
+     on every shape and timed in none — which shift both arms 24 bytes
+     apart, so the executed copy walks eight distinct offsets. Two are the
+     probe: `micro-pad2` puts the straddle on `mut-odo` alone and
+     `micro-pad6` on `build` alone, so the hypothesis predicts the gap
+     *changes sign* between them, with the other six as controls where the
+     straddle is symmetric and no gap is predicted. `pad-probe/README.md`
+     carries the offsets, the selection command, the correction caveat and
+     the two pad designs that were measured to relocate nothing, so they are
+     not retried. About 1h05m for the discriminating four, 2h15m for all
+     eight with the replication that buys.
+
+     **This is the one entry that goes before Run 10.** Two of Run 10's three
+     registered predictions *are* the straddle hypothesis, and Run 10 tests
+     it while moving roster order, heap warmth and code layout together,
+     where these binaries move one thing and hold the rest — same code, same
+     bench order, no rebuild between arms. Answering it first makes Run 10 a
+     replication rather than the evidence. The risk is asymmetric besides:
+     [the floor section][floor]'s loop table and [the suspension of two
+     FastReshape axis figures][ceiling] are claims of this page resting on a
+     correlation inside one binary, and if the probe refutes them they want
+     softening before a write-up leans on them.
   3. **A third `-nosum` arm, on a flat fill** — a `Main.hs` addition and then
      a filtered run over the shape set. The two existing `-nosum` arms are an
      odometer and an expansion, so a flat fill is the one probe that
      separates *the read is biased* from *those two arms are*, which is what
-     gate 3's entry below now needs.
+     gate 3's entry below now needs. Cheaper than it reads — four benches
+     over the shape set is minutes — but it **waits for Run 11**: adding an
+     arm is a membership change, and Run 10's predictions are stated against
+     loop offsets that a membership change rerolls. It also wants a full run
+     rather than a filtered one, so its reading is comparable with the
+     eighteen already taken, which costs nothing once the arm is rostered.
 
-  And two things **not** worth a quiet window, recorded so they are not
-  reached for: the *how many preceding benches warm it* sweep, which the
+  And three things **not** worth a quiet window, recorded so they are not
+  reached for. The *how many preceding benches warm it* sweep, which the
   nursery finding supersedes — the bench count is the symptom and the
-  allocation area is the cause; and the element-type re-probe, whose trigger
+  allocation area is the cause. The element-type re-probe, whose trigger
   is a run that moves the ordering at `Storable Double`, which Run 9 does
   only through layout and membership rather than anything an element type
-  would feel.
+  would feel. And **an A/B of the pre-swap binary against the post-swap one,
+  to price the roster swap on its own** — proposed and refuted the same day:
+  that swap moved heap warmth *and* relocated every worker by ~40 KB, so
+  binary against binary conflates exactly the two things Run 10 conflates,
+  and buys a number Run 10 supplies anyway at the price of a quiet hour and
+  a false sense that one variable had been pinned.
 - **Is the term still unbiased?** Gate 3 passed but stopped bracketing 1:
   every in-situ median of both arms in all nine populations sits below it,
   0.960 to 0.999, for the **second** run running
