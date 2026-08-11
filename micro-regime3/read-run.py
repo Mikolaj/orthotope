@@ -65,7 +65,11 @@ against its own row's median.
 --aa prints both and --selftest asserts the identity for the uncapped pairs.
 The floor is a consequence of the correction as much as the margins are:
 subtracting a term common to both arms magnifies their disagreement too,
-which on Run 9 took it from 1.30% to 1.52%.
+which on Run 10 took it from 0.66% to 1.00%. --aa therefore prints each
+pair's RAW ratio and its `f` beside the net one: the net figure is the floor
+between two published rows, the raw one is how much the arm disagrees with
+itself, and quoting the first as the second overstates it by 1/(1-f) -- 2.5x
+on Run 10's `scaled` cells, where the forcing pass is 60% of the bench.
 
 Controls, not strategies: the `*-aa-*` rows (an existing strategy run twice
 under a second name, true ratio exactly 1, so their spread is the noise
@@ -135,6 +139,9 @@ Modes:
   --selftest        check this reader's invariants against the run given
   --lint            check Main.hs's roster against README and against
                     itself -- no run file needed
+  --brief           with --aa or --block, drop the standing explanation and
+                    the table --in-place installs anyway; every computed
+                    figure still prints
   --check-doc       anchors, replace-list coverage, widths, and a sweep of
                     the superseded figures still quoted, in README prose
                     and Main.hs comments alike -- no run needed
@@ -1100,7 +1107,7 @@ def compare_table(cells, shapes, strategies, meta, other, main_hs):
           '\nsection).')
 
 
-def aa_table(cells, shapes, strategies, terms, meta):
+def aa_table(cells, shapes, strategies, terms, meta, brief=False):
     pos = {st: i for i, st in enumerate(strategies)}
     pairs = [(st, twin_of(st)) for st in strategies if twin_of(st)]
     if 'sum-only-early' in pos and 'sum-only-late' in pos:
@@ -1145,6 +1152,20 @@ def aa_table(cells, shapes, strategies, terms, meta):
                   % ('', ci[0], ci[1], half,
                      'covers' if covers else 'MISSES'))
         print('%56s worst cell %.2f%% on %s' % ('', worst[0], worst[1]))
+        # The paired figure above is NET, so it carries the correction's
+        # 1/(1-f) amplification and is not how much the arm disagrees with
+        # itself. Print the raw ratio and f beside it, because reading the
+        # net one as the arm's own disagreement is a mistake this made easy:
+        # Run 10's `scaled` pair reads 5.36% net off 2.13% raw at f = 0.598,
+        # and the write-up quoted the 11% of one cell as the arm being slow
+        # by a ninth. Net is the floor between two published rows; raw is the
+        # arm against itself. The sum-only pair has no correction to remove.
+        if not a.startswith('sum-only'):
+            raw = [cells[s][a]['slope'] / cells[s][b]['slope'] for s in shapes]
+            f = stats.fmean([1 - cells[s][b]['net'] / cells[s][b]['slope']
+                             for s in shapes if cells[s][b]['slope']])
+            print('%56s raw %.4f at f %.3f, so 1 + raw/(1-f) ~= %.4f'
+                  % ('', geomean(raw), f, 1 + (geomean(raw) - 1) / (1 - f)))
     insitu = [(b, base_of(b)) for b in strategies
               if base_of(b) in strategies]
     if insitu and any(terms.values()):
@@ -1166,12 +1187,15 @@ def aa_table(cells, shapes, strategies, terms, meta):
                   % (base + ' - ' + arm, 'sum-only', geomean(r),
                      stats.median(r), stats.fmean(dev)))
             print('%64s worst cell %.2f%% on %s' % ('', worst[0], worst[1]))
-        print('\nA `-nosum` arm is its base run again and forced with one')
-        print('element rather than the sum, so base minus it is that sum over')
-        print('a vector the fill has just written. `sum-only` re-reads a')
-        print('FIXED vector instead, which is the one thing its own two')
-        print('halves cannot test about it: a ratio of 1 here says the two')
-        print('reads cost the same and the subtracted term is unbiased.')
+        if not brief:
+            print('\nA `-nosum` arm is its base run again and forced with one')
+            print('element rather than the sum, so base minus it is that sum'
+                  ' over')
+            print('a vector the fill has just written. `sum-only` re-reads a')
+            print('FIXED vector instead, which is the one thing its own two')
+            print('halves cannot test about it: a ratio of 1 here says the'
+                  ' two')
+            print('reads cost the same and the subtracted term is unbiased.')
 
     # The pairs whose true ratio is exactly 1 are the only place the
     # computed interval can be held to an answer, so they are what says
@@ -1201,6 +1225,8 @@ def aa_table(cells, shapes, strategies, terms, meta):
         print('\ncalibration: fewer than two pairs of known ratio, so nothing'
               ' here says\nwhat the intervals above are worth.')
 
+    if brief:
+        return
     print('\nspan is how many benches run between the pair: a pair spanning a')
     print('bench measures whatever that bench leaves behind it. published is')
     print('the ratio of the two `time` columns, what a reader comparing two')
@@ -1298,7 +1324,7 @@ def fingerprint_table(cells, shapes, strategies, meta):
 
 
 # The three arms the second class property names
-# (README.md#the-claims-run-10-should-test). Constants rather than literals
+# (README.md#the-claims-run-11-should-test). Constants rather than literals
 # because the property has been re-aimed twice, and a re-aim that misses one
 # use of a name is how a verdict starts disagreeing with the claim it checks.
 PROP2_FASTEST = 'mut-odo-vecdims'
@@ -1389,6 +1415,16 @@ def block_verdicts(cells, shapes, strategies, meta, args):
     verdict2 = ('HOLDS' if not clauses
                 else '**BREAKS** -- ' + '; '.join(clauses))
     print('  property 2, top of the table: %s' % verdict2)
+    # This verdict is mechanical and PRE-RULING, and one standing ruling
+    # overrides it: the first clause is the vecdims FAMILY's, not one arm's,
+    # so a sibling leading by a thousandth is not a break. Say so here rather
+    # than let a write-up copy six breaks out of a run that has one -- Run 10
+    # would have read as breaking property 2 in six of eight classes, where
+    # the family reading makes it one, `reshape1`.
+    if timed[0][1] != PROP2_FASTEST and timed[0][1].startswith(PROP2_FASTEST):
+        print('     (the leader is a `%s` sibling, so the first clause does'
+              ' NOT break:\n      it is read as the family\'s until a run'
+              ' separates them -- README, the claims)' % PROP2_FASTEST)
     tiers = [(st, dict((r[1], r[5]) for r in rows).get(st))
              for st in (PROP2_FASTEST, SHIPPED, 'list')]
     print('  property 3, allocation: %s'
@@ -1419,9 +1455,13 @@ def block_skeleton(cells, shapes, strategies, meta, args, terms):
                  % label)
     if 'list' not in strategies:
         sys.exit('--block needs the `list` baseline in the run')
-    markdown_table(cells, shapes, strategies, meta, args, terms)
-    print()
-    aa_table(cells, shapes, strategies, terms, meta)
+    # --brief drops the table: --in-place installs it from this same
+    # computation, so a session that is installing has no use for the copy
+    # on its terminal, and it is the bulk of what this mode prints.
+    if not args.brief:
+        markdown_table(cells, shapes, strategies, meta, args, terms)
+        print()
+    aa_table(cells, shapes, strategies, terms, meta, args.brief)
     dims = meta['dims']
     anchor = max(shapes, key=lambda sh: dims.get(sh, {}).get('l', 0))
     print()
@@ -1489,6 +1529,32 @@ COMPARATIVE_RE = [re.compile(p, re.I) for p in (
     r'against its (?:published|own) \d', r'\(was \d',
     r'used to (?:say|call|read|be)', r'once said', r'earlier version')]
 
+# A superlative is a claim about the WHOLE table and is derived by sorting
+# it, never by looking at the arms the sentence is about. The reading is
+# what adjudicates -- most hits here are sound -- but the reading has to
+# happen, and the failure mode is not noticing you wrote one. Run 10 shipped
+# two false ones past every check: "uniquely among the nine populations",
+# which sorting puts at six of nine, and "the widest of any population",
+# which `--pair` puts second to `reshape1`. Neither word is among the four
+# the rule names, which is why the cousins are here too. `worst` is left out
+# on purpose: it is a column name in every table this file prints.
+#
+# Bare `the only` and `never` are NOT in the list and were tried: this file
+# argues about method constantly, so they matched 84 lines of prose that
+# claims nothing about a table ("the only home for an open question", "never
+# migrated"), and a report that long is one nobody reads. They are back in a
+# form that has to name a table thing. Tuned against the two real errors and
+# the three commonest false ones, all four counts recorded above.
+SUPERLATIVE_RE = [re.compile(p, re.I) for p in (
+    r'\bno other\b', r'\bnowhere else\b', r'\buniquely?\b',
+    r'\bthe (?:largest|smallest|widest|narrowest)\b',
+    r'\bthe (?:fastest|slowest|best|highest|lowest)\b',
+    r'\bof any (?:population|class|run|arm|shape)\b',
+    r'\bin every (?:population|class|run|regime)\b',
+    r'\bthe only (?:population|class|run|regime|arm|shape|cell|row'
+    r'|one|two|three)\b',
+    r'\bnever (?:slower|faster|above|below|past|worse|better)\b')]
+
 # An absolute millisecond figure is foreign here -- a run's own figures are
 # ratios -- so it was measured in another repo and no run here replaces it.
 # Like the sweep above, listed for judging: check it against its source.
@@ -1530,9 +1596,11 @@ def unwrappable(lines):
     a 130-character list continuation the previous test passed, and
     shortening that line is what makes --check-doc go green. Re-confirmed by
     lengthening a continuation on purpose, which fails, and shortening it,
-    which passes. The contents list was a third control until it was removed
-    from the document; its exemption went with it, so a re-added table of
-    contents will be flagged for width and wants this branch back.
+    which passes. The contents list is the third control and is back in the
+    document, so its branch is back here with it: a bullet whose whole
+    content is one anchor link, which the replace list's bullets are not,
+    they carry prose after the link. An anchor entry cannot be wrapped and
+    the longest is 122 characters.
     """
     out = set()
     owner_is_list = False
@@ -1545,6 +1613,7 @@ def unwrappable(lines):
         elif LIST_MARKER_RE.match(line):
             owner_is_list = True
         if (line.lstrip().startswith('|')
+                or re.match(r'^\s*- \[[^]]+\]\(#[^)]+\)$', line)
                 or re.match(r'^\[[a-z0-9-]+\]:\s*\S+$', line)):
             out.add(i)
         elif indent >= 4 and not owner_is_list:
@@ -1559,6 +1628,13 @@ def check_doc(readme, main_hs):
     each run and deleted after -- which is how a heading rename came to be
     verified by something that no longer existed. Anchors and coverage FAIL;
     the sweeps only list, because what they find needs judging.
+
+    The superlative sweep's non-vacuity: appending one planted sentence --
+    "the fastest of any population, which nobody sorted" -- took the count
+    from 72 to 73 on a copy, and it was tuned to catch the two false
+    superlatives Run 10's write-up actually shipped past every other check
+    while missing the three commonest innocent phrasings. It only lists;
+    sorting the table is the reader's, as with the figure sweep.
 
     Non-vacuity, each confirmed by breaking it: renaming a heading fails the
     anchor check and names the dead link; deleting a bullet from the replace
@@ -1681,6 +1757,10 @@ def check_doc(readme, main_hs):
                if not l.lstrip().startswith('|')
                and not l.startswith('    ')
                and MS_RE.search(l)]
+    superlatives = [('%s:%d' % (os.path.basename(readme), i), l.strip())
+                    for i, l in enumerate(lines, 1)
+                    if not l.lstrip().startswith('|')
+                    and any(p.search(l) for p in SUPERLATIVE_RE)]
 
     for line in note:
         print('ok:   ' + line)
@@ -1689,6 +1769,12 @@ def check_doc(readme, main_hs):
               ' place by the redo test, so adjudicate rather than assume:'
               % len(comparatives))
         for i, l in comparatives:
+            print('        %s: %s' % (i, l[:60]))
+    if superlatives:
+        print('note: %d superlative(s) in prose; each is a claim about the'
+              ' whole table, so derive it by sorting rather than from the'
+              ' arms the sentence is about:' % len(superlatives))
+        for i, l in superlatives:
             print('        %s: %s' % (i, l[:60]))
     if foreign:
         print('note: %d absolute time figure(s) quoted in prose; a class'
@@ -1724,10 +1810,15 @@ def check_doc(readme, main_hs):
         # be dropped or folded into the other: an aligned build is a regime
         # and not a second reading of the one beside it. Keyed off the run
         # number so this holds for any later pairing and not just Run 10.
-        # NO LIVE CONTROL until a paired run lands -- no header here names a
-        # half yet, so this branch cannot fire on the current file. It was
-        # exercised by hand instead: a copy of README.md carrying both Run 10
-        # columns passes, and the same copy with either one deleted fails.
+        # It HAS a live control now that Run 10 has landed: the yardstick
+        # carries its two columns, so the pass above is a real pass, and
+        # deleting the unaligned one from a copy fails with the message below
+        # (re-proved 2026-08-11). Before that it could not fire at all and was
+        # exercised by hand only. The next thing to watch is a run that
+        # publishes an aligned column and no unaligned one -- Run 11 is
+        # planned as exactly that, aligned against a max-skip half rather than
+        # an unaligned one, so either this rule or those column names has to
+        # give. Widen it or rename the columns; do not silence it.
         halves = collections.defaultdict(set)
         for run, regime in re.findall(r'Run (\d+) \(([^)]*)\)', yard[0]):
             halves[run].add('aligned' in regime)
@@ -2221,6 +2312,12 @@ def main():
     p.add_argument('--markdown', action='store_true')
     p.add_argument('--fingerprint', action='store_true')
     p.add_argument('--block', action='store_true')
+    # The standing explanations and the installed table are read once and
+    # then reprinted on every later call: ten populations of --aa is ~250
+    # lines of prose a session has already read, and --block's table is
+    # thrown away because --in-place installs it. --brief drops both. It
+    # drops nothing computed -- every figure still prints.
+    p.add_argument('--brief', action='store_true')
     p.add_argument('--in-place', action='store_true',
                    help='install --markdown/--fingerprint/--block tables into'
                         ' README instead of printing them')
@@ -2283,7 +2380,7 @@ def main():
     if args.shapes:
         shape_table(cells, shapes, strategies, meta)
     elif args.aa:
-        aa_table(cells, shapes, strategies, terms, meta)
+        aa_table(cells, shapes, strategies, terms, meta, args.brief)
     elif args.pair:
         pair_table(cells, shapes, strategies, args.pair)
     elif args.compare:

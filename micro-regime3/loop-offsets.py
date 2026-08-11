@@ -5,7 +5,10 @@ cache line -- the cheap half of the placement question.
 README.md's floor section prices a straddled copy of the 28-byte run-fill at
 1.19 against a resident one, so before crediting any margin under about a
 fifth to a strategy, ask this first: it is one objdump against a
-quiet-machine window.
+quiet-machine window. Ask it first, but do not assume the answer: Run 10 read
+three arms of one family at four placements each, none of them straddling in
+two of the three, and their 16% stayed. Placement is the cheapest
+explanation to rule out, not the likeliest to be right.
 
 A loop copy is found structurally rather than by symbol -- a backward branch
 whose target is exactly LEN bytes back, with the intervening instructions
@@ -30,7 +33,21 @@ are deleted. The live control is now `micro-unaligned`, whose two groups must
 read [3, 53, 59, 45] and [16, 0, 36, 36] while its aligned twin reads all
 zeroes; both are recorded in README's open list and in the pair's own
 `<prefix>-pair.txt`, which `make-pair.py` writes beside the binaries, so the
-check outlives the binaries it was born on.
+check outlives the binaries it was born on. **Those binaries are deleted with
+their run**, which is how the previous control died, so what has to survive
+is the recipe: `make-pair.py` is deterministic, the commit is recorded, and
+a rebuild that reproduces the two md5s reproduces the offsets above. Re-prove
+this against a known answer before pointing it at a new one.
+
+**`--survey`'s population size is not comparable between binaries whose
+layout differs**, which is the one way to misuse the mode. It counts loops
+this tool can *resolve*, and `objdump -d` sweeps linearly over
+tables-next-to-code, so shifting code by arbitrary padding changes where the
+sweep mis-decodes: measured 2026-08-11, Main's backward jumps hold at 1580
+against 1583 between the aligned and unaligned halves while targets not
+decoded as an instruction start go 613 to 777, which is the whole of why one
+reads 115 short loops and the other 101. The straddle count *within* one
+binary is sound; a difference in the totals between two is the disassembler.
 
     ./loop-offsets.py BINARY...          # 28-byte loop, the one this page prices
     ./loop-offsets.py --len 24 BINARY    # e.g. the count-down form

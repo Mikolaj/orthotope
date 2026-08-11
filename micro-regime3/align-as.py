@@ -38,6 +38,21 @@ them straddling, against 50 straddling of 115 without it -- `loop-offsets.py
 than loops. `.text` up 0.13%, and `micro check` green: 45 shapes at
 agree=True and none at agree=False.
 
+**Those two survey populations differ in size for a reason that is the
+disassembler's, not the shim's** (2026-08-11). 115 against 101 is not fourteen
+loops removed: Main carries 1580 backward jumps unaligned and 1583 aligned,
+so the loop structure is untouched, while targets that `objdump -d` fails to
+decode as an instruction start go 613 to 777. A linear sweep over
+tables-next-to-code re-synchronises differently once code shifts by arbitrary
+NOP runs, so the aligned binary is simply harder to read; lifting the survey's
+64-byte cap shows the loss spread across every span bucket, which rules out
+padding having inflated loops past a line. So *none straddling* is a
+statement about a sample alignment makes smaller. The claim is sound in the
+form this script can make it -- every head it aligned is at offset 0 by
+construction, and the only heads it skips are those the INSTR guard below
+drops -- and that is where completeness should be argued, with the survey as
+corroboration. README.md's floor section carries the same correction.
+
 **Pad only between two instructions.** The first version of this aligned every
 `.L` label a backward jump targeted, which is 928 of them, and the binary it
 produced failed `check` on the first shape with `index out of bounds
