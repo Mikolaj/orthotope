@@ -1814,20 +1814,36 @@ def check_doc(readme, main_hs):
         # carries its two columns, so the pass above is a real pass, and
         # deleting the unaligned one from a copy fails with the message below
         # (re-proved 2026-08-11). Before that it could not fire at all and was
-        # exercised by hand only. The next thing to watch is a run that
-        # publishes an aligned column and no unaligned one -- Run 11 is
-        # planned as exactly that, aligned against a max-skip half rather than
-        # an unaligned one, so either this rule or those column names has to
-        # give. Widen it or rename the columns; do not silence it.
+        # exercised by hand only. The run that would have published an aligned
+        # column and no unaligned one was Run 11, aligned against a max-skip
+        # half; SETTLED BY RENAMING THE COLUMNS, not by widening this, so the
+        # rule below is unchanged and reads as "a paired run publishes a
+        # column per half". Widening was refused because it would need a list
+        # of which half names count as a counterpart, which grows with every
+        # pair and is wrong the first time one is invented (README's open
+        # list, under what the roster owes the next run). RE-PROVED against
+        # that rename, 2026-08-11: a copy whose yardstick header carries only
+        # `Run 11 (SpecConstr, aligned)` exits 1 on the message below, and one
+        # carrying `Run 11 (SpecConstr, max-skip)` beside it exits 0. So the
+        # rename is what passes it and the rule still bites.
         halves = collections.defaultdict(set)
         for run, regime in re.findall(r'Run (\d+) \(([^)]*)\)', yard[0]):
-            halves[run].add('aligned' in regime)
+            # (?<!un) because `'aligned' in 'unaligned'` is True, which made
+            # this reject the one pairing the message below calls correct: a
+            # run naming its columns `unaligned` and `aligned` read as two
+            # aligned halves and failed. Run 10 passed only because its other
+            # column is named for no half at all, and Run 11 passes because
+            # `max-skip` contains no `aligned` -- so the bug was invisible to
+            # every run on the page. Found by a blind walk of the procedure,
+            # 2026-08-11.
+            halves[run].add(bool(re.search(r'(?<!un)aligned', regime)))
         for run, kinds in sorted(halves.items()):
             if kinds == {True}:
-                bad.append('the yardstick names Run %s aligned and not'
-                           ' unaligned: a paired run keeps both columns, the'
-                           ' unaligned one being what succeeds the previous'
-                           " run's basis" % run)
+                bad.append('the yardstick names Run %s aligned and nothing'
+                           ' else: a paired run publishes a column per half,'
+                           ' the other one being named for the build it is'
+                           ' -- unaligned, max-skip -- and never folded in'
+                           % run)
 
     for line in bad:
         print('FAIL: ' + line)

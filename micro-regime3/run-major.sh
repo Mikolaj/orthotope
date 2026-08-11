@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # A major run, paired: both halves take the main set, the classes go to the
-# aligned half alone (README, the run's plan). Ten processes, unattended,
+# basis half alone (README, the run's plan). Ten processes, unattended,
 # several hours.
 #
 #     ./run-major.sh run10          # the argument names every artifact
@@ -13,9 +13,9 @@
 # bench count is checked against what the roster actually holds, so a
 # selection that silently caught the wrong set is loud at once rather than at
 # the write-up. The expected count is READ FROM THE BINARY rather than
-# written down -- a literal would be wrong for the next roster, and Run 11
-# already plans an arm, which would make a correct run trip the alarm on
-# every process. A class process gets the same treatment as a main one: its
+# written down -- a literal would be wrong for the next roster, and Run 12
+# plans an arm, which would make a correct run trip the alarm on every
+# process. A class process gets the same treatment as a main one: its
 # count is its prefix's share of `classes --list`, and a prefix matching
 # nothing is reported rather than passing as a run of zero benches.
 
@@ -31,6 +31,18 @@ if [ $# -lt 1 ]; then
 fi
 R=$1
 PREFIX=micro                 # the binaries and their note are all one name
+
+# WHICH TWO HALVES, since the pair is no longer always unaligned/aligned.
+# BASIS is the half the classes run on, the expected bench counts are read
+# from, and every --in-place table comes from; the other contributes the
+# --compare and a yardstick column. It runs SECOND, which is where the basis
+# half ran in Run 10, so a run repeating that one inherits its process
+# position along with its binary. Change these two names per pair -- and
+# nothing else here, the counting below being what makes a wrong selection
+# loud in the log rather than at the write-up.
+OTHER=${OTHER:-maxskip}
+BASIS=${BASIS:-aligned}
+HALVES="$OTHER $BASIS"
 
 # The run's name identifies it against the NEXT run; this guards it against
 # itself. Relaunching with a name already used overwrites every JSON and log
@@ -49,14 +61,15 @@ if [ -n "$EXISTING" ]; then
 fi
 CLASSES="rev revsome bcast bcastmid reshape1 slice window scaled"
 
-for h in unaligned aligned; do
-  [ -x "./$PREFIX-$h" ] || { echo "missing ./$PREFIX-$h -- run ./make-pair.py"; exit 1; }
-done
 NOTE="$PREFIX-pair.txt"
 
-MAIN_BENCHES=$(./"$PREFIX-aligned" --list 2>/dev/null | wc -l)
+for h in $HALVES; do
+  [ -x "./$PREFIX-$h" ] || { echo "missing ./$PREFIX-$h -- $NOTE has the recipe"; exit 1; }
+done
+
+MAIN_BENCHES=$(./"$PREFIX-$BASIS" --list 2>/dev/null | wc -l)
 [ "$MAIN_BENCHES" -gt 0 ] || { echo "--list gave nothing; wrong binary?"; exit 1; }
-CLASS_LIST=$(./"$PREFIX-aligned" classes --list 2>/dev/null)
+CLASS_LIST=$(./"$PREFIX-$BASIS" classes --list 2>/dev/null)
 [ -n "$CLASS_LIST" ] || { echo "classes --list gave nothing; wrong binary?"; exit 1; }
 
 log () { echo "=== $(date -Is) $*" | tee -a "$R-wallclock.log"; }
@@ -75,11 +88,15 @@ run () {   # $1 = half, $2 = artifact tag, $3 = benches expected, $4.. = args
 
 # TWO commits, because HEAD is not what the binaries were built from and
 # saying so once cost a wrong provenance line: HEAD dates the tree the run was
-# launched from, while the Main.hs commit is the pair's own and is what
-# README's recording step wants. A dirty tree is what makes either a lie, so
-# the count goes in too.
+# launched from, and the Main.hs commit dates the source under it. NEITHER is
+# necessarily the pair's own -- a write-up edits Main.hs's comments without
+# rebuilding, so both can be ahead of the binaries -- which is why README's
+# recording step transcribes the commit out of the pair note instead. A dirty
+# tree is what makes either a lie, so the count goes in too.
 log "major run begins; tree at $(git log -1 --format=%h), Main.hs at \
 $(git log -1 --format=%h -- Main.hs); roster is $MAIN_BENCHES benches"
+log "halves: $HALVES, in that order; $BASIS is the basis, and the eight class\
+ processes are its alone"
 log "tree: $(git status --porcelain | wc -l) path(s) untracked or modified"
 git status --porcelain | tee -a "$R-wallclock.log"
 uptime | tee -a "$R-wallclock.log"
@@ -95,24 +112,22 @@ else
   log "!! no $NOTE -- this run's provenance is the commit and nothing else"
 fi
 
-for h in unaligned aligned; do run "$h" "$h-main" "$MAIN_BENCHES"; done
+for h in $HALVES; do run "$h" "$h-main" "$MAIN_BENCHES"; done
 for c in $CLASSES; do
   want=$(printf '%s\n' "$CLASS_LIST" | grep -c "^$c-")
   if [ "$want" -eq 0 ]; then
     log "  !! class prefix $c- matches no bench -- skipped, not run empty"
     continue
   fi
-  run aligned "aligned-$c" "$want" classes "$c-"
+  run "$BASIS" "$BASIS-$c" "$want" classes "$c-"
 done
 
 log "major run complete"
 echo
 echo "Read it with the halves kept apart:"
-echo "  ./read-run.py $R-unaligned-main.json            # succeeds the last run's basis"
-echo "  ./read-run.py $R-aligned-main.json              # the new regime"
-echo "  ./read-run.py $R-aligned-main.json --compare $R-unaligned-main.json"
-echo "                                                  # the per-arm layout term"
-echo "Install each table from the half it belongs to (README, the run's plan):"
-echo "  --markdown    from the unaligned half, succeeding the last run's basis"
-echo "  --fingerprint from the aligned half, being what the NEXT run reads"
-echo "  --block       from the aligned half, the classes running there alone"
+echo "  ./read-run.py $R-$BASIS-main.json               # the basis, and the table"
+echo "  ./read-run.py $R-$OTHER-main.json               # the control"
+echo "  ./read-run.py $R-$BASIS-main.json --compare $R-$OTHER-main.json"
+echo "                                                  # the per-arm difference"
+echo "Every --in-place table comes from the basis half (README, the run's plan):"
+echo "  --markdown, --fingerprint and --block from $R-$BASIS-*.json"

@@ -519,6 +519,18 @@ now rather than a slot in the next run, observed again:
      arm — cheap by then, layout being pinned — and a later one can repeat
      again. Recorded here rather than left to be rediscovered, because the
      two entries read as independent and are not.
+
+     **What Run 12 compiles turns on Run 11's second question.** If max-skip
+     wins, Run 12 takes it as the basis, and `-fproc-alignment=64` alongside
+     is the obvious companion — it pins each procedure to a 64-byte boundary,
+     so a loop's offset is fixed by its own procedure's internals and is
+     invariant to membership again, which is what the max-skip form gives up.
+     Two things to carry into that decision rather than rediscover: the flag
+     is free on the baseline and **not** on the arms ([the floor
+     section][floor]), and a pair adopting it wants padding, those readings
+     coming from builds that had none. If max-skip does not win, keep the
+     unconditional shim, whose unconditionality is what buys membership
+     invariance today.
   3. **The five-bench gate before Run 10's aligned half — run 2026-08-10 and
      it passes**, its verdicts and two corrections being with the predictions
      above. Kept because a later paired run wants the same gate before its own
@@ -798,8 +810,8 @@ now rather than a slot in the next run, observed again:
      Prediction 3 has no fixed anchor without it and says so. Run 10's mixed
      basis, its main table unaligned and its eight class blocks aligned, is
      tolerable only while the two halves' baselines agree. And the transition
-     to Run 11 turns on Run 11's unaligned column succeeding Run 10's
-     unaligned table, which a moving denominator would put in doubt as well.
+     to Run 11 turns on Run 11's second column succeeding Run 10's unaligned
+     table, which a moving denominator would put in doubt as well.
      The gate below already reads it on every shape and at the ordinary
      budget, so what the run adds is not coverage but company: `list` there
      shares a process with 33 other arms instead of four, and heap state and
@@ -921,27 +933,69 @@ now rather than a slot in the next run, observed again:
   flatter. So procedure placement is still a candidate and not the answer,
   and the honest bound is that these two names differ by about a percent once
   their copies share an offset, part of which is roster context rather than
-  either arm. What would rank them is the obvious build nobody has made — the
-  shim *and* the flag together, loops at 0 inside procedures pinned to 64 —
-  which is a rebuild and a five-bench A/B, and is worth having before Run 11
-  chooses what to compile.
-- **Why is `mut-odo` the noisiest bench in the aligned half?** Its `noise`
-  reads **4.51** there and 2.40 unaligned, against an ordinary 1.01 on Run 9
-  and against 2.45, the figure at which `concat-runs` was dropped from the
-  timed roster. It is the noisiest arm of that process, ahead of `list`
-  (3.59) and both first-attempt arms. What makes it odd is the direction:
-  alignment took 12% off this arm's time and left its cell the least
-  trustworthy in the run, its CI% going 0.34 to 1.06 while its sample count
-  rose. It is not a general effect of the shim — 13 of 31 timed arms are
-  noisier aligned and the rest are quieter — but the risers are a coherent
-  set, `mut-odo` 2.40 to 4.51, `build` 1.10 to 2.78, `list` 2.24 to 3.59 and
-  `offtab` 1.78 to 3.03, which is three of the arms this page calls
-  placement-susceptible plus the one it calls insusceptible. So the code-twin
-  does follow, at half the size, and no account here covers `list` joining
-  them. The cheap reads are done and do not settle it: R2 is fine, so this is
-  scatter and not curvature. What would settle it is the raw sample list per
-  shape while the artifacts live, and then Run 11, which carries this arm at
-  the same slot in a binary with the same layout.
+  either arm. The shim *and* the flag together would have ranked them; that
+  build was made and timed on 2026-08-11 and **does not**, landing about a
+  percent nearer level inside a 1.8 to 2.3% repeat spread, so procedure
+  placement stays a candidate. A small filtered test beside it prices a
+  shared straddling offset at 8 to 13% on both arms and the flag at 2 to 4%
+  over the shim alone — indicative only, and a reason to pad any pair that
+  adopts the flag ([the floor section][floor]).
+- **What Run 11 was built to answer, registered before it ran.** Three
+  questions, each with what would count as an answer, so that a run reporting
+  "nothing moved" is reporting a result rather than a failure.
+  1. **The repetition, which this page has been owed since Run 9.** The basis
+     half is Run 10's aligned binary byte for byte and shapes, roster, regime
+     and layout are all pinned, so anything that moves is run-to-run drift and
+     nothing else. The bound to beat is `list`'s own scatter, which Run 10
+     widened to 0.902 to 1.181 per shape against a 0.4% geomean.
+  2. **Max-skip across the roster, arm by arm**, with no rebuild between the
+     halves. `build` and `mut-odo` should be unmoved, both halves putting
+     their executed copies at 0; the four `mut-odo-vecdims` arms are where the
+     change shows, and should shed some or all of the 1.0069, 1.0143, 1.0326
+     and 1.0378 Run 10 measured as the shim's own NOP cost — but only two of
+     the four keep their own offset in `micro-maxskip`, the other two having
+     straddled where they fell, so read them apart rather than as a family.
+     **"No movement resolvable" is a legitimate answer**: a single filtered
+     pass cannot resolve a percent on this pair, its repeat spread being 1.8
+     to 2.3%, which is what makes a full-budget run the first instrument that
+     can.
+  3. **Whether a resident offset costs anything at all.** The same pairing
+     separates the NOP cost from the resident-offset cost, `micro-maxskip`
+     leaving a fitting loop where it falls where `micro-aligned` puts it at 0.
+     The only clean number today is the isolated reproducer's ~2% across six
+     whole positions; the pad probe's apparent 5.8% resident spread sits
+     inside its own 5.9% resolution floor and is not evidence.
+
+  **And what it must not do is add an arm** — the third `-nosum` one the
+  queue calls due — since the repetition needs membership pinned as well as
+  layout and one run cannot have both. That ordering is in the queue entry
+  too.
+- **Why is `mut-odo`'s interval wide on `micro-aligned`?** Its CI% reads 1.06
+  there against 0.34 unaligned, and the raw samples have since been read
+  (2026-08-11, arithmetic over the run and gate artifacts, no machine time).
+  **It reproduces and it belongs to that binary**: 1.06, 1.09 and 1.15 in
+  three independent processes on it — Run 10's main set and both gate passes
+  — against 0.72 and 0.19 on `micro-maxskip`. **And it is one arm, not the
+  four this entry used to name.** `offtab`'s interval is 0.74 in both halves
+  and `list`'s *narrows*, 0.67 to 0.59, while their `noise` reads 1.78 to
+  3.03 and 2.24 to 3.59: `noise` is a row's CI against the median CI on its
+  shape, so the aligned half being quieter overall — median CI% over rows
+  0.180 to 0.160, the same direction as its halved A/A floor — lifts every
+  row's figure without touching its cell. `build` moves 0.30 to 0.39, a
+  tenth of what its `noise` suggests. So the code-twin does not follow and
+  `list` never joined, which was the whole of what made this puzzling.
+
+  Three accounts are closed at sample level, the refit reproducing
+  criterion's slope to 1e-15 first: the residual correlates with `measNumGcs`
+  and `measGcWallSeconds` at ±0.00 in every process, so it is not the block
+  pool; with sample index at ±0.03, so it is not drift the slope missed; and
+  allocation per iteration is constant. Nor is it shape-localised, two passes
+  of one binary sharing no widest shape. What is left is dispersion about the
+  line that no recorded covariate explains, on one arm, on one binary — and
+  thinner than the three readings suggest, per-cell dispersion swinging
+  several-fold between passes and the comparison binary's own median moving
+  3.7× between its two. Run 11 is the next instrument, carrying this arm at
+  the same slot in the same binary at full budget.
 - **Why did `list` move 18% on `stretch-tall-Mx2` between two runs that did
   not touch it?** Its geomean held to 0.4% and every other shape stayed
   inside 10%, so this is one cell, on the shape whose `sInner` is half its
@@ -993,6 +1047,17 @@ now rather than a slot in the next run, observed again:
   aligned must also be named unaligned, so dropping the unaligned column
   fails the check. Dropping the *aligned* one cannot be checked, an unpaired
   run being what every column before Run 10 is, and stays the reading's job.
+
+  **Run 11 has no unaligned half, and the check is left alone rather than
+  widened.** Its two columns are `Run 11 (SpecConstr, aligned)` and `Run 11
+  (SpecConstr, max-skip)`, which satisfies the rule as written — the rule
+  asks that a paired run publish a column per half and not one, and the
+  second name is what says which other half. Widening it was the alternative
+  and is refused: the check would then have to know which half names count as
+  a counterpart, which is a list that grows with every pair and is wrong the
+  first time one is invented. Keep the basis column named `aligned`, since it
+  is Run 10's aligned binary and the repetition is read straight down that
+  column; name the other half for its shim.
 
 ### Non-urgent TODO list
 
@@ -2335,7 +2400,7 @@ and a shell that has not set them will silently do the wrong thing: an empty
 `$REGIME` is a -O1 build that every gate here passes.
 
     R=run10                              # names every artifact; no default
-    REGIME=-fspec-constr                 # Runs 8 and 9's; empty for -O1
+    REGIME=-fspec-constr                 # every run since Run 8; empty for -O1
 
 **And in a session they will not survive to the next command.** Each tool
 call gets a fresh shell, so a `cd` and an assignment made in one are gone by
@@ -2405,11 +2470,18 @@ comparison has nothing to compare against. It says so, in the note and in the
 verdict, so a re-verification does not read as a fresh build's clean sheet.
 
 The fork's three questions are answerable in three commands, none of which
-the page should make you invent. Is there a pair — `ls micro-unaligned
-micro-aligned micro-pair.txt`. Is it the pair the note describes — `md5sum
-micro-unaligned micro-aligned` against the note's two `md5` lines. Has the
-source moved under it — `git log -1 --format=%h -- Main.hs` against the
-commit the note records. The regime is the fourth and is not answerable this
+the page should make you invent, and each names the pair's own two halves —
+`micro-maxskip` and `micro-aligned` today. Is there a pair — `ls
+micro-maxskip micro-aligned micro-pair.txt`. Is it the pair the note
+describes — `md5sum micro-maxskip micro-aligned` against the note's two
+`md5` lines. Has the source moved under it — `git log -1 --format=%h --
+Main.hs` against the commit the note records — the *tree* commit where it
+records two, the binaries' own being the other. **Expect it to differ, and
+read the diff before believing it**: step 8 below sends the
+write-up into `Main.hs`'s comments and forbids rebuilding for it, so a
+comment-only move is the normal state after every run, and `git diff <note's
+commit> HEAD -- Main.hs` is what tells it from a real one. The regime is
+the fourth and is not answerable this
 way, the JSON recording no compiler flag; the `diag` step below is what
 answers it.
 
@@ -2419,6 +2491,18 @@ it rather than being assumed, since it has a default of its own:
 
     ./make-pair.py --regime="$REGIME"    # four builds, ~5 min, and it verifies
     ./loop-offsets.py micro-unaligned micro-aligned
+
+**But only for an unaligned/aligned pair, which is the only kind it builds.**
+A pair of two shims — Run 11's — is built by the recipe its own note
+carries, which is why that note is written by hand and says so, and records
+the offsets both halves came out with. The confirm path above wants
+the same care: `--verify-only` looks at `<prefix>-unaligned` and
+`<prefix>-aligned` unless `--basis`/`--other` tell it otherwise, so beside a
+hand-built pair it gates two binaries that are not the ones you mean. It
+refuses rather than overwrite a note recording a gate, but the refusal is the
+backstop, not the instruction:
+
+    ./make-pair.py --verify-only --basis aligned --other maxskip
 
 There is no single-binary form of a major run any more, the pairing being
 permanent: `run-major.sh` and `run-gate.sh` both refuse to start without both
@@ -2431,22 +2515,28 @@ ${REGIME:+--ghc-options=$REGIME} --`, never through the sequence below.
 binaries that will be timed, not a third built beside them, and the last two
 against `Main.hs` and this file, which open no binary at all:
 
-    ./micro-unaligned check      # every strategy agrees, every shape regime 3
-    ./micro-aligned check        # the half the shim rewrote
+    ./micro-maxskip check        # every strategy agrees, every shape regime 3
+    ./micro-aligned check        # and the other half: both were shim-rewritten
+    ./micro-aligned --list 2>/dev/null | wc -l   # 2>/dev/null is not optional:
+                                 #   the provenance line goes to stderr and
+                                 #   interleaves inside a bench name without it
     ./read-run.py --lint         # the roster and the shape annotations
     ./read-run.py --check-doc    # anchors, coverage, widths, stale figures
 
 **The exit code is the verdict; the `note:` lines are not.** A clean
-`--check-doc` here still prints dozens of them — every superseded figure and
-every absolute time the page quotes, listed for adjudication during the
+`--check-doc` here still prints three of them, each heading an indented list
+running to dozens of entries — every superseded figure, every superlative
+and every absolute time the page quotes, listed for adjudication during the
 write-up and not before it. `--lint` is the same, noting the rostered arms it
 knows are deliberately untimed. Both exit 0 when they pass, and a `FAIL:`
 line is the only thing that should stop you at this point.
 
-Both halves, and the aligned one is the half that needs it, being the only
-one whose own code the shim rewrote — `pad-as.py` only appends dead bytes
-after the unaligned half's, where `align-as.py` moves the aligned half's
-labels about. `make-pair.py` now runs both itself and refuses on either, and
+Both halves, and on an unaligned/aligned pair the aligned one is the half
+that needs it, being the only one whose own code the shim rewrote —
+`pad-as.py` only appends dead bytes after the other half's, where
+`align-as.py` moves labels about. On a pair whose halves are two shims, as
+Run 11's is, both can be mispadded and both need it. `make-pair.py` now
+runs both itself and refuses on either, and
 holds them to each other besides — a sound pair makes the two
 logs byte-identical, agreement on every shape being a property of the
 strategies and not of where their loops landed. It checked the unaligned half
@@ -2456,7 +2546,7 @@ only check, and cost seconds.
 
 **Then confirm the regime is the one intended**, which nothing later can:
 
-    ./micro-unaligned diag
+    ./micro-aligned diag
 
 and read one row of it — `baseOffsetsScan` against `baseOffsetsMut` on
 `vgg-14-c512`, which is a `diag` label rather than a shape and so will not be
@@ -2486,7 +2576,9 @@ both listings anyway and keep them with the run: the fills at 0 in the aligned
 binary and no short loop of its own code straddling, and the unaligned
 binary's offsets recorded as they stand, since the six-arm prediction is made
 from them and no later binary has them; `--survey` is the length-agnostic
-form, and what "every timed arm's loop" means is bounded by what can be
+form and takes one binary at a time
+(`./loop-offsets.py --survey micro-aligned`), and what "every timed arm's
+loop" means is bounded by what can be
 attributed at all. The sequence below runs each half in turn, and
 `run-major.sh` does it for you; what neither can do is interleave two
 processes of this size within a population, so the order they ran in is
@@ -2510,40 +2602,44 @@ and in nothing else an offset can see, and `micro-unaligned` keeps every
 offset the unpadded build had: the same fills at [3, 53, 59, 45] and
 [16, 0, 36, 36], the same 115 short loops with 50 straddling.
 
-**Name the artifacts by half, and drive each `--in-place` from the half its
-table belongs to.** The sequence below builds every filename off `$R`, which a
-paired run has to split: `$R-unaligned-main.json` and `$R-aligned-main.json`,
-and the class files `$R-aligned-$c.json`, there being no unaligned ones — the
-infix being the binary's own name, so an artifact cannot be traced to the
-wrong half. Which half writes which table is not a matter of taste, it follows
-from what each replaces, and the three installing modes do not answer alike:
+**Which two halves a pair has is a property of the pair, not of this page.**
+The names are recorded in `<prefix>-pair.txt` and set in one place in each of
+`run-major.sh` and `run-gate.sh`, as `OTHER` and `BASIS`; the basis is the
+half the classes run on, the expected bench counts are read from and every
+table is installed from, and it runs second. Run 10's two were `unaligned`
+and `aligned`. **Run 11's are `maxskip` and `aligned`**, its basis being Run
+10's aligned binary reused byte for byte, which is what makes its first
+question an exact repetition. So read every *aligned half* below as the basis
+and every *unaligned half* as the other one, except where a sentence is
+plainly about Run 10 — as the paragraph below on `pad-as.py` and the
+12 KB of `.text` is, every figure in it being that pair's.
 
-- `--markdown` from the **unaligned** half. The Results table succeeds Run 9
-  section by section, and installing it from the aligned half would retire a
-  basis nothing has yet compared against, silently and in one command.
-- `--fingerprint` from the **aligned** half. The per-shape record exists to
-  serve the next run, and nothing after Run 10 reads against an unaligned
-  basis, so what this run leaves behind has to be what Run 11 reads. The
-  unaligned per-shape figures are working material for succeeding Run 9 and
-  are not published beside them: one basis in that section, not one per half.
-- `--block` from the **aligned** half, there being nothing else — the classes
-  run on that half alone.
+**Name the artifacts by half, and drive every `--in-place` from the basis
+half.** The sequence below builds every filename off `$R`, which a paired run
+has to split: one `$R-<half>-main.json` per half, and the class files
+`$R-<basis>-$c.json`, there being no others — the infix being the binary's own
+name, so an artifact cannot be traced to the wrong half. **All three
+installing modes come from the basis**: `--markdown`, `--fingerprint` and
+`--block` alike, so the page carries one basis and not one per half, and what
+the other half contributes is the `--compare` and a yardstick column. Run 10
+is the one run that answers otherwise, its Results table coming from the
+unaligned half while its fingerprint and its class blocks came from the
+aligned one; why, and why the inversion lands at Run 11, is [the transition
+section][transition], which is a ruling and not a step, and is kept out of
+the sequence so that reading straight down this section reaches the next
+command rather than eighty lines of adjudication.
 
-Why those three and not three others — why Run 10's page ends up
-mixed-basis, why the aligned half gets no Results table, and why the
-inversion lands at Run 11 — is [the transition section][transition], which
-is a ruling and not a step, and is kept out of the sequence so that
-reading straight down this section reaches the next command rather than
-eighty lines of adjudication.
-
-**What the unaligned half is for once it stops being the basis**, since a run
-that publishes no table from it will otherwise be asked why it spends an hour
-building and timing it. Two things. It is the layout control, the per-arm term
-being measured afresh each run rather than inherited from Run 10's reading of
-it. And it is the yardstick for GHC itself: the native backend aligns no loop
-today ([the floor section][floor]), and when that is fixed the same pairing is
-what prices how well GHC does it against the assembler shim here — a
-comparison no single build can make.
+**What the other half is for**, since a run that publishes no table from it
+will otherwise be asked why it spends an hour building and timing it. That
+depends on which half it is, and the pair is chosen for it. An *unaligned*
+counterpart is the layout control, the per-arm term being measured afresh
+each run rather than inherited, and it is the yardstick for GHC itself: the
+native backend aligns no loop today ([the floor section][floor]), and when
+that is fixed the same pairing is what prices how well GHC does it against
+the assembler shim here — a comparison no single build can make. Run 11's
+*max-skip* counterpart prices the shim's own padding instead, its two halves
+differing in which loop heads get a directive and in nothing else, so its
+arms separate what alignment buys from what the NOPs cost.
 
 **The pairing doubles the main set and not the classes.** Both halves run the
 main set, since that is where the per-arm comparison lives; the eight class
@@ -2563,9 +2659,9 @@ that ordering is legible.
 hours later — at `-L1`, since the smoke tests the reader's code paths, not
 its statistics:
 
-    ./micro-unaligned -L1 cnn-slice-c32 --json smoke.json
-    ./micro-aligned   -L1 cnn-slice-c32 --json smoke-aligned.json
-    ./micro-aligned   classes window-28x28-k5 -L1 --json smoke-class.json
+    ./micro-aligned -L1 cnn-slice-c32 --json smoke.json
+    ./micro-maxskip -L1 cnn-slice-c32 --json smoke-other.json
+    ./micro-aligned classes window-28x28-k5 -L1 --json smoke-class.json
     for f in smoke.json smoke-class.json; do
       for m in --selftest --aa --shapes --markdown --cells --fingerprint \
                "--pair bq-expand list" ""; do
@@ -2573,18 +2669,18 @@ its statistics:
       done
     done
     ./read-run.py smoke-class.json --block >/dev/null || echo "BROKEN: --block"
-    ./read-run.py smoke.json --compare smoke-aligned.json >/dev/null \
+    ./read-run.py smoke.json --compare smoke-other.json >/dev/null \
       || echo "BROKEN: --compare"
     cp README.md README.smoke.md            # --in-place WRITES; never at README
     ./read-run.py smoke.json --markdown --in-place --readme README.smoke.md \
       >/dev/null || echo "BROKEN: --markdown --in-place"
-    ./read-run.py smoke-aligned.json --fingerprint --in-place \
+    ./read-run.py smoke.json --fingerprint --in-place \
       --readme README.smoke.md >/dev/null || echo "BROKEN: --fingerprint --in-place"
     ./read-run.py smoke-class.json --block --in-place --readme README.smoke.md \
       >/dev/null || echo "BROKEN: --block --in-place"
     ! cmp -s README.smoke.md README.md \
       || echo "BROKEN: --in-place wrote nothing"
-    rm smoke.json smoke-aligned.json smoke-class.json README.smoke.md
+    rm smoke.json smoke-other.json smoke-class.json README.smoke.md
 
 These use a binary already built rather than `cabal run`, which would build a
 third one in whatever regime the shell happens to carry; they exercise the
@@ -2596,10 +2692,10 @@ published one, so the copy is the point, and `cmp` afterwards is what keeps
 the check from passing on an installer that found nothing and said nothing.
 Run the copy's own diff by eye if a table looks wrong; the copy is deleted
 with the rest. **Each install is smoked from the half it will really come
-from** — `--markdown` from the unaligned JSON, `--fingerprint` and `--block`
-from aligned ones — which is why these are three commands and not a loop.
-Installing the fingerprint from the aligned half is the newest path here and
-so the likeliest to break, and the write-up is hours too late to find out.
+from** — all three from the basis half, `--markdown` and `--fingerprint`
+off the main-set JSON and `--block` off the class one — which is why these
+are three commands and not a loop. The write-up is hours too late to find a
+broken installer.
 
 The first runs every timed arm on one shape and puts the whole analysis
 path — the correction, the controls, the table generator — through its
@@ -2614,8 +2710,9 @@ The second file exists for `--compare`, which no single file can reach: it
 is the reader's only two-run mode and the one a paired run is read with, so
 leaving it out of the sweep would leave the pairing's own instrument
 untested until the write-up. It is also the only point before the evening at
-which the aligned binary writes a JSON, and a pair whose halves turn out not
-to be comparable has cost the hours twice.
+which the *other* half writes a JSON at all — the basis half writes the
+first file — and a pair whose halves turn out not to be comparable has cost
+the hours twice.
 
 **Run every mode, not the interesting ones.** The loop above is written as a
 loop because a partial sweep has already missed a real break: after the trim
@@ -2646,10 +2743,12 @@ test sound and is worth knowing, since order *is* a change, of the kind
 [Provenance](#provenance) deals with rather than this pass. An edit to the
 reader or to a claim is not a roster change either, though the three reasons
 above are worded in their terms because a roster change is the only thing
-that has ever broken them. What the test cannot do is run itself: the
+that has ever broken them. What the test cannot usually do is run itself: the
 previous run's binary is deleted and its listing recorded nowhere, so the
 comparison is against the roster delta under [Provenance](#provenance), which
-is kept for exactly this. Spelled out because two readings of this paragraph
+is kept for exactly this. A run whose basis half *is* the previous run's
+binary, as Run 11's is, answers it outright instead, and the pair note records
+the count on both sides. Spelled out because two readings of this paragraph
 have split on it: with membership unmoved the pass is not owed however much
 else changed, and Run 10 is such a run.
 
@@ -2662,7 +2761,12 @@ line saying it has not been run; `run-gate.sh` appends to that file. So read
 what the note says about the gate first — `grep -i gate micro-pair.txt`,
 case-insensitive and not anchored on the `GATE:` token, because a note
 written by hand says it in prose and grepping for the token finds nothing in
-one, which reads as *no gate* and costs the hour it was meant to save. If it
+one, which reads as *no gate* and costs the hour it was meant to save. **Read
+the whole output and not its last line**: `run-gate.sh` closes its own block
+by asking for a reading, so a note whose verdict was written above that block
+— which is where a hand-written one goes — greps up as *the reading is
+still to do* however long ago it was done. The verdict is a `GATE:` line, and
+the newest one wins. If it
 records a pass, this step is already done and the next action is the run
 itself. A `--verify-only` run earlier in this procedure does not disturb
 that: it appends its measurements alone, the `GATE:` line going in only when
@@ -2681,7 +2785,7 @@ drift over the hour cannot read as a difference between the binaries, which is
 the part a person retyping the command would drop:
 
     ./run-gate.sh
-    ./read-run.py gate-aligned-a.json --compare gate-unaligned-a.json
+    ./read-run.py gate-aligned-a.json --compare gate-maxskip-a.json
 
 It wants the same quiet the run does and costs the better part of an hour, so
 it is not one of the cheap checks above; what it buys is finding out that the
@@ -2751,15 +2855,15 @@ The sequence:
     {
       date -Is
       # A paired run: both halves take the main set, the classes go to the
-      # aligned half alone, and each half is its own binary -- never rebuild
-      # between them.
-      for h in unaligned aligned; do
+      # basis half alone, and each half is its own binary -- never rebuild
+      # between them. $OTHER and $BASIS are the pair's, set in run-major.sh.
+      for h in $OTHER $BASIS; do
         ./micro-$h --json $R-$h-main.json > $R-$h-main.log 2>&1
         echo "$h main exit=$? $(date -Is)"
       done
       for c in rev revsome bcast bcastmid reshape1 slice window scaled; do
-        ./micro-aligned classes $c- --json $R-aligned-$c.json \
-          > $R-aligned-$c.log 2>&1
+        ./micro-$BASIS classes $c- --json $R-$BASIS-$c.json \
+          > $R-$BASIS-$c.log 2>&1
         echo "$c exit=$? $(date -Is)"
       done
     } >> $R-wallclock.log 2>&1
@@ -2805,7 +2909,18 @@ thing throughout. Where that leaves a shape thinly measured, the `smp` and
 `CI%` columns say so rather than the budget hiding it.
 
 Expect several hours for the sequence, so run it in the background — and
-**run nothing else on this machine while it does**. Every strategy of a
+**run nothing else on this machine while it does**. Unsandboxed, and confirmed
+from a process list rather than from the launching shell, which a blocked
+write leaves lying:
+
+    ./run-major.sh run11 &            # its own wall-clock log is the record
+    ps -eo pid,etime,comm | grep micro-   # comm, NOT args: any shell that has
+                                      #   cd'd here carries micro-regime3 in
+                                      #   its own command line and matches
+
+`pgrep -f`/`pkill -f` self-match here and an `until ! pgrep -f …` waiter
+therefore never returns; watch `$R-wallclock.log` for `major run complete`
+instead. Every strategy of a
 population shares that population's process precisely so its figures are
 commensurable, and the [noise
 floor][floor] section is the measured evidence that
@@ -2885,7 +3000,14 @@ of arms gives, which loses the finding.
 3. Analyse with `./read-run.py`, which is where every table in this file
    comes
    from — read [the reader's own section](#the-reader-read-runpy) first, and
-   do not write another reader. **A paired run's own mode is `--compare`, and
+   do not write another reader. **The claims are part of this and are the
+   thing these steps are likeliest to leave out**: the run chapter names three
+   things a run reads, and the claims section is the third, each of its
+   orderings one `./read-run.py RUN.json --pair A B` so that a run reports its
+   breaks rather than re-deriving the table. The class properties are the same
+   job three times a population, off the verdicts `--block` emits, and the set
+   is restated for the next run on this run's basis while the readings are
+   still in front of you. **A paired run's own mode is `--compare`, and
    its direction is a convention worth stating**: the run given first is the
    one the ratios are *of*, the `--compare` argument being what they are
    divided by, so `aligned --compare unaligned` puts a figure below 1 where
@@ -2981,6 +3103,10 @@ of arms gives, which loses the finding.
       the same way. If you paste by hand anyway, do not edit the table: it
       renders the same rows the terminal does, and carries `needs` and the
       emphasis forward from the table already there.
+      `--aa` and `--block` both take `--brief`, which drops the standing
+      explanation and the table `--in-place` installs anyway, costing no
+      computed figure; over ten populations that is several hundred lines you
+      have already read.
       Its stderr is the whole of what is left by hand: a row new to the roster
       comes out with `?`, a departed row is dropped with a warning. Run 9 had
       ten such rows and filled them from a note written here before the run,
@@ -3157,13 +3283,16 @@ smaller thing than a Results table. Publishing it aligned is what makes Run
 11's change of basis readable rather than a discontinuity.
 
 **The inversion lands at Run 11 and not at Run 10.** Every run from here is
-paired, so from Run 11 the aligned half becomes the table and the
-unaligned one keeps a column as the older basis. Run 10 itself stays as the
-procedure describes, and that is what keeps the series continuous: Run 10's
-unaligned table succeeds Run 9's basis directly, and Run 11's unaligned column
-succeeds Run 10's table directly, so no comparison this page draws needs a
-conversion applied to it. Inverting at Run 10 instead would have put one
-between Run 9 and Run 10 and left it there for good. And it costs no kept
+paired, so from Run 11 the aligned half becomes the table and the other
+half keeps a column as the older basis. **Which other half was left open and
+Run 11 has answered it: not an unaligned one but a max-skip one**, so the
+column succeeding Run 10's unaligned table is named for that build, and the
+two differ in more than the older basis — a change of basis and a change of
+counterpart at once, which the rows compared have to say. Run 10 itself stays
+as the procedure describes, and that is what keeps the series continuous:
+Run 10's unaligned table succeeds Run 9's basis directly. Inverting at Run 10
+instead would have put a conversion between Run 9 and Run 10 and left it
+there for good. And it costs no kept
 artifact: what Run 11 reads against is Run 10's aligned fingerprint, which is
 published, so nothing has to be remembered out of a JSON.
 
@@ -3793,6 +3922,32 @@ as much between a filtered reading and a full-roster one (0.9782 against
 therefore stays a candidate for the residual rather than a finding. What the
 probe does settle is that no placement of these two copies leaves them more
 than about a percent apart once they share an offset.
+
+**A build with both, and an instrument that does not cancel** (2026-08-11,
+`-fspec-constr`, `*/build` and `*/mut-odo` over the shape set, 48 benches a
+process). `micro-both` carries the shim *and* `-fproc-alignment=64`, so all
+eight fills sit at 0 inside procedures pinned to 64 — the build [the open
+list][open] asked for. Its pair ratio ranks nothing: 1.0001 and 0.9820 over
+two passes
+against the shim alone's 0.9921 and 0.9695, where each build's own passes
+differ by 1.8 to 2.3%. That is the pair ratio's nature, dividing two arms
+that share a penalty. The absolute per-arm reading does not cancel:
+
+| against `micro-aligned` | its two copies | `mut-odo` | `build` |
+|---|---|---:|---:|
+| `micro-procalign`, the flag alone | 53 and 53 | 1.1167 (1/24) | 1.1294 (2/24) |
+| `micro-unaligned`, phase-matched | 45 and 53 | 1.1061 (2/24) | 1.0839 (3/24) |
+| `micro-both`, the shim and the flag | 0 and 0 | 1.0163, 1.0319 (6, 4/24) | 1.0246, 1.0451 (9, 7/24) |
+| `micro-aligned`, its own second pass | 0 and 0 | 1.0025 (13/24) | 0.9797 (14/24) |
+
+The count is shapes of 24 where the row's build is faster. So a shared
+straddling offset costs both arms 8 to 13% while leaving their ratio level
+— the flag removes the variance, not the cost — and shim plus flag costs 2
+to 4% over the shim alone. **Indicative only**: one pass a row against that
+same repeat spread, times uncorrected, and only `micro-unaligned` phase-
+matched to the basis. That row is what says the instrument works, reading
+1.11 and 1.08 where Run 10's full budget read 1.16 and 1.14. Keep these out
+of the table above, which is one pass per binary of a different quantity.
 
 **The probe has since confirmed it, and found the penalty graded**
 (2026-08-10, `-fspec-constr`, eight binaries differing only in inert pad arms,
@@ -4955,8 +5110,8 @@ Restated **on the aligned half**, for Run 11 to check; margins are paired
 geomeans, past the floor unless marked, each claim carrying the reading it
 rests on. That basis is a change and is the transition's whole point: the
 unaligned figure is given beside it wherever the two differ by more than the
-floor, since Run 11's unaligned column succeeds Run 10's table and its
-aligned one succeeds these. **All of them are `-fspec-constr` claims**: a Run
+floor, since Run 11's second column succeeds Run 10's table and its aligned
+one succeeds these. **All of them are `-fspec-constr` claims**: a Run
 11 at -O1 tests Run 7's set instead, and the two sets differ in more than
 their numbers. **And all of them are read against a measured layout span**: a
 roster *order* change alone moved arms 0.966 to 1.142 between Run 9 and Run

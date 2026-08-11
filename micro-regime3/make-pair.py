@@ -259,6 +259,11 @@ def gates(*, min_phase, phase, fa, fx, fp, uncheck, alcheck, same,
 def main():
     p = argparse.ArgumentParser(description=__doc__.split('\n')[0])
     p.add_argument('--prefix', default='micro')
+    p.add_argument('--basis', default='aligned',
+                   help='the half this builds with the shim (default aligned)')
+    p.add_argument('--other', default='unaligned',
+                   help='its counterpart, which --verify-only must be told'
+                        ' when the pair is not an unaligned/aligned one')
     p.add_argument('--regime', default='-fspec-constr')
     p.add_argument('--min-phase', type=float, default=90.0,
                    help='%% of library loops that must share an offset')
@@ -266,8 +271,12 @@ def main():
                    help='re-gate the pair already here, building nothing')
     a = p.parse_args()
 
-    aligned = f'{a.prefix}-aligned'
-    unaligned = f'{a.prefix}-unaligned'
+    aligned = f'{a.prefix}-{a.basis}'
+    unaligned = f'{a.prefix}-{a.other}'
+    if not a.verify_only and (a.basis, a.other) != ('aligned', 'unaligned'):
+        sys.exit('this builds an unaligned/aligned pair and models no other:'
+                 ' --basis/--other are for pointing --verify-only at a pair'
+                 ' built by hand, not for building one')
     plain = f'{a.prefix}-plain-tmp'
     pad = fp = None
 
@@ -368,17 +377,17 @@ def main():
         f'  regime           {regime}',
         f'  PAD_BYTES        {pad if pad is not None else notderived}',
         f'  .text            {text_size(unaligned)} vs {text_size(aligned)}',
-        f'  md5 unaligned    {md5[unaligned]}',
-        f'  md5 aligned      {md5[aligned]}',
+        f'  md5 {a.other:12s} {md5[unaligned]}',
+        f'  md5 {a.basis:12s} {md5[aligned]}',
         f'  library phase    {phase:.0f}% share an offset, {strad:.0f}% the '
         f'same straddle state',
-        f'  fills aligned    {" and ".join(map(str, fa))}',
-        f'  fills unaligned  {" and ".join(map(str, fx))}',
+        f'  fills {a.basis:10s} {" and ".join(map(str, fa))}',
+        f'  fills {a.other:10s} {" and ".join(map(str, fx))}',
         f'  fills plain      {" and ".join(map(str, fp)) if fp else notderived}',
         f'  --list           {benches} benches, '
         f'{"identical" if listed_same else "DIFFERING"} between the halves',
-        f'  check unaligned  {ok} agree, {bad} disagree, exit {rc_u}',
-        f'  check aligned    {ok_a} agree, {bad_a} disagree, exit {rc_a}'
+        f'  check {a.other:10s} {ok} agree, {bad} disagree, exit {rc_u}',
+        f'  check {a.basis:10s} {ok_a} agree, {bad_a} disagree, exit {rc_a}'
         f'{"" if same else "  -- AND IT DIFFERS FROM THE OTHER HALF"}',
         f'  make-pair.py     {verdict}',
     ] + [f'  FAIL: {f}' for f in fail]
@@ -409,6 +418,20 @@ def main():
     old = open(path).read() if os.path.exists(path) else ''
     appending, head, warn = note_mode(old, {md5[unaligned], md5[aligned]},
                                       a.verify_only)
+    # A note it would REPLACE, carrying a gate verdict, is an hour of someone
+    # else's quiet machine and possibly the only copy of a hand-built half's
+    # recipe. Replacing it is right after a rebuild -- the binaries really are
+    # other ones -- and wrong when this tool has simply been pointed at the
+    # wrong pair, which is what happens by default beside a hand-built one:
+    # both default names still exist, so nothing above refuses. Refuse here
+    # instead, and name the flags that say which pair is meant.
+    if not appending and 'GATE' in old:
+        sys.exit(f'{a.prefix}-pair.txt describes a different pair'
+                 f' ({a.basis}/{a.other} are what this looked at) and records'
+                 f' a GATE verdict, so replacing it would drop an hour of'
+                 f' machine time and whatever else is written by hand there.'
+                 f' Pass --basis/--other for the pair you mean, or move the'
+                 f' note aside if you really are starting again.')
     if warn:
         print(f'NOTE: {a.prefix}-pair.txt {warn}')
     if appending:
