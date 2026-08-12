@@ -185,6 +185,7 @@ when the run file is missing: a refusal is information.
 import argparse
 import collections
 import contextlib
+import difflib
 import io
 import json
 import math
@@ -1621,55 +1622,6 @@ def headings_of(text):
     return out
 
 
-LIST_MARKER_RE = re.compile(r'^\s*(?:[-*]\s|\d+\.\s)')
-
-
-def unwrappable(lines):
-    """1-based line numbers with nowhere to wrap: tables, code, link
-    definitions and contents entries.
-
-    Code is the hard one, and getting it wrong is not hypothetical. Indenting
-    by four is how this file writes a code block AND how a nested list
-    continues its prose, so a plain `startswith("    ")` cannot tell them
-    apart -- and the width check used one, which let a 130-character line
-    inside a numbered sub-list pass while the check reported the whole file
-    inside its widths. Indent size cannot separate them either: a code block
-    indents deeper for its own nesting, as the Haskell in `the fix` does.
-
-    What separates them is what the indent hangs off. A continuation traces
-    back to a list marker; a code block traces back to a paragraph. So track
-    the owner: a marker at any indent claims what follows, an unindented
-    non-marker line releases it, and lines between leave it alone -- which is
-    what lets a top-level bullet's own 2-space continuation stay inside the
-    bullet rather than ending it.
-
-    Non-vacuous: over this README it exempts the code blocks while flagging
-    a 130-character list continuation the previous test passed, and
-    shortening that line is what makes --check-doc go green. Re-confirmed by
-    lengthening a continuation on purpose, which fails, and shortening it,
-    which passes. The contents list is the third control and is back in the
-    document, so its branch is back here with it: a bullet whose whole
-    content is one anchor link, which the replace list's bullets are not,
-    they carry prose after the link. An anchor entry cannot be wrapped and
-    the longest is 122 characters.
-    """
-    out = set()
-    owner_is_list = False
-    for i, line in enumerate(lines, 1):
-        if not line.strip():
-            continue
-        indent = len(line) - len(line.lstrip())
-        if indent == 0:
-            owner_is_list = bool(LIST_MARKER_RE.match(line))
-        elif LIST_MARKER_RE.match(line):
-            owner_is_list = True
-        if (line.lstrip().startswith('|')
-                or re.match(r'^\s*- \[[^]]+\]\(#[^)]+\)$', line)
-                or re.match(r'^\[[a-z0-9-]+\]:\s*\S+$', line)):
-            out.add(i)
-        elif indent >= 4 and not owner_is_list:
-            out.add(i)
-    return out
 
 
 # Where a named path may live. This directory first, then the orthotope
@@ -1991,23 +1943,64 @@ def check_doc(readme, main_hs):
             note.append('every figure-bearing section is linked from the'
                         ' replace list')
 
+    # The README is not checked against a width. It is checked against the
+    # formatter, which is a stronger thing to ask and a cheaper one to fix:
+    # `wrap80 -i README.md` and there is nothing left to adjudicate. Asking
+    # for a width instead is what taught readers of this check to wrap their
+    # own edits line by line, which costs a great deal and does not converge,
+    # since shortening one line pushes words onto the next.
+    #
+    # Nothing is lost by dropping the width test with unwrappable() under it.
+    # A line the formatter leaves past 80 is one it cannot break -- a table,
+    # a code block, a contents entry -- which is exactly what that function
+    # computed: over this README and three rewrappings of it, all 67 such
+    # lines were ones it exempted, every time. And the formatter catches two
+    # things the width never could, a document left under-wrapped and a line
+    # ending on a dangling article.
+    try:
+        want = subprocess.run(['wrap80', readme], capture_output=True,
+                              text=True, check=True).stdout
+    except OSError:
+        # A check that did not run must not read as one that passed.
+        bad.append('BLOCKED: wrap80 is not on PATH, so the README wrapping'
+                   ' was not checked at all')
+    except subprocess.CalledProcessError as e:
+        bad.append('BLOCKED: wrap80 failed (%d), so the README wrapping was'
+                   ' not checked at all' % e.returncode)
+    else:
+        if want != open(readme).read():
+            # Diffed rather than compared by position: one inserted line
+            # shifts every line under it, and reporting the whole file as
+            # changed hides the one line worth looking at.
+            d = list(difflib.unified_diff(lines, want.split('\n'),
+                                          lineterm='', n=0))
+            n = sum(1 for l in d
+                    if l[:1] in '+-' and not l.startswith(('---', '+++')))
+            at = next((m.group(1) for l in d
+                       for m in [re.match(r'@@ -(\d+)', l)] if m), '?')
+            bad.append('%s is not as wrap80 leaves it (%d line(s), from line'
+                       ' %s) -- run `wrap80 -i %s`, never re-wrap a line by'
+                       ' hand' % (os.path.basename(readme), n, at,
+                                  os.path.basename(readme)))
+        else:
+            note.append('the README is as wrap80 leaves it')
+
+    # Main.hs and this script are code: no formatter here sets their width,
+    # so they are measured against one and shortened by hand.
     wide = []
-    nowrap = unwrappable(lines)
-    for path, limit, comment_only in ((readme, 80, False), (main_hs, 79, True),
+    for path, limit, comment_only in ((main_hs, 79, True),
                                       (os.path.abspath(__file__), 79, False)):
         for i, line in enumerate(open(path).read().split('\n'), 1):
             if len(line) <= limit:
-                continue
-            if path == readme and i in nowrap:
                 continue
             if comment_only and not line.strip().startswith('--'):
                 continue
             wide.append('%s:%d (%d)' % (os.path.basename(path), i, len(line)))
     if wide:
-        bad.append('%d line(s) past the width: %s'
+        bad.append('%d code line(s) past the width: %s'
                    % (len(wide), ', '.join(wide[:6])))
     else:
-        note.append('prose, comments and this script are inside their widths')
+        note.append('comments and this script are inside their widths')
 
     comparatives = [('%s:%d' % (os.path.basename(readme), i), l)
                     for i, l in prose_hits(lines, COMPARATIVE_RE)]
