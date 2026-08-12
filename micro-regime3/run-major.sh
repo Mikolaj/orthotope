@@ -30,11 +30,13 @@ if [ $# -lt 1 ]; then
   exit 2
 fi
 R=$1
-PREFIX="micro-$R"            # the binaries and their note carry the run, as
+PREFIX="$R"                  # the binaries and their note carry the run, as
                              # every artifact here does, so that two runs
                              # cannot write one filename however alike their
                              # half names are -- see run-gate.sh, whose output
-                             # did not and quietly overwrote Run 10's
+                             # did not and quietly overwrote Run 10's. One
+                             # scheme throughout: `<run>-<rest>`, binaries,
+                             # note and JSONs alike
 
 # WHICH TWO HALVES, since the pair is no longer always unaligned/aligned.
 # BASIS is the half the classes run on, the expected bench counts are read
@@ -44,8 +46,8 @@ PREFIX="micro-$R"            # the binaries and their note carry the run, as
 # position along with its binary. Change these two names per pair -- and
 # nothing else here, the counting below being what makes a wrong selection
 # loud in the log rather than at the write-up.
-OTHER=${OTHER:-maxskip}
-BASIS=${BASIS:-aligned}
+OTHER=${OTHER:-maxskippa}
+BASIS=${BASIS:-maxskip}
 HALVES="$OTHER $BASIS"
 
 # The run's name identifies it against the NEXT run; this guards it against
@@ -54,7 +56,14 @@ HALVES="$OTHER $BASIS"
 # `ls a b c` exits nonzero when ANY operand is missing, so testing its status
 # would let a half-finished run through -- which is the very state you would
 # relaunch from. Test the listing instead.
-EXISTING=$(ls -1 "$R"-*.json "$R"-*.log "$R-wallclock.log" 2>/dev/null)
+#
+# The gate's own artifacts are excluded, and that exclusion is load-bearing
+# rather than tidy: run-gate.sh writes `$R-gate-<half>-<pass>.json` into the
+# same `$R-` space this globs, so without it the gate the procedure requires
+# before the evening would read as a previous attempt and refuse the very run
+# it was meant to clear.
+EXISTING=$(ls -1 "$R"-*.json "$R"-*.log "$R-wallclock.log" 2>/dev/null \
+             | grep -v "^$R-gate-")
 if [ -n "$EXISTING" ]; then
   echo "$R already has artifacts here:"
   printf '%s\n' "$EXISTING" | sed 's/^/  /'

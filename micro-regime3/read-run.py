@@ -1630,13 +1630,21 @@ PATH_ROOTS = [('.', 'here'), ('..', 'orthotope'),
 # Names that exist only while a run or a pair does, so their absence is the
 # directory's normal state rather than a broken reference. The templates
 # (`$R-...`, `<prefix>-...`) are caught by the `$`/`<` test instead.
-TRANSIENT_RE = re.compile(r'^(?:micro-pair.*\.txt|smoke.*\.(?:json|md)|'
-                          r'README\.smoke\.md|(?:run|gate|probe)[\w.-]*\.'
+#
+# Each alternative spells the convention exactly rather than as a prefix,
+# because an exemption is a hole and a loose one swallows the very mistake it
+# should catch: a `<something>-pair.*\.txt` spelling once exempted a note
+# whose name was in the wrong order, so it named no file and stood misspelt
+# in README while this check reported every path resolving. Anchored on
+# `run\d+-`, it exempts a note or an artifact that is merely deleted -- the
+# directory's normal state -- and fails one that is misnamed.
+TRANSIENT_RE = re.compile(r'^(?:run\d+-pair\.txt|smoke.*\.(?:json|md)|'
+                          r'README\.smoke\.md|run\d+-[\w.-]*\.'
                           r'(?:json|log))$')
-# A template names no file: `$R-<half>-main.json`, `micro-<run>-pair.txt`.
-# The exclusion is of `$` and `<` ANYWHERE in the token and not just at its
-# head, which is the form this first had -- a spelling that let
-# `micro-<run>-pair.txt` through and failed the run on it.
+# A template names no file: `$R-<half>-main.json`, `<run>-pair.txt`. The
+# exclusion is of `$` and `<` ANYWHERE in the token and not just at its head,
+# which is the form this first had -- a spelling that let a mid-token `<run>`
+# through and failed the run on it.
 PATH_EXT_RE = re.compile(r'^[^$<]*[^/$<]\.'
                          r'(?:hs|py|cabal|sh|md|txt|yaml|yml)$')
 
@@ -1685,6 +1693,15 @@ def check_paths(doc):
     pointing PATH_ROOTS at a directory that does not exist: 14 paths
     resolved, the other 4 were listed by name under NOT CHECKED with the
     root, and the run still exited 0.
+
+    The transient exemption then earned a control nobody had to plant, which
+    is the better kind: tightening it to spell the convention exactly made
+    the run FAIL on a misspelt pair note already standing in README, which
+    the looser pattern had been exempting silently. A check whose first
+    failure is a defect nobody planted has proved more than a planted break
+    can, and it is why each exemption spells a name rather than a prefix.
+    Re-confirmed on the tightened form by planting `run12-pair-wrong.txt`,
+    which fails, beside `run99-main.json`, which is exempt as it should be.
     """
     out = {'ok': [], 'transient': [], 'unresolved': [], 'unmounted': [],
            'unmounted_root': '', 'in_sibling': 0, 'unclassified': 0}

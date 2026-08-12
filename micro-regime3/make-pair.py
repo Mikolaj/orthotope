@@ -10,8 +10,7 @@ their own straddles are rerolled rather than held. `pad-as.py` fixes that
 given the right PAD_BYTES, and the right PAD_BYTES is two measurements deep.
 This does both, and then checks that it worked.
 
-    ./make-pair.py                       # micro-aligned and micro-unaligned
-    ./make-pair.py --prefix try          # try-aligned and try-unaligned
+    ./make-pair.py --run run13           # run13-aligned and run13-unaligned
     ./make-pair.py --regime=''           # plain -O1 instead of -fspec-constr
     ./make-pair.py --regime=-fspec-constr        # the default, spelled out
     ./make-pair.py --verify-only         # re-gate what is here, build nothing
@@ -277,7 +276,7 @@ def main():
     p.add_argument('--verify-only', action='store_true',
                    help='re-gate the pair already here, building nothing')
     a = p.parse_args()
-    a.prefix = f'micro-{a.run}'
+    a.prefix = a.run
 
     aligned = f'{a.prefix}-{a.basis}'
     unaligned = f'{a.prefix}-{a.other}'

@@ -555,11 +555,11 @@ now rather than a slot in the next run, observed again:
      it saves the next run rediscovering it: the second half is where the
      run's question goes.** Run 10 paired against an unaligned build and
      priced layout; Run 11 against max-skip and priced the padding.
-     **Run 12's pair is `micro-maxskip` and `micro-maxskippa`**, both
+     **Run 12's pair is `run12-maxskip` and `run12-maxskippa`**, both
      carrying the shim in its max-skip form and differing in
      `-fproc-alignment=64` alone — built and gated 2026-08-12, the recipe,
-     the derived padding and the checks in `micro-pair-run12.txt`. **The
-     basis is `micro-maxskip`**: it publishes the table, which is a change of
+     the derived padding and the checks in `run12-pair.txt`. **The
+     basis is `run12-maxskip`**: it publishes the table, which is a change of
      basis and the second this page has made.
 
      Two things about that pair are worth having here rather than only in
@@ -621,7 +621,8 @@ now rather than a slot in the next run, observed again:
      dead rather than left to be re-proposed. What the plain repeat answers
      is narrower and still worth the evening: whether a fresh wild cell
      turns up somewhere else, which is the lottery, or the same one returns.
-     It cannot be filtered, and it wants `micro-aligned` rebuilt first,
+     It cannot be filtered, and it wants the aligned half rebuilt first --
+     `./make-pair.py --run <run>`, which names it `<run>-aligned` --
      that binary having gone with Run 11's artifacts — `make-pair.py` is
      deterministic and README's Provenance keeps its md5, so the rebuild is
      verifiable rather than hopeful. **Run 12 supplies a free draw
@@ -1243,7 +1244,7 @@ now rather than a slot in the next run, observed again:
   something a session can do.
 
   **Run 2026-08-12, and the cell does not reproduce filtered, as expected.**
-  Differencing `-n 40000` against `-n 20000` on `micro-run12-maxskip`, which
+  Differencing `-n 40000` against `-n 20000` on `run12-maxskip`, which
   removes the process's fixed cost exactly rather than diluting it — at
   `-n 200` startup was 45% of task-clock and the counters said nothing —
   `lenet-L1-28-c1-k5/bq-expand` and its adjacent twin come out at **54.10
@@ -1265,14 +1266,15 @@ now rather than a slot in the next run, observed again:
   So what remains is a **plain repeat of the aligned main set**, 70 minutes
   quiet, which cannot be filtered — a filtered run puts every arm at the
   cold end by construction ([the floor section][floor]) — and which wants
-  `micro-aligned` rebuilt first, that binary having gone with Run 11's
-  artifacts. It answers the narrow question only: whether a fresh wild cell
+  the aligned half rebuilt first, that binary having gone with Run 11's
+  artifacts and a rebuild naming it for the run that wants it. It answers
+  the narrow question only: whether a fresh wild cell
   turns up somewhere else, or the same one returns. **The mechanism itself
   is tested by logging what it names**, per bench: the RTS's allocated-bytes
   total and the payload addresses. That is a `Main.hs` edit and belongs
   **after Run 12 is spent**, since it changes the module's code, so its
   `.text`, so every loop offset, and would invalidate the `PAD_BYTES` and
-  the two md5s `micro-run12-pair.txt` records for a pair already built.
+  the two md5s `run12-pair.txt` records for a pair already built.
 - **Why is `mut-odo`'s interval wide on `micro-aligned`?** Its CI% reads 1.06
   there against 0.34 unaligned, and the raw samples have since been read
   (2026-08-11, arithmetic over the run and gate artifacts, no machine time).
@@ -1338,9 +1340,11 @@ now rather than a slot in the next run, observed again:
   agreeing to 0.25% — which is what left drift as the only reading available
   then. What the repetition adds is that drift will not carry 18%, so the
   bound this page quotes for it comes down accordingly.
-- **`scaled`'s A/A floor is back at 5.36%, at the slot that carried it in Run
-  7 and Run 8 and not in Run 9 — and it is the base arm that is slow, not the
-  twins.** Both `mut-odo-vecdims` pairs read below 1, 0.9464 and 0.9574, both
+- **`scaled`'s A/A floor came back on Run 10 at 5.36%, at the slot that
+  carried it in Run 7 and Run 8 and not in Run 9 — and it was the base arm
+  that was slow, not the twins** (Run 11's answer closes this entry below,
+  and its figures are not these).
+  Both `mut-odo-vecdims` pairs read below 1, 0.9464 and 0.9574, both
   worst on `scaled-super-r3`, while the other four pairs in that process sit
   within 0.25%. **Two thirds of it is arithmetic and was mine to divide out
   before calling it a disturbance.** The raw slopes disagree by 2.13%; the
@@ -2817,9 +2821,9 @@ verdict, so a re-verification does not read as a fresh build's clean sheet.
 
 The fork's three questions are answerable in three commands, none of which
 the page should make you invent, and each names the pair's own two halves —
-`micro-run12-maxskip` and `micro-run12-maxskippa` today. Is there a pair —
-`ls micro-run12-*`. Is it the pair the note
-describes — `md5sum micro-run12-maxskip micro-run12-maxskippa` against its two
+`run12-maxskip` and `run12-maxskippa` today. Is there a pair —
+`ls run12-*`. Is it the pair the note
+describes — `md5sum run12-maxskip run12-maxskippa` against its two
 `md5` lines. Has the source moved under it — `git log -1 --format=%h --
 Main.hs` against the commit the note records — the *tree* commit where it
 records two, the binaries' own being the other. **Expect it to differ, and
@@ -2836,7 +2840,7 @@ the note was written, is the build the thing to run — and the regime goes to
 it rather than being assumed, since it has a default of its own:
 
     ./make-pair.py --run=runN --regime="$REGIME"   # four builds, ~5 min
-    ./loop-offsets.py micro-runN-unaligned micro-runN-aligned
+    ./loop-offsets.py runN-unaligned runN-aligned
 
 **But only for an unaligned/aligned pair, which is the only kind it builds.**
 A pair of two shims — Run 11's — is built by the recipe its own note
@@ -2861,9 +2865,9 @@ ${REGIME:+--ghc-options=$REGIME} --`, never through the sequence below.
 binaries that will be timed, not a third built beside them, and the last two
 against `Main.hs` and this file, which open no binary at all:
 
-    ./micro-runN-maxskip check   # every strategy agrees, every shape regime 3
-    ./micro-runN-maxskippa check # and the other half: both were shim-rewritten
-    ./micro-runN-maxskip --list 2>/dev/null | wc -l  # 2>/dev/null is NOT
+    ./runN-maxskip check         # every strategy agrees, every shape regime 3
+    ./runN-maxskippa check       # and the other half: both were shim-rewritten
+    ./runN-maxskip --list 2>/dev/null | wc -l  # 2>/dev/null is NOT
                                  #   optional:
                                  #   the provenance line goes to stderr and
                                  #   interleaves inside a bench name without it
@@ -2893,7 +2897,7 @@ only check, and cost seconds.
 
 **Then confirm the regime is the one intended**, which nothing later can:
 
-    ./micro-runN-maxskip diag
+    ./runN-maxskip diag
 
 and read one row of it — `baseOffsetsScan` against `baseOffsetsMut` on
 `vgg-14-c512`, which is a `diag` label rather than a shape and so will not be
@@ -2924,7 +2928,7 @@ binary and no short loop of its own code straddling, and the unaligned
 binary's offsets recorded as they stand, since the six-arm prediction is made
 from them and no later binary has them; `--survey` is the length-agnostic
 form and takes one binary at a time
-(`./loop-offsets.py --survey micro-runN-maxskip`), and what "every timed arm's
+(`./loop-offsets.py --survey runN-maxskip`), and what "every timed arm's
 loop" means is bounded by what can be
 attributed at all. The sequence below runs each half in turn, and
 `run-major.sh` does it for you; what neither can do is interleave two
@@ -2965,7 +2969,12 @@ plainly about Run 10 — as the paragraph below on `pad-as.py` and the
 half.** The sequence below builds every filename off `$R`, which a paired run
 has to split: one `$R-<half>-main.json` per half, and the class files
 `$R-<basis>-$c.json`, there being no others — the infix being the binary's own
-name, so an artifact cannot be traced to the wrong half. **All three
+name, so an artifact cannot be traced to the wrong half. **One scheme covers
+everything a run leaves**, the binaries and the pair note with the JSONs:
+`$R-<rest>`, the run first and nothing before it, which is what stops two runs
+writing one filename. Binaries from Run 11 and earlier were named for the half
+alone (`micro-aligned`, `micro-unaligned`), which is what this page's history
+calls them. **All three
 installing modes come from the basis**: `--markdown`, `--fingerprint` and
 `--block` alike, so the page carries one basis and not one per half, and what
 the other half contributes is the `--compare` and a yardstick column. Run 10
@@ -3006,9 +3015,9 @@ that ordering is legible.
 hours later — at `-L1`, since the smoke tests the reader's code paths, not
 its statistics:
 
-    ./micro-runN-maxskip -L1 cnn-slice-c32 --json smoke.json
-    ./micro-runN-maxskippa -L1 cnn-slice-c32 --json smoke-other.json
-    ./micro-runN-maxskip classes window-28x28-k5 -L1 --json smoke-class.json
+    ./runN-maxskip -L1 cnn-slice-c32 --json smoke.json
+    ./runN-maxskippa -L1 cnn-slice-c32 --json smoke-other.json
+    ./runN-maxskip classes window-28x28-k5 -L1 --json smoke-class.json
     for f in smoke.json smoke-class.json; do
       for m in --selftest --aa --shapes --markdown --cells --fingerprint \
                "--pair bq-expand list" ""; do
@@ -3102,12 +3111,12 @@ else changed, and Run 10 is such a run.
 **A paired run has one gate more, and the first thing to do about it is read
 rather than run it. The gate belongs to the pair, not to the session**, which
 is what stops it being paid for twice. `make-pair.py` writes a
-`micro-<run>-pair.txt` beside the binaries — every name in this directory
+`<run>-pair.txt` beside the binaries — every name in this directory
 carries the run, so that two runs cannot write one filename however alike
 their half names are, which is why `--run` is required and not defaulted —
 with what it verified and a `GATE:`
 line saying it has not been run; `run-gate.sh` appends to that file. So read
-what the note says about the gate first — `grep -i gate micro-*-pair.txt`,
+what the note says about the gate first — `grep -i gate *-pair.txt`,
 case-insensitive and not anchored on the `GATE:` token, because a note
 written by hand says it in prose and grepping for the token finds nothing in
 one, which reads as *no gate* and costs the hour it was meant to save. **Read
@@ -3134,8 +3143,8 @@ drift over the hour cannot read as a difference between the binaries, which is
 the part a person retyping the command would drop:
 
     ./run-gate.sh runN
-    ./read-run.py micro-runN-gate-maxskip-a.json \\
-      --compare micro-runN-gate-maxskippa-a.json
+    ./read-run.py runN-gate-maxskip-a.json \\
+      --compare runN-gate-maxskippa-a.json
 
 It wants the same quiet the run does and costs the better part of an hour, so
 it is not one of the cheap checks above; what it buys is finding out that the
@@ -3222,11 +3231,11 @@ The sequence:
       # basis half alone, and each half is its own binary -- never rebuild
       # between them. $OTHER and $BASIS are the pair's, set in run-major.sh.
       for h in $OTHER $BASIS; do
-        ./micro-$h --json $R-$h-main.json > $R-$h-main.log 2>&1
+        ./$R-$h --json $R-$h-main.json > $R-$h-main.log 2>&1
         echo "$h main exit=$? $(date -Is)"
       done
       for c in rev revsome bcast bcastmid reshape1 slice window scaled; do
-        ./micro-$BASIS classes $c- --json $R-$BASIS-$c.json \
+        ./$R-$BASIS classes $c- --json $R-$BASIS-$c.json \
           > $R-$BASIS-$c.log 2>&1
         echo "$c exit=$? $(date -Is)"
       done
@@ -3278,7 +3287,7 @@ from a process list rather than from the launching shell, which a blocked
 write leaves lying:
 
     ./run-major.sh run11 &            # its own wall-clock log is the record
-    ps -eo pid,etime,comm | grep micro-   # comm, NOT args: any shell that has
+    ps -eo pid,etime,comm | grep runN-    # comm, NOT args: any shell that has
                                       #   cd'd here carries micro-regime3 in
                                       #   its own command line and matches
 

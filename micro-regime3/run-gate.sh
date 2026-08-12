@@ -24,8 +24,8 @@
 # written down, so a roster change does not turn a correct run into an alarm.
 #
 # About forty minutes. Read it with, for the run and the two half names,
-#   ./read-run.py micro-<run>-gate-<basis>-a.json \
-#     --compare micro-<run>-gate-<other>-a.json
+#   ./read-run.py <run>-gate-<basis>-a.json \
+#     --compare <run>-gate-<other>-a.json
 
 set -u
 cd "$(dirname "$0")" || exit 1
@@ -34,16 +34,20 @@ if [ $# -lt 1 ]; then
   echo "usage: ./run-gate.sh RUN      # e.g. run12, and it names every file"
   exit 2
 fi
-PREFIX="micro-$1"            # the binaries, the note and this gate's own
-                             # artifacts are all one name, so a verdict cannot
-                             # land on a pair it is not about and no two runs
-                             # can write the same filename
+PREFIX="$1"                  # the binaries, the note and this gate's own
+                             # artifacts all begin with the run, so a verdict
+                             # cannot land on a pair it is not about and no two
+                             # runs can write the same filename. One scheme for
+                             # everything a run leaves: run-major.sh names its
+                             # JSONs the same way, and excludes `$R-gate-`
+                             # from its relaunch guard so this does not read
+                             # as a previous attempt
 # The pair's two halves, as in run-major.sh and for the same reason: BASIS is
 # the half the bench count is read from and the one the run's tables come
 # from. Keep the two scripts' names in step, a gate being about the pair the
 # run will use.
-OTHER=${OTHER:-maxskip}
-BASIS=${BASIS:-aligned}
+OTHER=${OTHER:-maxskippa}
+BASIS=${BASIS:-maxskip}
 SEL=('-m' 'glob' '*/list' '*/build' '*/mut-odo'
      '*/sum-only-early' '*/sum-only-late')
 ARMS=5                       # the globs above, one bench per shape each
