@@ -528,17 +528,29 @@ now rather than a slot in the next run, observed again:
      again. Recorded here rather than left to be rediscovered, because the
      two entries read as independent and are not.
 
-     **What Run 12 compiles turns on Run 11's second question.** If max-skip
-     wins, Run 12 takes it as the basis, and `-fproc-alignment=64` alongside
-     is the obvious companion — it pins each procedure to a 64-byte boundary,
-     so a loop's offset is fixed by its own procedure's internals and is
-     invariant to membership again, which is what the max-skip form gives up.
-     Two things to carry into that decision rather than rediscover: the flag
-     is free on the baseline and **not** on the arms ([the floor
-     section][floor]), and a pair adopting it wants padding, those readings
-     coming from builds that had none. If max-skip does not win, keep the
-     unconditional shim, whose unconditionality is what buys membership
-     invariance today.
+     **Run 11 answered the cost half and left the decision harder, not
+     easier.** Max-skip won on cost: the cheaper build nearly everywhere at
+     a third of the padding, nothing below 0.99 but `build`, up to 1.06 the
+     other way ([the head of the run chapter](#about-the-last-run-run-11)).
+     But cost was never the whole of it, and **the two virtues now point
+     opposite ways for this particular run**: the unconditional shim's
+     unconditionality is what makes a loop's offset invariant to membership,
+     max-skip gives that up by padding only the heads that need it, and Run
+     12 is precisely the run that **adds an arm**. So taking max-skip as the
+     basis and adding the third `-nosum` arm in the same run reintroduces
+     the thing alignment was adopted to remove, and the run would not be
+     able to tell an arm's own cost from what its arrival did to the layout.
+     `-fproc-alignment=64` is the companion that would restore invariance —
+     each procedure pinned to a 64-byte boundary, so a loop's offset is
+     fixed by its own procedure's internals — and two things go into that
+     decision rather than being rediscovered: the flag is free on the
+     baseline and **not** on the arms ([the floor section][floor]), and a
+     pair adopting it wants padding, those readings coming from builds that
+     had none. The three ways out, in the order they should be considered:
+     add the arm on the unconditional shim and take max-skip later; take
+     max-skip with `-fproc-alignment=64` and pay for a fourth kind of build;
+     or split them across two runs, which is what the ordering above already
+     does for the repetition and would do again here.
   3. **The five-bench gate before Run 10's aligned half — run 2026-08-10 and
      it passes**, its verdicts and two corrections being with the predictions
      above. Kept because a later paired run wants the same gate before its own
@@ -915,6 +927,21 @@ now rather than a slot in the next run, observed again:
   probe's both-resident binaries, so Run 10 reproduces that at full budget
   rather than contradicting it.
 
+  **Run 11 says the residual is not stable within itself, which is new.**
+  Re-running that binary puts the pair at **0.9467** on the main set at 21
+  wins of 24, sign p 0.00028, where Run 10 read 0.9685 at 16 of 24 and
+  called it a tie — the point estimate moving two points and the sign test
+  from tie to decisive with nothing changed. Across the nine populations it
+  runs 0.9215 (`revsome`) to 1.0209 (`slice`), reproducing Run 10's 0.9148
+  to 1.0335 as a span while the individual classes swap sides: `bcastmid`
+  and `slice` put `build` behind, `reshape1` puts it ahead by 5% where Run
+  10 had it behind by 3%. And these two arms are the ones the repetition
+  finds least stable anywhere — `mut-odo` the only arm whose geomean leaves
+  1.5%, `build` holding the two widest cells after the wild one ([the floor
+  section][floor]). So the 3% is not one quantity waiting to be attributed:
+  whatever it is fluctuates run to run on arms whose code, layout and slot
+  are all pinned, and an experiment that prices it once has priced one draw.
+
   **The Core route is closed and is not to be re-proposed.** The obvious
   candidate is the call path — `build` being `mut-odo` driven through
   `vBuildVS` — and it has been dumped three times, from Run 6's source, Run
@@ -1090,6 +1117,20 @@ now rather than a slot in the next run, observed again:
   design needs, which [the floor section][floor] records as making a span
   unmeasurable. What can be asked is Run 11 reading this population with
   layout pinned.
+
+  **It has, and the answer is that the slot is real and its size is not.**
+  Run 11 reads this class's floor at **3.27%** — still the run's worst, still
+  the `mut-odo-vecdims` slot, still worst on `scaled-super-r3`, so four runs
+  of five have found a disturbance at one slot on one shape and a pinned
+  layout does not remove it. What did not survive is everything about its
+  magnitude: the pair that carries it swapped, the *distant* one reading
+  1.0327 where the adjacent one is clean at 1.0020, and the sign inverted,
+  both having read *below* 1 in Run 10. The arithmetic half reproduced
+  exactly — raw 1.25% at `f` 0.609, so 1/(1-f) predicts 1.0320 against the
+  1.0327 published — which is the account above holding while the quantity
+  it explains moves by two points between two runs of one binary. So quote
+  this slot as a hazard of the class and never as a figure, and treat a
+  margin under about 3% here as unmeasured.
 - **What does the roster owe the next run?** The exact repetition is **taken**
   and is not owed again for its own sake: Run 11 inherited shapes, roster,
   order, regime and binary, and what it bought is at [the head of the run
@@ -3141,8 +3182,18 @@ of arms gives, which loses the finding.
    exists to answer. Run 11 is the case: every checker green and the
    worklist adjudicated while six errors stood, four of them superlatives
    asserted without sorting the population they quantify over and one
-   contradicting its own paragraph three lines later. An independent reader
-   found them, which is the cheapest way to read one's own write-up cold.
+   contradicting its own paragraph three lines later. **So put an
+   independent checker on the diff against the artifacts, launched when the
+   tables go in rather than at the end**: one, briefed to recompute every
+   added figure from the reader and to re-derive every *only*, *largest* and
+   *N of the nine* by sorting, and to report discrepancies rather than
+   opinions. It is dear per finding — Run 11's cost some thirty times what
+   the same session's own targeted re-checks did — and it is worth it
+   anyway, because its findings are the ones a session has already proved it
+   cannot see in its own prose, and because it returns a completeness the
+   author cannot: 306 of 306 table rows verified rather than the ones
+   somebody thought to check. Launch it early, keep it to one, and leave the
+   placement, contradiction and writing-rule reading to yourself.
    (The rule that a check must be proven able to fail governs the
    instruments themselves and is stated with them, [in the reader's
    section](#the-reader-read-runpy).)
