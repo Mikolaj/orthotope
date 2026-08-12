@@ -142,9 +142,10 @@ Modes:
   --brief           with --aa or --block, drop the standing explanation and
                     the table --in-place installs anyway; every computed
                     figure still prints
-  --check-doc       anchors, replace-list coverage, widths, and a sweep of
-                    the superseded figures still quoted, in README prose
-                    and Main.hs comments alike -- no run needed
+  --check-doc       anchors, the paths the document names, replace-list
+                    coverage, widths, and a sweep of the superseded figures
+                    still quoted, in README prose and Main.hs comments
+                    alike -- no run needed
 
 No run artifacts are kept in this directory: the normal state is none, and
 one is made when a question needs it. That is also when this script runs, so
@@ -1621,6 +1622,92 @@ def unwrappable(lines):
     return out
 
 
+# Where a named path may live. This directory first, then the orthotope
+# checkout it sits in, then the sibling this page cites for horde-ad's
+# benchmark, its docs and its CLAUDE.md.
+PATH_ROOTS = [('.', 'here'), ('..', 'orthotope'),
+              ('../../horde-ad', 'horde-ad')]
+# Names that exist only while a run or a pair does, so their absence is the
+# directory's normal state rather than a broken reference. The templates
+# (`$R-...`, `<prefix>-...`) are caught by the `$`/`<` test instead.
+TRANSIENT_RE = re.compile(r'^(?:micro-pair.*\.txt|smoke.*\.(?:json|md)|'
+                          r'README\.smoke\.md|(?:run|gate|probe)[\w.-]*\.'
+                          r'(?:json|log))$')
+PATH_EXT_RE = re.compile(r'^(?![$<])\S*[^/$<]\.'
+                         r'(?:hs|py|cabal|sh|md|txt|yaml|yml)$')
+
+
+def check_paths(doc):
+    """Resolve every path-shaped name the document backticks.
+
+    Pass 2 of the `doc-verification` discipline, in the one form that is
+    worth mechanizing here. It is anchored on the EXTENSION and not on a
+    slash, which is the whole design: this page backticks criterion bench
+    names, and a bench name is `shape/arm` -- `lenet-L1-28-c1-k5/bq-expand`,
+    `*/list`, `stretch-inner1/bq-expand-b` -- so a slash-based rule reports
+    thirty benches and some arithmetic (`1/(1-f)`, `transpose_2/4/5/6`) as
+    missing files and stops being read, which is the failure the skill's own
+    case study records. Ending in a known source or config extension picks
+    out the eighteen real ones and nothing else.
+
+    A name that does not resolve FAILS: this is the check that catches a
+    renamed script. Names outside any checkout (`~/r/horde-ad`) and
+    templates are not path-shaped by the test above. Transient artifacts are
+    listed separately rather than failed, the normal state of this directory
+    being no run artifact at all.
+
+    The sibling policy differs from the skill's deliberately, and the
+    difference is recorded here rather than left to be rediscovered. That
+    checker STOPS when a configured sibling is absent, because resolving
+    names is the whole of what it does and a partial run proves almost
+    nothing. Here it is one check among several about the page's internal
+    consistency, all of which are worth running without horde-ad mounted --
+    a fresh clone of this branch has no sibling at all. So an absent sibling
+    downgrades to a NOTE that names the count, the root and every path it
+    could not check, which is loud enough not to be a silent degrade.
+
+    Non-vacuous, each confirmed by breaking it and reverting (2026-08-12,
+    against a copy, the README verified byte-identical afterwards):
+    appending a line naming `read-runn.py` failed and named it; naming
+    `docs/ghc-issue-no-such-file.md` failed and named it, which is the
+    sibling half; and appending a bench name and an arithmetic fragment --
+    `stretch-nosuch-shape/bq-nosuch-arm` and `1/(2-g)` -- did NOT fail,
+    the unclassified count going 408 to 410 instead, which is the false
+    positive this check is shaped to avoid and the reason it is anchored on
+    the extension. The absent-sibling branch has a live control too, run by
+    pointing PATH_ROOTS at a directory that does not exist: 14 paths
+    resolved, the other 4 were listed by name under NOT CHECKED with the
+    root, and the run still exited 0.
+    """
+    out = {'ok': [], 'transient': [], 'unresolved': [], 'unmounted': [],
+           'unmounted_root': '', 'in_sibling': 0, 'unclassified': 0}
+    here = os.path.dirname(os.path.abspath(__file__))
+    for tok in sorted(set(re.findall(r'`([^`\s]+)`', doc))):
+        if not PATH_EXT_RE.match(tok):
+            out['unclassified'] += 1
+            continue
+        rel = tok.lstrip('./')
+        if TRANSIENT_RE.match(rel):
+            out['transient'].append(tok)
+            continue
+        for root, label in PATH_ROOTS:
+            base = os.path.join(here, root)
+            if not os.path.isdir(base):
+                if not out['unmounted_root']:
+                    out['unmounted_root'] = root
+                continue
+            if os.path.exists(os.path.join(base, rel)):
+                out['ok'].append(tok)
+                out['in_sibling'] += label == 'horde-ad'
+                break
+        else:
+            if out['unmounted_root']:
+                out['unmounted'].append(tok)
+            else:
+                out['unresolved'].append(tok)
+    return out
+
+
 def check_doc(readme, main_hs):
     """The mechanical half of verifying the write-up, as one command.
 
@@ -1686,6 +1773,22 @@ def check_doc(readme, main_hs):
     else:
         note.append('every anchor resolves, in %s, in %s and in this script'
                     % (os.path.basename(readme), os.path.basename(main_hs)))
+
+    p = check_paths(doc)
+    if p['unresolved']:
+        bad.append('%d named path(s) do not resolve: %s'
+                   % (len(p['unresolved']),
+                      ', '.join(sorted(p['unresolved']))))
+    else:
+        note.append('%d named path(s) resolve, %d of them in a sibling '
+                    'checkout; %d transient and %d not path-shaped, neither '
+                    'checked'
+                    % (len(p['ok']), p['in_sibling'], len(p['transient']),
+                       p['unclassified']))
+    if p['unmounted']:
+        note.append('%d path(s) NOT CHECKED, %s is not mounted: %s'
+                    % (len(p['unmounted']), p['unmounted_root'],
+                       ', '.join(sorted(p['unmounted']))))
 
     # Which section each line sits in, for both the coverage check and the
     # figure sweep.

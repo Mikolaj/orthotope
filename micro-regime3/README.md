@@ -3109,7 +3109,45 @@ of arms gives, which loses the finding.
    requoted without comment — only a movement past the floor earns a
    sentence.
 7. **Verify the write-up before deleting anything.** These are the checks the
-   procedure used to leave to judgement, each of which has caught something:
+   procedure used to leave to judgement, each of which has caught something.
+
+   **This step is the whole of the document verification a run owes, and
+   nothing else is to be reached for.** A write-up is a document edit, so
+   the three-pass discipline applies — but its passes live here, in this
+   repo's own instruments, and the general-purpose form of it does not fit
+   a page whose claims are *measurements* rather than statements about
+   code. Pass 1, which resolves `file:line` citations and pinned
+   permalinks, has no subject: this page cites no line and no permalink,
+   deliberately, and what it does cite — arm names, strategy names, shape
+   names, `Main.hs` functions — is what `--lint` checks, which a line
+   number could not, a citation surviving the refactor that moves it. Pass
+   2 is `--check-doc`'s path check. Pass 3 is the reading, below. The
+   heading-scope and cross-reference passes are `--check-doc`'s anchor and
+   replace-list coverage checks. **Do not run another repository's
+   checkers against this page**: theirs carry a per-repo configuration —
+   search roots, an owned module namespace, an allowlist — so pointed here
+   they resolve this directory's names in their own tree and report correct
+   names as missing, which is the noise-for-signal failure that stops a
+   checker being read at all. If a future document here does grow
+   `file:line` citations, that is the moment to port one, and not before.
+
+   **What the instruments cannot supply is the reading, and the reading is
+   the pass.** What the tools print is its output and not its method:
+   `--check-doc`'s three sweeps hand you a worklist of superseded figures,
+   superlatives and absolute times, and adjudicating that list is not
+   reading the document. Nor is inheriting one — a worklist you did not
+   derive verifies somebody else's findings while telling you nothing about
+   what else is wrong, which is the completeness question the reading
+   exists to answer. Run 11 is the case: every checker green and the
+   worklist adjudicated while six errors stood, four of them superlatives
+   asserted without sorting the population they quantify over and one
+   contradicting its own paragraph three lines later. An independent reader
+   found them, which is the cheapest way to read one's own write-up cold.
+   (The rule that a check must be proven able to fail governs the
+   instruments themselves and is stated with them, [in the reader's
+   section](#the-reader-read-runpy).)
+
+   The checks themselves:
    1. **derive every count and ratio in the prose from `--cells`, never by
       eye** -- and for a class paragraph, from the verdicts `--block` now
       emits under its per-shape line, which state the three properties'
@@ -3420,13 +3458,20 @@ check compared them; one list now builds both, so the drift cannot happen
 rather than being merely detectable. A check that cannot fail is a silent
 search, so it was replaced rather than kept.
 
-That is the standing rule for everything under `--lint`, `--selftest` and the
+That is the standing rule for everything under `--lint`, `--selftest`,
+`--check-doc` and the
 `health` warnings, and it is why each carries a recorded proof in its
 docstring: **a new check is not finished until it has been made to fail on
 purpose**, with what was broken and what it then said written down beside it.
 Several here can only fail on data no real run produces — a forcing term
 larger than the cell it is subtracted from, a term that does not scale with
 `l` — so provoking them is the only way to know they are wired to anything.
+It reaches a pass run *by hand* too, which has the same failure and no exit
+status to hint at it: before calling one clean, break something it ought to
+catch and confirm it says so. And it reaches a check's every *branch*: the
+path check's absent-sibling arm is exercised by pointing its roots at a
+directory that does not exist, since a branch no control reaches is a silent
+search whatever the checks around it do.
 
 `--selftest` checks invariants of whatever run it is given: that the dims it
 parses out of `Main.hs` match that file's own `l` annotations, that every cell
