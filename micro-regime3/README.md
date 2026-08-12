@@ -520,13 +520,24 @@ now rather than a slot in the next run, observed again:
      membership change which, in an aligned build, relocates no loop — the
      first thing alignment buys the queue rather than the tables.
      **But it must not go into a run that is taking the exact repetition**,
-     and Run 11 is that run. The repetition needs membership pinned as well
-     as layout, so this entry and the roster entry below cannot both be
+     and Run 11 was that run. The repetition needed membership pinned as well
+     as layout, so this entry and the roster entry below could not both be
      satisfied at once; the resolution is ordering, not a judgement about
-     which matters more. Run 11 takes the repetition, the run after adds this
-     arm — cheap by then, layout being pinned — and a later one can repeat
-     again. Recorded here rather than left to be rediscovered, because the
-     two entries read as independent and are not.
+     which matters more. Recorded here rather than left to be rediscovered,
+     because the two entries read as independent and are not.
+
+     **It is now postponed again, to Run 13, and for the same kind of reason
+     twice over.** Run 11 took the repetition; Run 12 takes the basis
+     question that Run 11's second answer opened, and adding an arm in the
+     same run as a change of shim would confound the arm's own cost with what
+     its arrival does to a layout the new shim no longer pins. So the order
+     is: Run 12 settles which build publishes the table, Run 13 adds this arm
+     to whatever that turns out to be — and if Run 12 lands on a basis
+     without membership invariance, Run 13 owes a check that the addition
+     relocated nothing before it owes anything else. Twice postponed is worth
+     noticing rather than defending: this arm has been due since Run 11 and
+     is cheap, so if it slips a third time the reason should be written here
+     or the entry should be promoted over whatever displaced it.
 
      **Run 11 answered the cost half and left the decision harder, not
      easier.** Max-skip won on cost: the cheaper build nearly everywhere at
@@ -540,17 +551,36 @@ now rather than a slot in the next run, observed again:
      basis and adding the third `-nosum` arm in the same run reintroduces
      the thing alignment was adopted to remove, and the run would not be
      able to tell an arm's own cost from what its arrival did to the layout.
-     `-fproc-alignment=64` is the companion that would restore invariance —
-     each procedure pinned to a 64-byte boundary, so a loop's offset is
-     fixed by its own procedure's internals — and two things go into that
-     decision rather than being rediscovered: the flag is free on the
-     baseline and **not** on the arms ([the floor section][floor]), and a
-     pair adopting it wants padding, those readings coming from builds that
-     had none. The three ways out, in the order they should be considered:
-     add the arm on the unconditional shim and take max-skip later; take
-     max-skip with `-fproc-alignment=64` and pay for a fourth kind of build;
-     or split them across two runs, which is what the ordering above already
-     does for the repetition and would do again here.
+     **The way out is the one this page's pairings already use, and stating
+     it saves the next run rediscovering it: the second half is where the
+     run's question goes.** Run 10 paired against an unaligned build and
+     priced layout; Run 11 against max-skip and priced the padding.
+     **Run 12's pair is `micro-maxskip` and `micro-maxskippa`**, both
+     carrying the shim in its max-skip form and differing in
+     `-fproc-alignment=64` alone — built and gated 2026-08-12, the recipe,
+     the derived padding and the checks in `micro-pair-run12.txt`. **The
+     basis is `micro-maxskip`**: it publishes the table, which is a change of
+     basis and the second this page has made.
+
+     Two things about that pair are worth having here rather than only in
+     its note. `micro-both` was the obvious candidate and is the wrong one:
+     it carries the *unconditional* shim with the flag, not because anything
+     preferred that combination but because it was built on 2026-08-11 at
+     12:51, hours before the max-skip form existed at all — a composition
+     that is chronology and not design, and a name that invites being read
+     as design. And the pair does not separate the flag from the offsets it
+     produces, since pinning procedures is *how* it works: the halves' fills
+     are `[11, 0, 4, 0]`/`[24, 8, 0, 0]` against `[4, 0, 4, 0]`/`[8, 8, 4,
+     4]`, none straddling either side. That is the right quantity for a
+     basis decision, adopting the flag being adopting its offsets, and the
+     wrong one for asking what a resident offset costs alone — which is a
+     probe on the pad-probe model and not a paired run, and should not be
+     loaded onto Run 12.
+
+     So the three runs decompose the two variables one at a time: Run 11
+     priced the shim, Run 12 prices the flag, and **Run 13 adopts whichever
+     combination the two price best and adds the arm under the flag's
+     invariance**, which is what makes an addition safe to attribute.
   3. **The five-bench gate before Run 10's aligned half — run 2026-08-10 and
      it passes**, its verdicts and two corrections being with the predictions
      above. Kept because a later paired run wants the same gate before its own
@@ -1085,6 +1115,21 @@ now rather than a slot in the next run, observed again:
   a dispersion belonging to the *worker* from one belonging to the *slot* is
   a run with the two arms' roster positions exchanged, which an aligned build
   now makes a membership-free edit.
+
+  **And at sample level the pair is one thing again, which the CI% column
+  hides** (2026-08-12, arithmetic over Run 11's two main sets, no machine
+  time). Taking each cell's residual about its own fitted line, per
+  iteration, as a fraction of that cell's slope, and medianing over shapes:
+  `mut-odo` scatters **21.9%** on the aligned half and `build` **32.7%**,
+  against `mut-odo-vecdims`'s 3.1% and `list`'s 3.2% — an order of magnitude,
+  and `build` the worse of the two where its *interval* is much the narrower
+  (CI% 0.44 against 0.82). So the entry's earlier reading, that this is one
+  arm and its code twin does not follow, was an artefact of reading CI%: the
+  twin does follow, and by more. Both roughly halve on the max-skip half,
+  11.1% and 22.8%, where `list` and the vecdims arms barely move. That is
+  the same pair, behaving together, on the same two binaries as [the 3% that
+  survives alignment][open] — recorded as a measurement, not a mechanism,
+  since nothing here says what the scatter is.
 - **Why did `list` move 18% on `stretch-tall-Mx2` between two runs that did
   not touch it? Answered: because those two runs did not hold the layout
   still.** Run 11 inherited shapes, roster, regime and layout and reads that
@@ -1136,12 +1181,14 @@ now rather than a slot in the next run, observed again:
   order, regime and binary, and what it bought is at [the head of the run
   chapter](#about-the-last-run-run-11) — a drift band a quarter of the one
   this page had been quoting, and every claim reproducing on it. What the
-  roster owes now is the third `-nosum` arm the queue holds, deferred out of
-  Run 11 precisely so that its membership stayed pinned, and cheap on an
-  aligned build where adding one relocates no loop. A return to -O1 — the
-  regime `Data/Array/Internal.hs` actually compiles under, unvisited since
-  Run 7 — stays open behind it, and is the more expensive of the two, an
-  aligned -O1 build being a fourth kind of column.
+  roster owes is still the third `-nosum` arm the queue holds, deferred out
+  of Run 11 so that its membership stayed pinned and now out of Run 12 so
+  that it does not arrive in the same run as a change of shim: **it is Run
+  13's**, and cheap on any build that pins a loop's offset against
+  membership, which is the property Run 12's basis choice decides. A return
+  to -O1 — the regime `Data/Array/Internal.hs` actually compiles under,
+  unvisited since Run 7 — stays open behind it, and is the more expensive of
+  the two, an aligned -O1 build being a fourth kind of column.
   `--check-doc` enforces the yardstick's shape in the one direction it safely
   can: a run named aligned must also be named unaligned, so dropping Run 10's
   unaligned column fails the check. Dropping an *aligned* one cannot be
@@ -2939,7 +2986,21 @@ rather than a variable it inherits:
 
 It refuses without one, the prefix being the run's identity: artifacts called
 `run-*` would not say which run made them and the next run would overwrite
-them. What it adds over pasting the sequence is the counting: every
+them. **It also refuses to start where that name already has artifacts,
+which makes an interrupted sequence a hand job — expect that, since the
+machine gets wanted back.** The guard is right (relaunching overwrites hours
+in place), but it has no resume, so finishing a sequence whose main sets
+landed and whose classes did not means running the class loop yourself: the
+`for c in ...` half of the sequence above, with the basis half's name, an
+`[ -e "$out.json" ] && continue` before each so a population that already
+ran is skipped rather than redone, and its `benchmarking` count checked
+against `classes --list` as the driver does. Stamp each into the same
+`$R-wallclock.log`, so the run's own record stays one file, and say in the
+write-up that the populations ran in more than one window — one process per
+population is what makes that harmless, each carrying its own controls and
+gates, but it is a fact about the run and the chapter states it.
+
+What it adds over pasting the sequence is the counting: every
 process's bench count is checked against what the roster holds, so a selection
 that silently caught the wrong set is loud in the log at once instead of at
 the write-up — loud rather than fatal: the sequence carries on to the next
