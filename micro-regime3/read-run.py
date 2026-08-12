@@ -1566,6 +1566,45 @@ SUPERLATIVE_RE = [re.compile(p, re.I) for p in (
 MS_RE = re.compile(r'\b\d+(?:\.\d+)?\s*ms\b')
 
 
+def unwrapped_paragraphs(lines):
+    """[(first line, paragraph, spans)] with each paragraph on one line.
+
+    From `wrap80 --unwrap`, the formatter that writes this file, so that what
+    counts as a paragraph is what counts as one everywhere else rather than a
+    second opinion kept here. `spans` is [(line number, words on it)] for the
+    lines the paragraph came from, which is what places a match: counted in
+    words and not characters, because unwrapping may set a sentence gap to two
+    spaces where the break had been and a character offset would then point a
+    column out.
+
+    Table rows are dropped, as every caller wants prose. Without wrap80
+    nothing is returned and the caller is told so: a read that silently
+    narrows is the failure this exists to undo.
+    """
+    try:
+        flat = subprocess.run(['wrap80', '--unwrap'], input='\n'.join(lines),
+                              text=True, capture_output=True,
+                              check=True).stdout
+    except (OSError, subprocess.CalledProcessError) as e:
+        raise SystemExit('BLOCKED: wrap80 --unwrap failed (%s), so no prose'
+                         ' was read at all' % e)
+    src = [(n, l.strip()) for n, l in enumerate(lines, 1)
+           if l.strip() and not l.lstrip().startswith('|')]
+    out, k = [], 0
+    for para in (l for l in flat.split('\n') if l.strip()):
+        if para.lstrip().startswith('|'):
+            continue
+        words, first, spans = para.split(), None, []
+        while k < len(src) and sum(c for _, c in spans) < len(words):
+            n, l = src[k]
+            if first is None:
+                first = n
+            spans.append((n, len(l.split())))
+            k += 1
+        out.append((first, para, spans))
+    return out
+
+
 def prose_hits(lines, pats):
     """[(line number, line)] for each line whose PARAGRAPH matches a pattern.
 
@@ -1580,36 +1619,32 @@ def prose_hits(lines, pats):
     point where a reader should look, and a line matching twice is listed
     once, as it was when the test was `any`.
 
-    Table rows are excluded, as before. Indentation alone does not mark a
-    block here, because this file indents a list item's continuation exactly
-    as deeply as it indents code: 591 lines of the first against 34 of the
-    second. What separates them is position -- code opens a run of lines
-    after a blank, continuation prose sits inside one -- and reading it that
-    way keeps the segmentation from moving when a reflow lengthens an item.
-    A line that opens a run indented is read alone and glues nothing.
+    What a paragraph is comes from `wrap80 --unwrap`, the formatter that
+    writes this file, rather than from a second opinion kept here: one
+    definition, in the tool that enforces it. The rule it applies is the one
+    this function used to carry -- indentation alone cannot mark a block,
+    since a list item's continuation is indented exactly as deeply as code,
+    and what separates them is that code opens a run of lines after a blank
+    while continuation prose sits inside one.
+
+    A match is placed by counting words rather than characters, because
+    unwrapping may set a sentence gap to two spaces where the line break had
+    been, and a character offset would then point one column out.
+
+    Without wrap80 nothing is swept and the caller is told so: a sweep that
+    silently narrows is the failure this function exists to undo.
     """
-    out, para = [], []
-
-    def flush():
-        text, starts = '', []
-        for n, l in para:
-            starts.append((len(text), n, l))
-            text += l.strip() + ' '
+    out = []
+    for first, para, spans in unwrapped_paragraphs(lines):
         for p in pats:
-            for m in p.finditer(text):
-                out.append(next((n, l) for off, n, l in reversed(starts)
-                                if off <= m.start()))
-        del para[:]
-
-    for n, l in enumerate(lines, 1):
-        if not l.strip() or l.lstrip().startswith('|'):
-            flush()
-        elif l.startswith('    ') and not para:
-            para.append((n, l.strip()))   # opens a run, so it is a block:
-            flush()                       # read alone, gluing nothing
-        else:
-            para.append((n, l.strip()))
-    flush()
+            for m in p.finditer(para):
+                at, seen = len(para[:m.start()].split()), 0
+                line = first
+                for n, c in spans:
+                    if seen > at:
+                        break
+                    line, seen = n, seen + c
+                out.append((line, para))
     return sorted(set(out))
 
 
@@ -1793,29 +1828,32 @@ def paragraphs(readme, pattern):
     opens with a bolded lead, which is also what `grep -n '^\*\*'` is
     documented as giving a section's contents.
 
-    Non-vacuous (2026-08-12): `--para 'wild cell'` returned the three
+    A paragraph is what `wrap80 --unwrap` says it is, which is what the
+    sweeps read too. Splitting on blank lines instead made a bulleted run one
+    paragraph, so a lead inside one printed the whole run: 16 lines where the
+    paragraph asked for is 3, over the 16 blocks here that hold more than one
+    bullet, the largest 73 lines.
+
+    Non-vacuous (2026-08-13): `--para 'wild cell'` returned the two
     paragraphs whose leads name it and not the dozens of lines that mention
     it; `--para 'no such lead anywhere'` printed the no-match line and
-    exited 1; and a pattern matching a lead split over two lines was found,
-    the lead being matched after the block is joined.
+    exited 1; and a lead broken over two lines is still matched, the
+    paragraph being one line by the time the pattern sees it.
     """
     try:
-        text = open(readme).read()
+        lines = open(readme).read().split('\n')
     except OSError as e:
         sys.stderr.write('--para: %s\n' % e)
         return 2
     rx = re.compile(pattern, re.I)
-    line = 1
     hits = 0
-    for block in text.split('\n\n'):
-        n = block.count('\n') + 2
-        lead = LEAD_RE.search(block)
+    for first, para, _ in unwrapped_paragraphs(lines):
+        lead = LEAD_RE.search(para)
         if lead and rx.search(' '.join(lead.group(1).split())):
-            print('%s:%d' % (os.path.basename(readme), line))
-            print(block.strip('\n'))
+            print('%s:%d' % (os.path.basename(readme), first))
+            print(para)
             print()
             hits += 1
-        line += n
     if not hits:
         print('no paragraph whose bolded lead matches %r; the body is not'
               ' searched, on purpose' % pattern)
