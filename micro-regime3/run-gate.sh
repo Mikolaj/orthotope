@@ -58,6 +58,20 @@ for h in $OTHER $BASIS; do
   [ -x "./$PREFIX-$h" ] || { echo "missing ./$PREFIX-$h -- $NOTE has the recipe"; exit 1; }
 done
 
+# The note is checked HERE and not at the end, where the verdict is written.
+# It used to be checked only there, after the four processes, so a pair with
+# no note beside it cost the whole forty minutes before anything said the
+# verdict had nowhere to live -- and a gate whose verdict cannot be recorded
+# is a gate nobody will trust tomorrow. Refuse before spending the machine.
+if [ ! -f "$NOTE" ]; then
+  echo "no $NOTE beside the pair, so this gate's verdict would have nowhere"
+  echo "to live. make-pair.py writes that file; a hand-built pair wants one"
+  echo "by hand, with the recipe for each half -- which is the only copy"
+  echo "there is. Write it first: forty minutes of gate cannot be replayed"
+  echo "from a scroll-back."
+  exit 1
+fi
+
 SHAPES=$(./"$PREFIX-$BASIS" --list 2>/dev/null | cut -d/ -f1 | sort -u | wc -l)
 [ "$SHAPES" -gt 0 ] || { echo "--list gave nothing; wrong binary?"; exit 1; }
 EXPECT=$((ARMS * SHAPES))
@@ -97,10 +111,12 @@ echo "=== $(date -Is) gate complete"
 # reading's verdict and a person's to write, so the line says which half it
 # is; an unconditional "the gate ran" is what a truncated JSON behind a green
 # scroll-back looks like.
+# Kept as a backstop, the note having been checked before the processes ran:
+# it can only fire if something removed the file during the forty minutes.
 if [ ! -f "$NOTE" ]; then
-  echo "!! no $NOTE beside the pair, so the gate's verdict has nowhere to live."
-  echo "   make-pair.py writes that file; a hand-built pair wants one by hand."
-  echo "   The run artifacts are on disk regardless -- $PREFIX-gate-*.json/.log."
+  echo "!! $NOTE went missing while the gate ran, so its verdict has nowhere"
+  echo "   to live. The run artifacts are on disk regardless --"
+  echo "   $PREFIX-gate-*.json/.log."
   exit 1
 fi
 { if [ "$BAD" -eq 0 ]; then

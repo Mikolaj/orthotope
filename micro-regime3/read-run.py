@@ -146,6 +146,8 @@ Modes:
                     coverage, widths, and a sweep of the superseded figures
                     still quoted, in README prose and Main.hs comments
                     alike -- no run needed
+  --para PATTERN    print README paragraphs whose bolded lead matches, with
+                    the line each starts at -- no run needed
 
 No run artifacts are kept in this directory: the normal state is none, and
 one is made when a question needs it. That is also when this script runs, so
@@ -187,6 +189,7 @@ import io
 import json
 import math
 import os
+import subprocess
 import random
 import re
 import signal
@@ -1732,6 +1735,95 @@ def check_paths(doc):
     return out
 
 
+# A sentinel for "no diff to compare against", distinct from "the diff adds
+# nothing": with it every hit prints in the flat old form rather than being
+# reported as not-new, which would be a lie about an unknown.
+EVERYTHING = frozenset()
+
+
+def added_lines(*paths):
+    """The stripped text of every line this working tree ADDS over HEAD.
+
+    Matched by content, not by line number, because a sweep hit carries the
+    line it sits on and an edit above it moves every number below. A line
+    the diff adds and that also existed elsewhere before is a false
+    positive here, which costs one entry printed under NEW and is the safe
+    direction to err in.
+
+    Returns EVERYTHING when there is no diff to be had -- not a git
+    checkout, git absent, or the file untracked -- so the caller falls back
+    to the flat listing rather than announcing that nothing is new.
+
+    Non-vacuous, all three branches exercised 2026-08-12: with README.md
+    edited it returned 103 added lines and `sweep` printed the one new
+    superlative under NEW, where 73 older ones stayed below; against
+    `Main.hs`, which this tree does not touch, it returned the empty set and
+    the sweeps said "none added by this diff"; and against a path outside
+    the repo, where `git diff` exits non-zero, it returned EVERYTHING and
+    the flat form came back. The last is the branch worth naming: `cwd` is
+    pinned to this script's directory, so the "not a checkout" case cannot
+    be reached by running from elsewhere and needs git itself to fail.
+    """
+    try:
+        out = subprocess.run(['git', 'diff', '-U0', '--'] + list(paths),
+                             cwd=os.path.dirname(os.path.abspath(__file__)),
+                             capture_output=True, text=True, timeout=20)
+    except (OSError, subprocess.SubprocessError):
+        return EVERYTHING
+    if out.returncode != 0:
+        return EVERYTHING
+    return frozenset(l[1:].strip() for l in out.stdout.split('\n')
+                     if l.startswith('+') and not l.startswith('+++')
+                     and l[1:].strip())
+
+
+LEAD_RE = re.compile(r'\*\*(.+?)\*\*', re.S)
+
+
+def paragraphs(readme, pattern):
+    r"""Print the paragraphs whose BOLDED LEAD matches, and their line numbers.
+
+    Retrieval, so that reading a paragraph does not mean finding it first.
+    A session working through this page otherwise pairs a `grep -n` with a
+    `sed -n` for every passage it wants, and both go stale the moment an
+    edit above moves the lines -- which every `--in-place` install and every
+    prose fix does. Matching the lead rather than the body is what keeps the
+    output one paragraph instead of every line that mentions a word.
+
+    The page guarantees the precondition this leans on: every paragraph
+    opens with a bolded lead, which is also what `grep -n '^\*\*'` is
+    documented as giving a section's contents.
+
+    Non-vacuous (2026-08-12): `--para 'wild cell'` returned the three
+    paragraphs whose leads name it and not the dozens of lines that mention
+    it; `--para 'no such lead anywhere'` printed the no-match line and
+    exited 1; and a pattern matching a lead split over two lines was found,
+    the lead being matched after the block is joined.
+    """
+    try:
+        text = open(readme).read()
+    except OSError as e:
+        sys.stderr.write('--para: %s\n' % e)
+        return 2
+    rx = re.compile(pattern, re.I)
+    line = 1
+    hits = 0
+    for block in text.split('\n\n'):
+        n = block.count('\n') + 2
+        lead = LEAD_RE.search(block)
+        if lead and rx.search(' '.join(lead.group(1).split())):
+            print('%s:%d' % (os.path.basename(readme), line))
+            print(block.strip('\n'))
+            print()
+            hits += 1
+        line += n
+    if not hits:
+        print('no paragraph whose bolded lead matches %r; the body is not'
+              ' searched, on purpose' % pattern)
+        return 1
+    return 0
+
+
 def check_doc(readme, main_hs):
     """The mechanical half of verifying the write-up, as one command.
 
@@ -1889,25 +1981,50 @@ def check_doc(readme, main_hs):
                     if not l.lstrip().startswith('|')
                     and any(p.search(l) for p in SUPERLATIVE_RE)]
 
+    added = added_lines(readme, main_hs)
+
+    def sweep(hits, headline):
+        """Print a sweep, NEW FIRST and counted apart.
+
+        The whole value of these lists is which entries a write-up just
+        wrote, and that is the one thing the flat form cannot show: Run 11
+        shipped four false superlatives that were sitting in a list of 71,
+        indistinguishable from 67 correct ones, and a wall of 71 gets
+        adjudicated as a wall. `added` is the set of lines this working tree
+        adds over HEAD, matched by content rather than by line number, so a
+        hit is new when the line it sits on is new.
+        """
+        fresh = [h for h in hits if h[1] in added]
+        old_ = [h for h in hits if h[1] not in added]
+        if added is EVERYTHING:
+            print('note: %d %s' % (len(hits), headline))
+        elif fresh:
+            print('note: %d %s -- %d ADDED BY THIS DIFF, listed first and'
+                  ' the only ones this write-up owes:' % (len(hits), headline,
+                                                          len(fresh)))
+        else:
+            print('note: %d %s -- none added by this diff:'
+                  % (len(hits), headline))
+        for i, l in fresh:
+            print('    NEW %s: %s' % (i, l[:60]))
+        for i, l in old_:
+            print('        %s: %s' % (i, l[:60]))
+
     for line in note:
         print('ok:   ' + line)
     if comparatives:
-        print('note: %d superseded figure(s) quoted; each has to earn its'
-              ' place by the redo test, so adjudicate rather than assume:'
-              % len(comparatives))
-        for i, l in comparatives:
-            print('        %s: %s' % (i, l[:60]))
+        sweep(comparatives, 'superseded figure(s) quoted; each has to earn'
+              ' its place by the redo test, so adjudicate rather than assume')
     if superlatives:
-        print('note: %d superlative(s) in prose; each is a claim about the'
-              ' whole table, so derive it by sorting rather than from the'
-              ' arms the sentence is about:' % len(superlatives))
-        for i, l in superlatives:
-            print('        %s: %s' % (i, l[:60]))
+        sweep(superlatives, 'superlative(s) in prose; each is a claim about'
+              ' the whole table, so derive it by sorting rather than from'
+              ' the arms the sentence is about')
     if foreign:
-        print('note: %d absolute time figure(s) quoted in prose; a class'
+        sweep([('%s:%d' % (os.path.basename(readme), i), l)
+               for i, l in foreign],
+              'absolute time figure(s) quoted in prose; a class'
               " block's anchor is its run's, replaced with its block --"
-              ' check any other against the repo it came from:'
-              % len(foreign))
+              ' check any other against the repo it came from')
         for i, l in foreign:
             print('        %d: %s' % (i, l[:66]))
 
@@ -2467,6 +2584,9 @@ def main():
     p.add_argument('--selftest', action='store_true')
     p.add_argument('--lint', action='store_true')
     p.add_argument('--check-doc', action='store_true')
+    p.add_argument('--para', metavar='PATTERN',
+                   help="print README paragraphs whose bolded lead matches,"
+                        " with the line each starts at; needs no run file")
     p.add_argument('--readme', default=os.path.join(here, 'README.md'),
                    help='README.md to check bench names against'
                         ' (default: alongside)')
@@ -2477,6 +2597,8 @@ def main():
                    metavar='SHAPE')
     args = p.parse_args()
 
+    if args.para:
+        sys.exit(paragraphs(args.readme, args.para))
     if args.check_doc:
         sys.exit(check_doc(args.readme, args.main))
     if args.lint:
