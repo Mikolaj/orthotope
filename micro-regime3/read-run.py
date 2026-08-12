@@ -1565,6 +1565,53 @@ SUPERLATIVE_RE = [re.compile(p, re.I) for p in (
 MS_RE = re.compile(r'\b\d+(?:\.\d+)?\s*ms\b')
 
 
+def prose_hits(lines, pats):
+    """[(line number, line)] for each line whose PARAGRAPH matches a pattern.
+
+    Matching line by line makes the answer depend on where the prose happens
+    to be wrapped, because a phrase the pattern needs whole -- "where Run 9",
+    "the fastest" -- stops matching as soon as a break lands inside it. That
+    is invisible: the sweep just gets quieter, and nothing says a claim went
+    unadjudicated. Reflowing this file to its 80-column limit moved one
+    comparative out of sight and brought six superlatives back into it, none
+    of the seven having changed a word, which is what put this here. A match
+    is reported against the line it starts on, so the line numbers still
+    point where a reader should look, and a line matching twice is listed
+    once, as it was when the test was `any`.
+
+    Table rows are excluded, as before. Indentation alone does not mark a
+    block here, because this file indents a list item's continuation exactly
+    as deeply as it indents code: 591 lines of the first against 34 of the
+    second. What separates them is position -- code opens a run of lines
+    after a blank, continuation prose sits inside one -- and reading it that
+    way keeps the segmentation from moving when a reflow lengthens an item.
+    A line that opens a run indented is read alone and glues nothing.
+    """
+    out, para = [], []
+
+    def flush():
+        text, starts = '', []
+        for n, l in para:
+            starts.append((len(text), n, l))
+            text += l.strip() + ' '
+        for p in pats:
+            for m in p.finditer(text):
+                out.append(next((n, l) for off, n, l in reversed(starts)
+                                if off <= m.start()))
+        del para[:]
+
+    for n, l in enumerate(lines, 1):
+        if not l.strip() or l.lstrip().startswith('|'):
+            flush()
+        elif l.startswith('    ') and not para:
+            para.append((n, l.strip()))   # opens a run, so it is a block:
+            flush()                       # read alone, gluing nothing
+        else:
+            para.append((n, l.strip()))
+    flush()
+    return sorted(set(out))
+
+
 def headings_of(text):
     """Every heading and the anchor GitHub gives it."""
     out = {}
@@ -1962,24 +2009,18 @@ def check_doc(readme, main_hs):
     else:
         note.append('prose, comments and this script are inside their widths')
 
-    comparatives = [('%s:%d' % (os.path.basename(readme), i), l.strip())
-                    for i, l in enumerate(lines, 1)
-                    if not l.lstrip().startswith('|')
-                    and any(p.search(l) for p in COMPARATIVE_RE)]
+    comparatives = [('%s:%d' % (os.path.basename(readme), i), l)
+                    for i, l in prose_hits(lines, COMPARATIVE_RE)]
     comparatives += [('%s:%d' % (os.path.basename(main_hs), i),
                       l.split('--', 1)[1].strip())
                      for i, l in enumerate(main.split('\n'), 1)
                      if '--' in l
                      and any(p.search(l.split('--', 1)[1])
                              for p in COMPARATIVE_RE)]
-    foreign = [(i, l.strip()) for i, l in enumerate(lines, 1)
-               if not l.lstrip().startswith('|')
-               and not l.startswith('    ')
-               and MS_RE.search(l)]
-    superlatives = [('%s:%d' % (os.path.basename(readme), i), l.strip())
-                    for i, l in enumerate(lines, 1)
-                    if not l.lstrip().startswith('|')
-                    and any(p.search(l) for p in SUPERLATIVE_RE)]
+    foreign = [(i, l) for i, l in prose_hits(lines, [MS_RE])
+               if not lines[i - 1].startswith('    ')]
+    superlatives = [('%s:%d' % (os.path.basename(readme), i), l)
+                    for i, l in prose_hits(lines, SUPERLATIVE_RE)]
 
     added = added_lines(readme, main_hs)
 
