@@ -1203,7 +1203,47 @@ now rather than a slot in the next run, observed again:
   under it writes no JSON at all — measured, not read off the help text.
   There is no other way to fix the schedule from the command line, so the
   mechanism cannot be tested by pinning it, and [the queue][open] records
-  that dead rather than leaving it to be re-proposed.
+  that dead rather than leaving it to be re-proposed. What `-n` *is* for is
+  the next paragraph.
+
+  **The block-pool issue this project filed is the nearest precedent, and
+  its methods are the ones to reach for next** —
+  `docs/ghc-issue-block-pool-fragmentation.md` in horde-ad, with the full
+  analysis in `docs/position-effect.md`. **The bug itself is probably not
+  this**: its symptom is a pool that doubles and stays doubled, and
+  `max_mem_in_use` across the four main-set processes of Runs 10 and 11 sits
+  at 218 to 220 MiB with the *wild* process the smallest of them; nor does
+  any of the 24 main-set shapes allocate in the worst-case band just above
+  the 3276-byte large-object limit. **But its description of the statistical
+  signature is this situation verbatim**, and having it filed upstream is
+  worth more than re-deriving it: a bias rather than noise, regression fits
+  staying tight around a value wrong by a fifth, more samples in the same
+  process shrinking the interval *around the wrong value*, and — the part
+  that matches the lottery — an effect that in rare runs does not reproduce
+  and whose magnitude differs randomly from run to run.
+
+  **So the instrument that report used is the one this question wants**:
+  `perf stat` over runs with a fixed iteration count, read per iteration.
+  Its table is the model — task-clock, instructions, dTLB-load-misses,
+  cache-misses, page faults, clock — and it identified last-level cache
+  misses by finding instructions equal to 0.9994, clock equal, GC and
+  allocation equal, and cache-misses 2.86 times. Three of those rows are
+  already known here and agree: the clock is fixed, allocation is identical
+  to the byte, GC is flat. **The missing row is the cache misses, and only
+  `perf` can supply it** — paired with `-n`, whose fixed iteration count and
+  absence of analysis is exactly what that method wants, which is what `-n`
+  is for and why its retraction above is about JSON alone. `+RTS -H2G` is
+  the control the same report validates: a pool taken in one contiguous
+  piece removed the cost there, so a wild cell surviving `-H2G` is not pool
+  structure.
+
+  **What blocks it here is the machine, not the method.** `perf` is
+  installed (7.0.12) but its hardware counters are unavailable from a
+  session: `perf stat true` reports `cpu-cycles:u <not supported>`, with
+  `perf_event_paranoid` at 4. That is the class of thing [the portable
+  notes](#provenance) put in Mikolaj's plain terminal rather than a
+  session's, and it wants the sysctl lowered before any of this can be
+  measured at all.
 
   So what remains is a **plain repeat of the aligned main set**, 70 minutes
   quiet, which cannot be filtered — a filtered run puts every arm at the
