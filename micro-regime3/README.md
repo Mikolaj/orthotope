@@ -1237,13 +1237,30 @@ now rather than a slot in the next run, observed again:
   piece removed the cost there, so a wild cell surviving `-H2G` is not pool
   structure.
 
-  **What blocks it here is the machine, not the method.** `perf` is
-  installed (7.0.12) but its hardware counters are unavailable from a
-  session: `perf stat true` reports `cpu-cycles:u <not supported>`, with
-  `perf_event_paranoid` at 4. That is the class of thing [the portable
-  notes](#provenance) put in Mikolaj's plain terminal rather than a
-  session's, and it wants the sysctl lowered before any of this can be
-  measured at all.
+  **`perf` needs `kernel.perf_event_paranoid` lowered from this machine's 4
+  before it counts anything** — at 4 it reports `cpu-cycles:u <not
+  supported>` — and that is a `sudo sysctl -w` in a plain terminal, not
+  something a session can do.
+
+  **Run 2026-08-12, and the cell does not reproduce filtered, as expected.**
+  Differencing `-n 40000` against `-n 20000` on `micro-run12-maxskip`, which
+  removes the process's fixed cost exactly rather than diluting it — at
+  `-n 200` startup was 45% of task-clock and the counters said nothing —
+  `lenet-L1-28-c1-k5/bq-expand` and its adjacent twin come out at **54.10
+  against 53.95 µs an iteration, 866206 against 866252 instructions, 1102.6
+  against 1106.4 cache misses, 19.9 against 21.0 dTLB misses**. Everything
+  inside a third of a percent but the dTLB, which is 5% on a base of twenty.
+  A filtered process has no allocation history and a clean pool, so there
+  was nothing for the effect to arise from; the null is consistent with the
+  surviving account rather than against it. Three things it does buy: the
+  **instructions agree to 5e-5**, which is the first instruction-level proof
+  that an A/A pair is the same work and the control row that must stay flat
+  when the effect does reproduce; a per-call counter baseline for that bench
+  to compare a wild cell against; and **criterion's slope confirmed by an
+  instrument sharing no code with it**, 54.10 µs against the 53.46 that half
+  published, 1.2% apart. Seconds, and no quiet machine: counter ratios
+  between two arms do not move because something else is running, where a
+  wall-clock figure would.
 
   So what remains is a **plain repeat of the aligned main set**, 70 minutes
   quiet, which cannot be filtered — a filtered run puts every arm at the
