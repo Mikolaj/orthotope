@@ -1,0 +1,36 @@
+# Nothing a run leaves belongs in git. The normal state of this directory is
+# no run artifact at all -- the numbers live in README.md and the artifacts do
+# not -- so everything here is deleted once a run is written up and the
+# deletion accepted. Three pair notes were tracked by accident before this
+# file existed, under three names as the scheme changed, and had to be taken
+# out of history; that is what this prevents.
+#
+# The run number is what anchors these patterns: `run[0-9]*` catches the
+# binaries, the JSONs, the logs and the pair note, and leaves `run-major.sh`
+# and `run-gate.sh` alone, which a bare `run*` would not.
+run[0-9]*
+
+# Binaries and notes from before the run went into every name (Runs 10 and 11
+# and the probes beside them), kept here so an old artifact cannot be staged
+# either.
+micro-aligned
+micro-unaligned
+micro-maxskip*
+micro-both
+micro-procalign
+micro-*-pair.txt
+micro-pair*.txt
+
+# Probe artifacts, which are named for the question rather than for a run.
+probe-*.json
+probe-*.log
+
+# The reader's smoke sweep, which writes these and deletes them again; a
+# failed sweep can leave them behind.
+smoke*.json
+smoke*.md
+README.smoke.md
+
+# Temporary build directories the pair recipes use (`--builddir=db-maxpa`),
+# removed by hand after each half is copied out.
+db-*/
