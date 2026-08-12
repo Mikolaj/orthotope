@@ -4369,8 +4369,7 @@ and every copy that straddles read 13–18% behind, with no arm of either family
 dissenting. Run 10 splits that.** Its offsets come from `loop-offsets.py`
 over the two binaries, so the mod-64 column is read and not inferred,
 and the aligned column is a build in which all ten copies the table covers sit
-at
-0. `build`/`mut-odo` behaves as the hypothesis says throughout — both copies
+at 0. `build`/`mut-odo` behaves as the hypothesis says throughout — both copies
 straddle in `micro-unaligned` at 45 and 53, both are resident
 in `micro-aligned`, and the pair goes from Run 9's 1.13 to 0.9532 and 0.9685.
 `add-in` behaves as it says too, and twice over: its copy is resident in *both*
