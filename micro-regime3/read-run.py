@@ -65,11 +65,11 @@ against its own row's median.
 --aa prints both and --selftest asserts the identity for the uncapped pairs.
 The floor is a consequence of the correction as much as the margins are:
 subtracting a term common to both arms magnifies their disagreement too,
-which on Run 10 took it from 0.66% to 1.00%. --aa therefore prints each
+which on Run 11 took it from 0.97% to 1.21%. --aa therefore prints each
 pair's RAW ratio and its `f` beside the net one: the net figure is the floor
 between two published rows, the raw one is how much the arm disagrees with
-itself, and quoting the first as the second overstates it by 1/(1-f) -- 2.5x
-on Run 10's `scaled` cells, where the forcing pass is 60% of the bench.
+itself, and quoting the first as the second overstates it by 1/(1-f) -- 2.6x
+on Run 11's `scaled` cells, where the forcing pass is 61% of the bench.
 
 Controls, not strategies: the `*-aa-*` rows (an existing strategy run twice
 under a second name, true ratio exactly 1, so their spread is the noise
@@ -1324,7 +1324,7 @@ def fingerprint_table(cells, shapes, strategies, meta):
 
 
 # The three arms the second class property names
-# (README.md#the-claims-run-11-should-test). Constants rather than literals
+# (README.md#the-claims-run-12-should-test). Constants rather than literals
 # because the property has been re-aimed twice, and a re-aim that misses one
 # use of a name is how a verdict starts disagreeing with the claim it checks.
 PROP2_FASTEST = 'mut-odo-vecdims'
