@@ -258,7 +258,14 @@ def gates(*, min_phase, phase, fa, fx, fp, uncheck, alcheck, same,
 
 def main():
     p = argparse.ArgumentParser(description=__doc__.split('\n')[0])
-    p.add_argument('--prefix', default='micro')
+    p.add_argument('--run', required=True,
+                   help='the run this pair is for, e.g. run13. It goes in'
+                        ' every name this directory holds -- both binaries and'
+                        ' the note -- so two runs cannot write one filename'
+                        ' however alike their half names are. Required rather'
+                        ' than defaulted: run-gate.sh once named its output'
+                        ' without a run and silently overwrote the previous'
+                        " gate's.")
     p.add_argument('--basis', default='aligned',
                    help='the half this builds with the shim (default aligned)')
     p.add_argument('--other', default='unaligned',
@@ -270,6 +277,7 @@ def main():
     p.add_argument('--verify-only', action='store_true',
                    help='re-gate the pair already here, building nothing')
     a = p.parse_args()
+    a.prefix = f'micro-{a.run}'
 
     aligned = f'{a.prefix}-{a.basis}'
     unaligned = f'{a.prefix}-{a.other}'

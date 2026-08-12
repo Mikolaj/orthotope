@@ -1633,7 +1633,11 @@ PATH_ROOTS = [('.', 'here'), ('..', 'orthotope'),
 TRANSIENT_RE = re.compile(r'^(?:micro-pair.*\.txt|smoke.*\.(?:json|md)|'
                           r'README\.smoke\.md|(?:run|gate|probe)[\w.-]*\.'
                           r'(?:json|log))$')
-PATH_EXT_RE = re.compile(r'^(?![$<])\S*[^/$<]\.'
+# A template names no file: `$R-<half>-main.json`, `micro-<run>-pair.txt`.
+# The exclusion is of `$` and `<` ANYWHERE in the token and not just at its
+# head, which is the form this first had -- a spelling that let
+# `micro-<run>-pair.txt` through and failed the run on it.
+PATH_EXT_RE = re.compile(r'^[^$<]*[^/$<]\.'
                          r'(?:hs|py|cabal|sh|md|txt|yaml|yml)$')
 
 
@@ -1674,7 +1678,10 @@ def check_paths(doc):
     `stretch-nosuch-shape/bq-nosuch-arm` and `1/(2-g)` -- did NOT fail,
     the unclassified count going 408 to 410 instead, which is the false
     positive this check is shaped to avoid and the reason it is anchored on
-    the extension. The absent-sibling branch has a live control too, run by
+    the extension. Re-confirmed 2026-08-12 after the template exclusion was
+    widened to the whole token: the two bad names still fail and are named,
+    while a bench name, an arithmetic fragment and `$R-<h>.json` together
+    raise nothing. The absent-sibling branch has a live control too, run by
     pointing PATH_ROOTS at a directory that does not exist: 14 paths
     resolved, the other 4 were listed by name under NOT CHECKED with the
     root, and the run still exited 0.

@@ -2,7 +2,16 @@
 # The gate a paired run wants before its evening: five benches over the shape
 # set, on both halves, twice each.
 #
-#     ./run-gate.sh
+#     ./run-gate.sh run12          # the run names the binaries and every file
+#
+# The run goes in every name this directory holds -- binaries, pair note, gate
+# artifacts -- so that two runs' files cannot collide however alike their half
+# names are. They can be very alike: Run 10 and Run 11 both had a half called
+# `aligned`, and this script, which guards nothing and named its output
+# `gate-<half>-<pass>`, silently overwrote Run 10's two aligned gate files.
+# Nothing was noticed until Run 12 was being set up. A name that carries the
+# run cannot do that, which is why the argument is required rather than
+# defaulted.
 #
 # The order is a palindrome -- other, basis, basis, other -- so each binary
 # carries the same mean position and drift over the hour cannot read as a
@@ -14,14 +23,21 @@
 # ratios to check. The expected bench count is read from the binary, not
 # written down, so a roster change does not turn a correct run into an alarm.
 #
-# About forty minutes. Read it with, for the two half names set below,
-#   ./read-run.py gate-<basis>-a.json --compare gate-<other>-a.json
+# About forty minutes. Read it with, for the run and the two half names,
+#   ./read-run.py micro-<run>-gate-<basis>-a.json \
+#     --compare micro-<run>-gate-<other>-a.json
 
 set -u
 cd "$(dirname "$0")" || exit 1
 
-PREFIX=micro                 # the binaries and the note are all one name, so
-                             # a verdict cannot land on a pair it is not about
+if [ $# -lt 1 ]; then
+  echo "usage: ./run-gate.sh RUN      # e.g. run12, and it names every file"
+  exit 2
+fi
+PREFIX="micro-$1"            # the binaries, the note and this gate's own
+                             # artifacts are all one name, so a verdict cannot
+                             # land on a pair it is not about and no two runs
+                             # can write the same filename
 # The pair's two halves, as in run-major.sh and for the same reason: BASIS is
 # the half the bench count is read from and the one the run's tables come
 # from. Keep the two scripts' names in step, a gate being about the pair the
@@ -47,7 +63,7 @@ RESULTS=""
 
 run () {   # $1 = half, $2 = pass
   local half=$1 pass=$2 out rc nb
-  out="gate-${half}-${pass}"
+  out="${PREFIX}-gate-${half}-${pass}"
   echo "=== $(date -Is) start ${out}"
   ./"$PREFIX-${half}" "${SEL[@]}" --json "${out}.json" > "${out}.log" 2>&1
   rc=$?
@@ -80,7 +96,7 @@ echo "=== $(date -Is) gate complete"
 if [ ! -f "$NOTE" ]; then
   echo "!! no $NOTE beside the pair, so the gate's verdict has nowhere to live."
   echo "   make-pair.py writes that file; a hand-built pair wants one by hand."
-  echo "   The run artifacts are on disk regardless -- gate-*.json and .log."
+  echo "   The run artifacts are on disk regardless -- $PREFIX-gate-*.json/.log."
   exit 1
 fi
 { if [ "$BAD" -eq 0 ]; then
@@ -91,8 +107,9 @@ fi
     echo "  Expected $EXPECT benches a process. Read the logs before anything else."
   fi
   echo "  That is exit codes and counts; the reading is still to do, with"
-  echo "    ./read-run.py gate-$BASIS-a.json --compare gate-$OTHER-a.json"
-  echo "    ./read-run.py gate-$BASIS-a.json --pair build mut-odo"
+  echo "    ./read-run.py $PREFIX-gate-$BASIS-a.json \\"
+  echo "      --compare $PREFIX-gate-$OTHER-a.json"
+  echo "    ./read-run.py $PREFIX-gate-$BASIS-a.json --pair build mut-odo"
   echo "  Write its verdict here, and delete the 'not yet run' line above."
 } >> "$NOTE"
 echo "=== appended to $NOTE"

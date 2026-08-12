@@ -30,7 +30,11 @@ if [ $# -lt 1 ]; then
   exit 2
 fi
 R=$1
-PREFIX=micro                 # the binaries and their note are all one name
+PREFIX="micro-$R"            # the binaries and their note carry the run, as
+                             # every artifact here does, so that two runs
+                             # cannot write one filename however alike their
+                             # half names are -- see run-gate.sh, whose output
+                             # did not and quietly overwrote Run 10's
 
 # WHICH TWO HALVES, since the pair is no longer always unaligned/aligned.
 # BASIS is the half the classes run on, the expected bench counts are read

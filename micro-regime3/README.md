@@ -2608,7 +2608,7 @@ rebuild coming out even slightly different would retire them in silence.
 Where the binaries and the note recording what they were built from are
 already there, confirm them instead of rebuilding:
 
-    ./make-pair.py --verify-only         # every gate again; builds nothing,
+    ./make-pair.py --run=runN --verify-only   # every gate again; builds
                                          # but DOES append to the pair note
 
 which re-runs `check` on both halves, compares the two listings and reads the
@@ -2620,9 +2620,9 @@ verdict, so a re-verification does not read as a fresh build's clean sheet.
 
 The fork's three questions are answerable in three commands, none of which
 the page should make you invent, and each names the pair's own two halves —
-`micro-maxskip` and `micro-aligned` today. Is there a pair — `ls
-micro-maxskip micro-aligned micro-pair.txt`. Is it the pair the note
-describes — `md5sum micro-maxskip micro-aligned` against the note's two
+`micro-run12-maxskip` and `micro-run12-maxskippa` today. Is there a pair —
+`ls micro-run12-*`. Is it the pair the note
+describes — `md5sum micro-run12-maxskip micro-run12-maxskippa` against its two
 `md5` lines. Has the source moved under it — `git log -1 --format=%h --
 Main.hs` against the commit the note records — the *tree* commit where it
 records two, the binaries' own being the other. **Expect it to differ, and
@@ -2638,8 +2638,8 @@ Only where there is no pair, or where `Main.hs` or the regime has moved since
 the note was written, is the build the thing to run — and the regime goes to
 it rather than being assumed, since it has a default of its own:
 
-    ./make-pair.py --regime="$REGIME"    # four builds, ~5 min, and it verifies
-    ./loop-offsets.py micro-unaligned micro-aligned
+    ./make-pair.py --run=runN --regime="$REGIME"   # four builds, ~5 min
+    ./loop-offsets.py micro-runN-unaligned micro-runN-aligned
 
 **But only for an unaligned/aligned pair, which is the only kind it builds.**
 A pair of two shims — Run 11's — is built by the recipe its own note
@@ -2651,7 +2651,7 @@ hand-built pair it gates two binaries that are not the ones you mean. It
 refuses rather than overwrite a note recording a gate, but the refusal is the
 backstop, not the instruction:
 
-    ./make-pair.py --verify-only --basis aligned --other maxskip
+    ./make-pair.py --run=runN --verify-only --basis maxskip --other maxskippa
 
 There is no single-binary form of a major run any more, the pairing being
 permanent: `run-major.sh` and `run-gate.sh` both refuse to start without both
@@ -2664,9 +2664,10 @@ ${REGIME:+--ghc-options=$REGIME} --`, never through the sequence below.
 binaries that will be timed, not a third built beside them, and the last two
 against `Main.hs` and this file, which open no binary at all:
 
-    ./micro-maxskip check        # every strategy agrees, every shape regime 3
-    ./micro-aligned check        # and the other half: both were shim-rewritten
-    ./micro-aligned --list 2>/dev/null | wc -l   # 2>/dev/null is not optional:
+    ./micro-runN-maxskip check   # every strategy agrees, every shape regime 3
+    ./micro-runN-maxskippa check # and the other half: both were shim-rewritten
+    ./micro-runN-maxskip --list 2>/dev/null | wc -l  # 2>/dev/null is NOT
+                                 #   optional:
                                  #   the provenance line goes to stderr and
                                  #   interleaves inside a bench name without it
     ./read-run.py --lint         # the roster and the shape annotations
@@ -2695,7 +2696,7 @@ only check, and cost seconds.
 
 **Then confirm the regime is the one intended**, which nothing later can:
 
-    ./micro-aligned diag
+    ./micro-runN-maxskip diag
 
 and read one row of it — `baseOffsetsScan` against `baseOffsetsMut` on
 `vgg-14-c512`, which is a `diag` label rather than a shape and so will not be
@@ -2726,7 +2727,7 @@ binary and no short loop of its own code straddling, and the unaligned
 binary's offsets recorded as they stand, since the six-arm prediction is made
 from them and no later binary has them; `--survey` is the length-agnostic
 form and takes one binary at a time
-(`./loop-offsets.py --survey micro-aligned`), and what "every timed arm's
+(`./loop-offsets.py --survey micro-runN-maxskip`), and what "every timed arm's
 loop" means is bounded by what can be
 attributed at all. The sequence below runs each half in turn, and
 `run-major.sh` does it for you; what neither can do is interleave two
@@ -2752,7 +2753,7 @@ offset the unpadded build had: the same fills at [3, 53, 59, 45] and
 [16, 0, 36, 36], the same 115 short loops with 50 straddling.
 
 **Which two halves a pair has is a property of the pair, not of this page.**
-The names are recorded in `<prefix>-pair.txt` and set in one place in each of
+The names are recorded in the pair note and set in one place in each of
 `run-major.sh` and `run-gate.sh`, as `OTHER` and `BASIS`; the basis is the
 half the classes run on, the expected bench counts are read from and every
 table is installed from, and it runs second. Run 10's two were `unaligned`
@@ -2808,9 +2809,9 @@ that ordering is legible.
 hours later — at `-L1`, since the smoke tests the reader's code paths, not
 its statistics:
 
-    ./micro-aligned -L1 cnn-slice-c32 --json smoke.json
-    ./micro-maxskip -L1 cnn-slice-c32 --json smoke-other.json
-    ./micro-aligned classes window-28x28-k5 -L1 --json smoke-class.json
+    ./micro-runN-maxskip -L1 cnn-slice-c32 --json smoke.json
+    ./micro-runN-maxskippa -L1 cnn-slice-c32 --json smoke-other.json
+    ./micro-runN-maxskip classes window-28x28-k5 -L1 --json smoke-class.json
     for f in smoke.json smoke-class.json; do
       for m in --selftest --aa --shapes --markdown --cells --fingerprint \
                "--pair bq-expand list" ""; do
@@ -2904,10 +2905,12 @@ else changed, and Run 10 is such a run.
 **A paired run has one gate more, and the first thing to do about it is read
 rather than run it. The gate belongs to the pair, not to the session**, which
 is what stops it being paid for twice. `make-pair.py` writes a
-`<prefix>-pair.txt` beside the binaries — `micro-pair.txt`, the prefix being
-the one everything here is named for — with what it verified and a `GATE:`
+`micro-<run>-pair.txt` beside the binaries — every name in this directory
+carries the run, so that two runs cannot write one filename however alike
+their half names are, which is why `--run` is required and not defaulted —
+with what it verified and a `GATE:`
 line saying it has not been run; `run-gate.sh` appends to that file. So read
-what the note says about the gate first — `grep -i gate micro-pair.txt`,
+what the note says about the gate first — `grep -i gate micro-*-pair.txt`,
 case-insensitive and not anchored on the `GATE:` token, because a note
 written by hand says it in prose and grepping for the token finds nothing in
 one, which reads as *no gate* and costs the hour it was meant to save. **Read
@@ -2933,8 +2936,9 @@ twice each, in a palindrome — unaligned, aligned, aligned, unaligned — so th
 drift over the hour cannot read as a difference between the binaries, which is
 the part a person retyping the command would drop:
 
-    ./run-gate.sh
-    ./read-run.py gate-aligned-a.json --compare gate-maxskip-a.json
+    ./run-gate.sh runN
+    ./read-run.py micro-runN-gate-maxskip-a.json \\
+      --compare micro-runN-gate-maxskippa-a.json
 
 It wants the same quiet the run does and costs the better part of an hour, so
 it is not one of the cheap checks above; what it buys is finding out that the
