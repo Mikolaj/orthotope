@@ -607,6 +607,22 @@ now rather than a slot in the next run, observed again:
      of this entry — a main set aligned against one unaligned — is no longer a
      queue item at all: it *is* Run 10, whose fourth prediction is that
      comparison read arm by arm.
+  4. **A repeat of the aligned main set with `--iters` pinned, ahead of a
+     plain repeat and for the same evening.** The wild cell's surviving
+     account is that a bench's buffers land where the allocation history
+     before them leaves them, and that history moves between runs because
+     criterion spends a *time* budget, so iteration counts differ ([the wild
+     cell's entry][open] has what the cheap instruments refuted first).
+     Pinning the iteration count pins the history, so this run tests the
+     mechanism rather than re-rolling it: cells should reproduce far tighter
+     than the 0.958–1.043 band, and a wild cell should either always sit at
+     that slot or never. It doubles as the tightest drift figure this page
+     could publish. **What it is not is a comparable run** — a fixed budget
+     is not the default one, so its cells belong beside no published column,
+     and it is read against its own repeat alone. A plain default-budget
+     repeat stays the fallback and answers less: only whether a fresh wild
+     cell turns up somewhere else. 70 minutes each, and neither can be
+     filtered.
 
   And three things **not** worth a quiet window, recorded so they are not
   reached for. The *how many preceding benches warm it* sweep, which the
@@ -1043,19 +1059,33 @@ now rather than a slot in the next run, observed again:
   queue calls due — since the repetition needed membership pinned as well as
   layout. It did not; that arm is Run 12's, and the ordering is in the queue
   entry too.
-- **The wild cell is back, on the same family and at the other end of the
-  roster.** Run 11's aligned half reads `lenet-L1-28-c1-k5/bq-expand` at
-  1.355 of what the same binary read in Run 10, with both of that arm's A/A
-  twins clean in the same process, both time-neighbours within 1.2%, CI%
-  0.06 over 125 samples, and `list` on the shape unmoved — the evidence
-  against an intrusion is at [the head of the run
-  chapter](#about-the-last-run-run-11). Run 8 and Run 9 saw 44% and 41.4% of
-  this on the same arm at its **distant twin's** slot, and Run 10's roster fix
-  — `sum-only-early` above `list`, so nothing is measured on an ungrown pool
-  — removed it there and was confirmed at full budget. Here the arm's **own**
-  slot carries it, which the fix does not reach and does not claim to. So
-  susceptibility is a standing property of the expansion family and the pool
-  account explains one of its two sightings.
+- **A recurring transient that lands on the shipped arm's family, worth 35
+  to 44%, and which no published column would show.** Not one cell: **three
+  sightings in four runs**, moving each time. Run 8 read `bq-expand`'s
+  distant twin 44% slow on `vgg-14-c512-k3` and Run 9 41.4% on the same arm
+  and shape; Run 10 was clean; Run 11's aligned half reads
+  `lenet-L1-28-c1-k5/bq-expand` at **1.355** of what that same binary read in
+  Run 10 — a different shape and, this time, the arm's **own** slot rather
+  than a twin's. Run 10's roster fix (`sum-only-early` above `list`, so
+  nothing is measured on an ungrown pool) removed the Run 8 and Run 9
+  instance and was confirmed at full budget; it did not remove the effect.
+
+  **Three things make this a threat to a published claim rather than a
+  curiosity.** It is *the expansion family* that is susceptible, established
+  rather than guessed: Run 9's filtered probes put `bq-expand-gm-mulback`,
+  `bq-expand-qr-prim` and `bq-odo-gm-mulback` each 35–40% above their
+  published cells on that shape while `bq-scan-rem-gm-mulback` and
+  `mut-odo-vecdims` did not move at all. That family contains **`bq-expand`,
+  which is what `Data/Array/Internal.hs` ships and what this page
+  recommends**. And **the table cannot show it**: the winsorized estimator
+  caps the cell, so the row read 0.103 against 0.102 and nothing looked
+  wrong — the only reason it was seen is that `bq-expand` carries two A/A
+  twins, which disagreed with it by 25%. An arm without twins would show
+  nothing at all, which is most of the roster.
+
+  The evidence against an intrusion is at [the head of the run
+  chapter](#about-the-last-run-run-11): clean twins, time-neighbours within
+  1.2%, CI% 0.06 over 125 samples, `list` on that shape unmoved.
 
   **The samples have since been read, and they say the cell is a shift and
   not a defect** (2026-08-12, arithmetic over the run artifacts, no machine
@@ -1071,11 +1101,114 @@ now rather than a slot in the next run, observed again:
   the slope of one arm at one slot, with everything a sample can report
   looking ordinary — which is what Run 8 and Run 9 found at their cell too.
 
-  So the one instrument left is **a repeat of the aligned main set**: a
-  filtered run cannot answer it, putting every arm at the cold end by
-  construction ([the floor section][floor]), so it is another 70-minute
-  process on a quiet machine — and it is the only thing that says whether
-  the cell belongs to the *run* or to the *shape and slot*.
+  **Read the rest of what a sample carries and the mechanism narrows
+  sharply** (same day, same artifacts). Against its two twins in the same
+  process the cell runs 68342 ns an iteration against 53896 and 53364 — and
+  **259697 cycles against 204804 and 202781**, the same 1.28 as the time, so
+  the clock is not moving: all three read 3.8000 GHz to four digits.
+  Allocation is **340197 bytes an iteration against 340196**, one byte
+  apart. GC time is **312 ns against 323 and 328**, so the arm collects no
+  more than its twins and could not pay for 14.4 µs if it did. The whole
+  excess is mutator cycles: the same instructions over the same bytes,
+  stalling 28% more.
+
+  **That refutes, for this instance, the account inherited from Runs 8 and
+  9.** Theirs was a cold block pool at a roster slot — an allocator warmth
+  story, which predicts more or dearer collection — and here GC is flat and
+  allocation identical to the byte. So either the pool was one trigger of
+  something more general, or the two sightings are different effects wearing
+  the same shape. What is left, code placement being identical (one binary,
+  the same offsets), the data volume identical and the clock fixed, is
+  **where the data sits**: the input, the offsets table and the output
+  buffer are allocated per bench and their addresses are the one thing that
+  differs between an arm and its own twin. This page has spent four runs on
+  code placement and has never measured the data side.
+
+  **Three instruments were tried the same day and all three came back
+  negative, which is worth as much here as a positive would have been: they
+  say what the cause is not, and two of them are not to be reached for
+  again.**
+
+  1. **Cycles add nothing on this machine, so a cycles-based detector is not
+     the answer.** Over **all 4556 cells of Runs 10 and 11** the effective
+     clock is 3.8000 GHz to within 0.0012, so `measCycles` is a rigid
+     multiple of `measTime` and carries no independent signal. What that
+     does buy, once and for all, is that no timing anomaly on this desktop
+     is ever the clock: not thermal, not frequency scaling. Do not add a
+     cycles column to `--aa`.
+  2. **The detector already exists and it fired.** `--aa` prints each pair's
+     worst cell, and it printed 26.44% and 25.51% for the two `bq-expand`
+     pairs. Nothing was missing but the reading — which [the
+     procedure](#making-a-major-benchmark-run) already demands in as many
+     words, a pair inside the floor whose worst cell is an order of
+     magnitude outside it being a finding the aggregate is hiding. A sweep
+     of every A/A cell of both runs puts the rate at **2 of 804 past 10%**,
+     both of them this one incident, and 4 past 5%: rare, not a lottery over
+     every cell, and concentrated where the twins are.
+  3. **The data-placement hypothesis is refuted, and with it `setarch -R`.**
+     A standalone probe allocating the same three buffers a bench does
+     reports the same three payload addresses in every one of eight
+     processes — `0x0042005fe010`, `0x0042005f6010`, `0x0042005cf010` —
+     because the GHC RTS reserves its heap at a fixed base, so ASLR never
+     moves it however randomised the C heap and libraries are
+     (`randomize_va_space` is 2 here, and `setarch -R` changes none of the
+     three). So two processes of one binary lay their benchmark data out
+     identically, there is no per-process address lottery to disable, and
+     instrument 3 would have measured nothing.
+
+  **What survives is narrower and sharper.** Buffers land where the
+  *allocation history before them* puts them, and that history is not
+  identical between two runs of one binary: criterion spends a time budget,
+  so the iteration counts, and hence the bytes allocated before a given
+  bench, differ run to run. That is a lottery driven by criterion's own
+  scheduling rather than by the operating system, it is invisible to every
+  instrument above, and it predicts exactly what is seen — same binary, same
+  slot, different run, one arm of a susceptible family 28% slower in mutator
+  cycles with allocation identical to the byte.
+
+  **What follows for reading a table, before any of it is measured
+  further.** Four things, and the second is the one this page has been
+  quiet about:
+  1. **The A/A worst cell is a gate and not a note.** It is the only thing
+     that caught a 35% error, and it caught it while every aggregate stayed
+     green. A pair whose worst cell passes about 10% disqualifies that cell
+     from the per-shape record and flags its row; listing it for
+     adjudication is what let this one be read past.
+  2. **Three of the twenty-four timed strategies carry twins**, so that gate
+     covers an eighth of the table. `bq-expand`, `bq-scan-rem-gm-mulback`
+     and `mut-odo-vecdims` are checkable cell by cell; the other twenty-one
+     are not. A wild cell on `offtab` or `bq-mut` would be capped by the
+     estimator, would move its row by a thousandth, and nothing here would
+     ever say so. That is the honest extent of the defence, and it is an
+     argument for twinning more of the expansion family before it is an
+     argument for anything else.
+  3. **Winsorizing is a defence and not only an estimator choice.** It is
+     what held `bq-expand`'s row to 0.103 with a 35% cell inside it. [The
+     `time` column](#results) argues for it on estimator grounds — bounded
+     influence rather than deleted evidence — and this is the second and
+     larger reason to keep it.
+  4. **It gives the per-shape caution its mechanism.** [The per-shape
+     table][pershape] says to trust the first digit only; a scheduling
+     lottery moving one cell by a third is why, where a geomean over 24
+     shapes cannot move like that.
+
+  **And the instrument that costs an evening is now a better one than a
+  plain repeat.** If the mechanism is allocation history, then pinning
+  criterion's iteration counts pins the history: a repeat run with
+  `--iters` fixed makes the bytes allocated before each bench identical
+  between two runs, so cells should reproduce far tighter than the
+  0.958–1.043 band, and a wild cell should either always appear at that slot
+  or never. That tests the mechanism rather than re-rolling the dice, and it
+  doubles as the tightest drift measurement this page could make. A plain
+  default-budget repeat stays the fallback: it only says whether a fresh
+  wild cell turns up somewhere else. Neither can be a filtered run, which
+  puts every arm at the cold end by construction ([the floor
+  section][floor]). Add per-bench payload-address logging to `Main.hs`
+  first if it can be had — it is the allocation history the hypothesis
+  names — but **not before Run 12 is spent**: that edit changes the module's
+  code, so its `.text`, so every loop offset, and would invalidate the
+  `PAD_BYTES` and the two md5s `micro-run12-pair.txt` records for a pair
+  already built.
 - **Why is `mut-odo`'s interval wide on `micro-aligned`?** Its CI% reads 1.06
   there against 0.34 unaligned, and the raw samples have since been read
   (2026-08-11, arithmetic over the run and gate artifacts, no machine time).
