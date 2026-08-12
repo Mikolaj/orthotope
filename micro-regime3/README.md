@@ -1045,6 +1045,55 @@ than a slot in the next run, observed again:
   queue calls due — since the repetition needed membership pinned as well as
   layout. It did not; that arm is Run 12's, and the ordering is in the queue
   entry too.
+- **What Run 12 is built to answer, registered before it ran.** Four questions,
+  each with what would count as an answer, so that a run reporting "nothing
+  moved" reports a result rather than a failure. Registered 2026-08-13, before
+  the evening; the verdicts belong here rather than in the run's own chapter.
+  1. **What the flag costs across the roster, as a package.** Run 11 priced
+     the shim; this prices `-fproc-alignment=64` on top of it, read
+     as `run12-maxskippa` against `run12-maxskip` over the main set with each
+     class's own table beside it. What counts as an answer is a direction
+     and a magnitude clearing the drift band Run 11 measured — at most 3.3% per
+     arm, most under 1.5%, 495 of 762 cells within 1% — so an arm inside
+     that band is not evidence either way, and "nothing moved past drift"
+     is itself the answer if that is what comes back. The decision it feeds
+     is which half publishes the table.
+  2. **Whether the two-and-two vecdims split survives the flag.** Run 11 found
+     the four arms splitting two and two — `mut-odo-vecdims` (1.0074)
+     and `-add-both` (1.0333) keeping the whole NOP cost Run 10 measured
+     for them (1.0069, 1.0326), `-add-in` (1.0036) and `-add-both-down` (1.0029)
+     shedding most of theirs (1.0143, 1.0443) — and that split was predicted
+     from the offsets in the pair note before it was read. The halves' fills
+     differ again, `[11, 0, 4, 0]`/`[24, 8, 0, 0]` against `[4, 0, 4, 0]`/`[8,
+     8, 4, 4]`, and Run 11's third question priced the two copies max-skip left
+     resident, at 24 and 8, at 1.0074 and 1.0333 against the same code at 0.
+     So the prediction is that those two move toward what their `maxskippa`
+     offsets give while the other two stay put. **What kills it** is the four
+     reading flat against each other while their offsets differ, which would say
+     the offsets are not what the split was about. The per-arm form needs
+     the arm-to-entry mapping, which `loop-offsets.py`'s docstring pins only
+     for the second and fourth entries (`mut-odo` and `build`); read it off
+     the binaries before quoting an arm.
+  3. **Membership invariance decides the basis and this run does not measure
+     it.** Registered as a gap rather than a question, because the queue turns
+     Run 13 on it and a later session could read this run as having tested it.
+     Run 12 adds no arm — the third `-nosum` one was deferred out
+     of it precisely so it would not arrive in the same run as a change of shim
+     — so invariance under the flag is an argument from what the flag does,
+     pinning every procedure to a 64-byte boundary, and not a reading taken
+     here. What would settle it is a membership change on the adopted half
+     with the offsets read either side, which is Run 13's first debt
+     if the basis lands on max-skip without the flag.
+  4. **The free draw on the wild cell.** A new basis, a new allocation history
+     and six A/A worst cells, against the standing question of whether a fresh
+     wild cell turns up somewhere else or the same one returns. Three outcomes
+     and all three report: `lenet-L1-28-c1-k5/bq-expand` returns, a new cell
+     appears elsewhere, or the run is clean. It is a draw and not a test,
+     so a clean run refutes nothing.
+
+  **And what it must not carry** is the resident offset's own price. The pair
+  moves padding and offset together, so that stays a probe on the pad-probe
+  model rather than anything this run can be read for.
 - **A recurring transient that lands on the shipped arm's family, worth 35
   to 44%, and which no published column would show.** Not one cell: **three
   sightings in four runs**, moving each time. Run 8 read `bq-expand`'s distant
@@ -2645,13 +2694,14 @@ not a choice this page leaves open. The whole is analysed and written
 into this file. What follows is the procedure, and it is written to outlive any
 one run.
 
-**The pre-run half as a list, because it is fifteen actions spread over eight
-hundred lines and every one of them earns its place separately.** The prose
-below is where the reasons live and is not replaced by this; what this replaces
+**The pre-run half as a list, because its actions are spread over eight hundred
+lines and every one of them earns its place separately.** The prose below
+is where the reasons live and is not replaced by this; what this replaces
 is re-reading the section three times to be sure nothing was missed, which
 is what it has cost every session so far.
 
     cd ~/r/orthotope/micro-regime3        # and re-set R and REGIME per call
+    #  BASIS/OTHER come from the pair note; Run 12's are maxskip/maxskippa
     ls $R-*                               # 1. is there a pair?
     md5sum $R-<basis> $R-<other>          # 2. is it the note's pair?
     git log -1 --format=%h -- Main.hs     # 3. has the source moved?
@@ -2668,17 +2718,23 @@ is what it has cost every session so far.
     #  12. the -L1 roster pass, ONLY if `--list` changed membership
     grep -i gate $R-pair.txt              # 13. has the gate run and passed?
     #  14. ./run-gate.sh $R  -- only if 13 says it has not
-    #  15. read the run's registered predictions, on the open list
+    #  15. read the run's registered predictions, on the open list --
+    #      an empty registration is not a blocker; record that and go
     uptime; ps -eo pid,etime,comm | grep $R-      # 16. machine quiet
 
-Steps 4 to 10 are read-only and fine sandboxed; 11 and 14 write and are not.
+Steps 4 to 10 are read-only and fine sandboxed; 11, 12 and 14 write and are not.
+Step 16 answers less than it looks: `ps` in a session lists only that session's
+own processes, so it catches a launch made from here and not one made
+from anywhere else, and `uptime` is the half of it that reaches the machine.
 The one that is skipped most often is 8, and the one that is run when it should
 not be is 14 — the gate belongs to the pair, so a note recording a pass means
 it is done.
 
 **Where the effort actually goes, because it is not where it looks.** The run
-is several hours and *unattended*; it costs patience and a quiet machine,
-nothing else. Everything expensive happens after it, in the write-up,
+is several hours and *unattended* — roughly an hour per main set and well
+under ten minutes per class, so a process sitting far longer than its neighbours
+is worth looking at rather than waiting on; it costs patience and a quiet
+machine, nothing else. Everything expensive happens after it, in the write-up,
 and that is where a session's token budget is spent and where its mistakes
 are made. **The eight class blocks are the bulk of the typing**, and mostly
 mechanical: write each from the verdicts `--block` emits rather than
@@ -3008,6 +3064,16 @@ at `-L1`, since the smoke tests the reader's code paths, not its statistics:
     ./read-run.py smoke-class.json --block >/dev/null || echo "BROKEN: --block"
     ./read-run.py smoke.json --compare smoke-other.json >/dev/null \
       || echo "BROKEN: --compare"
+    ./read-run.py smoke.json --aa --brief >/dev/null \
+      || echo "BROKEN: --aa --brief"
+    ./read-run.py smoke-class.json --block --brief >/dev/null \
+      || echo "BROKEN: --block --brief"
+    ./read-run.py smoke.json --cells --no-controls >/dev/null \
+      || echo "BROKEN: --no-controls"
+    ./read-run.py smoke.json --cells --exclude concat-runs >/dev/null \
+      || echo "BROKEN: --exclude"
+    ./read-run.py smoke.json --cells --exclude-shape lenet-L1-28-c1-k5 \
+      >/dev/null || echo "BROKEN: --exclude-shape"
     cp README.md README.smoke.md            # --in-place WRITES; never at README
     ./read-run.py smoke.json --markdown --in-place --readme README.smoke.md \
       >/dev/null || echo "BROKEN: --markdown --in-place"
@@ -3049,8 +3115,12 @@ the correction, the controls, the table generator — through its paces; the thi
 does the same for the `classes` plumbing, the reader's per-list shape rules
 and the six-column class table, on the class whose rule is least trivial.
 Those two go through every single-file mode, because they take different paths
-through the reader from the population line onwards. A reader broken by a roster
-or shape-list change fails here in minutes instead of after the run.
+through the reader from the population line onwards, and the lines after them
+add the modifiers a write-up reaches for — `--brief` on `--aa` and `--block`,
+and the filters `--no-controls`, `--exclude` and `--exclude-shape` — because
+a mode that passes bare can still die under the flag it is really given.
+A reader broken by a roster or shape-list change fails here in minutes instead
+of after the run.
 
 The second file exists for `--compare`, which no single file can reach:
 it is the reader's only two-run mode and the one a paired run is read with,
@@ -3228,9 +3298,9 @@ the pair. The sequence:
       done
     } >> $R-wallclock.log 2>&1
 
-**The eleven files that leaves**, spelled out because deriving them
-from the loop is a step every reader has had to take in the script instead —
-for `R=run12`, `BASIS=maxskip`, `OTHER=maxskippa`:
+**The files that leaves**, spelled out because deriving them from the loop
+is a step every reader has had to take in the script instead — for `R=run12`,
+`BASIS=maxskip`, `OTHER=maxskippa`:
 
     run12-maxskippa-main.json   run12-maxskip-main.json
     run12-maxskip-rev.json      run12-maxskip-revsome.json
@@ -3318,12 +3388,18 @@ and not a method.
 **Before any of it, read the run's registered predictions** ([the open
 list][open]), which say what this run was for and what would kill each one.
 Record their verdicts there rather than in the run's own chapter, which the next
-run replaces. **And say what a partial outcome is**: a prediction registered
-over several arms can come apart, and neither "held" nor "refuted" is then true
--- Run 10's first was stated over three arms and one confirmed it while two met
-its own kill condition. Report that as a split, name which arms went which way,
-and carry the consequence for each separately; the temptation is to round
-it to whichever answer the majority of arms gives, which loses the finding.
+run replaces. **An empty registration does not hold the run.** Where a run has
+none — Run 12 has a queue entry saying what it is for and no predictions
+carrying kill conditions — note the absence and read the outcome against
+that entry instead. What is not open is registering afterwards: the point
+of the list is that it predates the hours, so the choice here is to register
+before the evening or to do without. **And say what a partial outcome is**:
+a prediction registered over several arms can come apart, and neither "held"
+nor "refuted" is then true -- Run 10's first was stated over three arms and one
+confirmed it while two met its own kill condition. Report that as a split, name
+which arms went which way, and carry the consequence for each separately;
+the temptation is to round it to whichever answer the majority of arms gives,
+which loses the finding.
 
 **After it lands**, in this order:
 

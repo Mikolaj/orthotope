@@ -29,10 +29,14 @@ records for them -- micro-pad0 [3, 53, 59, 45], micro-pad1 [27, 13, 19, 5],
 micro-pad6 [19, 5, 11, 61], whose second and fourth entries are the
 documented `mut-odo` and `build` offsets -- before it was pointed at a binary
 whose answer was unknown, which is the whole of its warrant. Those binaries
-are deleted. The live control is now `micro-unaligned`, whose two groups must
-read [3, 53, 59, 45] and [16, 0, 36, 36] while its aligned twin reads all
-zeroes; both are recorded in README's open list and in the pair's own
-`<prefix>-pair.txt`, which `make-pair.py` writes beside the binaries, so the
+are deleted, and so is `micro-unaligned`, which stood as the control after
+them: binaries are named `<run>-<half>` from Run 12 on, and each run's are
+deleted with it, so no *binary* can hold this role for long. The live control
+is the current pair's recorded fills -- for Run 12, `run12-maxskip`
+[11, 0, 4, 0] and [24, 8, 0, 0] against `run12-maxskippa` [4, 0, 4, 0] and
+[8, 8, 4, 4] -- which this tool must reproduce before it is read for anything
+new. They are in README's open list and in the pair's own `<prefix>-pair.txt`,
+which `make-pair.py` writes beside the binaries where it built them, so the
 check outlives the binaries it was born on. **Those binaries are deleted with
 their run**, which is how the previous control died, so what has to survive
 is the recipe: `make-pair.py` is deterministic, the commit is recorded, and
