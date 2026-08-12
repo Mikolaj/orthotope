@@ -607,22 +607,26 @@ now rather than a slot in the next run, observed again:
      of this entry — a main set aligned against one unaligned — is no longer a
      queue item at all: it *is* Run 10, whose fourth prediction is that
      comparison read arm by arm.
-  4. **A repeat of the aligned main set with `--iters` pinned, ahead of a
-     plain repeat and for the same evening.** The wild cell's surviving
-     account is that a bench's buffers land where the allocation history
-     before them leaves them, and that history moves between runs because
-     criterion spends a *time* budget, so iteration counts differ ([the wild
-     cell's entry][open] has what the cheap instruments refuted first).
-     Pinning the iteration count pins the history, so this run tests the
-     mechanism rather than re-rolling it: cells should reproduce far tighter
-     than the 0.958–1.043 band, and a wild cell should either always sit at
-     that slot or never. It doubles as the tightest drift figure this page
-     could publish. **What it is not is a comparable run** — a fixed budget
-     is not the default one, so its cells belong beside no published column,
-     and it is read against its own repeat alone. A plain default-budget
-     repeat stays the fallback and answers less: only whether a fresh wild
-     cell turns up somewhere else. 70 minutes each, and neither can be
-     filtered.
+  4. **A plain repeat of the aligned main set, 70 minutes, and it is the
+     only form of this that works.** Pinning criterion's iteration count was
+     proposed here for one afternoon, on the argument that it would pin the
+     allocation history the wild cell's surviving account names ([its
+     entry][open]) and so test the mechanism instead of re-rolling it.
+     **`-n` cannot do it**: the flag is *Run benchmarks, don't analyse*, and
+     a run under it writes no JSON at all — measured, not read off the help
+     text — which is why the `-n 200` minus `-n 100` recipe elsewhere on
+     this page reads a process's wall clock and never a cell. There is no
+     other way to fix the schedule from the command line, so a fixed-budget
+     comparison of cells is not available and the idea is recorded here
+     dead rather than left to be re-proposed. What the plain repeat answers
+     is narrower and still worth the evening: whether a fresh wild cell
+     turns up somewhere else, which is the lottery, or the same one returns.
+     It cannot be filtered, and it wants `micro-aligned` rebuilt first,
+     that binary having gone with Run 11's artifacts — `make-pair.py` is
+     deterministic and README's Provenance keeps its md5, so the rebuild is
+     verifiable rather than hopeful. **Run 12 supplies a free draw
+     meanwhile**: a new basis, a new allocation history, and its own six A/A
+     worst cells to read.
 
   And three things **not** worth a quiet window, recorded so they are not
   reached for. The *how many preceding benches warm it* sweep, which the
@@ -1192,23 +1196,26 @@ now rather than a slot in the next run, observed again:
      lottery moving one cell by a third is why, where a geomean over 24
      shapes cannot move like that.
 
-  **And the instrument that costs an evening is now a better one than a
-  plain repeat.** If the mechanism is allocation history, then pinning
-  criterion's iteration counts pins the history: a repeat run with
-  `--iters` fixed makes the bytes allocated before each bench identical
-  between two runs, so cells should reproduce far tighter than the
-  0.958–1.043 band, and a wild cell should either always appear at that slot
-  or never. That tests the mechanism rather than re-rolling the dice, and it
-  doubles as the tightest drift measurement this page could make. A plain
-  default-budget repeat stays the fallback: it only says whether a fresh
-  wild cell turns up somewhere else. Neither can be a filtered run, which
-  puts every arm at the cold end by construction ([the floor
-  section][floor]). Add per-bench payload-address logging to `Main.hs`
-  first if it can be had — it is the allocation history the hypothesis
-  names — but **not before Run 12 is spent**: that edit changes the module's
-  code, so its `.text`, so every loop offset, and would invalidate the
-  `PAD_BYTES` and the two md5s `micro-run12-pair.txt` records for a pair
-  already built.
+  **And a fourth instrument died on contact, which is worth a sentence
+  because it is the obvious one.** If the mechanism is allocation history,
+  pinning criterion's iteration count should pin the history and make cells
+  reproduce; but `-n/--iters` is *Run benchmarks, don't analyse*, and a run
+  under it writes no JSON at all — measured, not read off the help text.
+  There is no other way to fix the schedule from the command line, so the
+  mechanism cannot be tested by pinning it, and [the queue][open] records
+  that dead rather than leaving it to be re-proposed.
+
+  So what remains is a **plain repeat of the aligned main set**, 70 minutes
+  quiet, which cannot be filtered — a filtered run puts every arm at the
+  cold end by construction ([the floor section][floor]) — and which wants
+  `micro-aligned` rebuilt first, that binary having gone with Run 11's
+  artifacts. It answers the narrow question only: whether a fresh wild cell
+  turns up somewhere else, or the same one returns. **The mechanism itself
+  is tested by logging what it names**, per bench: the RTS's allocated-bytes
+  total and the payload addresses. That is a `Main.hs` edit and belongs
+  **after Run 12 is spent**, since it changes the module's code, so its
+  `.text`, so every loop offset, and would invalidate the `PAD_BYTES` and
+  the two md5s `micro-run12-pair.txt` records for a pair already built.
 - **Why is `mut-odo`'s interval wide on `micro-aligned`?** Its CI% reads 1.06
   there against 0.34 unaligned, and the raw samples have since been read
   (2026-08-11, arithmetic over the run and gate artifacts, no machine time).
