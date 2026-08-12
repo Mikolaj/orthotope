@@ -608,31 +608,31 @@ than a slot in the next run, observed again:
      to be re-proposed. What the plain repeat answers is narrower and still
      worth the evening: whether a fresh wild cell turns up somewhere else, which
      is the lottery, or the same one returns. It cannot be filtered,
-     and it wants the aligned half rebuilt first -- `./make-pair.py --run
-     <run>`, which names it `<run>-aligned` -- that binary having gone with Run
-     11's artifacts — `make-pair.py` is deterministic and README's Provenance
-     keeps its md5, so the rebuild is verifiable rather than hopeful. **Run 12
-     supplies a free draw meanwhile**: a new basis, a new allocation history,
-     and its own six A/A worst cells to read.
+     and it wants the aligned half rebuilt first --
+     `./make-pair.py --run <run>`, which names it `<run>-aligned` -- that binary
+     having gone with Run 11's artifacts — `make-pair.py` is deterministic
+     and README's Provenance keeps its md5, so the rebuild is verifiable rather
+     than hopeful. **Run 12 supplies a free draw meanwhile**: a new basis, a new
+     allocation history, and its own six A/A worst cells to read.
 
-  And three things **not** worth a quiet window, recorded so they are not
-  reached for. The *how many preceding benches warm it* sweep, which the
-  nursery finding supersedes — the bench count is the symptom and the
-  allocation area is the cause. The element-type re-probe, whose trigger
-  is a run that moves the ordering at `Storable Double`, which Run 9 does
-  only through layout and membership rather than anything an element type
-  would feel. And **an A/B of the pre-swap binary against the post-swap one,
-  to price the roster swap on its own** — proposed and refuted the same day:
-  that swap moved heap warmth *and* relocated every worker by ~40 KB, so
-  binary against binary conflates exactly the two things Run 10's unaligned
-  half conflates, and buys a number Run 10 supplies anyway at the price of a
-  quiet hour and a false sense that one variable had been pinned. **Half of
-  that refutation has since expired and the other half has not.** In an
-  aligned build a roster swap relocates no loop, so such a pairing would no
-  longer conflate the two — but it would still buy a number Run 10's third
-  prediction supplies for nothing, which was always the stronger of the two
-  reasons. Recorded because the expiry of a premise is exactly what makes a
-  dead idea look alive again.
+  And three things **not** worth a quiet window, recorded so they
+  are not reached for. The *how many preceding benches warm it* sweep, which
+  the nursery finding supersedes — the bench count is the symptom
+  and the allocation area is the cause. The element-type re-probe, whose trigger
+  is a run that moves the ordering at `Storable Double`, which Run 9 does only
+  through layout and membership rather than anything an element type would feel.
+  And **an A/B of the pre-swap binary against the post-swap one, to price
+  the roster swap on its own** — proposed and refuted the same day: that swap
+  moved heap warmth *and* relocated every worker by ~40 KB, so binary against
+  binary conflates exactly the two things Run 10's unaligned half conflates,
+  and buys a number Run 10 supplies anyway at the price of a quiet hour
+  and a false sense that one variable had been pinned. **Half of that refutation
+  has since expired and the other half has not.** In an aligned build a roster
+  swap relocates no loop, so such a pairing would no longer conflate the two —
+  but it would still buy a number Run 10's third prediction supplies
+  for nothing, which was always the stronger of the two reasons. Recorded
+  because the expiry of a premise is exactly what makes a dead idea look alive
+  again.
 - **Is the term still unbiased?** Gate 3 passes and still does not bracket 1:
   every in-situ median of both arms in all ten of Run 10's processes sits below
   it, **0.9641 to 0.9903**, for the **third** run running
@@ -723,13 +723,13 @@ than a slot in the next run, observed again:
 
   **And the roster fix is confirmed at full budget, which no prediction
   claimed.** Run 9's `bq-expand` distant twin read 1.0152 with **41.4% on one
-  cell** of `vgg-14-c512-k3`; the same pair now reads 1.0043 with its worst
-  cell 1.67%, and the six A/A pairs span 1.0011 to 1.0100 unaligned and
-  0.9987 to 1.0054 aligned. The three-bench probe that priced the fix at
-  0.24% is thereby reproduced over the whole roster and the whole shape set.
-  What the aligned half does *not* do is tighten the floor everywhere: it
-  halves the main set's (1.00% to 0.54%) and leaves `scaled` with a 5.36%
-  pair on one cell of `scaled-super-r3`, the run's one bad control.
+  cell** of `vgg-14-c512-k3`; the same pair now reads 1.0043 with its worst cell
+  1.67%, and the six A/A pairs span 1.0011 to 1.0100 unaligned and 0.9987
+  to 1.0054 aligned. The three-bench probe that priced the fix at 0.24%
+  is thereby reproduced over the whole roster and the whole shape set. What
+  the aligned half does *not* do is tighten the floor everywhere: it halves
+  the main set's (1.00% to 0.54%) and leaves `scaled` with a 5.36% pair on one
+  cell of `scaled-super-r3`, the run's one bad control.
 
 - **The registrations those verdicts are read against.** Its order was chosen
   for heap state — `sum-only-early` above `list`, so nothing is measured
@@ -869,71 +869,69 @@ than a slot in the next run, observed again:
      this page has measured moving a figure when no strategy changed.
      That is the reading all three wait on.
 
-  **The gate has been run and the three testable predictions hold**
-  (2026-08-10, five benches over the 24 shapes, two passes per half in the
-  order unaligned, aligned, aligned, unaligned, so both binaries carry the
-  same mean position). Prediction 4: `build` reads **0.8836** of its
-  unaligned self and `mut-odo` **0.8778**, so alignment is worth **12%** to
-  each and the two agree to 0.7%, which is what one worker in two places
-  should do. Prediction 5: `list` moves **0.3%**, so the baseline is still,
-  the denominator holds, and the library reroll does not reach the one arm
-  whose loop is library code — the phase-matching earning its keep.
-  Prediction 2: the pair reads 0.9754 and 0.9805 unaligned, 0.9610 and 1.0082
-  aligned, nowhere near the 1.13 or 0.86 earlier runs saw. Run 10 is worth
-  its evening on this; what a gate of five benches and two passes cannot say
-  is anything about the rest of the roster.
+  **The gate has been run and the three testable predictions hold** (2026-08-10,
+  five benches over the 24 shapes, two passes per half in the order unaligned,
+  aligned, aligned, unaligned, so both binaries carry the same mean position).
+  Prediction 4: `build` reads **0.8836** of its unaligned self and `mut-odo`
+  **0.8778**, so alignment is worth **12%** to each and the two agree to 0.7%,
+  which is what one worker in two places should do. Prediction 5: `list` moves
+  **0.3%**, so the baseline is still, the denominator holds, and the library
+  reroll does not reach the one arm whose loop is library code —
+  the phase-matching earning its keep. Prediction 2: the pair reads 0.9754
+  and 0.9805 unaligned, 0.9610 and 1.0082 aligned, nowhere near the 1.13 or 0.86
+  earlier runs saw. Run 10 is worth its evening on this; what a gate of five
+  benches and two passes cannot say is anything about the rest of the roster.
 
-  **Two corrections come with it.** The registered 1.00 for prediction 2 was
-  too strong: the pair sits at ~0.98 on both halves, where the pad probe's own
+  **Two corrections come with it.** The registered 1.00 for prediction 2 was too
+  strong: the pair sits at ~0.98 on both halves, where the pad probe's own
   both-resident binaries sat, so the arms' intrinsic ratio is **0.98 rather
-  than the 0.9973** [the floor section][floor] carries — an estimate that
-  assumed the two arms share one penalty curve, which their 5.9% disagreement
-  at offset 13 already contradicted. It costs the arms nothing, since they
-  share a worker but not a call path, `build` being `mut-odo` driven through
-  `vBuildVS`. And **offset 0 is measured for the first time**: the probe's
-  eight offsets were all congruent to 5 mod 8, so the 0.85 predicted here was
-  an extrapolation from the resident mean, and the gain at 0 is 12% rather
-  than the 15.6% that implied.
+  than the 0.9973** [the floor section][floor] carries — an estimate
+  that assumed the two arms share one penalty curve, which their 5.9%
+  disagreement at offset 13 already contradicted. It costs the arms nothing,
+  since they share a worker but not a call path, `build` being `mut-odo` driven
+  through `vBuildVS`. And **offset 0 is measured for the first time**:
+  the probe's eight offsets were all congruent to 5 mod 8, so the 0.85 predicted
+  here was an extrapolation from the resident mean, and the gain at 0 is 12%
+  rather than the 15.6% that implied.
 
   **The gain is not a constant, which prediction 4's aggregate form should
-  say.** Read shape by shape it runs 0.719 to 1.031 for `build` and 0.763 to
-  1.033 for `mut-odo` — 28% at the best shape and a slight loss at the worst —
-  against a per-shape noise floor this gate puts at 6.3%, that being the
-  median disagreement between the two arms' own gains where identical code
-  says they should agree. So the extremes are real and the middle is not
-  resolvable on two passes: the 12% is a geomean over a structured
+  say.** Read shape by shape it runs 0.719 to 1.031 for `build` and 0.763
+  to 1.033 for `mut-odo` — 28% at the best shape and a slight loss at the worst
+  — against a per-shape noise floor this gate puts at 6.3%, that being
+  the median disagreement between the two arms' own gains where identical code
+  says they should agree. So the extremes are real and the middle
+  is not resolvable on two passes: the 12% is a geomean over a structured
   distribution and not a factor every arm pays. What the structure is remains
   open, no shape ordering being obvious from five benches.
 
-  **The correction term moves too, by 0.6%.** Both `sum-only` halves read
-  0.9939 and 0.9938 aligned over unaligned, agreeing to a digit over a range
-  of 0.990 to 0.998, so the forcing pass is itself slightly faster in the
-  aligned build — its own loop presumably being among the fifty the shim
-  rescues. It is subtracted from every figure, so it is not a term that
-  cancels between the halves; at 0.6% of a fraction of each cell it cannot
-  reach the 12%, but a later reading that needs the halves to share a
-  correction should know they do not quite. Allocation, by contrast, is
-  identical to 2.5e-6.
+  **The correction term moves too, by 0.6%.** Both `sum-only` halves read 0.9939
+  and 0.9938 aligned over unaligned, agreeing to a digit over a range of 0.990
+  to 0.998, so the forcing pass is itself slightly faster in the aligned build —
+  its own loop presumably being among the fifty the shim rescues.
+  It is subtracted from every figure, so it is not a term that cancels between
+  the halves; at 0.6% of a fraction of each cell it cannot reach the 12%,
+  but a later reading that needs the halves to share a correction should know
+  they do not quite. Allocation, by contrast, is identical to 2.5e-6.
 
-  **The gate read the aligned half as the noisier one and the full budget
-  says it is not.** Over the gate's five benches its median CI% was 0.532
-  against the unaligned half's 0.218, and its two passes disagreed more
-  (`mut-odo` at 1.0224 against 0.9859), which left open whether alignment
-  widens the per-cell interval structurally. Over Run 10's 816 cells a side
-  the two halves are indistinguishable: median CI% **0.138 against 0.134**,
-  median R² 0.99997 on both, and the aligned cell is the wider one 389 times
-  of 816. So the widening was the gate's own sample size, and alignment
-  removes a systematic term at no cost in precision. That closes the
-  question the gate raised, which is what the full budget was wanted for.
+  **The gate read the aligned half as the noisier one and the full budget says
+  it is not.** Over the gate's five benches its median CI% was 0.532 against
+  the unaligned half's 0.218, and its two passes disagreed more (`mut-odo`
+  at 1.0224 against 0.9859), which left open whether alignment widens
+  the per-cell interval structurally. Over Run 10's 816 cells a side the two
+  halves are indistinguishable: median CI% **0.138 against 0.134**, median R²
+  0.99997 on both, and the aligned cell is the wider one 389 times of 816.
+  So the widening was the gate's own sample size, and alignment removes
+  a systematic term at no cost in precision. That closes the question the gate
+  raised, which is what the full budget was wanted for.
 
   The first two were arms of one prediction, either of which could kill it,
-  on arms already rostered and at no extra machine time; the third priced
-  what the order change was for and carried its own control; the fourth is
-  why the run was two binaries and the fifth is what made the fourth
-  readable. The pad probe having answered the hypothesis first, the first two
-  were replications carrying point predictions rather than the evidence —
-  which is what that probe's window was spent to buy, and why the run's own
-  weight sat on 4.
+  on arms already rostered and at no extra machine time; the third priced what
+  the order change was for and carried its own control; the fourth is why
+  the run was two binaries and the fifth is what made the fourth readable.
+  The pad probe having answered the hypothesis first, the first two
+  were replications carrying point predictions rather than the evidence — which
+  is what that probe's window was spent to buy, and why the run's own weight sat
+  on 4.
 - **What costs `mut-odo-vecdims-add-out` its 16%, now that layout cannot? Asked
   and answered the same day: it is a per-run cost, and the Core reading had
   it right all along.** Run 10 read the arm 1.1266 with its loop resident
@@ -1041,10 +1039,9 @@ than a slot in the next run, observed again:
      a third build that moves one head without padding before it, which
      is `-fproc-alignment=64`'s territory and is [the queue][open]'s.
 
-  **And what it must not do was add an arm** — the third `-nosum` one the
-  queue calls due — since the repetition needed membership pinned as well as
-  layout. It did not; that arm is Run 12's, and the ordering is in the queue
-  entry too.
+  **And what it must not do was add an arm** — the third `-nosum` one the queue
+  calls due — since the repetition needed membership pinned as well as layout.
+  It did not; that arm is Run 12's, and the ordering is in the queue entry too.
 - **What Run 12 is built to answer, registered before it ran.** Four questions,
   each with what would count as an answer, so that a run reporting "nothing
   moved" reports a result rather than a failure. Registered 2026-08-13, before
@@ -1064,16 +1061,16 @@ than a slot in the next run, observed again:
      for them (1.0069, 1.0326), `-add-in` (1.0036) and `-add-both-down` (1.0029)
      shedding most of theirs (1.0143, 1.0443) — and that split was predicted
      from the offsets in the pair note before it was read. The halves' fills
-     differ again, `[11, 0, 4, 0]`/`[24, 8, 0, 0]` against `[4, 0, 4, 0]`/`[8,
-     8, 4, 4]`, and Run 11's third question priced the two copies max-skip left
-     resident, at 24 and 8, at 1.0074 and 1.0333 against the same code at 0.
-     So the prediction is that those two move toward what their `maxskippa`
-     offsets give while the other two stay put. **What kills it** is the four
-     reading flat against each other while their offsets differ, which would say
-     the offsets are not what the split was about. The per-arm form needs
-     the arm-to-entry mapping, which `loop-offsets.py`'s docstring pins only
-     for the second and fourth entries (`mut-odo` and `build`); read it off
-     the binaries before quoting an arm.
+     differ again, `[11, 0, 4, 0]`/`[24, 8, 0, 0]` against
+     `[4, 0, 4, 0]`/`[8, 8, 4, 4]`, and Run 11's third question priced the two
+     copies max-skip left resident, at 24 and 8, at 1.0074 and 1.0333 against
+     the same code at 0. So the prediction is that those two move toward what
+     their `maxskippa` offsets give while the other two stay put. **What kills
+     it** is the four reading flat against each other while their offsets
+     differ, which would say the offsets are not what the split was about.
+     The per-arm form needs the arm-to-entry mapping, which `loop-offsets.py`'s
+     docstring pins only for the second and fourth entries (`mut-odo`
+     and `build`); read it off the binaries before quoting an arm.
   3. **Membership invariance decides the basis and this run does not measure
      it.** Registered as a gap rather than a question, because the queue turns
      Run 13 on it and a later session could read this run as having tested it.
@@ -1187,19 +1184,18 @@ than a slot in the next run, observed again:
      lay their benchmark data out identically, there is no per-process address
      lottery to disable, and instrument 3 would have measured nothing.
 
-  **What survives is narrower and sharper.** Buffers land where the
-  *allocation history before them* puts them, and that history is not
-  identical between two runs of one binary: criterion spends a time budget,
-  so the iteration counts, and hence the bytes allocated before a given
-  bench, differ run to run. That is a lottery driven by criterion's own
-  scheduling rather than by the operating system, it is invisible to every
-  instrument above, and it predicts exactly what is seen — same binary, same
-  slot, different run, one arm of a susceptible family 28% slower in mutator
-  cycles with allocation identical to the byte.
+  **What survives is narrower and sharper.** Buffers land where the *allocation
+  history before them* puts them, and that history is not identical between two
+  runs of one binary: criterion spends a time budget, so the iteration counts,
+  and hence the bytes allocated before a given bench, differ run to run.
+  That is a lottery driven by criterion's own scheduling rather than
+  by the operating system, it is invisible to every instrument above,
+  and it predicts exactly what is seen — same binary, same slot, different run,
+  one arm of a susceptible family 28% slower in mutator cycles with allocation
+  identical to the byte.
 
-  **What follows for reading a table, before any of it is measured
-  further.** Four things, and the second is the one this page has been
-  quiet about:
+  **What follows for reading a table, before any of it is measured further.**
+  Four things, and the second is the one this page has been quiet about:
   1. **The A/A worst cell is a gate and not a note.** It is the only thing
      that caught a 35% error, and it caught it while every aggregate stayed
      green. A pair whose worst cell passes about 10% disqualifies that cell
@@ -1223,84 +1219,82 @@ than a slot in the next run, observed again:
      moving one cell by a third is why, where a geomean over 24 shapes cannot
      move like that.
 
-  **And a fourth instrument died on contact, which is worth a sentence
-  because it is the obvious one.** If the mechanism is allocation history,
-  pinning criterion's iteration count should pin the history and make cells
-  reproduce; but `-n/--iters` is *Run benchmarks, don't analyse*, and a run
-  under it writes no JSON at all — measured, not read off the help text.
-  There is no other way to fix the schedule from the command line, so the
-  mechanism cannot be tested by pinning it, and [the queue][open] records
-  that dead rather than leaving it to be re-proposed. What `-n` *is* for is
-  the next paragraph.
+  **And a fourth instrument died on contact, which is worth a sentence because
+  it is the obvious one.** If the mechanism is allocation history, pinning
+  criterion's iteration count should pin the history and make cells reproduce;
+  but `-n/--iters` is *Run benchmarks, don't analyse*, and a run under it writes
+  no JSON at all — measured, not read off the help text. There is no other way
+  to fix the schedule from the command line, so the mechanism cannot be tested
+  by pinning it, and [the queue][open] records that dead rather than leaving
+  it to be re-proposed. What `-n` *is* for is the next paragraph.
 
-  **The block-pool issue this project filed is the nearest precedent, and
-  its methods are the ones to reach for next** —
+  **The block-pool issue this project filed is the nearest precedent,
+  and its methods are the ones to reach for next** —
   `docs/ghc-issue-block-pool-fragmentation.md` in horde-ad, with the full
-  analysis in `docs/position-effect.md`. **The bug itself is probably not
-  this**: its symptom is a pool that doubles and stays doubled, and
-  `max_mem_in_use` across the four main-set processes of Runs 10 and 11 sits
-  at 218 to 220 MiB with the *wild* process the smallest of them; nor does
-  any of the 24 main-set shapes allocate in the worst-case band just above
+  analysis in `docs/position-effect.md`. **The bug itself is probably
+  not this**: its symptom is a pool that doubles and stays doubled,
+  and `max_mem_in_use` across the four main-set processes of Runs 10 and 11 sits
+  at 218 to 220 MiB with the *wild* process the smallest of them; nor does any
+  of the 24 main-set shapes allocate in the worst-case band just above
   the 3276-byte large-object limit. **But its description of the statistical
-  signature is this situation verbatim**, and having it filed upstream is
-  worth more than re-deriving it: a bias rather than noise, regression fits
-  staying tight around a value wrong by a fifth, more samples in the same
-  process shrinking the interval *around the wrong value*, and — the part
-  that matches the lottery — an effect that in rare runs does not reproduce
-  and whose magnitude differs randomly from run to run.
+  signature is this situation verbatim**, and having it filed upstream is worth
+  more than re-deriving it: a bias rather than noise, regression fits staying
+  tight around a value wrong by a fifth, more samples in the same process
+  shrinking the interval *around the wrong value*, and — the part that matches
+  the lottery — an effect that in rare runs does not reproduce and whose
+  magnitude differs randomly from run to run.
 
   **So the instrument that report used is the one this question wants**:
   `perf stat` over runs with a fixed iteration count, read per iteration.
   Its table is the model — task-clock, instructions, dTLB-load-misses,
-  cache-misses, page faults, clock — and it identified last-level cache
-  misses by finding instructions equal to 0.9994, clock equal, GC and
-  allocation equal, and cache-misses 2.86 times. Three of those rows are
-  already known here and agree: the clock is fixed, allocation is identical
-  to the byte, GC is flat. **The missing row is the cache misses, and only
-  `perf` can supply it** — paired with `-n`, whose fixed iteration count and
-  absence of analysis is exactly what that method wants, which is what `-n`
-  is for and why its retraction above is about JSON alone. `+RTS -H2G` is
-  the control the same report validates: a pool taken in one contiguous
-  piece removed the cost there, so a wild cell surviving `-H2G` is not pool
-  structure.
+  cache-misses, page faults, clock — and it identified last-level cache misses
+  by finding instructions equal to 0.9994, clock equal, GC and allocation equal,
+  and cache-misses 2.86 times. Three of those rows are already known here
+  and agree: the clock is fixed, allocation is identical to the byte, GC
+  is flat. **The missing row is the cache misses, and only `perf` can supply
+  it** — paired with `-n`, whose fixed iteration count and absence of analysis
+  is exactly what that method wants, which is what `-n` is for and why
+  its retraction above is about JSON alone. `+RTS -H2G` is the control the same
+  report validates: a pool taken in one contiguous piece removed the cost there,
+  so a wild cell surviving `-H2G` is not pool structure.
 
   **`perf` needs `kernel.perf_event_paranoid` lowered from this machine's 4
-  before it counts anything** — at 4 it reports `cpu-cycles:u <not
-  supported>` — and that is a `sudo sysctl -w` in a plain terminal, not
-  something a session can do.
+  before it counts anything** — at 4 it reports `cpu-cycles:u <not supported>` —
+  and that is a `sudo sysctl -w` in a plain terminal, not something a session
+  can do.
 
   **Run 2026-08-12, and the cell does not reproduce filtered, as expected.**
-  Differencing `-n 40000` against `-n 20000` on `run12-maxskip`, which
-  removes the process's fixed cost exactly rather than diluting it — at
-  `-n 200` startup was 45% of task-clock and the counters said nothing —
+  Differencing `-n 40000` against `-n 20000` on `run12-maxskip`, which removes
+  the process's fixed cost exactly rather than diluting it — at `-n 200` startup
+  was 45% of task-clock and the counters said nothing —
   `lenet-L1-28-c1-k5/bq-expand` and its adjacent twin come out at **54.10
   against 53.95 µs an iteration, 866206 against 866252 instructions, 1102.6
   against 1106.4 cache misses, 19.9 against 21.0 dTLB misses**. Everything
   inside a third of a percent but the dTLB, which is 5% on a base of twenty.
   A filtered process has no allocation history and a clean pool, so there
-  was nothing for the effect to arise from; the null is consistent with the
-  surviving account rather than against it. Three things it does buy: the
-  **instructions agree to 5e-5**, which is the first instruction-level proof
-  that an A/A pair is the same work and the control row that must stay flat
-  when the effect does reproduce; a per-call counter baseline for that bench
-  to compare a wild cell against; and **criterion's slope confirmed by an
-  instrument sharing no code with it**, 54.10 µs against the 53.46 that half
-  published, 1.2% apart. Seconds, and no quiet machine: counter ratios
-  between two arms do not move because something else is running, where a
-  wall-clock figure would.
+  was nothing for the effect to arise from; the null is consistent
+  with the surviving account rather than against it. Three things it does buy:
+  the **instructions agree to 5e-5**, which is the first instruction-level proof
+  that an A/A pair is the same work and the control row that must stay flat when
+  the effect does reproduce; a per-call counter baseline for that bench
+  to compare a wild cell against; and **criterion's slope confirmed
+  by an instrument sharing no code with it**, 54.10 µs against the 53.46
+  that half published, 1.2% apart. Seconds, and no quiet machine: counter ratios
+  between two arms do not move because something else is running, where
+  a wall-clock figure would.
 
   So what remains is a **plain repeat of the aligned main set**, 70 minutes
-  quiet, which cannot be filtered — a filtered run puts every arm at the
-  cold end by construction ([the floor section][floor]) — and which wants
-  the aligned half rebuilt first, that binary having gone with Run 11's
-  artifacts and a rebuild naming it for the run that wants it. It answers
-  the narrow question only: whether a fresh wild cell
-  turns up somewhere else, or the same one returns. **The mechanism itself
-  is tested by logging what it names**, per bench: the RTS's allocated-bytes
-  total and the payload addresses. That is a `Main.hs` edit and belongs
-  **after Run 12 is spent**, since it changes the module's code, so its
-  `.text`, so every loop offset, and would invalidate the `PAD_BYTES` and
-  the two md5s `run12-pair.txt` records for a pair already built.
+  quiet, which cannot be filtered — a filtered run puts every arm at the cold
+  end by construction ([the floor section][floor]) — and which wants the aligned
+  half rebuilt first, that binary having gone with Run 11's artifacts
+  and a rebuild naming it for the run that wants it. It answers the narrow
+  question only: whether a fresh wild cell turns up somewhere else, or the same
+  one returns. **The mechanism itself is tested by logging what it names**, per
+  bench: the RTS's allocated-bytes total and the payload addresses. That
+  is a `Main.hs` edit and belongs **after Run 12 is spent**, since it changes
+  the module's code, so its `.text`, so every loop offset, and would invalidate
+  the `PAD_BYTES` and the two md5s `run12-pair.txt` records for a pair already
+  built.
 - **Why is `mut-odo`'s interval wide on `micro-aligned`?** Its CI% reads 1.06
   there against 0.34 unaligned, and the raw samples have since been read
   (2026-08-11, arithmetic over the run and gate artifacts, no machine time).
@@ -1420,8 +1414,8 @@ than a slot in the next run, observed again:
   column before Run 10 is, and stays the reading's job.
 
   **Run 11 had no unaligned half, and the check was left alone rather
-  than widened — the reading is that this was right.** Its two columns are `Run
-  11 (SpecConstr, aligned)` and `Run 11 (SpecConstr, max-skip)`,
+  than widened — the reading is that this was right.** Its two columns
+  are `Run 11 (SpecConstr, aligned)` and `Run 11 (SpecConstr, max-skip)`,
   and `--check-doc` passes on them, the rule asking that a paired run publish
   a column per half and not one. Widening it was the alternative and is refused:
   the check would then have to know which half names count as a counterpart,
@@ -1546,12 +1540,13 @@ beside this one.
 
 ### The shape set
 
-The conv-derived shapes: the patch tensor, per image, laid out `[outH, outW,
-Cin, KH, KW]` — the per-image `[nAh, nAw, nCinp, nKh, nKw]` of the patch tensor
-above, renamed to the conventional axes (output spatial, input channels, kernel)
-— and its per-position `[Cin, KH, KW]` slices, with dims from real nets —
-kernels 3×3 (VGG/ResNet, horde-ad's own CNN), 5×5 (LeNet), 11×11 (AlexNet);
-channels 1 up to 512; spatial from horde-ad's 6/24 to AlexNet's 55.
+The conv-derived shapes: the patch tensor, per image, laid out
+`[outH, outW, Cin, KH, KW]` — the per-image `[nAh, nAw, nCinp, nKh, nKw]`
+of the patch tensor above, renamed to the conventional axes (output spatial,
+input channels, kernel) — and its per-position `[Cin, KH, KW]` slices, with dims
+from real nets — kernels 3×3 (VGG/ResNet, horde-ad's own CNN), 5×5 (LeNet),
+11×11 (AlexNet); channels 1 up to 512; spatial from horde-ad's 6/24 to
+AlexNet's 55.
 
 The `stretch-*` shapes are not conv-derived — extreme rank, extreme aspect
 ratio, non-power-of-two dims, a cache-hostile innermost stride, a run length
@@ -1757,11 +1752,11 @@ The probe, run 2026-08-08 at -O1 on the desktop this page's other figures come
 from: three arms — `list`, `bq-expand` and `mut-odo-vecdims`, spanning the list,
 the per-element generate and the run copy — over six shapes chosen to span
 `sInner` and `l`, one process per type, by `cabal run probe -- f32`
-and its siblings. Three further points, each varying one thing against `Storable
-Double`: `Storable Float` is the same instance at half the width, unboxed `Int`
-the same width in another instance, `Storable Word8` the same instance
-at the narrowest width there is. Each figure is that type's own geomean against
-that type's own `list`:
+and its siblings. Three further points, each varying one thing against
+`Storable Double`: `Storable Float` is the same instance at half the width,
+unboxed `Int` the same width in another instance, `Storable Word8` the same
+instance at the narrowest width there is. Each figure is that type's own geomean
+against that type's own `list`:
 
 | element type, at -O1 | `bq-expand` | worst | `alloc` | `mut-odo-vecdims` | worst |
 |---|---:|---:|---:|---:|---:|
@@ -1913,13 +1908,14 @@ as a comment on `fastQR`, so the loose form is not written again.
 `mut-odo` out (a bar then, a weight since the mutable ceiling's amendment) does
 not apply; what it costs is `MagicHash` and `UnboxedTuples`
 in `Data/Array/Internal.hs`, about a dozen lines of helper, and a precondition.
-The precondition is the substantive part: Lemire's identity holds for `d, n <
-2^32`, and `n` here is the linear output index, so a shipped version needs an `l
-< 2^32` test choosing between the two fills — loop-invariant and chosen once per
-call, but it must be there, since orthotope does not otherwise cap array length.
-Weigh 6.0% against that at the -O1 a default `cabal build` of orthotope takes,
-and nothing at all against it if that build ever gains `-fspec-constr`;
-this benchmark's job is to price it, not to decide it.
+The precondition is the substantive part: Lemire's identity holds
+for `d, n < 2^32`, and `n` here is the linear output index, so a shipped version
+needs an `l < 2^32` test choosing between the two fills — loop-invariant
+and chosen once per call, but it must be there, since orthotope does
+not otherwise cap array length. Weigh 6.0% against that at the -O1 a default
+`cabal build` of orthotope takes, and nothing at all against it if that build
+ever gains `-fspec-constr`; this benchmark's job is to price it, not to decide
+it.
 
 
 ### Per shape, where the geomean hides the ordering
@@ -2354,9 +2350,9 @@ Ideas that **died on paper**, recorded so they are not re-proposed:
   through a store-to-load forward where the scan carries the sum in a register,
   each step passes a freshly wrapped prefix slice, and the one power `scanl'`
   lacks — deltas depending on earlier *values* — is power a position-only delta
-  never uses. Prefix access cannot even cheapen the carries: `table[q] =
-  table[q - suffixProduct c] + st_c` still needs the same divisibility cascade
-  to find `c`.
+  never uses. Prefix access cannot even cheapen the carries:
+  `table[q] = table[q - suffixProduct c] + st_c` still needs the same
+  divisibility cascade to find `c`.
 - **A branchless delta select in the scan build** (folding the carry correction
   in arithmetically instead of branching) — the branch's outcome is periodic
   with period `sInner`, which a modern predictor learns, so the branch
@@ -2777,13 +2773,13 @@ gets a fresh shell, so a `cd` and an assignment made in one are gone
 by the next, and the commands below are spread over a dozen of them — which
 is to say the shell this warning is about is the ordinary one here,
 not a careless one. Inline the two literals into every command, or re-set them
-at the head of each: `cd ~/r/orthotope/micro-regime3 && R=run10
-REGIME=-fspec-constr && …`. The two do not fail alike, which is the reason
-to spell this out rather than trust care. `./run-major.sh $R` with `$R` empty
-is loud, the driver refusing without a name. `./make-pair.py --regime="$REGIME"`
-with `$REGIME` empty is not: it degrades to a plain -O1 build, which is exactly
-the silent wrong thing the paragraph above describes and nothing downstream
-detects.
+at the head of each:
+`cd ~/r/orthotope/micro-regime3 && R=run10 REGIME=-fspec-constr && …`. The two
+do not fail alike, which is the reason to spell this out rather than trust care.
+`./run-major.sh $R` with `$R` empty is loud, the driver refusing without a name.
+`./make-pair.py --regime="$REGIME"` with `$REGIME` empty is not: it degrades
+to a plain -O1 build, which is exactly the silent wrong thing the paragraph
+above describes and nothing downstream detects.
 
 `$REGIME` is the bare GHC flag and not a `--ghc-options=` spelling of it,
 because `make-pair.py` composes it with a `-pgma` of its own and would wrap
@@ -2844,16 +2840,16 @@ The fork's three questions are answerable in three commands, none of which
 the page should make you invent, and each names the pair's own two halves —
 `run12-maxskip` and `run12-maxskippa` today. Is there a pair — `ls run12-*`.
 Is it the pair the note describes — `md5sum run12-maxskip run12-maxskippa`
-against its two `md5` lines. Has the source moved under it — `git log -1
---format=%h -- Main.hs` against the commit the note records for `Main.hs`, which
-is the one that command returns; where the note records two, the other
-is the tree it was built in and is not what this compares. **Expect
-it to differ, and read the diff before believing it**: step 8 below sends
-the write-up into `Main.hs`'s comments and forbids rebuilding for it,
-so a comment-only move is the normal state after every run, and `git diff
-<note's commit> HEAD -- Main.hs` is what tells it from a real one. The regime
-is the fourth and is not answerable this way, the JSON recording no compiler
-flag; the `diag` step below is what answers it.
+against its two `md5` lines. Has the source moved under it —
+`git log -1 --format=%h -- Main.hs` against the commit the note records
+for `Main.hs`, which is the one that command returns; where the note records
+two, the other is the tree it was built in and is not what this compares.
+**Expect it to differ, and read the diff before believing it**: step 8 below
+sends the write-up into `Main.hs`'s comments and forbids rebuilding for it,
+so a comment-only move is the normal state after every run,
+and `git diff <note's commit> HEAD -- Main.hs` is what tells it from a real one.
+The regime is the fourth and is not answerable this way, the JSON recording
+no compiler flag; the `diag` step below is what answers it.
 
 Only where there is no pair, or where `Main.hs` or the regime has moved since
 the note was written, is the build the thing to run — and the regime goes
@@ -2892,10 +2888,11 @@ than half-running, treat it as build-only.
 
 There is no single-binary form of a major run any more, the pairing being
 permanent: `run-major.sh` and `run-gate.sh` both refuse to start without both
-halves, so a lone binary has no driver. What `cabal build micro
-${REGIME:+--ghc-options=$REGIME}` is still for is a probe — a filtered handful
-of benches answering one question — and those are run with `cabal run micro
-${REGIME:+--ghc-options=$REGIME} --`, never through the sequence below.
+halves, so a lone binary has no driver. What
+`cabal build micro ${REGIME:+--ghc-options=$REGIME}` is still for is a probe —
+a filtered handful of benches answering one question — and those are run
+with `cabal run micro ${REGIME:+--ghc-options=$REGIME} --`, never through
+the sequence below.
 
 **Before spending the hours**, the cheap checks — the first two against
 the binaries that will be timed, not a third built beside them, and the last two
@@ -2962,12 +2959,12 @@ and that no short loop of its own code straddles, recorded as they stand, since
 a prediction made per arm is made from them and no later binary has them —
 offsets at 0 are what a fully padded half shows and not a thing to require
 of a max-skip one, which leaves a resident loop where it fell; `--survey`
-is the length-agnostic form and takes one binary at a time (`./loop-offsets.py
---survey runN-maxskip`), and what "every timed arm's loop" means is bounded
-by what can be attributed at all. The sequence below runs each half in turn,
-and `run-major.sh` does it for you; what neither can do is interleave two
-processes of this size within a population, so the order they ran in is written
-down and is one of the two things left uncontrolled.
+is the length-agnostic form and takes one binary at a time
+(`./loop-offsets.py --survey runN-maxskip`), and what "every timed arm's loop"
+means is bounded by what can be attributed at all. The sequence below runs each
+half in turn, and `run-major.sh` does it for you; what neither can do
+is interleave two processes of this size within a population, so the order they
+ran in is written down and is one of the two things left uncontrolled.
 
 **The other was that the halves differed by more than Main's alignment,
 and that one is fixed.** Aligning grows `.text` by 12 KB, so everything linked
@@ -3259,14 +3256,14 @@ an interrupted sequence a hand job — expect that, since the machine gets wante
 back.** The guard is right (relaunching overwrites hours in place), but it has
 no resume, so finishing a sequence whose main sets landed and whose classes did
 not means running the class loop yourself: the `for c in ...` half
-of the sequence above, with the basis half's name, an `[ -e "$out.json" ] &&
-continue` before each so a population that already ran is skipped rather
-than redone, and its `benchmarking` count checked against `classes --list`
-as the driver does. Stamp each into the same `$R-wallclock.log`, so the run's
-own record stays one file, and say in the write-up that the populations ran
-in more than one window — one process per population is what makes
-that harmless, each carrying its own controls and gates, but it is a fact about
-the run and the chapter states it.
+of the sequence above, with the basis half's name,
+an `[ -e "$out.json" ] && continue` before each so a population that already ran
+is skipped rather than redone, and its `benchmarking` count checked against
+`classes --list` as the driver does. Stamp each into the same
+`$R-wallclock.log`, so the run's own record stays one file, and say
+in the write-up that the populations ran in more than one window — one process
+per population is what makes that harmless, each carrying its own controls
+and gates, but it is a fact about the run and the chapter states it.
 
 What it adds over pasting the sequence is the counting: every process's bench
 count is checked against what the roster holds, so a selection that silently
@@ -3312,19 +3309,19 @@ each with a `.log` beside it, and `run12-wallclock.log` over the ten. The gate's
 own `$R-gate-*` files are not among them and are excluded from the relaunch
 guard for that reason.
 
-Everything else is already a default. The allocation fit `--regress
-allocated:iters` is on (it is well-conditioned at 5s), so `alloc` comes out
-of the same process as the times rather than a side run; passing `--regress`
-explicitly would replace it. Each process prints its own provenance to stderr
-as it finishes — roster size, shape count, wall clock and the two heap peaks —
-so a document quoting its scale copies a measured number rather than counting
-benches by hand, and so `micro.cabal`'s `-M2G` headroom claim has a current
-source; the stderr redirect above is what keeps it. In a class process every
-part of that line is its own but the shape count, which is fixed before
+Everything else is already a default. The allocation fit
+`--regress allocated:iters` is on (it is well-conditioned at 5s), so `alloc`
+comes out of the same process as the times rather than a side run; passing
+`--regress` explicitly would replace it. Each process prints its own provenance
+to stderr as it finishes — roster size, shape count, wall clock and the two heap
+peaks — so a document quoting its scale copies a measured number rather
+than counting benches by hand, and so `micro.cabal`'s `-M2G` headroom claim has
+a current source; the stderr redirect above is what keeps it. In a class process
+every part of that line is its own but the shape count, which is fixed before
 criterion selects and so names the whole class set.
 
-**Check what a filtered selection actually selected.** Criterion takes one `-m
-MODE` and then its patterns positionally, so `-m glob A -m glob B` matches
+**Check what a filtered selection actually selected.** Criterion takes one
+`-m MODE` and then its patterns positionally, so `-m glob A -m glob B` matches
 *nothing* and the process exits at once -- which looks exactly like a fast run
 and cost one probe here before the zero timings gave it away. Count
 the `benchmarking` lines against what was asked for before reading any number
@@ -3447,12 +3444,12 @@ which loses the finding.
    for the next run on this run's basis while the readings are still in front
    of you. **A paired run's own mode is `--compare`, and its direction
    is a convention worth stating**: the run given first is the one the ratios
-   are *of*, the `--compare` argument being what they are divided by, so `basis
-   --compare control` puts a figure below 1 where the basis is faster — for Run
-   10, whose control was unaligned, that was where alignment was faster.
-   Prediction 4's per-arm term and the aligned half's published column both read
-   that way round; reversed, every one of them inverts and nothing in the output
-   says so.
+   are *of*, the `--compare` argument being what they are divided by,
+   so `basis --compare control` puts a figure below 1 where the basis is faster
+   — for Run 10, whose control was unaligned, that was where alignment
+   was faster. Prediction 4's per-arm term and the aligned half's published
+   column both read that way round; reversed, every one of them inverts
+   and nothing in the output says so.
 4. **One JSON at a time, never merged.** The reader takes one file,
    and its geomean is that file's population — the main set's or one class's.
    Every mode names that population in its first line, `--selftest` fails a file
@@ -3484,13 +3481,13 @@ which loses the finding.
    the procedure used to leave to judgement, each of which has caught something.
 
    **This step is the whole of the document verification a run owes, and nothing
-   else is to be reached for. Four passes, in this order:** run `./read-run.py
-   --lint` and `--check-doc`, whose exit codes are the verdict; read the three
-   worklists they print and adjudicate each entry; read the write-up end to end
-   against the run's own artifacts; and hand the diff to an independent checker,
-   which the paragraph after next briefs. None of them is optional, the third
-   is the one that keeps finding real errors, and the fourth is what catches
-   what the third cannot see in its own writing.
+   else is to be reached for. Four passes, in this order:** run
+   `./read-run.py --lint` and `--check-doc`, whose exit codes are the verdict;
+   read the three worklists they print and adjudicate each entry; read
+   the write-up end to end against the run's own artifacts; and hand the diff
+   to an independent checker, which the paragraph after next briefs. None
+   of them is optional, the third is the one that keeps finding real errors,
+   and the fourth is what catches what the third cannot see in its own writing.
 
    **Expect every error to be in the prose and none in the numbers, and expect
    the green checkers to be why.** Run 11 shipped six, and not one was a wrong
@@ -3575,19 +3572,19 @@ which loses the finding.
    2. **reproduce any newly-derived column by a route that shares no code
       with the reader.** A four-bench filtered run carrying both `sum-only`
       halves takes seconds, and criterion's own printed `time` lines then give
-      the ratio by hand: on `cnn-slice-c32`, `(1.506 - 0.1739) / (6.339 -
-      0.1739)` = 0.2161 against the reader's 0.216. Recomputing from `--cells`
-      is worth doing too, but it shares the reader's arithmetic and cannot catch
-      a wrong definition, only a wrong transcription. Two rules the independent
-      route needs, both learned by getting them wrong after Run 9. **Difference
-      wall time, or user *and* system -- never user alone**: the inherited "wall
-      and user time agree on it" is a property of the workload it was written
-      for, and where the RTS does kernel work they part completely, which is how
-      0.36 ms per call of system time went unseen and a real 10% effect
-      was reported as zero. And **difference at two scales**: if the per-call
-      figure moves with `n`, part of what is being divided is a fixed cost,
-      which is how a one-time 0.9 s of page-faulting read as half a millisecond
-      a call;
+      the ratio by hand: on `cnn-slice-c32`,
+      `(1.506 - 0.1739) / (6.339 - 0.1739)` = 0.2161 against the reader's 0.216.
+      Recomputing from `--cells` is worth doing too, but it shares the reader's
+      arithmetic and cannot catch a wrong definition, only a wrong
+      transcription. Two rules the independent route needs, both learned
+      by getting them wrong after Run 9. **Difference wall time, or user
+      *and* system -- never user alone**: the inherited "wall and user time
+      agree on it" is a property of the workload it was written for, and where
+      the RTS does kernel work they part completely, which is how 0.36 ms per
+      call of system time went unseen and a real 10% effect was reported
+      as zero. And **difference at two scales**: if the per-call figure moves
+      with `n`, part of what is being divided is a fixed cost, which is how
+      a one-time 0.9 s of page-faulting read as half a millisecond a call;
    3. **when two instruments disagree, that is the finding.** Do not average
       them, pick the one the page prefers, or quietly drop the awkward one.
       Locate the disagreement first: the criterion slope and the `-n`
@@ -3652,17 +3649,16 @@ which loses the finding.
       run and basis each figure belongs to. This is the pass that keeps finding
       real errors;
 
-   Two conventions this page holds to, both of which exist because breaking
-   them has cost something here. **A figure in prose names its run, its basis
-   and its population, or it belongs in a table with the prose pointing at
-   it** — a bare numeral carries no provenance, and that is how one sentence
+   Two conventions this page holds to, both of which exist because breaking them
+   has cost something here. **A figure in prose names its run, its basis
+   and its population, or it belongs in a table with the prose pointing
+   at it** — a bare numeral carries no provenance, and that is how one sentence
    came to put a Failed Run 6 figure beside a Run 6 one, and another to compare
-   a *published* ratio with a *paired* one. The population is the newest way to
-   make that mistake and the easiest, a class figure and a main-set one being
+   a *published* ratio with a *paired* one. The population is the newest way
+   to make that mistake and the easiest, a class figure and a main-set one being
    the same kind of number over different shapes. **An anchor longer than about
-   thirty characters
-   goes reference-style**, defined at the foot of the file: inline it overflows
-   the width and the rewrapping that follows is pure churn;
+   thirty characters goes reference-style**, defined at the foot of the file:
+   inline it overflows the width and the rewrapping that follows is pure churn;
 8. Re-run `--lint` after editing `Main.hs`, even when only comments changed:
    the reader parses that file for the roster and the shape dims, so a comment
    edit can break a check that passed before it. `--lint` reads the source
@@ -3687,59 +3683,56 @@ which loses the finding.
    every class view rather than the population that ran, and the population's
    own size comes from the reader's first line;
 10. **Walk the open list against what this session actually did**, which
-   nothing checks. **Grep [the settled index][settled] before adding an
-   entry**, not only before deriving: a question is easy to open against
-   something already answered in a section you are not writing in, which is
-   how Run 10's write-up proposed a Core dump that had been taken three times
-   and whose answer -- `vBuildVS` surviving as no top-level binding, so there
-   is no call path to dump -- was recorded at the ceiling, a thousand lines
-   from where the entry was being written. A run answers some of its own
-   questions and a write-up
-   raises others, and both go stale in place: Run 8 answered the element-type
-   entry with the probe that entry specified and left it standing open, and
-   answered the packed-arm entry the same day. Move what was answered into
-   the answered block with its measurement, leave what a probe narrowed as
-   narrowed, and add the run's surprises with the measurement that would
-   settle each.
+   nothing checks. **Grep [the settled index][settled] before adding an entry**,
+   not only before deriving: a question is easy to open against something
+   already answered in a section you are not writing in, which is how Run 10's
+   write-up proposed a Core dump that had been taken three times and whose
+   answer -- `vBuildVS` surviving as no top-level binding, so there is no call
+   path to dump -- was recorded at the ceiling, a thousand lines from where
+   the entry was being written. A run answers some of its own questions
+   and a write-up raises others, and both go stale in place: Run 8 answered
+   the element-type entry with the probe that entry specified and left
+   it standing open, and answered the packed-arm entry the same day. Move what
+   was answered into the answered block with its measurement, leave what a probe
+   narrowed as narrowed, and add the run's surprises with the measurement
+   that would settle each.
 11. **Spend the load-independent measurements before the artifacts go.**
-   Allocation is deterministic per call, Core is a compile, and a binary's
-   size is a `size` invocation — none of them wants a quiet machine or a run
-   slot, and each is minutes. Run 8 stopped at the write-up and left a Core
-   diff, a two-regime `diag` and a code-size figure undone; all three were
-   done later, two of them changed rulings, and one answered an open question
-   outright. So before step 12, take every question on the open list whose
-   measurement is a compile, an allocation or an arithmetic re-derivation,
-   and take it now. What is left over is the timing work, which is what a
-   quiet machine is for.
+   Allocation is deterministic per call, Core is a compile, and a binary's size
+   is a `size` invocation — none of them wants a quiet machine or a run slot,
+   and each is minutes. Run 8 stopped at the write-up and left a Core diff,
+   a two-regime `diag` and a code-size figure undone; all three were done later,
+   two of them changed rulings, and one answered an open question outright.
+   So before step 12, take every question on the open list whose measurement
+   is a compile, an allocation or an arithmetic re-derivation, and take it now.
+   What is left over is the timing work, which is what a quiet machine is for.
 12. **Only then, offer the artifacts for deletion — once — and abide by the
-   answer.** The JSONs, the logs and the wall-clock file, and for a paired
-   run the two binaries and their `$R-pair.txt` with them, that note being
-   about a pair and worth little once the pair is gone. **Offering is the
-   step; deleting is not**, and the offer is made after the verification
-   above is done and presented, not after the writing — Run 6's artifact
-   went as soon as its write-up was drafted, which cost the ability to
-   re-check anything needing the raw samples when that write-up was later
-   questioned.
+   answer.** The JSONs, the logs and the wall-clock file, and for a paired run
+   the two binaries and their `$R-pair.txt` with them, that note being about
+   a pair and worth little once the pair is gone. **Offering is the step;
+   deleting is not**, and the offer is made after the verification above is done
+   and presented, not after the writing — Run 6's artifact went as soon
+   as its write-up was drafted, which cost the ability to re-check anything
+   needing the raw samples when that write-up was later questioned.
 
    **They are not required to go, and this page no longer says they are.**
    The rule used to be that the normal state of this directory is no run
    artifact at all; what justified it was that the numbers live in this file
-   and the fingerprint exists precisely so a per-shape record outlives its
-   run. Both remain true, and neither makes deletion *owed*: what they
-   actually argue is that nothing is *lost* by deleting, which is a licence
-   and not an obligation. What is lost by deleting early is concrete and has
+   and the fingerprint exists precisely so a per-shape record outlives its run.
+   Both remain true, and neither makes deletion *owed*: what they actually argue
+   is that nothing is *lost* by deleting, which is a licence and
+   not an obligation. What is lost by deleting early is concrete and has
    been paid twice — every `--pair` a later question wants, every per-shape
-   spread that separates a bias from noise, every count re-derived from
-   `--cells`, and every sample-level reading needs the JSON and nothing else
-   does. Run 8's were kept and drawn on a dozen times in the days after, for
-   questions its write-up had not thought to ask; Run 11's were kept and
-   became the disturbed control and the wild cell's sample-level account,
+   spread that separates a bias from noise, every count re-derived
+   from `--cells`, and every sample-level reading needs the JSON and nothing
+   else does. Run 8's were kept and drawn on a dozen times in the days after,
+   for questions its write-up had not thought to ask; Run 11's were kept
+   and became the disturbed control and the wild cell's sample-level account,
    neither of which its write-up foresaw.
 
-   So: ask once, say what they buy, and take no for an answer without
-   raising it again. A previous run's artifacts still being here is not a
-   defect to be tidied and is not a blocker for the next run, whose relaunch
-   guard is scoped to its own name.
+   So: ask once, say what they buy, and take no for an answer without raising
+   it again. A previous run's artifacts still being here is not a defect
+   to be tidied and is not a blocker for the next run, whose relaunch guard
+   is scoped to its own name.
 
 
 ### The reader: read-run.py
@@ -3776,12 +3769,12 @@ is the reference for all of them; extend the script rather than starting over.
 no write-up has ever read a table row out of this file: `--markdown`,
 `--fingerprint` and `--block` emit those rows and `--in-place` installs them,
 so three hundred-odd cells are never carried through a context that does
-not need them. `--para` is the same trick for prose — the alternative is a `grep
--n` paired with a `sed -n` for every passage wanted, both of which go stale
-the moment an edit above moves the lines, which every install and every fix
-does. The rule generalises: when a session finds itself reading this page to get
-at something the reader could compute or locate, that is a mode missing rather
-than a page to read harder.
+not need them. `--para` is the same trick for prose — the alternative
+is a `grep -n` paired with a `sed -n` for every passage wanted, both of which go
+stale the moment an edit above moves the lines, which every install and every
+fix does. The rule generalises: when a session finds itself reading this page
+to get at something the reader could compute or locate, that is a mode missing
+rather than a page to read harder.
 
 Every mode's first line names the run's **population** — the main set or one
 [stride class](#the-stride-classes-and-what-they-cover) — which the reader works
@@ -4524,25 +4517,26 @@ nothing here measures that.
 
 **Its LLVM backend does align them, which makes this a backend choice rather
 than a property of the compiler.** `-fllvm` emits that same `.p2align 4` above
-the inner loop header, on all four of those compilers, and `-optlc
--align-loops=64` (bytes) or `-optlc
--x86-experimental-pref-innermost-loop-alignment=6` (log2) raises it to 64, each
-checked by reading the directive that came out. Read it rather than trusting it:
-these feed a heuristic, and `-x86-experimental-pref-loop-alignment` at 5
-and at 6 gave 64 and 4 bytes. What it would cost is a whole regime, `-fllvm`
-being a different code generator that no figure here would survive; what
-it would buy is the first regime in which layout is controlled rather
-than measured around, and in which the identical-code pair must read 1.00.
+the inner loop header, on all four of those compilers,
+and `-optlc -align-loops=64` (bytes)
+or `-optlc -x86-experimental-pref-innermost-loop-alignment=6` (log2) raises
+it to 64, each checked by reading the directive that came out. Read it rather
+than trusting it: these feed a heuristic,
+and `-x86-experimental-pref-loop-alignment` at 5 and at 6 gave 64 and 4 bytes.
+What it would cost is a whole regime, `-fllvm` being a different code generator
+that no figure here would survive; what it would buy is the first regime
+in which layout is controlled rather than measured around, and in which
+the identical-code pair must read 1.00.
 
 **`-fproc-alignment=64` pins the offsets, which is the instrument fix**
 (2026-08-10; the pad0, pad1 and pad2 sources rebuilt with and without it
 and the offsets read out of the binaries — a claim about layout, so no quiet
-machine is involved). Without it the four copies walk 24 bytes a pad: `[3, 53,
-59, 45]`, `[27, 13, 19, 5]`, `[51, 37, 43, 29]`. With it all three builds read
-`[3, 53, 3, 53]`, and the `mut-odo-vecdims` family `[8, 8, 4, 4]`. A membership
-change no longer rerolls layout, which is the confound that made Run 9's
-question unanswerable and this probe necessary. It does more than pin them:
-the two procedures holding the copies are then 64-aligned and internally
+machine is involved). Without it the four copies walk 24 bytes a pad:
+`[3, 53, 59, 45]`, `[27, 13, 19, 5]`, `[51, 37, 43, 29]`. With it all three
+builds read `[3, 53, 3, 53]`, and the `mut-odo-vecdims` family `[8, 8, 4, 4]`.
+A membership change no longer rerolls layout, which is the confound that made
+Run 9's question unanswerable and this probe necessary. It does more than pin
+them: the two procedures holding the copies are then 64-aligned and internally
 identical, so the paired arms land on the *same* offset and the pair
 is layout-neutral by construction. Two things it does not do. It freezes
 this pair at 53, which straddles — the variance goes, the penalty stays,
@@ -4560,8 +4554,8 @@ is what licenses reading a ratio out of any of these builds — and it reproduce
 Run 10's fifth prediction in a second setting, a one-bench process rather
 than a full roster. The rebuilt binary's offsets are the `[3, 53, 3, 53]`
 and `[8, 8, 4, 4]` recorded above, read out again, and its `check` log
-is byte-identical to `micro-unaligned`'s: `cabal build micro
---ghc-options='-fspec-constr -fproc-alignment=64' --builddir=dist-procalign`,
+is byte-identical to `micro-unaligned`'s:
+`cabal build micro --ghc-options='-fspec-constr -fproc-alignment=64' --builddir=dist-procalign`,
 the fresh builddir being what forces the rebuild a value-carrying flag does not.
 
 **The loops can be aligned outright, though, by standing in for the assembler**
@@ -4911,11 +4905,12 @@ of it**: its two halves agreed to 0.01% paired, flat in shape size as well
 as position, and `read-run.py` has since taken the term per shape as the mean
 of the halves and divided net of it. Nothing is comparable across that line —
 every figure predating Run 6 here and in `Main.hs` was uncorrected — though
-the uncorrected column stays one `--exclude sum-only-early --exclude
-sum-only-late` away, and `read-run.py` says on stderr when it is reading one.
-And the correction can change an ordering, although `(B+S)/(A+S) < 1` exactly
-when `B < A`: that identity holds *per shape*, and the geomean over shapes does
-not preserve it — Run 6 saw three adjacent pairs swap, all inside the floor.
+the uncorrected column stays one
+`--exclude sum-only-early --exclude sum-only-late` away, and `read-run.py` says
+on stderr when it is reading one. And the correction can change an ordering,
+although `(B+S)/(A+S) < 1` exactly when `B < A`: that identity holds *per
+shape*, and the geomean over shapes does not preserve it — Run 6 saw three
+adjacent pairs swap, all inside the floor.
 
 **The term passes three gates, re-passed by every run rather than inherited**,
 each blind to what the others catch:
@@ -5645,13 +5640,12 @@ and none of them dropped one.
 4. `bq-scan-rem-gm-mulback` ties its own build control `bq-expand-gm-mulback`
    (0.9511, 15 of 24, sign p 0.31, interval covering
    1) **and ties `bq-expand` too by the sign test** (0.8659, 17 of 24,
-   sign p 0.064), where Run 9 had the second at 18 of 24 and called it
-   outright. The two differ in `baseOffsetsScanRem` against
-   `baseOffsetsExpand` and in nothing else, their output code being
-   identical, so the first reading is about builders and the second about the
-   shipped arm. Both readings are the claim; a 13% point estimate sitting on
-   a tied sign test is exactly the shape that invites quoting the point
-   estimate alone.
+   sign p 0.064), where Run 9 had the second at 18 of 24 and called it outright.
+   The two differ in `baseOffsetsScanRem` against `baseOffsetsExpand`
+   and in nothing else, their output code being identical, so the first reading
+   is about builders and the second about the shipped arm. Both readings
+   are the claim; a 13% point estimate sitting on a tied sign test is exactly
+   the shape that invites quoting the point estimate alone.
 5. `bq-expand` < `bq-gen` (0.3070, 21 of 24): the build ordering, trimmed
    to its timed arms — `offsets-quot` and `bq-gen-lemire` were its two ends
    and are both untimed, so the run cannot re-read the gap widening
@@ -6476,13 +6470,13 @@ is Run 10's aligned binary unrebuilt, and `micro-maxskip` md5
 `98534e7d74d2027561ce9b963ab01fe3`, from `Main.hs` at `2b41e53` — the tree
 at `c37abfe` for the second, which is `2b41e53` plus two lines inside one
 comment — under GHC 9.12.4 with `-fspec-constr`, with 8192 bytes of padding
-on the maxskip half. The aligned half is reproduced by `./make-pair.py
---regime=-fspec-constr`, which is deterministic here; the max-skip half
-is not built by that script at all and its recipe was written by hand
-into the pair note, `LOOP_MAXSKIP=1 PAD_BYTES=8192` with `-pgma align-as.py`
-and `-fforce-recomp`. Those two sums are what a rebuild has to reproduce
-for this chapter's figures to be its own — the only thing that makes a paired
-run repeatable in principle once the binaries are deleted.
+on the maxskip half. The aligned half is reproduced
+by `./make-pair.py --regime=-fspec-constr`, which is deterministic here;
+the max-skip half is not built by that script at all and its recipe was written
+by hand into the pair note, `LOOP_MAXSKIP=1 PAD_BYTES=8192`
+with `-pgma align-as.py` and `-fforce-recomp`. Those two sums are what a rebuild
+has to reproduce for this chapter's figures to be its own — the only thing
+that makes a paired run repeatable in principle once the binaries are deleted.
 
 **The shapes have not moved**, for the fifth run running, and neither has roster
 membership or roster order: Run 11 measured exactly the shapes and the arms
