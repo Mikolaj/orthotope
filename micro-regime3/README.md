@@ -3078,6 +3078,9 @@ is what it has cost every session so far.
     ./read-run.py --lint                  # 7. roster and shape annotations
     ./read-run.py --check-doc             # 8. anchors, paths, widths, sweeps
     ./$R-<basis> diag                     # 9. the regime, in the binary
+    #  9b. and the pair's own variable, by whatever the note says reads it:
+    #      diag answers for the regime and for nothing else, so what the
+    #      halves differ in is checked by the note's own command or not
     ./loop-offsets.py $R-<other> $R-<basis>    # 10. fills, kept with the run
     #  11. the smoke sweep, unsandboxed: the block below
     #  12. the -L1 roster pass, ONLY if `--list` changed membership AND
@@ -3154,7 +3157,10 @@ instead, orthotope carrying no `CLAUDE.md` of its own. Then:
 
 **The run's two variables come first**, because everything below uses them
 and a shell that has not set them will silently do the wrong thing: an empty
-`$REGIME` is a -O1 build that every gate here passes.
+`$REGIME` is a -O1 build that every gate here passes. It reaches the *build*
+and nothing else — no check mode takes a regime, and
+on the confirm-don't-rebuild path nothing consumes it at all, `--verify-only`
+building nothing to apply it to.
 
     R=run10                              # names every artifact; no default
     REGIME=-fspec-constr                 # every run since Run 8; empty for -O1
@@ -3324,10 +3330,12 @@ been, both can be mispadded and both need it, so checking both is the rule
 and the one-sided case is the exception that no longer arises. `make-pair.py`
 now runs both itself and refuses on either, and holds them to each other besides
 — a sound pair makes the two logs byte-identical, agreement on every shape being
-a property of the strategies and not of where their loops landed. It checked
-the unaligned half alone until 2026-08-10, which is to say its gate was pointed
-at the binary that could not fail; the two lines above are then a re-check
-rather than the only check, and cost seconds.
+a property of the strategies and not of where their loops landed. A difference
+stops the run, and on a two-shim pair the rebuild goes through the recipe
+in that pair's note, this script being neither its builder nor safe to point
+at it. It checked the unaligned half alone until 2026-08-10, which is to say
+its gate was pointed at the binary that could not fail; the two lines above
+are then a re-check rather than the only check, and cost seconds.
 
 **Then confirm the regime is the one intended**, which nothing later can:
 
@@ -3546,17 +3554,22 @@ is an identity of anything until there are shapes to be one over. Every claim's
 fails only when someone runs it. And `--block`'s per-shape line is guarded
 by `len(shapes) > 2`, so it is dead on a one-shape file — a guard that hid
 an edited line of this reader through a whole smoke sweep. `rev`, `revsome`
-and `bcast` are the three-shape classes. Its numbers go nowhere: `-L1`
-is a rougher budget than any recorded run's, and this pass is a test
-of the reader, not a measurement. **And like the gate, it belongs to the pair
-rather than to the session that ran it**, so it is recorded in `$R-pair.txt`
-and read there before it is paid for, on an `L1 ROSTER PASS:` line. Grep
-the note first; a second session owes the twenty minutes only if none
-is recorded. **Name its artifacts `smoke*` and not `$R-*`**, which
-is not tidiness: `run-major.sh` refuses to start where `$R-*.json` or `$R-*.log`
-exists, excluding only `$R-gate-`, so a `$R-l1-main.json` left beside the pair
-reads as a previous attempt and refuses the very run this pass was run to clear.
-`smoke*.json` is outside that glob and inside `.gitignore` already.
+and `bcast` are the three-shape classes, and the pass is two processes:
+
+    ./$R-<basis> -L1 --json smoke-l1-main.json
+    ./$R-<basis> classes rev- -L1 --json smoke-l1-rev.json
+
+Its numbers go nowhere: `-L1` is a rougher budget than any recorded run's,
+and this pass is a test of the reader, not a measurement. **And like the gate,
+it belongs to the pair rather than to the session that ran it**, so
+it is recorded in `$R-pair.txt` and read there before it is paid for,
+on an `L1 ROSTER PASS:` line. Grep the note first; a second session owes
+the twenty minutes only if none is recorded. **Name its artifacts `smoke*`
+and not `$R-*`**, which is not tidiness: `run-major.sh` refuses to start where
+`$R-*.json` or `$R-*.log` exists, excluding only `$R-gate-`,
+so a `$R-l1-main.json` left beside the pair reads as a previous attempt
+and refuses the very run this pass was run to clear. `smoke*.json` is outside
+that glob and inside `.gitignore` already.
 
 **"Roster change" here means membership, and the test is `--list`**:
 the binary's listing differs from what the previous run's did, in its set
@@ -3634,15 +3647,13 @@ figures owe anything to another's leftover heap state and each JSON
 is single-population by construction. **The regime is a variable
 of the procedure, not a flag to remember**: it is set once at the top beside
 the run's name and goes to `make-pair.py`, so that leaving it empty
-is a deliberate act rather than an omission. It reaches the *build* and nothing
-else — no check mode takes a regime, and on the confirm-don't-rebuild path
-nothing consumes it at all, `--verify-only` building nothing to apply it to.
-There the whole guard is the `diag` reading above, which is why that step
-is not optional on a path that skipped the build. A run made in the wrong regime
-is not detectably wrong — the roster, the shapes, the gates and the reader all
-pass, the JSON records no compiler flag, and the only symptom is the regime's
-own effect failing to appear, which reads as a refutation of the design rather
-than as a missing flag:
+is a deliberate act rather than an omission. On a path that skipped the build
+the whole guard is the `diag` reading above, which is why that step
+is not optional there. A run made in the wrong regime is not detectably wrong —
+the roster, the shapes, the gates and the reader all pass, the JSON records
+no compiler flag, and the only symptom is the regime's own effect failing
+to appear, which reads as a refutation of the design rather than as a missing
+flag:
 
     # $R and $REGIME are already set, at the top of this procedure. Anything
     # added to REGIME that carries a VALUE -- -fllvm, -pgma and the alignment
@@ -3840,13 +3851,16 @@ it to whichever answer the majority of arms gives, which loses the finding.
    `sum-only` pair, its own six A/A controls and its own two `-nosum` arms,
    so a class run passes or fails the gates on its own evidence and a failure
    there invalidates that class's column and no other. **Then write this run's
-   own floor at the head of your notes and keep it there.** Every margin below
-   is judged against it, it is re-measured each run, and the runs have disagreed
-   several-fold, so the previous run's figure is the one you will reach
-   for by habit and it is the wrong one. `--aa` prints each pair's raw ratio
-   and `f` beside the net one for a related reason: the net figure is the floor
-   between two published rows, the raw one is how much an arm disagrees
-   with itself, and quoting the first as the second overstates it by 1/(1-f).
+   own floor at the head of the chapter as you draft it, and keep it there.**
+   That is where every margin judged against it is written too, so
+   it is published with them rather than kept where only this session can see
+   it. Every margin below is judged against it, it is re-measured each run,
+   and the runs have disagreed several-fold, so the previous run's figure
+   is the one you will reach for by habit and it is the wrong one. `--aa` prints
+   each pair's raw ratio and `f` beside the net one for a related reason:
+   the net figure is the floor between two published rows, the raw one is how
+   much an arm disagrees with itself, and quoting the first as the second
+   overstates it by 1/(1-f).
 2. **Match bases before reading any ratio.** The first act of a comparison
    is making its two sides one basis — the same population, the same
    restriction, the basis a claim was stated on — and only then reading figures.
@@ -3954,6 +3968,11 @@ it to whichever answer the majority of arms gives, which loses the finding.
    a completeness the author cannot: 306 of 306 table rows verified rather
    than the ones somebody thought to check. Launch it early, keep it to one,
    and leave the placement, contradiction and writing-rule reading to yourself.
+   Three things it cannot derive go in the brief: that it works
+   in this directory, that its evidence is this run's own JSONs
+   and `read-run.py`, and that no other repository's checkers come near
+   this page — it starts where your session started, so the artifacts
+   are not where it is and the checkers it arrives with are not this page's.
    (The rule that a check must be proven able to fail governs the instruments
    themselves and is stated with them, [in the reader's
    section](#the-reader-read-runpy).)

@@ -756,8 +756,17 @@ def tables_in(text):
     return out
 
 
-def install(readme, table, after=None):
+def install(readme, table, src, after=None):
     """Replace README's copy of `table` with it, or refuse.
+
+    `src` is the run file the rows came from, and it is named on the way
+    out because nothing here can check it: the published table is the
+    basis half's by convention alone, and a table installed from the other
+    half satisfies every gate this script has, the header being the same
+    line either way. Run 10 installed one and the page carried it. So the
+    half is printed at the moment it is installed, where the transcript
+    and the terminal both keep it, rather than left to the provenance
+    section written hours later.
 
     Pasting by hand is what this exists to stop: the cross-class summary's
     header is written out twice, once indented as the spec that fixes the
@@ -780,7 +789,9 @@ def install(readme, table, after=None):
     rather than falling back. And installed over a table it already agrees
     with -- the main Results table, both fingerprint tables and a class
     block's -- it leaves README byte-identical, which is the check that the
-    right table was found and not merely a table.
+    right table was found and not merely a table. That last one was run
+    again on 2026-08-14, when `src` was added: the install prints the run
+    file the rows came from and README is byte-identical after it.
     """
     with open(readme) as f:
         lines = f.read().split('\n')
@@ -803,8 +814,9 @@ def install(readme, table, after=None):
     lines[i:j] = table
     with open(readme, 'w') as f:
         f.write('\n'.join(lines))
-    sys.stderr.write('installed at %s:%d, %d row(s) replacing %d\n'
-                     % (os.path.basename(readme), i + 1, len(table), was))
+    sys.stderr.write('installed at %s:%d from %s, %d row(s) replacing %d\n'
+                     % (os.path.basename(readme), i + 1,
+                        os.path.basename(src), len(table), was))
 
 
 def emit_or_install(text, args, shapes, meta, block=False):
@@ -826,9 +838,9 @@ def emit_or_install(text, args, shapes, meta, block=False):
     tables = tables_in(text)
     if not tables:
         sys.exit('--in-place: this mode emitted no table')
-    install(args.readme, tables[0], after)
+    install(args.readme, tables[0], args.run, after)
     for extra in tables[1:]:
-        install(args.readme, extra, after)
+        install(args.readme, extra, args.run, after)
     if block:
         sys.stderr.write('the block\'s prose is yours: controls, provenance'
                          ' and the paragraph are not installed\n')
