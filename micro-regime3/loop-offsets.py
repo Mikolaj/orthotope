@@ -23,32 +23,58 @@ Reading the output: the copies are listed in address order, and for the
 `fail` join, which cannot run on a well-formed shape, and it is the executed
 one that the penalty applies to.
 
-**Which arm owns a copy is not in the timed binary, and `-g3` is how to ask.**
-Every copy prints under one mangled symbol because these arms compile to one
-worker and nothing per-arm survives: all eight sit inside `Main_zdWT_info`,
-which spans 271 KB, and the assembly GHC hands `align-as.py` carries 11 named
-labels, every one a string literal, against 18829 anonymous `.L` ones. So
-neither this tool nor the shim can name an arm from what it is given -- the
-names are not there to emit. A `-g3` build can: GHC then emits a per-block
-symbol (`Main_zdwgo7_svYG_entry` and siblings) with DWARF line info, so
+**Which arm owns a copy is a property of the binary, and only a `-g3` one has
+it.** A plain build prints every copy under one mangled symbol, because these
+arms compile to one worker and nothing per-arm survives: all eight sit inside
+`Main_zdWT_info`, which spans 271 KB, and the assembly GHC hands
+`align-as.py` carries 11 named labels, every one a string literal, against
+18829 anonymous `.L` ones. The names are not there to emit. A `-g3` build
+emits a per-block symbol (`Main_zdwgo7_svYG_entry` and siblings) with DWARF
+line info, and **this tool then names each copy itself** -- `addr2line` for
+the source line, the source file for the top-level binding containing it --
+so the symbol column reads `fbMutOdoVecdims (Main.hs:1669)` instead. Nothing
+changes for a binary carrying no line info, which is every build this page
+timed before Run 13.
 
-    addr2line -f -e BIN 0x42de08     # -> Main.hs:1669, i.e. fbMutOdoVecdims
+Read that way 2026-08-13, at `-fspec-constr` with `LOOP_MAXSKIP=1`: the
+four-copy vecdims group is, in address order, `fbMutOdoVecdims`,
+`fbMutOdoVecdimsAddIn`, `fbMutOdoVecdimsAddOut` and `fbMutOdoVecdimsAddBoth`,
+and the pair beside it is `fbMutOdo` then `fbBuild`.
+`fbMutOdoVecdimsAddBothDown` is in neither group because its loop is 24 bytes
+and not 28, the count-down form's; `--len 24` finds it, and in that build it
+is a singleton at offset 0.
 
-names the arm through the source line. Derived that way 2026-08-13, at
-`-fspec-constr` with `LOOP_MAXSKIP=1`: the four-copy vecdims group reads, in
-address order, `fbMutOdoVecdims`, `fbMutOdoVecdimsAddIn`,
-`fbMutOdoVecdimsAddOut` and `fbMutOdoVecdimsAddBoth`, and the pair beside it
-`fbMutOdo` then `fbBuild`. `fbMutOdoVecdimsAddBothDown` is in neither, so a
-fifth arm's loop is somewhere this grouping does not put with them.
+**The two copies a `-g3` build lacks are the dead ones**, which is what the
+naming establishes rather than assumes: the plain build's `build`/`mut-odo`
+group has four copies and the `-g3` build's has two, and those two are the
+two live arms. That confirms the `[dead, mut-odo, dead, build]` reading above
+by a second route, and it is this tool's non-vacuity control for naming --
+any scheme that names them must put `fbMutOdo` before `fbBuild` and must
+reproduce the vecdims group in roster order.
 
-**That map is the `-g3` build's and does not transfer by address.** It is a
-different binary: 30 self-loops against the plain build's 32, groups of 4 and
-2 where the plain build has 4 and 4, and every offset different. So the arm
-names above are facts about a `-g3` build, and tying a named arm to a named
-offset in a *timed* binary still needs the correspondence between the two
-builds' groups, which is not established here. What the recipe buys is that
-the question is answerable at all, where README's second Run 12 prediction
-had to record it as derivable-in-principle and undone.
+**`-g3` is a different program, so it is a twin to read and never a binary to
+time.** On the assembly GHC hands the assembler, stripped of every `.loc`,
+debug label and `.debug_*` section: 60056 instructions against the plain
+build's 59991, of which +63 are `movq`, with register assignments differing
+throughout -- register allocation and block order, not different arithmetic.
+The timed loops themselves come out byte-identical, all three 28-byte groups
+sharing a body across the two builds, but every offset differs and two copies
+are gone. It was gated against a plain half of the same source and lost, at
+5% on `build` and 3% on `mut-odo` against a 1.4% floor, which is why building
+everything this way is refused (README's open list has the reading). The twin
+is built beside the binary it explains, from the same source and shim:
+
+    LOOP_MAXSKIP=1 cabal build micro --builddir=db-g3 \
+      --ghc-options="-fspec-constr" --ghc-options="-g3" \
+      --ghc-options="-pgma $PWD/align-as.py -fforce-recomp"
+
+and `rm -rf db-g3` with the binary afterwards, `.gitignore` covering the
+builddir but not a copied-out probe binary. **Matching its copies to the
+timed binary's is by proximity and by the instruction window around each
+head**, and the window half is not reliable everywhere: it separates the
+vecdims copies at 73 to 75 of 80, and falls to 10 to 13 on the
+`build`/`mut-odo` group, whose surroundings `-g3` restructured when it
+dropped the two dead copies.
 
 Non-vacuity, and it is a known-answer control rather than an assertion. It
 was settled against the pad probe's binaries, reproducing every offset README
@@ -87,6 +113,7 @@ binary is sound; a difference in the totals between two is the disassembler.
 """
 import argparse
 import collections
+import os
 import re
 import subprocess
 
@@ -94,6 +121,10 @@ INSN = re.compile(r'^\s*([0-9a-f]+):\t((?:[0-9a-f]{2} )+)\s*\t?(\S+)\s*(.*)$')
 SYM = re.compile(r'^([0-9a-f]+) <(.+)>:$')
 JMP = re.compile(r'^j')
 TARGET = re.compile(r'^([0-9a-f]+)\b')
+LOC = re.compile(r'^(.*):(\d+)$')
+TOP = re.compile(r'^([a-z]\w*)\s*(?:::|[^=]*=)')   # a top-level binding
+KEYWORD = {'type', 'data', 'newtype', 'class', 'instance', 'import', 'module',
+           'infix', 'infixl', 'infixr', 'foreign', 'pattern'}
 LINE = 64  # the cache line, and the op cache's window on this Zen 3
 
 
@@ -144,6 +175,48 @@ def scan(path, length):
     return found
 
 
+def bindings(src):
+    """(line, name) for every top-level binding of a Haskell source file."""
+    out = []
+    with open(src) as f:
+        for n, line in enumerate(f, 1):
+            m = TOP.match(line)
+            if m and m.group(1) not in KEYWORD:
+                out.append((n, m.group(1)))
+    return out
+
+
+def arms(path, addrs):
+    """{addr: 'fbMutOdoVecdims (Main.hs:1669)'}, or {} without line info.
+
+    The arm is the top-level binding the line falls in, read off the source
+    file `addr2line` names, so this is the source's own vocabulary rather
+    than a table kept here that a rename could rot. One `addr2line` for every
+    address asked about; a build with no DWARF answers `??` to all of them
+    and the caller falls back to the mangled symbol.
+    """
+    if not addrs:
+        return {}
+    cmd = ['addr2line', '-e', path] + [f'0x{a:x}' for a in addrs]
+    out = subprocess.run(cmd, capture_output=True, text=True).stdout.split('\n')
+    src, named = {}, {}
+    for a, loc in zip(addrs, out):
+        m = LOC.match(loc.strip())
+        if not m or not os.path.exists(m.group(1)):
+            continue
+        f, n = m.group(1), int(m.group(2))
+        if f not in src:
+            src[f] = bindings(f)
+        name = None
+        for ln, nm in src[f]:
+            if ln > n:
+                break
+            name = nm
+        where = f'{os.path.basename(f)}:{n}'
+        named[a] = f'{name} ({where})' if name else where
+    return named
+
+
 def survey(path, want='_Main_'):
     """Every self-loop of any length, and how many can still straddle.
 
@@ -166,9 +239,11 @@ def survey(path, want='_Main_'):
           f'{want}-compiled code')
     print(f'   at offset 0        : {len(at0)}')
     print(f'   still straddling   : {len(strad)}')
-    for f in sorted(strad, key=lambda x: -x['len'])[:10]:
+    worst = sorted(strad, key=lambda x: -x['len'])[:10]
+    named = arms(path, [f['start'] for f in worst])
+    for f in worst:
         print(f'      0x{f["start"]:x}  mod {LINE} = {f["mod"]:2d}, '
-              f'{f["len"]} B  {f["sym"]}')
+              f'{f["len"]} B  {named.get(f["start"]) or f["sym"]}')
 
 
 def main():
@@ -191,6 +266,7 @@ def main():
     for path in args.binary:
         found = scan(path, args.len)
         groups = collections.Counter(f['bytes'] for f in found)
+        named = arms(path, [f['start'] for f in found])
         print(f'== {path}: {len(found)} self-loops of {args.len} B in '
               f'{len(groups)} distinct byte-sequences')
         for body, count in groups.most_common():
@@ -202,7 +278,7 @@ def main():
             for f in fs:
                 print(f'      0x{f["start"]:x}  mod {LINE} = {f["mod"]:2d}  '
                       f'{"STRADDLES" if f["straddles"] else "fits     "}  '
-                      f'{f["sym"]}')
+                      f'{named.get(f["start"]) or f["sym"]}')
 
 
 if __name__ == '__main__':

@@ -46,7 +46,7 @@ PREFIX="$R"                  # the binaries and their note carry the run, as
 # position along with its binary. Change these two names per pair -- and
 # nothing else here, the counting below being what makes a wrong selection
 # loud in the log rather than at the write-up.
-OTHER=${OTHER:-maxskippa}
+OTHER=${OTHER:-lookrts}
 BASIS=${BASIS:-maxskip}
 HALVES="$OTHER $BASIS"
 

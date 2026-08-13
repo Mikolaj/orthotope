@@ -19,6 +19,10 @@ the old object code and reports nothing (README.md, same section).
   LOOP_ALIGN   log2 of the boundary, default 6 (64 bytes)
   LOOP_MAXSKIP pad only a loop that would cross a boundary it need not,
                default off
+  LOOP_LOOKTHROUGH  read past byte-free lines when deciding whether a head
+               follows an info table, which a `-g` assembly gets anyway;
+               on a plain one it finds 27 heads more and so is a basis
+               change, which is why it is a switch and off by default
   PAD_BYTES    dead bytes appended after the first module's text, default 0
   REAL_AS      the real assembler, default /usr/bin/gcc
   ALIGN_AS_VERBOSE  report the budgets emitted and the heads fallen back on
@@ -156,13 +160,28 @@ and under max-skip every head it left alone was measured not to need moving
 -- and that is where completeness should be argued, with the survey as
 corroboration. README.md's floor section carries the same correction.
 
-**Pad only between two instructions.** The first version of this aligned every
-`.L` label a backward jump targeted, which is 928 of them, and the binary it
-produced failed `check` on the first shape with `index out of bounds
-(-1378,324)`. GHC's tables-next-to-code puts an info table immediately before
-a return point, which is also a local label, and a `.p2align` inserted there
-separates the table from the code it belongs to. Requiring the preceding line
-to be an instruction drops the count to 395 and fixes it. Loops whose head
+**Pad only between two instructions -- looking through the lines that emit
+none.** The first version of this aligned every `.L` label a backward jump
+targeted, which is 928 of them, and the binary it produced failed `check` on
+the first shape with `index out of bounds (-1378,324)`. GHC's
+tables-next-to-code puts an info table immediately before a return point,
+which is also a local label, and a `.p2align` inserted there separates the
+table from the code it belongs to. Requiring the preceding line to be an
+instruction drops the count to 395 and fixes it. Requiring it *literally*
+made this blind under `-g`, which is the second half of the rule and was
+found on 2026-08-13: GHC then closes every basic block with `_end` and
+`_proc_end` labels, so a head follows a label rather than an instruction and
+every site was dropped -- **0 of a `-g3` assembly's heads against 395 of the
+plain one's**, and the build came out unaligned in silence, no short loop at
+offset 0, 41 straddling, two of them timed fills. A table's last line is a
+`.quad` or a `.long`, so a label and a `.loc` are read past and the guard
+asks its question of the last line that emits a byte. That form fires only
+where the file carries `.loc`, for the reason `sites` records: it is not
+inert on a plain build, and moving one is a basis change this is not the
+place to make. The control is two fresh builddirs -- a shim change reaches
+nothing without one, `-fforce-recomp` included -- and the max-skip half
+comes out md5-identical under the two forms, each printing 395, while the
+`-g3` build goes from 0 to 421. Loops whose head
 follows a table are therefore left unaligned -- and the survey above says
 that costs nothing here, none of the skipped heads being a short loop that
 would have straddled. That failure is also this script's non-vacuity proof: the
@@ -180,11 +199,13 @@ import tempfile
 REAL = os.environ.get('REAL_AS', '/usr/bin/gcc')
 ALIGN = os.environ.get('LOOP_ALIGN', '6')
 MAXSKIP = bool(os.environ.get('LOOP_MAXSKIP'))
+LOOKTHROUGH = bool(os.environ.get('LOOP_LOOKTHROUGH'))
 PAD = int(os.environ.get('PAD_BYTES', '0'))
 BOUND = 1 << int(ALIGN)
 LABEL = re.compile(r'^(\.L\w+):')
 JUMP = re.compile(r'^j\w*\s+(\.L\w+)\b')
 INSTR = re.compile(r'^[a-z][a-z0-9.]*\s')   # a mnemonic, not a directive or label
+BYTELESS = re.compile(r'^(?:[\w.$]+:|\.(?:loc|file|cfi_\w+)\b.*)$')  # no bytes
 PROBE = 'apLoop'          # apLoopHead_<line>, apLoopEnd_<line>_<k>_<n>
 
 
@@ -210,14 +231,40 @@ def sites(src, heads):
     tuning knob -- the docstring above has the `check` failure that put it
     here -- so the sites are settled before any length is measured, and the
     probe carries a symbol at exactly these and no others.
+
+    What it asks is whether an info table ends immediately before this head,
+    and a table's last line is a `.quad` or a `.long`, so the lines to read
+    past are the ones that emit no bytes at all: another label, and the `.loc`
+    a `-g` build interleaves. That is what makes the guard readable under
+    `-g`, where every head follows the previous block's `_end`/`_proc_end`
+    labels rather than an instruction.
+
+    **The look-through is switched on by the file, and a `-g`-less assembly
+    keeps the literal form byte for byte.** On the plain assembly the two
+    forms differ: 422 heads against 395, and the extra 27 are one shape of
+    loop rather than a scattering -- a pre-tested loop, whose head carries
+    the block's label as well as its own, two labels at one address. What
+    that does to the binary is **one pad**, a directive being a budget rather
+    than a padding: of the 395 the assembler pads 156, 3941 bytes at a median
+    of three multi-byte NOPs each, and with the 27 it pads 157, 3988 bytes.
+    Twenty-six are declined; one fires and moves everything after it by 47
+    bytes. So the cost is not the NOPs, it is that re-rolling placement
+    re-bases every figure this page has published for a reason no strategy
+    changed, and what the extra alignment buys is unmeasured. So it is not
+    taken on the way past, and `LOOP_LOOKTHROUGH=1` is how a run asks for it
+    -- Run 13's other half, which is what prices it. An
+    assembly carrying `.loc` is a `-g` one, is nobody's basis (README's open
+    list has why a `-g3` build is never timed), and gets the correct form;
+    everything else is left exactly as it was.
     """
     out, prev = [], ''
+    look = LOOKTHROUGH or any(l.lstrip().startswith('.loc') for l in src)
     for i, line in enumerate(src):
         s = line.strip()
         m = LABEL.match(s)
         if m and m.group(1) in heads and INSTR.match(prev):
             out.append((i, m.group(1)))
-        if s and not s.startswith('#'):
+        if s and not s.startswith('#') and not (look and BYTELESS.match(s)):
             prev = s
     return out
 
