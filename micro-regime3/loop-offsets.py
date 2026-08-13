@@ -52,8 +52,9 @@ by a second route, and it is this tool's non-vacuity control for naming --
 any scheme that names them must put `fbMutOdo` before `fbBuild` and must
 reproduce the vecdims group in roster order.
 
-**`-g3` is a different program, so it is a twin to read and never a binary to
-time.** On the assembly GHC hands the assembler, stripped of every `.loc`,
+**A `-g` build is a different program at every level, so it is a twin to read
+and never a binary to time.** On the assembly GHC hands the assembler at
+`-g3`, stripped of every `.loc`,
 debug label and `.debug_*` section: 60056 instructions against the plain
 build's 59991, of which +63 are `movq`, with register assignments differing
 throughout -- register allocation and block order, not different arithmetic.
@@ -61,7 +62,8 @@ The timed loops themselves come out byte-identical, all three 28-byte groups
 sharing a body across the two builds, but every offset differs and two copies
 are gone. It was gated against a plain half of the same source and lost, at
 5% on `build` and 3% on `mut-odo` against a 1.4% floor, which is why building
-everything this way is refused (README's open list has the reading). The twin
+everything this way is refused, and `-g1` is no way round it -- README's open
+list has both readings and what they rest on. The twin
 is built beside the binary it explains, from the same source and shim:
 
     LOOP_MAXSKIP=1 cabal build micro --builddir=db-g3 \

@@ -1421,6 +1421,18 @@ than a slot in the next run, observed again:
   and not the same bytes. So the naming above is read off a twin and carried
   to the timed binary by the correspondence — the arrangement the recommended
   path meant to remove, and does not.
+
+  **And a weaker level is no way round it, which is the move to expect
+  from a page that says `-g3` throughout.** `-g1` is the weakest GHC has —
+  the users guide gives it as producing stack unwinding records for top-level
+  functions, which is data about a program rather than a part of one —
+  and it changes the emitted code exactly as `-g3` does: one instruction fewer
+  and a different register assignment on an eight-line module, the same on GHC
+  9.10.3, 9.12.4, 9.14.1 and HEAD, with `-g2` between them behaving alike.
+  The reproducer and that table are horde-ad's
+  `docs/ghc-issue-debug-changes-codegen.md`, which this page's finding produced;
+  what they settle here is that no debug level is a cheap way to put names
+  in a binary that will be timed.
 - **A recurring transient that lands on the shipped arm's family, worth 35
   to 44%, and which no published column would show.** Not one cell: **three
   sightings in four runs**, moving each time. Run 8 read `bq-expand`'s distant
