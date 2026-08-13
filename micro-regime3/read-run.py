@@ -2101,14 +2101,17 @@ def check_doc(readme, main_hs):
     # Hand-wrapping is neither, and that is what fails. The published form is
     # a separate question, asked at commit rather than here.
     #
-    # Non-vacuous, all three branches exercised 2026-08-14 on this README.
+    # Non-vacuous, every branch exercised 2026-08-14 on this README.
     # Untouched it says no paragraph is wrapped by hand and exits 0. With
     # one paragraph unwrapped -- what one edit leaves -- it says the same
     # and 1 still on one line, and exits 0, where the whole-file test called
     # that same file 4 lines wrong and failed. With one paragraph rewritten
-    # a word per line it names it, gives its line, and exits 1. The middle
-    # case is the one this rewrite exists for and the one the old test got
-    # wrong.
+    # a word per line it names it, gives its line, and exits 1. And with the
+    # first item of a bulleted block joined into one line -- the same edit,
+    # inside a list -- it is mid-edit and exits 0, where the block unit
+    # called it hand-wrapped and failed: block 49, whose first item runs to
+    # 16 lines, is the live control for that, and it is the case a whole
+    # file unwrapped does not reach, every block being flat there.
     try:
         want = subprocess.run(['wrap80', readme], capture_output=True,
                               text=True, check=True).stdout
@@ -2139,14 +2142,30 @@ def check_doc(readme, main_hs):
             # truncates to the shortest -- so without it a mismatch would
             # under-check in silence, which is the one outcome worse than
             # reporting the whole file.
+            # Judged LINE by line inside a block, because a block is not a
+            # paragraph: a bulleted run is one block holding several, and an
+            # edit to one item leaves that block matching neither form --
+            # wrap80 would re-wrap the item, the unwrapped form would put
+            # every sibling on its own line -- so a whole-block comparison
+            # called a list mid-edit hand-wrapped and failed. A line an edit
+            # left long is one the unwrapped form has, a line the formatter
+            # would produce is in its own output, and hand-wrapping is what
+            # is in neither.
             cp, wp, fp = (t.split('\n\n') for t in (cur, want, flat))
             if len(cp) == len(wp) == len(fp):
-                hand = [i for i, (c, w, f) in enumerate(zip(cp, wp, fp))
-                        if c != w and c != f]
-                loose = [i for i, (c, w, f) in enumerate(zip(cp, wp, fp))
-                         if c != w and c == f]
+                hand, loose = [], []
+                for i, (c, w, f) in enumerate(zip(cp, wp, fp)):
+                    if c == w:
+                        continue
+                    ok = set(w.split('\n')) | set(f.split('\n'))
+                    (loose if all(l in ok for l in c.split('\n'))
+                     else hand).append(i)
                 if hand:
-                    at = cur[:cur.index(cp[hand[0]])].count('\n') + 1
+                    # Summed rather than searched for: a short block can occur
+                    # as a substring of an earlier one, and `index` would then
+                    # send the reader to a paragraph that is fine.
+                    at = cur.count('\n', 0,
+                                   sum(len(b) + 2 for b in cp[:hand[0]])) + 1
                     bad.append('%d paragraph(s) of %s are wrapped by hand --'
                                ' first at line %d; run `wrap80 -i %s`, never'
                                ' re-wrap a line by hand'
@@ -2323,8 +2342,6 @@ def check_doc(readme, main_hs):
               'absolute time figure(s) quoted in prose; a class'
               " block's anchor is its run's, replaced with its block --"
               ' check any other against the repo it came from')
-        for i, l in foreign:
-            print('        %d: %s' % (i, l[:66]))
 
     # The yardstick table keeps a column for the regime this run is NOT in,
     # which reads like a leftover and is the opposite: it is the only place
