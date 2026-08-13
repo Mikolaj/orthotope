@@ -130,7 +130,9 @@ fi
   echo "    ./read-run.py $PREFIX-gate-$BASIS-a.json \\"
   echo "      --compare $PREFIX-gate-$OTHER-a.json"
   echo "    ./read-run.py $PREFIX-gate-$BASIS-a.json --pair build mut-odo"
-  echo "  Write its verdict here, and delete the 'not yet run' line above."
+  echo "  Write its verdict above this block, where a reader looking up from"
+  echo "  the end meets it first; a note carrying a 'not yet run' line loses"
+  echo "  that line with the same edit."
 } >> "$NOTE"
 echo "=== appended to $NOTE"
 [ "$BAD" -eq 0 ] || exit 1

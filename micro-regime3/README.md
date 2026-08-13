@@ -1064,13 +1064,16 @@ than a slot in the next run, observed again:
      differ again, `[11, 0, 4, 0]`/`[24, 8, 0, 0]` against
      `[4, 0, 4, 0]`/`[8, 8, 4, 4]`, and Run 11's third question priced the two
      copies max-skip left resident, at 24 and 8, at 1.0074 and 1.0333 against
-     the same code at 0. So the prediction is that those two move toward what
-     their `maxskippa` offsets give while the other two stay put. **What kills
-     it** is the four reading flat against each other while their offsets
-     differ, which would say the offsets are not what the split was about.
-     The per-arm form needs the arm-to-entry mapping, which `loop-offsets.py`'s
-     docstring pins only for the second and fourth entries (`mut-odo`
-     and `build`); read it off the binaries before quoting an arm.
+     the same code at 0. So the prediction is that the split persists
+     under the flag rather than closing. The reading is the four arms' paired
+     geomeans, `maxskippa` against `maxskip`, and it needs no offset mapping.
+     **What kills it** is the four moving together, the split closing, which
+     would say the offsets are not what it was about. What this does
+     *not* license is tying a named arm to a named offset: `loop-offsets.py`
+     labels every `Main` copy with the same mangled symbol, and its docstring
+     pins the entry order of the `build`/`mut-odo` group alone, so the vecdims
+     group's order is recorded nowhere and would have to be derived before any
+     per-arm offset claim is made.
   3. **Membership invariance decides the basis and this run does not measure
      it.** Registered as a gap rather than a question, because the queue turns
      Run 13 on it and a later session could read this run as having tested it.
@@ -2700,9 +2703,14 @@ is what it has cost every session so far.
     #  BASIS/OTHER come from the pair note; Run 12's are maxskip/maxskippa
     ls $R-*                               # 1. is there a pair?
     md5sum $R-<basis> $R-<other>          # 2. is it the note's pair?
-    git log -1 --format=%h -- Main.hs     # 3. has the source moved?
-    git diff <note's Main.hs commit> HEAD -- Main.hs    #    comment-only?
-    #  build ONLY if 1-3 say so, and never for a two-shim pair
+    git log -1 --format=%h -- :/micro-regime3/Main.hs   # 3. has it moved?
+    git diff <note's commit> HEAD -- :/micro-regime3/Main.hs  # comment-only?
+    #  the :/ pathspec resolves from the repo root, so these answer the same
+    #  from anywhere; a bare `-- Main.hs` run from the root prints nothing
+    #  and exits 0, which reads exactly like an unmoved source
+    #  build ONLY if 1-3 say so, and never for a two-shim pair -- and on such
+    #  a pair never ./make-pair.py --verify-only either: it writes gate
+    #  failures into a note it cannot gate
     ./$R-<basis> check                    # 4. every shape agrees
     ./$R-<other> check                    # 5. and the other half
     ./$R-<basis> --list 2>/dev/null | wc -l    # 6. roster size
@@ -2725,6 +2733,18 @@ from anywhere else, and `uptime` is the half of it that reaches the machine.
 The one that is skipped most often is 8, and the one that is run when it should
 not be is 14 — the gate belongs to the pair, so a note recording a pass means
 it is done.
+
+**Steps 7 and 8 are the whole of this page's document check, and no other
+repository's checkers belong on it.** Theirs carry a per-repo configuration —
+search roots, an owned module namespace, an allowlist — so pointed here they
+resolve this directory's names in their own tree and report correct names
+as missing, which is the noise-for-signal failure that stops a checker being
+read at all. Said here rather than beside the verification pass it governs
+because a session starts in another repository and arrives
+with that repository's standing checks already resident, so the moment to know
+this is the moment the checklist reaches these two steps. If a future document
+here does grow `file:line` citations, that is the moment to port one,
+and not before.
 
 **Where the effort actually goes, because it is not where it looks.** The run
 is several hours and *unattended* — roughly an hour per main set and well
@@ -2823,9 +2843,12 @@ than after it, because `make-pair.py` overwrites both halves in place:
 the offsets the predictions are registered against are the present pair's,
 and a rebuild coming out even slightly different would retire them in silence.
 Where the binaries and the note recording what they were built from are already
-there, confirm them instead of rebuilding:
+there, confirm them instead of rebuilding — for the kind of pair this script
+builds, with:
 
-    ./make-pair.py --run=runN --verify-only   # every gate again; builds nothing,
+    ./make-pair.py --run=runN --verify-only   # UNALIGNED/ALIGNED PAIRS ONLY --
+                                         # not on a two-shim pair, whose note
+                                         # is hand-written. Builds nothing,
                                          # but DOES append to the pair note
 
 which re-runs `check` on both halves, compares the two listings and reads
@@ -2989,17 +3012,18 @@ The names are recorded in the pair note and set in one place in each
 of `run-major.sh` and `run-gate.sh`, as `OTHER` and `BASIS`; the basis
 is the half the classes run on, the expected bench counts are read
 from and every table is installed from, and it runs second. **The two roles
-are BASIS and CONTROL, and this page names them that**: the halves are named
-for what they vary — Run 10's `unaligned`/`aligned`, Run 11's
-`maxskip`/`aligned`, Run 12's `maxskip`/`maxskippa` — and which of them
-is the basis is a decision the pair note records, not something a half's name
-tells you. Run 12 is where the two would collide if this page still called
-the basis *the aligned half*: its control is `maxskippa`, the half that carries
-`-fproc-alignment=64` and so is the more aligned build of the two. Where
-a sentence below says *aligned* it is about alignment, not about a role; where
-it is plainly about one past pair — as the paragraph on `pad-as.py` and the 12
-KB of `.text` is, every figure in it being Run 10's — it keeps that pair's half
-names.
+are BASIS and CONTROL**, which is what this page calls them where it names
+a role at all; the scripts' variable is `OTHER` and the prose often says
+*the other half*, and all three are one thing. The halves are named for what
+they vary — Run 10's `unaligned`/`aligned`, Run 11's `maxskip`/`aligned`, Run
+12's `maxskip`/`maxskippa` — and which of them is the basis is a decision
+the pair note records, not something a half's name tells you. Run 12 is where
+the two would collide if this page still called the basis *the aligned half*:
+its control is `maxskippa`, the half that carries `-fproc-alignment=64`
+and so is the more aligned build of the two. Where a sentence below says
+*aligned* it is about alignment, not about a role; where it is plainly about one
+past pair — as the paragraph on `pad-as.py` and the 12 KB of `.text` is, every
+figure in it being Run 10's — it keeps that pair's half names.
 
 **Name the artifacts by half, and drive every `--in-place` from the basis
 half.** The sequence below builds every filename off `$R`, which a paired run
@@ -3208,9 +3232,10 @@ that the basis binary is wrong before an hour of main set is spent on it,
 and a first reading of the arms the pairing is predicted on. What the script
 writes back into the note is the mechanical half alone — four exit codes
 and four bench counts — because that is what it knows; whether the pair is sound
-is the reading's verdict and is written there by hand. What the predictions are,
-and what the gate read when it was last run, are in [the open
-list](#what-is-open) with the rest of the run's registrations.
+is the reading's verdict and is written there by hand. What the predictions
+are is in [the open list](#what-is-open) with the rest of the run's
+registrations; what the gate read is in the note, written by hand above
+the script's mechanical block.
 
 **The run** is one sequence — the main set from each binary the run has,
 then each stride-class population in its own process, in `classViews`' order.
@@ -3354,9 +3379,12 @@ from a process list rather than from the launching shell, which a blocked write
 leaves lying:
 
     ./run-major.sh $R &               # its own wall-clock log is the record
-    ps -eo pid,etime,comm | grep runN-    # comm, NOT args: any shell that has
-                                      #   cd'd here carries micro-regime3 in
-                                      #   its own command line and matches
+    ps -eo pid,etime,comm | grep runN-    # comm, NOT args: under args the
+                                      #   launching shell matches its own
+                                      #   command line. comm truncates at 15
+                                      #   characters, which run12-maxskippa
+                                      #   exactly fills -- a longer half name
+                                      #   would be cut and silently missed
 
 `pgrep -f`/`pkill -f` self-match here and an `until ! pgrep -f …` waiter
 therefore never returns; watch `$R-wallclock.log` for `major run complete`
@@ -3386,17 +3414,15 @@ and not a method.
 list][open]), which say what this run was for and what would kill each one.
 Record their verdicts there rather than in the run's own chapter, which the next
 run replaces. **An empty registration does not hold the run.** Where a run has
-none — Run 12 has a queue entry saying what it is for and no predictions
-carrying kill conditions — note the absence and read the outcome against
-that entry instead. What is not open is registering afterwards: the point
-of the list is that it predates the hours, so the choice here is to register
-before the evening or to do without. **And say what a partial outcome is**:
-a prediction registered over several arms can come apart, and neither "held"
-nor "refuted" is then true -- Run 10's first was stated over three arms and one
-confirmed it while two met its own kill condition. Report that as a split, name
-which arms went which way, and carry the consequence for each separately;
-the temptation is to round it to whichever answer the majority of arms gives,
-which loses the finding.
+none, note the absence and read the outcome against its queue entry instead.
+What is not open is registering afterwards: the point of the list is
+that it predates the hours, so the choice here is to register before the evening
+or to do without. **And say what a partial outcome is**: a prediction registered
+over several arms can come apart, and neither "held" nor "refuted" is then true
+-- Run 10's first was stated over three arms and one confirmed it while two met
+its own kill condition. Report that as a split, name which arms went which way,
+and carry the consequence for each separately; the temptation is to round
+it to whichever answer the majority of arms gives, which loses the finding.
 
 **After it lands**, in this order:
 
@@ -3510,13 +3536,9 @@ which loses the finding.
    which a line number could not, a citation surviving the refactor that moves
    it. Pass 2 is `--check-doc`'s path check. Pass 3 is the reading, below.
    The heading-scope and cross-reference passes are `--check-doc`'s anchor
-   and replace-list coverage checks. **Do not run another repository's checkers
-   against this page**: theirs carry a per-repo configuration — search roots,
-   an owned module namespace, an allowlist — so pointed here they resolve
-   this directory's names in their own tree and report correct names as missing,
-   which is the noise-for-signal failure that stops a checker being read at all.
-   If a future document here does grow `file:line` citations, that is the moment
-   to port one, and not before.
+   and replace-list coverage checks. No other repository's checkers belong
+   on this page, for the reason given with the pre-run checklist, where
+   a session meets these two tools first.
 
    **What the instruments cannot supply is the reading, and the reading
    is the pass.** What the tools print is its output and not its method:
@@ -3633,8 +3655,9 @@ which loses the finding.
       it was Y", requoting a count in place preserves a sentence that should
       have lost its numeral, and a class paragraph's close invites a mechanism
       the run never measured. `--check-doc`'s figure sweep lists candidates,
-      `Main.hs` comments included, but the redo test itself is the reader's. Run
-      7's write-up carried fifteen-odd such sentences past every green check
+      `Main.hs` comments included, and `--para` prints the ones it names without
+      reading the file around them, but the redo test itself is the reader's.
+      Run 7's write-up carried fifteen-odd such sentences past every green check
       here, found only when a reader asked;
    8. **read the document end to end**, and aim the reading at what
       the instruments cannot see. The mechanical passes above do not catch
@@ -6612,12 +6635,15 @@ three or four paragraphs; Run 10's write-up read most of the floor section
 to change four of its leads. Every paragraph in this file opens with a bolded
 lead, so `grep -n '^\*\*' README.md` between a section's heading and the next
 is the section's own contents, and the ones a run touches are those whose lead
-or body carries a figure. `--check-doc`'s two sweeps print line numbers
-for the comparative and superlative candidates already, so between the three
-the walk is a list of jumps rather than a read. This is deliberately a recipe
-and not a stored list of paragraph names: a stored one would be a second copy
-of the structure and would rot the first time a lead was reworded, which
-is the failure this list was rewritten to escape.
+or body carries a figure. `./read-run.py --para 'lead'` then prints any one
+of them with the line it starts at, which is what keeps a jump off
+the `grep -n`/`sed -n` pair that the install above it has already invalidated.
+`--check-doc`'s two sweeps print line numbers for the comparative
+and superlative candidates already, so between the three the walk is a list
+of jumps rather than a read. This is deliberately a recipe and not a stored list
+of paragraph names: a stored one would be a second copy of the structure
+and would rot the first time a lead was reworded, which is the failure this list
+was rewritten to escape.
 
 - [the head of this chapter](#about-the-last-run-run-11), which carries
   the run's name, regime, scale and source commit, the layout span a roster

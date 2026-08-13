@@ -35,10 +35,11 @@ deleted with it, so no *binary* can hold this role for long. The live control
 is the current pair's recorded fills -- for Run 12, `run12-maxskip`
 [11, 0, 4, 0] and [24, 8, 0, 0] against `run12-maxskippa` [4, 0, 4, 0] and
 [8, 8, 4, 4] -- which this tool must reproduce before it is read for anything
-new. They are in README's open list and in the pair's own `<prefix>-pair.txt`,
-which `make-pair.py` writes beside the binaries where it built them, so the
-check outlives the binaries it was born on. **Those binaries are deleted with
-their run**, which is how the previous control died, so what has to survive
+new. They are in README's open list and in the pair's own `<prefix>-pair.txt`
+-- written by `make-pair.py` for the pairs it builds, and by hand for the
+two-shim pairs it does not model -- so the check outlives the binaries it was
+born on. **Those binaries are deleted with their run**, which is how the
+previous control died, so what has to survive
 is the recipe: `make-pair.py` is deterministic, the commit is recorded, and
 a rebuild that reproduces the two md5s reproduces the offsets above. Re-prove
 this against a known answer before pointing it at a new one.
