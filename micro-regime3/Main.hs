@@ -2699,6 +2699,17 @@ roster =
     -- not timed: l < 2^32
   , ("mut-flat",                   Only fbMutFlat)
   , ("mut-flat-gm",                Fill fbMutFlatGm)
+    -- The third 'Force' pair, and the one that makes the other two
+    -- interpretable. Those are an odometer and an expansion, so a term that
+    -- reads the same on both is still consistent with the two arms sharing a
+    -- bias rather than the READ being unbiased; a flat fill shares neither's
+    -- inner shape -- no per-element odometer step, no expansion stream -- so
+    -- a third agreement is evidence about the read and a disagreement names
+    -- which arm. That is what gate 3 has been unable to settle
+    -- (README.md#sum-only-and-the-correction-now-applied). The slot is beside
+    -- its base, as both other pairs' are, so the difference is taken between
+    -- neighbours and carries no span of its own.
+  , ("mut-flat-gm-nosum",          Force fbMutFlatGm)
   , ("bq-mut-runs-gm-mulback",     Fill fbBQmutRunsGmMulback)
     -- not timed: l < 2^32
   , ("bq-mut-lemire-out",          Only fbBQmutLemireOut)
