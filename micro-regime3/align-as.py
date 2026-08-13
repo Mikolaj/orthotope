@@ -102,11 +102,12 @@ nothing -- which is why Run 11 pairs the two rather than replacing one with
 the other.
 
 The published copy of this is in horde-ad's
-`docs/ghc-issue-no-loop-alignment.md`, filed as GHC work item 27668
-(https://gitlab.haskell.org/ghc/ghc/-/work_items/27668), which gives it as
-that issue's workaround and adds a LOOP_SKEW variable for stepping one loop
-through the eight positions of a line. **The two have diverged and are not to
-be re-synced by editing the filed record**: what is filed is what was filed,
+`docs/ghc-issue-no-loop-alignment.md`, filed as
+[GHC work item 27668](https://gitlab.haskell.org/ghc/ghc/-/work_items/27668),
+which gives it as that issue's workaround and adds a LOOP_SKEW variable for
+stepping one loop through the eight positions of a line. **The two have
+diverged and are not to be re-synced by editing the filed record**: what is
+filed is what was filed,
 and the max-skip form above postdates it. A reproducer wanting the smaller
 `.text` can take this file; the issue text stands as posted.
 

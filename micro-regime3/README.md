@@ -1434,9 +1434,10 @@ than a slot in the next run, observed again:
   and a different register assignment on an eight-line module, the same on GHC
   9.10.3, 9.12.4, 9.14.1 and HEAD, with `-g2` between them behaving alike.
   The reproducer and that table are horde-ad's
-  `docs/ghc-issue-debug-changes-codegen.md`, which this page's finding produced;
-  what they settle here is that no debug level is a cheap way to put names
-  in a binary that will be timed.
+  `docs/ghc-issue-debug-changes-codegen.md`, filed as [GHC work item
+  27687](https://gitlab.haskell.org/ghc/ghc/-/work_items/27687), which
+  this page's finding produced; what they settle here is that no debug level
+  is a cheap way to put names in a binary that will be timed.
 - **A recurring transient that lands on the shipped arm's family, worth 35
   to 44%, and which no published column would show.** Not one cell: **three
   sightings in four runs**, moving each time. Run 8 read `bq-expand`'s distant
@@ -1576,9 +1577,10 @@ than a slot in the next run, observed again:
 
   **The block-pool issue this project filed is the nearest precedent,
   and its methods are the ones to reach for next** —
-  `docs/ghc-issue-block-pool-fragmentation.md` in horde-ad, with the full
-  analysis in `docs/position-effect.md`. **The bug itself is probably
-  not this**: its symptom is a pool that doubles and stays doubled,
+  `docs/ghc-issue-block-pool-fragmentation.md` in horde-ad, filed as [GHC work
+  item 27601](https://gitlab.haskell.org/ghc/ghc/-/work_items/27601),
+  with the full analysis in `docs/position-effect.md`. **The bug itself
+  is probably not this**: its symptom is a pool that doubles and stays doubled,
   and `max_mem_in_use` across the four main-set processes of Runs 10 and 11 sits
   at 218 to 220 MiB with the *wild* process the smallest of them; nor does any
   of the 24 main-set shapes allocate in the worst-case band just above
