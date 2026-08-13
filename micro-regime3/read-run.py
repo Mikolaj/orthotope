@@ -2076,23 +2076,27 @@ def check_doc(readme, main_hs):
     # made at whatever length falls out of it -- so the check went red on an
     # ordinary edit and the way to green was to wrap. Wrap between edits and
     # the next exact-match edit has to quote breaks the last one moved, so
-    # unwrap, and the cycle repeats per edit: a session ran it that way for a
-    # whole write-up, having read the rule against it. The pressure was this
-    # check, so this check is where it is removed.
+    # unwrap, and the cycle repeats per edit: a session ran it that way for
+    # a whole write-up, having read the rule against it. The pressure was
+    # this check, so this check is where it is removed -- in what it asks,
+    # and in what it says when it passes: a verdict phrased as a state of
+    # the file ("is as wrap80 leaves it") names the command that makes it
+    # true, and a session ran that command to green a gate it was already
+    # green for.
     #
     # A paragraph mid-edit is one of two innocent things: untouched, so
     # exactly as wrap80 left it, or just edited, so entirely on one line.
     # Hand-wrapping is neither, and that is what fails. The published form is
     # a separate question, asked at commit rather than here.
     #
-    # Non-vacuous, all three branches exercised 2026-08-13 on this README.
-    # Untouched it says "is as wrap80 leaves it" and exits 0. With one
-    # paragraph unwrapped -- what one edit leaves -- it says no paragraph is
-    # hand-wrapped, 1 still on one line, and exits 0, where the whole-file
-    # test called that same file 4 lines wrong and failed. With one paragraph
-    # rewritten a word per line it names it, gives its line, and exits 1. The
-    # middle case is the one this rewrite exists for and the one the old test
-    # got wrong.
+    # Non-vacuous, all three branches exercised 2026-08-14 on this README.
+    # Untouched it says no paragraph is wrapped by hand and exits 0. With
+    # one paragraph unwrapped -- what one edit leaves -- it says the same
+    # and 1 still on one line, and exits 0, where the whole-file test called
+    # that same file 4 lines wrong and failed. With one paragraph rewritten
+    # a word per line it names it, gives its line, and exits 1. The middle
+    # case is the one this rewrite exists for and the one the old test got
+    # wrong.
     try:
         want = subprocess.run(['wrap80', readme], capture_output=True,
                               text=True, check=True).stdout
@@ -2109,7 +2113,7 @@ def check_doc(readme, main_hs):
     else:
         cur = open(readme).read()
         if want == cur:
-            note.append('the README is as wrap80 leaves it')
+            note.append('no paragraph of the README is wrapped by hand')
         else:
             # Aligned by index: wrapping never adds or removes a blank line,
             # so the three agree on how many blocks there are. Where they do
@@ -2131,17 +2135,15 @@ def check_doc(readme, main_hs):
                          if c != w and c == f]
                 if hand:
                     at = cur[:cur.index(cp[hand[0]])].count('\n') + 1
-                    bad.append('%d paragraph(s) of %s are neither as wrap80'
-                               ' leaves them nor on one line, so they were'
-                               ' wrapped by hand -- first at line %d; run'
-                               ' `wrap80 -i %s`, never re-wrap a line by hand'
+                    bad.append('%d paragraph(s) of %s are wrapped by hand --'
+                               ' first at line %d; run `wrap80 -i %s`, never'
+                               ' re-wrap a line by hand'
                                % (len(hand), os.path.basename(readme), at,
                                   os.path.basename(readme)))
                 else:
-                    note.append('no paragraph of the README is hand-wrapped;'
-                                ' %d still on one line, so it is mid-edit --'
-                                ' `wrap80 -i %s` before committing'
-                                % (len(loose), os.path.basename(readme)))
+                    note.append('no paragraph of the README is wrapped by'
+                                ' hand; %d still on one line, so it is'
+                                ' mid-edit' % len(loose))
             else:
                 # Diffed rather than compared by position: one inserted line
                 # shifts every line under it, and reporting the whole file as
