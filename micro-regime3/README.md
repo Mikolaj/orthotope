@@ -517,8 +517,8 @@ than a slot in the next run, observed again:
      which matters more. Recorded here rather than left to be rediscovered,
      because the two entries read as independent and are not.
 
-     **It is now postponed again, to Run 13, and for the same kind of reason
-     twice over.** Run 11 took the repetition; Run 12 takes the basis question
+     **It was postponed twice, to Run 13, and for the same kind of reason both
+     times.** Run 11 took the repetition; Run 12 takes the basis question
      that Run 11's second answer opened, and adding an arm in the same run
      as a change of shim would confound the arm's own cost with what its arrival
      does to a layout the new shim no longer pins. So the order is: Run 12
@@ -529,6 +529,16 @@ than a slot in the next run, observed again:
      than defending: this arm has been due since Run 11 and is cheap, so
      if it slips a third time the reason should be written here or the entry
      should be promoted over whatever displaced it.
+
+     **It did not slip a third time. Written 2026-08-13, and this entry
+     is closed.** `mut-flat-gm-nosum` sits in the roster beside its base,
+     the membership-invariance check the postponement above made
+     its precondition came back clean, and the filtered reading the entry
+     was queued for is taken. Neither figure is repeated here, both being read
+     elsewhere: the invariance result is with what the roster owes the next run,
+     the reading with gate 3, which it answers. What is left is the magnitude,
+     which a four-arm process cannot give and Run 13 supplies at full budget
+     without being asked, the arm now being rostered.
 
      **Run 11 answered the cost half and left the decision harder, not easier.**
      Max-skip won on cost: the cheaper build nearly everywhere at a third
@@ -1097,8 +1107,9 @@ than a slot in the next run, observed again:
      is `-fproc-alignment=64`'s territory and is [the queue][open]'s.
 
   **And what it must not do was add an arm** — the third `-nosum` one the queue
-  calls due — since the repetition needed membership pinned as well as layout.
-  It did not; that arm is Run 12's, and the ordering is in the queue entry too.
+  then called due — since the repetition needed membership pinned as well
+  as layout. It did not; that arm is Run 12's, and the ordering is in the queue
+  entry too.
 - **What Run 12 was built to answer, registered before it ran, and how it came
   out.** Four questions, each with what would count as an answer, so that a run
   reporting "nothing moved" reports a result rather than a failure. Registered
@@ -5140,9 +5151,13 @@ each blind to what the others catch:
    and with them dropped a three-level step does, decisively for `bq-expand`
    and marginally for `mut-odo-vecdims` — so read it as concentrated
    in the L1-resident shapes rather than as a boundary effect. None
-   of this replaces the third `-nosum` arm: a third write pattern is still
-   the only thing that separates the read from these two arms, and
-   this is evidence pointing that way rather than a substitute.
+   of this replaced the third `-nosum` arm: a third write pattern was the only
+   thing that could separate the read from these two arms, and the above
+   is evidence pointing that way rather than a substitute. **The arm has since
+   been added, and it agrees.** `mut-flat-gm-nosum` is a flat fill sharing
+   neither an odometer step nor an expansion stream, and its in-situ term reads
+   below 1 like the other two, which is the reading gate 3's entry carries
+   and the answer this paragraph was waiting for.
 
    **Priced, it is under a point.** Re-pricing each arm's own numerator
    with its in-situ term, the `list` denominator left alone at 2.7% of itself,
