@@ -692,13 +692,23 @@ than a slot in the next run, observed again:
   that way ([the floor section][floor]), and in one of them it suspended an axis
   figure the run had just published. What it does **not** extend to is a sweep
   of the roster, which was tried: the reading needs two arms whose hot loop
-  is identical *and* which differ nowhere else, and the timed roster holds
-  exactly the two groups already read. Everywhere else the shared loop
-  is a table build while the arms differ in the output loop that distinguishes
-  them, so a line span there competes with real arithmetic and says nothing;
-  and `bq-gen`, whose 11% is still unaccounted for, has no counterpart sharing
-  its per-element loop at all, so this instrument cannot reach it. Recorded
-  so the sweep is not attempted a second time.
+  is identical *and* which differ nowhere else. **That sweep has since been done
+  properly, naming being available** (2026-08-13, a `-g3` twin over loop lengths
+  20 to 48). Main's own code holds a third same-code group and no more:
+  `fbMutFlat` and `fbMutFlatGm` share a 24-byte loop, at offsets 5 and 0.
+  `mut-flat` is rostered `Only`, so the *timed* roster does hold exactly the two
+  groups already read and the sentence stands as written — but it stands
+  as a checked fact rather than an assumption, and the pair becomes readable
+  the moment that arm is timed, which is worth knowing since the two differ
+  in the Granlund-Montgomery quotient and nothing else. The same sweep confirms
+  the other half of this bullet: **no group at any swept length holds
+  `bq-gen`**, so its 11% having no same-loop counterpart is now checked too.
+  Everywhere else the shared loop is a table build while the arms differ
+  in the output loop that distinguishes them, so a line span there competes
+  with real arithmetic and says nothing; and `bq-gen`, whose 11% is still
+  unaccounted for, has no counterpart sharing its per-element loop at all,
+  so this instrument cannot reach it. Recorded so the sweep is not attempted
+  a second time.
 - **Run 10's predictions, and how they came out.** The run is made; the verdicts
   are here, with the registrations they are read against left standing
   underneath so that what was predicted before the hours were spent stays
@@ -1026,18 +1036,23 @@ than a slot in the next run, observed again:
   in which the two procedures are 64-aligned and internally identical so both
   copies land on the *same* offset, built and read and left untimed; timing
   it is a filtered A/B and it now reads 0.9893 against 0.9782 for the shim's
-  build and 0.9585 for neither. **Sharing an offset is what makes the pair tie**
-  — both same-offset builds do, the different-offset one does not — but the two
-  ties cannot be ranked against each other on one pass, their intervals
-  overlapping and their sign tests disagreeing about which is flatter.
-  So procedure placement is still a candidate and not the answer, and the honest
-  bound is that these two names differ by about a percent once their copies
-  share an offset, part of which is roster context rather than either arm.
-  The shim *and* the flag together would have ranked them; that build was made
-  and timed on 2026-08-11 and **does not**, landing about a percent nearer level
-  inside a 1.8 to 2.3% repeat spread, so procedure placement stays a candidate.
-  A small filtered test beside it prices a shared straddling offset at 8 to 13%
-  on both arms and the flag at 2 to 4% over the shim alone — indicative only,
+  build and 0.9585 for neither. **Sharing an offset is now refuted as what makes
+  the pair tie**, and from data already in hand: the named map puts `mut-odo`
+  and `build` both at offset **0 in both Run 12 halves**, and the pair reads
+  0.9822 in one and 0.9431 in the other — sharing an offset in both, tying
+  in neither, 3.9 points apart. The reading below is what that replaces.
+  **Sharing an offset was what appeared to make the pair tie** — both
+  same-offset builds do, the different-offset one does not — but the two ties
+  cannot be ranked against each other on one pass, their intervals overlapping
+  and their sign tests disagreeing about which is flatter. So procedure
+  placement is still a candidate and not the answer, and the honest bound
+  is that these two names differ by about a percent once their copies share
+  an offset, part of which is roster context rather than either arm. The shim
+  *and* the flag together would have ranked them; that build was made and timed
+  on 2026-08-11 and **does not**, landing about a percent nearer level inside
+  a 1.8 to 2.3% repeat spread, so procedure placement stays a candidate. A small
+  filtered test beside it prices a shared straddling offset at 8 to 13% on both
+  arms and the flag at 2 to 4% over the shim alone — indicative only,
   and a reason to pad any pair that adopts the flag ([the floor
   section][floor]).
 
@@ -3063,7 +3078,14 @@ own processes, so it catches a launch made from here and not one made
 from anywhere else, and `uptime` is the half of it that reaches the machine.
 The one that is skipped most often is 8, and the one that is run when it should
 not be is 14 — the gate belongs to the pair, so a note recording a pass means
-it is done.
+it is done. **And what is true of 14 is true of 11 and 12: write each
+into the pair note when it passes.** All three cost machine time, all three
+are properties of the pair and its roster rather than of the session that ran
+them, and a session that cannot see they were run pays for them again — twenty
+minutes for the roster pass, an hour for the gate. The note is the only thing
+that outlives a session, so an outcome recorded nowhere is an outcome nobody
+after you can use; the gate's own line has said so all along, and the other two
+were left to memory until 2026-08-13, when they were.
 
 **Steps 7 and 8 are the whole of this page's document check, and no other
 repository's checkers belong on it.** Theirs carry a per-repo configuration —
@@ -4079,7 +4101,17 @@ it to whichever answer the majority of arms gives, which loses the finding.
    two of them changed rulings, and one answered an open question outright.
    So before step 12, take every question on the open list whose measurement
    is a compile, an allocation or an arithmetic re-derivation, and take it now.
-   What is left over is the timing work, which is what a quiet machine is for.
+   **One of them is owed by every paired run and is named here so it
+   is not rediscovered: export the pair's NAMED fills into its note.**
+   `loop-offsets.py` names a copy only in a `-g3` build, so each half's recipe
+   is rebuilt with `-g3` added and the twin's groups matched to the timed ones
+   by byte identity of the loop body — never by proximity or by which group
+   sorts first. Bare offsets are what the note records otherwise, and the map
+   is a property of the binary: once the binaries go, no offset this page quotes
+   can ever be tied to an arm again. Run 12's were derived this way on the last
+   day they existed and refuted two accounts of its own split; Run 10's and Run
+   11's are gone unnamed. What is left over is the timing work, which is what
+   a quiet machine is for.
 12. **Only then, offer the artifacts for deletion — once — and abide by the
    answer.** The JSONs, the logs and the wall-clock file, and for a paired run
    the two binaries and their `$R-pair.txt` with them, that note being about
@@ -5460,22 +5492,31 @@ to the basis**: `run12-maxskip`, the half without the flag.
 
 **The two-and-two vecdims split did not survive the flag, which was the run's
 second registered prediction and is refuted.** Run 11 found its four
-`mut-odo-vecdims` arms parting two and two — `mut-odo-vecdims` (1.0074)
-and `-add-both` (1.0333) keeping the whole NOP cost Run 10 measured for them
-while `-add-in` (1.0036) and `-add-both-down` (1.0029) shed most of theirs —
-and the prediction, registered from the pair note's offsets, was that the split
-would persist under the flag. It closed instead: the same four read **0.9996**,
-**1.0035**, **0.9988** and **1.0003**, a spread of under half a point where Run
-11's was three points. That is the prediction's own kill condition, the four
-moving together, and what it says is that whatever separated them in Run 11
-is not what `-fproc-alignment=64` does to them. It does not license the converse
-reading either — that offsets are not what Run 11's split was about — since
-this pair moves every procedure start rather than the two copies max-skip left
-resident. **The arm names license it instead**, and by arithmetic rather
-than by a second run: the two copies max-skip leaves resident
-are `mut-odo-vecdims`'s and `-add-in`'s, one on each side of the split, while
-the family's two largest readings sit at 0 in both halves ([the open
-list](#what-is-open) has the map and the naming that produced it).
+`mut-odo-vecdims` arms parting two and two — 1.0074, 1.0333, 1.0036 and 1.0029 —
+and read the split as a NOP cost paid where max-skip left a copy resident.
+**Naming the copies has since refuted that account outright** (2026-08-13,
+`run12-pair.txt`): the arms at nonzero offsets are `mut-odo-vecdims` (24)
+and `-add-in` (8), which read 1.0074 and 1.0036, while `-add-both`'s 1.0333
+and `-add-out`'s 1.0513 sit at 0 — the relation is inverse, not the one claimed.
+**And the mechanism is impossible, not merely uncorrelated**: every one
+of the four heads is preceded by a `jmp` or by data, so none is entered
+by falling through and none can execute preceding padding whatever its size,
+which is measured at 0, 0, 0 and 4 bytes against ratios spanning 1.0036
+to 1.0513. What is left is the displacement unconditional padding gives
+everything downstream, which is a whole-program term and not a property
+of these loops. The prediction below was registered on the refuted account.
+It closed instead: the same four read **0.9996**, **1.0035**, **0.9988**
+and **1.0003**, a spread of under half a point where Run 11's was three points.
+That is the prediction's own kill condition, the four moving together, and what
+it says is that whatever separated them in Run 11 is not what
+`-fproc-alignment=64` does to them. It does not license the converse reading
+either — that offsets are not what Run 11's split was about — since this pair
+moves every procedure start rather than the two copies max-skip left resident.
+**The arm names license it instead**, and by arithmetic rather than by a second
+run: the two copies max-skip leaves resident are `mut-odo-vecdims`'s
+and `-add-in`'s, one on each side of the split, while the family's two largest
+readings sit at 0 in both halves ([the open list](#what-is-open) has the map
+and the naming that produced it).
 
 **The halves differ in layout and in nothing an arm computes.** The fitted
 allocation agrees on **816 of 816** cells between them, to a worst relative
@@ -6006,7 +6047,12 @@ change**, no short loop of Main's code straddling a cache line in either of Run
 of straddlers within each binary, which is sound, and not as a population one
 can subtract from the other, which the floor section shows it is not.) A claim
 resting on an arm whose own loop the shim skipped — `list`'s, which is library
-code — is still decidable nowhere until that loop is read.
+code — is still decidable nowhere until that loop is read. **And the pinning
+claim is measured only in its weak form**: adding `mut-flat-gm-nosum` left every
+tracked loop at the same address, but a `Force` arm reuses a rostered function
+and emits no code for emission order to move. The strong form wants an arm
+that emits its own, and until one is added the claim covers additions that cost
+nothing to place.
 
 **The list needed no re-aiming this time either**, the roster it was rewritten
 onto before Run 8 being the roster Run 12 ran: every claim below names an arm
