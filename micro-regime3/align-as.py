@@ -28,12 +28,12 @@ the old object code and reports nothing (README.md, same section).
   ALIGN_AS_VERBOSE  report the budgets emitted and the heads fallen back on
 
 **Pad only a loop that would cross a boundary it need not, and only by what
-it needs** -- `LOOP_MAXSKIP=1`, and off by default because the unconditional
-form is what the published basis binary is built with and what
-`make-pair.py`'s determinism is claimed against: a default that changed under
-it would rebuild `micro-aligned` into some other binary under the same name.
-Run 11 is the paired run that decides which form the basis should be; until
-it does, the new form is the one you ask for. A loop of length `L` at
+it needs** -- `LOOP_MAXSKIP=1`, and off by default because a default is the
+one thing a pair's note cannot record: every half is built by a recipe that
+sets what it wants explicitly, so a default that moved would rebuild some
+other binary under the name the note gives. Run 11 priced the two forms and
+the basis has been max-skip since Run 12, which is a fact about the recipes
+and not about this file. A loop of length `L` at
 `p = addr mod 64` occupies `(p + L - 1) div 64 - p div 64 + 1` cache lines,
 and holds that at its least `ceil(L/64)` for every `p` up to `s = 64 *
 ceil(L/64) - L`, the free room in its last line. So
@@ -110,15 +110,23 @@ be re-synced by editing the filed record**: what is filed is what was filed,
 and the max-skip form above postdates it. A reproducer wanting the smaller
 `.text` can take this file; the issue text stands as posted.
 
-`PAD_BYTES` is `pad-as.py`'s trailing pad, folded in here because only one
-`-pgma` reaches a build and Run 11's pair needs both: its two halves are the
-unconditional shim and this one, whose `.text` sizes differ by the 8192 the
-two growths above leave between them, and the pad is what puts the libraries
-back in phase. It goes at the
-end of the first module's text, so the module's own code keeps every offset
-it had. `pad-as.py`'s docstring has how the number is derived and why matching
-the size alone is not enough. Here PAD_BYTES=8192 needs neither of its
-corrections: it shifts the libraries rigidly, by 256 or four whole lines, on
+`PAD_BYTES` is a trailing pad, here because only one `-pgma` reaches a build
+and Run 11's pair needed both: its two halves are the unconditional shim and
+this one, whose `.text` sizes differ by the 8192 the two growths above leave
+between them, and the pad is what puts the libraries back in phase. It goes
+at the end of the first module's text, so the module's own code keeps every
+offset it had.
+
+How the number is derived, since the script that once did it is gone: a pair
+must not move the libraries, no shim on `-pgma` reaching them, so anything
+that changes `.text`'s size displaces everything linked after it -- aligning
+grew it by 12 KB and moved 856 of 867 library loops. Matching the size alone
+does not repair that: it left the delta at 32 mod 64, which is the worst
+shift a line admits. The pad is therefore derived in two steps, the size
+difference and then the residual phase, and the result is checked rather
+than assumed -- `./loop-offsets.py --library A B`, which is what reports how
+far two halves agree about where the libraries sit. Here PAD_BYTES=8192
+needs neither correction: it shifts the libraries rigidly, by 256 or four whole lines, on
 29318 of the 29449 `.text` symbols the two halves share, 100.0% of them in
 phase. **Read that off `nm`, symbol by symbol, and not off the loop-based
 phase.** An earlier max-skip build wanted a correction the two steps do not
@@ -373,7 +381,7 @@ def rewrite(path, args):
         out.append(line)
     if PAD:
         out += ['\t.section .text', '\t.p2align 3', f'\t.space {PAD}, 0x90', '']
-        PAD = 0        # one module's worth an invocation, as pad-as.py
+        PAD = 0        # one module's worth an invocation
     with open(path, 'w') as f:
         f.write('\n'.join(out))
     return n, back

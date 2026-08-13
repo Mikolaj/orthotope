@@ -188,11 +188,10 @@ by being a thing a later session might otherwise redo.
   must pad only between instructions. Two tools beside this file:
   `loop-offsets.py` reads a binary's copies, which makes the question a minute's
   work rather than a run's, and `align-as.py` is the shim; a paired run's two
-  binaries come from `make-pair.py`, which derives the padding its unaligned
-  half needs and refuses a pair that does not verify. Both this
-  and the recompilation trap beside it are written up and filed as GHC issues
-  from horde-ad's `docs/`, which is where a reader outside this page should go;
-  what stays here is what they cost this benchmark.
+  binaries are built from the recipes its own note carries, one per half. Both
+  this and the recompilation trap beside it are written up and filed as GHC
+  issues from horde-ad's `docs/`, which is where a reader outside this page
+  should go; what stays here is what they cost this benchmark.
 - **Which arm owns a loop copy is a property of the binary**, absent
   from a plain build and carried by a `-g3` one, which `loop-offsets.py` now
   reads for itself — and **a `-g3` build is a twin to read and not a binary
@@ -629,12 +628,14 @@ than a slot in the next run, observed again:
      to be re-proposed. What the plain repeat answers is narrower and still
      worth the evening: whether a fresh wild cell turns up somewhere else, which
      is the lottery, or the same one returns. It cannot be filtered,
-     and it wants the aligned half rebuilt first --
-     `./make-pair.py --run <run>`, which names it `<run>-aligned` -- that binary
-     having gone with Run 11's artifacts — `make-pair.py` is deterministic
-     and README's Provenance keeps its md5, so the rebuild is verifiable rather
-     than hopeful. **Run 12 supplies a free draw meanwhile**: a new basis, a new
-     allocation history, and its own six A/A worst cells to read.
+     and **its method went with the builder**: it wanted the aligned half
+     rebuilt first, and the script that built an unaligned/aligned pair
+     was deleted on 2026-08-14, no such pair having been made since Run 10
+     and none being planned. A repeat on the current basis is a fresh draw
+     rather than the repeat this entry asked for, so what is left here
+     is the draw and not the test. **Run 12 supplies a free draw meanwhile**:
+     a new basis, a new allocation history, and its own six A/A worst cells
+     to read.
 
   And three things **not** worth a quiet window, recorded so they
   are not reached for. The *how many preceding benches warm it* sweep, which
@@ -3069,9 +3070,8 @@ is what it has cost every session so far.
     #  the :/ pathspec resolves from the repo root, so these answer the same
     #  from anywhere; a bare `-- Main.hs` run from the root prints nothing
     #  and exits 0, which reads exactly like an unmoved source
-    #  build ONLY if 1-3 say so, and never for a two-shim pair -- and on such
-    #  a pair never ./make-pair.py --verify-only either: it writes gate
-    #  failures into a note it cannot gate
+    #  build ONLY if 1-3 say so, and from the note's own recipe: there is
+    #  no builder here, every pair being two shims built by hand
     ./$R-<basis> check                    # 4. every shape agrees
     ./$R-<other> check                    # 5. and the other half
     ./$R-<basis> --list 2>/dev/null | wc -l    # 6. roster size
@@ -3159,8 +3159,7 @@ instead, orthotope carrying no `CLAUDE.md` of its own. Then:
 and a shell that has not set them will silently do the wrong thing: an empty
 `$REGIME` is a -O1 build that every gate here passes. It reaches the *build*
 and nothing else — no check mode takes a regime, and
-on the confirm-don't-rebuild path nothing consumes it at all, `--verify-only`
-building nothing to apply it to.
+on the confirm-don't-rebuild path nothing consumes it at all.
 
     R=run10                              # names every artifact; no default
     REGIME=-fspec-constr                 # every run since Run 8; empty for -O1
@@ -3177,31 +3176,29 @@ at the head of each:
 `cd ~/r/orthotope/micro-regime3 && R=run10 REGIME=-fspec-constr && …`. The two
 do not fail alike, which is the reason to spell this out rather than trust care.
 `./run-major.sh $R` with `$R` empty is loud, the driver refusing without a name.
-`./make-pair.py --regime="$REGIME"` with `$REGIME` empty is not: it degrades
-to a plain -O1 build, which is exactly the silent wrong thing the paragraph
-above describes and nothing downstream detects.
+A build with `--ghc-options="$REGIME"` empty is not: it degrades to a plain -O1
+build, which is exactly the silent wrong thing the paragraph above describes
+and nothing downstream detects.
 
 `$REGIME` is the bare GHC flag and not a `--ghc-options=` spelling of it,
-because `make-pair.py` composes it with a `-pgma` of its own and would wrap
-it twice. The one site that hands it to `cabal` wraps it there instead.
-Its value begins with a dash, so every option taking it wants `--opt="$REGIME"`
-and not `--opt "$REGIME"`: argparse reads a dash-leading word as the next option
-and exits 2 saying the argument expected one, which is loud but reads
-as a broken script rather than as a quoting rule.
+because a recipe composes it with a `-pgma` of its own and each wants
+an `--ghc-options=` of its own. Its value begins with a dash, so it goes inside
+the quotes — `--ghc-options="$REGIME"` — and never as a bare word after a space,
+which the option's parser reads as the next flag.
 
 **Everything below that writes runs unsandboxed**, which is every step
-that builds, benchmarks or leaves a file: `make-pair.py` either way round,
-the smoke block, `run-gate.sh`, `run-major.sh`. The read-only ones — both
-`check`s, `diag`, `--lint`, `--check-doc`, `loop-offsets.py`, `--list`, a `grep`
-of the note — are fine sandboxed and are worth having cheap, so this is
-not a blanket instruction to drop the sandbox for the afternoon. A session
-starts in `~/r/horde-ad`, so its sandbox permits writes there and to its own
-temp directory and nowhere else; this directory is outside it,
-and `run-major.sh` moves here before doing anything. Sandboxed, every `--json`
-and every `> $out.log` is refused — and the two refusals do not look alike.
-A redirection on a simple command is checked before exec, so the benchmark never
-starts at all, while `log`'s `tee` is a pipeline whose `echo` still prints: you
-get the sequence's start lines on the console, no wall-clock file, no JSON
+that builds, benchmarks or leaves a file: the two builds, the smoke block,
+`run-gate.sh`, `run-major.sh`. The read-only ones — both `check`s, `diag`,
+`--lint`, `--check-doc`, `loop-offsets.py`, `--list`, a `grep` of the note —
+are fine sandboxed and are worth having cheap, so this is not a blanket
+instruction to drop the sandbox for the afternoon. A session starts
+in `~/r/horde-ad`, so its sandbox permits writes there and to its own temp
+directory and nowhere else; this directory is outside it, and `run-major.sh`
+moves here before doing anything. Sandboxed, every `--json` and every
+`> $out.log` is refused — and the two refusals do not look alike. A redirection
+on a simple command is checked before exec, so the benchmark never starts
+at all, while `log`'s `tee` is a pipeline whose `echo` still prints: you get
+the sequence's start lines on the console, no wall-clock file, no JSON
 and no run. That reads as a run in progress, which is how two copies once ended
 up on this machine at the same time. Confirm a launch by an unsandboxed process
 list, never by the launching shell.
@@ -3218,26 +3215,12 @@ not exist, which is why this is a rule about the place rather than a caution
 about the variable.
 
 **Then build what will actually be timed — but first, is there a pair here
-already?** That is the fork, and it comes before the build command rather
-than after it, because `make-pair.py` overwrites both halves in place:
-the offsets the predictions are registered against are the present pair's,
-and a rebuild coming out even slightly different would retire them in silence.
-Where the binaries and the note recording what they were built from are already
-there, confirm them instead of rebuilding — for the kind of pair this script
-builds, with:
-
-    ./make-pair.py --run=$R --verify-only  # UNALIGNED/ALIGNED PAIRS ONLY --
-                                           # not on a two-shim pair, whose note
-                                           # is hand-written. Builds nothing,
-                                           # but DOES append to the pair note
-
-which re-runs `check` on both halves, compares the two listings and reads
-the fills off the binaries, and appends what it found to the note rather
-than overwriting it. Two gates it cannot run, both needing the plain build
-that a rebuild would have made: PAD_BYTES is not re-derived and the moved-fill
-comparison has nothing to compare against. It says so, in the note and
-in the verdict, so a re-verification does not read as a fresh build's clean
-sheet.
+already?** That is the fork, and it comes before the build rather than after it,
+because a rebuild replaces both halves: the offsets the predictions
+are registered against are the present pair's, and one coming out even slightly
+different would retire them in silence. Where the binaries and the note
+recording what they were built from are already there, confirm them instead
+of rebuilding.
 
 The fork's three questions are answerable in three commands, none of which
 the page should make you invent. Is there a pair — `ls $R-*`. Is it the pair
@@ -3253,39 +3236,25 @@ it from a real one. The regime is the fourth and is not answerable this way,
 the JSON recording no compiler flag; the `diag` step below is what answers it.
 
 Only where there is no pair, or where `Main.hs` or the regime has moved since
-the note was written, is the build the thing to run — and the regime goes
-to it rather than being assumed, since it has a default of its own:
+the note was written, is a build the thing to do — and there is nothing here
+that does it. Every pair since Run 11 is two shims, and each half is one
+`cabal build` from the recipe its note carries: the regime, a `-pgma` shim
+of its own, whatever variable the pair exists to price, and `-fforce-recomp`
+with a fresh `--builddir`, without which cabal answers *Up to date*
+for a `-pgma` or an environment change and relinks the previous object — which
+is how a shim change comes to be measured against itself. Write the note first,
+since it is the only copy of both recipes, and read the pair afterwards:
 
-    ./make-pair.py --run=$R --regime="$REGIME"   # four builds, ~5 min
     ./loop-offsets.py $R-<other> $R-<basis>
+    ./loop-offsets.py --library $R-<basis> $R-<other>
 
-**But only for an unaligned/aligned pair, which is the only kind it builds.**
-A pair of two shims — every pair since Run 11 — is built by the recipe its own
-note carries, which is why that note is written by hand and says so, and records
-the offsets both halves came out with.
+The second is the one a two-shim pair cannot take on trust. No `-pgma` shim
+reaches a library, so a library loop that moved was displaced by a change
+in `.text`'s size, and a pair that moves them prices that displacement along
+with whatever it meant to price.
 
-**And `--verify-only` is not to be run on a two-shim pair at all**, which
-is the confirm path's one exception and is worth stating because the flag looks
-made for it. `--basis`/`--other` generalise which *files* it opens; they do
-not generalise its **gates**, which are the invariants of the build it performs
-rather than of pairing in general. Two of the eight are that build's
-and no other's: it requires every fill at offset 0 in the basis half, which
-is what its own unconditional shim guarantees and what a max-skip half
-is designed *not* to do, leaving a resident head where it fell; and it requires
-90% of library loops to share an offset, which holds when two halves differ
-by trailing pad and cannot when `-fproc-alignment=64` moves every procedure
-start. A max-skip pair fails both while being exactly right — its note records
-the fills and the phase it came out with — and because the md5s match it takes
-the *append* path, writing `FAILED n gate(s)` into the hand-written note
-that step 9 transcribes the run's provenance out of and that holds the only copy
-of both recipes. The other six gates are sound on any pair, which is what makes
-this tempting; they are not worth the two.
-
-So on a two-shim pair the confirm path is the three fork questions above
-and the note's own recorded verification, and nothing else. `make-pair.py`
-refuses to *build* anything but an unaligned/aligned pair and says so
-in its docstring; until `--verify-only` refuses in the same voice rather
-than half-running, treat it as build-only.
+So the confirm path is the three fork questions above and the note's own
+recorded verification, and nothing else.
 
 There is no single-binary form of a major run any more, the pairing being
 permanent: `run-major.sh` and `run-gate.sh` both refuse to start without both
@@ -3323,19 +3292,15 @@ The gate therefore stays green on a document being worked on, which is what
 stops it demanding a `wrap80 -i` between edits: wrapping is owed before
 committing, not before checking.
 
-Both halves. On an unaligned/aligned pair only one had its own code rewritten —
-`pad-as.py` appends dead bytes after the other's, where `align-as.py` moves
-labels about — but on a pair of two shims, which every pair since Run 11 has
-been, both can be mispadded and both need it, so checking both is the rule
-and the one-sided case is the exception that no longer arises. `make-pair.py`
-now runs both itself and refuses on either, and holds them to each other besides
-— a sound pair makes the two logs byte-identical, agreement on every shape being
-a property of the strategies and not of where their loops landed. A difference
-stops the run, and on a two-shim pair the rebuild goes through the recipe
-in that pair's note, this script being neither its builder nor safe to point
-at it. It checked the unaligned half alone until 2026-08-10, which is to say
-its gate was pointed at the binary that could not fail; the two lines above
-are then a re-check rather than the only check, and cost seconds.
+Both halves. On the unaligned/aligned pairs this page used to build, only one
+half had its own code rewritten — the other's shim appended dead bytes, where
+`align-as.py` moves labels about — but on a pair of two shims, which every pair
+since Run 11 has been, both can be mispadded and both need it, so checking both
+is the rule and the one-sided case is the exception that no longer arises.
+The halves are held to each other besides — a sound pair makes the two logs
+byte-identical, agreement on every shape being a property of the strategies
+and not of where their loops landed. A difference stops the run, and the rebuild
+goes through the recipe in that pair's note. The two lines above cost seconds.
 
 **Then confirm the regime is the one intended**, which nothing later can:
 
@@ -3355,24 +3320,20 @@ it was built to test.
 **A paired run adds a second binary, and both are built and checked before
 either is timed.** Alignment is not a regime flag: it arrives on `-pgma`, GHC
 notices neither that nor `-fproc-alignment`, and a rebuild between the two
-halves would put back the very effect the pairing measures. That is why
-`make-pair.py` is the build step above rather than a `cabal build`, and why both
-executables are kept.
+halves would put back the very effect the pairing measures. That is why the two
+halves are built one after the other from the note's recipes, with nothing
+touched in between, and why both executables are kept.
 
-`make-pair.py` derives the padding rather than taking it on trust — the size
-the aligning shim adds, then the residual phase, which is two measurements
-and a rebuild — and it runs `check` and refuses on a bad pair, so the command
-above is the whole of it. `check` is the gate and the offsets are not, a wrongly
-padded binary having correct-looking offsets and wrong answers. Read both
-listings anyway and keep them with the run: what each half's fills are
-and that no short loop of its own code straddles, recorded as they stand, since
-a prediction made per arm is made from them and no later binary has them —
-offsets at 0 are what a fully padded half shows and not a thing to require
-of a max-skip one, which leaves a resident loop where it fell; `--survey`
-is the length-agnostic form and takes one binary at a time
-(`./loop-offsets.py --survey $R-<basis>`), and what "every timed arm's loop"
-means is bounded by what can be attributed at all. The sequence below runs each
-half in turn, and `run-major.sh` does it for you; what neither can do
+`check` is the gate and the offsets are not, a wrongly padded binary having
+correct-looking offsets and wrong answers. Read both listings anyway and keep
+them with the run: what each half's fills are and that no short loop of its own
+code straddles, recorded as they stand, since a prediction made per arm is made
+from them and no later binary has them — offsets at 0 are what a fully padded
+half shows and not a thing to require of a max-skip one, which leaves a resident
+loop where it fell; `--survey` is the length-agnostic form and takes one binary
+at a time (`./loop-offsets.py --survey $R-<basis>`), and what "every timed arm's
+loop" means is bounded by what can be attributed at all. The sequence below runs
+each half in turn, and `run-major.sh` does it for you; what neither can do
 is interleave two processes of this size within a population, so the order they
 ran in is written down and is one of the two things left uncontrolled.
 
@@ -3384,15 +3345,20 @@ loops went from 36 to 40. The shim reaches only what GHC compiles here,
 so those loops were rerolled rather than aligned, and an arm whose innermost
 work is in library code would have carried a term the pairing scrambled instead
 of removing — which is not hypothetical, `list`'s own loop being library code
-(prediction 5). `pad-as.py` closes it: padding the unaligned half to the same
-size *and phase* leaves 95% of the library loops at the same cache-line offset
-and 98% in the same straddle state, the rest of the delta being 384 bytes, six
-whole lines. Matching the size alone does not do it — that left the delta
-at 416, which is 32 mod 64 and so the worst shift available — and the two-step
-that does is in that file. So the pair now differs in Main's loop alignment
-and in nothing else an offset can see, and `micro-unaligned` keeps every offset
-the unpadded build had: the same fills at [3, 53, 59, 45] and [16, 0, 36, 36],
-the same 115 short loops with 50 straddling.
+(prediction 5). Padding the unaligned half to the same size *and phase* closed
+it: 95% of the library loops at the same cache-line offset and 98% in the same
+straddle state, the rest of the delta being 384 bytes, six whole lines. Matching
+the size alone does not do it — that left the delta at 416, which is 32 mod 64
+and so the worst shift available — and the two-step that does
+is in `align-as.py`'s docstring, beside the `PAD_BYTES` it feeds. **A pair
+of two shims has no such step and no such guarantee**, only whatever its two
+recipes give it, which is why `./loop-offsets.py --library` exists: it reports
+how far the two halves agree about where the libraries sit, and a pair is read
+against its own note rather than against a figure quoted here. So the pair now
+differs in Main's loop alignment and in nothing else an offset can see,
+and `micro-unaligned` keeps every offset the unpadded build had: the same fills
+at [3, 53, 59, 45] and [16, 0, 36, 36], the same 115 short loops with 50
+straddling.
 
 **Which two halves a pair has is a property of the pair, not of this page.**
 The names are recorded in the pair note and set in one place in each
@@ -3409,8 +3375,8 @@ the two would collide if this page still called the basis *the aligned half*:
 its control is `maxskippa`, the half that carries `-fproc-alignment=64`
 and so is the more aligned build of the two. Where a sentence below says
 *aligned* it is about alignment, not about a role; where it is plainly about one
-past pair — as the paragraph on `pad-as.py` and the 12 KB of `.text` is, every
-figure in it being Run 10's — it keeps that pair's half names.
+past pair — as the paragraph on the 12 KB of `.text` is, every figure
+in it being Run 10's — it keeps that pair's half names.
 
 **Name the artifacts by half, and drive every `--in-place` from the basis
 half.** The sequence below builds every filename off `$R`, which a paired run
@@ -3590,13 +3556,13 @@ changed, and Run 10 is such a run.
 
 **A paired run has one gate more, and the first thing to do about it is read
 rather than run it. The gate belongs to the pair, not to the session**, which
-is what stops it being paid for twice. `make-pair.py` writes a `<run>-pair.txt`
-beside the binaries — every name in this directory carries the run, so that two
-runs cannot write one filename however alike their half names are, which is why
-`--run` is required and not defaulted — with what it verified and a `GATE:` line
-saying it has not been run; `run-gate.sh` appends to that file. So read what
-the note says about the gate first — `grep -i gate $R-pair.txt`, this pair's
-note and not every note in the directory, case-insensitive and not anchored
+is what stops it being paid for twice. A pair's note, `$R-pair.txt`, is written
+by hand beside the binaries — every name in this directory carries the run,
+so that two runs cannot write one filename however alike their half names are —
+and it carries both recipes, what was verified, and a `GATE:` line saying it has
+not been run; `run-gate.sh` appends to that file. So read what the note says
+about the gate first — `grep -i gate $R-pair.txt`, this pair's note
+and not every note in the directory, case-insensitive and not anchored
 on the `GATE:` token, because a note written by hand says it in prose
 and grepping for the token finds nothing in one, which reads as *no gate*
 and costs the hour it was meant to save. **Read the whole output and
@@ -3608,11 +3574,7 @@ it — is the older one. Read up the output until a `GATE:` line states
 an outcome; that is the verdict, whatever sits below it. Following *newest wins*
 here costs the forty minutes the step exists to save, which is how it was found.
 If a verdict records a pass, this step is already done and the next action
-is the run itself. A `--verify-only` run earlier in this procedure does
-not disturb that: it appends its measurements alone, the `GATE:` line going
-in only when a note is written fresh, so re-verifying a pair cannot restate
-*not yet run* over a verdict saying otherwise. `make-pair.py` being
-deterministic, a rebuild that comes out md5-identical inherits the gate too,
+is the run itself. A rebuild that comes out md5-identical inherits the gate,
 and one that does not — a changed `Main.hs`, a changed regime — needs its own.
 Re-running it on a pair that has already passed costs a quiet hour and can only
 reproduce what the note says.
@@ -3646,7 +3608,7 @@ population is the recorded protocol at `classBenches`, so no population's
 figures owe anything to another's leftover heap state and each JSON
 is single-population by construction. **The regime is a variable
 of the procedure, not a flag to remember**: it is set once at the top beside
-the run's name and goes to `make-pair.py`, so that leaving it empty
+the run's name and goes to each half's build, so that leaving it empty
 is a deliberate act rather than an omission. On a path that skipped the build
 the whole guard is the `diag` reading above, which is why that step
 is not optional there. A run made in the wrong regime is not detectably wrong —
@@ -4099,12 +4061,12 @@ it to whichever answer the majority of arms gives, which loses the finding.
    edit can break a check that passed before it. `--lint` reads the source
    and needs no build, which is the whole of what that reason asks for. **Do
    not rebuild the pair to satisfy this step.** Steps 6 and 7.7 send you
-   into `Main.hs`'s comments on purpose, and `make-pair.py` would overwrite both
-   halves and append a block to `<prefix>-pair.txt` stamped with today's date
-   and commit — which is the file the next step transcribes the binary's
-   provenance out of. A comment edit after the run leaves the timed binaries
-   correct and the source they were built from moved by a comment; say so
-   in the write-up rather than rebuilding to hide it;
+   into `Main.hs`'s comments on purpose, and a rebuild would replace both halves
+   and want a fresh note stamped with today's date and commit — which
+   is the file the next step transcribes the binary's provenance out of.
+   A comment edit after the run leaves the timed binaries correct and the source
+   they were built from moved by a comment; say so in the write-up rather
+   than rebuilding to hide it;
 9. Record beside the numbers the run's name and regime, each process's stderr
    provenance line, which machine, **and the commit the binary was built
    from** — for a paired run, transcribed from `<prefix>-pair.txt`, which
@@ -5486,7 +5448,7 @@ order, Run 11's shapes. Both halves carry `align-as.py` in its max-skip form,
 so both pad a loop head only where the loop would otherwise cross a cache line
 it need not, and `run12-maxskippa` adds the flag on top, pinning every procedure
 start to a 64-byte boundary. The basis half takes 28720 bytes of trailing pad
-instead, derived in `pad-as.py`'s two steps, which puts both `.text` segments
+instead, derived in the pad's two steps, which puts both `.text` segments
 at 20406469 bytes and the commonest library delta at 640 — ten whole lines,
 holding across 86% of the shared `.text` symbols. The ones that miss it sit
 eight bytes off, and they are criterion, `statistics`, optparse-applicative
@@ -6920,9 +6882,8 @@ was measured on `run12-maxskip` md5 `27f45dc4fd37c1124d943ebb55dfaa30`
 and `run12-maxskippa` md5 `a45d996f7b9ca8612d3c1b504da8a7fd`, from `Main.hs`
 at `3a99eeb` — the tree at `0b7d982` when the pair was built and `4547e4c`,
 clean, when the sequence was launched — under GHC 9.12.4 with `-fspec-constr`.
-**`make-pair.py` builds neither half**, this being a pair of two shims rather
-than the unaligned/aligned pair that script models, so both recipes were written
-by hand into the pair note and both are needed: each half
+**Both halves were built by hand**, this being a pair of two shims, so both
+recipes were written into the pair note and both are needed: each half
 is `LOOP_MAXSKIP=1 cabal build micro` with `-pgma align-as.py`
 and `-fforce-recomp`, the flag half adding `-fproc-alignment=64` and taking
 no pad, the basis half adding `PAD_BYTES=28720` instead. `-fforce-recomp`

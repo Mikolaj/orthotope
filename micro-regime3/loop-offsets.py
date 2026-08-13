@@ -79,24 +79,23 @@ vecdims copies at 73 to 75 of 80, and falls to 10 to 13 on the
 dropped the two dead copies.
 
 Non-vacuity, and it is a known-answer control rather than an assertion. It
-was settled against the pad probe's binaries, reproducing every offset README
-records for them -- micro-pad0 [3, 53, 59, 45], micro-pad1 [27, 13, 19, 5],
-micro-pad6 [19, 5, 11, 61], whose second and fourth entries are the
-documented `mut-odo` and `build` offsets -- before it was pointed at a binary
-whose answer was unknown, which is the whole of its warrant. Those binaries
-are deleted, and so is `micro-unaligned`, which stood as the control after
-them: binaries are named `<run>-<half>` from Run 12 on, and each run's are
-deleted with it, so no *binary* can hold this role for long. The live control
-is the current pair's recorded fills -- for Run 12, `run12-maxskip`
-[11, 0, 4, 0] and [24, 8, 0, 0] against `run12-maxskippa` [4, 0, 4, 0] and
-[8, 8, 4, 4] -- which this tool must reproduce before it is read for anything
-new. They are in README's open list and in the pair's own `<prefix>-pair.txt`
--- written by `make-pair.py` for the pairs it builds, and by hand for the
-two-shim pairs it does not model -- so the check outlives the binaries it was
-born on. **Those binaries are deleted with their run**, which is how the
-previous control died, so what has to survive
-is the recipe: `make-pair.py` is deterministic, the commit is recorded, and
-a rebuild that reproduces the two md5s reproduces the offsets above. Re-prove
+was settled against the pad probe's binaries, reproducing every offset
+README records for them -- micro-pad0 [3, 53, 59, 45], micro-pad1 [27, 13,
+19, 5], micro-pad6 [19, 5, 11, 61], whose second and fourth entries are
+the documented `mut-odo` and `build` offsets -- before it was pointed at a
+binary whose answer was unknown, which is the whole of its warrant. Those
+binaries are deleted, and so is `micro-unaligned`, which stood as the
+control after them: binaries are named `<run>-<half>` from Run 12 on, and
+each run's are deleted with it, so no *binary* can hold this role for
+long. The live control is the current pair's recorded fills -- for Run 12,
+`run12-maxskip` [11, 0, 4, 0] and [24, 8, 0, 0] against `run12-maxskippa`
+[4, 0, 4, 0] and [8, 8, 4, 4] -- which this tool must reproduce before it
+is read for anything new. They are in README's open list and in the pair's
+own `<prefix>-pair.txt` -- written by hand, with the recipe for each half
+-- so the check outlives the binaries it was born on. **Those binaries are
+deleted with their run**, which is how the previous control died, so what
+has to survive is the recipe the note carries: the commit is recorded, and a
+rebuild that reproduces the two md5s reproduces the offsets above. Re-prove
 this against a known answer before pointing it at a new one.
 
 **`--survey`'s population size is not comparable between binaries whose
@@ -112,12 +111,14 @@ binary is sound; a difference in the totals between two is the disassembler.
     ./loop-offsets.py BINARY...          # 28-byte loop, the one this page prices
     ./loop-offsets.py --len 24 BINARY    # e.g. the count-down form
     ./loop-offsets.py --survey BINARY    # every loop that could fit a line
+    ./loop-offsets.py --library A B      # do the two halves move the libraries
 """
 import argparse
 import collections
 import os
 import re
 import subprocess
+import sys
 
 INSN = re.compile(r'^\s*([0-9a-f]+):\t((?:[0-9a-f]{2} )+)\s*\t?(\S+)\s*(.*)$')
 SYM = re.compile(r'^([0-9a-f]+) <(.+)>:$')
@@ -248,6 +249,53 @@ def survey(path, want='_Main_'):
               f'{f["len"]} B  {named.get(f["start"]) or f["sym"]}')
 
 
+def library(a, b):
+    """How much the two halves agree about where the LIBRARIES' loops sit.
+
+    A pair is meant to differ in the code compiled here and nowhere else,
+    and this is the half of that nothing else measures: `--survey` and the
+    default mode are scoped to `_Main_`, which is exactly the code a pair is
+    allowed to move. The libraries are what must sit still, and a shim on
+    `-pgma` never reaches them, so where they have moved it is because
+    everything after a size change was displaced.
+
+    That is not hypothetical and it is why the aligned/unaligned pairing
+    needed a padding step at all: aligning grew `.text` by 12 KB, and of
+    867 library symbols carrying a short loop, 856 landed at a different
+    address. Matching the size alone left the delta at 32 mod 64, the worst
+    shift available; matching size AND phase left 95% of the library loops
+    at the same offset and 98% in the same straddle state. A pair of two
+    shims, which is what is built now, has no padding step and no guarantee
+    -- it has whatever its two recipes happen to give, and this is how to
+    know which.
+
+    Non-vacuous 2026-08-14 on Run 13's pair: 899 common loops, 96.8% phase
+    and 98.8% straddle agreement, the same figures reached through
+    the pair builder's own reading, before that script was deleted. A
+    binary compared with
+    itself reads 100.0% both ways, and the two counts differ from `--survey`
+    because that one reports Main's loops and this one everything else.
+    """
+    def heads(path):
+        h = {}
+        for f in scan(path, None):
+            cur = h.get(f['start'])
+            if cur is None or f['len'] < cur['len']:
+                h[f['start']] = f
+        return {f['sym']: f for f in h.values()
+                if '_Main_' not in (f['sym'] or '')}
+    A, X = heads(a), heads(b)
+    common = set(A) & set(X)
+    if not common:
+        sys.exit('no library symbol carries a short loop in both binaries')
+    phase = 100.0 * sum(1 for s in common if A[s]['mod'] == X[s]['mod'])
+    strad = 100.0 * sum(1 for s in common
+                        if A[s]['straddles'] == X[s]['straddles'])
+    print(f'{a} vs {b}: {len(common)} library self-loops in both')
+    print(f'   same offset in line: {phase / len(common):.1f}%')
+    print(f'   same straddle state: {strad / len(common):.1f}%')
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__.split('\n')[0])
     p.add_argument('binary', nargs='+')
@@ -258,7 +306,16 @@ def main():
     p.add_argument('--survey', action='store_true',
                    help='every self-loop of any length in this binary\'s own '
                         'compiled code, and how many can still straddle')
+    p.add_argument('--library', action='store_true',
+                   help='how far two halves agree about where the LINKED '
+                        'libraries\' loops sit, which a pair must not move')
     args = p.parse_args()
+
+    if args.library:
+        if len(args.binary) != 2:
+            sys.exit('--library compares two binaries')
+        library(*args.binary)
+        return
 
     if args.survey:
         for path in args.binary:

@@ -65,8 +65,8 @@ done
 # is a gate nobody will trust tomorrow. Refuse before spending the machine.
 if [ ! -f "$NOTE" ]; then
   echo "no $NOTE beside the pair, so this gate's verdict would have nowhere"
-  echo "to live. make-pair.py writes that file; a hand-built pair wants one"
-  echo "by hand, with the recipe for each half -- which is the only copy"
+  echo "to live. Every pair here is hand-built, so that file is written by"
+  echo "hand too, with the recipe for each half -- the only copy there is"
   echo "there is. Write it first: forty minutes of gate cannot be replayed"
   echo "from a scroll-back."
   exit 1

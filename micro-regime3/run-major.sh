@@ -5,9 +5,9 @@
 #
 #     ./run-major.sh run10          # the argument names every artifact
 #
-# Nothing here builds. The pair comes from make-pair.py and must not be
-# rebuilt between the halves, which is what the pairing measures; this
-# refuses to start without both binaries.
+# Nothing here builds. The pair comes from the recipe in its own note and
+# must not be rebuilt between the halves, which is what the pairing
+# measures; this refuses to start without both binaries.
 #
 # What it adds over pasting the sequence is the counting: every process's
 # bench count is checked against what the roster actually holds, so a
