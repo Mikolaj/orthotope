@@ -1949,30 +1949,57 @@ def check_doc(readme, main_hs):
                     % (len(p['unmounted']), p['unmounted_root'],
                        ', '.join(sorted(p['unmounted']))))
 
+    # ASKED OF THE CANONICAL WRAPPED FORM, not of the working copy, so the
+    # answer does not depend on how this file happens to be wrapped right
+    # now. The coverage check below skips a line indented four spaces as
+    # code -- and a nested list item's CONTINUATION lines are indented that
+    # deeply too, so unwrapping the file turns each item into one line
+    # indented three and hands the check figures it had never seen. That is
+    # the same indentation heuristic `prose_hits` was rewritten to abandon,
+    # and it made a fully unwrapped README fail a check about replace-list
+    # coverage, which is the form the standing rule says to edit in. Wrapping
+    # first costs one more formatter pass and makes the verdict invariant;
+    # today's committed file already IS this form, so it changes nothing
+    # about what the check says of it.
+    #
+    # Non-vacuous 2026-08-13, four states: the committed file, one paragraph
+    # unwrapped, and the WHOLE file unwrapped all exit 0 -- the last having
+    # failed here before this, which is what the change is for -- while
+    # deleting one replace-list bullet still names its section and exits 1.
+    # The last is the control: a check made invariant must not have been
+    # made blind.
+    canon = lines
+    try:
+        canon = subprocess.run(['wrap80'], input=doc, capture_output=True,
+                               text=True, check=True).stdout.split('\n')
+    except (OSError, subprocess.CalledProcessError):
+        note.append('wrap80 unavailable, so coverage was asked of the working'
+                    ' copy, whose answer depends on how it is wrapped')
+
     # Which section each line sits in, for both the coverage check and the
     # figure sweep.
     sec, cur = [], '(preamble)'
-    for line in lines:
+    for line in canon:
         m = re.match(r'^#+\s+(.*)$', line)
         if m:
             cur = m.group(1)
         sec.append(cur)
-    head = [i for i, l in enumerate(lines)
+    head = [i for i, l in enumerate(canon)
             if l.startswith('**What the next run replaces.**')]
-    tail = [i for i, l in enumerate(lines)
+    tail = [i for i, l in enumerate(canon)
             if l.startswith('How a run is made')]
     if not head or not tail or tail[0] < head[0]:
         # A search that cannot find its subject has checked nothing.
         bad.append('could not locate the replace-list between its markers, so'
                    ' the coverage check did not run')
     else:
-        block = '\n'.join(lines[head[0]:tail[0]])
+        block = '\n'.join(canon[head[0]:tail[0]])
         covered = set(re.findall(r'\]\(#([a-z0-9-]+)\)', block))
         covered |= {refs[k] for k in re.findall(r'\]\[([a-z0-9-]+)\]', block)
                     if k in refs}
         slug = {v: k for k, v in anchors.items()}
         gaps = []
-        for i, line in enumerate(lines):
+        for i, line in enumerate(canon):
             if (line.lstrip().startswith('|') or line.startswith('    ')
                     or sec[i] == 'Provenance'):
                 continue
@@ -2047,6 +2074,14 @@ def check_doc(readme, main_hs):
             # so the three agree on how many blocks there are. Where they do
             # not, something outside this check's subject moved one, and the
             # whole-file comparison is the honest thing left to report.
+            #
+            # NO LIVE CONTROL, and named rather than left to look exercised:
+            # over the eleven documents of these two repos the three counts
+            # never differ, and by construction cannot, wrap80 touching no
+            # blank line. The branch earns its place anyway because `zip`
+            # truncates to the shortest -- so without it a mismatch would
+            # under-check in silence, which is the one outcome worse than
+            # reporting the whole file.
             cp, wp, fp = (t.split('\n\n') for t in (cur, want, flat))
             if len(cp) == len(wp) == len(fp):
                 hand = [i for i, (c, w, f) in enumerate(zip(cp, wp, fp))
@@ -2081,6 +2116,39 @@ def check_doc(readme, main_hs):
                            ' from line %s) -- run `wrap80 -i %s`'
                            % (os.path.basename(readme), n, at,
                               os.path.basename(readme)))
+
+    # This page says of itself that it cites no line and no permalink,
+    # deliberately -- naming arm, strategy and shape names instead, which
+    # `--lint` can check and a line number could not, a citation surviving
+    # the refactor that moves it. That was a claim in prose with nothing
+    # holding it, and prose line numbers are the worse half: the formatter
+    # rewraps this file on every edit, and where a hook restores its
+    # committed form it can move between one session turn and the next, so
+    # a `.md:12` would rot with nothing in any history to show it. Its
+    # counterpart in horde-ad is `check-plan-citations.py`'s PROSE-LINE,
+    # which refuses the same citation from the other side.
+    #
+    # Non-vacuous 2026-08-13: planting `micro-regime3/README.md:12` and a
+    # permalink pinned at `5f0647baa` in the Provenance section reported
+    # both, named them, and exited 1; removing them returned the ok line
+    # and exit 0. The claim it enforces was true when written -- the page
+    # carried zero of either -- which is what makes this a guard rather
+    # than a repair.
+    # Read off the raw lines rather than the unwrapped form: a citation
+    # carries no space, so no break can fall inside one.
+    whole = '\n'.join(lines)
+    cited = sorted(set(re.findall(r'\b[\w./-]+\.(?:md|hs|py|txt|cabal|yaml'
+                                  r'|yml|sh|json):\d+', whole)))
+    pinned = sorted(set(re.findall(r'blob/[0-9a-f]{7,40}/', whole)))
+    if cited or pinned:
+        bad.append('%s cites %d line(s) and %d pinned permalink(s) where it'
+                   ' says it cites neither: %s -- name a phrase, a heading or'
+                   ' an arm, which a reflow cannot move'
+                   % (os.path.basename(readme), len(cited), len(pinned),
+                      ', '.join((cited + pinned)[:4])))
+    else:
+        note.append('the README cites no line and no pinned permalink, as it'
+                    ' says of itself')
 
     # Main.hs and this script are code: no formatter here sets their width,
     # so they are measured against one and shortened by hand.
