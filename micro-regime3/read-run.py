@@ -1819,6 +1819,12 @@ def added_lines(*paths):
 
 LEAD_RE = re.compile(r'\*\*(.+?)\*\*', re.S)
 
+# How many body-matched paragraphs `--para` prints when no lead matches. The
+# lead search is exact enough to print every hit; the body search is not, so
+# it is capped and says how many it dropped -- a silent cap would read as
+# "that is all there is", which is the failure the no-silent-caps rule names.
+PARA_BODY_CAP = 6
+
 
 def paragraphs(readme, pattern):
     r"""Print the paragraphs whose BOLDED LEAD matches, and their line numbers.
@@ -1830,9 +1836,24 @@ def paragraphs(readme, pattern):
     prose fix does. Matching the lead rather than the body is what keeps the
     output one paragraph instead of every line that mentions a word.
 
-    The page guarantees the precondition this leans on: every paragraph
-    opens with a bolded lead, which is also what `grep -n '^\*\*'` is
-    documented as giving a section's contents.
+    **The page does NOT guarantee the precondition this used to claim.**
+    It said every paragraph opens with a bolded lead; of the 868 paragraphs
+    this function's own splitter returns, 457 carry a bolded span and 411
+    carry none, and 37 of those 411 carry a figure. So a third of a percent
+    of the page was not the gap -- a run's own material was. The unbolded
+    ones are the opening section's continuous argument and the continuation
+    paragraphs inside list entries, where the entry's lead already names the
+    thing; `grep -n '^\*\*'` between two headings therefore gives a
+    section's CLAIMS and not its contents, which is what the Provenance walk
+    should be read as asking for.
+
+    Hence the body fallback below, which fires only when no lead matches.
+    Searching bodies first would print every paragraph mentioning a common
+    word, which is why the lead is tried alone first; searching them never
+    left those 37 reachable only by the `grep -n`/`sed -n` pair this mode
+    exists to replace, which is the habit it was watching for and did not
+    catch. Paragraph granularity is what bounds the fallback's output where
+    a line-granular body search would not.
 
     A paragraph is what `wrap80 --unwrap` says it is, which is what the
     sweeps read too. Splitting on blank lines instead made a bulleted run one
@@ -1845,6 +1866,13 @@ def paragraphs(readme, pattern):
     it; `--para 'no such lead anywhere'` printed the no-match line and
     exited 1; and a lead broken over two lines is still matched, the
     paragraph being one line by the time the pattern sees it.
+
+    All four branches exercised when the fallback was added, on the same
+    day: a lead match still returns alone and exits 0; `'The floor grows
+    with the margins'`, the unbolded paragraph that sent this session to a
+    hand-rolled slice in the first place, now returns by body and exits 0;
+    `'therefore'` matches 15 bodies, prints 6 and says 9 were dropped; and a
+    pattern in neither lead nor body prints the no-match line and exits 1.
     """
     try:
         lines = open(readme).read().split('\n')
@@ -1852,18 +1880,31 @@ def paragraphs(readme, pattern):
         sys.stderr.write('--para: %s\n' % e)
         return 2
     rx = re.compile(pattern, re.I)
+    paras = list(unwrapped_paragraphs(lines))
     hits = 0
-    for first, para, _ in unwrapped_paragraphs(lines):
+    for first, para, _ in paras:
         lead = LEAD_RE.search(para)
         if lead and rx.search(' '.join(lead.group(1).split())):
             print('%s:%d' % (os.path.basename(readme), first))
             print(para)
             print()
             hits += 1
-    if not hits:
-        print('no paragraph whose bolded lead matches %r; the body is not'
-              ' searched, on purpose' % pattern)
+    if hits:
+        return 0
+
+    body = [(first, para) for first, para, _ in paras if rx.search(para)]
+    if not body:
+        print('no paragraph whose bolded lead or body matches %r' % pattern)
         return 1
+    print('no bolded lead matches %r; falling back to the body, where %d'
+          ' paragraph(s) match:' % (pattern, len(body)))
+    for first, para in body[:PARA_BODY_CAP]:
+        print('%s:%d (body)' % (os.path.basename(readme), first))
+        print(para)
+        print()
+    if len(body) > PARA_BODY_CAP:
+        print('... and %d more, not printed; narrow the pattern rather than'
+              ' reading past the cap' % (len(body) - PARA_BODY_CAP))
     return 0
 
 
