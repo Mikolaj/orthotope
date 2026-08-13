@@ -23,6 +23,33 @@ Reading the output: the copies are listed in address order, and for the
 `fail` join, which cannot run on a well-formed shape, and it is the executed
 one that the penalty applies to.
 
+**Which arm owns a copy is not in the timed binary, and `-g3` is how to ask.**
+Every copy prints under one mangled symbol because these arms compile to one
+worker and nothing per-arm survives: all eight sit inside `Main_zdWT_info`,
+which spans 271 KB, and the assembly GHC hands `align-as.py` carries 11 named
+labels, every one a string literal, against 18829 anonymous `.L` ones. So
+neither this tool nor the shim can name an arm from what it is given -- the
+names are not there to emit. A `-g3` build can: GHC then emits a per-block
+symbol (`Main_zdwgo7_svYG_entry` and siblings) with DWARF line info, so
+
+    addr2line -f -e BIN 0x42de08     # -> Main.hs:1669, i.e. fbMutOdoVecdims
+
+names the arm through the source line. Derived that way 2026-08-13, at
+`-fspec-constr` with `LOOP_MAXSKIP=1`: the four-copy vecdims group reads, in
+address order, `fbMutOdoVecdims`, `fbMutOdoVecdimsAddIn`,
+`fbMutOdoVecdimsAddOut` and `fbMutOdoVecdimsAddBoth`, and the pair beside it
+`fbMutOdo` then `fbBuild`. `fbMutOdoVecdimsAddBothDown` is in neither, so a
+fifth arm's loop is somewhere this grouping does not put with them.
+
+**That map is the `-g3` build's and does not transfer by address.** It is a
+different binary: 30 self-loops against the plain build's 32, groups of 4 and
+2 where the plain build has 4 and 4, and every offset different. So the arm
+names above are facts about a `-g3` build, and tying a named arm to a named
+offset in a *timed* binary still needs the correspondence between the two
+builds' groups, which is not established here. What the recipe buys is that
+the question is answerable at all, where README's second Run 12 prediction
+had to record it as derivable-in-principle and undone.
+
 Non-vacuity, and it is a known-answer control rather than an assertion. It
 was settled against the pad probe's binaries, reproducing every offset README
 records for them -- micro-pad0 [3, 53, 59, 45], micro-pad1 [27, 13, 19, 5],
