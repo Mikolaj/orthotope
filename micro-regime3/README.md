@@ -1156,17 +1156,24 @@ than a slot in the next run, observed again:
      from the offsets in the pair note before it was read. The halves' fills
      differ again, `[11, 0, 4, 0]`/`[24, 8, 0, 0]` against
      `[4, 0, 4, 0]`/`[8, 8, 4, 4]`, and Run 11's third question priced the two
-     copies max-skip left resident, at 24 and 8, at 1.0074 and 1.0333 against
-     the same code at 0. So the prediction is that the split persists
-     under the flag rather than closing. The reading is the four arms' paired
-     geomeans, `maxskippa` against `maxskip`, and it needs no offset mapping.
-     **What kills it** is the four moving together, the split closing, which
-     would say the offsets are not what it was about. What this does
-     *not* license is tying a named arm to a named offset: `loop-offsets.py`
-     labels every `Main` copy with the same mangled symbol, and its docstring
-     pins the entry order of the `build`/`mut-odo` group alone, so the vecdims
-     group's order is recorded nowhere and would have to be derived before any
-     per-arm offset claim is made.
+     copies max-skip left resident, at 24 and 8. **Which arms those were has
+     since been derived and is not what this sentence assumed** (2026-08-13,
+     in `run12-pair.txt`): naming the copies off a `-g3` twin and matching
+     by byte identity puts `mut-odo-vecdims` at 24 and `-add-in` at 8,
+     so the resident pair is 1.0074 and **1.0036**, while `-add-both`'s 1.0333
+     sits at 0 beside `-add-out`. One arm of each kind is resident and one
+     is at zero, so residency does not sort the split -- a second refutation
+     of the offsets account, independent of the paired reading below
+     and available from these binaries all along. So the prediction is
+     that the split persists under the flag rather than closing. The reading
+     is the four arms' paired geomeans, `maxskippa` against `maxskip`,
+     and it needs no offset mapping. **What kills it** is the four moving
+     together, the split closing, which would say the offsets are not what
+     it was about. What this does *not* license is tying a named arm to a named
+     offset: `loop-offsets.py` labels every `Main` copy with the same mangled
+     symbol, and its docstring pins the entry order of the `build`/`mut-odo`
+     group alone, so the vecdims group's order is recorded nowhere and would
+     have to be derived before any per-arm offset claim is made.
 
      **REFUTED, on its own kill condition.** The four read **0.9996**,
      **1.0035**, **0.9988** and **1.0003** — a spread of 0.47 points where Run
@@ -3041,7 +3048,9 @@ is what it has cost every session so far.
     ./$R-<basis> diag                     # 9. the regime, in the binary
     ./loop-offsets.py $R-<other> $R-<basis>    # 10. fills, kept with the run
     #  11. the smoke sweep, unsandboxed: the block below
-    #  12. the -L1 roster pass, ONLY if `--list` changed membership
+    #  12. the -L1 roster pass, ONLY if `--list` changed membership AND
+    #      the pair note records none -- it belongs to the pair as the gate
+    #      does, so grep the note before paying the twenty minutes
     grep -i gate $R-pair.txt              # 13. has the gate run and passed?
     #  14. ./run-gate.sh $R  -- only if 13 says it has not
     #  15. read the run's registered predictions, on the open list --
@@ -3498,12 +3507,16 @@ by `len(shapes) > 2`, so it is dead on a one-shape file — a guard that hid
 an edited line of this reader through a whole smoke sweep. `rev`, `revsome`
 and `bcast` are the three-shape classes. Its numbers go nowhere: `-L1`
 is a rougher budget than any recorded run's, and this pass is a test
-of the reader, not a measurement. **Name its artifacts `smoke*`
-and not `$R-*`**, which is not tidiness: `run-major.sh` refuses to start where
-`$R-*.json` or `$R-*.log` exists, excluding only `$R-gate-`,
-so a `runN-l1-main.json` left beside the pair reads as a previous attempt
-and refuses the very run this pass was run to clear. `smoke*.json` is outside
-that glob and inside `.gitignore` already.
+of the reader, not a measurement. **And like the gate, it belongs to the pair
+rather than to the session that ran it**, so it is recorded in `<run>-pair.txt`
+and read there before it is paid for: Run 13's note carries an `L1 ROSTER PASS:`
+line for exactly this reason, its membership having moved from Run 12's 816
+benches to 840. Grep the note first; a second session owes the twenty minutes
+only if none is recorded. **Name its artifacts `smoke*` and not `$R-*`**, which
+is not tidiness: `run-major.sh` refuses to start where `$R-*.json` or `$R-*.log`
+exists, excluding only `$R-gate-`, so a `runN-l1-main.json` left beside the pair
+reads as a previous attempt and refuses the very run this pass was run to clear.
+`smoke*.json` is outside that glob and inside `.gitignore` already.
 
 **"Roster change" here means membership, and the test is `--list`**:
 the binary's listing differs from what the previous run's did, in its set
