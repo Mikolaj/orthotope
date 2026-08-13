@@ -698,17 +698,19 @@ than a slot in the next run, observed again:
   `fbMutFlat` and `fbMutFlatGm` share a 24-byte loop, at offsets 5 and 0.
   `mut-flat` is rostered `Only`, so the *timed* roster does hold exactly the two
   groups already read and the sentence stands as written — but it stands
-  as a checked fact rather than an assumption, and the pair becomes readable
-  the moment that arm is timed, which is worth knowing since the two differ
-  in the Granlund-Montgomery quotient and nothing else. The same sweep confirms
-  the other half of this bullet: **no group at any swept length holds
-  `bq-gen`**, so its 11% having no same-loop counterpart is now checked too.
-  Everywhere else the shared loop is a table build while the arms differ
-  in the output loop that distinguishes them, so a line span there competes
-  with real arithmetic and says nothing; and `bq-gen`, whose 11% is still
-  unaccounted for, has no counterpart sharing its per-element loop at all,
-  so this instrument cannot reach it. Recorded so the sweep is not attempted
-  a second time.
+  as a checked fact rather than an assumption, and it does **not** become
+  a placement pair if that arm is ever timed: the two differ
+  in the Granlund-Montgomery quotient, so a line span between them competes
+  with real arithmetic and says nothing, which is exactly the disqualification
+  this bullet already states. A shared loop is necessary for the reading
+  and not sufficient. The same sweep confirms the other half of this bullet:
+  **no group at any swept length holds `bq-gen`**, so its 11% having
+  no same-loop counterpart is now checked too. Everywhere else the shared loop
+  is a table build while the arms differ in the output loop that distinguishes
+  them, so a line span there competes with real arithmetic and says nothing;
+  and `bq-gen`, whose 11% is still unaccounted for, has no counterpart sharing
+  its per-element loop at all, so this instrument cannot reach it. Recorded
+  so the sweep is not attempted a second time.
 - **Run 10's predictions, and how they came out.** The run is made; the verdicts
   are here, with the registrations they are read against left standing
   underneath so that what was predicted before the hours were spent stays
@@ -7039,18 +7041,22 @@ two runs back.
 **Inside a section, find the paragraphs rather than reading it.** The list names
 sections and a section here runs to hundreds of lines, of which a run rewrites
 three or four paragraphs; Run 10's write-up read most of the floor section
-to change four of its leads. Every paragraph in this file opens with a bolded
-lead, so `grep -n '^\*\*' README.md` between a section's heading and the next
-is the section's own contents, and the ones a run touches are those whose lead
-or body carries a figure. `./read-run.py --para 'lead'` then prints any one
-of them with the line it starts at, which is what keeps a jump off
-the `grep -n`/`sed -n` pair that the install above it has already invalidated.
-`--check-doc`'s two sweeps print line numbers for the comparative
-and superlative candidates already, so between the three the walk is a list
-of jumps rather than a read. This is deliberately a recipe and not a stored list
-of paragraph names: a stored one would be a second copy of the structure
-and would rot the first time a lead was reworded, which is the failure this list
-was rewritten to escape.
+to change four of its leads. **Not every paragraph opens with a bolded lead**,
+though this recipe used to say so: 457 of 868 carry a bolded span and 411 carry
+none, and 37 of those 411 carry a figure. So `grep -n '^\*\*' README.md` between
+a section's heading and the next gives a section's **claims** and
+not its contents, and a walk that stops there misses figure-bearing prose —
+the opening section's continuous argument, and continuation paragraphs inside
+list entries. The ones a run touches are those whose lead or body carries
+a figure, which is why `--para` falls back to the body when no lead matches.
+`./read-run.py --para 'lead'` then prints any one of them with the line
+it starts at, which is what keeps a jump off the `grep -n`/`sed -n` pair
+that the install above it has already invalidated. `--check-doc`'s two sweeps
+print line numbers for the comparative and superlative candidates already,
+so between the three the walk is a list of jumps rather than a read.
+This is deliberately a recipe and not a stored list of paragraph names: a stored
+one would be a second copy of the structure and would rot the first time a lead
+was reworded, which is the failure this list was rewritten to escape.
 
 - [the head of this chapter](#about-the-last-run-run-12), which carries
   the run's name, regime, scale and source commit, the layout span a roster
