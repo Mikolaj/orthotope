@@ -149,10 +149,10 @@ Modes:
   --para PATTERN    print README paragraphs whose bolded lead matches, with
                     the line each starts at -- no run needed
 
-No run artifacts are kept in this directory: the normal state is none, and
-one is made when a question needs it. That is also when this script runs, so
-it is written to be useful on a partial run -- a filtered handful of benches,
-or a single shape:
+A run artifact is made when a question needs it, and kept while questions
+keep coming back to it. That is also when this script runs, so it is written
+to be useful on a partial run -- a filtered handful of benches, or a single
+shape:
 
     micro -m glob 'cnn-slice-c32/list' 'cnn-slice-c32/bq-expand' --json x.json
 
@@ -1702,8 +1702,8 @@ def check_paths(doc):
     A name that does not resolve FAILS: this is the check that catches a
     renamed script. Names outside any checkout (`~/r/horde-ad`) and
     templates are not path-shaped by the test above. Transient artifacts are
-    listed separately rather than failed, the normal state of this directory
-    being no run artifact at all.
+    listed separately rather than failed, a run's artifacts being kept
+    while questions keep coming back to them.
 
     The sibling policy differs from the skill's deliberately, and the
     difference is recorded here rather than left to be rediscovered. That

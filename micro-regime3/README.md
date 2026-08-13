@@ -585,8 +585,10 @@ than a slot in the next run, observed again:
 
      So the three runs decompose the two variables one at a time: Run 11 priced
      the shim, Run 12 prices the flag, and **Run 13 adopts whichever combination
-     the two price best and adds the arm under the flag's invariance**, which
-     is what makes an addition safe to attribute.
+     the two price best and adds the arm on it**, an addition being safe
+     to attribute only in a run that changes nothing else — and where
+     the adopted half does not make offsets invariant to membership
+     by construction, the invariance is a check that run owes by hand.
   3. **The five-bench gate before Run 10's aligned half — run 2026-08-10
      and it passes**, its verdicts and two corrections being
      with the predictions above. Kept because a later paired run wants the same
@@ -1224,9 +1226,10 @@ than a slot in the next run, observed again:
      with the offsets read either side, which is Run 13's first debt
      if the basis lands on max-skip without the flag.
 
-     **STILL A GAP, and now a due one**: the basis did land on max-skip without
-     the flag, so the condition attached to that debt is met and Run 13 owes it.
-     Run 12 measured nothing here and was not built to.
+     **The condition was met and the debt is PAID, on 2026-08-13**: the basis
+     did land on max-skip without the flag, and the check that made due came
+     back clean, recorded once with [the roster's other debts][open] and read
+     there rather than restated here.
   4. **The free draw on the wild cell.** A new basis, a new allocation history
      and six A/A worst cells, against the standing question of whether a fresh
      wild cell turns up somewhere else or the same one returns. Three outcomes
@@ -3058,7 +3061,7 @@ is re-reading the section three times to be sure nothing was missed, which
 is what it has cost every session so far.
 
     cd ~/r/orthotope/micro-regime3        # and re-set R and REGIME per call
-    #  BASIS/OTHER come from the pair note; Run 12's are maxskip/maxskippa
+    #  BASIS/OTHER come from the pair note, never from a half's name
     ls $R-*                               # 1. is there a pair?
     md5sum $R-<basis> $R-<other>          # 2. is it the note's pair?
     git log -1 --format=%h -- :/micro-regime3/Main.hs   # 3. has it moved?
@@ -3114,26 +3117,27 @@ here does grow `file:line` citations, that is the moment to port one,
 and not before.
 
 **Where the effort actually goes, because it is not where it looks.** The run
-is several hours and *unattended* — roughly an hour per main set and well
-under ten minutes per class, so a process sitting far longer than its neighbours
-is worth looking at rather than waiting on; it costs patience and a quiet
-machine, nothing else. Everything expensive happens after it, in the write-up,
-and that is where a session's token budget is spent and where its mistakes
-are made. **The eight class blocks are the bulk of the typing**, and mostly
-mechanical: write each from the verdicts `--block` emits rather than
-from the table above them, keep each to one paragraph, and expect them to take
-longer than the main set's write-up did. **The bulk of the *cost*
-is adjudication rather than typing** — deciding which run, which basis and which
-population a figure belongs to — and it scales with how many comparisons the run
-invites rather than with how many tables it fills, so a run that is both
-a repetition and a pairing is the dearest to write up for that reason alone.
-The shape to expect: the mechanical installs are minutes, the claims an hour,
-the eight blocks the better part of an afternoon, and the replace-list walk
-with the end-to-end read as long again. Two further consequences worth having
-in mind before starting. Prefer analysis that localises — per shape, per control
-— over re-quoting figures that moved a few percent and changed nothing;
-the first is where the surprises have come from and the second is what has gone
-stale twice. And **a probe is not a lesser instrument than a major run**:
+is several hours and *unattended* — a process sitting far longer
+than its neighbours is worth looking at rather than waiting on, and what says
+how long each should take is the previous run's `-wallclock.log`, which stamps
+every start and finish; it costs patience and a quiet machine, nothing else.
+Everything expensive happens after it, in the write-up, and that is where
+a session's token budget is spent and where its mistakes are made. **The eight
+class blocks are the bulk of the typing**, and mostly mechanical: write each
+from the verdicts `--block` emits rather than from the table above them, keep
+each to one paragraph, and expect them to take longer than the main set's
+write-up did. **The bulk of the *cost* is adjudication rather than typing** —
+deciding which run, which basis and which population a figure belongs to —
+and it scales with how many comparisons the run invites rather than with how
+many tables it fills, so a run that is both a repetition and a pairing
+is the dearest to write up for that reason alone. The shape to expect:
+the mechanical installs are minutes, the claims an hour, the eight blocks
+the better part of an afternoon, and the replace-list walk with the end-to-end
+read as long again. Two further consequences worth having in mind before
+starting. Prefer analysis that localises — per shape, per control —
+over re-quoting figures that moved a few percent and changed nothing; the first
+is where the surprises have come from and the second is what has gone stale
+twice. And **a probe is not a lesser instrument than a major run**:
 the measurements that closed the `sum-only` objection, established
 that the forcing term scales, and settled the floor's mechanism cost twenty
 minutes and, for the latter two, no extra machine time at all, while the major
@@ -3154,6 +3158,9 @@ and a shell that has not set them will silently do the wrong thing: an empty
 
     R=run10                              # names every artifact; no default
     REGIME=-fspec-constr                 # every run since Run 8; empty for -O1
+    #  and the pair's halves are $R-<basis> and $R-<other> throughout, here
+    #  as in the checklist: which is which is what the pair note records and
+    #  what no half's name tells you, so no command below spells one out
 
 **And in a session they will not survive to the next command.** Each tool call
 gets a fresh shell, so a `cd` and an assignment made in one are gone
@@ -3213,10 +3220,10 @@ Where the binaries and the note recording what they were built from are already
 there, confirm them instead of rebuilding — for the kind of pair this script
 builds, with:
 
-    ./make-pair.py --run=runN --verify-only   # UNALIGNED/ALIGNED PAIRS ONLY --
-                                         # not on a two-shim pair, whose note
-                                         # is hand-written. Builds nothing,
-                                         # but DOES append to the pair note
+    ./make-pair.py --run=$R --verify-only  # UNALIGNED/ALIGNED PAIRS ONLY --
+                                           # not on a two-shim pair, whose note
+                                           # is hand-written. Builds nothing,
+                                           # but DOES append to the pair note
 
 which re-runs `check` on both halves, compares the two listings and reads
 the fills off the binaries, and appends what it found to the note rather
@@ -3227,26 +3234,24 @@ in the verdict, so a re-verification does not read as a fresh build's clean
 sheet.
 
 The fork's three questions are answerable in three commands, none of which
-the page should make you invent, and each names the pair's own two halves —
-`run12-maxskip` and `run12-maxskippa` today. Is there a pair — `ls run12-*`.
-Is it the pair the note describes — `md5sum run12-maxskip run12-maxskippa`
-against its two `md5` lines. Has the source moved under it —
-`git log -1 --format=%h -- Main.hs` against the commit the note records
-for `Main.hs`, which is the one that command returns; where the note records
-two, the other is the tree it was built in and is not what this compares.
-**Expect it to differ, and read the diff before believing it**: step 8 below
-sends the write-up into `Main.hs`'s comments and forbids rebuilding for it,
-so a comment-only move is the normal state after every run,
-and `git diff <note's commit> HEAD -- Main.hs` is what tells it from a real one.
-The regime is the fourth and is not answerable this way, the JSON recording
-no compiler flag; the `diag` step below is what answers it.
+the page should make you invent. Is there a pair — `ls $R-*`. Is it the pair
+the note describes — `md5sum $R-<basis> $R-<other>` against its two `md5` lines.
+Has the source moved under it — `git log -1 --format=%h -- Main.hs` against
+the commit the note records for `Main.hs`, which is the one that command
+returns; where the note records two, the other is the tree it was built
+in and is not what this compares. **Expect it to differ, and read the diff
+before believing it**: step 8 below sends the write-up into `Main.hs`'s comments
+and forbids rebuilding for it, so a comment-only move is the normal state after
+every run, and `git diff <note's commit> HEAD -- Main.hs` is what tells
+it from a real one. The regime is the fourth and is not answerable this way,
+the JSON recording no compiler flag; the `diag` step below is what answers it.
 
 Only where there is no pair, or where `Main.hs` or the regime has moved since
 the note was written, is the build the thing to run — and the regime goes
 to it rather than being assumed, since it has a default of its own:
 
-    ./make-pair.py --run=runN --regime="$REGIME"   # four builds, ~5 min
-    ./loop-offsets.py runN-<other> runN-<basis>
+    ./make-pair.py --run=$R --regime="$REGIME"   # four builds, ~5 min
+    ./loop-offsets.py $R-<other> $R-<basis>
 
 **But only for an unaligned/aligned pair, which is the only kind it builds.**
 A pair of two shims — every pair since Run 11 — is built by the recipe its own
@@ -3288,9 +3293,9 @@ the sequence below.
 the binaries that will be timed, not a third built beside them, and the last two
 against `Main.hs` and this file, which open no binary at all:
 
-    ./runN-maxskip check         # every strategy agrees, every shape regime 3
-    ./runN-maxskippa check       # and the other half: both were shim-rewritten
-    ./runN-maxskip --list 2>/dev/null | wc -l  # 2>/dev/null is NOT
+    ./$R-<basis> check           # every strategy agrees, every shape regime 3
+    ./$R-<other> check           # and the other half: both were shim-rewritten
+    ./$R-<basis> --list 2>/dev/null | wc -l    # 2>/dev/null is NOT
                                  #   optional:
                                  #   the provenance line goes to stderr and
                                  #   interleaves inside a bench name without it
@@ -3326,7 +3331,7 @@ rather than the only check, and cost seconds.
 
 **Then confirm the regime is the one intended**, which nothing later can:
 
-    ./runN-maxskip diag
+    ./$R-<basis> diag
 
 and read one row of it — `baseOffsetsScan` against `baseOffsetsMut`
 on `vgg-14-c512`, which is a `diag` label rather than a shape and so will
@@ -3357,7 +3362,7 @@ a prediction made per arm is made from them and no later binary has them —
 offsets at 0 are what a fully padded half shows and not a thing to require
 of a max-skip one, which leaves a resident loop where it fell; `--survey`
 is the length-agnostic form and takes one binary at a time
-(`./loop-offsets.py --survey runN-maxskip`), and what "every timed arm's loop"
+(`./loop-offsets.py --survey $R-<basis>`), and what "every timed arm's loop"
 means is bounded by what can be attributed at all. The sequence below runs each
 half in turn, and `run-major.sh` does it for you; what neither can do
 is interleave two processes of this size within a population, so the order they
@@ -3447,9 +3452,9 @@ that ordering is legible.
 the *benchmark* while nothing exercises the *reader* until hours later —
 at `-L1`, since the smoke tests the reader's code paths, not its statistics:
 
-    ./runN-maxskip -L1 cnn-slice-c32 --json smoke.json
-    ./runN-maxskippa -L1 cnn-slice-c32 --json smoke-other.json
-    ./runN-maxskip classes window-28x28-k5 -L1 --json smoke-class.json
+    ./$R-<basis> -L1 cnn-slice-c32 --json smoke.json
+    ./$R-<other> -L1 cnn-slice-c32 --json smoke-other.json
+    ./$R-<basis> classes window-28x28-k5 -L1 --json smoke-class.json
     for f in smoke.json smoke-class.json; do
       for m in --selftest --aa --shapes --markdown --cells --fingerprint \
                "--pair bq-expand list" ""; do
@@ -3544,13 +3549,12 @@ an edited line of this reader through a whole smoke sweep. `rev`, `revsome`
 and `bcast` are the three-shape classes. Its numbers go nowhere: `-L1`
 is a rougher budget than any recorded run's, and this pass is a test
 of the reader, not a measurement. **And like the gate, it belongs to the pair
-rather than to the session that ran it**, so it is recorded in `<run>-pair.txt`
-and read there before it is paid for: Run 13's note carries an `L1 ROSTER PASS:`
-line for exactly this reason, its membership having moved from Run 12's 816
-benches to 840. Grep the note first; a second session owes the twenty minutes
-only if none is recorded. **Name its artifacts `smoke*` and not `$R-*`**, which
+rather than to the session that ran it**, so it is recorded in `$R-pair.txt`
+and read there before it is paid for, on an `L1 ROSTER PASS:` line. Grep
+the note first; a second session owes the twenty minutes only if none
+is recorded. **Name its artifacts `smoke*` and not `$R-*`**, which
 is not tidiness: `run-major.sh` refuses to start where `$R-*.json` or `$R-*.log`
-exists, excluding only `$R-gate-`, so a `runN-l1-main.json` left beside the pair
+exists, excluding only `$R-gate-`, so a `$R-l1-main.json` left beside the pair
 reads as a previous attempt and refuses the very run this pass was run to clear.
 `smoke*.json` is outside that glob and inside `.gitignore` already.
 
@@ -3578,11 +3582,12 @@ beside the binaries — every name in this directory carries the run, so that tw
 runs cannot write one filename however alike their half names are, which is why
 `--run` is required and not defaulted — with what it verified and a `GATE:` line
 saying it has not been run; `run-gate.sh` appends to that file. So read what
-the note says about the gate first — `grep -i gate *-pair.txt`, case-insensitive
-and not anchored on the `GATE:` token, because a note written by hand says
-it in prose and grepping for the token finds nothing in one, which reads
-as *no gate* and costs the hour it was meant to save. **Read the whole output
-and not its last line, and the newest `GATE:` line is not the verdict**:
+the note says about the gate first — `grep -i gate $R-pair.txt`, this pair's
+note and not every note in the directory, case-insensitive and not anchored
+on the `GATE:` token, because a note written by hand says it in prose
+and grepping for the token finds nothing in one, which reads as *no gate*
+and costs the hour it was meant to save. **Read the whole output and
+not its last line, and the newest `GATE:` line is not the verdict**:
 `run-gate.sh` appends its mechanical block last and closes by asking
 for a reading, so on every gated pair the newest `GATE:` line is the script's
 and says the reading is still to do, while the verdict — written by hand, above
@@ -3605,9 +3610,9 @@ twice each, in a palindrome — control, basis, basis, control — so that drift
 over the hour cannot read as a difference between the binaries, which
 is the part a person retyping the command would drop:
 
-    ./run-gate.sh runN
-    ./read-run.py runN-gate-maxskip-a.json \
-      --compare runN-gate-maxskippa-a.json
+    ./run-gate.sh $R
+    ./read-run.py $R-gate-<basis>-a.json \
+      --compare $R-gate-<other>-a.json
 
 It wants the same quiet the run does and costs the better part of an hour,
 so it is not one of the cheap checks above; what it buys is finding out
@@ -3709,16 +3714,15 @@ the pair. The sequence:
     } >> $R-wallclock.log 2>&1
 
 **The files that leaves**, spelled out because deriving them from the loop
-is a step every reader has had to take in the script instead — for `R=run12`,
-`BASIS=maxskip`, `OTHER=maxskippa`:
+is a step every reader has had to take in the script instead:
 
-    run12-maxskippa-main.json   run12-maxskip-main.json
-    run12-maxskip-rev.json      run12-maxskip-revsome.json
-    run12-maxskip-bcast.json    run12-maxskip-bcastmid.json
-    run12-maxskip-reshape1.json run12-maxskip-slice.json
-    run12-maxskip-window.json   run12-maxskip-scaled.json
+    $R-<other>-main.json        $R-<basis>-main.json
+    $R-<basis>-rev.json         $R-<basis>-revsome.json
+    $R-<basis>-bcast.json       $R-<basis>-bcastmid.json
+    $R-<basis>-reshape1.json    $R-<basis>-slice.json
+    $R-<basis>-window.json      $R-<basis>-scaled.json
 
-each with a `.log` beside it, and `run12-wallclock.log` over the ten. The gate's
+each with a `.log` beside it, and `$R-wallclock.log` over the ten. The gate's
 own `$R-gate-*` files are not among them and are excluded from the relaunch
 guard for that reason.
 
@@ -3767,12 +3771,12 @@ from a process list rather than from the launching shell, which a blocked write
 leaves lying:
 
     ./run-major.sh $R &               # its own wall-clock log is the record
-    ps -eo pid,etime,comm | grep runN-    # comm, NOT args: under args the
+    ps -eo pid,etime,comm | grep $R-  # comm, NOT args: under args the
                                       #   launching shell matches its own
                                       #   command line. comm truncates at 15
-                                      #   characters, which run12-maxskippa
-                                      #   exactly fills -- a longer half name
-                                      #   would be cut and silently missed
+                                      #   characters, which a `runNN-` name
+                                      #   of nine more exactly fills -- past
+                                      #   that a half is cut and missed
 
 `pgrep -f`/`pkill -f` self-match here and an `until ! pgrep -f …` waiter
 therefore never returns; watch `$R-wallclock.log` for `major run complete`
@@ -3798,14 +3802,15 @@ were strategy-intrinsic, not a time window
 because the suspects sat at one roster slot on two shapes, which is luck
 and not a method.
 
-**Before any of it, read the run's registered predictions** ([the open
-list][open]), which say what this run was for and what would kill each one.
-Record their verdicts there rather than in the run's own chapter, which the next
-run replaces. **An empty registration does not hold the run.** Where a run has
-none, note the absence and read the outcome against its queue entry instead.
-What is not open is registering afterwards: the point of the list is
-that it predates the hours, so the choice here is to register before the evening
-or to do without. **And say what a partial outcome is**: a prediction registered
+**The run's registered predictions** ([the open list][open]) say what this run
+was for and what would kill each one, and are read while the sequence is still
+ahead of you — checklist step 15, which is where their reading is placed. Record
+their verdicts there rather than in the run's own chapter, which the next run
+replaces. **An empty registration does not hold the run.** Where a run has none,
+note the absence and read the outcome against its queue entry instead. What
+is not open is registering afterwards: the point of the list is that it predates
+the hours, so the choice here is to register before the evening or to do
+without. **And say what a partial outcome is**: a prediction registered
 over several arms can come apart, and neither "held" nor "refuted" is then true
 -- Run 10's first was stated over three arms and one confirmed it while two met
 its own kill condition. Report that as a split, name which arms went which way,
@@ -4232,10 +4237,9 @@ to be written by hand, and one that has left it is dropped with a warning.
 The arms added after Run 6 sat in exactly that state until Run 7 timed them,
 which is what the mechanism is for.
 
-**No run artifacts are kept here.** The normal state of this directory
-is no JSON at all, and one is made when a question needs it — which is the same
-moment the reader is wanted, so it is built to be useful on a partial run
-as well as a full one:
+**A run artifact is made when a question needs it**, which is the same moment
+the reader is wanted, so it is built to be useful on a partial run as well
+as a full one:
 
     micro --json RUN.json                                    # the whole thing
     micro -m glob 'cnn-slice-c32/list' 'cnn-slice-c32/bq-expand' --json x.json
