@@ -1789,14 +1789,20 @@ def added_lines(*paths):
     to the flat listing rather than announcing that nothing is new.
 
     Non-vacuous, all three branches exercised 2026-08-12: with README.md
-    edited it returned 103 added lines and `sweep` printed the one new
-    superlative under NEW, where 73 older ones stayed below; against
-    `Main.hs`, which this tree does not touch, it returned the empty set and
-    the sweeps said "none added by this diff"; and against a path outside
+    edited it returned 103 added lines; against `Main.hs`, which that tree
+    did not touch, it returned the empty set; and against a path outside
     the repo, where `git diff` exits non-zero, it returned EVERYTHING and
     the flat form came back. The last is the branch worth naming: `cwd` is
     pinned to this script's directory, so the "not a checkout" case cannot
     be reached by running from elsewhere and needs git itself to fail.
+
+    **That proof used to close over `sweep` as well, and saying so is the
+    point.** It read `sweep` printing the new superlative under NEW, which
+    made it a proof of two functions at once -- and when the other one
+    changed, the half of it that had died went on being asserted here. What
+    this function returns is checked above; whether a caller can match a hit
+    against it is `is_fresh`'s to prove, and is proven there. A control that
+    spans two functions is a control neither of them owns.
     """
     try:
         out = subprocess.run(['git', 'diff', '-U0', '--'] + list(paths),
@@ -2055,6 +2061,49 @@ def check_doc(readme, main_hs):
 
     added = added_lines(readme, main_hs)
 
+    def is_fresh(text, added):
+        """Does this hit's text carry a line the working tree added?
+
+        CONTAINMENT, not equality, and that is the whole of this function.
+        A hit's text is its entire PARAGRAPH for README and a comment's
+        body for Main.hs, while `added` holds physical lines off `git diff`,
+        so no hit can ever equal one and equality called every hit old --
+        which is what it did, silently, from the commit that taught
+        `prose_hits` to work in paragraphs until this was written. The two
+        halves were each right and were changed a commit apart; nothing
+        failed, the sweeps just said `none added by this diff` over a diff
+        that had added plenty, and the freshness signal the whole listing
+        exists for was gone.
+
+        A Main.hs hit has already lost its `--`, so the added line is
+        stripped of one before the test or it could never match. Lines of
+        under three words are skipped: after stripping, a very short one
+        matches almost any paragraph, and marking every hit new is as
+        useless as marking none. What that costs is a paragraph whose only
+        added line is a two-word one, which an edit hardly ever leaves.
+        Erring toward NEW is otherwise right, and a line the diff adds that
+        also stood elsewhere before is a false positive the caller accepts.
+
+        Non-vacuous, and all three outcomes came out of one run, 2026-08-13.
+        A paragraph carrying both a superlative and a superseded figure was
+        pasted into the run chapter: the comparative sweep went to 62 hits
+        and the superlative sweep to 81, each printing that paragraph and no
+        other under NEW, while the absolute-time sweep stayed at 22 and said
+        "none added by this diff", which is the right answer for a paragraph
+        quoting no time. Reverting it put all three back to none. The same
+        paste through the reader as it stood before this function moved the
+        two counts identically and left all three sweeps saying none, 0 NEW
+        -- which is the failure this replaces, and its shape: the counts
+        were the only thing that ever moved, and nobody reads a count of 81
+        for what is new in it.
+        """
+        for a in added:
+            if a.startswith('--'):
+                a = a.lstrip('-').strip()
+            if len(a.split()) >= 3 and a in text:
+                return True
+        return False
+
     def sweep(hits, headline):
         """Print a sweep, NEW FIRST and counted apart.
 
@@ -2064,10 +2113,11 @@ def check_doc(readme, main_hs):
         indistinguishable from 67 correct ones, and a wall of 71 gets
         adjudicated as a wall. `added` is the set of lines this working tree
         adds over HEAD, matched by content rather than by line number, so a
-        hit is new when the line it sits on is new.
+        hit is new when a line inside it is new -- see `is_fresh` for why
+        that is containment and not equality.
         """
-        fresh = [h for h in hits if h[1] in added]
-        old_ = [h for h in hits if h[1] not in added]
+        fresh = [h for h in hits if is_fresh(h[1], added)]
+        old_ = [h for h in hits if not is_fresh(h[1], added)]
         if added is EVERYTHING:
             print('note: %d %s' % (len(hits), headline))
         elif fresh:
