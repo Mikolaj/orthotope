@@ -2001,9 +2001,36 @@ def check_doc(readme, main_hs):
     # lines were ones it exempted, every time. And the formatter catches two
     # things the width never could, a document left under-wrapped and a line
     # ending on a dangling article.
+    # WHAT IS FORBIDDEN IS HAND-WRAPPING, and that is a property of a
+    # PARAGRAPH, not of the file. Demanding the whole file be exactly as
+    # wrap80 leaves it fails a document with one paragraph edited and left
+    # long -- which is the state the standing rule asks for, an edit being
+    # made at whatever length falls out of it -- so the check went red on an
+    # ordinary edit and the way to green was to wrap. Wrap between edits and
+    # the next exact-match edit has to quote breaks the last one moved, so
+    # unwrap, and the cycle repeats per edit: a session ran it that way for a
+    # whole write-up, having read the rule against it. The pressure was this
+    # check, so this check is where it is removed.
+    #
+    # A paragraph mid-edit is one of two innocent things: untouched, so
+    # exactly as wrap80 left it, or just edited, so entirely on one line.
+    # Hand-wrapping is neither, and that is what fails. The published form is
+    # a separate question, asked at commit rather than here.
+    #
+    # Non-vacuous, all three branches exercised 2026-08-13 on this README.
+    # Untouched it says "is as wrap80 leaves it" and exits 0. With one
+    # paragraph unwrapped -- what one edit leaves -- it says no paragraph is
+    # hand-wrapped, 1 still on one line, and exits 0, where the whole-file
+    # test called that same file 4 lines wrong and failed. With one paragraph
+    # rewritten a word per line it names it, gives its line, and exits 1. The
+    # middle case is the one this rewrite exists for and the one the old test
+    # got wrong.
     try:
         want = subprocess.run(['wrap80', readme], capture_output=True,
                               text=True, check=True).stdout
+        flat = subprocess.run(['wrap80', '--unwrap', readme],
+                              capture_output=True, text=True,
+                              check=True).stdout
     except OSError:
         # A check that did not run must not read as one that passed.
         bad.append('BLOCKED: wrap80 is not on PATH, so the README wrapping'
@@ -2012,22 +2039,48 @@ def check_doc(readme, main_hs):
         bad.append('BLOCKED: wrap80 failed (%d), so the README wrapping was'
                    ' not checked at all' % e.returncode)
     else:
-        if want != open(readme).read():
-            # Diffed rather than compared by position: one inserted line
-            # shifts every line under it, and reporting the whole file as
-            # changed hides the one line worth looking at.
-            d = list(difflib.unified_diff(lines, want.split('\n'),
-                                          lineterm='', n=0))
-            n = sum(1 for l in d
-                    if l[:1] in '+-' and not l.startswith(('---', '+++')))
-            at = next((m.group(1) for l in d
-                       for m in [re.match(r'@@ -(\d+)', l)] if m), '?')
-            bad.append('%s is not as wrap80 leaves it (%d line(s), from line'
-                       ' %s) -- run `wrap80 -i %s`, never re-wrap a line by'
-                       ' hand' % (os.path.basename(readme), n, at,
-                                  os.path.basename(readme)))
-        else:
+        cur = open(readme).read()
+        if want == cur:
             note.append('the README is as wrap80 leaves it')
+        else:
+            # Aligned by index: wrapping never adds or removes a blank line,
+            # so the three agree on how many blocks there are. Where they do
+            # not, something outside this check's subject moved one, and the
+            # whole-file comparison is the honest thing left to report.
+            cp, wp, fp = (t.split('\n\n') for t in (cur, want, flat))
+            if len(cp) == len(wp) == len(fp):
+                hand = [i for i, (c, w, f) in enumerate(zip(cp, wp, fp))
+                        if c != w and c != f]
+                loose = [i for i, (c, w, f) in enumerate(zip(cp, wp, fp))
+                         if c != w and c == f]
+                if hand:
+                    at = cur[:cur.index(cp[hand[0]])].count('\n') + 1
+                    bad.append('%d paragraph(s) of %s are neither as wrap80'
+                               ' leaves them nor on one line, so they were'
+                               ' wrapped by hand -- first at line %d; run'
+                               ' `wrap80 -i %s`, never re-wrap a line by hand'
+                               % (len(hand), os.path.basename(readme), at,
+                                  os.path.basename(readme)))
+                else:
+                    note.append('no paragraph of the README is hand-wrapped;'
+                                ' %d still on one line, so it is mid-edit --'
+                                ' `wrap80 -i %s` before committing'
+                                % (len(loose), os.path.basename(readme)))
+            else:
+                # Diffed rather than compared by position: one inserted line
+                # shifts every line under it, and reporting the whole file as
+                # changed hides the one line worth looking at.
+                d = list(difflib.unified_diff(lines, want.split('\n'),
+                                              lineterm='', n=0))
+                n = sum(1 for l in d
+                        if l[:1] in '+-' and not l.startswith(('---', '+++')))
+                at = next((m.group(1) for l in d
+                           for m in [re.match(r'@@ -(\d+)', l)] if m), '?')
+                bad.append('%s is not as wrap80 leaves it and its blocks do'
+                           ' not line up with the formatter\'s (%d line(s),'
+                           ' from line %s) -- run `wrap80 -i %s`'
+                           % (os.path.basename(readme), n, at,
+                              os.path.basename(readme)))
 
     # Main.hs and this script are code: no formatter here sets their width,
     # so they are measured against one and shortened by hand.
