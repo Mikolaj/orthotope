@@ -3049,7 +3049,14 @@ running to dozens of entries — every superseded figure, every superlative
 and every absolute time the page quotes, listed for adjudication during
 the write-up and not before it. `--lint` is the same, noting the rostered arms
 it knows are deliberately untimed. Both exit 0 when they pass, and a `FAIL:`
-line is the only thing that should stop you at this point.
+line is the only thing that should stop you at this point. **One of those `ok:`
+lines is the wrap check, and it reads differently mid-edit.** It asks
+its question per paragraph rather than of the whole file, so a paragraph an edit
+left on one line is reported as still-unwrapped and not failed, and a `FAIL:`
+there means a paragraph wrapped by *hand* — neither the formatter's form nor one
+line. The gate therefore stays green on a document being worked on, which
+is what stops it demanding a `wrap80 -i` between edits: wrapping is owed before
+committing, not before checking.
 
 Both halves. On an unaligned/aligned pair only one had its own code rewritten —
 `pad-as.py` appends dead bytes after the other's, where `align-as.py` moves
