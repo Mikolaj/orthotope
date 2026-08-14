@@ -2190,6 +2190,64 @@ SUPERLATIVE_RE = [re.compile(p, re.I) for p in (
 MS_RE = re.compile(r'\b\d+(?:\.\d+)?\s*ms\b')
 
 
+# A tool of this directory, or a mode of one, named inside a comment of an
+# indented block. Cabal's and GHC's flags are deliberately absent: a build
+# recipe explains those and does not invoke them here.
+BURIED_RE = re.compile(r'\./(?:read-run\.py|loop-offsets\.py|run-gate\.sh'
+                       r'|run-major\.sh|smoke-sweep\.sh|\$R-)'
+                       r'|(?<![\w-])--(?:survey|in-place|para|compare'
+                       r'|machine|claims|steps|alloc)(?![\w-])')
+
+
+def buried_actions(lines):
+    """[(line number, comment)] for actions stated only in a comment.
+
+    An operator RUNS the command lines of a checklist and READS the
+    comments around them, so an action that appears only in a comment is
+    one nobody has to do. Three did on 2026-08-15, in one list: the two
+    compiles, `--survey`, and the roster pass. Each was present, each was
+    prose, and a session took the list to the end without them.
+
+    Scoped to indented blocks, and satisfied when the same tool or mode
+    appears on a command line of the SAME block -- a comment explaining a
+    flag the block also runs is explanation and not a buried action, which
+    is what keeps `--library` and `--in-place` off this list.
+
+    Listed rather than failed, like the other sweeps here and for the same
+    reason: whether a mention instructs or explains is a reading. The rule
+    fires while writing and this fires while reviewing.
+
+    Non-vacuous 2026-08-15, against the pre-run list as it stood at
+    3dd0060 that morning: four hits, `--survey`, `./run-gate.sh`, the
+    gate's two `--compare` readings and `./read-run.py --para`, every one
+    of them an action a session had to supply for itself, and nothing else
+    anywhere in the file. All four are command lines now and it reads
+    zero. What it does NOT reach is the fifth, the compiles: their recipe
+    is cabal's and GHC's flags, which are excluded here because a build
+    recipe explains those rather than invoking them, and the recipe itself
+    lives in the pair note by design. That one was caught by reading.
+    """
+    out, block, first = [], [], 0
+    for i, line in enumerate(lines + [''], 1):
+        if line.startswith('    ') or (not line.strip() and block):
+            if not block:
+                first = i
+            block.append(line)
+            continue
+        if block:
+            cmds = '\n'.join(l for l in block
+                             if not l.lstrip().startswith('#'))
+            for j, l in enumerate(block):
+                if not l.lstrip().startswith('#'):
+                    continue
+                for m in BURIED_RE.finditer(l):
+                    if m.group(0) not in cmds:
+                        out.append((first + j, l.strip()))
+                        break
+            block = []
+    return out
+
+
 def unwrapped_paragraphs(lines):
     """[(first line, paragraph, spans)] with each paragraph on one line.
 
@@ -2947,6 +3005,8 @@ def check_doc(readme, main_hs):
                if not lines[i - 1].startswith('    ')]
     superlatives = [('%s:%d' % (os.path.basename(readme), i), l)
                     for i, l in prose_hits(lines, SUPERLATIVE_RE)]
+    buried = [('%s:%d' % (os.path.basename(readme), i), l)
+              for i, l in buried_actions(lines)]
 
     added = added_lines(readme, main_hs)
 
@@ -3036,6 +3096,10 @@ def check_doc(readme, main_hs):
               'absolute time figure(s) quoted in prose; a class'
               " block's anchor is its run's, replaced with its block --"
               ' check any other against the repo it came from')
+    if buried:
+        sweep(buried, "action(s) named only in a checklist's comment; an"
+                      ' operator runs the lines and reads the comments, so'
+                      ' promote it to a line of its own or say why not')
 
     # The yardstick table keeps a column for the regime this run is NOT in,
     # which reads like a leftover and is the opposite: it is the only place

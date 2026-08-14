@@ -3483,7 +3483,16 @@ reading.
     #  from anywhere; a bare `-- Main.hs` run from the root prints nothing
     #  and exits 0, which reads exactly like an unmoved source. Where the
     #  note records two commits, the other is the tree it was built in
-    #  3b. BUILD BOTH HALVES, only if 1-3 say so and from the note's own
+    #  1-3 ARE THE FORK, and the two branches have names this file uses
+    #  elsewhere. Missing or moved sends you down the BUILD path: 3b and
+    #  the two --survey lines, and nothing else. Matching sends you down
+    #  the CONFIRM path, where those are skipped and step 9 carries the
+    #  whole guard instead, there being no build to have carried the
+    #  regime (About the current harness has that, at `--survey`). Every
+    #  other step is the same on both, in the same order, which is why
+    #  this is one list and not two: the fork is one step wide
+    #  3b. BUILD BOTH HALVES -- the BUILD path's own step, only if 1-3 say
+    #      so and from the note's own
     #      recipe -- a step of its own since 2026-08-15, where it had been
     #      a remark between two steps and read as somebody else's job. It
     #      is a session's to run like every other line here; what is not
@@ -3543,14 +3552,17 @@ reading.
     #      once when the pair is made and kept in the note. Offsets at 0
     #      are what a fully padded half shows and are not to be required
     #      of a max-skip one
-    #  11. the smoke sweep, unsandboxed: the block below
-    #  12. the -L1 roster pass, ONLY if `--list` changed membership AND
-    #      the pair note records none -- it belongs to the pair as the gate
-    #      does, so grep the note before paying the twenty minutes. Two
-    #      processes: -L1 over the main set and one class, every class
-    #      being three shapes since 2026-08-14 -- prefer one of the five
-    #      that crossed from two, which drives `--block`'s three-shape
-    #      branch. Name the artifacts smoke*, never $R-* -- any
+    ./smoke-sweep.sh $R                   # 11. the smoke sweep, and read
+    #      its counting: it holds each process to the arm count `--list`
+    #      gives for that shape
+    ./$R-<basis> -L1 --json smoke-l1-main.json         # 12. the roster
+    ./$R-<basis> classes scaled- -L1 --json smoke-l1-scaled.json  # pass,
+    #      ONLY if `--list` changed membership AND the pair note records
+    #      none -- it belongs to the pair as the gate does, so grep the
+    #      note before paying the twenty minutes. Any class serves, every
+    #      one being three shapes since 2026-08-14 -- prefer one of the
+    #      five that crossed from two, which drives `--block`'s
+    #      three-shape branch. Name the artifacts smoke*, never $R-* -- any
     #      $R-*.json/.log makes run-major.sh refuse, only $R-gate-* exempt.
     #      Record it on an `L1 ROSTER PASS:` line. With the previous run's
     #      binary gone, membership is compared against the roster delta
@@ -3561,14 +3573,16 @@ reading.
     #      read UP: the newest GATE: line is the script's own "reading still
     #      to do"; the hand-written verdict sits above it. An md5-identical
     #      rebuild inherits the gate; any real one needs its own
-    #  14. ./run-gate.sh $R  -- only if 13 says it has not, then read BOTH
-    #      passes, the -a pair and the -b pair, with --compare: the verdict
+    ./run-gate.sh $R                      # 14. only if 13 says it has not
+    ./read-run.py $R-gate-<basis>-a.json --compare $R-gate-<other>-a.json
+    ./read-run.py $R-gate-<basis>-b.json --compare $R-gate-<other>-b.json
+    #      BOTH passes, the -a pair and the -b pair: the verdict
     #      is the two agreeing. Write it by hand ABOVE the script's block,
     #      clearing `GATE: not yet run` in the same edit. A gate answers
     #      sound or not sound; never quote a magnitude from one
-    #  15. read the run's registered predictions:
-    #      ./read-run.py --para 'What Run'
-    #      an empty registration is not a blocker; record that and go
+    ./read-run.py --para 'What Run'       # 15. the run's registered
+    #      predictions; an empty registration is not a blocker, so record
+    #      that and go
     uptime; ps -eo pid,etime,comm | grep $R-      # 16. machine quiet --
     #      unsandboxed, or ps sees only this session's own processes
     #  17. read ahead while the sequence runs, which costs no machine time
@@ -3982,53 +3996,31 @@ not the reason against it.
 the *benchmark* while nothing exercises the *reader* until hours later —
 at `-L1`, since the smoke tests the reader's code paths, not its statistics:
 
-    ./$R-<basis> -L1 cnn-slice-c32 --json smoke.json
-    ./$R-<other> -L1 cnn-slice-c32 --json smoke-other.json
-    ./$R-<basis> classes window-28x28-k5 -L1 --json smoke-class.json
-    for f in smoke.json smoke-class.json; do
-      for m in --selftest --aa --shapes --markdown --cells --fingerprint \
-               "--pair bq-expand list" ""; do
-        ./read-run.py $f $m >/dev/null || echo "BROKEN: $f $m"
-      done
-    done
-    ./read-run.py smoke-class.json --block >/dev/null || echo "BROKEN: --block"
-    ./read-run.py smoke.json --compare smoke-other.json >/dev/null \
-      || echo "BROKEN: --compare"
-    ./read-run.py smoke.json --aa --brief >/dev/null \
-      || echo "BROKEN: --aa --brief"
-    ./read-run.py smoke-class.json --block --brief >/dev/null \
-      || echo "BROKEN: --block --brief"
-    ./read-run.py smoke.json --cells --no-controls >/dev/null \
-      || echo "BROKEN: --no-controls"
-    ./read-run.py smoke.json --cells --exclude concat-runs >/dev/null \
-      || echo "BROKEN: --exclude"
-    ./read-run.py smoke.json --cells --exclude-shape lenet-L1-28-c1-k5 \
-      >/dev/null || echo "BROKEN: --exclude-shape"
-    cp README.md README.smoke.md            # --in-place WRITES; never at README
-    ./read-run.py smoke.json --markdown --in-place --readme README.smoke.md \
-      >/dev/null || echo "BROKEN: --markdown --in-place"
-    ./read-run.py smoke.json --fingerprint --in-place \
-      --readme README.smoke.md >/dev/null || echo "BROKEN: --fingerprint --in-place"
-    ./read-run.py smoke-class.json --block --in-place --readme README.smoke.md \
-      >/dev/null || echo "BROKEN: --block --in-place"
-    ! cmp -s README.smoke.md README.md \
-      || echo "BROKEN: --in-place wrote nothing"
-    rm smoke.json smoke-other.json smoke-class.json README.smoke.md
+    ./smoke-sweep.sh $R
 
-These use a binary already built rather than `cabal run`, which would build
-a third one in whatever regime the shell happens to carry; they exercise
-the reader rather than the regime either way.
+It runs three `-L1` processes — one main-set shape from each half and one class
+from the basis — then every reader mode over what they wrote, then the three
+`--in-place` installers into a copy of this file, and deletes all of it. About
+two minutes. It uses binaries already built rather than `cabal run`, which would
+build a third in whatever regime the shell happens to carry; it exercises
+the reader rather than the regime either way. **It was a block to retype until
+2026-08-15**, and it is a driver for the reason `run-major.sh` is one:
+it counts, holding each process to the arm count `--list` gives for that shape.
+The reason it is not *also* still printed here is the one this page learned
+the hard way the same day — a pasted copy of a driver's sequence drifts
+from the driver and nothing checks it, which is what the class loop above had
+done.
 
-**What this proves and what it does not**, since the block reads like
-a verification of the installs and is not one: it proves each installer found
-its table and wrote something, and `cmp` fails loudly if the copy came out
-identical, which is the case where one silently found nothing. It does not prove
-the right rows went to the right place — that guarantee lives in `install`,
-which matches by whole line, an indented copy of a header being unable
-to satisfy it, and asserts the row count rather than assuming it. That is where
-the Run 8 mis-paste is made impossible rather than merely detectable, and
-it is born checked four ways; the smoke exercises the path, it does
-not re-derive the guarantee.
+**What this proves and what it does not**, since it reads like a verification
+of the installs and is not one: it proves each installer found its table
+and wrote something, and `cmp` fails loudly if the copy came out identical,
+which is the case where one silently found nothing. It does not prove the right
+rows went to the right place — that guarantee lives in `install`, which matches
+by whole line, an indented copy of a header being unable to satisfy it,
+and asserts the row count rather than assuming it. That is where the Run 8
+mis-paste is made impossible rather than merely detectable, and it is born
+checked four ways; the smoke exercises the path, it does not re-derive
+the guarantee.
 
 `--in-place` earns its own block because it is the one mode that writes: pointed
 at `README.md` it would install a one-shape smoke table over the published one,
