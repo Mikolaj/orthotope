@@ -317,7 +317,7 @@ been asking for and leaves nothing measured on an ungrown pool.
   section][floor], which also holds the predictor for which cells the
   setting reaches, and the nine populations it has been applied to).
   What stays open is the size of it — how much of a published geomean
-  moves is a run and not a probe, and it heads the queue below.
+  moves is a run and not a probe.
 
 **Three of Run 8's were answered the same day**, each by the probe its own entry
 specified — the rule about a discriminating measurement deserving one now rather
@@ -460,8 +460,10 @@ than a slot in the next run, observed again:
   been folded into Run 10 rather than queued behind it**, alignment having
   turned out to be the thing that decides whether the rest of the queue
   is measuring anything; what stays there is the cheap gate that runs before
-  the run does. Entries are referred to by name and not by number, one having
-  been removed from under a reference already.
+  the run does. Entries are referred to by name and not by number, two having
+  been removed from under a reference already. **Nothing below is outstanding**:
+  each has been run or closed, and what the list holds now is what each bought
+  and the ordering rule above, which is what a later queue would be built on.
   1. **The pad probe done properly — run 2026-08-10, and the hypothesis
      survives.** Eight binaries differing only in inert pad arms, two
      interleaved passes over all eight, 2h12m, with `build` and `mut-odo` both
@@ -593,11 +595,12 @@ than a slot in the next run, observed again:
      with the predictions above. Kept because a later paired run wants the same
      gate before its own evening:
 
-         ./run-gate.sh        # the two-process form this entry used to spell
+         ./run-gate.sh $R     # the two-process form this entry used to spell
                               # out is superseded: the script runs four, in a
                               # palindrome, and names its files
-                              # gate-<half>-<pass>.json, which is what the
-                              # procedure's read commands expect
+                              # $R-gate-<half>-<pass>.json -- the unprefixed
+                              # form it used once silently overwrote Run 10's
+                              # two aligned gate files
 
      run against `micro-unaligned` too, and expect 120 `benchmarking` lines
      each, then `--compare` one against the other, which is the reader's mode
@@ -614,29 +617,6 @@ than a slot in the next run, observed again:
      of this entry — a main set aligned against one unaligned — is no longer
      a queue item at all: it *is* Run 10, whose fourth prediction
      is that comparison read arm by arm.
-  4. **A plain repeat of the aligned main set, 70 minutes, and it is the only
-     form of this that works.** Pinning criterion's iteration count was proposed
-     here for one afternoon, on the argument that it would pin the allocation
-     history the wild cell's surviving account names ([its entry][open])
-     and so test the mechanism instead of re-rolling it. **`-n` cannot do it**:
-     the flag is *Run benchmarks, don't analyse*, and a run under it writes
-     no JSON at all — measured, not read off the help text — which is why
-     the `-n 200` minus `-n 100` recipe elsewhere on this page reads a process's
-     wall clock and never a cell. There is no other way to fix the schedule
-     from the command line, so a fixed-budget comparison of cells
-     is not available and the idea is recorded here dead rather than left
-     to be re-proposed. What the plain repeat answers is narrower and still
-     worth the evening: whether a fresh wild cell turns up somewhere else, which
-     is the lottery, or the same one returns. It cannot be filtered,
-     and **its method went with the builder**: it wanted the aligned half
-     rebuilt first, and the script that built an unaligned/aligned pair
-     was deleted on 2026-08-14, no such pair having been made since Run 10
-     and none being planned. A repeat on the current basis is a fresh draw
-     rather than the repeat this entry asked for, so what is left here
-     is the draw and not the test. **Run 12 supplies a free draw meanwhile**:
-     a new basis, a new allocation history, and its own six A/A worst cells
-     to read.
-
   And three things **not** worth a quiet window, recorded so they
   are not reached for. The *how many preceding benches warm it* sweep, which
   the nursery finding supersedes — the bench count is the symptom
@@ -1137,7 +1117,7 @@ than a slot in the next run, observed again:
      under a percent. What it does not give is the offset's own price,
      the padding and the offset moving together in every arm here. Separating
      them needs a third build that moves one head without padding before it,
-     which is `-fproc-alignment=64`'s territory and is [the queue][open]'s.
+     which is `-fproc-alignment=64`'s territory and wants a probe of its own.
 
   **And what it must not do was add an arm** — the third `-nosum` one the queue
   then called due — since the repetition needed membership pinned as well
@@ -1572,8 +1552,8 @@ than a slot in the next run, observed again:
   but `-n/--iters` is *Run benchmarks, don't analyse*, and a run under it writes
   no JSON at all — measured, not read off the help text. There is no other way
   to fix the schedule from the command line, so the mechanism cannot be tested
-  by pinning it, and [the queue][open] records that dead rather than leaving
-  it to be re-proposed. What `-n` *is* for is the next paragraph.
+  by pinning it, and it is recorded here dead rather than left
+  to be re-proposed. What `-n` *is* for is the next paragraph.
 
   **The block-pool issue this project filed is the nearest precedent,
   and its methods are the ones to reach for next** —
@@ -1631,18 +1611,11 @@ than a slot in the next run, observed again:
   between two arms do not move because something else is running, where
   a wall-clock figure would.
 
-  So what remains is a **plain repeat of the aligned main set**, 70 minutes
-  quiet, which cannot be filtered — a filtered run puts every arm at the cold
-  end by construction ([the floor section][floor]) — and which wants the aligned
-  half rebuilt first, that binary having gone with Run 11's artifacts
-  and a rebuild naming it for the run that wants it. It answers the narrow
-  question only: whether a fresh wild cell turns up somewhere else, or the same
-  one returns. **The mechanism itself is tested by logging what it names**, per
-  bench: the RTS's allocated-bytes total and the payload addresses. That
-  is a `Main.hs` edit and belongs **after Run 12 is spent**, since it changes
+  **The mechanism itself is tested by logging what it names**, per bench:
+  the RTS's allocated-bytes total and the payload addresses. That is a `Main.hs`
+  edit and belongs **after the current pair is spent**, since it changes
   the module's code, so its `.text`, so every loop offset, and would invalidate
-  the `PAD_BYTES` and the two md5s `run12-pair.txt` records for a pair already
-  built.
+  the md5s that pair's note records for binaries already built.
 - **Why is `mut-odo`'s interval wide on `micro-aligned`?** Its CI% reads 1.06
   there against 0.34 unaligned, and the raw samples have since been read
   (2026-08-11, arithmetic over the run and gate artifacts, no machine time).
@@ -4239,9 +4212,10 @@ and the repeated-`-m` mistake alike.
 The second takes seconds and still exercises the reader; a one-shape run says
 so. A filtered run like it carries no `sum-only` bench, so its figures
 are uncorrected and not comparable to the tables here — the reader warns
-on stderr when that is what it is reading. Each run's JSON is gone when fully
-processed and the deletion accepted by the user, so the tables in this document
-cannot be re-derived; the next run replaces them.
+on stderr when that is what it is reading. A run's JSONs go when its questions
+are answered and the offer to delete them is accepted, so whether a table here
+can be re-derived depends on what is still in the directory; the next run
+replaces it either way.
 
 `--lint` needs no run JSON at all, which is this directory's usual state.
 It reads `roster` out of `Main.hs` — the one list both the benchmark and `check`
@@ -5760,17 +5734,19 @@ and this paragraph says what they are** — it is what a session reads before
 spending the evening, so it is kept current rather than left as the question
 it was. The regime is `-fspec-constr`, as every run since Run 8. The roster
 is 840 benches against Run 12's 816, the third `-nosum` arm `mut-flat-gm-nosum`
-having landed after that run, so the `-L1` roster pass is owed and its Results
-row comes out with `?` in `needs`. The basis is the plain max-skip half, Run 12
-having priced `-fproc-alignment=64` and the flag having lost. The other half
-is `run13-lookrts`, carrying the shim's look-through and an RTS line
-of `-I0 -T -M8G` together; what it is for, what it cannot separate and what
-would count as an answer are [registered on the open list][open],
-and the recipes are in the pair note. The membership-invariance debt Run 12 left
-is **paid**, not owed: the check came back clean on 2026-08-13 and is recorded
-with [the roster's other debts][open]. The table below is read against the two
-Run 12 columns; the -O1 column stays the yardstick for any future return
-to that regime, and the two sets of claims differ in more than their numbers.
+having landed after that run; the `-L1` roster pass that membership change made
+owed has been run and passed, recorded in the pair note as the gate is,
+and its Results row comes out with `?` in `needs`. The basis is the plain
+max-skip half, Run 12 having priced `-fproc-alignment=64` and the flag having
+lost. The other half is `run13-lookrts`, carrying the shim's look-through
+and an RTS line of `-I0 -T -M8G` together; what it is for, what it cannot
+separate and what would count as an answer are [registered on the open
+list][open], and the recipes are in the pair note. The membership-invariance
+debt Run 12 left is **paid**, not owed: the check came back clean on 2026-08-13
+and is recorded with [the roster's other debts][open]. The table below is read
+against the two Run 12 columns; the -O1 column stays the yardstick for any
+future return to that regime, and the two sets of claims differ in more
+than their numbers.
 
 **Run 12 contributed two columns, and both name a shim rather than a build.**
 `Run 12 (SpecConstr, max-skip)` is the basis;
@@ -6210,17 +6186,17 @@ total work saved: the small shapes count as much as the largest.
 
 ### The stride classes, run by run
 
-**Run 11 (SpecConstr, aligned) records every class**, one process per class,
+**Run 12 (SpecConstr, max-skip) records every class**, one process per class,
 in [the sequence](#making-a-major-benchmark-run); every table below
-is that run's **aligned half**, the classes running there alone, and every
-paragraph reads it against Run 10's measurement of the same population
-on the same binary at the same regime, roster and order — so what lies between
-them is nothing at all, and a class's movement here is drift. That is what makes
-this section's readings unusually strong and unusually humbling at once: where
-a class figure moved, nothing caused it. This section fixes the form, so
-that a class is written up the way the main set is rather than however
-the session that ran it chose. The form is this section's own prose and is
-not a run's to rewrite, exactly as the column definitions
+is that run's **basis half**, the classes running there alone, and every
+paragraph reads it against Run 11's measurement of the same population — which
+came from that run's *aligned* half, so what lies between them is a build
+and not nothing, and a movement of a point or two here is the shim rather
+than the class. [Provenance](#provenance) prices that: all eight class anchors
+moved down together, where Run 11's eleven scattered both ways. This section
+fixes the form, so that a class is written up the way the main set is rather
+than however the session that ran it chose. The form is this section's own prose
+and is not a run's to rewrite, exactly as the column definitions
 under [Results](#results) outlive the table they explain; what a run replaces
 is everything below the form. What a class *is*, and the two rulings that keep
 it a population of its own, are [in the goal
@@ -6255,7 +6231,7 @@ five things and nothing else:
 1. a bolded lead naming the class, the mechanism it models in a clause,
    and its shapes with their `l` and `sInner`, which is what makes the table
    under it readable without `Main.hs` open;
-2. the table `--block --in-place` installs from `$R-aligned-$c.json`, whole
+2. the table `--block --in-place` installs from `$R-<basis>-$c.json`, whole
    and never edited — six columns, with the emphasis carried over from the main
    table so the shipped row is found at a glance, and `needs` left to that table
    as a property of a strategy rather than of a population;
