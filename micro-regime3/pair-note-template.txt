@@ -1,0 +1,78 @@
+TEMPLATE for $R-pair.txt. Copy it, fill it, delete this line and the two
+below it. Every pair here is hand-built and its note is the only copy of
+both recipes, so the note is written BEFORE either binary exists -- which
+is also why it is a template and not a generator: what goes in it is a
+person's, and only the slots are known in advance. Run 12's note carried
+no commit and Run 14's carried none until the pair was built, both because
+each note was written from scratch and nothing listed what a note owes.
+
+The pair $R-<basis> and $R-<other>, Run NN's, written by hand YYYY-MM-DD
+BEFORE either binary exists, which is the order the procedure asks for.
+
+Nothing appends to this file but run-gate.sh.
+
+WHAT THIS PAIR MEASURES: one variable, named here, and nothing else. Say
+what the halves differ in and what they do not.
+
+THE BASIS IS $R-<basis> -- it publishes the big table, the bench counts are
+read from it, every --in-place table comes from it, and it runs second. Set
+BASIS and OTHER in run-major.sh, run-gate.sh and smoke-sweep.sh; check them
+rather than assuming, and say here that you did.
+
+WHY THE BASIS IS THIS RECIPE, decided YYYY-MM-DD: a decision and not a
+measurement, so the reason belongs here where the next session meets it.
+
+WHAT THE PAIR PRICES, said plainly: what a reader of the run should think
+the figures are about.
+
+REGISTERED BEFORE IT RAN, all in README.md#what-run-NN-compares-against:
+  - each prediction, with what would kill it;
+  - anything the pair answers that no earlier pair could.
+
+THE ROSTER: N benches, M timed arms over K shapes. Say what landed since
+the last run and what that owes -- an -L1 roster pass, a membership
+invariance read, and whether either is weak form.
+
+HOW EACH HALF IS BUILT, there being no builder here. Both from one source:
+
+  $R-<basis>    cd here, then the full command, with --builddir, the
+                regime, -fforce-recomp and every --ghc-options spelled out
+  $R-<other>    the same with the one option that differs
+
+  Say which quoting traps this recipe hits -- inner quotes around a
+  -with-rtsopts value, -fforce-recomp and a fresh --builddir for a -pgma
+  or environment change -- and give the command that reads the variable
+  back out of each binary, so 9b has something to run.
+
+THE SECOND BUILD IS A CHOICE OR A NECESSITY: say which, and if a one-binary
+form would do, record it here as the alternative so the decision stays one.
+
+WHAT TO READ BACK BEFORE THE EVENING:
+  ./loop-offsets.py $R-<basis> $R-<other>
+  ./loop-offsets.py --library $R-<basis> $R-<other>
+  md5sum $R-<basis> $R-<other>
+  size -A $R-<basis> | grep '^\.text'
+
+GATE: NOT RUN. run-gate.sh takes five benches over the shape set from each
+half, twice each, in a palindrome, and both passes are read. Until a line
+below states an outcome, this pair has no gate.
+
+Verified when built, YYYY-MM-DD:
+  Main.hs at       the commit, and whether the tree carried any other
+                   change to it. Step 3 diffs against this line and the
+                   write-up transcribes it; a note without it leaves both
+                   with no source
+  .text            bytes, and whether the halves agree
+  md5 <basis>      ...
+  md5 <other>      ...
+  fills            the tracked loops' offsets, whether they are the ones
+                   the last pair held, and what --library reads
+  straddle         --survey on each half: how many self-loops, how many at
+                   offset 0, how many still straddling. Offsets at 0 are
+                   not asked of a max-skip half
+  --list           N benches both, and whether the two listings are
+                   identical
+  smoke sweep      ./smoke-sweep.sh $R, clean or not
+  L1 ROSTER PASS:  taken or not owed, and on which roster -- a pass
+                   recorded for a roster that has since moved is worse
+                   than none

@@ -3499,7 +3499,9 @@ reading.
     #      is a session's to run like every other line here; what is not
     #      is the note, whose prose and verdicts are written by hand.
     #      There is no builder, every pair being two shims typed out, so
-    #      write the note FIRST -- it is the only copy of both recipes.
+    #      write the note FIRST, from pair-note-template.txt -- it is the
+    #      only copy of both recipes, and the template is what says what a
+    #      note owes, two of them having gone without a commit line.
     #      Every build wants -fforce-recomp and a fresh --builddir, cabal
     #      answering "Up to date" for a -pgma or an environment change;
     #      --ghc-options="$REGIME" stays quoted, and a value with a space
@@ -3520,9 +3522,10 @@ reading.
     cmp /tmp/a.log /tmp/b.log             #    byte-identical, or STOP
     #      scratch names, spelled in full: a $R-*.log here makes
     #      run-major.sh refuse hours later, and $TMPDIR is unset unsandboxed
-    ./$R-<basis> --list 2>/dev/null | wc -l    # 6. roster size, and diff
-    #      the two halves' listings: identical is what one source built
-    #      twice looks like, and the pair note asks for that half of it
+    ./$R-<basis> --list 2>/dev/null | wc -l    # 6. roster size, then the
+    diff <(./$R-<basis> --list 2>/dev/null) <(./$R-<other> --list 2>/dev/null)
+    #      two halves' listings: identical is what one source built twice
+    #      looks like, and the pair note asks for that half of it
     ./read-run.py --lint                  # 7. roster and shape annotations
     ./read-run.py --check-doc             # 8. anchors, paths, widths, sweeps
     #      7+8 are the WHOLE document check here; no other repo's checkers,
@@ -4407,10 +4410,12 @@ still lands; the prose is where the reasons live and is not replaced by this.
 What it replaces is reading the twelve paragraphs three times to be sure nothing
 was missed, which is what they have cost.
 
-    ./read-run.py $R-<basis>-main.json --selftest     # 1. gate EVERY
-    ./read-run.py $R-<basis>-main.json --aa           #    process, both
-    #      halves of every population -- and read the A/A WORST CELL,
-    #      not only the pair's geomean. A failed gate invalidates that
+    ./read-all.sh $R                                  # 1. gate EVERY
+    #      process -- both halves of every population, which is eighteen
+    #      --selftest and eighteen --aa, and nine is what counting by hand
+    #      leaves when it counts populations. The driver prints a line
+    #      apiece and the A/A WORST CELL beside it. READ that column: it
+    #      is not the pair's geomean and the gate is not it either. A failed gate invalidates that
     #      population's whole time column and only that one. The published
     #      floor is the NET ratio; the raw one is an arm against itself, and
     #      quoting it as the floor overstates by 1/(1-f). Write this run's
