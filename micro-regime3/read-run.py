@@ -1546,6 +1546,42 @@ def aa_table(cells, shapes, strategies, terms, meta, brief=False):
     print('script\'s docstring.')
 
 
+def best_step(per):
+    """(percent, t, split, n) for the best two-segment split of a series.
+
+    Separate from `step_scan` so that `--selftest` can hand it a series it
+    built: a constant one, where the answer must be that there is no step,
+    and one with a step planted at a known sample, where the answer must be
+    that step at that sample. Neither can be got from a run file, which is
+    why the check would otherwise be unwritable.
+
+    Prefix sums make the sweep linear rather than quadratic: the run files
+    here carry ~4000 cells of ~100 samples, and a quadratic sweep over all
+    of them is minutes where this is seconds.
+    """
+    n = len(per)
+    if n < 20:
+        return None
+    pre, pre2 = [0.0], [0.0]
+    for v in per:
+        pre.append(pre[-1] + v)
+        pre2.append(pre2[-1] + v * v)
+
+    def ss(i, j):
+        k = j - i
+        s1, s2 = pre[j] - pre[i], pre2[j] - pre2[i]
+        return max(s2 - s1 * s1 / k, 0.0)
+
+    tot, k = min(((ss(0, i) + ss(i, n), i) for i in range(6, n - 6)),
+                 key=lambda z: z[0])
+    var = tot / (n - 2)
+    if var <= 0:
+        return None
+    a, b = pre[k] / k, (pre[n] - pre[k]) / (n - k)
+    t = abs(b - a) / math.sqrt(var * (1 / k + 1 / (n - k)))
+    return (b / a - 1) * 100, t, k, n
+
+
 def step_scan(path, min_iters=50, min_samples=20):
     """Every cell's best change of level mid-bench, and how strong it is.
 
@@ -1580,29 +1616,10 @@ def step_scan(path, min_iters=50, min_samples=20):
         if len(m) < min_samples:
             continue
         m.sort(key=lambda s: s[3])
-        per = [s[0] / s[3] for s in m]
-        n = len(per)
-        # Prefix sums make the sweep linear rather than quadratic: the run
-        # files here carry ~4000 cells of ~100 samples, and a quadratic
-        # sweep over all of them is minutes where this is seconds.
-        pre, pre2 = [0.0], [0.0]
-        for v in per:
-            pre.append(pre[-1] + v)
-            pre2.append(pre2[-1] + v * v)
-
-        def ss(i, j):
-            k = j - i
-            s1, s2 = pre[j] - pre[i], pre2[j] - pre2[i]
-            return max(s2 - s1 * s1 / k, 0.0)
-
-        tot, k = min(((ss(0, i) + ss(i, n), i) for i in range(6, n - 6)),
-                     key=lambda z: z[0])
-        var = tot / (n - 2)
-        if var <= 0:
-            continue
-        a, b = pre[k] / k, (pre[n] - pre[k]) / (n - k)
-        t = abs(b - a) / math.sqrt(var * (1 / k + 1 / (n - k)))
-        out.append((r['reportName'], (b / a - 1) * 100, t, k, n, m[k][3]))
+        got = best_step([s[0] / s[3] for s in m])
+        if got:
+            d, t, k, n = got
+            out.append((r['reportName'], d, t, k, n, m[k][3]))
     return out
 
 
@@ -1658,11 +1675,9 @@ def machine_check(cells, shapes, readme, thresh=3.0):
     """
     want = {}
     for line in open(readme):
-        m = re.match(r'\|\s*`([^`]+)`\s*\|[^|]*\|[^|]*\|\s*([\d.]+)\s*'
-                     r'(ns|µs|ms|s)\s*\|', line)
+        m = FINGERPRINT_ABS_RE.match(line)
         if m:
-            unit = {'ns': 1e-9, 'µs': 1e-6, 'ms': 1e-3, 's': 1}[m.group(3)]
-            want[m.group(1)] = float(m.group(2)) * unit
+            want[m.group(1)] = float(m.group(2)) * UNIT[m.group(3)]
     have = [(sh, cells[sh]['list']['net'], want[sh])
             for sh in shapes if sh in want and 'list' in cells[sh]]
     if not have:
@@ -2113,6 +2128,15 @@ FIGURE_RE = re.compile(r'\b0\.\d{3}\b|\d+\.\d+\s*[×x]\b'
 # and needs something that fires while reviewing. Main.hs comments are swept
 # too, since Run 7's write-up put its hard cases exactly there -- the one
 # file the sweep did not then read.
+# The fingerprint's `list`, net cell, as its own emitter writes it: one
+# definition, so that --machine parses what fmt_abs produces and --selftest
+# can hold the pair together. A change to either alone is what would leave
+# the machine check with nothing to compare and no complaint.
+UNIT = {'ns': 1e-9, 'µs': 1e-6, 'ms': 1e-3, 's': 1}
+FINGERPRINT_ABS_RE = re.compile(r'\|\s*`([^`]+)`\s*\|[^|]*\|[^|]*\|\s*'
+                                r'([\d.]+)\s*(ns|µs|ms|s)\s*\|')
+
+
 COMPARATIVE_RE = [re.compile(p, re.I) for p in (
     r'where (?:Failed )?Run \d', r'where it (?:read|had|was)',
     r'\bwas \d+[\d.]*[%x×]?\b', r'had (?:read|been|put)',
@@ -3528,6 +3552,16 @@ def selftest(cells, shapes, strategies, meta):
     little: `classes rev-primes bcast-inner8` selects across two class lists
     in one process and the reader names both.
 
+    The two mode checks likewise (2026-08-14): renaming `fmt_abs`'s micro
+    unit to `us` fails the machine one, naming the cell it could not parse,
+    while dropping the space before the unit does not -- the parser tolerates
+    that by design, and a check firing on it would be testing whitespace
+    rather than the seam; and shifting the step search's split five samples
+    earlier fails the steps one, naming the split it found instead. Both are
+    checked against values and series built here, since a run file carries no
+    cell known to have a step and no fingerprint figure whose true value is
+    known apart from the one printed.
+
     The baseline identity likewise, the last check here to have gone unproven
     (2026-08-09): dividing the corrected numerator by the UNcorrected
     baseline -- `list`'s slope where its net belongs, which is the mistake the
@@ -3712,6 +3746,40 @@ def selftest(cells, shapes, strategies, meta):
             else:
                 ok.append('A/A identity: %s/%s uncapped, so published =='
                           ' paired (%.4f)' % (a, b, published))
+
+    # The two newest modes, checked against series and values built here
+    # rather than against this run -- which is what makes the checks
+    # non-vacuous, a run file carrying no cell that is known to have a step
+    # and no fingerprint cell whose true value is known apart from the
+    # figure printed. What each guards is a seam: --machine parses what
+    # `fmt_abs` writes, so a change to either alone would leave the machine
+    # check with nothing to compare and no complaint, and --steps is
+    # arithmetic that no published column can contradict.
+    for x in (3.21e-9, 5.28e-6, 1.23e-3, 2.5):
+        cell = '| `shape` | 3 | 288 | %s | 0.152 |' % fmt_abs(x)
+        m = FINGERPRINT_ABS_RE.match(cell)
+        if not m:
+            bad.append('--machine cannot parse the fingerprint\'s own cell'
+                       ' for %g, written %s' % (x, fmt_abs(x)))
+        elif abs(float(m.group(2)) * UNIT[m.group(3)] / x - 1) > 0.005:
+            bad.append('--machine reads %s as %g, past the three figures it'
+                       ' is written with' % (fmt_abs(x), float(m.group(2))
+                                             * UNIT[m.group(3)]))
+    else:
+        ok.append('--machine parses what the fingerprint writes, over ns to s')
+
+    if best_step([1.0] * 60) is not None:
+        bad.append('--steps finds a step in a constant series')
+    planted = ([1.0 + (i % 2) * 1e-4 for i in range(30)]
+               + [1.1 + (i % 2) * 1e-4 for i in range(30)])
+    got = best_step(planted)
+    if not got or abs(got[0] - 10) > 0.5 or got[2] != 30:
+        bad.append('--steps does not recover a 10%% step planted at sample'
+                   ' 30, reading %r' % (got,))
+    else:
+        ok.append('--steps recovers a planted 10%% step at its own sample'
+                  ' (%+.2f%% at %d) and finds none in a flat series'
+                  % (got[0], got[2]))
 
     for line in ok:
         print('ok:   ' + line)
