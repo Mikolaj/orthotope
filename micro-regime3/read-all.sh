@@ -15,6 +15,11 @@
 # only that one, and a pair inside the floor whose worst cell is an order
 # of magnitude outside it is a finding the aggregate is hiding.
 #
+# That comparison is like with like, which neither the page nor `--aa`
+# says outright: `aa_table` takes each pair's cells on `net`, raw only for
+# the `sum-only` pair whose raw ratio IS the position test, so the cell
+# printed here is the same quantity as the published net floor.
+#
 # Seconds, no benchmark run, safe on a busy machine -- it only reads JSONs.
 #
 # The worst-cell column is checked rather than trusted: over Run 13 it puts
@@ -43,7 +48,14 @@ BAD=0
 printf '%-28s %-9s %s\n' process selftest 'A/A worst cell'
 for f in $FILES; do
   tag=${f#"$R"-}; tag=${tag%.json}
-  if ./read-run.py "$f" --selftest > "/tmp/read-all-$$.log" 2>&1; then
+  # Held in a variable and not in a scratch file, which is not a style
+  # choice: this wrote to /tmp, the sandbox permits /tmp/claude and the
+  # session's own directory and not that, and the redirect's failure made
+  # the `if` false for every file -- so a clean run printed ten FAILs with
+  # the real worst cells beside them and exited 1, the two shell errors
+  # per process being the only tell and the first thing a `| tail` hides.
+  # A step README calls read-only has no business needing a writable path.
+  if selftest=$(./read-run.py "$f" --selftest 2>&1); then
     st=ok
   else
     st=FAIL; BAD=$((BAD + 1))
@@ -67,9 +79,8 @@ for f in $FILES; do
                          if (s) print "worst cell " s }')
   [ -n "$worst" ] || worst='(no A/A pair in this file)'
   printf '%-28s %-9s %s\n' "$tag" "$st" "$worst"
-  [ "$st" = ok ] || sed 's/^/    /' "/tmp/read-all-$$.log" | grep '^ *FAIL'
+  [ "$st" = ok ] || printf '%s\n' "$selftest" | grep '^FAIL' | sed 's/^/    /'
 done
-rm -f "/tmp/read-all-$$.log"
 
 echo
 if [ "$BAD" -eq 0 ]; then

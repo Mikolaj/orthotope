@@ -3416,12 +3416,12 @@ run](#making-a-major-benchmark-run).
 
 A *major run* is the whole roster over the whole shape set at criterion's
 default budget — the main set and, by default, **every stride-class population
-with it**: one process for the main set, or two where the run is paired, and one
-per class, in the order of the sequence below. Asking for a major run asks
-for all of them; leaving a population out is an explicit exception to be stated,
-not a choice this page leaves open. The whole is analysed and written
-into this file. What follows is the procedure, and it is written to outlive any
-one run.
+with it**: one process for the main set and one per class, or two of each where
+the run is paired, in the order of the sequence below. Asking for a major run
+asks for all of them; leaving a population out is an explicit exception
+to be stated, not a choice this page leaves open. The whole is analysed
+and written into this file. What follows is the procedure, and it is written
+to outlive any one run.
 
 **What asking for a run asks for, since the request is one sentence and the work
 is this chapter.** The whole of it, without coming back for permission between
@@ -3474,9 +3474,14 @@ reading.
     #      four here and two in the run list -- the halves' roles, the
     #      md5s, the commit, the gate line.
     #      BASIS/OTHER come from it, never from a half's name, and are set
-    #      in one place in each of run-major.sh and run-gate.sh: make them
-    #      match. The basis runs second, and both halves run the classes
-    ls $R-*                               # 1. is there a pair?
+    #      in one place in each of the four scripts that take a run --
+    #      run-major.sh, run-gate.sh, smoke-sweep.sh and install-tables.sh,
+    #      the last carrying BASIS alone: make all four match, and override
+    #      by environment when reading an older pair whose basis differs.
+    #      The basis runs second, and both halves run the classes
+    ls $R-*                               # 1. is there a pair? A note-only
+    #      listing is the answer NO: step 3b writes the note first, so this
+    #      is never empty on a run that has reached here
     md5sum $R-<basis> $R-<other>          # 2. is it the note's pair?
     git log -1 --format=%h -- :/micro-regime3/Main.hs   # 3. has it moved?
     git diff <note's commit> HEAD -- :/micro-regime3/Main.hs  # comment-only?
@@ -3534,8 +3539,9 @@ reading.
     #      a wrap FAIL means a HAND-wrapped paragraph, not a long one
     ./$R-<basis> diag                     # 9. the regime, in the binary
     #      read one row: allocated bytes of baseOffsetsScan against
-    #      baseOffsetsMut on vgg-14-c512 -- equal under SpecConstr, ten
-    #      times apart at plain -O1, and no eye misreads that
+    #      baseOffsetsMut on vgg-14-c512 -- equal to three figures under
+    #      SpecConstr, 2.4 MB against 2.4 MB where plain -O1 is ten times
+    #      apart, and no eye misreads that
     #  9b. and the pair's own variable, by whatever the note says reads it:
     #      diag answers for the regime and for nothing else, so what the
     #      halves differ in is checked by the note's own command -- or by
@@ -3603,8 +3609,13 @@ throughout:
     #      clearing `GATE: not yet run` in the same edit. A gate answers
     #      sound or not sound; never quote a magnitude from one
     ./read-run.py --para 'What Run'       # 15. the run's registered
-    #      predictions; an empty registration is not a blocker, so record
-    #      that and go
+    #      predictions -- and READ `What Run N compares against` besides,
+    #      because --para matches bolded open-list leads and a run whose
+    #      registrations live under that heading returns only its
+    #      predecessors', which reads as an empty registration. An empty
+    #      one really is not a blocker, so this step's own licence to
+    #      record it and go is what hides the miss. The pair note names
+    #      where its registrations are; believe the note over the mode
     uptime; ps -eo pid,etime,comm | grep $R-      # 16. the ALARM, never
     #      the permission -- unsandboxed, or ps sees only this session's
     #      own processes. It runs here, after the go-ahead and before the
@@ -3640,11 +3651,15 @@ throughout:
     #      report each long process as it finishes: exit code and bench
     #      count, not folded into a later summary
 
-Steps 4 to 10 are read-only and fine sandboxed; 11, 12 and 14 write and are not.
-Step 16 answers less than it looks: `ps` in a session lists only that session's
-own processes, so it catches a launch made from here and not one made
-from anywhere else, and `uptime` is the half of it that reaches the machine.
-The one that is skipped most often is 8, and the one that is run when it should
+Steps 6 to 10 are read-only and fine sandboxed; 3b, 11, 12 and 14 write
+and are not, and so do 4 and 5 — only through their redirect, but
+that is enough, the sandbox permitting the session's own directory
+and `/tmp/claude` and `/tmp/a.log` being in neither. Send those two logs
+somewhere the sandbox allows, or run them unsandboxed with the rest. Step 16
+answers less than it looks: `ps` in a session lists only that session's own
+processes, so it catches a launch made from here and not one made from anywhere
+else, and `uptime` is the half of it that reaches the machine. The one
+that is skipped most often is 8, and the one that is run when it should
 not be is 14 — the gate belongs to the pair, so a note recording a pass means
 it is done. **And what is true of 14 is true of 11 and 12: write each
 into the pair note when it passes.** All three cost machine time, all three
@@ -3892,14 +3907,14 @@ goes through the recipe in that pair's note. The two lines above cost seconds.
 
 and read one row of it — the allocated bytes of `baseOffsetsScan` against
 `baseOffsetsMut` on `vgg-14-c512`, which is a `diag` label rather than a shape
-and so will not be found in the shape set. They are equal under SpecConstr
-and ten times apart at plain -O1, a separation no eye misreads, and both ends
-of it are measured (2026-08-08), the flag being the only thing that moves them.
-Seconds either way — on the build path, the seconds after a rebuild the flag
-forces anyway; on the confirm path, its own, and the only ones spent there
-that matter, since with no build to carry the regime this is the only check
-standing between a mistyped regime and a run that refutes the design
-it was built to test.
+and so will not be found in the shape set. They are equal to three figures
+under SpecConstr and ten times apart at plain -O1, a separation no eye misreads,
+and both ends of it are measured (2026-08-08), the flag being the only thing
+that moves them. Seconds either way — on the build path, the seconds after
+a rebuild the flag forces anyway; on the confirm path, its own, and the only
+ones spent there that matter, since with no build to carry the regime
+this is the only check standing between a mistyped regime and a run that refutes
+the design it was built to test.
 
 **A paired run adds a second binary, and both are built and checked before
 either is timed.** Alignment is not a regime flag: it arrives on `-pgma`, GHC
@@ -3950,22 +3965,24 @@ at [3, 53, 59, 45] and [16, 0, 36, 36], the same 115 short loops with 50
 straddling.
 
 **Which two halves a pair has is a property of the pair, not of this page.**
-The names are recorded in the pair note and set in one place in each
-of `run-major.sh` and `run-gate.sh`, as `OTHER` and `BASIS`; the basis
-is the half the expected bench counts are read from and every table is installed
-from, and it runs second; both halves run every class. **The two roles are BASIS
-and CONTROL**, which is what this page calls them where it names a role at all;
-the scripts' variable is `OTHER` and the prose often says *the other half*,
-and all three are one thing. The halves are named for what they vary — Run 10's
-`unaligned`/`aligned`, Run 11's `maxskip`/`aligned`, Run 12's
-`maxskip`/`maxskippa` — and which of them is the basis is a decision the pair
-note records, not something a half's name tells you. Run 12 is where the two
-would collide if this page still called the basis *the aligned half*:
-its control is `maxskippa`, the half that carries `-fproc-alignment=64`
-and so is the more aligned build of the two. Where a sentence below says
-*aligned* it is about alignment, not about a role; where it is plainly about one
-past pair — as the paragraph on the 12 KB of `.text` is, every figure
-in it being Run 10's — it keeps that pair's half names.
+The names are recorded in the pair note and set in one place in each of the four
+scripts that take a run — `run-major.sh`, `run-gate.sh`, `smoke-sweep.sh`
+and `install-tables.sh`, the last carrying `BASIS` alone — as `OTHER`
+and `BASIS`, and each is a `${BASIS:-…}` default an environment variable
+overrides for an older pair; the basis is the half the expected bench counts
+are read from and every table is installed from, and it runs second; both halves
+run every class. **The two roles are BASIS and CONTROL**, which is what
+this page calls them where it names a role at all; the scripts' variable
+is `OTHER` and the prose often says *the other half*, and all three are one
+thing. The halves are named for what they vary — Run 10's `unaligned`/`aligned`,
+Run 11's `maxskip`/`aligned`, Run 12's `maxskip`/`maxskippa` — and which of them
+is the basis is a decision the pair note records, not something a half's name
+tells you. Run 12 is where the two would collide if this page still called
+the basis *the aligned half*: its control is `maxskippa`, the half that carries
+`-fproc-alignment=64` and so is the more aligned build of the two. Where
+a sentence below says *aligned* it is about alignment, not about a role; where
+it is plainly about one past pair — as the paragraph on the 12 KB of `.text` is,
+every figure in it being Run 10's — it keeps that pair's half names.
 
 **Name the artifacts by half, and drive every `--in-place` from the basis
 half.** The sequence below builds every filename off `$R`, which a paired run
@@ -4578,19 +4595,20 @@ the artifacts are what it spends.
    is no combined figure to compute, so a sentence comparing populations
    compares their tables.
 5. **Rename the four run-numbered headings, which do not all take the same
-   number** — the chapter head goes from the last run to this one, while *What
-   Run N compares against*, *The claims Run N should test* and *Recommended
-   tasks after Run N* look forward and go from this run to the next,
-   so a write-up of Run 10 leaves the four reading 10, 11, 11 and 11. Repoint
-   every link to them. The fourth was left out of this step until 2026-08-14,
-   governed only by the closing index's line about it, which is how a heading
-   comes to name a run two chapters old. It is mechanical, it is easy to forget
-   because nothing in the numbers asks for it, and `--check-doc` catches
-   the fallout as dead anchors rather than as the rename it was: Run 9 left
-   eleven. Repointing is not re-verifying: a standing-prose link
-   into the chapter promises content the replacement may have moved out, so walk
-   the links `--check-doc` lists and check each against what the chapter now
-   says — the five that decayed this way kept resolving through two renames.
+   number** — the chapter head and *Recommended tasks after Run N* go
+   from the last run to this one, being about the run just read, while *What Run
+   N compares against* and *The claims Run N should test* look forward and go
+   from this run to the next, so a write-up of Run 10 leaves the four reading
+   10, 10, 11 and 11. Repoint every link to them. The fourth was left out
+   of this step until 2026-08-14, governed only by the closing index's line
+   about it, which is how a heading comes to name a run two chapters old.
+   It is mechanical, it is easy to forget because nothing in the numbers asks
+   for it, and `--check-doc` catches the fallout as dead anchors rather
+   than as the rename it was: Run 9 left eleven. Repointing is not re-verifying:
+   a standing-prose link into the chapter promises content the replacement may
+   have moved out, so walk the links `--check-doc` lists and check each against
+   what the chapter now says — the five that decayed this way kept resolving
+   through two renames.
 6. Walk the list under [Provenance](#provenance) of what the new numbers
    replace, and do not trust it to be complete: re-run the two sweeps it names
    and map each hit to the bullet covering it, since running the sweeps
@@ -7873,13 +7891,14 @@ at all**: which half of the pair a figure came from, which is why the tables
 below and the fingerprint say so.
 
 - Run 13 measured today's shapes, today's class lists and today's roster
-  **order**, on today's roster **minus the four A/A twins added after
-  it** (`offtab` and `bq-odo-gm-mulback`, each in both positions) — 840 benches
-  against today's 936 — timing 35 of its own and leaving 24 untimed, winsorized
-  per the estimator under `time`. What a reader has to carry besides is which
-  half a figure came from: everything published below is `run13-maxskip`,
-  and `run13-lookrts` contributes the yardstick's second column
-  and the arm-by-arm comparison at the head of this chapter.
+  **order**, on today's roster **minus the twelve A/A twins added after
+  it** (`offtab`, `bq-odo-gm-mulback`, `build`, `mut-odo`, `list`
+  and `gen-unsafe`, each in both positions) — 840 benches against today's 1128 —
+  timing 35 of its own and leaving 24 untimed, winsorized per the estimator
+  under `time`. What a reader has to carry besides is which half a figure came
+  from: everything published below is `run13-maxskip`, and `run13-lookrts`
+  contributes the yardstick's second column and the arm-by-arm comparison
+  at the head of this chapter.
 - Run 12 measured the same shapes, class lists and order, on Run 13's roster
   **minus `mut-flat-gm-nosum`** — 816 benches against Run 13's 840 — timing 34
   of its own, winsorized likewise. Everything it published was `run12-maxskip`,
