@@ -1055,6 +1055,87 @@ def pair_table(cells, shapes, strategies, pairs):
     print('assumption, immune to a wild cell, and blind to magnitude.')
 
 
+def compare_alloc(cells, shapes, strategies, meta, other, main_hs):
+    """Whether two halves of a pair agree on what each arm allocates.
+
+    Allocation is deterministic per call, so a pair whose halves differ only
+    in placement must agree on every cell, and a level that DOES move is a
+    code change rather than a slot. That makes this the claim to check first
+    when anything else moves -- which is why it wants a mode of its own
+    rather than a script per run. Two things a script per run got wrong here
+    on 2026-08-14, both of which this mode exists to make unrepeatable.
+
+    The `alloc` column and the raw fitted bytes are ONE quantity, not two:
+    the multiple is the bytes divided by a constant per shape, so between two
+    runs their relative differences are identical and no choice between the
+    columns is available. A write-up chose between them anyway -- read the
+    bytes, found the `sum-only` controls disagreeing, then "corrected" itself
+    by recomputing on the multiple as `--cells` PRINTS it, at four decimals,
+    where the rounding hides the disagreement and every cell agrees. That is
+    arithmetic on rounding, which this page forbids everywhere else.
+
+    So the partition here is by SIZE and never by column. An arm allocating a
+    few tens of bytes a call has a fit that resolves nothing, and its cells
+    disagree between any two processes; every arm that allocates in earnest
+    agrees exactly. The same write-up explained its 34 cells by an RTS-line
+    difference between the halves, a mechanism the previous pair refutes --
+    it shared an RTS line and disagreed on 37. Both partitions print, so
+    neither half of that has to be rediscovered.
+
+    Non-vacuous 2026-08-14, both branches exercised live rather than planted:
+    on Run 13's pair the small-allocator line reports 34 cells disagreeing
+    and names the largest of them, while the earnest-allocator line reports
+    792 of 792 -- so the agreeing and disagreeing paths both run on one
+    invocation, on the pair the mode was written for.
+    """
+    FLOOR = 100.0                # bytes a call, below which the fit is noise
+    b_cells, b_shapes, b_strategies, b_meta = load(other, main_hs)
+    mine = population_of(shapes, meta['dims'])[1]
+    theirs = population_of(b_shapes, b_meta['dims'])[1]
+    if mine != theirs:
+        sys.exit('this run is %s and %s is %s: different populations, and no'
+                 ' figure crosses between them'
+                 % (mine, os.path.basename(other), theirs))
+    both_sh = [s for s in shapes if s in b_shapes]
+    both_st = [t for t in strategies if t in b_strategies]
+    print('\nallocation, this run against %s, over %d shared cell(s)'
+          % (os.path.basename(other), len(both_sh) * len(both_st)))
+    missing = sorted(set(strategies) ^ set(b_strategies))
+    if missing:
+        print('  arms in one run only, skipped: %s' % ', '.join(missing))
+
+    big, small = [], []
+    for sh in both_sh:
+        for st in both_st:
+            a, b = cells[sh][st]['alloc_bytes'], b_cells[sh][st]['alloc_bytes']
+            if a is None or b is None:
+                continue
+            d = 0.0 if a == b else abs(a - b) / max(abs(a), abs(b))
+            top = max(a, b)
+            (big if top >= FLOOR else small).append((d, sh, st, top))
+
+    def line(label, rows):
+        if not rows:
+            print('  %-22s none' % label)
+            return
+        ok = sum(1 for d, _, _, _ in rows if d <= 1e-4)
+        worst = max(rows)
+        print('  %-22s %d of %d agree to 1e-4; worst %.2e on %s/%s'
+              % (label, ok, len(rows), worst[0], worst[1], worst[2]))
+    line('arms that allocate:', big)
+    line('under %d bytes/call:' % FLOOR, small)
+    if small and any(d > 1e-4 for d, _, _, _ in small):
+        n = sum(1 for d, _, _, _ in small if d > 1e-4)
+        print('    those %d allocate at most %.0f byte(s) a call, so the fit'
+              ' resolves nothing' % (n, max(r[3] for r in small)))
+        print('    there; it is a property of fitting a near-zero'
+              ' allocation and not of this pair')
+    print('\nThe multiple the alloc column publishes is these bytes divided'
+          '\nby a constant per shape, so it agrees exactly where these do and'
+          '\nthere is no second column to prefer. Allocation is deterministic'
+          '\nper call: a level that moves is a code change, never a slot.')
+
+
 def compare_table(cells, shapes, strategies, meta, other, main_hs):
     """One arm's figure in this run against the same arm in another.
 
@@ -2966,6 +3047,9 @@ def main():
     p.add_argument('--compare', metavar='OTHER.json',
                    help='this run against another of the same population,'
                         ' one arm at a time')
+    p.add_argument('--alloc', action='store_true',
+                   help='with --compare: allocation agreement instead of'
+                        ' times, on the multiple the alloc column publishes')
     p.add_argument('--markdown', action='store_true')
     p.add_argument('--fingerprint', action='store_true')
     p.add_argument('--block', action='store_true')
@@ -3045,6 +3129,9 @@ def main():
         aa_table(cells, shapes, strategies, terms, meta, args.brief)
     elif args.pair:
         pair_table(cells, shapes, strategies, args.pair)
+    elif args.compare and args.alloc:
+        compare_alloc(cells, shapes, strategies, meta, args.compare,
+                      args.main)
     elif args.compare:
         compare_table(cells, shapes, strategies, meta, args.compare,
                       args.main)
