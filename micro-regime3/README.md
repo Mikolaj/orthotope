@@ -3676,16 +3676,28 @@ the two halves next to each other early and the `b` pair does it late,
 so a verdict is the two readings agreeing rather than one of them taken
 at a moment. It wants the same quiet the run does and costs about forty minutes,
 so it is not one of the cheap checks above; what it buys is finding out
-that the basis binary is wrong before an hour of main set is spent on it,
-and a first reading of the arms the pairing is predicted on. What the script
-writes back into the note is the mechanical half alone — four exit codes
-and four bench counts — because that is what it knows; whether the pair is sound
-is the reading's verdict and is written there by hand — **above** the script's
-block, where reading up from the end meets it first, and the `GATE: not yet run`
-line goes in the same edit, since a reader reading up would otherwise meet
-that one and stop. What the predictions are is in [the open list](#what-is-open)
-with the rest of the run's registrations; what the gate read is in the note,
-written by hand above the script's mechanical block.
+that the basis binary is wrong before an hour of main set is spent on it. **What
+it does not buy is a first reading of the arms the pairing is predicted on**,
+which this page claimed until a run measured it. Its selection carries `build`
+and `mut-odo`, which are two of the three widest-spread arms in the roster —
+the placement-sensitive pair [the floor section][floor] is written about —
+so the term between its two passes runs past the drift band a movement is asked
+to clear, and a magnitude read off a gate is not evidence. Whether a five-bench
+process is *also* noisier than a full one is not separable from this with one
+process per binary, so the reason to distrust the figure is the selection, which
+is known. And the two passes disagreeing is not a second opinion about
+the binaries: their ratio is algebraically the ratio of the two same-binary
+readings, so a palindrome that fails to converge is reporting its own noise.
+Read the gate for soundness, and take every magnitude off the run. What
+the script writes back into the note is the mechanical half alone — four exit
+codes and four bench counts — because that is what it knows; whether the pair
+is sound is the reading's verdict and is written there by hand — **above**
+the script's block, where reading up from the end meets it first,
+and the `GATE: not yet run` line goes in the same edit, since a reader reading
+up would otherwise meet that one and stop. What the predictions are is in [the
+open list](#what-is-open) with the rest of the run's registrations; what
+the gate read is in the note, written by hand above the script's mechanical
+block.
 
 **The run** is one sequence — the main set from each binary the run has,
 then each stride-class population in its own process, in `classViews`' order.
@@ -5624,7 +5636,12 @@ at **1.0269**. The largest is 2.69%, against the drift band Run 11 measured —
 at most 3.3% per arm, most under 1.5% — so none of them clears it. Twelve arms
 read below 1 and eighteen above, and the geomean over the thirty is 1.000,
 computed from the reader's own per-arm figures and so good to about
-a thousandth. **The decision that feeds is whether Run 14's basis takes
+a thousandth. **And the four that moved are the four noisiest**, which
+is the coherence a null wants: ranking every arm by the spread of its own
+per-shape ratios puts `offtab` first, `mut-odo` second, `gen-unsafe` fourth
+and `bq-gen` fifth, and no arm outside the widest six moved past 1% at all.
+The movement is ranked by how loosely an arm measures rather than by anything
+it computes. **The decision that feeds is whether Run 14's basis takes
 the look-through and the RTS line**, and on this evidence the package costs
 nothing across the roster: it may be adopted for the reasons it was proposed
 for, and not for a speed it does not buy.
@@ -7111,11 +7128,14 @@ per-call figures are the guard, and against Run 12's basis half they read
 than from either table's three digits. **The middle one is the widest
 of the three for a third run running, and again on `cifar-L2-16-c64-k3`** —
 the shape that carried Run 11's +4.3% against Run 10 and Run 12's +4.31% against
-Run 11 — but this time it points the other way. A shape that takes the largest
-baseline movement in three consecutive runs while changing sign is a property
-of the shape and not of any of the runs, and it is not even this run's extreme:
-over the 24 the scatter is −4.86% (`cnn-L2-24x24-c32`) to +2.20%
-(`stretch-rank12`). The control half's figures are given beside them:
+Run 11 — but this time it points the other way. Being widest of three
+for a third run running, and this time with the sign reversed, is worth
+recording and not worth a mechanism: with three anchors it
+is a one-in-twenty-seven coincidence at worst, and the shape is not even
+this run's extreme over the whole set, where the scatter runs −4.86%
+(`cnn-L2-24x24-c32`) to +2.20% (`stretch-rank12`). Read it as a shape to keep
+an eye on rather than as a property established. The control half's figures
+are given beside them:
 
 | shape | `l` | `list`, per call | net | +lookrts, net |
 |---|---:|---:|---:|---:|
