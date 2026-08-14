@@ -267,40 +267,16 @@ recorded anywhere else is a bug to be moved here, not a note to be left where
 it was written. The harness's own backlog is folded in below, for the same
 reason: two backlogs a thousand lines apart is how one belongs to neither.
 
-**Run 9 answered its one, and the answer is the prediction.** *What moved
-`mut-odo-vecdims` by the remaining ~13%?* The entry below asked for a run
-differing from its predecessor in membership alone and predicted, before
-the run, that a move of that size would be consistent with **layout alone**. Run
-9 is that run and the prediction holds: the arm moved 9.0% in absolute time
-against an unmoved baseline, which is inside the 18% a rebuild was already known
-to be worth, and it did not move alone — `mut-odo` moved 9.0% the same way
-and `build` moved 19.2% the other, the two of them compiling to one worker.
-A membership change that improves one arm 9% and worsens its own code-twin 19%
-has not told you anything about membership. So the question closes
-as **unanswerable by this design**, not as answered: roster and layout move
-together and no run that changes the roster can separate them. What would
-separate them is the pad probe done properly — vary a *susceptible* arm's
-address deliberately, with membership fixed — which is the entry below
-and was then the only route left to this question. **It has since been run**
-and prices layout alone at 1.16 to 1.19 on a shared loop ([the floor
-section][floor]), which is more than the 13% asked about here, so layout remains
-a sufficient account of it; what the probe does not supply is this arm's own
-offsets across the two runs, and Run 10's first prediction is where its family
-is read. Its fourth prediction closes the question for every arm at once,
-the two halves' difference being each arm's own layout term, so this entry ends
-there or nowhere.
-
-The probe's three side predictions came out one right and two not. `bq-gen`
-and `bq-gen-lemire` did collapse to the table in allocation, 3.58x and 2.95x
-to 1.33x each — and got *slower*, 0.279 to 0.339 and 0.377 to 0.479, 11% worse
-in absolute time for the first, which no reading of the `diag` had suggested
-and which the Core does not account for either, `bq-gen` having joined
-the placement question below. The expansion builders dropped without vanishing
-as predicted, `bq-expand`'s tier going 3.11x to 2.35x. And `bq-odo-mulback`
-was predicted not to follow the family up, on the ground that its three-`Int`
-constructor state survives where a bare `Int` does not; the builder's own
-allocation does survive, at 4.67x an entry in this regime, but the arm rose
-anyway — 19% faster per call, and it then led the pure tier outright.
+**Run 9's question closed as unanswerable by this design, and the ruling is what
+this entry keeps: roster and layout move together, so no run that changes
+the roster can separate them.** The membership change moved one arm 9% faster
+and its own code-twin 19% slower, which identical code cannot do; the separation
+had to come from the pad probe, which holds membership fixed and has since
+priced layout alone at 1.16 to 1.19 on a shared loop ([the floor
+section][floor]). One residue outlives the rest: the regime probe left `bq-gen`
+11% slower in absolute time with its allocation collapsed to the table's — which
+neither the `diag` nor the Core accounts for, and the placement question below
+inherits.
 
 **And it raised a larger one in the same breath, which was then answered
 the same day.** *What warms the expansion family?* On `vgg-14-c512-k3`,
@@ -517,89 +493,23 @@ than a slot in the next run, observed again:
      files were untracked in `pad-probe/`, ~280 MB, and are deleted: this page
      carries what they showed, and the effect has a self-contained public
      reproducer in the filed issue.
-  2. **A third `-nosum` arm, on a flat fill** — a `Main.hs` addition and
-     then a filtered run over the shape set. The two existing `-nosum` arms
-     are an odometer and an expansion, so a flat fill is the one probe
-     that separates *the read is biased* from *those two arms are*, which
-     is what gate 3's entry below now needs. Cheaper than it reads — four
-     benches over the shape set is minutes, and most of what used to hold
-     it back is gone: it wanted a full run rather than a filtered one
-     so that its reading is comparable with those already taken, and adding
-     an arm is a membership change which, in an aligned build, relocates no loop
-     — the first thing alignment buys the queue rather than the tables.
-     **But it must not go into a run that is taking the exact repetition**,
-     and Run 11 was that run. The repetition needed membership pinned as well
-     as layout, so this entry and the roster entry below could not both
-     be satisfied at once; the resolution is ordering, not a judgement about
-     which matters more. Recorded here rather than left to be rediscovered,
-     because the two entries read as independent and are not.
-
-     **It was postponed twice, to Run 13, and for the same kind of reason both
-     times.** Run 11 took the repetition; Run 12 takes the basis question
-     that Run 11's second answer opened, and adding an arm in the same run
-     as a change of shim would confound the arm's own cost with what its arrival
-     does to a layout the new shim no longer pins. So the order is: Run 12
-     settles which build publishes the table, Run 13 adds this arm to whatever
-     that turns out to be — and if Run 12 lands on a basis without membership
-     invariance, Run 13 owes a check that the addition relocated nothing before
-     it owes anything else. Twice postponed is worth noticing rather
-     than defending: this arm has been due since Run 11 and is cheap, so
-     if it slips a third time the reason should be written here or the entry
-     should be promoted over whatever displaced it.
-
-     **It did not slip a third time. Written 2026-08-13, and this entry
-     is closed.** `mut-flat-gm-nosum` sits in the roster beside its base,
-     the membership-invariance check the postponement above made
-     its precondition came back clean, and the filtered reading the entry
-     was queued for is taken. Neither figure is repeated here, both being read
-     elsewhere: the invariance result is with what the roster owes the next run,
-     the reading with gate 3, which it answers. What is left is the magnitude,
-     which a four-arm process cannot give and Run 13 supplies at full budget
-     without being asked, the arm now being rostered.
-
-     **Run 11 answered the cost half and left the decision harder, not easier.**
-     Max-skip won on cost: the cheaper build nearly everywhere at a third
-     of the padding, nothing below 0.99 but `build`, up to 1.06 the other way
-     ([What Run 14 compares against](#what-run-14-compares-against)). But cost
-     was never the whole of it, and **the two virtues now point opposite ways
-     for this particular run**: the unconditional shim's unconditionality
-     is what makes a loop's offset invariant to membership, max-skip gives
-     that up by padding only the heads that need it, and Run 12 is precisely
-     the run that **adds an arm**. So taking max-skip as the basis and adding
-     the third `-nosum` arm in the same run reintroduces the thing alignment
-     was adopted to remove, and the run would not be able to tell an arm's own
-     cost from what its arrival did to the layout. **The way out is the one
-     this page's pairings already use, and stating it saves the next run
-     rediscovering it: the second half is where the run's question goes.** Run
-     10 paired against an unaligned build and priced layout; Run 11 against
-     max-skip and priced the padding. **Run 12's pair is `run12-maxskip`
-     and `run12-maxskippa`**, both carrying the shim in its max-skip form
-     and differing in `-fproc-alignment=64` alone — built and gated 2026-08-12,
-     the recipe, the derived padding and the checks in `run12-pair.txt`.
-     **The basis is `run12-maxskip`**: it publishes the table, which is a change
-     of basis and the second this page has made.
-
-     Two things about that pair are worth having here rather than only
-     in its note. `micro-both` was the obvious candidate and is the wrong one:
-     it carries the *unconditional* shim with the flag, not because anything
-     preferred that combination but because it was built on 2026-08-11 at 12:51,
-     hours before the max-skip form existed at all — a composition
-     that is chronology and not design, and a name that invites being read
-     as design. And the pair does not separate the flag from the offsets
-     it produces, since pinning procedures is *how* it works: the halves' fills
-     are `[11, 0, 4, 0]`/`[24, 8, 0, 0]` against `[4, 0, 4, 0]`/`[8, 8, 4, 4]`,
-     none straddling either side. That is the right quantity for a basis
-     decision, adopting the flag being adopting its offsets, and the wrong one
-     for asking what a resident offset costs alone — which is a probe
-     on the pad-probe model and not a paired run, and should not be loaded
-     onto Run 12.
-
-     So the three runs decompose the two variables one at a time: Run 11 priced
-     the shim, Run 12 prices the flag, and **Run 13 adopts whichever combination
-     the two price best and adds the arm on it**, an addition being safe
-     to attribute only in a run that changes nothing else — and where
-     the adopted half does not make offsets invariant to membership
-     by construction, the invariance is a check that run owes by hand.
+  2. **A third `-nosum` arm, on a flat fill** — the one probe that separates
+     *the read is biased* from *those two arms are*. Landed
+     as `mut-flat-gm-nosum` (2026-08-13) after waiting out two runs, membership
+     having had to stay pinned through Run 11's repetition and unconfounded
+     with Run 12's change of shim; its readings are with gate 3 and the roster
+     entry. Two things from its scheduling outlive it. **The run's question goes
+     in the second half**: Run 10 paired against an unaligned build and priced
+     layout, Run 11 against max-skip and priced the padding, Run 12 against
+     `-fproc-alignment=64` and priced the flag — the new variable rides
+     the control half and the basis stays comparable. And **`micro-both`
+     was the obvious candidate for Run 12's pair and the wrong one**: it carries
+     the *unconditional* shim with the flag because it was built hours before
+     the max-skip form existed — a composition that is chronology
+     and not design, and a name that invites being read as design. Nor can such
+     a pair separate the flag from the offsets it produces, pinning procedures
+     being *how* it works; the resident offset's own price stays a probe
+     on the pad-probe model.
   3. **The five-bench gate before Run 10's aligned half — run 2026-08-10
      and it passes**, its verdicts and two corrections being
      with the predictions above. Kept because a later paired run wants the same
@@ -1137,8 +1047,8 @@ than a slot in the next run, observed again:
 
   **And what it must not do was add an arm** — the third `-nosum` one the queue
   then called due — since the repetition needed membership pinned as well
-  as layout. It did not; that arm is Run 12's, and the ordering is in the queue
-  entry too.
+  as layout. It did not; that arm waited past Run 12 as well and is Run 13's,
+  and the ordering rule is in the queue entry too.
 - `OPEN` **What Run 12 was built to answer, registered before it ran, and how
   it came out.** Four questions, each with what would count as an answer,
   so that a run reporting "nothing moved" reports a result rather
@@ -1262,8 +1172,9 @@ than a slot in the next run, observed again:
      record shows it from outside the A/A machinery: `lenet-L1-28-c1-k5`'s
      `bq-expand` fingerprint cell reads **0.130** where Run 11 published 0.175,
      a ratio of 1.35 against the 1.355 that run measured for the wild cell
-     itself. Three sightings in four runs is now three in five, and the effect
-     still has no mechanism; a clean draw refutes nothing about it.
+     itself. Three sightings in four runs is now three in five; the mechanism
+     question stays with the wild-cell entry, whose surviving account a clean
+     draw refutes nothing about.
 
   **And what it must not carry** is the resident offset's own price. The pair
   moves padding and offset together, so that stays a probe on the pad-probe
@@ -1704,20 +1615,25 @@ than a slot in the next run, observed again:
   edit and belongs **after the current pair is spent**, since it changes
   the module's code, so its `.text`, so every loop offset, and would invalidate
   the md5s that pair's note records for binaries already built.
-- `PARKED` **Why is `mut-odo`'s interval wide on `micro-aligned`?** Its CI%
-  reads 1.06 there against 0.34 unaligned, and the raw samples have since
-  been read (2026-08-11, arithmetic over the run and gate artifacts, no machine
-  time). **It reproduces and it belongs to that binary**: 1.06, 1.09 and 1.15
-  in three independent processes on it — Run 10's main set and both gate passes
-  — against 0.72 and 0.19 on `micro-maxskip`. **And it is one arm, not the four
-  this entry used to name.** `offtab`'s interval is 0.74 in both halves
-  and `list`'s *narrows*, 0.67 to 0.59, while their `noise` reads 1.78 to 3.03
-  and 2.24 to 3.59: `noise` is a row's CI against the median CI on its shape,
-  so the aligned half being quieter overall — median CI% over rows 0.180
-  to 0.160, the same direction as its halved A/A floor — lifts every row's
-  figure without touching its cell. `build` moves 0.30 to 0.39, a tenth of what
-  its `noise` suggests. So the code-twin does not follow and `list` never
-  joined, which was the whole of what made this puzzling.
+- `PARKED` **`mut-odo`'s wide interval on `micro-aligned` is, at sample level,
+  the `build`/`mut-odo` pair scattering together — a measurement without
+  a mechanism.** The interval reproduces and belongs to that binary: CI% 1.06,
+  1.09 and 1.15 in three independent processes on it — Run 10's main set
+  and both gate passes — against 0.72 and 0.19 on `micro-maxskip` (2026-08-11,
+  arithmetic over the run and gate artifacts, no machine time). The CI% column
+  reads it as one arm's, `build`'s interval moving only 0.30 to 0.39 —
+  an artefact of the interval, which is sampling error about a fitted line
+  and not stability: taking each cell's residual about its own line, per
+  iteration, as a fraction of that cell's slope and medianing over shapes,
+  `mut-odo` scatters **21.9%** on the aligned half and `build` **32.7%**,
+  against `mut-odo-vecdims`'s 3.1% and `list`'s 3.2% — an order of magnitude,
+  `build` the worse of the two where its *interval* is much the narrower (CI%
+  0.44 against 0.82) — and both roughly halve on the max-skip half, 11.1%
+  and 22.8%, where `list` and the vecdims arms barely move (2026-08-12,
+  arithmetic over Run 11's two main sets). The same pair, behaving together,
+  on the same two binaries as [the 3% that survives alignment][open]; kept
+  because the two instruments will disagree again, and the scatter is the one
+  to believe.
 
   Three accounts are closed at sample level, the refit reproducing criterion's
   slope to 1e-15 first: the residual correlates with `measNumGcs`
@@ -1741,23 +1657,9 @@ than a slot in the next run, observed again:
   than the roster: the wide interval and the wide drift are one arm's,
   and placement can no longer be either's account. What would separate
   a dispersion belonging to the *worker* from one belonging to the *slot*
-  is a run with the two arms' roster positions exchanged, which an aligned build
-  now makes a membership-free edit.
-
-  **And at sample level the pair is one thing again, which the CI% column
-  hides** (2026-08-12, arithmetic over Run 11's two main sets, no machine time).
-  Taking each cell's residual about its own fitted line, per iteration,
-  as a fraction of that cell's slope, and medianing over shapes: `mut-odo`
-  scatters **21.9%** on the aligned half and `build` **32.7%**, against
-  `mut-odo-vecdims`'s 3.1% and `list`'s 3.2% — an order of magnitude,
-  and `build` the worse of the two where its *interval* is much the narrower
-  (CI% 0.44 against 0.82). So the entry's earlier reading, that this is one arm
-  and its code twin does not follow, was an artefact of reading CI%: the twin
-  does follow, and by more. Both roughly halve on the max-skip half, 11.1%
-  and 22.8%, where `list` and the vecdims arms barely move. That is the same
-  pair, behaving together, on the same two binaries as [the 3% that survives
-  alignment][open] — recorded as a measurement, not a mechanism, since nothing
-  here says what the scatter is.
+  is a run with the two arms' roster positions exchanged — which asks
+  for an aligned build, a form this page has moved past ([the tasks' closing
+  ruling](#recommended-tasks-after-run-13)).
 - `OPEN` **A second instrument says different arms are unstable, and the two
   disagree — which is the finding rather than something to average.** The entry
   above prices instability by the `CI%` column, which is sampling error *within*
@@ -1775,8 +1677,8 @@ than a slot in the next run, observed again:
   than `offtab`, `mut-odo` or `build` while its spread is a third of theirs.
   These arms are measured precisely inside a process and disagree wildly between
   them. **And the two instruments name different arms**, which is why this
-  is an entry: the account above says `offtab`'s interval is 0.74 in both halves
-  and reads it as an arm that does not follow the phenomenon — true
+  is an entry: `offtab`'s interval is an unremarkable 0.74 in both halves,
+  so the interval reads it as an arm that does not follow the phenomenon — true
   of the interval, and false of the spread, where it is the worst arm
   in the roster in all three pairs. That account is built
   on the `build`/`mut-odo` code twin; the phenomenon is wider than the twin
@@ -1793,38 +1695,31 @@ than a slot in the next run, observed again:
   the ranking's most consistent member, carries twins in both positions, so Run
   14 reads its position against its code directly. The three-pair reading
   is possible only while those runs' main sets are kept.
-- `ANSWERED` **Why did `list` move 18% on `stretch-tall-Mx2` between two runs
-  that did not touch it? Answered: because those two runs did not hold
-  the layout still.** Run 11 inherited shapes, roster, regime and layout
-  and reads that cell at **1.0063**, inside the 0.958–1.043 band its 23
-  neighbours occupy, so the 18% belonged to the roster-order change between Runs
-  9 and 10 and not to run-to-run drift. The cheap half of the diagnosis had
-  already shown the cell was stable inside its own run — 16 samples and CI%
-  0.822 unaligned, 15 and 1.612 aligned, R² above 0.9994 on both, the two halves
-  agreeing to 0.25% — which is what left drift as the only reading available
-  then. What the repetition adds is that drift will not carry 18%, so the bound
-  this page quotes for it comes down accordingly.
-- `OPEN` **`scaled`'s A/A floor came back on Run 10 at 5.36%, at the slot
-  that carried it in Run 7 and Run 8 and not in Run 9 — and it was the base arm
-  that was slow, not the twins** (Run 11's answer closes this entry below,
-  and its figures are not these). Both `mut-odo-vecdims` pairs read below 1,
+- `OPEN` **`scaled`'s A/A slot is real and its size is not: six runs of seven
+  find a disturbance at the `mut-odo-vecdims` slot on `scaled-super-r3`,
+  its magnitude never repeats, and the ruling is to quote the slot as a hazard
+  of the class and never as a figure.** What stays open is the raw disagreement
+  under it, which has no account — task 2 reads Run 13's samples for one.
+  The account below is Run 10's, where the arithmetic half was derived; the runs
+  since are at its foot. On Run 10 both `mut-odo-vecdims` pairs read below 1,
   0.9464 and 0.9574, both worst on `scaled-super-r3`, while the other four pairs
-  in that process sit within 0.25%. **Two thirds of it is arithmetic
-  and was mine to divide out before calling it a disturbance.** The raw slopes
-  disagree by 2.13%; the forcing term is 59.8% of this bench, the largest share
-  in the run; and 1/(1-f) turns the first into a predicted 5.29% against
-  the 5.36% read. So the arm's cells are 2% apart, not the 11% the published
-  pair suggests. The raw sample lists say nothing further is wrong: R2
-  is 0.99995 or better on all four arms and there is no ramp the slope has
-  not already handled. What survives is a 2.13% raw disagreement at one slot
-  on one shape, against 0.17% raw or less for the four other pairs in the same
-  process — smaller than it looked and still this slot's. It also inverts Run
-  9's wild cell, where the *twin* was slow and roster warmth was the account:
-  the distant twin here is the earliest of the three and is the clean one,
-  so that story does not transfer. **Do not reach for a filtered re-run
-  of the six controls**: filtering collapses the spans the crossed design needs,
-  which [the floor section][floor] records as making a span unmeasurable. What
-  can be asked is Run 11 reading this population with layout pinned.
+  in that process sat within 0.25% — and it was the base arm that was slow,
+  not the twins. **Two thirds of it is arithmetic and was mine to divide out
+  before calling it a disturbance.** The raw slopes disagree by 2.13%;
+  the forcing term is 59.8% of this bench, the largest share in the run;
+  and 1/(1-f) turns the first into a predicted 5.29% against the 5.36% read.
+  So the arm's cells are 2% apart, not the 11% the published pair suggests.
+  The raw sample lists say nothing further is wrong: R2 is 0.99995 or better
+  on all four arms and there is no ramp the slope has not already handled. What
+  survives is a 2.13% raw disagreement at one slot on one shape, against 0.17%
+  raw or less for the four other pairs in the same process — smaller
+  than it looked and still this slot's. It also inverts Run 9's wild cell, where
+  the *twin* was slow and roster warmth was the account: the distant twin here
+  is the earliest of the three and is the clean one, so that story does
+  not transfer. **Do not reach for a filtered re-run of the six controls**:
+  filtering collapses the spans the crossed design needs, which [the floor
+  section][floor] records as making a span unmeasurable. What can be asked
+  is Run 11 reading this population with layout pinned.
 
   **It has, and the answer is that the slot is real and its size is not.** Run
   11 reads this class's floor at **3.27%** — still the run's worst, still
