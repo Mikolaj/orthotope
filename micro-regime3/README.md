@@ -4454,12 +4454,13 @@ was missed, which is what they have cost.
     #      Repointing is not re-verifying: walk the standing-prose links
     #      into the chapter, which --check-doc lists, against what the
     #      chapter still says
-    ./read-run.py RUN.json --markdown --in-place      # (7.4) install, never
-    ./read-run.py RUN.json --fingerprint --in-place   #       paste; three
-    ./read-run.py $R-<basis>-$c.json --block --in-place  #    modes, one per
-    #      class for the third, all from the BASIS half. Read the stderr:
-    #      a row new to the roster installs as `?` and is filled by hand,
-    #      a departed row is dropped with a warning. The cross-class summary
+    ./install-tables.sh $R                            # (7.4) install, never
+    #      paste: --markdown, --fingerprint and a --block per class, ten
+    #      calls writing eleven tables, all from the BASIS half. Commit or
+    #      park this file first, since every one of them writes it. Read
+    #      what the driver collects at the end: a row new to the roster
+    #      installs as `?` and is filled by hand, a departed row is
+    #      dropped with a warning. The cross-class summary
     #      is assembled LAST, transcribed from the class tables
     #   6. walk the replace list under Provenance, re-run the two sweeps it
     #      names, and map every hit to the bullet covering it -- running
