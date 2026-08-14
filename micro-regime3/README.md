@@ -1956,17 +1956,27 @@ than a slot in the next run, observed again:
   on the `lookrts` recipe Run 14 makes its basis and on the max-skip one beside
   it, whose `.text` also came out at 20377797, the size that pair note records.
   **It falls due once more, the eight later twins having landed after it**,
-  and is owed on the 1128-bench tree beside the `-L1` pass; the reading
-  it replaces is the best evidence there is that it will come back clean again,
-  four twins having moved nothing and the eight being the same kind of addition.
-  The arm's own reading is [with gate 3](#what-is-open), taken filtered; Run 13
-  took it at full budget, and its Results row's `needs` cell reads *the same,
-  on a third write pattern* — the control convention, not the shippability
-  phrase this entry first proposed. **A return to -O1 stood behind it
-  as the second debt and is retired, its premise being false** (2026-08-14): -O1
-  is not the regime this fallback ships in, `-fspec-constr` being set
-  in the file the fix is added to, so the basis every run since Run 8 has used
-  is already the shipped regime and Run 7's claim set is history rather
+  and is owed on the 1128-bench tree; the reading it replaces is the best
+  evidence there is that it will come back clean again, four twins having moved
+  nothing and the eight being the same kind of addition. **The `-L1` pass beside
+  it is taken, 2026-08-14, on a smoke build of the 1128-bench roster** — every
+  reader mode runs clean over the new arms, which is what that pass is for,
+  and it settled the one slot claim this roster change made on an argument
+  rather than a measurement: `list-aa-adjacent`, the single entry inserted above
+  the distant twins, allocates 134261336 bytes a call against `list`'s
+  134261403, agreeing to 1.1e-4 over all 24 shapes, where `sum-only-early` —
+  the bench the slot rule is about — allocates 204 bytes a call, its allocation
+  being a one-off setup vector. So the twin fills as its base does and grows
+  no pool the way that bench does. Its readings are with the pair note,
+  and its timings go nowhere, `-L1` being a rougher budget than any recorded
+  run's. The arm's own reading is [with gate 3](#what-is-open), taken filtered;
+  Run 13 took it at full budget, and its Results row's `needs` cell reads
+  *the same, on a third write pattern* — the control convention,
+  not the shippability phrase this entry first proposed. **A return to -O1 stood
+  behind it as the second debt and is retired, its premise being false**
+  (2026-08-14): -O1 is not the regime this fallback ships in, `-fspec-constr`
+  being set in the file the fix is added to, so the basis every run since Run 8
+  has used is already the shipped regime and Run 7's claim set is history rather
   than a debt. The build specification that entry had accumulated goes with it,
   a retired run having no use for one. An -O1 reading of a single ordering stays
   available as a filtered probe, as the 2026-08-08 twin probes were; what

@@ -2614,11 +2614,14 @@ roster =
   [ ("sum-only-early",             Term)
   , ("list",                       Base fbList)
     -- The adjacent half of the baseline's own pair, and the one insertion
-    -- above the distant twins the slot rule allows: it fills as its base
-    -- does and so grows no pool the way 'sum-only-early' does, which is
-    -- the property that rule asks about. It moves every later slot by one,
-    -- which the roster delta records. Added 2026-08-14, first read in
-    -- Run 14.
+    -- above the distant twins the slot rule allows -- measured rather than
+    -- argued, on the -L1 pass of the day it landed: it allocates 134261336
+    -- B a call against 'list''s 134261403, agreeing to 1.1e-4 over all 24
+    -- shapes, where 'sum-only-early', the bench that rule is about,
+    -- allocates 204 B a call because its allocation is a one-off setup
+    -- vector. So it fills as its base does and grows no pool the way that
+    -- bench does. It moves every later slot by one, which the roster delta
+    -- records. Added 2026-08-14, first read in Run 14.
   , ("list-aa-adjacent",           Twin fbList)
     -- A/A controls, three of them, none a strategy: each runs an
     -- existing function twice so its true ratio is known to be exactly 1,
