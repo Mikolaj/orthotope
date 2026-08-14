@@ -3781,6 +3781,40 @@ def selftest(cells, shapes, strategies, meta):
                   ' (%+.2f%% at %d) and finds none in a flat series'
                   % (got[0], got[2]))
 
+    # The seam `--compare --alloc` closes on, and the last mode to be left
+    # outside this check. That mode prints, as its ruling against choosing a
+    # column, that the `alloc` multiple is the fitted bytes over a constant
+    # per shape -- true of how `load` derives it and of nothing else, and it
+    # would go on printing after an edit that made it false, since both
+    # columns come out of the same call. Checked on the run in hand rather
+    # than on a constructed series: unlike a step or a fingerprint cell,
+    # every cell here carries the quantity. Non-vacuous 2026-08-14, against
+    # a copy: dividing `alloc` by `1 + len(strategy) / 1e4` in `load` makes
+    # the ratio strategy-dependent, and this fails at a spread of 3.00e-03,
+    # where the intact reader on the same file reads 4.4e-16 -- one float
+    # round-trip, which is why the bar is 1e-9 and not equality.
+    ratios = collections.defaultdict(list)
+    for sh in shapes:
+        for st in strategies:
+            c = cells[sh][st]
+            if c['alloc_bytes'] and c['alloc']:
+                ratios[sh].append(c['alloc_bytes'] / c['alloc'])
+    if not ratios:
+        skip.append('no cell of this run carries both a fitted allocation and'
+                    ' an alloc multiple, so --alloc\'s one-quantity claim is'
+                    ' unexercised here')
+    else:
+        d, sh, n = max((max(r) / min(r) - 1, s, len(r))
+                       for s, r in ratios.items())
+        if d > 1e-9:
+            bad.append('--alloc prints that the multiple is the fitted bytes'
+                       ' over a constant per shape, and %s spreads them by'
+                       ' %.2e over %d cell(s)' % (sh, d, n))
+        else:
+            ok.append('--alloc\'s one-quantity claim holds: bytes over'
+                      ' multiple is one constant per shape, worst spread'
+                      ' %.1e on %s, over %d shape(s)' % (d, sh, len(ratios)))
+
     for line in ok:
         print('ok:   ' + line)
     for line in skip:
@@ -3847,6 +3881,23 @@ def main():
     p.add_argument('--exclude-shape', action='append', default=[],
                    metavar='SHAPE')
     args = p.parse_args()
+
+    # The dispatch below is an if/elif over mode flags, so a flag that names
+    # no reachable branch is not an error there -- it falls through and some
+    # other mode prints, exit 0, with nothing saying the flag did nothing.
+    # Both --alloc and --chapter are `with --compare` modifiers and both
+    # were droppable that way, and they are one line apart in README's
+    # write-up checklist, differing in that flag alone: merging the two
+    # invocations gives a chapter and a silence where the allocation reading
+    # was asked for. Refuse instead, here, where the flags are still visible
+    # as flags.
+    for flag, needs in (('alloc', 'compare'), ('chapter', 'compare')):
+        if getattr(args, flag) and not getattr(args, needs):
+            p.error('--%s is a modifier of --%s and does nothing alone'
+                    % (flag, needs))
+    if args.alloc and args.chapter:
+        p.error('--alloc and --chapter are two readings, not one: run the'
+                ' two invocations README\'s checklist spells out')
 
     if args.para:
         sys.exit(paragraphs(args.readme, args.para))
