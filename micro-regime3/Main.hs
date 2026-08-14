@@ -2613,6 +2613,13 @@ roster =
     -- any reorder at all for this one.
   [ ("sum-only-early",             Term)
   , ("list",                       Base fbList)
+    -- The adjacent half of the baseline's own pair, and the one insertion
+    -- above the distant twins the slot rule allows: it fills as its base
+    -- does and so grows no pool the way 'sum-only-early' does, which is
+    -- the property that rule asks about. It moves every later slot by one,
+    -- which the roster delta records. Added 2026-08-14, first read in
+    -- Run 14.
+  , ("list-aa-adjacent",           Twin fbList)
     -- A/A controls, three of them, none a strategy: each runs an
     -- existing function twice so its true ratio is known to be exactly 1,
     -- and what it measures instead is what two identical things differ by.
@@ -2650,8 +2657,34 @@ roster =
     -- gate could not see on it. Added 2026-08-14, first read in Run 14.
   , ("offtab-aa-distant",          Twin fbOffTab)
   , ("bq-odo-gm-mulback-aa-distant", Twin fbBQodoGmMulback)
+    -- The sixth to ninth twinned strategies, added 2026-08-14 once the
+    -- session that worked the task list down could say what twin coverage
+    -- was hiding: both anomalies this page chases were caught only because
+    -- they landed on a twinned arm, so their apparent distribution is a
+    -- fact about the controls and not about the machine
+    -- (README.md#what-is-open). 'build' and 'mut-odo' are the
+    -- placement-sensitive pair the floor section is written about, they
+    -- carry the loop whose copies a plain build duplicates per function,
+    -- and Run 14's registered predictor names their 1.13x gap as the
+    -- control that must survive the nursery change -- with no twin, a
+    -- moved gap cannot be told from a disturbed slot, which is the one
+    -- reading that run is built to make. 'list' is the denominator of
+    -- every published ratio, so a disturbance there moves every row at
+    -- once and no per-row gate would see it. 'gen-unsafe' is the one wide
+    -- arm of the spread instrument that is flat against every shape
+    -- dimension, and a twin is what separates a noisy arm from a
+    -- disturbed slot. Crossed like the others, each in both positions.
+    -- They land BEFORE Run 14 rather than after it precisely because that
+    -- run's own control is among them. First read in Run 14.
+  , ("build-aa-distant",           Twin fbBuild)
+  , ("mut-odo-aa-distant",         Twin fbMutOdo)
+  , ("list-aa-distant",            Twin fbList)
+  , ("gen-unsafe-aa-distant",      Twin fbGenUnsafe)
   , ("gen-quotrem",                Fill fbGenQuotRem)
   , ("gen-unsafe",                 Fill fbGenUnsafe)
+    -- The adjacent half of 'gen-unsafe''s pair; the distant half is early
+    -- with the others. Added 2026-08-14, first read in Run 14.
+  , ("gen-unsafe-aa-adjacent",     Twin fbGenUnsafe)
     -- not timed: 27.94x the result
   , ("unfold-add",                 Only fbUnfoldAdd)
     -- not timed: 5.19x the result
@@ -2671,6 +2704,9 @@ roster =
     -- slot in the run; the entry sits where the slot used to be.
   , ("concat-runs",                Only fbConcatRuns)
   , ("mut-odo",                    Fill fbMutOdo)
+    -- The adjacent half of 'mut-odo''s pair; the distant half is early
+    -- with the others. Added 2026-08-14, first read in Run 14.
+  , ("mut-odo-aa-adjacent",        Twin fbMutOdo)
   , ("mut-odo-vecdims",            Fill fbMutOdoVecdims)
     -- The second of the two 'Force' pairs, on the fastest strategy measured
     -- and so the one where the forcing term is the largest share of the
@@ -2700,6 +2736,9 @@ roster =
     -- not timed: 6.20x the result
   , ("mut-offsets",                Only fbMutBaseOffsets)
   , ("build",                      Fill fbBuild)
+    -- The adjacent half of 'build''s pair; the distant half is early with
+    -- the others. Added 2026-08-14, first read in Run 14.
+  , ("build-aa-adjacent",          Twin fbBuild)
   , ("bq-mut",                     Fill fbBQmut)
   , ("bq-mut-runs",                Fill fbBQmutRuns)
     -- not timed: l < 2^32
