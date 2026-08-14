@@ -100,6 +100,25 @@ run "$BASIS" b
 run "$OTHER" b
 echo "=== $(date -Is) gate complete"
 
+# THE ONE CHECK THAT ASKS ABOUT THE BOX AND NOT THE CODE, added 2026-08-14.
+# `list` is the denominator of every published ratio and the arm measured
+# insusceptible to placement, and README's fingerprint keeps its net per call
+# per shape -- so the previous run's absolutes are on the page after its JSONs
+# are gone, and this needs no artifact kept. The gate's own selection carries
+# `*/list` and both `sum-only` halves on every shape, so the comparison is net
+# against net, and it happens HERE because a box that changed under the page
+# invalidates an evening that has not been spent yet. It gates the geomean at
+# 3%, against the 0.82% worst excursion eleven kept processes show; a single
+# shape moving 7% is ordinary and does not fire it.
+MACHINE=$(./read-run.py "$PREFIX-gate-$BASIS-a.json" --machine 2>&1)
+MACHINE_RC=$?
+printf '%s\n' "$MACHINE"
+if [ "$MACHINE_RC" != 0 ]; then
+  BAD=$((BAD + 1))
+  RESULTS="$RESULTS
+      !! the machine check FAILED -- read it before the evening"
+fi
+
 # The gate belongs to the pair, so its verdict is recorded beside the pair
 # rather than in a session's memory. README's procedure leans on this, and the
 # note is named after $PREFIX rather than found by an `ls -t` glob: with two
@@ -126,6 +145,8 @@ fi
     echo "GATE: run $(date -Is). Mechanically FAILED, $BAD complaint(s):$RESULTS"
     echo "  Expected $EXPECT benches a process. Read the logs before anything else."
   fi
+  echo "  The machine check, which is not a reading but an answer:"
+  printf '%s\n' "$MACHINE" | sed 's/^/    /'
   echo "  That is exit codes and counts; the reading is still to do, with"
   echo "    ./read-run.py $PREFIX-gate-$BASIS-a.json \\"
   echo "      --compare $PREFIX-gate-$OTHER-a.json"

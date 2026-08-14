@@ -128,6 +128,10 @@ Modes:
   --steps           every cell read at sample level for a mid-bench change
                     of level, which the fitted slope averages away and no
                     other column here can show
+  --machine         this run's `list` absolutes against the fingerprint
+                    README keeps, which is the one check that asks whether
+                    the BOX changed rather than the code; exits nonzero
+                    when the whole baseline moved
   --cells           every cell as TSV, for anything not covered above
   --markdown        README's Results table, numbers recomputed and the
                     editorial column carried over from the one there --
@@ -1622,6 +1626,70 @@ def step_table(path, cells, shapes, strategies, meta):
           ' earlier one level')
     print('  with a twin or the same arm elsewhere, and allocation per'
           ' iteration equal across it.')
+
+
+def machine_check(cells, shapes, readme, thresh=3.0):
+    """Does the machine still measure what it measured last run?
+
+    `list` is the arm to ask. It is the denominator of every published
+    ratio, it is the one arm measured insusceptible to placement, and the
+    fingerprint table keeps its net per call PER SHAPE -- so the previous
+    run's absolutes survive in README long after its JSONs are offered for
+    deletion, and no artifact has to be kept for this.
+
+    The gate is the moment to ask it. Its selection carries `*/list` and
+    both `sum-only` halves on every shape, so the comparison is net
+    against net, and it runs before the evening rather than after it: a
+    machine that has changed under the page invalidates a run that has
+    not started yet, which is the only time that news is cheap.
+
+    The threshold is the geomean over shapes, not a cell. Across the
+    eleven kept processes of Runs 10 to 13 -- three regimes, two shims,
+    main sets and gates alike -- `list`'s geomean against the eight-run
+    median stays inside 0.82%, while single shapes wander to 7%. So 3% is
+    over three times the worst excursion the record has, and a cell moving
+    is normal where the whole baseline moving is not. The fingerprint
+    prints three significant figures, which is about half a percent a
+    cell and averages away over the shape set.
+
+    What it cannot do is say WHAT changed; that is the executor's, and the
+    first question is not the code but the box -- a kernel, a microcode
+    update, a BIOS setting, a different machine, a thermal state.
+    """
+    want = {}
+    for line in open(readme):
+        m = re.match(r'\|\s*`([^`]+)`\s*\|[^|]*\|[^|]*\|\s*([\d.]+)\s*'
+                     r'(ns|µs|ms|s)\s*\|', line)
+        if m:
+            unit = {'ns': 1e-9, 'µs': 1e-6, 'ms': 1e-3, 's': 1}[m.group(3)]
+            want[m.group(1)] = float(m.group(2)) * unit
+    have = [(sh, cells[sh]['list']['net'], want[sh])
+            for sh in shapes if sh in want and 'list' in cells[sh]]
+    if not have:
+        print('machine: no shape of this run is in README\'s fingerprint, so'
+              ' there is nothing to compare -- which is itself worth reading')
+        return 1
+    ratios = [n / w for _, n, w in have]
+    g = geomean(ratios)
+    worst = max(have, key=lambda t: abs(math.log(t[1] / t[2])))
+    print('machine: `list` net against the kept fingerprint, %d of %d shapes'
+          % (len(have), len(shapes)))
+    print('  geomean %+.2f%%, worst `%s` %+.2f%%, %d shape(s) past 5%%'
+          % ((g - 1) * 100, worst[0], (worst[1] / worst[2] - 1) * 100,
+             sum(1 for r in ratios if abs(r - 1) > 0.05)))
+    if abs(g - 1) * 100 <= thresh:
+        print('  inside %.0f%%, so the box still measures as it did.' % thresh)
+        return 0
+    print('  PAST %.0f%%, which no repetition in this record has done. STOP:'
+          % thresh)
+    print('  the whole baseline moved, so this is not a strategy and not'
+          ' drift. Before')
+    print('  spending the evening, find out what changed under the page --'
+          ' and ASK, since')
+    print('  a kernel, a microcode update, a BIOS setting or a different box'
+          ' are not')
+    print('  things a run can see from inside itself.')
+    return 1
 
 
 def cell_dump(cells, shapes, strategies):
@@ -3669,6 +3737,7 @@ def main():
     p.add_argument('--aa', action='store_true')
     p.add_argument('--cells', action='store_true')
     p.add_argument('--steps', action='store_true')
+    p.add_argument('--machine', action='store_true')
     p.add_argument('--pair', nargs=2, action='append', default=[],
                    metavar=('A', 'B'))
     p.add_argument('--compare', metavar='OTHER.json',
@@ -3773,6 +3842,8 @@ def main():
     elif args.compare:
         compare_table(cells, shapes, strategies, meta, args.compare,
                       args.main)
+    elif args.machine:
+        sys.exit(machine_check(cells, shapes, args.readme))
     elif args.steps:
         step_table(args.run, cells, shapes, strategies, meta)
     elif args.cells:

@@ -4140,7 +4140,20 @@ and the `GATE: not yet run` line goes in the same edit, since a reader reading
 up would otherwise meet that one and stop. What the predictions are is in [the
 open list](#what-is-open) with the rest of the run's registrations; what
 the gate read is in the note, written by hand above the script's mechanical
-block.
+block. **The gate also answers one question that is not a reading at all, since
+2026-08-14: has the machine changed?** `run-gate.sh` runs
+`./read-run.py $R-gate-<basis>-a.json --machine` after its four processes
+and puts the answer in the note. It holds `list`'s net per call, shape by shape,
+to the fingerprint this page keeps, so the last run's absolutes are on the page
+long after its JSONs are offered for deletion and nothing has to be kept for it;
+the gate's own selection carries `*/list` and both `sum-only` halves on every
+shape, which is what makes the comparison net against net. It gates the geomean
+rather than a cell, at a threshold the mode's own docstring derives from every
+kept process this page has. When it fires the gate fails with it, and the thing
+to do is not to read the code: **ask whether the box changed** — a kernel,
+a microcode update, a BIOS setting, a thermal state, a different machine — none
+of which a run can see from inside itself. It re-baselines by itself, each
+write-up replacing the fingerprint it reads.
 
 **The run** is one sequence — the main set from each binary the run has,
 then each stride-class population in its own process, in `classViews`' order.
