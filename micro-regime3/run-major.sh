@@ -12,9 +12,9 @@
 # bench count is checked against what the roster actually holds, so a
 # selection that silently caught the wrong set is loud at once rather than at
 # the write-up. The expected count is READ FROM THE BINARY rather than
-# written down -- a literal would be wrong for the next roster, and Run 13
-# plans an arm, which would make a correct run trip the alarm on every
-# process. A class process gets the same treatment as a main one: its
+# written down -- a literal would be wrong for the next roster, and this one
+# moved twice on 2026-08-14, which would have made a correct run trip the
+# alarm on every process. A class process gets the same treatment as a main one: its
 # count is its prefix's share of `classes --list`, and a prefix matching
 # nothing is reported rather than passing as a run of zero benches. The
 # reverse -- a class the BINARY has that CLASSES does not name -- is

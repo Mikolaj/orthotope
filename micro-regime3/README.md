@@ -2347,17 +2347,17 @@ ahead of the implementation:
   at the builder, the numbers and the argument recorded at the assert and both
   Int32 comment sites.
 
-**A class population is two or three shapes**, against the main set's two dozen,
-which is deliberate — the classes are there to vary the *mechanism*, and varying
-size and rank within one is the main set's job — but it decides how their
-results read. A class geomean rests on two or three cells, so it is a summary
-of a handful of numbers rather than a statistic over a spread; the per-shape
-figures are nearly the whole population and are worth quoting where the main
-set's would be flattened away; winsorizing has almost nothing to cap
-and `--pair`'s bootstrap interval almost nothing to resample. What a class run
-can decide is whether an *ordering* inverts under its mechanism and whether any
-strategy's `worst` crosses 1 there. What it cannot do is be compared
-with a main-set number, in either direction.
+**A class population is three shapes**, against the main set's two dozen, which
+is deliberate — the classes are there to vary the *mechanism*, and varying size
+and rank within one is the main set's job — but it decides how their results
+read. A class geomean rests on three cells, so it is a summary of a handful
+of numbers rather than a statistic over a spread; the per-shape figures
+are nearly the whole population and are worth quoting where the main set's would
+be flattened away; winsorizing has almost nothing to cap and `--pair`'s
+bootstrap interval almost nothing to resample. What a class run can decide
+is whether an *ordering* inverts under its mechanism and whether any strategy's
+`worst` crosses 1 there. What it cannot do is be compared with a main-set
+number, in either direction.
 
 
 ### The scratch vector flavour
@@ -3564,7 +3564,10 @@ for one.** Unsandboxed throughout:
     #      never raise -L on a recorded run -- the figures stop being
     #      comparable with every run before it
     #      a process far slower than its neighbours is worth looking at:
-    #      the previous run's -wallclock.log says what each should take
+    #      the previous run's -wallclock.log says what each should take,
+    #      SCALED BY THE BENCH COUNT -- criterion spends its budget per
+    #      bench, so a roster that grew since makes every process slower
+    #      than its counterpart there for no reason worth chasing
     #      no resume. If it dies mid-sequence, hand-run the class loop over
     #      both halves with `[ -e "$out.json" ] && continue`, check each
     #      benchmarking count against `classes --list`, append to the same
@@ -3623,8 +3626,8 @@ and how much of this file must be read before the first one. The fixed cost
 is the reading — this chapter and the last run's — and it is larger
 than executing either checklist, which is what both checklists are for. After
 it the work divides three ways and only one part is large. *Batchable*: anything
-with one invocation per population or per claim — the ten `--selftest`s, the ten
-`--aa`s, the dozen-odd `--pair` lines, the eight `--block`s — goes in one call
+with one invocation per process or per claim — a `--selftest` and an `--aa`
+apiece, the dozen-odd `--pair` lines, a `--block` per class — goes in one call
 per kind, so steps 1 and 3 together are a handful. *One per site*: the eleven
 `--in-place` installs, three calls. *Unbatchable*: the prose, one edit per
 paragraph, and this is the bulk — the eight class blocks alone are some thirty
@@ -4369,8 +4372,8 @@ What it replaces is reading the twelve paragraphs three times to be sure nothing
 was missed, which is what they have cost.
 
     ./read-run.py $R-<basis>-main.json --selftest     # 1. gate EVERY
-    ./read-run.py $R-<basis>-main.json --aa           #    population, all
-    #      ten, both halves for the main set -- and read the A/A WORST CELL,
+    ./read-run.py $R-<basis>-main.json --aa           #    process, both
+    #      halves of every population -- and read the A/A WORST CELL,
     #      not only the pair's geomean. A failed gate invalidates that
     #      population's whole time column and only that one. The published
     #      floor is the NET ratio; the raw one is an arm against itself, and
@@ -4384,6 +4387,11 @@ was missed, which is what they have cost.
     #      ordering and registered verdict in one call, in the claims
     #      section's own order
     ./read-run.py $R-<basis>-$c.json --block          #    one per class
+    ./read-run.py $R-<basis>-$c.json --compare $R-<other>-$c.json
+    #      and one per class ACROSS the halves, which is what running every
+    #      class on both is for and what nothing else in this list reads: a
+    #      pair's variable can act on a class and not on the main set.
+    #      --alloc takes the same pair where allocation is the question
     ./read-run.py $R-<basis>-main.json --compare $R-<other>-main.json --chapter
     ./read-run.py $R-<basis>-main.json --compare $R-<other>-main.json --alloc
     #      --compare takes the BASIS first and the control as its argument,
@@ -4394,9 +4402,12 @@ was missed, which is what they have cost.
     #      figure is lost. Do not write a second reader
     #   4. one JSON at a time, never merged; there is no combined figure, so
     #      a sentence comparing populations compares their tables
-    #   5. rename the THREE run-numbered headings: the chapter head takes
-    #      THIS run, while `What Run N compares against` and `The claims
-    #      Run N should test` look forward and take the NEXT. Repoint every
+    #   5. rename the FOUR run-numbered headings: the chapter head and
+    #      `Recommended tasks after Run N` take THIS run, while `What Run N
+    #      compares against` and `The claims Run N should test` look
+    #      forward and take the NEXT. The tasks heading is the one a count
+    #      of three left behind, its content coming from the replace list
+    #      while its title and anchor come from here. Repoint every
     #      link -- its TEXT as well as its anchor, the check seeing only the
     #      second -- and Main.hs's own README.md# references with them.
     #      Repointing is not re-verifying: walk the standing-prose links
@@ -4728,7 +4739,7 @@ the artifacts are what it spends.
       the same rows the terminal does, and carries `needs` and the emphasis
       forward from the table already there. `--aa` and `--block` both take
       `--brief`, which drops the standing explanation and the table `--in-place`
-      installs anyway, costing no computed figure; over ten populations
+      installs anyway, costing no computed figure; across a run's processes
       that is several hundred lines you have already read. Its stderr
       is the whole of what is left by hand: a row new to the roster comes out
       with `?`, a departed row is dropped with a warning. Run 9 had ten such
@@ -6000,21 +6011,21 @@ so in the sentence rather than borrowing the nearest number.
 **Each population measures its own floor.** The same six controls ride every
 process, so a stride-class run prices the noise of the process its own figures
 came out of — which is the only process they can be judged in — but it prices
-it over two or three cells where the main set has two dozen. Read a class's
-controls as this floor confirmed there or not, rather than as a threshold
-of that class's own, and never carry the main set's figure into a class
-comparison or the other way about. Run 10's class processes are that ruling
-observed: floors from 0.16% (`rev`) up to 5.36% (`scaled`),
-a **thirty-fourfold** spread across populations of one run, where Run 9 spread
-fifteenfold and Run 8 differently again. The `mut-odo-vecdims` slot carries
-the worst pair in **five** of the eight — `revsome`, `bcastmid`, `reshape1`,
-`window` and `scaled` — where Run 9 put it in four and Run 8 in seven;
-`bq-expand`'s pairs take the other three and `bq-scan-rem-gm-mulback`'s take
-none. Four runs at four counts is not a pattern settling, but the amplification
-above says the slot is not neutral either: `f` is largest for the fastest fill,
-so that arm converts a given raw disagreement into a larger published one
-than any other pair in the same process. Read the recurrence as partly
-arithmetic and partly unexplained, and read a class's floor as the run's own.
+it over three cells where the main set has two dozen. Read a class's controls
+as this floor confirmed there or not, rather than as a threshold of that class's
+own, and never carry the main set's figure into a class comparison or the other
+way about. Run 10's class processes are that ruling observed: floors from 0.16%
+(`rev`) up to 5.36% (`scaled`), a **thirty-fourfold** spread across populations
+of one run, where Run 9 spread fifteenfold and Run 8 differently again.
+The `mut-odo-vecdims` slot carries the worst pair in **five** of the eight —
+`revsome`, `bcastmid`, `reshape1`, `window` and `scaled` — where Run 9 put
+it in four and Run 8 in seven; `bq-expand`'s pairs take the other three
+and `bq-scan-rem-gm-mulback`'s take none. Four runs at four counts is
+not a pattern settling, but the amplification above says the slot is not neutral
+either: `f` is largest for the fastest fill, so that arm converts a given raw
+disagreement into a larger published one than any other pair in the same
+process. Read the recurrence as partly arithmetic and partly unexplained,
+and read a class's floor as the run's own.
 
 
 ### R2 is the ramp detector, not the noise detector
@@ -6191,9 +6202,9 @@ class](#the-stride-classes-and-what-they-cover) measures its own term
 and re-passes all three on its own cells; the main set's term licenses nothing
 about a class's, in either direction. What a small population weakens is gate 2
 alone: it reads the term's cost per element across the shape set, and a class
-spans a fraction of the main set's range of `l` — two shapes of nearly equal `l`
-leave it almost nothing to see. Gates 1 and 3 are as strong there as here, being
-about position and about the read.
+spans a fraction of the main set's range of `l` — three shapes of nearly equal
+`l` leave it almost nothing to see. Gates 1 and 3 are as strong there as here,
+being about position and about the read.
 
 What remains open is narrower than the original objection: the `-nosum` pairs
 price two arms, not the whole roster, so a fill whose write pattern leaves
@@ -6627,10 +6638,17 @@ default processes back to back agree to 4.9e-8 and one cell exactly. So expect 0
 of N agreeing on these halves and read nothing into it; a cell moving further
 than that is the finding. Why the counter reads differently under a large
 nursery is unmeasured, and the mode prints the caveat rather than leaving
-it here. **Read the anchors and not only the ratios**: `list` is predicted
-to move on 17 shapes, so the baseline moves and every ratio with it, and what
-decides whether the predictor survives are its two controls — the 14 arms
-that should move on no shape, and `build` and `mut-odo`'s 1.13× gap.
+it here. **And expect a longer evening than the last one.** This run times 47
+arms where Run 13 timed 35 — twelve A/A twins landed after it, none dropped —
+and runs every class on both halves, so the sequence is eighteen processes
+against Run 13's ten. Criterion spends its budget per bench, so scaling Run 13's
+own wall-clock log by both factors puts this sequence close to six hours where
+that one took 3h22m: arithmetic on a kept log rather than a measurement,
+and the reason a process here is judged against its counterpart there scaled
+rather than raw. **Read the anchors and not only the ratios**: `list`
+is predicted to move on 17 shapes, so the baseline moves and every ratio
+with it, and what decides whether the predictor survives are its two controls —
+the 14 arms that should move on no shape, and `build` and `mut-odo`'s 1.13× gap.
 
 **One more question this pair now answers, registered 2026-08-14 before
 it runs.** Both anomalies this page chases — the wild cell and the `scaled` A/A
@@ -7102,8 +7120,8 @@ verdicts**, the details beside each class's table:
    and Run 10's.
 
 `--pair` works within a class JSON exactly as within the main one, and is still
-the way to compare two arms; its bootstrap interval, over two or three shapes,
-is worth less there than its win count.
+the way to compare two arms; its bootstrap interval, over three shapes, is worth
+less there than its win count.
 
 Two notes on the columns. The `needs` column splits the class-method tier
 in two. A **new pure `Vector` method** delegates to a pure function the vector
