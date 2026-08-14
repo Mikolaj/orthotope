@@ -1178,7 +1178,7 @@ than a slot in the next run, observed again:
      by byte identity puts `mut-odo-vecdims` at 24 and `-add-in` at 8,
      so the resident pair is 1.0074 and **1.0036**, while `-add-both`'s 1.0333
      sits at 0 beside `-add-out`. One arm of each kind is resident and one
-     is at zero, so residency does not sort the split -- a second refutation
+     is at zero, so residency does not sort the split — a second refutation
      of the offsets account, independent of the paired reading below
      and available from these binaries all along. So the prediction is
      that the split persists under the flag rather than closing. The reading
@@ -2064,8 +2064,8 @@ actually compiles under.
   a separate and larger target that no reordering reaches.
 - `OPEN` **No build-vs-output time decomposition**, which Run 8 wanted and did
   without. `diag` measures per-builder *allocation* only, so a claim like
-  "the table build is a third of the cost" -- the natural reading
-  of `bq-mut-runs` beating `bq-mut` by 39% -- cannot be checked here. Claim 4
+  "the table build is a third of the cost" — the natural reading
+  of `bq-mut-runs` beating `bq-mut` by 39% — cannot be checked here. Claim 4
   no longer needs it — a Core diff identified what the flag deletes
   from the scan builder and the ~4% it is worth accounts for where the pair
   lands, the two arms sharing their output code exactly — but the residue does:
@@ -4127,7 +4127,7 @@ criterion selects and so names the whole class set.
 
 **Check what a filtered selection actually selected.** Criterion takes one
 `-m MODE` and then its patterns positionally, so `-m glob A -m glob B` matches
-*nothing* and the process exits at once -- which looks exactly like a fast run
+*nothing* and the process exits at once — which looks exactly like a fast run
 and cost one probe here before the zero timings gave it away. Count
 the `benchmarking` lines against what was asked for before reading any number
 out of a filtered run; it is the prove-a-search-non-vacuous rule applied
@@ -4146,8 +4146,8 @@ surprises, which need the run read first; those become that list's next entries,
 each with the probe that would settle it.
 
 **The time budget is always criterion's default.** Raising `-L` would buy
-samples for the slowest shapes -- they bottom out around 6 where the fastest get
-130 -- but at a proportional cost in wall clock, and the runs are already hours.
+samples for the slowest shapes — they bottom out around 6 where the fastest get
+130 — but at a proportional cost in wall clock, and the runs are already hours.
 Every recorded run therefore uses the default, so figures stay comparable
 between runs and the sample counts in the tables mean the same thing throughout.
 Where that leaves a shape thinly measured, the `smp` and `CI%` columns say
@@ -4200,7 +4200,7 @@ is not open is registering afterwards: the point of the list is that it predates
 the hours, so the choice here is to register before the evening or to do
 without. **And say what a partial outcome is**: a prediction registered
 over several arms can come apart, and neither "held" nor "refuted" is then true
--- Run 10's first was stated over three arms and one confirmed it while two met
+— Run 10's first was stated over three arms and one confirmed it while two met
 its own kill condition. Report that as a split, name which arms went which way,
 and carry the consequence for each separately; the temptation is to round
 it to whichever answer the majority of arms gives, which loses the finding.
@@ -4301,7 +4301,7 @@ the artifacts are what it spends.
 
 
 
-1. **Gate every population on the correction, before reading any figure --
+1. **Gate every population on the correction, before reading any figure —
    and read the A/A *worst cell*, not only the pair's geomean.** A control
    that passes its gate can still be the run's most informative measurement:
    `bq-expand`'s distant twin passed on Run 8 and again on Run 9 while carrying
@@ -4363,7 +4363,7 @@ the artifacts are what it spends.
    is no combined figure to compute, so a sentence comparing populations
    compares their tables.
 5. **Rename the three run-numbered headings, which do not all take the same
-   number** -- the chapter head goes from the last run to this one, while *What
+   number** — the chapter head goes from the last run to this one, while *What
    Run N compares against* and *The claims Run N should test* look forward
    and go from this run to the next, so a write-up of Run 10 leaves the three
    reading 10, 11 and 11. Repoint every link to them. It is mechanical,
@@ -4486,7 +4486,7 @@ the artifacts are what it spends.
       and put the largest at +4.1% where the cells say +4.3%, which is a tenth
       of the figure and was invisible until an independent reader rebuilt it.
       A percentage, a ratio and a count all come from `--cells`
-      or from `--pair`, whatever is printed three lines above -- and for a class
+      or from `--pair`, whatever is printed three lines above — and for a class
       paragraph, from the verdicts `--block` now emits under its per-shape line,
       which state the three properties' outcomes and name the arms that actually
       lead. That block exists because this rule kept losing to the table being
@@ -4526,13 +4526,13 @@ the artifacts are what it spends.
       arithmetic and cannot catch a wrong definition, only a wrong
       transcription. Two rules the independent route needs, both learned
       by getting them wrong after Run 9. **Difference wall time, or user
-      *and* system -- never user alone**: the inherited "wall and user time
-      agree on it" is a property of the workload it was written for, and where
-      the RTS does kernel work they part completely, which is how 0.36 ms per
-      call of system time went unseen and a real 10% effect was reported
-      as zero. And **difference at two scales**: if the per-call figure moves
-      with `n`, part of what is being divided is a fixed cost, which is how
-      a one-time 0.9 s of page-faulting read as half a millisecond a call;
+      *and* system — never user alone**: the inherited "wall and user time agree
+      on it" is a property of the workload it was written for, and where the RTS
+      does kernel work they part completely, which is how 0.36 ms per call
+      of system time went unseen and a real 10% effect was reported as zero.
+      And **difference at two scales**: if the per-call figure moves with `n`,
+      part of what is being divided is a fixed cost, which is how a one-time 0.9
+      s of page-faulting read as half a millisecond a call;
    3. **when two instruments disagree, that is the finding.** Do not average
       them, pick the one the page prefers, or quietly drop the awkward one.
       Locate the disagreement first: the criterion slope and the `-n`
@@ -4631,67 +4631,68 @@ the artifacts are what it spends.
    count: that count is fixed before criterion does the selecting, so it reads
    every class view rather than the population that ran, and the population's
    own size comes from the reader's first line;
-10. **Walk the open list against what this session actually did**, which
-   nothing checks. **Grep [the settled index][settled] before adding an entry**,
-   not only before deriving: a question is easy to open against something
-   already answered in a section you are not writing in, which is how Run 10's
-   write-up proposed a Core dump that had been taken three times and whose
-   answer -- `vBuildVS` surviving as no top-level binding, so there is no call
-   path to dump -- was recorded at the ceiling, a thousand lines from where
-   the entry was being written. A run answers some of its own questions
-   and a write-up raises others, and both go stale in place: Run 8 answered
-   the element-type entry with the probe that entry specified and left
-   it standing open, and answered the packed-arm entry the same day. Move what
-   was answered into the answered block with its measurement, leave what a probe
-   narrowed as narrowed, and add the run's surprises with the measurement
-   that would settle each.
+10. **Walk the open list against what this session actually did**, which nothing
+    checks. **Grep [the settled index][settled] before adding an entry**,
+    not only before deriving: a question is easy to open against something
+    already answered in a section you are not writing in, which is how Run 10's
+    write-up proposed a Core dump that had been taken three times and whose
+    answer — `vBuildVS` surviving as no top-level binding, so there is no call
+    path to dump — was recorded at the ceiling, a thousand lines from where
+    the entry was being written. A run answers some of its own questions
+    and a write-up raises others, and both go stale in place: Run 8 answered
+    the element-type entry with the probe that entry specified and left
+    it standing open, and answered the packed-arm entry the same day. Move what
+    was answered into the answered block with its measurement, leave what
+    a probe narrowed as narrowed, and add the run's surprises
+    with the measurement that would settle each.
 11. **Spend the load-independent measurements before the artifacts go.**
-   Allocation is deterministic per call, Core is a compile, and a binary's size
-   is a `size` invocation — none of them wants a quiet machine or a run slot,
-   and each is minutes. Run 8 stopped at the write-up and left a Core diff,
-   a two-regime `diag` and a code-size figure undone; all three were done later,
-   two of them changed rulings, and one answered an open question outright.
-   So before step 12, take every question on the open list whose measurement
-   is a compile, an allocation or an arithmetic re-derivation, and take it now.
-   **One of them is owed by every paired run and is named here so it
-   is not rediscovered: export the pair's NAMED fills into its note.**
-   `loop-offsets.py` names a copy only in a `-g3` build, so each half's recipe
-   is rebuilt with `-g3` added and the twin's groups matched to the timed ones
-   by byte identity of the loop body — never by proximity or by which group
-   sorts first. Bare offsets are what the note records otherwise, and the map
-   is a property of the binary: once the binaries go, no offset this page quotes
-   can ever be tied to an arm again. Run 12's were derived this way on the last
-   day they existed and refuted two accounts of its own split; Run 10's and Run
-   11's are gone unnamed. What is left over is the timing work, which is what
-   a quiet machine is for.
-12. **Only then, offer the artifacts for deletion — once — and abide by the
-   answer.** The JSONs, the logs and the wall-clock file, and for a paired run
-   the two binaries and their `$R-pair.txt` with them, that note being about
-   a pair and worth little once the pair is gone. **Offering is the step;
-   deleting is not**, and the offer is made after the verification above is done
-   and presented, not after the writing — Run 6's artifact went as soon
-   as its write-up was drafted, which cost the ability to re-check anything
-   needing the raw samples when that write-up was later questioned.
+    Allocation is deterministic per call, Core is a compile, and a binary's size
+    is a `size` invocation — none of them wants a quiet machine or a run slot,
+    and each is minutes. Run 8 stopped at the write-up and left a Core diff,
+    a two-regime `diag` and a code-size figure undone; all three were done
+    later, two of them changed rulings, and one answered an open question
+    outright. So before step 12, take every question on the open list whose
+    measurement is a compile, an allocation or an arithmetic re-derivation,
+    and take it now. **One of them is owed by every paired run and is named here
+    so it is not rediscovered: export the pair's NAMED fills into its note.**
+    `loop-offsets.py` names a copy only in a `-g3` build, so each half's recipe
+    is rebuilt with `-g3` added and the twin's groups matched to the timed ones
+    by byte identity of the loop body — never by proximity or by which group
+    sorts first. Bare offsets are what the note records otherwise, and the map
+    is a property of the binary: once the binaries go, no offset this page
+    quotes can ever be tied to an arm again. Run 12's were derived this way
+    on the last day they existed and refuted two accounts of its own split; Run
+    10's and Run 11's are gone unnamed. What is left over is the timing work,
+    which is what a quiet machine is for.
+12. **Only then, offer the artifacts for deletion — once — and abide
+    by the answer.** The JSONs, the logs and the wall-clock file, and
+    for a paired run the two binaries and their `$R-pair.txt` with them,
+    that note being about a pair and worth little once the pair is gone.
+    **Offering is the step; deleting is not**, and the offer is made after
+    the verification above is done and presented, not after the writing — Run
+    6's artifact went as soon as its write-up was drafted, which cost
+    the ability to re-check anything needing the raw samples when that write-up
+    was later questioned.
 
-   **They are not required to go, and this page no longer says they are.**
-   The rule used to be that the normal state of this directory is no run
-   artifact at all; what justified it was that the numbers live in this file
-   and the fingerprint exists precisely so a per-shape record outlives its run.
-   Both remain true, and neither makes deletion *owed*: what they actually argue
-   is that nothing is *lost* by deleting, which is a licence and
-   not an obligation. What is lost by deleting early is concrete and has
-   been paid twice — every `--pair` a later question wants, every per-shape
-   spread that separates a bias from noise, every count re-derived
-   from `--cells`, and every sample-level reading needs the JSON and nothing
-   else does. Run 8's were kept and drawn on a dozen times in the days after,
-   for questions its write-up had not thought to ask; Run 11's were kept
-   and became the disturbed control and the wild cell's sample-level account,
-   neither of which its write-up foresaw.
+    **They are not required to go, and this page no longer says they are.**
+    The rule used to be that the normal state of this directory is no run
+    artifact at all; what justified it was that the numbers live in this file
+    and the fingerprint exists precisely so a per-shape record outlives its run.
+    Both remain true, and neither makes deletion *owed*: what they actually
+    argue is that nothing is *lost* by deleting, which is a licence and
+    not an obligation. What is lost by deleting early is concrete and has
+    been paid twice — every `--pair` a later question wants, every per-shape
+    spread that separates a bias from noise, every count re-derived
+    from `--cells`, and every sample-level reading needs the JSON and nothing
+    else does. Run 8's were kept and drawn on a dozen times in the days after,
+    for questions its write-up had not thought to ask; Run 11's were kept
+    and became the disturbed control and the wild cell's sample-level account,
+    neither of which its write-up foresaw.
 
-   So: ask once, say what they buy, and take no for an answer without raising
-   it again. A previous run's artifacts still being here is not a defect
-   to be tidied and is not a blocker for the next run, whose relaunch guard
-   is scoped to its own name.
+    So: ask once, say what they buy, and take no for an answer without raising
+    it again. A previous run's artifacts still being here is not a defect
+    to be tidied and is not a blocker for the next run, whose relaunch guard
+    is scoped to its own name.
 
 
 ### The reader: read-run.py
@@ -5456,9 +5457,9 @@ and it was proved non-vacuous by reproducing three of the probe binaries'
 documented offsets before it was pointed at anything new.
 
 **But the table corrects only where the loop is the same code; elsewhere
-it screens.** As 0.98 × pen(A's offset) / pen(B's offset) -- the intrinsic ratio
+it screens.** As 0.98 × pen(A's offset) / pen(B's offset) — the intrinsic ratio
 being 0.98 and not the 0.9973 the probe's balanced design gave, which Run 10's
-gate settled against it (see the open list) -- it reproduces the eight binaries
+gate settled against it (see the open list) — it reproduces the eight binaries
 to a median 1.0% and a worst 3.8%, Run 9's pair to 1.144 against the 1.13 read,
 and the FastReshape three to 1.18 against 1.155–1.180. Its resolution floor
 is the 5.9% by which the two arms disagree at offset 13, so it settles a 17% gap
@@ -5751,14 +5752,14 @@ is the correction's own arithmetic, not a second effect riding along with it —
 and Run 9's pairs move the same way, every deviation larger net than raw.
 
 **Failed Run 6's two conclusions here are settled.** *1/time* is refuted
-as an account of the floor: per-cell *scatter* does track it -- the adjacent
-pairs in the table rank by their arms' speed -- but scatter cancels,
-and the bias that survives cancelling ranks by span, not by any arm's speed.
-*Position* was confirmed by the crossed design built for it, read
-as not reproducing on Run 8, and is confirmed again by Run 9 in a form
-the crossing cannot summarise: it is per shape and per family, not a trend
-in span. What the crossed design settled for good is that the question
-is answerable at all; what Run 9 adds is that the answer is not a single number.
+as an account of the floor: per-cell *scatter* does track it — the adjacent
+pairs in the table rank by their arms' speed — but scatter cancels, and the bias
+that survives cancelling ranks by span, not by any arm's speed. *Position*
+was confirmed by the crossed design built for it, read as not reproducing on Run
+8, and is confirmed again by Run 9 in a form the crossing cannot summarise:
+it is per shape and per family, not a trend in span. What the crossed design
+settled for good is that the question is answerable at all; what Run 9 adds
+is that the answer is not a single number.
 
 Six A/A points are a modest estimate of a noise floor whichever run supplies
 them, and the four runs disagree several-fold: Run 9 was the tightest
@@ -5770,12 +5771,12 @@ and not a tenth of a percent that a margin has to clear.
 
 The floor above is also measured within one roster, and the roster is a variable
 of its own: RTS pool state a predecessor leaves in the process moved a horde-ad
-benchmark ~18% ([the full account][pos-effect] -- which includes this suite's
-own floor measured isolated against in-process, on both harness generations).
-Run 9 is that account reproduced here and larger, its expansion family reading
-35-40% above its published cells once the process is emptied of predecessors.
-Every strategy sharing one process is what protects the tables above, ratios
-cancelling the shared process draw -- and the vgg cell is what that protection
+benchmark ~18% ([the full account][pos-effect] — which includes this suite's own
+floor measured isolated against in-process, on both harness generations). Run 9
+is that account reproduced here and larger, its expansion family reading 35-40%
+above its published cells once the process is emptied of predecessors. Every
+strategy sharing one process is what protects the tables above, ratios
+cancelling the shared process draw — and the vgg cell is what that protection
 costs when the draw is *not* shared, one family warming and another not.
 A comparison that crosses runs should pin the benchmark selection along
 with the binary.
@@ -5818,14 +5819,14 @@ arithmetic and partly unexplained, and read a class's floor as the run's own.
 ### R2 is the ramp detector, not the noise detector
 
 The two columns catch disjoint failures. **CI%** finds sampling noise, which
-the capping then bounds. **R2** finds *curvature* -- early, low-iteration
-samples running slower than late ones, because criterion forces only a minor GC
-between samples and a full one just once per benchmark, so promoted data
-accumulates as the sample count climbs.
+the capping then bounds. **R2** finds *curvature* — early, low-iteration samples
+running slower than late ones, because criterion forces only a minor GC between
+samples and a full one just once per benchmark, so promoted data accumulates
+as the sample count climbs.
 
 A ramp is systematic, so it yields a *narrow* CI around a *biased* slope:
 the capping cannot see it and will not bound it. The bias tilts the fit shallow,
-so a ramped strategy reads slightly **faster** than it is -- and not uniformly,
+so a ramped strategy reads slightly **faster** than it is — and not uniformly,
 since strategies allocating a large scratch ramp harder than in-place fills,
 making the flattery differential exactly where the comparison is decided. Read
 any row with R2 below 0.99 as possibly a couple of percent optimistic rather
@@ -5846,9 +5847,9 @@ cells).
 
 Run 6's two worst cells had a cause worth the space, because it is a method
 as much as a finding. `mut-odo` carried that run's highest CI cell on both
-of its two smallest `cnn-L1` shapes, while `build` -- the identical fill through
-`vBuildVS`, from a different roster slot -- and `mut-odo-vecdims` -- the same
-fill with the odometer's cons-lists replaced by unboxed vectors -- were clean
+of its two smallest `cnn-L1` shapes, while `build` — the identical fill through
+`vBuildVS`, from a different roster slot — and `mut-odo-vecdims` — the same fill
+with the odometer's cons-lists replaced by unboxed vectors — were clean
 on the same two. Same shape, same process, so it was neither the shape
 nor a disturbance in that stretch of the run: it is the odometer's list traffic
 as a GC ramp where `l` is small enough for it to dominate, which is the cost
@@ -5903,7 +5904,7 @@ each blind to what the others catch:
    paired, 0.10% mean per cell, worst cell 0.53%, the halves 28 benches apart;
    and every class process within 0.3%, the loosest being `scaled` at 1.0026.
 2. *Size.* The term is subtracted **per shape**, so it must be the same pass
-   on every shape -- one sum over `l` elements -- and a term that were not could
+   on every shape — one sum over `l` elements — and a term that were not could
    be wrong in both halves alike, leaving their agreement to notice nothing.
    It is: 0.592 to 0.607 ns per element across the whole shape set, a 1.02x
    spread over that 6250x range of `l`, with the largest shapes a couple
@@ -5911,13 +5912,13 @@ each blind to what the others catch:
    `--selftest` checks it on every run and fails the run past a 1.5x spread; all
    nine of Run 9's populations passed, none spreading past 1.02x.
 3. *The read itself.* `sum-only` re-reads one **fixed** vector, where a strategy
-   sums one its own fill has just written -- a different cache state,
-   and the one thing neither gate above can see, since a term biased by it would
-   be biased alike on every shape and in both halves. This is what
-   `bq-expand-nosum` and `mut-odo-vecdims-nosum` are for: each is its base arm
-   run again and forced with a single element instead of the sum, so *base minus
-   arm* is that sum in situ. Measured against `sum-only` on Run 9 they read
-   **0.9854** and **0.9764** as medians -- within 3%, on the two arms where
+   sums one its own fill has just written — a different cache state, and the one
+   thing neither gate above can see, since a term biased by it would be biased
+   alike on every shape and in both halves. This is what `bq-expand-nosum`
+   and `mut-odo-vecdims-nosum` are for: each is its base arm run again
+   and forced with a single element instead of the sum, so *base minus arm*
+   is that sum in situ. Measured against `sum-only` on Run 9 they read
+   **0.9854** and **0.9764** as medians — within 3%, on the two arms where
    the term is the smallest and largest share of the bench (a quarter
    of `bq-expand`, a third of `mut-odo-vecdims`), so the test spans the range
    over which a bias would matter. Per-cell scatter is 4.3% and 3.5%, the worst
@@ -6223,7 +6224,7 @@ How to read the columns:
   It also keeps `CI%` and R² describing the number the table shows, both being
   properties of that same fitted line.
 - **CI%** is the median across shapes of the slope's confidence interval
-  as a percentage of the slope -- "how many digits are real". 0.5% is three; 5%
+  as a percentage of the slope — "how many digits are real". 0.5% is three; 5%
   is one.
 - **smp** is the median sample count. Criterion spends a time budget, so a slow
   call buys fewer samples; this is where that shows.
@@ -6794,13 +6795,13 @@ is worth less there than its win count.
 
 Two notes on the columns. The `needs` column splits the class-method tier
 in two. A **new pure `Vector` method** delegates to a pure function the vector
-package already ships for every carrier -- `unfoldrExactN`, `backpermute`,
-the `concatMap`/`enumFromStepN` pipeline -- so it fights only *minimal*
+package already ships for every carrier — `unfoldrExactN`, `backpermute`,
+the `concatMap`/`enumFromStepN` pipeline — so it fights only *minimal*
 in orthotope's pure-and-minimal API rule; the **new mutating `Vector` method**
 the direct fills need is the [mutable ceiling](#the-mutable-ceiling-not-taken)'s
 ask, which *pure* barred outright until the amendment there turned the bar
 into a weight. `offtab` is the `Vector`-class-expressible shape of these gathers
--- output by plain `vGenerate` over a concrete offset table -- so its own cell
+— output by plain `vGenerate` over a concrete offset table — so its own cell
 names only its mutable `Int` scratch. And the geomean weights every benchmarked
 shape **equally**, so a figure here is a ranking statistic, not a claim about
 total work saved: the small shapes count as much as the largest.
@@ -7485,7 +7486,7 @@ moved and shrinks to nothing when the two agree. A roster delta has two halves
 now that membership no longer settles what ran: which arms the roster held,
 and which of them it timed. **And a third: the ORDER they ran in.** Order
 is not membership, it *can* move code layout, and Run 10 measured layout at 12
-to 14% on the two arms whose loop the shim rescues -- so a delta stated
+to 14% on the two arms whose loop the shim rescues — so a delta stated
 in membership alone can read empty while the run is not repeatable. Whether
 a given reorder moves anything is a thing to measure rather than assume, both
 answers having turned up in one afternoon: `sum-only-early`'s slot-5-to-2 move
