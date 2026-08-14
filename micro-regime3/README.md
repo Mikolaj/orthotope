@@ -3470,8 +3470,9 @@ reading.
     #      R=runNN; REGIME=-fspec-constr -- an EMPTY regime is a plain -O1
     #      build and nothing downstream notices. Governing docs are this
     #      file and read-run.py's docstring; horde-ad's CLAUDE.md is not
-    cat $R-pair.txt                       # 0. the note: six steps below quote
-    #      it -- the halves' roles, the md5s, the commit, the gate line.
+    cat $R-pair.txt                       # 0. the note: six steps quote it,
+    #      four here and two in the run list -- the halves' roles, the
+    #      md5s, the commit, the gate line.
     #      BASIS/OTHER come from it, never from a half's name, and are set
     #      in one place in each of run-major.sh and run-gate.sh: make them
     #      match. The basis runs second, and both halves run the classes
@@ -3567,8 +3568,26 @@ reading.
     #      Record it on an `L1 ROSTER PASS:` line. With the previous run's
     #      binary gone, membership is compared against the roster delta
     #      under Provenance
-    #  11, 12 and 14 all belong to the PAIR: on passing, write each into
-    #      $R-pair.txt, or the next session repays the hour
+    #  11 and 12 here, and 14 in the run list below, all belong to the
+    #      PAIR: on passing, write each into $R-pair.txt, or the next
+    #      session repays the hour
+    #  that is the preparation, and none of it wants a quiet machine. What
+    #      does is the run list below, which starts on an explicit
+    #      go-ahead and never on a session's own reading of the box
+
+**Then the run — and this is the list that wants the machine, so it does
+not start on a session's judgement.** Steps 13 to 17 sit here rather
+than with the preparation above because each of them either spends the machine
+or reads what has been spent: the gate is forty minutes and the sequence is most
+of an evening, and both want the desktop to itself. **Ask for an explicit
+go-ahead before starting anything below, every time, and never infer one
+from a quiet machine.** No `uptime` or `ps` is run at this point, and neither
+would settle it if it were: what they cannot see is what their owner is about
+to want the machine for. The `ps` at step 16 is an alarm and not a permission —
+it runs after the go-ahead and before the longest stretch, so a machine that got
+busy since stops the run short of the hours rather than after them. Unsandboxed
+throughout:
+
     grep -i gate $R-pair.txt              # 13. has the gate run and passed?
     #      read UP: the newest GATE: line is the script's own "reading still
     #      to do"; the hand-written verdict sits above it. An md5-identical
@@ -3583,15 +3602,14 @@ reading.
     ./read-run.py --para 'What Run'       # 15. the run's registered
     #      predictions; an empty registration is not a blocker, so record
     #      that and go
-    uptime; ps -eo pid,etime,comm | grep $R-      # 16. machine quiet --
-    #      unsandboxed, or ps sees only this session's own processes
+    uptime; ps -eo pid,etime,comm | grep $R-      # 16. the ALARM, never
+    #      the permission -- unsandboxed, or ps sees only this session's
+    #      own processes. It runs here, after the go-ahead and before the
+    #      longest stretch, so a machine that got busy since stops the run
+    #      short of the hours rather than after them
     #  17. read ahead while the sequence runs, which costs no machine time
     #      and is what the write-up needs first: the last run's chapter,
     #      the open list, and the replace list under Provenance
-
-**Then the run, which had no list of its own until a session went looking
-for one.** Unsandboxed throughout:
-
     ./run-major.sh $R &                   # 18 processes, several hours
     ps -eo pid,etime,comm | grep $R-      # confirm from an UNSANDBOXED ps:
     #      comm, not args, and comm truncates at 15 characters. A blocked
