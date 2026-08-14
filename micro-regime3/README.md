@@ -6617,11 +6617,20 @@ as [the floor section][floor] says of any large nursery. Its provenance lines
 will sit an order of magnitude above the basis's: the sweep's `-A1G` row peaked
 at 2318 MiB in use against the 218 to 220 MiB a default-nursery main-set process
 reports, and that peak is exactly what crossed `micro.cabal`'s 2048 MiB cap,
-which is why `-M8G` rides both halves here. **Read the anchors and not only
-the ratios**: `list` is predicted to move on 17 shapes, so the baseline moves
-and every ratio with it, and what decides whether the predictor survives
-are its two controls — the 14 arms that should move on no shape, and `build`
-and `mut-odo`'s 1.13× gap.
+which is why `-M8G` rides both halves here. **And the allocation reading will
+disagree with no code change behind it.** `--compare --alloc` closes by saying
+that a level which moves is a code change and never a slot; this pair
+is an exception, measured 2026-08-14 on `run13-lookrts` over six benches.
+The same binary at `+RTS -A1G` reads every earnest allocator 2.3e-4 to 9.4e-4
+from its default-nursery self, the allocated fit exact in both, where two
+default processes back to back agree to 4.9e-8 and one cell exactly. So expect 0
+of N agreeing on these halves and read nothing into it; a cell moving further
+than that is the finding. Why the counter reads differently under a large
+nursery is unmeasured, and the mode prints the caveat rather than leaving
+it here. **Read the anchors and not only the ratios**: `list` is predicted
+to move on 17 shapes, so the baseline moves and every ratio with it, and what
+decides whether the predictor survives are its two controls — the 14 arms
+that should move on no shape, and `build` and `mut-odo`'s 1.13× gap.
 
 **One more question this pair now answers, registered 2026-08-14 before
 it runs.** Both anomalies this page chases — the wild cell and the `scaled` A/A

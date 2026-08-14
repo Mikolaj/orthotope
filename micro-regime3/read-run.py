@@ -1297,6 +1297,17 @@ def compare_alloc(cells, shapes, strategies, meta, other, main_hs):
     and names the largest of them, while the earnest-allocator line reports
     792 of 792 -- so the agreeing and disagreeing paths both run on one
     invocation, on the pair the mode was written for.
+
+    ONE MEASURED EXCEPTION to the closing rule, and Run 14's pair is it: the
+    RTS nursery moves this fit on code that did not change. The same binary
+    at `+RTS -A1G` reads every earnest allocator 2.3e-4 to 9.4e-4 from its
+    default-nursery self, the allocated fit exact in both, where two default
+    processes back to back agree to 4.9e-8 and one cell exactly -- six
+    benches on run13-lookrts, 2026-08-14. So a pair varying the nursery
+    reports 0 of N here and means nothing by it, and what would be a finding
+    is a cell moving further than that. Why the counter reads differently
+    under a large nursery is unmeasured. The closing text says this, rather
+    than leaving a mode to print a rule its own pair breaks.
     """
     FLOOR = 100.0                # bytes a call, below which the fit is noise
     b_cells, b_shapes, b_strategies, b_meta = load(other, main_hs)
@@ -1343,7 +1354,11 @@ def compare_alloc(cells, shapes, strategies, meta, other, main_hs):
     print('\nThe multiple the alloc column publishes is these bytes divided'
           '\nby a constant per shape, so it agrees exactly where these do and'
           '\nthere is no second column to prefer. Allocation is deterministic'
-          '\nper call: a level that moves is a code change, never a slot.')
+          '\nper call, so a level that moves is a code change and never a'
+          '\nslot -- with one measured exception: a pair varying the RTS'
+          '\nnursery moves this fit by up to 9.4e-4 on identical code, where'
+          '\ntwo processes of one configuration agree to 4.9e-8. Ask what the'
+          '\nhalves differ in before reading a disagreement as a code change.')
 
 
 def compare_table(cells, shapes, strategies, meta, other, main_hs):
