@@ -125,6 +125,9 @@ Modes:
   --claims          every claim ordering and its registered verdict in one
                     call, in the claims section's order, from a manifest
                     --lint holds to the roster
+  --steps           every cell read at sample level for a mid-bench change
+                    of level, which the fitted slope averages away and no
+                    other column here can show
   --cells           every cell as TSV, for anything not covered above
   --markdown        README's Results table, numbers recomputed and the
                     editorial column carried over from the one there --
@@ -1516,6 +1519,88 @@ def aa_table(cells, shapes, strategies, terms, meta, brief=False):
     print('script\'s docstring.')
 
 
+def step_scan(path, min_iters=50, min_samples=20):
+    """Every cell's best change of level mid-bench, and how strong it is.
+
+    Criterion fits ONE slope per cell, so a bench that runs at two speeds
+    publishes their average and reports nothing about either -- the fit
+    stays tight, the interval narrow and R2 at 1.000 while the number is
+    of a state the arm was only half in. That is measured, not feared:
+    `scaled`'s A/A slot is a 4.46% step two thirds of the way through one
+    arm's samples, and the wild cell is the same thing entered before the
+    bench began (README.md#what-is-open). Both are invisible to every
+    other column here, which is why this mode exists.
+
+    The statistic is the best two-segment split of per-iteration times,
+    taken past the warm-up ramp, scored against the pooled scatter inside
+    the two segments. **The threshold is the whole test.** Some split is
+    always the best one, so taking it at face value flags a quarter of all
+    cells and means nothing; `t` above 40 with a step past 2% flags about
+    3% of them and puts the arms this page already suspects -- `build`,
+    `mut-odo`, `offtab` -- at the top. Never quote the first without the
+    second.
+
+    Read a hit as a question, not a verdict: what confirms one is the
+    shape the two known instances have -- both segments flat within
+    themselves, the earlier one level with a twin or with the same arm in
+    another process, and allocation per iteration identical across the
+    split, which `--cells` and the pair's own twin supply.
+    """
+    raw = json.load(open(path))
+    out = []
+    for r in raw[2]:
+        m = [s for s in r['reportMeasured'] if s[3] >= min_iters]
+        if len(m) < min_samples:
+            continue
+        m.sort(key=lambda s: s[3])
+        per = [s[0] / s[3] for s in m]
+        n = len(per)
+        # Prefix sums make the sweep linear rather than quadratic: the run
+        # files here carry ~4000 cells of ~100 samples, and a quadratic
+        # sweep over all of them is minutes where this is seconds.
+        pre, pre2 = [0.0], [0.0]
+        for v in per:
+            pre.append(pre[-1] + v)
+            pre2.append(pre2[-1] + v * v)
+
+        def ss(i, j):
+            k = j - i
+            s1, s2 = pre[j] - pre[i], pre2[j] - pre2[i]
+            return max(s2 - s1 * s1 / k, 0.0)
+
+        tot, k = min(((ss(0, i) + ss(i, n), i) for i in range(6, n - 6)),
+                     key=lambda z: z[0])
+        var = tot / (n - 2)
+        if var <= 0:
+            continue
+        a, b = pre[k] / k, (pre[n] - pre[k]) / (n - k)
+        t = abs(b - a) / math.sqrt(var * (1 / k + 1 / (n - k)))
+        out.append((r['reportName'], (b / a - 1) * 100, t, k, n, m[k][3]))
+    return out
+
+
+def step_table(path, cells, shapes, strategies, meta):
+    hits = step_scan(path)
+    strong = [h for h in hits if h[2] > 40 and abs(h[1]) > 2]
+    weak = [h for h in hits if h[2] > 10 and abs(h[1]) > 2]
+    print('%s: %d cell(s) read at sample level' % (meta['path'], len(hits)))
+    print('  step past 2%%: %d at t>10, %d at t>40 -- and %d cells have SOME'
+          ' best split, which is why the threshold is the test'
+          % (len(weak), len(strong), len(hits)))
+    if not strong:
+        print('  nothing above the threshold in this population')
+        return
+    print()
+    print('  %-46s %8s %7s %10s' % ('cell', 'step', 't', 'at sample'))
+    for name, d, t, k, n, iters in sorted(strong, key=lambda h: -abs(h[1])):
+        print('  %-46s %+7.2f%% %7.0f %6d/%-4d' % (name, d, t, k, n))
+    print()
+    print('  A hit is a question: confirm it with both segments flat, the'
+          ' earlier one level')
+    print('  with a twin or the same arm elsewhere, and allocation per'
+          ' iteration equal across it.')
+
+
 def cell_dump(cells, shapes, strategies):
     # `slope_net_s` is here so that a ratio taken from this dump is the one
     # the tables publish: raw slopes alone would silently give uncorrected
@@ -2887,16 +2972,38 @@ def check_doc(readme, main_hs):
     # the roster's own count; planting Run 12's 0.35% back into the opening
     # named the two disagreeing pairs; and rewording `A/A arms` out of the
     # controls sentence failed as `could not locate` rather than passing.
+    # Re-proven 2026-08-14 after the roster took eight more A/A arms and the
+    # controls sentence crossed twenty: each of the four counts was walked
+    # one off in turn and each named itself and the roster's own figure. The
+    # crossing is also what the hyphen in that first pattern is for -- the
+    # prose writes `twenty-three`, which the old pattern could not match and
+    # which failed, correctly, as `could not locate` rather than as a pass.
     roster = roster_of(main)
     if roster:
         W2N = {w: i for i, w in enumerate(
             'zero one two three four five six seven eight nine ten eleven'
             ' twelve thirteen fourteen fifteen sixteen seventeen eighteen'
             ' nineteen twenty'.split())}
+        W2N.update(thirty=30, forty=40, fifty=50, sixty=60, seventy=70,
+                   eighty=80, ninety=90)
 
         def num(tok):
+            """A digit string, a number word, or a hyphenated compound.
+
+            The compound arm exists because a count that crosses twenty is
+            written `twenty-three` in this page's prose, which the word map
+            alone cannot read and the pattern above must therefore admit
+            a hyphen into.
+            """
             tok = tok.lower()
-            return int(tok) if tok.isdigit() else W2N.get(tok)
+            if tok.isdigit():
+                return int(tok)
+            if '-' in tok:
+                parts = [W2N.get(p) for p in tok.split('-')]
+                if any(p is None for p in parts):
+                    return None
+                return sum(parts)
+            return W2N.get(tok)
 
         paras = unwrapped_paragraphs(lines)
         uw = '\n'.join(p for _, p, _ in paras)
@@ -2905,7 +3012,7 @@ def check_doc(readme, main_hs):
         timed = [n for n, r, _ in roster if r != 'Only']
         twinned = {twin_of(n) for n in aa}
         facts = [
-            (r'are ([a-z\d]+) controls: ([a-z\d]+) A/A arms',
+            (r'are ([a-z\d-]+) controls: ([a-z\d-]+) A/A arms',
              (len(controls), len(aa)), "the controls sentence"),
             (r'with the controls the run is ([a-z\d]+) benches',
              (len(timed),), 'the bench count'),
@@ -3523,6 +3630,7 @@ def main():
     p.add_argument('--shapes', action='store_true')
     p.add_argument('--aa', action='store_true')
     p.add_argument('--cells', action='store_true')
+    p.add_argument('--steps', action='store_true')
     p.add_argument('--pair', nargs=2, action='append', default=[],
                    metavar=('A', 'B'))
     p.add_argument('--compare', metavar='OTHER.json',
@@ -3627,6 +3735,8 @@ def main():
     elif args.compare:
         compare_table(cells, shapes, strategies, meta, args.compare,
                       args.main)
+    elif args.steps:
+        step_table(args.run, cells, shapes, strategies, meta)
     elif args.cells:
         cell_dump(cells, shapes, strategies)
     elif args.markdown:

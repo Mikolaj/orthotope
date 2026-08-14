@@ -300,7 +300,8 @@ def main():
     p = argparse.ArgumentParser(description=__doc__.split('\n')[0])
     p.add_argument('binary', nargs='+')
     p.add_argument('--len', type=int, default=28,
-                   help='loop length in bytes (default 28)')
+                   help='loop length in bytes, or 0 for every length a cache '
+                        'line can hold (default 28)')
     p.add_argument('--min-copies', type=int, default=2,
                    help='only report groups with at least this many copies')
     p.add_argument('--survey', action='store_true',
@@ -322,17 +323,28 @@ def main():
             survey(path)
         return
 
+    # `--len 0` widens the grouped report to every loop a line can hold.
+    # The 28 the default names is the run-fill loop this page prices, and
+    # for four runs it was also the whole tracked set -- which is what the
+    # NOPs question tripped over on 2026-08-14: the arms that lose most to
+    # an unconditional shim carry no 28-byte loop at all, so the report
+    # that would attribute the loss could not see them
+    # (README.md#what-is-open). The length then varies within the report,
+    # so each group prints its own.
+    want = None if args.len == 0 else args.len
     for path in args.binary:
-        found = scan(path, args.len)
+        found = scan(path, want)
         groups = collections.Counter(f['bytes'] for f in found)
         named = arms(path, [f['start'] for f in found])
-        print(f'== {path}: {len(found)} self-loops of {args.len} B in '
+        span = 'any length' if want is None else f'{args.len} B'
+        print(f'== {path}: {len(found)} self-loops of {span} in '
               f'{len(groups)} distinct byte-sequences')
         for body, count in groups.most_common():
             if count < args.min_copies:
                 continue
             fs = [f for f in found if f['bytes'] == body]
-            print(f'   {count} copies, {fs[0]["ninsn"]} insns, '
+            print(f'   {count} copies, {fs[0]["len"]} B, '
+                  f'{fs[0]["ninsn"]} insns, '
                   f'offsets {[f["mod"] for f in fs]}')
             for f in fs:
                 print(f'      0x{f["start"]:x}  mod {LINE} = {f["mod"]:2d}  '
