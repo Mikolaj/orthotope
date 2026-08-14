@@ -97,6 +97,7 @@ function, where that decision is a library-wide one about compile time and code
 size, and the measurement that would settle it is horde-ad's `convVjpBench`
 over a real build. The 27% is what this page contributes to it.
 
+
 ## Contents
 
 Thirty-odd sections, so the map is here rather than left to a grep.
@@ -144,6 +145,7 @@ numbers would be wrong by the next edit and say nothing.
   - [The claims Run 14 should test](#the-claims-run-14-should-test)
   - [The stride classes, run by run](#the-stride-classes-run-by-run)
   - [Provenance](#provenance)
+
 
 ## What is settled, and where
 
@@ -240,6 +242,7 @@ by being a thing a later session might otherwise redo.
   question carrying the measurement that would settle it and what needs a quiet
   machine: [the open list][open], with the harness's own backlog folded
   in under [the TODO list][todo]. Nothing open is recorded anywhere else.
+
 
 ## What is open
 
@@ -1799,6 +1802,7 @@ than a slot in the next run, observed again:
   is invented. Keep a basis column named `aligned`; name the other half
   for its shim.
 
+
 ### Recommended tasks after Run 13
 
 **Nine tasks, collected so a session can be pointed at this heading and work
@@ -1924,6 +1928,7 @@ of column* framing was aligned, and its entry now specifies it on a max-skip
 pair, which asks the same question about the regime `Data/Array/Internal.hs`
 actually compiles under.
 
+
 ### Non-urgent TODO list
 
 - `STANDING` **A class process's provenance line counts every class view,
@@ -2033,6 +2038,7 @@ is one record per file with an explicit *status* — and the thing to carry
 over would be that field, since what this page keeps getting wrong
 is not stating a ruling but noticing when a later measurement has superseded
 one.
+
 
 ### How the strictly positive picture was achieved
 
@@ -2911,6 +2917,7 @@ Ideas that **died on paper**, recorded so they are not re-proposed:
   multiply-high and one shift per element, no bound on `l` (`gmMagic`
   in `Main.hs`).
 
+
 ## About the current harness
 
 **This chapter normally does not change from run to run either**, but
@@ -2923,6 +2930,7 @@ blocks](#the-stride-classes-run-by-run). What is *not* here is anything
 a particular future run has to settle — that is [What is open](#what-is-open),
 the chapter at the front, which is where everything that goes stale as soon
 as a run reports is now collected.
+
 
 ### What the benchmark does
 
@@ -3166,6 +3174,7 @@ satisfies, and reports the not-timed set as a note rather than a failure;
 the second carried `needs` and `precondition` forward from the table above,
 so the column left the reader and the table in the same commit — a column
 dropped from one alone would be reinstated by the next install.
+
 
 ### Running it
 
@@ -7380,6 +7389,7 @@ paired — so it is unbolded above and is not a break to carry. `m` is 1 and 2,0
 here, so the expansion table costs almost nothing: the allocation column reads
 1.07x, the lowest of the eight, which is the third property's own warning
 arriving as it said it would.
+
 
 ### Provenance
 
