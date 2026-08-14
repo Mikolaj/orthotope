@@ -3483,20 +3483,36 @@ reading.
     #  from anywhere; a bare `-- Main.hs` run from the root prints nothing
     #  and exits 0, which reads exactly like an unmoved source. Where the
     #  note records two commits, the other is the tree it was built in
-    #  build ONLY if 1-3 say so, and from the note's own recipe: there is
-    #  no builder here, every pair being two shims built by hand. Write the
-    #  note FIRST -- it is the only copy of both recipes. Every build wants
-    #  -fforce-recomp and a fresh --builddir, cabal answering "Up to date"
-    #  for a -pgma or an environment change; --ghc-options="$REGIME" stays
-    #  quoted, and a value with a space needs inner quotes besides,
-    #  --ghc-options='"-with-rtsopts=-I0 -T -M8G"'. Build both halves back
-    #  to back with nothing touched between, and keep both executables
+    #  3b. BUILD BOTH HALVES, only if 1-3 say so and from the note's own
+    #      recipe -- a step of its own since 2026-08-15, where it had been
+    #      a remark between two steps and read as somebody else's job. It
+    #      is a session's to run like every other line here; what is not
+    #      is the note, whose prose and verdicts are written by hand.
+    #      There is no builder, every pair being two shims typed out, so
+    #      write the note FIRST -- it is the only copy of both recipes.
+    #      Every build wants -fforce-recomp and a fresh --builddir, cabal
+    #      answering "Up to date" for a -pgma or an environment change;
+    #      --ghc-options="$REGIME" stays quoted, and a value with a space
+    #      needs inner quotes besides,
+    #      --ghc-options='"-with-rtsopts=-I0 -T -M8G"'. Build the halves
+    #      back to back with nothing touched between -- about twenty
+    #      seconds each here, the dependencies being in the store and only
+    #      the local package recompiled -- keep both executables, delete
+    #      each --builddir once its binary is copied out, and read the
+    #      pair's variable straight out of each
+    #      with the note's own `strings` line before trusting either.
+    #      Then transcribe into the note what only the build can say: the
+    #      Main.hs commit it was built from, the two md5s, .text and the
+    #      fills -- the fill-in block is that transcription, and steps 2,
+    #      3, 9b and 10 are all reading it back
     ./$R-<basis> check > /tmp/a.log 2>&1  # 4. every shape agrees
     ./$R-<other> check > /tmp/b.log 2>&1  # 5. and the other half
     cmp /tmp/a.log /tmp/b.log             #    byte-identical, or STOP
     #      scratch names, spelled in full: a $R-*.log here makes
     #      run-major.sh refuse hours later, and $TMPDIR is unset unsandboxed
-    ./$R-<basis> --list 2>/dev/null | wc -l    # 6. roster size
+    ./$R-<basis> --list 2>/dev/null | wc -l    # 6. roster size, and diff
+    #      the two halves' listings: identical is what one source built
+    #      twice looks like, and the pair note asks for that half of it
     ./read-run.py --lint                  # 7. roster and shape annotations
     ./read-run.py --check-doc             # 8. anchors, paths, widths, sweeps
     #      7+8 are the WHOLE document check here; no other repo's checkers,
@@ -3514,17 +3530,27 @@ reading.
     #      stands in for it
     ./loop-offsets.py $R-<other> $R-<basis>    # 10. fills, kept with the run
     ./loop-offsets.py --library $R-<basis> $R-<other>   #     and the library
-    #      near-total same-offset agreement is what a sound pair looks like;
-    #      a note's nm-based figure is a different number, so compare like
-    #      with like. On the BUILD path also --survey each half and put the
-    #      straddle answer in the note: offsets at 0 are what a fully padded
-    #      half shows and are not to be required of a max-skip one
+    #      near-total same-offset agreement is what a sound pair looks
+    #      like -- but only `--library` PRINTS an agreement figure. The
+    #      plain form lists each binary's own fills and leaves the
+    #      comparison to the eye, which is a reading and not a verdict:
+    #      what a sound pair shows there is the same fills at the same
+    #      addresses in both sections. A note's nm-based figure is a
+    #      different number again, so compare like with like.
+    ./loop-offsets.py --survey $R-<basis>       #    on the BUILD path,
+    ./loop-offsets.py --survey $R-<other>       #    never the confirm one
+    #      -- a straddle answer is a property of the binary, so it is read
+    #      once when the pair is made and kept in the note. Offsets at 0
+    #      are what a fully padded half shows and are not to be required
+    #      of a max-skip one
     #  11. the smoke sweep, unsandboxed: the block below
     #  12. the -L1 roster pass, ONLY if `--list` changed membership AND
     #      the pair note records none -- it belongs to the pair as the gate
     #      does, so grep the note before paying the twenty minutes. Two
-    #      processes: -L1 over the main set and one THREE-shape class (rev,
-    #      revsome or bcast). Name the artifacts smoke*, never $R-* -- any
+    #      processes: -L1 over the main set and one class, every class
+    #      being three shapes since 2026-08-14 -- prefer one of the five
+    #      that crossed from two, which drives `--block`'s three-shape
+    #      branch. Name the artifacts smoke*, never $R-* -- any
     #      $R-*.json/.log makes run-major.sh refuse, only $R-gate-* exempt.
     #      Record it on an `L1 ROSTER PASS:` line. With the previous run's
     #      binary gone, membership is compared against the roster delta
