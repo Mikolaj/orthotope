@@ -4210,7 +4210,10 @@ was missed, which is what they have cost.
     #      The independent checker is TWO passes on one agent, tables when
     #      they go in and prose when written, briefed that it works in this
     #      directory, that its evidence is this run's JSONs and read-run.py,
-    #      and that no other repo's checkers come near this page
+    #      and that no other repo's checkers come near this page.
+    #      Once the write-up settles, one comprehension probe: a fresh
+    #      session answers a few of the page's own questions from the
+    #      document alone, with citations
     ./read-run.py --lint          # 8. again after ANY Main.hs edit, and
     #      never rebuild the pair to satisfy it: say in the write-up that
     #      the comment-only move happened
@@ -4418,9 +4421,15 @@ the artifacts are what it spends.
    is this run's own JSONs and `read-run.py`, and that no other repository's
    checkers come near this page — it starts where your session started,
    so the artifacts are not where it is and the checkers it arrives with
-   are not this page's. (The rule that a check must be proven able to fail
-   governs the instruments themselves and is stated with them, [in the reader's
-   section](#the-reader-read-runpy).)
+   are not this page's. And once the write-up has settled, aim the same
+   instrument at the finished page rather than the diff: a comprehension probe —
+   a fresh session answering a handful of the page's own questions
+   from the document alone, with citations — reads as a stranger what every
+   diff-scoped check reads as a change, and its one run so far (2026-08-14, six
+   questions, all answered) surfaced a contradiction between two standing
+   passages that nothing above could have seen. (The rule that a check must
+   be proven able to fail governs the instruments themselves and is stated
+   with them, [in the reader's section](#the-reader-read-runpy).)
 
    The checks themselves:
    1. **derive every count and ratio in the prose from `--cells`, never by eye,
