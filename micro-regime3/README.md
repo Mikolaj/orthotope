@@ -1283,12 +1283,19 @@ than a slot in the next run, observed again:
   3. **A discriminating reading is available if something does move, and
      it is registered here rather than invented afterwards.** The shim half
      differs by **one pad**: of its 27 extra heads the assembler declines 26,
-     and the one that fires moves everything after it by 47 bytes. So a movement
-     belonging to the shim should look like placement — scattered across arms,
-     no consistent direction, the size Run 11's repetition measured — while one
-     belonging to `-I0` should be broad and one-directional, the idle GC acting
-     between every bench alike. Neither shape proves its cause; a run whose
-     movement has *neither* shape is the interesting outcome.
+     and the one that fires moves everything after it by a whole line. Measured
+     on the pair itself, 2026-08-14, off `nm` and the two `.text` images:
+     the pad lands inside `Main_zdWT_info` at `0x417a40` as five 11-byte NOPs
+     and a `90`, every one of the 29342 library symbols downstream sits **64
+     bytes** later, the 39 before it do not move, and the shift is absorbed
+     before the tail, which is why both `.text` sections are byte-identical
+     at 20377797. The 47 is the assembly's own padding count, 3941 bytes against
+     3988, and not the displacement. So a movement belonging to the shim should
+     look like placement — scattered across arms, no consistent direction,
+     the size Run 11's repetition measured — while one belonging to `-I0` should
+     be broad and one-directional, the idle GC acting between every bench alike.
+     Neither shape proves its cause; a run whose movement has *neither* shape
+     is the interesting outcome.
   4. **The `-nosum` arm's first full-budget row**, which is a deliverable rather
      than a question: `mut-flat-gm-nosum` landed after Run 12, so the roster
      is 840 benches against that run's 816, its Results row comes out with `?`
@@ -3062,7 +3069,9 @@ is re-reading the section three times to be sure nothing was missed, which
 is what it has cost every session so far.
 
     cd ~/r/orthotope/micro-regime3        # and re-set R and REGIME per call
-    #  BASIS/OTHER come from the pair note, never from a half's name
+    cat $R-pair.txt                       # 0. the note: six steps below quote
+    #      it -- the halves' roles, the md5s, the commit, the gate line.
+    #      BASIS/OTHER come from it, never from a half's name
     ls $R-*                               # 1. is there a pair?
     md5sum $R-<basis> $R-<other>          # 2. is it the note's pair?
     git log -1 --format=%h -- :/micro-regime3/Main.hs   # 3. has it moved?
@@ -3080,7 +3089,9 @@ is what it has cost every session so far.
     ./$R-<basis> diag                     # 9. the regime, in the binary
     #  9b. and the pair's own variable, by whatever the note says reads it:
     #      diag answers for the regime and for nothing else, so what the
-    #      halves differ in is checked by the note's own command or not
+    #      halves differ in is checked by the note's own command -- or by
+    #      the note saying which variable leaves no trace to read, and what
+    #      stands in for it
     ./loop-offsets.py $R-<other> $R-<basis>    # 10. fills, kept with the run
     #  11. the smoke sweep, unsandboxed: the block below
     #  12. the -L1 roster pass, ONLY if `--list` changed membership AND
@@ -3088,9 +3099,11 @@ is what it has cost every session so far.
     #      does, so grep the note before paying the twenty minutes
     grep -i gate $R-pair.txt              # 13. has the gate run and passed?
     #  14. ./run-gate.sh $R  -- only if 13 says it has not
-    #  15. read the run's registered predictions, on the open list --
+    #  15. read the run's registered predictions:
+    #      ./read-run.py --para 'What Run'
     #      an empty registration is not a blocker; record that and go
-    uptime; ps -eo pid,etime,comm | grep $R-      # 16. machine quiet
+    uptime; ps -eo pid,etime,comm | grep $R-      # 16. machine quiet --
+    #      unsandboxed, or ps sees only this session's own processes
 
 Steps 4 to 10 are read-only and fine sandboxed; 11, 12 and 14 write and are not.
 Step 16 answers less than it looks: `ps` in a session lists only that session's
@@ -3102,10 +3115,10 @@ it is done. **And what is true of 14 is true of 11 and 12: write each
 into the pair note when it passes.** All three cost machine time, all three
 are properties of the pair and its roster rather than of the session that ran
 them, and a session that cannot see they were run pays for them again — twenty
-minutes for the roster pass, an hour for the gate. The note is the only thing
-that outlives a session, so an outcome recorded nowhere is an outcome nobody
-after you can use; the gate's own line has said so all along, and the other two
-were left to memory until 2026-08-13, when they were.
+minutes for the roster pass, about forty for the gate. The note is the only
+thing that outlives a session, so an outcome recorded nowhere is an outcome
+nobody after you can use; the gate's own line has said so all along,
+and the other two were left to memory until 2026-08-13, when they were.
 
 **Steps 7 and 8 are the whole of this page's document check, and no other
 repository's checkers belong on it.** Theirs carry a per-repo configuration —
@@ -3225,15 +3238,18 @@ of rebuilding.
 The fork's three questions are answerable in three commands, none of which
 the page should make you invent. Is there a pair — `ls $R-*`. Is it the pair
 the note describes — `md5sum $R-<basis> $R-<other>` against its two `md5` lines.
-Has the source moved under it — `git log -1 --format=%h -- Main.hs` against
-the commit the note records for `Main.hs`, which is the one that command
-returns; where the note records two, the other is the tree it was built
-in and is not what this compares. **Expect it to differ, and read the diff
-before believing it**: step 8 below sends the write-up into `Main.hs`'s comments
-and forbids rebuilding for it, so a comment-only move is the normal state after
-every run, and `git diff <note's commit> HEAD -- Main.hs` is what tells
-it from a real one. The regime is the fourth and is not answerable this way,
-the JSON recording no compiler flag; the `diag` step below is what answers it.
+Has the source moved under it —
+`git log -1 --format=%h -- :/micro-regime3/Main.hs` against the commit the note
+records for `Main.hs`, which is the one that command returns; where the note
+records two, the other is the tree it was built in and is not what
+this compares. **Expect it to differ, and read the diff before believing it**:
+step 8 below sends the write-up into `Main.hs`'s comments and forbids rebuilding
+for it, so a comment-only move is the normal state after every run,
+and `git diff <note's commit> HEAD -- :/micro-regime3/Main.hs` is what tells
+it from a real one — the `:/` prefix in both, since a bare `-- Main.hs`
+from the repo root prints nothing and exits 0. The regime is the fourth
+and is not answerable this way, the JSON recording no compiler flag; the `diag`
+step below is what answers it.
 
 Only where there is no pair, or where `Main.hs` or the regime has moved since
 the note was written, is a build the thing to do — and there is nothing here
@@ -3264,12 +3280,15 @@ a filtered handful of benches answering one question — and those are run
 with `cabal run micro ${REGIME:+--ghc-options=$REGIME} --`, never through
 the sequence below.
 
-**Before spending the hours**, the cheap checks — the first two against
+**Before spending the hours**, the cheap checks — the first three against
 the binaries that will be timed, not a third built beside them, and the last two
 against `Main.hs` and this file, which open no binary at all:
 
-    ./$R-<basis> check           # every strategy agrees, every shape regime 3
-    ./$R-<other> check           # and the other half: both were shim-rewritten
+    ./$R-<basis> check > /tmp/a.log 2>&1   # every strategy agrees, every
+    ./$R-<other> check > /tmp/b.log 2>&1   #   shape regime 3, both halves
+    cmp /tmp/a.log /tmp/b.log              # and the two logs are identical
+    #  scratch names, not $R-*.log: run-major.sh refuses to start where one
+    #  of those exists, so a log named for the run blocks the run
     ./$R-<basis> --list 2>/dev/null | wc -l    # 2>/dev/null is NOT
                                  #   optional:
                                  #   the provenance line goes to stderr and
@@ -3306,11 +3325,11 @@ goes through the recipe in that pair's note. The two lines above cost seconds.
 
     ./$R-<basis> diag
 
-and read one row of it — `baseOffsetsScan` against `baseOffsetsMut`
-on `vgg-14-c512`, which is a `diag` label rather than a shape and so will
-not be found in the shape set. They are equal under SpecConstr and ten times
-apart at plain -O1, a separation no eye misreads, and both ends of
-it are measured (2026-08-08), the flag being the only thing that moves them.
+and read one row of it — the allocated bytes of `baseOffsetsScan` against
+`baseOffsetsMut` on `vgg-14-c512`, which is a `diag` label rather than a shape
+and so will not be found in the shape set. They are equal under SpecConstr
+and ten times apart at plain -O1, a separation no eye misreads, and both ends
+of it are measured (2026-08-08), the flag being the only thing that moves them.
 Seconds either way — on the build path, the seconds after a rebuild the flag
 forces anyway; on the confirm path, its own, and the only ones spent there
 that matter, since with no build to carry the regime this is the only check
@@ -3325,15 +3344,17 @@ halves are built one after the other from the note's recipes, with nothing
 touched in between, and why both executables are kept.
 
 `check` is the gate and the offsets are not, a wrongly padded binary having
-correct-looking offsets and wrong answers. Read both listings anyway and keep
-them with the run: what each half's fills are and that no short loop of its own
-code straddles, recorded as they stand, since a prediction made per arm is made
-from them and no later binary has them — offsets at 0 are what a fully padded
-half shows and not a thing to require of a max-skip one, which leaves a resident
-loop where it fell; `--survey` is the length-agnostic form and takes one binary
-at a time (`./loop-offsets.py --survey $R-<basis>`), and what "every timed arm's
-loop" means is bounded by what can be attributed at all. The sequence below runs
-each half in turn, and `run-major.sh` does it for you; what neither can do
+correct-looking offsets and wrong answers. Read both listings anyway: what each
+half's fills are, since a prediction made per arm is made from them and no later
+binary has them. **Whether any short loop of a half's own code straddles
+is the build path's to read and the note's to keep**, `--survey` being one
+binary at a time and the answer a property of the pair rather than
+of the session confirming it — offsets at 0 are what a fully padded half shows
+and not a thing to require of a max-skip one, which leaves a resident loop where
+it fell; `--survey` is the length-agnostic form and takes one binary at a time
+(`./loop-offsets.py --survey $R-<basis>`), and what "every timed arm's loop"
+means is bounded by what can be attributed at all. The sequence below runs each
+half in turn, and `run-major.sh` does it for you; what neither can do
 is interleave two processes of this size within a population, so the order they
 ran in is written down and is one of the two things left uncontrolled.
 
@@ -3353,9 +3374,12 @@ and so the worst shift available — and the two-step that does
 is in `align-as.py`'s docstring, beside the `PAD_BYTES` it feeds. **A pair
 of two shims has no such step and no such guarantee**, only whatever its two
 recipes give it, which is why `./loop-offsets.py --library` exists: it reports
-how far the two halves agree about where the libraries sit, and a pair is read
-against its own note rather than against a figure quoted here. So the pair now
-differs in Main's loop alignment and in nothing else an offset can see,
+what share of the library self-loops the two halves put at the same offset
+in their line, and near-total agreement is what a sound pair looks like. A note
+may record the same property the other way round, off `nm` symbol by symbol,
+which is the stronger reading and not this tool's output — so compare like
+with like, or read the note's own figure as the note's. So the pair now differs
+in Main's loop alignment and in nothing else an offset can see,
 and `micro-unaligned` keeps every offset the unpadded build had: the same fills
 at [3, 53, 59, 45] and [16, 0, 36, 36], the same 115 short loops with 50
 straddling.
@@ -3576,8 +3600,8 @@ here costs the forty minutes the step exists to save, which is how it was found.
 If a verdict records a pass, this step is already done and the next action
 is the run itself. A rebuild that comes out md5-identical inherits the gate,
 and one that does not — a changed `Main.hs`, a changed regime — needs its own.
-Re-running it on a pair that has already passed costs a quiet hour and can only
-reproduce what the note says.
+Re-running it on a pair that has already passed costs a quiet forty minutes
+and can only reproduce what the note says.
 
 **If that line says the gate has not run**, it is the last thing before
 the evening. `run-gate.sh` takes five benches over the shape set from each half,
@@ -3588,17 +3612,24 @@ is the part a person retyping the command would drop:
     ./run-gate.sh $R
     ./read-run.py $R-gate-<basis>-a.json \
       --compare $R-gate-<other>-a.json
+    ./read-run.py $R-gate-<basis>-b.json \
+      --compare $R-gate-<other>-b.json
 
-It wants the same quiet the run does and costs the better part of an hour,
+**Both passes are read, which is what the palindrome is for**: the `a` pair puts
+the two halves next to each other early and the `b` pair does it late,
+so a verdict is the two readings agreeing rather than one of them taken
+at a moment. It wants the same quiet the run does and costs about forty minutes,
 so it is not one of the cheap checks above; what it buys is finding out
 that the basis binary is wrong before an hour of main set is spent on it,
 and a first reading of the arms the pairing is predicted on. What the script
 writes back into the note is the mechanical half alone — four exit codes
 and four bench counts — because that is what it knows; whether the pair is sound
-is the reading's verdict and is written there by hand. What the predictions
-are is in [the open list](#what-is-open) with the rest of the run's
-registrations; what the gate read is in the note, written by hand above
-the script's mechanical block.
+is the reading's verdict and is written there by hand — **above** the script's
+block, where reading up from the end meets it first, and the `GATE: not yet run`
+line goes in the same edit, since a reader reading up would otherwise meet
+that one and stop. What the predictions are is in [the open list](#what-is-open)
+with the rest of the run's registrations; what the gate read is in the note,
+written by hand above the script's mechanical block.
 
 **The run** is one sequence — the main set from each binary the run has,
 then each stride-class population in its own process, in `classViews`' order.
