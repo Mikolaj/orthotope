@@ -1341,7 +1341,7 @@ def fingerprint_table(cells, shapes, strategies, meta):
 
 
 # The three arms the second class property names
-# (README.md#the-claims-run-13-should-test). Constants rather than literals
+# (README.md#the-claims-run-14-should-test). Constants rather than literals
 # because the property has been re-aimed twice, and a re-aim that misses one
 # use of a name is how a verdict starts disagreeing with the claim it checks.
 PROP2_FASTEST = 'mut-odo-vecdims'
@@ -2190,6 +2190,88 @@ def check_doc(readme, main_hs):
                            ' from line %s) -- run `wrap80 -i %s`'
                            % (os.path.basename(readme), n, at,
                               os.path.basename(readme)))
+
+    # A paragraph that stops mid-sentence is what a scripted rewrite leaves
+    # when it replaces more text than its author read. The shape is specific:
+    # an edit anchored on a PREFIX and replacing a whole line -- which, on a
+    # file in its unwrapped form, is a whole paragraph -- silently discards
+    # whatever followed the part the author had in front of them. Nothing
+    # else here sees it. The wrap check above compares against the
+    # formatter's own output, so a truncated paragraph is wrapped exactly as
+    # wrap80 would wrap it and passes; the figure sweeps read the numerals
+    # that remain; `--lint` reads names. That is how one went out past two
+    # green gates on 2026-08-14, and this check is the repair.
+    #
+    # What it asks, per paragraph rather than per line: does the last line of
+    # a prose block end the way a sentence ends. Four things are not prose
+    # and are skipped -- an indented line, a table row (indented or not), a
+    # heading or blockquote, and a link reference definition. Two more end
+    # legitimately without terminal punctuation and are the reason this is
+    # not a one-line rule. A block ending in a FIGURE is a data line, not a
+    # sentence: the per-shape line each three-shape class block carries ends
+    # in a ratio, and the block form is this page's rather than a run's to
+    # change. And a sentence may run INTO an indented block -- a code sample
+    # or an indented table -- leaving the prose before it ending on `of` or a
+    # dash with the rest after; three paragraphs of this page do that, so
+    # the following block's indentation is consulted before failing anything.
+    #
+    # Non-vacuous, 2026-08-14, every branch exercised on this README. Whole
+    # and untouched it reports 0 and exits 0. With a paragraph's TAIL dropped
+    # -- the 2026-08-14 failure replayed, and re-wrapped first so that the
+    # hand-wrapping check above cannot fire in its place -- it names the
+    # paragraph, gives its line and exits 1. Its two exemptions have LIVE
+    # CONTROLS here rather than planted ones, which is what keeps them from
+    # being holes nobody tests: removing the figure ending fails this README
+    # on 3 paragraphs, the `Per shape, in the lead's order` lines, and
+    # removing the indented-continuation one fails it on 3 others, the
+    # paragraphs that run into a code sample. Both were measured by removal
+    # rather than assumed.
+    #
+    # WHAT IT DOES NOT CATCH, said here so nobody reads it as more: a deletion
+    # from the MIDDLE of a paragraph, which leaves the paragraph still ending
+    # in a sentence. The first attempt at the test above cut there, and this
+    # check was right not to fire; only a dropped tail has a signature here.
+    # A non-vacuity test has to reproduce the failure's shape, not merely
+    # damage the file.
+    def _tail(b):
+        ls = [l for l in b.split('\n') if l.strip()]
+        return ls[-1] if ls else None
+
+    def _head(b):
+        ls = [l for l in b.split('\n') if l.strip()]
+        return ls[0] if ls else None
+
+    def _not_prose(l):
+        t = l.strip()
+        return (l[:1] in ' \t' or t.startswith(('|', '#', '>', '<'))
+                or bool(re.match(r'^\[[^\]]+\]:', t)))
+
+    whole_md = '\n'.join(lines)
+    blocks = whole_md.split('\n\n')
+    cut = []
+    for i, b in enumerate(blocks):
+        tail = _tail(b)
+        if tail is None or _not_prose(tail):
+            continue
+        t = tail.rstrip()
+        ends_sentence = re.search(r'[.:;!?)\]*`"\u2019\u201d]$', t)
+        if ends_sentence or re.search(r'[\d%]$', t):
+            continue
+        nxt = _head(blocks[i + 1]) if i + 1 < len(blocks) else None
+        if nxt is not None and _not_prose(nxt):
+            continue
+        at = whole_md.count('\n', 0,
+                            sum(len(x) + 2 for x in blocks[:i])) + 1
+        cut.append((at, t))
+    if cut:
+        bad.append('%d paragraph(s) of %s stop mid-sentence -- first at line'
+                   ' %d, ending "%s". A scripted rewrite that anchors on a'
+                   ' prefix replaces the whole paragraph, including the part'
+                   ' you did not read; quote the full old text instead'
+                   % (len(cut), os.path.basename(readme), cut[0][0],
+                      cut[0][1][-48:]))
+    else:
+        note.append('every prose paragraph of the README ends a sentence')
 
     # This page says of itself that it cites no line and no permalink,
     # deliberately -- naming arm, strategy and shape names instead, which
