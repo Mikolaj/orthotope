@@ -1976,6 +1976,40 @@ actually compiles under.
   the fixed-iteration differencing the horde-ad performance model prescribes
   (`-n 200` minus `-n 100`, fresh processes) rather than criterion, since
   the builders are not benchmarks.
+- `OPEN` **Count work instead of sampling time, wherever the question
+  is an ordering — speculative, written 2026-08-14 from a review
+  of the apparatus rather than from any run.** Most of what the controls,
+  the pairing and the shim defend against — placement, warmth, drift — exists
+  because wall-clock on this machine is layout- and history-dependent, while
+  counted work is not: the wild-cell probe read an A/A pair's instructions
+  agreeing to 5e-5. A cachegrind or fixed-`-n` counter table would
+  be deterministic, want no quiet machine and no floor, and reproduce on any
+  box; the clock would stay for the boundaries where a memory-system effect
+  could invert an ordering. The pilot that would settle it: counts for every
+  timed arm over the shape set, read against a published time column — orderings
+  that agree license the switch, and the cells that disagree
+  are the memory-bound residue the clock is still for.
+- `OPEN` **Randomise slots in per-trial processes instead of pinning them —
+  speculative likewise.** The crossed controls hold position and warmth still
+  so that the bias stays constant; the statistical alternative is many short
+  fixed-`-n` trials per cell, each in its own process with the order drawn
+  fresh, so that position becomes noise that averages rather than bias
+  that persists, and a table stops needing comparability carried between runs,
+  being self-contained evidence. This is not the reordering the roster-order
+  entry above rejected — that varied slots inside the one shared process, where
+  it breaks comparability with every recorded run — but a regime that gives
+  the shared process up. What would settle whether it pays: a pilot over a few
+  arms and shapes read against the published column, with the A/A pairs' spread
+  under randomisation as the method's own floor.
+- `OPEN` **Render the run-scoped prose from a ledger — speculative likewise.**
+  The claims manifest and the run-current count checks point at an end state:
+  verdicts, statuses, floors and tallies kept in one small machine-readable file
+  beside the roster, `read-run.py` rendering them into this page as `--in-place`
+  renders the tables, so that everything rendered cannot go stale
+  and the checker fleet stops growing a check per defect class. The mechanism
+  is not in doubt; the cost is a rewrite of the write-up procedure. The pilot:
+  one section — the yardstick, or the claims verdicts — rendered rather
+  than written, on the next run.
 
 
 ## The goal of these benchmarks
