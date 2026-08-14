@@ -122,9 +122,9 @@ Modes:
                     partitioned by size and never by column
   --compare O --chapter the run chapter's own arithmetic, so that writing
                     one need not begin by reading the last one
-  --claims          every claim ordering in one call, in the claims
-                    section's order, from a manifest --lint holds to the
-                    roster
+  --claims          every claim ordering and its registered verdict in one
+                    call, in the claims section's order, from a manifest
+                    --lint holds to the roster
   --cells           every cell as TSV, for anything not covered above
   --markdown        README's Results table, numbers recomputed and the
                     editorial column carried over from the one there --
@@ -1006,6 +1006,20 @@ def sign_p(k, n):
     return min(1.0, 2.0 * tail / 2 ** n)
 
 
+def pair_stats(cells, shapes, a, b):
+    """One pair's per-shape ratios, and whether they had to be taken raw.
+
+    The one computation `--pair` and `--claims` share, held in one place so
+    the verdict a claim prints cannot disagree with the figures beside it.
+    Netting an arm that never ran the forcing pass is meaningless, so a
+    pair with a `sum-only` or `-nosum` half is compared raw and says so.
+    """
+    raw = any(x.startswith('sum-only') or x.endswith('-nosum')
+              for x in (a, b))
+    key = 'slope' if raw else 'net'
+    return raw, [cells[s][a][key] / cells[s][b][key] for s in shapes]
+
+
 def pair_table(cells, shapes, strategies, pairs, quiet=False):
     """Compare two arms shape by shape, which is the sharp way to compare them.
 
@@ -1032,12 +1046,7 @@ def pair_table(cells, shapes, strategies, pairs, quiet=False):
             print('%-46s not in this run: %s' % (a + ' / ' + b,
                                                  ', '.join(missing)))
             continue
-        # Netting an arm that never ran the forcing pass is meaningless, so
-        # such a pair is compared raw and said to be.
-        raw = any(x.startswith('sum-only') or x.endswith('-nosum')
-                  for x in (a, b))
-        key = 'slope' if raw else 'net'
-        r = [cells[s][a][key] / cells[s][b][key] for s in shapes]
+        raw, r = pair_stats(cells, shapes, a, b)
         g, n = geomean(r), len(r)
         k = sum(1 for x in r if x < 1)
         ci = paired_ci(r)
@@ -1606,36 +1615,50 @@ def fingerprint_table(cells, shapes, strategies, meta):
 # read by `--compare --alloc`, and 8 is structural, read off the table.
 # `--lint` holds every arm here to the roster, which is what stops a
 # re-aimed claim from leaving a verdict checking an arm no run times.
+# Each pair carries its registered expectation, so `--claims` prints a
+# verdict rather than leaving every reading to be judged by eye against the
+# claims section. The predicate follows the section's own rules: a direction
+# claim is judged on which side of 1 the paired geomean falls ("the margin
+# is the finding and the p is not"), a tie on the sign test alone (which is
+# how claims 4 and 6 are stated), and claim 9's stable half on the two best
+# shapes of the sort, its geomean being explicitly not the claim.
 CLAIMS = [
     (1, 'the ceiling ordering, on unconditional arms',
-     [('mut-odo-vecdims', 'mut-flat-gm'),
-      ('mut-flat-gm', 'bq-mut-runs-gm-mulback'),
-      ('bq-mut-runs-gm-mulback', 'bq-odo-gm-mulback')]),
+     [('mut-odo-vecdims', 'mut-flat-gm', 'faster'),
+      ('mut-flat-gm', 'bq-mut-runs-gm-mulback', 'faster'),
+      ('bq-mut-runs-gm-mulback', 'bq-odo-gm-mulback', 'faster')]),
     (2, 'the m-length table beats the scratch that builds it and the '
         'l-length table that replaces it',
-     [('bq-expand', 'bq-mut'), ('offtab', 'bq-expand')]),
+     [('bq-expand', 'bq-mut', 'faster'),
+      ('offtab', 'bq-expand', 'slower')]),
     (3, 'a mul-back output pays on the shipped build',
-     [('bq-expand-gm-mulback', 'bq-expand')]),
+     [('bq-expand-gm-mulback', 'bq-expand', 'faster')]),
     (4, 'the scan ties its own build control, and ties the shipped arm',
-     [('bq-scan-rem-gm-mulback', 'bq-expand-gm-mulback'),
-      ('bq-scan-rem-gm-mulback', 'bq-expand')]),
+     [('bq-scan-rem-gm-mulback', 'bq-expand-gm-mulback', 'tie'),
+      ('bq-scan-rem-gm-mulback', 'bq-expand', 'tie')]),
     (5, 'the build ordering, trimmed to its timed arms',
-     [('bq-expand', 'bq-gen'), ('bq-mut-runs', 'bq-expand')]),
-    (6, 'the first attempt ties the baseline', [('gen-quotrem', 'list')]),
+     [('bq-expand', 'bq-gen', 'faster'),
+      ('bq-mut-runs', 'bq-expand', 'faster')]),
+    (6, 'the first attempt ties the baseline',
+     [('gen-quotrem', 'list', 'tie')]),
     (9, 'read per shape, not on its geomean',
-     [('bq-expand-b', 'bq-expand'), ('bq-expand-zf', 'bq-expand')]),
+     [('bq-expand-b', 'bq-expand',
+       ('best2', 'stretch-inner1', 'stretch-wide-2xM')),
+      ('bq-expand-zf', 'bq-expand', 'slower')]),
 ]
 
 
 def claims_table(cells, shapes, strategies, args):
-    """Every claim's reading in one call, in the claims section's order.
+    """Every claim's reading and its registered verdict, in one call.
 
-    Each ordering is one `--pair`, and a write-up runs a dozen of them by
-    hand, one call each, transcribing as it goes. That is the shape of work
-    a mode removes: this runs the manifest above and prints the figures a
-    verdict paragraph is built from, leaving the verdict itself -- held,
-    broke, tied, or moved and by how much against the run before -- to the
-    author, who is the only one who can compare with what the page says.
+    Each ordering is one `--pair`, and a write-up used to run a dozen of
+    them by hand and then judge each against the claims section by eye --
+    which is where a wrong verdict gets invented, so the expectations now
+    ride in the manifest above and the verdict is printed beside the
+    figures. What stays the author's is everything a predicate cannot
+    hold: whether a HELD margin moved against the run before, and whether
+    a movement clears the floor -- a margin inside it is requoted without
+    comment.
 
     Claims 7 and 8 print as reminders with no figures, having no pair:
     7 is `--compare --alloc` between the halves and 8 is read off the
@@ -1644,30 +1667,62 @@ def claims_table(cells, shapes, strategies, args):
 
     Born checked: run against Run 13's basis, every ordering it prints
     reproduces the figure that run published -- geomean, win count and
-    sign p alike -- on all thirteen of them.
+    sign p alike -- on all thirteen of them. The verdicts' own
+    non-vacuity, 2026-08-14 against that same run: every pair prints HELD,
+    and flipping claim 3's expectation to `slower` printed BROKE on the
+    same figures, as did swapping claim 9's two registered shapes for
+    `stretch-primes` -- so both predicate kinds can fail, and the reverted
+    manifest returned thirteen HELDs.
     """
-    missing = [a for _, _, ps in CLAIMS for p in ps for a in p
+    missing = [a for _, _, ps in CLAIMS for p in ps for a in p[:2]
                if a not in strategies]
     if missing:
         print('NOTE: %d arm(s) of the claims list are not in this run: %s'
               % (len(missing), ', '.join(sorted(set(missing)))))
         print('      a filtered run cannot check the claims; use a full one.')
+    held = broke = 0
     for n, label, pairs in CLAIMS:
         print('\nclaim %d -- %s' % (n, label))
-        live = [[a, b] for a, b in pairs
+        live = [[a, b] for a, b, _ in pairs
                 if a in strategies and b in strategies]
-        for a, b in pairs:
+        for a, b, _ in pairs:
             if [a, b] not in live:
                 print('  %s / %s: not in this run' % (a, b))
         if live:
             pair_table(cells, shapes, strategies, live, quiet=True)
+        for a, b, expect in pairs:
+            if [a, b] not in live:
+                continue
+            _, r = pair_stats(cells, shapes, a, b)
+            g = geomean(r)
+            p = sign_p(sum(1 for x in r if x < 1), len(r))
+            if isinstance(expect, tuple):
+                best = sorted(s for _, s in sorted(zip(r, shapes))[:2])
+                ok = best == sorted(expect[1:])
+                want = 'best two shapes are %s' % ' and '.join(
+                    sorted(expect[1:]))
+                got = 'they are %s' % ' and '.join(best)
+            elif expect == 'tie':
+                ok = p >= 0.05
+                want, got = 'a tie by sign test', 'sign p %.2g' % p
+            else:
+                ok = (g < 1) if expect == 'faster' else (g > 1)
+                want = 'A %s (geomean %s 1)' % (expect,
+                                                '<' if expect == 'faster'
+                                                else '>')
+                got = 'geomean %.4f' % g
+            held += ok
+            broke += not ok
+            print('  %s  %s / %s: registered %s; %s'
+                  % ('HELD ' if ok else 'BROKE', a, b, want, got))
+    print('\n%d of %d registered orderings held.' % (held, held + broke))
     print('\nclaim 7 -- allocation: no pair; read it with'
           '\n  ./read-run.py BASIS.json --compare OTHER.json --alloc')
     print('claim 8 -- structural: no pair; read the fast tier off the table'
           '\n  and check the gap to bq-gen is populated.')
-    print('\nThe figures are the reading; the verdict is yours. Compare each'
-          '\nwith what the claims section states, and say held, broke or'
-          '\nmoved -- a margin inside the floor is requoted without comment.')
+    print('\nA verdict answers the registered predicate and nothing more.'
+          '\nWhether a HELD margin moved against the run before, and whether'
+          '\na movement clears the floor, are still the reading\'s to say.')
 
 
 PROP2_FASTEST = 'mut-odo-vecdims'
@@ -2813,6 +2868,170 @@ def check_doc(readme, main_hs):
                            ' -- unaligned, max-skip -- and never folded in'
                            % run)
 
+    # Run-current facts stated in prose, held to the roster and to each
+    # other. Three sentences quote what the current roster or the current
+    # run's floor is, and each went stale exactly once before this existed:
+    # `mut-flat-gm-nosum` landed and the controls sentence went on saying
+    # ten controls and 34 benches, and the opening paragraph quoted Run 12's
+    # noise floors as Run 13's for a whole run while the floor section
+    # carried the right pair. Counts come from the roster, which is the
+    # authority; the floor pair has no source on disk once the JSONs go, so
+    # it is held to AGREEMENT across its sites -- a check that catches the
+    # stale-opening failure without pretending to know which site is right.
+    # A site the regexes cannot find FAILS rather than passing empty, the
+    # phrasing being part of what is checked.
+    #
+    # Non-vacuous 2026-08-14, each on an unwrapped copy (the phrases split
+    # across wrapped lines, which is why this reads the unwrapped form):
+    # lowering the controls sentence's count to ten named the sentence and
+    # the roster's own count; planting Run 12's 0.35% back into the opening
+    # named the two disagreeing pairs; and rewording `A/A arms` out of the
+    # controls sentence failed as `could not locate` rather than passing.
+    roster = roster_of(main)
+    if roster:
+        W2N = {w: i for i, w in enumerate(
+            'zero one two three four five six seven eight nine ten eleven'
+            ' twelve thirteen fourteen fifteen sixteen seventeen eighteen'
+            ' nineteen twenty'.split())}
+
+        def num(tok):
+            tok = tok.lower()
+            return int(tok) if tok.isdigit() else W2N.get(tok)
+
+        paras = unwrapped_paragraphs(lines)
+        uw = '\n'.join(p for _, p, _ in paras)
+        aa = [n for n, r, _ in roster if r == 'Twin']
+        controls = [n for n, r, _ in roster if r in ('Twin', 'Term', 'Force')]
+        timed = [n for n, r, _ in roster if r != 'Only']
+        twinned = {twin_of(n) for n in aa}
+        facts = [
+            (r'are ([a-z\d]+) controls: ([a-z\d]+) A/A arms',
+             (len(controls), len(aa)), "the controls sentence"),
+            (r'with the controls the run is ([a-z\d]+) benches',
+             (len(timed),), 'the bench count'),
+            (r'([A-Za-z\d]+) A/A controls run an existing strategy twice',
+             (len(aa),), "the floor section's design sentence"),
+            (r'([a-z\d]+) strategies, each duplicated once beside its base',
+             (len(twinned),), 'the crossed-design count'),
+        ]
+        lost, off = [], []
+        for pat, want, whose in facts:
+            ms = re.findall(pat, uw)
+            if len(ms) != 1:
+                lost.append('%s (%d matches for its phrasing)'
+                            % (whose, len(ms)))
+                continue
+            got = ms[0] if isinstance(ms[0], tuple) else (ms[0],)
+            got = tuple(num(g) for g in got)
+            if got != want:
+                off.append('%s says %s where the roster holds %s'
+                           % (whose, '/'.join(map(str, got)),
+                              '/'.join(map(str, want))))
+        if lost:
+            bad.append('could not locate %s, so the run-current count check'
+                       ' did not run there -- if the sentence was reworded,'
+                       ' this check\'s pattern moves with it'
+                       % '; '.join(lost))
+        if off:
+            bad.append('run-current count(s) out of date: %s'
+                       % '; '.join(off))
+        if not lost and not off:
+            print('ok:   the prose counts of controls, A/A arms, benches and'
+                  ' twinned strategies all match the roster')
+
+        floors = [m for p in (
+            r'a noise floor this run measures at ([\d.]+)%[^.]*?'
+            r' and ([\d.]+)%',
+            r'floor is ([\d.]+)% on the basis half and ([\d.]+)%'
+            r' on the control',
+            r'no A/A pair further than ([\d.]+)% from 1 on the basis half'
+            r' or ([\d.]+)% on the control') for m in re.findall(p, uw)]
+        if len(floors) < 2:
+            bad.append('could not locate at least two sites quoting the'
+                       ' run\'s floor pair, so the floor-agreement check did'
+                       ' not run -- if the sentences were reworded, this'
+                       ' check\'s patterns move with them')
+        elif len(set(floors)) > 1:
+            bad.append('the run\'s floor pair is quoted differently across'
+                       ' its %d sites: %s -- the head of the run chapter'
+                       ' carries the measurement, so requote the others'
+                       % (len(floors),
+                          '; '.join('%s%%/%s%%' % f for f in set(floors))))
+        else:
+            print('ok:   the run\'s floor pair reads %s%%/%s%% at all %d'
+                  ' sites that quote it' % (floors[0] + (len(floors),)))
+
+        # Prospective tense about a run that has already happened. An open
+        # list entry written before a run says what that run WILL do, and
+        # the verdict pass rewrites it -- except when it does not: "Run 13
+        # takes it at full budget, and its Results row will come out with
+        # `?`" stood for a day after the row was in the table, filled with
+        # a different phrase. Only `will` and `is to be` count as
+        # prospective: this page narrates finished runs in the historic
+        # present ("Run 10 takes it"), so verbs alone cannot tell a stale
+        # promise from an idiom, and a sweep that listed every historic
+        # present would be one nobody reads. Listed for adjudication, not
+        # failed. Non-vacuous 2026-08-14: planting that very sentence in
+        # the open list on a copy listed it with its line; the shipped page
+        # lists nothing.
+        m = re.search(r'^## About the last run \(Run (\d+)\)$', doc, re.M)
+        lo = [i for i, l in enumerate(lines, 1)
+              if l.startswith('## What is open')]
+        hi = [i for i, l in enumerate(lines, 1)
+              if l.startswith('## The goal')]
+        if m and lo and hi:
+            run_now = int(m.group(1))
+            pro = re.compile(r'\bRun (\d+)\b[^.;]*?\b(?:will|is to be)\b'
+                             r'|\b(?:will|is to be)\b[^.;]*?\bRun (\d+)\b')
+            stale = []
+            for first, para, _ in paras:
+                if not lo[0] <= first < hi[0]:
+                    continue
+                olds = [int(a or b) for a, b in pro.findall(para)
+                        if int(a or b) <= run_now]
+                if olds:
+                    stale.append((first, para))
+            if stale:
+                print('note: %d open-list paragraph(s) speak prospectively'
+                      ' of a run that has already happened -- rewrite to'
+                      ' what it did, or say why the promise stands:'
+                      % len(stale))
+                for first, para in stale:
+                    print('        %s:%d: %s'
+                          % (os.path.basename(readme), first, para[:60]))
+
+    # Links into the run chapter from standing prose. The chapter is
+    # replaced by the next run, so such a link keeps resolving -- the
+    # rename step re-points it -- while the content it promised leaves:
+    # five links reading "the head of the run chapter" decayed exactly that
+    # way, their targets' substance having moved to the floor section when
+    # Run 11's chapter was replaced. Listed for adjudication at every
+    # check, not only at the rename, because the decay happens at the
+    # replacement and nothing else looks then. Links from inside the
+    # chapter's own sections are the run's and die with it, so only lines
+    # above the chapter heading are swept; a bare link bullet -- the
+    # Contents map's entry -- promises no content beyond the heading and is
+    # exempt, or the map would head this list at every check and teach
+    # readers to skim it. Non-vacuous 2026-08-14: planting
+    # `([see the run](#about-the-last-run-run-13))` in the opening
+    # paragraph of a copy listed it with its line; the shipped page lists
+    # none, its one such link being the Contents entry the exemption is
+    # for.
+    m = re.search(r'^## About the last run', doc, re.M)
+    if m:
+        chap_at = doc[:m.start()].count('\n') + 1
+        into = [(i, l.strip()) for i, l in enumerate(lines[:chap_at - 1], 1)
+                if re.search(r'\]\(#about-the-last-run-run-\d+\)', l)
+                and not (l.strip().startswith('- [')
+                         and l.strip().endswith(')'))]
+        if into:
+            print('note: %d link(s) into the run chapter from standing'
+                  ' prose; each is re-verified at the rename, its content'
+                  ' being replaced with the chapter:' % len(into))
+            for i, l in into:
+                print('        %s:%d: %s'
+                      % (os.path.basename(readme), i, l[:60]))
+
     for line in bad:
         print('FAIL: ' + line)
     return 1 if bad else 0
@@ -2897,7 +3116,7 @@ def lint(main_hs, readme):
     # Held to the roster here, where every other name in this file is.
     # Non-vacuous 2026-08-14: renaming one arm of claim 4 in the manifest
     # named it and exited 1; restoring it returned the ok line.
-    claimed = sorted({a for _, _, ps in CLAIMS for pr in ps for a in pr})
+    claimed = sorted({a for _, _, ps in CLAIMS for pr in ps for a in pr[:2]})
     stray = [a for a in claimed if a not in names]
     if stray:
         bad.append('%d arm(s) the claims manifest names are not rostered,'
@@ -3313,8 +3532,8 @@ def main():
                    help='with --compare: the run chapter\'s mechanical'
                         ' figures, as --block does for a class')
     p.add_argument('--claims', action='store_true',
-                   help='every claim ordering in one call, in the'
-                        " claims section's order")
+                   help='every claim ordering and its registered verdict'
+                        " in one call, in the claims section's order")
     p.add_argument('--alloc', action='store_true',
                    help='with --compare: allocation agreement instead of'
                         ' times, on the multiple the alloc column publishes')

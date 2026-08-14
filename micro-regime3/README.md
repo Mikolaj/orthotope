@@ -1616,14 +1616,14 @@ than a slot in the next run, observed again:
      green. A pair whose worst cell passes about 10% disqualifies that cell
      from the per-shape record and flags its row; listing it for adjudication
      is what let this one be read past.
-  2. **Three of the twenty-four timed strategies carry twins**, so that gate
-     covers an eighth of the table. `bq-expand`, `bq-scan-rem-gm-mulback`
-     and `mut-odo-vecdims` are checkable cell by cell; the other twenty-one
-     are not. A wild cell on `offtab` or `bq-mut` would be capped
+  2. **Five of the twenty-four timed strategies carry twins**, so that gate
+     covers a fifth of the table: `bq-expand`, `bq-scan-rem-gm-mulback`,
+     `mut-odo-vecdims`, and — added 2026-08-14 on this argument, first read
+     in Run 14 — `bq-odo-gm-mulback`, the susceptible family's own pure-tier
+     head, with `offtab` for [the spread question][open]. A wild cell
+     on `bq-mut` or any other untwinned arm would still be capped
      by the estimator, would move its row by a thousandth, and nothing here
-     would ever say so. That is the honest extent of the defence, and it
-     is an argument for twinning more of the expansion family before it
-     is an argument for anything else.
+     would ever say so; that is the honest extent of the defence.
   3. **Winsorizing is a defence and not only an estimator choice.** It is what
      held `bq-expand`'s row to 0.103 with a 35% cell inside it. [The `time`
      column](#results) argues for it on estimator grounds — bounded influence
@@ -1786,11 +1786,13 @@ than a slot in the next run, observed again:
   share — they are not a tier, `offtab` carrying mutable `Int` scratch, `build`
   a class-method fill and the other two pure, so a negative answer
   is informative — is arithmetic over kept artifacts. Separating position
-  from code for them wants a *twin* on one of them, which no run has ever had:
-  the A/A gate covers three of the twenty-four timed arms and none of these,
-  which is the same eighth-of-the-table gap the wild-cell entry above names
-  from the other side. That is a roster change and so a full run. The three-pair
-  reading is possible only while those runs' main sets are kept.
+  from code for them wants a *twin* on one of them, which no run has had:
+  through Run 13 the A/A gate covered three of the twenty-four timed strategies
+  and none of these — the same coverage gap the wild-cell entry above names
+  from the other side. **The roster change is made, 2026-08-14**: `offtab`,
+  the ranking's most consistent member, carries twins in both positions, so Run
+  14 reads its position against its code directly. The three-pair reading
+  is possible only while those runs' main sets are kept.
 - `ANSWERED` **Why did `list` move 18% on `stretch-tall-Mx2` between two runs
   that did not touch it? Answered: because those two runs did not hold
   the layout still.** Run 11 inherited shapes, roster, regime and layout
@@ -1870,23 +1872,27 @@ than a slot in the next run, observed again:
   it is**, though: a `Force` arm reuses a function the roster already
   references, so it emits no new code and emission order has nothing to reorder
   — an addition that brought a *new function* would be the stronger test,
-  and is what a later membership change should be read against. The arm's own
-  reading is [with gate 3](#what-is-open), taken filtered; Run 13 took
-  it at full budget, and its Results row's `needs` cell reads *the same,
-  on a third write pattern* — the control convention, not the shippability
-  phrase this entry first proposed. A return to -O1 — the regime
-  `Data/Array/Internal.hs` actually compiles under, unvisited since Run 7 —
-  stays open behind it and is the more expensive of the two. **It is specified
-  on a max-skip pair and wants no aligned build**, which an earlier phrasing
-  implied by calling an aligned -O1 build a fourth kind of column: the column
-  it adds is a regime and not a layout, the layout wanted of it is the one every
-  basis since Run 12 has had, and a max-skip build pins loops across a roster
-  change as well as an aligned one does. So it is a run in the ordinary form,
-  at -O1, and it tests Run 7's claim set rather than this one's. `--check-doc`
-  enforces the yardstick's shape in the one direction it safely can: a run named
-  aligned must also be named unaligned, so dropping Run 10's unaligned column
-  fails the check. Dropping an *aligned* one cannot be checked, an unpaired run
-  being what every column before Run 10 is, and stays the reading's job.
+  and is what a later membership change should be read against. **Both fall due
+  again for Run 14: the roster gained the four A/A twins on 2026-08-14** —
+  `offtab` and `bq-odo-gm-mulback`, each in both positions, 840 benches to 936 —
+  so that run owes the `-L1` pass and the invariance read, still the weak form,
+  a twin reusing a rostered function and emitting no code. The arm's own reading
+  is [with gate 3](#what-is-open), taken filtered; Run 13 took it at full
+  budget, and its Results row's `needs` cell reads *the same, on a third write
+  pattern* — the control convention, not the shippability phrase this entry
+  first proposed. A return to -O1 — the regime `Data/Array/Internal.hs` actually
+  compiles under, unvisited since Run 7 — stays open behind it and is the more
+  expensive of the two. **It is specified on a max-skip pair and wants
+  no aligned build**, which an earlier phrasing implied by calling an aligned
+  -O1 build a fourth kind of column: the column it adds is a regime and
+  not a layout, the layout wanted of it is the one every basis since Run 12 has
+  had, and a max-skip build pins loops across a roster change as well
+  as an aligned one does. So it is a run in the ordinary form, at -O1,
+  and it tests Run 7's claim set rather than this one's. `--check-doc` enforces
+  the yardstick's shape in the one direction it safely can: a run named aligned
+  must also be named unaligned, so dropping Run 10's unaligned column fails
+  the check. Dropping an *aligned* one cannot be checked, an unpaired run being
+  what every column before Run 10 is, and stays the reading's job.
 
   **Run 11 had no unaligned half, and the check was left alone rather
   than widened — the reading is that this was right.** Its two columns
@@ -1959,7 +1965,8 @@ the authority and this is the index.
    that pair's note records. **After the pair is spent, not before.**
    Its companion, the `perf` cache-miss row, needs `kernel.perf_event_paranoid`
    lowered by hand outside a session and can only be taken while a wild cell
-   is present, which is a lottery: three sightings in six runs.
+   is present, which is a lottery; the sightings tally is with the wild-cell
+   entry above.
 
 7. **The return to -O1**, which is the one task here that answers something
    about the code rather than the instrument. It is the regime
@@ -1990,9 +1997,8 @@ the authority and this is the index.
    — they are not a tier, so a negative answer is worth having too.
    Load-independent, over the main sets of Runs 11, 12 and 13, all of which
    are on disk and none of which can be re-made. Its expensive half — a twin
-   on one of those arms, the only route that separates position from code where
-   the A/A gate reaches none of them — is a roster change and so a full run,
-   and is not this task.
+   on one of those arms — is in the roster since 2026-08-14, `offtab` carrying
+   a pair in both positions, and is Run 14's to read rather than this task's.
 
 **One rider rather than a tenth task, since it fires on an event and not
 on a session.** The pinning claim — that a shim'd build holds every tracked loop
@@ -3067,13 +3073,15 @@ is also the order to read them in:
 The order they are *run* in is deliberately a different one, fixed by `roster`
 in `Main.hs`, where a majority of them now take no slot at all, being checked
 and not timed; the Results table below is sorted by time, a third. Sharing
-that roster with the strategies, and not strategies themselves, are eleven
-controls: six A/A arms — `bq-expand-aa-adjacent` and `bq-expand-aa-distant`,
+that roster with the strategies, and not strategies themselves, are fifteen
+controls: ten A/A arms — `bq-expand-aa-adjacent` and `bq-expand-aa-distant`,
 `bq-scan-rem-gm-mulback-aa-adjacent` and `bq-scan-rem-gm-mulback-aa-distant`,
-`mut-odo-vecdims-aa` and `mut-odo-vecdims-aa-distant`, three strategies each
-duplicated in both positions — the `sum-only-early`/`sum-only-late` pair,
-and `bq-expand-nosum`, `mut-odo-vecdims-nosum` and `mut-flat-gm-nosum`, each
-its base arm forced with one element instead of the sum. [The noise
+`mut-odo-vecdims-aa` and `mut-odo-vecdims-aa-distant`, `offtab-aa-adjacent`
+and `offtab-aa-distant`, `bq-odo-gm-mulback-aa-adjacent`
+and `bq-odo-gm-mulback-aa-distant`, five strategies each duplicated in both
+positions — the `sum-only-early`/`sum-only-late` pair, and `bq-expand-nosum`,
+`mut-odo-vecdims-nosum` and `mut-flat-gm-nosum`, each its base arm forced
+with one element instead of the sum. [The noise
 floor](#what-moves-a-figure-when-no-strategy-changed)
 and [sum-only](#sum-only-and-the-correction-now-applied) say what each is for.
 
@@ -3120,7 +3128,7 @@ is — checked against the reference on every shape of every class, and not time
 — so the agreement net does not shrink and nothing has to be rewritten
 if a ruling is later reopened. The 23 arms the rulings dropped carry `Only`
 in that roster, each naming the bound or the multiple that disqualified it;
-with the controls the run is 35 benches.
+with the controls the run is 39 benches.
 
 - **A strategy with a precondition is not measured.** The column allowed `none`,
   an empty cell, and `shape well-formed`, which is a condition on being a valid
@@ -3371,7 +3379,7 @@ reading.
     ./read-run.py --lint                  # 7. roster and shape annotations
     ./read-run.py --check-doc             # 8. anchors, paths, widths, sweeps
     #      7+8 are the WHOLE document check here; no other repo's checkers,
-    #      now or at post-run step 7. Exit code is the verdict: the three
+    #      now or at post-run step 7. Exit code is the verdict: the
     #      note: worklists are write-up material, only FAIL: stops you, and
     #      a wrap FAIL means a HAND-wrapped paragraph, not a long one
     ./$R-<basis> diag                     # 9. the regime, in the binary
@@ -4226,7 +4234,8 @@ was missed, which is what they have cost.
     #   2. match bases before reading any ratio -- same population, same
     #      restriction, the basis the claim was stated on
     ./read-run.py RUN.json --claims                   # 3. every claim's
-    #      ordering in one call, in the claims section's own order
+    #      ordering and registered verdict in one call, in the claims
+    #      section's own order
     ./read-run.py $R-<basis>-$c.json --block          #    one per class
     ./read-run.py $R-<basis>-main.json --compare $R-<other>-main.json --chapter
     ./read-run.py $R-<basis>-main.json --compare $R-<other>-main.json --alloc
@@ -4242,7 +4251,10 @@ was missed, which is what they have cost.
     #      THIS run, while `What Run N compares against` and `The claims
     #      Run N should test` look forward and take the NEXT. Repoint every
     #      link -- its TEXT as well as its anchor, the check seeing only the
-    #      second -- and Main.hs's own README.md# references with them
+    #      second -- and Main.hs's own README.md# references with them.
+    #      Repointing is not re-verifying: walk the standing-prose links
+    #      into the chapter, which --check-doc lists, against what the
+    #      chapter still says
     ./read-run.py RUN.json --markdown --in-place      # (7.4) install, never
     ./read-run.py RUN.json --fingerprint --in-place   #       paste; three
     ./read-run.py $R-<basis>-$c.json --block --in-place  #    modes, one per
@@ -4264,7 +4276,7 @@ was missed, which is what they have cost.
     #      any edit was scripted, assert its extent and read a
     #      `wrap80 --unwrap` diff of both sides: nothing else sees a lost
     #      paragraph. A correction is a claim -- derive it, then re-run the
-    #      gates. Then --lint, --check-doc, adjudicate the three worklists,
+    #      gates. Then --lint, --check-doc, adjudicate the worklists,
     #      read end to end, and walk the diff against the writing rules.
     #      The independent checker is TWO passes on one agent, tables when
     #      they go in and prose when written, briefed that it works in this
@@ -4341,19 +4353,19 @@ the artifacts are what it spends.
    from — read [the reader's own section](#the-reader-read-runpy) first, and do
    not write another reader. **The claims are part of this and are the thing
    these steps are likeliest to leave out**: the run chapter names three things
-   a run reads, and the claims section is the third, each of its orderings one
-   `./read-run.py RUN.json --pair A B` so that a run reports its breaks rather
-   than re-deriving the table. The class properties are the same job three times
-   a population, off the verdicts `--block` emits, and the set is restated
-   for the next run on this run's basis while the readings are still in front
-   of you. **A paired run's own mode is `--compare`, and its direction
-   is a convention worth stating**: the run given first is the one the ratios
-   are *of*, the `--compare` argument being what they are divided by,
-   so `basis --compare control` puts a figure below 1 where the basis is faster
-   — for Run 10, whose control was unaligned, that was where alignment
-   was faster. Prediction 4's per-arm term and the aligned half's published
-   column both read that way round; reversed, every one of them inverts
-   and nothing in the output says so.
+   a run reads, and the claims section is the third, each of its orderings
+   carried in `--claims` with its registered expectation, so that a run
+   transcribes printed verdicts rather than re-deriving the table. The class
+   properties are the same job three times a population, off the verdicts
+   `--block` emits, and the set is restated for the next run on this run's basis
+   while the readings are still in front of you. **A paired run's own mode
+   is `--compare`, and its direction is a convention worth stating**: the run
+   given first is the one the ratios are *of*, the `--compare` argument being
+   what they are divided by, so `basis --compare control` puts a figure below 1
+   where the basis is faster — for Run 10, whose control was unaligned,
+   that was where alignment was faster. Prediction 4's per-arm term
+   and the aligned half's published column both read that way round; reversed,
+   every one of them inverts and nothing in the output says so.
 4. **One JSON at a time, never merged.** The reader takes one file,
    and its geomean is that file's population — the main set's or one class's.
    Every mode names that population in its first line, `--selftest` fails a file
@@ -4369,7 +4381,11 @@ the artifacts are what it spends.
    reading 10, 11 and 11. Repoint every link to them. It is mechanical,
    it is easy to forget because nothing in the numbers asks for it,
    and `--check-doc` catches the fallout as dead anchors rather than
-   as the rename it was: Run 9 left eleven.
+   as the rename it was: Run 9 left eleven. Repointing is not re-verifying:
+   a standing-prose link into the chapter promises content the replacement may
+   have moved out, so walk the links `--check-doc` lists and check each against
+   what the chapter now says — the five that decayed this way kept resolving
+   through two renames.
 6. Walk the list under [Provenance](#provenance) of what the new numbers
    replace, and do not trust it to be complete: re-run the two sweeps it names
    and map each hit to the bullet covering it, since running the sweeps
@@ -4387,8 +4403,8 @@ the artifacts are what it spends.
    **This step is the whole of the document verification a run owes, and nothing
    else is to be reached for. Four passes, in this order:** run
    `./read-run.py --lint` and `--check-doc`, whose exit codes are the verdict;
-   read the three worklists they print and adjudicate each entry; read
-   the write-up end to end against the run's own artifacts; and hand the diff
+   read the worklists they print and adjudicate each entry; read the write-up
+   end to end against the run's own artifacts; and hand the diff
    to an independent checker, which the paragraph after next briefs. None
    of them is optional, the third is the one that keeps finding real errors,
    and the fourth is what catches what the third cannot see in its own writing.
@@ -4598,8 +4614,8 @@ the artifacts are what it spends.
       run and basis each figure belongs to. This is the pass that keeps finding
       real errors;
 
-   Two conventions this page holds to, both of which exist because breaking them
-   has cost something here. **A figure in prose names its run, its basis
+   Three conventions this page holds to, each of which exists because breaking
+   it has cost something here. **A figure in prose names its run, its basis
    and its population, or it belongs in a table with the prose pointing
    at it** — a bare numeral carries no provenance, and that is how one sentence
    came to put a Failed Run 6 figure beside a Run 6 one, and another to compare
@@ -4607,7 +4623,12 @@ the artifacts are what it spends.
    to make that mistake and the easiest, a class figure and a main-set one being
    the same kind of number over different shapes. **An anchor longer than about
    thirty characters goes reference-style**, defined at the foot of the file:
-   inline it overflows the width and the rewrapping that follows is pure churn;
+   inline it overflows the width and the rewrapping that follows is pure churn.
+   And **a link's text names its subject, never its position** — five links
+   reading *the head of the run chapter* kept resolving through two renames
+   while the content they promised left the chapter, a decay no anchor check
+   sees, which is why `--check-doc` lists standing-prose links into the run
+   chapter and the rename step re-verifies them;
 8. Re-run `--lint` after editing `Main.hs`, even when only comments changed:
    the reader parses that file for the roster and the shape dims, so a comment
    edit can break a check that passed before it. `--lint` reads the source
@@ -4715,7 +4736,7 @@ is the reference for all of them; extend the script rather than starting over.
     ./read-run.py A.json --compare B.json   # one arm across two runs
     ./read-run.py A.json --compare B.json --alloc  # what each arm allocates
     ./read-run.py A.json --compare B.json --chapter  # the chapter's figures
-    ./read-run.py RUN.json --claims         # every claim ordering, one call
+    ./read-run.py RUN.json --claims         # every claim's verdict, one call
     ./read-run.py RUN.json --cells          # every cell as TSV, for the rest
     ./read-run.py RUN.json --fingerprint    # the kept per-shape record
     ./read-run.py RUN.json --block          # a class block's parts, + verdicts
@@ -4863,12 +4884,14 @@ capped. `--aa` prints both and `--selftest` asserts the identity where it holds.
 
 ### What moves a figure when no strategy changed
 
-Six A/A controls run an existing strategy twice under a second name — three
+Ten A/A controls run an existing strategy twice under a second name — five
 strategies, each duplicated once beside its base and once at a distance,
-so position varies within a strategy and strategy within a position. They
-are the only rows whose true ratio is known to be exactly 1 — or were, until
-[the mutable ceiling](#the-mutable-ceiling-not-taken) turned up another
-by accident:
+so position varies within a strategy and strategy within a position.
+The `offtab` and `bq-odo-gm-mulback` pairs, added 2026-08-14 for the coverage
+gap the wild-cell entry names and for the spread instrument's widest arm,
+are first read in Run 14, so the table below is Run 13's six. They are the only
+rows whose true ratio is known to be exactly 1 — or were, until [the mutable
+ceiling](#the-mutable-ceiling-not-taken) turned up another by accident:
 
 | pair | span | max-skip | +lookrts | mean per cell |
 |---|---:|---:|---:|---:|
@@ -6344,16 +6367,16 @@ to order.
 is not, and this paragraph says which is which** — it is what a session reads
 before spending the evening, so it is kept current rather than left
 as the question it was. The regime is `-fspec-constr`, as every run since Run 8.
-The roster is 840 benches, unchanged from Run 13; a run whose `--list` matches
-it owes no `-L1` roster pass, Run 13 having paid the one
-that `mut-flat-gm-nosum`'s arrival made owed. The membership-invariance debt Run
-12 left stays **paid** rather than owed, with [the roster's other debts][open].
-The basis is the plain max-skip half: Run 12 priced `-fproc-alignment=64`
-and the flag lost, and Run 13 priced the shim's look-through together
-with an `-I0 -T -M8G` RTS line and found the package costs nothing across
-the roster — so **whether Run 14's basis adopts that package is a decision
-rather than a measurement**, and it is [registered as one][open]. What
-the control half should vary is open: Run 13's null left nothing owed
+The roster is 936 benches: four A/A twins — `offtab` and `bq-odo-gm-mulback`,
+each in both positions — landed after Run 13, so Run 14 owes the `-L1` roster
+pass and its own membership-invariance read, the weak form again, a twin reusing
+a rostered function and emitting no code; both debts are with [the roster's
+entry][open]. The basis is the plain max-skip half: Run 12 priced
+`-fproc-alignment=64` and the flag lost, and Run 13 priced the shim's
+look-through together with an `-I0 -T -M8G` RTS line and found the package costs
+nothing across the roster — so **whether Run 14's basis adopts that package
+is a decision rather than a measurement**, and it is [registered as one][open].
+What the control half should vary is open: Run 13's null left nothing owed
 a follow-up, so the next pair is free to price something new. The table below
 is read against the two Run 13 columns; the -O1 column stays the yardstick
 for any future return to that regime, and the two sets of claims differ in more
@@ -6730,18 +6753,22 @@ and none of them dropped one.
    then 1.0325, 1.0197, 1.0256 and now **1.0265** (1 of 24, sign p 3e-06). All
    of Run 13's figures here are on the full 24, no shape being set aside.
 
-Each ordering is one `./read-run.py RUN.json --pair A B` line — paired geomean,
-an interval and a sign test — so a run reports which claims held rather
-than re-deriving them from the table. **A claim with no named invocation
-is a gap in this list, not a claim to be checked by hand**: where a session has
-to invent the computation it will invent a wrong one, which is how claim 7 came
-to be read off the raw fitted bytes, explained by a mechanism the previous pair
-refutes, and then "corrected" onto a rounded print. It has `--compare --alloc`
-now. Claim 8 is the one still without one, read off the table by eye.
-**The general form, and it is a standing instruction rather than an observation:
-if a write-up hand-rolls a script to answer something the reader should answer,
-that is a defect report against the reader** — fix it there, before the sentence
-it was written for, or the next run invents its own wrong version.
+Each ordering is one line of `--claims`, whose manifest now carries
+the registered expectation — the direction of the geomean, a tie by sign test,
+or claim 9's two best shapes — and prints HELD or BROKE beside the paired
+geomean, interval and sign test, so a run transcribes verdicts rather
+than judging readings against this section by eye; what stays the reading's
+is whether a HELD margin moved and whether a movement clears the floor.
+**A claim with no named invocation is a gap in this list, not a claim
+to be checked by hand**: where a session has to invent the computation it will
+invent a wrong one, which is how claim 7 came to be read off the raw fitted
+bytes, explained by a mechanism the previous pair refutes, and then "corrected"
+onto a rounded print. It has `--compare --alloc` now. Claim 8 is the one still
+without one, read off the table by eye. **The general form, and it is a standing
+instruction rather than an observation: if a write-up hand-rolls a script
+to answer something the reader should answer, that is a defect report against
+the reader** — fix it there, before the sentence it was written for, or the next
+run invents its own wrong version.
 
 **And for each stride class, the same three properties, now carrying Run 13's
 verdicts**, the details beside each class's table:
@@ -7497,16 +7524,17 @@ the record costs. **A fourth half arrives with the pairing and is not a delta
 at all**: which half of the pair a figure came from, which is why the tables
 below and the fingerprint say so.
 
-- Run 13 measured today's shapes, today's class lists, today's roster membership
-  and today's roster **order**, timing today's 35 of it and leaving today's 24
-  untimed, winsorized per the estimator under `time`. Its delta is empty,
-  the whole of it, and the only thing a reader has to carry is which half
-  a figure came from: everything published below is `run13-maxskip`,
+- Run 13 measured today's shapes, today's class lists and today's roster
+  **order**, on today's roster **minus the four A/A twins added after
+  it** (`offtab` and `bq-odo-gm-mulback`, each in both positions) — 840 benches
+  against today's 936 — timing 35 of its own and leaving 24 untimed, winsorized
+  per the estimator under `time`. What a reader has to carry besides is which
+  half a figure came from: everything published below is `run13-maxskip`,
   and `run13-lookrts` contributes the yardstick's second column
   and the arm-by-arm comparison at the head of this chapter.
-- Run 12 measured the same shapes, class lists and order, on today's roster
-  **minus `mut-flat-gm-nosum`** — 816 benches against 840 — timing today's 24
-  of it, winsorized likewise. Everything it published was `run12-maxskip`,
+- Run 12 measured the same shapes, class lists and order, on Run 13's roster
+  **minus `mut-flat-gm-nosum`** — 816 benches against Run 13's 840 — timing 34
+  of its own, winsorized likewise. Everything it published was `run12-maxskip`,
   `run12-maxskippa` contributing its yardstick column, and its class tables
   are a max-skip half's as this run's are, which is the one thing that makes
   the two runs' class figures a same-kind-of-build comparison.
@@ -7530,8 +7558,8 @@ below and the fingerprint say so.
   is the second thing alignment bought the schedule: in an aligned build
   a roster change relocates no loop, so the repetition this page had never had
   was available for the first time and is what Run 11 took.
-- Run 8 measured today's shapes and today's class lists, on today's roster
-  **minus the eight arms written since** (`bq-expand-gm-mulback`,
+- Run 8 measured today's shapes and today's class lists, on Run 12's roster
+  **minus the eight arms written between them** (`bq-expand-gm-mulback`,
   `bq-odo-gm-mulback`, `mut-flat-gm`, `offtab-scan-rem` and the four
   `mut-odo-vecdims-add-*`), **timing all of it but `concat-runs`** where today
   leaves 24 untimed, winsorized likewise. Run 7's delta is Run 8's plus

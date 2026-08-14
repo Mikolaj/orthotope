@@ -2634,14 +2634,22 @@ roster =
     -- README.md#what-moves-a-figure-when-no-strategy-changed.
   , ("bq-scan-rem-gm-mulback-aa-distant", Twin fbBQscanRemGmMulback)
     -- The other two distant twins, added with the time the halved shape set
-    -- freed. With these the controls are CROSSED: three strategies
-    -- ('bq-expand', 'bq-scan-rem-gm-mulback', 'fbMutOdoVecdims') each
-    -- duplicated
-    -- once here and once beside its base, so position varies within a
-    -- strategy and strategy varies within a position -- which is what the
-    -- slot above could not do, and what settled the position question.
+    -- freed. With these the controls are CROSSED: each twinned strategy is
+    -- duplicated once here and once beside its base, so position varies
+    -- within a strategy and strategy varies within a position -- which is
+    -- what the slot above could not do, and what settled the position
+    -- question.
   , ("bq-expand-aa-distant",       Twin fbBQexpand)
   , ("mut-odo-vecdims-aa-distant", Twin fbMutOdoVecdims)
+    -- The fourth and fifth twinned strategies, aimed at the two gaps the
+    -- crossed design left (README.md#what-is-open): 'offtab' is the widest
+    -- arm of the between-process spread instrument in every pair measured
+    -- and had no twin to separate its position from its code, and
+    -- 'bq-odo-gm-mulback' heads the pure tier while sharing the expansion
+    -- family's susceptibility to the wild cell, which the A/A worst-cell
+    -- gate could not see on it. Added 2026-08-14, first read in Run 14.
+  , ("offtab-aa-distant",          Twin fbOffTab)
+  , ("bq-odo-gm-mulback-aa-distant", Twin fbBQodoGmMulback)
   , ("gen-quotrem",                Fill fbGenQuotRem)
   , ("gen-unsafe",                 Fill fbGenUnsafe)
     -- not timed: 27.94x the result
@@ -2716,6 +2724,9 @@ roster =
     -- not timed: l < 2^32
   , ("bq-mut-lemire-mulback",      Only fbBQmutLemireMulback)
   , ("offtab",                     Fill fbOffTab)
+    -- The adjacent half of 'offtab''s pair; the distant half is early with
+    -- the others. Added 2026-08-14, first read in Run 14.
+  , ("offtab-aa-adjacent",         Twin fbOffTab)
     -- not timed: 'int32Fits' on the source, i.e. at most 2^31 elements
   , ("offtab32",                   Only fbOffTab32)
     -- not timed: m < 2^32, its builder's
@@ -2759,6 +2770,9 @@ roster =
     -- not timed: l < 2^32
   , ("bq-odo-mulback",             Only fbBQodoMulback)
   , ("bq-odo-gm-mulback",          Fill fbBQodoGmMulback)
+    -- The adjacent half of 'bq-odo-gm-mulback''s pair; the distant half is
+    -- early with the others. Added 2026-08-14, first read in Run 14.
+  , ("bq-odo-gm-mulback-aa-adjacent", Twin fbBQodoGmMulback)
     -- not timed: l < 2^32, plus its builder's m <= 2^31 and every offset
     -- in [0, 2^32)
   , ("bq-scan-packed-mulback",     Only fbBQscanPackedMulback)
