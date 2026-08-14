@@ -1117,7 +1117,10 @@ than a slot in the next run, observed again:
      under a percent. What it does not give is the offset's own price,
      the padding and the offset moving together in every arm here. Separating
      them needs a third build that moves one head without padding before it,
-     which is `-fproc-alignment=64`'s territory and wants a probe of its own.
+     which is `-fproc-alignment=64`'s territory and wants a probe of its own —
+     and what such a probe is now worth is at Run 12's second prediction below,
+     which retires it for the split and prices what is left of it
+     for this family.
 
   **And what it must not do was add an arm** — the third `-nosum` one the queue
   then called due — since the repetition needed membership pinned as well
@@ -1182,9 +1185,30 @@ than a slot in the next run, observed again:
      not establish is any positive account of Run 11's split, this pair moving
      every procedure start rather than the two copies max-skip left resident.
      **So Run 11's split is now an open question rather than an explained one**,
-     and what would settle it is the probe this entry already forbids conflating
-     with a paired run: one arm stepped through several offsets with no straddle
-     anywhere, on the pad-probe model.
+     and the probe this entry once named as what would settle it — one arm
+     stepped through several offsets with no straddle anywhere, on the pad-probe
+     model — **is not it, for three reasons the naming has since supplied.**
+     That probe has been run, on `build`/`mut-odo`, and its graded penalty
+     and resident spread are [in the floor section][floor]; what it never
+     touched is the vecdims family. It cannot reach the two arms the split turns
+     on, `-add-out` and `-add-both` sitting at 0 in both of Run 11's halves,
+     so no sweep of offsets can explain a difference their offsets did not make.
+     And on the two it could sweep the quantity is bounded small already:
+     `mut-odo-vecdims` at 24 and `-add-in` at 8 differ from the same code at 0
+     by 0.74% and 0.36% *including* whatever the NOPs cost, which is inside
+     the drift band and beside the A/A floor.
+
+     **What is left as the candidate is the NOPs themselves, and it is a static
+     question rather than an evening.** An arm pays for a padded head wherever
+     one falls on its hot path, its own fill's or a helper's,
+     and the unconditional form pads every head where max-skip pads only
+     those that need it — so the split should follow which arms carry a skipped
+     head. Rebuilding the two assemblies costs seconds, the heads each form
+     gives a directive are the shim's own output, and attributing them to arms
+     is `addr2line` on a `-g3` twin, which the naming below made ordinary.
+     That wants no machine time and no quiet window. A vecdims offset sweep
+     is what it falls back to, and would then be answering whether this family's
+     loop is offset-insensitive rather than anything about the split.
 
      **And the naming since says the same without a second run, which is what
      the derivation this entry asked for was worth.** The copies max-skip left
@@ -1230,7 +1254,8 @@ than a slot in the next run, observed again:
 
   **And what it must not carry** is the resident offset's own price. The pair
   moves padding and offset together, so that stays a probe on the pad-probe
-  model rather than anything this run can be read for.
+  model rather than anything this run can be read for — a probe worth less
+  than it was when this was written, for the reasons two paragraphs up.
 - **What Run 13 is built to answer, registered before it runs.** Its pair
   is `run13-maxskip`, Run 12's basis recipe unchanged, against `run13-lookrts`,
   which carries two changes at once by request: the shim's look-through
