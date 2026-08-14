@@ -118,6 +118,13 @@ Modes:
                     bootstrap interval, win count and sign test
   --compare OTHER   compare one arm across two runs of the same population,
                     every arm at once -- what a paired run's two halves want
+  --compare O --alloc   whether the two agree on what each arm allocates,
+                    partitioned by size and never by column
+  --compare O --chapter the run chapter's own arithmetic, so that writing
+                    one need not begin by reading the last one
+  --claims          every claim ordering in one call, in the claims
+                    section's order, from a manifest --lint holds to the
+                    roster
   --cells           every cell as TSV, for anything not covered above
   --markdown        README's Results table, numbers recomputed and the
                     editorial column carried over from the one there --
@@ -999,7 +1006,7 @@ def sign_p(k, n):
     return min(1.0, 2.0 * tail / 2 ** n)
 
 
-def pair_table(cells, shapes, strategies, pairs):
+def pair_table(cells, shapes, strategies, pairs, quiet=False):
     """Compare two arms shape by shape, which is the sharp way to compare them.
 
     A strategy's ratio to `list` spans six-fold across this shape set, so an
@@ -1047,6 +1054,11 @@ def pair_table(cells, shapes, strategies, pairs):
               % ('', '--' if pub != pub else '%.4f' % pub,
                  '; compared RAW, one arm has no corrected time' if raw
                  else ''))
+    # `--claims` prints a dozen of these in one call and the standing
+    # explanation once would be twelve times; it is the same reasoning
+    # `--brief` applies to `--aa` and `--block`, and drops no figure.
+    if quiet:
+        return
     print('\npaired is the geomean of the per-shape ratio, which is what a')
     print('margin measured per shape should be compared against; the')
     print('published-column ratio is what a reader of the table computes,')
@@ -1130,6 +1142,88 @@ def controls_skeleton(cells, shapes, strategies, terms):
         print('The in-situ term reads %s of `sum-only` as medians,'
               % ', '.join('%.4f' % m for _, m in meds))
         print('on %s.' % ', '.join('`%s`' % b for b, _ in meds))
+
+
+def chapter_skeleton(cells, shapes, strategies, meta, other, main_hs):
+    """The run chapter's mechanical parts, as `--block` does for a class.
+
+    A chapter's paragraphs are the same paragraphs every run -- the pair's
+    identity, the regime confirmation, the headline arm-by-arm reading, the
+    floor, the wild-cell draw, the allocation check -- differing in figures
+    and in which findings are live. A session that has to READ the previous
+    run's chapter to learn what to assert pays for the whole of it before
+    writing a word, which is the largest single cost of a write-up. This
+    hands over the figures so the reading is optional.
+
+    What it does NOT emit is anything outside the two JSONs: the elapsed
+    times, the heap peaks, the wall-clock window, the md5s and the commit
+    come from the logs and the pair note, and are left as blanks in the
+    same spirit as `--block`'s provenance line -- copied, not guessed. The
+    prose stays the author's throughout; this writes no sentence.
+
+    Born checked against Run 13's own chapter: every figure it emits is one
+    that chapter published, the floors, the worst cells, the arm counts,
+    the geomean over the arms and the spread ranking alike.
+    """
+    b_cells, b_shapes, b_strategies, b_meta = load(other, main_hs)
+    apply_correction(b_cells, b_shapes, b_strategies)
+    both_sh = [s for s in shapes if s in b_shapes]
+    both_st = [t for t in strategies if t in b_strategies]
+    print('\nchapter skeleton, this run against %s'
+          % os.path.basename(other))
+    print('  regime, md5s, commit, elapsed, heap peaks, wall-clock window:'
+          ' ___ (from the')
+    print('  pair note and the logs -- this mode reads neither)')
+    rows = []
+    for st in both_st:
+        if st.startswith('sum-only') or st.endswith('-nosum'):
+            continue
+        r = [cells[sh][st]['net'] / b_cells[sh][st]['net'] for sh in both_sh
+             if cells[sh][st]['net'] > 0 and b_cells[sh][st]['net'] > 0]
+        if len(r) < 2:
+            continue
+        lg = [math.log(x) for x in r]
+        rows.append((geomean(r), stats.pstdev(lg), st))
+    if not rows:
+        return
+    out = [t for t in rows if abs(t[0] - 1) > 0.01]
+    print('\n  arm by arm, over %d arm(s): %d within 1%% of 1, %d outside'
+          % (len(rows), len(rows) - len(out), len(out)))
+    for g, _, st in sorted(out, key=lambda t: -abs(t[0] - 1)):
+        print('    %-30s %.4f  (%+.2f%%)' % (st, g, (g - 1) * 100))
+    print('    below 1: %d   above 1: %d   geomean over the arms: %.4f'
+          % (sum(1 for g, _, _ in rows if g < 1),
+             sum(1 for g, _, _ in rows if g > 1),
+             geomean([g for g, _, _ in rows])))
+    sp = sorted(rows, key=lambda t: -t[1])
+    print('\n  widest per-shape spread (log sd), which ranks how loosely an')
+    print('  arm measures rather than what it computes:')
+    for i, (g, sd, st) in enumerate(sp[:6], 1):
+        print('    %d. %-28s %.4f%s' % (i, st, sd,
+              '   <- moved past 1%' if abs(g - 1) > 0.01 else ''))
+    for tag, cs, shs, sts in (('basis', cells, shapes, strategies),
+                              ('other', b_cells, b_shapes, b_strategies)):
+        aa = []
+        for a in sts:
+            b = twin_of(a)
+            if not b or b not in sts:
+                continue
+            r = [cs[x][a]['net'] / cs[x][b]['net'] for x in shs]
+            dev = [abs(v - 1) * 100 for v in r]
+            aa.append((geomean(r), a, max(zip(dev, shs))))
+        if not aa:
+            continue
+        big = max(aa, key=lambda t: abs(t[0] - 1))
+        worst = max(aa, key=lambda t: t[2][0])
+        print('\n  %s half: floor %.2f%% (%s), worst A/A cell %.2f%% on %s'
+              % (tag, abs(big[0] - 1) * 100, big[1],
+                 worst[2][0], worst[2][1]))
+    print('\n  allocation between the halves: run --compare --alloc; the'
+          ' figure belongs')
+    print('  in the chapter and the trap it carries is documented there.')
+    print('\nThe reading, the findings and every sentence are yours. This is'
+          '\nthe arithmetic a chapter opens with, so that writing one need'
+          '\nnot begin by reading the last.')
 
 
 def compare_alloc(cells, shapes, strategies, meta, other, main_hs):
@@ -1502,6 +1596,80 @@ def fingerprint_table(cells, shapes, strategies, meta):
 # (README.md#the-claims-run-14-should-test). Constants rather than literals
 # because the property has been re-aimed twice, and a re-aim that misses one
 # use of a name is how a verdict starts disagreeing with the claim it checks.
+# The orderings each numbered claim rests on, as pairs, in the claims
+# section's own order (README.md#the-claims-run-14-should-test). A manifest
+# rather than a parser over the prose: the claims are not uniformly
+# machine-readable -- claim 2's second half is `offtab` BEHIND the shipped
+# arm rather than an `A < B` ordering, and claim 4 states two readings of
+# one arm -- so anything scraping them would be wrong on exactly the two
+# that need care. Claims 7 and 8 name no pair: 7 is the allocation column,
+# read by `--compare --alloc`, and 8 is structural, read off the table.
+# `--lint` holds every arm here to the roster, which is what stops a
+# re-aimed claim from leaving a verdict checking an arm no run times.
+CLAIMS = [
+    (1, 'the ceiling ordering, on unconditional arms',
+     [('mut-odo-vecdims', 'mut-flat-gm'),
+      ('mut-flat-gm', 'bq-mut-runs-gm-mulback'),
+      ('bq-mut-runs-gm-mulback', 'bq-odo-gm-mulback')]),
+    (2, 'the m-length table beats the scratch that builds it and the '
+        'l-length table that replaces it',
+     [('bq-expand', 'bq-mut'), ('offtab', 'bq-expand')]),
+    (3, 'a mul-back output pays on the shipped build',
+     [('bq-expand-gm-mulback', 'bq-expand')]),
+    (4, 'the scan ties its own build control, and ties the shipped arm',
+     [('bq-scan-rem-gm-mulback', 'bq-expand-gm-mulback'),
+      ('bq-scan-rem-gm-mulback', 'bq-expand')]),
+    (5, 'the build ordering, trimmed to its timed arms',
+     [('bq-expand', 'bq-gen'), ('bq-mut-runs', 'bq-expand')]),
+    (6, 'the first attempt ties the baseline', [('gen-quotrem', 'list')]),
+    (9, 'read per shape, not on its geomean',
+     [('bq-expand-b', 'bq-expand'), ('bq-expand-zf', 'bq-expand')]),
+]
+
+
+def claims_table(cells, shapes, strategies, args):
+    """Every claim's reading in one call, in the claims section's order.
+
+    Each ordering is one `--pair`, and a write-up runs a dozen of them by
+    hand, one call each, transcribing as it goes. That is the shape of work
+    a mode removes: this runs the manifest above and prints the figures a
+    verdict paragraph is built from, leaving the verdict itself -- held,
+    broke, tied, or moved and by how much against the run before -- to the
+    author, who is the only one who can compare with what the page says.
+
+    Claims 7 and 8 print as reminders with no figures, having no pair:
+    7 is `--compare --alloc` between the halves and 8 is read off the
+    table. Naming them here rather than omitting them is the point -- a
+    list of seven where the page has nine is how a claim goes unchecked.
+
+    Born checked: run against Run 13's basis, every ordering it prints
+    reproduces the figure that run published -- geomean, win count and
+    sign p alike -- on all thirteen of them.
+    """
+    missing = [a for _, _, ps in CLAIMS for p in ps for a in p
+               if a not in strategies]
+    if missing:
+        print('NOTE: %d arm(s) of the claims list are not in this run: %s'
+              % (len(missing), ', '.join(sorted(set(missing)))))
+        print('      a filtered run cannot check the claims; use a full one.')
+    for n, label, pairs in CLAIMS:
+        print('\nclaim %d -- %s' % (n, label))
+        live = [[a, b] for a, b in pairs
+                if a in strategies and b in strategies]
+        for a, b in pairs:
+            if [a, b] not in live:
+                print('  %s / %s: not in this run' % (a, b))
+        if live:
+            pair_table(cells, shapes, strategies, live, quiet=True)
+    print('\nclaim 7 -- allocation: no pair; read it with'
+          '\n  ./read-run.py BASIS.json --compare OTHER.json --alloc')
+    print('claim 8 -- structural: no pair; read the fast tier off the table'
+          '\n  and check the gap to bq-gen is populated.')
+    print('\nThe figures are the reading; the verdict is yours. Compare each'
+          '\nwith what the claims section states, and say held, broke or'
+          '\nmoved -- a margin inside the floor is requoted without comment.')
+
+
 PROP2_FASTEST = 'mut-odo-vecdims'
 PROP2_PURE = 'bq-scan-rem-gm-mulback'
 SHIPPED = 'bq-expand'
@@ -2723,6 +2891,22 @@ def lint(main_hs, readme):
         print('ok:   every fb function defined in Main.hs is in the roster'
               ' (%d of them, one of which is the reference)' % len(rostered))
 
+    # The claims manifest names arms `--claims` will ask the reader for, and
+    # a re-aimed claim that misses one leaves a verdict checking an arm no
+    # run times -- which fails only when somebody runs it, months later.
+    # Held to the roster here, where every other name in this file is.
+    # Non-vacuous 2026-08-14: renaming one arm of claim 4 in the manifest
+    # named it and exited 1; restoring it returned the ok line.
+    claimed = sorted({a for _, _, ps in CLAIMS for pr in ps for a in pr})
+    stray = [a for a in claimed if a not in names]
+    if stray:
+        bad.append('%d arm(s) the claims manifest names are not rostered,'
+                   ' so `--claims` would ask for what no run times: %s'
+                   % (len(stray), ', '.join(stray)))
+    else:
+        print('ok:   every arm the claims manifest names is rostered'
+              ' (%d across %d claims)' % (len(claimed), len(CLAIMS)))
+
     off = []
     for n, f in twins:
         base = twin_of(n)
@@ -3125,6 +3309,12 @@ def main():
     p.add_argument('--compare', metavar='OTHER.json',
                    help='this run against another of the same population,'
                         ' one arm at a time')
+    p.add_argument('--chapter', action='store_true',
+                   help='with --compare: the run chapter\'s mechanical'
+                        ' figures, as --block does for a class')
+    p.add_argument('--claims', action='store_true',
+                   help='every claim ordering in one call, in the'
+                        " claims section's order")
     p.add_argument('--alloc', action='store_true',
                    help='with --compare: allocation agreement instead of'
                         ' times, on the multiple the alloc column publishes')
@@ -3207,6 +3397,11 @@ def main():
         aa_table(cells, shapes, strategies, terms, meta, args.brief)
     elif args.pair:
         pair_table(cells, shapes, strategies, args.pair)
+    elif args.claims:
+        claims_table(cells, shapes, strategies, args)
+    elif args.compare and args.chapter:
+        chapter_skeleton(cells, shapes, strategies, meta,
+                         args.compare, args.main)
     elif args.compare and args.alloc:
         compare_alloc(cells, shapes, strategies, meta, args.compare,
                       args.main)

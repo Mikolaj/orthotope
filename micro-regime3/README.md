@@ -250,6 +250,15 @@ that would settle it and the run that can supply it. Between them a session
 knows what it must not re-derive and what is worth deriving, which is the pair
 the file opens with rather than the two lists it used to end its chapters with.
 
+**Every entry opens with its status, so that finding the live ones is a grep
+and not a reading.** `OPEN` wants a measurement that is available; `PARKED`
+is open but its route is retired, and the entry says why; `ANSWERED` records
+an outcome and is kept so the question is not re-proposed; `STANDING`
+is a ruling or a convention with nothing to run. `grep '^- .OPEN.' README.md`
+is the list of live questions, and the one that answers a session's first
+question about this section. The status is a pointer and never the authority:
+the entry's own text is.
+
 **This is the only home for an open question.** They are collected here because
 otherwise they sit one per section and get reconstructed every time — and worse,
 get missed: the question of why the count-down FastReshape form pays was raised
@@ -325,16 +334,16 @@ been asking for and leaves nothing measured on an ungrown pool.
 specified — the rule about a discriminating measurement deserving one now rather
 than a slot in the next run, observed again:
 
-- **`bq-scan-packed-mulback` gets worse because SpecConstr gives its control,
-  for free, exactly what the packing was hand-rolled to buy — and the packing
-  keeps charging for it.** Dumped in both regimes from Run 8's commit
-  (2026-08-08, `-dsuppress-all -dsuppress-uniques`), the two arms' table builds
-  differ like this. At -O1 the control's loop carries its state as a boxed
-  `Either` of a boxed pair of a boxed `Int`, allocating a `Right` per step —
-  the 72-bytes-an-entry the law at `baseOffsetsScanPacked` records — while
-  the packed arm unwraps one `I#` and is otherwise unboxed, which is the 21%
-  lead it held there. Under `-fspec-constr` both loops specialise to four raw
-  arguments and *neither* boxes: the control's `Either`, pair, `I#`
+- `ANSWERED` **`bq-scan-packed-mulback` gets worse because SpecConstr gives
+  its control, for free, exactly what the packing was hand-rolled to buy —
+  and the packing keeps charging for it.** Dumped in both regimes from Run 8's
+  commit (2026-08-08, `-dsuppress-all -dsuppress-uniques`), the two arms' table
+  builds differ like this. At -O1 the control's loop carries its state
+  as a boxed `Either` of a boxed pair of a boxed `Int`, allocating a `Right` per
+  step — the 72-bytes-an-entry the law at `baseOffsetsScanPacked` records —
+  while the packed arm unwraps one `I#` and is otherwise unboxed, which
+  is the 21% lead it held there. Under `-fspec-constr` both loops specialise
+  to four raw arguments and *neither* boxes: the control's `Either`, pair, `I#`
   and its per-step allocation all vanish, and the packed arm loses only its one
   `I#` unwrap. What survives on one side and not the other is the packing's own
   arithmetic — `uncheckedIShiftRA# … 32#` and `andI# … 4294967295#` on every
@@ -356,8 +365,8 @@ than a slot in the next run, observed again:
   arm it was built to beat, which is a thing to have settled before the flag
   question below is answered rather than after.
 
-- **It does not generalise to the other hand-packed arms, and why not
-  is the useful half.** Three benchmarked pairs differ from their control
+- `ANSWERED` **It does not generalise to the other hand-packed arms, and why
+  not is the useful half.** Three benchmarked pairs differ from their control
   in a hand-managed compact representation and in nothing else, and the flag
   moves all three differently. The -O1 column is a ratio of published columns,
   that run's artifact being gone; Run 8's is paired, and the last two columns
@@ -380,10 +389,10 @@ than a slot in the next run, observed again:
   pair moves furthest of the three and not for its packing at all: its arm
   improves 6% while its *control* regresses 22%.
 
-- **The element-type ordering still follows `Storable Double`.** [That
-  section's](#one-element-type-and-what-the-probe-found) own re-probe trigger
-  is a run that moves the ordering at `Storable Double`, which Run 8 does,
-  so all four types were re-run under the flag: the ranking is unchanged
+- `ANSWERED` **The element-type ordering still follows `Storable Double`.**
+  [That section's](#one-element-type-and-what-the-probe-found) own re-probe
+  trigger is a run that moves the ordering at `Storable Double`, which Run 8
+  does, so all four types were re-run under the flag: the ranking is unchanged
   at every one of them, `bq-expand`'s `worst` stays between 0.245 and 0.267,
   and the column's arithmetic check reproduces to the digit. The figures
   are in that section beside the -O1 ones. What the re-probe does not settle
@@ -393,7 +402,7 @@ than a slot in the next run, observed again:
 
 **What Run 10 leaves open**, each with what would settle it:
 
-- **What does code placement cost?** **A rebuild is worth up to 18%
+- `ANSWERED` **What does code placement cost?** **A rebuild is worth up to 18%
   on a susceptible arm and 0.5% on the baseline** — which is the size of every
   unexplained regression in Run 8, and the largest effect this page has measured
   that is not a strategy. Four binaries were built from sources differing only
@@ -443,12 +452,12 @@ than a slot in the next run, observed again:
   the roster was blocked, the roster being one of the things that sets
   the layout, which is why the answer had to come from a probe that holds
   membership still.
-- **The queue of experiments that want a quiet machine**, ranked, so
-  that the next quiet window is not spent deciding what to spend it on. Written
-  down 2026-08-09 with Run 9's artifacts still alive, and the ranking turns
-  on one thing worth stating: *the binary must not be rebuilt between the arms
-  of a comparison*, since a rebuild is worth up to 18% on a susceptible arm
-  and swamps most of what is being asked.
+- `STANDING` **The queue of experiments that want a quiet machine**, ranked,
+  so that the next quiet window is not spent deciding what to spend it on.
+  Written down 2026-08-09 with Run 9's artifacts still alive, and the ranking
+  turns on one thing worth stating: *the binary must not be rebuilt between
+  the arms of a comparison*, since a rebuild is worth up to 18% on a susceptible
+  arm and swamps most of what is being asked.
 
   **Ordered against Run 10 rather than by value, 2026-08-10, now that its regime
   and roster are fixed.** One entry goes before it and the rest after,
@@ -637,9 +646,9 @@ than a slot in the next run, observed again:
   for nothing, which was always the stronger of the two reasons. Recorded
   because the expiry of a premise is exactly what makes a dead idea look alive
   again.
-- **Is the term still unbiased?** Gate 3 passes and still does not bracket 1:
-  every in-situ median of both arms in all ten of Run 10's processes sits below
-  it, **0.9641 to 0.9903**, for the **third** run running
+- `ANSWERED` **Is the term still unbiased?** Gate 3 passes and still does
+  not bracket 1: every in-situ median of both arms in all ten of Run 10's
+  processes sits below it, **0.9641 to 0.9903**, for the **third** run running
   ([sum-only](#sum-only-and-the-correction-now-applied)) — and the two halves
   of the pair agree about it, so it is not a layout term either. Three runs
   on one side is no longer the coin-flip the failure test assumes, so the next
@@ -672,17 +681,17 @@ than a slot in the next run, observed again:
   where the arm now rides; the direction does not need it. The `sum-only` pair
   covered 1 at 1.0000 in the same process, so the correction's own control
   passed alongside.
-- **Before crediting a margin to a strategy, check whether the two arms' hot
-  loops are the same code and where each landed.** Two families now read
-  that way ([the floor section][floor]), and in one of them it suspended an axis
-  figure the run had just published. What it does **not** extend to is a sweep
-  of the roster, which was tried: the reading needs two arms whose hot loop
-  is identical *and* which differ nowhere else. **That sweep has since been done
-  properly, naming being available** (2026-08-13, a `-g3` twin over loop lengths
-  20 to 48). Main's own code holds a third same-code group and no more:
-  `fbMutFlat` and `fbMutFlatGm` share a 24-byte loop, at offsets 5 and 0.
-  `mut-flat` is rostered `Only`, so the *timed* roster does hold exactly the two
-  groups already read and the sentence stands as written — but it stands
+- `STANDING` **Before crediting a margin to a strategy, check whether the two
+  arms' hot loops are the same code and where each landed.** Two families now
+  read that way ([the floor section][floor]), and in one of them it suspended
+  an axis figure the run had just published. What it does **not** extend to
+  is a sweep of the roster, which was tried: the reading needs two arms whose
+  hot loop is identical *and* which differ nowhere else. **That sweep has since
+  been done properly, naming being available** (2026-08-13, a `-g3` twin
+  over loop lengths 20 to 48). Main's own code holds a third same-code group
+  and no more: `fbMutFlat` and `fbMutFlatGm` share a 24-byte loop, at offsets 5
+  and 0. `mut-flat` is rostered `Only`, so the *timed* roster does hold exactly
+  the two groups already read and the sentence stands as written — but it stands
   as a checked fact rather than an assumption, and it does **not** become
   a placement pair if that arm is ever timed: the two differ
   in the Granlund-Montgomery quotient, so a line span between them competes
@@ -696,10 +705,10 @@ than a slot in the next run, observed again:
   and `bq-gen`, whose 11% is still unaccounted for, has no counterpart sharing
   its per-element loop at all, so this instrument cannot reach it. Recorded
   so the sweep is not attempted a second time.
-- **Run 10's predictions, and how they came out.** The run is made; the verdicts
-  are here, with the registrations they are read against left standing
-  underneath so that what was predicted before the hours were spent stays
-  legible. **Two held, one held only in direction, one split and one
+- `ANSWERED` **Run 10's predictions, and how they came out.** The run is made;
+  the verdicts are here, with the registrations they are read against left
+  standing underneath so that what was predicted before the hours were spent
+  stays legible. **Two held, one held only in direction, one split and one
   is refuted.**
   1. **Split, and the split is the finding.** `mut-odo-vecdims-add-in` collapsed
      as predicted — 0.9937 on the unaligned half, where all four copies are now
@@ -764,13 +773,13 @@ than a slot in the next run, observed again:
   the main set's (1.00% to 0.54%) and leaves `scaled` with a 5.36% pair on one
   cell of `scaled-super-r3`, the run's one bad control.
 
-- **The registrations those verdicts are read against.** Its order was chosen
-  for heap state — `sum-only-early` above `list`, so nothing is measured
-  on an ungrown pool — and the layout it happens to give was then read off
-  the binary rather than shopped for, which is the distinction that keeps
-  the run from being confirmatory. **Run 10 is now two binaries rather
-  than one**, differing only in the assembler shim, so each prediction below
-  says which half it is read on and the last two exist only because there
+- `STANDING` **The registrations those verdicts are read against.** Its order
+  was chosen for heap state — `sum-only-early` above `list`, so nothing
+  is measured on an ungrown pool — and the layout it happens to give
+  was then read off the binary rather than shopped for, which is the distinction
+  that keeps the run from being confirmatory. **Run 10 is now two binaries
+  rather than one**, differing only in the assembler shim, so each prediction
+  below says which half it is read on and the last two exist only because there
   are two ([the run's plan](#making-a-major-benchmark-run) has why,
   and the build and check sequence). Against Run 9's offsets, both
   of the straddle hypothesis's arms move, in opposite directions:
@@ -965,10 +974,10 @@ than a slot in the next run, observed again:
   were replications carrying point predictions rather than the evidence — which
   is what that probe's window was spent to buy, and why the run's own weight sat
   on 4.
-- **What costs `mut-odo-vecdims-add-out` its 16%, now that layout cannot? Asked
-  and answered the same day: it is a per-run cost, and the Core reading had
-  it right all along.** Run 10 read the arm 1.1266 with its loop resident
-  and 1.1612 with every copy at offset 0, so the suspension [the
+- `ANSWERED` **What costs `mut-odo-vecdims-add-out` its 16%, now that layout
+  cannot? Asked and answered the same day: it is a per-run cost, and the Core
+  reading had it right all along.** Run 10 read the arm 1.1266 with its loop
+  resident and 1.1612 with every copy at offset 0, so the suspension [the
   ceiling][ceiling] carried is withdrawn and the cost is the arithmetic's.
   Regressing the per-shape penalty on the aligned half — arithmetic
   over the run's own cells, no machine time — puts it at r **−0.64** against log
@@ -981,13 +990,13 @@ than a slot in the next run, observed again:
   on — so the pairing bought a mechanism here and not only a number. `add-both`
   tracks it at the same r and the corner's sub-additivity says the two axes
   largely pay for one thing.
-- **What is the 3% that survives alignment on `build`/`mut-odo`?** With both
-  copies of one worker at offset 0 the pair still reads 0.9685 on the main set,
-  tying by the sign test (16 of 24) while the interval misses 1, and it runs
-  0.9148 to 1.0335 across the nine populations. The gate's correction already
-  put these arms' intrinsic ratio at 0.98 rather than 1, on the pad probe's
-  both-resident binaries, so Run 10 reproduces that at full budget rather
-  than contradicting it.
+- `OPEN` **What is the 3% that survives alignment on `build`/`mut-odo`?**
+  With both copies of one worker at offset 0 the pair still reads 0.9685
+  on the main set, tying by the sign test (16 of 24) while the interval misses
+  1, and it runs 0.9148 to 1.0335 across the nine populations. The gate's
+  correction already put these arms' intrinsic ratio at 0.98 rather than 1,
+  on the pad probe's both-resident binaries, so Run 10 reproduces that at full
+  budget rather than contradicting it.
 
   **Run 11 says the residual is not stable within itself, which is new.**
   Re-running that binary puts the pair at **0.9467** on the main set at 21 wins
@@ -1084,9 +1093,9 @@ than a slot in the next run, observed again:
   as a finding: `window`'s is two cells at sign p 1. What the span says is what
   the entry already said, one run more strongly — whatever the residual is,
   it is not one quantity waiting to be attributed.
-- **What Run 11 was built to answer, registered before it ran — and what
-  it answered.** Three questions, each with what would count as an answer,
-  so that a run reporting "nothing moved" reports a result rather
+- `ANSWERED` **What Run 11 was built to answer, registered before it ran —
+  and what it answered.** Three questions, each with what would count
+  as an answer, so that a run reporting "nothing moved" reports a result rather
   than a failure. All three are answered; the third only in part.
   1. **The repetition, owed since Run 9: answered, and the bound is a quarter
      of what it was.** With the basis half Run 10's aligned binary byte
@@ -1133,13 +1142,13 @@ than a slot in the next run, observed again:
   then called due — since the repetition needed membership pinned as well
   as layout. It did not; that arm is Run 12's, and the ordering is in the queue
   entry too.
-- **What Run 12 was built to answer, registered before it ran, and how it came
-  out.** Four questions, each with what would count as an answer, so that a run
-  reporting "nothing moved" reports a result rather than a failure. Registered
-  2026-08-13 before the evening and answered the same day; the verdicts belong
-  here rather than in the run's own chapter, which the next run replaces. **Two
-  answered, one refuted, one still a gap** — and the refuted one is the run's
-  finding.
+- `OPEN` **What Run 12 was built to answer, registered before it ran, and how
+  it came out.** Four questions, each with what would count as an answer,
+  so that a run reporting "nothing moved" reports a result rather
+  than a failure. Registered 2026-08-13 before the evening and answered the same
+  day; the verdicts belong here rather than in the run's own chapter, which
+  the next run replaces. **Two answered, one refuted, one still a gap** —
+  and the refuted one is the run's finding.
   1. **What the flag costs across the roster, as a package.** Run 11 priced
      the shim; this prices `-fproc-alignment=64` on top of it, read
      as `run12-maxskippa` against `run12-maxskip` over the main set with each
@@ -1263,19 +1272,19 @@ than a slot in the next run, observed again:
   moves padding and offset together, so that stays a probe on the pad-probe
   model rather than anything this run can be read for — a probe worth less
   than it was when this was written, for the reasons two paragraphs up.
-- **What Run 13 was built to answer, registered before it ran — and what
-  it answered.** Its pair was `run13-maxskip`, Run 12's basis recipe unchanged,
-  against `run13-lookrts`, carrying two changes at once by request: the shim's
-  look-through (`LOOP_LOOKTHROUGH=1`, 422 loop heads given a budget where
-  the basis form gives 395) and an RTS default line of `-I0 -T -M8G` in place
-  of `micro.cabal`'s `-T -M2G`. **All four are answered, and the first is a null
-  the registration named as an answer in advance.** (1) *What the package costs
-  across the roster*: **nothing past drift**. Of the 30 arms compared, 26 sit
-  within 1% of 1 and the four outside are `mut-odo` 0.9794, `bq-gen` 0.9861,
-  `gen-unsafe` 0.9875 and `offtab` 1.0269 — the largest 2.69% against a drift
-  band of at most 3.3% per arm — with twelve arms below 1, eighteen above
-  and the geomean over the thirty at 1.000. So **Run 14's basis may take
-  the look-through and the RTS line as a decision rather than
+- `ANSWERED` **What Run 13 was built to answer, registered before it ran —
+  and what it answered.** Its pair was `run13-maxskip`, Run 12's basis recipe
+  unchanged, against `run13-lookrts`, carrying two changes at once by request:
+  the shim's look-through (`LOOP_LOOKTHROUGH=1`, 422 loop heads given a budget
+  where the basis form gives 395) and an RTS default line of `-I0 -T -M8G`
+  in place of `micro.cabal`'s `-T -M2G`. **All four are answered, and the first
+  is a null the registration named as an answer in advance.** (1) *What
+  the package costs across the roster*: **nothing past drift**. Of the 30 arms
+  compared, 26 sit within 1% of 1 and the four outside are `mut-odo` 0.9794,
+  `bq-gen` 0.9861, `gen-unsafe` 0.9875 and `offtab` 1.0269 — the largest 2.69%
+  against a drift band of at most 3.3% per arm — with twelve arms below 1,
+  eighteen above and the geomean over the thirty at 1.000. So **Run 14's basis
+  may take the look-through and the RTS line as a decision rather than
   as a measurement**, which is the choice this priced and is now [carried
   forward](#what-run-14-compares-against). (2) *The gap*, that the pair cannot
   separate the two changes: it stayed a gap and cost nothing, a null result
@@ -1341,16 +1350,16 @@ than a slot in the next run, observed again:
      and six A/A worst cells against the question of whether a wild cell returns
      at `lenet-L1-28-c1-k5/bq-expand`, turns up elsewhere, or does not appear.
      It is a draw and not a test, so a clean run refutes nothing.
-- **Which arm owns a loop copy: answered, and the answer is that a binary can
-  carry its own names.** Run 12's second prediction had to record that tying
-  a named arm to a named offset was not licensed, every `Main` copy printing
-  under one mangled symbol because these arms compile to one worker. A `-g3`
-  build carries what is missing — GHC emits a per-block symbol with DWARF line
-  info — and `loop-offsets.py` now reads it without help: `addr2line`
-  for the source line, the source file for the top-level binding that line falls
-  in, so a copy prints as `fbMutOdoVecdims` with the source line beside
-  it instead of as one worker's mangled name. A binary with no line info prints
-  exactly what it printed before. Read that way on 2026-08-13,
+- `ANSWERED` **Which arm owns a loop copy: answered, and the answer is
+  that a binary can carry its own names.** Run 12's second prediction had
+  to record that tying a named arm to a named offset was not licensed, every
+  `Main` copy printing under one mangled symbol because these arms compile
+  to one worker. A `-g3` build carries what is missing — GHC emits a per-block
+  symbol with DWARF line info — and `loop-offsets.py` now reads it without help:
+  `addr2line` for the source line, the source file for the top-level binding
+  that line falls in, so a copy prints as `fbMutOdoVecdims` with the source line
+  beside it instead of as one worker's mangled name. A binary with no line info
+  prints exactly what it printed before. Read that way on 2026-08-13,
   at `-fspec-constr` with `LOOP_MAXSKIP=1`, the four-copy vecdims group is,
   in address order, `mut-odo-vecdims`, `-add-in`, `-add-out` and `-add-both`,
   and the pair beside it is `mut-odo` then `build`. That is the order [the floor
@@ -1394,10 +1403,10 @@ than a slot in the next run, observed again:
   in twin and timed binary before trusting the twin's names, which the vecdims
   group passes four against four and this one fails. Run 13's figures are
   in its pair note, which goes with its binaries.
-- **The shim was blind under `-g`, which is why this wanted a fix and not merely
-  a build.** `align-as.py` aligns a head only where the line before it
-  is an instruction, that being how it refuses to put padding between an info
-  table and the code the table belongs to; under `-g` every head follows
+- `ANSWERED` **The shim was blind under `-g`, which is why this wanted a fix
+  and not merely a build.** `align-as.py` aligns a head only where the line
+  before it is an instruction, that being how it refuses to put padding between
+  an info table and the code the table belongs to; under `-g` every head follows
   the previous block's `_end` and `_proc_end` labels instead, so **not one head
   of a `-g3` assembly was given a directive** — 0 against the same day's plain
   assembly at 395, read off the two captures — and the build came out unaligned
@@ -1434,12 +1443,12 @@ than a slot in the next run, observed again:
   the placement of everything downstream of it, which is the term this page
   prices at a few percent and cannot predict — a paired run's to answer
   if anyone wants it answered.
-- **`-g3` is a different program, and what differs is register allocation.**
-  Measured on the assembly GHC hands the assembler rather than inferred
-  from the binary, both sides stripped of every `.loc`, every debug label
-  and every `.debug_*` section and their label uniques renamed in order
-  of appearance: 60056 instructions against the plain build's 59991, of which
-  +63 are `movq`, with register assignments and block order differing
+- `ANSWERED` **`-g3` is a different program, and what differs is register
+  allocation.** Measured on the assembly GHC hands the assembler rather
+  than inferred from the binary, both sides stripped of every `.loc`, every
+  debug label and every `.debug_*` section and their label uniques renamed
+  in order of appearance: 60056 instructions against the plain build's 59991,
+  of which +63 are `movq`, with register assignments and block order differing
   throughout. What does not differ is what this page times — all three 28-byte
   groups have the same body in both builds — and the two copies the `-g3` build
   lacks are the dead ones, its `build`/`mut-odo` group holding two where
@@ -1450,39 +1459,39 @@ than a slot in the next run, observed again:
   must put those two in that order. `-add-both-down` is in neither group,
   its loop being the count-down form's 24 bytes as [the floor section][floor]'s
   table records, and `--len 24` finds it.
-- **So building everything with `-g3` is refuted, and a `-g3` build is a twin
-  to read rather than a binary to time.** The proposal was that if the timed
-  binaries carried their own names there would be no correspondence to establish
-  and a per-arm offset claim would become an ordinary reading; its own criterion
-  was that the arms agree within the run's floor. They do not. A pair differing
-  in `-g3` alone — one source, one regime, and needing no pad, the two `.text`
-  coming out the same size with all 29449 shared library symbols at a whole-line
-  delta — gates at `build` **0.9391, 0.9488, 0.9363 and 0.9517**, plain
-  over `-g3`, across the four pairings of two passes each, and `mut-odo`
-  at 0.9626 to 0.9743, against each binary's own repeat of 0.9868 and 0.9970
-  on `build` and 0.9958 and 1.0079 on `mut-odo`. Five percent and three percent,
-  one direction, four to six times the floor, with `list` still to under 1.4%
-  and no wider between the halves than inside one. What that prices
-  is the package, the halves differing in emitted code *and* in where
-  the executed copies land, 0 and 0 against 4 and 28 — and the package is what
-  a basis decision wants. The `build`/`mut-odo` ratio moves with them, 0.9862
-  and 0.9952 in the plain passes against 1.0109 and 1.0219 in the `-g3` ones,
-  but all four are ties by sign test on intervals covering 1, so that is a point
-  estimate shifting and not the pair separating; [the floor section][floor]'s
-  shared-offset reading is neither confirmed nor contradicted at this budget.
-  **The machine was not fully quiet**, its owner having said so while the gate
-  ran, which is why the floor here is each binary's own repeat rather than Run
-  11's drift band; the palindrome cancels drift across the hour and all four
-  pairings agree in sign and size. **Both halves were built
-  with the look-through applied unconditionally**, which is the form
-  that predates the `.loc` condition above and the reason it can be said
-  the shim is held constant across them rather than treating one half
-  differently: what the pair varies is `-g3`. That half is not the basis recipe
-  byte for byte, carrying the 27 extra heads, but it places every tracked loop
-  where the basis recipe does — the same `[11, 0, 4, 0]` and `[24, 8, 0, 0]`,
-  checked on both forms — so what the gate compares is two builds whose timed
-  loops sit identically and whose debug information does not. Rebuilding
-  the pair from this tree therefore reproduces the `-g3` half exactly
+- `ANSWERED` **So building everything with `-g3` is refuted, and a `-g3` build
+  is a twin to read rather than a binary to time.** The proposal was that
+  if the timed binaries carried their own names there would be no correspondence
+  to establish and a per-arm offset claim would become an ordinary reading;
+  its own criterion was that the arms agree within the run's floor. They do not.
+  A pair differing in `-g3` alone — one source, one regime, and needing no pad,
+  the two `.text` coming out the same size with all 29449 shared library symbols
+  at a whole-line delta — gates at `build` **0.9391, 0.9488, 0.9363
+  and 0.9517**, plain over `-g3`, across the four pairings of two passes each,
+  and `mut-odo` at 0.9626 to 0.9743, against each binary's own repeat of 0.9868
+  and 0.9970 on `build` and 0.9958 and 1.0079 on `mut-odo`. Five percent
+  and three percent, one direction, four to six times the floor, with `list`
+  still to under 1.4% and no wider between the halves than inside one. What
+  that prices is the package, the halves differing in emitted code
+  *and* in where the executed copies land, 0 and 0 against 4 and 28 —
+  and the package is what a basis decision wants. The `build`/`mut-odo` ratio
+  moves with them, 0.9862 and 0.9952 in the plain passes against 1.0109
+  and 1.0219 in the `-g3` ones, but all four are ties by sign test on intervals
+  covering 1, so that is a point estimate shifting and not the pair separating;
+  [the floor section][floor]'s shared-offset reading is neither confirmed
+  nor contradicted at this budget. **The machine was not fully quiet**,
+  its owner having said so while the gate ran, which is why the floor here
+  is each binary's own repeat rather than Run 11's drift band; the palindrome
+  cancels drift across the hour and all four pairings agree in sign and size.
+  **Both halves were built with the look-through applied unconditionally**,
+  which is the form that predates the `.loc` condition above and the reason
+  it can be said the shim is held constant across them rather than treating one
+  half differently: what the pair varies is `-g3`. That half is not the basis
+  recipe byte for byte, carrying the 27 extra heads, but it places every tracked
+  loop where the basis recipe does — the same `[11, 0, 4, 0]`
+  and `[24, 8, 0, 0]`, checked on both forms — so what the gate compares is two
+  builds whose timed loops sit identically and whose debug information does not.
+  Rebuilding the pair from this tree therefore reproduces the `-g3` half exactly
   and the other with those 27 heads unaligned, which is the same experiment
   and not the same bytes. So the naming above is read off a twin and carried
   to the timed binary by the correspondence — the arrangement the recommended
@@ -1500,8 +1509,8 @@ than a slot in the next run, observed again:
   27687](https://gitlab.haskell.org/ghc/ghc/-/work_items/27687), which
   this page's finding produced; what they settle here is that no debug level
   is a cheap way to put names in a binary that will be timed.
-- **A recurring transient that lands on the shipped arm's family, worth 35
-  to 44%, and which no published column would show.** Not one cell: **three
+- `OPEN` **A recurring transient that lands on the shipped arm's family, worth
+  35 to 44%, and which no published column would show.** Not one cell: **three
   sightings in four runs**, moving each time. Run 8 read `bq-expand`'s distant
   twin 44% slow on `vgg-14-c512-k3` and Run 9 41.4% on the same arm and shape;
   Run 10 was clean; Run 11's aligned half reads `lenet-L1-28-c1-k5/bq-expand`
@@ -1698,15 +1707,15 @@ than a slot in the next run, observed again:
   edit and belongs **after the current pair is spent**, since it changes
   the module's code, so its `.text`, so every loop offset, and would invalidate
   the md5s that pair's note records for binaries already built.
-- **Why is `mut-odo`'s interval wide on `micro-aligned`?** Its CI% reads 1.06
-  there against 0.34 unaligned, and the raw samples have since been read
-  (2026-08-11, arithmetic over the run and gate artifacts, no machine time).
-  **It reproduces and it belongs to that binary**: 1.06, 1.09 and 1.15 in three
-  independent processes on it — Run 10's main set and both gate passes — against
-  0.72 and 0.19 on `micro-maxskip`. **And it is one arm, not the four this entry
-  used to name.** `offtab`'s interval is 0.74 in both halves and `list`'s
-  *narrows*, 0.67 to 0.59, while their `noise` reads 1.78 to 3.03 and 2.24
-  to 3.59: `noise` is a row's CI against the median CI on its shape,
+- `PARKED` **Why is `mut-odo`'s interval wide on `micro-aligned`?** Its CI%
+  reads 1.06 there against 0.34 unaligned, and the raw samples have since
+  been read (2026-08-11, arithmetic over the run and gate artifacts, no machine
+  time). **It reproduces and it belongs to that binary**: 1.06, 1.09 and 1.15
+  in three independent processes on it — Run 10's main set and both gate passes
+  — against 0.72 and 0.19 on `micro-maxskip`. **And it is one arm, not the four
+  this entry used to name.** `offtab`'s interval is 0.74 in both halves
+  and `list`'s *narrows*, 0.67 to 0.59, while their `noise` reads 1.78 to 3.03
+  and 2.24 to 3.59: `noise` is a row's CI against the median CI on its shape,
   so the aligned half being quieter overall — median CI% over rows 0.180
   to 0.160, the same direction as its halved A/A floor — lifts every row's
   figure without touching its cell. `build` moves 0.30 to 0.39, a tenth of what
@@ -1752,51 +1761,52 @@ than a slot in the next run, observed again:
   pair, behaving together, on the same two binaries as [the 3% that survives
   alignment][open] — recorded as a measurement, not a mechanism, since nothing
   here says what the scatter is.
-- **A second instrument says different arms are unstable, and the two disagree —
-  which is the finding rather than something to average.** The entry above
-  prices instability by the `CI%` column, which is sampling error *within* one
-  benchmark. A pair's two halves supply another: each arm's spread of per-shape
-  ratios between them, as the standard deviation of their logs, which prices
-  disagreement *between* processes. Run 13 raised it and it is not that run's
-  alone. **Measured on the three pairs whose two main sets are both on disk** —
-  Run 11 aligned against max-skip, Run 12 max-skip against `+procalign`, Run 13
-  max-skip against `lookrts` — `offtab` ranks 3rd, 2nd and 1st, `build` 2nd, 3rd
-  and 3rd, and `offtab`, `build`, `gen-unsafe` and `bq-gen` sit in the widest
-  six of all three. So it is a stable property of the arms and not an accident
-  of one pair. **It is not sampling error**: against `CI%` it correlates at r
-  +0.69, and `list` refutes the account outright, having the fewest samples
-  of any arm and a *higher* `CI%` than `offtab`, `mut-odo` or `build` while
-  its spread is a third of theirs. These arms are measured precisely inside
-  a process and disagree wildly between them. **And the two instruments name
-  different arms**, which is why this is an entry: the account above says
-  `offtab`'s interval is 0.74 in both halves and reads it as an arm that does
-  not follow the phenomenon — true of the interval, and false of the spread,
-  where it is the worst arm in the roster in all three pairs. That account
-  is built on the `build`/`mut-odo` code twin; the phenomenon is wider
-  than the twin and its most consistent member is not a code twin at all. **Two
-  things would settle it, and only the second wants a machine.** Correlating
-  the per-shape spread against `sInner`, `l`, `m` and rank, and asking what
-  those four arms share — they are not a tier, `offtab` carrying mutable `Int`
-  scratch, `build` a class-method fill and the other two pure, so a negative
-  answer is informative — is arithmetic over kept artifacts. Separating position
+- `OPEN` **A second instrument says different arms are unstable, and the two
+  disagree — which is the finding rather than something to average.** The entry
+  above prices instability by the `CI%` column, which is sampling error *within*
+  one benchmark. A pair's two halves supply another: each arm's spread
+  of per-shape ratios between them, as the standard deviation of their logs,
+  which prices disagreement *between* processes. Run 13 raised it and it
+  is not that run's alone. **Measured on the three pairs whose two main sets
+  are both on disk** — Run 11 aligned against max-skip, Run 12 max-skip against
+  `+procalign`, Run 13 max-skip against `lookrts` — `offtab` ranks 3rd, 2nd
+  and 1st, `build` 2nd, 3rd and 3rd, and `offtab`, `build`, `gen-unsafe`
+  and `bq-gen` sit in the widest six of all three. So it is a stable property
+  of the arms and not an accident of one pair. **It is not sampling error**:
+  against `CI%` it correlates at r +0.69, and `list` refutes the account
+  outright, having the fewest samples of any arm and a *higher* `CI%`
+  than `offtab`, `mut-odo` or `build` while its spread is a third of theirs.
+  These arms are measured precisely inside a process and disagree wildly between
+  them. **And the two instruments name different arms**, which is why this
+  is an entry: the account above says `offtab`'s interval is 0.74 in both halves
+  and reads it as an arm that does not follow the phenomenon — true
+  of the interval, and false of the spread, where it is the worst arm
+  in the roster in all three pairs. That account is built
+  on the `build`/`mut-odo` code twin; the phenomenon is wider than the twin
+  and its most consistent member is not a code twin at all. **Two things would
+  settle it, and only the second wants a machine.** Correlating the per-shape
+  spread against `sInner`, `l`, `m` and rank, and asking what those four arms
+  share — they are not a tier, `offtab` carrying mutable `Int` scratch, `build`
+  a class-method fill and the other two pure, so a negative answer
+  is informative — is arithmetic over kept artifacts. Separating position
   from code for them wants a *twin* on one of them, which no run has ever had:
   the A/A gate covers three of the twenty-four timed arms and none of these,
   which is the same eighth-of-the-table gap the wild-cell entry above names
   from the other side. That is a roster change and so a full run. The three-pair
   reading is possible only while those runs' main sets are kept.
-- **Why did `list` move 18% on `stretch-tall-Mx2` between two runs that did
-  not touch it? Answered: because those two runs did not hold the layout
-  still.** Run 11 inherited shapes, roster, regime and layout and reads
-  that cell at **1.0063**, inside the 0.958–1.043 band its 23 neighbours occupy,
-  so the 18% belonged to the roster-order change between Runs 9 and 10
-  and not to run-to-run drift. The cheap half of the diagnosis had already shown
-  the cell was stable inside its own run — 16 samples and CI% 0.822 unaligned,
-  15 and 1.612 aligned, R² above 0.9994 on both, the two halves agreeing
-  to 0.25% — which is what left drift as the only reading available then. What
-  the repetition adds is that drift will not carry 18%, so the bound this page
-  quotes for it comes down accordingly.
-- **`scaled`'s A/A floor came back on Run 10 at 5.36%, at the slot that carried
-  it in Run 7 and Run 8 and not in Run 9 — and it was the base arm
+- `ANSWERED` **Why did `list` move 18% on `stretch-tall-Mx2` between two runs
+  that did not touch it? Answered: because those two runs did not hold
+  the layout still.** Run 11 inherited shapes, roster, regime and layout
+  and reads that cell at **1.0063**, inside the 0.958–1.043 band its 23
+  neighbours occupy, so the 18% belonged to the roster-order change between Runs
+  9 and 10 and not to run-to-run drift. The cheap half of the diagnosis had
+  already shown the cell was stable inside its own run — 16 samples and CI%
+  0.822 unaligned, 15 and 1.612 aligned, R² above 0.9994 on both, the two halves
+  agreeing to 0.25% — which is what left drift as the only reading available
+  then. What the repetition adds is that drift will not carry 18%, so the bound
+  this page quotes for it comes down accordingly.
+- `OPEN` **`scaled`'s A/A floor came back on Run 10 at 5.36%, at the slot
+  that carried it in Run 7 and Run 8 and not in Run 9 — and it was the base arm
   that was slow, not the twins** (Run 11's answer closes this entry below,
   and its figures are not these). Both `mut-odo-vecdims` pairs read below 1,
   0.9464 and 0.9574, both worst on `scaled-super-r3`, while the other four pairs
@@ -1841,13 +1851,13 @@ than a slot in the next run, observed again:
   is exactly what this entry already says and is why the ruling needs
   no revision: the slot is real, its size is not, and the amplification
   is arithmetic rather than a second effect.
-- **What does the roster owe the next run?** The exact repetition is **taken**
-  and is not owed again for its own sake: Run 11 inherited shapes, roster,
-  order, regime and binary, and what it bought is at [the head of the run
-  chapter](#about-the-last-run-run-13) — a drift band a quarter of the one
-  this page had been quoting, and every claim reproducing on it. What the roster
-  owed is the third `-nosum` arm the queue holds, deferred out of Run 11
-  so that its membership stayed pinned and out of Run 12 so that it did
+- `OPEN` **What does the roster owe the next run?** The exact repetition
+  is **taken** and is not owed again for its own sake: Run 11 inherited shapes,
+  roster, order, regime and binary, and what it bought is at [the head
+  of the run chapter](#about-the-last-run-run-13) — a drift band a quarter
+  of the one this page had been quoting, and every claim reproducing on it. What
+  the roster owed is the third `-nosum` arm the queue holds, deferred out of Run
+  11 so that its membership stayed pinned and out of Run 12 so that it did
   not arrive in the same run as a change of shim. **It is now written**,
   as `mut-flat-gm-nosum`: a `Force` pair on the flat fill, the third shape
   of fill after the odometer and the expansion, which is what lets gate 3 tell
@@ -2018,7 +2028,7 @@ actually compiles under.
 
 ### Non-urgent TODO list
 
-- **A class process's provenance line counts every class view,
+- `STANDING` **A class process's provenance line counts every class view,
   not the population that ran.** The count is fixed before criterion does
   the selecting, so each class process reports the whole class set's size beside
   its own elapsed time and heap peaks, both of which are its own; the write-up
@@ -2028,15 +2038,15 @@ actually compiles under.
   through untouched — a second source of truth for criterion's own matching
   rules, wrong the moment a run reaches for `-m glob`, which is why the sentence
   is preferred to the code.
-- **Runs never overlap in the benchmarked set.** `mkStrided`'s index map
-  is a bijection onto `[0, l)`, where im2col patches — the workload this page
-  opens by naming — overlap heavily and so reuse cache. The window class
-  (`mkWindow`) builds exactly those overlapping patch views, and both recorded
-  runs agree: the overlap *lifts* every ratio rather than lowering it,
+- `ANSWERED` **Runs never overlap in the benchmarked set.** `mkStrided`'s index
+  map is a bijection onto `[0, l)`, where im2col patches — the workload
+  this page opens by naming — overlap heavily and so reuse cache. The window
+  class (`mkWindow`) builds exactly those overlapping patch views, and both
+  recorded runs agree: the overlap *lifts* every ratio rather than lowering it,
   so the main set's pessimism about this case was about absolute cost, never
   about the fallback's standing against `list`. The window block in [The stride
   classes, run by run](#the-stride-classes-run-by-run) carries the figures.
-- **The roster order biases the table, and nothing corrects for it.**
+- `ANSWERED` **The roster order biases the table, and nothing corrects for it.**
   The warm-up drift above means a strategy's figure depends on its slot, `list`
   being in the coldest one. The fixes are all real changes rather than write-ups
   — a warm-up bench before `list`, interleaving or randomising the order,
@@ -2055,18 +2065,19 @@ actually compiles under.
   which is what the entry above says none of these fixes could avoid. What
   it does not address is the placement gap the `build`/`mut-odo` pair shows,
   a separate and larger target that no reordering reaches.
-- **No build-vs-output time decomposition**, which Run 8 wanted and did without.
-  `diag` measures per-builder *allocation* only, so a claim like "the table
-  build is a third of the cost" -- the natural reading of `bq-mut-runs` beating
-  `bq-mut` by 39% -- cannot be checked here. Claim 4 no longer needs it — a Core
-  diff identified what the flag deletes from the scan builder and the ~4%
-  it is worth accounts for where the pair lands, the two arms sharing their
-  output code exactly — but the residue does: how much of each arm's own ~25%
-  absolute gain is build and how much output is still unmeasured, and the same
-  question stands for every other arm in the table. It needs a timing mode
-  alongside `diag`'s allocation one, using the fixed-iteration differencing
-  the horde-ad performance model prescribes (`-n 200` minus `-n 100`, fresh
-  processes) rather than criterion, since the builders are not benchmarks.
+- `OPEN` **No build-vs-output time decomposition**, which Run 8 wanted and did
+  without. `diag` measures per-builder *allocation* only, so a claim like
+  "the table build is a third of the cost" -- the natural reading
+  of `bq-mut-runs` beating `bq-mut` by 39% -- cannot be checked here. Claim 4
+  no longer needs it — a Core diff identified what the flag deletes
+  from the scan builder and the ~4% it is worth accounts for where the pair
+  lands, the two arms sharing their output code exactly — but the residue does:
+  how much of each arm's own ~25% absolute gain is build and how much output
+  is still unmeasured, and the same question stands for every other arm
+  in the table. It needs a timing mode alongside `diag`'s allocation one, using
+  the fixed-iteration differencing the horde-ad performance model prescribes
+  (`-n 200` minus `-n 100`, fresh processes) rather than criterion, since
+  the builders are not benchmarks.
 
 
 ## The goal of these benchmarks
@@ -3320,42 +3331,90 @@ were what the roster asked for. They run for tens of minutes to hours, and while
 the rest is in progress their completion is the only thing a reader can act on.
 
 **The pre-run half as a list, because its actions are spread over eight hundred
-lines and every one of them earns its place separately.** The prose below
-is where the reasons live and is not replaced by this; what this replaces
-is re-reading the section three times to be sure nothing was missed, which
-is what it has cost every session so far.
+lines and every one of them earns its place separately.** **The three lists
+below carry every operative fact in this chapter, and the prose carries
+the reasons.** That is a contract and was audited into being: a pass
+over the prose in 2026-08-14 found seventy-nine facts that changed what
+an executor DOES and were in no list, which is why sessions kept reading all
+thousand lines. So execute from the lists; read the prose where a step surprises
+you, and where you want to know why it is there. A fact that changes what you do
+belongs in a list — if you find one that is not, that is the defect, not your
+reading.
 
     cd ~/r/orthotope/micro-regime3        # and re-set R and REGIME per call
+    #      R=runNN; REGIME=-fspec-constr -- an EMPTY regime is a plain -O1
+    #      build and nothing downstream notices. Governing docs are this
+    #      file and read-run.py's docstring; horde-ad's CLAUDE.md is not
     cat $R-pair.txt                       # 0. the note: six steps below quote
     #      it -- the halves' roles, the md5s, the commit, the gate line.
-    #      BASIS/OTHER come from it, never from a half's name
+    #      BASIS/OTHER come from it, never from a half's name, and are set
+    #      in one place in each of run-major.sh and run-gate.sh: make them
+    #      match. The basis runs second and carries the eight classes
     ls $R-*                               # 1. is there a pair?
     md5sum $R-<basis> $R-<other>          # 2. is it the note's pair?
     git log -1 --format=%h -- :/micro-regime3/Main.hs   # 3. has it moved?
     git diff <note's commit> HEAD -- :/micro-regime3/Main.hs  # comment-only?
     #  the :/ pathspec resolves from the repo root, so these answer the same
     #  from anywhere; a bare `-- Main.hs` run from the root prints nothing
-    #  and exits 0, which reads exactly like an unmoved source
+    #  and exits 0, which reads exactly like an unmoved source. Where the
+    #  note records two commits, the other is the tree it was built in
     #  build ONLY if 1-3 say so, and from the note's own recipe: there is
-    #  no builder here, every pair being two shims built by hand
-    ./$R-<basis> check                    # 4. every shape agrees
-    ./$R-<other> check                    # 5. and the other half
+    #  no builder here, every pair being two shims built by hand. Write the
+    #  note FIRST -- it is the only copy of both recipes. Every build wants
+    #  -fforce-recomp and a fresh --builddir, cabal answering "Up to date"
+    #  for a -pgma or an environment change; --ghc-options="$REGIME" stays
+    #  quoted, and a value with a space needs inner quotes besides,
+    #  --ghc-options='"-with-rtsopts=-I0 -T -M8G"'. Build both halves back
+    #  to back with nothing touched between, and keep both executables
+    ./$R-<basis> check > /tmp/a.log 2>&1  # 4. every shape agrees
+    ./$R-<other> check > /tmp/b.log 2>&1  # 5. and the other half
+    cmp /tmp/a.log /tmp/b.log             #    byte-identical, or STOP
+    #      scratch names, spelled in full: a $R-*.log here makes
+    #      run-major.sh refuse hours later, and $TMPDIR is unset unsandboxed
     ./$R-<basis> --list 2>/dev/null | wc -l    # 6. roster size
     ./read-run.py --lint                  # 7. roster and shape annotations
     ./read-run.py --check-doc             # 8. anchors, paths, widths, sweeps
+    #      7+8 are the WHOLE document check here; no other repo's checkers,
+    #      now or at post-run step 7. Exit code is the verdict: the three
+    #      note: worklists are write-up material, only FAIL: stops you, and
+    #      a wrap FAIL means a HAND-wrapped paragraph, not a long one
     ./$R-<basis> diag                     # 9. the regime, in the binary
+    #      read one row: allocated bytes of baseOffsetsScan against
+    #      baseOffsetsMut on vgg-14-c512 -- equal under SpecConstr, ten
+    #      times apart at plain -O1, and no eye misreads that
     #  9b. and the pair's own variable, by whatever the note says reads it:
     #      diag answers for the regime and for nothing else, so what the
     #      halves differ in is checked by the note's own command -- or by
     #      the note saying which variable leaves no trace to read, and what
     #      stands in for it
     ./loop-offsets.py $R-<other> $R-<basis>    # 10. fills, kept with the run
+    ./loop-offsets.py --library $R-<basis> $R-<other>   #     and the library
+    #      near-total same-offset agreement is what a sound pair looks like;
+    #      a note's nm-based figure is a different number, so compare like
+    #      with like. On the BUILD path also --survey each half and put the
+    #      straddle answer in the note: offsets at 0 are what a fully padded
+    #      half shows and are not to be required of a max-skip one
     #  11. the smoke sweep, unsandboxed: the block below
     #  12. the -L1 roster pass, ONLY if `--list` changed membership AND
     #      the pair note records none -- it belongs to the pair as the gate
-    #      does, so grep the note before paying the twenty minutes
+    #      does, so grep the note before paying the twenty minutes. Two
+    #      processes: -L1 over the main set and one THREE-shape class (rev,
+    #      revsome or bcast). Name the artifacts smoke*, never $R-* -- any
+    #      $R-*.json/.log makes run-major.sh refuse, only $R-gate-* exempt.
+    #      Record it on an `L1 ROSTER PASS:` line. With the previous run's
+    #      binary gone, membership is compared against the roster delta
+    #      under Provenance
+    #  11, 12 and 14 all belong to the PAIR: on passing, write each into
+    #      $R-pair.txt, or the next session repays the hour
     grep -i gate $R-pair.txt              # 13. has the gate run and passed?
-    #  14. ./run-gate.sh $R  -- only if 13 says it has not
+    #      read UP: the newest GATE: line is the script's own "reading still
+    #      to do"; the hand-written verdict sits above it. An md5-identical
+    #      rebuild inherits the gate; any real one needs its own
+    #  14. ./run-gate.sh $R  -- only if 13 says it has not, then read BOTH
+    #      passes, the -a pair and the -b pair, with --compare: the verdict
+    #      is the two agreeing. Write it by hand ABOVE the script's block,
+    #      clearing `GATE: not yet run` in the same edit. A gate answers
+    #      sound or not sound; never quote a magnitude from one
     #  15. read the run's registered predictions:
     #      ./read-run.py --para 'What Run'
     #      an empty registration is not a blocker; record that and go
@@ -3364,6 +3423,33 @@ is what it has cost every session so far.
     #  17. read ahead while the sequence runs, which costs no machine time
     #      and is what the write-up needs first: the last run's chapter,
     #      the open list, and the replace list under Provenance
+
+**Then the run, which had no list of its own until a session went looking
+for one.** Unsandboxed throughout:
+
+    ./run-major.sh $R &                   # ten processes, several hours
+    ps -eo pid,etime,comm | grep $R-      # confirm from an UNSANDBOXED ps:
+    #      comm, not args, and comm truncates at 15 characters. A blocked
+    #      write leaves a launch that never happened looking like one in
+    #      progress, which is how two copies once ran at once
+    #      do NOT wait with pgrep -f, which self-matches and never returns;
+    #      poll $R-wallclock.log for `major run complete`
+    #      nothing else on the machine, and no edit to the tree, until it
+    #      ends: the driver's git lines are the binary's provenance
+    #      never raise -L on a recorded run -- the figures stop being
+    #      comparable with every run before it
+    #      a process far slower than its neighbours is worth looking at:
+    #      the previous run's -wallclock.log says what each should take
+    #      no resume. If it dies mid-sequence, hand-run the class loop on
+    #      the basis half with `[ -e "$out.json" ] && continue`, check each
+    #      benchmarking count against `classes --list`, append to the same
+    #      $R-wallclock.log, and say in the write-up that the populations
+    #      ran in more than one window
+    #      pre-registered probes are appended after the classes, same
+    #      evening; a filtered probe takes ONE -m MODE then its patterns,
+    #      and its benchmarking lines are counted before any number is read
+    #      report each long process as it finishes: exit code and bench
+    #      count, not folded into a later summary
 
 Steps 4 to 10 are read-only and fine sandboxed; 11, 12 and 14 write and are not.
 Step 16 answers less than it looks: `ps` in a session lists only that session's
@@ -3441,6 +3527,15 @@ mechanism cost twenty minutes and, for the latter two, no extra machine time
 at all, while the major run they hang off changed no decision. A question
 with a discriminating measurement usually deserves a filtered run now rather
 than a slot in the next full one.
+
+**What a run must read, so that nothing else is read to find out.**
+This chapter, and of the rest only what the write-up replaces: the last run's
+chapter, [What Run N compares against](#what-run-14-compares-against), [the
+claims](#the-claims-run-14-should-test), [the class
+blocks](#the-stride-classes-run-by-run) and [Provenance](#provenance). The open
+list is read by its status markers rather than end to end. Everything else
+in this file is reference, and reading it is how a write-up's budget goes
+without a figure to show for it.
 
 **Where.** A session starts in `~/r/horde-ad`, which leaves *that* repository's
 `CLAUDE.md` resident while this repo is not governed by it, even though all
@@ -4125,36 +4220,87 @@ was missed, which is what they have cost.
     ./read-run.py $R-<basis>-main.json --selftest     # 1. gate EVERY
     ./read-run.py $R-<basis>-main.json --aa           #    population, all
     #      ten, both halves for the main set -- and read the A/A WORST CELL,
-    #      not only the pair's geomean. Write this run's floor into the head
-    #      of the chapter now: every margin below is judged against it
+    #      not only the pair's geomean. A failed gate invalidates that
+    #      population's whole time column and only that one. The published
+    #      floor is the NET ratio; the raw one is an arm against itself, and
+    #      quoting it as the floor overstates by 1/(1-f). Write this run's
+    #      floor into the head of the chapter now: every margin is judged
+    #      against it. Read $R-wallclock.log FIRST -- a wrong bench count is
+    #      logged loudly and is not fatal, so nothing else stops on it
     #   2. match bases before reading any ratio -- same population, same
     #      restriction, the basis the claim was stated on
-    ./read-run.py RUN.json --pair A B                 # 3. one per claim
+    ./read-run.py RUN.json --claims                   # 3. every claim's
+    #      ordering in one call, in the claims section's own order
     ./read-run.py $R-<basis>-$c.json --block          #    one per class
-    ./read-run.py $R-<basis>-main.json --compare $R-<other>-main.json
+    ./read-run.py $R-<basis>-main.json --compare $R-<other>-main.json --chapter
     ./read-run.py $R-<basis>-main.json --compare $R-<other>-main.json --alloc
-    #   4. one JSON at a time, never merged
-    #   5. rename the THREE run-numbered headings, which do not all take the
-    #      same number, then repoint every link -- its TEXT as well as its
-    #      anchor, since the anchor check sees only the second
+    #      --compare takes the BASIS first and the control as its argument,
+    #      so below 1 means the basis is faster; reversed, every figure
+    #      inverts and nothing in the output says so. Write each class
+    #      paragraph from --block's VERDICTS, never from its table, one
+    #      paragraph each. Use --brief on --aa and --block: no computed
+    #      figure is lost. Do not write a second reader
+    #   4. one JSON at a time, never merged; there is no combined figure, so
+    #      a sentence comparing populations compares their tables
+    #   5. rename the THREE run-numbered headings: the chapter head takes
+    #      THIS run, while `What Run N compares against` and `The claims
+    #      Run N should test` look forward and take the NEXT. Repoint every
+    #      link -- its TEXT as well as its anchor, the check seeing only the
+    #      second -- and Main.hs's own README.md# references with them
     ./read-run.py RUN.json --markdown --in-place      # (7.4) install, never
     ./read-run.py RUN.json --fingerprint --in-place   #       paste; three
     ./read-run.py $R-<basis>-$c.json --block --in-place  #    modes, one per
-    #      class for the third, all from the BASIS half
-    #   6. walk the replace list under Provenance, and re-run the two sweeps
-    #      it names: figure-shaped numerals outside tables, and the name of
-    #      the run being superseded
-    #   7. verify -- --lint, --check-doc, adjudicate the three worklists,
-    #      read end to end, and an independent checker on the diff in TWO
-    #      passes on one agent: tables when they go in, prose when written
-    ./read-run.py --lint          # 8. again after ANY Main.hs edit
-    #   9. record provenance;  10. walk the open list
+    #      class for the third, all from the BASIS half. Read the stderr:
+    #      a row new to the roster installs as `?` and is filled by hand,
+    #      a departed row is dropped with a warning. The cross-class summary
+    #      is assembled LAST, transcribed from the class tables
+    #   6. walk the replace list under Provenance, re-run the two sweeps it
+    #      names, and map every hit to the bullet covering it -- running
+    #      them is not reading them. REPLACE, do not annotate: a figure that
+    #      moved inside the floor is requoted without comment
+    #   7. verify. Every count and ratio comes from --cells or --pair, never
+    #      from a printed table, which is rounded to three figures; before
+    #      re-deriving a figure a previous run published, reproduce THAT
+    #      run's value with your method first. A new column needs a route
+    #      sharing no code with the reader -- difference wall, or user AND
+    #      system, at two iteration counts. Two instruments disagreeing is
+    #      the finding: locate it, and until then neither is evidence. If
+    #      any edit was scripted, assert its extent and read a
+    #      `wrap80 --unwrap` diff of both sides: nothing else sees a lost
+    #      paragraph. A correction is a claim -- derive it, then re-run the
+    #      gates. Then --lint, --check-doc, adjudicate the three worklists,
+    #      read end to end, and walk the diff against the writing rules.
+    #      The independent checker is TWO passes on one agent, tables when
+    #      they go in and prose when written, briefed that it works in this
+    #      directory, that its evidence is this run's JSONs and read-run.py,
+    #      and that no other repo's checkers come near this page
+    ./read-run.py --lint          # 8. again after ANY Main.hs edit, and
+    #      never rebuild the pair to satisfy it: say in the write-up that
+    #      the comment-only move happened
+    #   9. record the run's name and regime, each process's stderr line,
+    #      the machine, and THE COMMIT, transcribed from $R-pair.txt; also
+    #      which half ran first. A class line's shape count is the whole
+    #      class-view set, so the population size comes from the reader
+    #  10. walk the open list: grep the settled index before adding an
+    #      entry, move answered ones with their measurement, and add each
+    #      surprise with what would settle it. Prediction verdicts go THERE,
+    #      not in the chapter the next run replaces; report a split as a
+    #      split, arm by arm
     #  11. spend the load-independent measurements while the artifacts live
-    #  12. offer the artifacts for deletion, once, and abide by the answer
+    #      -- allocation, Core, a `size` invocation, minutes each. Owed by
+    #      every paired run: rebuild each recipe with -g3 and export the
+    #      NAMED fills into the note, matching groups by byte identity of
+    #      the loop body, never by proximity
+    #  12. offer the artifacts for deletion -- the JSONs, the logs, the
+    #      wall-clock file, and for a pair both binaries and $R-pair.txt --
+    #      once, after step 7 is done AND presented, saying what keeping
+    #      them buys. Offering is the step; deleting is not
 
 Steps 1 to 4 are readings and cost only tool calls; 5, 6 and the installs write;
-7 is the one that finds things. The step most often skipped is 11, because
-by then the run reads finished, and it is the only one whose window closes:
+7 is the one that finds things. The same contract holds here: the operative
+facts are in the list, the reasons are below it, and step 11's window closes
+when the artifacts go. The step most often skipped is 11, because by
+then the run reads finished, and it is the only one whose window closes:
 the artifacts are what it spends.
 
 
@@ -4518,6 +4664,8 @@ is the reference for all of them; extend the script rather than starting over.
     ./read-run.py RUN.json --pair A B       # two arms, paired, with an interval
     ./read-run.py A.json --compare B.json   # one arm across two runs
     ./read-run.py A.json --compare B.json --alloc  # what each arm allocates
+    ./read-run.py A.json --compare B.json --chapter  # the chapter's figures
+    ./read-run.py RUN.json --claims         # every claim ordering, one call
     ./read-run.py RUN.json --cells          # every cell as TSV, for the rest
     ./read-run.py RUN.json --fingerprint    # the kept per-shape record
     ./read-run.py RUN.json --block          # a class block's parts, + verdicts
@@ -7253,20 +7401,20 @@ the launch rather than from the launching shell, and the tree was clean
 at launch by the driver's own `git status`. Neither of Run 11's caveats applies,
 and the wall-clock log is a single unbroken record.
 
-**The pair's own identity, transcribed before its note went with it.** Run 13
-was measured on `run13-maxskip` md5 `aae5c2cf166facbf426dea8023b34711`
-and `run13-lookrts` md5 `b161c10bf38d726087a9c7ff9a67bad5`, from `Main.hs`
-at `8433922` — the tree at `47e762e`, clean, when the sequence was launched —
-under GHC 9.12.4 with `-fspec-constr`, both halves built with `align-as.py`
-as committed at `89c7ae8`. **Both halves were built by hand**, this being a pair
-of two shims, so both recipes went into the pair note: each
-is `cabal build micro` with `-fspec-constr`, a `-pgma` of `align-as.py`,
-`-fforce-recomp` and a fresh `--builddir`, the basis setting `LOOP_MAXSKIP=1`
-and the control `LOOP_LOOKTHROUGH=1`
-with `--ghc-options='"-with-rtsopts=-I0 -T -M8G"'`. Three things there
-are not optional and each was met as a failure first: the inner quotes, without
-which cabal splits on whitespace and the build dies on `-T`; not repeating
-the option instead, which builds and silently keeps only the last;
+**The pair's own identity, transcribed before its note went with it.** The two
+md5s, the `Main.hs` commit and the tree at launch are at [the head
+of this chapter](#about-the-last-run-run-13) and are not repeated here — one
+live copy, since both places are replaced by the same run and a second copy
+is only somewhere to drift. What this paragraph adds is what that head does
+not carry: GHC 9.12.4 with `-fspec-constr`, and `align-as.py` as committed
+at `89c7ae8`. **Both halves were built by hand**, this being a pair of two
+shims, so both recipes went into the pair note: each is `cabal build micro`
+with `-fspec-constr`, a `-pgma` of `align-as.py`, `-fforce-recomp` and a fresh
+`--builddir`, the basis setting `LOOP_MAXSKIP=1` and the control
+`LOOP_LOOKTHROUGH=1` with `--ghc-options='"-with-rtsopts=-I0 -T -M8G"'`. Three
+things there are not optional and each was met as a failure first: the inner
+quotes, without which cabal splits on whitespace and the build dies on `-T`;
+not repeating the option instead, which builds and silently keeps only the last;
 and `-fforce-recomp` with the fresh builddir, GHC counting neither a `-pgma`
 nor an environment change as a flag change. Those two md5s are what a rebuild
 has to reproduce for this chapter's figures to be its own.
