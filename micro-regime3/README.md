@@ -3287,6 +3287,38 @@ not a choice this page leaves open. The whole is analysed and written
 into this file. What follows is the procedure, and it is written to outlive any
 one run.
 
+**What asking for a run asks for, since the request is one sentence and the work
+is this chapter.** The whole of it, without coming back for permission between
+the steps: the pre-run checks, the sequence, the write-up, and the probes
+the results turn out to justify. The procedure is the permission — each step
+names what it needs and what it must not do — so a question this chapter answers
+is not a reason to stop. **Two parties appear below and this page keeps them
+apart.** *A session* is whoever executes the run, here as in the twenty-odd
+other places this page says it. *Whoever asked for the run* holds the decisions
+a procedure cannot make, and is never called *the author*: that word means
+the session writing a block — the one whose prose an independent checker is set
+against — and it is the executor, not the requester.
+
+**A probe budget rides with it**, and it is separate from the pre-registered
+questions, which are appended after the classes and were designed before
+the evening. Allow up to about two hours of measurement the run's own *results*
+make worthwhile: a discriminating reading of a cell that came out strange,
+a derivation over the artifacts while they still exist. Spend it while they do,
+most of it being unspendable afterwards, and propose rather than take anything
+beyond it.
+
+**Stop for two things.** No further progress — a build that will not build,
+a gate that fails, evidence that is not on this machine — and a decision
+that belongs to whoever asked for the run rather than to the procedure: whether
+the artifacts go, whether anything is pushed, which pair the next run takes,
+anything that publishes. Report those and wait; decide the rest.
+
+**Confirm each long process on the screen as it finishes**, rather than folding
+it into a later summary. The gate, the sequence, a rebuild, any probe that takes
+a window: say that it finished, what it exited with, and whether its counts
+were what the roster asked for. They run for tens of minutes to hours, and while
+the rest is in progress their completion is the only thing a reader can act on.
+
 **The pre-run half as a list, because its actions are spread over eight hundred
 lines and every one of them earns its place separately.** The prose below
 is where the reasons live and is not replaced by this; what this replaces
@@ -3329,6 +3361,9 @@ is what it has cost every session so far.
     #      an empty registration is not a blocker; record that and go
     uptime; ps -eo pid,etime,comm | grep $R-      # 16. machine quiet --
     #      unsandboxed, or ps sees only this session's own processes
+    #  17. read ahead while the sequence runs, which costs no machine time
+    #      and is what the write-up needs first: the last run's chapter,
+    #      the open list, and the replace list under Provenance
 
 Steps 4 to 10 are read-only and fine sandboxed; 11, 12 and 14 write and are not.
 Step 16 answers less than it looks: `ps` in a session lists only that session's
@@ -3371,20 +3406,41 @@ write-up did. **The bulk of the *cost* is adjudication rather than typing** —
 deciding which run, which basis and which population a figure belongs to —
 and it scales with how many comparisons the run invites rather than with how
 many tables it fills, so a run that is both a repetition and a pairing
-is the dearest to write up for that reason alone. The shape to expect:
-the mechanical installs are minutes, the claims an hour, the eight blocks
-the better part of an afternoon, and the replace-list walk with the end-to-end
-read as long again. Two further consequences worth having in mind before
-starting. Prefer analysis that localises — per shape, per control —
+is the dearest to write up for that reason alone. **The shape to expect,
+in the units a session actually spends**, which are not hours but tool calls
+and how much of this file must be read before the first one. The fixed cost
+is the reading — this chapter and the last run's — and it is larger
+than executing either checklist, which is what both checklists are for. After
+it the work divides three ways and only one part is large. *Batchable*: anything
+with one invocation per population or per claim — the ten `--selftest`s, the ten
+`--aa`s, the dozen-odd `--pair` lines, the eight `--block`s — goes in one call
+per kind, so steps 1 and 3 together are a handful. *One per site*: the eleven
+`--in-place` installs, three calls. *Unbatchable*: the prose, one edit per
+paragraph, and this is the bulk — the eight class blocks alone are some thirty
+items, and no tool reduces the count, `--block`'s skeletons only removing
+the extraction that used to precede each. Then verification costs about what
+the prose cost, because every finding is a fix and every fix is a claim. Budget
+the prose and the verification as the work; the readings are noise beside them,
+and the run itself is unattended. Two further consequences worth having in mind
+before starting. Prefer analysis that localises — per shape, per control —
 over re-quoting figures that moved a few percent and changed nothing; the first
 is where the surprises have come from and the second is what has gone stale
-twice. And **a probe is not a lesser instrument than a major run**:
-the measurements that closed the `sum-only` objection, established
-that the forcing term scales, and settled the floor's mechanism cost twenty
-minutes and, for the latter two, no extra machine time at all, while the major
-run they hang off changed no decision. A question with a discriminating
-measurement usually deserves a filtered run now rather than a slot in the next
-full one.
+twice. And **a probe is not a lesser instrument than a major run —
+and the write-up is where the instruments get built**, which is the sharper form
+of the same point. Run 13's registered question came back a null,
+and its durable output was four instruments: two checks in the reader and two
+rules in this chapter, every one of them from a mistake made while writing up
+rather than from anything the run measured. So the write-up
+is an instrument-building phase and not only a reporting one, and the three
+things worth watching for are the computation you improvised, the check
+that would have caught the error, and the step you skipped — that trio
+is the run's other product, and it outlives the figures, which the next run
+replaces. On the original point: the measurements that closed the `sum-only`
+objection, established that the forcing term scales, and settled the floor's
+mechanism cost twenty minutes and, for the latter two, no extra machine time
+at all, while the major run they hang off changed no decision. A question
+with a discriminating measurement usually deserves a filtered run now rather
+than a slot in the next full one.
 
 **Where.** A session starts in `~/r/horde-ad`, which leaves *that* repository's
 `CLAUDE.md` resident while this repo is not governed by it, even though all
@@ -4060,6 +4116,49 @@ it to whichever answer the majority of arms gives, which loses the finding.
 
 **After it lands**, in this order:
 
+**The post-run half as a list, for the same reason the pre-run half has one.**
+Its twelve steps below are the prose's own numbers, so a reference to step 7.7
+still lands; the prose is where the reasons live and is not replaced by this.
+What it replaces is reading the twelve paragraphs three times to be sure nothing
+was missed, which is what they have cost.
+
+    ./read-run.py $R-<basis>-main.json --selftest     # 1. gate EVERY
+    ./read-run.py $R-<basis>-main.json --aa           #    population, all
+    #      ten, both halves for the main set -- and read the A/A WORST CELL,
+    #      not only the pair's geomean. Write this run's floor into the head
+    #      of the chapter now: every margin below is judged against it
+    #   2. match bases before reading any ratio -- same population, same
+    #      restriction, the basis the claim was stated on
+    ./read-run.py RUN.json --pair A B                 # 3. one per claim
+    ./read-run.py $R-<basis>-$c.json --block          #    one per class
+    ./read-run.py $R-<basis>-main.json --compare $R-<other>-main.json
+    ./read-run.py $R-<basis>-main.json --compare $R-<other>-main.json --alloc
+    #   4. one JSON at a time, never merged
+    #   5. rename the THREE run-numbered headings, which do not all take the
+    #      same number, then repoint every link -- its TEXT as well as its
+    #      anchor, since the anchor check sees only the second
+    ./read-run.py RUN.json --markdown --in-place      # (7.4) install, never
+    ./read-run.py RUN.json --fingerprint --in-place   #       paste; three
+    ./read-run.py $R-<basis>-$c.json --block --in-place  #    modes, one per
+    #      class for the third, all from the BASIS half
+    #   6. walk the replace list under Provenance, and re-run the two sweeps
+    #      it names: figure-shaped numerals outside tables, and the name of
+    #      the run being superseded
+    #   7. verify -- --lint, --check-doc, adjudicate the three worklists,
+    #      read end to end, and an independent checker on the diff in TWO
+    #      passes on one agent: tables when they go in, prose when written
+    ./read-run.py --lint          # 8. again after ANY Main.hs edit
+    #   9. record provenance;  10. walk the open list
+    #  11. spend the load-independent measurements while the artifacts live
+    #  12. offer the artifacts for deletion, once, and abide by the answer
+
+Steps 1 to 4 are readings and cost only tool calls; 5, 6 and the installs write;
+7 is the one that finds things. The step most often skipped is 11, because
+by then the run reads finished, and it is the only one whose window closes:
+the artifacts are what it spends.
+
+
+
 1. **Gate every population on the correction, before reading any figure --
    and read the A/A *worst cell*, not only the pair's geomean.** A control
    that passes its gate can still be the run's most informative measurement:
@@ -4170,60 +4269,27 @@ it to whichever answer the majority of arms gives, which loses the finding.
    in the script, echo what it is about to overwrite, and read the unwrapped
    diff afterwards, which is the only place a lost paragraph shows.
 
-   **Expect every error to be in the prose and none in the numbers, and expect
-   the green checkers to be why.** Run 11 shipped six, and not one was a wrong
-   figure out of the reader: four superlatives asserted without sorting
-   the population they quantify over, one sentence contradicting its own
-   paragraph three lines later, and one percentage computed from a published
-   table instead of from the cells. `--lint`, `--check-doc`, `--selftest`
-   and `--aa` were green throughout and right to be — they check
-   the measurements, and the measurements were sound. The hazard is that green
-   instruments make the remaining gap feel small when the remaining gap is where
-   all of it lives.
+   **A correction is a claim, and is written under exactly the conditions
+   that produce bad ones.** Whatever the verification turns up gets fixed
+   at the end of a long write-up, at speed, and the fix is a new assertion
+   with no derivation behind it unless one is made: Run 13 corrected
+   its allocation reading twice and the second correction was wrong, having
+   been computed from a rounded print. Derive a fix the way the sentence
+   it replaces should have been derived, and re-run the gates after it.
 
-   A write-up is a document edit, so the three-pass discipline applies —
-   but its passes live here, in this repo's own instruments,
-   and the general-purpose form of it does not fit a page whose claims
-   are *measurements* rather than statements about code. Pass 1, which resolves
-   `file:line` citations and pinned permalinks, has no subject: this page cites
-   no line and no permalink, deliberately, and what it does cite — arm names,
-   strategy names, shape names, `Main.hs` functions — is what `--lint` checks,
-   which a line number could not, a citation surviving the refactor that moves
-   it. Pass 2 is `--check-doc`'s path check. Pass 3 is the reading, below.
-   The heading-scope and cross-reference passes are `--check-doc`'s anchor
-   and replace-list coverage checks. No other repository's checkers belong
-   on this page, for the reason given with the pre-run checklist, where
-   a session meets these two tools first.
+**Expect every error to be in the prose and none in the numbers, and expect
+the green checkers to be why.** Run 11 shipped six, and not one was a wrong
+figure out of the reader: four superlatives asserted without sorting
+the population they quantify over, one sentence contradicting its own paragraph
+three lines later, and one percentage computed from a published table instead
+of from the cells. `--lint`, `--check-doc`, `--selftest` and `--aa` were green
+throughout and right to be — they check the measurements, and the measurements
+were sound. The hazard is that green instruments make the remaining gap feel
+small when the remaining gap is where all of it lives.
 
-   **What the instruments cannot supply is the reading, and the reading
-   is the pass.** What the tools print is its output and not its method:
-   `--check-doc`'s three sweeps hand you a worklist of superseded figures,
-   superlatives and absolute times, and adjudicating that list is not reading
-   the document. Nor is inheriting one — a worklist you did not derive verifies
-   somebody else's findings while telling you nothing about what else is wrong,
-   which is the completeness question the reading exists to answer. Run 11
-   is the case: every checker green and the worklist adjudicated while six
-   errors stood, four of them superlatives asserted without sorting
-   the population they quantify over and one contradicting its own paragraph
-   three lines later. **So put an independent checker on the diff against
-   the artifacts, launched when the tables go in rather than at the end**: one,
-   briefed to recompute every added figure from the reader and to re-derive
-   every *only*, *largest* and *N of the nine* by sorting, and to report
-   discrepancies rather than opinions. It is dear per finding — Run 11's cost
-   some thirty times what the same session's own targeted re-checks did —
-   and it is worth it anyway, because its findings are the ones a session has
-   already proved it cannot see in its own prose, and because it returns
-   a completeness the author cannot: 306 of 306 table rows verified rather
-   than the ones somebody thought to check. Launch it early, keep it to one,
-   and leave the placement, contradiction and writing-rule reading to yourself.
-   Three things it cannot derive go in the brief: that it works
-   in this directory, that its evidence is this run's own JSONs
-   and `read-run.py`, and that no other repository's checkers come near
-   this page — it starts where your session started, so the artifacts
-   are not where it is and the checkers it arrives with are not this page's.
-   (The rule that a check must be proven able to fail governs the instruments
-   themselves and is stated with them, [in the reader's
-   section](#the-reader-read-runpy).)
+   A write-up is a document edit, so the three-pass discipline applies — but its passes live here, in this repo's own instruments, and the general-purpose form of it does not fit a page whose claims are *measurements* rather than statements about code. Pass 1, which resolves `file:line` citations and pinned permalinks, has no subject: this page cites no line and no permalink, deliberately, and what it does cite — arm names, strategy names, shape names, `Main.hs` functions — is what `--lint` checks, which a line number could not, a citation surviving the refactor that moves it. Pass 2 is `--check-doc`'s path check. Pass 3 is the reading, below. The heading-scope and cross-reference passes are `--check-doc`'s anchor and replace-list coverage checks. No other repository's checkers belong on this page, for the reason given with the pre-run checklist, where a session meets these two tools first.
+
+   **What the instruments cannot supply is the reading, and the reading is the pass.** What the tools print is its output and not its method: `--check-doc`'s three sweeps hand you a worklist of superseded figures, superlatives and absolute times, and adjudicating that list is not reading the document. Nor is inheriting one — a worklist you did not derive verifies somebody else's findings while telling you nothing about what else is wrong, which is the completeness question the reading exists to answer. Run 11 is the case: every checker green and the worklist adjudicated while six errors stood, four of them superlatives asserted without sorting the population they quantify over and one contradicting its own paragraph three lines later. **So put an independent checker on the diff against the artifacts, launched when the tables go in rather than at the end** — and it is **two passes on one agent**, since at that moment only the tables exist: the tables as they go in, the prose when the prose is written, the second continuing the first rather than paying a fresh bootstrap. Run 13's first pass verified 341 table lines and found the cross-class summary untouched; its second found six prose errors, including a previous run's figure presented as this one's. One agent, briefed to recompute every added figure from the reader and to re-derive every *only*, *largest* and *N of the nine* by sorting, and to report discrepancies rather than opinions. It is dear per finding — Run 11's cost some thirty times what the same session's own targeted re-checks did — and it is worth it anyway, because its findings are the ones a session has already proved it cannot see in its own prose, and because it returns a completeness the author cannot: 306 of 306 table rows verified rather than the ones somebody thought to check. Launch it early, keep it to one, and leave the placement, contradiction and writing-rule reading to yourself. Three things it cannot derive go in the brief: that it works in this directory, that its evidence is this run's own JSONs and `read-run.py`, and that no other repository's checkers come near this page — it starts where your session started, so the artifacts are not where it is and the checkers it arrives with are not this page's. (The rule that a check must be proven able to fail governs the instruments themselves and is stated with them, [in the reader's section](#the-reader-read-runpy).)
 
    The checks themselves:
    1. **derive every count and ratio in the prose from `--cells`, never by eye,
@@ -4346,16 +4412,7 @@ it to whichever answer the majority of arms gives, which loses the finding.
       run and basis each figure belongs to. This is the pass that keeps finding
       real errors;
 
-   Two conventions this page holds to, both of which exist because breaking them
-   has cost something here. **A figure in prose names its run, its basis
-   and its population, or it belongs in a table with the prose pointing
-   at it** — a bare numeral carries no provenance, and that is how one sentence
-   came to put a Failed Run 6 figure beside a Run 6 one, and another to compare
-   a *published* ratio with a *paired* one. The population is the newest way
-   to make that mistake and the easiest, a class figure and a main-set one being
-   the same kind of number over different shapes. **An anchor longer than about
-   thirty characters goes reference-style**, defined at the foot of the file:
-   inline it overflows the width and the rewrapping that follows is pure churn;
+   Two conventions this page holds to, both of which exist because breaking them has cost something here. **A figure in prose names its run, its basis and its population, or it belongs in a table with the prose pointing at it** — a bare numeral carries no provenance, and that is how one sentence came to put a Failed Run 6 figure beside a Run 6 one, and another to compare a *published* ratio with a *paired* one. The population is the newest way to make that mistake and the easiest, a class figure and a main-set one being the same kind of number over different shapes. **An anchor longer than about thirty characters goes reference-style**, defined at the foot of the file: inline it overflows the width and the rewrapping that follows is pure churn;
 8. Re-run `--lint` after editing `Main.hs`, even when only comments changed:
    the reader parses that file for the roster and the shape dims, so a comment
    edit can break a check that passed before it. `--lint` reads the source
@@ -6477,7 +6534,16 @@ and none of them dropped one.
 
 Each ordering is one `./read-run.py RUN.json --pair A B` line — paired geomean,
 an interval and a sign test — so a run reports which claims held rather
-than re-deriving them from the table.
+than re-deriving them from the table. **A claim with no named invocation
+is a gap in this list, not a claim to be checked by hand**: where a session has
+to invent the computation it will invent a wrong one, which is how claim 7 came
+to be read off the raw fitted bytes, explained by a mechanism the previous pair
+refutes, and then "corrected" onto a rounded print. It has `--compare --alloc`
+now. Claim 8 is the one still without one, read off the table by eye.
+**The general form, and it is a standing instruction rather than an observation:
+if a write-up hand-rolls a script to answer something the reader should answer,
+that is a defect report against the reader** — fix it there, before the sentence
+it was written for, or the next run invents its own wrong version.
 
 **And for each stride class, the same three properties, now carrying Run 13's
 verdicts**, the details beside each class's table:

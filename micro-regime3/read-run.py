@@ -1055,6 +1055,83 @@ def pair_table(cells, shapes, strategies, pairs):
     print('assumption, immune to a wild cell, and blind to magnitude.')
 
 
+def controls_skeleton(cells, shapes, strategies, terms):
+    """The Controls paragraph's facts, in the form's own order.
+
+    `--block` already hands over the provenance line as a fill-in-the-blank
+    rather than making a session read it off a log. The controls sentence
+    wanted the same and did not have it, so every write-up re-extracted the
+    same four things from `--aa`'s table by eye or by a script of its own:
+    which A/A pair is largest and where its worst cell falls, how many of
+    the intervals cover 1, what the `sum-only` halves agree to, and the
+    in-situ medians. Eight class blocks a run, so eight extractions, and
+    the one that matters -- which pair is largest -- is a sort a reader
+    does wrong by looking at the first row.
+
+    The reading stays the author's, as it does for the provenance line: this
+    prints the figures and no verdict. `--aa` above it is unchanged and
+    remains where the intervals, spans and raw/`f` readings are read.
+
+    Born checked against the eight blocks Run 13 wrote by hand, which were
+    extracted from `--aa` by a script before this existed: every figure it
+    emits is in the paragraph that run installed, on all eight classes. Two
+    of them appear there as a deviation (`2.74%`) where this prints a ratio
+    (`1.0274`), which is the same figure and is why the check allows both
+    forms. The check itself needed a guard before it was worth anything: its
+    first form found no paragraphs at all -- the blocks put two blank lines
+    before `Controls:`, so splitting on one left a leading newline -- and
+    reported eight of eight passing over an empty loop.
+    """
+    pos = {st: i for i, st in enumerate(strategies)}
+    aa, so = [], None
+    for a in strategies:
+        b = twin_of(a)
+        if not b or b not in pos:
+            continue
+        r = [cells[s][a]['net'] / cells[s][b]['net'] for s in shapes]
+        dev = [abs(x - 1) * 100 for x in r]
+        ci = paired_ci(r)
+        aa.append((geomean(r), a, max(zip(dev, shapes)),
+                   None if not ci else (ci[0] <= 1.0 <= ci[1])))
+    if 'sum-only-early' in pos and 'sum-only-late' in pos:
+        r = [cells[s]['sum-only-late']['slope']
+             / cells[s]['sum-only-early']['slope'] for s in shapes]
+        dev = [abs(x - 1) * 100 for x in r]
+        ci = paired_ci(r)
+        so = (geomean(r), max(zip(dev, shapes)),
+              None if not ci else (ci[0] <= 1.0 <= ci[1]))
+    if not aa:
+        return
+    big = max(aa, key=lambda t: abs(t[0] - 1))
+    cover = sum(1 for g, _, _, c in aa if c)
+    print()
+    print('Controls: ___ (the reading is yours). The largest A/A pair is')
+    print('`%s` at %.4f, worst cell %.2f%% on `%s`,'
+          % (big[1], big[0], big[2][0], big[2][1]))
+    print('and %d of %d intervals cover 1.' % (cover, len(aa)), end=' ')
+    if so:
+        print('The `sum-only` halves agree at %.4f' % so[0])
+        print('on a worst cell of %.2f%% on `%s`, its interval %s 1.'
+              % (so[1][0], so[1][1], 'covering' if so[2] else 'missing'))
+    else:
+        print()
+    ins = [(base_of(b), b) for b in strategies if base_of(b) in strategies]
+    meds = []
+    for base, arm in ins:
+        r = []
+        for s in shapes:
+            gap = cells[s][base]['slope'] - cells[s][arm]['slope']
+            term = cells[s][base]['slope'] - cells[s][base]['net']
+            if gap > 0 and term > 0:
+                r.append(gap / term)
+        if r:
+            meds.append((base, stats.median(r)))
+    if meds:
+        print('The in-situ term reads %s of `sum-only` as medians,'
+              % ', '.join('%.4f' % m for _, m in meds))
+        print('on %s.' % ', '.join('`%s`' % b for b, _ in meds))
+
+
 def compare_alloc(cells, shapes, strategies, meta, other, main_hs):
     """Whether two halves of a pair agree on what each arm allocates.
 
@@ -1560,6 +1637,7 @@ def block_skeleton(cells, shapes, strategies, meta, args, terms):
         markdown_table(cells, shapes, strategies, meta, args, terms)
         print()
     aa_table(cells, shapes, strategies, terms, meta, args.brief)
+    controls_skeleton(cells, shapes, strategies, terms)
     dims = meta['dims']
     anchor = max(shapes, key=lambda sh: dims.get(sh, {}).get('l', 0))
     print()
