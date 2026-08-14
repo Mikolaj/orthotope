@@ -46,8 +46,8 @@ PREFIX="$1"                  # the binaries, the note and this gate's own
 # the half the bench count is read from and the one the run's tables come
 # from. Keep the two scripts' names in step, a gate being about the pair the
 # run will use.
-OTHER=${OTHER:-lookrts}
-BASIS=${BASIS:-maxskip}
+OTHER=${OTHER:-a1g}
+BASIS=${BASIS:-lookrts}
 SEL=('-m' 'glob' '*/list' '*/build' '*/mut-odo'
      '*/sum-only-early' '*/sum-only-late')
 ARMS=5                       # the globs above, one bench per shape each

@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
-# A major run, paired: both halves take the main set, the classes go to the
-# basis half alone (README, the run's plan). Ten processes, unattended,
-# several hours.
+# A major run, paired: both halves take the main set and both take every
+# class (README, the run's plan). 18 processes, unattended, several hours.
 #
 #     ./run-major.sh run10          # the argument names every artifact
 #
@@ -39,15 +38,16 @@ PREFIX="$R"                  # the binaries and their note carry the run, as
                              # note and JSONs alike
 
 # WHICH TWO HALVES, since the pair is no longer always unaligned/aligned.
-# BASIS is the half the classes run on, the expected bench counts are read
-# from, and every --in-place table comes from; the other contributes the
-# --compare and a yardstick column. It runs SECOND, which is where the basis
-# half ran in Run 10, so a run repeating that one inherits its process
-# position along with its binary. Change these two names per pair -- and
+# BASIS is the half the expected bench counts are read from and every
+# --in-place table comes from; the other contributes the --compare and a
+# yardstick column, and it runs SECOND, which is where the basis half ran in
+# Run 10, so a run repeating that one inherits its process position along
+# with its binary. Both halves run every class, which they did not before
+# 2026-08-14 -- the loop below says what changed and why. Change these two names per pair -- and
 # nothing else here, the counting below being what makes a wrong selection
 # loud in the log rather than at the write-up.
-OTHER=${OTHER:-lookrts}
-BASIS=${BASIS:-maxskip}
+OTHER=${OTHER:-a1g}
+BASIS=${BASIS:-lookrts}
 HALVES="$OTHER $BASIS"
 
 # The run's name identifies it against the NEXT run; this guards it against
@@ -108,8 +108,8 @@ run () {   # $1 = half, $2 = artifact tag, $3 = benches expected, $4.. = args
 # tree is what makes either a lie, so the count goes in too.
 log "major run begins; tree at $(git log -1 --format=%h), Main.hs at \
 $(git log -1 --format=%h -- Main.hs); roster is $MAIN_BENCHES benches"
-log "halves: $HALVES, in that order; $BASIS is the basis, and the eight class\
- processes are its alone"
+log "halves: $HALVES, in that order; $BASIS is the basis, and every class runs\
+ on both halves"
 log "tree: $(git status --porcelain | wc -l) path(s) untracked or modified"
 git status --porcelain | tee -a "$R-wallclock.log"
 uptime | tee -a "$R-wallclock.log"
@@ -126,13 +126,25 @@ else
 fi
 
 for h in $HALVES; do run "$h" "$h-main" "$MAIN_BENCHES"; done
+# EVERY class on BOTH halves since 2026-08-14, where they used to be the
+# basis's alone. What forced it is that a pair's variable can act on a class
+# and not on the main set -- Run 14 varies the allocation area, and the
+# classes are where the shapes whose excess allocation crosses the nursery
+# live (README.md#what-moves-a-figure-when-no-strategy-changed) -- so a
+# class read on one half only cannot say whether the variable touched it.
+# The cost is one process per class rather than two, paid every run so that
+# no run has to notice in advance that its own question needs them; the
+# basis's artifacts keep their names, so nothing that reads a class block
+# has to change. Each class's two halves run adjacent, control then basis,
+# mirroring the main sets above -- and each bench process being its own OS
+# process, that order carries no heap state between them.
 for c in $CLASSES; do
   want=$(printf '%s\n' "$CLASS_LIST" | grep -c "^$c-")
   if [ "$want" -eq 0 ]; then
     log "  !! class prefix $c- matches no bench -- skipped, not run empty"
     continue
   fi
-  run "$BASIS" "$BASIS-$c" "$want" classes "$c-"
+  for h in $HALVES; do run "$h" "$h-$c" "$want" classes "$c-"; done
 done
 
 log "major run complete"
