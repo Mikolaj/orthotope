@@ -2394,6 +2394,14 @@ broadcastMidShapes :: [(String, Int, ShapeL)]
 broadcastMidShapes =
   [ ("bcastmid-c32-cnn", 32, [24, 24, 3, 3])  -- 165888, mirrors cnn-L2-c32
   , ("bcastmid-primes",  89, [97, 29])        -- 250357
+    -- The third shape every class took on 2026-08-14, two shapes not
+    -- being enough to winsorize, so one disturbed cell owned the class
+    -- geomean (README.md#what-is-open). Each is the class's OWN extreme
+    -- rather than another size: here the stretch factor taken to the size
+    -- cap, a nine-element table read 200000 times, where the two above
+    -- stretch by 32 and 89. It is the case where the broadcast IS the
+    -- cost and the table build vanishes beside it.
+  , ("bcastmid-b200k",   200000, [3, 3])      -- 1800000, stretch at the cap
   ]
 
 -- Listed shape is the dense array; the view appends the size-1 dim.
@@ -2401,12 +2409,23 @@ reshape1Shapes :: [(String, ShapeL)]
 reshape1Shapes =
   [ ("reshape1-500k", [500000])         -- 500000, the [n] -> [n, 1] trap
   , ("reshape1-r3",   [100, 50, 36])    -- 180000, differing trailing dims
+    -- The class's extreme, added 2026-08-14: appending the size-1 dim
+    -- makes sInner 1 and so m = l for every shape here, which is one run
+    -- per element; this takes that to a rank-11 view over the deepest
+    -- odometer the main set carries, where the two above are rank 2
+    -- and 4. Per-run overhead against nothing else.
+  , ("reshape1-rank10", [3,3,3,3,3,3,3,3,3,3])  -- 59049, deepest odometer
   ]
 
 slicedShapes :: [(String, ShapeL)]
 slicedShapes =
   [ ("slice-cnn-L2-24x24-c32", [24, 24, 32, 3, 3])  -- 165888, sliced c32
   , ("slice-primes",           [97, 89, 29])        -- 250357, sliced primes
+    -- The class's extreme, added 2026-08-14: this class offsets by 1 in
+    -- every dimension of an enclosing array, so what stresses it is
+    -- dimensions -- rank 7 with coprime extents, where the two above are
+    -- rank 5 and 3 and every extent is small.
+  , ("slice-coprime-r7",     [2, 3, 5, 7, 11, 13, 2])  -- 60060, rank 7
   ]
 
 -- Listed as [h, w, kh, kw]: image and kernel, not the view shape.
@@ -2414,6 +2433,12 @@ windowShapes :: [(String, ShapeL)]
 windowShapes =
   [ ("window-28x28-k5",   [28, 28, 5, 5])    -- 14400, over 784 elements
   , ("window-224x224-k3", [224, 224, 3, 3])  -- 443556, over 50176
+    -- The class's extreme, added 2026-08-14: the kernel sets the two
+    -- innermost extents of the view, and both shapes above are square, so
+    -- neither can say what a degenerate one costs. This one is 1 by 9 --
+    -- innermost extent 1 under the repeated strides an overlapping window
+    -- has, which is the run-of-one-element case this class never saw.
+  , ("window-64x64-k1x9", [64, 64, 1, 9])    -- 32256, over 4096
   ]
 
 -- Views, not shapes like its siblings: explicit strides beside the shape,
@@ -2422,6 +2447,18 @@ scaledViews :: [(String, ShapeL, Strides)]
 scaledViews =
   [ ("scaled-super-r3", [40, 50, 30], Strides [4547, 91, 3])  -- 60000
   , ("scaled-rank1-m1", [300000], Strides [5])  -- 300000, the m == 1 floor
+    -- The class's extreme, added 2026-08-14, and the shape this page's
+    -- own findings ask for: rank 5 with coprime extents against the rank
+    -- 3 and rank 1 above, its superincreasing strides scattering 15015
+    -- outputs across 42735 source elements -- read nearly three times its
+    -- own size, deepest odometer here, per-run work dominant. That is the
+    -- memory-placement corner the wild cell and the mid-bench step both
+    -- live in (README.md#what-is-open), and this class had no cell in it.
+    -- Strides superincreasing as this list's are and none 1: each exceeds
+    -- the span of everything under it (36, 406, 2848, 14244), so no two
+    -- runs overlap. Rank stops at 5 because the entry must fit one line
+    -- for the reader's parser, and rank 7 needs six-digit strides.
+  , ("scaled-r5", [3,5,7,11,13], Strides [14245,2849,407,37,3])  -- 15015
   ]
 
 -- Every stride-class entry beside its built view, in the lists' order --
@@ -2676,13 +2713,14 @@ roster =
     -- once and no per-row gate would see it. 'gen-unsafe' is the one wide
     -- arm of the spread instrument that is flat against every shape
     -- dimension, and a twin is what separates a noisy arm from a
-    -- disturbed slot. Crossed like the others, each in both positions.
-    -- They land BEFORE Run 14 rather than after it precisely because that
+    -- disturbed slot. Crossed like the others, each in both positions
+    -- -- except that 'gen-unsafe''s distant half sits LATE, at the end of
+    -- the group rather than here, for the reason given at its slot. They
+    -- land BEFORE Run 14 rather than after it precisely because that
     -- run's own control is among them. First read in Run 14.
   , ("build-aa-distant",           Twin fbBuild)
   , ("mut-odo-aa-distant",         Twin fbMutOdo)
   , ("list-aa-distant",            Twin fbList)
-  , ("gen-unsafe-aa-distant",      Twin fbGenUnsafe)
   , ("gen-quotrem",                Fill fbGenQuotRem)
   , ("gen-unsafe",                 Fill fbGenUnsafe)
     -- The adjacent half of 'gen-unsafe''s pair; the distant half is early
@@ -2860,6 +2898,21 @@ roster =
     -- (see there). Last in the group deliberately: its 'env' materialises
     -- a second l-element vector, and nothing after it can be perturbed by
     -- that -- nothing follows.
+    -- THE ONE DISTANT TWIN THAT RUNS LATE, and it is here to break a
+    -- confound rather than for its own arm's sake. Every other distant
+    -- twin sits in the group's first dozen slots while its base sits
+    -- later, so "distant" has always also meant "earlier" -- and the A/A
+    -- readings say the distant half is the slower one in all eight stride
+    -- classes, +0.09% to +0.65% over Runs 10 to 13, one-directional,
+    -- which is what a residual cold start would produce
+    -- (README.md#what-moves-a-figure-when-no-strategy-changed). With this
+    -- one late, and 'list''s distant half late by construction, the next
+    -- run reads early-distant against late-distant and can say which of
+    -- the two it was. It began two slots from its base, which is no span
+    -- at all, so the move costs nothing. NOT after 'sum-only-late': that
+    -- bench is last on purpose, its env materialising a second l-element
+    -- vector that nothing following it should feel.
+  , ("gen-unsafe-aa-distant",      Twin fbGenUnsafe)
   , ("sum-only-late",              Term)
   ]
 

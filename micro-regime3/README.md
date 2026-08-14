@@ -1854,6 +1854,51 @@ than a slot in the next run, observed again:
   work. `gen-unsafe` is flat against every dimension and is therefore wide
   for some other reason, which is the negative answer this entry asked to have
   either way.
+- `ANSWERED` **What the eight stride classes are worth as instruments — read
+  against each other for the first time on 2026-08-14, over Runs 10 to 13,
+  and four things came of it.** Per class: the median A/A deviation runs 0.08%
+  (`slice`, `window`) to 0.34% (`scaled`); the worst cell 3.80% (`revsome`)
+  to **11.59%** (`scaled`, its standing slot); the median `CI%` 0.05
+  to **0.33**, `bcast` alone five times the field and its shapes the ones
+  the excess-allocation predictor says cross the nursery; and the correction's
+  amplification 1.30× (`reshape1`) to 1.81× (`scaled`), so one class makes
+  the same raw wobble read half again worse than another does. **The finding
+  is not a class property at all**: in every one of the eight the *distant* twin
+  is the slower half, +0.09% to +0.65%, where adjacent twins sit within ±0.2%
+  of zero. One-directional across eight classes and four runs is not scatter.
+  **And its cause is a confound in the crossed design** — every distant twin sat
+  in the group's first dozen slots with its base later, so *distant* has always
+  also meant *earlier*, and a residual cold start is exactly what produces
+  that sign. Four changes followed, all the same day. `gen-unsafe`'s distant
+  twin moved to the group's tail, where it had landed two slots from its base
+  and spanned nothing; with `list`'s distant half late by construction, the next
+  run reads early-distant against late-distant and can say which of the two
+  the bias was. **Every class took a third shape**, two being too few
+  for the winsorizing that protects the main set, so a single disturbed cell
+  owned a class geomean — and each new shape is that class's own extreme rather
+  than another size: `bcastmid-b200k` takes the stretch factor to the size cap,
+  `reshape1-rank10` the odometer to rank 11 at one run per element,
+  `slice-coprime-r7` the rank to 7 under a slice, `window-64x64-k1x9` the kernel
+  to 1 by 9 for an innermost extent of 1, and `scaled-r5` scatters 15015 outputs
+  over 42735 source elements. `--block` now prints the largest pair's **raw**
+  ratio and its amplification beside the net, which `--aa` always had
+  and the eight blocks a run never did; and it prints a **steps** line, `rev`
+  and `slice` carrying the most mid-bench steps of any class. What stays open
+  is `bcast`'s `CI%`, which Run 14's `-A1G` half now reads directly, every class
+  running on both halves. **Each new shape was checked to belong to its class
+  and not merely to compile**, which `check` cannot say — it holds an arm
+  to the reference on whatever view it is given, so a shape in the wrong list
+  would pass it. Read off `check`'s own printed view, strides and offset, all 24
+  class shapes satisfy their class's defining property: every stride negative
+  under `rev`, mixed signs under `revsome`, a zero stride innermost
+  under `bcast` and in the middle under `bcastmid`, an appended size-1 dim
+  under `reshape1`, a positive offset under `slice`, the repeated window strides
+  under `window`, and superincreasing strides none of them 1 under `scaled` —
+  with all 50 checked shapes at regime 3 and none disagreeing. The predicates
+  discriminate rather than passing everything, which is what makes that worth
+  quoting: the only foreign match is the three `reshape1` shapes satisfying
+  `bcast`'s test, and that is the code saying so, `mkReshape1` being
+  `mkBroadcast` of the shape with a 1 appended.
 - `OPEN` **`scaled`'s A/A slot is real and its size is not: six runs of seven
   find a disturbance at the `mut-odo-vecdims` slot on `scaled-super-r3`,
   its magnitude never repeats, and the ruling is to quote the slot as a hazard
@@ -3996,8 +4041,9 @@ is an identity of anything until there are shapes to be one over. Every claim's
 `--pair` line goes unrun, and a claim re-aimed at an arm the run does not carry
 fails only when someone runs it. And `--block`'s per-shape line is guarded
 by `len(shapes) > 2`, so it is dead on a one-shape file — a guard that hid
-an edited line of this reader through a whole smoke sweep. `rev`, `revsome`
-and `bcast` are the three-shape classes, and the pass is two processes:
+an edited line of this reader through a whole smoke sweep. Every class
+is three-shape since 2026-08-14, so any of them serves; `rev` is the one
+these commands name, and the pass is two processes:
 
     ./$R-<basis> -L1 --json smoke-l1-main.json
     ./$R-<basis> classes rev- -L1 --json smoke-l1-rev.json
@@ -7100,7 +7146,8 @@ five things and nothing else:
    which is the case a table of ratios hides completely. A three-shape class
    adds one line here — the bolded rows' per-shape net ratios, in the lead's
    shape order — because its table under-determines its cells, where a two-shape
-   table carries them already, `time` and `worst` jointly fixing both;
+   table carried them already, `time` and `worst` jointly fixing both; every
+   class is three-shape now, so the line always prints;
 5. one paragraph of what the class says, and none where it says nothing:
    an ordering that inverted, a `worst` above 1, an allocation tier that moved,
    a mechanism showing through a single cell. A class that reproduces the main
@@ -7562,13 +7609,14 @@ with the overlap the main set's bijective map drops.** Shapes: `window-28x28-k5`
 
 Controls: the largest pair is `mut-odo-vecdims`'s distant at 1.0079, worst cell
 1.06% on `window-224x224-k3`, with three of six covering 1 —
-the narrower-than-the-spread arithmetic every two-shape population shows rather
-than a disturbance. **This is the population whose `sum-only` pair sits furthest
-from 1**, at 1.0032 on a worst cell of 0.61%, and its interval misses; a third
-of a percent of a term that is a small share of a cell moves a corrected figure
-by far less, so the gate passes and this is recorded because a term that stopped
-agreeing with itself is what would invalidate the column. The in-situ term reads
-0.9741, 0.9791 and 0.9804 of `sum-only` as medians.
+the narrower-than-the-spread arithmetic every population of that run showed, two
+shapes each, rather than a disturbance. **This is the population whose
+`sum-only` pair sits furthest from 1**, at 1.0032 on a worst cell of 0.61%,
+and its interval misses; a third of a percent of a term that is a small share
+of a cell moves a corrected figure by far less, so the gate passes and
+this is recorded because a term that stopped agreeing with itself is what would
+invalidate the column. The in-situ term reads 0.9741, 0.9791 and 0.9804
+of `sum-only` as medians.
 
 Provenance: elapsed 0h6m1s, peak 41 MiB in use, 15 MiB max residency; the reader
 reads 35 benchmarks over 2 shapes of the window class. Anchor:

@@ -1154,6 +1154,29 @@ def controls_skeleton(cells, shapes, strategies, terms):
         print('The in-situ term reads %s of `sum-only` as medians,'
               % ', '.join('%.4f' % m for _, m in meds))
         print('on %s.' % ', '.join('`%s`' % b for b, _ in meds))
+    # The largest pair RAW, and what the correction multiplies it by. The
+    # net figure is the floor between two published rows and the raw one is
+    # how much an arm disagrees with itself; quoting the first as the second
+    # overstates it by 1/(1-f), which over Runs 10 to 13 is 1.30x in
+    # `reshape1` and 1.81x in `scaled` -- so a class block that published
+    # the net alone made the same wobble look half again worse in one class
+    # than in another (README.md#what-is-open). `--aa` has printed both all
+    # along; the block did not, and eight blocks a run are where the figure
+    # is actually read.
+    b = twin_of(big[1])
+    raw = geomean([cells[s][big[1]]['slope'] / cells[s][b]['slope']
+                   for s in shapes])
+    fs = []
+    for s in shapes:
+        term = cells[s][big[1]]['slope'] - cells[s][big[1]]['net']
+        mean = (cells[s][big[1]]['slope'] + cells[s][b]['slope']) / 2
+        if mean > 0:
+            fs.append(term / mean)
+    if fs and stats.fmean(fs) < 1:
+        amp = 1 / (1 - stats.fmean(fs))
+        print('Raw, that pair reads %.4f, which the correction amplifies'
+              % raw)
+        print('by %.2fx -- quote both wherever that is past 1.5.' % amp)
 
 
 def chapter_skeleton(cells, shapes, strategies, meta, other, main_hs):
@@ -1967,6 +1990,21 @@ def block_skeleton(cells, shapes, strategies, meta, args, terms):
             print('  `%s` %s' % (st, '/'.join(
                 '%.3f' % (cells[sh][st]['net'] / cells[sh]['list']['net'])
                 for sh in shapes)))
+    # What the fitted slopes cannot show, and a class block never looked
+    # for: a cell that changed level mid-bench. `rev` and `slice` carry
+    # the most of them over Runs 10 to 13, and the threshold is the test
+    # rather than a detail -- see --steps, whose reading this repeats.
+    hits = [h for h in step_scan(meta['path'])
+            if h[2] > 40 and abs(h[1]) > 2]
+    print()
+    if hits:
+        print('Steps: %d cell(s) changed level mid-bench, %s.'
+              % (len(hits), ', '.join('`%s` %+.2f%%' % (h[0], h[1])
+                                      for h in hits[:4])))
+        print('Read each as a question -- both segments flat, the earlier'
+              ' one level with a twin -- not as a verdict.')
+    else:
+        print('Steps: none past 2% at t over 40.')
     block_verdicts(cells, shapes, strategies, meta, args)
 
 
