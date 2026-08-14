@@ -3565,8 +3565,8 @@ for one.** Unsandboxed throughout:
     #      comparable with every run before it
     #      a process far slower than its neighbours is worth looking at:
     #      the previous run's -wallclock.log says what each should take
-    #      no resume. If it dies mid-sequence, hand-run the class loop on
-    #      the basis half with `[ -e "$out.json" ] && continue`, check each
+    #      no resume. If it dies mid-sequence, hand-run the class loop over
+    #      both halves with `[ -e "$out.json" ] && continue`, check each
     #      benchmarking count against `classes --list`, append to the same
     #      $R-wallclock.log, and say in the write-up that the populations
     #      ran in more than one window
@@ -3945,9 +3945,9 @@ and the classes hold the shapes whose excess allocation crosses the nursery,
 so a class read on one half only cannot say whether the variable touched it.
 The old rule was standing rather than a concession, which is exactly why
 it would not have been noticed in time; what replaces it is standing too, paid
-every run so that no run has to see its own need coming. The cost is one process
-per class rather than two, which was never the reason for the exception
-and is not the reason against it.
+every run so that no run has to see its own need coming. The cost is one more
+process per class, which was never the reason for the exception and is
+not the reason against it.
 
 **And one more, nearly free**, because everything above exercises
 the *benchmark* while nothing exercises the *reader* until hours later —
@@ -4207,7 +4207,7 @@ an interrupted sequence a hand job — expect that, since the machine gets wante
 back.** The guard is right (relaunching overwrites hours in place), but it has
 no resume, so finishing a sequence whose main sets landed and whose classes did
 not means running the class loop yourself: the `for c in ...` half
-of the sequence above, with the basis half's name,
+of the sequence above, both halves inside it,
 an `[ -e "$out.json" ] && continue` before each so a population that already ran
 is skipped rather than redone, and its `benchmarking` count checked against
 `classes --list` as the driver does. Stamp each into the same
@@ -4221,28 +4221,34 @@ count is checked against what the roster holds, so a selection that silently
 caught the wrong set is loud in the log at once instead of at the write-up —
 loud rather than fatal: the sequence carries on to the next process, there being
 no reading in which eight sound populations are worth discarding for one
-that is not, so the wall-clock log is what has to be read before any figure is.
-The expected count is read from the binary's own `--list` rather than written
-down, because a literal would be wrong for the next roster and would turn
-a correct run into an alarm on every process; `run-gate.sh` derives its own
-the same way, and a class process's is its prefix's share of `classes --list`,
-a prefix matching nothing being reported rather than run as a process
-of no benches. Neither builds anything, and both refuse to start without
-the pair. The sequence:
+that is not, so the wall-clock log is what has to be read before any figure is,
+and the exit status carries out the count of them, a sequence launched with `&`
+being read by whatever collected it. The expected count is read
+from the binary's own `--list` rather than written down, because a literal would
+be wrong for the next roster and would turn a correct run into an alarm on every
+process; `run-gate.sh` derives its own the same way, and a class process's
+is its prefix's share of `classes --list`, a prefix matching nothing being
+reported rather than run as a process of no benches. The class list itself
+is the literal that remains, so the drift the other way — a class the binary has
+that `CLASSES` does not name — is refused before the run rather than reported
+during it: it would otherwise run nowhere, print nothing and leave no artifact,
+which is measured and not feared. Neither builds anything, and both refuse
+to start without the pair. The sequence:
 
     {
       date -Is
-      # A paired run: both halves take the main set, the classes go to the
-      # basis half alone, and each half is its own binary -- never rebuild
-      # between them. $OTHER and $BASIS are the pair's, set in run-major.sh.
+      # A paired run: both halves take the main set and both take every
+      # class, and each half is its own binary -- never rebuild between
+      # them. $OTHER and $BASIS are the pair's, set in run-major.sh.
       for h in $OTHER $BASIS; do
         ./$R-$h --json $R-$h-main.json > $R-$h-main.log 2>&1
         echo "$h main exit=$? $(date -Is)"
       done
       for c in rev revsome bcast bcastmid reshape1 slice window scaled; do
-        ./$R-$BASIS classes $c- --json $R-$BASIS-$c.json \
-          > $R-$BASIS-$c.log 2>&1
-        echo "$c exit=$? $(date -Is)"
+        for h in $OTHER $BASIS; do    # adjacent, control then basis
+          ./$R-$h classes $c- --json $R-$h-$c.json > $R-$h-$c.log 2>&1
+          echo "$h $c exit=$? $(date -Is)"
+        done
       done
     } >> $R-wallclock.log 2>&1
 
@@ -4250,12 +4256,16 @@ the pair. The sequence:
 is a step every reader has had to take in the script instead:
 
     $R-<other>-main.json        $R-<basis>-main.json
-    $R-<basis>-rev.json         $R-<basis>-revsome.json
-    $R-<basis>-bcast.json       $R-<basis>-bcastmid.json
-    $R-<basis>-reshape1.json    $R-<basis>-slice.json
-    $R-<basis>-window.json      $R-<basis>-scaled.json
+    $R-<other>-rev.json         $R-<basis>-rev.json
+    $R-<other>-revsome.json     $R-<basis>-revsome.json
+    $R-<other>-bcast.json       $R-<basis>-bcast.json
+    $R-<other>-bcastmid.json    $R-<basis>-bcastmid.json
+    $R-<other>-reshape1.json    $R-<basis>-reshape1.json
+    $R-<other>-slice.json       $R-<basis>-slice.json
+    $R-<other>-window.json      $R-<basis>-window.json
+    $R-<other>-scaled.json      $R-<basis>-scaled.json
 
-each with a `.log` beside it, and `$R-wallclock.log` over the ten. The gate's
+each with a `.log` beside it, and `$R-wallclock.log` over them all. The gate's
 own `$R-gate-*` files are not among them and are excluded from the relaunch
 guard for that reason.
 

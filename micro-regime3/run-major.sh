@@ -16,7 +16,9 @@
 # plans an arm, which would make a correct run trip the alarm on every
 # process. A class process gets the same treatment as a main one: its
 # count is its prefix's share of `classes --list`, and a prefix matching
-# nothing is reported rather than passing as a run of zero benches.
+# nothing is reported rather than passing as a run of zero benches. The
+# reverse -- a class the BINARY has that CLASSES does not name -- is
+# refused before the run, and the complaints ride out in the exit status.
 
 set -u
 cd "$(dirname "$0")" || exit 1
@@ -62,7 +64,10 @@ HALVES="$OTHER $BASIS"
 # same `$R-` space this globs, so without it the gate the procedure requires
 # before the evening would read as a previous attempt and refuse the very run
 # it was meant to clear.
-EXISTING=$(ls -1 "$R"-*.json "$R"-*.log "$R-wallclock.log" 2>/dev/null \
+#
+# The wall-clock log wants no operand of its own: `$R-*.log` already covers
+# it, and naming it besides listed it twice in the refusal.
+EXISTING=$(ls -1 "$R"-*.json "$R"-*.log 2>/dev/null \
              | grep -v "^$R-gate-")
 if [ -n "$EXISTING" ]; then
   echo "$R already has artifacts here:"
@@ -85,6 +90,29 @@ MAIN_BENCHES=$(./"$PREFIX-$BASIS" --list 2>/dev/null | wc -l)
 CLASS_LIST=$(./"$PREFIX-$BASIS" classes --list 2>/dev/null)
 [ -n "$CLASS_LIST" ] || { echo "classes --list gave nothing; wrong binary?"; exit 1; }
 
+# CLASSES is a literal where every count here is read from the binary, so the
+# two can drift apart in both directions -- and only one of them was loud. A
+# prefix naming nothing is reported per class below; a class the BINARY has
+# that no prefix names ran nowhere, printed nothing and left no artifact,
+# under an exit 0. So it is caught HERE, before the hours, where the fix is
+# one word in the line above. Non-vacuous, and cheaply: drop a name from
+# CLASSES and the run refuses naming it, put it back and the run starts.
+UNNAMED=
+for c in $(printf '%s\n' "$CLASS_LIST" | cut -d/ -f1 | cut -d- -f1 | sort -u)
+do
+  case " $CLASSES " in *" $c "*) ;; *) UNNAMED="$UNNAMED $c" ;; esac
+done
+if [ -n "$UNNAMED" ]; then
+  echo "./$PREFIX-$BASIS has class population(s) CLASSES does not name:$UNNAMED"
+  echo "each would run nowhere, print nothing and leave no artifact. Add them"
+  echo "to CLASSES above, in classViews' order, before starting the run."
+  exit 1
+fi
+
+BAD=0                        # mechanical complaints; the sequence carries on
+                             # past every one of them, and the exit status is
+                             # what says any were raised
+
 log () { echo "=== $(date -Is) $*" | tee -a "$R-wallclock.log"; }
 
 run () {   # $1 = half, $2 = artifact tag, $3 = benches expected, $4.. = args
@@ -95,8 +123,8 @@ run () {   # $1 = half, $2 = artifact tag, $3 = benches expected, $4.. = args
   rc=$?
   nb=$(grep -c '^benchmarking ' "$out.log")
   log "done  $out rc=$rc benchmarking=$nb"
-  [ "$rc" = 0 ] || log "  !! nonzero exit -- read $out.log before trusting anything after"
-  [ "$nb" = "$want" ] || log "  !! expected $want benches, got $nb -- the selection is not what was asked for"
+  [ "$rc" = 0 ] || { log "  !! nonzero exit -- read $out.log before trusting anything after"; BAD=$((BAD + 1)); }
+  [ "$nb" = "$want" ] || { log "  !! expected $want benches, got $nb -- the selection is not what was asked for"; BAD=$((BAD + 1)); }
 }
 
 # TWO commits, because HEAD is not what the binaries were built from and
@@ -120,7 +148,19 @@ uptime | tee -a "$R-wallclock.log"
 # failed, stop and read README's gate step -- nothing here will.
 if [ -f "$NOTE" ]; then
   log "$NOTE says, about the gate:"
-  grep -i 'gate' "$NOTE" | sed 's/^/      /' | tee -a "$R-wallclock.log"
+  # Every line saying `gate`, and -- for one that STARTS with the token,
+  # the shape run-gate.sh writes -- the indented block under it. The token
+  # alone dropped exactly the lines worth having: neither the machine
+  # verdict nor `!! the machine check FAILED` carries the word, so a gate
+  # that failed on the machine alone reached this log as a FAILED headline
+  # over four clean processes with the reason nowhere. Only a line STARTING
+  # a block may end one, the four artifact lines inside it being named
+  # `$R-gate-*` and so saying the word themselves.
+  awk '/^GATE:/             { blk = 1; print; next }
+       tolower($0) ~ /gate/ { print; next }
+       blk && /^[ \t]/      { print; next }
+                            { blk = 0 }' "$NOTE" \
+    | sed 's/^/      /' | tee -a "$R-wallclock.log"
 else
   log "!! no $NOTE -- this run's provenance is the commit and nothing else"
 fi
@@ -132,8 +172,8 @@ for h in $HALVES; do run "$h" "$h-main" "$MAIN_BENCHES"; done
 # classes are where the shapes whose excess allocation crosses the nursery
 # live (README.md#what-moves-a-figure-when-no-strategy-changed) -- so a
 # class read on one half only cannot say whether the variable touched it.
-# The cost is one process per class rather than two, paid every run so that
-# no run has to notice in advance that its own question needs them; the
+# The cost is one more process per class, paid every run so that no run
+# has to notice in advance that its own question needs them; the
 # basis's artifacts keep their names, so nothing that reads a class block
 # has to change. Each class's two halves run adjacent, control then basis,
 # mirroring the main sets above -- and each bench process being its own OS
@@ -142,12 +182,18 @@ for c in $CLASSES; do
   want=$(printf '%s\n' "$CLASS_LIST" | grep -c "^$c-")
   if [ "$want" -eq 0 ]; then
     log "  !! class prefix $c- matches no bench -- skipped, not run empty"
+    BAD=$((BAD + 1))
     continue
   fi
   for h in $HALVES; do run "$h" "$h-$c" "$want" classes "$c-"; done
 done
 
-log "major run complete"
+if [ "$BAD" -eq 0 ]; then
+  log "major run complete; every process ran the count asked of it"
+else
+  log "major run complete, with $BAD complaint(s) above -- read them before\
+ any figure"
+fi
 echo
 echo "Read it with the halves kept apart:"
 echo "  ./read-run.py $R-$BASIS-main.json               # the basis, and the table"
@@ -156,3 +202,9 @@ echo "  ./read-run.py $R-$BASIS-main.json --compare $R-$OTHER-main.json"
 echo "                                                  # the per-arm difference"
 echo "Every --in-place table comes from the basis half (README, the run's plan):"
 echo "  --markdown, --fingerprint and --block from $R-$BASIS-*.json"
+# The complaints above are not fatal -- there is no reading in which eight
+# sound populations are worth discarding for one that is not -- but they have
+# to leave the script by some door, and a run launched with `&` is read by
+# whatever collected it. This is that door; the wall-clock log is still where
+# the complaint itself is.
+[ "$BAD" -eq 0 ] || exit 1

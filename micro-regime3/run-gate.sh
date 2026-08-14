@@ -77,6 +77,11 @@ SHAPES=$(./"$PREFIX-$BASIS" --list 2>/dev/null | cut -d/ -f1 | sort -u | wc -l)
 EXPECT=$((ARMS * SHAPES))
 
 BAD=0                        # mechanical complaints, not the reading's verdict
+PROC=0                       # of those, the ones a PROCESS raised. The line
+                             # sending a reader to the logs is true only of
+                             # these, and used to print for a machine-check
+                             # failure too -- which sends them to four clean
+                             # logs to look for a verdict about the box
 RESULTS=""
 
 run () {   # $1 = half, $2 = pass
@@ -87,8 +92,8 @@ run () {   # $1 = half, $2 = pass
   rc=$?
   nb=$(grep -c '^benchmarking ' "${out}.log")
   echo "=== $(date -Is) done  ${out} rc=${rc} benchmarking=${nb}"
-  [ "$nb" = "$EXPECT" ] || { echo "    !! expected $EXPECT, got $nb -- the selection is not the five arms"; BAD=$((BAD + 1)); }
-  [ "$rc" = 0 ] || { echo "    !! nonzero exit -- read ${out}.log before trusting anything from it"; BAD=$((BAD + 1)); }
+  [ "$nb" = "$EXPECT" ] || { echo "    !! expected $EXPECT, got $nb -- the selection is not the five arms"; BAD=$((BAD + 1)); PROC=$((PROC + 1)); }
+  [ "$rc" = 0 ] || { echo "    !! nonzero exit -- read ${out}.log before trusting anything from it"; BAD=$((BAD + 1)); PROC=$((PROC + 1)); }
   RESULTS="${RESULTS}
     ${out}  rc=${rc} benchmarking=${nb}"
 }
@@ -143,7 +148,8 @@ fi
     echo "  exit 0 with the $EXPECT benches asked for.$RESULTS"
   else
     echo "GATE: run $(date -Is). Mechanically FAILED, $BAD complaint(s):$RESULTS"
-    echo "  Expected $EXPECT benches a process. Read the logs before anything else."
+    [ "$PROC" -eq 0 ] ||
+      echo "  Expected $EXPECT benches a process. Read the logs before anything else."
   fi
   echo "  The machine check, which is not a reading but an answer:"
   printf '%s\n' "$MACHINE" | sed 's/^/    /'
