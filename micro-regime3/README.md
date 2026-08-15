@@ -3458,13 +3458,15 @@ the rest is in progress their completion is the only thing a reader can act on.
 **The pre-run half as a list, because its actions are spread over eight hundred
 lines and every one of them earns its place separately.** **The three lists
 below carry every operative fact in this chapter, and the prose carries
-the reasons.** That is a contract and was audited into being: a pass
-over the prose in 2026-08-14 found seventy-nine facts that changed what
-an executor DOES and were in no list, which is why sessions kept reading all
-thousand lines. So execute from the lists; read the prose where a step surprises
-you, and where you want to know why it is there. A fact that changes what you do
-belongs in a list — if you find one that is not, that is the defect, not your
-reading.
+the reasons and does not restate them.** That is a contract and was audited
+into being: a pass over the prose in 2026-08-14 found seventy-nine facts
+that changed what an executor DOES and were in no list, which is why sessions
+kept reading all thousand lines. So execute from the lists; read the prose where
+a step surprises you, and where you want to know why it is there. A fact
+that changes what you do belongs in a list — if you find one that is not,
+that is the defect, not your reading. And a rule's evidence goes at the end
+of its paragraph, as a date and an outcome — never inside an instruction,
+and never as a chronology.
 
     cd ~/r/orthotope/micro-regime3        # and re-set R and REGIME per call
     #      R=runNN; REGIME=-fspec-constr -- an EMPTY regime is a plain -O1
@@ -3591,12 +3593,7 @@ reading.
     #      session repays the hour
     #  that is the preparation, and none of it wants a quiet machine. What
     #      does is the run list below, which starts on an explicit
-    #      go-ahead and never on a session's own reading of the box --
-    #      and THE REQUEST FOR THE RUN IS THAT GO-AHEAD, so a session
-    #      commissioned to make one has it and does not ask again. Where
-    #      a session genuinely has none, the question goes BEFORE step 1,
-    #      never after step 12: asked here it waits where the machine is
-    #      idle, and this preparation is what it could have waited through
+    #      go-ahead and never on a session's own reading of the box
 
 **Then the run — and this is the list that wants the machine, so it does
 not start on a session's judgement.** Steps 13 to 17 sit here rather
@@ -3606,26 +3603,14 @@ because they decide whether 14 happens and what it is for. The gate is forty
 minutes and the sequence is most of an evening, and both want the desktop
 to itself. **The free three are free — run them.** The go-ahead is owed before
 14 and 16, not before a grep, and a rule read as covering everything below
-the line is a rule read loosely everywhere. **Ask for an explicit go-ahead
-before starting anything below, every time, and never infer one from a quiet
-machine.** No `uptime` or `ps` is run at this point, and neither would settle
-it if it were: what they cannot see is what their owner is about to want
-the machine for. **What the rule forbids is inferring a go-ahead,
-not re-confirming one already given: a request to make the run IS one.**
-The head of this chapter says as much of every other step — the procedure
-is the permission, and a question it answers is not a reason to stop —
-and this line failed to say it of the two steps that most want the machine.
-So a session commissioned to make a run has its go-ahead and does not ask again,
-and never offers *hold* as an option on a decision already taken. **Where
-a session genuinely has none, the question goes before step 1 and never after
-step 12.** Asked at the foot of the preparation it waits exactly where
-the machine is idle, when the preparation is the forty minutes it could have
-waited through: on 2026-08-15 that cost three hours and forty minutes of quiet
-desktop, the checks having passed at 02:32 and the answer arriving at 06:14,
-most of the window the sequence was launched to use. The `ps` at step 16
-is an alarm and not a permission — it runs after the go-ahead and before
-the longest stretch, so a machine that got busy since stops the run short
-of the hours rather than after them. Unsandboxed throughout:
+the line is a rule read loosely everywhere. **Have an explicit go-ahead before
+starting anything below, every time — the request for the run is one — and never
+infer one from a quiet machine.** No `uptime` or `ps` is run at this point,
+and neither would settle it if it were: what they cannot see is what their owner
+is about to want the machine for. The `ps` at step 16 is an alarm and
+not a permission — it runs after the go-ahead and before the longest stretch,
+so a machine that got busy since stops the run short of the hours rather
+than after them. Unsandboxed throughout:
 
     grep -i gate $R-pair.txt              # 13. has the gate run and passed?
     #      read UP: the newest GATE: line is the script's own "reading still
