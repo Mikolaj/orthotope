@@ -3591,7 +3591,12 @@ reading.
     #      session repays the hour
     #  that is the preparation, and none of it wants a quiet machine. What
     #      does is the run list below, which starts on an explicit
-    #      go-ahead and never on a session's own reading of the box
+    #      go-ahead and never on a session's own reading of the box --
+    #      and THE REQUEST FOR THE RUN IS THAT GO-AHEAD, so a session
+    #      commissioned to make one has it and does not ask again. Where
+    #      a session genuinely has none, the question goes BEFORE step 1,
+    #      never after step 12: asked here it waits where the machine is
+    #      idle, and this preparation is what it could have waited through
 
 **Then the run — and this is the list that wants the machine, so it does
 not start on a session's judgement.** Steps 13 to 17 sit here rather
@@ -3605,10 +3610,22 @@ the line is a rule read loosely everywhere. **Ask for an explicit go-ahead
 before starting anything below, every time, and never infer one from a quiet
 machine.** No `uptime` or `ps` is run at this point, and neither would settle
 it if it were: what they cannot see is what their owner is about to want
-the machine for. The `ps` at step 16 is an alarm and not a permission — it runs
-after the go-ahead and before the longest stretch, so a machine that got busy
-since stops the run short of the hours rather than after them. Unsandboxed
-throughout:
+the machine for. **What the rule forbids is inferring a go-ahead,
+not re-confirming one already given: a request to make the run IS one.**
+The head of this chapter says as much of every other step — the procedure
+is the permission, and a question it answers is not a reason to stop —
+and this line failed to say it of the two steps that most want the machine.
+So a session commissioned to make a run has its go-ahead and does not ask again,
+and never offers *hold* as an option on a decision already taken. **Where
+a session genuinely has none, the question goes before step 1 and never after
+step 12.** Asked at the foot of the preparation it waits exactly where
+the machine is idle, when the preparation is the forty minutes it could have
+waited through: on 2026-08-15 that cost three hours and forty minutes of quiet
+desktop, the checks having passed at 02:32 and the answer arriving at 06:14,
+most of the window the sequence was launched to use. The `ps` at step 16
+is an alarm and not a permission — it runs after the go-ahead and before
+the longest stretch, so a machine that got busy since stops the run short
+of the hours rather than after them. Unsandboxed throughout:
 
     grep -i gate $R-pair.txt              # 13. has the gate run and passed?
     #      read UP: the newest GATE: line is the script's own "reading still
