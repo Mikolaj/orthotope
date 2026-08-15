@@ -1808,11 +1808,11 @@ def fingerprint_table(cells, shapes, strategies, meta):
 
 
 # The three arms the second class property names
-# (README.md#the-claims-run-14-should-test). Constants rather than literals
+# (README.md#the-claims-run-15-should-test). Constants rather than literals
 # because the property has been re-aimed twice, and a re-aim that misses one
 # use of a name is how a verdict starts disagreeing with the claim it checks.
 # The orderings each numbered claim rests on, as pairs, in the claims
-# section's own order (README.md#the-claims-run-14-should-test). A manifest
+# section's own order (README.md#the-claims-run-15-should-test). A manifest
 # rather than a parser over the prose: the claims are not uniformly
 # machine-readable -- claim 2's second half is `offtab` BEHIND the shipped
 # arm rather than an `A < B` ordering, and claim 4 states two readings of
@@ -2836,10 +2836,20 @@ def check_doc(readme, main_hs):
                     # send the reader to a paragraph that is fine.
                     at = cur.count('\n', 0,
                                    sum(len(b) + 2 for b in cp[:hand[0]])) + 1
+                    # Two causes, one artifact: canonical lines with a long one
+                    # among them is what an Edit mid-stretch leaves AND what
+                    # hand-lengthening leaves, so this cannot tell them apart
+                    # and must name both remedies. Naming the formatter alone
+                    # sent a session round wrap-then-edit-then-red five times
+                    # in one write-up (2026-08-16): wrapping is the fix when
+                    # the document is done, unwrapping when it is not.
                     bad.append('%d paragraph(s) of %s are wrapped by hand --'
-                               ' first at line %d; run `wrap80 -i %s`, never'
-                               ' re-wrap a line by hand'
+                               ' first at line %d; if the document is done,'
+                               ' `wrap80 -i %s`; if you are still editing,'
+                               ' `wrap80 --unwrap -i %s` and work there.'
+                               ' Never re-wrap a line by hand'
                                % (len(hand), os.path.basename(readme), at,
+                                  os.path.basename(readme),
                                   os.path.basename(readme)))
                 else:
                     note.append('no paragraph of the README is wrapped by'
@@ -3329,7 +3339,7 @@ def check_doc(readme, main_hs):
     # Contents map's entry -- promises no content beyond the heading and is
     # exempt, or the map would head this list at every check and teach
     # readers to skim it. Non-vacuous 2026-08-14: planting
-    # `([see the run](#about-the-last-run-run-13))` in the opening
+    # `([see the run](#about-the-last-run-run-14))` in the opening
     # paragraph of a copy listed it with its line; the shipped page lists
     # none, its one such link being the Contents entry the exemption is
     # for.
