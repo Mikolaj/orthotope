@@ -52,9 +52,9 @@ BAD=0
 ARMS=$(./"$R-$BASIS" --list 2>/dev/null | grep -c "^$SHAPE/")
 [ "$ARMS" -gt 0 ] || { echo "--list has no $SHAPE; wrong binary or shape?"; exit 1; }
 
-run () {   # $1 = artifact, $2.. = args
-  local out=$1; shift
-  ./"$R-$BASIS" "$@" --json "$out" > "${out%.json}.log" 2>&1
+run () {   # $1 = artifact, $2 = half, $3.. = args
+  local out=$1 half=$2; shift 2
+  ./"$R-$half" "$@" --json "$out" > "${out%.json}.log" 2>&1
   local rc=$? nb
   nb=$(grep -c '^benchmarking ' "${out%.json}.log")
   echo "  $out rc=$rc benchmarking=$nb"
@@ -69,10 +69,16 @@ mode () {  # $1 = file, $2.. = the mode
 }
 
 echo "=== $R: three -L1 processes, $ARMS arms apiece"
-run smoke.json -L1 "$SHAPE"
-./"$R-$OTHER" -L1 "$SHAPE" --json smoke-other.json > smoke-other.log 2>&1
-echo "  smoke-other.json rc=$? benchmarking=$(grep -c '^benchmarking ' smoke-other.log)"
-run smoke-class.json classes "$CLASS" -L1
+run smoke.json    "$BASIS" -L1 "$SHAPE"
+run smoke-other.json "$OTHER" -L1 "$SHAPE"   # the control half goes through
+                             # the same counting as the other two. It used
+                             # to be a bare line whose rc and count were
+                             # printed and never checked, so that process
+                             # could exit nonzero or select nothing and the
+                             # sweep still closed "clean" -- and it is the
+                             # only evidence before the evening that the
+                             # control half runs at all
+run smoke-class.json "$BASIS" classes "$CLASS" -L1
 
 echo "=== every reader mode over both"
 for f in smoke.json smoke-class.json; do

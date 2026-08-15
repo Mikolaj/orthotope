@@ -16,8 +16,11 @@ what the halves differ in and what they do not.
 
 THE BASIS IS $R-<basis> -- it publishes the big table, the bench counts are
 read from it, every --in-place table comes from it, and it runs second. Set
-BASIS and OTHER in run-major.sh, run-gate.sh and smoke-sweep.sh; check them
-rather than assuming, and say here that you did.
+BASIS and OTHER in all four scripts that take a run -- run-major.sh,
+run-gate.sh, smoke-sweep.sh and install-tables.sh, the last carrying BASIS
+alone; check them rather than assuming, and say here that you did. The one
+that is easiest to leave is install-tables.sh, which is the one that writes
+eleven tables into the page.
 
 WHY THE BASIS IS THIS RECIPE, decided YYYY-MM-DD: a decision and not a
 measurement, so the reason belongs here where the next session meets it.

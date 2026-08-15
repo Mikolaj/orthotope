@@ -3468,7 +3468,10 @@ reading.
 
     cd ~/r/orthotope/micro-regime3        # and re-set R and REGIME per call
     #      R=runNN; REGIME=-fspec-constr -- an EMPTY regime is a plain -O1
-    #      build and nothing downstream notices. Governing docs are this
+    #      build and nothing downstream notices. That hazard is 3b's
+    #      alone: REGIME reaches the build and nothing else, so on the
+    #      CONFIRM path nothing reads it and setting it buys nothing.
+    #      Governing docs are this
     #      file and read-run.py's docstring; horde-ad's CLAUDE.md is not
     cat $R-pair.txt                       # 0. the note: six steps quote it,
     #      four here and two in the run list -- the halves' roles, the
@@ -3489,6 +3492,12 @@ reading.
     #  from anywhere; a bare `-- Main.hs` run from the root prints nothing
     #  and exits 0, which reads exactly like an unmoved source. Where the
     #  note records two commits, the other is the tree it was built in
+    #  BEFORE THE FORK: if the run's own JSONs are already here, this list
+    #      and the run list are both spent and the entry point is post-run
+    #      step 1. Do NOT read a moved Main.hs as a licence to rebuild --
+    #      the landed JSONs are provenanced to the binaries that made
+    #      them, and the fork answers a question about a run that has not
+    #      happened
     #  1-3 ARE THE FORK, and the two branches have names this file uses
     #  elsewhere. Missing or moved sends you down the BUILD path: 3b and
     #  the two --survey lines, and nothing else. Matching sends you down
@@ -3586,15 +3595,19 @@ reading.
 
 **Then the run — and this is the list that wants the machine, so it does
 not start on a session's judgement.** Steps 13 to 17 sit here rather
-than with the preparation above because each of them either spends the machine
-or reads what has been spent: the gate is forty minutes and the sequence is most
-of an evening, and both want the desktop to itself. **Ask for an explicit
-go-ahead before starting anything below, every time, and never infer one
-from a quiet machine.** No `uptime` or `ps` is run at this point, and neither
-would settle it if it were: what they cannot see is what their owner is about
-to want the machine for. The `ps` at step 16 is an alarm and not a permission —
-it runs after the go-ahead and before the longest stretch, so a machine that got
-busy since stops the run short of the hours rather than after them. Unsandboxed
+than with the preparation above because the evening runs through them: 14 spends
+the machine and 16 reads it, while 13, 15 and 17 cost nothing and are here
+because they decide whether 14 happens and what it is for. The gate is forty
+minutes and the sequence is most of an evening, and both want the desktop
+to itself. **The free three are free — run them.** The go-ahead is owed before
+14 and 16, not before a grep, and a rule read as covering everything below
+the line is a rule read loosely everywhere. **Ask for an explicit go-ahead
+before starting anything below, every time, and never infer one from a quiet
+machine.** No `uptime` or `ps` is run at this point, and neither would settle
+it if it were: what they cannot see is what their owner is about to want
+the machine for. The `ps` at step 16 is an alarm and not a permission — it runs
+after the go-ahead and before the longest stretch, so a machine that got busy
+since stops the run short of the hours rather than after them. Unsandboxed
 throughout:
 
     grep -i gate $R-pair.txt              # 13. has the gate run and passed?
@@ -3602,6 +3615,12 @@ throughout:
     #      to do"; the hand-written verdict sits above it. An md5-identical
     #      rebuild inherits the gate; any real one needs its own
     ./run-gate.sh $R                      # 14. only if 13 says it has not
+    #      -- and it is owed because THIS pair is two builds. A pair whose
+    #      halves differ in an RTS option alone can be one binary run
+    #      twice, and then none of this is owed, the gate included; the
+    #      decision paragraph under what the pair compares against records
+    #      why two was taken anyway. Read that before paying the forty
+    #      minutes, not after
     ./read-run.py $R-gate-<basis>-a.json --compare $R-gate-<other>-a.json
     ./read-run.py $R-gate-<basis>-b.json --compare $R-gate-<other>-b.json
     #      BOTH passes, the -a pair and the -b pair: the verdict
@@ -3624,7 +3643,7 @@ throughout:
     #  17. read ahead while the sequence runs, which costs no machine time
     #      and is what the write-up needs first: the last run's chapter,
     #      the open list, and the replace list under Provenance
-    ./run-major.sh $R &                   # 18 processes, several hours
+    ./run-major.sh $R &                   # many processes, several hours
     ps -eo pid,etime,comm | grep $R-      # confirm from an UNSANDBOXED ps:
     #      comm, not args, and comm truncates at 15 characters. A blocked
     #      write leaves a launch that never happened looking like one in
@@ -3654,7 +3673,7 @@ throughout:
 Steps 6 to 10 are read-only and fine sandboxed; 3b, 11, 12 and 14 write
 and are not, and so do 4 and 5 — only through their redirect, but
 that is enough, the sandbox permitting the session's own directory
-and `/tmp/claude` and `/tmp/a.log` being in neither. Send those two logs
+and `/tmp/claude`, and `/tmp/a.log` being in neither. Send those two logs
 somewhere the sandbox allows, or run them unsandboxed with the rest. Step 16
 answers less than it looks: `ps` in a session lists only that session's own
 processes, so it catches a launch made from here and not one made from anywhere
@@ -4106,11 +4125,12 @@ is an identity of anything until there are shapes to be one over. Every claim's
 fails only when someone runs it. And `--block`'s per-shape line is guarded
 by `len(shapes) > 2`, so it is dead on a one-shape file — a guard that hid
 an edited line of this reader through a whole smoke sweep. Every class
-is three-shape since 2026-08-14, so any of them serves; `rev` is the one
-these commands name, and the pass is two processes:
+is three-shape since 2026-08-14, so any of them serves; the list above prefers
+one of the five that crossed from two, which drives `--block`'s three-shape
+branch, and `scaled` is the one it names. The pass is two processes:
 
     ./$R-<basis> -L1 --json smoke-l1-main.json
-    ./$R-<basis> classes rev- -L1 --json smoke-l1-rev.json
+    ./$R-<basis> classes scaled- -L1 --json smoke-l1-scaled.json
 
 Its numbers go nowhere: `-L1` is a rougher budget than any recorded run's,
 and this pass is a test of the reader, not a measurement. **And like the gate,
@@ -4134,12 +4154,14 @@ to the reader or to a claim is not a roster change either, though the three
 reasons above are worded in their terms because a roster change is the only
 thing that has ever broken them. What the test cannot usually do is run itself:
 the previous run's binary is deleted and its listing recorded nowhere,
-so the comparison is against the roster delta under [Provenance](#provenance),
-which is kept for exactly this. A run whose basis half *is* the previous run's
-binary, as Run 11's is, answers it outright instead, and the pair note records
-the count on both sides. Spelled out because two readings of this paragraph have
-split on it: with membership unmoved the pass is not owed however much else
-changed, and Run 10 is such a run.
+so the comparison is against the roster delta under [Provenance](#provenance) —
+look before taking that route, since a pair whose artifacts have
+not been offered for deletion yet is still on disk and answers directly, which
+is kept for exactly this. A run whose basis half *is* the previous run's binary,
+as Run 11's is, answers it outright instead, and the pair note records the count
+on both sides. Spelled out because two readings of this paragraph have split
+on it: with membership unmoved the pass is not owed however much else changed,
+and Run 10 is such a run.
 
 **A paired run has one gate more, and the first thing to do about it is read
 rather than run it. The gate belongs to the pair, not to the session**, which
@@ -4167,10 +4189,13 @@ Re-running it on a pair that has already passed costs a quiet forty minutes
 and can only reproduce what the note says.
 
 **If that line says the gate has not run**, it is the last thing before
-the evening. `run-gate.sh` takes five benches over the shape set from each half,
-twice each, in a palindrome — control, basis, basis, control — so that drift
-over the hour cannot read as a difference between the binaries, which
-is the part a person retyping the command would drop:
+the evening — but it is not part of the preparation, and *get the run ready*
+does not license it. The gate spends forty minutes of quiet machine, so it lives
+in the run list behind the go-ahead with the sequence itself. `run-gate.sh`
+takes five benches over the shape set from each half, twice each,
+in a palindrome — control, basis, basis, control — so that drift over the hour
+cannot read as a difference between the binaries, which is the part a person
+retyping the command would drop:
 
     ./run-gate.sh $R
     ./read-run.py $R-gate-<basis>-a.json \
@@ -4257,7 +4282,7 @@ flag:
 **`run-major.sh` is that sequence as a driver**, and `$R` is its argument rather
 than a variable it inherits:
 
-    ./run-major.sh $R          # 18 processes, unattended, several hours
+    ./run-major.sh $R          # many processes, unattended, several hours
 
 It refuses without one, the prefix being the run's identity: artifacts called
 `run-*` would not say which run made them and the next run would overwrite them.
@@ -4430,9 +4455,14 @@ was missed, which is what they have cost.
     ./read-all.sh $R                                  # 1. gate EVERY
     #      process -- both halves of every population, which is eighteen
     #      --selftest and eighteen --aa, and nine is what counting by hand
-    #      leaves when it counts populations. The driver prints a line
+    #      leaves when it counts populations. A run from before
+    #      2026-08-14 has ten, its classes being the basis's alone; the
+    #      driver counts what is there, so read it and not this line for
+    #      an older run. The driver prints a line
     #      apiece and the A/A WORST CELL beside it. READ that column: it
-    #      is not the pair's geomean and the gate is not it either. A failed gate invalidates that
+    #      is not the pair's geomean and the gate is not it either, and it
+    #      is the NET ratio, the same quantity as the published floor.
+    #      A failed gate invalidates that
     #      population's whole time column and only that one. The published
     #      floor is the NET ratio; the raw one is an arm against itself, and
     #      quoting it as the floor overstates by 1/(1-f). Write this run's
@@ -4446,7 +4476,10 @@ was missed, which is what they have cost.
     #      section's own order
     ./read-run.py $R-<basis>-$c.json --block          #    one per class
     ./read-run.py $R-<basis>-$c.json --compare $R-<other>-$c.json
-    #      and one per class ACROSS the halves, which is what running every
+    #      and one per class ACROSS the halves -- from Run 14 on, a run
+    #      before that having no control-half class JSON to compare
+    #      against, so these eight are skipped and the chapter says they
+    #      were. Which is what running every
     #      class on both is for and what nothing else in this list reads: a
     #      pair's variable can act on a class and not on the main set.
     #      --alloc takes the same pair where allocation is the question

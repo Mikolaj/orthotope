@@ -26,8 +26,11 @@ probe-*.json
 probe-*.log
 
 # The reader's smoke sweep, which writes these and deletes them again; a
-# failed sweep can leave them behind.
+# failed sweep can leave them behind. The .log line is not decoration:
+# smoke-sweep.sh writes one beside each JSON, and this comment claimed to
+# cover them before the pattern did.
 smoke*.json
+smoke*.log
 smoke*.md
 README.smoke.md
 
