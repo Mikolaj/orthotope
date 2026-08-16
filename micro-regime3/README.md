@@ -2201,31 +2201,33 @@ left to attribute — the interval it is about is the aligned binary's.
   the fixed-iteration differencing the horde-ad performance model prescribes
   (`-n 200` minus `-n 100`, fresh processes) rather than criterion, since
   the builders are not benchmarks.
-- `OPEN` **Count work instead of sampling time, wherever the question
-  is an ordering — speculative, written 2026-08-14 from a review
-  of the apparatus rather than from any run.** Most of what the controls,
-  the pairing and the shim defend against — placement, warmth, drift — exists
-  because wall-clock on this machine is layout- and history-dependent, while
-  counted work is not: the wild-cell probe read an A/A pair's instructions
-  agreeing to 5e-5. A cachegrind or fixed-`-n` counter table would
-  be deterministic, want no quiet machine and no floor, and reproduce on any
-  box; the clock would stay for the boundaries where a memory-system effect
-  could invert an ordering. The pilot that would settle it: counts for every
-  timed arm over the shape set, read against a published time column — orderings
+- `OPEN` **Change the method and a family of prose is deleted rather
+  than maintained — the lever the two speculative regimes here share,
+  and the one no tooling reaches.** The controls, the pairing, the shim
+  and the floor exist because wall-clock on this machine is layout-
+  and history-dependent, and the write-up pays for that defence every run:
+  the floor, the drift band, the pinning caveats, the restatement on the basis
+  half, the basis matching owed before any figure is quoted. Numbers needing
+  no such defence delete those paragraphs; an installer only makes one cheaper
+  to write. Both candidates were written 2026-08-14 from a review
+  of the apparatus rather than from any run, and each names the pilot that would
+  settle it. **Counted work instead of sampled time, wherever the question
+  is an ordering.** Counted work is layout-independent — the wild-cell probe
+  read an A/A pair's instructions agreeing to 5e-5 — so a cachegrind
+  or fixed-`-n` counter table would want no quiet machine and no floor and would
+  reproduce on any box, the clock staying for the boundaries where
+  a memory-system effect can invert an ordering. Pilot: counts for every timed
+  arm over the shape set, read against a published time column — orderings
   that agree license the switch, and the cells that disagree
-  are the memory-bound residue the clock is still for.
-- `OPEN` **Randomise slots in per-trial processes instead of pinning them —
-  speculative likewise.** The crossed controls hold position and warmth still
-  so that the bias stays constant; the statistical alternative is many short
-  fixed-`-n` trials per cell, each in its own process with the order drawn
-  fresh, so that position becomes noise that averages rather than bias
-  that persists, and a table stops needing comparability carried between runs,
-  being self-contained evidence. This is not the reordering the roster-order
-  entry above rejected — that varied slots inside the one shared process, where
-  it breaks comparability with every recorded run — but a regime that gives
-  the shared process up. What would settle whether it pays: a pilot over a few
-  arms and shapes read against the published column, with the A/A pairs' spread
-  under randomisation as the method's own floor.
+  are the memory-bound residue the clock is still for. **Randomised slots
+  in per-trial processes instead of pinned ones.** Many short fixed-`-n` trials
+  per cell, each in its own process with the order drawn fresh, so that position
+  becomes noise that averages rather than bias that persists, and a table stops
+  needing comparability carried between runs, being self-contained evidence.
+  Not the reordering the roster-order entry above rejected — that varied slots
+  inside the one shared process — but a regime that gives the shared process up.
+  Pilot: a few arms and shapes read against the published column, with the A/A
+  pairs' spread under randomisation as the method's own floor.
 - `OPEN` **Render the run-scoped prose from a ledger — speculative likewise.**
   The claims manifest and the run-current count checks point at an end state:
   verdicts, statuses, floors and tallies kept in one small machine-readable file
@@ -6764,47 +6766,61 @@ and 0.31 there is nothing here to order.
 
 ### What Run 15 compares against
 
-**Run 15's regime, roster and basis are settled; its pair is not.** The regime
+**Run 15's regime, roster and basis are settled, and since 2026-08-16 its pair
+is too: it repeats Run 14 with one variable changed.** The regime
 is `-fspec-constr`, as every run since Run 8, and it is the regime the fix ships
 in rather than a flag priced against the shipped one. The roster is Run 14's
 1128 benches, 47 timed arms over 24 shapes, with every stride class at three
-shapes. The basis is the `lookrts` recipe, unchanged and now twice used. **What
-is open is what the other half varies**, and Run 14 leaves two candidates rather
-than one, both of them its own findings.
+shapes. The basis is the `lookrts` recipe, unchanged and now twice used. **Run
+14 left two candidates for what the other half varies, and Run 15 takes neither
+whole**: its pair is Run 14's with `-A32m` in place of `-A1G`, so the roster
+repeats — the second candidate, and what the drift band needs — while
+the allocation area stays the variable at a nursery eight times the default
+rather than two hundred and fifty-six times it. The repetition carries a second
+reason that is not about the benchmark at all: Run 15 is the first run to use
+the write-up machinery the [non-urgent list](#non-urgent-todo-list) registers,
+and an installer is best tested against a run whose figures are already known,
+where a figure landing outside the drift band is a defect in the tool rather
+than a finding.
 
-**The first is the position term, and it is the better question.** Run 14
-established that at `-A1G` an earlier bench in the same process permanently
-slows a later one, by up to 57% on the arm measured, while at the default
-nursery the same ladder is flat; that six of 23 shapes cause it and one alone
-reproduces it; that `+RTS -H2G` does not fix it; and that it survives GHC HEAD.
-What it did not establish is which property of those six shapes does it —
-`conv1d-24` and `cnn-L1-24x24-c1` share `l` and `sInner` and land on opposite
-sides. A pair varying nothing but roster **order** would price how much
-of this page's per-shape scatter is that term, which is the oldest open question
-here and now has a mechanism to hang on. [The open list][open] carries
-the entry.
+**The candidate not taken is the position term, and it stays the better
+question.** Run 14 established that at `-A1G` an earlier bench in the same
+process permanently slows a later one, by up to 57% on the arm measured, while
+at the default nursery the same ladder is flat; that six of 23 shapes cause
+it and one alone reproduces it; that `+RTS -H2G` does not fix it; and
+that it survives GHC HEAD. What it did not establish is which property
+of those six shapes does it — `conv1d-24` and `cnn-L1-24x24-c1` share `l`
+and `sInner` and land on opposite sides. A pair varying nothing but roster
+**order** would price how much of this page's per-shape scatter is that term,
+which is the oldest open question here and now has a mechanism to hang on. [The
+open list][open] carries the entry.
 
-**The second is a repetition, which this run has made expensive to skip.** Run
-14 changed two things at once by accretion rather than by design — twelve A/A
-twins and five class shapes — so its floor is over eighteen pairs where every
-predecessor's was over six, and its class figures are over three shapes where
-five classes had two. Neither is comparable with what came before, and the next
-run is the first that could be. A repetition on this exact roster would give
-the drift band a basis that carries, which Run 11 bought once and the roster has
-since spent.
+**The repetition is what Run 15's roster does, and Run 14 made it expensive
+to skip.** Run 14 changed two things at once by accretion rather than by design
+— twelve A/A twins and five class shapes — so its floor is over eighteen pairs
+where every predecessor's was over six, and its class figures are over three
+shapes where five classes had two. Neither is comparable with what came before,
+and the next run is the first that could be. A repetition on this exact roster
+would give the drift band a basis that carries, which Run 11 bought once
+and the roster has since spent.
 
-**What a pair must not vary again is the allocation area.** Run 14 priced
-it and the answer is not a number this page can publish: the `-A1G` half's
-absolutes carry a position term the basis half does not, so the halves
-are not subtractable, and the steady-state cost came from differencing outside
-criterion rather than from the run. Pricing it properly wants a runner that can
-give one binary two RTS configurations, which `run-major.sh` does not do today,
-and then the pair is one binary and no gate is owed at all — the note for Run
-14's pair records that this was available and not taken.
+**That a pair must not vary the allocation area again was the ruling here,
+and it was overruled on 2026-08-16.** What Run 14 established stands: at `-A1G`
+the control half's absolutes carry a position term the basis half does not,
+so the two halves are not subtractable and the steady-state cost had to come
+from differencing outside criterion rather than from the run. `-A32m`
+is the same variable at a thirty-second of the size, so what the pair can settle
+is whether the position term is there at all below the gigabyte — and a half
+that does not carry it is a half whose absolutes subtract. Pricing the area
+properly still wants a runner that can give one binary two RTS configurations,
+which `run-major.sh` does not do today, and then the pair is one binary
+and no gate is owed at all — the note for Run 14's pair records that
+this was available and not taken.
 
-Its columns will be `Run 15 (SpecConstr, max-skip +lookrts)` and whatever
-its second half varies. The table below is read against the two Run 14 columns;
-the -O1 column stays the yardstick for a comparison of the two regimes.
+Its columns will be `Run 15 (SpecConstr, max-skip +lookrts)`
+and `Run 15 (SpecConstr, max-skip +lookrts +A32m)`. The table below is read
+against the two Run 14 columns; the -O1 column stays the yardstick
+for a comparison of the two regimes.
 
 **Run 13 contributed two columns, and the second names a shim setting and an RTS
 line at once.** `Run 13 (SpecConstr, max-skip)` is the basis, Run 12's basis
