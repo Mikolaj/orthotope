@@ -6839,13 +6839,14 @@ and it was overruled on 2026-08-16.** What Run 14 established stands: at `-A1G`
 the control half's absolutes carry a position term the basis half does not,
 so the two halves are not subtractable and the steady-state cost had to come
 from differencing outside criterion rather than from the run. `-A32m`
-is the same variable at a thirty-second of the size, so what the pair can settle
-is whether the position term is there at all below the gigabyte — and a half
-that does not carry it is a half whose absolutes subtract. Pricing the area
-properly still wants a runner that can give one binary two RTS configurations,
-which `run-major.sh` does not do today, and then the pair is one binary
-and no gate is owed at all — the note for Run 14's pair records that
-this was available and not taken.
+is the same variable at a thirty-second of the size, and what the pair reads
+is whether the term is *visible* there. **The registered expectation is
+that it persists**, so a Run 15 control half free of it is the finding
+and not the prediction — and would also be a half whose absolutes subtract,
+which the `-A1G` one is not. Pricing the area properly still wants a runner
+that can give one binary two RTS configurations, which `run-major.sh` does
+not do today, and then the pair is one binary and no gate is owed at all —
+the note for Run 14's pair records that this was available and not taken.
 
 Its columns will be `Run 15 (SpecConstr, max-skip +lookrts)`
 and `Run 15 (SpecConstr, max-skip +lookrts +A32m)`. The table below is read
