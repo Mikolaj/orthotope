@@ -225,11 +225,31 @@ def arms(path, addrs):
     than a table kept here that a rename could rot. One `addr2line` for every
     address asked about; a build with no DWARF answers `??` to all of them
     and the caller falls back to the mangled symbol.
+
+    That fallback is the ANSWER to a question addr2line took, and it exits 0
+    giving it, so the two ways it can fail to take the question at all are
+    told apart from it here and said on stderr rather than read as a build
+    without DWARF. Neither refuses, unlike `scan` above: what a name buys is
+    legibility, and the mangled symbol is already the documented substitute.
+    Measured 2026-08-17: no DWARF is `??:0` at exit 0, an unreadable file is
+    exit 1, and an absent addr2line raises.
     """
     if not addrs:
         return {}
     cmd = ['addr2line', '-e', path] + [f'0x{a:x}' for a in addrs]
-    out = subprocess.run(cmd, capture_output=True, text=True).stdout.split('\n')
+    try:
+        got = subprocess.run(cmd, capture_output=True, text=True)
+    except OSError as exc:
+        sys.stderr.write('addr2line: %s; arms are named by their mangled'
+                         ' symbol\n' % exc)
+        return {}
+    if got.returncode != 0:
+        sys.stderr.write('addr2line -e %s exited %d: %s; arms are named by'
+                         ' their mangled symbol\n'
+                         % (path, got.returncode,
+                            got.stderr.strip() or '(no stderr)'))
+        return {}
+    out = got.stdout.split('\n')
     src, named = {}, {}
     for a, loc in zip(addrs, out):
         m = LOC.match(loc.strip())
