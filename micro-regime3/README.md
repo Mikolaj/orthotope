@@ -6587,10 +6587,11 @@ under a few percent is not this pair's to decide.
 which makes this the cleanest pair this page has run. Both `.text` sections come
 out at 20377797 bytes; every tracked loop sits at the same offset in both, fills
 `[11, 0, 4, 0]` and `[24, 8, 0, 0]`, at the same addresses;
-and `loop-offsets.py --library` reads 953 library self-loops at 100% same offset
-and 100% same straddle. A `-with-rtsopts` change relinks a different options
-string and nothing else, so no pad is derived, none is needed, and the placement
-term earlier pairs had to argue about is absent rather than cancelled.
+and `loop-offsets.py --library` puts every library self-loop the two halves
+share at the same offset and in the same straddle state. A `-with-rtsopts`
+change relinks a different options string and nothing else, so no pad
+is derived, none is needed, and the placement term earlier pairs had to argue
+about is absent rather than cancelled.
 
 **The regime was confirmed in the binary before the hours were spent**, which
 nothing afterwards can: a `diag` in the run's own regime puts `baseOffsetsScan`
@@ -8133,14 +8134,15 @@ membership and order, machine, GHC, `cabal.project.freeze`, source commit
 and shim form and setting — differing in one baked RTS string, `-A1G`. What
 that buys is measurable rather than asserted: both `.text` sections are 20377797
 bytes, every tracked loop sits at the same offset in both halves at the same
-address, and `--library` reads 953 library self-loops at 100% same offset
-and 100% same straddle. So no pad is derived, none is needed, and the two
-columns are separated by a run-time setting rather than by a layout. **What
-that does not buy is subtractability of the absolutes**, which every earlier
-pair had and this one does not: the `-A1G` half carries a position-in-process
-term the basis half does not, so its per-shape figures are inflated by an amount
-that varies with a shape's slot. The paired ratios and the orderings are sound;
-the magnitudes come from the differencing named at the head of this chapter.
+address, and `--library` puts every library self-loop the two halves share
+at the same offset and in the same straddle state. So no pad is derived, none
+is needed, and the two columns are separated by a run-time setting rather
+than by a layout. **What that does not buy is subtractability
+of the absolutes**, which every earlier pair had and this one does not:
+the `-A1G` half carries a position-in-process term the basis half does not,
+so its per-shape figures are inflated by an amount that varies with a shape's
+slot. The paired ratios and the orderings are sound; the magnitudes come
+from the differencing named at the head of this chapter.
 
 The desktop named at the head of this chapter is the same machine whose `idiv`
 cycle counts the [Lemire
