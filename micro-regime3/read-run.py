@@ -2874,9 +2874,11 @@ def check_paths(doc):
         if TRANSIENT_RE.match(rel):
             out['transient'].append(tok)
             continue
+        gone = []
         for root, label in PATH_ROOTS:
             base = os.path.join(here, root)
             if not os.path.isdir(base):
+                gone.append(root)
                 if not out['unmounted_root']:
                     out['unmounted_root'] = root
                 continue
@@ -2885,7 +2887,15 @@ def check_paths(doc):
                 out['in_sibling'] += label == 'horde-ad'
                 break
         else:
-            if out['unmounted_root']:
+            # A name searched while a root was missing cannot be told from
+            # a name that is simply wrong -- most of the sibling's own
+            # files are named without its prefix, so the token says
+            # nothing about which root it wanted. So this classifies and
+            # `check_doc` REFUSES on the class: an unmounted root blocks
+            # the path check rather than excusing what it could not
+            # search, which is what a missing sibling used to do silently
+            # for every later name, a dead local reference included.
+            if gone:
                 out['unmounted'].append(tok)
             else:
                 out['unresolved'].append(tok)
@@ -3152,9 +3162,20 @@ def check_doc(readme, main_hs):
                     % (len(p['ok']), p['in_sibling'], len(p['transient']),
                        p['unclassified']))
     if p['unmounted']:
-        note.append('%d path(s) NOT CHECKED, %s is not mounted: %s'
-                    % (len(p['unmounted']), p['unmounted_root'],
-                       ', '.join(sorted(p['unmounted']))))
+        # A FAIL and not a note. These are names nothing searched, and a
+        # name that is simply wrong lands here too -- which is how a dead
+        # local reference passed a whole run once a sibling was missing.
+        # BLOCKED means the check did not happen, never that it passed;
+        # mount the root, or say in the write-up which check was blocked.
+        # Non-vacuous 2026-08-16: with a root pointed at a directory that
+        # does not exist, this exits 1 naming the root and the seven names
+        # nothing searched, where before it exited 0 and filed a planted
+        # `read-runn.py` among them.
+        bad.append('BLOCKED: %s is not mounted, so %d named path(s) were'
+                   ' not checked and a wrong one among them cannot be told'
+                   ' from a right one: %s'
+                   % (p['unmounted_root'], len(p['unmounted']),
+                      ', '.join(sorted(p['unmounted']))))
 
     # ASKED OF THE CANONICAL WRAPPED FORM, not of the working copy, so the
     # answer does not depend on how this file happens to be wrapped right
@@ -4270,7 +4291,11 @@ def selftest(cells, shapes, strategies, meta):
             ok.append('shape parse: %d of %d shapes found in Main.hs, %d with'
                       ' an l annotation, each matching the dims parsed'
                       % (len(known), len(shapes), checked))
-        else:
+        elif not checked:
+            # Keyed on `checked` alone. Keyed on `checked and not bad`, a
+            # real mismatch took this branch and announced that no shape
+            # carries an annotation, beside the FAIL naming the shape
+            # whose annotation it had just read.
             skip.append('no shape in Main.hs carries an l annotation, so the'
                         ' dims parse has no oracle here')
         skip.append('sInner comes from a per-list reading of the generator'
@@ -4429,6 +4454,7 @@ def selftest(cells, shapes, strategies, meta):
     # `fmt_abs` writes, so a change to either alone would leave the machine
     # check with nothing to compare and no complaint, and --steps is
     # arithmetic that no published column can contradict.
+    was = len(bad)
     for x in (3.21e-9, 5.28e-6, 1.23e-3, 2.5):
         cell = '| `shape` | 3 | 288 | %s | 0.152 |' % fmt_abs(x)
         m = FINGERPRINT_ABS_RE.match(cell)
@@ -4439,7 +4465,15 @@ def selftest(cells, shapes, strategies, meta):
             bad.append('--machine reads %s as %g, past the three figures it'
                        ' is written with' % (fmt_abs(x), float(m.group(2))
                                              * UNIT[m.group(3)]))
-    else:
+    # `for ... else` with no `break` in the loop, which ran the ok line
+    # unconditionally: renaming a unit printed the FAIL and the claim that
+    # it cannot happen, side by side. That is the pairing the comment
+    # above the shape-parse check forbids, made by a keyword. Both
+    # provocations run 2026-08-16 -- ` ms` renamed to ` millis` here, and
+    # one l annotation moved by 1 for the shape parse -- and each now
+    # prints its FAIL alone. `us` for `µs` is NOT a provocation: the
+    # pattern takes it, so the first attempt proved nothing.
+    if len(bad) == was:
         ok.append('--machine parses what the fingerprint writes, over ns to s')
 
     if best_step([1.0] * 60) is not None:
@@ -4627,6 +4661,23 @@ def main():
              roster,
              '  (RAGGED: some cells missing)' if meta['ragged'] else '',
              '' if len(shapes) > 1 else '  (one shape: nothing to spread)'))
+    if meta['ragged']:
+        # The banner used to be the last thing that worked: `health` reads
+        # the whole cross product and every mode goes through it, so a
+        # file missing one cell printed RAGGED and then a KeyError. That
+        # file is what a process killed mid-selection leaves, which is
+        # exactly what the drivers tell you to come here and read, and
+        # `read-all.sh` got a traceback where a gate verdict belongs.
+        # Every aggregate below is over a rectangle, so the answer is to
+        # refuse and name what is missing.
+        holes = [(sh, st) for sh in shapes for st in strategies
+                 if st not in cells[sh]]
+        sys.stderr.write(
+            '%s: %d cell(s) missing, so the analysis did not happen. The'
+            ' first few: %s\n'
+            % (os.path.basename(args.run), len(holes),
+               '; '.join('%s/%s' % h for h in holes[:5])))
+        sys.exit(2)
     print()
     health(cells, shapes, strategies, terms)
     if args.shapes:

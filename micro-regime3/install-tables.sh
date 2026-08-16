@@ -70,9 +70,18 @@ install () {   # $1 = json, $2.. = mode
   fi
   echo "  $f $*"
   DONE=$((DONE + $(printf '%s\n' "$err" | grep -c '^installed at ')))
-  [ -z "$err" ] || HAND="$HAND
+  # The hand-work list is what a run must READ, so it holds only what is
+  # owed BY THIS RUN. Collecting the whole of each mode's stderr put
+  # `installed at ...`, every `ok:` line and the same standing reminder
+  # once per class into a "not optional" block on a run with nothing
+  # outstanding -- which is how a reader learns to skim the one list that
+  # is not skimmable. Warnings about the data stay: they are this run's.
+  local owed
+  owed=$(printf '%s\n' "$err" | grep -v '^installed at ' | grep -v '^ok: ' \
+           | grep -v "^the block's prose is yours")
+  [ -z "$owed" ] || HAND="$HAND
     $f $*:
-$(printf '%s\n' "$err" | sed 's/^/      /')"
+$(printf '%s\n' "$owed" | sed 's/^/      /')"
 }
 
 echo "=== installing into $DOC, all from $BASIS"
@@ -117,9 +126,30 @@ order = sorted(leads.items(), key=lambda kv: kv[1])
 done = 0
 for n, (c, start) in enumerate(reversed(order)):
     k = [x for x, _ in order].index(c)
-    end = order[k + 1][1] if k + 1 < len(order) else len(paras)
-    blk = subprocess.run(['./read-run.py', f'{R}-{BASIS}-{c}.json', '--block',
-                          '--brief'], capture_output=True, text=True).stdout
+    # The LAST block ends at the next heading, not at the end of the file.
+    # It used to run to len(paras), and `### Provenance` sits right after
+    # the last class block -- so a paragraph opening `Provenance:` in the
+    # section of that name would have been silently rewritten with the
+    # last class's elapsed and heap line. Non-vacuous 2026-08-16, both
+    # ways over a copy carrying such a sentence: the committed version
+    # replaced it with `scaled`'s provenance and this one leaves it. The
+    # first attempt at that control proved nothing -- the old script was
+    # run from the scratchpad, and it cds to its own directory, so it
+    # found no JSONs and exited having done nothing.
+    nxt = next((j for j in range(start + 1, len(paras))
+                if paras[j].lstrip().startswith('#')), len(paras))
+    end = order[k + 1][1] if k + 1 < len(order) else nxt
+    got = subprocess.run(['./read-run.py', f'{R}-{BASIS}-{c}.json', '--block',
+                          '--brief'], capture_output=True, text=True)
+    if got.returncode != 0:
+        # The reader's own words, not a guess about the block's shape: an
+        # absent JSON used to surface as `--block emitted no Controls`,
+        # which names the form and hides the missing file.
+        print(f'  REFUSED {c}: read-run.py exited {got.returncode}:')
+        print('    ' + (got.stderr.strip().replace('\n', '\n    ')
+                        or '(no stderr)'))
+        sys.exit(1)
+    blk = got.stdout
     log = open(f'{R}-{BASIS}-{c}.log').read()
     m = re.search(r'elapsed (\S+); peak (\d+) MiB in use, (\d+) MiB max', log)
     if not m:
