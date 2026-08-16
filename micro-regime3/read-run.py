@@ -2864,7 +2864,12 @@ def check_doc(readme, main_hs):
     nothing. The second of those took two attempts -- the first edited a
     string the list no longer contained, so the break itself did nothing and
     the check was credited with a pass it had not earned. Verify that a
-    deliberate break landed before believing what it proves. The figure
+    deliberate break landed before believing what it proves. The
+    link-text check had no live instance to break, the page having none,
+    so it was planted both ways on 2026-08-16, inline and through a
+    reference definition, each failing alone; its one false positive is
+    this page quoting the defect in backticks, in the entry that asked
+    for the check, which is why code spans are blanked first. The figure
     sweep's Main.hs half: a planted `where Run 6 read 0.500` comment was
     listed as Main.hs with its line, beside the README entries, and was
     gone on revert. The ms sweep's
@@ -2906,6 +2911,38 @@ def check_doc(readme, main_hs):
     else:
         note.append('every anchor resolves, in %s, in %s and in this script'
                     % (os.path.basename(readme), os.path.basename(main_hs)))
+
+    # A link's TEXT against its anchor, which resolving cannot check: the
+    # rename step repoints both and Run 14 shipped four reading `[About
+    # the last run (Run 13)](#about-the-last-run-run-14)`, every anchor
+    # live and every one of them lying, found by a reader. Inline links
+    # here and reference definitions with their uses, plus Main.hs, whose
+    # `README.md#` references carry text of their own in the comment
+    # around them and are left to the eye.
+    # Inline code spans go first: this page QUOTES the defect, in the
+    # entry that asked for the check, and a quoted link is not a link.
+    nocode = re.sub(r'`[^`\n]*`', '``', doc)
+    crossed = [(t, a) for t, a in
+               re.findall(r'\[([^\]\n]*\bRun (?:\d+)[^\]\n]*)\]'
+                          r'\(#([a-z0-9-]+)\)', nocode)
+               if re.search(r'run-(\d+)', a)
+               and re.search(r'\bRun (\d+)', t).group(1)
+               != re.search(r'run-(\d+)', a).group(1)]
+    for key, anchor in refs.items():
+        m = re.search(r'run-(\d+)', anchor)
+        if not m:
+            continue
+        crossed += [(t, anchor) for t in
+                    re.findall(r'\[([^\]\n]*\bRun \d+[^\]\n]*)\]\[%s\]' % key,
+                               nocode)
+                    if re.search(r'\bRun (\d+)', t).group(1) != m.group(1)]
+    if crossed:
+        bad.append('%d link(s) whose text and anchor name different runs: %s'
+                   % (len(crossed),
+                      '; '.join('%s -> #%s' % (t, a) for t, a in crossed)))
+    else:
+        note.append('every link naming a run agrees with the anchor it points'
+                    ' at')
 
     p = check_paths(doc)
     if p['unresolved']:
