@@ -147,8 +147,21 @@ def innermost(path):
 
 
 def scan(path, length):
-    dis = subprocess.run(['objdump', '-d', '-j', '.text', path],
-                         capture_output=True, text=True).stdout
+    # objdump's verdict and not merely its stdout. A mistyped or missing
+    # binary, or one with no `.text`, left `dis` empty and every mode then
+    # read it as a binary with no loops: `--survey no-such-binary` printed
+    # `0 self-loops ... at offset 0: 0, still straddling: 0` and exited 0,
+    # a placement report reading as a perfect result for a file that was
+    # never opened. Found 2026-08-17 by review.
+    cmd = ['objdump', '-d', '-j', '.text', path]
+    try:
+        got = subprocess.run(cmd, capture_output=True, text=True)
+    except OSError as exc:
+        sys.exit('%s: %s' % (' '.join(cmd), exc))
+    if got.returncode != 0:
+        sys.exit('%s exited %d: %s' % (' '.join(cmd), got.returncode,
+                                       got.stderr.strip() or '(no stderr)'))
+    dis = got.stdout
     cur = None
     insns = []
     for line in dis.split('\n'):
