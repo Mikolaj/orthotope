@@ -681,10 +681,23 @@ def worst_of(cells, shapes, strategy):
     times its own average on some shape is not shippable whatever its mean
     says. Being a maximum it is also the one figure no estimator choice can
     flatter.
+
+    Reads `--` on exactly what `time_of` reads `--` on, the sunk cell
+    included: without that last test a shape whose forcing term was not
+    smaller than the cell published a plausible `worst` beside a `time --`
+    in the same README row, computed over a shape set one of whose cells
+    means nothing. Found 2026-08-17 by review; no run here carries such a
+    cell, so no published figure moves -- which is also why the proof had
+    to be made: with one cell's slope cut to a hundredth in a copy of Run
+    14's slice JSON, `mut-odo-vecdims` reads `-- --` here and `-- 0.063`
+    through the version before this.
     """
     if any('list' not in cells[s] for s in shapes):
         return float('nan')
     if no_net(strategy):
+        return float('nan')
+    if any(cells[s][strategy]['net'] <= 0 or cells[s]['list']['net'] <= 0
+           for s in shapes):
         return float('nan')
     return max(cells[s][strategy]['net'] / cells[s]['list']['net']
                for s in shapes)
@@ -801,6 +814,12 @@ def strategy_table(cells, shapes, strategies, meta, args, terms):
 # stop finding anything and report every row as new.
 CLASS_HDR = '| strategy | time | worst | CI% | smp | alloc |'
 RESULTS_HDR = '| strategy | time | worst | CI% | smp | alloc | needs |'
+
+# A class block's bolded lead, which is where one block ends and the next
+# begins -- `install-tables.sh` reads the same shape off the page to check
+# that no class goes uninstalled, and `install` bounds a class table's
+# search by it.
+BLOCK_LEAD = re.compile(r'\*\*`[a-z0-9]+`')
 
 
 def readme_rows(readme, strategies, recognise=None):
@@ -950,6 +969,14 @@ def install(readme, table, src, after=None):
     right table was found and not merely a table. That last one was run
     again on 2026-08-14, when `src` was added: the install prints the run
     file the rows came from and README is byte-identical after it.
+
+    A fifth on 2026-08-17, when the block bound went in, both ways over a
+    copy with `slice`'s table deleted: this refuses, naming the lead and
+    its line, where the version before it installed slice's 49 rows over
+    the `window` block's table and exited 0. The control against it is
+    `install-tables.sh` over an untouched copy, whose eleven tables come
+    back byte-identical -- a bound tight enough to refuse a real install
+    would have shown up there.
     """
     with open(readme) as f:
         lines = f.read().split('\n')
@@ -960,7 +987,24 @@ def install(readme, table, src, after=None):
         if len(start) != 1:
             sys.exit('--in-place: %d line(s) start with %r, need exactly one'
                      % (len(start), after))
-        hits = [i for i in hits if i > start[0]][:1]
+        # Inside that block, and not merely below its lead. The eight class
+        # tables share one header line, so the first hit below the lead is
+        # the NEXT class's table whenever this block has none -- newly
+        # written, or its table deleted mid-edit. Verified on a copy with
+        # `slice`'s table removed: `--block --in-place` wrote slice's 49
+        # rows over the `window` block's table and exited 0, which is the
+        # silent write to the wrong place this function exists to refuse.
+        # A block ends where the next lead, or the next heading, begins.
+        end = next((j for j in range(start[0] + 1, len(lines))
+                    if BLOCK_LEAD.match(lines[j]) or lines[j].startswith('#')),
+                   len(lines))
+        hits = [i for i in hits if start[0] < i < end]
+        if not hits:
+            sys.exit('--in-place: the block led by %r (%s:%d) carries no line'
+                     ' equal to the header, and the next one below it belongs'
+                     ' to another block; refusing to write there\n  %s'
+                     % (after, os.path.basename(readme), start[0] + 1,
+                        hdr[:68]))
     if len(hits) != 1:
         sys.exit('--in-place: %d line(s) equal the header, need exactly one;'
                  ' refusing to guess\n  %s' % (len(hits), hdr[:68]))
@@ -2042,11 +2086,16 @@ def claims_table(cells, shapes, strategies, args):
               ' claims are registered over the whole of it, so what follows'
               ' is arithmetic and not their verdicts, which is why every'
               ' one below reads PART.' % (whole - gone, whole))
-    missing = [a for _, _, ps in CLAIMS for p in ps for a in p[:2]
-               if a not in strategies]
+    # One entry per arm, as `install_readings` builds it: an arm the claims
+    # list registers several times over -- `bq-expand` is one -- was counted
+    # once per registration and named once, so a run filtered to drop it
+    # reported more missing arms than it could name. Found 2026-08-17 by
+    # review.
+    missing = sorted({a for _, _, ps in CLAIMS for p in ps for a in p[:2]
+                      if a not in strategies})
     if missing:
         print('NOTE: %d arm(s) of the claims list are not in this run: %s'
-              % (len(missing), ', '.join(sorted(set(missing)))))
+              % (len(missing), ', '.join(missing)))
         print('      a filtered run cannot check the claims; use a full one.')
     held = broke = 0
     readings = claim_readings(cells, shapes, strategies)
@@ -2612,10 +2661,17 @@ def block_skeleton(cells, shapes, strategies, meta, args, terms):
                  % label)
     if 'list' not in strategies:
         sys.exit('--block needs the `list` baseline in the run')
-    # --brief drops the table: --in-place installs it from this same
-    # computation, so a session that is installing has no use for the copy
-    # on its terminal, and it is the bulk of what this mode prints.
-    if not args.brief:
+    # --brief drops the table from the TERMINAL: --in-place installs it
+    # from this same computation, so a session that is installing has no
+    # use for the copy on its terminal, and it is the bulk of what this
+    # mode prints. It is therefore still emitted when installing, and
+    # `emit_or_install` is what keeps it off stdout there -- dropping it
+    # from the computation instead made the very combination the module
+    # docstring recommends, `--block --in-place --brief`, exit 1 with
+    # `--in-place: this mode emitted no table`. Found 2026-08-17 by review;
+    # that call now installs the class's 49 rows over a copy that already
+    # carries them, leaving it byte-identical, and prints no table row.
+    if args.in_place or not args.brief:
         markdown_table(cells, shapes, strategies, meta, args, terms)
         print()
     aa_table(cells, shapes, strategies, terms, meta, args.brief)
@@ -2781,8 +2837,17 @@ def buried_actions(lines):
     lives in the pair note by design. That one was caught by reading.
     """
     out, block, first = [], [], 0
-    for i, line in enumerate(lines + [''], 1):
-        if line.startswith('    ') or (not line.strip() and block):
+    # The sentinel that flushes a block still open at EOF is None and not
+    # '': a blank line is part of an open block, so the empty one was
+    # appended to the very block it was there to flush and the flush below
+    # never ran. A buried action in a document's last indented block was
+    # therefore never reported -- today's README passes this sweep only
+    # because it does not end in one. Found 2026-08-17 by review, and
+    # non-vacuous the same day: a copy with one such block appended reads
+    # one hit here and none through the version before this.
+    for i, line in enumerate(lines + [None], 1):
+        if line is not None and (line.startswith('    ')
+                                 or (not line.strip() and block)):
             if not block:
                 first = i
             block.append(line)
@@ -3040,9 +3105,27 @@ def added_lines(*paths):
     positive here, which costs one entry printed under NEW and is the safe
     direction to err in.
 
+    Over HEAD and not over the index, which is what the sentence above
+    says and what `git diff` alone does not do: staging README before
+    running --check-doc emptied this -- to the empty set, not to
+    EVERYTHING -- and all four freshness sweeps then reported "none added
+    by this diff" over a diff that had added plenty, which is the failure
+    `is_fresh` records having been repaired. Found 2026-08-17 by review,
+    and non-vacuous the same day: with a pasted superlative paragraph
+    STAGED, `git diff -U0` reads empty where `git diff HEAD -U0` reads the
+    paste, and --check-doc prints it under NEW here and not through the
+    version before this.
+
     Returns EVERYTHING when there is no diff to be had -- not a git
     checkout, git absent, or the file untracked -- so the caller falls back
-    to the flat listing rather than announcing that nothing is new.
+    to the flat listing rather than announcing that nothing is new. The
+    last of the three is asked outright, with `ls-files --error-unmatch`,
+    because `git diff` does not answer it: pointed at an untracked path it
+    exits 0 saying nothing, which is the empty set and not the sentinel,
+    so `--check-doc --readme` on an untracked copy -- the way a document
+    is worked on before it is added -- called every hit old. The sentence
+    above has claimed otherwise since the sentinel was written; measured
+    and made true 2026-08-17.
 
     Non-vacuous, all three branches exercised 2026-08-12: with README.md
     edited it returned 103 added lines; against `Main.hs`, which that tree
@@ -3060,13 +3143,17 @@ def added_lines(*paths):
     against it is `is_fresh`'s to prove, and is proven there. A control that
     spans two functions is a control neither of them owns.
     """
+    at = os.path.dirname(os.path.abspath(__file__))
     try:
-        out = subprocess.run(['git', 'diff', '-U0', '--'] + list(paths),
-                             cwd=os.path.dirname(os.path.abspath(__file__)),
+        known = subprocess.run(['git', 'ls-files', '--error-unmatch', '--']
+                               + list(paths), cwd=at,
+                               capture_output=True, text=True, timeout=20)
+        out = subprocess.run(['git', 'diff', 'HEAD', '-U0', '--']
+                             + list(paths), cwd=at,
                              capture_output=True, text=True, timeout=20)
     except (OSError, subprocess.SubprocessError):
         return EVERYTHING
-    if out.returncode != 0:
+    if known.returncode != 0 or out.returncode != 0:
         return EVERYTHING
     return frozenset(l[1:].strip() for l in out.stdout.split('\n')
                      if l.startswith('+') and not l.startswith('+++')
