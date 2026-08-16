@@ -3380,6 +3380,35 @@ def check_doc(readme, main_hs):
     return 1 if bad else 0
 
 
+def check_doc_quiet(readme, main_hs):
+    """`--check-doc` with the worklists withheld and the verdict kept.
+
+    What this replaces is a `grep FAIL` over the loud form, which a run was
+    doing on nearly every call: a grep reads only the spelling it was
+    given, so a checker that grew a second kind of stopping line would go
+    silently unread, and the pipe throws the exit code away as well. This
+    withholds by count and says how many lines it kept back, so a run that
+    wants them knows they exist. The verdict is check_doc's own return.
+
+    Non-vacuity, 2026-08-16, against a copy: renaming `## About the last
+    run (Run 14)` to `(Run 14x)` printed two FAIL lines -- the four dead
+    anchors, and the replace-list bullet that no longer covers the section
+    -- and exited 1, where the same copy unbroken printed no FAIL and
+    exited 0. The withheld counts differ by exactly those two lines, which
+    is what promoting them out of the pool should do.
+    """
+    out = io.StringIO()
+    with contextlib.redirect_stdout(out):
+        rc = check_doc(readme, main_hs)
+    lines = [l for l in out.getvalue().split('\n') if l]
+    fails = [l for l in lines if l.startswith('FAIL: ')]
+    for line in fails:
+        print(line)
+    print('%d line(s) withheld; rerun without --quiet for the worklists'
+          % (len(lines) - len(fails)))
+    return rc
+
+
 def lint(main_hs, readme):
     """Static checks over Main.hs and README.md, needing no run at all.
 
@@ -3975,6 +4004,14 @@ def main():
     p.add_argument('--selftest', action='store_true')
     p.add_argument('--lint', action='store_true')
     p.add_argument('--check-doc', action='store_true')
+    # The note: worklists are write-up material, adjudicated once at the
+    # verification step, and they are the bulk of what --check-doc prints.
+    # Every other call a run makes reads one bit off it. --quiet keeps that
+    # bit and withholds the rest -- by count, since a mode that hides a
+    # line without saying so is worse than the reading it saves.
+    p.add_argument('--quiet', action='store_true',
+                   help='with --check-doc: the FAIL lines and a count of what'
+                        ' was withheld, nothing else')
     p.add_argument('--para', metavar='PATTERN',
                    help="print README paragraphs whose bolded lead matches,"
                         " with the line each starts at; needs no run file")
@@ -3997,10 +4034,11 @@ def main():
     # invocations gives a chapter and a silence where the allocation reading
     # was asked for. Refuse instead, here, where the flags are still visible
     # as flags.
-    for flag, needs in (('alloc', 'compare'), ('chapter', 'compare')):
+    for flag, needs in (('alloc', 'compare'), ('chapter', 'compare'),
+                        ('quiet', 'check_doc')):
         if getattr(args, flag) and not getattr(args, needs):
             p.error('--%s is a modifier of --%s and does nothing alone'
-                    % (flag, needs))
+                    % (flag, needs.replace('_', '-')))
     if args.alloc and args.chapter:
         p.error('--alloc and --chapter are two readings, not one: run the'
                 ' two invocations README\'s checklist spells out')
@@ -4008,7 +4046,8 @@ def main():
     if args.para:
         sys.exit(paragraphs(args.readme, args.para))
     if args.check_doc:
-        sys.exit(check_doc(args.readme, args.main))
+        sys.exit(check_doc_quiet(args.readme, args.main) if args.quiet
+                 else check_doc(args.readme, args.main))
     if args.lint:
         sys.exit(lint(args.main, args.readme))
     if args.run is None:

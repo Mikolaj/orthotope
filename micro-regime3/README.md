@@ -3623,11 +3623,14 @@ and never as a chronology.
     #      two halves' listings: identical is what one source built twice
     #      looks like, and the pair note asks for that half of it
     ./read-run.py --lint                  # 7. roster and shape annotations
-    ./read-run.py --check-doc             # 8. anchors, paths, widths, sweeps
+    ./read-run.py --check-doc --quiet     # 8. anchors, paths, widths, sweeps
     #      7+8 are the WHOLE document check here; no other repo's checkers,
     #      now or at post-run step 7. Exit code is the verdict: the
     #      note: worklists are write-up material, only FAIL: stops you, and
     #      a wrap FAIL means a HAND-wrapped paragraph, not a long one
+    #      --quiet keeps the FAILs and withholds the worklists by count.
+    #      Every call but one takes it; the one that does not is post-run
+    #      step 7, where the worklists are read and adjudicated
     ./$R-<basis> diag                     # 9. the regime, in the binary
     #      read one row: allocated bytes of baseOffsetsScan against
     #      baseOffsetsMut on vgg-14-c512 -- equal to three figures under
@@ -3979,19 +3982,23 @@ against `Main.hs` and this file, which open no binary at all:
     ./read-run.py --check-doc    # anchors, coverage, widths, stale figures
 
 **The exit code is the verdict; the `note:` lines are not.** A clean
-`--check-doc` here still prints three of them, each heading an indented list
-running to dozens of entries — every superseded figure, every superlative
-and every absolute time the page quotes, listed for adjudication during
-the write-up and not before it. `--lint` is the same, noting the rostered arms
-it knows are deliberately untimed. Both exit 0 when they pass, and a `FAIL:`
-line is the only thing that should stop you at this point. **One of those `ok:`
-lines is the wrap check, and it reads differently mid-edit.** It asks
-its question per paragraph rather than of the whole file, so a paragraph an edit
-left on one line is reported as mid-edit and not failed, and a `FAIL:` there
-means a paragraph wrapped by *hand* — neither the formatter's form nor one line.
-The gate therefore stays green on a document being worked on, which is what
-stops it demanding a `wrap80 -i` between edits: wrapping is owed before
-committing, not before checking.
+`--check-doc` here still prints them, each heading an indented list running
+to dozens of entries — every superseded figure, every superlative, every
+absolute time the page quotes, and every link into the run chapter from standing
+prose, listed for adjudication during the write-up and not before it.
+**`--check-doc --quiet` is that sentence made operative**: it prints the `FAIL:`
+lines and one line counting what it withheld, and every call takes
+it but post-run step 7's, which is where the worklists are read. `--lint`
+is the same, noting the rostered arms it knows are deliberately untimed. Both
+exit 0 when they pass, and a `FAIL:` line is the only thing that should stop you
+at this point. **One of those `ok:` lines is the wrap check, and it reads
+differently mid-edit.** It asks its question per paragraph rather than
+of the whole file, so a paragraph an edit left on one line is reported
+as mid-edit and not failed, and a `FAIL:` there means a paragraph wrapped
+by *hand* — neither the formatter's form nor one line. The gate therefore stays
+green on a document being worked on, which is what stops it demanding
+a `wrap80 -i` between edits: wrapping is owed before committing, not before
+checking.
 
 Both halves. On the unaligned/aligned pairs this page used to build, only one
 half had its own code rewritten — the other's shim appended dead bytes, where
@@ -4739,12 +4746,14 @@ the artifacts are what it spends.
 
    **This step is the whole of the document verification a run owes, and nothing
    else is to be reached for. Four passes, in this order:** run
-   `./read-run.py --lint` and `--check-doc`, whose exit codes are the verdict;
-   read the worklists they print and adjudicate each entry; read the write-up
-   end to end against the run's own artifacts; and hand the diff
-   to an independent checker, which the paragraph after next briefs. None
-   of them is optional, the third is the one that keeps finding real errors,
-   and the fourth is what catches what the third cannot see in its own writing.
+   `./read-run.py --lint` and `--check-doc` — **without `--quiet`, this being
+   the one call that reads the worklists rather than the verdict** — whose exit
+   codes are the verdict; read the worklists they print and adjudicate each
+   entry; read the write-up end to end against the run's own artifacts; and hand
+   the diff to an independent checker, which the paragraph after next briefs.
+   None of them is optional, the third is the one that keeps finding real
+   errors, and the fourth is what catches what the third cannot see in its own
+   writing.
 
    **And where the write-up was made by scripted replacement rather
    than by `Edit`, one mechanical read comes before those four.** Unwrap both
