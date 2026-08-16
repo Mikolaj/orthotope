@@ -1931,6 +1931,120 @@ def claims_table(cells, shapes, strategies, args):
           '\na movement clears the floor, are still the reading\'s to say.')
 
 
+CLAIMS_HEAD = re.compile(r'#+ The claims Run \d+ should test')
+CLAIMS_FIG = re.compile(r'\b\d+(?:\.\d+)?e-\d+\b|\b\d+\.\d{2,4}\b'
+                        r'|\b(\d+) (?:wins )?of (\d+)\b')
+CLAIMS_PAST = re.compile(r'Run \d+|(?:last|previous|earlier|prior)'
+                         r'\s+(?:\w+\s+)?runs?')
+
+
+def claims_in_doc(readme, cells, shapes, strategies):
+    """Figures in the claims verdicts that this run's readings do not give.
+
+    The installer writes each claim's readings; this asks the other
+    question, whether a figure the AUTHOR wrote beside them is this run's.
+    On 2026-08-15 a write-up shipped a whole verdict section of the
+    previous run's figures with every checker green, and no installer
+    reaches that: the sentence is the author's and stays the author's.
+
+    A figure earns its place three ways -- it is one of its own claim's
+    readings (paired geomean, published-column ratio, win count, sign p),
+    it is a percentage, or its sentence attributes it, naming a run or
+    saying "the last two runs". Everything else is listed. Attribution is
+    by paragraph lead, so a continuation paragraph is read against the
+    claim above it, and a claim with no live pair is skipped whole, its
+    figures being the table's rather than a pair's.
+
+    It lists rather than fails, and the summary count is the instrument
+    rather than the list: a clean page reproduces nearly everything and
+    leaves a handful of table-sourced cells, where a stale one collapses.
+
+    Non-vacuity, 2026-08-16, three readings over Run 14's artifacts. The
+    shipped page reproduces 37 and lists nothing -- after the one figure it
+    did list was fixed, an unattributed Run 13 sign p inside claim 2's
+    paragraph, which is this check's first find and exactly the kind the
+    page's own convention forbids. Run 13's published page against the same
+    artifacts, which is the shape the 2026-08-15 incident had, reproduces
+    17 and lists 17. And the control half read in place of the basis
+    reproduces 5 and lists 24, which is why the basis is a caller's
+    argument here as it is everywhere else on this page.
+    """
+    try:
+        doc = open(readme).read()
+    except OSError as exc:
+        print('\nnote: %s unread, so the claims section went unchecked: %s'
+              % (os.path.basename(readme), exc))
+        return
+    paras = [' '.join(p.split()) for p in doc.split('\n\n')]
+    start = next((i for i, p in enumerate(paras) if CLAIMS_HEAD.match(p)),
+                 None)
+    end = None if start is None else next(
+        (i for i in range(start + 1, len(paras))
+         if paras[i].startswith('Restated')), None)
+    if end is None:
+        print('\nnote: no claims verdict section in %s, so this check did'
+              ' not happen rather than passing'
+              % os.path.basename(readme))
+        return
+
+    readings = {}
+    for n, _, pairs in CLAIMS:
+        live = [(a, b) for a, b, _ in pairs
+                if a in strategies and b in strategies]
+        if not live:
+            continue
+        figs = set()
+        for a, b in live:
+            raw, r = pair_stats(cells, shapes, a, b)
+            k = sum(1 for x in r if x < 1)
+            figs.add('%.4f' % geomean(r))
+            figs.add('%d of %d' % (k, len(r)))
+            figs.add('%.2g' % sign_p(k, len(r)))
+            if not raw:
+                figs.add('%.4f' % (time_of(cells, shapes, a)
+                                   / time_of(cells, shapes, b)))
+        readings[n] = figs
+
+    ok, listed, skipped, claim = 0, [], set(), None
+    for para in paras[start + 1:end]:
+        lead = re.match(r'\*\*Claims? (\d+)', para)
+        if lead:
+            claim = int(lead.group(1))
+        if claim is None:
+            continue
+        if claim not in readings:
+            skipped.add(claim)
+            continue
+        for sent in re.split(r'(?<=[.!?]) (?=[A-Z*`(])', para):
+            past = CLAIMS_PAST.search(sent)
+            for m in CLAIMS_FIG.finditer(sent):
+                if sent[m.end():m.end() + 1] == '%':
+                    continue
+                fig = ('%s of %s' % (m.group(1), m.group(2))
+                       if m.group(1) else m.group(0))
+                if fig in readings[claim]:
+                    ok += 1
+                elif not past:
+                    listed.append((claim, fig, sent))
+    print('\n%d figure(s) in the verdicts are this run\'s own readings.'
+          % ok)
+    if skipped:
+        print('claim%s %s ha%s no live pair here, so what %s quote%s is the'
+              ' table\'s and goes unchecked by this.'
+              % ('' if len(skipped) == 1 else 's',
+                 ' and '.join(str(n) for n in sorted(skipped)),
+                 's' if len(skipped) == 1 else 've',
+                 'it' if len(skipped) == 1 else 'they',
+                 's' if len(skipped) == 1 else ''))
+    if not listed:
+        print('note: no unattributed figure left over.')
+        return
+    print('note: %d figure(s) neither this run\'s nor attributed to another'
+          ' run; adjudicate each:' % len(listed))
+    for n, fig, sent in listed:
+        print('        claim %d: %-9s %s' % (n, fig, sent[:96]))
+
+
 PROP2_FASTEST = 'mut-odo-vecdims'
 PROP2_PURE = 'bq-scan-rem-gm-mulback'
 SHIPPED = 'bq-expand'
@@ -4097,6 +4211,7 @@ def main():
         pair_table(cells, shapes, strategies, args.pair)
     elif args.claims:
         claims_table(cells, shapes, strategies, args)
+        claims_in_doc(args.readme, cells, shapes, strategies)
     elif args.compare and args.chapter:
         chapter_skeleton(cells, shapes, strategies, meta,
                          args.compare, args.main)

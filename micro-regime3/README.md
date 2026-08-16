@@ -4562,7 +4562,10 @@ was missed, which is what they have cost.
     #      restriction, the basis the claim was stated on
     ./read-run.py RUN.json --claims                   # 3. every claim's
     #      ordering and registered verdict in one call, in the claims
-    #      section's own order
+    #      section's own order -- and, after them, the page's own verdict
+    #      figures read back against these readings. Give it the BASIS:
+    #      the control half lists two dozen figures as unaccounted, which
+    #      is what a stale section looks like too
     ./read-run.py $R-<basis>-$c.json --block          #    one per class
     ./read-run.py $R-<basis>-$c.json --compare $R-<other>-$c.json
     #      and one per class ACROSS the halves -- from Run 14 on, a run
@@ -5089,6 +5092,8 @@ is the reference for all of them; extend the script rather than starting over.
     ./read-run.py A.json --compare B.json --alloc  # what each arm allocates
     ./read-run.py A.json --compare B.json --chapter  # the chapter's figures
     ./read-run.py RUN.json --claims         # every claim's verdict, one call
+    #      then the page's verdict figures read back: what reproduces these
+    #      readings, and what is neither theirs nor attributed to a run
     ./read-run.py RUN.json --cells          # every cell as TSV, for the rest
     ./read-run.py RUN.json --fingerprint    # the kept per-shape record
     ./read-run.py RUN.json --block          # a class block's parts, + verdicts
@@ -7050,9 +7055,9 @@ the aligned figure for a fifth run and gained a win rather than losing one.
 **Claim 2 held, and its sign test went soft.** `bq-expand` / `bq-mut` reads
 **0.7292** at 20 of 24 (p 0.0015). `offtab` / `bq-expand` reads **1.1860** at 7
 of 24, sign p **0.064** — the ordering unchanged and the margin a fifth
-as before, but the count moved from 5 to 7 and the p from 0.0066 to the edge
-of significance. The margin is the finding and the p is not, which this claim's
-own entry has said since Run 9.
+as before, but the count moved from Run 13's 5 to 7 and the p from its 0.0066
+to the edge of significance. The margin is the finding and the p is not, which
+this claim's own entry has said since Run 9.
 
 **Claim 3 held.** `bq-expand-gm-mulback` / `bq-expand` reads **0.9243** at 20
 of 24, sign p 0.0015: a mul-back output is worth 8% on the shipped build
