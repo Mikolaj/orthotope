@@ -3712,6 +3712,12 @@ and never as a chronology.
     #      --quiet keeps the FAILs and withholds the worklists by count.
     #      Every call but one takes it; the one that does not is post-run
     #      step 7, where the worklists are read and adjudicated
+    #      A `FAIL: BLOCKED:` here is a root the wrapper did not mount,
+    #      usually ../../horde-ad, and it means the path check did not
+    #      happen rather than that it failed: a name that is simply wrong
+    #      cannot be told from one nothing searched. Get the checkout
+    #      mounted and rerun, or run with it blocked and say so in the
+    #      write-up -- the one thing not available is reading it as a pass
     ./$R-<basis> diag                     # 9. the regime, in the binary
     #      read one row: allocated bytes of baseOffsetsScan against
     #      baseOffsetsMut on vgg-14-c512 -- equal to three figures under
