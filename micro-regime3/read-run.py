@@ -1933,9 +1933,142 @@ def claims_table(cells, shapes, strategies, args):
 
 CLAIMS_HEAD = re.compile(r'#+ The claims Run \d+ should test')
 CLAIMS_FIG = re.compile(r'\b\d+(?:\.\d+)?e-\d+\b|\b\d+\.\d{2,4}\b'
-                        r'|\b(\d+) (?:wins )?of (\d+)\b')
+                        # `3 of 3 registered orderings held` is the installed
+                        # line's verdict, not one of its win counts.
+                        r'|\b(\d+) (?:wins )?of (\d+)\b(?! registered)')
 CLAIMS_PAST = re.compile(r'Run \d+|(?:last|previous|earlier|prior)'
                          r'\s+(?:\w+\s+)?runs?')
+
+
+def claims_section(paras):
+    """Where the verdict subsection starts and ends, in a paragraph list.
+
+    The installer and the read-back both need it and neither may guess:
+    the restatement below `Restated` carries figures of its own, and a
+    paragraph leading with a claim's number occurs outside the section
+    too, so a search over the whole page finds the wrong one rather than
+    none. Returns (None, None) when either end is missing, which every
+    caller reports rather than working around.
+    """
+    start = next((i for i, p in enumerate(paras)
+                  if CLAIMS_HEAD.match(p.lstrip())), None)
+    if start is None:
+        return None, None
+    end = next((i for i in range(start + 1, len(paras))
+                if paras[i].lstrip().startswith('Restated')), None)
+    return (start, end) if end is not None else (None, None)
+
+
+def claims_readings(cells, shapes, strategies):
+    """Each claim's figures, as the paragraph the page is to carry.
+
+    The claims section was the last figure-bearing block with no
+    installer, so a run hand-copied a dozen orderings out of `--claims`
+    and the transcription was where the wrong figure got in. What is
+    installed is the arithmetic and nothing else -- per link the paired
+    geomean, the win count and the sign p, then how many registered
+    orderings held -- on the same division the class blocks keep: the
+    reader writes the sentence a predicate can write, the author writes
+    the comparison with the run before and the judgement of whether a
+    movement clears the floor.
+
+    Claim 9's expectation is its two best cells rather than a direction,
+    so its reading names them; a claim with no live pair is absent from
+    what this returns, having no arithmetic to install.
+    """
+    out = {}
+    for n, _, pairs in CLAIMS:
+        live = [(a, b, e) for a, b, e in pairs
+                if a in strategies and b in strategies]
+        if not live:
+            continue
+        bits, broke = [], []
+        for a, b, expect in live:
+            _, r = pair_stats(cells, shapes, a, b)
+            g, m = geomean(r), len(r)
+            k = sum(1 for x in r if x < 1)
+            p = sign_p(k, m)
+            bit = ('`%s` / `%s` %.4f, %d of %d, sign p %.2g'
+                   % (a, b, g, k, m, p))
+            if isinstance(expect, tuple):
+                best = sorted(s for _, s in sorted(zip(r, shapes))[:2])
+                ok = best == sorted(expect[1:])
+                bit += ', best two cells `%s` and `%s`' % (best[0], best[1])
+            elif expect == 'tie':
+                ok = p >= 0.05
+            else:
+                ok = (g < 1) if expect == 'faster' else (g > 1)
+            if not ok:
+                broke.append('`%s` / `%s`' % (a, b))
+            bits.append(bit)
+        verdict = ('%d of %d registered ordering%s held'
+                   % (len(bits) - len(broke), len(bits),
+                      '' if len(bits) == 1 else 's'))
+        if broke:
+            verdict += ', BROKE on ' + ' and '.join(broke)
+        out[n] = 'Readings: %s. %s.' % ('; '.join(bits), verdict)
+    return out
+
+
+def install_readings(readme, texts, src, strategies):
+    """Install each claim's Readings paragraph under its lead, or refuse.
+
+    The lead is the author's `**Claim N` paragraph and the reading goes
+    directly beneath it, which is the class blocks' arrangement and is
+    matched the same way -- exactly one lead per claim inside the verdict
+    section, or this exits rather than guessing. A claim whose reading is
+    missing gets one inserted and said so on the way out, the case five
+    class blocks silently lost their per-shape line to.
+
+    A filtered run is refused outright: `--exclude` can leave a claim's
+    arms out, and a section installed from it would carry a subset with
+    nothing on the page saying so.
+
+    Born checked, 2026-08-16, against a copy, four ways: run twice it
+    leaves the file byte-identical the second time; with `**Claim 3 held.`
+    renamed it exits 1 naming that claim and writes nothing; with claim 2's
+    Readings paragraph deleted it reinserts that one alone and says so,
+    restoring the file byte-identical; and under `--exclude bq-mut` it
+    exits 1 naming the arm rather than installing six claims of seven.
+    """
+    missing = sorted({a for _, _, ps in CLAIMS for p in ps for a in p[:2]
+                      if a not in strategies})
+    if missing:
+        sys.exit('--in-place: %d claim arm(s) are not in this run (%s); a'
+                 ' filtered run cannot install the claims'
+                 % (len(missing), ', '.join(missing)))
+    with open(readme) as f:
+        paras = f.read().split('\n\n')
+    flat = [' '.join(p.split()) for p in paras]
+    start, end = claims_section(flat)
+    if start is None:
+        sys.exit('--in-place: no claims verdict section in %s, so there is'
+                 ' nothing to install into' % os.path.basename(readme))
+    done = added = 0
+    for n in sorted(texts):
+        lead = [i for i in range(start + 1, end)
+                if re.match(r'\*\*Claims? %d\b' % n, flat[i])]
+        if len(lead) != 1:
+            sys.exit('--in-place: %d paragraph(s) in the claims section lead'
+                     ' with **Claim %d, need exactly one' % (len(lead), n))
+        i = lead[0]
+        if i + 1 < end and flat[i + 1].startswith('Readings:'):
+            if flat[i + 1] != texts[n]:
+                paras[i + 1] = flat[i + 1] = texts[n]
+                done += 1
+        else:
+            paras.insert(i + 1, texts[n])
+            flat.insert(i + 1, texts[n])
+            end += 1
+            added += 1
+            sys.stderr.write('claim %d: Readings paragraph ADDED, the claim'
+                             ' had none\n' % n)
+    with open(readme, 'w') as f:
+        f.write('\n\n'.join(paras))
+    sys.stderr.write('installed at %s from %s, %d claim reading(s) rewritten'
+                     ' and %d added, of %d\n'
+                     % (os.path.basename(readme), os.path.basename(src),
+                        done, added, len(texts)))
 
 
 def claims_in_doc(readme, cells, shapes, strategies):
@@ -1959,14 +2092,18 @@ def claims_in_doc(readme, cells, shapes, strategies):
     rather than the list: a clean page reproduces nearly everything and
     leaves a handful of table-sourced cells, where a stale one collapses.
 
+    The installed readings are checked too, not skipped as trivially this
+    run's: a page whose `Readings:` lines were never reinstalled is exactly
+    the failure this exists for, and it is the densest evidence of it.
+
     Non-vacuity, 2026-08-16, three readings over Run 14's artifacts. The
-    shipped page reproduces 37 and lists nothing -- after the one figure it
-    did list was fixed, an unattributed Run 13 sign p inside claim 2's
+    page reproduces 44 and lists nothing -- after the one figure it did
+    list was fixed, an unattributed Run 13 sign p inside claim 2's
     paragraph, which is this check's first find and exactly the kind the
     page's own convention forbids. Run 13's published page against the same
     artifacts, which is the shape the 2026-08-15 incident had, reproduces
     17 and lists 17. And the control half read in place of the basis
-    reproduces 5 and lists 24, which is why the basis is a caller's
+    reproduces 9 and lists 35, which is why the basis is a caller's
     argument here as it is everywhere else on this page.
     """
     try:
@@ -1976,12 +2113,8 @@ def claims_in_doc(readme, cells, shapes, strategies):
               % (os.path.basename(readme), exc))
         return
     paras = [' '.join(p.split()) for p in doc.split('\n\n')]
-    start = next((i for i, p in enumerate(paras) if CLAIMS_HEAD.match(p)),
-                 None)
-    end = None if start is None else next(
-        (i for i in range(start + 1, len(paras))
-         if paras[i].startswith('Restated')), None)
-    if end is None:
+    start, end = claims_section(paras)
+    if start is None:
         print('\nnote: no claims verdict section in %s, so this check did'
               ' not happen rather than passing'
               % os.path.basename(readme))
@@ -2005,16 +2138,19 @@ def claims_in_doc(readme, cells, shapes, strategies):
                                    / time_of(cells, shapes, b)))
         readings[n] = figs
 
+    # The paragraphs above the first claim are the section's own summary,
+    # and they quote figures too -- the movement that is the run's reading.
+    # They are read against every claim's figures rather than one's.
+    every = set().union(*readings.values()) if readings else set()
     ok, listed, skipped, claim = 0, [], set(), None
     for para in paras[start + 1:end]:
         lead = re.match(r'\*\*Claims? (\d+)', para)
         if lead:
             claim = int(lead.group(1))
-        if claim is None:
-            continue
-        if claim not in readings:
+        if claim is not None and claim not in readings:
             skipped.add(claim)
             continue
+        allowed = every if claim is None else readings[claim]
         for sent in re.split(r'(?<=[.!?]) (?=[A-Z*`(])', para):
             past = CLAIMS_PAST.search(sent)
             for m in CLAIMS_FIG.finditer(sent):
@@ -2022,7 +2158,7 @@ def claims_in_doc(readme, cells, shapes, strategies):
                     continue
                 fig = ('%s of %s' % (m.group(1), m.group(2))
                        if m.group(1) else m.group(0))
-                if fig in readings[claim]:
+                if fig in allowed:
                     ok += 1
                 elif not past:
                     listed.append((claim, fig, sent))
@@ -2042,7 +2178,8 @@ def claims_in_doc(readme, cells, shapes, strategies):
     print('note: %d figure(s) neither this run\'s nor attributed to another'
           ' run; adjudicate each:' % len(listed))
     for n, fig, sent in listed:
-        print('        claim %d: %-9s %s' % (n, fig, sent[:96]))
+        print('        %-9s %-9s %s'
+              % ('summary' if n is None else 'claim %d' % n, fig, sent[:92]))
 
 
 PROP2_FASTEST = 'mut-odo-vecdims'
@@ -4113,8 +4250,9 @@ def main():
     # drops nothing computed -- every figure still prints.
     p.add_argument('--brief', action='store_true')
     p.add_argument('--in-place', action='store_true',
-                   help='install --markdown/--fingerprint/--block tables into'
-                        ' README instead of printing them')
+                   help='install --markdown/--fingerprint/--block tables, or'
+                        " --claims' per-claim readings, into README instead"
+                        ' of printing them')
     p.add_argument('--selftest', action='store_true')
     p.add_argument('--lint', action='store_true')
     p.add_argument('--check-doc', action='store_true')
@@ -4209,6 +4347,10 @@ def main():
         aa_table(cells, shapes, strategies, terms, meta, args.brief)
     elif args.pair:
         pair_table(cells, shapes, strategies, args.pair)
+    elif args.claims and args.in_place:
+        install_readings(args.readme,
+                         claims_readings(cells, shapes, strategies),
+                         args.run, strategies)
     elif args.claims:
         claims_table(cells, shapes, strategies, args)
         claims_in_doc(args.readme, cells, shapes, strategies)

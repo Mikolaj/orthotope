@@ -2154,13 +2154,15 @@ left to attribute — the interval it is about is the aligned binary's.
 - `STANDING` **A class process's provenance line counts every class view,
   not the population that ran.** The count is fixed before criterion does
   the selecting, so each class process reports the whole class set's size beside
-  its own elapsed time and heap peaks, both of which are its own; the write-up
-  takes the population's size from the reader instead, which costs a sentence
-  every run. The fix would have `provenance` told what was selected,
-  and that means `Main.hs` parsing a criterion argument it currently passes
-  through untouched — a second source of truth for criterion's own matching
-  rules, wrong the moment a run reaches for `-m glob`, which is why the sentence
-  is preferred to the code.
+  its own elapsed time and heap peaks, both of which are its own. The page takes
+  the population from the reader instead, and that costs nothing at all now:
+  `--block` emits the clause and `install-tables.sh` installs the paragraph
+  it sits in. The fix in `Main.hs` stays refused — `provenance` would have
+  to parse a criterion argument it passes through untouched, a second source
+  of truth for criterion's matching rules, wrong the moment a run reaches
+  for `-m glob` — and refusing it is what states the rule the installers go by:
+  **install from the tool that already knows the value, never from one
+  that would have to re-derive another's logic.**
 - `ANSWERED` **Runs never overlap in the benchmarked set.** `mkStrided`'s index
   map is a bijection onto `[0, l)`, where im2col patches — the workload
   this page opens by naming — overlap heavily and so reuse cache. The window
@@ -4597,9 +4599,13 @@ was missed, which is what they have cost.
     #      into the chapter, which --check-doc lists, against what the
     #      chapter still says
     ./install-tables.sh $R                            # (7.4) install, never
-    #      paste: --markdown, --fingerprint and a --block per class, ten
-    #      calls writing eleven tables, all from the BASIS half. Commit or
-    #      park this file first, since every one of them writes it. Read
+    #      paste: --markdown, --fingerprint, a --block per class and
+    #      --claims, eleven tables and a reading per claim, all from the
+    #      BASIS half. Take the movement reading BEFORE this: the claims
+    #      install overwrites the figures a "moved from" sentence compares
+    #      against, and after it they are in git or in the kept JSON only.
+    #      Commit or park this file first, since every one of them writes
+    #      it. Read
     #      what the driver collects at the end: a row new to the roster
     #      installs as `?` and is filled by hand, a departed row is
     #      dropped with a warning. The cross-class summary
@@ -4913,31 +4919,33 @@ the artifacts are what it spends.
       is evidence, and a retraction made on the strength of the wrong one
       is worse than the claim it withdrew;
    4. **install the tables with `--in-place` rather than pasting them.**
-      `--markdown`, `--fingerprint` and `--block` each take it, and each refuses
-      rather than guessing: the match is by whole line, the count is asserted,
-      and a class table is narrowed by its block's bolded lead. Hand-pasting
-      is what this replaces, and the reason is on the record — the cross-class
-      summary's header is written out twice, once indented as the spec
-      that fixes the columns, and a session locating the table by searching
-      for that text put Run 8's rows under the spec and left Run 7's table
-      standing, with every check green because the check looked it up the same
-      way. If you paste by hand anyway, do not edit the table: it renders
-      the same rows the terminal does, and carries `needs` and the emphasis
-      forward from the table already there. `--aa` and `--block` both take
-      `--brief`, which drops the standing explanation and the table `--in-place`
-      installs anyway, costing no computed figure; across a run's processes
-      that is several hundred lines you have already read. Its stderr
-      is the whole of what is left by hand: a row new to the roster comes out
-      with `?`, a departed row is dropped with a warning. Run 9 had ten such
-      rows and filled them from a note written here before the run, which
-      is the practice to repeat whenever a roster change is known in advance —
-      the cell then gets transcribed rather than invented at the end of a long
-      day. Each class JSON emits its own table the same way and is pasted
-      the same way, into its block in [The stride classes, run
-      by run](#the-stride-classes-run-by-run); those come out six columns wide,
-      `needs` being a property of a strategy rather than of a population
-      and so stated in the main table alone. The per-shape fingerprint is pasted
-      the same way, whole, from `--fingerprint`;
+      `--markdown`, `--fingerprint`, `--block` and `--claims` each take it —
+      the last installing a `Readings:` paragraph under each claim's lead rather
+      than a table — and each refuses rather than guessing: the match
+      is by whole line, the count is asserted, and a class table is narrowed
+      by its block's bolded lead. Hand-pasting is what this replaces,
+      and the reason is on the record — the cross-class summary's header
+      is written out twice, once indented as the spec that fixes the columns,
+      and a session locating the table by searching for that text put Run 8's
+      rows under the spec and left Run 7's table standing, with every check
+      green because the check looked it up the same way. If you paste by hand
+      anyway, do not edit the table: it renders the same rows the terminal does,
+      and carries `needs` and the emphasis forward from the table already there.
+      `--aa` and `--block` both take `--brief`, which drops the standing
+      explanation and the table `--in-place` installs anyway, costing
+      no computed figure; across a run's processes that is several hundred lines
+      you have already read. Its stderr is the whole of what is left by hand:
+      a row new to the roster comes out with `?`, a departed row is dropped
+      with a warning. Run 9 had ten such rows and filled them from a note
+      written here before the run, which is the practice to repeat whenever
+      a roster change is known in advance — the cell then gets transcribed
+      rather than invented at the end of a long day. Each class JSON emits
+      its own table the same way and is pasted the same way, into its block
+      in [The stride classes, run by run](#the-stride-classes-run-by-run);
+      those come out six columns wide, `needs` being a property of a strategy
+      rather than of a population and so stated in the main table alone.
+      The per-shape fingerprint is pasted the same way, whole,
+      from `--fingerprint`;
    5. **assemble the cross-class summary last, from the tables and not
       from the JSONs.** Every cell of it appears in one of the class tables
       above it, so it is a transcription and is checked as one — cell against
@@ -5110,12 +5118,14 @@ is the reference for all of them; extend the script rather than starting over.
 no write-up has ever read a table row out of this file: `--markdown`,
 `--fingerprint` and `--block` emit those rows and `--in-place` installs them,
 so three hundred-odd cells are never carried through a context that does
-not need them. `--para` is the same trick for prose — the alternative
-is a `grep -n` paired with a `sed -n` for every passage wanted, both of which go
-stale the moment an edit above moves the lines, which every install and every
-fix does. The rule generalises: when a session finds itself reading this page
-to get at something the reader could compute or locate, that is a mode missing
-rather than a page to read harder.
+not need them. `--claims --in-place` extended that from rows to prose,
+the readings under each claim being the reader's sentence and not the author's.
+`--para` is the same trick for prose — the alternative is a `grep -n` paired
+with a `sed -n` for every passage wanted, both of which go stale the moment
+an edit above moves the lines, which every install and every fix does. The rule
+generalises: when a session finds itself reading this page to get at something
+the reader could compute or locate, that is a mode missing rather than a page
+to read harder.
 
 Every mode's first line names the run's **population** — the main set or one
 [stride class](#the-stride-classes-and-what-they-cover) — which the reader works
@@ -7031,9 +7041,10 @@ by construction.
 
 **Run 14's verdicts on Run 13's nine claims first**, since a run reports breaks
 rather than re-deriving the table. **Every claim held — 13 of 13 registered
-orderings**, for the fourth run running and again on all 24 shapes. Figures
-below are the basis (`run14-lookrts`) half's, transcribed from `--claims` rather
-than judged against this section by eye.
+orderings**, for the fourth run running and again on all 24 shapes. Each claim's
+`Readings:` paragraph is installed from the basis (`run14-lookrts`) half
+by `--claims --in-place`; the paragraph above it is the reading of those figures
+and carries none of them itself.
 
 **What moved is in the sign tests again, and this run has the sharpest case
 of it yet.** Claim 9's `bq-expand-b` / `bq-expand` crossed *into* significance
@@ -7045,39 +7056,52 @@ evidence on this page that the count is the looser instrument. Claim 4's first
 link did the same more mildly, 16 of 24 to 14 of 24. **Read claim 9 by its two
 shapes, as it says**, and they are where they have been for seven runs.
 
-**Claim 1 held on all three links.** `mut-odo-vecdims` / `mut-flat-gm` reads
-**0.5993** at 22 wins of 24 (sign p 3.6e-05), `mut-flat-gm` /
-`bq-mut-runs-gm-mulback` **0.9305** at 21 of 24 (p 0.00028)
-and `bq-mut-runs-gm-mulback` / `bq-odo-gm-mulback` **0.9701** at 19 of 24 (p
-0.0066). The middle link, the one Run 10's two halves parted over, reads
-the aligned figure for a fifth run and gained a win rather than losing one.
+**Claim 1 held on all three links.** The middle link, the one Run 10's two
+halves parted over, reads the aligned figure for a fifth run and gained a win
+rather than losing one.
 
-**Claim 2 held, and its sign test went soft.** `bq-expand` / `bq-mut` reads
-**0.7292** at 20 of 24 (p 0.0015). `offtab` / `bq-expand` reads **1.1860** at 7
-of 24, sign p **0.064** — the ordering unchanged and the margin a fifth
-as before, but the count moved from Run 13's 5 to 7 and the p from its 0.0066
-to the edge of significance. The margin is the finding and the p is not, which
-this claim's own entry has said since Run 9.
+Readings: `mut-odo-vecdims` / `mut-flat-gm` 0.5993, 22 of 24, sign p 3.6e-05;
+`mut-flat-gm` / `bq-mut-runs-gm-mulback` 0.9305, 21 of 24, sign p 0.00028;
+`bq-mut-runs-gm-mulback` / `bq-odo-gm-mulback` 0.9701, 19 of 24, sign p 0.0066.
+3 of 3 registered orderings held.
 
-**Claim 3 held.** `bq-expand-gm-mulback` / `bq-expand` reads **0.9243** at 20
-of 24, sign p 0.0015: a mul-back output is worth 8% on the shipped build
+**Claim 2 held, and its sign test went soft.** On `offtab` / `bq-expand`
+the ordering is unchanged and the margin a fifth as before, but the count moved
+from Run 13's 5 to 7 and the p from its 0.0066 to the edge of significance.
+The margin is the finding and the p is not, which this claim's own entry has
+said since Run 9.
+
+Readings: `bq-expand` / `bq-mut` 0.7292, 20 of 24, sign p 0.0015; `offtab` /
+`bq-expand` 1.1860, 7 of 24, sign p 0.064. 2 of 2 registered orderings held.
+
+**Claim 3 held.** A mul-back output is worth 8% on the shipped build
 under this flag, as on every run since Run 10.
 
-**Claim 4 is a tie on both its halves, for the fifth run running.** Against
-its own build control the scan reads **0.9587** at 14 of 24, sign p 0.54;
-against `bq-expand` **0.8861** at 16 of 24, p 0.15. Both readings are the claim,
-and the second is again a double-digit point estimate on a tied sign test —
-the shape that invites quoting the point estimate alone.
+Readings: `bq-expand-gm-mulback` / `bq-expand` 0.9243, 20 of 24, sign p 0.0015.
+1 of 1 registered ordering held.
 
-**Claim 5 held.** `bq-expand` / `bq-gen` reads **0.3059** at 22 of 24,
-and `bq-mut-runs` / `bq-expand` **0.9351** at **23 of 24**, sign p 3e-06. Among
-the builds only the mutable odometer still beats `bq-expand`.
+**Claim 4 is a tie on both its halves, for the fifth run running.** Both
+readings are the claim — the scan against its own build control, and the scan
+against `bq-expand` — and the second is again a double-digit point estimate
+on a tied sign test, the shape that invites quoting the point estimate alone.
 
-**Claim 6 held and its alarm again had nothing to answer for.** `gen-quotrem` /
-`list` reads **0.9048** at 11 wins of 24, sign p 0.84 — the same count and p
-as the last two runs on a margin a point and a half lower. The anchor the claim
-tells you to check first is sound, the three absolutes moving +0.86%, +2.10%
-and +0.74% against Run 13.
+Readings: `bq-scan-rem-gm-mulback` / `bq-expand-gm-mulback` 0.9587, 14 of 24,
+sign p 0.54; `bq-scan-rem-gm-mulback` / `bq-expand` 0.8861, 16 of 24, sign p
+0.15. 2 of 2 registered orderings held.
+
+**Claim 5 held.** Among the builds only the mutable odometer still beats
+`bq-expand`.
+
+Readings: `bq-expand` / `bq-gen` 0.3059, 22 of 24, sign p 3.6e-05; `bq-mut-runs`
+/ `bq-expand` 0.9351, 23 of 24, sign p 3e-06. 2 of 2 registered orderings held.
+
+**Claim 6 held and its alarm again had nothing to answer for.** The count
+and the p are the last two runs', on a margin a point and a half lower.
+The anchor the claim tells you to check first is sound, the three absolutes
+moving +0.86%, +2.10% and +0.74% against Run 13.
+
+Readings: `gen-quotrem` / `list` 0.9048, 11 of 24, sign p 0.84. 1 of 1
+registered ordering held.
 
 **Claim 7 held, and is the claim this run leans on.**
 
@@ -7087,94 +7111,91 @@ that fall behind still lose on their table build; `bq-expand-zf` (0.105)
 and `offtab-scan-rem` (0.121) still populate the gap to `bq-gen` (0.334).
 
 **Claim 9's per-shape half survived a seventh run and its sign test crossed
-back.** `bq-expand-b` / `bq-expand` reads **0.9940** at 8 of 24, sign p
-**0.15**, where Run 13 read 19 of 24 at 0.0066 on a geomean six thousandths
-away. `bq-expand-zf` / `bq-expand` reads **1.0287** at 2 of 24, sign p 3.6e-05,
-behind as before. **What is stable is the shapes**: `bq-expand-b`'s two best
-cells are `stretch-inner1` and `stretch-wide-2xM`, the same two named in each
-of the last seven runs, and `--claims` verifies that pair rather
-than the geomean for exactly this reason.
+back.** Where Run 13 read 19 of 24 at 0.0066, this run reads a tie on a geomean
+six thousandths away, and `bq-expand-zf` / `bq-expand` is behind as before.
+**What is stable is the shapes**: `bq-expand-b`'s two best cells are the same
+two named in each of the last seven runs, which is why the reading below
+verifies that pair rather than the geomean.
 
-Restated **on the basis half**, for Run 14 to check; margins are paired
-geomeans, past the floor unless marked, each claim carrying the reading it rests
-on. **All of them are `-fspec-constr` claims, which is the regime the fix ships
-in** — the file the solution is added to sets the flag — so they are the set
-that decides, and a run at -O1 would test Run 7's instead, the two differing
-in more than their numbers. **What they are not read in is the caller's
-allocation regime**, every figure here being taken at the default 4 MB nursery
-against a prevailing `-with-rtsopts=-A1G -I0 -T -M8G`; that gap is what Run 14's
-pair is built to price, and no claim below is qualified by it yet. **And all
-of them are read against a measured drift band rather than a layout span**,
-which is what the last three runs bought. A roster *order* change alone moved
-arms 0.966 to 1.142 between Run 9 and Run 10, and that is what a margin used
-to have to clear; with the layout pinned, a repetition moves an arm by at most
-3.3% and most of them by under 1.5%, so a margin above a few percent is now
-evidence of a strategy. **Run 13 is the first pair here to hold every tracked
-loop at one offset in both halves**, which is what lets its arm-by-arm
-comparison be read as the package costing nothing rather than as two terms
-cancelling. A claim resting on an arm whose own loop the shim skipped —
-`list`'s, which is library code — is still decidable nowhere until that loop
-is read. **And the pinning claim is measured only in its weak form**: adding
-`mut-flat-gm-nosum` left every tracked loop at the same address, but a `Force`
-arm reuses a rostered function and emits no code for emission order to move.
-The strong form wants an arm that emits its own, and until one is added
-the claim covers additions that cost nothing to place.
+Readings: `bq-expand-b` / `bq-expand` 0.9940, 8 of 24, sign p 0.15, best two
+cells `stretch-inner1` and `stretch-wide-2xM`; `bq-expand-zf` / `bq-expand`
+1.0287, 2 of 24, sign p 3.6e-05. 2 of 2 registered orderings held.
+
+Restated as the predicates the next run checks, and carrying no reading
+of its own: the figures each was last measured at are in the `Readings:`
+paragraphs above, so an entry here changes when a claim is re-aimed and not when
+a run moves a margin. **All of them are `-fspec-constr` claims, which
+is the regime the fix ships in** — the file the solution is added to sets
+the flag — so they are the set that decides, and a run at -O1 would test Run 7's
+instead, the two differing in more than their numbers. **What they are not read
+in is the caller's allocation regime**, every figure here being taken
+at the default 4 MB nursery against a prevailing
+`-with-rtsopts=-A1G -I0 -T -M8G`; that gap is what Run 14's pair is built
+to price, and no claim below is qualified by it yet. **And all of them are read
+against a measured drift band rather than a layout span**, which is what
+the last three runs bought. A roster *order* change alone moved arms 0.966
+to 1.142 between Run 9 and Run 10, and that is what a margin used to have
+to clear; with the layout pinned, a repetition moves an arm by at most 3.3%
+and most of them by under 1.5%, so a margin above a few percent is now evidence
+of a strategy. **Run 13 is the first pair here to hold every tracked loop at one
+offset in both halves**, which is what lets its arm-by-arm comparison be read
+as the package costing nothing rather than as two terms cancelling. A claim
+resting on an arm whose own loop the shim skipped — `list`'s, which is library
+code — is still decidable nowhere until that loop is read. **And the pinning
+claim is measured only in its weak form**: adding `mut-flat-gm-nosum` left every
+tracked loop at the same address, but a `Force` arm reuses a rostered function
+and emits no code for emission order to move. The strong form wants an arm
+that emits its own, and until one is added the claim covers additions that cost
+nothing to place.
 
 **The list needed no re-aiming this time either**, the roster it was rewritten
 onto before Run 8 being the roster Run 13 ran: every claim below names an arm
-this run timed, and each carries its own reading rather than the previous one's.
-Five full runs on that roster is the evidence that keeping the *question*
-and changing the *arm* was the right repair — the unconditional counterparts
-were written so that dropping a precondition would not drop a question with it,
-and none of them dropped one.
+this run timed. Five full runs on that roster is the evidence that keeping
+the *question* and changing the *arm* was the right repair — the unconditional
+counterparts were written so that dropping a precondition would not drop
+a question with it, and none of them dropped one.
 
 1. `mut-odo-vecdims` < `mut-flat-gm` < `bq-mut-runs-gm-mulback` <
-   `bq-odo-gm-mulback`, the whole ordering read on unconditional arms: 0.5955
-   (22 of 24), 0.9473 (20 of 24, sign p 0.0015) and 0.9627 (19 of 24, sign p
-   0.0066). The middle link is the one this page has seen a layout term move —
-   0.9708 at 15 of 24 on Run 10's unaligned half against 0.9293 at 22
-   on its aligned one — and on a placed layout it has now read the aligned
-   figure four runs running. The ceiling's ordering has survived five runs, two
-   changes of basis and a repetition.
-2. `bq-expand` < `bq-mut` (0.7320, 20 of 24) while `offtab` is **1.2095**
-   *behind* `bq-expand` (5 of 24, sign p 0.0066): the `m`-length table beats
-   both the mutable scratch that builds it and the `l`-length table
+   `bq-odo-gm-mulback`, the whole ordering read on unconditional arms.
+   The middle link is the one this page has seen a layout term move — 0.9708
+   at 15 of 24 on Run 10's unaligned half against 0.9293 at 22 on its aligned
+   one — and on a placed layout it has now read the aligned figure four runs
+   running. The ceiling's ordering has survived five runs, two changes of basis
+   and a repetition.
+2. `bq-expand` < `bq-mut` while `offtab` is *behind* `bq-expand`: the `m`-length
+   table beats both the mutable scratch that builds it and the `l`-length table
    that replaces it. Run 9 left the second of those at 1.0969, inside the layout
    span and undecidable there; Run 10 decided it at 1.2224, and the four runs
    since have put it between 1.2095 and 1.2224 while the sign test went
    from 0.064 to 0.0066. The margin is the finding and the p is not.
-3. `bq-expand-gm-mulback` < `bq-expand` (0.9160, 20 of 24, sign p 0.0015):
-   a mul-back output pays 8% on the shipped build under this flag.
-   `bq-expand-lemire-out` — the arm the question used to be asked through —
-   is untimed for its `l < 2^32` precondition and has no unconditional form,
-   Granlund-Montgomery offering no `out` analogue that yields quotient
-   and remainder together.
-4. `bq-scan-rem-gm-mulback` ties its own build control `bq-expand-gm-mulback`
-   (0.9578, 16 of 24, sign p 0.15, on an interval covering one) **and ties
-   `bq-expand` too by the sign test** (0.8774, 16 of 24, sign p 0.15), where Run
-   9 had the second at 18 of 24 and called it outright. The two differ
+3. `bq-expand-gm-mulback` < `bq-expand`: a mul-back output pays on the shipped
+   build under this flag. `bq-expand-lemire-out` — the arm the question used
+   to be asked through — is untimed for its `l < 2^32` precondition and has
+   no unconditional form, Granlund-Montgomery offering no `out` analogue
+   that yields quotient and remainder together.
+4. `bq-scan-rem-gm-mulback` ties its own build control `bq-expand-gm-mulback`,
+   on an interval covering one, **and ties `bq-expand` too by the sign test**,
+   where Run 9 had the second at 18 of 24 and called it outright. The two differ
    in `baseOffsetsScanRem` against `baseOffsetsExpand` and in nothing else,
    their output code being identical, so the first reading is about builders
-   and the second about the shipped arm. Both readings are the claim; a 12%
-   point estimate sitting on a tied sign test is exactly the shape that invites
-   quoting the point estimate alone.
-5. `bq-expand` < `bq-gen` (0.3091, 21 of 24): the build ordering, trimmed
-   to its timed arms — `offsets-quot` and `bq-gen-lemire` were its two ends
-   and are both untimed, so the run cannot re-read the gap widening
-   or the ending. That refutation stands on Run 7 and Run 8, which is enough
-   for an idea kept only so that it is not re-proposed. Among the builds only
-   the mutable odometer still beats `bq-expand`, `bq-mut-runs` at 0.9287 on 23
-   shapes of 24, the scan build being level rather than ahead (claim 4).
+   and the second about the shipped arm. Both readings are the claim;
+   a double-digit point estimate sitting on a tied sign test is exactly
+   the shape that invites quoting the point estimate alone.
+5. `bq-expand` < `bq-gen`: the build ordering, trimmed to its timed arms —
+   `offsets-quot` and `bq-gen-lemire` were its two ends and are both untimed,
+   so the run cannot re-read the gap widening or the ending. That refutation
+   stands on Run 7 and Run 8, which is enough for an idea kept only so
+   that it is not re-proposed. Among the builds only the mutable odometer still
+   beats `bq-expand`, the scan build being level rather than ahead (claim 4).
    So `bq-expand` is still the fastest build that needs neither a class
    extension nor explicit mutation.
-6. `gen-quotrem` ties `list` (0.9204 on the geomean, 11 of 24, sign p 0.84) —
-   the first attempt's arithmetic stops being dearer than the list's allocation
-   once the flag takes its own allocation to 1.00x against the list's 23.5x,
-   which is the mixed picture this suite exists to have refuted, arriving
-   by a route nobody proposed. The `cm-gather` < `list` half is untimed
-   and stands as Run 8's. A break here would mean something changed in `list`
-   or in GHC, not in a strategy — check the anchor before anything else, as Run
-   8 had to and the five runs since did not.
+6. `gen-quotrem` ties `list` — the first attempt's arithmetic stops being dearer
+   than the list's allocation once the flag takes its own allocation to 1.00x
+   against the list's 23.5x, which is the mixed picture this suite exists
+   to have refuted, arriving by a route nobody proposed. The `cm-gather` <
+   `list` half is untimed and stands as Run 8's. A break here would mean
+   something changed in `list` or in GHC, not in a strategy — check the anchor
+   before anything else, as Run 8 had to and the five runs since did not.
 7. Allocation, median multiples of the result on this basis: the mutable fills
    1.00x, `gen-quotrem` also 1.00x, `bq-mut` and the scan family 1.33x,
    `bq-odo-gm-mulback` 1.51x, `offtab` 2.00x, `bq-expand` 2.35x, `list` 23.5x.
@@ -7188,38 +7209,40 @@ and none of them dropped one.
    `vGenerate` over an `m`-length table, and a `bq-*` arm that falls behind
    loses on its table build and not on its output. Read the structure and
    not a threshold: the gap the claim used to be stated across is populated,
-   `bq-expand-zf` (0.106) and `offtab-scan-rem` (0.122) lying between
-   the leading tier and `bq-gen` (0.334).
+   `bq-expand-zf` and `offtab-scan-rem` lying between the leading tier
+   and `bq-gen`.
 9. **Read this one per shape and not on its geomean.** `bq-expand-b`'s two best
-   cells are `stretch-inner1` (0.918) and `stretch-wide-2xM` (0.929), the rank-2
-   views with one huge outer dimension where seeding from `enumFromStepN`
-   replaces the whole `concatMap` build — the same two shapes in each
-   of the last six runs, which is the stable part of this claim. The geomeans
-   are not: `bq-expand-b` / `bq-expand` has read 0.996, 0.9678, 0.9943, 0.9819,
-   0.9923 and now **0.9909** across Runs 8 to 13, its sign test crossing
-   into significance on the last of them at 19 of 24 and p 0.0066, while
-   `bq-expand-zf` / `bq-expand` went 3.6% behind, then level at 1.0028,
-   then 1.0325, 1.0197, 1.0256 and now **1.0265** (1 of 24, sign p 3e-06). All
-   of Run 13's figures here are on the full 24, no shape being set aside.
+   cells are `stretch-inner1` and `stretch-wide-2xM`, the rank-2 views with one
+   huge outer dimension where seeding from `enumFromStepN` replaces the whole
+   `concatMap` build — the same two shapes in every run since Run 8, which
+   is the stable part of this claim. The geomeans are not, and the series
+   is why: across Runs 8 to 13 `bq-expand-b` / `bq-expand` read 0.996, 0.9678,
+   0.9943, 0.9819, 0.9923 and 0.9909, its sign test crossing into significance
+   only on the last of them, while `bq-expand-zf` / `bq-expand` went 3.6%
+   behind, then level at 1.0028, then 1.0325, 1.0197, 1.0256 and 1.0265. Both
+   series are closed at Run 13 and not extended per run; what this run read
+   is above.
 
 Each ordering is one line of `--claims`, whose manifest now carries
 the registered expectation — the direction of the geomean, a tie by sign test,
 or claim 9's two best shapes — and prints HELD or BROKE beside the paired
-geomean, interval and sign test, so a run transcribes verdicts rather
-than judging readings against this section by eye; what stays the reading's
-is whether a HELD margin moved and whether a movement clears the floor.
-**A claim with no named invocation is a gap in this list, not a claim
-to be checked by hand**: where a session has to invent the computation it will
-invent a wrong one, which is how claim 7 came to be read off the raw fitted
-bytes, explained by a mechanism the previous pair refutes, and then "corrected"
-onto a rounded print. It has `--compare --alloc` now. Claim 8 is the one still
-without one, read off the table by eye. **The general form, and it is a standing
-instruction rather than an observation: if a write-up hand-rolls a script
-to answer something the reader should answer, that is a defect report against
-the reader** — fix it there, before the sentence it was written for, or the next
-run invents its own wrong version.
+geomean, interval and sign test. `--claims --in-place` then installs
+that arithmetic as each claim's `Readings:` paragraph above, so a run no longer
+transcribes it at all; what stays the reading's is whether a HELD margin moved
+and whether a movement clears the floor, and a BROKE is what obliges
+the paragraph above its reading to be rewritten rather than requoted. **A claim
+with no named invocation is a gap in this list, not a claim to be checked
+by hand**: where a session has to invent the computation it will invent a wrong
+one, which is how claim 7 came to be read off the raw fitted bytes, explained
+by a mechanism the previous pair refutes, and then "corrected" onto a rounded
+print. It has `--compare --alloc` now. Claim 8 is the one still without one,
+read off the table by eye. **The general form, and it is a standing instruction
+rather than an observation: if a write-up hand-rolls a script to answer
+something the reader should answer, that is a defect report against the reader**
+— fix it there, before the sentence it was written for, or the next run invents
+its own wrong version.
 
-**And for each stride class, the same three properties, now carrying Run 13's
+**And for each stride class, the same three properties, now carrying Run 14's
 verdicts**, the details beside each class's table:
 
 1. **`bq-expand`'s `worst` stays under 1.** Held in every class — 0.171

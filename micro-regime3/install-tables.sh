@@ -3,11 +3,11 @@
 #
 #     ./install-tables.sh run14           # writes README.md
 #
-# `--markdown`, `--fingerprint` and a `--block` per class, every one from
-# the BASIS half, every one `--in-place`. That is eleven writes into this
-# file, and eleven is a number a session loses count of: the failure is not
-# a wrong table but a missing one, and a page with ten of eleven installed
-# looks exactly like a page with eleven.
+# `--markdown`, `--fingerprint`, a `--block` per class and `--claims`,
+# every one from the BASIS half, every one `--in-place`. That is eleven
+# tables and one reading per claim, and those are numbers a session loses
+# count of: the failure is not a wrong table but a missing one, and a page
+# with ten of eleven installed looks exactly like a page with eleven.
 #
 # It installs and collects; it decides nothing. Each mode's stderr is the
 # hand-work it leaves -- a row new to the roster installs as `?` and is
@@ -30,6 +30,11 @@
 # nothing; and renaming a class block's bolded lead makes that one install
 # refuse -- `0 line(s) start with '**`scaled`', need exactly one` -- which
 # this reports and exits 1 on, the other ten having landed.
+#
+# The claims install joined on 2026-08-16 and is counted apart from the
+# tables, installing a paragraph per claim rather than rows; its own four
+# proofs -- idempotence, a renamed lead, a deleted reading, a filtered run
+# -- are in `install_readings`, where the code they check is.
 
 set -u
 cd "$(dirname "$0")" || exit 1
@@ -74,6 +79,23 @@ echo "=== installing into $DOC, all from $BASIS"
 install "$MAIN" --markdown
 install "$MAIN" --fingerprint
 for c in $CLASSES; do install "$c" --block; done
+
+# The claims section's per-claim readings, the last figure-bearing block a
+# run was still hand-copying: a dozen orderings out of --claims, which is
+# where a wrong verdict got invented, and on 2026-08-15 where a whole
+# section of the previous run's figures got shipped. Not run through
+# install() above: it writes a paragraph per claim rather than rows, so
+# its own line is not a table to count, and what it prints when it inserts
+# a missing reading is a notice rather than hand-work.
+echo "=== installing the claims section's readings"
+CERR=$(./read-run.py "$MAIN" --claims --in-place --readme "$DOC" 2>&1 >/dev/null)
+if [ $? != 0 ]; then
+  echo "  !! $MAIN --claims REFUSED:"
+  printf '%s\n' "$CERR" | sed 's/^/       /'
+  BAD=$((BAD + 1))
+else
+  printf '%s\n' "$CERR" | sed 's/^/  /'
+fi
 
 # The block's THREE COMPUTED paragraphs, which --block emits and --in-place
 # did not write: Controls, Provenance and the per-shape line. Leaving them to
