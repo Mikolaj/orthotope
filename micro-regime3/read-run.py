@@ -2869,8 +2869,14 @@ def check_doc(readme, main_hs):
     so it was planted both ways on 2026-08-16, inline and through a
     reference definition, each failing alone; its one false positive is
     this page quoting the defect in backticks, in the entry that asked
-    for the check, which is why code spans are blanked first. The figure
-    sweep's Main.hs half: a planted `where Run 6 read 0.500` comment was
+    for the check, which is why code spans are blanked first. The two
+    agreement checks on Main.hs's counts, the same day and each on a
+    copy: one roster-size site changed to 1129 failed naming both sites
+    and what Main.hs holds; `over 24 shapes` changed to 25 failed naming
+    the count that matches no population; and a site reworded out of its
+    pattern failed as unlocatable rather than passing on the one site
+    left. The figure sweep's Main.hs half: a planted `where Run 6 read
+    0.500` comment was
     listed as Main.hs with its line, beside the README entries, and was
     gone on revert. The ms sweep's
     break: `9.9 ms` appended to a prose, a table and an indented code line
@@ -3591,6 +3597,61 @@ def check_doc(readme, main_hs):
         else:
             print('ok:   the run\'s floor pair reads %s%%/%s%% at all %d'
                   ' sites that quote it' % (floors[0] + (len(floors),)))
+
+        # Two more of the floor check's shape -- one figure, several
+        # sites, must agree -- on the counts Run 14 got wrong in more than
+        # one place. Unlike the floor these have a truth outside the page:
+        # Main.hs holds the arms and the shape lists, and a count every
+        # site agrees on is still wrong after a roster change, which is
+        # the case agreement alone cannot see.
+        dims = dims_by_shape(main_hs)[0]
+        main_shapes = [s for s, d in dims.items() if d['lst'] in MAIN_LISTS]
+        class_sizes = {}
+        for s, d in dims.items():
+            if d['lst'] not in MAIN_LISTS:
+                class_sizes.setdefault(d['lst'], set()).add(s)
+        want = len(timed) * len(main_shapes)
+        seen = [int(m) for p in (r'takes the roster to (\d+) benches',
+                                 r'roster is Run \d+\'s (\d+) benches')
+                for m in re.findall(p, uw)]
+        if len(seen) < 2:
+            bad.append('could not locate at least two sites quoting the'
+                       ' roster size, so its agreement check did not run --'
+                       ' if the sentences were reworded, this check\'s'
+                       ' patterns move with them')
+        elif set(seen) != {want}:
+            bad.append('the roster size reads %s across its %d sites, where'
+                       ' Main.hs holds %d timed arms over %d main-set shapes'
+                       ' and so %d benches'
+                       % ('/'.join(str(s) for s in sorted(set(seen))),
+                          len(seen), len(timed), len(main_shapes), want))
+        else:
+            print('ok:   the roster size reads %d at both sites that quote'
+                  ' it, and is what Main.hs holds' % want)
+
+        # `over N shapes` is a population's size wherever it appears; `on
+        # N shapes` is a win count and is not this check's, which is why
+        # the pattern will not take it.
+        pops = {len(main_shapes)} | {len(v) for v in class_sizes.values()}
+        quoted = {int(n) for n in re.findall(r'\bover\s+(?:all\s+)?(\d+)'
+                                             r' shapes', uw, re.I)}
+        if not quoted:
+            bad.append('no site quotes a population\'s size as `over N'
+                       ' shapes`, so that agreement check did not run')
+        elif quoted - pops:
+            bad.append('%d shape count(s) quoted as a population\'s size'
+                       ' match no population Main.hs defines (%s); the main'
+                       ' set has %d shapes and each class %s'
+                       % (len(quoted - pops),
+                          ', '.join(str(n) for n in sorted(quoted - pops)),
+                          len(main_shapes),
+                          '/'.join(str(n) for n in
+                                   sorted({len(v) for v
+                                           in class_sizes.values()}))))
+        else:
+            print('ok:   every population size quoted in prose is one'
+                  ' Main.hs defines: %s'
+                  % ', '.join(str(n) for n in sorted(quoted)))
 
         # Prospective tense about a run that has already happened. An open
         # list entry written before a run says what that run WILL do, and
