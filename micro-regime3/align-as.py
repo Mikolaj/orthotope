@@ -242,12 +242,26 @@ def switch(name):
     return os.environ.get(name, '') not in ('', '0')
 
 
+def number(name, default):
+    """A variable that carries a number, empty reading as unset.
+
+    These are parsed at import, outside `main`'s "never break a build over
+    this" handler, so `PAD_BYTES=` -- which is what `PAD_BYTES=$PAD` spells
+    with `PAD` unset, and what `switch` above reads as off -- raised a
+    ValueError before the real assembler was ever reached and killed the
+    compile with a traceback out of the shim. Found 2026-08-17 by review.
+    A value that is not a number still raises, and should: the recipe asked
+    for something this cannot do.
+    """
+    return int(os.environ.get(name) or default)
+
+
 REAL = os.environ.get('REAL_AS', '/usr/bin/gcc')
-ALIGN = os.environ.get('LOOP_ALIGN', '6')
+ALIGN = str(number('LOOP_ALIGN', 6))
 MAXSKIP = switch('LOOP_MAXSKIP')
 LOOKTHROUGH = switch('LOOP_LOOKTHROUGH')
 VERBOSE = switch('ALIGN_AS_VERBOSE')
-PAD = int(os.environ.get('PAD_BYTES', '0'))
+PAD = number('PAD_BYTES', 0)
 BOUND = 1 << int(ALIGN)
 LABEL = re.compile(r'^(\.L\w+):')
 JUMP = re.compile(r'^j\w*\s+(\.L\w+)\b')
