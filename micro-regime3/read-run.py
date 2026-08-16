@@ -203,6 +203,7 @@ import argparse
 import collections
 import contextlib
 import difflib
+import functools
 import io
 import json
 import math
@@ -312,8 +313,21 @@ MAIN_LISTS = ('convShapes', 'stretchShapes')
 def class_label(members):
     """A class population's name: the prefix its shapes share, which is
     also what selects it for a run (`classes rev-`)."""
-    return 'the %s class' % '/'.join(sorted({sh.split('-')[0]
-                                             for sh in members}))
+    return 'the %s class' % class_prefix(members)
+
+
+def class_prefix(members):
+    """The prefix a class's shapes share.
+
+    What `classes rev-` selects on and what a block's bolded lead is
+    written with, so `emit_or_install` wanted it and got it by undoing
+    the label above -- `label.replace('the ', '').replace(' class', '')`,
+    a rule known in one place as itself and in another as its inverse.
+    """
+    return '/'.join(sorted({sh.split('-')[0] for sh in members}))
+
+
+POP = collections.namedtuple('POP', 'kind label prefix')
 
 
 def population_of(shapes, dims):
@@ -338,8 +352,10 @@ def population_of(shapes, dims):
     named = sorted('the main set' if k == 'main' else class_label(v)
                    for k, v in groups.items())
     if len(groups) > 1:
-        return 'mixed', ' + '.join(named)
-    return ('main' if 'main' in groups else 'class'), named[0]
+        return POP('mixed', ' + '.join(named), '')
+    one = next(iter(groups.values()))
+    return POP('main' if 'main' in groups else 'class', named[0],
+               '' if 'main' in groups else class_prefix(one))
 
 
 def load(path, main_hs):
@@ -386,13 +402,17 @@ def load(path, main_hs):
     # The roster's own size, which is what says whether this run is the
     # whole thing; `benches` counts only what the JSON holds, so on a
     # filtered run the two differ and several figures change meaning.
+    # Parsed once and carried, two callers having read Main.hs for it with
+    # a fallback apiece and a local of the same name meaning different
+    # things -- a count of the timed arms here, the set of every arm in
+    # `markdown_table`.
     try:
-        rostered = len([n for n, r, _ in roster_of(open(main_hs).read())
-                        if r != 'Only'])
+        roster = roster_of(open(main_hs).read())
     except OSError:
-        rostered = 0
+        roster = []
     meta = dict(version=raw[1], reports=len(raw[2]), path=path,
-                rostered=rostered,
+                roster=roster,
+                rostered=len([n for n, r, _ in roster if r != 'Only']),
                 benches=len(strategies), shapes=len(shapes), dims=dims,
                 ann=ann,
                 ragged=len(raw[2]) != len(shapes) * len(strategies),
@@ -508,6 +528,69 @@ def health(cells, shapes, strategies, terms):
                        ' readable' % (len(sunk), sh, st))
     for line in out:
         sys.stderr.write('warning: ' + line + '\n')
+
+
+AA = collections.namedtuple('AA', 'a b r g worst ci')
+
+
+def aa_pairs(cells, shapes, strategies):
+    """[(arm, twin, ratios, geomean, worst cell, interval)] for the A/A set.
+
+    Three callers share it -- the controls paragraph, the chapter (once
+    per half) and the summary row's floor -- each having written the same
+    three lines and two of them the floor besides, which `aa_floor` below
+    is, once. `--aa` keeps its own loop deliberately: it compares the
+    `sum-only` pair too, on `slope` rather than `net`, and it needs the
+    roster index for its span column, so folding it in would mean a
+    parameter for each and a helper serving nobody plainly.
+
+    `worst` is (deviation in %, shape), the largest cell, and the pairs
+    come back in `strategies` order, which is what the printed tables
+    walk. The `sum-only` pair is not here: it is compared on `slope`
+    rather than `net`, being the correction itself, and each caller that
+    wants it keeps its own branch.
+    """
+    out = []
+    for a in strategies:
+        b = twin_of(a)
+        if not b or b not in strategies:
+            continue
+        r = [cells[s][a]['net'] / cells[s][b]['net'] for s in shapes]
+        dev = [abs(x - 1) * 100 for x in r]
+        out.append(AA(a, b, r, geomean(r), max(zip(dev, shapes)),
+                      paired_ci(r)))
+    return out
+
+
+def aa_floor(pairs):
+    """The pair furthest from 1, which is what this page calls the floor."""
+    return max(pairs, key=lambda p: abs(p.g - 1)) if pairs else None
+
+
+def insitu_ratios(cells, shapes, strategies):
+    """[(base, arm, ratios)]: the forcing term read in situ, per Force arm.
+
+    `gap / term` per shape, where the gap is what the arm's own base
+    loses by forcing and the term is what `sum-only` says forcing costs.
+    Two callers computed it identically -- and built the pair list in
+    opposite orders, `(base, arm)` in one and `(arm, base)` in the other,
+    which is a trap rather than a style: swap the two names and the ratio
+    inverts, silently and plausibly.
+    """
+    out = []
+    for arm in strategies:
+        base = base_of(arm)
+        if base not in strategies:
+            continue
+        r = []
+        for s in shapes:
+            gap = cells[s][base]['slope'] - cells[s][arm]['slope']
+            term = cells[s][base]['slope'] - cells[s][base]['net']
+            if gap > 0 and term > 0:
+                r.append(gap / term)
+        if r:
+            out.append((base, arm, r))
+    return out
 
 
 def no_net(name):
@@ -906,10 +989,10 @@ def emit_or_install(text, args, shapes, meta, block=False):
     if not args.in_place:
         sys.stdout.write(text)
         return
-    kind, label = population_of(shapes, meta['dims'])
+    kind, label, prefix = population_of(shapes, meta['dims'])
     after = None
     if kind == 'class':
-        after = '**`%s`' % label.replace('the ', '').replace(' class', '')
+        after = '**`%s`' % prefix
     tables = tables_in(text)
     if not tables:
         sys.exit('--in-place: this mode emitted no table')
@@ -942,7 +1025,7 @@ def markdown_table(cells, shapes, strategies, meta, args, terms):
     copies from. A mixed run gets no table at all.
     """
     rows, have_list = strategy_rows(cells, shapes, strategies)
-    kind, label = population_of(shapes, meta['dims'])
+    kind, label, prefix = population_of(shapes, meta['dims'])
     if kind == 'mixed':
         sys.stderr.write('refusing to emit a table for %s: one JSON at a'
                          ' time, never merged, so that a geomean is some'
@@ -955,10 +1038,7 @@ def markdown_table(cells, shapes, strategies, meta, args, terms):
     editorial = kind != 'class'
     # Read the table by the ROSTER, not by this run's arms, so that a row the
     # run has dropped is still seen and can be reported. See `readme_rows`.
-    try:
-        rostered = {n for n, _, _ in roster_of(open(args.main).read())}
-    except OSError:
-        rostered = set(strategies)
+    rostered = {n for n, _, _ in meta['roster']} or set(strategies)
     prev = readme_rows(args.readme, set(strategies),
                        rostered or set(strategies))
     fresh, gone = [], [n for n in prev if n not in strategies]
@@ -1168,18 +1248,8 @@ def controls_skeleton(cells, shapes, strategies, terms):
     before `Controls:`, so splitting on one left a leading newline -- and
     reported eight of eight passing over an empty loop.
     """
-    pos = {st: i for i, st in enumerate(strategies)}
-    aa, so = [], None
-    for a in strategies:
-        b = twin_of(a)
-        if not b or b not in pos:
-            continue
-        r = [cells[s][a]['net'] / cells[s][b]['net'] for s in shapes]
-        dev = [abs(x - 1) * 100 for x in r]
-        ci = paired_ci(r)
-        aa.append((geomean(r), a, max(zip(dev, shapes)),
-                   None if not ci else (ci[0] <= 1.0 <= ci[1])))
-    if 'sum-only-early' in pos and 'sum-only-late' in pos:
+    aa, so = aa_pairs(cells, shapes, strategies), None
+    if 'sum-only-early' in strategies and 'sum-only-late' in strategies:
         r = [cells[s]['sum-only-late']['slope']
              / cells[s]['sum-only-early']['slope'] for s in shapes]
         dev = [abs(x - 1) * 100 for x in r]
@@ -1188,12 +1258,12 @@ def controls_skeleton(cells, shapes, strategies, terms):
               None if not ci else (ci[0] <= 1.0 <= ci[1]))
     if not aa:
         return
-    big = max(aa, key=lambda t: abs(t[0] - 1))
-    cover = sum(1 for g, _, _, c in aa if c)
+    big = aa_floor(aa)
+    cover = sum(1 for p in aa if p.ci and p.ci[0] <= 1.0 <= p.ci[1])
     print()
     print('Controls: ___ (the reading is yours). The largest A/A pair is')
     print('`%s` at %.4f, worst cell %.2f%% on `%s`,'
-          % (big[1], big[0], big[2][0], big[2][1]))
+          % (big.a, big.g, big.worst[0], big.worst[1]))
     print('and %d of %d intervals cover 1.' % (cover, len(aa)), end=' ')
     if so:
         print('The `sum-only` halves agree at %.4f' % so[0])
@@ -1201,17 +1271,8 @@ def controls_skeleton(cells, shapes, strategies, terms):
               % (so[1][0], so[1][1], 'covering' if so[2] else 'missing'))
     else:
         print()
-    ins = [(base_of(b), b) for b in strategies if base_of(b) in strategies]
-    meds = []
-    for base, arm in ins:
-        r = []
-        for s in shapes:
-            gap = cells[s][base]['slope'] - cells[s][arm]['slope']
-            term = cells[s][base]['slope'] - cells[s][base]['net']
-            if gap > 0 and term > 0:
-                r.append(gap / term)
-        if r:
-            meds.append((base, stats.median(r)))
+    meds = [(base, stats.median(r))
+            for base, _, r in insitu_ratios(cells, shapes, strategies)]
     if meds:
         print('The in-situ term reads %s of `sum-only` as medians,'
               % ', '.join('%.4f' % m for _, m in meds))
@@ -1225,13 +1286,13 @@ def controls_skeleton(cells, shapes, strategies, terms):
     # than in another (README.md#what-is-open). `--aa` has printed both all
     # along; the block did not, and eight blocks a run are where the figure
     # is actually read.
-    b = twin_of(big[1])
-    raw = geomean([cells[s][big[1]]['slope'] / cells[s][b]['slope']
+    b = big.b
+    raw = geomean([cells[s][big.a]['slope'] / cells[s][b]['slope']
                    for s in shapes])
     fs = []
     for s in shapes:
-        term = cells[s][big[1]]['slope'] - cells[s][big[1]]['net']
-        mean = (cells[s][big[1]]['slope'] + cells[s][b]['slope']) / 2
+        term = cells[s][big.a]['slope'] - cells[s][big.a]['net']
+        mean = (cells[s][big.a]['slope'] + cells[s][b]['slope']) / 2
         if mean > 0:
             fs.append(term / mean)
     if fs and stats.fmean(fs) < 1:
@@ -1262,8 +1323,8 @@ def chapter_skeleton(cells, shapes, strategies, meta, other, main_hs):
     that chapter published, the floors, the worst cells, the arm counts,
     the geomean over the arms and the spread ranking alike.
     """
-    b_cells, b_shapes, b_strategies, b_meta = load(other, main_hs)
-    apply_correction(b_cells, b_shapes, b_strategies)
+    b_cells, b_shapes, b_strategies = load_other(other, main_hs,
+                                                 shapes, meta)
     both_sh = [s for s in shapes if s in b_shapes]
     both_st = [t for t in strategies if t in b_strategies]
     print('\nchapter skeleton, this run against %s'
@@ -1300,21 +1361,14 @@ def chapter_skeleton(cells, shapes, strategies, meta, other, main_hs):
               '   <- moved past 1%' if abs(g - 1) > 0.01 else ''))
     for tag, cs, shs, sts in (('basis', cells, shapes, strategies),
                               ('other', b_cells, b_shapes, b_strategies)):
-        aa = []
-        for a in sts:
-            b = twin_of(a)
-            if not b or b not in sts:
-                continue
-            r = [cs[x][a]['net'] / cs[x][b]['net'] for x in shs]
-            dev = [abs(v - 1) * 100 for v in r]
-            aa.append((geomean(r), a, max(zip(dev, shs))))
+        aa = aa_pairs(cs, shs, sts)
         if not aa:
             continue
-        big = max(aa, key=lambda t: abs(t[0] - 1))
-        worst = max(aa, key=lambda t: t[2][0])
+        big = aa_floor(aa)
+        worst = max(aa, key=lambda p: p.worst[0])
         print('\n  %s half: floor %.2f%% (%s), worst A/A cell %.2f%% on %s'
-              % (tag, abs(big[0] - 1) * 100, big[1],
-                 worst[2][0], worst[2][1]))
+              % (tag, abs(big.g - 1) * 100, big.a,
+                 worst.worst[0], worst.worst[1]))
     print('\n  allocation between the halves: run --compare --alloc; the'
           ' figure belongs')
     print('  in the chapter and the trap it carries is documented there.')
@@ -1368,13 +1422,8 @@ def compare_alloc(cells, shapes, strategies, meta, other, main_hs):
     than leaving a mode to print a rule its own pair breaks.
     """
     FLOOR = 100.0                # bytes a call, below which the fit is noise
-    b_cells, b_shapes, b_strategies, b_meta = load(other, main_hs)
-    mine = population_of(shapes, meta['dims'])[1]
-    theirs = population_of(b_shapes, b_meta['dims'])[1]
-    if mine != theirs:
-        sys.exit('this run is %s and %s is %s: different populations, and no'
-                 ' figure crosses between them'
-                 % (mine, os.path.basename(other), theirs))
+    b_cells, b_shapes, b_strategies = load_other(other, main_hs,
+                                                 shapes, meta)
     both_sh = [s for s in shapes if s in b_shapes]
     both_st = [t for t in strategies if t in b_strategies]
     print('\nallocation, this run against %s, over %d shared cell(s)'
@@ -1434,14 +1483,8 @@ def compare_table(cells, shapes, strategies, meta, other, main_hs):
     named and skipped, a silently narrowed comparison being the failure this
     whole file is written against.
     """
-    b_cells, b_shapes, b_strategies, b_meta = load(other, main_hs)
-    apply_correction(b_cells, b_shapes, b_strategies)
-    mine = population_of(shapes, meta['dims'])[1]
-    theirs = population_of(b_shapes, b_meta['dims'])[1]
-    if mine != theirs:
-        sys.exit('this run is %s and %s is %s: different populations, and no'
-                 ' figure crosses between them'
-                 % (mine, os.path.basename(other), theirs))
+    b_cells, b_shapes, b_strategies = load_other(other, main_hs,
+                                                 shapes, meta)
 
     both_sh = [s for s in shapes if s in b_shapes]
     both_st = [t for t in strategies if t in b_strategies]
@@ -1491,7 +1534,7 @@ def compare_table(cells, shapes, strategies, meta, other, main_hs):
 def aa_table(cells, shapes, strategies, terms, meta, brief=False):
     pos = {st: i for i, st in enumerate(strategies)}
     pairs = [(st, twin_of(st)) for st in strategies if twin_of(st)]
-    if 'sum-only-early' in pos and 'sum-only-late' in pos:
+    if 'sum-only-early' in strategies and 'sum-only-late' in strategies:
         pairs.append(('sum-only-late', 'sum-only-early'))
     if not pairs:
         print('no control pairs in this run')
@@ -1547,21 +1590,12 @@ def aa_table(cells, shapes, strategies, terms, meta, brief=False):
                              for s in shapes if cells[s][b]['slope']])
             print('%56s raw %.4f at f %.3f, so 1 + raw/(1-f) ~= %.4f'
                   % ('', geomean(raw), f, 1 + (geomean(raw) - 1) / (1 - f)))
-    insitu = [(b, base_of(b)) for b in strategies
-              if base_of(b) in strategies]
+    insitu = insitu_ratios(cells, shapes, strategies)
     if insitu and any(terms.values()):
         print('\n%-28s %-24s %9s %8s %7s'
               % ('in-situ forcing term', 'against sum-only', 'ratio',
                  'median', 'mean|d|'))
-        for arm, base in insitu:
-            r = []
-            for s in shapes:
-                gap = cells[s][base]['slope'] - cells[s][arm]['slope']
-                term = cells[s][base]['slope'] - cells[s][base]['net']
-                if gap > 0 and term > 0:
-                    r.append(gap / term)
-            if not r:
-                continue
+        for base, arm, r in insitu:
             dev = [abs(x - 1) * 100 for x in r]
             worst = max(zip(dev, shapes))
             print('%-28s %-24s %9.4f %8.4f %6.2f%%'
@@ -2378,17 +2412,12 @@ def block_verdicts(cells, shapes, strategies, meta, args):
     `nothing (pure)` and `**nothing -- SHIPPED**` from `mutable \\`Int\\`
     scratch` and from an unwritten `?`.
     """
-    rows, have_list = strategy_rows(cells, shapes, strategies)
-    if not have_list:
+    led = table_leaders(cells, shapes, strategies, args)
+    if led is None or not led.timed:
         return
-    needs = {st: n for st, (_, _, n)
-             in readme_rows(args.readme, strategies).items()}
-    timed = [r for r in rows if not is_control(r[1]) and r[0] == r[0]]
-    if not timed:
-        return
-    unknown = [r[1] for r in timed if r[1] not in needs
-               or needs[r[1]].strip() in ('?', '')]
-    pure = [r for r in timed if is_pure(needs.get(r[1], '?'))]
+    rows, needs, timed, pure = led.rows, led.needs, led.timed, led.pure
+    unknown = [r.st for r in timed if r.st not in needs
+               or needs[r.st].strip() in ('?', '')]
     print()
     print('Verdicts, derived from the cells above; the paragraph is yours:')
     print('  fastest timed arm   %-30s %.3f' % (timed[0][1], timed[0][0]))
@@ -2440,6 +2469,56 @@ def block_verdicts(cells, shapes, strategies, meta, args):
               % ', '.join(unknown))
 
 
+def load_other(other, main_hs, shapes, meta):
+    """The other run, corrected, or an exit if it is a different population.
+
+    The two `--compare` modes wrote this out identically, exit string and
+    all, and `--chapter` had the load without the guard -- and the `b_meta`
+    the guard would have used sitting unread, which is how you can tell it
+    was meant to be copied along. That mode crossed two populations where
+    its siblings refuse, surviving only because the shape intersection
+    then comes out empty and it returns after two header lines.
+
+    Correcting always is what `--alloc` used not to do; it reads
+    `alloc_bytes` alone, so the correction changes nothing it looks at,
+    and a flag for that would be a parameter every caller passes the same.
+    """
+    b_cells, b_shapes, b_strategies, b_meta = load(other, main_hs)
+    apply_correction(b_cells, b_shapes, b_strategies)
+    mine = population_of(shapes, meta['dims'])[1]
+    theirs = population_of(b_shapes, b_meta['dims'])[1]
+    if mine != theirs:
+        sys.exit('this run is %s and %s is %s: different populations, and no'
+                 ' figure crosses between them'
+                 % (mine, os.path.basename(other), theirs))
+    return b_cells, b_shapes, b_strategies
+
+
+LEADERS = collections.namedtuple('LEADERS', 'rows needs timed pure shipped')
+
+
+def table_leaders(cells, shapes, strategies, args):
+    """The table's rows and who leads it, or None where there is no table.
+
+    `--block` computes this twice per call -- once for the verdicts it
+    prints and once for the summary row it checks -- and the second is
+    validating the ranking the first printed, so a drift between the two
+    copies would make the check disagree with the paragraph it is there
+    to police, silently. Each caller keeps its own early return: the
+    verdicts want a timed arm, the summary row wants a pure one and the
+    shipped one besides.
+    """
+    rows, have_list = strategy_rows(cells, shapes, strategies)
+    if not have_list:
+        return None
+    needs = {st: n for st, (_, _, n)
+             in readme_rows(args.readme, strategies).items()}
+    timed = [r for r in rows if not is_control(r.st) and r.time == r.time]
+    return LEADERS(rows, needs, timed,
+                   [r for r in timed if is_pure(needs.get(r.st, '?'))],
+                   next((r for r in timed if r.st == SHIPPED), None))
+
+
 def summary_row(cells, shapes, strategies, args, main_hs):
     """Check this class's row of the cross-class summary against the cells.
 
@@ -2474,35 +2553,25 @@ def summary_row(cells, shapes, strategies, args, main_hs):
     if len(lists) != 1:
         return
     whole = {s for s, d in dims.items() if d['lst'] in lists}
-    label = '/'.join(sorted({sh.split('-')[0] for sh in shapes}))
+    label = class_prefix(shapes)
     if set(shapes) != whole:
         sys.stderr.write('summary row `%s` not checked: this run carries %d'
                          ' of the class\'s %d shapes\n'
                          % (label, len(shapes), len(whole)))
         return
-    rows, have_list = strategy_rows(cells, shapes, strategies)
-    if not have_list:
+    led = table_leaders(cells, shapes, strategies, args)
+    if led is None:
         return
-    needs = {st: n for st, (_, _, n)
-             in readme_rows(args.readme, strategies).items()}
-    timed = [r for r in rows if not is_control(r[1]) and r[0] == r[0]]
-    pure = [r for r in timed if is_pure(needs.get(r[1], '?'))]
-    shipped = next((r for r in timed if r[1] == SHIPPED), None)
+    timed, pure, shipped = led.timed, led.pure, led.shipped
     if not (timed and pure and shipped):
         return
-    pos = {st: i for i, st in enumerate(strategies)}
-    aa = []
-    for a in strategies:
-        b = twin_of(a)
-        if b and b in pos:
-            aa.append(geomean([cells[s][a]['net'] / cells[s][b]['net']
-                               for s in shapes]))
+    aa = aa_pairs(cells, shapes, strategies)
     if not aa:
         return
-    want = ['%d' % len(shapes), '%.3f' % shipped[0], '%.3f' % shipped[6],
-            '%s %.3f' % (pure[0][1], pure[0][0]),
-            '%s %.3f' % (timed[0][1], timed[0][0]),
-            '%.2f%%' % (abs(max(aa, key=lambda g: abs(g - 1)) - 1) * 100)]
+    want = ['%d' % len(shapes), '%.3f' % shipped.time, '%.3f' % shipped.worst,
+            '%s %.3f' % (pure[0].st, pure[0].time),
+            '%s %.3f' % (timed[0].st, timed[0].time),
+            '%.2f%%' % (abs(aa_floor(aa).g - 1) * 100)]
     try:
         doc = open(args.readme).read()
     except OSError as exc:
@@ -2537,7 +2606,7 @@ def block_skeleton(cells, shapes, strategies, meta, args, terms):
     Born checked: pointed at the main set it refuses with exit 1 naming
     the population, and its rev output matched the hand-written rev block
     to the digit, the per-shape line and the anchor both."""
-    kind, label = population_of(shapes, meta['dims'])
+    kind, label, prefix = population_of(shapes, meta['dims'])
     if kind != 'class':
         sys.exit('--block is for a stride-class run, and this run is %s'
                  % label)
@@ -2735,6 +2804,11 @@ def buried_actions(lines):
 def unwrapped_paragraphs(lines):
     """[(first line, paragraph, spans)] with each paragraph on one line.
 
+    Cached on the text, one `--check-doc` asking for it four times -- once
+    in the roster-count block and once per sweep -- and each spawning
+    `wrap80` over the whole page. What the cache buys is the one
+    definition rather than the milliseconds.
+
     From `wrap80 --unwrap`, the formatter that writes this file, so that what
     counts as a paragraph is what counts as one everywhere else rather than a
     second opinion kept here. `spans` is [(line number, words on it)] for the
@@ -2747,8 +2821,14 @@ def unwrapped_paragraphs(lines):
     nothing is returned and the caller is told so: a read that silently
     narrows is the failure this exists to undo.
     """
+    return _unwrapped('\n'.join(lines))
+
+
+@functools.lru_cache(maxsize=4)
+def _unwrapped(text):
+    lines = text.split('\n')
     try:
-        flat = subprocess.run(['wrap80', '--unwrap'], input='\n'.join(lines),
+        flat = subprocess.run(['wrap80', '--unwrap'], input=text,
                               text=True, capture_output=True,
                               check=True).stdout
     except (OSError, subprocess.CalledProcessError) as e:
@@ -4360,7 +4440,7 @@ def selftest(cells, shapes, strategies, meta):
     # One population per file. Every aggregate below is a geomean over
     # whatever shapes the file holds, so a merged run publishes figures
     # belonging to no population at all.
-    kind, label = population_of(shapes, meta['dims'])
+    kind, label, prefix = population_of(shapes, meta['dims'])
     if kind == 'mixed':
         bad.append('this run spans %s, and one JSON holds one population:'
                    ' a geomean over two of them is a statistic of neither'

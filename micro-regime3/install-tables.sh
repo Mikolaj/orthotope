@@ -49,7 +49,10 @@ if [ $# -lt 1 ]; then
   exit 2
 fi
 R="$1"
-BASIS=${BASIS:-lookrts}
+BASIS=${BASIS:-lookrts}      # the fourth file carrying a half's name, and
+                             # the only one with no OTHER; run-major.sh,
+                             # run-gate.sh and smoke-sweep.sh are the
+                             # others, set together at pre-run step 3c
 DOC=${DOC:-README.md}        # overridable so a dry run can aim at a copy,
                              # which is also this script's own control
 

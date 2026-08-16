@@ -367,15 +367,21 @@ def main():
     want = None if args.len == 0 else args.len
     for path in args.binary:
         found = scan(path, want)
-        groups = collections.Counter(f['bytes'] for f in found)
+        # One pass gives the count and the members together, where a
+        # Counter gave the count and every group then rescanned `found`
+        # for its own. Insertion order is first-encountered either way, so
+        # the sort below prints what `most_common` printed.
+        groups = collections.defaultdict(list)
+        for f in found:
+            groups[f['bytes']].append(f)
         named = arms(path, [f['start'] for f in found])
         span = 'any length' if want is None else f'{args.len} B'
         print(f'== {path}: {len(found)} self-loops of {span} in '
               f'{len(groups)} distinct byte-sequences')
-        for body, count in groups.most_common():
+        for body, fs in sorted(groups.items(), key=lambda kv: -len(kv[1])):
+            count = len(fs)
             if count < args.min_copies:
                 continue
-            fs = [f for f in found if f['bytes'] == body]
             print(f'   {count} copies, {fs[0]["len"]} B, '
                   f'{fs[0]["ninsn"]} insns, '
                   f'offsets {[f["mod"] for f in fs]}')
