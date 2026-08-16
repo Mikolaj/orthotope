@@ -42,9 +42,10 @@ PREFIX="$R"                  # the binaries and their note carry the run, as
 # WHICH TWO HALVES, since the pair is no longer always unaligned/aligned.
 # BASIS is the half the expected bench counts are read from and every
 # --in-place table comes from; the other contributes the --compare and a
-# yardstick column, and it runs SECOND, which is where the basis half ran in
-# Run 10, so a run repeating that one inherits its process position along
-# with its binary. Both halves run every class, which they did not before
+# yardstick column, and THE BASIS runs SECOND, which is where it ran in Run
+# 10, so a run repeating that one inherits its process position. It does
+# not inherit the binary: reusing a previous basis binary was refused on
+# 2026-08-16 and every pair is built here, both halves back to back. Both halves run every class, which they did not before
 # 2026-08-14 -- the loop below says what changed and why. Change these two names per pair -- and
 # nothing else here, the counting below being what makes a wrong selection
 # loud in the log rather than at the write-up.

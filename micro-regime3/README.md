@@ -3655,7 +3655,12 @@ and never as a chronology.
     #      arrives here with neither, which is where a walk arrived
     #      Every build wants -fforce-recomp and a fresh --builddir, cabal
     #      answering "Up to date" for a -pgma or an environment change;
-    #      --ghc-options="$REGIME" stays quoted, and a value with a space
+    #      the recipe SPELLS THE REGIME OUT rather than interpolating
+    #      $REGIME, as every recorded note does, so that what the note
+    #      says is what was built and the empty-variable hazard cannot
+    #      reach a pair; $REGIME is for the ad-hoc call, and where one
+    #      is written --ghc-options="$REGIME" stays quoted, a value
+    #      with a space
     #      needs inner quotes besides,
     #      --ghc-options='"-with-rtsopts=-I0 -T -M8G"'. Build the halves
     #      back to back with nothing touched between -- about twenty
@@ -3668,16 +3673,15 @@ and never as a chronology.
     #      Main.hs commit it was built from, the two md5s, .text and the
     #      fills -- the fill-in block is that transcription, and steps 2,
     #      3, 9b and 10 are all reading it back.
-    #      A REPETITION MAY REUSE the previous run's basis binary -- Run
-    #      11's basis was Run 10's -- but only where the WHOLE recipe is
-    #      unmoved, the shim of step 3a included, and the way to know is
-    #      to build it and see the previous note's md5 come back. Reuse
-    #      across a moved shim gives a pair whose halves went through
-    #      different ones, which is the effect the back-to-back rule
-    #      below exists to keep out, arriving by a route that rule does
-    #      not describe: nothing was rebuilt BETWEEN the halves, the drift
-    #      is between the runs. So: rebuild unless the md5 says reuse is
-    #      free, and either way the note records which and why
+    #      BUILD BOTH, ALWAYS. Reusing the previous run's basis binary is
+    #      REFUTED (2026-08-16) and not to be re-proposed, whatever the
+    #      source and the md5 say: the other half is built today, so the
+    #      pair's two halves went through whatever the shim was on two
+    #      different days. That is the effect the back-to-back rule exists
+    #      to keep out, reached by a route that rule does not name --
+    #      nothing is rebuilt BETWEEN the halves, the drift is between the
+    #      runs -- and no step downstream can see it. Run 11's basis was
+    #      Run 10's binary, which is the precedent this retires
     #      ON A REPETITION THE MD5 IS AN INSTRUMENT, not bookkeeping: a
     #      rebuild that reproduces the previous basis byte for byte proves
     #      every input under the recipe unmoved, in twenty seconds, where
@@ -3727,8 +3731,8 @@ and never as a chronology.
     #      what a sound pair shows there is the same fills at the same
     #      addresses in both sections. A note's nm-based figure is a
     #      different number again, so compare like with like.
-    ./loop-offsets.py --survey $R-<basis>       #    on the BUILD path,
-    ./loop-offsets.py --survey $R-<other>       #    never the confirm one,
+    ./loop-offsets.py --survey $R-<basis>       # 10a. on the BUILD path,
+    ./loop-offsets.py --survey $R-<other>       # 10b. never the confirm one,
     #      and the answer goes in the note: it is the binary's, not the
     #      reading session's. What it means is below, at the pad
     ./smoke-sweep.sh $R                   # 11. the smoke sweep, and read
@@ -3854,9 +3858,11 @@ than after them. Unsandboxed throughout:
 
 Steps 6 to 10 are read-only and fine sandboxed; 3b, 11, 12 and 14 write
 and are not, and so do 4 and 5 — only through their redirect, but
-that is enough, the sandbox permitting the session's own directory
-and `/tmp/claude`, and `/tmp/a.log` being in neither. Send those two logs
-somewhere the sandbox allows, or run them unsandboxed with the rest. Step 16
+that is enough, the sandbox permitting the session's own directory and its own
+temp directory, and `/tmp/a.log` being in neither. Send those two logs
+to the temp directory the session actually has — `/tmp/claude` is not
+it in every seat, and a walk's first redirect there died
+`No such file or directory` — or run them unsandboxed with the rest. Step 16
 answers less than it looks: `ps` in a session lists only that session's own
 processes, so it catches a launch made from here and not one made from anywhere
 else, and `uptime` is the half of it that reaches the machine. The one
@@ -4965,20 +4971,21 @@ the artifacts are what it spends.
    in its own prose, and because it returns a completeness the author cannot:
    306 of 306 table rows verified rather than the ones somebody thought
    to check. Launch it early, keep it to one, and leave the placement,
-   contradiction and writing-rule reading to yourself. Three things it cannot
-   derive go in the brief: that it works in this directory, that its evidence
-   is this run's own JSONs and `read-run.py`, and that no other repository's
-   checkers come near this page — it starts where your session started,
-   so the artifacts are not where it is and the checkers it arrives with
-   are not this page's. And once the write-up has settled, aim the same
-   instrument at the finished page rather than the diff: a comprehension probe —
-   a fresh session answering a handful of the page's own questions
-   from the document alone, with citations — reads as a stranger what every
-   diff-scoped check reads as a change, and its one run so far (2026-08-14, six
-   questions, all answered) surfaced a contradiction between two standing
-   passages that nothing above could have seen. (The rule that a check must
-   be proven able to fail governs the instruments themselves and is stated
-   with them, [in the reader's section](#the-reader-read-runpy).)
+   contradiction and writing-rule reading to yourself. Four things it cannot
+   derive go in the brief: which half is the basis, and so which of the eighteen
+   JSONs every published table comes from; that it works in this directory,
+   that its evidence is this run's own JSONs and `read-run.py`, and
+   that no other repository's checkers come near this page — it starts where
+   your session started, so the artifacts are not where it is and the checkers
+   it arrives with are not this page's. And once the write-up has settled, aim
+   the same instrument at the finished page rather than the diff:
+   a comprehension probe — a fresh session answering a handful of the page's own
+   questions from the document alone, with citations — reads as a stranger what
+   every diff-scoped check reads as a change, and its one run so far
+   (2026-08-14, six questions, all answered) surfaced a contradiction between
+   two standing passages that nothing above could have seen. (The rule
+   that a check must be proven able to fail governs the instruments themselves
+   and is stated with them, [in the reader's section](#the-reader-read-runpy).)
 
    The checks themselves:
    1. **derive every count and ratio in the prose from `--cells`, never by eye,

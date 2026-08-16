@@ -44,9 +44,9 @@ an earlier run needs both notes to name one.
 THE SHIM: the commit align-as.py stood at, `git log -1 --format=%h --
 :/micro-regime3/align-as.py`. It is on the recipe's -pgma and is as much
 an input to the binary as the source; pre-run step 3a reads this back. A
-repetition that reuses the earlier basis binary needs this line in BOTH
-notes to say the same thing, or its two halves went through different
-shims.
+a repetition read against an earlier run wants both notes to name the
+same one, a shim that moved between them being a difference in the
+binaries that no figure attributes to the shim.
 
 HOW EACH HALF IS BUILT, there being no builder here. Both from one source:
 
