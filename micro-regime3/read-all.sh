@@ -25,7 +25,11 @@
 # The worst-cell column is checked rather than trusted: over Run 13 it puts
 # `scaled` at 11.59% on scaled-super-r3, which is the figure README records
 # for that run's slot from a reading taken without this script, and `rev` at
-# 0.85%, the largest of that process's seven A/A lines counted by hand.
+# 0.85%, the largest of that process's seven A/A lines counted by hand. Both
+# reproduce under the selection below, rewritten 2026-08-17; the failure
+# that rewrite is for is an `--aa` whose every twin is filtered out, where
+# the old selection reported an in-situ row's 6.52% as the A/A worst and
+# this one leaves the fallback to fire.
 
 set -u
 cd "$(dirname "$0")" || exit 1
@@ -61,22 +65,23 @@ for f in $FILES; do
     st=FAIL; BAD=$((BAD + 1))
   fi
   # --aa prints a `worst cell` line under each A/A pair AND under each
-  # in-situ `sum-only` row, the second lot indented deeper. Those are gate
-  # 3's reading and not this one, so take the LEAST-indented lines, which
-  # are the A/A pairs, and the largest figure among them. Taking the last
-  # line instead read a `-nosum` row and called it the A/A worst -- 23.50%
-  # where the A/A pairs of that process reach 2.14%.
+  # in-situ `sum-only` row. Those are gate 3's reading and not this one, so
+  # take the lines ABOVE the in-situ table's header and the largest figure
+  # among them. Taking the last line instead read a `-nosum` row and called
+  # it the A/A worst -- 23.50% where the A/A pairs of that process reach
+  # 2.14%. Taking the least-indented lines instead, which was the repair,
+  # read one whenever the A/A loop emitted nothing at all -- every twin
+  # filtered out leaves the in-situ rows the least indented there are, and
+  # the `(no A/A pair in this file)` fallback below never fires. The
+  # section header cannot go the same way: it is the one line naming the
+  # population, where an indent names a `printf` width.
   worst=$(./read-run.py "$f" --aa --brief 2>/dev/null \
-            | awk '/worst cell/ { i = match($0, /[^ ]/)
-                                  if (!m || i < m) { m = i }
-                                  n++; ind[n] = i; ln[n] = $0 }
-                   END { for (k = 1; k <= n; k++)
-                           if (ind[k] == m) {
-                             split(ln[k], w, "worst cell ")
-                             split(w[2], v, "%")
-                             if (v[1] + 0 >= best + 0) { best = v[1]; s = w[2] }
-                           }
-                         if (s) print "worst cell " s }')
+            | awk '/^in-situ forcing term/ { insitu = 1 }
+                   /worst cell/ && !insitu {
+                     split($0, w, "worst cell ")
+                     split(w[2], v, "%")
+                     if (v[1] + 0 >= best + 0) { best = v[1]; s = w[2] } }
+                   END { if (s) print "worst cell " s }')
   [ -n "$worst" ] || worst='(no A/A pair in this file)'
   printf '%-28s %-9s %s\n' "$tag" "$st" "$worst"
   # A failing selftest prints FAIL: lines, and this shows them -- unless it
