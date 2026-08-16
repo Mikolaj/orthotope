@@ -143,14 +143,34 @@ fi
 # the verdict paragraph stay the author's, as the form says; these three are
 # the reader's own output and are installed like the table.
 echo "=== installing each class block's computed paragraphs"
-python3 - "$R" "$BASIS" "$DOC" <<'ENDPY' || BAD=$((BAD+1))
+python3 - "$R" "$BASIS" "$DOC" "$LEADS" <<'ENDPY' || BAD=$((BAD+1))
 import re, subprocess, sys
-R, BASIS, DOC = sys.argv[1], sys.argv[2], sys.argv[3]
+R, BASIS, DOC, LEADS = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
 doc = open(DOC).read(); paras = doc.split('\n\n')
 leads = {}
 for i, p in enumerate(paras):
     m = re.match(r'\*\*`([a-z0-9]+)` \u2014', p.lstrip())
     if m: leads[m.group(1)] = i
+# The class blocks are picked out twice in this one file, by the grep above
+# and by the pattern here, and this one asks for the em dash the other does
+# not. A lead missing from THIS list is not merely skipped: the block above
+# it then runs to the next lead this pattern did find, and the loop rewrites
+# every Controls/Provenance/per-shape paragraph in that range -- so the
+# skipped block is handed the previous class's figures. Measured 2026-08-17
+# against a copy with one lead's em dash replaced by a hyphen: the window
+# block came out carrying `slice`'s provenance, anchor and shape count,
+# reported as `24 computed paragraph(s) installed across 7 class block(s)`
+# at exit 0. It is the failure the roster check above exists against, one
+# stage later and worse. The two are held to each other instead.
+# read-run.py's `install` carries no third pattern: it ends a block at any
+# bolded backticked lead, which its own comment says is looser on purpose.
+if sorted(leads) != sorted(LEADS.split()):
+    print('  REFUSED: the two ways this file finds a class block disagree.')
+    print('    the grep above:  ' + ' '.join(sorted(LEADS.split())))
+    print('    the pattern here: ' + ' '.join(sorted(leads)))
+    print('    a lead this one misses is given the block above it, whose'
+          ' figures overwrite its own')
+    sys.exit(1)
 order = sorted(leads.items(), key=lambda kv: kv[1])
 done = 0
 for n, (c, start) in enumerate(reversed(order)):
