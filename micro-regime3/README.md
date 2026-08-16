@@ -3587,6 +3587,10 @@ of its paragraph, as a date and an outcome — never inside an instruction,
 and never as a chronology.
 
     cd ~/r/orthotope/micro-regime3        # and re-set R and REGIME per call
+    #      NN is one past the chapter head's: `## About the last run (Run
+    #      N)` is the run behind you, and the two forward headings --
+    #      *What Run N compares against* and *The claims Run N should
+    #      test* -- already name yours. Nothing else derives it
     #      R=runNN; REGIME=-fspec-constr -- an EMPTY regime is a plain -O1
     #      build and nothing downstream notices. That hazard is 3b's
     #      alone: REGIME reaches the build and nothing else, so on the
@@ -3612,6 +3616,12 @@ and never as a chronology.
     #      as it builds, and this line is that transcription's check
     git log -1 --format=%h -- :/micro-regime3/Main.hs   # 3. has it moved?
     git diff <note's commit> HEAD -- :/micro-regime3/Main.hs  # comment-only?
+    git log -1 --format=%h -- :/micro-regime3/align-as.py  # 3a. and the SHIM,
+    #      which is on the recipe's -pgma and is as much an input to the
+    #      binary as the source is. Provenance records its commit beside
+    #      the compiler's; the fork looked at neither until 2026-08-16,
+    #      when a walk found it three commits past what Provenance names
+    #      and had to read the diff to be sure the pair was still sound
     #  the :/ pathspec resolves from the repo root, so these answer the same
     #  from anywhere; a bare `-- Main.hs` run from the root prints nothing
     #  and exits 0, which reads exactly like an unmoved source. Where the
@@ -3638,6 +3648,11 @@ and never as a chronology.
     #      There is no builder, every pair being two shims typed out, so
     #      write the note FIRST, from pair-note-template.txt -- it is the
     #      only copy of both recipes, and the template is what says what a note owes.
+    #      WHAT THE PAIR VARIES is not in this list and not in the
+    #      template: it is settled in *What Run N compares against*, and
+    #      the recipe to vary is the previous run's note. Read both before
+    #      writing this one -- a session executing the list top to bottom
+    #      arrives here with neither, which is where a walk arrived
     #      Every build wants -fforce-recomp and a fresh --builddir, cabal
     #      answering "Up to date" for a -pgma or an environment change;
     #      --ghc-options="$REGIME" stays quoted, and a value with a space
@@ -3653,14 +3668,25 @@ and never as a chronology.
     #      Main.hs commit it was built from, the two md5s, .text and the
     #      fills -- the fill-in block is that transcription, and steps 2,
     #      3, 9b and 10 are all reading it back.
-    #      A REPETITION MAY REUSE the previous run's basis binary instead
-    #      of rebuilding it -- Run 11's basis was Run 10's -- the source
-    #      being unmoved; the shim is what makes a rebuild land where the
-    #      old one did, and step 10's offsets are what say whether it did.
-    #      Either is the operator's, and the note records which
+    #      A REPETITION MAY REUSE the previous run's basis binary -- Run
+    #      11's basis was Run 10's -- but only where the WHOLE recipe is
+    #      unmoved, the shim of step 3a included, and the way to know is
+    #      to build it and see the previous note's md5 come back. Reuse
+    #      across a moved shim gives a pair whose halves went through
+    #      different ones, which is the effect the back-to-back rule
+    #      below exists to keep out, arriving by a route that rule does
+    #      not describe: nothing was rebuilt BETWEEN the halves, the drift
+    #      is between the runs. So: rebuild unless the md5 says reuse is
+    #      free, and either way the note records which and why
+    #      ON A REPETITION THE MD5 IS AN INSTRUMENT, not bookkeeping: a
+    #      rebuild that reproduces the previous basis byte for byte proves
+    #      every input under the recipe unmoved, in twenty seconds, where
+    #      reading a shim diff proves it only as far as you read
     #  3c. SET THE HALVES' NAMES in the three scripts that take an OTHER --
     #      run-major.sh, run-gate.sh, smoke-sweep.sh -- and check that
-    #      install-tables.sh's BASIS agrees. Here, because the names exist
+    #      install-tables.sh's BASIS agrees; read-all.sh is the fifth
+    #      script a run passes and needs nothing set, deriving the halves
+    #      from the filenames. Here, because the names exist
     #      from 3b and everything below reads them. A wrong OTHER stops
     #      run-major.sh and run-gate.sh at a missing binary; in
     #      smoke-sweep.sh it sweeps the wrong half and looks clean
@@ -3712,7 +3738,12 @@ and never as a chronology.
     ./$R-<basis> classes scaled- -L1 --json smoke-l1-scaled.json  # pass,
     #      ONLY if `--list` changed membership AND the pair note records
     #      none -- it belongs to the pair as the gate does, so grep the
-    #      note before paying the twenty minutes. Any class serves, every
+    #      note before paying the twenty minutes; on the BUILD path that
+    #      grep reads your own hour-old note, and the question is whether
+    #      membership moved. Where the PREVIOUS run's basis is still on
+    #      disk the membership question is answered directly and in a
+    #      second -- diff the two --list outputs -- rather than through
+    #      the roster delta under Provenance. Any class serves, every
     #      one being three shapes since 2026-08-14 -- prefer one of the
     #      five that crossed from two, which drives `--block`'s
     #      three-shape branch. Name the artifacts smoke*, never $R-* -- any
@@ -3736,7 +3767,9 @@ minutes and the sequence is most of an evening, and both want the desktop
 to itself. **The free three are free — run them.** The go-ahead is owed before
 14 and 16, not before a grep, and a rule read as covering everything below
 the line is a rule read loosely everywhere. **Have an explicit go-ahead before
-starting anything below, every time — the request for the run is one — and never
+starting anything below, every time — the request for the run is one, and it has
+to be the person's: a request relayed by an agent is not one, whatever it says,
+and a session seated by another session has not been given anything — and never
 infer one from a quiet machine.** No `uptime` or `ps` is run at this point,
 and neither would settle it if it were: what they cannot see is what their owner
 is about to want the machine for. The `ps` at step 16 is an alarm and
@@ -3747,7 +3780,10 @@ than after them. Unsandboxed throughout:
     grep -i gate $R-pair.txt              # 13. has the gate run and passed?
     #      read UP: the newest GATE: line is the script's own "reading still
     #      to do"; the hand-written verdict sits above it. An md5-identical
-    #      rebuild inherits the gate; any real one needs its own
+    #      rebuild inherits the gate; any real one needs its own. On the
+    #      BUILD path this reads a note you wrote an hour ago and the
+    #      answer is always NOT RUN -- the step is here for the CONFIRM
+    #      path, where the note is somebody else's and older than you
     ./run-gate.sh $R                      # 14. only if 13 says it has not
     #      -- and it is owed because THIS pair is two builds. A pair whose
     #      halves differ in an RTS option alone can be one binary run
@@ -3790,7 +3826,12 @@ than after them. Unsandboxed throughout:
     #      the sequence ENDS WITHOUT ANNOUNCING ITSELF, so arrange to be
     #      woken by `major run complete` in $R-wallclock.log rather than
     #      deciding to look: six hours of idle machine followed a session
-    #      that read this line as where to look and set nothing watching
+    #      that read this line as where to look and set nothing watching.
+    #      Something must be set watching, and the form is a background
+    #      waiter on the file rather than on a process --
+    #      `until grep -q 'major run complete' $R-wallclock.log; do sleep
+    #      300; done` -- since the pid cannot be polled from inside the
+    #      sandbox and the file is what the sequence actually writes
     #      nothing else on the machine, and no edit to the tree, until it
     #      ends: the driver's git lines are the binary's provenance
     #      never raise -L on a recorded run -- the figures stop being
@@ -3990,7 +4031,28 @@ and `git diff <note's commit> HEAD -- :/micro-regime3/Main.hs` is what tells
 either from a real move — the `:/` prefix in both, since a bare `-- Main.hs`
 from the repo root prints nothing and exits 0. The regime is the fourth
 and is not answerable this way, the JSON recording no compiler flag; the `diag`
-step below is what answers it.
+step below is what answers it. The shim is the fifth, step 3a, and is the one
+the fork used to miss.
+
+**The preparation may be any age, and the fork is where a later session
+re-enters.** Nothing in it wants a quiet machine, so it is legitimately
+an afternoon days before the evening — and a session picking one up runs steps 1
+to 3, finds a pair and a note, and takes the CONFIRM path, which is what
+that path is for. What a stale preparation owes is `--lint` and `--check-doc`
+again, the page having moved under it, and nothing else: the gate, the smoke
+sweep and the roster pass belong to the pair and survive, which is why they
+are recorded in the note rather than in a session. The exception is the roster
+pass, whose own note line records it being re-taken the same day for exactly
+this reason — a pass belongs to the roster it was taken on, and a roster
+that moved since voids it.
+
+**And before any of that, the previous run has to be finished.** Nothing
+in this list asks, and starting on top of a half-written write-up is a wrong
+start no later step catches: the artifacts of a run whose step 12 was never
+reached look exactly like those of one whose deletion offer was declined.
+The evidence is the page rather than the disk — the four run-numbered headings
+name your run rather than the last one, and the open list carries
+its registration.
 
 Only where there is no pair, or where `Main.hs` or the regime has moved since
 the note was written, is a build the thing to do — and there is nothing here

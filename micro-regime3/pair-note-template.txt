@@ -41,11 +41,25 @@ carries --ghc-options and not the compiler, so nothing else here records
 it, post-run step 9 asks this note for it, and a repetition read against
 an earlier run needs both notes to name one.
 
+THE SHIM: the commit align-as.py stood at, `git log -1 --format=%h --
+:/micro-regime3/align-as.py`. It is on the recipe's -pgma and is as much
+an input to the binary as the source; pre-run step 3a reads this back. A
+repetition that reuses the earlier basis binary needs this line in BOTH
+notes to say the same thing, or its two halves went through different
+shims.
+
 HOW EACH HALF IS BUILT, there being no builder here. Both from one source:
 
   $R-<basis>    cd here, then the full command, with --builddir, the
                 regime, -fforce-recomp and every --ghc-options spelled out
   $R-<other>    the same with the one option that differs
+
+  Spell the copy out too, or write it as `cp $(cabal list-bin micro
+  --builddir=DIR) $R-<half>`. The path under a --builddir carries the
+  compiler version, so it moves the day the compiler does, and it is the
+  one component of a recipe a later reader cannot reconstruct: notes
+  before 2026-08-16 elide it as `db-r14a/.../micro`, which is not a
+  command, in the file this page calls the only copy of both recipes.
 
   Say which quoting traps this recipe hits -- inner quotes around a
   -with-rtsopts value, -fforce-recomp and a fresh --builddir for a -pgma
@@ -56,7 +70,7 @@ THE SECOND BUILD IS A CHOICE OR A NECESSITY: say which, and if a one-binary
 form would do, record it here as the alternative so the decision stays one.
 
 WHAT TO READ BACK BEFORE THE EVENING:
-  ./loop-offsets.py $R-<basis> $R-<other>
+  ./loop-offsets.py $R-<other> $R-<basis>
   ./loop-offsets.py --library $R-<basis> $R-<other>
   md5sum $R-<basis> $R-<other>
   size -A $R-<basis> | grep '^\.text'
