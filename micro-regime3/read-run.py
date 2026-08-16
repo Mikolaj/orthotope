@@ -373,7 +373,7 @@ def load(path, main_hs):
         l = ell.get(shape)
         cells[shape][strategy] = dict(
             slope=slope, r2=fits['time']['regRSquare']['estPoint'],
-            n=len(r['reportMeasured']), mean=an['anMean']['estPoint'],
+            n=len(r['reportMeasured']),
             ci=None if lo is None else (lo + hi) / 2 / slope * 100,
             ci_hi=None if lo is None else max(lo, hi) / slope * 100,
             alloc_bytes=alloc_b,
@@ -499,8 +499,7 @@ def health(cells, shapes, strategies, terms):
         # term, and subtracting one from the other was never meaningful.
         sunk = [(cells[sh][st]['net'], sh, st) for sh in shapes
                 for st in strategies
-                if not st.startswith('sum-only')
-                and not st.endswith('-nosum')
+                if not no_net(st)
                 and cells[sh][st]['net'] <= 0]
         if sunk:
             n, sh, st = min(sunk)
@@ -511,9 +510,22 @@ def health(cells, shapes, strategies, terms):
         sys.stderr.write('warning: ' + line + '\n')
 
 
+def no_net(name):
+    """Has this arm no corrected time? It never ran the forcing pass.
+
+    Named because it was spelled out at eight sites and two of them did
+    not spell it alike -- `health` wrote the two halves as separate `not`
+    clauses and `selftest` tested membership of its own `sum-only` list --
+    so a third control class, or a renamed suffix, had to be found in
+    eight places by a grep that missed two of them. Not `is_control`,
+    which is the WIDER set: it counts the `-aa` twins, which do have a
+    corrected time and are only excluded from the published column.
+    """
+    return name.startswith('sum-only') or name.endswith('-nosum')
+
+
 def is_control(name):
-    return ('-aa' in name or name.startswith('sum-only')
-            or name.endswith('-nosum'))
+    return '-aa' in name or no_net(name)
 
 
 def twin_of(name):
@@ -589,7 +601,7 @@ def worst_of(cells, shapes, strategy):
     """
     if any('list' not in cells[s] for s in shapes):
         return float('nan')
-    if strategy.startswith('sum-only') or strategy.endswith('-nosum'):
+    if no_net(strategy):
         return float('nan')
     return max(cells[s][strategy]['net'] / cells[s]['list']['net']
                for s in shapes)
@@ -608,7 +620,7 @@ def time_of(cells, shapes, strategy):
     `sum-only` or `-nosum` arm, which never ran the forcing pass, and any
     cell the term did not leave positive -- `health` reports that one.
     """
-    if strategy.startswith('sum-only') or strategy.endswith('-nosum'):
+    if no_net(strategy):
         return float('nan')
     if any('list' not in cells[s] for s in shapes):
         return float('nan')
@@ -620,8 +632,17 @@ def time_of(cells, shapes, strategy):
     return math.exp(stats.fmean(winsorize(logs)[0]))
 
 
+ROW = collections.namedtuple('ROW', 'time st ci noise smp alloc worst')
+
+
 def strategy_rows(cells, shapes, strategies):
-    """The table's rows, sorted: (time, name, CI%, noise, smp, alloc).
+    """The table's rows, sorted: (time, name, CI%, noise, smp, alloc, worst).
+
+    A namedtuple because the printed order is not the tuple order --
+    `worst` is the second column on screen and the last field here -- so
+    the four sites that read a row positionally were reading `r[6]` for
+    it. Unpacking and indexing both still work, which is why no caller
+    that iterates the row had to change.
 
     The plain table and --markdown both render this and neither computes it,
     so the published markdown cannot drift from what the terminal shows --
@@ -640,12 +661,13 @@ def strategy_rows(cells, shapes, strategies):
                             for sh in shapes
                             if typical[sh] and typical[sh] == typical[sh]
                             and cells[sh][st]['ci'] is not None])
-        rows.append((time_of(cells, shapes, st) if have_list else float('nan'),
-                     st, med_or_nan(ci), noise,
-                     stats.median(cells[s][st]['n'] for s in shapes),
-                     stats.median(alloc) if alloc else None,
-                     worst_of(cells, shapes, st) if have_list
-                     else float('nan')))
+        # `time_of` and `worst_of` return nan on a run with no `list`
+        # themselves, by the same test `have_list` is, so neither wants a
+        # ternary here.
+        rows.append(ROW(time_of(cells, shapes, st), st, med_or_nan(ci), noise,
+                        stats.median(cells[s][st]['n'] for s in shapes),
+                        stats.median(alloc) if alloc else None,
+                        worst_of(cells, shapes, st)))
     # A `sum-only` row has no time by construction rather than by mishap, so
     # it sorts to the head, where it reads as the term the column subtracts.
     rows.sort(key=lambda r: (-1.0 if r[0] != r[0] else r[0], r[1]))
@@ -669,7 +691,7 @@ def strategy_table(cells, shapes, strategies, meta, args, terms):
     if any(terms.values()) and have_list:
         share = {st: med_or_nan([terms[sh] / cells[sh][st]['slope']
                                  for sh in shapes if st in cells[sh]])
-                 for st in ('list', 'bq-expand')}
+                 for st in ('list', SHIPPED)}
         known = ' and '.join('%.1f%% of %s' % (100 * v, k)
                              for k, v in share.items() if v == v)
         print('time has the shared forcing pass subtracted from every row;')
@@ -891,9 +913,8 @@ def emit_or_install(text, args, shapes, meta, block=False):
     tables = tables_in(text)
     if not tables:
         sys.exit('--in-place: this mode emitted no table')
-    install(args.readme, tables[0], args.run, after)
-    for extra in tables[1:]:
-        install(args.readme, extra, args.run, after)
+    for table in tables:
+        install(args.readme, table, args.run, after)
     if block:
         sys.stderr.write('the block\'s prose is yours: controls, provenance'
                          ' and the paragraph are not installed\n')
@@ -1059,8 +1080,7 @@ def pair_stats(cells, shapes, a, b):
     Netting an arm that never ran the forcing pass is meaningless, so a
     pair with a `sum-only` or `-nosum` half is compared raw and says so.
     """
-    raw = any(x.startswith('sum-only') or x.endswith('-nosum')
-              for x in (a, b))
+    raw = any(no_net(x) for x in (a, b))
     key = 'slope' if raw else 'net'
     return raw, [cells[s][a][key] / cells[s][b][key] for s in shapes]
 
@@ -1253,7 +1273,7 @@ def chapter_skeleton(cells, shapes, strategies, meta, other, main_hs):
     print('  pair note and the logs -- this mode reads neither)')
     rows = []
     for st in both_st:
-        if st.startswith('sum-only') or st.endswith('-nosum'):
+        if no_net(st):
             continue
         r = [cells[sh][st]['net'] / b_cells[sh][st]['net'] for sh in both_sh
              if cells[sh][st]['net'] > 0 and b_cells[sh][st]['net'] > 0]
@@ -1441,7 +1461,7 @@ def compare_table(cells, shapes, strategies, meta, other, main_hs):
         # The arms with no corrected time: their net is the forcing term
         # subtracted from itself, so a ratio of two of them is a ratio of two
         # near-zeros. `--aa` is where those two are compared.
-        if st.startswith('sum-only') or st.endswith('-nosum'):
+        if no_net(st):
             continue
         rs = []
         for sh in both_sh:
@@ -1910,7 +1930,7 @@ CLAIMS = [
 
 
 READING = collections.namedtuple(
-    'READING', 'a b expect g k m p best ok')
+    'READING', 'a b expect g k m p best ok pub')
 
 
 def claim_readings(cells, shapes, strategies):
@@ -1934,10 +1954,15 @@ def claim_readings(cells, shapes, strategies):
         for a, b, expect in pairs:
             if a not in strategies or b not in strategies:
                 continue
-            _, r = pair_stats(cells, shapes, a, b)
+            raw, r = pair_stats(cells, shapes, a, b)
             g, m = geomean(r), len(r)
             k = sum(1 for x in r if x < 1)
             p = sign_p(k, m)
+            # The published-column ratio, which only the read-back forms:
+            # None where the pair had to be compared raw, there being no
+            # corrected time to publish.
+            pub = (None if raw else
+                   time_of(cells, shapes, a) / time_of(cells, shapes, b))
             best = None
             if isinstance(expect, tuple):
                 best = sorted(s for _, s in sorted(zip(r, shapes))[:2])
@@ -1947,7 +1972,7 @@ def claim_readings(cells, shapes, strategies):
             else:
                 ok = (g < 1) if expect == 'faster' else (g > 1)
             out.setdefault(n, []).append(
-                READING(a, b, expect, g, k, m, p, best, ok))
+                READING(a, b, expect, g, k, m, p, best, ok, pub))
     return out
 
 
@@ -2241,22 +2266,20 @@ def claims_in_doc(readme, cells, shapes, strategies, src, main_hs):
               % os.path.basename(readme))
         return
 
+    # The same arithmetic the printer and the installer use, and formatted
+    # here the way they format it: this check matches the page on the
+    # STRING, so a format that moved in the writer and not here would stop
+    # the read-back recognising figures it had just written -- or leave it
+    # passing while checking a shape nothing emits.
     readings = {}
-    for n, _, pairs in CLAIMS:
-        live = [(a, b) for a, b, _ in pairs
-                if a in strategies and b in strategies]
-        if not live:
-            continue
+    for n, live in claim_readings(cells, shapes, strategies).items():
         figs = set()
-        for a, b in live:
-            raw, r = pair_stats(cells, shapes, a, b)
-            k = sum(1 for x in r if x < 1)
-            figs.add('%.4f' % geomean(r))
-            figs.add('%d of %d' % (k, len(r)))
-            figs.add('%.2g' % sign_p(k, len(r)))
-            if not raw:
-                figs.add('%.4f' % (time_of(cells, shapes, a)
-                                   / time_of(cells, shapes, b)))
+        for x in live:
+            figs.add('%.4f' % x.g)
+            figs.add('%d of %d' % (x.k, x.m))
+            figs.add('%.2g' % x.p)
+            if x.pub is not None:
+                figs.add('%.4f' % x.pub)
         readings[n] = figs
 
     # The paragraphs above the first claim are the section's own summary,
@@ -4078,16 +4101,34 @@ def lint(main_hs, readme):
         print('ok:   every arm the claims manifest names is rostered'
               ' (%d across %d claims)' % (len(claimed), len(CLAIMS)))
 
-    off = []
-    for n, f in twins:
-        base = twin_of(n)
-        if base is None:
-            off.append('%s is an A/A control whose name has no -aa' % n)
-        elif base not in fun:
-            off.append('%s names %s, which is not in the roster' % (n, base))
-        elif fun[base] != f:
-            off.append('%s runs %s where %s runs %s'
-                       % (n, f, base, fun[base]))
+    def mirrors(entries, resolve, what):
+        """Every arm here whose name promises a base it does not run.
+
+        The A/A twins and the Force arms ask this identically -- only the
+        name rule and one clause of one message differ -- and the two
+        copies were sixteen lines apart with the middle message written
+        out twice.
+
+        Both callers proven to still fire, 2026-08-16, on copies of
+        Main.hs: `bq-expand-aa-distant` pointed at `fbBQgen` fails naming
+        the twin and its base, `mut-flat-gm-nosum` pointed there fails
+        the same way for the Force arms, and the unaltered roster fails
+        neither.
+        """
+        off = []
+        for n, f in entries:
+            base = resolve(n)
+            if base is None:
+                off.append('%s is %s' % (n, what))
+            elif base not in fun:
+                off.append('%s names %s, which is not in the roster'
+                           % (n, base))
+            elif fun[base] != f:
+                off.append('%s runs %s where %s runs %s'
+                           % (n, f, base, fun[base]))
+        return off
+
+    off = mirrors(twins, twin_of, 'an A/A control whose name has no -aa')
     if off:
         bad.append('A/A control(s) not duplicating what the name says: %s'
                    % '; '.join(off))
@@ -4099,16 +4140,7 @@ def lint(main_hs, readme):
     # pointed at the wrong function would not be a noisy control, it would
     # make `base - arm` a difference of two unrelated fills and report it as
     # a forcing term.
-    off = []
-    for n, f in forces:
-        base = base_of(n)
-        if base is None:
-            off.append('%s is a Force arm whose name has no -nosum' % n)
-        elif base not in fun:
-            off.append('%s names %s, which is not in the roster' % (n, base))
-        elif fun[base] != f:
-            off.append('%s runs %s where %s runs %s'
-                       % (n, f, base, fun[base]))
+    off = mirrors(forces, base_of, 'a Force arm whose name has no -nosum')
     if off:
         bad.append('Force control(s) not duplicating what the name says: %s'
                    % '; '.join(off))
@@ -4359,7 +4391,7 @@ def selftest(cells, shapes, strategies, meta):
         term_bad = [sh for sh in shapes
                     if not 0 < cells[sh][halves[0]]['slope']]
         sunk = [(sh, st) for sh in shapes for st in strategies
-                if st not in halves and not st.endswith('-nosum')
+                if not no_net(st)
                 and cells[sh][st]['net'] <= 0]
         if term_bad or sunk:
             bad.append('correction: %d shape(s) with a non-positive forcing'
@@ -4415,7 +4447,7 @@ def selftest(cells, shapes, strategies, meta):
         for st in strategies:
             # The arms `time_of` declines to give a figure for: correcting
             # them is meaningless, so there is no geomean to bracket.
-            if st.startswith('sum-only') or st.endswith('-nosum'):
+            if no_net(st):
                 continue
             ratios = [cells[sh][st]['net'] / cells[sh]['list']['net']
                       for sh in shapes]
