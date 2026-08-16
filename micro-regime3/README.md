@@ -3599,11 +3599,9 @@ and never as a chronology.
     #      the fork rather than an error: you are on the BUILD path, and
     #      the note is written at 3b, before either binary exists. Come
     #      back to this line after it, since the steps below quote it
-    #      BASIS/OTHER come from it, never from a half's name, and are set
-    #      in one place in each of the four scripts that take a run --
-    #      run-major.sh, run-gate.sh, smoke-sweep.sh and install-tables.sh,
-    #      the last carrying BASIS alone: make all four match, and override
-    #      by environment when reading an older pair whose basis differs.
+    #      BASIS/OTHER come from it, never from a half's name; setting
+    #      them in the scripts is step 3c, and reading an older pair whose
+    #      basis differs is what the environment override is for.
     #      The basis runs second, and both halves run the classes
     ls $R-*                               # 1. is there a pair? A note-only
     #      listing is the answer NO, and so is nothing at all: the note is
@@ -3654,7 +3652,18 @@ and never as a chronology.
     #      Then transcribe into the note what only the build can say: the
     #      Main.hs commit it was built from, the two md5s, .text and the
     #      fills -- the fill-in block is that transcription, and steps 2,
-    #      3, 9b and 10 are all reading it back
+    #      3, 9b and 10 are all reading it back.
+    #      A REPETITION MAY REUSE the previous run's basis binary instead
+    #      of rebuilding it -- Run 11's basis was Run 10's -- the source
+    #      being unmoved; the shim is what makes a rebuild land where the
+    #      old one did, and step 10's offsets are what say whether it did.
+    #      Either is the operator's, and the note records which
+    #  3c. SET THE HALVES' NAMES in the three scripts that take an OTHER --
+    #      run-major.sh, run-gate.sh, smoke-sweep.sh -- and check that
+    #      install-tables.sh's BASIS agrees. Here, because the names exist
+    #      from 3b and everything below reads them. A wrong OTHER stops
+    #      run-major.sh and run-gate.sh at a missing binary; in
+    #      smoke-sweep.sh it sweeps the wrong half and looks clean
     ./$R-<basis> check > /tmp/a.log 2>&1  # 4. every shape agrees
     ./$R-<other> check > /tmp/b.log 2>&1  # 5. and the other half
     cmp /tmp/a.log /tmp/b.log             #    byte-identical, or STOP
@@ -3765,9 +3774,13 @@ than after them. Unsandboxed throughout:
     #      own processes. It runs here, after the go-ahead and before the
     #      longest stretch, so a machine that got busy since stops the run
     #      short of the hours rather than after them
-    #  17. read ahead while the sequence runs, which costs no machine time
-    #      and is what the write-up needs first: the last run's chapter,
-    #      the open list, and the replace list under Provenance
+    #  17. read ahead while the sequence runs, which costs no machine
+    #      time: the last run's chapter, which shapes the whole write-up
+    #      and is worth little read after it has begun, and the open list
+    #      by its status markers. NOT the replace list -- it is walked and
+    #      mapped at post-run step 6, gains nothing from being read six
+    #      hours early, and the read is paid twice if the session does not
+    #      survive the sequence, nothing recording that it happened
     ./run-major.sh $R &                   # many processes, several hours
     ps -eo pid,etime,comm | grep $R-      # confirm from an UNSANDBOXED ps:
     #      comm, not args, and comm truncates at 15 characters. A blocked
@@ -4116,14 +4129,19 @@ and `micro-unaligned` keeps every offset the unpadded build had: the same fills
 at [3, 53, 59, 45] and [16, 0, 36, 36], the same 115 short loops with 50
 straddling.
 
-**Which two halves a pair has is a property of the pair, not of this page.**
-The names are recorded in the pair note and set in one place in each of the four
-scripts that take a run — `run-major.sh`, `run-gate.sh`, `smoke-sweep.sh`
-and `install-tables.sh`, the last carrying `BASIS` alone — as `OTHER`
-and `BASIS`, and each is a `${BASIS:-…}` default an environment variable
-overrides for an older pair; the basis is the half the expected bench counts
-are read from and every table is installed from, and it runs second; both halves
-run every class. **The two roles are BASIS and CONTROL**, which is what
+**Which two halves a pair has is a property of the pair, not of this page —
+but how they are named is not.** A half is `$R-<tag>`, the tag naming what
+that half *is* rather than which role it holds: `run13-maxskip`
+and `run13-lookrts`, `run14-lookrts` and `run14-a1g`. So a new pair derives
+its own names before it has a note to read them from, and step 0's rule stands
+untouched, the tag saying what a half is and the note saying which of them
+is the basis. The names are recorded in the pair note and set in one place
+in each of the four scripts that take a run — `run-major.sh`, `run-gate.sh`,
+`smoke-sweep.sh` and `install-tables.sh`, the last carrying `BASIS` alone —
+as `OTHER` and `BASIS`, and each is a `${BASIS:-…}` default an environment
+variable overrides for an older pair; the basis is the half the expected bench
+counts are read from and every table is installed from, and it runs second; both
+halves run every class. **The two roles are BASIS and CONTROL**, which is what
 this page calls them where it names a role at all; the scripts' variable
 is `OTHER` and the prose often says *the other half*, and all three are one
 thing. The halves are named for what they vary — Run 10's `unaligned`/`aligned`,
