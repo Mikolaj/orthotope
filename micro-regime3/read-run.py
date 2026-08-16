@@ -815,12 +815,6 @@ def strategy_table(cells, shapes, strategies, meta, args, terms):
 CLASS_HDR = '| strategy | time | worst | CI% | smp | alloc |'
 RESULTS_HDR = '| strategy | time | worst | CI% | smp | alloc | needs |'
 
-# A class block's bolded lead, which is where one block ends and the next
-# begins -- `install-tables.sh` reads the same shape off the page to check
-# that no class goes uninstalled, and `install` bounds a class table's
-# search by it.
-BLOCK_LEAD = re.compile(r'\*\*`[a-z0-9]+`')
-
 
 def readme_rows(readme, strategies, recognise=None):
     """README's Results table, keyed by strategy: (label, style, needs).
@@ -994,9 +988,16 @@ def install(readme, table, src, after=None):
         # `slice`'s table removed: `--block --in-place` wrote slice's 49
         # rows over the `window` block's table and exited 0, which is the
         # silent write to the wrong place this function exists to refuse.
-        # A block ends where the next lead, or the next heading, begins.
+        # A block ends where the next lead, or the next heading, begins --
+        # ANY bolded backticked lead, which is looser than either pattern
+        # `install-tables.sh` picks the class blocks out with, deliberately
+        # and rather than carrying a third spelling of them. What this
+        # needs to know is where the block stops, so a lead it takes too
+        # eagerly can only end the search early and refuse, never carry it
+        # into the next block; the eleven such leads on today's page are
+        # the eight class ones and three no class table sits behind.
         end = next((j for j in range(start[0] + 1, len(lines))
-                    if BLOCK_LEAD.match(lines[j]) or lines[j].startswith('#')),
+                    if lines[j].startswith('**`') or lines[j].startswith('#')),
                    len(lines))
         hits = [i for i in hits if start[0] < i < end]
         if not hits:
