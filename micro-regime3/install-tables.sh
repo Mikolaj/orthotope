@@ -71,6 +71,9 @@ CLASSES=$(ls -1 "$R-$BASIS"-*.json 2>/dev/null \
 # that will not be written. Found 2026-08-16 by withholding one class JSON
 # and watching ten tables install in silence.
 LEADS=$(grep -o '^\*\*`[a-z0-9]*`' "$DOC" | tr -d '*`' | sort)
+[ -n "$LEADS" ] || { echo "!! no class block leads in $DOC --"
+  echo "   the check that a class is not silently skipped has"
+  echo "   nothing to check against, so it did not run"; exit 1; }
 HAVE=$(printf '%s\n' $CLASSES | sed "s/^$R-$BASIS-//; s/\.json$//" | sort)
 MISSING=$(comm -23 <(printf '%s\n' "$LEADS") <(printf '%s\n' "$HAVE"))
 if [ -n "$MISSING" ]; then

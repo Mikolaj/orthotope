@@ -348,7 +348,7 @@ def population_of(shapes, dims):
             groups.setdefault('main' if d['lst'] in MAIN_LISTS else d['lst'],
                               []).append(sh)
     if not groups:
-        return 'unknown', 'a population Main.hs does not define'
+        return POP('unknown', 'a population Main.hs does not define', '')
     named = sorted('the main set' if k == 'main' else class_label(v)
                    for k, v in groups.items())
     if len(groups) > 1:
@@ -4740,6 +4740,14 @@ def main():
     # invocations gives a chapter and a silence where the allocation reading
     # was asked for. Refuse instead, here, where the flags are still visible
     # as flags.
+    # `--in-place` is read only inside the four installing modes, so
+    # given alone -- or with a reading mode -- it printed a table,
+    # wrote nothing and exited 0, which is the silence this loop
+    # exists to refuse.
+    if args.in_place and not (args.markdown or args.fingerprint
+                              or args.block or args.claims):
+        p.error('--in-place is a modifier of --markdown, --fingerprint,'
+                ' --block or --claims and does nothing alone')
     for flag, needs in (('alloc', 'compare'), ('chapter', 'compare'),
                         ('quiet', 'check_doc')):
         if getattr(args, flag) and not getattr(args, needs):
@@ -4773,7 +4781,9 @@ def main():
         strategies = [s for s in strategies if not is_control(s)]
     if not shapes or not strategies:
         sys.exit('nothing left after --exclude')
-    if meta['ragged']:
+    holes = [(sh, st) for sh in shapes for st in strategies
+             if st not in cells[sh]]
+    if holes:
         # AHEAD OF EVERY MODE, --selftest included. The guard sat below the
         # roster banner, which is below this dispatch, so the one mode
         # `read-all.sh` calls first was the one mode it did not cover --
@@ -4781,8 +4791,6 @@ def main():
         # is the thing the guard was written for. Found 2026-08-16 by
         # driving the driver, having been proven by hand on a mode that
         # happened to sit on the right side of it.
-        holes = [(sh, st) for sh in shapes for st in strategies
-                 if st not in cells[sh]]
         sys.stderr.write(
             '%s: %d cell(s) missing, so the analysis did not happen. The'
             ' first few: %s\n'
