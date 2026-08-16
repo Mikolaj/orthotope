@@ -131,6 +131,21 @@ KEYWORD = {'type', 'data', 'newtype', 'class', 'instance', 'import', 'module',
 LINE = 64  # the cache line, and the op cache's window on this Zen 3
 
 
+def innermost(path):
+    """{head address: the shortest loop starting there}.
+
+    Every mode wants a binary's loops one per head rather than one per
+    jump, an outer loop and the inner one it contains sharing a head, and
+    each mode built the dict for itself in the same five lines.
+    """
+    heads = {}
+    for f in scan(path, None):
+        cur = heads.get(f['start'])
+        if cur is None or f['len'] < cur['len']:
+            heads[f['start']] = f
+    return heads
+
+
 def scan(path, length):
     dis = subprocess.run(['objdump', '-d', '-j', '.text', path],
                          capture_output=True, text=True).stdout
@@ -229,13 +244,7 @@ def survey(path, want='_Main_'):
     here rather than to the libraries linked in, which no shim on -pgma
     reaches.
     """
-    heads = {}
-    for f in scan(path, None):
-        cur = heads.get(f['start'])
-        if cur is None or f['len'] < cur['len']:   # innermost loop at a head
-            heads[f['start']] = f
-    found = list(heads.values())
-    mine = [f for f in found if want in (f['sym'] or '')]
+    mine = [f for f in innermost(path).values() if want in (f['sym'] or '')]
     at0 = [f for f in mine if f['mod'] == 0]
     strad = [f for f in mine if f['straddles']]
     print(f'{path}: {len(mine)} self-loops of at most {LINE} B in '
@@ -300,13 +309,8 @@ def library(a, b):
         # the comparison is for, and the repeat counter separates two
         # identical loops in one symbol; a loop present in one half only
         # falls out of `common` and is visible in the count.
-        h = {}
-        for f in scan(path, None):
-            cur = h.get(f['start'])
-            if cur is None or f['len'] < cur['len']:
-                h[f['start']] = f
         out, seen = {}, collections.Counter()
-        for f in sorted(h.values(), key=lambda f: f['start']):
+        for f in sorted(innermost(path).values(), key=lambda f: f['start']):
             sym = f['sym'] or ''
             if '_Main_' in sym:
                 continue

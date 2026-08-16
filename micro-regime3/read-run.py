@@ -1909,6 +1909,48 @@ CLAIMS = [
 ]
 
 
+READING = collections.namedtuple(
+    'READING', 'a b expect g k m p best ok')
+
+
+def claim_readings(cells, shapes, strategies):
+    """Every registered ordering's arithmetic and verdict: {claim: [...]}.
+
+    `--claims` prints these and `--claims --in-place` installs them, and
+    each computed them for itself -- the same four statistics and the
+    same three-way read of the registered expectation, in two loops a
+    hundred lines apart. They drifted where copies do: claim 9's two best
+    cells were joined in one and indexed in the other, so a one-shape run
+    got a line out of the printer and an IndexError out of the installer,
+    on the same arithmetic (2026-08-16). What stays with each caller is
+    the wording, which is all they ever really differed in.
+
+    `best` is None unless the expectation names two shapes, and a pair
+    either half of which this run does not carry is absent, so a claim
+    with nothing live has no entry at all.
+    """
+    out = {}
+    for n, _, pairs in CLAIMS:
+        for a, b, expect in pairs:
+            if a not in strategies or b not in strategies:
+                continue
+            _, r = pair_stats(cells, shapes, a, b)
+            g, m = geomean(r), len(r)
+            k = sum(1 for x in r if x < 1)
+            p = sign_p(k, m)
+            best = None
+            if isinstance(expect, tuple):
+                best = sorted(s for _, s in sorted(zip(r, shapes))[:2])
+                ok = best == sorted(expect[1:])
+            elif expect == 'tie':
+                ok = p >= 0.05
+            else:
+                ok = (g < 1) if expect == 'faster' else (g > 1)
+            out.setdefault(n, []).append(
+                READING(a, b, expect, g, k, m, p, best, ok))
+    return out
+
+
 def claims_table(cells, shapes, strategies, args):
     """Every claim's reading and its registered verdict, in one call.
 
@@ -1948,36 +1990,28 @@ def claims_table(cells, shapes, strategies, args):
               % (len(missing), ', '.join(sorted(set(missing)))))
         print('      a filtered run cannot check the claims; use a full one.')
     held = broke = 0
+    readings = claim_readings(cells, shapes, strategies)
     for n, label, pairs in CLAIMS:
         print('\nclaim %d -- %s' % (n, label))
-        live = [[a, b] for a, b, _ in pairs
-                if a in strategies and b in strategies]
+        live = [[x.a, x.b] for x in readings.get(n, [])]
         for a, b, _ in pairs:
             if [a, b] not in live:
                 print('  %s / %s: not in this run' % (a, b))
         if live:
             pair_table(cells, shapes, strategies, live, quiet=True)
-        for a, b, expect in pairs:
-            if [a, b] not in live:
-                continue
-            _, r = pair_stats(cells, shapes, a, b)
-            g = geomean(r)
-            p = sign_p(sum(1 for x in r if x < 1), len(r))
-            if isinstance(expect, tuple):
-                best = sorted(s for _, s in sorted(zip(r, shapes))[:2])
-                ok = best == sorted(expect[1:])
+        for x in readings.get(n, []):
+            a, b, expect, ok = x.a, x.b, x.expect, x.ok
+            if x.best is not None:
                 want = 'best two shapes are %s' % ' and '.join(
                     sorted(expect[1:]))
-                got = 'they are %s' % ' and '.join(best)
+                got = 'they are %s' % ' and '.join(x.best)
             elif expect == 'tie':
-                ok = p >= 0.05
-                want, got = 'a tie by sign test', 'sign p %.2g' % p
+                want, got = 'a tie by sign test', 'sign p %.2g' % x.p
             else:
-                ok = (g < 1) if expect == 'faster' else (g > 1)
                 want = 'A %s (geomean %s 1)' % (expect,
                                                 '<' if expect == 'faster'
                                                 else '>')
-                got = 'geomean %.4f' % g
+                got = 'geomean %.4f' % x.g
             held += ok
             broke += not ok
             # On a partial population the arithmetic is real and the
@@ -2064,30 +2098,16 @@ def claims_readings(cells, shapes, strategies):
     what this returns, having no arithmetic to install.
     """
     out = {}
-    for n, _, pairs in CLAIMS:
-        live = [(a, b, e) for a, b, e in pairs
-                if a in strategies and b in strategies]
-        if not live:
-            continue
+    for n, live in claim_readings(cells, shapes, strategies).items():
         bits, broke = [], []
-        for a, b, expect in live:
-            _, r = pair_stats(cells, shapes, a, b)
-            g, m = geomean(r), len(r)
-            k = sum(1 for x in r if x < 1)
-            p = sign_p(k, m)
+        for x in live:
             bit = ('`%s` / `%s` %.4f, %d of %d, sign p %.2g'
-                   % (a, b, g, k, m, p))
-            if isinstance(expect, tuple):
-                best = sorted(s for _, s in sorted(zip(r, shapes))[:2])
-                ok = best == sorted(expect[1:])
+                   % (x.a, x.b, x.g, x.k, x.m, x.p))
+            if x.best is not None:
                 bit += ', best two cells %s' % ' and '.join(
-                    '`%s`' % s for s in best)
-            elif expect == 'tie':
-                ok = p >= 0.05
-            else:
-                ok = (g < 1) if expect == 'faster' else (g > 1)
-            if not ok:
-                broke.append('`%s` / `%s`' % (a, b))
+                    '`%s`' % s for s in x.best)
+            if not x.ok:
+                broke.append('`%s` / `%s`' % (x.a, x.b))
             bits.append(bit)
         verdict = ('%d of %d registered ordering%s held'
                    % (len(bits) - len(broke), len(bits),
