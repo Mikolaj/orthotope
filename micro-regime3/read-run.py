@@ -489,8 +489,14 @@ def health(cells, shapes, strategies, terms):
                 starved.append((c['n'], sh, st))
             if c['ci'] is None:
                 no_ci.append((sh, st))
+            # `alloc` is None for a shape Main.hs no longer defines, `l`
+            # being what turns bytes into the multiple -- and `or 0` then
+            # read that as "allocated nothing" and skipped the warning
+            # entirely, so an older JSON went quiet here while `--cells`
+            # still printed its `alloc_bytes`. Unknown is not small: warn
+            # and let the reader look. Found 2026-08-17 by review.
             if (c.get('alloc_r2') is not None and c['alloc_r2'] < 0.99
-                    and (c['alloc'] or 0) >= 0.1):
+                    and (c['alloc'] is None or c['alloc'] >= 0.1)):
                 bad_alloc.append((c['alloc_r2'], sh, st))
     out = []
     if bad_fit:
@@ -582,14 +588,21 @@ def insitu_ratios(cells, shapes, strategies):
         base = base_of(arm)
         if base not in strategies:
             continue
-        r = []
+        # The shapes come back WITH the ratios, because a shape whose gap
+        # or term is not positive is dropped here and the caller labelled
+        # its worst cell by zipping the ratios against `shapes` -- so one
+        # dropped shape renamed every later ratio with its predecessor's
+        # shape, and `--aa` printed a worst cell on a shape that did not
+        # produce it. Found 2026-08-17 by review.
+        r, at = [], []
         for s in shapes:
             gap = cells[s][base]['slope'] - cells[s][arm]['slope']
             term = cells[s][base]['slope'] - cells[s][base]['net']
             if gap > 0 and term > 0:
                 r.append(gap / term)
+                at.append(s)
         if r:
-            out.append((base, arm, r))
+            out.append((base, arm, r, at))
     return out
 
 
@@ -1204,9 +1217,25 @@ def pair_stats(cells, shapes, a, b):
     the verdict a claim prints cannot disagree with the figures beside it.
     Netting an arm that never ran the forcing pass is meaningless, so a
     pair with a `sum-only` or `-nosum` half is compared raw and says so.
+
+    A cell the forcing term did not leave positive is refused rather than
+    divided: `time_of` and `worst_of` answer `--` for one and `--selftest`
+    fails the file over it, while this divided regardless and handed
+    `--pair` and `--claims` a ZeroDivisionError, or a negative ratio and
+    then `math domain error` out of `geomean` -- a traceback where this
+    file's convention is a refusal that says what did not happen. Found
+    2026-08-17 by review.
     """
     raw = any(no_net(x) for x in (a, b))
     key = 'slope' if raw else 'net'
+    sunk = [(s, x) for s in shapes for x in (a, b)
+            if not cells[s][x][key] > 0]
+    if sunk:
+        sys.stderr.write('%s / %s: %d cell(s) with no positive %s, so this'
+                         ' pair is not readable and nothing here is. The'
+                         ' first: %s/%s\n'
+                         % (a, b, len(sunk), key, sunk[0][1], sunk[0][0]))
+        sys.exit(2)
     return raw, [cells[s][a][key] / cells[s][b][key] for s in shapes]
 
 
@@ -1317,7 +1346,7 @@ def controls_skeleton(cells, shapes, strategies, terms):
     else:
         print()
     meds = [(base, stats.median(r))
-            for base, _, r in insitu_ratios(cells, shapes, strategies)]
+            for base, _, r, _ in insitu_ratios(cells, shapes, strategies)]
     if meds:
         print('The in-situ term reads %s of `sum-only` as medians,'
               % ', '.join('%.4f' % m for _, m in meds))
@@ -1640,13 +1669,21 @@ def aa_table(cells, shapes, strategies, terms, meta, brief=False):
         print('\n%-28s %-24s %9s %8s %7s'
               % ('in-situ forcing term', 'against sum-only', 'ratio',
                  'median', 'mean|d|'))
-        for base, arm, r in insitu:
+        for base, arm, r, at in insitu:
             dev = [abs(x - 1) * 100 for x in r]
-            worst = max(zip(dev, shapes))
+            worst = max(zip(dev, at))
             print('%-28s %-24s %9.4f %8.4f %6.2f%%'
                   % (base + ' - ' + arm, 'sum-only', geomean(r),
                      stats.median(r), stats.fmean(dev)))
             print('%64s worst cell %.2f%% on %s' % ('', worst[0], worst[1]))
+            if len(at) < len(shapes):
+                # A row over fewer shapes than the run has is a different
+                # population from the one above it, and nothing else here
+                # would say so.
+                print('%64s over %d of %d shape(s): %s'
+                      % ('', len(at), len(shapes),
+                         ', '.join(s for s in shapes if s not in at)
+                         + ' dropped, the gap or the term not positive'))
         if not brief:
             print('\nA `-nosum` arm is its base run again and forced with one')
             print('element rather than the sum, so base minus it is that sum'
@@ -1918,10 +1955,20 @@ FINGERPRINT_TABLES = [
 
 
 def fmt_abs(seconds):
-    """A per-call time at reading precision, in README's units."""
+    """A per-call time at reading precision, in README's units.
+
+    A unit is taken as soon as the value ROUNDS to 1 of it, not once it
+    reaches 1: at three significant figures 999.7 µs prints as `1e+03 µs`,
+    which `FINGERPRINT_ABS_RE` cannot match, so `--machine` dropped that
+    shape from its comparison and said nothing -- and README already
+    carries a `1 ms` cell, which is that boundary. `.9995 * scale` is where
+    `%.3g` starts rounding up out of the unit below. Found 2026-08-17 by
+    review; the seam check in `selftest` samples the boundary now, having
+    passed vacuously on four values nowhere near it.
+    """
     for unit, scale in (('s', 1), ('ms', 1e-3), ('µs', 1e-6),
                         ('ns', 1e-9)):
-        if seconds >= scale:
+        if seconds >= scale * .9995:
             return '%.3g %s' % (seconds / scale, unit)
     return '%.3g s' % seconds
 
@@ -2150,8 +2197,20 @@ CLAIMS_FIG = re.compile(r'\b\d+(?:\.\d+)?e-\d+\b|\b\d+\.\d{2,4}\b'
                         # `3 of 3 registered orderings held` is the installed
                         # line's verdict, not one of its win counts.
                         r'|\b(\d+) (?:wins )?of (\d+)\b(?! registered)')
-CLAIMS_PAST = re.compile(r'Run \d+|(?:last|previous|earlier|prior)'
-                         r'\s+(?:\w+\s+)?runs?')
+def claims_past(run_now=None):
+    """A sentence attributing its figures to a run OTHER than this one.
+
+    `Run \\d+` matched any run number, this one included, so a verdict
+    sentence opening "In Run 15, `bq-expand` reads 0.9312" exempted every
+    figure in itself -- and a stale CURRENT-run figure, which is the one
+    kind this sweep exists to catch, was the kind it could not see. The
+    run in hand is excluded when the page names it; with no such heading
+    the old behaviour stands, which is a sweep that lists less rather than
+    one that lists wrongly. Found 2026-08-17 by review.
+    """
+    return re.compile((r'Run \d+' if run_now is None
+                       else r'Run (?!%d\b)\d+' % run_now)
+                      + r'|(?:last|previous|earlier|prior)\s+(?:\w+\s+)?runs?')
 
 
 def main_set_gap(shapes, main_hs):
@@ -2370,6 +2429,8 @@ def claims_in_doc(readme, cells, shapes, strategies, src, main_hs):
     # and they quote figures too -- the movement that is the run's reading.
     # They are read against every claim's figures rather than one's.
     every = set().union(*readings.values()) if readings else set()
+    now = re.search(r'^## About the last run \(Run (\d+)\)$', doc, re.M)
+    past_re = claims_past(int(now.group(1)) if now else None)
     ok, listed, skipped, claim = 0, [], set(), None
     for para in paras[start + 1:end]:
         lead = re.match(r'\*\*Claims? (\d+)', para)
@@ -2380,7 +2441,7 @@ def claims_in_doc(readme, cells, shapes, strategies, src, main_hs):
             continue
         allowed = every if claim is None else readings[claim]
         for sent in re.split(r'(?<=[.!?]) (?=[A-Z*`(])', para):
-            past = CLAIMS_PAST.search(sent)
+            past = past_re.search(sent)
             for m in CLAIMS_FIG.finditer(sent):
                 if sent[m.end():m.end() + 1] == '%':
                     continue
@@ -2534,6 +2595,20 @@ def load_other(other, main_hs, shapes, meta):
     and a flag for that would be a parameter every caller passes the same.
     """
     b_cells, b_shapes, b_strategies, b_meta = load(other, main_hs)
+    # The same hole gate the run in hand gets, and for the same reason one
+    # commit later: `--compare`, `--chapter` and `--compare --alloc` index
+    # the other run's cells directly, so an interrupted half raised a
+    # KeyError -- a traceback where this file's convention is a refusal
+    # naming what did not happen. Found 2026-08-17 by review.
+    holes = [(sh, st) for sh in b_shapes for st in b_strategies
+             if st not in b_cells[sh]]
+    if holes:
+        sys.stderr.write(
+            '%s: %d cell(s) missing, so the comparison did not happen. The'
+            ' first few: %s\n'
+            % (os.path.basename(other), len(holes),
+               '; '.join('%s/%s' % h for h in holes[:5])))
+        sys.exit(2)
     apply_correction(b_cells, b_shapes, b_strategies)
     mine = population_of(shapes, meta['dims'])[1]
     theirs = population_of(b_shapes, b_meta['dims'])[1]
@@ -2635,6 +2710,16 @@ def summary_row(cells, shapes, strategies, args, main_hs):
         return
     got = [c.replace('**', '').replace('`', '').strip()
            for c in hit[0].strip('|').split('|')][1:]
+    # A row that lost a column would otherwise have its tail compared
+    # against nothing at all, `zip` stopping at the shortest of the three
+    # -- silently, where both guards above this one report. The width is
+    # the first thing to check, not a precondition to assume.
+    if len(got) != len(SUMMARY_COLS):
+        sys.stderr.write('summary row `%s` not checked: it has %d column(s)'
+                         ' where the summary takes %d (%s)\n'
+                         % (label, len(got), len(SUMMARY_COLS),
+                            ', '.join(SUMMARY_COLS)))
+        return
     off = ['%s says %s where the cells give %s' % (col, g, w)
            for col, g, w in zip(SUMMARY_COLS, got, want) if g != w]
     if off:
@@ -3059,7 +3144,13 @@ def check_paths(doc):
         if not PATH_EXT_RE.match(tok):
             out['unclassified'] += 1
             continue
-        rel = tok.lstrip('./')
+        # A prefix, not a character set: `lstrip('./')` ate the leading dot
+        # of `.github/workflows/lint.yml` and both levels of `../orthotope`,
+        # so the first dotfile or parent-relative path this page cites would
+        # have hard-FAILED as a path that does not resolve. Found 2026-08-17
+        # by review; neither is on the page today, which is why nothing
+        # noticed.
+        rel = tok[2:] if tok.startswith('./') else tok
         if TRANSIENT_RE.match(rel):
             out['transient'].append(tok)
             continue
@@ -3833,6 +3924,28 @@ def check_doc(readme, main_hs):
     # everything else of it, and a return to that regime would have nothing
     # to read against. Prose asks for it to be kept; this makes the asking
     # stick.
+    # `install --in-place` writes `?` into any cell it cannot carry
+    # forward -- a row new to the roster -- and says so once, on stderr,
+    # hours before anyone reads the table. Twelve reached a published
+    # Results table on 2026-08-15 and the write-up shipped with them.
+    # A warning nobody re-reads is a gate that does not exist, so this
+    # is the gate: no cell of a published table may still be `?`.
+    #
+    # OUTSIDE the yardstick block below, reading nothing of it: it sat
+    # inside, so a renamed yardstick header disabled this gate as well as
+    # that one, and the `?` cells the comment above says shipped would
+    # have gone unreported for that run. Moved 2026-08-17 by review.
+    qmark = [i + 1 for i, ln in enumerate(lines)
+             if re.search(r'\|\s*\?\s*\|', ln)]
+    if qmark:
+        bad.append('%d published table cell(s) still carry the `?` that'
+                   ' install writes for a row it cannot carry forward --'
+                   ' first at line %d; fill each from the run or from the'
+                   ' note written before it'
+                   % (len(qmark), qmark[0]))
+    else:
+        print('ok:   no published table cell is left at install\'s `?`')
+
     yard = [l for l in lines if l.startswith('| strategy |') and '(' in l]
     if not yard:
         bad.append('the yardstick table is gone: no `| strategy |` header'
@@ -3848,23 +3961,6 @@ def check_doc(readme, main_hs):
         else:
             print('ok:   the yardstick keeps a column per regime (%s)'
                   % ' / '.join(sorted(regimes)))
-
-        # `install --in-place` writes `?` into any cell it cannot carry
-        # forward -- a row new to the roster -- and says so once, on stderr,
-        # hours before anyone reads the table. Twelve reached a published
-        # Results table on 2026-08-15 and the write-up shipped with them.
-        # A warning nobody re-reads is a gate that does not exist, so this
-        # is the gate: no cell of a published table may still be `?`.
-        qmark = [i + 1 for i, ln in enumerate(lines)
-                 if re.search(r'\|\s*\?\s*\|', ln)]
-        if qmark:
-            bad.append('%d published table cell(s) still carry the `?` that'
-                       ' install writes for a row it cannot carry forward --'
-                       ' first at line %d; fill each from the run or from the'
-                       ' note written before it'
-                       % (len(qmark), qmark[0]))
-        else:
-            print('ok:   no published table cell is left at install\'s `?`')
 
         # A paired run puts two columns here, one per half, and neither may
         # be dropped or folded into the other: an aligned build is a regime
@@ -4093,7 +4189,7 @@ def check_doc(readme, main_hs):
               if l.startswith('## What is open')]
         hi = [i for i, l in enumerate(lines, 1)
               if l.startswith('## The goal')]
-        if m and lo and hi:
+        if m and lo and hi and lo[0] < hi[0]:
             run_now = int(m.group(1))
             pro = re.compile(r'\bRun (\d+)\b[^.;]*?\b(?:will|is to be)\b'
                              r'|\b(?:will|is to be)\b[^.;]*?\bRun (\d+)\b')
@@ -4113,6 +4209,30 @@ def check_doc(readme, main_hs):
                 for first, para in stale:
                     print('        %s:%d: %s'
                           % (os.path.basename(readme), first, para[:60]))
+        else:
+            # A range this sweep cannot delimit is a sweep that did not
+            # run, and its silence read exactly like a clean open list:
+            # rename either heading, or move the goal section above the
+            # open one -- which renames nothing and so trips no neighbour
+            # -- and it printed nothing. Same rule as the wrap and path
+            # checks: BLOCKED is not a pass. Found 2026-08-17 by review,
+            # the second half of it by proving the first.
+            bad.append('BLOCKED: the open list (%s), the goal section (%s)'
+                       ' or the chapter heading (%s) could not be located'
+                       ' in that order, so no prospective promise was'
+                       ' checked'
+                       % ('line %d' % lo[0] if lo else 'gone',
+                          'line %d' % hi[0] if hi else 'gone',
+                          'found' if m else 'gone'))
+    else:
+        # `lint` fails loudly on the same nothing; this went quiet, and a
+        # renamed or re-indented roster -- or a wrong --main -- left the
+        # prose counts, the floor agreement, the roster and population
+        # sizes and the stale-promise sweep all unrun, with only `ok:`
+        # lines and exit 0 to show for it. Found 2026-08-17 by review.
+        bad.append('BLOCKED: no roster parsed out of %s, so the prose'
+                   ' counts, the floor agreement and the open-list sweep'
+                   ' did not happen' % os.path.basename(main))
 
     # Links into the run chapter from standing prose. The chapter is
     # replaced by the next run, so such a link keeps resolving -- the
@@ -4145,6 +4265,13 @@ def check_doc(readme, main_hs):
             for i, l in into:
                 print('        %s:%d: %s'
                       % (os.path.basename(readme), i, l[:60]))
+    else:
+        # The heading is the sweep's own boundary, so without it there is
+        # no "above the chapter" to sweep and the silence read as a page
+        # with no decayed links. Found 2026-08-17 by review, with the
+        # open-list sweep above it.
+        bad.append('BLOCKED: no `## About the last run` heading, so the'
+                   ' links into the run chapter were not swept')
 
     for line in bad:
         print('FAIL: ' + line)
@@ -4556,8 +4683,15 @@ def selftest(cells, shapes, strategies, meta):
         skip.append('no `sum-only` bench in this run, so the correction is'
                     ' zero and the time column uncorrected -- untested here')
     else:
-        term_bad = [sh for sh in shapes
-                    if not 0 < cells[sh][halves[0]]['slope']]
+        # EVERY half, not `halves[0]`: `apply_correction` averages them all
+        # and the ok line below claims all of them, so checking one was a
+        # narrower test than either sentence around it. A non-positive term
+        # also fails the malformed-cell test above, so this branch names
+        # the consequence for the correction rather than discovering the
+        # cell -- which is why it is not a second discovery. Widened
+        # 2026-08-17 by review.
+        term_bad = [sh for sh in shapes for h in halves
+                    if not 0 < cells[sh][h]['slope']]
         sunk = [(sh, st) for sh in shapes for st in strategies
                 if not no_net(st)
                 and cells[sh][st]['net'] <= 0]
@@ -4675,7 +4809,10 @@ def selftest(cells, shapes, strategies, meta):
     # check with nothing to compare and no complaint, and --steps is
     # arithmetic that no published column can contradict.
     was = len(bad)
-    for x in (3.21e-9, 5.28e-6, 1.23e-3, 2.5):
+    # The last two are the rounding boundary `fmt_abs` moves a unit at:
+    # 999.7 µs is `1 ms` and 999.4 µs is `999 µs`, and the exponent form
+    # the first used to take is what this seam cannot parse.
+    for x in (3.21e-9, 5.28e-6, 1.23e-3, 2.5, 9.997e-4, 9.994e-4):
         cell = '| `shape` | 3 | 288 | %s | 0.152 |' % fmt_abs(x)
         m = FINGERPRINT_ABS_RE.match(cell)
         if not m:
@@ -4841,6 +4978,26 @@ def main():
         if getattr(args, flag) and not getattr(args, needs):
             p.error('--%s is a modifier of --%s and does nothing alone'
                     % (flag, needs.replace('_', '-')))
+    # `--brief` is read inside --aa and --block alone, so `--markdown
+    # --brief` printed the full table at exit 0 saying nothing -- the same
+    # silence the loop above refuses, one flag it did not cover.
+    if args.brief and not (args.aa or args.block):
+        p.error('--brief is a modifier of --aa or --block and does nothing'
+                ' alone')
+    # One mode an invocation. The dispatch below is an if/elif chain, so a
+    # second mode was not refused but DROPPED: `--markdown --fingerprint
+    # --in-place` installed the Results table, wrote neither fingerprint
+    # table and said nothing about it. Both found 2026-08-17 by review.
+    modes = [f for f in ('shapes', 'aa', 'pair', 'claims', 'compare',
+                         'machine', 'steps', 'cells', 'markdown',
+                         'fingerprint', 'block', 'selftest', 'lint',
+                         'check_doc', 'para')
+             if getattr(args, f)]
+    if len(modes) > 1:
+        p.error('one mode at a time, and %s were all asked for: the'
+                ' dispatch runs the first and drops the rest without a'
+                ' word' % ', '.join('--' + f.replace('_', '-')
+                                    for f in modes))
     if args.alloc and args.chapter:
         p.error('--alloc and --chapter are two readings, not one: run the'
                 ' two invocations README\'s checklist spells out')
