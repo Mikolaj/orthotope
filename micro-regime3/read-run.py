@@ -2182,6 +2182,8 @@ def claims_in_doc(readme, cells, shapes, strategies):
               % ('summary' if n is None else 'claim %d' % n, fig, sent[:92]))
 
 
+SUMMARY_COLS = ('shapes', 'bq-expand', 'worst', 'fastest pure', 'ceiling',
+                'floor')
 PROP2_FASTEST = 'mut-odo-vecdims'
 PROP2_PURE = 'bq-scan-rem-gm-mulback'
 SHIPPED = 'bq-expand'
@@ -2288,6 +2290,89 @@ def block_verdicts(cells, shapes, strategies, meta, args):
     if unknown:
         print('  NOT classified pure or impure, `needs` unwritten: %s'
               % ', '.join(unknown))
+
+
+def summary_row(cells, shapes, strategies, args, main_hs):
+    """Check this class's row of the cross-class summary against the cells.
+
+    The summary is the last figure-bearing table with no installer, and it
+    is not getting one: its emphasis is a per-run judgement applied by
+    hand and already inconsistent -- `scaled`'s pure arm is bold in Run 14
+    and was not in Run 13 on the same arm, and `rev`'s is bold in neither
+    while naming the same arm as `bcast`'s, which is -- so a renderer
+    would have to invent or drop marks that mean something to somebody.
+    What it can have is the check the page already asks for: the summary
+    is a transcription from the class tables, cell against table, and
+    every cell of it is derivable right here. Eight calls a run, one per
+    class, riding the `--block` each class already gets.
+
+    It writes to stderr, where `install-tables.sh` collects what a run
+    still owes by hand, and it changes no exit code: a wrong cell is for a
+    person to fix, and the table is not this mode's to write.
+
+    A run over part of a class is not checked and says so, since every
+    figure in the row is over the whole population -- which is what makes
+    the smoke sweep's one-shape `--block` silent here rather than wrong.
+
+    Non-vacuity, 2026-08-16: over Run 14's eight class JSONs every cell of
+    every row reproduces, so a row this prints nothing for is a row that
+    agrees; changing `rev`'s worst to 0.172 in a copy reported that cell
+    alone, naming both figures, and the same break driven through
+    `install-tables.sh` came out in the list of what the installs left to
+    do by hand, which is where a run will meet it.
+    """
+    dims = dims_by_shape(main_hs)[0]
+    lists = {dims[s]['lst'] for s in shapes if s in dims}
+    if len(lists) != 1:
+        return
+    whole = {s for s, d in dims.items() if d['lst'] in lists}
+    label = '/'.join(sorted({sh.split('-')[0] for sh in shapes}))
+    if set(shapes) != whole:
+        sys.stderr.write('summary row `%s` not checked: this run carries %d'
+                         ' of the class\'s %d shapes\n'
+                         % (label, len(shapes), len(whole)))
+        return
+    rows, have_list = strategy_rows(cells, shapes, strategies)
+    if not have_list:
+        return
+    needs = {st: n for st, (_, _, n)
+             in readme_rows(args.readme, strategies).items()}
+    timed = [r for r in rows if not is_control(r[1]) and r[0] == r[0]]
+    pure = [r for r in timed if is_pure(needs.get(r[1], '?'))]
+    shipped = next((r for r in timed if r[1] == SHIPPED), None)
+    if not (timed and pure and shipped):
+        return
+    pos = {st: i for i, st in enumerate(strategies)}
+    aa = []
+    for a in strategies:
+        b = twin_of(a)
+        if b and b in pos:
+            aa.append(geomean([cells[s][a]['net'] / cells[s][b]['net']
+                               for s in shapes]))
+    if not aa:
+        return
+    want = ['%d' % len(shapes), '%.3f' % shipped[0], '%.3f' % shipped[6],
+            '%s %.3f' % (pure[0][1], pure[0][0]),
+            '%s %.3f' % (timed[0][1], timed[0][0]),
+            '%.2f%%' % (abs(max(aa, key=lambda g: abs(g - 1)) - 1) * 100)]
+    try:
+        doc = open(args.readme).read()
+    except OSError as exc:
+        sys.stderr.write('summary row `%s` not checked: %s\n' % (label, exc))
+        return
+    hit = [l for l in doc.split('\n') if l.startswith('| `%s` |' % label)]
+    if len(hit) != 1:
+        sys.stderr.write('summary row `%s` not checked: %d line(s) in %s'
+                         ' start it, need exactly one\n'
+                         % (label, len(hit), os.path.basename(args.readme)))
+        return
+    got = [c.replace('**', '').replace('`', '').strip()
+           for c in hit[0].strip('|').split('|')][1:]
+    off = ['%s says %s where the cells give %s' % (col, g, w)
+           for col, g, w in zip(SUMMARY_COLS, got, want) if g != w]
+    if off:
+        sys.stderr.write('summary row `%s` disagrees with this class\'s'
+                         ' cells: %s\n' % (label, '; '.join(off)))
 
 
 def block_skeleton(cells, shapes, strategies, meta, args, terms):
@@ -4478,6 +4563,7 @@ def main():
         text = capture(block_skeleton, cells, shapes, strategies, meta,
                        args, terms)
         emit_or_install(text, args, shapes, meta, block=True)
+        summary_row(cells, shapes, strategies, args, args.main)
     else:
         strategy_table(cells, shapes, strategies, meta, args, terms)
 

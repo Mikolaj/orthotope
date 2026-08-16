@@ -4950,7 +4950,11 @@ the artifacts are what it spends.
       from the JSONs.** Every cell of it appears in one of the class tables
       above it, so it is a transcription and is checked as one — cell against
       table, each in turn — where recomputing it from the runs would be a second
-      derivation able to disagree with the tables it summarises;
+      derivation able to disagree with the tables it summarises. **Each class's
+      `--block` now checks its own row** and names the cell on stderr,
+      so `install-tables.sh` reports a wrong transcription among what it leaves
+      you; the table stays hand-assembled because its emphasis is a judgement
+      no reader can derive, and the marks have already drifted between runs;
    6. **check that every `](#...)` resolves**, here and in `Main.hs`'s
       `README.md#...` references, and that every figure-bearing section
       is linked from the Provenance list. Findings rename headings,
