@@ -97,12 +97,15 @@ publish a table for one. A major run is one process per population for
 exactly this reason (README.md#making-a-major-benchmark-run), and the way
 to get a mixed file is `classes` with no prefix.
 
-The one field this script does not read, written down because criterion
-documents it nowhere near to hand: `reportMeasured` is the raw sample list,
-each sample itself a list whose [0] is the time and [3] the iteration count.
-That is the way in to anything the fitted slope hides -- a warm-up ramp, a
-lone outlying sample -- where --cells reports only how many samples there
-were.
+The field criterion documents nowhere near to hand: `reportMeasured` is the
+raw sample list, each sample itself a LIST whose [0] is the time and [3] the
+iteration count. It is the way in to anything the fitted slope hides -- a
+warm-up ramp, a lone outlying sample -- where --cells reports only how many
+samples there were. **This script does read it**, in `step_scan` and so
+under --steps and --block, which is what makes the array shape load-bearing
+rather than a note: the paragraph here said the field was unread until
+2026-08-16, and a stub written to that description -- samples with a length
+and no contents -- got a `KeyError: 3` out of --block instead of an answer.
 
 Every mode also warns on stderr about the cells README says to distrust:
 R2 under 0.99, fewer than ten samples, a fit too starved for a confidence
@@ -687,6 +690,14 @@ def strategy_table(cells, shapes, strategies, meta, args, terms):
               % (len(shapes) - meta['known_l']))
 
 
+# The two headers `--markdown` emits, and the one `readme_rows` finds the
+# Results table by. One literal, so that the emitter and the reader of the
+# same table cannot drift apart -- which is a way for the carry-forward to
+# stop finding anything and report every row as new.
+CLASS_HDR = '| strategy | time | worst | CI% | smp | alloc |'
+RESULTS_HDR = '| strategy | time | worst | CI% | smp | alloc | needs |'
+
+
 def readme_rows(readme, strategies, recognise=None):
     """README's Results table, keyed by strategy: (label, style, needs).
 
@@ -701,10 +712,23 @@ def readme_rows(readme, strategies, recognise=None):
     those strategies' roster entries in Main.hs.
 
     Rows are matched by stripping emphasis and the `(baseline)` suffix, and
-    only names in `recognise` are taken, so the other markdown tables on the
-    page cannot be mistaken for this one however their column count lands --
-    which the name filter now does alone, the cross-class summary being seven
-    columns wide too since the eighth went.
+    read from the Results table alone -- located by its own header line, as
+    `install` locates it, and ended at the first line that is not a row.
+    The name filter stays as the second guard, against the separator row and
+    against a name the roster does not hold.
+
+    **The name filter does not do that job alone, and it used to be asked
+    to.** A toy run on 2026-08-16 refuted the claim that stood here: the
+    loop-offsets table is seven columns wide too and its first column is
+    rostered arm names, so its rows were read as Results rows. Two things
+    followed, and the second is why this is anchored rather than filtered
+    harder. The departed-row warning named six arms that were not in the
+    Results table at all, on a run carrying part of the roster. And `needs`
+    was last-writer-wins over the whole page: a seven-column row planted
+    for `bq-expand` BELOW the Results table put that table's last cell into
+    the installed `needs`, and its emphasis with it, silently and at exit
+    0. Nothing was wrong on the page only because the offsets table sits
+    above the Results one.
 
     `recognise` defaults to the run's own arms, which is what a caller
     carrying figures forward wants. --markdown widens it to the whole roster,
@@ -722,6 +746,14 @@ def readme_rows(readme, strategies, recognise=None):
     The `bq-scan-mulback-aa-*` pair is in that state today, re-pointed and
     renamed after Run 8 published it.
 
+    The anchoring was checked the same day, three ways: over the real page
+    and Run 14's basis all 47 rows carry forward with none added or dropped
+    and the copy is byte-identical; with the planted table restored below
+    the Results one, `bq-expand` keeps its `needs` and its emphasis and the
+    departed-row warning names the one row that really left; and a Results
+    header renamed out of recognition warns that nothing was carried and
+    the install refuses, where before it would have called every row new.
+
     Non-vacuity, confirmed rather than argued: against the 49-row Run 8 table
     and a one-shape run of today's 34-arm roster, --markdown reports 23 gone,
     naming every arm the two rulings stopped timing and no other, alongside
@@ -733,9 +765,16 @@ def readme_rows(readme, strategies, recognise=None):
         text = open(readme).read().split('\n')
     except OSError:
         return out
-    for line in text:
-        if not line.lstrip().startswith('|'):
-            continue
+    at = [i for i, line in enumerate(text) if line == RESULTS_HDR]
+    if len(at) != 1:
+        sys.stderr.write('warning: %d line(s) in %s are the Results table'
+                         ' header, so no `needs` cell was carried forward'
+                         ' and every row will install as new\n'
+                         % (len(at), os.path.basename(readme)))
+        return out
+    for line in text[at[0] + 1:]:
+        if not line.startswith('|'):
+            break
         cell = [c.strip() for c in line.strip().strip('|').split('|')]
         if len(cell) != 7:
             continue
@@ -902,8 +941,7 @@ def markdown_table(cells, shapes, strategies, meta, args, terms):
     prev = readme_rows(args.readme, set(strategies),
                        rostered or set(strategies))
     fresh, gone = [], [n for n in prev if n not in strategies]
-    print('| strategy | time | worst | CI% | smp | alloc'
-          + (' | needs |' if editorial else ' |'))
+    print(RESULTS_HDR if editorial else CLASS_HDR)
     print('|---|---:|---:|---:|---:|---:' + ('|---|' if editorial else '|'))
     for time, st, ci, noise, smp, alloc, worst in rows:
         if st in prev:
@@ -1626,7 +1664,24 @@ def step_scan(path, min_iters=50, min_samples=20):
     """
     raw = json.load(open(path))
     out = []
+    # The only place this script indexes INTO a sample, so the only place a
+    # run file whose samples are not criterion Measured arrays can be met.
+    # A stub built to what `load` reads -- which is the list's length and
+    # nothing else -- crashed here with `KeyError: 3` rather than saying
+    # what was wrong with the file (2026-08-16, a toy run).
+    unread = [r['reportName'] for r in raw[2]
+              if not all(isinstance(s, (list, tuple)) and len(s) > 3
+                         for s in r['reportMeasured'])]
+    if unread:
+        sys.stderr.write('warning: %d report(s) in %s carry samples that are'
+                         ' not Measured arrays, so the step scan skipped'
+                         ' them: %s\n'
+                         % (len(unread), os.path.basename(path),
+                            ', '.join(unread[:3])
+                            + (', ...' if len(unread) > 3 else '')))
     for r in raw[2]:
+        if r['reportName'] in unread:
+            continue
         m = [s for s in r['reportMeasured'] if s[3] >= min_iters]
         if len(m) < min_samples:
             continue
