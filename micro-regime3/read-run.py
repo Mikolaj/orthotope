@@ -2126,7 +2126,7 @@ def install_readings(readme, texts, src, strategies):
                         done, added, len(texts)))
 
 
-def claims_in_doc(readme, cells, shapes, strategies):
+def claims_in_doc(readme, cells, shapes, strategies, src):
     """Figures in the claims verdicts that this run's readings do not give.
 
     The installer writes each claim's readings; this asks the other
@@ -2217,8 +2217,12 @@ def claims_in_doc(readme, cells, shapes, strategies):
                     ok += 1
                 elif not past:
                     listed.append((claim, fig, sent))
-    print('\n%d figure(s) in the verdicts are this run\'s own readings.'
-          % ok)
+    # Name the file the readings came from. A run pointed at the control
+    # half lists two dozen figures as unaccounted, which is what a stale
+    # section looks like too -- and the cure for one is to rewrite two
+    # dozen correct sentences, so the two must not print alike.
+    print('\n%d figure(s) in the verdicts are the readings of %s.'
+          % (ok, os.path.basename(src)))
     if skipped:
         print('claim%s %s ha%s no live pair here, so what %s quote%s is the'
               ' table\'s and goes unchecked by this.'
@@ -4591,7 +4595,7 @@ def main():
                          args.run, strategies)
     elif args.claims:
         claims_table(cells, shapes, strategies, args)
-        claims_in_doc(args.readme, cells, shapes, strategies)
+        claims_in_doc(args.readme, cells, shapes, strategies, args.run)
     elif args.compare and args.chapter:
         chapter_skeleton(cells, shapes, strategies, meta,
                          args.compare, args.main)

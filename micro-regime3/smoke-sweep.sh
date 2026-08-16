@@ -18,10 +18,11 @@
 # It uses binaries already built rather than `cabal run`, which would build
 # a third in whatever regime the shell happens to carry. About two minutes.
 #
-# What it proves: every mode runs, each installer found its table and wrote
-# something. What it does not: that the right rows went to the right place
-# -- that guarantee is `install`'s, and the README paragraph under this
-# block says so.
+# What it proves: every mode runs, each table installer found its table and
+# wrote something, and the claims installer refuses the filtered run this
+# sweep necessarily is. What it does not: that the right rows went to the
+# right place -- that guarantee is `install`'s, and the README paragraph
+# under this block says so.
 
 set -u
 cd "$(dirname "$0")" || exit 1
@@ -95,12 +96,32 @@ mode smoke-class.json --block --brief
 mode smoke.json --cells --no-controls
 mode smoke.json --cells --exclude concat-runs
 mode smoke.json --cells --exclude-shape lenet-L1-28-c1-k5
+mode smoke.json --claims          # reads the page's verdicts back too, so
+                                  # this is also the read-back's only
+                                  # pre-run exercise
 
-echo "=== the three installers, into a copy and never at README"
+echo "=== the installers, into a copy and never at README"
 cp README.md README.smoke.md
 mode smoke.json --markdown --in-place --readme README.smoke.md
 mode smoke.json --fingerprint --in-place --readme README.smoke.md
 mode smoke-class.json --block --in-place --readme README.smoke.md
+# The fourth installer is exercised by its REFUSAL, which is the only
+# answer available here: a one-shape run holds none of the claims' arms,
+# and the claims install refuses a filtered run rather than writing a
+# subset. So nonzero is the pass, and a zero exit would mean it installed
+# a claims section out of five arms. Non-vacuous 2026-08-16, the block run
+# standalone: silent over a filtered run, and over a FULL one -- where the
+# install succeeds -- it reports that the refusal did not happen.
+cp README.smoke.md README.smoke.pre
+if ./read-run.py smoke.json --claims --in-place --readme README.smoke.md \
+     >/dev/null 2>&1; then
+  echo "  !! --claims --in-place did NOT refuse a filtered run"
+  BAD=$((BAD + 1))
+elif ! cmp -s README.smoke.md README.smoke.pre; then
+  echo "  !! --claims --in-place refused and wrote anyway"
+  BAD=$((BAD + 1))
+fi
+rm -f README.smoke.pre
 if cmp -s README.smoke.md README.md; then
   echo "  !! --in-place wrote nothing -- the copy is identical"
   BAD=$((BAD + 1))

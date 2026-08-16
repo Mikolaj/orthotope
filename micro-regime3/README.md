@@ -2111,7 +2111,10 @@ than a slot in the next run, observed again:
      that would also make the two halves' absolutes subtractable, which
      the `-A1G` pair's are not. Read it the way Run 14 read it: the same six
      shapes, one of which alone reproduces it, and the victim
-     `vgg-14-c512-k3/list` alone against after.
+     `vgg-14-c512-k3/list` alone against after. **Not the cold twin's cell
+     on that same shape**, which the floor section's `-A` sweep shows a larger
+     nursery curing — other arm, opposite sign, and a different mechanism,
+     the ladder's entry denying the pool condition the wild cell rests on.
   2. *Does a repetition land inside the drift band?* Both halves run the roster
      Run 14 ran, so every arm on the **basis** half should sit within
      the measured band — at most 3.3% and most under 1.5% — against Run 14's
@@ -3592,7 +3595,10 @@ and never as a chronology.
     #      file and read-run.py's docstring; horde-ad's CLAUDE.md is not
     cat $R-pair.txt                       # 0. the note: six steps quote it,
     #      four here and two in the run list -- the halves' roles, the
-    #      md5s, the commit, the gate line.
+    #      md5s, the commit, the gate line. NO SUCH FILE is the answer to
+    #      the fork rather than an error: you are on the BUILD path, and
+    #      the note is written at 3b, before either binary exists. Come
+    #      back to this line after it, since the steps below quote it
     #      BASIS/OTHER come from it, never from a half's name, and are set
     #      in one place in each of the four scripts that take a run --
     #      run-major.sh, run-gate.sh, smoke-sweep.sh and install-tables.sh,
@@ -3600,9 +3606,12 @@ and never as a chronology.
     #      by environment when reading an older pair whose basis differs.
     #      The basis runs second, and both halves run the classes
     ls $R-*                               # 1. is there a pair? A note-only
-    #      listing is the answer NO: step 3b writes the note first, so this
-    #      is never empty on a run that has reached here
-    md5sum $R-<basis> $R-<other>          # 2. is it the note's pair?
+    #      listing is the answer NO, and so is nothing at all: the note is
+    #      written at 3b, so an empty listing is a run that has not reached
+    #      3b rather than an impossible state
+    md5sum $R-<basis> $R-<other>          # 2. is it the note's pair? On the
+    #      BUILD path there is nothing to sum yet: 3b transcribes the md5s
+    #      as it builds, and this line is that transcription's check
     git log -1 --format=%h -- :/micro-regime3/Main.hs   # 3. has it moved?
     git diff <note's commit> HEAD -- :/micro-regime3/Main.hs  # comment-only?
     #  the :/ pathspec resolves from the repo root, so these answer the same
@@ -3962,9 +3971,10 @@ records for `Main.hs`, which is the one that command returns; where the note
 records two, the other is the tree it was built in and is not what
 this compares. **Expect it to differ, and read the diff before believing it**:
 step 8 below sends the write-up into `Main.hs`'s comments and forbids rebuilding
-for it, so a comment-only move is the normal state after every run,
+for it, so a comment-only move is the expected state after a run whose write-up
+went there — Run 14's did not, and its commit is where `Main.hs` still stands —
 and `git diff <note's commit> HEAD -- :/micro-regime3/Main.hs` is what tells
-it from a real one — the `:/` prefix in both, since a bare `-- Main.hs`
+either from a real move — the `:/` prefix in both, since a bare `-- Main.hs`
 from the repo root prints nothing and exits 0. The regime is the fourth
 and is not answerable this way, the JSON recording no compiler flag; the `diag`
 step below is what answers it.
@@ -4179,16 +4189,16 @@ at `-L1`, since the smoke tests the reader's code paths, not its statistics:
     ./smoke-sweep.sh $R
 
 It runs three `-L1` processes — one main-set shape from each half and one class
-from the basis — then every reader mode over what they wrote, then the three
-`--in-place` installers into a copy of this file, and deletes all of it. About
-two minutes. It uses binaries already built rather than `cabal run`, which would
-build a third in whatever regime the shell happens to carry; it exercises
-the reader rather than the regime either way. **It is a driver, for the reason
-`run-major.sh` is one:** it counts, holding each process to the arm count
-`--list` gives for that shape. The reason it is not *also* still printed here
-is the one this page learned the hard way the same day — a pasted copy
-of a driver's sequence drifts from the driver and nothing checks it, which
-is what the class loop above had done.
+from the basis — then every reader mode over what they wrote,
+then the `--in-place` installers into a copy of this file, and deletes all
+of it. About two minutes. It uses binaries already built rather
+than `cabal run`, which would build a third in whatever regime the shell happens
+to carry; it exercises the reader rather than the regime either way. **It
+is a driver, for the reason `run-major.sh` is one:** it counts, holding each
+process to the arm count `--list` gives for that shape. The reason it
+is not *also* still printed here is the one this page learned the hard way
+the same day — a pasted copy of a driver's sequence drifts from the driver
+and nothing checks it, which is what the class loop above had done.
 
 **What this proves and what it does not**, since it reads like a verification
 of the installs and is not one: it proves each installer found its table
@@ -4593,7 +4603,7 @@ was missed, which is what they have cost.
     #      logged loudly and is not fatal, so nothing else stops on it
     #   2. match bases before reading any ratio -- same population, same
     #      restriction, the basis the claim was stated on
-    ./read-run.py RUN.json --claims                   # 3. every claim's
+    ./read-run.py $R-<basis>-main.json --claims       # 3. every claim's
     #      ordering and registered verdict in one call, in the claims
     #      section's own order -- and, after them, the page's own verdict
     #      figures read back against these readings. Give it the BASIS:
@@ -4954,29 +4964,32 @@ the artifacts are what it spends.
       the last installing a `Readings:` paragraph under each claim's lead rather
       than a table — and each refuses rather than guessing: the match
       is by whole line, the count is asserted, and a class table is narrowed
-      by its block's bolded lead. Hand-pasting is what this replaces,
-      and the reason is on the record — the cross-class summary's header
-      is written out twice, once indented as the spec that fixes the columns,
-      and a session locating the table by searching for that text put Run 8's
-      rows under the spec and left Run 7's table standing, with every check
-      green because the check looked it up the same way. If you paste by hand
-      anyway, do not edit the table: it renders the same rows the terminal does,
-      and carries `needs` and the emphasis forward from the table already there.
-      `--aa` and `--block` both take `--brief`, which drops the standing
-      explanation and the table `--in-place` installs anyway, costing
-      no computed figure; across a run's processes that is several hundred lines
-      you have already read. Its stderr is the whole of what is left by hand:
-      a row new to the roster comes out with `?`, a departed row is dropped
-      with a warning. Run 9 had ten such rows and filled them from a note
-      written here before the run, which is the practice to repeat whenever
-      a roster change is known in advance — the cell then gets transcribed
-      rather than invented at the end of a long day. Each class JSON emits
-      its own table the same way and is pasted the same way, into its block
-      in [The stride classes, run by run](#the-stride-classes-run-by-run);
-      those come out six columns wide, `needs` being a property of a strategy
-      rather than of a population and so stated in the main table alone.
-      The per-shape fingerprint is pasted the same way, whole,
-      from `--fingerprint`;
+      by its block's bolded lead. **A claim's reading is placed
+      by its `**Claim N` lead the same way, which is prose the write-up
+      is editing while it works**: rename a lead and the install that fills
+      the paragraph beneath it refuses, naming the claim. Hand-pasting is what
+      this replaces, and the reason is on the record — the cross-class summary's
+      header is written out twice, once indented as the spec that fixes
+      the columns, and a session locating the table by searching for that text
+      put Run 8's rows under the spec and left Run 7's table standing,
+      with every check green because the check looked it up the same way. If you
+      paste by hand anyway, do not edit the table: it renders the same rows
+      the terminal does, and carries `needs` and the emphasis forward
+      from the table already there. `--aa` and `--block` both take `--brief`,
+      which drops the standing explanation and the table `--in-place` installs
+      anyway, costing no computed figure; across a run's processes
+      that is several hundred lines you have already read. Its stderr
+      is the whole of what is left by hand: a row new to the roster comes out
+      with `?`, a departed row is dropped with a warning. Run 9 had ten such
+      rows and filled them from a note written here before the run, which
+      is the practice to repeat whenever a roster change is known in advance —
+      the cell then gets transcribed rather than invented at the end of a long
+      day. Each class JSON emits its own table the same way and is pasted
+      the same way, into its block in [The stride classes, run
+      by run](#the-stride-classes-run-by-run); those come out six columns wide,
+      `needs` being a property of a strategy rather than of a population
+      and so stated in the main table alone. The per-shape fingerprint is pasted
+      the same way, whole, from `--fingerprint`;
    5. **assemble the cross-class summary last, from the tables and not
       from the JSONs.** Every cell of it appears in one of the class tables
       above it, so it is a transcription and is checked as one — cell against
@@ -5042,10 +5055,13 @@ the artifacts are what it spends.
    provenance line, which machine, **and the commit the binary was built
    from** — for a paired run, transcribed from `<prefix>-pair.txt`, which
    carries the commit, the regime, the GHC and both md5s because this step asks
-   for them and the note outlives the session that built the pair (the JSONs do
-   not survive, so the source is the only thing that makes a run reproducible
-   even in principle — this page's figures are one desktop's and
-   are not portable, see [Provenance](#provenance)). A class process's line
+   for them — the GHC only since 2026-08-16, the template having had no slot
+   for it and Run 14's note therefore having none, where
+   `strings $R-<basis> | grep -oE 'ghc-[0-9.]+'` reads it back out of a binary
+   still on disk — and the note outlives the session that built the pair
+   (the JSONs do not survive, so the source is the only thing that makes a run
+   reproducible even in principle — this page's figures are one desktop's
+   and are not portable, see [Provenance](#provenance)). A class process's line
    is measured for its elapsed time and its two heap peaks but not for its shape
    count: that count is fixed before criterion does the selecting, so it reads
    every class view rather than the population that ran, and the population's
@@ -5477,10 +5493,13 @@ on and because a recurrence is the reason to keep it:
   outright in the cold process buys 5.8% against a 36% gap, so the cost
   is inside MUT.
 - **The allocation area is what it turns on, and `-A32m` removes it outright.**
-  `-H512m` does nothing (4.74 and 5.16 ms raw), so it is the nursery
-  specifically and not the heap size. An eight-point sweep, all on this shape
-  and all **net** of the forcing pass, with `mut-odo-vecdims` carried through
-  as a control the predictor says must not move:
+  This is the cold twin's cell and not the position ladder [the open list][open]
+  registers for Run 15 — same shape, `vgg-14-c512-k3`, other arm,
+  and the nursery works the opposite way on each: a larger one cures
+  this and creates that. `-H512m` does nothing (4.74 and 5.16 ms raw), so
+  it is the nursery specifically and not the heap size. An eight-point sweep,
+  all on this shape and all **net** of the forcing pass, with `mut-odo-vecdims`
+  carried through as a control the predictor says must not move:
 
   The two left columns are criterion slopes on the **pre-fix** roster, where
   the twin was still cold, and are here to show it converging. The two GC

@@ -36,6 +36,11 @@ THE ROSTER: N benches, M timed arms over K shapes. Say what landed since
 the last run and what that owes -- an -L1 roster pass, a membership
 invariance read, and whether either is weak form.
 
+THE COMPILER: what `ghc --version` said at build time. The recipe below
+carries --ghc-options and not the compiler, so nothing else here records
+it, post-run step 9 asks this note for it, and a repetition read against
+an earlier run needs both notes to name one.
+
 HOW EACH HALF IS BUILT, there being no builder here. Both from one source:
 
   $R-<basis>    cd here, then the full command, with --builddir, the
