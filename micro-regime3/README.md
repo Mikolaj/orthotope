@@ -2231,37 +2231,39 @@ left to attribute — the interval it is about is the aligned binary's.
   Pilot: a few arms and shapes read against the published column, with the A/A
   pairs' spread under randomisation as the method's own floor.
 - `OPEN` **Render the run-scoped prose from a ledger — speculative likewise.**
-  The claims manifest and the run-current count checks point at an end state:
-  verdicts, statuses, floors and tallies kept in one small machine-readable file
-  beside the roster, `read-run.py` rendering them into this page as `--in-place`
-  renders the tables, so that everything rendered cannot go stale
-  and the checker fleet stops growing a check per defect class. The mechanism
-  is not in doubt; the cost is a rewrite of the write-up procedure. The pilot:
-  one section — the yardstick, or the claims verdicts — rendered rather
-  than written, on the next run.
+  The end state is verdicts, statuses, floors and tallies kept in one small
+  machine-readable file beside the roster, `read-run.py` rendering them
+  into this page as `--in-place` renders the tables, so that everything rendered
+  cannot go stale and the checker fleet stops growing a check per defect class.
+  The mechanism is not in doubt; the cost is a rewrite of the write-up
+  procedure. **Its pilot was the claims verdicts and it is taken** (2026-08-16),
+  which leaves the question the pilot cannot answer: whether one ledger file
+  beats an installer per section. Do not design it before the installers say
+  what it would hold — three of them now do, and the fourth thing a run still
+  writes by hand, the cross-class summary's emphasis, is exactly what a ledger
+  would have to carry and no reader can derive.
 
-- **`--claims --in-place`, so the claims section is installed
-  and not transcribed.** Every other figure-bearing block has an installer
-  and this one does not, so a run hand-copies thirteen verdicts out
-  of `--claims`. On 2026-08-15 a write-up added a sentence reading *figures
-  below are the basis half's* above ten paragraphs it never replaced,
-  and shipped thirteen of the previous run's figures under a false attribution
-  with every checker green. An installer cannot make that mistake; a transcriber
-  makes it whenever the day is long.
-- **Let `--check-doc` see a link's TEXT and not only its anchor.** The rename
-  step already says to repoint both and notes that the check sees the second
-  only. Run 14 shipped four links reading
-  `[About the last run (Run 13)](#about-the-last-run-run-14)`, found by a reader
-  rather than a checker. The pattern is mechanical — `Run N` in the text against
-  `run-M` in the anchor, N unequal to M — so this is a known gap with a known
-  predicate and no reason to stay open.
+- **The rename, done rather than checked.** Post-run step 5 is mechanical — four
+  run-numbered headings, two taking this run's number and two the next, every
+  link's text and anchor repointed, and `Main.hs`'s `README.md#` references
+  with them — and `--check-doc` now fails a link whose text and anchor name
+  different runs. A mode that performs the bump would leave nothing to catch;
+  it writes the page, so it wants `--in-place`'s refusals, which is why
+  it is registered rather than written.
 - **More checks of the floor-consistency shape: one figure, several sites, must
-  agree.** The check that fails when the run's floor pair is quoted differently
-  across its sites did Run 14's replace-list walk unaided, catching four stale
-  sites in sections the session had not reached. Nothing else on this page has
-  that shape. The obvious next subjects are the roster size, the shape count,
-  the run window and the process count, each of which appears in several
-  sections and each of which Run 14 got wrong in at least one of them.
+  agree.** The floor pair, the roster size and every population size quoted
+  as `over N shapes` are checked (the last two against Main.hs, 2026-08-16,
+  since agreement alone cannot see a count that is stale everywhere). What
+  is left of the four subjects Run 14 got wrong is the run window
+  and the process count, neither of which has a phrasing crisp enough to match
+  yet: the pattern has to distinguish a population's size from a win count,
+  which is what `on N shapes` taught.
+- **`--claims --compare PREV.json`, if the movement sentence turns out to
+  be the last transcription.** The kept JSONs make *held, and moved from 0.9909
+  to 0.9940* mechanical — `pair_stats` over both files — and it is the one thing
+  a claim's paragraph still copies by hand. Not taken, because it renders
+  the reading rather than the arithmetic, and the division the installed
+  readings keep is that the author owns whether a movement means anything.
 
 
 ## The goal of these benchmarks
