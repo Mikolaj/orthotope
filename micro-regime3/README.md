@@ -2098,6 +2098,35 @@ than a slot in the next run, observed again:
   where position is free; what it does touch is any absolute quoted
   from the `-A1G` half, and the arm-by-arm comparison, whose position term sits
   on one side only.
+- `OPEN` **What Run 15 is built to answer, registered before it runs.** Its pair
+  is Run 14's with `-A32m` in place of `-A1G` on the control half and nothing
+  else changed, on Run 14's roster ([what it compares
+  against](#what-run-15-compares-against)). Two registrations, each with what
+  would break it.
+  1. *Is the position term visible at 32 MB?* **The registration is
+     that it persists**, the entry above having it gated by the nursery at 1 GB
+     and flat at 4 MB with the disturbance full size at both. So the reading
+     is its size at a nursery eight times the default, and a control half
+     showing no ladder at all is the finding rather than the prediction — a null
+     that would also make the two halves' absolutes subtractable, which
+     the `-A1G` pair's are not. Read it the way Run 14 read it: the same six
+     shapes, one of which alone reproduces it, and the victim
+     `vgg-14-c512-k3/list` alone against after.
+  2. *Does a repetition land inside the drift band?* Both halves run the roster
+     Run 14 ran, so every arm on the **basis** half should sit within
+     the measured band — at most 3.3% and most under 1.5% — against Run 14's
+     basis. An arm outside it is not a strategy finding: the code is identical,
+     so it is the machine, the build or the instrument, and it is what
+     the repetition is for. This is the reading Run 11 bought once
+     and the roster has since spent.
+
+  **And one expectation that is not a measurement**, registered so that
+  it is judged rather than remembered: Run 15 is the first run whose claim
+  readings are installed rather than transcribed, so the write-up should copy
+  no claim figure by hand at all, and `--claims` should leave nothing
+  unattributed after the install. A figure that has to be typed is a gap
+  in the installer, and belongs in the [non-urgent list](#non-urgent-todo-list)
+  as one.
 
 
 ### Recommended tasks after Run 14
@@ -6841,12 +6870,13 @@ so the two halves are not subtractable and the steady-state cost had to come
 from differencing outside criterion rather than from the run. `-A32m`
 is the same variable at a thirty-second of the size, and what the pair reads
 is whether the term is *visible* there. **The registered expectation is
-that it persists**, so a Run 15 control half free of it is the finding
-and not the prediction — and would also be a half whose absolutes subtract,
-which the `-A1G` one is not. Pricing the area properly still wants a runner
-that can give one binary two RTS configurations, which `run-major.sh` does
-not do today, and then the pair is one binary and no gate is owed at all —
-the note for Run 14's pair records that this was available and not taken.
+that it persists** — registered as such in [the open list][open], with what
+would break it — so a Run 15 control half free of it is the finding and
+not the prediction — and would also be a half whose absolutes subtract, which
+the `-A1G` one is not. Pricing the area properly still wants a runner that can
+give one binary two RTS configurations, which `run-major.sh` does not do today,
+and then the pair is one binary and no gate is owed at all — the note for Run
+14's pair records that this was available and not taken.
 
 Its columns will be `Run 15 (SpecConstr, max-skip +lookrts)`
 and `Run 15 (SpecConstr, max-skip +lookrts +A32m)`. The table below is read
