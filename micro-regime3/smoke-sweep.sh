@@ -16,7 +16,8 @@
 # installs and the `cmp` that is the only non-vacuity check in the block.
 #
 # It uses binaries already built rather than `cabal run`, which would build
-# a third in whatever regime the shell happens to carry. About two minutes.
+# a third in whatever regime the shell happens to carry. Minutes -- two
+# runs on an idle machine took 3m35s and about four.
 #
 # What it proves: every mode runs, each table installer found its table and
 # wrote something, and the claims installer refuses a run that is one shape

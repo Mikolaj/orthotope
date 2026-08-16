@@ -1939,8 +1939,8 @@ def claims_table(cells, shapes, strategies, args):
     if gone:
         print('NOTE: this run carries %d of the main set\'s %d shapes. The'
               ' claims are registered over the whole of it, so what follows'
-              ' is arithmetic and not their verdicts -- a BROKE here is the'
-              ' population and not the claim.' % (whole - gone, whole))
+              ' is arithmetic and not their verdicts, which is why every'
+              ' one below reads PART.' % (whole - gone, whole))
     missing = [a for _, _, ps in CLAIMS for p in ps for a in p[:2]
                if a not in strategies]
     if missing:
@@ -4641,6 +4641,22 @@ def main():
         strategies = [s for s in strategies if not is_control(s)]
     if not shapes or not strategies:
         sys.exit('nothing left after --exclude')
+    if meta['ragged']:
+        # AHEAD OF EVERY MODE, --selftest included. The guard sat below the
+        # roster banner, which is below this dispatch, so the one mode
+        # `read-all.sh` calls first was the one mode it did not cover --
+        # and read-all.sh getting a traceback where a gate verdict belongs
+        # is the thing the guard was written for. Found 2026-08-16 by
+        # driving the driver, having been proven by hand on a mode that
+        # happened to sit on the right side of it.
+        holes = [(sh, st) for sh in shapes for st in strategies
+                 if st not in cells[sh]]
+        sys.stderr.write(
+            '%s: %d cell(s) missing, so the analysis did not happen. The'
+            ' first few: %s\n'
+            % (os.path.basename(args.run), len(holes),
+               '; '.join('%s/%s' % h for h in holes[:5])))
+        sys.exit(2)
 
     if args.selftest:
         sys.exit(selftest(cells, shapes, strategies, meta))
@@ -4661,23 +4677,6 @@ def main():
              roster,
              '  (RAGGED: some cells missing)' if meta['ragged'] else '',
              '' if len(shapes) > 1 else '  (one shape: nothing to spread)'))
-    if meta['ragged']:
-        # The banner used to be the last thing that worked: `health` reads
-        # the whole cross product and every mode goes through it, so a
-        # file missing one cell printed RAGGED and then a KeyError. That
-        # file is what a process killed mid-selection leaves, which is
-        # exactly what the drivers tell you to come here and read, and
-        # `read-all.sh` got a traceback where a gate verdict belongs.
-        # Every aggregate below is over a rectangle, so the answer is to
-        # refuse and name what is missing.
-        holes = [(sh, st) for sh in shapes for st in strategies
-                 if st not in cells[sh]]
-        sys.stderr.write(
-            '%s: %d cell(s) missing, so the analysis did not happen. The'
-            ' first few: %s\n'
-            % (os.path.basename(args.run), len(holes),
-               '; '.join('%s/%s' % h for h in holes[:5])))
-        sys.exit(2)
     print()
     health(cells, shapes, strategies, terms)
     if args.shapes:

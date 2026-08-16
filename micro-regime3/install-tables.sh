@@ -26,8 +26,13 @@
 #
 # Measured over Run 13's artifacts, 2026-08-15, against a copy: ten calls
 # write eleven tables; a full pass over a page that already carries them
-# leaves it byte-identical, so a rerun after fixing one refusal costs
-# nothing; and renaming a class block's bolded lead makes that one install
+# leaves the ELEVEN TABLES byte-identical, so a rerun after fixing one
+# refusal costs nothing but a re-wrap: that measurement predates the
+# computed-paragraph block below, which writes its three paragraphs per
+# class as one line each where the page keeps them wrapped, so a full pass
+# now comes back word for word identical and re-wrapped -- 24 paragraphs
+# on a page carrying them already, measured 2026-08-16. Close with
+# `wrap80 -i`, as after any edit; and renaming a class block's bolded lead makes that one install
 # refuse -- `0 line(s) start with '**`scaled`', need exactly one` -- which
 # this reports and exits 1 on, the other ten having landed.
 #
@@ -53,6 +58,24 @@ MAIN="$R-$BASIS-main.json"
 CLASSES=$(ls -1 "$R-$BASIS"-*.json 2>/dev/null \
             | grep -v -- '-main\.json$' | grep -v "^$R-gate-")
 [ -n "$CLASSES" ] || { echo "no class JSONs for $R-$BASIS"; exit 1; }
+
+# The class list comes from the disk, so a class whose JSON is absent is
+# simply never installed and the tables half of this driver says nothing --
+# "a page with ten of eleven installed looks exactly like a page with
+# eleven", which is what the header opens by warning about and what this
+# loop was doing. The page's own block leads are the roster to check
+# against: one bolded lead per class, and a lead with no JSON is a table
+# that will not be written. Found 2026-08-16 by withholding one class JSON
+# and watching ten tables install in silence.
+LEADS=$(grep -o '^\*\*`[a-z0-9]*`' "$DOC" | tr -d '*`' | sort)
+HAVE=$(printf '%s\n' $CLASSES | sed "s/^$R-$BASIS-//; s/\.json$//" | sort)
+MISSING=$(comm -23 <(printf '%s\n' "$LEADS") <(printf '%s\n' "$HAVE"))
+if [ -n "$MISSING" ]; then
+  echo "!! $(printf '%s\n' "$MISSING" | wc -l) class block(s) in $DOC have no"
+  echo "   $R-$BASIS-*.json, so their tables would go silently uninstalled:"
+  printf '%s\n' "$MISSING" | sed 's/^/     /'
+  exit 1
+fi
 
 BAD=0
 DONE=0                       # tables, not invocations: --fingerprint
@@ -194,7 +217,8 @@ if [ "$BAD" -eq 0 ]; then
   echo "class tables above."
 else
   echo "$BAD install(s) REFUSED -- a refusal is the design, never a silent"
-  echo "write to the wrong place. Fix the header it could not find and rerun;"
+  echo "write to the wrong place. Fix what it names -- a header it could not"
+  echo "find, a run file that is not there -- and rerun;"
   echo "the ones that landed are idempotent."
 fi
 [ "$BAD" -eq 0 ] || exit 1

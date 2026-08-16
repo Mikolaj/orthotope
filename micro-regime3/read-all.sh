@@ -79,7 +79,18 @@ for f in $FILES; do
                          if (s) print "worst cell " s }')
   [ -n "$worst" ] || worst='(no A/A pair in this file)'
   printf '%-28s %-9s %s\n' "$tag" "$st" "$worst"
-  [ "$st" = ok ] || printf '%s\n' "$selftest" | grep '^FAIL' | sed 's/^/    /'
+  # A failing selftest prints FAIL: lines, and this shows them -- unless it
+  # never got that far, where showing only FAILs leaves a bare FAIL beside
+  # `(no A/A pair in this file)` and no reason anywhere. A run file the
+  # reader REFUSES says so on stderr and prints no FAIL at all, which is
+  # how a ragged JSON read here as an ordinary gate failure.
+  if [ "$st" != ok ]; then
+    if printf '%s\n' "$selftest" | grep -q '^FAIL'; then
+      printf '%s\n' "$selftest" | grep '^FAIL' | sed 's/^/    /'
+    else
+      printf '%s\n' "$selftest" | tail -3 | sed 's/^/    /'
+    fi
+  fi
 done
 
 echo
