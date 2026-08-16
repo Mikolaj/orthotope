@@ -1,0 +1,108 @@
+The only structure here is a date paired with an observation. Anything is
+permitted: a sentence, a fragment, a figure, a retraction, a note to nobody.
+Nothing checks this file and nothing should.
+
+IT IS WRITE-ONLY. Do not read it in the course of ordinary work, in whole or
+in part. Git is the archaeology of record: commits and their messages say what
+changed, when and why, tied to the diff. Read this only when that has been
+tried and has failed.
+
+Write to it at one moment, and it is the compulsion itself rather than any of
+its objects: you are about to put into a document something you have just
+learned -- why a line reads as it does, what a mistake cost, how a tool
+surprised you, that a claim was wrong -- because leaving it unwritten feels
+unsafe. That sentence comes here instead. Firing too often is harmless: a
+false fire costs one moment's thought and produces the split you wanted
+anyway, where a missed one leaves a paragraph of archaeology inside an
+instruction for good.
+
+Note what is NOT on that list. Why something was REMOVED is usually a guard --
+"why we deleted X" and "don't re-add X" are one sentence -- and guards stay
+with the rules, by the don't-do ruling. Only a removal nobody would ever undo,
+a rename or a typo or a rephrasing, is archaeology and belongs here.
+
+It is ALSO, deliberately, an escape hatch. If you know a thing is already in
+the commit history and cannot leave it unwritten anyway, write it here. That
+is the design and not an abuse of it: a redundant paragraph in a file nobody
+reads costs nothing, and the same paragraph inside an instruction costs
+everyone who executes the instruction.
+
+WHAT IT IS NOT AN ESCAPE HATCH FROM IS THE SPLIT. The rule keeps its guard --
+one clause, a date and an outcome, wherever an editor might plausibly undo the
+line -- and this file takes the rest. Writing the whole thing here to avoid
+deciding which half is the guard is the one use that defeats the purpose:
+prohibitions drain into a file nobody reads, and the containment measure
+becomes the leak. The test for the guard: would a future editor plausibly undo
+the line, and would the sentence stop them?
+
+Do not polish entries. Nothing downstream consumes them.
+
+This is a containment measure, not a fixture. It exists because the models
+writing here keep putting history inside instructions; when they stop, it is
+retired -- and retiring it is not `rm`: stop routing to it, triage what
+accumulated, delete the residue. Written down now because that decision would
+otherwise be improvised on a day when the file looks like clutter.
+
+This is not CHANGELOG.md, which faces users and lists what shipped. This faces
+whoever works here next, and mostly it faces no one.
+
+
+2026-08-16
+  Nine of the procedure's own lines were carrying their own history. Moved
+  here from README.md, with the rules they annotate left in place:
+
+  - The build was a remark between two steps of the pre-run list, read as
+    somebody else's job, and became a step of its own on 2026-08-15.
+  - Two pair notes were written without a commit line before the template
+    grew a slot for one.
+  - The smoke sweep and the -L1 roster pass were left to memory until
+    2026-08-13; the gate's line had said to record it all along.
+  - The smoke sweep was a block to retype in the chapter until 2026-08-15,
+    when it became a driver, for the reason run-major.sh is one: a pasted
+    copy of a driver's sequence drifts from the driver and nothing checks it.
+  - The class populations ran on the basis half alone until 2026-08-14. The
+    rule was standing rather than a concession, which is exactly why it would
+    not have been noticed in time; Run 14 is the run whose variable could act
+    on a class and not on the main set.
+  - Every class view was two or three shapes until 2026-08-14, when the five
+    two-shape ones gained a third.
+  - The gate did not ask whether the machine had changed until 2026-08-14.
+  - The rename step covered three of the four run-numbered headings until
+    2026-08-14, which is how a heading comes to name a run two chapters old.
+  - The provenance walk's recipe said every paragraph opens with a bolded
+    lead until it was counted: 457 of 868 carry one, 411 carry none, and 37
+    of those 411 carry a figure.
+
+  The distinction the move rests on, and it is the one worth keeping: a
+  chronology guards nothing, while a prohibition with its outcome guards a
+  regression. "This is a step and not a remark" stays in the list because an
+  editor trimming it would demote it back; "it had been a remark since such a
+  date" comes here because nobody re-derives when a line was promoted.
+
+2026-08-15/16
+  Run 14. The allocation area, priced by pairing the lookrts recipe against
+  itself at -A1G. Eighteen processes, 06:58:23 to 13:28:21, all clean.
+
+  The run's own findings are in README.md and are not repeated. What belongs
+  here is what the run cost and what it taught about making runs:
+
+  - 3h40m of quiet machine went to a go-ahead dialog put up after the pre-run
+    checks rather than before them, and answered when its owner woke.
+  - 6h more went idle after the sequence finished, because nothing was set
+    watching for `major run complete` and the session decided to look rather
+    than arranging to be woken.
+  - The write-up shipped 21 errors past four green checkers: 14 found by an
+    independent agent that recomputed some 2,510 figures, 4 by the author's
+    own reading, 3 more when the author was given licence to edit prose he
+    had not written. Every one was in prose and none in a number out of the
+    reader.
+  - The worst of them: a sentence reading "figures below are the basis
+    half's" added above ten paragraphs that were never replaced, putting
+    thirteen of the previous run's figures under a false attribution.
+  - Two checks written that day were themselves vacuous on first draft. One
+    bound to a path instead of the file's contents and reported ok on a
+    planted placeholder. Both were caught by the deliberate break and by
+    nothing else.
+  - Four greps against the wrapped README returned false silences in one
+    evening, each indistinguishable from a real absence. The rule against it
+    was resident throughout.

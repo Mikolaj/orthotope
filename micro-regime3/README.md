@@ -104,6 +104,13 @@ is the regime every claim below is read in rather than a probe of one.
 
 ## Contents
 
+History is not here. `MARGINALIA` beside this file is a write-only journal
+and not something to read: it exists because the models working here keep
+putting history inside instructions, and it is where that goes instead
+of into this page. It is not a `CHANGELOG`, which would face users. What
+this page keeps is the rule and, where an editor might plausibly undo it, one
+clause saying what undoing it cost.
+
 Thirty-odd sections, so the map is here rather than left to a grep.
 It is anchors and not line numbers on purpose: `--check-doc` verifies that every
 anchor in this file resolves, so this list cannot rot silently, where line
@@ -3583,14 +3590,12 @@ and never as a chronology.
     #  this is one list and not two: the fork is one step wide
     #  3b. BUILD BOTH HALVES -- the BUILD path's own step, only if 1-3 say
     #      so and from the note's own
-    #      recipe -- a step of its own since 2026-08-15, where it had been
-    #      a remark between two steps and read as somebody else's job. It
-    #      is a session's to run like every other line here; what is not
+    #      recipe. It is a STEP and a session's to run like every other line
+    #      here, not a remark and not somebody else's job; what is not
     #      is the note, whose prose and verdicts are written by hand.
     #      There is no builder, every pair being two shims typed out, so
     #      write the note FIRST, from pair-note-template.txt -- it is the
-    #      only copy of both recipes, and the template is what says what a
-    #      note owes, two of them having gone without a commit line.
+    #      only copy of both recipes, and the template is what says what a note owes.
     #      Every build wants -fforce-recomp and a fresh --builddir, cabal
     #      answering "Up to date" for a -pgma or an environment change;
     #      --ghc-options="$REGIME" stays quoted, and a value with a space
@@ -3763,7 +3768,7 @@ them, and a session that cannot see they were run pays for them again — twenty
 minutes for the roster pass, about forty for the gate. The note is the only
 thing that outlives a session, so an outcome recorded nowhere is an outcome
 nobody after you can use; the gate's own line has said so all along,
-and the other two were left to memory until 2026-08-13, when they were.
+and the other two now say it too.
 
 **Steps 7 and 8 are the whole of this page's document check, and no other
 repository's checkers belong on it.** Theirs carry a per-repo configuration —
@@ -4110,13 +4115,13 @@ prices the shim's own padding instead, its two halves differing in which loop
 heads get a directive and in nothing else, so its arms separate what alignment
 buys from what the NOPs cost.
 
-**The pairing doubles the classes too, since 2026-08-14.** Both halves run
-the main set, since that is where the per-arm comparison lives, and both now run
-every class as well. The rule it replaces ran the eight class populations
-on the basis alone, on the argument that a class block is read for the ordering
-inside its own population and the basis is where that ordering is legible —
-true, and beside the point the moment a pair's variable can act on a class
-and not on the main set. Run 14 is that moment: it varies the allocation area,
+**The pairing doubles the classes too.** Both halves run the main set, since
+that is where the per-arm comparison lives, and both now run every class
+as well. The rule it replaces ran the eight class populations on the basis
+alone, on the argument that a class block is read for the ordering inside
+its own population and the basis is where that ordering is legible — true,
+and beside the point the moment a pair's variable can act on a class and
+not on the main set. Run 14 is that moment: it varies the allocation area,
 and the classes hold the shapes whose excess allocation crosses the nursery,
 so a class read on one half only cannot say whether the variable touched it.
 The old rule was standing rather than a concession, which is exactly why
@@ -4136,13 +4141,12 @@ from the basis — then every reader mode over what they wrote, then the three
 `--in-place` installers into a copy of this file, and deletes all of it. About
 two minutes. It uses binaries already built rather than `cabal run`, which would
 build a third in whatever regime the shell happens to carry; it exercises
-the reader rather than the regime either way. **It was a block to retype until
-2026-08-15**, and it is a driver for the reason `run-major.sh` is one:
-it counts, holding each process to the arm count `--list` gives for that shape.
-The reason it is not *also* still printed here is the one this page learned
-the hard way the same day — a pasted copy of a driver's sequence drifts
-from the driver and nothing checks it, which is what the class loop above had
-done.
+the reader rather than the regime either way. **It is a driver, for the reason
+`run-major.sh` is one:** it counts, holding each process to the arm count
+`--list` gives for that shape. The reason it is not *also* still printed here
+is the one this page learned the hard way the same day — a pasted copy
+of a driver's sequence drifts from the driver and nothing checks it, which
+is what the class loop above had done.
 
 **What this proves and what it does not**, since it reads like a verification
 of the installs and is not one: it proves each installer found its table
@@ -4305,8 +4309,8 @@ and the `GATE: not yet run` line goes in the same edit, since a reader reading
 up would otherwise meet that one and stop. What the predictions are is in [the
 open list](#what-is-open) with the rest of the run's registrations; what
 the gate read is in the note, written by hand above the script's mechanical
-block. **The gate also answers one question that is not a reading at all, since
-2026-08-14: has the machine changed?** `run-gate.sh` runs
+block. **The gate also answers one question that is not a reading at all: has
+the machine changed?** `run-gate.sh` runs
 `./read-run.py $R-gate-<basis>-a.json --machine` after its four processes
 and puts the answer in the note. It holds `list`'s net per call, shape by shape,
 to the fingerprint this page keeps, so the last run's absolutes are on the page
@@ -4708,16 +4712,15 @@ the artifacts are what it spends.
    from the last run to this one, being about the run just read, while *What Run
    N compares against* and *The claims Run N should test* look forward and go
    from this run to the next, so a write-up of Run 10 leaves the four reading
-   10, 10, 11 and 11. Repoint every link to them. The fourth was left out
-   of this step until 2026-08-14, governed only by the closing index's line
-   about it, which is how a heading comes to name a run two chapters old.
-   It is mechanical, it is easy to forget because nothing in the numbers asks
-   for it, and `--check-doc` catches the fallout as dead anchors rather
-   than as the rename it was: Run 9 left eleven. Repointing is not re-verifying:
-   a standing-prose link into the chapter promises content the replacement may
-   have moved out, so walk the links `--check-doc` lists and check each against
-   what the chapter now says — the five that decayed this way kept resolving
-   through two renames.
+   10, 10, 11 and 11. Repoint every link to them. All four are named here
+   because a heading governed only by the closing index is how a heading comes
+   to name a run two chapters old. It is mechanical, it is easy to forget
+   because nothing in the numbers asks for it, and `--check-doc` catches
+   the fallout as dead anchors rather than as the rename it was: Run 9 left
+   eleven. Repointing is not re-verifying: a standing-prose link
+   into the chapter promises content the replacement may have moved out, so walk
+   the links `--check-doc` lists and check each against what the chapter now
+   says — the five that decayed this way kept resolving through two renames.
 6. Walk the list under [Provenance](#provenance) of what the new numbers
    replace, and do not trust it to be complete: re-run the two sweeps it names
    and map each hit to the bullet covering it, since running the sweeps
@@ -8210,22 +8213,22 @@ resolved.
 **Inside a section, find the paragraphs rather than reading it.** The list names
 sections and a section here runs to hundreds of lines, of which a run rewrites
 three or four paragraphs; Run 10's write-up read most of the floor section
-to change four of its leads. **Not every paragraph opens with a bolded lead**,
-though this recipe used to say so: 457 of 868 carry a bolded span and 411 carry
-none, and 37 of those 411 carry a figure. So `grep -n '^\*\*' README.md` between
-a section's heading and the next gives a section's **claims** and
-not its contents, and a walk that stops there misses figure-bearing prose —
-the opening section's continuous argument, and continuation paragraphs inside
-list entries. The ones a run touches are those whose lead or body carries
-a figure, which is why `--para` falls back to the body when no lead matches.
-`./read-run.py --para 'lead'` then prints any one of them with the line
-it starts at, which is what keeps a jump off the `grep -n`/`sed -n` pair
-that the install above it has already invalidated. `--check-doc`'s two sweeps
-print line numbers for the comparative and superlative candidates already,
-so between the three the walk is a list of jumps rather than a read.
-This is deliberately a recipe and not a stored list of paragraph names: a stored
-one would be a second copy of the structure and would rot the first time a lead
-was reworded, which is the failure this list was rewritten to escape.
+to change four of its leads. **Not every paragraph opens with a bolded lead**:
+457 of 868 carry a bolded span and 411 carry none, and 37 of those 411 carry
+a figure. So `grep -n '^\*\*' README.md` between a section's heading
+and the next gives a section's **claims** and not its contents, and a walk
+that stops there misses figure-bearing prose — the opening section's continuous
+argument, and continuation paragraphs inside list entries. The ones a run
+touches are those whose lead or body carries a figure, which is why `--para`
+falls back to the body when no lead matches. `./read-run.py --para 'lead'`
+then prints any one of them with the line it starts at, which is what keeps
+a jump off the `grep -n`/`sed -n` pair that the install above it has already
+invalidated. `--check-doc`'s two sweeps print line numbers for the comparative
+and superlative candidates already, so between the three the walk is a list
+of jumps rather than a read. This is deliberately a recipe and not a stored list
+of paragraph names: a stored one would be a second copy of the structure
+and would rot the first time a lead was reworded, which is the failure this list
+was rewritten to escape.
 
 - [the head of this chapter](#about-the-last-run-run-14), which carries
   the run's name, regime, scale and source commit, the layout span a roster
