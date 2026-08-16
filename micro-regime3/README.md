@@ -4206,10 +4206,11 @@ at `-L1`, since the smoke tests the reader's code paths, not its statistics:
 
     ./smoke-sweep.sh $R
 
-It runs three `-L1` processes — one main-set shape from each half and one class
-from the basis — then every reader mode over what they wrote,
-then the `--in-place` installers into a copy of this file, and deletes all
-of it. About two minutes. It uses binaries already built rather
+It runs three `-L1` processes — one main-set shape from each half and one shape
+of a class from the basis, that being what holds every process to one shape's
+arm count — then every reader mode over what they wrote, then the `--in-place`
+installers into a copy of this file, and deletes all of it. Minutes,
+on a machine doing nothing else. It uses binaries already built rather
 than `cabal run`, which would build a third in whatever regime the shell happens
 to carry; it exercises the reader rather than the regime either way. **It
 is a driver, for the reason `run-major.sh` is one:** it counts, holding each
@@ -4219,10 +4220,13 @@ the same day — a pasted copy of a driver's sequence drifts from the driver
 and nothing checks it, which is what the class loop above had done.
 
 **What this proves and what it does not**, since it reads like a verification
-of the installs and is not one: it proves each installer found its table
+of the installs and is not one: it proves each *table* installer found its table
 and wrote something, and `cmp` fails loudly if the copy came out identical,
-which is the case where one silently found nothing. It does not prove the right
-rows went to the right place — that guarantee lives in `install`, which matches
+which is the case where one silently found nothing. The claims installer
+is the exception and is checked the other way round: the claims are registered
+over the whole main set and a smoke run is one shape of it, so the install must
+REFUSE, and a zero exit there is the failure. It does not prove the right rows
+went to the right place — that guarantee lives in `install`, which matches
 by whole line, an indented copy of a header being unable to satisfy it,
 and asserts the row count rather than assuming it. That is where the Run 8
 mis-paste is made impossible rather than merely detectable, and it is born
@@ -4234,22 +4238,23 @@ at `README.md` it would install a one-shape smoke table over the published one,
 so the copy is the point, and `cmp` afterwards is what keeps the check
 from passing on an installer that found nothing and said nothing. Run the copy's
 own diff by eye if a table looks wrong; the copy is deleted with the rest.
-**Each install is smoked from the half it will really come from** — all three
-from the basis half, `--markdown` and `--fingerprint` off the main-set JSON
-and `--block` off the class one — which is why these are three commands
-and not a loop. The write-up is hours too late to find a broken installer.
+**Each install is smoked from the half it will really come from** — every one
+from the basis half, `--markdown`, `--fingerprint` and `--claims` off
+the main-set JSON and `--block` off the class one — which is why
+these are spelled out and not looped. The write-up is hours too late to find
+a broken installer.
 
 The first runs every timed arm on one shape and puts the whole analysis path —
 the correction, the controls, the table generator — through its paces; the third
 does the same for the `classes` plumbing, the reader's per-list shape rules
 and the six-column class table, on the class whose rule is least trivial.
-Those two go through every single-file mode, because they take different paths
-through the reader from the population line onwards, and the lines after them
-add the modifiers a write-up reaches for — `--brief` on `--aa` and `--block`,
-and the filters `--no-controls`, `--exclude` and `--exclude-shape` — because
-a mode that passes bare can still die under the flag it is really given.
-A reader broken by a roster or shape-list change fails here in minutes instead
-of after the run.
+Those two go through every single-file mode a class JSON can take,
+and the main-set one takes `--claims` besides, the claims being the main set's;
+the lines after them add the modifiers a write-up reaches for — `--brief`
+on `--aa` and `--block`, and the filters `--no-controls`, `--exclude`
+and `--exclude-shape` — because a mode that passes bare can still die
+under the flag it is really given. A reader broken by a roster or shape-list
+change fails here in minutes instead of after the run.
 
 The second file exists for `--compare`, which no single file can reach:
 it is the reader's only two-run mode and the one a paired run is read with,

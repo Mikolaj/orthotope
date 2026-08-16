@@ -19,10 +19,10 @@
 # a third in whatever regime the shell happens to carry. About two minutes.
 #
 # What it proves: every mode runs, each table installer found its table and
-# wrote something, and the claims installer refuses the filtered run this
-# sweep necessarily is. What it does not: that the right rows went to the
-# right place -- that guarantee is `install`'s, and the README paragraph
-# under this block says so.
+# wrote something, and the claims installer refuses a run that is one shape
+# of the main set, which every smoke run is. What it does not: that the
+# right rows went to the right place -- that guarantee is `install`'s, and
+# the README paragraph under this block says so.
 
 set -u
 cd "$(dirname "$0")" || exit 1
@@ -36,8 +36,14 @@ OTHER=${OTHER:-a1g}          # the pair's two halves, as in run-major.sh and
 BASIS=${BASIS:-lookrts}      # run-gate.sh: keep the three in step
 
 SHAPE=${SHAPE:-cnn-slice-c32}      # the smallest main-set shape, so the
-CLASS=${CLASS:-window-28x28-k5}    # sweep is minutes; the class one
-                                   # exercises --block
+CLASS=${CLASS:-window-28x28-k5}    # sweep is minutes; the second is one
+                                   # SHAPE OF a class, not the class -- it
+                                   # exercises --block at 47 arms, where
+                                   # the prefix `window-` would select
+                                   # three shapes and 141, and the count
+                                   # alarm below, which holds every
+                                   # process to one shape's arms, would
+                                   # read that as a failure
 # Overridable so the count alarm below has a live control, there being no
 # way to provoke it on today's roster otherwise: criterion's bare pattern
 # is a prefix, and no bench name here extends another's. Non-vacuous
@@ -106,12 +112,22 @@ mode smoke.json --markdown --in-place --readme README.smoke.md
 mode smoke.json --fingerprint --in-place --readme README.smoke.md
 mode smoke-class.json --block --in-place --readme README.smoke.md
 # The fourth installer is exercised by its REFUSAL, which is the only
-# answer available here: a one-shape run holds none of the claims' arms,
-# and the claims install refuses a filtered run rather than writing a
-# subset. So nonzero is the pass, and a zero exit would mean it installed
-# a claims section out of five arms. Non-vacuous 2026-08-16, the block run
-# standalone: silent over a filtered run, and over a FULL one -- where the
-# install succeeds -- it reports that the refusal did not happen.
+# answer available here: the claims are registered over the whole main
+# set, this run is one shape of it, and the install refuses anything less
+# rather than writing a claims section out of one cell. So nonzero is the
+# pass, and a zero exit would mean it installed one.
+#
+# The first version of this block said the refusal was the ARMS guard's --
+# that a one-shape run holds none of the claims' arms. It holds all
+# fifteen, shape filtering removing no arm, so that guard never fired and
+# what the block was reading as the refusal was an IndexError inside the
+# readings themselves. It passed for two days' worth of an afternoon on a
+# crash. Both were fixed on 2026-08-16, when a toy run of this very block
+# found it; the shape guard is what makes the sentence above true.
+#
+# Non-vacuous, same day: over a one-shape run the install exits 1 saying
+# which shape count it got and writes nothing, and over the full main set
+# it installs and exits 0, which is what this block would report.
 cp README.smoke.md README.smoke.pre
 if ./read-run.py smoke.json --claims --in-place --readme README.smoke.md \
      >/dev/null 2>&1; then

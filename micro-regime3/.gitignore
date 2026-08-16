@@ -32,7 +32,7 @@ probe-*.log
 smoke*.json
 smoke*.log
 smoke*.md
-README.smoke.md
+README.smoke.*
 
 # Temporary build directories the pair recipes use (`--builddir=db-maxpa`),
 # removed by hand after each half is copied out.

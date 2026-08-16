@@ -1935,6 +1935,12 @@ def claims_table(cells, shapes, strategies, args):
     `stretch-primes` -- so both predicate kinds can fail, and the reverted
     manifest returned thirteen HELDs.
     """
+    gone, whole = main_set_gap(shapes, args.main)
+    if gone:
+        print('NOTE: this run carries %d of the main set\'s %d shapes. The'
+              ' claims are registered over the whole of it, so what follows'
+              ' is arithmetic and not their verdicts -- a BROKE here is the'
+              ' population and not the claim.' % (whole - gone, whole))
     missing = [a for _, _, ps in CLAIMS for p in ps for a in p[:2]
                if a not in strategies]
     if missing:
@@ -1974,9 +1980,19 @@ def claims_table(cells, shapes, strategies, args):
                 got = 'geomean %.4f' % g
             held += ok
             broke += not ok
+            # On a partial population the arithmetic is real and the
+            # verdict is not, so the verdict word is what goes. Saying it
+            # once at the top was not enough: the BROKE lines are forty
+            # lines below it, and a smoke run's two of them read as a
+            # broken page to the session that ran it by hand.
             print('  %s  %s / %s: registered %s; %s'
-                  % ('HELD ' if ok else 'BROKE', a, b, want, got))
-    print('\n%d of %d registered orderings held.' % (held, held + broke))
+                  % ('PART ' if gone else 'HELD ' if ok else 'BROKE',
+                     a, b, want, got))
+    if gone:
+        print('\nNo verdict: %d of %d shapes. The orderings above are this'
+              ' run\'s arithmetic, not the claims\'.' % (whole - gone, whole))
+    else:
+        print('\n%d of %d registered orderings held.' % (held, held + broke))
     print('\nclaim 7 -- allocation: no pair; read it with'
           '\n  ./read-run.py BASIS.json --compare OTHER.json --alloc')
     print('claim 8 -- structural: no pair; read the fast tier off the table'
@@ -1993,6 +2009,22 @@ CLAIMS_FIG = re.compile(r'\b\d+(?:\.\d+)?e-\d+\b|\b\d+\.\d{2,4}\b'
                         r'|\b(\d+) (?:wins )?of (\d+)\b(?! registered)')
 CLAIMS_PAST = re.compile(r'Run \d+|(?:last|previous|earlier|prior)'
                          r'\s+(?:\w+\s+)?runs?')
+
+
+def main_set_gap(shapes, main_hs):
+    """(missing, total): how far a run falls short of the main set.
+
+    Every claims path is registered over the main set, and until
+    2026-08-16 none of them noticed a run that was not it. The arms guard
+    does not catch it: a one-shape run keeps all 47 arms. What a smoke run
+    produced instead was two BROKE verdicts and a forty-item worklist
+    against a page with nothing wrong with it, and, on the install path,
+    an `IndexError` out of a `best two cells` that had one -- a crash the
+    caller then read as the refusal it was waiting for.
+    """
+    dims = dims_by_shape(main_hs)[0]
+    whole = {s for s, d in dims.items() if d['lst'] in MAIN_LISTS}
+    return len(whole - set(shapes)), len(whole)
 
 
 def claims_section(paras):
@@ -2048,7 +2080,8 @@ def claims_readings(cells, shapes, strategies):
             if isinstance(expect, tuple):
                 best = sorted(s for _, s in sorted(zip(r, shapes))[:2])
                 ok = best == sorted(expect[1:])
-                bit += ', best two cells `%s` and `%s`' % (best[0], best[1])
+                bit += ', best two cells %s' % ' and '.join(
+                    '`%s`' % s for s in best)
             elif expect == 'tie':
                 ok = p >= 0.05
             else:
@@ -2065,7 +2098,7 @@ def claims_readings(cells, shapes, strategies):
     return out
 
 
-def install_readings(readme, texts, src, strategies):
+def install_readings(readme, texts, src, strategies, shapes, main_hs):
     """Install each claim's Readings paragraph under its lead, or refuse.
 
     The lead is the author's `**Claim N` paragraph and the reading goes
@@ -2092,6 +2125,12 @@ def install_readings(readme, texts, src, strategies):
         sys.exit('--in-place: %d claim arm(s) are not in this run (%s); a'
                  ' filtered run cannot install the claims'
                  % (len(missing), ', '.join(missing)))
+    gone, whole = main_set_gap(shapes, main_hs)
+    if gone:
+        sys.exit('--in-place: this run carries %d of the main set\'s %d'
+                 ' shapes; the claims are registered over the whole of it,'
+                 ' so a shape-filtered run cannot install them'
+                 % (whole - gone, whole))
     with open(readme) as f:
         paras = f.read().split('\n\n')
     flat = [' '.join(p.split()) for p in paras]
@@ -2126,7 +2165,7 @@ def install_readings(readme, texts, src, strategies):
                         done, added, len(texts)))
 
 
-def claims_in_doc(readme, cells, shapes, strategies, src):
+def claims_in_doc(readme, cells, shapes, strategies, src, main_hs):
     """Figures in the claims verdicts that this run's readings do not give.
 
     The installer writes each claim's readings; this asks the other
@@ -2161,6 +2200,13 @@ def claims_in_doc(readme, cells, shapes, strategies, src):
     reproduces 9 and lists 35, which is why the basis is a caller's
     argument here as it is everywhere else on this page.
     """
+    gone, whole = main_set_gap(shapes, main_hs)
+    if gone:
+        print('\nnote: this run carries %d of the main set\'s %d shapes, so'
+              ' the page\'s figures are not comparable with it and were not'
+              ' read back. Nothing here is a finding about the page.'
+              % (whole - gone, whole))
+        return
     try:
         doc = open(readme).read()
     except OSError as exc:
@@ -4592,10 +4638,11 @@ def main():
     elif args.claims and args.in_place:
         install_readings(args.readme,
                          claims_readings(cells, shapes, strategies),
-                         args.run, strategies)
+                         args.run, strategies, shapes, args.main)
     elif args.claims:
         claims_table(cells, shapes, strategies, args)
-        claims_in_doc(args.readme, cells, shapes, strategies, args.run)
+        claims_in_doc(args.readme, cells, shapes, strategies, args.run,
+                      args.main)
     elif args.compare and args.chapter:
         chapter_skeleton(cells, shapes, strategies, meta,
                          args.compare, args.main)
