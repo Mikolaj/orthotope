@@ -116,7 +116,13 @@ and Run 11's pair needed both: its two halves are the unconditional shim and
 this one, whose `.text` sizes differ by the 8192 the two growths above leave
 between them, and the pad is what puts the libraries back in phase. It goes
 at the end of the first module's text, so the module's own code keeps every
-offset it had.
+offset it had -- the first module it is handed, whether or not that one
+carries a loop head. Until 2026-08-16 a headless first module returned
+before the pad was written and the pad went to the next module with a head,
+or to none at all, which is the pair out of phase and nothing said. Checked
+that day on a two-file synthetic: the pad lands in the first headless module
+and not in the second, where the previous version wrote it in neither and
+left it owed.
 
 How the number is derived, since the script that once did it is gone: a pair
 must not move the libraries, no shim on `-pgma` reaching them, so anything
@@ -362,6 +368,16 @@ def rewrite(path, args):
 
     st = sites(src, heads_of(src))
     if not st:
+        # The pad is owed by the FIRST module this shim is handed, and a
+        # module with no loop head is still that module. Returning here
+        # before the PAD block below sent it to whichever later module
+        # happened to have a head -- or nowhere, when none did -- putting
+        # the pair's libraries out of phase with nothing said about it.
+        if PAD:
+            with open(path, 'a') as f:
+                f.write('\n\t.section .text\n\t.p2align 3'
+                        f'\n\t.space {PAD}, 0x90\n')
+            PAD = 0
         return 0, 0
 
     L = lengths(src, st, args, path)

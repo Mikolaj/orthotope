@@ -275,15 +275,44 @@ def library(a, b):
     binary compared with
     itself reads 100.0% both ways, and the two counts differ from `--survey`
     because that one reports Main's loops and this one everything else.
+
+    **Those counts were SYMBOLS**, one per symbol however many loops it
+    carried, which is the keying corrected below on 2026-08-16. Run 14's
+    pair reads 1723 common loops at 100.0% and 100.0% where the symbol
+    keying said 953, so a count from before that date is not comparable
+    with one after it, and the percentages before it covered about half
+    the library.
+
+    The self-comparison proves nothing about the percentages, reading
+    100.0% by construction, and neither does an unrelated build:
+    `run14-lookrts` against a `-g3` twin shares 1013 loops and still reads
+    100.0% both ways, the libraries genuinely sitting still. What does
+    discriminate, 2026-08-16: shifting one half's loops by a byte inside
+    the reader takes the same pair to 0.0% phase and 97.8% straddle.
     """
     def heads(path):
+        # Keyed by the LOOP and not by the symbol carrying it. Keying by
+        # symbol collapsed every symbol holding more than one short loop
+        # to whichever address iterated last -- 268 of 953 symbols here,
+        # 776 of 1729 loops dropped -- so the percentages below covered
+        # 55% of the library and said 953 where they had found 1729. The
+        # body pairs the same code across the two halves, which is what
+        # the comparison is for, and the repeat counter separates two
+        # identical loops in one symbol; a loop present in one half only
+        # falls out of `common` and is visible in the count.
         h = {}
         for f in scan(path, None):
             cur = h.get(f['start'])
             if cur is None or f['len'] < cur['len']:
                 h[f['start']] = f
-        return {f['sym']: f for f in h.values()
-                if '_Main_' not in (f['sym'] or '')}
+        out, seen = {}, collections.Counter()
+        for f in sorted(h.values(), key=lambda f: f['start']):
+            sym = f['sym'] or ''
+            if '_Main_' in sym:
+                continue
+            seen[sym, f['bytes']] += 1
+            out[sym, f['bytes'], seen[sym, f['bytes']]] = f
+        return out
     A, X = heads(a), heads(b)
     common = set(A) & set(X)
     if not common:
