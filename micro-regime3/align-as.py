@@ -25,7 +25,11 @@ the old object code and reports nothing (README.md, same section).
                change, which is why it is a switch and off by default
   PAD_BYTES    dead bytes appended after the first module's text, default 0
   REAL_AS      the real assembler, default /usr/bin/gcc
-  ALIGN_AS_VERBOSE  report the budgets emitted and the heads fallen back on
+  ALIGN_AS_VERBOSE  report the budgets emitted, the heads fallen back on,
+               and the heads the info-table guard left alone
+
+An on/off variable above is off when unset, empty or `0`, and on for any
+other value; `LOOP_ALIGN` and `PAD_BYTES` take a number and are read as one.
 
 **Pad only a loop that would cross a boundary it need not, and only by what
 it needs** -- `LOOP_MAXSKIP=1`, and off by default because a default is the
@@ -124,6 +128,18 @@ that day on a two-file synthetic: the pad lands in the first headless module
 and not in the second, where the previous version wrote it in neither and
 left it owed.
 
+**"The first module" is the first of each INVOCATION, which in a real build
+is every module** -- the real assembler refuses several inputs alongside
+`-c -o` (`cannot specify '-o' with '-c' ... with multiple files`), so GHC
+necessarily calls `-pgma` once per module and the two-file synthetic above
+exercises an arrangement no build produces. A target of two Haskell modules
+therefore gets `2 * PAD_BYTES` and its libraries land where neither half
+wants them. `micro` and `probe` are one module each, which is the whole of
+why that is harmless here; the pad is announced on stderr as it is written,
+one line per module, so a second line is the tell, and
+`./loop-offsets.py --library A B` is what settles the phase either way.
+Found 2026-08-17 by review.
+
 How the number is derived, since the script that once did it is gone: a pair
 must not move the libraries, no shim on `-pgma` reaching them, so anything
 that changes `.text`'s size displaces everything linked after it -- aligning
@@ -211,15 +227,42 @@ import subprocess
 import sys
 import tempfile
 
+
+def switch(name):
+    """An on/off variable: unset, empty and `0` are off, anything else on.
+
+    `bool(os.environ.get(name))` is true for any value at all, so
+    `LOOP_MAXSKIP=0` built the max-skip form: set that way, the version
+    before this announced a max-skip budget where the recipe had asked for
+    the unconditional one. A default is the one thing a pair's note cannot
+    record and every half therefore sets what it wants explicitly, which is
+    exactly the recipe that spells the unconditional half `LOOP_MAXSKIP=0`
+    and got the other one under its name. Found 2026-08-17 by review.
+    """
+    return os.environ.get(name, '') not in ('', '0')
+
+
 REAL = os.environ.get('REAL_AS', '/usr/bin/gcc')
 ALIGN = os.environ.get('LOOP_ALIGN', '6')
-MAXSKIP = bool(os.environ.get('LOOP_MAXSKIP'))
-LOOKTHROUGH = bool(os.environ.get('LOOP_LOOKTHROUGH'))
+MAXSKIP = switch('LOOP_MAXSKIP')
+LOOKTHROUGH = switch('LOOP_LOOKTHROUGH')
+VERBOSE = switch('ALIGN_AS_VERBOSE')
 PAD = int(os.environ.get('PAD_BYTES', '0'))
 BOUND = 1 << int(ALIGN)
 LABEL = re.compile(r'^(\.L\w+):')
 JUMP = re.compile(r'^j\w*\s+(\.L\w+)\b')
-INSTR = re.compile(r'^[a-z][a-z0-9.]*\s')   # a mnemonic, not a directive or label
+# A mnemonic, not a directive or label -- with no operand as much as with
+# one. Requiring the whitespace made `ret`, `nop`, `cqto`, `cltq`, `leave`
+# and `ud2` fail the guard, so any head following one was dropped and
+# nothing said so; verified on a synthetic whose head follows `ret`, which
+# read "0 loop head(s)". Found 2026-08-17 by review. What it moves here is
+# nothing: on that day's Main.hs at plain -O1 the two forms admit the same
+# heads, 391 of them -- not the 395 above, which is a -fspec-constr build
+# of an earlier file -- the assembly's 44 bare mnemonics all being `cqto`
+# and none of them sitting before a head. The count `rewrite` now returns
+# is what would have said so, the verbose line having counted only what it
+# aligned.
+INSTR = re.compile(r'^[a-z][a-z0-9.]*(?:\s|$)')
 BYTELESS = re.compile(r'^(?:[\w.$]+:|\.(?:loc|file|cfi_\w+)\b.*)$')  # no bytes
 PROBE = 'apLoop'          # apLoopHead_<line>, apLoopEnd_<line>_<k>_<n>
 
@@ -294,11 +337,31 @@ def probe_cmd(args, path, ps, po):
     return [REAL] + cmd
 
 
+def no_lengths(path, why):
+    """Say that this module fell back wholesale, and hand back no lengths.
+
+    A head the probe could not price falls back on its own and is ordinary,
+    which is what the verbose line counts. EVERY head falling back is not:
+    it is the max-skip half built as the unconditional one under the name
+    of the other, which is the failure `switch` above records by its own
+    route -- so it is said unconditionally, a build being where nobody is
+    reading a verbose flag.
+    """
+    print(f'align-as: {path}: {why}, so no head has a measured length and'
+          ' every one takes the unconditional directive -- this module is'
+          ' not the max-skip form', file=sys.stderr)
+    return {}
+
+
 def symbols(obj, want):
     out = {}
-    dis = subprocess.run(['objdump', '-t', obj],
-                         capture_output=True, text=True).stdout
-    for line in dis.split('\n'):
+    got = subprocess.run(['objdump', '-t', obj], capture_output=True,
+                         text=True)
+    if got.returncode != 0:
+        print(f'align-as: objdump -t {obj} exited {got.returncode}:'
+              f' {got.stderr.strip() or "(no stderr)"}', file=sys.stderr)
+        return out
+    for line in got.stdout.split('\n'):
         f = line.split()
         if len(f) >= 2 and f[-1].startswith(want):
             try:
@@ -345,8 +408,10 @@ def lengths(src, st, args, path):
         if subprocess.call(probe_cmd(args, path, ps, po),
                            stdout=subprocess.DEVNULL,
                            stderr=subprocess.DEVNULL):
-            return {}
+            return no_lengths(path, 'the probe copy did not assemble')
         sym = symbols(po, PROBE)
+        if not sym:
+            return no_lengths(path, 'the probe object carries no probe symbol')
         span = {}
         for name, a in sym.items():
             if not name.startswith(f'{PROBE}End_'):
@@ -360,13 +425,36 @@ def lengths(src, st, args, path):
         return {lab: span[str(i)] for i, lab in st if str(i) in span}
 
 
-def rewrite(path, args):
-    """-> (emitted with a budget, fallen back on)."""
+def pad_note(path):
+    """Say where the pad went, and clear it: one module's worth an invocation.
+
+    Unconditional, not under ALIGN_AS_VERBOSE. The pad is once per
+    invocation and GHC invokes this once per module, so on a multi-module
+    target it is written once per module and each half's libraries move
+    further than its note records -- a second line here is the only tell a
+    build gives, the docstring above having the rest.
+    """
     global PAD
+    print(f'align-as: {PAD} pad byte(s) appended to {path}', file=sys.stderr)
+    PAD = 0
+
+
+def rewrite(path, args):
+    """-> (emitted with a budget, fallen back on, dropped by the guard).
+
+    The third is what the INSTR guard refused: a head whose last
+    byte-emitting line is a table entry rather than an instruction, which
+    is the correctness half of this script and is meant to refuse them.
+    Counted because nothing counted it -- the verbose line reports what was
+    aligned, so the head count this file quotes has always been a floor
+    with no way to see how far below the ceiling it sits.
+    """
     with open(path) as f:
         src = f.read().split('\n')
 
-    st = sites(src, heads_of(src))
+    heads = heads_of(src)
+    st = sites(src, heads)
+    dropped = len(heads) - len(st)
     if not st:
         # The pad is owed by the FIRST module this shim is handed, and a
         # module with no loop head is still that module. Returning here
@@ -377,8 +465,8 @@ def rewrite(path, args):
             with open(path, 'a') as f:
                 f.write('\n\t.section .text\n\t.p2align 3'
                         f'\n\t.space {PAD}, 0x90\n')
-            PAD = 0
-        return 0, 0
+            pad_note(path)
+        return 0, 0, dropped
 
     L = lengths(src, st, args, path)
     at, n, back = dict(st), 0, 0
@@ -398,23 +486,23 @@ def rewrite(path, args):
         out.append(line)
     if PAD:
         out += ['\t.section .text', '\t.p2align 3', f'\t.space {PAD}, 0x90', '']
-        PAD = 0        # one module's worth an invocation
+        pad_note(path)
     with open(path, 'w') as f:
         f.write('\n'.join(out))
-    return n, back
+    return n, back, dropped
 
 
 def main():
     args = sys.argv[1:]
-    n = back = 0
+    n = back = dropped = 0
     for a in args:
         if a.endswith('.s') and os.path.exists(a):
             try:
-                dn, db = rewrite(a, args)
-                n, back = n + dn, back + db
+                dn, db, dd = rewrite(a, args)
+                n, back, dropped = n + dn, back + db, dropped + dd
             except Exception as e:           # never break a build over this
                 print(f'align-as: {a}: {e}', file=sys.stderr)
-    if os.environ.get('ALIGN_AS_VERBOSE'):
+    if VERBOSE:
         if MAXSKIP:
             print(f'align-as: {n} loop head(s) given a max-skip budget, {back} '
                   f'without a measured length and so aligned unconditionally',
@@ -422,6 +510,8 @@ def main():
         else:
             print(f'align-as: aligned {back} loop head(s) unconditionally',
                   file=sys.stderr)
+        print(f'align-as: {dropped} head(s) left alone, the guard finding a '
+              f'table rather than an instruction before them', file=sys.stderr)
     return subprocess.call([REAL] + args)
 
 
