@@ -48,6 +48,55 @@ if [ -z "$FILES" ]; then
   exit 1
 fi
 
+# What the run MEANT to leave, off its own wallclock log, because the glob
+# above sees only what landed: a run killed after nine of its eighteen
+# processes leaves nine JSONs and this gated the nine and printed `every
+# process gated clean` over them -- the by-hand miscount the header says
+# this script exists to prevent, one stage later. `run-major.sh` logs
+# `start <name>` and `done <name> rc=` per process, so its log answers the
+# two questions the glob cannot: did every process that started finish
+# clean, and did every one leave a JSON. A run is killed DURING a process,
+# so the one that was running leaves a `start` with no `done` and both
+# tests below see it. No new artifact and nothing to keep in step -- the
+# run writes this log already and every run on disk carries one.
+#
+# What is NOT reconstructed, having been tried and refuted the same day:
+# the halves' cross product, for the processes a killed run never reached
+# at all. Those leave no line to read, and inferring them from halves x
+# tags refuses three of the five runs on disk -- Runs 11, 12 and 13 ran
+# the eight class processes on the BASIS HALF ALONE, which each of their
+# `halves:` lines says and Run 14's does not. The intent moved between
+# runs and only the current spelling is in `run-major.sh`, so what the log
+# records is read here and never what it implies. Found 2026-08-17 by
+# review, the refutation by proving the fix.
+LOG="$R-wallclock.log"
+if [ ! -f "$LOG" ]; then
+  echo "no $LOG, so how this run ended is unknown and the glob above is"
+  echo "  the only roster -- which is what lets half a run gate clean."
+  echo "  Name the right run, or read its processes by hand."
+  exit 1
+fi
+STARTED=$(awk '$3 == "start" { print $4 }' "$LOG" | grep -v -- "-gate-" \
+            | sort -u)
+FINE=$(awk '$3 == "done" && $5 == "rc=0" { print $4 }' "$LOG" \
+         | grep -v -- "-gate-" | sort -u)
+LANDED=$(printf '%s\n' $FILES | sed 's/\.json$//' | sort -u)
+UNFINISHED=$(comm -23 <(printf '%s\n' "$STARTED") <(printf '%s\n' "$FINE"))
+LOST=$(comm -23 <(printf '%s\n' "$STARTED") <(printf '%s\n' "$LANDED"))
+SHORT=0
+[ -z "$(printf '%s' "$UNFINISHED$LOST" | tr -d '[:space:]')" ] || SHORT=1
+if [ "$SHORT" = 1 ]; then
+  echo "!! $LOG says this run is not all here, so what follows gates a part"
+  echo "   of it and is not this run's reading:"
+  [ -z "$(printf '%s' "$UNFINISHED" | tr -d '[:space:]')" ] \
+    || echo "   started and did not finish clean:" \
+       "$(printf '%s' "$UNFINISHED" | tr '\n' ' ')"
+  [ -z "$(printf '%s' "$LOST" | tr -d '[:space:]')" ] \
+    || echo "   started and left no JSON:" \
+       "$(printf '%s' "$LOST" | tr '\n' ' ')"
+  echo
+fi
+
 BAD=0
 printf '%-28s %-9s %s\n' process selftest 'A/A worst cell'
 for f in $FILES; do
@@ -99,12 +148,21 @@ for f in $FILES; do
 done
 
 echo
-if [ "$BAD" -eq 0 ]; then
+if [ "$BAD" -eq 0 ] && [ "$SHORT" = 0 ]; then
   echo "every process gated clean. The worst cells above are yours to read:"
   echo "  a pair inside the floor with a cell an order of magnitude outside"
   echo "  it is a finding, not noise, and the floor goes in the chapter head"
 else
-  echo "$BAD process(es) FAILED their gate -- each invalidates that"
-  echo "population's whole time column and only that one"
+  # The processes that landed are still gated and their verdicts still
+  # printed -- whether the nine that ran are sound is what says to resume
+  # or to rerun -- but a partial run never reads as a clean one, which is
+  # what the verdict above used to say and the exit code used to be.
+  [ "$BAD" -eq 0 ] \
+    || { echo "$BAD process(es) FAILED their gate -- each invalidates that"
+         echo "population's whole time column and only that one"; }
+  [ "$SHORT" = 0 ] \
+    || { echo "and the run is not all here: the processes named at the top"
+         echo "are missing, so this is a reading of what landed and not of"
+         echo "$R -- finish or rerun it before any figure of it is quoted"; }
 fi
-[ "$BAD" -eq 0 ] || exit 1
+{ [ "$BAD" -eq 0 ] && [ "$SHORT" = 0 ]; } || exit 1
