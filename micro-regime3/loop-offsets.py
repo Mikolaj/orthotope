@@ -108,6 +108,9 @@ decoded as an instruction start go 613 to 777, which is the whole of why one
 reads 115 short loops and the other 101. The straddle count *within* one
 binary is sound; a difference in the totals between two is the disassembler.
 
+Its defects are kept as cases in `./check-scripts.py` -- objdump's status
+and addr2line's -- and a fix here wants one there first.
+
     ./loop-offsets.py BINARY...          # 28-byte loop, the one this page prices
     ./loop-offsets.py --len 24 BINARY    # e.g. the count-down form
     ./loop-offsets.py --survey BINARY    # every loop that could fit a line

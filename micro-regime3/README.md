@@ -3718,6 +3718,13 @@ and never as a chronology.
     #      cannot be told from one nothing searched. Get the checkout
     #      mounted and rerun, or run with it blocked and say so in the
     #      write-up -- the one thing not available is reading it as a pass
+    ./check-scripts.py                    # 8b. and if any script here has
+    #      changed since the last run: every defect these scripts have had,
+    #      planted again and refused again. Seconds, and it writes nothing --
+    #      no run file, no page, not even the index. `--audit` replays each
+    #      case against the code before its own fix, where it MUST fail,
+    #      which is the suite's own non-vacuity and worth a look after
+    #      adding one
     ./$R-<basis> diag                     # 9. the regime, in the binary
     #      read one row: allocated bytes of baseOffsetsScan against
     #      baseOffsetsMut on vgg-14-c512 -- equal to three figures under
@@ -5240,6 +5247,25 @@ of the forcing pass while every other column is raw — each cost a session
 to settle, and an ad-hoc script gets them subtly wrong. Its docstring
 is the reference for all of them; extend the script rather than starting over.
 
+**`check-scripts.py` is the one exception to that, and it is where a defect
+of the reader goes.** `--selftest` asserts a run's numbers; the two reviews
+of 2026-08-17 found thirty defects that were not numbers at all — a class table
+installed over the next class's, four checks whose silence read as a pass,
+a mode the dispatch dropped without a word, a subprocess status ignored —
+and it caught none of them, calling no checker, no installer and no flag guard.
+The corpus drives every script here from outside, exit code and stderr included,
+planting each fault again into a copy of this page or of a run JSON;
+and `--audit` replays each case against the commit BEFORE its own fix, where
+it must fail. That is what makes a fix's proof outlive the commit: every proof
+made that day compared the new file against `git show HEAD:...`, which stops
+meaning anything the moment the fix is HEAD. **The case comes before the fix** —
+a claim that turns out wrong costs one case rather than one implementation,
+and a fix without one has come back twice here already. What it does NOT yet do
+— a source lint for the families these defects fall into, which is the only
+thing that would find an instance nobody has observed — is recorded in its own
+docstring rather than re-derived.
+
+    ./check-scripts.py                      # the scripts' own defect corpus
     ./read-run.py RUN.json                  # roster, then the strategy table
     ./read-run.py RUN.json --markdown       # that table as README markdown
     ./read-run.py RUN.json --shapes         # per shape: CI% max / median / mean

@@ -197,6 +197,21 @@ A/A identity fails the matching check, and all four were broken to confirm
 it.
 It exits 2, not 0,
 when the run file is missing: a refusal is information.
+
+**--selftest is the numeric half of that and `./check-scripts.py` is the
+other, which is where a defect of THIS FILE now goes.** Every invariant
+above is about a run's figures, and two reviews on 2026-08-17 found thirty
+defects that were not: a class table installed over the next class's, four
+checks whose silence read as a pass, a mode dropped by the dispatch without
+a word, a subprocess status ignored. --selftest calls no checker, no
+installer and no flag guard, so it caught none of them and cannot. The
+corpus drives this script from outside instead -- exit code and stderr
+included -- and replays each case against the commit before its own fix,
+which is what keeps it non-vacuous and what makes a fix's proof outlive the
+commit that made it. **Add the case before the fix**; a defect fixed
+without one has come back here twice already. Extending this script rather
+than writing a new one still holds for anything that READS a run: the
+corpus reads none, and is the exception the rule needed.
 """
 
 import argparse

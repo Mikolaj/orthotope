@@ -22,6 +22,11 @@
 #
 # Seconds, no benchmark run, safe on a busy machine -- it only reads JSONs.
 #
+# Both defects this has had are cases in ./check-scripts.py -- an in-situ row
+# read as the A/A worst cell, and a killed run gating what landed and calling
+# it clean. A fix here wants a case there first; it is what keeps the proof
+# alive past the commit.
+#
 # The worst-cell column is checked rather than trusted: over Run 13 it puts
 # `scaled` at 11.59% on scaled-super-r3, which is the figure README records
 # for that run's slot from a reading taken without this script, and `rev` at

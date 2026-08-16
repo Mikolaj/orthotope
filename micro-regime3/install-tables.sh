@@ -19,6 +19,9 @@
 # once, and a write-up that installs seven blocks of eight is the same
 # defect one stage later.
 #
+# Its defects, and the control that a full pass rewrites no table, are cases
+# in ./check-scripts.py; add one there before fixing anything here.
+#
 # WRITES THE PAGE, so commit or park README.md first -- `git checkout --
 # README.md` is the undo, and there is no other. Read the diff afterwards
 # rather than the terminal: install prints what it replaced, not what the

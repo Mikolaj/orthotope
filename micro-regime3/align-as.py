@@ -105,6 +105,11 @@ fitting loop onto a boundary, where the unconditional form relocates
 nothing -- which is why Run 11 pairs the two rather than replacing one with
 the other.
 
+Its defects are kept as cases in `./check-scripts.py`: the switch read for
+truth, the head after a zero-operand instruction, the pad's announcement and
+the empty `PAD_BYTES`. Add one there before fixing anything here, and the
+proof outlives the commit.
+
 The published copy of this is in horde-ad's
 `docs/ghc-issue-no-loop-alignment.md`, filed as
 [GHC work item 27668](https://gitlab.haskell.org/ghc/ghc/-/work_items/27668),
