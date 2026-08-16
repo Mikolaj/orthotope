@@ -60,6 +60,21 @@ difference. Nothing here stages, commits, or edits a tracked file: the one
 case that needs a STAGED file builds a throwaway index with GIT_INDEX_FILE
 and leaves the real one alone.
 
+WHAT IT DOES NOT COVER, so its silence is not read as a clean bill.
+Every defect either review found, and every one found beside them, has a
+case here but one: the correction's positivity test in `selftest`, which is
+subsumed by the malformed-cell check above it and so cannot fail on its own
+-- untestable by construction rather than untested, and `read-run.py` says
+as much where the code is. The other absence is whole files. `run-major.sh`,
+`run-gate.sh` and `smoke-sweep.sh` have no case and had no finding in either
+review, which is not evidence that they are clean: they are the drivers
+that commit the machine for hours, a defect in one is the most expensive
+kind here, and the two shell scripts anyone did read closely yielded the
+highest defect density in the tree -- 1.9 and 0.9 per hundred lines against
+`read-run.py`'s 0.47. What stops them being covered is that a case would
+have to launch a run; what would unblock it is a fake binary standing in
+for `$PREFIX-$h`, which is the next thing to build here.
+
 NOT BUILT YET, and recorded here so it is not re-derived. (1) A source lint
 for the families these defects fall into, which is the only thing that
 would find an instance nobody has observed: a `subprocess.run` whose
@@ -247,6 +262,51 @@ def readme_citing_dotfile(tmp):
     return edited_readme(tmp, ('\n## What is open',
                                '\nhorde-ad keeps its hlint exceptions in'
                                ' `.hlint.yaml`.\n\n## What is open'))
+
+
+def readme_without_class_leads(tmp):
+    """Every class block lead unbackticked, so the grep finds none.
+
+    `install-tables.sh` checks that no class is silently skipped by holding
+    the JSONs on disk to the page's leads, and the check was itself silent
+    when its own search came back empty.
+    """
+    doc = re.sub(r'(?m)^\*\*`([a-z0-9]+)`', r'**\1', open(README).read())
+    return write(os.path.join(tmp, 'R.md'), doc)
+
+
+def readme_chapter_renamed(tmp):
+    return edited_readme(tmp, ('\n## About the last run (Run',
+                               '\n## About the previous run (Run'))
+
+
+def untracked_doc(tmp):
+    """A document in this directory that no index knows about.
+
+    The sibling of `staged_doc`: `git diff` says nothing about an untracked
+    path AND exits 0, which is the empty set rather than the sentinel, so
+    a page worked on before it is added had every hit called old.
+    """
+    doc = here_file('zz-case-untracked.md')
+    write(doc, open(README).read()
+          + '\nThe fastest arm of every population is the one this planted'
+            ' sentence pretends to name, which makes it the biggest'
+            ' superlative on the page.\n')
+    return {'doc': os.path.basename(doc)}
+
+
+def bad_alloc_fit(benches, want):
+    """One cell's ALLOCATED fit made unreadable, its time fit left alone."""
+    hit = 0
+    for b in benches:
+        if b['reportName'] != want:
+            continue
+        for r in b['reportAnalysis']['anRegress']:
+            if 'allocated' in str(r.get('regResponder')):
+                r['regRSquare']['estPoint'] = 0.5
+                hit += 1
+    assert hit == 1, '%s: %d allocated fit(s)' % (want, hit)
+    return hit
 
 
 def mangled_main(tmp):
@@ -447,6 +507,30 @@ CASES = [
          ok=V(has=['NEW ']),
          bug=V(has=['none added by this diff'], hasnt=['NEW '])),
 
+    case('population-main-hs-does-not-define', 'read-run.py', '4086ab8',
+         'a population Main.hs no longer defines died unpacking',
+         plant=lambda t: {'run': run_json('run14-lookrts-slice.json')},
+         argv=['{run}', '--markdown', '--main', '/dev/null'],
+         ok=V(exit=0, has=['a population Main.hs does not define']),
+         bug=V(has=['not enough values to unpack'])),
+
+    case('ragged-gate-after-exclude', 'read-run.py', '4086ab8',
+         'excluding the arm with the missing cells still refused the run',
+         plant=lambda t: {'run': doctored(
+             t, 'run14-lookrts-slice.json',
+             lambda bs: drop(bs, 'slice-primes/bq-expand'))},
+         argv=['{run}', '--exclude', 'bq-expand'],
+         ok=V(exit=0, hasnt=['did not happen']),
+         bug=V(exit=2, has=['0 cell(s) missing'])),
+
+    case('in-place-alone', 'read-run.py', '4086ab8',
+         '--in-place with no installing mode printed a table and wrote none',
+         plant=lambda t: {'readme': edited_readme(t),
+                          'run': run_json('run14-lookrts-main.json')},
+         argv=['{run}', '--in-place', '--readme', '{readme}'],
+         ok=V(exit=2, has=['--in-place is a modifier']),
+         bug=V(exit=0)),
+
     # ---- read-run.py, the second review's ------------------------------
     case('checkdoc-without-a-roster', 'read-run.py', 'a6c32e8',
          'a roster it could not parse skipped five checks at exit 0',
@@ -544,6 +628,29 @@ CASES = [
          ok=V(has=["'1 ms'"]),
          bug=V(has=['e+03'])),
 
+    case('added-lines-untracked', 'read-run.py', '045ca63',
+         'an untracked page had every hit called old',
+         plant=untracked_doc,
+         argv=['--check-doc', '--readme', '{doc}'],
+         ok=V(hasnt=['none added by this diff']),
+         bug=V(has=['none added by this diff'])),
+
+    case('alloc-fit-on-an-unknown-shape', 'read-run.py', 'a6c32e8',
+         'a missing alloc read as "allocated nothing", silencing the warning',
+         plant=lambda t: {'run': doctored(
+             t, 'run14-lookrts-slice.json',
+             lambda bs: bad_alloc_fit(bs, 'slice-primes/offtab'))},
+         argv=['{run}', '--main', '/dev/null'],
+         ok=V(has=['allocated R2 < 0.99']),
+         bug=V(hasnt=['allocated R2 < 0.99'])),
+
+    case('checkdoc-chapter-heading-gone', 'read-run.py', 'a6c32e8',
+         'the chapter-link sweep lost its own boundary in silence',
+         plant=lambda t: {'readme': readme_chapter_renamed(t)},
+         argv=['--check-doc', '--readme', '{readme}'],
+         ok=V(has=['BLOCKED: no `## About the last run` heading']),
+         bug=V(hasnt=['BLOCKED: no `## About the last run` heading'])),
+
     # ---- align-as.py ---------------------------------------------------
     case('maxskip-zero-is-off', 'align-as.py', '437ce00',
          'LOOP_MAXSKIP=0 built the max-skip form',
@@ -577,6 +684,14 @@ CASES = [
          argv=['-c', '-o', '{obj}', '{asm}'],
          ok=V(exit=0, hasnt=['ValueError']),
          bug=V(has=['ValueError'])),
+
+    case('probe-that-did-not-assemble', 'align-as.py', '437ce00',
+         'a failed probe made the max-skip half the unconditional one',
+         plant=asm,
+         env={'REAL_AS': '{as}', 'LOOP_MAXSKIP': '1'},
+         argv=['-c', '-o', '{obj}', '{asm}'],
+         ok=V(has=['objdump -t', 'not the max-skip form']),
+         bug=V(hasnt=['not the max-skip form'])),
 
     # ---- loop-offsets.py -----------------------------------------------
     case('objdump-status', 'loop-offsets.py', '0a1bc60',
@@ -615,6 +730,14 @@ CASES = [
          argv=['run14'],
          ok=V(exit=1, has=['the two ways this file finds a class block']),
          bug=V(exit=0, has=['across 7 class block(s)'])),
+
+    case('no-class-block-leads', 'install-tables.sh', '4086ab8',
+         'the guard against a silently skipped class was itself silent',
+         plant=lambda t: {'doc': readme_without_class_leads(t)},
+         env={'DOC': '{doc}'},
+         argv=['run14'],
+         ok=V(exit=1, has=['no class block leads'], hasnt=['REFUSED']),
+         bug=V(has=['REFUSED'], hasnt=['no class block leads'])),
 
     case('install-is-idempotent', 'install-tables.sh', None,
          'CONTROL: a full pass over an untouched page rewrites no table',
