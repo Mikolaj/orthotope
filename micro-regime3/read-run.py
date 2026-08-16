@@ -3133,6 +3133,23 @@ def check_doc(readme, main_hs):
             print('ok:   the yardstick keeps a column per regime (%s)'
                   % ' / '.join(sorted(regimes)))
 
+        # `install --in-place` writes `?` into any cell it cannot carry
+        # forward -- a row new to the roster -- and says so once, on stderr,
+        # hours before anyone reads the table. Twelve reached a published
+        # Results table on 2026-08-15 and the write-up shipped with them.
+        # A warning nobody re-reads is a gate that does not exist, so this
+        # is the gate: no cell of a published table may still be `?`.
+        qmark = [i + 1 for i, ln in enumerate(lines)
+                 if re.search(r'\|\s*\?\s*\|', ln)]
+        if qmark:
+            bad.append('%d published table cell(s) still carry the `?` that'
+                       ' install writes for a row it cannot carry forward --'
+                       ' first at line %d; fill each from the run or from the'
+                       ' note written before it'
+                       % (len(qmark), qmark[0]))
+        else:
+            print('ok:   no published table cell is left at install\'s `?`')
+
         # A paired run puts two columns here, one per half, and neither may
         # be dropped or folded into the other: an aligned build is a regime
         # and not a second reading of the one beside it. Keyed off the run

@@ -75,6 +75,61 @@ install "$MAIN" --markdown
 install "$MAIN" --fingerprint
 for c in $CLASSES; do install "$c" --block; done
 
+# The block's THREE COMPUTED paragraphs, which --block emits and --in-place
+# did not write: Controls, Provenance and the per-shape line. Leaving them to
+# hand-copying cost 24 transcriptions a run and, on 2026-08-15, five class
+# blocks that silently kept no per-shape line at all -- they were two-shape
+# when last written and nothing said the line had become owed. The lead and
+# the verdict paragraph stay the author's, as the form says; these three are
+# the reader's own output and are installed like the table.
+echo "=== installing each class block's computed paragraphs"
+python3 - "$R" "$BASIS" "$DOC" <<'ENDPY' || BAD=$((BAD+1))
+import re, subprocess, sys
+R, BASIS, DOC = sys.argv[1], sys.argv[2], sys.argv[3]
+doc = open(DOC).read(); paras = doc.split('\n\n')
+leads = {}
+for i, p in enumerate(paras):
+    m = re.match(r'\*\*`([a-z0-9]+)` \u2014', p.lstrip())
+    if m: leads[m.group(1)] = i
+order = sorted(leads.items(), key=lambda kv: kv[1])
+done = 0
+for n, (c, start) in enumerate(reversed(order)):
+    k = [x for x, _ in order].index(c)
+    end = order[k + 1][1] if k + 1 < len(order) else len(paras)
+    blk = subprocess.run(['./read-run.py', f'{R}-{BASIS}-{c}.json', '--block',
+                          '--brief'], capture_output=True, text=True).stdout
+    log = open(f'{R}-{BASIS}-{c}.log').read()
+    m = re.search(r'elapsed (\S+); peak (\d+) MiB in use, (\d+) MiB max', log)
+    if not m:
+        print(f'  REFUSED {c}: no provenance line in {R}-{BASIS}-{c}.log'); sys.exit(1)
+    el, pk, mr = m.groups()
+    def grab(tag):
+        g = re.search(r'\n(' + tag + r'.*?)(?=\n\n|\Z)', blk, re.S)
+        return ' '.join(g.group(1).split()) if g else None
+    ctrl, prov, per = grab('Controls:'), grab('Provenance:'), grab('Per shape')
+    if not (ctrl and prov and per):
+        print(f'  REFUSED {c}: --block emitted no ' +
+              ('Controls' if not ctrl else 'Provenance' if not prov else 'per-shape'))
+        sys.exit(1)
+    ctrl = ctrl.replace('Controls: ___ (the reading is yours). ', 'Controls: ')
+    prov = (prov.replace('elapsed ___', 'elapsed ' + el)
+                .replace('peak ___ MiB', f'peak {pk} MiB')
+                .replace('___ MiB max residency', f'{mr} MiB max residency')
+                .replace(" (copy from the process's stderr line)", ''))
+    prov_at = None
+    for j in range(start, end):
+        s = paras[j].lstrip()
+        if s.startswith('Controls:'): paras[j] = ctrl; done += 1
+        elif s.startswith('Provenance:'): paras[j] = prov; prov_at = j; done += 1
+        elif s.startswith('Per shape'): paras[j] = per; done += 1
+    if prov_at is not None and not any(
+            paras[j].lstrip().startswith('Per shape') for j in range(start, end)):
+        paras.insert(prov_at + 1, per); done += 1   # every class is three-shape now
+        print(f'  {c}: per-shape line ADDED, the block had none')
+open(DOC, 'w').write('\n\n'.join(paras))
+print(f'  {done} computed paragraph(s) installed across {len(order)} class block(s)')
+ENDPY
+
 echo
 if [ -n "$HAND" ]; then
   echo "What the installs left for you, and it is not optional:$HAND"

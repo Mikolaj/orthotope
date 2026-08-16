@@ -2229,6 +2229,29 @@ left to attribute — the interval it is about is the aligned binary's.
   one section — the yardstick, or the claims verdicts — rendered rather
   than written, on the next run.
 
+- **`--claims --in-place`, so the claims section is installed
+  and not transcribed.** Every other figure-bearing block has an installer
+  and this one does not, so a run hand-copies thirteen verdicts out
+  of `--claims`. On 2026-08-15 a write-up added a sentence reading *figures
+  below are the basis half's* above ten paragraphs it never replaced,
+  and shipped thirteen of the previous run's figures under a false attribution
+  with every checker green. An installer cannot make that mistake; a transcriber
+  makes it whenever the day is long.
+- **Let `--check-doc` see a link's TEXT and not only its anchor.** The rename
+  step already says to repoint both and notes that the check sees the second
+  only. Run 14 shipped four links reading
+  `[About the last run (Run 13)](#about-the-last-run-run-14)`, found by a reader
+  rather than a checker. The pattern is mechanical — `Run N` in the text against
+  `run-M` in the anchor, N unequal to M — so this is a known gap with a known
+  predicate and no reason to stay open.
+- **More checks of the floor-consistency shape: one figure, several sites, must
+  agree.** The check that fails when the run's floor pair is quoted differently
+  across its sites did Run 14's replace-list walk unaided, catching four stale
+  sites in sections the session had not reached. Nothing else on this page has
+  that shape. The obvious next subjects are the roster size, the shape count,
+  the run window and the process count, each of which appears in several
+  sections and each of which Run 14 got wrong in at least one of them.
+
 
 ## The goal of these benchmarks
 
@@ -3481,13 +3504,17 @@ a procedure cannot make, and is never called *the author*: that word means
 the session writing a block — the one whose prose an independent checker is set
 against — and it is the executor, not the requester.
 
-**A probe budget rides with it**, and it is separate from the pre-registered
-questions, which are appended after the classes and were designed before
-the evening. Allow up to about two hours of measurement the run's own *results*
-make worthwhile: a discriminating reading of a cell that came out strange,
-a derivation over the artifacts while they still exist. Spend it while they do,
-most of it being unspendable afterwards, and propose rather than take anything
-beyond it.
+**A probe budget rides with it, and it is spent AFTER the write-up rather
+than before.** It is separate from the pre-registered questions, which
+are appended after the classes and were designed before the evening. What
+this ordering is for: the write-up is where a run's errors are made, it is done
+last, and a probe spent first is spent out of its attention — Run 14 probed
+heavily and well, and shipped twenty-one prose errors past four green checkers
+because the writing came at the end of it. Allow up to about two hours
+of measurement the run's own *results* make worthwhile: a discriminating reading
+of a cell that came out strange, a derivation over the artifacts while they
+still exist. Spend it while they do, most of it being unspendable afterwards,
+and propose rather than take anything beyond it.
 
 **Stop for two things.** No further progress — a build that will not build,
 a gate that fails, evidence that is not on this machine — and a decision
@@ -3614,11 +3641,9 @@ and never as a chronology.
     #      addresses in both sections. A note's nm-based figure is a
     #      different number again, so compare like with like.
     ./loop-offsets.py --survey $R-<basis>       #    on the BUILD path,
-    ./loop-offsets.py --survey $R-<other>       #    never the confirm one
-    #      -- a straddle answer is a property of the binary, so it is read
-    #      once when the pair is made and kept in the note. Offsets at 0
-    #      are what a fully padded half shows and are not to be required
-    #      of a max-skip one
+    ./loop-offsets.py --survey $R-<other>       #    never the confirm one,
+    #      and the answer goes in the note: it is the binary's, not the
+    #      reading session's. What it means is below, at the pad
     ./smoke-sweep.sh $R                   # 11. the smoke sweep, and read
     #      its counting: it holds each process to the arm count `--list`
     #      gives for that shape
@@ -3697,7 +3722,10 @@ than after them. Unsandboxed throughout:
     #      write leaves a launch that never happened looking like one in
     #      progress, which is how two copies once ran at once
     #      do NOT wait with pgrep -f, which self-matches and never returns;
-    #      poll $R-wallclock.log for `major run complete`
+    #      the sequence ENDS WITHOUT ANNOUNCING ITSELF, so arrange to be
+    #      woken by `major run complete` in $R-wallclock.log rather than
+    #      deciding to look: six hours of idle machine followed a session
+    #      that read this line as where to look and set nothing watching
     #      nothing else on the machine, and no edit to the tree, until it
     #      ends: the driver's git lines are the binary's provenance
     #      never raise -L on a recorded run -- the figures stop being
@@ -7292,15 +7320,22 @@ five things and nothing else:
    shape order — because its table under-determines its cells, where a two-shape
    table carried them already, `time` and `worst` jointly fixing both; every
    class is three-shape now, so the line always prints;
-5. one paragraph of what the class says, and none where it says nothing:
+5. the cross-half reading, one line, from `--compare` against the other half's
+   JSON for the same class — how many of the population's arms move, which way,
+   and the spread. Both halves have run every class since 2026-08-14 and
+   this is where that is read: a pair's variable can act on a class and
+   not on the main set, which is how Run 14 answered its `scaled` question.
+   A run whose halves differ in nothing a class can see says so in a clause;
+6. one paragraph of what the class says, and none where it says nothing:
    an ordering that inverted, a `worst` above 1, an allocation tier that moved,
    a mechanism showing through a single cell. A class that reproduces the main
    ordering gets one sentence saying so, that being a result and reading as one.
 
-`./read-run.py RUN.json --block` assembles items 2 through 4's mechanical parts
-in one call — table, controls, the provenance and anchor skeleton,
-and a three-shape population's per-shape line; the lead and the paragraph stay
-the author's, a skeleton writing no findings.
+`./read-run.py RUN.json --block` assembles items 2 through 4's mechanical parts,
+and `install-tables.sh` now writes them in in one call — table, controls,
+the provenance and anchor skeleton, and a three-shape population's per-shape
+line; the lead and the paragraph stay the author's, a skeleton writing
+no findings.
 
 The blocks carry no headings of their own. One per class would crowd
 the contents and the replace list alike, where a bolded lead reads the same
