@@ -936,12 +936,21 @@ def synth_text(shapes, **kw):
 
 
 def synthetic_run(tmp, killed=False, no_twins=False, no_starts=False,
-                  complained=False):
+                  complained=False, into=None):
     """A whole run in this directory: JSONs, and the log that describes it.
 
     `read-all.sh` cds to its own directory and globs, so this is one of the
     two fixtures that cannot live in a temp directory.
+
+    `into` names that directory when the case runs a SHADOW. `shadow_dir`
+    symlinks this one BEFORE a plant runs, so a file written here
+    afterwards is not in the shadow, and a driver globbing its own
+    directory finds nothing at all -- which reads as a fixture that would
+    not build rather than as the state the case wanted. Pointed at the
+    shadow, the run lands where the driver will look.
     """
+    place = (here_file if into is None
+             else lambda name: os.path.join(into, name))
     tag = 'runzz'
     log = ['=== 2026-01-01T00:00:00+01:00 major run begins; tree at 0000000,'
            ' Main.hs at 0000000; roster is 1 benches',
@@ -956,7 +965,7 @@ def synthetic_run(tmp, killed=False, no_twins=False, no_starts=False,
         # `aa-worst-cell-is-not-an-insitu-row` for a reason that has
         # nothing to do with the defect it guards; it is the roster's own
         # Twin role now, and moves with the roster.
-        dst = here_file('%s-lookrts-%s.json' % (tag, cls))
+        dst = place('%s-lookrts-%s.json' % (tag, cls))
         synth_run(dst, class_shapes(cls), no_twins=no_twins)
         if not no_starts:
             log += ['=== 2026-01-01T00:00:01+01:00 start %s-lookrts-%s'
@@ -973,7 +982,7 @@ def synthetic_run(tmp, killed=False, no_twins=False, no_starts=False,
     if killed:
         log.append('=== 2026-01-01T00:10:01+01:00 start %s-lookrts-window'
                    % tag)
-    write(here_file('%s-wallclock.log' % tag), '\n'.join(log) + '\n')
+    write(place('%s-wallclock.log' % tag), '\n'.join(log) + '\n')
     return {'tag': tag}
 
 
@@ -1016,7 +1025,17 @@ def case(name, prog, fix, gist, argv, ok, bug=None, plant=None, env=None,
     rather than anything it said: it returns text that is judged alongside
     the output, which is how a paragraph silently overwritten in a copy of
     the page becomes a `has`/`hasnt` like any other.
+
+    A `bug` verdict says what the defect looked like, and --audit replays
+    the case against `fix^` to see it. Without a `fix` there is nothing to
+    replay against, and the runner computed `None + '^'` -- a TypeError out
+    of the middle of the audit, naming no case, where the case had simply
+    been written before its fix was committed. Refused at import instead,
+    which is where the author is standing.
     """
+    assert bug is None or fix, (
+        '%s: a bug verdict wants the commit that fixed it, or --audit has'
+        ' nothing to replay -- drop the bug to make it a control' % name)
     return CASE(name, prog, fix, gist, plant, argv, env or {}, ok, bug,
                 probe, shadow)
 
@@ -1481,6 +1500,23 @@ CASES = [
          argv=['{tag}'],
          ok=V(exit=1, hasnt=['every process gated clean']),
          bug=V(exit=0, has=['every process gated clean'])),
+
+    case('aa-refusal-is-not-no-A-A-pair', 'read-all.sh', 'c2cfefc',
+         'a reader that REFUSED read as a file with no A/A pair, at exit 0',
+         # `--aa` broken outright, which `2>/dev/null` and an unread `$?`
+         # turned into an assertion ABOUT THE FILE. The run is planted into
+         # the SHADOW because the mutation lives there and read-all.sh
+         # globs its own directory; planted here it would not be in the
+         # shadow at all, `shadow_dir` having symlinked this directory
+         # before the plant ran.
+         plant=lambda t: synthetic_run(t, into=os.path.join(t, 'shadow')),
+         shadow=dict(mutate=[('read-run.py', 'def aa_table(',
+                              'def aa_table_BROKEN(')]),
+         argv=['{tag}'],
+         ok=V(exit=1, has=['--aa REFUSED'],
+              hasnt=['every process gated clean']),
+         bug=V(exit=0, has=['(no A/A pair in this file)',
+                            'every process gated clean'])),
 
     case('run-that-complained-does-not-gate-clean', 'read-all.sh', 'cc8abfd',
          "the run's own `!!` lines were stepped over, rc=0 hiding them",
