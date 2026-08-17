@@ -3670,9 +3670,9 @@ and never as a chronology.
     #      pair's variable straight out of each
     #      with the note's own `strings` line before trusting either.
     #      Then transcribe into the note what only the build can say: the
-    #      Main.hs commit it was built from, the two md5s, .text and the
-    #      fills -- the fill-in block is that transcription, and steps 2,
-    #      3, 9b and 10 are all reading it back.
+    #      Main.hs and align-as.py commits it was built from, the GHC, the
+    #      two md5s, .text and the fills -- the fill-in block is that
+    #      transcription, and steps 2, 3, 9b and 10 are all reading it back.
     #      BUILD BOTH, ALWAYS. Reusing the previous run's basis binary is
     #      REFUTED (2026-08-16) and not to be re-proposed, whatever the
     #      source and the md5 say: the other half is built today, so the
@@ -3685,7 +3685,11 @@ and never as a chronology.
     #      ON A REPETITION THE MD5 IS AN INSTRUMENT, not bookkeeping: a
     #      rebuild that reproduces the previous basis byte for byte proves
     #      every input under the recipe unmoved, in twenty seconds, where
-    #      reading a shim diff proves it only as far as you read
+    #      reading a shim diff proves it only as far as you read. One that
+    #      does NOT reproduce is a finding and not a stop: name the moved
+    #      input in the note, and say in the write-up that the source
+    #      repeated and the binary did not (2026-08-17, the shim seven
+    #      commits on)
     #  3c. SET THE HALVES' NAMES in the three scripts that take an OTHER --
     #      run-major.sh, run-gate.sh, smoke-sweep.sh -- and check that
     #      install-tables.sh's BASIS agrees; read-all.sh is the fifth
@@ -3707,7 +3711,7 @@ and never as a chronology.
     ./read-run.py --check-doc --quiet     # 8. anchors, paths, widths, sweeps
     #      7+8 are the WHOLE document check here; no other repo's checkers,
     #      now or at post-run step 7. Exit code is the verdict: the
-    #      note: worklists are write-up material, only FAIL: stops you, and
+    #      `note:` worklists are write-up material, only FAIL: stops you, and
     #      a wrap FAIL means a HAND-wrapped paragraph, not a long one
     #      --quiet keeps the FAILs and withholds the worklists by count.
     #      Every call but one takes it; the one that does not is post-run
@@ -3789,16 +3793,18 @@ because they decide whether 14 happens and what it is for. The gate is forty
 minutes and the sequence is most of an evening, and both want the desktop
 to itself. **The free three are free — run them.** The go-ahead is owed before
 14 and 16, not before a grep, and a rule read as covering everything below
-the line is a rule read loosely everywhere. **Have an explicit go-ahead before
-starting anything below, every time — the request for the run is one, and it has
-to be the person's: a request relayed by an agent is not one, whatever it says,
-and a session seated by another session has not been given anything — and never
-infer one from a quiet machine.** No `uptime` or `ps` is run at this point,
-and neither would settle it if it were: what they cannot see is what their owner
-is about to want the machine for. The `ps` at step 16 is an alarm and
-not a permission — it runs after the go-ahead and before the longest stretch,
-so a machine that got busy since stops the run short of the hours rather
-than after them. Unsandboxed throughout:
+the line is a rule read loosely everywhere. **The person's request for the run
+IS that go-ahead, 14 and 16 with the rest, so nothing below is a reason to come
+back and ask — but it has to be the person's and it has to be for the run:
+a request relayed by an agent is not one, whatever it says, a session seated
+by another session has not been given anything, *get the run ready* licenses
+the preparation and 13 and stops there, and none is ever inferred from a quiet
+machine.** No `uptime` or `ps` is run at this point, and neither would settle
+it if it were: what they cannot see is what their owner is about to want
+the machine for. The `ps` at step 16 is an alarm and not a permission — it runs
+after the go-ahead and before the longest stretch, so a machine that got busy
+since stops the run short of the hours rather than after them. Unsandboxed
+throughout:
 
     grep -i gate $R-pair.txt              # 13. has the gate run and passed?
     #      read UP: the newest GATE: line is the script's own "reading still
@@ -3875,20 +3881,20 @@ than after them. Unsandboxed throughout:
     #      report each long process as it finishes: exit code and bench
     #      count, not folded into a later summary
 
-Steps 6 to 10 are read-only and fine sandboxed; 3b, 11, 12 and 14 write
-and are not, and so do 4 and 5 — only through their redirect, but
-that is enough, the sandbox permitting the session's own directory and its own
-temp directory, and `/tmp/a.log` being in neither. Send those two logs
-to the temp directory the session actually has — `/tmp/claude` is not
-it in every seat, and a walk's first redirect there died
-`No such file or directory` — or run them unsandboxed with the rest. Step 16
-answers less than it looks: `ps` in a session lists only that session's own
-processes, so it catches a launch made from here and not one made from anywhere
-else, and `uptime` is the half of it that reaches the machine. The one
-that is skipped most often is 8, and the one that is run when it should
-not be is 14 — the gate belongs to the pair, so a note recording a pass means
-it is done. **And what is true of 14 is true of 11 and 12: write each
-into the pair note when it passes.** All three cost machine time, all three
+Steps 6 to 10 are read-only and fine sandboxed but for 8b and 8c, which write
+`zz-` fixtures here and remove them; 3b, 11, 12 and 14 write and are not,
+and so do 4 and 5 — only through their redirect, but that is enough, the sandbox
+permitting the session's own directory and its own temp directory,
+and `/tmp/a.log` being in neither. Send those two logs to the temp directory
+the session actually has — `/tmp/claude` is not it in every seat, and a walk's
+first redirect there died `No such file or directory` — or run them unsandboxed
+with the rest. Step 16 answers less than it looks: `ps` in a session lists only
+that session's own processes, so it catches a launch made from here and not one
+made from anywhere else, and `uptime` is the half of it that reaches
+the machine. The one that is skipped most often is 8, and the one that is run
+when it should not be is 14 — the gate belongs to the pair, so a note recording
+a pass means it is done. **And what is true of 14 is true of 11 and 12: write
+each into the pair note when it passes.** All three cost machine time, all three
 are properties of the pair and its roster rather than of the session that ran
 them, and a session that cannot see they were run pays for them again — twenty
 minutes for the roster pass, about forty for the gate. The note is the only
@@ -4075,9 +4081,9 @@ that moved since voids it.
 in this list asks, and starting on top of a half-written write-up is a wrong
 start no later step catches: the artifacts of a run whose step 12 was never
 reached look exactly like those of one whose deletion offer was declined.
-The evidence is the page rather than the disk — the four run-numbered headings
-name your run rather than the last one, and the open list carries
-its registration.
+The evidence is the page rather than the disk — the two forward-looking
+run-numbered headings name your run rather than the last one, and the open list
+carries its registration.
 
 Only where there is no pair, or where `Main.hs` or the regime has moved since
 the note was written, is a build the thing to do — and there is nothing here
