@@ -715,7 +715,7 @@ _WHOLE = {}
 SRC = 'srcrun'      # the stand-ins' data, named OUTSIDE any run's own glob
 
 
-def whole_run(halves_of, samples=2, prefix=SRC):
+def whole_run(halves_of, samples=2, prefix=SRC, short_class=None):
     """Every population of a paired run, as `extra` entries for a shadow.
 
     Named `srcrun-<half>-<pop>` and NOT after the case's run: `$R-*.json`
@@ -732,12 +732,18 @@ def whole_run(halves_of, samples=2, prefix=SRC):
     Two samples a bench, the drivers reading counts and names and never a
     figure. Memoised per tag, building it being the only slow thing here.
     """
-    key = (tuple(halves_of), samples, prefix)
+    key = (tuple(halves_of), samples, prefix, short_class)
     if key not in _WHOLE:
         out = []
         for half in halves_of:
             pops = [('main', main_shapes())]
-            pops += [(c, class_shapes(c)) for c in class_names()]
+            # `short_class` leaves one class two shapes wide, which is a
+            # state the reader is right to emit no per-shape line for and
+            # the installers have to refuse BEFORE writing. Every class has
+            # been three shapes since 2026-08-14, so nothing on disk
+            # carries it and it has to be built.
+            pops += [(c, class_shapes(c)[:2 if c == short_class else None])
+                     for c in class_names()]
             for pop, shapes in pops:
                 out.append(('%s-%s-%s.json' % (prefix, half, pop),
                             synth_text(shapes, samples=samples)))
@@ -1466,6 +1472,24 @@ CASES = [
          argv=['zzhy'],
          ok=V(exit=1, has=['carries a hyphen'])),
 
+    case('smoke-exercises-the-shape-filter', 'smoke-sweep.sh', 'd852517',
+         'the shape filter could only pass, naming a shape not in the run',
+         # The reader's refusal is turned into a zero exit, which is the one
+         # thing the sweep's check is there to catch: a filter told to
+         # empty a one-shape run and not refusing. Before the fix the sweep
+         # named a main-set shape this run does not carry, so the filter
+         # matched nothing, the mode passed, and this mutation was
+         # invisible to it.
+         shadow=dict(mutate=[('read-run.py',
+                              "sys.exit('nothing left after --exclude')",
+                              'sys.exit(0)')],
+                     extra=halves('zzxf-lookrts', 'zzxf-a1g')),
+         env={'SHAPE': main_shapes(1)[0], 'CLASS': class_shapes('window')[0],
+              'OTHER': 'a1g', 'BASIS': 'lookrts'},
+         argv=['zzxf'],
+         ok=V(exit=1, has=['did NOT refuse']),
+         bug=V(exit=0, has=['sweep clean'])),
+
     case('major-run-runs-clean', 'run-major.sh', None,
          'CONTROL: the whole sequence, eighteen processes, on stand-ins',
          shadow=dict(extra=halves('zzmj-lookrts', 'zzmj-a1g')
@@ -1559,6 +1583,30 @@ CASES = [
          probe=lambda subs: open(subs['doc']).read(),
          ok=V(has=['placeholder survived'], hasnt=['peak of ___ MiB']),
          bug=V(has=['peak of ___ MiB'])),
+
+    case('two-shape-class-refused-before-writing', 'install-tables.sh',
+         '440b22d',
+         'a two-shape class aborted AFTER eleven tables were already in',
+         plant=lambda t: {'doc': edited_readme(t)},
+         shadow=dict(extra=whole_run(['lookrts'], prefix='zzts',
+                                     short_class='scaled')),
+         env={'DOC': '{doc}', 'BASIS': 'lookrts'},
+         argv=['zzts'],
+         ok=V(exit=1, has=['fewer than three shapes',
+                           'NOTHING HAS BEEN WRITTEN'],
+              hasnt=['table(s) installed']),
+         bug=V(exit=1, has=['emitted no per-shape'],
+               hasnt=['NOTHING HAS BEEN WRITTEN'])),
+
+    case('basis-glob-catches-no-other-half', 'install-tables.sh', '440b22d',
+         'a control half named <basis>-pa was installed as the basis',
+         plant=lambda t: {'doc': edited_readme(t)},
+         shadow=dict(extra=whole_run(['lookrts'], prefix='zzhg')
+                     + [('zzhg-lookrts-pa-rev.json', '["criterion","x",[]]')]),
+         env={'DOC': '{doc}', 'BASIS': 'lookrts'},
+         argv=['zzhg'],
+         ok=V(exit=1, has=['is not a class name']),
+         bug=V(hasnt=['is not a class name'])),
 
     case('install-is-idempotent', 'install-tables.sh', None,
          'CONTROL: a full pass over an untouched page rewrites no table',
