@@ -1244,7 +1244,7 @@ def family_lint(path):
     false positive is recorded at the site -- a helper that RETURNS a
     completed process has handed the status on rather than dropped it.
     """
-    src = open(path).read()
+    src = open(os.path.join(HERE, path)).read()
     tree = ast.parse(src)
     at, bad, note = _scopes(tree), [], []
 
@@ -1305,7 +1305,7 @@ def family_flags(path):
     Three of these in one review: a flag taken and ignored is a request
     the program answers by doing something else, at exit 0.
     """
-    src = open(path).read()
+    src = open(os.path.join(HERE, path)).read()
     dests = set()
     for n in ast.walk(ast.parse(src)):
         if isinstance(n, ast.Call) and getattr(n.func, 'attr', '') \
