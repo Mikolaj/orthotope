@@ -4237,10 +4237,10 @@ the note was written, is a build the thing to do — and there is nothing here
 that does it. Every pair since Run 11 is two shims, and each half is one
 `cabal build` from the recipe its note carries: the regime, a `-pgma` shim
 of its own, whatever variable the pair exists to price, and `-fforce-recomp`
-with a fresh `--builddir`, without which cabal answers *Up to date*
-for a `-pgma` or an environment change and relinks the previous object — which
-is how a shim change comes to be measured against itself. Write the note first,
-since it is the only copy of both recipes, and read the pair afterwards:
+with a fresh `--builddir` — without which a shim change comes to be measured
+against itself, which is what step 3b's *Up to date* warning is about. Write
+the note first, since it is the only copy of both recipes, and read the pair
+afterwards:
 
     ./loop-offsets.py $R-<other> $R-<basis>
     ./loop-offsets.py --library $R-<basis> $R-<other>
@@ -4528,16 +4528,12 @@ branch, and `scaled` is the one it names. The pass is two processes:
     ./$R-<basis> classes scaled- -L1 --json smoke-l1-scaled.json
 
 Its numbers go nowhere: `-L1` is a rougher budget than any recorded run's,
-and this pass is a test of the reader, not a measurement. **And like the gate,
-it belongs to the pair rather than to the session that ran it**, so
-it is recorded in `$R-pair.txt` and read there before it is paid for,
-on an `L1 ROSTER PASS:` line. Grep the note first; a second session owes
-the twenty minutes only if none is recorded. **Name its artifacts `smoke*`
-and not `$R-*`**, which is not tidiness: `run-major.sh` refuses to start where
-`$R-*.json` or `$R-*.log` exists, excluding only `$R-gate-`,
-so a `$R-l1-main.json` left beside the pair reads as a previous attempt
-and refuses the very run this pass was run to clear. `smoke*.json` is outside
-that glob and inside `.gitignore` already.
+and this pass is a test of the reader, not a measurement. It is recorded
+on an `L1 ROSTER PASS:` line, and a second session owes the twenty minutes only
+if none is there. **Name its artifacts `smoke*` and not `$R-*`**, which
+is not tidiness but the relaunch guard step 12 names: a `$R-l1-main.json` left
+beside the pair refuses the very run this pass was run to clear. `smoke*.json`
+is outside that glob and inside `.gitignore` already.
 
 **"Roster change" here means membership, and the test is `--list`**:
 the binary's listing differs from what the previous run's did, in its set
@@ -4788,17 +4784,10 @@ from a process list rather than from the launching shell, which a blocked write
 leaves lying:
 
     ./run-major.sh $R &               # its own wall-clock log is the record
-    ps -eo pid,etime,comm | grep $R-  # comm, NOT args: under args the
-                                      #   launching shell matches its own
-                                      #   command line. comm truncates at 15
-                                      #   characters, which a `runNN-` name
-                                      #   of nine more exactly fills -- past
-                                      #   that a half is cut and missed
+    ps -eo pid,etime,comm | grep $R-  # comm, NOT args, as at step 16
 
-`pgrep -f`/`pkill -f` self-match here and an `until ! pgrep -f …` waiter
-therefore never returns; watch `$R-wallclock.log` for `major run complete`
-instead. Every strategy of a population shares that population's process
-precisely so its figures are commensurable, and the [noise floor][floor] section
+Every strategy of a population shares that population's process precisely
+so its figures are commensurable, and the [noise floor][floor] section
 is the measured evidence that they move with what shares that process. What
 the rest of the machine does on top of that is unmeasured, and a recorded run
 is the wrong place to find out. The session's own hands stay off the machine
