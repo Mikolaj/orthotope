@@ -157,14 +157,28 @@ for f in $FILES; do
   # the `(no A/A pair in this file)` fallback below never fires. The
   # section header cannot go the same way: it is the one line naming the
   # population, where an indent names a `printf` width.
-  worst=$(./read-run.py "$f" --aa --brief 2>/dev/null \
+  # The STATUS is read, and the stderr kept, for the reason the selftest
+  # call below keeps its own: with `2>/dev/null` and no `$?`, a reader that
+  # REFUSED this file produced no `worst cell` line, fell through to the
+  # fallback, and printed `(no A/A pair in this file)` -- an assertion
+  # ABOUT THE FILE where the truth was that the question went unanswered.
+  # Every process then read as gated clean, at exit 0. Measured 2026-08-17
+  # against a shadow whose `--aa` was broken outright: two processes, both
+  # reported as having no A/A pair, `every process gated clean`.
+  aa=$(./read-run.py "$f" --aa --brief 2>&1); aarc=$?
+  worst=$(printf '%s\n' "$aa" \
             | awk '/^in-situ forcing term/ { insitu = 1 }
                    /worst cell/ && !insitu {
                      split($0, w, "worst cell ")
                      split(w[2], v, "%")
                      if (v[1] + 0 >= best + 0) { best = v[1]; s = w[2] } }
                    END { if (s) print "worst cell " s }')
-  [ -n "$worst" ] || worst='(no A/A pair in this file)'
+  if [ "$aarc" != 0 ]; then
+    worst='!! --aa REFUSED this file, so its A/A is unread'
+    BAD=$((BAD + 1))
+  else
+    [ -n "$worst" ] || worst='(no A/A pair in this file)'
+  fi
   printf '%-28s %-9s %s\n' "$tag" "$st" "$worst"
   # A failing selftest prints FAIL: lines, and this shows them -- unless it
   # never got that far, where showing only FAILs leaves a bare FAIL beside
@@ -178,6 +192,9 @@ for f in $FILES; do
       printf '%s\n' "$selftest" | tail -3 | sed 's/^/    /'
     fi
   fi
+  # And the refusal's own words, for the same reason: a complaint naming
+  # no cause sends its reader to a clean log to look for one.
+  [ "$aarc" = 0 ] || printf '%s\n' "$aa" | tail -3 | sed 's/^/    /'
 done
 
 echo
