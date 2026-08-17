@@ -164,6 +164,7 @@ import ast
 import atexit
 import collections
 import importlib.util
+import inspect
 import json
 import os
 import re
@@ -239,8 +240,27 @@ def tree_state():
 
 # ---------------------------------------------------------------- fixtures
 
-def readme_lines():
-    return open(README).read().split('\n')
+def readme_lines(rev=None):
+    """This page, as of `rev` when a revision is being replayed.
+
+    `--check-doc` resolves the `README.md#` anchors it finds in the
+    READER'S OWN source, so a replayed revision carries the anchors of its
+    day -- and post-run step 5 renames four headings every write-up. Run
+    against today's page, an old reader therefore fails on dead anchors of
+    its own, which is not the defect any case here is about: it is what
+    took `checkdoc-without-a-roster` and `checkdoc-open-list-out-of-order`
+    out of --audit, both wanting exit 0 and both getting 1. Replaying the
+    code means replaying the page.
+    """
+    return (open(README).read() if rev is None
+            else at_rev('README.md', rev)).split('\n')
+
+
+def era_readme(tmp, rev, name='era-README.md'):
+    """This page as of `rev`, as a file a case can point `--readme` at."""
+    p = os.path.join(tmp, name)
+    write(p, '\n'.join(readme_lines(rev)))
+    return p
 
 
 def write(path, text):
@@ -306,13 +326,13 @@ def readme_yardstick_renamed_with_qmark(tmp):
     return write(os.path.join(tmp, 'R.md'), '\n'.join(lines))
 
 
-def readme_goal_above_open(tmp):
+def readme_goal_above_open(tmp, rev=None):
     """The goal section moved above the open list: nothing renamed.
 
     The case the first repair missed -- renaming a heading trips a
     neighbouring check, where reordering trips none.
     """
-    lines = readme_lines()
+    lines = readme_lines(rev)
     lo = next(i for i, l in enumerate(lines)
               if l.startswith('## What is open'))
     hi = next(i for i, l in enumerate(lines) if l.startswith('## The goal'))
@@ -1109,14 +1129,15 @@ CASES = [
     # ---- read-run.py, the second review's ------------------------------
     case('checkdoc-without-a-roster', 'read-run.py', 'a6c32e8',
          'a roster it could not parse skipped five checks at exit 0',
-         plant=lambda t: {'main': mangled_main(t)},
-         argv=['--check-doc', '--main', '{main}'],
+         plant=lambda t, rev: {'main': mangled_main(t),
+                               'readme': era_readme(t, rev)},
+         argv=['--check-doc', '--main', '{main}', '--readme', '{readme}'],
          ok=V(exit=1, has=['BLOCKED: no roster parsed']),
          bug=V(exit=0)),
 
     case('checkdoc-open-list-out-of-order', 'read-run.py', 'a6c32e8',
          'the goal section above the open list killed the sweep in silence',
-         plant=lambda t: {'readme': readme_goal_above_open(t)},
+         plant=lambda t, rev: {'readme': readme_goal_above_open(t, rev)},
          argv=['--check-doc', '--readme', '{readme}'],
          ok=V(exit=1, has=['BLOCKED: the open list']),
          bug=V(exit=0)),
@@ -2013,6 +2034,24 @@ print(repr(eval(sys.argv[2], vars(m))))
 """
 
 
+def _takes_rev(fn):
+    """Whether a plant wants the revision as well as the temp directory.
+
+    REQUIRED positionals only. Counting every parameter called `asm(tmp)`
+    and `edited_readme(t, pair=None)` rev-taking too, because their
+    optional arguments made the count two, and five fixtures stopped
+    building at once -- reported honestly as `did not build` rather than as
+    failures, which is what made it obvious rather than subtle.
+    """
+    try:
+        ps = inspect.signature(fn).parameters.values()
+    except (TypeError, ValueError):
+        return False
+    return len([p for p in ps if p.default is p.empty
+                and p.kind in (p.POSITIONAL_ONLY, p.POSITIONAL_OR_KEYWORD)]
+               ) >= 2
+
+
 def at_rev(prog, rev):
     """`prog`'s text as of `rev`, or an error naming what could not be read."""
     got = git('show', '%s:micro-regime3/%s' % (rev, prog))
@@ -2105,7 +2144,13 @@ def run(cases, rev, want_key):
                             if at is None else at_rev(c.prog, at))
                     prog = os.path.join(
                         shadow_dir(tmp, c.prog, text, **c.shadow), c.prog)
-                subs = (c.plant(tmp) if c.plant else {}) or {}
+                # A plant taking a second parameter is handed the REVISION
+                # under test -- None for the live tree -- because a fixture
+                # derived from this page is only right for the code of its
+                # own era. `readme_lines` says what goes wrong otherwise.
+                subs = ({} if not c.plant else
+                        (c.plant(tmp, at) if _takes_rev(c.plant)
+                         else c.plant(tmp))) or {}
                 # Where the case runs matters to a probe: a driver writes
                 # its log beside itself, which for a shadowed case is the
                 # shadow and not this directory.
