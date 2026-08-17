@@ -70,18 +70,18 @@ case here but one: the correction's positivity test in `selftest`, which is
 subsumed by the malformed-cell check above it and so cannot fail on its own
 -- untestable by construction rather than untested, and `read-run.py` says
 as much where the code is. The other absence is whole files. `run-major.sh`,
-`run-gate.sh` and `smoke-sweep.sh` have no case, and `run-gate.sh`'s derived
-`ARMS` is one of two fixes here that no case reaches -- the other is
-`install-tables.sh`'s placeholder fill, whose fixture would have to reword
-what `read-run.py` emits, where a case substitutes one script and no more.
-The drivers had no finding in either of the first two reviews and one in the
-third, which is not evidence that they are clean: they are the drivers
-that commit the machine for hours, a defect in one is the most expensive
-kind here, and the two shell scripts anyone did read closely yielded the
-highest defect density in the tree -- 1.9 and 0.9 per hundred lines against
-`read-run.py`'s 0.47. What stops them being covered is that a case would
-have to launch a run; what would unblock it is a fake binary standing in
-for `$PREFIX-$h`, which is the next thing to build here.
+`run-major.sh` and `smoke-sweep.sh` have no case. `run-gate.sh` now has
+one, and how it got there is what those two want too: a shadow directory
+with a stand-in for `$PREFIX-$half` that answers `--list` and runs no
+bench, which takes the whole gate -- four processes and its verdict -- to
+a second. The drivers had no finding in either of the first two reviews
+and one in the third, which was never evidence that they are clean: they
+are what commits the machine for hours, a defect in one is the most
+expensive kind here, and the two shell scripts anyone did read closely
+yielded the highest defect density in the tree -- 1.9 and 0.9 per hundred
+lines against `read-run.py`'s 0.47. What is left is to write their
+stand-ins, `run-major.sh` wanting `check`, `diag` and a JSON per process
+where the gate wanted only a listing.
 
 NOT BUILT YET, and recorded here so it is not re-derived. (1) A source lint
 for the families these defects fall into, which is the only thing that
@@ -378,6 +378,20 @@ def scale(benches, want, factor):
     return hit
 
 
+FAKE_HALF = """\
+#!/bin/sh
+# A stand-in for `$PREFIX-$half`, answering the one question a driver asks
+# before it commits the machine: what benches are there. It runs none.
+if [ "$1" = --list ]; then
+  for s in shape-a shape-b shape-c; do
+    for a in list build mut-odo sum-only-early sum-only-late; do
+      echo "$s/$a"
+    done
+  done
+fi
+exit 0
+"""
+
 ASM_HEAD_AFTER_RET = """\
 \t.text
 \t.globl\tgo
@@ -469,11 +483,11 @@ def staged_doc(tmp):
 # ------------------------------------------------------------------- cases
 
 CASE = collections.namedtuple('CASE', 'name prog fix gist plant argv env '
-                                      'ok bug probe')
+                                      'ok bug probe shadow')
 
 
 def case(name, prog, fix, gist, argv, ok, bug=None, plant=None, env=None,
-         probe=None):
+         probe=None, shadow=None):
     """One defect, both ways round.
 
     `probe` is for a defect whose evidence is a FILE the invocation wrote
@@ -481,7 +495,8 @@ def case(name, prog, fix, gist, argv, ok, bug=None, plant=None, env=None,
     the output, which is how a paragraph silently overwritten in a copy of
     the page becomes a `has`/`hasnt` like any other.
     """
-    return CASE(name, prog, fix, gist, plant, argv, env or {}, ok, bug, probe)
+    return CASE(name, prog, fix, gist, plant, argv, env or {}, ok, bug,
+                probe, shadow)
 
 
 def V(exit=None, has=(), hasnt=()):
@@ -825,6 +840,18 @@ CASES = [
          ok=V(exit=1, hasnt=['every process gated clean']),
          bug=V(exit=0, has=['every process gated clean'])),
 
+    case('gate-arms-track-the-selection', 'run-gate.sh', 'febc2bd',
+         'the expected bench count was a literal that had to equal SEL',
+         shadow=dict(
+             mutate=[('run-gate.sh',
+                      "'*/sum-only-early' '*/sum-only-late')",
+                      "'*/sum-only-early' '*/sum-only-late' '*/offtab')")],
+             extra=[('zzgate-a1g', FAKE_HALF), ('zzgate-lookrts', FAKE_HALF),
+                    ('zzgate-pair.txt', 'a stand-in pair note.\n')]),
+         argv=['zzgate'],
+         ok=V(has=['expecting 18 benches a process']),
+         bug=V(has=['expecting 15 benches a process'])),
+
     # ---- install-tables.sh ---------------------------------------------
     case('lead-patterns-disagree', 'install-tables.sh', '5ca3513',
          'a lead one pattern missed was overwritten by the block above it',
@@ -852,6 +879,22 @@ CASES = [
          ok=V(has=['ZZMARKER']),
          bug=V(hasnt=['ZZMARKER'])),
 
+    case('placeholder-that-outlived-its-wording', 'install-tables.sh',
+         'febc2bd',
+         'a reworded emit installed a literal `___` into the page',
+         plant=lambda t: {'doc': edited_readme(t)},
+         shadow=dict(mutate=[
+             ('read-run.py',
+              "print('Provenance: elapsed ___, peak ___ MiB in use, ___ MiB"
+              " max'",
+              "print('Provenance: elapsed ___, peak of ___ MiB in use, ___"
+              " MiB max'")]),
+         env={'DOC': '{doc}'},
+         argv=['run14'],
+         probe=lambda subs: open(subs['doc']).read(),
+         ok=V(has=['placeholder survived'], hasnt=['peak of ___ MiB']),
+         bug=V(has=['peak of ___ MiB'])),
+
     case('install-is-idempotent', 'install-tables.sh', None,
          'CONTROL: a full pass over an untouched page rewrites no table',
          plant=lambda t: {'doc': edited_readme(t)},
@@ -859,6 +902,53 @@ CASES = [
          argv=['run14'],
          ok=V(exit=0, has=['11 table(s) installed'])),
 ]
+
+
+def shadow_dir(tmp, prog, text, mutate=(), extra=()):
+    """This directory in symlink, with some files real and changed.
+
+    Two defects here are LATENT: a literal that must equal the globs above
+    it, and four replaces against wording another script owns. Neither can
+    be provoked by any input -- only by changing the thing it depends on,
+    which for a case would mean editing the tree. So the case gets a
+    directory of symlinks instead, with the files it changes written real
+    inside it, and every script runs there: each of them either cds to its
+    own directory or resolves README.md and Main.hs from `__file__`, so a
+    shadow is the one place a driver can be exercised against something
+    other than what is committed. Nothing here is written; the shadow goes
+    when the case does.
+
+    `extra` is how a driver that wants a BINARY gets one. `run-gate.sh`
+    refuses without two executables and a pair note, and its whole verdict
+    path runs in seconds against a stand-in that answers `--list` -- which
+    is what stood between the run drivers and any coverage at all.
+    """
+    d = os.path.join(tmp, 'shadow')
+    os.mkdir(d)
+    for name in os.listdir(HERE):
+        if name.startswith('zz-') or name == '__pycache__':
+            continue
+        os.symlink(os.path.join(HERE, name), os.path.join(d, name))
+    real = os.path.join(d, prog)
+    os.remove(real)
+    write(real, text)
+    os.chmod(real, 0o755)
+    for name, body in extra:
+        at = os.path.join(d, name)
+        if os.path.lexists(at):
+            os.remove(at)
+        os.chmod(write(at, body), 0o755)
+    for name, was, now in mutate:
+        at = os.path.join(d, name)
+        src = open(at).read()
+        n = src.count(was)
+        if n != 1:
+            raise AssertionError('%s: mutation anchor occurs %d times, need'
+                                 ' 1: %r' % (name, n, was[:50]))
+        if os.path.islink(at):
+            os.remove(at)
+        os.chmod(write(at, src.replace(was, now, 1)), 0o755)
+    return d
 
 
 # ------------------------------------------------------------------ runner
@@ -872,6 +962,14 @@ print(repr(eval(sys.argv[2], vars(m))))
 """
 
 
+def at_rev(prog, rev):
+    """`prog`'s text as of `rev`, or an error naming what could not be read."""
+    got = git('show', '%s:micro-regime3/%s' % (rev, prog))
+    if got.returncode != 0:
+        raise AssertionError('%s at %s: %s' % (prog, rev, got.stderr.strip()))
+    return got.stdout
+
+
 def materialise(prog, rev):
     """`prog` as of `rev`, written HERE so its own path lookups still work.
 
@@ -882,11 +980,8 @@ def materialise(prog, rev):
     driver under test still calls today's `./read-run.py`, exactly as the
     proofs did.
     """
-    got = git('show', '%s:micro-regime3/%s' % (rev, prog))
-    if got.returncode != 0:
-        raise AssertionError('%s at %s: %s' % (prog, rev, got.stderr.strip()))
     p = here_file('zz-against-' + prog)
-    write(p, got.stdout)
+    write(p, at_rev(prog, rev))
     os.chmod(p, 0o755)
     return p
 
@@ -930,8 +1025,17 @@ def run(cases, rev, want_key):
         at = c.fix + '^' if rev == 'BEFORE' else rev
         try:
             with tempfile.TemporaryDirectory(prefix='check-scripts-') as tmp:
-                prog = (os.path.join(HERE, c.prog) if at is None
-                        else materialise(c.prog, at))
+                if c.shadow is None:
+                    prog = (os.path.join(HERE, c.prog) if at is None
+                            else materialise(c.prog, at))
+                else:
+                    # The revision under test goes INTO the shadow, and the
+                    # mutations are applied on top of it, so `--audit` reads
+                    # the same latent defect the case was written for.
+                    text = (open(os.path.join(HERE, c.prog)).read()
+                            if at is None else at_rev(c.prog, at))
+                    prog = os.path.join(
+                        shadow_dir(tmp, c.prog, text, **c.shadow), c.prog)
                 subs = (c.plant(tmp) if c.plant else {}) or {}
                 code, out = invoke(prog, c, subs)
                 if c.probe:
