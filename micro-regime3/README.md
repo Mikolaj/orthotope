@@ -4897,7 +4897,8 @@ was missed, which is what they have cost.
     #      gates. Then --lint, --check-doc, adjudicate the worklists,
     #      read end to end, and walk the diff against the writing rules.
     #      The independent checker is TWO passes on one agent, tables when
-    #      they go in and prose when written, briefed that it works in this
+    #      they go in and then the prose WITH the fixes the first pass
+    #      caused, briefed that it works in this
     #      directory, that its evidence is this run's JSONs and read-run.py,
     #      and that no other repo's checkers come near this page.
     #      Once the write-up settles, one comprehension probe: a fresh
@@ -5058,7 +5059,10 @@ the artifacts are what it spends.
    with no derivation behind it unless one is made: Run 13 corrected
    its allocation reading twice and the second correction was wrong, having
    been computed from a rounded print. Derive a fix the way the sentence
-   it replaces should have been derived, and re-run the gates after it.
+   it replaces should have been derived, re-run the gates after it, and give
+   the checker's second pass the fixes and not the prose alone: on Run 15 four
+   of that pass's seven findings existed only because the first round of fixes
+   had been written.
 
    **Expect every error to be in the prose and none in the numbers, and expect
    the green checkers to be why.** Run 11 shipped six, and not one was a wrong
@@ -5096,22 +5100,22 @@ the artifacts are what it spends.
    errors stood. **So put an independent checker on the diff against
    the artifacts, launched when the tables go in rather than at the end** —
    and it is **two passes on one agent**, since at that moment only the tables
-   exist: the tables as they go in, the prose when the prose is written,
-   the second continuing the first rather than paying a fresh bootstrap. Run
-   13's first pass verified 341 table lines and found the cross-class summary
-   untouched; its second found six prose errors, including a previous run's
-   figure presented as this one's. One agent, briefed to recompute every added
-   figure from the reader and to re-derive every *only*, *largest* and *N
-   of the nine* by sorting, and to report discrepancies rather than opinions.
-   It is dear per finding — Run 11's cost some thirty times what the same
-   session's own targeted re-checks did — and it is worth it anyway, because
-   its findings are the ones a session has already proved it cannot see
-   in its own prose, and because it returns a completeness the author cannot:
-   306 of 306 table rows verified rather than the ones somebody thought
-   to check. Launch it early, keep it to one, and leave the placement,
-   contradiction and writing-rule reading to yourself. Four things it cannot
-   derive go in the brief: which half is the basis, and so which of the eighteen
-   JSONs every published table comes from; that it works in this directory,
+   exist: the tables as they go in, then the prose together with the fixes
+   the first pass caused, the second continuing the first rather than paying
+   a fresh bootstrap. Run 13's first pass verified 341 table lines and found
+   the cross-class summary untouched; its second found six prose errors,
+   including a previous run's figure presented as this one's. One agent, briefed
+   to recompute every added figure from the reader and to re-derive every
+   *only*, *largest* and *N of the nine* by sorting, and to report discrepancies
+   rather than opinions. It is dear per finding — Run 11's cost some thirty
+   times what the same session's own targeted re-checks did — and it is worth
+   it anyway, because its findings are the ones a session has already proved
+   it cannot see in its own prose, and because it returns a completeness
+   the author cannot: 306 of 306 table rows verified rather than the ones
+   somebody thought to check. Leave the placement, contradiction
+   and writing-rule reading to yourself. Four things it cannot derive go
+   in the brief: which half is the basis, and so which of the eighteen JSONs
+   every published table comes from; that it works in this directory,
    that its evidence is this run's own JSONs and `read-run.py`, and
    that no other repository's checkers come near this page — it starts where
    your session started, so the artifacts are not where it is and the checkers
@@ -5119,11 +5123,11 @@ the artifacts are what it spends.
    the same instrument at the finished page rather than the diff:
    a comprehension probe — a fresh session answering a handful of the page's own
    questions from the document alone, with citations — reads as a stranger what
-   every diff-scoped check reads as a change, and its one run so far
-   (2026-08-14, six questions, all answered) surfaced a contradiction between
-   two standing passages that nothing above could have seen. (The rule
-   that a check must be proven able to fail governs the instruments themselves
-   and is stated with them, [in the reader's section](#the-reader-read-runpy).)
+   every diff-scoped check reads as a change, and on every run it has been given
+   it has surfaced a contradiction between standing passages that nothing above
+   could have seen. (The rule that a check must be proven able to fail governs
+   the instruments themselves and is stated with them, [in the reader's
+   section](#the-reader-read-runpy).)
 
    The checks themselves:
    1. **derive every count and ratio in the prose from `--cells`, never by eye,
