@@ -757,6 +757,17 @@ CASES = [
          ok=V(has=['500']),
          bug=V(hasnt=['500.0'])),
 
+    case('dropped-control-pairs-are-named', 'read-run.py', 'de79a95',
+         'a pair dropped for a sunk cell narrowed a PUBLISHED figure quietly',
+         plant=lambda t: {'run': doctored(
+             t, 'run14-lookrts-slice.json',
+             lambda bs: scale(bs, 'slice-primes/mut-odo-vecdims', 0.01)),
+             'readme': edited_readme(t)},
+         argv=['{run}', '--block', '--readme', '{readme}'],
+         ok=V(has=['control pair(s) not readable']),
+         bug=V(has=['14 of 16 intervals'],
+               hasnt=['control pair(s) not readable'])),
+
     # ---- align-as.py ---------------------------------------------------
     case('maxskip-zero-is-off', 'align-as.py', '437ce00',
          'LOOP_MAXSKIP=0 built the max-skip form',
