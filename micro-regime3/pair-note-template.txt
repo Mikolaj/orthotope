@@ -46,7 +46,9 @@ README.md#what-is-open -- that is where Run 15's is -- while
 README.md#what-run-nn-compares-against carries the regime, the roster, the
 basis and what the pair varies. A note that names only the second sends
 the next session to a section its prediction is not in.
-  - each prediction, with what would kill it, in the open list;
+  - each prediction, with what would kill it, in the open list. NAME the
+    entry here; do NOT copy it. Two copies of a registration is one copy
+    that goes stale, and this note is the one nobody re-reads;
   - what the pair varies and against what, in the compares-against section;
   - anything the pair answers that no earlier pair could.
 
@@ -96,6 +98,16 @@ WHAT TO READ BACK BEFORE THE EVENING:
 GATE: NOT RUN. run-gate.sh takes five benches over the shape set from each
 half, twice each, in a palindrome, and both passes are read. Until a line
 below states an outcome, this pair has no gate.
+
+THE FILL-IN BLOCK BELOW IS OBSERVATIONS AND NOT INTERPRETATIONS. Record
+what was measured -- the commits, the md5s, the byte counts, what agreed
+with what -- and leave WHY to the write-up, where a checker can reach it and
+an independent reader will re-derive it. Run 15's note wrote that the shim
+was why its md5 did not reproduce Run 14's; that was an attribution made
+before any evidence, it was inherited into the write-up as fact, and it was
+wrong -- the shim is emission-neutral and a dependency relink was the cause.
+An md5 that fails to reproduce is an OBSERVATION; what moved is a FINDING
+and belongs where findings are checked.
 
 Verified when built, YYYY-MM-DD:
   Main.hs at       the commit, and whether the tree carried any other

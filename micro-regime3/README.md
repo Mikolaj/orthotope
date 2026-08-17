@@ -2409,6 +2409,17 @@ left to attribute — the interval it is about is the aligned binary's.
   The verdict block already computes the leaders; adding the `--pair` margin
   and comparing it with the process's own floor turns a sort into a reading,
   and would have kept a falling count from being quoted as a trend.
+- **Print the eight-way extremes, because a class superlative has no derived
+  source.** *Widest of the eight*, *best of the eight*, *tightest floor
+  of the eight* are claims about all nine populations, and nothing prints them:
+  `--block` sees one class, the cross-class table is hand-assembled,
+  and the sort is left to the eye. Run 15 got three of them wrong in one draft —
+  `scaled`'s spread called narrowest where `rev`'s is, `window`'s pure-slot gap
+  called widest of the eight on the column where `reshape1`'s is wider
+  on the pair, and `offtab`'s best class named before it was sorted — every one
+  caught by an independent reader rather than by a check. `install-tables.sh`
+  already loops over all eight and collects their stderr, so it is the one
+  program that could rank them and say which class holds each extreme.
 
 
 ## The goal of these benchmarks
@@ -3672,7 +3683,15 @@ because the writing came at the end of it. Allow up to about two hours
 of measurement the run's own *results* make worthwhile: a discriminating reading
 of a cell that came out strange, a derivation over the artifacts while they
 still exist. Spend it while they do, most of it being unspendable afterwards,
-and propose rather than take anything beyond it.
+and propose rather than take anything beyond it. **And do not read the budget
+as a concession — it is where this page's mechanisms have come from, where
+the run is where its figures come from.** Run 15's six and a half hours produced
+figures, held 13 of 13 claims and confirmed a repetition, and no mechanism
+at all; some two hours of probes afterwards settled five standing questions,
+refuted three of that run's own published claims and found a caveat touching
+every ratio here. So a question with a discriminating measurement deserves
+a filtered run now rather than a slot in the next full one, which is a rule
+this chapter states twice and had buried both times.
 
 **Stop for two things.** No further progress — a build that will not build,
 a gate that fails, evidence that is not on this machine — and a decision
@@ -4066,22 +4085,37 @@ of the same point. Run 13's registered question came back a null,
 and its durable output was four instruments: two checks in the reader and two
 rules in this chapter, every one of them from a mistake made while writing up
 rather than from anything the run measured. So the write-up
-is an instrument-building phase and not only a reporting one, and the three
+is an instrument-building phase and not only a reporting one, and the four
 things worth watching for are the computation you improvised, the check
-that would have caught the error, and the step you skipped — that trio
-is the run's other product, and it outlives the figures, which the next run
-replaces. On the original point: the measurements that closed the `sum-only`
-objection, established that the forcing term scales, and settled the floor's
-mechanism cost twenty minutes and, for the latter two, no extra machine time
-at all, while the major run they hang off changed no decision. A question
+that would have caught the error, the step you skipped, and the capability you
+found — that set is the run's other product, and it outlives the figures, which
+the next run replaces. **Write a capability as a capability.** A fact recorded
+as a tool's limitation goes inert: this page said `run-major.sh` cannot give one
+binary two RTS configurations, which is true, and two runs each built a second
+binary and paid a forty-minute gate to price a nursery that `+RTS -A` sets
+on the binary already built. The same fact written as *any nursery question
+is answerable on an already-built binary; only a recorded run needs the driver*
+would have retired both pairs. So when a limitation is found, write down what
+it still leaves possible, in the place a session looks before spending.
+On the original point: the measurements that closed the `sum-only` objection,
+established that the forcing term scales, and settled the floor's mechanism cost
+twenty minutes and, for the latter two, no extra machine time at all, while
+the major run they hang off changed no decision. A question
 with a discriminating measurement usually deserves a filtered run now rather
 than a slot in the next full one.
 
 **What a run must read, so that nothing else is read to find out.**
-This chapter, and of the rest only what the write-up replaces: the last run's
-chapter, [What Run N compares against](#what-run-16-compares-against), [the
-claims](#the-claims-run-16-should-test), [the class
-blocks](#the-stride-classes-run-by-run) and [Provenance](#provenance). The open
+This chapter's three checklists — 393 of its 1734 lines — and of the rest only
+the *part* each section keeps, since most of what these sections hold
+is the previous run's data that the write-up is about to replace. The last run's
+chapter, whole, that being the one thing worth reading entire. Of [What Run N
+compares against](#what-run-16-compares-against), the paragraphs settling
+the regime, the roster and the basis, and the column rules under the yardstick —
+not its figures. Of [the claims](#the-claims-run-16-should-test), the numbered
+predicates at the end — not the previous run's readings above them, which
+`--claims` reprints. Of [the class blocks](#the-stride-classes-run-by-run),
+the six numbered items of the form and one example block — not the other seven.
+Of [Provenance](#provenance), the replace list and the delta bullets. The open
 list is read by its status markers rather than end to end. Everything else
 in this file is reference, and reading it is how a write-up's budget goes
 without a figure to show for it.
@@ -4629,11 +4663,6 @@ flag:
     # nothing. Toggling -fspec-constr itself is safe: GHC notices that one,
     # and it is the control that proved the rest are missed. The floor
     # section, under what moves a figure when no strategy changed, has why.
-    # An option whose VALUE contains a SPACE wants inner quotes besides --
-    # --ghc-options='"-with-rtsopts=-I0 -T -M8G"' -- cabal splitting on
-    # whitespace otherwise, which for that flag dies loudly on `-T` and, if
-    # repeated once per word instead, builds a binary carrying the LAST
-    # -with-rtsopts alone. Measured 2026-08-13, setting up Run 13's pair.
     # These two are what the run records about its own provenance, and the
     # driver below already runs both -- they are here to say what belongs in
     # the log, not to be typed when run-major.sh is what launches the run.
@@ -4911,6 +4940,12 @@ was missed, which is what they have cost.
     #      the machine, and THE COMMIT, transcribed from $R-pair.txt; also
     #      which half ran first. A class line's shape count is the whole
     #      class-view set, so the population size comes from the reader
+    #  10a. collect what this run made CHEAPER for the next, which no
+    #      other step gathers and which is not a figure: the checks that
+    #      would have caught each error, the computations improvised, the
+    #      steps skipped, and any capability found. Run 15's durable output
+    #      was four checker gaps, two corrected rules here, and the finding
+    #      that a probe needs no pair; none of it is in a table
     #  10. walk the open list: grep the settled index before adding an
     #      entry, move answered ones with their measurement, and add each
     #      surprise with what would settle it. Prediction verdicts go THERE,
@@ -5098,36 +5133,41 @@ the artifacts are what it spends.
    which is the completeness question the reading exists to answer. Run 11
    is the case above: every checker green and the worklist adjudicated while six
    errors stood. **So put an independent checker on the diff against
-   the artifacts, launched when the tables go in rather than at the end** —
-   and it is **two passes on one agent**, since at that moment only the tables
-   exist: the tables as they go in, then the prose together with the fixes
-   the first pass caused, the second continuing the first rather than paying
-   a fresh bootstrap. Run 13's first pass verified 341 table lines and found
-   the cross-class summary untouched; its second found six prose errors,
-   including a previous run's figure presented as this one's. One agent, briefed
-   to recompute every added figure from the reader and to re-derive every
-   *only*, *largest* and *N of the nine* by sorting, and to report discrepancies
-   rather than opinions. It is dear per finding — Run 11's cost some thirty
-   times what the same session's own targeted re-checks did — and it is worth
-   it anyway, because its findings are the ones a session has already proved
-   it cannot see in its own prose, and because it returns a completeness
-   the author cannot: 306 of 306 table rows verified rather than the ones
-   somebody thought to check. Leave the placement, contradiction
-   and writing-rule reading to yourself. Four things it cannot derive go
-   in the brief: which half is the basis, and so which of the eighteen JSONs
-   every published table comes from; that it works in this directory,
-   that its evidence is this run's own JSONs and `read-run.py`, and
-   that no other repository's checkers come near this page — it starts where
-   your session started, so the artifacts are not where it is and the checkers
-   it arrives with are not this page's. And once the write-up has settled, aim
-   the same instrument at the finished page rather than the diff:
-   a comprehension probe — a fresh session answering a handful of the page's own
-   questions from the document alone, with citations — reads as a stranger what
-   every diff-scoped check reads as a change, and on every run it has been given
-   it has surfaced a contradiction between standing passages that nothing above
-   could have seen. (The rule that a check must be proven able to fail governs
-   the instruments themselves and is stated with them, [in the reader's
-   section](#the-reader-read-runpy).)
+   the artifacts, launched when the tables go in rather than at the end —
+   and the cost of launching late is measured** (Run 15, which launched once
+   the whole write-up was drafted): its first pass returned seventeen findings,
+   several of them prose built on a table figure a table-time pass would have
+   caught first, and its second pass returned seven more of which four existed
+   *only* because the first round of fixes had been written. Late launching does
+   not merely delay the findings, it multiplies them — and it is **two passes
+   on one agent**, since at that moment only the tables exist: the tables
+   as they go in, then the prose together with the fixes the first pass caused,
+   the second continuing the first rather than paying a fresh bootstrap. Run
+   13's first pass verified 341 table lines and found the cross-class summary
+   untouched; its second found six prose errors, including a previous run's
+   figure presented as this one's. One agent, briefed to recompute every added
+   figure from the reader and to re-derive every *only*, *largest* and *N
+   of the nine* by sorting, and to report discrepancies rather than opinions.
+   It is dear per finding — Run 11's cost some thirty times what the same
+   session's own targeted re-checks did — and it is worth it anyway, because
+   its findings are the ones a session has already proved it cannot see
+   in its own prose, and because it returns a completeness the author cannot:
+   306 of 306 table rows verified rather than the ones somebody thought
+   to check. Leave the placement, contradiction and writing-rule reading
+   to yourself. Four things it cannot derive go in the brief: which half
+   is the basis, and so which of the eighteen JSONs every published table comes
+   from; that it works in this directory, that its evidence is this run's own
+   JSONs and `read-run.py`, and that no other repository's checkers come near
+   this page — it starts where your session started, so the artifacts
+   are not where it is and the checkers it arrives with are not this page's.
+   And once the write-up has settled, aim the same instrument at the finished
+   page rather than the diff: a comprehension probe — a fresh session answering
+   a handful of the page's own questions from the document alone, with citations
+   — reads as a stranger what every diff-scoped check reads as a change,
+   and on every run it has been given it has surfaced a contradiction between
+   standing passages that nothing above could have seen. (The rule that a check
+   must be proven able to fail governs the instruments themselves and is stated
+   with them, [in the reader's section](#the-reader-read-runpy).)
 
    The checks themselves:
    1. **derive every count and ratio in the prose from `--cells`, never by eye,
@@ -5159,9 +5199,13 @@ the artifacts are what it spends.
       than what it prints wants the mode that answers it rather than a script
       over the dump: allocation agreement is `--compare --alloc`, which exists
       because a script over the printed multiple found every cell agreeing where
-      the underlying fit does not. **Before re-deriving a figure a previous run
-      published, re-derive that run's own value first and check it reproduces.**
-      This is the prove-a-search-non-vacuous rule applied to a derivation rather
+      the underlying fit does not. **Before reading any figure whose predecessor
+      is on record, reproduce the predecessor first.** Stated narrowly
+      this is about re-deriving a published figure, and it generalises to every
+      probe: Run 15's ladder probe reproduced Run 14's 14.1 and 22.3 ms before
+      it read anything at a new nursery, which is the only reason the new figure
+      was trustworthy the moment it appeared. This
+      is the prove-a-search-non-vacuous rule applied to a derivation rather
       than a grep — run the computation against a case whose answer is known
       before trusting it on one whose answer is not — and it is cheap: one extra
       invocation. Run 13's write-up skipped it, read the wrong column, got
@@ -5185,14 +5229,20 @@ the artifacts are what it spends.
       And **difference at two scales**: if the per-call figure moves with `n`,
       part of what is being divided is a fixed cost, which is how a one-time 0.9
       s of page-faulting read as half a millisecond a call;
-   3. **when two instruments disagree, that is the finding.** Do not average
-      them, pick the one the page prefers, or quietly drop the awkward one.
-      Locate the disagreement first: the criterion slope and the `-n`
-      differencing above parted by 8 points on one arm, both reproducible
-      to a fraction of a percent, and the cause was neither sampling nor sample
-      size but which clock was being read. Until it is located, neither number
-      is evidence, and a retraction made on the strength of the wrong one
-      is worse than the claim it withdrew;
+   3. **take the cheap decomposition before proposing a mechanism.** Where
+      a cost can be split by an instrument already to hand — mutator against
+      collector, one arm against another, alone against after — split it first:
+      Run 15 built a copying account of the position term, found its arithmetic
+      off by two orders, and settled the question with a single `-s` reading
+      of GC against mutator time that should have come before the account rather
+      than after it. **And when two instruments disagree, that is the finding.**
+      Do not average them, pick the one the page prefers, or quietly drop
+      the awkward one. Locate the disagreement first: the criterion slope
+      and the `-n` differencing above parted by 8 points on one arm, both
+      reproducible to a fraction of a percent, and the cause was neither
+      sampling nor sample size but which clock was being read. Until
+      it is located, neither number is evidence, and a retraction made
+      on the strength of the wrong one is worse than the claim it withdrew;
    4. **install the tables with `--in-place` rather than pasting them.**
       `--markdown`, `--fingerprint`, `--block` and `--claims` each take it —
       the last installing a `Readings:` paragraph under each claim's lead rather
