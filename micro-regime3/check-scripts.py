@@ -969,7 +969,7 @@ CASES = [
          ok=V(has=['(0, False)']),
          bug=V(hasnt=['(0, False)'])),
 
-    case('tree-change-in-both-directions', 'check-scripts.py', 'PENDING',
+    case('tree-change-in-both-directions', 'check-scripts.py', 'ea1a3e6',
          'a file REMOVED tripped the alarm and printed nothing beneath it',
          argv=['--unit', "tree_delta('?? a\\n?? b\\n', '?? b\\n')"],
          ok=V(has=['gone']),
@@ -1749,7 +1749,17 @@ def main():
               ' tree as it found it was NOT checked')
         bad += 1
     elif after != before:
-        print('!! this run changed the working tree, which it must never do:')
+        # It cannot know WHOSE change this is, and it said it could. The
+        # tree moved under a run on 2026-08-17 because another session
+        # committed to the same checkout while the audit was replaying, and
+        # the report accused this suite of a write it had not made. Naming
+        # both explanations costs a line and keeps the alarm worth reading:
+        # a suite that cries wolf about a colleague's commit is one whose
+        # next real leak gets waved past.
+        print('!! the working tree changed during this run. If a case did'
+              ' it, that is a defect here -- this suite must leave the tree'
+              ' as it found it. A concurrent edit to the same checkout is'
+              ' the other explanation, and the delta below says which:')
         print('\n'.join(tree_delta(before, after)))
         bad += 1
     if unbuilt:
