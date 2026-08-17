@@ -101,7 +101,9 @@ run () {   # $1 = half, $2 = pass
   rc=$?
   nb=$(grep -c '^benchmarking ' "${out}.log")
   echo "=== $(date -Is) done  ${out} rc=${rc} benchmarking=${nb}"
-  [ "$nb" = "$EXPECT" ] || { echo "    !! expected $EXPECT, got $nb -- the selection is not the $ARMS arm(s) SEL names"; BAD=$((BAD + 1)); PROC=$((PROC + 1)); }
+  # Named, as run-major.sh's is and for the same reason: four of these in
+  # one log, and only the adjacent line saying which process each is about.
+  [ "$nb" = "$EXPECT" ] || { echo "    !! $out: expected $EXPECT, got $nb -- the selection is not the $ARMS arm(s) SEL names"; BAD=$((BAD + 1)); PROC=$((PROC + 1)); }
   [ "$rc" = 0 ] || { echo "    !! nonzero exit -- read ${out}.log before trusting anything from it"; BAD=$((BAD + 1)); PROC=$((PROC + 1)); }
   RESULTS="${RESULTS}
     ${out}  rc=${rc} benchmarking=${nb}"

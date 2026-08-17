@@ -129,7 +129,9 @@ run () {   # $1 = half, $2 = artifact tag, $3 = benches expected, $4.. = args
   nb=$(grep -c '^benchmarking ' "$out.log")
   log "done  $out rc=$rc benchmarking=$nb"
   [ "$rc" = 0 ] || { log "  !! nonzero exit -- read $out.log before trusting anything after"; BAD=$((BAD + 1)); }
-  [ "$nb" = "$want" ] || { log "  !! expected $want benches, got $nb -- the selection is not what was asked for"; BAD=$((BAD + 1)); }
+  # Named, because nine of these in one log looked identical and the only
+  # thing saying which process each belonged to was the line above it.
+  [ "$nb" = "$want" ] || { log "  !! $out: expected $want benches, got $nb -- the selection is not what was asked for"; BAD=$((BAD + 1)); }
 }
 
 # TWO commits, because HEAD is not what the binaries were built from and
@@ -139,12 +141,37 @@ run () {   # $1 = half, $2 = artifact tag, $3 = benches expected, $4.. = args
 # rebuilding, so both can be ahead of the binaries -- which is why README's
 # recording step transcribes the commit out of the pair note instead. A dirty
 # tree is what makes either a lie, so the count goes in too.
-log "major run begins; tree at $(git log -1 --format=%h), Main.hs at \
-$(git log -1 --format=%h -- Main.hs); roster is $MAIN_BENCHES benches"
+# ASKED WHETHER GIT ANSWERED, because the reassuring reading is the one
+# it gives when it did not: `tree at , Main.hs at ` for the commits and
+# `0 path(s) untracked or modified` for the count, which is exactly what a
+# clean tree looks like -- and the count is the safeguard the paragraph
+# above leans on. Reachable without leaving this directory: a dubious-
+# ownership refusal, a stale index lock, a `.git` the sandbox mounted
+# read-only. It does not stop the run, six hours being worth more than a
+# provenance line, but the line cannot read as a commit nobody has.
+# Found 2026-08-17 by a toy run of this procedure.
+HEAD_AT=$(git log -1 --format=%h 2>/dev/null)
+MAIN_AT=$(git log -1 --format=%h -- Main.hs 2>/dev/null)
+DIRTY=$(git status --porcelain 2>/dev/null); GIT_SAID=$?
+# Either field empty, not just the first: run from a directory where
+# Main.hs is not the tracked path, `git log -- Main.hs` answers nothing
+# while `git log` answers fine, and the line came out `Main.hs at ` with
+# every other field right -- the same empty field, one over, produced by
+# the toy run that found the first.
+if [ "$GIT_SAID" != 0 ] || [ -z "$HEAD_AT" ] || [ -z "$MAIN_AT" ]; then
+  log "major run begins; GIT DID NOT ANSWER, so this run records no commit\
+ and no tree state -- the write-up's provenance line cannot be taken from\
+ here; roster is $MAIN_BENCHES benches"
+else
+  log "major run begins; tree at $HEAD_AT, Main.hs at $MAIN_AT; roster is\
+ $MAIN_BENCHES benches"
+fi
 log "halves: $HALVES, in that order; $BASIS is the basis, and every class runs\
  on both halves"
-log "tree: $(git status --porcelain | wc -l) path(s) untracked or modified"
-git status --porcelain | tee -a "$R-wallclock.log"
+if [ "$GIT_SAID" = 0 ]; then
+  log "tree: $(printf '%s' "$DIRTY" | grep -c .) path(s) untracked or modified"
+  [ -z "$DIRTY" ] || printf '%s\n' "$DIRTY" | tee -a "$R-wallclock.log"
+fi
 uptime | tee -a "$R-wallclock.log"
 
 # Which gate this run stands on, COPIED and not judged: the note's wording is
