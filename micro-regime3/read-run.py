@@ -1463,6 +1463,19 @@ def chapter_skeleton(cells, shapes, strategies, meta, other, main_hs):
     both_st = [t for t in strategies if t in b_strategies]
     print('\nchapter skeleton, this run against %s'
           % os.path.basename(other))
+    # Named and skipped, the way --compare does it: the geomeans below are
+    # the chapter's headline figures, and a comparison narrowed in silence
+    # is the failure this whole file is written against. This mode and
+    # --alloc both computed `both_sh` and said nothing about the residue,
+    # so a control half short of a shape read as a full comparison.
+    missing_sh = ([s for s in shapes if s not in b_shapes]
+                  + [s for s in b_shapes if s not in shapes])
+    if missing_sh:
+        print('  shapes in one run only, skipped: %s'
+              % ', '.join(sorted(set(missing_sh))))
+    if len(both_st) != len(strategies) or len(both_st) != len(b_strategies):
+        print('  arms in one run only, skipped: %s'
+              % ', '.join(sorted(set(strategies) ^ set(b_strategies))))
     print('  regime, md5s, commit, elapsed, heap peaks, wall-clock window:'
           ' ___ (from the')
     print('  pair note and the logs -- this mode reads neither)')
@@ -1573,6 +1586,11 @@ def compare_alloc(cells, shapes, strategies, meta, other, main_hs):
     both_st = [t for t in strategies if t in b_strategies]
     print('\nallocation, this run against %s, over %d shared cell(s)'
           % (os.path.basename(other), len(both_sh) * len(both_st)))
+    missing_sh = ([s for s in shapes if s not in b_shapes]
+                  + [s for s in b_shapes if s not in shapes])
+    if missing_sh:
+        print('  shapes in one run only, skipped: %s'
+              % ', '.join(sorted(set(missing_sh))))
     missing = sorted(set(strategies) ^ set(b_strategies))
     if missing:
         print('  arms in one run only, skipped: %s' % ', '.join(missing))
