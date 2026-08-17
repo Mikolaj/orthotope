@@ -196,6 +196,20 @@ def git(*args):
                           text=True)
 
 
+def tree_state():
+    """What `git status` says, or None if it could not say anything.
+
+    The run ends by comparing this against what it saw at the start, and
+    the comparison read `.stdout` alone -- so a `git` that failed gave the
+    empty string both times, the two matched, and the ONE guarantee this
+    file makes about itself passed without being checked. That is the
+    empty-search defect it carries cases about, in the file that carries
+    them. Found 2026-08-17 by asking what this suite covers.
+    """
+    got = git('status', '--porcelain')
+    return None if got.returncode else got.stdout
+
+
 # ---------------------------------------------------------------- fixtures
 
 def readme_lines():
@@ -907,6 +921,23 @@ CASES = [
          bug=V(has=['14 of 16 intervals'],
                hasnt=['control pair(s) not readable'])),
 
+    case('controls-survive-a-negative-term', 'read-run.py', 'PENDING',
+         "the sum-only pair is computed twice and was guarded once",
+         plant=lambda t: {'run': doctored(
+             t, 'run14-lookrts-slice.json',
+             lambda bs: scale(bs, 'slice-primes/sum-only-early', -1.0)),
+             'readme': edited_readme(t)},
+         argv=['{run}', '--block', '--readme', '{readme}'],
+         ok=V(hasnt=['math domain error']),
+         bug=V(has=['math domain error'])),
+
+    case('tree-check-that-could-not-run', 'check-scripts.py', 'PENDING',
+         'this suite\'s one guarantee about itself passed unchecked',
+         argv=['--unit', "tree_state.__doc__ and (git('rev-parse')"
+                         ".returncode, tree_state() is None)"],
+         ok=V(has=['(0, False)']),
+         bug=V(hasnt=['(0, False)'])),
+
     # ---- align-as.py ---------------------------------------------------
     case('maxskip-zero-is-off', 'align-as.py', '437ce00',
          'LOOP_MAXSKIP=0 built the max-skip form',
@@ -1475,7 +1506,7 @@ def main():
               % (len(cases), len(set(c.prog for c in cases))))
         return 0
 
-    before = git('status', '--porcelain').stdout
+    before = tree_state()
     if args.properties:
         print('properties over the live corpus:')
         bad, skipped, unbuilt = properties(), 0, 0
@@ -1492,8 +1523,12 @@ def main():
               % (len(cases), rev or 'the working tree'))
         bad, skipped, unbuilt = run(cases, rev, 'ok')
         verdict = '%d case(s) FAILED' % bad if bad else ''
-    after = git('status', '--porcelain').stdout
-    if after != before:
+    after = tree_state()
+    if before is None or after is None:
+        print('!! `git status` did not answer, so whether this run left the'
+              ' tree as it found it was NOT checked')
+        bad += 1
+    elif after != before:
         print('!! this run changed the working tree, which it must never do:')
         print(''.join('   %s\n' % l for l in
                       sorted(set(after.split('\n')) - set(before.split('\n')))
