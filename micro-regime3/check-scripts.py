@@ -1102,6 +1102,31 @@ CASES = [
          ok=V(exit=2, has=['--in-place is a modifier']),
          bug=V(exit=0)),
 
+    # ---- a comparison narrowed in silence, which wants two runs --------
+    case('chapter-names-the-shapes-it-dropped', 'read-run.py', 'a78555e',
+         'a control half short of a shape read as a full comparison',
+         # Two BUILT runs, the second a shape shorter -- which is what a
+         # half killed at a shape boundary leaves, and what `load_other`'s
+         # hole gate does not catch, that one asking after a shape PARTLY
+         # there. `--compare` has always named its residue; these two
+         # computed the same intersection and said nothing, under the mode
+         # whose geomeans are the chapter's headline figures.
+         plant=lambda t: {'run': synth_json(t, 'main', 'a.json'),
+                          'other': synth_run(os.path.join(t, 'b.json'),
+                                             main_shapes()[:-1])},
+         argv=['{run}', '--compare', '{other}', '--chapter'],
+         ok=V(has=['shapes in one run only, skipped']),
+         bug=V(hasnt=['shapes in one run only, skipped'])),
+
+    case('alloc-names-the-shapes-it-dropped', 'read-run.py', 'a78555e',
+         'the allocation comparison named its arms and not its shapes',
+         plant=lambda t: {'run': synth_json(t, 'main', 'a.json'),
+                          'other': synth_run(os.path.join(t, 'b.json'),
+                                             main_shapes()[:-1])},
+         argv=['{run}', '--compare', '{other}', '--alloc'],
+         ok=V(has=['shapes in one run only, skipped']),
+         bug=V(hasnt=['shapes in one run only, skipped'])),
+
     # ---- the sunk cell, which only a built fixture can carry -----------
     case('fingerprint-refuses-a-sunk-cell', 'read-run.py', 'e2d6604',
          'a sunk cell was divided and INSTALLED, outliving its own run',
@@ -1483,7 +1508,7 @@ CASES = [
          ok=V(exit=1, has=['a pair is two halves']),
          bug=V(exit=0)),
 
-    case('class-name-carries-no-hyphen', 'run-major.sh', None,
+    case('class-name-carries-no-hyphen', 'run-major.sh', '8cb5eb7',
          'a hyphenated class merged with the one before its hyphen',
          shadow=dict(mutate=[('run-major.sh', 'reshape1 slice window scaled"',
                               'reshape1 slice window scaled bcast-mid"')],
@@ -1491,7 +1516,8 @@ CASES = [
                      + [('zzhy-pair.txt', 'a stand-in pair note.\n')]),
          env={'OTHER': 'a1g', 'BASIS': 'lookrts'},
          argv=['zzhy'],
-         ok=V(exit=1, has=['carries a hyphen'])),
+         ok=V(exit=1, has=['carries a hyphen']),
+         bug=V(hasnt=['carries a hyphen'])),
 
     case('smoke-exercises-the-shape-filter', 'smoke-sweep.sh', 'd852517',
          'the shape filter could only pass, naming a shape not in the run',
