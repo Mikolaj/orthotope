@@ -803,6 +803,12 @@ CASES = [
          ok=V(exit=2, has=['one mode at a time']),
          bug=V(exit=0)),
 
+    case('fmt-abs-above-its-top-unit', 'read-run.py', '0fe535b',
+         'a time past a thousand seconds wrote an exponent nothing parses',
+         argv=['--unit', 'fmt_abs(1500.0)'],
+         ok=V(has=["'1500 s'"]),
+         bug=V(has=['e+03'])),
+
     case('fmt-abs-at-the-unit-boundary', 'read-run.py', 'a6c32e8',
          '999.7 µs printed as `1e+03 µs`, which --machine cannot parse',
          argv=['--unit', 'fmt_abs(9.997e-4)'],
@@ -1239,14 +1245,57 @@ def _as_page(text):
     return write(p, text)
 
 
-PROPERTIES = [prop_abs_round_trip, prop_table_reads_back]
+def prop_selftest_over_the_corpus(m):
+    """Every invariant the reader already states, asked of every run here.
 
-# Both broken deliberately, 2026-08-17, because a property that has never
-# failed has proved nothing: labelling seconds `ns` fails the round-trip on
-# every figure it reaches, and widening `readme_rows`' column test by one
-# fails the read-back on every row. Each was green again on reverting.
+    The change this makes is not a new claim -- `--selftest` states
+    thirty-four, each of them a property in the same sense -- but WHAT THEY
+    ARE QUANTIFIED OVER. They are asked of whatever single file a session
+    hands in; asked of the whole directory instead they answer for eighty-
+    odd runs across five run numbers, two probes and every smoke artifact
+    still on disk, at nine seconds. That is the cheapest of these to have
+    and the last one anybody thinks of, the properties being written
+    already.
+
+    A subprocess apiece rather than a call, so what is quantified is the
+    invocation a reader actually makes: its refusals -- a ragged file, a
+    population Main.hs cannot name -- are part of what must hold.
+    """
+    bad, n = [], 0
+    for f in runs_on_disk():
+        n += 1
+        got = subprocess.run([sys.executable, os.path.join(HERE,
+                                                           'read-run.py'),
+                              f, '--selftest'], cwd=HERE,
+                             capture_output=True, text=True, timeout=300)
+        if got.returncode:
+            first = [l for l in (got.stdout + got.stderr).split('\n')
+                     if l.startswith('FAIL') or 'Traceback' in l]
+            bad.append('%s: exit %d%s' % (f, got.returncode,
+                                          ' -- ' + first[0] if first else ''))
+    return n, 'run(s) on disk, every invariant of each', bad[:5]
+
+
+PROPERTIES = [prop_abs_round_trip, prop_table_reads_back,
+              prop_selftest_over_the_corpus]
+
+# All three broken deliberately, 2026-08-17, because a property that has
+# never failed has proved nothing: labelling seconds `ns` fails the
+# round-trip on every figure it reaches, widening `readme_rows`' column
+# test by one fails the read-back on every row, and a reader that refuses
+# everything fails the third on every run. Each was green again on
+# reverting, and each named the file it failed on rather than a count.
+# The first attempt at the first proved nothing: the formatter it
+# substituted looked wrong and was arithmetically right, so the property
+# held -- a break has to break the property, not merely the code.
 #
-# Two cautions, both paid for here. A property has to be about what the
+# Three cautions, all paid for here. The first is that these are not new
+# claims so much as old ones asked of more: `--selftest` had thirty-four
+# invariants and asked them of one file at a time, and the whole of the
+# third property is asking them of every file instead. Reach for that
+# before writing a property.
+#
+# A property has to be about what the
 # thing is FOR: quantified over every regression this asked `fmt_abs` to
 # write allocated bytes as seconds, and quantified over every population it
 # asked a class table to be read back, which the reader declines on
