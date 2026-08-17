@@ -65,6 +65,25 @@ CLASSES=$(ls -1 "$R-$BASIS"-*.json 2>/dev/null \
             | grep -v -- '-main\.json$' | grep -v "^$R-gate-")
 [ -n "$CLASSES" ] || { echo "no class JSONs for $R-$BASIS"; exit 1; }
 
+# A HALF WHOSE NAME BEGINS WITH THE BASIS'S PLUS A HYPHEN is caught by the
+# glob above: with BASIS=a1g and a control called `a1g-pa`, `$R-a1g-pa-rev.json`
+# matches `$R-a1g-*.json`. Nothing downstream sees it -- MISSING is leads
+# without JSONs and stays empty -- and `ls` sorts the control's file after
+# the basis's own, so the CONTROL half's table is the one left in every
+# class block, under a driver whose header says every table comes from the
+# basis. Told apart by the tag: class names carry no hyphen (run-major.sh
+# refuses one), so a tag that does is another half's name and not a class.
+for f in $CLASSES; do
+  t=${f#"$R-$BASIS-"}; t=${t%.json}
+  case $t in *-*)
+    echo "!! $f: the tag '$t' is not a class name -- class names carry no"
+    echo "   hyphen, so this is another half caught by the basis glob and"
+    echo "   its table would install as the basis's. Rename that half, or"
+    echo "   move its JSONs aside before installing."
+    exit 1 ;;
+  esac
+done
+
 # The class list comes from the disk, so a class whose JSON is absent is
 # simply never installed and the tables half of this driver says nothing --
 # "a page with ten of eleven installed looks exactly like a page with
@@ -83,6 +102,33 @@ if [ -n "$MISSING" ]; then
   echo "!! $(printf '%s\n' "$MISSING" | wc -l) class block(s) in $DOC have no"
   echo "   $R-$BASIS-*.json, so their tables would go silently uninstalled:"
   printf '%s\n' "$MISSING" | sed 's/^/     /'
+  exit 1
+fi
+
+# A class of fewer than three shapes has no per-shape line to install, and
+# the reader is RIGHT not to emit one: `--block`'s per-shape paragraph is
+# guarded by len(shapes) > 2. The computed-paragraph block below met that as
+# `--block emitted no per-shape` and exited 1 -- AFTER the eleven tables had
+# been written, so the page was left carrying fresh tables over stale
+# computed paragraphs, at exit 1, and the message blamed the reader's output
+# format for what the reader correctly does. Not hypothetical: five class
+# blocks were two-shape when last written, which is the state the block
+# below opens by recording. Asked HERE, where nothing has been written yet.
+SHORT=$(python3 - "$CLASSES" <<'ENDPY'
+import json, sys
+for f in sys.argv[1].split():
+    n = len({b['reportName'].split('/')[0] for b in json.load(open(f))[2]})
+    if n < 3:
+        print('%s: %d shape(s)' % (f, n))
+ENDPY
+)
+if [ -n "$SHORT" ]; then
+  echo "!! a class here has fewer than three shapes, so --block emits no"
+  echo "   per-shape line for it and the computed-paragraph install would"
+  echo "   refuse once the tables were already in:"
+  printf '%s\n' "$SHORT" | sed 's/^/     /'
+  echo "   NOTHING HAS BEEN WRITTEN. Either that class wants its third"
+  echo "   shape, or this driver wants a two-shape form of that paragraph."
   exit 1
 fi
 

@@ -22,6 +22,17 @@ alone; check them rather than assuming, and say here that you did. The one
 that is easiest to leave is install-tables.sh, which is the one that writes
 eleven tables into the page.
 
+NAMING THE HALVES: neither name may begin with the other's followed by a
+hyphen. install-tables.sh finds the basis's class JSONs by globbing
+`$R-<basis>-*.json`, so a control called `<basis>-pa` is caught by it, and
+`ls` sorts that file after the basis's own -- leaving the CONTROL half's
+table in every class block under a driver that says every table comes from
+the basis, with nothing downstream able to see it. Refused there since
+2026-08-17 rather than left to the naming. Every half on record is
+hyphen-free (`aligned`, `maxskip`, `maxskippa`, `lookrts`, `a1g`, `a32m`);
+note that `maxskip`/`maxskippa` is a bare prefix and safe -- it is the
+hyphen that collides.
+
 WHY THE BASIS IS THIS RECIPE, decided YYYY-MM-DD: a decision and not a
 measurement, so the reason belongs here where the next session meets it.
 
