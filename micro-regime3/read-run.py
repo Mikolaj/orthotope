@@ -572,6 +572,7 @@ def aa_pairs(cells, shapes, strategies):
     wants it keeps its own branch.
     """
     out = []
+    dropped = []
     for a in strategies:
         b = twin_of(a)
         if not b or b not in strategies:
@@ -581,12 +582,26 @@ def aa_pairs(cells, shapes, strategies):
         # error`, and `--block`, `--compare --chapter` and `summary_row` all
         # come through here. The guard `pair_stats` grew was never carried
         # to its siblings. Found 2026-08-17 by review.
+        #
+        # And SAID, on the same day, because dropping it quietly traded a
+        # crash for the worse thing: `controls_skeleton` publishes "N of M
+        # intervals cover 1" into the page off this list, and over a run
+        # with eighteen pairs and two of them sunk it read 16 with nothing
+        # anywhere saying which two had gone. The warning is here rather
+        # than at each caller so that every one of them inherits it, and
+        # `install-tables.sh` gathers it into the hand-work a run owes.
         if any(cells[s][x]['net'] <= 0 for s in shapes for x in (a, b)):
+            dropped.append('%s/%s' % (a, b))
             continue
         r = [cells[s][a]['net'] / cells[s][b]['net'] for s in shapes]
         dev = [abs(x - 1) * 100 for x in r]
         out.append(AA(a, b, r, geomean(r), max(zip(dev, shapes)),
                       paired_ci(r)))
+    if dropped:
+        sys.stderr.write('warning: %d control pair(s) not readable, a cell'
+                         ' having no positive net: %s -- every A/A figure'
+                         ' below is over the rest\n'
+                         % (len(dropped), ', '.join(dropped)))
     return out
 
 
