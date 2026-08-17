@@ -106,3 +106,31 @@ whoever works here next, and mostly it faces no one.
   - Four greps against the wrapped README returned false silences in one
     evening, each indistinguishable from a real absence. The rule against it
     was resident throughout.
+
+--- Run 15's write-up, 2026-08-17 (session's own chronology; not for the page)
+
+The independent checker found 17 discrepancies on its first pass and 7 more on
+a second pass aimed at the fixes. Four of those 7 were artifacts of the first
+round of fixes rather than pre-existing: a population mix inside one corrected
+sentence (13th of 42 written as 16th of 47), a "four arms" that the corrected
+figures made three, a sibling paragraph left quoting a different reader column
+from the one the fix installed, and a sentence fragment where a rewrite moved
+the clause its tail hung off. A fifth was a legend fix that left two siblings
+contradicting it, and a sixth was a hedge added in one place that put three
+other places out of step with it.
+
+Every one of the 24 was in prose. All 17 installed tables were byte-identical
+to the reader on both passes, and roughly 200 reader-derived figures checked
+out. The chapter's own warning -- expect every error in the prose and expect
+the green checkers to be why -- held exactly.
+
+Four defects Run 14's write-up had shipped past four green checkers were found
+by this run: `run13-maxskip` named as the basis in the Results lead, five class
+leads naming two shapes where their own installed lines named three, a
+pure-slot count listing five classes its own table bolded as breaks, and
+property 3 quoting 1.07x/4.22x against its own tables' 1.14x/5.43x. All four
+became entries in the non-urgent list as checker gaps.
+
+The sweep for the superseded run's name earned its place again: three stale
+self-references in the floor section, one of which carried a registered
+prediction (the excess-allocation predictor) that Run 15 answers.
