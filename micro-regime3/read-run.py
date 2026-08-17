@@ -4900,19 +4900,29 @@ def selftest(cells, shapes, strategies, meta):
             # them is meaningless, so there is no geomean to bracket.
             if no_net(st):
                 continue
-            ratios = [cells[sh][st]['net'] / cells[sh]['list']['net']
-                      for sh in shapes]
             # A cell the forcing term did not leave positive has no log, so
             # this raised `math domain error` and the whole gate printed
             # NOTHING -- no verdict, no FAIL, a traceback where `read-all.sh`
             # reads a verdict. `time_of`, `worst_of` and `pair_stats` each
             # answer for such a cell; this is the fourth site and was the
             # one that could not report. Found 2026-08-17 by review.
-            if any(r <= 0 for r in ratios):
+            #
+            # Asked of the CELLS and not of the quotients, which is the same
+            # defect one step earlier: the test read `r <= 0` over ratios
+            # the line above had already computed, so a baseline whose own
+            # net came out exactly 0 divided by zero before anything could
+            # look. `<= 0` had always included 0; only the order kept it out
+            # of reach. Found 2026-08-17 on a built run with every arm of a
+            # shape sunk, which drives both `sum-only` halves and `list`
+            # together and lands the baseline exactly there.
+            if any(cells[sh]['list']['net'] <= 0
+                   or cells[sh][st]['net'] <= 0 for sh in shapes):
                 bad.append('%s: a cell the forcing term did not leave'
                            ' positive, so this row has no geomean to'
                            ' bracket' % st)
                 continue
+            ratios = [cells[sh][st]['net'] / cells[sh]['list']['net']
+                      for sh in shapes]
             capped += winsorize([math.log(r) for r in ratios])[1]
             got = time_of(cells, shapes, st)
             if not min(ratios) - TOL <= got <= max(ratios) + TOL:
