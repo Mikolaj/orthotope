@@ -35,7 +35,11 @@ themselves. A case whose `bug` is None is a control rather than a defect,
 and `--audit` says so instead of checking it.
 
 HOW TO ADD ONE, and the answer is before you fix anything. A review claim
-becomes a case first, red; then the fix turns it green. Two claims in the
+becomes a case first, red; then the fix turns it green. The `fix` field is
+filled in afterwards and cannot be otherwise -- a case naming the commit
+that carries it would change that commit's hash by being written into it --
+so the order of WORK is case, fix, case-green, while the order of COMMITS
+is the fix and then the case that guards it, one behind. Two claims in the
 second review were partly wrong and a case would have shown it for nothing,
 where finding out cost a full implementation each time. The rule the other
 way round matters more: a fix with no case here is a fix that will come
@@ -66,8 +70,12 @@ case here but one: the correction's positivity test in `selftest`, which is
 subsumed by the malformed-cell check above it and so cannot fail on its own
 -- untestable by construction rather than untested, and `read-run.py` says
 as much where the code is. The other absence is whole files. `run-major.sh`,
-`run-gate.sh` and `smoke-sweep.sh` have no case and had no finding in either
-review, which is not evidence that they are clean: they are the drivers
+`run-gate.sh` and `smoke-sweep.sh` have no case, and `run-gate.sh`'s derived
+`ARMS` is one of two fixes here that no case reaches -- the other is
+`install-tables.sh`'s placeholder fill, whose fixture would have to reword
+what `read-run.py` emits, where a case substitutes one script and no more.
+The drivers had no finding in either of the first two reviews and one in the
+third, which is not evidence that they are clean: they are the drivers
 that commit the machine for hours, a defect in one is the most expensive
 kind here, and the two shell scripts anyone did read closely yielded the
 highest defect density in the tree -- 1.9 and 0.9 per hundred lines against
@@ -280,6 +288,22 @@ def readme_chapter_renamed(tmp):
                                '\n## About the previous run (Run'))
 
 
+def readme_heading_between_blocks(tmp):
+    """A section, with a `Provenance:` paragraph, between two class blocks.
+
+    `install-tables.sh` gives each block the range up to the next LEAD and
+    stops at a heading for the last block only, so anything of that shape
+    standing between two blocks is inside the range of the one above it.
+    """
+    paras = open(README).read().split('\n\n')
+    at = [i for i, x in enumerate(paras) if x.startswith('**`revsome`')]
+    assert len(at) == 1, 'revsome lead: %d paragraph(s)' % len(at)
+    paras[at[0]:at[0]] = ['### A section standing between two class blocks',
+                          'Provenance: ZZMARKER, and this paragraph is'
+                          ' nobody\'s to rewrite.']
+    return write(os.path.join(tmp, 'R.md'), '\n\n'.join(paras))
+
+
 def untracked_doc(tmp):
     """A document in this directory that no index knows about.
 
@@ -380,7 +404,7 @@ def asm(tmp, text=ASM_HEAD_AFTER_RET):
     return {'asm': a, 'as': g, 'obj': os.path.join(tmp, 'a.o')}
 
 
-def synthetic_run(tmp, killed=False, no_twins=False):
+def synthetic_run(tmp, killed=False, no_twins=False, no_starts=False):
     """A whole run in this directory: JSONs, and the log that describes it.
 
     `read-all.sh` cds to its own directory and globs, so this is one of the
@@ -405,10 +429,11 @@ def synthetic_run(tmp, killed=False, no_twins=False):
                 json.dump(d, f)
         else:
             shutil.copyfile(src, dst)
-        log += ['=== 2026-01-01T00:00:01+01:00 start %s-lookrts-%s'
-                % (tag, cls),
-                '=== 2026-01-01T00:10:00+01:00 done  %s-lookrts-%s rc=0'
-                ' benchmarking=47' % (tag, cls)]
+        if not no_starts:
+            log += ['=== 2026-01-01T00:00:01+01:00 start %s-lookrts-%s'
+                    % (tag, cls),
+                    '=== 2026-01-01T00:10:00+01:00 done  %s-lookrts-%s rc=0'
+                    ' benchmarking=47' % (tag, cls)]
     if killed:
         log.append('=== 2026-01-01T00:10:01+01:00 start %s-lookrts-window'
                    % tag)
@@ -444,11 +469,19 @@ def staged_doc(tmp):
 # ------------------------------------------------------------------- cases
 
 CASE = collections.namedtuple('CASE', 'name prog fix gist plant argv env '
-                                      'ok bug')
+                                      'ok bug probe')
 
 
-def case(name, prog, fix, gist, argv, ok, bug=None, plant=None, env=None):
-    return CASE(name, prog, fix, gist, plant, argv, env or {}, ok, bug)
+def case(name, prog, fix, gist, argv, ok, bug=None, plant=None, env=None,
+         probe=None):
+    """One defect, both ways round.
+
+    `probe` is for a defect whose evidence is a FILE the invocation wrote
+    rather than anything it said: it returns text that is judged alongside
+    the output, which is how a paragraph silently overwritten in a copy of
+    the page becomes a `has`/`hasnt` like any other.
+    """
+    return CASE(name, prog, fix, gist, plant, argv, env or {}, ok, bug, probe)
 
 
 def V(exit=None, has=(), hasnt=()):
@@ -511,7 +544,7 @@ CASES = [
          'a population Main.hs no longer defines died unpacking',
          plant=lambda t: {'run': run_json('run14-lookrts-slice.json')},
          argv=['{run}', '--markdown', '--main', '/dev/null'],
-         ok=V(exit=0, has=['a population Main.hs does not define']),
+         ok=V(exit=1, has=['a population Main.hs does not define']),
          bug=V(has=['not enough values to unpack'])),
 
     case('ragged-gate-after-exclude', 'read-run.py', '4086ab8',
@@ -651,6 +684,64 @@ CASES = [
          ok=V(has=['BLOCKED: no `## About the last run` heading']),
          bug=V(hasnt=['BLOCKED: no `## About the last run` heading'])),
 
+    case('markdown-installs-into-the-main-table', 'read-run.py', 'febc2bd',
+         "a class run whose shapes Main.hs lost installed into Results",
+         plant=lambda t: {'readme': edited_readme(t),
+                          'run': run_json('run14-lookrts-rev.json')},
+         argv=['{run}', '--markdown', '--in-place', '--main', '/dev/null',
+               '--readme', '{readme}'],
+         ok=V(exit=1, hasnt=['installed at']),
+         bug=V(exit=0, has=['installed at'])),
+
+    case('selftest-survives-a-sunk-cell', 'read-run.py', 'febc2bd',
+         'a sunk cell gave the gate a traceback and no verdict at all',
+         plant=lambda t: {'run': doctored(
+             t, 'run14-lookrts-slice.json',
+             lambda bs: scale(bs, 'slice-primes/mut-odo-vecdims', 0.01))},
+         argv=['{run}', '--selftest'],
+         ok=V(hasnt=['math domain error'], has=['FAIL']),
+         bug=V(has=['math domain error'])),
+
+    case('aa-survives-a-sunk-cell', 'read-run.py', 'febc2bd',
+         '--aa died where --claims refuses, on the same file',
+         plant=lambda t: {'run': doctored(
+             t, 'run14-lookrts-slice.json',
+             lambda bs: scale(bs, 'slice-primes/mut-odo-vecdims', 0.01))},
+         argv=['{run}', '--aa', '--brief'],
+         ok=V(hasnt=['math domain error']),
+         bug=V(has=['math domain error'])),
+
+    case('aa-lists-controls-under-no-controls', 'read-run.py', 'febc2bd',
+         '--no-controls made --aa report a file of controls as having none',
+         plant=lambda t: {'run': run_json('run14-lookrts-slice.json')},
+         argv=['{run}', '--aa', '--brief', '--no-controls'],
+         ok=V(exit=2, has=['--no-controls drops the controls'],
+              hasnt=['no control pairs in this run']),
+         bug=V(has=['no control pairs in this run'])),
+
+    case('blocked-message-names-the-file', 'read-run.py', 'febc2bd',
+         'the roster BLOCKED line printed Main.hs\'s CONTENTS as its name',
+         plant=lambda t: {'main': mangled_main(t)},
+         argv=['--check-doc', '--main', '{main}'],
+         ok=V(has=['no roster parsed out of Main.hs']),
+         bug=V(hasnt=['no roster parsed out of Main.hs'])),
+
+    case('pair-refusal-names-shape-first', 'read-run.py', 'febc2bd',
+         'the refusal printed arm/shape where every other line is shape/arm',
+         plant=lambda t: {'run': doctored(
+             t, 'run14-lookrts-slice.json',
+             lambda bs: scale(bs, 'slice-primes/mut-odo-vecdims', 0.01))},
+         argv=['{run}', '--pair', 'mut-odo-vecdims', 'list'],
+         ok=V(has=['The first: slice-primes/mut-odo-vecdims']),
+         bug=V(has=['The first: mut-odo-vecdims/slice-primes'])),
+
+    case('alloc-ceiling-over-the-named-cells', 'read-run.py', 'febc2bd',
+         'the ceiling was a max over agreeing cells the sentence excludes',
+         argv=['--unit', 'small_ceiling([(2e-4, "s1", "a", 500.0),'
+                         ' (1e-5, "s2", "b", 5000.0)])'],
+         ok=V(has=['500']),
+         bug=V(hasnt=['500.0'])),
+
     # ---- align-as.py ---------------------------------------------------
     case('maxskip-zero-is-off', 'align-as.py', '437ce00',
          'LOOP_MAXSKIP=0 built the max-skip form',
@@ -706,6 +797,12 @@ CASES = [
          ok=V(has=['addr2line', 'mangled symbol']),
          bug=V(hasnt=['mangled symbol'])),
 
+    case('suppressed-groups-are-counted', 'loop-offsets.py', 'febc2bd',
+         'a group under --min-copies vanished, the docstring\'s own example',
+         argv=['--len', '24', '/usr/bin/objdump'],
+         ok=V(has=['suppressed']),
+         bug=V(hasnt=['suppressed'])),
+
     # ---- read-all.sh ---------------------------------------------------
     case('aa-worst-cell-is-not-an-insitu-row', 'read-all.sh', '8ee1e5b',
          'with every twin filtered out an in-situ row was read as the A/A',
@@ -719,6 +816,13 @@ CASES = [
          plant=lambda t: synthetic_run(t, killed=True),
          argv=['{tag}'],
          ok=V(exit=1, has=['not all here']),
+         bug=V(exit=0, has=['every process gated clean'])),
+
+    case('log-with-no-start-lines', 'read-all.sh', 'febc2bd',
+         'a log the awk matched nothing in gated one JSON and called it clean',
+         plant=lambda t: synthetic_run(t, no_starts=True),
+         argv=['{tag}'],
+         ok=V(exit=1, hasnt=['every process gated clean']),
          bug=V(exit=0, has=['every process gated clean'])),
 
     # ---- install-tables.sh ---------------------------------------------
@@ -738,6 +842,15 @@ CASES = [
          argv=['run14'],
          ok=V(exit=1, has=['no class block leads'], hasnt=['REFUSED']),
          bug=V(has=['REFUSED'], hasnt=['no class block leads'])),
+
+    case('heading-between-two-class-blocks', 'install-tables.sh', 'febc2bd',
+         "a paragraph between blocks took the block above it's figures",
+         plant=lambda t: {'doc': readme_heading_between_blocks(t)},
+         env={'DOC': '{doc}'},
+         argv=['run14'],
+         probe=lambda subs: open(subs['doc']).read(),
+         ok=V(has=['ZZMARKER']),
+         bug=V(hasnt=['ZZMARKER'])),
 
     case('install-is-idempotent', 'install-tables.sh', None,
          'CONTROL: a full pass over an untouched page rewrites no table',
@@ -821,6 +934,8 @@ def run(cases, rev, want_key):
                         else materialise(c.prog, at))
                 subs = (c.plant(tmp) if c.plant else {}) or {}
                 code, out = invoke(prog, c, subs)
+                if c.probe:
+                    out += '\n' + c.probe(subs)
                 off = judge(want, code, out)
         except Exception as e:                    # a fixture that would not
             off = ['fixture: %s: %s' % (type(e).__name__, e)]   # build
