@@ -1369,7 +1369,17 @@ def controls_skeleton(cells, shapes, strategies, terms):
     reported eight of eight passing over an empty loop.
     """
     aa, so = aa_pairs(cells, shapes, strategies), None
-    if 'sum-only-early' in strategies and 'sum-only-late' in strategies:
+    # The `sum-only` pair is computed HERE and again in `aa_table`, and the
+    # guard against a cell with no positive figure was carried to that one
+    # alone -- so a run whose forcing term came out non-positive, which
+    # `health` reports and nothing stops, took `--block` down inside
+    # `paired_ci` with `math domain error`. The sibling site is the way
+    # every one of these has gone. Found 2026-08-17 by review of the day's
+    # own fixes; said rather than skipped, since the halves' agreement is
+    # a control the block publishes.
+    if ('sum-only-early' in strategies and 'sum-only-late' in strategies
+            and all(cells[s][h]['slope'] > 0 for s in shapes
+                    for h in ('sum-only-early', 'sum-only-late'))):
         r = [cells[s]['sum-only-late']['slope']
              / cells[s]['sum-only-early']['slope'] for s in shapes]
         dev = [abs(x - 1) * 100 for x in r]
@@ -1378,6 +1388,10 @@ def controls_skeleton(cells, shapes, strategies, terms):
               None if not ci else (ci[0] <= 1.0 <= ci[1]))
     if not aa:
         return
+    if so is None and 'sum-only-early' in strategies:
+        sys.stderr.write('warning: the `sum-only` halves are not comparable,'
+                         ' a cell having no positive slope, so the Controls'
+                         ' sentence below carries no reading of them\n')
     big = aa_floor(aa)
     cover = sum(1 for p in aa if p.ci and p.ci[0] <= 1.0 <= p.ci[1])
     print()
