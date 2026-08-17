@@ -134,16 +134,24 @@ that will not build is neither a pass nor a failure but says so, where it
 used to be counted as a defect that did not reproduce -- which happened
 here, to a case stamped with an unexpanded shell substitution.
 
-NOT BUILT YET, and recorded here so it is not re-derived. (1) A source lint
-for the families these defects fall into, which is the only thing that
-would find an instance nobody has observed: a `subprocess.run` whose
-returncode is never read and that has no `check=True` (four instances so
-far), an argparse dest read nowhere outside the guard loop (three), a
-module-level `int(os.environ...)` (two), `zip(x, shapes)` where `x` came
-from a filtered comprehension (three), and, in `check_doc`, an `if` that
-reports in one branch and nothing in the other (seven). The first three are
-decidable from the AST; the last two would list rather than fail, like the
-sweeps in `check_doc` already do. (2) Making the two rules above bite: a
+THREE INSTRUMENTS, and each finds what the other two cannot. A case is
+memory, over one input someone has already met. A property is discovery
+over DATA, quantified across every run on disk. `--families` is discovery
+over CODE: the shapes these defects keep returning in, counted rather than
+guessed -- a dropped subprocess status (four instances across the three
+reviews), an argparse flag accepted and never read (three), a value parsed
+out of the environment at import (two), a positional `zip` against a
+filtered list (three). It is the only one of the three that can name a
+site nobody has looked at.
+
+It was written and thrown away once before it was checked in, which is
+this file's own complaint about harnesses made against itself. The fifth
+family that used to be listed here -- a check reporting in one branch with
+no else -- is deliberately absent, and `family_lint` carries the
+measurement that ruled it out.
+
+NOT BUILT YET, and recorded here so it is not re-derived. Making the two
+rules above bite: a
 commit that fixes a defect naming the case that guards it, and a claim
 settled by a red case before any code moves. Neither is coded here because
 neither needs code -- what they need is for this file to be read, which is
@@ -152,6 +160,7 @@ it.
 """
 
 import argparse
+import ast
 import atexit
 import collections
 import json
@@ -1148,6 +1157,139 @@ def shadow_dir(tmp, prog, text, mutate=(), extra=()):
     return d
 
 
+# ---------------------------------------------------------------- families
+
+def _scopes(tree):
+    """{lineno: the function it is in}, and None for module scope."""
+    at = {}
+    for fn in ast.walk(tree):
+        if isinstance(fn, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            for n in ast.walk(fn):
+                at.setdefault(getattr(n, 'lineno', 0), fn)
+    return at
+
+
+def family_lint(path):
+    """The shapes these defects keep coming back in, over one file's source.
+
+    A case is memory and a property is discovery over DATA; this is
+    discovery over CODE, and it is the only one of the three that can find
+    an instance nobody has met yet. Every family below was counted rather
+    than guessed -- seven, four, three, three and two instances across the
+    three reviews of 2026-08-17 -- and each is decidable enough to be worth
+    asking of the tree on every run.
+
+    The zip LISTS rather than fails, as the sweeps in `check_doc` do,
+    because whether a positional zip is wrong is a reading.
+
+    All four broken deliberately, 2026-08-17, on a planted file carrying
+    one of each: the import-time parse, the dropped status, the unread
+    flag and the filtered zip were each named with their line. Its first
+    false positive is recorded at the site -- a helper that RETURNS a
+    completed process has handed the status on rather than dropped it.
+    """
+    src = open(path).read()
+    tree = ast.parse(src)
+    at, bad, note = _scopes(tree), [], []
+
+    for n in ast.walk(tree):
+        if not isinstance(n, ast.Call):
+            continue
+        called = ast.unparse(n.func)
+        if called.endswith('subprocess.run'):
+            if any(k.arg == 'check' for k in n.keywords):
+                continue
+            scope = at.get(n.lineno)
+            body = scope if scope is not None else tree
+            # A call whose result is RETURNED has not dropped anything: it
+            # has handed the status to whoever asked. `git()` here is that,
+            # and was this lint's first false positive.
+            handed = any(isinstance(x, ast.Return) and x.value is n
+                         for x in ast.walk(body))
+            if not handed and not any(
+                    isinstance(x, ast.Attribute) and x.attr == 'returncode'
+                    for x in ast.walk(body)):
+                bad.append('%s:%d a subprocess whose status is never read and'
+                           ' that has no check=True' % (path, n.lineno))
+        if (getattr(n.func, 'id', None) == 'int' and n.args
+                and 'environ' in ast.unparse(n.args[0])
+                and at.get(n.lineno) is None):
+            bad.append('%s:%d a value parsed out of the environment at'
+                       ' import, outside any handler' % (path, n.lineno))
+        if (getattr(n.func, 'id', None) == 'zip' and len(n.args) == 2
+                and ast.unparse(n.args[1]) in ('shapes', 'strategies')):
+            first = ast.unparse(n.args[0])
+            scope = at.get(n.lineno)
+            for a in ast.walk(scope if scope is not None else tree):
+                if (isinstance(a, ast.Assign) and len(a.targets) == 1
+                        and ast.unparse(a.targets[0]) == first
+                        and isinstance(a.value, (ast.ListComp,
+                                                 ast.GeneratorExp))
+                        and any(g.ifs for g in a.value.generators)):
+                    note.append('%s:%d `%s` is zipped against `%s` and was'
+                                ' built by a FILTERED comprehension'
+                                % (path, n.lineno, first,
+                                   ast.unparse(n.args[1])))
+
+    # The fifth family -- a check reporting in one branch with no else --
+    # is NOT swept, and the ruling is measured rather than assumed. It was
+    # written, run, and came back with fifteen sites in this directory of
+    # which every one is the ordinary `if lost: bad.append(...)`, which
+    # reports on purpose. The seven real instances were all found by
+    # reading, and each was an `if` guarding a whole CHECK rather than a
+    # report -- which this shape cannot tell apart. A list that never
+    # empties is one nobody reads, and it would have cost the four families
+    # above their credibility. 2026-08-17.
+    return bad, note
+
+
+def family_flags(path):
+    """An argparse flag the program accepts and never reads.
+
+    Three of these in one review: a flag taken and ignored is a request
+    the program answers by doing something else, at exit 0.
+    """
+    src = open(path).read()
+    dests = set()
+    for n in ast.walk(ast.parse(src)):
+        if isinstance(n, ast.Call) and getattr(n.func, 'attr', '') \
+                == 'add_argument':
+            named = [k.value.value for k in n.keywords if k.arg == 'dest']
+            if named:
+                dests.add(named[0])
+                continue
+            for a in n.args:
+                if isinstance(a, ast.Constant) and isinstance(a.value, str):
+                    dests.add(a.value.lstrip('-').replace('-', '_'))
+    return ['%s: --%s is accepted and never read' % (path, d)
+            for d in sorted(dests)
+            if not re.search(r'args\.%s\b|getattr\(args, .%s.' % (d, d), src)]
+
+
+def families():
+    """Every family, over every program here. Names the site, not a count."""
+    bad, note = [], []
+    for f in sorted(os.listdir(HERE)):
+        if not f.endswith('.py') or f.startswith('zz'):
+            continue
+        b, n = family_lint(f)
+        bad += b + family_flags(f)
+        note += n
+    for line in bad:
+        print('  FAIL %s' % line)
+    if note:
+        print('  note: %d site(s) of a shape worth a look, listed rather'
+              ' than failed:' % len(note))
+        for line in note:
+            print('        %s' % line)
+    if not bad:
+        print('  ok   no dropped status, no unread flag and no import-time'
+              ' environment parse, over %d file(s)'
+              % len([f for f in os.listdir(HERE) if f.endswith('.py')
+                     and not f.startswith('zz')]))
+    return len(bad)
+
+
 # ------------------------------------------------------------- properties
 
 def reader():
@@ -1491,6 +1633,9 @@ def main():
     p.add_argument('--properties', action='store_true',
                    help='the properties, over every run on disk rather than'
                         ' over any fixture')
+    p.add_argument('--families', action='store_true',
+                   help='the shapes these defects keep returning in, over'
+                        ' the source of every program here')
     args = p.parse_args()
 
     cases = [c for c in CASES
@@ -1507,7 +1652,11 @@ def main():
         return 0
 
     before = tree_state()
-    if args.properties:
+    if args.families:
+        print('the defect families, over this directory\'s source:')
+        bad, skipped, unbuilt = families(), 0, 0
+        verdict = '%d site(s) of a known family' % bad if bad else ''
+    elif args.properties:
         print('properties over the live corpus:')
         bad, skipped, unbuilt = properties(), 0, 0
         verdict = '%d propert(ies) FAILED' % bad if bad else ''
@@ -1523,6 +1672,17 @@ def main():
               % (len(cases), rev or 'the working tree'))
         bad, skipped, unbuilt = run(cases, rev, 'ok')
         verdict = '%d case(s) FAILED' % bad if bad else ''
+        # The families come with the default run because they cost a tenth
+        # of a second and are the half that can name a site nobody has met.
+        # The properties do not, at fifteen seconds, so the line below is
+        # what keeps them from being forgotten.
+        if not args.pattern and rev is None:
+            print('and the families over this directory\'s source:')
+            fam = families()
+            if fam:
+                bad += fam
+                verdict = ((verdict + ', and ') if verdict else '') + (
+                    '%d site(s) of a known family' % fam)
     after = tree_state()
     if before is None or after is None:
         print('!! `git status` did not answer, so whether this run left the'
@@ -1544,8 +1704,13 @@ def main():
     if bad or unbuilt:
         print('\n%s' % verdict)
         return 1
+    if not (args.audit or args.properties or args.families or args.against):
+        print('\n(--properties asks the reader\'s own invariants, and two'
+              ' more, of every run\n on disk rather than of any fixture:'
+              ' fifteen seconds, and not run here)')
     print('\nevery %s%s'
-          % ('property holds over every run on disk' if args.properties
+          % ('family comes back clean' if args.families
+             else 'property holds over every run on disk' if args.properties
              else 'case reproduced its defect' if args.audit
              else 'case holds',
              ', %d control(s) not replayed' % skipped if skipped else ''))

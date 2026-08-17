@@ -3718,6 +3718,9 @@ and never as a chronology.
     #      cannot be told from one nothing searched. Get the checkout
     #      mounted and rerun, or run with it blocked and say so in the
     #      write-up -- the one thing not available is reading it as a pass
+    ./check-scripts.py --families         # 8d. and the defect families, over
+    #      the source of every program here, which is the one of the three
+    #      that can name a site nobody has met
     ./check-scripts.py --properties       # 8c. and its properties, which
     #      are quantified over every run JSON here rather than over a
     #      fixture, so they answer for inputs no case anticipated
@@ -5269,6 +5272,11 @@ thing that would find an instance nobody has observed — is recorded in its own
 docstring rather than re-derived.
 
     ./check-scripts.py                      # the scripts' own defect corpus
+    ./check-scripts.py --families           # and the shapes these defects
+                                            # keep returning in, over the
+                                            # source: the only one of the
+                                            # three that names a site
+                                            # nobody has looked at
     ./check-scripts.py --properties         # and its properties, over every
                                             # run on disk rather than any
                                             # fixture: the half that can

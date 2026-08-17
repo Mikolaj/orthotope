@@ -25,6 +25,10 @@
 # right rows went to the right place -- that guarantee is `install`'s, and
 # the README paragraph under this block says so.
 
+# Driven by ./check-scripts.py without binaries: every reader mode, both
+# installers and this file's own refusal checks, in seconds. A fix here
+# wants a case there first.
+
 set -u
 cd "$(dirname "$0")" || exit 1
 

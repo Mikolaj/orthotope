@@ -20,6 +20,10 @@
 # reverse -- a class the BINARY has that CLASSES does not name -- is
 # refused before the run, and the complaints ride out in the exit status.
 
+# Driven by ./check-scripts.py without binaries or hours: all eighteen
+# processes against stand-ins that hand back a previous run's real cells.
+# A fix here wants a case there first.
+
 set -u
 cd "$(dirname "$0")" || exit 1
 
