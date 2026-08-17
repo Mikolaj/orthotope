@@ -921,7 +921,7 @@ CASES = [
          bug=V(has=['14 of 16 intervals'],
                hasnt=['control pair(s) not readable'])),
 
-    case('controls-survive-a-negative-term', 'read-run.py', 'PENDING',
+    case('controls-survive-a-negative-term', 'read-run.py', '38a963a',
          "the sum-only pair is computed twice and was guarded once",
          plant=lambda t: {'run': doctored(
              t, 'run14-lookrts-slice.json',
@@ -931,7 +931,7 @@ CASES = [
          ok=V(hasnt=['math domain error']),
          bug=V(has=['math domain error'])),
 
-    case('tree-check-that-could-not-run', 'check-scripts.py', 'PENDING',
+    case('tree-check-that-could-not-run', 'check-scripts.py', 'ea4ab06',
          'this suite\'s one guarantee about itself passed unchecked',
          argv=['--unit', "tree_state.__doc__ and (git('rev-parse')"
                          ".returncode, tree_state() is None)"],
