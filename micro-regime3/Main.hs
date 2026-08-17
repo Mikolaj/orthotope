@@ -2466,6 +2466,15 @@ scaledViews =
 -- so an entry cannot be timed at a size the cap never saw. The views are
 -- thunks: nothing here forces a source vector until criterion's @env@
 -- builds that group's input, and 'partitioned' forces shapes alone.
+--
+-- A CLASS NAME CARRIES NO HYPHEN, though a shape name may and most do.
+-- The drivers derive a bench's population by cutting its name at the first
+-- hyphen, so `bcast-inner8` yields `bcast`, and a class called `bcast-mid`
+-- would yield `bcast` too and be run as one population with it -- one
+-- process for two, its bench count agreeing, and the second leaving no
+-- artifact. The names below already read as though this were known; it was
+-- not written down until 2026-08-17, and run-major.sh now refuses a
+-- hyphenated name in CLASSES rather than leaving it to be noticed.
 classViews :: [(String, (ShapeL, T))]
 classViews =
   [(n, mkRev s) | (n, s) <- revShapes]

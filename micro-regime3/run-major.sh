@@ -94,6 +94,27 @@ if [ -n "$EXISTING" ]; then
   exit 1
 fi
 CLASSES="rev revsome bcast bcastmid reshape1 slice window scaled"
+# A CLASS NAME CARRIES NO HYPHEN, and this is the one place that says so.
+# The population of a bench is derived below by cutting its name at the
+# first hyphen, while a SHAPE name carries hyphens of its own
+# (`bcast-inner8`), so the two are told apart by that asymmetry alone. A
+# class called `bcast-mid` would cut to `bcast` and merge with the class of
+# that name: one process for two populations, its count agreeing with what
+# the prefix selects, and the second population never getting a process, a
+# JSON or a word said about it. The existing names read as though this were
+# known -- `bcastmid` and `revsome`, not `bcast-mid` and `rev-some` -- but
+# nothing enforced it, and install-tables.sh's two lead patterns BOTH miss a
+# hyphenated lead, so they agree and the cross-check written against exactly
+# that failure cannot fire. Loud here, before the hours.
+for c in $CLASSES; do
+  case $c in *-*)
+    echo "class name '$c' carries a hyphen, which the population derivation"
+    echo "below cannot survive: it cuts each bench name at its first hyphen,"
+    echo "so this class would merge with whatever stands before that hyphen."
+    echo "Rename it without one, in classViews and here, before the run."
+    exit 1 ;;
+  esac
+done
 
 NOTE="$PREFIX-pair.txt"
 
