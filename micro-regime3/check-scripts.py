@@ -716,6 +716,23 @@ def sunk_json(tmp, shapes, arm, shape=None, name='sunk.json'):
                      sunk=[(shape or shapes[0], arm)])
 
 
+def sunk_shape_json(tmp, name='sunk-shape.json'):
+    """A run with EVERY arm of one shape sunk, the baseline among them.
+
+    Sinking the two `Term` halves alongside `list` leaves the baseline's
+    own net at EXACTLY zero, which is a different state from one sunk cell
+    and the one a divide-before-the-guard needs: `<= 0` had always
+    included 0, and only the order of the two lines kept it unreachable.
+    Not doctorable out of a captured run either -- the cells have to move
+    together, which is what building them affords.
+    """
+    shapes = main_shapes()
+    roster = _reader().roster_of(open(os.path.join(HERE, 'Main.hs')).read())
+    arms = [n for n, role, fn in roster if role != 'Only']
+    return synth_run(os.path.join(tmp, name), shapes,
+                     sunk=[(shapes[0], a) for a in arms])
+
+
 def class_names():
     """The stride classes, from Main.hs rather than from a literal.
 
@@ -1150,6 +1167,14 @@ CASES = [
          bug=V(hasnt=['shapes in one run only, skipped'])),
 
     # ---- the sunk cell, which only a built fixture can carry -----------
+    case('selftest-survives-a-sunk-baseline', 'read-run.py', '50efffe',
+         'a baseline net of exactly 0 divided before the guard could look',
+         plant=lambda t: {'run': sunk_shape_json(t)},
+         argv=['{run}', '--selftest'],
+         ok=V(exit=1, has=['no geomean to bracket'],
+              hasnt=['ZeroDivisionError', 'Traceback']),
+         bug=V(has=['ZeroDivisionError'])),
+
     case('fingerprint-refuses-a-sunk-cell', 'read-run.py', 'e2d6604',
          'a sunk cell was divided and INSTALLED, outliving its own run',
          plant=lambda t: {'run': sunk_json(t, main_shapes(), 'bq-expand')},
