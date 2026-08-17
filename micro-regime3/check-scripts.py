@@ -826,7 +826,10 @@ def _spread(fn, lo, hi):
     return lo + (hi - lo) * (zlib.crc32((fn or '').encode()) / 2 ** 32)
 
 
-def synth_run(path, shapes, samples=8, no_twins=False, sunk=(), term=4e-10):
+TERM = 4e-10        # the forcing term per element: one pass, so it scales
+
+
+def synth_run(path, shapes, samples=8, no_twins=False, sunk=()):
     """A criterion run over `shapes`, built rather than captured.
 
     Kilobytes where a real run's JSON is megabytes, and DERIVED: the arms
@@ -886,13 +889,13 @@ def synth_run(path, shapes, samples=8, no_twins=False, sunk=(), term=4e-10):
     for sh in shapes:
         l = dims[sh]['l']
         for name, role, fn in timed:
-            work = 0.0 if role == 'Term' else _spread(fn, 0.6, 6.0) * term * l
+            work = 0.0 if role == 'Term' else _spread(fn, 0.6, 6.0) * TERM * l
             if role == 'Term':
-                slope = term * l
+                slope = TERM * l
             elif role == 'Force':
                 slope = work
             else:
-                slope = term * l + work
+                slope = TERM * l + work
             # A per-cell wobble under half a percent, so that a ratio, an
             # A/A worst cell and a spread are WELL DEFINED. Without it every
             # twin equalled its base exactly, every A/A pair read 0.00%, and
@@ -904,7 +907,7 @@ def synth_run(path, shapes, samples=8, no_twins=False, sunk=(), term=4e-10):
             if role != 'Term':
                 slope *= 1.0 + _spread(name + '@' + sh, -0.004, 0.004)
             if (sh, name) in sunk:
-                slope = term * l * 0.5      # below the term: net goes negative
+                slope = TERM * l * 0.5      # below the term: net goes negative
             alloc = 0.0 if role == 'Term' else 8.0 * l * _spread(fn, 0.9, 1.4)
             reports.append(_synth_report('%s/%s' % (sh, name), slope, alloc,
                                          samples))
@@ -1256,6 +1259,19 @@ CASES = [
          argv=['{run}', '--markdown', '--fingerprint'],
          ok=V(exit=2, has=['one mode at a time']),
          bug=V(exit=0)),
+
+    # A CONTROL and not a replay, which is a property of the repair rather
+    # than a gap in it: `--len 0` said `any length` for a report `scan`
+    # caps at one cache line, and what made that checkable without a
+    # binary was extracting `span_label` -- which did not exist before the
+    # fix, so replaying 281ad73^ raises NameError instead of printing the
+    # old wording. It can still fail, which is what a control is for: say
+    # `any length` again and it goes red.
+    case('len-zero-lifts-the-size-filter-not-the-cap', 'loop-offsets.py',
+         None,
+         'CONTROL: the header names the cap, not the lifted size filter',
+         argv=['--unit', 'span_label(None)'],
+         ok=V(has=["'at most 64 B'"], hasnt=['any length'])),
 
     case('fmt-abs-above-its-top-unit', 'read-run.py', '0fe535b',
          'a time past a thousand seconds wrote an exponent nothing parses',

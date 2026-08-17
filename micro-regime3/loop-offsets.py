@@ -134,6 +134,20 @@ KEYWORD = {'type', 'data', 'newtype', 'class', 'instance', 'import', 'module',
 LINE = 64  # the cache line, and the op cache's window on this Zen 3
 
 
+def span_label(want):
+    """What a report scanned, for its own header.
+
+    `at most LINE B` and not `any length`: `--len 0` lifts the exact-size
+    filter and NOT the cache-line cap, `scan` dropping every loop wider
+    than a line whatever `want` is. The old wording read as this binary's
+    whole loop count, which it is not -- `--len 128` finds loops the `any
+    length` report did not contain. Same phrasing as --survey's header, and
+    a function rather than an expression so that saying it wrong is
+    checkable without a binary to scan.
+    """
+    return 'at most %d B' % LINE if want is None else '%d B' % want
+
+
 def innermost(path):
     """{head address: the shortest loop starting there}.
 
@@ -411,12 +425,7 @@ def main():
         for f in found:
             groups[f['bytes']].append(f)
         named = arms(path, [f['start'] for f in found])
-        # `at most LINE B` and not `any length`: --len 0 lifts the exact-size
-        # filter and NOT the cache-line cap, `scan` dropping every loop wider
-        # than a line whatever `want` is. The old wording read as this
-        # binary's whole loop count -- `--len 128` finds loops the `any
-        # length` report does not contain. Same phrasing as --survey above.
-        span = f'at most {LINE} B' if want is None else f'{args.len} B'
+        span = span_label(want)
         print(f'== {path}: {len(found)} self-loops of {span} in '
               f'{len(groups)} distinct byte-sequences')
         # A group under the threshold is COUNTED, not merely skipped: the
