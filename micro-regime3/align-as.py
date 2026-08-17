@@ -281,6 +281,22 @@ JUMP = re.compile(r'^j\w*\s+(\.L\w+)\b')
 # and none of them sitting before a head. The count `rewrite` now returns
 # is what would have said so, the verbose line having counted only what it
 # aligned.
+#
+# TO RE-MEASURE THAT after a Main.hs change, since it is a fact about one
+# assembly and not about this file. Build keeping the input this shim is
+# handed, and count the sites under each form -- `sites` is importable,
+# `main` being guarded:
+#
+#     cabal build micro --builddir=dist-sfiles \
+#       --ghc-options="-keep-s-files"        # leaves Main.s beside Main.hs
+#     python3 -c "import importlib.util as u; \
+#       m=u.module_from_spec(s:=u.spec_from_file_location('a','align-as.py')); \
+#       s.loader.exec_module(m); \
+#       src=open('Main.s').read().split(chr(10)); \
+#       h=m.heads_of(src); print(len(h), len(m.sites(src,h)))"
+#
+# then `rm -rf dist-sfiles Main.s`, a stray builddir being what put
+# unpacked sources under `hlint .` once.
 INSTR = re.compile(r'^[a-z][a-z0-9.]*(?:\s|$)')
 BYTELESS = re.compile(r'^(?:[\w.$]+:|\.(?:loc|file|cfi_\w+)\b.*)$')  # no bytes
 PROBE = 'apLoop'          # apLoopHead_<line>, apLoopEnd_<line>_<k>_<n>
