@@ -2031,8 +2031,21 @@ def fmt_abs(seconds):
     for unit, scale in (('s', 1), ('ms', 1e-3), ('µs', 1e-6),
                         ('ns', 1e-9)):
         if seconds >= scale * .9995:
-            return '%.3g %s' % (seconds / scale, unit)
-    return '%.3g s' % seconds
+            return _fig(seconds / scale) + ' ' + unit
+    return _fig(seconds) + ' s'
+
+
+def _fig(v):
+    """Three significant figures, and never in exponent form.
+
+    `%.3g` reaches for an exponent above 999 as well as below 0.0001, and
+    the top unit has nothing above it to roll into, so a per-call time past
+    a thousand seconds wrote `1.5e+03 s` -- which `FINGERPRINT_ABS_RE`
+    cannot parse, the same seam the unit boundary broke. Found 2026-08-17
+    by a property asked of every time figure in every run on disk.
+    """
+    out = '%.3g' % v
+    return out if 'e' not in out else '%.0f' % v
 
 
 def fingerprint_table(cells, shapes, strategies, meta):
