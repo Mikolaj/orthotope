@@ -543,6 +543,12 @@ exit 0
 """
 
 
+UNDERPRINT = FAKE_RUN.replace(
+    "for b in d[2]:\n    print('benchmarking ' + b['reportName'])",
+    "for b in d[2][:-1]:\n    print('benchmarking ' + b['reportName'])")
+assert 'd[2][:-1]' in UNDERPRINT, 'the under-printing stub lost its anchor'
+
+
 def halves(*names):
     """A stand-in per half, named as a run's binaries are."""
     return [(n, FAKE_RUN.replace('@HALF@', n.split('-', 1)[1]))
@@ -1057,6 +1063,33 @@ CASES = [
          env={'OTHER': 'a1g', 'BASIS': 'lookrts'},
          argv=['zzmj'],
          ok=V(exit=0, hasnt=['!!'])),
+
+    case('provenance-git-could-not-read', 'run-major.sh', '845c8d0',
+         'a run whose git failed recorded a commitless, CLEAN-looking tree',
+         shadow=dict(extra=halves('zzmj-lookrts', 'zzmj-a1g')
+                     + [('zzmj-pair.txt', 'a stand-in pair note.\n')]),
+         env={'OTHER': 'a1g', 'BASIS': 'lookrts'},
+         argv=['zzmj'],
+         probe=lambda subs: open(os.path.join(subs['at'],
+                                              'zzmj-wallclock.log')).read(),
+         ok=V(has=['GIT DID NOT ANSWER'],
+              hasnt=['tree at , Main.hs at']),
+         bug=V(has=['tree at , Main.hs at',
+                    '0 path(s) untracked or modified'])),
+
+    case('bench-count-complaint-names-its-process', 'run-major.sh', '845c8d0',
+         'nine identical complaints in one log, none naming its process',
+         shadow=dict(extra=[('zzmj-lookrts',
+                             UNDERPRINT.replace('@HALF@', 'lookrts'))]
+                     + halves('zzmj-a1g')
+                     + [('zzmj-pair.txt', 'a stand-in pair note.\n')]),
+         env={'OTHER': 'a1g', 'BASIS': 'lookrts'},
+         argv=['zzmj'],
+         probe=lambda subs: open(os.path.join(subs['at'],
+                                              'zzmj-wallclock.log')).read(),
+         ok=V(exit=1, has=['zzmj-lookrts-main: expected']),
+         bug=V(exit=1, has=['expected 1128 benches'],
+               hasnt=['zzmj-lookrts-main: expected'])),
 
     # ---- install-tables.sh ---------------------------------------------
     case('lead-patterns-disagree', 'install-tables.sh', '5ca3513',
@@ -1598,6 +1631,11 @@ def run(cases, rev, want_key):
                     prog = os.path.join(
                         shadow_dir(tmp, c.prog, text, **c.shadow), c.prog)
                 subs = (c.plant(tmp) if c.plant else {}) or {}
+                # Where the case runs matters to a probe: a driver writes
+                # its log beside itself, which for a shadowed case is the
+                # shadow and not this directory.
+                subs.setdefault('prog', prog)
+                subs.setdefault('at', os.path.dirname(prog))
                 code, out = invoke(prog, c, subs)
                 if c.probe:
                     out += '\n' + c.probe(subs)
