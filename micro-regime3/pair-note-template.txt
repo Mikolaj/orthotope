@@ -28,8 +28,15 @@ measurement, so the reason belongs here where the next session meets it.
 WHAT THE PAIR PRICES, said plainly: what a reader of the run should think
 the figures are about.
 
-REGISTERED BEFORE IT RAN, all in README.md#what-run-NN-compares-against:
-  - each prediction, with what would kill it;
+REGISTERED BEFORE IT RAN, and in TWO places rather than one, which this
+line used to say was all one: the PREDICTION lives in the open list, as
+`What Run NN is built to answer, registered before it runs` at
+README.md#what-is-open -- that is where Run 15's is -- while
+README.md#what-run-nn-compares-against carries the regime, the roster, the
+basis and what the pair varies. A note that names only the second sends
+the next session to a section its prediction is not in.
+  - each prediction, with what would kill it, in the open list;
+  - what the pair varies and against what, in the compares-against section;
   - anything the pair answers that no earlier pair could.
 
 THE ROSTER: N benches, M timed arms over K shapes. Say what landed since

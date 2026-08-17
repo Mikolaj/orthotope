@@ -205,6 +205,22 @@ def git(*args):
                           text=True)
 
 
+def tree_delta(before, after):
+    """What changed between two `git status` readings, BOTH directions.
+
+    It printed `set(after) - set(before)` -- additions only -- so a run that
+    REMOVED something tripped the comparison and then reported an empty
+    list under `!! this run changed the working tree`, which is a headline
+    with nothing beneath it and the reader left to guess what went. A
+    fixture deleted rather than left behind is exactly the direction this
+    suite errs in, so it was the likelier half. Found 2026-08-17 by a
+    walker reading the source.
+    """
+    was, now = set(before.split('\n')), set(after.split('\n'))
+    return (['   + %s' % l for l in sorted(now - was) if l.strip()]
+            + ['   - %s (gone)' % l for l in sorted(was - now) if l.strip()])
+
+
 def tree_state():
     """What `git status` says, or None if it could not say anything.
 
@@ -952,6 +968,12 @@ CASES = [
                          ".returncode, tree_state() is None)"],
          ok=V(has=['(0, False)']),
          bug=V(hasnt=['(0, False)'])),
+
+    case('tree-change-in-both-directions', 'check-scripts.py', 'PENDING',
+         'a file REMOVED tripped the alarm and printed nothing beneath it',
+         argv=['--unit', "tree_delta('?? a\\n?? b\\n', '?? b\\n')"],
+         ok=V(has=['gone']),
+         bug=V(hasnt=['gone'])),
 
     # ---- align-as.py ---------------------------------------------------
     case('maxskip-zero-is-off', 'align-as.py', '437ce00',
@@ -1728,9 +1750,7 @@ def main():
         bad += 1
     elif after != before:
         print('!! this run changed the working tree, which it must never do:')
-        print(''.join('   %s\n' % l for l in
-                      sorted(set(after.split('\n')) - set(before.split('\n')))
-                      if l.strip()))
+        print('\n'.join(tree_delta(before, after)))
         bad += 1
     if unbuilt:
         # Its own line and its own exit, because a fixture that would not
