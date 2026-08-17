@@ -114,8 +114,24 @@ mode smoke.json --compare smoke-other.json
 mode smoke.json --aa --brief
 mode smoke-class.json --block --brief
 mode smoke.json --cells --no-controls
-mode smoke.json --cells --exclude concat-runs
-mode smoke.json --cells --exclude-shape lenet-L1-28-c1-k5
+mode smoke.json --cells --exclude bq-expand-b   # a REAL timed arm: the name
+                             # has to be one the run carries or the filter
+                             # removes nothing and the mode passes without
+                             # being exercised. `concat-runs` was the name
+                             # here until 2026-08-17 and is registered `Only
+                             # fbConcatRuns` -- checked, never timed, in no
+                             # --list and so in no run JSON, ever
+# --exclude-shape has no positive form here, and that is structural: this run
+# is ONE shape, so the only name that could remove anything empties it. Its
+# REFUSAL is the check, as with --claims below -- nonzero is the pass, and a
+# zero exit would mean the filter left the shape set it was told to empty.
+# The name here used to be a main-set shape this run does not carry, so the
+# filter matched nothing and the check could only ever pass.
+if ./read-run.py smoke.json --cells --exclude-shape "$SHAPE" \
+     >/dev/null 2>&1; then
+  echo "  !! --exclude-shape $SHAPE did NOT refuse a run of that shape alone"
+  BAD=$((BAD + 1))
+fi
 mode smoke.json --claims          # reads the page's verdicts back too, so
                                   # this is also the read-back's only
                                   # pre-run exercise
