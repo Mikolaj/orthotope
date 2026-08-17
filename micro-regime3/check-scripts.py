@@ -7,6 +7,44 @@
     ./check-scripts.py -k install   # the cases whose name matches
     ./check-scripts.py --list       # what is covered, and by which fix
     ./check-scripts.py --against REV  # diagnose some other revision
+    ./check-scripts.py --properties # the properties, over every run on disk
+
+TWO HALVES, and they are not the same instrument. A case is MEMORY: one
+defect already found, planted again, and it can only ever re-catch that
+one. A property is DISCOVERY: a claim quantified over every real input,
+which fails on inputs nobody anticipated. They compose in one direction --
+the property finds the unknown defect, you reduce it by hand, and it
+becomes a case with a revision pinned to it.
+
+What makes a property cheap enough to quantify over everything is that it
+wants no expected output: each below relates two runs of the reader to each
+other -- what it writes against what it reads back -- so there is nothing
+to label. That is the test of where a claim belongs. If it needs an
+expected answer it is a case; if it only relates runs, ask it of the whole
+corpus.
+
+EVERY PROGRAM HERE OWES ONE WAY TO BE DRIVEN, checked in, so that vetting a
+claim costs a line rather than a harness. Four sessions of review here
+built four harnesses and threw all four away, which is why two of these
+scripts reached this week never once executed by anything but a real run.
+The seams, in the order worth having them: `read-run.py`, `align-as.py`,
+`loop-offsets.py` and this file guard `main()` behind `__name__`, so they
+import clean and `--unit` evaluates against them (through `importlib`, the
+hyphen in the name being no module name at all -- a decision made years
+ago that decides testability). `install-tables.sh`, `read-all.sh`,
+`run-gate.sh`, `run-major.sh` and `smoke-sweep.sh` take every path and
+constant they need from the environment with a default -- `DOC`, `BASIS`,
+`OTHER`, `SHAPE`, `CLASS` -- which is the second seam, and it is what lets
+a case point them at a copy. And where a driver wants a BINARY, the
+stand-in is checked in here: `FAKE_HALF` for the gate's listing,
+`FAKE_RUN` for the two that want a whole run's cells.
+
+A REVIEW CLAIM IS SUBMITTED IN THE CASE FORMAT, or it costs a harness to
+vet. `(name, plant, argv, ok, bug)` is already a probe: running it IS
+vetting the claim, and a claim that survives is already a case with no
+translation step. Two claims this week were right about a symptom and
+wrong about its trigger, and each cost an implementation to find out; one
+execution apiece would have said so.
 
 WHY THIS EXISTS, since `read-run.py` says to extend it rather than write a
 second reader and this is the exception. Two reviews of these scripts on
@@ -82,6 +120,19 @@ yielded the highest defect density in the tree -- 1.9 and 0.9 per hundred
 lines against `read-run.py`'s 0.47. What is left is to write their
 stand-ins, `run-major.sh` wanting `check`, `diag` and a JSON per process
 where the gate wanted only a listing.
+
+WHAT `--audit` STILL PAIRS LOOSELY, recorded rather than fixed. It reads
+the script as of the commit before its fix and the fixture from TODAY's
+page, which is sound wherever the defect is in the code and the fixture is
+merely an input of the right shape -- which is every case here. It would
+not be sound for a case whose defect is about the page's own shape, where
+the anchor's form at the old revision is part of what is being reproduced:
+such a case should pin the document's revision alongside the script's.
+None does yet. What is in place is the cheaper half, and it is what makes
+the gap visible rather than quiet: the outcome is three-valued, so a plant
+that will not build is neither a pass nor a failure but says so, where it
+used to be counted as a defect that did not reproduce -- which happened
+here, to a case stamped with an unexpanded shell substitution.
 
 NOT BUILT YET, and recorded here so it is not re-derived. (1) A source lint
 for the families these defects fall into, which is the only thing that
@@ -279,7 +330,16 @@ def readme_without_class_leads(tmp):
     the JSONs on disk to the page's leads, and the check was itself silent
     when its own search came back empty.
     """
-    doc = re.sub(r'(?m)^\*\*`([a-z0-9]+)`', r'**\1', open(README).read())
+    src = open(README).read()
+    doc, n = re.subn(r'(?m)^\*\*`([a-z0-9]+)`', r'**\1', src)
+    # A sweep, so it says what it swept: a plant that quietly matches
+    # nothing -- or matches something else -- leaves the old script failing
+    # for its own reasons and the audit certifying a non-vacuity nobody
+    # demonstrated. The property is that leads existed and that none is
+    # left, not how many there were.
+    if not n or re.search(r'(?m)^\*\*`[a-z0-9]+`', doc):
+        raise AssertionError('unbackticked %d lead(s) and %s remain' %
+                             (n, 'some' if n else 'all'))
     return write(os.path.join(tmp, 'R.md'), doc)
 
 
@@ -391,6 +451,79 @@ if [ "$1" = --list ]; then
 fi
 exit 0
 """
+
+# The fuller stand-in, and the reason it is CHECKED IN. Every claim vetted
+# by hand this week wanted a harness, and every one of those harnesses was
+# thrown away with the session that built it -- so the next reader builds
+# it again, which is what kept `smoke-sweep.sh` and `run-major.sh`
+# unexercised for their whole lives. This one answers `--list`, `classes
+# --list`, `check` and `diag`, and for a benchmark call hands back the
+# benches a previous run really produced for the population asked for, one
+# `benchmarking` line each as criterion writes them. Both drivers then run
+# their whole sequence in seconds against real cells: eighteen processes
+# for `run-major.sh`, and for `smoke-sweep.sh` every reader mode, both
+# installers and its own refusal checks.
+#
+# `@HALF@` is filled in per half -- a token and not a `%` field, the shell
+# below being full of `${a%-}` -- and `$D` is the shadow it runs in, so it
+# reads the JSONs symlinked beside it.
+FAKE_RUN = """\
+#!/bin/sh
+D=$(dirname "$0")
+# Which population is being asked for, in either spelling the drivers use:
+# `run-major.sh` passes a class PREFIX (`rev-`) and `smoke-sweep.sh` passes
+# one of that class's SHAPES (`window-28x28-k5`). The leading token is the
+# class in both.
+CLS=""
+for a in "$@"; do
+  case "$a" in classes) CLS=pending ;;
+    -*) ;;
+    *) [ "$CLS" = pending ] && CLS=$(printf %s "$a" | cut -d- -f1) ;;
+  esac
+done
+[ "$CLS" = pending ] && CLS=""
+if [ -n "$CLS" ]; then SRC="$D/run14-@HALF@-$CLS.json"
+else SRC="$D/run14-@HALF@-main.json"; fi
+if [ "$1" = classes ] && [ "$2" = --list ]; then
+  exec python3 -c "
+import glob, json, os, sys
+for f in sorted(glob.glob(os.path.join(sys.argv[1], 'run14-@HALF@-*.json'))):
+    if f.endswith('-main.json'): continue
+    for b in json.load(open(f))[2]: print(b['reportName'])" "$D"
+fi
+if [ "$1" = --list ]; then
+  exec python3 -c "import json,sys
+[print(b['reportName']) for b in json.load(open(sys.argv[1]))[2]]" "$SRC"
+fi
+[ "$1" = check ] && { echo "agree=True on every shape"; exit 0; }
+[ "$1" = diag ] && { echo "diag: the regime, in the binary"; exit 0; }
+OUT=""; SHAPE=""; want=0
+for a in "$@"; do
+  [ "$want" = 1 ] && { OUT="$a"; want=0; continue; }
+  case "$a" in --json) want=1 ;; -*|classes) ;; *) SHAPE="$a" ;; esac
+done
+python3 - "$SRC" "$OUT" "$SHAPE" <<'ENDPY'
+import json, sys
+src, out, shape = sys.argv[1], sys.argv[2], sys.argv[3]
+d = json.load(open(src))
+if shape.endswith('-'):        # a prefix over a class's shapes, not a shape
+    pass
+elif shape:
+    d[2] = [b for b in d[2] if b['reportName'].startswith(shape + '/')]
+for b in d[2]:
+    print('benchmarking ' + b['reportName'])
+if out:
+    json.dump(d, open(out, 'w'))
+ENDPY
+echo "elapsed 0h00m01s; peak 1 MiB in use, 1 MiB max residency" >&2
+exit 0
+"""
+
+
+def halves(*names):
+    """A stand-in per half, named as a run's binaries are."""
+    return [(n, FAKE_RUN.replace('@HALF@', n.split('-', 1)[1]))
+            for n in names]
 
 ASM_HEAD_AFTER_RET = """\
 \t.text
@@ -863,6 +996,22 @@ CASES = [
          ok=V(has=['expecting 18 benches a process']),
          bug=V(has=['expecting 15 benches a process'])),
 
+    case('smoke-sweep-runs-clean', 'smoke-sweep.sh', None,
+         'CONTROL: every reader mode, both installers and its own refusals',
+         shadow=dict(extra=halves('zzsw-lookrts', 'zzsw-a1g')),
+         env={'SHAPE': 'cnn-slice-c32', 'CLASS': 'window-28x28-k5',
+              'OTHER': 'a1g', 'BASIS': 'lookrts'},
+         argv=['zzsw'],
+         ok=V(exit=0, has=['sweep clean'], hasnt=['!!'])),
+
+    case('major-run-runs-clean', 'run-major.sh', None,
+         'CONTROL: the whole sequence, eighteen processes, on stand-ins',
+         shadow=dict(extra=halves('zzmj-lookrts', 'zzmj-a1g')
+                     + [('zzmj-pair.txt', 'a stand-in pair note.\n')]),
+         env={'OTHER': 'a1g', 'BASIS': 'lookrts'},
+         argv=['zzmj'],
+         ok=V(exit=0, hasnt=['!!'])),
+
     # ---- install-tables.sh ---------------------------------------------
     case('lead-patterns-disagree', 'install-tables.sh', '5ca3513',
          'a lead one pattern missed was overwritten by the block above it',
@@ -962,6 +1111,167 @@ def shadow_dir(tmp, prog, text, mutate=(), extra=()):
     return d
 
 
+# ------------------------------------------------------------- properties
+
+def reader():
+    """`read-run.py` as a module, which is the seam it already offers.
+
+    It guards `main()` behind `__name__`, so importing it runs nothing --
+    the first of the three seams a program can offer, and the cheapest.
+    The hyphen in the name is why this goes through `importlib` rather
+    than `import`.
+    """
+    import importlib.util
+    spec = importlib.util.spec_from_file_location(
+        'reader_under_test', os.path.join(HERE, 'read-run.py'))
+    m = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(m)
+    return m
+
+
+def runs_on_disk():
+    """Every criterion JSON here, which is the live corpus.
+
+    Live rather than pinned, for the reason the fixtures are derived: a
+    frozen corpus stops representing what the reader actually meets. The
+    properties below are quantified over this, so what they cover grows
+    with the directory and a run deleted takes its coverage with it --
+    which is why each property PRINTS what it covered.
+    """
+    return sorted(f for f in os.listdir(HERE)
+                  if f.endswith('.json') and not f.startswith('zz'))
+
+
+def prop_abs_round_trip(m):
+    """Every absolute time the reader can write, it can read back.
+
+    Metamorphic: it relates the emitter to the parser and wants no
+    expected output, so it can be asked of every figure in every run here
+    rather than of a handful of fixtures. That is the whole point --
+    `selftest` states this same property over four values chosen by hand,
+    and passed while `1e+03 us` was live, because none of the four sat at
+    the boundary where `%.3g` rolls a unit over.
+    """
+    bad, n = [], 0
+    for f in runs_on_disk():
+        try:
+            d = json.load(open(os.path.join(HERE, f)))
+            benches = d[2]
+        except Exception:
+            continue
+        for b in benches:
+            for r in b['reportAnalysis']['anRegress']:
+                # The TIME fit alone. Quantified over every responder this
+                # asked `fmt_abs` to write allocated BYTES as seconds and
+                # then complained that it could not read them back -- a
+                # property about something the function is not for, which
+                # is the way one of these goes wrong.
+                if r.get('regResponder') != 'time':
+                    continue
+                v = r['regCoeffs'].get('iters', {}).get('estPoint')
+                if not isinstance(v, float) or v <= 0:
+                    continue
+                n += 1
+                cell = '| `s` | 3 | 288 | %s | 0.152 |' % m.fmt_abs(v)
+                got = m.FINGERPRINT_ABS_RE.match(cell)
+                if not got:
+                    bad.append('%s: %s writes %r, which --machine cannot'
+                               ' parse' % (f, v, m.fmt_abs(v)))
+                elif abs(float(got.group(2)) * m.UNIT[got.group(3)] / v
+                         - 1) > 0.005:
+                    bad.append('%s: %s writes %r, read back as %g'
+                               % (f, v, m.fmt_abs(v),
+                                  float(got.group(2)) * m.UNIT[got.group(3)]))
+    return n, 'per-call time(s) in %d run(s)' % len(runs_on_disk()), bad[:5]
+
+
+def prop_table_reads_back(m):
+    """Every row `--markdown` writes, `readme_rows` finds again.
+
+    The emitter and the reader of one table are a seam the code names in
+    so many words -- one literal for the header, so the two cannot drift
+    -- and a drift would show as a run's rows installing as new. Relating
+    the two runs of the pair needs no expected table, so it is asked of
+    every population on disk.
+    """
+    bad, n = [], 0
+    for f in runs_on_disk():
+        try:
+            cells, shapes, strategies, meta = m.load(os.path.join(HERE, f),
+                                                     MAIN)
+        except SystemExit:
+            continue
+        except Exception:
+            continue
+        # The MAIN SET's table only. A class table drops the editorial
+        # column deliberately, so that `readme_rows` does not match it and
+        # every population's table stops competing to be the one a later
+        # run copies from -- asking the read-back of a class table is
+        # asking the reader to break a rule it is keeping.
+        if m.population_of(shapes, meta['dims'])[0] != 'main':
+            continue
+        m.apply_correction(cells, shapes, strategies)
+
+        class A:                      # the reader's own argument object
+            readme, main, run = README, MAIN, f
+        text = m.capture(m.markdown_table, cells, shapes, strategies, meta,
+                         A, {})
+        rows = [l for l in text.split('\n') if l.startswith('| ')
+                and not l.startswith('| strategy |')]
+        n += 1
+        for line in rows:
+            name = re.sub(r'[*`]', '', line.split('|')[1]).strip()
+            name = name.replace('(baseline)', '').strip()
+            if name and name not in strategies:
+                bad.append('%s: emitted a row for %r, which is not an arm of'
+                           ' the run' % (f, name))
+        got = m.readme_rows(_as_page(text), set(strategies), set(strategies))
+        for st in strategies:
+            if st not in got:
+                bad.append('%s: `%s` was written and not read back'
+                           % (f, st))
+    return n, 'population(s) on disk', bad[:5]
+
+
+def _as_page(text):
+    """The emitted table as a page `readme_rows` can be pointed at."""
+    p = os.path.join(tempfile.gettempdir(), 'zz-prop-page.md')
+    return write(p, text)
+
+
+PROPERTIES = [prop_abs_round_trip, prop_table_reads_back]
+
+# Both broken deliberately, 2026-08-17, because a property that has never
+# failed has proved nothing: labelling seconds `ns` fails the round-trip on
+# every figure it reaches, and widening `readme_rows`' column test by one
+# fails the read-back on every row. Each was green again on reverting.
+#
+# Two cautions, both paid for here. A property has to be about what the
+# thing is FOR: quantified over every regression this asked `fmt_abs` to
+# write allocated bytes as seconds, and quantified over every population it
+# asked a class table to be read back, which the reader declines on
+# purpose. Both read as defects and neither was one. And a property gate
+# DETECTS without localising -- it named a run and a figure, and which of
+# `%.3g`'s two exponent thresholds was at fault was a question for the
+# person, not the gate.
+
+
+def properties():
+    """Every property, over the live corpus, naming what failed."""
+    m = reader()
+    bad = 0
+    for prop in PROPERTIES:
+        n, what, off = prop(m)
+        if off:
+            bad += 1
+            print('  FAIL %-28s over %d %s' % (prop.__name__, n, what))
+            for line in off:
+                print('       %s' % line)
+        else:
+            print('  ok   %-28s over %d %s' % (prop.__name__, n, what))
+    return bad
+
+
 # ------------------------------------------------------------------ runner
 
 UNIT = """\
@@ -1026,7 +1336,24 @@ def judge(want, code, out):
 
 
 def run(cases, rev, want_key):
-    bad = skipped = 0
+    """-> (failed, skipped, unbuilt), and the third is not the first.
+
+    A fixture that would not build is its own outcome. It used to be
+    counted with the failures, so `--audit` said `did NOT reproduce their
+    defect, so they prove nothing` about a case whose PLANT had raised --
+    which reads as a vacuous case where the truth is that nothing was
+    tried, and it is the audit's own value that the sentence spends. It
+    happened here on 2026-08-17, to a case stamped with an unexpanded
+    shell substitution: the revision lookup failed and the run reported a
+    defect that had not reproduced.
+
+    The distinction matters most in the audit direction, where a plant
+    derived from today's page meets a script from before the fix: an
+    anchor that moved between the two makes the plant misapply, and the
+    one thing that must not happen is for that to read as a verdict about
+    the case. THREE-VALUED, so it cannot.
+    """
+    bad = skipped = unbuilt = 0
     for c in cases:
         want = getattr(c, want_key)
         if want is None:
@@ -1034,6 +1361,7 @@ def run(cases, rev, want_key):
             skipped += 1
             continue
         at = c.fix + '^' if rev == 'BEFORE' else rev
+        off = broke = None
         try:
             with tempfile.TemporaryDirectory(prefix='check-scripts-') as tmp:
                 if c.shadow is None:
@@ -1052,17 +1380,22 @@ def run(cases, rev, want_key):
                 if c.probe:
                     out += '\n' + c.probe(subs)
                 off = judge(want, code, out)
-        except Exception as e:                    # a fixture that would not
-            off = ['fixture: %s: %s' % (type(e).__name__, e)]   # build
+        except Exception as e:
+            broke = '%s: %s' % (type(e).__name__, e)
         finally:
             sweep()
-        if off:
+        if broke is not None:
+            unbuilt += 1
+            print('  ??   %-42s FIXTURE DID NOT BUILD: %s' % (c.name, broke))
+            print('       %s -- nothing was tried, so this is no verdict'
+                  % c.gist)
+        elif off:
             bad += 1
             print('  FAIL %-42s %s' % (c.name, '; '.join(off)))
             print('       %s' % c.gist)
         else:
             print('  ok   %-42s %s' % (c.name, c.gist))
-    return bad, skipped
+    return bad, skipped, unbuilt
 
 
 def main():
@@ -1075,6 +1408,9 @@ def main():
                         ' fix, where it must fail')
     p.add_argument('--against', metavar='REV',
                    help='run every case against some other revision')
+    p.add_argument('--properties', action='store_true',
+                   help='the properties, over every run on disk rather than'
+                        ' over any fixture')
     args = p.parse_args()
 
     cases = [c for c in CASES
@@ -1091,18 +1427,22 @@ def main():
         return 0
 
     before = git('status', '--porcelain').stdout
-    if args.audit:
+    if args.properties:
+        print('properties over the live corpus:')
+        bad, skipped, unbuilt = properties(), 0, 0
+        verdict = '%d propert(ies) FAILED' % bad if bad else ''
+    elif args.audit:
         print('replaying %d case(s) against the code before each fix, where'
               ' each MUST fail:' % len(cases))
-        bad, skipped = run(cases, 'BEFORE', 'bug')
+        bad, skipped, unbuilt = run(cases, 'BEFORE', 'bug')
         verdict = ('%d case(s) did NOT reproduce their defect, so they prove'
-                   ' nothing' % bad)
+                   ' nothing' % bad if bad else '')
     else:
         rev = args.against
         print('%d case(s) against %s:'
               % (len(cases), rev or 'the working tree'))
-        bad, skipped = run(cases, rev, 'ok')
-        verdict = '%d case(s) FAILED' % bad
+        bad, skipped, unbuilt = run(cases, rev, 'ok')
+        verdict = '%d case(s) FAILED' % bad if bad else ''
     after = git('status', '--porcelain').stdout
     if after != before:
         print('!! this run changed the working tree, which it must never do:')
@@ -1110,11 +1450,20 @@ def main():
                       sorted(set(after.split('\n')) - set(before.split('\n')))
                       if l.strip()))
         bad += 1
-    if bad:
+    if unbuilt:
+        # Its own line and its own exit, because a fixture that would not
+        # build says nothing either way about the code it was aimed at.
+        verdict = ((verdict + ', and ') if verdict else '') + (
+            '%d fixture(s) did not build, which is neither a pass nor a'
+            ' failure: the anchor each plants against has moved, or the'
+            ' revision it wanted is not there' % unbuilt)
+    if bad or unbuilt:
         print('\n%s' % verdict)
         return 1
-    print('\nevery case %s%s'
-          % ('reproduced its defect' if args.audit else 'holds',
+    print('\nevery %s%s'
+          % ('property holds over every run on disk' if args.properties
+             else 'case reproduced its defect' if args.audit
+             else 'case holds',
              ', %d control(s) not replayed' % skipped if skipped else ''))
     return 0
 

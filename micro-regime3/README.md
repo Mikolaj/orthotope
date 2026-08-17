@@ -3718,6 +3718,9 @@ and never as a chronology.
     #      cannot be told from one nothing searched. Get the checkout
     #      mounted and rerun, or run with it blocked and say so in the
     #      write-up -- the one thing not available is reading it as a pass
+    ./check-scripts.py --properties       # 8c. and its properties, which
+    #      are quantified over every run JSON here rather than over a
+    #      fixture, so they answer for inputs no case anticipated
     ./check-scripts.py                    # 8b. and if any script here has
     #      changed since the last run: every defect these scripts have had,
     #      planted again and refused again. Seconds, and it writes nothing --
@@ -5266,6 +5269,10 @@ thing that would find an instance nobody has observed — is recorded in its own
 docstring rather than re-derived.
 
     ./check-scripts.py                      # the scripts' own defect corpus
+    ./check-scripts.py --properties         # and its properties, over every
+                                            # run on disk rather than any
+                                            # fixture: the half that can
+                                            # find a defect nobody has met
     ./read-run.py RUN.json                  # roster, then the strategy table
     ./read-run.py RUN.json --markdown       # that table as README markdown
     ./read-run.py RUN.json --shapes         # per shape: CI% max / median / mean
