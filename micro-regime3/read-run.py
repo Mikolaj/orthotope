@@ -576,6 +576,13 @@ def aa_pairs(cells, shapes, strategies):
         b = twin_of(a)
         if not b or b not in strategies:
             continue
+        # Not readable rather than divided: on a file `--claims` refuses
+        # outright, `--aa` used to die inside `geomean` with `math domain
+        # error`, and `--block`, `--compare --chapter` and `summary_row` all
+        # come through here. The guard `pair_stats` grew was never carried
+        # to its siblings. Found 2026-08-17 by review.
+        if any(cells[s][x]['net'] <= 0 for s in shapes for x in (a, b)):
+            continue
         r = [cells[s][a]['net'] / cells[s][b]['net'] for s in shapes]
         dev = [abs(x - 1) * 100 for x in r]
         out.append(AA(a, b, r, geomean(r), max(zip(dev, shapes)),
@@ -1105,6 +1112,15 @@ def markdown_table(cells, shapes, strategies, meta, args, terms):
                          ' population\'s -- see\n'
                          '  README.md#making-a-major-benchmark-run\n' % label)
         sys.exit(1)
+    if kind == 'unknown':
+        sys.stderr.write('refusing to emit a table for %s: which of README\'s'
+                         ' tables these rows belong in is exactly what cannot'
+                         ' be told, and --in-place has no block lead to narrow'
+                         ' by, so it would install them over the main Results'
+                         ' table -- a class run did, 49 rows at exit 0.\n'
+                         '  Point --main at the Main.hs this run was built'
+                         ' from.\n' % label)
+        sys.exit(1)
     # A class table drops the editorial column but keeps the emphasis:
     # which row shipped and which leads is what a reader looks for first,
     # and it is the same row in every population's table.
@@ -1249,7 +1265,7 @@ def pair_stats(cells, shapes, a, b):
         sys.stderr.write('%s / %s: %d cell(s) with no positive %s, so this'
                          ' pair is not readable and nothing here is. The'
                          ' first: %s/%s\n'
-                         % (a, b, len(sunk), key, sunk[0][1], sunk[0][0]))
+                         % (a, b, len(sunk), key, sunk[0][0], sunk[0][1]))
         sys.exit(2)
     return raw, [cells[s][a][key] / cells[s][b][key] for s in shapes]
 
@@ -1466,6 +1482,17 @@ def chapter_skeleton(cells, shapes, strategies, meta, other, main_hs):
           '\nnot begin by reading the last.')
 
 
+def small_ceiling(small):
+    """The largest allocation among the cells that DISAGREE.
+
+    The sentence it feeds counts the disagreeing cells and then quoted a
+    maximum over all of them, agreeing ones included, so one agreeing cell
+    just under the floor overstated by an order of magnitude the allocation
+    whose fit it was calling unresolvable. Found 2026-08-17 by review.
+    """
+    return max(r[3] for r in small if r[0] > 1e-4)
+
+
 def compare_alloc(cells, shapes, strategies, meta, other, main_hs):
     """Whether two halves of a pair agree on what each arm allocates.
 
@@ -1544,7 +1571,8 @@ def compare_alloc(cells, shapes, strategies, meta, other, main_hs):
     if small and any(d > 1e-4 for d, _, _, _ in small):
         n = sum(1 for d, _, _, _ in small if d > 1e-4)
         print('    those %d allocate at most %.0f byte(s) a call, so the fit'
-              ' resolves nothing' % (n, max(r[3] for r in small)))
+              ' resolves nothing'
+              % (n, small_ceiling(small)))
         print('    there; it is a property of fitting a near-zero'
               ' allocation and not of this pair')
     print('\nThe multiple the alloc column publishes is these bytes divided'
@@ -1648,6 +1676,10 @@ def aa_table(cells, shapes, strategies, terms, meta, brief=False):
         # zero by zero; its raw ratio IS the position test the correction
         # rests on, and is the one figure here that must stay uncorrected.
         key = 'slope' if a.startswith('sum-only') else 'net'
+        if any(cells[s][x][key] <= 0 for s in shapes for x in (a, b)):
+            print('%-28s %-24s  not readable: a cell with no positive %s'
+                  % (a, b, key))
+            continue
         r = [cells[s][a][key] / cells[s][b][key] for s in shapes]
         dev = [abs(x - 1) * 100 for x in r]
         worst = max(zip(dev, shapes))
@@ -4247,7 +4279,7 @@ def check_doc(readme, main_hs):
         # lines and exit 0 to show for it. Found 2026-08-17 by review.
         bad.append('BLOCKED: no roster parsed out of %s, so the prose'
                    ' counts, the floor agreement and the open-list sweep'
-                   ' did not happen' % os.path.basename(main))
+                   ' did not happen' % os.path.basename(main_hs))
 
     # Links into the run chapter from standing prose. The chapter is
     # replaced by the next run, so such a link keeps resolving -- the
@@ -4768,6 +4800,17 @@ def selftest(cells, shapes, strategies, meta):
                 continue
             ratios = [cells[sh][st]['net'] / cells[sh]['list']['net']
                       for sh in shapes]
+            # A cell the forcing term did not leave positive has no log, so
+            # this raised `math domain error` and the whole gate printed
+            # NOTHING -- no verdict, no FAIL, a traceback where `read-all.sh`
+            # reads a verdict. `time_of`, `worst_of` and `pair_stats` each
+            # answer for such a cell; this is the fourth site and was the
+            # one that could not report. Found 2026-08-17 by review.
+            if any(r <= 0 for r in ratios):
+                bad.append('%s: a cell the forcing term did not leave'
+                           ' positive, so this row has no geomean to'
+                           ' bracket' % st)
+                continue
             capped += winsorize([math.log(r) for r in ratios])[1]
             got = time_of(cells, shapes, st)
             if not min(ratios) - TOL <= got <= max(ratios) + TOL:
@@ -4789,8 +4832,15 @@ def selftest(cells, shapes, strategies, meta):
         # neither arm had a cell capped -- the geomeans then divide term by
         # term. A capped cell is capped against its own row's median, so a
         # pair where one arm was capped may legitimately differ.
+        # A pair with a cell the term did not leave positive is not one of
+        # these: its logs do not exist. The same guard as `aa_pairs` and for
+        # the same reason -- this site was the one that took the whole gate
+        # down with it, printing no verdict at all. 2026-08-17.
         pairs = [(a, twin_of(a)) for a in strategies
-                 if twin_of(a) in strategies]
+                 if twin_of(a) in strategies
+                 and not any(cells[sh][x]['net'] <= 0
+                             for sh in shapes
+                             for x in (a, twin_of(a), 'list'))]
         clean = []
         for a, b in pairs:
             na = winsorize([math.log(cells[sh][a]['net']
@@ -5038,6 +5088,17 @@ def main():
     # cannot change what the published column means.
     terms = apply_correction(cells, shapes, strategies)
     if args.no_controls:
+        # `--aa` and `--block` READ the controls -- the module docstring
+        # says they are always listed by --aa -- and this filter reached
+        # the list they build their pairs from, so `--aa --no-controls`
+        # reported a file carrying eighteen of them as having none, and
+        # `--block --no-controls` dropped the Controls paragraph and the
+        # summary-row check without a word. It is a modifier of the
+        # aggregates and those two are not aggregates. Found 2026-08-17.
+        if args.aa or args.block:
+            p.error('--no-controls drops the controls from the AGGREGATES,'
+                    ' and --aa and --block are what reads them; the two'
+                    ' cannot be combined')
         strategies = [s for s in strategies if not is_control(s)]
     if not shapes or not strategies:
         sys.exit('nothing left after --exclude')

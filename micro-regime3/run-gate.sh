@@ -50,7 +50,12 @@ OTHER=${OTHER:-a1g}
 BASIS=${BASIS:-lookrts}
 SEL=('-m' 'glob' '*/list' '*/build' '*/mut-odo'
      '*/sum-only-early' '*/sum-only-late')
-ARMS=5                       # the globs above, one bench per shape each
+ARMS=$(( ${#SEL[@]} - 2 ))   # the globs above, one bench per shape each,
+                             # DERIVED because a literal drifts: run-major.sh
+                             # refuses that drift for CLASSES and this had the
+                             # same shape, where editing SEL alone makes all
+                             # four processes report the wrong expected count
+                             # and the gate exit 1 after its forty minutes
 
 NOTE="$PREFIX-pair.txt"
 

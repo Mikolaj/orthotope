@@ -190,7 +190,13 @@ for n, (c, start) in enumerate(reversed(order)):
     # found no JSONs and exited having done nothing.
     nxt = next((j for j in range(start + 1, len(paras))
                 if paras[j].lstrip().startswith('#')), len(paras))
-    end = order[k + 1][1] if k + 1 < len(order) else nxt
+    # The heading boundary is EVERY block's, not the last one's: applied
+    # to the last alone, a `###` section standing between two class blocks
+    # fell inside the range of the one above it, and any paragraph of it
+    # opening `Provenance:`, `Controls:` or `Per shape` was rewritten with
+    # that class's figures and counted as installed, at exit 0. The comment
+    # above records fixing exactly this for the last block. 2026-08-17.
+    end = min(order[k + 1][1], nxt) if k + 1 < len(order) else nxt
     got = subprocess.run(['./read-run.py', f'{R}-{BASIS}-{c}.json', '--block',
                           '--brief'], capture_output=True, text=True)
     if got.returncode != 0:
@@ -220,6 +226,15 @@ for n, (c, start) in enumerate(reversed(order)):
                 .replace('peak ___ MiB', f'peak {pk} MiB')
                 .replace('___ MiB max residency', f'{mr} MiB max residency')
                 .replace(" (copy from the process's stderr line)", ''))
+    # The four fills above are unasserted replaces against wording
+    # `read-run.py` owns, so a reworded emit would install the literal
+    # `___` into the page at exit 0, and nothing sweeps for it the way
+    # `check_doc` sweeps a published `?`. 2026-08-17.
+    if '___' in ctrl or '___' in prov:
+        print(f'  REFUSED {c}: a `___` placeholder survived the fill, so the'
+              f' wording read-run.py emits has moved and this script is'
+              f' filling a form that no longer exists')
+        sys.exit(1)
     prov_at = None
     for j in range(start, end):
         s = paras[j].lstrip()

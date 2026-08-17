@@ -414,9 +414,15 @@ def main():
         span = 'any length' if want is None else f'{args.len} B'
         print(f'== {path}: {len(found)} self-loops of {span} in '
               f'{len(groups)} distinct byte-sequences')
+        # A group under the threshold is COUNTED, not merely skipped: the
+        # docstring's own `--len 24` example reports a singleton, which at
+        # the default of 2 printed the header and nothing else, with nothing
+        # saying a group had been suppressed. Found 2026-08-17 by review.
+        suppressed = 0
         for body, fs in sorted(groups.items(), key=lambda kv: -len(kv[1])):
             count = len(fs)
             if count < args.min_copies:
+                suppressed += 1
                 continue
             print(f'   {count} copies, {fs[0]["len"]} B, '
                   f'{fs[0]["ninsn"]} insns, '
@@ -425,6 +431,9 @@ def main():
                 print(f'      0x{f["start"]:x}  mod {LINE} = {f["mod"]:2d}  '
                       f'{"STRADDLES" if f["straddles"] else "fits     "}  '
                       f'{named.get(f["start"]) or f["sym"]}')
+        if suppressed:
+            print(f'   {suppressed} group(s) suppressed, having fewer than '
+                  f'{args.min_copies} copies: --min-copies 1 lists them')
 
 
 if __name__ == '__main__':

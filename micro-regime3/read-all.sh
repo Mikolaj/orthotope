@@ -85,6 +85,19 @@ STARTED=$(awk '$3 == "start" { print $4 }' "$LOG" | grep -v -- "-gate-" \
             | sort -u)
 FINE=$(awk '$3 == "done" && $5 == "rc=0" { print $4 }' "$LOG" \
          | grep -v -- "-gate-" | sort -u)
+# An empty search proves nothing, and `printf '%s\n' ""` puts ONE EMPTY
+# LINE into each `comm` below -- so a log this awk matches nothing in left
+# UNFINISHED and LOST as whitespace, SHORT at 0, and the roster check
+# passed in silence over a single JSON. That is the failure this check was
+# written against, inside the check itself, and the same shape as the
+# empty-LEADS guard in install-tables.sh. Measured 2026-08-17 by review:
+# one log with no `start` line, one JSON, `every process gated clean`.
+if [ -z "$STARTED" ]; then
+  echo "no \`start\` line in $LOG, so what this run launched is unknown and"
+  echo "  the glob above is the only roster -- which is what lets half a run"
+  echo "  gate clean. Is this a major run's log, and is it complete?"
+  exit 1
+fi
 LANDED=$(printf '%s\n' $FILES | sed 's/\.json$//' | sort -u)
 UNFINISHED=$(comm -23 <(printf '%s\n' "$STARTED") <(printf '%s\n' "$FINE"))
 LOST=$(comm -23 <(printf '%s\n' "$STARTED") <(printf '%s\n' "$LANDED"))
