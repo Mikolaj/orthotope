@@ -42,6 +42,13 @@ BASIS=${BASIS:-lookrts}      # run-gate.sh and install-tables.sh, which
                              # carries BASIS alone: FOUR files, and pre-run
                              # step 3c is where they are set together
 
+# A pair is two halves; run-major.sh says what one name in both costs. Here
+# the control-half process sweeps the basis and the sweep still reads clean.
+if [ "$OTHER" = "$BASIS" ]; then
+  echo "!! OTHER and BASIS are both '$BASIS' -- a pair is two halves"
+  exit 1
+fi
+
 SHAPE=${SHAPE:-cnn-slice-c32}      # the smallest main-set shape, so the
 CLASS=${CLASS:-window-28x28-k5}    # sweep is minutes; the second is one
                                    # SHAPE OF a class, not the class -- it

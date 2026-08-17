@@ -56,6 +56,17 @@ PREFIX="$R"                  # the binaries and their note carry the run, as
 OTHER=${OTHER:-a32m}
 BASIS=${BASIS:-lookrts}
 HALVES="$OTHER $BASIS"
+# A pair is two halves, and nothing downstream can tell that it is not. With
+# the two names equal, every second process writes the JSON the one before it
+# just wrote: nine files take eighteen processes' worth of the evening, the
+# bench counting passes because each process really did run its count,
+# read-all.sh matches nine started names against nine JSONs and gates clean,
+# and the reader is then handed a file to --compare with itself. Two adjacent
+# hand-edited lines carrying similar-looking values is the slip this is for.
+if [ "$OTHER" = "$BASIS" ]; then
+  echo "!! OTHER and BASIS are both '$BASIS' -- a pair is two halves"
+  exit 1
+fi
 
 # The run's name identifies it against the NEXT run; this guards it against
 # itself. Relaunching with a name already used overwrites every JSON and log

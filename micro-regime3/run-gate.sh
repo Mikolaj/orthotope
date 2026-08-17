@@ -52,6 +52,12 @@ PREFIX="$1"                  # the binaries, the note and this gate's own
 # run will use.
 OTHER=${OTHER:-a32m}
 BASIS=${BASIS:-lookrts}
+# A pair is two halves; run-major.sh says what one name in both costs. Here
+# the palindrome collapses to one binary read against itself.
+if [ "$OTHER" = "$BASIS" ]; then
+  echo "!! OTHER and BASIS are both '$BASIS' -- a pair is two halves"
+  exit 1
+fi
 SEL=('-m' 'glob' '*/list' '*/build' '*/mut-odo'
      '*/sum-only-early' '*/sum-only-late')
 ARMS=$(( ${#SEL[@]} - 2 ))   # the globs above, one bench per shape each,
