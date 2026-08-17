@@ -2098,11 +2098,11 @@ def fingerprint_table(cells, shapes, strategies, meta):
 
 
 # The three arms the second class property names
-# (README.md#the-claims-run-15-should-test). Constants rather than literals
+# (README.md#the-claims-run-16-should-test). Constants rather than literals
 # because the property has been re-aimed twice, and a re-aim that misses one
 # use of a name is how a verdict starts disagreeing with the claim it checks.
 # The orderings each numbered claim rests on, as pairs, in the claims
-# section's own order (README.md#the-claims-run-15-should-test). A manifest
+# section's own order (README.md#the-claims-run-16-should-test). A manifest
 # rather than a parser over the prose: the claims are not uniformly
 # machine-readable -- claim 2's second half is `offtab` BEHIND the shipped
 # arm rather than an `A < B` ordering, and claim 4 states two readings of
