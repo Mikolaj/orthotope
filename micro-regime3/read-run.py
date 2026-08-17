@@ -1984,6 +1984,26 @@ def machine_check(cells, shapes, readme, thresh=3.0):
         print('machine: no shape of this run is in README\'s fingerprint, so'
               ' there is nothing to compare -- which is itself worth reading')
         return 1
+    # A non-positive net has no ratio and no log, and this is the fifth site
+    # of the family the other four were guarded against on 2026-08-17. It is
+    # the one where an unguarded traceback does lasting damage rather than
+    # printing: run-gate.sh captures this output with 2>&1 and appends it
+    # VERBATIM to the pair note, under a heading calling it an answer about
+    # the box -- so a ValueError out of geomean would be filed there as the
+    # gate's own finding, on the pair, permanently. `list` is the baseline
+    # and the largest net in every run, so reaching this wants a disturbed
+    # or inflated forcing term, which is a state `health` provokes and
+    # reports rather than one no run can be in.
+    sunk = [sh for sh, n, w in have if n <= 0 or w <= 0]
+    if sunk:
+        print('machine: %d shape(s) dropped, `list` net not positive: %s'
+              % (len(sunk), ', '.join(sunk)))
+        have = [t for t in have if t[1] > 0 and t[2] > 0]
+    if not have:
+        print('machine: every fingerprinted shape of this run has a'
+              ' non-positive `list` net, so there is nothing to compare --'
+              ' read the forcing term before the box')
+        return 1
     ratios = [n / w for _, n, w in have]
     g = geomean(ratios)
     worst = max(have, key=lambda t: abs(math.log(t[1] / t[2])))
@@ -2111,7 +2131,17 @@ def fingerprint_table(cells, shapes, strategies, meta):
                 row.append(fmt_abs(base))
             for arm in arms:
                 c = cells[sh].get(arm)
-                row.append('%.3f' % (c['net'] / base) if c else '--')
+                # `--` on a SUNK cell as well as an absent one, which is
+                # what `time_of` and `worst_of` read on the same condition:
+                # a net the forcing term did not leave positive is not a
+                # ratio, and dividing anyway publishes a negative or wild
+                # figure beside rows that correctly read `--`. It matters
+                # more here than anywhere: this table is `--in-place`
+                # installed every write-up and is the per-shape record kept
+                # once the JSONs are offered for deletion, so a sunk figure
+                # here outlives the run that could disprove it.
+                row.append('--' if not c or c['net'] <= 0 or base <= 0
+                           else '%.3f' % (c['net'] / base))
             print('| ' + ' | '.join(row) + ' |')
 
 
@@ -2893,8 +2923,14 @@ def block_skeleton(cells, shapes, strategies, meta, args, terms):
         print()
         print("Per shape, in the lead's order (%s):" % ', '.join(shapes))
         for st in bold:
+            # `--` on a sunk cell, as the fingerprint and `time_of` do: this
+            # paragraph is installed into the page by install-tables.sh, so
+            # a ratio taken over a net the forcing term did not leave
+            # positive would be published rather than merely printed.
             print('  `%s` %s' % (st, '/'.join(
-                '%.3f' % (cells[sh][st]['net'] / cells[sh]['list']['net'])
+                '--' if cells[sh][st]['net'] <= 0
+                or cells[sh]['list']['net'] <= 0
+                else '%.3f' % (cells[sh][st]['net'] / cells[sh]['list']['net'])
                 for sh in shapes)))
     # What the fitted slopes cannot show, and a class block never looked
     # for: a cell that changed level mid-bench. `rev` and `slice` carry
