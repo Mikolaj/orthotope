@@ -411,7 +411,12 @@ def main():
         for f in found:
             groups[f['bytes']].append(f)
         named = arms(path, [f['start'] for f in found])
-        span = 'any length' if want is None else f'{args.len} B'
+        # `at most LINE B` and not `any length`: --len 0 lifts the exact-size
+        # filter and NOT the cache-line cap, `scan` dropping every loop wider
+        # than a line whatever `want` is. The old wording read as this
+        # binary's whole loop count -- `--len 128` finds loops the `any
+        # length` report does not contain. Same phrasing as --survey above.
+        span = f'at most {LINE} B' if want is None else f'{args.len} B'
         print(f'== {path}: {len(found)} self-loops of {span} in '
               f'{len(groups)} distinct byte-sequences')
         # A group under the threshold is COUNTED, not merely skipped: the
