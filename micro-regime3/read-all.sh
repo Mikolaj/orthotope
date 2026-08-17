@@ -115,6 +115,21 @@ if [ "$SHORT" = 1 ]; then
   echo
 fi
 
+# run-major.sh's own complaints, which this script used to step over. It
+# logs `!!` for a process whose selection came out the wrong size, and for a
+# class prefix matching no bench; the first leaves `rc=0` AND a JSON, so it
+# moves neither STARTED, FINE nor LANDED and every test above reads it
+# clean. `run-major.sh` carries that verdict out in its exit status alone,
+# which a run launched with `&` loses, so the log is the only place it
+# survives -- and this script already reads the log, one field over. Found
+# 2026-08-17 by review; a wrong-count process is caught by nothing else.
+NOISY=$(grep -c '!!' "$LOG")
+if [ "$NOISY" != 0 ]; then
+  echo "!! $LOG carries $NOISY complaint(s) from the run itself:"
+  grep '!!' "$LOG" | sed 's/^/   /'
+  echo
+fi
+
 BAD=0
 printf '%-28s %-9s %s\n' process selftest 'A/A worst cell'
 for f in $FILES; do
@@ -166,7 +181,7 @@ for f in $FILES; do
 done
 
 echo
-if [ "$BAD" -eq 0 ] && [ "$SHORT" = 0 ]; then
+if [ "$BAD" -eq 0 ] && [ "$SHORT" = 0 ] && [ "$NOISY" = 0 ]; then
   echo "every process gated clean. The worst cells above are yours to read:"
   echo "  a pair inside the floor with a cell an order of magnitude outside"
   echo "  it is a finding, not noise, and the floor goes in the chapter head"
@@ -182,5 +197,9 @@ else
     || { echo "and the run is not all here: the processes named at the top"
          echo "are missing, so this is a reading of what landed and not of"
          echo "$R -- finish or rerun it before any figure of it is quoted"; }
+  [ "$NOISY" = 0 ] \
+    || { echo "and the run complained about itself, quoted at the top: a"
+         echo "process can exit 0 and leave a JSON having run the wrong"
+         echo "selection, which every gate below reads as sound"; }
 fi
-{ [ "$BAD" -eq 0 ] && [ "$SHORT" = 0 ]; } || exit 1
+{ [ "$BAD" -eq 0 ] && [ "$SHORT" = 0 ] && [ "$NOISY" = 0 ]; } || exit 1
