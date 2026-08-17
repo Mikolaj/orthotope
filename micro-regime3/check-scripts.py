@@ -163,6 +163,7 @@ import argparse
 import ast
 import atexit
 import collections
+import importlib.util
 import json
 import os
 import re
@@ -170,6 +171,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import zlib
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 README = os.path.join(HERE, 'README.md')
@@ -445,13 +447,27 @@ def run_json(name):
     return p
 
 
-def doctored(tmp, src, mutate, name='x.json'):
-    d = json.load(open(run_json(src)))
+def synth_json(tmp, pop='main', name=None, **kw):
+    """One population as a file: `main`, or a class by name."""
+    shapes = main_shapes() if pop == 'main' else class_shapes(pop)
+    return synth_run(os.path.join(tmp, name or '%s.json' % pop), shapes, **kw)
+
+
+def doctored(tmp, pop, mutate, name='x.json'):
+    """A BUILT run with one mutation applied, and the mutation asserted.
+
+    `pop` is a population rather than a captured `run14-*` filename, so
+    these fixtures outlive the artifacts the procedure offers for deletion
+    after every write-up. The assertion is unchanged and is the point: a
+    mutation that matched nothing would otherwise hand the case a pristine
+    run and let it pass having tested the opposite of what it names.
+    """
+    p = synth_json(tmp, pop, name)
+    d = json.loads(open(p).read())
     n = mutate(d[2])
-    assert n, 'the mutation matched no bench in %s' % src
-    p = os.path.join(tmp, name)
+    assert n, 'the mutation matched no bench in the built %s run' % pop
     with open(p, 'w') as f:
-        json.dump(d, f)
+        f.write(json.dumps(d))
     return p
 
 
@@ -521,12 +537,12 @@ for a in "$@"; do
   esac
 done
 [ "$CLS" = pending ] && CLS=""
-if [ -n "$CLS" ]; then SRC="$D/run14-@HALF@-$CLS.json"
-else SRC="$D/run14-@HALF@-main.json"; fi
+if [ -n "$CLS" ]; then SRC="$D/@RUN@-@HALF@-$CLS.json"
+else SRC="$D/@RUN@-@HALF@-main.json"; fi
 if [ "$1" = classes ] && [ "$2" = --list ]; then
   exec python3 -c "
 import glob, json, os, sys
-for f in sorted(glob.glob(os.path.join(sys.argv[1], 'run14-@HALF@-*.json'))):
+for f in sorted(glob.glob(os.path.join(sys.argv[1], '@RUN@-@HALF@-*.json'))):
     if f.endswith('-main.json'): continue
     for b in json.load(open(f))[2]: print(b['reportName'])" "$D"
 fi
@@ -566,9 +582,19 @@ assert 'd[2][:-1]' in UNDERPRINT, 'the under-printing stub lost its anchor'
 
 
 def halves(*names):
-    """A stand-in per half, named as a run's binaries are."""
-    return [(n, FAKE_RUN.replace('@HALF@', n.split('-', 1)[1]))
-            for n in names]
+    """A stand-in per half, named as a run's binaries are, and the run it
+    reads.
+
+    The stand-in used to answer out of the live `run14-*` JSONs, reached
+    through the shadow's symlinks -- so four driver cases were tied to
+    artifacts the procedure offers for deletion after every write-up, and
+    failed by blaming the BINARY for a missing JSON when they went. The run
+    is built now and shipped beside the stand-ins, so the fixture carries
+    its own data and the cases answer for the drivers alone.
+    """
+    return [(n, FAKE_RUN.replace('@HALF@', n.split('-', 1)[1])
+                        .replace('@RUN@', SRC))
+            for n in names] + whole_run([n.split('-', 1)[1] for n in names])
 
 ASM_HEAD_AFTER_RET = """\
 \t.text
@@ -596,7 +622,292 @@ def asm(tmp, text=ASM_HEAD_AFTER_RET):
     return {'asm': a, 'as': g, 'obj': os.path.join(tmp, 'a.o')}
 
 
-def synthetic_run(tmp, killed=False, no_twins=False, no_starts=False):
+_READER = None
+
+
+def _reader():
+    """The live read-run.py, imported once, for its own parsers.
+
+    A synthetic run has two things it cannot invent: the roster's arm names
+    and the shapes' dims. Both come from Main.hs, and they come through the
+    READER'S parsers rather than a second copy here -- a second parser is a
+    second thing to keep in step, which is the defect family this suite
+    exists over. `main` is guarded there, so importing runs no CLI.
+    """
+    global _READER
+    if _READER is None:
+        spec = importlib.util.spec_from_file_location(
+            'read_run', os.path.join(HERE, 'read-run.py'))
+        _READER = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(_READER)
+    return _READER
+
+
+def main_shapes(n=None):
+    """A few main-set shapes, from Main.hs rather than written out here.
+
+    The main set is `convShapes` and `stretchShapes`; every other list is a
+    stride class. Naming the LISTS rather than the shapes is what keeps
+    this from rotting -- a shape can be renamed or dropped between runs,
+    and a list going empty is loud where a stale shape name is a KeyError
+    in a fixture nobody was reading.
+    """
+    dims, _ = _reader().dims_by_shape(os.path.join(HERE, 'Main.hs'))
+    # Both lists represented whatever `n` is, rather than the first `n` of
+    # a sort: the main set is conv AND stretch shapes, the two have
+    # different (l, sInner) rules, and a fixture of one kind reads as the
+    # main set to every mode while being half of it.
+    conv = sorted(sh for sh, d in dims.items() if d['lst'] == 'convShapes')
+    stretch = sorted(sh for sh, d in dims.items()
+                     if d['lst'] == 'stretchShapes')
+    ms = [sh for pair in zip(conv, stretch) for sh in pair]
+    ms += [sh for sh in conv + stretch if sh not in ms]
+    # ALL of it by default, because `--claims --in-place` refuses a main
+    # set that is not the whole one -- the claims are registered over the
+    # population, and a fixture short of it makes install-tables.sh refuse
+    # for a reason the case is not about. `n` is for the cases that only
+    # need a couple of shapes and would rather build less.
+    assert len(ms) >= (n or 1), 'the main set parsed as %d shape(s)' % len(ms)
+    return ms[:n] if n else ms
+
+
+def _sunk_slice(t):
+    """The `slice` class with one cell sunk -- five cases' shared fixture.
+
+    Written once because it was written five times, as three lines of
+    `doctored(... 'run14-lookrts-slice.json' ...)` apiece: five copies of
+    one incantation, and five cases tied to an artifact the procedure
+    offers for deletion after every write-up. The cell is named rather
+    than defaulted because two of the five assert the shape by name.
+    """
+    return {'run': sunk_json(t, class_shapes('slice'), 'mut-odo-vecdims',
+                             shape='slice-primes')}
+
+
+def sunk_json(tmp, shapes, arm, shape=None, name='sunk.json'):
+    """A run carrying a cell the forcing term did not leave positive.
+
+    NO RUN ON DISK HAS ONE, which is exactly why the sites that divided
+    without checking went unseen for so long, and why this cannot be a
+    captured fixture: it has to be built, because what makes it is the
+    slopes. The cell sunk is the first shape's, the arm being the caller's.
+    """
+    return synth_run(os.path.join(tmp, name), shapes,
+                     sunk=[(shape or shapes[0], arm)])
+
+
+def class_names():
+    """The stride classes, from Main.hs rather than from a literal.
+
+    A class is a shape list that is not the main set, and its name is the
+    shape prefix before the first hyphen -- the same derivation
+    run-major.sh makes, and the one whose hyphen assumption it now refuses
+    to let a class name break.
+    """
+    dims, _ = _reader().dims_by_shape(os.path.join(HERE, 'Main.hs'))
+    return sorted({sh.split('-')[0] for sh, d in dims.items()
+                   if d['lst'] not in ('convShapes', 'stretchShapes')})
+
+
+_WHOLE = {}
+
+
+SRC = 'srcrun'      # the stand-ins' data, named OUTSIDE any run's own glob
+
+
+def whole_run(halves_of, samples=2, prefix=SRC):
+    """Every population of a paired run, as `extra` entries for a shadow.
+
+    Named `srcrun-<half>-<pop>` and NOT after the case's run: `$R-*.json`
+    is exactly what run-major.sh's relaunch guard refuses to start on top
+    of, so a fixture carrying the run's own prefix reads as a previous
+    attempt and the control case never runs at all.
+
+    Nine files a half -- the main set and each class -- because that is
+    what a driver enumerates rather than assumes: `classes --list` globs
+    the class files for its roster, and every expected bench count is read
+    back from a listing. A `.log` rides with each, carrying the provenance
+    line install-tables.sh parses for its Provenance paragraph.
+
+    Two samples a bench, the drivers reading counts and names and never a
+    figure. Memoised per tag, building it being the only slow thing here.
+    """
+    key = (tuple(halves_of), samples, prefix)
+    if key not in _WHOLE:
+        out = []
+        for half in halves_of:
+            pops = [('main', main_shapes())]
+            pops += [(c, class_shapes(c)) for c in class_names()]
+            for pop, shapes in pops:
+                out.append(('%s-%s-%s.json' % (prefix, half, pop),
+                            synth_text(shapes, samples=samples)))
+                out.append(('%s-%s-%s.log' % (prefix, half, pop),
+                            'benchmarking %s/x\nProvenance: elapsed 1m2s;'
+                            ' peak 300 MiB in use, 100 MiB max residency\n'
+                            % shapes[0]))
+        _WHOLE[key] = out
+    return _WHOLE[key]
+
+
+def class_shapes(cls):
+    """One stride class's shapes, from Main.hs rather than from a literal.
+
+    The prefixes are disjoint by construction -- `rev-` does not match
+    `revsome-`, the hyphen doing it -- which is the property run-major.sh
+    selects on and the one run-major.sh now refuses to let a class name
+    break.
+    """
+    dims, _ = _reader().dims_by_shape(os.path.join(HERE, 'Main.hs'))
+    return sorted(sh for sh in dims if sh.startswith(cls + '-'))
+
+
+def _est(point, rel=0.01):
+    d = abs(point) * rel
+    return {'estPoint': point,
+            'estError': {'confIntCL': 0.95, 'confIntLDX': -d, 'confIntUDX': d}}
+
+
+def _regress(responder, slope):
+    return {'regResponder': responder, 'regRSquare': _est(0.9995, 0.0005),
+            'regCoeffs': {'iters': _est(slope), 'y': _est(0.0, 0.0)}}
+
+
+def _synth_report(name, slope, alloc, samples):
+    # `reportMeasured` is a list of LISTS, [0] the time and [3] the iteration
+    # count. That array shape is the one thing about this format a generator
+    # can get wrong in silence: the reader's step scan is the only consumer,
+    # so a dict here would surface as `samples that are not Measured arrays`
+    # from --steps and --block alone, long after every other mode passed.
+    meas = [[slope * 8 * k, slope * 8 * k, 0, 8 * k, alloc * 8 * k,
+             0, 0, 0, 0, 0, 0, 0] for k in range(1, samples + 1)]
+    return {'reportName': name, 'reportNumber': 0, 'reportKeys': [],
+            'reportKDEs': [], 'reportOutliers': {}, 'reportMeasured': meas,
+            'reportAnalysis': {
+                'anRegress': [_regress('time', slope),
+                              _regress('allocated', alloc)],
+                'anMean': _est(slope), 'anStdDev': _est(slope * 0.01),
+                'anOutlierVar': {'ovDesc': 'moderate', 'ovEffect': 'Moderate',
+                                 'ovFraction': 0.1}}}
+
+
+def _spread(fn, lo, hi):
+    """A per-function factor, stable ACROSS PROCESSES.
+
+    `hash()` is salted per process, so a fixture built with it would differ
+    between two runs of the same case -- and a case whose fixture moves
+    under it proves whatever that run happened to draw.
+    """
+    return lo + (hi - lo) * (zlib.crc32((fn or '').encode()) / 2 ** 32)
+
+
+def synth_run(path, shapes, samples=8, no_twins=False, sunk=(), term=4e-10):
+    """A criterion run over `shapes`, built rather than captured.
+
+    Kilobytes where a real run's JSON is megabytes, and DERIVED: the arms
+    are Main.hs's roster through `roster_of` and the sizes are its dims
+    through `dims_by_shape`, so a roster change moves this with it. That is
+    what the opening asks of every fixture here, and what a captured run
+    could not give -- the suite's fixtures used to be the live `run14-*`
+    JSONs, which tied 34 cases to artifacts the procedure offers for
+    deletion after every write-up.
+
+    The model is the correction's own, so the reader's gates have
+    something true to find: the two `Term` halves are the forcing term and
+    are identical; a timed arm is that term plus per-function work, so its
+    net is positive; a `Twin` shares its base arm's function and so reads
+    A/A at exactly 1; a `Force` arm is the work without the term, so the
+    in-situ reading recovers it. The term is a constant per element, which
+    is what `--selftest` checks when it asks that it scale with `l`.
+
+    `sunk` names (shape, arm) cells to drive NON-positive, which no real
+    run on disk carries -- the state the fingerprint, `--block` and
+    `machine_check` refuse, and which had to be constructed to test at all.
+    """
+    m = _reader()
+    main_hs = os.path.join(HERE, 'Main.hs')
+    dims, _ = m.dims_by_shape(main_hs)
+    roster = m.roster_of(open(main_hs).read())
+    timed = [(n, role, fn) for n, role, fn in roster if role != 'Only']
+    if no_twins:
+        # EVERY A/A pair gone, which is more than the Twin role: the two
+        # `Term` halves are an A/A pair of the forcing term itself, and the
+        # captured fixture this replaces dropped `sum-only-late` by name for
+        # exactly that reason -- a literal that said nothing about why. One
+        # half is kept, the correction having nothing to subtract without
+        # it.
+        # What goes is each twin's BASE, not the twin: an A/A pair needs
+        # both, so the pair cannot form, while the twin and the in-situ
+        # `-nosum` rows stay -- which is the state the defect needs, an
+        # in-situ row being what got read as the A/A. Dropping the twins
+        # instead leaves nothing for the old code to misread and the case
+        # passes against the very revision it exists to fail, which is what
+        # --audit caught when this fixture was first built that way. A
+        # `Force` arm shares its base's function too and is kept for the
+        # same reason. One `Term` half goes with them, the two halves being
+        # an A/A pair of the forcing term.
+        bases = {fn for _, role, fn in timed if role == 'Twin'}
+        kept, first_term = [], True
+        for n, role, fn in timed:
+            if role not in ('Twin', 'Force') and fn in bases:
+                continue
+            if role == 'Term':
+                if not first_term:
+                    continue
+                first_term = False
+            kept.append((n, role, fn))
+        timed = kept
+    reports = []
+    for sh in shapes:
+        l = dims[sh]['l']
+        for name, role, fn in timed:
+            work = 0.0 if role == 'Term' else _spread(fn, 0.6, 6.0) * term * l
+            if role == 'Term':
+                slope = term * l
+            elif role == 'Force':
+                slope = work
+            else:
+                slope = term * l + work
+            # A per-cell wobble under half a percent, so that a ratio, an
+            # A/A worst cell and a spread are WELL DEFINED. Without it every
+            # twin equalled its base exactly, every A/A pair read 0.00%, and
+            # which shape came out `worst` was a tie broken by iteration
+            # order -- so a case about attributing the worst cell to the
+            # right shape passed or failed on nothing at all. `Term` stays
+            # exact: its two halves are one measurement made twice, and
+            # --selftest reads their spread as the term's own.
+            if role != 'Term':
+                slope *= 1.0 + _spread(name + '@' + sh, -0.004, 0.004)
+            if (sh, name) in sunk:
+                slope = term * l * 0.5      # below the term: net goes negative
+            alloc = 0.0 if role == 'Term' else 8.0 * l * _spread(fn, 0.9, 1.4)
+            reports.append(_synth_report('%s/%s' % (sh, name), slope, alloc,
+                                         samples))
+    with open(path, 'w') as f:
+        f.write(json.dumps(['criterion', '1.6.5.0', reports]))
+    return path
+
+
+def synth_text(shapes, **kw):
+    """The same run as TEXT, for a fixture that must reach a shadow.
+
+    `shadow_dir` symlinks this directory before a case's plant runs, so a
+    file written here afterwards is not in the shadow and a stand-in
+    reading its own directory cannot see it. An `extra` entry is written
+    INTO the shadow, and takes a string -- so a fixture a driver has to
+    find is built as text and handed over that way, never through disk
+    here. It also means nothing is created in this directory at all, which
+    the run's own tree check would otherwise have to be trusted to forgive.
+    """
+    tmp = tempfile.mkdtemp(prefix='zz-synth-')
+    try:
+        p = synth_run(os.path.join(tmp, 'r.json'), shapes, **kw)
+        return open(p).read()
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+
+
+def synthetic_run(tmp, killed=False, no_twins=False, no_starts=False,
+                  complained=False):
     """A whole run in this directory: JSONs, and the log that describes it.
 
     `read-all.sh` cds to its own directory and globs, so this is one of the
@@ -608,24 +919,28 @@ def synthetic_run(tmp, killed=False, no_twins=False, no_starts=False):
            '=== 2026-01-01T00:00:00+01:00 halves: a1g lookrts, in that order;'
            ' lookrts is the basis, and every class runs on both halves']
     for cls in ('rev', 'slice'):
-        src = run_json('run14-lookrts-%s.json' % cls)
+        # Built rather than copied from `run14-lookrts-<cls>.json`, which
+        # tied this fixture to artifacts the procedure offers for deletion
+        # after every write-up. `no_twins` was ten arm names written out
+        # here, with no assertion on what they matched, so an A/A pair
+        # added or renamed left twins in the file and failed
+        # `aa-worst-cell-is-not-an-insitu-row` for a reason that has
+        # nothing to do with the defect it guards; it is the roster's own
+        # Twin role now, and moves with the roster.
         dst = here_file('%s-lookrts-%s.json' % (tag, cls))
-        if no_twins:
-            d = json.load(open(src))
-            drop = ('mut-odo-vecdims', 'build', 'mut-odo', 'offtab',
-                    'bq-scan-rem-gm-mulback', 'bq-odo-gm-mulback',
-                    'bq-expand', 'list', 'gen-unsafe', 'sum-only-late')
-            d[2] = [b for b in d[2]
-                    if b['reportName'].split('/')[-1] not in drop]
-            with open(dst, 'w') as f:
-                json.dump(d, f)
-        else:
-            shutil.copyfile(src, dst)
+        synth_run(dst, class_shapes(cls), no_twins=no_twins)
         if not no_starts:
             log += ['=== 2026-01-01T00:00:01+01:00 start %s-lookrts-%s'
                     % (tag, cls),
                     '=== 2026-01-01T00:10:00+01:00 done  %s-lookrts-%s rc=0'
                     ' benchmarking=47' % (tag, cls)]
+    if complained:
+        # run-major.sh's own complaint about a process that nonetheless
+        # exited 0 and left a JSON: it moves none of STARTED, FINE or
+        # LANDED, so every test read-all.sh runs reads this run as whole.
+        log.append('=== 2026-01-01T00:10:00+01:00   !! %s-lookrts-rev:'
+                   ' expected 141 benches, got 94 -- the selection is not'
+                   ' what was asked for' % tag)
     if killed:
         log.append('=== 2026-01-01T00:10:01+01:00 start %s-lookrts-window'
                    % tag)
@@ -687,7 +1002,7 @@ CASES = [
     case('install-lands-in-next-block', 'read-run.py', '045ca63',
          'a class whose own table is absent took the next class\'s',
          plant=lambda t: {'readme': readme_without_class_table(t),
-                          'run': run_json('run14-lookrts-slice.json')},
+                          'run': synth_json(t, 'slice')},
          argv=['{run}', '--block', '--in-place', '--readme', '{readme}'],
          ok=V(exit=1, has=['refusing to write there'],
               hasnt=['installed at']),
@@ -696,7 +1011,7 @@ CASES = [
     case('block-brief-cannot-install', 'read-run.py', '045ca63',
          '--brief dropped the table --in-place had to install',
          plant=lambda t: {'readme': edited_readme(t),
-                          'run': run_json('run14-lookrts-slice.json')},
+                          'run': synth_json(t, 'slice')},
          argv=['{run}', '--block', '--in-place', '--brief',
                '--readme', '{readme}'],
          ok=V(exit=0, has=['installed at']),
@@ -711,16 +1026,20 @@ CASES = [
 
     case('worst-beside-a-sunk-time', 'read-run.py', '045ca63',
          'a plausible `worst` published beside `time --`',
-         plant=lambda t: {'run': doctored(
-             t, 'run14-lookrts-slice.json',
-             lambda bs: scale(bs, 'slice-primes/mut-odo-vecdims', 0.01))},
+         plant=_sunk_slice,
          argv=['{run}'],
+         # The verdict is the two columns and not the figure that used to
+         # stand in the second: `--  0.063` was this arm's real published
+         # number, so the case could only ever run on the captured JSON it
+         # came from. What it is really about is a `worst` printed beside a
+         # `time` that reads `--`, which is what these two spellings say.
          ok=V(has=['mut-odo-vecdims                   --      --']),
-         bug=V(has=['mut-odo-vecdims                   --  0.063'])),
+         bug=V(has=['mut-odo-vecdims                   --  '],
+               hasnt=['mut-odo-vecdims                   --      --'])),
 
     case('claims-arm-counted-per-registration', 'read-run.py', '045ca63',
          'one filtered arm reported as eight',
-         plant=lambda t: {'run': run_json('run14-lookrts-main.json')},
+         plant=lambda t: {'run': synth_json(t, 'main')},
          argv=['{run}', '--claims', '--exclude', 'bq-expand'],
          ok=V(has=['1 arm(s) of the claims list']),
          bug=V(has=['8 arm(s) of the claims list'])),
@@ -735,7 +1054,7 @@ CASES = [
 
     case('population-main-hs-does-not-define', 'read-run.py', '4086ab8',
          'a population Main.hs no longer defines died unpacking',
-         plant=lambda t: {'run': run_json('run14-lookrts-slice.json')},
+         plant=lambda t: {'run': synth_json(t, 'slice')},
          argv=['{run}', '--markdown', '--main', '/dev/null'],
          ok=V(exit=1, has=['a population Main.hs does not define']),
          bug=V(has=['not enough values to unpack'])),
@@ -743,7 +1062,7 @@ CASES = [
     case('ragged-gate-after-exclude', 'read-run.py', '4086ab8',
          'excluding the arm with the missing cells still refused the run',
          plant=lambda t: {'run': doctored(
-             t, 'run14-lookrts-slice.json',
+             t, 'slice',
              lambda bs: drop(bs, 'slice-primes/bq-expand'))},
          argv=['{run}', '--exclude', 'bq-expand'],
          ok=V(exit=0, hasnt=['did not happen']),
@@ -752,10 +1071,34 @@ CASES = [
     case('in-place-alone', 'read-run.py', '4086ab8',
          '--in-place with no installing mode printed a table and wrote none',
          plant=lambda t: {'readme': edited_readme(t),
-                          'run': run_json('run14-lookrts-main.json')},
+                          'run': synth_json(t, 'main')},
          argv=['{run}', '--in-place', '--readme', '{readme}'],
          ok=V(exit=2, has=['--in-place is a modifier']),
          bug=V(exit=0)),
+
+    # ---- the sunk cell, which only a built fixture can carry -----------
+    case('fingerprint-refuses-a-sunk-cell', 'read-run.py', 'e2d6604',
+         'a sunk cell was divided and INSTALLED, outliving its own run',
+         plant=lambda t: {'run': sunk_json(t, main_shapes(), 'bq-expand')},
+         argv=['{run}', '--fingerprint'],
+         ok=V(has=['| -- |']),
+         bug=V(hasnt=['| -- |'])),
+
+    case('block-per-shape-refuses-a-sunk-cell', 'read-run.py', 'e2d6604',
+         "a sunk cell was divided into the block's installed per-shape line",
+         plant=lambda t: {'run': sunk_json(t, class_shapes('scaled'),
+                                           'bq-expand')},
+         argv=['{run}', '--block', '--brief'],
+         ok=V(has=['--/']),
+         bug=V(hasnt=['--/'])),
+
+    case('machine-check-drops-a-sunk-baseline', 'read-run.py', 'e2d6604',
+         'a non-positive `list` net raised, and run-gate.sh files stderr'
+         ' verbatim into the pair note',
+         plant=lambda t: {'run': sunk_json(t, main_shapes(), 'list')},
+         argv=['{run}', '--machine'],
+         ok=V(exit=1, has=['net not positive'], hasnt=['Traceback']),
+         bug=V(has=['Traceback'])),
 
     # ---- read-run.py, the second review's ------------------------------
     case('checkdoc-without-a-roster', 'read-run.py', 'a6c32e8',
@@ -781,6 +1124,15 @@ CASES = [
 
     case('claims-current-run-not-exempt', 'read-run.py', 'a6c32e8',
          '`Run N` exempted the run in hand, the one kind that matters',
+         # THE ONE CASE STILL ON A CAPTURED RUN, and it is stated rather
+         # than left to be noticed. Its verdict is a published reading,
+         # 0.9312, and the defect is that the sentence exempted the run in
+         # hand from being read at all -- so what separates the two
+         # revisions is whether that figure appears. Over a built run they
+         # print byte-identical output, measured 2026-08-17, so the case
+         # would pass while testing nothing. If run14's artifacts go, this
+         # reports FIXTURE DID NOT BUILD, which is the honest failure and
+         # not a false pass; re-aim it at whatever run is then on disk.
          plant=lambda t: {'readme': readme_current_run_sentence(t),
                           'run': run_json('run14-lookrts-main.json')},
          argv=['{run}', '--claims', '--readme', '{readme}'],
@@ -797,30 +1149,35 @@ CASES = [
     case('insitu-worst-cell-label', 'read-run.py', 'a6c32e8',
          'a dropped shape renamed every later ratio',
          plant=lambda t: {'run': doctored(
-             t, 'run14-lookrts-slice.json',
+             t, 'slice',
              lambda bs: scale(
                  bs, 'slice-cnn-L2-24x24-c32/mut-odo-vecdims-nosum', 3.0))},
          argv=['{run}', '--aa', '--brief'],
-         ok=V(has=['worst cell 1.63% on slice-coprime-r7',
-                   'over 2 of 3 shape(s)']),
-         bug=V(has=['worst cell 1.63% on slice-primes'])),
+         # The coverage line and not the label's figure: `worst cell 1.63%
+         # on slice-coprime-r7` was a captured run's own arithmetic, so the
+         # verdict only held while the fixture was that run. The defect is
+         # that a dropped shape went unaccounted for -- the pre-fix reader
+         # prints no coverage line at all here and attributes the worst
+         # cell to the dropped shape's neighbour -- and the shape named
+         # below is the one this case itself drops, so it is fixed by
+         # construction rather than by whatever the data happened to say.
+         ok=V(has=['over 2 of 3 shape(s): slice-cnn-L2-24x24-c32 dropped']),
+         bug=V(hasnt=['over 2 of 3 shape(s)'])),
 
     case('pair-refuses-a-sunk-cell', 'read-run.py', 'a6c32e8',
          'a sunk cell gave --pair a math domain error',
-         plant=lambda t: {'run': doctored(
-             t, 'run14-lookrts-slice.json',
-             lambda bs: scale(bs, 'slice-primes/mut-odo-vecdims', 0.01))},
+         plant=_sunk_slice,
          argv=['{run}', '--pair', 'mut-odo-vecdims', 'list'],
          ok=V(exit=2, has=['not readable']),
          bug=V(has=['math domain error'])),
 
     case('compare-refuses-a-partial-other', 'read-run.py', 'a6c32e8',
          'an interrupted other half raised KeyError',
-         plant=lambda t: {'run': run_json('run14-lookrts-main.json'),
+         plant=lambda t: {'run': synth_json(t, 'main'),
                           'other': doctored(
-                              t, 'run14-lookrts-main.json',
+                              t, 'main',
                               lambda bs: drop(bs,
-                                              'stretch-primes/bq-expand'),
+                                              main_shapes()[1] + '/bq-expand'),
                               'other.json')},
          argv=['{run}', '--compare', '{other}'],
          ok=V(exit=2, has=['cell(s) missing, so the comparison did not']),
@@ -829,21 +1186,21 @@ CASES = [
     case('summary-row-width', 'read-run.py', 'a6c32e8',
          'a row that lost a column had its tail compared against nothing',
          plant=lambda t: {'readme': readme_summary_row_short(t),
-                          'run': run_json('run14-lookrts-slice.json')},
+                          'run': synth_json(t, 'slice')},
          argv=['{run}', '--block', '--readme', '{readme}'],
          ok=V(has=['not checked: it has 5 column(s)']),
          bug=V(hasnt=['not checked: it has 5 column(s)'])),
 
     case('brief-alone', 'read-run.py', 'a6c32e8',
          '--brief outside --aa/--block printed everything and said nothing',
-         plant=lambda t: {'run': run_json('run14-lookrts-main.json')},
+         plant=lambda t: {'run': synth_json(t, 'main')},
          argv=['{run}', '--markdown', '--brief'],
          ok=V(exit=2, has=['--brief is a modifier']),
          bug=V(exit=0)),
 
     case('two-modes-at-once', 'read-run.py', 'a6c32e8',
          'the if/elif dispatch dropped the second mode without a word',
-         plant=lambda t: {'run': run_json('run14-lookrts-main.json')},
+         plant=lambda t: {'run': synth_json(t, 'main')},
          argv=['{run}', '--markdown', '--fingerprint'],
          ok=V(exit=2, has=['one mode at a time']),
          bug=V(exit=0)),
@@ -870,7 +1227,7 @@ CASES = [
     case('alloc-fit-on-an-unknown-shape', 'read-run.py', 'a6c32e8',
          'a missing alloc read as "allocated nothing", silencing the warning',
          plant=lambda t: {'run': doctored(
-             t, 'run14-lookrts-slice.json',
+             t, 'slice',
              lambda bs: bad_alloc_fit(bs, 'slice-primes/offtab'))},
          argv=['{run}', '--main', '/dev/null'],
          ok=V(has=['allocated R2 < 0.99']),
@@ -886,7 +1243,7 @@ CASES = [
     case('markdown-installs-into-the-main-table', 'read-run.py', 'febc2bd',
          "a class run whose shapes Main.hs lost installed into Results",
          plant=lambda t: {'readme': edited_readme(t),
-                          'run': run_json('run14-lookrts-rev.json')},
+                          'run': synth_json(t, 'rev')},
          argv=['{run}', '--markdown', '--in-place', '--main', '/dev/null',
                '--readme', '{readme}'],
          ok=V(exit=1, hasnt=['installed at']),
@@ -894,25 +1251,21 @@ CASES = [
 
     case('selftest-survives-a-sunk-cell', 'read-run.py', 'febc2bd',
          'a sunk cell gave the gate a traceback and no verdict at all',
-         plant=lambda t: {'run': doctored(
-             t, 'run14-lookrts-slice.json',
-             lambda bs: scale(bs, 'slice-primes/mut-odo-vecdims', 0.01))},
+         plant=_sunk_slice,
          argv=['{run}', '--selftest'],
          ok=V(hasnt=['math domain error'], has=['FAIL']),
          bug=V(has=['math domain error'])),
 
     case('aa-survives-a-sunk-cell', 'read-run.py', 'febc2bd',
          '--aa died where --claims refuses, on the same file',
-         plant=lambda t: {'run': doctored(
-             t, 'run14-lookrts-slice.json',
-             lambda bs: scale(bs, 'slice-primes/mut-odo-vecdims', 0.01))},
+         plant=_sunk_slice,
          argv=['{run}', '--aa', '--brief'],
          ok=V(hasnt=['math domain error']),
          bug=V(has=['math domain error'])),
 
     case('aa-lists-controls-under-no-controls', 'read-run.py', 'febc2bd',
          '--no-controls made --aa report a file of controls as having none',
-         plant=lambda t: {'run': run_json('run14-lookrts-slice.json')},
+         plant=lambda t: {'run': synth_json(t, 'slice')},
          argv=['{run}', '--aa', '--brief', '--no-controls'],
          ok=V(exit=2, has=['--no-controls drops the controls'],
               hasnt=['no control pairs in this run']),
@@ -927,9 +1280,7 @@ CASES = [
 
     case('pair-refusal-names-shape-first', 'read-run.py', 'febc2bd',
          'the refusal printed arm/shape where every other line is shape/arm',
-         plant=lambda t: {'run': doctored(
-             t, 'run14-lookrts-slice.json',
-             lambda bs: scale(bs, 'slice-primes/mut-odo-vecdims', 0.01))},
+         plant=_sunk_slice,
          argv=['{run}', '--pair', 'mut-odo-vecdims', 'list'],
          ok=V(has=['The first: slice-primes/mut-odo-vecdims']),
          bug=V(has=['The first: mut-odo-vecdims/slice-primes'])),
@@ -944,18 +1295,23 @@ CASES = [
     case('dropped-control-pairs-are-named', 'read-run.py', 'de79a95',
          'a pair dropped for a sunk cell narrowed a PUBLISHED figure quietly',
          plant=lambda t: {'run': doctored(
-             t, 'run14-lookrts-slice.json',
+             t, 'slice',
              lambda bs: scale(bs, 'slice-primes/mut-odo-vecdims', 0.01)),
              'readme': edited_readme(t)},
          argv=['{run}', '--block', '--readme', '{readme}'],
+         # `14 of 16 intervals` was a captured run's own coverage count --
+         # the built one reads 13 of 16, the 16 being the roster's control
+         # pairs and stable, the 14 not. The defect is that the calibration
+         # narrowed silently, so what the verdict is about is an intervals
+         # line printed with no notice beside it.
          ok=V(has=['control pair(s) not readable']),
-         bug=V(has=['14 of 16 intervals'],
+         bug=V(has=['intervals cover 1'],
                hasnt=['control pair(s) not readable'])),
 
     case('controls-survive-a-negative-term', 'read-run.py', '38a963a',
          "the sum-only pair is computed twice and was guarded once",
          plant=lambda t: {'run': doctored(
-             t, 'run14-lookrts-slice.json',
+             t, 'slice',
              lambda bs: scale(bs, 'slice-primes/sum-only-early', -1.0)),
              'readme': edited_readme(t)},
          argv=['{run}', '--block', '--readme', '{readme}'],
@@ -1058,6 +1414,14 @@ CASES = [
          ok=V(exit=1, hasnt=['every process gated clean']),
          bug=V(exit=0, has=['every process gated clean'])),
 
+    case('run-that-complained-does-not-gate-clean', 'read-all.sh', 'cc8abfd',
+         "the run's own `!!` lines were stepped over, rc=0 hiding them",
+         plant=lambda t: synthetic_run(t, complained=True),
+         argv=['{tag}'],
+         ok=V(exit=1, has=['complaint(s) from the run itself'],
+              hasnt=['every process gated clean']),
+         bug=V(exit=0, has=['every process gated clean'])),
+
     case('gate-arms-track-the-selection', 'run-gate.sh', 'febc2bd',
          'the expected bench count was a literal that had to equal SEL',
          shadow=dict(
@@ -1074,10 +1438,33 @@ CASES = [
     case('smoke-sweep-runs-clean', 'smoke-sweep.sh', None,
          'CONTROL: every reader mode, both installers and its own refusals',
          shadow=dict(extra=halves('zzsw-lookrts', 'zzsw-a1g')),
-         env={'SHAPE': 'cnn-slice-c32', 'CLASS': 'window-28x28-k5',
+         # Both taken from the fixture rather than named: the sweep's own
+         # defaults are chosen for how long a real -L1 process takes, which
+         # a stand-in does not, and a shape the fixture does not carry
+         # stops it at `--list has no <shape>` before any mode is swept.
+         env={'SHAPE': main_shapes()[0], 'CLASS': class_shapes('window')[0],
               'OTHER': 'a1g', 'BASIS': 'lookrts'},
          argv=['zzsw'],
          ok=V(exit=0, has=['sweep clean'], hasnt=['!!'])),
+
+    case('pair-halves-must-differ', 'run-major.sh', '0431efe',
+         'one name in both halves wrote nine JSONs twice and gated clean',
+         shadow=dict(extra=halves('zzhh-lookrts')
+                     + [('zzhh-pair.txt', 'a stand-in pair note.\n')]),
+         env={'OTHER': 'lookrts', 'BASIS': 'lookrts'},
+         argv=['zzhh'],
+         ok=V(exit=1, has=['a pair is two halves']),
+         bug=V(exit=0)),
+
+    case('class-name-carries-no-hyphen', 'run-major.sh', None,
+         'a hyphenated class merged with the one before its hyphen',
+         shadow=dict(mutate=[('run-major.sh', 'reshape1 slice window scaled"',
+                              'reshape1 slice window scaled bcast-mid"')],
+                     extra=halves('zzhy-lookrts', 'zzhy-a1g')
+                     + [('zzhy-pair.txt', 'a stand-in pair note.\n')]),
+         env={'OTHER': 'a1g', 'BASIS': 'lookrts'},
+         argv=['zzhy'],
+         ok=V(exit=1, has=['carries a hyphen'])),
 
     case('major-run-runs-clean', 'run-major.sh', None,
          'CONTROL: the whole sequence, eighteen processes, on stand-ins',
@@ -1102,16 +1489,28 @@ CASES = [
 
     case('bench-count-complaint-names-its-process', 'run-major.sh', '845c8d0',
          'nine identical complaints in one log, none naming its process',
+         # UNDERPRINT is FAKE_RUN with its printing loop shortened, so it
+         # carries the same @RUN@ token and needs the same substitution --
+         # left out, the stub reads a path with `@RUN@` still in it and the
+         # run dies before writing the log this case probes. Its half's
+         # data comes separately, `halves` shipping only what it stands in
+         # for.
          shadow=dict(extra=[('zzmj-lookrts',
-                             UNDERPRINT.replace('@HALF@', 'lookrts'))]
+                             UNDERPRINT.replace('@HALF@', 'lookrts')
+                                       .replace('@RUN@', SRC))]
                      + halves('zzmj-a1g')
+                     + whole_run(['lookrts'])
                      + [('zzmj-pair.txt', 'a stand-in pair note.\n')]),
          env={'OTHER': 'a1g', 'BASIS': 'lookrts'},
          argv=['zzmj'],
          probe=lambda subs: open(os.path.join(subs['at'],
                                               'zzmj-wallclock.log')).read(),
+         # `expected 1128 benches` was the live roster's own count, so the
+         # verdict only held while the fixture was a captured run of that
+         # roster. What the case is about is whether the complaint NAMES
+         # its process, which both spellings say without a figure.
          ok=V(exit=1, has=['zzmj-lookrts-main: expected']),
-         bug=V(exit=1, has=['expected 1128 benches'],
+         bug=V(exit=1, has=['benches, got'],
                hasnt=['zzmj-lookrts-main: expected'])),
 
     # ---- install-tables.sh ---------------------------------------------
@@ -1119,24 +1518,27 @@ CASES = [
          'a lead one pattern missed was overwritten by the block above it',
          plant=lambda t: {'doc': edited_readme(
              t, ('**`window` — overlapping', '**`window` - overlapping'))},
+         shadow=dict(extra=whole_run(['lookrts'], prefix='zzit')),
          env={'DOC': '{doc}', 'BASIS': 'lookrts'},
-         argv=['run14'],
+         argv=['zzit'],
          ok=V(exit=1, has=['the two ways this file finds a class block']),
          bug=V(exit=0, has=['across 7 class block(s)'])),
 
     case('no-class-block-leads', 'install-tables.sh', '4086ab8',
          'the guard against a silently skipped class was itself silent',
          plant=lambda t: {'doc': readme_without_class_leads(t)},
+         shadow=dict(extra=whole_run(['lookrts'], prefix='zzit')),
          env={'DOC': '{doc}', 'BASIS': 'lookrts'},
-         argv=['run14'],
+         argv=['zzit'],
          ok=V(exit=1, has=['no class block leads'], hasnt=['REFUSED']),
          bug=V(has=['REFUSED'], hasnt=['no class block leads'])),
 
     case('heading-between-two-class-blocks', 'install-tables.sh', 'febc2bd',
          "a paragraph between blocks took the block above it's figures",
          plant=lambda t: {'doc': readme_heading_between_blocks(t)},
+         shadow=dict(extra=whole_run(['lookrts'], prefix='zzit')),
          env={'DOC': '{doc}', 'BASIS': 'lookrts'},
-         argv=['run14'],
+         argv=['zzit'],
          probe=lambda subs: open(subs['doc']).read(),
          ok=V(exit=0, has=['ZZMARKER']),
          bug=V(hasnt=['ZZMARKER'])),
@@ -1150,9 +1552,10 @@ CASES = [
               "print('Provenance: elapsed ___, peak ___ MiB in use, ___ MiB"
               " max'",
               "print('Provenance: elapsed ___, peak of ___ MiB in use, ___"
-              " MiB max'")]),
+              " MiB max'")],
+             extra=whole_run(['lookrts'], prefix='zzit')),
          env={'DOC': '{doc}', 'BASIS': 'lookrts'},
-         argv=['run14'],
+         argv=['zzit'],
          probe=lambda subs: open(subs['doc']).read(),
          ok=V(has=['placeholder survived'], hasnt=['peak of ___ MiB']),
          bug=V(has=['peak of ___ MiB'])),
@@ -1160,8 +1563,9 @@ CASES = [
     case('install-is-idempotent', 'install-tables.sh', None,
          'CONTROL: a full pass over an untouched page rewrites no table',
          plant=lambda t: {'doc': edited_readme(t)},
+         shadow=dict(extra=whole_run(['lookrts'], prefix='zzit')),
          env={'DOC': '{doc}', 'BASIS': 'lookrts'},
-         argv=['run14'],
+         argv=['zzit'],
          ok=V(exit=0, has=['11 table(s) installed'])),
 ]
 
