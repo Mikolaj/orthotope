@@ -134,3 +134,74 @@ became entries in the non-urgent list as checker gaps.
 The sweep for the superseded run's name earned its place again: three stale
 self-references in the floor section, one of which carried a registered
 prediction (the excess-allocation predictor) that Run 15 answers.
+
+--- Run 15's probe evening, 2026-08-17 (chronology; the findings are on the page)
+
+The capability that made all of it possible: micro.cabal compiles with
+-rtsopts, so `+RTS -A<n>` overrides the baked RTS line and a nursery sweep runs
+on ONE binary. The page had been saying run-major.sh cannot give one binary two
+RTS configurations -- true of the driver, and it had been read as true of the
+binary. Two runs spent a build and a gate each to approximate what a `+RTS`
+argument does for free.
+
+Order of discovery, since it matters for how much was wasted: the ladder probe
+came first and reproduced Run 14's 14.1/22.3 as a known-answer control, which
+is the only reason the -A32m figure beside it could be trusted at once. The
+collector mechanism fell out of the -s output that probe was already printing.
+
+The shim refutation was an accident of a control: I rebuilt with the old shim
+expecting to isolate it, got a binary that did not reproduce Run 14's md5
+either, and only then thought to rebuild with the CURRENT shim -- which gave
+the same md5 as the old-shim build. That control should have been first; it is
+the cheaper of the two and it is the one that decides.
+
+Four figures I published earlier in the day and then had to correct: the
+five-shape gain attributed to the position term (it is the collector), the md5
+difference attributed to the shim (it is a dependency relink), the "shape-
+structural, therefore the ladder" argument (a general allocator gain would not
+show on all 24 either, because the collector saving does not), and offtab's
++3.62% attributed to instrument-or-build as unseparable (it is bounded).
+
+--- Run 15, third probe round, 2026-08-17
+
+The ladder hits `list` and nothing else: +15.0% against +0.5%, -0.1%, -0.2%
+on three strategy arms of the same shape in the same processes. Nobody had
+asked, in two runs of arguing about the term, whether it touches the arms --
+and it is the answer that matters, every published figure being a ratio to
+`list`.
+
+A model I built and then had to kill in one call. The poison leaves ~22 MB
+retained and the victim's phase runs 82 majors against 1; the arithmetic
+looked like it would close (82 x 22 MB x 0.42 ms/MB is the right order); and
+it does not, because majors do not copy large objects. Extra copying is 7 MB
+total, predicting 3 ms against ~650 ms observed. GC time 0.043s vs 0.059s
+settles it: the term is mutator time, where Run 14 had already put it.
+
+The lesson is the page's own: two instruments disagreeing is the finding, and
+the cheap direct split (MUT vs GC) should have come before the model, not
+after it.
+
+--- Run 15, the checker's third pass, 2026-08-17
+
+It found fifteen, and the first retracts a chain. Criterion runs benches in
+ROSTER order, not in the order the -m glob patterns are given. The roster puts
+the six conv shapes at positions 1-6 and the victim at 7, so a scan pairing
+each candidate with the victim tested only the six that CAN precede it; the
+other seventeen processes ran the victim first, and those "innocent" readings
+are victim-alone baselines. The tell was on the page and I read past it: all
+seventeen sat just BELOW the alone figure instead of scattering around it.
+
+So the identity-permutation clue, the conv1d-24 pairing and a three-condition
+rule that separated all 23 with no mismatch were all confounded with roster
+position -- and the rule fitted perfectly because positions 1-6 ARE that set.
+Run 14 has the same defect and its own notes assert the victim is 24th and
+last, where it is 7th.
+
+Four more came from reading the wrong phase of a two-bench -S trace: 82 majors
+against 1 (it is 96 against 101, and the poison REMOVES majors), 22 MB left by
+the poison (it is the victim's own live set, there without one), and 13 KB per
+major (72.9 KB in the poisoned process; 13 KB was the other file).
+
+What I did right, and it is the only reason the victim-set experiment survives:
+that script PRINTED which bench ran first and I checked it. The poison scan did
+not print it. Same session, same hazard, one instrumented and one not.
