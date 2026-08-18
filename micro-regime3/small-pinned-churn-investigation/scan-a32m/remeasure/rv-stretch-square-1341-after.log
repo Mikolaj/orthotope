@@ -1,0 +1,20 @@
+benchmarking cnn-slice-c32/list
+time                 5.886 μs   (5.875 μs .. 5.898 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 5.898 μs   (5.887 μs .. 5.919 μs)
+std dev              50.23 ns   (24.78 ns .. 86.16 ns)
+allocated:           1.000 R²   (1.000 R² .. 1.000 R²)
+  iters              57262.826  (57262.802 .. 57262.845)
+  y                  3154.273   (2890.491 .. 3417.117)
+
+benchmarking stretch-square-1341/list
+time                 29.31 ms   (28.94 ms .. 29.62 ms)
+                     1.000 R²   (0.999 R² .. 1.000 R²)
+mean                 29.99 ms   (29.57 ms .. 30.84 ms)
+std dev              1.193 ms   (80.74 μs .. 1.754 ms)
+allocated:           1.000 R²   (1.000 R² .. 1.000 R²)
+  iters              2.733e8    (2.733e8 .. 2.733e8)
+  y                  3108.588   (1426.158 .. 4839.077)
+variance introduced by outliers: 11% (moderately inflated)
+
+=== roster 47 benchmarks over 24 shapes; elapsed 0h0m10s; peak 107 MiB in use, 28 MiB max residency

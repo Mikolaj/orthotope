@@ -1,0 +1,21 @@
+benchmarking stretch-bigstride/list
+time                 26.30 ms   (22.08 ms .. 30.50 ms)
+                     0.941 R²   (0.868 R² .. 1.000 R²)
+mean                 37.55 ms   (31.94 ms .. 49.69 ms)
+std dev              17.05 ms   (4.042 ms .. 28.33 ms)
+allocated:           1.000 R²   (1.000 R² .. 1.000 R²)
+  iters              3.357e8    (3.357e8 .. 3.357e8)
+  y                  2769.118   (1488.195 .. 4427.219)
+variance introduced by outliers: 94% (severely inflated)
+
+benchmarking stretch-inner256/list
+time                 24.54 ms   (24.31 ms .. 24.81 ms)
+                     1.000 R²   (0.999 R² .. 1.000 R²)
+mean                 25.93 ms   (25.30 ms .. 27.07 ms)
+std dev              1.958 ms   (636.9 μs .. 2.867 ms)
+allocated:           1.000 R²   (1.000 R² .. 1.000 R²)
+  iters              2.666e8    (2.666e8 .. 2.666e8)
+  y                  2230.877   (582.029 .. 4302.715)
+variance introduced by outliers: 30% (moderately inflated)
+
+=== roster 47 benchmarks over 24 shapes; elapsed 0h0m11s; peak 1131 MiB in use, 14 MiB max residency

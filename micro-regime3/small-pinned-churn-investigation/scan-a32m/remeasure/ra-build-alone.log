@@ -1,0 +1,11 @@
+benchmarking vgg-14-c512-k3/build
+time                 3.243 ms   (3.166 ms .. 3.311 ms)
+                     0.998 R²   (0.996 R² .. 0.999 R²)
+mean                 3.147 ms   (3.112 ms .. 3.181 ms)
+std dev              116.5 μs   (111.2 μs .. 121.0 μs)
+allocated:           1.000 R²   (1.000 R² .. 1.000 R²)
+  iters              7225938.263 (7225920.344 .. 7225959.678)
+  y                  3216.517   (2475.238 .. 4090.876)
+variance introduced by outliers: 19% (moderately inflated)
+
+=== roster 47 benchmarks over 24 shapes; elapsed 0h0m5s; peak 79 MiB in use, 7 MiB max residency

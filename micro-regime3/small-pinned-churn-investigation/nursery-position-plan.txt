@@ -1,0 +1,377 @@
+PLAN: the -A32m/-A1G noise and bias -- prepared 2026-08-17, machine busy,
+for the next quiet-machine session. Companion to Run 14's probe notes (removed
+2026-08-18, salvage in nursery-position-findings2.txt items 19-20) and
+to the README's position-term entry, which is the authority on what is measured.
+Scope set by Mikolaj 2026-08-17: the target is the UNNAMED position term
+and the other -A-driven effects; GHC work item 27601 is background only
+("a minuscule fragment of the issue"), so no task below chases it. Goals: (1)
+understand and eliminate the benchmark noise and bias from -A32m and -A1G; (2)
+determine which root causes can slow a real program using the library at -A1G,
+work around some, and judge each as GHC defect or conscious trade-off. Nothing
+here repeats a measurement already taken.
+
+1. NEW THIS SESSION (no measurements, machine-load-free probes only).
+
+1.1 THE SIZE-CLASS TABLE the findings file asked for ("WHAT WOULD SETTLE IT") --
+derivable from Main.hs alone, since every main-set setup is one pinned Storable
+vector of 8l bytes and every arm allocates one pinned l-element result per
+iteration. Sorted by roster (declaration) position; "small" = at or below GHC's
+3276-byte threshold, so the object shares a pinned block instead of getting
+its own block group:
+
+     pos  shape                    l        result 8l   class
+      1   cnn-L1-6x6-c1            324      2592 B      SMALL-pinned
+      2   cnn-L1-24x24-c1          5184     41 KB       own-group
+      3   cnn-L2-24x24-c32         165888   1.33 MB     own-group
+      4   cnn-slice-c32            288      2304 B      SMALL-pinned
+      5   lenet-L1-28-c1-k5        19600    157 KB      own-group
+      6   cifar-L2-16-c64-k3       147456   1.18 MB     own-group
+      7   vgg-14-c512-k3           903168   7.2 MB      own-group
+      8   alexnet-L1-55-c3-k11     1098075  8.8 MB      own-group
+      9   alexnet-L2-27-c48-k5     874800   7.0 MB      own-group
+     10   gather48-src-50          22500    180 KB      own-group
+     11   conv1d-24                5184     41 KB       own-group
+     12   stretch-rank10           59049    472 KB      own-group
+     13   stretch-wide-2xM         1800000  14.4 MB     own-group
+     14   stretch-primes           250357   2.0 MB      own-group
+     15   stretch-bigstride        1800000  14.4 MB     own-group
+     16   stretch-square-1341      1798281  14.4 MB     own-group
+     17   stretch-r5-8x432         1769472  14.2 MB     own-group
+     18   stretch-inner1           500000   4.0 MB      own-group
+     19   stretch-tall-Mx2         1800000  14.4 MB     own-group
+     20   stretch-coprime-r7       60060    480 KB      own-group
+     21   stretch-rank12           4096     33 KB       own-group
+     22   stretch-tab7MB           1800000  14.4 MB     own-group
+     23   stretch-pow2stride       1769472  14.2 MB     own-group
+     24   stretch-inner256         1750784  14.0 MB     own-group
+
+The one fact this table adds to everything written so far: exactly two shapes
+have SMALL-pinned per-iteration results -- cnn-slice-c32 and cnn-L1-6x6-c1 --
+and those are exactly the two that EACH reproduce the full effect alone (22.1
+and 21.9 ms at -A1G against the moderate 16.6-17.1 tier of the other four
+tested). A per-iteration spray also spans four orders of magnitude in COUNT:
+criterion's ~5 s budget gives cnn-slice-c32's arms about a million pinned
+allocations per bench against vgg's few hundred. Both the strength tiers
+and the arm-blindness (every arm of a shape allocates the same pinned result per
+iteration; the README's attribution to "setup" fits the env vector,
+but the result spray fits the arm-blindness at least as well) are consistent
+with a pinned-churn account and give the corrected scan something to refute.
+
+1.2 REGISTERED PREDICTIONS for the corrected scan (task 2.1), written before
+it runs: (a) cnn-slice-c32 and cnn-L1-6x6-c1 poison at full strength. (b) Poison
+strength falls with l (spray count ~ 1/l): moderate for the 33-500 KB tier
+(cnn-L1-24x24-c1, conv1d-24, lenet, gather48, stretch-rank12, stretch-rank10,
+stretch-coprime-r7), weak to none at and above ~1 MB. In particular conv1d-24 --
+"innocent" in the retracted scans, but never actually tested (roster 11 > 7) --
+is predicted to poison like its l-twin cnn-L1-24x24-c1. (c) stretch-rank12
+is the sharpest single discriminator: the fitted square-block/rank<=5/l<800k
+rule says innocent (rank 12), the spray-count account says poison (l=4096, high
+call rate). Whichever way it lands kills one account. (d) Registered against
+(b): cifar (1.18 MB) and cnn-L2 (1.33 MB) DID poison in the confounded scans
+at the moderate tier; if the corrected scan finds the >=1 MB shapes poisoning
+at strength comparable to the 41 KB tier, the pure count account fails.
+
+1.3 THE --list TRAP, confirmed at source: ./run15-lookrts --list prints
+ALPHABETICAL order (vgg-14-c512-k3 last), while execution follows declaration
+order (convShapes ++ stretchShapes: vgg 7th, stretch-inner256 24th) -- exactly
+the instrument that manufactured Run 14's "victim is 24th and last". Never read
+a roster position off --list; poison-scan.sh's per-process order assertion
+from the log's own "benchmarking" lines is the right guard and is in place.
+
+1.4 SCRIPTS VERIFIED AND HARDENED, nothing run hot: run15-lookrts present, md5
+matches the README's 60f964ab2995813807326551cadf8566; the awk parsers
+were exercised against an existing criterion log (probe-pa2-aligned-0.log)
+and extract bench name and time correctly; poison-scan.sh no longer depends
+on the wipeable /tmp/shapes.txt (regenerates it from the binary) and now flags
+a units mismatch (criterion prints mius/ms/s and the delta arithmetic assumed
+one unit). remeasure.sh already prints units and per-target filenames.
+
+1.5 CRITICAL NOTES ON STANDING CLAIMS (deliverable in itself; none needs a run):
+(a) horde-ad's docs/position-effect.md: "micro-regime3 never sees the 22%
+because nothing in it poisons: its allocations are coarse-grained" -- falsified
+by Run 14/15 (+56.5% at -A1G, bigger than horde-ad's own 22%),
+and the justification missed that two shapes' per-iteration results
+are sub-3276-byte pinned objects. Its one link flagged as "from RTS-source
+reading, not measured" -- "the nursery itself is carved contiguously at startup
+and reused in place, so ordinary heap allocation is unaffected" -- is refuted
+in detail by the source reading in 1.6: at -A >= 16m the nursery is 4 MB chunks,
+its block order is permuted by every out-of-line allocation and never re-sorted,
+and trim/grow draws singleton blocks "from a random block". A correction
+to that file (on horde-ad master, stamped) is owed once the mechanism is named.
+(b) The README position-term entry still opens with "It does not touch
+the published tables, which are the basis half's and so default-nursery, where
+position is free" -- contradicted by the same entry's later layers (anchor taxes
+of +0.3/+6.3/+10.2% AT THE DEFAULT nursery) and by Provenance ("its published
+absolute is an in-roster figure some 9% above what that shape does alone").
+Stale head; repair by changing those clauses, not by appending more. (c)
+nursery-position-findings.txt (since removed, salvage in findings2): findings 3
+and 4 and the poison/innocent lists (and the same-set halves of 14a/14b)
+are retracted by the README's roster-confound entry; findings 1, 2 (as scoped
+to vgg), 5-8, 10-13 and 15 stand. The file's "victim is 24th and last" prelude
+comment is the --list artifact of 1.3. A one-line header notice pointing
+at the retraction would stop a future session from mining the dead findings;
+the file is otherwise raw material and not worth rewriting. (d) Finding 15's
+conceptual objection (the disturbance is full size at -A4m, contradicting
+a precondition-style mechanism) silently assumes the added misses at -A4m
+are the SAME phenomenon as at -A1G; the differencing attributes the victim
+phase's GC work to the victim, so at -A4m (4.9 s GC) the added misses could
+be collector-side. Task 2.6 closes this.
+
+1.6 RTS-SOURCE VERDICTS, from a source-reading pass over the GHC checkout
+at horde-ad/ghc (HEAD d415f38a75; the behaviors of interest reproduce
+on 9.12.4). The load-bearing facts, each with its source anchor so none
+is re-derived: (a) AT -A >= 16m THE NURSERY IS SILENTLY CHUNKED INTO 4 MB
+CHUNKS, and the setting OVERRIDES an explicit -n (rts/RtsFlags.c:1997-2000,
+normaliseRtsOpts, "If we have -A16m or larger, use -n4m", since 2016). So -A32m
+runs as 8 chunks and -A1G as 256, handed out in index order, GC when all
+are spent -- any model assuming one monolithic -A1G chain is wrong at the first
+fork, and the planned -n discriminators were inert as designed (2.5 rewritten
+below). (b) The nursery is born as a chain of SINGLE-block groups (contiguous
+only by startup accident); resetNurseries keeps blocks and order; but every
+out-of-line allocate() and every new pinned accumulator block MOVES a block
+to the front of the chain (rts/sm/Storage.c:1156-1188, the ASCII-diagram
+comment), and nothing ever re-sorts it. Trim/grow after GC frees from the head
+and refills "from a random block" of the free list -- GHC's own Note [Sources
+of Block Level Fragmentation] (Storage.c:1884-1925, tickets 19481/19248)
+documents the "hodge-podge" decay and names the not-implemented fix
+(periodically reallocate the nursery). (c) Small pinned (total object < 409
+words, i.e. payload <= ~3256 B with the 2-word header) shares a per-capability
+accumulator block from a dedicated pinned_object_empty pool refilled ~1 MB
+at a time from the block allocator -- NOT from nursery blocks, though each new
+pinned block advances the nursery pointer for GC accounting
+(Storage.c:1239-1254). A 2304-byte vector fills an accumulator block ALONE (two
+don't fit in 4 KB), so cnn-slice-c32's ~1M sprays churn ~1M singleton blocks:
+retired to gen-0's large-object list, freed at the GC that collects their
+generation, into the LIFO size-binned free lists. Pinned allocation fully counts
+toward the GC trigger. (d) Free lists: per-node power-of-two buckets, LIFO push,
+O(1) neighbor coalescing, allocation takes the head of the first bucket
+that fits and splits from the HIGH-address end; NO address ordering,
+NO rebuilding, NO defragmentation, ever -- documented as a conscious trade-off
+("nothing you can do about it beyond hoping the pinned data is eventually
+freed"). A >= 1 MB group (every own-group result at l >= ~131k) lives and dies
+at megablock granularity on a separate ADDRESS-SORTED best-fit list -- which
+is why the big-result shapes should scramble far less per byte. (e) Kernel-time
+face: memory returns to the OS only at MAJOR GC (madvise(MADV_FREE) per freed
+run), and regrowth RE-MMAPS the range (MAP_FIXED, fresh zero pages) plus
+MADV_WILLNEED -- so a shrink-regrow cycle converts into minor faults
+and page-table churn that user-CPU cannot see. -Fd's decay advances
+on non-overflow majors (criterion does one per bench); -I0 removes the idle
+majors that would otherwise drive it. Note [Scaling retained memory] (GC.c:2310)
+and Note [-Fd and thrashing] (GC.c:2361, ticket 21483) are the documented policy
+and its documented failure mode -- the -A32m/imagenet pathology of 2.9
+is plausibly that Note's case. (f) Observability:
+gcdetails_block_fragmentation_bytes in GHC.Stats is a direct free-pool gauge
+((committed - allocated) bytes, rts/Stats.c:494-496); eventlog has
+HEAP_SIZE/BLOCKS_SIZE/MEM_RETURN events (MEM_RETURN fires every major GC);
+a -debug RTS's -Dg prints a per-GC memory inventory (nursery / empty pinned /
+free pool) -- structure-inspection only, a debug RTS is not the timed binary
+(horde-ad docs/ghc-issue-debug-changes-codegen.md). (g) Negative controls
+from source: compacting GC (-c) skips BF_PINNED blocks and touches no free list;
+performGC/rts_clearMemory restructure nothing (clearMemory only zeroes); no GC
+ever memcpy's a pinned or large object -- live ones are relinked whole. -G1
+makes every GC major (pinned freed every GC) and resizes the nursery every GC.
+(h) Design-intent ledger inputs: free-list non-repair = documented trade-off;
+pinned-never-moved = interface guarantee; the object-in-block retention hazard
+of shared pinned blocks = UNREMARKED in the sources (accident-shaped); OS-return
+policy = thoroughly documented with tickets; nursery-contiguity decay =
+documented, fix named and not implemented.
+
+1.7 MECHANISM CANDIDATE, registered before any further measurement, refutable
+by 2.1/2.4/2.5: the poison is per-iteration SMALL-pinned churn -- each sub-3276
+B result occupies a whole 4 KB accumulator block, so ~1M iterations push ~1M
+singleton blocks through gen-0 into the LIFO buckets, scrambling the singleton
+free lists and, via nursery trim/grow and accumulator-pool refills
+(allocLargeChunkOnNode takes any group >= 1 block), degrading the ADDRESS LAYOUT
+under the victim's nursery and pinned recycling without moving any counter GHC
+reports -- LLC misses only, dTLB flat, mem-in-use flat, permanent, -H2G-immune
+(pre-sizing neither sorts buckets nor de-permutes the nursery). The -A grading
+would then be the victim-side walk: per-sample nursery reuse at 4 MB fits L3
+whatever its order, at 32 MB sits at the L3 boundary, at 1 GB the walk is long
+and prefetch-dependent. Predictions this stakes: the corrected scan's strength
+tiers (1.2); dose dependence (2.4); a discontinuity or slope change across
+the -A15m/-A16m chunking boundary (2.5); block_fragmentation_bytes
+and BLOCKS_SIZE moving during the poison phase while mem-in-use barely does
+(2.5).
+
+2. QUIET-MACHINE TASKS, cheapest-refutation first. All use the existing
+   run15-lookrts binary with +RTS -A overrides (no build), except 2.7.
+
+2.1 bash poison-scan.sh 32m (~25 min). The corrected scan: victim
+stretch-inner256/list at roster position 24, every candidate precedes it, order
+asserted per process. Read against the registered predictions in 1.2. Keep
+the printed table; the JSONs also carry per-bench iteration counts, which turn
+the prediction into a dose axis (sprays per bench) for free.
+
+2.2 bash remeasure.sh (~15 min). The two re-measurements owed to the reused
+scratch filename: the ten-shape victim set and the six-arm specificity reading,
+per-target filenames this time.
+
+2.3 bash poison-scan.sh 1G (~40 min). Is the poison SET nursery-dependent?
+The -A1G cells carry the R-squared hazard (the alone cell read 0.9605 with mean
+49% off slope), so validate the extreme candidates by fixed-iteration
+differencing: two fresh processes at -n 200 and -n 100, /usr/bin/time wall,
+difference over 100 -- the page's own ground-truth rule.
+
+2.4 SETUP-VERSUS-SPRAY discriminator (~10 min, decisive between "what a shape's
+setup leaves" and per-iteration pinned churn). At -A1G, /usr/bin/time wall
+over fixed-iteration processes: victim alone; pair with the poison at -n 1; -n
+1000; -n 100000 (criterion -n applies to every selected bench, so difference
+whole processes against the poison-alone process at the same -n, as Run 14's
+block L did). Spray account: no tax at -n 1, growing then saturating with dose.
+Setup account: full tax already at -n 1.
+
+2.5 RTS-FLAG AND INSTRUMENT discriminators on the two-bench reproducer
+(cnn-slice-c32/list then vgg-14-c512-k3/list, each arm ~2 processes of ~1 min),
+redesigned after 1.6 -- the originally planned -n flags are INERT at -A >= 16m
+(1.6a): (a) The chunking boundary: run the pair and the alone leg at -A8m,
+-A15m, -A16m, -A17m, -A32m. At 15m the nursery is one chain; at 16m it becomes 4
+MB chunks. A discontinuity in the tax across that line implicates the chunk
+machinery; smooth grading through it acquits it. (b) -G1 at -A1G: every GC
+major, pinned freed every GC, nursery resized every GC. Under 1.7 the scramble
+then forms FASTER (more free/refill cycles); under a promotion-flavored account
+the term should shrink. (c) -c at -A1G: source says it cannot help (skips
+pinned, no free-list repair) -- run once as the negative control the mechanism
+claim predicts. (d) Instruments, same processes, no perf needed: +RTS -l
+and read HEAP_SIZE/BLOCKS_SIZE/MEM_RETURN from the eventlog; and note
+gcdetails_block_fragmentation_bytes is one Main.hs line away (the README's
+wild-cell task already plans per-sample RTS logging -- add this field to
+it for Run 16). Registered: fragmentation bytes jump during the poison bench
+and stay; mem-in-use barely moves (known 2.7%). (-H2G is already measured:
+no cure -- and 1.6 explains why it cannot be one: pre-sizing neither sorts
+buckets nor de-permutes the nursery chain.)
+
+2.6 COUNTER COMPLETION (perf, quiet): add dTLB-store-misses, L2 misses
+and minor-faults to the -A1G/-A4m differencing (the victim's churn is stores,
+only load misses were taken; and 1.6e means recommitted megablocks come back
+as fresh zero pages, so shrink-regrow history shows up in minor faults while RSS
+stays flat), and perf record the -A4m pair to attribute the ADDED misses
+to mutator vs collector symbols (evacuate/scavenge) -- the test of 1.5(d).
+If the -A4m disturbance is collector-side, the conceptual objection weakens
+and the rival accounts need re-scoring; if mutator-side, it stands measured.
+
+2.7 ReproSmall.hs (staged beside this file, untested): ghc -O1 -rtsopts
+ReproSmall.hs, then the matrix in its header -- {alone, poison, poisonbig} x
+{-A4m, -A32m, -A1G, -A1G -H2G}. COMPILERS: run the matrix on 9.12.4 AND on GHC
+HEAD (horde-ad's ghc/_build/stage1/bin/ghc), as Repro.hs's three-compiler table
+did -- HEAD is where a fix would land and backport from, the condition
+is already re-validated as alive there (findings 12-14), and a base-only file
+dodges the freeze/hashable friction that made the HEAD micro build a chore.
+Registered prediction: the 2304-byte spray reproduces the term's signature
+on both compilers (graded by -A, -H2G-immune, mem-in-use nearly unmoved);
+the 3600-byte poisonbig reproduces the 27601 signature instead (-H2G-curable),
+splitting the two conditions inside one binary. If it reproduces, the unnamed
+condition has a base-only reproducer and becomes filable (draft in horde-ad
+docs/, the issue-file conventions there); if not, the missing ingredient
+is criterion's per-bench performGC / per-sample minor GCs or the env lifetime,
+and the next variant adds those. Compiler policy for the plan as a whole:
+2.1-2.6 stay on the run15 binary (9.12.4) because every anchor they read against
+-- alone-figures, Run 14's known-answer control, the drift band -- exists only
+there; HEAD re-validation of 2.1's headline is optional via the findings file's
+HEAD rebuild recipe (nursery-position-findings2.txt item 20), within-binary
+ratios only. And do not hope for a HEAD-only workaround knob: the two RTS flag
+surfaces were diffed (run15-lookrts against the stage1 ghc, prefixes stripped,
+2026-08-18) and every difference is build-flavor (threaded flags)
+or observability (-hT/-hi closure subsetting, the IPE eventlog class) -- the GC
+tuning surface is identical, so there is no HEAD-only knob to reach for. Whether
+a given workaround WORKS may still differ by compiler: the flags are stable,
+the heuristics behind them are not, and only the few load-bearing ones
+were checked as unchanged (the -n4m override, the return policy). So test any
+candidate workaround on both -- one more thing 2.7's two-compiler matrix
+is for -- and a remedy genuinely absent from 9.12.4 would have to come
+from a future fix, which is what filing is for.
+
+2.8 SECONDARY-GOAL probe, after 2.7's verdict: horde-ad bakes -A1G -I0
+into every executable (common exe-options in horde-ad.cabal), so a real program
+phase that sprays small pinned tensors (MNIST-scale shaped tensors under ~410
+doubles are exactly this class) then runs a list/boxed-heavy phase would pay
+the term. Decision-relevant coarse probe: CAFlessTest wall at baked -A1G against
++RTS -A64m..-A256m (the floor section's caller band), quiet, two runs each.
+This conflates all the -A effects deliberately -- it is the decision quantity
+for the flag choice, not a mechanism probe. Any cabal change is Mikolaj's call.
+
+2.9 OPTIONAL, mechanism of the kernel-time face (bias of -A32m at large l):
+the imagenet -A32m pathology (31 ms/call of system time, worse than the default;
+64m cures). 1.6e names the machinery: returns happen only at major GC
+as madvise(MADV_FREE) with regrowth re-mmapping fresh zero pages, and GHC's own
+Note [-Fd and thrashing] (GC.c:2361, ticket 21483) documents exactly
+this shrink-regrow thrash as the -Fd policy's failure mode. One strace -c -e
+trace=memory run at 32m and 64m confirms or refutes the attribution (expect
+mmap+madvise pairs per major GC at 32m, quiet at 64m); if confirmed, test
+the Note's own knobs: -Fd0 (no decay) and --disable-delayed-os-memory-return.
+Bears on the caller advice and settles whether the non-monotonicity
+is the documented trade-off's documented edge rather than a new defect.
+
+2.10 OPTIONAL, low priority: derive the live span from code
+(fbList/toVectorListT structure) for the seven finite-span shapes; the README's
+negative (no shape-parameter formula) was re-checked this session against
+its own data and survives (the l/sInner conjecture dies on stretch-tall-Mx2:
+m=2, span 128 MB), so this is curiosity about the promotion story, not
+on the critical path.
+
+3. ELIMINATION AND MITIGATION, decided after 2.1-2.5 land.
+
+3.1 Run 16: add per-shape ALONE-legs for list (24 one-bench processes per half,
+~15 min each) so every published ratio can also be read against a clean
+denominator. This quantifies the bias per run without touching roster
+comparability, and it is the reading the position-term entry already names
+as unread at 32 MB.
+
+3.2 Roster surgery, only with 2.1's set in hand: either move confirmed poisons
+to the roster END (protects every other shape's baseline; breaks the drift-band
+lineage -- a deliberate migration) or accept the saturated state as common-mode
+and rely on 3.1's alone-legs. At the default nursery the tax is shape-dependent
+(+0.3 to +10.2% on the anchors), so the equalizer-spray idea buys less there
+than its -A32m uniformity (~14-15% across eight shapes) suggests; alone-legs
+look like the cleaner instrument. Decide with data.
+
+3.3 horde-ad: the baked -A1G -I0 predates the position term's discovery; whether
+it survives is 2.8's question plus the memory and fault-in costs already priced
+in the floor section. Never quote a -A1G absolute without an alone-leg
+meanwhile.
+
+4. DEFECT OR CONSCIOUS TRADE-OFF -- the ledger, design-intent side now filled
+   from 1.6h, mechanism side awaiting 2.1-2.7. Per root cause:
+(i) Unnamed position term -- mechanism registered at 1.7, not yet confirmed.
+The design-intent reading splits it: the free lists' never-repaired scatter
+is a DOCUMENTED trade-off (Note [Sources of Block Level Fragmentation]: "nothing
+you can do about it"), but the specific ingredient 1.7 leans on -- a single
+small live-or-recent pinned object cycling whole 4 KB blocks through the pool --
+is UNREMARKED in the sources, accident-shaped. The nursery-reallocation fix
+GHC's own Note names and never implemented is the natural upstream remedy
+to propose. Filable only with 2.7's reproducer plus the confirmed mechanism.
+Real-program -A1G exposure: YES, potentially large -- the one root cause
+that taxes a later phase of an ordinary program permanently. (ii) Promotion
+below the live span (the five gainers, 0.42 ms/MB) -- generational design
+working as intended; trade-off; costs small nurseries, not -A1G. (iii) The 20.9
+MB gen-1 growth budget cadence -- design. (iv) Kernel time when per-call excess
+outruns the nursery, and its non-monotone -A32m face at l=28.9M -- the policy
+is thoroughly documented (Note [Scaling retained memory]) and its failure mode
+too (Note [-Fd and thrashing], ticket 21483): a documented trade-off whose edge
+2.9 checks we are on. Real-program exposure at -A1G: none (a small-nursery
+cost). (v) -A1G under a -M cap turning minors into majors -- configuration
+interaction, by design, but a footgun worth documenting. (vi) Peak-inversion
+at scale -- arithmetic of (ii); design. (vii) The ~1.2 s/GB first-touch
+of a large area -- OS cost, design; a startup cost for -A1G programs
+and a small-n benchmark trap. (viii) The silent -n4m override at -A >= 16m
+(1.6a) -- a deliberate default, but one that silently overrides an EXPLICIT -n,
+which is at least a documentation defect; it also means every -A32m/-A1G claim
+in these pages is really a claim about a 4 MB-chunked nursery of that total
+size. (ix) Work item 27601 -- background per Mikolaj; not pursued here.
+
+5. EXECUTION STATUS, 2026-08-18: tasks 2.1-2.5 (as redesigned mid-flight), 2.7
+   and 2.8 are DONE; results and artifacts are in nursery-position-findings2.txt
+   beside this file, which supersedes this plan's registered predictions
+   with verdicts. Headlines: no poison set exists (log-dose curve at -A32m,
+   two-level structure at -A1G); the -A1G "+57%" was part transient (the alone
+   leg's fresh-heap honeymoon; true steady-state tax +29-44%); the level-2
+   ingredient is the sub-3276 B pinned churn CLASS (matched-dose test, +44% vs
+   +3.3%); ReproSmall reproduces the condition on 9.12.4 and HEAD with in-binary
+   class discrimination and is ready to grow into a GHC issue; CAFlessTest runs
+   5.6% faster at -A64m than at the baked -A1G at 7x less memory. Still owed:
+   the -A4m mutator-vs-collector miss attribution (2.6's second half),
+   the strace attribution (2.9), the honeymoon micro-mechanism, and every
+   document correction listed in findings2 items 14 and 1.5 here.
+
+Successor plan for the absolute-slowdown goals: pinned-churn-plan.txt
+(2026-08-18, three goals: GHC awareness and filing; best GHC options; user-code
+workarounds).

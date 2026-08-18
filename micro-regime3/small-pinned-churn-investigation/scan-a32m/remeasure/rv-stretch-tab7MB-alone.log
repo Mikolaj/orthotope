@@ -1,0 +1,11 @@
+benchmarking stretch-tab7MB/list
+time                 33.39 ms   (33.00 ms .. 33.70 ms)
+                     1.000 R²   (0.999 R² .. 1.000 R²)
+mean                 34.27 ms   (33.87 ms .. 35.29 ms)
+std dev              1.177 ms   (164.3 μs .. 2.048 ms)
+allocated:           1.000 R²   (1.000 R² .. 1.000 R²)
+  iters              3.670e8    (3.670e8 .. 3.670e8)
+  y                  2164.000   (692.420 .. 4433.556)
+variance introduced by outliers: 11% (moderately inflated)
+
+=== roster 47 benchmarks over 24 shapes; elapsed 0h0m5s; peak 111 MiB in use, 28 MiB max residency

@@ -1,0 +1,21 @@
+benchmarking gather48-src-50/list
+time                 387.2 μs   (382.2 μs .. 396.7 μs)
+                     0.993 R²   (0.990 R² .. 0.996 R²)
+mean                 432.2 μs   (422.2 μs .. 441.9 μs)
+std dev              34.51 μs   (30.62 μs .. 36.82 μs)
+allocated:           1.000 R²   (1.000 R² .. 1.000 R²)
+  iters              4217081.039 (4217076.907 .. 4217084.371)
+  y                  4563.471   (3950.817 .. 5158.304)
+variance introduced by outliers: 68% (severely inflated)
+
+benchmarking stretch-inner256/list
+time                 24.88 ms   (24.61 ms .. 25.17 ms)
+                     1.000 R²   (0.999 R² .. 1.000 R²)
+mean                 26.28 ms   (25.66 ms .. 27.57 ms)
+std dev              2.065 ms   (646.6 μs .. 3.139 ms)
+allocated:           1.000 R²   (1.000 R² .. 1.000 R²)
+  iters              2.666e8    (2.666e8 .. 2.666e8)
+  y                  2300.912   (495.670 .. 4379.822)
+variance introduced by outliers: 30% (moderately inflated)
+
+=== roster 47 benchmarks over 24 shapes; elapsed 0h0m11s; peak 1127 MiB in use, 14 MiB max residency

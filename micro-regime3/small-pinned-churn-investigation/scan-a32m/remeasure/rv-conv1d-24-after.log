@@ -1,0 +1,19 @@
+benchmarking cnn-slice-c32/list
+time                 5.900 μs   (5.879 μs .. 5.917 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 5.879 μs   (5.864 μs .. 5.896 μs)
+std dev              54.53 ns   (45.77 ns .. 78.43 ns)
+allocated:           1.000 R²   (1.000 R² .. 1.000 R²)
+  iters              57262.826  (57262.803 .. 57262.845)
+  y                  3154.273   (2916.826 .. 3401.029)
+
+benchmarking conv1d-24/list
+time                 100.8 μs   (100.4 μs .. 101.1 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 100.4 μs   (100.2 μs .. 100.8 μs)
+std dev              966.3 ns   (767.2 ns .. 1.305 μs)
+allocated:           1.000 R²   (1.000 R² .. 1.000 R²)
+  iters              977081.777 (977081.172 .. 977082.556)
+  y                  3602.259   (3116.272 .. 4081.601)
+
+=== roster 47 benchmarks over 24 shapes; elapsed 0h0m10s; peak 41 MiB in use, 0 MiB max residency

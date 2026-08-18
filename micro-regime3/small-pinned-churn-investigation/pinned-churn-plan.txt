@@ -1,0 +1,206 @@
+PLAN: the small-pinned accumulator-churn slowdown -- prepared 2026-08-18
+for a fresh session. Successor to nursery-position-plan.txt (executed; verdicts
+in nursery-position-findings2.txt, cited below by item number). Scope set
+by Mikolaj 2026-08-18: this is a serious ABSOLUTE slowdown in real programs,
+not merely a benchmarking bias. Three goals: (1) establish whether GHC
+developers know of it and whether it is a conscious trade-off, and file
+the matching GHC issue; (2) find the best current GHC options relieving GC
+pressure for list- and bq-expand-like code without incurring a high cost such
+as the churn tax; (3) find the best USER-CODE workarounds for a mixed workload
+(list, bq-expand, mut-odo-vecdims in equal proportions, random order, all 24
+main shapes). Nothing here repeats a measurement in findings2; every task states
+its instrument.
+
+0. BACKGROUND A FRESH SESSION NEEDS (all measured, findings2 items
+   in parentheses; RTS source anchors in nursery-position-plan.txt section 1.6).
+
+0.1 THE CONDITION: a phase that churns pinned allocations of <= ~3256 B payload
+(<= ~407 doubles; the 3276-byte LARGE_OBJECT_THRESHOLD = BLOCK_SIZE*8/10,
+compared with the 16 B header included) permanently degrades later
+heavy-allocating code in the same process. Every Storable vector is pinned
+at every size; sub-threshold ones go through the per-capability shared
+accumulator-block path, and that path is the poison: at the same object count,
+800 B, 1800 B and 2304 B sprays tax a list victim +9-18% (ReproSmall, item 29)
+while a 3600 B own-group spray taxes ZERO (items 13, 16, 29). Dose response
+is logarithmic, saturated by ~10^5-10^6 objects (items 1-2); the state
+is permanent in the process, -H2G does not cure it, GHC HEAD behaves identically
+to 9.12.4 (item 16). Signature: victim instructions identical, LLC misses ~3.1x,
+dTLB flat (item 18a).
+
+0.2 MAGNITUDES, steady state (fixed-n wall differencing -- the only trusted
+instrument, see 0.3): the saturated-state tax on a list-like victim is ~+2%
+at -A4m, +12-17% at -A32m, +33% at -A64m and -A256m, +44% at -A1G (conv1d
+ladder, items 13, 15; inner256 +29% at 1G, vgg +34%). So -A tuning cannot remove
+it; only the small-nursery end refuses to pay, at its own large GC cost.
+bq-expand measured FLAT under the saturated state (items 6-8: -0.8%, within
+a tight band); mut-odo-vecdims flat at three-rep precision. So the three goal-3
+arms have disjoint exposures: list pays the churn tax; bq-expand pays
+the small-nursery kernel term (the floor section's account, README) and gains
+from -A up to its excess; mut-odo-vecdims pays only the arena term.
+
+0.3 INSTRUMENT DISCIPLINE, non-negotiable: criterion alone-window slopes at
+-A >= 32m are contaminated by a fresh-heap transient whose SIGN
+is workload-dependent (items 10-12, 16, 26) -- vgg's true alone rate is 16.55
+ms/iter where the slope said 14.12 and the mean 20.99. Measure steady state
+as (wall at -n 2N minus wall at -n N)/N over fresh processes, subtracting
+a poison-alone process at the same -n where a pair is measured (items 13, 15
+show the arithmetic). Assert per-process execution order from the log's own
+"benchmarking" lines; NEVER from --list, which prints alphabetical order,
+not execution order (old plan 1.3). One artifact file per cell, no reuse. Check
+the machine is quiet via loadavg before any batch. Binary: run15-lookrts, md5
+60f964ab2995813807326551cadf8566, +RTS -A overrides the baked "-I0 -T -M8G".
+
+0.4 STANDING CAVEATS: cifar-L2-16-c64-k3 carries a measured +10.2%
+at the DEFAULT nursery (item 21) -- the one counterexample to small-nursery
+immunity; do not claim -A4m robustness without naming it. offtab and build
+cannot be read by single processes at all (items 8, 24). All 24 main shapes' l
+and result-size classes are tabled in nursery-position-findings2.txt item
+0-adjacent (the size-class table in the old plan, section 1.1).
+
+1. GOAL 1 -- AWARENESS, TRADE-OFF STATUS, AND THE FILING. No machine timing;
+   network and source reading. The filing itself needs Mikolaj's explicit
+   go-ahead; everything below only STAGES drafts (horde-ad docs/ conventions:
+   one file per destination, self-contained, reproducer named Repro.hs inline,
+   GitHub/GitLab-bound text unwrapped, pinned links).
+
+1.1 Tracker sweep on gitlab.haskell.org: search issues and MRs for the TIME cost
+of small-pinned churn -- terms: allocatePinned, pinned_object_block, pinned
+fragmentation, pinned slow, mallocForeignPtrBytes performance,
+PINNED_EMPTY_SIZE. Known-adjacent tickets to read and cite rather
+than rediscover: 7257, 7831, 19171, 23221 (memory cost of pinned/large
+fragmentation), 19481 (nursery hodge-podge), 19248 (compaction does not help
+block-level fragmentation), 21483 (-Fd thrashing), plus work item 27601 (ours,
+the OWN-GROUP spray -- a different condition, measured harmless
+in the accumulator sense, item 29). Also find the MR that introduced
+the pinned_object_empty pool (the "# Nursery Fragmentation" section of Note
+[Sources of Block Level Fragmentation] documents the change; git log -S
+pinned_object_empty in the GHC checkout at horde-ad/ghc gives the commit
+and its MR number) and read its discussion: it proves the devs thought hard
+about pinned-vs-NURSERY interaction; the question is whether anyone named
+the free-list scatter the accumulator path leaves and its mutator time cost.
+
+1.2 Documentation check: the user's guide's runtime-control chapter (-A, -AL,
+pinned memory), the GHC.ForeignPtr/mallocForeignPtrBytes haddocks, and vector's
+Data.Vector.Storable haddocks -- record verbatim whether ANY user-facing text
+warns that a burst of small pinned allocations permanently degrades later
+mutator performance at enlarged allocation areas. The RTS-source verdict
+is already in hand: the object-in-block retention hazard is unremarked in rts/
+sources (old plan 1.6h), the free-list non-repair is a documented trade-off
+with the nursery-reallocation fix named and not implemented.
+
+1.3 The verdict and the draft. If 1.1 finds the time cost known and accepted:
+draft a DOCUMENTATION issue -- the trade-off and its mitigations are absent
+from user material and from the code's own Notes, the named-but-unimplemented
+mitigations (periodic nursery reallocation; the three corrections listed
+in the 27601 filing) have not been re-evaluated against a measured 33-44%
+mutator tax. If 1.1 finds it unknown: draft an RTS DEFECT issue. Either way
+the body carries: ReproSmall (tidied, with poisonmid/poisontiny
+and the own-group control -- the in-binary class discrimination is the strongest
+card), the three-compiler table (add ghcup 9.14.1 to the measured 9.12.4/HEAD --
+minutes), the counter signature, the -A ladder of the tax, the -H2G immunity,
+and the explicit split from work item 27601 (H2G-curable, own-group,
+mem-doubling) so the two are not merged by triage. Draft file: horde-ad
+docs/ghc-issue-small-pinned-churn.md (final name the session's choice),
+following docs/ghc-issue-block-pool-fragmentation.md's form. STAGE ONLY; Mikolaj
+files.
+
+2. GOAL 2 -- BEST CURRENT GHC OPTIONS for list-like and bq-expand-like code.
+   Deliverable: a per-workload-class recommendation table with measured
+   steady-state costs in both the clean and the saturated state, and an explicit
+   statement of what is unavoidable. Budget ~1.5-2.5 h quiet machine, staged
+   so early results prune later cells; use run15-lookrts throughout.
+
+2.1 Stage A, the -A axis in BOTH states (the axis everything else hangs off).
+Cells: arms {list} x shapes {vgg-14-c512-k3 (span 16 MB), stretch-inner256 (span
+64 MB), stretch-wide-2xM (no span)} x -A {4m, 32m, 64m, 256m} x {alone, after
+cnn-slice-c32/list saturating poison}, all fixed-n two-point differencing (0.3),
+poison-alone runs subtracted in pair cells. Do NOT re-measure what exists:
+32m/64m/256m/1G alone plateaus for inner256 and the 1G cells are findings2 items
+10-15; bq-expand's alone -A curve on vgg is the README floor section's (cite,
+don't redo); bq-expand poisoned needs only spot cells (predicted flat per item 6
+-- verify at 64m and 256m once each). New information per cell: the missing
+alone plateaus at 4m (never taken -- only slopes exist) and the poisoned
+plateaus at 4m/32m/64m/256m per shape.
+
+2.2 Stage B, variants on the two best -A values from Stage A, poisoned-state
+cells first (a variant that does not move the poisoned state is dead
+on arrival): {-G1}, {-xn (nonmoving old gen)}, {-Fd0},
+{--disable-delayed-os-memory-return}, {-c as the predicted-null control}, {-AL
+sweep one point, bq-expand only}. Registered leans, to be judged not remembered:
+-c changes nothing (skips pinned, no free-list repair -- source); -G1 frees
+pinned every GC, could form the scatter FASTER; -xn reroutes pinned
+to the nonmoving sweep, genuinely different free path, the one variant
+with a real shot; -Fd0/--disable-delayed... address the kernel term only,
+so they are bq-expand/small-nursery medicine, not churn medicine.
+
+2.3 The recommendation write-up: for list-like GC-bound code, for bq-expand-like
+excess-allocation code, and for low-allocation code, each: best options clean,
+best options saturated, the unavoidable residue named (the arena term is known
+and accepted per Mikolaj; the churn tax at -A >= 32m is the thing to minimize).
+Fold in the CAFlessTest datum (item 17: -A64m beat baked -A1G by 5.6% wall at 7x
+less RSS on a real suite).
+
+3. GOAL 3 -- USER-CODE WORKAROUNDS for the mixed workload. The workload: single
+   iterations of list, bq-expand and mut-odo-vecdims in equal proportion,
+   uniformly random order (fixed seed), across all 24 main shapes -- which
+   includes cnn-slice-c32 and cnn-L1-6x6-c1, so the workload SELF-POISONS
+   through every arm's small pinned result (item 1.1's size table: those two
+   shapes' results are 2304/2592 B; every arm allocates one result per call).
+   The realistic optimum is therefore "best steady time GIVEN the saturated
+   state" plus "does source-level de-poisoning pay". Stride-class and tooBig
+   shapes only as a final sensitivity check if a recommendation is close.
+
+3.1 Build the driver, MixedLoad.hs, untracked beside this file: reuses mkStrided
+and the three arm bodies (list and bq-expand call the shipped library path;
+mut-odo-vecdims's body is copied out of Main.hs with a provenance comment --
+it is a candidate arm, not library code). Requirements: seeded shuffle
+of (shape, arm) pairs with equal arm counts; per-window timing (rotating windows
+of ~100 calls, report the last few windows as steady state -- the two-halves
+lesson, item 16); per-window GHC.Stats sampling of allocated_bytes,
+gcdetails_mem_in_use_bytes and gcdetails_block_fragmentation_bytes
+(the free-pool gauge, old plan 1.6f); a run prints its seed, RTS flags
+and per-window table. Toy-run it at tiny scale before measuring (the doc-toy-run
+discipline).
+
+3.2 Workaround candidates, each a driver toggle, measured against the untouched
+baseline at the goal-2-recommended -A values: (a) PAD SMALL PINNED RESULTS above
+the threshold: allocate max(l, 410) doubles and slice the vector to l
+(Data.Vector.Storable unsafeFromForeignPtr keeps the semantics; only
+the allocation size changes). Registered prediction: the poisoning stops forming
+-- padded allocations take the own-group path measured harmless at equal count
+(item 29) -- at a memory cost of at most ~3 KB per small vector. If confirmed,
+this is a one-line allocation-policy candidate for ox-arrays/orthotope,
+and the finding that matters beyond benchmarking. (b) UNPINNED intermediates,
+two strengths. Weak form: route small RESULTS through unpinned memory
+(Data.Vector.Primitive / plain ByteArray#) and convert at boundaries --
+no pinned allocation, no poison; cost is the conversion and the loss
+of Ptr-stability for FFI. Strong form (Mikolaj, 2026-08-18), for list-like code:
+restructure the WORKING representation itself -- build through
+Data.Vector.Unboxed and copy into Storable once at the end -- which removes both
+the boxed cons churn (the victim-side exposure) and every pinned intermediate
+(the poison-side contribution) at the cost of one copy; bq-expand's measured
+times bound from above what this can reach, and on small shapes the final
+Storable copy still sprays unless combined with (a). Measure the driver delta
+only; the API implications are the stack's to weigh. (c) -A moderation alone
+(32m), i.e. accept a halved tax with the goal-2 GC savings -- the no-code-change
+floor. (d) Buffer reuse for small results (a per-size free-list in user code) --
+sketch only unless (a) fails, since (a) dominates it in simplicity.
+The candidate list is OPEN: any further workaround, from Mikolaj or conceived
+mid-session, competes under the same decision rule and instruments. Decision
+rule: a workaround wins if it improves the steady mixed-workload wall
+at its best -A by more than the A/A spread of the driver (measure that spread
+first: two seeds x two repeats).
+
+3.3 Sensitivity and hand-off: one run each with the winning configuration
+on the stride classes and (behind the temporary tooBig edit, -M20G, the README
+names the recipe) one imagenet-scale shape, only to check the recommendation
+does not invert; then write the recommendation into findings2 with the driver's
+tables, and list what it implies for horde-ad (small-tensor allocation policy;
+the baked -A1G -I0 decision, item 17) as Mikolaj's decisions, not actions taken.
+
+4. WHAT THIS PLAN DOES NOT COVER, left open deliberately: the honeymoon
+   micro-mechanism (item 25) and the -A4m mutator-vs-collector attribution (item
+   18 pending half) -- mechanism work, not needed for any of the three goals;
+   the cifar default-nursery counterexample (item 21) -- name it wherever
+   a robustness claim is made, chase it only if goal-2 results make
+   it load-bearing.

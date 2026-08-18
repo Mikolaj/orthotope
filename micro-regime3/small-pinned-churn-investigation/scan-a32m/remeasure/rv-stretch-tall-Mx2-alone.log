@@ -1,0 +1,11 @@
+benchmarking stretch-tall-Mx2/list
+time                 32.22 ms   (31.55 ms .. 32.69 ms)
+                     0.999 R²   (0.998 R² .. 1.000 R²)
+mean                 32.47 ms   (32.00 ms .. 34.24 ms)
+std dev              1.701 ms   (259.0 μs .. 3.213 ms)
+allocated:           1.000 R²   (1.000 R² .. 1.000 R²)
+  iters              2.734e8    (2.734e8 .. 2.734e8)
+  y                  2778.706   (619.842 .. 5303.190)
+variance introduced by outliers: 17% (moderately inflated)
+
+=== roster 47 benchmarks over 24 shapes; elapsed 0h0m6s; peak 101 MiB in use, 28 MiB max residency

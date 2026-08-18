@@ -1,0 +1,10 @@
+benchmarking stretch-primes/list
+time                 3.501 ms   (3.492 ms .. 3.513 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 3.497 ms   (3.492 ms .. 3.507 ms)
+std dev              20.73 μs   (11.52 μs .. 32.41 μs)
+allocated:           1.000 R²   (1.000 R² .. 1.000 R²)
+  iters              3.833e7    (3.833e7 .. 3.833e7)
+  y                  3504.325   (2395.657 .. 4599.476)
+
+=== roster 47 benchmarks over 24 shapes; elapsed 0h0m5s; peak 45 MiB in use, 4 MiB max residency

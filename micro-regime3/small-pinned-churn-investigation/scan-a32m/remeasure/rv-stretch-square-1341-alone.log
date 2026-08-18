@@ -1,0 +1,11 @@
+benchmarking stretch-square-1341/list
+time                 25.59 ms   (25.28 ms .. 25.86 ms)
+                     1.000 R²   (0.999 R² .. 1.000 R²)
+mean                 26.18 ms   (25.81 ms .. 27.15 ms)
+std dev              1.110 ms   (80.95 μs .. 1.821 ms)
+allocated:           1.000 R²   (1.000 R² .. 1.000 R²)
+  iters              2.733e8    (2.733e8 .. 2.733e8)
+  y                  3017.965   (1155.127 .. 5065.405)
+variance introduced by outliers: 15% (moderately inflated)
+
+=== roster 47 benchmarks over 24 shapes; elapsed 0h0m5s; peak 111 MiB in use, 28 MiB max residency

@@ -1,0 +1,21 @@
+benchmarking lenet-L1-28-c1-k5/list
+time                 327.8 μs   (323.1 μs .. 335.9 μs)
+                     0.993 R²   (0.990 R² .. 0.996 R²)
+mean                 365.6 μs   (356.9 μs .. 373.6 μs)
+std dev              29.16 μs   (25.12 μs .. 31.16 μs)
+allocated:           1.000 R²   (1.000 R² .. 1.000 R²)
+  iters              3549782.892 (3549780.038 .. 3549785.665)
+  y                  4057.708   (3414.324 .. 4685.219)
+variance introduced by outliers: 69% (severely inflated)
+
+benchmarking stretch-inner256/list
+time                 24.88 ms   (24.64 ms .. 25.16 ms)
+                     1.000 R²   (0.999 R² .. 1.000 R²)
+mean                 26.30 ms   (25.66 ms .. 27.79 ms)
+std dev              2.086 ms   (706.8 μs .. 3.215 ms)
+allocated:           1.000 R²   (1.000 R² .. 1.000 R²)
+  iters              2.666e8    (2.666e8 .. 2.666e8)
+  y                  2230.877   (636.246 .. 4095.051)
+variance introduced by outliers: 30% (moderately inflated)
+
+=== roster 47 benchmarks over 24 shapes; elapsed 0h0m10s; peak 1127 MiB in use, 14 MiB max residency

@@ -1,0 +1,20 @@
+benchmarking stretch-coprime-r7/list
+time                 897.7 μs   (895.8 μs .. 899.1 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 899.1 μs   (898.7 μs .. 899.6 μs)
+std dev              1.429 μs   (912.0 ns .. 2.242 μs)
+allocated:           1.000 R²   (1.000 R² .. 1.000 R²)
+  iters              9867829.234 (9867823.763 .. 9867835.915)
+  y                  4178.682   (3428.127 .. 4882.988)
+
+benchmarking stretch-inner256/list
+time                 31.86 ms   (30.87 ms .. 33.04 ms)
+                     0.995 R²   (0.991 R² .. 0.998 R²)
+mean                 31.77 ms   (30.98 ms .. 33.11 ms)
+std dev              2.061 ms   (1.353 ms .. 3.177 ms)
+allocated:           1.000 R²   (1.000 R² .. 1.000 R²)
+  iters              2.666e8    (2.666e8 .. 2.666e8)
+  y                  2399.941   (263.893 .. 4731.505)
+variance introduced by outliers: 22% (moderately inflated)
+
+=== roster 47 benchmarks over 24 shapes; elapsed 0h0m11s; peak 133 MiB in use, 27 MiB max residency

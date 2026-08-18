@@ -1,0 +1,10 @@
+benchmarking vgg-14-c512-k3/list
+time                 16.28 ms   (16.18 ms .. 16.37 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 16.56 ms   (16.41 ms .. 16.88 ms)
+std dev              499.9 μs   (51.95 μs .. 805.1 μs)
+allocated:           1.000 R²   (1.000 R² .. 1.000 R²)
+  iters              1.789e8    (1.789e8 .. 1.789e8)
+  y                  2891.560   (1144.641 .. 4844.280)
+
+=== roster 47 benchmarks over 24 shapes; elapsed 0h0m5s; peak 74 MiB in use, 14 MiB max residency

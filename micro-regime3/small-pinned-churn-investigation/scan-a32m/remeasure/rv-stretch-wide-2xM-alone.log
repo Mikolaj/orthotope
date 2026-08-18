@@ -1,0 +1,11 @@
+benchmarking stretch-wide-2xM/list
+time                 32.95 ms   (32.58 ms .. 33.30 ms)
+                     1.000 R²   (0.999 R² .. 1.000 R²)
+mean                 33.84 ms   (33.41 ms .. 34.67 ms)
+std dev              1.157 ms   (135.3 μs .. 1.722 ms)
+allocated:           1.000 R²   (1.000 R² .. 1.000 R²)
+  iters              3.669e8    (3.669e8 .. 3.669e8)
+  y                  572.400    (-1037.960 .. 2583.220)
+variance introduced by outliers: 11% (moderately inflated)
+
+=== roster 47 benchmarks over 24 shapes; elapsed 0h0m5s; peak 111 MiB in use, 28 MiB max residency

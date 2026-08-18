@@ -1,0 +1,10 @@
+benchmarking conv1d-24/list
+time                 87.16 μs   (87.09 μs .. 87.23 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 87.45 μs   (87.39 μs .. 87.54 μs)
+std dev              252.0 ns   (198.4 ns .. 365.9 ns)
+allocated:           1.000 R²   (1.000 R² .. 1.000 R²)
+  iters              977081.443 (977080.934 .. 977082.058)
+  y                  3705.934   (3235.423 .. 4179.375)
+
+=== roster 47 benchmarks over 24 shapes; elapsed 0h0m5s; peak 41 MiB in use, 0 MiB max residency

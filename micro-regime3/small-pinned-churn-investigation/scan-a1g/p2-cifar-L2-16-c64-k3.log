@@ -1,0 +1,21 @@
+benchmarking cifar-L2-16-c64-k3/list
+time                 2.536 ms   (2.501 ms .. 2.575 ms)
+                     0.993 R²   (0.987 R² .. 0.997 R²)
+mean                 3.089 ms   (2.976 ms .. 3.202 ms)
+std dev              372.6 μs   (323.6 μs .. 452.3 μs)
+allocated:           1.000 R²   (1.000 R² .. 1.000 R²)
+  iters              2.923e7    (2.923e7 .. 2.923e7)
+  y                  4080.788   (3120.946 .. 5043.145)
+variance introduced by outliers: 75% (severely inflated)
+
+benchmarking stretch-inner256/list
+time                 24.24 ms   (24.03 ms .. 24.41 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 25.90 ms   (25.26 ms .. 27.14 ms)
+std dev              2.015 ms   (741.4 μs .. 3.026 ms)
+allocated:           1.000 R²   (1.000 R² .. 1.000 R²)
+  iters              2.666e8    (2.666e8 .. 2.666e8)
+  y                  2866.246   (918.440 .. 4861.302)
+variance introduced by outliers: 30% (moderately inflated)
+
+=== roster 47 benchmarks over 24 shapes; elapsed 0h0m10s; peak 1126 MiB in use, 14 MiB max residency

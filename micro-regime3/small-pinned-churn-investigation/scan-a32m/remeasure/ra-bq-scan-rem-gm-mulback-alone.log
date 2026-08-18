@@ -1,0 +1,10 @@
+benchmarking vgg-14-c512-k3/bq-scan-rem-gm-mulback
+time                 2.265 ms   (2.254 ms .. 2.274 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 2.266 ms   (2.265 ms .. 2.269 ms)
+std dev              6.028 μs   (4.685 μs .. 8.126 μs)
+allocated:           1.000 R²   (1.000 R² .. 1.000 R²)
+  iters              9635085.400 (9635070.729 .. 9635100.050)
+  y                  3199.297   (2481.721 .. 3983.279)
+
+=== roster 47 benchmarks over 24 shapes; elapsed 0h0m5s; peak 82 MiB in use, 7 MiB max residency

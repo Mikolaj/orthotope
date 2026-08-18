@@ -1,0 +1,20 @@
+benchmarking stretch-inner1/list
+time                 11.43 ms   (11.35 ms .. 11.49 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 11.43 ms   (11.38 ms .. 11.62 ms)
+std dev              204.5 μs   (52.46 μs .. 432.9 μs)
+allocated:           1.000 R²   (1.000 R² .. 1.000 R²)
+  iters              1.279e8    (1.279e8 .. 1.279e8)
+  y                  3212.117   (1295.478 .. 5289.670)
+
+benchmarking stretch-inner256/list
+time                 31.12 ms   (30.22 ms .. 32.19 ms)
+                     0.995 R²   (0.990 R² .. 0.998 R²)
+mean                 30.77 ms   (29.93 ms .. 31.74 ms)
+std dev              1.834 ms   (1.443 ms .. 2.437 ms)
+allocated:           1.000 R²   (1.000 R² .. 1.000 R²)
+  iters              2.666e8    (2.666e8 .. 2.666e8)
+  y                  1838.000   (214.837 .. 3781.003)
+variance introduced by outliers: 22% (moderately inflated)
+
+=== roster 47 benchmarks over 24 shapes; elapsed 0h0m10s; peak 133 MiB in use, 27 MiB max residency

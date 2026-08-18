@@ -1,0 +1,498 @@
+QUIET-MACHINE SESSION FINDINGS -- the nursery position term, resolved
+as SMALL-PINNED CHURN, its cost the churn tax, 2026-08-18. Executes
+nursery-position-plan.txt (tasks numbered as there); raw material in the style
+of Run 14's probe notes, which this file supersedes (removed; salvage in items
+19-20). Binary run15-lookrts (9.12.4, md5 60f964ab...) throughout unless said
+otherwise; artifacts under scan-a32m/ and /tmp (session-lifetime).
+
+TASK 2.1, corrected poison scan at -A32m, victim stretch-inner256/list (roster
+24, every candidate precedes it), all 23 rows order-asserted ok, alone baseline
+30.17 ms:
+
+1. THERE IS NO POISON SET. Every small-l shape poisons; the tax is a continuous
+   gradient, monotone in the candidate's iteration count (sprays per bench,
+   extracted from the scan's own JSONs), roughly log-linear at ~2.5%/decade
+   over four orders of magnitude:
+
+     candidate                sprays        l   result B   delta
+     cnn-slice-c32           832,032      288      2,304  +12.2%
+     cnn-L1-6x6-c1           684,463      324      2,592   +9.6%
+     conv1d-24                53,888    5,184     41,472   +8.6%
+     stretch-rank12           51,309    4,096     32,768   +8.0%
+     cnn-L1-24x24-c1          48,853    5,184     41,472   +7.1%
+     lenet-L1-28-c1-k5        14,974   19,600    156,800   +5.6%
+     gather48-src-50          12,902   22,500    180,000   +7.0%
+     stretch-coprime-r7        5,493   60,060    480,480   +5.6%
+     stretch-rank10            4,253   59,049    472,392   +6.6%
+     cifar-L2-16-c64-k3        1,821  147,456  1,179,648   +3.6%
+     cnn-L2-24x24-c32          1,630  165,888  1,327,104   +5.0%
+     stretch-primes            1,377  250,357  2,002,856   +3.3%
+     stretch-inner1              412  500,000  4,000,000   +3.1%
+     alexnet-L2-27-c48-k5        327  874,800  6,998,400   +1.2%
+     alexnet-L1-55-c3-k11        301 1,098,075 8,784,600   +3.0%
+     vgg-14-c512-k3              301  903,168  7,225,344   +3.7%
+     stretch-pow2stride          190 1,769,472 14,155,776  +0.2%
+     stretch-square-1341         190 1,798,281 14,386,248  +1.0%
+     stretch-r5-8x432            171 1,769,472 14,155,776  +1.3%
+     stretch-tall-Mx2            153 1,800,000 14,400,000  +1.2%
+     stretch-tab7MB              136 1,800,000 14,400,000  -0.1%
+     stretch-wide-2xM            136 1,800,000 14,400,000  +0.6%
+     stretch-bigstride           105 1,800,000 14,400,000  +0.5%
+
+     recipe: bash poison-scan.sh 32m (drives ../run15-lookrts; the table is its
+     output); sprays = per-candidate sum of the iters field (reportKeys
+     index 3) over reportMeasured in scan-a32m/p2-<candidate>.json.
+
+2. Predictions 1.2(a)-(d) all land: the two sub-3276 B shapes are top two;
+   conv1d-24 poisons at +8.6% (its "innocent" reading is definitively a roster
+   artifact -- it slightly EXCEEDS its l-twin cnn-L1-24x24-c1); stretch-rank12
+   poisons at +8.0%, killing the fitted square-block/ rank<=5/l<800k rule
+   outright (rank 12); the >=1 MB shapes poison less than the 41 KB tier,
+   so the count account survives its registered caution. The earlier "saturation
+   on the first poison" re-reads as the flat top of this log curve at 10^5-10^6
+   sprays.
+
+3. Residual beyond count: at matched dose and size, vgg +3.7% against alexnet-L2
+   +1.2% (301 vs 327 sprays, 7.2 vs 7.0 MB) -- a secondary factor or noise;
+   the scan is one process per cell and carries no repeats. Small inversions
+   elsewhere (gather48 above lenet, rank10 above coprime-r7) are ~1% scale.
+
+4. Whether the small-pinned CLASS matters beyond its count is not separated
+   by this scan (class and count are confounded: only tiny results give huge
+   counts). Registered for task 2.4's extension: poison with cnn-slice-c32
+   and with conv1d-24 at EQUAL fixed -n; pure count predicts equal tax (the log
+   curve puts cnn-slice at ~+8.3% at 54k sprays, i.e. conv1d's observed level).
+
+TASK 2.2, the two re-measurements owed to the reused filename (-A32m, poison
+cnn-slice-c32/list, all rows order-asserted ok, per-target artifacts
+under /tmp/rv-*, /tmp/ra-*):
+
+5. EVERY SHAPE'S list IS TAXED, ten of ten, re-established with artifacts:
+   conv1d-24 +15.6%, gather48-src-50 +18.4%, stretch-inner256 +14.8%,
+   stretch-bigstride +15.1%, stretch-wide-2xM +13.1%, stretch-tab7MB +12.3%,
+   stretch-tall-Mx2 +10.9%, vgg-14-c512-k3 +13.2%, stretch-primes +15.4%,
+   stretch-square-1341 +14.5%. Broader than the lost readings' 13.5-15.3% band
+   (now 10.9-18.4%), same center ~+14%.
+
+     shape                    alone       after      delta
+     conv1d-24              87.16 us   100.8 us    +15.6%
+     gather48-src-50        380.4 us   450.5 us    +18.4%
+     stretch-inner256       29.05 ms   33.34 ms    +14.8%
+     stretch-bigstride      43.42 ms   49.96 ms    +15.1%
+     stretch-wide-2xM       32.95 ms   37.27 ms    +13.1%
+     stretch-tab7MB         33.39 ms   37.51 ms    +12.3%
+     stretch-tall-Mx2       32.22 ms   35.73 ms    +10.9%
+     vgg-14-c512-k3         16.34 ms   18.50 ms    +13.2%
+     stretch-primes         3.501 ms   4.039 ms    +15.4%
+     stretch-square-1341    25.59 ms   29.31 ms    +14.5%
+
+     recipe: bash remeasure.sh, first block; each cell is the criterion
+     time line of scan-a32m/remeasure/rv-<shape>-{alone,after}.log.
+
+6. THE "ONLY list" CLAIM BREAKS: on vgg, after the same poison, list +13.6%
+   (matches the probe evening's +13.5%), but offtab +9.1% and build +4.3%,
+   against bq-expand -0.8%, bq-scan-rem-gm-mulback -0.6%, mut-odo-vecdims -5.3%.
+   The probe evening only ever tested the first four arms, and generalized.
+
+     vgg arm                 alloc/call     alone      after      delta
+     list                     178.90 MB   16.28 ms   18.49 ms    +13.6%
+     bq-expand                 20.44 MB   2.935 ms   2.912 ms     -0.8%
+     mut-odo-vecdims            7.23 MB   1.647 ms   1.559 ms     -5.3%
+     bq-scan-rem-gm-mulback     9.64 MB   2.265 ms   2.252 ms     -0.6%
+     offtab                    14.45 MB   3.195 ms   3.486 ms     +9.1%
+     build                      7.23 MB   3.243 ms   3.384 ms     +4.3%
+
+     recipe: bash remeasure.sh, second block: scan-a32m/remeasure/ra-<arm>-*;
+     alloc/call = sum(allocated)/sum(iters) over ra-<arm>-alone.json.
+
+7. ALLOCATION DOES NOT SELECT THE VICTIM ARMS: per-call alloc from the same
+   runs' JSONs -- list 178.9 MB, bq-expand 20.4, offtab 14.5, bq-scan-rem 9.6,
+   build 7.23, mut-odo-vecdims 7.23. build allocates exactly its result,
+   identically to mut-odo-vecdims, and reads +4.3% where the latter reads -5.3%.
+   Caveat before believing either figure: tonight's two alone-legs
+   of stretch-inner256 differ by 3.7% between processes (30.17 scan vs 29.05
+   here), so single pair readings carry a +-3-4% draw; list and offtab exceed
+   it, build and mut-odo-vecdims do not. A three-rep interleaved repeat
+   of offtab/build/mut-odo-vecdims is running; its verdict supersedes
+   this item's ambiguous half. If offtab's tax confirms, note it is also the arm
+   whose +3.62% run-to-run drift Run 15 split between instrument and store.
+
+8. THE REPEATS SETTLE ITEM 7's AMBIGUOUS HALF, and the verdict is about
+   the instrument: mut-odo-vecdims is tax-free at three-rep precision (alone
+   1.571-1.573 ms, after 1.570-1.577; the -5.3% was a bad alone draw), while
+   offtab and build CANNOT be read by single processes -- their alone legs alone
+   spread 21% and 10% across three processes of one binary (offtab
+   3.216/3.427/3.903 ms). So the tax hits list and, among arms stable enough
+   to read, nothing else -- the original claim survives properly scoped --
+   and offtab's between-process instability is a finding of its own: the same
+   family carried Run 15's worst A/A cells and the +3.62% run-to-run drift,
+   which this makes look like process-draw sensitivity of the arm,
+   not the instrument or the store. Artifacts: scan-a32m/remeasure/.
+
+     three reps, ms       alone 1/2/3          after 1/2/3
+     offtab               3.903/3.427/3.216    3.708/3.831/3.541
+     build                3.541/3.446/3.774    3.665/3.345/3.443
+     mut-odo-vecdims      1.573/1.571/1.571    1.574/1.570/1.577
+
+     recipe: three interleaved reps per arm of ../run15-lookrts -m glob
+     ['cnn-slice-c32/list'] 'vgg-14-c512-k3/<arm>' +RTS -A32m; logs in
+     scan-a32m/remeasure/rp-<arm>-{alone,after}-{1,2,3}.log.
+
+TASKS 2.3/2.4 MERGED WITH GROUND-TRUTH LADDERS (-A1G scan, fixed-n differencing;
+artifacts /tmp/fx*, scan-a1g/ copy pending):
+
+9. THE -A1G SCAN (victim stretch-inner256/list, alone slope 20.35 ms, all 23
+   rows order-ok) shows a TWO-LEVEL structure, not a dose curve: 21 candidates
+   in one band +18.9..+22.9% regardless of dose (105 sprays equals 54k),
+   and the two small-pinned shapes apart at +56.7/+57.5% (cnn-slice-c32 31.88
+   ms, cnn-L1-6x6-c1 32.05). The retracted vgg scan's validly-positioned rows
+   show the same two levels (+17..21%, +55..57%).
+
+     candidate                 sprays     victim     delta
+     alexnet-L1-55-c3-k11         276   24.52 ms    +20.5%
+     alexnet-L2-27-c48-k5         327   24.19 ms    +18.9%
+     cifar-L2-16-c64-k3         1,630   24.24 ms    +19.1%
+     cnn-L1-24x24-c1           44,287   24.43 ms    +20.0%
+     cnn-L1-6x6-c1            536,233   32.05 ms    +57.5%
+     cnn-L2-24x24-c32           1,457   24.70 ms    +21.4%
+     cnn-slice-c32            651,856   31.88 ms    +56.7%
+     conv1d-24                 51,309   24.50 ms    +20.4%
+     gather48-src-50           11,680   24.88 ms    +22.3%
+     lenet-L1-28-c1-k5         13,559   24.88 ms    +22.3%
+     stretch-bigstride            153   24.54 ms    +20.6%
+     stretch-coprime-r7         4,960   24.68 ms    +21.3%
+     stretch-inner1               382   24.62 ms    +21.0%
+     stretch-pow2stride           171   24.79 ms    +21.8%
+     stretch-primes             1,301   24.44 ms    +20.1%
+     stretch-r5-8x432             171   24.80 ms    +21.9%
+     stretch-rank10             3,835   25.02 ms    +22.9%
+     stretch-rank12            46,514   24.71 ms    +21.4%
+     stretch-square-1341          171   24.79 ms    +21.8%
+     stretch-tab7MB               136   24.58 ms    +20.8%
+     stretch-tall-Mx2             190   24.54 ms    +20.6%
+     stretch-wide-2xM             136   24.34 ms    +19.6%
+     vgg-14-c512-k3               276   24.62 ms    +21.0%
+
+     recipe: bash poison-scan.sh 1G (alone baseline 20.35 ms is its first
+     line); sprays as in item 1, from scan-a1g/p2-<candidate>.json.
+
+10. LEVEL 1 IS NOT A PREDECESSOR EFFECT -- IT IS THE VICTIM'S OWN STEADY STATE,
+    and the alone slope is a transient artifact. Fixed-n wall differencing,
+    victim alone at -A1G: 25.0 ms/iter already at iterations 100-200, 25.1
+    at 200-400, 24.67 at 1000-2000 -- the same ~24.7 as every level-1 row.
+    Criterion's 5 s alone-window straddles the ramp and reads 20.35. The same
+    for vgg: TRUE alone rate 16.5-16.6 ms/iter flat over 100-800 iters, where
+    criterion's slope said 14.12 and its mean 20.99 (the R2=0.9605 cell -- both
+    estimators wrong, the page's own difference-two-counts rule vindicated).
+    An ordinary predecessor merely completes the convergence before the window;
+    the real level-1 tax is ~0 (retracted scan's valid vgg rows 16.6-17.1
+    against true alone 16.55).
+
+     fixed-n wall, s        n=100   n=200   n=400   n=800  n=1000  n=2000
+     inner256 -A1G           3.03    5.53   10.55      --   25.57   50.24
+     vgg -A1G                2.16    3.82    7.13   13.72      --      --
+     inner256 -A32m          2.95    5.80   11.66      --   28.53   57.65
+     
+     ms/iter, window     100-200  200-400  400-800/1000  1000-2000  criterion
+     inner256 -A1G          25.0     25.1            --      24.67      20.35
+     vgg -A1G              16.60    16.55         16.48         --      14.12
+     inner256 -A32m         28.5    29.30         28.12      29.12      30.17
+
+     recipe: /usr/bin/time -f %e ../run15-lookrts -m glob '<shape>/list' -n <n>
+     +RTS -A<a>; window ms/iter = (wall(2n) - wall(n))/n; the criterion
+     column is the alone rows of scan-a32m/p2-alone.log,
+     scan-a1g/p2-alone.log and the README ladder table (vgg).
+
+11. SO THE PUBLISHED +56.5%/+57% ARE MIXTURES: real effect against true alone
+    is +29% on inner256 (31.9/24.7), +34% on vgg (22.1/16.55), +44% on conv1d
+    (item 13) -- the rest was the fresh-heap transient in the alone leg.
+    At -A32m, by contrast, NO self-degradation exists (alone flat 28.1-29.3
+    ms/iter, iters 100..2000), so the 32m dose curve is a real predecessor
+    effect -- and its ground truth checks out: poisoned-at-dose-2000 30.71 vs
+    alone 29.12 = +5.5%, on the log curve's interpolation.
+
+12. MECHANISM OF THE -A1G TRANSIENT (fresh-heap honeymoon): -s and time show
+    minflt IDENTICAL at n=200 and n=2000 (299,344 = the ~1.17 GB first touch),
+    GC 12 ms of 50 s, sys constant -- pure mutator. The coherent account:
+    freshly-faulted pages arrive kernel-zeroed and cache-warm, so the first pass
+    through a nursery far larger than L3 write-HITS where steady-state reuse (1
+    GB >> 32 MB L3) write-misses; at 32 MB the nursery fits L3 and there
+    is no honeymoon to lose. Predicts: the transient appears as -A grows past
+    ~L3; perf should show store-miss rate rising from early to late windows.
+    UNVERIFIED at counter level (task 2.6).
+
+     +RTS -s, inner256 -A1G       n=200             n=2000
+     bytes allocated     53,340,928,888    533,194,722,704
+     bytes copied                57,696            224,064
+     gen-0 collections               46                476
+     gen-1 collections                2                  2
+     MUT time                   5.479 s           49.890 s
+     GC time                    0.009 s            0.012 s
+     minor faults               299,344            299,344
+     peak in use               1152 MiB           1152 MiB
+
+     recipe: ../run15-lookrts -m glob 'stretch-inner256/list' -n <n> +RTS
+     -A1G -s<file>, under /usr/bin/time -f %R for the fault count.
+
+13. LEVEL 2 IS SELECTED BY THE SMALL-PINNED SIZE CLASS, NOT BY COUNT --
+    the decisive matched-dose test. Victim conv1d-24/list at -A1G, fixed-n
+    differencing with poison-alone runs subtracted, poisons at 200k..400k
+    iterations each:
+      alone                                   89.9 us/iter
+      after cnn-slice-c32/list (2304 B)      129.4 us/iter  +44%
+      after cnn-L1-24x24-c1/list (41 KB)      92.9 us/iter  +3.3%
+    Same count, opposite verdicts: the sub-3276 B shared-pinned-block churn
+    is the poison ingredient. At low dose (2000) even cnn-slice adds nothing
+    (24.86 vs 24.7 on inner256), so the level-2 state needs both the CLASS
+    and a large COUNT; the -A32m log-dose curve is the same ingredient graded,
+    reaching only +12-17% there.
+
+     fixed-n wall at -A1G, s     n=200k    n=400k
+     conv1d-24 alone              18.33     36.32
+     cnn-slice-c32 alone           1.77      3.17
+     cnn-L1-24x24-c1 alone        20.83     41.12
+     cnn-slice + conv1d           24.05     51.33
+     cnn-L1-24x24 + conv1d        38.57     77.45
+
+     recipe: /usr/bin/time -f %e ../run15-lookrts -m glob <selection> -n <n>
+     +RTS -A1G; victim us/iter = ((pair(400k) - pair(200k)) -
+     (poison-alone(400k) - poison-alone(200k))) / 200k.
+
+14. Corrections these force in the README's position-term entry when it is next
+    rewritten: (a) the -A1G ladder's +56.5% and Run 14's +57/58%
+    are alone-transient-inflated (item 11); (b) "the term is graded rather
+    than gated by -A" conflates two things -- the transient (gone by 32m)
+    and the class-selective pinned-churn effect (present at 32m at +5-17%, at 1G
+    at +29-44%); (c) criterion alone-legs at -A1G are NOT valid baselines
+    for any big-churn bench; fixed-n differencing or a predecessor-warmed leg
+    is required.
+
+TASKS 2.5-ADJACENT LADDERS AND 2.7 (artifacts: /tmp/fx5-6.txt,
+repro-matrix-2026-08-18.txt beside this file):
+
+15. THE CALLER CURVE, ground truth for stretch-inner256/list: steady state 28.7
+    ms/iter at -A32m, 24.9-25.7 flat across -A64m..-A1G -- the whole nursery
+    gain lands exactly at the shape's 64 MB live span (the promotion account
+    confirmed by wall differencing), and above it -A buys nothing in steady
+    state while first-touch (minflt 35k at 64m to 299k at 1G) and memory grow.
+    BUT the level-2 vulnerability does NOT fade inside the band: conv1d-24
+    victim after the cnn-slice mega-dose reads +33% at -A64m, +33% at -A256m,
+    +44% at -A1G (fixed-n, poison-alone subtracted). -A cannot work
+    the condition around; the remedy is source-level or GHC-level.
+
+     inner256 alone plateau across -A (fixed-n windows)
+     -A       ms/iter   first-touch minflt
+     32m        29.12                   --
+     64m        24.85               35,509
+     128m       25.65               48,727
+     256m       24.95               82,013
+     512m       25.30              152,015
+     1G         24.67              299,344
+     
+     conv1d victim at mega-dose    alone       poisoned      tax
+     -A64m                       89.25 us     118.8 us    +33.1%
+     -A256m                      88.75 us     117.7 us    +32.6%
+     -A1G                        89.95 us     129.4 us    +43.9%
+     
+     fixed-n wall, s            n=200k    n=400k
+     conv1d alone -A64m          17.85     35.70
+     cnn-slice alone -A64m        1.38      2.75
+     pair -A64m                  24.98     50.11
+     conv1d alone -A256m         17.89     35.64
+     cnn-slice alone -A256m       1.52      2.97
+     pair -A256m                 25.69     50.68
+
+     recipe: plateau rows by item 10's window method per -A (minflt via
+     /usr/bin/time -f %R); tax rows by item 13's differencing over the
+     wall table above; the -A1G row is item 13's.
+
+16. ReproSmall REPRODUCES THE CONDITION, base-only, both compilers (9.12.4
+    and HEAD 10.1.20260803 within noise of each other on every cell).
+    Steady-state (second-half) victim readings:
+      RTS          alone     +2304B spray      +3600B spray
+      -A4m         26.55     26.35   (0%)      26.32  (0%)
+      -A32m         9.35     10.36 (+10.8%)     9.24  (0%)
+      -A1G          6.35      7.12 (+12.1%)     6.34  (0%)
+      -A1G -H2G     6.44      7.05  (+9.4%)     6.32  (0%)
+
+     recipe: ghc -O1 -rtsopts ReproSmall.hs, once per compiler; the header's
+     run matrix; verbatim outputs in repro-matrix-2026-08-18.txt.
+    The 3600 B spray -- work item 27601's class -- produces ZERO tax
+    on this victim while the sub-3276 B spray taxes 9-12%: the class
+    discrimination survives inside one binary, -H2G does not cure, -A4m escapes
+    the bill, HEAD is not fixed. Mem in use at -A1G: 1.43 GiB alone vs 2.00
+    poisoned. The tax is smaller than micro's +29-44% (victim sensitivity
+    differs; tuning is possible), but the signature is complete and filable. One
+    caution the halves exposed: THIS victim's alone transient runs the other way
+    (first half 10.8 vs second 6.4 at -A1G -- fault-dominated ramp,
+    not the zeroed-page honeymoon), so the transient's sign
+    is workload-dependent and any repro or benchmark must compare steady-state
+    windows, never whole-run averages.
+
+TASKS 2.8 AND 2.6 (artifacts /tmp/caflesstest-ab.txt, /tmp/fx7.txt):
+
+17. THE HORDE-AD DECISION PROBE: CAFlessTest (the existing ghc-9.14.1
+    optimized-class binary, within-binary A/B, interleaved, two reps agreeing
+    to 0.2%): baked -A1G -I0 wall 126.7/126.5 s at 26.2 GB peak RSS; +RTS -A64m
+    wall 119.5/119.6 s at 3.7 GB. So -A64m is 5.6% FASTER and 7x smaller
+    on this suite; the -A1G premium is 10.2 s of system time -A64m does not pay.
+    All 672 tests pass in both. The cabal decision is Mikolaj's; parallelTest's
+    49.9 GB peak presumably shrinks similarly (unmeasured).
+
+     CAFlessTest run          wall       user       sys      peak RSS
+     -A1G (baked), rep 1    126.70 s   118.12 s   10.28 s   26,229 MB
+     -A64m, rep 1           119.49 s   128.43 s    3.85 s    3,688 MB
+     -A1G (baked), rep 2    126.50 s   118.20 s   10.21 s   26,225 MB
+     -A64m, rep 2           119.61 s   128.77 s    3.87 s    3,684 MB
+
+     recipe: horde-ad's optimized CAFlessTest binary, interleaved A/B/A/B
+     under /usr/bin/time: bare (baked -A1G -I0) vs +RTS -A64m -RTS.
+
+18. PERF COUNTERS (perf_event_paranoid=1, unprivileged works now): (a) LEVEL-2
+    SIGNATURE CONFIRMED ON A SECOND VICTIM, causally tied to the small-pinned
+    churn: conv1d-24 fixed-n 400k, pair minus poison-alone vs victim-alone --
+    instructions 570.6G vs 571.9G (identical), cycles +33%, cache-misses 1310M
+    vs 420M = 3.12x (Run 14: 3.14x), dTLB-load-misses flat (104.8M vs 104.6M).
+    The condition is mutator LLC misses, nothing else, as before. (b) THE -A1G
+    HONEYMOON IS NOT A MISS-COUNT EFFECT: inner256 alone, n=100 vs n=2000
+    windows -- per-iteration cache-misses (~2.8M) and dTLB misses (~100k) EQUAL
+    in both, while cycles/iter run ~102M early vs ~122M late. Early iterations
+    pay the same misses at lower cost, so the fresh-heap advantage is in miss
+    overlap/latency (store-vs- load mix, DRAM locality), not in hit rate --
+    the zeroed-page-warmth reading is weakened as stated and the micro-mechanism
+    is OPEN. dTLB-store-misses is <not supported> on this machine; load/store
+    split needs AMD-specific events or perf mem.
+
+     perf, conv1d fixed-n 400k, -A1G   instr      cycles   cache-miss   dTLB-ld
+     victim alone                    571.9e9    178.4e9      419.6e6    104.6e6
+     poison alone (cnn-slice)         35.1e9     15.5e9       76.3e6      7.5e6
+     pair                            605.7e9    253.0e9     1386.6e6    112.4e6
+     victim in pair (pair-poison)    570.6e9    237.5e9     1310.2e6    104.8e6
+     
+     perf, inner256 -A1G alone      n=100      n=2000   marginal/iter
+     instructions                 40.79e9     786.1e9        392.3e6
+     cycles                       14.64e9     248.2e9        122.9e6
+     cache-misses                 283.1e6    5591.9e6         2.79e6
+     dTLB-load-misses              10.2e6     191.0e6         95.2e3
+
+     recipe: perf stat -e instructions,cycles,cache-misses,dTLB-load-misses
+     -- ../run15-lookrts -m glob <selection> -n <n> +RTS -A1G;
+     victim-in-pair = pair minus poison-alone; marginal/iter =
+     (n=2000 minus n=100) / 1900.
+
+NOT RUN TONIGHT, still owed from the plan: the -A4m added-miss attribution
+to mutator vs collector symbols (perf record differencing, tests finding 15's
+conceptual-objection caveat); the strace kernel-time attribution (2.9);
+the -A15m/16m chunk-boundary probe (superseded unless the honeymoon mechanism
+work revives it).
+
+SALVAGED from nursery-position-findings.txt (Run 14's probe notes, removed
+2026-08-18 as superseded; everything else it held is in the README's
+position-term entry, in the filed issue doc, or retracted):
+
+19. THE BROKEN-LADDER TRAP, kept verbatim because the bug is the point: Run 14's
+    first two nursery ladders interpolated "$a" only into the FILENAME of each
+    run, so both arms ran the baked -A1G and the "identical at both nursery
+    settings" claim was manufactured. A -A4m process reporting 1100 MiB in use
+    was the tell, on screen for an hour. Any sweep driven by a shell variable
+    must put the variable in the +RTS arguments and verify one cell's mem-in-use
+    differs.
+
+20. BUILDING micro WITH GHC HEAD (Run 14's block N, reusable): copy micro.cabal,
+    Main.hs, Probe.hs and cabal.project to a scratch dir (cabal.project.freeze
+    deliberately NOT copied); cabal get hashable-1.5.1.0 and add ", ghc-bignum"
+    directly after its ", base >=..." build-depends line (assert exactly one
+    occurrence); write "packages: . hashable-1.5.1.0" into cabal.project;
+    then cabal build micro -w ~/r/horde-ad/ghc/_build/stage1/bin/ghc
+    --allow-newer --builddir=<scratch>/db. Only WITHIN-binary ratios
+    of the result are comparable with the run15 binaries' figures.
+
+COUNTEREXAMPLES AND ANOMALIES, all kinds, collected so none is smoothed
+over (each with source and status):
+
+21. cifar-L2-16-c64-k3's list reads +10.2% after one poison AT THE DEFAULT
+    NURSERY (README, Provenance, the anchor paragraph; measured 2026-08-17,
+    poison cnn-L1-6x6-c1, in-roster vs clean single-bench process).
+    This contradicts the tested-victims picture in which -A4m escapes the bill
+    (vgg +2.1%, inner256 +2.1%, ReproSmall 0%). Not re-examined tonight;
+    possible but unverified resolutions: a victim-side channel through the free
+    lists rather than the nursery arena (its 1.18 MB result is at the megablock
+    boundary), or an alone-leg transient of its own. OPEN; the sharpest known
+    challenge to the arena-fits-L3 immunity account.
+
+22. At matched dose and size in the corrected -A32m scan, vgg +3.7% against
+    alexnet-L2 +1.2% (301 vs 327 sprays, 7.2 vs 7.0 MB results) -- beyond
+    the visible draw band, single process per cell. A secondary victim-or-poison
+    factor, or an unlucky draw. OPEN.
+
+23. Small orderings against pure spray count in the same scan, ~1% scale:
+    gather48-src-50 (12.9k sprays) +7.0% above lenet (15.0k) +5.6%;
+    stretch-rank10 (4.3k) +6.6% above stretch-coprime-r7 (5.5k) +5.6%; cnn-L2
+    (1.6k) +5.0% above cifar (1.8k) +3.6%. Within plausible noise; noted
+    so the count account is not read as exact.
+
+24. offtab and build alone-legs spread 21% and 10% across three processes of one
+    binary at -A32m (item 8) -- an instrument-breaking arm property, not a model
+    counterexample, but it invalidates any single-process reading of those arms
+    anywhere on the page.
+
+25. The honeymoon's counters contradict the zeroed-page-warmth story as first
+    told: early and late windows carry EQUAL cache-misses and dTLB-misses per
+    iteration while cycles/iter differ ~17% (item 18b). The fresh-heap advantage
+    is in miss cost/overlap, not count. The micro-mechanism is OPEN.
+
+26. ReproSmall's victim shows the transient with the OPPOSITE sign (first half
+    slower than second at -A1G alone) -- fault-dominated ramp instead
+    of honeymoon, so the transient's sign is workload-dependent (item 16
+    caution).
+
+     ReproSmall -A1G, 9.12.4    first half   second half
+     alone                        10.79 ms       6.35 ms
+     +2304 B spray                10.31 ms       7.12 ms
+     +3600 B spray                 9.82 ms       6.34 ms
+
+     recipe: the -A1G lines of repro-matrix-2026-08-18.txt, 9.12.4 half.
+
+27. -A4m is not exactly zero for the tested victims either: vgg's pair read
+    +2.1% at 4m (2026-08-17). "Escapes the bill" means a couple percent,
+    not immunity in the strict sense.
+
+28. CAFlessTest at -A64m shows user CPU HIGHER than at -A1G (128.4 vs 118.1 s)
+    while wall is LOWER (119.5 vs 126.6) and user exceeds wall on a nominally
+    one-capability process -- unexplained bookkeeping or threading oddity;
+    the wall and RSS verdicts stand regardless.
+
+29. THE ONE-OBJECT-PER-BLOCK CORNER IS NOT THE INGREDIENT -- any sub-threshold
+    pinned churn poisons (ReproSmall modes poisonmid and poisontiny, 2026-08-18,
+    repro-matrix2-2026-08-18.txt; same 1.15M object dose as `poison`,
+    second-half steady state vs the matrix's alone legs): 1800 B objects (two
+    per accumulator block) tax +12.3% at -A32m and +8.8% at -A1G; 800 B objects
+    (five per block) +11.8% and +17.5% -- full strength, equal to the 2304 B
+    one-per-block spray (+10.8%/+12.1%), where the 3600 B own-group spray stays
+    at zero. So the pathway split (shared accumulator pool vs per-object group)
+    is the discriminating variable, now with three points below the threshold
+    and one above; the block-churn RATE (2-5x fewer blocks at the same object
+    count) also did not matter in this range. CONSEQUENCES: (a) plan section
+    1.7's "each small object occupies a whole block" clause is refuted
+    as the essential ingredient; (b) lowering LARGE_OBJECT_THRESHOLD (e.g.
+    to BLOCK_SIZE/2) would NOT eliminate the effect -- objects under the new
+    threshold still spray the accumulator path and still poison; it would only
+    move the 2048..3276 B window to the (harmless) own-group path,
+    a size-window-specific mitigation bought with extra slop for that window;
+    (c) the exposure of real programs is broader than micro's two-shape picture:
+    ANY Storable vector of <= ~407 doubles sprayed in volume is in the poison
+    class; (d) the fix direction that the measurements point at is making
+    the accumulator path recycle the way the own-group path evidently does
+    (or a separate pinned region), not a threshold move.
+
+     ReproSmall, second half    -A32m                -A1G
+     alone                     9.35 ms             6.35 ms
+     +2304 B (1 per block)    10.36 ms  +10.8%     7.12 ms  +12.1%
+     +1800 B (2 per block)    10.50 ms  +12.3%     6.91 ms   +8.8%
+     +800 B (5 per block)     10.45 ms  +11.8%     7.46 ms  +17.5%
+     +3600 B (own group)       9.24 ms   -1.2%     6.34 ms   -0.2%
+
+     recipe: ./ReproSmall [poison|poisonmid|poisontiny|poisonbig] +RTS
+     {-A32m|-A1G} -I0 -T -RTS; verbatim outputs in
+     repro-matrix2-2026-08-18.txt (mid/tiny) and
+     repro-matrix-2026-08-18.txt (alone, 2304 B, 3600 B).

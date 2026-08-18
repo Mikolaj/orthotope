@@ -1,0 +1,11 @@
+benchmarking vgg-14-c512-k3/offtab
+time                 3.195 ms   (3.140 ms .. 3.289 ms)
+                     0.994 R²   (0.989 R² .. 0.997 R²)
+mean                 3.480 ms   (3.425 ms .. 3.544 ms)
+std dev              195.1 μs   (161.7 μs .. 233.7 μs)
+allocated:           1.000 R²   (1.000 R² .. 1.000 R²)
+  iters              1.445e7    (1.445e7 .. 1.445e7)
+  y                  3198.854   (2511.991 .. 4021.816)
+variance introduced by outliers: 36% (moderately inflated)
+
+=== roster 47 benchmarks over 24 shapes; elapsed 0h0m5s; peak 86 MiB in use, 7 MiB max residency

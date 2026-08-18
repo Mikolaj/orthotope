@@ -1,0 +1,12 @@
+== repro-9124b [-A32m] mode=poisonmid
+poisonmided in 0.85706032498274 s; mem in use: 6.8359375e-2 GiB
+victim: first half 12.662379120010883 ms/iter, second half 10.499669146568824 ms/iter; mem in use: 0.1015625 GiB
+== repro-9124b [-A32m] mode=poisontiny
+poisontinyed in 0.3153195990016684 s; mem in use: 6.54296875e-2 GiB
+victim: first half 12.747333080042154 ms/iter, second half 10.446958099491894 ms/iter; mem in use: 0.1025390625 GiB
+== repro-9124b [-A1G] mode=poisonmid
+poisonmided in 1.1213002399308607 s; mem in use: 1.974609375 GiB
+victim: first half 10.107613180298358 ms/iter, second half 6.913208033268651 ms/iter; mem in use: 1.974609375 GiB
+== repro-9124b [-A1G] mode=poisontiny
+poisontinyed in 0.7039594240486622 s; mem in use: 1.8916015625 GiB
+victim: first half 10.578591893427074 ms/iter, second half 7.461556846586366 ms/iter; mem in use: 1.8916015625 GiB

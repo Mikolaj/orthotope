@@ -1,0 +1,20 @@
+benchmarking cnn-slice-c32/list
+time                 5.811 μs   (5.805 μs .. 5.819 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 5.825 μs   (5.818 μs .. 5.838 μs)
+std dev              30.07 ns   (19.93 ns .. 51.45 ns)
+allocated:           1.000 R²   (1.000 R² .. 1.000 R²)
+  iters              57262.826  (57262.801 .. 57262.846)
+  y                  3154.272   (2899.171 .. 3393.665)
+
+benchmarking vgg-14-c512-k3/offtab
+time                 3.486 ms   (3.403 ms .. 3.626 ms)
+                     0.994 R²   (0.992 R² .. 0.996 R²)
+mean                 3.764 ms   (3.709 ms .. 3.819 ms)
+std dev              171.0 μs   (131.9 μs .. 217.1 μs)
+allocated:           1.000 R²   (1.000 R² .. 1.000 R²)
+  iters              1.445e7    (1.445e7 .. 1.445e7)
+  y                  3043.569   (2350.501 .. 3838.925)
+variance introduced by outliers: 27% (moderately inflated)
+
+=== roster 47 benchmarks over 24 shapes; elapsed 0h0m10s; peak 91 MiB in use, 7 MiB max residency

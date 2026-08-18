@@ -1,0 +1,20 @@
+benchmarking cnn-L2-24x24-c32/list
+time                 3.034 ms   (3.021 ms .. 3.047 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 3.030 ms   (3.027 ms .. 3.035 ms)
+std dev              12.06 μs   (8.755 μs .. 17.47 μs)
+allocated:           1.000 R²   (1.000 R² .. 1.000 R²)
+  iters              3.292e7    (3.292e7 .. 3.292e7)
+  y                  2820.071   (1820.001 .. 3835.837)
+
+benchmarking stretch-inner256/list
+time                 31.68 ms   (30.80 ms .. 32.64 ms)
+                     0.996 R²   (0.991 R² .. 0.998 R²)
+mean                 31.48 ms   (30.60 ms .. 32.37 ms)
+std dev              1.852 ms   (1.332 ms .. 2.675 ms)
+allocated:           1.000 R²   (1.000 R² .. 1.000 R²)
+  iters              2.666e8    (2.666e8 .. 2.666e8)
+  y                  2548.588   (267.293 .. 4832.939)
+variance introduced by outliers: 22% (moderately inflated)
+
+=== roster 47 benchmarks over 24 shapes; elapsed 0h0m11s; peak 133 MiB in use, 27 MiB max residency

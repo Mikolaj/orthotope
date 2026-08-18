@@ -1,0 +1,10 @@
+benchmarking vgg-14-c512-k3/bq-expand
+time                 2.935 ms   (2.907 ms .. 2.954 ms)
+                     1.000 R²   (0.999 R² .. 1.000 R²)
+mean                 2.950 ms   (2.944 ms .. 2.966 ms)
+std dev              30.30 μs   (12.85 μs .. 58.48 μs)
+allocated:           1.000 R²   (1.000 R² .. 1.000 R²)
+  iters              2.044e7    (2.044e7 .. 2.044e7)
+  y                  2341.293   (1617.753 .. 3179.788)
+
+=== roster 47 benchmarks over 24 shapes; elapsed 0h0m5s; peak 100 MiB in use, 7 MiB max residency

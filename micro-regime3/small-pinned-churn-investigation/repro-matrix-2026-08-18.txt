@@ -1,0 +1,64 @@
+== repro-9124 [-A4m] mode=''
+victim: first half 26.501967166550457 ms/iter, second half 26.550377980650712 ms/iter; mem in use: 7.32421875e-2 GiB
+== repro-9124 [-A4m] mode='poison'
+poisoned in 0.9071561020100489 s; mem in use: 1.46484375e-2 GiB
+victim: first half 26.38053621398285 ms/iter, second half 26.347012899350375 ms/iter; mem in use: 7.32421875e-2 GiB
+== repro-9124 [-A4m] mode='poisonbig'
+poisonbiged in 1.173149092006497 s; mem in use: 1.46484375e-2 GiB
+victim: first half 26.51451904637118 ms/iter, second half 26.315151480181765 ms/iter; mem in use: 7.32421875e-2 GiB
+== repro-9124 [-A32m] mode=''
+victim: first half 11.751318686486533 ms/iter, second half 9.34551960012565 ms/iter; mem in use: 0.1025390625 GiB
+== repro-9124 [-A32m] mode='poison'
+poisoned in 0.9554373549763113 s; mem in use: 6.93359375e-2 GiB
+victim: first half 12.717426473585268 ms/iter, second half 10.357288099670162 ms/iter; mem in use: 0.1025390625 GiB
+== repro-9124 [-A32m] mode='poisonbig'
+poisonbiged in 1.435133181978017 s; mem in use: 7.421875e-2 GiB
+victim: first half 11.53094769998764 ms/iter, second half 9.239200192969292 ms/iter; mem in use: 0.1025390625 GiB
+== repro-9124 [-A1G] mode=''
+victim: first half 10.792442613746971 ms/iter, second half 6.351343826390803 ms/iter; mem in use: 1.43359375 GiB
+== repro-9124 [-A1G] mode='poison'
+poisoned in 1.7746725348988548 s; mem in use: 2.0048828125 GiB
+victim: first half 10.310362499828141 ms/iter, second half 7.1218433999456465 ms/iter; mem in use: 2.0048828125 GiB
+== repro-9124 [-A1G] mode='poisonbig'
+poisonbiged in 2.371415505069308 s; mem in use: 2.1708984375 GiB
+victim: first half 9.816792066364238 ms/iter, second half 6.3421802533169584 ms/iter; mem in use: 2.1708984375 GiB
+== repro-9124 [-A1G -H2G] mode=''
+victim: first half 12.938676966975134 ms/iter, second half 6.44215571306025 ms/iter; mem in use: 2.7568359375 GiB
+== repro-9124 [-A1G -H2G] mode='poison'
+poisoned in 2.059034043108113 s; mem in use: 3.994140625 GiB
+victim: first half 11.138111313339323 ms/iter, second half 7.04925386623169 ms/iter; mem in use: 3.994140625 GiB
+== repro-9124 [-A1G -H2G] mode='poisonbig'
+poisonbiged in 2.400121323997155 s; mem in use: 3.181640625 GiB
+victim: first half 10.567565779977787 ms/iter, second half 6.315113633560638 ms/iter; mem in use: 3.181640625 GiB
+== repro-head [-A4m] mode=''
+victim: first half 26.793808053868513 ms/iter, second half 26.567161079340924 ms/iter; mem in use: 7.32421875e-2 GiB
+== repro-head [-A4m] mode='poison'
+poisoned in 1.0345504389842972 s; mem in use: 1.46484375e-2 GiB
+victim: first half 27.237327926947422 ms/iter, second half 26.997434719620895 ms/iter; mem in use: 7.32421875e-2 GiB
+== repro-head [-A4m] mode='poisonbig'
+poisonbiged in 1.1878737939987332 s; mem in use: 1.46484375e-2 GiB
+victim: first half 26.719281339707475 ms/iter, second half 26.668879393643387 ms/iter; mem in use: 7.32421875e-2 GiB
+== repro-head [-A32m] mode=''
+victim: first half 11.76999273399512 ms/iter, second half 9.35268724647661 ms/iter; mem in use: 0.1025390625 GiB
+== repro-head [-A32m] mode='poison'
+poisoned in 1.0783856469206512 s; mem in use: 6.93359375e-2 GiB
+victim: first half 12.617787787069876 ms/iter, second half 10.382600566372275 ms/iter; mem in use: 0.1025390625 GiB
+== repro-head [-A32m] mode='poisonbig'
+poisonbiged in 1.631107937078923 s; mem in use: 7.421875e-2 GiB
+victim: first half 11.605649313423783 ms/iter, second half 9.271144793213654 ms/iter; mem in use: 0.1025390625 GiB
+== repro-head [-A1G] mode=''
+victim: first half 10.827998300082982 ms/iter, second half 6.368899900310984 ms/iter; mem in use: 1.43359375 GiB
+== repro-head [-A1G] mode='poison'
+poisoned in 1.950685208896175 s; mem in use: 2.0048828125 GiB
+victim: first half 10.321403660345823 ms/iter, second half 7.1105109465618925 ms/iter; mem in use: 2.0048828125 GiB
+== repro-head [-A1G] mode='poisonbig'
+poisonbiged in 2.185411458951421 s; mem in use: 2.1708984375 GiB
+victim: first half 9.835345153696835 ms/iter, second half 6.364037893557301 ms/iter; mem in use: 2.1708984375 GiB
+== repro-head [-A1G -H2G] mode=''
+victim: first half 12.993640846883258 ms/iter, second half 6.466010006455083 ms/iter; mem in use: 2.7568359375 GiB
+== repro-head [-A1G -H2G] mode='poison'
+poisoned in 1.9687474030070007 s; mem in use: 3.994140625 GiB
+victim: first half 11.143109060358256 ms/iter, second half 7.017944512578349 ms/iter; mem in use: 3.994140625 GiB
+== repro-head [-A1G -H2G] mode='poisonbig'
+poisonbiged in 2.6958235250785947 s; mem in use: 3.181640625 GiB
+victim: first half 10.597847833608586 ms/iter, second half 6.33476205325375 ms/iter; mem in use: 3.181640625 GiB

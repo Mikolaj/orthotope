@@ -1,0 +1,20 @@
+benchmarking conv1d-24/list
+time                 88.31 μs   (88.21 μs .. 88.42 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 88.37 μs   (88.33 μs .. 88.42 μs)
+std dev              154.3 ns   (114.4 ns .. 204.5 ns)
+allocated:           1.000 R²   (1.000 R² .. 1.000 R²)
+  iters              977081.674 (977081.149 .. 977082.415)
+  y                  3633.561   (3105.206 .. 4190.108)
+
+benchmarking stretch-inner256/list
+time                 32.77 ms   (31.91 ms .. 33.66 ms)
+                     0.996 R²   (0.993 R² .. 0.998 R²)
+mean                 32.51 ms   (31.69 ms .. 33.49 ms)
+std dev              1.828 ms   (1.249 ms .. 2.774 ms)
+allocated:           1.000 R²   (1.000 R² .. 1.000 R²)
+  iters              2.666e8    (2.666e8 .. 2.666e8)
+  y                  2192.353   (-707.685 .. 5175.526)
+variance introduced by outliers: 17% (moderately inflated)
+
+=== roster 47 benchmarks over 24 shapes; elapsed 0h0m11s; peak 133 MiB in use, 27 MiB max residency

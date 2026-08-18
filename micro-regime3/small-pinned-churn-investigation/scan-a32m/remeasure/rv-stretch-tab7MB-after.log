@@ -1,0 +1,19 @@
+benchmarking cnn-slice-c32/list
+time                 5.861 μs   (5.845 μs .. 5.882 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 5.896 μs   (5.884 μs .. 5.914 μs)
+std dev              47.11 ns   (33.16 ns .. 72.32 ns)
+allocated:           1.000 R²   (1.000 R² .. 1.000 R²)
+  iters              57262.826  (57262.800 .. 57262.846)
+  y                  3154.273   (2899.790 .. 3401.516)
+
+benchmarking stretch-tab7MB/list
+time                 37.51 ms   (37.07 ms .. 37.90 ms)
+                     1.000 R²   (0.999 R² .. 1.000 R²)
+mean                 38.18 ms   (37.78 ms .. 39.12 ms)
+std dev              1.139 ms   (240.2 μs .. 1.878 ms)
+allocated:           1.000 R²   (1.000 R² .. 1.000 R²)
+  iters              3.670e8    (3.670e8 .. 3.670e8)
+  y                  2112.533   (321.300 .. 4234.437)
+
+=== roster 47 benchmarks over 24 shapes; elapsed 0h0m10s; peak 107 MiB in use, 28 MiB max residency

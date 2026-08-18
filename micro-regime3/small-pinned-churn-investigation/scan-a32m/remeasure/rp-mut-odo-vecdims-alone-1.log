@@ -1,0 +1,10 @@
+benchmarking vgg-14-c512-k3/mut-odo-vecdims
+time                 1.573 ms   (1.569 ms .. 1.577 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 1.575 ms   (1.575 ms .. 1.576 ms)
+std dev              1.370 μs   (1.107 μs .. 1.742 μs)
+allocated:           1.000 R²   (1.000 R² .. 1.000 R²)
+  iters              7226220.841 (7226213.136 .. 7226230.218)
+  y                  3225.338   (2668.166 .. 3866.350)
+
+=== roster 47 benchmarks over 24 shapes; elapsed 0h0m5s; peak 79 MiB in use, 7 MiB max residency

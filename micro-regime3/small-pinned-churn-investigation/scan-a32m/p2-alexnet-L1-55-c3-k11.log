@@ -1,0 +1,21 @@
+benchmarking alexnet-L1-55-c3-k11/list
+time                 16.41 ms   (16.29 ms .. 16.52 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 16.63 ms   (16.47 ms .. 17.05 ms)
+std dev              549.5 μs   (50.74 μs .. 920.4 μs)
+allocated:           1.000 R²   (1.000 R² .. 1.000 R²)
+  iters              1.784e8    (1.784e8 .. 1.784e8)
+  y                  4229.201   (1864.736 .. 6446.387)
+variance introduced by outliers: 12% (moderately inflated)
+
+benchmarking stretch-inner256/list
+time                 31.07 ms   (30.24 ms .. 32.27 ms)
+                     0.996 R²   (0.991 R² .. 0.998 R²)
+mean                 30.87 ms   (30.17 ms .. 31.91 ms)
+std dev              1.776 ms   (1.261 ms .. 2.674 ms)
+allocated:           1.000 R²   (1.000 R² .. 1.000 R²)
+  iters              2.666e8    (2.666e8 .. 2.666e8)
+  y                  1867.353   (168.034 .. 3826.191)
+variance introduced by outliers: 17% (moderately inflated)
+
+=== roster 47 benchmarks over 24 shapes; elapsed 0h0m11s; peak 133 MiB in use, 27 MiB max residency
