@@ -265,7 +265,7 @@ artifacts /tmp/fx*, scan-a1g/ copy pending):
     and the class-selective pinned-churn effect (present at 32m at +5-17%, at 1G
     at +29-44%); (c) criterion alone-legs at -A1G are NOT valid baselines
     for any big-churn bench; fixed-n differencing or a predecessor-warmed leg
-    is required.
+    is required. (All three executed in the README entry rewrite, 2026-08-18.)
 
 TASKS 2.5-ADJACENT LADDERS AND 2.7 (artifacts: /tmp/fx5-6.txt,
 repro-matrix-2026-08-18.txt beside this file):

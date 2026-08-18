@@ -1,5 +1,5 @@
-PLAN: the small-pinned accumulator-churn slowdown -- prepared 2026-08-18
-for a fresh session. Successor to nursery-position-plan.txt (executed; verdicts
+PLAN: the small-pinned churn slowdown -- prepared 2026-08-18 for a fresh
+session. Successor to nursery-position-plan.txt (executed; verdicts
 in nursery-position-findings2.txt, cited below by item number). Scope set
 by Mikolaj 2026-08-18: this is a serious ABSOLUTE slowdown in real programs,
 not merely a benchmarking bias. Three goals: (1) establish whether GHC
@@ -103,6 +103,20 @@ mem-doubling) so the two are not merged by triage. Draft file: horde-ad
 docs/ghc-issue-small-pinned-churn.md (final name the session's choice),
 following docs/ghc-issue-block-pool-fragmentation.md's form. STAGE ONLY; Mikolaj
 files.
+
+1.4 THE HORDE-AD CORRECTIONS, unblocked now that the condition is named (they
+were gated on the mechanism; the gate is lifted): docs/position-effect.md's
+"micro-regime3 never sees the 22% because nothing in it poisons: its allocations
+are coarse-grained" is falsified (+29-44% measured, and two shapes'
+per-iteration results are sub-3276 B), and its one link flagged as unmeasured
+RTS-source reading -- the nursery carved contiguously and reused in place --
+is refuted in detail (auto 4 MB chunking at -A >= 16m, mutator-driven
+permutation, random-singleton refills). One stamped-document edit
+under horde-ad's own verification discipline. While there: horde-ad's bench
+rules should gain the alone-slope transient hazard, since convVjpBench
+and the suites are built -A1G -I0 and their fixed-iteration differencing rule
+already exists but does not say WHY an alone slope at that setting cannot
+be trusted.
 
 2. GOAL 2 -- BEST CURRENT GHC OPTIONS for list-like and bq-expand-like code.
    Deliverable: a per-workload-class recommendation table with measured

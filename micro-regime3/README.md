@@ -2119,70 +2119,46 @@ than a slot in the next run, observed again:
   moves 2.7% here against a doubling there, and that issue's mechanism needs
   rare collections to let block groups accumulate where this condition's
   disturbance is full size at 4 MB and merely unpaid. Everything reproduces
-  on GHC HEAD, where that issue is itself unfixed.
+  on GHC HEAD, where that issue is itself unfixed. Run 15 was built to read
+  the term at a caller's nursery, and the probe sessions of 2026-08-17/18
+  resolved it; the account below is the summary, and the measurements, their
+  tables and the recipes to re-take them
+  are `small-pinned-churn-investigation/nursery-position-findings2.txt`'s.
 
-  **The poison is the size class, not the shape, the arm, the volume
-  or the count alone** (2026-08-18, fixed-iteration wall differencing
-  with poison-alone processes subtracted; raw material and artifacts tracked
-  in `small-pinned-churn-investigation`). A pinned allocation of at most 3276
-  bytes total — payload up to about 3256 B, i.e. up to 407 doubles, and every
-  Storable vector is pinned at any size — goes through the RTS's shared
-  pinned-accumulator blocks rather than getting its own block group,
-  and churning that path is the whole condition: at a matched dose of 200k
-  to 400k objects, a 2304 B spray costs `conv1d-24/list` **+44%** at `-A1G`
-  where a 41 KB spray costs +3.3%, and 800 B and 1800 B sprays poison at full
-  strength while work item 27601's 3600 B spray — the same one-block footprint,
-  but its OWN group — costs **zero** in the same binary. The dose response
-  is logarithmic, about +2.5% per decade of objects over the four decades
-  the shape set spans, and the earlier *saturates on the first poison*
-  was its flat top at the million-odd objects criterion's budget gives a tiny
-  shape's bench. `small-pinned-churn-investigation/ReproSmall.hs` reproduces
-  the full signature — class-selective, `-H2G`-immune, `-A4m`-exempt, LLC-only —
-  in ~130 base-only lines on 9.12.4 and HEAD alike, matrix artifacts beside it.
+  **The resolution in one paragraph.** The poison is the size class: churning
+  pinned allocations of at most 3276 bytes — the shared-accumulator path, up
+  to 407 doubles, and every Storable vector is pinned at any size — degrades
+  every later `list`-like phase of the process, log-linearly in the object count
+  until it saturates around a million, while the same count of own-group sprays
+  (3600 B and larger) costs nothing. There is no poison set — the corrected
+  scans, victim at roster position 24 with per-process order assertion, put all
+  23 candidates on that one curve — and every shape is a victim on its `list`,
+  around +14% at `-A32m` after one saturating poison, while among arms stable
+  enough to read no other arm pays (`offtab` and `build` cannot be read
+  by single processes at all, their alone legs spreading 10 to 21%). **What
+  it costs this page**: `list` is every published figure's denominator and runs
+  poisoned in every main-run process, so the control half's ratios carry
+  a roughly uniform 14% deflation at `-A32m` and a shape-dependent 0 to 10% one
+  at the default — the anchors' figures in [Provenance](#provenance).
+  A ~130-line base-only reproducer,
+  `small-pinned-churn-investigation/ReproSmall.hs`, shows the whole signature
+  on 9.12.4 and HEAD, the own-group control at zero inside the same binary.
 
-  **There is no poison SET — the corrected scan, built on the retraction below,
-  replaced the open question with that curve** (2026-08-18, victim
-  `stretch-inner256/list` at roster position 24 so every candidate precedes it,
-  execution order asserted per process from the log's own lines and never
-  from `--list`, which prints alphabetical order, not execution order).
-  At `-A32m` all 23 candidates order by their iteration count: `cnn-slice-c32`
-  +12.2% at 832k sprays, `cnn-L1-6x6-c1` +9.6%, through +5 to +9% for the 33–500
-  KB tier, to zero for the 14 MB-result shapes at about a hundred sprays.
-  `conv1d-24`, *innocent* for two runs, poisons at +8.6% — slightly above
-  its `l`-twin — and `stretch-rank12` at +8.0% kills the fitted
-  square-block/rank-at-most-5/`l`-under-800000 rule outright. Every shape
-  is also a victim: ten of ten read +10.9% to +18.4% on `list` after one
-  `cnn-slice-c32/list` at `-A32m` (re-measured with per-target artifacts),
-  and among arms stable enough to read, the tax falls on `list` alone —
-  `mut-odo-vecdims` is tax-free at three-rep precision, `bq-expand`
-  and `bq-scan-rem-gm-mulback` flat — while `offtab` and `build` cannot be read
-  by single processes at all, their alone legs spreading 21% and 10% across
-  three processes of one binary. **What it costs this page**: `list` is every
-  published figure's denominator and runs poisoned in every main-run process,
-  so the control half's ratios carry a roughly uniform 14% deflation at `-A32m`
-  and a shape-dependent 0 to 10% one at the default — the anchors' +0.3%, +6.3%
-  and +10.2% in [Provenance](#provenance).
-
-  **The `-A1G` figures this entry carried were part measurement artifact,
-  and the correction reaches every alone leg on the page**: a big-churn bench's
-  alone reading at a large area is a TRANSIENT, not its steady state.
-  By fixed-iteration differencing, `stretch-inner256/list` alone at `-A1G` runs
-  25.0 ms/iter from about iteration 100 on where criterion's 5 s window read
-  20.35, and vgg runs 16.5 to 16.6 flat over iterations 100 to 800 where
-  the slope said 14.12 and the `mean` 20.99 — the R² 0.9605 cell, both
-  estimators wrong, settled by the difference-two-counts rule this page already
-  carried. So the corrected scan's `-A1G` half, which read a uniform +19 to +23%
-  from ANY predecessor at any dose, was measuring no tax at all — that level
-  is the victim's own converged state, reached alone within ~100 iterations,
-  which a predecessor merely completes before the measuring window —
-  and the term's real `-A1G` size is the small-pinned churn's alone: **+29%
-  on `stretch-inner256`, +34% on vgg, +44% on `conv1d-24`**, not the +56.5%
-  taken against the transient. At `-A32m` there is no transient (alone flat
-  at 28.1 to 29.3 ms/iter over iterations 100 to 2000) and the dose curve
-  is real, ground-truthed at one point (+5.5% at dose 2000). The transient's
-  sign is workload-dependent — `ReproSmall`'s own victim ramps the other way —
-  so compare steady-state windows, never alone slopes, wherever the area outruns
-  the 32 MB L3.
+  **Two standing rules and one boundary come out of it.** The instrument rule:
+  a big-churn bench's ALONE reading at an area past the 32 MB L3 is a fresh-heap
+  transient, not its steady state — vgg's true alone rate at `-A1G` is 16.5
+  ms/iter where criterion's slope said 14.12 and its `mean` 20.99 — so steady
+  state is read by fixed-iteration differencing, never an alone slope,
+  and the term's real `-A1G` size is +29 to +44% by victim, not the +56.5% once
+  quoted here. The tuning rule: the tax cannot be `-A`-tuned away — +33%
+  at `-A64m` and at `-A256m`, +44% at `-A1G`, and only 4 MB-scale areas decline
+  to pay, at their own collector cost — so the remedy is source-level
+  or GHC-level, which
+  is `small-pinned-churn-investigation/pinned-churn-plan.txt`'s brief (the GHC
+  filing decision, the best current options, the user-code workarounds; nothing
+  filed). The boundary: `cifar-L2-16-c64-k3`'s +10.2% after one poison
+  at the DEFAULT nursery ([Provenance](#provenance)) is the one standing
+  counterexample to small-area immunity, unexplained.
 
   **And the five shapes a bigger nursery helps are NOT this term — that
   is the correction the same probes force.** The victim runs 1.74x faster at 32
@@ -2281,19 +2257,6 @@ than a slot in the next run, observed again:
   are independent as well as opposed: one is copying, the other is what
   a resident footprint does to the mutator.
 
-  **The tax cannot be tuned away, which takes it beyond benchmarking**: +33%
-  at `-A64m` and at `-A256m`, +44% at `-A1G` on the same matched-dose victim —
-  the caller band does not escape it, and only `-A4m`-scale areas decline to pay
-  (+2.1% on vgg), at their own collector cost and with one standing
-  counterexample, `cifar-L2-16-c64-k3`'s +10.2% after one poison at the DEFAULT
-  nursery ([Provenance](#provenance)'s anchor paragraph), unexplained.
-  The collector-work account's failure above still holds: the cost is mutator
-  time, LLC misses at identical instructions, confirmed on a second victim
-  at 3.1x. The GHC-tracker sweep and the filing decision, the best current
-  options, and the user-code workarounds (pad small pinned results past
-  the threshold; unpinned intermediates)
-  are `small-pinned-churn-investigation/pinned-churn-plan.txt`'s three goals —
-  staged, not begun, nothing filed.
 - `OPEN` **Two residues of the small-pinned churn, neither blocking
   its filing.** The `-A1G` alone transient's micro-mechanism: early and late
   iterations carry EQUAL cache-miss and dTLB counts per iteration while cycles
@@ -2351,24 +2314,26 @@ than a slot in the next run, observed again:
   *after*, every process of a major run runs the victim after, and the alone leg
   therefore wants the two-bench process Run 14's probe used. Report this
   as a split — presence answered, magnitude at 32 MB not — and the measurement
-  is named in the entry above. (2) *Does a repetition land inside the drift
-  band?* **Held for 40 of the 42 arms**, 36 of them within 1% and 37 within
-  1.5%, with `offtab` at +3.62% and its own adjacent twin at +4.63% outside
-  the 3.3% band. Those two are paired geomeans from `--compare` over both runs'
-  cells, not arithmetic on the published cells, which round to three figures
-  and would put `offtab`'s move at +4.1%. Per the registration that
-  is the machine, the build or the instrument rather than a strategy finding,
-  and the two were separated afterwards and the instrument has most of it.
-  The shim is emission-neutral, so the build's only movement is the relink
-  of all 48 dependencies, which changes half of `.text`; and the two binaries
-  were then timed against each other directly, `offtab` with its twins
-  and `list` over all 24 shapes, interleaved A/B/A/B in one window on a quiet
-  machine (2026-08-17). **The two passes do not converge** — `offtab` reads
-  0.9976 then 1.0209 — so by this page's own rule about palindromes
-  that measurement is reporting its own noise, and what it yields is a bound
-  rather than a figure: **the binaries differ by at most one or two percent
-  on `offtab`, not by 3.62%**, and all four arms including `list` move together
-  by under 1.3%. So the relink contributes a small uniform offset
+  is named in the entry above. (Since closed: the same evening's probe took
+  the reading, +13.5% at 32 MB, and the 1 GB end was re-sized the next day —
+  the ladder paragraph in the run chapter.) (2) *Does a repetition land inside
+  the drift band?* **Held for 40 of the 42 arms**, 36 of them within 1% and 37
+  within 1.5%, with `offtab` at +3.62% and its own adjacent twin at +4.63%
+  outside the 3.3% band. Those two are paired geomeans from `--compare`
+  over both runs' cells, not arithmetic on the published cells, which round
+  to three figures and would put `offtab`'s move at +4.1%. Per the registration
+  that is the machine, the build or the instrument rather than a strategy
+  finding, and the two were separated afterwards and the instrument has most
+  of it. The shim is emission-neutral, so the build's only movement
+  is the relink of all 48 dependencies, which changes half of `.text`;
+  and the two binaries were then timed against each other directly, `offtab`
+  with its twins and `list` over all 24 shapes, interleaved A/B/A/B in one
+  window on a quiet machine (2026-08-17). **The two passes do not converge** —
+  `offtab` reads 0.9976 then 1.0209 — so by this page's own rule about
+  palindromes that measurement is reporting its own noise, and what it yields
+  is a bound rather than a figure: **the binaries differ by at most one or two
+  percent on `offtab`, not by 3.62%**, and all four arms including `list` move
+  together by under 1.3%. So the relink contributes a small uniform offset
   and the repetition's +3.62% is mostly drift between the two runs' days, which
   is the instrument. (3) The expectation, that claim readings be installed
   rather than transcribed: **met** — seven rewritten, none added, no claim
@@ -6004,10 +5969,12 @@ on and because a recurrence is the reason to keep it:
   carried through as a control the predictor says must not move:
 
   The two left columns are criterion slopes on the **pre-fix** roster, where
-  the twin was still cold, and are here to show it converging. The two GC
-  columns are exact rather than normalised: taken at a fixed `-n`, every setting
-  allocates the identical 41.066 GB, so the counts are directly comparable
-  and no per-GB rate is needed.
+  the twin was still cold, and are here to show it converging; being alone-leg
+  slopes, the large-area rows carry the transient hazard [the position-term
+  entry][open] records, which the differenced caller table below does not.
+  The two GC columns are exact rather than normalised: taken at a fixed `-n`,
+  every setting allocates the identical 41.066 GB, so the counts are directly
+  comparable and no per-GB rate is needed.
 
   | `-A` | twin (cold) | its base | gen-0 | gen-1 | in use |
   |---|---:|---:|---:|---:|---:|
@@ -6150,12 +6117,17 @@ on and because a recurrence is the reason to keep it:
   carry `-with-rtsopts=-A1G -I0 -T -M8G`, and the sweep puts `-A1G`
   with the rest on per-call time once the cap is raised — its cliff
   was `micro.cabal`'s `-M2G` and not the nursery, and at `-M8G` it rejoins
-  the others exactly — so what the setting costs against 64m to 256m is memory
-  and a one-time fault-in charge. The consequence for this page is the other way
-  round, and is Runs 14 and 15: the caller's arms run in an allocation regime
-  none of the figures here is taken in, which is what those two pairs were built
-  to price — Run 14 at `-A1G`, the caller's own setting, and Run 15 at `-A32m`,
-  just below the band recommended above.
+  the others exactly — so on per-call time the setting is safe. What it costs
+  against 64m to 256m has since grown to four things: memory; the one-time
+  fault-in charge; a larger exposure to the small-pinned churn tax, +44%
+  at `-A1G` against +33% inside the band; and the alone-slope transient, which
+  makes criterion baselines at such areas untrustworthy without fixed-iteration
+  differencing — the last two are [the position-term entry][open]'s.
+  The consequence for this page is the other way round, and is Runs 14 and 15:
+  the caller's arms run in an allocation regime none of the figures here
+  is taken in, which is what those two pairs were built to price — Run 14
+  at `-A1G`, the caller's own setting, and Run 15 at `-A32m`, just below
+  the band recommended above.
 
 **So the mechanism is settled: an arm allocating more per call beyond its result
 than the nursery holds pays for it in kernel memory management, and the default
@@ -7108,78 +7080,23 @@ and the remaining fifteen packed into 0.8875 to 0.9276. The step from the fifth
 to the sixth is 1.51 to 1.09, so the five are a population rather than a tail.
 `vgg-14-c512-k3` being the victim Run 14 named made the ladder the natural
 reading, and it is the wrong one: the victim runs 1.74x faster at 32 MB
-**with nothing before it at all**, 29.06 ms against 16.67. The gain is steady
-state, and the ladder runs the other way, costing 13.5% at 32 MB against 2.1%
-at 4 MB. **What selects the five is generational promotion, and every link
-of it is measured** (2026-08-17, `+RTS -A` with `-s`, `-S` and `-hT` per shape
-on one already-built binary). What each shape has intrinsically is the **live
-span of its intermediate structure**, read off as the nursery at which promotion
-collapses: about 4 to 8 MB for `stretch-pow2stride`, 32 to 64 MB
-for `stretch-r5-8x432` and `stretch-inner256` — at 32 MB neither has collapsed,
-`stretch-inner256` still promoting 1.13 MB per minor there, more
-than `stretch-pow2stride` does at 4 MB — past 64 MB for `stretch-bigstride`,
-and nothing at all for `stretch-wide-2xM`. Below that span the structure
-is still live when a minor collection fires and is promoted out of the nursery
-every time — `stretch-pow2stride` promotes **979 KB per minor collection** at 4
-MB and **357 bytes** at 32 MB, a 2700-fold collapse, where `stretch-wide-2xM`
-sits at about 225 bytes at both. Promotion *is* the copying: 6.15 GB of
-it over a five-second process against 4.6 MB done by major collections, which
-`-hT` shows as ARR_WORDS and nothing else above kilobytes. A major then fires
-per **20.9 MB promoted**, which is the generation-1 growth budget and is what
-makes total-copied-over-majors look like a constant. **And the time follows
-the copying at a fixed rate**: 0.42 ms per MB. It agrees to 0.4% across
-the three shapes whose promotion goes to nothing by 32 MB — `stretch-pow2stride`
-0.4194, `vgg-14-c512-k3` 0.4210, `alexnet-L2-27-c48-k5` 0.4230 — which
-is not the same three as the spans quoted above, and the constant
-is the population's rather than any trio's. `stretch-tall-Mx2`'s *loss* runs
-the same way at 0.4663, 11% off it, so the direction reverses cleanly
-and the rate does not. So the chain is span, promotion, copying, time —
-and the nursery enters it once, by being above or below the span. So `l`
-and `sInner` fail to select the five because neither predicts promotion volume,
-and Run 14's poison-and-innocent split fails because that split is the ladder's
-and this is not the ladder. The remaining cost on the sixteen — 0.17% to 11.3%,
-the range those ratios give — is the bigger nursery's mutator term, visible once
-there is no collector saving to offset it — `stretch-tab7MB` −0.841 ms
-and `stretch-wide-2xM` −0.596 ms of mutator time per call at unchanged live set.
+with nothing before it at all, so the gain is steady state. What selects
+the five is generational promotion below each shape's live span, measured link
+by link the same evening on this run's own binary — the chain, the spans
+and the copying rate are [the position-term entry][open]'s span block —
+and the remaining cost on the sixteen is the bigger nursery's mutator term,
+visible once there is no collector saving to offset it.
 
-**The ladder itself no major run can read, and a probe the same evening read
-it.** Registration 1 named the reading — `vgg-14-c512-k3/list` *alone* against
-*after* a poison bench — and every process of a major run carries every shape,
-so the victim is always *after*. Taken as two filtered processes on **one**
-binary, with `+RTS -A` overriding the baked line so that not even a layout
-differs, and with Run 14's `-A1G` figures as a known-answer control it had
-to reproduce first:
-
-| `-A` | victim alone | after `cnn-slice-c32/list` | ladder | copied during GC | in use |
-|---|---:|---:|---:|---:|---:|
-| 1G | 14.12 ms | 22.10 ms | **+56.5%** | 145 KB | 1098 MiB |
-| 32m | 16.67 ms | 18.92 ms | **+13.5%** | 2.3 MB | 74 MiB |
-| 4m | 29.06 ms | 29.68 ms | **+2.1%** | 4.95 GB | 42 MiB |
-
-The control reproduces: 14.12 and 22.10 against the 14.1 and 22.3 that run
-recorded. **One cell of that table carries an estimator disagreement worth
-naming**, since this page's own rule is that two instruments parting
-is the finding: the `-A1G` alone reading is the only one of the six with R²
-below 0.99, at 0.9605 over 23 samples, and criterion's `mean` for it is 20.99 ms
-against the 14.12 ms slope — a 49% split on the very quantity the +56.5%
-is computed from. The slope is the estimator this page uses and the one
-that reproduces Run 14's independent figure, so the ladder's size stands; what
-the split says is that this bench ramps hard at 1 GB, which is what an R²
-that low reports, and a reader wanting the 1 GB row to carry more weight should
-difference two iteration counts rather than trust either estimator.
-**So the position term is present at 32 MB at +13.5%, a quarter of its `-A1G`
-size, and it is graded rather than gated** — where Run 14 had only the two ends
-and read the nursery as gating it, there is an intermediate point and the term
-scales with the area. That closes registration 1's second half on the same day
-the run landed.
-
-**And the differencing that caveat asked for was taken the next day,
-and it moves the row** (2026-08-18): vgg alone at `-A1G` runs 16.5 to 16.6
-ms/iter, flat over iterations 100 to 800 — the slope's 14.12 and the `mean`'s
-20.99 were both wrong, the alone cell being a fresh-heap transient — so the 1 GB
-ladder's real size is +34% against the true alone rate, and the +56.5% above
-stands only as slope-against-slope. The account, and the instrument rule
-it adds, are [the position-term entry][open]'s.
+**The ladder itself no major run can read, and the probes read it — then re-read
+it.** Registration 1's reading — the victim alone against after a poison bench —
+was taken the same evening as filtered pair processes on one binary, with Run
+14's figures reproduced as the known-answer control; the `-A1G` alone cell
+then failed the next day's fixed-iteration differencing (the R² 0.9605 flag
+doing its work: a fresh-heap transient, not a steady state), so the term reads
++13.5% at 32 MB slope-against-slope and +34% at 1 GB against the true alone
+rate. That closes registration 1's second half; the tables, the corrected sizes
+and the instrument rule are [the position-term entry][open]'s
+and `small-pinned-churn-investigation/nursery-position-findings2.txt`'s.
 
 **One instrument, and this run states that rather than hiding it.** Run 14
 backed its criterion slopes with two routes sharing no code with the reader —
@@ -7514,21 +7431,14 @@ the next roster change spends. The basis is the `lookrts` recipe, twice used
 and unchanged. **What the other half varies is open**, and Run 15's results
 leave two candidates sharper than they were.
 
-**The position term is the candidate Run 15 promoted, and it now has a shape
-to vary.** Run 14 established the ladder at `-A1G`: an earlier bench in the same
-process permanently slows a later one by 58% on the arm measured, six of 23
-shapes cause it, either of two reproducing it alone, `+RTS -H2G` does not fix
-it and it survives GHC HEAD. Run 15 shows the same term at a nursery a caller
-might actually set — five shapes where `list` runs 1.51 to 1.85 times faster
-at 32 MB than at the default, `vgg-14-c512-k3` among them, against three more
-mildly faster and sixteen where the bigger nursery costs between a fifth
-of a percent and 11.3%. What neither run has is the **selector**: `l` does
-not predict the set, `sInner` does not, and Run 14's poison-and-innocent split
-does not either. A pair varying nothing but roster **order** would price how
-much of this page's per-shape scatter is that term, which is the oldest open
-question here and now has a mechanism to hang on; [the open list][open] carries
-the entry. What it costs is a pair whose layout moves, which is why it has
-been deferred five runs running.
+**The position term was the candidate Run 15 promoted, and the probes have since
+spent it.** What Run 14 first saw and Run 15 confirmed is resolved
+as small-pinned churn — selector found, ladder re-sized, no poison set — in [the
+position-term entry][open]
+and `small-pinned-churn-investigation/nursery-position-findings2.txt`,
+so the roster-order pair this paragraph used to ask for is not owed:
+the corrected scans priced the term per shape in filtered processes, without
+a pair and without a layout term to argue about.
 
 **The cheaper candidate is a runner change rather than a pair, and Run 15
 is the second run to pay for its absence.** `-A32m` and `-A1G` are run-time
@@ -7548,9 +7458,9 @@ pair.** Run 14 took it at `-A1G` and could not subtract its halves' absolutes;
 Run 15 took it at `-A32m`, where the correction sits evenly on both halves
 and the absolutes do subtract, and found the cost present at about 6%
 of the roster's time — a geomean of 0.9435 over the 42 arms — with the baseline
-arm crossing. What is left is not another area but the *selector* above
-and the runner below — so a third pair varying `-A` alone would re-measure what
-two runs agree on.
+arm crossing. What is left is not another area but the runner change above,
+the selector having since been found — so a third pair varying `-A` alone would
+re-measure what two runs agree on.
 
 Its columns will be `Run 16 (SpecConstr, max-skip +lookrts)` and whatever
 its second half turns out to be. The table below is read against the two Run 15
