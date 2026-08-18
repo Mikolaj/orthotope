@@ -218,3 +218,146 @@ the baked -A1G -I0 decision, item 17) as Mikolaj's decisions, not actions taken.
    the cifar default-nursery counterexample (item 21) -- name it wherever
    a robustness claim is made, chase it only if goal-2 results make
    it load-bearing.
+
+5. EXECUTION STATUS, 2026-08-18 (one session, quiet machine): all three
+   goals executed; results are nursery-position-findings2.txt items 30-36
+   beside this file, artifacts under goal2/ and goal3/ (one file per cell;
+   the scripts are the recipes).
+   Goal 1: the awareness sweep found the TIME cost UNKNOWN upstream --
+   trackers, MR !5175's discussion and every user-facing document are
+   memory-framed, and Note [Sources of Block Level Fragmentation] asserts
+   the fragmented space is harmlessly reused -- so 1.3's RTS-DEFECT branch
+   was taken: horde-ad docs/ghc-issue-small-pinned-churn.md is STAGED, with
+   the three-compiler tables complete (ghcup 9.14.1 measured this session;
+   the class table on all three compilers), and NOT filed. 1.4 executed:
+   position-effect.md's falsified micro paragraph and refuted nursery link
+   corrected, bench/CLAUDE.md carries the alone-slope transient hazard.
+   Goal 2: Stage A is item 30 (the tax saturates by -A64m at +27-37%,
+   halves at 32m, +3-6% at 4m; the saturated optimum tracks the live
+   span); Stage B is item 31 (NO RTS variant relieves the poisoned state;
+   every registered lean landed) and item 32 (the -AL discovery: -A4m
+   -AL64m gives bq-expand-like code big-area speed at small-area
+   exposure). Item 33 holds the compiler completion.
+   Goal 3: MixedLoad.hs built and toy-verified (3.1); phase 1 is item 34
+   (A/A spread 1.5%; saturated mix best at -A32m; pad/unpin null given
+   saturation; strong 3.7-3.8x); phase 2 and the per-call diagnosis are
+   item 35 (the mix runs at the degraded level poison or no poison -- the
+   churn tax is a REPETITIVE-PHASE phenomenon, which keeps Stage A's
+   numbers the decision-relevant ones for horde-ad-shaped programs); the
+   recommendation, 2.3 and 3.3 folded, is item 36. The stride-class and
+   tooBig sensitivity runs were not taken: no recommendation is close, and
+   the imagenet -A32m boundary is carried from the README floor section's
+   measured refutation.
+   Deviations from the plan as written, each named where it bit: saturated
+   pair cells measured by predecessor-warmed criterion (items 9-11's
+   instrument) rather than fixed-n pairs, the blanket fixed-n wording
+   being unexecutable for ms-scale victims since criterion -n applies to
+   every selected bench -- every pair cell's dose read from its JSON,
+   620k-917k sprays, all saturated; the driver's window is the 72-call
+   round rather than ~100 calls; and prepoison is a driver toggle, the
+   workload's own ~6 sprays per round reaching saturation only at 10^4+
+   rounds. Cleanup candidates when this investigation closes: the
+   ReproSmall-9141/-head binaries and oy-* dirs under goal2/, and the
+   driver's dist-newstyle -- all rebuilt by the scripts; mixedload.cabal,
+   cabal.project and the freeze copy are the driver's build and stay.
+
+6. FOLLOW-UP PROPOSALS, 2026-08-18, staged after items 30-36 and awaiting
+   Mikolaj's selection; nothing below has run. Each names its probe, its
+   quiet-machine wall, the registered prediction to be judged not
+   remembered, and what its verdict unblocks. Instruments and the 1.5%
+   A/A decision band as in items 34-35. The driver work for 6.1 and 6.3
+   is DONE and toy-verified (MixedLoad's rep:K and nosmall schedule
+   modes), so every probe is launch-ready with no compile inside the
+   quiet window.
+
+6.1 [EXECUTED 2026-08-18; findings2 item 37. The registered prediction
+   is REFUTED: pad and unpin do not hold the alone plateaus -- the
+   interleaving, class-independent, is what degrades the victims, and
+   the pad policy's end-to-end case did not materialize in any driver
+   shape; the rep1:0 control also quantified the driver's own +11%
+   offset. The homogeneous-hot-loop case, ReproSmall's shape, is what
+   remains for pad, priced by Stage A.]
+   THE REPETITIVE-PHASE DRIVER -- pad/unpin priced end-to-end, in the
+   phase shape item 35 says is the exposed one. MixedLoad rep:1000: each
+   round is 1000 calls of cnn-slice-c32/mut-odo-vecdims (the cheapest
+   sub-threshold sprayer, one 2304 B pinned result per call) then one
+   vgg-14-c512-k3/list and one stretch-inner256/list -- spray phase, list
+   phase, identical every round; dose reaches 10^6 by round 1000 and the
+   per-round table shows the victims degrade (or not) live. Cells:
+   {base x2 (A/A), pad, unpin} x {-A32m, -A64m}, 1000 rounds each,
+   ~8 runs x ~1-2 min = ~15 MIN QUIET. Registered predictions: base's
+   victims fall to Stage A's poisoned rates within the first ~100-200
+   rounds and pad's and unpin's hold the alone plateaus -- pad's whole
+   value, ~+27-37% on the victims at 64m; if pad instead tracks base, the
+   small-pinned class is not what a repetitive mix pays either, and the
+   ox-arrays pad policy loses this case too. Unblocks: the
+   ox-arrays/orthotope small-tensor allocation-policy decision with an
+   end-to-end number.
+
+6.2 [EXECUTED 2026-08-18; findings2 item 38. The lean held: -AL does
+   not reach -A64m's wall, but lands within ~1% of it at 1.8x less peak
+   RSS -- the low-memory point. A later -A32m pair the same day then
+   won wall outright (item 38's addendum).]
+   CAFlessTest AT -A4m -AL64m -- does item 32's discovery transfer to a
+   real suite? Item 17's method on the SAME ghc-9.14.1 optimized
+   CAFlessTest binary (still present under horde-ad's dist-newstyle,
+   untouched since item 17, so within-binary comparability holds):
+   interleaved A/B/A/B under /usr/bin/time, arms {-A64m} and
+   {-A4m -AL64m}, plus one {-A32m} pair if wanted. 4-6 runs x ~2 min =
+   ~10-15 MIN QUIET. Registered lean: the suite's GC pressure is mixed
+   small+large, so -AL alone will NOT reach -A64m's wall (item 32: the
+   bq-like arms gained, the list-like did not) -- worth running anyway,
+   because a within-2% wall at 4 MB-scale areas would be a large RSS win.
+   Unblocks: the horde-ad exe-options decision input, and whether the
+   README floor section's caller advice gains -AL (a doc edit gated on
+   this result).
+
+6.3 [EXECUTED 2026-08-18; findings2 item 39. Every lean held: H2G-immune,
+   saturating, full-size already at 100 tiny calls per victim iteration,
+   LLC-misses-at-flat-instructions signature, small class acquitted on
+   the shuffle directly. The interleaving-built state shares the churn
+   tax's signature and none of its class selectivity; two questions
+   left open there, the exposure metric and whether an upfront-only dose
+   can form it.]
+   MIXING-COST ATTRIBUTION (optional, mechanism): is item 35's in-mix
+   elevation pool state or plain cache displacement? Four driver runs at
+   -A64m, 300 rounds, per-call tables compared on the three big victims:
+   (a) the shuffle as-is (exists: goal3/p3-percall-clean-64m.log);
+   (b) the same +RTS -H2G; (c) nosmall (the shuffle without the two
+   sub-threshold shapes); (d) rep:0 (the two victims back to back, no
+   spray -- the repetitive control). ~3 new runs x ~3 min = ~10 MIN
+   QUIET. Discriminators: (c) at (a)'s level acquits the small-pinned
+   class of the mixing cost; (b) below (a) implicates block placement
+   (the H2G-curable kind); (b) and (c) both at (a) leaves cache
+   displacement. Unblocks nothing decision-bearing -- it sharpens item
+   35's open half and what the staged issue may claim about mixed
+   workloads.
+
+6.4 [EXECUTED 2026-08-18; findings2 item 40c. The prediction is refuted,
+   marginally: three of three pairs positive with disjoint ranges, a
+   real ~+1.5% bq tax at -A64m once saturated -- small and
+   decision-irrelevant. Item 40a also closed 6.3's upfront-dose open
+   half: one damaged state, two formation routes, the class
+   discrimination belonging to the upfront route alone; and item 40b
+   dissolved the cifar counterexample (item 21 annotated). Item 41 then
+   closed the two residues: the state persists (~95% outlives the
+   interleaving, no recovery in 1000 clean rounds) and allocation is the
+   ingredient (a non-allocating foreign call at the same cadence builds
+   nothing), with the cumulative dose curve sampled at four points.]
+   THE bq-expand +-2% AT 64m/256m (item 30e, unproven): three
+   interleaved alone/after criterion pairs at -A64m, ~12 MIN QUIET,
+   riding in 6.1's session if run. Registered prediction: inside the
+   band, no real bq tax -- kept only because item 6's -0.8% at 32m and
+   item 30e's +2.0/+1.6% disagree in sign.
+
+6.5 DECISION NOTES, no machine time: (i) the -A1G split -- the benchmark
+   suites keep -A1G for comparability with the recorded numbered
+   properties (bench/CLAUDE.md's measured refutation of -A64m for
+   convVjpBench stands), while the test suites want wall and RSS, where
+   -A64m already won (item 17) and 6.2 may better it; (ii) the staged
+   issue is filing-ready, the remaining choices being title wording and
+   whether Stage A's -A ladder enters as a table rather than prose;
+   (iii) the README position-term entry was checked against items 30-35
+   and none of its claims is falsified, so nothing is owed there now; at
+   its next rewrite it can point at findings2 items 30-36 as this plan's
+   executed half.

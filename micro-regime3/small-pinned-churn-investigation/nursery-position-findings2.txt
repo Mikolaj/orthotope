@@ -5,6 +5,11 @@ of Run 14's probe notes, which this file supersedes (removed; salvage in items
 19-20). Binary run15-lookrts (9.12.4, md5 60f964ab...) throughout unless said
 otherwise; artifacts under scan-a32m/ and /tmp (session-lifetime).
 
+House rule, binding on every item in this file: each point's
+substantiating measurements go in a table formatted like the others,
+with a short reproduction recipe below it, unless the table would exceed
+30 rows or 140 columns -- then a couple of sentences instead.
+
 TASK 2.1, corrected poison scan at -A32m, victim stretch-inner256/list (roster
 24, every candidate precedes it), all 23 rows order-asserted ok, alone baseline
 30.17 ms:
@@ -380,11 +385,14 @@ TASKS 2.8 AND 2.6 (artifacts /tmp/caflesstest-ab.txt, /tmp/fx7.txt):
      victim-in-pair = pair minus poison-alone; marginal/iter =
      (n=2000 minus n=100) / 1900.
 
-NOT RUN TONIGHT, still owed from the plan: the -A4m added-miss attribution
-to mutator vs collector symbols (perf record differencing, tests finding 15's
-conceptual-objection caveat); the strace kernel-time attribution (2.9);
-the -A15m/16m chunk-boundary probe (superseded unless the honeymoon mechanism
-work revives it).
+NOT RUN THAT NIGHT, owed from nursery-position-plan.txt (the live ledger
+is now pinned-churn-plan.txt section 4): the -A4m added-miss attribution
+to mutator vs collector symbols (perf record differencing, tests finding
+15's conceptual-objection caveat) -- still open; the strace kernel-time
+attribution (2.9) -- still open, weakened by items 31-32 (the knobs it
+would explain measured null, the cost worked around by -AL);
+the -A15m/16m chunk-boundary probe (superseded unless the honeymoon
+mechanism work revives it -- items 25 and 39's residues left it dormant).
 
 SALVAGED from nursery-position-findings.txt (Run 14's probe notes, removed
 2026-08-18 as superseded; everything else it held is in the README's
@@ -419,6 +427,11 @@ over (each with source and status):
     lists rather than the nursery arena (its 1.18 MB result is at the megablock
     boundary), or an alone-leg transient of its own. OPEN; the sharpest known
     challenge to the arena-fits-L3 immunity account.
+    RESOLVED 2026-08-18 (item 40b): a clean two-bench pair at the default
+    nursery reads +5.4-5.7%, inside item 30's revised +3-6% small-area
+    band; the rest of the 10.2% was roster context (the item 35/39
+    interleaving cost). Not a counterexample -- the picture it challenged
+    was itself corrected by item 30a.
 
 22. At matched dose and size in the corrected -A32m scan, vgg +3.7% against
     alexnet-L2 +1.2% (301 vs 327 sprays, 7.2 vs 7.0 MB results) -- beyond
@@ -496,3 +509,758 @@ over (each with source and status):
      {-A32m|-A1G} -I0 -T -RTS; verbatim outputs in
      repro-matrix2-2026-08-18.txt (mid/tiny) and
      repro-matrix-2026-08-18.txt (alone, 2304 B, 3600 B).
+
+PINNED-CHURN-PLAN SESSION, 2026-08-18 (same day, second session; executes
+pinned-churn-plan.txt; artifacts under goal2/ and goal3/ beside this file,
+one file per cell -- the probe scripts and analysis reducers there are
+tracked, the cells themselves are regenerable by them per each item's
+recipe and deliberately not; every pair cell's poison dose read from its
+JSON and 620k-917k sprays, all saturated -- re-checkable by python3
+goal2/check-sprays.py).
+
+30. GOAL-2 STAGE A, the -A axis in both states, three victims. Alone
+    plateaus by fixed-n differencing (item 10's method; goal2/alone-*);
+    poisoned cells are predecessor-warmed criterion pairs at default
+    budget (the instrument items 9-11 validated; the plan's blanket
+    fixed-n wording is unexecutable for ms victims, since criterion -n
+    applies to every selected bench and a saturating dose plus a fixed-n
+    ms victim in one process costs hours per cell), 2 reps at the new -A
+    values, order-asserted, goal2/pois-*. Starred cells are items 5/10/15,
+    reused not re-measured.
+
+     alone ms/iter          -A4m    -A32m   -A64m   -A256m   -A1G
+     vgg-14-c512-k3        27.75    16.50   16.80    16.53   16.55*
+     stretch-wide-2xM      33.45    33.50   33.60    33.80       --
+     stretch-inner256      45.00   29.12*  24.85*   24.95*   24.67*
+
+     poisoned (saturated)   -A4m    -A32m   -A64m   -A256m   -A1G
+     vgg-14-c512-k3        29.25    18.91   22.54    22.23    22.1*
+     stretch-wide-2xM      35.01    37.81   44.50    46.25       --
+     stretch-inner256      46.47    33.29   31.56    33.07   31.88*
+
+     tax (same-instrument   -A4m    -A32m   -A64m   -A256m   -A1G
+     at 4m: criterion alone
+     28.46/33.09/44.26)
+     vgg-14-c512-k3        +2.7%   +14.6%  +34.2%   +34.5%   +34%*
+     stretch-wide-2xM      +5.8%   +12.9%  +32.4%   +36.8%      --
+     stretch-inner256      +5.0%   +14.3%  +27.0%   +32.5%   +29%*
+
+    Readings: (a) the tax saturates by -A64m and is flat to 1G on every
+    victim; -A32m halves it; -A4m pays 3-6%, NOT zero for every shape --
+    the ReproSmall 0% and vgg's +2.1% were the friendly cases, so the
+    small-area escape is "a few percent", item 27 now with three more
+    points. (b) The SATURATED absolute optimum is per-shape and tracks the
+    live span: wide-2xM (no span) is fastest poisoned at -A4m (35.0),
+    vgg (16 MB span) at -A32m (18.91), inner256 (64 MB span) at -A64m
+    (31.56) -- the smallest area at or just above the span, where the
+    CLEAN optimum is uniformly the 64m+ plateau. (c) wide-2xM alone is
+    flat 33.5-33.8 across the whole axis including 4m: a no-span shape
+    pays nothing for a small nursery, so for it the whole -A question is
+    the churn tax. (d) vgg tie-rep at 32m reads 18.91 against item 5's
+    18.50 -- +2.2% between the two days' processes, the known draw band.
+    (e) bq-expand spot cells (single, criterion alone vs after):
+    2.938 -> 2.997 at 64m (+2.0%), 2.886 -> 2.931 at 256m (+1.6%) --
+    not the flat of item 6's -0.8% at 32m; same sign at both areas but
+    single cells, so a small real bq tax at 64m+ is plausible and unproven
+    (goal-3's A/A spread is the yardstick to retest against).
+
+     recipe: bash goal2/stageA.sh, goal2/stageA2.sh (the 4m criterion-alone
+     legs and the compiler matrices); driver logs goal2/stageA-driver.log,
+     goal2/stageA2-driver.log.
+
+31. GOAL-2 STAGE B: NO RTS VARIANT RELIEVES THE POISONED STATE. Criterion
+    pairs, victim vgg-14-c512-k3/list, saturating poison, at the two best
+    areas from Stage A:
+
+     poisoned victim, ms      -A32m    -A64m
+     (base)                   18.71    22.45
+     -G1                      20.15    22.73
+     -xn                      18.71    21.90 / 22.19 (rep)
+     -Fd0                     18.95    22.34
+     --disable-delayed-os-    18.56    22.36
+       memory-return
+     -c                       18.79    22.70
+
+    The registered leans (plan 2.2) all land: -c is the predicted null
+    control; -G1 is WORSE at 32m (+7.7% -- more frees and refills form
+    the scatter faster); -Fd0 and --disable-delayed change nothing (they
+    were kernel-term medicine); and -xn, the one variant with a real
+    shot, is flat at 32m and inside the draw band at 64m after a rep.
+    So on 9.12.4 the churn tax has no RTS-flag remedy at all; what
+    remains is -A choice (item 30b), source-level de-poisoning (goal 3),
+    or a GHC fix (the staged issue).
+
+     recipe: bash goal2/stageB.sh, plus the -xn rep in goal2/stageB2.sh;
+     logs goal2/stageB-driver.log, goal2/stageB2-driver.log.
+
+32. THE -AL DISCOVERY (Stage B's one mover, from the plan's "sweep one
+    point, bq-expand only"): raising the large-object allowance at a
+    4 MB area gives bq-expand big-area speed without the big-area tax
+    exposure -- 1.57x, better than its own big-area readings, and the
+    knee is low (-AL16m keeps nearly all of it).
+
+     vgg-14-c512-k3/bq-expand alone       ms
+     -A4m                              4.355
+     -A4m -AL16m                       2.835
+     -A4m -AL64m                       2.766
+     -A32m (item 6's alone leg)        2.935
+     -A64m (item 30e's alone leg)      2.938
+
+     recipe: the bqAL block of goal2/stageB.sh plus stageB2.sh's
+     AL16m cell; logs goal2/bqAL-A4m-*.log, goal2/AL-alone-bq-*.log.
+
+    Scope and safety, one cell each, all at -A4m: the gain is
+    shape-dependent, -AL does nothing for list-like arms (small-object
+    churn drives their GC pressure, out of -AL's reach), and it
+    re-exposes NEITHER poison condition -- the poisoned cells sit at
+    the plain-4m tax level, no 27601-style accumulation at this -AL.
+
+     scope and safety cells, -A4m           plain    -AL64m
+     stretch-inner256/bq-expand alone       4.547     4.357
+     vgg-14-c512-k3/list alone (criterion) 28.46     28.60
+     stretch-inner256/list alone           44.26     45.64
+     vgg/bq-expand after saturating poison    --      2.812
+     vgg/list after saturating poison      29.25*    29.13
+       (* item 30's -A4m poisoned mean)
+
+     recipe: goal2/stageB2.sh's alone and pois AL cells; logs
+     goal2/AL-alone-*.log, goal2/AL-pois-*.log, order-asserted.
+
+    So "-A4m -AL64m" (or -AL16m) is a real candidate setting for
+    excess-allocation code that wants to stay in the low-tax regime;
+    its worth on a MIXED workload is goal-3's phase-1 cell.
+
+33. THREE-COMPILER COMPLETION for the issue draft: ReproSmall compiled
+    with ghcup 9.14.1 (full five-mode matrix at -A32m/-A1G) and GHC
+    HEAD's two missing mid/tiny cells.
+
+     ReproSmall second halves, ms    -A32m            -A1G
+     9.14.1 alone                     9.27             6.42
+     9.14.1 +2304 B                  10.49 (+13.1%)    7.11 (+10.8%)
+     9.14.1 +1800 B                  10.42             6.98
+     9.14.1 +800 B                   10.50             7.50
+     9.14.1 +3600 B (own group)       9.33             6.44
+     HEAD +1800 B                    10.55             6.86
+     HEAD +800 B                     10.47             7.41
+       (HEAD alones, item 16: 9.35 / 6.37)
+
+     recipe: goal2/stageA2.sh's second half; verbatim outputs
+     goal2/repro-matrix-9141.txt and goal2/repro-matrix2-head.txt.
+
+    The class discrimination is now measured on all three
+    compilers; the staged issue is horde-ad
+    docs/ghc-issue-small-pinned-churn.md, its awareness sweep (GitLab
+    tracker, MR !5175's discussion, user's guide, base and vector
+    haddocks; completed 2026-08-18 by an authenticated project-wide
+    COMMENT-body sweep via glab, 41 terms over the notes scope, every
+    pinned/block-fragmentation hit memory-framed and the nearest
+    time-flavored comments about other mechanisms) finding the TIME
+    cost unknown upstream -- every adjacent
+    ticket and the RTS Note frame pinned fragmentation as memory only,
+    and Note [Sources of Block Level Fragmentation] asserts the
+    fragmented space is harmlessly reused, which the 3.1x LLC-miss tax
+    contradicts.
+
+34. GOAL-3 PHASE 1, the mixed workload in the SATURATED state
+    (MixedLoad.hs beside this file, built by the cabal package around
+    it: cabal build -w ghc-9.12.4 exe:MixedLoad in this directory;
+    one round = the 72 (shape, arm) pairs freshly shuffled,
+    300 rounds per run, prepoison = ReproSmall's 1.15M-object dose,
+    steady state = mean round wall over the last 60 rounds,
+    goal3/steady.py). Correctness: every run's printed sink is identical
+    across all variants, seeds and RTS settings. The toy run also ruled
+    out result-sharing (round 0 equals later rounds; alloc grows ~4.1
+    GB/round).
+
+     A/A spread, base at -A32m, 2 seeds x 2 reps:
+       512.68 / 506.57 / 514.30 / 514.46 ms/round -- spread 1.5%,
+       the decision threshold for every comparison below.
+
+     saturated steady state, ms/round, seed 1
+     variant        -A4m    -A4m -AL64m   -A32m   -A64m
+     base          540.5    544.1         512.0*  537.3
+     pad             --       --          505.8   539.4
+     unpin           --       --            --    537.3
+     strong          --     134.8         139.3   140.7
+     strongpad       --       --            --    140.8
+       (* = the A/A mean)
+
+    Readings: (a) THE SATURATED MIX'S BEST AREA IS -A32m -- 64m loses
+    4.9% (the bigger tax outweighs the better clean plateau; Stage A's
+    per-shape inversion, item 30b, carried to the mix), 4m loses 5.6%
+    (promotion on the span shapes), and -AL does not help the base mix
+    (list dominates and -AL does not reach small-object churn, item 32).
+    (b) PAD AND UNPIN DO NOT IMPROVE THE SATURATED STATE (within or at
+    the edge of the A/A band): stopping the spray does not undo the
+    scatter, so their value is prevention only (phase 2). (c) STRONG IS
+    THE DECISIVE WORKAROUND: 3.7-3.8x on the whole mix, far beyond the
+    A/A band -- rebuilding list's working representation through unboxed
+    vectors removes the mix's dominant cost (and most of its poison-side
+    spray at once); under strong the -A choice flattens (134.8-140.8),
+    with -A4m -AL64m best, consistent with the residual mix being
+    bq-expand-like (item 32). strongpad adds nothing given saturation,
+    as expected.
+
+     recipe: bash goal3/goal3-phase1.sh; per-cell logs goal3/p1-*.log,
+     steady means via python3 goal3/steady.py goal3/p1-*.log.
+
+35. GOAL-3 PHASE 2 AND THE PER-CALL DIAGNOSIS: THE MIXED WORKLOAD RUNS AT
+    THE DEGRADED LEVEL FROM THE START, POISON OR NO POISON -- the churn
+    tax is a REPETITIVE-PHASE phenomenon. Three legs:
+    (a) Long no-prepoison runs at -A64m, 1500 rounds: base is flat
+    beyond the first ~20 rounds' transient, pad equals it inside the
+    A/A band -- at the mix's own spray rate (~6 sub-threshold per
+    round) nothing accumulates that wall can see, and pad prevents
+    nothing here.
+
+     round-wall windows,   20-    300-   700-   1100-  1400-  steady
+     ms/round              120    500    900    1300   1500   tail
+     base -A64m           544.4  535.9  539.2  539.3  539.5  538.6
+     pad -A64m            539.7  542.4  544.4  542.6  544.5  542.9
+
+     recipe: bash goal3/goal3-phase2.sh, first half; window means via
+     python3 goal3/windows.py goal3/p2-{base,pad}-64m.log.
+
+    (b) Every clean 300-round cell equals its prepoisoned twin:
+
+     steady ms/round, seed 1        clean    prepoisoned
+     base -A4m                      539.5    540.5
+     base -A4m -AL64m               547.8    544.1
+     base -A32m                     511.4    512.0*
+     base -A64m                     538.6    537.3
+     strong -A32m                   142.4    139.3
+       (* item 34's A/A mean)
+
+     recipe: goal3/goal3-phase2.sh's clean cells against item 34's
+     phase-1 cells; steady means via goal3/steady.py.
+
+    (c) The discriminating reading (driver extended with per-call
+    timing, tail-only means; the registered prediction: whether
+    inner256 reads 31.6 or 24.85 names which state the mix is in): in
+    the CLEAN mix at 64m the list arms run AT OR ABOVE their poisoned
+    single-process rates, prepoisoning moves none of them, and the
+    other arms pay smaller mixing costs of the same kind.
+
+     per-call tail ms at -A64m    single   single    mix     mix
+                                  alone    poisoned  clean   prepois
+     stretch-inner256/list        24.85    31.56     34.16   34.26
+     vgg-14-c512-k3/list          16.80    22.54     23.76   23.86
+     stretch-wide-2xM/list        33.60    44.50     47.80   48.15
+     vgg-14-c512-k3/bq-expand      2.94       --      3.80    3.81
+     mut-odo-vecdims (vgg)         1.57*      --      1.86    1.86
+       (* item 8's reading, taken at 32m, the arm flat across areas)
+
+     recipe: the two runs of the rebuilt driver,
+     goal3/p3-percall-{clean,pois}-64m.log, per-call tables at each
+     log's end; single-process columns from items 5, 8, 15 and 30.
+    Reading: interleaving 72 heterogeneous calls denies every arm the
+    warm recycling pattern a repetitive process settles into, and that
+    mixing cost lands on the same channel as the churn tax and is at
+    least as large, so the tax has no headroom left in a mixed phase.
+    What the tax takes from a hot loop, a mixed phase has already lost.
+    Whether the mixing cost is pool scatter or plain cache displacement
+    by the other calls' churn is NOT separated here; for the
+    recommendation it does not matter. Consequence for item 30e's
+    small bq-expand tax: at an A/A band of 1.5% and single cells it
+    stays unproven. Consequence for exposure: the taxed class is
+    repetitive phases -- training loops, benchmark processes -- which is
+    exactly horde-ad's shape, so Stage A's single-shape numbers, not the
+    mix's null, are the decision-relevant ones there.
+
+36. THE RECOMMENDATION (plan 2.3 and 3.3, folded; everything below is
+    measured in items 30-35 or cited to its source).
+
+     class                 clean best   saturated best     residue once saturated
+     repetitive list-like  -A64m..256m  smallest area at   +13-15% at 32m,
+                                        the live span      +27-37% at 64m+
+     bq-expand-like excess -A4m -AL64m  -A4m -AL64m        ~2% wobble; the -AL gain
+                                                           is shape-dependent
+     low-allocation        default -A   default -A         the arena term only
+     mixed heterogeneous   -A32m        -A32m (same state) the interleaving cost
+                                                           (item 35)
+
+     recipe: a digest, not a measurement -- each cell's evidence is in
+     items 30-35, cited in the prose below.
+
+    Per workload class:
+    (i) REPETITIVE list-like GC-bound phases -- the exposed class.
+    Clean best: the -A64m..256m plateau. Saturated best: the smallest
+    area at or just above the phase's live span (wide-2xM 4m, vgg 32m,
+    inner256 64m -- item 30b); if the span is unknown, -A32m halves the
+    tax and costs span shapes up to ~17% of their clean plateau
+    (inner256 29.12 vs 24.85). Unavoidable residue: +13-15% at 32m or
+    +27-37% at 64m+ once saturated -- no RTS flag relieves it (item 31),
+    so the outs are not-poisoning (source level) or a future GHC fix
+    (the staged issue).
+    (ii) bq-expand-like excess-allocation code: -A4m -AL64m (knee by
+    -AL16m) -- big-area speed at small-area tax exposure, poison-immune
+    within ~2%; the gain is shape-dependent (vgg 1.57x, inner256 -4%)
+    (item 32).
+    (iii) Low-allocation code (mut-odo-vecdims-like): flat everywhere;
+    the default area is fine; it pays only the arena term.
+    (iv) MIXED heterogeneous phases: structurally insensitive to the
+    poison state (item 35); best area -A32m (item 34a); the strong
+    rebuild is the lever if code may change, 3.7-3.8x -- though most of
+    that gain restates the shipped fix (list processing brought to the
+    bq-expand algorithm) with the working buffer unpinned on top.
+    Workaround verdicts by the decision rule (win = beat base by more
+    than the 1.5% A/A spread): STRONG wins everywhere it applies; PAD
+    and UNPIN lose on the mixed driver (nothing to prevent, nothing
+    undone) but keep the repetitive high-rate small-tensor class --
+    the cnn-slice class, ~800k sprays per criterion budget -- where
+    prevention is worth the whole Stage A tax and pad's measured cost
+    is ~zero (pad tracks base within the band everywhere). So pad
+    remains the one-line allocation-policy candidate for
+    ox-arrays/orthotope for THAT class, priced by items 29/30, not by
+    the driver. Buffer reuse (plan (d)) stays unbuilt: pad did not
+    fail, it lost only the case where nothing wins.
+    Boundaries and provenance: -A32m is refuted at l ~ 29M (the README
+    floor section's imagenet rows: 134 ms against the default's 113.5,
+    64m cures) -- a program touching such sizes wants 64m+, or 4m+AL
+    where its pressure is large-object; the CAFlessTest datum (item 17:
+    -A64m 5.6% faster than baked -A1G at 7x less RSS) sits with (i).
+    The stride-class and tooBig sensitivity runs (plan 3.3) were NOT
+    taken: no recommendation is close (strong at 3.7x and the -A choice
+    at 4.9% both clear the 1.5% band), and the imagenet boundary is
+    carried from the README's measured refutation instead.
+    For horde-ad, decisions Mikolaj's and not taken here: (1) the baked
+    -A1G -I0 is the maximal-tax setting for a suite that sprays small
+    tensors, and CAFlessTest already runs better at -A64m; (2) the
+    small-tensor pad policy in the stack's allocation path, for class
+    (i) programs; (3) filing docs/ghc-issue-small-pinned-churn.md.
+
+37. PROBE 6.1 EXECUTED, AND ITS REGISTERED PREDICTION IS REFUTED: pad
+    and unpin do NOT hold the alone plateaus in the repetitive driver --
+    the interleaving, not the spray class, is what degrades the victims.
+    The rep:K schedule, for the record and in roster terms: each round
+    is K calls of cnn-slice-c32/mut-odo-vecdims -- the roster's
+    cheapest sub-threshold sprayer, one 2304 B pinned result per call
+    -- then one vgg-14-c512-k3/list and one stretch-inner256/list
+    (rep1:K keeps the vgg call alone); the arms are MixedLoad's copies
+    of the roster arms, and the driver's vgg list allocates 199.7 MB
+    per iteration (the rep1:0 control's own allocGB column, rounds
+    100-900 differenced -- the in-driver counterpart of item 6's 178.9
+    MB criterion reading). Cells: rep:1000, 1000 rounds (dose 10^6 by
+    the end), the fixed schedule making the two base runs a true A/A
+    pair (within ~1%):
+
+     per-call tail means, ms     vgg/list       inner256/list
+     single-process alone/pois   16.80/22.54    24.85/31.56
+     -A32m base r1/r2            21.01/21.12    45.73/46.15
+     -A32m pad                   21.04          43.70
+     -A32m unpin                 20.65          46.03
+     -A64m base r1/r2            22.64/22.67    33.56/33.58
+     -A64m pad                   22.67          33.33
+     -A64m unpin                 22.89          33.83
+
+    At 64m all three variants sit at the single-process POISONED rates
+    and drift up identically within the run; unpin's spray phase
+    allocates NO pinned object at all, so the small-pinned class is not
+    the ingredient here.
+
+     rep:1000 round-wall, ms/round    windows 20-120    800-1000
+     base r1 / r2                     52.2 / 52.7       57.1 / 57.1
+     pad                              48.4              56.8
+     unpin                            53.9              57.5
+
+     recipe: python3 goal3/windows.py goal3/p61-<cell>-64m.log 20 120
+     800 1000, per cell.
+
+    The single-victim decomposition at -A64m on vgg/list -- the driver
+    loop's own offset now quantified, and the interleaved calls' cost
+    CLASS-INDEPENDENT (identical whether they allocate sub-threshold
+    pinned, own-group pinned, or unboxed) and drifting, so the
+    interleaving builds a cumulative state in every allocation class:
+
+     vgg/list per-call tail, ms, -A64m
+     single-process alone (item 30)              16.80
+     rep1:0, driver loop alone, flat             18.70  (+11%, the offset)
+     rep1:1000 base / pad / unpin                23.68 / 23.70 / 23.69
+       (early windows 20-22, late ~24.5)
+
+     recipe: goal3/p61c-*-64m.log and the rep1:0 control of
+     goal3/probe61c62.sh (p61c-novictim-ctrl-64m.log); per-call tables
+     at each log's end. One real class effect
+    survives, small: pad's inner256 at 32m reads 43.70 against base's
+    45.73/46.15, ~4.7% and beyond the band. CONSEQUENCES: (a) the
+    ox-arrays pad/unpin allocation policy has NO measured end-to-end
+    case in any driver shape tried -- 72-call shuffle, 3-call
+    alternation, single-victim -- its remaining case being the strictly
+    homogeneous hot loop behind a small-pinned spray phase, ReproSmall's
+    and criterion's shape, where Stage A's +27-44% stands; (b) items
+    34-35's per-call readings carry the driver's +11% own offset --
+    every comparison there was within-driver, so no verdict moves;
+    (c) what state the interleaving builds (it is NOT the
+    accumulator-path condition) is a new mechanism question, section
+    6.3's territory, unfunded.
+
+     recipe: bash goal3/probe61.sh (p61-*); the controls are the p61c-*
+     runs of goal3/probe61c62.sh's first half plus the three
+     rep1:1000 cells (driver rebuilt with rep1:K, MixedLoad.hs usage
+     comment); per-call tables at each log's end.
+
+38. PROBE 6.2 EXECUTED: -A4m -AL64m ON CAFlessTest -- the registered
+    lean held, with a memory result worth having. Interleaved A/B/A/B,
+    the same ghc-9.14.1 optimized binary as item 17 -- its -A64m cells
+    reproduce item 17's to 0.1% (wall 119.43/119.56 today against
+    119.49/119.61 then), all tests passing in every run:
+
+     CAFlessTest              wall        user       sys      peak RSS
+     -A64m, r1              119.43 s   128.47 s    3.69 s    3,560 MB
+     -A4m -AL64m, r1        121.14 s   156.68 s   17.90 s    2,030 MB
+     -A64m, r2              119.56 s   128.64 s    3.75 s    3,821 MB
+     -A4m -AL64m, r2        120.44 s   156.72 s   18.31 s    2,055 MB
+     -A32m, r1              117.81 s   129.11 s    3.62 s    2,853 MB
+     -A32m, r2              117.69 s   129.23 s    3.64 s    2,848 MB
+       (the -A32m pair added later the same day; recipe: the same
+        binary and method, logs goal3/p67-cafless-a32m-r{1,2}.log)
+
+    So -AL alone does not reach -A64m's wall (the suite's small-object
+    churn is out of -AL's reach, as registered) -- but it lands within
+    0.7-1.4% of it at 1.8x less peak RSS, paying +22% user and ~5x sys
+    in extra collections. Against the baked -A1G (item 17: 126.6 s,
+    26.2 GB) it is ~5% faster at thirteen times less memory. The later
+    -A32m pair then took the wall crown outright: 117.7-117.8 s at
+    2.85 GB, 1.5% under -A64m at less memory -- the suite behaving as
+    the saturated mixed workload it is (item 34's -A32m optimum, on a
+    real suite). Decision input, Mikolaj's: -A32m wins wall and nearly
+    ties -A4m -AL64m's memory; the baked -A1G loses on every axis.
+
+     recipe: the second half of goal3/probe61c62.sh; verbatim
+     /usr/bin/time -v outputs goal3/p62-{a64m,al}-r{1,2}.log.
+
+39. PROBE 6.3 EXECUTED: THE INTERLEAVING-BUILT STATE HAS THE CHURN TAX'S
+    EXACT SIGNATURE AND NONE OF ITS CLASS SELECTIVITY. All cells on the
+    rep1 system (vgg/list the victim, -A64m) unless said; every
+    registered lean in goal3/probe63.sh's header was judged, and every
+    one held: -H2G does not cure (not 27601-style placement); the dose
+    in K saturates low -- 100 tiny calls per victim iteration, ~1% of
+    wall and ~230 KB of allocation per round, already carry the full
+    effect, and read by CUMULATIVE call count the runs sit on one curve
+    saturating in the same 10^5-10^6 region as the pinned dose curve,
+    though built by calls of ANY allocation class (item 37's unpin
+    included); and the horizon saturates.
+
+     rep1 cells, vgg/list, ms      tail    windows 20-120 / 800-1000
+     rep1:1000 (item 37's ref)     23.68   21.9 / 24.6
+     rep1:1000 +RTS -H2G           23.00   20.1 / 23.9
+     rep1:100                      23.46   20.4 / 23.5
+     rep1:1000 x 3000 rounds       23.43   21.7 / 24.4
+       (x3000's later windows: 1900-2100 24.3, 2800-3000 24.3)
+
+     recipe: bash goal3/probe63.sh; cells goal3/p63-{h2g-rep1,dose100,
+     horizon}.log, per-call tables at each log's end.
+
+    The perf pair names the channel: the added cost is LLC misses at
+    flat victim instructions and flat dTLB -- item 18a's signature
+    exactly.
+
+     perf, 1000 rounds           rep1:0     rep1:1000    ratio
+     instructions               288.5e9     301.1e9      1.044*
+     cycles                      94.8e9     121.9e9      1.29
+     cache-misses               305.0e6     658.8e6      2.16
+     dTLB-load-misses            58.2e6      61.8e6      1.06
+       (* the sprayer's own instructions)
+
+     recipe: goal3/p63-perf-{ctrl,spray}.txt, verbatim perf stat
+     outputs of the two runs.
+
+    And the shuffle cells: the mix's elevation stands with the two
+    sub-threshold shapes removed -- the small class acquitted for the
+    mix directly -- while -H2G makes the mix WORSE (single cell).
+
+     shuffle cells at -A64m,     vgg/     inner256/   round-wall
+     300 rounds                  list     list        tail
+     as-is (item 35)             23.76    34.16       537
+     nosmall                     23.86    34.63       541
+     +RTS -H2G                   27.66    40.65       580
+
+     recipe: goal3/p63-{nosmall,h2g-shuffle}.log against
+     goal3/p3-percall-clean-64m.log; per-call tables at each log's end.
+
+    SYNTHESIS: interleaving a victim with tiny calls of any allocation
+    class builds a cumulative, saturating, H2G-immune state whose cost
+    channel is identical to the small-pinned churn tax -- most plausibly
+    the same block-level layout degradation reached by a second route.
+    The ReproSmall class discrimination is NOT contradicted: there the
+    spray is an upfront phase and the victim then runs homogeneously,
+    and in that shape only the sub-threshold class poisons; here the
+    foreign calls PUNCTUATE the victim's steady rhythm. OPEN, the two
+    questions this leaves: what the cumulative exposure metric is
+    (calls? interrupted rounds? -- class-independence rules out spray
+    bytes and pinned counts), and whether an upfront-only dose can form
+    this state at all (an upfront-spray-then-rep1:0 cell would say; the
+    prepoisoned mix cells of item 35 cannot, the mix being degraded
+    already). Both closed the same day: the upfront cells are item
+    40a, the metric is item 41. CONSEQUENCE for the stack: a workload that interleaves
+    small ops with heavy ones -- an AD training step's shape -- pays
+    this class-independent cost, which no allocation policy reaches;
+    the levers there are -A choice and a GHC-level fix, which upgrades
+    the filing's importance and further narrows pad's case (item 37a).
+
+40. THE CLOSING BATCH, three probes, every registered lean judged
+    (leans in goal3/probe64.sh's header):
+    (a) UPFRONT x CLASS COMPLETION -- FULL COHERENCE, both leans held.
+    An upfront dose installs the state instantly or not at all, by
+    class:
+
+     rep1:0 after an upfront 1.15M-object     tail    windows 20-120
+     dose, vgg/list, ms, -A64m                        / 800-1000
+     no dose (item 41's control)              18.70   18.6 / 18.7
+     +2304 B spray (sub-threshold)            22.95   23.3 / 23.0
+     +3600 B spray (own group)                18.69   18.6 / 18.7
+
+     recipe: bash goal3/probe64.sh, cells
+     goal3/p64-upfront-{small,big}.log; per-call tables at each log's
+     end.
+
+    So in one driver, one victim, one instrument:
+    the UPFRONT route is class-selective exactly as ReproSmall found
+    (sub-threshold +23%, own-group zero), the INTERLEAVED route (item
+    39) is class-independent, and both converge on the same ceiling
+    (22.95 upfront against the interleaved 23.7-24.6). One damaged
+    state, two formation routes; the class discrimination belongs to
+    the route, not to the damage. This is the sentence the GHC issue's
+    eventual follow-up comment wants.
+    (b) THE CIFAR COUNTEREXAMPLE DISSOLVES (lean held, the residue
+    landing where it should): the 10.2% does not reproduce in a clean
+    two-bench pair, and what remains, +5.4-5.7% same-instrument, sits
+    inside item 30's revised +3-6% small-area band -- cifar is a
+    normal member of the corrected picture, the extra ~5% of the
+    original reading being roster context, the item 35/39 interleaving
+    cost. Item 21 is annotated resolved. The README position-term
+    entry's "one standing counterexample, unexplained" boundary
+    sentence is now stale and owed a change at the entry's next
+    rewrite.
+
+     cifar-L2-16-c64-k3/list, default nursery          ms/iter
+     fixed-n alone ((12.05 - 6.06)/2000)               3.00
+     criterion alone                                   3.053
+     pair after cnn-L1-6x6-c1/list, r1 / r2            3.217 / 3.227
+       (order-asserted; poison at roster 1, victim at 6)
+
+     recipe: the cifar block of goal3/probe64.sh; cells
+     goal3/p64-cifar-*.{time,log}.
+
+    (c) PROBE 6.4, THE BQ TIE-BREAK -- the lean REFUTED, marginally:
+    three of three pairs positive with disjoint ranges (alone max
+    2.960 under after min 2.980), so bq-expand does pay a real ~+1.5%
+    at -A64m once saturated, where item 6's -0.8% at 32m stands.
+    Small, consistent, and decision-irrelevant (far under bq's own
+    in-mix mixing cost, item 35); the arm-specificity claim refines to
+    "nothing but list pays more than ~1.5%".
+
+     vgg-14-c512-k3/bq-expand, -A64m     r1      r2      r3
+     alone                             2.960   2.937   2.936
+     after saturating poison           2.989   2.980   2.991
+
+     recipe: the bq block of goal3/probe64.sh, interleaved
+     alone/after; cells goal3/p64-bq-{alone,after}-r*.log,
+     order-asserted.
+
+41. ITEM 39's TWO OPEN QUESTIONS CLOSED (probe65 driver cells; leans
+    registered in goal3/probe65.sh's header, all held):
+    (a) THE STATE PERSISTS. rep1:1000 switch:500 -- sprays stop at
+    round 500, 1000 further rounds of the pure victim follow: ~95% of
+    the interleaved elevation outlives the interleaving with no
+    recovery, coherent with item 40a's flat post-dose horizon. So a
+    heterogeneous phase permanently taxes a later homogeneous hot
+    loop.
+
+     switch:500 (rep1:1000, 1500 rounds), ms/round      window mean
+     pre-switch, rounds 300-500                         24.33
+     post-switch, 600-800 / 1000-1200 / 1300-1500       23.61 / 23.54 / 23.57
+       (vgg per-call tail 23.56, against the pure run's 18.70)
+
+     recipe: the switch cell of goal3/probe65.sh; window means via
+     python3 goal3/windows.py goal3/p65-switch.log.
+
+    (b) ALLOCATION IS THE INGREDIENT, and (c) THE CUMULATIVE DOSE
+    CURVE in allocating foreign calls is monotone with the same
+    10^5-10^6 saturation region as the pinned log-dose curve: a
+    non-allocating read at the sprayer's cadence leaves the victim
+    essentially clean, and the K-series orders by total call count.
+    (Registered residual on (b): the noalloc probe also touches less
+    fresh memory per call; a touch-without-allocating variant is the
+    follow-up on any doubt.)
+
+     rep1 dose cells, vgg/list tail ms    reading   calls by the end
+     rep1:0 (pure, item 40's control)     18.70            0
+     rep1:1                               18.96         10^3
+     rep1:10 (still drifting)             20.55         10^4
+     rep1:100 (item 39)                   23.46         10^5
+     rep1:1000 (item 37)                  23.68         10^6
+     rep1:1000 noalloc                    19.02   (10^6 calls, none
+                                                  allocating)
+
+     recipe: the noalloc/k1/k10 cells of goal3/probe65.sh
+     (goal3/p65-{noalloc,k1,k10}.log) with items 37/39/40's cells;
+     per-call tables at each log's end.
+
+    SYNTHESIS with items 39-40: one persistent, H2G-immune, LLC-channel
+    block-level state; formed EITHER by an upfront burst (then
+    class-selective: sub-threshold pinned only) OR by interleaved
+    allocation of ANY class (cumulative in allocating-call count);
+    never recovering. The GHC-issue follow-up comment is drafted from
+    this map as horde-ad docs/ghc-issue-small-pinned-churn-comment.md
+    (staged, postable only after the issue itself is filed; its
+    preamble names the optional base-only-reproducer upgrade).
+
+42. THE NEAR-REAL-LIFE CONV MATRIX (probe66-conv; the bench probe edit
+    -- goal3/convvjpbench-probe.patch, against horde-ad 7fbfddf97 --
+    adds cnn-48x48 and cnn-24x24-c16h64, a 3x3-kernel
+    c_out=16 n_hidden=64 net, beside the micro-sized cnn-24x24; all
+    three linked against the improved orthotope; fixed-n differencing
+    per cell, two interleaved cycles, reps within ~1%): THE REAL CNN
+    GRADIENT RUNS FASTEST AT -A4m -AL64m ON EVERY BENCH -- 14-18%
+    faster than the baked -A1G -- with -A32m in between and -A64m at
+    the baked level. The near-real-life code confirms items 30-36's
+    story: the big areas pay the self-inflicted layout tax, and the
+    small-area raised-AL setting dodges it while keeping large-object
+    headroom. These S-exec cells self-poison exactly as the real
+    workload does, so the arms are compared WITH their intrinsic
+    exposure.
+
+     S-exec ms/iter, r1 / r2   cnn-24x24     cnn-48x48     cnn-24x24-
+                                                           c16h64
+     baked (-A1G -I0)          282.0/279.0   4160/4093     963/950
+     -A64m                     280.5/280.0   4100/4209     912/920
+     -A32m                     253.5/258.0   3763/3764     858/860
+     -A4m -AL64m               229.5/233.0   3505/3580     783/794
+
+     recipe: apply goal3/convvjpbench-probe.patch to a horde-ad
+     checkout at 7fbfddf97, build the bench (goal3/builds.sh's first
+     half: cabal build convVjpBench --enable-optimization -w
+     ghc-9.14.1, horde-ad's cabal.project.local linking this
+     orthotope), bash goal3/probe66-conv.sh; the differencing over
+     goal3/p66-*.time via python3 goal3/analyze-conv.py.
+
+43. THE GRADBENCH MATRIX (probe66-gb and probe66-gb2; the horde-ad
+    GradBench tool -- Hackage horde-ad 0.3 + ox-arrays 0.2 over THIS
+    repo's orthotope -- all ten evals at their full default series,
+    four arms as +RTS overrides on one binary, two interleaved cycles;
+    instrument: the tool's own per-evaluate timings, each call's
+    repeats averaged, the means summed over one pass of the eval's
+    workload set; full-series check per cell: evaluate-message counts
+    gmm 50, lstm 18, kmeans 24, ode 18, det 14, llsq 22, lse 20,
+    hello 8, particle 4, saddle 4 -- five of these need the gradbench
+    checkout's tools/manual validator binaries, the recipe's first
+    step, their runners taking no --no-validation flag). NO UNIFORM
+    WINNER -- the suite splits exactly along item 36's class lines,
+    and the split aligns exactly with the AD pipeline (checked in the
+    tool's sources): the six evals served by SYMBOLIC grad (gmm,
+    lstm, det, llsq, lse, ode) prefer small areas or -A4m -AL64m, the
+    three served by cgrad/cjvp -- horde-ad's non-symbolic pipeline,
+    re-differentiating per call -- (kmeans, particle, saddle) prefer
+    the big areas, hello stays sub-millisecond per pass at every arm
+    (noted, not tabled), and the baked -A2G's memory is never
+    necessary.
+
+     one-pass s, r1/r2   baked          a64m           a32m           al
+     det                28.52/28.35    30.03/29.98    28.53/28.85    27.98/27.46
+     gmm                 7.550/7.526    7.258/7.219    7.319/7.332    7.101/7.240
+     kmeans              4.53/4.47      5.26/5.23      6.10/6.23      6.35/6.28
+     llsq                0.040/0.040    0.033/0.033    0.036/0.035    0.027/0.027
+     lse                 0.022/0.022    0.017/0.017    0.017/0.017    0.017/0.017
+     lstm               38.613/38.111  37.039/36.748  34.669/34.767  33.667/33.576
+     ode                 1.447/1.444    1.326/1.326    1.318/1.304    1.366/1.337
+     particle            2.693/2.649    2.945/2.998    3.124/3.173    4.128/4.122
+     saddle              4.432/4.346    4.567/4.625    4.315/4.332    5.549/5.558
+
+     ratio vs baked      a64m    a32m    al
+     (rep means)
+     det                 1.055   1.009   0.975
+     gmm                 0.960   0.972   0.951
+     kmeans              1.166   1.370   1.403
+     llsq                0.825   0.888   0.675
+     lse                 0.773   0.773   0.773
+     lstm                0.962   0.905   0.876
+     ode                 0.917   0.907   0.935
+     particle            1.112   1.179   1.544
+     saddle              1.047   0.985   1.265
+
+     peak RSS, r1        baked      a64m     a32m     al
+     det                10124 MB    7402     7419     7404
+     gmm                 3692 MB     529      592      671
+     kmeans             11769 MB    8811    12290     8479
+     llsq                5886 MB     295      211      166
+     lse                 5138 MB     419      372      439
+     lstm                2334 MB     234      200      217
+     ode                 5810 MB    3132     3164     3075
+     particle            2118 MB     104       72       53
+     saddle              2144 MB     102       69       53
+
+     recipe: in a gradbench checkout (measured at 3e499ae36), build
+     the validator binaries (make -C cpp json.hpp, make -C
+     tools/manual), append "packages: <path to this orthotope
+     checkout>" to tools/horde-ad/cabal.project.local and cabal build
+     --project-dir tools/horde-ad gradbench; build the harness CLI
+     once (cargo build --package=gradbench, or a prebuilt target/
+     binary); then bash goal3/probe66-gb.sh and goal3/probe66-gb2.sh
+     (paths at their tops) and python3 goal3/analyze-gb.py per prefix
+     (p66gb, p66gb2) over the regenerated jsonl logs (gigabytes --
+     the evals' generated inputs are embedded -- hence never kept);
+     RSS and wall from goal3/p66gb*-*.time.
+     DON'T-DO (2026-08-18): never read a gradbench cell without
+     checking its evaluate-message count against the eval's full
+     default series (analyze-gb.py prints the count) -- the harness
+     exits 0 even when an eval dies mid-series, e.g. on a missing
+     eval-side validator binary, leaving a one-workload run that
+     looks like a cheap eval.
+
+    Readings: (a) lstm at -A4m -AL64m runs -12.4% and gmm -4.9%
+    against the baked, det -2.5% (a64m WORSE there, +5.5%), and llsq
+    and lse -- small in absolute terms, 17-40 ms one-pass, but
+    consistent across reps -- win on every non-baked arm, al by a
+    third on llsq: item 42's conv ordering carries to the heavy real
+    AD loops. (b) kmeans (+17% at a64m, +40% at al), particle and
+    saddle invert: small-object churn at small areas pays the
+    collector and -AL does not reach it -- item 36's class split
+    reproduced across whole programs. (c) The pipeline mechanism fits
+    item 36 class (i) at its span end: cgrad's delta tape is live
+    from the forward pass to the backward evaluation, a large live
+    span, so sub-span areas promote it every minor collection and big
+    areas win; artifact interpretation carries no comparable
+    transient and sits in the small-area/AL class (det, llsq and lse
+    comment outright that cgrad would cost more there). (d) Memory
+    decides on its own where time ties: the baked -A2G costs 2-12 GB,
+    the alternatives 53 MB-8.5 GB, llsq dropping 35-fold; kmeans's
+    a32m RSS exceeding baked (12.3 vs 11.8 GB) is noted unexplained,
+    single cell. (e) Over the ten: per-workload -A beats any single
+    choice, which is item 36's conclusion restated by real programs.
+
+44. THE INTERLEAVED ROUTE REPRODUCES BASE-ONLY (ReproSmall's inter*
+    modes: 1000 small
+    allocating calls between victim iterations, cumulative 150k calls
+    by the second half's start, the sprays' own wall timed and
+    subtracted; predictions registered in the source comment). Second
+    halves against the same binary's alone runs, 9.12.4:
+
+     second half, ms/iter          -A32m            -A1G (3 reps, mean)
+     alone                         9.38             6.36-6.42   6.40
+     inter (2304 B pinned)        11.78 (+25.6%)    7.07-7.17   7.14 (+11.6%)
+     interbig (3600 B pinned)     10.76 (+14.7%)    6.48-6.54   6.50  (+1.6%)
+     interunboxed (2304 B         11.55 (+23.2%)    6.93-6.97   6.95  (+8.6%)
+       movable ByteArray#)
+       (9.14.1 spot at -A32m: alone 9.31, inter 11.71, interbig 10.65;
+        the -A1G ranges are disjoint mode by mode, so the class residue
+        there is real, not process draw)
+
+     recipe: ghc -O1 -rtsopts ReproSmall.hs (9.12.4 and 9.14.1), then
+     ./ReproSmall [inter|interbig|interunboxed] +RTS {-A32m|-A1G} -I0
+     -T -RTS; verbatim outputs goal2/repro-matrix3-2026-08-18.txt.
+
+    Readings: (a) the interleaved route needs no driver, and at -A32m
+    it is STRONGER than the upfront route (+25.6% against item 16's
+    +10.8%), with all three classes poisoning -- including the two
+    that upfront cost zero. The follow-up comment's
+    class-independence claim now stands base-only, second compiler
+    included. (b) At -A1G the class split partially RETURNS: the
+    own-group interleave is nearly clean while small-pinned and
+    unboxed still poison -- a refinement neither the driver
+    (class-independent at -A64m, item 37) nor the upfront matrix
+    predicted, and three reps with disjoint ranges say it is real.
+    OPEN: unboxed-poisons-while-own-group-does-not at 1G fits no
+    single-ingredient account yet; the comment draft carries the
+    32m/64m claim and flags this nuance.
+

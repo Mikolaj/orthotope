@@ -1,0 +1,86 @@
+diff --git a/bench/ConvVjpBench.hs b/bench/ConvVjpBench.hs
+index b1a191859..27e5b89ba 100644
+--- a/bench/ConvVjpBench.hs
++++ b/bench/ConvVjpBench.hs
+@@ -398,6 +398,61 @@ benchesCnnAt = do
+                         Concrete h w 2 3 4 5 Double)) arrDt
+     ]
+ 
++-- PROBE EDIT 2026-08-18, UNCOMMITTED (small-pinned-churn goal 2, the -A
++-- probe): 'benchesCnnAt' at real-net channels, kernel 3x3, c_out 16,
++-- n_hidden 64, monomorphized at 24x24. A probe-local objective rather
++-- than a generalized 'cnnObjective', so the shared test helper and the
++-- printed-AST test stay untouched. The new groups enter no numbered
++-- property; remove this block, or formalize it together with the
++-- property checker's partition, before committing anything here.
++cnnObjectiveBig
++  :: ADReady target
++  => Concrete (TKS '[7, 1, 24, 24] Double)
++  -> MnistCnnShaped2.ADCnnMnistParametersShaped target 24 24 2 2 16 64 Double
++  -> target (TKS '[SizeMnistLabel, 7] Double)
++cnnObjectiveBig glyph (params1, params2, paramsDense, paramsReadout) =
++  MnistCnnShaped2.convMnistTwoS
++    (SNat @2) (SNat @2) (SNat @24) (SNat @24) (SNat @16) (SNat @64) (SNat @7)
++    (sconcrete $ unConcrete glyph)
++    params1 params2 paramsDense paramsReadout
++
++benchesCnnBig24 :: IO [Benchmark]
++benchesCnnBig24 = do
++  let (valsInit, seed2) =
++        randomValue @(MnistCnnShaped2.ADCnnMnistParametersShaped
++                        Concrete 24 24 2 2 16 64 Double)
++                    0.4 (mkStdGen 44)
++      (arrGlyph, seed3) =
++        randomValue @(Concrete (TKS '[7, 1, 24, 24] Double)) 0.5 seed2
++      (arrDt, _) =
++        randomValue @(Concrete (TKS '[SizeMnistLabel, 7] Double)) 0.5 seed3
++      valsInitT = toTarget @Concrete valsInit
++      forceCnnGrad ((k1, b1), (k2, b2), (wd, bd), (wr, br)) =
++        forceGrad k1 + forceGrad b1 + forceGrad k2 + forceGrad b2
++        + forceGrad wd + forceGrad bd + forceGrad wr + forceGrad br
++      f = cnnObjectiveBig arrGlyph
++      artifactRaw = vjpArtifact f valsInit
++      artifact = simplifyArtifactRev artifactRaw
++  _ <- evaluate artifactRaw
++  _ <- evaluate artifact
++  return
++    [ bench "S-fullpipe-honest" $ whnf
++        (\glyph -> forceCnnGrad $ vjp (cnnObjectiveBig glyph) valsInit arrDt)
++        arrGlyph
++    , bench "S-artifact" $ whnf
++        (simplifyArtifactRev . vjpArtifact f) valsInit
++    , bench "S-exec" $ whnf
++        (\dt -> forceCnnGrad
++                  (vjpInterpretArtifact artifact valsInitT dt
++                   :: MnistCnnShaped2.ADCnnMnistParametersShaped
++                        Concrete 24 24 2 2 16 64 Double)) arrDt
++    , bench "S-exec-raw" $ whnf
++        (\dt -> forceCnnGrad
++                  (vjpInterpretArtifact artifactRaw valsInitT dt
++                   :: MnistCnnShaped2.ADCnnMnistParametersShaped
++                        Concrete 24 24 2 2 16 64 Double)) arrDt
++    ]
++
+ -- | Micro-benchmarks for the dominant cost found by profiling: the
+ -- interpreted im2col gather chains. Four comparisons: (1) the
+ -- AD-produced orientation (large dim first in the gather output, small
+@@ -860,6 +915,9 @@ main = do
+       cnn6 <- benchesCnnAt @6 @6
+       cnn12 <- benchesCnnAt @12 @12
+       cnn24 <- benchesCnnAt @24 @24
++      -- PROBE EDIT 2026-08-18, uncommitted; see benchesCnnBig24.
++      cnn48 <- benchesCnnAt @48 @48
++      cnnBig24 <- benchesCnnBig24
+       bg <- gatherBenches
+       bs <- scatterBenches
+       pf <- pitfallBenches
+@@ -877,6 +935,9 @@ main = do
+         , bgroup "cnn-6x6" cnn6
+         , bgroup "cnn-12x12" cnn12
+         , bgroup "cnn-24x24" cnn24
++        -- PROBE EDIT 2026-08-18, uncommitted; see benchesCnnBig24.
++        , bgroup "cnn-48x48" cnn48
++        , bgroup "cnn-24x24-c16h64" cnnBig24
+         , bgroup "gather48" bg
+         , bgroup "scatter48" bs
+         , bgroup "pitfalls" pf

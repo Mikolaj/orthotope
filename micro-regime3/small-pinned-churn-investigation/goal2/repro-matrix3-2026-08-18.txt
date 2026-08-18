@@ -1,0 +1,38 @@
+== repro-9124i [-A32m] mode=''
+victim: first half 11.749857906252146 ms/iter, second half 9.378220379973452 ms/iter; mem in use: 0.1025390625 GiB
+== repro-9124i [-A32m] mode='inter'
+victim: first half 11.758313795241216 ms/iter, second half 11.783575030664602 ms/iter; mem in use: 0.1015625 GiB
+== repro-9124i [-A32m] mode='interbig'
+victim: first half 11.087933667004108 ms/iter, second half 10.76053395246466 ms/iter; mem in use: 0.1064453125 GiB
+== repro-9124i [-A32m] mode='interunboxed'
+victim: first half 11.609947788529098 ms/iter, second half 11.550621620068949 ms/iter; mem in use: 9.86328125e-2 GiB
+== repro-9124i [-A1G] mode=''
+victim: first half 10.78097538712124 ms/iter, second half 6.4232762398508685 ms/iter; mem in use: 1.43359375 GiB
+== repro-9124i [-A1G] mode='inter'
+victim: first half 10.878106156984964 ms/iter, second half 7.168994706589729 ms/iter; mem in use: 1.4921875 GiB
+== repro-9124i [-A1G] mode='interbig'
+victim: first half 10.746025536209345 ms/iter, second half 6.486784047447145 ms/iter; mem in use: 1.55078125 GiB
+== repro-9124i [-A1G] mode='interunboxed'
+victim: first half 10.479702497832477 ms/iter, second half 6.972478736036768 ms/iter; mem in use: 1.3828125 GiB
+== repro-9141i [-A32m] mode=''
+victim: first half 11.646697433510175 ms/iter, second half 9.314105832794061 ms/iter; mem in use: 0.1025390625 GiB
+== repro-9141i [-A32m] mode='inter'
+victim: first half 11.779113967592517 ms/iter, second half 11.7132065553839 ms/iter; mem in use: 0.1015625 GiB
+== repro-9141i [-A32m] mode='interbig'
+victim: first half 11.033398103900254 ms/iter, second half 10.653051069627205 ms/iter; mem in use: 0.1064453125 GiB
+== repro-9124i [-A1G] mode='' rep2
+victim: first half 10.828694546750436 ms/iter, second half 6.407093313367416 ms/iter; mem in use: 1.43359375 GiB
+== repro-9124i [-A1G] mode='inter' rep2
+victim: first half 10.841134580938766 ms/iter, second half 7.174218195335318 ms/iter; mem in use: 1.4921875 GiB
+== repro-9124i [-A1G] mode='interbig' rep2
+victim: first half 10.832091349487504 ms/iter, second half 6.538484112049142 ms/iter; mem in use: 1.55078125 GiB
+== repro-9124i [-A1G] mode='interunboxed' rep2
+victim: first half 10.379606140001366 ms/iter, second half 6.938023166731 ms/iter; mem in use: 1.3828125 GiB
+== repro-9124i [-A1G] mode='' rep3
+victim: first half 10.677038192904245 ms/iter, second half 6.3632068534692126 ms/iter; mem in use: 1.43359375 GiB
+== repro-9124i [-A1G] mode='inter' rep3
+victim: first half 10.749067422002554 ms/iter, second half 7.072465230400364 ms/iter; mem in use: 1.4921875 GiB
+== repro-9124i [-A1G] mode='interbig' rep3
+victim: first half 10.69792938961958 ms/iter, second half 6.478869699252148 ms/iter; mem in use: 1.55078125 GiB
+== repro-9124i [-A1G] mode='interunboxed' rep3
+victim: first half 10.348076688436171 ms/iter, second half 6.929215028261145 ms/iter; mem in use: 1.3828125 GiB

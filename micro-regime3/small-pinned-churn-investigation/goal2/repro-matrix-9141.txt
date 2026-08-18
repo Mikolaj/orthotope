@@ -1,0 +1,28 @@
+== repro-9141 [-A32m] mode=''
+victim: first half 11.588966206957895 ms/iter, second half 9.268940680194646 ms/iter; mem in use: 0.1025390625 GiB
+== repro-9141 [-A32m] mode='poison'
+poisoned in 0.9621686359168962 s; mem in use: 6.93359375e-2 GiB
+victim: first half 12.810094119825711 ms/iter, second half 10.486400860051315 ms/iter; mem in use: 0.1025390625 GiB
+== repro-9141 [-A32m] mode='poisonmid'
+poisonmided in 0.5702336040558293 s; mem in use: 6.8359375e-2 GiB
+victim: first half 12.687273333625248 ms/iter, second half 10.419208419819673 ms/iter; mem in use: 0.1015625 GiB
+== repro-9141 [-A32m] mode='poisontiny'
+poisontinyed in 0.3359784659696743 s; mem in use: 6.54296875e-2 GiB
+victim: first half 12.878389519949755 ms/iter, second half 10.50268277991563 ms/iter; mem in use: 0.1025390625 GiB
+== repro-9141 [-A32m] mode='poisonbig'
+poisonbiged in 1.1185562250902876 s; mem in use: 7.421875e-2 GiB
+victim: first half 11.776059039402753 ms/iter, second half 9.325758927346516 ms/iter; mem in use: 0.1025390625 GiB
+== repro-9141 [-A1G] mode=''
+victim: first half 10.849323713531096 ms/iter, second half 6.415119060159971 ms/iter; mem in use: 1.43359375 GiB
+== repro-9141 [-A1G] mode='poison'
+poisoned in 1.6646114700706676 s; mem in use: 2.0048828125 GiB
+victim: first half 10.232473679352552 ms/iter, second half 7.110030353845407 ms/iter; mem in use: 2.0048828125 GiB
+== repro-9141 [-A1G] mode='poisonmid'
+poisonmided in 0.9502621080027893 s; mem in use: 1.974609375 GiB
+victim: first half 10.080992526685197 ms/iter, second half 6.976555432969083 ms/iter; mem in use: 1.974609375 GiB
+== repro-9141 [-A1G] mode='poisontiny'
+poisontinyed in 0.6262019120622426 s; mem in use: 1.8916015625 GiB
+victim: first half 10.53772673321267 ms/iter, second half 7.4977548195359605 ms/iter; mem in use: 1.8916015625 GiB
+== repro-9141 [-A1G] mode='poisonbig'
+poisonbiged in 2.0202297780197114 s; mem in use: 2.1708984375 GiB
+victim: first half 9.818248820180694 ms/iter, second half 6.442306259802232 ms/iter; mem in use: 2.1708984375 GiB

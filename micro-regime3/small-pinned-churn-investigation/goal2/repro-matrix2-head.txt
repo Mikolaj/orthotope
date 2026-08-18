@@ -1,0 +1,12 @@
+== repro-head-b [-A32m] mode='poisonmid'
+poisonmided in 0.8589808440301567 s; mem in use: 6.8359375e-2 GiB
+victim: first half 12.714183673573036 ms/iter, second half 10.54536048633357 ms/iter; mem in use: 0.1015625 GiB
+== repro-head-b [-A32m] mode='poisontiny'
+poisontinyed in 0.33058636100031435 s; mem in use: 6.54296875e-2 GiB
+victim: first half 12.753019760518024 ms/iter, second half 10.471526719629765 ms/iter; mem in use: 0.1025390625 GiB
+== repro-head-b [-A1G] mode='poisonmid'
+poisonmided in 1.084079175023362 s; mem in use: 1.974609375 GiB
+victim: first half 9.998445726620654 ms/iter, second half 6.857211919656645 ms/iter; mem in use: 1.974609375 GiB
+== repro-head-b [-A1G] mode='poisontiny'
+poisontinyed in 0.6651831899071112 s; mem in use: 1.8916015625 GiB
+victim: first half 10.460902713239193 ms/iter, second half 7.411228079969685 ms/iter; mem in use: 1.8916015625 GiB

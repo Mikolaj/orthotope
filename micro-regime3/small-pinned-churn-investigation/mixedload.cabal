@@ -1,0 +1,17 @@
+cabal-version:      2.4
+name:               mixedload
+version:            0.1
+build-type:         Simple
+
+-- The goal-3 driver (MixedLoad.hs, whose header says what it is).
+-- Untracked, like everything in this directory.  The same regime as
+-- micro's stanza but for -M2G (the driver's shapes are micro's, capped
+-- the same way, and -T is what the per-window GHC.Stats table needs);
+-- +RTS -A is given at run time.
+executable MixedLoad
+    main-is:          MixedLoad.hs
+    default-language: GHC2021
+    ghc-options:      -O1 -fno-ignore-asserts -rtsopts "-with-rtsopts=-T"
+    build-depends:
+        base,
+        vector

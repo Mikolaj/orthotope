@@ -28,16 +28,21 @@
 -- be filed; if not, the difference against micro (criterion's per-bench
 -- performGC, per-sample minor GCs, the env lifetime) is what to add next.
 {-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE MagicHash #-}
+{-# LANGUAGE UnboxedTuples #-}
 module Main (main) where
 
 import Control.Monad (forM_, when)
+import Data.IORef (modifyIORef', newIORef, readIORef)
 import Foreign.ForeignPtr (mallocForeignPtrBytes, withForeignPtr)
 import Foreign.Ptr (Ptr)
 import Foreign.Storable (peekElemOff, pokeElemOff)
 import GHC.Clock (getMonotonicTime)
+import GHC.Exts
+import GHC.IO (IO (..))
 import GHC.Stats (getRTSStats, max_mem_in_use_bytes)
 import System.Environment (getArgs)
-import System.Mem (performGC)
+import System.Mem (performMajorGC)
 
 -- Allocate a pinned n-Double buffer on the RTS heap, fill it, sum it.
 {-# NOINLINE fillSum #-}
@@ -98,13 +103,14 @@ poisonBigIter seed = do
   go 0 0
 
 -- The victim mimics micro's `list` arm on a vgg-sized shape: read a
--- long-lived pinned source through a boxed list (~600k conses and boxed
--- Doubles per iteration, ~24 MB of nursery churn), then one pinned result
--- per iteration.  The mapM materializes the whole list before sum consumes
--- it -- deliberate, mirroring the multi-MB live spans the span sweep
--- measured on micro's victims, not an accident to optimize away.  The
--- source stays live across iterations, as criterion's env keeps a shape's
--- setup vector live.
+-- long-lived pinned source through a temporary cons list of boxed
+-- Doubles (~600k (:) cells and boxed Doubles per iteration, ~24 MB
+-- of nursery churn), then one pinned result per iteration.  The mapM
+-- materializes the whole list before sum consumes it -- deliberate,
+-- mirroring the multi-MB live spans the span sweep measured on micro's
+-- victims, not an accident to optimize away.  The source stays live
+-- across iterations, as criterion's env keeps a shape's setup vector
+-- live.
 {-# NOINLINE victimIter #-}
 victimIter :: Ptr Double -> Int -> IO Double
 victimIter src seed = do
@@ -113,6 +119,40 @@ victimIter src seed = do
   let !s = sum [v + fromIntegral seed | v <- vs]
   r <- fillSum 200000 s
   pure $! s + r
+
+-- The unpinned counterpart of 'fillSum': the same fill-and-sum over an
+-- ordinary movable ByteArray# from newByteArray# -- no pinned
+-- allocation at all.  Base only, via primops.
+{-# NOINLINE fillSumUnpinned #-}
+fillSumUnpinned :: Int -> Double -> IO Double
+fillSumUnpinned (I# n) (D# x) = IO $ \s0 ->
+  case newByteArray# (n *# 8#) s0 of
+    (# s1, mba #) ->
+      let fill i s | isTrue# (i >=# n) = s
+                   | otherwise = fill (i +# 1#) (writeDoubleArray# mba i x s)
+          summ acc i s
+            | isTrue# (i >=# n) = (# s, D# acc #)
+            | otherwise = case readDoubleArray# mba i s of
+                (# s', v #) -> summ (acc +## v) (i +# 1#) s'
+      in  summ 0.0## 0# (fill 0# s1)
+
+-- The INTERLEAVED route's dose (the follow-up comment's condition, not
+-- the upfront issue's): 1000 small allocating calls between every pair
+-- of victim iterations, so the cumulative count crosses the 10^5
+-- saturation region inside the victim's second half (150 iterations in,
+-- 150k calls).  Registered predictions, judged not remembered: inter
+-- (2304 B pinned), interbig (3600 B pinned) and interunboxed (2304 B
+-- movable) all lift the second half toward the upfront-poison level --
+-- class-independent -- while the upfront modes above keep their class
+-- split inside the same binary.  The spray calls' own wall is timed and
+-- subtracted, so the printed halves stay the victim's rate.
+{-# NOINLINE interIter #-}
+interIter :: (Int -> IO Double) -> Int -> IO Double
+interIter one seed = do
+  let go !acc !i | i >= 1000 = pure acc
+                 | otherwise = do v <- one (seed + i)
+                                  go (acc + v) (i + 1)
+  go 0 0
 
 memGiB :: IO Double
 memGiB = do s <- getRTSStats
@@ -137,22 +177,40 @@ main = do
           m <- memGiB
           putStrLn (name ++ "ed in " ++ show (t1 - t0)
                     ++ " s; mem in use: " ++ show m ++ " GiB")
-    performGC
+    performMajorGC
     -- Two halves timed separately: an unpoisoned run's first pass through
     -- a fresh large nursery hits kernel-zeroed, cache-warm pages and runs
     -- FASTER than steady state (measured 2026-08-18, micro's fixed-n
     -- ladders), so the second half is the honeymoon-free reading and the
     -- one to compare across modes.
+    let interOne
+          | "inter" `elem` args =
+              Just (\k -> fillSum 288 (fromIntegral k))
+          | "interbig" `elem` args =
+              Just (\k -> fillSum 450 (fromIntegral k))
+          | "interunboxed" `elem` args =
+              Just (\k -> fillSumUnpinned 288 (fromIntegral k))
+          | otherwise = Nothing
+    sprayT <- newIORef (0 :: Double)
+    let victimLoop lo hi = forM_ [lo .. hi :: Int] $ \i -> do
+          case interOne of
+            Nothing -> pure ()
+            Just one -> do
+              c0 <- getMonotonicTime
+              _ <- interIter one (i * 1000)
+              c1 <- getMonotonicTime
+              modifyIORef' sprayT (+ (c1 - c0))
+          _ <- victimIter src i
+          pure ()
     t0 <- getMonotonicTime
-    forM_ [1 .. 150 :: Int] $ \i -> do
-      _ <- victimIter src i
-      pure ()
+    victimLoop 1 150
     t1 <- getMonotonicTime
-    forM_ [151 .. 300 :: Int] $ \i -> do
-      _ <- victimIter src i
-      pure ()
+    s1 <- readIORef sprayT
+    victimLoop 151 300
     t2 <- getMonotonicTime
+    s2 <- readIORef sprayT
     m <- memGiB
-    putStrLn ("victim: first half " ++ show ((t1 - t0) / 150 * 1000)
-              ++ " ms/iter, second half " ++ show ((t2 - t1) / 150 * 1000)
+    putStrLn ("victim: first half " ++ show ((t1 - t0 - s1) / 150 * 1000)
+              ++ " ms/iter, second half "
+              ++ show ((t2 - t1 - (s2 - s1)) / 150 * 1000)
               ++ " ms/iter; mem in use: " ++ show m ++ " GiB")
