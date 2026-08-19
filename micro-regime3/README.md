@@ -2398,11 +2398,12 @@ than a slot in the next run, observed again:
   And **two probes are registered with it**, both spent after the write-up out
   of the probe budget rather than before it, and neither wanting a pair, a gate
   or a build. *The area curve*: the gate's five-bench selection over the shape
-  set at `-A8m`, `-A16m`, `-A32m`, `-A64m`, `-A128m` and `-A256m`, all six
-  reached on the basis binary under `+RTS`, which `-rtsopts` makes available
-  without rebuilding — roughly an hour at the gate's own eight minutes a process
-  — answering what registrations 2 and 3 cannot: whether 32m is a local optimum
-  or merely the better of two points. Killed as a reading by a minimum
+  set at six areas from `-A8m` to `-A256m`, each reached on the basis binary
+  as `+RTS -A<area> -I0 -T -M8G -RTS` — the baked options repeated in full,
+  a `+RTS` line inheriting none of them — and reachable without a rebuild
+  because `-rtsopts` is set. Roughly an hour at the gate's own eight minutes
+  a process, answering what registrations 2 and 3 cannot: whether 32m is a local
+  optimum or merely the better of two points. Killed as a reading by a minimum
   that is not at or near 32m. *The wild cell's mechanism*, whose instrument
   is built and waiting: the task heading below says what it is pointed
   at and why it is not in the pair.
@@ -3821,7 +3822,11 @@ Self-contained (base + vector + criterion + deepseq):
     cd micro-regime3 && cabal run micro --ghc-options=-O2 -- diag
     cd micro-regime3 && cabal run probe -- check     # the element-type probe
     cd micro-regime3 && cabal run probe -- f32       # one element type
-    ./run15-lookrts -m glob 'SHAPE/list' +RTS -A32m  # any nursery, one binary
+    ./run15-lookrts -m glob 'SHAPE/list' +RTS -A32m -I0 -T -M8G  # any nursery
+    #  A `+RTS` line does not inherit the baked one, so repeat the baked
+    #  options in full beside whatever is being varied -- `-I0 -T -M8G` here --
+    #  or the probe runs in a regime nobody chose and its figures are not
+    #  the run's. The three lines below want the same treatment
     ./run15-lookrts -m glob 'SHAPE/list' +RTS -s     # allocation, copying, GCs
     ./run15-lookrts -m glob 'SHAPE/list' +RTS -hT    # live heap by closure type
     ./run15-lookrts -m glob 'SHAPE/list' +RTS -S     # one line per collection
@@ -3916,11 +3921,11 @@ are appended after the classes and were designed before the evening. What
 this ordering is for: the write-up is where a run's errors are made, it is done
 last, and a probe spent first is spent out of its attention — Run 14 probed
 heavily and well, and shipped twenty-one prose errors past four green checkers
-because the writing came at the end of it. Allow up to about two hours
-of measurement the run's own *results* make worthwhile: a discriminating reading
+because the writing came at the end of it. Take whatever measurement the run's
+own *results* make worthwhile, with no ceiling on it: a discriminating reading
 of a cell that came out strange, a derivation over the artifacts while they
-still exist. Spend it while they do, most of it being unspendable afterwards,
-and propose rather than take anything beyond it. **And do not read the budget
+still exist. What bounds it is the artifacts and not a clock — spend it while
+they live, most of it being unspendable afterwards. **And do not read the budget
 as a concession — it is where this page's mechanisms have come from, where
 the run is where its figures come from.** Run 15's six and a half hours produced
 figures, held 13 of 13 claims and confirmed a repetition, and no mechanism
