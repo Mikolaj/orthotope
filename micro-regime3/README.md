@@ -2120,29 +2120,40 @@ than a slot in the next run, observed again:
   rare collections to let block groups accumulate where this condition's
   disturbance is full size at 4 MB and merely unpaid. Everything reproduces
   on GHC HEAD, where that issue is itself unfixed. Run 15 was built to read
-  the term at a caller's nursery, and the probe sessions of 2026-08-17/18
+  the term at a caller's nursery, and the probe sessions of 2026-08-17/18/19
   resolved it; the account below is the summary, and the measurements, their
   tables and the recipes to re-take them
   are `small-pinned-churn-investigation/nursery-position-findings2.txt`'s.
 
-  **The resolution in one paragraph.** The poison is the size class: churning
-  pinned allocations of at most 3276 bytes — the shared-accumulator path, up
-  to 407 doubles, and every Storable vector is pinned at any size — degrades
-  every later `list`-like phase of the process, log-linearly in the object count
-  until it saturates around a million, while the same count of own-group sprays
-  (3600 B and larger) costs nothing. There is no poison set — the corrected
-  scans, victim at roster position 24 with per-process order assertion, put all
-  23 candidates on that one curve — and every shape is a victim on its `list`,
-  around +14% at `-A32m` after one saturating poison, while among arms stable
-  enough to read no other arm pays (`offtab` and `build` cannot be read
-  by single processes at all, their alone legs spreading 10 to 21%). **What
-  it costs this page**: `list` is every published figure's denominator and runs
-  poisoned in every main-run process, so the control half's ratios carry
-  a roughly uniform 14% deflation at `-A32m` and a shape-dependent 0 to 10% one
-  at the default — the anchors' figures in [Provenance](#provenance).
-  A ~130-line base-only reproducer,
-  `small-pinned-churn-investigation/ReproSmall.hs`, shows the whole signature
-  on 9.12.4 and HEAD, the own-group control at zero inside the same binary.
+  **The resolution in one paragraph, the route split of 2026-08-19 folded in.**
+  One damaged state, two formation routes. An UPFRONT burst is class-selective:
+  churning pinned allocations of at most 3276 bytes — the shared-accumulator
+  path, up to 406 doubles (the limit is compared in words), every Storable
+  vector being pinned at any size — degrades every later `list`-like phase,
+  while the same burst of own-group objects (3600 B and larger) costs nothing;
+  padding the small results above the limit erases this route completely, +12%
+  to +0.2% at `-A32m` and +44% to +0.6% at `-A1G` on the fixed-n victim.
+  The INTERLEAVED route is class-free: any sub-threshold allocation, pinned
+  or movable, punctuating a victim builds the same state, dosed by cumulative
+  bytes — and this route, not the class, is what a criterion process does
+  to its later benches: the corrected scans put all 23 candidates on one
+  count-ordered curve, log-linear until it saturates around a million calls,
+  and a fully padded binary reproduces the same curve. So there is no poison
+  set, every shape is a victim on its `list` — around +14% at `-A32m` after one
+  saturating in-process poison, padded or not — while among arms stable enough
+  to read no other arm pays (`offtab` and `build` cannot be read by single
+  processes at all, their alone legs spreading 10 to 21%). **What it costs
+  this page**: `list` is every published figure's denominator and runs
+  in-process in every main run, so the published absolutes sit above the shapes'
+  clean alone rates — roughly uniformly ~14% at `-A32m` and a shape-dependent 0
+  to 10% at the default, now measured directly against clean single-bench alone
+  legs for every `list` denominator, main set and classes (findings items 64/68)
+  — while within-run ratios carry little of it, the crossed A/A twins bounding
+  position bias under a percent. No allocation policy reaches the in-process
+  deflation; its outs are single-bench processes or a GHC fix. A ~130-line
+  base-only reproducer, `small-pinned-churn-investigation/ReproSmall.hs`, shows
+  both routes on 9.12.4, 9.14.1 and HEAD, the own-group upfront control at zero
+  inside the same binary.
 
   **Two standing rules and one boundary come out of it.** The instrument rule:
   a big-churn bench's ALONE reading at an area past the 32 MB L3 is a fresh-heap
@@ -2152,13 +2163,14 @@ than a slot in the next run, observed again:
   and the term's real `-A1G` size is +29 to +44% by victim, not the +56.5% once
   quoted here. The tuning rule: the tax cannot be `-A`-tuned away — +33%
   at `-A64m` and at `-A256m`, +44% at `-A1G`, and only 4 MB-scale areas decline
-  to pay, at their own collector cost — so the remedy is source-level
-  or GHC-level, which
-  is `small-pinned-churn-investigation/pinned-churn-plan.txt`'s brief (the GHC
-  filing decision, the best current options, the user-code workarounds; nothing
-  filed). The boundary: `cifar-L2-16-c64-k3`'s +10.2% after one poison
-  at the DEFAULT nursery ([Provenance](#provenance)) is the one standing
-  counterexample to small-area immunity, unexplained.
+  to pay, at their own collector cost — and the remedy is route-specific:
+  padding cures upfront bursts outright, no source-level policy reaches
+  the in-process route, so its outs are process isolation or a GHC fix;
+  the issue and its follow-up comment are staged in horde-ad's docs, nothing
+  posted. The former boundary is resolved: cifar's +10.2% at the DEFAULT nursery
+  was roster context over a ~+5.5% clean-pair tax inside the small-area band
+  (findings items 40b/51) — small-area immunity was never strict anyway, a few
+  percent rather than zero (items 27/30).
 
   **And the five shapes a bigger nursery helps are NOT this term — that
   is the correction the same probes force.** The victim runs 1.74x faster at 32
@@ -2257,16 +2269,15 @@ than a slot in the next run, observed again:
   are independent as well as opposed: one is copying, the other is what
   a resident footprint does to the mutator.
 
-- `OPEN` **Two residues of the small-pinned churn, neither blocking
-  its filing.** The `-A1G` alone transient's micro-mechanism: early and late
-  iterations carry EQUAL cache-miss and dTLB counts per iteration while cycles
-  differ ~17%, so the fresh-heap advantage is in miss cost or overlap, not count
-  — load/store-split counters or `perf mem` would name it. And whether the added
-  misses at `-A4m` are mutator- or collector-side — the differencing attributes
-  the victim phase's GC work to the victim, and the conceptual objection above
-  leans on their being the same phenomenon at both areas — which one
-  `perf record` attribution run settles. `cifar-L2-16-c64-k3`'s +10.2%
-  at the default nursery is the counterexample either residue might explain.
+- `OPEN` **One residue of the small-pinned churn, one answered, neither blocking
+  its filing.** Open: the `-A1G` alone transient's micro-mechanism — early
+  and late iterations carry EQUAL cache-miss and dTLB counts per iteration while
+  cycles differ ~17%, so the fresh-heap advantage is in miss cost or overlap,
+  not count — and the instrument that would name it, load/store-split
+  or `perf mem` sampling, is unavailable on this machine (no IBS exposure;
+  findings item 58). Answered: the added misses at `-A4m` are mutator-side,
+  the collector's own symbols carrying ~1% of samples in every cell,
+  so the conceptual objection above stands measured (item 56).
 - `ANSWERED` **What Run 15 was built to answer, registered before it ran —
   and what it answered.** Its pair is Run 14's with `-A32m` in place of `-A1G`
   on the control half and nothing else changed, on Run 14's roster ([what
@@ -8945,16 +8956,20 @@ wanted a mechanism, and two were measured, of which the second is much
 the larger. It is the most nursery-sensitive of the three anchors, its `list`
 moving 6.1% across `-A4m` to `-A16m` against `stretch-wide-2xM`'s 1.1%.
 **And it is by far the most exposed of the three to the position term**: against
-a clean single-bench process its `list` reads **+10.2%** after one poison
+a clean single-bench process its in-roster `list` reads **+10.2%**
 at the default nursery, where `stretch-wide-2xM` reads +6.3% and `cnn-slice-c32`
-+0.3%. Since that tax depends on what ran before it in the process, an anchor
-carrying 10% of it moves whenever the roster's composition or order moves —
-which is a reason to keep it instrumented, a reason to stop calling its movement
++0.3% — of which a clean two-bench pair reproduces only ~+5.5%, the rest being
+roster context (findings item 40b), and the clean alone rates themselves are now
+on file for all three and for every other `list` denominator (item 64). Since
+that context depends on what ran before it in the process, an anchor carrying
+10% of it moves whenever the roster's composition or order moves — which
+is a reason to keep it instrumented, a reason to stop calling its movement
 a coincidence, and a caution that its published absolute is an in-roster figure
-some 9% above what that shape does alone. The control half's figures are given
-beside them, and unlike Run 14's they *are* a second measurement of the same
-thing, this pair's absolutes being subtractable; what they are not is a second
-reading of the same baseline, `list` being the arm the nursery moves most:
+some 9% above what that shape does alone, measured rather than estimated.
+The control half's figures are given beside them, and unlike Run 14's they
+*are* a second measurement of the same thing, this pair's absolutes being
+subtractable; what they are not is a second reading of the same baseline, `list`
+being the arm the nursery moves most:
 
 | shape | `l` | `list`, per call | net | +A32m, net |
 |---|---:|---:|---:|---:|
