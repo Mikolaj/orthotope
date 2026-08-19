@@ -732,6 +732,60 @@ baseOffsetsScanPacked o0 osh (Strides oats)
             carry !_ _ !acc = negate acc  -- reachable once, for the final
               -- step's discarded successor, as in 'baseOffsetsOdo'
 
+-- Padding the small pinned results
+-- (small-pinned-churn-investigation/padding-plan.txt): every arm's RESULT
+-- allocation goes through 'padTo', so a sub-threshold result is allocated
+-- at 410 doubles and returned as an l-slice -- 'VS.unsafeTake' keeps the
+-- padded ForeignPtr and 'VS.length' stays @l@, so no consumer can tell.
+-- 406 doubles = 3248 B payload is the last sub-threshold size (the limit,
+-- 3276 B, is compared in words: object plus header under 409); 410 clears
+-- it with the 16 B header included (MixedLoad.hs, same constants). Setup
+-- vectors stay unpadded: long-lived, no churn. The
+-- toggle is edited by hand and rebuilt, each binary's md5 and toggle state
+-- recorded beside its cells; with it False the compare folds away, so the
+-- two states share these forms with the length the only difference.
+--
+-- The exception, labeled here once: an arm whose allocating combinator is
+-- itself the strategy recorded -- 'fbUnfoldAdd'/'fbFused'
+-- ('VS.unfoldrExactN'), 'fbBackperm' ('VS.unsafeBackpermute'),
+-- 'fbCMGather'/'fbAllExpand' (the fused maps), 'fbConcatRuns'
+-- ('VS.concat') -- keeps its combinator and stays unpadded. Every one is
+-- 'Only', so none allocates in a timed process and the padding buys
+-- nothing there, while the rewrite would unmake what the arm records.
+padSmall :: Bool
+padSmall = False
+
+padTo :: Int -> Int
+padTo l = if padSmall && l < 410 then 410 else l
+
+-- 'VS.fromListN' with the allocation length routed through 'padTo': an
+-- explicit fill loop takes the combinator's place, since 'VS.fromListN'
+-- takes no allocation length (MixedLoad.hs armList's precedent).
+{-# INLINE padFromListN #-}
+padFromListN :: Int -> [Double] -> VS.Vector Double
+padFromListN l xs = VS.unsafeTake l $ VS.create $ do
+  out <- VSM.unsafeNew (padTo l)
+  let fill !i (x : rest) | i < l = VSM.unsafeWrite out i x >> fill (i + 1) rest
+      fill _ _ = pure ()
+  fill 0 xs
+  return out
+
+-- 'VS.generate' with the allocation length routed through 'padTo', by the
+-- same explicit-fill route. This collapses the generate-vs-explicit-loop
+-- mechanism contrasts the arm comments below state ('fbMutFlat''s pair,
+-- and the class-only readings that lean on @vGenerate@): those comments
+-- describe the strategies as the published record measured them, on the
+-- old forms, and stay put -- the run15 binaries keep those forms, and this
+-- form exists to price the padding, not to re-measure the mechanisms.
+{-# INLINE padGenerate #-}
+padGenerate :: Int -> (Int -> Double) -> VS.Vector Double
+padGenerate l get = VS.unsafeTake l $ VS.create $ do
+  out <- VSM.unsafeNew (padTo l)
+  let fill !i | i >= l = pure ()
+              | otherwise = VSM.unsafeWrite out i (get i) >> fill (i + 1)
+  fill 0
+  return out
+
 -- The strategies compared, in the four families README.md's strategy list
 -- uses and in its order (README.md#what-the-benchmark-does), base before
 -- variant. That is the reading order. The RUN order is a different one,
@@ -742,7 +796,7 @@ baseOffsetsScanPacked o0 osh (Strides oats)
 -- The original fallback.
 {-# NOINLINE fbList #-}
 fbList :: ShapeL -> T -> VS.Vector Double
-fbList sh a = VS.fromListN l (toListT sh a) where l = product sh
+fbList sh a = padFromListN l (toListT sh a) where l = product sh
 
 -- The first attempt -- vGenerate + linear-index-to-offset by
 -- quotRem (the PR's point 1), one division per rank. Why it is a mixed
@@ -750,7 +804,7 @@ fbList sh a = VS.fromListN l (toListT sh a) where l = product sh
 {-# NOINLINE fbGenQuotRem #-}
 fbGenQuotRem :: ShapeL -> T -> VS.Vector Double
 fbGenQuotRem sh (T (Strides ats) ao v) =
-  VS.generate l (\i -> v VS.! (ao + offsetOf i ts' ats))
+  padGenerate l (\i -> v VS.! (ao + offsetOf i ts' ats))
   where l : ts' = getStridesT sh
         offsetOf i (t:ts) (s:ss) = case i `quotRem` t of
                                      (!q, !r) -> q * s + offsetOf r ts ss
@@ -770,7 +824,7 @@ fbGenQuotRem sh (T (Strides ats) ao v) =
 {-# NOINLINE fbGenUnsafe #-}
 fbGenUnsafe :: ShapeL -> T -> VS.Vector Double
 fbGenUnsafe sh (T (Strides ats) ao v) =
-  VS.generate l (\i -> VS.unsafeIndex v (ao + offsetOf i ts' ats))
+  padGenerate l (\i -> VS.unsafeIndex v (ao + offsetOf i ts' ats))
   where l : ts' = getStridesT sh
         offsetOf i (t:ts) (s:ss) = case i `quotRem` t of
                                      (!q, !r) -> q * s + offsetOf r ts ss
@@ -848,7 +902,7 @@ fbFused sh (T (Strides ats) ao v) = VS.unfoldrExactN l step (S3 ao 0 0)
 -- reduction on its own, without that strategy's fully-fused loop.
 {-# NOINLINE fbBaseOffsetsQuot #-}
 fbBaseOffsetsQuot :: ShapeL -> T -> VS.Vector Double
-fbBaseOffsetsQuot sh (T (Strides ats) ao v) = VS.generate l get
+fbBaseOffsetsQuot sh (T (Strides ats) ao v) = padGenerate l get
   where l = product sh
         !s = last sh
         !t = last ats
@@ -865,7 +919,7 @@ fbBaseOffsetsQuot sh (T (Strides ats) ao v) = VS.generate l get
 -- Tests how much of 'fbMutOdo's edge is just the base-offsets list.
 {-# NOINLINE fbBQmut #-}
 fbBQmut :: ShapeL -> T -> VS.Vector Double
-fbBQmut sh (T (Strides ats) ao v) = VS.generate l get
+fbBQmut sh (T (Strides ats) ao v) = padGenerate l get
   where l = product sh
         !s = last sh
         !t = last ats
@@ -883,7 +937,7 @@ fbBQmut sh (T (Strides ats) ao v) = VS.generate l get
 -- deliberately absent: a second change would confound the control.
 {-# NOINLINE fbBQmutRuns #-}
 fbBQmutRuns :: ShapeL -> T -> VS.Vector Double
-fbBQmutRuns sh (T (Strides ats) ao v) = VS.generate l get
+fbBQmutRuns sh (T (Strides ats) ao v) = padGenerate l get
   where l = product sh
         !s = last sh
         !t = last ats
@@ -899,7 +953,7 @@ fbBQmutRuns sh (T (Strides ats) ao v) = VS.generate l get
 -- the no-list base-offsets win survives without explicit mutation.
 {-# NOINLINE fbBQunfold #-}
 fbBQunfold :: ShapeL -> T -> VS.Vector Double
-fbBQunfold sh (T (Strides ats) ao v) = VS.generate l get
+fbBQunfold sh (T (Strides ats) ao v) = padGenerate l get
   where l = product sh
         !s = last sh
         !t = last ats
@@ -924,7 +978,7 @@ fbBQunfold sh (T (Strides ats) ao v) = VS.generate l get
 -- explicit vector mutation?".
 {-# NOINLINE fbBQgen #-}
 fbBQgen :: ShapeL -> T -> VS.Vector Double
-fbBQgen sh (T (Strides ats) ao v) = VS.generate l get
+fbBQgen sh (T (Strides ats) ao v) = padGenerate l get
   where l = product sh
         !s = last sh
         !t = last ats
@@ -937,7 +991,7 @@ fbBQgen sh (T (Strides ats) ao v) = VS.generate l get
 -- control.
 {-# NOINLINE fbBQgenLemire #-}
 fbBQgenLemire :: ShapeL -> T -> VS.Vector Double
-fbBQgenLemire sh (T (Strides ats) ao v) = VS.generate l get
+fbBQgenLemire sh (T (Strides ats) ao v) = padGenerate l get
   where l = product sh
         !s = last sh
         !t = last ats
@@ -951,7 +1005,7 @@ fbBQgenLemire sh (T (Strides ats) ao v) = VS.generate l get
 -- 'baseOffsetsMut'. The concatMap route to answering the no-mutation question.
 {-# NOINLINE fbBQexpand #-}
 fbBQexpand :: ShapeL -> T -> VS.Vector Double
-fbBQexpand sh (T (Strides ats) ao v) = VS.generate l get
+fbBQexpand sh (T (Strides ats) ao v) = padGenerate l get
   where l = product sh
         !s = last sh
         !t = last ats
@@ -963,7 +1017,7 @@ fbBQexpand sh (T (Strides ats) ao v) = VS.generate l get
 -- base-offsets build.
 {-# NOINLINE fbBQexpandZF #-}
 fbBQexpandZF :: ShapeL -> T -> VS.Vector Double
-fbBQexpandZF sh (T (Strides ats) ao v) = VS.generate l get
+fbBQexpandZF sh (T (Strides ats) ao v) = padGenerate l get
   where l = product sh
         !s = last sh
         !t = last ats
@@ -974,7 +1028,7 @@ fbBQexpandZF sh (T (Strides ats) ao v) = VS.generate l get
 -- 'fbBQexpand' with the micro-optimised 'baseOffsetsExpandB'.
 {-# NOINLINE fbBQexpandB #-}
 fbBQexpandB :: ShapeL -> T -> VS.Vector Double
-fbBQexpandB sh (T (Strides ats) ao v) = VS.generate l get
+fbBQexpandB sh (T (Strides ats) ao v) = padGenerate l get
   where l = product sh
         !s = last sh
         !t = last ats
@@ -989,7 +1043,7 @@ fbBQexpandB sh (T (Strides ats) ao v) = VS.generate l get
 -- GHC guards 'quotRemInt#' against a zero divisor and against the
 -- @minBound quot (-1)@ overflow, both tests on a loop-invariant divisor and
 -- neither reachable here: @s@ is positive whenever the fill runs at all,
--- since a zero dimension makes @l@ zero and 'VS.generate' then never calls
+-- since a zero dimension makes @l@ zero and 'padGenerate' then never calls
 -- the callback. This is the control that splits what
 -- 'fbBQexpandLemireOut' owes to deleting the division from what it owes to
 -- deleting those two guards -- a distinction that decides whether the Lemire
@@ -1001,11 +1055,11 @@ fbBQexpandQRprim sh (T (Strides ats) ao v) =
   -- Stands in for the two tests 'quotRem' makes and 'quotRemInt#' does not.
   -- It holds because @s@ is a shape dimension, hence never negative, so the
   -- @minBound quot (-1)@ overflow needs a divisor this can never have; and a
-  -- zero dimension makes @l@ zero, whereupon 'VS.generate' never runs the
+  -- zero dimension makes @l@ zero, whereupon 'padGenerate' never runs the
   -- callback, so the divisor cannot be zero at any division actually
   -- performed. Unlike the size preconditions above, this one is checkable
   -- from the shape alone and would fire on a malformed one.
-  assert (l == 0 || s > 0) $ VS.generate l get
+  assert (l == 0 || s > 0) $ padGenerate l get
   where l = product sh
         !s = last sh
         !(I# s#) = s
@@ -1025,7 +1079,7 @@ fbBQexpandQRprim sh (T (Strides ats) ao v) =
 -- changes ('stretch-inner1' is the shape that takes it).
 {-# NOINLINE fbBQexpandLemireOut #-}
 fbBQexpandLemireOut :: ShapeL -> T -> VS.Vector Double
-fbBQexpandLemireOut sh (T (Strides ats) ao v) = VS.generate l get
+fbBQexpandLemireOut sh (T (Strides ats) ao v) = padGenerate l get
   where l = product sh
         !s = last sh
         !t = last ats
@@ -1054,8 +1108,8 @@ fbBQexpandLemireOut sh (T (Strides ats) ao v) = VS.generate l get
 {-# NOINLINE fbBQexpandLemireMulback #-}
 fbBQexpandLemireMulback :: ShapeL -> T -> VS.Vector Double
 fbBQexpandLemireMulback sh (T (Strides ats) ao v)
-  | s == 1 = VS.generate l (VS.unsafeIndex v . VU.unsafeIndex baseOffsets)
-  | otherwise = VS.generate l get
+  | s == 1 = padGenerate l (VS.unsafeIndex v . VU.unsafeIndex baseOffsets)
+  | otherwise = padGenerate l get
   where l = product sh
         !s = last sh
         !t = last ats
@@ -1079,8 +1133,8 @@ fbBQexpandLemireMulback sh (T (Strides ats) ao v)
 {-# NOINLINE fbBQexpandGmMulback #-}
 fbBQexpandGmMulback :: ShapeL -> T -> VS.Vector Double
 fbBQexpandGmMulback sh (T (Strides ats) ao v)
-  | s == 1 = VS.generate l (VS.unsafeIndex v . VU.unsafeIndex baseOffsets)
-  | otherwise = VS.generate l get
+  | s == 1 = padGenerate l (VS.unsafeIndex v . VU.unsafeIndex baseOffsets)
+  | otherwise = padGenerate l get
   where l = product sh
         !s = last sh
         !t = last ats
@@ -1104,9 +1158,9 @@ fbBQexpandGmMulback sh (T (Strides ats) ao v)
 {-# NOINLINE fbBQexpand32LemireMulback #-}
 fbBQexpand32LemireMulback :: ShapeL -> T -> VS.Vector Double
 fbBQexpand32LemireMulback sh (T (Strides ats) ao v)
-  | s == 1 = VS.generate l
+  | s == 1 = padGenerate l
                (VS.unsafeIndex v . fromIntegral . VU.unsafeIndex baseOffsets)
-  | otherwise = VS.generate l get
+  | otherwise = padGenerate l get
   where l = product sh
         !s = last sh
         !t = last ats
@@ -1136,7 +1190,7 @@ fbBQexpand32LemireMulback sh (T (Strides ats) ao v)
 -- this is the cheapest form of the fastest output.
 {-# NOINLINE fbBQmutLemireOut #-}
 fbBQmutLemireOut :: ShapeL -> T -> VS.Vector Double
-fbBQmutLemireOut sh (T (Strides ats) ao v) = VS.generate l get
+fbBQmutLemireOut sh (T (Strides ats) ao v) = padGenerate l get
   where l = product sh
         !s = last sh
         !t = last ats
@@ -1155,8 +1209,8 @@ fbBQmutLemireOut sh (T (Strides ats) ao v) = VS.generate l get
 {-# NOINLINE fbBQmutLemireMulback #-}
 fbBQmutLemireMulback :: ShapeL -> T -> VS.Vector Double
 fbBQmutLemireMulback sh (T (Strides ats) ao v)
-  | s == 1 = VS.generate l (VS.unsafeIndex v . VU.unsafeIndex baseOffsets)
-  | otherwise = VS.generate l get
+  | s == 1 = padGenerate l (VS.unsafeIndex v . VU.unsafeIndex baseOffsets)
+  | otherwise = padGenerate l get
   where l = product sh
         !s = last sh
         !t = last ats
@@ -1183,8 +1237,8 @@ fbBQmutLemireMulback sh (T (Strides ats) ao v)
 {-# NOINLINE fbBQmutRunsMulback #-}
 fbBQmutRunsMulback :: ShapeL -> T -> VS.Vector Double
 fbBQmutRunsMulback sh (T (Strides ats) ao v)
-  | s == 1 = VS.generate l (VS.unsafeIndex v . VU.unsafeIndex baseOffsets)
-  | otherwise = VS.generate l get
+  | s == 1 = padGenerate l (VS.unsafeIndex v . VU.unsafeIndex baseOffsets)
+  | otherwise = padGenerate l get
   where l = product sh
         !s = last sh
         !t = last ats
@@ -1212,8 +1266,8 @@ fbBQmutRunsMulback sh (T (Strides ats) ao v)
 {-# NOINLINE fbBQmutRunsGmMulback #-}
 fbBQmutRunsGmMulback :: ShapeL -> T -> VS.Vector Double
 fbBQmutRunsGmMulback sh (T (Strides ats) ao v)
-  | s == 1 = VS.generate l (VS.unsafeIndex v . VU.unsafeIndex baseOffsets)
-  | otherwise = VS.generate l get
+  | s == 1 = padGenerate l (VS.unsafeIndex v . VU.unsafeIndex baseOffsets)
+  | otherwise = padGenerate l get
   where l = product sh
         !s = last sh
         !t = last ats
@@ -1250,8 +1304,8 @@ fbBQmutRunsGmMulback sh (T (Strides ats) ao v)
 {-# NOINLINE fbBQscanMulback #-}
 fbBQscanMulback :: ShapeL -> T -> VS.Vector Double
 fbBQscanMulback sh (T (Strides ats) ao v)
-  | s == 1 = VS.generate l (VS.unsafeIndex v . VU.unsafeIndex baseOffsets)
-  | otherwise = VS.generate l get
+  | s == 1 = padGenerate l (VS.unsafeIndex v . VU.unsafeIndex baseOffsets)
+  | otherwise = padGenerate l get
   where l = product sh
         !s = last sh
         !t = last ats
@@ -1272,8 +1326,8 @@ fbBQscanMulback sh (T (Strides ats) ao v)
 {-# NOINLINE fbBQscanRemMulback #-}
 fbBQscanRemMulback :: ShapeL -> T -> VS.Vector Double
 fbBQscanRemMulback sh (T (Strides ats) ao v)
-  | s == 1 = VS.generate l (VS.unsafeIndex v . VU.unsafeIndex baseOffsets)
-  | otherwise = VS.generate l get
+  | s == 1 = padGenerate l (VS.unsafeIndex v . VU.unsafeIndex baseOffsets)
+  | otherwise = padGenerate l get
   where l = product sh
         !s = last sh
         !t = last ats
@@ -1295,8 +1349,8 @@ fbBQscanRemMulback sh (T (Strides ats) ao v)
 {-# NOINLINE fbBQscanGmMulback #-}
 fbBQscanGmMulback :: ShapeL -> T -> VS.Vector Double
 fbBQscanGmMulback sh (T (Strides ats) ao v)
-  | s == 1 = VS.generate l (VS.unsafeIndex v . VU.unsafeIndex baseOffsets)
-  | otherwise = VS.generate l get
+  | s == 1 = padGenerate l (VS.unsafeIndex v . VU.unsafeIndex baseOffsets)
+  | otherwise = padGenerate l get
   where l = product sh
         !s = last sh
         !t = last ats
@@ -1328,8 +1382,8 @@ fbBQscanGmMulback sh (T (Strides ats) ao v)
 {-# NOINLINE fbBQscanRemGmMulback #-}
 fbBQscanRemGmMulback :: ShapeL -> T -> VS.Vector Double
 fbBQscanRemGmMulback sh (T (Strides ats) ao v)
-  | s == 1 = VS.generate l (VS.unsafeIndex v . VU.unsafeIndex baseOffsets)
-  | otherwise = VS.generate l get
+  | s == 1 = padGenerate l (VS.unsafeIndex v . VU.unsafeIndex baseOffsets)
+  | otherwise = padGenerate l get
   where l = product sh
         !s = last sh
         !t = last ats
@@ -1354,8 +1408,8 @@ fbBQscanRemGmMulback sh (T (Strides ats) ao v)
 {-# NOINLINE fbBQodoMulback #-}
 fbBQodoMulback :: ShapeL -> T -> VS.Vector Double
 fbBQodoMulback sh (T (Strides ats) ao v)
-  | s == 1 = VS.generate l (VS.unsafeIndex v . VU.unsafeIndex baseOffsets)
-  | otherwise = VS.generate l get
+  | s == 1 = padGenerate l (VS.unsafeIndex v . VU.unsafeIndex baseOffsets)
+  | otherwise = padGenerate l get
   where l = product sh
         !s = last sh
         !t = last ats
@@ -1376,8 +1430,8 @@ fbBQodoMulback sh (T (Strides ats) ao v)
 {-# NOINLINE fbBQodoGmMulback #-}
 fbBQodoGmMulback :: ShapeL -> T -> VS.Vector Double
 fbBQodoGmMulback sh (T (Strides ats) ao v)
-  | s == 1 = VS.generate l (VS.unsafeIndex v . VU.unsafeIndex baseOffsets)
-  | otherwise = VS.generate l get
+  | s == 1 = padGenerate l (VS.unsafeIndex v . VU.unsafeIndex baseOffsets)
+  | otherwise = padGenerate l get
   where l = product sh
         !s = last sh
         !t = last ats
@@ -1403,8 +1457,8 @@ fbBQodoGmMulback sh (T (Strides ats) ao v)
 {-# NOINLINE fbBQscanPackedMulback #-}
 fbBQscanPackedMulback :: ShapeL -> T -> VS.Vector Double
 fbBQscanPackedMulback sh (T (Strides ats) ao v)
-  | s == 1 = VS.generate l (VS.unsafeIndex v . VU.unsafeIndex baseOffsets)
-  | otherwise = VS.generate l get
+  | s == 1 = padGenerate l (VS.unsafeIndex v . VU.unsafeIndex baseOffsets)
+  | otherwise = padGenerate l get
   where l = product sh
         !s = last sh
         !t = last ats
@@ -1489,7 +1543,7 @@ fbAllExpand sh (T strides ao v) =
 {-# NOINLINE fbOffTab #-}
 fbOffTab :: ShapeL -> T -> VS.Vector Double
 fbOffTab sh (T (Strides ats) ao v) =
-  VS.generate l (\i -> VS.unsafeIndex v (VU.unsafeIndex offs i))
+  padGenerate l (\i -> VS.unsafeIndex v (VU.unsafeIndex offs i))
   where l = product sh
         !s = last sh
         !t = last ats
@@ -1534,7 +1588,7 @@ fbOffTab sh (T (Strides ats) ao v) =
 {-# NOINLINE fbOffTab32 #-}
 fbOffTab32 :: ShapeL -> T -> VS.Vector Double
 fbOffTab32 sh (T (Strides ats) ao v) =
-  VS.generate l
+  padGenerate l
     (\i -> VS.unsafeIndex v (fromIntegral (VU.unsafeIndex offs i)))
   where l = product sh
         !s = last sh
@@ -1591,7 +1645,7 @@ fbOffTab32 sh (T (Strides ats) ao v) =
 {-# NOINLINE fbOffTabScan #-}
 fbOffTabScan :: ShapeL -> T -> VS.Vector Double
 fbOffTabScan sh (T strides ao v) =
-  VS.generate l (\i -> VS.unsafeIndex v (VU.unsafeIndex offs i))
+  padGenerate l (\i -> VS.unsafeIndex v (VU.unsafeIndex offs i))
   where l = product sh
         !offs = baseOffsetsScan ao sh strides
 
@@ -1608,7 +1662,7 @@ fbOffTabScan sh (T strides ao v) =
 {-# NOINLINE fbOffTabScanRem #-}
 fbOffTabScanRem :: ShapeL -> T -> VS.Vector Double
 fbOffTabScanRem sh (T strides ao v) =
-  VS.generate l (\i -> VS.unsafeIndex v (VU.unsafeIndex offs i))
+  padGenerate l (\i -> VS.unsafeIndex v (VU.unsafeIndex offs i))
   where l = product sh
         !offs = baseOffsetsScanRem ao sh strides
 
@@ -1626,8 +1680,8 @@ fbOffTabScanRem sh (T strides ao v) =
 -- position so siblings advance it without arithmetic.
 {-# NOINLINE fbMutOdo #-}
 fbMutOdo :: ShapeL -> T -> VS.Vector Double
-fbMutOdo sh (T (Strides ats) ao v) = VS.create $ do
-  out <- VSM.unsafeNew l
+fbMutOdo sh (T (Strides ats) ao v) = VS.unsafeTake l $ VS.create $ do
+  out <- VSM.unsafeNew (padTo l)
   let writeRun !outPos !baseOff =
         let inner !j !src
               | j >= sInner = return ()
@@ -1661,8 +1715,8 @@ fbMutOdo sh (T (Strides ats) ao v) = VS.create $ do
 -- of each run cannot differ.
 {-# NOINLINE fbMutOdoVecdims #-}
 fbMutOdoVecdims :: ShapeL -> T -> VS.Vector Double
-fbMutOdoVecdims sh (T (Strides ats) ao v) = VS.create $ do
-  out <- VSM.unsafeNew l
+fbMutOdoVecdims sh (T (Strides ats) ao v) = VS.unsafeTake l $ VS.create $ do
+  out <- VSM.unsafeNew (padTo l)
   let writeRun !outPos !baseOff =
         let inner !j !src
               | j >= sInner = return ()
@@ -1723,8 +1777,8 @@ fbMutOdoVecdims sh (T (Strides ats) ao v) = VS.create $ do
 -- takes (@ioffs + is@); what it drops is the loop's one multiply.
 {-# NOINLINE fbMutOdoVecdimsAddIn #-}
 fbMutOdoVecdimsAddIn :: ShapeL -> T -> VS.Vector Double
-fbMutOdoVecdimsAddIn sh (T (Strides ats) ao v) = VS.create $ do
-  out <- VSM.unsafeNew l
+fbMutOdoVecdimsAddIn sh (T (Strides ats) ao v) = VS.unsafeTake l $ VS.create $ do
+  out <- VSM.unsafeNew (padTo l)
   let writeRun !outPos !baseOff =
         let inner !j !src
               | j >= sInner = return ()
@@ -1760,8 +1814,8 @@ fbMutOdoVecdimsAddIn sh (T (Strides ats) ao v) = VS.create $ do
 -- more 'VU.unsafeIndex' per level entry, priced against a returned Int.
 {-# NOINLINE fbMutOdoVecdimsAddOut #-}
 fbMutOdoVecdimsAddOut :: ShapeL -> T -> VS.Vector Double
-fbMutOdoVecdimsAddOut sh (T (Strides ats) ao v) = VS.create $ do
-  out <- VSM.unsafeNew l
+fbMutOdoVecdimsAddOut sh (T (Strides ats) ao v) = VS.unsafeTake l $ VS.create $ do
+  out <- VSM.unsafeNew (padTo l)
   let writeRun !outPos !baseOff =
         let inner !j !src
               | j >= sInner = return ()
@@ -1797,8 +1851,8 @@ fbMutOdoVecdimsAddOut sh (T (Strides ats) ao v) = VS.create $ do
 -- -- the whole of FastReshape's offset arithmetic in one reading.
 {-# NOINLINE fbMutOdoVecdimsAddBoth #-}
 fbMutOdoVecdimsAddBoth :: ShapeL -> T -> VS.Vector Double
-fbMutOdoVecdimsAddBoth sh (T (Strides ats) ao v) = VS.create $ do
-  out <- VSM.unsafeNew l
+fbMutOdoVecdimsAddBoth sh (T (Strides ats) ao v) = VS.unsafeTake l $ VS.create $ do
+  out <- VSM.unsafeNew (padTo l)
   let writeRun !outPos !baseOff =
         let inner !j !src
               | j >= sInner = return ()
@@ -1841,8 +1895,8 @@ fbMutOdoVecdimsAddBoth sh (T (Strides ats) ao v) = VS.create $ do
 -- identical.
 {-# NOINLINE fbMutOdoVecdimsAddBothDown #-}
 fbMutOdoVecdimsAddBothDown :: ShapeL -> T -> VS.Vector Double
-fbMutOdoVecdimsAddBothDown sh (T (Strides ats) ao v) = VS.create $ do
-  out <- VSM.unsafeNew l
+fbMutOdoVecdimsAddBothDown sh (T (Strides ats) ao v) = VS.unsafeTake l $ VS.create $ do
+  out <- VSM.unsafeNew (padTo l)
   let writeRun !outPos !baseOff =
         let inner !d !src !o
               | d <= 0    = return ()
@@ -1877,8 +1931,8 @@ fbMutOdoVecdimsAddBothDown sh (T (Strides ats) ao v) = VS.create $ do
 -- odometer-free variant against its control.
 {-# NOINLINE fbMutBaseOffsets #-}
 fbMutBaseOffsets :: ShapeL -> T -> VS.Vector Double
-fbMutBaseOffsets sh (T (Strides ats) ao v) = VS.create $ do
-  out <- VSM.unsafeNew l
+fbMutBaseOffsets sh (T (Strides ats) ao v) = VS.unsafeTake l $ VS.create $ do
+  out <- VSM.unsafeNew (padTo l)
   let writeRun !outPos !baseOff =
         let inner !j !src
               | j >= sInner = return ()
@@ -1905,8 +1959,8 @@ vBuildVS :: Int
          -> (forall s. (Int -> Double -> ST s ()) -> ST s ())
          -> VS.Vector Double
 {-# INLINE vBuildVS #-}
-vBuildVS n fill = VS.create $ do
-  out <- VSM.unsafeNew n
+vBuildVS n fill = VS.unsafeTake n $ VS.create $ do
+  out <- VSM.unsafeNew (padTo n)
   fill (VSM.unsafeWrite out)
   return out
 
@@ -1950,8 +2004,8 @@ fbBuild sh (T (Strides ats) ao v) = vBuildVS l $ \write ->
 -- lands near 'fbMutOdo', the structure hypothesis dies.
 {-# NOINLINE fbMutFlat #-}
 fbMutFlat :: ShapeL -> T -> VS.Vector Double
-fbMutFlat sh (T (Strides ats) ao v) = VS.create $ do
-  out <- VSM.unsafeNew l
+fbMutFlat sh (T (Strides ats) ao v) = VS.unsafeTake l $ VS.create $ do
+  out <- VSM.unsafeNew (padTo l)
   let goCopy !i
         | i >= l = return ()
         | otherwise = do
@@ -1984,8 +2038,8 @@ fbMutFlat sh (T (Strides ats) ao v) = VS.create $ do
 -- the precondition ruling, and it left Run 8 second overall at 0.074.
 {-# NOINLINE fbMutFlatGm #-}
 fbMutFlatGm :: ShapeL -> T -> VS.Vector Double
-fbMutFlatGm sh (T (Strides ats) ao v) = VS.create $ do
-  out <- VSM.unsafeNew l
+fbMutFlatGm sh (T (Strides ats) ao v) = VS.unsafeTake l $ VS.create $ do
+  out <- VSM.unsafeNew (padTo l)
   let goCopy !i
         | i >= l = return ()
         | otherwise = do
