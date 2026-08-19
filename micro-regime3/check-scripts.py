@@ -384,6 +384,33 @@ def readme_citing_dotfile(tmp):
                                ' `.hlint.yaml`.\n\n## What is open'))
 
 
+def readme_stale_basis_in_results(tmp):
+    """The Results section naming a half of the run BEFORE this chapter's.
+
+    Run 14's write-up shipped exactly this -- `run13-maxskip` standing in
+    that lead while run14-lookrts's tables were installed under it -- past
+    --lint, --check-doc, --selftest and --aa, none of which read the name.
+    The plant is derived from the page rather than spelled out, so it keeps
+    working when the chapter's run number moves, and it asserts what it
+    swept: a Results section naming no run, or naming two, would leave the
+    check passing for its own reasons.
+    """
+    lines = open(README).read().split('\n')
+    start = next(i for i, l in enumerate(lines)
+                 if l.startswith('### Results'))
+    end = next(j for j in range(start + 1, len(lines))
+               if re.match(r'#{1,6} ', lines[j]))
+    seg = '\n'.join(lines[start:end])
+    runs = set(re.findall(r'\brun(\d+)-[a-z0-9]+', seg))
+    if len(runs) != 1:
+        raise AssertionError('Results names %d run(s), not one: %s'
+                             % (len(runs), sorted(runs)))
+    cur = runs.pop()
+    lines[start:end] = seg.replace('run%s-' % cur,
+                                   'run%d-' % (int(cur) - 1)).split('\n')
+    return write(os.path.join(tmp, 'R.md'), '\n'.join(lines))
+
+
 def readme_without_class_leads(tmp):
     """Every class block lead unbackticked, so the grep finds none.
 
@@ -1237,6 +1264,17 @@ CASES = [
          argv=['{run}', '--claims', '--readme', '{readme}'],
          ok=V(has=['0.9312']),
          bug=V(hasnt=['0.9312'])),
+
+    case('results-names-an-older-basis-half', 'read-run.py', None,
+         "the Results lead named the PREVIOUS run's half under this run's"
+         ' tables',
+         # A control and not a defect replay: the check was written the day
+         # this case was, so there is no `fix^` to replay it against. What
+         # it holds is the property, which is what the next reader needs --
+         # the fixture is the Run 14 defect built out of the current page.
+         plant=lambda t: {'readme': readme_stale_basis_in_results(t)},
+         argv=['--check-doc', '--readme', '{readme}'],
+         ok=V(exit=1, has=['while this chapter is Run'])),
 
     case('path-token-dotfile', 'read-run.py', 'a6c32e8',
          "lstrip('./') ate the leading dot of a cited dotfile",

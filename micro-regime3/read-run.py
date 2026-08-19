@@ -4150,6 +4150,55 @@ def check_doc(readme, main_hs):
                            ' -- unaligned, max-skip -- and never folded in'
                            % run)
 
+    # The basis half named in the Results section must be THIS run's. Run
+    # 14's write-up left `run13-maxskip` standing in that lead while
+    # installing run14-lookrts's tables, and --lint, --check-doc, --selftest
+    # and --aa were all green, because no check read that name.
+    #
+    # The scope is the Results section alone, and deliberately so: the
+    # forward-looking sections name the PREVIOUS run's halves on purpose --
+    # Run 16's bridge registration is a repetition against run15-a32m, and
+    # its pair note is run16-pair.txt, a file and not a half -- so a
+    # chapter-wide rule would fail the page for saying what it means. What
+    # Results holds is installed from the basis half, so a run number there
+    # that is not this chapter's names a half whose figures are not in the
+    # tables above it.
+    #
+    # Non-vacuity, 2026-08-19, both directions on a copy passed with
+    # --readme, which is how a copy is read at all -- a path given
+    # positionally is a run file, so the first attempt re-checked README.md
+    # and credited this with a pass it had not earned. The page as it stands
+    # carries exactly one such token in that section, `run15-lookrts` under
+    # a Run 15 chapter, and passes; rewriting it to `run14-lookrts` fails
+    # naming both the run and the chapter. So the pass is a real pass and
+    # the check bites.
+    chap = re.search(r'^## About the last run \(Run (\d+)\)', doc, re.M)
+    start = next((i for i, ln in enumerate(lines)
+                  if ln.startswith('### Results')), None)
+    if not chap:
+        bad.append('no `## About the last run (Run N)` heading, so no run is'
+                   ' current and the half named in Results cannot be checked'
+                   ' against one')
+    elif start is None:
+        bad.append('no `### Results` heading, so the section whose tables are'
+                   ' installed from the basis half cannot be located')
+    else:
+        cur = chap.group(1)
+        end = next((j for j in range(start + 1, len(lines))
+                    if re.match(r'#{1,6} ', lines[j])), len(lines))
+        seen = {m for j in range(start, end)
+                for m in re.findall(r'\brun(\d+)-[a-z0-9]+', lines[j])}
+        stale = sorted(seen - {cur}, key=int)
+        if stale:
+            bad.append('the Results section names run %s while this chapter'
+                       ' is Run %s: the tables there are installed from this'
+                       " run's basis half, so the half named beside them is"
+                       ' this run\'s or the two disagree'
+                       % (', run '.join(stale), cur))
+        else:
+            print('ok:   the half named in Results belongs to Run %s, this'
+                  " chapter's run" % cur)
+
     # Run-current facts stated in prose, held to the roster and to each
     # other. Three sentences quote what the current roster or the current
     # run's floor is, and each went stale exactly once before this existed:

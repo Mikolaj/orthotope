@@ -1,0 +1,122 @@
+diff --git a/micro-regime3/Main.hs b/micro-regime3/Main.hs
+index b663a25..78482c0 100644
+--- a/micro-regime3/Main.hs
++++ b/micro-regime3/Main.hs
+@@ -26,9 +26,11 @@ import           Control.Exception            (assert, evaluate)
+ import           Control.Monad                (foldM_, unless, void)
+ import           Control.Monad.ST             (ST)
+ import           Criterion.Main
+-import           Criterion.Types              (Config (regressions))
++import           Criterion.Measurement.Types.Internal (whnf')
++import           Criterion.Types              (Benchmarkable (..),
++                                               Config (regressions))
+ import           Data.Bits                    (countLeadingZeros, shiftR, (.&.))
+-import           Data.Int                     (Int32)
++import           Data.Int                     (Int32, Int64)
+ import           Data.List                    (foldl')
+ import qualified Data.Vector.Storable         as VS
+ import qualified Data.Vector.Storable.Mutable as VSM
+@@ -37,9 +39,9 @@ import qualified Data.Vector.Unboxed.Mutable  as VUM
+ import           GHC.Exts                     (Int (..), Word (..), build,
+                                                int2Word#, quotRemInt#,
+                                                timesWord2#, word2Int#)
+-import           GHC.Stats                    (RTSStats (allocated_bytes, elapsed_ns, max_live_bytes, max_mem_in_use_bytes),
++import           GHC.Stats                    (RTSStats (allocated_bytes, elapsed_ns, gc_elapsed_ns, gcs, major_gcs, max_live_bytes, max_mem_in_use_bytes, mutator_elapsed_ns),
+                                                getRTSStats)
+-import           System.Environment           (getArgs, withArgs)
++import           System.Environment           (getArgs, lookupEnv, withArgs)
+ import           System.IO                    (hPutStrLn, stderr)
+ import           System.Mem                   (performGC)
+ 
+@@ -3042,18 +3044,74 @@ touchLast :: VS.Vector Double -> Double
+ touchLast v = if VS.null v then 0 else VS.unsafeLast v
+ {-# NOINLINE touchLast #-}
+ 
++-- The wild-cell instrument, off unless WILDLOG is set in the environment,
++-- and what it is for is [the mechanism entry] in README's open list: the RTS
++-- cumulative allocated-bytes total, with the GC and mutator clocks beside
++-- it, ONE LINE PER CRITERION SAMPLE. The granularity is the entry's own ask
++-- and not a choice here -- both instances this hunts are a state a process
++-- ENTERS and then keeps, so a per-bench figure averages the two states it
++-- exists to separate.
++--
++-- It costs the measurement nothing, which is why it hangs here rather than
++-- inside the loop. 'Criterion.Measurement.runBenchmarkable' calls 'allocEnv'
++-- before it hands the loop to the timing block and 'cleanEnv' after that
++-- block returns, so both lines are written outside the clock; and
++-- 'runRepeatedly' below is criterion's own 'whnf'', the NOINLINE loop that
++-- 'whnf' itself installs -- @whnf f x = toBenchmarkable (whnf' f x)@ -- so a
++-- logged arm runs the instructions every published bench runs, and
++-- everything this Benchmarkable adds is outside the timing.
++--
++-- The environment is read per sample rather than once at load: a top-level
++-- read would be an import-time environment parse, which check-scripts.py
++-- refuses as a defect family, and 'lookupEnv' walks the environment block
++-- without a syscall, outside the clock, once per sample.
++--
++-- ADDRESSES ARE DELIBERATELY NOT LOGGED, though the mechanism entry names
++-- them beside the allocation total. The RTS reserves its heap at a fixed
++-- base, so the payload addresses repeat across processes -- the same three
++-- in eight of eight, which is what refuted the data-placement hypothesis --
++-- and what moves WITHIN that arena is a function of how much has been
++-- allocated before a buffer, which is the total logged here. Taking an
++-- output buffer's address would cost an extra fill per sample, perturbing
++-- the very history under test.
++wildLog :: String -> String -> Int64 -> IO ()
++wildLog nm phase n = do
++  on <- lookupEnv "WILDLOG"
++  case on of
++    Nothing -> return ()
++    Just _  -> do
++      s <- getRTSStats
++      hPutStrLn stderr $
++        "@@wild " ++ nm ++ " " ++ phase ++ " iters=" ++ show n
++        ++ " alloc=" ++ show (allocated_bytes s)
++        ++ " mut=" ++ show (mutator_elapsed_ns s)
++        ++ " gc=" ++ show (gc_elapsed_ns s)
++        ++ " gcs=" ++ show (gcs s) ++ "/" ++ show (major_gcs s)
++        ++ " inuse=" ++ show (max_mem_in_use_bytes s)
++
++-- 'whnf' with 'wildLog' on either side of the timed block, and differing
++-- from it in nothing else: criterion's own is
++-- @Benchmarkable noop (const noop) (const (whnf' f x)) False@.
++whnfLogged :: String -> (a -> b) -> a -> Benchmarkable
++whnfLogged nm f x =
++  Benchmarkable (wildLog nm "pre") (\n () -> wildLog nm "post" n)
++                (\() n -> whnf' f x n) False
++
+ benchView :: String -> (ShapeL, T) -> Benchmark
+ benchView name view =
+   env (evaluate (force view)) $ \ ~(sh, a) ->
+     bgroup name (concatMap (arm sh a) roster)
+   where
+-    arm sh a (n, Base f)  = [bench n $ whnf (VS.sum . f sh) a]
+-    arm sh a (n, Fill f)  = [bench n $ whnf (VS.sum . f sh) a]
+-    arm sh a (n, Twin f)  = [bench n $ whnf (VS.sum . f sh) a]
++    arm sh a (n, Base f)  = [bench n $ lg n (VS.sum . f sh) a]
++    arm sh a (n, Fill f)  = [bench n $ lg n (VS.sum . f sh) a]
++    arm sh a (n, Twin f)  = [bench n $ lg n (VS.sum . f sh) a]
+     arm sh a (n, Term)    = [env (evaluate (force (reference sh a))) $
+-                               bench n . whnf VS.sum]
+-    arm sh a (n, Force f) = [bench n $ whnf (touchLast . f sh) a]
++                               bench n . lg n VS.sum]
++    arm sh a (n, Force f) = [bench n $ lg n (touchLast . f sh) a]
+     arm _  _ (_, Only _)  = []
++    -- The log line carries GROUP/ARM, the group being the shape, since a
++    -- bench name alone leaves a reader counting benches to place a step.
++    lg n = whnfLogged (name ++ "/" ++ n)
+ 
+ mkBench :: (String, ShapeL) -> Benchmark
+ mkBench (name, normalSh) = benchView name (mkStrided normalSh)
+diff --git a/micro-regime3/micro.cabal b/micro-regime3/micro.cabal
+index b61a509..ee3b548 100644
+--- a/micro-regime3/micro.cabal
++++ b/micro-regime3/micro.cabal
+@@ -21,6 +21,7 @@ executable micro
+         base,
+         vector,
+         criterion,
++        criterion-measurement,
+         deepseq
+ 
+ -- The element-type probe, whose own header says what it is and why it is not

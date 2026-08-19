@@ -2385,6 +2385,27 @@ than a slot in the next run, observed again:
      the punctuation term does not appear (the driver probes read clean at both
      areas, findings item 69); and claim readings stay installed,
      not transcribed.
+  6. *Whether the two columns subtract.* `list` moves less between these two
+     halves than between either earlier nursery pair's — 9.20% across Run 14's
+     and 5.13% across Run 15's, both of which crossed the default area
+     to an enlarged one where this pair crosses enlarged to enlarged.
+     Under about 0.7%, the band every other within-run pair here stays inside,
+     this is the first nursery pair whose columns may be subtracted rather
+     than only ordered, and the standing exception in [the yardstick
+     section](#what-run-16-compares-against) narrows to the two pairs
+     that earned it. Killed by `list` moving past about 1%.
+
+  And **two probes are registered with it**, both spent after the write-up out
+  of the probe budget rather than before it, and neither wanting a pair, a gate
+  or a build. *The area curve*: the gate's five-bench selection over the shape
+  set at `-A8m`, `-A16m`, `-A32m`, `-A64m`, `-A128m` and `-A256m`, all six
+  reached on the basis binary under `+RTS`, which `-rtsopts` makes available
+  without rebuilding — roughly an hour at the gate's own eight minutes a process
+  — answering what registrations 2 and 3 cannot: whether 32m is a local optimum
+  or merely the better of two points. Killed as a reading by a minimum
+  that is not at or near 32m. *The wild cell's mechanism*, whose instrument
+  is built and waiting: the task heading below says what it is pointed
+  at and why it is not in the pair.
 
 
 ### Recommended tasks after Run 15
@@ -2406,17 +2427,37 @@ binaries.
    the reproducer and the forward plan — the GHC filing decision, the best
    current options, the user-code workarounds — are tracked together
    in `small-pinned-churn-investigation`.
-2. **The wild cell's mechanism — the gate has lifted.** Logging the RTS's
-   allocated-bytes total and the payload addresses is a `Main.hs` edit,
-   and it can go in before Run 16's pair is built so that both halves carry it,
-   which is what it has been waiting for. Its `perf` half still wants
-   `kernel.perf_event_paranoid` lowered by hand. The logging goes **per sample**
-   rather than per bench, a step inside one bench being averaged away
-   by a per-bench figure. **And Run 15 moves where to point it**: the `scaled`
-   slot's disturbance sat on `mut-odo-vecdims` for six runs and this run finds
-   it on `mut-odo`, `gen-unsafe` and `build` instead, all three worst
-   on `scaled-super-r3` — so the instrument follows the shape and not the arm.
-   Both readings are with the wild-cell entry.
+2. **The wild cell's mechanism — built, and deliberately not in the pair.**
+   The instrument is `wildlog-a32m` (2026-08-19): the basis recipe
+   over a `Main.hs` edit logging the RTS's allocated-bytes total with the GC
+   and mutator clocks beside it, one line per criterion **sample** — a step
+   inside one bench being averaged away by a per-bench figure — off unless
+   `WILDLOG` is set in the environment, proved firing and silent before the tree
+   was restored, and kept as `wildlog-instrument.patch` rather than committed
+   while the pair's source is the tip a note names. It hangs off criterion's
+   `allocEnv` and `cleanEnv`, which bracket the timed block from outside,
+   and runs criterion's own `whnf'` loop, so a logged arm executes
+   the instructions every published bench does. Addresses are not logged though
+   the entry names them, and the code says why: the RTS reserves its heap
+   at a fixed base, so what moves is where within that arena a buffer lands,
+   which is what the allocation total says, and taking an output buffer's
+   address would cost an extra fill per sample — perturbing the history
+   under test. **Riding both halves of the pair, which this heading asked
+   for until 2026-08-19, is refused**: Run 16's basis registration
+   is a repetition against run15-a32m, the edit moves `.text` and every loop
+   offset, so the bridge would cross a layout change, and per-sample logging
+   allocates. It is pointed at the `scaled` class process instead, whose
+   disturbance turns up in six runs of eight where a wild cell is three of eight
+   and none in the last four; **a wild cell in Run 16's own A/A worst cell
+   is the trigger** for spending the rest of the probe budget on that process
+   rather than this one. Neither instance reproduces filtered — measured both
+   times — so either probe is a whole process and never a five-bench run.
+   Its `perf` half still wants `kernel.perf_event_paranoid` lowered by hand.
+   **And Run 15 moves where to point it**: the `scaled` slot's disturbance sat
+   on `mut-odo-vecdims` for six runs and this run finds it on `mut-odo`,
+   `gen-unsafe` and `build` instead, all three worst on `scaled-super-r3` —
+   so the instrument follows the shape and not the arm. Both readings
+   are with the wild-cell entry.
 
 **One rider rather than a task of its own, since it fires on an event and
 not on a session.** The pinning claim — that a shim'd build holds every tracked
@@ -2559,14 +2600,19 @@ left to attribute — the interval it is about is the aligned binary's.
   a claim's paragraph still copies by hand. Not taken, because it renders
   the reading rather than the arithmetic, and the division the installed
   readings keep is that the author owns whether a movement means anything.
-- **Check that the basis half named in prose is the run's own.** The Results
-  section's lead names the half every published table came from, and Run 14's
-  write-up left `run13-maxskip` standing there while installing
-  `run14-lookrts`'s tables under it — `--lint`, `--check-doc`, `--selftest`
-  and `--aa` all green, because no check reads that name. It is a one-line check
-  with a run's own `$R-<basis>` to hand, and it generalises: every `run\d+-\w+`
-  in the prose either names this run's half or an earlier run, and the first
-  kind is checkable.
+- **Check that the basis half named in prose is the run's own — taken
+  2026-08-19.** `--check-doc` holds every `run<N>-<half>` token in the Results
+  section to the run its chapter names, which is where Run 14's write-up left
+  `run13-maxskip` standing while installing `run14-lookrts`'s tables under it,
+  with `--lint`, `--check-doc`, `--selftest` and `--aa` all green because
+  no check read that name. **The scope is that section and not the chapter**,
+  which is the ruling worth keeping: the forward-looking sections name
+  the previous run's halves on purpose — Run 16's basis registration
+  is a repetition against `run15-a32m` — so a chapter-wide rule would fail
+  the page for saying what it means. Non-vacuity sits beside the check and again
+  as a control in `check-scripts.py`, which builds the Run 14 defect out
+  of the current page rather than spelling it out, so it keeps working when
+  the chapter's run number moves.
 - **Check each class lead's shape list against its JSON's shapes.** The five
   class views that gained a third shape on 2026-08-14 still had two-shape leads
   after Run 14's write-up, while the `--block`-installed per-shape line
@@ -7520,6 +7566,16 @@ Its columns will be `Run 16 (SpecConstr, max-skip +lookrts, -A32m)` — the basi
 against Run 15's `-A32m` control column arm for arm (the bridge registration),
 the table below is read against the two Run 15 columns, and the -O1 column stays
 the yardstick for a comparison of the two regimes.
+
+**Which Run 15 half a comparison uses is settled here rather than per
+paragraph**, the basis change having made *against Run 15* ambiguous
+for the first time. Absolutes and anchors go against `run15-a32m`, the half
+at this run's own area: claim 6's anchor `cifar-L2-16-c64-k3` sits at +2.97%
+against a 2.96% floor, so reading it against `run15-lookrts` would move
+it for the area alone and put a shape *to keep instrumented* outside the floor
+for a reason that is not the shape's. The published lineage and the yardstick
+column go against `run15-lookrts`, which is what Runs 8 to 15 are read through
+and what a rebasing would cost this table.
 
 **Run 13 contributed two columns, and the second names a shim setting and an RTS
 line at once.** `Run 13 (SpecConstr, max-skip)` is the basis, Run 12's basis
