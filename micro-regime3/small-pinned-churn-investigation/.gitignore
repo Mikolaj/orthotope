@@ -15,4 +15,9 @@ goal3/*
 !goal3/*.sh
 !goal3/*.py
 !goal3/*.patch
+goal4/*
+!goal4/*.sh
+!goal4/*.py
+!goal4/newform-note.txt
+!goal4/ReproV2.hs
 dist-newstyle/

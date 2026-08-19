@@ -1264,3 +1264,700 @@ goal2/check-sprays.py).
     single-ingredient account yet; the comment draft carries the
     32m/64m claim and flags this nuance.
 
+PADDING-PLAN SESSION, 2026-08-18 (same day, third session; executes
+padding-plan.txt; artifacts under goal4/ beside this file, one file per
+cell, scripts tracked and cells ignored as before; the new binaries at
+the repo root beside run15-lookrts, their md5s and toggle states in
+goal4/newform-note.txt).
+
+45. PLAN TASK 1 EXECUTED: THE PADDED FORMS ARE IN, TWO NEW BINARIES,
+    CHECK GREEN ON BOTH. Every arm RESULT allocation in micro's Main.hs
+    routes through padTo (l < 410 doubles allocated at 410, returned as
+    an l-slice; VS.unsafeTake keeps the padded ForeignPtr and VS.length
+    stays l): padFromListN in fbList, padGenerate in every generate arm,
+    padTo plus VS.unsafeTake at the VSM.unsafeNew arms and vBuildVS,
+    both toggle states through the same compiled forms. The six Only
+    arms whose allocating combinator is the recorded strategy stay
+    unpadded, labeled at padTo; none allocates in a timed process. The
+    toggle is the padSmall constant, False in the resting tree. check
+    exits 0 on both binaries (50 views, all agree and builds), --lint
+    and --check-doc exit 0 after the edit.
+
+     binary            toggle       md5                                .text B
+     run15-lookrts     (old forms)  60f964ab2995813807326551cadf8566  20377797
+     newform-unpadded  False        9e5ab17605d3349a85ace21e19300f71  20377797
+     newform-padded    True         b11c9c0f190f0e0ada890356351a663c  20381893
+
+     bytes allocated, +RTS -s        newform-unpadded   newform-padded
+     cnn-slice-c32/list  -n 100000      5,734,859,608    5,832,458,944
+     vgg-14-c512-k3/list -n 100        17,919,790,232   17,919,790,232
+
+     recipe: goal4/newform-note.txt carries the lookrts build recipe
+     verbatim and the check/lint record; the allocation cells are
+     ./BINARY -m glob 'SHAPE/list' -n N +RTS -s, one process each.
+
+    The small-shape delta is 976.0 B/call, exactly (410 - 288) * 8, so
+    the pad is live and by-size; the vgg identity is padTo above the
+    threshold. Plan 1.2's expected constructor inventory is judged: the
+    timed set needs exactly fromListN, generate and create/unsafeNew;
+    backpermute occurs only on an Only arm, and unfoldrExactN, the
+    fused maps and concat -- which the expectation missed -- likewise.
+    One consequence labeled at padGenerate in source: the new form
+    collapses the generate-vs-explicit-loop mechanism contrasts (e.g.
+    fbMutFlat's pair reads near-A/A there); run15 keeps the old forms
+    and stays the anchor, so no published mechanism reading moves.
+
+QUIET WINDOW, 2026-08-18/19, tasks 2.1-2.5 and appendix A1-A6 (A7 is
+priced inside item 52's decision table; A8, optional tier, not taken).
+Every registered lean below is judged against its script header's
+wording; cells under goal4/, one file per cell.
+
+46. TASK 2.1 AND ITS TWO FOLLOW-UPS: THE UPFRONT CLASS SPLIT HOLDS AT
+    32m, AND PADDING ERASES THE UPFRONT TAX COMPLETELY, AT BOTH AREAS.
+    The plan-0.2 tension resolves in padding's favor on the upfront
+    route: matched dose, fixed-n differencing, conv1d-24/list victim:
+
+     conv1d-24/list victim, fixed-n       alone       poisoned     tax
+     run15,  -A32m, cnn-slice dose       88.30 us     99.05 us  +12.2%
+     run15,  -A32m, cnn-L1-24x24 dose    88.30        86.15      -2.4%
+     padded, -A32m, cnn-slice dose       87.00        87.20      +0.2%
+     padded, -A1G,  cnn-slice dose       87.65        88.15      +0.6%
+     run15,  -A1G,  cnn-slice dose (item 13)  89.9   129.4      +44%
+
+     recipe: bash goal4/t21-classcell.sh, goal4/t21b-classcell-padded.sh,
+     goal4/t21c-classcell-padded-1g.sh; wall cells goal4/t21*-*.time.
+
+    All three registered leans held: sub-threshold far above own-group
+    at 32m (the split exactly as ReproSmall's, item 16); the padded
+    spray (410 doubles = 3296 B with header, own-group) upfront-taxes
+    zero at 32m; and zero at 1G, where the unpadded dose is the worst
+    tax on record. So the pad's mechanism is proven end to end on the
+    upfront route -- what item 49 then shows is that micro's roster is
+    not that route.
+
+47. TASK 2.2 FORM-CHANGE NULL: MOSTLY A NULL; TWO ARMS MOVED -3.5%,
+    RE-EXAMINED AND BENIGN. Interleaved A/B/A/B, one bench per process,
+    default area, B = newform-unpadded over A = run15:
+
+     cell                       B/A r1   B/A r2     mean
+     L1c6-list                  0.9858   0.9973   0.9915
+     slice-list                 1.0108   0.9963   1.0036
+     vgg-bq-expand              0.9920   0.9902   0.9911
+     vgg-bq-scan-rem-gm         0.9614   0.9667   0.9640
+     vgg-build                  1.1061   1.0352   1.0706
+     vgg-list                   0.9789   0.9512   0.9650
+     vgg-mut-odo-vecdims        1.0084   1.0000   1.0042
+     vgg-offtab                 1.0255   1.0699   1.0477
+     vgg-sum-only (control)     0.9998   1.0072   1.0035
+
+     re-exam, bytes allocated, -n 50 on vgg:     run15         newform
+     list                                8,967,291,896   8,967,290,296
+     bq-scan-rem-gm-mulback                496,795,368     496,795,368
+
+     recipe: bash goal4/t22-formnull.sh; the re-exam rows are one
+     ./BINARY -m glob 'vgg-14-c512-k3/ARM' -n 50 +RTS -s per cell.
+
+    The lean's "most arms under 1.5%" held at five of nine plus the
+    control; offtab and build are unreadable at item 24's known
+    multi-process spread (their within-binary reps here spread 14% and
+    7%). list and bq-scan-rem-gm moved a consistent -3.5%, and the
+    re-exam the lean prescribes says benign: allocation byte-identical
+    on the scan arm and 32 B/call apart on list (fromListN's stream
+    residue), so the hand fill loop changed loop code only, direction
+    faster, computation unchanged. Consequence, already the standing
+    rule: newform absolutes are not run15's -- interleaved pairs only,
+    and run15 remains the published anchor.
+
+48. TASK 2.3 PADDING NULL ON BIG SHAPES: FLAT, THE LEAN HELD. The same
+    instrument, B = newform-padded over A = newform-unpadded:
+
+     cell                       B/A r1   B/A r2     mean
+     inner256-bq-expand         1.0093   1.0120   1.0106
+     inner256-list              1.0269   0.9863   1.0066
+     inner256-mut-odo-vecdims   1.0017   1.0011   1.0014
+     vgg-bq-expand              0.9998   0.9968   0.9983
+     vgg-bq-scan-rem-gm         0.9991   1.0079   1.0035
+     vgg-build                  0.9838   0.9864   0.9851
+     vgg-list                   0.9671   0.9872   0.9771
+     vgg-mut-odo-vecdims        0.9994   1.0000   0.9997
+     vgg-offtab                 0.9988   0.9325   0.9657
+     vgg-sum-only (control)     1.0000   1.0000   1.0000
+
+     recipe: bash goal4/t23-padnull.sh.
+
+    The control at 1.0000 exactly, the tight arms within ~1%, the
+    wobble confined to list draws and the item-24 arms. Padding is
+    free where it does not fire.
+
+49. TASK 2.4a THE PADDED POISON SCAN: THE LEAN IS REFUTED -- NO ROW
+    COLLAPSES -- AND THE ROSTER GRADIENT IS RE-ATTRIBUTED TO THE
+    INTERLEAVED ROUTE. Victim stretch-inner256/list at -A32m, alone
+    29.44 ms, all 23 rows order-asserted ok; sprays from the scan's own
+    JSONs as in item 1:
+
+     candidate                sprays   delta    (item 1, unpadded)
+     cnn-slice-c32           917,345  +12.7%    +12.2%
+     cnn-L1-6x6-c1           792,398  +10.2%     +9.6%
+     conv1d-24                56,596   +9.8%     +8.6%
+     stretch-rank12           51,309   +8.4%     +8.0%
+     cnn-L1-24x24-c1          48,853  +10.7%     +7.1%
+     lenet-L1-28-c1-k5        15,735  +12.8%     +5.6%
+     gather48-src-50          12,902   +9.0%     +7.0%
+     stretch-coprime-r7        5,493   +8.9%     +5.6%
+     stretch-rank10            4,477   +6.9%     +6.6%
+     cifar-L2-16-c64-k3        1,821   +8.8%     +3.6%
+     cnn-L2-24x24-c32          1,630   +6.4%     +5.0%
+     stretch-primes            1,377   +3.5%     +3.3%
+     stretch-inner1              443   +2.4%     +3.1%
+     alexnet-L2-27-c48-k5        354   +4.9%     +1.2%
+     vgg-14-c512-k3              301   +7.4%     +3.7%
+     alexnet-L1-55-c3-k11        301   +6.4%     +3.0%
+     stretch-square-1341         190   +3.2%     +1.0%
+     stretch-pow2stride          190   +3.1%     +0.2%
+     stretch-r5-8x432            171   +2.1%     +1.3%
+     stretch-tall-Mx2            153   +3.8%     +1.2%
+     stretch-wide-2xM            136   +2.3%     +0.6%
+     stretch-tab7MB              136   +2.3%     -0.1%
+     stretch-bigstride           105   +0.5%     +0.5%
+
+     recipe: bash goal4/t24-poisonscan-pad.sh 32m (the table is its
+     output plus item 1's column); sprays summed from the candidate's
+     iters in goal4/t24-p2p-<candidate>.json.
+
+    In this binary EVERY spray is own-group, and the gradient is still
+    there, still roughly monotone in call count with item 23-scale
+    inversions -- so the in-scan poisoning is the interleaved route's
+    cumulative-allocating-call curve (items 39/41), formed by the
+    candidate bench's calls punctuated by criterion machinery, and the
+    class contributes nothing visible on top even unpadded (item 1's
+    sub-threshold rows match these within the single-process draw:
+    both routes converge on the same ceiling, item 40a). Plan 0.2's
+    first alternative -- "micro's roster is not the upfront shape" --
+    is confirmed by direct experiment. That most padded rows sit above
+    item 1's is cross-build, single-process-cell territory (items 3,
+    47) and is not read further.
+
+50. TASK 2.4b THE VICTIM-SET REMEASURE, PADDED: TEN OF TEN STILL
+    TAXED; THE DEFLATION SHRANK ~1.7 POINTS, NOT THE CLASS DELTA --
+    THE LEAN REFUTED IN MAGNITUDE, EXPLAINED BY ITEM 49. Poison
+    cnn-slice-c32/list (own-group in this binary), -A32m, all rows
+    order-asserted ok:
+
+     victim's list           alone      after      tax   (item 5)
+     conv1d-24              86.67us    97.26us  +12.2%   +15.6%
+     gather48-src-50        369.4us    419.8us  +13.6%   +18.4%
+     stretch-inner256       29.12ms    32.20ms  +10.6%   +14.8%
+     stretch-bigstride      42.52ms    47.91ms  +12.7%   +15.1%
+     stretch-wide-2xM       32.50ms    36.07ms  +11.0%   +13.1%
+     stretch-tab7MB         32.57ms    36.32ms  +11.5%   +12.3%
+     stretch-tall-Mx2       31.89ms    35.64ms  +11.8%   +10.9%
+     vgg-14-c512-k3         16.15ms    17.97ms  +11.3%   +13.2%
+     stretch-primes         3.467ms    3.967ms  +14.4%   +15.4%
+     stretch-square-1341    25.26ms    28.88ms  +14.3%   +14.5%
+
+     recipe: bash goal4/t24-remeasure-pad.sh.
+
+    Band 10.6-14.4% center ~+12.3% against item 5's 10.9-18.4% center
+    ~+14%: the ~+14% in-roster deflation of the list denominator is
+    interleaved-route and survives the padding nearly whole.
+
+51. TASK 2.5 THE DEFAULT-NURSERY ANCHORS, PADDED: THE REGISTERED NULL
+    BRANCH -- ALL THREE AT ~+5%, THE UNPADDED LEVEL, SO THE
+    DEFAULT-AREA PAIR RESIDUE IS CLASS-INDEPENDENT TOO. Two-bench
+    pairs after cnn-L1-6x6-c1/list (padded, own-group), default area,
+    order-asserted, with this binary's own alone legs:
+
+     victim's list, r1/r2      alone           after           tax
+     cnn-slice-c32           5.125/5.127us   5.357/5.455us  +4.5/+6.4%
+     cifar-L2-16-c64-k3      2.973/2.981ms   3.135/3.116ms  +5.4/+4.5%
+     stretch-wide-2xM        32.31/32.41ms   33.94/33.90ms  +5.0/+4.6%
+
+     recipe: bash goal4/t25-anchors-pad.sh.
+
+    cifar's compare-point, item 40b's unpadded clean pair, read
+    +5.4-5.7%: unmoved. Item 30's small-area 3-6% residue is not the
+    class's.
+
+52. TASK 2.6 THE DECISION TABLE (no machine; A7's three instruments
+    priced together, decisions Mikolaj's and not taken here):
+
+     exposure context           unpadded tax    padded    what reaches it
+     upfront spray, then a      +12% (32m),     ~0%       padding; -A4m;
+      homogeneous run (fixed-n,  +44% (1G)                a GHC fix
+      ReproSmall's shape)
+     criterion two-bench pair,  ~+14% center    ~+12.3%   alone-legs only
+      -A32m victim set
+     criterion pair, default    +5-6%           ~+5%      alone-legs only
+     full-roster scan context,  +0.5..+12.7%    same      alone-legs;
+      count-ordered                             curve     roster surgery
+
+    What padding buys micro's PUBLISHED numbers: ~nothing -- they are
+    in-roster criterion figures and their deflation is the interleaved
+    route (items 49-51), which is class-independent and out of any
+    allocation policy's reach (item 39's consequence, now measured on
+    micro's own scan). What it buys as an INSTRUMENT: a class-clean
+    state for attribution experiments at zero cost on the big shapes
+    (items 46, 48) -- t21b/c are the demonstration. The migration
+    question, mirroring old plan 3.2: a padded Run 16 basis would
+    break the drift-band lineage, carry the form change's own -3.5%
+    on two arms (item 47), and de-poison none of the tables (item
+    49) -- the evidence weighs against; padding-as-instrument-only
+    costs nothing but duplicate runs, and for de-poisoned
+    published-comparable numbers the alone-legs instrument dominates
+    anyway (a single-bench process has no predecessor and needs no
+    second binary). Roster surgery (sprayers moved last) stays
+    unpriced: the call-count curve says criterion machinery's own
+    calls contribute too, so surgery bounds rather than eliminates,
+    and its price is the load-bearing slot order. What padding does
+    NOT fix, no longer a caveat but the measured majority: the
+    interleaved-route degradation IS the roster deflation, and item
+    1's own-group contributions were that route all along. For the
+    GHC follow-up comment: the padded scan is a criterion-native
+    demonstration of class-independence -- the same dose curve with
+    every spray own-group -- to stand beside the driver's (item 39)
+    and ReproSmall's (item 44).
+
+53. A1 EXECUTED, THE LEAN HELD AND BETTER: RAISING -AL DOES NOT LET
+    THE 27601-CLASS ACCUMULATION FORM AT A SMALL AREA -- poisonbig
+    under -A4m -AL64m taxes zero and mem-in-use grows 15 MB. Bonus,
+    item 32's knee on ReproSmall's victim: -AL64m alone is 13% faster
+    than plain -A4m (the victim's own 1.6 MB per-iteration pinned
+    result is a large object). "-A4m -AL64m" survives its gate.
+
+     ReproSmall, second half     ms/iter    mem in use
+     alone -A4m                  26.33      0.073 GiB
+     alone -A4m -AL64m           22.98      0.067 GiB
+     poisonbig -A4m              26.09      0.073 GiB
+     poisonbig -A4m -AL64m       22.44      0.082 GiB
+
+     recipe: bash goal4/a1-al-owngroup.sh (binary goal4/ReproSmall,
+     the k:/iters: build, its own alone legs).
+
+54. A2 EXECUTED, BOTH LEANS HELD: THE 1G INTERBIG RESIDUE IS
+    RATE- AND HORIZON-INDEPENDENT (REAL, TINY), AND THE PERF PAIR
+    NAMES THE INTERUNBOXED CHANNEL AS LLC MISSES AT FEWER
+    INSTRUCTIONS AND FLAT dTLB -- item 39's signature, base-only.
+    Feeds the follow-up comment's 1G caveat (item 44's OPEN).
+
+     ReproSmall -A1G, second half            ms/iter        tax
+     alone r1/r2                             6.362/6.353      --
+     interbig k:100                          6.367            0%
+     interbig k:1000, iters:3000             6.413          +0.9%
+     interbig k:1000 (perf cell)             6.471          +1.8%
+     interunboxed k:1000 (perf cell)         6.998         +10.1%
+
+     perf stat, whole process     interunboxed    interbig
+     instructions                    23.81e9       28.92e9
+     cycles                          14.03e9       15.51e9
+     cache-misses                    81.7e6        53.2e6
+     dTLB-load-misses                 7.37e6        7.56e6
+
+     recipe: bash goal4/a2-interbig-1g.sh; the spray sizes differ (288
+     vs 450 doubles), which is interbig's higher instruction count --
+     the miss excess runs against the work gradient.
+
+55. A3 EXECUTED, THE LEAN HELD AND ITEM 41(b)'s RESIDUAL IS CLOSED:
+    A MILLION WRITES OF A PREALLOCATED PINNED BUFFER AT THE SPRAYER'S
+    CADENCE LEAVE THE VICTIM CLEAN -- allocation, not memory traffic
+    in either direction, is the ingredient. All cells within-binary on
+    the rebuilt driver (its base and noalloc re-anchored, matching the
+    old binary's items 37/41 readings).
+
+     rep1:1000, -A64m, 1000 rounds   vgg tail   windows 20-120/800-1000
+     base (allocating sprays)         23.34       21.92 / 24.23
+     noalloc (read probe)             18.99       19.01 / 19.20
+     noallocw (write probe)           18.96       18.97 / 19.41
+
+     recipe: bash goal4/a3-noallocw.sh (MixedLoad's new noallocw mode).
+
+56. A4 EXECUTED, THE -A4m ADDED MISSES ARE MUTATOR-SIDE, SO OLD PLAN
+    1.5(d)'s CONCEPTUAL OBJECTION STANDS MEASURED. perf record
+    cache-misses over the conv1d fixed-n design at -A4m: the
+    collector's own copying symbols carry ~1-2% of samples in every
+    cell and go DOWN in the pair; what rises sits in mutator code and
+    the GC-entry stub.
+
+     cache-miss samples, share     alone    poison    pair
+     evacuate + scavenge_*         2.11%    0.89%     0.75%
+     stg_gc_noregs                 (not in top)       5.87%
+     wall, s (single cells)        35.51    2.23      39.13
+
+     recipe: bash goal4/a4-perf-a4m.sh; full reports
+     goal4/a4-*-report.txt, raw samples goal4/a4-*.data. The pair's
+     wall over alone+poison, +3.9%, sits in item 30's -A4m band.
+
+57. A5 EXECUTED, THE ATTRIBUTION REFINES THE LEAN: THE -A32m KERNEL
+    PREMIUM ON imagenet IS ~25% MEMORY SYSCALLS (mmap AT 4-6 ms A
+    CALL, madvise AT ~2 ms, BOTH PER-VICTIM-CALL-SCALED) AND THE
+    MAJORITY IS PAGE-FAULT HANDLING, WHICH NO SYSCALL TRACE SEES;
+    -A64m AND -A4m -AL64m CARRY ~NONE OF EITHER, as registered.
+    Behind the temporary tooBig edit built from a copy (the live tree
+    untouched), imagenet-224-c64-k3/bq-expand, -n 200:
+
+     area            wall      sys     strace memory-syscall s (n200)
+     -A32m          25.95 s   6.13 s   1.575  (mmap .838, madvise .737)
+     -A64m          25.49 s   0.52 s   0.057
+     -A4m -AL64m    18.96 s   0.42 s   0.044
+
+     recipe: bash goal4/a5-strace-imagenet.sh; per-call syscall time
+     by n200-n100 differencing of goal4/a5-A32m-strace-n*.txt:
+     (1.575 - 0.831) / 100 = 7.4 ms/call against sys ~30.7 ms/call.
+     The 30.7 reproduces the README floor section's 31 ms kernel
+     marker. Its wall table's 64m-under-32m ordering did not reproduce
+     in these single cells (setup share undifferenced, another build,
+     quiet vs busy) -- the kernel-time column, which that section
+     itself names as what carries the finding, is the half read here.
+
+58. A6 BLOCKED ON INSTRUMENT, NOT TIME: perf mem answers "failed: no
+    PMU supports the memory events" and the AMD ls_dispatch events do
+    not exist on this machine's PMU exposure (dTLB-store-misses was
+    already <not supported>, item 18). The honeymoon micro-mechanism
+    (item 25) stays OPEN; what would unblock it is IBS exposure or
+    another machine, and the -A15m/16m chunk-boundary probe stays
+    dormant with it.
+
+     recipe: bash goal4/a6-honeymoon.sh (the failure is its output);
+     perf mem record -- true reproduces the refusal in isolation.
+
+59. THE AUDIT ITEMS 46-58 FORCE ON THE STANDING TEXTS, in item 14's
+    form -- what each says, what falsified it, where the fix went or
+    waits. Corrected in place 2026-08-19, all review-gated by Mikolaj
+    before any posting: (a) the staged GHC issue's application-scale
+    figures ("12 to 17% at -A32m, 27 to 44% above") mixed
+    criterion-context cells, whose tax items 49-51 show is mostly the
+    interleaved route, with fixed-n ones -- replaced by the all-fixed-n
+    +12%/+33-44% (t21, item 15), each now burst-route-clean; its "a
+    program that never makes a sub-threshold pinned allocation never
+    forms the state" and "keeps the FULL benefit" over-claims scoped to
+    the burst route; the padded-burst cure (item 46), the -AL
+    27601-safety cell (item 53) and the criterion any-class clause
+    added. (b) The companion comment gained the write-probe (item 55),
+    the -A1G residue's rate/horizon stability and base-only counter
+    pair (item 54), and the padded-scan demonstration (item 49). (c)
+    horde-ad docs/speculative-todos.md: two references to "item 45"
+    corrected to 44 (wrong when written, colliding since item 45
+    exists); the maintainer-brief's "padding restores benchmark and
+    hot-loop integrity" annotated half-refuted (items 46 vs 49-51);
+    the cross-matrix's untested -AL x own-group cell annotated with
+    item 53's verdict. STILL OWED, at the README position-term entry's
+    next rewrite (the file's convention for batched corrections): the
+    resolution paragraph's "the same count of own-group sprays costs
+    nothing" and "the poison is the size class" hold only of the
+    upfront route -- the in-process deflation its "what it costs this
+    page" sentence prices is the class-independent interleaved route
+    (items 49-51), which its own all-23-candidates-on-one-curve scan
+    sentence already implied; the tuning rule's "the remedy is
+    source-level or GHC-level" narrows to GHC-level or process
+    isolation for the in-process condition, padding curing only
+    upfront bursts (item 46); the cifar boundary sentence is resolved
+    (item 40b, re-confirmed item 51); the OPEN residues bullet has one
+    residue answered (item 56: mutator-side, the objection stands
+    measured) and the other's named instrument measured unavailable
+    here (item 58); and the Provenance anchor paragraph's "+10.2%
+    after one poison" phrasing attributes to one poison what item 40b
+    split into ~+5.5% pair plus roster context. Not audited, because
+    no cell here re-measured its case: horde-ad docs/position-effect.md
+    (convVjpBench's own coupling), whose account is
+    mechanism-neutral about the class. Items 1-44 need no retraction:
+    the findings file corrects itself chronologically by design, and
+    their tables stand as measurements. (The STILL OWED list above was
+    executed in the README entry rewrite, 2026-08-19, together with
+    items 60-70's later additions: the two-route resolution paragraph,
+    the 406 boundary, the measured alone-leg columns, the resolved
+    boundary sentence, the residues bullet's answered half, and the
+    Provenance rephrasing.)
+
+60. THE COMMENT'S BASE-ONLY REPRODUCER (goal4/ReproV2.hs -- the issue
+    description's Repro.hs plus the interleave modes and two
+    non-allocating controls; embedded in the follow-up comment draft),
+    AND WHAT ITS CONTROLS DECOMPOSE. The write control's registered
+    lean (~0% at both areas, from the driver's item 55) is REFUTED at
+    -A32m and held at -A1G, the read twin agrees, and the pure
+    own-group interleave sits at the controls' level at BOTH areas --
+    so on this victim the interleaved tax decomposes into a
+    PUNCTUATION term any interleaved activity pays at the L3-scale
+    area (~+14-18% at 32m, ~+1-2% at 1G) plus a SMALL-ALLOCATION term
+    (~+8-11 points at both areas, pinned-shared and movable alike),
+    with own-group allocation adding ~nothing beyond punctuation.
+
+     ms/iter, second half, r1/r2      -A32m       tax    -A1G        tax
+     alone                          9.44/9.38      --   6.38/6.40     --
+     inter (2304 B pinned)        11.77/11.73    +25%   7.14/7.16   +12%
+     interunboxed (2304 B movable) 11.53/11.49   +22%   6.96/6.99    +9%
+     interbig (3600 B own-group)  10.77/10.73    +14%   6.49/6.52    +2%
+     internoalloc (write control) 11.16/10.99    +18%   6.48/6.52    +2%
+     internoallocr (read control) 10.77/10.71    +14%   6.45/6.47    +1%
+
+     recipe: bash goal4/comment-repro-matrix.sh (ReproV2 md5
+     50f9a5e6..., source 18db45ba...); the internoalloc/-r modes are
+     also in ReproSmall.hs, whose k:/iters: cells first exposed the
+     32m elevation (goal4/a8-*.log holds all cells).
+
+    CONSEQUENCES. (a) Item 44's 32m interbig line (+14.7%, "all three
+    classes poisoning") re-reads: at 32m the own-group interleave's
+    cost IS the punctuation term, not allocation damage -- the
+    class-independence of the ALLOCATION term narrows to the two small
+    classes, and the 1G "residue split" (item 44b) is the same
+    small-vs-rest split with the punctuation term at zero. (b) The
+    driver's class-independence (item 37: base/pad/unpin identical)
+    is thereby explained rather than contradicted: every driver
+    variant's calls carry the small MOVABLE allocations real array
+    calls make (the VU dims vectors, the boxing), which the reproducer
+    isolates as the ingredient -- so the practical consequence stands
+    unchanged (no pinned-allocation policy reaches the route; real
+    calls always carry small movable allocation), and the pure
+    own-group interleave is innocent in a way no real workload can
+    exploit. (c) Item 55's "allocation, not memory traffic, is the
+    ingredient" is area- and victim-scoped: held at -A64m on the
+    driver victim and at -A1G here; at -A32m on this victim,
+    punctuation without allocation costs +14-18%. (d) Upfront movable
+    is harmless by the victim's own structure: every alone run's first
+    150 iterations are a ~3.6 GB movable spray and the second half
+    sits at the steady state regardless. OPEN, inherited by item 44's
+    nuance: the punctuation term's mechanism at L3-scale areas, and
+    what exactly "small" measures for the allocation term (count vs
+    bytes) -- the K-series (item 41c) ordered by call count at -A64m,
+    where the driver's calls confound the two.
+
+STRETCH BATCH, 2026-08-19 morning (goal4/a8-*, a9-*; ReproV2.hs gained
+interunboxedbig, ReproSmall.hs that plus intersize:N; the comment's
+embedded program and table refreshed to the new bytes).
+
+61. THE ROUTE'S INGREDIENT IS ALLOCATION THAT PASSES THROUGH THE
+    NURSERY, ON ALL THREE COMPILERS. interunboxedbig (3600 B movable =
+    large object, own block group, never in the nursery) sits at the
+    controls'/interbig level at both areas -- the lean held -- so the
+    small sprays' damage is nursery-passage, not smallness per se and
+    not the pinned accumulator; and 9.14.1 and HEAD 10.1.20260803
+    reproduce the whole seven-mode matrix within the run-to-run spread.
+    The full 9.12.4 matrix, re-taken on the final embedded program
+    (binary 942797c7..., source 4669a9de...):
+
+     ms/iter, second half, r1/r2      -A32m       tax    -A1G        tax
+     alone                          9.27/9.18      --   6.37/6.38     --
+     inter (2304 B pinned)        11.78/11.48    +26%   7.07/7.06   +11%
+     interunboxed (2304 B movable) 11.32/11.26   +22%   6.92/6.93    +9%
+     interbig (3600 B pinned)     10.48/10.55    +14%   6.47/6.47    +1%
+     interunboxedbig (3600 B mov) 10.59/10.58    +15%   6.43/6.46    +1%
+     internoalloc (write control) 11.00/10.88    +19%   6.49/6.51    +2%
+     internoallocr (read control) 10.62/10.58    +15%   6.45/6.45    +1%
+
+     recipe: bash goal4/comment-repro-matrix.sh; the 9.14.1/HEAD cells
+     (single runs, same seven modes, both areas) by bash
+     goal4/a9-compilers.sh, goal4/a9-{9141,head}-*.log.
+
+62. THE PUNCTUATION TERM IS BAND-LIMITED TO ~-A32m, NOT A BROAD L3
+    RESONANCE: the read control against alone across the -A axis on
+    ReproSmall's victim reads CLEAN at 16m, 24m and 48m and +15.6% at
+    32m -- the lean's peak-at-L3 held, its falls-off-gradually half
+    refuted (the neighbors are already clean). The 64m cell reads +9.8%
+    but both runs' halves are still falling (the victim's ramp at that
+    area outlives 300 iterations), so it is transient-contaminated and
+    not read. The perf pair at 32m is confounded by the probe's own
+    work (instructions +8.7%) and does not cleanly judge the channel
+    lean: cache-misses +8.0%, cycles +10.8% -- suggestive of more than
+    a pure LLC story, left with the mechanism OPEN as before.
+
+     internoallocr vs alone, 2nd half  16m    24m    32m    48m    64m
+     alone ms/iter                   15.15  12.09   9.31   9.30   7.86*
+     read control ms/iter            15.01  12.13  10.76   9.25   8.63*
+     tax                             -1.0%  +0.3% +15.6%  -0.5%  (+9.8%*)
+       (* halves not converged; not read)
+
+     recipe: bash goal4/a9-punctuation.sh; perf cells
+     goal4/a9-punct-perf-*.txt.
+
+63. THE INTERLEAVED DOSE IS CUMULATIVE NURSERY-PASSING BYTES; CALL
+    COUNT WAS A PROXY AT FIXED CALL SIZE. The registered lean
+    (size-independent at saturation, item 29's upfront pattern) is
+    REFUTED: at -A1G and fixed k:1000 the tax scales with spray size,
+    while at fixed total bytes it is flat across an eightfold count
+    change, and all six cells land on one curve in cumulative bytes
+    (86 MB nearly clean, 240 MB partial, ~690 MB at the ceiling). The
+    pinned spot cell matches the movable one at equal bytes, coherent
+    with item 61. Item 41(c) refines accordingly: the driver's
+    K-series varied count at a fixed 2304 B call, so bytes tracked
+    count there.
+
+     -A1G, alone 6.45 ms/iter          bytes/iter  cumulative     tax
+     interunboxed k:1000 intersize:36     288 KB       86 MB    +0.8%
+     inter        k:1000 intersize:36     288 KB       86 MB    +1.1%
+     interunboxed k:1000 intersize:100    800 KB      240 MB    +3.1%
+     interunboxed k:1000 intersize:288   2304 KB      691 MB    +7.4%
+     interunboxed k:4000 intersize:72    2304 KB      691 MB    +6.5%
+     interunboxed k:8000 intersize:36    2304 KB      691 MB    +8.3%
+
+     recipe: bash goal4/a9-sizecount.sh (cumulative = bytes/iter x 300
+     iterations).
+
+64. THE CLEAN ALONE-LEG COMPANION FOR EVERY list DENOMINATOR, the
+    instrument item 52 names, taken on run15-lookrts at the default
+    area, one bench per process, anchors twice: cnn-slice-c32
+    5.462/5.454 us, cifar-L2-16-c64-k3 3.093/3.038 ms,
+    stretch-wide-2xM 33.14/33.10 ms, and single runs for the other 21
+    (goal4/a9-alonelegs-driver.log is the table; the multi-process
+    draw band ~2%, item 30d, is the error bar). Against Run 15's
+    published in-roster absolutes: cifar sits ~+9% in-roster over its
+    clean alone (the Provenance estimate now measured), wide-2xM ~+5%,
+    and cnn-slice's in-roster 5.42 us sits BELOW its clean 5.45-5.46
+    -- the early-slot sprayer is not deflated, coherent with items
+    49-51's context account. This is the column the README entry's
+    next rewrite cites.
+
+     recipe: bash goal4/a9-alonelegs.sh; cells goal4/a9-al-*.{json,log}.
+
+65. THE ISSUE'S EMBEDDED Repro.hs VERIFIED AS ITS EXACT BYTES (extracted
+    from the draft's fence, 82cec2df..., compiled 9.12.4, five cells):
+    no compile error, no crash, and its table reproduces -- -A1G
+    digit-for-digit (alone 6.37 vs the table's 6.35, poison 7.11 vs
+    7.12), poisonbig's zero exactly (9.24), and the -A32m poison cell at
+    +15.0% against the table's +10.8% -- inside the Summary's stated
+    9-18% band, so the poisoned-32m day draw is wider than the alone
+    legs' "few percent" but crosses no published claim. No filing
+    blocker; the pre-filing gap (goal 3 of the stretch list) is closed.
+
+     recipe: bash goal4/a10-issuerepro.sh; cells goal4/a10-ir-*.log.
+
+66. ITEM 62's LOOSE ENDS CLOSED, ONE LEAN EACH WAY: (a) the 64m cell
+    converged (iters:1200) reads 8.360 vs 8.360 -- 0.0%, so the +9.8%
+    was pure transient and the punctuation band is 32m-ONLY, clean at
+    16, 24, 48 and 64 MB; (b) the cadence lean REFUTED: k:100 reads
+    +3.8% against k:1000's +14.9%, so the term is per-call, not
+    per-iteration presence; (c) the deconfounded perf
+    (difference-of-differences, {alone, read control} x {32m, 48m})
+    REFUTES the LLC-count lean: the 32m excess is +3.2e6 cache-misses
+    (+4.8% of the victim's) against +14.9% in time, with ~+1.6e9 excess
+    INSTRUCTIONS at 32m the 48m pair does not show -- an allocation-free
+    probe changing instruction counts points at collector-path
+    interaction, item 25's cost-not-count pattern again. Mechanism
+    stays OPEN; the term is now bounded (32m-only, per-call, not
+    miss-count-carried), which is what the comment's caveat rests on.
+
+     recipe: bash goal4/a10-punct2.sh; cells goal4/a10-p2-*.log,
+     perf cells goal4/a10-p2-perf-*.txt.
+
+67. THE UPFRONT ROUTE'S DOSE IS NOT BYTES -- THE TWO ROUTES DIFFER IN
+    METRIC, AND THE ISSUE'S COUNT SENTENCE SURVIVES. The registered
+    lean (bytes, unifying with item 63) is REFUTED by the
+    sub-saturation cells at -A32m: at equal bytes MORE OBJECTS cost
+    more (the high pair's reps disjoint), at equal count more bytes
+    cost slightly more, and the whole 29x range spans only +4.6% to
+    +10.7% -- the shallow log curve of item 1 (~2.5-4%/decade in
+    count) with a weak size term on top, where the interleaved route's
+    bytes-dose (item 63) tripled over a 8x byte range. Coherent with
+    the routes being different formation paths: per-object accumulator
+    block churn upfront, nursery bytes interleaved. No draft changes
+    owed: the issue's "logarithmic in the object count" stands, and
+    the comment's bytes claim is already scoped to the interleaved
+    route.
+
+     second half vs alone 9.36/9.43, -A32m    objects   bytes     tax
+     poison dose:70   (2304 B)                 20k      46 MB   +6.5%
+     poisontiny dose:70  (800 B)               20k      16 MB   +5.0%
+     poisontiny dose:200 (800 B)               58k      46 MB   +4.6%
+     poison dose:700  (2304 B)                202k     464 MB   +7.9%
+     poisontiny dose:2000 (800 B)             576k     461 MB  +10.7%
+
+     recipe: bash goal4/a10-updose.sh (ReproSmall's dose:N, r1/r2 per
+     cell; the table's taxes are two-rep means).
+
+68. THE PUNCTUATION TERM'S -s DISCRIMINATOR REFUTES THE IDENTICAL-GC
+    LEAN AND YIELDS THE FIRST MECHANISM LEAD: at -A32m the read-probed
+    run copies 3.879 GB during GC against the alone run's 3.533 GB
+    (+9.8%) at near-identical allocation (13.564 vs 13.545 GB heap
+    allocated, +0.14% -- the probe's own boxing, ~64 B/call, far under
+    item 63's clean region) -- so an allocation-free delay between
+    victim iterations makes collections copy more, i.e. the term
+    interacts with WHERE collections land in the victim's live-list
+    lifecycle. At the README's 0.42 ms/MB that copying explains roughly
+    a third of the +15% term; the rest stays with item 66's
+    excess-instruction reading. And the cadence is non-linear: k:100
+    +3.8%, k:1000 +14.9%, k:3000 +10.8% -- a peak near k:1000, not a
+    per-call cost -- coherent with a phase/timing account and with
+    nothing chased further here. The class populations' clean
+    alone-leg column also landed, all 24 views' list at the default
+    area on run15-lookrts, completing item 64's instrument for every
+    published list denominator (goal4/a11-classlegs-driver.log is the
+    table).
+
+     recipe: bash goal4/a11-punct3.sh (the -s pair and k:3000) and
+     goal4/a11-class-alonelegs.sh; cells goal4/a11-*.{log,json}.
+
+    Addendum, read later from the same -s cells: the MUT/GC time split
+    puts the term roughly half in each side -- alone MUT 1.950 s GC
+    1.210 s, probed MUT 2.175 s GC 1.301 s, the +0.091 s of GC matching
+    the copied-bytes account above at the 0.42 ms/MB rate and the
+    +0.225 s of MUT holding the probe's own ~0.1 s of work plus a
+    genuine victim-mutator slowdown.
+
+69. THE PUNCTUATION TERM DOES NOT GENERALIZE TO THE APPLICATION-SCALE
+    VICTIM -- the lean held, and item 36's -A32m recommendations stand
+    with a direct null on the one route that could have threatened
+    them. The driver's rep1 system at -A32m reads both non-allocating
+    probes at the driver-loop offset (noalloc tail 18.98, noallocw
+    18.87, windows flat at ~19.0-19.3) against base's 20.34 (21.13
+    late) -- the 64m picture repeated at 32m. So the term is a property
+    of ReproSmall's victim regime (~0.75 collections per iteration and
+    a live span of tens of MB at exactly the L3-sized area), and what
+    it keeps is its two roles: the comment reproducer's caveat, and
+    the portability warning that "32m" advice names this machine's L3.
+    Also visible in the same cells: the driver's interleaved-route tax
+    at 32m (~+10% over the probes) is about half its 64m size (item
+    55's 24.23 against 19.20), coherent with item 30's
+    smaller-area-halves-the-tax.
+
+     rep1:1000, -A32m, 1000 rounds   vgg tail   windows 20-120/800-1000
+     base (allocating sprays)         20.34       20.79 / 21.13
+     noalloc (read probe)             18.98       19.11 / 19.20
+     noallocw (write probe)           18.87       19.04 / 19.32
+
+     recipe: bash goal4/a12-driver-punct-32m.sh.
+
+70. THE ISSUE BODY BLIND-WALKED (fresh GHC-developer-seated session,
+    body only, follow-up taken), ITS FINDINGS VETTED AGAINST THE ghc
+    CHECKOUT AT d415f38a75, THE CONFIRMED ONES FIXED IN THE DRAFTS
+    (edits only; horde-ad commits frozen). Confirmed and fixed: (a)
+    commit 47d6acd3be / MR !5175 did not introduce the accumulator
+    path -- Storage.c's own comment describes it as longstanding; the
+    commit reworked where its blocks come from (pinned_object_empty),
+    and the issue's parenthetical now says so; (b) the size boundary
+    is compared in words with strict "<", so the last accumulator
+    payload is 406 doubles = 3248 B, not 407/3256 -- fixed in the
+    issue, in micro Main.hs's and MixedLoad.hs's padTo comments, and
+    in MixedLoad's dormant small-predicate (l <= 406; no shape sits at
+    407, so no cell moves; padding to 410 was and stays correct); the
+    micro README's position-term entry carries the same figure and
+    joins item 59's owed-rewrite list; (c) the workaround section's
+    "10 to 18%" floor now matches the table's 9; (d) from the
+    follow-up: the criterion-invalidity sentence is scoped "at
+    enlarged allocation areas" -- the page's own data has the
+    default-area tax at zero. Knock-on from the vet: the comment's
+    "passes through the nursery" over-committed for the small-pinned
+    half (accumulator blocks come from the pinned_object_empty supply
+    since !5175), so the comment now says "below the large-object
+    limit"/"sub-threshold" -- the exact measured split -- and item
+    61's nursery phrasing is corrected by this note; ReproV2's own
+    interunboxedbig comment stands (a movable large object genuinely
+    bypasses the nursery) and the embedded bytes are unchanged.
+    Editorial leads left for Mikolaj, ruled on one by one the same
+    day: APPLIED the coverage-split sentence, the step-4 pass/fail
+    rule, the default-nursery command parenthesis, the
+    -N/per-capability scope line, the cache-hierarchy magnitude
+    caveat, the "(several, at saturating doses)" tag on the Summary's
+    range clash, and the "(the reproducer prints this phase's time)"
+    parenthesis; SKIPPED the victim-argument note and the
+    one-compiler-suffices sentence; and the follow-up comment posts
+    AFTER filing, not with it, the two in-body references standing as
+    accepted IOUs meanwhile. The comment's caveat paragraph was also
+    upgraded with items 66/68/69 (the 64 MB absence, the driver null
+    at 32m, the copied-bytes half), retiring its "we did not
+    investigate its mechanism". The walker flagged its own sensitivity floor: three
+    same-species gaps surfaced only in the follow-up, so the walk
+    bounds rather than certifies the body.
+
+     recipe: the doc-blind-walk skill over the issue body, follow-up
+     per its RECALL/RECONSTRUCTION protocol; the vet is git log -1
+     47d6acd3be, rts/include/rts/storage/Block.h:63 and
+     rts/sm/Storage.c's allocatePinned in the ghc checkout, plus
+     integer arithmetic (409 words strict).
+

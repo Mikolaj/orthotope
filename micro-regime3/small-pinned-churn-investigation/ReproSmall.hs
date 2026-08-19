@@ -34,7 +34,7 @@ module Main (main) where
 
 import Control.Monad (forM_, when)
 import Data.IORef (modifyIORef', newIORef, readIORef)
-import Foreign.ForeignPtr (mallocForeignPtrBytes, withForeignPtr)
+import Foreign.ForeignPtr (ForeignPtr, mallocForeignPtrBytes, withForeignPtr)
 import Foreign.Ptr (Ptr)
 import Foreign.Storable (peekElemOff, pokeElemOff)
 import GHC.Clock (getMonotonicTime)
@@ -136,6 +136,39 @@ fillSumUnpinned (I# n) (D# x) = IO $ \s0 ->
                 (# s', v #) -> summ (acc +## v) (i +# 1#) s'
       in  summ 0.0## 0# (fill 0# s1)
 
+-- The non-allocating control for the interleaved route (internoalloc,
+-- padding-plan A3's verdict carried base-only): WRITE a preallocated
+-- pinned 2304 B buffer end to end at the sprayer's cadence, allocating
+-- nothing -- the same bytes a spray would dirty, with allocation the
+-- one ingredient absent.  Registered lean, judged not remembered: the
+-- victim stays clean at both areas (the driver's read and write probes
+-- both did, findings item 55).
+{-# NOINLINE noallocWrite #-}
+noallocWrite :: ForeignPtr Double -> Int -> IO Double
+noallocWrite fp seed = withForeignPtr fp $ \p -> do
+  let x = fromIntegral seed
+      fill !i | i >= (288 :: Int) = pure ()
+              | otherwise = pokeElemOff p i x >> fill (i + 1)
+  fill 0
+  a <- peekElemOff p 0
+  b <- peekElemOff p 287
+  pure $! a + b
+
+-- The read twin of 'noallocWrite' (internoallocr): sum an equal-sized
+-- window of the long-lived source at the same cadence, allocating and
+-- dirtying nothing.  Added 2026-08-19 when the write probe's -A32m
+-- cells came back elevated (+16-19%) against a clean -A1G -- this
+-- discriminates dirtying from mere punctuation there.  Registered
+-- lean: clean at both areas, the driver's read probe having been clean
+-- at -A64m (item 41b).
+{-# NOINLINE noallocRead #-}
+noallocRead :: Ptr Double -> Int -> IO Double
+noallocRead p seed = do
+  let go !acc !i | i >= (288 :: Int) = pure acc
+                 | otherwise = do v <- peekElemOff p i
+                                  go (acc + v) (i + 1)
+  go (fromIntegral seed) 0
+
 -- The INTERLEAVED route's dose (the follow-up comment's condition, not
 -- the upfront issue's): 1000 small allocating calls between every pair
 -- of victim iterations, so the cumulative count crosses the 10^5
@@ -146,10 +179,14 @@ fillSumUnpinned (I# n) (D# x) = IO $ \s0 ->
 -- class-independent -- while the upfront modes above keep their class
 -- split inside the same binary.  The spray calls' own wall is timed and
 -- subtracted, so the printed halves stay the victim's rate.
+-- The call count per victim iteration is K: 1000 by default, overridden
+-- by a k:N argument (padding-plan.txt A2's dose sweep); iters:N likewise
+-- overrides the 300-iteration victim horizon, split into halves. The
+-- defaults reproduce every cell recorded before the arguments existed.
 {-# NOINLINE interIter #-}
-interIter :: (Int -> IO Double) -> Int -> IO Double
-interIter one seed = do
-  let go !acc !i | i >= 1000 = pure acc
+interIter :: Int -> (Int -> IO Double) -> Int -> IO Double
+interIter k one seed = do
+  let go !acc !i | i >= k = pure acc
                  | otherwise = do v <- one (seed + i)
                                   go (acc + v) (i + 1)
   go 0 0
@@ -161,7 +198,18 @@ memGiB = do s <- getRTSStats
 main :: IO ()
 main = do
   args <- getArgs
+  -- dose:N sets the upfront modes' outer count (N * 288 objects; the
+  -- default 4000 is the recorded 1.15M dose), for the upfront
+  -- count-vs-bytes cells; sub-saturation doses are its point.
+  let numArg0 pfx dflt = case [read (drop (length pfx) a) :: Int
+                              | a <- args, take (length pfx) a == pfx] of
+        [n] -> n
+        []  -> dflt
+        _   -> error ("at most one " ++ pfx)
+      dose = numArg0 "dose:" 4000
+  when (dose /= 4000) $ putStrLn ("dose=" ++ show dose)
   srcFp <- mallocForeignPtrBytes (600000 * 8)
+  naFp <- mallocForeignPtrBytes (288 * 8)
   withForeignPtr srcFp $ \src -> do
     forM_ [0 .. 600000 - 1] $ \i ->
       pokeElemOff src i (fromIntegral i :: Double)
@@ -170,7 +218,7 @@ main = do
       \(name, iter) ->
         when (name `elem` args) $ do
           t0 <- getMonotonicTime
-          forM_ [1 .. 4000 :: Int] $ \i -> do
+          forM_ [1 .. dose] $ \i -> do
             _ <- iter i
             pure ()
           t1 <- getMonotonicTime
@@ -183,13 +231,27 @@ main = do
     -- FASTER than steady state (measured 2026-08-18, micro's fixed-n
     -- ladders), so the second half is the honeymoon-free reading and the
     -- one to compare across modes.
+    let k = numArg0 "k:" 1000
+        half = numArg0 "iters:" 300 `div` 2
+        -- intersize:N sets the inter/interunboxed spray's element count
+        -- (default 288 = 2304 B; sub-threshold only up to 407), for the
+        -- padding-plan follow-up's count-vs-bytes cells.  interbig and
+        -- interunboxedbig stay fixed at 450 = 3600 B, own block group.
+        sz = numArg0 "intersize:" 288
+    when (k /= 1000 || half /= 150 || sz /= 288) $
+      putStrLn ("k=" ++ show k ++ " iters=" ++ show (2 * half)
+                ++ " intersize=" ++ show sz)
     let interOne
           | "inter" `elem` args =
-              Just (\k -> fillSum 288 (fromIntegral k))
+              Just (\k' -> fillSum sz (fromIntegral k'))
           | "interbig" `elem` args =
-              Just (\k -> fillSum 450 (fromIntegral k))
+              Just (\k' -> fillSum 450 (fromIntegral k'))
           | "interunboxed" `elem` args =
-              Just (\k -> fillSumUnpinned 288 (fromIntegral k))
+              Just (\k' -> fillSumUnpinned sz (fromIntegral k'))
+          | "interunboxedbig" `elem` args =
+              Just (\k' -> fillSumUnpinned 450 (fromIntegral k'))
+          | "internoalloc" `elem` args = Just (noallocWrite naFp)
+          | "internoallocr" `elem` args = Just (noallocRead src)
           | otherwise = Nothing
     sprayT <- newIORef (0 :: Double)
     let victimLoop lo hi = forM_ [lo .. hi :: Int] $ \i -> do
@@ -197,20 +259,21 @@ main = do
             Nothing -> pure ()
             Just one -> do
               c0 <- getMonotonicTime
-              _ <- interIter one (i * 1000)
+              _ <- interIter k one (i * 1000)
               c1 <- getMonotonicTime
               modifyIORef' sprayT (+ (c1 - c0))
           _ <- victimIter src i
           pure ()
     t0 <- getMonotonicTime
-    victimLoop 1 150
+    victimLoop 1 half
     t1 <- getMonotonicTime
     s1 <- readIORef sprayT
-    victimLoop 151 300
+    victimLoop (half + 1) (2 * half)
     t2 <- getMonotonicTime
     s2 <- readIORef sprayT
     m <- memGiB
-    putStrLn ("victim: first half " ++ show ((t1 - t0 - s1) / 150 * 1000)
+    let perIter d = d / fromIntegral half * 1000
+    putStrLn ("victim: first half " ++ show (perIter (t1 - t0 - s1))
               ++ " ms/iter, second half "
-              ++ show ((t2 - t1 - (s2 - s1)) / 150 * 1000)
+              ++ show (perIter (t2 - t1 - (s2 - s1)))
               ++ " ms/iter; mem in use: " ++ show m ++ " GiB")

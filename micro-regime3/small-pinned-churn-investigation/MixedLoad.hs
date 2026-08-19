@@ -40,6 +40,12 @@
 --               non-allocating read of an equal-sized source (sum of
 --               288 doubles, no result vector): does the foreign call
 --               need to allocate to build the state?
+--   noallocw  = with rep:K/rep1:K -- replace the sprayer call by a
+--               non-allocating WRITE of a preallocated 288-double
+--               buffer (padding-plan.txt A3, item 41's registered
+--               residual): noalloc reads and so also touches no fresh
+--               memory; this dirties the bytes a spray would, with
+--               allocation still absent.
 --   nosmall   = the shuffle over the 66 calls of the 22 shapes whose
 --               results are own-group, i.e. the two sub-threshold shapes
 --               excluded (plan section 6.3's discriminator).
@@ -155,8 +161,9 @@ shapes =
   , ("stretch-inner256",    [7, 256, 977])
   ]
 
--- 407 doubles = 3256 B payload is the last sub-threshold size; padding to
--- 410 clears the 3276 B limit with the 16 B header included.
+-- 406 doubles = 3248 B payload is the last sub-threshold size (the limit,
+-- 3276 B, is compared in words: object plus header under 409); padding to
+-- 410 clears it with the 16 B header included.
 padTo :: Int -> Int
 padTo l = max l 410
 
@@ -309,6 +316,20 @@ noallocProbe v = do
                  | otherwise = go (acc + VS.unsafeIndex v i) (i + 1)
   go 0 0
 
+-- The touch-without-allocating stand-in (the noallocw mode): write a
+-- preallocated pinned buffer end to end at the sprayer's cadence,
+-- allocating nothing; the sink read forces the writes to have happened.
+{-# NOINLINE noallocwProbe #-}
+noallocwProbe :: VSM.IOVector Double -> Double -> IO Double
+noallocwProbe mv x = do
+  let n = VSM.length mv
+      fill !i | i >= n = pure ()
+              | otherwise = VSM.unsafeWrite mv i x >> fill (i + 1)
+  fill 0
+  a <- VSM.unsafeRead mv 0
+  b <- VSM.unsafeRead mv (n - 1)
+  pure $! a + b
+
 -- The pre-poison spray, copied from ReproSmall.hs: 4000 * 288 ~ 1.15M
 -- pinned 2304 B buffers, the saturating dose.
 {-# NOINLINE fillSum #-}
@@ -388,7 +409,7 @@ mkCalls variant = V.fromList
   | (nm, normalSh) <- shapes
   , let (sh, t) = mkStrided normalSh
         l = product sh
-        small = l <= 407
+        small = l <= 406
   , (anm, call) <- case variant of
       "base" ->
         [ ("list", apVS (armList l) sh t)
@@ -424,7 +445,7 @@ main = do
     (s : n : v : rest)
       | v `elem` ["base", "pad", "unpin", "strong", "strongpad"]
       , all (\o -> o == "prepoison" || o == "prepoisonbig" || o == "nosmall"
-                   || o == "noalloc" || take 7 o == "switch:"
+                   || o == "noalloc" || o == "noallocw" || take 7 o == "switch:"
                    || take 4 o == "rep:" || take 5 o == "rep1:") rest
       -> pure (read s :: Word64, read n :: Int, v, rest)
     _ -> die "usage: MixedLoad SEED NROUNDS VARIANT [prepoison] [rep:K | rep1:K | nosmall]\n\
@@ -438,6 +459,7 @@ main = do
                []   -> Nothing
                _    -> error "at most one rep:K / rep1:K"
       noAlloc = "noalloc" `elem` opts
+      noAllocW = "noallocw" `elem` opts
       switchAt = case [read (drop 7 o) :: Int | o <- opts, take 7 o == "switch:"] of
                    [r] -> Just r
                    []  -> Nothing
@@ -450,6 +472,7 @@ main = do
                       | Just (k, one) <- [repK]]
             ++ concat [" switch:" ++ show r | Just r <- [switchAt]]
             ++ (if noAlloc then " noalloc" else "")
+            ++ (if noAllocW then " noallocw" else "")
             ++ (if noSmall then " nosmall" else "")
             ++ " minAllocAreaSize(blocks)=" ++ show (minAllocAreaSize gcf)
             ++ " largeAllocLim(blocks)=" ++ show (largeAllocLim gcf))
@@ -466,7 +489,9 @@ main = do
                   | nm <- ["cnn-slice-c32", "cnn-L1-6x6-c1"]
                   , a <- ["list", "bq-expand", "mut-odo-vecdims"]]
       bigIdxs = VU.fromList [i | i <- [0 .. n - 1], i `notElem` smallIdxs]
-      sprayIdx = if noAlloc then -1 else idxOf "cnn-slice-c32/mut-odo-vecdims"
+      sprayIdx | noAllocW = -2
+               | noAlloc = -1
+               | otherwise = idxOf "cnn-slice-c32/mut-odo-vecdims"
       repSeq k one =
         VU.fromList (replicate k sprayIdx
                      ++ idxOf "vgg-14-c512-k3/list"
@@ -481,6 +506,7 @@ main = do
                        in  (VU.map (VU.unsafeIndex bigIdxs) p, g')
           | otherwise -> shuffled n g
       nasrc = VS.enumFromN (0 :: Double) 288
+  nabuf <- VSM.new 288
   -- Force every setup vector now, before any timing.
   setupSink <- V.foldM' (\ !acc (_, c) -> (acc +) <$> c) 0 calls
   when doPre (prepoison 288)
@@ -504,8 +530,10 @@ main = do
                          | otherwise = do
                              let !k = VU.unsafeIndex perm i
                              c0 <- getMonotonicTime
-                             x <- if k < 0 then noallocProbe nasrc
-                                  else snd (calls V.! k)
+                             x <- case k of
+                               -1 -> noallocProbe nasrc
+                               -2 -> noallocwProbe nabuf (fromIntegral i)
+                               _  -> snd (calls V.! k)
                              c1 <- getMonotonicTime
                              when (k >= 0) $
                                VUM.unsafeModify perCall (+ (c1 - c0)) k

@@ -1,0 +1,185 @@
+PLAN: pad micro's small pinned results -- prepared 2026-08-18 for a fresh
+session, for one longer quiet-machine period. Successor to
+pinned-churn-plan.txt (executed; verdicts in nursery-position-findings2.txt
+items 30-44, cited below by item number). Scope set by Mikolaj 2026-08-18:
+implement "padding small pinned results" EXCLUSIVELY in micro-regime3, for
+its own benchmarks only -- the ox-arrays/orthotope allocation policy and
+every horde-ad decision stay out of scope, Mikolaj's -- and carry, as an
+appendix, every unfinished and owed point of the previous two plans, to run
+in the same quiet period. Nothing here repeats a measurement already taken;
+every task states its instrument.
+
+0. BACKGROUND A FRESH SESSION NEEDS.
+
+0.1 Read first: nursery-position-findings2.txt items 16 and 29 (the
+upfront class discrimination: sub-3276 B pinned sprays poison, 3600 B
+own-group sprays cost zero, in one binary), item 1 (micro's -A32m roster
+dose curve: EVERY shape's spray poisons the roster victim, own-group
+included, roughly log-linear in count), item 30 (the -A axis in both
+states), items 37-41 and 44 (the interleaved route: class-independent at
+32m/64m, class residue at 1G), item 36 (the recommendation this plan's
+option comes from). The instrument discipline is item 30's and the
+session header's: fixed-n two-point wall differencing for alone
+plateaus, order-asserted criterion pairs for poisoned cells, quiet
+machine checked by loadavg, one artifact file per cell with no filename
+reuse, and any A/B across builds interleaved with per-pair controls
+(horde-ad bench/CLAUDE.md's rules apply mutatis mutandis).
+
+0.2 THE TENSION THIS PLAN MUST SETTLE FIRST, because the padding payoff
+hinges on it: ReproSmall says own-group upfront sprays cost ZERO at
+-A32m (item 29), yet micro's corrected scan (item 1) has own-group
+shapes poisoning the roster victim at up to +8.6% at the same area --
+so either micro's roster is not the upfront shape (predecessors'
+interleaving with criterion machinery makes it partly the item-39
+route), or the class split at 32m is weaker than ReproSmall's victim
+shows. The 32m matched-dose cell (task 2.1) is the discriminator, and
+it bounds what padding can buy: if own-group mega-dose poisons at 32m
+like the sub-threshold one, padding converts micro's worst sprayers
+without de-poisoning the roster much.
+
+0.3 Binaries: run15-lookrts (md5 60f964ab2995813807326551cadf8566)
+stays the comparison anchor. This plan builds NEW binaries (task 1);
+record each one's md5 and toggle state beside its cells, keep all
+binaries for the session's duration, and compare across builds only by
+interleaved pairs.
+
+1. IMPLEMENTATION -- the toggle and the form problem.
+
+1.1 The change: every ARM RESULT allocation of l < 410 doubles is
+allocated at 410 and returned as an l-slice (VS.unsafeTake keeps the
+padded ForeignPtr; semantics unchanged). Setup vectors stay unpadded
+(two long-lived objects, no churn). Only the two main-set shapes have
+sub-threshold results (cnn-slice-c32 at 288, cnn-L1-6x6-c1 at 324 --
+old plan 1.1's size table), but the padding applies by size, not by
+shape list, so stride-class populations are covered wherever they
+qualify.
+
+1.2 The form problem: builders allocate through VS.fromListN,
+VS.generate, VS.create and unsafeBackpermute-style combinators that
+take no allocation length. Rewriting a builder to create+fill changes
+compiled code, and micro's whole point is that its arms are faithful
+replicas compared against each other -- so the toggle must not be a
+per-builder rewrite that only the padded state exercises. Design, on
+MixedLoad.hs's precedent: route BOTH toggle states through the same
+allocation form, with the length the only difference -- a top-level
+constant `padSmall :: Bool` and `padTo l = if padSmall && l < 410 then
+410 else l`, and padded counterparts of the few result constructors
+(inventory them by grepping the arm builders; expect fromListN,
+generate, create/unsafeNew, backpermute) used unconditionally. The
+A/B is then three binaries: run15 (old forms), newform-unpadded
+(padSmall = False), newform-padded (padSmall = True) -- the first pair
+isolates the form change, the second the padding. Toggle by editing
+the constant and rebuilding, binaries copied aside (the toggle-A/B
+recipe in horde-ad CLAUDE.md).
+
+1.3 Correctness: micro's `check` must stay green on both new binaries
+(the padded slice must be indistinguishable to every consumer), and
+--lint/--check-doc untouched. A padded result's VS.length is l; only
+its ForeignPtr capacity differs.
+
+2. MEASUREMENTS, cheapest-refutation first. Registered leans are
+   judged, not remembered.
+
+2.1 THE 32M MATCHED-DOSE CLASS CELL (the 0.2 discriminator; item 13
+ran it at 1G only). Victim conv1d-24/list at -A32m, fixed-n
+differencing with poison-alone runs subtracted, run15 binary, poisons
+cnn-slice-c32/list and cnn-L1-24x24-c1/list at -n 200k/400k each (~8
+processes, ~25 min). Lean: the class split holds at 32m as it does in
+ReproSmall (sub-threshold well above own-group), which is what gives
+padding its payoff; the opposite result re-scopes tasks 2.4-2.5's
+predictions downward and is itself a finding for the GHC comment.
+
+2.2 FORM-CHANGE NULL: newform-unpadded against run15, interleaved
+pairs on vgg-14-c512-k3 (all six measured arms) plus list on both
+small shapes, at the default area (~20 min). Lean: within the drift
+band, most arms under 1.5% (the relink noise of item 38-adjacent
+history); an arm outside the band means the constructor rewrite
+changed compiled code and the affected builder is re-examined before
+anything else runs.
+
+2.3 PADDING NULL ON BIG SHAPES: padded against newform-unpadded,
+interleaved, on vgg and stretch-inner256 arms (~15 min). Lean: flat to
+the floor -- padTo is identity above 410 and the branch is one compare
+per result allocation.
+
+2.4 THE POINT, ROSTER DE-POISONING AT -A32m: (a) bash poison-scan.sh
+32m with the PADDED binary -- lean: the cnn-slice-c32 and
+cnn-L1-6x6-c1 rows collapse from +12.2/+9.6% toward the own-group
+level task 2.1 measures for their counts; the own-group rows stay on
+item 1's curve, which padding cannot touch. (b) The victim-set
+remeasure (remeasure.sh's first block, padded binary): the ~+14%
+in-roster deflation of the list denominator -- lean: it shrinks by the
+class delta of 2.1 and no further. (~45 min both.)
+
+2.5 THE DEFAULT-NURSERY ANCHORS: the +0.3/+6.3/+10.2% anchor probes
+(README Provenance) rerun on the padded binary at the default area,
+two-bench pairs, order-asserted (~15 min). Note item 40b already
+re-read the +10.2% as ~+5.5% clean-pair; compare against that, not the
+anchor headline.
+
+2.6 THE DECISION TABLE, no machine: what padding buys micro's
+published numbers per area, from 2.1-2.5 -- and the migration
+question, which is Mikolaj's and mirrors old plan 3.2: a padded binary
+as Run 16's basis breaks the drift-band lineage deliberately;
+padding-as-instrument-only (de-poisoned alone-legs beside unpadded
+published tables) costs nothing but duplicate runs. Also record what
+padding does NOT fix, so it is not oversold: the interleaved-route
+degradation (items 37-41) and item 1's own-group roster contributions.
+
+3. WHAT THIS PLAN DOES NOT COVER: padding in ox-arrays/orthotope or
+   any horde-ad cabal/docs change (decisions recorded in horde-ad
+   docs/speculative-todos.md's maintainer-options section);
+   sequentialMnistTest as a probe vehicle (rejected 2026-08-18, wrong
+   dominance -- do not revive without new reasoning).
+
+APPENDIX: THE OWED AND UNFINISHED POINTS OF THE TWO PREDECESSOR PLANS,
+for the same quiet period, cheapest and most decision-adjacent first.
+Each names its instrument and rough wall; artifacts go one file per
+cell beside the plan (a goal4/ directory keeps the scripts-tracked,
+cells-ignored policy of .gitignore).
+
+A1. The -AL x own-group interaction (flagged untested in the
+speculative-todos cross-matrix): ReproSmall poisonbig, then victim,
+under -A4m -AL64m and -A4m plain, mem-in-use recorded -- does raising
+-AL let the 27601-class accumulation form at a small area? (~10 min;
+lean: bounded by the 64 MB allowance, mild.) Decision-adjacent: gates
+advertising "-A4m -AL64m".
+
+A2. The 1G interleaved class residue (item 44 OPEN: interunboxed
+poisons at 1G, interbig does not): dose-sweep interbig at 1G (K = 100
+and 3000-round horizon) and a perf pair interunboxed-vs-interbig at
+1G, LLC and dTLB (~25 min). Feeds the GHC follow-up comment's caveat.
+
+A3. Touch-without-allocating (item 41's registered residual): a
+MixedLoad noalloc variant that WRITES a preallocated buffer at the
+sprayer's cadence without allocating (~15 min driver edit, ~5 min
+runs). Lean: still clean -- allocation, not memory traffic, is the
+ingredient.
+
+A4. The -A4m added-miss attribution, mutator vs collector symbols
+(nursery-position-plan 2.6's pending half, findings item 18): perf
+record differencing over the -A4m pair, evacuate/scavenge vs mutator
+(~40 min). Settles old plan 1.5(d)'s conceptual objection.
+
+A5. The strace kernel-time attribution of the imagenet -A32m pathology
+(old plan 2.9; weakened by items 31-32 but never run): strace -c -e
+trace=memory at 32m and 64m behind the temporary tooBig edit and
+-M20G, README's recipe (~45 min with setup). Also worth one -AL cell
+there, given item 32.
+
+A6. The honeymoon micro-mechanism (item 25): perf mem or AMD
+load/store-split events over early-vs-late windows of inner256 at
+-A1G (~40 min, exploratory); the -A15m/16m chunk-boundary probe only
+if this revives it.
+
+A7. Run-16 alone-legs and roster surgery (old plan 3.1/3.2): decide
+AFTER task 2 lands, since padding, alone-legs and moving sprayers to
+the roster end are three instruments for the same de-poisoning goal
+and the decision table of 2.6 should price them together (alone-legs
+run ~15 min per half per area when chosen).
+
+A8. Optional, curiosity-tier: the span derivation from code (old plan
+2.10), unchanged in status.
+
+Budget: tasks 1-2 roughly two hours of quiet machine plus the builds;
+the appendix roughly three more, A1-A3 first if the period runs short.

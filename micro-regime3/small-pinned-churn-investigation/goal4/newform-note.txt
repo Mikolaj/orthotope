@@ -1,0 +1,71 @@
+The newform binaries, padding-plan.txt task 1, built 2026-08-18 -- the
+record 0.3 asks for: each binary's recipe, toggle state and md5, kept
+beside the goal4/ cells. These are INSTRUMENT binaries, not a run pair:
+no published table comes from them, so the pair-note gate (loop-offsets
+fills, --claims) is not owed; what is owed and done is `check`, --lint,
+--check-doc and the padding non-vacuity proof below.
+
+THE CHANGE (Main.hs, uncommitted, on top of 8cb5eb7): every arm RESULT
+allocation routed through padTo (l < 410 doubles allocated at 410,
+returned as an l-slice via VS.unsafeTake); padFromListN replaces
+VS.fromListN in fbList, padGenerate replaces VS.generate in every
+generate arm (timed and Only alike, 44 call sites), the nine
+VS.create/VSM.unsafeNew arms and vBuildVS take padTo at the allocation
+plus VS.unsafeTake. Six Only arms whose allocating combinator is the
+strategy recorded stay unpadded, labeled at the padTo block:
+fbUnfoldAdd/fbFused (unfoldrExactN), fbBackperm (unsafeBackpermute),
+fbCMGather/fbAllExpand (fused maps), fbConcatRuns (concat). None ever
+runs in a timed process. Plan 1.2's expected constructor inventory
+(fromListN, generate, create/unsafeNew, backpermute) is thereby judged:
+the TIMED set needs exactly the first three; backpermute occurs only on
+an Only arm, and unfoldrExactN, the fused maps and concat -- which the
+expectation missed -- likewise.
+
+HOW EACH HALF WAS BUILT, run15's lookrts recipe verbatim (run15-pair.txt),
+back to back, nothing but the padSmall constant touched between:
+
+  LOOP_MAXSKIP=1 LOOP_LOOKTHROUGH=1 \
+  cabal build micro --builddir=DB \
+    --ghc-options="-fspec-constr" \
+    --ghc-options="-pgma $PWD/align-as.py -fforce-recomp" \
+    --ghc-options='"-with-rtsopts=-I0 -T -M8G"'
+  cp $(cabal list-bin micro --builddir=DB) NAME && rm -rf DB
+
+Verified when built, 2026-08-18:
+  compiler         ghc 9.12.4; shim align-as.py at 9a70576 (run15's)
+  Main.hs          8cb5eb7 (a comment-only diff from run15's c1639ee)
+                   plus the padding edit above, uncommitted; the tree
+                   rests at padSmall = False
+  newform-unpadded padSmall = False,
+                   md5 9e5ab17605d3349a85ace21e19300f71, .text 20377797 B
+                   (run15's byte size, content not compared)
+  newform-padded   padSmall = True,
+                   md5 b11c9c0f190f0e0ada890356351a663c, .text 20381893 B
+  RTS line         strings B | grep -x -- '-I0 -T -M8G' hits on both
+  check            exit 0 on both, 50 views each, all agree=True,
+                   builds=True (24 main + 2 degenerate + 24 class)
+  --lint,          both exit 0 after the edit
+  --check-doc
+  anchor           run15-lookrts still 60f964ab2995813807326551cadf8566;
+                   comparisons against it only by interleaved pairs
+
+PADDING NON-VACUITY, measured 2026-08-18 (allocation is exact, so a busy
+machine is fine):
+
+  bytes allocated, +RTS -s        newform-unpadded   newform-padded
+  cnn-slice-c32/list  -n 100000      5,734,859,608    5,832,458,944
+  vgg-14-c512-k3/list -n 100            17,919,790,232 both, identical
+
+The small-shape delta is 97,599,336 B / 100k calls = 976.0 B per call,
+exactly (410 - 288) * 8: the pad is live and by-size. The vgg identity is
+padTo above threshold.
+
+  recipe: ./BINARY -m glob 'SHAPE/list' -n N +RTS -s, one process per
+  cell.
+
+The goal4/ scripts (t* the plan's tasks, a* the appendix and the
+follow-ups they spawned) each run one measurement batch: registered
+leans in the header, loadavg echoed into the driver log, one artifact
+file per cell beside it here, and the findings item that reads each
+batch names its script -- so the findings file, not this list, is the
+index.
