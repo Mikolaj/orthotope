@@ -2351,6 +2351,41 @@ than a slot in the next run, observed again:
   figure typed by hand, and `--claims` reporting no unattributed figure left
   over once two Run 14 comparatives were cut.
 
+- `OPEN` **What Run 16 is built to answer, registered before it runs.** Its pair
+  is run16-a32m — the basis, publishing, the regime promotion decided 2026-08-19
+  per the churn findings' recommendation for this workload class — against
+  run16-a64m, one variable, on Run 15's roster and the pre-padding source
+  (the tip that reverts the padding instrument; run16-pair.txt carries both
+  recipes). Five registrations, each with what would kill it:
+  1. *The bridge.* Every arm of the basis half against run15-a32m — Run 15's
+     control half, which exists for exactly this — by `--compare` over both
+     runs' cells, within the drift band: at most 3.3% and most under 1.5%.
+     An arm outside is the machine, the build or the instrument, not a strategy
+     finding, `offtab` and `build` read with their known multi-process spread
+     in mind. A failure here is a failure of the promotion's bridge, not
+     of the area.
+  2. *The headline.* The main set's `list` geomean at `-A64m` sits above
+     `-A32m`'s: the saturated in-process state favors the smaller area at roster
+     scale as it did on Stage A's three victims (findings items 30/36,
+     the +13-15% against +27-37% deflation classes). Killed by the geomean
+     landing at or under 1.
+  3. *The span split.* `stretch-inner256` and `stretch-r5-8x432` — the two
+     shapes with ~64 MB live spans — read faster at 64m on `list`, the ≤16
+     MB-span and no-span shapes faster at 32m, and the two 128 MB-span shapes
+     split within a few percent, neither area reaching their spans. Killed per
+     shape by a sign beyond the floor.
+  4. *The deflation columns.* The alone-leg riders (the 24 main-set `list`
+     alone-legs per half, one bench per process on that half's own binary) put
+     each half's in-roster deflation in its Stage-A class — +13-15% at 32m,
+     +27-37% at 64m — on the no-span shapes. Killed by the two areas' deflations
+     not separating. These columns also become the published tables' standing
+     clean-absolute companions.
+  5. *The controls, expectations rather than gates.* The A/A floor,
+     the `sum-only` agreement and the anchors behave as Run 15's;
+     the punctuation term does not appear (the driver probes read clean at both
+     areas, findings item 69); and claim readings stay installed,
+     not transcribed.
+
 
 ### Recommended tasks after Run 15
 
@@ -7432,15 +7467,20 @@ as *the fills win big where they win*, as Run 10 and Run 14 both had to.
 
 ### What Run 16 compares against
 
-**Run 16's regime, roster and basis are settled; its pair is not, and that one
-is a decision rather than a procedure.** The regime is `-fspec-constr`, as every
-run since Run 8, and it is the regime the fix ships in rather than a flag priced
-against the shipped one. The roster is Run 15's 1128 benches, 47 timed arms
-over 24 shapes, every stride class at three shapes — now measured twice, which
-is what finally gives the drift band a basis that carries rather than one
-the next roster change spends. The basis is the `lookrts` recipe, twice used
-and unchanged. **What the other half varies is open**, and Run 15's results
-leave two candidates sharper than they were.
+**Run 16 is settled in full, 2026-08-19: pair, basis and a deliberate basis
+change.** The regime is `-fspec-constr`, as every run since Run 8, and it
+is the regime the fix ships in rather than a flag priced against the shipped
+one. The roster is Run 15's 1128 benches, 47 timed arms over 24 shapes, every
+stride class at three shapes. **The basis becomes the a32m recipe** —
+the lookrts recipe with `-A32m` in the baked RTS line, run15-a32m's, the churn
+findings' recommendation for this workload class — so the published regime moves
+off the default area, with run15-a32m as the bridge: the basis registration
+is a repetition against Run 15's CONTROL half, which exists for exactly this.
+The other half is `-A64m`, the one recommended alternative, and the source
+is the pre-padding tip (the padding instrument stays parked in history).
+The pair note is run16-pair.txt; the registrations are [in the open
+list](#what-is-open)
+as `What Run 16 is built to answer, registered before it runs`.
 
 **The position term was the candidate Run 15 promoted, and the probes have since
 spent it.** What Run 14 first saw and Run 15 confirmed is resolved
@@ -7464,18 +7504,22 @@ after its own evening, sweeping `-A` on one already-built binary, and two runs
 had by then spent a build and a gate apiece to approximate what an argument
 to the binary does for nothing.
 
-**The allocation area has now been priced twice and does not want a third
-pair.** Run 14 took it at `-A1G` and could not subtract its halves' absolutes;
-Run 15 took it at `-A32m`, where the correction sits evenly on both halves
-and the absolutes do subtract, and found the cost present at about 6%
-of the roster's time — a geomean of 0.9435 over the 42 arms — with the baseline
-arm crossing. What is left is not another area but the runner change above,
-the selector having since been found — so a third pair varying `-A` alone would
-re-measure what two runs agree on.
+**The allocation area has now been priced twice and does not want a third pair**
+— a ruling superseded in scope, 2026-08-19, and kept because what it refused
+stays refused. Run 14 took the area at `-A1G` and could not subtract its halves'
+absolutes; Run 15 took it at `-A32m` and found the cost at about 6%
+of the roster's time — so re-PRICING default-against-enlarged is spent, and Run
+16's pair does not do that: it changes the published basis to `-A32m` and reads
+`-A64m` against it, the one comparison neither earlier pair made and the one
+the churn findings' recommendation turns on, in the saturated in-process state
+both halves share. The runner change above remains the cheaper instrument
+for any future pure `-A` sweep, and a probe still needs no pair at all.
 
-Its columns will be `Run 16 (SpecConstr, max-skip +lookrts)` and whatever
-its second half turns out to be. The table below is read against the two Run 15
-columns; the -O1 column stays the yardstick for a comparison of the two regimes.
+Its columns will be `Run 16 (SpecConstr, max-skip +lookrts, -A32m)` — the basis
+— and `Run 16 (SpecConstr, max-skip +lookrts, -A64m)`. The basis column is read
+against Run 15's `-A32m` control column arm for arm (the bridge registration),
+the table below is read against the two Run 15 columns, and the -O1 column stays
+the yardstick for a comparison of the two regimes.
 
 **Run 13 contributed two columns, and the second names a shim setting and an RTS
 line at once.** `Run 13 (SpecConstr, max-skip)` is the basis, Run 12's basis
