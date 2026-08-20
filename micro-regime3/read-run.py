@@ -2024,6 +2024,24 @@ def machine_check(cells, shapes, readme, thresh=3.0):
     print('  a kernel, a microcode update, a BIOS setting or a different box'
           ' are not')
     print('  things a run can see from inside itself.')
+    # What it still leaves possible, named here because this is where a
+    # session stands when it fires. The fingerprint is one half's, taken at
+    # ONE allocation area, so a run whose basis moved to another area fails
+    # this for that reason alone and not for the box -- which is Run 16,
+    # where the basis moved to `-A32m` against a default-area fingerprint
+    # and the check fired on every gate. The discriminating control costs
+    # no build and no pair: `-rtsopts` is live, so run the gate's own
+    # five-bench selection on any binary AT THE FINGERPRINT'S OWN AREA and
+    # read `--machine` on that. Inside the threshold there, the box is
+    # unchanged and what fired is the area. Case:
+    # `machine-check-names-the-control-it-leaves`.
+    print('  What separates the two costs no build and no pair: run the'
+          ' gate\'s own')
+    print('  five-bench selection on any binary at the fingerprint\'s own'
+          ' allocation')
+    print('  area and read --machine on that. Inside the threshold there,'
+          ' the box is')
+    print('  unchanged and what fired is the area this run moved to.')
     return 1
 
 
@@ -4094,6 +4112,41 @@ def check_doc(readme, main_hs):
                    % (len(qmark), qmark[0]))
     else:
         print('ok:   no published table cell is left at install\'s `?`')
+
+    # Every table's rows against its own header. Markdown renders a short
+    # row without complaint, filling from the LEFT, so a row that was
+    # written when the table was narrower goes on rendering -- with each
+    # value now under whichever column later runs pushed it to. That is
+    # how the yardstick's four bottom rows came to sit five columns from
+    # the runs the prose said they were: they were written at `f42ef4a`,
+    # when the table was `| strategy | Run 8 | Run 7 |`, and every run
+    # since prepended a column without padding them. No anchor, figure or
+    # width check could see it, the rows being well-formed markdown.
+    # Recovered from git and repaired 2026-08-20; case
+    # `table-row-narrower-than-its-header`.
+    ragged = []
+    k = 0
+    while k < len(lines):
+        if (lines[k].startswith('|') and k + 1 < len(lines)
+                and re.match(r'^\|[-: |]+\|$', lines[k + 1])):
+            want = len(lines[k].split('|')) - 2
+            j = k + 2
+            while j < len(lines) and lines[j].startswith('|'):
+                got = len(lines[j].split('|')) - 2
+                if got != want:
+                    ragged.append('line %d: %d cell(s) against %d (%s)'
+                                  % (j + 1, got, want,
+                                     lines[j].split('|')[1].strip()))
+                j += 1
+            k = j
+        else:
+            k += 1
+    if ragged:
+        bad.append('%d table row(s) narrower than its header, so each value'
+                   ' renders under whichever column it fills up to: %s'
+                   % (len(ragged), '; '.join(ragged[:4])))
+    else:
+        print('ok:   every table row carries its header\'s cell count')
 
     yard = [l for l in lines if l.startswith('| strategy |') and '(' in l]
     if not yard:
