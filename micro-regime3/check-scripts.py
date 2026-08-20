@@ -301,6 +301,32 @@ def class_table_span(lines, cls):
     return i, j
 
 
+def readme_with_ragged_row(tmp):
+    """A copy whose yardstick table has one row two cells short.
+
+    This is the defect exactly as it arose: the four bottom rows of the
+    yardstick were written when the table had two columns, and every run
+    since prepended one or two more without padding them, so their values
+    drifted left and came to sit under the wrong runs' headers. Nothing
+    read it -- markdown renders a short row without complaint, every
+    anchor and figure check passed over it, and the prose went on saying
+    the values were Run 8's while the table put them five columns away.
+    Recovered from git (`f42ef4a`, where the table was two columns wide)
+    rather than guessed, 2026-08-20.
+    """
+    lines = open(README).read().split('\n')
+    h = next(i for i, l in enumerate(lines) if l.startswith('| strategy |')
+             and '(' in l)
+    for i in range(h + 2, len(lines)):
+        if not lines[i].startswith('|'):
+            raise AssertionError('no data row found under the yardstick')
+        cells = lines[i].split('|')[1:-1]
+        if len(cells) > 4:
+            lines[i] = '|' + '|'.join(cells[:1] + cells[3:]) + '|'
+            break
+    return write(os.path.join(tmp, 'R.md'), '\n'.join(lines))
+
+
 def readme_without_class_table(tmp, cls='slice'):
     lines = readme_lines()
     i, j = class_table_span(lines, cls)
@@ -980,7 +1006,8 @@ def synth_text(shapes, **kw):
 
 
 def synthetic_run(tmp, killed=False, no_twins=False, no_starts=False,
-                  complained=False, into=None):
+                  complained=False, note_block=False, riders=False,
+                  into=None):
     """A whole run in this directory: JSONs, and the log that describes it.
 
     `read-all.sh` cds to its own directory and globs, so this is one of the
@@ -1026,6 +1053,27 @@ def synthetic_run(tmp, killed=False, no_twins=False, no_starts=False,
     if killed:
         log.append('=== 2026-01-01T00:10:01+01:00 start %s-lookrts-window'
                    % tag)
+    if riders:
+        # The alone-leg riders a paired run leaves: one bench per process on
+        # a half's own binary, named `$R-al-<half>-<shape>-r1.json`. They are
+        # not populations -- no A/A pair, no sum-only, one shape -- so gating
+        # them as such buries the eighteen this driver exists to count.
+        synth_run(place('%s-al-lookrts-cnn-slice-c32-r1.json' % tag),
+                  class_shapes('rev')[:1])
+    if note_block:
+        # run-major.sh copies the pair note's gate lines into the log,
+        # indented and with no `===` stamp of its own. run-gate.sh writes
+        # `!!` into that note whenever the machine check fires, so a run
+        # whose gate tripped it carries a `!!` that NO PROCESS emitted --
+        # and one that survives every later reading of the log.
+        log += ['=== 2026-01-01T00:00:00+01:00 %s-pair.txt says, about the'
+                ' gate:' % tag,
+                '      GATE: run 2026-01-01. Mechanically FAILED,'
+                ' 1 complaint(s):',
+                '        !! the machine check FAILED -- read it before the'
+                ' evening',
+                '      That is exit codes and counts; the reading is still'
+                ' to do.']
     write(place('%s-wallclock.log' % tag), '\n'.join(log) + '\n')
     return {'tag': tag}
 
@@ -1588,6 +1636,56 @@ CASES = [
          ok=V(exit=1, has=['complaint(s) from the run itself'],
               hasnt=['every process gated clean']),
          bug=V(exit=0, has=['every process gated clean'])),
+
+    case('quoted-note-block-is-not-a-run-complaint', 'read-all.sh',
+         'bf9acf2',
+         'the pair note run-major.sh quotes carried `!!`, read as the run\'s',
+         plant=lambda t: synthetic_run(t, note_block=True),
+         argv=['{tag}'],
+         # run-major.sh's own complaints are stamped `=== <date>  !! ...`;
+         # the note it quotes is indented and unstamped. Counting bare `!!`
+         # made every run whose gate tripped the machine check report a
+         # complaint no process made, at exit 1, for ever after -- which is
+         # exactly the noise-for-signal failure that stops a gate being
+         # read. Found on Run 16, whose gate fired for a basis-area change.
+         ok=V(exit=0, has=['every process gated clean'],
+              hasnt=['complaint(s) from the run itself']),
+         bug=V(exit=1, has=['complaint(s) from the run itself'],
+               hasnt=['every process gated clean'])),
+
+    case('table-row-narrower-than-its-header', 'read-run.py', '0e2934c',
+         'a row two cells short put its values under the wrong runs',
+         plant=lambda t: {'readme': readme_with_ragged_row(t)},
+         argv=['--check-doc', '--readme', '{readme}'],
+         ok=V(exit=1, has=['narrower than its header']),
+         bug=V(exit=0, hasnt=['narrower than its header'])),
+
+    case('machine-check-names-the-control-it-leaves', 'read-run.py',
+         '0e2934c',
+         'a failing machine check named no way to tell the box from the area',
+         # Run 16 moved the published basis to `-A32m` while the kept
+         # fingerprint is a default-area half's, so `list` net had to differ
+         # and the check had to fire -- correctly, and with nothing in its
+         # message to separate a changed box from a changed area. The answer
+         # costs no build (`-rtsopts` is live) and no pair: run the gate's own
+         # selection on any binary at the fingerprint's area. Written as a
+         # capability rather than a caveat, per README's rule that a
+         # limitation is recorded with what it still leaves possible.
+         plant=lambda t: {'run': synth_json(t, 'main')},
+         argv=['{run}', '--machine'],
+         ok=V(exit=1, has=['PAST', 'at the fingerprint']),
+         bug=V(exit=1, has=['PAST'], hasnt=['at the fingerprint'])),
+
+    case('alone-leg-riders-are-not-populations', 'read-all.sh', 'bf9acf2',
+         'the riders a paired run leaves were gated as populations',
+         plant=lambda t: synthetic_run(t, riders=True),
+         argv=['{tag}'],
+         # `$R-al-*` is one bench on one shape, with no A/A pair and no
+         # sum-only: gating it says nothing and pushes the eighteen this
+         # driver counts off the top of the screen. Excluded exactly as
+         # `$R-gate-*` is, and for the same reason. Run 16 left 54 of them.
+         ok=V(exit=0, hasnt=['al-lookrts-cnn-slice-c32-r1']),
+         bug=V(exit=0, has=['al-lookrts-cnn-slice-c32-r1'])),
 
     case('gate-arms-track-the-selection', 'run-gate.sh', 'febc2bd',
          'the expected bench count was a literal that had to equal SEL',
