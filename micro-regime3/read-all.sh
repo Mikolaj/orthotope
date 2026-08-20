@@ -47,7 +47,13 @@ R="$1"
 
 # Every JSON the run left, the gate's excluded: those are five arms over
 # the shape set and not a population, so their A/A gate is not this one.
-FILES=$(ls -1 "$R"-*.json 2>/dev/null | grep -v "^$R-gate-")
+# `$R-al-*` joins the gate in the exclusion, and for the same reason: an
+# alone-leg rider is one bench on one shape with no A/A pair and no
+# sum-only, so gating it asserts nothing and buries the eighteen this
+# driver exists to count -- Run 16 left 54 of them beside its 18.
+# Case: `alone-leg-riders-are-not-populations`.
+FILES=$(ls -1 "$R"-*.json 2>/dev/null \
+          | grep -v -e "^$R-gate-" -e "^$R-al-")
 if [ -z "$FILES" ]; then
   echo "no $R-*.json here; the run has not landed, or the name is wrong"
   exit 1
@@ -123,10 +129,18 @@ fi
 # which a run launched with `&` loses, so the log is the only place it
 # survives -- and this script already reads the log, one field over. Found
 # 2026-08-17 by review; a wrong-count process is caught by nothing else.
-NOISY=$(grep -c '!!' "$LOG")
+# Anchored on run-major.sh's own stamp. Every complaint it makes goes
+# through `log ()`, so it reads `=== <date>   !! ...`; the pair note it
+# quotes beside them is indented and carries no stamp, and run-gate.sh
+# writes `!!` INTO that note whenever the machine check fires. Counting
+# bare `!!` therefore made every run whose gate tripped that check report
+# a complaint no process made, at exit 1, for ever after -- Run 16, whose
+# gate fired for a deliberate change of basis area. Case:
+# `quoted-note-block-is-not-a-run-complaint`.
+NOISY=$(grep -c '^=== .*!!' "$LOG")
 if [ "$NOISY" != 0 ]; then
   echo "!! $LOG carries $NOISY complaint(s) from the run itself:"
-  grep '!!' "$LOG" | sed 's/^/   /'
+  grep '^=== .*!!' "$LOG" | sed 's/^/   /'
   echo
 fi
 
