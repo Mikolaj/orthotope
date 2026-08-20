@@ -1433,7 +1433,7 @@ def controls_skeleton(cells, shapes, strategies, terms):
         amp = 1 / (1 - stats.fmean(fs))
         print('Raw, that pair reads %.4f, which the correction amplifies'
               % raw)
-        print('by %.2fx -- quote both wherever that is past 1.5.' % amp)
+        print('by %.2fx --- quote both wherever that is past 1.5.' % amp)
 
 
 def chapter_skeleton(cells, shapes, strategies, meta, other, main_hs):
