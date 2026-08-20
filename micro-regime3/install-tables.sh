@@ -214,9 +214,18 @@ for i, p in enumerate(paras):
 # read-run.py's `install` carries no third pattern: it ends a block at any
 # bolded backticked lead, which its own comment says is looser on purpose.
 if sorted(leads) != sorted(LEADS.split()):
+    grepped, here = set(LEADS.split()), set(leads)
     print('  REFUSED: the two ways this file finds a class block disagree.')
-    print('    the grep above:  ' + ' '.join(sorted(LEADS.split())))
-    print('    the pattern here: ' + ' '.join(sorted(leads)))
+    print('    the grep above:  ' + ' '.join(sorted(grepped)))
+    print('    the pattern here: ' + ' '.join(sorted(here)))
+    # Name the difference rather than leaving it to be eyeballed: which
+    # lead moved is the whole diagnosis, the lists are long enough that
+    # spotting it by eye is a step, and it gives a case something to
+    # assert that no OTHER disagreement can satisfy.
+    for miss in sorted(grepped - here):
+        print('    missing from the pattern: ' + miss)
+    for extra in sorted(here - grepped):
+        print('    matched by the pattern only: ' + extra)
     print('    a lead this one misses is given the block above it, whose'
           ' figures overwrite its own')
     sys.exit(1)

@@ -1213,7 +1213,7 @@ CASES = [
              t, 'slice',
              lambda bs: drop(bs, 'slice-primes/bq-expand'))},
          argv=['{run}', '--exclude', 'bq-expand'],
-         ok=V(exit=0, hasnt=['did not happen']),
+         ok=V(exit=0, has=['slice class'], hasnt=['did not happen']),
          bug=V(exit=2, has=['0 cell(s) missing'])),
 
     case('in-place-alone', 'read-run.py', '4086ab8',
@@ -1336,7 +1336,7 @@ CASES = [
          "lstrip('./') ate the leading dot of a cited dotfile",
          plant=lambda t: {'readme': readme_citing_dotfile(t)},
          argv=['--check-doc', '--readme', '{readme}'],
-         ok=V(hasnt=['do not resolve: .hlint.yaml']),
+         ok=V(has=['ok:'], hasnt=['do not resolve: .hlint.yaml']),
          bug=V(has=['do not resolve: .hlint.yaml'])),
 
     case('insitu-worst-cell-label', 'read-run.py', 'a6c32e8',
@@ -1427,7 +1427,11 @@ CASES = [
          'an untracked page had every hit called old',
          plant=untracked_doc,
          argv=['--check-doc', '--readme', '{doc}'],
-         ok=V(hasnt=['none added by this diff']),
+         # untracked means `added is EVERYTHING`, so the headline prints
+         # bare -- neither wording. The positive is that the sweep ran
+         # and reported at all, which a no-op would not.
+         ok=V(has=['superseded figure(s) quoted'],
+              hasnt=['none added by this diff']),
          bug=V(has=['none added by this diff'])),
 
     case('alloc-fit-on-an-unknown-shape', 'read-run.py', 'a6c32e8',
@@ -1452,7 +1456,8 @@ CASES = [
                           'run': synth_json(t, 'rev')},
          argv=['{run}', '--markdown', '--in-place', '--main', '/dev/null',
                '--readme', '{readme}'],
-         ok=V(exit=1, hasnt=['installed at']),
+         ok=V(exit=1, has=['a population Main.hs does not define'],
+              hasnt=['installed at']),
          bug=V(exit=0, has=['installed at'])),
 
     case('selftest-survives-a-sunk-cell', 'read-run.py', 'febc2bd',
@@ -1466,7 +1471,7 @@ CASES = [
          '--aa died where --claims refuses, on the same file',
          plant=_sunk_slice,
          argv=['{run}', '--aa', '--brief'],
-         ok=V(hasnt=['math domain error']),
+         ok=V(has=['calibration:'], hasnt=['math domain error']),
          bug=V(has=['math domain error'])),
 
     case('aa-lists-controls-under-no-controls', 'read-run.py', 'febc2bd',
@@ -1521,7 +1526,7 @@ CASES = [
              lambda bs: scale(bs, 'slice-primes/sum-only-early', -1.0)),
              'readme': edited_readme(t)},
          argv=['{run}', '--block', '--readme', '{readme}'],
-         ok=V(hasnt=['math domain error']),
+         ok=V(has=['Controls:'], hasnt=['math domain error']),
          bug=V(has=['math domain error'])),
 
     case('tree-check-that-could-not-run', 'check-scripts.py', 'ea4ab06',
@@ -1568,6 +1573,11 @@ CASES = [
          plant=asm,
          env={'REAL_AS': '{as}', 'PAD_BYTES': '', 'LOOP_ALIGN': ''},
          argv=['-c', '-o', '{obj}', '{asm}'],
+         # The one verdict here with no positive assertion, and it is at
+         # its floor rather than overlooked: the stand-in assembler does
+         # nothing, so there is no artifact to probe and a clean run says
+         # nothing at all. What bounds it is --audit, which raises
+         # ValueError on the code before the fix.
          ok=V(exit=0, hasnt=['ValueError']),
          bug=V(has=['ValueError'])),
 
@@ -1617,7 +1627,8 @@ CASES = [
          'a log the awk matched nothing in gated one JSON and called it clean',
          plant=lambda t: synthetic_run(t, no_starts=True),
          argv=['{tag}'],
-         ok=V(exit=1, hasnt=['every process gated clean']),
+         ok=V(exit=1, has=['no `start` line in'],
+              hasnt=['every process gated clean']),
          bug=V(exit=0, has=['every process gated clean'])),
 
     case('aa-refusal-is-not-no-A-A-pair', 'read-all.sh', 'c2cfefc',
@@ -1692,7 +1703,8 @@ CASES = [
          # sum-only: gating it says nothing and pushes the eighteen this
          # driver counts off the top of the screen. Excluded exactly as
          # `$R-gate-*` is, and for the same reason. Run 16 left 54 of them.
-         ok=V(exit=0, hasnt=['al-lookrts-cnn-slice-c32-r1']),
+         ok=V(exit=0, has=['every process gated clean', 'lookrts-rev'],
+              hasnt=['al-lookrts-cnn-slice-c32-r1']),
          bug=V(exit=0, has=['al-lookrts-cnn-slice-c32-r1'])),
 
     case('gate-arms-track-the-selection', 'run-gate.sh', 'febc2bd',
@@ -1764,7 +1776,7 @@ CASES = [
                      + [('zzmj-pair.txt', 'a stand-in pair note.\n')]),
          env={'OTHER': 'a1g', 'BASIS': 'lookrts'},
          argv=['zzmj'],
-         ok=V(exit=0, hasnt=['!!'])),
+         ok=V(exit=0, has=['major run complete'], hasnt=['!!'])),
 
     case('provenance-git-could-not-read', 'run-major.sh', '845c8d0',
          'a run whose git failed recorded a commitless, CLEAN-looking tree',
@@ -1815,7 +1827,9 @@ CASES = [
          argv=['zzit'],
          # No --audit: this fixture is built from the live README, which
          # the Basic Latin pass reworded under it. Removal is the handling.
-         ok=V(exit=1, has=['the two ways this file finds a class block'])),
+         ok=V(exit=1, has=['the two ways this file finds a class block',
+                           'missing from the pattern: window'],
+              hasnt=['matched by the pattern only'])),
 
     case('no-class-block-leads', 'install-tables.sh', '4086ab8',
          'the guard against a silently skipped class was itself silent',
@@ -1835,7 +1849,8 @@ CASES = [
          probe=lambda subs: open(subs['doc']).read(),
          # No --audit: this fixture is built from the live README, which
          # the Basic Latin pass reworded under it. Removal is the handling.
-         ok=V(exit=0, has=['ZZMARKER'])),
+         ok=V(exit=0, has=['ZZMARKER',
+                           'across 8 class block(s)'])),
 
     case('placeholder-that-outlived-its-wording', 'install-tables.sh',
          None,
