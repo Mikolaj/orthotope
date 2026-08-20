@@ -2399,11 +2399,16 @@ rather than a slot in the next run, observed again:
      is off.** The two areas separate decisively --- geomean **+11.43% at 32m
      against +28.34% at 64m** on the sixteen no-span shapes --- where
      the registration would have been killed by their not separating. The 64m
-     band lands as registered at +27-37%; the 32m one lands a point or two
-     *below* its registered +13-15%. Two shapes carry no deflation at either
-     area, `cnn-slice-c32` and `cnn-L1-6x6-c1` at about half a percent, and they
-     are the two smallest in the set. The riders are now the published tables'
-     standing clean-absolute companions.
+     band lands as registered at +27-37%. The 32m one reads +11.43% over all
+     sixteen, below its registered +13-15% --- **but the shortfall is two shapes
+     and not the band**: `cnn-slice-c32` and `cnn-L1-6x6-c1` carry no deflation
+     at either area, and over the fourteen that do the two figures are **+13.10%
+     and +32.90%**, both inside. So the registration was right about the classes
+     and the all-sixteen geomean is the one to quote with its two zeroes named.
+     Two shapes carry no deflation at either area, `cnn-slice-c32`
+     and `cnn-L1-6x6-c1` at about half a percent, and they are the two smallest
+     in the set. The riders are now the published tables' standing
+     clean-absolute companions.
   5. *The controls.* **HELD.** The A/A floor tightened at both ends, 2.32%
      and 1.22% against Run 15's 2.96% and 2.10%; the `sum-only` halves agree
      at 1.0001 and 1.0000 on worst cells of 0.77% and 0.70%; the claim readings
@@ -2430,18 +2435,32 @@ rather than a slot in the next run, observed again:
      which at roster scale is worse at 64m than at 32m by more
      than the default-to-32m step was worth.
 
-  And **two probes are registered with it**, both spent after the write-up out
-  of the probe budget rather than before it, and neither wanting a pair, a gate
-  or a build. *The area curve*: the gate's five-bench selection over the shape
-  set at six areas from `-A8m` to `-A256m`, each reached on the basis binary
-  as `+RTS -A<area> -I0 -T -M8G -RTS` --- the baked options repeated in full,
-  a `+RTS` line inheriting none of them --- and reachable without a rebuild
-  because `-rtsopts` is set. Roughly an hour at the gate's own eight minutes
-  a process, answering what registrations 2 and 3 cannot: whether 32m is a local
-  optimum or merely the better of two points. Killed as a reading by a minimum
-  that is not at or near 32m. *The wild cell's mechanism*, whose instrument
-  is built and waiting: the task heading below says what it is pointed
-  at and why it is not in the pair.
+  And **both probes registered with it are now spent, 2026-08-20, and each
+  returned something the pair could not.** *The area curve* --- the gate's
+  five-bench selection at six areas from `-A8m` to `-A256m` on the basis binary,
+  each `+RTS` line repeating `-I0 -T -M8G` in full, six clean processes of 120
+  benches at about ten minutes each, the in-use peak rising 124, 133, 167, 189,
+  367, 723 MiB with the area, which is what proves the override took.
+  **Its registered kill condition fired: the minimum is not at 32m
+  but at `-A16m`**, 3.9% below it on the `list` geomean, with `-A8m` at 0.9938
+  and 32m at 1.0000; per shape, 16m is best on 11 of 24 and 8m on 8, against
+  32m's 2. So this selection does not place the optimum where the promotion did,
+  and says so. **What it does corroborate is the headline, to a hundredth
+  of a percent**: 32m over 64m on `list` reads **0.8584** here against
+  the pair's **0.8583**, from one binary under `+RTS` in 120-bench processes
+  against two separately built binaries with baked lines in 1128-bench ones ---
+  different binary, different route to the setting, an order of magnitude
+  different process, same figure. And it dates the saturation the deflation
+  account rests on: the in-roster deflation at 32m is **+13.03%** on the gate's
+  120 benches against **+13.10%** on the full 1128, so the in-process state
+  is already saturated at the gate's scale and does not deepen with the roster.
+  `build` and `mut-odo` move under 3.5% across the whole ladder, so the area
+  acts on the allocation-heavy baseline and not on the strategies --- which
+  is the mechanism behind the columns not subtracting. Two cautions the reading
+  owes: this is the five-bench selection and not the roster, and a minimum
+  at 16m on micro's own arms is not a recommendation for the workload class
+  the promotion was decided on, which is the churn findings' and
+  not this page's. *The wild cell's mechanism* is the task heading below,
 
 
 ### Recommended tasks after Run 16
@@ -7278,10 +7297,15 @@ and over the 24 shapes they put the basis at a geomean of **0.9920**
 of the control --- eight tenths of a percent, against 14.17% in roster. What
 separates the two is how much each half's in-roster figure is inflated
 by the process it shares: on the sixteen no-span shapes the deflation
-is **+11.43% at 32m against +28.34% at 64m**, and the three anchors repeat
-across their second rep to within 0.1 to 0.9%. Composing them recovers
-the headline --- 0.9920 x 1.1180 / 1.2868 = 0.8619 against the measured 0.8583
---- so the account closes to within half a percent without a term left over. Two
+is **+11.43% at 32m against +28.34% at 64m** --- over the fourteen of them
+that deflate at all it is +13.10% and +32.90%, the other two being the smallest
+shapes in the set and carrying none --- and the three anchors repeat across
+their second rep to within 0.1 to 0.9%. **The state saturates early**, which
+the area curve dates: the same deflation at 32m reads +13.03% in a 120-bench
+process against +13.10% in the 1128-bench one, so it is reached well before
+a full roster and does not deepen with it. Composing them recovers the headline
+--- 0.9920 x 1.1180 / 1.2868 = 0.8619 against the measured 0.8583 ---
+so the account closes to within half a percent without a term left over. Two
 shapes carry no deflation at either area, `cnn-slice-c32` and `cnn-L1-6x6-c1`
 at about half a percent, and they are the two smallest in the set. **Read
 the consequence rather than the ratio: a larger nursery costs more here
@@ -7315,12 +7339,17 @@ that a span-based prediction has to be made against the deflation at each area
 and not against the alone rate**, which is what the riders now make measurable
 and no earlier run could.
 
-**One instrument still, and this run states that rather than hiding it.** Every
-figure here is a criterion slope, corrected, read against A/A pairs measured
-inside the same processes; the alone-leg riders are a second *context*,
-not a second instrument, being criterion slopes as well. So the composition
-that recovers the headline to half a percent is an internal consistency check
-and not corroboration, and Run 14's caution stands: read this pair's per-arm
+**One instrument still, and this run states that rather than hiding it ---
+though the headline is now corroborated across everything but the instrument.**
+Every figure here is a criterion slope, corrected, read against A/A pairs
+measured inside the same processes; the alone-leg riders are a second *context*,
+not a second instrument, being criterion slopes as well, so the composition
+that recovers the headline to half a percent is an internal consistency check.
+What the area curve adds afterwards is stronger than that and still
+not independent: it puts 32m over 64m on `list` at **0.8584** against the pair's
+**0.8583**, from a different binary, a different route to the setting (`+RTS`
+against a baked line) and a process an order of magnitude smaller. Same
+estimator throughout, and Run 14's caution stands: read this pair's per-arm
 magnitudes as criterion's and expect a figure differenced at two iteration
 counts to be smaller, as Run 14's was when it pulled criterion's 0.9-to-25.5%
 down to about 9.5%. What does not turn on the instrument is the *ordering* ---
