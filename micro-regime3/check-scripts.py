@@ -40,19 +40,12 @@ stand-in is checked in here: `FAKE_HALF` for the gate's listing,
 `FAKE_RUN` for the two that want a whole run's cells.
 
 --audit REPLAYS TODAY'S FIXTURES AGAINST YESTERDAY'S CODE, so a change to
-the PAGE'S OWN CONVENTIONS can put a case out of reach of its own history.
-Four install-tables.sh cases -- lead-patterns-disagree,
-heading-between-two-class-blocks, placeholder-that-outlived-its-wording and
-two-shape-class-refused-before-writing -- build their fixture from the live
-README, and on 2026-08-20 that page was normalised to Basic Latin: its class
-leads read `**`window` ---` where they read an em dash before. Code from
-before that commit matches the em dash and so finds NO lead at all in a
-fixture built today, which is a different failure from the one each case
-records, and --audit reports them as not reproducing. They pass forward,
-which is what guards the code now; what is lost is the replay, and only
-across that one boundary. The alternative -- pinning each fixture's dash to
-whatever the code under test expects -- would put a copy of the convention
-in the fixtures, which is the second copy this file exists to avoid.
+the page's own conventions can put a case beyond its own history: code
+from before it cannot read a fixture built after. That is expected, it is
+not a defect, and the handling is to drop the case's `bug` verdict, which
+takes it out of --audit and leaves it guarding forward. Four install cases
+went that way at the 2026-08-20 Basic Latin pass. Do not pin the
+convention into the fixtures instead: that is the second copy of it.
 
 A REVIEW CLAIM IS SUBMITTED IN THE CASE FORMAT, or it costs a harness to
 vet. `(name, plant, argv, ok, bug)` is already a probe: running it IS
@@ -1813,15 +1806,16 @@ CASES = [
                hasnt=['zzmj-lookrts-main: expected'])),
 
     # ---- install-tables.sh ---------------------------------------------
-    case('lead-patterns-disagree', 'install-tables.sh', '5ca3513',
+    case('lead-patterns-disagree', 'install-tables.sh', None,
          'a lead one pattern missed was overwritten by the block above it',
          plant=lambda t: {'doc': edited_readme(
              t, ('**`window` --- overlapping', '**`window` - overlapping'))},
          shadow=dict(extra=whole_run(['lookrts'], prefix='zzit')),
          env={'DOC': '{doc}', 'BASIS': 'lookrts'},
          argv=['zzit'],
-         ok=V(exit=1, has=['the two ways this file finds a class block']),
-         bug=V(exit=0, has=['across 7 class block(s)'])),
+         # No --audit: this fixture is built from the live README, which
+         # the Basic Latin pass reworded under it. Removal is the handling.
+         ok=V(exit=1, has=['the two ways this file finds a class block'])),
 
     case('no-class-block-leads', 'install-tables.sh', '4086ab8',
          'the guard against a silently skipped class was itself silent',
@@ -1832,18 +1826,19 @@ CASES = [
          ok=V(exit=1, has=['no class block leads'], hasnt=['REFUSED']),
          bug=V(has=['REFUSED'], hasnt=['no class block leads'])),
 
-    case('heading-between-two-class-blocks', 'install-tables.sh', 'febc2bd',
+    case('heading-between-two-class-blocks', 'install-tables.sh', None,
          "a paragraph between blocks took the block above it's figures",
          plant=lambda t: {'doc': readme_heading_between_blocks(t)},
          shadow=dict(extra=whole_run(['lookrts'], prefix='zzit')),
          env={'DOC': '{doc}', 'BASIS': 'lookrts'},
          argv=['zzit'],
          probe=lambda subs: open(subs['doc']).read(),
-         ok=V(exit=0, has=['ZZMARKER']),
-         bug=V(hasnt=['ZZMARKER'])),
+         # No --audit: this fixture is built from the live README, which
+         # the Basic Latin pass reworded under it. Removal is the handling.
+         ok=V(exit=0, has=['ZZMARKER'])),
 
     case('placeholder-that-outlived-its-wording', 'install-tables.sh',
-         'febc2bd',
+         None,
          'a reworded emit installed a literal `___` into the page',
          plant=lambda t: {'doc': edited_readme(t)},
          shadow=dict(mutate=[
@@ -1856,22 +1851,23 @@ CASES = [
          env={'DOC': '{doc}', 'BASIS': 'lookrts'},
          argv=['zzit'],
          probe=lambda subs: open(subs['doc']).read(),
-         ok=V(has=['placeholder survived'], hasnt=['peak of ___ MiB']),
-         bug=V(has=['peak of ___ MiB'])),
+         # No --audit: this fixture is built from the live README, which
+         # the Basic Latin pass reworded under it. Removal is the handling.
+         ok=V(has=['placeholder survived'], hasnt=['peak of ___ MiB'])),
 
     case('two-shape-class-refused-before-writing', 'install-tables.sh',
-         '440b22d',
+         None,
          'a two-shape class aborted AFTER eleven tables were already in',
          plant=lambda t: {'doc': edited_readme(t)},
          shadow=dict(extra=whole_run(['lookrts'], prefix='zzts',
                                      short_class='scaled')),
          env={'DOC': '{doc}', 'BASIS': 'lookrts'},
          argv=['zzts'],
+         # No --audit: this fixture is built from the live README, which
+         # the Basic Latin pass reworded under it. Removal is the handling.
          ok=V(exit=1, has=['fewer than three shapes',
                            'NOTHING HAS BEEN WRITTEN'],
-              hasnt=['table(s) installed']),
-         bug=V(exit=1, has=['emitted no per-shape'],
-               hasnt=['NOTHING HAS BEEN WRITTEN'])),
+              hasnt=['table(s) installed'])),
 
     case('basis-glob-catches-no-other-half', 'install-tables.sh', '440b22d',
          'a control half named <basis>-pa was installed as the basis',
