@@ -2090,7 +2090,7 @@ def fmt_abs(seconds):
     """A per-call time at reading precision, in README's units.
 
     A unit is taken as soon as the value ROUNDS to 1 of it, not once it
-    reaches 1: at three significant figures 999.7 µs prints as `1e+03 µs`,
+    reaches 1: at three significant figures 999.7 us prints as `1e+03 us`,
     which `FINGERPRINT_ABS_RE` cannot match, so `--machine` dropped that
     shape from its comparison and said nothing -- and README already
     carries a `1 ms` cell, which is that boundary. `.9995 * scale` is where
@@ -2098,7 +2098,7 @@ def fmt_abs(seconds):
     review; the seam check in `selftest` samples the boundary now, having
     passed vacuously on four values nowhere near it.
     """
-    for unit, scale in (('s', 1), ('ms', 1e-3), ('µs', 1e-6),
+    for unit, scale in (('s', 1), ('ms', 1e-3), ('us', 1e-6),
                         ('ns', 1e-9)):
         if seconds >= scale * .9995:
             return _fig(seconds / scale) + ' ' + unit
@@ -2994,7 +2994,7 @@ def roster_of(main):
     return out
 
 
-FIGURE_RE = re.compile(r'\b0\.\d{3}\b|\d+\.\d+\s*[×x]\b'
+FIGURE_RE = re.compile(r'\b0\.\d{3}\b|\d+\.\d+\s*[x]\b'
                        r'|\b\d{1,2}\.\d%|\b\d+\.\d{2,}\b')
 
 # A sentence quoting a figure this page no longer publishes. Each has to earn
@@ -3009,14 +3009,14 @@ FIGURE_RE = re.compile(r'\b0\.\d{3}\b|\d+\.\d+\s*[×x]\b'
 # definition, so that --machine parses what fmt_abs produces and --selftest
 # can hold the pair together. A change to either alone is what would leave
 # the machine check with nothing to compare and no complaint.
-UNIT = {'ns': 1e-9, 'µs': 1e-6, 'ms': 1e-3, 's': 1}
+UNIT = {'ns': 1e-9, 'us': 1e-6, 'ms': 1e-3, 's': 1}
 FINGERPRINT_ABS_RE = re.compile(r'\|\s*`([^`]+)`\s*\|[^|]*\|[^|]*\|\s*'
-                                r'([\d.]+)\s*(ns|µs|ms|s)\s*\|')
+                                r'([\d.]+)\s*(ns|us|ms|s)\s*\|')
 
 
 COMPARATIVE_RE = [re.compile(p, re.I) for p in (
     r'where (?:Failed )?Run \d', r'where it (?:read|had|was)',
-    r'\bwas \d+[\d.]*[%x×]?\b', r'had (?:read|been|put)',
+    r'\bwas \d+[\d.]*[%x]?\b', r'had (?:read|been|put)',
     r'against its (?:published|own) \d', r'\(was \d',
     r'used to (?:say|call|read|be)', r'once said', r'earlier version')]
 
@@ -5089,7 +5089,7 @@ def selftest(cells, shapes, strategies, meta):
     # arithmetic that no published column can contradict.
     was = len(bad)
     # The last two are the rounding boundary `fmt_abs` moves a unit at:
-    # 999.7 µs is `1 ms` and 999.4 µs is `999 µs`, and the exponent form
+    # 999.7 us is `1 ms` and 999.4 us is `999 us`, and the exponent form
     # the first used to take is what this seam cannot parse.
     for x in (3.21e-9, 5.28e-6, 1.23e-3, 2.5, 9.997e-4, 9.994e-4):
         cell = '| `shape` | 3 | 288 | %s | 0.152 |' % fmt_abs(x)
@@ -5107,7 +5107,7 @@ def selftest(cells, shapes, strategies, meta):
     # above the shape-parse check forbids, made by a keyword. Both
     # provocations run 2026-08-16 -- ` ms` renamed to ` millis` here, and
     # one l annotation moved by 1 for the shape parse -- and each now
-    # prints its FAIL alone. `us` for `µs` is NOT a provocation: the
+    # prints its FAIL alone. `us` for `us` is NOT a provocation: the
     # pattern takes it, so the first attempt proved nothing.
     if len(bad) == was:
         ok.append('--machine parses what the fingerprint writes, over ns to s')

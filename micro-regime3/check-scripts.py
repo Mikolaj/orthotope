@@ -39,6 +39,21 @@ a case point them at a copy. And where a driver wants a BINARY, the
 stand-in is checked in here: `FAKE_HALF` for the gate's listing,
 `FAKE_RUN` for the two that want a whole run's cells.
 
+--audit REPLAYS TODAY'S FIXTURES AGAINST YESTERDAY'S CODE, so a change to
+the PAGE'S OWN CONVENTIONS can put a case out of reach of its own history.
+Four install-tables.sh cases -- lead-patterns-disagree,
+heading-between-two-class-blocks, placeholder-that-outlived-its-wording and
+two-shape-class-refused-before-writing -- build their fixture from the live
+README, and on 2026-08-20 that page was normalised to Basic Latin: its class
+leads read `**`window` ---` where they read an em dash before. Code from
+before that commit matches the em dash and so finds NO lead at all in a
+fixture built today, which is a different failure from the one each case
+records, and --audit reports them as not reproducing. They pass forward,
+which is what guards the code now; what is lost is the replay, and only
+across that one boundary. The alternative -- pinning each fixture's dash to
+whatever the code under test expects -- would put a copy of the convention
+in the fixtures, which is the second copy this file exists to avoid.
+
 A REVIEW CLAIM IS SUBMITTED IN THE CASE FORMAT, or it costs a harness to
 vet. `(name, plant, argv, ok, bug)` is already a probe: running it IS
 vetting the claim, and a claim that survives is already a case with no
@@ -345,10 +360,10 @@ def readme_yardstick_renamed_with_qmark(tmp):
             if l.startswith('| strategy |') and '(' in l]
     assert len(yard) == 1, 'yardstick header: %d line(s)' % len(yard)
     lines[yard[0]] = lines[yard[0]].replace('| strategy |', '| stratXgy |', 1)
-    cell = re.compile(r'\| `[a-z0-9-]+` \| \d+ \| \d+ \| [\d.]+ [nµm]?s \|')
+    cell = re.compile(r'\| `[a-z0-9-]+` \| \d+ \| \d+ \| [\d.]+ [num]?s \|')
     fp = [i for i, l in enumerate(lines) if cell.match(l)]
     assert fp, 'no fingerprint row to plant a `?` in'
-    lines[fp[0]] = re.sub(r'\| [\d.]+ [nµm]?s \|', '| ? |', lines[fp[0]], 1)
+    lines[fp[0]] = re.sub(r'\| [\d.]+ [num]?s \|', '| ? |', lines[fp[0]], 1)
     return write(os.path.join(tmp, 'R.md'), '\n'.join(lines))
 
 
@@ -1410,7 +1425,7 @@ CASES = [
          bug=V(has=['e+03'])),
 
     case('fmt-abs-at-the-unit-boundary', 'read-run.py', 'a6c32e8',
-         '999.7 µs printed as `1e+03 µs`, which --machine cannot parse',
+         '999.7 us printed as `1e+03 us`, which --machine cannot parse',
          argv=['--unit', 'fmt_abs(9.997e-4)'],
          ok=V(has=["'1 ms'"]),
          bug=V(has=['e+03'])),
@@ -1801,7 +1816,7 @@ CASES = [
     case('lead-patterns-disagree', 'install-tables.sh', '5ca3513',
          'a lead one pattern missed was overwritten by the block above it',
          plant=lambda t: {'doc': edited_readme(
-             t, ('**`window` — overlapping', '**`window` - overlapping'))},
+             t, ('**`window` --- overlapping', '**`window` - overlapping'))},
          shadow=dict(extra=whole_run(['lookrts'], prefix='zzit')),
          env={'DOC': '{doc}', 'BASIS': 'lookrts'},
          argv=['zzit'],

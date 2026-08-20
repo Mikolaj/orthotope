@@ -198,15 +198,15 @@ R, BASIS, DOC, LEADS = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
 doc = open(DOC).read(); paras = doc.split('\n\n')
 leads = {}
 for i, p in enumerate(paras):
-    m = re.match(r'\*\*`([a-z0-9]+)` \u2014', p.lstrip())
+    m = re.match(r'\*\*`([a-z0-9]+)` ---', p.lstrip())
     if m: leads[m.group(1)] = i
 # The class blocks are picked out twice in this one file, by the grep above
-# and by the pattern here, and this one asks for the em dash the other does
+# and by the pattern here, and this one asks for the dash the other does
 # not. A lead missing from THIS list is not merely skipped: the block above
 # it then runs to the next lead this pattern did find, and the loop rewrites
 # every Controls/Provenance/per-shape paragraph in that range -- so the
 # skipped block is handed the previous class's figures. Measured 2026-08-17
-# against a copy with one lead's em dash replaced by a hyphen: the window
+# against a copy with one lead's dash replaced by a single hyphen: the window
 # block came out carrying `slice`'s provenance, anchor and shape count,
 # reported as `24 computed paragraph(s) installed across 7 class block(s)`
 # at exit 0. It is the failure the roster check above exists against, one
