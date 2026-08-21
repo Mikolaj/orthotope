@@ -1707,6 +1707,35 @@ CASES = [
               hasnt=['al-lookrts-cnn-slice-c32-r1']),
          bug=V(exit=0, has=['al-lookrts-cnn-slice-c32-r1'])),
 
+    case('six-pair-floor-disagrees-across-sites', 'read-run.py', '054f3f1',
+         'the six-pair figure was quoted three ways, two in one paragraph',
+         # The eighteen-pair floor has been held across its sites since
+         # 2026-08-14 and caught Run 16's own write-up. The six-pair figure
+         # beside it was held nowhere, and a comprehension read of Run 16
+         # found it quoted 0.39%/0.24% in four places, 0.50% in a fifth --
+         # a run stale -- and rounded to "half a percent" in a sixth, two
+         # of them inside one paragraph. Same shape of defect, same check.
+         plant=lambda t: {'readme': edited_readme(t, (
+             'the two read 0.39% and 0.24% against Run 15',
+             'the two read 0.51% and 0.24% against Run 15'))},
+         argv=['--check-doc', '--readme', '{readme}'],
+         ok=V(exit=1, has=['six-pair figure is quoted differently']),
+         bug=V(exit=0, hasnt=['six-pair figure is quoted differently'])),
+
+    case('calibration-base-disagrees-across-sites', 'read-run.py', '054f3f1',
+         'the A/A population read six pairs in one section and eighteen in another',
+         # The twelve twins took the A/A population from six pairs to
+         # eighteen on 2026-08-14, and two sites kept saying six for three
+         # runs -- the reader's own section and the floor section's
+         # per-population rule -- while every class block printed
+         # "N of 18". Nothing compared them.
+         plant=lambda t: {'readme': edited_readme(t, (
+             'as an order of magnitude: it rests on eighteen pairs.',
+             'as an order of magnitude: it rests on six pairs.'))},
+         argv=['--check-doc', '--readme', '{readme}'],
+         ok=V(exit=1, has=['A/A population is quoted as']),
+         bug=V(exit=0, hasnt=['A/A population is quoted as'])),
+
     case('gate-arms-track-the-selection', 'run-gate.sh', 'febc2bd',
          'the expected bench count was a literal that had to equal SEL',
          shadow=dict(
