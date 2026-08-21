@@ -2621,18 +2621,18 @@ and probe want a quiet machine and its pilot does not; no window closes.
    pair, and Run 18's own pair** --- each with its kill condition in [the Run 17
    registration and the entry after it](#what-is-open), each with its commands
    in `run17-pair.txt`, none needing a build. In the order they are worth
-   taking: the fixed-n rider on the three anchors over the gate's arms, owed
-   and not optional, minutes on the basis binary once the evening is over;
-   the counted-work pilot, unblocked now that `kernel.perf_event_paranoid` reads
-   1 here (2026-08-21); and two already taken on 2026-08-22 ahead of the pair,
-   on `run16-a32m`: the per-process floor (held, 12 to 14%, placement left
-   as the term, the per-trial pilot [in the TODO list](#non-urgent-todo-list)
-   refused) and the 24m/48m probe (killed, no bump at the fixed area). Run 18
-   is settled and half-built --- 9.14.1 against 9.12.4 on a source carrying
-   the instrument and the saturating preamble, with `saturate-preamble.patch`,
-   `run-counts.sh`, the `SAT=` rider mode and the 9.14 plan in place --- written
-   up in the open list, `run18-pair.txt` carrying its recipes and the read-backs
-   still owed.
+   taking: the fixed-n rider, dry-run 2026-08-22 on Run 16's binary and re-aimed
+   at `list` against the alone leg and the `sum-only` arms against the roster,
+   minutes on the basis binary once the evening is over; the counted-work pilot,
+   unblocked now that `kernel.perf_event_paranoid` reads 1 here (2026-08-21);
+   and two already taken on 2026-08-22 ahead of the pair, on `run16-a32m`:
+   the per-process floor (held, 12 to 14%, placement left as the term,
+   the per-trial pilot [in the TODO list](#non-urgent-todo-list) refused)
+   and the 24m/48m probe (killed, no bump at the fixed area). Run 18 is settled
+   and half-built --- 9.14.1 against 9.12.4 on a source carrying the instrument
+   and the saturating preamble, with `saturate-preamble.patch`, `run-counts.sh`,
+   the `SAT=` rider mode and the 9.14 plan in place --- written up in the open
+   list, `run18-pair.txt` carrying its recipes and the read-backs still owed.
 
 **One rider rather than a task of its own, since it fires on an event and
 not on a session.** The pinning claim --- that a shim'd build holds every
@@ -2707,17 +2707,24 @@ left to attribute --- the interval it is about is the aligned binary's.
 
   **Registered with the pair, out of the probe budget after the write-up, each
   on the basis binary and none needing a build** --- in the order they are worth
-  taking, the commands in `run17-pair.txt`. *The fixed-n rider*, owed rather
-  than optional: the three anchors (`cnn-slice-c32`, `cifar-L2-16-c64-k3`,
-  `stretch-wide-2xM`) over the gate's arms (`list`, `build`, `mut-odo`,
-  `sum-only-early`, `sum-only-late`), each cell as two fresh processes
-  at `-n 2N` and `-n N`, `N` sized so the larger takes about a minute,
+  taking, the commands in `run17-pair.txt`. *The fixed-n rider* --- DRY-RUN
+  2026-08-22 on `run16-a32m`, ahead of the pair, and re-aimed by it: the three
+  anchors (`cnn-slice-c32`, `cifar-L2-16-c64-k3`, `stretch-wide-2xM`)
+  over the gate's arms, each cell as two fresh processes at `-n 2N` and `-n N`,
   the difference over `N` being the per-call cost owing nothing to criterion's
-  estimator. Registered: every differenced cell inside the floor of the run's
-  own slope for that cell; a cell outside it is the estimator's bias and
-  not the arm's, and the slope column is then read as criterion's for that arm.
-  *The per-process floor* --- TAKEN 2026-08-22 on `run16-a32m`, ahead
-  of the pair, and the registration HELD: ten single-bench processes
+  estimator, wall and user time agreeing on it to half a percent. It read `list`
+  within 0.8 to 1.7% of the same shape's alone-leg slope and the two `sum-only`
+  arms within 0.2 to 1.1% of their roster slopes, so criterion's estimator
+  is not what the alone legs and the roster differ by --- `list`'s roster cells
+  sit 0 to 11% above the rider, which is the deflation and nothing else;
+  and it read `build` at 0.83, 1.16 and 0.88 of the roster and `mut-odo`
+  at 1.05, 0.95 and 0.97, which is the per-process placement term drawn twice
+  a cell and not a reading. So the rider is re-aimed: `list` against the alone
+  leg and the `sum-only` arms against the roster, the placement-exposed arms
+  excluded, registered inside the floor on the basis binary as here, minutes
+  after the evening; the artifact is `probe-fixedn-run16.log`. *The per-process
+  floor* --- TAKEN 2026-08-22 on `run16-a32m`, ahead of the pair,
+  and the registration HELD: ten single-bench processes
   of `vgg-14-c512-k3/offtab` spread 3.36 to 3.78 ms (12%) and of `/build` 2.94
   to 3.36 (14%), on a quiet machine, with GC at 0.1% of mutator time in every
   process. What the spread is NOT, each excluded by measurement: instructions
@@ -7651,6 +7658,10 @@ Every figure here is a criterion slope, corrected, read against A/A pairs
 measured inside the same processes; the alone-leg riders are a second *context*,
 not a second instrument, being criterion slopes as well, so the composition
 that recovers the headline to half a percent is an internal consistency check.
+A second instrument has since been read on the anchors, 2026-08-22 ([the Run 17
+registration](#what-is-open)): fixed-iteration differencing in fresh processes
+agrees with the slope within 2% on `list` in the clean state and
+on the forcing-pass arms, so the estimator is not where the contexts differ.
 What the area curve adds afterwards is stronger than that and still
 not independent: it puts 32m over 64m on `list` at **0.8584** against the pair's
 **0.8583**, from a different binary, a different route to the setting (`+RTS`
