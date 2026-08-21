@@ -3622,7 +3622,7 @@ to it.
 ### The C-gap: still a deeper ceiling
 
 **Everything in this document lives under this ceiling.** Every strategy
-in the table, every ruling resting on one, and every margin the ~3% floor
+in the table, every ruling resting on one, and every margin the floor
 adjudicates are rearrangements *within* pure Haskell --- and no pure-Haskell
 strategy closes the gap to the stride-aware C kernels. Measured on the analogous
 chain (horde-ad's interleaved A/B of 2026-07-31, recorded in that repo):
@@ -6128,7 +6128,16 @@ answer three questions**: 2.32% and 1.22% are the widest an arm differs
 from its own duplicate by on each half, net and over all eighteen pairs, 0.39%
 and 0.24% are the same over the six pairs that carry back to Run 10 and so what
 two rows of one table must clear, and 3.3% is the across-run drift band an arm
-must clear to have moved between runs. The exceptions are `build` and `mut-odo`,
+must clear to have moved between runs. **All three are the word *floor*,
+over different populations, and two things that are not it wear it easily.**
+A class's `floor` column is the same statistic again over that population's
+eighteen pairs, so it is a fourth member of the family and not a fourth sense.
+**The worst single A/A cell is not a floor at all** --- 43.43% on this run ---
+and the procedure says so where it is read; it is one cell where
+these are geomeans over a population, and quoting it as one overstates
+the instrument by an order of magnitude. Nor is the residue [the alignment
+question][open] asks about, which is an effect size that survived a control
+rather than a spread the run measured. The exceptions are `build` and `mut-odo`,
 one worker at two slots, whose cells reach 1.25 and 1.16 with their loops
 at offset 0 in both runs --- the residue the pairing cannot reach, and [the open
 list][open]'s.
