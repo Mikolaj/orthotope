@@ -2603,16 +2603,16 @@ and probe want a quiet machine and its pilot does not; no window closes.
    16's basis registration is a repetition against run15-a32m, the edit moves
    `.text` and every loop offset, so the bridge would cross a layout change,
    and per-sample logging allocates. Run 17 puts it on ONE half by decision
-   of 2026-08-21 --- `run17-wildlog` against a basis without it --- so the pair
-   prices the instrument rather than inheriting it ([What Run 17 compares
-   against](#what-run-17-compares-against)). It was pointed at the `scaled`
-   class process, whose disturbance turns up in six runs of eight where a wild
-   cell is three of eight and none in the last four --- but **a wild cell in Run
-   16's own A/A worst cell was the trigger** to spend the budget on that process
-   instead, and it fired, so `reshape1` took it. Neither instance reproduces
-   filtered --- measured both times --- so either probe is a whole process
-   and never a five-bench run. Its `perf` half still wants
-   `kernel.perf_event_paranoid` lowered by hand. **And Run 15 moves where
+   of 2026-08-21 --- `run17-wildlog`, the basis, against `run17-det` without
+   it --- so the pair prices the instrument rather than inheriting it ([What Run
+   17 compares against](#what-run-17-compares-against)). It was pointed
+   at the `scaled` class process, whose disturbance turns up in six runs
+   of eight where a wild cell is three of eight and none in the last four ---
+   but **a wild cell in Run 16's own A/A worst cell was the trigger** to spend
+   the budget on that process instead, and it fired, so `reshape1` took it.
+   Neither instance reproduces filtered --- measured both times --- so either
+   probe is a whole process and never a five-bench run. Its `perf` half still
+   wants `kernel.perf_event_paranoid` lowered by hand. **And Run 15 moves where
    to point it**: the `scaled` slot's disturbance sat on `mut-odo-vecdims`
    for six runs and this run finds it on `mut-odo`, `gen-unsafe` and `build`
    instead, all three worst on `scaled-super-r3` --- so the instrument follows
@@ -2622,17 +2622,17 @@ and probe want a quiet machine and its pilot does not; no window closes.
    registration and the entry after it](#what-is-open), each with its commands
    in `run17-pair.txt`, none needing a build. In the order they are worth
    taking: the fixed-n rider on the three anchors over the gate's arms, owed
-   and not optional, minutes on `run17-det` once the evening is over;
-   the per-process floor, ten single-bench processes each of `offtab`
-   and `build` on one shape, which is the precondition of the per-trial-process
-   pilot [in the TODO list](#non-urgent-todo-list) and is why that pilot
-   is refused until this is read; the counted-work pilot, unblocked now
-   that `kernel.perf_event_paranoid` reads 1 here (2026-08-21); and the 24m/48m
-   probe, the one exception to the fixed area, a probe on a built binary
-   and never a recorded run. Run 18's pair is the saturating preamble,
-   a `Main.hs` change that rides both halves of a fresh pair and takes its dose
-   from the wildlog half's log; it is written up in the open list so that Run
-   17's write-up reads that log for it.
+   and not optional, minutes on the basis binary once the evening is over;
+   the counted-work pilot, unblocked now that `kernel.perf_event_paranoid` reads
+   1 here (2026-08-21); and two already taken on 2026-08-22 ahead of the pair,
+   on `run16-a32m`: the per-process floor (held, 12 to 14%, placement left
+   as the term, the per-trial pilot [in the TODO list](#non-urgent-todo-list)
+   refused) and the 24m/48m probe (killed, no bump at the fixed area). Run 18
+   is settled and half-built --- 9.14.1 against 9.12.4 on a source carrying
+   the instrument and the saturating preamble, with `saturate-preamble.patch`,
+   `run-counts.sh`, the `SAT=` rider mode and the 9.14 plan in place --- written
+   up in the open list, `run18-pair.txt` carrying its recipes and the read-backs
+   still owed.
 
 **One rider rather than a task of its own, since it fires on an event and
 not on a session.** The pinning claim --- that a shim'd build holds every
@@ -2664,12 +2664,14 @@ left to attribute --- the interval it is about is the aligned binary's.
 ### Non-urgent TODO list
 
 - `OPEN` **What Run 17 is built to answer, registered before it runs.**
-  Its pair, decided 2026-08-21, is `run17-det` --- the basis, `run16-a32m`'s
-  recipe with `-fobject-determinism` added --- against `run17-wildlog`, the same
-  recipe over `wildlog-instrument.patch` and run with `WILDLOG` set, on Run 16's
-  roster at the `-A32m` now fixed for every process here ([what it compares
-  against](#what-run-17-compares-against); the recipes are `run17-pair.txt`'s).
-  Five registrations, each with what would kill it.
+  Its pair, decided 2026-08-21, is `run17-wildlog` --- the basis, `run16-a32m`'s
+  recipe with `-fobject-determinism` added and built
+  over `wildlog-instrument.patch`, run with `WILDLOG` set --- against
+  `run17-det`, the same recipe without the patch and the bridge to Run 16,
+  on Run 16's roster at the `-A32m` now fixed for every process here ([what
+  it compares against](#what-run-17-compares-against); the recipes
+  are `run17-pair.txt`'s). Five registrations, each with what would kill it;
+  what Run 18 takes from them is [the entry after this one](#what-is-open)'s.
   1. *The flag's cost.* `run17-det` against `run16-a32m` is a repetition across
      one compiler flag: every arm inside the 3.3% drift band, the three anchors
      inside the floor, and the tracked fills read back where Run 16 held them.
@@ -2683,8 +2685,8 @@ left to attribute --- the interval it is about is the aligned binary's.
      and into a state every main process has saturated by its first slots.
      Killed by `list` past the floor on the basis-over-control reading, which
      would mean the instrument's own interleaved allocation deepens the state
-     --- a finding about the instrument, and a reason to read the basis half
-     alone.
+     --- a finding about the instrument, and the write-up then publishes
+     from `det`.
   3. *Object determinism.* Two builds of the `run17-det` recipe, back to back
      into two builddirs, give one `Main.o` by md5; the same done to Run 16's
      recipe, the control, gives two. Killed on the first by a differing object,
@@ -2714,14 +2716,24 @@ left to attribute --- the interval it is about is the aligned binary's.
   estimator. Registered: every differenced cell inside the floor of the run's
   own slope for that cell; a cell outside it is the estimator's bias and
   not the arm's, and the slope column is then read as criterion's for that arm.
-  *The per-process floor*: ten single-bench processes each
-  of `vgg-14-c512-k3/offtab` and `/build`, each
-  under `+RTS -A32m -I0 -T -M8G -S -RTS`, the spread across the ten being
-  the per-process floor and the `-S` logs saying whether it is mutator
-  or collector. Registered: the 10 to 21% the alone legs spread --- and
-  if it holds, randomised per-trial processes (the TODO list's pilot) need many
-  trials a cell and stay refused; if the ten agree inside the A/A floor,
-  the alone legs' spread was something else and that pilot is back on.
+  *The per-process floor* --- TAKEN 2026-08-22 on `run16-a32m`, ahead
+  of the pair, and the registration HELD: ten single-bench processes
+  of `vgg-14-c512-k3/offtab` spread 3.36 to 3.78 ms (12%) and of `/build` 2.94
+  to 3.36 (14%), on a quiet machine, with GC at 0.1% of mutator time in every
+  process. What the spread is NOT, each excluded by measurement: instructions
+  (identical to seven digits across eight processes), TLB (dTLB misses flat),
+  last-level misses (varying 13% and uncorrelated with cycles, the fewest
+  in a slow process), ASLR (`setarch -R`, the same 13%), huge pages (none
+  in use), and the clock (pinned to one core, 4.89 to 4.95 GHz across six
+  processes whose cycles vary 16%). Core placement is one component --- cores 2
+  and 6 sit about 10% apart --- and within one core the term remains, so what
+  is left to differ between two identical processes is where their pages
+  physically land. Consequences: randomised per-trial processes (the TODO list's
+  pilot) stay refused, a fresh process per trial drawing this term per trial;
+  single-process reads of these arms stay unreadable, as the position-term entry
+  says; and the shared-process design is what is immune to it, both twins
+  of an A/A pair sharing one placement. `list`'s alone legs, which repeat within
+  a percent, are not exposed, so the riders that rest on them stand.
   *The counted-work pilot*: `perf stat -e instructions:u` over every timed arm
   on the shape set at one fixed `-n` per shape, read against the basis's `time`
   column --- `kernel.perf_event_paranoid` reads 1 here on 2026-08-21,
@@ -2729,44 +2741,95 @@ left to attribute --- the interval it is about is the aligned binary's.
   fallback should that move. Registered: the orderings agree wherever
   the clock's margin clears the floor and the cells that disagree
   are the memory-bound residue; agreement licenses Run 18's method. *The 24m/48m
-  probe*, the one exception to the fixed area and a probe, never a recorded run:
-  the gate's five-bench selection on `run17-det` at `+RTS -A24m`, `-A32m`
-  and `-A48m`, each repeating `-I0 -T -M8G`, the 32m process being the control
-  taken by the same route. Killed by `list`'s geomean at 32m lying
-  on the 24-to-48 interpolation within the floor; a bump there
-  is the L3-coincidence disturbance the churn comment measured
-  on the list-shaped victim, and the one finding that would reopen the decision.
+  probe* --- TAKEN 2026-08-22 on `run16-a32m`, ahead of the pair, and KILLED:
+  the gate's five-bench selection at `+RTS -A24m`, `-A32m` and `-A48m`, three
+  processes of 120 benches on a quiet machine, puts `list`'s geomean at 32m 2.5%
+  above 24m and 9.8% below 48m (23 of 24 shapes), 1.6% under the 24-to-48 chord
+  and inside the floor, with `build` and `mut-odo` within 2.5% across all three.
+  No L3-coincidence bump sits at the fixed area, and the decision stands
+  on measured ground; the artifacts are `probe-l3-*` and `probe-pf-*` beside
+  `probe-quiet-driver.log`.
 
-- `OPEN` **Run 18's pair: the process state as an asserted input,
-  by a saturating preamble.** The churn findings settled that the damaged state
-  saturates around a million sub-threshold allocations, is reproducible
-  at the plateau within run-to-run spread, persists, and is healed by nothing,
-  and the roster reaches it well before a full run --- the deflation at 32m
-  reads +13.03% at 120 benches against +13.10% at 1128. What still varies
-  is WHERE each process reaches it: every process crosses the plateau during
-  its first slots, and every `-m glob` probe, class process and `-L1` run starts
-  clean and saturates somewhere else, the dose per bench scaling with the time
-  budget --- the confound that manufactured the retracted poison set. The change
-  is a `Main.hs` mode (`--saturate`, or an environment variable) that runs
-  a counted, not timed, sub-threshold spray ---
-  `small-pinned-churn-investigation/ReproSmall.hs`'s poison, 1.15M buffers
-  of 2304 B --- and a major collection before criterion starts; on for every
-  recorded process and every probe read against a recorded cell, off
-  for the alone-leg riders, which define the clean regime. It prints a fixed-n
-  mini-victim reading and `max_mem_in_use_bytes` into the log, so `run-major.sh`
-  asserts the plateau the way it asserts bench counts. Non-vacuity: double
-  the dose and the readings stand; dose zero and they sit at the alone-leg
-  level. Registered in advance: the ratios do not move, the arms being immune,
-  and `list` sits ~13% above its alone leg as now. **Why Run 18 and not 17**:
-  a `Main.hs` edit rides both halves of a fresh pair or confounds
-  a registration, and Run 17's halves are spoken for. **What Run 17 feeds it**:
-  the wildlog half's per-sample record shows where in the first slots each
-  process reaches the plateau, which sizes the dose --- Run 17's write-up reads
-  that off the log. A probe binary between the runs, the `det` recipe
-  over a preamble patch, prototypes it on single-bench probes against roster
-  cells before the pair is built. Counted work joins it as Run 18's method
-  if the pilot registered with Run 17 licenses the switch, the clock kept
-  for the memory-bound residue.
+- `OPEN` **Run 18's pair, settled 2026-08-21 and half-built: GHC 9.14.1 against
+  9.12.4, on one source carrying `-fobject-determinism`, the per-sample
+  instrument and a saturating preamble.** The basis is Run 17's basis recipe
+  over `saturate-preamble.patch` (applied after `wildlog-instrument.patch`,
+  whose `lookupEnv` it uses); the other half is the same source and shim
+  on 9.14.1 through `cabal.project.ghc914`, whose freeze resolves the same
+  `vector`, `criterion` and `criterion-measurement` versions at the one
+  index-state, so the halves differ in the compiler and its boot libraries
+  and in nothing a freeze can see --- which prices the consumer's 9.14 build,
+  library code recompiled included, and is to be read as such. The preamble
+  is the state made an input: `SATURATE=<dose>` sprays dose x 1.15M short-lived
+  pinned buffers of 2304 B before criterion sees the roster, collects,
+  and prints one `@@saturate` line carrying a fixed-iteration reading
+  of `vgg-14-c512-k3/list` and the heap peak; on for every recorded process
+  and every probe read against a recorded cell, off for the clean alone legs,
+  skipped by `check`, `diag` and `--list`. **Its non-vacuity and its dose
+  are measured, on a quiet machine** (2026-08-22, `sat-probe`, the basis
+  recipe's binary, loadavg under 1; a first evening's figures at loadavg 1.5
+  to 2.0 had read +31% and scattered, and were the load). `vgg-14-c512-k3/list`
+  alone reads 16.6 to 16.8 ms clean; after the reproducer's pure pinned burst
+  18.2 to 18.7 at dose 1 and 18.0 to 18.3 at dose 2, +9 to +11%; after
+  the roster's own sprayer --- `cnn-slice-c32/list`'s fill for a fixed million
+  iterations, each a 288-cell cons list and a 2304 B pinned result, both
+  formation routes at once --- 19.1 to 19.3 at dose 1 and 19.2 at dose 2, +14
+  to +15%; and with that sprayer run as a criterion bench ahead of the victim
+  in one process, no preamble, 18.6 to 19.0, where Run 16's roster cell read
+  18.45 against its alone leg's 16.38. So the plateau holds for both doses, dose
+  zero is the clean level, and the roster's own sprayer reproduces the roster's
+  state where the pure burst falls some three points short of it --- which
+  is why `SATURATE_BY` defaults to `list` and keeps `spray` as the control,
+  the three-point difference being the interleaved route's share on top
+  of the burst's, measured in one cell already and registration 3's to read
+  over the set. The 9.14 binary reads the same, 19.04 against 16.96.
+  Registrations, each with what kills it: (1) *the bridge*, the 9.12 basis
+  against `run17-wildlog` across the preamble's source change, every arm inside
+  the drift band and the fills where Run 17 held them, killed by an arm outside
+  it; (2) *the compiler*, the thirteen registered orderings holding on 9.14.1,
+  killed by a BROKE that clears that half's floor --- a margin moving
+  is the finding and not a break, as claim 4's history says --- with claim 7's
+  allocation levels read per compiler, a compiler being able to change
+  allocation where a slot cannot; (3) *the decomposition*, every shape's `list`
+  alone leg twice on the basis, `SAT=` off and on through `run-alonelegs.sh`,
+  against its roster cell: the state is saturated minus clean and the rest
+  is roster minus saturated, registered inside the floor on the `list` dose ---
+  the one cell read so far puts it there --- with the `spray` dose's legs,
+  a third column if the budget allows, pricing the burst route's share
+  of the state, some ten of the thirteen points on that cell; a rest past
+  the floor names what the state is not, criterion's own interleaving between
+  samples the first suspect; (4) *counted work*, `run-counts.sh` on both halves,
+  instructions an iteration for every arm and shape from two fixed-`-n`
+  processes a cell, read against each half's `time` column for the orderings
+  and, per arm, the count ratio 9.14/9.12 beside the time ratio --- time moving
+  with counts is codegen, time moving without counts is the runtime or memory,
+  layout being pinned --- a compiler's codegen term and runtime term separated
+  for the first time; (5) *the plateau*, every recorded process's `@@saturate`
+  victim reading inside a band of the run's own, a process outside it read
+  before its figures are. **What is built**: `saturate-preamble.patch`,
+  with its two doses, proved to build and to fire on both compilers; `sat-probe`
+  and `sat-probe-914`, its binaries, for the between-run probes;
+  `cabal.project.ghc914` and its freeze; `run-counts.sh`, proved on one cell
+  (`vgg-14-c512-k3/list` 260.6M instructions an iteration, `mut-odo` 54.4M,
+  `sum-only-early` 8.1M, `N` = 5); the `SAT=` mode of `run-alonelegs.sh`, which
+  refuses a binary without the preamble. Once Run 17's pair is spent both
+  patches land in the source by commit and the recipes lose their apply step.
+  **The one pre-run risk is retired**: the shim reads back on 9.14's assembly
+  --- `sat-probe-914`, the other half's recipe, has 113 self-loops
+  in `Main`-compiled code, 61 at offset 0 and none straddling, the 9.12 probe
+  110, 56 and none, the tracked 28 B groups reading `[0, 24, 0, 0]` and `[0, 0]`
+  against `[0, 24, 0, 4]` and `[0, 0]`; its `--list` and its `check` output
+  are byte-identical to the 9.12 probe's, and the preamble fires there alike.
+  One trap for the read-back: on 9.14 the baked RTS line is stored with a byte
+  before it, so `strings | grep -x` misses it while `+RTS --info` reports
+  it and the heap peak shows it in effect --- the notes and `run-alonelegs.sh`
+  read it by `--info` now. **What is owed before the evening**: the plateau
+  check in `run-major.sh` and `read-all.sh`, counted as bench counts are,
+  with a `check-scripts.py` case first; cases for `run-alonelegs.sh`
+  and `run-counts.sh`, which have none; and the `-g3` twins per compiler
+  at the write-up. **Not in Run 18**: a roster change, which would confound
+  the compiler. The 24m/48m probe, which could have reopened the area, was taken
+  ahead of Run 17 and killed.
 - `STANDING` **A class process's provenance line counts every class view,
   not the population that ran.** The count is fixed before criterion does
   the selecting, so each class process reports the whole class set's size beside
@@ -2838,20 +2901,22 @@ left to attribute --- the interval it is about is the aligned binary's.
   arm over the shape set, read against a published time column --- orderings
   that agree license the switch, and the cells that disagree
   are the memory-bound residue the clock is still for. It is registered with Run
-  17's pair, `kernel.perf_event_paranoid` reading 1 here on 2026-08-21.
-  **Randomised slots in per-trial processes instead of pinned ones.** Many short
-  fixed-`-n` trials per cell, each in its own process with the order drawn
-  fresh, so that position becomes noise that averages rather than bias
-  that persists, and a table stops needing comparability carried between runs,
-  being self-contained evidence. Not the reordering the roster-order entry above
-  rejected --- that varied slots inside the one shared process --- but a regime
-  that gives the shared process up. Pilot: a few arms and shapes read against
-  the published column, with the A/A pairs' spread under randomisation
-  as the method's own floor. Its precondition is the per-process floor
-  registered with Run 17's pair: `offtab`'s and `build`'s alone legs spread 10
-  to 21% across single processes of one binary, a term no in-process control
-  sees and one this regime would inherit as noise, so until ten processes of one
-  cell have been read the pilot is refused.
+  17's pair, `kernel.perf_event_paranoid` reading 1 here on 2026-08-21,
+  and `run-counts.sh` is its driver. **Randomised slots in per-trial processes
+  instead of pinned ones.** Many short fixed-`-n` trials per cell, each
+  in its own process with the order drawn fresh, so that position becomes noise
+  that averages rather than bias that persists, and a table stops needing
+  comparability carried between runs, being self-contained evidence.
+  Not the reordering the roster-order entry above rejected --- that varied slots
+  inside the one shared process --- but a regime that gives the shared process
+  up. Pilot: a few arms and shapes read against the published column,
+  with the A/A pairs' spread under randomisation as the method's own floor.
+  Its precondition was the per-process floor registered with Run 17's pair, read
+  2026-08-22: `offtab` and `build` spread 12 to 14% across ten single processes
+  of one binary on a quiet machine, a mutator term that clock, TLB, last-level
+  misses, ASLR and huge pages were each measured not to be, leaving physical
+  page placement --- a term no in-process control sees and one this regime would
+  draw afresh per trial, so the pilot is refused.
 - `OPEN` **Render the run-scoped prose from a ledger --- speculative likewise.**
   The end state is verdicts, statuses, floors and tallies kept in one small
   machine-readable file beside the roster, `read-run.py` rendering them
@@ -7912,34 +7977,40 @@ of 2026-08-21.** The regime is `-fspec-constr`, as every run since Run 8,
 and it is the regime the fix ships in rather than a flag priced against
 the shipped one. The roster is Run 16's 1128 benches, 47 timed arms over 24
 shapes, every stride class at three, unchanged since Run 15. **The basis
-is `run17-det`: `run16-a32m`'s recipe with `-fobject-determinism` added** ---
-the `-A32m` promotion Run 16 made and its bridge confirmed, at the area every
-process here and every horde-ad suite now runs at --- so its absolutes are read
-against Run 16's basis column, arm for arm, and the flag is registered to cost
-nothing past drift. **The other half is `run17-wildlog`: the basis recipe
-over `wildlog-instrument.patch`**, the per-sample instrument Run 16 built
-for one probe process, run with `WILDLOG` set so that every sample of every
-bench in that half leaves its RTS allocation total and its mutator and collector
-clocks in the log. What the pair prices is the instrument: its presence, which
-moves `.text` and every loop offset, and its logging, which allocates between
-samples into a state the roster has already saturated --- registered at nothing
-past drift on every arm, `list` included, and a `list` past the floor would
-be a finding about the instrument. What it answers that no earlier pair could
-is the wild-cell question over the whole roster rather than one process: a cell
-that steps can be placed to a sample and read beside the RTS totals
-at that sample. The predictions are in the open list, as [What Run 17 is built
-to answer](#what-is-open); the recipes are `run17-pair.txt`'s. The allocation
-area is fixed and no pair will vary it again: Runs 14, 15 and 16 priced it,
-and the decision closed it.
+is `run17-wildlog`: `run16-a32m`'s recipe with `-fobject-determinism` added,
+built over `wildlog-instrument.patch`** --- the per-sample instrument Run 16
+built for one probe process --- and run with `WILDLOG` set, so that every
+published cell carries its samples' RTS allocation total and mutator
+and collector clocks. The instrumented half publishes because Run 16's worst A/A
+cell did not come back when its process was re-run: a wild cell is readable only
+in the run that produces it, and the published table is where one matters.
+**The other half is `run17-det`: the same recipe without the patch**, the bridge
+--- a repetition of `run16-a32m` across one compiler flag, read against Run 16's
+basis column arm for arm, the flag registered to cost nothing past drift ---
+which is Run 16's structure, the basis in the new regime and the control half
+the bridge. What the pair prices is the instrument: its presence, which moves
+`.text` and every loop offset, and its logging, which allocates between samples
+into a state the roster has already saturated --- registered at nothing past
+drift on every arm, `list` included; a `list` past the floor would be a finding
+about the instrument, and the write-up then publishes from `det` instead,
+`install-tables.sh` taking `BASIS` from the environment. What it answers
+that no earlier pair could is the wild-cell question over the whole roster
+rather than one process: a cell that steps can be placed to a sample and read
+beside the RTS totals at that sample. The predictions are in the open list,
+as [What Run 17 is built to answer](#what-is-open); the recipes
+are `run17-pair.txt`'s. The allocation area is fixed and no pair will vary
+it again: Runs 14, 15 and 16 priced it, and the decision closed it.
 
 **Registered with the pair, and Run 18 spoken for.** Four riders and probes go
-with Run 17, out of the probe budget after the write-up and none needing a build
---- the fixed-n rider on the anchors, the per-process floor, the counted-work
-pilot and the 24m/48m probe --- each with its kill condition in [the Run 17
-registration](#what-is-open) and its commands in `run17-pair.txt`; and Run 18's
-pair is the saturating preamble, [registered beside them](#what-is-open),
-a `Main.hs` change that takes its dose from the wildlog half's log and rides
-both halves of a fresh pair.
+with Run 17, none needing a build --- the fixed-n rider on the anchors
+and the counted-work pilot after the write-up, while the per-process floor
+and the 24m/48m probe were taken ahead of it on Run 16's binary, the floor held
+and the probe killed --- each with its kill condition and its reading in [the
+Run 17 registration](#what-is-open) and its commands in `run17-pair.txt`;
+and Run 18's pair is settled and half-built, [registered beside
+them](#what-is-open): GHC 9.14.1 against 9.12.4 on one source carrying
+the instrument and the saturating preamble, the patches, drivers and the 9.14
+plan already in place and `run18-pair.txt` carrying the recipes.
 
 **The position term was the candidate Run 15 promoted, and the probes have since
 spent it.** What Run 14 first saw and Run 15 confirmed is resolved

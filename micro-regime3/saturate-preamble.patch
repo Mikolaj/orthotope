@@ -1,0 +1,109 @@
+The saturating preamble, Run 18's source change (README's open list), as a
+patch on top of wildlog-instrument.patch, whose lookupEnv import it uses:
+apply that one first. Kept as a patch until Run 17's pair is spent, for
+the reason the wildlog patch was: a Main.hs edit must not reach a source
+a pair note names. Made 2026-08-21; the list dose added 2026-08-22.
+
+--- a/micro-regime3/Main.hs
++++ b/micro-regime3/Main.hs
+@@ -36,6 +36,7 @@
+ import qualified Data.Vector.Storable.Mutable as VSM
+ import qualified Data.Vector.Unboxed          as VU
+ import qualified Data.Vector.Unboxed.Mutable  as VUM
++import           GHC.Clock                    (getMonotonicTime)
+ import           GHC.Exts                     (Int (..), Word (..), build,
+                                                int2Word#, quotRemInt#,
+                                                timesWord2#, word2Int#)
+@@ -2961,9 +2962,92 @@
+ -- criterion as usual, which is how one population is selected per process
+ -- (@classes rev-@). How to run: README.md#running-it. The numbers and how
+ -- to read them: README.md#results, README.md#the-reader-read-runpy.
++-- The saturating preamble, off unless SATURATE is set in the environment
++-- to a dose multiplier -- 1 is the saturating dose, 2 the plateau control,
++-- 0 and unset are off -- and what it is for is Run 18's entry in README's
++-- open list: the block-level state a process benchmarks in is made an
++-- input every process asserts, instead of a by-product of its slot, its
++-- selection and its time budget. Before criterion sees the roster it
++-- installs the state, performs a major collection, and then reads a
++-- list-shaped victim at a fixed iteration count beside the heap peak, as
++-- ONE LINE on stderr, `@@saturate ...`, which is what a run script asserts
++-- the plateau on. Two doses, SATURATE_BY selecting: `list`, the default,
++-- is dose x 1M iterations of cnn-slice-c32/list's own fill -- the roster's
++-- first sprayer, each iteration a 288-cell cons list and a 2304 B pinned
++-- result, both formation routes at once, about six seconds a dose -- and
++-- it reproduces the roster's state on the victim (measured 2026-08-22,
++-- quiet machine: the roster cell's +12-13%, where the pure burst installs
++-- +9-10%); `spray` is the reproducer's pure pinned burst, dose x 4000 x
++-- 288 short-lived buffers of 2304 B, a quarter of a second a dose, kept as
++-- the control that separates the burst route from the rest. Counted
++-- rather than timed, so a dose does not depend on the machine. The
++-- environment is read here, in main's own call, never at import time. The
++-- check, diag and --list modes skip it: they time nothing.
++saturate :: IO ()
++saturate = do
++  set <- lookupEnv "SATURATE"
++  by <- lookupEnv "SATURATE_BY"
++  let dose = maybe 0 read set :: Int
++      bySpray = by == Just "spray"
++  unless (dose <= 0) $ do
++    let view name = maybe (error ("saturate: no shape " ++ name)) mkStrided
++                      (lookup name shapes)
++        (svsh, sa) = view sprayerShape
++        (vsh, a) = view victimShape
++    _ <- evaluate (force ((svsh, sa), (vsh, a)))
++    t0 <- getMonotonicTime
++    (sprayed, keep) <- if bySpray then spray (dose * 4000) 0 0
++                       else viaList svsh sa (dose * 1000000) 0 0
++    t1 <- getMonotonicTime
++    performGC
++    t2 <- getMonotonicTime
++    s <- victim vsh a victimIters 0
++    t3 <- getMonotonicTime
++    st <- getRTSStats
++    hPutStrLn stderr $
++      "@@saturate dose=" ++ show dose ++ "x by="
++      ++ (if bySpray then "spray" else "list")
++      ++ " sprayed=" ++ show sprayed ++ " in " ++ show (t1 - t0)
++      ++ " s; victim " ++ victimShape ++ "/list "
++      ++ show ((t3 - t2) / fromIntegral victimIters * 1000)
++      ++ " ms/iter over " ++ show victimIters ++ "; inuse="
++      ++ show (max_mem_in_use_bytes st) ++ " keep=" ++ show (keep + s)
++  where
++    sprayerShape = "cnn-slice-c32"
++    victimShape = "vgg-14-c512-k3"
++    victimIters = 20 :: Int
++    -- The roster's sprayer: the fill every list arm runs, on the smallest
++    -- shape's view, the sum read back keeping each result from being
++    -- dropped unbuilt.
++    viaList :: ShapeL -> T -> Int -> Int -> Double -> IO (Int, Double)
++    viaList _ _ 0 !n !acc = return (n, acc)
++    viaList vsh a k !n !acc = do
++      x <- evaluate (VS.sum (fbList vsh a))
++      viaList vsh a (k - 1) (n + 1) (acc + x)
++    -- The pure burst: one step is 288 buffers, as in the reproducer; the
++    -- element read back from each keeps the allocation from being elided.
++    spray :: Int -> Int -> Double -> IO (Int, Double)
++    spray 0 !n !acc = return (n, acc)
++    spray k !n !acc = do
++      acc' <- burst (288 :: Int) acc
++      spray (k - 1) (n + 288) acc'
++    burst :: Int -> Double -> IO Double
++    burst 0 !acc = return acc
++    burst i !acc = do
++      v <- VSM.replicate 288 (fromIntegral i :: Double)
++      x <- VSM.unsafeRead v 287
++      burst (i - 1) (acc + x)
++    victim :: ShapeL -> T -> Int -> Double -> IO Double
++    victim _ _ 0 !acc = return acc
++    victim vsh a i !acc = do
++      x <- evaluate (VS.sum (fbList vsh a))
++      victim vsh a (i - 1) (acc + x)
++{-# NOINLINE saturate #-}
++
+ main :: IO ()
+ main = assert partitioned $ do
+   args <- getArgs
++  unless (any (`elem` ["check", "diag", "--list", "-l"]) args) saturate
+   if "diag" `elem` args
+     then diag
+     else if "check" `elem` args

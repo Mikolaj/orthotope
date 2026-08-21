@@ -1,0 +1,9 @@
+-- The 9.14.1 half of Run 18: the same source, shim and package versions as
+-- cabal.project on the other compiler. Select it with
+-- --project-file=cabal.project.ghc914; cabal.project.ghc914.freeze beside it
+-- pins its plan as cabal.project.freeze pins the 9.12 one, at one
+-- index-state, so the two plans differ in the boot libraries and nothing
+-- else that a freeze can see.
+packages: .
+with-compiler: ghc-9.14.1
+index-state: hackage.haskell.org 2026-07-25T13:22:10Z
