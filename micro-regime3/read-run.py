@@ -4367,6 +4367,70 @@ def check_doc(readme, main_hs):
             print('ok:   the run\'s floor pair reads %s%%/%s%% at all %d'
                   ' sites that quote it' % (floors[0] + (len(floors),)))
 
+        # The SIX-PAIR figure beside it, held the same way. The eighteen-pair
+        # floor has been checked across its sites since 2026-08-14; the
+        # restricted one was checked nowhere, and a comprehension read of
+        # Run 16 found it quoted 0.39%/0.24% in four places, 0.50% in a
+        # fifth -- a run stale -- and rounded to "half a percent" in a
+        # sixth, two of them inside one paragraph. Some sites quote the
+        # pair and some only the basis half, so both shapes are collected
+        # and the singletons are held to the pair's first figure.
+        six = [m for p in (
+            r'six pairs that carry back to Run 10[^.]*?([\d.]+)% and'
+            r' ([\d.]+)%',
+            r'([\d.]+)% and ([\d.]+)% (?:are the same over|read on) the six'
+            r' pairs') for m in re.findall(p, uw)]
+        six_one = re.findall(r'six-pair figure of the half it is read on'
+                             r'[^.]*?([\d.]+)%', uw)
+        six_one += re.findall(r'\*([\d.]+)% between any two rows of the'
+                              r' table\*', uw)
+        if len(six) < 2:
+            bad.append('could not locate at least two sites quoting the'
+                       " run's six-pair floor, so its agreement check did"
+                       ' not run -- if the sentences were reworded, this'
+                       " check's patterns move with them")
+        elif len(set(six)) > 1:
+            bad.append('the six-pair figure is quoted differently across its'
+                       ' %d sites: %s -- it is the threshold two rows of one'
+                       ' table must clear, so one wrong copy retires a'
+                       ' margin'
+                       % (len(six), '; '.join('%s%%/%s%%' % f
+                                             for f in set(six))))
+        elif any(o != six[0][0] for o in six_one):
+            bad.append('the six-pair figure reads %s%% where it is quoted as'
+                       ' a pair and %s where it is quoted alone -- the two'
+                       ' are the same number'
+                       % (six[0][0], ', '.join(sorted(set(
+                           o for o in six_one if o != six[0][0])))))
+        else:
+            print('ok:   the six-pair floor reads %s%%/%s%% at all %d sites'
+                  ' that quote it, and %s%% at the %d that quote one half'
+                  % (six[0] + (len(six), six[0][0], len(six_one))))
+
+        # And the A/A population itself. The twelve twins took it from six
+        # pairs to eighteen on 2026-08-14 and two sites kept saying six for
+        # three runs -- the reader's own section and the floor section's
+        # per-population rule -- while every class block printed "N of 18".
+        # Nothing compared them, so the stale pair rode three write-ups.
+        base = set(re.findall(r'it rests on (six|eighteen) pairs', uw))
+        base |= set(re.findall(r'The same (six|eighteen) controls ride every'
+                               r' process', uw))
+        base |= set(re.findall(r'\*\*(Six|Eighteen)\*\* A/A controls run an'
+                               r' existing strategy', uw))
+        base = {b.lower() for b in base}
+        if not base:
+            bad.append("could not locate any site naming the A/A population's"
+                       ' size, so that agreement check did not run')
+        elif len(base) > 1:
+            bad.append('the A/A population is quoted as %s across its sites'
+                       ' -- the twelve twins took it to eighteen and every'
+                       ' class block prints that, so a site still saying six'
+                       ' is three runs stale'
+                       % ' and '.join(sorted(base)))
+        else:
+            print("ok:   the A/A population reads %s pairs everywhere it is"
+                  ' named' % base.pop())
+
         # Two more of the floor check's shape -- one figure, several
         # sites, must agree -- on the counts Run 14 got wrong in more than
         # one place. Unlike the floor these have a truth outside the page:
