@@ -269,14 +269,14 @@ for n, (c, start) in enumerate(reversed(order)):
         print(f'  REFUSED {c}: no provenance line in {R}-{BASIS}-{c}.log'); sys.exit(1)
     el, pk, mr = m.groups()
     def grab(tag):
-        g = re.search(r'\n(' + tag + r'.*?)(?=\n\n|\Z)', blk, re.S)
+        g = re.search(r'\n(\*{0,2}' + tag + r'.*?)(?=\n\n|\Z)', blk, re.S)
         return ' '.join(g.group(1).split()) if g else None
     ctrl, prov, per = grab('Controls:'), grab('Provenance:'), grab('Per shape')
     if not (ctrl and prov and per):
         print(f'  REFUSED {c}: --block emitted no ' +
               ('Controls' if not ctrl else 'Provenance' if not prov else 'per-shape'))
         sys.exit(1)
-    ctrl = ctrl.replace('Controls: ___ (the reading is yours). ', 'Controls: ')
+    ctrl = ctrl.replace('Controls:** ___ (the reading is yours). ', 'Controls:** ')
     prov = (prov.replace('elapsed ___', 'elapsed ' + el)
                 .replace('peak ___ MiB', f'peak {pk} MiB')
                 .replace('___ MiB max residency', f'{mr} MiB max residency')
@@ -292,12 +292,13 @@ for n, (c, start) in enumerate(reversed(order)):
         sys.exit(1)
     prov_at = None
     for j in range(start, end):
-        s = paras[j].lstrip()
+        s = paras[j].lstrip().lstrip('*')
         if s.startswith('Controls:'): paras[j] = ctrl; done += 1
         elif s.startswith('Provenance:'): paras[j] = prov; prov_at = j; done += 1
         elif s.startswith('Per shape'): paras[j] = per; done += 1
     if prov_at is not None and not any(
-            paras[j].lstrip().startswith('Per shape') for j in range(start, end)):
+            paras[j].lstrip().lstrip('*').startswith('Per shape')
+            for j in range(start, end)):
         paras.insert(prov_at + 1, per); done += 1   # every class is three-shape now
         print(f'  {c}: per-shape line ADDED, the block had none')
 open(DOC, 'w').write('\n\n'.join(paras))

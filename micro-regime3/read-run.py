@@ -1395,7 +1395,7 @@ def controls_skeleton(cells, shapes, strategies, terms):
     big = aa_floor(aa)
     cover = sum(1 for p in aa if p.ci and p.ci[0] <= 1.0 <= p.ci[1])
     print()
-    print('Controls: ___ (the reading is yours). The largest A/A pair is')
+    print('**Controls:** ___ (the reading is yours). The largest A/A pair is')
     print('`%s` at %.4f, worst cell %.2f%% on `%s`,'
           % (big.a, big.g, big.worst[0], big.worst[1]))
     print('and %d of %d intervals cover 1.' % (cover, len(aa)), end=' ')
@@ -2443,7 +2443,7 @@ def claims_readings(cells, shapes, strategies):
                       '' if len(bits) == 1 else 's'))
         if broke:
             verdict += ', BROKE on ' + ' and '.join(broke)
-        out[n] = 'Readings: %s. %s.' % ('; '.join(bits), verdict)
+        out[n] = '**Readings:** %s. %s.' % ('; '.join(bits), verdict)
     return out
 
 
@@ -2495,7 +2495,7 @@ def install_readings(readme, texts, src, strategies, shapes, main_hs):
             sys.exit('--in-place: %d paragraph(s) in the claims section lead'
                      ' with **Claim %d, need exactly one' % (len(lead), n))
         i = lead[0]
-        if i + 1 < end and flat[i + 1].startswith('Readings:'):
+        if i + 1 < end and flat[i + 1].lstrip('*').startswith('Readings:'):
             if flat[i + 1] != texts[n]:
                 paras[i + 1] = flat[i + 1] = texts[n]
                 done += 1
@@ -2926,7 +2926,7 @@ def block_skeleton(cells, shapes, strategies, meta, args, terms):
     dims = meta['dims']
     anchor = max(shapes, key=lambda sh: dims.get(sh, {}).get('l', 0))
     print()
-    print('Provenance: elapsed ___, peak ___ MiB in use, ___ MiB max'
+    print('**Provenance:** elapsed ___, peak ___ MiB in use, ___ MiB max'
           ' residency (copy')
     print("from the process's stderr line); the reader reads %d benchmarks"
           ' over %d' % (meta['benches'], meta['shapes']))
@@ -2939,7 +2939,7 @@ def block_skeleton(cells, shapes, strategies, meta, args, terms):
         bold = [st for st in strategies
                 if rows.get(st, ('', '', ''))[1] == 'bold']
         print()
-        print("Per shape, in the lead's order (%s):" % ', '.join(shapes))
+        print("**Per shape, in the lead's order (%s):**" % ', '.join(shapes))
         for st in bold:
             # `--` on a sunk cell, as the fingerprint and `time_of` do: this
             # paragraph is installed into the page by install-tables.sh, so
@@ -3426,6 +3426,57 @@ LEAD_RE = re.compile(r'\*\*(.+?)\*\*', re.S)
 # it is capped and says how many it dropped -- a silent cap would read as
 # "that is all there is", which is the failure the no-silent-caps rule names.
 PARA_BODY_CAP = 6
+
+
+def splice(readme, anchor, source):
+    """Replace the paragraph carrying `anchor` with the text in `source`.
+
+    The write-up's edits are exact-match replacements, and a session
+    doing them by hand pays three times for each: locate the passage,
+    PRINT it so the old string can be copied, then send both strings
+    back. On Run 16 that echoing was the single largest token cost of
+    the write-up, and the page's own rule -- anything this reader can
+    emit, a session should not read -- had never been applied to
+    editing. This does the whole edit without the old text entering a
+    transcript at all.
+
+    Refuses rather than guesses, on the same terms as `install`: the
+    anchor must occur exactly once IN THE WHOLE FILE, and the unit
+    replaced is the paragraph containing it, never a byte range. It
+    echoes the extent and the first and last line of what it is about
+    to overwrite, so a wrong anchor is loud before it is written and
+    the record of what went says what it replaced.
+
+    Wrapping is the caller's: this writes the replacement as given, so
+    an edit made against an unwrapped file leaves that paragraph on one
+    line, which is what the wrap gate reports as mid-edit and not as a
+    failure.
+    """
+    doc = open(readme).read()
+    n = doc.count(anchor)
+    if n != 1:
+        sys.stderr.write('--replace: the anchor occurs %d times, need 1 --'
+                         ' quote more of the sentence\n' % n)
+        return 1
+    paras = doc.split('\n\n')
+    hit = [i for i, q in enumerate(paras) if anchor in q]
+    if len(hit) != 1:
+        sys.stderr.write('--replace: the anchor spans a paragraph break, so'
+                         ' there is no one paragraph to replace\n')
+        return 1
+    new = open(source).read().strip('\n')
+    old = paras[hit[0]]
+    ol, nl = old.split('\n'), new.split('\n')
+    print('--replace: %d chars -> %d, in %s'
+          % (len(old), len(new), os.path.basename(readme)))
+    print('  out, first: %s' % ol[0][:78])
+    print('  out, last : %s' % ol[-1][-78:])
+    print('  in,  first: %s' % nl[0][:78])
+    print('  in,  last : %s' % nl[-1][-78:])
+    paras[hit[0]] = new
+    with open(readme, 'w') as f:
+        f.write('\n\n'.join(paras))
+    return 0
 
 
 def paragraphs(readme, pattern):
@@ -5289,6 +5340,12 @@ def main():
     p.add_argument('--para', metavar='PATTERN',
                    help="print README paragraphs whose bolded lead matches,"
                         " with the line each starts at; needs no run file")
+    p.add_argument('--replace', metavar='ANCHOR',
+                   help='replace the README paragraph carrying ANCHOR with the'
+                        ' text in --with, without printing the old one;'
+                        ' refuses unless ANCHOR occurs exactly once')
+    p.add_argument('--with', dest='with_', metavar='FILE',
+                   help='the replacement text for --replace')
     p.add_argument('--readme', default=os.path.join(here, 'README.md'),
                    help='README.md to check bench names against'
                         ' (default: alongside)')
@@ -5345,6 +5402,10 @@ def main():
         p.error('--alloc and --chapter are two readings, not one: run the'
                 ' two invocations README\'s checklist spells out')
 
+    if args.replace:
+        if not args.with_:
+            sys.exit('--replace wants --with FILE, the replacement text')
+        sys.exit(splice(args.readme, args.replace, args.with_))
     if args.para:
         sys.exit(paragraphs(args.readme, args.para))
     if args.check_doc:

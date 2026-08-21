@@ -8084,10 +8084,10 @@ one --- reads 0.9408 here, well inside this run's 2.32% floor and stays nearer
 the aligned figure than the unaligned one by more than a factor of two.
 The third link tightened rather than loosened.
 
-Readings: `mut-odo-vecdims` / `mut-flat-gm` 0.6161, 22 of 24, sign p 3.6e-05;
-`mut-flat-gm` / `bq-mut-runs-gm-mulback` 0.9408, 21 of 24, sign p 0.00028;
-`bq-mut-runs-gm-mulback` / `bq-odo-gm-mulback` 0.9265, 20 of 24, sign p 0.0015.
-3 of 3 registered orderings held.
+**Readings:** `mut-odo-vecdims` / `mut-flat-gm` 0.6161, 22 of 24, sign p
+3.6e-05; `mut-flat-gm` / `bq-mut-runs-gm-mulback` 0.9408, 21 of 24, sign p
+0.00028; `bq-mut-runs-gm-mulback` / `bq-odo-gm-mulback` 0.9265, 20 of 24, sign p
+0.0015. 3 of 3 registered orderings held.
 
 **Claim 2 held, and the sign test Run 14 watched go soft has come back.**
 The count on `offtab` / `bq-expand` holds at 6 of 24 and the p at 0.023, where
@@ -8099,14 +8099,14 @@ the margin grew by, so the two are not separable here. The ordering is what
 the claim registers and the ordering is untouched; as this entry has said since
 Run 9, the margin is the finding and the p is not.
 
-Readings: `bq-expand` / `bq-mut` 0.7274, 20 of 24, sign p 0.0015; `offtab` /
+**Readings:** `bq-expand` / `bq-mut` 0.7274, 20 of 24, sign p 0.0015; `offtab` /
 `bq-expand` 1.1829, 6 of 24, sign p 0.023. 2 of 2 registered orderings held.
 
 **Claim 3 held.** A mul-back output is worth 7% on the shipped build
 under this flag, 0.9280 against Run 15's 0.9193, as on every run since Run 10.
 
-Readings: `bq-expand-gm-mulback` / `bq-expand` 0.9280, 20 of 24, sign p 0.0015.
-1 of 1 registered ordering held.
+**Readings:** `bq-expand-gm-mulback` / `bq-expand` 0.9280, 20 of 24, sign p
+0.0015. 1 of 1 registered ordering held.
 
 **Claim 4's two halves have parted, after six runs reading alike.** Both
 readings are the claim --- the scan against its own build control, and the scan
@@ -8117,17 +8117,17 @@ was restated as a tie. So the point estimate a tied sign test used to make
 suspect is now an ordering, and the claim above is restated rather
 than requoted.
 
-Readings: `bq-scan-rem-gm-mulback` / `bq-expand-gm-mulback` 0.9128, 17 of 24,
-sign p 0.064; `bq-scan-rem-gm-mulback` / `bq-expand` 0.8471, 18 of 24, sign p
-0.023. 1 of 2 registered orderings held, BROKE on `bq-scan-rem-gm-mulback` /
-`bq-expand`.
+**Readings:** `bq-scan-rem-gm-mulback` / `bq-expand-gm-mulback` 0.9128, 17
+of 24, sign p 0.064; `bq-scan-rem-gm-mulback` / `bq-expand` 0.8471, 18 of 24,
+sign p 0.023. 1 of 2 registered orderings held, BROKE
+on `bq-scan-rem-gm-mulback` / `bq-expand`.
 
 **Claim 5 held.** Among the builds only the mutable odometer still beats
 `bq-expand`, `bq-mut-runs` reading 0.8948 at 24 wins of 24.
 
-Readings: `bq-expand` / `bq-gen` 0.3122, 21 of 24, sign p 0.00028; `bq-mut-runs`
-/ `bq-expand` 0.8948, 24 of 24, sign p 1.2e-07. 2 of 2 registered orderings
-held.
+**Readings:** `bq-expand` / `bq-gen` 0.3122, 21 of 24, sign p 0.00028;
+`bq-mut-runs` / `bq-expand` 0.8948, 24 of 24, sign p 1.2e-07. 2 of 2 registered
+orderings held.
 
 **Claim 6 held and its alarm again had nothing to answer for.** The anchor
 the claim tells you to check first is sound, and on this run it is soundest yet:
@@ -8143,8 +8143,8 @@ and +2.97% before. Read against `run15-lookrts` instead the same three read
 and it is the reason this page now says which Run 15 half an absolute is read
 against.
 
-Readings: `gen-quotrem` / `list` 1.2444, 8 of 24, sign p 0.15. 1 of 1 registered
-ordering held.
+**Readings:** `gen-quotrem` / `list` 1.2444, 8 of 24, sign p 0.15. 1 of 1
+registered ordering held.
 
 **Claim 7 held, and this is the pair that leans on it hardest.** Every
 allocation level is Run 15's to the digit but one, `list` reading 23.50x against
@@ -8170,7 +8170,7 @@ as in Run 15, while `bq-expand-zf` / `bq-expand` holds at **0 of 24** and p
 again, as in every run since Run 8, which is why the reading below verifies
 that pair rather than the geomean.
 
-Readings: `bq-expand-b` / `bq-expand` 0.9933, 8 of 24, sign p 0.15, best two
+**Readings:** `bq-expand-b` / `bq-expand` 0.9933, 8 of 24, sign p 0.15, best two
 cells `stretch-inner1` and `stretch-wide-2xM`; `bq-expand-zf` / `bq-expand`
 1.0338, 0 of 24, sign p 1.2e-07. 2 of 2 registered orderings held.
 
@@ -8552,7 +8552,7 @@ axis builds.** Shapes: `rev-cnn-L1-24x24-c1` (`l` 5184, `sInner` 3),
 | gen-quotrem | 1.340 | 1.607 | 1.13 | 81 | 1.00x |
 | gen-unsafe | 1.350 | 1.495 | 1.31 | 81 | 1.00x |
 
-Controls: The largest A/A pair is `build-aa-adjacent` at 0.9370, worst cell
+**Controls:** The largest A/A pair is `build-aa-adjacent` at 0.9370, worst cell
 10.54% on `rev-gather48-src-50`, and 12 of 18 intervals cover 1. The `sum-only`
 halves agree at 0.9998 on a worst cell of 0.07% on `rev-primes`, its interval
 covering 1. The in-situ term reads 0.9847, 1.0002, 0.9952 of `sum-only`
@@ -8560,12 +8560,12 @@ as medians, on `mut-odo-vecdims`, `mut-flat-gm`, `bq-expand`. Raw, that pair
 reads 0.9478, which the correction amplifies by 1.43x --- quote both wherever
 that is past 1.5.
 
-Provenance: elapsed 0h12m9s, peak 94 MiB in use, 19 MiB max residency;
+**Provenance:** elapsed 0h12m9s, peak 94 MiB in use, 19 MiB max residency;
 the reader reads 47 benchmarks over 3 shapes of the rev class. Anchor:
 `rev-primes`, `list` at 4.09 ms per call raw, 3.94 ms net.
 
-Per shape, in the lead's order (rev-cnn-L1-24x24-c1, rev-gather48-src-50,
-rev-primes): `mut-odo-vecdims` 0.068/0.052/0.027 `bq-scan-rem-gm-mulback`
+**Per shape, in the lead's order (rev-cnn-L1-24x24-c1, rev-gather48-src-50,
+rev-primes):** `mut-odo-vecdims` 0.068/0.052/0.027 `bq-scan-rem-gm-mulback`
 0.097/0.096/0.084 `bq-expand` 0.179/0.097/0.091
 
 **Across the halves:** 36 of the 42 arms are faster on the 32 MB half and six
@@ -8637,7 +8637,7 @@ Shapes: `revsome-inner-primes` (`l` 250357, `sInner` 89), `revsome-outer-g48`
 | *gen-unsafe-aa-adjacent* | *1.285* | *1.383* | *0.94* | *42* | *1.00x* |
 | gen-quotrem | 1.342 | 1.465 | 1.01 | 42 | 1.00x |
 
-Controls: The largest A/A pair is `offtab-aa-adjacent` at 1.0594, worst cell
+**Controls:** The largest A/A pair is `offtab-aa-adjacent` at 1.0594, worst cell
 22.64% on `revsome-mid-cnn-L2`, and 13 of 18 intervals cover 1. The `sum-only`
 halves agree at 0.9974 on a worst cell of 0.75% on `revsome-inner-primes`,
 its interval missing 1. The in-situ term reads 0.9894, 1.0002, 0.9966
@@ -8645,12 +8645,12 @@ of `sum-only` as medians, on `mut-odo-vecdims`, `mut-flat-gm`, `bq-expand`. Raw,
 that pair reads 1.0508, which the correction amplifies by 1.34x --- quote both
 wherever that is past 1.5.
 
-Provenance: elapsed 0h12m7s, peak 105 MiB in use, 17 MiB max residency;
+**Provenance:** elapsed 0h12m7s, peak 105 MiB in use, 17 MiB max residency;
 the reader reads 47 benchmarks over 3 shapes of the revsome class. Anchor:
 `revsome-inner-primes`, `list` at 3.92 ms per call raw, 3.77 ms net.
 
-Per shape, in the lead's order (revsome-inner-primes, revsome-outer-g48,
-revsome-mid-cnn-L2): `mut-odo-vecdims` 0.030/0.053/0.058
+**Per shape, in the lead's order (revsome-inner-primes, revsome-outer-g48,
+revsome-mid-cnn-L2):** `mut-odo-vecdims` 0.030/0.053/0.058
 `bq-scan-rem-gm-mulback` 0.095/0.098/0.096 `bq-expand` 0.095/0.097/0.131
 
 **Across the halves:** 41 of the 42 arms are faster on the 32 MB half and one
@@ -8717,7 +8717,7 @@ a broadcast's view.** Shapes: `bcast-inner8` (`l` 51200, `sInner` 8),
 | *gen-unsafe-aa-adjacent* | *1.022* | *1.123* | *2.02* | *22* | *1.00x* |
 | gen-unsafe | 1.050 | 1.115 | 1.86 | 22 | 1.00x |
 
-Controls: The largest A/A pair is `mut-odo-aa-distant` at 1.0834, worst cell
+**Controls:** The largest A/A pair is `mut-odo-aa-distant` at 1.0834, worst cell
 30.60% on `bcast-inner8`, and 9 of 18 intervals cover 1. The `sum-only` halves
 agree at 1.0022 on a worst cell of 0.70% on `bcast-tall-Mx2`, its interval
 covering 1. The in-situ term reads 1.0005, 1.0000, 1.0001 of `sum-only`
@@ -8725,13 +8725,13 @@ as medians, on `mut-odo-vecdims`, `mut-flat-gm`, `bq-expand`. Raw, that pair
 reads 1.0507, which the correction amplifies by 1.65x --- quote both wherever
 that is past 1.5.
 
-Provenance: elapsed 0h12m10s, peak 137 MiB in use, 40 MiB max residency;
+**Provenance:** elapsed 0h12m10s, peak 137 MiB in use, 40 MiB max residency;
 the reader reads 47 benchmarks over 3 shapes of the bcast class. Anchor:
 `bcast-inner900`, `list` at 27 ms per call raw, 25.9 ms net.
 
-Per shape, in the lead's order (bcast-inner8, bcast-inner900, bcast-tall-Mx2):
-`mut-odo-vecdims` 0.033/0.021/0.062 `bq-scan-rem-gm-mulback` 0.089/0.086/0.097
-`bq-expand` 0.094/0.097/0.084
+**Per shape, in the lead's order (bcast-inner8, bcast-inner900,
+bcast-tall-Mx2):** `mut-odo-vecdims` 0.033/0.021/0.062 `bq-scan-rem-gm-mulback`
+0.089/0.086/0.097 `bq-expand` 0.094/0.097/0.084
 
 **Across the halves:** 31 of the 42 arms are faster on the 32 MB half and eleven
 slower, from `list-aa-distant` at 0.8369 to `build` at 1.0174, with `list`
@@ -8799,20 +8799,20 @@ dimension.** Shapes: `bcastmid-c32-cnn` (`l` 165888, `sInner` 3),
 | *gen-unsafe-aa-distant* | *1.066* | *1.760* | *0.74* | *39* | *1.00x* |
 | gen-quotrem | 1.080 | 1.580 | 0.92 | 40 | 1.00x |
 
-Controls: The largest A/A pair is `gen-unsafe-aa-distant` at 1.0632, worst cell
-13.64% on `bcastmid-c32-cnn`, and 12 of 18 intervals cover 1. The `sum-only`
-halves agree at 1.0000 on a worst cell of 0.02% on `bcastmid-primes`,
-its interval covering 1. The in-situ term reads 0.9950, 0.9936, 1.0500
-of `sum-only` as medians, on `mut-odo-vecdims`, `mut-flat-gm`, `bq-expand`. Raw,
-that pair reads 1.0618, which the correction amplifies by 1.03x --- quote both
-wherever that is past 1.5.
+**Controls:** The largest A/A pair is `gen-unsafe-aa-distant` at 1.0632, worst
+cell 13.64% on `bcastmid-c32-cnn`, and 12 of 18 intervals cover 1.
+The `sum-only` halves agree at 1.0000 on a worst cell of 0.02%
+on `bcastmid-primes`, its interval covering 1. The in-situ term reads 0.9950,
+0.9936, 1.0500 of `sum-only` as medians, on `mut-odo-vecdims`, `mut-flat-gm`,
+`bq-expand`. Raw, that pair reads 1.0618, which the correction amplifies
+by 1.03x --- quote both wherever that is past 1.5.
 
-Provenance: elapsed 0h12m8s, peak 118 MiB in use, 33 MiB max residency;
+**Provenance:** elapsed 0h12m8s, peak 118 MiB in use, 33 MiB max residency;
 the reader reads 47 benchmarks over 3 shapes of the bcastmid class. Anchor:
 `bcastmid-b200k`, `list` at 44.4 ms per call raw, 43.3 ms net.
 
-Per shape, in the lead's order (bcastmid-c32-cnn, bcastmid-primes,
-bcastmid-b200k): `mut-odo-vecdims` 0.060/0.021/0.038 `bq-scan-rem-gm-mulback`
+**Per shape, in the lead's order (bcastmid-c32-cnn, bcastmid-primes,
+bcastmid-b200k):** `mut-odo-vecdims` 0.060/0.021/0.038 `bq-scan-rem-gm-mulback`
 0.101/0.084/0.071 `bq-expand` 0.137/0.094/0.070
 
 **Across the halves:** 36 of the 42 arms are faster on the 32 MB half and six
@@ -8877,7 +8877,7 @@ axis.** Shapes: `reshape1-500k` (`l` 500000, `sInner` 1), `reshape1-r3` (`l`
 | bq-gen | 1.051 | 2.823 | 1.78 | 41 | 2.00x |
 | gen-quotrem | 1.070 | 2.492 | 0.40 | 43 | 1.00x |
 
-Controls: The largest A/A pair is `mut-odo-aa-distant` at 1.1236, worst cell
+**Controls:** The largest A/A pair is `mut-odo-aa-distant` at 1.1236, worst cell
 43.43% on `reshape1-500k`, and 14 of 18 intervals cover 1. The `sum-only` halves
 agree at 0.9979 on a worst cell of 0.68% on `reshape1-r3`, its interval
 covering 1. The in-situ term reads 0.9949, 1.0186, 1.1462 of `sum-only`
@@ -8885,13 +8885,13 @@ as medians, on `mut-odo-vecdims`, `mut-flat-gm`, `bq-expand`. Raw, that pair
 reads 1.1135, which the correction amplifies by 1.08x --- quote both wherever
 that is past 1.5.
 
-Provenance: elapsed 0h12m9s, peak 103 MiB in use, 31 MiB max residency;
+**Provenance:** elapsed 0h12m9s, peak 103 MiB in use, 31 MiB max residency;
 the reader reads 47 benchmarks over 3 shapes of the reshape1 class. Anchor:
 `reshape1-500k`, `list` at 12.5 ms per call raw, 12.2 ms net.
 
-Per shape, in the lead's order (reshape1-500k, reshape1-r3, reshape1-rank10):
-`mut-odo-vecdims` 0.093/0.090/0.109 `bq-scan-rem-gm-mulback` 0.075/0.072/0.089
-`bq-expand` 0.080/0.110/0.200
+**Per shape, in the lead's order (reshape1-500k, reshape1-r3,
+reshape1-rank10):** `mut-odo-vecdims` 0.093/0.090/0.109 `bq-scan-rem-gm-mulback`
+0.075/0.072/0.089 `bq-expand` 0.080/0.110/0.200
 
 **Across the halves:** 30 of the 42 arms are faster on the 32 MB half and twelve
 slower, from `bq-expand-gm-mulback` at 0.8088 to `mut-odo-aa-distant` at 1.0456,
@@ -8962,7 +8962,7 @@ Shapes: `slice-cnn-L2-24x24-c32` (`l` 165888, `sInner` 3), `slice-primes` (`l`
 | *gen-unsafe-aa-distant* | *1.729* | *2.746* | *1.42* | *43* | *1.00x* |
 | gen-quotrem | 1.775 | 2.814 | 0.26 | 42 | 1.00x |
 
-Controls: The largest A/A pair is `offtab-aa-distant` at 0.9161, worst cell
+**Controls:** The largest A/A pair is `offtab-aa-distant` at 0.9161, worst cell
 15.82% on `slice-cnn-L2-24x24-c32`, and 15 of 18 intervals cover 1.
 The `sum-only` halves agree at 1.0002 on a worst cell of 0.04%
 on `slice-coprime-r7`, its interval missing 1. The in-situ term reads 0.9846,
@@ -8970,13 +8970,13 @@ on `slice-coprime-r7`, its interval missing 1. The in-situ term reads 0.9846,
 `bq-expand`. Raw, that pair reads 0.9317, which the correction amplifies
 by 1.40x --- quote both wherever that is past 1.5.
 
-Provenance: elapsed 0h12m7s, peak 108 MiB in use, 30 MiB max residency;
+**Provenance:** elapsed 0h12m7s, peak 108 MiB in use, 30 MiB max residency;
 the reader reads 47 benchmarks over 3 shapes of the slice class. Anchor:
 `slice-primes`, `list` at 4 ms per call raw, 3.85 ms net.
 
-Per shape, in the lead's order (slice-cnn-L2-24x24-c32, slice-primes,
-slice-coprime-r7): `mut-odo-vecdims` 0.059/0.029/0.034 `bq-scan-rem-gm-mulback`
-0.100/0.093/0.089 `bq-expand` 0.136/0.093/0.111
+**Per shape, in the lead's order (slice-cnn-L2-24x24-c32, slice-primes,
+slice-coprime-r7):** `mut-odo-vecdims` 0.059/0.029/0.034
+`bq-scan-rem-gm-mulback` 0.100/0.093/0.089 `bq-expand` 0.136/0.093/0.111
 
 **Across the halves:** 28 of the 42 arms are faster on the 32 MB half
 and fourteen slower, from `list-aa-distant` at 0.8566 to `gen-quotrem`
@@ -9042,21 +9042,21 @@ by naming, with the overlap the main set's bijective map drops.** Shapes:
 | *gen-unsafe-aa-distant* | *1.167* | *1.446* | *0.59* | *74* | *1.00x* |
 | gen-quotrem | 1.191 | 1.459 | 0.60 | 75 | 1.00x |
 
-Controls: The largest A/A pair is `mut-odo-aa-adjacent` at 0.9470, worst cell
-8.60% on `window-64x64-k1x9`, and 14 of 18 intervals cover 1. The `sum-only`
-halves agree at 0.9977 on a worst cell of 0.70% on `window-28x28-k5`,
-its interval covering 1. The in-situ term reads 0.9873, 0.9969, 1.0319
-of `sum-only` as medians, on `mut-odo-vecdims`, `mut-flat-gm`, `bq-expand`. Raw,
-that pair reads 0.9551, which the correction amplifies by 1.19x --- quote both
-wherever that is past 1.5.
+**Controls:** The largest A/A pair is `mut-odo-aa-adjacent` at 0.9470, worst
+cell 8.60% on `window-64x64-k1x9`, and 14 of 18 intervals cover 1.
+The `sum-only` halves agree at 0.9977 on a worst cell of 0.70%
+on `window-28x28-k5`, its interval covering 1. The in-situ term reads 0.9873,
+0.9969, 1.0319 of `sum-only` as medians, on `mut-odo-vecdims`, `mut-flat-gm`,
+`bq-expand`. Raw, that pair reads 0.9551, which the correction amplifies
+by 1.19x --- quote both wherever that is past 1.5.
 
-Provenance: elapsed 0h12m7s, peak 98 MiB in use, 17 MiB max residency;
+**Provenance:** elapsed 0h12m7s, peak 98 MiB in use, 17 MiB max residency;
 the reader reads 47 benchmarks over 3 shapes of the window class. Anchor:
 `window-224x224-k3`, `list` at 9.17 ms per call raw, 8.91 ms net.
 
-Per shape, in the lead's order (window-28x28-k5, window-224x224-k3,
-window-64x64-k1x9): `mut-odo-vecdims` 0.045/0.056/0.096 `bq-scan-rem-gm-mulback`
-0.094/0.094/0.074 `bq-expand` 0.114/0.128/0.119
+**Per shape, in the lead's order (window-28x28-k5, window-224x224-k3,
+window-64x64-k1x9):** `mut-odo-vecdims` 0.045/0.056/0.096
+`bq-scan-rem-gm-mulback` 0.094/0.094/0.074 `bq-expand` 0.114/0.128/0.119
 
 **Across the halves:** 34 of the 42 arms are faster on the 32 MB half and eight
 slower, from `list-aa-distant` at 0.8289 to `mut-odo-aa-distant` at 1.1071,
@@ -9121,21 +9121,21 @@ strided run), `scaled-r5` (`l` 15015, `sInner` 13).
 | list (baseline) | 1.000 | 1.000 | 0.21 | 72 | 19.43x |
 | *list-aa-adjacent* | *1.001* | *1.004* | *0.19* | *72* | *19.43x* |
 
-Controls: The largest A/A pair is `gen-unsafe-aa-distant` at 1.1010, worst cell
-14.70% on `scaled-r5`, and 13 of 18 intervals cover 1. The `sum-only` halves
-agree at 0.9980 on a worst cell of 0.55% on `scaled-super-r3`, its interval
-covering 1. The in-situ term reads 1.0037, 0.9876, 0.9973 of `sum-only`
-as medians, on `mut-odo-vecdims`, `mut-flat-gm`, `bq-expand`. Raw, that pair
-reads 1.0973, which the correction amplifies by 1.05x --- quote both wherever
-that is past 1.5.
+**Controls:** The largest A/A pair is `gen-unsafe-aa-distant` at 1.1010, worst
+cell 14.70% on `scaled-r5`, and 13 of 18 intervals cover 1. The `sum-only`
+halves agree at 0.9980 on a worst cell of 0.55% on `scaled-super-r3`,
+its interval covering 1. The in-situ term reads 1.0037, 0.9876, 0.9973
+of `sum-only` as medians, on `mut-odo-vecdims`, `mut-flat-gm`, `bq-expand`. Raw,
+that pair reads 1.0973, which the correction amplifies by 1.05x --- quote both
+wherever that is past 1.5.
 
-Provenance: elapsed 0h12m9s, peak 106 MiB in use, 32 MiB max residency;
+**Provenance:** elapsed 0h12m9s, peak 106 MiB in use, 32 MiB max residency;
 the reader reads 47 benchmarks over 3 shapes of the scaled class. Anchor:
 `scaled-rank1-m1`, `list` at 4.72 ms per call raw, 4.54 ms net.
 
-Per shape, in the lead's order (scaled-super-r3, scaled-rank1-m1, scaled-r5):
-`mut-odo-vecdims` 0.026/0.031/0.032 `bq-scan-rem-gm-mulback` 0.086/0.084/0.089
-`bq-expand` 0.095/0.094/0.098
+**Per shape, in the lead's order (scaled-super-r3, scaled-rank1-m1,
+scaled-r5):** `mut-odo-vecdims` 0.026/0.031/0.032 `bq-scan-rem-gm-mulback`
+0.086/0.084/0.089 `bq-expand` 0.095/0.094/0.098
 
 **Across the halves:** 40 of the 42 arms are faster on the 32 MB half and two
 slower, from `list-aa-distant` at 0.8308 to `gen-unsafe-aa-distant` at 1.0264,

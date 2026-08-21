@@ -1887,9 +1887,9 @@ CASES = [
          plant=lambda t: {'doc': edited_readme(t)},
          shadow=dict(mutate=[
              ('read-run.py',
-              "print('Provenance: elapsed ___, peak ___ MiB in use, ___ MiB"
+              "print('**Provenance:** elapsed ___, peak ___ MiB in use, ___ MiB"
               " max'",
-              "print('Provenance: elapsed ___, peak of ___ MiB in use, ___"
+              "print('**Provenance:** elapsed ___, peak of ___ MiB in use, ___"
               " MiB max'")],
              extra=whole_run(['lookrts'], prefix='zzit')),
          env={'DOC': '{doc}', 'BASIS': 'lookrts'},
