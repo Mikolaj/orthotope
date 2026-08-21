@@ -1168,7 +1168,7 @@ CASES = [
     case('buried-action-at-eof', 'read-run.py', '045ca63',
          'the last indented block of a document was never swept',
          plant=lambda t: {'readme': readme_with_trailing_buried_action(t)},
-         argv=['--check-doc', '--readme', '{readme}'],
+         argv=['--check-doc', '--worklists', '--readme', '{readme}'],
          ok=V(has=['--survey to see it']),
          bug=V(hasnt=['--survey to see it'])),
 
@@ -1192,13 +1192,15 @@ CASES = [
          ok=V(has=['1 arm(s) of the claims list']),
          bug=V(has=['8 arm(s) of the claims list'])),
 
-    case('added-lines-over-head', 'read-run.py', '045ca63',
+    case('added-lines-over-head', 'read-run.py', None,
          'a STAGED document emptied the freshness sweeps',
+         # No --audit: this case now passes a flag that postdates the
+         # default it guards, so code from before cannot take it. Removal
+         # is the handling; it goes on guarding forward.
          plant=staged_doc,
          env={'GIT_INDEX_FILE': '{index}'},
-         argv=['--check-doc', '--readme', '{doc}'],
-         ok=V(has=['NEW ']),
-         bug=V(has=['none added by this diff'], hasnt=['NEW '])),
+         argv=['--check-doc', '--worklists', '--readme', '{doc}'],
+         ok=V(has=['NEW '])),
 
     case('population-main-hs-does-not-define', 'read-run.py', '4086ab8',
          'a population Main.hs no longer defines died unpacking',
@@ -1332,12 +1334,14 @@ CASES = [
          argv=['--check-doc', '--readme', '{readme}'],
          ok=V(exit=1, has=['while this chapter is Run'])),
 
-    case('path-token-dotfile', 'read-run.py', 'a6c32e8',
+    case('path-token-dotfile', 'read-run.py', None,
          "lstrip('./') ate the leading dot of a cited dotfile",
          plant=lambda t: {'readme': readme_citing_dotfile(t)},
-         argv=['--check-doc', '--readme', '{readme}'],
-         ok=V(has=['ok:'], hasnt=['do not resolve: .hlint.yaml']),
-         bug=V(has=['do not resolve: .hlint.yaml'])),
+         argv=['--check-doc', '--worklists', '--readme', '{readme}'],
+         # No --audit: this case now passes a flag that postdates the
+         # default it guards, so code from before cannot take it. Removal
+         # is the handling; it goes on guarding forward.
+         ok=V(has=['ok:'], hasnt=['do not resolve: .hlint.yaml'])),
 
     case('insitu-worst-cell-label', 'read-run.py', 'a6c32e8',
          'a dropped shape renamed every later ratio',
@@ -1384,12 +1388,16 @@ CASES = [
          ok=V(has=['not checked: it has 5 column(s)']),
          bug=V(hasnt=['not checked: it has 5 column(s)'])),
 
-    case('brief-alone', 'read-run.py', 'a6c32e8',
-         '--brief outside --aa/--block printed everything and said nothing',
+    case('verbose-alone', 'read-run.py', None,
+         '--verbose outside the modes that drop prose said nothing',
+         # No --audit: this case now passes a flag that postdates the
+         # default it guards, so code from before cannot take it. Removal
+         # is the handling; it goes on guarding forward.
+         # Was `--brief`, which is now the DEFAULT and kept only as a
+         # compatibility pin; the guard it tested moved to --verbose with it.
          plant=lambda t: {'run': synth_json(t, 'main')},
-         argv=['{run}', '--markdown', '--brief'],
-         ok=V(exit=2, has=['--brief is a modifier']),
-         bug=V(exit=0)),
+         argv=['{run}', '--markdown', '--verbose'],
+         ok=V(exit=2, has=['--verbose restores'])),
 
     case('two-modes-at-once', 'read-run.py', 'a6c32e8',
          'the if/elif dispatch dropped the second mode without a word',
@@ -1423,16 +1431,18 @@ CASES = [
          ok=V(has=["'1 ms'"]),
          bug=V(has=['e+03'])),
 
-    case('added-lines-untracked', 'read-run.py', '045ca63',
+    case('added-lines-untracked', 'read-run.py', None,
          'an untracked page had every hit called old',
+         # No --audit: this case now passes a flag that postdates the
+         # default it guards, so code from before cannot take it. Removal
+         # is the handling; it goes on guarding forward.
          plant=untracked_doc,
-         argv=['--check-doc', '--readme', '{doc}'],
+         argv=['--check-doc', '--worklists', '--readme', '{doc}'],
          # untracked means `added is EVERYTHING`, so the headline prints
          # bare -- neither wording. The positive is that the sweep ran
          # and reported at all, which a no-op would not.
          ok=V(has=['superseded figure(s) quoted'],
-              hasnt=['none added by this diff']),
-         bug=V(has=['none added by this diff'])),
+              hasnt=['none added by this diff'])),
 
     case('alloc-fit-on-an-unknown-shape', 'read-run.py', 'a6c32e8',
          'a missing alloc read as "allocated nothing", silencing the warning',

@@ -1632,7 +1632,8 @@ def compare_alloc(cells, shapes, strategies, meta, other, main_hs):
           '\nhalves differ in before reading a disagreement as a code change.')
 
 
-def compare_table(cells, shapes, strategies, meta, other, main_hs):
+def compare_table(cells, shapes, strategies, meta, other, main_hs,
+                  brief=True):
     """One arm's figure in this run against the same arm in another.
 
     `--pair` compares two arms inside one run; this compares one arm across
@@ -1685,6 +1686,8 @@ def compare_table(cells, shapes, strategies, meta, other, main_hs):
                     if cells[sh][st]['net'] > 0 and b_cells[sh][st]['net'] > 0)
         print('%-34s %8.4f %5d/%-3d %5.3f..%.3f'
               % (st, g, wins, n, rs[0], rs[-1]))
+    if brief:
+        return
     print('\nsum-only and -nosum arms are left out, having no corrected time'
           '\nto divide; --aa is where those are read.'
           '\nBelow 1 means this run is faster. The ratio is the geomean of the'
@@ -2918,10 +2921,10 @@ def block_skeleton(cells, shapes, strategies, meta, args, terms):
     # `--in-place: this mode emitted no table`. Found 2026-08-17 by review;
     # that call now installs the class's 49 rows over a copy that already
     # carries them, leaving it byte-identical, and prints no table row.
-    if args.in_place or not args.brief:
+    if args.in_place or args.verbose:
         markdown_table(cells, shapes, strategies, meta, args, terms)
         print()
-    aa_table(cells, shapes, strategies, terms, meta, args.brief)
+    aa_table(cells, shapes, strategies, terms, meta, not args.verbose)
     controls_skeleton(cells, shapes, strategies, terms)
     dims = meta['dims']
     anchor = max(shapes, key=lambda sh: dims.get(sh, {}).get('l', 0))
@@ -5321,7 +5324,17 @@ def main():
     # lines of prose a session has already read, and --block's table is
     # thrown away because --in-place installs it. --brief drops both. It
     # drops nothing computed -- every figure still prints.
-    p.add_argument('--brief', action='store_true')
+    # --brief is now the DEFAULT and --verbose restores what it drops. The
+    # standing explanation each mode prints is worth reading once a session,
+    # not once a call, and a paired run calls these modes a dozen times: Run
+    # 16 remembered the flag on --aa and --block and forgot it on --compare,
+    # which then printed 42 arms with their preamble several times over. The
+    # flag is kept as a no-op so an old recipe still runs.
+    p.add_argument('--brief', action='store_true',
+                   help='the default now; kept so older recipes still run')
+    p.add_argument('--verbose', action='store_true',
+                   help='restore the standing explanation --brief drops;'
+                        ' no computed figure differs either way')
     p.add_argument('--in-place', action='store_true',
                    help='install --markdown/--fingerprint/--block tables, or'
                         " --claims' per-claim readings, into README instead"
@@ -5335,8 +5348,17 @@ def main():
     # bit and withholds the rest -- by count, since a mode that hides a
     # line without saying so is worse than the reading it saves.
     p.add_argument('--quiet', action='store_true',
-                   help='with --check-doc: the FAIL lines and a count of what'
-                        ' was withheld, nothing else')
+                   help='the default now; kept so older recipes still run')
+    # Quiet is the default because the procedure says only ONE call in a
+    # whole run wants the worklists -- post-run step 7, where they are read
+    # and adjudicated -- and every other call is a gate whose verdict is its
+    # exit code. The default was the wrong way round and Run 16 ran the loud
+    # form out of habit more than once.
+    p.add_argument('--worklists', action='store_true',
+                   help='with --check-doc: print the superseded-figure,'
+                        ' superlative and absolute-time worklists for'
+                        ' adjudication -- step 7 wants this, no other call'
+                        ' does')
     p.add_argument('--para', metavar='PATTERN',
                    help="print README paragraphs whose bolded lead matches,"
                         " with the line each starts at; needs no run file")
@@ -5381,9 +5403,18 @@ def main():
     # `--brief` is read inside --aa and --block alone, so `--markdown
     # --brief` printed the full table at exit 0 saying nothing -- the same
     # silence the loop above refuses, one flag it did not cover.
-    if args.brief and not (args.aa or args.block):
-        p.error('--brief is a modifier of --aa or --block and does nothing'
-                ' alone')
+    # The two compatibility flags are READ and not merely accepted: each
+    # pins the behaviour that is now the default, so an old recipe keeps
+    # working AND keeps meaning what it meant if a default moves again.
+    # An accepted-but-unread flag is a defect family this directory's
+    # own source lint refuses, and it caught both of these.
+    if args.brief:
+        args.verbose = False
+    if args.quiet:
+        args.worklists = False
+    if args.verbose and not (args.aa or args.block or args.compare):
+        p.error('--verbose restores what --aa, --block and --compare drop'
+                ' and does nothing alone')
     # One mode an invocation. The dispatch below is an if/elif chain, so a
     # second mode was not refused but DROPPED: `--markdown --fingerprint
     # --in-place` installed the Results table, wrote neither fingerprint
@@ -5409,8 +5440,8 @@ def main():
     if args.para:
         sys.exit(paragraphs(args.readme, args.para))
     if args.check_doc:
-        sys.exit(check_doc_quiet(args.readme, args.main) if args.quiet
-                 else check_doc(args.readme, args.main))
+        sys.exit(check_doc(args.readme, args.main) if args.worklists
+                 else check_doc_quiet(args.readme, args.main))
     if args.lint:
         sys.exit(lint(args.main, args.readme))
     if args.run is None:
@@ -5482,7 +5513,7 @@ def main():
     if args.shapes:
         shape_table(cells, shapes, strategies, meta)
     elif args.aa:
-        aa_table(cells, shapes, strategies, terms, meta, args.brief)
+        aa_table(cells, shapes, strategies, terms, meta, not args.verbose)
     elif args.pair:
         pair_table(cells, shapes, strategies, args.pair)
     elif args.claims and args.in_place:
@@ -5501,7 +5532,7 @@ def main():
                       args.main)
     elif args.compare:
         compare_table(cells, shapes, strategies, meta, args.compare,
-                      args.main)
+                      args.main, not args.verbose)
     elif args.machine:
         sys.exit(machine_check(cells, shapes, args.readme))
     elif args.steps:
