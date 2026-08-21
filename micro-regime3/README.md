@@ -2544,9 +2544,8 @@ looks right.
 **The gate on the wild cell's logging has lifted, which is the one change
 this run makes to this heading.** Run 15's pair is spent and Run 16's is not yet
 built, so a `Main.hs` edit can ride both of its halves --- the condition
-that task has waited on for two runs. Of what stands here only the first item
-wants a quiet machine, and it is the only one whose window closes: it needs Run
-15's binaries.
+that task has waited on for two runs. Of what stands here, item 3's rider, floor
+and probe want a quiet machine and its pilot does not; no window closes.
 
 1. **WHICH SHAPES POISON --- asked here as the probe evening's one open
    question, and answered 2026-08-18: there is no set.** The scan it planned
@@ -2618,6 +2617,22 @@ wants a quiet machine, and it is the only one whose window closes: it needs Run
    for six runs and this run finds it on `mut-odo`, `gen-unsafe` and `build`
    instead, all three worst on `scaled-super-r3` --- so the instrument follows
    the shape and not the arm. Both readings are with the wild-cell entry.
+3. **Between Run 17 and Run 18: the riders and probes registered with Run 17's
+   pair, and Run 18's own pair** --- each with its kill condition in [the Run 17
+   registration and the entry after it](#what-is-open), each with its commands
+   in `run17-pair.txt`, none needing a build. In the order they are worth
+   taking: the fixed-n rider on the three anchors over the gate's arms, owed
+   and not optional, minutes on `run17-det` once the evening is over;
+   the per-process floor, ten single-bench processes each of `offtab`
+   and `build` on one shape, which is the precondition of the per-trial-process
+   pilot [in the TODO list](#non-urgent-todo-list) and is why that pilot
+   is refused until this is read; the counted-work pilot, unblocked now
+   that `kernel.perf_event_paranoid` reads 1 here (2026-08-21); and the 24m/48m
+   probe, the one exception to the fixed area, a probe on a built binary
+   and never a recorded run. Run 18's pair is the saturating preamble,
+   a `Main.hs` change that rides both halves of a fresh pair and takes its dose
+   from the wildlog half's log; it is written up in the open list so that Run
+   17's write-up reads that log for it.
 
 **One rider rather than a task of its own, since it fires on an event and
 not on a session.** The pinning claim --- that a shim'd build holds every
@@ -2687,6 +2702,71 @@ left to attribute --- the interval it is about is the aligned binary's.
      behave as Run 16's, and the gate's machine check, which reads `list`
      against the kept fingerprint, passes if that fingerprint is Run 16's.
      A failure there is read before anything else, as the check says.
+
+  **Registered with the pair, out of the probe budget after the write-up, each
+  on the basis binary and none needing a build** --- in the order they are worth
+  taking, the commands in `run17-pair.txt`. *The fixed-n rider*, owed rather
+  than optional: the three anchors (`cnn-slice-c32`, `cifar-L2-16-c64-k3`,
+  `stretch-wide-2xM`) over the gate's arms (`list`, `build`, `mut-odo`,
+  `sum-only-early`, `sum-only-late`), each cell as two fresh processes
+  at `-n 2N` and `-n N`, `N` sized so the larger takes about a minute,
+  the difference over `N` being the per-call cost owing nothing to criterion's
+  estimator. Registered: every differenced cell inside the floor of the run's
+  own slope for that cell; a cell outside it is the estimator's bias and
+  not the arm's, and the slope column is then read as criterion's for that arm.
+  *The per-process floor*: ten single-bench processes each
+  of `vgg-14-c512-k3/offtab` and `/build`, each
+  under `+RTS -A32m -I0 -T -M8G -S -RTS`, the spread across the ten being
+  the per-process floor and the `-S` logs saying whether it is mutator
+  or collector. Registered: the 10 to 21% the alone legs spread --- and
+  if it holds, randomised per-trial processes (the TODO list's pilot) need many
+  trials a cell and stay refused; if the ten agree inside the A/A floor,
+  the alone legs' spread was something else and that pilot is back on.
+  *The counted-work pilot*: `perf stat -e instructions:u` over every timed arm
+  on the shape set at one fixed `-n` per shape, read against the basis's `time`
+  column --- `kernel.perf_event_paranoid` reads 1 here on 2026-08-21,
+  so user-space counting owes nothing by hand, cachegrind being the slow
+  fallback should that move. Registered: the orderings agree wherever
+  the clock's margin clears the floor and the cells that disagree
+  are the memory-bound residue; agreement licenses Run 18's method. *The 24m/48m
+  probe*, the one exception to the fixed area and a probe, never a recorded run:
+  the gate's five-bench selection on `run17-det` at `+RTS -A24m`, `-A32m`
+  and `-A48m`, each repeating `-I0 -T -M8G`, the 32m process being the control
+  taken by the same route. Killed by `list`'s geomean at 32m lying
+  on the 24-to-48 interpolation within the floor; a bump there
+  is the L3-coincidence disturbance the churn comment measured
+  on the list-shaped victim, and the one finding that would reopen the decision.
+
+- `OPEN` **Run 18's pair: the process state as an asserted input,
+  by a saturating preamble.** The churn findings settled that the damaged state
+  saturates around a million sub-threshold allocations, is reproducible
+  at the plateau within run-to-run spread, persists, and is healed by nothing,
+  and the roster reaches it well before a full run --- the deflation at 32m
+  reads +13.03% at 120 benches against +13.10% at 1128. What still varies
+  is WHERE each process reaches it: every process crosses the plateau during
+  its first slots, and every `-m glob` probe, class process and `-L1` run starts
+  clean and saturates somewhere else, the dose per bench scaling with the time
+  budget --- the confound that manufactured the retracted poison set. The change
+  is a `Main.hs` mode (`--saturate`, or an environment variable) that runs
+  a counted, not timed, sub-threshold spray ---
+  `small-pinned-churn-investigation/ReproSmall.hs`'s poison, 1.15M buffers
+  of 2304 B --- and a major collection before criterion starts; on for every
+  recorded process and every probe read against a recorded cell, off
+  for the alone-leg riders, which define the clean regime. It prints a fixed-n
+  mini-victim reading and `max_mem_in_use_bytes` into the log, so `run-major.sh`
+  asserts the plateau the way it asserts bench counts. Non-vacuity: double
+  the dose and the readings stand; dose zero and they sit at the alone-leg
+  level. Registered in advance: the ratios do not move, the arms being immune,
+  and `list` sits ~13% above its alone leg as now. **Why Run 18 and not 17**:
+  a `Main.hs` edit rides both halves of a fresh pair or confounds
+  a registration, and Run 17's halves are spoken for. **What Run 17 feeds it**:
+  the wildlog half's per-sample record shows where in the first slots each
+  process reaches the plateau, which sizes the dose --- Run 17's write-up reads
+  that off the log. A probe binary between the runs, the `det` recipe
+  over a preamble patch, prototypes it on single-bench probes against roster
+  cells before the pair is built. Counted work joins it as Run 18's method
+  if the pilot registered with Run 17 licenses the switch, the clock kept
+  for the memory-bound residue.
 - `STANDING` **A class process's provenance line counts every class view,
   not the population that ran.** The count is fixed before criterion does
   the selecting, so each class process reports the whole class set's size beside
@@ -2757,15 +2837,21 @@ left to attribute --- the interval it is about is the aligned binary's.
   a memory-system effect can invert an ordering. Pilot: counts for every timed
   arm over the shape set, read against a published time column --- orderings
   that agree license the switch, and the cells that disagree
-  are the memory-bound residue the clock is still for. **Randomised slots
-  in per-trial processes instead of pinned ones.** Many short fixed-`-n` trials
-  per cell, each in its own process with the order drawn fresh, so that position
-  becomes noise that averages rather than bias that persists, and a table stops
-  needing comparability carried between runs, being self-contained evidence.
-  Not the reordering the roster-order entry above rejected --- that varied slots
-  inside the one shared process --- but a regime that gives the shared process
-  up. Pilot: a few arms and shapes read against the published column,
-  with the A/A pairs' spread under randomisation as the method's own floor.
+  are the memory-bound residue the clock is still for. It is registered with Run
+  17's pair, `kernel.perf_event_paranoid` reading 1 here on 2026-08-21.
+  **Randomised slots in per-trial processes instead of pinned ones.** Many short
+  fixed-`-n` trials per cell, each in its own process with the order drawn
+  fresh, so that position becomes noise that averages rather than bias
+  that persists, and a table stops needing comparability carried between runs,
+  being self-contained evidence. Not the reordering the roster-order entry above
+  rejected --- that varied slots inside the one shared process --- but a regime
+  that gives the shared process up. Pilot: a few arms and shapes read against
+  the published column, with the A/A pairs' spread under randomisation
+  as the method's own floor. Its precondition is the per-process floor
+  registered with Run 17's pair: `offtab`'s and `build`'s alone legs spread 10
+  to 21% across single processes of one binary, a term no in-process control
+  sees and one this regime would inherit as noise, so until ten processes of one
+  cell have been read the pilot is refused.
 - `OPEN` **Render the run-scoped prose from a ledger --- speculative likewise.**
   The end state is verdicts, statuses, floors and tallies kept in one small
   machine-readable file beside the roster, `read-run.py` rendering them
@@ -4087,12 +4173,17 @@ with `-rtsopts`, so an already-built binary takes any RTS setting, and `-s`,
 `-hT` and `-S` are available in a non-profiling build --- which is how Run 15
 answered a registered question, found the collector mechanism behind its own
 table, and named what a major collection copies, all on binaries it had already
-timed. The `-O2` one is a probe. `-fspec-constr` is no longer: Run 8 is a full
-recorded run in that regime, and the flag therefore goes before the `--`
-of every command of the sequence rather than being reached for once. A run whose
-numbers are meant to be kept and written into this file is a different
-undertaking, and has a procedure of its own: [Making a major benchmark
-run](#making-a-major-benchmark-run).
+timed. What `-s` cannot see is the churn state: on the 27719 reproducer
+it prints `0 MiB lost due to fragmentation` poisoned and clean alike and reads
+productivity HIGHER poisoned, and `max_mem_in_use_bytes`, the heap peak every
+run prints, is flat under the tax --- so a clean `-s` or an equal peak across
+two processes says nothing about which state either is in, and a fixed-n victim
+reading is what dates a state. The `-O2` one is a probe. `-fspec-constr`
+is no longer: Run 8 is a full recorded run in that regime, and the flag
+therefore goes before the `--` of every command of the sequence rather
+than being reached for once. A run whose numbers are meant to be kept
+and written into this file is a different undertaking, and has a procedure
+of its own: [Making a major benchmark run](#making-a-major-benchmark-run).
 
 
 ### Making a major benchmark run
@@ -7840,6 +7931,15 @@ at that sample. The predictions are in the open list, as [What Run 17 is built
 to answer](#what-is-open); the recipes are `run17-pair.txt`'s. The allocation
 area is fixed and no pair will vary it again: Runs 14, 15 and 16 priced it,
 and the decision closed it.
+
+**Registered with the pair, and Run 18 spoken for.** Four riders and probes go
+with Run 17, out of the probe budget after the write-up and none needing a build
+--- the fixed-n rider on the anchors, the per-process floor, the counted-work
+pilot and the 24m/48m probe --- each with its kill condition in [the Run 17
+registration](#what-is-open) and its commands in `run17-pair.txt`; and Run 18's
+pair is the saturating preamble, [registered beside them](#what-is-open),
+a `Main.hs` change that takes its dose from the wildlog half's log and rides
+both halves of a fresh pair.
 
 **The position term was the candidate Run 15 promoted, and the probes have since
 spent it.** What Run 14 first saw and Run 15 confirmed is resolved
