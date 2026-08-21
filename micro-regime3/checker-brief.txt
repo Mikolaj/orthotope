@@ -1,0 +1,103 @@
+The brief for a run's independent checker, and for the comprehension
+probe after it. Both are agents, both start where the session started
+and so arrive knowing none of this, and both were retyped from memory
+on Run 16 -- once because a rate limit killed the first agent mid-pass
+and the whole brief had to be written again. Only the first block
+changes from run to run.
+
+Substitute per run: RUN=run16  BASIS=a32m  OTHER=a64m  PREV=run15
+                    PREVBASIS=run15-lookrts  PREVSAME=run15-a32m
+                    PRETIP=57ee865   (the commit before the run's work)
+
+
+=== THE INDEPENDENT CHECKER, PASS 1 (launch when the tables go in) ===
+
+You are an independent checker for a benchmark write-up. Report
+DISCREPANCIES, not opinions or style preferences.
+
+WHERE YOU ARE. Work in /home/mikolaj/r/orthotope/micro-regime3. That is
+an orthotope checkout, NOT the horde-ad repo your session started in.
+Your evidence is this run's own JSON artifacts in that directory and
+the reader ./read-run.py there, and NOTHING ELSE. No other
+repository's checkers, linters or conventions come near this page --
+they carry a per-repo configuration and will report correct names as
+missing. Do not edit any file. Read and compute only.
+
+THE DIFF:  git -C /home/mikolaj/r/orthotope diff PRETIP..HEAD -- micro-regime3/README.md
+If the page was normalised or rewrapped in that range the diff is
+mostly character-level; ignore that and judge the substance.
+
+FOUR THINGS YOU CANNOT DERIVE, so they are given:
+ 1. The basis is RUN-BASIS and publishes every table (RUN-BASIS-main.json,
+    and RUN-BASIS-<class>.json for rev revsome bcast bcastmid reshape1
+    slice window scaled). The control is RUN-OTHER.
+ 2. PREV is on disk too. Absolutes and anchors are read against
+    PREVSAME, the half at this run's own area; the published lineage
+    and the yardstick column against PREVBASIS.
+ 3. Alone-leg riders are RUN-al-<half>-<shape>-r1.json, one bench each.
+    Probes are probe-*.json/.log.
+ 4. read-run.py is the only reader; start with --help. --cells gives
+    TSV (slope_s raw, slope_net_s corrected); --pair, --compare, --aa,
+    --claims, --block, --fingerprint, --machine are the modes.
+
+PASS 1 -- every figure. Recompute every numeric claim the diff adds,
+from the reader or --cells, never by dividing figures printed in a
+table (they are rounded to three significant figures). Be exhaustive
+on the tables -- Results, the fingerprint, the eight class tables, the
+cross-class summary, the yardstick's new columns -- and say how many
+rows you verified and how many disagreed.
+
+PASS 2 -- every superlative and count. Every "only", "largest",
+"widest", "highest", "lowest", "smallest", "most", "first", "never"
+and every "N of M" is a claim about a whole population: re-derive it
+BY SORTING that population, not from the arms the sentence names.
+Flag any sentence contradicting a table or another sentence.
+
+Report a numbered list of discrepancies only -- the claim as written,
+what you computed, the command you used, and the size of the
+disagreement -- plus per-pass counts of what you verified. Say
+explicitly what you could not compute rather than guessing.
+
+
+=== THE SAME AGENT, PASS 2 (after the first round of fixes) ===
+
+Send it the fixes, not the prose again. On Runs 15 and 16 most of the
+second pass's findings existed ONLY because the first round of fixes
+had been written -- nine of thirteen on Run 16 -- so that is what it
+is hunting. List each fix you made, so it checks rather than
+rediscovers, and ask specifically for: any NEW superlative or count
+the fixes introduced, any place a fix now contradicts a neighbouring
+sentence left untouched, and any figure a fix corrected whose
+attribution the correction falsified.
+
+
+=== THE COMPREHENSION PROBE (a DIFFERENT agent, once the page settles) ===
+
+It must be uncontaminated: a fresh agent, never the checker, which has
+seen everything. It reads the page and nothing else -- no reader, no
+JSONs, no other repo -- and answers the page's own questions with
+citations, quoting the sentence and naming its section.
+
+Ask nine-ish questions that CROSS section boundaries, since that is
+the class of defect nothing else can see. The ones that earned their
+place on Run 16: this run's floor per half with its carrying pair and
+the threshold two table rows must clear; which area the published
+tables use and which half publishes; whether a nursery pair's columns
+may be subtracted and how many such pairs exist; whether the shipped
+arm is ever slower than what it replaced; which half of the previous
+run a figure is compared against and whether that depends on the kind
+of figure; what each probe concluded and whether it confirmed or
+refuted its registration; what a large single A/A cell should tell a
+reader; the placement-sensitive arms and what is known about why; and
+whether the machine was undisturbed.
+
+THE CLOSING INSTRUCTION IS THE POINT: list every place the document
+contradicted itself, gave two answers to one question, or left the
+reader unable to answer despite clearly intending to -- quoting both
+sides with their headings -- and everything it had to read three times
+or first got wrong, saying what misled it.
+
+AND COUNT ITS FINDINGS BEFORE ACTING ON THEM. A probe's summary is a
+reader's experience and not a census: Run 16's reported five senses of
+one word where the text had one borrowing, and acting on the summary
+would have renamed two things that were already correct.

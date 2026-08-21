@@ -4113,6 +4113,12 @@ that is the defect, not your reading. And a rule's evidence goes at the end
 of its paragraph, as a date and an outcome --- never inside an instruction,
 and never as a chronology.
 
+    # READ THIS LIST AND THE LAST RUN'S CHAPTER, AND START. The prose
+    # around these three lists is reference: it holds the reasons and
+    # restates no fact you need, so reading it front to back before
+    # beginning is the single largest waste available here -- Run 16 read
+    # all 1760 lines first and needed almost none of it for this half.
+    # Come back to a paragraph when a step surprises you.
     cd ~/r/orthotope/micro-regime3        # and re-set R and REGIME per call
     #      NN is one past the chapter head's: `## About the last run (Run
     #      N)` is the run behind you, and the two forward headings --
@@ -4550,11 +4556,9 @@ is to say the shell this warning is about is the ordinary one here,
 not a careless one. Inline the two literals into every command, or re-set them
 at the head of each:
 `cd ~/r/orthotope/micro-regime3 && R=run10 REGIME=-fspec-constr && ...`. The two
-do not fail alike, which is the reason to spell this out rather than trust care.
-`./run-major.sh $R` with `$R` empty is loud, the driver refusing without a name.
-A build with `--ghc-options="$REGIME"` empty is not: it degrades to a plain -O1
-build, which is exactly the silent wrong thing the paragraph above describes
-and nothing downstream detects.
+do not fail alike: `./run-major.sh $R` with `$R` empty is loud, the driver
+refusing without a name, where an empty `$REGIME` is the silent case
+the paragraph above describes.
 
 `$REGIME` is the bare GHC flag and not a `--ghc-options=` spelling of it,
 because a recipe composes it with a `-pgma` of its own and each wants
@@ -4598,23 +4602,15 @@ different would retire them in silence. Where the binaries and the note
 recording what they were built from are already there, confirm them instead
 of rebuilding.
 
-The fork's three questions are answerable in three commands, none of which
-the page should make you invent. Is there a pair --- `ls $R-*`. Is it the pair
-the note describes --- `md5sum $R-<basis> $R-<other>` against its two `md5`
-lines. Has the source moved under it ---
-`git log -1 --format=%h -- :/micro-regime3/Main.hs` against the commit the note
-records for `Main.hs`, which is the one that command returns; where the note
-records two, the other is the tree it was built in and is not what
-this compares. **Expect it to differ, and read the diff before believing it**:
-step 8 below sends the write-up into `Main.hs`'s comments and forbids rebuilding
-for it, so a comment-only move is the expected state after a run whose write-up
-went there --- Run 14's did not, and its commit is where `Main.hs` still stands
---- and `git diff <note's commit> HEAD -- :/micro-regime3/Main.hs` is what tells
-either from a real move --- the `:/` prefix in both, since a bare `-- Main.hs`
-from the repo root prints nothing and exits 0. The regime is the fourth
-and is not answerable this way, the JSON recording no compiler flag; the `diag`
-step below is what answers it. The shim is the fifth, step 3a, and is the one
-the fork used to miss.
+The fork's five questions and their commands are in the list; what the list
+cannot carry is why the third one usually answers *yes*. **Expect `Main.hs`
+to have moved, and read the diff before believing it**: step 8 below sends
+the write-up into that file's comments and forbids rebuilding for it,
+so a comment-only move is the expected state after any run whose write-up went
+there, and only `git diff` tells that from a real one. The regime is the fourth
+question and is not answerable from git at all, the JSON recording no compiler
+flag --- the `diag` step is what answers it. The shim is the fifth, and
+is the one the fork used to miss.
 
 **The preparation may be any age, and the fork is where a later session
 re-enters.** Nothing in it wants a quiet machine, so it is legitimately
@@ -4808,15 +4804,13 @@ everything a run leaves**, the binaries and the pair note with the JSONs:
 `$R-<rest>`, the run first and nothing before it, which is what stops two runs
 writing one filename. Binaries from Run 11 and earlier were named for the half
 alone (`micro-aligned`, `micro-unaligned`), which is what this page's history
-calls them. **All three installing modes come from the basis**: `--markdown`,
-`--fingerprint` and `--block` alike, so the page carries one basis and not one
-per half, and what the other half contributes is the `--compare` and a yardstick
-column. Run 10 is the one run that answered otherwise, its Results table coming
-from the unaligned half while its fingerprint and its class blocks came
-from the aligned one --- a split it needed because its aligned half
-was the first here and had no predecessor to succeed. That ended with Run 11:
-**the basis half is the table and the other half is the control**, whatever
-the control is built to price.
+calls them. The page carries one basis and not one per half, and what the other
+half contributes is the `--compare` and a yardstick column. Run 10 is the one
+run that answered otherwise, its Results table coming from the unaligned half
+while its fingerprint and its class blocks came from the aligned one --- a split
+it needed because its aligned half was the first here and had no predecessor
+to succeed. That ended with Run 11: **the basis half is the table and the other
+half is the control**, whatever the control is built to price.
 
 **What the other half is for**, since a run that publishes no table from it will
 otherwise be asked why it spends an hour building and timing it. That depends
@@ -5444,7 +5438,12 @@ the artifacts are what it spends.
 6. Walk the list under [Provenance](#provenance) of what the new numbers
    replace, and do not trust it to be complete: re-run the two sweeps it names
    and map each hit to the bullet covering it, since running the sweeps
-   is not the same as reading them, and the list has been wrong before.
+   is not the same as reading them, and the list has been wrong before. **What
+   skipping this costs is measured**: Run 16 walked it shallowly
+   and an independent checker then found **fourteen of its twenty-one findings**
+   were stale prose in sections this list names --- an anchor table, a launch
+   window, four per-claim verdicts, a class calibration paragraph --- every one
+   of them contradicted by a table the same write-up had just installed.
    **Replace; do not annotate.** Walking a list of what to replace makes "now X,
    where it was Y" the natural sentence, and a superseded number has to earn
    its place by the test in the user-scope `CLAUDE.md` --- would someone redo
@@ -5466,20 +5465,38 @@ the artifacts are what it spends.
    errors, and the fourth is what catches what the third cannot see in its own
    writing.
 
-   **And where the write-up was made by scripted replacement rather
-   than by `Edit`, one mechanical read comes before those four.** Unwrap both
-   sides and diff them --- `wrap80 --unwrap` over the committed version
-   and over the working one --- and read that diff for text that left without
-   a replacement arriving. A scripted rewrite fails in two shapes and neither
-   is a wrong figure. Anchored on a *prefix*, it replaces the whole paragraph
-   and drops whatever followed the part its author had read; `--check-doc`
-   catches that one, every prose paragraph being required to end a sentence.
-   Anchored on two *markers*, it deletes every paragraph between them, however
-   many that turns out to be --- and nothing catches it: the survivors still end
-   sentences, the anchors still resolve, the figures still match, and every
-   check here is a predicate over what is **present**, so none can see what
-   is gone. Measured on 2026-08-14, when a paragraph recording that the regime
-   had been confirmed in the binary was removed from this file and `--lint`,
+   **And where the write-up is made by scripted replacement rather
+   than by `Edit`, WRITE AFTER EVERY REPLACEMENT.** A batch that applies a list
+   of edits and writes at the end loses all of them the moment one anchor
+   misses: the assertion fires, the script exits, and the successes before
+   it are discarded with the failure. Nothing announces that --- the run reports
+   an error about one edit while silently dropping the rest --- and it cost Run
+   16 six fixes that were then described in a commit message as done. Write
+   the file inside the loop and report per edit, so a later miss cannot discard
+   an earlier success. That is separate from what a scripted rewrite gets
+   *wrong*, which is the next paragraph, and it is the failure to expect first
+   because it is the quiet one.
+
+   **Then one mechanical read comes before those four.** Unwrap both sides
+   and diff them --- `wrap80 --unwrap` over the committed version and
+   over the working one --- and read that diff for text that left without
+   a replacement arriving. **And run the figure sweep BEFORE unwrapping,
+   or re-wrap to read it**: `--check-doc` marks its worklist hits as added
+   by this diff by comparing against the committed page, so while the document
+   is unwrapped every line reads as changed and the classification is worthless.
+   Run 16 unwrapped to edit --- which the wrapping rules ask for --- and thereby
+   disabled the one sweep that would have found the stale prose the replace-list
+   walk missed, being told 54 figures were new when most were untouched.
+   A scripted rewrite fails in two shapes and neither is a wrong figure.
+   Anchored on a *prefix*, it replaces the whole paragraph and drops whatever
+   followed the part its author had read; `--check-doc` catches that one, every
+   prose paragraph being required to end a sentence. Anchored on two *markers*,
+   it deletes every paragraph between them, however many that turns out
+   to be --- and nothing catches it: the survivors still end sentences,
+   the anchors still resolve, the figures still match, and every check here
+   is a predicate over what is **present**, so none can see what is gone.
+   Measured on 2026-08-14, when a paragraph recording that the regime had
+   been confirmed in the binary was removed from this file and `--lint`,
    `--check-doc` and the truncation check all exited 0. So assert the extent
    in the script, echo what it is about to overwrite, and read the unwrapped
    diff afterwards, which is the only place a lost paragraph shows.
@@ -5495,16 +5512,22 @@ the artifacts are what it spends.
    of that pass's seven findings existed only because the first round of fixes
    had been written.
 
-   **Expect every error to be in the prose and none in the numbers, and expect
-   the green checkers to be why.** Run 11 shipped six, and not one was a wrong
-   figure out of the reader: four superlatives asserted without sorting
-   the population they quantify over, one sentence contradicting its own
-   paragraph three lines later, and one percentage computed from a published
-   table instead of from the cells. `--lint`, `--check-doc`, `--selftest`
-   and `--aa` were green throughout and right to be --- they check
-   the measurements, and the measurements were sound. The hazard is that green
-   instruments make the remaining gap feel small when the remaining gap is where
-   all of it lives.
+   **The installed tables are not yours to re-verify; spend that budget
+   on the prose and on the sentences elsewhere your tables have just
+   falsified.** Run 16's checker recomputed 487 table rows against the reader
+   and found not one wrong, against 34 prose errors in the same diff ---
+   so re-deriving an installed figure buys nothing that `--in-place` did
+   not already guarantee, while every hour spent there is an hour not spent
+   on the two places errors actually live. **Expect every error to be
+   in the prose and none in the numbers, and expect the green checkers
+   to be why.** Run 11 shipped six, and not one was a wrong figure out
+   of the reader: four superlatives asserted without sorting the population they
+   quantify over, one sentence contradicting its own paragraph three lines
+   later, and one percentage computed from a published table instead of
+   from the cells. `--lint`, `--check-doc`, `--selftest` and `--aa` were green
+   throughout and right to be --- they check the measurements,
+   and the measurements were sound. The hazard is that green instruments make
+   the remaining gap feel small when the remaining gap is where all of it lives.
 
    A write-up is a document edit, so the three-pass discipline applies ---
    but its passes live here, in this repo's own instruments,
@@ -5528,29 +5551,48 @@ the artifacts are what it spends.
    verifies somebody else's findings while telling you nothing about what else
    is wrong, which is the completeness question the reading exists to answer.
    Run 11 is the case above: every checker green and the worklist adjudicated
-   while six errors stood. **So put an independent checker on the diff against
-   the artifacts, launched when the tables go in rather than at the end ---
-   and the cost of launching late is measured** (Run 15, which launched once
-   the whole write-up was drafted): its first pass returned seventeen findings,
-   several of them prose built on a table figure a table-time pass would have
-   caught first, and its second pass returned seven more of which four existed
-   *only* because the first round of fixes had been written. Late launching does
-   not merely delay the findings, it multiplies them --- and it is **two passes
-   on one agent**, since at that moment only the tables exist: the tables
-   as they go in, then the prose together with the fixes the first pass caused,
-   the second continuing the first rather than paying a fresh bootstrap. Run
-   13's first pass verified 341 table lines and found the cross-class summary
-   untouched; its second found six prose errors, including a previous run's
-   figure presented as this one's. One agent, briefed to recompute every added
-   figure from the reader and to re-derive every *only*, *largest* and *N
-   of the nine* by sorting, and to report discrepancies rather than opinions.
-   It is dear per finding --- Run 11's cost some thirty times what the same
-   session's own targeted re-checks did --- and it is worth it anyway, because
-   its findings are the ones a session has already proved it cannot see
-   in its own prose, and because it returns a completeness the author cannot:
-   306 of 306 table rows verified rather than the ones somebody thought
-   to check. Leave the placement, contradiction and writing-rule reading
-   to yourself. Four things it cannot derive go in the brief: which half
+   while six errors stood. **The checker and the comprehension probe are not two
+   goes at one job, and the split is what makes the second worth its cost.**
+   A checker is scoped to the diff: it reads what changed, recomputes it,
+   and is the only instrument that returns completeness over a table. It cannot
+   see a sentence in a section nobody touched that this run's tables have just
+   falsified --- and on a run that changes its basis those are everywhere.
+   The probe reads the page as a stranger meets it, and on Run 16
+   that is exactly what it returned: three different thresholds quoted for one
+   quantity, two of them in one paragraph; `six pairs` and `eighteen pairs` both
+   given as the A/A population; a `keep the default area` ruling standing
+   unmarked in the run that abandoned it; and two comparison rules that read
+   as one and contradict. Not one of those is in any diff. **So run both,
+   and read the probe's findings as being about the page rather than about
+   the run.**
+
+   **So put an independent checker on the diff against the artifacts, launched
+   when the tables go in rather than at the end --- and the cost of launching
+   late is measured** (Run 15, which launched once the whole write-up
+   was drafted): its first pass returned seventeen findings, several of them
+   prose built on a table figure a table-time pass would have caught first,
+   and its second pass returned seven more of which four existed *only* because
+   the first round of fixes had been written. Late launching does not merely
+   delay the findings, it multiplies them --- and it is **two passes on one
+   agent**, since at that moment only the tables exist: the tables as they go
+   in, then the prose together with the fixes the first pass caused, the second
+   continuing the first rather than paying a fresh bootstrap. Run 13's first
+   pass verified 341 table lines and found the cross-class summary untouched;
+   its second found six prose errors, including a previous run's figure
+   presented as this one's. One agent, briefed to recompute every added figure
+   from the reader and to re-derive every *only*, *largest* and *N of the nine*
+   by sorting, and to report discrepancies rather than opinions. It is dear per
+   finding --- Run 11's cost some thirty times what the same session's own
+   targeted re-checks did --- and it is worth it anyway, because its findings
+   are the ones a session has already proved it cannot see in its own prose,
+   and because it returns a completeness the author cannot: 306 of 306 table
+   rows verified rather than the ones somebody thought to check. Leave
+   the placement, contradiction and writing-rule reading to yourself.
+   **The brief is checked in as `checker-brief.txt` and is not to be retyped**
+   --- it carries both agents' briefs and only its first block changes from run
+   to run, which is the run name, the two half names and the previous run's two.
+   Run 16 wrote it out twice, once because a rate limit killed the agent
+   mid-pass. Four things it cannot derive are why it exists: which half
    is the basis, and so which of the eighteen JSONs every published table comes
    from; that it works in this directory, that its evidence is this run's own
    JSONs and `read-run.py`, and that no other repository's checkers come near
@@ -5751,7 +5793,8 @@ the artifacts are what it spends.
    every class view rather than the population that ran, and the population's
    own size comes from the reader's first line;
 10. **Walk the open list against what this session actually did**, which nothing
-    checks. **Grep [the settled index][settled] before adding an entry**,
+    checks. **Grep [the settled index][settled] before adding an entry ---
+    and before ASSERTING anything this page may already have ruled on**,
     not only before deriving: a question is easy to open against something
     already answered in a section you are not writing in, which is how Run 10's
     write-up proposed a Core dump that had been taken three times and whose
