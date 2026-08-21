@@ -6,7 +6,7 @@ build-type:         Simple
 executable micro
     main-is:          Main.hs
     default-language: GHC2021
-    -- -M2G turns a mistyped shape into a heap-overflow exception instead of
+    -- -M8G turns a mistyped shape into a heap-overflow exception instead of
     -- an OOM: the cap is many times the real high-water mark, which every
     -- run now prints for itself from the -T stats below, so it cannot fire
     -- on a shape anyone means to add, while `[10000,10000,10]` would want
@@ -16,7 +16,12 @@ executable micro
     -- preconditions in Main.hs are asserted rather than dispatched on. Each
     -- is one test per call, not per element, so it cannot move a per-element
     -- figure; without the flag they would document without checking.
-    ghc-options:      -O1 -fno-ignore-asserts -rtsopts "-with-rtsopts=-T -M2G"
+    -- -A32m -I0 -T -M8G is the line every recorded run since Run 13 carried on
+    -- its recipe; since 2026-08-21 it is baked here instead, -A32m fixed for
+    -- every process here and every horde-ad suite (README, Running it), and no
+    -- recipe passes -with-rtsopts any more.
+    ghc-options:      -O1 -fno-ignore-asserts -rtsopts
+                      "-with-rtsopts=-A32m -I0 -T -M8G"
     build-depends:
         base,
         vector,
@@ -34,10 +39,11 @@ executable probe
     main-is:          Probe.hs
     default-language: GHC2021
     -- The same regime as micro, since the point is to read these figures
-    -- against that file's. No -M2G: the probe's largest payload is smaller
+    -- against that file's. No -M8G: the probe's largest payload is smaller
     -- than the main set's and nothing here can mistype a shape into an OOM,
     -- the six being copies that --lint holds to micro's own lists.
-    ghc-options:      -O1 -fno-ignore-asserts -rtsopts "-with-rtsopts=-T"
+    ghc-options:      -O1 -fno-ignore-asserts -rtsopts
+                      "-with-rtsopts=-A32m -I0 -T"
     build-depends:
         base,
         vector,

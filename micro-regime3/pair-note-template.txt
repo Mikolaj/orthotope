@@ -81,10 +81,11 @@ HOW EACH HALF IS BUILT, there being no builder here. Both from one source:
   before 2026-08-16 elide it as `db-r14a/.../micro`, which is not a
   command, in the file this page calls the only copy of both recipes.
 
-  Say which quoting traps this recipe hits -- inner quotes around a
-  -with-rtsopts value, -fforce-recomp and a fresh --builddir for a -pgma
-  or environment change -- and give the command that reads the variable
-  back out of each binary, so 9b has something to run.
+  Say which traps this recipe hits -- -fforce-recomp and a fresh
+  --builddir for a -pgma or environment change -- and give the command
+  that reads the variable back out of each binary, so 9b has something
+  to run. The RTS line is micro.cabal's since 2026-08-21 and no recipe
+  passes one.
 
 THE SECOND BUILD IS A CHOICE OR A NECESSITY: say which, and if a one-binary
 form would do, record it here as the alternative so the decision stays one.

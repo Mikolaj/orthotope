@@ -215,7 +215,9 @@ by being a thing a later session might otherwise redo.
   code and in time are [on the open list][open].
 - **The allocation area moves figures too** --- the default nursery against
   an arm's allocation in excess of its result --- with the predictor
-  and the populations it reaches [in the floor section][floor].
+  and the populations it reaches [in the floor section][floor]; and since
+  2026-08-21 it is fixed at `-A32m`, here and in every horde-ad suite, never
+  to vary again ([Running it](#running-it)).
 - **The A/A controls are the noise floor**, not the printed CI, and what they do
   and do not bound is [in the floor section][floor]; R^2 is the ramp detector
   rather than the noise detector, [here][ramp].
@@ -2323,14 +2325,16 @@ rather than a slot in the next run, observed again:
   a resident footprint does to the mutator.
 
 - `OPEN` **One residue of the small-pinned churn, one answered, neither blocking
-  its filing.** Open: the `-A1G` alone transient's micro-mechanism --- early
-  and late iterations carry EQUAL cache-miss and dTLB counts per iteration while
-  cycles differ ~17%, so the fresh-heap advantage is in miss cost or overlap,
-  not count --- and the instrument that would name it, load/store-split
-  or `perf mem` sampling, is unavailable on this machine (no IBS exposure;
-  findings item 58). Answered: the added misses at `-A4m` are mutator-side,
-  the collector's own symbols carrying ~1% of samples in every cell,
-  so the conceptual objection above stands measured (item 56).
+  its filing.** Open, and since 2026-08-21 no caller's, every horde-ad suite
+  running at `-A32m`, so the residue belongs to the filing rather than
+  to this page: the `-A1G` alone transient's micro-mechanism --- early and late
+  iterations carry EQUAL cache-miss and dTLB counts per iteration while cycles
+  differ ~17%, so the fresh-heap advantage is in miss cost or overlap, not count
+  --- and the instrument that would name it, load/store-split or `perf mem`
+  sampling, is unavailable on this machine (no IBS exposure; findings item 58).
+  Answered: the added misses at `-A4m` are mutator-side, the collector's own
+  symbols carrying ~1% of samples in every cell, so the conceptual objection
+  above stands measured (item 56).
 - `ANSWERED` **What Run 15 was built to answer, registered before it ran ---
   and what it answered.** Its pair is Run 14's with `-A32m` in place of `-A1G`
   on the control half and nothing else changed, on Run 14's roster ([what
@@ -3976,9 +3980,9 @@ Self-contained (base + vector + criterion + deepseq):
     cd micro-regime3 && cabal run micro --ghc-options=-O2 -- diag
     cd micro-regime3 && cabal run probe -- check     # the element-type probe
     cd micro-regime3 && cabal run probe -- f32       # one element type
-    ./run15-lookrts -m glob 'SHAPE/list' +RTS -A32m -I0 -T -M8G  # any nursery
+    ./run15-lookrts -m glob 'SHAPE/list' +RTS -A32m -I0 -T -M8G  # the baked line
     #  A `+RTS` line does not inherit the baked one, so repeat the baked
-    #  options in full beside whatever is being varied -- `-I0 -T -M8G` here --
+    #  options in full beside whatever is being varied -- all four here --
     #  or the probe runs in a regime nobody chose and its figures are not
     #  the run's. The three lines below want the same treatment
     ./run15-lookrts -m glob 'SHAPE/list' +RTS -s     # allocation, copying, GCs
@@ -4026,12 +4030,15 @@ is already in it. Other regimes are command-line only, the flag landing after
 the cabal file's so the later `-O` wins: `-fspec-constr` when testing
 the `SpecConstr` optimization effect, `-O2` for the half of the scan-fusion
 refutation that inverts there (a `diag` at `-O2` is what measures it). **The RTS
-is a second thing the shipped setting fixes and this suite does not share**:
-the prevailing use of the library is in programs carrying
-`-with-rtsopts=-A1G -I0 -T -M8G`, where `micro.cabal` sets `-T -M2G` and every
-figure here is taken at the `-A32m` this run's basis bakes in --- a gap [the
-floor section][floor] prices on one shape and Run 14's pair is built to price
-over the table.
+line is the second thing the shipped setting fixes, and since 2026-08-21
+this suite shares it by decision: every horde-ad test and benchmark and every
+process here runs at `-A32m`, and the area is not to vary again.** `micro.cabal`
+bakes the whole line, `-A32m -I0 -T -M8G`, the one every recorded recipe since
+Run 13 carried, so no recipe passes `-with-rtsopts` any more, and a `+RTS` line
+that varies anything else repeats it in full. The caller ran at `-A1G` until
+then, a gap [the floor section][floor] priced on one shape and Runs 14 to 16
+over the table, and what closed it is the churn findings: the tax grows
+with the area and `-A32m` is their recommendation for this workload class.
 
 **Those last four need no build and no pair**: `micro.cabal` compiles
 with `-rtsopts`, so an already-built binary takes any RTS setting, and `-s`,
@@ -4193,10 +4200,7 @@ and never as a chronology.
     #      $REGIME, as every recorded note does, so that what the note
     #      says is what was built and the empty-variable hazard cannot
     #      reach a pair; $REGIME is for the ad-hoc call, and where one
-    #      is written --ghc-options="$REGIME" stays quoted, a value
-    #      with a space
-    #      needs inner quotes besides,
-    #      --ghc-options='"-with-rtsopts=-I0 -T -M8G"'. Build the halves
+    #      is written --ghc-options="$REGIME" stays quoted. Build the halves
     #      back to back with nothing touched between -- about twenty
     #      seconds each here, the dependencies being in the store and only
     #      the local package recompiled -- keep both executables, delete
@@ -5146,7 +5150,7 @@ comes out of the same process as the times rather than a side run; passing
 `--regress` explicitly would replace it. Each process prints its own provenance
 to stderr as it finishes --- roster size, shape count, wall clock and the two
 heap peaks --- so a document quoting its scale copies a measured number rather
-than counting benches by hand, and so `micro.cabal`'s `-M2G` headroom claim has
+than counting benches by hand, and so `micro.cabal`'s `-M8G` headroom claim has
 a current source; the stderr redirect above is what keeps it. In a class process
 every part of that line is its own but the shape count, which is fixed before
 criterion selects and so names the whole class set.
@@ -6417,28 +6421,25 @@ on and because a recurrence is the reason to keep it:
   narrows under a bigger nursery at *every* size measured, 9.2x to 6.4x here
   against 10.2x to 6.4x at `l` = 0.9M, which is the same effect at a 32x remove.
 
-  **So, for a caller: `-A64m` to `-A256m`.** It is the only band that is good
-  at both ends --- the default leaves 6-17% on the table above `l` ~= 1M,
-  `-A32m` is actively harmful at the top of the range, and above 256m nothing
-  improves while memory and startup keep growing. Below `l` ~= 1M, stay
-  on the default. These are busy-machine wall figures and the +-5% between
-  neighbouring settings should not be read; the kernel-time column is what
-  carries the finding, being the mechanism marker and far less disturbed
-  by load. **The prevailing caller sits just above that band and lands safely
-  in it**: programs using the library carry `-with-rtsopts=-A1G -I0 -T -M8G`,
-  and the sweep puts `-A1G` with the rest on per-call time once the cap
-  is raised --- its cliff was `micro.cabal`'s `-M2G` and not the nursery,
-  and at `-M8G` it rejoins the others exactly --- so on per-call time
-  the setting is safe. What it costs against 64m to 256m has since grown to four
-  things: memory; the one-time fault-in charge; a larger exposure
-  to the small-pinned churn tax, +44% at `-A1G` against +33% inside the band;
-  and the alone-slope transient, which makes criterion baselines at such areas
-  untrustworthy without fixed-iteration differencing --- the last two are [the
-  position-term entry][open]'s. The consequence for this page is the other way
-  round, and is Runs 14 and 15: the caller's arms run in an allocation regime
-  none of the figures here is taken in, which is what those two pairs were built
-  to price --- Run 14 at `-A1G`, the caller's own setting, and Run 15
-  at `-A32m`, just below the band recommended above.
+  **So, for a caller, this section said `-A64m` to `-A256m` --- and the decision
+  of 2026-08-21 overrules it: every horde-ad test and benchmark runs at `-A32m`,
+  as does every process here, and the area is not to vary again.** What the band
+  had for it stands as measured: the default leaves 6-17% on the table above `l`
+  ~= 1M, `-A32m` is actively harmful at the top of the range, and above 256m
+  nothing improves while memory and startup keep growing --- busy-machine wall
+  figures whose +-5% between neighbouring settings should not be read,
+  the kernel-time column carrying the finding; and `-A1G`'s cliff in the sweep
+  was `micro.cabal`'s `-M2G` cap and not the nursery, at `-M8G` it rejoining
+  the others. What overrules it is the churn findings: the tax grows
+  with the area, +44% at `-A1G` against +33% inside the band and about +13%
+  at `-A32m`; `-A32m` is their recommendation for this workload class;
+  and the alone-slope transient that makes criterion baselines untrustworthy
+  without fixed-iteration differencing belongs to areas past the 32 MB L3 ---
+  the last two are [the position-term entry][open]'s. So the caller takes
+  the imagenet-scale kernel cost above in exchange for the tax it declines,
+  and the regime Runs 14 and 15 were built to price --- the then prevailing
+  `-with-rtsopts=-A1G -I0 -T -M8G`, Run 14 at `-A1G` and Run 15 at `-A32m` ---
+  is nobody's here any more.
 
 **So the mechanism is settled: an arm allocating more per call beyond its result
 than the nursery holds pays for it in kernel memory management, and the default
@@ -7797,19 +7798,6 @@ so the roster-order pair this paragraph used to ask for is not owed:
 the corrected scans priced the term per shape in filtered processes, without
 a pair and without a layout term to argue about.
 
-**The cheaper candidate is a runner change rather than a pair, and Run 15
-is the second run to pay for its absence.** `-A32m` and `-A1G` are run-time
-options and `micro.cabal` compiles with `-rtsopts`, so one binary reaches every
-nursery setting under `+RTS`; what stops a major run doing it
-is that `run-major.sh` gives one binary one configuration. Build that,
-and a nursery sweep is one binary --- no second build, no gate owed, no layout
-term to argue about, and absolutes that subtract. It is [on the non-urgent
-list](#non-urgent-todo-list). **And the limitation binds a recorded run only:
-a PROBE needs no pair and never did.** Run 15 closed registration 1 that way
-after its own evening, sweeping `-A` on one already-built binary, and two runs
-had by then spent a build and a gate apiece to approximate what an argument
-to the binary does for nothing.
-
 **The allocation area has now been priced twice and does not want a third pair**
 --- a ruling superseded in scope, 2026-08-19, and kept because what it refused
 stays refused. Run 14 took the area at `-A1G` and could not subtract its halves'
@@ -7818,9 +7806,10 @@ of the roster's time --- so re-PRICING default-against-enlarged is spent,
 and Run 16's pair does not do that: it changes the published basis to `-A32m`
 and reads `-A64m` against it, the one comparison neither earlier pair made
 and the one the churn findings' recommendation turns on, in the saturated
-in-process state both halves share. The runner change above remains the cheaper
-instrument for any future pure `-A` sweep, and a probe still needs no pair
-at all.
+in-process state both halves share. On 2026-08-21 the area was fixed at `-A32m`
+outright, here and in every horde-ad suite, so the one-binary runner
+this section used to ask for is not owed, and no further `-A` question
+is this page's.
 
 Its columns are `Run 16 (SpecConstr, max-skip +lookrts, -A32m)` --- the basis,
 and the first `-A32m` column this page publishes as one ---
@@ -8180,26 +8169,26 @@ paragraphs above, so an entry here changes when a claim is re-aimed and not when
 a run moves a margin. **All of them are `-fspec-constr` claims, which
 is the regime the fix ships in** --- the file the solution is added to sets
 the flag --- so they are the set that decides, and a run at -O1 would test Run
-7's instead, the two differing in more than their numbers. **What they
-are not read in is the caller's allocation regime**, every figure here being
-taken at the `-A32m` Run 16 promoted to the basis, against a prevailing
-`-with-rtsopts=-A1G -I0 -T -M8G`; Runs 14, 15 and 16 have priced that gap
-and no claim below is qualified by it yet. **And all of them are read against
-a measured drift band rather than a layout span**, which is what the last three
-runs bought. A roster *order* change alone moved arms 0.966 to 1.142 between Run
-9 and Run 10, and that is what a margin used to have to clear; with the layout
-pinned, a repetition moves an arm by at most 3.3% and most of them
-by under 1.5%, so a margin above a few percent is now evidence of a strategy.
-**Run 13 is the first pair here to hold every tracked loop at one offset in both
-halves**, which is what lets its arm-by-arm comparison be read as the package
-costing nothing rather than as two terms cancelling. A claim resting on an arm
-whose own loop the shim skipped --- `list`'s, which is library code --- is still
-decidable nowhere until that loop is read. **And the pinning claim is measured
-only in its weak form**: adding `mut-flat-gm-nosum` left every tracked loop
-at the same address, but a `Force` arm reuses a rostered function and emits
-no code for emission order to move. The strong form wants an arm that emits
-its own, and until one is added the claim covers additions that cost nothing
-to place.
+7's instead, the two differing in more than their numbers. **They are read
+in the caller's allocation regime now**, every figure here being taken
+at the `-A32m` Run 16 promoted to the basis and every horde-ad test
+and benchmark bakes since 2026-08-21; the gap Runs 14, 15 and 16 priced against
+a prevailing `-A1G` is closed, and no claim below needs qualifying by it.
+**And all of them are read against a measured drift band rather than a layout
+span**, which is what the last three runs bought. A roster *order* change alone
+moved arms 0.966 to 1.142 between Run 9 and Run 10, and that is what a margin
+used to have to clear; with the layout pinned, a repetition moves an arm
+by at most 3.3% and most of them by under 1.5%, so a margin above a few percent
+is now evidence of a strategy. **Run 13 is the first pair here to hold every
+tracked loop at one offset in both halves**, which is what lets its arm-by-arm
+comparison be read as the package costing nothing rather than as two terms
+cancelling. A claim resting on an arm whose own loop the shim skipped ---
+`list`'s, which is library code --- is still decidable nowhere until that loop
+is read. **And the pinning claim is measured only in its weak form**: adding
+`mut-flat-gm-nosum` left every tracked loop at the same address, but a `Force`
+arm reuses a rostered function and emits no code for emission order to move.
+The strong form wants an arm that emits its own, and until one is added
+the claim covers additions that cost nothing to place.
 
 **The list needed no re-aiming this time either**, the roster it was rewritten
 onto before Run 8 being the roster Run 13 ran: every claim below names an arm
@@ -9509,7 +9498,7 @@ was reworded, which is the failure this list was rewritten to escape.
 - this section, which becomes the next run's own provenance;
 - `read-run.py`'s docstring, whose `time`, `corr` and `net` definitions and A/A
   paragraph quote the run;
-- `micro.cabal`'s `-M2G` note, if the printed heap peaks have moved;
+- `micro.cabal`'s `-M8G` note, if the printed heap peaks have moved;
 - `Main.hs`, wherever a comment cites a figure --- now `fbBQmutRunsGmMulback`'s
   margin over its control and `fbBQscanMulback`'s settled prediction, every
   other comment having been rewritten to name an ordering and point here

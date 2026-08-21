@@ -92,7 +92,7 @@ toListT sh (T (Strides ss0) o0 v) = build $ \cons nil ->
 --
 -- Both are VACUOUS here and are meant to stay so. The largest shape in the
 -- set is 'sizeCap' elements, some thousandfold under the smaller of the two
--- bounds, and the -M2G heap cap in micro.cabal keeps any future shape in the
+-- bounds, and the -M8G heap cap in micro.cabal keeps any future shape in the
 -- same range. So neither assertion can fire on any input this harness
 -- produces. The usual non-vacuity proof splits in two here: breaking the
 -- PREDICATE is possible -- make 'lemireFits' constantly False and @check@
@@ -2983,7 +2983,7 @@ main = assert partitioned $ do
 -- What a run records about itself, so that a document quoting its scale
 -- copies a measured number instead of counting benches by hand -- which is
 -- how README came to claim one bench more than the run it describes
--- actually held. The heap pair is the one micro.cabal's -M2G comment
+-- actually held. The heap pair is the one micro.cabal's -M8G comment
 -- rests on, and all of it comes from the -T stats that flag already asks
 -- for, so nothing here needs a flag from the invoker. It goes to stderr,
 -- leaving @--list@ and criterion's own stdout machine-readable, and it
