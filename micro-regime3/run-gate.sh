@@ -50,8 +50,8 @@ PREFIX="$1"                  # the binaries, the note and this gate's own
 # the half the bench count is read from and the one the run's tables come
 # from. Keep the two scripts' names in step, a gate being about the pair the
 # run will use.
-OTHER=${OTHER:-a64m}
-BASIS=${BASIS:-a32m}
+OTHER=${OTHER:-wildlog}
+BASIS=${BASIS:-det}
 # A pair is two halves; run-major.sh says what one name in both costs. Here
 # the palindrome collapses to one binary read against itself.
 if [ "$OTHER" = "$BASIS" ]; then

@@ -2603,10 +2603,13 @@ wants a quiet machine, and it is the only one whose window closes: it needs Run
    of the pair, which this heading asked for until 2026-08-19, is refused**: Run
    16's basis registration is a repetition against run15-a32m, the edit moves
    `.text` and every loop offset, so the bridge would cross a layout change,
-   and per-sample logging allocates. It was pointed at the `scaled` class
-   process, whose disturbance turns up in six runs of eight where a wild cell
-   is three of eight and none in the last four --- but **a wild cell in Run 16's
-   own A/A worst cell was the trigger** to spend the budget on that process
+   and per-sample logging allocates. Run 17 puts it on ONE half by decision
+   of 2026-08-21 --- `run17-wildlog` against a basis without it --- so the pair
+   prices the instrument rather than inheriting it ([What Run 17 compares
+   against](#what-run-17-compares-against)). It was pointed at the `scaled`
+   class process, whose disturbance turns up in six runs of eight where a wild
+   cell is three of eight and none in the last four --- but **a wild cell in Run
+   16's own A/A worst cell was the trigger** to spend the budget on that process
    instead, and it fired, so `reshape1` took it. Neither instance reproduces
    filtered --- measured both times --- so either probe is a whole process
    and never a five-bench run. Its `perf` half still wants
@@ -2645,6 +2648,45 @@ left to attribute --- the interval it is about is the aligned binary's.
 
 ### Non-urgent TODO list
 
+- `OPEN` **What Run 17 is built to answer, registered before it runs.**
+  Its pair, decided 2026-08-21, is `run17-det` --- the basis, `run16-a32m`'s
+  recipe with `-fobject-determinism` added --- against `run17-wildlog`, the same
+  recipe over `wildlog-instrument.patch` and run with `WILDLOG` set, on Run 16's
+  roster at the `-A32m` now fixed for every process here ([what it compares
+  against](#what-run-17-compares-against); the recipes are `run17-pair.txt`'s).
+  Five registrations, each with what would kill it.
+  1. *The flag's cost.* `run17-det` against `run16-a32m` is a repetition across
+     one compiler flag: every arm inside the 3.3% drift band, the three anchors
+     inside the floor, and the tracked fills read back where Run 16 held them.
+     Killed by an arm outside the band, and the reading then splits on the fills
+     --- moved, and the flag changed emission order, which `loop-offsets.py`
+     shows; unmoved, and it changed the code, which a `-g3` twin of each build
+     would have to show.
+  2. *The instrument's cost.* `run17-wildlog` against `run17-det`,
+     on the palindrome gate and across the roster: nothing past drift on any
+     arm, `list` included, the logging allocating only between samples
+     and into a state every main process has saturated by its first slots.
+     Killed by `list` past the floor on the basis-over-control reading, which
+     would mean the instrument's own interleaved allocation deepens the state
+     --- a finding about the instrument, and a reason to read the basis half
+     alone.
+  3. *Object determinism.* Two builds of the `run17-det` recipe, back to back
+     into two builddirs, give one `Main.o` by md5; the same done to Run 16's
+     recipe, the control, gives two. Killed on the first by a differing object,
+     and on the second by an identical one, which leaves the flag priced
+     at nothing on this module and says the run-to-run binary differences
+     this page has met are the dependency store's alone.
+  4. *The wild cell, over the whole roster.* Every sample of the `wildlog` half
+     carries its RTS totals, so that half's worst A/A cell can be placed
+     to a sample and read beside allocation, mutator and collector clocks
+     at that sample; Run 16's one-process read found allocation, in-use heap
+     and collector work all flat across an 8.2% mutator step, and that
+     is the expectation here. A cell whose step coincides with a step in any
+     logged total kills the layout account that read left standing.
+  5. *The controls.* The A/A floor, the `sum-only` halves and the `-nosum` arms
+     behave as Run 16's, and the gate's machine check, which reads `list`
+     against the kept fingerprint, passes if that fingerprint is Run 16's.
+     A failure there is read before anything else, as the check says.
 - `STANDING` **A class process's provenance line counts every class view,
   not the population that ran.** The count is fixed before criterion does
   the selecting, so each class process reports the whole class set's size beside
@@ -7774,20 +7816,30 @@ win*, as Run 10, Run 14 and Run 15 all had to.
 
 ### What Run 17 compares against
 
-**Run 17's regime, roster and basis are settled; its PAIR is not,
-and that decision is not this page's.** The regime is `-fspec-constr`, as every
-run since Run 8, and it is the regime the fix ships in rather than a flag priced
-against the shipped one. The roster is Run 16's 1128 benches, 47 timed arms
-over 24 shapes, every stride class at three, unchanged since Run 15. **The basis
-is `run16-a32m`'s recipe** --- the `-A32m` promotion Run 16 made and its bridge
-confirmed --- so a Run 17 basis is that recipe repeated, and an absolute is read
-against Run 16's basis column rather than against any default-area one. What
-the other half varies is the open question, and whoever asks for the run settles
-it: this page records that the allocation area has now been priced three times,
-by Runs 14, 15 and 16, and does not want a fourth pair spent on it, and
-that the cheapest instrument for any further pure `-A` question is a probe
-on an already-built binary, which needs no pair, no gate and no build. Write
-the pair note first, as always, and register the predictions before the evening.
+**Run 17's regime, roster, basis and pair are settled, the pair by decision
+of 2026-08-21.** The regime is `-fspec-constr`, as every run since Run 8,
+and it is the regime the fix ships in rather than a flag priced against
+the shipped one. The roster is Run 16's 1128 benches, 47 timed arms over 24
+shapes, every stride class at three, unchanged since Run 15. **The basis
+is `run17-det`: `run16-a32m`'s recipe with `-fobject-determinism` added** ---
+the `-A32m` promotion Run 16 made and its bridge confirmed, at the area every
+process here and every horde-ad suite now runs at --- so its absolutes are read
+against Run 16's basis column, arm for arm, and the flag is registered to cost
+nothing past drift. **The other half is `run17-wildlog`: the basis recipe
+over `wildlog-instrument.patch`**, the per-sample instrument Run 16 built
+for one probe process, run with `WILDLOG` set so that every sample of every
+bench in that half leaves its RTS allocation total and its mutator and collector
+clocks in the log. What the pair prices is the instrument: its presence, which
+moves `.text` and every loop offset, and its logging, which allocates between
+samples into a state the roster has already saturated --- registered at nothing
+past drift on every arm, `list` included, and a `list` past the floor would
+be a finding about the instrument. What it answers that no earlier pair could
+is the wild-cell question over the whole roster rather than one process: a cell
+that steps can be placed to a sample and read beside the RTS totals
+at that sample. The predictions are in the open list, as [What Run 17 is built
+to answer](#what-is-open); the recipes are `run17-pair.txt`'s. The allocation
+area is fixed and no pair will vary it again: Runs 14, 15 and 16 priced it,
+and the decision closed it.
 
 **The position term was the candidate Run 15 promoted, and the probes have since
 spent it.** What Run 14 first saw and Run 15 confirmed is resolved
