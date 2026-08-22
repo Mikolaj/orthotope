@@ -1017,7 +1017,7 @@ def synth_text(shapes, **kw):
 
 def synthetic_run(tmp, killed=False, no_twins=False, no_starts=False,
                   complained=False, note_block=False, riders=False,
-                  into=None):
+                  into=None, plateau=None):
     """A whole run in this directory: JSONs, and the log that describes it.
 
     `read-all.sh` cds to its own directory and globs, so this is one of the
@@ -1029,6 +1029,13 @@ def synthetic_run(tmp, killed=False, no_twins=False, no_starts=False,
     directory finds nothing at all -- which reads as a fixture that would
     not build rather than as the state the case wanted. Pointed at the
     shadow, the run lands where the driver will look.
+
+    `plateau` is a list of victim readings, one per process, written into
+    the per-process logs as the preamble's `@@saturate` line -- the only
+    thing in this fixture that is a LOG and not a JSON, `read-all.sh`'s
+    plateau gate being the only one of its gates read off a log. A rider
+    and a gate log get one too, both at absurd readings, so that a gate
+    counting them would say so rather than pass with a wider band.
     """
     place = (here_file if into is None
              else lambda name: os.path.join(into, name))
@@ -1070,6 +1077,16 @@ def synthetic_run(tmp, killed=False, no_twins=False, no_starts=False,
         # them as such buries the eighteen this driver exists to count.
         synth_run(place('%s-al-lookrts-cnn-slice-c32-r1.json' % tag),
                   class_shapes('rev')[:1])
+    if plateau is not None:
+        sat = ('@@saturate dose=1x by=list sprayed=1000000 in 6.0 s; victim'
+               ' vgg-14-c512-k3/list %s ms/iter over 20; inuse=1 keep=1')
+        for cls, ms in zip(('rev', 'slice'), plateau):
+            write(place('%s-lookrts-%s.log' % (tag, cls)), sat % ms + '\n')
+        # A rider's and a gate half's, at readings no band could hold: both
+        # are excluded by name, so a gate that counted either would fail
+        # loudly here instead of passing over a wider set.
+        for other in ('al-lookrts-cnn-slice-c32-r1', 'gate-lookrts-a'):
+            write(place('%s-%s.log' % (tag, other)), sat % '999.0' + '\n')
     if note_block:
         # run-major.sh copies the pair note's gate lines into the log,
         # indented and with no `===` stamp of its own. run-gate.sh writes
@@ -1767,6 +1784,108 @@ CASES = [
          ok=V(exit=0, has=['every process gated clean', 'lookrts-rev'],
               hasnt=['al-lookrts-cnn-slice-c32-r1']),
          bug=V(exit=0, has=['al-lookrts-cnn-slice-c32-r1'])),
+
+    case('plateau-band-across-processes', 'read-all.sh', None,
+         'two processes saturated to different depths and gated clean',
+         # Run 18's registration 5. Every recorded process asserts the
+         # in-process state it measured in, and a process outside the run's
+         # own band measured somewhere else -- which every gate beside this
+         # one is blind to, each being WITHIN one process. The spread here
+         # is the 14% an unsaturated process reads below a saturated one on
+         # the dose measurements, so the fixture is the failure the band is
+         # sized for and not an invented number.
+         plant=lambda t: synthetic_run(t, plateau=['16.4', '19.1']),
+         argv=['{tag}'],
+         ok=V(exit=1, has=['the plateau is not flat', '16.4', '19.1'],
+              hasnt=['999.0'])),
+
+    case('plateau-band-holds-together', 'read-all.sh', None,
+         'CONTROL: two processes inside the band, and the excluded logs',
+         # The other side of the case above, and the one that says its
+         # verdict is the readings and not the mere presence of a line: two
+         # processes 1.2% apart pass, at exit 0, while the rider and gate
+         # logs beside them carry 999.0 and are excluded by name. Counting
+         # either would put the spread past any band, so this control fails
+         # the moment that exclusion goes.
+         plant=lambda t: synthetic_run(t, plateau=['19.0', '19.23']),
+         argv=['{tag}'],
+         ok=V(exit=0, has=['plateau: 2 process(es)', 'every process gated'],
+              hasnt=['not flat'])),
+
+    case('plateau-counted-per-process', 'run-major.sh', None,
+         'a half without the preamble joined a saturated run in silence',
+         # The count, and it is the bench count's own shape: SATURATE is
+         # set on the launch line and the binary is one that does not carry
+         # the preamble, so every process runs UNSATURATED and each of its
+         # figures is in a state the run does not know it is in. Nothing
+         # else here can see it -- the process exits 0, leaves a JSON and
+         # runs the count asked of it -- which is why the check is a count
+         # of the line and not a reading of it.
+         shadow=dict(extra=halves('zzpl-lookrts', 'zzpl-a1g')
+                     + [('zzpl-pair.txt', 'a stand-in pair note.\n')]),
+         env={'OTHER': 'a1g', 'BASIS': 'lookrts', 'SATURATE': '1'},
+         argv=['zzpl'],
+         ok=V(exit=1, has=['did not assert its state',
+                           '0 @@saturate line(s), not 1'])),
+
+    case('clean-legs-are-not-the-saturated-ones', 'run-alonelegs.sh', None,
+         'the clean sweep was refused over the saturated legs beside it',
+         # `-sat` is a suffix on the HALF's name, so the clean sweep's
+         # relaunch guard globbed `$R-al-$H-*` and took `$R-al-$H-sat-*`
+         # with it. The same over-matching prefix glob install-tables.sh
+         # names for a half whose name begins with the basis's plus a
+         # hyphen, one script over. Run 18 runs clean first and saturated
+         # second, so the documented order never meets it and a RERUN of
+         # either half's clean legs does.
+         shadow=dict(extra=[('zzal-g912', FAKE_HALF),
+                            ('zzal-al-g912-sat-cnn-slice-c32-r1.json', '[]\n'),
+                            ('zzal-pair.txt', 'a stand-in pair note.\n')]),
+         argv=['zzal', 'g912'],
+         # Past the guard everything goes to the driver log, which is why
+         # the probe is that log: an empty stdout alone would also be what
+         # a driver that died before the redirect leaves.
+         probe=lambda subs: open(os.path.join(
+             subs['at'], 'zzal-al-g912-driver.log')).read(),
+         ok=V(has=['start:'], hasnt=['already has alone-leg artifacts'])),
+
+    case('alonelegs-refuses-a-previous-attempt', 'run-alonelegs.sh', None,
+         "CONTROL: the guard still fires on the sweep's OWN artifacts",
+         # The other side of the case above. Its fix narrows a glob, and a
+         # narrowed glob that matches nothing at all would pass that case
+         # and lose the guard outright -- these legs would then be
+         # overwritten in place with nothing said, which is what the guard
+         # exists to prevent.
+         shadow=dict(extra=[('zzal2-g912', FAKE_HALF),
+                            ('zzal2-al-g912-cnn-slice-c32-r1.json', '[]\n'),
+                            ('zzal2-pair.txt', 'a stand-in pair note.\n')]),
+         argv=['zzal2', 'g912'],
+         ok=V(exit=1, has=['already has alone-leg artifacts'])),
+
+    case('counts-file-says-it-was-restricted', 'run-counts.sh', None,
+         'a smoke run left a counts file that read as a recorded column',
+         # ONLY and ARMS are for a smoke run of this script and never for a
+         # recorded column, and the file recorded neither -- so the two
+         # artifacts differed by a line count and nothing else, a silent
+         # cap in the one form this directory's rules refuse. What reads
+         # the file later cannot see the environment that wrote it.
+         shadow=dict(extra=[('zzct-g912', FAKE_HALF)]),
+         env={'ONLY': 'shape-a', 'ARMS': 'list', 'N': '1'},
+         argv=['zzct', 'g912'],
+         probe=lambda subs: open(os.path.join(
+             subs['at'], 'zzct-counts-g912.txt')).read(),
+         ok=V(has=['ONLY=shape-a ARMS=list', 'RESTRICTED'])),
+
+    case('counts-file-says-a-full-sweep-was-full', 'run-counts.sh', None,
+         'CONTROL: an unrestricted sweep says so rather than saying nothing',
+         # The absence of a word is not what a reader should have to
+         # notice, so the full sweep stamps `full` and the check above
+         # cannot pass by the file simply being quiet.
+         shadow=dict(extra=[('zzct2-g912', FAKE_HALF)]),
+         env={'N': '1'},
+         argv=['zzct2', 'g912'],
+         probe=lambda subs: open(os.path.join(
+             subs['at'], 'zzct2-counts-g912.txt')).read(),
+         ok=V(has=['N=1'], hasnt=['RESTRICTED'])),
 
     case('six-pair-floor-disagrees-across-sites', 'read-run.py', '054f3f1',
          'the six-pair figure was quoted three ways, two in one paragraph',
