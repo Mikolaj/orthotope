@@ -2689,9 +2689,19 @@ CLAIMS = [
       ('offtab', 'bq-expand', 'slower')]),
     (3, 'a mul-back output pays on the `bq-expand` build',
      [('bq-expand-gm-mulback', 'bq-expand', 'faster')]),
-    (4, 'the scan ties its own build control, and ties `bq-expand`',
+    # THE SECOND HALF STOPPED BEING A TIE ON 2026-08-22, six runs having
+    # read it as one and Runs 16 and 17 having broken it identically --
+    # 0.8471 at 18 of 24 and p 0.023, then 0.8578 at 18 of 24 and the same
+    # p, on a different binary and a different basis half. Run 17's chapter
+    # retired it in prose (*the next run inherits an ordering rather than
+    # re-reading a tie*) and this line did not follow, so `--claims` went
+    # on registering a tie the document had already replaced -- which Run
+    # 18 would have broken for a third time and a session rediscovered.
+    # Run 17's own verdict stands as recorded, BROKE against the
+    # registration then in force; what moves is what the NEXT run inherits.
+    (4, 'the scan ties its own build control, and beats `bq-expand`',
      [('bq-scan-rem-gm-mulback', 'bq-expand-gm-mulback', 'tie'),
-      ('bq-scan-rem-gm-mulback', 'bq-expand', 'tie')]),
+      ('bq-scan-rem-gm-mulback', 'bq-expand', 'faster')]),
     (5, 'the build ordering, trimmed to its timed arms',
      [('bq-expand', 'bq-gen', 'faster'),
       ('bq-mut-runs', 'bq-expand', 'faster')]),

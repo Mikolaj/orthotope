@@ -8843,14 +8843,17 @@ by construction.
 
 **Run 17's verdicts on Run 16's nine claims first**, since a run reports breaks
 rather than re-deriving the table. **Eleven of the thirteen registered orderings
-held and two broke.** Claim 4's second half broke again and identically ---
-`bq-scan-rem-gm-mulback` against `bq-expand` at 0.8578, **18 of 24, sign p
-0.023**, where Run 16 read 0.8471 at 18 of 24 and the same p --- so the tie six
-runs had read has failed twice running on the same win count, and what Run 16
-registered to be re-read rather than inherited has now been re-read. Claim 9's
-first half broke for the first time in nine runs: `bq-expand-b`'s two best cells
-are `stretch-inner1` and **`stretch-square-1341`**, where `stretch-wide-2xM` had
-been the second in every run since Run 8.
+held and two broke** --- against the registrations in force when this run
+was read, one of which has since moved: claim 4's second half, whose entry says
+why and what `--claims` gives now. Claim 4's second half broke again
+and identically --- `bq-scan-rem-gm-mulback` against `bq-expand` at 0.8578, **18
+of 24, sign p 0.023**, where Run 16 read 0.8471 at 18 of 24 and the same p ---
+so the tie six runs had read has failed twice running on the same win count,
+and what Run 16 registered to be re-read rather than inherited has now
+been re-read. Claim 9's first half broke for the first time in nine runs:
+`bq-expand-b`'s two best cells are `stretch-inner1`
+and **`stretch-square-1341`**, where `stretch-wide-2xM` had been the second
+in every run since Run 8.
 
 **What moved is claim 9, and it moved on both of its halves at once.**
 `bq-expand-b` / `bq-expand` reads **0.9823 at 22 of 24, sign p 3.6e-05**, where
@@ -8909,7 +8912,14 @@ What has not changed is the reason to distrust the point estimate --- the two
 differ in `baseOffsetsScanRem` against `baseOffsetsExpand` and in nothing else,
 their output code being identical --- so the first reading is about builders
 and the second about the shipped arm. The next run inherits an ordering rather
-than re-reading a tie.
+than re-reading a tie. **And the manifest now says so, which for a day it did
+not.** The restatement was made here in prose and `CLAIMS` went on registering
+a tie, so `--claims` would have broken this a third time and a session would
+have rediscovered a decision this paragraph had already taken; it registers
+*A faster* since 2026-08-22. **The readings below are Run 17's against
+the registration then in force**, which is why they say one of two held: re-read
+on the manifest as it now stands, this run's basis gives 12 of 13
+and its control 13 of 13.
 
 **Readings:** `bq-scan-rem-gm-mulback` / `bq-expand-gm-mulback` 0.9637, 11
 of 24, sign p 0.84; `bq-scan-rem-gm-mulback` / `bq-expand` 0.8578, 18 of 24,
