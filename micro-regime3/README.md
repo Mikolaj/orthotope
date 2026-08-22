@@ -153,6 +153,7 @@ numbers would be wrong by the next edit and say nothing.
   - [What the benchmark does](#what-the-benchmark-does)
   - [Running it](#running-it)
   - [Making a major benchmark run](#making-a-major-benchmark-run)
+  - [Other toolchains, probed and not run](#other-toolchains-probed-and-not-run)
   - [The reader: read-run.py](#the-reader-read-runpy)
   - [What moves a figure when no strategy
     changed](#what-moves-a-figure-when-no-strategy-changed)
@@ -4584,55 +4585,6 @@ then, a gap [the floor section][floor] priced on one shape and Runs 14 to 16
 over the table, and what closed it is the churn findings: the tax grows
 with the area and `-A32m` is their recommendation for this workload class.
 
-**Running the suite through GHC's LLVM backend takes two flags and a different
-correction.** `--ghc-options=-fllvm` sends Main.hs through the `opt` and `llc`
-that `ghc --info` names --- `opt-18` and `llc-18` here ---
-and `--ghc-options=-optlc-align-loops=64` puts its loop heads on a cache line,
-LLVM's own default for them being 16 bytes; that option is in bytes where
-its `--align-all-nofallthru-blocks` neighbour is in log2, and the latter pads
-every branch target rather than the loops. The assembler shim on `-pgma`
-is the native backend's instrument and has no business in such a build. What
-does not carry over at all is the forcing-pass correction: `sum-only` runs
-a median 1.49x and a worst 2.29x of the bench it would be subtracted from,
-so the default sinks most cells and the column reads `--`. Read such a run
-with `./read-run.py RUN --corr=insitu`, which subtracts the term the `-nosum`
-pairs measure instead, says on stderr that it did, and is comparable
-to no figure in this README --- [the correction
-section](#sum-only-and-the-correction-now-applied) has what that trades away.
-
-**Compiling with a GHC HEAD build wants a project file of its own,
-`cabal.project.freeze` pinning `base` and so refusing every other compiler.**
-Point `-w` at the tree's stage1 `ghc` and give `--project-dir` a directory whose
-`cabal.project` names this one in `packages:`, carries `allow-newer`
-for the boot packages --- `base`, `ghc-prim`, `ghc-bignum`, `template-haskell`,
-`deepseq`, `bytestring`, `containers`, `text`, `time` ---
-and `constraints: base installed` beside them. Pin `criterion ==1.6.5.0`
-and `vector ==0.13.2.0` with `vector`'s `+boundschecks -unsafechecks` by hand,
-those being what every run here was taken on and what the freeze would otherwise
-have held. One package needs naming outright: `hashable ==1.5.0.0`, whose cabal
-file declares the `ghc-bignum` its source imports where 1.5.1.0's does not,
-so the newer one does not compile here at all. head.hackage is neither needed
-nor helpful --- its index here is stale enough that the tarball hashes no longer
-verify.
-
-**And what the vecdims family reads under each, from probe legs and not
-from a recorded run** (2026-08-21, one bench per process so that every arm sits
-at the same slot, on a machine that was not idle). On the native backend
-`mut-odo-vecdims` and `-add-in` tied, inside the A/A floor and with the sign
-test flat --- a reading Run 17 has since gone past, its roster and three paired
-probes all putting `-add-in` ahead ([its entry][open]), so read these legs
-for the *other three* arms and not for that pair --- and `-add-both-down`,
-`-add-both` and `-add-out` follow 6 to 11% behind. Under LLVM with 64-byte loop
-heads those two tie again, the in-process and one-per-process legs straddling 1,
-and the other three sit 8 to 11% back in an order the two legs do not agree
-on --- so the tie is the durable reading and the losers' own ranking is not.
-In absolute terms the winner's fill, read off its `-nosum` leg so
-that no forcing pass is in it, runs about 0.90 of its native-backend self
-and is ahead on all but three shapes; that figure crosses compiler, backend
-and dependency set at once, and its two windows are an hour apart on that same
-busy machine, so read it as a direction with a magnitude and not
-as a measurement of the backend.
-
 **Those last four need no build and no pair**: `micro.cabal` compiles
 with `-rtsopts`, so an already-built binary takes any RTS setting, and `-s`,
 `-hT` and `-S` are available in a non-profiling build --- which is how Run 15
@@ -6550,6 +6502,66 @@ the artifacts are what it spends.
     it again. A previous run's artifacts still being here is not a defect
     to be tidied and is not a blocker for the next run, whose relaunch guard
     is scoped to its own name.
+
+
+### Other toolchains, probed and not run
+
+**These three paragraphs are probe records and not run instructions**, which
+is why they sit here rather than in [Running it](#running-it), where they stood
+between a session reading the run modes and the chapter it was reading them for.
+Their figures are a probe's on another compiler or another backend; no run here
+replaces them, and what would call for re-probing is a move in either toolchain
+rather than a run. Read them when a toolchain question arises, and not
+on the way to an evening.
+
+**Running the suite through GHC's LLVM backend takes two flags and a different
+correction.** `--ghc-options=-fllvm` sends Main.hs through the `opt` and `llc`
+that `ghc --info` names --- `opt-18` and `llc-18` here ---
+and `--ghc-options=-optlc-align-loops=64` puts its loop heads on a cache line,
+LLVM's own default for them being 16 bytes; that option is in bytes where
+its `--align-all-nofallthru-blocks` neighbour is in log2, and the latter pads
+every branch target rather than the loops. The assembler shim on `-pgma`
+is the native backend's instrument and has no business in such a build. What
+does not carry over at all is the forcing-pass correction: `sum-only` runs
+a median 1.49x and a worst 2.29x of the bench it would be subtracted from,
+so the default sinks most cells and the column reads `--`. Read such a run
+with `./read-run.py RUN --corr=insitu`, which subtracts the term the `-nosum`
+pairs measure instead, says on stderr that it did, and is comparable
+to no figure in this README --- [the correction
+section](#sum-only-and-the-correction-now-applied) has what that trades away.
+
+**Compiling with a GHC HEAD build wants a project file of its own,
+`cabal.project.freeze` pinning `base` and so refusing every other compiler.**
+Point `-w` at the tree's stage1 `ghc` and give `--project-dir` a directory whose
+`cabal.project` names this one in `packages:`, carries `allow-newer`
+for the boot packages --- `base`, `ghc-prim`, `ghc-bignum`, `template-haskell`,
+`deepseq`, `bytestring`, `containers`, `text`, `time` ---
+and `constraints: base installed` beside them. Pin `criterion ==1.6.5.0`
+and `vector ==0.13.2.0` with `vector`'s `+boundschecks -unsafechecks` by hand,
+those being what every run here was taken on and what the freeze would otherwise
+have held. One package needs naming outright: `hashable ==1.5.0.0`, whose cabal
+file declares the `ghc-bignum` its source imports where 1.5.1.0's does not,
+so the newer one does not compile here at all. head.hackage is neither needed
+nor helpful --- its index here is stale enough that the tarball hashes no longer
+verify.
+
+**And what the vecdims family reads under each, from probe legs and not
+from a recorded run** (2026-08-21, one bench per process so that every arm sits
+at the same slot, on a machine that was not idle). On the native backend
+`mut-odo-vecdims` and `-add-in` tied, inside the A/A floor and with the sign
+test flat --- a reading Run 17 has since gone past, its roster and three paired
+probes all putting `-add-in` ahead ([its entry][open]), so read these legs
+for the *other three* arms and not for that pair --- and `-add-both-down`,
+`-add-both` and `-add-out` follow 6 to 11% behind. Under LLVM with 64-byte loop
+heads those two tie again, the in-process and one-per-process legs straddling 1,
+and the other three sit 8 to 11% back in an order the two legs do not agree
+on --- so the tie is the durable reading and the losers' own ranking is not.
+In absolute terms the winner's fill, read off its `-nosum` leg so
+that no forcing pass is in it, runs about 0.90 of its native-backend self
+and is ahead on all but three shapes; that figure crosses compiler, backend
+and dependency set at once, and its two windows are an hour apart on that same
+busy machine, so read it as a direction with a magnitude and not
+as a measurement of the backend.
 
 
 ### The reader: read-run.py
@@ -10202,10 +10214,10 @@ was reworded, which is the failure this list was rewritten to escape.
   is that the other types follow it --- which Run 8 does, in a regime the probe
   was not run in, so the trigger is live and is [on the open
   list](#what-is-open) rather than discharged here;
-- [Running it](#running-it)'s LLVM and GHC HEAD paragraphs, whose figures
-  are a probe's on another compiler and another backend and which no run here
-  replaces: what would call for re-probing is a move in either toolchain,
-  so the walk checks their currency instead;
+- [Other toolchains, probed and not run](#other-toolchains-probed-and-not-run),
+  whose figures are a probe's on another compiler and another backend and which
+  no run here replaces: what would call for re-probing is a move in either
+  toolchain, so the walk checks their currency instead;
 - [sum-only](#sum-only-and-the-correction-now-applied), where what a run decides
   is no longer *whether* to correct but whether the term still passes its three
   gates, any failure invalidating the column rather than informing it;
