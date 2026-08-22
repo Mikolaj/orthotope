@@ -93,10 +93,19 @@ fi
 # before the evening would read as a previous attempt and refuse the very run
 # it was meant to clear.
 #
+# The alone-leg riders' `$R-al-*` are the other writer of this prefix, and
+# excluded for the same reason: run-alonelegs.sh writes them AFTER the run
+# (README's step 19) and nothing here ever writes that name, so a relaunch
+# after the riders was refused over files it would not have touched --
+# read-all.sh's roster skips both, one script over. Found 2026-08-22 by
+# review. Case: `relaunch-guard-skips-the-riders`, with
+# `major-run-refuses-a-previous-attempt` the control that the run's own
+# artifacts still refuse it.
+#
 # The wall-clock log wants no operand of its own: `$R-*.log` already covers
 # it, and naming it besides listed it twice in the refusal.
 EXISTING=$(ls -1 "$R"-*.json "$R"-*.log 2>/dev/null \
-             | grep -v "^$R-gate-")
+             | grep -v -e "^$R-gate-" -e "^$R-al-")
 if [ -n "$EXISTING" ]; then
   echo "$R already has artifacts here:"
   printf '%s\n' "$EXISTING" | sed 's/^/  /'
@@ -115,9 +124,10 @@ CLASSES="rev revsome bcast bcastmid reshape1 slice window scaled"
 # the prefix selects, and the second population never getting a process, a
 # JSON or a word said about it. The existing names read as though this were
 # known -- `bcastmid` and `revsome`, not `bcast-mid` and `rev-some` -- but
-# nothing enforced it, and install-tables.sh's two lead patterns BOTH miss a
-# hyphenated lead, so they agree and the cross-check written against exactly
-# that failure cannot fire. Loud here, before the hours.
+# nothing enforced it, and install-tables.sh's two lead patterns both read
+# `[a-z0-9]`, so a hyphenated lead slipped both and the cross-check between
+# them could not fire; that script refuses such a lead by name now, and
+# this is loud here, before the hours.
 for c in $CLASSES; do
   case $c in *-*)
     echo "class name '$c' carries a hyphen, which the population derivation"
@@ -129,6 +139,16 @@ for c in $CLASSES; do
 done
 
 NOTE="$PREFIX-pair.txt"
+# Refused without it, before the hours, as a missing binary is: the note
+# carries the pair's recipe and the gate's verdict, which the run copies
+# into its log below. A run without one used to log `!! no <note>` and go
+# on at exit 0 -- and read-all.sh counts every stamped `!!` as a process
+# complaint, with no carve-out, so every later reading of that run failed
+# as "the run complained about itself" over eighteen clean processes.
+# Found 2026-08-22 by review. Case: `major-run-wants-its-pair-note`.
+[ -f "$NOTE" ] || { echo "no $NOTE -- a pair's note is written at pre-run step 3b,"
+                    echo "and the gate writes its verdict into it; nothing runs"
+                    echo "without one"; exit 1; }
 
 for h in $HALVES; do
   [ -x "./$PREFIX-$h" ] || { echo "missing ./$PREFIX-$h -- $NOTE has the recipe"; exit 1; }
@@ -267,24 +287,20 @@ uptime | tee -a "$R-wallclock.log"
 # a person's, and a predicate over it would be guessing at the one fact worth
 # a quiet hour. If the lines below say the gate has not run, or that it
 # failed, stop and read README's gate step -- nothing here will.
-if [ -f "$NOTE" ]; then
-  log "$NOTE says, about the gate:"
-  # Every line saying `gate`, and -- for one that STARTS with the token,
-  # the shape run-gate.sh writes -- the indented block under it. The token
-  # alone dropped exactly the lines worth having: neither the machine
-  # verdict nor `!! the machine check FAILED` carries the word, so a gate
-  # that failed on the machine alone reached this log as a FAILED headline
-  # over four clean processes with the reason nowhere. Only a line STARTING
-  # a block may end one, the four artifact lines inside it being named
-  # `$R-gate-*` and so saying the word themselves.
-  awk '/^GATE:/             { blk = 1; print; next }
-       tolower($0) ~ /gate/ { print; next }
-       blk && /^[ \t]/      { print; next }
-                            { blk = 0 }' "$NOTE" \
-    | sed 's/^/      /' | tee -a "$R-wallclock.log"
-else
-  log "!! no $NOTE -- this run's provenance is the commit and nothing else"
-fi
+log "$NOTE says, about the gate:"
+# Every line saying `gate`, and -- for one that STARTS with the token,
+# the shape run-gate.sh writes -- the indented block under it. The token
+# alone dropped exactly the lines worth having: neither the machine
+# verdict nor `!! the machine check FAILED` carries the word, so a gate
+# that failed on the machine alone reached this log as a FAILED headline
+# over four clean processes with the reason nowhere. Only a line STARTING
+# a block may end one, the four artifact lines inside it being named
+# `$R-gate-*` and so saying the word themselves.
+awk '/^GATE:/             { blk = 1; print; next }
+     tolower($0) ~ /gate/ { print; next }
+     blk && /^[ \t]/      { print; next }
+                          { blk = 0 }' "$NOTE" \
+  | sed 's/^/      /' | tee -a "$R-wallclock.log"
 
 for h in $HALVES; do run "$h" "$h-main" "$MAIN_BENCHES"; done
 # EVERY class on BOTH halves since 2026-08-14, where they used to be the

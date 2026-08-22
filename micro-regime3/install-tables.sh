@@ -103,6 +103,19 @@ LEADS=$(grep -o '^\*\*`[a-z0-9]*`' "$DOC" | tr -d '*`' | sort)
 [ -n "$LEADS" ] || { echo "!! no class block leads in $DOC --"
   echo "   the check that a class is not silently skipped has"
   echo "   nothing to check against, so it did not run"; exit 1; }
+# A lead carrying a hyphen is refused by name, as run-major.sh refuses the
+# class: both patterns that find a block here read `[a-z0-9]`, so such a
+# lead slipped both, they agreed, and the cross-check below could not fire
+# -- the block then ran inside the one above it and took its figures.
+# Found 2026-08-22 by review. Case: `install-refuses-a-hyphenated-lead`.
+HYPHENATED=$(grep -o '^\*\*`[a-z0-9][a-z0-9-]*`' "$DOC" | tr -d '*`' \
+               | grep -- -)
+if [ -n "$HYPHENATED" ]; then
+  echo "!! a class block lead in $DOC carries a hyphen, which neither pattern"
+  echo "   here can find and run-major.sh refuses in a class name:"
+  printf '%s\n' "$HYPHENATED" | sed 's/^/     /'
+  exit 1
+fi
 HAVE=$(printf '%s\n' $CLASSES | sed "s/^$R-$BASIS-//; s/\.json$//" | sort)
 MISSING=$(comm -23 <(printf '%s\n' "$LEADS") <(printf '%s\n' "$HAVE"))
 if [ -n "$MISSING" ]; then

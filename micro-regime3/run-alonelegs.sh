@@ -20,11 +20,11 @@
 # deleted: it was gitignored by `run[0-9]*` and so never tracked, which is
 # how a near-twin sat here unversioned. No +RTS line: every binary carries
 # the one baked line since 2026-08-21, and this reads it back before anything
-# runs. The environment passes through untouched, so a half that wants
-# WILDLOG set gets it from the launch line, as its major processes did, and
-# the driver log records whether it was. The three Provenance anchors get a
-# second rep, the rest single runs read against the known multi-process draw
-# band (~2%). About 15-20 min a half.
+# runs, refusing a half without it. The environment passes through untouched,
+# so a half that wants WILDLOG set gets it from the launch line, as its major
+# processes did, and the driver log records whether it was. The three Provenance
+# anchors get a second rep, the rest single runs read against the known
+# multi-process draw band (~2%). About 15-20 min a half.
 #
 # Refuses to start over a previous attempt's artifacts, as run-major.sh does:
 # the JSONs would be overwritten in place and nothing said. ONLY=<shape>
@@ -69,8 +69,14 @@ exec > "$R-al-$H$SUF-driver.log" 2>&1
 echo "start: $(date -Is), loadavg: $(cat /proc/loadavg)"
 echo "WILDLOG=${WILDLOG-unset} SAT=${SAT-unset}"
 md5sum "$B"
+# Refused and not merely said: this echoed and went on, the one check here
+# that set no status, so a half without the line ran its legs at the
+# default nursery under a DONE line with no complaint. Found 2026-08-22 by
+# review. Case: `alonelegs-refuses-an-unbaked-half`.
 "$B" +RTS --info 2>/dev/null | grep -q 'with-rtsopts.*-A32m -I0 -T -M8G' \
-  || echo "!! baked RTS line unread: not the one baked since 2026-08-21"
+  || { echo "!! baked RTS line unread: not the one baked since 2026-08-21,"
+       echo "   so every leg would run at the default nursery; wrong binary?"
+       exit 1; }
 SHAPES=$("$B" --list 2>/dev/null | cut -d/ -f1 | awk '!seen[$0]++')
 [ -n "$SHAPES" ] || { echo "!! --list gave nothing; wrong binary?"; exit 1;
                     }

@@ -24,7 +24,9 @@
 #       that was never about that pair.
 #   10a/10b, the --survey legs -- BUILD path only, and their answer is the
 #       binary's rather than the reading session's, so they go in the note
-#       at 3b and not here.
+#       at 3b and not here. And 10's own `--library` figure is a registered
+#       variable of the pair, read against the note and not against any
+#       threshold here, so its PASS says the figure was read and no more.
 #   11 and 12, the smoke sweep and the roster pass -- machine time, and
 #       properties of the pair rather than of the session, so they are
 #       recorded in the note and inherited. Running them here would pay for
@@ -41,6 +43,10 @@
 # breaks and not the stubs. On the real run17 pair it reads ten PASS and
 # exits 0, reproducing every figure the Run 17 preparation read by hand:
 # 1128 benches, byte-identical `check`, scan/mut 1.000, --library 25.3%.
+# Step 10's zero-fill FAIL, 2026-08-23: no stub reaches it through this
+# script, a stub answering `check` being no ELF, so its awk was fed
+# `./loop-offsets.py /bin/true run14-lookrts` -- `0 self-loops` for the
+# first -- and named /bin/true, where the run14 pair names nothing.
 #
 # It has no ./check-scripts.py case, deliberately: this script's own steps
 # are that suite and the reader's gates, so a case would run them twice to
@@ -138,9 +144,24 @@ else
   fi
 fi
 
-./loop-offsets.py "$R-$OTHER" "$R-$BASIS" > "$TMP/fills" 2>&1 \
-  && say 10 PASS "fills read for both halves (the comparison is yours)" \
-  || say 10 FAIL "loop-offsets refused: $(tail -1 "$TMP/fills")"
+# Held to what it read and not to its exit alone: the plain form exits 0
+# whatever it finds, so `0 self-loops` in a half PASSed here against the
+# header's "exit status is the whole verdict". Two `==` headers, one per
+# half, each with a count above zero, is what a half of this benchmark
+# reads -- the run-fill loop is in every build this README has timed.
+if ./loop-offsets.py "$R-$OTHER" "$R-$BASIS" > "$TMP/fills" 2>&1; then
+  HEADS=$(grep -c '^== ' "$TMP/fills")
+  EMPTY=$(awk '/^== / && $3 == 0 { print $2 }' "$TMP/fills" | tr -d :)
+  if [ "$HEADS" != 2 ]; then
+    say 10 FAIL "loop-offsets reported on $HEADS half/halves, not 2"
+  elif [ -n "$EMPTY" ]; then
+    say 10 FAIL "no 28-byte fill at all in $(echo $EMPTY) -- a half of this?"
+  else
+    say 10 PASS "fills read for both halves (the comparison is yours)"
+  fi
+else
+  say 10 FAIL "loop-offsets refused: $(tail -1 "$TMP/fills")"
+fi
 ./loop-offsets.py --library "$R-$BASIS" "$R-$OTHER" > "$TMP/lib" 2>&1 \
   && say 10 PASS "$(grep -m1 'same offset' "$TMP/lib" | sed 's/^ *//')" \
   || say 10 FAIL "--library refused: $(tail -1 "$TMP/lib")"
