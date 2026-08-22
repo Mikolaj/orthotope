@@ -2566,9 +2566,14 @@ rather than a slot in the next run, observed again:
      in their cache line and 61.6% in the same straddle state. So the flag
      changed where code landed, no `-g3` twin is owed, and **the one arm
      that argues against reading it as pure layout
-     is `bq-scan-rem-gm-mulback`**, whose 1.0419 comes at 0 of 24 shapes
-     on a tight 1.020..1.070 range, with both twins agreeing --- a consistent 4%
-     rather than a scatter, and the one thing here a next run should re-read.
+     is `bq-scan-rem-gm-mulback`**, whose 1.0419 is a slowdown on **all 24
+     shapes** --- per-shape ratios 1.0203 to 1.0704, nothing below 1 ---
+     with both twins slower on 23 of the 24. That is a consistent 4% and
+     not a scatter, and it is the one thing here a next run should re-read.
+     (`--compare`'s `faster` column counts shapes where *this* run wins,
+     so its `0/24` here means faster nowhere; the claims sections' `N of 24`
+     counts wins in the same sense, which is why this arm reads 0 where a held
+     claim reads 20.)
   2. *The instrument's cost.* **HELD on what would have killed it, and split
      on its wider form.** The kill condition was `list` past the floor
      on the basis-over-control reading: `list` reads **0.9973** with its twins
