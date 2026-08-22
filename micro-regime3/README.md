@@ -2641,14 +2641,17 @@ rather than a slot in the next run, observed again:
   halves at loadavg 0.10: they put the two halves level alone at 0.9983,
   and the in-process deflation at **+11.51%** on the basis and **+11.62%**
   on the control over all 24 shapes, 23 of 24 above 1 in each and the largest
-  on `stretch-tall-Mx2` at 1.2235 and 1.2109 --- reproducing Run 16's +11.43%
-  at this area and, since the two halves agree to a tenth of a point, saying
-  that the instrument's between-sample allocation does not deepen the state.
-  Both are raw slope against raw slope, an alone leg carrying no `sum-only`
-  bench to correct with. The three anchors repeat across their second rep
-  to within 1.22% and 0.89%. *The fixed-n rider* --- DRY-RUN 2026-08-22
-  on `run16-a32m` and re-aimed by it onto `list` against the alone leg
-  and the two `sum-only` arms against the roster, the placement-exposed arms
+  on `stretch-tall-Mx2` at 1.2235 and 1.2109 --- against **+11.80%** for Run 16
+  over the same 24 shapes, which `--deflation` reads off that run's own legs.
+  (Run 16's chapter quotes +11.43%, but over its sixteen no-span shapes;
+  this write-up first held its 24-shape figure against that one, which
+  is a different population.) The two halves agreeing to a tenth of a point
+  is what says the instrument's between-sample allocation does not deepen
+  the state. Both are raw slope against raw slope, an alone leg carrying
+  no `sum-only` bench to correct with. The three anchors repeat across their
+  second rep to within 1.22% and 0.89%. *The fixed-n rider* --- DRY-RUN
+  2026-08-22 on `run16-a32m` and re-aimed by it onto `list` against the alone
+  leg and the two `sum-only` arms against the roster, the placement-exposed arms
   excluded --- was taken on this pair's basis after the write-up and **HELD**:
   three anchors by three arms, each cell two fresh processes at `-n 2N`
   and `-n N`, `run17-fixedn.log`. `list` reads **0.9962, 1.0122 and 0.9922**
@@ -4860,6 +4863,15 @@ and never as a chronology.
     #      from 3b and everything below reads them. A wrong OTHER stops
     #      run-major.sh and run-gate.sh at a missing binary; in
     #      smoke-sweep.sh it sweeps the wrong half and looks clean
+    ./preflight.sh $R                     # 4-10 IN ONE CALL, and the way
+    #      to run them: each step prints PASS or FAIL with what it read and
+    #      the exit status is the verdict, so none can be skipped by being
+    #      forgotten -- step 8 being the one this chapter says is skipped
+    #      most often. It does NOT do 9b (the pair's own variable, which
+    #      only the note can name), 10a/10b (the BUILD path's, and the
+    #      note's), or 11 and 12 (machine time, and the pair's to inherit).
+    #      Its own non-vacuity is in its header, proved on stub halves. The
+    #      steps below are what it runs, and what to reach for when one FAILs
     ./$R-<basis> check > <your tmp>/a.log 2>&1   # 4. every shape agrees
     ./$R-<other> check > <your tmp>/b.log 2>&1   # 5. and the other half
     cmp <your tmp>/a.log <your tmp>/b.log        #  byte-identical, or STOP
@@ -4944,8 +4956,8 @@ and never as a chronology.
     #      the roster delta under Provenance. Any class serves, every
     #      one being three shapes since 2026-08-14 -- prefer one of the
     #      five that crossed from two, which drives `--block`'s
-    #      three-shape branch. Name the artifacts smoke*, never $R-* -- any
-    #      $R-*.json/.log makes run-major.sh refuse, only $R-gate-* exempt.
+    #      three-shape branch. Name the artifacts smoke*, never $R-*,
+    #      which is the general rule stated below and not this step's own.
     #      Record it on an `L1 ROSTER PASS:` line. With the previous run's
     #      binary gone, membership is compared against the roster delta
     #      under Provenance
@@ -4955,6 +4967,22 @@ and never as a chronology.
     #  that is the preparation, and none of it wants a quiet machine. What
     #      does is the run list below, which starts on an explicit
     #      go-ahead and never on a session's own reading of the box
+
+**THE RUN'S PREFIX BELONGS TO THE RUN'S OWN PROCESSES, and nothing else may take
+it.** `$R-gate-*` and `$R-al-*` are the two exceptions the drivers were taught
+to skip; every other artifact --- a smoke pass, a probe, a repetition, a scratch
+log, a driver's own redirect --- is `probe-*` or `smoke-*` and never
+`$R-`anything. Two things read that namespace and neither can tell your file
+from a process. `run-major.sh` refuses to start over a `$R-*.json`
+or `$R-*.log`, which is loud and costs nothing. **`read-all.sh`
+and `check-scripts.py --properties` read a `$R-*.json` as one of the run's own
+processes**, which is not: on Run 17 a repetition parked
+at `run17-rep-revsome.json` while it was still being written turned eighteen
+clean gates into "2 process(es) FAILED" and failed
+`prop_selftest_over_the_corpus` with a traceback --- on a file no run produced,
+and both reading exactly like the run breaking. The loud half of
+this was already written at the smoke step; the quiet half is why it is stated
+here.
 
 **Then the run --- and this is the list that wants the machine, so it does
 not start on a session's judgement.** Steps 13 to 19 sit here rather
@@ -5997,12 +6025,24 @@ was missed, which is what they have cost.
     #      entry, move answered ones with their measurement, and add each
     #      surprise with what would settle it. Prediction verdicts go THERE,
     #      not in the chapter the next run replaces; report a split as a
-    #      split, arm by arm
-    #  11. spend the load-independent measurements while the artifacts live
-    #      -- allocation, Core, a `size` invocation, minutes each. Owed by
-    #      every paired run: rebuild each recipe with -g3 and export the
-    #      NAMED fills into the note, matching groups by byte identity of
-    #      the loop body, never by proximity
+    #      split, arm by arm    ./read-run.py $R-<basis>-main.json --deflation   # 10a. and the same
+    #      on the control: the roster cell over its own alone leg, per
+    #      shape, which is what the riders were run for. RAW over RAW,
+    #      which the mode does because a leg carries no `sum-only` to
+    #      correct with -- the one figure here a session had to hand-roll
+    #      before the mode existed, and the one place it would reach for
+    #      the wrong numerator    #  11. NAME THE FILL GROUPS off a -g3 twin, and spend the other
+    #      load-independent measurements while the artifacts live --
+    #      allocation, Core, a `size` invocation, minutes each. The naming
+    #      is what this step is for and reads like housekeeping: it turns
+    #      `[0, 24, 0, 4]` into four arms, and on Run 17 it collapsed two
+    #      of this README's open questions into one object by showing the
+    #      `[0, 0]` group IS the build/mut-odo residue. Owed by every
+    #      paired run: rebuild each recipe with -g3, export the NAMED
+    #      fills into the note, match groups by byte identity of the loop
+    #      body and never by proximity, and read the count check -- a
+    #      group whose twin carries fewer copies than the timed binary is
+    #      not named from the twin at all
     #  12. offer the artifacts for deletion -- the JSONs, the logs, the
     #      wall-clock file, and for a pair both binaries and $R-pair.txt --
     #      once, after step 7 is done AND presented, saying what keeping
@@ -8116,14 +8156,16 @@ at a geomean of **0.9983** of the control, range 0.9795 to 1.0210 ---
 so the instrument costs nothing outside a roster either. Against each half's own
 roster cell they put the deflation at **+11.51%** on the basis and **+11.62%**
 on the control, 23 of 24 shapes above 1 in each and the largest
-on `stretch-tall-Mx2` at 1.2235 and 1.2109, where Run 16 measured +11.43%
-at this area over its sixteen no-span shapes. So the state saturates to the same
-depth as the run before, and **the instrument's between-sample allocation does
-not deepen it** --- the instrumented half is if anything the shallower
-of the two. Both readings are raw slope against raw slope, an alone leg carrying
-no `sum-only` bench to correct with, so no correction convention enters either;
-the three anchors repeat across their second rep to within 1.22% on the control
-and 0.89% on the basis.
+on `stretch-tall-Mx2` at 1.2235 and 1.2109, against **+11.80%** for Run 16
+over the same 24 shapes --- `--deflation` reading that off Run 16's own legs,
+where its chapter had quoted +11.43% over the sixteen no-span shapes alone.
+So the state saturates to the same depth as the run before,
+and **the instrument's between-sample allocation does not deepen it** ---
+the instrumented half is if anything the shallower of the two. Both readings
+are raw slope against raw slope, an alone leg carrying no `sum-only` bench
+to correct with, so no correction convention enters either; the three anchors
+repeat across their second rep to within 1.22% on the control and 0.89%
+on the basis.
 
 **Everything in this chapter is replaced by the next run.** What exactly,
 and in which other files, is [Provenance](#provenance). None of it is portable:
@@ -8422,7 +8464,7 @@ anchors is what remains of that budget, its dry run on Run 16's binary having
 re-aimed it onto `list` against the alone leg and the two `sum-only` arms
 against the roster. **What Run 18 inherits from the riders is a decomposition
 it can now take**: Run 17 measured the in-process deflation at +11.51%
-and +11.62% on its two halves, reproducing Run 16's +11.43% at this area,
+and +11.62% on its two halves against Run 16's +11.80% over the same shapes,
 so the preamble's third registration --- state saturated minus clean,
 and the rest roster minus saturated --- has a two-run figure to be read against
 rather than one.
@@ -8587,6 +8629,17 @@ at nothing below 0.99 and up to 1.06. So read a class figure that moved a point
 or two across that boundary as the shim rather than as the class, and take
 the two Run 12 columns above as what a same-build comparison looks like.
 From Run 13 on, both sides are max-skip again.
+
+**Two tables in this file are NOT installed and are edited by hand:
+the yardstick above and the cross-class summary below.** Every other table a run
+publishes comes from `install-tables.sh` and is replaced whole. These two gain
+a column or a row per run instead, which is why they outlive the artifacts ---
+and it is why a run edits them with the whole line named, never with a prefix
+anchor. On Run 17 an insertion anchored on ``| `arm` | `` matched an earlier
+table and put two cells into the element-type probe's header and a loop-offsets
+row; `--check-doc`'s width pass caught it in the same call, which is the only
+reason it cost minutes. Name the whole row, assert it occurs exactly once,
+and read the width check's verdict afterwards.
 
 And because a geomean cannot say *where* it moved, the **fingerprint** below
 is kept so a future disagreement can be localised rather than only noticed.
