@@ -575,6 +575,33 @@ def scale(benches, want, factor):
     return hit
 
 
+def null_bound(benches, want):
+    """One cell's lower CI bound written null, as a starved fit leaves it."""
+    hit = 0
+    for b in benches:
+        if b['reportName'] == want:
+            for r in b['reportAnalysis']['anRegress']:
+                if r.get('regResponder') == 'time':
+                    r['regCoeffs']['iters']['estError']['confIntLDX'] = None
+                    hit += 1
+    assert hit == 1, '%s: %d time fit(s)' % (want, hit)
+    return hit
+
+
+def empty_corpus(tmp):
+    """A directory with no run in it, for the properties to be aimed at."""
+    d = os.path.join(tmp, 'corpus')
+    os.mkdir(d)
+    return {'corpus': d}
+
+
+def corpus_of_one(tmp):
+    """A directory holding one built main run and nothing else."""
+    d = empty_corpus(tmp)['corpus']
+    synth_json(d, 'main')
+    return {'corpus': d}
+
+
 FAKE_HALF = """\
 #!/bin/sh
 # A stand-in for `$PREFIX-$half`, answering the two questions a driver asks
@@ -610,6 +637,35 @@ for s in shape-a shape-b shape-c; do
   done
 done
 exit 0
+"""
+
+# Two planted files for the import-time family: a helper called at module
+# scope, which parses at import as surely as a module-scope line does, and
+# the same parse under a handler, which is what the family is not about.
+ZZ_FAM_HELPER = """\
+import os
+
+
+def number(name, default):
+    return int(os.environ.get(name) or default)
+
+
+PAD = number('ZZ_PAD', 0)
+"""
+
+ZZ_FAM_HANDLED = """\
+import os
+import sys
+
+
+def number(name, default):
+    try:
+        return int(os.environ.get(name) or default)
+    except ValueError:
+        sys.exit('no')
+
+
+PAD = number('ZZ_PAD', 0)
 """
 
 # The fuller stand-in, and the reason it is CHECKED IN. Every claim vetted
@@ -1990,6 +2046,96 @@ CASES = [
          ok=V(has=['gone']),
          bug=V(hasnt=['gone'])),
 
+    # ---- this file's own instruments ------------------------------------
+    case('fixture-ci-bounds-are-criterion-shaped', 'check-scripts.py', '40f7a37',
+         'the fixture wrote a negative lower CI bound, which criterion never does',
+         # Criterion writes both deviations positive (`confIntLDX`
+         # 9.649e-11 beside `confIntUDX` 1.154e-10 in run10-aligned-main),
+         # and the reader's CI% is their mean over the slope. `_est` wrote
+         # `-d` and `d`, a mean of exactly 0, so every synthetic cell read
+         # CI% 0.00, every row's noise was nan off a falsy typical, and no
+         # case could assert a CI or noise figure: that column was untested
+         # by every fixture here, and a regression in it passed the suite.
+         argv=['--unit', "_est(1.0)['estError']['confIntLDX'] > 0"],
+         ok=V(has=['True']),
+         bug=V(has=['False'])),
+
+    case('ci-column-reads-the-fixture', 'read-run.py', None,
+         "CONTROL: a built run reads CI% 1.0000 in every cell, the fixture's 1%",
+         # The other half of the case above, on the reader: `--cells`
+         # prints ci_pct and ci_hi_pct, and both are the fixture's 1% now
+         # where they were 0.0000 and 1.0000. A control, the defect being
+         # in this file's fixture, which --audit does not replay.
+         plant=lambda t: {'run': synth_json(t, 'main')},
+         argv=['{run}', '--cells'],
+         ok=V(has=['\t1.0000\t1.0000\t'], hasnt=['\t0.0000\t'])),
+
+    case('health-warns-on-a-null-bound', 'read-run.py', None,
+         'CONTROL: one null CI bound is one cell with no confidence interval',
+         # `health`'s no_ci path fires on `ci is None` alone, which no
+         # fixture reached while every bound was written; a bound written
+         # null, as a starved fit leaves it, is what reaches it.
+         plant=lambda t: {'run': doctored(t, 'main', lambda b: null_bound(
+             b, main_shapes()[0] + '/build'))},
+         argv=['{run}'],
+         ok=V(exit=0, has=['1 cell(s) with no confidence interval'])),
+
+    case('env-parse-through-a-helper', 'check-scripts.py', '40f7a37',
+         'an import-time parse in a helper called at import went unflagged',
+         # The family's guard read the line's own scope -- `at.get(n.lineno)
+         # is None` is a module-scope line and nothing else -- so a helper
+         # called at module scope, align-as.py's `number()` and the form
+         # the family was counted from, passed, and the family had no live
+         # site in the tree: a silent search. A helper called at import
+         # parses at import.
+         plant=lambda t: {'py': write(here_file('zz-fam.py'), ZZ_FAM_HELPER)},
+         argv=['--unit', "family_lint('zz-fam.py')"],
+         ok=V(has=['parsed out of the environment at import']),
+         bug=V(hasnt=['parsed out of the environment at import'])),
+
+    case('env-parse-under-a-handler-is-not-flagged', 'check-scripts.py',
+         None,
+         'CONTROL: the same parse inside a `try` is handled, and passes',
+         # What the family is about is a parse OUTSIDE any handler; the
+         # handled form is align-as.py's own now, and this is the control
+         # that the case above is no ban on reading the environment.
+         plant=lambda t: {'py': write(here_file('zz-fam.py'),
+                                      ZZ_FAM_HANDLED)},
+         argv=['--unit', "family_lint('zz-fam.py')"],
+         ok=V(has=['([], [])'])),
+
+    case('families-name-their-reach', 'check-scripts.py', None,
+         'CONTROL: --families says what it swept, and that it is Python only',
+         # Its ok line, the docstring, README's step 8b and preflight's
+         # step said "every program here" for an AST lint over the Python
+         # files alone, the shell scripts never touched. The one shell
+         # family this review wanted was measured and refused; `families`
+         # has the measurement.
+         argv=['--families'],
+         ok=V(exit=0, has=['Python file(s)', 'shell scripts'])),
+
+    case('properties-refuse-an-empty-corpus', 'check-scripts.py', None,
+         'every property held over zero runs, and said so as a pass',
+         # The empty-search trap this file carries cases about, in the
+         # file that carries them: `runs_on_disk` over a directory with no
+         # JSON -- a corpus deleted after a write-up, or a CORPUS aimed
+         # wrong -- quantified every property over nothing and printed
+         # `every property holds over every run on disk`. A control and
+         # not a replay: CORPUS is the seam the fix added, and the code
+         # before it cannot be pointed at an empty directory at all.
+         plant=empty_corpus,
+         env={'CORPUS': '{corpus}'},
+         argv=['--properties'],
+         ok=V(exit=1, has=['empty corpus proves nothing'],
+              hasnt=['every property holds'])),
+
+    case('properties-over-one-built-run', 'check-scripts.py', None,
+         'CONTROL: a corpus of one built run holds every property',
+         plant=corpus_of_one,
+         env={'CORPUS': '{corpus}'},
+         argv=['--properties'],
+         ok=V(exit=0, has=['every property holds', 'over 1 '])),
+
     # ---- the write-up's derived sources --------------------------------
     # Three readings a run used to take by eye and one it took twice: the
     # class lead against the run standing under it, a class property's
@@ -2271,6 +2417,21 @@ CASES = [
          # ValueError on the code before the fix.
          ok=V(exit=0, hasnt=['ValueError']),
          bug=V(has=['ValueError'])),
+
+    case('non-number-refused-in-one-line', 'align-as.py', '40f7a37',
+         'PAD_BYTES=abc killed the compile with a traceback out of the shim',
+         plant=asm,
+         env={'REAL_AS': '{as}', 'PAD_BYTES': 'abc'},
+         argv=['-c', '-o', '{obj}', '{asm}'],
+         # It should kill the compile -- the recipe asked for something
+         # this shim cannot do -- and did, with a ValueError traceback at
+         # import, outside any handler: the import-time family's own
+         # shape, in the file the family was counted from, which the lint
+         # could not see through the helper. One line naming the variable
+         # and its value now, at exit 1, under a handler the lint sees.
+         ok=V(exit=1, has=["PAD_BYTES='abc' is not a number"],
+              hasnt=['Traceback']),
+         bug=V(has=['Traceback', 'ValueError'])),
 
     case('probe-that-did-not-assemble', 'align-as.py', '437ce00',
          'a failed probe made the max-skip half the unconditional one',
