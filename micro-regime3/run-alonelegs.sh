@@ -7,8 +7,10 @@
 #     ./run-alonelegs.sh run17 wildlog     # the control half, first
 #     ./run-alonelegs.sh run17 det         # the basis half, second
 #
-# run16-alonelegs.sh's shape with the run and the half as arguments, since
-# Run 17's halves no longer name an area. No +RTS line: every binary carries
+# Run 16's own one-off rider script generalised, the run and the half as
+# arguments, since Run 17's halves no longer name an area. That one-off is
+# deleted: it was gitignored by `run[0-9]*` and so never tracked, which is
+# how a near-twin sat here unversioned. No +RTS line: every binary carries
 # the one baked line since 2026-08-21, and this reads it back before anything
 # runs. The environment passes through untouched, so a half that wants
 # WILDLOG set gets it from the launch line, as its major processes did, and
