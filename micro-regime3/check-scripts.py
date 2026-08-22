@@ -650,9 +650,9 @@ exit 0
 # Two planted files for the import-time family. The first carries what
 # runs at import: a helper called at module scope, which parses at import
 # as surely as a module-scope line does, and a parse in a class body. The
-# second carries the forms that do not -- a parse under a `try`, and a
-# helper reached only from under a module-level `try`, from a lambda, or
-# from the `__main__` block.
+# second carries the forms that do not -- a parse under a `try`, a helper
+# reached only from under a module-level `try`, from a lambda, or from the
+# `__main__` block, and a nested def its parent merely returns.
 ZZ_FAM_HELPER = """\
 import os
 
@@ -691,6 +691,15 @@ except ValueError:
     PAD = PAD2 = 0
 
 f = lambda: later('ZZ_LAMBDA')
+
+
+def outer():
+    def inner(name):
+        return int(os.environ.get(name) or 0)
+    return inner
+
+
+OUTER = outer()
 
 
 def main():
