@@ -1238,7 +1238,9 @@ fbBQmutRunsGmMulback sh (T (Strides ats) ao v)
 -- fastest pure time went to 'fbBQodoMulback' instead. Both halves of that
 -- pair are untimed since the precondition ruling, so the reading is frozen
 -- where Run 8 left it; the same builder comparison on unconditional arms is
--- claim 4, which every run since has read as a tie by the sign test.
+-- claim 4's FIRST half, which every run since has read as a tie by the sign
+-- test -- its second half, against 'fbBQexpand' rather than against the
+-- build control, is an ordering from Run 16 on and README says so.
 -- At plain -O1 the
 -- builder's stream state boxes per entry and this inherits
 -- bq-expand-class allocation

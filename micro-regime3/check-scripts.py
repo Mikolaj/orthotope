@@ -1726,9 +1726,16 @@ CASES = [
          # found it quoted 0.39%/0.24% in four places, 0.50% in a fifth --
          # a run stale -- and rounded to "half a percent" in a sixth, two
          # of them inside one paragraph. Same shape of defect, same check.
+         # THE ANCHOR IS RUN-SCOPED and has to be re-aimed by every run: it
+         # is a six-pair quote, and a six-pair quote is one of the figures
+         # a run replaces. Run 17 re-aimed it off Run 16's floor-section
+         # sentence, which its own write-up had rewritten, and the fixture
+         # reported FIXTURE DID NOT BUILD until it was --- which is the
+         # loud failure this case wants rather than a silent pass. Aim it
+         # at whatever sentence the floor section then quotes.
          plant=lambda t: {'readme': edited_readme(t, (
-             'the two read 0.39% and 0.24% against Run 15',
-             'the two read 0.51% and 0.24% against Run 15'))},
+             'the same run gives 1.31% and 0.56%',
+             'the same run gives 1.51% and 0.56%'))},
          argv=['--check-doc', '--readme', '{readme}'],
          ok=V(exit=1, has=['six-pair figure is quoted differently']),
          bug=V(exit=0, hasnt=['six-pair figure is quoted differently'])),
