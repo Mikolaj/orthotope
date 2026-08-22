@@ -418,6 +418,13 @@ def load(path, main_hs):
         if lo is None or hi is None:
             lo = hi = None
         slope = t['estPoint']
+        # A slope of exactly 0 divided here, in every mode, before the
+        # malformed-cell check in `selftest` that exists to name that cell
+        # could run -- the sunk-baseline defect one stage earlier, on the
+        # slope rather than on the net. A cell with no slope has no CI
+        # either. Found 2026-08-22 by review.
+        if not slope:
+            lo = hi = None
         alloc = fits.get('allocated')
         alloc_b = alloc['regCoeffs']['iters']['estPoint'] if alloc else None
         l = ell.get(shape)
