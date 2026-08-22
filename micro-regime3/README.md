@@ -2737,32 +2737,36 @@ rather than a slot in the next run, observed again:
   `loop-offsets.py` groups all four family arms as copies of one body ---
   but the worker containing that loop is not: `$wgo7` is **328 bytes
   in `mut-odo-vecdims` against 296 in `-add-in`**, and the control carries
-  an `imul` in its outer path that the sibling does not. That is exactly what
-  [the ceiling section's Core reading](#the-mutable-ceiling-not-taken) recorded
-  in 2026-08-09 --- *one multiply becomes an accumulated add threaded
-  as a further argument*, a per-run change and not a per-element one --- now
-  confirmed at the instruction level in the shipped `-fspec-constr` regime,
-  and **in the timed binary and not only the `-g3` twin**: one `imul`
-  in a window around `mut-odo-vecdims`'s loop and none around `-add-in`'s,
-  in `run17-det` exactly as in its twin. So the direction has a mechanism,
-  and it is the mechanism the family was built to expose: `add-in` does strictly
-  less arithmetic per run. **What the mechanism does not explain is the size.**
-  A per-run cost should track `sInner`, and it does not: over the shapes
-  carrying one, the correlation of the log ratio against log `sInner`
-  is **+0.04** on the basis and **-0.41** on the control, weak and not agreed
-  even in sign --- the same flatness Run 9's readings showed and Run 10 could
-  not account for either. **So the ordering is code and the magnitude may still
-  be part placement**, and the two questions want separating. **What would
-  settle the placement half** is Run 10's method aimed at these two arms: one
-  source, two builds a shim setting apart, chosen so the pair's offsets swap
-  or converge, read on nothing but `mut-odo-vecdims` against
-  `mut-odo-vecdims-add-in`. If the ordering follows the offsets it is placement;
-  if it survives them the arm is really faster and the shipping decision
-  is the one to revisit. That is two twenty-second builds and a filtered probe,
-  and it needs no run. Artifacts `probe-addin-*` and `probe-addin2-*`. Until
-  then the decision of 2026-08-22 stands and ships `mut-odo-vecdims`,
-  and the reason to record this is that the next run should not rediscover
-  it as a surprise.
+  an `imul` in its outer path that the sibling does not. Over each arm's whole
+  code the two run 3472 bytes against 3424, 929 instructions against 927, two
+  `imul` against one --- so that single multiply is very nearly the entire
+  difference between them, and [the ceiling section][ceiling] carries the same
+  measurement for all five family arms, no two of which share their whole code.
+  That is exactly what [the ceiling section's Core
+  reading](#the-mutable-ceiling-not-taken) recorded in 2026-08-09 --- *one
+  multiply becomes an accumulated add threaded as a further argument*, a per-run
+  change and not a per-element one --- now confirmed at the instruction level
+  in the shipped `-fspec-constr` regime, and **in the timed binary and not only
+  the `-g3` twin**: one `imul` in a window around `mut-odo-vecdims`'s loop
+  and none around `-add-in`'s, in `run17-det` exactly as in its twin.
+  So the direction has a mechanism, and it is the mechanism the family was built
+  to expose: `add-in` does strictly less arithmetic per run. **What
+  the mechanism does not explain is the size.** A per-run cost should track
+  `sInner`, and it does not: over the shapes carrying one, the correlation
+  of the log ratio against log `sInner` is **+0.04** on the basis and **-0.41**
+  on the control, weak and not agreed even in sign --- the same flatness Run 9's
+  readings showed and Run 10 could not account for either. **So the ordering
+  is code and the magnitude may still be part placement**, and the two questions
+  want separating. **What would settle the placement half** is Run 10's method
+  aimed at these two arms: one source, two builds a shim setting apart, chosen
+  so the pair's offsets swap or converge, read on nothing but `mut-odo-vecdims`
+  against `mut-odo-vecdims-add-in`. If the ordering follows the offsets
+  it is placement; if it survives them the arm is really faster and the shipping
+  decision is the one to revisit. That is two twenty-second builds
+  and a filtered probe, and it needs no run. Artifacts `probe-addin-*`
+  and `probe-addin2-*`. Until then the decision of 2026-08-22 stands and ships
+  `mut-odo-vecdims`, and the reason to record this is that the next run should
+  not rediscover it as a surprise.
 
 - `OPEN` **Run 18's pair, settled 2026-08-21 and half-built: GHC 9.14.1 against
   9.12.4, on one source carrying `-fobject-determinism`, the per-sample
@@ -3900,8 +3904,19 @@ falling outside its whole per-shape range. Dumped again from Run 8's own commit
 under `-fspec-constr` (2026-08-08) the two workers are still the same worker,
 identical once the numbering is normalised down to the four floated
 `init`/`last` error thunks each carries a private copy of, and `vBuildVS`
-is still no top-level binding. So **the signature is free**, and no `vBuild`
-is to be held back on either run's figure.
+is still no top-level binding. **Run 17 checked the emitted code rather
+than the Core and found what that predicts** (2026-08-22, off the `-g3` twin):
+`$wfbMutOdo` and `$wfbBuild` are **1224 bytes each**, and of those 1224 only
+**80 differ, in 34 runs of one to four bytes**, with a longest identical stretch
+of 131 --- which is one function emitted twice at two addresses, the differing
+bytes being address-relative operands and nothing else. So the identity now
+rests on the Core in two regimes *and* on the machine code, and the pair stays
+this README's cleanest known-true-ratio-1 control. **It is also the contrast
+that makes the vecdims family's readings legible**: there no two arms share
+their whole code at all, only an innermost run-fill and only four of the five,
+which the family measurement below in this section has arm by arm.
+So **the signature is free**, and no `vBuild` is to be held back on either run's
+figure.
 
 **What the pair has become is a second instrument, and it is read where
 the other instruments are.** Two top-level names with identical Core are a true
@@ -4006,16 +4021,31 @@ its advantage grows with `sInner`, r -0.29 against log `sInner`, 1.052 where
 not. `add-in`'s counted loops are identical to its control's instruction
 for instruction, its whole code difference sitting in the odometer recursion,
 where one multiply becomes an accumulated add threaded as a further argument ---
-a per-*run* change. **Run 17 confirmed that in the machine code** (2026-08-22):
-the two arms' innermost loops are byte-identical at eight instructions, while
-the worker containing them runs 328 bytes in `mut-odo-vecdims` against 296
-in `-add-in`, the control carrying an `imul` its sibling does not --- read
-in the timed binary as well as in the `-g3` twin, so it is not a debug-build
-artifact. What that reading did *not* reproduce is a per-run signature:
-the advantage is flat in `sInner`, as Run 9's was. `add-out` and `add-both`
-carry real extra code of the same kind --- a `scanr (*)` over the shape, built
-into a byte array once per call and read once per run --- which adds nothing
-to the per-element loop.
+a per-*run* change. **Run 17 confirmed that in the machine code, and measured
+the whole of the family rather than its loops** (2026-08-22, `-fspec-constr`,
+spans off the `-g3` twins). **No two arms share their whole code**,
+and the sizes sort them into exactly the two kinds this paragraph names.
+`mut-odo-vecdims` is **3472 bytes over 929 instructions with two `imul`**;
+`-add-in` is **3424 over 927 with one** --- 48 bytes and two instructions apart
+in total, the missing multiply being the whole of it, which is this paragraph's
+per-run substitution seen in the emitted code. The other three are a different
+thing: `-add-out` 4440 bytes over 1170 instructions, `-add-both` 4416 over 1179
+and `-add-both-down` 4424 over 1167, each carrying some 950 bytes and 240
+instructions the control does not --- the `scanr (*)` table built once per call,
+which is why they are per-run costs and not per-element ones. `-add-out` keeps
+both multiplies at two `imul` where `-add-both` and `-add-both-down` drop
+to one, as the corner and the down form should. **What is byte-identical is only
+the innermost run-fill, and only across four of the five**: `-add-both-down`'s
+is 24 bytes and seven instructions where the other four share one 28-byte,
+eight-instruction body, which is the per-element change above and why
+`loop-offsets.py` groups those four as copies of one loop. The discriminating
+`imul` was checked in the **timed** binary as well, in a window around each loop
+--- one for `mut-odo-vecdims` and none for `-add-in` --- so it is
+not a debug-build artifact. What none of this reproduces is a per-run
+*signature* in the timings: the `-add-in` advantage is flat in `sInner`, as Run
+9's readings were. `add-out` and `add-both` carry real extra code of the same
+kind --- a `scanr (*)` over the shape, built into a byte array once per call
+and read once per run --- which adds nothing to the per-element loop.
 
 **Run 9 could not see those as per-run changes and Run 10 can, which
 is the second thing the pairing bought.** On Run 9 the three penalties were flat
