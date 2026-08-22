@@ -2835,35 +2835,56 @@ rather than a slot in the next run, observed again:
   `run17-wildlog`'s 20381893) where the instrument patch added 4096, and Run 17
   priced 4096 at up to 8% on `gen-unsafe`, `gen-quotrem`, `build`, `mut-odo`,
   `offtab` and `bq-mut` with no strategy changed. So a movement on those six
-  families is layout and kills nothing; the other thirty-six arms are what
-  the registration is over. **And the fills half of it is already answered
-  and answers nothing**: `sat-probe` read `[0, 24, 0, 4]` and `[0, 0]`, Run 17's
-  exactly, so that clause is measured rather than predicted --- and Run 17's
-  twelve arms moved while its own two halves' fills were identical, which is why
-  a fill match is not evidence the arms held still; (2) *the compiler*,
-  the registered orderings holding on 9.14.1, killed by a BROKE that clears
-  that half's floor --- a margin moving is the finding and not a break, as claim
-  4's history says --- with claim 7's allocation levels read per compiler,
-  a compiler being able to change allocation where a slot cannot. **Which
-  orderings, read off `--claims` and not off this sentence, which was written
-  before Run 17 ran and said thirteen**: Run 17 broke two of that thirteen ---
-  claim 4's second half, now twice running, and claim 9's first ---
-  and *restated* claim 4, so what Run 18 inherits is an ordering where
-  the manifest had a tie. Re-read the count and the content out of the manifest
-  before the evening; (3) *the decomposition*, every shape's `list` alone leg
-  twice on the basis, `SAT=` off and on through `run-alonelegs.sh`, against
-  its roster cell: the state is saturated minus clean and the rest is roster
-  minus saturated. The dry run over six shapes puts the rest between -1.4 and +5
-  points with no constant sign, so the registration is the distribution
-  over the 24 shapes and not a cell: its median inside the floor, its tails
-  named and read per shape, a median past the floor naming what the state
-  is not, criterion's own interleaving between samples the first suspect.
-  The `spray` dose's legs, a third column if the budget allows, price the burst
-  route's share, some ten of the thirteen points on `vgg-14-c512-k3` and within
-  two points of the `list` dose elsewhere. The alone legs themselves are sound:
-  ten processes of `cifar-L2-16-c64-k3/list` land within 0.9%, so `list`
-  is immune to the per-process placement term that unreads `offtab` and `build`;
-  (4) *counted work*, `run-counts.sh` on both halves, instructions an iteration
+  families is layout and kills nothing; the other arms are what the registration
+  is over --- **less one more, `bq-expand-zf`, exempted 2026-08-22
+  on a measurement taken because it could not be taken afterwards.** Two builds
+  of the basis recipe either side of the load fields, differing in nothing else,
+  put the tracked fills at `[0, 24, 0, 4]` and `[0, 0]` on both, every copy
+  fitting --- so the fields do not move the fills, which is the question Run 18
+  had to ask --- but the second carries **one straddling loop where the first
+  carries none**, 38 bytes at offset 32, and a `-g3` twin names
+  it `fbBQexpandZF`, which is `bq-expand-zf` and a timed arm rather
+  than the instrument's own code. Run 17's basis straddled nowhere, so Run 18's
+  basis carries a straddle its predecessor had not, on an arm [Run 10 priced
+  a straddle at 12 to 14%](#what-moves-a-figure-when-no-strategy-changed).
+  It is in BOTH halves, one source building them, so the compiler registration
+  is untouched and only the bridge sees it. **Not chased, and the ruling
+  is this README's own**: layout is not hand-tuned here, which is what the shim
+  is for --- moving the new functions about the module until the straddle lands
+  elsewhere is a lottery the next source change re-rolls, no claim rests
+  on `bq-expand-zf`, whose series closed at Run 13, and raising the shim's skip
+  budget would be a regime change that confounds the compiler. **And it
+  is a weak answer to the pinning claim rather than the strong one [the rider
+  asks for][open]**: all six tracked copies moved by 3200 bytes, a whole
+  multiple of 64, so nothing forced the shim to re-pin anything. **And the fills
+  half of it is already answered and answers nothing**: `sat-probe` read
+  `[0, 24, 0, 4]` and `[0, 0]`, Run 17's exactly, so that clause is measured
+  rather than predicted --- and Run 17's twelve arms moved while its own two
+  halves' fills were identical, which is why a fill match is not evidence
+  the arms held still; (2) *the compiler*, the registered orderings holding
+  on 9.14.1, killed by a BROKE that clears that half's floor --- a margin moving
+  is the finding and not a break, as claim 4's history says --- with claim 7's
+  allocation levels read per compiler, a compiler being able to change
+  allocation where a slot cannot. **Which orderings, read off `--claims`
+  and not off this sentence, which was written before Run 17 ran and said
+  thirteen**: Run 17 broke two of that thirteen --- claim 4's second half, now
+  twice running, and claim 9's first --- and *restated* claim 4, so what Run 18
+  inherits is an ordering where the manifest had a tie. Re-read the count
+  and the content out of the manifest before the evening; (3)
+  *the decomposition*, every shape's `list` alone leg twice on the basis, `SAT=`
+  off and on through `run-alonelegs.sh`, against its roster cell: the state
+  is saturated minus clean and the rest is roster minus saturated. The dry run
+  over six shapes puts the rest between -1.4 and +5 points with no constant
+  sign, so the registration is the distribution over the 24 shapes and
+  not a cell: its median inside the floor, its tails named and read per shape,
+  a median past the floor naming what the state is not, criterion's own
+  interleaving between samples the first suspect. The `spray` dose's legs,
+  a third column if the budget allows, price the burst route's share, some ten
+  of the thirteen points on `vgg-14-c512-k3` and within two points of the `list`
+  dose elsewhere. The alone legs themselves are sound: ten processes
+  of `cifar-L2-16-c64-k3/list` land within 0.9%, so `list` is immune
+  to the per-process placement term that unreads `offtab` and `build`; (4)
+  *counted work*, `run-counts.sh` on both halves, instructions an iteration
   for every arm and shape from two fixed-`-n` processes a cell --- not
   for the orderings, which the pilot on Run 16 refused it (the TODO list's
   ruling), but per arm the count ratio 9.14/9.12 beside the time ratio: time
