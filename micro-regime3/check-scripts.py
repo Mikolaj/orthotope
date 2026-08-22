@@ -627,6 +627,14 @@ FAKE_HALF_UNBAKED = FAKE_HALF.replace(
     '  echo \' ,("Flag -with-rtsopts", "-A32m -I0 -T -M8G")\'\nfi\n', '')
 assert 'with-rtsopts' not in FAKE_HALF_UNBAKED, 'the unbaked stand-in kept it'
 
+# And one listing nothing, which is the other wrong binary.
+FAKE_HALF_LISTLESS = FAKE_HALF.replace(
+    'if [ "$1" = --list ]; then\n'
+    '  for s in shape-a shape-b shape-c; do\n'
+    '    for a in list build mut-odo sum-only-early sum-only-late; do\n'
+    '      echo "$s/$a"\n    done\n  done\nfi\n', '')
+assert 'shape-a' not in FAKE_HALF_LISTLESS, 'the listless stand-in kept it'
+
 # A stand-in that RUNS: one `benchmarking` line per bench of the gate's own
 # five-arm selection, for a driver that counts them against `--list`.
 FAKE_AREA = """\
@@ -2099,7 +2107,7 @@ CASES = [
          # in this file's fixture, which --audit does not replay.
          plant=lambda t: {'run': synth_json(t, 'main')},
          argv=['{run}', '--cells'],
-         ok=V(has=['\t1.0000\t1.0000\t'], hasnt=['\t0.0000\t'])),
+         ok=V(has=['\t1.0000\t1.0000\t'], hasnt=['\t0.0000\t1.0000\t'])),
 
     case('health-warns-on-a-null-bound', 'read-run.py', None,
          'CONTROL: one null CI bound is one cell with no confidence interval',
@@ -2955,6 +2963,22 @@ CASES = [
          ok=V(exit=1, has=['baked RTS line unread'],
               hasnt=['DONE-ALONELEGS', 'start:']),
          bug=V(has=['baked RTS line unread', 'DONE-ALONELEGS'])),
+
+    case('alonelegs-refuses-a-listless-half', 'run-alonelegs.sh', '16e7b55',
+         'a half listing nothing was refused inside the driver log it left',
+         # The same shape as the unbaked refusal, one check down: it fired
+         # after the redirect, so the refusal sat in a driver log nobody
+         # reads, and the relaunch guard then read that log as a previous
+         # attempt. Before the redirect now, on stdout, leaving nothing --
+         # which the probe asks directly. Found 2026-08-23 by review.
+         shadow=dict(extra=[('zzll-g912', FAKE_HALF_LISTLESS),
+                            ('zzll-pair.txt', 'a stand-in pair note.\n')]),
+         argv=['zzll', 'g912'],
+         probe=lambda subs: 'driver log left: %s' % os.path.exists(
+             os.path.join(subs['at'], 'zzll-al-g912-driver.log')),
+         ok=V(exit=1, has=['--list gave nothing', 'driver log left: False']),
+         bug=V(exit=1, has=['driver log left: True'],
+               hasnt=['--list gave nothing'])),
 
     # ---- probe-areacurve.sh --------------------------------------------
     case('areacurve-exit-carries-its-complaints', 'probe-areacurve.sh', None,
