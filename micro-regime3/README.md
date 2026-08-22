@@ -33,10 +33,12 @@ odometer and writes each innermost run, and `mut-odo-vecdims` --- the same fill
 with its dimension lists replaced by unboxed vectors --- is on Run 16
 (SpecConstr, -A32m) **2.12x** over `bq-expand` paired. Its family holds the top
 of the table, and which member leads is a tie the sort settles:
-`mut-odo-vecdims-add-in` reads 1.0043 against it, at 12 wins of 24 and sign p 1,
-the two printing the same 0.054. Both need a new `Vector`-class method, which
-was measured and deliberately **not** taken, to keep orthotope's `Vector` API
-pure and minimal --- a bar an in-tree precedent has since softened to a weight
+`mut-odo-vecdims-add-in` reads 1.0112 against it on Run 17, at 19 wins of 24
+and sign p 0.0066, the two printing 0.055 and 0.054 --- a lead that has [its own
+entry][open], a mechanism in the machine code and no settled magnitude. Both
+need a new `Vector`-class method, which was measured and deliberately
+**not** taken, to keep orthotope's `Vector` API pure and minimal --- a bar
+an in-tree precedent has since softened to a weight
 ([below](#the-mutable-ceiling-not-taken), amended). Plain `mut-odo` no longer
 argues for it at all: it and the shipped arm are a tie, winning 10 shapes of 24
 with sign p 0.54 and an interval covering 1, where Run 7 (Harness), at -O1, had
@@ -2683,19 +2685,82 @@ rather than a slot in the next run, observed again:
   no JSON. `mut-odo-vecdims` over `mut-odo-vecdims-add-in` reads **1.0227,
   1.0186 and 1.0039** by shape and **1.0151 over the nine processes, 8 of them
   above 1** --- the same direction as the roster's 1.0112 and slightly wider,
-  on a route that owes criterion's estimator nothing and cannot be a placement
-  draw, since the two arms share every process they are compared in. At 1.51%
-  it clears the basis's 1.31% six-pair threshold. GC is 0.015% of mutator
-  on these arms, so reading mutator rather than wall changes nothing here.
-  **What it does not cover is the control half**: the probe reads its timing off
-  the instrument, which `run17-det` does not carry, so the nine `det` processes
-  ran and said nothing --- a route that works only on an instrumented binary,
-  which is worth knowing before the next one is designed. **So three readings
-  now agree on the direction** --- the basis roster at 1.0112 (19 of 24, sign p
-  0.0066), the control roster at 1.0300 (21 of 24, p 0.00028) and this probe
-  at 1.0151 --- and what is still missing is a reading on a binary
-  that is neither instrumented nor the one the direction was first found on.
-  Until then the decision of 2026-08-22 stands and ships `mut-odo-vecdims`,
+  on a route that owes criterion's estimator nothing and shares a process,
+  so no *per-process* placement term survives it --- but the two arms sit
+  at different cache-line offsets, 0 and 24, and that difference is static
+  and survives every route here. At 1.51% it clears the basis's 1.31% six-pair
+  threshold. GC is 0.015% of mutator on these arms, so reading mutator rather
+  than wall changes nothing here. **What it does not cover is the control
+  half**: the probe reads its timing off the instrument, which `run17-det` does
+  not carry, so the nine `det` processes ran and said nothing --- a route
+  that works only on an instrumented binary, which is worth knowing before
+  the next one is designed. **The gap that left was closed the same evening**,
+  by the same paired design in criterion's own mode rather than at a fixed
+  count, which needs no instrument to read and so runs on both halves: three
+  fresh processes a cell over the same three shapes. On the uninstrumented
+  `run17-det` it reads **1.0171 over nine processes, 9 of 9 above 1** ---
+  `cifar-L2-16-c64-k3` alone giving 1.0374, 1.0395 and 1.0386, a figure past
+  every floor in this README --- and on `run17-wildlog` 1.0059 at 8 of 9.
+  **So five readings on two binaries by three routes all put `add-in` ahead**:
+  the basis roster at 1.0112 (19 of 24, sign p 0.0066), the control roster
+  at 1.0300 (21 of 24, p 0.00028), the fixed-n paired probe at 1.0151,
+  and these two at 1.0171 and 1.0059. The magnitude is context-dependent
+  and spans 1.0059 to 1.0300; the direction is not, and 1.71%
+  on the uninstrumented half clears that half's 0.56% six-pair threshold
+  threefold. **But placement is NOT excluded, and the offsets are the reason
+  to suspect it.** The two arms share one 28-byte body and sit at different
+  cache-line offsets: on Run 17, `fbMutOdoVecdims` at **0**
+  and `fbMutOdoVecdimsAddIn` at **24**, named off the `-g3` twins and identical
+  in both halves, since the patch shifts `.text` by 4096 bytes and these two
+  loops by 6912, both whole multiples of 64. So every reading above is one draw
+  on their placement rather than five. **Run 17 is the first run to move
+  these two arms off the offsets they had held**, and the history is recorded
+  rather than inferred: Runs 12 and 13 each named the vecdims four off a `-g3`
+  twin and matched them by byte identity, both putting **`mut-odo-vecdims` at 24
+  and `-add-in` at 8**, and `run16-a32m` carries the same arrangement
+  `[24, 8, 0, 0]`. Run 17 carries `[0, 24, 0, 4]`, so the pair now sits at **0
+  and 24** --- measured on this run's own twins, on both halves. All four copies
+  *fit* their line in every one of those runs, so any effect here
+  is the resident-offset kind rather than the straddle Run 10 priced at 12
+  to 14%, the kind [this list already calls narrowed and not settled][open].
+  **But the offsets do not sort the readings, and one run says so outright**:
+  at the old 24-and-8, Run 13 read the pair at 0.9934 on **21 of 24** ---
+  as strong a lead as Run 17's --- while Runs 14, 15 and 16 read coin flips
+  at those same offsets. So three of the seven readings put `add-in` decisively
+  ahead and four do not, across *two* offset arrangements, with the split
+  falling inside one arrangement as well as across the change. Placement
+  is therefore not excluded and not established either; what the offsets do
+  is make it un-excludable by anything measured so far. **And the two arms
+  are NOT the same code, which the machine code settles and a Core reading
+  of 2026-08-09 had already predicted.** Their innermost loops
+  are byte-identical --- the same eight instructions in 28 bytes, which is why
+  `loop-offsets.py` groups all four family arms as copies of one body ---
+  but the worker containing that loop is not: `$wgo7` is **328 bytes
+  in `mut-odo-vecdims` against 296 in `-add-in`**, and the control carries
+  an `imul` in its outer path that the sibling does not. That is exactly what
+  [the ceiling section's Core reading](#the-mutable-ceiling-not-taken) recorded
+  in 2026-08-09 --- *one multiply becomes an accumulated add threaded
+  as a further argument*, a per-run change and not a per-element one --- now
+  confirmed at the instruction level in the shipped `-fspec-constr` regime,
+  and **in the timed binary and not only the `-g3` twin**: one `imul`
+  in a window around `mut-odo-vecdims`'s loop and none around `-add-in`'s,
+  in `run17-det` exactly as in its twin. So the direction has a mechanism,
+  and it is the mechanism the family was built to expose: `add-in` does strictly
+  less arithmetic per run. **What the mechanism does not explain is the size.**
+  A per-run cost should track `sInner`, and it does not: over the shapes
+  carrying one, the correlation of the log ratio against log `sInner`
+  is **+0.04** on the basis and **-0.41** on the control, weak and not agreed
+  even in sign --- the same flatness Run 9's readings showed and Run 10 could
+  not account for either. **So the ordering is code and the magnitude may still
+  be part placement**, and the two questions want separating. **What would
+  settle the placement half** is Run 10's method aimed at these two arms: one
+  source, two builds a shim setting apart, chosen so the pair's offsets swap
+  or converge, read on nothing but `mut-odo-vecdims` against
+  `mut-odo-vecdims-add-in`. If the ordering follows the offsets it is placement;
+  if it survives them the arm is really faster and the shipping decision
+  is the one to revisit. That is two twenty-second builds and a filtered probe,
+  and it needs no run. Artifacts `probe-addin-*` and `probe-addin2-*`. Until
+  then the decision of 2026-08-22 stands and ships `mut-odo-vecdims`,
   and the reason to record this is that the next run should not rediscover
   it as a surprise.
 
@@ -3941,9 +4006,16 @@ its advantage grows with `sInner`, r -0.29 against log `sInner`, 1.052 where
 not. `add-in`'s counted loops are identical to its control's instruction
 for instruction, its whole code difference sitting in the odometer recursion,
 where one multiply becomes an accumulated add threaded as a further argument ---
-a per-*run* change. `add-out` and `add-both` carry real extra code of the same
-kind --- a `scanr (*)` over the shape, built into a byte array once per call
-and read once per run --- which adds nothing to the per-element loop.
+a per-*run* change. **Run 17 confirmed that in the machine code** (2026-08-22):
+the two arms' innermost loops are byte-identical at eight instructions, while
+the worker containing them runs 328 bytes in `mut-odo-vecdims` against 296
+in `-add-in`, the control carrying an `imul` its sibling does not --- read
+in the timed binary as well as in the `-g3` twin, so it is not a debug-build
+artifact. What that reading did *not* reproduce is a per-run signature:
+the advantage is flat in `sInner`, as Run 9's was. `add-out` and `add-both`
+carry real extra code of the same kind --- a `scanr (*)` over the shape, built
+into a byte array once per call and read once per run --- which adds nothing
+to the per-element loop.
 
 **Run 9 could not see those as per-run changes and Run 10 can, which
 is the second thing the pairing bought.** On Run 9 the three penalties were flat
@@ -3977,7 +4049,9 @@ and at offset 0 in another, and read the three arms in both:
   0.9937 and 1.0009 against its control, where Run 9 read 1.1552. Stepping
   the input offset additively in place of the loop's one multiply costs
   **nothing**, and the +15.5% recorded for it was the address of a loop the two
-  arms share.
+  arms share. **Run 17 takes this one step further**: the same substitution
+  is now read as a small *gain* rather than as free, on five readings
+  and with the missing `imul` visible in the machine code ([its entry][open]).
 - **`add-out` is convicted, and the corner with it.** It reads 1.1266 resident
   and **1.1612** aligned, `add-both` 1.0906 and 1.1184, on four placements
   between them and no straddle among any of them. So the +18.0%
@@ -4468,17 +4542,20 @@ verify.
 **And what the vecdims family reads under each, from probe legs and not
 from a recorded run** (2026-08-21, one bench per process so that every arm sits
 at the same slot, on a machine that was not idle). On the native backend
-`mut-odo-vecdims` and `-add-in` tie, inside the A/A floor and with the sign test
-flat, and `-add-both-down`, `-add-both` and `-add-out` follow 6 to 11% behind.
-Under LLVM with 64-byte loop heads those two tie again, the in-process
-and one-per-process legs straddling 1, and the other three sit 8 to 11% back
-in an order the two legs do not agree on --- so the tie is the durable reading
-and the losers' own ranking is not. In absolute terms the winner's fill, read
-off its `-nosum` leg so that no forcing pass is in it, runs about 0.90
-of its native-backend self and is ahead on all but three shapes; that figure
-crosses compiler, backend and dependency set at once, and its two windows
-are an hour apart on that same busy machine, so read it as a direction
-with a magnitude and not as a measurement of the backend.
+`mut-odo-vecdims` and `-add-in` tied, inside the A/A floor and with the sign
+test flat --- a reading Run 17 has since gone past, its roster and three paired
+probes all putting `-add-in` ahead ([its entry][open]), so read these legs
+for the *other three* arms and not for that pair --- and `-add-both-down`,
+`-add-both` and `-add-out` follow 6 to 11% behind. Under LLVM with 64-byte loop
+heads those two tie again, the in-process and one-per-process legs straddling 1,
+and the other three sit 8 to 11% back in an order the two legs do not agree
+on --- so the tie is the durable reading and the losers' own ranking is not.
+In absolute terms the winner's fill, read off its `-nosum` leg so
+that no forcing pass is in it, runs about 0.90 of its native-backend self
+and is ahead on all but three shapes; that figure crosses compiler, backend
+and dependency set at once, and its two windows are an hour apart on that same
+busy machine, so read it as a direction with a magnitude and not
+as a measurement of the backend.
 
 **Those last four need no build and no pair**: `micro.cabal` compiles
 with `-rtsopts`, so an already-built binary takes any RTS setting, and `-s`,
@@ -8190,22 +8267,28 @@ in Run 10, 0.9934 at 21 of 24 in Run 13, 0.9967 at 13 of 24 in Run 14, 1.0023
 at 14 of 24 in Run 15 and 1.0043 at 12 of 24 in Run 16 --- and here it reads
 **0.9889 at 19 of 24, sign p 0.0066** on the basis half and **0.9709 at 21
 of 24, p 0.00028** on the control. **That the two halves agree in direction
-is what makes this reading different from the five before it**: they differ
-in `.text` and in every loop offset, `add-in` is itself an arm this pair moved
-1% across the halves, and both still put it ahead with a sign test clear of 0.05
---- so whatever this is, it is not the slot. **And by the threshold this README
-sets for two arms of one run --- the six-pair figure, not the eighteen-pair
-floor --- the control half clears it and the basis does not**: 1.11% against
-a six-pair figure of 1.31% on the basis, and 2.91% against 0.56% on the control,
-which it clears more than fivefold. So one half says the margin is real
-and the other says it is not resolvable, on the same two arms in the same
-evening: three of the seven readings put `add-in` ahead at 19 to 21 of 24
-and four read a coin flip, and the three are Run 13's and this run's two.
-**The consequence is a question for Run 18 rather than an answer here** ---
-the shipped arm is `mut-odo-vecdims` by the decision of 2026-08-22, and the arm
-that has now led eight of nine populations and both halves of a pair
-is its `add-in` sibling. What would settle it is a run reading the pair
-at a margin that clears a floor, which no run yet has.
+is worth less than it looks, and the offsets say why.** The patch grows `.text`
+by exactly 4096 bytes and shifts these two arms by 6912 --- both multiples of 64
+--- so `fbMutOdoVecdims` sits at cache-line offset **0**
+and `fbMutOdoVecdimsAddIn` at **24** in *both* halves. The halves are one draw
+on these arms' placement, not two, and the agreement between them is therefore
+no evidence at all about the slot. **And by the threshold this README sets
+for two arms of one run --- the six-pair figure, not the eighteen-pair floor ---
+the control half clears it and the basis does not**: 1.11% against a six-pair
+figure of 1.31% on the basis, and 2.91% against 0.56% on the control, which
+it clears more than fivefold. So one half says the margin is real and the other
+says it is not resolvable, on the same two arms in the same evening: three
+of the seven readings put `add-in` ahead at 19 to 21 of 24 and four read a coin
+flip, and the three are Run 13's and this run's two. **And the probes taken
+after this write-up settled the direction, which the roster alone could
+not** --- paired within one process, on both halves and by two routes, they read
+1.0151, 1.0171 and 1.0059, the middle one on the uninstrumented half at 9 of 9
+processes and clearing that half's six-pair threshold threefold. So the arm
+that has led eight of nine populations, both halves of the pair and every probe
+put to it is `mut-odo-vecdims-add-in`, and the arm the decision of 2026-08-22
+ships is `mut-odo-vecdims`. **That is now a decision to revisit rather
+than a measurement to take**, and [its own entry][open] carries all five
+readings and what remains uncertain about the magnitude.
 
 **And the two standing control readings both went quiet, which is not what
 the run before found.** `build` against `mut-odo` --- one worker at two slots,
@@ -8819,19 +8902,21 @@ verdicts**, the details beside each class's table:
    so no run has separated the family yet. What is new is the *sign*, and
    it is on the main set that it shows: `add-in` leads at **0.9889 on 19 of 24
    shapes, sign p 0.0066** on the basis half and **0.9709 on 21 of 24, p
-   0.00028** on the control --- two binaries with different layouts agreeing
-   in direction, and on the control the margin clears that half's six-pair
-   figure of 0.56% more than fivefold, where on the basis 1.11% falls just
-   under its 1.31%. Only the main set could show this at all, a three-shape
-   class bottoming out at p 0.25, so the eight classes say nothing about
-   significance either way. [The series under Results](#results) has the whole
-   of it; what belongs here is that the arm leading eight of the nine
-   populations is not the arm that ships. The third clause reads the last
-   candidate `bq-expand` behind the shipped arm and holds in all nine,
-   from 0.3142 on `scaled` to 0.8291 on `reshape1`. The summary's outside-family
-   slot --- the redirect's candidate --- is `mut-flat-gm` in `rev`, `revsome`,
-   `window` and `reshape1`, `mut-odo` in `bcast`, `bcastmid` and `slice`,
-   and `build` in `scaled`, only `reshape1`'s ahead of the shipped arm.
+   0.00028** on the control --- and on the control the margin clears that half's
+   six-pair figure of 0.56% more than fivefold, where on the basis 1.11% falls
+   just under its 1.31%; three paired probes taken after the write-up agree, one
+   of them 9 of 9 on the uninstrumented half. **Whether any of it is the two
+   arms' cache-line offsets is open**, and [the entry][open] says what would
+   settle it. Only the main set could show this at all, a three-shape class
+   bottoming out at p 0.25, so the eight classes say nothing about significance
+   either way. [The series under Results](#results) has the whole of it; what
+   belongs here is that the arm leading eight of the nine populations is
+   not the arm that ships. The third clause reads the last candidate `bq-expand`
+   behind the shipped arm and holds in all nine, from 0.3142 on `scaled`
+   to 0.8291 on `reshape1`. The summary's outside-family slot --- the redirect's
+   candidate --- is `mut-flat-gm` in `rev`, `revsome`, `window` and `reshape1`,
+   `mut-odo` in `bcast`, `bcastmid` and `slice`, and `build` in `scaled`, only
+   `reshape1`'s ahead of the shipped arm.
 3. **The allocation tiers survive, and every level is Run 15's and Run 16's
    to the digit**: the mutable fills at the result vector, `bq-expand` between
    1.14x and 5.43x it, `list` an order of magnitude above. Where a level moves
