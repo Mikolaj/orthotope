@@ -658,6 +658,20 @@ exit 0
 """
 
 
+# A log with samples on BOTH sides of the load fields, and a trailing
+# `pre` with no `post`: the two branches of `--wild` that no run on disk
+# exercises, one being an instrument change mid-log and the other what a
+# killed process leaves. Written out rather than captured, a captured log
+# being thousands of lines of which two matter.
+WILD_MIXED = """\
+@@wild a/b pre iters=1 alloc=1 mut=1 gc=0 gcs=1/0 inuse=1
+@@wild a/b post iters=1 alloc=2 mut=3 gc=0 gcs=1/0 inuse=1
+@@wild a/b pre iters=1 alloc=3 mut=4 gc=0 gcs=1/0 inuse=1 load=0.1 run=1 cpu=100
+@@wild a/b post iters=1 alloc=4 mut=6 gc=0 gcs=1/0 inuse=1 load=0.1 run=1 cpu=200
+@@wild a/c pre iters=1 alloc=1 mut=1 gc=0 gcs=1/0 inuse=1 load=0.1 run=1 cpu=100
+"""
+
+
 UNDERPRINT = FAKE_RUN.replace(
     "for b in d[2]:\n    print('benchmarking ' + b['reportName'])",
     "for b in d[2][:-1]:\n    print('benchmarking ' + b['reportName'])")
@@ -1784,6 +1798,38 @@ CASES = [
          ok=V(exit=0, has=['every process gated clean', 'lookrts-rev'],
               hasnt=['al-lookrts-cnn-slice-c32-r1']),
          bug=V(exit=0, has=['al-lookrts-cnn-slice-c32-r1'])),
+
+    case('wild-partial-load-fields', 'read-run.py', None,
+         'a foreign figure over half a bench read as the whole bench',
+         # A log spanning an instrument change -- or two concatenated --
+         # has samples with the load fields and samples without, and the
+         # foreign column can only be over the ones that carry them. Saying
+         # nothing about that is a figure over a subset presented as the
+         # bench's, which is the silent narrowing this directory refuses
+         # everywhere else. Found 2026-08-22 by probing the mode's own
+         # branches after it was written, not by anything failing.
+         plant=lambda t: {'log': write(os.path.join(t, 'w.log'), WILD_MIXED)},
+         argv=['{log}', '--wild'],
+         ok=V(exit=0, has=['marked *', '1 of 2 sample(s)'])),
+
+    case('wild-drops-an-unpaired-stamp', 'read-run.py', None,
+         "CONTROL: a killed process's trailing `pre` is counted, not paired",
+         # The instrument writes two lines a sample. A log a killed process
+         # left ends in a `pre`, and pairing it with what follows would read
+         # one bench's work as another's -- so it is dropped and COUNTED,
+         # the count being the only thing that says the log is short.
+         plant=lambda t: {'log': write(os.path.join(t, 'w.log'), WILD_MIXED)},
+         argv=['{log}', '--wild'],
+         ok=V(exit=0, has=['1 unpaired stamp(s) dropped'])),
+
+    case('wild-refuses-a-json', 'read-run.py', None,
+         'CONTROL: the stamps are on stderr, so --wild wants the .log',
+         # Every other mode takes criterion's JSON and this one does not,
+         # so the wrong file is the likely mistake; it dies in json.load
+         # otherwise, which names nothing.
+         plant=lambda t: {'run': synth_json(t, 'main')},
+         argv=['{run}', '--wild'],
+         ok=V(exit=2, has=['in the .log beside this file'])),
 
     case('replace-inside-a-list-item', 'read-run.py', None,
          'an anchor naming one task replaced the whole list with it',

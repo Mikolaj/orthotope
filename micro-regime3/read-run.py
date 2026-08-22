@@ -2239,6 +2239,22 @@ JIFFY_NS = 10 ** 7
 WILD_LOUD = 0.25
 
 
+def fmt_ratio(r):
+    """A foreign ratio in a fixed seven columns, however large it gets.
+
+    It is unbounded -- the denominator is a bench's own CPU, so a bench
+    that ran for a few jiffies divides by nearly nothing -- and `%7.2f`
+    on such a value runs into the column to its left and takes the table
+    apart. Seen at 499999999.00 while the mode was being exercised on a
+    two-sample toy log, which is what a real one looks like when the
+    process barely ran. Anything past the machine's core count is already
+    impossible as a reading, so the display saturates and says so.
+    """
+    if r != r or r > 999:
+        return '   >999'
+    return '%7.2f' % r
+
+
 def parse_wild(line):
     """One `@@wild` line as a dict, or None.
 
@@ -2371,7 +2387,7 @@ def wild_table(path, verbose=False):
     head = '%-38s %7s %13s %13s %6s' % ('bench', 'samples', 'alloc/iter',
                                         'mut/iter', 'gc%')
     print(head + ('%8s %6s' % ('foreign', 'load') if have_load else ''))
-    loud = []
+    loud, partial = [], []
     for nm in order:
         ds = per[nm]
         its = sum(d['iters'] for d in ds) or 1
@@ -2381,18 +2397,37 @@ def wild_table(path, verbose=False):
         gcpct = 100.0 * gc / (sum(d['mut'] for d in ds) + gc or 1)
         f_txt, l_txt = '', ''
         if have_load:
-            own = sum(d.get('own', 0) for d in ds)
-            frn = sum(d.get('foreign', 0) for d in ds)
+            # OVER THE SAMPLES THAT CARRY THE FIELDS, and the ones that do
+            # not are counted rather than averaged over: a log spanning an
+            # instrument change, or two logs concatenated, otherwise gets a
+            # figure over a subset with nothing saying it is one -- the
+            # silent narrowing this directory's rules refuse. Marked `*`
+            # here and named under the table.
+            withf = [d for d in ds if 'foreign' in d]
+            if len(withf) != len(ds):
+                partial.append((nm, len(withf), len(ds)))
+            own = sum(d['own'] for d in withf)
+            frn = sum(d['foreign'] for d in withf)
             ratio = frn / own if own else 0.0
-            f_txt = '%8.2f' % ratio
+            f_txt = fmt_ratio(ratio) + ('*' if len(withf) != len(ds) else ' ')
             loads = [float(d['load']) for d in ds if d.get('load')
                      not in (None, '?')]
             l_txt = '%6.2f' % max(loads) if loads else '     ?'
-            if ratio >= WILD_LOUD:
-                loud.append((nm, ratio, max(d.get('foreign', 0) for d in ds)))
+            if withf and ratio >= WILD_LOUD:
+                loud.append((nm, ratio, max(d['foreign'] for d in withf)))
         row = '%-38s %7d %13.0f %13.0f %6.2f' % (nm, len(ds), alloc, mut,
                                                  gcpct)
         print(row + ('%8s %6s' % (f_txt, l_txt) if have_load else ''))
+    if partial:
+        print()
+        print('%d bench(es) marked * have samples WITHOUT the load fields,'
+              ' and their' % len(partial))
+        print('  foreign figure is over the samples that carry them and not'
+              ' over the bench:')
+        for nm, k, n in partial:
+            print('  %-38s %d of %d sample(s)' % (nm, k, n))
+        print('  A log spanning an instrument change, or two logs'
+              ' concatenated, reads this way.')
     if have_load:
         print()
         print('`foreign` is the machine\'s busy CPU during a bench\'s samples,'
@@ -2412,8 +2447,8 @@ def wild_table(path, verbose=False):
             print('  cell -- a wild cell moves the mutator clock with the'
                   ' machine quiet beside it:')
             for nm, ratio, worst in sorted(loud, key=lambda x: -x[1]):
-                print('  %-38s %6.2f, worst sample %.1f ms foreign'
-                      % (nm, ratio, worst / 1e6))
+                print('  %-38s %s, worst sample %.1f ms foreign'
+                      % (nm, fmt_ratio(ratio).strip(), worst / 1e6))
         else:
             print()
             print('NO bench reaches %.2f foreign: nothing else was running on'
