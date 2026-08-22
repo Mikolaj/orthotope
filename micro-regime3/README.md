@@ -2550,12 +2550,17 @@ rather than a slot in the next run, observed again:
      would mean the instrument's own interleaved allocation deepens the state
      --- a finding about the instrument, and the write-up then publishes
      from `det`.
-  3. *Object determinism.* Two builds of the `run17-det` recipe, back to back
-     into two builddirs, give one `Main.o` by md5; the same done to Run 16's
-     recipe, the control, gives two. Killed on the first by a differing object,
-     and on the second by an identical one, which leaves the flag priced
-     at nothing on this module and says the run-to-run binary differences
-     this README has met are the dependency store's alone.
+  3. *Object determinism.* **TAKEN 2026-08-22 at build time, and the second half
+     KILLED.** Two builds of the `run17-det` recipe, back to back into two
+     builddirs, gave one `Main.o` by md5 as registered; the control --- Run 16's
+     recipe, the same twice --- gave one as well, where two were registered.
+     So `-fobject-determinism` is priced at nothing on this module, having
+     reproduced without it, and the run-to-run binary differences this README
+     has met are not this module's to explain, which leaves them where Run 15's
+     relink reading put them. The md5s are in `run17-pair.txt`'s fill-in block,
+     with the `.text` reading beside them --- `run17-det` matching `run16-a32m`
+     to the byte at a different md5. The run never re-asks this, so the answer
+     is here.
   4. *The wild cell, over the whole roster.* Every sample of the `wildlog` half
      carries its RTS totals, so that half's worst A/A cell can be placed
      to a sample and read beside allocation, mutator and collector clocks
