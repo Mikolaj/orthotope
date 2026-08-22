@@ -855,6 +855,195 @@ def sunk_shape_json(tmp, name='sunk-shape.json'):
                      sunk=[(shapes[0], a) for a in arms])
 
 
+def run_order_shapes(cls):
+    """One class's shapes in the order they RUN, not sorted.
+
+    `class_shapes` sorts, which is right for every fixture that only wants
+    a population and wrong for the three lead cases: the block's lead
+    lists its shapes in run order, the per-shape line under it is
+    installed in run order and labelled as the lead's, and a sorted
+    fixture makes those two disagree for a reason no defect caused. The
+    order is Main.hs's own -- `dims_by_shape` yields the lists as it read
+    them -- which is what criterion then emits.
+    """
+    dims, _ = _reader().dims_by_shape(os.path.join(HERE, 'Main.hs'))
+    return [sh for sh in dims if sh.startswith(cls + '-')]
+
+
+def lead_of(cls):
+    """A class block's bolded lead paragraph, the whole of it.
+
+    Found by the pattern `install-tables.sh` and `lead_shapes` both use,
+    and asserted unique here so a fixture built on it cannot silently
+    edit the wrong paragraph.
+    """
+    hit = [p for p in open(README).read().split('\n\n')
+           if p.lstrip().startswith('**`%s` ---' % cls)]
+    assert len(hit) == 1, 'lead `%s`: %d paragraph(s)' % (cls, len(hit))
+    return hit[0]
+
+
+def relead(tmp, cls, rewrite, name='R.md'):
+    """A copy of the README with one class lead rewritten by `rewrite`.
+
+    The lead is handed over UNWRAPPED, one line, because `lead_shapes`
+    normalises whitespace before it reads and a plant that had to
+    reproduce the wrap would be testing the wrapper. What comes back is
+    written as the paragraph, and `edited_readme` asserts it replaced
+    exactly one.
+    """
+    old = lead_of(cls)
+    new = rewrite(' '.join(old.split()))
+    assert new != ' '.join(old.split()), 'the rewrite changed nothing'
+    return edited_readme(tmp, (old, new), name=name)
+
+
+def open_list_span(lines):
+    """(first, last) line indices of the open list, found its own way.
+
+    The same two headings `check_doc` delimits the section with, so a
+    fixture cannot be built against a range the check does not read.
+    """
+    lo = next(i for i, l in enumerate(lines) if l.startswith('## What is open'))
+    hi = next(i for i, l in enumerate(lines) if l.startswith('## The goal'))
+    assert lo < hi, 'the open list runs from %d to %d' % (lo, hi)
+    return lo, hi
+
+
+def readme_entry_without_status(tmp):
+    """A copy carrying an open-list entry that opens with no status.
+
+    ADDED and not stripped, which the first draft did and which is the
+    trap worth recording: taking the token off an existing entry
+    shortens that line and leaves its paragraph half-wrapped, so the
+    copy then failed the WRAP gate as well -- exit 1 for a reason this
+    case is not about, and the case was passing on it. A fresh entry on
+    one long line is what any edit leaves, and the wrap pass reports
+    that as mid-edit rather than failing it.
+    """
+    lines = readme_lines()
+    lo, hi = open_list_span(lines)
+    i = next(k for k in range(lo, hi) if lines[k].startswith('- `'))
+    entry = ('- **zz-planted-tokenless, an entry written without its'
+             ' status.** It says nothing about the run and is here to be'
+             ' classified by a grep that cannot classify it.')
+    return edited_readme(tmp, (lines[i], entry + '\n' + lines[i]))
+
+
+def readme_open_list_reshaped(tmp):
+    """A copy whose open-list entries are all sub-bullets.
+
+    The vacuity control: a section reshaped so the check's pattern finds
+    nothing must FAIL as unlocatable rather than pass over an empty list,
+    which is the shape this suite refuses everywhere else.
+    """
+    lines = readme_lines()
+    lo, hi = open_list_span(lines)
+    out = list(lines)
+    hit = 0
+    for k in range(lo, hi):
+        if out[k].startswith('- '):
+            out[k] = '  ' + out[k]
+            hit += 1
+    assert hit, 'no top-level entry to indent'
+    return write(os.path.join(tmp, 'R.md'), '\n'.join(out))
+
+
+def readme_answered_account(tmp, tail=''):
+    """An ANSWERED entry over the sweep's threshold, planted in the list.
+
+    BUILT rather than borrowed. The live list's own long entries are the
+    backlog the rule was written over, so a case keyed on one of those
+    would pass on the backlog and say nothing about the sweep -- and
+    would go quiet the day that entry is shortened, which is the outcome
+    the rule is for.
+
+    The filler is deliberately free of figures, superlatives, absolute
+    times and prospective verbs: `check_doc`'s other sweeps run over the
+    same copy, and a fixture that tripped one of them would be judged on
+    the wrong line. `tail` adds a reference-style pointer, which is the
+    form that must take an entry back OUT of the list.
+    """
+    lines = readme_lines()
+    i = next(k for k, l in enumerate(lines) if l.startswith('- `ANSWERED`'))
+    filler = 'This entry is a fixture and says nothing about the run. ' * 40
+    entry = ('- `ANSWERED` **zz-planted-account, an answer grown into an'
+             ' account.** ' + filler.strip() + tail)
+    return edited_readme(tmp, (lines[i], entry + '\n' + lines[i]))
+
+
+CLASS_SECTION = '### The stride classes, run by run'
+
+
+def floor_movement_para(bend=None, joiner=' to '):
+    """A floor-movement paragraph BUILT from the class table's own column.
+
+    Constructed and not found: the README carried such a paragraph until
+    2026-08-22 and carries none now -- a run owes one only when its
+    halves can be read against the previous run's -- so a fixture that
+    edited the live one could be built on one document and not on the
+    next. The figures come off the table the check reads, so the
+    paragraph is right by construction and `bend` is the only thing
+    wrong with it.
+
+    `bend` moves one class's landing figure off the column; `joiner`
+    rewrites the shape the check matches on. One each is what the two
+    cases want.
+    """
+    rows = re.findall(r'^\| `([a-z0-9]+)` \|.*\| ([\d.]+)% \|$',
+                      open(README).read(), re.M)
+    assert len(rows) >= 4, 'class table floor column: %d row(s)' % len(rows)
+    said = []
+    for i, (cls, now) in enumerate(rows):
+        if bend is not None and i == bend:
+            now = now + '9'
+        said.append('`%s` 1.11%%%s%s%%' % (cls, joiner, now))
+    return ('**The floor column can be read against its predecessor\'s.**'
+            ' All of them moved: ' + ', '.join(said) + '.')
+
+
+def readme_with_floor_movement(tmp, **kw):
+    """A copy carrying that paragraph, under the class section's heading.
+
+    Placed right under the heading so it is inside the section the check
+    reads and outside every class block, which is where the real one
+    stood.
+    """
+    return edited_readme(tmp, (CLASS_SECTION + '\n',
+                               CLASS_SECTION + '\n\n'
+                               + floor_movement_para(**kw) + '\n'))
+
+
+def readme_floor_movement_off_column(tmp):
+    """One movement landing off the column, the rest right."""
+    return readme_with_floor_movement(tmp, bend=0)
+
+
+def readme_floor_movement_reshaped(tmp):
+    """Every figure right and the shape the check matches on rewritten.
+
+    What must not happen is a silent pass: keying the vacuity guard on
+    the sentence's opening phrase was the first attempt, and rewording
+    that phrase turned the whole check off.
+    """
+    return readme_with_floor_movement(tmp, joiner=' -> ')
+
+
+def _scale_arm(benches, arm, factor):
+    """Every bench of one ARM, across the shapes, scaled together.
+
+    `scale` above takes a whole `shape/arm` report name, which is one
+    cell; a floor is a pair over the whole population, so widening one
+    wants all of its cells at once.
+    """
+    hit = 0
+    for b in list(benches):
+        if b['reportName'].split('/')[-1] == arm:
+            hit += scale(benches, b['reportName'], factor)
+    assert hit, 'no bench of arm %s' % arm
+    return hit
+
+
 def class_names():
     """The stride classes, from Main.hs rather than from a literal.
 
@@ -1697,6 +1886,261 @@ CASES = [
          ok=V(has=['gone']),
          bug=V(hasnt=['gone'])),
 
+    # ---- the write-up's derived sources --------------------------------
+    # Three readings a run used to take by eye and one it took twice: the
+    # class lead against the run standing under it, a class property's
+    # break against that population's own floor, and the extremes across
+    # every class at once. Each is a hand-written line over installed
+    # content, which is this suite's oldest family.
+    #
+    # THREE OF THEM ARE CONTROLS and have no `bug` to replay.
+    # `lead-in-run-order-is-silent` and
+    # `answered-pointer-may-be-reference-style` both assert an ABSENCE, so
+    # they pass at the fix and before it alike -- which is the point of
+    # them, each saying that the plant beside it is what fires its
+    # siblings and not the fixture they share.
+    # `floor-movement-built-clean-passes` would fail before the fix, the
+    # line it asserts being the new check's own, and is a control of the
+    # BUILT paragraph rather than of the check: the two cases beside it
+    # bend that paragraph, and this is it unbent.
+    #
+    # The rest carry both verdicts and split over two fixes -- the
+    # reader's and the drivers' -- which is why the hashes differ down the
+    # list. `classes-without-a-mode-that-reads-it` is the one worth
+    # naming: before the fix it came back `exit 0, wanted 2`, the files
+    # named by `--classes` read by nobody and the mode printing as though
+    # they had not been given.
+    case('lead-drops-a-shape', 'read-run.py', '3596ba2',
+         'a class lead named two shapes over a run carrying three',
+         # The five class views that gained a third shape on 2026-08-14
+         # still had two-shape leads after Run 14's write-up, while the
+         # per-shape line --block installs beneath them named three.
+         # --block knew both all along and compared neither.
+         plant=lambda t: {
+             'readme': relead(t, 'slice', lambda s: s.replace(
+                 ', `slice-coprime-r7` (`l` 60060, `sInner` 13)', '')),
+             'run': synth_run(os.path.join(t, 'slice.json'),
+                              run_order_shapes('slice'))},
+         argv=['{run}', '--block', '--readme', '{readme}'],
+         ok=V(exit=0, has=['does not name `slice-coprime-r7`']),
+         bug=V(exit=0, hasnt=['does not name `slice-coprime-r7`'])),
+
+    case('lead-order-mislabels-the-per-shape-line', 'read-run.py', '3596ba2',
+         'a lead listed its shapes in an order the installed line is not in',
+         # The per-shape paragraph is installed IN RUN ORDER and labelled
+         # *in the lead's order*, so a lead that lists them differently
+         # does not go stale -- it mislabels three live ratios, which is
+         # the one of the three readings no reading of the block catches.
+         plant=lambda t: {
+             'readme': relead(t, 'slice', lambda s: s.replace(
+                 '`slice-cnn-L2-24x24-c32` (`l` 165888, `sInner` 3),'
+                 ' `slice-primes` (`l` 250357, `sInner` 89)',
+                 '`slice-primes` (`l` 250357, `sInner` 89),'
+                 ' `slice-cnn-L2-24x24-c32` (`l` 165888, `sInner` 3)')),
+             'run': synth_run(os.path.join(t, 'slice.json'),
+                              run_order_shapes('slice'))},
+         argv=['{run}', '--block', '--readme', '{readme}'],
+         ok=V(exit=0, has=['it lists them `slice-primes`,'
+                           ' `slice-cnn-L2-24x24-c32`']),
+         bug=V(exit=0, hasnt=['it lists them `slice-primes`,'
+                             ' `slice-cnn-L2-24x24-c32`'])),
+
+    case('lead-figures-disagree-with-main-hs', 'read-run.py', '3596ba2',
+         'a lead\'s hand-copied `l` had no source but the lead',
+         plant=lambda t: {
+             'readme': relead(t, 'slice', lambda s: s.replace(
+                 '`slice-primes` (`l` 250357', '`slice-primes` (`l` 250358')),
+             'run': synth_run(os.path.join(t, 'slice.json'),
+                              run_order_shapes('slice'))},
+         argv=['{run}', '--block', '--readme', '{readme}'],
+         ok=V(exit=0, has=['is written (`l` 250358, `sInner` 89) where'
+                           ' Main.hs gives (`l` 250357, `sInner` 89)']),
+         bug=V(exit=0, hasnt=['is written (`l` 250358, `sInner` 89)'])),
+
+    case('lead-in-run-order-is-silent', 'read-run.py', None,
+         'CONTROL: the lead as written, over the run it stands over',
+         # The three above plant into the same lead, so this is what says
+         # they are firing on the plant and not on the fixture: same
+         # class, same built run, the README untouched.
+         plant=lambda t: {'run': synth_run(os.path.join(t, 'slice.json'),
+                                           run_order_shapes('slice'))},
+         argv=['{run}', '--block'],
+         ok=V(exit=0, hasnt=['lead `slice`'])),
+
+    case('break-priced-against-its-population-floor', 'read-run.py', '3596ba2',
+         'a class property break was reported as a sort, with no width',
+         # Run 15 published seven breaks off the sort and five were ties
+         # inside their own population's floor. THE SAME BREAK, against a
+         # floor twice as wide, has to read the other way -- which is what
+         # this and the case below are: one built run, one A/A pair driven
+         # wide in the second, and the verdict flipping on the floor alone.
+         plant=lambda t: {'run': synth_json(t, 'revsome')},
+         argv=['{run}', '--block'],
+         ok=V(exit=0, has=['priced:', 'OUTSIDE the floor'],
+              hasnt=['INSIDE the floor']),
+         bug=V(exit=0, hasnt=['priced:', 'OUTSIDE the floor'])),
+
+    case('a-wide-floor-swallows-the-same-break', 'read-run.py', '3596ba2',
+         'nothing said whether a break was wider than the run could see',
+         plant=lambda t: {'run': doctored(
+             t, 'revsome',
+             lambda bs: _scale_arm(bs, 'offtab-aa-distant', 2.5),
+             'wide-floor.json')},
+         argv=['{run}', '--block'],
+         ok=V(exit=0, has=['priced:', 'INSIDE the floor'],
+              hasnt=['OUTSIDE the floor']),
+         bug=V(exit=0, hasnt=['priced:', 'INSIDE the floor'])),
+
+    case('open-list-entry-without-a-status', 'read-run.py', '3596ba2',
+         'an entry a grep could not classify sat in the list to be read',
+         # The section's preamble states that every entry opens with its
+         # status and offers `grep '^- .OPEN.'` as the use of it. That was
+         # true of the parent list and false of the non-urgent sublist:
+         # seven of thirteen carried no token, four of them closed in the
+         # ten days before 2026-08-22, their closure a phrase inside the
+         # bolded lead. FAILED rather than listed, alone among this
+         # section's checks -- which token an entry takes is the author's
+         # and is decided before this runs, so nothing is left to judge.
+         plant=lambda t: {'readme': readme_entry_without_status(t)},
+         argv=['--check-doc', '--readme', '{readme}'],
+         ok=V(exit=1, has=['open with no status',
+                           'cannot find the live ones among them',
+                           'zz-planted-tokenless']),
+         bug=V(exit=0, hasnt=['open with no status'])),
+
+    case('open-list-status-check-does-not-pass-empty', 'read-run.py', '3596ba2',
+         'a reshaped list would have passed the status check over nothing',
+         # Every entry indented into a sub-bullet, which is what a reshape
+         # of the section would look like to this pattern. The check has
+         # to say it did not run: a list of no entries is trivially all
+         # statused, and that silence reads exactly like a clean one.
+         plant=lambda t: {'readme': readme_open_list_reshaped(t)},
+         argv=['--check-doc', '--readme', '{readme}'],
+         ok=V(exit=1, has=['no top-level entry found',
+                           'the status check did not run']),
+         bug=V(exit=0, hasnt=['no top-level entry found'])),
+
+    case('answered-account-listed-not-failed', 'read-run.py', '3596ba2',
+         'an answer grew into the chapter it should have pointed at',
+         # The open list is a question register and `What is settled, and
+         # where` is the pointer layer, which says of itself that it
+         # carries no figures by design. An ANSWERED entry that runs to a
+         # chapter is the account in the one place that does not move when
+         # a run does, and the topical section it duplicates goes on
+         # moving without it.
+         #
+         # LISTED AND NOT FAILED, which is the half worth a case: the
+         # sweep must leave exit 0, or it would fail this README today
+         # over prose that is correct and merely in the wrong place. The
+         # plant is an entry over the threshold with every link stripped,
+         # since the live list already carries some and the case would
+         # otherwise pass on those rather than on what it planted.
+         plant=lambda t: {'readme': readme_answered_account(t)},
+         argv=['--check-doc', '--worklists', '--readme', '{readme}'],
+         ok=V(exit=0, has=['ANSWERED entry(s) past 300 words that point'
+                           ' nowhere', 'zz-planted-account']),
+         bug=V(exit=0, hasnt=['ANSWERED entry(s) past 300 words'])),
+
+    case('answered-pointer-may-be-reference-style', 'read-run.py', None,
+         'the pointer test read this README\'s commonest link as no link',
+         # `](#` alone called fifteen of the twenty entries pointerless,
+         # every one of them pointing by `[the floor section][floor]`.
+         # The sweep would have been a wall on its first run, which is how
+         # a list stops being read -- the defect this suite already
+         # records against the freshness marks, one sweep over.
+         plant=lambda t: {'readme': readme_answered_account(
+             t, tail=' The account is at [the floor section][floor].')},
+         argv=['--check-doc', '--worklists', '--readme', '{readme}'],
+         ok=V(exit=0, hasnt=['zz-planted-account'])),
+
+    case('floor-movement-reads-the-previous-column', 'read-run.py', '3596ba2',
+         "a run installed a class table and left the last run's movements",
+         # The paragraph under the class table reads each class's floor
+         # against its predecessor's, so its second figure is a claim
+         # about the column right above it -- and it is written by hand
+         # under a table install-tables.sh writes. Run 17 installed the
+         # column and left Run 16's paragraph standing: all eight `to`
+         # figures were the previous run's, with --lint, --check-doc and
+         # both installers green over them.
+         #
+         # The plant is the OPPOSITE of the live document's state, one
+         # figure of the paragraph moved off the column, so that the case
+         # keeps meaning this when the paragraph is repaired.
+         plant=lambda t: {'readme': readme_floor_movement_off_column(t)},
+         argv=['--check-doc', '--worklists', '--readme', '{readme}'],
+         ok=V(exit=1, has=["reading the PREVIOUS run's column"]),
+         bug=V(exit=0, hasnt=["reading the PREVIOUS run's column"])),
+
+    case('floor-movement-built-clean-passes', 'read-run.py', None,
+         'CONTROL: the same built paragraph with every figure right',
+         # The two cases beside this one both plant into a paragraph this
+         # fixture constructs, so this is what says they fire on the
+         # plant and not on the construction.
+         plant=lambda t: {'readme': readme_with_floor_movement(t)},
+         argv=['--check-doc', '--worklists', '--readme', '{readme}'],
+         ok=V(exit=0, has=["floor movement(s) land on the class table's own"
+                           ' column'])),
+
+    case('floor-movement-reworded-does-not-pass-empty', 'read-run.py', '3596ba2',
+         'a reworded movement sentence would have turned the check off',
+         # Keying the vacuity guard on the sentence's opening phrase was
+         # the first attempt and is what this refuses: rewording that
+         # phrase turned the check off in silence. The guard is the
+         # paragraph's SHAPE now -- four or more classes with a figure
+         # apiece -- so a rewording that keeps the content still parses
+         # and one that does not fails loudly.
+         plant=lambda t: {'readme': readme_floor_movement_reshaped(t)},
+         argv=['--check-doc', '--worklists', '--readme', '{readme}'],
+         ok=V(exit=1, has=['if that sentence was reworded']),
+         bug=V(exit=0, hasnt=['if that sentence was reworded'])),
+
+    case('extremes-ranks-and-says-where-the-two-readings-differ',
+         'read-run.py', '3596ba2',
+         'a superlative about the eight classes had no derived source',
+         # Run 15 got three wrong in one draft, every one caught by an
+         # independent reader. `--block` sees one class and the sort was
+         # left to the eye.
+         plant=lambda t: {
+             'a': synth_run(os.path.join(t, 'rev.json'),
+                            run_order_shapes('rev')),
+             'b': synth_run(os.path.join(t, 'slice.json'),
+                            run_order_shapes('slice'))},
+         argv=['--extremes', '--classes', '{a}', '{b}'],
+         ok=V(exit=0, has=['2 class population(s)', 'tightest floor',
+                           'widest gap, paired']),
+         bug=V(exit=2, hasnt=['class population(s)'])),
+
+    case('extremes-counts-one-class-twice', 'read-run.py', '3596ba2',
+         'the same class named twice would rank one population as two',
+         plant=lambda t: {'a': synth_run(os.path.join(t, 'rev.json'),
+                                         run_order_shapes('rev')),
+                          'b': synth_run(os.path.join(t, 'rev2.json'),
+                                         run_order_shapes('rev'))},
+         argv=['--extremes', '--classes', '{a}', '{b}'],
+         ok=V(exit=1, has=['a class is named twice']),
+         bug=V(exit=2, hasnt=['a class is named twice'])),
+
+    case('extremes-is-not-for-the-main-set', 'read-run.py', '3596ba2',
+         'the main set has no class row and would have been ranked as one',
+         plant=lambda t: {'a': synth_json(t, 'main')},
+         argv=['--extremes', '--classes', '{a}'],
+         ok=V(exit=1, has=['ranks the stride classes']),
+         bug=V(exit=2, hasnt=['ranks the stride classes'])),
+
+    case('extremes-with-no-classes', 'read-run.py', '3596ba2',
+         'a mode whose whole input is a modifier, given without it',
+         argv=['--extremes'],
+         ok=V(exit=2, has=['none were given']),
+         bug=V(exit=2, hasnt=['none were given'])),
+
+    case('classes-without-a-mode-that-reads-it', 'read-run.py', '3596ba2',
+         'the files named by --classes were read by nobody, at exit 0',
+         plant=lambda t: {'a': synth_json(t, 'rev'),
+                          'run': synth_json(t, 'main')},
+         argv=['{run}', '--markdown', '--classes', '{a}'],
+         ok=V(exit=2, has=['does nothing alone']),
+         bug=V(exit=0, hasnt=['does nothing alone'])),
+
     # ---- align-as.py ---------------------------------------------------
     case('maxskip-zero-is-off', 'align-as.py', '437ce00',
          'LOOP_MAXSKIP=0 built the max-skip form',
@@ -2012,6 +2456,68 @@ CASES = [
          argv=['zzpl'],
          ok=V(exit=1, has=['did not assert its state',
                            '0 @@saturate line(s), not 1'])),
+
+    case('wild-stamps-counted-per-process', 'run-major.sh', '41ab734',
+         'a binary without the instrument joined an instrumented run',
+         # The plateau count's twin, on the other launch switch, and it
+         # was missing while the plateau's was there -- one switch of two
+         # asserted, which is not a distinction a reader could predict.
+         # WILDLOG is set and the binary carries no instrument, so every
+         # process runs UNINSTRUMENTED: it exits 0, leaves a JSON, runs
+         # its benches and writes a log with no stamps in it, and the only
+         # thing that would ever have said so is `--wild`, which post-run
+         # step 1b reaches for on a suspicious cell and not on every
+         # process. ANY count above zero passes, unlike the plateau's
+         # exactly-one: the instrument writes two stamps per sample.
+         shadow=dict(extra=halves('zzwl-lookrts', 'zzwl-a1g')
+                     + [('zzwl-pair.txt', 'a stand-in pair note.\n')]),
+         env={'OTHER': 'a1g', 'BASIS': 'lookrts', 'WILDLOG': '1'},
+         argv=['zzwl'],
+         ok=V(exit=1, has=['carries no @@wild stamps',
+                           'only --wild would ever have said so']),
+         bug=V(exit=0, hasnt=['carries no @@wild stamps'])),
+
+    case('launch-switches-recorded-whether-set-or-not', 'run-major.sh', '41ab734',
+         'the run recorded every provenance but the one it was launched with',
+         # THE FORGET-PATH, which neither count reaches: both assertions
+         # are conditional on their own switch, so they fire for an
+         # operator who remembered and are silent for one who did not --
+         # and forgetting is the failure. This cannot stop the run; what
+         # it does is put the switches in the run's own record beside the
+         # commits, the dirty count and `uptime`, at its first minute.
+         # The verdict is on the LOG and not the terminal, that record
+         # being the thing a write-up reads back weeks later.
+         shadow=dict(extra=halves('zzle-lookrts', 'zzle-a1g')
+                     + [('zzle-pair.txt', 'a stand-in pair note.\n')]),
+         env={'OTHER': 'a1g', 'BASIS': 'lookrts'},
+         argv=['zzle'],
+         probe=lambda subs: open(os.path.join(subs['at'],
+                                              'zzle-wallclock.log')).read(),
+         ok=V(exit=0, has=['launch env: WILDLOG=unset SATURATE=unset']),
+         bug=V(exit=0, hasnt=['launch env:'])),
+
+    case('gate-records-and-asserts-its-launch-switches', 'run-gate.sh', '41ab734',
+         'the gate proved the pair and said nothing about the instrument',
+         # The gate takes the same switches the run will take (README's
+         # recipe, step 14 then step 17), so a gate run without them
+         # proves the pair mechanically and proves nothing about the
+         # instrument the evening is for -- and its verdict reads clean
+         # either way. It is also the CHEAP place to catch it: forty
+         # minutes against the several hours it stands before.
+         #
+         # One invocation, both halves of the change: WILDLOG set over a
+         # stand-in that carries no instrument gives the assertion, and
+         # SATURATE left off gives the recorded `unset` beside it, which
+         # is the form neither assertion can see.
+         shadow=dict(extra=[('zzgl-a1g', FAKE_HALF),
+                            ('zzgl-lookrts', FAKE_HALF),
+                            ('zzgl-pair.txt', 'a stand-in pair note.\n')]),
+         env={'OTHER': 'a1g', 'BASIS': 'lookrts', 'WILDLOG': '1'},
+         argv=['zzgl'],
+         ok=V(has=['launch env: WILDLOG=1 SATURATE=unset',
+                   'carries no @@wild stamps',
+                   'would be uninstrumented']),
+         bug=V(hasnt=['launch env:'])),
 
     case('clean-legs-are-not-the-saturated-ones', 'run-alonelegs.sh', None,
          'the clean sweep was refused over the saturated legs beside it',
