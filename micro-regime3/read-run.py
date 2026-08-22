@@ -139,6 +139,11 @@ Modes:
                     the in-process deflation the riders exist to measure,
                     RAW over RAW because a leg carries no `sum-only` to
                     correct with. Legs found from this run's own name
+  --wild            the per-sample instrument's own LOG rather than a JSON:
+                    each bench's `pre`/`post` pair differenced, and, where
+                    the stamp carries the load fields, the CPU SOMETHING
+                    ELSE consumed during each sample -- which is what tells
+                    a wild cell from an external intrusion
   --machine         this run's `list` absolutes against the fingerprint
                     README keeps, which is the one check that asks whether
                     the BOX changed rather than the code; exits nonzero
@@ -2221,6 +2226,221 @@ def deflation_table(run_path, cells, shapes, main_hs):
     return 0
 
 
+# /proc/stat is in USER_HZ, and the kernel fixes THAT at 100 for userspace
+# whatever CONFIG_HZ it ticks at, so a jiffy is 10 ms here and the constant
+# is not the machine's to vary. It is also the quantum of every foreign
+# figure below, which is why they are aggregated per bench before being
+# read: one jiffy across a two-millisecond sample is 5x its own work, and
+# says nothing.
+JIFFY_NS = 10 ** 7
+
+# A bench whose foreign CPU reaches this multiple of its own, summed over
+# all its samples, is named individually. Not a threshold on a sample.
+WILD_LOUD = 0.25
+
+
+def parse_wild(line):
+    """One `@@wild` line as a dict, or None.
+
+    The stamp is `@@wild NAME PHASE key=value ...`, and the keys are read
+    by name rather than by position precisely because Run 18's stamp adds
+    three that Run 17's has not got: a log written by either instrument
+    parses here, and which fields it turned out to carry is what the
+    caller reports rather than something to fail on.
+    """
+    parts = line.split()
+    if len(parts) < 3 or parts[0] != '@@wild':
+        return None
+    rec = {'name': parts[1], 'phase': parts[2]}
+    for tok in parts[3:]:
+        if '=' in tok:
+            k, v = tok.split('=', 1)
+            rec[k] = v
+    return rec
+
+
+def read_wild(path):
+    """Every sample in one instrument log, as (bench, deltas).
+
+    A SAMPLE IS A `pre`/`post` PAIR, those being criterion's `allocEnv`
+    and `cleanEnv` hooks, which bracket the timed block from outside; and
+    every quantity the stamp carries is a cumulative total, so everything
+    read here is a difference between the two lines. A `pre` with no
+    `post` is dropped and COUNTED rather than paired with what follows: a
+    log a killed process left ends in one, and pairing it across would
+    read the next bench's work as this one's.
+    """
+    samples, unpaired, pending = [], 0, {}
+    with open(path, errors='replace') as f:
+        for line in f:
+            if not line.startswith('@@wild '):
+                continue
+            rec = parse_wild(line)
+            if rec is None:
+                continue
+            nm = rec['name']
+            if rec['phase'] == 'pre':
+                if nm in pending:
+                    unpaired += 1
+                pending[nm] = rec
+            elif rec['phase'] == 'post':
+                pre = pending.pop(nm, None)
+                if pre is None:
+                    unpaired += 1
+                    continue
+                try:
+                    samples.append((nm, wild_deltas(pre, rec)))
+                except (KeyError, ValueError):
+                    unpaired += 1
+    return samples, unpaired + len(pending)
+
+
+def wild_deltas(pre, post):
+    """The differences one sample's two stamps bracket.
+
+    `foreign` is the whole point of the load fields and is the one figure
+    here that is not the process's own: the machine's busy jiffies over
+    the sample, less what this process spent mutating and collecting in
+    it. What is left ran somewhere else, which is the updater class the
+    wild-cell entry needs told apart from a genuine wild cell -- flat RTS
+    totals and a moved mutator clock being the signature of BOTH.
+
+    The subtrahend is an ELAPSED clock and the minuend a CPU one, which is
+    the approximation in it and is named here rather than corrected: the
+    stamp carries `mutator_elapsed_ns`, these processes run single
+    threaded and CPU-bound inside a sample, so the two agree except where
+    the process was itself descheduled -- and a descheduled process is the
+    intrusion this figure is looking for, so the error is towards
+    UNDER-reporting one and never towards inventing one.
+    """
+    d = {'iters': int(post['iters'])}
+    for k in ('alloc', 'mut', 'gc'):
+        d[k] = int(post[k]) - int(pre[k])
+    d['inuse'] = int(post['inuse'])
+    d['load'] = post.get('load')
+    d['runq'] = post.get('run')
+    if 'cpu' in pre and 'cpu' in post:
+        d['own'] = d['mut'] + d['gc']
+        d['machine'] = (int(post['cpu']) - int(pre['cpu'])) * JIFFY_NS
+        d['foreign'] = d['machine'] - d['own']
+    return d
+
+
+def wild_table(path, verbose=False):
+    """The instrument's log read per sample, one line a bench.
+
+    The mode exists because Run 17's write-up read these logs BY HAND --
+    which by this README's own standing rule is a defect report against
+    this script rather than a thing to do twice -- and because Run 18's
+    stamp carries three fields no run has yet had a reader for.
+
+    Per bench rather than per sample by default, and the reason is the
+    quantum: /proc/stat counts in 10 ms jiffies, so one jiffy landing
+    inside a two-millisecond sample reads as several times that sample's
+    own work and means nothing. Summed over a bench the quantisation
+    averages out, which is why the `foreign` column is a ratio of sums and
+    the per-sample maximum is printed beside it as an upper bound and not
+    as a reading. `--verbose` prints every sample, for a bench whose
+    interior is the question.
+    """
+    samples, unpaired = read_wild(path)
+    if not samples:
+        sys.stderr.write('%s: no paired `@@wild` samples here. The log of an'
+                         ' uninstrumented half carries none, and neither does'
+                         ' one whose process ran without WILDLOG set\n'
+                         % os.path.basename(path))
+        return 2
+    order, per = [], {}
+    for nm, d in samples:
+        if nm not in per:
+            per[nm] = []
+            order.append(nm)
+        per[nm].append(d)
+    have_load = any('foreign' in d for _, d in samples)
+    print('%s: %d sample(s) over %d bench(es), from the per-sample instrument'
+          % (os.path.basename(path), len(samples), len(order)))
+    if not have_load:
+        print()
+        print('NO LOAD FIELDS in this log, so there is no foreign-CPU column'
+              ' below: it')
+        print('  was written by an instrument without `load=`, `run=` and'
+              ' `cpu=`, which')
+        print('  is every stamp before Run 18\'s. The clocks and the'
+              ' allocation read as ever.')
+    print()
+    head = '%-38s %7s %13s %13s %6s' % ('bench', 'samples', 'alloc/iter',
+                                        'mut/iter', 'gc%')
+    print(head + ('%8s %6s' % ('foreign', 'load') if have_load else ''))
+    loud = []
+    for nm in order:
+        ds = per[nm]
+        its = sum(d['iters'] for d in ds) or 1
+        alloc = sum(d['alloc'] for d in ds) / its
+        mut = sum(d['mut'] for d in ds) / its
+        gc = sum(d['gc'] for d in ds)
+        gcpct = 100.0 * gc / (sum(d['mut'] for d in ds) + gc or 1)
+        f_txt, l_txt = '', ''
+        if have_load:
+            own = sum(d.get('own', 0) for d in ds)
+            frn = sum(d.get('foreign', 0) for d in ds)
+            ratio = frn / own if own else 0.0
+            f_txt = '%8.2f' % ratio
+            loads = [float(d['load']) for d in ds if d.get('load')
+                     not in (None, '?')]
+            l_txt = '%6.2f' % max(loads) if loads else '     ?'
+            if ratio >= WILD_LOUD:
+                loud.append((nm, ratio, max(d.get('foreign', 0) for d in ds)))
+        row = '%-38s %7d %13.0f %13.0f %6.2f' % (nm, len(ds), alloc, mut,
+                                                 gcpct)
+        print(row + ('%8s %6s' % (f_txt, l_txt) if have_load else ''))
+    if have_load:
+        print()
+        print('`foreign` is the machine\'s busy CPU during a bench\'s samples,'
+              ' less this')
+        print('  process\'s own mutator+collector, over that own time: 0.00 is'
+              ' a machine')
+        print('  doing nothing else and 1.00 is one further core busy'
+              ' throughout. `load` is')
+        print('  the highest 1-minute average any of the bench\'s stamps saw,'
+              ' which dates')
+        print('  a multi-minute intruder where `foreign` catches a short one.')
+        if loud:
+            print()
+            print('%d bench(es) at or above %.2f foreign, which is an'
+                  ' INTRUSION and not a wild'
+                  % (len(loud), WILD_LOUD))
+            print('  cell -- a wild cell moves the mutator clock with the'
+                  ' machine quiet beside it:')
+            for nm, ratio, worst in sorted(loud, key=lambda x: -x[1]):
+                print('  %-38s %6.2f, worst sample %.1f ms foreign'
+                      % (nm, ratio, worst / 1e6))
+        else:
+            print()
+            print('NO bench reaches %.2f foreign: nothing else was running on'
+                  ' this machine' % WILD_LOUD)
+            print('  during any of these samples, so a mutator step in here is'
+                  ' the process\'s own.')
+    if unpaired:
+        print()
+        print('%d unpaired stamp(s) dropped -- a `pre` with no `post`, which'
+              ' is what a' % unpaired)
+        print('  killed process leaves. They are in none of the figures'
+              ' above.')
+    if verbose:
+        print()
+        print('every sample, in the order the log carries them:')
+        print('%-38s %7s %13s %13s %10s %6s %4s'
+              % ('bench', 'iters', 'alloc/iter', 'mut/iter', 'foreign_ms',
+                 'load', 'run'))
+        for nm, d in samples:
+            its = d['iters'] or 1
+            print('%-38s %7d %13.0f %13.0f %10s %6s %4s'
+                  % (nm, d['iters'], d['alloc'] / its, d['mut'] / its,
+                     '%.1f' % (d['foreign'] / 1e6) if 'foreign' in d else '-',
+                     d.get('load') or '-', d.get('runq') or '-'))
+    return 0
+
+
 def cell_dump(cells, shapes, strategies):
     # `slope_net_s` is here so that a ratio taken from this dump is the one
     # the tables publish: raw slopes alone would silently give uncorrected
@@ -3623,22 +3843,93 @@ def added_lines(*paths):
     this function returns is checked above; whether a caller can match a hit
     against it is `is_fresh`'s to prove, and is proven there. A control that
     spans two functions is a control neither of them owns.
+
+    **BOTH SIDES ARE NORMALISED BEFORE THEY ARE COMPARED, and the whole
+    attribution used to die without it.** This ran `git diff HEAD` raw,
+    which compares a WORKING TREE that --check-doc's own wrap FAIL tells
+    you to unwrap against a HEAD that stores the wrapped form -- so every
+    paragraph that had spanned more than one line was a line that did not
+    exist before, and read as added. Measured on Run 17's document: of 2046
+    unwrapped lines, 731 read as added, 82.9% of the 882 paragraphs that had
+    been wrapped, and the sweeps then marked 102 of 105 superlatives, 65 of
+    75 superseded figures and 27 of 27 absolute times NEW, lines no session
+    had touched among them. That is precisely the failure the feature exists
+    to prevent, and the docstring above cites Run 11 shipping four false
+    superlatives inside a list of 71 because *a wall of 71 gets adjudicated
+    as a wall* -- a wall of 102 is no better. So the comparison is at
+    PARAGRAPH granularity with whitespace collapsed on each side, which is
+    exactly what a re-wrap changes and all it changes: a paragraph merely
+    re-wrapped has the same key on both sides and contributes nothing, and
+    one whose words moved contributes its own physical lines, in whichever
+    form the working tree holds them, so `is_fresh` matches as it always
+    did. The working form is now free, which is what the wrap advice
+    assumed.
+
+    Coarser than the `-U0` diff it replaces, and deliberately: an edit
+    anywhere in a paragraph now marks the whole paragraph. A hit IS a
+    paragraph, so the granularity the caller tests at has not changed, and
+    the direction of the error is the one this docstring already accepts.
+
+    Non-vacuous, 2026-08-22, on this document in both forms: with one
+    paragraph of the Run 17 chapter edited, this returns THAT PARAGRAPH and
+    nothing else from either tree -- its four lines from the wrapped one and
+    its single line from the unwrapped one -- where the version before this
+    returned 2 lines from the wrapped tree and 734 from the unwrapped one,
+    the whole document. On the clean tree both versions return the empty
+    set, which is the control saying the 734 were the form and not the edit.
+    And `added-lines-over-head` is the case that holds the tracked-but-not-
+    -in-HEAD branch: it failed the moment `git diff` went, which is how that
+    branch was found rather than reasoned about.
     """
     at = os.path.dirname(os.path.abspath(__file__))
     try:
         known = subprocess.run(['git', 'ls-files', '--error-unmatch', '--']
                                + list(paths), cwd=at,
                                capture_output=True, text=True, timeout=20)
-        out = subprocess.run(['git', 'diff', 'HEAD', '-U0', '--']
-                             + list(paths), cwd=at,
-                             capture_output=True, text=True, timeout=20)
+        if known.returncode != 0:
+            return EVERYTHING
+        added = set()
+        for path in paths:
+            rel = os.path.relpath(os.path.abspath(path), at)
+            was = subprocess.run(['git', 'show', 'HEAD:./' + rel], cwd=at,
+                                 capture_output=True, text=True, timeout=20)
+            # A REFUSAL HERE IS NOT THE SENTINEL'S CASE, because `ls-files
+            # --error-unmatch` has already answered above: the file is
+            # tracked, so git works and the checkout is real, and the one
+            # way `git show HEAD:` can still refuse is that HEAD has no
+            # such path -- a file ADDED and not yet committed, whose every
+            # paragraph really is new. Its HEAD copy is the empty document
+            # and not an unknown. Returning EVERYTHING instead made the
+            # `added-lines-over-head` case fail the moment this function
+            # stopped calling `git diff`, which reports a whole new file
+            # as added and asks nobody.
+            head_text = was.stdout if was.returncode == 0 else ''
+            with open(path, errors='replace') as f:
+                now = f.read()
+            old = {k for k, _ in blocks_of(head_text)}
+            for key, lines in blocks_of(now):
+                if key not in old:
+                    added.update(l.strip() for l in lines if l.strip())
     except (OSError, subprocess.SubprocessError):
         return EVERYTHING
-    if known.returncode != 0 or out.returncode != 0:
-        return EVERYTHING
-    return frozenset(l[1:].strip() for l in out.stdout.split('\n')
-                     if l.startswith('+') and not l.startswith('+++')
-                     and l[1:].strip())
+    return frozenset(added)
+
+
+def blocks_of(text):
+    """The blank-line-separated blocks of a document, as (key, lines).
+
+    The key is the block with every run of whitespace collapsed to one
+    space. That is what makes it a fixed point of wrapping and of nothing
+    else: `wrap80` and `wrap80 --unwrap` move line breaks and no other
+    byte, so two copies of one paragraph at two widths share a key, while
+    any edit to its words gives it a different one.
+    """
+    out = []
+    for block in re.split(r'\n\s*\n', text):
+        lines = [l for l in block.split('\n') if l.strip()]
+        if lines:
+            out.append((' '.join(' '.join(lines).split()), lines))
+    return out
 
 
 LEAD_RE = re.compile(r'\*\*(.+?)\*\*', re.S)
@@ -4704,6 +4995,81 @@ def check_doc(readme, main_hs):
             print("ok:   the A/A population reads %s pairs everywhere it is"
                   ' named' % base.pop())
 
+        # A CLASS's own floor, which the two checks above do not reach.
+        # They hold the RUN's floor pair and the six-pair figure across
+        # their sites; a class's floor is quoted inside its own block and
+        # was checked by nothing, so a block requoting its predecessor's
+        # would have ridden a write-up in silence -- the same failure the
+        # six-pair check was written for, one population down. Unlike
+        # those two this one has a truth on the page rather than only
+        # agreement: the class table's `floor` column is what `--block`
+        # installs from the JSON, so the block's prose is checked against
+        # its own table row and not against its neighbours.
+        #
+        # A block that quotes NO floor is not a defect and is counted
+        # rather than failed: half of them do not, the figure belonging to
+        # the table. What must not happen is a block quoting one that is
+        # not its own. Note added 2026-08-22 with the check.
+        #
+        # Non-vacuous, all three failing branches fired 2026-08-22.
+        # `revsome`'s quote moved to 16.55% against its row's 18.05%: FAIL
+        # naming both. Every floor quote in the section reworded to `level`:
+        # the vacuity FAIL, which is the branch a rewording would otherwise
+        # turn into a silent pass. And the table read out of `uw` rather
+        # than the raw lines, which is how the row pattern found nothing:
+        # the could-not-find FAIL. Unbroken it prints ok at exit 0, which is
+        # the control saying the three were the breaks.
+        # The table comes off the RAW document and the prose off `uw`:
+        # `unwrapped_paragraphs` drops table rows, every other caller
+        # wanting prose, so the floor column is not in `uw` to be read.
+        cls_head = r'^### The stride classes, run by run$(.*?)^### '
+        cls_raw = re.search(cls_head, '\n'.join(lines), re.M | re.S)
+        cls_sec = re.search(cls_head, uw, re.M | re.S)
+        cls_rows = dict(re.findall(r'^\| `([a-z0-9]+)` \|.*\| ([\d.]+)% \|$',
+                                   cls_raw.group(1), re.M)) if cls_raw else {}
+        cls_leads = ([(m.start(), m.group(1)) for m in
+                      re.finditer(r'^\*\*`([a-z0-9]+)` ---', cls_sec.group(1),
+                                  re.M)] if cls_sec else [])
+        if not cls_rows or not cls_leads:
+            bad.append('could not find the class table\'s floor column or the'
+                       ' class block leads under `The stride classes, run by'
+                       ' run`, so the per-class floor check did not run')
+        else:
+            body, off, quoted = cls_sec.group(1), [], 0
+            for i, (pos, cls) in enumerate(cls_leads):
+                end = (cls_leads[i + 1][0] if i + 1 < len(cls_leads)
+                       else len(body))
+                blk = body[pos:end]
+                # `N% floor` and `this class's floor N%` are the two shapes
+                # the blocks use. Neither takes `the repetition's own floor
+                # is N%`, which is a different population's figure sitting
+                # in the same block and must not be held to this one.
+                seen_f = (re.findall(r'\*?\*?([\d.]+)%\*?\*? floor', blk)
+                          + re.findall(r"class's floor \*?\*?([\d.]+)%", blk))
+                if seen_f:
+                    quoted += 1
+                for f in seen_f:
+                    if cls not in cls_rows:
+                        off.append('`%s` has a block and no table row' % cls)
+                    elif f != cls_rows[cls]:
+                        off.append('`%s` quotes %s%% where its table row'
+                                   ' reads %s%%' % (cls, f, cls_rows[cls]))
+            if off:
+                bad.append('a class block quotes a floor that is not its'
+                           " own: %s -- the table's floor column is what"
+                           ' `--block` installs from that process\'s own'
+                           ' eighteen A/A pairs' % '; '.join(sorted(set(off))))
+            elif not quoted:
+                bad.append('no class block quotes a floor at all, so the'
+                           ' per-class floor check passed vacuously -- if the'
+                           " blocks were reworded, this check's patterns move"
+                           ' with them')
+            else:
+                print('ok:   each of the %d class block(s) that quotes a floor'
+                      ' quotes its own, against %d row(s) of the class table'
+                      ' (%d block(s) quote none, the table carrying it)'
+                      % (quoted, len(cls_rows), len(cls_leads) - quoted))
+
         # Two more of the floor check's shape -- one figure, several
         # sites, must agree -- on the counts Run 14 got wrong in more than
         # one place. Unlike the floor these have a truth outside the README:
@@ -5521,7 +5887,8 @@ def main():
     here = os.path.dirname(os.path.abspath(__file__))
     p = argparse.ArgumentParser(description=__doc__.split('\n')[0])
     p.add_argument('run', nargs='?', help='criterion --json output'
-                   ' (not needed by --lint or --check-doc)')
+                   ' (not needed by --lint or --check-doc; a `.log` under'
+                   ' --wild)')
     p.add_argument('--main', default=os.path.join(here, 'Main.hs'),
                    help='Main.hs to read shape sizes from'
                         ' (default: alongside)')
@@ -5533,6 +5900,11 @@ def main():
     p.add_argument('--deflation', action='store_true',
                    help='the roster cell over its own alone leg, per shape --'
                         ' raw over raw, the legs found from this run\'s name')
+    p.add_argument('--wild', action='store_true',
+                   help='read the per-sample instrument\'s LOG instead of a'
+                        ' JSON: each bench\'s pre/post pair differenced, and'
+                        ' the foreign CPU during its samples where the stamp'
+                        ' carries the load fields')
     p.add_argument('--pair', nargs=2, action='append', default=[],
                    metavar=('A', 'B'))
     p.add_argument('--compare', metavar='OTHER.json',
@@ -5653,9 +6025,11 @@ def main():
         args.verbose = False
     if args.quiet:
         args.worklists = False
-    if args.verbose and not (args.aa or args.block or args.compare):
+    if args.verbose and not (args.aa or args.block or args.compare
+                             or args.wild):
         p.error('--verbose restores what --aa, --block and --compare drop'
-                ' and does nothing alone')
+                ' and does nothing alone -- under --wild it adds the'
+                ' per-sample dump the per-bench table sums')
     # One mode an invocation. The dispatch below is an if/elif chain, so a
     # second mode was not refused but DROPPED: `--markdown --fingerprint
     # --in-place` installed the Results table, wrote neither fingerprint
@@ -5663,7 +6037,7 @@ def main():
     modes = [f for f in ('shapes', 'aa', 'pair', 'claims', 'compare',
                          'machine', 'steps', 'cells', 'markdown',
                          'fingerprint', 'block', 'selftest', 'lint',
-                         'check_doc', 'para')
+                         'check_doc', 'para', 'wild', 'deflation')
              if getattr(args, f)]
     if len(modes) > 1:
         p.error('one mode at a time, and %s were all asked for: the'
@@ -5692,6 +6066,16 @@ def main():
         sys.stderr.write('%s: no such run file; the analysis did not happen\n'
                          % args.run)
         sys.exit(2)
+    # ABOVE the JSON load, this mode's argument being the instrument's log:
+    # everything below parses `args.run` as criterion output, so a `.log`
+    # reaching it dies in `json.load` rather than in a sentence.
+    if args.wild:
+        if args.run.endswith('.json'):
+            sys.stderr.write('%s: --wild reads the `@@wild` stamps, which are'
+                             ' on stderr and so in the .log beside this'
+                             ' file\n' % os.path.basename(args.run))
+            sys.exit(2)
+        sys.exit(wild_table(args.run, args.verbose))
     cells, shapes, strategies, meta = load(args.run, args.main)
     shapes = [s for s in shapes if s not in args.exclude_shape]
     strategies = [s for s in strategies if s not in args.exclude]
