@@ -21,7 +21,11 @@ Definitions, once:
           shape as the mean of whatever `sum-only*` benches the run carries.
           Run 6 (-O1) is the run that licensed subtracting it, its two halves
           agreeing to 0.01% paired; README's sum-only section carries the
-          decision and the caveat the halves do not settle.
+          decision and the caveat the halves do not settle. `--corr=insitu`
+          takes the term from the `-nosum` pairs instead, which is a second
+          convention and not a refinement of this one: it is for a build
+          where this term cannot be subtracted at all, and its column is
+          comparable to no figure in README.
   net     slope - corr: what the fill itself costs, and what every ratio
           this reader forms divides. A run with no `sum-only` bench has
           corr = 0 and net = slope, and says so on stderr rather than
@@ -153,6 +157,11 @@ Modes:
                     its block's lead, and refusing rather than guessing
   --exclude S       drop strategy S from every aggregate (repeatable)
   --exclude-shape H drop shape H likewise (repeatable)
+  --corr=insitu     subtract the `-nosum` pairs' in-situ term in place of
+                    `sum-only`, for a build where `sum-only` cannot be
+                    subtracted at all -- an LLVM one, where it runs larger
+                    than the bench. Says so on stderr every time, that
+                    column being comparable to no figure in README
   --selftest        check this reader's invariants against the run given
   --lint            check Main.hs's roster against README and against
                     itself -- no run file needed
@@ -435,7 +444,7 @@ def load(path, main_hs):
     return cells, shapes, strategies, meta
 
 
-def apply_correction(cells, shapes, strategies):
+def apply_correction(cells, shapes, strategies, mode='sumonly'):
     """Set each cell's `net` = slope - the shape's shared forcing term.
 
     Every strategy is timed as `VS.sum . fb`, so every slope carries one
@@ -452,19 +461,47 @@ def apply_correction(cells, shapes, strategies):
     A run carrying no such bench gets a zero term and an uncorrected column,
     which `health` reports rather than leaving to be inferred -- the case of
     the two-bench filtered runs this reader is meant to stay useful on.
+
+    `mode='insitu'` subtracts the term the `-nosum` arms measure instead --
+    an arm minus its twin, the sum as it runs over the vector the fill has
+    just written, meaned over whichever pairs the run carries. That is gate
+    3's own quantity (README.md#sum-only-and-the-correction-now-applied),
+    promoted from auditing the correction to being it, and it is NOT the
+    published convention: a figure read this way is comparable to no figure
+    on that page, which is why it is a flag and not a fallback. What it is
+    for is a build where `sum-only` cannot be subtracted at all -- under
+    GHC HEAD's LLVM backend that bench runs up to 2.3x the bench it would be
+    subtracted from, leaving a usable net on 3 of the 24 main-set shapes.
+    Its own cost is that the term stops being
+    one quantity: Run 16's three `-nosum` pairs disagree per shape by a
+    median 1.06x and by 1.76x on `stretch-inner256`, where the two
+    `sum-only` halves agree at 1.0001.
+
+    Non-vacuity, both ways, on `run16-a32m-main.json`: the two modes differ
+    on every row, by a median -0.74% and a worst -2.48% on `build`, with no
+    ordering changed anywhere in the table; and one LLVM shape's leg reports
+    7 sunk cells under the default and none under this. Emptying the
+    `base_of` branch leaves the term zero and the column uncorrected, which
+    `health` then reports, so it cannot pass by doing nothing.
     """
     terms = {}
     for sh in shapes:
-        halves = [cells[sh][st]['slope'] for st in strategies
-                  if st.startswith('sum-only') and st in cells[sh]]
-        terms[sh] = stats.fmean(halves) if halves else 0.0
+        if mode == 'insitu':
+            pairs = [cells[sh][base_of(st)]['slope'] - cells[sh][st]['slope']
+                     for st in strategies
+                     if base_of(st) and st in cells[sh]
+                     and base_of(st) in cells[sh]]
+        else:
+            pairs = [cells[sh][st]['slope'] for st in strategies
+                     if st.startswith('sum-only') and st in cells[sh]]
+        terms[sh] = stats.fmean(pairs) if pairs else 0.0
     for sh in shapes:
         for st in cells[sh]:
             cells[sh][st]['net'] = cells[sh][st]['slope'] - terms[sh]
     return terms
 
 
-def health(cells, shapes, strategies, terms):
+def health(cells, shapes, strategies, terms, corr='sumonly'):
     """What README says to distrust, counted: bad fits and starved cells.
 
     Warnings, not a verdict -- a ramped bench is normal here and shows up as
@@ -483,7 +520,10 @@ def health(cells, shapes, strategies, terms):
     The correction is reported here too, in both directions it can go wrong:
     absent, so the column is uncorrected, and larger than a cell it is
     subtracted from, which would make a net non-positive and a ratio
-    meaningless.
+    meaningless. And under `--corr=insitu` the convention itself is
+    reported, every time and not only when something is wrong, because that
+    column looks exactly like the published one and is comparable to nothing
+    in it.
 
     Non-vacuity, both halves: setting a strategy's allocated R2 to 0.5 warns,
     and lifting a `sum-only` cell's allocation past the exemption warns on the
@@ -531,8 +571,13 @@ def health(cells, shapes, strategies, terms):
                    ' %s/%s -- their alloc column figures are not readable'
                    % (len(bad_alloc), r2, sh, st))
     if not any(terms.values()):
-        out.append('no `sum-only` bench in this run, so the time column is'
-                   ' UNCORRECTED and not comparable to a full run\'s')
+        out.append('no %s bench in this run, so the time column is'
+                   ' UNCORRECTED and not comparable to a full run\'s'
+                   % ('`-nosum` pair' if corr == 'insitu' else '`sum-only`'))
+    elif corr == 'insitu':
+        out.append('the correction is the in-situ term from the `-nosum`'
+                   ' pairs, NOT the published `sum-only` one, so this'
+                   ' column is comparable to no figure in README.md')
     else:
         # A `-nosum` arm is exempt with `sum-only`, and for the mirror-image
         # reason: it is the one kind of arm that never ran the forcing pass,
@@ -5371,6 +5416,13 @@ def main():
     p.add_argument('--readme', default=os.path.join(here, 'README.md'),
                    help='README.md to check bench names against'
                         ' (default: alongside)')
+    p.add_argument('--corr', choices=['sumonly', 'insitu'], default='sumonly',
+                   help='which forcing term to subtract: `sumonly`, the'
+                        ' published convention, or `insitu`, the term the'
+                        ' `-nosum` pairs measure -- for a build where'
+                        ' `sum-only` cannot be subtracted at all. Says on'
+                        ' stderr which it used; an insitu column is'
+                        ' comparable to no figure in README.md')
     p.add_argument('--no-controls', action='store_true')
     p.add_argument('--exclude', action='append', default=[],
                    metavar='STRATEGY')
@@ -5456,7 +5508,7 @@ def main():
     strategies = [s for s in strategies if s not in args.exclude]
     # Before --no-controls, so that omitting the controls from the aggregates
     # cannot change what the published column means.
-    terms = apply_correction(cells, shapes, strategies)
+    terms = apply_correction(cells, shapes, strategies, args.corr)
     if args.no_controls:
         # `--aa` and `--block` READ the controls -- the module docstring
         # says they are always listed by --aa -- and this filter reached
@@ -5508,8 +5560,10 @@ def main():
              roster,
              '  (RAGGED: some cells missing)' if meta['ragged'] else '',
              '' if len(shapes) > 1 else '  (one shape: nothing to spread)'))
+    if args.corr != 'sumonly':
+        print('corrected by the IN-SITU term (--corr=insitu), not `sum-only`')
     print()
-    health(cells, shapes, strategies, terms)
+    health(cells, shapes, strategies, terms, args.corr)
     if args.shapes:
         shape_table(cells, shapes, strategies, meta)
     elif args.aa:
