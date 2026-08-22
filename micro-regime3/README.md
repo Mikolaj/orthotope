@@ -2003,50 +2003,15 @@ rather than a slot in the next run, observed again:
   `small-pinned-churn-investigation/nursery-position-findings2.txt`),
   so no single-process reading of the arm means anything.
 - `ANSWERED` **What the eight stride classes are worth as instruments --- read
-  against each other for the first time on 2026-08-14, over Runs 10 to 13,
-  and four things came of it.** Per class: the median A/A deviation runs 0.08%
-  (`slice`, `window`) to 0.34% (`scaled`); the worst cell 3.80% (`revsome`)
-  to **11.59%** (`scaled`, its standing slot); the median `CI%` 0.05
-  to **0.33**, `bcast` alone five times the field and its shapes the ones
-  the excess-allocation predictor says cross the nursery; and the correction's
-  amplification 1.30x (`reshape1`) to 1.81x (`scaled`), so one class makes
-  the same raw wobble read half again worse than another does. **The finding
-  is not a class property at all**: in every one of the eight the *distant* twin
-  is the slower half, +0.09% to +0.65%, where adjacent twins sit within +-0.2%
-  of zero. One-directional across eight classes and four runs is not scatter.
-  **And its cause is a confound in the crossed design** --- every distant twin
-  sat in the group's first dozen slots with its base later, so *distant* has
-  always also meant *earlier*, and a residual cold start is exactly what
-  produces that sign. Four changes followed, all the same day. `gen-unsafe`'s
-  distant twin moved to the group's tail, where it had landed two slots
-  from its base and spanned nothing; with `list`'s distant half late
-  by construction, the next run reads early-distant against late-distant and can
-  say which of the two the bias was. **Every class took a third shape**, two
-  being too few for the winsorizing that protects the main set, so a single
-  disturbed cell owned a class geomean --- and each new shape is that class's
-  own extreme rather than another size: `bcastmid-b200k` takes the stretch
-  factor to the size cap, `reshape1-rank10` the odometer to rank 11 at one run
-  per element, `slice-coprime-r7` the rank to 7 under a slice,
-  `window-64x64-k1x9` the kernel to 1 by 9 for an innermost extent of 1,
-  and `scaled-r5` scatters 15015 outputs over 42735 source elements. `--block`
-  now prints the largest pair's **raw** ratio and its amplification beside
-  the net, which `--aa` always had and the eight blocks a run never did;
-  and it prints a **steps** line, `rev` and `slice` carrying the most mid-bench
-  steps of any class. What stays open is `bcast`'s `CI%`, which Run 14's `-A1G`
-  half now reads directly, every class running on both halves. **Each new shape
-  was checked to belong to its class and not merely to compile**, which `check`
-  cannot say --- it holds an arm to the reference on whatever view it is given,
-  so a shape in the wrong list would pass it. Read off `check`'s own printed
-  view, strides and offset, all 24 class shapes satisfy their class's defining
-  property: every stride negative under `rev`, mixed signs under `revsome`,
-  a zero stride innermost under `bcast` and in the middle under `bcastmid`,
-  an appended size-1 dim under `reshape1`, a positive offset under `slice`,
-  the repeated window strides under `window`, and superincreasing strides none
-  of them 1 under `scaled` --- with all 50 checked shapes at regime 3 and none
-  disagreeing. The predicates discriminate rather than passing everything, which
-  is what makes that worth quoting: the only foreign match is the three
-  `reshape1` shapes satisfying `bcast`'s test, and that is the code saying so,
-  `mkReshape1` being `mkBroadcast` of the shape with a 1 appended.
+  against each other for the first time on 2026-08-14, over Runs 10 to 13.**
+  The ruling is that what they differ in is not a class property: in every one
+  of the eight the *distant* twin is the slower half, and that is a confound
+  in the crossed design rather than an instrument reading, every distant twin
+  having sat in its group's first dozen slots with its base later, so *distant*
+  has always also meant *earlier*. The per-class figures, the four changes
+  that followed the same day and the check that each class's shapes satisfy
+  its defining property are in [the stride classes and what they
+  cover](#the-stride-classes-and-what-they-cover).
 - `OPEN` **`scaled`'s A/A slot is real and its size is not: six runs of seven
   find a disturbance at the `mut-odo-vecdims` slot on `scaled-super-r3`,
   its magnitude never repeats, and the ruling is to quote the slot as a hazard
@@ -3586,6 +3551,52 @@ and `--pair`'s bootstrap interval almost nothing to resample. What a class run
 can decide is whether an *ordering* inverts under its mechanism and whether any
 strategy's `worst` crosses 1 there. What it cannot do is be compared
 with a main-set number, in either direction.
+
+**What the eight are worth as instruments, read against each other for the first
+time on 2026-08-14, over Runs 10 to 13.** Per class: the median A/A deviation
+runs 0.08% (`slice`, `window`) to 0.34% (`scaled`); the worst cell 3.80%
+(`revsome`) to **11.59%** (`scaled`, its standing slot); the median `CI%` 0.05
+to **0.33**, `bcast` alone five times the field and its shapes the ones
+the excess-allocation predictor says cross the nursery; and the correction's
+amplification 1.30x (`reshape1`) to 1.81x (`scaled`), so one class makes
+the same raw wobble read half again worse than another does. **The finding
+is not a class property at all**: in every one of the eight the *distant* twin
+is the slower half, +0.09% to +0.65%, where adjacent twins sit within +-0.2%
+of zero. One-directional across eight classes and four runs is not scatter.
+**And its cause is a confound in the crossed design** --- every distant twin sat
+in the group's first dozen slots with its base later, so *distant* has always
+also meant *earlier*, and a residual cold start is exactly what produces
+that sign. Four changes followed, all the same day. `gen-unsafe`'s distant twin
+moved to the group's tail, where it had landed two slots from its base
+and spanned nothing; with `list`'s distant half late by construction, the next
+run reads early-distant against late-distant and can say which of the two
+the bias was. **Every class took a third shape**, two being too few
+for the winsorizing that protects the main set, so a single disturbed cell owned
+a class geomean --- and each new shape is that class's own extreme rather
+than another size: `bcastmid-b200k` takes the stretch factor to the size cap,
+`reshape1-rank10` the odometer to rank 11 at one run per element,
+`slice-coprime-r7` the rank to 7 under a slice, `window-64x64-k1x9` the kernel
+to 1 by 9 for an innermost extent of 1, and `scaled-r5` scatters 15015 outputs
+over 42735 source elements. `--block` now prints the largest pair's **raw**
+ratio and its amplification beside the net, which `--aa` always had
+and the eight blocks a run never did; and it prints a **steps** line, `rev`
+and `slice` carrying the most mid-bench steps of any class. What stays open
+is `bcast`'s `CI%`, which Run 14's `-A1G` half now reads directly, every class
+running on both halves.
+
+**Each new shape was checked to belong to its class and not merely to compile**,
+which `check` cannot say --- it holds an arm to the reference on whatever view
+it is given, so a shape in the wrong list would pass it. Read off `check`'s own
+printed view, strides and offset, all 24 class shapes satisfy their class's
+defining property: every stride negative under `rev`, mixed signs
+under `revsome`, a zero stride innermost under `bcast` and in the middle
+under `bcastmid`, an appended size-1 dim under `reshape1`, a positive offset
+under `slice`, the repeated window strides under `window`, and superincreasing
+strides none of them 1 under `scaled` --- with all 50 checked shapes at regime 3
+and none disagreeing. The predicates discriminate rather than passing
+everything, which is what makes that worth quoting: the only foreign match
+is the three `reshape1` shapes satisfying `bcast`'s test, and that is the code
+saying so, `mkReshape1` being `mkBroadcast` of the shape with a 1 appended.
 
 
 ### The scratch vector flavour
@@ -10409,9 +10420,16 @@ was reworded, which is the failure this list was rewritten to escape.
 - [The stride classes, run by run](#the-stride-classes-run-by-run) ---
   the summary table, and each class's own table, controls, provenance, anchor
   and paragraph. All of that is a run's, in the way the Results table is;
-  the layout above them is not, in the way the column definitions are not. A run
-  that leaves a population out says so there, rather than leaving the previous
-  run's table standing under a new run's name;
+- [The stride classes and what they
+  cover](#the-stride-classes-and-what-they-cover), whose figures a run does
+  NOT replace: they are one reading of the eight as instruments, taken over Runs
+  10 to 13 and dated in its own lead, and it is on this list because
+  the coverage check is over figure-bearing sections rather than over replaced
+  ones. What the walk owes it is currency --- that the classes it describes
+  are still the classes that ran, and that its membership check still names
+  every class shape; the layout above them is not, in the way the column
+  definitions are not. A run that leaves a population out says so there, rather
+  than leaving the previous run's table standing under a new run's name;
 - [The mutable ceiling (not taken)](#the-mutable-ceiling-not-taken)
   and the shipping paragraph closing [the Lemire section][lemire].
   These are *rulings resting on figures*, so a stale number re-opens a decision
