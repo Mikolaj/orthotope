@@ -1,3 +1,12 @@
+LANDED IN Main.hs BY COMMIT ON 2026-08-22, Run 17's pair being spent, so
+DO NOT APPLY THIS: the tip already carries it and a second application
+would be refused for context that has already moved. It is the record of
+what Run 17's basis half carried over its control -- 4096 bytes of `.text`
+and the per-sample stamp -- which the source can no longer show, and every
+recipe that used to apply it has lost that step. What the tip carries is
+this plus the three load fields the stamp gained the same day, which were
+never in this file.
+
 diff --git a/micro-regime3/Main.hs b/micro-regime3/Main.hs
 index b663a25..78482c0 100644
 --- a/micro-regime3/Main.hs

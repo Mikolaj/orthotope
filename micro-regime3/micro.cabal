@@ -26,6 +26,7 @@ executable micro
         base,
         vector,
         criterion,
+        criterion-measurement,
         deepseq
 
 -- The element-type probe, whose own header says what it is and why it is not

@@ -26,21 +26,25 @@ import           Control.Exception            (assert, evaluate)
 import           Control.Monad                (foldM_, unless, void)
 import           Control.Monad.ST             (ST)
 import           Criterion.Main
-import           Criterion.Types              (Config (regressions))
+import           Criterion.Measurement.Types.Internal (whnf')
+import           Criterion.Types              (Benchmarkable (..),
+                                               Config (regressions))
 import           Data.Bits                    (countLeadingZeros, shiftR, (.&.))
-import           Data.Int                     (Int32)
+import           Data.Int                     (Int32, Int64)
 import           Data.List                    (foldl')
 import qualified Data.Vector.Storable         as VS
 import qualified Data.Vector.Storable.Mutable as VSM
 import qualified Data.Vector.Unboxed          as VU
 import qualified Data.Vector.Unboxed.Mutable  as VUM
+import           GHC.Clock                    (getMonotonicTime)
 import           GHC.Exts                     (Int (..), Word (..), build,
                                                int2Word#, quotRemInt#,
                                                timesWord2#, word2Int#)
-import           GHC.Stats                    (RTSStats (allocated_bytes, elapsed_ns, max_live_bytes, max_mem_in_use_bytes),
+import           GHC.Stats                    (RTSStats (allocated_bytes, elapsed_ns, gc_elapsed_ns, gcs, major_gcs, max_live_bytes, max_mem_in_use_bytes, mutator_elapsed_ns),
                                                getRTSStats)
-import           System.Environment           (getArgs, withArgs)
-import           System.IO                    (hPutStrLn, stderr)
+import           System.Environment           (getArgs, lookupEnv, withArgs)
+import           System.IO                    (IOMode (ReadMode), hGetLine,
+                                               hPutStrLn, stderr, withFile)
 import           System.Mem                   (performGC)
 
 type ShapeL = [Int]
@@ -2961,9 +2965,92 @@ checkedArms = [(n, f) | (n, arm) <- roster, f <- fills arm]
 -- criterion as usual, which is how one population is selected per process
 -- (@classes rev-@). How to run: README.md#running-it. The numbers and how
 -- to read them: README.md#results, README.md#the-reader-read-runpy.
+-- The saturating preamble, off unless SATURATE is set in the environment
+-- to a dose multiplier -- 1 is the saturating dose, 2 the plateau control,
+-- 0 and unset are off -- and what it is for is Run 18's entry in README's
+-- open list: the block-level state a process benchmarks in is made an
+-- input every process asserts, instead of a by-product of its slot, its
+-- selection and its time budget. Before criterion sees the roster it
+-- installs the state, performs a major collection, and then reads a
+-- list-shaped victim at a fixed iteration count beside the heap peak, as
+-- ONE LINE on stderr, `@@saturate ...`, which is what a run script asserts
+-- the plateau on. Two doses, SATURATE_BY selecting: `list`, the default,
+-- is dose x 1M iterations of cnn-slice-c32/list's own fill -- the roster's
+-- first sprayer, each iteration a 288-cell cons list and a 2304 B pinned
+-- result, both formation routes at once, about six seconds a dose -- and
+-- it reproduces the roster's state on the victim (measured 2026-08-22,
+-- quiet machine: the roster cell's +12-13%, where the pure burst installs
+-- +9-10%); `spray` is the reproducer's pure pinned burst, dose x 4000 x
+-- 288 short-lived buffers of 2304 B, a quarter of a second a dose, kept as
+-- the control that separates the burst route from the rest. Counted
+-- rather than timed, so a dose does not depend on the machine. The
+-- environment is read here, in main's own call, never at import time. The
+-- check, diag and --list modes skip it: they time nothing.
+saturate :: IO ()
+saturate = do
+  set <- lookupEnv "SATURATE"
+  by <- lookupEnv "SATURATE_BY"
+  let dose = maybe 0 read set :: Int
+      bySpray = by == Just "spray"
+  unless (dose <= 0) $ do
+    let view name = maybe (error ("saturate: no shape " ++ name)) mkStrided
+                      (lookup name shapes)
+        (svsh, sa) = view sprayerShape
+        (vsh, a) = view victimShape
+    _ <- evaluate (force ((svsh, sa), (vsh, a)))
+    t0 <- getMonotonicTime
+    (sprayed, keep) <- if bySpray then spray (dose * 4000) 0 0
+                       else viaList svsh sa (dose * 1000000) 0 0
+    t1 <- getMonotonicTime
+    performGC
+    t2 <- getMonotonicTime
+    s <- victim vsh a victimIters 0
+    t3 <- getMonotonicTime
+    st <- getRTSStats
+    hPutStrLn stderr $
+      "@@saturate dose=" ++ show dose ++ "x by="
+      ++ (if bySpray then "spray" else "list")
+      ++ " sprayed=" ++ show sprayed ++ " in " ++ show (t1 - t0)
+      ++ " s; victim " ++ victimShape ++ "/list "
+      ++ show ((t3 - t2) / fromIntegral victimIters * 1000)
+      ++ " ms/iter over " ++ show victimIters ++ "; inuse="
+      ++ show (max_mem_in_use_bytes st) ++ " keep=" ++ show (keep + s)
+  where
+    sprayerShape = "cnn-slice-c32"
+    victimShape = "vgg-14-c512-k3"
+    victimIters = 20 :: Int
+    -- The roster's sprayer: the fill every list arm runs, on the smallest
+    -- shape's view, the sum read back keeping each result from being
+    -- dropped unbuilt.
+    viaList :: ShapeL -> T -> Int -> Int -> Double -> IO (Int, Double)
+    viaList _ _ 0 !n !acc = return (n, acc)
+    viaList vsh a k !n !acc = do
+      x <- evaluate (VS.sum (fbList vsh a))
+      viaList vsh a (k - 1) (n + 1) (acc + x)
+    -- The pure burst: one step is 288 buffers, as in the reproducer; the
+    -- element read back from each keeps the allocation from being elided.
+    spray :: Int -> Int -> Double -> IO (Int, Double)
+    spray 0 !n !acc = return (n, acc)
+    spray k !n !acc = do
+      acc' <- burst (288 :: Int) acc
+      spray (k - 1) (n + 288) acc'
+    burst :: Int -> Double -> IO Double
+    burst 0 !acc = return acc
+    burst i !acc = do
+      v <- VSM.replicate 288 (fromIntegral i :: Double)
+      x <- VSM.unsafeRead v 287
+      burst (i - 1) (acc + x)
+    victim :: ShapeL -> T -> Int -> Double -> IO Double
+    victim _ _ 0 !acc = return acc
+    victim vsh a i !acc = do
+      x <- evaluate (VS.sum (fbList vsh a))
+      victim vsh a (i - 1) (acc + x)
+{-# NOINLINE saturate #-}
+
 main :: IO ()
 main = assert partitioned $ do
   args <- getArgs
+  unless (any (`elem` ["check", "diag", "--list", "-l"]) args) saturate
   if "diag" `elem` args
     then diag
     else if "check" `elem` args
@@ -3044,18 +3131,124 @@ touchLast :: VS.Vector Double -> Double
 touchLast v = if VS.null v then 0 else VS.unsafeLast v
 {-# NOINLINE touchLast #-}
 
+-- The wild-cell instrument, off unless WILDLOG is set in the environment,
+-- and what it is for is [the mechanism entry] in README's open list: the RTS
+-- cumulative allocated-bytes total, with the GC and mutator clocks beside
+-- it, ONE LINE PER CRITERION SAMPLE. The granularity is the entry's own ask
+-- and not a choice here -- both instances this hunts are a state a process
+-- ENTERS and then keeps, so a per-bench figure averages the two states it
+-- exists to separate.
+--
+-- It costs the measurement nothing, which is why it hangs here rather than
+-- inside the loop. 'Criterion.Measurement.runBenchmarkable' calls 'allocEnv'
+-- before it hands the loop to the timing block and 'cleanEnv' after that
+-- block returns, so both lines are written outside the clock; and
+-- 'runRepeatedly' below is criterion's own 'whnf'', the NOINLINE loop that
+-- 'whnf' itself installs -- @whnf f x = toBenchmarkable (whnf' f x)@ -- so a
+-- logged arm runs the instructions every published bench runs, and
+-- everything this Benchmarkable adds is outside the timing.
+--
+-- The environment is read per sample rather than once at load: a top-level
+-- read would be an import-time environment parse, which check-scripts.py
+-- refuses as a defect family, and 'lookupEnv' walks the environment block
+-- without a syscall, outside the clock, once per sample.
+--
+-- ADDRESSES ARE DELIBERATELY NOT LOGGED, though the mechanism entry names
+-- them beside the allocation total. The RTS reserves its heap at a fixed
+-- base, so the payload addresses repeat across processes -- the same three
+-- in eight of eight, which is what refuted the data-placement hypothesis --
+-- and what moves WITHIN that arena is a function of how much has been
+-- allocated before a buffer, which is the total logged here. Taking an
+-- output buffer's address would cost an extra fill per sample, perturbing
+-- the very history under test.
+wildLog :: String -> String -> Int64 -> IO ()
+wildLog nm phase n = do
+  on <- lookupEnv "WILDLOG"
+  case on of
+    Nothing -> return ()
+    Just _  -> do
+      s <- getRTSStats
+      (load1, runq, busy) <- machineLoad
+      hPutStrLn stderr $
+        "@@wild " ++ nm ++ " " ++ phase ++ " iters=" ++ show n
+        ++ " alloc=" ++ show (allocated_bytes s)
+        ++ " mut=" ++ show (mutator_elapsed_ns s)
+        ++ " gc=" ++ show (gc_elapsed_ns s)
+        ++ " gcs=" ++ show (gcs s) ++ "/" ++ show (major_gcs s)
+        ++ " inuse=" ++ show (max_mem_in_use_bytes s)
+        ++ " load=" ++ load1
+        ++ " run=" ++ runq
+        ++ " cpu=" ++ show busy
+
+-- The three load fields the line above ends with, decided 2026-08-22 for Run
+-- 18 and read in the same hooks, outside the timed block. THE REASON IS THE
+-- WILD CELL: from inside a process its signature -- a non-reproducing mutator
+-- step at flat RTS totals -- is exactly an external intrusion's, and Run 16's
+-- updater cell was told apart only by a wall-clock window. `cpu` is what
+-- separates them, being machine-wide rather than this process's: differenced
+-- between consecutive stamps and less the process's own mutator-plus-collector
+-- delta, what is left is the CPU something ELSE consumed during that sample,
+-- which is the updater class, and none of it is the machine's own. That
+-- subtraction is `./read-run.py --wild`'s, and `load` and `run` are printed
+-- beside it rather than subtracted.
+--
+-- `load` ALONE WOULD NOT DO IT, which is why the other two ride with it: the
+-- 1-minute average is damped over 60 s and updated every 5 s, so it dates a
+-- multi-minute intruder and barely marks a ten-second one. `run` is the
+-- instantaneous runnable-task count off the same line, and is the field that
+-- marks a short one.
+--
+-- Not defended against a missing /proc: this harness is Linux-only, both
+-- files are virtual and neither can short-read, so a failure here is a
+-- machine that could not have run the benchmark either.
+machineLoad :: IO (String, String, Integer)
+machineLoad = do
+  la <- words <$> procLine "/proc/loadavg"
+  st <- words <$> procLine "/proc/stat"
+  let -- `1min 5min 15min runnable/total lastpid`
+      load1 = case la of
+        (x : _) -> x
+        _       -> "?"
+      runq = case la of
+        (_ : _ : _ : r : _) -> takeWhile (/= '/') r
+        _                   -> "?"
+      -- `cpu user nice system idle iowait irq softirq steal guest ...`, in
+      -- USER_HZ and not in CONFIG_HZ -- the kernel fixes the unit of this
+      -- file at 100 Hz whatever it ticks at, which is what lets the reader
+      -- turn a jiffy into 10 ms without asking the machine. Busy is every
+      -- field but idle and iowait, the two a benchmark does not compete with.
+      busy = sum [ j | (i, j) <- zip [0 :: Int ..] (map read (drop 1 st))
+                     , i /= 3, i /= 4 ]
+  return (load1, runq, busy)
+
+-- One line, and the handle closed with it: a per-sample 'readFile' would
+-- leave a lazy handle open per sample, thousands of them per process.
+procLine :: FilePath -> IO String
+procLine p = withFile p ReadMode hGetLine
+
+-- 'whnf' with 'wildLog' on either side of the timed block, and differing
+-- from it in nothing else: criterion's own is
+-- @Benchmarkable noop (const noop) (const (whnf' f x)) False@.
+whnfLogged :: String -> (a -> b) -> a -> Benchmarkable
+whnfLogged nm f x =
+  Benchmarkable (wildLog nm "pre") (\n () -> wildLog nm "post" n)
+                (\() n -> whnf' f x n) False
+
 benchView :: String -> (ShapeL, T) -> Benchmark
 benchView name view =
   env (evaluate (force view)) $ \ ~(sh, a) ->
     bgroup name (concatMap (arm sh a) roster)
   where
-    arm sh a (n, Base f)  = [bench n $ whnf (VS.sum . f sh) a]
-    arm sh a (n, Fill f)  = [bench n $ whnf (VS.sum . f sh) a]
-    arm sh a (n, Twin f)  = [bench n $ whnf (VS.sum . f sh) a]
+    arm sh a (n, Base f)  = [bench n $ lg n (VS.sum . f sh) a]
+    arm sh a (n, Fill f)  = [bench n $ lg n (VS.sum . f sh) a]
+    arm sh a (n, Twin f)  = [bench n $ lg n (VS.sum . f sh) a]
     arm sh a (n, Term)    = [env (evaluate (force (reference sh a))) $
-                               bench n . whnf VS.sum]
-    arm sh a (n, Force f) = [bench n $ whnf (touchLast . f sh) a]
+                               bench n . lg n VS.sum]
+    arm sh a (n, Force f) = [bench n $ lg n (touchLast . f sh) a]
     arm _  _ (_, Only _)  = []
+    -- The log line carries GROUP/ARM, the group being the shape, since a
+    -- bench name alone leaves a reader counting benches to place a step.
+    lg n = whnfLogged (name ++ "/" ++ n)
 
 mkBench :: (String, ShapeL) -> Benchmark
 mkBench (name, normalSh) = benchView name (mkStrided normalSh)
