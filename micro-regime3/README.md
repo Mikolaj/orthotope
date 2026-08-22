@@ -1,9 +1,15 @@
-# regime-3 micro-benchmark (the fix: bq-expand)
+# regime-3 micro-benchmark (last candidate: bq-expand)
 
 This branch (`speedup-strided-tovector`) changes `toVectorListT`'s regime-3
 fallback in `Data/Array/Internal.hs` --- the per-element path taken when
 the innermost dimension is strided, so no contiguous run longer than one element
-can be sliced out.
+can be sliced out. What the branch carries in code is `bq-expand`, the last
+candidate; **the fix itself is not fully decided: on 2026-08-22
+`mut-odo-vecdims` was decided as the implementation to go upstream, possibly
+behind a condition on the strides that redirects a stride class
+to an implementation much better at it** --- [the
+ceiling](#the-mutable-ceiling-not-taken) carries the decision and what it rests
+on.
 
 The previous attempt, benchmarked as `gen-quotrem` resulted in a **mixed
 picture**: it had replaced the original `list` fallback
@@ -36,16 +42,17 @@ argues for it at all: it and the shipped arm are a tie, winning 10 shapes of 24
 with sign p 0.54 and an interval covering 1, where Run 7 (Harness), at -O1, had
 it 1.51x ahead.
 
-**Several strategies measured since are faster than what shipped and need
-no class method.** The fastest pure ones on Run 16
-are **`bq-scan-rem-gm-mulback`** (0.096) and **`bq-odo-gm-mulback`** (0.100)
-against `bq-expand`'s 0.114 --- a margin of **1.18** and **1.14** paired, where
-Run 13 read 1.14 and 1.15, Run 12 1.13 and 1.14, Run 11 1.15 on each and both
-halves of Run 10's pair 1.13 to 1.14. So it is no longer a margin sitting inside
-the 1.22 that placement alone is worth in an unaligned build, to be read
-as a candidate rather than a verdict: alignment removed that term, and a run
-repeating Run 10 exactly --- same binary, same roster, same order --- reproduces
-the margin to a hundredth ([the yardstick
+**Several strategies measured since are faster than the last candidate,
+`bq-expand`, and need no class method --- a distinction the decision
+of 2026-08-22 retires, shipping the mutable family's arm instead.** The fastest
+pure ones on Run 16 were **`bq-scan-rem-gm-mulback`** (0.096)
+and **`bq-odo-gm-mulback`** (0.100) against `bq-expand`'s 0.114 --- a margin
+of **1.18** and **1.14** paired, where Run 13 read 1.14 and 1.15, Run 12 1.13
+and 1.14, Run 11 1.15 on each and both halves of Run 10's pair 1.13 to 1.14.
+So it is no longer a margin sitting inside the 1.22 that placement alone
+is worth in an unaligned build, to be read as a candidate rather than a verdict:
+alignment removed that term, and a run repeating Run 10 exactly --- same binary,
+same roster, same order --- reproduces the margin to a hundredth ([the yardstick
 table](#what-run-17-compares-against)). They also carry **no size precondition
 at all**, which is the point of them, a ruling since having stopped this suite
 timing any arm that needs one ([what the benchmark
@@ -178,9 +185,13 @@ by being a thing a later session might otherwise redo.
 
 - **The fix that shipped** and why the base-offsets table is built by expansion
   rather than by division: [the fix][fix], with the four findings behind
-  it in [how the picture was achieved][achieved].
-- **The mutable ceiling**, why a direct mutable fill was not taken,
-  and the amendment that turned that bar into a weight: [the ceiling][ceiling].
+  it in [how the picture was achieved][achieved]. That form is now the last
+  candidate: the decision of 2026-08-22 is [in the ceiling][ceiling].
+- **The mutable ceiling**, why a direct mutable fill was not taken for eleven
+  runs, the amendment that turned that bar into a weight, and the decision
+  of 2026-08-22 that takes it --- `mut-odo-vecdims` as the upstream
+  implementation, a stride-conditioned redirect possible, the fix not fully
+  decided until the code lands: [the ceiling][ceiling].
 - **The class-method signature is free** --- `build` and `mut-odo` compile
   to the same worker, dumped in both regimes --- so no `vBuild` is held back
   on a figure: [the ceiling][ceiling].
@@ -3564,6 +3575,14 @@ rather than a cell to average away.
 
 ### The fix in Data/Array/Internal.hs
 
+**Decided 2026-08-22, and not yet in code: the fix is to be `mut-odo-vecdims`,
+the mutable odometer fill, possibly behind a condition on the strides
+that redirects a stride class to an implementation much better at it** ---
+the decision, what it rests on and what it owes are [in the ceiling
+section](#the-mutable-ceiling-not-taken). What follows is the last candidate,
+`bq-expand`, which is what this branch's `Data/Array/Internal.hs` carries
+and what every claim below was measured against.
+
 Regime 3 now builds the run base-offsets by expansion and fills with one
 `vGenerate`:
 
@@ -3603,6 +3622,38 @@ and is reported in that repo, not here.
 
 
 ### The mutable ceiling (not taken)
+
+**Decided 2026-08-22: the ceiling is to be taken, and the heading keeps
+its *not taken* until the code lands.** `mut-odo-vecdims` becomes the upstream
+implementation of the regime-3 fallback, with the new mutating `Vector` method
+it needs --- the method the Core below shows is free --- and possibly
+a condition on the strides that redirects a stride class to an implementation
+much better at it; the fix is not fully decided until that is. What the decision
+rests on, all of it Run 16's: `mut-odo-vecdims` heads the main set at 0.054
+of `list` with a worst shape of 0.128 (`stretch-pow2stride`), heads eight
+of the nine populations, and its worst in any class is 0.109
+(`reshape1-rank10`), so it was never slower than `list` anywhere this page has
+measured. The one population it does not head is the redirect's case:
+in `reshape1` the flat fills own the top, `mut-flat-gm` at a geomean of 0.051
+against the family's 0.097 --- though not on every shape of it, `mut-flat-gm`'s
+worst there (0.141, on `reshape1-rank10`) lying above `mut-odo-vecdims`'s,
+so a redirect wants a predicate on the strides finer than the class. On the main
+set, per shape, the best arm outside the family beats the shipped arm on 3
+of the 24 shapes --- `stretch-tall-Mx2` (`sInner` 900000, `build` 0.022 against
+0.022), `stretch-pow2stride` (`sInner` 64, `bq-mut-runs` 0.116 against 0.128),
+`stretch-inner1` (`sInner` 1, `mut-flat-gm` 0.030 against 0.090) ---
+so the huge-`sInner` end of the set is where a redirect on the strides would pay
+on the main set, and the stride classes say where else: the summary table's
+*best outside family* column, `mut-flat-gm` in four classes and `mut-odo`
+in four, only `reshape1`'s ahead of the shipped arm. What the decision owes:
+the class method and its instances in `Data/Array/Internal.hs`, orthotope's
+suite against it and a non-vacuity break as the `bq-expand` form had;
+this page's claims re-read with the shipped arm changed --- claim 1 and class
+property 2 become the deciding ones, property 1 is re-aimed
+at `mut-odo-vecdims`'s worst; the reader's notion of the shipped arm (`SHIPPED`
+in `read-run.py`, the `needs` column's `SHIPPED` cell, the claims manifest's
+*shipped* wording); and horde-ad's end-to-end re-measurement, its recorded
+gather figures being the `bq-expand` form's.
 
 **The `bq-*` strategies still fill the result one element at a time.**
 The tightest possible shape drops to a **mutable result buffer**: allocate
@@ -7953,7 +8004,7 @@ How to read the columns:
 | *mut-odo-vecdims-nosum* | *--* | *--* | *0.30* | *92* | *1.00x* | *the same, on the fastest arm* |
 | *sum-only-early* | *--* | *--* | *0.02* | *102* | *0.00x* | *the term every row has subtracted* |
 | *sum-only-late* | *--* | *--* | *0.02* | *102* | *0.00x* | *the same, at the other end* |
-| **mut-odo-vecdims** | **0.054** | 0.128 | 0.27 | 81 | 1.00x | new mutating `Vector` method |
+| **mut-odo-vecdims** | **0.054** | 0.128 | 0.27 | 81 | 1.00x | **new mutating `Vector` method -- THE FIX, decided 2026-08-22** |
 | *mut-odo-vecdims-aa* | *0.054* | *0.128* | *0.33* | *81* | *1.00x* | *A/A control* |
 | *mut-odo-vecdims-aa-distant* | *0.054* | *0.129* | *0.25* | *81* | *1.00x* | *A/A control* |
 | mut-odo-vecdims-add-in | 0.054 | 0.128 | 0.31 | 82 | 1.00x | new mutating `Vector` method |
@@ -7977,7 +8028,7 @@ How to read the columns:
 | bq-expand-b | 0.113 | 0.226 | 0.24 | 76 | 2.18x | nothing (pure) |
 | *bq-expand-aa-adjacent* | *0.114* | *0.224* | *0.29* | *74* | *2.35x* | *A/A control* |
 | bq-expand-qr-prim | 0.114 | 0.225 | 0.31 | 74 | 2.35x | nothing (pure) |
-| **bq-expand** | **0.114** | 0.224 | 0.37 | 74 | 2.35x | **nothing -- SHIPPED** |
+| bq-expand | 0.114 | 0.224 | 0.37 | 74 | 2.35x | nothing (pure) -- the last candidate |
 | *bq-expand-aa-distant* | *0.115* | *0.224* | *0.19* | *74* | *2.35x* | *A/A control* |
 | *mut-odo-aa-adjacent* | *0.115* | *0.292* | *0.52* | *70* | *1.00x* | *A/A control* |
 | mut-odo | 0.116 | 0.283 | 0.37 | 70 | 1.00x | new mutating `Vector` method |
@@ -8258,80 +8309,83 @@ From Run 13 on, both sides are max-skip again.
 
 And because a geomean cannot say *where* it moved, the **fingerprint** below
 is kept so a future disagreement can be localised rather than only noticed.
-Its membership is a rule, not a habit: the shipped arm, the rows the Results
-table bolds, and any arm an open question names --- `mut-odo` and `build` sit
-here on [the placement question](#what-is-open), which they are now the answer
-to rather than the sharpest form of --- and an arm leaves when its question
-closes, the roster cut having taken two out that way. An arm nothing measures
-cannot be the subject of a future disagreement to localise, and what is given up
-when one goes is the per-shape half alone, its geomean staying in the yardstick
-table above. `list`'s own net per call rides along, guarding the baseline
-at every shape where the anchors guard three, and converting any ratio beside
-it back to absolute time. Allocation stays medians-only on purpose:
-deterministic per call, so a run that raises an allocation question re-derives
-it within itself. `./read-run.py RUN.json --fingerprint` emits both tables ---
-paste them whole, transcribing nothing by hand, since hand-carrying this table
-once left two of Run 6's cells standing under Run 7's name, and the first
-emitted paste is what caught them. The column heads shorten the arm names
-as the stretch table's do: scan-rem-gm is `bq-scan-rem-gm-mulback` and vecdims
-`mut-odo-vecdims`. And the [stretch table][pershape] is the same kind of record
-for `bq-expand-b`, on the shapes chosen to stress orderings --- compare
-it the same way. It lost a `lemire-out` column to this same rule on the same
-day, and says so.
+Its membership is a rule, not a habit, re-aimed 2026-08-22: the shipped arm,
+`mut-odo-vecdims`, and every arm that is the best outside the vecdims family
+on at least one shape of the main set or a stride class --- on Run 16
+`mut-flat-gm`, `bq-scan-rem-gm-mulback`, `build`, `mut-odo`, `bq-mut-runs`
+and `bq-mut-runs-gm-mulback`, in that order of shapes led --- and an arm leaves
+when no shape has it best; the second table carries the same columns over every
+stride-class shape, with its class named. An arm nothing measures cannot
+be the subject of a future disagreement to localise, and what is given up when
+one goes is the per-shape half alone, its geomean staying in the yardstick table
+above. `list`'s own net per call rides along, guarding the baseline at every
+shape where the anchors guard three, and converting any ratio beside it back
+to absolute time. Allocation stays medians-only on purpose: deterministic per
+call, so a run that raises an allocation question re-derives it within itself.
+`./read-run.py RUN.json --fingerprint --classes CLASS.json...` emits both tables
+--- paste them whole, transcribing nothing by hand, since hand-carrying
+this table once left two of Run 6's cells standing under Run 7's name,
+and the first emitted paste is what caught them. The column heads shorten
+the arm names as the stretch table's do: vecdims is `mut-odo-vecdims`, flat-gm
+`mut-flat-gm`, scan-rem-gm `bq-scan-rem-gm-mulback`, mut-runs `bq-mut-runs`
+and runs-gm `bq-mut-runs-gm-mulback`. And the [stretch table][pershape]
+is the same kind of record for `bq-expand-b`, on the shapes chosen to stress
+orderings --- compare it the same way. It lost a `lemire-out` column
+to this same rule on the same day, and says so.
 
-| shape | `sInner` | `l` | `list`, net | bq-expand |
-|---|---:|---:|---:|---:|
-| `cnn-slice-c32` | 3 | 288 | 5.72 us | 0.156 |
-| `cnn-L1-6x6-c1` | 3 | 324 | 6.91 us | 0.211 |
-| `stretch-rank12` | 2 | 4096 | 110 us | 0.224 |
-| `cnn-L1-24x24-c1` | 3 | 5184 | 110 us | 0.177 |
-| `conv1d-24` | 3 | 5184 | 96.3 us | 0.109 |
-| `lenet-L1-28-c1-k5` | 5 | 19600 | 353 us | 0.125 |
-| `gather48-src-50` | 3 | 22500 | 419 us | 0.096 |
-| `stretch-rank10` | 3 | 59049 | 1.22 ms | 0.147 |
-| `stretch-coprime-r7` | 13 | 60060 | 982 us | 0.111 |
-| `cifar-L2-16-c64-k3` | 3 | 147456 | 2.95 ms | 0.129 |
-| `cnn-L2-24x24-c32` | 3 | 165888 | 3.33 ms | 0.131 |
-| `stretch-primes` | 89 | 250357 | 3.87 ms | 0.093 |
-| `stretch-inner1` | 1 | 500000 | 12.5 ms | 0.077 |
-| `alexnet-L2-27-c48-k5` | 5 | 874800 | 15.3 ms | 0.111 |
-| `vgg-14-c512-k3` | 3 | 903168 | 17.9 ms | 0.132 |
-| `alexnet-L1-55-c3-k11` | 11 | 1098075 | 17.9 ms | 0.098 |
-| `stretch-inner256` | 256 | 1750784 | 31.4 ms | 0.116 |
-| `stretch-pow2stride` | 64 | 1769472 | 27.1 ms | 0.125 |
-| `stretch-r5-8x432` | 8 | 1769472 | 32.5 ms | 0.085 |
-| `stretch-square-1341` | 1341 | 1798281 | 28.6 ms | 0.118 |
-| `stretch-bigstride` | 3 | 1800000 | 47.2 ms | 0.065 |
-| `stretch-tab7MB` | 2 | 1800000 | 36.4 ms | 0.094 |
-| `stretch-tall-Mx2` | 900000 | 1800000 | 38 ms | 0.067 |
-| `stretch-wide-2xM` | 2 | 1800000 | 36.3 ms | 0.084 |
+| shape | `sInner` | `l` | `list`, net | vecdims | flat-gm | scan-rem-gm | build | mut-odo | mut-runs | runs-gm |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| `cnn-slice-c32` | 3 | 288 | 5.72 us | 0.084 | 0.145 | 0.161 | 0.180 | 0.181 | 0.140 | 0.153 |
+| `cnn-L1-6x6-c1` | 3 | 324 | 6.91 us | 0.095 | 0.189 | 0.144 | 0.201 | 0.208 | 0.191 | 0.190 |
+| `stretch-rank12` | 2 | 4096 | 110 us | 0.090 | 0.184 | 0.125 | 0.293 | 0.283 | 0.202 | 0.199 |
+| `cnn-L1-24x24-c1` | 3 | 5184 | 110 us | 0.067 | 0.135 | 0.096 | 0.194 | 0.185 | 0.151 | 0.137 |
+| `conv1d-24` | 3 | 5184 | 96.3 us | 0.057 | 0.073 | 0.099 | 0.117 | 0.155 | 0.089 | 0.082 |
+| `lenet-L1-28-c1-k5` | 5 | 19600 | 353 us | 0.047 | 0.096 | 0.090 | 0.109 | 0.112 | 0.114 | 0.101 |
+| `gather48-src-50` | 3 | 22500 | 419 us | 0.052 | 0.070 | 0.095 | 0.119 | 0.137 | 0.084 | 0.075 |
+| `stretch-rank10` | 3 | 59049 | 1.22 ms | 0.065 | 0.116 | 0.099 | 0.152 | 0.173 | 0.123 | 0.113 |
+| `stretch-coprime-r7` | 13 | 60060 | 982 us | 0.033 | 0.089 | 0.088 | 0.062 | 0.068 | 0.105 | 0.092 |
+| `cifar-L2-16-c64-k3` | 3 | 147456 | 2.95 ms | 0.057 | 0.099 | 0.095 | 0.148 | 0.166 | 0.106 | 0.098 |
+| `cnn-L2-24x24-c32` | 3 | 165888 | 3.33 ms | 0.058 | 0.101 | 0.096 | 0.146 | 0.166 | 0.109 | 0.099 |
+| `stretch-primes` | 89 | 250357 | 3.87 ms | 0.028 | 0.079 | 0.086 | 0.029 | 0.029 | 0.091 | 0.085 |
+| `stretch-inner1` | 1 | 500000 | 12.5 ms | 0.090 | 0.030 | 0.073 | 0.281 | 0.259 | 0.069 | 0.030 |
+| `alexnet-L2-27-c48-k5` | 5 | 874800 | 15.3 ms | 0.043 | 0.083 | 0.091 | 0.097 | 0.106 | 0.096 | 0.088 |
+| `vgg-14-c512-k3` | 3 | 903168 | 17.9 ms | 0.057 | 0.093 | 0.097 | 0.147 | 0.170 | 0.107 | 0.098 |
+| `alexnet-L1-55-c3-k11` | 11 | 1098075 | 17.9 ms | 0.034 | 0.077 | 0.086 | 0.054 | 0.054 | 0.091 | 0.082 |
+| `stretch-inner256` | 256 | 1750784 | 31.4 ms | 0.032 | 0.068 | 0.081 | 0.033 | 0.033 | 0.113 | 0.080 |
+| `stretch-pow2stride` | 64 | 1769472 | 27.1 ms | 0.128 | 0.123 | 0.140 | 0.128 | 0.129 | 0.116 | 0.142 |
+| `stretch-r5-8x432` | 8 | 1769472 | 32.5 ms | 0.031 | 0.064 | 0.079 | 0.065 | 0.059 | 0.079 | 0.071 |
+| `stretch-square-1341` | 1341 | 1798281 | 28.6 ms | 0.091 | 0.138 | 0.151 | 0.093 | 0.093 | 0.111 | 0.155 |
+| `stretch-bigstride` | 3 | 1800000 | 47.2 ms | 0.035 | 0.049 | 0.066 | 0.089 | 0.080 | 0.058 | 0.052 |
+| `stretch-tab7MB` | 2 | 1800000 | 36.4 ms | 0.063 | 0.064 | 0.099 | 0.160 | 0.166 | 0.079 | 0.072 |
+| `stretch-tall-Mx2` | 900000 | 1800000 | 38 ms | 0.022 | 0.053 | 0.060 | 0.022 | 0.022 | 0.067 | 0.059 |
+| `stretch-wide-2xM` | 2 | 1800000 | 36.3 ms | 0.062 | 0.066 | 0.097 | 0.162 | 0.166 | 0.078 | 0.070 |
 
-| shape | scan-rem-gm | vecdims | mut-odo | build |
-|---|---:|---:|---:|---:|
-| `cnn-slice-c32` | 0.161 | 0.084 | 0.181 | 0.180 |
-| `cnn-L1-6x6-c1` | 0.144 | 0.095 | 0.208 | 0.201 |
-| `stretch-rank12` | 0.125 | 0.090 | 0.283 | 0.293 |
-| `cnn-L1-24x24-c1` | 0.096 | 0.067 | 0.185 | 0.194 |
-| `conv1d-24` | 0.099 | 0.057 | 0.155 | 0.117 |
-| `lenet-L1-28-c1-k5` | 0.090 | 0.047 | 0.112 | 0.109 |
-| `gather48-src-50` | 0.095 | 0.052 | 0.137 | 0.119 |
-| `stretch-rank10` | 0.099 | 0.065 | 0.173 | 0.152 |
-| `stretch-coprime-r7` | 0.088 | 0.033 | 0.068 | 0.062 |
-| `cifar-L2-16-c64-k3` | 0.095 | 0.057 | 0.166 | 0.148 |
-| `cnn-L2-24x24-c32` | 0.096 | 0.058 | 0.166 | 0.146 |
-| `stretch-primes` | 0.086 | 0.028 | 0.029 | 0.029 |
-| `stretch-inner1` | 0.073 | 0.090 | 0.259 | 0.281 |
-| `alexnet-L2-27-c48-k5` | 0.091 | 0.043 | 0.106 | 0.097 |
-| `vgg-14-c512-k3` | 0.097 | 0.057 | 0.170 | 0.147 |
-| `alexnet-L1-55-c3-k11` | 0.086 | 0.034 | 0.054 | 0.054 |
-| `stretch-inner256` | 0.081 | 0.032 | 0.033 | 0.033 |
-| `stretch-pow2stride` | 0.140 | 0.128 | 0.129 | 0.128 |
-| `stretch-r5-8x432` | 0.079 | 0.031 | 0.059 | 0.065 |
-| `stretch-square-1341` | 0.151 | 0.091 | 0.093 | 0.093 |
-| `stretch-bigstride` | 0.066 | 0.035 | 0.080 | 0.089 |
-| `stretch-tab7MB` | 0.099 | 0.063 | 0.166 | 0.160 |
-| `stretch-tall-Mx2` | 0.060 | 0.022 | 0.022 | 0.022 |
-| `stretch-wide-2xM` | 0.097 | 0.062 | 0.166 | 0.162 |
+| shape | class | `sInner` | `l` | `list`, net | vecdims | flat-gm | scan-rem-gm | build | mut-odo | mut-runs | runs-gm |
+|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| `bcast-inner8` | `bcast` | 8 | 51200 | 827 us | 0.033 | 0.076 | 0.089 | 0.075 | 0.055 | 0.090 | 0.080 |
+| `bcast-inner900` | `bcast` | 900 | 1800000 | 25.9 ms | 0.021 | 0.084 | 0.086 | 0.021 | 0.021 | 0.097 | 0.085 |
+| `bcast-tall-Mx2` | `bcast` | 2 | 1800000 | 36.2 ms | 0.062 | 0.067 | 0.097 | 0.172 | 0.168 | 0.078 | 0.070 |
+| `bcastmid-c32-cnn` | `bcastmid` | 3 | 165888 | 3.17 ms | 0.060 | 0.104 | 0.101 | 0.162 | 0.149 | 0.117 | 0.109 |
+| `bcastmid-primes` | `bcastmid` | 97 | 250357 | 3.78 ms | 0.021 | 0.080 | 0.084 | 0.022 | 0.022 | 0.093 | 0.082 |
+| `bcastmid-b200k` | `bcastmid` | 3 | 1800000 | 43.3 ms | 0.038 | 0.054 | 0.071 | 0.083 | 0.087 | 0.063 | 0.056 |
+| `reshape1-rank10` | `reshape1` | 1 | 59049 | 1.83 ms | 0.109 | 0.141 | 0.089 | 0.343 | 0.344 | 0.164 | 0.131 |
+| `reshape1-r3` | `reshape1` | 1 | 180000 | 4.62 ms | 0.090 | 0.030 | 0.072 | 0.293 | 0.266 | 0.071 | 0.031 |
+| `reshape1-500k` | `reshape1` | 1 | 500000 | 12.2 ms | 0.093 | 0.031 | 0.075 | 0.296 | 0.208 | 0.072 | 0.031 |
+| `rev-cnn-L1-24x24-c1` | `rev` | 3 | 5184 | 108 us | 0.068 | 0.138 | 0.097 | 0.199 | 0.183 | 0.154 | 0.145 |
+| `rev-gather48-src-50` | `rev` | 3 | 22500 | 416 us | 0.052 | 0.071 | 0.096 | 0.131 | 0.128 | 0.085 | 0.077 |
+| `rev-primes` | `rev` | 89 | 250357 | 3.94 ms | 0.027 | 0.078 | 0.084 | 0.029 | 0.029 | 0.090 | 0.084 |
+| `revsome-outer-g48` | `revsome` | 3 | 22500 | 417 us | 0.053 | 0.072 | 0.098 | 0.124 | 0.139 | 0.084 | 0.078 |
+| `revsome-mid-cnn-L2` | `revsome` | 3 | 165888 | 3.32 ms | 0.058 | 0.097 | 0.096 | 0.146 | 0.163 | 0.105 | 0.100 |
+| `revsome-inner-primes` | `revsome` | 89 | 250357 | 3.77 ms | 0.030 | 0.084 | 0.095 | 0.031 | 0.031 | 0.093 | 0.095 |
+| `scaled-r5` | `scaled` | 13 | 15015 | 239 us | 0.032 | 0.077 | 0.089 | 0.048 | 0.047 | 0.094 | 0.085 |
+| `scaled-super-r3` | `scaled` | 30 | 60000 | 918 us | 0.026 | 0.076 | 0.086 | 0.030 | 0.031 | 0.093 | 0.082 |
+| `scaled-rank1-m1` | `scaled` | 300000 | 300000 | 4.54 ms | 0.031 | 0.075 | 0.084 | 0.031 | 0.031 | 0.093 | 0.083 |
+| `slice-coprime-r7` | `slice` | 13 | 60060 | 995 us | 0.034 | 0.087 | 0.089 | 0.064 | 0.064 | 0.102 | 0.093 |
+| `slice-cnn-L2-24x24-c32` | `slice` | 3 | 165888 | 3.25 ms | 0.059 | 0.097 | 0.100 | 0.177 | 0.145 | 0.112 | 0.105 |
+| `slice-primes` | `slice` | 89 | 250357 | 3.85 ms | 0.029 | 0.082 | 0.093 | 0.031 | 0.031 | 0.091 | 0.092 |
+| `window-28x28-k5` | `window` | 5 | 14400 | 248 us | 0.045 | 0.083 | 0.094 | 0.104 | 0.109 | 0.103 | 0.092 |
+| `window-64x64-k1x9` | `window` | 1 | 32256 | 836 us | 0.096 | 0.047 | 0.074 | 0.318 | 0.299 | 0.088 | 0.050 |
+| `window-224x224-k3` | `window` | 3 | 443556 | 8.91 ms | 0.056 | 0.094 | 0.094 | 0.168 | 0.160 | 0.106 | 0.093 |
 
 **Two rows to read first, and the pair is derived rather than remembered**:
 `stretch-square-1341` and `stretch-pow2stride` are the only two shapes where
@@ -8606,7 +8660,11 @@ verdicts**, the details beside each class's table:
    it replaced, on any shape of any class the library can produce, in any
    regime, roster or layout this page has run. This is the property the classes
    exist to test, no geomean can state it, and a break would have been the one
-   result here to bear on `Data/Array/Internal.hs` directly.
+   result here to bear on `Data/Array/Internal.hs` directly. Re-aimed 2026-08-22
+   with the decision to ship `mut-odo-vecdims` instead: its worst is 0.128
+   on the main set and 0.109 in a class (`reshape1-rank10`), so the property
+   holds for the arm decided as well, and it is that arm's worst the next run
+   reads.
 2. **The top of the table keeps its order**: `mut-odo-vecdims` fastest,
    `bq-scan-rem-gm-mulback` the fastest pure arm, `bq-expand` behind both.
    The first clause, read as the vecdims family's rather than one arm's ---
@@ -8637,7 +8695,14 @@ verdicts**, the details beside each class's table:
    `bq-expand` now reading 0.105 there against `mut-odo-vecdims`'s 0.099. Each
    is read in its class's paragraph, and [the `sInner`
    ruling](#per-shape-where-the-geomean-hides-the-ordering) is what they bear
-   on.
+   on. **Re-aimed 2026-08-22 with the decision**: the second clause is retired
+   with the pure/impure distinction, the third reads the last candidate
+   `bq-expand` behind the shipped arm, and the summary's pure slot now carries
+   the best arm outside the vecdims family per class --- the redirect's
+   candidate --- which on Run 16 is `mut-flat-gm` in `rev`, `revsome`, `window`
+   and `reshape1` and `mut-odo` in `bcast`, `bcastmid`, `slice` and `scaled`,
+   only `reshape1`'s ahead of the shipped arm (0.032 against 0.097)
+   and `scaled`'s level with it.
 3. **The allocation tiers survive, and every level is Run 15's to the digit**:
    the mutable fills at the result vector, `bq-expand` between 1.14x and 5.43x
    it, `list` an order of magnitude above. Where a level moves it is the class's
@@ -8657,11 +8722,12 @@ the `concatMap`/`enumFromStepN` pipeline --- so it fights only *minimal*
 in orthotope's pure-and-minimal API rule; the **new mutating `Vector` method**
 the direct fills need is the [mutable ceiling](#the-mutable-ceiling-not-taken)'s
 ask, which *pure* barred outright until the amendment there turned the bar
-into a weight. `offtab` is the `Vector`-class-expressible shape of these gathers
---- output by plain `vGenerate` over a concrete offset table --- so its own cell
-names only its mutable `Int` scratch. And the geomean weights every benchmarked
-shape **equally**, so a figure here is a ranking statistic, not a claim about
-total work saved: the small shapes count as much as the largest.
+into a weight, and which the decision of 2026-08-22 takes. `offtab`
+is the `Vector`-class-expressible shape of these gathers --- output by plain
+`vGenerate` over a concrete offset table --- so its own cell names only
+its mutable `Int` scratch. And the geomean weights every benchmarked shape
+**equally**, so a figure here is a ranking statistic, not a claim about total
+work saved: the small shapes count as much as the largest.
 
 
 ### The stride classes, run by run
@@ -8695,7 +8761,7 @@ own table below --- none is computed here, and none is an average across
 classes, there being no such population to average over. Its header, fixed here
 so a run fills rows and never reshapes columns:
 
-    | class | shapes | bq-expand | worst | fastest pure | ceiling | floor |
+    | class | shapes | mut-odo-vecdims | worst | best outside family | ceiling | floor |
 
 That header line is written out twice in this file, once here as the spec
 and once as the table's own, and the two are the same text --- so a session
@@ -8704,12 +8770,14 @@ on the unindented one. Getting that wrong put Run 8's rows under this paragraph
 and left Run 7's standing in the table, both checks passing, because the check
 looked the table up the same wrong way the paste did.
 
-`bq-expand` and `worst` are the shipped row's two columns in that class's table;
-*fastest pure* and *ceiling* are the leading pure and mutable arms, each
-with its name, since which arm leads is half of what the column says; *floor*
-is the largest deviation from 1 among that process's eighteen A/A controls.
-A cell that breaks one of [the three properties](#the-claims-run-17-should-test)
-is bolded, and the class's own paragraph says what broke.
+`mut-odo-vecdims` and `worst` are the shipped row's two columns in that class's
+table; *best outside family* is the leading arm outside the vecdims family,
+the stride-conditioned redirect's candidate, and *ceiling* the leading arm
+of the family, each with its name, since which arm leads is half of what
+the column says; *floor* is the largest deviation from 1 among that process's
+eighteen A/A controls. A cell that breaks one of [the three
+properties](#the-claims-run-17-should-test) is bolded, and the class's own
+paragraph says what broke.
 
 Then one block per class, in `classViews`' order --- `rev`, `revsome`, `bcast`,
 `bcastmid`, `reshape1`, `slice`, `window`, `scaled` --- each carrying the same
@@ -8758,16 +8826,16 @@ the contents and the replace list alike, where a bolded lead reads the same
 and lets one link cover the section --- which is what `--check-doc`'s coverage
 check counts.
 
-| class | shapes | bq-expand | worst | fastest pure | ceiling | floor |
+| class | shapes | mut-odo-vecdims | worst | best outside family | ceiling | floor |
 |---|---:|---:|---:|---|---|---:|
-| `rev` | 3 | 0.104 | 0.179 | **`bq-odo-gm-mulback`** 0.092 | `mut-odo-vecdims` 0.046 | 6.30% |
-| `revsome` | 3 | 0.100 | 0.131 | `bq-scan-rem-gm-mulback` 0.096 | `mut-odo-vecdims-add-in` 0.047 | 5.94% |
-| `bcast` | 3 | 0.092 | 0.097 | **`bq-expand-gm-mulback`** 0.082 | `mut-odo-vecdims-add-both-down` 0.034 | 8.34% |
-| `bcastmid` | 3 | 0.097 | 0.137 | `bq-scan-rem-gm-mulback` 0.084 | `mut-odo-vecdims-add-in` 0.036 | 6.32% |
-| `reshape1` | 3 | 0.120 | 0.200 | **`bq-odo-gm-mulback`** 0.053 | **`mut-flat-gm`** 0.032 | 12.36% |
-| `slice` | 3 | 0.112 | 0.136 | `bq-scan-rem-gm-mulback` 0.094 | `mut-odo-vecdims-add-in` 0.039 | 8.39% |
-| `window` | 3 | 0.120 | 0.128 | `bq-scan-rem-gm-mulback` 0.093 | `mut-odo-vecdims-add-in` 0.062 | 5.30% |
-| `scaled` | 3 | 0.096 | 0.098 | `bq-scan-rem-gm-mulback` 0.086 | `mut-odo-vecdims-add-both` 0.030 | 10.10% |
+| `rev` | 3 | 0.046 | 0.068 | `mut-flat-gm` 0.086 | `mut-odo-vecdims` 0.046 | 6.30% |
+| `revsome` | 3 | 0.048 | 0.058 | `mut-flat-gm` 0.084 | `mut-odo-vecdims-add-in` 0.047 | 5.94% |
+| `bcast` | 3 | 0.035 | 0.062 | `mut-odo` 0.058 | `mut-odo-vecdims-add-both-down` 0.034 | 8.34% |
+| `bcastmid` | 3 | 0.036 | 0.060 | `mut-odo` 0.066 | `mut-odo-vecdims-add-in` 0.036 | 6.32% |
+| `reshape1` | 3 | 0.097 | 0.109 | **`mut-flat-gm`** 0.032 | **`mut-flat-gm`** 0.032 | 12.36% |
+| `slice` | 3 | 0.039 | 0.059 | `mut-odo` 0.066 | `mut-odo-vecdims-add-in` 0.039 | 8.39% |
+| `window` | 3 | 0.062 | 0.096 | `mut-flat-gm` 0.072 | `mut-odo-vecdims-add-in` 0.062 | 5.30% |
+| `scaled` | 3 | 0.031 | 0.032 | `mut-odo` 0.031 | `mut-odo-vecdims-add-both` 0.030 | 10.10% |
 
 **The floor column can be read against its predecessor's again**, both being
 over eighteen A/A pairs on one roster. All eight moved, four down and four up:
@@ -8781,16 +8849,11 @@ of eighteen near-ties is what a repetition of the instrument looks like,
 and it is the reason to read a class margin against this run's column
 and not the previous one.
 
-`bq-scan-rem-gm-mulback` holds the pure slot in **five** of the eight classes
---- `revsome`, `bcastmid`, `slice`, `window` and `scaled` --- where Run 15 gave
-it two. The three it does not hold are the three the summary bolds:
-`bq-odo-gm-mulback` takes `rev` at 0.092 and `reshape1` at 0.053,
-and `bq-expand-gm-mulback` takes `bcast` at 0.082. Read by margin rather
-than by sort, `rev`'s is not a break at all --- the paired reading puts the scan
-ahead at 0.9631, inside that population's 6.30% floor --- while `bcast`
-at 1.1011 and `reshape1` at 1.2541 clear their 8.34% and 12.36% floors
-and are the two real ones. What did not move is the shipped arm's `worst`,
-under 1 in all eight, highest 0.200 under `reshape1`.
+The pure slot this table carried until 2026-08-22, and the paragraph that read
+it, retired with the pure/impure distinction when the decision shipped
+the mutable family's arm; the column now carries the best arm outside
+the family, which Run 16's cells give as `mut-flat-gm` in four classes
+and `mut-odo` in four, only `reshape1`'s ahead of the shipped arm.
 
 **`rev` --- every stride negated, offset at the top: the view `rev` on every
 axis builds.** Shapes: `rev-cnn-L1-24x24-c1` (`l` 5184, `sInner` 3),
@@ -8829,7 +8892,7 @@ axis builds.** Shapes: `rev-cnn-L1-24x24-c1` (`l` 5184, `sInner` 3),
 | bq-mut-runs | 0.096 | 0.154 | 0.12 | 132 | 1.34x |
 | *bq-expand-aa-adjacent* | *0.104* | *0.179* | *0.10* | *130* | *2.52x* |
 | *bq-expand-aa-distant* | *0.104* | *0.179* | *0.12* | *130* | *2.52x* |
-| **bq-expand** | **0.104** | 0.179 | 0.12 | 130 | 2.52x |
+| bq-expand | 0.104 | 0.179 | 0.12 | 130 | 2.52x |
 | bq-expand-qr-prim | 0.105 | 0.176 | 0.13 | 130 | 2.52x |
 | bq-expand-b | 0.105 | 0.180 | 0.10 | 130 | 2.52x |
 | bq-expand-zf | 0.105 | 0.189 | 0.09 | 130 | 2.52x |
@@ -8861,7 +8924,7 @@ the reader reads 47 benchmarks over 3 shapes of the rev class. Anchor:
 
 **Per shape, in the lead's order (rev-cnn-L1-24x24-c1, rev-gather48-src-50,
 rev-primes):** `mut-odo-vecdims` 0.068/0.052/0.027 `bq-scan-rem-gm-mulback`
-0.097/0.096/0.084 `bq-expand` 0.179/0.097/0.091
+0.097/0.096/0.084
 
 **Across the halves:** 36 of the 42 arms are faster on the 32 MB half and six
 slower, from `list-aa-distant` at 0.8530 to `gen-unsafe` at 1.0400, with `list`
@@ -8905,7 +8968,7 @@ Shapes: `revsome-inner-primes` (`l` 250357, `sInner` 89), `revsome-outer-g48`
 | *bq-scan-rem-gm-mulback-aa-adjacent* | *0.096* | *0.098* | *0.10* | *88* | *1.33x* |
 | *bq-scan-rem-gm-mulback-aa-distant* | *0.096* | *0.098* | *0.07* | *88* | *1.33x* |
 | bq-expand-qr-prim | 0.100 | 0.130 | 0.16 | 84 | 2.52x |
-| **bq-expand** | **0.100** | 0.131 | 0.15 | 84 | 2.52x |
+| bq-expand | 0.100 | 0.131 | 0.15 | 84 | 2.52x |
 | *bq-expand-aa-distant* | *0.100* | *0.131* | *0.13* | *84* | *2.52x* |
 | bq-expand-b | 0.101 | 0.131 | 0.10 | 84 | 2.52x |
 | *bq-expand-aa-adjacent* | *0.101* | *0.131* | *0.12* | *84* | *2.52x* |
@@ -8946,7 +9009,7 @@ the reader reads 47 benchmarks over 3 shapes of the revsome class. Anchor:
 
 **Per shape, in the lead's order (revsome-inner-primes, revsome-outer-g48,
 revsome-mid-cnn-L2):** `mut-odo-vecdims` 0.030/0.053/0.058
-`bq-scan-rem-gm-mulback` 0.095/0.098/0.096 `bq-expand` 0.095/0.097/0.131
+`bq-scan-rem-gm-mulback` 0.095/0.098/0.096
 
 **Across the halves:** 41 of the 42 arms are faster on the 32 MB half and one
 slower, from `list-aa-distant` at 0.8502 to `gen-unsafe` at 1.0217, with `list`
@@ -8995,7 +9058,7 @@ a broadcast's view.** Shapes: `bcast-inner8` (`l` 51200, `sInner` 8),
 | **bq-scan-rem-gm-mulback** | **0.091** | 0.097 | 0.62 | 48 | 1.13x |
 | *bq-scan-rem-gm-mulback-aa-distant* | *0.091* | *0.098* | *0.06* | *48* | *1.13x* |
 | bq-expand-qr-prim | 0.091 | 0.097 | 0.64 | 47 | 1.38x |
-| **bq-expand** | **0.092** | 0.097 | 0.63 | 47 | 1.38x |
+| bq-expand | 0.092 | 0.097 | 0.63 | 47 | 1.38x |
 | *bq-expand-aa-distant* | *0.092* | *0.097* | *0.46* | *47* | *1.38x* |
 | *bq-expand-aa-adjacent* | *0.092* | *0.097* | *0.65* | *47* | *1.38x* |
 | *offtab-aa-distant* | *0.092* | *0.167* | *0.55* | *54* | *2.00x* |
@@ -9026,7 +9089,7 @@ the reader reads 47 benchmarks over 3 shapes of the bcast class. Anchor:
 
 **Per shape, in the lead's order (bcast-inner8, bcast-inner900,
 bcast-tall-Mx2):** `mut-odo-vecdims` 0.033/0.021/0.062 `bq-scan-rem-gm-mulback`
-0.089/0.086/0.097 `bq-expand` 0.094/0.097/0.084
+0.089/0.086/0.097
 
 **Across the halves:** 31 of the 42 arms are faster on the 32 MB half and eleven
 slower, from `list-aa-distant` at 0.8369 to `build` at 1.0174, with `list`
@@ -9078,7 +9141,7 @@ dimension.** Shapes: `bcastmid-c32-cnn` (`l` 165888, `sInner` 3),
 | *offtab-aa-distant* | *0.096* | *0.173* | *1.81* | *79* | *2.00x* |
 | *bq-expand-aa-adjacent* | *0.096* | *0.138* | *0.17* | *83* | *2.11x* |
 | bq-expand-b | 0.097 | 0.137 | 0.14 | 83 | 2.11x |
-| **bq-expand** | **0.097** | 0.137 | 0.20 | 83 | 2.11x |
+| bq-expand | 0.097 | 0.137 | 0.20 | 83 | 2.11x |
 | *offtab-aa-adjacent* | *0.097* | *0.190* | *0.47* | *78* | *2.00x* |
 | bq-expand-qr-prim | 0.097 | 0.137 | 0.15 | 83 | 2.11x |
 | *bq-expand-aa-distant* | *0.098* | *0.137* | *0.16* | *83* | *2.11x* |
@@ -9108,7 +9171,7 @@ the reader reads 47 benchmarks over 3 shapes of the bcastmid class. Anchor:
 
 **Per shape, in the lead's order (bcastmid-c32-cnn, bcastmid-primes,
 bcastmid-b200k):** `mut-odo-vecdims` 0.060/0.021/0.038 `bq-scan-rem-gm-mulback`
-0.101/0.084/0.071 `bq-expand` 0.137/0.094/0.070
+0.101/0.084/0.071
 
 **Across the halves:** 36 of the 42 arms are faster on the 32 MB half and six
 slower, from `build-aa-adjacent` at 0.8438 to `bq-mut-runs-gm-mulback`
@@ -9149,7 +9212,7 @@ axis.** Shapes: `reshape1-500k` (`l` 500000, `sInner` 1), `reshape1-r3` (`l`
 | mut-odo-vecdims-add-both | 0.105 | 0.122 | 0.08 | 82 | 1.00x |
 | bq-expand-b | 0.114 | 0.200 | 0.27 | 80 | 5.43x |
 | bq-expand-qr-prim | 0.120 | 0.197 | 0.35 | 80 | 5.43x |
-| **bq-expand** | **0.120** | 0.200 | 0.28 | 80 | 5.43x |
+| bq-expand | 0.120 | 0.200 | 0.28 | 80 | 5.43x |
 | *bq-expand-aa-adjacent* | *0.121* | *0.200* | *0.26* | *80* | *5.43x* |
 | *bq-expand-aa-distant* | *0.121* | *0.200* | *0.23* | *80* | *5.43x* |
 | bq-expand-zf | 0.124 | 0.214 | 0.38 | 80 | 5.43x |
@@ -9186,7 +9249,7 @@ the reader reads 47 benchmarks over 3 shapes of the reshape1 class. Anchor:
 
 **Per shape, in the lead's order (reshape1-500k, reshape1-r3,
 reshape1-rank10):** `mut-odo-vecdims` 0.093/0.090/0.109 `bq-scan-rem-gm-mulback`
-0.075/0.072/0.089 `bq-expand` 0.080/0.110/0.200
+0.075/0.072/0.089
 
 **Across the halves:** 30 of the 42 arms are faster on the 32 MB half and twelve
 slower, from `bq-expand-gm-mulback` at 0.8088 to `mut-odo-aa-distant` at 1.0456,
@@ -9242,7 +9305,7 @@ Shapes: `slice-cnn-L2-24x24-c32` (`l` 165888, `sInner` 3), `slice-primes` (`l`
 | *bq-odo-gm-mulback-aa-adjacent* | *0.111* | *0.129* | *0.10* | *84* | *1.50x* |
 | bq-expand-qr-prim | 0.112 | 0.136 | 0.09 | 84 | 1.58x |
 | *bq-expand-aa-distant* | *0.112* | *0.136* | *0.12* | *84* | *1.58x* |
-| **bq-expand** | **0.112** | 0.136 | 0.09 | 84 | 1.58x |
+| bq-expand | 0.112 | 0.136 | 0.09 | 84 | 1.58x |
 | bq-expand-b | 0.112 | 0.136 | 0.09 | 84 | 1.58x |
 | *bq-expand-aa-adjacent* | *0.112* | *0.136* | *0.11* | *84* | *1.58x* |
 | bq-expand-zf | 0.115 | 0.143 | 0.12 | 84 | 1.58x |
@@ -9271,7 +9334,7 @@ the reader reads 47 benchmarks over 3 shapes of the slice class. Anchor:
 
 **Per shape, in the lead's order (slice-cnn-L2-24x24-c32, slice-primes,
 slice-coprime-r7):** `mut-odo-vecdims` 0.059/0.029/0.034
-`bq-scan-rem-gm-mulback` 0.100/0.093/0.089 `bq-expand` 0.136/0.093/0.111
+`bq-scan-rem-gm-mulback` 0.100/0.093/0.089
 
 **Across the halves:** 28 of the 42 arms are faster on the 32 MB half
 and fourteen slower, from `list-aa-distant` at 0.8566 to `gen-quotrem`
@@ -9313,7 +9376,7 @@ by naming, with the overlap the main set's bijective map drops.** Shapes:
 | bq-expand-gm-mulback | 0.100 | 0.120 | 0.14 | 120 | 2.81x |
 | offtab-scan-rem | 0.120 | 0.123 | 0.05 | 121 | 2.00x |
 | bq-expand-qr-prim | 0.120 | 0.128 | 0.19 | 113 | 2.81x |
-| **bq-expand** | **0.120** | 0.128 | 0.12 | 113 | 2.81x |
+| bq-expand | 0.120 | 0.128 | 0.12 | 113 | 2.81x |
 | *bq-expand-aa-adjacent* | *0.120* | *0.128* | *0.10* | *113* | *2.81x* |
 | bq-expand-b | 0.120 | 0.128 | 0.10 | 113 | 2.81x |
 | *bq-expand-aa-distant* | *0.121* | *0.128* | *0.12* | *113* | *2.81x* |
@@ -9351,7 +9414,7 @@ the reader reads 47 benchmarks over 3 shapes of the window class. Anchor:
 
 **Per shape, in the lead's order (window-28x28-k5, window-224x224-k3,
 window-64x64-k1x9):** `mut-odo-vecdims` 0.045/0.056/0.096
-`bq-scan-rem-gm-mulback` 0.094/0.094/0.074 `bq-expand` 0.114/0.128/0.119
+`bq-scan-rem-gm-mulback` 0.094/0.094/0.074
 
 **Across the halves:** 34 of the 42 arms are faster on the 32 MB half and eight
 slower, from `list-aa-distant` at 0.8289 to `mut-odo-aa-distant` at 1.1071,
@@ -9403,7 +9466,7 @@ strided run), `scaled-r5` (`l` 15015, `sInner` 13).
 | *bq-expand-aa-adjacent* | *0.096* | *0.098* | *0.08* | *113* | *1.14x* |
 | *bq-expand-aa-distant* | *0.096* | *0.098* | *0.08* | *113* | *1.14x* |
 | bq-expand-b | 0.096 | 0.099 | 0.09 | 113 | 1.14x |
-| **bq-expand** | **0.096** | 0.098 | 0.06 | 113 | 1.14x |
+| bq-expand | 0.096 | 0.098 | 0.06 | 113 | 1.14x |
 | bq-expand-zf | 0.096 | 0.099 | 0.08 | 113 | 1.14x |
 | bq-mut | 0.102 | 0.113 | 0.22 | 112 | 1.03x |
 | offtab-scan-rem | 0.129 | 0.135 | 0.10 | 109 | 2.00x |
@@ -9430,7 +9493,7 @@ the reader reads 47 benchmarks over 3 shapes of the scaled class. Anchor:
 
 **Per shape, in the lead's order (scaled-super-r3, scaled-rank1-m1,
 scaled-r5):** `mut-odo-vecdims` 0.026/0.031/0.032 `bq-scan-rem-gm-mulback`
-0.086/0.084/0.089 `bq-expand` 0.095/0.094/0.098
+0.086/0.084/0.089
 
 **Across the halves:** 40 of the 42 arms are faster on the 32 MB half and two
 slower, from `list-aa-distant` at 0.8308 to `gen-unsafe-aa-distant` at 1.0264,
@@ -9842,7 +9905,7 @@ of the list above is one of the steps.
 [floor]: #what-moves-a-figure-when-no-strategy-changed
 [lemire]: #lemire-multiplicative-inverses-at-the-two-division-sites
 [open]: #what-is-open
-[opening]: #regime-3-micro-benchmark-the-fix-bq-expand
+[opening]: #regime-3-micro-benchmark-last-candidate-bq-expand
 [pershape]: #per-shape-where-the-geomean-hides-the-ordering
 [pos-effect]: https://github.com/Mikolaj/horde-ad/blob/master/docs/position-effect.md
 [probe]: #one-element-type-and-what-the-probe-found

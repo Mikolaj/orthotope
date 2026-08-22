@@ -164,7 +164,7 @@ $(printf '%s\n' "$owed" | sed 's/^/      /')"
 
 echo "=== installing into $DOC, all from $BASIS"
 install "$MAIN" --markdown
-install "$MAIN" --fingerprint
+install "$MAIN" --fingerprint --classes $CLASSES
 for c in $CLASSES; do install "$c" --block; done
 
 # The claims section's per-claim readings, the last figure-bearing block a

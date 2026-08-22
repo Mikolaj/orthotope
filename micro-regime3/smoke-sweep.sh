@@ -106,7 +106,7 @@ for f in smoke.json smoke-class.json; do
   for m in --selftest --aa --shapes --markdown --cells --fingerprint; do
     mode "$f" "$m"
   done
-  mode "$f" --pair bq-expand list
+  mode "$f" --pair mut-odo-vecdims list
   mode "$f"
 done
 mode smoke-class.json --block

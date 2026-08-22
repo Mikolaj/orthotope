@@ -1262,7 +1262,8 @@ CASES = [
 
     case('fingerprint-refuses-a-sunk-cell', 'read-run.py', 'e2d6604',
          'a sunk cell was divided and INSTALLED, outliving its own run',
-         plant=lambda t: {'run': sunk_json(t, main_shapes(), 'bq-expand')},
+         plant=lambda t: {'run': sunk_json(t, main_shapes(),
+                                           'mut-odo-vecdims')},
          argv=['{run}', '--fingerprint'],
          ok=V(has=['| -- |']),
          bug=V(hasnt=['| -- |'])),
@@ -1270,7 +1271,7 @@ CASES = [
     case('block-per-shape-refuses-a-sunk-cell', 'read-run.py', 'e2d6604',
          "a sunk cell was divided into the block's installed per-shape line",
          plant=lambda t: {'run': sunk_json(t, class_shapes('scaled'),
-                                           'bq-expand')},
+                                           'mut-odo-vecdims')},
          argv=['{run}', '--block', '--brief'],
          ok=V(has=['--/']),
          bug=V(hasnt=['--/'])),

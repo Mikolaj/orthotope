@@ -2113,25 +2113,30 @@ def cell_dump(cells, shapes, strategies):
 
 
 # The per-shape record README keeps between runs, in the two-table form
-# What Run N compares against pastes whole. Membership mirrors that
-# section's rule -- the shipped arm, the rows the Results table bolds,
-# and any arm an open question names; an arm leaves when its question
-# closes -- and the grouping keeps every emitted row inside README's
-# width. The short column heads are the stretch table's convention; the
-# README intro above the tables maps them back to full arm names.
-# `bq-scan-packed-mulback` and `bq-mut-runs-mulback` left on 2026-08-09, by
-# the membership rule's own clause: an arm leaves when its question closes,
-# and the precondition ruling closed both by stopping their benches. Their
-# columns went from README's tables in the same edit -- `install` matches a
-# table by its whole header line, so a narrowed emitter and a wide table on
-# the page would refuse rather than install.
+# What Run N compares against pastes whole: one table over the main set,
+# and since 2026-08-22 one over every stride-class shape with the same
+# columns, emitted together when `--classes` names the class JSONs.
+# Membership mirrors that section's rule as re-aimed that day -- the
+# shipped arm, `mut-odo-vecdims`, and every arm that is the best OUTSIDE
+# the vecdims family on at least one shape of the main set or a class (Run
+# 16: `mut-flat-gm` on 17 of the 48, `bq-scan-rem-gm-mulback` 11, `build`
+# 9, `mut-odo` 8, `bq-mut-runs` 2, `bq-mut-runs-gm-mulback` 1); an arm
+# leaves when no shape has it best. The short column heads are the stretch
+# table's convention; the README intro above the tables maps them back to
+# full arm names. `install` matches a table by its whole header line, so a
+# narrowed emitter and a wide table on the page would refuse rather than
+# install.
+FINGERPRINT_ARMS = ['mut-odo-vecdims', 'mut-flat-gm',
+                    'bq-scan-rem-gm-mulback', 'build', 'mut-odo',
+                    'bq-mut-runs', 'bq-mut-runs-gm-mulback']
+FINGERPRINT_HEADS = ('| vecdims | flat-gm | scan-rem-gm | build | mut-odo'
+                     ' | mut-runs | runs-gm |')
 FINGERPRINT_TABLES = [
-    ('| shape | `sInner` | `l` | `list`, net | bq-expand |',
-     True, ['bq-expand']),
-    ('| shape | scan-rem-gm | vecdims | mut-odo | build |',
-     False, ['bq-scan-rem-gm-mulback', 'mut-odo-vecdims', 'mut-odo',
-             'build']),
+    ('| shape | `sInner` | `l` | `list`, net ' + FINGERPRINT_HEADS,
+     True, FINGERPRINT_ARMS),
 ]
+FINGERPRINT_CLASS_HEADER = ('| shape | class | `sInner` | `l` | `list`, net '
+                            + FINGERPRINT_HEADS)
 
 
 def fmt_abs(seconds):
@@ -2166,7 +2171,7 @@ def _fig(v):
     return out if 'e' not in out else '%.0f' % v
 
 
-def fingerprint_table(cells, shapes, strategies, meta):
+def fingerprint_table(cells, shapes, strategies, meta, classes=()):
     """The kept per-shape record: dims, `list`'s net per call (absolute,
     so every ratio beside it converts back and the baseline is guarded at
     every shape), and the fingerprint arms' net ratios. Shapes sorted by
@@ -2177,7 +2182,9 @@ def fingerprint_table(cells, shapes, strategies, meta):
     cells still standing in README's hand-carried table --
     `alexnet-L1-55-c3-k11`'s scan-packed column and `stretch-bigstride`'s
     shipped one -- which is why the intro above the tables says to
-    transcribe nothing by hand."""
+    transcribe nothing by hand. `classes` is what `--classes` loaded: one
+    (label, cells, shapes, dims) per class JSON, emitted as the second
+    table with a `class` column, in the order given."""
     if 'list' not in strategies:
         sys.exit('--fingerprint needs the `list` baseline in the run')
     dims = meta['dims']
@@ -2209,6 +2216,56 @@ def fingerprint_table(cells, shapes, strategies, meta):
                 row.append('--' if not c or c['net'] <= 0 or base <= 0
                            else '%.3f' % (c['net'] / base))
             print('| ' + ' | '.join(row) + ' |')
+    if classes:
+        print()
+        header = FINGERPRINT_CLASS_HEADER
+        print(header)
+        print('|---|---' + '|---:' * (header.count('|') - 3) + '|')
+        for label, c_cells, c_shapes, c_dims in classes:
+            for sh in sorted(c_shapes, key=lambda x: (
+                    c_dims[x]['l'] if x in c_dims else float('inf'), x)):
+                d = c_dims.get(sh)
+                base = c_cells[sh]['list']['net']
+                row = ['`%s`' % sh, '`%s`' % label]
+                row += [str(d['s_inner']), str(d['l'])] if d else ['?', '?']
+                row.append(fmt_abs(base))
+                for arm in FINGERPRINT_ARMS:
+                    c = c_cells[sh].get(arm)
+                    row.append('--' if not c or c['net'] <= 0 or base <= 0
+                               else '%.3f' % (c['net'] / base))
+                print('| ' + ' | '.join(row) + ' |')
+        # The membership rule's data half, read where the data is: every
+        # arm that is the best outside the vecdims family on some shape of
+        # the main set or a class is a fingerprint arm, and every
+        # fingerprint arm but the shipped one is best somewhere. Said on
+        # stderr, where install-tables.sh files what a run owes by hand.
+        best = collections.Counter()
+        for p_shapes, p_cells in ([(shapes, cells)]
+                                  + [(c[2], c[1]) for c in classes]):
+            for sh in p_shapes:
+                base = p_cells[sh]['list']['net']
+                cands = [(c['net'] / base, st)
+                         for st, c in p_cells[sh].items()
+                         if st != 'list' and not is_control(st)
+                         and not st.startswith(FAMILY)
+                         and c['net'] > 0 and base > 0]
+                if cands:
+                    best[min(cands)[1]] += 1
+        missing = [a for a in best if a not in FINGERPRINT_ARMS]
+        idle = [a for a in FINGERPRINT_ARMS if a != SHIPPED and a not in best]
+        for a in missing:
+            sys.stderr.write('membership: `%s` is best outside the family on'
+                             ' %d shape(s) and is not a fingerprint arm\n'
+                             % (a, best[a]))
+        for a in idle:
+            sys.stderr.write('membership: `%s` is a fingerprint arm and best'
+                             ' outside the family on no shape\n' % a)
+        if not missing and not idle:
+            sys.stderr.write('ok: the fingerprint arms are the shipped arm'
+                             ' and every arm best outside the family on some'
+                             ' shape (%s)\n'
+                             % ', '.join('%s %d' % kv
+                                         for kv in best.most_common()))
 
 
 # The three arms the second class property names, in the claims section
@@ -2224,8 +2281,8 @@ def fingerprint_table(cells, shapes, strategies, meta):
 # section's own order (named above and not anchored, for the reason there).
 # A manifest
 # rather than a parser over the prose: the claims are not uniformly
-# machine-readable -- claim 2's second half is `offtab` BEHIND the shipped
-# arm rather than an `A < B` ordering, and claim 4 states two readings of
+# machine-readable -- claim 2's second half is `offtab` BEHIND `bq-expand`
+# rather than an `A < B` ordering, and claim 4 states two readings of
 # one arm -- so anything scraping them would be wrong on exactly the two
 # that need care. Claims 7 and 8 name no pair: 7 is the allocation column,
 # read by `--compare --alloc`, and 8 is structural, read off the table.
@@ -2247,9 +2304,9 @@ CLAIMS = [
         'l-length table that replaces it',
      [('bq-expand', 'bq-mut', 'faster'),
       ('offtab', 'bq-expand', 'slower')]),
-    (3, 'a mul-back output pays on the shipped build',
+    (3, 'a mul-back output pays on the `bq-expand` build',
      [('bq-expand-gm-mulback', 'bq-expand', 'faster')]),
-    (4, 'the scan ties its own build control, and ties the shipped arm',
+    (4, 'the scan ties its own build control, and ties `bq-expand`',
      [('bq-scan-rem-gm-mulback', 'bq-expand-gm-mulback', 'tie'),
       ('bq-scan-rem-gm-mulback', 'bq-expand', 'tie')]),
     (5, 'the build ordering, trimmed to its timed arms',
@@ -2684,24 +2741,17 @@ def claims_in_doc(readme, cells, shapes, strategies, src, main_hs):
               % ('summary' if n is None else 'claim %d' % n, fig, sent[:92]))
 
 
-SUMMARY_COLS = ('shapes', 'bq-expand', 'worst', 'fastest pure', 'ceiling',
-                'floor')
+# The shipped arm became `mut-odo-vecdims` by the decision of 2026-08-22
+# (README, the ceiling), `bq-expand` the last candidate; the pure/impure
+# distinction retired with it, and the summary's pure slot now carries the
+# best arm OUTSIDE the vecdims family -- the stride-conditioned redirect's
+# candidate per class.
+SUMMARY_COLS = ('shapes', 'mut-odo-vecdims', 'worst', 'best outside family',
+                'ceiling', 'floor')
+FAMILY = 'mut-odo-vecdims'
 PROP2_FASTEST = 'mut-odo-vecdims'
-PROP2_PURE = 'bq-scan-rem-gm-mulback'
-SHIPPED = 'bq-expand'
-
-
-def is_pure(needs):
-    """Does this `needs` cell say the arm requires nothing of the API?
-
-    The shipped arm's cell reads `**nothing -- SHIPPED**` and the others
-    `nothing (pure)`, so the test is the shared word once emphasis is gone.
-    A cell left as `?` -- a row newer than the table it is carried from --
-    is not pure and not impure, and the caller is told rather than guessed
-    at, since a silent wrong answer here is exactly what this function is
-    here to stop.
-    """
-    return needs.strip().strip('*').lower().startswith('nothing')
+SHIPPED = 'mut-odo-vecdims'
+LAST_CANDIDATE = 'bq-expand'
 
 
 def block_verdicts(cells, shapes, strategies, meta, args):
@@ -2728,21 +2778,23 @@ def block_verdicts(cells, shapes, strategies, meta, args):
 
     Non-vacuous: on Run 9 it says HOLDS for property 2 on `window` and names
     a different, correct break on each of `rev`, `bcast`, `reshape1`,
-    `bcastmid` and `slice`, so it is not a constant; and `is_pure` separates
-    `nothing (pure)` and `**nothing -- SHIPPED**` from `mutable \\`Int\\`
-    scratch` and from an unwritten `?`.
+    `bcastmid` and `slice`, so it is not a constant. Since 2026-08-22 the
+    second clause is gone with the pure slot, and the third reads the last
+    candidate behind the shipped arm.
     """
     led = table_leaders(cells, shapes, strategies, args)
     if led is None or not led.timed:
         return
-    rows, needs, timed, pure = led.rows, led.needs, led.timed, led.pure
+    rows, needs, timed, outside = (led.rows, led.needs, led.timed,
+                                   led.outside)
     unknown = [r.st for r in timed if r.st not in needs
                or needs[r.st].strip() in ('?', '')]
     print()
     print('Verdicts, derived from the cells above; the paragraph is yours:')
     print('  fastest timed arm   %-30s %.3f' % (timed[0][1], timed[0][0]))
-    if pure:
-        print('  fastest pure arm    %-30s %.3f' % (pure[0][1], pure[0][0]))
+    if outside:
+        print('  best outside family %-30s %.3f' % (outside[0][1],
+                                                     outside[0][0]))
     shipped = next((r for r in timed if r[1] == SHIPPED), None)
     if shipped:
         print('  %-19s %-30s %.3f   worst %.3f'
@@ -2753,19 +2805,13 @@ def block_verdicts(cells, shapes, strategies, meta, args):
     if timed[0][1] != PROP2_FASTEST:
         clauses.append('fastest is `%s`, not `%s`' % (timed[0][1],
                                                       PROP2_FASTEST))
-    if pure and pure[0][1] != PROP2_PURE:
-        clauses.append('fastest pure is `%s`, not `%s`' % (pure[0][1],
-                                                           PROP2_PURE))
     if shipped:
-        # Against the arms the claim NAMES, not against whichever arms lead:
-        # `reshape1` breaks this clause only on the named reading, the flat
-        # fills having taken its top, and the named reading is the claim's.
+        # The third clause since 2026-08-22: the last candidate behind the
+        # shipped arm, which is the decision's direction read per class.
         by = dict((r[1], r[0]) for r in timed)
-        ahead = [n for n in (PROP2_FASTEST, PROP2_PURE)
-                 if n in by and shipped[0] < by[n]]
-        if ahead:
-            clauses.append('`%s` is AHEAD of %s'
-                           % (SHIPPED, ', '.join('`%s`' % a for a in ahead)))
+        if LAST_CANDIDATE in by and by[LAST_CANDIDATE] < shipped[0]:
+            clauses.append('the last candidate `%s` is AHEAD of `%s`'
+                           % (LAST_CANDIDATE, SHIPPED))
     verdict2 = ('HOLDS' if not clauses
                 else '**BREAKS** -- ' + '; '.join(clauses))
     print('  property 2, top of the table: %s' % verdict2)
@@ -2780,13 +2826,12 @@ def block_verdicts(cells, shapes, strategies, meta, args):
               ' NOT break:\n      it is read as the family\'s until a run'
               ' separates them -- README, the claims)' % PROP2_FASTEST)
     tiers = [(st, dict((r[1], r[5]) for r in rows).get(st))
-             for st in (PROP2_FASTEST, SHIPPED, 'list')]
+             for st in (SHIPPED, LAST_CANDIDATE, 'list')]
     print('  property 3, allocation: %s'
           % ', '.join('%s %s' % (st, '--' if a is None else '%.2fx' % a)
                       for st, a in tiers))
     if unknown:
-        print('  NOT classified pure or impure, `needs` unwritten: %s'
-              % ', '.join(unknown))
+        print('  `needs` unwritten: %s' % ', '.join(unknown))
 
 
 def load_other(other, main_hs, shapes, meta):
@@ -2828,7 +2873,8 @@ def load_other(other, main_hs, shapes, meta):
     return b_cells, b_shapes, b_strategies
 
 
-LEADERS = collections.namedtuple('LEADERS', 'rows needs timed pure shipped')
+LEADERS = collections.namedtuple('LEADERS',
+                                 'rows needs timed outside shipped')
 
 
 def table_leaders(cells, shapes, strategies, args):
@@ -2839,8 +2885,8 @@ def table_leaders(cells, shapes, strategies, args):
     validating the ranking the first printed, so a drift between the two
     copies would make the check disagree with the paragraph it is there
     to police, silently. Each caller keeps its own early return: the
-    verdicts want a timed arm, the summary row wants a pure one and the
-    shipped one besides.
+    verdicts want a timed arm, the summary row wants the best arm outside
+    the vecdims family and the shipped one besides.
     """
     rows, have_list = strategy_rows(cells, shapes, strategies)
     if not have_list:
@@ -2849,7 +2895,7 @@ def table_leaders(cells, shapes, strategies, args):
              in readme_rows(args.readme, strategies).items()}
     timed = [r for r in rows if not is_control(r.st) and r.time == r.time]
     return LEADERS(rows, needs, timed,
-                   [r for r in timed if is_pure(needs.get(r.st, '?'))],
+                   [r for r in timed if not r.st.startswith(FAMILY)],
                    next((r for r in timed if r.st == SHIPPED), None))
 
 
@@ -2896,14 +2942,14 @@ def summary_row(cells, shapes, strategies, args, main_hs):
     led = table_leaders(cells, shapes, strategies, args)
     if led is None:
         return
-    timed, pure, shipped = led.timed, led.pure, led.shipped
-    if not (timed and pure and shipped):
+    timed, outside, shipped = led.timed, led.outside, led.shipped
+    if not (timed and outside and shipped):
         return
     aa = aa_pairs(cells, shapes, strategies)
     if not aa:
         return
     want = ['%d' % len(shapes), '%.3f' % shipped.time, '%.3f' % shipped.worst,
-            '%s %.3f' % (pure[0].st, pure[0].time),
+            '%s %.3f' % (outside[0].st, outside[0].time),
             '%s %.3f' % (timed[0].st, timed[0].time),
             '%.2f%%' % (abs(aa_floor(aa).g - 1) * 100)]
     try:
@@ -4876,9 +4922,10 @@ def lint(main_hs, readme):
     # here, and README's rule that the Results table's bolded rows are in
     # it -- so this holds them together: every bolded Results row is a
     # fingerprint arm, and every fingerprint arm is rostered. The rule's
-    # open-question half (`mut-odo`, `build` today) cannot be read
-    # mechanically, so an extra fingerprint arm is fine; a bolded row left
-    # out is not.
+    # data half -- every arm best outside the vecdims family on some shape,
+    # since 2026-08-22 -- needs the JSONs, and `--fingerprint --classes`
+    # reads it there; here an extra fingerprint arm is fine and a bolded
+    # row left out is not.
     #
     # Non-vacuity: against a scratch README with `offtab`'s row bolded it
     # fails naming offtab; against a scratch Main.hs whose roster drops
@@ -5363,6 +5410,9 @@ def main():
                         ' times, on the multiple the alloc column publishes')
     p.add_argument('--markdown', action='store_true')
     p.add_argument('--fingerprint', action='store_true')
+    p.add_argument('--classes', nargs='+', metavar='CLASS.json',
+                   help='with --fingerprint: the class JSONs whose shapes'
+                        ' fill the second table')
     p.add_argument('--block', action='store_true')
     # The standing explanations and the installed table are read once and
     # then reprinted on every later call: ten populations of --aa is ~250
@@ -5598,7 +5648,14 @@ def main():
                        args, terms)
         emit_or_install(text, args, shapes, meta)
     elif args.fingerprint:
-        text = capture(fingerprint_table, cells, shapes, strategies, meta)
+        classes = []
+        for path in (args.classes or []):
+            c_cells, c_shapes, c_strats, c_meta = load(path, args.main)
+            apply_correction(c_cells, c_shapes, c_strats)
+            classes.append((class_prefix(c_shapes), c_cells, c_shapes,
+                            c_meta['dims']))
+        text = capture(fingerprint_table, cells, shapes, strategies, meta,
+                       classes)
         emit_or_install(text, args, shapes, meta)
     elif args.block:
         text = capture(block_skeleton, cells, shapes, strategies, meta,
