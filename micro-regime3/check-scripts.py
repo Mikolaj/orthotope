@@ -73,7 +73,10 @@ code and stderr included, which is exactly what a function-level check
 cannot see and is where the defects were.
 
 WHAT A CASE IS. Both directions, always: `ok` is what the fixed code must
-do and `bug` is what the code before the fix did. The default run asserts
+do and `bug` is what the code before the fix did -- what it DID, not only
+what it did not say: a `hasnt` alone holds when the old script crashed on
+something else, which reproduces nothing, and twenty-two verdicts stood
+that way until 2026-08-23. The default run asserts
 `ok`; `--audit` re-materialises the script as of the commit BEFORE its fix
 and asserts `bug`, which is how this suite proves it is not vacuous -- the
 rule the rest of this directory already follows, turned on the tests
@@ -1625,12 +1628,14 @@ CASES = [
          ok=V(exit=0, has=['installed at']),
          bug=V(exit=1, has=['emitted no table'])),
 
-    case('buried-action-at-eof', 'read-run.py', '045ca63',
+    case('buried-action-at-eof', 'read-run.py', None,
          'the last indented block of a document was never swept',
          plant=lambda t: {'readme': readme_with_trailing_buried_action(t)},
          argv=['--check-doc', '--worklists', '--readme', '{readme}'],
-         ok=V(has=['--survey to see it']),
-         bug=V(hasnt=['--survey to see it'])),
+         # No --audit: `--worklists` is younger than the fix, so the code
+         # before it rejects the argv as an unknown flag, which is no
+         # reproduction of anything. Removal is the handling.
+         ok=V(has=['--survey to see it'])),
 
     case('worst-beside-a-sunk-time', 'read-run.py', '045ca63',
          'a plausible `worst` published beside `time --`',
@@ -1749,7 +1754,8 @@ CASES = [
                                              main_shapes()[:-1])},
          argv=['{run}', '--compare', '{other}', '--chapter'],
          ok=V(has=['shapes in one run only, skipped']),
-         bug=V(hasnt=['shapes in one run only, skipped'])),
+         bug=V(exit=0, has=['chapter skeleton'],
+               hasnt=['shapes in one run only, skipped'])),
 
     case('alloc-names-the-shapes-it-dropped', 'read-run.py', 'a78555e',
          'the allocation comparison named its arms and not its shapes',
@@ -1758,7 +1764,8 @@ CASES = [
                                              main_shapes()[:-1])},
          argv=['{run}', '--compare', '{other}', '--alloc'],
          ok=V(has=['shapes in one run only, skipped']),
-         bug=V(hasnt=['shapes in one run only, skipped'])),
+         bug=V(exit=0, has=['agree to 1e-4'],
+               hasnt=['shapes in one run only, skipped'])),
 
     # ---- the sunk cell, which only a built fixture can carry -----------
     case('selftest-survives-a-sunk-baseline', 'read-run.py', '50efffe',
@@ -1784,13 +1791,27 @@ CASES = [
               hasnt=['ZeroDivisionError', 'Traceback']),
          bug=V(has=['ZeroDivisionError'])),
 
+    case('table-survives-a-zero-list-slope', 'read-run.py', 'ba56d23',
+         "a zero `list` slope divided in the table's share line, the default",
+         # The family's last site, found by sweeping for it the day after
+         # the selftest's: the share of the forcing term in `list` and the
+         # shipped arm divides by their slopes, and a cell with none took
+         # the default mode down with a traceback where the health warning
+         # beside it names the cell.
+         plant=lambda t: {'run': doctored(t, 'main', lambda b: scale(
+             b, main_shapes()[0] + '/list', 0.0))},
+         argv=['{run}'],
+         ok=V(exit=0, has=['forcing term is not smaller than the cell'],
+              hasnt=['ZeroDivisionError', 'Traceback']),
+         bug=V(has=['ZeroDivisionError'])),
+
     case('fingerprint-refuses-a-sunk-cell', 'read-run.py', 'e2d6604',
          'a sunk cell was divided and INSTALLED, outliving its own run',
          plant=lambda t: {'run': sunk_json(t, main_shapes(),
                                            'mut-odo-vecdims')},
          argv=['{run}', '--fingerprint'],
          ok=V(has=['| -- |']),
-         bug=V(hasnt=['| -- |'])),
+         bug=V(has=['| shape |'], hasnt=['| -- |'])),
 
     case('block-per-shape-refuses-a-sunk-cell', 'read-run.py', 'e2d6604',
          "a sunk cell was divided into the block's installed per-shape line",
@@ -1798,7 +1819,7 @@ CASES = [
                                            'mut-odo-vecdims')},
          argv=['{run}', '--block', '--brief'],
          ok=V(has=['--/']),
-         bug=V(hasnt=['--/'])),
+         bug=V(has=['summary row'], hasnt=['--/'])),
 
     case('machine-check-drops-a-sunk-baseline', 'read-run.py', 'e2d6604',
          'a non-positive `list` net raised, and run-gate.sh files stderr'
@@ -1829,7 +1850,8 @@ CASES = [
          plant=lambda t: {'readme': readme_yardstick_renamed_with_qmark(t)},
          argv=['--check-doc', '--readme', '{readme}'],
          ok=V(has=['still carry the `?`']),
-         bug=V(hasnt=['still carry the `?`'])),
+         bug=V(exit=1, has=['the yardstick table is gone'],
+               hasnt=['still carry the `?`'])),
 
     case('claims-current-run-not-exempt', 'read-run.py', 'a6c32e8',
          '`Run N` exempted the run in hand, the one kind that matters',
@@ -1846,7 +1868,7 @@ CASES = [
                           'run': run_json('run14-lookrts-main.json')},
          argv=['{run}', '--claims', '--readme', '{readme}'],
          ok=V(has=['0.9312']),
-         bug=V(hasnt=['0.9312'])),
+         bug=V(has=['HELD'], hasnt=['0.9312'])),
 
     case('results-names-an-older-basis-half', 'read-run.py', None,
          "the Results lead named the PREVIOUS run's half under this run's"
@@ -1884,7 +1906,8 @@ CASES = [
          # below is the one this case itself drops, so it is fixed by
          # construction rather than by whatever the data happened to say.
          ok=V(has=['over 2 of 3 shape(s): slice-cnn-L2-24x24-c32 dropped']),
-         bug=V(hasnt=['over 2 of 3 shape(s)'])),
+         bug=V(has=['in-situ forcing term'],
+               hasnt=['over 2 of 3 shape(s)'])),
 
     case('pair-refuses-a-sunk-cell', 'read-run.py', 'a6c32e8',
          'a sunk cell gave --pair a math domain error',
@@ -1911,7 +1934,8 @@ CASES = [
                           'run': synth_json(t, 'slice')},
          argv=['{run}', '--block', '--readme', '{readme}'],
          ok=V(has=['not checked: it has 5 column(s)']),
-         bug=V(hasnt=['not checked: it has 5 column(s)'])),
+         bug=V(has=['six columns'],
+               hasnt=['not checked: it has 5 column(s)'])),
 
     case('verbose-alone', 'read-run.py', None,
          '--verbose outside the modes that drop prose said nothing',
@@ -1976,14 +2000,15 @@ CASES = [
              lambda bs: bad_alloc_fit(bs, 'slice-primes/offtab'))},
          argv=['{run}', '--main', '/dev/null'],
          ok=V(has=['allocated R2 < 0.99']),
-         bug=V(hasnt=['allocated R2 < 0.99'])),
+         bug=V(has=['alloc missing for'], hasnt=['allocated R2 < 0.99'])),
 
     case('checkdoc-chapter-heading-gone', 'read-run.py', 'a6c32e8',
          'the chapter-link sweep lost its own boundary in silence',
          plant=lambda t: {'readme': readme_chapter_renamed(t)},
          argv=['--check-doc', '--readme', '{readme}'],
          ok=V(has=['BLOCKED: no `## About the last run` heading']),
-         bug=V(hasnt=['BLOCKED: no `## About the last run` heading'])),
+         bug=V(exit=1, has=['dead anchor(s)'],
+               hasnt=['BLOCKED: no `## About the last run` heading'])),
 
     case('markdown-installs-into-the-main-table', 'read-run.py', 'febc2bd',
          "a class run whose shapes Main.hs lost installed into Results",
@@ -2022,7 +2047,8 @@ CASES = [
          plant=lambda t: {'main': mangled_main(t)},
          argv=['--check-doc', '--main', '{main}'],
          ok=V(has=['no roster parsed out of Main.hs']),
-         bug=V(hasnt=['no roster parsed out of Main.hs'])),
+         bug=V(exit=1, has=['did not happen'],
+               hasnt=['no roster parsed out of Main.hs'])),
 
     case('pair-refusal-names-shape-first', 'read-run.py', 'febc2bd',
          'the refusal printed arm/shape where every other line is shape/arm',
@@ -2036,7 +2062,7 @@ CASES = [
          argv=['--unit', 'small_ceiling([(2e-4, "s1", "a", 500.0),'
                          ' (1e-5, "s2", "b", 5000.0)])'],
          ok=V(has=['500']),
-         bug=V(hasnt=['500.0'])),
+         bug=V(has=["name 'small_ceiling' is not defined"], hasnt=['500.0'])),
 
     case('dropped-control-pairs-are-named', 'read-run.py', 'de79a95',
          'a pair dropped for a sunk cell narrowed a PUBLISHED figure quietly',
@@ -2086,13 +2112,14 @@ CASES = [
          argv=['--unit', "tree_state.__doc__ and (git('rev-parse')"
                          ".returncode, tree_state() is None)"],
          ok=V(has=['(0, False)']),
-         bug=V(hasnt=['(0, False)'])),
+         bug=V(has=["name 'tree_state' is not defined"],
+               hasnt=['(0, False)'])),
 
     case('tree-change-in-both-directions', 'check-scripts.py', 'ea1a3e6',
          'a file REMOVED tripped the alarm and printed nothing beneath it',
          argv=['--unit', "tree_delta('?? a\\n?? b\\n', '?? b\\n')"],
          ok=V(has=['gone']),
-         bug=V(hasnt=['gone'])),
+         bug=V(has=["name 'tree_delta' is not defined"], hasnt=['gone'])),
 
     # ---- this file's own instruments ------------------------------------
     case('fixture-ci-bounds-are-criterion-shaped', 'check-scripts.py', '40f7a37',
@@ -2456,7 +2483,7 @@ CASES = [
          env={'REAL_AS': '{as}', 'PAD_BYTES': '8192'},
          argv=['-c', '-o', '{obj}', '{asm}'],
          ok=V(has=['8192 pad byte(s) appended']),
-         bug=V(hasnt=['pad byte(s) appended'])),
+         bug=V(exit=0, hasnt=['pad byte(s) appended'])),
 
     case('empty-pad-bytes', 'align-as.py', '09782f7',
          "PAD_BYTES= killed the compile with int('') at import",
@@ -2492,7 +2519,7 @@ CASES = [
          env={'REAL_AS': '{as}', 'LOOP_MAXSKIP': '1'},
          argv=['-c', '-o', '{obj}', '{asm}'],
          ok=V(has=['objdump -t', 'not the max-skip form']),
-         bug=V(hasnt=['not the max-skip form'])),
+         bug=V(exit=0, hasnt=['not the max-skip form'])),
 
     # ---- loop-offsets.py -----------------------------------------------
     case('objdump-status', 'loop-offsets.py', '0a1bc60',
@@ -2505,13 +2532,13 @@ CASES = [
          'an unreadable -e file read as a build without DWARF',
          argv=['--unit', "arms('no-such-binary', [4096])"],
          ok=V(has=['addr2line', 'mangled symbol']),
-         bug=V(hasnt=['mangled symbol'])),
+         bug=V(has=['{}'], hasnt=['mangled symbol'])),
 
     case('suppressed-groups-are-counted', 'loop-offsets.py', 'febc2bd',
          'a group under --min-copies vanished, the docstring\'s own example',
          argv=['--len', '24', '/usr/bin/objdump'],
          ok=V(has=['suppressed']),
-         bug=V(hasnt=['suppressed'])),
+         bug=V(has=['self-loops of 24 B'], hasnt=['suppressed'])),
 
     # ---- read-all.sh ---------------------------------------------------
     case('aa-worst-cell-is-not-an-insitu-row', 'read-all.sh', '8ee1e5b',
@@ -2519,7 +2546,8 @@ CASES = [
          plant=lambda t: synthetic_run(t, no_twins=True),
          argv=['{tag}'],
          ok=V(has=['(no A/A pair in this file)']),
-         bug=V(hasnt=['(no A/A pair in this file)'])),
+         bug=V(has=['ok        worst cell'],
+               hasnt=['(no A/A pair in this file)'])),
 
     case('aa-worst-cell-is-not-the-sum-only-pair', 'read-all.sh', 'bd88db5',
          "the sum-only pair's raw worst cell was printed as the A/A worst",
@@ -2910,7 +2938,7 @@ CASES = [
          ok=V(has=['launch env: WILDLOG=1 SATURATE=unset',
                    'carries no @@wild stamps',
                    'would be uninstrumented']),
-         bug=V(hasnt=['launch env:'])),
+         bug=V(has=['gate begins'], hasnt=['launch env:'])),
 
     case('clean-legs-are-not-the-saturated-ones', 'run-alonelegs.sh', None,
          'the clean sweep was refused over the saturated legs beside it',
@@ -3134,7 +3162,7 @@ CASES = [
          env={'OTHER': 'a1g', 'BASIS': 'lookrts'},
          argv=['zzhy'],
          ok=V(exit=1, has=['carries a hyphen']),
-         bug=V(hasnt=['carries a hyphen'])),
+         bug=V(has=['major run begins'], hasnt=['carries a hyphen'])),
 
     case('smoke-exercises-the-shape-filter', 'smoke-sweep.sh', 'd852517',
          'the shape filter could only pass, naming a shape not in the run',
@@ -3322,7 +3350,8 @@ CASES = [
          env={'DOC': '{doc}', 'BASIS': 'lookrts'},
          argv=['zzhg'],
          ok=V(exit=1, has=['is not a class name']),
-         bug=V(hasnt=['is not a class name'])),
+         bug=V(has=['zzhg-lookrts-pa-rev.json --block'],
+               hasnt=['is not a class name'])),
 
     case('install-refuses-a-hyphenated-lead', 'install-tables.sh', '3ebdb76',
          'a hyphenated lead slipped both patterns, and the block above took it',
