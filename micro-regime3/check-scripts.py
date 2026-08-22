@@ -1573,6 +1573,23 @@ CASES = [
          ok=V(has=['Controls:'], hasnt=['math domain error']),
          bug=V(has=['math domain error'])),
 
+    case('properties-buries-its-verdict-in-the-readers-stderr',
+         'check-scripts.py', '7a68237',
+         'six lines of verdict under 198 KB of expected warning',
+         # These properties drive the reader over every run on disk, so it
+         # warns once per run per table about rows a later roster dropped.
+         # Correct and expected, and it buried the pass: 258 lines against
+         # six, which is a pass a session pipes through `tail` -- and a
+         # pipe throws away the exit code this whole file is. Withheld and
+         # counted BY KIND, so a warning the corpus has never shown before
+         # is still visible as a kind with a count of one. The check is the
+         # withheld line, not the size: a summary that named only a total
+         # would pass this and hide a new kind.
+         argv=['--properties'],
+         ok=V(exit=0, has=['line(s) of reader warning withheld',
+                           'kind(s)']),
+         bug=V(exit=0, hasnt=['line(s) of reader warning withheld'])),
+
     case('tree-check-that-could-not-run', 'check-scripts.py', 'ea4ab06',
          'this suite\'s one guarantee about itself passed unchecked',
          argv=['--unit', "tree_state.__doc__ and (git('rev-parse')"

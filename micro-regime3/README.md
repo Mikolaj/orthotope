@@ -4856,7 +4856,13 @@ and never as a chronology.
     #      that can name a site nobody has met
     ./check-scripts.py --properties       # 8c. and its properties, which
     #      are quantified over every run JSON here rather than over a
-    #      fixture, so they answer for inputs no case anticipated
+    #      fixture, so they answer for inputs no case anticipated. It
+    #      WITHHOLDS the reader's own stderr and counts it BY KIND -- the
+    #      reader warns once per run per table about rows a later roster
+    #      dropped, which is correct and was 198 KB against six lines of
+    #      verdict. A kind with a count of one is a warning this corpus
+    #      has not shown before and is the thing to read; `--warnings`
+    #      restores them verbatim
     ./check-scripts.py                    # 8d. and if any script here has
     #      changed since the last run: every defect these scripts have had,
     #      planted again and refused again. Seconds, and it writes nothing
