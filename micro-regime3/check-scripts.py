@@ -1662,6 +1662,21 @@ CASES = [
               hasnt=['ZeroDivisionError', 'Traceback']),
          bug=V(has=['ZeroDivisionError'])),
 
+    case('selftest-names-a-zero-slope-cell', 'read-run.py', '468dc06',
+         'a zero time slope divided in load(), before --selftest could name it',
+         # The malformed-cell check exists to report exactly this cell and
+         # could not reach it: `load` divides the CI bounds by the slope
+         # for every cell with `lo is None` as its only guard, so a slope
+         # of exactly 0 raised out of the middle of load() in every mode.
+         # The two sunk-baseline cases above are the same family one stage
+         # later, on net rather than on slope.
+         plant=lambda t: {'run': doctored(t, 'main', lambda b: scale(
+             b, main_shapes()[0] + '/build', 0.0))},
+         argv=['{run}', '--selftest'],
+         ok=V(exit=1, has=['non-positive slope'],
+              hasnt=['ZeroDivisionError', 'Traceback']),
+         bug=V(has=['ZeroDivisionError'])),
+
     case('fingerprint-refuses-a-sunk-cell', 'read-run.py', 'e2d6604',
          'a sunk cell was divided and INSTALLED, outliving its own run',
          plant=lambda t: {'run': sunk_json(t, main_shapes(),
