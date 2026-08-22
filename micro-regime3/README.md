@@ -2900,30 +2900,50 @@ is not its first argument --- it reads
 `run17 wildlog # the control half, first`, where this pair's control is `det`
 --- which cost nothing because the pair note is authoritative and was read
 first, and would cost an evening to a session that trusted the comment. Third,
-**one `check-scripts.py` fixture goes inert every run and says so only
-if the plain form is run**: `six-pair-floor-disagrees-across-sites` plants
-its defect on a six-pair sentence, which is by definition a figure the write-up
-replaces, so it reported `FIXTURE DID NOT BUILD` here until it was re-aimed ---
-loud, but only to a session that runs the plain form after editing the README,
-which step 8d asks for only when a script changed. It is re-aimed
-and its comment now says the anchor is run-scoped. Fourth, nothing checks
-that a paragraph's *floor* quotes match the chapter head's when a class block
-is installed: `--check-doc` catches the run's floor pair across its four sites
-and the six-pair figure across its three, and it caught both here, but a class's
-own floor is quoted only inside its block and is checked by nothing. **One
-capability, and it is the run's own instrument**: a wild A/A cell can now
-be shown to be layout without a probe process, because the published half
-carries per-sample allocation, mutator, collector and in-use totals for every
-cell it prints --- what Run 16 needed a hand-run process and a negative result
-to say, this run says off the roster in one pass, at 74.48% instead of 8.2%.
-**One trap met and worth writing down**: a prefix-anchored table edit matched
-an earlier table. Inserting two columns into the yardstick by anchoring
-on ``| `arm` | `` put cells into the element-type probe's header and
-into a loop-offsets row, because the anchor was asserted to *exist* rather
-than to be *unique*; `--check-doc`'s width pass caught it at once,
-and the repair was `count == 1` on the whole line. Assert uniqueness,
-not existence. **And one more, which cost two red gates**: a probe artifact
-named `$R-*.json` is read by `read-all.sh`
+**`--check-doc`'s NEW/old attribution is destroyed by working in the unwrapped
+form, which `--check-doc` itself tells you to do.** Its wrap FAIL says *if you
+are still editing, `wrap80 --unwrap -i README.md` and work there*; `added_lines`
+then diffs the unwrapped working tree against a HEAD that stores the wrapped
+form, so every paragraph that had spanned more than one line is a line that did
+not exist before and reads as added. Measured on this run's own document:
+of 2046 unwrapped lines, 731 read as added --- 613 list items and 118 prose
+paragraphs, or **82.9% of the 882 paragraphs that had been wrapped** --- while
+tables and headings, being one line either way, survive untouched. Since
+the three worklists sweep prose, and prose carrying a figure or a superlative
+is almost always a multi-line paragraph, the sweeps then flag nearly everything:
+this write-up saw **102 of 105** superlatives, 65 of 75 superseded figures
+and 27 of 27 absolute times marked NEW, including lines no session had touched.
+That is precisely the failure the feature exists to prevent --- its own
+docstring cites Run 11 shipping four false superlatives inside a list of 71,
+because *a wall of 71 gets adjudicated as a wall*. **The fix is one line
+and does not need the working form to change**: normalise both sides before
+diffing, unwrapping HEAD's copy as well, so the attribution means the same
+in either form. Until then, a write-up that follows the wrap advice must
+adjudicate its superlatives by deriving them rather than by reading the NEW
+marks, which is what this one did. Fourth, **one `check-scripts.py` fixture goes
+inert every run and says so only if the plain form is run**:
+`six-pair-floor-disagrees-across-sites` plants its defect on a six-pair
+sentence, which is by definition a figure the write-up replaces, so it reported
+`FIXTURE DID NOT BUILD` here until it was re-aimed --- loud, but only
+to a session that runs the plain form after editing the README, which step 8d
+asks for only when a script changed. It is re-aimed and its comment now says
+the anchor is run-scoped. Fourth, nothing checks that a paragraph's *floor*
+quotes match the chapter head's when a class block is installed: `--check-doc`
+catches the run's floor pair across its four sites and the six-pair figure
+across its three, and it caught both here, but a class's own floor is quoted
+only inside its block and is checked by nothing. **One capability, and it
+is the run's own instrument**: a wild A/A cell can now be shown to be layout
+without a probe process, because the published half carries per-sample
+allocation, mutator, collector and in-use totals for every cell it prints ---
+what Run 16 needed a hand-run process and a negative result to say, this run
+says off the roster in one pass, at 74.48% instead of 8.2%. **One trap met
+and worth writing down**: a prefix-anchored table edit matched an earlier table.
+Inserting two columns into the yardstick by anchoring on ``| `arm` | `` put
+cells into the element-type probe's header and into a loop-offsets row, because
+the anchor was asserted to *exist* rather than to be *unique*; `--check-doc`'s
+width pass caught it at once, and the repair was `count == 1` on the whole line.
+Assert uniqueness, not existence. **And one more, which cost two red gates**:
+a probe artifact named `$R-*.json` is read by `read-all.sh`
 and by `check-scripts.py --properties` as one of the run's own processes.
 This README already says to name a smoke artifact `smoke*` and never `$R-*`,
 and gives `run-major.sh`'s refusal as the reason; the reason is bigger
