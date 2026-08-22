@@ -2121,6 +2121,34 @@ CASES = [
          ok=V(has=['gone']),
          bug=V(has=["name 'tree_delta' is not defined"], hasnt=['gone'])),
 
+    case('shadow-refuses-an-absolute-cd', 'check-scripts.py', '77fd51b',
+         'a program cd-ing to an absolute path ran for real from a shadow',
+         # The overwrite of 2026-08-23, as a case: a shadow holds a program
+         # only if the program stays in it, and probe-areacurve.sh's old
+         # `cd /home/...` put it back here, on the real binary, writing the
+         # real artifacts. Asked of shadow_dir directly; the old one built
+         # the shadow and handed it back.
+         plant=lambda t: {'tmp': t},
+         argv=['--unit', "shadow_dir('{tmp}', 'probe-areacurve.sh',"
+                         " 'cd /nowhere-zz\\n')"],
+         ok=V(has=['cds to an absolute path']),
+         bug=V(has=['/shadow'], hasnt=['cds to an absolute path'])),
+
+    case('shadow-refuses-a-quoted-absolute-cd', 'check-scripts.py', '9a51f3a',
+         'the same cd in quotes slipped the guard',
+         plant=lambda t: {'tmp': t},
+         argv=['--unit', "shadow_dir('{tmp}', 'probe-areacurve.sh',"
+                         " 'cd \"/nowhere-zz\"\\n')"],
+         ok=V(has=['cds to an absolute path']),
+         bug=V(has=['/shadow'], hasnt=['cds to an absolute path'])),
+
+    case('shadow-holds-its-own-directory', 'check-scripts.py', None,
+         'CONTROL: `cd "$(dirname "$0")"` is what a shadow can hold',
+         plant=lambda t: {'tmp': t},
+         argv=['--unit', "shadow_dir('{tmp}', 'probe-areacurve.sh',"
+                         " 'cd \"$(dirname \"$0\")\"\\n')"],
+         ok=V(has=['/shadow'], hasnt=['cds to an absolute path'])),
+
     # ---- this file's own instruments ------------------------------------
     case('fixture-ci-bounds-are-criterion-shaped', 'check-scripts.py', '40f7a37',
          'the fixture wrote a negative lower CI bound, which criterion never does',
