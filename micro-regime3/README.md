@@ -463,55 +463,15 @@ rather than a slot in the next run, observed again:
 **What Run 10 leaves open**, each with what would settle it:
 
 - `ANSWERED` **What does code placement cost?** **A rebuild is worth up to 18%
-  on a susceptible arm and 0.5% on the baseline** --- which is the size of every
-  unexplained regression in Run 8, and the largest effect this README has
-  measured that is not a strategy. Four binaries were built from sources
-  differing only in inert pad arms, the run filtered so the pads never execute;
-  against the first of them the other three read `list` 0.9949, 1.0019
-  and 1.0031, `mut-odo` 1.0389, 0.8808 and 1.0401, and `offtab` 0.8241, 0.9524
-  and 0.9126 (2026-08-08, `-fspec-constr`, 24 shapes, per-shape geomeans
-  of absolute net time). So susceptibility is a property of the arm:
-  the baseline has almost none and two arms have a great deal, and they
-  are the same two the flag sets back hardest.
-
-  **Around that sit the readings it explains.** `offtab`'s own regression
-  is **not** roster or noise: filtered into a five-bench process it reads 1.2236
-  across the regimes over 24 shapes, slower on 24 of 24, against the full run's
-  1.218 --- but that used one binary for both regimes, so it rules out
-  everything except placement. `build` and `mut-odo` compile to the same worker
-  and moved in *opposite* directions under the flag, 17% faster and 19% slower,
-  which identical code cannot do. `bq-gen` regressed 12% with its build loop
-  specialised like every other and its build allocation-free. And the flag moves
-  12 KiB of `.text` (20,349,125 bytes to 20,336,837), so every arm's address
-  and alignment shift whether its code changed or not.
-
-  **Answered, 2026-08-10: for a loop this size, placement costs 1.16 to 1.19.**
-  The first attempt at this left the question narrower than it found it ---
-  it should have timed `build` across the four layouts and did not, a shell glob
-  having eaten the arm ([the reader's section](#the-reader-read-runpy)) ---
-  and what settled it instead was the pad probe done properly, eight binaries
-  stepping each arm through all eight 8-byte offsets with membership fixed ([the
-  floor section][floor] carries the figures, the graded penalty and the tables).
-  So the *how* is now measured and not merely read off a binary: a straddled
-  copy of the 28-byte fill costs 1.19, or 1.10 where only three bytes precede
-  the boundary, and that is what the pair's 0.86-to-1.24 span across runs
-  was made of.
-
-  What the probe does **not** reach is the rest of this entry. The 18% a rebuild
-  is worth stands as measured, since a rebuild moves more than one loop's
-  offset; `offtab`'s and `bq-gen`'s regressions have no shared-loop counterpart
-  to be read this way, which is the entry below on crediting a margin
-  to a strategy; and susceptibility remains a property of the arm, now
-  with a mechanism for the two arms that share a loop and none for the others.
-
-  **Run 9 had made this the README's central question rather than a caveat
-  on it**, and that is the framing the answer inherits. A membership change
-  alone moved five fingerprint arms from 0.910 to 1.192 in absolute time against
-  a baseline that held to 0.998, and moved `build`/`mut-odo` --- one worker, two
-  slots --- to 1.13 where Run 8 read 0.86 and Run 7 1.24. Every route through
-  the roster was blocked, the roster being one of the things that sets
-  the layout, which is why the answer had to come from a probe that holds
-  membership still.
+  on a susceptible arm and 0.5% on the baseline** --- the largest effect
+  this README has measured that is not a strategy --- **and for a loop this size
+  placement costs 1.16 to 1.19** (2026-08-10, the pad probe). Susceptibility
+  is a property of the arm: the baseline has almost none and two arms have
+  a great deal, and they are the same two the flag sets back hardest. What
+  the probe does not reach is the rest of it --- a rebuild moves more than one
+  loop's offset, and the regressions with no shared-loop counterpart have
+  no mechanism. The four binaries, the readings they explain and the graded
+  penalty are in [the floor section][floor].
 - `STANDING` **The queue of experiments that want a quiet machine**, ranked,
   so that the next quiet window is not spent deciding what to spend it on.
   Written down 2026-08-09 with Run 9's artifacts still alive, and the ranking
@@ -1432,136 +1392,27 @@ rather than a slot in the next run, observed again:
      elsewhere, or does not appear. It is a draw and not a test, so a clean run
      refutes nothing.
 - `ANSWERED` **Which arm owns a loop copy: answered, and the answer is
-  that a binary can carry its own names.** Run 12's second prediction had
-  to record that tying a named arm to a named offset was not licensed, every
-  `Main` copy printing under one mangled symbol because these arms compile
-  to one worker. A `-g3` build carries what is missing --- GHC emits a per-block
-  symbol with DWARF line info --- and `loop-offsets.py` now reads it without
-  help: `addr2line` for the source line, the source file for the top-level
-  binding that line falls in, so a copy prints as `fbMutOdoVecdims`
-  with the source line beside it instead of as one worker's mangled name.
-  A binary with no line info prints exactly what it printed before. Read
-  that way on 2026-08-13, at `-fspec-constr` with `LOOP_MAXSKIP=1`,
-  the four-copy vecdims group is, in address order, `mut-odo-vecdims`,
-  `-add-in`, `-add-out` and `-add-both`, and the pair beside it is `mut-odo`
-  then `build`. That is the order [the floor section][floor]'s loop table
-  assigns its per-arm offsets in, so that table's ordering is now a measurement;
-  and a second route agrees, emission order tracking first reference
-  from `roster`, which lists those four in exactly that order. What it bought
-  is at Run 12's second prediction above: Run 11's split crosses the resident
-  copies rather than following them. **The recommended next step is taken
-  and its prediction is refuted** (2026-08-14, an unconditional build
-  and a max-skip build from one source read with `loop-offsets.py`, against Run
-  11's two kept main sets). The unconditional form puts 100 of 100 Main
-  self-loops at offset 0 where max-skip puts 58 of 113, and **neither leaves
-  a straddler**, so what padding every head buys is padding that nothing needed.
-  Per arm it buys `build` alone, at 0.9896, and costs the tail up to 5.9% ---
-  `bq-mut` 1.0588, `mut-odo-vecdims-add-out` 1.0513, `bq-gen` 1.0504,
-  `-add-both` 1.0333, `gen-unsafe` 1.0327, `gen-quotrem` 1.0275, `offtab`
-  1.0259, `mut-odo` 1.0221. The arms that do carry a head max-skip skipped land
-  on both sides of 1, `build` against `mut-odo`, and the three largest losers
-  carry no tracked 28-byte loop at all, the tracked set being `fbBuild`,
-  `fbMutOdo`, `fbMutBaseOffsets` and the four vecdims fills. **What the two
-  forms differ in beyond offsets is a census**: the unconditional pads sit
-  inside enclosing loops and push thirteen of them past the 64-byte window, 113
-  self-loops falling to 100 and the 28-byte set 36 to 32. That is a cost
-  of padding every head which the offsets alone do not show, and it
-  is the better candidate the refuted prediction leaves behind. **And the step's
-  own phrasing named a difference that is not there**: the two forms emit
-  *the same 395 directives at the same heads*, on the same assembly lines,
-  differing only in the max-skip budget written as each directive's third
-  operand --- a median 33 bytes of slack, four heads with none --- so there
-  are no per-form head lists to compare, and the 27 extra heads on record
-  are look-through's rather than the unconditional form's. What
-  the unconditional form spends is 8192 bytes of `.text`, 20385989
-  against 20377797. **And the step's other half could not have been taken
-  at all**, which is a dependency neither entry declared: attributing heads
-  to arms wants `addr2line`, `addr2line` wants DWARF, and the naming entry above
-  measures DWARF changing the code --- a plain build holding two copies
-  of a loop per function where the twin holds one, so the offsets-to-arms map
-  is one-to-many in exactly the binary being timed. A plan resting
-  on an instrument should say what the instrument is known to change.
-  **And the instrument the residue wants now exists**: `loop-offsets.py --len 0`
-  widens the grouped, named report from the 28-byte run-fill to every loop
-  a cache line can hold, which in Main's own code is 112 loops over twenty
-  lengths against the nine of one length the tracked set saw --- so the arms
-  that lose most under the unconditional form, and carry no 28-byte loop at all,
-  are visible to whatever asks next.
-
-  **And the map does reach the timed binary, which is the question a twin
-  raises.** The two builds are one source, each of the plain build's four
-  vecdims copies sits within 192 bytes of exactly one of the `-g3` build's,
-  and matching them by the normalised instruction window around each head ---
-  mnemonics with every displacement and immediate masked, the loop bodies
-  themselves being identical --- is a bijection that agrees with both: 74 and 75
-  of 80 for `-add-out` and `-add-both` against a runner-up of 38, and 73
-  for `mut-odo-vecdims` and `-add-in` against 70, those two arms differing
-  in almost nothing but the add. `-add-both-down`'s 24-byte loop matches
-  the same way at 75 against 3, and sits at offset 0 in the timed half,
-  so today's basis recipe has the five at 24, 8, 0, 0 and 0. **The same matching
-  says nothing about the `build`/`mut-odo` group**, every score there falling
-  to 10 to 13 of 80 because `-g3` restructured that region when it dropped
-  the two dead copies; what names those two is `addr2line` on the twin's
-  survivors and the entry order already in the docstring. So the window method
-  proposed as the fallback works where the code is stable and is silent where
-  it is not, which is worth knowing before it is leaned on.
-
-  **Run 13 exported its own and found the twin's fidelity is a per-GROUP
-  property, not a per-binary one.** The same method names the vecdims four again
-  --- offsets 24, 8, 0 and 0 going to `mut-odo-vecdims`, `-add-in`, `-add-out`
-  and `-add-both`, in that order, on both halves --- and the bijection
-  is cleaner than Run 12's, every timed head matching its own named counterpart
-  at exactly 1.000 on the basis half against a runner-up of 0.921 or less.
-  The other tracked group, `[11, 0, 4, 0]`, it cannot name at all: all four
-  copies share one byte-identical body, that body is the `fbMutOdo`/`fbBuild`
-  worker the two arms compile to, and **the `-g3` twin carries only two copies
-  of it where each timed binary carries four** --- counted over `.text` in all
-  four binaries. With no third or fourth name to give, the window match
-  degenerates to near-ties an order below the vecdims group's. So the standing
-  ruling that `-g3` is a different program bites group by group: count a body's
-  copies in twin and timed binary before trusting the twin's names, which
-  the vecdims group passes four against four and this one fails. Run 13's
-  figures are in its pair note, which goes with its binaries.
+  that a binary can carry its own names.** A `-g3` build emits a per-block
+  symbol with DWARF line info, so `loop-offsets.py` prints a copy
+  as `fbMutOdoVecdims` with its source line instead of as one worker's mangled
+  name, and a binary with no line info prints what it printed before.
+  **The ruling is that the twin's names are a per-GROUP property and
+  not a per-binary one**: count a body's copies in twin and timed binary before
+  trusting them, which the vecdims group passes four against four
+  and the `build`/`mut-odo` group fails at four against two. The named readings,
+  the refuted padding prediction and the window-matching method are in [the
+  floor section][floor].
 - `ANSWERED` **The shim was blind under `-g`, which is why this wanted a fix
-  and not merely a build.** `align-as.py` aligns a head only where the line
-  before it is an instruction, that being how it refuses to put padding between
-  an info table and the code the table belongs to; under `-g` every head follows
-  the previous block's `_end` and `_proc_end` labels instead, so **not one head
-  of a `-g3` assembly was given a directive** --- 0 against the same day's plain
-  assembly at 395, read off the two captures --- and the build came out
-  unaligned in silence: none of its 101 short self-loops at offset 0, 41
-  straddling, and two of those the timed fills of `-add-in` at 56 and `build`
-  at 52. The guard now reads past the lines that emit no bytes, another label
-  or a `.loc`, and the same build gets 421 heads a budget, 46 loops at 0 and one
-  straddler left --- a 44-byte loop in `mkBroadcastMid`, which is view
-  construction rather than a fill and one of the heads the info-table guard
-  is there to leave alone. **The look-through fires only where the assembly
-  carries `.loc`, and that condition is the point rather than a nicety**:
-  applied to every build it finds 27 heads more in the plain assembly, 422
-  against 395, which would re-base every figure this README has published
-  for a reason no strategy changed. So a `-g` assembly gets the corrected guard
-  and every other keeps the literal one, byte for byte --- which is the control,
-  and it is an end-to-end one because a shim change reaches nothing otherwise:
-  built from one source into **two fresh builddirs**, `-fforce-recomp` and all,
-  the max-skip half comes out md5-identical under the fixed shim and
-  under the shim as committed, each printing 395. **Those 27 are one shape
-  of loop and not a scattering**: each is a pre-tested loop whose head carries
-  a block label as well as its own, two labels at one address, so the literal
-  guard read a label where an instruction had been the whole test. **And what
-  they do to the binary is one pad**, which is the figure to have before
-  spending a run on them: a directive is a budget and not a padding,
-  and the assembler declines it wherever the loop already spans the least
-  its length allows. Of the 395 the literal guard emits, **156 actually pad**
-  --- 3941 bytes in Main's code, a median of three multi-byte NOP instructions
-  each and 60 bytes at the longest --- and adding the 27 makes that **157 pads
-  and 3988 bytes**. Twenty-six of the twenty-seven are declined; one fires,
-  and everything after it moves 47 bytes. The short-loop populations agree
-  that nothing else happened: 112 loops either way, none straddling in either,
-  and the count at offset 0 going 58 to 57. So the question those 27 raise
-  is not what NOPs cost. It is whether one more aligned loop is worth re-rolling
-  the placement of everything downstream of it, which is the term this README
-  prices at a few percent and cannot predict --- a paired run's to answer
-  if anyone wants it answered.
+  and not merely a build.** Under `-g` every head follows the previous block's
+  `_end` and `_proc_end` labels rather than an instruction, so not one head
+  of a `-g3` assembly was given a directive and the build came out unaligned
+  in silence. **The ruling is the condition on the fix and not the fix**:
+  the look-through fires only where the assembly carries `.loc`, so a `-g` build
+  gets the corrected guard and every other keeps the literal one byte for byte
+  --- applied to every build it would find 27 heads more in the plain assembly
+  and re-base every figure this README has published, for a reason no strategy
+  changed. The counts, the end-to-end control and what those 27 heads cost
+  in pads are in [the floor section][floor].
 - `ANSWERED` **`-g3` is a different program, and what differs is register
   allocation.** Measured on the assembly GHC hands the assembler rather
   than inferred from the binary, both sides stripped of every `.loc`, every
@@ -1579,68 +1430,17 @@ rather than a slot in the next run, observed again:
   its loop being the count-down form's 24 bytes as [the floor section][floor]'s
   table records, and `--len 24` finds it.
 - `ANSWERED` **So building everything with `-g3` is refuted, and a `-g3` build
-  is a twin to read rather than a binary to time.** The proposal was that
-  if the timed binaries carried their own names there would be no correspondence
-  to establish and a per-arm offset claim would become an ordinary reading;
-  its own criterion was that the arms agree within the run's floor. They do not.
-  A pair differing in `-g3` alone --- one source, one regime, and needing
-  no pad, the two `.text` coming out the same size with all 29449 shared library
-  symbols at a whole-line delta --- gates at `build` **0.9391, 0.9488, 0.9363
-  and 0.9517**, plain over `-g3`, across the four pairings of two passes each,
-  and `mut-odo` at 0.9626 to 0.9743, against each binary's own repeat of 0.9868
-  and 0.9970 on `build` and 0.9958 and 1.0079 on `mut-odo`. Five percent
-  and three percent, one direction, four to six times the floor, with `list`
-  still to under 1.4% and no wider between the halves than inside one. What
-  that prices is the package, the halves differing in emitted code
-  *and* in where the executed copies land, 0 and 0 against 4 and 28 ---
-  and the package is what a basis decision wants. The `build`/`mut-odo` ratio
-  moves with them, 0.9862 and 0.9952 in the plain passes against 1.0109
-  and 1.0219 in the `-g3` ones, but all four are ties by sign test on intervals
-  covering 1, so that is a point estimate shifting and not the pair separating;
-  [the floor section][floor]'s shared-offset reading is neither confirmed
-  nor contradicted at this budget. **The machine was not fully quiet**,
-  its owner having said so while the gate ran, which is why the floor here
-  is each binary's own repeat rather than Run 11's drift band; the palindrome
-  cancels drift across the hour and all four pairings agree in sign and size.
-  **Both halves were built with the look-through applied unconditionally**,
-  which is the form that predates the `.loc` condition above and the reason
-  it can be said the shim is held constant across them rather than treating one
-  half differently: what the pair varies is `-g3`. That half is not the basis
-  recipe byte for byte, carrying the 27 extra heads, but it places every tracked
-  loop where the basis recipe does --- the same `[11, 0, 4, 0]`
-  and `[24, 8, 0, 0]`, checked on both forms --- so what the gate compares
-  is two builds whose timed loops sit identically and whose debug information
-  does not. Rebuilding the pair from this tree therefore reproduces the `-g3`
-  half exactly and the other with those 27 heads unaligned, which is the same
-  experiment and not the same bytes. So the naming above is read off a twin
-  and carried to the timed binary by the correspondence --- the arrangement
-  the recommended path meant to remove, and does not. **And the twin is short
-  of copies as well as of registers, which is what bounds the naming**
-  (2026-08-14, four binaries --- the two timed halves, a fresh plain build
-  and a fresh `-g3` twin --- matched by body bytes rather than by proximity).
-  One body reads four copies in every plain binary and **two** in the twin,
-  and the twin's two carry distinct worker symbols that `addr2line` puts
-  in `fbMutOdo` and `fbBuild`; the vecdims body reads four in all four binaries,
-  which is exactly why that family names as a bijection and this group cannot
-  be named at all. A plain build therefore holds **two copies of that loop per
-  function** and `-g3` emits one --- a duplication the debug build suppresses,
-  the same class of divergence as the register allocation above, and the reason
-  the recommended path's `addr2line` step can reach a function but never a copy
-  --- and the reason the NOPs entry's own next step was undecidable before
-  it was attempted, which is recorded there.
-
-  **And a weaker level is no way round it, which is the move to expect
-  from a README that says `-g3` throughout.** `-g1` is the weakest GHC has ---
-  the users guide gives it as producing stack unwinding records for top-level
-  functions, which is data about a program rather than a part of one ---
-  and it changes the emitted code exactly as `-g3` does: one instruction fewer
-  and a different register assignment on an eight-line module, the same on GHC
-  9.10.3, 9.12.4, 9.14.1 and HEAD, with `-g2` between them behaving alike.
-  The reproducer and that table are horde-ad's
-  `docs/ghc-issue-debug-changes-codegen.md`, filed as [GHC work item
-  27687](https://gitlab.haskell.org/ghc/ghc/-/work_items/27687), which
-  this README's finding produced; what they settle here is that no debug level
-  is a cheap way to put names in a binary that will be timed.
+  is a twin to read rather than a binary to time.** The proposal was that timed
+  binaries carrying their own names would make a per-arm offset claim
+  an ordinary reading, and its own criterion was that the arms agree within
+  the run's floor. They do not: a pair differing in `-g3` alone gates at `build`
+  0.9391 to 0.9517 plain over `-g3`, four to six times the floor and one
+  direction. **And no weaker level is a way round it** --- `-g1` is the weakest
+  GHC has and changes the emitted code exactly as `-g3` does, which is what
+  horde-ad's `docs/ghc-issue-debug-changes-codegen.md` reports as [GHC work item
+  27687](https://gitlab.haskell.org/ghc/ghc/-/work_items/27687). The gate's
+  figures and the copy census that bounds the naming are in [the floor
+  section][floor].
 - `OPEN` **A recurring transient that lands on the shipped arm's family, worth
   35 to 44%, and which no published column would show.** Not one cell: **three
   sightings in eight runs**, moving each time. Run 8 read `bq-expand`'s distant
@@ -2221,170 +2021,17 @@ rather than a slot in the next run, observed again:
   is invented. Keep a basis column named `aligned`; name the other half
   for its shim.
 - `ANSWERED` **At a large nursery an earlier bench in the same process
-  permanently slows a later one --- and the condition is now named SMALL-PINNED
-  CHURN, its cost the churn tax: churn of sub-3276-byte pinned allocations,
-  the shared-accumulator size class.** Run 14's probes found it (2026-08-15/16):
-  `vgg-14-c512-k3/list` read 14.1 ms with nothing before it and 22.3 ms after
-  certain shapes, the same ladder was flat at `-A4m`, and the victim's added
-  cost was mutator LLC misses at flat instructions and dTLB --- the counter
-  signature that has held through everything since. **It is not the pinned-spray
-  pool condition of GHC work item 27601**, by controls and by a conceptual
-  objection that stands: on one machine and one compiler `+RTS -H2G` removes
-  that reproducer's penalty and leaves this one whole, `max_mem_in_use_bytes`
-  moves 2.7% here against a doubling there, and that issue's mechanism needs
-  rare collections to let block groups accumulate where this condition's
-  disturbance is full size at 4 MB and merely unpaid. Everything reproduces
-  on GHC HEAD, where that issue is itself unfixed. Run 15 was built to read
-  the term at a caller's nursery, and the probe sessions of 2026-08-17/18/19
-  resolved it; the account below is the summary, and the measurements, their
-  tables and the recipes to re-take them
+  permanently slows a later one --- the condition is named SMALL-PINNED CHURN
+  and its cost the churn tax.** Churn of sub-3276-byte pinned allocations,
+  the shared-accumulator size class: Run 14's probes found it (2026-08-15/16),
+  the ladder is flat at `-A4m`, and the victim's added cost is mutator LLC
+  misses at flat instructions and dTLB, the counter signature that has held
+  through everything since. **It is not the pinned-spray pool condition of GHC
+  work item 27601**, by controls and by a conceptual objection that stands,
+  and everything reproduces on GHC HEAD where that issue is itself unfixed.
+  The account is in [the floor section][floor]; the measurements, their tables
+  and the recipes to re-take them
   are `small-pinned-churn-investigation/nursery-position-findings2.txt`'s.
-
-  **The resolution in one paragraph, the route split of 2026-08-19 folded in.**
-  One damaged state, two formation routes. An UPFRONT burst is class-selective:
-  churning pinned allocations of at most 3276 bytes --- the shared-accumulator
-  path, up to 406 doubles (the limit is compared in words), every Storable
-  vector being pinned at any size --- degrades every later `list`-like phase,
-  while the same burst of own-group objects (3600 B and larger) costs nothing;
-  padding the small results above the limit erases this route completely, +12%
-  to +0.2% at `-A32m` and +44% to +0.6% at `-A1G` on the fixed-n victim.
-  The INTERLEAVED route is class-free: any sub-threshold allocation, pinned
-  or movable, punctuating a victim builds the same state, dosed by cumulative
-  bytes --- and this route, not the class, is what a criterion process does
-  to its later benches: the corrected scans put all 23 candidates on one
-  count-ordered curve, log-linear until it saturates around a million calls,
-  and a fully padded binary reproduces the same curve. So there is no poison
-  set, every shape is a victim on its `list` --- around +14% at `-A32m` after
-  one saturating in-process poison, padded or not --- while among arms stable
-  enough to read no other arm pays (`offtab` and `build` cannot be read
-  by single processes at all, their alone legs spreading 10 to 21%). **What
-  it costs this README**: `list` is every published figure's denominator
-  and runs in-process in every main run, so the published absolutes sit above
-  the shapes' clean alone rates --- roughly uniformly ~14% at `-A32m`
-  and a shape-dependent 0 to 10% at the default, now measured directly against
-  clean single-bench alone legs for every `list` denominator, main set
-  and classes (findings items 64/68) --- while within-run ratios carry little
-  of it, the crossed A/A twins bounding position bias under a percent.
-  No allocation policy reaches the in-process deflation; its outs
-  are single-bench processes or a GHC fix. A ~130-line base-only reproducer,
-  `small-pinned-churn-investigation/ReproSmall.hs`, shows both routes on 9.12.4,
-  9.14.1 and HEAD, the own-group upfront control at zero inside the same binary.
-
-  **Two standing rules and one boundary come out of it.** The instrument rule:
-  a big-churn bench's ALONE reading at an area past the 32 MB L3 is a fresh-heap
-  transient, not its steady state --- vgg's true alone rate at `-A1G` is 16.5
-  ms/iter where criterion's slope said 14.12 and its `mean` 20.99 --- so steady
-  state is read by fixed-iteration differencing, never an alone slope,
-  and the term's real `-A1G` size is +29 to +44% by victim, not the +56.5% once
-  quoted here. The tuning rule: the tax cannot be `-A`-tuned away --- +33%
-  at `-A64m` and at `-A256m`, +44% at `-A1G`, and only 4 MB-scale areas decline
-  to pay, at their own collector cost --- and the remedy is route-specific:
-  padding cures upfront bursts outright, no source-level policy reaches
-  the in-process route, so its outs are process isolation or a GHC fix;
-  the issue and its follow-up comment are staged in horde-ad's docs, nothing
-  posted. The former boundary is resolved: cifar's +10.2% at the DEFAULT nursery
-  was roster context over a ~+5.5% clean-pair tax inside the small-area band
-  (findings items 40b/51) --- small-area immunity was never strict anyway, a few
-  percent rather than zero (items 27/30).
-
-  **And the five shapes a bigger nursery helps are NOT this term --- that
-  is the correction the same probes force.** The victim runs 1.74x faster at 32
-  MB with nothing before it at all, so its main-set gain is steady state
-  and the ladder runs the other way. What selects the five is generational
-  promotion, and the chain is span, promotion, copying, time. Each shape has
-  a **live span** --- the size of the intermediate structure that is still
-  reachable when a collection fires --- read off as the nursery at which
-  its promotion collapses: 4 to 8 MB for `stretch-pow2stride`, 32 to 64 MB
-  for `stretch-r5-8x432` and `stretch-inner256`, past 64 MB
-  for `stretch-bigstride`, nothing for `stretch-wide-2xM`. Below the span
-  the structure is promoted at every minor collection --- 979 KB per minor at 4
-  MB against 357 bytes at 32 MB on `stretch-pow2stride`, a 2700-fold collapse,
-  where `stretch-wide-2xM` reads about 225 bytes at both. **Promotion
-  is the copying**: 6.15 GB against 4.6 MB done by majors, and `-hT` names
-  it ARR_WORDS with nothing else above kilobytes. A major fires per **20.9 MB
-  promoted**, the generation-1 growth budget, which is why
-  total-copied-over-majors reads as a constant. Time follows copying at **0.42
-  ms per MB**, agreeing to 0.4% across `stretch-pow2stride`, `vgg-14-c512-k3`
-  and `alexnet-L2-27-c48-k5`, whose promotion goes to nothing by 32 MB;
-  `stretch-tall-Mx2`'s loss runs the same way at 0.4663, 11% off.
-
-  **So the nursery has two opposing effects and this README had them
-  entangled**: collector copying falls with the area, worth up to 1.96x, while
-  the churn tax rises with it, worth +29% to +44% of the true steady state.
-  A shape's net is whichever dominates, which is why no single property selected
-  the five.
-
-  **Swept over all 24 shapes, and the answer is one positive and one negative**
-  (2026-08-17, `+RTS -A` at six areas from 4m to 128m, one binary, no build).
-  **Only eight shapes promote heavily at all**, and they are exactly the eight
-  with a finite span: `stretch-bigstride` and `stretch-tall-Mx2` at 128 MB,
-  `stretch-r5-8x432` and `stretch-inner256` at 64, `vgg-14-c512-k3` at 16,
-  and `stretch-pow2stride`, `alexnet-L2-27-c48-k5` and `stretch-coprime-r7`
-  at 8. The other sixteen never exceed a few kilobytes per minor at any area,
-  so they have nothing to win from any nursery and only ever pay its mutator
-  cost --- which is the whole of why the main set's gainers are so few.
-  **And the span predicts the gain**: the five that gained at 32 MB are all
-  drawn from the six with a span at or under 64, the gain scaling as the area
-  approaches it, while the two at 128 gain nothing there.
-
-  **What no structural property predicts is the span itself.** Size correlates
-  at Spearman +0.893 and does not determine it: `stretch-pow2stride`,
-  `stretch-r5-8x432` and `stretch-bigstride` all have `l` near 1769472 and spans
-  of **8, 64 and 128 MB**, a sixteenfold spread at one size. Over ten
-  candidates, rank reads -0.607, the innermost footprint +0.750, the largest
-  dimension +0.786, and both `m` and the base-offsets size about zero ---
-  `stretch-tall-Mx2` has `m` = 2 and the largest span, `stretch-pow2stride` `m`
-  = 27648 and the smallest. The span-over-result ratio runs 0.57 to 8.89.
-  So the span is the quantity that matters, it costs two `-S` runs and no build
-  to measure for any shape --- the sweep behind this paragraph, 144 processes
-  no run artifact holds, and its analysis are tracked
-  as `small-pinned-churn-investigation/span-sweep-run15.txt`
-  and `small-pinned-churn-investigation/span-correlate.py` --- and it is
-  **not a function of the view's shape parameters** --- which is where
-  this question now rests, and it is a measurement to take per shape rather
-  than a formula to look for.
-
-  **RETRACTED, and with it this entry's oldest claim: there is no measured
-  poison SET, in this run or in Run 14.** A scan run on 2026-08-17 read six
-  shapes as poisoning `vgg-14-c512-k3/list` at `-A32m` --- `cnn-slice-c32`
-  18.70, `cnn-L1-6x6-c1` 18.69, `lenet-L1-28-c1-k5` 18.32, `cnn-L1-24x24-c1`
-  18.28, `cifar-L2-16-c64-k3` 17.57, `cnn-L2-24x24-c32` 17.52 --- against
-  seventeen "innocents" inside 16.42 to 16.64. **Criterion runs benches
-  in ROSTER order and not in the order the `-m glob` patterns are given**,
-  and the roster puts those six at positions 1 to 6 with the victim at 7.
-  So the six are exactly the shapes that *can* precede the victim, and in each
-  of the other seventeen processes the victim ran FIRST --- those readings
-  are victim-alone baselines, which is why they cluster just under the 16.67
-  alone-figure instead of scattering around it. **Seventeen of the twenty-three
-  candidates have never been tested as poisons at all.** What survives
-  is that the six which do precede the victim all poison it; what does
-  not survive is any statement about which shapes do not, and with
-  it the identity-permutation clue, the `conv1d-24`-against-`cnn-L1-24x24-c1`
-  pairing this entry has named for two runs, and a three-condition rule
-  that was perfectly confounded with roster position. **Run 14 has the same
-  defect**: its probe notes --- superseded
-  by `small-pinned-churn-investigation/nursery-position-findings2.txt`
-  and removed --- recorded the victim as "24th and last" where the roster puts
-  it 7th, and that run's innocent readings show the same clustering just
-  under its own alone-figure. **The corrected experiment** --- the victim taken
-  from the END of the roster so that every candidate precedes it ---
-  **is the scan above.**
-
-  **What the term is NOT is collector work, and the account that says
-  so was tested and failed.** The account tried was that a poison leaves
-  a retained heap the victim's collections then copy, and every part
-  of it failed. The ~22 MB live during the victim's phase is the victim's OWN
-  live set, present at the same 21.8 MB with nothing before it. The poison does
-  not add major collections but *removes* them, 97 in the poisoned process
-  against 103 and 112 in unpoisoned ones. And majors copy 72.9 KB apiece here,
-  the retained bytes being large objects a copying collector does not move,
-  so the extra copying over the whole process is 6.9 MB. At the measured 0.42 ms
-  per MB that predicts 3 ms where the observed cost is some 650 ms, off by two
-  orders. Split directly, GC time is 0.043 s alone against 0.059 s after
-  and the whole difference is **mutator** time, which is where Run 14 left
-  it with its LLC-miss and IPC readings. So the two nursery effects
-  are independent as well as opposed: one is copying, the other is what
-  a resident footprint does to the mutator.
 
 - `OPEN` **One residue of the small-pinned churn, one answered, neither blocking
   its filing.** Open, and since 2026-08-21 no caller's, every horde-ad suite
@@ -3049,7 +2696,7 @@ over the whole roster and priced it at nothing a recorded run's margins can see,
 the margins being what was read for it and the floor not, so the question
 this heading used to gate --- whether the logging could ride a published half
 --- is answered and the next `Main.hs` edit rides both halves of Run 18, where
-the preamble goes. Of what stands here, item 3's remaining work wants no quiet
+the preamble goes. Of what stands here, item 2's remaining work wants no quiet
 machine at all; no window closes.
 
 1. `ANSWERED` **WHICH SHAPES POISON --- asked here as the probe evening's one
@@ -3062,74 +2709,7 @@ machine at all; no window closes.
    rest on, the reproducer and the forward plan --- the GHC filing decision,
    the best current options, the user-code workarounds --- are tracked together
    in `small-pinned-churn-investigation`.
-2. `ANSWERED` **The wild cell's mechanism --- SPENT 2026-08-20, and it
-   is a negative result that excludes three mechanisms.** The trigger this entry
-   names fired: Run 16's worst A/A cell anywhere is 43.43% on `reshape1-500k`
-   at `mut-odo-aa-distant`, with its adjacent twin at 31.19% on the same shape,
-   so `wildlog-a32m` went to the `reshape1` class process rather
-   than to `scaled`. One process, 141 benches, 12m08s, 21334 sample records.
-   **Run 17 has since reproduced the finding at scale and out of a recorded
-   run**, at 74.48% on `revsome-inner-primes` with allocation, heap
-   and collector flat across a 67% mutator difference, so what this probe
-   established on one hand-run process the roster now establishes on its own;
-   the chapter head carries it. **The 43.43% cell did not come back** ---
-   `mut-odo-aa-distant`'s worst is 15.35% here and on a different shape,
-   its adjacent twin's 12.59% --- which is itself the standing ruling holding:
-   the magnitude does not repeat. What the per-sample record settles is what
-   the spread is NOT made of. Between an arm and its own byte-identical
-   duplicate on `reshape1-500k`: allocation per iteration is identical to 0.01%
-   (4007172 against 4007513 and 4007412 bytes), in-use heap is flat at 92 MiB
-   across all three benches and every sample of them, GC is **0.03% of mut+gc**
-   and no major collection falls inside any of the three benches' timed windows,
-   though the process runs 517 in all, 516 of them after the logging began ---
-   and mutator time still differs by **8.2%**, the two twins agreeing with each
-   other to 0.09% while sitting that far from the base. The twins run at slots 9
-   and 15 and the base at 14, so they bracket it in execution order and still
-   agree with each other rather than with it. **So the reshape1 A/A spread
-   is not allocation volume, not heap occupancy and not collector work**, which
-   is every quantity the runtime can report; what is left is where the code
-   sits, and step 11's named fills bear on it --- `mut-odo` and `build` share
-   one loop body at two call sites. The caveat is the instrument's own:
-   this is the wildlog binary, whose patch moves `.text`, so it characterises
-   the class's hazard and not that one cell. What would settle the residue
-   is an address-level read, which this entry has always said costs a fill per
-   sample. The instrument, kept for the next time it is wanted: the instrument
-   is `wildlog-a32m` (2026-08-19): the basis recipe over a `Main.hs` edit
-   logging the RTS's allocated-bytes total with the GC and mutator clocks beside
-   it, one line per criterion **sample** --- a step inside one bench being
-   averaged away by a per-bench figure --- off unless `WILDLOG` is set
-   in the environment, proved firing and silent before the tree was restored,
-   and kept as `wildlog-instrument.patch` while Run 17's pair was live ---
-   landed in `Main.hs` by commit on 2026-08-22 once that pair was spent,
-   so the patch file is now the record of what Run 17's basis carried
-   over its control and not a step anyone applies. It hangs off criterion's
-   `allocEnv` and `cleanEnv`, which bracket the timed block from outside,
-   and runs criterion's own `whnf'` loop, so a logged arm executes
-   the instructions every published bench does. Addresses are not logged though
-   the entry names them, and the code says why: the RTS reserves its heap
-   at a fixed base, so what moves is where within that arena a buffer lands,
-   which is what the allocation total says, and taking an output buffer's
-   address would cost an extra fill per sample --- perturbing the history
-   under test. **Riding both halves of the pair, which this heading asked
-   for until 2026-08-19, is refused**: Run 16's basis registration
-   is a repetition against run15-a32m, the edit moves `.text` and every loop
-   offset, so the bridge would cross a layout change, and per-sample logging
-   allocates. Run 17 puts it on ONE half by decision of 2026-08-21 ---
-   `run17-wildlog`, the basis, against `run17-det` without it --- so the pair
-   prices the instrument rather than inheriting it ([What Run 18 compares
-   against](#what-run-18-compares-against)). It was pointed at the `scaled`
-   class process, whose disturbance turns up in six runs of eight where a wild
-   cell is three of eight and none in the last four --- but **a wild cell in Run
-   16's own A/A worst cell was the trigger** to spend the budget on that process
-   instead, and it fired, so `reshape1` took it. Neither instance reproduces
-   filtered --- measured both times --- so either probe is a whole process
-   and never a five-bench run. Its `perf` half still wants
-   `kernel.perf_event_paranoid` lowered by hand. **And Run 15 moves where
-   to point it**: the `scaled` slot's disturbance sat on `mut-odo-vecdims`
-   for six runs and this run finds it on `mut-odo`, `gen-unsafe` and `build`
-   instead, all three worst on `scaled-super-r3` --- so the instrument follows
-   the shape and not the arm. Both readings are with the wild-cell entry.
-3. `OPEN` **Between Run 17 and Run 18: Run 18's pair, since Run 17's riders
+2. `OPEN` **Between Run 17 and Run 18: Run 18's pair, since Run 17's riders
    and probes are all spent, and its owed work is now spent too.** The five
    that rode with Run 17 are done and their readings are in [its
    registration](#what-is-open): the alone legs ran with the evening and put
@@ -7158,6 +6738,72 @@ of the Run 8 and Run 9 cell, from those probes (2026-08-09, Run 9's own binary
 and regime), stays because the mechanism is what the predictor below rests
 on and because a recurrence is the reason to keep it:
 
+**The wild cell's mechanism --- SPENT 2026-08-20, and it is a negative result
+that excludes three mechanisms.** The trigger this entry names fired: Run 16's
+worst A/A cell anywhere is 43.43% on `reshape1-500k` at `mut-odo-aa-distant`,
+with its adjacent twin at 31.19% on the same shape, so `wildlog-a32m` went
+to the `reshape1` class process rather than to `scaled`. One process, 141
+benches, 12m08s, 21334 sample records. **Run 17 has since reproduced the finding
+at scale and out of a recorded run**, at 74.48% on `revsome-inner-primes`
+with allocation, heap and collector flat across a 67% mutator difference,
+so what this probe established on one hand-run process the roster now
+establishes on its own; the chapter head carries it. **The 43.43% cell did
+not come back** --- `mut-odo-aa-distant`'s worst is 15.35% here and
+on a different shape, its adjacent twin's 12.59% --- which is itself
+the standing ruling holding: the magnitude does not repeat. What the per-sample
+record settles is what the spread is NOT made of. Between an arm and its own
+byte-identical duplicate on `reshape1-500k`: allocation per iteration
+is identical to 0.01% (4007172 against 4007513 and 4007412 bytes), in-use heap
+is flat at 92 MiB across all three benches and every sample of them, GC
+is **0.03% of mut+gc** and no major collection falls inside any of the three
+benches' timed windows, though the process runs 517 in all, 516 of them after
+the logging began --- and mutator time still differs by **8.2%**, the two twins
+agreeing with each other to 0.09% while sitting that far from the base.
+The twins run at slots 9 and 15 and the base at 14, so they bracket
+it in execution order and still agree with each other rather than with it.
+**So the reshape1 A/A spread is not allocation volume, not heap occupancy
+and not collector work**, which is every quantity the runtime can report; what
+is left is where the code sits, and step 11's named fills bear on it ---
+`mut-odo` and `build` share one loop body at two call sites. The caveat
+is the instrument's own: this is the wildlog binary, whose patch moves `.text`,
+so it characterises the class's hazard and not that one cell. What would settle
+the residue is an address-level read, which this entry has always said costs
+a fill per sample. The instrument, kept for the next time it is wanted:
+the instrument is `wildlog-a32m` (2026-08-19): the basis recipe over a `Main.hs`
+edit logging the RTS's allocated-bytes total with the GC and mutator clocks
+beside it, one line per criterion **sample** --- a step inside one bench being
+averaged away by a per-bench figure --- off unless `WILDLOG` is set
+in the environment, proved firing and silent before the tree was restored,
+and kept as `wildlog-instrument.patch` while Run 17's pair was live --- landed
+in `Main.hs` by commit on 2026-08-22 once that pair was spent, so the patch file
+is now the record of what Run 17's basis carried over its control and not a step
+anyone applies. It hangs off criterion's `allocEnv` and `cleanEnv`, which
+bracket the timed block from outside, and runs criterion's own `whnf'` loop,
+so a logged arm executes the instructions every published bench does. Addresses
+are not logged though the entry names them, and the code says why: the RTS
+reserves its heap at a fixed base, so what moves is where within that arena
+a buffer lands, which is what the allocation total says, and taking an output
+buffer's address would cost an extra fill per sample --- perturbing the history
+under test. **Riding both halves of the pair, which this heading asked for until
+2026-08-19, is refused**: Run 16's basis registration is a repetition against
+run15-a32m, the edit moves `.text` and every loop offset, so the bridge would
+cross a layout change, and per-sample logging allocates. Run 17 puts it on ONE
+half by decision of 2026-08-21 --- `run17-wildlog`, the basis, against
+`run17-det` without it --- so the pair prices the instrument rather
+than inheriting it ([What Run 18 compares
+against](#what-run-18-compares-against)). It was pointed at the `scaled` class
+process, whose disturbance turns up in six runs of eight where a wild cell
+is three of eight and none in the last four --- but **a wild cell in Run 16's
+own A/A worst cell was the trigger** to spend the budget on that process
+instead, and it fired, so `reshape1` took it. Neither instance reproduces
+filtered --- measured both times --- so either probe is a whole process
+and never a five-bench run. Its `perf` half still wants
+`kernel.perf_event_paranoid` lowered by hand. **And Run 15 moves where to point
+it**: the `scaled` slot's disturbance sat on `mut-odo-vecdims` for six runs
+and this run finds it on `mut-odo`, `gen-unsafe` and `build` instead, all three
+worst on `scaled-super-r3` --- so the instrument follows the shape and
+not the arm. Both readings are with the wild-cell entry.
+
 - It **reproduces deterministically**. The twin reads 4.46 ms in the run
   and 4.50 ms alone; the two adjacent copies read 3.315 and 3.314 ms in the run.
   Same code, same allocation, tight intervals on all of them.
@@ -7391,6 +7037,166 @@ quiet: `list` goes **28.659 ms to 16.019 ms**, a 1.79x speedup, where
 | `bq-expand` / `list` | 0.098 | **0.157** |
 | `mut-odo-vecdims` / `list` | 0.036 | **0.065** |
 
+**At a large nursery an earlier bench in the same process permanently slows
+a later one --- and the condition is now named SMALL-PINNED CHURN, its cost
+the churn tax: churn of sub-3276-byte pinned allocations, the shared-accumulator
+size class.** Run 14's probes found it (2026-08-15/16): `vgg-14-c512-k3/list`
+read 14.1 ms with nothing before it and 22.3 ms after certain shapes, the same
+ladder was flat at `-A4m`, and the victim's added cost was mutator LLC misses
+at flat instructions and dTLB --- the counter signature that has held through
+everything since. **It is not the pinned-spray pool condition of GHC work item
+27601**, by controls and by a conceptual objection that stands: on one machine
+and one compiler `+RTS -H2G` removes that reproducer's penalty and leaves
+this one whole, `max_mem_in_use_bytes` moves 2.7% here against a doubling there,
+and that issue's mechanism needs rare collections to let block groups accumulate
+where this condition's disturbance is full size at 4 MB and merely unpaid.
+Everything reproduces on GHC HEAD, where that issue is itself unfixed. Run 15
+was built to read the term at a caller's nursery, and the probe sessions
+of 2026-08-17/18/19 resolved it; the account below is the summary,
+and the measurements, their tables and the recipes to re-take them
+are `small-pinned-churn-investigation/nursery-position-findings2.txt`'s.
+
+**The resolution in one paragraph, the route split of 2026-08-19 folded in.**
+One damaged state, two formation routes. An UPFRONT burst is class-selective:
+churning pinned allocations of at most 3276 bytes --- the shared-accumulator
+path, up to 406 doubles (the limit is compared in words), every Storable vector
+being pinned at any size --- degrades every later `list`-like phase, while
+the same burst of own-group objects (3600 B and larger) costs nothing; padding
+the small results above the limit erases this route completely, +12% to +0.2%
+at `-A32m` and +44% to +0.6% at `-A1G` on the fixed-n victim. The INTERLEAVED
+route is class-free: any sub-threshold allocation, pinned or movable,
+punctuating a victim builds the same state, dosed by cumulative bytes ---
+and this route, not the class, is what a criterion process does to its later
+benches: the corrected scans put all 23 candidates on one count-ordered curve,
+log-linear until it saturates around a million calls, and a fully padded binary
+reproduces the same curve. So there is no poison set, every shape is a victim
+on its `list` --- around +14% at `-A32m` after one saturating in-process poison,
+padded or not --- while among arms stable enough to read no other arm pays
+(`offtab` and `build` cannot be read by single processes at all, their alone
+legs spreading 10 to 21%). **What it costs this README**: `list` is every
+published figure's denominator and runs in-process in every main run,
+so the published absolutes sit above the shapes' clean alone rates --- roughly
+uniformly ~14% at `-A32m` and a shape-dependent 0 to 10% at the default, now
+measured directly against clean single-bench alone legs for every `list`
+denominator, main set and classes (findings items 64/68) --- while within-run
+ratios carry little of it, the crossed A/A twins bounding position bias
+under a percent. No allocation policy reaches the in-process deflation; its outs
+are single-bench processes or a GHC fix. A ~130-line base-only reproducer,
+`small-pinned-churn-investigation/ReproSmall.hs`, shows both routes on 9.12.4,
+9.14.1 and HEAD, the own-group upfront control at zero inside the same binary.
+
+**Two standing rules and one boundary come out of it.** The instrument rule:
+a big-churn bench's ALONE reading at an area past the 32 MB L3 is a fresh-heap
+transient, not its steady state --- vgg's true alone rate at `-A1G` is 16.5
+ms/iter where criterion's slope said 14.12 and its `mean` 20.99 --- so steady
+state is read by fixed-iteration differencing, never an alone slope,
+and the term's real `-A1G` size is +29 to +44% by victim, not the +56.5% once
+quoted here. The tuning rule: the tax cannot be `-A`-tuned away --- +33%
+at `-A64m` and at `-A256m`, +44% at `-A1G`, and only 4 MB-scale areas decline
+to pay, at their own collector cost --- and the remedy is route-specific:
+padding cures upfront bursts outright, no source-level policy reaches
+the in-process route, so its outs are process isolation or a GHC fix; the issue
+and its follow-up comment are staged in horde-ad's docs, nothing posted.
+The former boundary is resolved: cifar's +10.2% at the DEFAULT nursery
+was roster context over a ~+5.5% clean-pair tax inside the small-area band
+(findings items 40b/51) --- small-area immunity was never strict anyway, a few
+percent rather than zero (items 27/30).
+
+**And the five shapes a bigger nursery helps are NOT this term --- that
+is the correction the same probes force.** The victim runs 1.74x faster at 32 MB
+with nothing before it at all, so its main-set gain is steady state
+and the ladder runs the other way. What selects the five is generational
+promotion, and the chain is span, promotion, copying, time. Each shape has
+a **live span** --- the size of the intermediate structure that is still
+reachable when a collection fires --- read off as the nursery at which
+its promotion collapses: 4 to 8 MB for `stretch-pow2stride`, 32 to 64 MB
+for `stretch-r5-8x432` and `stretch-inner256`, past 64 MB
+for `stretch-bigstride`, nothing for `stretch-wide-2xM`. Below the span
+the structure is promoted at every minor collection --- 979 KB per minor at 4 MB
+against 357 bytes at 32 MB on `stretch-pow2stride`, a 2700-fold collapse, where
+`stretch-wide-2xM` reads about 225 bytes at both. **Promotion is the copying**:
+6.15 GB against 4.6 MB done by majors, and `-hT` names it ARR_WORDS with nothing
+else above kilobytes. A major fires per **20.9 MB promoted**, the generation-1
+growth budget, which is why total-copied-over-majors reads as a constant. Time
+follows copying at **0.42 ms per MB**, agreeing to 0.4% across
+`stretch-pow2stride`, `vgg-14-c512-k3` and `alexnet-L2-27-c48-k5`, whose
+promotion goes to nothing by 32 MB; `stretch-tall-Mx2`'s loss runs the same way
+at 0.4663, 11% off.
+
+**So the nursery has two opposing effects and this README had them entangled**:
+collector copying falls with the area, worth up to 1.96x, while the churn tax
+rises with it, worth +29% to +44% of the true steady state. A shape's net
+is whichever dominates, which is why no single property selected the five.
+
+**Swept over all 24 shapes, and the answer is one positive and one negative**
+(2026-08-17, `+RTS -A` at six areas from 4m to 128m, one binary, no build).
+**Only eight shapes promote heavily at all**, and they are exactly the eight
+with a finite span: `stretch-bigstride` and `stretch-tall-Mx2` at 128 MB,
+`stretch-r5-8x432` and `stretch-inner256` at 64, `vgg-14-c512-k3` at 16,
+and `stretch-pow2stride`, `alexnet-L2-27-c48-k5` and `stretch-coprime-r7` at 8.
+The other sixteen never exceed a few kilobytes per minor at any area, so they
+have nothing to win from any nursery and only ever pay its mutator cost ---
+which is the whole of why the main set's gainers are so few. **And the span
+predicts the gain**: the five that gained at 32 MB are all drawn from the six
+with a span at or under 64, the gain scaling as the area approaches it, while
+the two at 128 gain nothing there.
+
+**What no structural property predicts is the span itself.** Size correlates
+at Spearman +0.893 and does not determine it: `stretch-pow2stride`,
+`stretch-r5-8x432` and `stretch-bigstride` all have `l` near 1769472 and spans
+of **8, 64 and 128 MB**, a sixteenfold spread at one size. Over ten candidates,
+rank reads -0.607, the innermost footprint +0.750, the largest dimension +0.786,
+and both `m` and the base-offsets size about zero --- `stretch-tall-Mx2` has `m`
+= 2 and the largest span, `stretch-pow2stride` `m` = 27648 and the smallest.
+The span-over-result ratio runs 0.57 to 8.89. So the span is the quantity
+that matters, it costs two `-S` runs and no build to measure for any shape ---
+the sweep behind this paragraph, 144 processes no run artifact holds,
+and its analysis are tracked
+as `small-pinned-churn-investigation/span-sweep-run15.txt`
+and `small-pinned-churn-investigation/span-correlate.py` --- and it is
+**not a function of the view's shape parameters** --- which is where
+this question now rests, and it is a measurement to take per shape rather
+than a formula to look for.
+
+**RETRACTED, and with it this entry's oldest claim: there is no measured poison
+SET, in this run or in Run 14.** A scan run on 2026-08-17 read six shapes
+as poisoning `vgg-14-c512-k3/list` at `-A32m` --- `cnn-slice-c32` 18.70,
+`cnn-L1-6x6-c1` 18.69, `lenet-L1-28-c1-k5` 18.32, `cnn-L1-24x24-c1` 18.28,
+`cifar-L2-16-c64-k3` 17.57, `cnn-L2-24x24-c32` 17.52 --- against seventeen
+"innocents" inside 16.42 to 16.64. **Criterion runs benches in ROSTER order
+and not in the order the `-m glob` patterns are given**, and the roster puts
+those six at positions 1 to 6 with the victim at 7. So the six are exactly
+the shapes that *can* precede the victim, and in each of the other seventeen
+processes the victim ran FIRST --- those readings are victim-alone baselines,
+which is why they cluster just under the 16.67 alone-figure instead
+of scattering around it. **Seventeen of the twenty-three candidates have never
+been tested as poisons at all.** What survives is that the six which do precede
+the victim all poison it; what does not survive is any statement about which
+shapes do not, and with it the identity-permutation clue,
+the `conv1d-24`-against-`cnn-L1-24x24-c1` pairing this entry has named for two
+runs, and a three-condition rule that was perfectly confounded with roster
+position. **Run 14 has the same defect**: its probe notes --- superseded
+by `small-pinned-churn-investigation/nursery-position-findings2.txt` and removed
+--- recorded the victim as "24th and last" where the roster puts it 7th,
+and that run's innocent readings show the same clustering just under its own
+alone-figure. **The corrected experiment** --- the victim taken from the END
+of the roster so that every candidate precedes it --- **is the scan above.**
+
+**What the term is NOT is collector work, and the account that says
+so was tested and failed.** The account tried was that a poison leaves
+a retained heap the victim's collections then copy, and every part of it failed.
+The ~22 MB live during the victim's phase is the victim's OWN live set, present
+at the same 21.8 MB with nothing before it. The poison does not add major
+collections but *removes* them, 97 in the poisoned process against 103 and 112
+in unpoisoned ones. And majors copy 72.9 KB apiece here, the retained bytes
+being large objects a copying collector does not move, so the extra copying
+over the whole process is 6.9 MB. At the measured 0.42 ms per MB that predicts 3
+ms where the observed cost is some 650 ms, off by two orders. Split directly, GC
+time is 0.043 s alone against 0.059 s after and the whole difference
+is **mutator** time, which is where Run 14 left it with its LLC-miss and IPC
+readings. So the two nursery effects are independent as well as opposed: one
+is copying, the other is what a resident footprint does to the mutator.
+
 --- so on this shape the shipped fix beats the fallback it replaced by 10.2x
 at the default area and 6.4x at 32 MB. **Both are true; they answer different
 questions.** The default is what a GHC program gets unless it says otherwise,
@@ -7592,6 +7398,95 @@ not control, therefore stays a candidate for the residual rather than a finding.
 What the probe does settle is that no placement of these two copies leaves them
 more than about a percent apart once they share an offset.
 
+**Which arm owns a loop copy: answered, and the answer is that a binary can
+carry its own names.** Run 12's second prediction had to record that tying
+a named arm to a named offset was not licensed, every `Main` copy printing
+under one mangled symbol because these arms compile to one worker. A `-g3` build
+carries what is missing --- GHC emits a per-block symbol with DWARF line info
+--- and `loop-offsets.py` now reads it without help: `addr2line` for the source
+line, the source file for the top-level binding that line falls in, so a copy
+prints as `fbMutOdoVecdims` with the source line beside it instead of as one
+worker's mangled name. A binary with no line info prints exactly what it printed
+before. Read that way on 2026-08-13, at `-fspec-constr` with `LOOP_MAXSKIP=1`,
+the four-copy vecdims group is, in address order, `mut-odo-vecdims`, `-add-in`,
+`-add-out` and `-add-both`, and the pair beside it is `mut-odo` then `build`.
+That is the order the loop table below assigns its per-arm offsets in,
+so that table's ordering is now a measurement; and a second route agrees,
+emission order tracking first reference from `roster`, which lists those four
+in exactly that order. What it bought is at Run 12's second prediction above:
+Run 11's split crosses the resident copies rather than following them.
+**The recommended next step is taken and its prediction is refuted**
+(2026-08-14, an unconditional build and a max-skip build from one source read
+with `loop-offsets.py`, against Run 11's two kept main sets). The unconditional
+form puts 100 of 100 Main self-loops at offset 0 where max-skip puts 58 of 113,
+and **neither leaves a straddler**, so what padding every head buys is padding
+that nothing needed. Per arm it buys `build` alone, at 0.9896, and costs
+the tail up to 5.9% --- `bq-mut` 1.0588, `mut-odo-vecdims-add-out` 1.0513,
+`bq-gen` 1.0504, `-add-both` 1.0333, `gen-unsafe` 1.0327, `gen-quotrem` 1.0275,
+`offtab` 1.0259, `mut-odo` 1.0221. The arms that do carry a head max-skip
+skipped land on both sides of 1, `build` against `mut-odo`, and the three
+largest losers carry no tracked 28-byte loop at all, the tracked set being
+`fbBuild`, `fbMutOdo`, `fbMutBaseOffsets` and the four vecdims fills. **What
+the two forms differ in beyond offsets is a census**: the unconditional pads sit
+inside enclosing loops and push thirteen of them past the 64-byte window, 113
+self-loops falling to 100 and the 28-byte set 36 to 32. That is a cost
+of padding every head which the offsets alone do not show, and it is the better
+candidate the refuted prediction leaves behind. **And the step's own phrasing
+named a difference that is not there**: the two forms emit *the same 395
+directives at the same heads*, on the same assembly lines, differing only
+in the max-skip budget written as each directive's third operand --- a median 33
+bytes of slack, four heads with none --- so there are no per-form head lists
+to compare, and the 27 extra heads on record are look-through's rather
+than the unconditional form's. What the unconditional form spends is 8192 bytes
+of `.text`, 20385989 against 20377797. **And the step's other half could
+not have been taken at all**, which is a dependency neither entry declared:
+attributing heads to arms wants `addr2line`, `addr2line` wants DWARF,
+and the naming entry above measures DWARF changing the code --- a plain build
+holding two copies of a loop per function where the twin holds one,
+so the offsets-to-arms map is one-to-many in exactly the binary being timed.
+A plan resting on an instrument should say what the instrument is known
+to change. **And the instrument the residue wants now exists**:
+`loop-offsets.py --len 0` widens the grouped, named report from the 28-byte
+run-fill to every loop a cache line can hold, which in Main's own code is 112
+loops over twenty lengths against the nine of one length the tracked set saw ---
+so the arms that lose most under the unconditional form, and carry no 28-byte
+loop at all, are visible to whatever asks next.
+
+**And the map does reach the timed binary, which is the question a twin
+raises.** The two builds are one source, each of the plain build's four vecdims
+copies sits within 192 bytes of exactly one of the `-g3` build's, and matching
+them by the normalised instruction window around each head --- mnemonics
+with every displacement and immediate masked, the loop bodies themselves being
+identical --- is a bijection that agrees with both: 74 and 75 of 80
+for `-add-out` and `-add-both` against a runner-up of 38, and 73
+for `mut-odo-vecdims` and `-add-in` against 70, those two arms differing
+in almost nothing but the add. `-add-both-down`'s 24-byte loop matches the same
+way at 75 against 3, and sits at offset 0 in the timed half, so today's basis
+recipe has the five at 24, 8, 0, 0 and 0. **The same matching says nothing about
+the `build`/`mut-odo` group**, every score there falling to 10 to 13 of 80
+because `-g3` restructured that region when it dropped the two dead copies; what
+names those two is `addr2line` on the twin's survivors and the entry order
+already in the docstring. So the window method proposed as the fallback works
+where the code is stable and is silent where it is not, which is worth knowing
+before it is leaned on.
+
+**Run 13 exported its own and found the twin's fidelity is a per-GROUP property,
+not a per-binary one.** The same method names the vecdims four again --- offsets
+24, 8, 0 and 0 going to `mut-odo-vecdims`, `-add-in`, `-add-out`
+and `-add-both`, in that order, on both halves --- and the bijection is cleaner
+than Run 12's, every timed head matching its own named counterpart at exactly
+1.000 on the basis half against a runner-up of 0.921 or less. The other tracked
+group, `[11, 0, 4, 0]`, it cannot name at all: all four copies share one
+byte-identical body, that body is the `fbMutOdo`/`fbBuild` worker the two arms
+compile to, and **the `-g3` twin carries only two copies of it where each timed
+binary carries four** --- counted over `.text` in all four binaries.
+With no third or fourth name to give, the window match degenerates to near-ties
+an order below the vecdims group's. So the standing ruling that `-g3`
+is a different program bites group by group: count a body's copies in twin
+and timed binary before trusting the twin's names, which the vecdims group
+passes four against four and this one fails. Run 13's figures are in its pair
+note, which goes with its binaries.
+
 **A build with both, and an instrument that does not cancel** (2026-08-11,
 `-fspec-constr`, `*/build` and `*/mut-odo` over the shape set, 48 benches
 a process). `micro-both` carries the shim *and* `-fproc-alignment=64`, so all
@@ -7767,6 +7662,108 @@ several lines in any build. It reads 115 such loops in `micro-unaligned`, **50
 of them straddling and one at offset 0**, against 101 in `micro-aligned`
 with **100 at offset 0 and none straddling at all**.
 
+**The shim was blind under `-g`, which is why this wanted a fix and not merely
+a build.** `align-as.py` aligns a head only where the line before it
+is an instruction, that being how it refuses to put padding between an info
+table and the code the table belongs to; under `-g` every head follows
+the previous block's `_end` and `_proc_end` labels instead, so **not one head
+of a `-g3` assembly was given a directive** --- 0 against the same day's plain
+assembly at 395, read off the two captures --- and the build came out unaligned
+in silence: none of its 101 short self-loops at offset 0, 41 straddling, and two
+of those the timed fills of `-add-in` at 56 and `build` at 52. The guard now
+reads past the lines that emit no bytes, another label or a `.loc`, and the same
+build gets 421 heads a budget, 46 loops at 0 and one straddler left ---
+a 44-byte loop in `mkBroadcastMid`, which is view construction rather
+than a fill and one of the heads the info-table guard is there to leave alone.
+**The look-through fires only where the assembly carries `.loc`,
+and that condition is the point rather than a nicety**: applied to every build
+it finds 27 heads more in the plain assembly, 422 against 395, which would
+re-base every figure this README has published for a reason no strategy changed.
+So a `-g` assembly gets the corrected guard and every other keeps the literal
+one, byte for byte --- which is the control, and it is an end-to-end one because
+a shim change reaches nothing otherwise: built from one source into **two fresh
+builddirs**, `-fforce-recomp` and all, the max-skip half comes out md5-identical
+under the fixed shim and under the shim as committed, each printing 395.
+**Those 27 are one shape of loop and not a scattering**: each is a pre-tested
+loop whose head carries a block label as well as its own, two labels at one
+address, so the literal guard read a label where an instruction had
+been the whole test. **And what they do to the binary is one pad**, which
+is the figure to have before spending a run on them: a directive is a budget
+and not a padding, and the assembler declines it wherever the loop already spans
+the least its length allows. Of the 395 the literal guard emits, **156 actually
+pad** --- 3941 bytes in Main's code, a median of three multi-byte NOP
+instructions each and 60 bytes at the longest --- and adding the 27 makes
+that **157 pads and 3988 bytes**. Twenty-six of the twenty-seven are declined;
+one fires, and everything after it moves 47 bytes. The short-loop populations
+agree that nothing else happened: 112 loops either way, none straddling
+in either, and the count at offset 0 going 58 to 57. So the question those 27
+raise is not what NOPs cost. It is whether one more aligned loop is worth
+re-rolling the placement of everything downstream of it, which is the term
+this README prices at a few percent and cannot predict --- a paired run's
+to answer if anyone wants it answered.
+
+**So building everything with `-g3` is refuted, and a `-g3` build is a twin
+to read rather than a binary to time.** The proposal was that if the timed
+binaries carried their own names there would be no correspondence to establish
+and a per-arm offset claim would become an ordinary reading; its own criterion
+was that the arms agree within the run's floor. They do not. A pair differing
+in `-g3` alone --- one source, one regime, and needing no pad, the two `.text`
+coming out the same size with all 29449 shared library symbols at a whole-line
+delta --- gates at `build` **0.9391, 0.9488, 0.9363 and 0.9517**, plain
+over `-g3`, across the four pairings of two passes each, and `mut-odo` at 0.9626
+to 0.9743, against each binary's own repeat of 0.9868 and 0.9970 on `build`
+and 0.9958 and 1.0079 on `mut-odo`. Five percent and three percent, one
+direction, four to six times the floor, with `list` still to under 1.4%
+and no wider between the halves than inside one. What that prices
+is the package, the halves differing in emitted code *and* in where the executed
+copies land, 0 and 0 against 4 and 28 --- and the package is what a basis
+decision wants. The `build`/`mut-odo` ratio moves with them, 0.9862 and 0.9952
+in the plain passes against 1.0109 and 1.0219 in the `-g3` ones, but all four
+are ties by sign test on intervals covering 1, so that is a point estimate
+shifting and not the pair separating; the shared-offset reading above is neither
+confirmed nor contradicted at this budget. **The machine was not fully quiet**,
+its owner having said so while the gate ran, which is why the floor here is each
+binary's own repeat rather than Run 11's drift band; the palindrome cancels
+drift across the hour and all four pairings agree in sign and size. **Both
+halves were built with the look-through applied unconditionally**, which
+is the form that predates the `.loc` condition above and the reason it can
+be said the shim is held constant across them rather than treating one half
+differently: what the pair varies is `-g3`. That half is not the basis recipe
+byte for byte, carrying the 27 extra heads, but it places every tracked loop
+where the basis recipe does --- the same `[11, 0, 4, 0]` and `[24, 8, 0, 0]`,
+checked on both forms --- so what the gate compares is two builds whose timed
+loops sit identically and whose debug information does not. Rebuilding the pair
+from this tree therefore reproduces the `-g3` half exactly and the other
+with those 27 heads unaligned, which is the same experiment and not the same
+bytes. So the naming above is read off a twin and carried to the timed binary
+by the correspondence --- the arrangement the recommended path meant to remove,
+and does not. **And the twin is short of copies as well as of registers, which
+is what bounds the naming** (2026-08-14, four binaries --- the two timed halves,
+a fresh plain build and a fresh `-g3` twin --- matched by body bytes rather
+than by proximity). One body reads four copies in every plain binary and **two**
+in the twin, and the twin's two carry distinct worker symbols that `addr2line`
+puts in `fbMutOdo` and `fbBuild`; the vecdims body reads four in all four
+binaries, which is exactly why that family names as a bijection and this group
+cannot be named at all. A plain build therefore holds **two copies of that loop
+per function** and `-g3` emits one --- a duplication the debug build suppresses,
+the same class of divergence as the register allocation above, and the reason
+the recommended path's `addr2line` step can reach a function but never a copy
+--- and the reason the NOPs entry's own next step was undecidable before
+it was attempted, which is recorded there.
+
+**And a weaker level is no way round it, which is the move to expect
+from a README that says `-g3` throughout.** `-g1` is the weakest GHC has ---
+the users guide gives it as producing stack unwinding records for top-level
+functions, which is data about a program rather than a part of one ---
+and it changes the emitted code exactly as `-g3` does: one instruction fewer
+and a different register assignment on an eight-line module, the same on GHC
+9.10.3, 9.12.4, 9.14.1 and HEAD, with `-g2` between them behaving alike.
+The reproducer and that table are horde-ad's
+`docs/ghc-issue-debug-changes-codegen.md`, filed as [GHC work item
+27687](https://gitlab.haskell.org/ghc/ghc/-/work_items/27687), which
+this README's finding produced; what they settle here is that no debug level
+is a cheap way to put names in a binary that will be timed.
+
 **Those two populations are not the same size, and the difference
 is the disassembler rather than the binary** (2026-08-11, and it corrects how
 the two counts above may be read). Lifting the survey's own 64-byte cap, Main's
@@ -7885,6 +7882,54 @@ of the arm and has been measured for three of them, so for the rest
 it is unknown; what that protects is orderings and tiers, which several arms
 witness at once, and what it does not protect is any single arm's figure read
 across a rebuild.
+
+**What does code placement cost?** **A rebuild is worth up to 18%
+on a susceptible arm and 0.5% on the baseline** --- which is the size of every
+unexplained regression in Run 8, and the largest effect this README has measured
+that is not a strategy. Four binaries were built from sources differing only
+in inert pad arms, the run filtered so the pads never execute; against the first
+of them the other three read `list` 0.9949, 1.0019 and 1.0031, `mut-odo` 1.0389,
+0.8808 and 1.0401, and `offtab` 0.8241, 0.9524 and 0.9126 (2026-08-08,
+`-fspec-constr`, 24 shapes, per-shape geomeans of absolute net time).
+So susceptibility is a property of the arm: the baseline has almost none and two
+arms have a great deal, and they are the same two the flag sets back hardest.
+
+**Around that sit the readings it explains.** `offtab`'s own regression
+is **not** roster or noise: filtered into a five-bench process it reads 1.2236
+across the regimes over 24 shapes, slower on 24 of 24, against the full run's
+1.218 --- but that used one binary for both regimes, so it rules out everything
+except placement. `build` and `mut-odo` compile to the same worker and moved
+in *opposite* directions under the flag, 17% faster and 19% slower, which
+identical code cannot do. `bq-gen` regressed 12% with its build loop specialised
+like every other and its build allocation-free. And the flag moves 12 KiB
+of `.text` (20,349,125 bytes to 20,336,837), so every arm's address
+and alignment shift whether its code changed or not.
+
+**Answered, 2026-08-10: for a loop this size, placement costs 1.16 to 1.19.**
+The first attempt at this left the question narrower than it found it ---
+it should have timed `build` across the four layouts and did not, a shell glob
+having eaten the arm ([the reader's section](#the-reader-read-runpy)) ---
+and what settled it instead was the pad probe done properly, eight binaries
+stepping each arm through all eight 8-byte offsets with membership fixed
+(the figures, the graded penalty and the tables are below). So the *how* is now
+measured and not merely read off a binary: a straddled copy of the 28-byte fill
+costs 1.19, or 1.10 where only three bytes precede the boundary, and
+that is what the pair's 0.86-to-1.24 span across runs was made of.
+
+What the probe does **not** reach is the rest of this entry. The 18% a rebuild
+is worth stands as measured, since a rebuild moves more than one loop's offset;
+`offtab`'s and `bq-gen`'s regressions have no shared-loop counterpart to be read
+this way, which is the entry below on crediting a margin to a strategy;
+and susceptibility remains a property of the arm, now with a mechanism
+for the two arms that share a loop and none for the others.
+
+**Run 9 had made this the README's central question rather than a caveat
+on it**, and that is the framing the answer inherits. A membership change alone
+moved five fingerprint arms from 0.910 to 1.192 in absolute time against
+a baseline that held to 0.998, and moved `build`/`mut-odo` --- one worker, two
+slots --- to 1.13 where Run 8 read 0.86 and Run 7 1.24. Every route through
+the roster was blocked, the roster being one of the things that sets the layout,
+which is why the answer had to come from a probe that holds membership still.
 
 **And the third of those is a bias, not a floor, which is the distinction
 to keep.** A floor is a threshold below which a margin might be noise,

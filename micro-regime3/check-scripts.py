@@ -898,6 +898,12 @@ def relead(tmp, cls, rewrite, name='R.md'):
     return edited_readme(tmp, (old, new), name=name)
 
 
+LAST = object()   # `task_anchor(LAST)`: the list's last item, whatever
+                  # its number. A spent task leaves the subsection and
+                  # the rest renumber, so a case naming task 3 stops
+                  # building the day one goes -- which it did.
+
+
 def task_anchor(n):
     """The opening of task `n` of `Recommended tasks after Run N`.
 
@@ -918,6 +924,9 @@ def task_anchor(n):
     i = next(k for k, l in enumerate(lines)
              if l.startswith('### Recommended tasks after Run '))
     j = next(k for k in range(i + 1, len(lines)) if lines[k].startswith('### '))
+    if n is LAST:
+        n = max(int(re.match(r'^(\d+)\. ', l).group(1))
+                for l in lines[i:j] if re.match(r'^\d+\. ', l))
     hit = [l for l in lines[i:j] if re.match(r'^%d\. ' % n, l)]
     assert len(hit) == 1, 'task %d: %d line(s)' % (n, len(hit))
     anchor = ' '.join(hit[0].split())[:44]
@@ -2427,11 +2436,16 @@ CASES = [
          # named task 1 as what was going, which is a warning where the
          # difference between losing two paragraphs and not is a refusal.
          plant=lambda t: {'readme': edited_readme(t),
-                          'anchor': task_anchor(3),
+                          'anchor': task_anchor(LAST),
                           'with': write(os.path.join(t, 'w.txt'), 'x\n')},
          argv=['--replace', '{anchor}',
                '--with', '{with}', '--readme', '{readme}'],
-         ok=V(exit=1, has=['is a 3-item list', 'discard the items above'])),
+         # The count is not asserted: the list loses an item whenever a
+         # task is spent, and `3-item list` was a stored number one
+         # renumbering away from being wrong.  What the case is about is
+         # the refusal and what it warns of.
+         ok=V(exit=1, has=['--replace: this paragraph is a',
+                           'discard the items above'])),
 
     case('replace-a-whole-list-from-its-first-item', 'read-run.py', None,
          'CONTROL: quoting the list from item 1 still replaces all of it',
