@@ -31,6 +31,30 @@ B=./$R-$H
 OUT=$R-counts-$H.txt
 [ -e "$OUT" ] && { echo "$OUT exists; move it aside first"; exit 1; }
 N=${N:-50}
+# PERF FIRST, BECAUSE THE WHOLE SWEEP IS WORTHLESS WITHOUT IT. Every cell
+# is two `perf stat` processes and a machine that refuses the counter
+# gives NaN for both, so a blocked perf does not fail the sweep -- it
+# writes a `!!` line per cell and takes the same forty minutes a half to
+# do it. One probe on /bin/true costs a millisecond and names the reason.
+#
+# kernel.perf_event_paranoid IS NOT PERSISTENT HERE and is a state to
+# assert at the moment of use rather than a fact about the box: it read 1
+# on 2026-08-21, 4 on 2026-08-22 and 1 again that same evening. Ubuntu's
+# level 4 is its own, above the upstream maximum of 3, and refuses every
+# event. Case: `counts-refuses-a-blocked-perf`.
+if ! command -v perf > /dev/null 2>&1; then
+  echo "!! no perf on PATH, so no cell here could be counted. Nothing ran."
+  exit 1
+fi
+if ! perf stat -x, -e instructions:u /bin/true 2>&1 | grep -q '^[0-9]\+,'; then
+  echo "!! perf will not count instructions here, so every cell would come"
+  echo "   back NaN and this sweep would take its full time to say so."
+  echo "   kernel.perf_event_paranoid reads\
+ $(cat /proc/sys/kernel/perf_event_paranoid 2>/dev/null || echo '?'), and anything above 1 is the"
+  echo "   usual cause; it does not survive a reboot. That is what it READ"
+  echo "   and not a diagnosis. Nothing ran and no $OUT was written."
+  exit 1
+fi
 LIST=$("$B" --list 2>/dev/null)
 [ -n "$LIST" ] || { echo "!! --list gave nothing; wrong binary?"; exit 1; }
 # Both restrictions are read BEFORE the defaults overwrite them: `ARMS` is

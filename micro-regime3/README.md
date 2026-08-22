@@ -1015,12 +1015,17 @@ rather than a slot in the next run, observed again:
   in this README predicts both the sign and roughly the size. If the three turn
   out to share one copy, placement is excluded too and this README has
   no candidate left --- which is the more valuable outcome of the two.
-  **The instrument is now usable**: `perf` is installed
-  and `kernel.perf_event_paranoid` reads 1 (2026-08-22, re-read; it read 4 when
-  this entry was written), so user-space sampling needs no sysctl drop
-  and no hand at the terminal, and this is one filtered process rather
-  than a run. The offsets move with every relink, so take them from the binary
-  being sampled rather than from this entry.
+  **The instrument is usable when the machine lets it be, and that is a state
+  to assert and not a fact to record**: `perf` is installed,
+  and `kernel.perf_event_paranoid` has to read 1 or lower before it counts
+  anything --- **it is not persistent**, and on 2026-08-22 alone it read 1,
+  then 4, then 1 again, so an entry quoting a value is stale by construction
+  and this one no longer does. Lowering it is a `sudo sysctl -w` in a plain
+  terminal, not something a session can do. Check it at the moment of use:
+  `run-counts.sh` now refuses up front rather than spending its full sweep
+  writing NaN, which is what a blocked `perf` used to buy. This is one filtered
+  process rather than a run. The offsets move with every relink, so take them
+  from the binary being sampled rather than from this entry.
 
   **Run 11 says the residual is not stable within itself, which is new.**
   Re-running that binary puts the pair at **0.9467** on the main set at 21 wins
@@ -1790,10 +1795,13 @@ rather than a slot in the next run, observed again:
   report validates: a pool taken in one contiguous piece removed the cost there,
   so a wild cell surviving `-H2G` is not pool structure.
 
-  **`perf` needs `kernel.perf_event_paranoid` lowered from this machine's 4
-  before it counts anything** --- at 4 it reports `cpu-cycles:u <not supported>`
-  --- and that is a `sudo sysctl -w` in a plain terminal, not something
-  a session can do.
+  **`perf` needs `kernel.perf_event_paranoid` at 1 or lower before it counts
+  anything** --- above that it reports `cpu-cycles:u <not supported>`, Ubuntu's
+  level 4 being its own and above the upstream maximum of 3 --- and lowering
+  it is a `sudo sysctl -w` in a plain terminal, not something a session can do.
+  **The setting does not persist**, so it is asserted at the moment of use
+  and never quoted as a property of this machine: [the position-term
+  entry][open] carries the day it moved twice.
 
   **Run 2026-08-12, and the cell does not reproduce filtered, as expected.**
   Differencing `-n 40000` against `-n 20000` on `run12-maxskip`, which removes

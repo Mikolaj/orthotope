@@ -658,6 +658,51 @@ exit 0
 """
 
 
+# Two stand-ins for `perf`, for the guard that says the counting machine
+# is present before a sweep spends its hours proving otherwise. The
+# machine's own perf is deliberately NOT used by either case:
+# kernel.perf_event_paranoid is not persistent here -- 1, then 4, then 1
+# again inside two days -- so a case leaning on it would pass or fail on
+# the state the guard exists to catch.
+PERF_BLOCKED = """\
+#!/bin/sh
+echo "Access to performance monitoring and observability operations is\
+ limited." >&2
+exit 255
+"""
+
+# `perf stat -x,` writes one CSV line per event, to the file `-o` names
+# and to stderr when it names none -- and the guard probe passes no `-o`
+# where `count()` does, so the stub has to honour both or it exercises
+# only one of the two calls the script makes. It answers proportionally
+# to `-n`, so the script's own 2N-minus-N differencing comes out exact.
+PERF_ANSWERS = """\
+#!/bin/sh
+out=""; n=200000; want_o=0; want_n=0
+for a in "$@"; do
+  if [ "$want_o" = 1 ]; then out=$a; want_o=0; continue; fi
+  if [ "$want_n" = 1 ]; then n=$((100000 * a)); want_n=0; continue; fi
+  case $a in -o) want_o=1 ;; -n) want_n=1 ;; esac
+done
+line="$n,,instructions:u,257660,100.00,,"
+if [ -n "$out" ]; then echo "$line" > "$out"; else echo "$line" >&2; fi
+exit 0
+"""
+
+
+def stub_dir(tmp, body, name='perf'):
+    """A directory holding one executable stand-in, for PATH.
+
+    A shadow cannot carry this: `perf` is resolved off PATH and not out
+    of the script's own directory, so the case prepends a directory
+    instead of replacing a file.
+    """
+    d = os.path.join(tmp, 'stub')
+    os.makedirs(d, exist_ok=True)
+    os.chmod(write(os.path.join(d, name), body), 0o755)
+    return d
+
+
 # A log with samples on BOTH sides of the load fields, and a trailing
 # `pre` with no `post`: the two branches of `--wild` that no run on disk
 # exercises, one being an instrument change mid-log and the other what a
@@ -1798,6 +1843,40 @@ CASES = [
          ok=V(exit=0, has=['every process gated clean', 'lookrts-rev'],
               hasnt=['al-lookrts-cnn-slice-c32-r1']),
          bug=V(exit=0, has=['al-lookrts-cnn-slice-c32-r1'])),
+
+    case('counts-refuses-a-blocked-perf', 'run-counts.sh', None,
+         'a blocked perf spent the whole sweep writing NaN',
+         # Every cell is two `perf stat` processes, so a machine that
+         # refuses the counter does not fail the sweep -- it writes a `!!`
+         # line per cell and takes the same forty minutes a half to do it.
+         # And the setting is not persistent: kernel.perf_event_paranoid
+         # read 1 on 2026-08-21, 4 on 2026-08-22 and 1 again that evening,
+         # so it is a state to assert at the moment of use.
+         #
+         # Both sides use a STUB perf and not the machine's, or the case
+         # would pass or fail on the box's current setting -- which is the
+         # very thing that moves.
+         shadow=dict(extra=[('zzct3-g912', FAKE_HALF)]),
+         plant=lambda t: {'stub': stub_dir(t, PERF_BLOCKED)},
+         env={'PATH': '{stub}:/usr/bin:/bin', 'ONLY': 'shape-a',
+              'ARMS': 'list', 'N': '1'},
+         argv=['zzct3', 'g912'],
+         ok=V(exit=1, has=['perf will not count instructions here',
+                           'Nothing ran'])),
+
+    case('counts-runs-under-a-perf-that-answers', 'run-counts.sh', None,
+         'CONTROL: the guard passes and the sweep writes its counts',
+         # The other side, and what says the guard is not simply a ban:
+         # with a perf that answers, the same invocation gets through and
+         # the differenced count lands in the file.
+         shadow=dict(extra=[('zzct4-g912', FAKE_HALF)]),
+         plant=lambda t: {'stub': stub_dir(t, PERF_ANSWERS)},
+         env={'PATH': '{stub}:/usr/bin:/bin', 'ONLY': 'shape-a',
+              'ARMS': 'list', 'N': '1'},
+         argv=['zzct4', 'g912'],
+         probe=lambda subs: open(os.path.join(
+             subs['at'], 'zzct4-counts-g912.txt')).read(),
+         ok=V(exit=0, has=['shape-a list 1'], hasnt=['perf could not'])),
 
     case('wild-partial-load-fields', 'read-run.py', None,
          'a foreign figure over half a bench read as the whole bench',
