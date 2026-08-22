@@ -2852,7 +2852,8 @@ left to attribute --- the interval it is about is the aligned binary's.
   `@@saturate` victim reading inside a band of the run's own, a process outside
   it read before its figures are. **What is built**: `saturate-preamble.patch`,
   with its two doses, proved to build and to fire on both compilers; `sat-probe`
-  and `sat-probe-914`, its binaries, for the between-run probes;
+  and `sat-probe-914`, its binaries for the between-run probes, deleted after
+  their read-backs and rebuilt from `run18-pair.txt`'s recipes when wanted;
   `cabal.project.ghc914` and its freeze; `run-counts.sh`, proved on one cell
   (`vgg-14-c512-k3/list` 260.6M instructions an iteration, `mut-odo` 54.4M,
   `sum-only-early` 8.1M, `N` = 5); the `SAT=` mode of `run-alonelegs.sh`, which
