@@ -1294,6 +1294,24 @@ CASES = [
          ok=V(exit=2, has=['the riders were not taken']),
          bug=V(exit=2, hasnt=['the riders were not taken'])),
 
+    case('broke-names-the-manifest', 'read-run.py', None,
+         'a retirement made in prose left the manifest predicting the old',
+         # THE MANIFEST IS THE OTHER HALF OF A RETIREMENT. Run 17's chapter
+         # retired claim 4's tie in prose -- *the next run inherits an
+         # ordering rather than re-reading a tie* -- and CLAIMS went on
+         # registering the tie for a day, so Run 18 would have broken it a
+         # third time and a session rediscovered a decision already taken.
+         # The rewrite obligation was stated and was the half that got
+         # done; this names the half that did not, at the moment a BROKE
+         # is read and the decision is being made.
+         #
+         # The silent branch has no case, a synthetic population breaking
+         # eleven of thirteen and no cheap filter leaving none: measured
+         # instead on run17-det, 13 of 13 held and the paragraph absent.
+         plant=lambda t: {'run': synth_json(t, 'main')},
+         argv=['{run}', '--claims'],
+         ok=V(has=['`CLAIMS` in this script is where that lands'])),
+
     case('claims-arm-counted-per-registration', 'read-run.py', '045ca63',
          'one filtered arm reported as eight',
          plant=lambda t: {'run': synth_json(t, 'main')},

@@ -2842,6 +2842,23 @@ def claims_table(cells, shapes, strategies, args):
               ' run\'s arithmetic, not the claims\'.' % (whole - gone, whole))
     else:
         print('\n%d of %d registered orderings held.' % (held, held + broke))
+        if broke:
+            # THE MANIFEST IS THE OTHER HALF OF A RETIREMENT, and forgetting
+            # it is not hypothetical: Run 17's chapter retired claim 4's tie
+            # in prose -- *the next run inherits an ordering rather than
+            # re-reading a tie* -- and `CLAIMS` went on registering the tie
+            # for a day, so the next run would have broken it a third time
+            # and a session rediscovered a decision already taken. The
+            # rewrite obligation was already stated and was the half that
+            # got done; this names the half that did not.
+            print('  A BROKE obliges the paragraph above its reading to be'
+                  ' rewritten rather than')
+            print('  requoted -- and where the rewrite RETIRES the'
+                  ' registration rather than')
+            print('  recording a movement, `CLAIMS` in this script is where'
+                  ' that lands. Prose')
+            print('  alone leaves the next run testing the prediction this'
+                  ' one replaced.')
     print('\nclaim 7 -- allocation: no pair; read it with'
           '\n  ./read-run.py BASIS.json --compare OTHER.json --alloc')
     print('claim 8 -- structural: no pair; read the fast tier off the table'
