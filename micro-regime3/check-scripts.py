@@ -3357,22 +3357,44 @@ def family_lint(path):
     # counted from, passed, and the family had no live site in the tree: a
     # silent search. A parse inside a `try` is under a handler and is not
     # the family. Found 2026-08-22 by review.
-    defs = {fn.name: fn for fn in ast.walk(tree)
-            if isinstance(fn, (ast.FunctionDef, ast.AsyncFunctionDef))}
-    at_import, todo = set(), [s for s in tree.body if not isinstance(
-        s, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef))]
-    while todo:
-        for n in ast.walk(todo.pop()):
-            name = getattr(getattr(n, 'func', None), 'id', None)
-            if isinstance(n, ast.Call) and name in defs \
-                    and name not in at_import:
-                at_import.add(name)
-                todo.append(defs[name])
     handled = set()
     for t in ast.walk(tree):
-        if isinstance(t, ast.Try):
+        if isinstance(t, (ast.Try, getattr(ast, 'TryStar', ast.Try))):
             handled.update(range(t.body[0].lineno,
                                  t.body[-1].end_lineno + 1))
+    defs = {fn.name: fn for fn in ast.walk(tree)
+            if isinstance(fn, (ast.FunctionDef, ast.AsyncFunctionDef))}
+
+    def calls(node):
+        # The calls a node MAKES when it runs: not those inside a def or
+        # a lambda it merely defines, which run when called, if ever.
+        for c in ast.iter_child_nodes(node):
+            if isinstance(c, (ast.FunctionDef, ast.AsyncFunctionDef,
+                              ast.Lambda)):
+                continue
+            if isinstance(c, ast.Call):
+                yield c
+            yield from calls(c)
+
+    # What runs at import: the module's statements but its defs, and but
+    # the `if __name__ == '__main__'` block, which runs as a script and
+    # not on import -- seeded from that block too, the first cut of this
+    # put 91 of read-run.py's 102 defs at import, measured 2026-08-23 by
+    # review. A class body does run, so it seeds; its methods do not. A
+    # call made under a `try` is handled where it is made, so what it
+    # calls is not at import unhandled on that account.
+    at_import = set()
+    todo = [s for s in tree.body
+            if not isinstance(s, (ast.FunctionDef, ast.AsyncFunctionDef))
+            and not (isinstance(s, ast.If)
+                     and '__name__' in ast.unparse(s.test))]
+    while todo:
+        for n in calls(todo.pop()):
+            name = getattr(n.func, 'id', None)
+            if name in defs and name not in at_import \
+                    and n.lineno not in handled:
+                at_import.add(name)
+                todo.append(defs[name])
 
     for n in ast.walk(tree):
         if not isinstance(n, ast.Call):
@@ -3711,7 +3733,8 @@ def properties(warnings=False):
             # had none, and over a directory with no run in it said `every
             # property holds` over 0. Found 2026-08-22 by review. Case:
             # `properties-refuse-an-empty-corpus`.
-            off = ['an empty corpus proves nothing: 0 %s under %s'
+            off = ['0 %s under %s: an empty corpus proves nothing, and so'
+                   ' does one holding nothing this property reads'
                    % (what, CORPUS)]
         if off:
             bad += 1

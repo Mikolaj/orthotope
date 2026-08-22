@@ -28,7 +28,8 @@
 # About an hour: six processes of 120 benches at criterion's default budget.
 set -u
 cd "$(dirname "$0")" || exit 1
-B=./${HALF:-run16-a32m}
+HALF=${HALF:-run16-a32m}
+case $HALF in /*|./*) B=$HALF ;; *) B=./$HALF ;; esac
 OUT=${OUT:-probe-areacurve}
 [ -x "$B" ] || { echo "no $B here"; exit 1; }
 EXISTING=$(ls -1 "$OUT"-*.json "$OUT"-*.log 2>/dev/null)

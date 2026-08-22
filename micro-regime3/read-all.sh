@@ -199,10 +199,15 @@ WILD_PLATEAU=0
 if [ -n "$SAT" ]; then
   # Counted against the logs and not only among themselves: one reading
   # left over is lo == hi, a spread of 0.00, and `every process asserted
-  # the same state` said over one process. A token that is no number is
-  # counted apart, awk reading `NaN` as 0 and any band holding it. Cases:
-  # `plateau-reading-missing-from-a-process`,
-  # `plateau-reading-that-is-no-number`.
+  # the same state` said over one process. Per log, not count against
+  # count: two lines in one log beside none in another is the same number
+  # twice, so the logs without a line are listed by name -- which is also
+  # where a hand probe log in the run's namespace surfaces. A token that
+  # is no number is counted apart: compared, `NaN` moves neither lo nor hi
+  # and any band holds it. Cases: `plateau-reading-missing-from-a-process`,
+  # `plateau-counted-per-log`, `plateau-reading-that-is-no-number`.
+  WITHOUT=$(grep -L '^@@saturate ' $PLOGS 2>/dev/null)
+  NWITHOUT=$(printf '%s\n' "$WITHOUT" | grep -c .)
   read -r NSAT NBAD LO HI SPREAD <<EOF
 $(printf '%s\n' "$SAT" | awk '
     $1 !~ /^[0-9]+(\.[0-9]+)?([eE][-+]?[0-9]+)?$/ { nbad++; next }
@@ -211,13 +216,16 @@ $(printf '%s\n' "$SAT" | awk '
     END { s = (n > 0 && lo > 0) ? 100 * (hi - lo) / lo : 0
           printf "%d %d %s %s %.2f\n", n, nbad + 0, lo, hi, s }')
 EOF
-  if [ "$NBAD" != 0 ] || [ "$NSAT" != "$NPLOGS" ]; then
+  if [ "$NBAD" != 0 ] || [ "$NSAT" != "$NPLOGS" ] || [ "$NWITHOUT" != 0 ]
+  then
     echo "!! the plateau is not this run's: $NSAT reading(s) parsed from the"
     echo "   $NPLOGS recorded process log(s), $NBAD of the line(s) no number"
     echo "   -- a process without a reading measured in a state nobody"
     echo "   asserted, and a band over the rest is a band over a different"
     echo "   run. The lines, per process:"
     grep -H '^@@saturate ' $PLOGS 2>/dev/null | sed 's/^/   /'
+    [ "$NWITHOUT" = 0 ] || echo "   log(s) with no reading:" \
+                                "$(printf '%s' "$WITHOUT" | tr '\n' ' ')"
     echo
     WILD_PLATEAU=1
   elif awk -v s="$SPREAD" -v b="$PLATEAU_BAND" 'BEGIN { exit !(s > b) }'; then

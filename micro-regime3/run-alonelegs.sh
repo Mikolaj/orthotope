@@ -65,18 +65,20 @@ if [ -n "$EXISTING" ]; then
   echo "relaunching would overwrite them in place. Move them aside first."
   exit 1
 fi
-exec > "$R-al-$H$SUF-driver.log" 2>&1
-echo "start: $(date -Is), loadavg: $(cat /proc/loadavg)"
-echo "WILDLOG=${WILDLOG-unset} SAT=${SAT-unset}"
-md5sum "$B"
 # Refused and not merely said: this echoed and went on, the one check here
 # that set no status, so a half without the line ran its legs at the
 # default nursery under a DONE line with no complaint. Found 2026-08-22 by
-# review. Case: `alonelegs-refuses-an-unbaked-half`.
+# review. And refused BEFORE the redirect below, so a refused attempt
+# leaves no driver log for the relaunch guard above to read as a previous
+# one. Case: `alonelegs-refuses-an-unbaked-half`.
 "$B" +RTS --info 2>/dev/null | grep -q 'with-rtsopts.*-A32m -I0 -T -M8G' \
   || { echo "!! baked RTS line unread: not the one baked since 2026-08-21,"
        echo "   so every leg would run at the default nursery; wrong binary?"
        exit 1; }
+exec > "$R-al-$H$SUF-driver.log" 2>&1
+echo "start: $(date -Is), loadavg: $(cat /proc/loadavg)"
+echo "WILDLOG=${WILDLOG-unset} SAT=${SAT-unset}"
+md5sum "$B"
 SHAPES=$("$B" --list 2>/dev/null | cut -d/ -f1 | awk '!seen[$0]++')
 [ -n "$SHAPES" ] || { echo "!! --list gave nothing; wrong binary?"; exit 1;
                     }
