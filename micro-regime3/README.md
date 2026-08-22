@@ -2553,10 +2553,11 @@ and the fix is `git show` of the commit that wrote it, not a reading of what
 looks right.
 
 **The gate on the wild cell's logging has lifted, which is the one change
-this run makes to this heading.** Run 15's pair is spent and Run 16's is not yet
-built, so a `Main.hs` edit can ride both of its halves --- the condition
-that task has waited on for two runs. Of what stands here, item 3's rider, floor
-and probe want a quiet machine and its pilot does not; no window closes.
+this run makes to this heading.** Run 16's pair is spent and Run 17's is decided
+with the instrument on its basis half alone, so the next `Main.hs` edit rides
+both halves of Run 18, where the preamble goes. Of what stands here, item 3's
+rider, floor and probe want a quiet machine and its pilot does not; no window
+closes.
 
 1. **WHICH SHAPES POISON --- asked here as the probe evening's one open
    question, and answered 2026-08-18: there is no set.** The scan it planned
@@ -2715,6 +2716,17 @@ left to attribute --- the interval it is about is the aligned binary's.
      behave as Run 16's, and the gate's machine check, which reads `list`
      against the kept fingerprint, passes if that fingerprint is Run 16's.
      A failure there is read before anything else, as the check says.
+  6. *The redirect's candidates.* The fingerprint now carries the arms best
+     outside the vecdims family per shape, main set and classes, which is what
+     a stride-conditioned redirect would be designed on. Registered: on every
+     shape where Run 16's outside-family leader beats the shipped arm by more
+     than the floor --- `stretch-inner1` and the two `reshape1` shapes
+     to `mut-flat-gm`, `stretch-pow2stride` to `bq-mut-runs`,
+     `window-64x64-k1x9` to `mut-flat-gm` --- the same arm leads on Run 17;
+     and `--fingerprint --classes` reports the same six arms as the membership.
+     Killed by a leader changing hands past the floor, which would say
+     the candidate set is a draw and not a property of the strides,
+     and the predicate waits for Run 18.
 
   **Registered with the pair, out of the probe budget after the write-up, each
   on the basis binary and none needing a build** --- in the order they are worth
