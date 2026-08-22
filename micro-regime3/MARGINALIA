@@ -205,3 +205,18 @@ major (72.9 KB in the poisoned process; 13 KB was the other file).
 What I did right, and it is the only reason the victim-set experiment survives:
 that script PRINTED which bench ran first and I checked it. The poison scan did
 not print it. Same session, same hazard, one instrumented and one not.
+
+2026-08-23, the area-curve overwrite. A review fix for probe-areacurve.sh --
+its echo-only checks -- was cased first, by the suite's own rule, and the case
+was run against the script before the fix. That script cd'd to an absolute
+path and named its binary outright, so from the case's shadow it ran HERE, on
+run16-a32m, and had written 58 benches of a new -A8m run over Run 16's recorded
+probe-areacurve-8m.json and .log, and its driver log, before the case's own
+timeout killed it. The three are parked under a .clobbered-2026-08-23 suffix;
+the 2026-08-20 originals are gone, gitignored and nowhere else. README's curve
+stands, the 8m figure having been read from them before, but the evidence for
+that one point is now this entry. What changed: shadow_dir refuses a program
+with an absolute cd, the probe takes HALF and OUT and refuses to start over its
+own artifacts as the run drivers do. The rule to take from it is the one the
+case-first discipline hid: before a case runs a script unfixed, read what that
+script does when it is not where the shadow put it.
