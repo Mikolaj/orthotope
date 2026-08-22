@@ -2627,11 +2627,11 @@ rather than a slot in the next run, observed again:
   is counted per process in `run-major.sh`, exactly as bench counts are,
   and banded across them in `read-all.sh`, at 5% --- loose against the 0.9% ten
   alone-leg processes span, tight against the 14% an unsaturated process reads
-  below a saturated one --- with seven `check-scripts.py` cases behind all
-  of it, three of them controls; and `run-alonelegs.sh` and `run-counts.sh` have
-  cases now, each written against a defect it turned out to have. **Not in Run
-  18**: a roster change, which would confound the compiler. The 24m/48m probe,
-  which could have reopened the area, was taken ahead of Run 17 and killed.
+  below a saturated one --- with `check-scripts.py` cases behind all of it,
+  controls among them; and `run-alonelegs.sh` and `run-counts.sh` have cases
+  now, each written against a defect it turned out to have. **Not in Run 18**:
+  a roster change, which would confound the compiler. The 24m/48m probe, which
+  could have reopened the area, was taken ahead of Run 17 and killed.
   And the `add-in` placement question, deferred by [its own entry][open]
   to a run that has the compilers measured.
 
@@ -2722,8 +2722,8 @@ machine at all; no window closes.
    in `Main.hs` by commit, so every recipe below lost its apply step; the stamp
    gained its three load fields before that build, so a wild cell can be told
    from an intrusion per sample; the plateau is counted per process
-   in `run-major.sh` and banded across them in `read-all.sh`, with seven
-   `check-scripts.py` cases behind it, three of them controls;
+   in `run-major.sh` and banded across them in `read-all.sh`,
+   with `check-scripts.py` cases behind it, controls among them;
    and `run-alonelegs.sh` and `run-counts.sh` have cases of their own, each
    written against a defect it had. What is left of this item is the `-g3` twins
    per compiler, which belong at the write-up and not before the build.

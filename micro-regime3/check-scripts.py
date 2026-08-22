@@ -3410,12 +3410,19 @@ def shadow_dir(tmp, prog, text, mutate=(), extra=()):
 # ---------------------------------------------------------------- families
 
 def _scopes(tree):
-    """{lineno: the function it is in}, and None for module scope."""
+    """{lineno: the innermost function it is in}, and None for module
+    scope.
+
+    Innermost, which `ast.walk` visiting the outer def first and a plain
+    assignment buy: `setdefault` kept the outer, so a nested def's parse
+    was the outer's and flagged whenever the outer ran at import, called
+    or not. Found 2026-08-23 by review; the handled control plants it.
+    """
     at = {}
     for fn in ast.walk(tree):
         if isinstance(fn, (ast.FunctionDef, ast.AsyncFunctionDef)):
             for n in ast.walk(fn):
-                at.setdefault(getattr(n, 'lineno', 0), fn)
+                at[getattr(n, 'lineno', 0)] = fn
     return at
 
 
