@@ -55,6 +55,19 @@ if ! perf stat -x, -e instructions:u /bin/true 2>&1 | grep -q '^[0-9]\+,'; then
   echo "   and not a diagnosis. Nothing ran and no $OUT was written."
   exit 1
 fi
+# AND THE TEMP PATH, which buys the same forty minutes of NaN by another
+# route: `count()` hands perf a `mktemp` file per cell, and where that
+# fails -- a sandbox permitting only some of /tmp, which read-all.sh
+# records having met -- perf writes nowhere, the grep reads nothing and
+# the cell is NaN, with nothing anywhere naming the path as the cause.
+# Asserted once here rather than made loud per cell, and the measurement
+# path is left exactly as the pilot proved it.
+_probe=$(mktemp 2>/dev/null) && printf x > "$_probe" 2>/dev/null || {
+  echo "!! mktemp gives no writable file here (TMPDIR=${TMPDIR:-unset}), so"
+  echo "   perf would write its counts nowhere and every cell would be NaN."
+  echo "   Nothing ran and no $OUT was written."
+  rm -f "$_probe"; exit 1; }
+rm -f "$_probe"
 LIST=$("$B" --list 2>/dev/null)
 [ -n "$LIST" ] || { echo "!! --list gave nothing; wrong binary?"; exit 1; }
 # Both restrictions are read BEFORE the defaults overwrite them: `ARMS` is

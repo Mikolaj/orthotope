@@ -1864,9 +1864,26 @@ CASES = [
          ok=V(exit=1, has=['perf will not count instructions here',
                            'Nothing ran'])),
 
+    case('counts-refuses-an-unwritable-tmp', 'run-counts.sh', None,
+         'a broken temp path bought the same forty minutes of NaN',
+         # The second route to an all-NaN sweep, and the quieter one:
+         # `count()` hands perf a `mktemp` file per cell, so where that
+         # fails -- a sandbox permitting only some of /tmp, which
+         # read-all.sh records having met -- perf writes nowhere, the grep
+         # reads nothing, and the cell is NaN with the path named nowhere.
+         # A perf that answers is not enough on its own, which is why this
+         # rides beside the perf guard rather than inside it.
+         shadow=dict(extra=[('zzct5-g912', FAKE_HALF)]),
+         plant=lambda t: {'stub': stub_dir(t, PERF_ANSWERS)},
+         env={'PATH': '{stub}:/usr/bin:/bin', 'TMPDIR': '/nonexistent-zz',
+              'ONLY': 'shape-a', 'ARMS': 'list', 'N': '1'},
+         argv=['zzct5', 'g912'],
+         ok=V(exit=1, has=['mktemp gives no writable file', 'Nothing ran'])),
+
     case('counts-runs-under-a-perf-that-answers', 'run-counts.sh', None,
          'CONTROL: the guard passes and the sweep writes its counts',
-         # The other side, and what says the guard is not simply a ban:
+         # The other side of both guards, and what says neither is simply
+         # a ban:
          # with a perf that answers, the same invocation gets through and
          # the differenced count lands in the file.
          shadow=dict(extra=[('zzct4-g912', FAKE_HALF)]),
