@@ -2784,54 +2784,66 @@ left to attribute --- the interval it is about is the aligned binary's.
   to +15%; and with that sprayer run as a criterion bench ahead of the victim
   in one process, no preamble, 18.6 to 19.0, where Run 16's roster cell read
   18.45 against its alone leg's 16.38. So the plateau holds for both doses, dose
-  zero is the clean level, and the roster's own sprayer reproduces the roster's
-  state where the pure burst falls some three points short of it --- which
-  is why `SATURATE_BY` defaults to `list` and keeps `spray` as the control,
-  the three-point difference being the interleaved route's share on top
-  of the burst's, measured in one cell already and registration 3's to read
-  over the set. The 9.14 binary reads the same, 19.04 against 16.96.
-  Registrations, each with what kills it: (1) *the bridge*, the 9.12 basis
-  against `run17-wildlog` across the preamble's source change, every arm inside
-  the drift band and the fills where Run 17 held them, killed by an arm outside
-  it; (2) *the compiler*, the thirteen registered orderings holding on 9.14.1,
-  killed by a BROKE that clears that half's floor --- a margin moving
-  is the finding and not a break, as claim 4's history says --- with claim 7's
-  allocation levels read per compiler, a compiler being able to change
-  allocation where a slot cannot; (3) *the decomposition*, every shape's `list`
-  alone leg twice on the basis, `SAT=` off and on through `run-alonelegs.sh`,
-  against its roster cell: the state is saturated minus clean and the rest
-  is roster minus saturated, registered inside the floor on the `list` dose ---
-  the one cell read so far puts it there --- with the `spray` dose's legs,
-  a third column if the budget allows, pricing the burst route's share
-  of the state, some ten of the thirteen points on that cell; a rest past
-  the floor names what the state is not, criterion's own interleaving between
-  samples the first suspect; (4) *counted work*, `run-counts.sh` on both halves,
-  instructions an iteration for every arm and shape from two fixed-`-n`
-  processes a cell, read against each half's `time` column for the orderings
-  and, per arm, the count ratio 9.14/9.12 beside the time ratio --- time moving
-  with counts is codegen, time moving without counts is the runtime or memory,
-  layout being pinned --- a compiler's codegen term and runtime term separated
-  for the first time; (5) *the plateau*, every recorded process's `@@saturate`
-  victim reading inside a band of the run's own, a process outside it read
-  before its figures are. **What is built**: `saturate-preamble.patch`,
-  with its two doses, proved to build and to fire on both compilers; `sat-probe`
-  and `sat-probe-914`, its binaries, for the between-run probes;
-  `cabal.project.ghc914` and its freeze; `run-counts.sh`, proved on one cell
-  (`vgg-14-c512-k3/list` 260.6M instructions an iteration, `mut-odo` 54.4M,
-  `sum-only-early` 8.1M, `N` = 5); the `SAT=` mode of `run-alonelegs.sh`, which
-  refuses a binary without the preamble. Once Run 17's pair is spent both
-  patches land in the source by commit and the recipes lose their apply step.
-  **The one pre-run risk is retired**: the shim reads back on 9.14's assembly
-  --- `sat-probe-914`, the other half's recipe, has 113 self-loops
-  in `Main`-compiled code, 61 at offset 0 and none straddling, the 9.12 probe
-  110, 56 and none, the tracked 28 B groups reading `[0, 24, 0, 0]` and `[0, 0]`
-  against `[0, 24, 0, 4]` and `[0, 0]`; its `--list` and its `check` output
-  are byte-identical to the 9.12 probe's, and the preamble fires there alike.
-  One trap for the read-back: on 9.14 the baked RTS line is stored with a byte
-  before it, so `strings | grep -x` misses it while `+RTS --info` reports
-  it and the heap peak shows it in effect --- the notes and `run-alonelegs.sh`
-  read it by `--info` now. **What is owed before the evening**: the plateau
-  check in `run-major.sh` and `read-all.sh`, counted as bench counts are,
+  zero is the clean level, and on that shape the roster's own sprayer reproduces
+  the roster's state where the pure burst falls some three points short ---
+  which is why `SATURATE_BY` defaults to `list` and keeps `spray`
+  as the control. The 9.14 binary reads the same, 19.04 against 16.96.
+  **Over five more shapes the picture is flatter** (`probe-decomp-dryrun.log`,
+  the same binary and evening): the `list` dose lifts `list` by 12 to 16%
+  and the `spray` dose by 10 to 14.5%, against Run 16's roster-over-alone-leg
+  deflations of 9 to 13.5% on the same shapes, so both doses land
+  in the roster's band within a few points, the `list` dose erring about two
+  points high on average and the `spray` dose about half a point low,
+  with the sign varying by shape --- `stretch-inner256`'s roster cell sits five
+  points under both. The default stands, both routes being in it, and what
+  changes is how registration 3 reads: the rest is a few points of either sign
+  and not a constant. Registrations, each with what kills it: (1) *the bridge*,
+  the 9.12 basis against `run17-wildlog` across the preamble's source change,
+  every arm inside the drift band and the fills where Run 17 held them, killed
+  by an arm outside it; (2) *the compiler*, the thirteen registered orderings
+  holding on 9.14.1, killed by a BROKE that clears that half's floor ---
+  a margin moving is the finding and not a break, as claim 4's history says ---
+  with claim 7's allocation levels read per compiler, a compiler being able
+  to change allocation where a slot cannot; (3) *the decomposition*, every
+  shape's `list` alone leg twice on the basis, `SAT=` off and on through
+  `run-alonelegs.sh`, against its roster cell: the state is saturated minus
+  clean and the rest is roster minus saturated. The dry run over six shapes puts
+  the rest between -1.4 and +5 points with no constant sign, so the registration
+  is the distribution over the 24 shapes and not a cell: its median inside
+  the floor, its tails named and read per shape, a median past the floor naming
+  what the state is not, criterion's own interleaving between samples the first
+  suspect. The `spray` dose's legs, a third column if the budget allows, price
+  the burst route's share, some ten of the thirteen points on `vgg-14-c512-k3`
+  and within two points of the `list` dose elsewhere. The alone legs themselves
+  are sound: ten processes of `cifar-L2-16-c64-k3/list` land within 0.9%,
+  so `list` is immune to the per-process placement term that unreads `offtab`
+  and `build`; (4) *counted work*, `run-counts.sh` on both halves, instructions
+  an iteration for every arm and shape from two fixed-`-n` processes a cell,
+  read against each half's `time` column for the orderings and, per arm,
+  the count ratio 9.14/9.12 beside the time ratio --- time moving with counts
+  is codegen, time moving without counts is the runtime or memory, layout being
+  pinned --- a compiler's codegen term and runtime term separated for the first
+  time; (5) *the plateau*, every recorded process's `@@saturate` victim reading
+  inside a band of the run's own, a process outside it read before its figures
+  are. **What is built**: `saturate-preamble.patch`, with its two doses, proved
+  to build and to fire on both compilers; `sat-probe` and `sat-probe-914`,
+  its binaries, for the between-run probes; `cabal.project.ghc914`
+  and its freeze; `run-counts.sh`, proved on one cell (`vgg-14-c512-k3/list`
+  260.6M instructions an iteration, `mut-odo` 54.4M, `sum-only-early` 8.1M, `N`
+  = 5); the `SAT=` mode of `run-alonelegs.sh`, which refuses a binary without
+  the preamble. Once Run 17's pair is spent both patches land in the source
+  by commit and the recipes lose their apply step. **The one pre-run risk
+  is retired**: the shim reads back on 9.14's assembly --- `sat-probe-914`,
+  the other half's recipe, has 113 self-loops in `Main`-compiled code, 61
+  at offset 0 and none straddling, the 9.12 probe 110, 56 and none, the tracked
+  28 B groups reading `[0, 24, 0, 0]` and `[0, 0]` against `[0, 24, 0, 4]`
+  and `[0, 0]`; its `--list` and its `check` output are byte-identical
+  to the 9.12 probe's, and the preamble fires there alike. One trap
+  for the read-back: on 9.14 the baked RTS line is stored with a byte before it,
+  so `strings | grep -x` misses it while `+RTS --info` reports it and the heap
+  peak shows it in effect --- the notes and `run-alonelegs.sh` read
+  it by `--info` now. **What is owed before the evening**: the plateau check
+  in `run-major.sh` and `read-all.sh`, counted as bench counts are,
   with a `check-scripts.py` case first; cases for `run-alonelegs.sh`
   and `run-counts.sh`, which have none; and the `-g3` twins per compiler
   at the write-up. **Not in Run 18**: a roster change, which would confound
