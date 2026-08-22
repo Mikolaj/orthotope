@@ -3960,6 +3960,16 @@ def splice(readme, anchor, source):
     to overwrite, so a wrong anchor is loud before it is written and
     the record of what went says what it replaced.
 
+    **A LIST WITH NO BLANK LINE BETWEEN ITS ITEMS IS ONE PARAGRAPH**, so an
+    anchor inside one item names the whole list, and it is refused unless
+    the anchor is in the FIRST item -- where quoting the list from its
+    start is what a caller replacing all of it would do anyway. Measured
+    2026-08-22 in this README's own open list: an anchor naming task 3 took
+    tasks 1, 2 and 3 and wrote back task 3 alone, at exit 0. The echo below
+    had said so, `out, first` naming task 1 where the anchor named task 3,
+    and saying so was not enough -- which is the whole difference between a
+    warning and a refusal, and the reason this is the second.
+
     Wrapping is the caller's: this writes the replacement as given, so
     an edit made against an unwrapped file leaves that paragraph on one
     line, which is what the wrap gate reports as mid-edit and not as a
@@ -3977,8 +3987,27 @@ def splice(readme, anchor, source):
         sys.stderr.write('--replace: the anchor spans a paragraph break, so'
                          ' there is no one paragraph to replace\n')
         return 1
-    new = open(source).read().strip('\n')
     old = paras[hit[0]]
+    # A LIST WITH NO BLANK LINES BETWEEN ITS ITEMS IS ONE PARAGRAPH, and
+    # this replaces paragraphs -- so an anchor inside one item of the open
+    # list's numbered tasks took all three items and wrote back one.
+    # Measured 2026-08-22: `--replace '3. **Between Run 17 and Run 18'`
+    # replaced items 1, 2 and 3 with item 3 alone, at exit 0. The echo
+    # below said so, `out, first` naming item 1 where the anchor names
+    # item 3, and saying so was not enough -- which is the difference
+    # between a warning and a refusal, and the reason this is the second.
+    # Pass the whole list as the replacement, or edit the item in place.
+    items = [l for l in old.split('\n')
+             if re.match(r'\s*(?:\d+\.|[-*])\s', l)]
+    if len(items) > 1 and anchor not in old.split('\n')[0]:
+        sys.stderr.write(
+            '--replace: this paragraph is a %d-item list and the anchor is'
+            ' not in its first item, so replacing it would discard the items'
+            ' above -- quote the list from its first item, and pass the whole'
+            ' list as the replacement, or edit the one item in place\n'
+            % len(items))
+        return 1
+    new = open(source).read().strip('\n')
     ol, nl = old.split('\n'), new.split('\n')
     print('--replace: %d chars -> %d, in %s'
           % (len(old), len(new), os.path.basename(readme)))
