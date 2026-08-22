@@ -2526,156 +2526,6 @@ rather than a slot in the next run, observed again:
   the promotion was decided on, which is the churn findings' and
   not this README's. *The wild cell's mechanism* is the task heading below,
 
-
-### Recommended tasks after Run 16
-
-**What Run 16 made cheaper for the next run, which is not a figure and no other
-step gathers.** Four checker gaps, each closed with a case in `check-scripts.py`
-written and proved to fail before its fix: `read-all.sh` counted the pair note
-that `run-major.sh` quotes into the wall-clock log as the run's own complaints,
-so any run whose gate tripped the machine check reported a complaint no process
-made and exited 1 for ever after; `--check-doc` never held a table's rows
-to its header's cell count, which is how the yardstick's four bottom rows came
-to sit five columns from the runs the prose named; the machine check named
-no way to tell a changed box from a changed area, which is the state this run
-put it in; and `read-all.sh` gated the alone-leg riders as populations, burying
-the eighteen it exists to count. **One capability, and it is a method rather
-than a tool**: an external intrusion into a recorded run can be dated
-from outside it, located to a bench by dividing the wall-clock window
-by the bench count, and confirmed to a single cell by holding that arm's
-cross-half ratio against its own family's median. Run 16 did that
-for an in-place updater and closed on one cell of 1128. **One instrument earns
-standing use**: the alone-leg riders turn the deflation from an estimate
-into a per-shape measurement, and they are what makes a span prediction
-checkable at all --- registration 3 could not have been diagnosed without them.
-**And one repair recovered from git rather than guessed**: a table row written
-when the table was narrower drifts silently as later runs prepend columns,
-and the fix is `git show` of the commit that wrote it, not a reading of what
-looks right.
-
-**The gate on the wild cell's logging has lifted, which is the one change
-this run makes to this heading.** Run 16's pair is spent and Run 17's is decided
-with the instrument on its basis half alone, so the next `Main.hs` edit rides
-both halves of Run 18, where the preamble goes. Of what stands here, item 3's
-rider, floor and probe want a quiet machine and its pilot does not; no window
-closes.
-
-1. **WHICH SHAPES POISON --- asked here as the probe evening's one open
-   question, and answered 2026-08-18: there is no set.** The scan it planned
-   was run at both areas, with the order assertion it specified, and everything
-   the evening established --- the dose curve, the size-class mechanism,
-   the instrument correction that resizes the `-A1G` figures, the re-measured
-   victim set and arm specificity --- is consolidated in [the position-term
-   entry][open]. Raw material, the scan scripts, the data they rest on,
-   the reproducer and the forward plan --- the GHC filing decision, the best
-   current options, the user-code workarounds --- are tracked together
-   in `small-pinned-churn-investigation`.
-2. **The wild cell's mechanism --- SPENT 2026-08-20, and it is a negative result
-   that excludes three mechanisms.** The trigger this entry names fired: Run
-   16's worst A/A cell anywhere is 43.43% on `reshape1-500k`
-   at `mut-odo-aa-distant`, with its adjacent twin at 31.19% on the same shape,
-   so `wildlog-a32m` went to the `reshape1` class process rather
-   than to `scaled`. One process, 141 benches, 12m08s, 21334 sample records.
-   **The 43.43% cell did not come back** --- `mut-odo-aa-distant`'s worst
-   is 15.35% here and on a different shape, its adjacent twin's 12.59% --- which
-   is itself the standing ruling holding: the magnitude does not repeat. What
-   the per-sample record settles is what the spread is NOT made of. Between
-   an arm and its own byte-identical duplicate on `reshape1-500k`: allocation
-   per iteration is identical to 0.01% (4007172 against 4007513 and 4007412
-   bytes), in-use heap is flat at 92 MiB across all three benches and every
-   sample of them, GC is **0.03% of mut+gc** and no major collection falls
-   inside any of the three benches' timed windows, though the process runs 517
-   in all, 516 of them after the logging began --- and mutator time still
-   differs by **8.2%**, the two twins agreeing with each other to 0.09% while
-   sitting that far from the base. The twins run at slots 9 and 15 and the base
-   at 14, so they bracket it in execution order and still agree with each other
-   rather than with it. **So the reshape1 A/A spread is not allocation volume,
-   not heap occupancy and not collector work**, which is every quantity
-   the runtime can report; what is left is where the code sits, and step 11's
-   named fills bear on it --- `mut-odo` and `build` share one loop body at two
-   call sites. The caveat is the instrument's own: this is the wildlog binary,
-   whose patch moves `.text`, so it characterises the class's hazard
-   and not that one cell. What would settle the residue is an address-level
-   read, which this entry has always said costs a fill per sample.
-   The instrument, kept for the next time it is wanted: the instrument
-   is `wildlog-a32m` (2026-08-19): the basis recipe over a `Main.hs` edit
-   logging the RTS's allocated-bytes total with the GC and mutator clocks beside
-   it, one line per criterion **sample** --- a step inside one bench being
-   averaged away by a per-bench figure --- off unless `WILDLOG` is set
-   in the environment, proved firing and silent before the tree was restored,
-   and kept as `wildlog-instrument.patch` rather than committed while the pair's
-   source is the tip a note names. It hangs off criterion's `allocEnv`
-   and `cleanEnv`, which bracket the timed block from outside, and runs
-   criterion's own `whnf'` loop, so a logged arm executes the instructions every
-   published bench does. Addresses are not logged though the entry names them,
-   and the code says why: the RTS reserves its heap at a fixed base, so what
-   moves is where within that arena a buffer lands, which is what the allocation
-   total says, and taking an output buffer's address would cost an extra fill
-   per sample --- perturbing the history under test. **Riding both halves
-   of the pair, which this heading asked for until 2026-08-19, is refused**: Run
-   16's basis registration is a repetition against run15-a32m, the edit moves
-   `.text` and every loop offset, so the bridge would cross a layout change,
-   and per-sample logging allocates. Run 17 puts it on ONE half by decision
-   of 2026-08-21 --- `run17-wildlog`, the basis, against `run17-det` without
-   it --- so the pair prices the instrument rather than inheriting it ([What Run
-   17 compares against](#what-run-17-compares-against)). It was pointed
-   at the `scaled` class process, whose disturbance turns up in six runs
-   of eight where a wild cell is three of eight and none in the last four ---
-   but **a wild cell in Run 16's own A/A worst cell was the trigger** to spend
-   the budget on that process instead, and it fired, so `reshape1` took it.
-   Neither instance reproduces filtered --- measured both times --- so either
-   probe is a whole process and never a five-bench run. Its `perf` half still
-   wants `kernel.perf_event_paranoid` lowered by hand. **And Run 15 moves where
-   to point it**: the `scaled` slot's disturbance sat on `mut-odo-vecdims`
-   for six runs and this run finds it on `mut-odo`, `gen-unsafe` and `build`
-   instead, all three worst on `scaled-super-r3` --- so the instrument follows
-   the shape and not the arm. Both readings are with the wild-cell entry.
-3. **Between Run 17 and Run 18: the riders and probes registered with Run 17's
-   pair, and Run 18's own pair** --- each with its kill condition in [the Run 17
-   registration and the entry after it](#what-is-open), each with its commands
-   in `run17-pair.txt`, none needing a build. In the order they are worth
-   taking: the fixed-n rider, dry-run 2026-08-22 on Run 16's binary and re-aimed
-   at `list` against the alone leg and the `sum-only` arms against the roster,
-   minutes on the basis binary once the evening is over; and three already taken
-   on 2026-08-22 ahead of the pair, on `run16-a32m`: the per-process floor
-   (held, 12 to 14%, placement left as the term, the per-trial pilot [in
-   the TODO list](#non-urgent-todo-list) refused), the 24m/48m probe (killed,
-   no bump at the fixed area) and the counted-work pilot (the switch to counts
-   refused, counts kept as the layout-free check). Run 18 is settled
-   and half-built --- 9.14.1 against 9.12.4 on a source carrying the instrument
-   and the saturating preamble, with `saturate-preamble.patch`, `run-counts.sh`,
-   the `SAT=` rider mode and the 9.14 plan in place --- written up in the open
-   list, `run18-pair.txt` carrying its recipes and the read-backs still owed.
-
-**One rider rather than a task of its own, since it fires on an event and
-not on a session.** The pinning claim --- that a shim'd build holds every
-tracked loop at one address across a roster change --- is measured only
-in its weak form: adding `mut-flat-gm-nosum` left every tracked loop where
-it was, but a `Force` arm reuses a rostered function and emits no code
-of its own, so emission order had nothing to move. **The next roster addition
-that brings a new function is the stronger test, and is to be taken as one** ---
-read the fills on one build either side of it, before anything else changes ---
-which costs nothing at the moment the arm lands and cannot be taken afterwards.
-Until then the claim covers additions that cost nothing to place, and should
-be quoted that way.
-
-**And one class not to repropose: work that needs an aligned build.**
-`mut-odo`'s wide interval is the live case. The dispersion is documented
-as belonging to `micro-aligned` --- 1.06, 1.09 and 1.15 there against 0.72
-and 0.19 on `micro-maxskip`, and 0.82 against 0.31 on Run 11 --- and the swap
-that would separate a dispersion belonging to the *worker* from one belonging
-to the *slot* is enabled by an aligned build making it a membership-free edit.
-No run since Run 11 has had one: the basis has been max-skip since Run 12, which
-priced `-fproc-alignment=64` and saw the flag lose; the script that built
-unaligned/aligned pairs was deleted on 2026-08-14; and Run 13 showed a two-shim
-pair can hold every tracked loop at one offset in **both** halves, which
-is the property alignment was wanted for. So the swap asks for a build form
-this README has moved past, and on a max-skip basis there is little dispersion
-left to attribute --- the interval it is about is the aligned binary's.
-
-
-### Non-urgent TODO list
-
 - `OPEN` **What Run 17 is built to answer, registered before it runs.**
   Its pair, decided 2026-08-21, is `run17-wildlog` --- the basis, `run16-a32m`'s
   recipe with `-fobject-determinism` added and built
@@ -2683,8 +2533,8 @@ left to attribute --- the interval it is about is the aligned binary's.
   `run17-det`, the same recipe without the patch and the bridge to Run 16,
   on Run 16's roster at the `-A32m` now fixed for every process here ([what
   it compares against](#what-run-17-compares-against); the recipes
-  are `run17-pair.txt`'s). Five registrations, each with what would kill it;
-  what Run 18 takes from them is [the entry after this one](#what-is-open)'s.
+  are `run17-pair.txt`'s). Six registrations, each with what would kill it; what
+  Run 18 takes from them is [the entry after this one](#what-is-open)'s.
   1. *The flag's cost.* `run17-det` against `run16-a32m` is a repetition across
      one compiler flag: every arm inside the 3.3% drift band, the three anchors
      inside the floor, and the tracked fills read back where Run 16 held them.
@@ -2876,6 +2726,157 @@ left to attribute --- the interval it is about is the aligned binary's.
   at the write-up. **Not in Run 18**: a roster change, which would confound
   the compiler. The 24m/48m probe, which could have reopened the area, was taken
   ahead of Run 17 and killed.
+
+
+### Recommended tasks after Run 16
+
+**What Run 16 made cheaper for the next run, which is not a figure and no other
+step gathers.** Four checker gaps, each closed with a case in `check-scripts.py`
+written and proved to fail before its fix: `read-all.sh` counted the pair note
+that `run-major.sh` quotes into the wall-clock log as the run's own complaints,
+so any run whose gate tripped the machine check reported a complaint no process
+made and exited 1 for ever after; `--check-doc` never held a table's rows
+to its header's cell count, which is how the yardstick's four bottom rows came
+to sit five columns from the runs the prose named; the machine check named
+no way to tell a changed box from a changed area, which is the state this run
+put it in; and `read-all.sh` gated the alone-leg riders as populations, burying
+the eighteen it exists to count. **One capability, and it is a method rather
+than a tool**: an external intrusion into a recorded run can be dated
+from outside it, located to a bench by dividing the wall-clock window
+by the bench count, and confirmed to a single cell by holding that arm's
+cross-half ratio against its own family's median. Run 16 did that
+for an in-place updater and closed on one cell of 1128. **One instrument earns
+standing use**: the alone-leg riders turn the deflation from an estimate
+into a per-shape measurement, and they are what makes a span prediction
+checkable at all --- registration 3 could not have been diagnosed without them.
+**And one repair recovered from git rather than guessed**: a table row written
+when the table was narrower drifts silently as later runs prepend columns,
+and the fix is `git show` of the commit that wrote it, not a reading of what
+looks right.
+
+**The gate on the wild cell's logging has lifted, which is the one change
+this run makes to this heading.** Run 16's pair is spent and Run 17's is decided
+with the instrument on its basis half alone, so the next `Main.hs` edit rides
+both halves of Run 18, where the preamble goes. Of what stands here, item 3's
+rider, floor and probe want a quiet machine and its pilot does not; no window
+closes.
+
+1. **WHICH SHAPES POISON --- asked here as the probe evening's one open
+   question, and answered 2026-08-18: there is no set.** The scan it planned
+   was run at both areas, with the order assertion it specified, and everything
+   the evening established --- the dose curve, the size-class mechanism,
+   the instrument correction that resizes the `-A1G` figures, the re-measured
+   victim set and arm specificity --- is consolidated in [the position-term
+   entry][open]. Raw material, the scan scripts, the data they rest on,
+   the reproducer and the forward plan --- the GHC filing decision, the best
+   current options, the user-code workarounds --- are tracked together
+   in `small-pinned-churn-investigation`.
+2. **The wild cell's mechanism --- SPENT 2026-08-20, and it is a negative result
+   that excludes three mechanisms.** The trigger this entry names fired: Run
+   16's worst A/A cell anywhere is 43.43% on `reshape1-500k`
+   at `mut-odo-aa-distant`, with its adjacent twin at 31.19% on the same shape,
+   so `wildlog-a32m` went to the `reshape1` class process rather
+   than to `scaled`. One process, 141 benches, 12m08s, 21334 sample records.
+   **The 43.43% cell did not come back** --- `mut-odo-aa-distant`'s worst
+   is 15.35% here and on a different shape, its adjacent twin's 12.59% --- which
+   is itself the standing ruling holding: the magnitude does not repeat. What
+   the per-sample record settles is what the spread is NOT made of. Between
+   an arm and its own byte-identical duplicate on `reshape1-500k`: allocation
+   per iteration is identical to 0.01% (4007172 against 4007513 and 4007412
+   bytes), in-use heap is flat at 92 MiB across all three benches and every
+   sample of them, GC is **0.03% of mut+gc** and no major collection falls
+   inside any of the three benches' timed windows, though the process runs 517
+   in all, 516 of them after the logging began --- and mutator time still
+   differs by **8.2%**, the two twins agreeing with each other to 0.09% while
+   sitting that far from the base. The twins run at slots 9 and 15 and the base
+   at 14, so they bracket it in execution order and still agree with each other
+   rather than with it. **So the reshape1 A/A spread is not allocation volume,
+   not heap occupancy and not collector work**, which is every quantity
+   the runtime can report; what is left is where the code sits, and step 11's
+   named fills bear on it --- `mut-odo` and `build` share one loop body at two
+   call sites. The caveat is the instrument's own: this is the wildlog binary,
+   whose patch moves `.text`, so it characterises the class's hazard
+   and not that one cell. What would settle the residue is an address-level
+   read, which this entry has always said costs a fill per sample.
+   The instrument, kept for the next time it is wanted: the instrument
+   is `wildlog-a32m` (2026-08-19): the basis recipe over a `Main.hs` edit
+   logging the RTS's allocated-bytes total with the GC and mutator clocks beside
+   it, one line per criterion **sample** --- a step inside one bench being
+   averaged away by a per-bench figure --- off unless `WILDLOG` is set
+   in the environment, proved firing and silent before the tree was restored,
+   and kept as `wildlog-instrument.patch` rather than committed while the pair's
+   source is the tip a note names. It hangs off criterion's `allocEnv`
+   and `cleanEnv`, which bracket the timed block from outside, and runs
+   criterion's own `whnf'` loop, so a logged arm executes the instructions every
+   published bench does. Addresses are not logged though the entry names them,
+   and the code says why: the RTS reserves its heap at a fixed base, so what
+   moves is where within that arena a buffer lands, which is what the allocation
+   total says, and taking an output buffer's address would cost an extra fill
+   per sample --- perturbing the history under test. **Riding both halves
+   of the pair, which this heading asked for until 2026-08-19, is refused**: Run
+   16's basis registration is a repetition against run15-a32m, the edit moves
+   `.text` and every loop offset, so the bridge would cross a layout change,
+   and per-sample logging allocates. Run 17 puts it on ONE half by decision
+   of 2026-08-21 --- `run17-wildlog`, the basis, against `run17-det` without
+   it --- so the pair prices the instrument rather than inheriting it ([What Run
+   17 compares against](#what-run-17-compares-against)). It was pointed
+   at the `scaled` class process, whose disturbance turns up in six runs
+   of eight where a wild cell is three of eight and none in the last four ---
+   but **a wild cell in Run 16's own A/A worst cell was the trigger** to spend
+   the budget on that process instead, and it fired, so `reshape1` took it.
+   Neither instance reproduces filtered --- measured both times --- so either
+   probe is a whole process and never a five-bench run. Its `perf` half still
+   wants `kernel.perf_event_paranoid` lowered by hand. **And Run 15 moves where
+   to point it**: the `scaled` slot's disturbance sat on `mut-odo-vecdims`
+   for six runs and this run finds it on `mut-odo`, `gen-unsafe` and `build`
+   instead, all three worst on `scaled-super-r3` --- so the instrument follows
+   the shape and not the arm. Both readings are with the wild-cell entry.
+3. **Between Run 17 and Run 18: the riders and probes registered with Run 17's
+   pair, and Run 18's own pair** --- each with its kill condition in [the Run 17
+   registration and the entry after it](#what-is-open), each with its commands
+   in `run17-pair.txt`, none needing a build. In the order they are worth
+   taking: the fixed-n rider, dry-run 2026-08-22 on Run 16's binary and re-aimed
+   at `list` against the alone leg and the `sum-only` arms against the roster,
+   minutes on the basis binary once the evening is over; and three already taken
+   on 2026-08-22 ahead of the pair, on `run16-a32m`: the per-process floor
+   (held, 12 to 14%, placement left as the term, the per-trial pilot [in
+   the TODO list](#non-urgent-todo-list) refused), the 24m/48m probe (killed,
+   no bump at the fixed area) and the counted-work pilot (the switch to counts
+   refused, counts kept as the layout-free check). Run 18 is settled
+   and half-built --- 9.14.1 against 9.12.4 on a source carrying the instrument
+   and the saturating preamble, with `saturate-preamble.patch`, `run-counts.sh`,
+   the `SAT=` rider mode and the 9.14 plan in place --- written up in the open
+   list, `run18-pair.txt` carrying its recipes and the read-backs still owed.
+
+**One rider rather than a task of its own, since it fires on an event and
+not on a session.** The pinning claim --- that a shim'd build holds every
+tracked loop at one address across a roster change --- is measured only
+in its weak form: adding `mut-flat-gm-nosum` left every tracked loop where
+it was, but a `Force` arm reuses a rostered function and emits no code
+of its own, so emission order had nothing to move. **The next roster addition
+that brings a new function is the stronger test, and is to be taken as one** ---
+read the fills on one build either side of it, before anything else changes ---
+which costs nothing at the moment the arm lands and cannot be taken afterwards.
+Until then the claim covers additions that cost nothing to place, and should
+be quoted that way.
+
+**And one class not to repropose: work that needs an aligned build.**
+`mut-odo`'s wide interval is the live case. The dispersion is documented
+as belonging to `micro-aligned` --- 1.06, 1.09 and 1.15 there against 0.72
+and 0.19 on `micro-maxskip`, and 0.82 against 0.31 on Run 11 --- and the swap
+that would separate a dispersion belonging to the *worker* from one belonging
+to the *slot* is enabled by an aligned build making it a membership-free edit.
+No run since Run 11 has had one: the basis has been max-skip since Run 12, which
+priced `-fproc-alignment=64` and saw the flag lose; the script that built
+unaligned/aligned pairs was deleted on 2026-08-14; and Run 13 showed a two-shim
+pair can hold every tracked loop at one offset in **both** halves, which
+is the property alignment was wanted for. So the swap asks for a build form
+this README has moved past, and on a max-skip basis there is little dispersion
+left to attribute --- the interval it is about is the aligned binary's.
+
+
+### Non-urgent TODO list
+
 - `STANDING` **A class process's provenance line counts every class view,
   not the population that ran.** The count is fixed before criterion does
   the selecting, so each class process reports the whole class set's size beside
@@ -4469,7 +4470,7 @@ and never as a chronology.
     # around these three lists is reference: it holds the reasons and
     # restates no fact you need, so reading it front to back before
     # beginning is the single largest waste available here -- Run 16 read
-    # all 1760 lines first and needed almost none of it for this half.
+    # the whole of it first and needed almost none of it for this half.
     # Come back to a paragraph when a step surprises you.
     cd ~/r/orthotope/micro-regime3        # and re-set R and REGIME per call
     #      NN is one past the chapter head's: `## About the last run (Run
@@ -4484,7 +4485,8 @@ and never as a chronology.
     #      file and read-run.py's docstring; horde-ad's CLAUDE.md is not
     cat $R-pair.txt                       # 0. the note: six steps quote it,
     #      four here and two in the run list -- the halves' roles, the
-    #      md5s, the commit, the gate line. NO SUCH FILE is the answer to
+    #      md5s, the commit, the gate line, and any environment its LAUNCH
+    #      line puts in FRONT of a command. NO SUCH FILE is the answer to
     #      the fork rather than an error: you are on the BUILD path, and
     #      the note is written at 3b, before either binary exists. Come
     #      back to this line after it, since the steps below quote it
@@ -4501,9 +4503,18 @@ and never as a chronology.
     #      as it builds, and this line is that transcription's check
     git log -1 --format=%h -- :/micro-regime3/Main.hs   # 3. has it moved?
     git diff <note's commit> HEAD -- :/micro-regime3/Main.hs  # comment-only?
+    #      MOVED IS NOT REBUILT, and this line is what tells the two
+    #      apart: a comment-only diff leaves the binary the note's, so it
+    #      is the CONFIRM path. EXPECT a move -- this file's own prose
+    #      lives in Main.hs's comments, so a documentation commit touches
+    #      it -- and read a diff that reaches CODE as the BUILD path
     git log -1 --format=%h -- :/micro-regime3/align-as.py  # 3a. and the SHIM,
+    git diff <note's shim commit> HEAD -- :/micro-regime3/align-as.py
     #      which is on the recipe's -pgma and is as much an input to the
-    #      binary as the source is. Provenance records its commit beside
+    #      binary as the source is, so it takes step 3's two lines and
+    #      step 3's verdict: a docstring-only diff leaves the shim
+    #      emission-identical and the pair sound, and a change to what it
+    #      EMITS is the BUILD path. Provenance records its commit beside
     #      the compiler's; the fork looked at neither until 2026-08-16,
     #      when a walk found it three commits past what Provenance names
     #      and had to read the diff to be sure the pair was still sound
@@ -4517,9 +4528,18 @@ and never as a chronology.
     #      the landed JSONs are provenanced to the binaries that made
     #      them, and the fork answers a question about a run that has not
     #      happened
+    #  AND IF THE PREPARATION IS SPENT BUT THE GATE IS NOT: a note whose
+    #      fill-in block is complete and whose GATE line reads NOT RUN has
+    #      spent this list already. Yours, from this session, enters at 13.
+    #      Somebody else's, or older than today, takes CONFIRM and re-runs
+    #      the cheap read-only steps -- 4 to 10 cost seconds each and 9 is
+    #      the whole regime guard -- inheriting only the three the note
+    #      records: the gate, the smoke sweep and the roster pass
     #  1-3 ARE THE FORK, and the two branches have names this file uses
-    #  elsewhere. Missing or moved sends you down the BUILD path: 3b and
-    #  the two --survey lines, and nothing else. Matching sends you down
+    #  elsewhere. Missing, or moved with CODE changed, sends you down the
+    #  BUILD path: 3b and the two --survey lines, and nothing else. Moved
+    #  comment-only is CONFIRM, the binary still being the note's.
+    #  Matching sends you down
     #  the CONFIRM path, where those are skipped and step 9 carries the
     #  whole guard instead, there being no build to have carried the
     #  regime (About the current harness has that, at `--survey`). Every
@@ -4589,11 +4609,14 @@ and never as a chronology.
     #      from 3b and everything below reads them. A wrong OTHER stops
     #      run-major.sh and run-gate.sh at a missing binary; in
     #      smoke-sweep.sh it sweeps the wrong half and looks clean
-    ./$R-<basis> check > /tmp/a.log 2>&1  # 4. every shape agrees
-    ./$R-<other> check > /tmp/b.log 2>&1  # 5. and the other half
-    cmp /tmp/a.log /tmp/b.log             #    byte-identical, or STOP
-    #      scratch names, spelled in full: a $R-*.log here makes
-    #      run-major.sh refuse hours later, and $TMPDIR is unset unsandboxed
+    ./$R-<basis> check > <your tmp>/a.log 2>&1   # 4. every shape agrees
+    ./$R-<other> check > <your tmp>/b.log 2>&1   # 5. and the other half
+    cmp <your tmp>/a.log <your tmp>/b.log        #  byte-identical, or STOP
+    #      NOT /tmp/a.log, which no seat here permits sandboxed: send both
+    #      to the temp directory this session actually has, since a
+    #      blocked redirect runs nothing at all. Scratch names, spelled in
+    #      full: a $R-*.log here makes run-major.sh refuse hours later,
+    #      and $TMPDIR is unset unsandboxed
     ./$R-<basis> --list 2>/dev/null | wc -l    # 6. roster size, then the
     diff <(./$R-<basis> --list 2>/dev/null) <(./$R-<other> --list 2>/dev/null)
     #      two halves' listings: identical is what one source built twice
@@ -4613,16 +4636,18 @@ and never as a chronology.
     #      cannot be told from one nothing searched. Get the checkout
     #      mounted and rerun, or run with it blocked and say so in the
     #      write-up -- the one thing not available is reading it as a pass
-    ./check-scripts.py --families         # 8d. and the defect families, over
+    ./check-scripts.py --families         # 8b. and the defect families, over
     #      the source of every program here, which is the one of the three
     #      that can name a site nobody has met
     ./check-scripts.py --properties       # 8c. and its properties, which
     #      are quantified over every run JSON here rather than over a
     #      fixture, so they answer for inputs no case anticipated
-    ./check-scripts.py                    # 8b. and if any script here has
+    ./check-scripts.py                    # 8d. and if any script here has
     #      changed since the last run: every defect these scripts have had,
-    #      planted again and refused again. Seconds, and it writes nothing --
-    #      no run file, no README, not even the index. `--audit` replays each
+    #      planted again and refused again. Seconds, and it writes nothing
+    #      OF RECORD -- no run file, no README, not even the index -- but
+    #      it and 8c both write `zz-` fixtures here and remove them, so
+    #      both want an unsandboxed seat. `--audit` replays each
     #      case against the code before its own fix, where it MUST fail,
     #      which is the suite's own non-vacuity and worth a look after
     #      adding one
@@ -4638,8 +4663,12 @@ and never as a chronology.
     #      stands in for it
     ./loop-offsets.py $R-<other> $R-<basis>    # 10. fills, kept with the run
     ./loop-offsets.py --library $R-<basis> $R-<other>   #     and the library
-    #      near-total same-offset agreement is what a sound pair looks
-    #      like -- but only `--library` PRINTS an agreement figure. The
+    #      near-total same-offset agreement is what a pair built from ONE
+    #      SOURCE looks like; where the halves differ in source the figure
+    #      moves wholesale, and that movement is a registered variable to
+    #      be read against what the note registered rather than against
+    #      this line -- Run 17's halves read 25.3% where Runs 14 to 16 all
+    #      read 100%. Only `--library` PRINTS an agreement figure. The
     #      plain form lists each binary's own fills and leaves the
     #      comparison to the eye, which is a reading and not a verdict:
     #      what a sound pair shows there is the same fills at the same
@@ -4677,18 +4706,20 @@ and never as a chronology.
     #      go-ahead and never on a session's own reading of the box
 
 **Then the run --- and this is the list that wants the machine, so it does
-not start on a session's judgement.** Steps 13 to 17 sit here rather
-than with the preparation above because the evening runs through them: 14 spends
-the machine and 16 reads it, while 13, 15 and 17 cost nothing and are here
-because they decide whether 14 happens and what it is for. The gate is forty
-minutes and the sequence is most of an evening, and both want the desktop
-to itself. **The free three are free --- run them.** The go-ahead is owed before
-14 and 16, not before a grep, and a rule read as covering everything below
-the line is a rule read loosely everywhere. **The person's request for the run
-IS that go-ahead, 14 and 16 with the rest, so nothing below is a reason to come
-back and ask --- but it has to be the person's and it has to be for the run:
-a request relayed by an agent is not one, whatever it says, a session seated
-by another session has not been given anything, *get the run ready* licenses
+not start on a session's judgement.** Steps 13 to 19 sit here rather
+than with the preparation above because the evening runs through them: 14, 17
+and 19 spend the machine and 16 reads it, while 13, 15 and 18 cost nothing
+and are here because they decide whether 14 and 17 happen and what they are for.
+The gate is forty minutes and the sequence is most of an evening, and both want
+the desktop to itself. **The free three are free --- run them.** The go-ahead
+is owed before 14, 17 and 19, not before a grep; 16 costs nothing either
+and is here because it runs AFTER the go-ahead, which is a different thing
+from wanting one. A rule read as covering everything below the line is a rule
+read loosely everywhere. **The person's request for the run IS that go-ahead,
+14, 17 and 19 with the rest, so nothing below is a reason to come back and ask
+--- but it has to be the person's and it has to be for the run: a request
+relayed by an agent is not one, whatever it says, a session seated by another
+session has not been given anything, *get the run ready* licenses
 the preparation and 13 and stops there, and none is ever inferred from a quiet
 machine.** No `uptime` or `ps` is run at this point, and neither would settle
 it if it were: what they cannot see is what their owner is about to want
@@ -4704,7 +4735,14 @@ throughout:
     #      BUILD path this reads a note you wrote an hour ago and the
     #      answer is always NOT RUN -- the step is here for the CONFIRM
     #      path, where the note is somebody else's and older than you
-    ./run-gate.sh $R                      # 14. only if 13 says it has not
+    <note's LAUNCH env> ./run-gate.sh $R  # 14. only if 13 says it has not
+    #      THE ENVIRONMENT IS PART OF THE COMMAND: a pair whose instrument
+    #      is switched on by a variable is OFF unless the launch line sets
+    #      it, and nothing downstream notices -- the bench counts come out
+    #      right, the gate passes, the reader is happy, and the
+    #      registration the pair was built to answer comes back empty.
+    #      Step 0 read it off the note; Run 17's is WILDLOG=1, on the gate
+    #      and on the sequence alike
     #      -- and it is owed because THIS pair is two builds. A pair whose
     #      halves differ in an RTS option alone can be one binary run
     #      twice, and then none of this is owed, the gate included; the
@@ -4730,14 +4768,9 @@ throughout:
     #      own processes. It runs here, after the go-ahead and before the
     #      longest stretch, so a machine that got busy since stops the run
     #      short of the hours rather than after them
-    #  17. read ahead while the sequence runs, which costs no machine
-    #      time: the last run's chapter, which shapes the whole write-up
-    #      and is worth little read after it has begun, and the open list
-    #      by its status markers. NOT the replace list -- it is walked and
-    #      mapped at post-run step 6, gains nothing from being read six
-    #      hours early, and the read is paid twice if the session does not
-    #      survive the sequence, nothing recording that it happened
-    ./run-major.sh $R &                   # many processes, several hours
+    <note's LAUNCH env> ./run-major.sh $R &    # 17. THE SEQUENCE: many
+    #      processes, several hours -- under the same environment the gate
+    #      took at 14, and for the same reason
     ps -eo pid,etime,comm | grep $R-      # confirm from an UNSANDBOXED ps:
     #      comm, not args, and comm truncates at 15 characters. A blocked
     #      write leaves a launch that never happened looking like one in
@@ -4771,8 +4804,25 @@ throughout:
     #      and its benchmarking lines are counted before any number is read
     #      report each long process as it finishes: exit code and bench
     #      count, not folded into a later summary
+    #  18. read ahead while the sequence runs, which costs no machine
+    #      time: the last run's chapter, which shapes the whole write-up
+    #      and is worth little read after it has begun, and the open list
+    #      by its status markers. NOT the replace list -- it is walked and
+    #      mapped at post-run step 6, gains nothing from being read six
+    #      hours early, and the read is paid twice if the session does not
+    #      survive the sequence, nothing recording that it happened
+    <note's LAUNCH env> ./run-alonelegs.sh $R <other>  # 19. THE RIDERS,
+    <note's LAUNCH env> ./run-alonelegs.sh $R <basis>  #     control first
+    #      owed with the pair since Run 16, and out of the EVENING rather
+    #      than out of the probe budget: the 24 main-set `list` alone legs
+    #      on each half's own binary, one bench per process, after that
+    #      half's major processes. They are what turn the in-process
+    #      deflation from an estimate into a per-shape measurement, so a
+    #      run without them cannot check a span prediction. The script
+    #      refuses a previous attempt's artifacts and reads the baked line
+    #      back before anything runs
 
-Steps 6 to 10 are read-only and fine sandboxed but for 8b and 8c, which write
+Steps 6 to 10 are read-only and fine sandboxed but for 8c and 8d, which write
 `zz-` fixtures here and remove them; 3b, 11, 12 and 14 write and are not,
 and so do 4 and 5 --- only through their redirect, but that is enough,
 the sandbox permitting the session's own directory and its own temp directory,
@@ -4864,14 +4914,15 @@ with a discriminating measurement usually deserves a filtered run now rather
 than a slot in the next full one.
 
 **What a run must read, so that nothing else is read to find out.**
-This chapter's three checklists --- 393 of its 1734 lines --- and of the rest
+This chapter's three checklists --- a fifth of its lines --- and of the rest
 only the *part* each section keeps, since most of what these sections hold
 is the previous run's data that the write-up is about to replace. The last run's
 chapter, whole, that being the one thing worth reading entire. Of [What Run N
 compares against](#what-run-17-compares-against), the paragraphs settling
 the regime, the roster and the basis, and the column rules under the yardstick
---- not its figures. Of [the claims](#the-claims-run-17-should-test),
-the numbered predicates at the end --- not the previous run's readings above
+--- not its figures. Of [the claims](#the-claims-run-17-should-test), BOTH
+numbered sets at the end --- the nine claims and the three class properties,
+a run returning verdicts on each --- and not the previous run's readings above
 them, which `--claims` reprints. Of [the class
 blocks](#the-stride-classes-run-by-run), the six numbered items of the form
 and one example block --- not the other seven. Of [Provenance](#provenance),
@@ -4965,13 +5016,16 @@ is the one the fork used to miss.
 re-enters.** Nothing in it wants a quiet machine, so it is legitimately
 an afternoon days before the evening --- and a session picking one up runs steps
 1 to 3, finds a pair and a note, and takes the CONFIRM path, which is what
-that path is for. What a stale preparation owes is `--lint` and `--check-doc`
-again, the README having moved under it, and nothing else: the gate, the smoke
-sweep and the roster pass belong to the pair and survive, which is why they
-are recorded in the note rather than in a session. The exception is the roster
-pass, whose own note line records it being re-taken the same day for exactly
-this reason --- a pass belongs to the roster it was taken on, and a roster
-that moved since voids it.
+that path is for. What a stale preparation never owes again is the three
+that cost machine time: the gate, the smoke sweep and the roster pass belong
+to the pair and survive, which is why they are recorded in the note rather
+than in a session. What it does owe is `--lint` and `--check-doc`, the README
+having moved under it, and the cheap read-only steps with them --- 4 to 10
+are seconds each, and 9 is the whole regime guard on a path with no build
+to have carried it, so re-running them costs less than deciding not to.
+The exception is the roster pass, whose own note line records it being re-taken
+the same day for exactly this reason --- a pass belongs to the roster
+it was taken on, and a roster that moved since voids it.
 
 **And before any of that, the previous run has to be finished.** Nothing
 in this list asks, and starting on top of a half-written write-up is a wrong
@@ -5109,14 +5163,15 @@ is in `align-as.py`'s docstring, beside the `PAD_BYTES` it feeds. **A pair
 of two shims has no such step and no such guarantee**, only whatever its two
 recipes give it, which is why `./loop-offsets.py --library` exists: it reports
 what share of the library self-loops the two halves put at the same offset
-in their line, and near-total agreement is what a sound pair looks like. A note
-may record the same property the other way round, off `nm` symbol by symbol,
-which is the stronger reading and not this tool's output --- so compare like
-with like, or read the note's own figure as the note's. So the pair now differs
-in Main's loop alignment and in nothing else an offset can see,
-and `micro-unaligned` keeps every offset the unpadded build had: the same fills
-at [3, 53, 59, 45] and [16, 0, 36, 36], the same 115 short loops with 50
-straddling.
+in their line, and near-total agreement is what a pair built from ONE SOURCE
+looks like; halves that differ in source move it wholesale, which
+is a registered variable rather than a verdict. A note may record the same
+property the other way round, off `nm` symbol by symbol, which is the stronger
+reading and not this tool's output --- so compare like with like, or read
+the note's own figure as the note's. So the pair now differs in Main's loop
+alignment and in nothing else an offset can see, and `micro-unaligned` keeps
+every offset the unpadded build had: the same fills at [3, 53, 59, 45] and [16,
+0, 36, 36], the same 115 short loops with 50 straddling.
 
 **Which two halves a pair has is a property of the pair, not of this README ---
 but how they are named is not.** A half is `$R-<tag>`, the tag naming what
@@ -5679,12 +5734,14 @@ was missed, which is what they have cost.
     #      the machine, and THE COMMIT, transcribed from $R-pair.txt; also
     #      which half ran first. A class line's shape count is the whole
     #      class-view set, so the population size comes from the reader
-    #  10a. collect what this run made CHEAPER for the next, which no
+    #   9a. collect what this run made CHEAPER for the next, which no
     #      other step gathers and which is not a figure: the checks that
     #      would have caught each error, the computations improvised, the
     #      steps skipped, and any capability found. Run 15's durable output
     #      was four checker gaps, two corrected rules here, and the finding
-    #      that a probe needs no pair; none of it is in a table
+    #      that a probe needs no pair; none of it is in a table. It feeds
+    #      10 and so comes before it -- a suffix here follows its number,
+    #      as 10a and 10b do in the pre-run list, and never precedes it
     #  10. walk the open list: grep the settled index before adding an
     #      entry, move answered ones with their measurement, and add each
     #      surprise with what would settle it. Prediction verdicts go THERE,
@@ -8152,12 +8209,12 @@ as [What Run 17 is built to answer](#what-is-open); the recipes
 are `run17-pair.txt`'s. The allocation area is fixed and no pair will vary
 it again: Runs 14, 15 and 16 priced it, and the decision closed it.
 
-**Registered with the pair, and Run 18 spoken for.** Four riders and probes go
-with Run 17, none needing a build --- the fixed-n rider on the anchors after
-the write-up, while the per-process floor, the 24m/48m probe
-and the counted-work pilot were taken ahead of it on Run 16's binary ---
-the floor held, the probe killed, the switch to counts refused --- each
-with its kill condition and its reading in [the Run 17
+**Registered with the pair, and Run 18 spoken for.** Five riders and probes go
+with Run 17, none needing a build --- the alone legs in the evening itself
+and the fixed-n rider on the anchors after the write-up, while the per-process
+floor, the 24m/48m probe and the counted-work pilot were taken ahead of
+it on Run 16's binary --- the floor held, the probe killed, the switch to counts
+refused --- each with its kill condition and its reading in [the Run 17
 registration](#what-is-open) and its commands in `run17-pair.txt`; and Run 18's
 pair is settled and half-built, [registered beside them](#what-is-open): GHC
 9.14.1 against 9.12.4 on one source carrying the instrument and the saturating

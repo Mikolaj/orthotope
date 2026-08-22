@@ -3,7 +3,14 @@ probe after it. Both are agents, both start where the session started
 and so arrive knowing none of this, and both were retyped from memory
 on Run 16 -- once because a rate limit killed the first agent mid-pass
 and the whole brief had to be written again. Only the first block
-changes from run to run.
+changes from run to run, and it is EDITED HERE at the write-up rather
+than substituted in the prompt -- the file is the copy both agents are
+sent, so a value that lives only in a prompt is a value the next run
+retypes. It carries the PREVIOUS run's values until then; the run
+below is Run 16 because Run 17's write-up has not happened.
+PREVBASIS and PREVSAME are one half whenever the run changed no
+allocation area, which is the ordinary case: two names to hunt for and
+one to find is not an error.
 
 Substitute per run: RUN=run16  BASIS=a32m  OTHER=a64m  PREV=run15
                     PREVBASIS=run15-lookrts  PREVSAME=run15-a32m
