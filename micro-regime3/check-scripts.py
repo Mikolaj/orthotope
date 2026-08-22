@@ -639,15 +639,22 @@ done
 exit 0
 """
 
-# Two planted files for the import-time family: a helper called at module
-# scope, which parses at import as surely as a module-scope line does, and
-# the same parse under a handler, which is what the family is not about.
+# Two planted files for the import-time family. The first carries what
+# runs at import: a helper called at module scope, which parses at import
+# as surely as a module-scope line does, and a parse in a class body. The
+# second carries the forms that do not -- a parse under a `try`, and a
+# helper reached only from under a module-level `try`, from a lambda, or
+# from the `__main__` block.
 ZZ_FAM_HELPER = """\
 import os
 
 
 def number(name, default):
     return int(os.environ.get(name) or default)
+
+
+class Knobs:
+    pad = int(os.environ.get('ZZ_PAD2') or 0)
 
 
 PAD = number('ZZ_PAD', 0)
@@ -665,7 +672,25 @@ def number(name, default):
         sys.exit('no')
 
 
-PAD = number('ZZ_PAD', 0)
+def later(name):
+    return int(os.environ.get(name) or 0)
+
+
+try:
+    PAD = number('ZZ_PAD', 0)
+    PAD2 = later('ZZ_PAD2')
+except ValueError:
+    PAD = PAD2 = 0
+
+f = lambda: later('ZZ_LAMBDA')
+
+
+def main():
+    return later('ZZ_MAIN')
+
+
+if __name__ == '__main__':
+    main()
 """
 
 # The fuller stand-in, and the reason it is CHECKED IN. Every claim vetted
@@ -1425,7 +1450,8 @@ def synthetic_run(tmp, killed=False, no_twins=False, no_starts=False,
     and a gate log get one too, both at absurd readings, so that a gate
     counting them would say so rather than pass with a wider band. A
     reading of `None` is a process that asserted nothing: its log is
-    there, as every process's is, and carries no such line.
+    there, as every process's is, and carries no such line; a list is
+    several lines in one log, which no process writes.
 
     `skew` is `synth_run`'s, applied to both class runs.
     """
@@ -1473,8 +1499,13 @@ def synthetic_run(tmp, killed=False, no_twins=False, no_starts=False,
         sat = ('@@saturate dose=1x by=list sprayed=1000000 in 6.0 s; victim'
                ' vgg-14-c512-k3/list %s ms/iter over 20; inuse=1 keep=1')
         for cls, ms in zip(('rev', 'slice'), plateau):
+            # A list is several lines in one log, which no process writes
+            # and a count of lines against logs cannot tell from one each.
+            lines = ([] if ms is None else ms if isinstance(ms, list)
+                     else [ms])
             write(place('%s-lookrts-%s.log' % (tag, cls)),
-                  'benchmarking x/y\n' if ms is None else sat % ms + '\n')
+                  'benchmarking x/y\n'
+                  + ''.join(sat % m + '\n' for m in lines))
         # A rider's and a gate half's, at readings no band could hold: both
         # are excluded by name, so a gate that counted either would fail
         # loudly here instead of passing over a wider set.
@@ -2090,14 +2121,19 @@ CASES = [
          # parses at import.
          plant=lambda t: {'py': write(here_file('zz-fam.py'), ZZ_FAM_HELPER)},
          argv=['--unit', "family_lint('zz-fam.py')"],
-         ok=V(has=['parsed out of the environment at import']),
-         bug=V(hasnt=['parsed out of the environment at import'])),
+         # Both sites by line: the helper's parse and a class body's, the
+         # second flagged by the old lint too, which is what keeps the bug
+         # verdict from holding on a crash.
+         ok=V(has=['zz-fam.py:5 ', 'zz-fam.py:9 ']),
+         bug=V(has=['zz-fam.py:9 '], hasnt=['zz-fam.py:5 '])),
 
     case('env-parse-under-a-handler-is-not-flagged', 'check-scripts.py',
          None,
-         'CONTROL: the same parse inside a `try` is handled, and passes',
-         # What the family is about is a parse OUTSIDE any handler; the
-         # handled form is align-as.py's own now, and this is the control
+         'CONTROL: under a try, or reached only from one, a lambda or main',
+         # What the family is about is a parse OUTSIDE any handler, at
+         # import: the handled form is align-as.py's own now, and a helper
+         # reached only from under a module-level try, from a lambda, or
+         # from the `__main__` block does not run at import. The control
          # that the case above is no ban on reading the environment.
          plant=lambda t: {'py': write(here_file('zz-fam.py'),
                                       ZZ_FAM_HANDLED)},
@@ -2750,18 +2786,36 @@ CASES = [
          argv=['{tag}'],
          ok=V(exit=0, has=['plateau: 2 process(es)',
                            'every process gated clean']),
-         bug=V(hasnt=['plateau: 2 process(es)'])),
+         bug=V(exit=0, has=['every process gated clean'],
+               hasnt=['plateau:'])),
 
     case('plateau-reading-that-is-no-number', 'read-all.sh', 'bd88db5',
          'a reading of NaN was dropped, and the rest gated flat',
          # The other way a token before `ms/iter` fails to be a reading: a
-         # victim timed over zero iterations shows as `NaN`, which awk reads
-         # as 0 and any band would hold. Counted apart and refused, not
-         # compared.
+         # victim timed over zero iterations shows as `NaN`, which moves
+         # neither lo nor hi when compared, so any band holds it. Counted
+         # apart and refused, not compared.
          plant=lambda t: synthetic_run(t, plateau=['19.0', 'NaN']),
          argv=['{tag}'],
          ok=V(exit=1, has=['1 of the line(s) no number']),
          bug=V(exit=0, has=['plateau: 1 process(es)'])),
+
+    case('plateau-counted-per-log', 'read-all.sh', '03db05d',
+         'two readings in one log covered for none in another',
+         # Readings against logs was a count against a count, and a log
+         # carrying two lines beside one carrying none satisfied it -- the
+         # proxy for "every recorded process asserted its state", not the
+         # property. Each log is asked now and the ones without a line are
+         # named, which is also where a hand probe log in the run's
+         # namespace surfaces: README's rule that no probe takes the
+         # prefix, read back at the gate. Found 2026-08-23 by review.
+         plant=lambda t: synthetic_run(t, plateau=[['19.0', '19.1'], None]),
+         argv=['{tag}'],
+         ok=V(exit=1, has=['log(s) with no reading',
+                           'runzz-lookrts-slice.log'],
+              hasnt=['every process gated clean']),
+         bug=V(exit=0, has=['plateau: 2 process(es)',
+                            'every process gated clean'])),
 
     case('plateau-counted-per-process', 'run-major.sh', None,
          'a half without the preamble joined a saturated run in silence',
@@ -2856,10 +2910,15 @@ CASES = [
          argv=['zzal', 'g912'],
          # Past the guard everything goes to the driver log, which is why
          # the probe is that log: an empty stdout alone would also be what
-         # a driver that died before the redirect leaves.
+         # a driver that died before the redirect leaves. `shapes:` is
+         # echoed past the baked-line check, so this is also the control
+         # that a baked half gets through it: `start:` alone would pass an
+         # unbaked stand-in too. Found 2026-08-23 by review.
          probe=lambda subs: open(os.path.join(
              subs['at'], 'zzal-al-g912-driver.log')).read(),
-         ok=V(has=['start:'], hasnt=['already has alone-leg artifacts'])),
+         ok=V(has=['start:', 'shapes: 3'],
+              hasnt=['already has alone-leg artifacts',
+                     'baked RTS line unread'])),
 
     case('alonelegs-refuses-a-previous-attempt', 'run-alonelegs.sh', None,
          "CONTROL: the guard still fires on the sweep's OWN artifacts",
@@ -2881,15 +2940,20 @@ CASES = [
          # file that did not. So a half built without `-A32m -I0 -T -M8G`
          # ran its 24 legs at the default nursery and closed with
          # `DONE-ALONELEGS` and no complaint, the `!!` sitting in the driver
-         # log where nothing reads it. Past the guard everything goes to
-         # that log, which is why the probe is the log.
+         # log where nothing reads it. The refusal is on stdout now, before
+         # that log exists, so a refused attempt leaves nothing for the
+         # relaunch guard to read as a previous one; the old script said it
+         # inside the log, which is why the probe reads the log when there
+         # is one.
          shadow=dict(extra=[('zzub-g912', FAKE_HALF_UNBAKED),
                             ('zzub-pair.txt', 'a stand-in pair note.\n')]),
          argv=['zzub', 'g912'],
-         probe=lambda subs: open(os.path.join(
-             subs['at'], 'zzub-al-g912-driver.log')).read(),
+         probe=lambda subs: (open(os.path.join(
+             subs['at'], 'zzub-al-g912-driver.log')).read()
+             if os.path.exists(os.path.join(
+                 subs['at'], 'zzub-al-g912-driver.log')) else ''),
          ok=V(exit=1, has=['baked RTS line unread'],
-              hasnt=['DONE-ALONELEGS']),
+              hasnt=['DONE-ALONELEGS', 'start:']),
          bug=V(has=['baked RTS line unread', 'DONE-ALONELEGS'])),
 
     # ---- probe-areacurve.sh --------------------------------------------
@@ -3241,8 +3305,13 @@ CASES = [
          shadow=dict(extra=whole_run(['lookrts'], prefix='zzhl')),
          env={'DOC': '{doc}', 'BASIS': 'lookrts'},
          argv=['zzhl'],
+         # The old script's signature and not merely the absence of the
+         # new refusal: the renamed block's own table install REFUSED, and
+         # the computed paragraphs went in across SEVEN blocks, the eighth
+         # having been handed the one above it.
          ok=V(exit=1, has=['carries a hyphen'], hasnt=['table(s) installed']),
-         bug=V(hasnt=['carries a hyphen'])),
+         bug=V(exit=1, has=['REFUSED', 'across 7 class block(s)'],
+               hasnt=['carries a hyphen'])),
 
     case('install-is-idempotent', 'install-tables.sh', None,
          'CONTROL: a full pass over an untouched README rewrites no table',
