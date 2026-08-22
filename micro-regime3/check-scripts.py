@@ -1785,6 +1785,31 @@ CASES = [
               hasnt=['al-lookrts-cnn-slice-c32-r1']),
          bug=V(exit=0, has=['al-lookrts-cnn-slice-c32-r1'])),
 
+    case('replace-inside-a-list-item', 'read-run.py', None,
+         'an anchor naming one task replaced the whole list with it',
+         # --replace's unit is a blank-line paragraph, and a list with no
+         # blank lines between its items is ONE. Measured 2026-08-22 in
+         # this README's own open list: an anchor naming task 3 took tasks
+         # 1, 2 and 3 and wrote back task 3 alone, at exit 0. The echo had
+         # named task 1 as what was going, which is a warning where the
+         # difference between losing two paragraphs and not is a refusal.
+         plant=lambda t: {'readme': edited_readme(t),
+                          'with': write(os.path.join(t, 'w.txt'), 'x\n')},
+         argv=['--replace', '3. **Between Run 17 and Run 18',
+               '--with', '{with}', '--readme', '{readme}'],
+         ok=V(exit=1, has=['is a 3-item list', 'discard the items above'])),
+
+    case('replace-a-whole-list-from-its-first-item', 'read-run.py', None,
+         'CONTROL: quoting the list from item 1 still replaces all of it',
+         # The other side, and the one that says the refusal did not simply
+         # ban lists: a caller replacing the whole list quotes it from the
+         # start, which is what it would do anyway, and gets it.
+         plant=lambda t: {'readme': edited_readme(t),
+                          'with': write(os.path.join(t, 'w.txt'), 'x\n')},
+         argv=['--replace', '1. **WHICH SHAPES POISON',
+               '--with', '{with}', '--readme', '{readme}'],
+         ok=V(exit=0, has=['out, first: 1. **WHICH SHAPES POISON'])),
+
     case('plateau-band-across-processes', 'read-all.sh', None,
          'two processes saturated to different depths and gated clean',
          # Run 18's registration 5. Every recorded process asserts the
