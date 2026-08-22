@@ -578,8 +578,9 @@ def scale(benches, want, factor):
 
 FAKE_HALF = """\
 #!/bin/sh
-# A stand-in for `$PREFIX-$half`, answering the one question a driver asks
-# before it commits the machine: what benches are there. It runs none.
+# A stand-in for `$PREFIX-$half`, answering the two questions a driver asks
+# before it commits the machine: what benches are there, and what RTS line
+# is baked in. It runs none.
 if [ "$1" = --list ]; then
   for s in shape-a shape-b shape-c; do
     for a in list build mut-odo sum-only-early sum-only-late; do
@@ -587,6 +588,28 @@ if [ "$1" = --list ]; then
     done
   done
 fi
+if [ "$1" = +RTS ] && [ "$2" = --info ]; then
+  echo ' ,("Flag -with-rtsopts", "-A32m -I0 -T -M8G")'
+fi
+exit 0
+"""
+
+# The same stand-in built without the baked line, which is what a half
+# from before 2026-08-21, or from a recipe that dropped it, answers.
+FAKE_HALF_UNBAKED = FAKE_HALF.replace(
+    'if [ "$1" = +RTS ] && [ "$2" = --info ]; then\n'
+    '  echo \' ,("Flag -with-rtsopts", "-A32m -I0 -T -M8G")\'\nfi\n', '')
+assert 'with-rtsopts' not in FAKE_HALF_UNBAKED, 'the unbaked stand-in kept it'
+
+# A stand-in that RUNS: one `benchmarking` line per bench of the gate's own
+# five-arm selection, for a driver that counts them against `--list`.
+FAKE_AREA = """\
+#!/bin/sh
+for s in shape-a shape-b shape-c; do
+  for a in list build mut-odo sum-only-early sum-only-late; do
+    if [ "$1" = --list ]; then echo "$s/$a"; else echo "benchmarking $s/$a"; fi
+  done
+done
 exit 0
 """
 
@@ -2672,6 +2695,64 @@ CASES = [
          argv=['zzal2', 'g912'],
          ok=V(exit=1, has=['already has alone-leg artifacts'])),
 
+    case('alonelegs-refuses-an-unbaked-half', 'run-alonelegs.sh', '3ebdb76',
+         'a half without the baked RTS line ran all its legs under a DONE line',
+         # The header says the line is read back before anything runs, and
+         # it was -- into an echo that set no status, the one check in the
+         # file that did not. So a half built without `-A32m -I0 -T -M8G`
+         # ran its 24 legs at the default nursery and closed with
+         # `DONE-ALONELEGS` and no complaint, the `!!` sitting in the driver
+         # log where nothing reads it. Past the guard everything goes to
+         # that log, which is why the probe is the log.
+         shadow=dict(extra=[('zzub-g912', FAKE_HALF_UNBAKED),
+                            ('zzub-pair.txt', 'a stand-in pair note.\n')]),
+         argv=['zzub', 'g912'],
+         probe=lambda subs: open(os.path.join(
+             subs['at'], 'zzub-al-g912-driver.log')).read(),
+         ok=V(exit=1, has=['baked RTS line unread'],
+              hasnt=['DONE-ALONELEGS']),
+         bug=V(has=['baked RTS line unread', 'DONE-ALONELEGS'])),
+
+    # ---- probe-areacurve.sh --------------------------------------------
+    case('areacurve-exit-carries-its-complaints', 'probe-areacurve.sh', None,
+         'a wrong count or a nonzero exit was echoed into the log, at exit 0',
+         # Its checks mirror run-gate.sh's line for line and, alone among
+         # the five drivers with them, set no BAD: six processes could come
+         # out short or dead and the script ended `AREA CURVE COMPLETE` at
+         # exit 0, every `!!` behind the redirect. A stand-in that runs
+         # nothing is the short count. No bug verdict, and NEVER one: the
+         # script before the fix cd'd to an absolute path and named its half
+         # outright, so a shadow could not hold it -- run from one on
+         # 2026-08-23 it ran HERE, on the real binary, and overwrote Run
+         # 16's recorded -A8m artifacts. `shadow_dir` refuses such a
+         # program now, and the two seams are what let this case exist.
+         shadow=dict(extra=[('zzac-half', FAKE_HALF)]),
+         env={'HALF': 'zzac-half', 'OUT': 'zzac-curve'},
+         argv=[],
+         probe=lambda subs: open(os.path.join(
+             subs['at'], 'zzac-curve-driver.log')).read(),
+         ok=V(exit=1, has=['expected 15, got 0', 'WITH 6 COMPLAINT(S)'],
+              hasnt=['AREA CURVE COMPLETE'])),
+
+    case('areacurve-runs-clean-on-a-full-count', 'probe-areacurve.sh', None,
+         'CONTROL: six processes at the full count end the curve at exit 0',
+         shadow=dict(extra=[('zzac2-half', FAKE_AREA)]),
+         env={'HALF': 'zzac2-half', 'OUT': 'zzac2-curve'},
+         argv=[],
+         probe=lambda subs: open(os.path.join(
+             subs['at'], 'zzac2-curve-driver.log')).read(),
+         ok=V(exit=0, has=['AREA CURVE COMPLETE'], hasnt=['!!'])),
+
+    case('areacurve-refuses-a-previous-attempt', 'probe-areacurve.sh', None,
+         'CONTROL: the curve refuses to overwrite its own artifacts',
+         # The guard the run drivers have and this one did not, which is
+         # the whole of why the 2026-08-23 overwrite above could happen.
+         shadow=dict(extra=[('zzac3-half', FAKE_AREA),
+                            ('zzac3-curve-16m.json', '[]\n')]),
+         env={'HALF': 'zzac3-half', 'OUT': 'zzac3-curve'},
+         argv=[],
+         ok=V(exit=1, has=['already has artifacts', 'zzac3-curve-16m.json'])),
+
     case('counts-file-says-it-was-restricted', 'run-counts.sh', None,
          'a smoke run left a counts file that read as a recorded column',
          # ONLY and ARMS are for a smoke run of this script and never for a
@@ -2805,6 +2886,52 @@ CASES = [
          argv=['zzmj'],
          ok=V(exit=0, has=['major run complete'], hasnt=['!!'])),
 
+    case('relaunch-guard-skips-the-riders', 'run-major.sh', '3ebdb76',
+         "a relaunch was refused over the riders' files, which it never writes",
+         # The guard globs `$R-*.json` and `$R-*.log` and excepted the
+         # gate's, the one other writer of that prefix it knew; the alone-leg
+         # riders are the other, `$R-al-*`, written AFTER the run at README's
+         # step 19 -- so a relaunch after the riders, with the major JSONs
+         # moved aside, met `already has artifacts` over files it would not
+         # overwrite. read-all.sh's roster skips both, one script over.
+         shadow=dict(extra=halves('zzrl-lookrts', 'zzrl-a1g')
+                     + [('zzrl-pair.txt', 'a stand-in pair note.\n'),
+                        ('zzrl-al-lookrts-cnn-slice-c32-r1.json', '[]\n')]),
+         env={'OTHER': 'a1g', 'BASIS': 'lookrts'},
+         argv=['zzrl'],
+         ok=V(exit=0, has=['major run complete'],
+              hasnt=['already has artifacts']),
+         bug=V(exit=1, has=['already has artifacts',
+                            'zzrl-al-lookrts-cnn-slice-c32-r1.json'])),
+
+    case('major-run-refuses-a-previous-attempt', 'run-major.sh', None,
+         "CONTROL: the guard still fires on the run's OWN artifacts",
+         # The other side of the case above: a narrowed exclusion that took
+         # a process's JSON with the riders' would lose the guard outright,
+         # and hours would be overwritten in place with nothing said.
+         shadow=dict(extra=halves('zzrp-lookrts', 'zzrp-a1g')
+                     + [('zzrp-pair.txt', 'a stand-in pair note.\n'),
+                        ('zzrp-lookrts-rev.json', '[]\n')]),
+         env={'OTHER': 'a1g', 'BASIS': 'lookrts'},
+         argv=['zzrp'],
+         ok=V(exit=1, has=['already has artifacts', 'zzrp-lookrts-rev.json'],
+              hasnt=['major run begins'])),
+
+    case('major-run-wants-its-pair-note', 'run-major.sh', '3ebdb76',
+         'a run without its note logged `!!` and went on, for read-all.sh to count',
+         # The note carries the pair's recipe and the gate's verdict, which
+         # the run copies into its log; without one the run logged `!! no
+         # <note>` through log() and went on at exit 0 -- and read-all.sh
+         # counts every stamped `!!` as a process complaint, with no carve-
+         # out, so every later reading of that run failed as "the run
+         # complained about itself" over eighteen clean processes. Refused
+         # before the hours instead, as a missing binary is.
+         shadow=dict(extra=halves('zznn-lookrts', 'zznn-a1g')),
+         env={'OTHER': 'a1g', 'BASIS': 'lookrts'},
+         argv=['zznn'],
+         ok=V(exit=1, has=['no zznn-pair.txt'], hasnt=['major run begins']),
+         bug=V(exit=0, has=['!! no zznn-pair.txt', 'major run complete'])),
+
     case('provenance-git-could-not-read', 'run-major.sh', '845c8d0',
          'a run whose git failed recorded a commitless, CLEAN-looking tree',
          shadow=dict(extra=halves('zzmj-lookrts', 'zzmj-a1g')
@@ -2921,6 +3048,23 @@ CASES = [
          ok=V(exit=1, has=['is not a class name']),
          bug=V(hasnt=['is not a class name'])),
 
+    case('install-refuses-a-hyphenated-lead', 'install-tables.sh', '3ebdb76',
+         'a hyphenated lead slipped both patterns, and the block above took it',
+         # The two patterns that find a class block here both read
+         # `[a-z0-9]`, so a lead carrying a hyphen was missed by BOTH, they
+         # agreed, and the cross-check written against exactly that failure
+         # could not fire -- which run-major.sh's own comment had recorded
+         # and nothing had acted on. The missed block then ran inside the
+         # one above it and took its figures. Refused by name now, as
+         # run-major.sh refuses the class.
+         plant=lambda t: {'doc': edited_readme(
+             t, ('**`bcastmid` ---', '**`bcast-mid` ---'))},
+         shadow=dict(extra=whole_run(['lookrts'], prefix='zzhl')),
+         env={'DOC': '{doc}', 'BASIS': 'lookrts'},
+         argv=['zzhl'],
+         ok=V(exit=1, has=['carries a hyphen'], hasnt=['table(s) installed']),
+         bug=V(hasnt=['carries a hyphen'])),
+
     case('install-is-idempotent', 'install-tables.sh', None,
          'CONTROL: a full pass over an untouched README rewrites no table',
          plant=lambda t: {'doc': edited_readme(t)},
@@ -2949,7 +3093,20 @@ def shadow_dir(tmp, prog, text, mutate=(), extra=()):
     refuses without two executables and a pair note, and its whole verdict
     path runs in seconds against a stand-in that answers `--list` -- which
     is what stood between the run drivers and any coverage at all.
+
+    A program that cds to an ABSOLUTE path is not held by a shadow at all:
+    it runs here, on the real binaries, writing the real artifacts. The
+    old probe-areacurve.sh did, on 2026-08-23, when its first case was run
+    against it before its fix, and five minutes of a new run overwrote Run
+    16's recorded -A8m JSON and log before the case timed out. Refused
+    here, as a fixture that cannot be built -- which is what `--against`
+    or `--audit` meets for any revision of a script from before it got
+    its `cd "$(dirname "$0")"`.
     """
+    if re.search(r'^\s*cd\s+/', text, re.M):
+        raise AssertionError('%s cds to an absolute path, so a shadow cannot'
+                             ' hold it and running it would run for real'
+                             % prog)
     d = os.path.join(tmp, 'shadow')
     os.mkdir(d)
     for name in os.listdir(HERE):
