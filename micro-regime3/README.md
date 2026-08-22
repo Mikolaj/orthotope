@@ -5359,24 +5359,21 @@ against `Main.hs` and this file, which open no binary at all:
     ./read-run.py --lint         # the roster and the shape annotations
     ./read-run.py --check-doc    # anchors, coverage, widths, stale figures
 
-**The exit code is the verdict; the `note:` lines are not.** A clean
-`--check-doc` here still prints them, each heading an indented list running
-to dozens of entries --- every superseded figure, every superlative, every
-absolute time the README quotes, and every link into the run chapter
-from standing prose, listed for adjudication during the write-up and not before
-it. **`--check-doc --quiet` is that sentence made operative**: it prints
-the `FAIL:` lines and one line counting what it withheld, and every call takes
-it but post-run step 7's, which is where the worklists are read. `--lint`
-is the same, noting the rostered arms it knows are deliberately untimed. Both
-exit 0 when they pass, and a `FAIL:` line is the only thing that should stop you
-at this point. **One of those `ok:` lines is the wrap check, and it reads
-differently mid-edit.** It asks its question per paragraph rather than
-of the whole file, so a paragraph an edit left on one line is reported
-as mid-edit and not failed, and a `FAIL:` there means a paragraph wrapped
-by *hand* --- neither the formatter's form nor one line. The gate therefore
-stays green on a document being worked on, which is what stops it demanding
-a `wrap80 -i` between edits: wrapping is owed before committing, not before
-checking.
+**What the `note:` lines ARE, the list having said only that they do not stop
+you.** They are the write-up's adjudication material and nothing a preparation
+owes: every superseded figure, every superlative, every absolute time the README
+quotes, and every link into the run chapter from standing prose. `--quiet`
+withholds them by count, which is why every call carries it but post-run step
+7's; **`--worklists` is what promotes them** there, and not the absence
+of `--quiet`, which withholds too. `--lint` reads the same way, noting
+the rostered arms it knows are deliberately untimed. **One of those `ok:` lines
+is the wrap check, and it reads differently mid-edit.** It asks its question per
+paragraph rather than of the whole file, so a paragraph an edit left on one line
+is reported as mid-edit and not failed, and a `FAIL:` there means a paragraph
+wrapped by *hand* --- neither the formatter's form nor one line. The gate
+therefore stays green on a document being worked on, which is what stops
+it demanding a `wrap80 -i` between edits: wrapping is owed before committing,
+not before checking.
 
 Both halves. On the unaligned/aligned pairs this README used to build, only one
 half had its own code rewritten --- the other's shim appended dead bytes, where

@@ -655,6 +655,27 @@ def aa_pairs(cells, shapes, strategies):
     return out
 
 
+CARRY_BACK = ('mut-odo-vecdims', 'bq-expand', 'bq-scan-rem-gm-mulback')
+"""The three arms whose A/A twins predate the twelve added after Run 13.
+
+Six pairs, both positions of each, and they are the only ones a floor can
+be compared across runs on: everything else in the eighteen arrived later,
+so a run-to-run reading of the eighteen-pair figure is over two different
+populations. README calls this the six-pair figure and holds it to two
+sites; before Run 17 it was derived by hand at the write-up, which is
+where it was first quoted three ways.
+"""
+
+ANCHORS = ('cnn-slice-c32', 'cifar-L2-16-c64-k3', 'stretch-wide-2xM')
+"""The three shapes README keeps `list`'s absolute per call for.
+
+They guard the baseline the way the fingerprint guards it per shape, and
+they are what says the box has not moved under a run. Kept here so the
+chapter skeleton emits them rather than leaving a session to look them up
+and quote them from the wrong half.
+"""
+
+
 def aa_floor(pairs):
     """The pair furthest from 1, which is what this README calls the floor."""
     return max(pairs, key=lambda p: abs(p.g - 1)) if pairs else None
@@ -1566,6 +1587,19 @@ def chapter_skeleton(cells, shapes, strategies, meta, other, main_hs):
         print('\n  %s half: floor %.2f%% (%s), worst A/A cell %.2f%% on %s'
               % (tag, abs(big.g - 1) * 100, big.a,
                  worst.worst[0], worst.worst[1]))
+        six = [p for p in aa
+               if any(p.a.startswith(b + '-aa') for b in CARRY_BACK)]
+        if six:
+            b6 = aa_floor(six)
+            print('  %s half: six-pair figure %.2f%% (%s), over the %d pair(s)'
+                  ' that carry back to Run 10'
+                  % (tag, abs(b6.g - 1) * 100, b6.a, len(six)))
+        anch = [(sh, cs[sh]['list']['net']) for sh in ANCHORS
+                if sh in cs and 'list' in cs[sh]]
+        if anch:
+            print('  %s half: anchors %s'
+                  % (tag, ', '.join('%s %s' % (sh, fmt_abs(t))
+                                    for sh, t in anch)))
     print('\n  allocation between the halves: run --compare --alloc; the'
           ' figure belongs')
     print('  in the chapter and the trap it carries is documented there.')
