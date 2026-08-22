@@ -52,7 +52,7 @@ if [ $# -lt 1 ]; then
   exit 2
 fi
 R="$1"
-BASIS=${BASIS:-wildlog}         # the fourth file carrying a half's name, and
+BASIS=${BASIS:-g912}        # the fourth file carrying a half's name, and
                              # the only one with no OTHER; run-major.sh,
                              # run-gate.sh and smoke-sweep.sh are the
                              # others, set together at pre-run step 3c
