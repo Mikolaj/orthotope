@@ -2623,12 +2623,12 @@ and probe want a quiet machine and its pilot does not; no window closes.
    in `run17-pair.txt`, none needing a build. In the order they are worth
    taking: the fixed-n rider, dry-run 2026-08-22 on Run 16's binary and re-aimed
    at `list` against the alone leg and the `sum-only` arms against the roster,
-   minutes on the basis binary once the evening is over; the counted-work pilot,
-   unblocked now that `kernel.perf_event_paranoid` reads 1 here (2026-08-21);
-   and two already taken on 2026-08-22 ahead of the pair, on `run16-a32m`:
-   the per-process floor (held, 12 to 14%, placement left as the term,
-   the per-trial pilot [in the TODO list](#non-urgent-todo-list) refused)
-   and the 24m/48m probe (killed, no bump at the fixed area). Run 18 is settled
+   minutes on the basis binary once the evening is over; and three already taken
+   on 2026-08-22 ahead of the pair, on `run16-a32m`: the per-process floor
+   (held, 12 to 14%, placement left as the term, the per-trial pilot [in
+   the TODO list](#non-urgent-todo-list) refused), the 24m/48m probe (killed,
+   no bump at the fixed area) and the counted-work pilot (the switch to counts
+   refused, counts kept as the layout-free check). Run 18 is settled
    and half-built --- 9.14.1 against 9.12.4 on a source carrying the instrument
    and the saturating preamble, with `saturate-preamble.patch`, `run-counts.sh`,
    the `SAT=` rider mode and the 9.14 plan in place --- written up in the open
@@ -2741,13 +2741,15 @@ left to attribute --- the interval it is about is the aligned binary's.
   says; and the shared-process design is what is immune to it, both twins
   of an A/A pair sharing one placement. `list`'s alone legs, which repeat within
   a percent, are not exposed, so the riders that rest on them stand.
-  *The counted-work pilot*: `perf stat -e instructions:u` over every timed arm
-  on the shape set at one fixed `-n` per shape, read against the basis's `time`
-  column --- `kernel.perf_event_paranoid` reads 1 here on 2026-08-21,
-  so user-space counting owes nothing by hand, cachegrind being the slow
-  fallback should that move. Registered: the orderings agree wherever
-  the clock's margin clears the floor and the cells that disagree
-  are the memory-bound residue; agreement licenses Run 18's method. *The 24m/48m
+  *The counted-work pilot* --- TAKEN 2026-08-22 on `run16-a32m` against Run 16's
+  column, twelve minutes on one core, and the registration failed the way
+  that matters: the count and time orderings agree at Spearman 0.725 over 44
+  arms with 201 of 946 pairs inverted, the inversions being the fast tier
+  and not a residue (instructions per unit time relative to `list` runs
+  from 0.83 on `bq-gen` to 1.9 on `mut-flat-gm-nosum`), so counted work does
+  not replace the clock for orderings; it is layout-free as claimed, A/A pairs
+  agreeing to three digits, and rides as the check of what a time change is made
+  of. [The TODO list](#non-urgent-todo-list) carries the ruling. *The 24m/48m
   probe* --- TAKEN 2026-08-22 on `run16-a32m`, ahead of the pair, and KILLED:
   the gate's five-bench selection at `+RTS -A24m`, `-A32m` and `-A48m`, three
   processes of 120 benches on a quiet machine, puts `list`'s geomean at 32m 2.5%
@@ -2818,32 +2820,32 @@ left to attribute --- the interval it is about is the aligned binary's.
   are sound: ten processes of `cifar-L2-16-c64-k3/list` land within 0.9%,
   so `list` is immune to the per-process placement term that unreads `offtab`
   and `build`; (4) *counted work*, `run-counts.sh` on both halves, instructions
-  an iteration for every arm and shape from two fixed-`-n` processes a cell,
-  read against each half's `time` column for the orderings and, per arm,
-  the count ratio 9.14/9.12 beside the time ratio --- time moving with counts
-  is codegen, time moving without counts is the runtime or memory, layout being
-  pinned --- a compiler's codegen term and runtime term separated for the first
-  time; (5) *the plateau*, every recorded process's `@@saturate` victim reading
-  inside a band of the run's own, a process outside it read before its figures
-  are. **What is built**: `saturate-preamble.patch`, with its two doses, proved
-  to build and to fire on both compilers; `sat-probe` and `sat-probe-914`,
-  its binaries, for the between-run probes; `cabal.project.ghc914`
-  and its freeze; `run-counts.sh`, proved on one cell (`vgg-14-c512-k3/list`
-  260.6M instructions an iteration, `mut-odo` 54.4M, `sum-only-early` 8.1M, `N`
-  = 5); the `SAT=` mode of `run-alonelegs.sh`, which refuses a binary without
-  the preamble. Once Run 17's pair is spent both patches land in the source
-  by commit and the recipes lose their apply step. **The one pre-run risk
-  is retired**: the shim reads back on 9.14's assembly --- `sat-probe-914`,
-  the other half's recipe, has 113 self-loops in `Main`-compiled code, 61
-  at offset 0 and none straddling, the 9.12 probe 110, 56 and none, the tracked
-  28 B groups reading `[0, 24, 0, 0]` and `[0, 0]` against `[0, 24, 0, 4]`
-  and `[0, 0]`; its `--list` and its `check` output are byte-identical
-  to the 9.12 probe's, and the preamble fires there alike. One trap
-  for the read-back: on 9.14 the baked RTS line is stored with a byte before it,
-  so `strings | grep -x` misses it while `+RTS --info` reports it and the heap
-  peak shows it in effect --- the notes and `run-alonelegs.sh` read
-  it by `--info` now. **What is owed before the evening**: the plateau check
-  in `run-major.sh` and `read-all.sh`, counted as bench counts are,
+  an iteration for every arm and shape from two fixed-`-n` processes a cell ---
+  not for the orderings, which the pilot on Run 16 refused it (the TODO list's
+  ruling), but per arm the count ratio 9.14/9.12 beside the time ratio: time
+  moving with counts is codegen, time moving without counts is the runtime
+  or memory, layout being pinned --- a compiler's codegen term and runtime term
+  separated for the first time; (5) *the plateau*, every recorded process's
+  `@@saturate` victim reading inside a band of the run's own, a process outside
+  it read before its figures are. **What is built**: `saturate-preamble.patch`,
+  with its two doses, proved to build and to fire on both compilers; `sat-probe`
+  and `sat-probe-914`, its binaries, for the between-run probes;
+  `cabal.project.ghc914` and its freeze; `run-counts.sh`, proved on one cell
+  (`vgg-14-c512-k3/list` 260.6M instructions an iteration, `mut-odo` 54.4M,
+  `sum-only-early` 8.1M, `N` = 5); the `SAT=` mode of `run-alonelegs.sh`, which
+  refuses a binary without the preamble. Once Run 17's pair is spent both
+  patches land in the source by commit and the recipes lose their apply step.
+  **The one pre-run risk is retired**: the shim reads back on 9.14's assembly
+  --- `sat-probe-914`, the other half's recipe, has 113 self-loops
+  in `Main`-compiled code, 61 at offset 0 and none straddling, the 9.12 probe
+  110, 56 and none, the tracked 28 B groups reading `[0, 24, 0, 0]` and `[0, 0]`
+  against `[0, 24, 0, 4]` and `[0, 0]`; its `--list` and its `check` output
+  are byte-identical to the 9.12 probe's, and the preamble fires there alike.
+  One trap for the read-back: on 9.14 the baked RTS line is stored with a byte
+  before it, so `strings | grep -x` misses it while `+RTS --info` reports
+  it and the heap peak shows it in effect --- the notes and `run-alonelegs.sh`
+  read it by `--info` now. **What is owed before the evening**: the plateau
+  check in `run-major.sh` and `read-all.sh`, counted as bench counts are,
   with a `check-scripts.py` case first; cases for `run-alonelegs.sh`
   and `run-counts.sh`, which have none; and the `-g3` twins per compiler
   at the write-up. **Not in Run 18**: a roster change, which would confound
@@ -2919,12 +2921,21 @@ left to attribute --- the interval it is about is the aligned binary's.
   a memory-system effect can invert an ordering. Pilot: counts for every timed
   arm over the shape set, read against a published time column --- orderings
   that agree license the switch, and the cells that disagree
-  are the memory-bound residue the clock is still for. It is registered with Run
-  17's pair, `kernel.perf_event_paranoid` reading 1 here on 2026-08-21,
-  and `run-counts.sh` is its driver. **Randomised slots in per-trial processes
-  instead of pinned ones.** Many short fixed-`-n` trials per cell, each
-  in its own process with the order drawn fresh, so that position becomes noise
-  that averages rather than bias that persists, and a table stops needing
+  are the memory-bound residue the clock is still for. **Taken 2026-08-22
+  on `run16-a32m` against Run 16's column, and the switch is REFUSED**:
+  over the 44 timed arms the count ordering agrees with the time ordering
+  at Spearman 0.725, 201 of 946 pairs inverting, and the disagreement is
+  not a residue but the fast tier --- `mut-flat-gm-nosum` executes 1.9 times
+  `list`'s instructions per unit time and `bq-gen` 0.83, so what an instruction
+  costs spans more than twofold across arms, and where arms differ in
+  it the clock decides. What the pilot confirmed is the other half of the claim:
+  counts are layout-free, every A/A pair agreeing to three digits across
+  the table. So counts ride as the check of what a time change is made of, never
+  as the ordering instrument; `run-counts.sh` is the driver
+  and `run16-counts-a32m.txt` the artifact. **Randomised slots in per-trial
+  processes instead of pinned ones.** Many short fixed-`-n` trials per cell,
+  each in its own process with the order drawn fresh, so that position becomes
+  noise that averages rather than bias that persists, and a table stops needing
   comparability carried between runs, being self-contained evidence.
   Not the reordering the roster-order entry above rejected --- that varied slots
   inside the one shared process --- but a regime that gives the shared process
@@ -8025,15 +8036,16 @@ are `run17-pair.txt`'s. The allocation area is fixed and no pair will vary
 it again: Runs 14, 15 and 16 priced it, and the decision closed it.
 
 **Registered with the pair, and Run 18 spoken for.** Four riders and probes go
-with Run 17, none needing a build --- the fixed-n rider on the anchors
-and the counted-work pilot after the write-up, while the per-process floor
-and the 24m/48m probe were taken ahead of it on Run 16's binary, the floor held
-and the probe killed --- each with its kill condition and its reading in [the
-Run 17 registration](#what-is-open) and its commands in `run17-pair.txt`;
-and Run 18's pair is settled and half-built, [registered beside
-them](#what-is-open): GHC 9.14.1 against 9.12.4 on one source carrying
-the instrument and the saturating preamble, the patches, drivers and the 9.14
-plan already in place and `run18-pair.txt` carrying the recipes.
+with Run 17, none needing a build --- the fixed-n rider on the anchors after
+the write-up, while the per-process floor, the 24m/48m probe
+and the counted-work pilot were taken ahead of it on Run 16's binary ---
+the floor held, the probe killed, the switch to counts refused --- each
+with its kill condition and its reading in [the Run 17
+registration](#what-is-open) and its commands in `run17-pair.txt`; and Run 18's
+pair is settled and half-built, [registered beside them](#what-is-open): GHC
+9.14.1 against 9.12.4 on one source carrying the instrument and the saturating
+preamble, the patches, drivers and the 9.14 plan already in place
+and `run18-pair.txt` carrying the recipes.
 
 **The position term was the candidate Run 15 promoted, and the probes have since
 spent it.** What Run 14 first saw and Run 15 confirmed is resolved
