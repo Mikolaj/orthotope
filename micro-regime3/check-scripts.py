@@ -1185,6 +1185,37 @@ CASES = [
          bug=V(has=['mut-odo-vecdims                   --  '],
                hasnt=['mut-odo-vecdims                   --      --'])),
 
+    case('withheld-line-names-a-flag-that-is-not-one', 'read-run.py',
+         'eeb5d24',
+         'the withheld count sent a run to `--quiet`, which withholds too',
+         # --check-doc --quiet ends by saying how many lines it kept back
+         # and how to get them. It said "rerun without --quiet", and plain
+         # --check-doc withholds as well -- `--worklists` is what promotes
+         # them -- so following the message returns the same line. Met on
+         # Run 17 at post-run step 7, the one step whose whole content is
+         # reading those lists, and read there as the tool being broken.
+         # The check is the message, not the flag: the flag worked all
+         # along.
+         plant=lambda t: {'readme': edited_readme(t)},
+         argv=['--check-doc', '--quiet', '--readme', '{readme}'],
+         ok=V(has=['rerun with --worklists']),
+         bug=V(has=['without --quiet'], hasnt=['rerun with --worklists'])),
+
+    case('deflation-with-no-legs-answers-anyway', 'read-run.py', 'eeb5d24',
+         'a deflation printed over no alone legs at all',
+         # --deflation divides each shape's roster cell by that shape's
+         # alone leg. A run whose riders were never taken -- or a name the
+         # legs do not belong to -- has none, and the shape this guards is
+         # the one an empty aggregate always has here: a header, a geomean
+         # over nothing, and exit 0, which reads as an answer. It refuses
+         # instead and says which of the two it is. A class run reaches the
+         # same door by another route, its legs being the main set's.
+         plant=lambda t: {'run': synth_json(t, 'main',
+                                            name='run99-half-main.json')},
+         argv=['{run}', '--deflation'],
+         ok=V(exit=2, has=['the riders were not taken']),
+         bug=V(exit=2, hasnt=['the riders were not taken'])),
+
     case('claims-arm-counted-per-registration', 'read-run.py', '045ca63',
          'one filtered arm reported as eight',
          plant=lambda t: {'run': synth_json(t, 'main')},
