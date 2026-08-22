@@ -2770,12 +2770,20 @@ rather than a slot in the next run, observed again:
   aimed at these two arms: one source, two builds a shim setting apart, chosen
   so the pair's offsets swap or converge, read on nothing but `mut-odo-vecdims`
   against `mut-odo-vecdims-add-in`. If the ordering follows the offsets
-  it is placement; if it survives them the arm is really faster and the shipping
-  decision is the one to revisit. That is two twenty-second builds
-  and a filtered probe, and it needs no run. Artifacts `probe-addin-*`
-  and `probe-addin2-*`. Until then the decision of 2026-08-22 stands and ships
-  `mut-odo-vecdims`, and the reason to record this is that the next run should
-  not rediscover it as a surprise.
+  it is placement; if it survives them the arm is really faster. That is two
+  twenty-second builds and a filtered probe, and it needs no run. Artifacts
+  `probe-addin-*` and `probe-addin2-*`. **DEFERRED TO A FUTURE RUN by decision
+  of 2026-08-22, and the decision is about what could change the shipping choice
+  rather than about the probe's cost.** A margin of one to three percent does
+  not move it: the arm that ships is not chosen on differences that size,
+  and no reading here or in a probe of this kind will be larger. Nor
+  is it chosen before the compilers the library's consumers build with have
+  been measured --- GHC 9.14, which is Run 18's own subject, and HEAD after
+  it --- since an ordering that holds on 9.12 alone is not the ordering
+  the shipped code will meet. So the placement half waits for those, and until
+  then the decision of 2026-08-22 stands and ships `mut-odo-vecdims`. What
+  the entry is for is that the next run should not rediscover the lead
+  as a surprise, nor spend an evening on it.
 
 - `OPEN` **Run 18's pair, settled 2026-08-21 and half-built: GHC 9.14.1 against
   9.12.4, on one source carrying `-fobject-determinism`, the per-sample
@@ -2820,26 +2828,44 @@ rather than a slot in the next run, observed again:
   and not a constant. Registrations, each with what kills it: (1) *the bridge*,
   the 9.12 basis against `run17-wildlog` across the preamble's source change,
   every arm inside the drift band and the fills where Run 17 held them, killed
-  by an arm outside it; (2) *the compiler*, the thirteen registered orderings
-  holding on 9.14.1, killed by a BROKE that clears that half's floor ---
-  a margin moving is the finding and not a break, as claim 4's history says ---
-  with claim 7's allocation levels read per compiler, a compiler being able
-  to change allocation where a slot cannot; (3) *the decomposition*, every
-  shape's `list` alone leg twice on the basis, `SAT=` off and on through
-  `run-alonelegs.sh`, against its roster cell: the state is saturated minus
-  clean and the rest is roster minus saturated. The dry run over six shapes puts
-  the rest between -1.4 and +5 points with no constant sign, so the registration
-  is the distribution over the 24 shapes and not a cell: its median inside
-  the floor, its tails named and read per shape, a median past the floor naming
-  what the state is not, criterion's own interleaving between samples the first
-  suspect. The `spray` dose's legs, a third column if the budget allows, price
-  the burst route's share, some ten of the thirteen points on `vgg-14-c512-k3`
-  and within two points of the `list` dose elsewhere. The alone legs themselves
-  are sound: ten processes of `cifar-L2-16-c64-k3/list` land within 0.9%,
-  so `list` is immune to the per-process placement term that unreads `offtab`
-  and `build`; (4) *counted work*, `run-counts.sh` on both halves, instructions
-  an iteration for every arm and shape from two fixed-`-n` processes a cell ---
-  not for the orderings, which the pilot on Run 16 refused it (the TODO list's
+  by an arm outside it --- **but the placement-exposed arms are outside
+  that condition and were put there 2026-08-22, on Run 17's own measurement**:
+  this is a `.text`-changing comparison, the preamble adding **12288 bytes**
+  to the basis's `.text` (`sat-probe`'s 20394181 against
+  `run17-wildlog`'s 20381893) where the instrument patch added 4096, and Run 17
+  priced 4096 at up to 8% on `gen-unsafe`, `gen-quotrem`, `build`, `mut-odo`,
+  `offtab` and `bq-mut` with no strategy changed. So a movement on those six
+  families is layout and kills nothing; the other thirty-six arms are what
+  the registration is over. **And the fills half of it is already answered
+  and answers nothing**: `sat-probe` read `[0, 24, 0, 4]` and `[0, 0]`, Run 17's
+  exactly, so that clause is measured rather than predicted --- and Run 17's
+  twelve arms moved while its own two halves' fills were identical, which is why
+  a fill match is not evidence the arms held still; (2) *the compiler*,
+  the registered orderings holding on 9.14.1, killed by a BROKE that clears
+  that half's floor --- a margin moving is the finding and not a break, as claim
+  4's history says --- with claim 7's allocation levels read per compiler,
+  a compiler being able to change allocation where a slot cannot. **Which
+  orderings, read off `--claims` and not off this sentence, which was written
+  before Run 17 ran and said thirteen**: Run 17 broke two of that thirteen ---
+  claim 4's second half, now twice running, and claim 9's first ---
+  and *restated* claim 4, so what Run 18 inherits is an ordering where
+  the manifest had a tie. Re-read the count and the content out of the manifest
+  before the evening; (3) *the decomposition*, every shape's `list` alone leg
+  twice on the basis, `SAT=` off and on through `run-alonelegs.sh`, against
+  its roster cell: the state is saturated minus clean and the rest is roster
+  minus saturated. The dry run over six shapes puts the rest between -1.4 and +5
+  points with no constant sign, so the registration is the distribution
+  over the 24 shapes and not a cell: its median inside the floor, its tails
+  named and read per shape, a median past the floor naming what the state
+  is not, criterion's own interleaving between samples the first suspect.
+  The `spray` dose's legs, a third column if the budget allows, price the burst
+  route's share, some ten of the thirteen points on `vgg-14-c512-k3` and within
+  two points of the `list` dose elsewhere. The alone legs themselves are sound:
+  ten processes of `cifar-L2-16-c64-k3/list` land within 0.9%, so `list`
+  is immune to the per-process placement term that unreads `offtab` and `build`;
+  (4) *counted work*, `run-counts.sh` on both halves, instructions an iteration
+  for every arm and shape from two fixed-`-n` processes a cell --- not
+  for the orderings, which the pilot on Run 16 refused it (the TODO list's
   ruling), but per arm the count ratio 9.14/9.12 beside the time ratio: time
   moving with counts is codegen, time moving without counts is the runtime
   or memory, layout being pinned --- a compiler's codegen term and runtime term
@@ -2852,112 +2878,103 @@ rather than a slot in the next run, observed again:
   `cabal.project.ghc914` and its freeze; `run-counts.sh`, proved on one cell
   (`vgg-14-c512-k3/list` 260.6M instructions an iteration, `mut-odo` 54.4M,
   `sum-only-early` 8.1M, `N` = 5); the `SAT=` mode of `run-alonelegs.sh`, which
-  refuses a binary without the preamble. Once Run 17's pair is spent both
-  patches land in the source by commit and the recipes lose their apply step.
-  **The one pre-run risk is retired**: the shim reads back on 9.14's assembly
-  --- `sat-probe-914`, the other half's recipe, has 113 self-loops
-  in `Main`-compiled code, 61 at offset 0 and none straddling, the 9.12 probe
-  110, 56 and none, the tracked 28 B groups reading `[0, 24, 0, 0]` and `[0, 0]`
-  against `[0, 24, 0, 4]` and `[0, 0]`; its `--list` and its `check` output
-  are byte-identical to the 9.12 probe's, and the preamble fires there alike.
-  One trap for the read-back: on 9.14 the baked RTS line is stored with a byte
-  before it, so `strings | grep -x` misses it while `+RTS --info` reports
-  it and the heap peak shows it in effect --- the notes and `run-alonelegs.sh`
-  read it by `--info` now. **What is owed before the evening**, the first
-  of it before the build: the stamp's load fields ---
-  `wildlog-instrument.patch`'s `@@wild` line gains `load=` (the 1-minute average
-  from `/proc/loadavg`), `run=` (that line's instantaneous count of runnable
-  tasks) and `cpu=` (the machine-wide busy jiffies from `/proc/stat`'s first
-  line), read in the same hooks outside the timed block, and the reader
-  of the log prints per sample the CPU something else consumed during it,
-  the `cpu` delta between consecutive stamps less the process's own
-  mutator-plus-collector delta the line already carries. The reason is the wild
-  cell: from inside a process its signature --- a non-reproducing mutator step
-  at flat RTS totals --- is exactly an external intrusion's, and Run 16's
-  updater cell was told apart only by a wall-clock window; these fields tell
-  the two apart per sample, foreign CPU during the sample being the updater
-  class and none the machine's own. The 1-minute average alone dates
-  a multi-minute intruder and barely marks a ten-second one (it is damped
+  refuses a binary without the preamble. **Both patches landed in `Main.hs`
+  by commit on 2026-08-22**, Run 17's pair being spent, so every recipe lost
+  its apply step and each patch file stays as the record of what it was as one
+  diff, refusing a second application in its own header. **The one pre-run risk
+  is retired**: the shim reads back on 9.14's assembly --- `sat-probe-914`,
+  the other half's recipe, has 113 self-loops in `Main`-compiled code, 61
+  at offset 0 and none straddling, the 9.12 probe 110, 56 and none, the tracked
+  28 B groups reading `[0, 24, 0, 0]` and `[0, 0]` against `[0, 24, 0, 4]`
+  and `[0, 0]`; its `--list` and its `check` output are byte-identical
+  to the 9.12 probe's, and the preamble fires there alike. One trap
+  for the read-back: on 9.14 the baked RTS line is stored with a byte before it,
+  so `strings | grep -x` misses it while `+RTS --info` reports it and the heap
+  peak shows it in effect --- the notes and `run-alonelegs.sh` read
+  it by `--info` now. **What was owed before the evening was taken 2026-08-22,
+  before any build, and only the `-g3` twins per compiler are left, which belong
+  at the write-up.** The stamp carries its load fields: the `@@wild` line gains
+  `load=` (the 1-minute average from `/proc/loadavg`), `run=` (that line's
+  instantaneous count of runnable tasks) and `cpu=` (the machine-wide busy
+  jiffies from `/proc/stat`'s first line, in USER_HZ, which the kernel fixes
+  at 100 whatever it ticks at), read in the same hooks outside the timed block;
+  `./read-run.py --wild LOG` differences a bench's `pre` and `post` stamps
+  and prints the CPU something else consumed during its samples, the `cpu` delta
+  less the process's own mutator-plus-collector delta the line already carries.
+  The reason is the wild cell: from inside a process its signature ---
+  a non-reproducing mutator step at flat RTS totals --- is exactly an external
+  intrusion's, and Run 16's updater cell was told apart only by a wall-clock
+  window; these fields tell the two apart, foreign CPU during a bench's samples
+  being the updater class and none the machine's own. The 1-minute average alone
+  dates a multi-minute intruder and barely marks a ten-second one (it is damped
   over 60 s and updated every 5 s), which is why the other two ride with it.
-  Decided 2026-08-22 during Run 17, which ran without it. Then the plateau check
-  in `run-major.sh` and `read-all.sh`, counted as bench counts are,
-  with a `check-scripts.py` case first; cases for `run-alonelegs.sh`
-  and `run-counts.sh`, which have none; and the `-g3` twins per compiler
-  at the write-up. **Not in Run 18**: a roster change, which would confound
-  the compiler. The 24m/48m probe, which could have reopened the area, was taken
-  ahead of Run 17 and killed.
+  Read per bench and not per sample, /proc/stat's 10 ms jiffy saying nothing
+  inside one short sample. The plateau is counted per process in `run-major.sh`,
+  exactly as bench counts are, and banded across them in `read-all.sh`, at 5%
+  --- loose against the 0.9% ten alone-leg processes span, tight against the 14%
+  an unsaturated process reads below a saturated one --- with seven
+  `check-scripts.py` cases behind all of it, three of them controls;
+  and `run-alonelegs.sh` and `run-counts.sh` have cases now, each written
+  against a defect it turned out to have. **Not in Run 18**: a roster change,
+  which would confound the compiler. The 24m/48m probe, which could have
+  reopened the area, was taken ahead of Run 17 and killed. And the `add-in`
+  placement question, deferred by [its own entry][open] to a run that has
+  the compilers measured.
 
 
 ### Recommended tasks after Run 17
 
 **What Run 17 made cheaper for the next run, which is not a figure and no other
-step gathers.** **Three checker gaps, and the sharpest is in the reader.**
-`read-run.py` has no deflation mode: the roster cell over the alone leg
-is the whole point of the riders and had to be computed by hand here, which
-by this README's own standing rule is a defect report against the reader rather
-than a script to keep --- and the computation has one decision in it a session
-will get wrong, since an alone leg carries no `sum-only` bench and so must
-be read raw against raw. Add `--deflation RUN` taking the `-al-` JSONs beside
-a run, and the next write-up stops improvising it. Second, `run-alonelegs.sh`'s
-usage comment names the halves in the wrong roles for a pair whose basis
-is not its first argument --- it reads
-`run17 wildlog # the control half, first`, where this pair's control is `det`
---- which cost nothing because the pair note is authoritative and was read
-first, and would cost an evening to a session that trusted the comment. Third,
-**`--check-doc`'s NEW/old attribution is destroyed by working in the unwrapped
-form, which `--check-doc` itself tells you to do.** Its wrap FAIL says *if you
-are still editing, `wrap80 --unwrap -i README.md` and work there*; `added_lines`
-then diffs the unwrapped working tree against a HEAD that stores the wrapped
-form, so every paragraph that had spanned more than one line is a line that did
-not exist before and reads as added. Measured on this run's own document:
-of 2046 unwrapped lines, 731 read as added --- 613 list items and 118 prose
-paragraphs, or **82.9% of the 882 paragraphs that had been wrapped** --- while
-tables and headings, being one line either way, survive untouched. Since
-the three worklists sweep prose, and prose carrying a figure or a superlative
-is almost always a multi-line paragraph, the sweeps then flag nearly everything:
-this write-up saw **102 of 105** superlatives, 65 of 75 superseded figures
-and 27 of 27 absolute times marked NEW, including lines no session had touched.
-That is precisely the failure the feature exists to prevent --- its own
-docstring cites Run 11 shipping four false superlatives inside a list of 71,
-because *a wall of 71 gets adjudicated as a wall*. **The fix is one line
-and does not need the working form to change**: normalise both sides before
-diffing, unwrapping HEAD's copy as well, so the attribution means the same
-in either form. Until then, a write-up that follows the wrap advice must
-adjudicate its superlatives by deriving them rather than by reading the NEW
-marks, which is what this one did. Fourth, **one `check-scripts.py` fixture goes
-inert every run and says so only if the plain form is run**:
+step gathers.** **The checker gaps this run met are all closed, 2026-08-22,
+and the sharpest was in the reader's freshness marks.** `--check-doc`'s NEW/old
+attribution used to diff a working tree that its own wrap FAIL tells you
+to unwrap against a HEAD that stores the wrapped form, so every paragraph
+that had been wrapped was a line that had not existed before: **82.9%
+of this document's**, and with them 102 of 105 superlatives marked NEW, which
+is exactly the undifferentiated wall the feature exists to prevent --- its own
+docstring citing Run 11 shipping four false superlatives inside a list of 71,
+because *a wall of 71 gets adjudicated as a wall*. `added_lines` normalises both
+sides now, comparing at paragraph granularity with whitespace collapsed, which
+is what a re-wrap changes and all it changes --- so the working form is free
+again, as the wrap advice always assumed. The write-up that met this adjudicated
+its superlatives by deriving them rather than by reading the marks, which
+is what to do if they ever look like that again. Beside it, four smaller ones:
+`read-run.py --deflation` reads the roster cell over the alone leg, which Run 17
+computed by hand; `--wild` reads the per-sample instrument's log, which Run 17
+also read by hand; `--check-doc` holds each class block's floor quote against
+its own row of the class table, the run's floor pair having been held across
+its sites since 2026-08-14 and the six-pair figure since Run 17's own write-up,
+where a class's own floor was checked by nothing; and `run-alonelegs.sh`'s usage
+comment, which had named Run 17's halves in the wrong roles, no longer names
+roles at all. **What does NOT close, because it fires every run**:
 `six-pair-floor-disagrees-across-sites` plants its defect on a six-pair
-sentence, which is by definition a figure the write-up replaces, so it reported
-`FIXTURE DID NOT BUILD` here until it was re-aimed --- loud, but only
-to a session that runs the plain form after editing the README, which step 8d
-asks for only when a script changed. It is re-aimed and its comment now says
-the anchor is run-scoped. Fourth, nothing checks that a paragraph's *floor*
-quotes match the chapter head's when a class block is installed: `--check-doc`
-catches the run's floor pair across its four sites and the six-pair figure
-across its three, and it caught both here, but a class's own floor is quoted
-only inside its block and is checked by nothing. **One capability, and it
-is the run's own instrument**: a wild A/A cell can now be shown to be layout
-without a probe process, because the published half carries per-sample
-allocation, mutator, collector and in-use totals for every cell it prints ---
-what Run 16 needed a hand-run process and a negative result to say, this run
-says off the roster in one pass, at 74.48% instead of 8.2%. **One trap met
-and worth writing down**: a prefix-anchored table edit matched an earlier table.
-Inserting two columns into the yardstick by anchoring on ``| `arm` | `` put
-cells into the element-type probe's header and into a loop-offsets row, because
-the anchor was asserted to *exist* rather than to be *unique*; `--check-doc`'s
-width pass caught it at once, and the repair was `count == 1` on the whole line.
-Assert uniqueness, not existence. **And one more, which cost two red gates**:
+sentence, which is by definition a figure a write-up replaces, so it reports
+`FIXTURE DID NOT BUILD` until it is re-aimed at whatever sentence the floor
+section then quotes --- loud, but only to a session that runs the plain form
+after editing the README, which step 8d asks for only when a script changed.
+**One capability, and it is the run's own instrument**: a wild A/A cell can now
+be shown to be layout without a probe process, because the published half
+carries per-sample allocation, mutator, collector and in-use totals for every
+cell it prints --- what Run 16 needed a hand-run process and a negative result
+to say, this run says off the roster in one pass, at 74.48% instead of 8.2%.
+**One trap met and worth writing down**: a prefix-anchored table edit matched
+an earlier table. Inserting two columns into the yardstick by anchoring
+on ``| `arm` | `` put cells into the element-type probe's header and
+into a loop-offsets row, because the anchor was asserted to *exist* rather
+than to be *unique*; `--check-doc`'s width pass caught it at once,
+and the repair was `count == 1` on the whole line. Assert uniqueness,
+not existence. **And one rule already restated, which had cost two red gates**:
 a probe artifact named `$R-*.json` is read by `read-all.sh`
 and by `check-scripts.py --properties` as one of the run's own processes.
-This README already says to name a smoke artifact `smoke*` and never `$R-*`,
-and gives `run-major.sh`'s refusal as the reason; the reason is bigger
-than that. A repetition parked at `run17-rep-revsome.json` while it was still
-being written turned `read-all.sh` from eighteen clean gates into "2 process(es)
-FAILED" and failed `prop_selftest_over_the_corpus` with a traceback, on a file
-no run produced --- and both would have read as the run breaking. The rule wants
-restating as **no probe of any kind takes the run's prefix**, `$R-gate-*`
-and `$R-al-*` being the two the drivers were taught to skip; everything else
-goes under `probe-*`, which is what the directory's older probes already do.
+A repetition parked at `run17-rep-revsome.json` while it was still being written
+turned `read-all.sh` from eighteen clean gates into "2 process(es) FAILED"
+and failed `prop_selftest_over_the_corpus` with a traceback, on a file no run
+produced --- and both would have read as the run breaking. **No probe of any
+kind takes the run's prefix**, `$R-gate-*` and `$R-al-*` being the two
+the drivers were taught to skip; everything else goes under `probe-*`
+or `smoke-*`. That is [in the run recipe](#making-a-major-benchmark-run)
+in its general form now, where the two steps that used to carry only
+the relaunch guard's half of it point at it.
 
 **The instrument has shipped into a recorded run, which is the change this run
 makes to this heading.** Run 17's basis half carried the per-sample log
@@ -3014,50 +3031,54 @@ wants no quiet machine at all; no window closes.
    it, one line per criterion **sample** --- a step inside one bench being
    averaged away by a per-bench figure --- off unless `WILDLOG` is set
    in the environment, proved firing and silent before the tree was restored,
-   and kept as `wildlog-instrument.patch` rather than committed while the pair's
-   source is the tip a note names. It hangs off criterion's `allocEnv`
-   and `cleanEnv`, which bracket the timed block from outside, and runs
-   criterion's own `whnf'` loop, so a logged arm executes the instructions every
-   published bench does. Addresses are not logged though the entry names them,
-   and the code says why: the RTS reserves its heap at a fixed base, so what
-   moves is where within that arena a buffer lands, which is what the allocation
-   total says, and taking an output buffer's address would cost an extra fill
-   per sample --- perturbing the history under test. **Riding both halves
-   of the pair, which this heading asked for until 2026-08-19, is refused**: Run
-   16's basis registration is a repetition against run15-a32m, the edit moves
-   `.text` and every loop offset, so the bridge would cross a layout change,
-   and per-sample logging allocates. Run 17 puts it on ONE half by decision
-   of 2026-08-21 --- `run17-wildlog`, the basis, against `run17-det` without
-   it --- so the pair prices the instrument rather than inheriting it ([What Run
-   18 compares against](#what-run-18-compares-against)). It was pointed
-   at the `scaled` class process, whose disturbance turns up in six runs
-   of eight where a wild cell is three of eight and none in the last four ---
-   but **a wild cell in Run 16's own A/A worst cell was the trigger** to spend
-   the budget on that process instead, and it fired, so `reshape1` took it.
-   Neither instance reproduces filtered --- measured both times --- so either
-   probe is a whole process and never a five-bench run. Its `perf` half still
-   wants `kernel.perf_event_paranoid` lowered by hand. **And Run 15 moves where
+   and kept as `wildlog-instrument.patch` while Run 17's pair was live ---
+   landed in `Main.hs` by commit on 2026-08-22 once that pair was spent,
+   so the patch file is now the record of what Run 17's basis carried
+   over its control and not a step anyone applies. It hangs off criterion's
+   `allocEnv` and `cleanEnv`, which bracket the timed block from outside,
+   and runs criterion's own `whnf'` loop, so a logged arm executes
+   the instructions every published bench does. Addresses are not logged though
+   the entry names them, and the code says why: the RTS reserves its heap
+   at a fixed base, so what moves is where within that arena a buffer lands,
+   which is what the allocation total says, and taking an output buffer's
+   address would cost an extra fill per sample --- perturbing the history
+   under test. **Riding both halves of the pair, which this heading asked
+   for until 2026-08-19, is refused**: Run 16's basis registration
+   is a repetition against run15-a32m, the edit moves `.text` and every loop
+   offset, so the bridge would cross a layout change, and per-sample logging
+   allocates. Run 17 puts it on ONE half by decision of 2026-08-21 ---
+   `run17-wildlog`, the basis, against `run17-det` without it --- so the pair
+   prices the instrument rather than inheriting it ([What Run 18 compares
+   against](#what-run-18-compares-against)). It was pointed at the `scaled`
+   class process, whose disturbance turns up in six runs of eight where a wild
+   cell is three of eight and none in the last four --- but **a wild cell in Run
+   16's own A/A worst cell was the trigger** to spend the budget on that process
+   instead, and it fired, so `reshape1` took it. Neither instance reproduces
+   filtered --- measured both times --- so either probe is a whole process
+   and never a five-bench run. Its `perf` half still wants
+   `kernel.perf_event_paranoid` lowered by hand. **And Run 15 moves where
    to point it**: the `scaled` slot's disturbance sat on `mut-odo-vecdims`
    for six runs and this run finds it on `mut-odo`, `gen-unsafe` and `build`
    instead, all three worst on `scaled-super-r3` --- so the instrument follows
    the shape and not the arm. Both readings are with the wild-cell entry.
 3. **Between Run 17 and Run 18: Run 18's pair, since Run 17's riders and probes
-   are all spent.** The five that rode with Run 17 are done and their readings
-   are in [its registration](#what-is-open): the alone legs ran with the evening
-   and put the in-process deflation at +11.51% and +11.62%; the fixed-n rider
-   was taken on the basis binary afterwards; and the per-process floor,
-   the 24m/48m probe and the counted-work pilot were taken ahead of the pair
-   on `run16-a32m`, the first holding, the second killed and the third refusing
-   the switch to counts. What is left before Run 18's evening is that pair's own
-   owed work, [listed with it](#what-is-open) --- the stamp's load fields before
-   the build, decided 2026-08-22 during Run 17 so that a wild cell can be told
-   from an intrusion per sample, then the plateau check in `run-major.sh`
-   and `read-all.sh` with a `check-scripts.py` case first, cases
-   for `run-alonelegs.sh` and `run-counts.sh`, and the `-g3` twins per compiler
-   at the write-up --- **and one new question this run raised**, whether
-   `mut-odo-vecdims-add-in` really leads the arm that ships, which [its
-   entry][open] says is minutes on an existing binary and needs no run. None
-   of it needs a quiet machine except that last, and that only briefly.
+   are all spent, and its owed work is now spent too.** The five that rode
+   with Run 17 are done and their readings are in [its
+   registration](#what-is-open): the alone legs ran with the evening and put
+   the in-process deflation at +11.51% and +11.62%; the fixed-n rider was taken
+   on the basis binary afterwards; and the per-process floor, the 24m/48m probe
+   and the counted-work pilot were taken ahead of the pair on `run16-a32m`,
+   the first holding, the second killed and the third refusing the switch
+   to counts. **What was owed before Run 18's evening was taken 2026-08-22, none
+   of it on a quiet machine and none of it wanting one**: both patches landed
+   in `Main.hs` by commit, so every recipe below lost its apply step; the stamp
+   gained its three load fields before that build, so a wild cell can be told
+   from an intrusion per sample; the plateau is counted per process
+   in `run-major.sh` and banded across them in `read-all.sh`, with seven
+   `check-scripts.py` cases behind it, three of them controls;
+   and `run-alonelegs.sh` and `run-counts.sh` have cases of their own, each
+   written against a defect it had. What is left of this item is the `-g3` twins
+   per compiler, which belong at the write-up and not before the build.
 
 **One rider rather than a task of its own, since it fires on an event and
 not on a session.** The pinning claim --- that a shim'd build holds every
@@ -4914,8 +4935,9 @@ and never as a chronology.
     #      the roster delta under Provenance. Any class serves, every
     #      one being three shapes since 2026-08-14 -- prefer one of the
     #      five that crossed from two, which drives `--block`'s
-    #      three-shape branch. Name the artifacts smoke*, never $R-*,
-    #      which is the general rule stated below and not this step's own.
+    #      three-shape branch. Name the artifacts probe-* or smoke-*, never
+    #      $R-*: NO PROBE OF ANY KIND TAKES THE RUN'S PREFIX, which is the
+    #      general rule stated below and not this step's own.
     #      Record it on an `L1 ROSTER PASS:` line. With the previous run's
     #      binary gone, membership is compared against the roster delta
     #      under Provenance
@@ -5572,7 +5594,10 @@ on an `L1 ROSTER PASS:` line, and a second session owes the twenty minutes only
 if none is there. **Name its artifacts `smoke*` and not `$R-*`**, which
 is not tidiness but the relaunch guard step 12 names: a `$R-l1-main.json` left
 beside the pair refuses the very run this pass was run to clear. `smoke*.json`
-is outside that glob and inside `.gitignore` already.
+is outside that glob and inside `.gitignore` already. The relaunch guard
+is the smaller half of the reason and this step's own; the general rule, wider
+than any step and quieter when broken, is [above](#making-a-major-benchmark-run)
+--- no probe of any kind takes the run's prefix.
 
 **"Roster change" here means membership, and the test is `--list`**:
 the binary's listing differs from what the previous run's did, in its set
@@ -5886,7 +5911,20 @@ was missed, which is what they have cost.
     #      quoting it as the floor overstates by 1/(1-f). Write this run's
     #      floor into the head of the chapter now: every margin is judged
     #      against it. Read $R-wallclock.log FIRST -- a wrong bench count is
-    #      logged loudly and is not fatal, so nothing else stops on it
+    #      logged loudly and is not fatal, so nothing else stops on it.
+    #      On a run carrying the preamble it also gates THE PLATEAU, off
+    #      the logs rather than the JSONs: every recorded process's own
+    #      @@saturate reading inside 5% of the run's. A process outside
+    #      that band measured in a state the others did not, and every
+    #      other gate here is WITHIN one process and cannot see it
+    ./read-run.py $R-<half>-<pop>.log --wild          # 1b. and, on an
+    #      instrumented run, the per-sample stamps that log carries:
+    #      allocation, mutator, collector and in-use per bench, and the
+    #      foreign CPU during its samples. That last is what tells a WILD
+    #      CELL from an external intrusion -- both being a moved mutator
+    #      clock at flat RTS totals, and the difference being whether
+    #      anything else was running. Reach for it when a cell in step 1's
+    #      worst-cell column wants explaining, not on every process
     #   2. match bases before reading any ratio -- same population, same
     #      restriction, the basis the claim was stated on
     ./read-run.py $R-<basis>-main.json --claims       # 3. every claim's
@@ -6627,11 +6665,31 @@ docstring rather than re-derived.
     ./read-run.py RUN.json --markdown --in-place   # install it, do not paste
     ./read-run.py RUN.json --selftest       # check the reader's own invariants
     ./read-run.py RUN.json --exclude concat-runs --exclude-shape deep-7-c512-k3
+    ./read-run.py RUN.json --deflation      # the roster cell over this run's
+                                            # own alone legs, per shape
+    ./read-run.py RUN-half-pop.log --wild   # the per-sample instrument's LOG,
+                                            # not a JSON: each bench's
+                                            # pre/post pair differenced, and
+                                            # the foreign CPU during its
+                                            # samples where the stamp carries
+                                            # the load fields. --verbose adds
+                                            # the per-sample dump
     ./read-run.py --lint                    # Main.hs's roster and shape
                                             # annotations, against README
                                             # and against itself
     ./read-run.py --para 'the floor is'     # the paragraphs whose bolded
                                             # lead matches, and their lines
+    ./read-run.py --replace ANCHOR --with F # swap the paragraph carrying
+                                            # ANCHOR for the text in F,
+                                            # without the old text passing
+                                            # through a transcript. The unit
+                                            # is a BLANK-LINE PARAGRAPH, and
+                                            # a list with no blank lines
+                                            # between its items is one of
+                                            # them -- so an anchor inside
+                                            # one item is refused unless it
+                                            # is the first, replacing a list
+                                            # meaning replacing all of it
 
 **Anything this reader can emit, a session should not read.** It is why
 no write-up has ever read a table row out of this file: `--markdown`,
