@@ -19,6 +19,18 @@
 # nothing is reported rather than passing as a run of zero benches. The
 # reverse -- a class the BINARY has that CLASSES does not name -- is
 # refused before the run, and the complaints ride out in the exit status.
+#
+# THE LAUNCH SWITCHES ARE COUNTED THE SAME WAY, and recorded besides. An
+# instrument switched on by an environment variable is off unless the launch
+# line sets it, and nothing else here can see that: the bench counts come out
+# right, the gate passes and the reader is happy over logs with no stamps in
+# them. So each switch that IS set is asserted per process -- one `@@saturate`
+# line, at least one `@@wild` stamp -- and both are echoed into the wallclock
+# log at the start whether set or not, because an assertion conditional on the
+# switch cannot see the failure that matters, which is an operator who forgot
+# one. The echo cannot stop that run; it puts the fact in the run's own record
+# at minute one rather than leaving it to be inferred hours later from an
+# absence, and only then if `--wild` is reached for at all.
 
 # Driven by ./check-scripts.py without binaries or hours: all eighteen
 # processes against stand-ins that hand back a previous run's real cells.
@@ -181,6 +193,19 @@ run () {   # $1 = half, $2 = artifact tag, $3 = benches expected, $4.. = args
     grep -h '^@@saturate ' "$out.log" | sed "s|^|      $out |" \
       | tee -a "$R-wallclock.log"
   fi
+  # THE OTHER SWITCH, counted the same way and for the same reason. The
+  # per-sample instrument writes a `@@wild` line per criterion sample,
+  # two per sample in fact, so ANY count above zero is the assertion --
+  # unlike the preamble's, which is exactly one a process. Zero under
+  # `WILDLOG` set is a binary built without the instrument, joining an
+  # instrumented run with nothing else able to see it: the JSONs, the
+  # bench counts, the gate and the reader all come out right, and the
+  # log simply has no stamps in it.
+  if [ -n "${WILDLOG:-}" ] && [ "${WILDLOG}" != 0 ]; then
+    local nwild
+    nwild=$(grep -c '^@@wild ' "$out.log")
+    [ "$nwild" -gt 0 ] || { log "  !! $out: WILDLOG=$WILDLOG was set and this log carries no @@wild stamps -- the instrument is not in this binary, so the run is uninstrumented and only --wild would ever have said so"; BAD=$((BAD + 1)); }
+  fi
 }
 
 # TWO commits, because HEAD is not what the binaries were built from and
@@ -217,6 +242,21 @@ else
 fi
 log "halves: $HALVES, in that order; $BASIS is the basis, and every class runs\
  on both halves"
+# THE LAUNCH ENVIRONMENT, recorded whether or not it carries anything. The
+# two assertions in `run()` fire only when their switch IS set, so neither
+# can see the failure that matters -- an operator who forgot one. Nothing
+# downstream notices either: the bench counts come out right, the gate
+# passes, the reader is happy, and the registration the pair was built to
+# answer comes back empty, discovered at the write-up if `--wild` is
+# reached for at all, which post-run step 1b says is not every process.
+# This cannot stop that run, but it puts the fact in the run's own record
+# at its first minute instead of leaving it to be inferred from an absence
+# hours later. `run-alonelegs.sh` has echoed its own switches since Run 17
+# and this is that line, in the driver that spends the evening.
+log "launch env: WILDLOG=${WILDLOG-unset} SATURATE=${SATURATE-unset} --\
+ the note's LAUNCH block says what this pair wants, and a switch reading\
+ unset where it wants a value is an uninstrumented run that will otherwise\
+ look perfect"
 if [ "$GIT_SAID" = 0 ]; then
   log "tree: $(printf '%s' "$DIRTY" | grep -c .) path(s) untracked or modified"
   [ -z "$DIRTY" ] || printf '%s\n' "$DIRTY" | tee -a "$R-wallclock.log"

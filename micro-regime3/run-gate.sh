@@ -111,11 +111,32 @@ run () {   # $1 = half, $2 = pass
   # one log, and only the adjacent line saying which process each is about.
   [ "$nb" = "$EXPECT" ] || { echo "    !! $out: expected $EXPECT, got $nb -- the selection is not the $ARMS arm(s) SEL names"; BAD=$((BAD + 1)); PROC=$((PROC + 1)); }
   [ "$rc" = 0 ] || { echo "    !! nonzero exit -- read ${out}.log before trusting anything from it"; BAD=$((BAD + 1)); PROC=$((PROC + 1)); }
+  # THE LAUNCH SWITCHES, asserted here as run-major.sh asserts them and
+  # sooner: this gate is forty minutes and the run it stands before is
+  # several hours, so a binary that cannot assert what the launch line
+  # asked of it is worth catching on the rehearsal rather than on the
+  # evening. Each is asked for only when its own switch is set, so an
+  # uninstrumented pair run without either is silent here -- which is
+  # what the launch-env line below records instead.
+  if [ -n "${SATURATE:-}" ] && [ "${SATURATE}" != 0 ]; then
+    [ "$(grep -c '^@@saturate ' "${out}.log")" = 1 ] || { echo "    !! $out: SATURATE=$SATURATE was set and this log does not carry exactly one @@saturate line -- the process did not assert its state"; BAD=$((BAD + 1)); PROC=$((PROC + 1)); }
+  fi
+  if [ -n "${WILDLOG:-}" ] && [ "${WILDLOG}" != 0 ]; then
+    [ "$(grep -c '^@@wild ' "${out}.log")" -gt 0 ] || { echo "    !! $out: WILDLOG=$WILDLOG was set and this log carries no @@wild stamps -- the instrument is not in this binary, and the run this gate stands before would be uninstrumented"; BAD=$((BAD + 1)); PROC=$((PROC + 1)); }
+  fi
   RESULTS="${RESULTS}
     ${out}  rc=${rc} benchmarking=${nb}"
 }
 
 echo "=== $(date -Is) gate begins; expecting $EXPECT benches a process"
+# THE LAUNCH ENVIRONMENT, recorded whether or not it carries anything, as
+# run-major.sh records it and for the same reason: the gate takes the same
+# switches the run will take (README's recipe, step 14 then step 17), and a
+# gate run without them proves the pair mechanically while proving nothing
+# about the instrument the evening is for. Nothing else here would say so --
+# the bench counts come out right and the verdict reads clean.
+echo "=== $(date -Is) launch env: WILDLOG=${WILDLOG-unset}\
+ SATURATE=${SATURATE-unset}; $NOTE's LAUNCH block says what this pair wants"
 run "$OTHER" a
 run "$BASIS" a
 run "$BASIS" b

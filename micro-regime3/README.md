@@ -5032,7 +5032,15 @@ throughout:
     #      right, the gate passes, the reader is happy, and the
     #      registration the pair was built to answer comes back empty.
     #      Step 0 read it off the note; Run 17's is WILDLOG=1, on the gate
-    #      and on the sequence alike
+    #      and on the sequence alike, and Run 18's is WILDLOG=1 SATURATE=1
+    #      on both. Since 2026-08-22 BOTH DRIVERS RECORD what they were
+    #      launched with, `launch env: WILDLOG=... SATURATE=...` in the
+    #      gate's output and in the wallclock log, set or unset -- so read
+    #      that line back rather than trusting the command you meant to
+    #      type. Each switch that IS set is also asserted per process,
+    #      one `@@saturate` line and at least one `@@wild` stamp; neither
+    #      assertion can see a switch left off, which is what the record
+    #      is for
     #      -- and it is owed because THIS pair is two builds. A pair whose
     #      halves differ in an RTS option alone can be one binary run
     #      twice, and then none of this is owed, the gate included; the
