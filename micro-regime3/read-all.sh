@@ -16,9 +16,14 @@
 # of magnitude outside it is a finding the aggregate is hiding.
 #
 # That comparison is like with like, which neither the README nor `--aa`
-# says outright: `aa_table` takes each pair's cells on `net`, raw only for
-# the `sum-only` pair whose raw ratio IS the position test, so the cell
-# printed here is the same quantity as the published net floor.
+# says outright: `aa_table` takes each A/A pair's cells on `net`, so the
+# cell printed here is the same quantity as the published net floor. The
+# `sum-only` pair `--aa` prints beside them is NOT in it: that one is
+# compared raw, its raw ratio being the position test, and `aa_pairs`
+# keeps it out of the floor for the same reason -- so a sum-only cell
+# wider than every A/A cell used to be printed here as the A/A worst, and
+# on Run 11's slice process it tied the widest A/A cell and the tie went
+# to it. Case: `aa-worst-cell-is-not-the-sum-only-pair`.
 #
 # It also gates THE PLATEAU, where a run carries one: every process's own
 # `@@saturate` reading inside a band of the run's own, which is Run 18's
@@ -182,18 +187,40 @@ fi
 PLATEAU_BAND=${PLATEAU_BAND:-5}
 PLOGS=$(ls -1 "$R"-*.log 2>/dev/null \
           | grep -v -e "^$R-gate-" -e "^$R-al-" -e "^$R-wallclock\.log$")
+NPLOGS=$(printf '%s\n' "$PLOGS" | grep -c .)
+# The token before `ms/iter`, whatever its spelling: `show` on a Double
+# writes `8.5e-2` below 0.1, and a digits-and-dot pattern dropped such a
+# line in silence, the process then missing from the count below with
+# nothing said. Case: `plateau-reading-in-exponent-form`.
 SAT=$([ -z "$PLOGS" ] || grep -h '^@@saturate ' $PLOGS 2>/dev/null \
-        | sed -n 's|.* \([0-9][0-9.]*\) ms/iter .*|\1|p')
+        | awk '{ for (i = 2; i <= NF; i++)
+                   if ($i == "ms/iter") print $(i - 1) }')
 WILD_PLATEAU=0
 if [ -n "$SAT" ]; then
-  read -r NSAT LO HI SPREAD <<EOF
-$(printf '%s\n' "$SAT" | awk -v b="$PLATEAU_BAND" '
-    NR == 1 { lo = hi = $1 }
-    { n++; if ($1 < lo) lo = $1; if ($1 > hi) hi = $1 }
-    END { s = (lo > 0) ? 100 * (hi - lo) / lo : 0
-          printf "%d %s %s %.2f\n", n, lo, hi, s }')
+  # Counted against the logs and not only among themselves: one reading
+  # left over is lo == hi, a spread of 0.00, and `every process asserted
+  # the same state` said over one process. A token that is no number is
+  # counted apart, awk reading `NaN` as 0 and any band holding it. Cases:
+  # `plateau-reading-missing-from-a-process`,
+  # `plateau-reading-that-is-no-number`.
+  read -r NSAT NBAD LO HI SPREAD <<EOF
+$(printf '%s\n' "$SAT" | awk '
+    $1 !~ /^[0-9]+(\.[0-9]+)?([eE][-+]?[0-9]+)?$/ { nbad++; next }
+    n == 0 { lo = hi = $1 + 0 }
+    { n++; if ($1 + 0 < lo) lo = $1 + 0; if ($1 + 0 > hi) hi = $1 + 0 }
+    END { s = (n > 0 && lo > 0) ? 100 * (hi - lo) / lo : 0
+          printf "%d %d %s %s %.2f\n", n, nbad + 0, lo, hi, s }')
 EOF
-  if awk -v s="$SPREAD" -v b="$PLATEAU_BAND" 'BEGIN { exit !(s > b) }'; then
+  if [ "$NBAD" != 0 ] || [ "$NSAT" != "$NPLOGS" ]; then
+    echo "!! the plateau is not this run's: $NSAT reading(s) parsed from the"
+    echo "   $NPLOGS recorded process log(s), $NBAD of the line(s) no number"
+    echo "   -- a process without a reading measured in a state nobody"
+    echo "   asserted, and a band over the rest is a band over a different"
+    echo "   run. The lines, per process:"
+    grep -H '^@@saturate ' $PLOGS 2>/dev/null | sed 's/^/   /'
+    echo
+    WILD_PLATEAU=1
+  elif awk -v s="$SPREAD" -v b="$PLATEAU_BAND" 'BEGIN { exit !(s > b) }'; then
     echo "!! the plateau is not flat across this run: $NSAT process(es) read"
     echo "   the preamble's victim from $LO to $HI ms/iter, a spread of"
     echo "   $SPREAD% against a band of $PLATEAU_BAND% -- a process outside it"
@@ -236,7 +263,11 @@ for f in $FILES; do
   # filtered out leaves the in-situ rows the least indented there are, and
   # the `(no A/A pair in this file)` fallback below never fires. The
   # section header cannot go the same way: it is the one line naming the
-  # population, where an indent names a `printf` width.
+  # population, where an indent names a `printf` width. The `sum-only`
+  # pair is skipped by its name: it prints above that header with the A/A
+  # pairs and is not one (the header of this file). Ties go to the first
+  # line and a 0.00% cell is still a cell, which is what `best` starting
+  # below zero buys.
   # The STATUS is read, and the stderr kept, for the reason the selftest
   # call below keeps its own: with `2>/dev/null` and no `$?`, a reader that
   # REFUSED this file produced no `worst cell` line, fell through to the
@@ -247,11 +278,13 @@ for f in $FILES; do
   # reported as having no A/A pair, `every process gated clean`.
   aa=$(./read-run.py "$f" --aa --brief 2>&1); aarc=$?
   worst=$(printf '%s\n' "$aa" \
-            | awk '/^in-situ forcing term/ { insitu = 1 }
-                   /worst cell/ && !insitu {
+            | awk 'BEGIN { best = -1 }
+                   /^in-situ forcing term/ { insitu = 1 }
+                   /^[^ ]/ { sumonly = ($1 ~ /^sum-only/) }
+                   /worst cell/ && !insitu && !sumonly {
                      split($0, w, "worst cell ")
                      split(w[2], v, "%")
-                     if (v[1] + 0 >= best + 0) { best = v[1]; s = w[2] } }
+                     if (v[1] + 0 > best) { best = v[1] + 0; s = w[2] } }
                    END { if (s) print "worst cell " s }')
   if [ "$aarc" != 0 ]; then
     worst='!! --aa REFUSED this file, so its A/A is unread'
