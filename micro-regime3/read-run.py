@@ -918,8 +918,13 @@ def strategy_table(cells, shapes, strategies, meta, args, terms):
         print('\ntime is --: this run has no `list` bench to divide by')
     print('\n* control, not a strategy (--aa explains; --no-controls omits)')
     if any(terms.values()) and have_list:
+        # A cell with no positive slope has no share to read, and divided
+        # here in the default mode -- the zero-slope family's last site,
+        # the selftest's having been named the day before. Found
+        # 2026-08-23 by a sweep for the family.
         share = {st: med_or_nan([terms[sh] / cells[sh][st]['slope']
-                                 for sh in shapes if st in cells[sh]])
+                                 for sh in shapes if st in cells[sh]
+                                 and cells[sh][st]['slope'] > 0])
                  for st in ('list', SHIPPED)}
         known = ' and '.join('%.1f%% of %s' % (100 * v, k)
                              for k, v in share.items() if v == v)
