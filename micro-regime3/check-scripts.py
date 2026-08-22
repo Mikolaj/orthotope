@@ -3413,7 +3413,11 @@ def shadow_dir(tmp, prog, text, mutate=(), extra=()):
     or `--audit` meets for any revision of a script from before it got
     its `cd "$(dirname "$0")"`.
     """
-    if re.search(r'^\s*cd\s+/', text, re.M):
+    # The path quoted too: `cd "/home/..."` is the same escape and slipped
+    # the first form of this. Found 2026-08-23 by review. Cases:
+    # `shadow-refuses-an-absolute-cd`, `shadow-refuses-a-quoted-absolute-cd`
+    # and `shadow-holds-its-own-directory`, asked of this function directly.
+    if re.search(r'^\s*cd\s+["\']?/', text, re.M):
         raise AssertionError('%s cds to an absolute path, so a shadow cannot'
                              ' hold it and running it would run for real'
                              % prog)
