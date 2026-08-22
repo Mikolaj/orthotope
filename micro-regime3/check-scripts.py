@@ -171,7 +171,9 @@ import argparse
 import ast
 import atexit
 import collections
+import contextlib
 import importlib.util
+import io
 import inspect
 import json
 import os
@@ -2350,12 +2352,33 @@ PROPERTIES = [prop_abs_round_trip, prop_table_reads_back,
 # person, not the gate.
 
 
-def properties():
-    """Every property, over the live corpus, naming what failed."""
+def properties(warnings=False):
+    """Every property, over the live corpus, naming what failed.
+
+    WITHHOLDS THE READER'S OWN STDERR BY DEFAULT, and says how much and of
+    what kinds. These properties drive `read-run.py` over every run on
+    disk, so the reader warns once per run per table about rows a later
+    roster no longer carries -- correct, expected, and on 2026-08-22
+    **198 KB over 258 lines against six lines of verdict**. A pass whose
+    signal is outnumbered thirty to one is a pass that gets piped through
+    `tail`, and a pipe throws away the exit code this whole file is.
+
+    The kinds are kept and counted rather than dropped: what is withheld
+    is the repetition, not the fact, so a warning the corpus has never
+    shown before still appears -- as a kind with a count of one. `
+    --warnings` restores them verbatim, which is the flag to reach for
+    when a kind is new or a count moves.
+
+    Nothing a property itself says is touched. Their verdicts and the
+    `off` lines behind a FAIL are stdout and print after the loop, so a
+    failure reads the same either way.
+    """
     m = reader()
-    bad = 0
-    for prop in PROPERTIES:
-        n, what, off = prop(m)
+    bad, buf = 0, io.StringIO()
+    keep = contextlib.nullcontext() if warnings else contextlib.redirect_stderr(buf)
+    with keep:
+        got = [(prop, prop(m)) for prop in PROPERTIES]
+    for prop, (n, what, off) in got:
         if off:
             bad += 1
             print('  FAIL %-28s over %d %s' % (prop.__name__, n, what))
@@ -2363,6 +2386,14 @@ def properties():
                 print('       %s' % line)
         else:
             print('  ok   %-28s over %d %s' % (prop.__name__, n, what))
+    held = [l for l in buf.getvalue().split('\n') if l.strip()]
+    if held:
+        kinds = collections.Counter(
+            re.sub(r'\d+', 'N', l.split(';')[0].strip())[:96] for l in held)
+        print('\n  %d line(s) of reader warning withheld, in %d kind(s);'
+              ' --warnings for them verbatim:' % (len(held), len(kinds)))
+        for k, c in kinds.most_common():
+            print('    %5d x %s' % (c, k))
     return bad
 
 
@@ -2534,6 +2565,9 @@ def main():
     p.add_argument('--properties', action='store_true',
                    help='the properties, over every run on disk rather than'
                         ' over any fixture')
+    p.add_argument('--warnings', action='store_true',
+                   help='with --properties: the reader\'s own stderr'
+                        ' verbatim, which is withheld and counted by kind')
     p.add_argument('--families', action='store_true',
                    help='the shapes these defects keep returning in, over'
                         ' the source of every program here')
@@ -2559,7 +2593,7 @@ def main():
         verdict = '%d site(s) of a known family' % bad if bad else ''
     elif args.properties:
         print('properties over the live corpus:')
-        bad, skipped, unbuilt = properties(), 0, 0
+        bad, skipped, unbuilt = properties(args.warnings), 0, 0
         verdict = '%d propert(ies) FAILED' % bad if bad else ''
     elif args.audit:
         print('replaying %d case(s) against the code before each fix, where'
