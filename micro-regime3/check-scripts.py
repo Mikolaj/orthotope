@@ -1207,7 +1207,7 @@ def _spread(fn, lo, hi):
 TERM = 4e-10        # the forcing term per element: one pass, so it scales
 
 
-def synth_run(path, shapes, samples=8, no_twins=False, sunk=()):
+def synth_run(path, shapes, samples=8, no_twins=False, sunk=(), skew=()):
     """A criterion run over `shapes`, built rather than captured.
 
     Kilobytes where a real run's JSON is megabytes, and DERIVED: the arms
@@ -1229,6 +1229,11 @@ def synth_run(path, shapes, samples=8, no_twins=False, sunk=()):
     `sunk` names (shape, arm) cells to drive NON-positive, which no real
     run on disk carries -- the state the fingerprint, `--block` and
     `machine_check` refuse, and which had to be constructed to test at all.
+
+    `skew` scales named (shape, arm, factor) cells, which is how a `Term`
+    half is made to disagree with its twin on one shape: the exact halves
+    read 0.00% as a pair, and a case about WHICH pair's cell gets printed
+    needs that one wider than every A/A cell.
     """
     m = _reader()
     main_hs = os.path.join(HERE, 'Main.hs')
@@ -1286,6 +1291,9 @@ def synth_run(path, shapes, samples=8, no_twins=False, sunk=()):
                 slope *= 1.0 + _spread(name + '@' + sh, -0.004, 0.004)
             if (sh, name) in sunk:
                 slope = TERM * l * 0.5      # below the term: net goes negative
+            for s_sh, s_name, factor in skew:
+                if (sh, name) == (s_sh, s_name):
+                    slope *= factor
             alloc = 0.0 if role == 'Term' else 8.0 * l * _spread(fn, 0.9, 1.4)
             reports.append(_synth_report('%s/%s' % (sh, name), slope, alloc,
                                          samples))
@@ -1315,7 +1323,7 @@ def synth_text(shapes, **kw):
 
 def synthetic_run(tmp, killed=False, no_twins=False, no_starts=False,
                   complained=False, note_block=False, riders=False,
-                  into=None, plateau=None):
+                  into=None, plateau=None, skew=()):
     """A whole run in this directory: JSONs, and the log that describes it.
 
     `read-all.sh` cds to its own directory and globs, so this is one of the
@@ -1333,7 +1341,11 @@ def synthetic_run(tmp, killed=False, no_twins=False, no_starts=False,
     thing in this fixture that is a LOG and not a JSON, `read-all.sh`'s
     plateau gate being the only one of its gates read off a log. A rider
     and a gate log get one too, both at absurd readings, so that a gate
-    counting them would say so rather than pass with a wider band.
+    counting them would say so rather than pass with a wider band. A
+    reading of `None` is a process that asserted nothing: its log is
+    there, as every process's is, and carries no such line.
+
+    `skew` is `synth_run`'s, applied to both class runs.
     """
     place = (here_file if into is None
              else lambda name: os.path.join(into, name))
@@ -1352,7 +1364,7 @@ def synthetic_run(tmp, killed=False, no_twins=False, no_starts=False,
         # nothing to do with the defect it guards; it is the roster's own
         # Twin role now, and moves with the roster.
         dst = place('%s-lookrts-%s.json' % (tag, cls))
-        synth_run(dst, class_shapes(cls), no_twins=no_twins)
+        synth_run(dst, class_shapes(cls), no_twins=no_twins, skew=skew)
         if not no_starts:
             log += ['=== 2026-01-01T00:00:01+01:00 start %s-lookrts-%s'
                     % (tag, cls),
@@ -1379,7 +1391,8 @@ def synthetic_run(tmp, killed=False, no_twins=False, no_starts=False,
         sat = ('@@saturate dose=1x by=list sprayed=1000000 in 6.0 s; victim'
                ' vgg-14-c512-k3/list %s ms/iter over 20; inuse=1 keep=1')
         for cls, ms in zip(('rev', 'slice'), plateau):
-            write(place('%s-lookrts-%s.log' % (tag, cls)), sat % ms + '\n')
+            write(place('%s-lookrts-%s.log' % (tag, cls)),
+                  'benchmarking x/y\n' if ms is None else sat % ms + '\n')
         # A rider's and a gate half's, at readings no band could hold: both
         # are excluded by name, so a gate that counted either would fail
         # loudly here instead of passing over a wider set.
@@ -2253,6 +2266,23 @@ CASES = [
          ok=V(has=['(no A/A pair in this file)']),
          bug=V(hasnt=['(no A/A pair in this file)'])),
 
+    case('aa-worst-cell-is-not-the-sum-only-pair', 'read-all.sh', 'bd88db5',
+         "the sum-only pair's raw worst cell was printed as the A/A worst",
+         # `--aa` prints the `sum-only` pair among the A/A pairs, above the
+         # in-situ header this column stops at, and compares it RAW -- its
+         # raw ratio being the position test -- where `aa_pairs` keeps it
+         # out of the floor. So a shape on which the two halves disagree by
+         # more than any A/A cell was the figure printed under A/A, and on
+         # Run 11's slice process it tied the widest A/A cell at 0.61% and
+         # the tie went to it. One half skewed 2% on one shape is that
+         # state, wider than the wobble every A/A pair is built with.
+         plant=lambda t: synthetic_run(
+             t, skew=[(class_shapes('rev')[0], 'sum-only-late', 1.02)]),
+         argv=['{tag}'],
+         ok=V(exit=0, has=['every process gated clean'],
+              hasnt=['worst cell 2.00%']),
+         bug=V(has=['worst cell 2.00% on'])),
+
     case('killed-run-does-not-gate-clean', 'read-all.sh', '95527c5',
          'a run killed mid-process gated what landed and called it clean',
          plant=lambda t: synthetic_run(t, killed=True),
@@ -2489,6 +2519,47 @@ CASES = [
          argv=['{tag}'],
          ok=V(exit=0, has=['plateau: 2 process(es)', 'every process gated'],
               hasnt=['not flat'])),
+
+    case('plateau-reading-missing-from-a-process', 'read-all.sh', 'bd88db5',
+         'one reading left over gated the plateau flat, over one process',
+         # The readings were counted among themselves and never against the
+         # processes: one survivor is lo == hi, a spread of 0.00, and `every
+         # process asserted the same in-process state` said over a run in
+         # which the other process asserted nothing -- a half launched
+         # without the dose, or a binary without the preamble, which is the
+         # state the gate exists to catch. run-major.sh's own count fires
+         # only under SATURATE, so nothing upstream said so either.
+         plant=lambda t: synthetic_run(t, plateau=['19.0', None]),
+         argv=['{tag}'],
+         ok=V(exit=1, has=['1 reading(s) parsed from the',
+                           '2 recorded process log(s)'],
+              hasnt=['every process gated clean']),
+         bug=V(exit=0, has=['plateau: 1 process(es)',
+                            'every process gated clean'])),
+
+    case('plateau-reading-in-exponent-form', 'read-all.sh', 'bd88db5',
+         'a victim under 0.1 ms/iter was dropped by the extractor in silence',
+         # `show` on a Double writes `8.5e-2` below 0.1, and the digits-and-
+         # dot pattern that pulled the reading out matched no such line, so
+         # the process vanished from the count with nothing said -- and
+         # until the case above, a vanished process narrowed the band rather
+         # than failing it. Two such readings 1.2% apart are a flat plateau.
+         plant=lambda t: synthetic_run(t, plateau=['8.5e-2', '8.6e-2']),
+         argv=['{tag}'],
+         ok=V(exit=0, has=['plateau: 2 process(es)',
+                           'every process gated clean']),
+         bug=V(hasnt=['plateau: 2 process(es)'])),
+
+    case('plateau-reading-that-is-no-number', 'read-all.sh', 'bd88db5',
+         'a reading of NaN was dropped, and the rest gated flat',
+         # The other way a token before `ms/iter` fails to be a reading: a
+         # victim timed over zero iterations shows as `NaN`, which awk reads
+         # as 0 and any band would hold. Counted apart and refused, not
+         # compared.
+         plant=lambda t: synthetic_run(t, plateau=['19.0', 'NaN']),
+         argv=['{tag}'],
+         ok=V(exit=1, has=['1 of the line(s) no number']),
+         bug=V(exit=0, has=['plateau: 1 process(es)'])),
 
     case('plateau-counted-per-process', 'run-major.sh', None,
          'a half without the preamble joined a saturated run in silence',
