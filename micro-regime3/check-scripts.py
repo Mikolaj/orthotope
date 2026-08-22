@@ -3455,8 +3455,8 @@ def family_lint(path):
     at_import = set()
     todo = [s for s in tree.body
             if not isinstance(s, (ast.FunctionDef, ast.AsyncFunctionDef))
-            and not (isinstance(s, ast.If)
-                     and '__name__' in ast.unparse(s.test))]
+            and not (isinstance(s, ast.If) and ast.unparse(s.test)
+                     == "__name__ == '__main__'")]
     while todo:
         for n in calls(todo.pop()):
             name = getattr(n.func, 'id', None)

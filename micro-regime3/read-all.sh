@@ -36,8 +36,8 @@
 # Seconds, no benchmark run, safe on a busy machine -- it only reads JSONs
 # and logs.
 #
-# Both defects this has had are cases in ./check-scripts.py -- an in-situ row
-# read as the A/A worst cell, and a killed run gating what landed and calling
+# Its defects are cases in ./check-scripts.py, the first two an in-situ row
+# read as the A/A worst cell and a killed run gating what landed and calling
 # it clean. A fix here wants a case there first; it is what keeps the proof
 # alive past the commit.
 #
@@ -341,7 +341,7 @@ else
          echo "process can exit 0 and leave a JSON having run the wrong"
          echo "selection, which every gate below reads as sound"; }
   [ "$WILD_PLATEAU" = 0 ] \
-    || { echo "and its processes did not all measure in one state, quoted at"
+    || { echo "and its processes did not all assert one state, quoted at"
          echo "the top: every A/A gate below is WITHIN a process and so says"
          echo "nothing about a process that saturated somewhere else"; }
 fi

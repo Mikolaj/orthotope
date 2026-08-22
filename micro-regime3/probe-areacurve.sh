@@ -22,8 +22,9 @@
 # are the probe's own. Its complaints ride out in the exit status as every
 # other driver's do -- they used to be echoed into the log at exit 0, so
 # six processes could come out short or dead under `AREA CURVE COMPLETE`.
-# Found 2026-08-22 by review. Cases: `areacurve-exit-carries-its-complaints`
-# and `areacurve-runs-clean-on-a-full-count`.
+# Found 2026-08-22 by review. Cases: `areacurve-exit-carries-its-complaints`,
+# `areacurve-runs-clean-on-a-full-count` and `areacurve-refuses-a-previous-
+# attempt`.
 #
 # About an hour: six processes of 120 benches at criterion's default budget.
 set -u

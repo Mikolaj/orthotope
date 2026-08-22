@@ -75,13 +75,15 @@ fi
   || { echo "!! baked RTS line unread: not the one baked since 2026-08-21,"
        echo "   so every leg would run at the default nursery; wrong binary?"
        exit 1; }
+# The listing likewise, before the redirect: refused after it, this left
+# a driver log for the relaunch guard to read as a previous attempt.
+# Case: `alonelegs-refuses-a-listless-half`.
+SHAPES=$("$B" --list 2>/dev/null | cut -d/ -f1 | awk '!seen[$0]++')
+[ -n "$SHAPES" ] || { echo "!! --list gave nothing; wrong binary?"; exit 1; }
 exec > "$R-al-$H$SUF-driver.log" 2>&1
 echo "start: $(date -Is), loadavg: $(cat /proc/loadavg)"
 echo "WILDLOG=${WILDLOG-unset} SAT=${SAT-unset}"
 md5sum "$B"
-SHAPES=$("$B" --list 2>/dev/null | cut -d/ -f1 | awk '!seen[$0]++')
-[ -n "$SHAPES" ] || { echo "!! --list gave nothing; wrong binary?"; exit 1;
-                    }
 ANCHORS="cnn-slice-c32 cifar-L2-16-c64-k3 stretch-wide-2xM"
 if [ -n "${ONLY-}" ]; then
   SHAPES=$ONLY; ANCHORS=
