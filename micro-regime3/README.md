@@ -2830,20 +2830,22 @@ rather than a slot in the next run, observed again:
   every arm inside the drift band and the fills where Run 17 held them, killed
   by an arm outside it --- **but the placement-exposed arms are outside
   that condition and were put there 2026-08-22, on Run 17's own measurement**:
-  this is a `.text`-changing comparison, the preamble adding **12288 bytes**
-  to the basis's `.text` (`sat-probe`'s 20394181 against
-  `run17-wildlog`'s 20381893) where the instrument patch added 4096, and Run 17
-  priced 4096 at up to 8% on `gen-unsafe`, `gen-quotrem`, `build`, `mut-odo`,
-  `offtab` and `bq-mut` with no strategy changed. So a movement on those six
-  families is layout and kills nothing; the other arms are what the registration
-  is over --- **less one more, `bq-expand-zf`, exempted 2026-08-22
-  on a measurement taken because it could not be taken afterwards.** Two builds
-  of the basis recipe either side of the load fields, differing in nothing else,
-  put the tracked fills at `[0, 24, 0, 4]` and `[0, 0]` on both, every copy
-  fitting --- so the fields do not move the fills, which is the question Run 18
-  had to ask --- but the second carries **one straddling loop where the first
-  carries none**, 38 bytes at offset 32, and a `-g3` twin names
-  it `fbBQexpandZF`, which is `bq-expand-zf` and a timed arm rather
+  this is a `.text`-changing comparison and by a long way, the two source
+  changes between the halves adding **24576 bytes** to `run17-wildlog`'s
+  20381893 --- 12288 for the preamble and 12288 again for the load fields, three
+  pages each, measured at 20394181 and 20406469 --- where the instrument patch
+  Run 17 priced added 4096, and 4096 was worth up to 8% on `gen-unsafe`,
+  `gen-quotrem`, `build`, `mut-odo`, `offtab` and `bq-mut` with no strategy
+  changed. Six times that shift is what the bridge is read across. So a movement
+  on those six families is layout and kills nothing; the other arms are what
+  the registration is over --- **less one more, `bq-expand-zf`, exempted
+  2026-08-22 on a measurement taken because it could not be taken afterwards.**
+  Two builds of the basis recipe either side of the load fields, differing
+  in nothing else, put the tracked fills at `[0, 24, 0, 4]` and `[0, 0]`
+  on both, every copy fitting --- so the fields do not move the fills, which
+  is the question Run 18 had to ask --- but the second carries **one straddling
+  loop where the first carries none**, 38 bytes at offset 32, and a `-g3` twin
+  names it `fbBQexpandZF`, which is `bq-expand-zf` and a timed arm rather
   than the instrument's own code. Run 17's basis straddled nowhere, so Run 18's
   basis carries a straddle its predecessor had not, on an arm [Run 10 priced
   a straddle at 12 to 14%](#what-moves-a-figure-when-no-strategy-changed).
