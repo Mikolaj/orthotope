@@ -3982,19 +3982,26 @@ POINTER_RE = re.compile(r'\]\(#|\]\[[a-z0-9-]+\]')
 
 
 def status_entries(lines, tag):
-    """[(line number, whole entry)] for each `- \\`TAG\\`` bullet of the list.
+    """[(line number, whole entry)] for each entry of the list tagged TAG.
 
-    An entry is its bullet line plus every indented line under it, blank
+    An entry is its opening line plus every indented line under it, blank
     lines included where an indented one follows, which is how this README
-    writes a multi-paragraph bullet. Grouped from the raw lines rather
+    writes a multi-paragraph item. Grouped from the raw lines rather
     than from `unwrapped_paragraphs`, because a bullet list with no blank
     lines between its items is ONE paragraph to that function -- the whole
     open list would come back as a single hit, which is the granularity
     this needs least.
+
+    BULLETS AND NUMBERED ITEMS BOTH, since `Recommended tasks after Run
+    N` numbers its three: read for bullets alone this saw the parent list
+    and neither sublist's neighbour, so the one subsection whose items
+    are a checklist was the one no check reached. A numbered item's
+    continuations are indented three rather than two, which the test
+    below already admits.
     """
     out, i, n = [], 0, len(lines)
     while i < n:
-        if not lines[i].startswith('- `%s`' % tag):
+        if not re.match(r'^(?:- |\d+\. )`%s` ' % tag, lines[i]):
             i += 1
             continue
         start, body, j = i + 1, [lines[i]], i + 1
@@ -5682,8 +5689,8 @@ def check_doc(readme, main_hs):
                     print('        %s:%d: %s'
                           % (os.path.basename(readme), first, para[:60]))
             # EVERY entry of this section opens with a status, which the
-            # section's own preamble states and offers `grep '^- .OPEN.'`
-            # as the use of. It was true of the parent list and false of
+            # section's own preamble states and offers a grep as the use
+            # of. It was true of the parent list and false of
             # the sublist: seven of the thirteen non-urgent entries
             # carried no token, four of them closed within the ten days
             # before 2026-08-22, their closure a phrase inside the bolded
@@ -5698,10 +5705,21 @@ def check_doc(readme, main_hs):
             # are not entries; the section carries no other top-level
             # bullet, which is what makes the rule decidable -- measured
             # 2026-08-22, 46 entries and 39 statused.
+            #
+            # NUMBERED ITEMS COUNT TOO. `Recommended tasks after Run N`
+            # numbers its three where both lists bullet theirs, so a
+            # bullet-only rule reached the section and skipped the one
+            # subsection inside it whose items read as a checklist -- and
+            # skipped it silently, the count simply coming out three
+            # short. The open list carries no other numbered item,
+            # measured the day this was widened, which is what keeps the
+            # rule decidable over the looser pattern.
             entries = [(i, l) for i, l in enumerate(lines, 1)
-                       if lo[0] <= i < hi[0] and l.startswith('- ')]
+                       if lo[0] <= i < hi[0]
+                       and re.match(r'^(?:- |\d+\. )', l)]
             loose = [(i, l) for i, l in entries
-                     if not re.match(r'^- `(OPEN|PARKED|ANSWERED|STANDING)` ',
+                     if not re.match(r'^(?:- |\d+\. )'
+                                     r'`(OPEN|PARKED|ANSWERED|STANDING)` ',
                                      l)]
             if not entries:
                 bad.append('no top-level entry found between `What is open`'
@@ -5710,13 +5728,14 @@ def check_doc(readme, main_hs):
                            ' moves with it')
             elif loose:
                 bad.append('%d open-list entry(s) open with no status, so'
-                           ' `grep \'^- .OPEN.\'` cannot find the live ones'
-                           ' among them: %s'
+                           ' the section\'s own grep cannot find the live'
+                           ' ones among them: %s'
                            % (len(loose),
-                              '; '.join('%s:%d %s'
-                                        % (os.path.basename(readme), i,
-                                           l[2:52])
-                                        for i, l in loose[:4])))
+                              '; '.join(
+                                  '%s:%d %s'
+                                  % (os.path.basename(readme), i,
+                                     re.sub(r'^(?:- |\d+\. )', '', l)[:50])
+                                  for i, l in loose[:4])))
             else:
                 print('ok:   all %d open-list entries open with a status,'
                        ' so the section\'s own grep is complete'

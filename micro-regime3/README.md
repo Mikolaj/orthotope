@@ -288,9 +288,12 @@ saying so in prose where nothing could find it. `OPEN` wants a measurement
 that is available; `PARKED` is open but its route is retired, and the entry says
 why; `ANSWERED` records an outcome and is kept so the question
 is not re-proposed; `STANDING` is a ruling or a convention with nothing to run.
-`grep '^- .OPEN.' README.md` is the list of live questions, and the one
-that answers a session's first question about this section. The status
-is a pointer and never the authority: the entry's own text is.
+`grep -E '^(- |[0-9]+\. ).OPEN.' README.md` is the list of live questions,
+and the one that answers a session's first question about this section ---
+the alternation being there because *Recommended tasks after Run N* numbers
+its items where both lists bullet theirs, so a bullet-only pattern reads
+that subsection as empty rather than as clean. The status is a pointer and never
+the authority: the entry's own text is.
 
 **An `ANSWERED` entry owes three things and not a fourth: the question as
 it was asked, the outcome, and the section that holds the account.** This
@@ -3075,19 +3078,19 @@ this heading used to gate --- whether the logging could ride a published half
 the preamble goes. Of what stands here, item 3's remaining work wants no quiet
 machine at all; no window closes.
 
-1. **WHICH SHAPES POISON --- asked here as the probe evening's one open
-   question, and answered 2026-08-18: there is no set.** The scan it planned
-   was run at both areas, with the order assertion it specified, and everything
-   the evening established --- the dose curve, the size-class mechanism,
-   the instrument correction that resizes the `-A1G` figures, the re-measured
-   victim set and arm specificity --- is consolidated in [the position-term
-   entry][open]. Raw material, the scan scripts, the data they rest on,
-   the reproducer and the forward plan --- the GHC filing decision, the best
-   current options, the user-code workarounds --- are tracked together
+1. `ANSWERED` **WHICH SHAPES POISON --- asked here as the probe evening's one
+   open question, and answered 2026-08-18: there is no set.** The scan
+   it planned was run at both areas, with the order assertion it specified,
+   and everything the evening established --- the dose curve, the size-class
+   mechanism, the instrument correction that resizes the `-A1G` figures,
+   the re-measured victim set and arm specificity --- is consolidated in [the
+   position-term entry][open]. Raw material, the scan scripts, the data they
+   rest on, the reproducer and the forward plan --- the GHC filing decision,
+   the best current options, the user-code workarounds --- are tracked together
    in `small-pinned-churn-investigation`.
-2. **The wild cell's mechanism --- SPENT 2026-08-20, and it is a negative result
-   that excludes three mechanisms.** The trigger this entry names fired: Run
-   16's worst A/A cell anywhere is 43.43% on `reshape1-500k`
+2. `ANSWERED` **The wild cell's mechanism --- SPENT 2026-08-20, and it
+   is a negative result that excludes three mechanisms.** The trigger this entry
+   names fired: Run 16's worst A/A cell anywhere is 43.43% on `reshape1-500k`
    at `mut-odo-aa-distant`, with its adjacent twin at 31.19% on the same shape,
    so `wildlog-a32m` went to the `reshape1` class process rather
    than to `scaled`. One process, 141 benches, 12m08s, 21334 sample records.
@@ -3152,9 +3155,9 @@ machine at all; no window closes.
    for six runs and this run finds it on `mut-odo`, `gen-unsafe` and `build`
    instead, all three worst on `scaled-super-r3` --- so the instrument follows
    the shape and not the arm. Both readings are with the wild-cell entry.
-3. **Between Run 17 and Run 18: Run 18's pair, since Run 17's riders and probes
-   are all spent, and its owed work is now spent too.** The five that rode
-   with Run 17 are done and their readings are in [its
+3. `OPEN` **Between Run 17 and Run 18: Run 18's pair, since Run 17's riders
+   and probes are all spent, and its owed work is now spent too.** The five
+   that rode with Run 17 are done and their readings are in [its
    registration](#what-is-open): the alone legs ran with the evening and put
    the in-process deflation at +11.51% and +11.62%; the fixed-n rider was taken
    on the basis binary afterwards; and the per-process floor, the 24m/48m probe
