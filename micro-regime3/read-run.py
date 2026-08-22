@@ -135,6 +135,10 @@ Modes:
   --steps           every cell read at sample level for a mid-bench change
                     of level, which the fitted slope averages away and no
                     other column here can show
+  --deflation       this run's `list` over its own alone legs, per shape:
+                    the in-process deflation the riders exist to measure,
+                    RAW over RAW because a leg carries no `sum-only` to
+                    correct with. Legs found from this run's own name
   --machine         this run's `list` absolutes against the fingerprint
                     README keeps, which is the one check that asks whether
                     the BOX changed rather than the code; exits nonzero
@@ -228,6 +232,7 @@ import collections
 import contextlib
 import difflib
 import functools
+import glob
 import io
 import json
 import math
@@ -2091,6 +2096,95 @@ def machine_check(cells, shapes, readme, thresh=3.0):
           ' the box is')
     print('  unchanged and what fired is the area this run moved to.')
     return 1
+
+
+def deflation_table(run_path, cells, shapes, main_hs):
+    """The roster cell over the same shape's ALONE LEG, per shape.
+
+    The riders a paired run leaves -- `$R-al-<half>-<shape>-r1.json`, one
+    bench in its own process -- exist so the in-process deflation can be
+    read per shape instead of estimated, and this is the mode that reads
+    it. Run 16 measured +11.43% at `-A32m` and Run 17 +11.51% and +11.62%
+    on its two halves; before this mode existed both were computed by hand
+    in the write-up, which by this README's own rule is a defect report
+    against this script rather than a script to keep.
+
+    RAW slope against RAW slope, and that is the one decision a session
+    gets wrong. An alone leg is one bench in its own process, so it
+    carries no `sum-only` bench and has no correction to subtract, while
+    the roster's `list` has one; dividing the roster's NET by the leg's
+    raw would fold the whole forcing term into the deflation and read
+    about a point low on the microsecond shapes and far worse on the
+    slowest. Both sides here are `slope`, so no correction convention
+    enters the ratio at all and the figure owes nothing to which term the
+    run subtracted.
+
+    The legs are found from the run's own name -- `run17-wildlog-main.json`
+    looks for `run17-al-wildlog-*-r1.json` -- so the mode takes no second
+    path and cannot be pointed at another half's legs by accident. A shape
+    the run has and the legs do not is reported rather than dropped: a
+    partial rider set is what an interrupted evening leaves, and it is the
+    case this mode must not average over in silence.
+    """
+    base = os.path.basename(run_path)
+    m = re.match(r'^(.+?)-(.+?)-(?:main|[a-z0-9]+)\.json$', base)
+    if not m:
+        sys.stderr.write('%s: cannot read a run and a half out of this name,'
+                         ' so the alone legs cannot be found\n' % base)
+        return 2
+    prefix, half = m.group(1), m.group(2)
+    pat = '%s-al-%s-' % (prefix, half)
+    legs = {}
+    for path in sorted(glob.glob('%s*-r1.json' % pat)):
+        shape = os.path.basename(path)[len(pat):-len('-r1.json')]
+        l_cells, l_shapes, _, _ = load(path, main_hs)
+        if len(l_shapes) != 1 or 'list' not in l_cells[l_shapes[0]]:
+            sys.stderr.write('%s: not one shape\'s `list`, so it is not an'
+                             ' alone leg; skipped\n' % os.path.basename(path))
+            continue
+        legs[shape] = l_cells[l_shapes[0]]['list']['slope']
+    if not legs:
+        sys.stderr.write('no %s*-r1.json beside this run: the riders were not'
+                         ' taken, or the run and half are not this file\'s\n'
+                         % pat)
+        return 2
+    rows, missing = [], []
+    for sh in shapes:
+        if 'list' not in cells[sh]:
+            continue
+        if sh not in legs:
+            missing.append(sh)
+            continue
+        rows.append((sh, cells[sh]['list']['slope'] / legs[sh]))
+    print('in-process deflation: this run\'s `list` over its own alone leg,'
+          ' raw over raw')
+    print('%-26s %10s %12s %12s'
+          % ('shape', 'roster/alone', 'roster', 'alone'))
+    for sh, r in rows:
+        print('%-26s %10.4f %12s %12s'
+              % (sh, r, fmt_abs(cells[sh]['list']['slope']),
+                 fmt_abs(legs[sh])))
+    if not rows:
+        print('\nNO shape of this run has an alone leg beside it, so there is'
+              ' no deflation to read here.')
+        print('  the legs are the MAIN SET\'s; a class run has none of its'
+              ' own, and this mode is not for one.')
+        return 2
+    if rows:
+        g = math.exp(sum(math.log(r) for _, r in rows) / len(rows))
+        up = sum(1 for _, r in rows if r > 1)
+        lo = min(rows, key=lambda x: x[1])
+        hi = max(rows, key=lambda x: x[1])
+        print('\ngeomean %.4f (%+.2f%%) over %d shape(s); %d above 1'
+              % (g, 100 * (g - 1), len(rows), up))
+        print('  least %.4f on %s, most %.4f on %s'
+              % (lo[1], lo[0], hi[1], hi[0]))
+    if missing:
+        print('\n%d shape(s) of this run have NO alone leg and are not in the'
+              ' figure above: %s' % (len(missing), ', '.join(missing)))
+        print('  a partial rider set is what an interrupted evening leaves;'
+              ' the geomean above is over the legs that exist and says so')
+    return 0
 
 
 def cell_dump(cells, shapes, strategies):
@@ -4748,6 +4842,14 @@ def check_doc_quiet(readme, main_hs):
     withholds by count and says how many lines it kept back, so a run that
     wants them knows they exist. The verdict is check_doc's own return.
 
+    The withheld line names `--worklists`, the flag that prints
+    them, and NOT the absence of `--quiet`, which it said until
+    2026-08-22 and which does not work: plain `--check-doc`
+    withholds too. A run that followed the old wording got the same
+    withheld line back and read the tool as broken -- a message that
+    misdirects at exactly the step, post-run 7, that exists to read
+    those lists.
+
     Non-vacuity, 2026-08-16, against a copy: renaming `## About the last
     run (Run 14)` to `(Run 14x)` printed two FAIL lines -- the four dead
     anchors, and the replace-list bullet that no longer covers the section
@@ -4762,7 +4864,7 @@ def check_doc_quiet(readme, main_hs):
     fails = [l for l in lines if l.startswith('FAIL: ')]
     for line in fails:
         print(line)
-    print('%d line(s) withheld; rerun without --quiet for the worklists'
+    print('%d line(s) withheld; rerun with --worklists for them'
           % (len(lines) - len(fails)))
     return rc
 
@@ -5394,6 +5496,9 @@ def main():
     p.add_argument('--cells', action='store_true')
     p.add_argument('--steps', action='store_true')
     p.add_argument('--machine', action='store_true')
+    p.add_argument('--deflation', action='store_true',
+                   help='the roster cell over its own alone leg, per shape --'
+                        ' raw over raw, the legs found from this run\'s name')
     p.add_argument('--pair', nargs=2, action='append', default=[],
                    metavar=('A', 'B'))
     p.add_argument('--compare', metavar='OTHER.json',
@@ -5637,6 +5742,8 @@ def main():
     elif args.compare:
         compare_table(cells, shapes, strategies, meta, args.compare,
                       args.main, not args.verbose)
+    elif args.deflation:
+        sys.exit(deflation_table(args.run, cells, shapes, args.main))
     elif args.machine:
         sys.exit(machine_check(cells, shapes, args.readme))
     elif args.steps:
