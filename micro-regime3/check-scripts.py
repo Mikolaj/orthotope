@@ -898,6 +898,35 @@ def relead(tmp, cls, rewrite, name='R.md'):
     return edited_readme(tmp, (old, new), name=name)
 
 
+def task_anchor(n):
+    """The opening of task `n` of `Recommended tasks after Run N`.
+
+    DERIVED, because the two `--replace` cases below stored it: they
+    quoted `1. **WHICH SHAPES POISON` and `3. **Between Run 17 and Run
+    18` as literals and both broke the day those items took status
+    tokens, which is a stored anchor into live prose and the one thing
+    the opening of this file forbids a fixture. What they are about is
+    the list's SHAPE -- that `--replace`'s unit is a paragraph and a list
+    with no blank lines is one -- so the item's own words were never the
+    subject.
+
+    Uniqueness is asserted here rather than left to `--replace`, whose
+    refusal for a repeated anchor reads the same as its refusal for a
+    missing one.
+    """
+    lines = readme_lines()
+    i = next(k for k, l in enumerate(lines)
+             if l.startswith('### Recommended tasks after Run '))
+    j = next(k for k in range(i + 1, len(lines)) if lines[k].startswith('### '))
+    hit = [l for l in lines[i:j] if re.match(r'^%d\. ' % n, l)]
+    assert len(hit) == 1, 'task %d: %d line(s)' % (n, len(hit))
+    anchor = ' '.join(hit[0].split())[:44]
+    doc = '\n'.join(lines)
+    assert doc.count(anchor) == 1, ('task %d anchor %r occurs %d times'
+                                    % (n, anchor, doc.count(anchor)))
+    return anchor
+
+
 def open_list_span(lines):
     """(first, last) line indices of the open list, found its own way.
 
@@ -931,18 +960,26 @@ def readme_entry_without_status(tmp):
 
 
 def readme_open_list_reshaped(tmp):
-    """A copy whose open-list entries are all sub-bullets.
+    """A copy whose open-list entries are all indented out of sight.
 
     The vacuity control: a section reshaped so the check's pattern finds
     nothing must FAIL as unlocatable rather than pass over an empty list,
     which is the shape this suite refuses everywhere else.
+
+    BOTH ENTRY FORMS, and the second is why this is worth a comment. The
+    fixture indented `- ` lines alone while the check counted those
+    alone, and the two were widened to numbered items a commit apart:
+    the day the check learned to count `Recommended tasks after Run N`'s
+    three, this fixture went on leaving them behind, so the list it
+    handed over was not empty and the branch under test never ran. A
+    fixture and the check it aims at have to be widened together.
     """
     lines = readme_lines()
     lo, hi = open_list_span(lines)
     out = list(lines)
     hit = 0
     for k in range(lo, hi):
-        if out[k].startswith('- '):
+        if re.match(r'^(?:- |\d+\. )', out[k]):
             out[k] = '  ' + out[k]
             hit += 1
     assert hit, 'no top-level entry to indent'
@@ -1994,8 +2031,8 @@ CASES = [
     case('open-list-entry-without-a-status', 'read-run.py', '3596ba2',
          'an entry a grep could not classify sat in the list to be read',
          # The section's preamble states that every entry opens with its
-         # status and offers `grep '^- .OPEN.'` as the use of it. That was
-         # true of the parent list and false of the non-urgent sublist:
+         # status and offers a grep for the live ones as the use of it.
+         # That was true of the parent list and false of the sublists:
          # seven of thirteen carried no token, four of them closed in the
          # ten days before 2026-08-22, their closure a phrase inside the
          # bolded lead. FAILED rather than listed, alone among this
@@ -2398,8 +2435,9 @@ CASES = [
          # named task 1 as what was going, which is a warning where the
          # difference between losing two paragraphs and not is a refusal.
          plant=lambda t: {'readme': edited_readme(t),
+                          'anchor': task_anchor(3),
                           'with': write(os.path.join(t, 'w.txt'), 'x\n')},
-         argv=['--replace', '3. **Between Run 17 and Run 18',
+         argv=['--replace', '{anchor}',
                '--with', '{with}', '--readme', '{readme}'],
          ok=V(exit=1, has=['is a 3-item list', 'discard the items above'])),
 
@@ -2409,10 +2447,15 @@ CASES = [
          # ban lists: a caller replacing the whole list quotes it from the
          # start, which is what it would do anyway, and gets it.
          plant=lambda t: {'readme': edited_readme(t),
+                          'anchor': task_anchor(1),
                           'with': write(os.path.join(t, 'w.txt'), 'x\n')},
-         argv=['--replace', '1. **WHICH SHAPES POISON',
+         argv=['--replace', '{anchor}',
                '--with', '{with}', '--readme', '{readme}'],
-         ok=V(exit=0, has=['out, first: 1. **WHICH SHAPES POISON'])),
+         # `out, first: 1.` and not the item's words: what went out
+         # STARTING AT ITEM 1 is the whole claim, and quoting the lead
+         # here would store the anchor this case was just taught to
+         # derive, one line down.
+         ok=V(exit=0, has=['out, first: 1.'])),
 
     case('plateau-band-across-processes', 'read-all.sh', None,
          'two processes saturated to different depths and gated clean',
