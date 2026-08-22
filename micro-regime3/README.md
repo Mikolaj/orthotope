@@ -307,10 +307,15 @@ and an answer that runs to a chapter puts the account in the one
 of this README's three places that does not move when a run does. The shape
 to copy is the `window` overlap entry below, which states its outcome
 in a sentence and ends by naming the block that carries its figures.
-`--check-doc` lists, without failing, any `ANSWERED` entry past three hundred
-words that points nowhere; the entries already past it are the backlog that rule
-was written over, and they are to be shortened as each is next touched rather
-than in one pass.
+`--check-doc` lists, without failing, any `ANSWERED` entry past five hundred
+words; the entries already past it are the backlog that rule was written over,
+and they are to be shortened as each is next touched rather than in one pass.
+**Length is the whole test, and it was not**: the rule also asked that the entry
+point nowhere, which sounds like the same thing and is an off switch,
+this README cross-referencing constantly enough that every long entry names
+a link or a file --- so the sweep listed none of the fourteen entries past three
+hundred words, and exempted an eighteen-hundred-word summary for naming
+the files its measurements are in.
 
 **The run registrations are the standing exception to it, and reducing the old
 ones is REFUSED --- 2026-08-22, on reading two of them.**
@@ -414,7 +419,11 @@ rather than a slot in the next run, observed again:
   arm it was built to beat. That was written as a thing to settle before
   the flag question, and the flag question has since been answered against
   it --- the shipped file sets `-fspec-constr`, so the packed form is
-  not a candidate here at all.
+  not a candidate here at all. **The Core account above is the only copy,
+  and there is nowhere to move it:** the dead-ideas list takes ideas that died
+  on paper and this one was built, rostered and measured, and the roster entry
+  in `Main.hs` records the arm's size precondition rather than this ruling.
+  Recorded so the move is not proposed a second time.
 
 - `ANSWERED` **It does not generalise to the other hand-packed arms, and why
   not is the useful half.** Three benchmarked pairs differ from their control

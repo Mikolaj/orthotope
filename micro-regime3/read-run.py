@@ -3964,21 +3964,30 @@ def _unwrapped(text):
 
 
 # The word count past which an ANSWERED entry has stopped being an answer
-# and become an account, and the two link forms that count as a pointer to
-# where the account lives. 300 is set off the list rather than picked: the
-# entry this README would hold up as the right shape is 92 words and ends
-# by naming the block that carries its figures, the linked ones run to a
-# few hundred, and every entry past 300 without a pointer is a chapter's
-# worth of mechanism sitting in a question register.
+# and become an account. LENGTH ALONE, and the history is why: this began
+# as length AND the absence of a pointer, on the reasoning that an entry
+# naming where its account lives has earned its length. That clause was
+# not a filter but an off switch. This README cross-references
+# constantly, so every long entry names a link or a file, and the sweep
+# flagged NOTHING -- zero of the fourteen entries past 300 words, zero at
+# every threshold up to 1400.
 #
-# BOTH LINK FORMS, and the reference one is why this constant exists at
-# all: tested for `](#` alone, fifteen of the twenty entries that DO point
-# somewhere read as pointing nowhere, because this README's prose links
-# are mostly `[the floor section][floor]`. A sweep is only as complete as
-# its pattern and its silence reads the same either way, which is the rule
-# this file states about greps and had to be applied to its own.
-ANSWERED_ACCOUNT = 300
-POINTER_RE = re.compile(r'\]\(#|\]\[[a-z0-9-]+\]')
+# It also keyed on the wrong signal. The churn entry is 1818 words of
+# SUMMARY whose measurements live in four files it names, which is
+# exactly the answer-become-a-chapter the rule was written for, and
+# naming those files exempted it: the rule failed on its own motivating
+# example. Whether a named file is the account's home or a passing
+# mention cannot be decided mechanically, and an undecidable clause in a
+# filter means the filter does not filter.
+#
+# So the pointer went, and 500 with it: 300 lists fourteen of the
+# twenty-seven, which is the wall this file's own freshness marks exist
+# because of, and 800 lets a chapter through. What carries the standing
+# list instead is `sweep`'s NEW-first marking, as it carries the
+# superseded-figure and superlative lists -- a write-up owes the ones it
+# just wrote, and the run registrations keep their exemption in prose,
+# adjudicated once by a reader rather than guessed at here.
+ANSWERED_ACCOUNT = 500
 
 
 def status_entries(lines, tag):
@@ -5102,18 +5111,18 @@ def check_doc(readme, main_hs):
     # LISTED AND NEVER FAILED, like the three sweeps above and for the
     # same reason: whether an account has a home to move to is a
     # judgement, some of these entries are run registrations whose home
-    # may be this list, and a gate here would fail the README for prose
-    # that is correct. What it fires on is length without a pointer, the
-    # two together.
+    # IS this list, and a gate here would fail the README for prose that
+    # is correct. What it fires on is length, and only length -- see the
+    # constant for the clause that used to sit beside it and why it went.
     bloated = [('%s:%d' % (os.path.basename(readme), i), l)
                for i, l in status_entries(lines, 'ANSWERED')
-               if len(l.split()) > ANSWERED_ACCOUNT
-               and not POINTER_RE.search(l)]
+               if len(l.split()) > ANSWERED_ACCOUNT]
     if bloated:
-        sweep(bloated, 'ANSWERED entry(s) past %d words that point nowhere;'
-                       ' an answer owes the question, the outcome and the'
-                       ' section that holds the account, and anything longer'
-                       ' is a chapter in the question register'
+        sweep(bloated, 'ANSWERED entry(s) past %d words; an answer owes the'
+                       ' question, the outcome and the section that holds the'
+                       ' account, and anything longer is a chapter in the'
+                       ' question register -- adjudicate each, the'
+                       ' registrations having a ruling of their own'
               % ANSWERED_ACCOUNT)
 
     # The yardstick table keeps a column for the regime this run is NOT in,

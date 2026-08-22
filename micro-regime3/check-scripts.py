@@ -986,7 +986,7 @@ def readme_open_list_reshaped(tmp):
     return write(os.path.join(tmp, 'R.md'), '\n'.join(out))
 
 
-def readme_answered_account(tmp, tail=''):
+def readme_answered_account(tmp):
     """An ANSWERED entry over the sweep's threshold, planted in the list.
 
     BUILT rather than borrowed. The live list's own long entries are the
@@ -998,14 +998,18 @@ def readme_answered_account(tmp, tail=''):
     The filler is deliberately free of figures, superlatives, absolute
     times and prospective verbs: `check_doc`'s other sweeps run over the
     same copy, and a fixture that tripped one of them would be judged on
-    the wrong line. `tail` adds a reference-style pointer, which is the
-    form that must take an entry back OUT of the list.
+    the wrong line. The entry has to clear the word count and nothing
+    else: the pointer clause the sweep once carried is gone, length
+    being the whole test, and the filler is sized off the threshold
+    rather than off a number written here twice.
     """
     lines = readme_lines()
     i = next(k for k, l in enumerate(lines) if l.startswith('- `ANSWERED`'))
-    filler = 'This entry is a fixture and says nothing about the run. ' * 40
+    reader = _reader()
+    n = reader.ANSWERED_ACCOUNT // 10 + 10        # 11 words a repetition
+    filler = 'This entry is a fixture and says nothing about the run. ' * n
     entry = ('- `ANSWERED` **zz-planted-account, an answer grown into an'
-             ' account.** ' + filler.strip() + tail)
+             ' account.** ' + filler.strip())
     return edited_readme(tmp, (lines[i], entry + '\n' + lines[i]))
 
 
@@ -2074,21 +2078,9 @@ CASES = [
          # otherwise pass on those rather than on what it planted.
          plant=lambda t: {'readme': readme_answered_account(t)},
          argv=['--check-doc', '--worklists', '--readme', '{readme}'],
-         ok=V(exit=0, has=['ANSWERED entry(s) past 300 words that point'
-                           ' nowhere', 'zz-planted-account']),
-         bug=V(exit=0, hasnt=['ANSWERED entry(s) past 300 words'])),
-
-    case('answered-pointer-may-be-reference-style', 'read-run.py', None,
-         'the pointer test read this README\'s commonest link as no link',
-         # `](#` alone called fifteen of the twenty entries pointerless,
-         # every one of them pointing by `[the floor section][floor]`.
-         # The sweep would have been a wall on its first run, which is how
-         # a list stops being read -- the defect this suite already
-         # records against the freshness marks, one sweep over.
-         plant=lambda t: {'readme': readme_answered_account(
-             t, tail=' The account is at [the floor section][floor].')},
-         argv=['--check-doc', '--worklists', '--readme', '{readme}'],
-         ok=V(exit=0, hasnt=['zz-planted-account'])),
+         ok=V(exit=0, has=['ANSWERED entry(s) past 500 words',
+                           'zz-planted-account']),
+         bug=V(exit=0, hasnt=['ANSWERED entry(s) past 500 words'])),
 
     case('floor-movement-reads-the-previous-column', 'read-run.py', '3596ba2',
          "a run installed a class table and left the last run's movements",
