@@ -3164,6 +3164,68 @@ SHIPPED = 'mut-odo-vecdims'
 LAST_CANDIDATE = 'bq-expand'
 
 
+BREAK = collections.namedtuple('BREAK', 'g k n p')
+
+
+def break_margin(cells, shapes, a, b):
+    """`a` against `b` paired, or None where a cell is not readable.
+
+    A verdict clause below is a SORT of the published column, and a sort
+    answers *which is ahead* with no width at all. Run 15 published seven
+    breaks off one and five of them were ties inside their own
+    population's floor; a sixth, `revsome`, INVERTED when the two arms
+    were read paired -- `bq-scan-rem-gm-mulback` leading at 1.0469 where
+    the column had it behind. So the sort stays, the claim being stated
+    on the published column, and what it reports is priced beside it.
+
+    Not `pair_stats`: that exits 2 on an unreadable cell, which is right
+    for a mode whose whole output is the pair and wrong for one clause of
+    a verdict block -- the run would lose its table over a control it was
+    not asked about. The reading is dropped instead, and the caller says
+    which pair went.
+    """
+    if any(not cells[s][x]['net'] > 0 for s in shapes for x in (a, b)):
+        return None
+    r = [cells[s][a]['net'] / cells[s][b]['net'] for s in shapes]
+    k = sum(1 for x in r if x < 1)
+    return BREAK(geomean(r), k, len(r), sign_p(k, len(r)))
+
+
+def priced_break(cells, shapes, a, b, floor):
+    """The lines that price one break, `a` leading `b` by the column.
+
+    Three readings, and the third is the one a sort cannot give: the
+    paired margin, how it compares with this population's own floor, and
+    whether the pair reads the other way round from the column. A margin
+    inside the floor is a tie the sort settled, which is what five of Run
+    15's seven breaks were and what a falling count of them was quoted as
+    a trend on.
+
+    It prices and does not rule: INSIDE is a comparison of two numbers,
+    and what a tie means for the class's paragraph stays the author's,
+    as everything else in this block does.
+    """
+    m = break_margin(cells, shapes, a, b)
+    if m is None:
+        return ['     not priced: a cell of `%s` or `%s` has no positive net'
+                % (a, b)]
+    out = ['     priced: `%s` / `%s` %.4f paired, ahead on %d of %d shapes,'
+           ' sign p %.2g' % (a, b, m.g, m.k, m.n, m.p)]
+    dev = abs(m.g - 1) * 100
+    if floor is None:
+        out.append('       margin %.2f%%, against no floor: this run carries'
+                   ' no readable A/A pair' % dev)
+    else:
+        fl = abs(floor.g - 1) * 100
+        out.append('       margin %.2f%% against this class\'s floor of'
+                   ' %.2f%% (`%s`), so it is %s the floor'
+                   % (dev, fl, floor.a, 'INSIDE' if dev < fl else 'OUTSIDE'))
+    if m.g > 1:
+        out.append('       and the pair INVERTS the column: paired, `%s` is'
+                   ' behind `%s`' % (a, b))
+    return out
+
+
 def block_verdicts(cells, shapes, strategies, meta, args):
     """The claims a class paragraph makes, derived instead of eyeballed.
 
@@ -3191,12 +3253,19 @@ def block_verdicts(cells, shapes, strategies, meta, args):
     `bcastmid` and `slice`, so it is not a constant. Since 2026-08-22 the
     second clause is gone with the pure slot, and the third reads the last
     candidate behind the shipped arm.
+
+    Every break it reports is PRICED against the population's own floor
+    (`priced_break`), which is the difference between a sort and a
+    reading: on Run 17's `revsome` the first clause breaks on two arms
+    that print 0.049 apiece and read 0.36% apart paired, where that
+    class's floor is 18.05%.
     """
     led = table_leaders(cells, shapes, strategies, args)
     if led is None or not led.timed:
         return
     rows, needs, timed, outside = (led.rows, led.needs, led.timed,
                                    led.outside)
+    floor = aa_floor(aa_pairs(cells, shapes, strategies))
     unknown = [r.st for r in timed if r.st not in needs
                or needs[r.st].strip() in ('?', '')]
     print()
@@ -3211,20 +3280,37 @@ def block_verdicts(cells, shapes, strategies, meta, args):
               % (SHIPPED, '(shipped)', shipped[0], shipped[6]))
         print('  property 1, `worst` under 1: %s'
               % ('HOLDS' if shipped[6] < 1 else '**BREAKS**'))
+        # Priced like the others, on the one cell that breaks it: `worst`
+        # is a per-shape ratio and not a pair, so what stands beside the
+        # floor is its own excess over 1 rather than a geomean.
+        if not shipped[6] < 1:
+            over = (shipped[6] - 1) * 100
+            print('     worst is %.2f%% above 1%s'
+                  % (over, '' if floor is None else
+                     ', against this class\'s floor of %.2f%% (`%s`), so it'
+                     ' is %s the floor'
+                     % (abs(floor.g - 1) * 100, floor.a,
+                        'INSIDE' if over < abs(floor.g - 1) * 100
+                        else 'OUTSIDE')))
     clauses = []
     if timed[0][1] != PROP2_FASTEST:
-        clauses.append('fastest is `%s`, not `%s`' % (timed[0][1],
-                                                      PROP2_FASTEST))
+        clauses.append(('fastest is `%s`, not `%s`'
+                        % (timed[0][1], PROP2_FASTEST),
+                        timed[0][1], PROP2_FASTEST))
     if shipped:
         # The third clause since 2026-08-22: the last candidate behind the
         # shipped arm, which is the decision's direction read per class.
         by = dict((r[1], r[0]) for r in timed)
         if LAST_CANDIDATE in by and by[LAST_CANDIDATE] < shipped[0]:
-            clauses.append('the last candidate `%s` is AHEAD of `%s`'
-                           % (LAST_CANDIDATE, SHIPPED))
+            clauses.append(('the last candidate `%s` is AHEAD of `%s`'
+                            % (LAST_CANDIDATE, SHIPPED),
+                            LAST_CANDIDATE, SHIPPED))
     verdict2 = ('HOLDS' if not clauses
-                else '**BREAKS** -- ' + '; '.join(clauses))
+                else '**BREAKS** -- ' + '; '.join(c[0] for c in clauses))
     print('  property 2, top of the table: %s' % verdict2)
+    for _, a, b in clauses:
+        for line in priced_break(cells, shapes, a, b, floor):
+            print(line)
     # This verdict is mechanical and PRE-RULING, and one standing ruling
     # overrides it: the first clause is the vecdims FAMILY's, not one arm's,
     # so a sibling leading by a thousandth is not a break. Say so here rather
@@ -3390,6 +3476,210 @@ def summary_row(cells, shapes, strategies, args, main_hs):
     if off:
         sys.stderr.write('summary row `%s` disagrees with this class\'s'
                          ' cells: %s\n' % (label, '; '.join(off)))
+
+
+LEAD_SHAPE_RE = re.compile(r'`([a-z][\w.-]*)`\s*\(`l`\s*(\d+),'
+                           r'\s*`sInner`\s*(\d+)')
+
+
+def lead_shapes(shapes, args, main_hs):
+    """Check a class block's bolded lead against the run it stands over.
+
+    The lead is the author's sentence and everything under it is the
+    reader's output, which is the shape every defect in this family has:
+    a hand-written line above installed content, going stale under it.
+    The five class views that gained a third shape on 2026-08-14 still
+    had two-shape leads after Run 14's write-up, while the per-shape line
+    `--block` installs beneath them named three, and nothing compared the
+    two -- `--block` knew both all along.
+
+    Three readings, all mechanical. WHICH shapes, the lead's set against
+    the run's. In WHAT ORDER, because the installed per-shape line labels
+    its ratios *in the lead's order* and takes that order from the run:
+    a lead listing them differently mislabels figures, which is the one
+    of the three that no reading of the block can catch. And each `l` and
+    `sInner`, against Main.hs, those being hand-copied numbers with no
+    other source in the document.
+
+    Stderr and no exit code, like `summary_row` above and for the same
+    reason: a stale lead is for a person to fix, and the lead is
+    deliberately not this mode's to write.
+
+    A run over part of a class is not checked and says so, the lead being
+    a claim about the whole population -- which is what keeps the smoke
+    sweep's one-shape `--block` silent here rather than wrong.
+    """
+    dims = dims_by_shape(main_hs)[0]
+    lists = {dims[s]['lst'] for s in shapes if s in dims}
+    label = class_prefix(shapes)
+    if len(lists) != 1:
+        return
+    whole = {s for s, d in dims.items() if d['lst'] in lists}
+    if set(shapes) != whole:
+        sys.stderr.write('lead `%s` not checked: this run carries %d of the'
+                         ' class\'s %d shapes\n'
+                         % (label, len(shapes), len(whole)))
+        return
+    try:
+        doc = open(args.readme).read()
+    except OSError as exc:
+        sys.stderr.write('lead `%s` not checked: %s\n' % (label, exc))
+        return
+    # The same paragraph unit and the same lead pattern `install-tables.sh`
+    # picks the blocks out with, the dash included: a third way of finding
+    # a class block is a third thing to keep in step.
+    hit = [p for p in doc.split('\n\n')
+           if p.lstrip().startswith('**`%s` ---' % label)]
+    if len(hit) != 1:
+        sys.stderr.write('lead `%s` not checked: %d paragraph(s) in %s open'
+                         ' it, need exactly one\n'
+                         % (label, len(hit), os.path.basename(args.readme)))
+        return
+    text = ' '.join(hit[0].split())
+    if 'Shapes:' not in text:
+        sys.stderr.write('lead `%s` names no shapes at all: it carries no'
+                         ' `Shapes:` sentence, so nothing under it is'
+                         ' introduced\n' % label)
+        return
+    named = LEAD_SHAPE_RE.findall(text.split('Shapes:', 1)[1])
+    off = []
+    missing = [s for s in shapes if s not in [n for n, _, _ in named]]
+    extra = [n for n, _, _ in named if n not in shapes]
+    if missing:
+        off.append('it does not name %s' % ', '.join('`%s`' % s
+                                                     for s in missing))
+    if extra:
+        off.append('it names %s, which this run does not carry'
+                   % ', '.join('`%s`' % s for s in extra))
+    if not missing and not extra and [n for n, _, _ in named] != list(shapes):
+        off.append('it lists them %s where the run order the per-shape line'
+                   ' is installed in is %s'
+                   % (', '.join('`%s`' % n for n, _, _ in named),
+                      ', '.join('`%s`' % s for s in shapes)))
+    for n, l, s_inner in named:
+        d = dims.get(n)
+        if d and (int(l), int(s_inner)) != (d['l'], d['s_inner']):
+            off.append('`%s` is written (`l` %s, `sInner` %s) where Main.hs'
+                       ' gives (`l` %d, `sInner` %d)'
+                       % (n, l, s_inner, d['l'], d['s_inner']))
+    if off:
+        sys.stderr.write('lead `%s` disagrees with this class\'s run: %s\n'
+                         % (label, '; '.join(off)))
+
+
+CLASS_READING = collections.namedtuple(
+    'CLASS_READING', 'label n shipped worst out_st out gap gapp '
+                     'ceil_st ceil floor floor_pair')
+
+
+def class_reading(path, main_hs, args):
+    """One class's row of the cross-class summary, off its own cells.
+
+    The same six figures `summary_row` checks a written row against, plus
+    the two the row does not carry and a superlative about the eight
+    keeps being made on: the gap from the shipped arm to the best arm
+    outside its family, by the published column AND paired. Run 15 called
+    one class's gap the widest of the eight on the column where another's
+    is wider on the pair, which is a disagreement no single number can
+    show.
+    """
+    cells, shapes, strategies, meta = load(path, main_hs)
+    apply_correction(cells, shapes, strategies)
+    kind, label, _ = population_of(shapes, meta['dims'])
+    if kind != 'class':
+        sys.exit('--extremes ranks the stride classes, and %s is %s'
+                 % (os.path.basename(path), label))
+    led = table_leaders(cells, shapes, strategies, args)
+    if led is None or not (led.timed and led.outside and led.shipped):
+        sys.exit('%s: no `list` baseline, no timed arm outside `%s` or no'
+                 ' `%s` at all, so this class has no row'
+                 % (os.path.basename(path), FAMILY, SHIPPED))
+    out, ceil, shipped = led.outside[0], led.timed[0], led.shipped
+    m = break_margin(cells, shapes, out.st, shipped.st)
+    aa = aa_floor(aa_pairs(cells, shapes, strategies))
+    return CLASS_READING(class_prefix(shapes), len(shapes), shipped.time,
+                         shipped.worst, out.st, out.time,
+                         out.time / shipped.time,
+                         float('nan') if m is None else m.g,
+                         ceil.st, ceil.time,
+                         float('nan') if aa is None else abs(aa.g - 1) * 100,
+                         '--' if aa is None else aa.a)
+
+
+def extremes_table(paths, main_hs, args):
+    """Who holds each extreme across the class populations, sorted not eyed.
+
+    *Widest of the eight*, *best of the eight*, *tightest floor of the
+    eight* are claims about every population at once, and until this mode
+    nothing printed them: `--block` sees one class, the cross-class table
+    is hand-assembled, and the sort was left to the eye. Run 15 got three
+    of them wrong in one draft -- a spread called narrowest where another
+    class's is, a gap called widest of the eight on the column where
+    another's is wider on the pair, and a best class named before it was
+    sorted -- every one caught by an independent reader rather than by a
+    check.
+
+    It ranks and installs nothing. The cross-class summary stays
+    hand-assembled for the reason `summary_row` gives -- its emphasis is
+    a per-run judgement -- and a superlative is a sentence, so what this
+    owes the author is the sort under it and not the words.
+
+    Where the column and the paired reading name different holders of the
+    same extreme, both are printed and the disagreement is said: that is
+    the error Run 15 made, and one number cannot show it.
+    """
+    rows = [class_reading(p, main_hs, args) for p in paths]
+    seen = collections.Counter(r.label for r in rows)
+    dup = [c for c, n in seen.items() if n > 1]
+    if dup:
+        sys.exit('%s named twice, so a rank over these files would count one'
+                 ' class as two populations: %s'
+                 % ('a class is' if len(dup) == 1 else 'classes are',
+                    ', '.join(sorted(dup))))
+    print('%d class population(s), and every superlative about them has its'
+          ' source here.' % len(rows))
+    print('`gap` is `%s` over the shipped arm -- what a stride-conditioned'
+          ' redirect would' % 'best outside the family')
+    print('buy in that class -- by the published column and then paired.')
+    print()
+    print('%-10s %6s %8s %7s %-26s %7s %8s %8s %7s'
+          % ('class', 'shapes', 'shipped', 'worst', 'best outside family',
+             'gap col', 'gap pair', 'ceiling', 'floor'))
+    for r in sorted(rows, key=lambda r: r.label):
+        print('%-10s %6d %8.3f %7.3f %-26s %7.2f %8.2f %8.3f %6.2f%%'
+              % (r.label, r.n, r.shipped, r.worst,
+                 '%s %.3f' % (r.out_st, r.out), r.gap, r.gapp, r.ceil,
+                 r.floor))
+    print()
+    print('extremes:')
+    # Each line names the holder AND its figure, so a sentence can be
+    # written off this without going back to the table above -- which is
+    # the step at which Run 15's third error was made.
+    for what, key, want, fmt in (
+            ('tightest floor', lambda r: r.floor, min, '%.2f%%'),
+            ('widest floor', lambda r: r.floor, max, '%.2f%%'),
+            ('best for the shipped arm', lambda r: r.shipped, min, '%.3f'),
+            ('worst for the shipped arm', lambda r: r.shipped, max, '%.3f'),
+            ('highest `worst` cell', lambda r: r.worst, max, '%.3f'),
+            ('best outside the family', lambda r: r.out, min, '%.3f'),
+            ('fastest ceiling', lambda r: r.ceil, min, '%.3f'),
+            ('narrowest gap, column', lambda r: r.gap, min, '%.2f'),
+            ('widest gap, column', lambda r: r.gap, max, '%.2f'),
+            ('narrowest gap, paired', lambda r: r.gapp, min, '%.2f'),
+            ('widest gap, paired', lambda r: r.gapp, max, '%.2f')):
+        hit = want(rows, key=key)
+        print(('  %-26s %-11s ' + fmt + '%s')
+              % (what, '`%s`' % hit.label, key(hit),
+                 '  on `%s`' % hit.floor_pair if 'floor' in what else ''))
+    for want in (min, max):
+        by_col = want(rows, key=lambda r: r.gap)
+        by_pair = want(rows, key=lambda r: r.gapp)
+        if by_col.label != by_pair.label:
+            print('  the %s gap is `%s` on the column and `%s` paired, so'
+                  ' a sentence about it has to say which'
+                  % ('narrowest' if want is min else 'widest',
+                     by_col.label, by_pair.label))
+    return 0
 
 
 def block_skeleton(cells, shapes, strategies, meta, args, terms):
@@ -3670,6 +3960,60 @@ def _unwrapped(text):
             spans.append((n, len(l.split())))
             k += 1
         out.append((first, para, spans))
+    return out
+
+
+# The word count past which an ANSWERED entry has stopped being an answer
+# and become an account, and the two link forms that count as a pointer to
+# where the account lives. 300 is set off the list rather than picked: the
+# entry this README would hold up as the right shape is 92 words and ends
+# by naming the block that carries its figures, the linked ones run to a
+# few hundred, and every entry past 300 without a pointer is a chapter's
+# worth of mechanism sitting in a question register.
+#
+# BOTH LINK FORMS, and the reference one is why this constant exists at
+# all: tested for `](#` alone, fifteen of the twenty entries that DO point
+# somewhere read as pointing nowhere, because this README's prose links
+# are mostly `[the floor section][floor]`. A sweep is only as complete as
+# its pattern and its silence reads the same either way, which is the rule
+# this file states about greps and had to be applied to its own.
+ANSWERED_ACCOUNT = 300
+POINTER_RE = re.compile(r'\]\(#|\]\[[a-z0-9-]+\]')
+
+
+def status_entries(lines, tag):
+    """[(line number, whole entry)] for each `- \\`TAG\\`` bullet of the list.
+
+    An entry is its bullet line plus every indented line under it, blank
+    lines included where an indented one follows, which is how this README
+    writes a multi-paragraph bullet. Grouped from the raw lines rather
+    than from `unwrapped_paragraphs`, because a bullet list with no blank
+    lines between its items is ONE paragraph to that function -- the whole
+    open list would come back as a single hit, which is the granularity
+    this needs least.
+    """
+    out, i, n = [], 0, len(lines)
+    while i < n:
+        if not lines[i].startswith('- `%s`' % tag):
+            i += 1
+            continue
+        start, body, j = i + 1, [lines[i]], i + 1
+        while j < n:
+            if lines[j].startswith('  '):
+                body.append(lines[j].strip())
+                j += 1
+            elif not lines[j].strip():
+                k = j
+                while k < n and not lines[k].strip():
+                    k += 1
+                if k < n and lines[k].startswith('  '):
+                    j = k
+                else:
+                    break
+            else:
+                break
+        out.append((start, ' '.join(body)))
+        i = j
     return out
 
 
@@ -4739,6 +5083,31 @@ def check_doc(readme, main_hs):
         sweep(buried, "action(s) named only in a checklist's comment; an"
                       ' operator runs the lines and reads the comments, so'
                       ' promote it to a line of its own or say why not')
+    # An ANSWERED entry that grew into the account it should have pointed
+    # at. The open list is a QUESTION REGISTER -- its own preamble says an
+    # entry is kept so the question is not re-proposed -- while `What is
+    # settled, and where` is the pointer layer and says of itself that it
+    # carries no figures by design. An answer that runs to a chapter is
+    # therefore in the wrong one of the three places this README keeps,
+    # and the topical section it duplicates goes on being the one that
+    # moves when a run does.
+    #
+    # LISTED AND NEVER FAILED, like the three sweeps above and for the
+    # same reason: whether an account has a home to move to is a
+    # judgement, some of these entries are run registrations whose home
+    # may be this list, and a gate here would fail the README for prose
+    # that is correct. What it fires on is length without a pointer, the
+    # two together.
+    bloated = [('%s:%d' % (os.path.basename(readme), i), l)
+               for i, l in status_entries(lines, 'ANSWERED')
+               if len(l.split()) > ANSWERED_ACCOUNT
+               and not POINTER_RE.search(l)]
+    if bloated:
+        sweep(bloated, 'ANSWERED entry(s) past %d words that point nowhere;'
+                       ' an answer owes the question, the outcome and the'
+                       ' section that holds the account, and anything longer'
+                       ' is a chapter in the question register'
+              % ANSWERED_ACCOUNT)
 
     # The yardstick table keeps a column for the regime this run is NOT in,
     # which reads like a leftover and is the opposite: it is the only place
@@ -5161,6 +5530,64 @@ def check_doc(readme, main_hs):
                       ' (%d block(s) quote none, the table carrying it)'
                       % (quoted, len(cls_rows), len(cls_leads) - quoted))
 
+            # The MOVEMENT sentence above the blocks, which neither check
+            # reaches. It reads each class's floor against its
+            # predecessor's, `X% to Y%` eight times over, so its second
+            # figure is a claim about the column printed right above it
+            # and its first about a column no longer on the page -- and
+            # the whole sentence is written by hand under a table
+            # `install-tables.sh` writes. Run 17 installed the new column
+            # and left Run 16's paragraph standing under it: every one of
+            # its eight `to` figures is the previous run's, and `--lint`,
+            # `--check-doc` and both installers were green over it, the
+            # numbers being perfectly good figures of the wrong run.
+            #
+            # Vacuity is guarded STRUCTURALLY and not on the sentence's
+            # own words. Keying it on the opening phrase was tried first
+            # and is the bug it was written against: rewording that
+            # phrase then turned the whole check off in silence, which is
+            # the one thing it must not do. What identifies the paragraph
+            # instead is what it is -- a line quoting four or more of the
+            # classes with a figure apiece -- so a rewording that keeps
+            # the content still has to parse, and a run that writes no
+            # such paragraph owes nothing and says so.
+            #
+            # Non-vacuous, all five branches driven 2026-08-22 against
+            # copies: the live README FAILs on all eight figures; the same
+            # paragraph with Run 17's own column written in passes; that
+            # one with the opening phrase reworded passes too, which is
+            # what says the guard is not the wording; `to` swapped for
+            # `->` FAILs as a rewording rather than passing empty; and the
+            # paragraph removed prints the note.
+            movers = [ln for ln in body.split('\n')
+                      if len(re.findall(r'`[a-z0-9]+` [\d.]+%', ln)) >= 4]
+            moved = re.findall(r'`([a-z0-9]+)` ([\d.]+)% to ([\d.]+)%',
+                               '\n'.join(movers))
+            if not movers:
+                print('note: the class section quotes no paragraph of class'
+                      ' floors, so there was no movement to hold to the'
+                      ' column')
+            elif len(moved) < 4:
+                bad.append('a paragraph of the class section quotes %d class'
+                           ' floors and this check can read %d movement(s)'
+                           ' out of it -- if that sentence was reworded, its'
+                           ' pattern moves with it'
+                           % (len(re.findall(r'`[a-z0-9]+` [\d.]+%',
+                                             '\n'.join(movers))), len(moved)))
+            else:
+                stale = ['`%s` moves to %s%% where the column above it reads'
+                         ' %s%%' % (c, now, cls_rows[c])
+                         for c, _, now in moved
+                         if c in cls_rows and now != cls_rows[c]]
+                if stale:
+                    bad.append('the floor-movement sentence lands on figures'
+                               ' the class table does not carry, so it is'
+                               " reading the PREVIOUS run's column: %s"
+                               % '; '.join(stale))
+                else:
+                    print('ok:   all %d floor movement(s) land on the class'
+                          " table's own column" % len(moved))
+
         # Two more of the floor check's shape -- one figure, several
         # sites, must agree -- on the counts Run 14 got wrong in more than
         # one place. Unlike the floor these have a truth outside the README:
@@ -5254,6 +5681,46 @@ def check_doc(readme, main_hs):
                 for first, para in stale:
                     print('        %s:%d: %s'
                           % (os.path.basename(readme), first, para[:60]))
+            # EVERY entry of this section opens with a status, which the
+            # section's own preamble states and offers `grep '^- .OPEN.'`
+            # as the use of. It was true of the parent list and false of
+            # the sublist: seven of the thirteen non-urgent entries
+            # carried no token, four of them closed within the ten days
+            # before 2026-08-22, their closure a phrase inside the bolded
+            # lead instead. So the grep found the live ones among six
+            # entries and left seven to be read, which is what a status is
+            # for.
+            #
+            # A FAIL and not a worklist, alone among the open list's
+            # checks: there is no judgement left once an entry has a
+            # token, the choice of WHICH token being the author's and
+            # made before this ever runs. Sub-bullets are indented and so
+            # are not entries; the section carries no other top-level
+            # bullet, which is what makes the rule decidable -- measured
+            # 2026-08-22, 46 entries and 39 statused.
+            entries = [(i, l) for i, l in enumerate(lines, 1)
+                       if lo[0] <= i < hi[0] and l.startswith('- ')]
+            loose = [(i, l) for i, l in entries
+                     if not re.match(r'^- `(OPEN|PARKED|ANSWERED|STANDING)` ',
+                                     l)]
+            if not entries:
+                bad.append('no top-level entry found between `What is open`'
+                           ' and `The goal`, so the status check did not'
+                           ' run -- if the list was reshaped, this pattern'
+                           ' moves with it')
+            elif loose:
+                bad.append('%d open-list entry(s) open with no status, so'
+                           ' `grep \'^- .OPEN.\'` cannot find the live ones'
+                           ' among them: %s'
+                           % (len(loose),
+                              '; '.join('%s:%d %s'
+                                        % (os.path.basename(readme), i,
+                                           l[2:52])
+                                        for i, l in loose[:4])))
+            else:
+                print('ok:   all %d open-list entries open with a status,'
+                       ' so the section\'s own grep is complete'
+                      % len(entries))
         else:
             # A range this sweep cannot delimit is a sweep that did not
             # run, and its silence read exactly like a clean open list:
@@ -6014,7 +6481,14 @@ def main():
     p.add_argument('--fingerprint', action='store_true')
     p.add_argument('--classes', nargs='+', metavar='CLASS.json',
                    help='with --fingerprint: the class JSONs whose shapes'
-                        ' fill the second table')
+                        ' fill the second table; with --extremes, the'
+                        ' populations to rank')
+    p.add_argument('--extremes', action='store_true',
+                   help='which class holds each extreme -- the tightest'
+                        ' floor, the widest gap, the best class for an arm'
+                        ' -- over the --classes given; needs no run file,'
+                        ' installs nothing, and is the derived source a'
+                        ' superlative about the eight has nowhere else')
     p.add_argument('--block', action='store_true')
     # The standing explanations and the installed table are read once and
     # then reprinted on every later call: ten populations of --aa is ~250
@@ -6104,6 +6578,17 @@ def main():
         if getattr(args, flag) and not getattr(args, needs):
             p.error('--%s is a modifier of --%s and does nothing alone'
                     % (flag, needs.replace('_', '-')))
+    # `--classes` has two owners since --extremes, and had none of this
+    # before: given to any other mode it was read by nobody and the mode
+    # printed as though the files had not been named. --extremes is the
+    # one that cannot proceed without it, so it is refused rather than
+    # dropped.
+    if args.classes and not (args.fingerprint or args.extremes):
+        p.error('--classes is a modifier of --fingerprint and --extremes'
+                ' and does nothing alone')
+    if args.extremes and not args.classes:
+        p.error('--extremes ranks the populations named by --classes, and'
+                ' none were given')
     # `--brief` is read inside --aa and --block alone, so `--markdown
     # --brief` printed the full table at exit 0 saying nothing -- the same
     # silence the loop above refuses, one flag it did not cover.
@@ -6128,7 +6613,8 @@ def main():
     modes = [f for f in ('shapes', 'aa', 'pair', 'claims', 'compare',
                          'machine', 'steps', 'cells', 'markdown',
                          'fingerprint', 'block', 'selftest', 'lint',
-                         'check_doc', 'para', 'wild', 'deflation')
+                         'check_doc', 'para', 'wild', 'deflation',
+                         'extremes')
              if getattr(args, f)]
     if len(modes) > 1:
         p.error('one mode at a time, and %s were all asked for: the'
@@ -6150,9 +6636,16 @@ def main():
                  else check_doc_quiet(args.readme, args.main))
     if args.lint:
         sys.exit(lint(args.main, args.readme))
+    if args.extremes:
+        missing = [c for c in args.classes if not os.path.exists(c)]
+        if missing:
+            sys.stderr.write('%s: no such run file(s); the rank did not'
+                             ' happen\n' % ', '.join(missing))
+            sys.exit(2)
+        sys.exit(extremes_table(args.classes, args.main, args))
     if args.run is None:
-        p.error('a run file is required for everything but --lint and'
-                ' --check-doc')
+        p.error('a run file is required for everything but --lint,'
+                ' --check-doc and --extremes')
     if not os.path.exists(args.run):
         sys.stderr.write('%s: no such run file; the analysis did not happen\n'
                          % args.run)
@@ -6278,6 +6771,7 @@ def main():
                        args, terms)
         emit_or_install(text, args, shapes, meta, block=True)
         summary_row(cells, shapes, strategies, args, args.main)
+        lead_shapes(shapes, args, args.main)
     else:
         strategy_table(cells, shapes, strategies, meta, args, terms)
 

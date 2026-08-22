@@ -281,13 +281,33 @@ knows what it must not re-derive and what is worth deriving, which is the pair
 the file opens with rather than the two lists it used to end its chapters with.
 
 **Every entry opens with its status, so that finding the live ones is a grep
-and not a reading.** `OPEN` wants a measurement that is available; `PARKED`
-is open but its route is retired, and the entry says why; `ANSWERED` records
-an outcome and is kept so the question is not re-proposed; `STANDING`
-is a ruling or a convention with nothing to run. `grep '^- .OPEN.' README.md`
-is the list of live questions, and the one that answers a session's first
-question about this section. The status is a pointer and never the authority:
-the entry's own text is.
+and not a reading, and `--check-doc` fails the file for an entry that does
+not** --- which it would have until 2026-08-22, seven of the non-urgent list's
+thirteen entries having carried no token at all and four of those being closed,
+saying so in prose where nothing could find it. `OPEN` wants a measurement
+that is available; `PARKED` is open but its route is retired, and the entry says
+why; `ANSWERED` records an outcome and is kept so the question
+is not re-proposed; `STANDING` is a ruling or a convention with nothing to run.
+`grep '^- .OPEN.' README.md` is the list of live questions, and the one
+that answers a session's first question about this section. The status
+is a pointer and never the authority: the entry's own text is.
+
+**An `ANSWERED` entry owes three things and not a fourth: the question as
+it was asked, the outcome, and the section that holds the account.** This
+is a question register, and what it keeps an answered question for
+is that nothing else records a refutation --- [What is settled,
+and where](#what-is-settled-and-where) names what is true and the topical
+chapters carry the figures, so a question deleted here is one the next session
+re-proposes. What it must not become is a second copy of the chapter: that index
+says of itself that it carries no figures by design, for the same reason,
+and an answer that runs to a chapter puts the account in the one
+of this README's three places that does not move when a run does. The shape
+to copy is the `window` overlap entry below, which states its outcome
+in a sentence and ends by naming the block that carries its figures.
+`--check-doc` lists, without failing, any `ANSWERED` entry past three hundred
+words that points nowhere; the entries already past it are the backlog that rule
+was written over, and they are to be shortened as each is next touched rather
+than in one pass.
 
 **This is the only home for an open question.** They are collected here because
 otherwise they sit one per section and get reconstructed every time ---
@@ -2097,6 +2117,31 @@ rather than a slot in the next run, observed again:
   form, which is that this is a hazard of the class to be quoted as one
   and never as a figure. The per-sample reading stays the instrument
   for its mechanism.
+- `OPEN` **The basis half carries the wider class floor, run after run,
+  and no variable the pairs differ in explains it.** Over Runs 15, 16 and 17
+  the published half's class floor is the wider one in **18 of 24** comparisons
+  --- 5, 7 and 6 of eight classes --- at sign p 0.023, and those three pairs
+  differ in three unrelated things: an RTS setting (`run15-lookrts` against
+  `run15-a32m`), an allocation area (`run16-a32m` against `run16-a64m`)
+  and the per-sample instrument (`run17-wildlog` against `run17-det`). So
+  it is none of the three, and what the wider halves share is being the half
+  whose column got published. Run 17 is where it is loudest: `revsome` reads
+  **18.05%** on the basis against 4.87% on the control, three times its own Run
+  16 figure, and that movement is what raised the question --- the paragraph
+  that used to state such movements under the class table was cut on 2026-08-22
+  for quoting the previous run's, and its subject is here instead.
+  **The measurement that would settle it wants no quiet machine and no new
+  run**: the floor is a MAX over eighteen pairs, so a half with one wild cell
+  carries a wider one at the same dispersion --- read the median A/A deviation
+  per half beside it, over the JSONs already on disk. Medians that move together
+  put the effect in the tail and make the ruling that a floor is an order
+  statistic and not a spread; medians that move apart put it in the halves,
+  which the pair was not built to vary. The evening's process order is the other
+  candidate the artifacts can answer, every process being timestamped, and
+  it is the one that would make this a property of when a half ran rather
+  than of which half it is. **Until it is settled, read a class margin against
+  its own run's column and never the previous one** --- the standing rule
+  the cut paragraph carried.
 - `OPEN` **What does the roster owe the next run?** The exact repetition
   is **taken** and is not owed again for its own sake: Run 11 inherited shapes,
   roster, order, regime and binary, and what it bought is [in the floor
@@ -2939,18 +2984,18 @@ rather than a slot in the next run, observed again:
   being the updater class and none the machine's own. The 1-minute average alone
   dates a multi-minute intruder and barely marks a ten-second one (it is damped
   over 60 s and updated every 5 s), which is why the other two ride with it.
-  Read per bench and not per sample, /proc/stat's 10 ms jiffy saying nothing
-  inside one short sample. The plateau is counted per process in `run-major.sh`,
-  exactly as bench counts are, and banded across them in `read-all.sh`, at 5%
-  --- loose against the 0.9% ten alone-leg processes span, tight against the 14%
-  an unsaturated process reads below a saturated one --- with seven
-  `check-scripts.py` cases behind all of it, three of them controls;
-  and `run-alonelegs.sh` and `run-counts.sh` have cases now, each written
-  against a defect it turned out to have. **Not in Run 18**: a roster change,
-  which would confound the compiler. The 24m/48m probe, which could have
-  reopened the area, was taken ahead of Run 17 and killed. And the `add-in`
-  placement question, deferred by [its own entry][open] to a run that has
-  the compilers measured.
+  Stamped per sample with the rest of the line and *reported* per bench,
+  /proc/stat's 10 ms jiffy saying nothing inside one short sample. The plateau
+  is counted per process in `run-major.sh`, exactly as bench counts are,
+  and banded across them in `read-all.sh`, at 5% --- loose against the 0.9% ten
+  alone-leg processes span, tight against the 14% an unsaturated process reads
+  below a saturated one --- with seven `check-scripts.py` cases behind all
+  of it, three of them controls; and `run-alonelegs.sh` and `run-counts.sh` have
+  cases now, each written against a defect it turned out to have. **Not in Run
+  18**: a roster change, which would confound the compiler. The 24m/48m probe,
+  which could have reopened the area, was taken ahead of Run 17 and killed.
+  And the `add-in` placement question, deferred by [its own entry][open]
+  to a run that has the compilers measured.
 
 
 ### Recommended tasks after Run 17
@@ -3009,11 +3054,12 @@ the relaunch guard's half of it point at it.
 
 **The instrument has shipped into a recorded run, which is the change this run
 makes to this heading.** Run 17's basis half carried the per-sample log
-over the whole roster and priced it at nothing a recorded run can see,
-so the question this heading used to gate --- whether the logging could ride
-a published half --- is answered and the next `Main.hs` edit rides both halves
-of Run 18, where the preamble goes. Of what stands here, item 3's remaining work
-wants no quiet machine at all; no window closes.
+over the whole roster and priced it at nothing a recorded run's margins can see,
+the margins being what was read for it and the floor not, so the question
+this heading used to gate --- whether the logging could ride a published half
+--- is answered and the next `Main.hs` edit rides both halves of Run 18, where
+the preamble goes. Of what stands here, item 3's remaining work wants no quiet
+machine at all; no window closes.
 
 1. **WHICH SHAPES POISON --- asked here as the probe evening's one open
    question, and answered 2026-08-18: there is no set.** The scan it planned
@@ -3192,29 +3238,31 @@ left to attribute --- the interval it is about is the aligned binary's.
   the fixed-iteration differencing the horde-ad performance model prescribes
   (`-n 200` minus `-n 100`, fresh processes) rather than criterion, since
   the builders are not benchmarks.
-- `OPEN` **Change the method and a family of prose is deleted rather
+- `PARKED` **Change the method and a family of prose is deleted rather
   than maintained --- the lever the two speculative regimes here share,
-  and the one no tooling reaches.** The controls, the pairing, the shim
-  and the floor exist because wall-clock on this machine is layout-
-  and history-dependent, and the write-up pays for that defence every run:
-  the floor, the drift band, the pinning caveats, the restatement on the basis
-  half, the basis matching owed before any figure is quoted. Numbers needing
-  no such defence delete those paragraphs; an installer only makes one cheaper
-  to write. Both candidates were written 2026-08-14 from a review
-  of the apparatus rather than from any run, and each names the pilot that would
-  settle it. **Counted work instead of sampled time, wherever the question
-  is an ordering.** Counted work is layout-independent --- the wild-cell probe
-  read an A/A pair's instructions agreeing to 5e-5 --- so a cachegrind
-  or fixed-`-n` counter table would want no quiet machine and no floor and would
-  reproduce on any box, the clock staying for the boundaries where
-  a memory-system effect can invert an ordering. Pilot: counts for every timed
-  arm over the shape set, read against a published time column --- orderings
-  that agree license the switch, and the cells that disagree
-  are the memory-bound residue the clock is still for. **Taken 2026-08-22
-  on `run16-a32m` against Run 16's column, and the switch is REFUSED**:
-  over the 44 timed arms the count ordering agrees with the time ordering
-  at Spearman 0.725, 201 of 946 pairs inverting, and the disagreement is
-  not a residue but the fast tier --- `mut-flat-gm-nosum` executes 1.9 times
+  and the one no tooling reaches. Both routes to it were piloted on 2026-08-22
+  and both are refused, which is what parks the entry rather than answering
+  it**: the lever is still worth having and this README knows no way to reach
+  it. The controls, the pairing, the shim and the floor exist because wall-clock
+  on this machine is layout- and history-dependent, and the write-up pays
+  for that defence every run: the floor, the drift band, the pinning caveats,
+  the restatement on the basis half, the basis matching owed before any figure
+  is quoted. Numbers needing no such defence delete those paragraphs;
+  an installer only makes one cheaper to write. Both candidates were written
+  2026-08-14 from a review of the apparatus rather than from any run, and each
+  names the pilot that would settle it. **Counted work instead of sampled time,
+  wherever the question is an ordering.** Counted work is layout-independent ---
+  the wild-cell probe read an A/A pair's instructions agreeing to 5e-5 ---
+  so a cachegrind or fixed-`-n` counter table would want no quiet machine
+  and no floor and would reproduce on any box, the clock staying
+  for the boundaries where a memory-system effect can invert an ordering. Pilot:
+  counts for every timed arm over the shape set, read against a published time
+  column --- orderings that agree license the switch, and the cells
+  that disagree are the memory-bound residue the clock is still for. **Taken
+  2026-08-22 on `run16-a32m` against Run 16's column, and the switch
+  is REFUSED**: over the 44 timed arms the count ordering agrees with the time
+  ordering at Spearman 0.725, 201 of 946 pairs inverting, and the disagreement
+  is not a residue but the fast tier --- `mut-flat-gm-nosum` executes 1.9 times
   `list`'s instructions per unit time and `bq-gen` 0.83, so what an instruction
   costs spans more than twofold across arms, and where arms differ in
   it the clock decides. What the pilot confirmed is the other half of the claim:
@@ -3250,69 +3298,100 @@ left to attribute --- the interval it is about is the aligned binary's.
   emphasis, is exactly what a ledger would have to carry and no reader can
   derive.
 
-- **The rename, done rather than checked.** Post-run step 5 is mechanical ---
-  four run-numbered headings, two taking this run's number and two the next,
+- `OPEN` **The rename, done rather than checked.** Post-run step 5 is mechanical
+  --- four run-numbered headings, two taking this run's number and two the next,
   every link's text and anchor repointed, and `Main.hs`'s `README.md#`
   references with them --- and `--check-doc` now fails a link whose text
   and anchor name different runs. A mode that performs the bump would leave
   nothing to catch; it writes the README, so it wants `--in-place`'s refusals,
   which is why it is registered rather than written.
-- **More checks of the floor-consistency shape: one figure, several sites, must
-  agree.** The floor pair, the roster size and every population size quoted
-  as `over N shapes` are checked (the last two against Main.hs, 2026-08-16,
-  since agreement alone cannot see a count that is stale everywhere). What
-  is left of the four subjects Run 14 got wrong is the run window
-  and the process count, neither of which has a phrasing crisp enough to match
-  yet: the pattern has to distinguish a population's size from a win count,
-  which is what `on N shapes` taught.
-- **`--claims --compare PREV.json`, if the movement sentence turns out to
-  be the last transcription.** The kept JSONs make *held, and moved from 0.9909
-  to 0.9940* mechanical --- `pair_stats` over both files --- and it is the one
-  thing a claim's paragraph still copies by hand. Not taken, because it renders
-  the reading rather than the arithmetic, and the division the installed
-  readings keep is that the author owns whether a movement means anything.
-- **Check that the basis half named in prose is the run's own --- taken
-  2026-08-19.** `--check-doc` holds every `run<N>-<half>` token in the Results
-  section to the run its chapter names, which is where Run 14's write-up left
-  `run13-maxskip` standing while installing `run14-lookrts`'s tables under it,
-  with `--lint`, `--check-doc`, `--selftest` and `--aa` all green because
-  no check read that name. **The scope is that section and not the chapter**,
-  which is the ruling worth keeping: the forward-looking sections name
-  the previous run's halves on purpose --- Run 16's basis registration
-  is a repetition against `run15-a32m` --- so a chapter-wide rule would fail
-  the README for saying what it means. Non-vacuity sits beside the check
-  and again as a control in `check-scripts.py`, which builds the Run 14 defect
-  out of the current README rather than spelling it out, so it keeps working
-  when the chapter's run number moves.
-- **Check each class lead's shape list against its JSON's shapes.** The five
-  class views that gained a third shape on 2026-08-14 still had two-shape leads
-  after Run 14's write-up, while the `--block`-installed per-shape line
-  and anchor beneath them named three; the leads are the author's and nothing
-  compared them with the population. `--block` already knows both, so it can say
-  so on stderr the way it reports a summary-row disagreement, and this
-  is the same defect family: a hand-written line above installed content going
-  stale under it.
-- **Have `--block` price the pure-slot break against the floor, not only sort
-  it.** The second clause of the class property is stated on the published
+- `OPEN` **More checks of the floor-consistency shape: one figure, several
+  sites, must agree.** The floor pair, the roster size and every population size
+  quoted as `over N shapes` are checked (the last two against Main.hs,
+  2026-08-16, since agreement alone cannot see a count that is stale
+  everywhere), and since 2026-08-22 the floor-movement sentence beside the class
+  table --- alone among them in having a truth on the page rather than only
+  agreement, its second figure being a claim about the column printed right
+  above it. **It fired on the document it was written into**: Run 17 installed
+  that column and left Run 16's paragraph standing under it, all eight movements
+  landing on the previous run's figures with `--lint`, `--check-doc` and both
+  installers green over them. The paragraph was cut rather than repaired, what
+  moved the floors having no account --- the entry for that is in [What
+  is open](#what-is-open). What is left of the four subjects Run 14 got wrong
+  is the run window and the process count, neither of which has a phrasing crisp
+  enough to match yet: the pattern has to distinguish a population's size
+  from a win count, which is what `on N shapes` taught.
+- `ANSWERED` **`--claims --compare PREV.json`, if the movement sentence turns
+  out to be the last transcription.** The kept JSONs make *held, and moved
+  from 0.9909 to 0.9940* mechanical --- `pair_stats` over both files ---
+  and it is the one thing a claim's paragraph still copies by hand. Not taken,
+  because it renders the reading rather than the arithmetic, and the division
+  the installed readings keep is that the author owns whether a movement means
+  anything.
+- `ANSWERED` **Check that the basis half named in prose is the run's own ---
+  taken 2026-08-19.** `--check-doc` holds every `run<N>-<half>` token
+  in the Results section to the run its chapter names, which is where Run 14's
+  write-up left `run13-maxskip` standing while installing `run14-lookrts`'s
+  tables under it, with `--lint`, `--check-doc`, `--selftest` and `--aa` all
+  green because no check read that name. **The scope is that section and
+  not the chapter**, which is the ruling worth keeping: the forward-looking
+  sections name the previous run's halves on purpose --- Run 16's basis
+  registration is a repetition against `run15-a32m` --- so a chapter-wide rule
+  would fail the README for saying what it means. Non-vacuity sits beside
+  the check and again as a control in `check-scripts.py`, which builds the Run
+  14 defect out of the current README rather than spelling it out, so it keeps
+  working when the chapter's run number moves.
+- `ANSWERED` **Check each class lead's shape list against its run --- taken
+  2026-08-22.** The five class views that gained a third shape on 2026-08-14
+  still had two-shape leads after Run 14's write-up, while
+  the `--block`-installed per-shape line and anchor beneath them named three;
+  the leads are the author's and nothing compared them with the population.
+  `--block` knew both and now says so on stderr, the way it reports
+  a summary-row disagreement. **Three readings and not one, and the second
+  is the ruling worth keeping**: which shapes the lead names, in what order,
+  and each `l` and `sInner` against `Main.hs`. The order is load-bearing because
+  the per-shape paragraph is installed in run order and labelled *in the lead's
+  order*, so a lead listing them otherwise does not go stale --- it mislabels
+  three live ratios, which is the one of the three that no reading of the block
+  can catch. Silent over every one of Run 17's leads, and the same defect family
+  as the summary row's own check and the floor-movement sentence above:
+  a hand-written line over installed content going stale under it.
+- `ANSWERED` **Have `--block` price a class-property break against the floor,
+  not only sort it --- taken 2026-08-22, and re-aimed the same day off the pure
+  slot the shipping decision retired.** A property is stated on the published
   `time` column, so the sort settles ties in it and `--block` reports a break;
   Run 15 found that five of its seven breaks were ties inside their population's
   floor and one, `revsome`, was *inverted* against the paired reading,
   `bq-scan-rem-gm-mulback` leading at 1.0469 where the column had it behind.
-  The verdict block already computes the leaders; adding the `--pair` margin
-  and comparing it with the process's own floor turns a sort into a reading,
-  and would have kept a falling count from being quoted as a trend.
-- **Print the eight-way extremes, because a class superlative has no derived
-  source.** *Widest of the eight*, *best of the eight*, *tightest floor
-  of the eight* are claims about all nine populations, and nothing prints them:
-  `--block` sees one class, the cross-class table is hand-assembled,
-  and the sort is left to the eye. Run 15 got three of them wrong in one draft
-  --- `scaled`'s spread called narrowest where `rev`'s is, `window`'s pure-slot
-  gap called widest of the eight on the column where `reshape1`'s is wider
-  on the pair, and `offtab`'s best class named before it was sorted --- every
-  one caught by an independent reader rather than by a check.
-  `install-tables.sh` already loops over all eight and collects their stderr,
-  so it is the one program that could rank them and say which class holds each
-  extreme.
+  Each break now carries its paired margin, win count and sign p, that margin
+  against the population's own A/A floor, and a line where the pair reads
+  the other way round from the column. **What it makes of Run 17 is why
+  it was worth writing**: seven of the eight classes break the top-of-the-table
+  property, six of them inside their own floor and only `reshape1` outside it,
+  at 50.98% --- which is the class the cross-class table already bolds,
+  so the check reproduces the reading a careful run makes by hand and would have
+  kept a falling count of breaks from being quoted as a trend. The inversion
+  fires on class runs already on disk.
+- `ANSWERED` **Print the eight-way extremes, because a class superlative has
+  no derived source --- taken 2026-08-22 as `--extremes`.** *Widest
+  of the eight*, *best of the eight*, *tightest floor of the eight* are claims
+  about every class at once, and nothing printed them: `--block` sees one class,
+  the cross-class table is hand-assembled, and the sort was left to the eye. Run
+  15 got three of them wrong in one draft --- `scaled`'s spread called narrowest
+  where `rev`'s is, `window`'s pure-slot gap called widest of the eight
+  on the column where `reshape1`'s is wider on the pair, and `offtab`'s best
+  class named before it was sorted --- every one caught by an independent reader
+  rather than by a check. The mode ranks the populations it is given
+  and `install-tables.sh` calls it once, after the installs and installing
+  nothing: the cross-class summary stays hand-assembled, its emphasis being
+  a per-run judgement, and what a rank owes the author is the sort
+  under the sentence rather than the sentence. **The gap from the shipped arm
+  to the best arm outside its family is printed both ways and the mode says
+  where the two disagree**, which is Run 15's second error exactly: on Run 17
+  the widest is `bcastmid`'s on the published column and `rev`'s paired. **What
+  it does not rank is the main set**, which it refuses, that population having
+  no row in the table these claims are made about --- so a superlative meant
+  over all nine has no source here either.
 
 
 ## The goal of these benchmarks
@@ -6701,6 +6780,11 @@ docstring rather than re-derived.
     ./read-run.py RUN.json --cells          # every cell as TSV, for the rest
     ./read-run.py RUN.json --fingerprint    # the kept per-shape record
     ./read-run.py RUN.json --block          # a class block's parts, + verdicts
+    ./read-run.py --extremes --classes A.json B.json ...  # which class holds
+                                            # each extreme -- tightest floor,
+                                            # widest gap, best class for an
+                                            # arm -- since a superlative about
+                                            # the classes has no other source
     ./read-run.py RUN.json --markdown --in-place   # install it, do not paste
     ./read-run.py RUN.json --selftest       # check the reader's own invariants
     ./read-run.py RUN.json --exclude concat-runs --exclude-shape deep-7-c512-k3
@@ -9308,17 +9392,11 @@ check counts.
 | `window` | 3 | 0.063 | 0.098 | `mut-flat-gm` 0.072 | `mut-odo-vecdims-add-in` 0.062 | 5.18% |
 | `scaled` | 3 | 0.031 | 0.032 | `build` 0.031 | `mut-odo-vecdims-add-in` 0.029 | 5.15% |
 
-**The floor column can be read against its predecessor's again**, both being
-over eighteen A/A pairs on one roster. All eight moved, four down and four up:
-`revsome` 6.56% to 5.94%, `bcast` 8.57% to 8.34%, `bcastmid` 9.69% to 6.32%
-and `window` 11.05% to 5.30% the one way, `rev` 6.25% to 6.30%, `reshape1` 9.23%
-to 12.36%, `slice` 4.50% to 8.39% and `scaled` 3.37% to 10.10% the other. Which
-pair carries it moved too --- `mut-odo`'s twins take three classes,
-`gen-unsafe`'s and `offtab`'s two each and `build`'s one, where Run 15 had
-`mut-odo`'s in four. Movements of this size either way over a population
-of eighteen near-ties is what a repetition of the instrument looks like,
-and it is the reason to read a class margin against this run's column
-and not the previous one.
+The floor-movement paragraph that stood here was cut on 2026-08-22, having read
+Run 16's column against Run 15's while Run 17 installed this one over it ---
+the defect `--check-doc` now holds every such movement to. What moves
+these floors is [an open question](#what-is-open) and not a sentence
+under a table.
 
 The pure slot this table carried until 2026-08-22, and the paragraph that read
 it, retired with the pure/impure distinction when the decision shipped

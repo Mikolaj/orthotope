@@ -14,6 +14,13 @@
 # filled by hand, a departed row is dropped with a warning -- so this
 # gathers those and prints them at the end as the list they are.
 #
+# It also RANKS, once, and installs nothing from it: `--extremes` over the
+# same class list, because a superlative about the eight -- widest, best,
+# tightest floor -- is a claim about every population at once and this is
+# the only program that holds them all. The cross-class summary stays
+# hand-assembled, its emphasis being a per-run judgement; what the rank
+# owes the author is the sort under the sentence, not the sentence.
+#
 # The class list comes from the JSONs on disk rather than from a literal
 # here: run-major.sh's own class literal went out of step with the binary
 # once, and a write-up that installs seven blocks of eight is the same
@@ -305,6 +312,20 @@ open(DOC, 'w').write('\n\n'.join(paras))
 print(f'  {done} computed paragraph(s) installed across {len(order)} class block(s)')
 ENDPY
 
+# The one rank, and the one thing here that writes nothing. Assigned and
+# then tested rather than piped: a pipeline exits with its LAST command's
+# status, so `| sed` would report sed's success whatever the reader did,
+# and this driver's whole contract is that a refusal is loud.
+echo "=== the cross-class extremes, which the summary's superlatives want"
+EXTR=$(./read-run.py --extremes --classes $CLASSES 2>&1)
+if [ $? != 0 ]; then
+  echo "  !! --extremes REFUSED:"
+  printf '%s\n' "$EXTR" | sed 's/^/       /'
+  BAD=$((BAD + 1))
+else
+  printf '%s\n' "$EXTR" | sed 's/^/  /'
+fi
+
 echo
 if [ -n "$HAND" ]; then
   echo "What the installs left for you, and it is not optional:$HAND"
@@ -314,7 +335,7 @@ if [ "$BAD" -eq 0 ]; then
   echo "$DONE table(s) installed, counted off install's own lines rather"
   echo "than off the call count -- --fingerprint writes two. The cross-class"
   echo "summary is NOT among them: it is assembled last, by hand, from the"
-  echo "class tables above."
+  echo "class tables above, with the rank above it under its superlatives."
 else
   echo "$BAD install(s) REFUSED -- a refusal is the design, never a silent"
   echo "write to the wrong place. Fix what it names -- a header it could not"
