@@ -2854,8 +2854,24 @@ rather than a slot in the next run, observed again:
   One trap for the read-back: on 9.14 the baked RTS line is stored with a byte
   before it, so `strings | grep -x` misses it while `+RTS --info` reports
   it and the heap peak shows it in effect --- the notes and `run-alonelegs.sh`
-  read it by `--info` now. **What is owed before the evening**: the plateau
-  check in `run-major.sh` and `read-all.sh`, counted as bench counts are,
+  read it by `--info` now. **What is owed before the evening**, the first
+  of it before the build: the stamp's load fields ---
+  `wildlog-instrument.patch`'s `@@wild` line gains `load=` (the 1-minute average
+  from `/proc/loadavg`), `run=` (that line's instantaneous count of runnable
+  tasks) and `cpu=` (the machine-wide busy jiffies from `/proc/stat`'s first
+  line), read in the same hooks outside the timed block, and the reader
+  of the log prints per sample the CPU something else consumed during it,
+  the `cpu` delta between consecutive stamps less the process's own
+  mutator-plus-collector delta the line already carries. The reason is the wild
+  cell: from inside a process its signature --- a non-reproducing mutator step
+  at flat RTS totals --- is exactly an external intrusion's, and Run 16's
+  updater cell was told apart only by a wall-clock window; these fields tell
+  the two apart per sample, foreign CPU during the sample being the updater
+  class and none the machine's own. The 1-minute average alone dates
+  a multi-minute intruder and barely marks a ten-second one (it is damped
+  over 60 s and updated every 5 s), which is why the other two ride with it.
+  Decided 2026-08-22 during Run 17, which ran without it. Then the plateau check
+  in `run-major.sh` and `read-all.sh`, counted as bench counts are,
   with a `check-scripts.py` case first; cases for `run-alonelegs.sh`
   and `run-counts.sh`, which have none; and the `-g3` twins per compiler
   at the write-up. **Not in Run 18**: a roster change, which would confound
@@ -3004,11 +3020,13 @@ wants no quiet machine at all; no window closes.
    the 24m/48m probe and the counted-work pilot were taken ahead of the pair
    on `run16-a32m`, the first holding, the second killed and the third refusing
    the switch to counts. What is left before Run 18's evening is that pair's own
-   owed work, [listed with it](#what-is-open) --- the plateau check
-   in `run-major.sh` and `read-all.sh` with a `check-scripts.py` case first,
-   cases for `run-alonelegs.sh` and `run-counts.sh`, and the `-g3` twins per
-   compiler at the write-up --- **and one new question this run raised**,
-   whether `mut-odo-vecdims-add-in` really leads the arm that ships, which [its
+   owed work, [listed with it](#what-is-open) --- the stamp's load fields before
+   the build, decided 2026-08-22 during Run 17 so that a wild cell can be told
+   from an intrusion per sample, then the plateau check in `run-major.sh`
+   and `read-all.sh` with a `check-scripts.py` case first, cases
+   for `run-alonelegs.sh` and `run-counts.sh`, and the `-g3` twins per compiler
+   at the write-up --- **and one new question this run raised**, whether
+   `mut-odo-vecdims-add-in` really leads the arm that ships, which [its
    entry][open] says is minutes on an existing binary and needs no run. None
    of it needs a quiet machine except that last, and that only briefly.
 
