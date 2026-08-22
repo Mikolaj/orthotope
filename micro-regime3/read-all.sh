@@ -15,7 +15,7 @@
 # only that one, and a pair inside the floor whose worst cell is an order
 # of magnitude outside it is a finding the aggregate is hiding.
 #
-# That comparison is like with like, which neither the page nor `--aa`
+# That comparison is like with like, which neither the README nor `--aa`
 # says outright: `aa_table` takes each pair's cells on `net`, raw only for
 # the `sum-only` pair whose raw ratio IS the position test, so the cell
 # printed here is the same quantity as the published net floor.

@@ -33,7 +33,7 @@ emits a per-block symbol (`Main_zdwgo7_svYG_entry` and siblings) with DWARF
 line info, and **this tool then names each copy itself** -- `addr2line` for
 the source line, the source file for the top-level binding containing it --
 so the symbol column reads `fbMutOdoVecdims (Main.hs:1669)` instead. Nothing
-changes for a binary carrying no line info, which is every build this page
+changes for a binary carrying no line info, which is every build this README
 timed before Run 13.
 
 Read that way 2026-08-13, at `-fspec-constr` with `LOOP_MAXSKIP=1`: the
@@ -111,7 +111,7 @@ binary is sound; a difference in the totals between two is the disassembler.
 Its defects are kept as cases in `./check-scripts.py` -- objdump's status
 and addr2line's -- and a fix here wants one there first.
 
-    ./loop-offsets.py BINARY...          # 28-byte loop, the one this page prices
+    ./loop-offsets.py BINARY...          # 28-byte loop, the one this README prices
     ./loop-offsets.py --len 24 BINARY    # e.g. the count-down form
     ./loop-offsets.py --survey BINARY    # every loop that could fit a line
     ./loop-offsets.py --library A B      # do the two halves move the libraries
@@ -288,9 +288,13 @@ def arms(path, addrs):
 def survey(path, want='_Main_'):
     """Every self-loop of any length, and how many can still straddle.
 
-    Only a loop no longer than a line can be rescued by an offset at all, so
-    that is the population the count is about; everything longer spans several
-    lines in any build. The default `want` restricts this to code GHC compiled
+    Only a loop no longer than a line can be rescued by an offset outright,
+    so that is the population the count is about: the loops an alignment
+    takes from two lines to one. Everything longer spans several lines in
+    any build, but fewest from a line boundary, and one line fewer crossed
+    is worth having too -- which is why the shim aligns every head it can
+    regardless of the loop's length; that gain is real and not one this
+    count certifies. The default `want` restricts this to code GHC compiled
     here rather than to the libraries linked in, which no shim on -pgma
     reaches.
     """
@@ -407,7 +411,7 @@ def main():
         return
 
     # `--len 0` widens the grouped report to every loop a line can hold.
-    # The 28 the default names is the run-fill loop this page prices, and
+    # The 28 the default names is the run-fill loop this README prices, and
     # for four runs it was also the whole tracked set -- which is what the
     # NOPs question tripped over on 2026-08-14: the arms that lose most to
     # an unconditional shim carry no 28-byte loop at all, so the report

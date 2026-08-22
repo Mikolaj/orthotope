@@ -6,8 +6,8 @@
 # `--markdown`, `--fingerprint`, a `--block` per class and `--claims`,
 # every one from the BASIS half, every one `--in-place`. That is eleven
 # tables and one reading per claim, and those are numbers a session loses
-# count of: the failure is not a wrong table but a missing one, and a page
-# with ten of eleven installed looks exactly like a page with eleven.
+# count of: the failure is not a wrong table but a missing one, and a README
+# with ten of eleven installed looks exactly like a README with eleven.
 #
 # It installs and collects; it decides nothing. Each mode's stderr is the
 # hand-work it leaves -- a row new to the roster installs as `?` and is
@@ -22,19 +22,19 @@
 # Its defects, and the control that a full pass rewrites no table, are cases
 # in ./check-scripts.py; add one there before fixing anything here.
 #
-# WRITES THE PAGE, so commit or park README.md first -- `git checkout --
+# WRITES THE README, so commit or park README.md first -- `git checkout --
 # README.md` is the undo, and there is no other. Read the diff afterwards
 # rather than the terminal: install prints what it replaced, not what the
-# page now says.
+# README now says.
 #
 # Measured over Run 13's artifacts, 2026-08-15, against a copy: ten calls
-# write eleven tables; a full pass over a page that already carries them
+# write eleven tables; a full pass over a README that already carries them
 # leaves the ELEVEN TABLES byte-identical, so a rerun after fixing one
 # refusal costs nothing but a re-wrap: that measurement predates the
 # computed-paragraph block below, which writes its three paragraphs per
-# class as one line each where the page keeps them wrapped, so a full pass
+# class as one line each where the README keeps them wrapped, so a full pass
 # now comes back word for word identical and re-wrapped -- 24 paragraphs
-# on a page carrying them already, measured 2026-08-16. Close with
+# on a README carrying them already, measured 2026-08-16. Close with
 # `wrap80 -i`, as after any edit; and renaming a class block's bolded lead makes that one install
 # refuse -- `0 line(s) start with '**`scaled`', need exactly one` -- which
 # this reports and exits 1 on, the other ten having landed.
@@ -86,9 +86,9 @@ done
 
 # The class list comes from the disk, so a class whose JSON is absent is
 # simply never installed and the tables half of this driver says nothing --
-# "a page with ten of eleven installed looks exactly like a page with
+# "a README with ten of eleven installed looks exactly like a README with
 # eleven", which is what the header opens by warning about and what this
-# loop was doing. The page's own block leads are the roster to check
+# loop was doing. The README's own block leads are the roster to check
 # against: one bolded lead per class, and a lead with no JSON is a table
 # that will not be written. Found 2026-08-16 by withholding one class JSON
 # and watching ten tables install in silence.
@@ -109,7 +109,7 @@ fi
 # the reader is RIGHT not to emit one: `--block`'s per-shape paragraph is
 # guarded by len(shapes) > 2. The computed-paragraph block below met that as
 # `--block emitted no per-shape` and exited 1 -- AFTER the eleven tables had
-# been written, so the page was left carrying fresh tables over stale
+# been written, so the README was left carrying fresh tables over stale
 # computed paragraphs, at exit 1, and the message blamed the reader's output
 # format for what the reader correctly does. Not hypothetical: five class
 # blocks were two-shape when last written, which is the state the block
@@ -283,7 +283,7 @@ for n, (c, start) in enumerate(reversed(order)):
                 .replace(" (copy from the process's stderr line)", ''))
     # The four fills above are unasserted replaces against wording
     # `read-run.py` owns, so a reworded emit would install the literal
-    # `___` into the page at exit 0, and nothing sweeps for it the way
+    # `___` into the README at exit 0, and nothing sweeps for it the way
     # `check_doc` sweeps a published `?`. 2026-08-17.
     if '___' in ctrl or '___' in prov:
         print(f'  REFUSED {c}: a `___` placeholder survived the fill, so the'

@@ -132,7 +132,7 @@ if ./read-run.py smoke.json --cells --exclude-shape "$SHAPE" \
   echo "  !! --exclude-shape $SHAPE did NOT refuse a run of that shape alone"
   BAD=$((BAD + 1))
 fi
-mode smoke.json --claims          # reads the page's verdicts back too, so
+mode smoke.json --claims          # reads the README's verdicts back too, so
                                   # this is also the read-back's only
                                   # pre-run exercise
 

@@ -468,7 +468,7 @@ def apply_correction(cells, shapes, strategies, mode='sumonly'):
     3's own quantity (README.md#sum-only-and-the-correction-now-applied),
     promoted from auditing the correction to being it, and it is NOT the
     published convention: a figure read this way is comparable to no figure
-    on that page, which is why it is a flag and not a fallback. What it is
+    on that README, which is why it is a flag and not a fallback. What it is
     for is a build where `sum-only` cannot be subtracted at all -- under
     GHC HEAD's LLVM backend that bench runs up to 2.3x the bench it would be
     subtracted from, leaving a usable net on 3 of the 24 main-set shapes.
@@ -630,7 +630,7 @@ def aa_pairs(cells, shapes, strategies):
         #
         # And SAID, on the same day, because dropping it quietly traded a
         # crash for the worse thing: `controls_skeleton` publishes "N of M
-        # intervals cover 1" into the page off this list, and over a run
+        # intervals cover 1" into the README off this list, and over a run
         # with eighteen pairs and two of them sunk it read 16 with nothing
         # anywhere saying which two had gone. The warning is here rather
         # than at each caller so that every one of them inherits it, and
@@ -651,7 +651,7 @@ def aa_pairs(cells, shapes, strategies):
 
 
 def aa_floor(pairs):
-    """The pair furthest from 1, which is what this page calls the floor."""
+    """The pair furthest from 1, which is what this README calls the floor."""
     return max(pairs, key=lambda p: abs(p.g - 1)) if pairs else None
 
 
@@ -937,10 +937,10 @@ def readme_rows(readme, strategies, recognise=None):
     followed, and the second is why this is anchored rather than filtered
     harder. The departed-row warning named six arms that were not in the
     Results table at all, on a run carrying part of the roster. And `needs`
-    was last-writer-wins over the whole page: a seven-column row planted
+    was last-writer-wins over the whole README: a seven-column row planted
     for `bq-expand` BELOW the Results table put that table's last cell into
     the installed `needs`, and its emphasis with it, silently and at exit
-    0. Nothing was wrong on the page only because the offsets table sits
+    0. Nothing was wrong in the README only because the offsets table sits
     above the Results one.
 
     `recognise` defaults to the run's own arms, which is what a caller
@@ -959,7 +959,7 @@ def readme_rows(readme, strategies, recognise=None):
     The `bq-scan-mulback-aa-*` pair is in that state today, re-pointed and
     renamed after Run 8 published it.
 
-    The anchoring was checked the same day, three ways: over the real page
+    The anchoring was checked the same day, three ways: over the real README
     and Run 14's basis all 47 rows carry forward with none added or dropped
     and the copy is byte-identical; with the planted table restored below
     the Results one, `bq-expand` keeps its `needs` and its emphasis and the
@@ -1029,7 +1029,7 @@ def install(readme, table, src, after=None):
     out because nothing here can check it: the published table is the
     basis half's by convention alone, and a table installed from the other
     half satisfies every gate this script has, the header being the same
-    line either way. Run 10 installed one and the page carried it. So the
+    line either way. Run 10 installed one and the README carried it. So the
     half is printed at the moment it is installed, where the transcript
     and the terminal both keep it, rather than left to the provenance
     section written hours later.
@@ -1089,7 +1089,7 @@ def install(readme, table, src, after=None):
         # and rather than carrying a third spelling of them. What this
         # needs to know is where the block stops, so a lead it takes too
         # eagerly can only end the search early and refuse, never carry it
-        # into the next block; the eleven such leads on today's page are
+        # into the next block; the eleven such leads on today's README are
         # the eight class ones and three no class table sits behind.
         end = next((j for j in range(start[0] + 1, len(lines))
                     if lines[j].startswith('**`') or lines[j].startswith('#')),
@@ -1597,7 +1597,7 @@ def compare_alloc(cells, shapes, strategies, meta, other, main_hs):
     bytes, found the `sum-only` controls disagreeing, then "corrected" itself
     by recomputing on the multiple as `--cells` PRINTS it, at four decimals,
     where the rounding hides the disagreement and every cell agrees. That is
-    arithmetic on rounding, which this page forbids everywhere else.
+    arithmetic on rounding, which this README forbids everywhere else.
 
     So the partition here is by SIZE and never by column. An arm allocating a
     few tens of bytes a call has a fit that resolves nothing, and its cells
@@ -1930,7 +1930,7 @@ def step_scan(path, min_iters=50, min_samples=20):
     the two segments. **The threshold is the whole test.** Some split is
     always the best one, so taking it at face value flags a quarter of all
     cells and means nothing; `t` above 40 with a step past 2% flags about
-    3% of them and puts the arms this page already suspects -- `build`,
+    3% of them and puts the arms this README already suspects -- `build`,
     `mut-odo`, `offtab` -- at the top. Never quote the first without the
     second.
 
@@ -2005,7 +2005,7 @@ def machine_check(cells, shapes, readme, thresh=3.0):
     The gate is the moment to ask it. Its selection carries `*/list` and
     both `sum-only` halves on every shape, so the comparison is net
     against net, and it runs before the evening rather than after it: a
-    machine that has changed under the page invalidates a run that has
+    machine that has changed under the README invalidates a run that has
     not started yet, which is the only time that news is cheap.
 
     The threshold is the geomean over shapes, not a cell. Across the
@@ -2067,7 +2067,7 @@ def machine_check(cells, shapes, readme, thresh=3.0):
           % thresh)
     print('  the whole baseline moved, so this is not a strategy and not'
           ' drift. Before')
-    print('  spending the evening, find out what changed under the page --'
+    print('  spending the evening, find out what changed under the README --'
           ' and ASK, since')
     print('  a kernel, a microcode update, a BIOS setting or a different box'
           ' are not')
@@ -2124,7 +2124,7 @@ def cell_dump(cells, shapes, strategies):
 # leaves when no shape has it best. The short column heads are the stretch
 # table's convention; the README intro above the tables maps them back to
 # full arm names. `install` matches a table by its whole header line, so a
-# narrowed emitter and a wide table on the page would refuse rather than
+# narrowed emitter and a wide table in the README would refuse rather than
 # install.
 FINGERPRINT_ARMS = ['mut-odo-vecdims', 'mut-flat-gm',
                     'bq-scan-rem-gm-mulback', 'build', 'mut-odo',
@@ -2273,7 +2273,7 @@ def fingerprint_table(cells, shapes, strategies, meta, classes=()):
 # heading carries the run number and post-run step 5 renames it every
 # write-up, so an anchor here goes dead at each rename -- and stays dead in
 # every archived revision, where --audit replays this file against today's
-# page and reads its own stale anchors as a --check-doc failure).
+# README and reads its own stale anchors as a --check-doc failure).
 # Constants rather than literals
 # because the property has been re-aimed twice, and a re-aim that misses one
 # use of a name is how a verdict starts disagreeing with the claim it checks.
@@ -2383,7 +2383,7 @@ def claims_table(cells, shapes, strategies, args):
     Claims 7 and 8 print as reminders with no figures, having no pair:
     7 is `--compare --alloc` between the halves and 8 is read off the
     table. Naming them here rather than omitting them is the point -- a
-    list of seven where the page has nine is how a claim goes unchecked.
+    list of seven where the README has nine is how a claim goes unchecked.
 
     Born checked: run against Run 13's basis, every ordering it prints
     reproduces the figure that run published -- geomean, win count and
@@ -2440,7 +2440,7 @@ def claims_table(cells, shapes, strategies, args):
             # verdict is not, so the verdict word is what goes. Saying it
             # once at the top was not enough: the BROKE lines are forty
             # lines below it, and a smoke run's two of them read as a
-            # broken page to the session that ran it by hand.
+            # broken README to the session that ran it by hand.
             print('  %s  %s / %s: registered %s; %s'
                   % ('PART ' if gone else 'HELD ' if ok else 'BROKE',
                      a, b, want, got))
@@ -2470,7 +2470,7 @@ def claims_past(run_now=None):
     sentence opening "In Run 15, `bq-expand` reads 0.9312" exempted every
     figure in itself -- and a stale CURRENT-run figure, which is the one
     kind this sweep exists to catch, was the kind it could not see. The
-    run in hand is excluded when the page names it; with no such heading
+    run in hand is excluded when the README names it; with no such heading
     the old behaviour stands, which is a sweep that lists less rather than
     one that lists wrongly. Found 2026-08-17 by review.
     """
@@ -2486,7 +2486,7 @@ def main_set_gap(shapes, main_hs):
     2026-08-16 none of them noticed a run that was not it. The arms guard
     does not catch it: a one-shape run keeps all 47 arms. What a smoke run
     produced instead was two BROKE verdicts and a forty-item worklist
-    against a page with nothing wrong with it, and, on the install path,
+    against a README with nothing wrong with it, and, on the install path,
     an `IndexError` out of a `best two cells` that had one -- a crash the
     caller then read as the refusal it was waiting for.
     """
@@ -2501,7 +2501,7 @@ def claims_section(paras):
     The installer and the read-back both need it and neither may guess:
     the restatement below `Restated` carries figures of its own, and a
     paragraph leading with a claim's number occurs outside the section
-    too, so a search over the whole page finds the wrong one rather than
+    too, so a search over the whole README finds the wrong one rather than
     none. Returns (None, None) when either end is missing, which every
     caller reports rather than working around.
     """
@@ -2515,7 +2515,7 @@ def claims_section(paras):
 
 
 def claims_readings(cells, shapes, strategies):
-    """Each claim's figures, as the paragraph the page is to carry.
+    """Each claim's figures, as the paragraph the README is to carry.
 
     The claims section was the last figure-bearing block with no
     installer, so a run hand-copied a dozen orderings out of `--claims`
@@ -2564,7 +2564,7 @@ def install_readings(readme, texts, src, strategies, shapes, main_hs):
 
     A filtered run is refused outright: `--exclude` can leave a claim's
     arms out, and a section installed from it would carry a subset with
-    nothing on the page saying so.
+    nothing in the README saying so.
 
     Born checked, 2026-08-16, against a copy, four ways: run twice it
     leaves the file byte-identical the second time; with `**Claim 3 held.`
@@ -2637,28 +2637,28 @@ def claims_in_doc(readme, cells, shapes, strategies, src, main_hs):
     figures being the table's rather than a pair's.
 
     It lists rather than fails, and the summary count is the instrument
-    rather than the list: a clean page reproduces nearly everything and
+    rather than the list: a clean README reproduces nearly everything and
     leaves a handful of table-sourced cells, where a stale one collapses.
 
     The installed readings are checked too, not skipped as trivially this
-    run's: a page whose `Readings:` lines were never reinstalled is exactly
+    run's: a README whose `Readings:` lines were never reinstalled is exactly
     the failure this exists for, and it is the densest evidence of it.
 
     Non-vacuity, 2026-08-16, three readings over Run 14's artifacts. The
-    page reproduces 44 and lists nothing -- after the one figure it did
+    README reproduces 44 and lists nothing -- after the one figure it did
     list was fixed, an unattributed Run 13 sign p inside claim 2's
     paragraph, which is this check's first find and exactly the kind the
-    page's own convention forbids. Run 13's published page against the same
+    README's own convention forbids. Run 13's published README against the same
     artifacts, which is the shape the 2026-08-15 incident had, reproduces
     17 and lists 17. And the control half read in place of the basis
     reproduces 9 and lists 35, which is why the basis is a caller's
-    argument here as it is everywhere else on this page.
+    argument here as it is everywhere else in this README.
     """
     gone, whole = main_set_gap(shapes, main_hs)
     if gone:
         print('\nnote: this run carries %d of the main set\'s %d shapes, so'
-              ' the page\'s figures are not comparable with it and were not'
-              ' read back. Nothing here is a finding about the page.'
+              ' the README\'s figures are not comparable with it and were not'
+              ' read back. Nothing here is a finding about the README.'
               % (whole - gone, whole))
         return
     try:
@@ -2676,7 +2676,7 @@ def claims_in_doc(readme, cells, shapes, strategies, src, main_hs):
         return
 
     # The same arithmetic the printer and the installer use, and formatted
-    # here the way they format it: this check matches the page on the
+    # here the way they format it: this check matches the README on the
     # STRING, so a format that moved in the writer and not here would stop
     # the read-back recognising figures it had just written -- or leave it
     # passing while checking a shape nothing emits.
@@ -2908,7 +2908,7 @@ def summary_row(cells, shapes, strategies, args, main_hs):
     and was not in Run 13 on the same arm, and `rev`'s is bold in neither
     while naming the same arm as `bcast`'s, which is -- so a renderer
     would have to invent or drop marks that mean something to somebody.
-    What it can have is the check the page already asks for: the summary
+    What it can have is the check the README already asks for: the summary
     is a transcription from the class tables, cell against table, and
     every cell of it is derivable right here. Eight calls a run, one per
     class, riding the `--block` each class already gets.
@@ -3036,7 +3036,7 @@ def block_skeleton(cells, shapes, strategies, meta, args, terms):
         print("**Per shape, in the lead's order (%s):**" % ', '.join(shapes))
         for st in bold:
             # `--` on a sunk cell, as the fingerprint and `time_of` do: this
-            # paragraph is installed into the page by install-tables.sh, so
+            # paragraph is installed into the README by install-tables.sh, so
             # a ratio taken over a net the forcing term did not leave
             # positive would be published rather than merely printed.
             print('  `%s` %s' % (st, '/'.join(
@@ -3091,7 +3091,7 @@ def roster_of(main):
 FIGURE_RE = re.compile(r'\b0\.\d{3}\b|\d+\.\d+\s*[x]\b'
                        r'|\b\d{1,2}\.\d%|\b\d+\.\d{2,}\b')
 
-# A sentence quoting a figure this page no longer publishes. Each has to earn
+# A sentence quoting a figure this README no longer publishes. Each has to earn
 # its place -- README's own rule is that a superseded NUMBER is cut while a
 # superseded DECISION is kept, and the test is whether someone would redo the
 # work without it. That is a judgement, so these are listed for adjudication
@@ -3218,7 +3218,7 @@ def unwrapped_paragraphs(lines):
 
     Cached on the text, one `--check-doc` asking for it four times -- once
     in the roster-count block and once per sweep -- and each spawning
-    `wrap80` over the whole page. What the cache buys is the one
+    `wrap80` over the whole README. What the cache buys is the one
     definition rather than the milliseconds.
 
     From `wrap80 --unwrap`, the formatter that writes this file, so that what
@@ -3318,7 +3318,7 @@ def headings_of(text):
 
 
 # Where a named path may live. This directory first, then the orthotope
-# checkout it sits in, then the sibling this page cites for horde-ad's
+# checkout it sits in, then the sibling this README cites for horde-ad's
 # benchmark, its docs and its CLAUDE.md.
 PATH_ROOTS = [('.', 'here'), ('..', 'orthotope'),
               ('../../horde-ad', 'horde-ad')]
@@ -3349,7 +3349,7 @@ def check_paths(doc):
 
     Pass 2 of the `doc-verification` discipline, in the one form that is
     worth mechanizing here. It is anchored on the EXTENSION and not on a
-    slash, which is the whole design: this page backticks criterion bench
+    slash, which is the whole design: this README backticks criterion bench
     names, and a bench name is `shape/arm` -- `lenet-L1-28-c1-k5/bq-expand`,
     `*/list`, `stretch-inner1/bq-expand-b` -- so a slash-based rule reports
     thirty benches and some arithmetic (`1/(1-f)`, `transpose_2/4/5/6`) as
@@ -3367,7 +3367,7 @@ def check_paths(doc):
     difference is recorded here rather than left to be rediscovered. That
     checker STOPS when a configured sibling is absent, because resolving
     names is the whole of what it does and a partial run proves almost
-    nothing. Here it is one check among several about the page's internal
+    nothing. Here it is one check among several about the README's internal
     consistency, all of which are worth running without horde-ad mounted --
     a fresh clone of this branch has no sibling at all. So an absent sibling
     downgrades to a NOTE that names the count, the root and every path it
@@ -3407,9 +3407,9 @@ def check_paths(doc):
             continue
         # A prefix, not a character set: `lstrip('./')` ate the leading dot
         # of `.github/workflows/lint.yml` and both levels of `../orthotope`,
-        # so the first dotfile or parent-relative path this page cites would
+        # so the first dotfile or parent-relative path this README cites would
         # have hard-FAILED as a path that does not resolve. Found 2026-08-17
-        # by review; neither is on the page today, which is why nothing
+        # by review; neither is in the README today, which is why nothing
         # noticed.
         rel = tok[2:] if tok.startswith('./') else tok
         if TRANSIENT_RE.match(rel):
@@ -3529,7 +3529,7 @@ def splice(readme, anchor, source):
     doing them by hand pays three times for each: locate the passage,
     PRINT it so the old string can be copied, then send both strings
     back. On Run 16 that echoing was the single largest token cost of
-    the write-up, and the page's own rule -- anything this reader can
+    the write-up, and the README's own rule -- anything this reader can
     emit, a session should not read -- had never been applied to
     editing. This does the whole edit without the old text entering a
     transcript at all.
@@ -3577,17 +3577,17 @@ def paragraphs(readme, pattern):
     r"""Print the paragraphs whose BOLDED LEAD matches, and their line numbers.
 
     Retrieval, so that reading a paragraph does not mean finding it first.
-    A session working through this page otherwise pairs a `grep -n` with a
+    A session working through this README otherwise pairs a `grep -n` with a
     `sed -n` for every passage it wants, and both go stale the moment an
     edit above moves the lines -- which every `--in-place` install and every
     prose fix does. Matching the lead rather than the body is what keeps the
     output one paragraph instead of every line that mentions a word.
 
-    **The page does NOT guarantee the precondition this used to claim.**
+    **The README does NOT guarantee the precondition this used to claim.**
     It said every paragraph opens with a bolded lead; of the 868 paragraphs
     this function's own splitter returns, 457 carry a bolded span and 411
     carry none, and 37 of those 411 carry a figure. So a third of a percent
-    of the page was not the gap -- a run's own material was. The unbolded
+    of the README was not the gap -- a run's own material was. The unbolded
     ones are the opening section's continuous argument and the continuation
     paragraphs inside list entries, where the entry's lead already names the
     thing; `grep -n '^\*\*'` between two headings therefore gives a
@@ -3679,10 +3679,10 @@ def check_doc(readme, main_hs):
     string the list no longer contained, so the break itself did nothing and
     the check was credited with a pass it had not earned. Verify that a
     deliberate break landed before believing what it proves. The
-    link-text check had no live instance to break, the page having none,
+    link-text check had no live instance to break, the README having none,
     so it was planted both ways on 2026-08-16, inline and through a
     reference definition, each failing alone; its one false positive is
-    this page quoting the defect in backticks, in the entry that asked
+    this README quoting the defect in backticks, in the entry that asked
     for the check, which is why code spans are blanked first. The two
     agreement checks on Main.hs's counts, the same day and each on a
     copy: one roster-size site changed to 1129 failed naming both sites
@@ -3739,7 +3739,7 @@ def check_doc(readme, main_hs):
     # here and reference definitions with their uses, plus Main.hs, whose
     # `README.md#` references carry text of their own in the comment
     # around them and are left to the eye.
-    # Inline code spans go first: this page QUOTES the defect, in the
+    # Inline code spans go first: this README QUOTES the defect, in the
     # entry that asked for the check, and a quoted link is not a link.
     nocode = re.sub(r'`[^`\n]*`', '``', doc)
     crossed = [(t, a) for t, a in
@@ -4008,10 +4008,10 @@ def check_doc(readme, main_hs):
     # legitimately without terminal punctuation and are the reason this is
     # not a one-line rule. A block ending in a FIGURE is a data line, not a
     # sentence: the per-shape line each three-shape class block carries ends
-    # in a ratio, and the block form is this page's rather than a run's to
+    # in a ratio, and the block form is this README's rather than a run's to
     # change. And a sentence may run INTO an indented block -- a code sample
     # or an indented table -- leaving the prose before it ending on `of` or a
-    # dash with the rest after; three paragraphs of this page do that, so
+    # dash with the rest after; three paragraphs of this README do that, so
     # the following block's indentation is consulted before failing anything.
     #
     # Non-vacuous, 2026-08-14, every branch exercised on this README. Whole
@@ -4072,7 +4072,7 @@ def check_doc(readme, main_hs):
     else:
         note.append('every prose paragraph of the README ends a sentence')
 
-    # This page says of itself that it cites no line and no permalink,
+    # This README says of itself that it cites no line and no permalink,
     # deliberately -- naming arm, strategy and shape names instead, which
     # `--lint` can check and a line number could not, a citation surviving
     # the refactor that moves it. That was a claim in prose with nothing
@@ -4086,7 +4086,7 @@ def check_doc(readme, main_hs):
     # Non-vacuous 2026-08-13: planting `micro-regime3/README.md:12` and a
     # permalink pinned at `5f0647baa` in the Provenance section reported
     # both, named them, and exited 1; removing them returned the ok line
-    # and exit 0. The claim it enforces was true when written -- the page
+    # and exit 0. The claim it enforces was true when written -- the README
     # carried zero of either -- which is what makes this a guard rather
     # than a repair.
     # Read off the raw lines rather than the unwrapped form: a citation
@@ -4337,7 +4337,7 @@ def check_doc(readme, main_hs):
             # aligned halves and failed. Run 10 passed only because its other
             # column is named for no half at all, and Run 11 passes because
             # `max-skip` contains no `aligned` -- so the bug was invisible to
-            # every run on the page. Found by a blind walk of the procedure,
+            # every run in the README. Found by a blind walk of the procedure,
             # 2026-08-11.
             halves[run].add(bool(re.search(r'(?<!un)aligned', regime)))
         for run, kinds in sorted(halves.items()):
@@ -4357,7 +4357,7 @@ def check_doc(readme, main_hs):
     # forward-looking sections name the PREVIOUS run's halves on purpose --
     # Run 16's bridge registration is a repetition against run15-a32m, and
     # its pair note is run16-pair.txt, a file and not a half -- so a
-    # chapter-wide rule would fail the page for saying what it means. What
+    # chapter-wide rule would fail the README for saying what it means. What
     # Results holds is installed from the basis half, so a run number there
     # that is not this chapter's names a half whose figures are not in the
     # tables above it.
@@ -4365,7 +4365,7 @@ def check_doc(readme, main_hs):
     # Non-vacuity, 2026-08-19, both directions on a copy passed with
     # --readme, which is how a copy is read at all -- a path given
     # positionally is a run file, so the first attempt re-checked README.md
-    # and credited this with a pass it had not earned. The page as it stands
+    # and credited this with a pass it had not earned. The README as it stands
     # carries exactly one such token in that section, `run15-lookrts` under
     # a Run 15 chapter, and passes; rewriting it to `run14-lookrts` fails
     # naming both the run and the chapter. So the pass is a real pass and
@@ -4435,7 +4435,7 @@ def check_doc(readme, main_hs):
             """A digit string, a number word, or a hyphenated compound.
 
             The compound arm exists because a count that crosses twenty is
-            written `twenty-three` in this page's prose, which the word map
+            written `twenty-three` in this README's prose, which the word map
             alone cannot read and the pattern above must therefore admit
             a hyphen into.
             """
@@ -4578,7 +4578,7 @@ def check_doc(readme, main_hs):
 
         # Two more of the floor check's shape -- one figure, several
         # sites, must agree -- on the counts Run 14 got wrong in more than
-        # one place. Unlike the floor these have a truth outside the page:
+        # one place. Unlike the floor these have a truth outside the README:
         # Main.hs holds the arms and the shape lists, and a count every
         # site agrees on is still wrong after a roster change, which is
         # the case agreement alone cannot see.
@@ -4637,12 +4637,12 @@ def check_doc(readme, main_hs):
         # takes it at full budget, and its Results row will come out with
         # `?`" stood for a day after the row was in the table, filled with
         # a different phrase. Only `will` and `is to be` count as
-        # prospective: this page narrates finished runs in the historic
+        # prospective: this README narrates finished runs in the historic
         # present ("Run 10 takes it"), so verbs alone cannot tell a stale
         # promise from an idiom, and a sweep that listed every historic
         # present would be one nobody reads. Listed for adjudication, not
         # failed. Non-vacuous 2026-08-14: planting that very sentence in
-        # the open list on a copy listed it with its line; the shipped page
+        # the open list on a copy listed it with its line; the shipped README
         # lists nothing.
         m = re.search(r'^## About the last run \(Run (\d+)\)$', doc, re.M)
         lo = [i for i, l in enumerate(lines, 1)
@@ -4708,7 +4708,7 @@ def check_doc(readme, main_hs):
     # exempt, or the map would head this list at every check and teach
     # readers to skim it. Non-vacuous 2026-08-14: planting
     # `([see the run](#about-the-last-run-run-14))` in the opening
-    # paragraph of a copy listed it with its line; the shipped page lists
+    # paragraph of a copy listed it with its line; the shipped README lists
     # none, its one such link being the Contents entry the exemption is
     # for.
     m = re.search(r'^## About the last run', doc, re.M)
@@ -4727,7 +4727,7 @@ def check_doc(readme, main_hs):
                       % (os.path.basename(readme), i, l[:60]))
     else:
         # The heading is the sweep's own boundary, so without it there is
-        # no "above the chapter" to sweep and the silence read as a page
+        # no "above the chapter" to sweep and the silence read as a README
         # with no decayed links. Found 2026-08-17 by review, with the
         # open-list sweep above it.
         bad.append('BLOCKED: no `## About the last run` heading, so the'

@@ -40,7 +40,7 @@ stand-in is checked in here: `FAKE_HALF` for the gate's listing,
 `FAKE_RUN` for the two that want a whole run's cells.
 
 --audit REPLAYS TODAY'S FIXTURES AGAINST YESTERDAY'S CODE, so a change to
-the page's own conventions can put a case beyond its own history: code
+the README's own conventions can put a case beyond its own history: code
 from before it cannot read a fixture built after. That is expected, it is
 not a defect, and the handling is to drop the case's `bug` verdict, which
 takes it out of --audit and leaves it guarding forward. Four install cases
@@ -97,7 +97,7 @@ FIXTURES ARE DERIVED, NEVER STORED. Every plant below reads the live
 README.md or a live run JSON and edits a copy, and every anchor it edits is
 either found structurally (the yardstick header by the rule `check_doc`
 uses, a class table by its block lead) or asserted to occur exactly once.
-A stored copy of the page would rot silently as the page moved, which is
+A stored copy of the README would rot silently as the README moved, which is
 the same reason the checkers themselves read the live document. When an
 anchor does go, the case FAILS saying which -- loudly, as a fixture that
 cannot be built, never as a pass.
@@ -131,9 +131,9 @@ where the gate wanted only a listing.
 
 WHAT `--audit` STILL PAIRS LOOSELY, recorded rather than fixed. It reads
 the script as of the commit before its fix and the fixture from TODAY's
-page, which is sound wherever the defect is in the code and the fixture is
+README, which is sound wherever the defect is in the code and the fixture is
 merely an input of the right shape -- which is every case here. It would
-not be sound for a case whose defect is about the page's own shape, where
+not be sound for a case whose defect is about the README's own shape, where
 the anchor's form at the old revision is part of what is being reproduced:
 such a case should pin the document's revision alongside the script's.
 None does yet. What is in place is the cheaper half, and it is what makes
@@ -249,23 +249,23 @@ def tree_state():
 # ---------------------------------------------------------------- fixtures
 
 def readme_lines(rev=None):
-    """This page, as of `rev` when a revision is being replayed.
+    """This README, as of `rev` when a revision is being replayed.
 
     `--check-doc` resolves the `README.md#` anchors it finds in the
     READER'S OWN source, so a replayed revision carries the anchors of its
     day -- and post-run step 5 renames four headings every write-up. Run
-    against today's page, an old reader therefore fails on dead anchors of
+    against today's README, an old reader therefore fails on dead anchors of
     its own, which is not the defect any case here is about: it is what
     took `checkdoc-without-a-roster` and `checkdoc-open-list-out-of-order`
     out of --audit, both wanting exit 0 and both getting 1. Replaying the
-    code means replaying the page.
+    code means replaying the README.
     """
     return (open(README).read() if rev is None
             else at_rev('README.md', rev)).split('\n')
 
 
 def era_readme(tmp, rev, name='era-README.md'):
-    """This page as of `rev`, as a file a case can point `--readme` at."""
+    """This README as of `rev`, as a file a case can point `--readme` at."""
     p = os.path.join(tmp, name)
     write(p, '\n'.join(readme_lines(rev)))
     return p
@@ -424,7 +424,7 @@ def readme_stale_basis_in_results(tmp):
     Run 14's write-up shipped exactly this -- `run13-maxskip` standing in
     that lead while run14-lookrts's tables were installed under it -- past
     --lint, --check-doc, --selftest and --aa, none of which read the name.
-    The plant is derived from the page rather than spelled out, so it keeps
+    The plant is derived from the README rather than spelled out, so it keeps
     working when the chapter's run number moves, and it asserts what it
     swept: a Results section naming no run, or naming two, would leave the
     check passing for its own reasons.
@@ -449,7 +449,7 @@ def readme_without_class_leads(tmp):
     """Every class block lead unbackticked, so the grep finds none.
 
     `install-tables.sh` checks that no class is silently skipped by holding
-    the JSONs on disk to the page's leads, and the check was itself silent
+    the JSONs on disk to the README's leads, and the check was itself silent
     when its own search came back empty.
     """
     src = open(README).read()
@@ -491,13 +491,13 @@ def untracked_doc(tmp):
 
     The sibling of `staged_doc`: `git diff` says nothing about an untracked
     path AND exits 0, which is the empty set rather than the sentinel, so
-    a page worked on before it is added had every hit called old.
+    a README worked on before it is added had every hit called old.
     """
     doc = here_file('zz-case-untracked.md')
     write(doc, open(README).read()
           + '\nThe fastest arm of every population is the one this planted'
             ' sentence pretends to name, which makes it the biggest'
-            ' superlative on the page.\n')
+            ' superlative in the README.\n')
     return {'doc': os.path.basename(doc)}
 
 
@@ -1100,7 +1100,7 @@ def staged_doc(tmp):
     write(doc, open(README).read()
           + '\nThe fastest arm of every population is the one this planted'
             ' sentence pretends to name, which makes it the biggest'
-            ' superlative on the page.\n')
+            ' superlative in the README.\n')
     idx = os.path.join(tmp, 'index')
     env = dict(os.environ, GIT_INDEX_FILE=idx)
     for cmd in (('git', 'read-tree', 'HEAD'),
@@ -1124,7 +1124,7 @@ def case(name, prog, fix, gist, argv, ok, bug=None, plant=None, env=None,
     `probe` is for a defect whose evidence is a FILE the invocation wrote
     rather than anything it said: it returns text that is judged alongside
     the output, which is how a paragraph silently overwritten in a copy of
-    the page becomes a `has`/`hasnt` like any other.
+    the README becomes a `has`/`hasnt` like any other.
 
     A `bug` verdict says what the defect looked like, and --audit replays
     the case against `fix^` to see it. Without a `fix` there is nothing to
@@ -1330,7 +1330,7 @@ CASES = [
          # A control and not a defect replay: the check was written the day
          # this case was, so there is no `fix^` to replay it against. What
          # it holds is the property, which is what the next reader needs --
-         # the fixture is the Run 14 defect built out of the current page.
+         # the fixture is the Run 14 defect built out of the current README.
          plant=lambda t: {'readme': readme_stale_basis_in_results(t)},
          argv=['--check-doc', '--readme', '{readme}'],
          ok=V(exit=1, has=['while this chapter is Run'])),
@@ -1433,7 +1433,7 @@ CASES = [
          bug=V(has=['e+03'])),
 
     case('added-lines-untracked', 'read-run.py', None,
-         'an untracked page had every hit called old',
+         'an untracked README had every hit called old',
          # No --audit: this case now passes a flag that postdates the
          # default it guards, so code from before cannot take it. Removal
          # is the handling; it goes on guarding forward.
@@ -1894,7 +1894,7 @@ CASES = [
 
     case('placeholder-that-outlived-its-wording', 'install-tables.sh',
          None,
-         'a reworded emit installed a literal `___` into the page',
+         'a reworded emit installed a literal `___` into the README',
          plant=lambda t: {'doc': edited_readme(t)},
          shadow=dict(mutate=[
              ('read-run.py',
@@ -1935,7 +1935,7 @@ CASES = [
          bug=V(hasnt=['is not a class name'])),
 
     case('install-is-idempotent', 'install-tables.sh', None,
-         'CONTROL: a full pass over an untouched page rewrites no table',
+         'CONTROL: a full pass over an untouched README rewrites no table',
          plant=lambda t: {'doc': edited_readme(t)},
          shadow=dict(extra=whole_run(['lookrts'], prefix='zzit')),
          env={'DOC': '{doc}', 'BASIS': 'lookrts'},
@@ -2247,8 +2247,8 @@ def prop_table_reads_back(m):
 
 
 def _as_page(text):
-    """The emitted table as a page `readme_rows` can be pointed at."""
-    p = os.path.join(tempfile.gettempdir(), 'zz-prop-page.md')
+    """The emitted table as a README `readme_rows` can be pointed at."""
+    p = os.path.join(tempfile.gettempdir(), 'zz-prop-README.md')
     return write(p, text)
 
 
@@ -2422,7 +2422,7 @@ def run(cases, rev, want_key):
     defect that had not reproduced.
 
     The distinction matters most in the audit direction, where a plant
-    derived from today's page meets a script from before the fix: an
+    derived from today's README meets a script from before the fix: an
     anchor that moved between the two makes the plant misapply, and the
     one thing that must not happen is for that to read as a verdict about
     the case. THREE-VALUED, so it cannot.
@@ -2451,7 +2451,7 @@ def run(cases, rev, want_key):
                         shadow_dir(tmp, c.prog, text, **c.shadow), c.prog)
                 # A plant taking a second parameter is handed the REVISION
                 # under test -- None for the live tree -- because a fixture
-                # derived from this page is only right for the code of its
+                # derived from this README is only right for the code of its
                 # own era. `readme_lines` says what goes wrong otherwise.
                 subs = ({} if not c.plant else
                         (c.plant(tmp, at) if _takes_rev(c.plant)

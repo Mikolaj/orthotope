@@ -342,7 +342,7 @@ def sites(src, heads):
     of three multi-byte NOPs each, and with the 27 it pads 157, 3988 bytes.
     Twenty-six are declined; one fires and moves everything after it by 47
     bytes. So the cost is not the NOPs, it is that re-rolling placement
-    re-bases every figure this page has published for a reason no strategy
+    re-bases every figure this README has published for a reason no strategy
     changed, and what the extra alignment buys is unmeasured. So it is not
     taken on the way past, and `LOOP_LOOKTHROUGH=1` is how a run asks for it
     -- Run 13's other half, which is what prices it. An

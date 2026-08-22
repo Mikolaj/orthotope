@@ -20,7 +20,7 @@ BASIS and OTHER in all four scripts that take a run -- run-major.sh,
 run-gate.sh, smoke-sweep.sh and install-tables.sh, the last carrying BASIS
 alone; check them rather than assuming, and say here that you did. The one
 that is easiest to leave is install-tables.sh, which is the one that writes
-eleven tables into the page.
+eleven tables into the README.
 
 NAMING THE HALVES: neither name may begin with the other's followed by a
 hyphen. install-tables.sh finds the basis's class JSONs by globbing
@@ -79,7 +79,7 @@ HOW EACH HALF IS BUILT, there being no builder here. Both from one source:
   compiler version, so it moves the day the compiler does, and it is the
   one component of a recipe a later reader cannot reconstruct: notes
   before 2026-08-16 elide it as `db-r14a/.../micro`, which is not a
-  command, in the file this page calls the only copy of both recipes.
+  command, in the file this README calls the only copy of both recipes.
 
   Say which traps this recipe hits -- -fforce-recomp and a fresh
   --builddir for a -pgma or environment change -- and give the command

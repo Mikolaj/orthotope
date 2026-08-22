@@ -2447,7 +2447,7 @@ scaledViews :: [(String, ShapeL, Strides)]
 scaledViews =
   [ ("scaled-super-r3", [40, 50, 30], Strides [4547, 91, 3])  -- 60000
   , ("scaled-rank1-m1", [300000], Strides [5])  -- 300000, the m == 1 floor
-    -- The class's extreme, added 2026-08-14, and the shape this page's
+    -- The class's extreme, added 2026-08-14, and the shape this README's
     -- own findings ask for: rank 5 with coprime extents against the rank
     -- 3 and rank 1 above, its superincreasing strides scattering 15015
     -- outputs across 42735 source elements -- read nearly three times its
@@ -2708,7 +2708,7 @@ roster =
   , ("bq-odo-gm-mulback-aa-distant", Twin fbBQodoGmMulback)
     -- The sixth to ninth twinned strategies, added 2026-08-14 once the
     -- session that worked the task list down could say what twin coverage
-    -- was hiding: both anomalies this page chases were caught only because
+    -- was hiding: both anomalies this README chases were caught only because
     -- they landed on a twinned arm, so their apparent distribution is a
     -- fact about the controls and not about the machine
     -- (README.md#what-is-open). 'build' and 'mut-odo' are the
