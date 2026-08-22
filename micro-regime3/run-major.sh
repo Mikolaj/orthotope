@@ -53,8 +53,8 @@ PREFIX="$R"                  # the binaries and their note carry the run, as
 # 2026-08-14 -- the loop below says what changed and why. Change these two names per pair -- and
 # nothing else here, the counting below being what makes a wrong selection
 # loud in the log rather than at the write-up.
-OTHER=${OTHER:-det}
-BASIS=${BASIS:-wildlog}
+OTHER=${OTHER:-g914}
+BASIS=${BASIS:-g912}
 HALVES="$OTHER $BASIS"
 # A pair is two halves, and nothing downstream can tell that it is not. With
 # the two names equal, every second process writes the JSON the one before it
@@ -164,6 +164,23 @@ run () {   # $1 = half, $2 = artifact tag, $3 = benches expected, $4.. = args
   # Named, because nine of these in one log looked identical and the only
   # thing saying which process each belonged to was the line above it.
   [ "$nb" = "$want" ] || { log "  !! $out: expected $want benches, got $nb -- the selection is not what was asked for"; BAD=$((BAD + 1)); }
+  # THE PLATEAU, counted exactly as the bench count above is, and for the
+  # same reason: a process that did not assert its state is not in the
+  # state the others measured in, and nothing else here would say so.
+  # Run 18's preamble prints one `@@saturate` line per process before
+  # criterion sees the roster; the reading it carries is registration 5's,
+  # and the band over the whole run is `read-all.sh`'s to gate. Zero is
+  # the right count for a run without the preamble, so the count is only
+  # asked for when a dose was set -- a binary WITHOUT the preamble under
+  # `SATURATE=1` then reads 0 against 1 and complains, which is the case
+  # that matters, an unsaturated half silently joining a saturated run.
+  if [ -n "${SATURATE:-}" ] && [ "${SATURATE}" != 0 ]; then
+    local nsat
+    nsat=$(grep -c '^@@saturate ' "$out.log")
+    [ "$nsat" = 1 ] || { log "  !! $out: SATURATE=$SATURATE was set and this log carries $nsat @@saturate line(s), not 1 -- the process did not assert its state, so its figures are not in the run's"; BAD=$((BAD + 1)); }
+    grep -h '^@@saturate ' "$out.log" | sed "s|^|      $out |" \
+      | tee -a "$R-wallclock.log"
+  fi
 }
 
 # TWO commits, because HEAD is not what the binaries were built from and

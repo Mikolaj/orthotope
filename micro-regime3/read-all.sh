@@ -20,7 +20,16 @@
 # the `sum-only` pair whose raw ratio IS the position test, so the cell
 # printed here is the same quantity as the published net floor.
 #
-# Seconds, no benchmark run, safe on a busy machine -- it only reads JSONs.
+# It also gates THE PLATEAU, where a run carries one: every process's own
+# `@@saturate` reading inside a band of the run's own, which is Run 18's
+# registration 5. That gate is over the LOGS and every other one here is
+# over a JSON, which is the reason it stands apart at the top rather than
+# joining the per-process table -- and a run without the preamble carries
+# no such line and is not gated on it, in silence, an absent instrument
+# being no kind of failure.
+#
+# Seconds, no benchmark run, safe on a busy machine -- it only reads JSONs
+# and logs.
 #
 # Both defects this has had are cases in ./check-scripts.py -- an in-situ row
 # read as the A/A worst cell, and a killed run gating what landed and calling
@@ -144,6 +153,63 @@ if [ "$NOISY" != 0 ]; then
   echo
 fi
 
+# THE PLATEAU, registration 5's gate: every recorded process asserts the
+# in-process state it measured in, and this is where the run's own band is
+# read over them. `run-major.sh` counts the line per process, which is a
+# process that ran without the dose; this asks the other question, whether
+# the processes that DID assert one asserted the same one -- a process
+# outside the band having measured somewhere else, and its figures being
+# read before they are quoted rather than after.
+#
+# A run without the preamble carries no such line and is not gated here,
+# which is every run up to and including Run 17. Silent about the absence
+# on purpose: an absent instrument is not a failed one, and this driver
+# already refuses a run that is not all here.
+#
+# The band is over the VICTIM reading, the fixed-iteration `list` the
+# preamble times after collecting, and 5% is loose against the 0.9% ten
+# processes of one alone leg span and tight against the 14% an unsaturated
+# process reads below a saturated one (the dose measurements, README's Run
+# 18 entry). PLATEAU_BAND overrides it for a run whose own spread is known
+# to be wider.
+#
+# Over the RECORDED processes' logs and no others, which is the same
+# exclusion FILES makes above and for the same reasons: the gate's halves
+# are five arms and not a population, and an alone leg is one bench in its
+# own process. `run-major.sh` echoes each reading into the wallclock log
+# too, indented behind its process's name, so that copy does not start the
+# line and is not counted twice here.
+PLATEAU_BAND=${PLATEAU_BAND:-5}
+PLOGS=$(ls -1 "$R"-*.log 2>/dev/null \
+          | grep -v -e "^$R-gate-" -e "^$R-al-" -e "^$R-wallclock\.log$")
+SAT=$([ -z "$PLOGS" ] || grep -h '^@@saturate ' $PLOGS 2>/dev/null \
+        | sed -n 's|.* \([0-9][0-9.]*\) ms/iter .*|\1|p')
+WILD_PLATEAU=0
+if [ -n "$SAT" ]; then
+  read -r NSAT LO HI SPREAD <<EOF
+$(printf '%s\n' "$SAT" | awk -v b="$PLATEAU_BAND" '
+    NR == 1 { lo = hi = $1 }
+    { n++; if ($1 < lo) lo = $1; if ($1 > hi) hi = $1 }
+    END { s = (lo > 0) ? 100 * (hi - lo) / lo : 0
+          printf "%d %s %s %.2f\n", n, lo, hi, s }')
+EOF
+  if awk -v s="$SPREAD" -v b="$PLATEAU_BAND" 'BEGIN { exit !(s > b) }'; then
+    echo "!! the plateau is not flat across this run: $NSAT process(es) read"
+    echo "   the preamble's victim from $LO to $HI ms/iter, a spread of"
+    echo "   $SPREAD% against a band of $PLATEAU_BAND% -- a process outside it"
+    echo "   measured in a state the others did not, so read it before its"
+    echo "   figures. The readings, per process:"
+    grep -H '^@@saturate ' $PLOGS 2>/dev/null | sed 's/^/   /'
+    echo
+    WILD_PLATEAU=1
+  else
+    echo "plateau: $NSAT process(es), victim $LO-$HI ms/iter, spread $SPREAD%"
+    echo "  inside the $PLATEAU_BAND% band -- every process asserted the same"
+    echo "  in-process state"
+    echo
+  fi
+fi
+
 BAD=0
 printf '%-28s %-9s %s\n' process selftest 'A/A worst cell'
 for f in $FILES; do
@@ -212,7 +278,8 @@ for f in $FILES; do
 done
 
 echo
-if [ "$BAD" -eq 0 ] && [ "$SHORT" = 0 ] && [ "$NOISY" = 0 ]; then
+if [ "$BAD" -eq 0 ] && [ "$SHORT" = 0 ] && [ "$NOISY" = 0 ] \
+   && [ "$WILD_PLATEAU" = 0 ]; then
   echo "every process gated clean. The worst cells above are yours to read:"
   echo "  a pair inside the floor with a cell an order of magnitude outside"
   echo "  it is a finding, not noise, and the floor goes in the chapter head"
@@ -232,5 +299,10 @@ else
     || { echo "and the run complained about itself, quoted at the top: a"
          echo "process can exit 0 and leave a JSON having run the wrong"
          echo "selection, which every gate below reads as sound"; }
+  [ "$WILD_PLATEAU" = 0 ] \
+    || { echo "and its processes did not all measure in one state, quoted at"
+         echo "the top: every A/A gate below is WITHIN a process and so says"
+         echo "nothing about a process that saturated somewhere else"; }
 fi
-{ [ "$BAD" -eq 0 ] && [ "$SHORT" = 0 ] && [ "$NOISY" = 0 ]; } || exit 1
+{ [ "$BAD" -eq 0 ] && [ "$SHORT" = 0 ] && [ "$NOISY" = 0 ] \
+    && [ "$WILD_PLATEAU" = 0 ]; } || exit 1

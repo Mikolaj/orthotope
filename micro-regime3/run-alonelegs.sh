@@ -4,8 +4,16 @@
 # bench per process, so the deflation columns can be read and the published
 # tables get their clean-absolute companions.
 #
-#     ./run-alonelegs.sh run17 wildlog     # the control half, first
-#     ./run-alonelegs.sh run17 det         # the basis half, second
+#     ./run-alonelegs.sh run18 g914        # the control half, first
+#     ./run-alonelegs.sh run18 g912        # the basis half, second
+#
+# THE SECOND ARGUMENT IS A HALF'S NAME AND NOT ITS ROLE, so which of the two
+# is the basis is the PAIR NOTE's to say and never this comment's. It used
+# to name Run 17's halves here, and named them the wrong way round -- Run
+# 17's basis is `wildlog` and its control `det`, where the lines above read
+# them the other way -- which cost nothing only because the pair note is
+# authoritative and was read first. Run 18's halves are above because they
+# are this file's next caller; a reader of a later run substitutes.
 #
 # Run 16's own one-off rider script generalised, the run and the half as
 # arguments, since Run 17's halves no longer name an area. That one-off is
@@ -35,6 +43,22 @@ B=./$R-$H
 SUF=${SAT:+-sat}               # artifacts of saturated legs carry it
 [ -x "$B" ] || { echo "no $B here -- $R-pair.txt has the recipe"; exit 1; }
 EXISTING=$(ls -1 "$R-al-$H$SUF"-*.json "$R-al-$H$SUF"-*.log 2>/dev/null)
+# THE CLEAN SWEEP'S GLOB WOULD OTHERWISE TAKE THE SATURATED LEGS. `-sat`
+# is a suffix on the half's name, so with SUF empty `$R-al-$H-*` matches
+# `$R-al-$H-sat-*` too, and a clean sweep run after a saturated one was
+# refused over artifacts that are not its own -- the same over-matching
+# prefix glob install-tables.sh names for a half whose name begins with
+# the basis's plus a hyphen. Run 18 runs clean first and saturated second,
+# so the documented order never met it; a rerun of either half's clean
+# legs would have. Found 2026-08-22 by review. Case:
+# `clean-legs-are-not-the-saturated-ones`.
+#
+# Guarded on EXISTING being non-empty because `printf '%s\n' ""` writes ONE
+# EMPTY LINE, which `grep -v` passes through and `[ -n ]` then reads as an
+# artifact -- the same empty-search trap read-all.sh records.
+if [ -z "$SUF" ] && [ -n "$EXISTING" ]; then
+  EXISTING=$(printf '%s\n' "$EXISTING" | grep -v "^$R-al-$H-sat-")
+fi
 if [ -n "$EXISTING" ]; then
   echo "$R-$H already has alone-leg artifacts here:"
   printf '%s\n' "$EXISTING" | sed 's/^/  /'
