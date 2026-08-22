@@ -116,7 +116,7 @@ fi
   || say 8 FAIL "--check-doc: $(grep -m1 FAIL "$TMP/doc")"
 
 ./check-scripts.py --families > "$TMP/fam" 2>&1 \
-  && say 8b PASS "defect families over this directory's source" \
+  && say 8b PASS "defect families over this directory's Python source" \
   || say 8b FAIL "--families: $(tail -2 "$TMP/fam" | head -1)"
 
 ./check-scripts.py --properties > "$TMP/prop" 2>&1 \

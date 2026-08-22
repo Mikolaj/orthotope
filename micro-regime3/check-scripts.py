@@ -115,19 +115,15 @@ Every defect either review found, and every one found beside them, has a
 case here but one: the correction's positivity test in `selftest`, which is
 subsumed by the malformed-cell check above it and so cannot fail on its own
 -- untestable by construction rather than untested, and `read-run.py` says
-as much where the code is. The other absence is whole files. `run-major.sh`,
-`run-major.sh` and `smoke-sweep.sh` have no case. `run-gate.sh` now has
-one, and how it got there is what those two want too: a shadow directory
-with a stand-in for `$PREFIX-$half` that answers `--list` and runs no
-bench, which takes the whole gate -- four processes and its verdict -- to
-a second. The drivers had no finding in either of the first two reviews
-and one in the third, which was never evidence that they are clean: they
-are what commits the machine for hours, a defect in one is the most
-expensive kind here, and the two shell scripts anyone did read closely
-yielded the highest defect density in the tree -- 1.9 and 0.9 per hundred
-lines against `read-run.py`'s 0.47. What is left is to write their
-stand-ins, `run-major.sh` wanting `check`, `diag` and a JSON per process
-where the gate wanted only a listing.
+as much where the code is. The other absence is one whole file,
+`preflight.sh`, by its own design: its steps are this suite and the
+reader's gates, so a case would run them twice, and what is its own is
+proved on stub halves in its header. Every other program here has cases,
+the drivers on the stand-ins above -- and the drivers are where a defect
+is the most expensive kind here, being what commits the machine for
+hours: the two shell scripts anyone first read closely yielded the
+highest defect density in the tree, 1.9 and 0.9 per hundred lines against
+`read-run.py`'s 0.47.
 
 WHAT `--audit` STILL PAIRS LOOSELY, recorded rather than fixed. It reads
 the script as of the commit before its fix and the fixture from TODAY's
@@ -187,6 +183,9 @@ import zlib
 HERE = os.path.dirname(os.path.abspath(__file__))
 README = os.path.join(HERE, 'README.md')
 MAIN = os.path.join(HERE, 'Main.hs')
+# Where --properties looks for runs: this directory, or what a case names,
+# which is how an empty corpus is handed to it.
+CORPUS = os.environ.get('CORPUS', HERE)
 CLASS_HDR = '| strategy | time | worst | CI% | smp | alloc |'
 
 # Files a case had to write into this directory rather than into its temp
@@ -1189,9 +1188,13 @@ def class_shapes(cls):
 
 
 def _est(point, rel=0.01):
+    # Both deviations POSITIVE, as criterion writes them: `-d` here made
+    # the reader's CI% -- their mean over the slope -- exactly 0 in every
+    # synthetic cell, and the noise column nan off it, so no case could
+    # assert either. Case: `fixture-ci-bounds-are-criterion-shaped`.
     d = abs(point) * rel
     return {'estPoint': point,
-            'estError': {'confIntCL': 0.95, 'confIntLDX': -d, 'confIntUDX': d}}
+            'estError': {'confIntCL': 0.95, 'confIntLDX': d, 'confIntUDX': d}}
 
 
 def _regress(responder, slope):
@@ -3180,10 +3183,35 @@ def family_lint(path):
     flag and the filtered zip were each named with their line. Its first
     false positive is recorded at the site -- a helper that RETURNS a
     completed process has handed the status on rather than dropped it.
+    The helper form of the import-time parse is a case since 2026-08-22,
+    `env-parse-through-a-helper`, with the handled form its control.
     """
     src = open(os.path.join(HERE, path)).read()
     tree = ast.parse(src)
     at, bad, note = _scopes(tree), [], []
+
+    # A helper CALLED at module scope parses at import as surely as a
+    # module-scope line does, and the guard read only the line's own
+    # scope -- so align-as.py's `number()`, the very form this family was
+    # counted from, passed, and the family had no live site in the tree: a
+    # silent search. A parse inside a `try` is under a handler and is not
+    # the family. Found 2026-08-22 by review.
+    defs = {fn.name: fn for fn in ast.walk(tree)
+            if isinstance(fn, (ast.FunctionDef, ast.AsyncFunctionDef))}
+    at_import, todo = set(), [s for s in tree.body if not isinstance(
+        s, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef))]
+    while todo:
+        for n in ast.walk(todo.pop()):
+            name = getattr(getattr(n, 'func', None), 'id', None)
+            if isinstance(n, ast.Call) and name in defs \
+                    and name not in at_import:
+                at_import.add(name)
+                todo.append(defs[name])
+    handled = set()
+    for t in ast.walk(tree):
+        if isinstance(t, ast.Try):
+            handled.update(range(t.body[0].lineno,
+                                 t.body[-1].end_lineno + 1))
 
     for n in ast.walk(tree):
         if not isinstance(n, ast.Call):
@@ -3204,9 +3232,11 @@ def family_lint(path):
                     for x in ast.walk(body)):
                 bad.append('%s:%d a subprocess whose status is never read and'
                            ' that has no check=True' % (path, n.lineno))
+        where = at.get(n.lineno)
         if (getattr(n.func, 'id', None) == 'int' and n.args
                 and 'environ' in ast.unparse(n.args[0])
-                and at.get(n.lineno) is None):
+                and (where is None or where.name in at_import)
+                and n.lineno not in handled):
             bad.append('%s:%d a value parsed out of the environment at'
                        ' import, outside any handler' % (path, n.lineno))
         if (getattr(n.func, 'id', None) == 'zip' and len(n.args) == 2
@@ -3260,7 +3290,19 @@ def family_flags(path):
 
 
 def families():
-    """Every family, over every program here. Names the site, not a count."""
+    """Every family, over every Python program here. Names the site, not
+    a count.
+
+    The shell drivers are outside its reach, the families being shapes of
+    a Python AST, and the ok line says so. The one shell family a review
+    wanted -- a `!!` complaint that sets no status, three instances in
+    three scripts on 2026-08-22 -- was measured rather than adopted: a
+    window of three lines around each `!!`, read for `BAD=`, `exit` or a
+    status assignment, missed two of the three and flagged two sound
+    sites, the word `exit` inside an echoed string counting and a refusal
+    four lines down not. Deciding it wants a shell parser, and a list that
+    never empties is one nobody reads.
+    """
     bad, note = [], []
     for f in sorted(os.listdir(HERE)):
         if not f.endswith('.py') or f.startswith('zz'):
@@ -3277,7 +3319,8 @@ def families():
             print('        %s' % line)
     if not bad:
         print('  ok   no dropped status, no unread flag and no import-time'
-              ' environment parse, over %d file(s)'
+              ' environment parse, over the %d Python file(s) here; the'
+              ' shell scripts are outside an AST family\'s reach'
               % len([f for f in os.listdir(HERE) if f.endswith('.py')
                      and not f.startswith('zz')]))
     return len(bad)
@@ -3308,9 +3351,11 @@ def runs_on_disk():
     frozen corpus stops representing what the reader actually meets. The
     properties below are quantified over this, so what they cover grows
     with the directory and a run deleted takes its coverage with it --
-    which is why each property PRINTS what it covered.
+    which is why each property PRINTS what it covered. `CORPUS` in the
+    environment names another directory, which is how a case hands them
+    an empty one, or one run built for them.
     """
-    return sorted(f for f in os.listdir(HERE)
+    return sorted(f for f in os.listdir(CORPUS)
                   if f.endswith('.json') and not f.startswith('zz'))
 
 
@@ -3327,7 +3372,7 @@ def prop_abs_round_trip(m):
     bad, n = [], 0
     for f in runs_on_disk():
         try:
-            d = json.load(open(os.path.join(HERE, f)))
+            d = json.load(open(os.path.join(CORPUS, f)))
             benches = d[2]
         except Exception:
             continue
@@ -3369,8 +3414,8 @@ def prop_table_reads_back(m):
     bad, n = [], 0
     for f in runs_on_disk():
         try:
-            cells, shapes, strategies, meta = m.load(os.path.join(HERE, f),
-                                                     MAIN)
+            cells, shapes, strategies, meta = m.load(
+                os.path.join(CORPUS, f), MAIN)
         except SystemExit:
             continue
         except Exception:
@@ -3432,8 +3477,9 @@ def prop_selftest_over_the_corpus(m):
         n += 1
         got = subprocess.run([sys.executable, os.path.join(HERE,
                                                            'read-run.py'),
-                              f, '--selftest'], cwd=HERE,
-                             capture_output=True, text=True, timeout=300)
+                              os.path.join(CORPUS, f), '--selftest'],
+                             cwd=HERE, capture_output=True, text=True,
+                             timeout=300)
         if got.returncode:
             first = [l for l in (got.stdout + got.stderr).split('\n')
                      if l.startswith('FAIL') or 'Traceback' in l]
@@ -3498,6 +3544,14 @@ def properties(warnings=False):
     with keep:
         got = [(prop, prop(m)) for prop in PROPERTIES]
     for prop, (n, what, off) in got:
+        if not n:
+            # An empty search proves nothing, and the guards against one
+            # in read-all.sh and install-tables.sh are cases here; this
+            # had none, and over a directory with no run in it said `every
+            # property holds` over 0. Found 2026-08-22 by review. Case:
+            # `properties-refuse-an-empty-corpus`.
+            off = ['an empty corpus proves nothing: 0 %s under %s'
+                   % (what, CORPUS)]
         if off:
             bad += 1
             print('  FAIL %-28s over %d %s' % (prop.__name__, n, what))
@@ -3689,7 +3743,7 @@ def main():
                         ' verbatim, which is withheld and counted by kind')
     p.add_argument('--families', action='store_true',
                    help='the shapes these defects keep returning in, over'
-                        ' the source of every program here')
+                        ' the source of every Python program here')
     args = p.parse_args()
 
     cases = [c for c in CASES
@@ -3707,7 +3761,7 @@ def main():
 
     before = tree_state()
     if args.families:
-        print('the defect families, over this directory\'s source:')
+        print('the defect families, over this directory\'s Python source:')
         bad, skipped, unbuilt = families(), 0, 0
         verdict = '%d site(s) of a known family' % bad if bad else ''
     elif args.properties:
@@ -3731,7 +3785,7 @@ def main():
         # The properties do not, at fifteen seconds, so the line below is
         # what keeps them from being forgotten.
         if not args.pattern and rev is None:
-            print('and the families over this directory\'s source:')
+            print('and the families over this directory\'s Python source:')
             fam = families()
             if fam:
                 bad += fam

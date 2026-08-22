@@ -255,10 +255,18 @@ def number(name, default):
     with `PAD` unset, and what `switch` above reads as off -- raised a
     ValueError before the real assembler was ever reached and killed the
     compile with a traceback out of the shim. Found 2026-08-17 by review.
-    A value that is not a number still raises, and should: the recipe asked
-    for something this cannot do.
+    A value that is not a number still kills the compile, and should: the
+    recipe asked for something this cannot do -- in one line naming the
+    variable and its value rather than a traceback, under the handler that
+    `check-scripts.py --families` asks of a parse at import. Found
+    2026-08-22 by review.
     """
-    return int(os.environ.get(name) or default)
+    try:
+        return int(os.environ.get(name) or default)
+    except ValueError:
+        sys.exit('align-as: %s=%r is not a number; the recipe asked for'
+                 ' something this shim cannot do'
+                 % (name, os.environ.get(name)))
 
 
 REAL = os.environ.get('REAL_AS', '/usr/bin/gcc')
