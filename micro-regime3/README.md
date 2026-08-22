@@ -309,6 +309,20 @@ words that points nowhere; the entries already past it are the backlog that rule
 was written over, and they are to be shortened as each is next touched rather
 than in one pass.
 
+**The run registrations are the standing exception to it, and reducing the old
+ones is REFUSED --- 2026-08-22, on reading two of them.**
+`What Run N was built to answer` arrives once a run and none has ever left,
+which makes the family the one part of this section that grows on a schedule;
+cutting the older ones to a verdict and a pointer was the obvious answer
+and the pointer has nowhere to aim. The run chapter is replaced every run,
+and the yardstick keeps one geomean per strategy per half --- where
+a registration's answers are half-against-half and control readings
+that no table here carries: Run 11's `list` scatter of 0.958 to 1.043
+and its two-and-two max-skip split, Run 16's 35 arms of 42 inside 1.5%. So they
+are not long entries that failed to point but the only copy there is. The length
+rule happens to pass them by, every one of them pointing somewhere as well;
+where one does not, this ruling is the authority and not the rule.
+
 **This is the only home for an open question.** They are collected here because
 otherwise they sit one per section and get reconstructed every time ---
 and worse, get missed: the question of why the count-down FastReshape form pays
@@ -10364,7 +10378,17 @@ was reworded, which is the failure this list was rewritten to escape.
 - [the recommended tasks after Run 17](#recommended-tasks-after-run-17), which
   is run-scoped by its own title: a task taken or superseded leaves it, what
   survives is renamed to the run that inherits it, and a run's own surprises
-  are added to it before its chapter is replaced;
+  are added to it before its chapter is replaced. **Leaving is not deleting,
+  and where it goes is the half this used to omit**: a spent task's outcome
+  and a pointer to whatever holds its account --- an entry of the open list,
+  a topical section, an investigation directory --- go to that home,
+  and the item itself goes. Item 1 of Run 17's subsection shows the migration
+  done and the removal not: its evening is consolidated into the position-term
+  entry and its raw material into `small-pinned-churn-investigation`,
+  and a hundred words of it stand here anyway. **Nothing spent stays
+  under a heading naming a run that is over**, which two of Run 17's three items
+  do: a departure rule with no destination named is one nobody applies, and both
+  were spent before the write-up that carried them in;
 - [the Results table](#results), which `--markdown` emits whole,
   and the findings under it;
 - [What Run 18 compares against](#what-run-18-compares-against) ---
