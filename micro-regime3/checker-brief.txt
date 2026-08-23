@@ -6,15 +6,14 @@ and the whole brief had to be written again. Only the first block
 changes from run to run, and it is EDITED HERE at the write-up rather
 than substituted in the prompt -- the file is the copy both agents are
 sent, so a value that lives only in a prompt is a value the next run
-retypes. It carries the PREVIOUS run's values until then; the run
-below is Run 16 because Run 17's write-up has not happened.
+retypes. It carries the run whose write-up is happening.
 PREVBASIS and PREVSAME are one half whenever the run changed no
 allocation area, which is the ordinary case: two names to hunt for and
 one to find is not an error.
 
-Substitute per run: RUN=run16  BASIS=a32m  OTHER=a64m  PREV=run15
-                    PREVBASIS=run15-lookrts  PREVSAME=run15-a32m
-                    PRETIP=57ee865   (the commit before the run's work)
+Substitute per run: RUN=run18  BASIS=g912  OTHER=g914  PREV=run17
+                    PREVBASIS=run17-wildlog  PREVSAME=run17-wildlog
+                    PRETIP=b07064e   (the commit before the run's work)
 
 
 === THE INDEPENDENT CHECKER, PASS 1 (launch when the tables go in) ===
@@ -46,6 +45,20 @@ FOUR THINGS YOU CANNOT DERIVE, so they are given:
  4. read-run.py is the only reader; start with --help. --cells gives
     TSV (slope_s raw, slope_net_s corrected); --pair, --compare, --aa,
     --claims, --block, --fingerprint, --machine are the modes.
+ 5. THIS RUN ONLY -- THE BOX CHANGED between PREV and RUN: a BIOS idle
+    setting moved and every absolute time is about 4.8% higher than
+    PREV's. So no ABSOLUTE is comparable across that boundary and the
+    write-up says so; RATIOS are unaffected. `--compare` across the two
+    runs reads absolutes and will therefore put every arm near +5%,
+    which is the box and not a discrepancy. A cross-run arm comparison
+    has to be done per shape as a ratio to `list`.
+ 6. THIS RUN ONLY -- THE MACHINE WAS BUSY from 10:52 for the last nine
+    of the eighteen processes, which the write-up states. Four classes
+    (bcastmid, reshape1, slice, window) have cross-half baselines past
+    the 0.7% differencing threshold and their cross-half lines are
+    explicitly not read for the compiler. That is disclosed, not
+    hidden; check that the disclosure matches the JSONs rather than
+    treating the movement as an error.
 
 PASS 1 -- every figure. Recompute every numeric claim the diff adds,
 from the reader or --cells, never by dividing figures printed in a
