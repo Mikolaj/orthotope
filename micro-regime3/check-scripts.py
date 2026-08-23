@@ -538,6 +538,26 @@ def synth_json(tmp, pop='main', name=None, **kw):
     return synth_run(os.path.join(tmp, name or '%s.json' % pop), shapes, **kw)
 
 
+def class_pair_with_log(tmp, cls='rev', slow=1.0):
+    """A class run, its other half, and the `.log` a process leaves.
+
+    `--block --compare` is item 5 of the class-block form and
+    `--chapter` reads the provenance line out of the log beside the JSON,
+    so a fixture for either needs both files. `slow` scales the second
+    half wholesale, which is what moves the BASELINE and so what the
+    differencing threshold is about.
+    """
+    a = synth_run(os.path.join(tmp, 'a.json'), class_shapes(cls))
+    b = synth_run(os.path.join(tmp, 'b.json'), class_shapes(cls), slow=slow)
+    write(os.path.join(tmp, 'a.log'),
+          '=== roster 47 benchmarks over 3 shapes; elapsed 0h12m14s;'
+          ' peak 88 MiB in use, 19 MiB max residency\n')
+    write(os.path.join(tmp, 'b.log'),
+          '=== roster 47 benchmarks over 3 shapes; elapsed 0h12m15s;'
+          ' peak 90 MiB in use, 20 MiB max residency\n')
+    return a, b
+
+
 def deflation_legs(tag='runzzd', half='h', n=3):
     """A run with BOTH rider sets beside it, clean and saturated.
 
@@ -1823,6 +1843,49 @@ CASES = [
          ok=V(has=['shapes in one run only, skipped']),
          bug=V(exit=0, has=['chapter skeleton'],
                hasnt=['shapes in one run only, skipped'])),
+
+    case('block-writes-the-cross-half-line', 'read-run.py', None,
+         "item 5 of the class-block form left to be written by hand",
+         # The form's item 5 is "how many of the population's arms move,
+         # which way, and the spread" -- mechanical to the word, and
+         # written by hand eight times a run until this. --block took one
+         # class JSON and had no way to see the other half, so it could
+         # not write the one part of the form that is about the pair.
+         plant=lambda t: dict(zip(('run', 'other'),
+                                  class_pair_with_log(t))),
+         argv=['{run}', '--block', '--compare', '{other}', '--brief'],
+         ok=V(has=['**Across the halves:**', 'with `list` itself at'])),
+
+    case('block-flags-a-baseline-past-differencing', 'read-run.py', None,
+         'a class whose halves cannot be differenced said so nowhere',
+         # THE READING THAT DISQUALIFIES ITSELF. Two columns may be
+         # subtracted only while `list` holds still between them -- 0.7%
+         # is this README's figure -- and on Run 18 four of the eight
+         # classes moved past it, because the machine got busy partway
+         # through and the halves of those four straddled the boundary.
+         # Nothing said so: the elapsed times spanned seven seconds, the
+         # A/A floors were no looser than the clean ones, and it took a
+         # hand comparison of `list` across each pair to find. A mode
+         # that writes the cross-half line is the mode that owes the
+         # warning, so the fixture moves the baseline and asks for it.
+         plant=lambda t: dict(zip(('run', 'other'),
+                                  class_pair_with_log(t, slow=1.05))),
+         argv=['{run}', '--block', '--compare', '{other}', '--brief'],
+         ok=V(has=['past the 0.7%', 'NOT read for the pair'])),
+
+    case('chapter-reads-the-logs-it-said-it-could-not', 'read-run.py', None,
+         'a chapter asked for figures its own process had already stamped',
+         # It printed `elapsed, heap peaks, wall-clock window: ___ (from
+         # the pair note and the logs -- this mode reads neither)`, and
+         # Run 18 copied eighteen such triples by hand. The logs are
+         # beside the JSONs and the driver stamps the window; only the
+         # regime, the md5s and the commit are the note's, and those are
+         # what the placeholder is now for.
+         plant=lambda t: dict(zip(('run', 'other'),
+                                  class_pair_with_log(t))),
+         argv=['{run}', '--compare', '{other}', '--chapter'],
+         ok=V(has=['elapsed 0h12m14s', 'elapsed 0h12m15s'],
+              hasnt=['heap peaks, wall-clock window: ___'])),
 
     case('chapter-head-carries-a-previous-run', 'read-run.py', None,
          "paragraphs of the last run's chapter left standing in this one",

@@ -59,6 +59,10 @@ if [ $# -lt 1 ]; then
   exit 2
 fi
 R="$1"
+OTHER=${OTHER:-g914}        # the other half, for the cross-half line the
+                            # class-block form calls item 5: --block reads
+                            # it only when given the second JSON, and a run
+                            # that recorded one half has no such line owed
 BASIS=${BASIS:-g912}        # the fourth file carrying a half's name, and
                              # the only one with no OTHER; run-major.sh,
                              # run-gate.sh and smoke-sweep.sh are the
@@ -212,9 +216,10 @@ fi
 # the verdict paragraph stay the author's, as the form says; these three are
 # the reader's own output and are installed like the table.
 echo "=== installing each class block's computed paragraphs"
-python3 - "$R" "$BASIS" "$DOC" "$LEADS" <<'ENDPY' || BAD=$((BAD+1))
-import re, subprocess, sys
+python3 - "$R" "$BASIS" "$DOC" "$LEADS" "$OTHER" <<'ENDPY' || BAD=$((BAD+1))
+import os, re, subprocess, sys
 R, BASIS, DOC, LEADS = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
+OTHER = sys.argv[5]
 doc = open(DOC).read(); paras = doc.split('\n\n')
 leads = {}
 for i, p in enumerate(paras):
@@ -272,8 +277,16 @@ for n, (c, start) in enumerate(reversed(order)):
     # that class's figures and counted as installed, at exit 0. The comment
     # above records fixing exactly this for the last block. 2026-08-17.
     end = min(order[k + 1][1], nxt) if k + 1 < len(order) else nxt
+    # The cross-half line is item 5 of the form and needs the other
+    # half; where that JSON is absent -- a run that recorded one half --
+    # the call drops back to a single-file block and the line is simply
+    # not owed, which is what `have_other` below then asserts.
+    other_json = f'{R}-{OTHER}-{c}.json'
+    have_other = os.path.exists(other_json)
     got = subprocess.run(['./read-run.py', f'{R}-{BASIS}-{c}.json', '--block',
-                          '--brief'], capture_output=True, text=True)
+                          '--brief']
+                         + (['--compare', other_json] if have_other else []),
+                         capture_output=True, text=True)
     if got.returncode != 0:
         # The reader's own words, not a guess about the block's shape: an
         # absent JSON used to surface as `--block emitted no Controls`,
@@ -292,6 +305,12 @@ for n, (c, start) in enumerate(reversed(order)):
         g = re.search(r'\n(\*{0,2}' + tag + r'.*?)(?=\n\n|\Z)', blk, re.S)
         return ' '.join(g.group(1).split()) if g else None
     ctrl, prov, per = grab('Controls:'), grab('Provenance:'), grab('Per shape')
+    across = grab('Across the halves:') if have_other else None
+    if have_other and not across:
+        print(f'  REFUSED {c}: the other half is on disk and --block emitted'
+              f' no cross-half line, so item 5 of the form would be left'
+              f' standing from the previous run')
+        sys.exit(1)
     if not (ctrl and prov and per):
         print(f'  REFUSED {c}: --block emitted no ' +
               ('Controls' if not ctrl else 'Provenance' if not prov else 'per-shape'))
@@ -316,6 +335,8 @@ for n, (c, start) in enumerate(reversed(order)):
         if s.startswith('Controls:'): paras[j] = ctrl; done += 1
         elif s.startswith('Provenance:'): paras[j] = prov; prov_at = j; done += 1
         elif s.startswith('Per shape'): paras[j] = per; done += 1
+        elif across and s.startswith('Across the halves:'):
+            paras[j] = across; done += 1
     if prov_at is not None and not any(
             paras[j].lstrip().lstrip('*').startswith('Per shape')
             for j in range(start, end)):

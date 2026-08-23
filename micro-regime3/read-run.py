@@ -1573,9 +1573,23 @@ def chapter_skeleton(cells, shapes, strategies, meta, other, main_hs):
     if len(both_st) != len(strategies) or len(both_st) != len(b_strategies):
         print('  arms in one run only, skipped: %s'
               % ', '.join(sorted(set(strategies) ^ set(b_strategies))))
-    print('  regime, md5s, commit, elapsed, heap peaks, wall-clock window:'
-          ' ___ (from the')
-    print('  pair note and the logs -- this mode reads neither)')
+    # THE LOGS ARE READABLE AND THIS USED TO SAY THEY WERE NOT. Elapsed
+    # time, the two heap peaks and the run's window are stamped by the
+    # processes and by run-major.sh, so a chapter had no business asking
+    # for them to be copied by hand -- Run 18 transcribed eighteen such
+    # triples. What stays on the pair note is what only the note has: the
+    # regime, the md5s and the commit.
+    for tag, path in (('this half', meta.get('path')),
+                      ('other half', other)):
+        prov = provenance_line(path)
+        if prov:
+            print('  %s: %s' % (tag, prov))
+    win = wallclock_window(meta.get('path'))
+    if win:
+        print('  wall-clock window: %s to %s, %d process(es)' % win)
+    print('  regime, md5s and commit: ___ (from the pair note, which is the'
+          ' only')
+    print('  thing that has them)')
     rows = []
     for st in both_st:
         if no_net(st):
@@ -1867,6 +1881,54 @@ def compare_ci(cells, shapes, strategies, meta, other, main_hs):
           '\nthe two in opposite directions, so do not read either off the'
           ' other.')
     return 0
+
+
+def provenance_line(json_path):
+    """The `=== roster ...` line a process prints to its own stderr.
+
+    Beside every recorded JSON is the `.log` its process wrote, and the
+    last line of it carries the elapsed time and the two heap peaks that
+    a run chapter and every class block quote. Reading it here is what
+    stops eighteen of them being copied by hand.
+    """
+    if not json_path:
+        return None
+    log = re.sub(r'\.json$', '.log', json_path)
+    try:
+        with open(log, errors='replace') as f:
+            hits = [l.strip() for l in f
+                    if l.startswith('=== roster ') and 'elapsed' in l]
+    except OSError:
+        return None
+    return hits[-1][len('=== '):] if hits else None
+
+
+def wallclock_window(json_path):
+    """(first stamp, last stamp, processes) from the run's wall-clock log.
+
+    Found from the run's own name, as the alone legs are: the driver
+    writes one `$R-wallclock.log` beside the JSONs and stamps every
+    process into it, so the window a chapter opens with is a read and not
+    a transcription.
+    """
+    if not json_path:
+        return None
+    base = os.path.basename(json_path)
+    m = re.match(r'^(.+?)-.+\.json$', base)
+    if not m:
+        return None
+    log = os.path.join(os.path.dirname(os.path.abspath(json_path)),
+                       m.group(1) + '-wallclock.log')
+    try:
+        stamps = re.findall(r'^=== (\S+) ', open(log, errors='replace').read(),
+                            re.M)
+    except OSError:
+        return None
+    if not stamps:
+        return None
+    with open(log, errors='replace') as f:
+        done = len(re.findall(r'^=== \S+ done ', f.read(), re.M))
+    return (stamps[0], stamps[-1], done)
 
 
 def compare_table(cells, shapes, strategies, meta, other, main_hs,
@@ -3965,6 +4027,52 @@ def block_skeleton(cells, shapes, strategies, meta, args, terms):
                 or cells[sh]['list']['net'] <= 0
                 else '%.3f' % (cells[sh][st]['net'] / cells[sh]['list']['net'])
                 for sh in shapes)))
+    # ITEM 5 OF THE FORM, and mechanical to the word: how many of the
+    # population's arms move, which way, and the spread. Emitted only
+    # when the other half is given, a class block on a run that recorded
+    # one half having no such line to write. It also answers the question
+    # Run 18 had to notice by hand -- whether `list` moved far enough
+    # between the halves that the two columns cannot be differenced at
+    # all -- which on that run disqualified four of the eight and was
+    # visible in no other output.
+    if getattr(args, 'compare', None):
+        b_cells, b_shapes, b_strategies = load_other(args.compare,
+                                                     args.main, shapes, meta)
+        both_sh = [sh for sh in shapes if sh in b_shapes]
+        rows, lst = [], None
+        for st in strategies:
+            if no_net(st) or st not in b_strategies:
+                continue
+            rs = [cells[sh][st]['net'] / b_cells[sh][st]['net']
+                  for sh in both_sh
+                  if cells[sh][st]['net'] > 0 and b_cells[sh][st]['net'] > 0]
+            if rs:
+                g = geomean(rs)
+                rows.append((g, st))
+                if st == 'list':
+                    lst = g
+        if rows:
+            lo = min(rows)
+            hi = max(rows)
+            below = sum(1 for g, _ in rows if g < 1)
+            print()
+            print('**Across the halves:** %d of the %d arms are faster'
+                  ' on this half and %d'
+                  % (below, len(rows), len(rows) - below))
+            print('slower, at a geomean of %.4f, from `%s` at %.4f to `%s`'
+                  ' at %.4f,' % (geomean([g for g, _ in rows]), lo[1], lo[0],
+                                 hi[1], hi[0]))
+            if lst is not None:
+                print('with `list` itself at %.4f.' % lst)
+                if abs(lst - 1) > 0.007:
+                    print('**The baseline moved %.2f%% between the halves,'
+                          ' past the 0.7%% that lets two'
+                          % (abs(lst - 1) * 100))
+                    print('columns be differenced, so this line is NOT read'
+                          ' for the pair\'s variable.**')
+                    print('The table above is one process\'s and stands;'
+                          ' what goes is the comparison.')
+
     # What the fitted slopes cannot show, and a class block never looked
     # for: a cell that changed level mid-bench. `rev` and `slice` carry
     # the most of them over Runs 10 to 13, and the threshold is the test
@@ -7022,6 +7130,13 @@ def main():
                          'check_doc', 'para', 'wild', 'deflation',
                          'extremes')
              if getattr(args, f)]
+    # --block takes --compare as a SUB-FLAG, the way --chapter and --alloc
+    # do, because item 5 of the class-block form is a cross-half line and
+    # a block that cannot see the other half cannot write it. The guard
+    # exists to catch two MODES asked for at once; this is one mode with
+    # its second file.
+    if args.block and args.compare and len(modes) == 2:
+        modes = ['block']
     if len(modes) > 1:
         p.error('one mode at a time, and %s were all asked for: the'
                 ' dispatch runs the first and drops the rest without a'
@@ -7148,6 +7263,11 @@ def main():
         claims_table(cells, shapes, strategies, args)
         claims_in_doc(args.readme, cells, shapes, strategies, args.run,
                       args.main)
+    elif args.compare and args.block:
+        # --block owns the pair here: --compare is its second file and not
+        # a mode of its own, so it has to be tested before the plain
+        # --compare arm below claims it.
+        block_skeleton(cells, shapes, strategies, meta, args, terms)
     elif args.compare and args.chapter:
         chapter_skeleton(cells, shapes, strategies, meta,
                          args.compare, args.main)
