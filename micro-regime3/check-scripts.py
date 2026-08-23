@@ -3174,6 +3174,26 @@ CASES = [
          ok=V(exit=1, has=['objdump'], hasnt=['0 self-loops']),
          bug=V(exit=0, has=['0 self-loops'])),
 
+    case('offsets-refuses-two-reports', 'loop-offsets.py', None,
+         '--survey beside --library, and --survey dropped without a word',
+         # The dispatch is an if/return chain, so the pair printed the
+         # library report alone -- the silent drop read-run.py's
+         # one-mode guard refuses, found by hunting that family here.
+         # A control until the fix has a hash; the refusal fires in
+         # argparse, so the binaries are never opened and need not
+         # exist.
+         argv=['--survey', '--library', 'x', 'y'],
+         ok=V(exit=2, has=['two reports, not one'])),
+
+    case('offsets-refuses-an-unread-flag', 'loop-offsets.py', None,
+         'a --len under --survey, accepted and honoured by nobody',
+         # --survey scans every length up to the line by design and
+         # --library keys on the loop bytes, so the grouped report's two
+         # knobs are read by nobody under either: `--survey --len 24`
+         # answered with the at-most-64 report, measured before the fix.
+         argv=['--survey', '--len', '24', 'x'],
+         ok=V(exit=2, has=['read only by the grouped report'])),
+
     case('addr2line-status', 'loop-offsets.py', '9832f0b',
          'an unreadable -e file read as a build without DWARF',
          argv=['--unit', "arms('no-such-binary', [4096])"],

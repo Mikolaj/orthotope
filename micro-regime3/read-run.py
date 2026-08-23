@@ -2586,15 +2586,14 @@ def deflation_table(run_path, cells, shapes, main_hs):
         print('  the legs are the MAIN SET\'s; a class run has none of its'
               ' own, and this mode is not for one.')
         return 2
-    if rows:
-        g = math.exp(sum(math.log(r) for _, r in rows) / len(rows))
-        up = sum(1 for _, r in rows if r > 1)
-        lo = min(rows, key=lambda x: x[1])
-        hi = max(rows, key=lambda x: x[1])
-        print('\ngeomean %.4f (%+.2f%%) over %d shape(s); %d above 1'
-              % (g, 100 * (g - 1), len(rows), up))
-        print('  least %.4f on %s, most %.4f on %s'
-              % (lo[1], lo[0], hi[1], hi[0]))
+    g = math.exp(sum(math.log(r) for _, r in rows) / len(rows))
+    up = sum(1 for _, r in rows if r > 1)
+    lo = min(rows, key=lambda x: x[1])
+    hi = max(rows, key=lambda x: x[1])
+    print('\ngeomean %.4f (%+.2f%%) over %d shape(s); %d above 1'
+          % (g, 100 * (g - 1), len(rows), up))
+    print('  least %.4f on %s, most %.4f on %s'
+          % (lo[1], lo[0], hi[1], hi[0]))
     split = [(sh, sat[sh] / legs[sh], cells[sh]['list']['slope'] / sat[sh])
              for sh, _ in rows if sh in sat]
     if split:

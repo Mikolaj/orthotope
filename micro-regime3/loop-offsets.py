@@ -399,6 +399,28 @@ def main():
                         'libraries\' loops sit, which a pair must not move')
     args = p.parse_args()
 
+    # ONE REPORT an invocation. The dispatch below is an if/return
+    # chain, so `--survey --library A B` printed the library report and
+    # dropped --survey without a word -- read-run.py's one-mode family,
+    # found 2026-08-23 by hunting that family here. And the two
+    # grouped-report knobs are refused where nothing reads them:
+    # --survey scans every length up to the line by design and
+    # --library keys on the loop bytes, so under either a --len or
+    # --min-copies was accepted and honoured by nobody --
+    # `--survey --len 24` answered with the at-most-64 report.
+    if args.survey and args.library:
+        p.error('--survey and --library are two reports, not one: the'
+                ' dispatch runs --library and drops --survey without a'
+                ' word')
+    unread = [n for n, v, d in (('--len', args.len, 28),
+                                ('--min-copies', args.min_copies, 2))
+              if v != d]
+    if unread and (args.survey or args.library):
+        p.error('%s %s read only by the grouped report: under --survey or'
+                ' --library it would be accepted and honoured by nobody'
+                % (' and '.join(unread),
+                   'is' if len(unread) == 1 else 'are'))
+
     if args.library:
         if len(args.binary) != 2:
             sys.exit('--library compares two binaries')
