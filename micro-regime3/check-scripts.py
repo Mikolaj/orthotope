@@ -576,7 +576,7 @@ def class_pair_with_log(tmp, cls='rev', slow=1.0):
     return a, b
 
 
-def deflation_legs(tag='runzzd', half='h', n=3):
+def deflation_legs(tag='runzzd', half='h', n=3, clean=True, sat=True):
     """A run with BOTH rider sets beside it, clean and saturated.
 
     `--deflation` globs the legs out of the CWD rather than out of the
@@ -592,8 +592,11 @@ def deflation_legs(tag='runzzd', half='h', n=3):
     run = here_file('%s-%s-main.json' % (tag, half))
     synth_run(run, shapes)
     for sh in shapes:
-        synth_run(here_file('%s-al-%s-%s-r1.json' % (tag, half, sh)), [sh])
-        synth_run(here_file('%s-al-%s-sat-%s-r1.json' % (tag, half, sh)), [sh])
+        if clean:
+            synth_run(here_file('%s-al-%s-%s-r1.json' % (tag, half, sh)), [sh])
+        if sat:
+            synth_run(here_file('%s-al-%s-sat-%s-r1.json'
+                                % (tag, half, sh)), [sh])
     return run
 
 
@@ -1398,7 +1401,7 @@ TERM = 4e-10        # the forcing term per element: one pass, so it scales
 
 
 def synth_run(path, shapes, samples=8, no_twins=False, sunk=(), skew=(),
-              slow=1.0):
+              slow=1.0, drop_arms=()):
     """A criterion run over `shapes`, built rather than captured.
 
     Kilobytes where a real run's JSON is megabytes, and DERIVED: the arms
@@ -1421,6 +1424,10 @@ def synth_run(path, shapes, samples=8, no_twins=False, sunk=(), skew=(),
     run on disk carries -- the state the fingerprint, `--block` and
     `machine_check` refuse, and which had to be constructed to test at all.
 
+    `drop_arms` leaves named arms out of the run entirely, which is how
+    a run WITHOUT `list` is built -- the shape a filtered probe has, and
+    the one that made `--bridge` raise a KeyError instead of refusing.
+
     `slow` scales EVERY cell of the run by one factor, which is what a box
     change looks like from inside: Run 18's BIOS moved between it and Run
     17 and lifted every absolute about 4.9%, leaving every ratio alone.
@@ -1436,7 +1443,8 @@ def synth_run(path, shapes, samples=8, no_twins=False, sunk=(), skew=(),
     main_hs = os.path.join(HERE, 'Main.hs')
     dims, _ = m.dims_by_shape(main_hs)
     roster = m.roster_of(open(main_hs).read())
-    timed = [(n, role, fn) for n, role, fn in roster if role != 'Only']
+    timed = [(n, role, fn) for n, role, fn in roster
+             if role != 'Only' and n not in drop_arms]
     if no_twins:
         # EVERY A/A pair gone, which is more than the Twin role: the two
         # `Term` halves are an A/A pair of the forcing term itself, and the
@@ -1941,6 +1949,76 @@ CASES = [
              a_registration_lead(), a_registration_lead()))},
          argv=['--check-doc', '--quiet', '--readme', '{readme}'],
          ok=V(exit=0, hasnt=['registration is marked OPEN'])),
+
+    case('bridge-refuses-a-run-without-list', 'read-run.py', None,
+         'the mode that divides by `list` met a run that has none',
+         # A filtered probe is the ordinary way to have one, and this
+         # raised a bare KeyError three frames down rather than refusing.
+         # Found 2026-08-23 by trying to break the mode rather than by
+         # reading it, which is how five of its six siblings were found.
+         # A control until the fix has a hash, and non-vacuous by
+         # removal the same day: with the guard cut, this reads `exit 1,
+         # wanted 2` on the KeyError's own traceback.
+         plant=lambda t: {'run': synth_json(t, 'main', 'a.json',
+                                            drop_arms=('list',)),
+                          'other': synth_json(t, 'main', 'b.json')},
+         argv=['{run}', '--compare', '{other}', '--bridge'],
+         ok=V(exit=2, has=['nothing to divide by'])),
+
+    case('bridge-refuses-two-populations', 'read-run.py', None,
+         'a bridge taken between a class run and the main set',
+         # The mode's OWN empty-overlap guard is unreachable and says so
+         # in the source: two runs of one population share their shapes
+         # by construction, and two of different ones are stopped by the
+         # population check before the guard is reached. What IS
+         # reachable is that check, and this pins it for --bridge, the
+         # newest caller of `load_other` and the one whose figures would
+         # otherwise be a geomean over nothing.
+         plant=lambda t: {'run': synth_json(t, 'main', 'a.json'),
+                          'other': synth_json(t, 'rev', 'b.json')},
+         argv=['{run}', '--compare', '{other}', '--bridge'],
+         ok=V(exit=1, has=['different populations'])),
+
+    case('block-refuses-a-second-mode', 'read-run.py', None,
+         'the one-mode guard, relaxed for --compare, let a mode through',
+         # --block takes --compare as a sub-flag, and relaxing the guard
+         # for it put back exactly what the guard exists to stop:
+         # `--block --compare X --chapter` ran the block and dropped
+         # --chapter without a word, --chapter not itself being in
+         # `modes`. The relaxation has to name what it still refuses.
+         # Non-vacuous by removal, 2026-08-23: with the clash check cut
+         # the case reads `exit 0, wanted 2`, which is the silent drop
+         # itself.
+         plant=lambda t: {'run': synth_json(t, 'rev', 'a.json'),
+                          'other': synth_json(t, 'rev', 'b.json')},
+         argv=['{run}', '--block', '--compare', '{other}', '--chapter'],
+         ok=V(exit=2, has=['--block takes --compare and nothing else'])),
+
+    case('deflation-names-which-leg-set-is-missing', 'read-run.py', None,
+         'saturated legs on disk, told the riders were never taken',
+         # An interrupted rider evening leaves exactly this: the `SAT=`
+         # invocations ran and the plain ones did not. The old wording
+         # said the riders were not taken, which the directory disproves.
+         # A control until the fix has a hash: non-vacuity was shown by
+         # hand (2026-08-23), the pre-fix wording answering `the riders
+         # were not taken` over a directory holding three saturated legs.
+         plant=lambda t: {'run': deflation_legs(clean=False)},
+         argv=['{run}', '--deflation'],
+         ok=V(exit=2, has=['and no CLEAN one'],
+              hasnt=['the riders were not taken'])),
+
+    case('install-says-it-skipped-the-cross-half-line',
+         'install-tables.sh', None,
+         'a cross-half line left standing under this run, in silence',
+         # An absent other-half JSON is correct for a run that recorded
+         # one half and is a WRONG `OTHER` otherwise, and the two look
+         # identical -- so the skip has to say which it might be, or the
+         # previous run's cross-half line stays under this run's tables.
+         plant=lambda t: {'doc': edited_readme(t)},
+         shadow=dict(extra=whole_run(['lookrts'], prefix='zzxh')),
+         env={'DOC': '{doc}', 'BASIS': 'lookrts', 'OTHER': 'nosuchhalf'},
+         argv=['zzxh'],
+         ok=V(exit=0, has=['no cross-half line is installed'])),
 
     case('chapter-head-carries-a-previous-run', 'read-run.py', None,
          "paragraphs of the last run's chapter left standing in this one",

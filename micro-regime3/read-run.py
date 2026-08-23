@@ -1786,6 +1786,12 @@ def bridge_table(cells, shapes, strategies, meta, other, main_hs,
     # THE WHOLE MODE IS A RATIO TO `list`, so a run without it has no
     # bridge to read and gets a refusal rather than a KeyError three
     # frames down. A filtered probe is the ordinary way to have one.
+    # UNREACHABLE HERE AND KEPT ANYWAY, named because a branch no control
+    # exercises is a silent search: two runs of one population share
+    # their shapes by construction, and two of different populations are
+    # refused by `load_other` before this. It stands for a caller that
+    # does not go through that check. Case:
+    # `bridge-refuses-two-populations` pins the check that does fire.
     if not both_sh:
         sys.stderr.write('the two runs share no shape, so there is no'
                          ' per-shape ratio to take\n')
