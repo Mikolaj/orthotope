@@ -4510,6 +4510,33 @@ of its own: [Making a major benchmark run](#making-a-major-benchmark-run).
 
 ### Making a major benchmark run
 
+**FIRST, THE FORK, because it decides how much of this chapter you owe and
+it is four commands.** A run is either already prepared or it is not,
+and the half of this procedure that builds a pair is the half most sessions do
+not need. Answer these before reading anything else here:
+
+    cd ~/r/orthotope/micro-regime3
+    cat $R-pair.txt                    # NO SUCH FILE = the BUILD path
+    md5sum $R-<basis> $R-<other>       # do they match the note's?
+    git log -1 --format=%h -- :/micro-regime3/Main.hs
+    git log -1 --format=%h -- :/micro-regime3/align-as.py
+
+A pair whose note matches, whose md5s match and whose `Main.hs` and shim have
+either not moved or moved by comments only is the **CONFIRM path**: you owe
+`./preflight.sh $R`, step 9b, and then the run list from step 13, and you owe
+NOTHING of the building half --- not 3b, not the two `--survey` legs,
+not the note. Anything else is the **BUILD path**, which is 3b and those two
+lines besides. Expect `Main.hs` to have moved: this file's prose lives
+in its comments, so a write-up moves it, and only the diff tells that
+from a real change. **And the run number is one past the chapter head's**:
+`## About the last run (Run N)` is the run behind you.
+
+The rest of this chapter is three checklists and the reasons behind them.
+The reasons restate nothing the lists carry, so reading them front to back
+before starting is the single largest waste available here --- Run 16 read
+the whole of it first and needed almost none of it, and Run 18 read the whole
+of it and then took the CONFIRM path the four lines above would have given it.
+
 A *major run* is the whole roster over the whole shape set at criterion's
 default budget --- the main set and, by default, **every stride-class population
 with it**: one process for the main set and one per class, or two of each where
@@ -4927,7 +4954,12 @@ throughout:
     #      comm, not args, and comm truncates at 15 characters. A blocked
     #      write leaves a launch that never happened looking like one in
     #      progress, which is how two copies once ran at once
-    #      do NOT wait with pgrep -f, which self-matches and never returns;
+    #      do NOT wait with pgrep -f, which self-matches and never
+    #      returns. THE GENERAL FORM IS: WAIT ON A FILE'S CONTENTS, NEVER
+    #      ON A PROCESS LIST -- and where the harness wakes you when a job
+    #      ends, the waiter is redundant besides. Run 18 hung a shell for
+    #      two hours on `until ! pgrep -f 'check-scripts'` waiting for a
+    #      job whose completion it was already being told about;
     #      the sequence ENDS WITHOUT ANNOUNCING ITSELF, so arrange to be
     #      woken by `major run complete` in $R-wallclock.log rather than
     #      deciding to look: six hours of idle machine followed a session
@@ -5773,12 +5805,17 @@ run replaces. **An empty registration does not hold the run.** Where a run has
 none, note the absence and read the outcome against its queue entry instead.
 What is not open is registering afterwards: the point of the list is
 that it predates the hours, so the choice here is to register before the evening
-or to do without. **And say what a partial outcome is**: a prediction registered
-over several arms can come apart, and neither "held" nor "refuted" is then true
---- Run 10's first was stated over three arms and one confirmed it while two met
-its own kill condition. Report that as a split, name which arms went which way,
-and carry the consequence for each separately; the temptation is to round
-it to whichever answer the majority of arms gives, which loses the finding.
+or to do without. **Each registration is written with an empty `verdict:` slot
+beneath it**, so the write-up fills a form rather than composing one and a count
+of what held is read off the list rather than tallied from memory --- which
+is how Run 18 came to summarise five registrations in its lead before it had
+adjudicated the fifth. **And say what a partial outcome is**: a prediction
+registered over several arms can come apart, and neither "held" nor "refuted"
+is then true --- Run 10's first was stated over three arms and one confirmed
+it while two met its own kill condition. Report that as a split, name which arms
+went which way, and carry the consequence for each separately; the temptation
+is to round it to whichever answer the majority of arms gives, which loses
+the finding.
 
 **After it lands**, in this order:
 
@@ -5788,6 +5825,15 @@ still lands; the prose is where the reasons live and is not replaced by this.
 What it replaces is reading the twelve paragraphs three times to be sure nothing
 was missed, which is what they have cost.
 
+    #  DO STEP 11 AS SOON AS THESE GATES PASS, out of order and before
+    #      any prose. It is the only step whose window closes -- it spends
+    #      the artifacts -- and it is numbered last but one, so it is what
+    #      a session that runs out of will loses. On Run 18 it produced
+    #      the sharpest finding of the evening, the two add-in arms
+    #      swapping cache-line offsets between the compilers, which no
+    #      later session could have recovered once the binaries went. The
+    #      numbers here are the prose's own and do not move, so this is an
+    #      instruction about ORDER and not a renumbering
     ./read-all.sh $R                                  # 1. gate EVERY
     #      process -- both halves of every population, which is eighteen
     #      --selftest and eighteen --aa, and nine is what counting by hand
@@ -5853,6 +5899,11 @@ was missed, which is what they have cost.
     #      while its title and anchor come from here. Repoint every
     #      link -- its TEXT as well as its anchor, the check seeing only the
     #      second -- and Main.hs's own README.md# references with them.
+    #      RENAME ON THE UNWRAPPED FORM: a literal rename over the wrapped
+    #      document misses any link text a line break falls inside while
+    #      replacing its anchor, so the anchor moves and the text does not,
+    #      and --check-doc can only see it once the file is unwrapped. Run
+    #      18 lost three that way.
     #      Repointing is not re-verifying: walk the standing-prose links
     #      into the chapter, which --check-doc lists, against what the
     #      chapter still says
@@ -6010,15 +6061,17 @@ the artifacts are what it spends.
    from the last run to this one, being about the run just read, while *What Run
    N compares against* and *The claims Run N should test* look forward and go
    from this run to the next, so a write-up of Run 10 leaves the four reading
-   10, 10, 11 and 11. Repoint every link to them. All four are named here
-   because a heading governed only by the closing index is how a heading comes
-   to name a run two chapters old. It is mechanical, it is easy to forget
-   because nothing in the numbers asks for it, and `--check-doc` catches
-   the fallout as dead anchors rather than as the rename it was: Run 9 left
-   eleven. Repointing is not re-verifying: a standing-prose link
-   into the chapter promises content the replacement may have moved out, so walk
-   the links `--check-doc` lists and check each against what the chapter now
-   says --- the five that decayed this way kept resolving through two renames.
+   10, 10, 11 and 11. Repoint every link to them, and do it on the UNWRAPPED
+   form: a rename over the wrapped document misses any link text a wrap falls
+   inside while still replacing its anchor. All four are named here because
+   a heading governed only by the closing index is how a heading comes to name
+   a run two chapters old. It is mechanical, it is easy to forget because
+   nothing in the numbers asks for it, and `--check-doc` catches the fallout
+   as dead anchors rather than as the rename it was: Run 9 left eleven.
+   Repointing is not re-verifying: a standing-prose link into the chapter
+   promises content the replacement may have moved out, so walk the links
+   `--check-doc` lists and check each against what the chapter now says ---
+   the five that decayed this way kept resolving through two renames.
 6. Walk the list under [Provenance](#provenance) of what the new numbers
    replace, and do not trust it to be complete: re-run the two sweeps it names
    and map each hit to the bullet covering it, since running the sweeps
@@ -6096,22 +6149,24 @@ the artifacts are what it spends.
    of that pass's seven findings existed only because the first round of fixes
    had been written.
 
-   **The installed tables are not yours to re-verify; spend that budget
+   **DO NOT RE-DERIVE AN INSTALLED FIGURE AT ALL; spend the whole of that budget
    on the prose and on the sentences elsewhere your tables have just
    falsified.** Run 16's checker recomputed 487 table rows against the reader
-   and found not one wrong, against 34 prose errors in the same diff ---
-   so re-deriving an installed figure buys nothing that `--in-place` did
-   not already guarantee, while every hour spent there is an hour not spent
-   on the two places errors actually live. **Expect every error to be
-   in the prose and none in the numbers, and expect the green checkers
-   to be why.** Run 11 shipped six, and not one was a wrong figure out
-   of the reader: four superlatives asserted without sorting the population they
-   quantify over, one sentence contradicting its own paragraph three lines
-   later, and one percentage computed from a published table instead of
-   from the cells. `--lint`, `--check-doc`, `--selftest` and `--aa` were green
-   throughout and right to be --- they check the measurements,
-   and the measurements were sound. The hazard is that green instruments make
-   the remaining gap feel small when the remaining gap is where all of it lives.
+   and found not one wrong, against 34 prose errors in the same diff; Run 18's
+   recomputed 491 and found not one wrong either, against 52 prose findings
+   over two checker passes and a comprehension probe --- so re-deriving
+   an installed figure buys nothing that `--in-place` did not already guarantee,
+   while every hour spent there is an hour not spent on the two places errors
+   actually live. **Expect every error to be in the prose and none
+   in the numbers, and expect the green checkers to be why.** Run 11 shipped
+   six, and not one was a wrong figure out of the reader: four superlatives
+   asserted without sorting the population they quantify over, one sentence
+   contradicting its own paragraph three lines later, and one percentage
+   computed from a published table instead of from the cells. `--lint`,
+   `--check-doc`, `--selftest` and `--aa` were green throughout and right
+   to be --- they check the measurements, and the measurements were sound.
+   The hazard is that green instruments make the remaining gap feel small when
+   the remaining gap is where all of it lives.
 
    A write-up is a document edit, so the three-pass discipline applies ---
    but its passes live here, in this repo's own instruments,
@@ -6334,22 +6389,28 @@ the artifacts are what it spends.
       run and basis each figure belongs to. This is the pass that keeps finding
       real errors;
 
-   **Three conventions this README holds to, each of which exists because
-   breaking it has cost something here.** **A figure in prose names its run,
-   its basis and its population, or it belongs in a table with the prose
-   pointing at it** --- a bare numeral carries no provenance, and that is how
-   one sentence came to put a Failed Run 6 figure beside a Run 6 one,
-   and another to compare a *published* ratio with a *paired* one.
-   The population is the newest way to make that mistake and the easiest,
-   a class figure and a main-set one being the same kind of number
-   over different shapes. **An anchor longer than about thirty characters goes
-   reference-style**, defined at the foot of the file: inline it overflows
-   the width and the rewrapping that follows is pure churn. And **a link's text
-   names its subject, never its position** --- five links reading *the head
-   of the run chapter* kept resolving through two renames while the content they
-   promised left the chapter, a decay no anchor check sees, which is why
-   `--check-doc` lists standing-prose links into the run chapter and the rename
-   step re-verifies them;
+   **Four conventions this README holds to, each of which exists because
+   breaking it has cost something here.** **A ratio is quoted in the direction
+   `--pair` prints it, or the sentence says in words which arm is faster.** Both
+   directions appear in this file, a margin and its reciprocal, and a WIN COUNT
+   belongs to only one of them --- so a reciprocal quoted beside its own arm's
+   win count inverts the finding while every check here stays green. Run 18's
+   opening did exactly that to the run's headline reading, on both halves
+   at once, and a comprehension probe caught it where two checker passes had
+   not. **A figure in prose names its run, its basis and its population,
+   or it belongs in a table with the prose pointing at it** --- a bare numeral
+   carries no provenance, and that is how one sentence came to put a Failed Run
+   6 figure beside a Run 6 one, and another to compare a *published* ratio
+   with a *paired* one. The population is the newest way to make that mistake
+   and the easiest, a class figure and a main-set one being the same kind
+   of number over different shapes. **An anchor longer than about thirty
+   characters goes reference-style**, defined at the foot of the file: inline
+   it overflows the width and the rewrapping that follows is pure churn.
+   And **a link's text names its subject, never its position** --- five links
+   reading *the head of the run chapter* kept resolving through two renames
+   while the content they promised left the chapter, a decay no anchor check
+   sees, which is why `--check-doc` lists standing-prose links into the run
+   chapter and the rename step re-verifies them;
 8. Re-run `--lint` after editing `Main.hs`, even when only comments changed:
    the reader parses that file for the roster and the shape dims, so a comment
    edit can break a check that passed before it. `--lint` reads the source
@@ -6549,6 +6610,14 @@ docstring rather than re-derived.
     ./read-run.py A.json --compare B.json   # one arm across two runs
     ./read-run.py A.json --compare B.json --alloc  # what each arm allocates
     ./read-run.py A.json --compare B.json --chapter  # the chapter's figures
+    ./read-run.py A.json --compare B.json --bridge # ratios to `list`, so a
+                                            # moved box cancels; the plain
+                                            # form reads absolutes, and a
+                                            # box that moved then puts every
+                                            # arm at the box's own figure
+    ./read-run.py A.json --compare B.json --ci  # the CI% column's MEDIAN,
+                                            # which is the statistic it
+                                            # publishes and not the mean
     ./read-run.py RUN.json --claims         # every claim's verdict, one call
     #      then the README's verdict figures read back: what reproduces these
     #      readings, and what is neither theirs nor attributed to a run
@@ -6698,13 +6767,18 @@ That is the standing rule for everything under `--lint`, `--selftest`,
 `--check-doc` and the `health` warnings, and it is why each carries a recorded
 proof in its docstring: **a new check is not finished until it has been made
 to fail on purpose**, with what was broken and what it then said written down
-beside it. Several here can only fail on data no real run produces --- a forcing
-term larger than the cell it is subtracted from, a term that does not scale
-with `l` --- so provoking them is the only way to know they are wired
-to anything. It reaches a pass run *by hand* too, which has the same failure
-and no exit status to hint at it: before calling one clean, break something
-it ought to catch and confirm it says so. And it reaches a check's every
-*branch*: the path check's absent-sibling arm is exercised by pointing its roots
+beside it --- **written down AFTER it has been run and quoting what it printed,
+never as the plan for running it**. That distinction is not pedantry: a proof
+composed in advance reads exactly like one performed, nothing downstream can
+tell them apart, and Run 18 wrote one into a case comment and reported
+it as done before running it. It happened to agree when run; the next one will
+not. Several here can only fail on data no real run produces --- a forcing term
+larger than the cell it is subtracted from, a term that does not scale with `l`
+--- so provoking them is the only way to know they are wired to anything.
+It reaches a pass run *by hand* too, which has the same failure and no exit
+status to hint at it: before calling one clean, break something it ought
+to catch and confirm it says so. And it reaches a check's every *branch*:
+the path check's absent-sibling arm is exercised by pointing its roots
 at a directory that does not exist, since a branch no control reaches
 is a silent search whatever the checks around it do.
 
