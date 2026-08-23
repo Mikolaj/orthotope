@@ -2933,20 +2933,34 @@ def cell_dump(cells, shapes, strategies):
 # and since 2026-08-22 one over every stride-class shape with the same
 # columns, emitted together when `--classes` names the class JSONs.
 # Membership mirrors that section's rule as re-aimed that day --
-# `mut-odo-vecdims` and every arm that is the best OUTSIDE
-# the vecdims family on at least one shape of the main set or a class (Run
-# 16: `mut-flat-gm` on 17 of the 48, `bq-scan-rem-gm-mulback` 11, `build`
-# 9, `mut-odo` 8, `bq-mut-runs` 2, `bq-mut-runs-gm-mulback` 1); an arm
-# leaves when no shape has it best. The short column heads are the stretch
-# table's convention; the README intro above the tables maps them back to
-# full arm names. `install` matches a table by its whole header line, so a
-# narrowed emitter and a wide table in the README would refuse rather than
-# install.
-FINGERPRINT_ARMS = ['mut-odo-vecdims', 'mut-flat-gm',
-                    'bq-scan-rem-gm-mulback', 'build', 'mut-odo',
-                    'bq-mut-runs', 'bq-mut-runs-gm-mulback']
-FINGERPRINT_HEADS = ('| vecdims | flat-gm | scan-rem-gm | build | mut-odo'
-                     ' | mut-runs | runs-gm |')
+# `mut-odo-vecdims` and every arm that is the best OUTSIDE the vecdims
+# family on at least one shape of the main set or a class -- and it only
+# ever GROWS: an arm that has earned a column keeps it, no run drops
+# one, and the run writer prunes the header by hand if it gets
+# unwieldy. `offtab-scan-rem` joined 2026-08-24. Neither way of
+# dropping an arm survives and README says why beside the rule; the
+# short of it is that this table holds the members alone, so it cannot
+# say who has stopped earning a column. Growth is capped by one
+# representative per family: where a qualifying arm is a close variant
+# of a member and measures closely, the leading one keeps the column.
+# That is a judgement and stays the write-up's; the notice below prices
+# it by naming the best member on the shape the newcomer leads. The
+# short column heads are the stretch table's convention; the README
+# intro above the tables maps them back to full arm names. `install`
+# matches a table by its whole header line, so a narrowed emitter and a
+# wide table in the README would refuse rather than install.
+# Arm and column head are one entry, so a column cannot be added
+# without a head or vice versa.
+FINGERPRINT = [('mut-odo-vecdims', 'vecdims'),
+               ('mut-flat-gm', 'flat-gm'),
+               ('bq-scan-rem-gm-mulback', 'scan-rem-gm'),
+               ('build', 'build'),
+               ('mut-odo', 'mut-odo'),
+               ('bq-mut-runs', 'mut-runs'),
+               ('bq-mut-runs-gm-mulback', 'runs-gm'),
+               ('offtab-scan-rem', 'offtab-rem')]
+FINGERPRINT_ARMS = [a for a, _ in FINGERPRINT]
+FINGERPRINT_HEADS = '| ' + ' | '.join(h for _, h in FINGERPRINT) + ' |'
 FINGERPRINT_TABLES = [
     ('| shape | `sInner` | `l` | `list`, net ' + FINGERPRINT_HEADS,
      True, FINGERPRINT_ARMS),
@@ -3052,10 +3066,16 @@ def fingerprint_table(cells, shapes, strategies, meta, classes=()):
                 print('| ' + ' | '.join(row) + ' |')
         # The membership rule's data half, read where the data is: every
         # arm that is the best outside the vecdims family on some shape of
-        # the main set or a class is a fingerprint arm, and every
-        # fingerprint arm but `mut-odo-vecdims` is best somewhere. Said on
-        # stderr, where install-tables.sh files what a run owes by hand.
+        # the main set or a class is a fingerprint arm. There is no
+        # converse to check, membership only growing, so this asks one
+        # question and asks it of the run in hand -- no previous run is
+        # read, and none has to have survived. Said on stderr, where
+        # install-tables.sh files what a run owes by hand. The shapes
+        # are NAMED and not merely counted, with the best member beside
+        # each: the open entry this answered had to read both back off
+        # the cells by hand, the notice carrying a count alone.
         best = collections.Counter()
+        where = collections.defaultdict(list)
         for p_shapes, p_cells in ([(shapes, cells)]
                                   + [(c[2], c[1]) for c in classes]):
             for sh in p_shapes:
@@ -3066,20 +3086,25 @@ def fingerprint_table(cells, shapes, strategies, meta, classes=()):
                          and not st.startswith(FAMILY)
                          and c['net'] > 0 and base > 0]
                 if cands:
-                    best[min(cands)[1]] += 1
+                    cands.sort()
+                    best[cands[0][1]] += 1
+                    near = next((c for c in cands[1:]
+                                 if c[1] in FINGERPRINT_ARMS), None)
+                    where[cands[0][1]].append(
+                        '%s %.3f%s'
+                        % (sh, cands[0][0], '' if near is None else
+                           ' against `%s` %.3f' % (near[1], near[0])))
         missing = [a for a in best if a not in FINGERPRINT_ARMS]
-        idle = [a for a in FINGERPRINT_ARMS if a != FIX and a not in best]
         for a in missing:
             sys.stderr.write('membership: `%s` is best outside the family on'
-                             ' %d shape(s) and is not a fingerprint arm\n'
-                             % (a, best[a]))
-        for a in idle:
-            sys.stderr.write('membership: `%s` is a fingerprint arm and best'
-                             ' outside the family on no shape\n' % a)
-        if not missing and not idle:
-            sys.stderr.write('ok: the fingerprint arms are `mut-odo-vecdims`'
-                             ' and every arm best outside the family on some'
-                             ' shape (%s)\n'
+                             ' %d shape(s) -- %s -- and is not a fingerprint'
+                             ' arm: give it a column unless a member is a'
+                             ' close variant measuring this closely, one'
+                             ' representative per family being the rule\n'
+                             % (a, best[a], '; '.join(where[a])))
+        if not missing:
+            sys.stderr.write('ok: every arm best outside the family on some'
+                             ' shape here has a fingerprint column (%s)\n'
                              % ', '.join('%s %d' % kv
                                          for kv in best.most_common()))
 
