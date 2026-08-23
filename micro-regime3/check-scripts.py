@@ -547,13 +547,31 @@ def a_registration_lead():
     have outlived, which is what happened to Run 12's the hour this check
     was written.
     """
-    for line in open(README):
-        m = re.match(r'^- `ANSWERED` \*\*What Run \d+ was built to answer',
-                     line)
-        if m:
-            return m.group(0)
+    with open(README) as f:
+        for line in f:
+            m = re.match(r'^- `ANSWERED` \*\*What Run \d+ was built to'
+                         r' answer', line)
+            if m:
+                return m.group(0)
     raise AssertionError('no ANSWERED run registration in the README to'
                          ' plant against')
+
+
+# Run 18's registration in miniature: items numbered INLINE, `(N) *label*`,
+# each stated twice -- registering with its kill condition, adjudicating
+# with a bolded verdict -- where Run 17's are numbered lines. Synthetic
+# and planted BESIDE a live entry rather than doctored out of one: the
+# live inline registration retires with its run, and these cases must
+# not retire with it. The kill condition's `BROKE` stands outside any
+# bolded span on purpose -- it is the word the span pairing must refuse.
+# One LINE per paragraph too, not wrapped by this file's hand: the copy
+# inherits the README's wrap gate, which fails a hand-wrapped paragraph
+# and passes a wholly-unwrapped one as mid-edit.
+INLINE_REG = ('- `%s` **What Run 99 was built to answer, registered'
+              ' before it ran.** Two questions, each with what kills it:'
+              ' (1) *the knob*, killed by a BROKE that clears the floor;'
+              ' (2) *the dial*, likewise. THE VERDICTS, 2026-08-23.'
+              ' (1) *The knob*: **HELD.** (2) *The dial*: %s\n\n')
 
 
 def class_pair_with_log(tmp, cls='rev', slow=1.0):
@@ -1971,6 +1989,50 @@ CASES = [
          argv=['--check-doc', '--quiet', '--readme', '{readme}'],
          ok=V(exit=0, hasnt=['registration is marked OPEN'])),
 
+    case('registration-inline-items-are-read', 'read-run.py', None,
+         "a stale OPEN marker over inline `(N)` items, Run 18's form",
+         # The check's first draft knew only the line form `  5. `,
+         # parsed Run 18's registration -- inline items, stated twice in
+         # one paragraph -- to zero items and held its marker to
+         # nothing: the very registration the README's verdict paragraph
+         # cites, and its verdicts used two words (BROKEN, FAILED) the
+         # vocabulary did not hold. A control until the fix has a hash;
+         # non-vacuous by removal the day it was written -- with the
+         # inline alternative cut from the item pattern, this reads
+         # `exit 0` on the silent skip itself, and the two cases above
+         # stay green, which is why they could not have caught it.
+         plant=lambda t: {'readme': edited_readme(t, (
+             a_registration_lead(),
+             INLINE_REG % ('OPEN', '**BROKEN, and narrowly.**')
+             + a_registration_lead()))},
+         argv=['--check-doc', '--quiet', '--readme', '{readme}'],
+         ok=V(exit=1, has=["Run 99's registration is marked OPEN"])),
+
+    case('registration-inline-unadjudicated-item-is-named', 'read-run.py',
+         None,
+         'an ANSWERED marker over an inline item with no verdict',
+         # The other arm on the same form, and the discriminator with
+         # it: item 1's kill condition says `BROKE` outside any bolded
+         # span and its verdict span says `HELD`, so only item 2 -- a
+         # dial still out with the jury -- may be named.
+         plant=lambda t: {'readme': edited_readme(t, (
+             a_registration_lead(),
+             INLINE_REG % ('ANSWERED', 'still out with the jury.')
+             + a_registration_lead()))},
+         argv=['--check-doc', '--quiet', '--readme', '{readme}'],
+         ok=V(exit=1,
+              has=["Run 99's registration is ANSWERED and item(s) 2"])),
+
+    case('registration-inline-answered-is-not-flagged', 'read-run.py',
+         None,
+         'CONTROL: the same inline entry, correctly marked, says nothing',
+         plant=lambda t: {'readme': edited_readme(t, (
+             a_registration_lead(),
+             INLINE_REG % ('ANSWERED', '**BROKEN, and narrowly.**')
+             + a_registration_lead()))},
+         argv=['--check-doc', '--quiet', '--readme', '{readme}'],
+         ok=V(exit=0, hasnt=["Run 99's registration"])),
+
     case('bridge-refuses-a-run-without-list', 'read-run.py', None,
          'the mode that divides by `list` met a run that has none',
          # A filtered probe is the ordinary way to have one, and this
@@ -2014,6 +2076,21 @@ CASES = [
                           'other': synth_json(t, 'rev', 'b.json')},
          argv=['{run}', '--block', '--compare', '{other}', '--chapter'],
          ok=V(exit=2, has=['--block takes --compare and nothing else'])),
+
+    case('compare-refuses-a-second-reading', 'read-run.py', None,
+         'two --compare sub-flags at once, the second dropped in silence',
+         # `--compare X --alloc --ci` ran --alloc and dropped --ci
+         # without a word, the dispatch being an if/elif chain: the same
+         # drop the one-mode guard refuses one level up and the --block
+         # clash check one level down, while the pairwise guards that
+         # stood here covered every sub-flag pair but --ci's. A control
+         # until the fix has a hash; non-vacuous by removal the day it
+         # was written -- with the guard cut this reads `exit 0, wanted
+         # 2` over an --alloc table that never mentions CI%.
+         plant=lambda t: {'run': synth_json(t, 'main', 'a.json'),
+                          'other': synth_json(t, 'main', 'b.json')},
+         argv=['{run}', '--compare', '{other}', '--alloc', '--ci'],
+         ok=V(exit=2, has=['readings of --compare, not one'])),
 
     case('deflation-names-which-leg-set-is-missing', 'read-run.py', None,
          'saturated legs on disk, told the riders were never taken',

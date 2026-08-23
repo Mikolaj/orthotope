@@ -1796,14 +1796,20 @@ def bridge_table(cells, shapes, strategies, meta, other, main_hs,
         sys.stderr.write('the two runs share no shape, so there is no'
                          ' per-shape ratio to take\n')
         return 2
-    missing_list = [w for w, c in (('this run', cells), ('the other', b_cells))
-                    if any('list' not in c[sh] for sh in both_sh)]
+    missing_list = [(w, sum('list' not in c[sh] for sh in both_sh))
+                    for w, c in (('this run', cells), ('the other', b_cells))]
+    missing_list = [(w, n) for w, n in missing_list if n]
     if missing_list:
+        # The count, because the guard fires on ANY shared shape without
+        # a `list` -- the loop below indexes every one -- while its
+        # first wording claimed `every`, which a partially filtered run
+        # falsifies.
         sys.stderr.write('--bridge divides every arm by `list` in its own'
-                         ' run, and %s %s no `list` on every shared shape,'
-                         ' so there is nothing to divide by\n'
-                         % (' and '.join(missing_list),
-                            'carries' if len(missing_list) == 1 else 'carry'))
+                         ' run, and %s, so there is nothing to divide by\n'
+                         % ' and '.join('%s carries no `list` on %d of the'
+                                        ' %d shared shape(s)'
+                                        % (w, n, len(both_sh))
+                                        for w, n in missing_list))
         return 2
     print('\nbridge: this run / %s, each arm as a ratio to `list` in its own'
           ' run,\n  per shape, over %d shared shape(s) -- which cancels a box'
@@ -5850,8 +5856,8 @@ def check_doc(readme, main_hs):
     # `**The condition was met and the debt is PAID**`, so a pattern
     # keyed on capitalisation misses the one case this exists for -- as
     # the first draft of it did.
-    # A VERDICT IS A BOLDED SPAN THAT OPENS ITS OWN PARAGRAPH, and that is
-    # the discriminator rather than the word alone. A registration item
+    # A VERDICT OPENS A BOLDED SPAN, and the span is the discriminator
+    # rather than the word alone. A registration item
     # states its KILL CONDITION in the same vocabulary -- `killed by a
     # BROKE that clears that half's floor` -- so a pattern that only asks
     # whether the word appears near a `**` reads an unadjudicated item as
@@ -5859,14 +5865,17 @@ def check_doc(readme, main_hs):
     # ANSWERED one. Measured on Run 18's own registration, whose second
     # item names a BROKE it had not yet met.
     VERDICT_WORDS = (r'ANSWERED|REFUTED|PAID|KILLED|CLEAN|DELIVERED|HELD'
-                     r'|BROKE|SETTLED|RETIRED|SPENT|SPLIT|UNUSED|NULL'
-                     r'|TAKEN|WITHDRAWN')
+                     r'|BROKE|BROKEN|FAILED|SETTLED|RETIRED|SPENT|SPLIT'
+                     r'|UNUSED|NULL|TAKEN|WITHDRAWN')
     # The word has to fall in the FIRST 60 characters of a bolded span,
     # which is where a verdict announces itself and where a kill
     # condition quoted mid-sentence does not. Both styles this file uses
     # pass: `**KILLED, and the registered split...**` after an italic
     # label, and `**The condition was met and the debt is PAID**` opening
-    # its own paragraph. What remains possible and is not caught is a
+    # its own paragraph. The spans are paired off before the word is
+    # asked for, so a closing `**` cannot open a match and the text
+    # BETWEEN two spans -- where a kill condition ordinarily sits --
+    # can never carry one. What remains possible and is not caught is a
     # bolded kill condition naming a verdict word in its own first 60
     # characters; no registration here writes one, and if one is written
     # this reads it as adjudicated.
@@ -5880,8 +5889,7 @@ def check_doc(readme, main_hs):
     # breaks. The vocabulary is stated in README beside the `verdict:`
     # slot, because a check keyed on a closed word list is useless to a
     # writer who has not been told the list.
-    VERDICT_RE = re.compile(r'\*\*(?:(?!\*\*).){0,60}?\b(?:' + VERDICT_WORDS
-                            + r')\b')
+    VERDICT_RE = re.compile(r'.{0,60}?\b(?:' + VERDICT_WORDS + r')\b')
 
     def adjudicated(item):
         """Does this registration item record an outcome?
@@ -5889,36 +5897,64 @@ def check_doc(readme, main_hs):
         Whitespace collapsed first, so a wrap cannot push the verdict
         word out of the span's opening and hide it.
         """
-        return bool(VERDICT_RE.search(' '.join(item.split())))
+        flat = ' '.join(item.split())
+        return any(VERDICT_RE.match(span)
+                   for span in re.findall(r'\*\*(.+?)\*\*', flat))
     # BOTH DIRECTIONS. An OPEN registration whose every item is adjudicated
     # is a stale marker; an ANSWERED one with an item that is not is an
     # incomplete adjudication, and Run 17's carried exactly that -- a lead
     # promising `one came apart into a split` over an item 5 with no
     # verdict of any kind, through the whole of Run 18.
+    # AN ITEM IS A NUMBERED SPAN, IN EITHER HOUSE FORM. Run 17's are
+    # lines, `  5. `; Run 18's are inline, `(5) *The plateau*:`, and
+    # stated TWICE in one paragraph -- once registering the question,
+    # once adjudicating it -- so the spans are grouped by number and a
+    # number is adjudicated if any span under it is. The first draft
+    # knew only the line form, parsed Run 18's registration to zero
+    # items and skipped it in silence -- the very registration the
+    # README's verdict paragraph cites, and it wrote its verdicts in
+    # two words (BROKEN, FAILED) the vocabulary did not hold. A
+    # registration in a third form still parses to zero items, so the
+    # skip now says so instead of continuing bare.
     for m in re.finditer(r'^- `(OPEN|ANSWERED)` \*\*What Run (\d+) was built'
                          r' to answer', doc, re.M):
-        nxt = re.search(r'^- `[A-Z]+` ', doc[m.end():], re.M)
-        body = doc[m.start():m.end() + (nxt.start() if nxt else len(doc))]
-        items = re.split(r'^  \d+\. ', body, flags=re.M)[1:]
-        if not items:
+        rest = doc[m.end():]
+        # The entry ends where its own list item does -- a blank line
+        # then column-0 text -- or at the next status-marked entry,
+        # whichever is first. Run 18's entry is followed by a whole
+        # section before the next entry, and the next-entry cut alone
+        # took that section's numbered lines for registration items.
+        ends = [x.start() for x in (re.search(r'^- `[A-Z]+` ', rest, re.M),
+                                    re.search(r'\n\n(?=\S)', rest)) if x]
+        body = doc[m.start():m.end() + (min(ends) if ends else len(rest))]
+        marks = list(re.finditer(r'^  (\d+)\. |\((\d+)\)\s+(?=\*)',
+                                 body, re.M))
+        chunks = {}
+        for k, mm in enumerate(marks):
+            end = marks[k + 1].start() if k + 1 < len(marks) else len(body)
+            chunks.setdefault(int(mm.group(1) or mm.group(2)),
+                              []).append(body[mm.end():end])
+        if not chunks:
+            print("note: Run %s's registration numbers its items in"
+                  ' neither house form, so its marker is held to nothing'
+                  % m.group(2))
             continue
-        done = [adjudicated(it) for it in items]
-        if m.group(1) == 'OPEN' and all(done):
+        undone = [n for n, cs in sorted(chunks.items())
+                  if not any(adjudicated(c) for c in cs)]
+        if m.group(1) == 'OPEN' and not undone:
             bad.append("Run %s's registration is marked OPEN and every one"
                        ' of its %d numbered items carries a verdict: the'
                        ' family always ends ANSWERED, so the marker is'
                        ' stale --- and a stale marker does not merely'
                        ' mislead, it exempts the entry from retirement'
-                       % (m.group(2), len(items)))
-        elif m.group(1) == 'ANSWERED' and not all(done):
+                       % (m.group(2), len(chunks)))
+        elif m.group(1) == 'ANSWERED' and undone:
             bad.append("Run %s's registration is ANSWERED and item(s) %s"
                        ' carry no verdict: an answered registration is one'
                        ' where every question was adjudicated, and a lead'
                        ' counting outcomes over an item that records none'
                        ' is a count of something nobody wrote'
-                       % (m.group(2),
-                          ', '.join(str(k + 1)
-                                    for k, d in enumerate(done) if not d)))
+                       % (m.group(2), ', '.join(str(n) for n in undone)))
 
     head_doc = head_text_of(readme)
     if head_doc is None:
@@ -5937,7 +5973,7 @@ def check_doc(readme, main_hs):
         # to compare and nothing to say. `was` is tested with the rest
         # because the else branch reads its run number.
         pass
-    elif was and was.group(1) == chap.group(1):
+    elif was.group(1) == chap.group(1):
         print('ok:   the chapter head is already committed as Run %s, so'
               ' there is no previous run to hold it to' % chap.group(1))
     else:
@@ -7337,16 +7373,22 @@ def main():
                 ' dispatch runs the first and drops the rest without a'
                 ' word' % ', '.join('--' + f.replace('_', '-')
                                     for f in modes))
-    if args.alloc and args.chapter:
-        p.error('--alloc and --chapter are two readings, not one: run the'
-                ' two invocations README\'s checklist spells out')
+    # ONE READING an invocation holds among the --compare sub-flags
+    # too: the dispatch is an if/elif chain over them, so `--compare X
+    # --alloc --ci` ran --alloc and dropped --ci without a word -- the
+    # silent drop the one-mode guard above refuses, one level down. The
+    # pairwise guards this replaces covered every pair but --ci's,
+    # which arrived with the same commit and missed its own roll call.
+    subs = [f for f in ('chapter', 'alloc', 'ci', 'bridge')
+            if getattr(args, f)]
+    if len(subs) > 1:
+        p.error('%s are %d readings of --compare, not one: run the'
+                ' invocations README\'s checklist spells out, one at a'
+                ' time' % (' and '.join('--' + f for f in subs), len(subs)))
     if args.ci and not args.compare:
         p.error('--ci is a reading ACROSS two runs: give it --compare')
     if args.bridge and not args.compare:
         p.error('--bridge is a reading ACROSS two runs: give it --compare')
-    if args.bridge and (args.alloc or args.chapter):
-        p.error('--bridge, --alloc and --chapter are three readings, not'
-                ' one')
 
     if args.replace:
         if not args.with_:
