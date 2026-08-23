@@ -2367,8 +2367,8 @@ CASES = [
     case('table-survives-a-zero-list-slope', 'read-run.py', 'ba56d23',
          "a zero `list` slope divided in the table's share line, the default",
          # The family's last site, found by sweeping for it the day after
-         # the selftest's: the share of the forcing term in `list` and the
-         # shipped arm divides by their slopes, and a cell with none took
+         # the selftest's: the share of the forcing term in `list` and
+         # `mut-odo-vecdims` divides by their slopes, and a cell with none took
          # the default mode down with a traceback where the health warning
          # beside it names the cell.
          plant=lambda t: {'run': doctored(t, 'main', lambda b: scale(

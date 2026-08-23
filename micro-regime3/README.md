@@ -1,10 +1,10 @@
-# regime-3 micro-benchmark (last candidate: bq-expand)
+# regime-3 micro-benchmark (the regime 3 fix)
 
 This branch (`speedup-strided-tovector`) changes `toVectorListT`'s regime-3
 fallback in `Data/Array/Internal.hs` --- the per-element path taken when
 the innermost dimension is strided, so no contiguous run longer than one element
 can be sliced out. What the branch carries in code is `bq-expand`, the last
-candidate; **the fix itself is not fully decided: on 2026-08-22
+candidate; **the regime 3 fix is not fully decided: on 2026-08-22
 `mut-odo-vecdims` was decided as the implementation to go upstream, possibly
 behind a condition on the strides that redirects a stride class
 to an implementation much better at it** --- [the
@@ -191,7 +191,7 @@ sections rather than numbers. Each entry names a subject and a home and stops;
 the numbers live at the home and move with the run. An entry earns its place
 by being a thing a later session might otherwise redo.
 
-- **The fix that shipped** and why the base-offsets table is built by expansion
+- **The `bq-expand` fix** and why the base-offsets table is built by expansion
   rather than by division: [the fix][fix], with the four findings behind
   it in [how the picture was achieved][achieved]. That form is now the last
   candidate: the decision of 2026-08-22 is [in the ceiling][ceiling].
@@ -390,7 +390,7 @@ the same day.** *What warms the expansion family?* On `vgg-14-c512-k3`,
 `bq-expand` and three arms beside it run 35--40% slower in a small process
 than at their published roster slots, reproducibly, while the scan and mutable
 families do not move at all --- the largest effect this README has measured
-that is not a strategy, and it lands on the **shipped** arm. A dozen probes
+that is not a strategy, and it lands on the **`bq-expand`** arm. A dozen probes
 settled it: not GC time (5.8% of the cold process), but the **default 4 MB
 nursery** against an arm allocating 13.2 MB per call beyond its result, warmed
 by exactly one predecessor --- `sum-only-early`, whose one-off `l`-sized setup
@@ -1934,31 +1934,31 @@ rather than a slot in the next run, observed again:
   to counts, all three taken on `run16-a32m` ahead of the pair; their readings
   are below and are not re-taken here.
 
-- `OPEN` **`mut-odo-vecdims-add-in` leads the arm that ships on most
-  populations, and Run 18 read the margin outside a floor on one compiler
-  and absent on the other.** Registered here 2026-08-22, out of Run 17.
-  The series is [under Results](#results): `add-in` against the arm it varies
-  read 1.0009, 0.9934, 0.9967, 1.0023 and 1.0043 across Runs 10 to 16, four
-  of those five a coin flip, and Run 17 reads **0.9889 at 19 of 24, sign p
-  0.0066** on its basis and **0.9709 at 21 of 24, p 0.00028** on its control.
-  **What is new is not the margin but the agreement**: the two halves differ
-  in `.text` and in every loop offset, `add-in` is itself moved 1% across them,
-  and both put it ahead --- so the direction is not the slot, which is what
-  the four coin-flip runs could not rule out. Per population it leads the main
-  set, `rev`, `revsome`, `bcastmid`, `slice`, `window` and `scaled`, the shipped
-  arm keeping only `bcast` and keeping it by 0.9989. **What it is
-  not is decided, and the two halves disagree about that too.** The threshold
-  for a margin between two arms of one run is that run's own restricted six,
-  which on Run 17 read 1.31% on the basis, where the margin is 1.11% and so does
-  not clear it, and 0.56% on the control, where 2.91% clears it more
-  than fivefold. Against the eighteen-pair floor --- the wrong quantity here,
-  and the one this entry first used --- neither would clear. **TAKEN 2026-08-22,
-  the same evening, and it confirms the direction.** Both arms in ONE process
-  --- so the pair shares its placement --- at a fixed iteration count, three
-  fresh processes a cell over `cnn-slice-c32`, `cifar-L2-16-c64-k3`
-  and `stretch-wide-2xM`, per-call mutator time read off the run's own
-  per-sample instrument because criterion's fixed-iteration mode prints
-  no per-bench figure and writes no JSON. `mut-odo-vecdims`
+- `OPEN` **`mut-odo-vecdims-add-in` leads `mut-odo-vecdims` on most populations,
+  and Run 18 read the margin outside a floor on one compiler and absent
+  on the other.** Registered here 2026-08-22, out of Run 17. The series
+  is [under Results](#results): `add-in` against the arm it varies read 1.0009,
+  0.9934, 0.9967, 1.0023 and 1.0043 across Runs 10 to 16, four of those five
+  a coin flip, and Run 17 reads **0.9889 at 19 of 24, sign p 0.0066**
+  on its basis and **0.9709 at 21 of 24, p 0.00028** on its control. **What
+  is new is not the margin but the agreement**: the two halves differ in `.text`
+  and in every loop offset, `add-in` is itself moved 1% across them, and both
+  put it ahead --- so the direction is not the slot, which is what the four
+  coin-flip runs could not rule out. Per population it leads the main set,
+  `rev`, `revsome`, `bcastmid`, `slice`, `window` and `scaled`,
+  `mut-odo-vecdims` keeping only `bcast` and keeping it by 0.9989. **What
+  it is not is decided, and the two halves disagree about that too.**
+  The threshold for a margin between two arms of one run is that run's own
+  restricted six, which on Run 17 read 1.31% on the basis, where the margin
+  is 1.11% and so does not clear it, and 0.56% on the control, where 2.91%
+  clears it more than fivefold. Against the eighteen-pair floor --- the wrong
+  quantity here, and the one this entry first used --- neither would clear.
+  **TAKEN 2026-08-22, the same evening, and it confirms the direction.** Both
+  arms in ONE process --- so the pair shares its placement --- at a fixed
+  iteration count, three fresh processes a cell over `cnn-slice-c32`,
+  `cifar-L2-16-c64-k3` and `stretch-wide-2xM`, per-call mutator time read off
+  the run's own per-sample instrument because criterion's fixed-iteration mode
+  prints no per-bench figure and writes no JSON. `mut-odo-vecdims`
   over `mut-odo-vecdims-add-in` reads **1.0227, 1.0186 and 1.0039** by shape
   and **1.0151 over the nine processes, 8 of them above 1** --- the same
   direction as the roster's 1.0112 and slightly wider, on a route that owes
@@ -2042,7 +2042,7 @@ rather than a slot in the next run, observed again:
   `probe-addin-*` and `probe-addin2-*`. **DEFERRED TO A FUTURE RUN by decision
   of 2026-08-22, and the decision is about what could change the shipping choice
   rather than about the probe's cost.** A margin of one to three percent does
-  not move it: the arm that ships is not chosen on differences that size,
+  not move it: the regime 3 fix is not chosen on differences that size,
   and no reading here or in a probe of this kind will be larger. Nor
   is it chosen before the compilers the library's consumers build with have
   been measured --- GHC 9.14, which is Run 18's own subject, and HEAD after
@@ -2078,9 +2078,9 @@ rather than a slot in the next run, observed again:
   in each timed binary, at the same offsets mod 64 --- the two arms **swap
   cache-line offsets between the compilers**: 9.12 puts `fbMutOdoVecdims`
   at **0** and `fbMutOdoVecdimsAddIn` at **24**, and 9.14 puts `add-in` at **0**
-  and the shipped arm at **24**. **The margin followed the offset and
+  and `mut-odo-vecdims` at **24**. **The margin followed the offset and
   not the arm.** In both builds the copy sitting at 24 is the faster of the two
-  --- `add-in` by 1.87% on 9.12, the shipped arm by 0.16% on 9.14 --- which
+  --- `add-in` by 1.87% on 9.12, `mut-odo-vecdims` by 0.16% on 9.14 --- which
   is the outcome this entry registered as *placement* when it asked for two
   builds whose offsets swap. **What it is not is that experiment**: a compiler
   changes the whole binary and not one loop's address, so the swap arrives
@@ -2302,7 +2302,7 @@ rather than a slot in the next run, observed again:
   the 26 arms the registration covers give a geomean of 0.9867 with **two
   outside the 3.3% drift band**: `bq-gen` at 0.9545 and `bq-mut-runs-gm-mulback`
   at 0.9639. The kill condition was an arm outside the band, and two are.
-  The shipped arm reads 1.0062, `mut-flat-gm` 1.0022, `bq-scan-rem-gm-mulback`
+  `mut-odo-vecdims` reads 1.0062, `mut-flat-gm` 1.0022, `bq-scan-rem-gm-mulback`
   0.9825 and `bq-expand` 0.9803, so the arms the claims rest on are inside
   it and the break is at the edges of the roster. The exempted placement-exposed
   families run 0.9333 to 1.0216, which is why they are exempted. (2)
@@ -2674,7 +2674,7 @@ codegen rather than that it cannot be built.
   and `install-tables.sh` calls it once, after the installs and installing
   nothing: the cross-class summary stays hand-assembled, its emphasis being
   a per-run judgement, and what a rank owes the author is the sort
-  under the sentence rather than the sentence. **The gap from the shipped arm
+  under the sentence rather than the sentence. **The gap from the regime 3 fix
   to the best arm outside its family is printed both ways and the mode says
   where the two disagree**, which is Run 15's second error exactly: on Run 17
   the widest is `bcastmid`'s on the published column and `rev`'s paired. **What
@@ -3000,8 +3000,8 @@ the fallback all of it justifies is polymorphic over the `Vector` class
 how many elements a cache line holds, and the instance sets what a write costs
 --- and what it does not change is the index arithmetic, which is the only thing
 the strategies differ in. So the question was never whether the magnitudes move
-but whether the **ordering** does, and whether the shipped arm stays
-under `list` at every instance the library serves.
+but whether the **ordering** does, and whether `bq-expand` stays under `list`
+at every instance the library serves.
 
 The probe, run 2026-08-08 at -O1 on the desktop this README's other figures come
 from: three arms --- `list`, `bq-expand` and `mut-odo-vecdims`, spanning
@@ -3020,13 +3020,13 @@ against that type's own `list`:
 | unboxed `Int` | 0.187 | 0.321 | 3.72x | 0.080 | 0.116 |
 | `Storable Word8` | 0.193 | 0.322 | 2.85x | 0.073 | 0.106 |
 
-**The ordering holds at every type, and the shipped arm is never close
-to `list`.** `bq-expand` spans 3.2% across the four, about the floor,
-and its `worst` --- the column that answers what a geomean cannot --- sits
-between 0.317 and 0.322, so on no shape of any type did it come within three
-times of the fallback it replaced. That is the property that had to hold
-for every instance, and it holds with room to spare and almost no variation,
-across an eightfold range of element width and two `Vector` instances.
+**The ordering holds at every type, and `bq-expand` is never close to `list`.**
+It spans 3.2% across the four, about the floor, and its `worst` --- the column
+that answers what a geomean cannot --- sits between 0.317 and 0.322, so
+on no shape of any type did it come within three times of the fallback
+it replaced. That is the property that had to hold for every instance,
+and it holds with room to spare and almost no variation, across an eightfold
+range of element width and two `Vector` instances.
 
 **What does not hold is the tidy width story.** `mut-odo-vecdims`
 is not monotone in width: `Float` (0.095) is *worse* than `Double` (0.084)
@@ -3061,7 +3061,7 @@ six shapes, same three arms, one process per type:
 **Everything the -O1 table is read for survives.** The ranking is the same
 at every type, `bq-expand` spans 7% across the four where -O1 gave 3%,
 and its `worst` sits between 0.245 and 0.267 --- so on no shape of any type does
-the shipped arm come within three times of the fallback it replaced, in either
+`bq-expand` come within three times of the fallback it replaced, in either
 regime. The `alloc` column's consistency check reproduces to the digit: dividing
 by `8*l` whatever the element predicts `Float` 0.50x below `Double` and `Word8`
 0.875x below, and the observed gaps are 0.50x and 0.88x. So does the width
@@ -3269,10 +3269,10 @@ rather than a cell to average away.
 
 ### The fix in Data/Array/Internal.hs
 
-**Decided 2026-08-22, and not yet in code: the fix is to be `mut-odo-vecdims`,
-the mutable odometer fill, possibly behind a condition on the strides
-that redirects a stride class to an implementation much better at it** ---
-the decision, what it rests on and what it owes are [in the ceiling
+**Decided 2026-08-22, and not yet in code: the regime 3 fix is
+to be `mut-odo-vecdims`, the mutable odometer fill, possibly behind a condition
+on the strides that redirects a stride class to an implementation much better
+at it** --- the decision, what it rests on and what it owes are [in the ceiling
 section](#the-mutable-ceiling-not-taken). What follows is the last candidate,
 `bq-expand`, which is what this branch's `Data/Array/Internal.hs` carries
 and what every claim below was measured against.
@@ -3329,11 +3329,11 @@ heads eight of the nine populations, and its worst in any class is 0.107
 (`reshape1-rank10`), so it was never slower than `list` anywhere this README has
 measured. The one population its family does not head is the redirect's case:
 in `reshape1` the flat fills own the top, `mut-flat-gm` at a geomean of 0.033
-against the shipped arm's 0.091 --- though not on every shape of it,
+against `mut-odo-vecdims`'s 0.091 --- though not on every shape of it,
 `mut-flat-gm`'s worst there (0.128) lying above `mut-odo-vecdims`'s 0.107
 on the same shape, so a redirect wants a predicate on the strides finer
 than the class. On the main set, per shape, the best arm outside the family
-beats the shipped arm on **5 of the 24 shapes**, and only two of the five
+beats `mut-odo-vecdims` on **5 of the 24 shapes**, and only two of the five
 by more than a thousandth: `stretch-inner1` (`sInner` 1, `mut-flat-gm` 0.031
 against 0.090) and `stretch-pow2stride` (`sInner` 64, `bq-mut-runs` 0.113
 against 0.125), with `stretch-wide-2xM`, `stretch-tall-Mx2`
@@ -3343,18 +3343,17 @@ and `bcast-tall-Mx2` the others. So the unit and huge-`sInner` ends of the set
 are where a redirect on the strides would pay, and the summary table's *best
 outside family* column says where else: `mut-flat-gm` in `rev`, `revsome`,
 `window` and `reshape1`, `build` in `bcast`, `bcastmid` and `slice`,
-and `mut-odo` in `scaled`, only `reshape1`'s ahead of the shipped arm. **And one
-thing the decision now has to weigh that it did not**: `mut-odo-vecdims-add-in`
-leads the arm chosen on both halves of Run 17 with significant sign tests,
-at margins still inside the floor --- [its own entry][open] has what would
-settle it. What the decision owes: the class method and its instances
-in `Data/Array/Internal.hs`, orthotope's suite against it and a non-vacuity
-break as the `bq-expand` form had; this README's claims re-read with the shipped
-arm changed --- claim 1 and class property 2 become the deciding ones, property
-1 is re-aimed at `mut-odo-vecdims`'s worst; the reader's notion of the shipped
-arm (`SHIPPED` in `read-run.py`, the `needs` column's `SHIPPED` cell, the claims
-manifest's *shipped* wording); and horde-ad's end-to-end re-measurement,
-its recorded gather figures being the `bq-expand` form's.
+and `mut-odo` in `scaled`, only `reshape1`'s ahead of `mut-odo-vecdims`.
+**And one thing the decision now has to weigh that it did not**:
+`mut-odo-vecdims-add-in` leads the arm chosen on both halves of Run 17
+with significant sign tests, at margins still inside the floor --- [its own
+entry][open] has what would settle it. What the decision owes: the class method
+and its instances in `Data/Array/Internal.hs`, orthotope's suite against
+it and a non-vacuity break as the `bq-expand` form had; this README's claims
+re-read with the regime 3 fix decided --- claim 1 and class property 2 become
+the deciding ones, property 1 is re-aimed at `mut-odo-vecdims`'s worst;
+and horde-ad's end-to-end re-measurement, its recorded gather figures being
+the `bq-expand` form's.
 
 **The `bq-*` strategies still fill the result one element at a time.**
 The tightest possible shape drops to a **mutable result buffer**: allocate
@@ -3954,7 +3953,7 @@ twice, on a quiet machine and a busy one, to the same digits, which
 is the property the bar was chosen for. Three runs have now said whether they
 are fast: on Run 11 `mut-flat-gm` reads 0.081, `bq-odo-gm-mulback` 0.090,
 `bq-expand-gm-mulback` 0.094 and `offtab-scan-rem` 0.119, so three of the four
-land ahead of the shipped arm and the fourth behind it, as in each run before.
+land ahead of `bq-expand` and the fourth behind it, as in each run before.
 
 **Two of the eleven are covered at the level of the idea rather
 than line-for-line, and say so here rather than being counted quietly.**
@@ -7060,7 +7059,7 @@ is **mutator** time, which is where Run 14 left it with its LLC-miss and IPC
 readings. So the two nursery effects are independent as well as opposed: one
 is copying, the other is what a resident footprint does to the mutator.
 
---- so on this shape the shipped fix beats the fallback it replaced by 10.2x
+--- so on this shape `bq-expand` beats the fallback it replaced by 10.2x
 at the default area and 6.4x at 32 MB. **Both are true; they answer different
 questions.** The default is what a GHC program gets unless it says otherwise,
 so the published column is the right one for "what does a caller see today",
@@ -8190,7 +8189,7 @@ Those are the placement-exposed arms, and **on a compiler pair they are
 not a term to exempt but the term being priced**: a compiler that emits
 different code puts those loops in different places, and where they land is what
 this README has measured them to be sensitive to. The arms that sensitivity does
-not reach stay put --- the shipped arm at 1.0088, `bq-scan-rem-gm-mulback`
+not reach stay put --- `mut-odo-vecdims` at 1.0088, `bq-scan-rem-gm-mulback`
 at 0.9953, `bq-expand` at 0.9884 --- so the ordering the claims rest on survives
 the compiler while the arms known to be loose move by up to **7.2%**
 on the published `time` column, `gen-unsafe` going 1.066 against 1.143.
@@ -8316,7 +8315,7 @@ Each passes the count check the standing ruling imposes, four copies in each
 twin against four in each timed binary and two against two, at the same offsets
 mod 64. **What the names add is that the two arms of the add-in question swap
 places**: 9.12 puts `fbMutOdoVecdims` at 0 and `fbMutOdoVecdimsAddIn` at 24,
-and 9.14 puts `add-in` at 0 and the shipped arm at 24, so the copy at 24
+and 9.14 puts `add-in` at 0 and `mut-odo-vecdims` at 24, so the copy at 24
 is the faster of the two in both builds and the margin moved with the slot
 rather than with the arm. **The other group is the control that stops that being
 read as placement**: `fbBuild` and `fbMutOdo` sit at offset 0 in both compilers,
@@ -8841,10 +8840,10 @@ and read the width check's verdict afterwards.
 
 And because a geomean cannot say *where* it moved, the **fingerprint** below
 is kept so a future disagreement can be localised rather than only noticed.
-Its membership is a rule, not a habit, re-aimed 2026-08-22: the shipped arm,
-`mut-odo-vecdims`, and every arm that is the best outside the vecdims family
-on at least one shape of the main set or a stride class --- on Run 16
-`mut-flat-gm`, `bq-scan-rem-gm-mulback`, `build`, `mut-odo`, `bq-mut-runs`
+Its membership is a rule, not a habit, re-aimed 2026-08-22: `mut-odo-vecdims`
+and every arm that is the best outside the vecdims family on at least one shape
+of the main set or a stride class --- on Run 16 `mut-flat-gm`,
+`bq-scan-rem-gm-mulback`, `build`, `mut-odo`, `bq-mut-runs`
 and `bq-mut-runs-gm-mulback`, in that order of shapes led --- and an arm leaves
 when no shape has it best; the second table carries the same columns over every
 stride-class shape, with its class named. An arm nothing measures cannot
@@ -8992,7 +8991,7 @@ the same win count and the same p as Run 17 and Run 16. What has not changed
 is the reason to distrust the point estimate: the two differ
 in `baseOffsetsScanRem` against `baseOffsetsExpand` and in nothing else, their
 output code being identical, so the first reading is about builders
-and the second about the shipped arm.
+and the second about `bq-expand`.
 
 **Readings:** `bq-scan-rem-gm-mulback` / `bq-expand-gm-mulback` 0.9561, 11
 of 24, sign p 0.84; `bq-scan-rem-gm-mulback` / `bq-expand` 0.8598, 18 of 24,
@@ -9109,12 +9108,12 @@ a question with it, and none of them dropped one.
    to be re-read rather than inherited. **So the tie is retired**, and Run 18
    read the ordering a third time at 0.8598 on the same 18 of 24 and the same p,
    on both compilers: the first half is a tie and the second half
-   is an ordering, the scan build ahead of the shipped arm, and a run that reads
+   is an ordering, the scan build ahead of `bq-expand`, and a run that reads
    it tied again is what would reopen it. What has not changed is the reason
    to distrust the point estimate: the two differ in `baseOffsetsScanRem`
    against `baseOffsetsExpand` and in nothing else, their output code being
    identical, so the first reading is about builders and the second about
-   the shipped arm. **Read the break as the sign test holding and not
+   `bq-expand`. **Read the break as the sign test holding and not
    as a magnitude** --- both point estimates sit where a tied reading's already
    sat, and the series has crossed this threshold in both directions before.
 5. `bq-expand` < `bq-gen`: the build ordering, trimmed to its timed arms ---
@@ -9186,12 +9185,12 @@ invents its own wrong version.
 **And for each stride class, the same three properties, now carrying Run 18's
 verdicts**, the details beside each class's table:
 
-1. **The shipped arm's `worst` stays under 1.** Held in every one of the nine
+1. **The regime 3 fix's `worst` stays under 1.** Held in every one of the nine
    populations, in every regime, roster and layout this README has run ---
-   so the shipped fallback was never slower than the `list` it replaced, on any
-   shape of any class the library can produce. This is the property the classes
-   exist to test, no geomean can state it, and a break would be the one result
-   here to bear on `Data/Array/Internal.hs` directly. Re-aimed 2026-08-22
+   so the fix was never slower than the `list` it replaced, on any shape of any
+   class the library can produce. This is the property the classes exist
+   to test, no geomean can state it, and a break would be the one result here
+   to bear on `Data/Array/Internal.hs` directly. Re-aimed 2026-08-22
    with the decision to ship `mut-odo-vecdims` instead, and read for that arm
    since: **on Run 18 its worst is 0.125 on the main set and 0.107 in a class
    (`reshape1`)**, against Run 17's 0.128 and 0.121, so the property holds
@@ -9202,9 +9201,9 @@ verdicts**, the details beside each class's table:
    than one arm's --- the ruling Run 9 left, and no run has yet separated them
    --- holds in eight of the nine populations and breaks in `reshape1` alone,
    where the flat fills own the top outright, `mut-flat-gm` at 0.033 against
-   the shipped arm's 0.091. **Which member leads has moved again**:
+   `mut-odo-vecdims`'s 0.091. **Which member leads has moved again**:
    `mut-odo-vecdims-add-in` heads six of the nine --- the main set, `rev`,
-   `bcastmid`, `slice`, `window` and `scaled` --- with the shipped arm itself
+   `bcastmid`, `slice`, `window` and `scaled` --- with `mut-odo-vecdims` itself
    taking `revsome` and `add-both-down` taking `bcast`, where Run 17 had
    `add-in` heading seven of nine by the same count and Run 16 had it heading
    two. **Read that by margin and not by sort, as this list has had to since Run
@@ -9221,14 +9220,14 @@ verdicts**, the details beside each class's table:
    classes say nothing about significance either way. [Its own entry][open]
    carries the whole of it, including the `-g3` twins that put the two arms
    at swapped cache-line offsets on the two compilers; what belongs here
-   is that the arm leading most populations is not the arm that ships,
+   is that the arm leading most populations is not `mut-odo-vecdims`,
    and that its lead is not a property of the arm. The third clause reads
-   the last candidate `bq-expand` behind the shipped arm and holds in all nine,
-   from 0.3363 on `scaled` to 0.7720 on `reshape1`, the main set at 0.4795.
-   The summary's outside-family slot --- the redirect's candidate ---
+   the last candidate `bq-expand` behind `mut-odo-vecdims` and holds in all
+   nine, from 0.3363 on `scaled` to 0.7720 on `reshape1`, the main set
+   at 0.4795. The summary's outside-family slot --- the redirect's candidate ---
    is `mut-flat-gm` in `rev`, `revsome`, `window` and `reshape1`, `build`
    in `bcast`, `bcastmid` and `slice`, and `mut-odo` in `scaled`, only
-   `reshape1`'s ahead of the shipped arm.
+   `reshape1`'s ahead of `mut-odo-vecdims`.
 3. **The allocation tiers survive, and every level is Run 15's, Run 16's and Run
    17's to the digit**: the mutable fills at the result vector, `bq-expand`
    between 1.14x and 5.43x it, `list` an order of magnitude above. Where a level
@@ -9322,8 +9321,8 @@ on the unindented one. Getting that wrong put Run 8's rows under this paragraph
 and left Run 7's standing in the table, both checks passing, because the check
 looked the table up the same wrong way the paste did.
 
-`mut-odo-vecdims` and `worst` are the shipped row's two columns in that class's
-table; *best outside family* is the leading arm outside the vecdims family,
+`mut-odo-vecdims` and `worst` are that arm's two columns in that class's table;
+*best outside family* is the leading arm outside the vecdims family,
 the stride-conditioned redirect's candidate, and *ceiling* the leading arm
 of the family, each with its name, since which arm leads is half of what
 the column says; *floor* is the largest deviation from 1 among that process's
@@ -9340,8 +9339,9 @@ five things and nothing else:
    under it readable without `Main.hs` open;
 2. the table `--block --in-place` installs from `$R-<basis>-$c.json`, whole
    and never edited --- six columns, with the emphasis carried over
-   from the main table so the shipped row is found at a glance, and `needs` left
-   to that table as a property of a strategy rather than of a population;
+   from the main table so the `mut-odo-vecdims` row is found at a glance,
+   and `needs` left to that table as a property of a strategy rather than
+   of a population;
 3. its own controls, off `--aa`: the A/A deviations with their spans, the two
    `sum-only` halves, and the in-situ term from the `-nosum` arms ---
    this process's own floor and its own three gates, neither inherited nor lent;
@@ -9403,7 +9403,7 @@ The pure slot this table carried until 2026-08-22, and the paragraph that read
 it, retired with the pure/impure distinction when the decision shipped
 the mutable family's arm; the column now carries the best arm outside
 the family, which the table above gives per class and which is ahead
-of the shipped arm on `reshape1` alone.
+of `mut-odo-vecdims` on `reshape1` alone.
 
 **`rev` --- every stride negated, offset at the top: the view `rev` on every
 axis builds.** Shapes: `rev-cnn-L1-24x24-c1` (`l` 5184, `sInner` 3),
@@ -9481,11 +9481,11 @@ at a geomean of 0.9866, from `gen-unsafe` at 0.8704 to `bq-gen` at 1.0807,
 with `list` itself at 1.0040.
 
 **What the class says:** all three properties hold, and the class reproduces
-the main ordering. The shipped row's `worst` is 0.071; `bq-expand` sits behind
-it at 0.4099 paired; and the vecdims family heads the table, though the member
-leading is `mut-odo-vecdims-add-in` rather than the arm itself, by **1.0197**
-paired at 1 of 3 shapes --- a gap the sort settles and this class's 5.90% floor
-swallows three times over.
+the main ordering. The `mut-odo-vecdims` row's `worst` is 0.071; `bq-expand`
+sits behind it at 0.4099 paired; and the vecdims family heads the table, though
+the member leading is `mut-odo-vecdims-add-in` rather than the arm itself,
+by **1.0197** paired at 1 of 3 shapes --- a gap the sort settles
+and this class's 5.90% floor swallows three times over.
 
 **`revsome` --- a strict subset of axes reversed, so the signs are mixed.**
 Shapes: `revsome-inner-primes` (`l` 250357, `sInner` 89), `revsome-outer-g48`
@@ -9562,13 +9562,13 @@ at a geomean of 0.9892, from `offtab` at 0.9169 to `bq-gen` at 1.0664,
 with `list` itself at 1.0011.
 
 **What the class says:** all three properties hold, **and this is the one
-population where the shipped arm heads the table outright**, at 0.046, where Run
-17 had `mut-odo-vecdims-add-in` leading seven of the nine. The shipped row's
-`worst` is 0.058 and `bq-expand` sits behind it at 0.4295 paired. What is worth
-more than the ordering is the floor: 4.20% here against Run 17's 18.05%, which
-was the largest of that run's eight and carried its 74.48% cell. Neither
-the cell nor the looseness returned, so the population Run 17 called stably
-loose was not.
+population where `mut-odo-vecdims` heads the table outright**, at 0.046, where
+Run 17 had `mut-odo-vecdims-add-in` leading seven of the nine.
+The `mut-odo-vecdims` row's `worst` is 0.058 and `bq-expand` sits behind
+it at 0.4295 paired. What is worth more than the ordering is the floor: 4.20%
+here against Run 17's 18.05%, which was the largest of that run's eight
+and carried its 74.48% cell. Neither the cell nor the looseness returned,
+so the population Run 17 called stably loose was not.
 
 **`bcast` --- an innermost stride of 0, every run re-reading one element:
 a broadcast's view.** Shapes: `bcast-inner8` (`l` 51200, `sInner` 8),
@@ -9645,13 +9645,13 @@ bcast-tall-Mx2):** `mut-odo-vecdims` 0.033/0.022/0.063 `bq-scan-rem-gm-mulback`
 at a geomean of 0.9928, from `offtab-aa-distant` at 0.8998 to `build-aa-distant`
 at 1.0574, with `list` itself at 0.9975.
 
-**What the class says:** all three properties hold. The shipped row's `worst`
-is 0.063, `bq-expand` sits behind the shipped arm at 0.3898 paired,
-and the family member leading is `mut-odo-vecdims-add-both-down` by **1.0179**
-paired at 1 of 3 --- inside this class's 6.45% floor, the widest of the eight,
-so it is a sort order and not a separation. `bcast` is also the one class where
-Run 17 had the shipped arm itself on top; which member leads has moved again,
-and no run has yet separated them anywhere.
+**What the class says:** all three properties hold. The `mut-odo-vecdims` row's
+`worst` is 0.063, `bq-expand` sits behind it at 0.3898 paired, and the family
+member leading is `mut-odo-vecdims-add-both-down` by **1.0179** paired at 1 of 3
+--- inside this class's 6.45% floor, the widest of the eight, so it is a sort
+order and not a separation. `bcast` is also the one class where Run 17 had
+`mut-odo-vecdims` itself on top; which member leads has moved again, and no run
+has yet separated them anywhere.
 
 **`bcastmid` --- the stretched axis in the middle instead: stride 0 on an outer
 dimension.** Shapes: `bcastmid-c32-cnn` (`l` 165888, `sInner` 3),
@@ -9729,8 +9729,8 @@ at a geomean of 0.9949, from `gen-unsafe` at 0.9124 to `bq-gen` at 1.1142,
 with `list` itself at 1.0037.
 
 **What the class says:** all three properties hold and nothing inverted.
-The shipped row's `worst` is 0.058, `bq-expand / mut-odo-vecdims` reads 2.6062
-paired and is behind on all three shapes,
+The `mut-odo-vecdims` row's `worst` is 0.058, `bq-expand / mut-odo-vecdims`
+reads 2.6062 paired and is behind on all three shapes,
 and `mut-odo-vecdims-add-in / mut-odo-vecdims` is **0.9955** paired at 3 of 3
 --- a 0.45% margin against a 3.65% floor, which is a tie by any reading.
 
@@ -9813,15 +9813,16 @@ and stands; what goes is the comparison.
 
 **What the class says:** **property 2 breaks here and only here**, as it did
 on Runs 16 and 17 and for the same reason: the fills own the top outright,
-`bq-mut-runs-gm-mulback` and `mut-flat-gm` tied at **0.034** against the shipped
-arm's **0.094** --- 0.5156 and 0.5297 paired, a 48% margin no floor here
-reaches, and only the sort separating the two. Properties 1 and 3 hold ---
-`worst` 0.117 on the shipped row, the loosest of the eight, and `bq-expand`
-at 5.43x the result vector where `scaled` puts it at 1.14x, which is `m = l`
-showing through exactly as that property warns. `bq-expand / mut-odo-vecdims`
-is 1.2196, the narrowest of the eight, and this is the one class where
-that margin is not comfortable. This population remains the standing case
-for a stride-conditioned redirect, as it has been since Run 16.
+`bq-mut-runs-gm-mulback` and `mut-flat-gm` tied at **0.034** against
+`mut-odo-vecdims`'s **0.094** --- 0.5156 and 0.5297 paired, a 48% margin
+no floor here reaches, and only the sort separating the two. Properties 1 and 3
+hold --- `worst` 0.117 on the `mut-odo-vecdims` row, the loosest of the eight,
+and `bq-expand` at 5.43x the result vector where `scaled` puts it at 1.14x,
+which is `m = l` showing through exactly as that property warns.
+`bq-expand / mut-odo-vecdims` is 1.2196, the narrowest of the eight, and
+this is the one class where that margin is not comfortable. This population
+remains the standing case for a stride-conditioned redirect, as it has
+been since Run 16.
 
 **`slice` --- a view of a larger source: non-zero offset, positive strides.**
 Shapes: `slice-cnn-L2-24x24-c32` (`l` 165888, `sInner` 3), `slice-primes` (`l`
@@ -9898,10 +9899,10 @@ at a geomean of 0.9937, from `offtab-aa-distant` at 0.8986 to `bq-gen`
 at 1.0774, with `list` itself at 1.0021.
 
 **What the class says:** all three properties hold and the class reproduces
-the main ordering. The shipped row's `worst` is 0.059,
-`bq-expand / mut-odo-vecdims` is 2.7233 with the shipped arm ahead on all three
-shapes, and `mut-odo-vecdims-add-in / mut-odo-vecdims` is **0.9815** paired at 2
-of 3 --- a 1.85% margin inside this class's 6.01% floor, which is a tie in all
+the main ordering. The `mut-odo-vecdims` row's `worst` is 0.059,
+`bq-expand / mut-odo-vecdims` is 2.7233 and is behind on all three shapes,
+and `mut-odo-vecdims-add-in / mut-odo-vecdims` is **0.9815** paired at 2 of 3
+--- a 1.85% margin inside this class's 6.01% floor, which is a tie in all
 but the sort.
 
 **`window` --- overlapping im2col patches: the workload this README opens
@@ -9982,14 +9983,15 @@ the halves, past the 0.7% that lets two columns be differenced, so this line
 is NOT read for the pair's variable.** The table above is one process's
 and stands; what goes is the comparison.
 
-**What the class says:** all three properties hold. The shipped row's `worst`
-is 0.093, and the shape carrying it is `window-64x64-k1x9`, the unit-innermost
-view where `mut-flat-gm / mut-odo-vecdims` falls to **0.488** --- the same
-one-dimensional trap `reshape1` is built of, arriving here on one shape of three
-rather than on all of them, the paired figure over the three being 1.1028.
-`bq-expand / mut-odo-vecdims` reads 1.9366 paired, behind on all three shapes,
-and `mut-odo-vecdims-add-in / mut-odo-vecdims` is **0.9827** paired at 3 of 3,
-a whole-population sign at a 1.73% margin inside this class's 5.17% floor.
+**What the class says:** all three properties hold. The `mut-odo-vecdims` row's
+`worst` is 0.093, and the shape carrying it is `window-64x64-k1x9`,
+the unit-innermost view where `mut-flat-gm / mut-odo-vecdims` falls to **0.488**
+--- the same one-dimensional trap `reshape1` is built of, arriving here on one
+shape of three rather than on all of them, the paired figure over the three
+being 1.1028. `bq-expand / mut-odo-vecdims` reads 1.9366 paired, behind on all
+three shapes, and `mut-odo-vecdims-add-in / mut-odo-vecdims` is **0.9827**
+paired at 3 of 3, a whole-population sign at a 1.73% margin inside this class's
+5.17% floor.
 
 **`scaled` --- superincreasing strides, none of them 1: a hand-built dilated
 view.** Shapes: `scaled-super-r3` (`l` 60000, `sInner` 30), `scaled-rank1-m1`
@@ -10070,20 +10072,21 @@ columns be differenced, so this line is NOT read for the pair's variable.**
 The table above is one process's and stands; what goes is the comparison.
 
 **What the class says:** all three properties hold, and this population is again
-the tightest here on every count of that kind: `worst` 0.035 on the shipped row,
-the lowest of the eight; `bq-expand / mut-odo-vecdims` at 2.9893, the widest
-of the eight; and `bq-expand` at 1.14x the result vector, the lowest allocation
-multiple of the eight, which is the class's own small `m` showing through.
-**Its standing A/A slot did not fire this run** --- the class floor is 6.15%,
-carried by `gen-unsafe`'s distant twin rather than `mut-odo-vecdims`'s, against
-5.15% on Run 17 and 10.10% on Run 16, so the slot is present and ordinary rather
+the tightest here on every count of that kind: `worst` 0.035
+on the `mut-odo-vecdims` row, the lowest of the eight;
+`bq-expand / mut-odo-vecdims` at 2.9893, the widest of the eight;
+and `bq-expand` at 1.14x the result vector, the lowest allocation multiple
+of the eight, which is the class's own small `m` showing through. **Its standing
+A/A slot did not fire this run** --- the class floor is 6.15%, carried
+by `gen-unsafe`'s distant twin rather than `mut-odo-vecdims`'s, against 5.15%
+on Run 17 and 10.10% on Run 16, so the slot is present and ordinary rather
 than disturbed. **And the family pair no longer inverts**:
 `mut-odo-vecdims-add-in / mut-odo-vecdims` reads **0.9861** paired, ahead on 2
-of 3 shapes, where the same pair on this run's pre-rerun figures put the shipped
-arm ahead at 1.0054. The margin is 1.39% against that 6.15% floor and sat inside
-it either way, so what the quiet machine moved is the sign and
-not the resolution: the family's internal order is still unsettled. The best arm
-outside it is `mut-odo` at 0.033.
+of 3 shapes, where the same pair on this run's pre-rerun figures put
+`mut-odo-vecdims` ahead at 1.0054. The margin is 1.39% against that 6.15% floor
+and sat inside it either way, so what the quiet machine moved is the sign
+and not the resolution: the family's internal order is still unsettled. The best
+arm outside it is `mut-odo` at 0.033.
 
 
 ### Provenance
@@ -10514,7 +10517,7 @@ of the list above is one of the steps.
 [floor]: #what-moves-a-figure-when-no-strategy-changed
 [lemire]: #lemire-multiplicative-inverses-at-the-two-division-sites
 [open]: #what-is-open
-[opening]: #regime-3-micro-benchmark-last-candidate-bq-expand
+[opening]: #regime-3-micro-benchmark-the-regime-3-fix
 [pershape]: #per-shape-where-the-geomean-hides-the-ordering
 [pos-effect]: https://github.com/Mikolaj/horde-ad/blob/master/docs/position-effect.md
 [probe]: #one-element-type-and-what-the-probe-found

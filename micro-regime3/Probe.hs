@@ -9,8 +9,8 @@
 -- many elements a cache line holds, the instance sets what a write costs --
 -- and what it leaves alone is the index arithmetic, which is the only thing
 -- the strategies differ in. So the question is not whether the magnitudes
--- move (they must) but whether the ORDERING does, and whether the shipped
--- strategy stays under @list@ at every instance the library serves.
+-- move (they must) but whether the ORDERING does, and whether bq-expand
+-- stays under @list@ at every instance the library serves.
 --
 -- Four points, each varying one thing against @Storable Double@:
 -- @Storable Float@ is the same instance at half the width, unboxed @Int@ the

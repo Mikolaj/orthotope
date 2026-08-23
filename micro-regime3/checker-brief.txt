@@ -103,8 +103,8 @@ the class of defect nothing else can see. The ones that earned their
 place on Run 16: this run's floor per half with its carrying pair and
 the threshold two table rows must clear; which area the published
 tables use and which half publishes; whether a nursery pair's columns
-may be subtracted and how many such pairs exist; whether the shipped
-arm is ever slower than what it replaced; which half of the previous
+may be subtracted and how many such pairs exist; whether the regime 3
+fix is ever slower than what it replaced; which half of the previous
 run a figure is compared against and whether that depends on the kind
 of figure; what each probe concluded and whether it confirmed or
 refuted its registration; what a large single A/A cell should tell a
