@@ -47,6 +47,12 @@
 # script, a stub answering `check` being no ELF, so its awk was fed
 # `./loop-offsets.py /bin/true run14-lookrts` -- `0 self-loops` for the
 # first -- and named /bin/true, where the run14 pair names nothing.
+# RE-TAKEN 2026-08-23 against a binary that outlives run14, whose
+# artifacts went the same day: `./loop-offsets.py /bin/true run18-g914`
+# reads `0 self-loops` for the first and 32 for the second, so the arm
+# of the check that fires on a zero fill is still reachable and still
+# names the binary it fired on. Re-aim it again whenever the pair it
+# names is offered for deletion.
 #
 # It has no ./check-scripts.py case, deliberately: this script's own steps
 # are that suite and the reader's gates, so a case would run them twice to

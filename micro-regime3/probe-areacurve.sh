@@ -8,6 +8,12 @@
 # better of the two points the pair compared. Killed as a reading by a
 # minimum that is not at or near 32m.
 #
+# ITS BINARY IS GONE: run16-a32m was deleted 2026-08-23 with the rest of
+# the artifacts up to Run 16, so the HALF default below names nothing and
+# this script will not run as it stands. It is kept as the record of a
+# killed probe; to run it again, point HALF at a half that exists and
+# read the figures below as the other binary's rather than as these.
+#
 # EVERY +RTS LINE REPEATS THE BAKED OPTIONS IN FULL. A +RTS line inherits
 # none of them, so a bare `+RTS -A64m` would run at -I0 and -M8G unset --
 # a regime nobody chose, and figures that are not this run's.
