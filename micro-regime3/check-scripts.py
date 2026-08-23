@@ -588,6 +588,29 @@ def an_across_paragraph():
                          ' to delete')
 
 
+def deflation_leg_zero_slope(tag='runzzq', half='h'):
+    """The rider set with one clean leg's time slope written zero.
+
+    The slope is raw and criterion's own, so no roster state produces
+    this; a doctored or truncated leg does, and the mode divides by it
+    and logs the ratio. Rewritten after synth_run the way `doctored`
+    rewrites, on the first shape's clean leg.
+    """
+    run = deflation_legs(tag=tag, half=half)
+    leg = here_file('%s-al-%s-%s-r1.json' % (tag, half, main_shapes()[0]))
+    d = json.load(open(leg))
+    hit = 0
+    for b in d[2]:
+        for r in b['reportAnalysis']['anRegress']:
+            if r.get('regResponder') == 'time':
+                r['regCoeffs']['iters']['estPoint'] = 0.0
+                hit += 1
+    assert hit, 'no time fit in the leg to zero'
+    with open(leg, 'w') as f:
+        json.dump(d, f)
+    return run
+
+
 def class_pair_with_log(tmp, cls='rev', slow=1.0):
     """A class run, its other half, and the `.log` a process leaves.
 
@@ -2162,6 +2185,22 @@ CASES = [
          argv=['{run}', '--deflation'],
          ok=V(exit=2, has=['and no CLEAN one'],
               hasnt=['the riders were not taken'])),
+
+    case('deflation-skips-a-leg-with-no-positive-slope', 'read-run.py',
+         None,
+         'a zeroed leg slope took the decomposition down bare',
+         # The mode divides this run's `list` slope by the leg's and
+         # logs the ratio, so a leg at zero was a ZeroDivisionError
+         # three frames deep -- the zero-CI% family of --ci, on the
+         # deflation's own inputs. The slope is criterion's own and no
+         # roster state reaches it; a doctored or truncated leg does.
+         # A control until the fix has a hash; non-vacuous by removal
+         # the day it was written -- with the intake guard cut, this
+         # reads the traceback itself.
+         plant=lambda t: {'run': deflation_leg_zero_slope()},
+         argv=['{run}', '--deflation'],
+         ok=V(exit=0, has=['not positive', 'have NO alone leg'],
+              hasnt=['Traceback'])),
 
     case('install-says-it-skipped-the-cross-half-line',
          'install-tables.sh', None,

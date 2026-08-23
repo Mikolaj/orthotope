@@ -2533,6 +2533,16 @@ def deflation_table(run_path, cells, shapes, main_hs):
             sys.stderr.write('%s: not one shape\'s `list`, so it is not an'
                              ' alone leg; skipped\n' % os.path.basename(path))
             continue
+        # A ratio to this slope is logged below, so one that is not
+        # positive would take the whole mode down -- the family every
+        # net site was guarded against on 2026-08-17, on the raw side.
+        # The slope is criterion's own, so no roster state reaches
+        # this; a doctored or truncated leg does.
+        if l_cells[l_shapes[0]]['list']['slope'] <= 0:
+            sys.stderr.write('%s: its `list` slope is not positive, so no'
+                             ' ratio to it has a log; skipped\n'
+                             % os.path.basename(path))
+            continue
         into[shape] = l_cells[l_shapes[0]]['list']['slope']
     if not legs:
         # SAY WHICH of the two is missing. With the saturated set on disk
@@ -2556,6 +2566,10 @@ def deflation_table(run_path, cells, shapes, main_hs):
             continue
         if sh not in legs:
             missing.append(sh)
+            continue
+        if cells[sh]['list']['slope'] <= 0:
+            sys.stderr.write('%s: this run\'s `list` slope is not positive,'
+                             ' so its deflation has no log; dropped\n' % sh)
             continue
         rows.append((sh, cells[sh]['list']['slope'] / legs[sh]))
     print('in-process deflation: this run\'s `list` over its own alone leg,'
@@ -5298,7 +5312,10 @@ def check_doc(readme, main_hs):
         bad.append('BLOCKED: wrap80 failed (%d), so the README wrapping was'
                    ' not checked at all' % e.returncode)
     else:
-        cur = open(readme).read()
+        # `doc` was read once at the top and nothing above writes the
+        # README, so the verdict is read against it rather than through
+        # a second handle -- the wallclock_window family, 9e94c9d.
+        cur = doc
         if want == cur:
             note.append('no paragraph of the README is wrapped by hand')
         else:
