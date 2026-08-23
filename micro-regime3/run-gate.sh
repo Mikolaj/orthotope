@@ -149,10 +149,16 @@ echo "=== $(date -Is) gate complete"
 # per shape -- so the previous run's absolutes are in the README after its JSONs
 # are gone, and this needs no artifact kept. The gate's own selection carries
 # `*/list` and both `sum-only` halves on every shape, so the comparison is net
-# against net, and it happens HERE because a box that changed under the README
-# invalidates an evening that has not been spent yet. It gates the geomean at
-# 3%, against the 0.82% worst excursion eleven kept processes show; a single
-# shape moving 7% is ordinary and does not fire it.
+# against net, and it happens HERE because this is the cheapest hour to learn
+# it. IT DOES NOT GATE, since 2026-08-23: a box that moved between runs cannot
+# reach a within-run claim, which is every claim the README publishes, so
+# stopping for it buys nothing and costs the night. Run 18 stopped here at
+# +4.81% and the evening went on waiting for `run anyway, re-baseline`, an
+# answer never in doubt. The mode now returns 0 for a moved box, whichever way
+# and however far, and 1 only for a comparison it cannot make at all. What it
+# reads is the geomean against the 0.82% worst excursion eleven kept processes
+# show, with the per-shape residual beside it telling a level shift from a
+# move the shapes disagree on -- a single shape wandering 7% being ordinary.
 MACHINE=$(./read-run.py "$PREFIX-gate-$BASIS-a.json" --machine 2>&1)
 MACHINE_RC=$?
 printf '%s\n' "$MACHINE"
@@ -161,6 +167,18 @@ if [ "$MACHINE_RC" != 0 ]; then
   RESULTS="$RESULTS
       !! the machine check FAILED -- read it before the evening"
 fi
+# A moved box is not a failure and must still be impossible to miss. The whole
+# reading goes into the note below; this puts one line where the complaints are,
+# so a reader skimming the verdict meets it there. Advisory: not counted in BAD,
+# and deliberately not spelled `!!`, which this file reserves for what stops a
+# run -- the distinction being the whole point of the change above.
+case $MACHINE in
+  *'BOX MOVED'*)
+    RESULTS="$RESULTS
+      -- the box MOVED since the fingerprint. The run goes ahead; the write-up
+         owes a paragraph naming it, and the box question goes to a person
+         once the machine is free. The reading is below." ;;
+esac
 
 # The gate belongs to the pair, so its verdict is recorded beside the pair
 # rather than in a session's memory. README's procedure leans on this, and the

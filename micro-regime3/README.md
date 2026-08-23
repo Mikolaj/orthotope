@@ -5136,12 +5136,25 @@ to the fingerprint this README keeps, so the last run's absolutes are
 in the README long after its JSONs are offered for deletion and nothing has
 to be kept for it; the gate's own selection carries `*/list` and both `sum-only`
 halves on every shape, which is what makes the comparison net against net.
-It gates the geomean rather than a cell, at a threshold the mode's own docstring
-derives from every kept process this README has. When it fires the gate fails
-with it, and the thing to do is not to read the code: **ask whether the box
-changed** --- a kernel, a microcode update, a BIOS setting, a thermal state,
-a different machine --- none of which a run can see from inside itself.
-It re-baselines by itself, each write-up replacing the fingerprint it reads.
+It reads the geomean rather than a cell, at a threshold the mode's own docstring
+derives from every kept process this README has, and beside it the per-shape
+residual about that geomean, which says whether the shapes moved together:
+inside the band a single shape ordinarily wanders it is a LEVEL SHIFT, one
+number describing the box, and every cross-run ordering survives it; outside,
+the orderings are in question along with the level. **Neither stops the run,
+at any size, in either direction.** A box that moved between runs cannot reach
+a within-run comparison, and every claim here is one; what it reaches
+is the cross-run absolute column, which re-baselines by itself, each write-up
+replacing the fingerprint it reads. So a move is recorded and the evening
+proceeds, the write-up owing a paragraph naming it and the box question going
+to a person once the machine is free: **ask whether the box changed** ---
+a kernel, a microcode update, a BIOS setting, a thermal state, a different
+machine --- none of which a run can see from inside itself, and none worth
+a night of idle machine to ask. **Run 18 is why that is written down**: its gate
+stopped on what the reading above calls a level shift, and the evening was spent
+waiting for the answer *run anyway and re-baseline*, which was never in doubt.
+What still fails the gate is a comparison the mode cannot make at all ---
+no shape of this run in the fingerprint, every `list` net non-positive.
 
 **The run** is one sequence --- the main set from each binary the run has,
 then each stride-class population in its own process, in `classViews`' order.

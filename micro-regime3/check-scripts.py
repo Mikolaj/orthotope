@@ -1401,7 +1401,7 @@ TERM = 4e-10        # the forcing term per element: one pass, so it scales
 
 
 def synth_run(path, shapes, samples=8, no_twins=False, sunk=(), skew=(),
-              slow=1.0, drop_arms=()):
+              slow=1.0, drop_arms=(), fingerprint=None):
     """A criterion run over `shapes`, built rather than captured.
 
     Kilobytes where a real run's JSON is megabytes, and DERIVED: the arms
@@ -1473,7 +1473,7 @@ def synth_run(path, shapes, samples=8, no_twins=False, sunk=(), skew=(),
                 first_term = False
             kept.append((n, role, fn))
         timed = kept
-    reports = []
+    reports, fp_net = [], {}
     for sh in shapes:
         l = dims[sh]['l']
         for name, role, fn in timed:
@@ -1498,6 +1498,16 @@ def synth_run(path, shapes, samples=8, no_twins=False, sunk=(), skew=(),
             # slowed the forcing pass too, which is exactly why dividing
             # by `list` cancels it and subtracting the correction does
             # not.
+            # Captured BEFORE `slow` and `skew`, which is what makes a
+            # written fingerprint exact: `slow` scales the `Term` halves
+            # too, so net scales with it, and a run built at `slow=f`
+            # against this fingerprint reads f on every shape. Against
+            # THIS README's fingerprint a synthetic run reads -95%, its
+            # absolutes being nowhere near the real ones, and no `slow` is
+            # visible through that -- which is why the level-shift branch
+            # could not be cased until this existed.
+            if name == 'list':
+                fp_net[sh] = slope - TERM * l
             slope *= slow
             if (sh, name) in sunk:
                 slope = TERM * l * 0.5      # below the term: net goes negative
@@ -1509,6 +1519,17 @@ def synth_run(path, shapes, samples=8, no_twins=False, sunk=(), skew=(),
                                          samples))
     with open(path, 'w') as f:
         f.write(json.dumps(['criterion', '1.6.5.0', reports]))
+    if fingerprint:
+        # A README carrying nothing but the fingerprint table, in the four
+        # columns FINGERPRINT_ABS_RE reads, at more precision than the real
+        # one prints -- three significant figures is half a percent a cell,
+        # which is most of the band a level-shift case has to resolve. The
+        # header row carries no backticks, so it is not itself a row.
+        with open(fingerprint, 'w') as f:
+            f.write('| shape | . | . | `list` net |\n|---|---|---|---:|\n')
+            for sh in shapes:
+                f.write('| `%s` | . | . | %.9f us |\n' % (sh,
+                                                          fp_net[sh] * 1e6))
     return path
 
 
@@ -2172,9 +2193,14 @@ CASES = [
     case('machine-check-drops-a-sunk-baseline', 'read-run.py', 'e2d6604',
          'a non-positive `list` net raised, and run-gate.sh files stderr'
          ' verbatim into the pair note',
+         # The exit moved from 1 to 0 on 2026-08-23 and this case's subject
+         # did not: SOME shapes sunk are dropped BY NAME and the rest are
+         # compared, and what is asserted here is that naming and the
+         # absence of a traceback. The 1 it used to read was the box
+         # verdict underneath, which no longer stops anything.
          plant=lambda t: {'run': sunk_json(t, main_shapes(), 'list')},
          argv=['{run}', '--machine'],
-         ok=V(exit=1, has=['net not positive'], hasnt=['Traceback']),
+         ok=V(exit=0, has=['net not positive'], hasnt=['Traceback']),
          bug=V(has=['Traceback'])),
 
     # ---- read-run.py, the second review's ------------------------------
@@ -3078,11 +3104,65 @@ CASES = [
          # the message should have named. What is asserted now is the
          # generalisation and the second control the message gained --
          # the previous run's own binary, which produced the fingerprint.
+         # AND THE EXIT MOVED 2026-08-23 too, from 1 to 0, with the ruling
+         # that the box question never stops a run. The control this case
+         # is about is unaffected -- it is what the message names, not what
+         # it returns -- so the assertion keeps the two controls and reads
+         # the new marker in place of the old `PAST`.
          plant=lambda t: {'run': synth_json(t, 'main')},
          argv=['{run}', '--machine'],
-         ok=V(exit=1, has=['PAST', 'CONDITION THE FINGERPRINT',
+         ok=V(exit=0, has=['BOX MOVED', 'CONDITION THE FINGERPRINT',
                            "previous run's own binary"]),
          bug=V(exit=1, has=['PAST'], hasnt=['CONDITION THE FINGERPRINT'])),
+
+    case('machine-check-does-not-stop-a-moved-box', 'read-run.py', 'bc2f884',
+         'a box that got faster or slower failed the gate, leaving a quiet'
+         ' machine idle until a person woke to be asked',
+         # Run 18 met this at +4.81%: the gate exited 1, the evening did not
+         # start, and it ended in `run anyway, re-baseline` -- the answer
+         # that was always going to be given, since every claim this README
+         # publishes is a within-run comparison and a box that moved BETWEEN
+         # runs cannot reach one. The reading was worth having and the stop
+         # was not: an idle night cannot be recovered and a reading can.
+         plant=lambda t: {'run': synth_json(t, 'main', slow=1.30,
+                                            name='moved.json',
+                                            fingerprint=os.path.join(
+                                                t, 'fp-moved.md')),
+                          'readme': os.path.join(t, 'fp-moved.md')},
+         argv=['{run}', '--machine', '--readme', '{readme}'],
+         ok=V(exit=0, has=['BOX MOVED', 'moved TOGETHER',
+                           'GOES AHEAD EITHER WAY'], hasnt=['STOP']),
+         bug=V(exit=1, has=['STOP'])),
+
+    case('machine-check-tells-a-level-shift-from-a-skewed-shape',
+         'read-run.py', 'bc2f884',
+         'a moved box was one verdict, so a move the shapes disagreed on'
+         ' read exactly like one they agreed on',
+         # The two cost different things. Shapes moving together is a single
+         # number and every cross-run ORDERING survives it; shapes moving
+         # apart puts the orderings in question as well as the level, which
+         # is the half worth carrying into a write-up. The band is the 7%
+         # the mode's own docstring already calls an ordinary single-shape
+         # wander, so it is not a second arbitrary threshold.
+         plant=lambda t: {'run': synth_json(
+                              t, 'main', slow=1.10, name='skewed.json',
+                              skew=[(main_shapes()[0], 'list', 1.30)],
+                              fingerprint=os.path.join(t, 'fp-skewed.md')),
+                          'readme': os.path.join(t, 'fp-skewed.md')},
+         argv=['{run}', '--machine', '--readme', '{readme}'],
+         ok=V(exit=0, has=['did NOT move together', 'ORDERING is in question'],
+              hasnt=['moved TOGETHER']),
+         bug=V(exit=1)),
+
+    case('machine-check-passes-an-unmoved-box', 'read-run.py', None,
+         'CONTROL: a run built to match its own fingerprint reads inside the'
+         ' band, so the two cases above are not passing on the fixture',
+         plant=lambda t: {'run': synth_json(t, 'main', name='same.json',
+                                            fingerprint=os.path.join(
+                                                t, 'fp-same.md')),
+                          'readme': os.path.join(t, 'fp-same.md')},
+         argv=['{run}', '--machine', '--readme', '{readme}'],
+         ok=V(exit=0, has=['inside 3%'], hasnt=['BOX MOVED'])),
 
     case('alone-leg-riders-are-not-populations', 'read-all.sh', 'bf9acf2',
          'the riders a paired run leaves were gated as populations',
