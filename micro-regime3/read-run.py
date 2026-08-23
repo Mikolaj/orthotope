@@ -4001,6 +4001,33 @@ def _unwrapped(text):
 # adjudicated once by a reader rather than guessed at here.
 ANSWERED_ACCOUNT = 500
 
+# The one family the length rule does not reach, matched on the lead the
+# seven of them share. A run registration is long because it is the ONLY
+# copy -- the run chapter is replaced every run and the yardstick keeps
+# one geomean per strategy per half, where a registration's answers are
+# half-against-half and control readings no table here carries -- which
+# is the ruling in the open list's preamble and the reason these were
+# adjudicated by hand every time the sweep listed them. Skipped and
+# COUNTED, never dropped in silence: the count rides with the sweep's
+# own line, so a reader sees what the rule did not look at.
+#
+# Keyed on the lead because the family already had a canonical one and
+# six of seven used it verbatim; Run 10's said `Run 10's predictions,
+# and how they came out` and was normalised to it, its own text calling
+# them registrations. A member that drifts out of the phrasing loses the
+# exemption and gets listed, which is the failure a reader can see.
+REGISTRATION_RE = re.compile(r'^(?:- |\d+\. )`\w+` \*\*What Run \d+ was'
+                             r' built to answer')
+
+# The second exemption, and the one that lets the rule GATE rather than
+# list: an answer whose evidence nothing else records has nowhere to be
+# moved to, so an entry saying so in a bolded clause is passed over. Bolded
+# because the phrase has to be a ruling and not a passing use -- this file's
+# own prose says `the only copy there is` about the registrations -- and the
+# failure message names the form, so the way out is read off the failure
+# rather than guessed at.
+ONLY_COPY_RE = re.compile(r'\*\*[^*]*only copy[^*]*\*\*')
+
 
 def status_entries(lines, tag):
     """[(line number, whole entry)] for each entry of the list tagged TAG.
@@ -5120,22 +5147,53 @@ def check_doc(readme, main_hs):
     # and the topical section it duplicates goes on being the one that
     # moves when a run does.
     #
-    # LISTED AND NEVER FAILED, like the three sweeps above and for the
-    # same reason: whether an account has a home to move to is a
-    # judgement, some of these entries are run registrations whose home
-    # IS this list, and a gate here would fail the README for prose that
-    # is correct. What it fires on is length, and only length -- see the
-    # constant for the clause that used to sit beside it and why it went.
-    bloated = [('%s:%d' % (os.path.basename(readme), i), l)
-               for i, l in status_entries(lines, 'ANSWERED')
-               if len(l.split()) > ANSWERED_ACCOUNT]
+    # A FAIL, unlike the three sweeps above, and it took two goes to earn
+    # that. It listed rather than failed while the test was length AND
+    # the absence of a pointer, because that pair could not tell an
+    # account from an entry that had earned its length -- and then
+    # because the run registrations sat in every list it produced, six
+    # entries a reader adjudicated by hand each time. Both are answered
+    # now: length alone decides, the registrations are exempt by their
+    # own lead, and what is left is a document defect with three
+    # truthful ways out. Nothing is left to judge, so it gates.
+    #
+    # THE ONLY-COPY ESCAPE IS WHAT MAKES THE GATE HONEST. An answer whose
+    # evidence nothing else records cannot be moved anywhere, and
+    # `bq-scan-packed-mulback` is the live instance -- the dead-ideas
+    # list takes ideas that died on paper where that one was built,
+    # rostered and measured. It sits under the threshold today, so the
+    # gate never meets it; a longer one would be failed with no true way
+    # to pass, and a gate that forces a lie is worse than a list nobody
+    # reads. So a bolded clause carrying `only copy` exempts an entry,
+    # and the failure names that as one of the ways out rather than
+    # leaving it to be discovered.
+    #
+    # Both exemptions are COUNTED and said in either branch, the pass
+    # included: an exemption nobody is told about is the silent cap this
+    # directory refuses everywhere else.
+    long_ones = [('%s:%d' % (os.path.basename(readme), i), l)
+                 for i, l in status_entries(lines, 'ANSWERED')
+                 if len(l.split()) > ANSWERED_ACCOUNT]
+    regs = [h for h in long_ones if REGISTRATION_RE.match(h[1])]
+    onlys = [h for h in long_ones
+             if h not in regs and ONLY_COPY_RE.search(h[1])]
+    bloated = [h for h in long_ones if h not in regs and h not in onlys]
+    said = ('%d run registration(s) and %d only-copy ruling(s) past it are'
+            ' exempt' % (len(regs), len(onlys)))
     if bloated:
-        sweep(bloated, 'ANSWERED entry(s) past %d words; an answer owes the'
-                       ' question, the outcome and the section that holds the'
-                       ' account, and anything longer is a chapter in the'
-                       ' question register -- adjudicate each, the'
-                       ' registrations having a ruling of their own'
-              % ANSWERED_ACCOUNT)
+        bad.append('%d ANSWERED entry(s) past %d words, which is a chapter'
+                   ' in a question register: %s. Move the account to the'
+                   ' section that owns it; or give a run registration the'
+                   " family's lead, `What Run N was built to answer`; or,"
+                   ' where the entry is the only copy there is, say so in a'
+                   ' bolded clause carrying `only copy` and the ruling that'
+                   ' goes with it. %s'
+                   % (len(bloated), ANSWERED_ACCOUNT,
+                      '; '.join('%s %s' % (i, l[:56]) for i, l in bloated),
+                      said))
+    else:
+        print('ok:   no ANSWERED entry is past %d words but the exempt ones,'
+              ' and %s' % (ANSWERED_ACCOUNT, said))
 
     # The yardstick table keeps a column for the regime this run is NOT in,
     # which reads like a leftover and is the opposite: it is the only place

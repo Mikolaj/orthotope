@@ -307,15 +307,28 @@ and an answer that runs to a chapter puts the account in the one
 of this README's three places that does not move when a run does. The shape
 to copy is the `window` overlap entry below, which states its outcome
 in a sentence and ends by naming the block that carries its figures.
-`--check-doc` lists, without failing, any `ANSWERED` entry past five hundred
-words; the entries already past it are the backlog that rule was written over,
-and they are to be shortened as each is next touched rather than in one pass.
-**Length is the whole test, and it was not**: the rule also asked that the entry
-point nowhere, which sounds like the same thing and is an off switch,
-this README cross-referencing constantly enough that every long entry names
-a link or a file --- so the sweep listed none of the fourteen entries past three
-hundred words, and exempted an eighteen-hundred-word summary for naming
-the files its measurements are in.
+`--check-doc` FAILS the file for any `ANSWERED` entry past five hundred words
+--- it listed until 2026-08-23 and gates now that nothing is left to judge,
+with three truthful ways out that the failure itself names: move the account
+to the section that owns it, give a run registration the family's lead, or say
+in a bolded clause carrying `only copy` that there is nowhere to move it.
+That last is what makes a gate honest rather than coercive,
+`bq-scan-packed-mulback` being the live case of an answer nothing else records;
+the entries already past it are the backlog that rule was written over, and they
+are to be shortened as each is next touched rather than in one pass. **Length
+is the whole test, and it was not**: the rule also asked that the entry point
+nowhere, which sounds like the same thing and is an off switch, this README
+cross-referencing constantly enough that every long entry names a link or a file
+--- so the sweep listed none of the fourteen entries past three hundred words,
+and exempted an eighteen-hundred-word summary for naming the files
+its measurements are in. **The one exemption is the registration family**,
+matched on the lead its members share --- *What Run N was built to answer* ---
+and counted rather than dropped, the sweep's own line saying how many it passed
+over. They earn it by the ruling below and not by their length: a registration
+is the only copy there is. A member that drifts out of that phrasing loses
+the exemption and gets listed, which is a failure a reader can see; Run 10's had
+drifted, its lead saying *predictions* where its own text calls them
+registrations, and was normalised back.
 
 **The run registrations are the standing exception to it, and reducing the old
 ones is REFUSED --- 2026-08-22, on reading two of them.**
@@ -680,11 +693,11 @@ rather than a slot in the next run, observed again:
   and says nothing, where `t` above 40 with a step past 2% flags about 3%
   of them; quoting the first without the second would be the same error one
   level down.
-- `ANSWERED` **Run 10's predictions, and how they came out.** The run is made;
-  the verdicts are here, with the registrations they are read against left
-  standing underneath so that what was predicted before the hours were spent
-  stays legible. **Two held, one held only in direction, one split and one
-  is refuted.**
+- `ANSWERED` **What Run 10 was built to answer, registered before it ran ---
+  and what it answered.** The run is made; the verdicts are here,
+  with the registrations they are read against left standing underneath
+  so that what was predicted before the hours were spent stays legible. **Two
+  held, one held only in direction, one split and one is refuted.**
   1. **Split, and the split is the finding.** `mut-odo-vecdims-add-in` collapsed
      as predicted --- 0.9937 on the unaligned half, where all four copies
      are now line-resident, and **1.0009** on the aligned half, where
