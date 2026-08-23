@@ -1118,7 +1118,7 @@ def readme_open_list_reshaped(tmp):
     return write(os.path.join(tmp, 'R.md'), '\n'.join(out))
 
 
-def readme_answered_account(tmp):
+def readme_answered_account(tmp, lead=None, tail=''):
     """An ANSWERED entry over the sweep's threshold, planted in the list.
 
     BUILT rather than borrowed. The live list's own long entries are the
@@ -1140,8 +1140,12 @@ def readme_answered_account(tmp):
     reader = _reader()
     n = reader.ANSWERED_ACCOUNT // 10 + 10        # 11 words a repetition
     filler = 'This entry is a fixture and says nothing about the run. ' * n
-    entry = ('- `ANSWERED` **zz-planted-account, an answer grown into an'
-             ' account.** ' + filler.strip())
+    lead = lead or '**zz-planted-account, an answer grown into an account.**'
+    # The marker rides in the BODY as well as in the default lead, since
+    # the registration variants replace the lead and still have to be
+    # identifiable in what the checker prints.
+    entry = ('- `ANSWERED` ' + lead + ' On zz-planted-account. '
+             + filler.strip() + tail)
     return edited_readme(tmp, (lines[i], entry + '\n' + lines[i]))
 
 
@@ -2378,7 +2382,7 @@ CASES = [
                            'the status check did not run']),
          bug=V(exit=0, hasnt=['no top-level entry found'])),
 
-    case('answered-account-listed-not-failed', 'read-run.py', '3596ba2',
+    case('answered-account-fails-the-document', 'read-run.py', '3596ba2',
          'an answer grew into the chapter it should have pointed at',
          # The open list is a question register and `What is settled, and
          # where` is the pointer layer, which says of itself that it
@@ -2387,18 +2391,65 @@ CASES = [
          # a run does, and the topical section it duplicates goes on
          # moving without it.
          #
-         # LISTED AND NOT FAILED, which is the half worth a case: the
-         # sweep must leave exit 0, or it would fail this README today
-         # over prose that is correct and merely in the wrong place. The
-         # plant is an entry over the threshold with every link stripped,
-         # since the live list already carries some and the case would
-         # otherwise pass on those rather than on what it planted.
+         # IT GATES, and that took two goes to earn: it listed while the
+         # test was length AND the absence of a pointer, which could not
+         # tell an account from an entry that had earned its length, and
+         # then while the run registrations sat in every list it made.
+         # Length alone decides now, the two exemptions are mechanical,
+         # and what is left is a defect with three truthful ways out --
+         # which the failure names, the third of them being the escape
+         # the case below this one is about.
          plant=lambda t: {'readme': readme_answered_account(t)},
-         argv=['--check-doc', '--worklists', '--readme', '{readme}'],
-         ok=V(exit=0, has=['ANSWERED entry(s) past 500 words',
-                           'zz-planted-account']),
+         argv=['--check-doc', '--readme', '{readme}'],
+         ok=V(exit=1, has=['ANSWERED entry(s) past 500 words',
+                           'zz-planted-account', 'only copy']),
          bug=V(exit=0, hasnt=['ANSWERED entry(s) past 500 words'])),
 
+    case('answered-only-copy-ruling-is-exempt', 'read-run.py', None,
+         'a gate with no true way out for an answer nothing else records',
+         # WHAT MAKES THE GATE HONEST. `bq-scan-packed-mulback`'s Core
+         # account is the only copy there is -- the dead-ideas list takes
+         # ideas that died on paper and that one was built, rostered and
+         # measured -- so a long one of its kind would be failed with no
+         # true way to pass. A bolded clause carrying `only copy` is the
+         # ruling and the exemption at once.
+         plant=lambda t: {'readme': readme_answered_account(
+             t, tail=' **The account above is the only copy, and there is'
+                     ' nowhere to move it.**')},
+         # `--worklists`, because the quiet form withholds the `ok:` line
+         # this reads and an absence would pass whether the check ran or
+         # not.
+         argv=['--check-doc', '--worklists', '--readme', '{readme}'],
+         ok=V(exit=0, has=['1 only-copy ruling(s)'])),
+
+    case('answered-registration-is-exempt', 'read-run.py', None,
+         'the registrations were adjudicated by hand every run',
+         # Six entries a reader cleared by hand each time the list was
+         # printed, all of them long for the same recorded reason: a
+         # registration is the only copy, the run chapter being replaced
+         # every run and the yardstick keeping one geomean per strategy
+         # per half. Exempt by the lead the family shares, and COUNTED.
+         plant=lambda t: {'readme': readme_answered_account(
+             t, lead='**What Run 99 was built to answer, registered before'
+                     ' it ran --- and what it answered.**')},
+         # The `ok:` line is asserted as well as the absence, so a check
+         # that did not run cannot pass this by saying nothing.
+         argv=['--check-doc', '--worklists', '--readme', '{readme}'],
+         ok=V(exit=0, has=['run registration(s) and'],
+              hasnt=['What Run 99'])),
+
+    case('answered-registration-lead-must-match', 'read-run.py', None,
+         'an exemption a drifted lead would have kept in silence',
+         # The exemption is keyed on the phrasing, so a member that drifts
+         # out of it LOSES the exemption and is failed -- which is the
+         # failure a reader can see, and the reason Run 10's lead was
+         # normalised back rather than the pattern widened to admit it.
+         # Its own text called them registrations while its lead said
+         # `predictions`.
+         plant=lambda t: {'readme': readme_answered_account(
+             t, lead="**Run 99's predictions, and how they came out.**")},
+         argv=['--check-doc', '--readme', '{readme}'],
+         ok=V(exit=1, has=["Run 99's predictions"])),
     case('floor-movement-reads-the-previous-column', 'read-run.py', '3596ba2',
          "a run installed a class table and left the last run's movements",
          # The paragraph under the class table reads each class's floor
