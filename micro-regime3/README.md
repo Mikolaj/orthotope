@@ -1934,13 +1934,19 @@ rather than a slot in the next run, observed again:
   16 figure, and that movement is what raised the question --- the paragraph
   that used to state such movements under the class table was cut on 2026-08-22
   for quoting the previous run's, and its subject is here instead.
-  **The measurement that would settle it wants no quiet machine and no new
-  run**: the floor is a MAX over eighteen pairs, so a half with one wild cell
-  carries a wider one at the same dispersion --- read the median A/A deviation
-  per half beside it, over the JSONs already on disk. Medians that move together
-  put the effect in the tail and make the ruling that a floor is an order
-  statistic and not a spread; medians that move apart put it in the halves,
-  which the pair was not built to vary. The evening's process order is the other
+  **The measurement it registered was taken 2026-08-23, wanting no quiet machine
+  and no new run, and the first branch fired.** The floor is a MAX over eighteen
+  pairs, so a half with one wild cell carries a wider one at the same
+  dispersion; read the median A/A deviation per half beside it, over the same
+  JSONs, and the two halves are alike --- the basis is wider on the median
+  in **9 of the 24** comparisons at sign p 0.31, against **18 of 24** at p 0.023
+  on the max. **So the ruling is that a floor is an order statistic and
+  not a spread**, and what is asymmetric between the halves is the tail rather
+  than the dispersion: the basis half carries the wilder cell, not the noisier
+  roster. That retires the dispersion candidate and leaves the evening's process
+  order, which the artifacts can still answer, every process being timestamped
+  --- and it is the one that would make this a property of when a half ran
+  rather than of which half it is. The evening's process order is the other
   candidate the artifacts can answer, every process being timestamped, and
   it is the one that would make this a property of when a half ran rather
   than of which half it is. **Until it is settled, read a class margin against
