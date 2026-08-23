@@ -1897,9 +1897,21 @@ def compare_ci(cells, shapes, strategies, meta, other, main_hs):
     for x, y, st in sorted(rows, key=lambda r: -(r[0] / r[1]) if r[1] else 0):
         print('%-34s %8.2f %8.2f %8.2f'
               % (st, x, y, (x / y) if y else float('nan')))
-    rs = [x / y for x, y, _ in rows if y]
+    # A zero CI% on EITHER side is out of the geomean: a zero in the
+    # other run has no ratio, and a zero in THIS run has ratio 0, whose
+    # log took the whole mode down with a ValueError -- the mirror of
+    # the all-zero other run guarded since a6067af, found 2026-08-23 by
+    # flipping that state's two files.
+    zero = [st for x, y, st in rows if not (x > 0 and y > 0)]
+    rs = [x / y for x, y, st in rows if x > 0 and y > 0]
+    if zero:
+        print('\n%d arm(s) with a zero CI%% on a side are out of the'
+              ' geomean: %s' % (len(zero), ', '.join(zero)))
     if not rs:
-        print('\nno arm has a non-zero CI%% in the other run, so there is no'
+        # A single `%`: no format operation runs on this print, so a
+        # doubled one reaches the reader doubled -- as it did from
+        # a6067af until the case caught it here.
+        print('\nno arm has a non-zero CI% on both sides, so there is no'
               ' ratio to take.')
         return 0
     print('\ngeomean over the %d arm(s) %.2f, %d wider here and %d narrower.'

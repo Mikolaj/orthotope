@@ -345,6 +345,18 @@ for n, (c, start) in enumerate(reversed(order)):
         elif s.startswith('Per shape'): paras[j] = per; done += 1
         elif across and s.startswith('Across the halves:'):
             paras[j] = across; done += 1
+    # Item 5 owed -- the other half on disk, the line emitted -- and no
+    # `Across the halves:` slot in the block to fill: the loop above
+    # matched nothing and moved on, which dropped the line in silence.
+    # A block pasted from the pre-item-5 form is how the state arises.
+    if across and not any(paras[j].lstrip().lstrip('*')
+                              .startswith('Across the halves:')
+                          for j in range(start, end)):
+        print(f'  REFUSED {c}: the other half is on disk, --block emitted'
+              f' the cross-half line, and the block has no `Across the'
+              f" halves:` paragraph to fill -- item 5 of the form would be"
+              f' dropped in silence')
+        sys.exit(1)
     if prov_at is not None and not any(
             paras[j].lstrip().lstrip('*').startswith('Per shape')
             for j in range(start, end)):

@@ -574,6 +574,20 @@ INLINE_REG = ('- `%s` **What Run 99 was built to answer, registered'
               ' (1) *The knob*: **HELD.** (2) *The dial*: %s\n\n')
 
 
+def an_across_paragraph():
+    """One class block's `Across the halves:` paragraph, wrapped form.
+
+    Named dynamically like a_registration_lead above: its figures are
+    reinstalled with every run, so a pinned copy dies at the next
+    install.
+    """
+    for p in open(README).read().split('\n\n'):
+        if p.lstrip().lstrip('*').startswith('Across the halves:'):
+            return p
+    raise AssertionError('no `Across the halves:` paragraph in the README'
+                         ' to delete')
+
+
 def class_pair_with_log(tmp, cls='rev', slow=1.0):
     """A class run, its other half, and the `.log` a process leaves.
 
@@ -668,6 +682,25 @@ def null_bound(benches, want):
                     r['regCoeffs']['iters']['estError']['confIntLDX'] = None
                     hit += 1
     assert hit == 1, '%s: %d time fit(s)' % (want, hit)
+    return hit
+
+
+def zero_ci(benches, arm=None):
+    """CI bounds written zero -- an exact fit -- on one arm or on all.
+
+    `arm` matches the bench name's arm half over EVERY shape, because
+    `--ci` reads medians across shapes: one zeroed shape moves no
+    median, so the case that wants a zero arm zeroes it everywhere.
+    """
+    hit = 0
+    for b in benches:
+        if arm is None or b['reportName'].endswith('/' + arm):
+            for r in b['reportAnalysis']['anRegress']:
+                if r.get('regResponder') == 'time':
+                    e = r['regCoeffs']['iters']['estError']
+                    e['confIntLDX'] = e['confIntUDX'] = 0.0
+                    hit += 1
+    assert hit, 'no time fit matched %r' % (arm,)
     return hit
 
 
@@ -2092,6 +2125,31 @@ CASES = [
          argv=['{run}', '--compare', '{other}', '--alloc', '--ci'],
          ok=V(exit=2, has=['readings of --compare, not one'])),
 
+    case('ci-drops-a-zero-arm-from-the-geomean', 'read-run.py', None,
+         "a zero CI% in THIS run took --ci down with a ValueError",
+         # a6067af guarded the geomean against an all-zero OTHER run; the
+         # mirror -- an arm of this run at zero, ratio 0, log(0) -- was
+         # found 2026-08-23 by flipping that state's two files, and it
+         # crashed three frames down where the sibling had been refused.
+         # A control until the fix has a hash.
+         plant=lambda t: {'run': doctored(t, 'main', lambda b: zero_ci(
+                              b, 'build'), 'a.json'),
+                          'other': synth_json(t, 'main', 'b.json')},
+         argv=['{run}', '--compare', '{other}', '--ci'],
+         ok=V(exit=0, has=['out of the geomean', 'wider here'],
+              hasnt=['Traceback'])),
+
+    case('ci-says-when-no-ratio-exists', 'read-run.py', None,
+         'every arm zero on a side, and the geomean owed a refusal',
+         # The whole run zeroed on this side leaves nothing to take a
+         # ratio of, which is the state a6067af met in the other run's
+         # direction and this fix widened to both.
+         plant=lambda t: {'run': doctored(t, 'main', zero_ci, 'a.json'),
+                          'other': synth_json(t, 'main', 'b.json')},
+         argv=['{run}', '--compare', '{other}', '--ci'],
+         ok=V(exit=0, has=['no arm has a non-zero CI% on both sides'],
+              hasnt=['Traceback', 'wider here'])),
+
     case('deflation-names-which-leg-set-is-missing', 'read-run.py', None,
          'saturated legs on disk, told the riders were never taken',
          # An interrupted rider evening leaves exactly this: the `SAT=`
@@ -2117,6 +2175,24 @@ CASES = [
          env={'DOC': '{doc}', 'BASIS': 'lookrts', 'OTHER': 'nosuchhalf'},
          argv=['zzxh'],
          ok=V(exit=0, has=['no cross-half line is installed'])),
+
+    case('install-refuses-a-block-without-item-5', 'install-tables.sh',
+         None,
+         'a block with no item-5 slot, and the owed cross-half line'
+         ' dropped in silence',
+         # With the other half on disk the line is owed and --block emits
+         # it, but a block pasted from the pre-item-5 form has no
+         # paragraph to fill: the fill loop matched nothing and moved on,
+         # between the ADDED branch that repairs a missing per-shape line
+         # and the note that names a skipped line. A control until the
+         # fix has a hash.
+         plant=lambda t: {'doc': edited_readme(t, (
+             '\n\n' + an_across_paragraph(), ''))},
+         shadow=dict(extra=whole_run(['lookrts', 'ovhalf'],
+                                     prefix='zzx5')),
+         env={'DOC': '{doc}', 'BASIS': 'lookrts', 'OTHER': 'ovhalf'},
+         argv=['zzx5'],
+         ok=V(exit=1, has=['REFUSED', 'no `Across the halves:`'])),
 
     case('chapter-head-carries-a-previous-run', 'read-run.py', None,
          "paragraphs of the last run's chapter left standing in this one",
