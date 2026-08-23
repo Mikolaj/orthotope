@@ -538,6 +538,24 @@ def synth_json(tmp, pop='main', name=None, **kw):
     return synth_run(os.path.join(tmp, name or '%s.json' % pop), shapes, **kw)
 
 
+def a_registration_lead():
+    """The lead line of some ANSWERED run registration in the README.
+
+    Named dynamically rather than pinned to a run, because registrations
+    are RETIRED to MARGINALIA once answered and two further runs have
+    reported -- so a fixture naming one dies at the retirement it should
+    have outlived, which is what happened to Run 12's the hour this check
+    was written.
+    """
+    for line in open(README):
+        m = re.match(r'^- `ANSWERED` \*\*What Run \d+ was built to answer',
+                     line)
+        if m:
+            return m.group(0)
+    raise AssertionError('no ANSWERED run registration in the README to'
+                         ' plant against')
+
+
 def class_pair_with_log(tmp, cls='rev', slow=1.0):
     """A class run, its other half, and the `.log` a process leaves.
 
@@ -1886,6 +1904,43 @@ CASES = [
          argv=['{run}', '--compare', '{other}', '--chapter'],
          ok=V(has=['elapsed 0h12m14s', 'elapsed 0h12m15s'],
               hasnt=['heap peaks, wall-clock window: ___'])),
+
+    case('registration-open-with-every-verdict-in', 'read-run.py', None,
+         'a registration marked OPEN whose every question was answered',
+         # Run 12's registered four questions, one of them "as a gap
+         # rather than a question", and item 3 records in its own body
+         # that the debt was PAID on 2026-08-13 -- while the entry's
+         # status stayed `OPEN` and its lead went on saying `one still a
+         # gap`. Six runs walked the open list past it, and the retirement
+         # of spent registrations then skipped it BECAUSE of the marker,
+         # which is the second cost: a stale status does not merely
+         # mislead, it exempts.
+         #
+         # The family always ends ANSWERED, so the sound form of the
+         # check is: an OPEN one all of whose numbered items carry a
+         # verdict is a marker nobody updated. The fixture takes whatever
+         # ANSWERED registration the README still carries and puts the
+         # bad marker on it -- named dynamically because registrations
+         # RETIRE, and a fixture pinned to Run 12's died the hour this
+         # check retired Run 12's.
+         #
+         # THE FIRST DRAFT OF THE PATTERN MISSED IT, and that is why the
+         # pattern is keyed on the verdict WORD and not on capitalisation:
+         # three of Run 12's four items shout (`ANSWERED:`, `REFUTED,`,
+         # `THE RUN IS CLEAN`) and the fourth does not (`the debt is
+         # PAID`), so an all-caps rule passed the one case it existed for.
+         plant=lambda t: {'readme': edited_readme(t, (
+             a_registration_lead(),
+             a_registration_lead().replace('`ANSWERED`', '`OPEN`', 1)))},
+         argv=['--check-doc', '--quiet', '--readme', '{readme}'],
+         ok=V(exit=1, has=["registration is marked OPEN"])),
+
+    case('registration-answered-is-not-flagged', 'read-run.py', None,
+         'CONTROL: the same entry, correctly marked, says nothing',
+         plant=lambda t: {'readme': edited_readme(t, (
+             a_registration_lead(), a_registration_lead()))},
+         argv=['--check-doc', '--quiet', '--readme', '{readme}'],
+         ok=V(exit=0, hasnt=['registration is marked OPEN'])),
 
     case('chapter-head-carries-a-previous-run', 'read-run.py', None,
          "paragraphs of the last run's chapter left standing in this one",

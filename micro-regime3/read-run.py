@@ -5739,6 +5739,50 @@ def check_doc(readme, main_hs):
     # wrote, which lives in the repo whichever copy is being linted, and
     # without the fallback every planted fixture would answer `no
     # committed copy` and the check could not be cased at all.
+    # A REGISTRATION MARKED OPEN WHOSE EVERY ITEM HAS A VERDICT. Run 12's
+    # registered four questions, one of them "as a gap rather than a
+    # question", and recorded in that item's own body that the debt was
+    # PAID on 2026-08-13 -- while its status stayed `OPEN` and its lead
+    # went on saying `one still a gap` through six runs of post-run step
+    # 10. The family always ends ANSWERED, so an OPEN one all of whose
+    # numbered items carry a bolded verdict is a marker nobody updated.
+    # The verdict WORD and not an all-caps run: Run 12's third item reads
+    # `**The condition was met and the debt is PAID**`, so a pattern
+    # keyed on capitalisation misses the one case this exists for -- as
+    # the first draft of it did.
+    VERDICT = re.compile(r'\*\*[^*]{0,200}?\b(?:ANSWERED|REFUTED|PAID'
+                         r'|KILLED|CLEAN|DELIVERED|HELD|BROKE|SETTLED'
+                         r'|RETIRED|SPENT|SPLIT|UNUSED|NULL)\b')
+    # BOTH DIRECTIONS. An OPEN registration whose every item is adjudicated
+    # is a stale marker; an ANSWERED one with an item that is not is an
+    # incomplete adjudication, and Run 17's carried exactly that -- a lead
+    # promising `one came apart into a split` over an item 5 with no
+    # verdict of any kind, through the whole of Run 18.
+    for m in re.finditer(r'^- `(OPEN|ANSWERED)` \*\*What Run (\d+) was built'
+                         r' to answer', doc, re.M):
+        nxt = re.search(r'^- `[A-Z]+` ', doc[m.end():], re.M)
+        body = doc[m.start():m.end() + (nxt.start() if nxt else len(doc))]
+        items = re.split(r'^  \d+\. ', body, flags=re.M)[1:]
+        if not items:
+            continue
+        done = [bool(VERDICT.search(it)) for it in items]
+        if m.group(1) == 'OPEN' and all(done):
+            bad.append("Run %s's registration is marked OPEN and every one"
+                       ' of its %d numbered items carries a verdict: the'
+                       ' family always ends ANSWERED, so the marker is'
+                       ' stale --- and a stale marker does not merely'
+                       ' mislead, it exempts the entry from retirement'
+                       % (m.group(2), len(items)))
+        elif m.group(1) == 'ANSWERED' and not all(done):
+            bad.append("Run %s's registration is ANSWERED and item(s) %s"
+                       ' carry no verdict: an answered registration is one'
+                       ' where every question was adjudicated, and a lead'
+                       ' counting outcomes over an item that records none'
+                       ' is a count of something nobody wrote'
+                       % (m.group(2),
+                          ', '.join(str(k + 1)
+                                    for k, d in enumerate(done) if not d)))
+
     head_doc = head_text_of(readme)
     if head_doc is None:
         here_readme = os.path.join(

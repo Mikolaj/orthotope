@@ -350,16 +350,18 @@ rule happens to pass them by, every one of them pointing somewhere as well;
 where one does not, this ruling is the authority and not the rule.
 
 **The spent run registrations are not here, and where they went is the half
-a removal owes.** Runs 10, 11, 13, 15 and 16's went to `MARGINALIA`
-on 2026-08-23, verbatim and whole. They were answered, every finding of theirs
-already lives in the topical section its entry points at, and what they still
-cost was this list: a run registration is exempt from the 500-word ceiling,
-so five of them had grown to chapter length and every grep of this section paged
-through all five. **Run 12's stays**, being `OPEN` on a gap it never closed,
-and so do the last two runs'. The rule going forward is that a registration
-leaves when it is answered and two further runs have reported ---
-and that `MARGINALIA` is write-only, so what leaves is gone from working use
-rather than merely moved.
+a removal owes.** Runs 10 to 16's went to `MARGINALIA` on 2026-08-23, verbatim
+and whole --- Run 12's last, and only once its status was corrected, having
+been held back by a stale `OPEN` that its own third item had contradicted since
+2026-08-13. They were answered, every finding of theirs already lives
+in the topical section its entry points at, and what they still cost
+was this list: a run registration is exempt from the 500-word ceiling, so five
+of them had grown to chapter length and every grep of this section paged through
+all five. **The last two runs' stay.** A stale marker does not merely mislead,
+it exempts --- which is why `--check-doc` now holds a registration's marker
+to its own items. The rule going forward is that a registration leaves when
+it is answered and two further runs have reported --- and that `MARGINALIA`
+is write-only, so what leaves is gone from working use rather than merely moved.
 
 **This is the only home for an open question.** They are collected here because
 otherwise they sit one per section and get reconstructed every time ---
@@ -1091,139 +1093,6 @@ rather than a slot in the next run, observed again:
   as a finding: `window`'s is two cells at sign p 1. What the span says is what
   the entry already said, one run more strongly --- whatever the residual is,
   it is not one quantity waiting to be attributed.
-- `OPEN` **What Run 12 was built to answer, registered before it ran, and how
-  it came out.** Four questions, each with what would count as an answer,
-  so that a run reporting "nothing moved" reports a result rather
-  than a failure. Registered 2026-08-13 before the evening and answered the same
-  day; the verdicts belong here rather than in the run's own chapter, which
-  the next run replaces. **Two answered, one refuted, one still a gap** ---
-  and the refuted one is the run's finding.
-  1. **What the flag costs across the roster, as a package.** Run 11 priced
-     the shim; this prices `-fproc-alignment=64` on top of it, read
-     as `run12-maxskippa` against `run12-maxskip` over the main set with each
-     class's own table beside it. What counts as an answer is a direction
-     and a magnitude clearing the drift band Run 11 measured --- at most 3.3%
-     per arm, most under 1.5%, 495 of 762 cells within 1% --- so an arm inside
-     that band is not evidence either way, and "nothing moved past drift"
-     is itself the answer if that is what comes back. The decision it feeds
-     is which half publishes the table.
-
-     **ANSWERED: the flag costs, and the basis stays without it.** Of the 24
-     timed arms, 19 are slower under the flag, and of the five that are not only
-     `build` (0.9913) is so by more than a quarter of a percent. Two clear
-     the drift band, `bq-mut` at **1.0516** and `offtab` at **1.0502**,
-     with `mut-odo` (1.0324) and `bq-gen` (1.0284) just inside it. So pinning
-     every procedure start buys nothing this roster can see and charges two arms
-     five percent, and the table is published from `run12-maxskip`. Run 13
-     inherits the plain max-skip half.
-  2. **Whether the two-and-two vecdims split survives the flag.** Run 11 found
-     the four arms splitting two and two --- `mut-odo-vecdims` (1.0074)
-     and `-add-both` (1.0333) keeping the whole NOP cost Run 10 measured
-     for them (1.0069, 1.0326), `-add-in` (1.0036) and `-add-both-down` (1.0029)
-     shedding most of theirs (1.0143, 1.0443) --- and that split was predicted
-     from the offsets in the pair note before it was read. The halves' fills
-     differ again, `[11, 0, 4, 0]`/`[24, 8, 0, 0]` against
-     `[4, 0, 4, 0]`/`[8, 8, 4, 4]`, and Run 11's third question priced the two
-     copies max-skip left resident, at 24 and 8. **Which arms those were has
-     since been derived and is not what this sentence assumed** (2026-08-13,
-     in `run12-pair.txt`): naming the copies off a `-g3` twin and matching
-     by byte identity puts `mut-odo-vecdims` at 24 and `-add-in` at 8,
-     so the resident pair is 1.0074 and **1.0036**, while `-add-both`'s 1.0333
-     sits at 0 beside `-add-out`. One arm of each kind is resident and one
-     is at zero, so residency does not sort the split --- a second refutation
-     of the offsets account, independent of the paired reading below
-     and available from these binaries all along. So the prediction is
-     that the split persists under the flag rather than closing. The reading
-     is the four arms' paired geomeans, `maxskippa` against `maxskip`,
-     and it needs no offset mapping. **What kills it** is the four moving
-     together, the split closing, which would say the offsets are not what
-     it was about. What this does *not* license is tying a named arm to a named
-     offset: `loop-offsets.py` labels every `Main` copy with the same mangled
-     symbol, and its docstring pins the entry order of the `build`/`mut-odo`
-     group alone, so the vecdims group's order is recorded nowhere and would
-     have to be derived before any per-arm offset claim is made.
-
-     **REFUTED, on its own kill condition.** The four read **0.9996**,
-     **1.0035**, **0.9988** and **1.0003** --- a spread of 0.47 points where Run
-     11's was 3.0 --- so they moved together and the split closed. What
-     that rules out is the split being about resident offsets *as such*; what
-     it does not establish is any positive account of Run 11's split, this pair
-     moving every procedure start rather than the two copies max-skip left
-     resident. **So Run 11's split is now an open question rather
-     than an explained one**, and the probe this entry once named as what would
-     settle it --- one arm stepped through several offsets with no straddle
-     anywhere, on the pad-probe model --- **is not it, for three reasons
-     the naming has since supplied.** That probe has been run,
-     on `build`/`mut-odo`, and its graded penalty and resident spread are [in
-     the floor section][floor]; what it never touched is the vecdims family.
-     It cannot reach the two arms the split turns on, `-add-out` and `-add-both`
-     sitting at 0 in both of Run 11's halves, so no sweep of offsets can explain
-     a difference their offsets did not make. And on the two it could sweep
-     the quantity is bounded small already: `mut-odo-vecdims` at 24
-     and `-add-in` at 8 differ from the same code at 0 by 0.74% and 0.36%
-     *including* whatever the NOPs cost, which is inside the drift band
-     and beside the A/A floor.
-
-     **What is left as the candidate is the NOPs themselves, and it is a static
-     question rather than an evening.** An arm pays for a padded head wherever
-     one falls on its hot path, its own fill's or a helper's,
-     and the unconditional form pads every head where max-skip pads only
-     those that need it --- so the split should follow which arms carry
-     a skipped head. Rebuilding the two assemblies costs seconds, the heads each
-     form gives a directive are the shim's own output, and attributing them
-     to arms is `addr2line` on a `-g3` twin, which the naming below made
-     ordinary. That wants no machine time and no quiet window. A vecdims offset
-     sweep is what it falls back to, and would then be answering whether
-     this family's loop is offset-insensitive rather than anything about
-     the split.
-
-     **And the naming since says the same without a second run, which is what
-     the derivation this entry asked for was worth.** The copies max-skip left
-     resident are `mut-odo-vecdims`'s at 24 and `-add-in`'s at 8, which read
-     1.0074 and 1.0036 --- one on each side of Run 11's split; `-add-out`
-     and `-add-both`, the two largest readings the family has at 1.0513
-     and 1.0333, sit at 0 in both halves. So the split crosses the resident
-     copies rather than following them, and it was never about them. It also
-     shows the family is five arms where the split as recorded names four,
-     `-add-out` being the one left out and the largest of them. The map is [with
-     the naming][open].
-  3. **Membership invariance decides the basis and this run does not measure
-     it.** Registered as a gap rather than a question, because the queue turns
-     Run 13 on it and a later session could read this run as having tested it.
-     Run 12 adds no arm --- the third `-nosum` one was deferred out
-     of it precisely so it would not arrive in the same run as a change of shim
-     --- so invariance under the flag is an argument from what the flag does,
-     pinning every procedure to a 64-byte boundary, and not a reading taken
-     here. What would settle it is a membership change on the adopted half
-     with the offsets read either side, which is Run 13's first debt
-     if the basis lands on max-skip without the flag.
-
-     **The condition was met and the debt is PAID, on 2026-08-13**: the basis
-     did land on max-skip without the flag, and the check that made due came
-     back clean, recorded once with [the roster's other debts][open] and read
-     there rather than restated here.
-  4. **The free draw on the wild cell.** A new basis, a new allocation history
-     and eighteen A/A worst cells, against the standing question of whether
-     a fresh wild cell turns up somewhere else or the same one returns. Three
-     outcomes and all three report: `lenet-L1-28-c1-k5/bq-expand` returns, a new
-     cell appears elsewhere, or the run is clean. It is a draw and not a test,
-     so a clean run refutes nothing.
-
-     **THE RUN IS CLEAN**, which is the third of the three outcomes. The worst
-     A/A cell is 4.03% on the basis and 3.23% on the flag half, and 5.19%
-     anywhere in the run (`bcastmid-primes`), against the 44%, 41.4% and 35%
-     of Runs 8, 9 and 11. The named cell did not return, and the kept per-shape
-     record shows it from outside the A/A machinery: `lenet-L1-28-c1-k5`'s
-     `bq-expand` fingerprint cell reads **0.130** where Run 11 published 0.175,
-     a ratio of 1.35 against the 1.355 that run measured for the wild cell
-     itself. Three sightings in four runs is now three in five; the mechanism
-     question stays with the wild-cell entry, whose surviving account a clean
-     draw refutes nothing about.
-
-  **And what it must not carry** is the resident offset's own price. The pair
-  moves padding and offset together, so that stays a probe on the pad-probe
-  model rather than anything this run can be read for --- a probe worth less
-  than it was when this was written, for the reasons two paragraphs up.
 - `ANSWERED` **Which arm owns a loop copy: answered, and the answer is
   that a binary can carry its own names.** A `-g3` build emits a per-block
   symbol with DWARF line info, so `loop-offsets.py` prints a copy
@@ -1970,6 +1839,21 @@ rather than a slot in the next run, observed again:
      behave as Run 16's, and the gate's machine check, which reads `list`
      against the kept fingerprint, passes if that fingerprint is Run 16's.
      A failure there is read before anything else, as the check says.
+
+     **SPLIT, and the half that failed is the one about placement --- written
+     2026-08-23, this item having carried no verdict at all until then.** Two
+     of the three held: the `sum-only` halves agreed at 0.9999 and 1.0002
+     and the `-nosum` arms put the in-situ term on the same footing in both
+     halves, and the machine check passed at **+1.52%**, worst cell +4.22%
+     and nothing past 5%. **The A/A floor did not**: 3.70% on the basis
+     and 3.89% on the control against Run 16's 2.32% and 1.22%, with 12 of 18
+     basis intervals covering 1 against 15 of the control's. So the controls
+     that ask about the *box* and about the *correction* behaved as Run 16's
+     and the control that asks about *placement* did not --- which is the same
+     finding registration 1 reported from the other side, neither half being
+     at the layout Run 16's 2.32% was measured on. The figures are re-read here
+     off `run17-wildlog-main.json` and `run17-det-main.json`, which are still
+     on disk.
   6. *The redirect's candidates.* **HELD.** `--fingerprint --classes` reports
      the same six arms as the membership --- `mut-flat-gm`, `build`, `mut-odo`,
      `bq-scan-rem-gm-mulback`, `bq-mut-runs` and `bq-mut-runs-gm-mulback` ---
