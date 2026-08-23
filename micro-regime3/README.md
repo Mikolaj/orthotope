@@ -2911,6 +2911,15 @@ left to attribute --- the interval it is about is the aligned binary's.
   is the run window and the process count, neither of which has a phrasing crisp
   enough to match yet: the pattern has to distinguish a population's size
   from a win count, which is what `on N shapes` taught.
+- `OPEN` **`run-counts.sh` prices a half at forty minutes and it is twelve.**
+  Measured 2026-08-23 on the g914 half at `N=50` over the full roster, off
+  the stamps the sweep writes into its artifact's own header and footer ---
+  which is what a session should read, so the repair is to cut the duration
+  rather than update it: the sentence it sits in claims that a blocked perf
+  costs *the same time a real sweep takes*, and the numeral is incidental
+  to that. It is quoted at four prose sites, twice in the script and twice
+  in `check-scripts.py` --- a comment and `counts-refuses-an-unwritable-tmp`'s
+  description --- none of them a matcher, so the cut breaks no case.
 - `ANSWERED` **`--claims --compare PREV.json`, if the movement sentence turns
   out to be the last transcription.** The kept JSONs make *held, and moved
   from 0.9909 to 0.9940* mechanical --- `pair_stats` over both files ---
