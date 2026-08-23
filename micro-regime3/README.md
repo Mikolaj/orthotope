@@ -5324,13 +5324,26 @@ or to do without. **Each registration is written with an empty `verdict:` slot
 beneath it**, so the write-up fills a form rather than composing one and a count
 of what held is read off the list rather than tallied from memory --- which
 is how Run 18 came to summarise five registrations in its lead before it had
-adjudicated the fifth. **And say what a partial outcome is**: a prediction
-registered over several arms can come apart, and neither "held" nor "refuted"
-is then true --- Run 10's first was stated over three arms and one confirmed
-it while two met its own kill condition. Report that as a split, name which arms
-went which way, and carry the consequence for each separately; the temptation
-is to round it to whichever answer the majority of arms gives, which loses
-the finding.
+adjudicated the fifth. **And a verdict is written in a fixed vocabulary, because
+a checker reads it**: `--check-doc` holds a registration's marker to its items,
+so an `OPEN` entry whose every item is adjudicated is reported as a stale marker
+and an `ANSWERED` one with an item that is not is reported as an incomplete
+adjudication. What it recognises is a **bolded span whose first sixty characters
+carry one of** ANSWERED, REFUTED, HELD, BROKE, SPLIT, KILLED, TAKEN, DELIVERED,
+PAID, CLEAN, SETTLED, RETIRED, SPENT, UNUSED, NULL or WITHDRAWN --- both house
+styles pass, the label-then-verdict `*The flag's cost.* **KILLED, ...**`
+and the paragraph-opening `**The condition was met and the debt is PAID**`.
+**A verdict written outside that vocabulary is invisible to the check**,
+so a new word is added to `VERDICT_WORDS` in `read-run.py` in the same edit
+that first uses it, or the item reads as unadjudicated for ever. Run 12's entry
+sat `OPEN` for six runs on an item that said PAID, and the check's own first
+draft missed it by keying on capitalisation instead of the word. **And say what
+a partial outcome is**: a prediction registered over several arms can come
+apart, and neither "held" nor "refuted" is then true --- Run 10's first
+was stated over three arms and one confirmed it while two met its own kill
+condition. Report that as a split, name which arms went which way, and carry
+the consequence for each separately; the temptation is to round it to whichever
+answer the majority of arms gives, which loses the finding.
 
 **After it lands**, in this order:
 

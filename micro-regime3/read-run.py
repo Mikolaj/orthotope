@@ -1823,9 +1823,10 @@ def bridge_table(cells, shapes, strategies, meta, other, main_hs,
           '\nexempts the placement-exposed arms has to drop them itself,'
           ' this'
           '\nmode having no way to know which arms a given run put outside'
-          ' its'
-          '\ncondition. Read the band as the run\'s, too; %.1f%% is this'
-          "\nREADME's standing figure and --band takes another." % band)
+          ' its condition.')
+    print('The band above is %.1f%%%s.'
+          % (band, '' if abs(band - 3.3) < 1e-9 else
+             ", NOT this README's standing 3.3%: --band was given"))
     return 0
 
 
@@ -1869,6 +1870,10 @@ def compare_ci(cells, shapes, strategies, meta, other, main_hs):
         print('%-34s %8.2f %8.2f %8.2f'
               % (st, x, y, (x / y) if y else float('nan')))
     rs = [x / y for x, y, _ in rows if y]
+    if not rs:
+        print('\nno arm has a non-zero CI%% in the other run, so there is no'
+              ' ratio to take.')
+        return 0
     print('\ngeomean over the %d arm(s) %.2f, %d wider here and %d narrower.'
           % (len(rs), geomean(rs), sum(1 for r in rs if r > 1),
              sum(1 for r in rs if r < 1)))
@@ -1920,14 +1925,14 @@ def wallclock_window(json_path):
     log = os.path.join(os.path.dirname(os.path.abspath(json_path)),
                        m.group(1) + '-wallclock.log')
     try:
-        stamps = re.findall(r'^=== (\S+) ', open(log, errors='replace').read(),
-                            re.M)
+        with open(log, errors='replace') as f:
+            text = f.read()
     except OSError:
         return None
+    stamps = re.findall(r'^=== (\S+) ', text, re.M)
     if not stamps:
         return None
-    with open(log, errors='replace') as f:
-        done = len(re.findall(r'^=== \S+ done ', f.read(), re.M))
+    done = len(re.findall(r'^=== \S+ done ', text, re.M))
     return (stamps[0], stamps[-1], done)
 
 
@@ -5750,9 +5755,46 @@ def check_doc(readme, main_hs):
     # `**The condition was met and the debt is PAID**`, so a pattern
     # keyed on capitalisation misses the one case this exists for -- as
     # the first draft of it did.
-    VERDICT = re.compile(r'\*\*[^*]{0,200}?\b(?:ANSWERED|REFUTED|PAID'
-                         r'|KILLED|CLEAN|DELIVERED|HELD|BROKE|SETTLED'
-                         r'|RETIRED|SPENT|SPLIT|UNUSED|NULL)\b')
+    # A VERDICT IS A BOLDED SPAN THAT OPENS ITS OWN PARAGRAPH, and that is
+    # the discriminator rather than the word alone. A registration item
+    # states its KILL CONDITION in the same vocabulary -- `killed by a
+    # BROKE that clears that half's floor` -- so a pattern that only asks
+    # whether the word appears near a `**` reads an unadjudicated item as
+    # adjudicated, which fires the OPEN arm falsely and silences the
+    # ANSWERED one. Measured on Run 18's own registration, whose second
+    # item names a BROKE it had not yet met.
+    VERDICT_WORDS = (r'ANSWERED|REFUTED|PAID|KILLED|CLEAN|DELIVERED|HELD'
+                     r'|BROKE|SETTLED|RETIRED|SPENT|SPLIT|UNUSED|NULL'
+                     r'|TAKEN|WITHDRAWN')
+    # The word has to fall in the FIRST 60 characters of a bolded span,
+    # which is where a verdict announces itself and where a kill
+    # condition quoted mid-sentence does not. Both styles this file uses
+    # pass: `**KILLED, and the registered split...**` after an italic
+    # label, and `**The condition was met and the debt is PAID**` opening
+    # its own paragraph. What remains possible and is not caught is a
+    # bolded kill condition naming a verdict word in its own first 60
+    # characters; no registration here writes one, and if one is written
+    # this reads it as adjudicated.
+    #
+    # BOTH ARMS PROVEN, 2026-08-23, by breaking the document on purpose.
+    # Putting `OPEN` back on Run 17's registration fires the first, naming
+    # it and exiting 1; swapping the one word `SPLIT` out of that entry's
+    # item 5 fires the second, printing `Run 17's registration is ANSWERED
+    # and item(s) 5 carry no verdict`. The undoctored document exits 0 on
+    # the same call, which is the control that says the two FAILs were the
+    # breaks. The vocabulary is stated in README beside the `verdict:`
+    # slot, because a check keyed on a closed word list is useless to a
+    # writer who has not been told the list.
+    VERDICT_RE = re.compile(r'\*\*(?:(?!\*\*).){0,60}?\b(?:' + VERDICT_WORDS
+                            + r')\b')
+
+    def adjudicated(item):
+        """Does this registration item record an outcome?
+
+        Whitespace collapsed first, so a wrap cannot push the verdict
+        word out of the span's opening and hide it.
+        """
+        return bool(VERDICT_RE.search(' '.join(item.split())))
     # BOTH DIRECTIONS. An OPEN registration whose every item is adjudicated
     # is a stale marker; an ANSWERED one with an item that is not is an
     # incomplete adjudication, and Run 17's carried exactly that -- a lead
@@ -5765,7 +5807,7 @@ def check_doc(readme, main_hs):
         items = re.split(r'^  \d+\. ', body, flags=re.M)[1:]
         if not items:
             continue
-        done = [bool(VERDICT.search(it)) for it in items]
+        done = [adjudicated(it) for it in items]
         if m.group(1) == 'OPEN' and all(done):
             bad.append("Run %s's registration is marked OPEN and every one"
                        ' of its %d numbered items carries a verdict: the'
@@ -5795,7 +5837,10 @@ def check_doc(readme, main_hs):
     if head_doc is None:
         print('note: no committed copy of this document, so the chapter'
               " head's paragraphs are not held to the previous run's")
-    elif here is None or there is None or not chap:
+    elif here is None or there is None or not chap or not was:
+        # No chapter heading on one side, so there is no pair of chapters
+        # to compare and nothing to say. `was` is tested with the rest
+        # because the else branch reads its run number.
         pass
     elif was and was.group(1) == chap.group(1):
         print('ok:   the chapter head is already committed as Run %s, so'
