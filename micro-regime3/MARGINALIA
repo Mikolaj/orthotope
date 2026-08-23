@@ -220,3 +220,25 @@ with an absolute cd, the probe takes HALF and OUT and refuses to start over its
 own artifacts as the run drivers do. The rule to take from it is the one the
 case-first discipline hid: before a case runs a script unfixed, read what that
 script does when it is not where the shadow put it.
+
+2026-08-23, the counted-work sweep's own duration. run-counts.sh's header
+prices a half at forty minutes; the g914 half took 12m21s at N=50 over the
+full 1128-cell roster, 02:36:06 to 02:48:27, read off the stamps the artifact
+writes into its own header and footer. run-gate.sh says "about forty minutes"
+of the gate at five sites and that one is not in question, which is the
+likeliest place the figure came from. Not fixed the same night: the numeral
+is quoted at four prose sites, two in the script and two in check-scripts.py
+-- a comment and counts-refuses-an-unwritable-tmp's description string --
+none of them a matcher, so the cut is safe and is still a decision about
+which sentence survives it, and that is the write-up's attention rather than
+the hour before a gate. It went to the non-urgent TODO list instead.
+
+And before that I told the person "about seven minutes a half", from 591
+lines in 3m37s. A partial line count does not extrapolate here: per-cell cost
+varies by shape and the roster is not uniform. The artifact stamps its own
+start and end, so there was never anything to divide.
+
+Same evening, smaller: run18-pair.txt's verify block runs ./run18-g912
+--version with no 2>/dev/null, so the provenance line lands on top of
+criterion's answer and the line has to be run again to read it. The --list
+line two above it carries exactly that caution. Fixed in the note.
