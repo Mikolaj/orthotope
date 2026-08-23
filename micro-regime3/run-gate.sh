@@ -13,6 +13,17 @@
 # run cannot do that, which is why the argument is required rather than
 # defaulted.
 #
+# WHAT THIS GATE FAILS ON, stated once because a gate that stops the evening
+# has to earn it: THE APPARATUS, never the world. A missing binary, a selection
+# that is not the arms it names, a nonzero exit, a half that asserted no heap
+# state, an instrument switched on and absent from the log -- each of those
+# makes the night's data unusable whatever the machine does, so each exits 1.
+# A box that measures differently than it did last run is the world, and the
+# evening is still valid under it: that reads, records and returns 0. The
+# distinction was drawn 2026-08-23 after the machine check stopped Run 18 and
+# cost the hours it was meant to save; the other paths here were walked the
+# same day and all of them are apparatus, as are preflight.sh's.
+#
 # The order is a palindrome -- other, basis, basis, other -- so each binary
 # carries the same mean position and drift over the hour cannot read as a
 # difference between them. Same reason the pad probe reversed its second pass,

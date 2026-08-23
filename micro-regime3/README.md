@@ -1613,41 +1613,72 @@ rather than a slot in the next run, observed again:
   form, which is that this is a hazard of the class to be quoted as one
   and never as a figure. The per-sample reading stays the instrument
   for its mechanism.
-- `OPEN` **The basis half carries the wider class floor, run after run, and now
-  the faster level too, and no variable the pairs differ in explains either.**
-  Over Runs 15, 16 and 17 the published half's class floor is the wider one
-  in **18 of 24** comparisons --- 5, 7 and 6 of eight classes --- at sign p
-  0.023, and those three pairs differ in three unrelated things: an RTS setting
-  (`run15-lookrts` against `run15-a32m`), an allocation area (`run16-a32m`
-  against `run16-a64m`) and the per-sample instrument (`run17-wildlog` against
-  `run17-det`). So it is none of the three, and what the wider halves share
-  is being the half whose column got published. Run 17 is where it is loudest:
-  `revsome` reads **18.05%** on the basis against 4.87% on the control, three
-  times its own Run 16 figure, and that movement is what raised the question ---
-  the paragraph that used to state such movements under the class table was cut
-  on 2026-08-22 for quoting the previous run's, and its subject is here instead.
-  **The measurement it registered was taken 2026-08-23, wanting no quiet machine
-  and no new run, and the first branch fired.** The floor is a MAX over eighteen
-  pairs, so a half with one wild cell carries a wider one at the same
-  dispersion; read the median A/A deviation per half beside it, over the same
-  JSONs, and the two halves are alike --- the basis is wider on the median
-  in **9 of the 24** comparisons at sign p 0.31, against **18 of 24** at p 0.023
-  on the max. **So the ruling is that a floor is an order statistic and
-  not a spread**, and what is asymmetric between the halves is the tail rather
-  than the dispersion: the basis half carries the wilder cell, not the noisier
-  roster. **Run 18 then found the same asymmetry in the LEVEL, once
-  the intrusion was rerun out of its way**: all eight class geomeans put
-  the basis half faster, **0.9866 to 0.9949**, on 198 of the 336 arms, where
-  the pre-rerun figures straddled 1 and showed nothing. That retires
-  the dispersion candidate and leaves the evening's process order, which
-  the artifacts can still answer, every process being timestamped ---
-  the control half having run first in every pair of Run 18 and in both
-  of its windows, so *which half it is* and *when it ran* name the same nine
-  processes throughout. **The measurement that separates them is one class run
-  with the halves' order reversed**, a quiet half-hour and no new build,
-  and it now settles two questions rather than one. **Until it is settled, read
-  a class margin against its own run's column and never the previous one** ---
-  the standing rule the cut paragraph carried.
+- `OPEN` **The basis half carries the wider class floor, run after run,
+  and no variable the pairs differ in explains it. It carries the faster level
+  too, and on the one class tested both survive having the halves' order
+  swapped.** Over Runs 15, 16 and 17 the published half's class floor
+  is the wider one in **18 of 24** comparisons --- 5, 7 and 6 of eight classes
+  --- at sign p 0.023, and those three pairs differ in three unrelated things:
+  an RTS setting (`run15-lookrts` against `run15-a32m`), an allocation area
+  (`run16-a32m` against `run16-a64m`) and the per-sample instrument
+  (`run17-wildlog` against `run17-det`). So it is none of the three, and what
+  the wider halves share is being the half whose column got published. **Run 18
+  goes the same way and strengthens it**, counted 2026-08-23 over its own eight
+  classes: **6 of 8**, taking the running count to **24 of 32** and the sign
+  test from p 0.023 to **p 0.007**. The one figure to take from a class here
+  is its FLOOR, the max over its eighteen A/A pairs, which is what `--block`
+  prints and what the class table's floor column carries --- not `read-all.sh`'s
+  A/A worst-cell column, a max over cells, which for `run18-g912-slice` reads
+  13.22% where the floor reads 6.01%. Counting this with the worst cell instead
+  gave 4 of 8 and a weakening p, twice, before the two figures were told apart.
+  Run 17 is where it is loudest: `revsome` reads **18.05%** on the basis against
+  4.87% on the control, three times its own Run 16 figure, and that movement
+  is what raised the question --- the paragraph that used to state such
+  movements under the class table was cut on 2026-08-22 for quoting the previous
+  run's, and its subject is here instead. **The measurement it registered
+  was taken 2026-08-23, wanting no quiet machine and no new run, and the first
+  branch fired.** The floor is a MAX over eighteen pairs, so a half with one
+  wild cell carries a wider one at the same dispersion; read the median A/A
+  deviation per half beside it, over the same JSONs, and the two halves
+  are alike --- the basis is wider on the median in **9 of the 24** comparisons
+  at sign p 0.31, against **18 of 24** at p 0.023 on the max. **So the ruling
+  is that a floor is an order statistic and not a spread**, and what
+  is asymmetric between the halves is the tail rather than the dispersion:
+  the basis half carries the wilder cell, not the noisier roster. **Run 18
+  then found the same asymmetry in the LEVEL, once the intrusion was rerun out
+  of its way**: all eight class geomeans put the basis half faster, **0.9866
+  to 0.9949**, on 198 of the 336 arms, where the pre-rerun figures straddled 1
+  and showed nothing. That retires the dispersion candidate and leaves
+  the evening's process order, which the artifacts can still answer, every
+  process being timestamped --- the control half having run first in every pair
+  of Run 18 and in both of its windows, so *which half it is* and *when it ran*
+  name the same nine processes throughout. **The measurement that separates them
+  was taken 2026-08-23 on `slice`, and it SPLITS this item.** The pair was run
+  again with the halves' order reversed --- `g912` first, `g914` second ---
+  on the same binaries, the same switches and the same evening, both halves
+  clean of foreign CPU and both baselines inside the 0.7%. **The LEVEL follows
+  the half.** `g912` is faster in both orders, at 0.9937 running second
+  and **0.9878** running first, so reversing the order neither reversed the sign
+  nor narrowed the margin --- it widened it, which is the opposite of what
+  a second-is-faster position effect predicts. Position is refuted for the level
+  ON THIS CLASS, and what is left there is the compiler and its boot libraries;
+  the other seven were not reversed, and that every one of the eight leans
+  the same way is what makes the reading worth carrying to them rather than what
+  establishes it. **THE FLOOR FOLLOWS THE HALF TOO.** `g912` carries the wider
+  floor in both orders --- **6.01% against 3.30%** running second, **3.41%
+  against 1.79%** running first --- so position is refuted for the floor
+  on this class as it is for the level, and the two halves of this item point
+  the same way rather than apart. That WEAKENS the position candidate; it does
+  not retire it, being one class of eight on one run of four, where
+  the dispersion candidate was retired over all 24 comparisons at once. A second
+  class reversed is what would, and it is the same measurement the level half
+  wants --- one run of two processes answering both. If it holds, the item
+  is left where it started with less in it: over Runs 15 to 17 the halves
+  differed in an RTS setting, an allocation area and an instrument, all three
+  already excluded, and the slot would join them, leaving the wider halves
+  sharing nothing but having been the published one. **Read a class margin
+  against its own run's column and never the previous one** --- the standing
+  rule the cut paragraph carried.
 - `OPEN` **What does the roster owe the next run?** The exact repetition
   is **taken** and is not owed again for its own sake: Run 11 inherited shapes,
   roster, order, regime and binary, and what it bought is [in the floor
@@ -2557,15 +2588,28 @@ codegen rather than that it cannot be built.
   is the run window and the process count, neither of which has a phrasing crisp
   enough to match yet: the pattern has to distinguish a population's size
   from a win count, which is what `on N shapes` taught.
-- `OPEN` **`run-counts.sh` prices a half at forty minutes and it is twelve.**
-  Measured 2026-08-23 on the g914 half at `N=50` over the full roster, off
+- `ANSWERED` **`run-counts.sh` priced a half at forty minutes where it is twelve
+  --- TAKEN 2026-08-23, by cutting the duration rather than correcting it.**
+  Measured that day on the g914 half at `N=50` over the full roster, off
   the stamps the sweep writes into its artifact's own header and footer ---
-  which is what a session should read, so the repair is to cut the duration
-  rather than update it: the sentence it sits in claims that a blocked perf
-  costs *the same time a real sweep takes*, and the numeral is incidental
-  to that. It is quoted at four prose sites, twice in the script and twice
-  in `check-scripts.py` --- a comment and `counts-refuses-an-unwritable-tmp`'s
-  description --- none of them a matcher, so the cut breaks no case.
+  which is what a session should read, so the numeral was the wrong thing
+  to keep: the sentence it sat in claims that a blocked perf costs *the same
+  time a real sweep takes*, and the figure was incidental to that. Cut at all
+  four prose sites, twice in the script and twice in `check-scripts.py` ---
+  a comment and `counts-refuses-an-unwritable-tmp`'s description --- none
+  of them a matcher, so no case moved. The gate's own forty minutes elsewhere
+  in this README is a different duration and is right.
+- `OPEN` **Does `offtab-scan-rem` belong in the fingerprint?**
+  `--fingerprint --classes` has been printing, as hand-work every run,
+  that it *is best outside the family on one shape and is not a fingerprint arm*
+  --- a membership question the install can raise and cannot settle, since what
+  the fingerprint is for is keeping the previous run's absolutes readable
+  and which arms earn that is a judgement. Registered 2026-08-23 because
+  an unregistered notice printed every run is one nobody reads. What deciding
+  it wants first is the shape's name, which the notice does not carry: it counts
+  the shapes and does not list them, so reading it back off the cells
+  is the cheap first step, and teaching the notice to name them is the cheaper
+  second.
 - `ANSWERED` **`--claims --compare PREV.json`, if the movement sentence turns
   out to be the last transcription.** The kept JSONs make *held, and moved
   from 0.9909 to 0.9940* mechanical --- `pair_stats` over both files ---
@@ -5424,8 +5468,11 @@ was missed, which is what they have cost.
     #      carries WILDLOG and SATURATE and whose guards catch a process
     #      that lost them -- 141 benches at rc=0 with no stamps in the
     #      log looks perfect and certifies nothing. Park what it
-    #      supersedes as probe-*, out of the $R-*.log namespace that
-    #      read-all.sh gates over and reports an unreadable log in
+    #      supersedes as probe-*: read-all.sh globs $R-*.log for the
+    #      plateau and lists by name any log it finds no reading in,
+    #      so a superseded copy left in that namespace fails the gate
+    #      -- which is what a driver's own stdout redirected to
+    #      $R-install.log did on 2026-08-23
     #   2. match bases before reading any ratio -- same population, same
     #      restriction, the basis the claim was stated on
     ./read-run.py $R-<basis>-main.json --claims       # 3. every claim's
@@ -8215,12 +8262,12 @@ from the clean nine. **So the five classes were rerun, both halves each**,
 18:10:22 to 20:40:12, one process per population as the protocol keeps possible
 --- ten processes for nine exposed ones, the control half's `bcastmid` joining
 them though it had run clean, because a pair read across two windows is
-not a pair. All ten report no bench past 0.25 foreign, and the contaminated
-copies are parked as `probe-busywindow-*`. **What the rerun bought
-is the cross-half baseline**, which is the reading the window moved and the one
-no elapsed time shows: `bcastmid` came back from 1.0146 to 1.0037 and `slice`
-from 1.0343 to 1.0021, both inside the 0.7% that lets a pair's columns
-be differenced, while `reshape1` went 1.0566 to 0.9925, `window` 0.9659
+not a pair. All ten report no bench past 0.25 foreign; the contaminated copies
+were read, the figures above taken off them, and then deleted. **What the rerun
+bought is the cross-half baseline**, which is the reading the window moved
+and the one no elapsed time shows: `bcastmid` came back from 1.0146 to 1.0037
+and `slice` from 1.0343 to 1.0021, both inside the 0.7% that lets a pair's
+columns be differenced, while `reshape1` went 1.0566 to 0.9925, `window` 0.9659
 to 1.0104 and `scaled` 1.0055 to 1.0074 --- three of them still outside it,
 at 0.75%, 1.04% and 0.74%, and `scaled` outside having been inside before.
 **So the intrusion was most of that gap and not all of it.** What remains
@@ -9231,11 +9278,18 @@ against 48, and it was the five exposed ones, since rerun, that had been pulling
 the aggregate back to an even split. The extremes are `rev`'s `gen-unsafe`
 at 0.8704 at one end and `reshape1`'s `bq-gen` at 1.1745 at the other,
 the placement-exposed family and the dearest build in the roster. **What the run
-cannot say is that the direction is the compiler's.** The control half ran first
-in every pair and in both windows, so *the 9.12 half* and *the second process
-of the two* name the same nine processes, and nothing measured here separates
-them; reversing the order on one class is what would, and
-it is [open](#what-is-open). **Three of the eight cross-half lines are still
+could not say from its own sequence is that the direction is the compiler's**,
+the control half having run first in every pair and in both windows,
+so that *the 9.12 half* and *the second process of the two* name the same nine
+processes. **A probe the same evening separated them ON ONE CLASS**: `slice` run
+again with the order reversed puts `g912` faster from first place too, at 0.9878
+against 0.9937 from second, so there the margin survives the swap and widens
+rather than narrowing, and position does not account for it. The other seven
+were not tested, and all that carries the reading to them is that every one
+leans the same way --- suggestive, and short of the measurement, which
+is a second class reversed. The floor asymmetry went the SAME way on that class,
+the basis carrying the wider floor from either slot; both readings are [in
+the open list](#what-is-open). **Three of the eight cross-half lines are still
 not read for a level at all**: `list` runs **0.9925 to 1.0104** across
 the eight, and on `reshape1`, `window` and `scaled` it sits past the 0.7%
 that lets two columns be differenced, by 0.75%, 1.04% and 0.74%. That is what
@@ -10043,11 +10097,12 @@ be repeated even in principle.
 in anything a freeze cannot see.** They share source, shim, shim setting,
 roster, shapes, class lists, bench order, machine and the one baked RTS line ---
 but not their position in the sequence, the control half having run first
-in every pair and in both windows, so *9.14* and *first of the two* are aliased
-here exactly as they are on the classes --- and `cabal.project.ghc914`'s freeze
-resolves the same `vector`, `criterion` and `criterion-measurement` at the one
-index-state --- so what differs is ghc-9.12.4 against ghc-9.14.1 and their boot
-libraries, `base-4.21.2.0` with `ghc-internal-9.1204.0` against `base-4.22.0.0`
+in every pair and in both windows, which aliased *9.14* with *first of the two*
+until the order probe of 2026-08-23 broke the tie on `slice` ---
+and `cabal.project.ghc914`'s freeze resolves the same `vector`, `criterion`
+and `criterion-measurement` at the one index-state --- so what differs
+is ghc-9.12.4 against ghc-9.14.1 and their boot libraries, `base-4.21.2.0`
+with `ghc-internal-9.1204.0` against `base-4.22.0.0`
 with `ghc-internal-9.1401.0`. `.text` is 20406469 against 20734085 bytes,
 and every address after the first difference moves: `--library` puts 20.1%
 of library self-loops at the same offset in their cache line, where two halves
@@ -10077,34 +10132,36 @@ at the same switches: the published set is eight processes from the first
 window, 06:05:00 to 10:33:11, and ten from a second, 18:10:22 to 20:40:12.
 **The control half ran first throughout**, `g914` before `g912` on the main set
 and on each class in turn, in both windows, which is the driver's order
-and the one the basis's second position is read in --- and, the order never
-having been varied, the reason this run's cross-half direction cannot
-be attributed to the compiler. **The machine did NOT carry the first window
-alone**, and this is the run's one provenance caveat: it began two hours late
-and the desktop was wanted back from 10:52. Nine processes finished before
-that --- both main sets and `rev`, `revsome`, `bcast` and the control half's
-`bcastmid` --- and their per-sample stamps report no bench reaching 0.25 foreign
-CPU, which is the load fields' first use on a real intrusion. The nine that ran
-into it carry some, between 6 and 116 of each one's 141 benches reaching 0.25
-foreign and the peaks running 0.48 to 5.06. The coarse instruments see none
-of it: the sixteen class processes span 12m11s to 12m18s, a seven-second spread,
-and the exposed populations' A/A floors were no looser than the clean ones. What
-it moved is the cross-half baselines, which is why the five classes it touched
-were rerun; every process of the second window reports no bench past 0.25
-foreign, and the superseded copies are parked as `probe-busywindow-*`.
-**The tree was clean at launch**, the driver's own `git status` recording
-no untracked or modified path. **The wall-clock log is not an unbroken record,
-and says so at its end**: it closes with a corrections block covering
-a bench-count check that could never have worked, a rerun process the driver
-itself made noisy by reading this run's artifacts while it ran, and a relaunch
-of that process that dropped the instrument switches and so produced 141
-clean-looking benches with nothing able to certify them. Three driver faults,
-no benchmark among them, each naming the artifact it left parked.
-**The alone-leg riders came between the two windows**, on a machine their own
-stamps show quiet --- no bench of the 96 instrumented legs past 0.16 foreign ---
-12:47:43 to 13:03:07, four invocations of 27 single-bench processes, 108 in all
---- clean and saturated on each half, which is what registration 3's
-decomposition needs.
+and the one the basis's second position is read in. **The order was varied once,
+outside the sequence**: a probe the same evening reran `slice` with the halves
+swapped, which is what lets that class's cross-half direction be attributed
+to the half rather than to the slot. It is one class of the eight, so the other
+seven's direction is still aliased with their order. **The machine did NOT carry
+the first window alone**, and this is the run's one provenance caveat: it began
+two hours late and the desktop was wanted back from 10:52. Nine processes
+finished before that --- both main sets and `rev`, `revsome`, `bcast`
+and the control half's `bcastmid` --- and their per-sample stamps report
+no bench reaching 0.25 foreign CPU, which is the load fields' first use
+on a real intrusion. The nine that ran into it carry some, between 6 and 116
+of each one's 141 benches reaching 0.25 foreign and the peaks running 0.48
+to 5.06. The coarse instruments see none of it: the sixteen class processes span
+12m11s to 12m18s, a seven-second spread, and the exposed populations' A/A floors
+were no looser than the clean ones. What it moved is the cross-half baselines,
+which is why the five classes it touched were rerun; every process of the second
+window reports no bench past 0.25 foreign, and the superseded copies were read
+and then deleted, their readings kept here and in the wall-clock log. **The tree
+was clean at launch**, the driver's own `git status` recording no untracked
+or modified path. **The wall-clock log is not an unbroken record, and says
+so at its end**: it closes with a corrections block covering a bench-count check
+that could never have worked, a rerun process the driver itself made noisy
+by reading this run's artifacts while it ran, and a relaunch of that process
+that dropped the instrument switches and so produced 141 clean-looking benches
+with nothing able to certify them. Three driver faults, no benchmark among them,
+each naming the artifact it left parked. **The alone-leg riders came between
+the two windows**, on a machine their own stamps show quiet --- no bench
+of the 96 instrumented legs past 0.16 foreign --- 12:47:43 to 13:03:07, four
+invocations of 27 single-bench processes, 108 in all --- clean and saturated
+on each half, which is what registration 3's decomposition needs.
 
 **The pair's own identity, transcribed before its note went with it.** The two
 md5s, the `Main.hs` commit and the tree at launch are at [the head

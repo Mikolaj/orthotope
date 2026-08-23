@@ -1599,6 +1599,18 @@ def synth_run(path, shapes, samples=8, no_twins=False, sunk=(), skew=(),
         # one prints -- three significant figures is half a percent a cell,
         # which is most of the band a level-shift case has to resolve. The
         # header row carries no backticks, so it is not itself a row.
+        # `list` is the ONLY arm a fingerprint holds, so a fixture that
+        # dropped it has nothing to write. Two knobs here do: `no_twins`
+        # takes it, `list` being a twin's base, and `drop_arms` can name it.
+        # It used to fail as a KeyError carrying the first shape's name,
+        # which names the shape and not the cause. 2026-08-23.
+        missing = [sh for sh in shapes if sh not in fp_net]
+        if missing:
+            raise ValueError(
+                'synth_run: fingerprint= needs a `list` net per shape and %d '
+                'of %d have none, first %s -- `list` is dropped by '
+                'no_twins=True, being a twin base, and by drop_arms naming it'
+                % (len(missing), len(shapes), missing[0]))
         with open(fingerprint, 'w') as f:
             f.write('| shape | . | . | `list` net |\n|---|---|---|---:|\n')
             for sh in shapes:
@@ -3392,7 +3404,7 @@ CASES = [
          'a blocked perf spent the whole sweep writing NaN',
          # Every cell is two `perf stat` processes, so a machine that
          # refuses the counter does not fail the sweep -- it writes a `!!`
-         # line per cell and takes the same forty minutes a half to do it.
+         # line per cell and takes a full sweep to do it.
          # And the setting is not persistent: kernel.perf_event_paranoid
          # read 1 on 2026-08-21, 4 on 2026-08-22 and 1 again that evening,
          # so it is a state to assert at the moment of use.
@@ -3409,7 +3421,7 @@ CASES = [
                            'Nothing ran'])),
 
     case('counts-refuses-an-unwritable-tmp', 'run-counts.sh', None,
-         'a broken temp path bought the same forty minutes of NaN',
+         'a broken temp path bought the same sweep-long run of NaN',
          # The second route to an all-NaN sweep, and the quieter one:
          # `count()` hands perf a `mktemp` file per cell, so where that
          # fails -- a sandbox permitting only some of /tmp, which

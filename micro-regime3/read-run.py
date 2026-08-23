@@ -2151,14 +2151,33 @@ def aa_table(cells, shapes, strategies, terms, meta, brief=False):
               len(known),
               '' if not miss else '; missing: '
               + ', '.join(c[0] for c in miss)))
+        # The spread is named as the FLOOR here because it is one, and
+        # because the two names cost two wrong answers on 2026-08-23: a
+        # session counting the floor asymmetry read `read-all.sh`'s A/A
+        # WORST CELL column instead, which is a max over cells where the
+        # floor is a max over pairs, and got a different number for the
+        # same process -- 13.22% against 6.01% on run18-g912-slice. Both
+        # figures are real and neither is the other; only this one is
+        # what `--block` prints as `this class's floor` and what the
+        # class table's floor column carries.
         print('  median half-width %.2f%% against an observed spread of'
-              ' %.2f%%,' % (typical, spread))
+              ' %.2f%% (this population\'s FLOOR),' % (typical, spread))
         if typical > 0:
             print('  so a computed interval understates real variability by'
                   ' about %.0fx.' % (spread / typical))
         print('  Multiply by that before believing any interval this reader'
               ' prints,\n  and read the factor as an order of magnitude: it'
               ' rests on %d pairs.' % len(known))
+        # Hyphenated deliberately. read-all.sh scrapes this same output for
+        # its column with an awk matching the unhyphenated phrase, and a
+        # line here carrying it can be taken for a reading: it survives
+        # today only because that awk stops at the in-situ section above,
+        # which is ordering and not design. 2026-08-23.
+        print('  THE FLOOR IS THIS FIGURE and not read-all.sh\'s A/A'
+              ' worst-cell column:\n  a max over pairs against a max over'
+              ' cells, twofold apart and more on\n  one process. Take a'
+              ' floor from here or from --block, never by eye\n  off the'
+              ' pair listing above, whose last rows are `sum-only`.')
     elif calib:
         print('\ncalibration: fewer than two pairs of known ratio, so nothing'
               ' here says\nwhat the intervals above are worth.')

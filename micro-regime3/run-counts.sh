@@ -34,8 +34,8 @@ N=${N:-50}
 # PERF FIRST, BECAUSE THE WHOLE SWEEP IS WORTHLESS WITHOUT IT. Every cell
 # is two `perf stat` processes and a machine that refuses the counter
 # gives NaN for both, so a blocked perf does not fail the sweep -- it
-# writes a `!!` line per cell and takes the same forty minutes a half to
-# do it. One probe on /bin/true costs a millisecond and names the reason.
+# writes a `!!` line per cell and takes a full sweep to do it. One probe on
+# /bin/true costs a millisecond and names the reason.
 #
 # kernel.perf_event_paranoid IS NOT PERSISTENT HERE and is a state to
 # assert at the moment of use rather than a fact about the box: it read 1
@@ -55,7 +55,7 @@ if ! perf stat -x, -e instructions:u /bin/true 2>&1 | grep -q '^[0-9]\+,'; then
   echo "   and not a diagnosis. Nothing ran and no $OUT was written."
   exit 1
 fi
-# AND THE TEMP PATH, which buys the same forty minutes of NaN by another
+# AND THE TEMP PATH, which buys the same sweep-long run of NaN by another
 # route: `count()` hands perf a `mktemp` file per cell, and where that
 # fails -- a sandbox permitting only some of /tmp, which read-all.sh
 # records having met -- perf writes nowhere, the grep reads nothing and
