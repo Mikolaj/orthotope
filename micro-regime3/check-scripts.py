@@ -1359,7 +1359,8 @@ def _spread(fn, lo, hi):
 TERM = 4e-10        # the forcing term per element: one pass, so it scales
 
 
-def synth_run(path, shapes, samples=8, no_twins=False, sunk=(), skew=()):
+def synth_run(path, shapes, samples=8, no_twins=False, sunk=(), skew=(),
+              slow=1.0):
     """A criterion run over `shapes`, built rather than captured.
 
     Kilobytes where a real run's JSON is megabytes, and DERIVED: the arms
@@ -1381,6 +1382,12 @@ def synth_run(path, shapes, samples=8, no_twins=False, sunk=(), skew=()):
     `sunk` names (shape, arm) cells to drive NON-positive, which no real
     run on disk carries -- the state the fingerprint, `--block` and
     `machine_check` refuse, and which had to be constructed to test at all.
+
+    `slow` scales EVERY cell of the run by one factor, which is what a box
+    change looks like from inside: Run 18's BIOS moved between it and Run
+    17 and lifted every absolute about 4.9%, leaving every ratio alone.
+    That is the one shape `skew` cannot make, being per cell, and it is
+    what the bridge exists to divide out.
 
     `skew` scales named (shape, arm, factor) cells, which is how a `Term`
     half is made to disagree with its twin on one shape: the exact halves
@@ -1441,6 +1448,11 @@ def synth_run(path, shapes, samples=8, no_twins=False, sunk=(), skew=()):
             # --selftest reads their spread as the term's own.
             if role != 'Term':
                 slope *= 1.0 + _spread(name + '@' + sh, -0.004, 0.004)
+            # EVERY cell, `Term` halves included: a box that got slower
+            # slowed the forcing pass too, which is exactly why dividing
+            # by `list` cancels it and subtracting the correction does
+            # not.
+            slope *= slow
             if (sh, name) in sunk:
                 slope = TERM * l * 0.5      # below the term: net goes negative
             for s_sh, s_name, factor in skew:
@@ -1706,7 +1718,7 @@ CASES = [
          ok=V(exit=2, has=['the riders were not taken']),
          bug=V(exit=2, hasnt=['the riders were not taken'])),
 
-    case('deflation-ignores-the-saturated-legs', 'read-run.py', None,
+    case('deflation-ignores-the-saturated-legs', 'read-run.py', '9b45089',
          'both rider sets on disk and only the clean one read',
          # THE GLOB TAKES BOTH AND THE MODE USED ONE. `$R-al-<half>-*`
          # matches `$R-al-<half>-sat-<shape>` as readily as the clean leg,
@@ -1725,19 +1737,16 @@ CASES = [
          # the keying discarded looked exactly like a leg that was never
          # taken, and the geomean printed over the clean ones was correct,
          # which is why nothing downstream could notice.
-         # A CONTROL AND NOT A REPLAY, deliberately: the fix is in the
-         # working tree and not in a commit, so there is no hash for
-         # --audit to replay against and a `bug` verdict would be a
-         # promise this suite cannot keep. Non-vacuity was shown the way
-         # this README asks instead, by breaking it on purpose
-         # (2026-08-23): with the `sat-` split removed from
-         # `deflation_table`, so that the saturated legs key as
-         # `sat-<shape>` and match nothing again, this case FAILS on both
-         # strings. It earns its `bug` and its hash the day the fix is
-         # committed.
+         # It was a CONTROL while the fix sat uncommitted, and non-vacuity
+         # was shown by hand then (2026-08-23): with the `sat-` split
+         # removed from `deflation_table`, so that the saturated legs key
+         # as `sat-<shape>` and match nothing again, it FAILS on both
+         # strings. It has its hash and its `bug` verdict now, so --audit
+         # replays that by itself and the hand proof is only the record.
          plant=lambda t: {'run': deflation_legs()},
          argv=['{run}', '--deflation'],
-         ok=V(has=['sat/clean', 'roster/sat'])),
+         ok=V(has=['sat/clean', 'roster/sat']),
+         bug=V(hasnt=['sat/clean'])),
 
     case('broke-names-the-manifest', 'read-run.py', None,
          'a retirement made in prose left the manifest predicting the old',
@@ -1814,6 +1823,91 @@ CASES = [
          ok=V(has=['shapes in one run only, skipped']),
          bug=V(exit=0, has=['chapter skeleton'],
                hasnt=['shapes in one run only, skipped'])),
+
+    case('chapter-head-carries-a-previous-run', 'read-run.py', None,
+         "paragraphs of the last run's chapter left standing in this one",
+         # THE CHAPTER HEAD IS REPLACED WHOLE and its own closing
+         # paragraph says so, but a write-up is done a paragraph at a
+         # time and nothing enumerated them. Run 18 left FOUR of Run 17's
+         # standing inside it -- the correction paragraph, the fill
+         # groups, the process window and the alone legs -- one of them
+         # contradicting two paragraphs the same session had just
+         # written. An independent checker found them by set-differencing
+         # the document, which is this script's job and one comparison.
+         #
+         # The fixture renumbers the chapter heading and changes nothing
+         # else, so every paragraph under it is verbatim the committed
+         # run's while the heading claims a new one -- which is precisely
+         # the state a write-up that renamed its headings and stopped is
+         # in. Measured 2026-08-23: it names 15 paragraphs.
+         #
+         # A CONTROL, the check being new. Its non-vacuity is that the
+         # unmodified document passes the same call, the two differing
+         # only in the run number, so a check that reported regardless
+         # would fail the control beside it.
+         plant=lambda t: {'readme': edited_readme(t, (
+             '## About the last run (Run 18)',
+             '## About the last run (Run 19)'))},
+         argv=['--check-doc', '--quiet', '--readme', '{readme}'],
+         ok=V(exit=1, has=['chapter head are unchanged from Run'])),
+
+    case('chapter-head-committed-says-nothing', 'read-run.py', None,
+         'CONTROL: a chapter already committed has no previous run to hold',
+         plant=lambda t: {'readme': edited_readme(t, (
+             '## About the last run (Run 18)',
+             '## About the last run (Run 18)'))},
+         argv=['--check-doc', '--worklists', '--readme', '{readme}'],
+         ok=V(hasnt=['chapter head are unchanged from Run'])),
+
+    case('bridge-divides-out-the-baseline', 'read-run.py', None,
+         'a cross-run comparison a moved box made unreadable',
+         # --compare divides one arm's net by the same arm's net in the
+         # other run, which is right while the machine holds still and
+         # useless the moment it does not. Run 18 met that: a BIOS idle
+         # setting moved between it and Run 17 and took every absolute
+         # about 4.9% with it, so --compare put `list` at +5.52% and every
+         # arm with it, and the bridge that run's registration 1 was
+         # written on had to be computed by hand -- which this README
+         # calls a defect report against the reader.
+         #
+         # The fixture is the disease: `b.json` is `a.json` slowed by a
+         # flat factor on EVERY arm and shape, which is what a box change
+         # looks like. --compare must then read that factor on every arm,
+         # and --bridge must read 1, the factor cancelling per shape.
+         #
+         # A CONTROL rather than a replay, the mode being new and having
+         # no pre-fix revision to audit against. Non-vacuity MEASURED
+         # 2026-08-23 on this fixture: --compare reads 0.9524, which is
+         # 1/1.05, on every arm INCLUDING `list`, while --bridge reads
+         # 1.0000 on every one of the 41 and a geomean of 1.0000 with
+         # none outside the band. So the two modes disagree exactly by
+         # the planted factor, and a --bridge that forgot to divide by
+         # `list` would read 0.9524 here and fail.
+         plant=lambda t: {'run': synth_json(t, 'main', 'a.json'),
+                          'other': synth_json(t, 'main', 'b.json',
+                                              slow=1.05)},
+         argv=['{run}', '--compare', '{other}', '--bridge'],
+         ok=V(has=['ratio to `list` in its own'],
+              hasnt=['outside the 3.3% drift band\n  '])),
+
+    case('compare-ci-reads-the-published-median', 'read-run.py', None,
+         'a question about the CI% column answered in the wrong statistic',
+         # Run 18 asked what a saturating preamble does to `CI%`,
+         # computed the MEAN over --cells because the reader had no mode,
+         # and got the opposite sign on two arms of three: `build` reads
+         # 1.58 to 1.84 as means and 1.55 to 1.42 as medians, and the
+         # column publishes the median. The statistic a column is asked
+         # about has to be the statistic it publishes.
+         plant=lambda t: {'run': synth_json(t, 'main', 'a.json'),
+                          'other': synth_json(t, 'main', 'b.json')},
+         argv=['{run}', '--compare', '{other}', '--ci'],
+         ok=V(has=['MEDIAN half-width'])),
+
+    case('bridge-wants-a-second-run', 'read-run.py', None,
+         'CONTROL: --bridge and --ci are readings ACROSS two runs',
+         plant=lambda t: {'run': synth_json(t, 'main', 'a.json')},
+         argv=['{run}', '--bridge'],
+         ok=V(exit=2, has=['ACROSS two runs'])),
 
     case('alloc-names-the-shapes-it-dropped', 'read-run.py', 'a78555e',
          'the allocation comparison named its arms and not its shapes',
@@ -2775,13 +2869,24 @@ CASES = [
          # and the check had to fire -- correctly, and with nothing in its
          # message to separate a changed box from a changed area. The answer
          # costs no build (`-rtsopts` is live) and no pair: run the gate's own
-         # selection on any binary at the fingerprint's area. Written as a
-         # capability rather than a caveat, per README's rule that a
-         # limitation is recorded with what it still leaves possible.
+         # selection on a binary at whatever condition the fingerprint was
+         # taken under. Written as a capability rather than a caveat, per
+         # README's rule that a limitation is recorded with what it still
+         # leaves possible.
+         #
+         # THE ASSERTION MOVED 2026-08-23 with the message it reads. It
+         # pinned `at the fingerprint's own allocation area`, which was the
+         # only condition Run 16 had varied; Run 18 met the same check with
+         # the area UNCHANGED and a preamble, a source patch and a compiler
+         # between it and the fingerprint, and had to invent the control
+         # the message should have named. What is asserted now is the
+         # generalisation and the second control the message gained --
+         # the previous run's own binary, which produced the fingerprint.
          plant=lambda t: {'run': synth_json(t, 'main')},
          argv=['{run}', '--machine'],
-         ok=V(exit=1, has=['PAST', 'at the fingerprint']),
-         bug=V(exit=1, has=['PAST'], hasnt=['at the fingerprint'])),
+         ok=V(exit=1, has=['PAST', 'CONDITION THE FINGERPRINT',
+                           "previous run's own binary"]),
+         bug=V(exit=1, has=['PAST'], hasnt=['CONDITION THE FINGERPRINT'])),
 
     case('alone-leg-riders-are-not-populations', 'read-all.sh', 'bf9acf2',
          'the riders a paired run leaves were gated as populations',

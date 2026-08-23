@@ -127,6 +127,12 @@ Modes:
                     every arm at once -- what a paired run's two halves want
   --compare O --alloc   whether the two agree on what each arm allocates,
                     partitioned by size and never by column
+  --compare O --bridge  each arm as a ratio to `list` IN ITS OWN RUN, per
+                    shape, which cancels a box change exactly where the
+                    plain --compare reads absolutes and cannot
+  --compare O --ci  each arm's CI% median against the other run's -- the
+                    statistic the column publishes, and not the mean a
+                    script over --cells reaches for
   --compare O --chapter the run chapter's own arithmetic, so that writing
                     one need not begin by reading the last one
   --claims          every claim ordering and its registered verdict in one
@@ -1736,6 +1742,133 @@ def compare_alloc(cells, shapes, strategies, meta, other, main_hs):
           '\nhalves differ in before reading a disagreement as a code change.')
 
 
+def bridge_table(cells, shapes, strategies, meta, other, main_hs,
+                 band=3.3):
+    """One arm across two runs, as a RATIO TO `list` rather than absolute.
+
+    `--compare` divides one arm's net by the same arm's net in the other
+    run, which is the right reading while the machine holds still and the
+    wrong one the moment it does not. Run 18 met that: a BIOS idle setting
+    moved between it and Run 17 and took every absolute about 4.9% with
+    it, so `--compare` put `list` at +5.52% and every arm with it and said
+    nothing about any arm. The bridge that run's registration 1 was
+    written on had to be computed by hand, which is the shape README calls
+    a defect report against this script.
+
+    Dividing each arm by `list` IN ITS OWN RUN and only then across runs
+    cancels a box term exactly, per shape, because the term multiplies
+    both. What it cannot cancel is anything that moved `list` differently
+    from the arms, which is the point: that residue is what a bridge is
+    for.
+
+    Both sides are corrected before the ratio is taken, as `--compare`
+    does and for the same reason. `list` itself is dropped, being 1 by
+    construction here, and so are the arms with no corrected time.
+    """
+    b_cells, b_shapes, b_strategies = load_other(other, main_hs,
+                                                 shapes, meta)
+    both_sh = [s for s in shapes if s in b_shapes]
+    both_st = [t for t in strategies if t in b_strategies]
+    print('\nbridge: this run / %s, each arm as a ratio to `list` in its own'
+          ' run,\n  per shape, over %d shared shape(s) -- which cancels a box'
+          ' term and a\n  denominator change exactly, where --compare does'
+          ' not' % (os.path.basename(other), len(both_sh)))
+    miss_sh = set(shapes) ^ set(b_shapes)
+    if miss_sh:
+        print('  shapes in one run only, skipped: %s'
+              % ', '.join(sorted(miss_sh)))
+    if set(strategies) ^ set(b_strategies):
+        print('  arms in one run only, skipped: %s'
+              % ', '.join(sorted(set(strategies) ^ set(b_strategies))))
+    rows = []
+    for st in both_st:
+        if no_net(st) or st == 'list':
+            continue
+        rs = []
+        for sh in both_sh:
+            a, b = cells[sh][st]['net'], b_cells[sh][st]['net']
+            la, lb = cells[sh]['list']['net'], b_cells[sh]['list']['net']
+            if a > 0 and b > 0 and la > 0 and lb > 0:
+                rs.append((a / la) / (b / lb))
+        if rs:
+            rows.append((geomean(rs), min(rs), max(rs), len(rs), st))
+    if not rows:
+        print('\n  no arm is comparable across these two runs.')
+        return 2
+    print('\n%-34s %8s %10s' % ('arm', 'ratio', 'range'))
+    for g, lo, hi, n, st in sorted(rows):
+        print('%-34s %8.4f %5.3f..%.3f' % (st, g, lo, hi))
+    out = [r for r in rows if abs(r[0] - 1) > band / 100.0]
+    g = geomean([r[0] for r in rows])
+    print('\ngeomean over the %d arm(s) %.4f; %d outside the %.1f%% drift'
+          ' band' % (len(rows), g, len(out), band))
+    for gg, _, _, _, st in sorted(out, key=lambda r: -abs(r[0] - 1)):
+        print('  %-34s %.4f (%+.2f%%)' % (st, gg, (gg - 1) * 100))
+    print('\nWhat this does NOT do is exempt anything: a run whose'
+          ' registration'
+          '\nexempts the placement-exposed arms has to drop them itself,'
+          ' this'
+          '\nmode having no way to know which arms a given run put outside'
+          ' its'
+          '\ncondition. Read the band as the run\'s, too; %.1f%% is this'
+          "\nREADME's standing figure and --band takes another." % band)
+    return 0
+
+
+def compare_ci(cells, shapes, strategies, meta, other, main_hs):
+    """Each arm's CI% in this run against the same arm in another.
+
+    `CI%` is the MEDIAN half-width across shapes, which is what the
+    published column is, and that is the whole reason this mode exists:
+    Run 18 asked what a saturating preamble does to the column, computed
+    the MEAN over `--cells` instead, and got the opposite sign on two arms
+    of three -- `build` reading 1.58 to 1.84 where the medians go 1.55 to
+    1.42. The statistic the column publishes is the statistic a question
+    about the column has to be asked in, and hand arithmetic over the dump
+    is where that goes wrong.
+
+    Unlike the time columns this needs no correction and no `list`: a
+    half-width as a percentage of its own slope is already dimensionless,
+    so the two runs are comparable however far apart their absolutes are.
+    """
+    b_cells, b_shapes, b_strategies = load_other(other, main_hs,
+                                                 shapes, meta)
+    both_sh = [s for s in shapes if s in b_shapes]
+    both_st = [t for t in strategies if t in b_strategies]
+    print('\nCI%%: this run against %s, per arm, as the MEDIAN half-width'
+          '\n  across %d shared shape(s) -- the statistic the published'
+          ' column is'
+          % (os.path.basename(other), len(both_sh)))
+    rows = []
+    for st in both_st:
+        a = [cells[sh][st]['ci'] for sh in both_sh
+             if st in cells[sh] and cells[sh][st]['ci'] is not None]
+        b = [b_cells[sh][st]['ci'] for sh in both_sh
+             if st in b_cells[sh] and b_cells[sh][st]['ci'] is not None]
+        if a and b:
+            rows.append((stats.median(a), stats.median(b), st))
+    if not rows:
+        print('\n  no arm is comparable across these two runs.')
+        return 2
+    print('\n%-34s %8s %8s %8s' % ('arm', 'this', 'other', 'ratio'))
+    for x, y, st in sorted(rows, key=lambda r: -(r[0] / r[1]) if r[1] else 0):
+        print('%-34s %8.2f %8.2f %8.2f'
+              % (st, x, y, (x / y) if y else float('nan')))
+    rs = [x / y for x, y, _ in rows if y]
+    print('\ngeomean over the %d arm(s) %.2f, %d wider here and %d narrower.'
+          % (len(rs), geomean(rs), sum(1 for r in rs if r > 1),
+             sum(1 for r in rs if r < 1)))
+    print('A cell resolving worse is not a cell measuring something'
+          ' different:'
+          '\nthis column is sampling error INSIDE one bench, where the A/A'
+          ' floor'
+          '\nis agreement BETWEEN two placements of one strategy. Run 18'
+          ' moved'
+          '\nthe two in opposite directions, so do not read either off the'
+          ' other.')
+    return 0
+
+
 def compare_table(cells, shapes, strategies, meta, other, main_hs,
                   brief=True):
     """One arm's figure in this run against the same arm in another.
@@ -2138,17 +2271,33 @@ def machine_check(cells, shapes, readme, thresh=3.0):
     # where the basis moved to `-A32m` against a default-area fingerprint
     # and the check fired on every gate. The discriminating control costs
     # no build and no pair: `-rtsopts` is live, so run the gate's own
-    # five-bench selection on any binary AT THE FINGERPRINT'S OWN AREA and
-    # read `--machine` on that. Inside the threshold there, the box is
-    # unchanged and what fired is the area. Case:
+    # five-bench selection on a binary AT WHATEVER CONDITION THE
+    # FINGERPRINT WAS TAKEN UNDER and read `--machine` on that. Inside the
+    # threshold there, the box is unchanged and what fired is the thing
+    # this run changed. Case:
     # `machine-check-names-the-control-it-leaves`.
+    #
+    # GENERALISED 2026-08-23 out of Run 18, which met this with the area
+    # UNCHANGED: its fingerprint predated a saturating preamble, a source
+    # patch and a compiler, and the message named only the area, so the
+    # session had to invent the analogue -- the same binary with the
+    # instrument off, then the previous run's own binary. The text now
+    # names both, the second being what settles it, that binary being
+    # what produced the fingerprint.
     print('  What separates the two costs no build and no pair: run the'
           ' gate\'s own')
-    print('  five-bench selection on any binary at the fingerprint\'s own'
-          ' allocation')
-    print('  area and read --machine on that. Inside the threshold there,'
-          ' the box is')
-    print('  unchanged and what fired is the area this run moved to.')
+    print('  five-bench selection on a binary at WHATEVER CONDITION THE'
+          ' FINGERPRINT')
+    print('  was taken under -- the allocation area, an instrument switched'
+          ' on by an')
+    print('  environment variable, a source patch, a compiler -- and read'
+          ' --machine on')
+    print('  that. Inside the threshold there, the box is unchanged and what'
+          ' fired is')
+    print('  the thing this run changed. The previous run\'s own binary, if'
+          ' it is still')
+    print('  on disk, answers it most directly of all: it produced the'
+          ' fingerprint.')
     return 1
 
 
@@ -2510,6 +2659,17 @@ def wild_table(path, verbose=False):
             for nm, ratio, worst in sorted(loud, key=lambda x: -x[1]):
                 print('  %-38s %s, worst sample %.1f ms foreign'
                       % (nm, fmt_ratio(ratio).strip(), worst / 1e6))
+            # LAST, because the list above is sorted worst-first and a
+            # `tail` of this mode therefore reaches the MILDEST offenders.
+            # Run 18's write-up read three such lines as "the worst three"
+            # and understated the peak by an order of magnitude, 0.35
+            # against 5.06, in a sentence about how much a machine's owner
+            # had cost the run. A count and a peak on one line cannot be
+            # tailed into the opposite claim.
+            print('  IN ONE LINE: %d of %d bench(es) at or above %.2f'
+                  ' foreign, peak %.2f.'
+                  % (len(loud), len(order), WILD_LOUD,
+                     max(r for _, r, _ in loud)))
         else:
             print()
             print('NO bench reaches %.2f foreign: nothing else was running on'
@@ -4425,6 +4585,45 @@ def added_lines(*paths):
     return frozenset(added)
 
 
+def head_text_of(path):
+    """The committed copy of `path`, or None when there is no answer.
+
+    Split out of `added_lines` so a second check can ask the same
+    question without inheriting that one's EVERYTHING sentinel, whose
+    meaning is *fall back to the flat listing* and not *the file is new*.
+    """
+    at = os.path.dirname(os.path.abspath(__file__))
+    try:
+        rel = os.path.relpath(os.path.abspath(path), at)
+        known = subprocess.run(['git', 'ls-files', '--error-unmatch', rel],
+                               cwd=at, capture_output=True, text=True,
+                               timeout=20)
+        if known.returncode != 0:
+            return None
+        was = subprocess.run(['git', 'show', 'HEAD:./' + rel], cwd=at,
+                             capture_output=True, text=True, timeout=20)
+        return was.stdout if was.returncode == 0 else ''
+    except (OSError, subprocess.SubprocessError):
+        return None
+
+
+def chapter_head_blocks(text):
+    """The run chapter's own paragraphs: its heading to the first `###`.
+
+    Not the whole chapter, which runs to the end of the document and
+    holds the column definitions, the class-block form and the replace
+    list -- all of which deliberately outlive a run and would make this
+    check a wall. What is scoped here is the part whose closing sentence
+    says every word of it is replaced by the next run.
+    """
+    m = re.search(r'^## About the last run \(Run \d+\)$', text, re.M)
+    if not m:
+        return None
+    rest = text[m.end():]
+    nxt = re.search(r'^#{1,3} ', rest, re.M)
+    return blocks_of(rest[:nxt.start()] if nxt else rest)
+
+
 def blocks_of(text):
     """The blank-line-separated blocks of a document, as (key, lines).
 
@@ -5410,6 +5609,58 @@ def check_doc(readme, main_hs):
         else:
             print('ok:   the half named in Results belongs to Run %s, this'
                   " chapter's run" % cur)
+
+    # THE CHAPTER HEAD IS REPLACED WHOLE, and its own closing paragraph
+    # says so -- but a write-up is done a paragraph at a time and nothing
+    # enumerated them, so Run 18 left FOUR of Run 17's standing inside it,
+    # one of them contradicting two paragraphs the same session had just
+    # written. An independent checker found them by set-differencing the
+    # document; that is this script's job and it is one comparison.
+    #
+    # Scoped to the chapter HEAD, the heading to the first `###`, and not
+    # to the chapter: the chapter runs to the end of the file and holds
+    # the column definitions, the class-block form and the replace list,
+    # every one of which deliberately outlives a run.
+    #
+    # Silent once the write-up is committed, which is not a weakness but
+    # the only sound reading: with HEAD already carrying this run's
+    # chapter, every paragraph matches itself and an unchanged paragraph
+    # means nothing. The run NUMBER is what says which case this is.
+    # A DOCTORED COPY HAS NO HISTORY, so fall back to the canonical
+    # README's committed chapter: what this asks is what the PREVIOUS RUN
+    # wrote, which lives in the repo whichever copy is being linted, and
+    # without the fallback every planted fixture would answer `no
+    # committed copy` and the check could not be cased at all.
+    head_doc = head_text_of(readme)
+    if head_doc is None:
+        here_readme = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), 'README.md')
+        head_doc = head_text_of(here_readme)
+    here = chapter_head_blocks(doc)
+    there = chapter_head_blocks(head_doc) if head_doc is not None else None
+    was = (re.search(r'^## About the last run \(Run (\d+)\)$',
+                     head_doc, re.M) if head_doc else None)
+    if head_doc is None:
+        print('note: no committed copy of this document, so the chapter'
+              " head's paragraphs are not held to the previous run's")
+    elif here is None or there is None or not chap:
+        pass
+    elif was and was.group(1) == chap.group(1):
+        print('ok:   the chapter head is already committed as Run %s, so'
+              ' there is no previous run to hold it to' % chap.group(1))
+    else:
+        old_keys = {k for k, _ in there}
+        stale = [ls[0] for k, ls in here if k in old_keys]
+        if stale:
+            bad.append('%d paragraph(s) of the Run %s chapter head are'
+                       ' unchanged from Run %s: the chapter is replaced'
+                       ' whole, so each is stale or is standing on purpose'
+                       ' and wants rewording to say so -- %s'
+                       % (len(stale), chap.group(1), was.group(1),
+                          '; '.join(l.strip()[:60] for l in stale)))
+        else:
+            print('ok:   every paragraph of the Run %s chapter head is new'
+                  ' since Run %s' % (chap.group(1), was.group(1)))
 
     # Run-current facts stated in prose, held to the roster and to each
     # other. Three sentences quote what the current roster or the current
@@ -6624,6 +6875,14 @@ def main():
     p.add_argument('--alloc', action='store_true',
                    help='with --compare: allocation agreement instead of'
                         ' times, on the multiple the alloc column publishes')
+    p.add_argument('--ci', action='store_true',
+                   help='with --compare: each arm\'s CI%% median against'
+                        ' the other run\'s, the column\'s own statistic')
+    p.add_argument('--bridge', action='store_true',
+                   help='with --compare: each arm as a ratio to `list` in'
+                        ' its own run, which a box change cannot move')
+    p.add_argument('--band', type=float, default=3.3, metavar='PCT',
+                   help='with --bridge: the drift band, default 3.3')
     p.add_argument('--markdown', action='store_true')
     p.add_argument('--fingerprint', action='store_true')
     p.add_argument('--classes', nargs='+', metavar='CLASS.json',
@@ -6771,6 +7030,13 @@ def main():
     if args.alloc and args.chapter:
         p.error('--alloc and --chapter are two readings, not one: run the'
                 ' two invocations README\'s checklist spells out')
+    if args.ci and not args.compare:
+        p.error('--ci is a reading ACROSS two runs: give it --compare')
+    if args.bridge and not args.compare:
+        p.error('--bridge is a reading ACROSS two runs: give it --compare')
+    if args.bridge and (args.alloc or args.chapter):
+        p.error('--bridge, --alloc and --chapter are three readings, not'
+                ' one')
 
     if args.replace:
         if not args.with_:
@@ -6888,6 +7154,12 @@ def main():
     elif args.compare and args.alloc:
         compare_alloc(cells, shapes, strategies, meta, args.compare,
                       args.main)
+    elif args.compare and args.ci:
+        sys.exit(compare_ci(cells, shapes, strategies, meta, args.compare,
+                            args.main))
+    elif args.compare and args.bridge:
+        sys.exit(bridge_table(cells, shapes, strategies, meta, args.compare,
+                              args.main, args.band))
     elif args.compare:
         compare_table(cells, shapes, strategies, meta, args.compare,
                       args.main, not args.verbose)
