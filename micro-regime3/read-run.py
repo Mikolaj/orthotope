@@ -1783,6 +1783,22 @@ def bridge_table(cells, shapes, strategies, meta, other, main_hs,
                                                  shapes, meta)
     both_sh = [s for s in shapes if s in b_shapes]
     both_st = [t for t in strategies if t in b_strategies]
+    # THE WHOLE MODE IS A RATIO TO `list`, so a run without it has no
+    # bridge to read and gets a refusal rather than a KeyError three
+    # frames down. A filtered probe is the ordinary way to have one.
+    if not both_sh:
+        sys.stderr.write('the two runs share no shape, so there is no'
+                         ' per-shape ratio to take\n')
+        return 2
+    missing_list = [w for w, c in (('this run', cells), ('the other', b_cells))
+                    if any('list' not in c[sh] for sh in both_sh)]
+    if missing_list:
+        sys.stderr.write('--bridge divides every arm by `list` in its own'
+                         ' run, and %s %s no `list` on every shared shape,'
+                         ' so there is nothing to divide by\n'
+                         % (' and '.join(missing_list),
+                            'carries' if len(missing_list) == 1 else 'carry'))
+        return 2
     print('\nbridge: this run / %s, each arm as a ratio to `list` in its own'
           ' run,\n  per shape, over %d shared shape(s) -- which cancels a box'
           ' term and a\n  denominator change exactly, where --compare does'
@@ -2433,9 +2449,20 @@ def deflation_table(run_path, cells, shapes, main_hs):
             continue
         into[shape] = l_cells[l_shapes[0]]['list']['slope']
     if not legs:
-        sys.stderr.write('no %s*-r1.json beside this run: the riders were not'
-                         ' taken, or the run and half are not this file\'s\n'
-                         % pat)
+        # SAY WHICH of the two is missing. With the saturated set on disk
+        # and the clean one absent -- an interrupted rider evening, the
+        # `SAT=` invocations having run and the plain ones not -- the old
+        # wording said the riders were never taken, which is the one
+        # thing the directory disproves.
+        if sat:
+            sys.stderr.write('%d saturated leg(s) are here and no CLEAN one:'
+                             ' the total is roster over CLEAN, so the'
+                             ' decomposition cannot be read from these'
+                             ' alone\n' % len(sat))
+        else:
+            sys.stderr.write('no %s*-r1.json beside this run: the riders were'
+                             ' not taken, or the run and half are not this'
+                             ' file\'s\n' % pat)
         return 2
     rows, missing = [], []
     for sh in shapes:
@@ -7226,6 +7253,17 @@ def main():
     # its second file.
     if args.block and args.compare and len(modes) == 2:
         modes = ['block']
+    # ...but only --compare. Relaxing the guard for one sub-flag put back
+    # exactly what it exists to stop: `--block --compare X --chapter` ran
+    # the block and dropped --chapter without a word, because --chapter is
+    # not itself in `modes`.
+    clash = [f for f in ('chapter', 'alloc', 'ci', 'bridge')
+             if args.block and getattr(args, f)]
+    if clash:
+        p.error('--block takes --compare and nothing else; %s %s a reading'
+                ' of its own, so run it separately'
+                % (', '.join('--' + f for f in clash),
+                   'is' if len(clash) == 1 else 'are'))
     if len(modes) > 1:
         p.error('one mode at a time, and %s were all asked for: the'
                 ' dispatch runs the first and drops the rest without a'

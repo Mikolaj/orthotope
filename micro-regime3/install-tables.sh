@@ -283,6 +283,14 @@ for n, (c, start) in enumerate(reversed(order)):
     # not owed, which is what `have_other` below then asserts.
     other_json = f'{R}-{OTHER}-{c}.json'
     have_other = os.path.exists(other_json)
+    # LOUD, because the alternative is a cross-half line left standing
+    # from the previous run under this run's tables. A wrong OTHER looks
+    # exactly like a run that recorded one half, and only this says which
+    # it is.
+    if not have_other:
+        print(f'  note {c}: no {other_json}, so no cross-half line is'
+              f' installed -- correct for a run that recorded one half,'
+              f' and a wrong OTHER otherwise')
     got = subprocess.run(['./read-run.py', f'{R}-{BASIS}-{c}.json', '--block',
                           '--brief']
                          + (['--compare', other_json] if have_other else []),
