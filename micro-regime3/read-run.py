@@ -138,7 +138,10 @@ Modes:
   --deflation       this run's `list` over its own alone legs, per shape:
                     the in-process deflation the riders exist to measure,
                     RAW over RAW because a leg carries no `sum-only` to
-                    correct with. Legs found from this run's own name
+                    correct with. Legs found from this run's own name,
+                    and where a SATURATED set is beside the clean one the
+                    total is split as well -- the state a preamble puts
+                    on a clean process, and the rest the roster adds
   --wild            the per-sample instrument's own LOG rather than a JSON:
                     each bench's `pre`/`post` pair differenced, and, where
                     the stamp carries the load fields, the CPU SOMETHING
@@ -2176,6 +2179,17 @@ def deflation_table(run_path, cells, shapes, main_hs):
     the run has and the legs do not is reported rather than dropped: a
     partial rider set is what an interrupted evening leaves, and it is the
     case this mode must not average over in silence.
+
+    That glob takes BOTH rider sets, `-sat` being a suffix on the half's
+    name, and the saturated legs used to key as `sat-<shape>`, match no
+    shape and vanish. They are the other half of a decomposition, not
+    noise: with a saturating preamble the total splits into the STATE it
+    puts on a clean process, `sat/clean`, and the REST the roster adds on
+    top of it, `roster/sat`, whose product is the total. Run 18 registered
+    those as separate quantities and subtracted them by hand in its
+    write-up until this mode read them, which is the shape README calls a
+    defect report against this script. Case:
+    `deflation-ignores-the-saturated-legs`.
     """
     base = os.path.basename(run_path)
     m = re.match(r'^(.+?)-(.+?)-(?:main|[a-z0-9]+)\.json$', base)
@@ -2185,15 +2199,23 @@ def deflation_table(run_path, cells, shapes, main_hs):
         return 2
     prefix, half = m.group(1), m.group(2)
     pat = '%s-al-%s-' % (prefix, half)
-    legs = {}
+    legs, sat = {}, {}
     for path in sorted(glob.glob('%s*-r1.json' % pat)):
         shape = os.path.basename(path)[len(pat):-len('-r1.json')]
+        # THE GLOB TAKES BOTH RIDER SETS. `-sat` is a suffix on the half's
+        # name, so `$R-al-<half>-*` matches the saturated legs too; they
+        # used to come back keyed `sat-<shape>`, match no shape of the run
+        # and be dropped in silence. They are the other half of the
+        # decomposition, so they are separated here rather than discarded.
+        into = legs
+        if shape.startswith('sat-'):
+            into, shape = sat, shape[len('sat-'):]
         l_cells, l_shapes, _, _ = load(path, main_hs)
         if len(l_shapes) != 1 or 'list' not in l_cells[l_shapes[0]]:
             sys.stderr.write('%s: not one shape\'s `list`, so it is not an'
                              ' alone leg; skipped\n' % os.path.basename(path))
             continue
-        legs[shape] = l_cells[l_shapes[0]]['list']['slope']
+        into[shape] = l_cells[l_shapes[0]]['list']['slope']
     if not legs:
         sys.stderr.write('no %s*-r1.json beside this run: the riders were not'
                          ' taken, or the run and half are not this file\'s\n'
@@ -2230,6 +2252,33 @@ def deflation_table(run_path, cells, shapes, main_hs):
               % (g, 100 * (g - 1), len(rows), up))
         print('  least %.4f on %s, most %.4f on %s'
               % (lo[1], lo[0], hi[1], hi[0]))
+    split = [(sh, sat[sh] / legs[sh], cells[sh]['list']['slope'] / sat[sh])
+             for sh, _ in rows if sh in sat]
+    if split:
+        # THE DECOMPOSITION, which is why a run takes each leg twice: the
+        # STATE is what a saturating preamble puts on a clean process and
+        # the REST is what the roster adds on top of that state. Their
+        # product is the total above, so the three columns are one figure
+        # split at the point a registration asks about rather than three
+        # measurements.
+        print('\nand with the saturated legs beside them, the same total'
+              ' split in two')
+        print('%-26s %10s %10s' % ('shape', 'sat/clean', 'roster/sat'))
+        for sh, st, rest in split:
+            print('%-26s %10.4f %10.4f' % (sh, st, rest))
+        gs = math.exp(sum(math.log(s) for _, s, _ in split) / len(split))
+        gr = math.exp(sum(math.log(r) for _, _, r in split) / len(split))
+        print('\nstate  sat/clean  geomean %.4f (%+.2f%%) over %d shape(s)'
+              % (gs, 100 * (gs - 1), len(split)))
+        print('rest   roster/sat geomean %.4f (%+.2f%%), %d above 1'
+              % (gr, 100 * (gr - 1), sum(1 for _, _, r in split if r > 1)))
+        rlo = min(split, key=lambda x: x[2])
+        rhi = max(split, key=lambda x: x[2])
+        print('  the rest runs %.4f on %s to %.4f on %s'
+              % (rlo[2], rlo[0], rhi[2], rhi[0]))
+    elif sat:
+        print('\n%d saturated leg(s) here match no shape of this run, so the'
+              ' split is not read: %s' % (len(sat), ', '.join(sorted(sat))))
     if missing:
         print('\n%d shape(s) of this run have NO alone leg and are not in the'
               ' figure above: %s' % (len(missing), ', '.join(missing)))

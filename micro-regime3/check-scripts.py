@@ -538,6 +538,27 @@ def synth_json(tmp, pop='main', name=None, **kw):
     return synth_run(os.path.join(tmp, name or '%s.json' % pop), shapes, **kw)
 
 
+def deflation_legs(tag='runzzd', half='h', n=3):
+    """A run with BOTH rider sets beside it, clean and saturated.
+
+    `--deflation` globs the legs out of the CWD rather than out of the
+    run's directory, so these go in HERE and are swept with the rest.
+    Run 18 takes each shape's `list` alone twice -- `SAT=` off and on --
+    because its registration 3 is a decomposition and not one ratio: the
+    state is the saturated leg over the clean one and the rest is the
+    roster cell over the saturated one. Two legs a shape is what makes
+    that readable, and one is what makes it a hand-rolled subtraction in
+    a write-up.
+    """
+    shapes = main_shapes()[:n]
+    run = here_file('%s-%s-main.json' % (tag, half))
+    synth_run(run, shapes)
+    for sh in shapes:
+        synth_run(here_file('%s-al-%s-%s-r1.json' % (tag, half, sh)), [sh])
+        synth_run(here_file('%s-al-%s-sat-%s-r1.json' % (tag, half, sh)), [sh])
+    return run
+
+
 def doctored(tmp, pop, mutate, name='x.json'):
     """A BUILT run with one mutation applied, and the mutation asserted.
 
@@ -1685,6 +1706,39 @@ CASES = [
          ok=V(exit=2, has=['the riders were not taken']),
          bug=V(exit=2, hasnt=['the riders were not taken'])),
 
+    case('deflation-ignores-the-saturated-legs', 'read-run.py', None,
+         'both rider sets on disk and only the clean one read',
+         # THE GLOB TAKES BOTH AND THE MODE USED ONE. `$R-al-<half>-*`
+         # matches `$R-al-<half>-sat-<shape>` as readily as the clean leg,
+         # and the saturated ones came back keyed `sat-<shape>`, which
+         # matches no shape of the run and was dropped without a word --
+         # so a run that paid for two rider sets got one column, and the
+         # decomposition its registration was written for had to be
+         # subtracted by hand in the write-up. That is the shape this
+         # README calls a defect report against the reader rather than a
+         # script to keep: Run 18 registered the state and the rest as
+         # separate quantities, and the mode that reads the total is the
+         # mode that owes them.
+         #
+         # The silent half is what makes it worth a case. A missing leg is
+         # reported -- `missing` names it -- while a leg the glob took and
+         # the keying discarded looked exactly like a leg that was never
+         # taken, and the geomean printed over the clean ones was correct,
+         # which is why nothing downstream could notice.
+         # A CONTROL AND NOT A REPLAY, deliberately: the fix is in the
+         # working tree and not in a commit, so there is no hash for
+         # --audit to replay against and a `bug` verdict would be a
+         # promise this suite cannot keep. Non-vacuity was shown the way
+         # this README asks instead, by breaking it on purpose
+         # (2026-08-23): with the `sat-` split removed from
+         # `deflation_table`, so that the saturated legs key as
+         # `sat-<shape>` and match nothing again, this case FAILS on both
+         # strings. It earns its `bug` and its hash the day the fix is
+         # committed.
+         plant=lambda t: {'run': deflation_legs()},
+         argv=['{run}', '--deflation'],
+         ok=V(has=['sat/clean', 'roster/sat'])),
+
     case('broke-names-the-manifest', 'read-run.py', None,
          'a retirement made in prose left the manifest predicting the old',
          # THE MANIFEST IS THE OTHER HALF OF A RETIREMENT. Run 17's chapter
@@ -1865,11 +1919,16 @@ CASES = [
          # hand from being read at all -- so what separates the two
          # revisions is whether that figure appears. Over a built run they
          # print byte-identical output, measured 2026-08-17, so the case
-         # would pass while testing nothing. If run14's artifacts go, this
-         # reports FIXTURE DID NOT BUILD, which is the honest failure and
-         # not a false pass; re-aim it at whatever run is then on disk.
+         # would pass while testing nothing. If the captured run's artifacts
+         # go, this reports FIXTURE DID NOT BUILD, which is the honest
+         # failure and not a false pass; re-aim it at whatever run is then
+         # on disk. RE-AIMED 2026-08-23 from run14-lookrts to run18-g912,
+         # the artifacts up to Run 16 having been deleted that day. The
+         # figure is the FIXTURE's, planted into the README copy rather
+         # than read from the run, so it does not move with the run; what
+         # the run has to be is CAPTURED rather than built.
          plant=lambda t: {'readme': readme_current_run_sentence(t),
-                          'run': run_json('run14-lookrts-main.json')},
+                          'run': run_json('run18-g912-main.json')},
          argv=['{run}', '--claims', '--readme', '{readme}'],
          ok=V(has=['0.9312']),
          bug=V(has=['HELD'], hasnt=['0.9312'])),
@@ -3178,8 +3237,8 @@ CASES = [
          # loud failure this case wants rather than a silent pass. Aim it
          # at whatever sentence the floor section then quotes.
          plant=lambda t: {'readme': edited_readme(t, (
-             'the same run gives 1.31% and 0.56%',
-             'the same run gives 1.51% and 0.56%'))},
+             'the same run gives 0.54% and 0.31%',
+             'the same run gives 0.74% and 0.31%'))},
          argv=['--check-doc', '--readme', '{readme}'],
          ok=V(exit=1, has=['six-pair figure is quoted differently']),
          bug=V(exit=0, hasnt=['six-pair figure is quoted differently'])),
