@@ -4,10 +4,10 @@ This branch (`speedup-strided-tovector`) changes `toVectorListT`'s regime-3
 fallback in `Data/Array/Internal.hs` --- the per-element path taken when
 the innermost dimension is strided, so no contiguous run longer than one element
 can be sliced out. What the branch carries in code is `bq-expand`, the last
-candidate; **the regime 3 fix is not fully decided: on 2026-08-22
-`mut-odo-vecdims` was decided as the implementation to go upstream, possibly
-behind a condition on the strides that redirects a stride class
-to an implementation much better at it** --- [the
+candidate (TODO: retarget at `mut-odo-vecdims`); **the regime 3 fix is not fully
+decided: on 2026-08-22 `mut-odo-vecdims` was decided as the implementation to go
+upstream, possibly behind a condition on the strides that redirects a stride
+class to an implementation much better at it** --- [the
 ceiling](#the-mutable-ceiling-not-taken) carries the decision and what it rests
 on.
 
@@ -3279,7 +3279,8 @@ on the strides that redirects a stride class to an implementation much better
 at it** --- the decision, what it rests on and what it owes are [in the ceiling
 section](#the-mutable-ceiling-not-taken). What follows is the last candidate,
 `bq-expand`, which is what this branch's `Data/Array/Internal.hs` carries
-and what every claim below was measured against.
+and what every claim below was measured against (TODO: retarget
+at `mut-odo-vecdims`).
 
 Regime 3 now builds the run base-offsets by expansion and fills with one
 `vGenerate`:
@@ -3457,13 +3458,14 @@ evidence for that ruling --- since amended below: the evidence now prices
 the option instead of closing it. `mut-odo-vecdims` keeps the stake high rather
 than settling it: the fill's real cost was the odometer's cons-list traffic,
 not the fill itself, and Run 10 (SpecConstr) prices the class-method tier
-at 2.11x over `bq-expand` (0.4745 paired). Against that, the best pure strategy
-reaches 0.096 on Run 18, so the gap the class method would buy is **1.79x**,
-not 2.11x --- which is the figure the ruling turns on, and which reads 0.5577
-paired at 23 wins of 24. It has now read 1.80x at -O1, 1.68x on Run 8, 1.87x
-on Run 9, 1.85x on Run 10 with its aligned half giving 1.84x, and **1.84x** here
---- the same cell and the same 23 wins of 24 as Run 10's aligned half, to four
-digits. So the spread is a tenth either side of 1.8 and neither the pairing
+at 2.11x over `bq-expand`, the best pure arm then (0.4745 paired). The best pure
+arm is now `bq-scan-rem-gm-mulback` at 0.096 on Run 18, so what the class method
+would buy is `mut-odo-vecdims` over that: **1.79x**, not 2.11x --- which
+is the figure the ruling turns on, and which reads 0.5577 paired at 23 wins
+of 24. It has now read 1.80x at -O1, 1.68x on Run 8, 1.87x on Run 9, 1.85x
+on Run 10 with its aligned half giving 1.84x, and **1.84x** here --- the same
+cell and the same 23 wins of 24 as Run 10's aligned half, to four digits.
+So the spread is a tenth either side of 1.8 and neither the pairing
 nor a repetition moves it. Read it as *approaching 2x and volatile at the tenth*
 between runs that differ, and do not reopen or close the ruling on a movement
 of that size --- Run 10 showed the volatility is not the layout's, and Run 11
@@ -9095,7 +9097,9 @@ onto before Run 8 being the roster Run 18 ran: every claim below names an arm
 this run timed. Seven full runs on that roster is the evidence that keeping
 the *question* and changing the *arm* was the right repair --- the unconditional
 counterparts were written so that dropping a precondition would not drop
-a question with it, and none of them dropped one.
+a question with it, and none of them dropped one. The claims that read against
+`bq-expand` read against it because the branch carries it (TODO: retarget
+at `mut-odo-vecdims`).
 
 1. `mut-odo-vecdims` < `mut-flat-gm` < `bq-mut-runs-gm-mulback` <
    `bq-odo-gm-mulback`, the whole ordering read on unconditional arms.
@@ -9256,6 +9260,12 @@ verdicts**, the details beside each class's table:
    is codegen and not the program: allocation is deterministic per call, none
    of these levels moved, and the two halves agree on 1072 of 1080 allocating
    cells.
+
+**TODO: decide (ask if unsure) which of the `bq-expand`-centric claims --- 2
+to 5 and 9 --- stay as the last candidate's record and which retire.
+Then perform the rewriting of the eight *What the class says* paragraphs
+to the re-aimed properties: neither pure nor `bq-expand` is crucial any more,
+though still vaguely interesting.**
 
 `--pair` works within a class JSON exactly as within the main one, and is still
 the way to compare two arms; its bootstrap interval, over three shapes, is worth
