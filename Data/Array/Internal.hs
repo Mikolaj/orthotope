@@ -28,11 +28,15 @@
 {-# LANGUAGE UndecidableSuperClasses #-}
 module Data.Array.Internal(module Data.Array.Internal) where
 import Control.DeepSeq
+import Control.Monad.ST(ST)
 import Data.Data(Data)
 import qualified Data.DList as DL
 import Data.Kind (Type)
 import Data.List(foldl', zipWith4, zipWith5, sortBy, sortOn, foldl1')
 import Data.Proxy
+import qualified Data.Vector.Generic as VG
+import qualified Data.Vector.Generic.Mutable as VGM
+import qualified Data.Vector.Unboxed as VU
 import GHC.Exts(Constraint, build)
 import GHC.Generics(Generic)
 import GHC.TypeLits(KnownNat, natVal)
@@ -74,6 +78,28 @@ class Vector v where
   vGenerate :: (VecElem v a) => Int -> (Int -> a) -> v a
   vAll      :: (VecElem v a) => (a -> Bool) -> v a -> Bool
   vAny      :: (VecElem v a) => (a -> Bool) -> v a -> Bool
+
+  -- | Materialize a strided view in row-major order.  The arguments are
+  -- the shape, the strides, the offset, the total element count
+  -- (@product sh@, passed in because every caller already has it) and
+  -- the source vector; the shape must be non-empty.  This method exists
+  -- so that a fast 'toVectorListT' can be implemented later on: when
+  -- the innermost dimension is strided no slice can be taken, and the
+  -- fast fills for that case write a mutable result buffer across runs,
+  -- which no existing method can express ('vGenerate' is stateless).
+  -- The default is a terse but fast pure form, where the base-offsets
+  -- table is built by expansion ('runBaseOffsetsT'), one division
+  -- per element. The vector-backed instances override it with
+  -- the faster mutable fill 'genericFillStrided'.  If the default's
+  -- speed mattered, which it does not, -fspec-constr would improve it.
+  vFillStrided :: (VecElem v a) => ShapeL -> [Int] -> Int -> Int -> v a -> v a
+  vFillStrided sh ats ao l v =
+    let !sInner = last sh
+        !tInner = last ats
+        !baseOffsets = runBaseOffsetsT ao (init sh) (init ats)
+        gen i = case i `quotRem` sInner of
+          (!q, !r) -> vIndex v (VU.unsafeIndex baseOffsets q + r * tInner)
+    in  vGenerate l gen
 
 class None a
 instance None a
@@ -210,6 +236,91 @@ unScalarT (T _ o v) = vIndex v o
 {-# INLINE constantT #-}
 constantT :: (Vector v, VecElem v a) => ShapeL -> a -> T v a
 constantT sh x = T (map (const 0) sh) 0 (vSingleton x)
+
+-- Base offset (into the values vector) of each innermost run of an array,
+-- in row-major order over the outer dimensions (all dimensions but the
+-- innermost).  The outer offset grid is separable (@o0 + sum idx_d *
+-- stride_d@), so it is built by iterated expansion: from the singleton
+-- @[o0]@, each outer dimension expands every partial base-offset @a@ into
+-- @enumFromStepN a stride_d n_d@ (a constant-stride run, no division), all
+-- inside vector's stream framework rather than a hand-written loop.  The
+-- result is the unboxed Int scratch 'vFillStrided''s default indexes; it
+-- has @product osh@ elements.
+{-# INLINE runBaseOffsetsT #-}
+runBaseOffsetsT :: Int    -- ^ the array offset to start from
+                -> [Int]  -- ^ outer dimensions, i.e. @init sh@
+                -> [Int]  -- ^ outer strides, i.e. @init (strides a)@
+                -> VU.Vector Int
+runBaseOffsetsT o0 osh oats = foldl' expand (VU.singleton o0) (zip osh oats)
+  where expand !acc (!nd, !sd) =
+          VU.concatMap (\a -> VU.enumFromStepN a sd nd) acc
+
+-- The measured-fastest fill for 'vFillStrided': an allocate-once mutable
+-- result, an odometer recursion over the outer dimensions with the input
+-- offset stepped additively, the innermost outer level fused into a
+-- dedicated run loop, and the run fill unrolled by two with its bound on
+-- the output cursor, so it is sound for zero and negative strides.
+-- Written once against 'Data.Vector.Generic', which supplies the mutable
+-- machinery orthotope's own 'Vector' class deliberately does not; each
+-- vector-backed instance reuses it verbatim.  Ported bang-for-bang from
+-- the benchmarked arm (mut-odo-vecdims-add-in-leaf-u2): the bang
+-- patterns are part of what was measured. The benchmarks are preserved
+-- at https://github.com/Mikolaj/orthotope/blob/speedup-strided-tovector/micro-regime3/
+-- and the implementation is similar to what once was in orthotope file
+-- FastReshape.hs, but independently discovered and improved on by Opus Fable.
+{-# INLINE genericFillStrided #-}
+genericFillStrided :: forall w a. (VG.Vector w a)
+                   => ShapeL -> [Int] -> Int -> Int -> w a -> w a
+genericFillStrided sh ats ao l v = VG.create fill
+  where
+    fill :: forall s. ST s (VG.Mutable w s a)
+    fill = do
+      out <- VGM.unsafeNew l
+      let writeRun :: Int -> Int -> ST s ()
+          writeRun !outPos !baseOff =
+            let !oEnd = outPos + sInner
+                inner :: Int -> Int -> ST s ()
+                inner !o !src
+                  | o + 1 >= oEnd =
+                      if o >= oEnd then return ()
+                      else VGM.unsafeWrite out o (VG.unsafeIndex v src)
+                  | otherwise = do
+                      VGM.unsafeWrite out o (VG.unsafeIndex v src)
+                      VGM.unsafeWrite
+                        out (o + 1) (VG.unsafeIndex v (src + tInner))
+                      inner (o + 2) (src + t2)
+            in  inner outPos baseOff
+          go :: Int -> Int -> Int -> ST s Int
+          go !lev !outPos !baseOff
+            | lev >= rOuter = writeRun outPos baseOff
+                              >> return (outPos + sInner)
+            | lev == rOuter - 1 =
+                let !n  = VU.unsafeIndex oshV lev
+                    !st = VU.unsafeIndex oatsV lev
+                    run :: Int -> Int -> Int -> ST s Int
+                    run !k !op !boff
+                      | k <= 0    = return op
+                      | otherwise = writeRun op boff
+                                    >> run (k - 1) (op + sInner) (boff + st)
+                in  run n outPos baseOff
+            | otherwise =
+                let !n  = VU.unsafeIndex oshV lev
+                    !st = VU.unsafeIndex oatsV lev
+                    dim :: Int -> Int -> Int -> ST s Int
+                    dim !k !op !boff
+                      | k <= 0    = return op
+                      | otherwise = go (lev + 1) op boff
+                                    >>= \op' -> dim (k - 1) op' (boff + st)
+                in  dim n outPos baseOff
+      _ <- go 0 0 ao
+      return out
+    !sInner = last sh
+    !tInner = last ats
+    !t2 = tInner + tInner
+    !rOuter = length sh - 1
+    oshV, oatsV :: VU.Vector Int
+    !oshV  = VU.fromList (init sh)
+    !oatsV = VU.fromList (init ats)
 
 -- Convert an array to a list of vectors, which together contain
 -- all the elements in the natural order.
