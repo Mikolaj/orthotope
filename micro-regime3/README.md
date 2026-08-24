@@ -4,12 +4,14 @@ This branch (`speedup-strided-tovector`) changes `toVectorListT`'s regime-3
 fallback in `Data/Array/Internal.hs` --- the per-element path taken when
 the innermost dimension is strided, so no contiguous run longer than one element
 can be sliced out. What the branch carries in code is `bq-expand`, the last
-candidate (TODO: retarget at `mut-odo-vecdims`); **the regime 3 fix is not fully
-decided: on 2026-08-22 `mut-odo-vecdims` was decided as the implementation to go
-upstream, possibly behind a condition on the strides that redirects a stride
-class to an implementation much better at it** --- [the
-ceiling](#the-mutable-ceiling-not-taken) carries the decision and what it rests
-on.
+candidate (TODO: retarget at `mut-odo-vecdims`); **the regime 3 fix is decided:
+on 2026-08-22 `mut-odo-vecdims` was decided as the implementation to go
+upstream, and on 2026-08-24 the stride-conditioned redirect that had kept
+the decision open was dropped, so the fix ships as `mut-odo-vecdims` alone** ---
+[the ceiling](#the-mutable-ceiling-not-taken) carries the decision and what
+it rests on, and [the two-stage
+plan](#the-two-stage-plan-and-the-rework-proposal) below carries the drop
+and the rework proposal the redirect's evidence now feeds.
 
 The previous attempt, benchmarked as `gen-quotrem` resulted in a **mixed
 picture**: it had replaced the original `list` fallback
@@ -117,6 +119,127 @@ under the flag whatever the library does globally, and `-fspec-constr`
 is the regime every claim below is read in rather than a probe of one.
 
 
+### The two-stage plan and the rework proposal
+
+**Decided 2026-08-24: the fix ships in two stages, and the stride-conditioned
+redirect is dropped rather than deferred.** Stage one is what goes upstream now:
+`mut-odo-vecdims` alone, for regime 3 alone, with the class method it needs
+and no condition on the strides --- the prototype this replaces, a compound
+strategy with `mut-odo-vecdims` as the main element and one to three per-shape
+or per-stride redirects around it, is dead. Stage two is a proposal, recorded
+here and committing nobody: a later rework of `toVectorListT`'s whole dispatch,
+all regimes, whose own evidence is what killed the redirect --- it shows
+the redirect's constituency dissolving at the dispatch, and what remains
+of regime 3 after it is stage one's arm, so the fix taken now may prove
+to be the whole of regime 3 in the rework too.
+
+**The redirect's measured constituency is unit dimensions and zero strides,
+not stride classes.** [The ceiling](#the-mutable-ceiling-not-taken) names every
+place an outside-family arm leads `mut-odo-vecdims`: the `reshape1` class,
+`stretch-inner1`, `window-64x64-k1x9`, `bcast-tall-Mx2`
+and `stretch-pow2stride`. All but the last are views with a unit innermost
+extent or a zero stride --- and both properties mark work the fallback need
+not do at all, where a redirect to a flat table arm still does all of it,
+and at `sInner` 1 pays twice the result vector in allocation for a table as long
+as the result.
+
+**The proposal's first half: canonicalize the view before the regime dispatch
+--- drop unit dimensions, then merge adjacent dimensions where
+`st_outer == n_inner * st_inner`.** Both rewrites preserve the row-major element
+sequence exactly --- a unit dimension contributes `0 * stride` to every index
+whatever its stride, and the merge condition is the index sum's own
+distributivity, sign-agnostic, so it fires on `rev` views too --- and both
+are O(rank) integer work on the two lists the dispatch already holds.
+The regimes are then classified on the canonical dims: `reshape1-*`
+and `stretch-inner1` become regime 1 outright, since `simpleReshape` gives
+an appended unit dim stride 0 over data that was dense and in order all along,
+which `mkReshape1`'s comment has said since the class was built;
+`window-64x64-k1x9` becomes canonical regime 2, contiguous runs of 9;
+and the conv patch tensors stay regime 3 at lower rank, `cnn-L2-24x24-c32`
+falling from rank 5 to 3. After unit-drop no regime-3 view has `sInner` 1 ---
+only the scalar case, already special-cased --- so the flat table arms lose
+their constituency structurally, not behind a predicate.
+
+**The second half: specialize the zero strides inside the one remaining fill,
+as conditions on the odometer rather than strategies beside it.** A zero
+innermost stride (the `bcast` class) hoists the run's one read and stores
+a register; a zero outer stride (`bcastmid`, any broadcast axis) fills the block
+below that level once and block-copies it `n - 1` times, zero levels composing
+since the topmost fires and the ones below fall inside its one filled block;
+a canonical innermost stride of 1 (`window`) makes the run body a contiguous
+copy. All three share the vecdims odometer, chosen once per call outside
+the loops.
+
+**A scratch probe priced the proposal, and its timings are anecdotal
+by this README's standards --- magnitudes only, nothing finer.** The instrument:
+in-process fixed-iteration differencing at -O1 `-fspec-constr` and -A32m, each
+arm correctness-gated against a naive per-element reference, on a box carrying
+about one core of foreign load; only reads past 1.5x were kept,
+and those reproduced across two processes within about 20%. Against a verbatim
+`mut-odo-vecdims` port: the `reshape1-500k` analog falls from about 2 ms to tens
+of nanoseconds, the regime-1 return being O(1) --- the work is removed,
+not shrunk --- where the redirect's own leader on that shape reads about 1.6x;
+`window-64x64-k1x9` reads 6.6x with the contiguous-run copy where `mut-flat-gm`,
+the redirect's candidate there, reads 1.3x; the hoisted read pays 1.7x at run
+length 2 and about 5x at 1800; the block copy about 8x on a `bcastmid` analog.
+The two controls canonicalization cannot touch --- `stretch-primes` exactly,
+`cnn-L2-24x24-c32` up to its merge --- read ties, so the pass costs nothing
+where it does nothing.
+
+**One reclassification is not free, and it bounds what canonicalization may do
+alone.** Promoting the window view into today's regime 2 --- the slice-per-run
+list `toVectorT` then concatenates --- read a tie with `mut-odo-vecdims` on time
+and 4.59x the result vector on allocation, some 260 bytes of slice header
+and list per nine-element run. So the rework takes promotion to regime 2 only
+together with a direct run-copy fill, or leaves short-run canonical-regime-2
+views on the regime-3 arm; promotion to regime 1 is the one reclassification
+free by itself.
+
+**On allocation the proposal never leaves the 1.00x tier and twice goes
+under it** --- and these figures are exact, allocation being deterministic per
+call. The hoisted read and the block copy allocate the result and single-digit
+bytes more; canonicalization's own transients stay under two unpinned kilobytes
+per call, 1.01x on the smallest probed view and vanishing on the megabyte ones;
+and the regime-1 hits allocate about 470 bytes against `mut-odo-vecdims`'s 4.0
+MB on the `reshape1-500k` analog --- minting no pinned buffer at all where every
+materializing arm mints one, the small-pinned currency
+of `small-pinned-churn-investigation/`, whose tax lands on later code and which
+no per-call fit prices. The flat table redirect this replaces pays 2.00x
+on the same shapes.
+
+**The one stage-one choice that could foreclose stage two is the class method's
+signature.** The per-element `vBuild` the Core identity licensed cannot express
+a block copy or a contiguous-run copy: those need the instance's mutable vector
+--- a `vCreate` handing the buffer to the callback, or a whole-kernel method
+with a `vGenerate` default --- or the FastReshape `unsafeCast` escape,
+Storable-only. Choose stage one's method with that in view, or accept a second
+method later. Nothing else couples the stages: post-canonicalization every
+population this README measures keeps the vecdims family at its head, the one
+residue being `stretch-pow2stride`'s 10%, which is cache aliasing and [the
+C-gap](#the-c-gap-still-a-deeper-ceiling)'s to close.
+
+**The rework's arms enter the roster for Run 20, not Run 19.** Run 19 stays
+stage one's --- [what it compares against](#what-run-19-compares-against)
+and [the claims it should test](#the-claims-run-19-should-test) are written,
+and vecdims-alone simplifies what the decision owes, there being no redirect
+branches to break. Run 20 rosters the composite canonicalizing arm,
+the hoisted-read fill, the block copy and the contiguous-run copy. They are new
+functions, so Run 20 is the stronger pinning test the rider under [Recommended
+tasks](#recommended-tasks-after-run-18) waits for; and its write-up should
+expect `reshape1` to go degenerate for the composite arm, whose cells there
+would measure dispatch rather than filling, so the class wants a non-collapsing
+sibling --- a `[n, 1]` view over a strided source --- to stay discriminating.
+
+**Weighed and dropped within the proposal, so they are not re-proposed
+with it:** tiling for the page-aliased stride (10% on one probe shape whose own
+comment bounds damage rather than ranking); size thresholds in the dispatch
+(nothing measured needs one after canonicalization, and the no-precondition
+ruling stays whole); normalizing strides at view construction (observable
+through the API, so the pass stays local to `toVectorListT`); and algebraic
+shortcuts in reductions over broadcasts (the consumer's business,
+not this fallback's).
+
+
 ## Contents
 
 History is not here. `MARGINALIA` beside this file is a write-only journal
@@ -131,6 +254,8 @@ It is anchors and not line numbers on purpose: `--check-doc` verifies that every
 anchor in this file resolves, so this list cannot rot silently, where line
 numbers would be wrong by the next edit and say nothing.
 
+- [The two-stage plan and the rework
+  proposal](#the-two-stage-plan-and-the-rework-proposal)
 - [What is settled, and where](#what-is-settled-and-where)
 - [What is open](#what-is-open)
   - [Recommended tasks after Run 18](#recommended-tasks-after-run-18)
@@ -198,8 +323,9 @@ by being a thing a later session might otherwise redo.
 - **The mutable ceiling**, why a direct mutable fill was not taken for eleven
   runs, the amendment that turned that bar into a weight, and the decision
   of 2026-08-22 that takes it --- `mut-odo-vecdims` as the upstream
-  implementation, a stride-conditioned redirect possible, the fix not fully
-  decided until the code lands: [the ceiling][ceiling].
+  implementation, alone since the drop of 2026-08-24 sent the stride-conditioned
+  redirect to [the two-stage plan](#the-two-stage-plan-and-the-rework-proposal)
+  as a rework proposal: [the ceiling][ceiling].
 - **The class-method signature is free** --- `build` and `mut-odo` compile
   to the same worker, dumped in both regimes --- so no `vBuild` is held back
   on a figure: [the ceiling][ceiling].
@@ -3273,10 +3399,11 @@ rather than a cell to average away.
 
 ### The fix in Data/Array/Internal.hs
 
-**Decided 2026-08-22, and not yet in code: the regime 3 fix is
-to be `mut-odo-vecdims`, the mutable odometer fill, possibly behind a condition
-on the strides that redirects a stride class to an implementation much better
-at it** --- the decision, what it rests on and what it owes are [in the ceiling
+**Decided 2026-08-22, completed 2026-08-24, and not yet in code: the regime 3
+fix is to be `mut-odo-vecdims`, the mutable odometer fill, alone ---
+the stride-conditioned redirect once left open here is dropped for [the rework
+proposal](#the-two-stage-plan-and-the-rework-proposal)** --- the decision, what
+it rests on and what it owes are [in the ceiling
 section](#the-mutable-ceiling-not-taken). What follows is the last candidate,
 `bq-expand`, which is what this branch's `Data/Array/Internal.hs` carries
 and what every claim below was measured against (TODO: retarget
@@ -3325,18 +3452,19 @@ and is reported in that repo, not here.
 **Decided 2026-08-22: the ceiling is to be taken, and the heading keeps
 its *not taken* until the code lands.** `mut-odo-vecdims` becomes the upstream
 implementation of the regime-3 fallback, with the new mutating `Vector` method
-it needs --- the method the Core below shows is free --- and possibly
-a condition on the strides that redirects a stride class to an implementation
-much better at it; the fix is not fully decided until that is. What the decision
-rests on, requoted from Run 18 rather than carried forward: `mut-odo-vecdims`
-heads the main set at 0.055 of `list` with a worst shape of 0.125, its family
-heads eight of the nine populations, and its worst in any class is 0.107
-(`reshape1-rank10`), so it was never slower than `list` anywhere this README has
-measured. The one population its family does not head is the redirect's case:
-in `reshape1` the flat fills own the top, `mut-flat-gm` at a geomean of 0.033
-against `mut-odo-vecdims`'s 0.091 --- though not on every shape of it,
-`mut-flat-gm`'s worst there (0.128) lying above `mut-odo-vecdims`'s 0.107
-on the same shape, so a redirect wants a predicate on the strides finer
+it needs --- the method the Core below shows is free --- and, since 2026-08-24,
+no condition on the strides: the redirect is dropped for [the two-stage
+plan](#the-two-stage-plan-and-the-rework-proposal), whose rework proposal serves
+its constituency at the dispatch instead, so the fix is fully decided. What
+the decision rests on, requoted from Run 18 rather than carried forward:
+`mut-odo-vecdims` heads the main set at 0.055 of `list` with a worst shape
+of 0.125, its family heads eight of the nine populations, and its worst in any
+class is 0.107 (`reshape1-rank10`), so it was never slower than `list` anywhere
+this README has measured. The one population its family does not head
+is the redirect's case: in `reshape1` the flat fills own the top, `mut-flat-gm`
+at a geomean of 0.033 against `mut-odo-vecdims`'s 0.091 --- though not on every
+shape of it, `mut-flat-gm`'s worst there (0.128) lying above `mut-odo-vecdims`'s
+0.107 on the same shape, so a redirect wants a predicate on the strides finer
 than the class. On the main set, per shape, the best arm outside the family
 beats `mut-odo-vecdims` on **5 of the 24 shapes**, and only two of the five
 by more than a thousandth: `stretch-inner1` (`sInner` 1, `mut-flat-gm` 0.031
@@ -9848,8 +9976,10 @@ and `bq-expand` at 5.43x the result vector where `scaled` puts it at 1.14x,
 which is `m = l` showing through exactly as that property warns.
 `bq-expand / mut-odo-vecdims` is 1.2196, the narrowest of the eight, and
 this is the one class where that margin is not comfortable. This population
-remains the standing case for a stride-conditioned redirect, as it has
-been since Run 16.
+was the standing case for a stride-conditioned redirect from Run 16 on; the drop
+of 2026-08-24 sends it to [the two-stage
+plan](#the-two-stage-plan-and-the-rework-proposal) instead, whose
+canonicalization pass reclassifies every shape of it to regime 1.
 
 **`slice` --- a view of a larger source: non-zero offset, positive strides.**
 Shapes: `slice-cnn-L2-24x24-c32` (`l` 165888, `sInner` 3), `slice-primes` (`l`
@@ -10484,6 +10614,11 @@ was reworded, which is the failure this list was rewritten to escape.
   is that the other types follow it --- which Run 8 does, in a regime the probe
   was not run in, so the trigger is live and is [on the open
   list](#what-is-open) rather than discharged here;
+- [The two-stage plan and the rework
+  proposal](#the-two-stage-plan-and-the-rework-proposal), whose figures
+  are a scratch probe's and which no run replaces until Run 20 rosters
+  the rework's arms --- whose tables then supersede the probe magnitudes,
+  and the section is re-read against them;
 - [Other toolchains, probed and not run](#other-toolchains-probed-and-not-run),
   whose figures are a probe's on another compiler and another backend and which
   no run here replaces: what would call for re-probing is a move in either
