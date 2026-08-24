@@ -82,8 +82,9 @@ class Vector v where
   -- | Materialize a strided view in row-major order.  The arguments are
   -- the shape, the strides, the offset, the total element count
   -- (@product sh@, passed in because every caller already has it) and
-  -- the source vector; the shape must be non-empty.  This method exists
-  -- so that a fast 'toVectorListT' can be implemented later on: when
+  -- the source vector; the shape must be non-empty.  This method is
+  -- what makes a fast 'toVectorListT' possible, and that function's
+  -- strided fallback goes through it: when
   -- the innermost dimension is strided no slice can be taken, and the
   -- fast fills for that case write a mutable result buffer across runs,
   -- which no existing method can express ('vGenerate' is stateless).
@@ -329,7 +330,7 @@ genericFillStrided sh ats ao l v = VG.create fill
 -- The minimum/maximum operations rely on this invariant.
 {-# INLINE toVectorListT #-}
 toVectorListT :: (Vector v, VecElem v a) => ShapeL -> T v a -> [v a]
-toVectorListT sh a@(T ats ao v) =
+toVectorListT sh (T ats ao v) =
   let l : ts' = getStridesT sh
       -- Are strides ok from this point?
       oks = scanr (&&) True (zipWith (==) ats ts')
@@ -351,8 +352,11 @@ toVectorListT sh a@(T ats ao v) =
         -- Innermost dimension is normal, so slices are non-trivial.
         DL.toList $ loop oks sh ats ao
       else
-        -- All slices would have length 1, going via a list is faster.
-        [vFromListN l $ toListT sh a]
+        -- Innermost dimension is strided, so every contiguous run has
+        -- length 1 and no slice can be taken.  Fill the result through
+        -- 'vFillStrided', whose vector-backed instances write a mutable
+        -- buffer directly.
+        [vFillStrided sh ats ao l v]
 
 {-# INLINE toVectorT #-}
 toVectorT :: (Vector v, VecElem v a) => ShapeL -> T v a -> v a
