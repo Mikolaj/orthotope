@@ -3612,8 +3612,8 @@ def claims_in_doc(readme, cells, shapes, strategies, src, main_hs):
 # The regime 3 fix became `mut-odo-vecdims` by the decision of 2026-08-22
 # (README, the ceiling), `bq-expand` the last candidate; the pure/impure
 # distinction retired with it, and the summary's pure slot now carries the
-# best arm OUTSIDE the vecdims family -- the stride-conditioned redirect's
-# candidate per class.
+# best arm OUTSIDE the vecdims family -- what the stride-conditioned
+# redirect, dropped 2026-08-24, would have taken per class.
 SUMMARY_COLS = ('shapes', 'mut-odo-vecdims', 'worst', 'best outside family',
                 'ceiling', 'floor')
 FAMILY = 'mut-odo-vecdims'
@@ -4097,9 +4097,10 @@ def extremes_table(paths, main_hs, args):
                     ', '.join(sorted(dup))))
     print('%d class population(s), and every superlative about them has its'
           ' source here.' % len(rows))
-    print('`gap` is `%s` over the regime 3 fix -- what a stride-conditioned'
-          ' redirect would' % 'best outside the family')
-    print('buy in that class -- by the published column and then paired.')
+    print('`gap` is `%s` over the regime 3 fix -- what the dropped'
+          ' stride-conditioned redirect' % 'best outside the family')
+    print('would have bought in that class -- by the published column and'
+          ' then paired.')
     print()
     print('%-10s %6s %8s %7s %-26s %7s %8s %8s %7s'
           % ('class', 'shapes', 'fix', 'worst', 'best outside family',

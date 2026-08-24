@@ -9375,10 +9375,10 @@ verdicts**, the details beside each class's table:
    and that its lead is not a property of the arm. The third clause reads
    the last candidate `bq-expand` behind `mut-odo-vecdims` and holds in all
    nine, from 0.3363 on `scaled` to 0.7720 on `reshape1`, the main set
-   at 0.4795. The summary's outside-family slot --- the redirect's candidate ---
-   is `mut-flat-gm` in `rev`, `revsome`, `window` and `reshape1`, `build`
-   in `bcast`, `bcastmid` and `slice`, and `mut-odo` in `scaled`, only
-   `reshape1`'s ahead of `mut-odo-vecdims`.
+   at 0.4795. The summary's outside-family slot --- what the dropped redirect
+   would have taken --- is `mut-flat-gm` in `rev`, `revsome`, `window`
+   and `reshape1`, `build` in `bcast`, `bcastmid` and `slice`, and `mut-odo`
+   in `scaled`, only `reshape1`'s ahead of `mut-odo-vecdims`.
 3. **The allocation tiers survive, and every level is Run 15's, Run 16's and Run
    17's to the digit**: the mutable fills at the result vector, `bq-expand`
    between 1.14x and 5.43x it, `list` an order of magnitude above. Where a level
@@ -9479,11 +9479,11 @@ and left Run 7's standing in the table, both checks passing, because the check
 looked the table up the same wrong way the paste did.
 
 `mut-odo-vecdims` and `worst` are that arm's two columns in that class's table;
-*best outside family* is the leading arm outside the vecdims family,
-the stride-conditioned redirect's candidate, and *ceiling* the leading arm
-of the family, each with its name, since which arm leads is half of what
-the column says; *floor* is the largest deviation from 1 among that process's
-eighteen A/A controls. A cell that breaks one of [the three
+*best outside family* is the leading arm outside the vecdims family, what
+the dropped stride-conditioned redirect would have taken, and *ceiling*
+the leading arm of the family, each with its name, since which arm leads is half
+of what the column says; *floor* is the largest deviation from 1 among
+that process's eighteen A/A controls. A cell that breaks one of [the three
 properties](#the-claims-run-19-should-test) is bolded, and the class's own
 paragraph says what broke.
 
