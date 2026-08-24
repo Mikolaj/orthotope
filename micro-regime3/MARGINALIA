@@ -347,3 +347,34 @@ text.
   **And what it must not carry** is the resident offset's own price. The pair moves padding and offset together, so that stays a probe on the pad-probe model rather than anything this run can be read for --- a probe worth less than it was when this was written, for the reasons two paragraphs up.
 
 2026-08-24, the two-stage plan section. The scratch probe behind its figures: a cabal script under /tmp, verbatim vecdims and mut-flat-gm s==1 ports beside canonicalize, hoisted-read, block-copy and run-memcpy arms, over analogs of reshape1-500k, window-64x64-k1x9, two bcasts, a bcastmid, cnn-L2-24x24-c32 and stretch-primes. The first run read 3 ns everywhere: GHC floated the loop-invariant call out of the timing loop, fixed by routing the argument through an IORef. The first r2-slices port returned wrong results, an extra drop 1 misaligning the oks flags against the original's scanr; after the fix the correctness gate was green on every arm and view. Three timing passes; two isolated cells drifted 1.3-1.4x between processes (cnn vecdims 699 against 498 us, primes 656 against 552 us) on a box carrying about one core of foreign load, which is where the section's 1.5x reading bar comes from. The allocation pass was allocation-counter differencing, exact. The probe source was first left unkept, then archived at the session's end as probe-rework-proposal.hs, timing printout restored, a fresh run's transcript appended, and tracked on request.
+
+2026-08-24. The SIMD question, investigated ahead of Run 20 and settled
+against this kernel, recorded here so the investigation is not redone.
+The survey read the GHC checkout under ~/r/horde-ad/ghc at 10.1.20260803
+(d415f38a75) and the 9.12.1 and 9.14.1 release notes off their tags.
+What decides the matter is structural, not a version: GHC has no gather
+or scatter primop at any width (the vector MachOps stop at
+broadcast/insert/shuffle/arithmetic) and no automatic vectorization
+anywhere, so the strided read side of the regime-3 fill cannot
+vectorize at all -- N scalar loads into packDoubleX2#, which itself
+lowers to an insert chain that StgToCmm marks with a TODO about poor
+codegen. Only the contiguous store side could use a vector write, and
+that is the cheap side, so the expected gain for the fallback is nil.
+The capability picture, should a contiguous kernel ever want it: 128-bit
+(DoubleX2#, FloatX4#) compiles on the plain NCG since 9.12 with no -m
+flag, SSE2 being the x86-64 baseline; 9.14 added 128-bit integer ops,
+shuffle without -mavx and SSE correctness fixes, and is the safer floor;
+and#/or#/xor#, abs# and sqrt# are HEAD-only; 256-bit is LLVM-only in
+every version including HEAD (insert/pack/shuffle answer "please use
+-fllvm", moves want -mavx2, the testsuite runs all 256-bit tests
+llvm_ways). The scalar-indexed "As" load/store family
+(writeDoubleOffAddrAsDoubleX2# and kin) is the unaligned one and the
+right one for arbitrary element offsets; the vector-indexed family is
+naturally-aligned at the Cmm level. Using any of it is MagicHash code
+against GHC.Exts with a scalar fallback under CPP, no runtime feature
+detection needed at 128 bits. Where SIMD would pay in this stack is not
+this fallback but the contiguous kernels -- ox-arrays' Strided.Arith
+arithmetic, and the canonicalized contiguous-run copies if those ever
+stop being memcpy -- and the recorded -fllvm probe (the winner's fill
+at ~0.90 of its native self, 64-byte loop heads) remains the cheaper
+whole-binary route to wider code, with its known comparability costs.
