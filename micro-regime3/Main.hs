@@ -1878,6 +1878,258 @@ fbMutOdoVecdimsAddBothDown sh (T (Strides ats) ao v) = VS.create $ do
         !oatsV = VU.fromList (init ats)
         !oostV = VU.fromList (init (drop 1 (getStridesT sh)))
 
+-- The four arms below extend the FastReshape decomposition, added
+-- 2026-08-24 for Run 20. The family's verdict
+-- (README.md#the-mutable-ceiling-not-taken) refuted FastReshape's offset
+-- arithmetic but left two mechanisms unpriced solo: the count-down run
+-- fill -- the family's one recorded per-element mechanism, seven
+-- instructions against the shared eight, measured only on top of the
+-- output-stride table whose per-call cost buries it -- and the per-run
+-- control flow, a non-tail call, a level check and a threaded return per
+-- run, which no arm above varies. A same-day paired probe (the README
+-- section above) pruned the four to two timed arms: the down fill's solo
+-- arms are refuted by codegen and rostered 'Only', reasons at their
+-- comments, and the leaf arms are the Run 20 additions.
+
+-- 'fbMutOdoVecdims' with the run fill alone in the count-down form,
+-- 'writeRun' kept character-identical to 'fbMutOdoVecdimsAddBothDown''s
+-- -- one change, so 'mut-odo-vecdims' is its control. Refuted as a timed
+-- arm the day it was written, so it is rostered 'Only': under the leaf
+-- continuation @>> return (outPos + sInner)@ the live @outPos@ pushes
+-- the down fill's loop invariants out of registers, 40 bytes over 11
+-- instructions against the canonical 24 over 7 -- the extra four being
+-- per-element reloads of @tInner@ and both base pointers, one of them
+-- dead -- in the timed binary and its -g3 twin alike, and the probe
+-- agrees (README.md#the-mutable-ceiling-not-taken). The down fill wants a
+-- unit-return context: the output-stride table buys
+-- 'fbMutOdoVecdimsAddBothDown' one at a price, the fused leaf buys
+-- 'fbMutOdoVecdimsAddInLeafDown' one for free; this arm has none. The
+-- outer loop keeps counting up, deliberately: there the counter is the
+-- multiplier in @baseOff + i * st@, so the falling form is free only on
+-- the additive arms.
+{-# NOINLINE fbMutOdoVecdimsDown #-}
+fbMutOdoVecdimsDown :: ShapeL -> T -> VS.Vector Double
+fbMutOdoVecdimsDown sh (T (Strides ats) ao v) = VS.create $ do
+  out <- VSM.unsafeNew l
+  let writeRun !outPos !baseOff =
+        let inner !d !src !o
+              | d <= 0    = return ()
+              | otherwise = do
+                  VSM.unsafeWrite out o (VS.unsafeIndex v src)
+                  inner (d - 1) (src + tInner) (o + 1)
+        in  inner sInner baseOff outPos
+      go !lev !outPos !baseOff
+        | lev >= rOuter = writeRun outPos baseOff >> return (outPos + sInner)
+        | otherwise =
+            let !n  = VU.unsafeIndex oshV lev
+                !st = VU.unsafeIndex oatsV lev
+                dim !i !op
+                  | i >= n    = return op
+                  | otherwise = go (lev + 1) op (baseOff + i * st)
+                                >>= dim (i + 1)
+            in  dim 0 outPos
+  _ <- go 0 0 ao
+  return out
+  where l = product sh
+        !sInner = last sh
+        !tInner = last ats
+        !rOuter = length sh - 1
+        oshV, oatsV :: VU.Vector Int
+        !oshV  = VU.fromList (init sh)
+        !oatsV = VU.fromList (init ats)
+
+-- 'fbMutOdoVecdimsAddIn' with FastReshape's count-down-to-zero form at
+-- both loops -- one change, the form, so that arm is its control,
+-- standing to it as 'fbMutOdoVecdimsAddBothDown' stands to
+-- 'fbMutOdoVecdimsAddBoth'. Rostered 'Only', by the same reload
+-- refutation as 'fbMutOdoVecdimsDown' above -- the same 40-byte fill in
+-- both binaries, and the worse probe reading of the two, its fill copy
+-- straddling a cache line on top of the reloads
+-- (README.md#the-mutable-ceiling-not-taken). 'writeRun' is
+-- character-identical to 'fbMutOdoVecdimsAddBothDown''s.
+{-# NOINLINE fbMutOdoVecdimsAddInDown #-}
+fbMutOdoVecdimsAddInDown :: ShapeL -> T -> VS.Vector Double
+fbMutOdoVecdimsAddInDown sh (T (Strides ats) ao v) = VS.create $ do
+  out <- VSM.unsafeNew l
+  let writeRun !outPos !baseOff =
+        let inner !d !src !o
+              | d <= 0    = return ()
+              | otherwise = do
+                  VSM.unsafeWrite out o (VS.unsafeIndex v src)
+                  inner (d - 1) (src + tInner) (o + 1)
+        in  inner sInner baseOff outPos
+      go !lev !outPos !baseOff
+        | lev >= rOuter = writeRun outPos baseOff >> return (outPos + sInner)
+        | otherwise =
+            let !n  = VU.unsafeIndex oshV lev
+                !st = VU.unsafeIndex oatsV lev
+                dim !k !op !boff
+                  | k <= 0    = return op
+                  | otherwise = go (lev + 1) op boff
+                                >>= \op' -> dim (k - 1) op' (boff + st)
+            in  dim n outPos baseOff
+  _ <- go 0 0 ao
+  return out
+  where l = product sh
+        !sInner = last sh
+        !tInner = last ats
+        !rOuter = length sh - 1
+        oshV, oatsV :: VU.Vector Int
+        !oshV  = VU.fromList (init sh)
+        !oatsV = VU.fromList (init ats)
+
+-- 'fbMutOdoVecdimsAddIn' with the leaf call fused into the innermost
+-- outer level -- one change, so that arm is its control. The recursion
+-- answers "which run am I in" with per-run control flow: enter 'go',
+-- fail the level check, fill, and thread the next output position back
+-- through an unboxed tuple. At @lev == rOuter - 1@ that pattern is
+-- constant -- every run advances the output position by @sInner@ -- so
+-- 'run' calls 'writeRun' directly and steps both cursors additively,
+-- which is the output axis 'add-out' bought with a table, here at the
+-- one level that pays it, for free. The top guard still fires, for
+-- rank-1 views alone. 'writeRun' is kept character-identical to the
+-- family's.
+{-# NOINLINE fbMutOdoVecdimsAddInLeaf #-}
+fbMutOdoVecdimsAddInLeaf :: ShapeL -> T -> VS.Vector Double
+fbMutOdoVecdimsAddInLeaf sh (T (Strides ats) ao v) = VS.create $ do
+  out <- VSM.unsafeNew l
+  let writeRun !outPos !baseOff =
+        let inner !j !src
+              | j >= sInner = return ()
+              | otherwise   = do
+                  VSM.unsafeWrite out (outPos + j) (VS.unsafeIndex v src)
+                  inner (j + 1) (src + tInner)
+        in  inner 0 baseOff
+      go !lev !outPos !baseOff
+        | lev >= rOuter = writeRun outPos baseOff >> return (outPos + sInner)
+        | lev == rOuter - 1 =
+            let !n  = VU.unsafeIndex oshV lev
+                !st = VU.unsafeIndex oatsV lev
+                run !i !op !boff
+                  | i >= n    = return op
+                  | otherwise = writeRun op boff
+                                >> run (i + 1) (op + sInner) (boff + st)
+            in  run 0 outPos baseOff
+        | otherwise =
+            let !n  = VU.unsafeIndex oshV lev
+                !st = VU.unsafeIndex oatsV lev
+                dim !i !op !boff
+                  | i >= n    = return op
+                  | otherwise = go (lev + 1) op boff
+                                >>= \op' -> dim (i + 1) op' (boff + st)
+            in  dim 0 outPos baseOff
+  _ <- go 0 0 ao
+  return out
+  where l = product sh
+        !sInner = last sh
+        !tInner = last ats
+        !rOuter = length sh - 1
+        oshV, oatsV :: VU.Vector Int
+        !oshV  = VU.fromList (init sh)
+        !oatsV = VU.fromList (init ats)
+
+-- Both new axes at once, so the Run 20 2x2 over 'fbMutOdoVecdimsAddIn'
+-- closes: one change from 'fbMutOdoVecdimsAddInLeaf' (the form, at every
+-- loop) and one from 'fbMutOdoVecdimsAddInDown' (the fused leaf).
+-- Against 'add-in' it is the endpoint contrast, read directly, not
+-- summed from marginals. 'writeRun' is character-identical to
+-- 'fbMutOdoVecdimsAddBothDown''s.
+{-# NOINLINE fbMutOdoVecdimsAddInLeafDown #-}
+fbMutOdoVecdimsAddInLeafDown :: ShapeL -> T -> VS.Vector Double
+fbMutOdoVecdimsAddInLeafDown sh (T (Strides ats) ao v) = VS.create $ do
+  out <- VSM.unsafeNew l
+  let writeRun !outPos !baseOff =
+        let inner !d !src !o
+              | d <= 0    = return ()
+              | otherwise = do
+                  VSM.unsafeWrite out o (VS.unsafeIndex v src)
+                  inner (d - 1) (src + tInner) (o + 1)
+        in  inner sInner baseOff outPos
+      go !lev !outPos !baseOff
+        | lev >= rOuter = writeRun outPos baseOff >> return (outPos + sInner)
+        | lev == rOuter - 1 =
+            let !n  = VU.unsafeIndex oshV lev
+                !st = VU.unsafeIndex oatsV lev
+                run !k !op !boff
+                  | k <= 0    = return op
+                  | otherwise = writeRun op boff
+                                >> run (k - 1) (op + sInner) (boff + st)
+            in  run n outPos baseOff
+        | otherwise =
+            let !n  = VU.unsafeIndex oshV lev
+                !st = VU.unsafeIndex oatsV lev
+                dim !k !op !boff
+                  | k <= 0    = return op
+                  | otherwise = go (lev + 1) op boff
+                                >>= \op' -> dim (k - 1) op' (boff + st)
+            in  dim n outPos baseOff
+  _ <- go 0 0 ao
+  return out
+  where l = product sh
+        !sInner = last sh
+        !tInner = last ats
+        !rOuter = length sh - 1
+        oshV, oatsV :: VU.Vector Int
+        !oshV  = VU.fromList (init sh)
+        !oatsV = VU.fromList (init ats)
+
+-- 'fbMutOdoVecdimsAddInLeafDown' with the fill unrolled by two, an
+-- epilogue taking the odd or empty run -- one change, the fill body, so
+-- that arm is its control; against 'fbMutOdoVecdimsAddInLeaf' it is the
+-- form axis's third value. The unrolled fill has no counter at all, the
+-- bound living on the output cursor, which always steps by one -- so it
+-- is sound for zero and negative strides, and it supersedes the up/down
+-- question inside the run rather than crossing it. The dead-ideas
+-- ruling (README.md#dead-ideas) kills unrolling by the runtime @sInner@
+-- only; a fixed factor was untested until the probe of 2026-08-24
+-- (README.md#the-mutable-ceiling-not-taken), which also refuted the
+-- intermediate fused-bound form -- counter merged into the cursor,
+-- six instructions, a wash -- recorded there so it is not re-derived.
+{-# NOINLINE fbMutOdoVecdimsAddInLeafU2 #-}
+fbMutOdoVecdimsAddInLeafU2 :: ShapeL -> T -> VS.Vector Double
+fbMutOdoVecdimsAddInLeafU2 sh (T (Strides ats) ao v) = VS.create $ do
+  out <- VSM.unsafeNew l
+  let writeRun !outPos !baseOff =
+        let !oEnd = outPos + sInner
+            inner !o !src
+              | o + 1 >= oEnd =
+                  if o >= oEnd then return ()
+                  else VSM.unsafeWrite out o (VS.unsafeIndex v src)
+              | otherwise = do
+                  VSM.unsafeWrite out o (VS.unsafeIndex v src)
+                  VSM.unsafeWrite out (o + 1)
+                                    (VS.unsafeIndex v (src + tInner))
+                  inner (o + 2) (src + t2)
+        in  inner outPos baseOff
+      go !lev !outPos !baseOff
+        | lev >= rOuter = writeRun outPos baseOff >> return (outPos + sInner)
+        | lev == rOuter - 1 =
+            let !n  = VU.unsafeIndex oshV lev
+                !st = VU.unsafeIndex oatsV lev
+                run !k !op !boff
+                  | k <= 0    = return op
+                  | otherwise = writeRun op boff
+                                >> run (k - 1) (op + sInner) (boff + st)
+            in  run n outPos baseOff
+        | otherwise =
+            let !n  = VU.unsafeIndex oshV lev
+                !st = VU.unsafeIndex oatsV lev
+                dim !k !op !boff
+                  | k <= 0    = return op
+                  | otherwise = go (lev + 1) op boff
+                                >>= \op' -> dim (k - 1) op' (boff + st)
+            in  dim n outPos baseOff
+  _ <- go 0 0 ao
+  return out
+  where l = product sh
+        !sInner = last sh
+        !tInner = last ats
+        !t2 = tInner + tInner
+        !rOuter = length sh - 1
+        oshV, oatsV :: VU.Vector Int
+        !oshV  = VU.fromList (init sh)
+        !oatsV = VU.fromList (init ats)
+
 -- 'fbMutOdo' but iterating the precomputed run base-offsets list, to
 -- price what that list (a factor @sInner@ smaller than @l@) costs the
 -- odometer-free variant against its control.
@@ -2789,6 +3041,25 @@ roster =
   , ("mut-odo-vecdims-add-out",    Fill fbMutOdoVecdimsAddOut)
   , ("mut-odo-vecdims-add-both",   Fill fbMutOdoVecdimsAddBoth)
   , ("mut-odo-vecdims-add-both-down", Fill fbMutOdoVecdimsAddBothDown)
+    -- The Run 20 extension of the FastReshape block, added 2026-08-24,
+    -- first read in Run 20: the leaf call fused into the innermost outer
+    -- level, solo, crossed with the count-down fill, and crowned with
+    -- the unrolled fill, over the controls each varies
+    -- (README.md#the-mutable-ceiling-not-taken).
+    -- The count-down fill's own solo arms sit here as 'Only', refuted by
+    -- codegen the day they were written, reasons at their definitions.
+    -- Appended to the family block for the block's own reason -- after
+    -- the control's pair, so no existing control moves -- at the price
+    -- that every slot below moves by three against Runs 9 to 19, which
+    -- any cross-run read of those slots has to carry.
+    -- not timed: the down fill reloads per element at the go leaf, see
+    -- its definition
+  , ("mut-odo-vecdims-down",       Only fbMutOdoVecdimsDown)
+    -- not timed: the same reloads, see its definition
+  , ("mut-odo-vecdims-add-in-down", Only fbMutOdoVecdimsAddInDown)
+  , ("mut-odo-vecdims-add-in-leaf", Fill fbMutOdoVecdimsAddInLeaf)
+  , ("mut-odo-vecdims-add-in-leaf-down", Fill fbMutOdoVecdimsAddInLeafDown)
+  , ("mut-odo-vecdims-add-in-leaf-u2", Fill fbMutOdoVecdimsAddInLeafU2)
     -- not timed: 6.20x the result
   , ("mut-offsets",                Only fbMutBaseOffsets)
   , ("build",                      Fill fbBuild)

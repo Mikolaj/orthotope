@@ -4009,6 +4009,99 @@ above is unmoved: what a new class method would buy is still `mut-odo-vecdims`,
 at [the 1.85x](#results) the ceiling section prices, and none of these four adds
 to it.
 
+**Four arms extend the decomposition for Run 20**, added 2026-08-24: the two
+mechanisms the verdict leaves unpriced solo, each over the arm it varies.
+`mut-odo-vecdims-down` is the count-down run fill over the shared control ---
+the one per-element mechanism above, freed of the table that buries
+it in `add-both-down`'s reading --- and `mut-odo-vecdims-add-in-down` the same
+form at both loops over `add-in`. `mut-odo-vecdims-add-in-leaf` fuses the leaf
+call into the innermost outer level over `add-in`, removing the per-run non-tail
+call, level check and threaded return that no arm above varies --- the additive
+output axis at the one level that pays it, with no table.
+`mut-odo-vecdims-add-in-leaf-down` is the corner: one change from the leaf arm,
+the fill form at the fused site, and the endpoint against `add-in`. Run 19
+predates all four and runs the roster without them.
+
+**A same-day paired probe pruned the four to two** (`probe-run20arms-*`,
+the `probe-addin2` design: the seven family arms of interest in one process
+so the group shares its placement, three processes each
+over `cifar-L2-16-c64-k3`, `stretch-wide-2xM`, `stretch-inner256`
+and `stretch-square-1341`, criterion's own mode, one build at `-fspec-constr`).
+The leaf arm is the finding: **0.83** of `add-in` on `cifar-L2-16-c64-k3`
+and **0.68** on `stretch-wide-2xM`, flat at 0.98 to 1.01 on the two long-run
+shapes, 10 of 12 process readings below 1 --- the per-run mechanism's own
+signature, growing as runs shorten, and on the short-run shapes past the 1.22
+an unaligned build's placement can span. The corner ties it, 0.999 over its 12.
+The down solo arms are refuted, by codegen rather than by the stopwatch:
+under the leaf continuation `>> return (outPos + sInner)` the live `outPos`
+pushes the down fill's loop invariants out of registers --- **40 bytes over 11
+instructions**, in the timed binary and its `-g3` twin alike, against
+the canonical 24 over 7 that `add-both-down` keeps in the same build, the extra
+four read off the disassembly as per-element reloads of `tInner` and both base
+pointers off the closure, one of them dead --- and they probe 1.06 to 1.22
+behind their controls at 0 of 24 readings below 1, worst where runs are longest,
+which is a per-element signature. So the down fill wants a unit-return context
+--- the output-stride table bought `add-both-down` one at a price, the fused
+leaf buys the corner one for free, and the solo cell has none --- and both solo
+arms are rostered `Only`, the reason at their definitions. Two bounds on reading
+the probe: in this build's draw the live up-form fills of `mut-odo-vecdims`,
+`add-out` and `add-both` straddle a cache line while `add-in`'s sits resident,
+enough to explain `add-in` probing an out-of-band 0.90 of its control
+on the short-run shapes; and the probe is one build, so the leaf margin's size,
+not its direction, waits on Run 20.
+
+**A second probe the same day priced two further fill forms and added one arm**
+(`probe-x-*`, the same paired design on a scratch build, three processes each
+over `cifar-L2-16-c64-k3`, `stretch-wide-2xM` and `stretch-square-1341`,
+its `check-x.log` beside it; the leaf pair replicated at 0.8376 and 0.6809
+in that different binary, which is the design's own control). The fill
+**unrolled by two**, epilogue for an odd or empty run, is the arm it added,
+`mut-odo-vecdims-add-in-leaf-u2`, and the trio left timed takes the roster
+to 1200 benches: a 48-byte, twelve-instruction main body --- six per element,
+one branch per two --- probing **0.9696 of the corner at 9 of 9 readings below
+1**, 0.9559 on `cifar-L2-16-c64-k3` and, the interesting cell, **0.9655
+on the DRAM-bound `stretch-square-1341`**, more than its instruction count
+explains; the reading offered, as a reading, is memory-level parallelism,
+shorter iterations fitting more strided misses in the out-of-order window.
+It carries no counter at all, the bound living on the output cursor, so
+it is stride-sign-agnostic and supersedes the up/down question inside the run.
+The dead-ideas ruling below kills unrolling by the runtime `sInner` only;
+a fixed factor was untested until this probe. **The intermediate fused-bound
+form is refuted as a wash and is not rostered, recorded here so it
+is not re-derived**: the falling counter merged into the output cursor
+it duplicates compiles to the promised six-instruction body --- the seventh,
+a `test` the native backend emits redundantly after `dec`, was never
+the bottleneck --- and probes 0.9967 at 5 of 9 below 1, inside any floor.
+Unrolling by four is the one cell of this axis left unprobed.
+
+**A third probe, 2026-08-24 late, put the whole family on GHC HEAD with every
+hot loop aligned, on a quiet machine** --- two binaries from this branch through
+`cabal.project.ghead` and the `align-as.py` shim, one at `-fspec-constr` and one
+without, the seven family arms in one process per shape, three processes per
+cell over eight shapes (the five conv shapes `cifar-L2-16-c64-k3`,
+`cnn-slice-c32`, `cnn-L2-24x24-c32`, `lenet-L1-28-c1-k5` and `vgg-14-c512-k3`,
+plus `stretch-wide-2xM`, `stretch-inner256` and `stretch-square-1341`), the two
+`Only` arms flipped timed in a throwaway clone, artifacts under `/tmp` only
+and not kept. Five findings. **`mut-odo-vecdims-add-in-leaf-u2` heads the family
+at 0.820 of `mut-odo-vecdims` overall** --- 0.76 on the three biggest conv
+shapes, `vgg-14-c512-k3` among them, 0.63 on `stretch-wide-2xM`, and one loss,
+`stretch-inner256` at 1.058 with rep spread near 0.003, so real and small;
+`cifar-L2-16-c64-k3` reads 267.4 us against 203.8 us absolute. **`-fspec-constr`
+is irrelevant to this family**: the two builds agree to three decimals in every
+column. **The `add-in` lead dissolves under alignment**, 0.998 against
+its control on both builds and both placement draws --- the reading its open
+entry has been circling, that the lead was the offset and not the missing
+multiply, now read directly. **The corner still ties
+`mut-odo-vecdims-add-in-leaf`**, 0.872 against 0.872 with both fills resident,
+so the seven-against-nine-instruction difference is below this band's floor
+rather than eaten by a straddle, and the earlier placement reading of that tie
+retires. **The down solo arms lose 14 to 16% uniformly across every shape** ---
+1.158 and 1.137 overall, the reload penalty undiluted once placement is gone,
+against the 6 to 22% the unaligned probe read with placement mixed in. Two
+instrument checks carry the numbers: the five-arm binaries probed before
+the `Only` flip and the seven-arm binaries after it are different layouts,
+and every shared column reproduces across them to about 0.002; and rep-to-rep
+spread on the quiet machine is about 0.3%, far under every margin quoted here.
 
 ### The C-gap: still a deeper ceiling
 
@@ -4232,16 +4325,18 @@ and persisting for a whole run rather than one bench: unretired rather
 than absent, since that case ran benchmarks of a different scale.
 
 **Two rulings taken 2026-08-08 cut the timed roster from 38 strategies to 15,
-and the arms written since bring it back to 23** --- the four unconditional
-forms the precondition ruling itself called for (below) and the four FastReshape
-arms ([the mutable ceiling](#the-mutable-ceiling-not-taken)). Both rulings
-are about what is worth spending a bench on, not about what is worth keeping:
-every dropped strategy stays in `Main.hs` and stays in the roster
-as `concat-runs` is --- checked against the reference on every shape of every
-class, and not timed --- so the agreement net does not shrink and nothing has
+and the arms written since bring it back to 26** --- the four unconditional
+forms the precondition ruling itself called for (below), the four FastReshape
+arms and, of the five Run 20 arms beside them, the three the probes left timed
+([the mutable ceiling](#the-mutable-ceiling-not-taken)). Both rulings are about
+what is worth spending a bench on, not about what is worth keeping: every
+dropped strategy stays in `Main.hs` and stays in the roster as `concat-runs`
+is --- checked against the reference on every shape of every class,
+and not timed --- so the agreement net does not shrink and nothing has
 to be rewritten if a ruling is later reopened. The 23 arms the rulings dropped
 carry `Only` in that roster, each naming the bound or the multiple
-that disqualified it; with the controls the run is 47 benches.
+that disqualified it; with the controls the run is 50 benches, and the Run 20
+trio takes the roster to 1200 benches.
 
 - **A strategy with a precondition is not measured.** The column allowed `none`,
   an empty cell, and `shape well-formed`, which is a condition on being a valid
@@ -8546,7 +8641,7 @@ run reprices them.
 
 **Run 19 (SpecConstr), and what GHC HEAD is worth to this fallback.** Criterion,
 **`--ghc-options=-fspec-constr`**; Run 16's regime, shapes, class views
-and roster order all unchanged, and the roster is Run 16's 1128 benches, 47
+and roster order all unchanged, and the roster is Run 16's: 1128 benches, 47
 timed arms over 24 shapes with every stride class at three. **The basis
 is the 9.12 half**, `run19-g912`: Run 18's basis recipe with nothing changed
 at all, so it carries `-fobject-determinism`, the per-sample instrument
@@ -9100,7 +9195,7 @@ against a 2.32% floor on the basis and 6.75% against 1.71% on HEAD.
 **Run 20's regime, roster and basis are settled; its pair is not, and
 that is the one decision it owes before anything is built.** The regime
 is `-fspec-constr`, as every run since Run 8, and it is the regime the fix ships
-in rather than a flag priced against the shipped one. The roster is Run 16's
+in rather than a flag priced against the shipped one. The roster is Run 16's:
 1128 benches, 47 timed arms over 24 shapes, every stride class at three,
 unchanged since Run 15. The allocation area is fixed at `-A32m` and no pair will
 vary it again: Runs 14, 15 and 16 priced it, the decision of 2026-08-21 closed
