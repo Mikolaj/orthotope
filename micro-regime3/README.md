@@ -2470,6 +2470,22 @@ rather than a slot in the next run, observed again:
   to notice, the band is the right band, and what a future run should
   not conclude from this is that the preamble is unstable.
 
+- `OPEN` **Which of the `bq-expand`-centric claims retire, now that the fix
+  decided is `mut-odo-vecdims`.** Claims 2 to 5 and 9 are the last candidate's
+  record, and the eight *What the class says* paragraphs are written
+  to properties that have been re-aimed since. The ask and its terms
+  are the **TODO** paragraph at the foot of [the
+  claims](#the-claims-run-19-should-test), which keeps them; what is here
+  is the entry, because this list is where a live question is looked for
+  and the index above says nothing open is recorded anywhere else.
+  **The decision belongs to whoever asks for a run and not to a session**, which
+  is why no run has taken it. **What leaving it costs is not a figure**:
+  the count and the content of the registered orderings come from `--claims`'
+  own manifest rather than from any prose, so nothing can be quoted stale. What
+  it costs is a run reporting verdicts on claims that are about to go,
+  and those eight paragraphs being rewritten twice. So it wants settling before
+  an evening is paid for, not after.
+
 - `OPEN` **What Run 19 is built to answer, registered before it runs.** Its pair
   is `run19-g912`, the basis, against `run19-ghead`, settled and built
   2026-08-24: GHC HEAD 10.1.20260803, the in-tree stage1 of the checkout
