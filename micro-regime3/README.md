@@ -3,13 +3,15 @@
 This branch (`speedup-strided-tovector`) changes `toVectorListT`'s regime-3
 fallback in `Data/Array/Internal.hs` --- the per-element path taken when
 the innermost dimension is strided, so no contiguous run longer than one element
-can be sliced out. What the branch carries in code is `bq-expand`, the last
-candidate (TODO: retarget at `mut-odo-vecdims`); **the regime 3 fix is decided:
+can be sliced out. What the branch carries in code is the stage-one fix, landed
+2026-08-24: `vFillStrided`, the class method, its shared driver a bang-for-bang
+port of `mut-odo-vecdims-add-in-leaf-u2`; **the regime 3 fix is decided:
 on 2026-08-22 `mut-odo-vecdims` was decided as the implementation to go
-upstream, and on 2026-08-24 the stride-conditioned redirect that had kept
-the decision open was dropped, so the fix ships as `mut-odo-vecdims` alone** ---
-[the ceiling](#the-mutable-ceiling-not-taken) carries the decision and what
-it rests on, and [the two-stage
+upstream, on 2026-08-24 the stride-conditioned redirect that had kept
+the decision open was dropped, and the same day the arm was refined
+to the family's `add-in-leaf-u2` form on the two paired probes recorded
+in the ceiling** --- [the ceiling](#the-mutable-ceiling-taken) carries
+the decision and what it rests on, and [the two-stage
 plan](#the-two-stage-plan-and-the-rework-proposal) below carries the drop
 and the rework proposal the redirect's evidence now feeds.
 
@@ -45,10 +47,10 @@ entry][open], a mechanism in the machine code and no settled magnitude. Both
 need a new `Vector`-class method, which was measured and deliberately
 **not** taken, to keep orthotope's `Vector` API pure and minimal --- a bar
 an in-tree precedent has since softened to a weight
-([below](#the-mutable-ceiling-not-taken), amended). Plain `mut-odo` no longer
-argues for it at all: it and `bq-expand`, the arm `Data/Array/Internal.hs`
-carries today, are a tie at 0.9059 paired, 12 shapes of 24 and sign p 1
-on an interval covering 1, where Run 7 (Harness), at -O1, had it 1.51x ahead.
+([below](#the-mutable-ceiling-taken), amended). Plain `mut-odo` no longer argues
+for it at all: it and `bq-expand`, the arm `Data/Array/Internal.hs` carries
+today, are a tie at 0.9059 paired, 12 shapes of 24 and sign p 1 on an interval
+covering 1, where Run 7 (Harness), at -O1, had it 1.51x ahead.
 
 **Several strategies measured since are faster than the last candidate,
 `bq-expand`, and need no class method --- a distinction the decision
@@ -113,18 +115,20 @@ is not this README's question** and is deliberately not on its open list:
 that decision is about compile time and code size across the library,
 and the measurement that would settle it is horde-ad's `convVjpBench`
 over a real build. The 27% is what this README contributes to it. **At module
-scope it is settled, and was mis-stated here until 2026-08-14**: the file
-the fix lands in sets `-fspec-constr` itself, so this function ships
-under the flag whatever the library does globally, and `-fspec-constr`
-is the regime every claim below is read in rather than a probe of one.
+scope it is now conditional (2026-08-24)**: the file the fix lands in sets
+`-fspec-constr` only if it matters for the adopted strategies,
+and `-fspec-constr` stays the regime every claim below is read in rather
+than a probe of one.
 
 
 ### The two-stage plan and the rework proposal
 
 **Decided 2026-08-24: the fix ships in two stages, and the stride-conditioned
-redirect is dropped rather than deferred.** Stage one is what goes upstream now:
-`mut-odo-vecdims` alone, for regime 3 alone, with the class method it needs
-and no condition on the strides --- the prototype this replaces, a compound
+redirect is dropped rather than deferred.** Stage one is what goes upstream now,
+landed on this branch 2026-08-24: `vFillStrided` with its driver, the vecdims
+family's `add-in-leaf-u2` arm --- refined from plain `mut-odo-vecdims`
+by the two paired probes the ceiling records --- for regime 3 alone,
+with no condition on the strides --- the prototype this replaces, a compound
 strategy with `mut-odo-vecdims` as the main element and one to three per-shape
 or per-stride redirects around it, is dead. Stage two is a proposal, recorded
 here and committing nobody: a later rework of `toVectorListT`'s whole dispatch,
@@ -134,7 +138,7 @@ of regime 3 after it is stage one's arm, so the fix taken now may prove
 to be the whole of regime 3 in the rework too.
 
 **The redirect's measured constituency is unit dimensions and zero strides,
-not stride classes.** [The ceiling](#the-mutable-ceiling-not-taken) names every
+not stride classes.** [The ceiling](#the-mutable-ceiling-taken) names every
 place an outside-family arm leads `mut-odo-vecdims`: the `reshape1` class,
 `stretch-inner1`, `window-64x64-k1x9`, `bcast-tall-Mx2`
 and `stretch-pow2stride`. All but the last are views with a unit innermost
@@ -217,8 +221,8 @@ the mutation hidden inside each instance. Its class default is the pure
 instance outside the tree compile unchanged; the three vector-backed instances
 override with one shared driver written against `Data.Vector.Generic`, whose
 `Mutable` already exists where it belongs and whose copy primitives hand
-Storable the memcpy for free. Stage one implements that driver
-as `mut-odo-vecdims`; stage two upgrades the driver's internals ---
+Storable the memcpy for free. Stage one implements that driver as the family's
+`add-in-leaf-u2` arm; stage two upgrades the driver's internals ---
 canonicalization, the zero-stride conditions, the run copies --- with no further
 change to the class. Rejected the same day, so they are not re-proposed:
 a `vCreate` handing the callback the mutable buffer, which is what would need
@@ -298,7 +302,7 @@ numbers would be wrong by the next edit and say nothing.
   - [Per shape, where the geomean hides
     the ordering](#per-shape-where-the-geomean-hides-the-ordering)
   - [The fix in Data/Array/Internal.hs](#the-fix-in-dataarrayinternalhs)
-  - [The mutable ceiling (not taken)](#the-mutable-ceiling-not-taken)
+  - [The mutable ceiling (taken)](#the-mutable-ceiling-taken)
   - [The C-gap: still a deeper ceiling](#the-c-gap-still-a-deeper-ceiling)
   - [Dead ideas](#dead-ideas)
 - [About the current harness](#about-the-current-harness)
@@ -345,7 +349,8 @@ by being a thing a later session might otherwise redo.
 - **The mutable ceiling**, why a direct mutable fill was not taken for eleven
   runs, the amendment that turned that bar into a weight, and the decision
   of 2026-08-22 that takes it --- `mut-odo-vecdims` as the upstream
-  implementation, alone since the drop of 2026-08-24 sent the stride-conditioned
+  implementation, refined on 2026-08-24 to its `add-in-leaf-u2` form and landed
+  in code the same day, alone since the drop that sent the stride-conditioned
   redirect to [the two-stage plan](#the-two-stage-plan-and-the-rework-proposal)
   as a rework proposal: [the ceiling][ceiling].
 - **The class-method signature is free** --- `build` and `mut-odo` compile
@@ -598,8 +603,8 @@ rather than a slot in the next run, observed again:
   optimisation: wherever SpecConstr runs it is strictly dominated by the plainer
   arm it was built to beat. That was written as a thing to settle before
   the flag question, and the flag question has since been answered against
-  it --- the shipped file sets `-fspec-constr`, so the packed form is
-  not a candidate here at all. **The Core account above is the only copy,
+  it --- every claim here is read under `-fspec-constr`, so the packed form
+  is not a candidate here at all. **The Core account above is the only copy,
   and there is nowhere to move it:** the dead-ideas list takes ideas that died
   on paper and this one was built, rostered and measured, and the roster entry
   in `Main.hs` records the arm's size precondition rather than this ruling.
@@ -875,20 +880,20 @@ rather than a slot in the next run, observed again:
      0, 36, 36) while their control stays resident (24 to 16). The hypothesis
      predicts 1.1552, 1.1795 and 1.1645 collapse toward 1.00. If they hold near
      1.16, the hypothesis is dead and [the suspension of those axis
-     figures](#the-mutable-ceiling-not-taken) is withdrawn --- which
-     is the outcome this README has the most reason to want detectable,
-     the suspension being its own. **Sharpened by the pad probe**, which prices
-     each offset instead of each side of the boundary: their present values
-     are what a deep straddle over a resident control predicts, 1.18, and after
-     the move all four copies sit resident, where the probe's own resident
-     offsets span 0.904 to 0.956. So the collapse should be to between 1.00
-     and 1.05, and anything near 1.16 still kills it. Do not interpolate the 36
-     across the boundary --- the penalty steps between 36 and 37 rather
-     than ramping. **Read on the unaligned half**, which is the half
-     these offsets belong to; on the aligned half all four copies sit at 0,
-     so the same three ratios must read 1.00 outright, and that is the stronger
-     form of the same test --- a 1.16 surviving alignment would kill
-     the hypothesis where a 1.05 could still be argued.
+     figures](#the-mutable-ceiling-taken) is withdrawn --- which is the outcome
+     this README has the most reason to want detectable, the suspension being
+     its own. **Sharpened by the pad probe**, which prices each offset instead
+     of each side of the boundary: their present values are what a deep straddle
+     over a resident control predicts, 1.18, and after the move all four copies
+     sit resident, where the probe's own resident offsets span 0.904 to 0.956.
+     So the collapse should be to between 1.00 and 1.05, and anything near 1.16
+     still kills it. Do not interpolate the 36 across the boundary ---
+     the penalty steps between 36 and 37 rather than ramping. **Read
+     on the unaligned half**, which is the half these offsets belong to;
+     on the aligned half all four copies sit at 0, so the same three ratios must
+     read 1.00 outright, and that is the stronger form of the same test ---
+     a 1.16 surviving alignment would kill the hypothesis where a 1.05 could
+     still be argued.
   2. **`mut-odo` goes resident to straddling** (29 to 53) while `build` stays
      straddling (53 to 45). The hypothesis predicts their 1.13 closes toward
      1.0, and **the pad probe makes that a point prediction, 0.998**: two deep
@@ -1893,17 +1898,17 @@ rather than a slot in the next run, observed again:
   on a third write pattern* --- the control convention, not the shippability
   phrase this entry first proposed. **A return to -O1 stood behind it
   as the second debt and is retired, its premise being false** (2026-08-14): -O1
-  is not the regime this fallback ships in, `-fspec-constr` being set
-  in the file the fix is added to, so the basis every run since Run 8 has used
-  is already the shipped regime and Run 7's claim set is history rather
-  than a debt. The build specification that entry had accumulated goes with it,
-  a retired run having no use for one. An -O1 reading of a single ordering stays
-  available as a filtered probe, as the 2026-08-08 twin probes were; what
-  is retired is the evening. `--check-doc` enforces the yardstick's shape
-  in the one direction it safely can: a run named aligned must also be named
-  unaligned, so dropping Run 10's unaligned column fails the check. Dropping
-  an *aligned* one cannot be checked, an unpaired run being what every column
-  before Run 10 is, and stays the reading's job.
+  is not the regime the claims are read in, `-fspec-constr` --- set in the file
+  the fix is added to only if it matters for the adopted strategies --- being
+  the basis every run since Run 8 has used, so Run 7's claim set is history
+  rather than a debt. The build specification that entry had accumulated goes
+  with it, a retired run having no use for one. An -O1 reading of a single
+  ordering stays available as a filtered probe, as the 2026-08-08 twin probes
+  were; what is retired is the evening. `--check-doc` enforces the yardstick's
+  shape in the one direction it safely can: a run named aligned must also
+  be named unaligned, so dropping Run 10's unaligned column fails the check.
+  Dropping an *aligned* one cannot be checked, an unpaired run being what every
+  column before Run 10 is, and stays the reading's job.
 
   **Run 11 had no unaligned half, and the check was left alone rather
   than widened --- the reading is that this was right.** Its two columns
@@ -2167,9 +2172,9 @@ rather than a slot in the next run, observed again:
   difference between them, and [the ceiling section][ceiling] carries the same
   measurement for all five family arms, no two of which share their whole code.
   That is exactly what [the ceiling section's Core
-  reading](#the-mutable-ceiling-not-taken) recorded in 2026-08-09 --- *one
-  multiply becomes an accumulated add threaded as a further argument*, a per-run
-  change and not a per-element one --- now confirmed at the instruction level
+  reading](#the-mutable-ceiling-taken) recorded in 2026-08-09 --- *one multiply
+  becomes an accumulated add threaded as a further argument*, a per-run change
+  and not a per-element one --- now confirmed at the instruction level
   in the shipped `-fspec-constr` regime, and **in the timed binary and not only
   the `-g3` twin**: one `imul` in a window around `mut-odo-vecdims`'s loop
   and none around `-add-in`'s, in `run17-det` exactly as in its twin.
@@ -3556,8 +3561,9 @@ needs an `l < 2^32` test choosing between the two fills --- loop-invariant
 and chosen once per call, but it must be there, since orthotope does
 not otherwise cap array length. **The conditional this paragraph used to end
 on has resolved against it**, and against shipping: the 6.0% is an -O1 figure,
-the file the fix is added to sets `-fspec-constr`, and under the flag the same
-pair is a dead tie --- so what there is to weigh against `MagicHash`, the helper
+the deciding regime is `-fspec-constr` --- set in the shipped file only
+if it matters for the adopted strategies --- and under the flag the same pair
+is a dead tie --- so what there is to weigh against `MagicHash`, the helper
 and the precondition is nothing. This README still only prices the arm; at zero,
 the pricing is the answer.
 
@@ -3656,60 +3662,58 @@ rather than a cell to average away.
 
 ### The fix in Data/Array/Internal.hs
 
-**Decided 2026-08-22, completed 2026-08-24, and not yet in code: the regime 3
-fix is to be `mut-odo-vecdims`, the mutable odometer fill, alone ---
-the stride-conditioned redirect once left open here is dropped for [the rework
-proposal](#the-two-stage-plan-and-the-rework-proposal)** --- the decision, what
-it rests on and what it owes are [in the ceiling
-section](#the-mutable-ceiling-not-taken). What follows is the last candidate,
-`bq-expand`, which is what this branch's `Data/Array/Internal.hs` carries
-and what every claim below was measured against (TODO: retarget
-at `mut-odo-vecdims`).
+**Decided 2026-08-22, completed 2026-08-24, and landed the same day: the regime
+3 fix is `vFillStrided`, the whole-kernel class method, its shared driver
+`genericFillStrided` a bang-for-bang port of `mut-odo-vecdims-add-in-leaf-u2`**
+--- the decision and what it rests on are [in the ceiling
+section](#the-mutable-ceiling-taken), the signature ruling and the rejected
+forms [in the two-stage plan](#the-two-stage-plan-and-the-rework-proposal),
+and the arm's refinement from plain `mut-odo-vecdims` rests on the two paired
+probes the ceiling records. `bq-expand`, the last candidate, is what every claim
+below was measured against; the branch no longer carries it.
 
-Regime 3 now builds the run base-offsets by expansion and fills with one
-`vGenerate`:
-
-    runBaseOffsetsT o0 osh oats = foldl' expand (VU.singleton o0) (zip osh oats)
-      where expand !acc (!nd, !sd) = VU.concatMap (\a -> VU.enumFromStepN a sd nd) acc
-
-    -- in toVectorListT, innermost-strided branch:
-    let !sInner = last sh
-        !tInner = last ats
-        !baseOffsets = runBaseOffsetsT ao (init sh) (init ats)     -- unboxed Int scratch
-        gen i = case i `quotRem` sInner of
-          (!q, !r) -> vIndex v (VU.unsafeIndex baseOffsets q + r * tInner)
-    in  [vGenerate l gen]
-
-The run base-offsets live in an unboxed `Int` vector --- index scratch,
-independent of the abstract element storage `v` --- so the only new dependency
-is a qualified `Data.Vector.Unboxed` import (already a library dependency).
-The bang patterns are performance-essential, ported from the benchmarked
-`bq-expand` (finding 3 above).
+Regime 3 now goes through the class: `toVectorListT`'s innermost-strided branch
+is `[vFillStrided sh ats ao l v]`. The method's default is the pure `bq-expand`
+form --- `runBaseOffsetsT`'s expansion table, one `quotRem` per element ---
+so the `[]` reference instance and any instance outside the tree compile
+unchanged on a fast pure path, and the three vector-backed instances override
+it with `genericFillStrided`, written once against `Data.Vector.Generic`, which
+supplies the mutable machinery orthotope's own `Vector` class deliberately does
+not: an allocate-once output, the odometer with the input offset stepped
+additively, the innermost outer level fused into a dedicated run loop,
+and the run fill unrolled by two with its bound on the output cursor, so
+it is sound for zero and negative strides. The bang patterns
+are performance-essential, ported with the loop structure from the benchmarked
+arm; `-fspec-constr`, the regime every figure behind the decision was measured
+in, is set in `Data/Array/Internal.hs` only if it matters for the adopted
+strategies.
 
 Validation on this branch:
 
 - orthotope's own test suite: **407/407 pass** (Dynamic/Ranked/Shaped x
-  boxed/storable/unboxed).
-- Non-vacuity: deliberately dropping the `r * tInner` term fails the suite
-  at `transpose_2/4/5/6`, `stride_1` and `rev_1/2` among others --- so the pass
+  boxed/storable/unboxed), with the fallback live through the method.
+- Non-vacuity: deliberately dropping the `+ tInner` from the driver's unrolled
+  second read fails 63 of the 407, `rev_2` among them --- so the pass
   is not vacuous.
-- This benchmark: every strategy agrees with `list` on every shape, the [stride
-  classes](#the-stride-classes-and-what-they-cover) included, so the agreement
-  covers negative, mixed-sign, zero and overlapping strides and not only
-  the positive ones the main set carries --- and in both regimes, `check` having
-  been re-run under `-fspec-constr` as well as at -O1.
+- This benchmark: `check` agrees with `list` on every shape of every class
+  for the ported arm (re-run 2026-08-24 with the Run 20 arms added),
+  so the algorithm the driver ports covers negative, mixed-sign, zero
+  and overlapping strides; the library port itself is validated by the suite
+  and the break above.
 
-End-to-end confirmation in horde-ad's `bench/ConvVjpBench.hs` --- wiring
-this branch's orthotope in and rebuilding ox-arrays + horde-ad --- has been done
-and is reported in that repo, not here.
+End-to-end re-measurement in horde-ad's `bench/ConvVjpBench.hs` --- wiring
+this branch's orthotope in and rebuilding ox-arrays + horde-ad --- is owed
+and not yet done for this form: the run recorded in that repo is the `bq-expand`
+form's.
 
 
-### The mutable ceiling (not taken)
+### The mutable ceiling (taken)
 
-**Decided 2026-08-22: the ceiling is to be taken, and the heading keeps
-its *not taken* until the code lands.** `mut-odo-vecdims` becomes the upstream
-implementation of the regime-3 fallback, with the new `Vector` method it needs
---- the signature the Core below shows is free in its callback form, and decided
+**Decided 2026-08-22: the ceiling is to be taken; the code landed 2026-08-24
+and the heading's *not taken* went with it.** `mut-odo-vecdims`, refined
+the same day to its `add-in-leaf-u2` form, becomes the upstream implementation
+of the regime-3 fallback, with the new `Vector` method it needs ---
+the signature the Core below shows is free in its callback form, and decided
 2026-08-24 as the pure-typed whole-kernel form --- and, since 2026-08-24,
 no condition on the strides: the redirect is dropped for [the two-stage
 plan](#the-two-stage-plan-and-the-rework-proposal), whose rework proposal serves
@@ -3738,12 +3742,11 @@ and `mut-odo` in `scaled`, only `reshape1`'s ahead of `mut-odo-vecdims`.
 **And one thing the decision now has to weigh that it did not**:
 `mut-odo-vecdims-add-in` leads the arm chosen on both halves of Run 17
 with significant sign tests, at margins still inside the floor --- [its own
-entry][open] has what would settle it. What the decision owes: the class method
-and its instances in `Data/Array/Internal.hs`, orthotope's suite against
-it and a non-vacuity break as the `bq-expand` form had; this README's claims
-re-read with the regime 3 fix decided --- claim 1 and class property 2 become
-the deciding ones, property 1 is re-aimed at `mut-odo-vecdims`'s worst;
-and horde-ad's end-to-end re-measurement, its recorded gather figures being
+entry][open] has what would settle it. Of what the decision owed, the class
+method and its instances, the suite pass and the non-vacuity break landed
+2026-08-24 ([the fix section](#the-fix-in-dataarrayinternalhs) has them);
+the claims re-read is settled, applied at Run 19's write-up; what stays owed
+is horde-ad's end-to-end re-measurement, its recorded gather figures being
 the `bq-expand` form's.
 
 **The `bq-*` strategies still fill the result one element at a time.**
@@ -4289,7 +4292,7 @@ is also the order to read them in:
   the unconditional twin of the one before it --- its bound is the builder's,
   which no output substitution reaches.
 - **Direct mutable result-buffer fills**, which need a class extension
-  or explicit mutation and are the [ceiling](#the-mutable-ceiling-not-taken):
+  or explicit mutation and are the [ceiling](#the-mutable-ceiling-taken):
   `mut-odo`, `mut-odo-vecdims`, `mut-offsets`, `build`, `mut-flat`
   and `mut-flat-gm`, the unconditional twin of the last. And `concat-runs`,
   class-methods-only and the first arm to be checked without being timed
@@ -4350,15 +4353,14 @@ than absent, since that case ran benchmarks of a different scale.
 and the arms written since bring it back to 26** --- the four unconditional
 forms the precondition ruling itself called for (below), the four FastReshape
 arms and, of the five Run 20 arms beside them, the three the probes left timed
-([the mutable ceiling](#the-mutable-ceiling-not-taken)). Both rulings are about
-what is worth spending a bench on, not about what is worth keeping: every
-dropped strategy stays in `Main.hs` and stays in the roster as `concat-runs`
-is --- checked against the reference on every shape of every class,
-and not timed --- so the agreement net does not shrink and nothing has
-to be rewritten if a ruling is later reopened. The 23 arms the rulings dropped
-carry `Only` in that roster, each naming the bound or the multiple
-that disqualified it; with the controls the run is 50 benches, and the Run 20
-trio takes the roster to 1200 benches.
+([the mutable ceiling](#the-mutable-ceiling-taken)). Both rulings are about what
+is worth spending a bench on, not about what is worth keeping: every dropped
+strategy stays in `Main.hs` and stays in the roster as `concat-runs` is ---
+checked against the reference on every shape of every class, and not timed ---
+so the agreement net does not shrink and nothing has to be rewritten if a ruling
+is later reopened. The 23 arms the rulings dropped carry `Only` in that roster,
+each naming the bound or the multiple that disqualified it; with the controls
+the run is 50 benches, and the Run 20 trio takes the roster to 1200 benches.
 
 - **A strategy with a precondition is not measured.** The column allowed `none`,
   an empty cell, and `shape well-formed`, which is a condition on being a valid
@@ -4526,12 +4528,12 @@ is what makes the `gen-quotrem`/`gen-unsafe` pair price a bounds check at all,
 since one uses `VS.!` and the other `VS.unsafeIndex`.
 
 `micro.cabal` builds at -O1, which is what a default `cabal build` of orthotope
-takes --- **and that is not the regime the fix ships in**, a correction made
-2026-08-14 after several entries had been written on the other reading.
-`-fspec-constr` will be set in the file the final solution is added to,
-`Data/Array/Internal.hs`, rather than left to whatever `-O` a caller's build
-settles on, so the shipped regime is `-fspec-constr` and every run since Run 8
-is already in it. Other regimes are command-line only, the flag landing after
+takes --- **and that is not the regime the claims decide in**, a correction made
+2026-08-14 after several entries had been written on the other reading
+and amended 2026-08-24: `-fspec-constr` is set in the file the final solution
+is added to, `Data/Array/Internal.hs`, only if it matters for the adopted
+strategies, and the deciding regime stays `-fspec-constr`, every run since Run 8
+already in it. Other regimes are command-line only, the flag landing after
 the cabal file's so the later `-O` wins: `-fspec-constr` when testing
 the `SpecConstr` optimization effect, `-O2` for the half of the scan-fusion
 refutation that inverts there (a `diag` at `-O2` is what measures it). **The RTS
@@ -6970,8 +6972,7 @@ the placement-sensitive pair that carries Run 14's own control, the denominator
 every ratio divides by, and the one wide arm flat against every shape dimension
 --- are first read in Run 14, so the table below is Run 13's six. They
 are the only rows whose true ratio is known to be exactly 1 --- or were, until
-[the mutable ceiling](#the-mutable-ceiling-not-taken) turned up another
-by accident:
+[the mutable ceiling](#the-mutable-ceiling-taken) turned up another by accident:
 
 | pair | span | max-skip | +lookrts | mean per cell |
 |---|---:|---:|---:|---:|
@@ -7731,12 +7732,12 @@ reproducing to the byte on a base the arms written since have grown.
 **And a second family reads the same way, which is what takes it past one
 point.** The four `mut-odo-vecdims` arms carry one copy each of that same
 28-byte fill, the FastReshape three differing from their control nowhere inside
-it ([the mutable ceiling](#the-mutable-ceiling-not-taken)), so their copies
-stand beside `build`/`mut-odo`'s. **Every ratio is the row's arm against
-its family's control** --- `mut-odo-vecdims` for the four arms under it,
-`mut-odo` for `build` --- which is why the two control rows have no ratio
-of their own and read `--` in all three: a control against itself is 1
-by construction and says nothing. The offsets are the executed copy's, read
+it ([the mutable ceiling](#the-mutable-ceiling-taken)), so their copies stand
+beside `build`/`mut-odo`'s. **Every ratio is the row's arm against its family's
+control** --- `mut-odo-vecdims` for the four arms under it, `mut-odo`
+for `build` --- which is why the two control rows have no ratio of their own
+and read `--` in all three: a control against itself is 1 by construction
+and says nothing. The offsets are the executed copy's, read
 with `loop-offsets.py`:
 
 | arm | loop | mod 64, Run 9 | Run 9 ratio | mod 64, Run 10 | Run 10 ratio | aligned ratio |
@@ -9166,9 +9167,9 @@ tighter than the other. **The ceiling reproduced on the arm the class property
 names**: `mut-odo-vecdims` against `bq-scan-rem-gm-mulback`, the fastest arm
 outside the family's own tier, reads **0.5572 at 23 wins of 24** and sign p
 3e-06, against Run 18's 0.5577 at the same 23 of 24, Run 17's 0.5446 and Run
-16's 0.5567 --- the figure [the ruling](#the-mutable-ceiling-not-taken) turns
-on. **What is unmoved by the compiler is the ORDERING and not the figure**: 23
-of 24 and p 3e-06 hold on both halves, while the ratio itself reads **0.5208**
+16's 0.5567 --- the figure [the ruling](#the-mutable-ceiling-taken) turns on.
+**What is unmoved by the compiler is the ORDERING and not the figure**: 23 of 24
+and p 3e-06 hold on both halves, while the ratio itself reads **0.5208**
 on HEAD, 6.5% from the basis's and three times its floor, which turns 1.79x
 into 1.92x. **And the `alloc` column is Run 15's through Run 18's at every
 level, while the CELLS behind it are not**: the two halves agree on **1016
@@ -9216,28 +9217,29 @@ against a 2.32% floor on the basis and 6.75% against 1.71% on HEAD.
 
 **Run 20's regime, roster and basis are settled; its pair is not, and
 that is the one decision it owes before anything is built.** The regime
-is `-fspec-constr`, as every run since Run 8, and it is the regime the fix ships
-in rather than a flag priced against the shipped one. The roster is Run 16's:
-1128 benches, 47 timed arms over 24 shapes, every stride class at three,
-unchanged since Run 15. The allocation area is fixed at `-A32m` and no pair will
-vary it again: Runs 14, 15 and 16 priced it, the decision of 2026-08-21 closed
-it, and the 24m/48m probe that could have reopened it was taken ahead of Run 17
-and killed. The basis is `run19-g912`'s recipe --- ghc-9.12.4,
-`-fobject-determinism`, the per-sample instrument and the saturating preamble,
-run under `WILDLOG=1 SATURATE=1` --- which is now the same recipe three runs
-running and reproduces byte for byte, so a Run 20 basis that does not is itself
-a finding. **What Run 20 varies is whoever asks for it to say**, and this run
-leaves exactly one question with an instrument that only a purpose-built pair
-can carry: **the `add-in` placement question**, which wants one compiler, one
-source and two shims placing the two arms at swapped cache-line offsets. Run 18
-thought a compiler pair gave that for free and Run 19 showed the free route does
-not carry --- the `-g3` twin names HEAD's four functions and cannot locate them
---- so the two-shim pair is now the only instrument left for it. **Two things
-Run 20 should NOT be**: another compiler pair, HEAD and 9.14 both having
-been read and both having said the same thing about the orderings; and anything
-that changes the roster, which would confound whatever it does vary. **And one
-thing it does NOT owe**: Run 19's main-set rerun, declined on 2026-08-25 rather
-than carried forward, so Run 20 inherits no backlog from it.
+is `-fspec-constr`, as every run since Run 8, and it is the regime the claims
+decide in; the shipped file takes the flag only if it matters for the adopted
+strategies. The roster is Run 16's: 1128 benches, 47 timed arms over 24 shapes,
+every stride class at three, unchanged since Run 15. The allocation area
+is fixed at `-A32m` and no pair will vary it again: Runs 14, 15 and 16 priced
+it, the decision of 2026-08-21 closed it, and the 24m/48m probe that could have
+reopened it was taken ahead of Run 17 and killed. The basis is `run19-g912`'s
+recipe --- ghc-9.12.4, `-fobject-determinism`, the per-sample instrument
+and the saturating preamble, run under `WILDLOG=1 SATURATE=1` --- which is now
+the same recipe three runs running and reproduces byte for byte, so a Run 20
+basis that does not is itself a finding. **What Run 20 varies is whoever asks
+for it to say**, and this run leaves exactly one question with an instrument
+that only a purpose-built pair can carry: **the `add-in` placement question**,
+which wants one compiler, one source and two shims placing the two arms
+at swapped cache-line offsets. Run 18 thought a compiler pair gave that for free
+and Run 19 showed the free route does not carry --- the `-g3` twin names HEAD's
+four functions and cannot locate them --- so the two-shim pair is now the only
+instrument left for it. **Two things Run 20 should NOT be**: another compiler
+pair, HEAD and 9.14 both having been read and both having said the same thing
+about the orderings; and anything that changes the roster, which would confound
+whatever it does vary. **And one thing it does NOT owe**: Run 19's main-set
+rerun, declined on 2026-08-25 rather than carried forward, so Run 20 inherits
+no backlog from it.
 
 **What Run 19 leaves it to read against, and the first item is not a figure.**
 **The box did not change**, its machine check reading -0.84% against the kept
@@ -9689,29 +9691,30 @@ manifest is maintenance without a question, which is what retired it.
 Restated as the predicates the next run checks, and carrying no reading
 of its own: the figures each was last measured at are in the `Readings:`
 paragraphs above, so an entry here changes when a claim is re-aimed and not when
-a run moves a margin. **All of them are `-fspec-constr` claims, which
-is the regime the fix ships in** --- the file the solution is added to sets
-the flag --- so they are the set that decides, and a run at -O1 would test Run
-7's instead, the two differing in more than their numbers. **They are read
-in the caller's allocation regime now**, every figure here being taken
-at the `-A32m` Run 16 promoted to the basis and every horde-ad test
-and benchmark bakes since 2026-08-21; the gap Runs 14, 15 and 16 priced against
-a prevailing `-A1G` is closed, and no claim below needs qualifying by it.
-**And all of them are read against a measured drift band rather than a layout
-span**, which is what the last three runs bought. A roster *order* change alone
-moved arms 0.966 to 1.142 between Run 9 and Run 10, and that is what a margin
-used to have to clear; with the layout pinned, a repetition moves an arm
-by at most 3.3% and most of them by under 1.5%, so a margin above a few percent
-is now evidence of a strategy. **Run 13 is the first pair here to hold every
-tracked loop at one offset in both halves**, which is what lets its arm-by-arm
-comparison be read as the package costing nothing rather than as two terms
-cancelling. A claim resting on an arm whose own loop the shim skipped ---
-`list`'s, which is library code --- is still decidable nowhere until that loop
-is read. **And the pinning claim is measured only in its weak form**: adding
-`mut-flat-gm-nosum` left every tracked loop at the same address, but a `Force`
-arm reuses a rostered function and emits no code for emission order to move.
-The strong form wants an arm that emits its own, and until one is added
-the claim covers additions that cost nothing to place.
+a run moves a margin. **All of them are `-fspec-constr` claims, the regime they
+are read in** --- the file the solution is added to sets the flag only
+if it matters for the adopted strategies --- so they are the set that decides,
+and a run at -O1 would test Run 7's instead, the two differing in more
+than their numbers. **They are read in the caller's allocation regime now**,
+every figure here being taken at the `-A32m` Run 16 promoted to the basis
+and every horde-ad test and benchmark bakes since 2026-08-21; the gap Runs 14,
+15 and 16 priced against a prevailing `-A1G` is closed, and no claim below needs
+qualifying by it. **And all of them are read against a measured drift band
+rather than a layout span**, which is what the last three runs bought. A roster
+*order* change alone moved arms 0.966 to 1.142 between Run 9 and Run 10,
+and that is what a margin used to have to clear; with the layout pinned,
+a repetition moves an arm by at most 3.3% and most of them by under 1.5%,
+so a margin above a few percent is now evidence of a strategy. **Run 13
+is the first pair here to hold every tracked loop at one offset in both
+halves**, which is what lets its arm-by-arm comparison be read as the package
+costing nothing rather than as two terms cancelling. A claim resting on an arm
+whose own loop the shim skipped --- `list`'s, which is library code --- is still
+decidable nowhere until that loop is read. **And the pinning claim is measured
+only in its weak form**: adding `mut-flat-gm-nosum` left every tracked loop
+at the same address, but a `Force` arm reuses a rostered function and emits
+no code for emission order to move. The strong form wants an arm that emits
+its own, and until one is added the claim covers additions that cost nothing
+to place.
 
 **The list needed no re-aiming this time either**, the roster it was rewritten
 onto before Run 8 being the roster Run 18 ran: every claim below names an arm
@@ -9719,8 +9722,9 @@ this run timed. Seven full runs on that roster is the evidence that keeping
 the *question* and changing the *arm* was the right repair --- the unconditional
 counterparts were written so that dropping a precondition would not drop
 a question with it, and none of them dropped one. The claims that read against
-`bq-expand` read against it because the branch carries it (TODO: retarget
-at `mut-odo-vecdims`).
+`bq-expand` read against it because the branch carried it; since 2026-08-24
+the branch carries the stage-one fix instead, and their retirement is settled
+below, applied at Run 19's write-up.
 
 1. `mut-odo-vecdims` < `mut-flat-gm` < `bq-mut-runs-gm-mulback` <
    `bq-scan-rem-gm-mulback` ~ `bq-odo-gm-mulback`, the whole ordering read
@@ -9916,12 +9920,13 @@ runs of history they do not. **Claim 2 keeps its number and changes
 its question** to where the arms needing something other than the fix sit:
 `offtab`, which needs only that `Int` scratch, behind `bq-scan-rem-gm-mulback`
 at **1.36** and **1.44**; and `bq-expand` behind `mut-odo-vecdims` at **2.09**
-and **2.13**, kept only while `Data/Array/Internal.hs` carries `bq-expand`
-and retired with the three `TODO: retarget` markers, which are one decision
-with it. Thirteen registered orderings become eight, claims 7 and 8 staying
-unmanifested prose. **The rewriting the ask paired with this was already done**:
-the eight *What the class says* paragraphs were written to the re-aimed
-properties at Run 18's write-up, and only the sentence asking for it survived.
+and **2.13**, kept only while `Data/Array/Internal.hs` carried `bq-expand`,
+which ended 2026-08-24, and retired with the three `TODO: retarget` markers,
+which were one decision with it. Thirteen registered orderings become eight,
+claims 7 and 8 staying unmanifested prose. **The rewriting the ask paired
+with this was already done**: the eight *What the class says* paragraphs
+were written to the re-aimed properties at Run 18's write-up, and only
+the sentence asking for it survived.
 
 `--pair` works within a class JSON exactly as within the main one, and is still
 the way to compare two arms; its bootstrap interval, over three shapes, is worth
@@ -9932,7 +9937,7 @@ in two. A **new pure `Vector` method** delegates to a pure function the vector
 package already ships for every carrier --- `unfoldrExactN`, `backpermute`,
 the `concatMap`/`enumFromStepN` pipeline --- so it fights only *minimal*
 in orthotope's pure-and-minimal API rule; the **new mutating `Vector` method**
-the direct fills need is the [mutable ceiling](#the-mutable-ceiling-not-taken)'s
+the direct fills need is the [mutable ceiling](#the-mutable-ceiling-taken)'s
 ask, which *pure* barred outright until the amendment there turned the bar
 into a weight, and which the decision of 2026-08-22 takes. `offtab`
 is the `Vector`-class-expressible shape of these gathers --- output by plain
@@ -11141,14 +11146,14 @@ was reworded, which is the failure this list was rewritten to escape.
   every class shape; the layout above them is not, in the way the column
   definitions are not. A run that leaves a population out says so there, rather
   than leaving the previous run's table standing under a new run's name;
-- [The mutable ceiling (not taken)](#the-mutable-ceiling-not-taken)
-  and the shipping paragraph closing [the Lemire section][lemire].
-  These are *rulings resting on figures*, so a stale number re-opens a decision
-  rather than merely misreporting one --- and a ruling's number moves
-  for reasons its verdict does not. Both now carry two regimes, and the Lemire
-  one turns on which regime orthotope compiles under, so a run in a third would
-  have to say what it does to that decision rather than only to the figure.
-  Requote from the run; do not carry forward;
+- [The mutable ceiling (taken)](#the-mutable-ceiling-taken) and the shipping
+  paragraph closing [the Lemire section][lemire]. These are *rulings resting
+  on figures*, so a stale number re-opens a decision rather than merely
+  misreporting one --- and a ruling's number moves for reasons its verdict does
+  not. Both now carry two regimes, and the Lemire one turns on which regime
+  orthotope compiles under, so a run in a third would have to say what it does
+  to that decision rather than only to the figure. Requote from the run; do
+  not carry forward;
 - [The C-gap](#the-c-gap-still-a-deeper-ceiling), whose figures are horde-ad's,
   not a run's: no run here replaces them, and they move when that repo
   re-measures --- so the walk checks their currency instead;
@@ -11217,7 +11222,7 @@ of the list above is one of the steps.
 
 [achieved]: #how-the-strictly-positive-picture-was-achieved
 [bench]: #what-the-benchmark-does
-[ceiling]: #the-mutable-ceiling-not-taken
+[ceiling]: #the-mutable-ceiling-taken
 [cgap]: #the-c-gap-still-a-deeper-ceiling
 [classes]: #the-stride-classes-and-what-they-cover
 [correction]: #sum-only-and-the-correction-now-applied

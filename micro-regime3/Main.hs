@@ -1662,7 +1662,7 @@ fbMutOdo sh (T (Strides ats) ao v) = VS.create $ do
 -- the direct fill's per-run cost WAS the cons-list traffic of the odometer
 -- recursion, not the nested structure. It has been the fastest arm measured
 -- ever since, which is what reopened the class-method tier the README had
--- closed (README.md#the-mutable-ceiling-not-taken).
+-- closed (README.md#the-mutable-ceiling-taken).
 -- 'writeRun' is kept character-identical to 'fbMutOdo''s so the build
 -- of each run cannot differ.
 {-# NOINLINE fbMutOdoVecdims #-}
@@ -1698,7 +1698,7 @@ fbMutOdoVecdims sh (T (Strides ats) ao v) = VS.create $ do
 
 -- The four FastReshape arms. The tree's own precedent for this family,
 -- Data/Array/Internal/FastReshape.hs
--- (README.md#the-mutable-ceiling-not-taken, the amendment), differs from
+-- (README.md#the-mutable-ceiling-taken, the amendment), differs from
 -- 'fbMutOdoVecdims' -- once its cons-list odometer is put aside as the
 -- representation 'mut-odo' already prices -- in loop arithmetic alone:
 -- offsets stepped additively where this family multiplies or threads,
@@ -1880,7 +1880,7 @@ fbMutOdoVecdimsAddBothDown sh (T (Strides ats) ao v) = VS.create $ do
 
 -- The four arms below extend the FastReshape decomposition, added
 -- 2026-08-24 for Run 20. The family's verdict
--- (README.md#the-mutable-ceiling-not-taken) refuted FastReshape's offset
+-- (README.md#the-mutable-ceiling-taken) refuted FastReshape's offset
 -- arithmetic but left two mechanisms unpriced solo: the count-down run
 -- fill -- the family's one recorded per-element mechanism, seven
 -- instructions against the shared eight, measured only on top of the
@@ -1900,7 +1900,7 @@ fbMutOdoVecdimsAddBothDown sh (T (Strides ats) ao v) = VS.create $ do
 -- instructions against the canonical 24 over 7 -- the extra four being
 -- per-element reloads of @tInner@ and both base pointers, one of them
 -- dead -- in the timed binary and its -g3 twin alike, and the probe
--- agrees (README.md#the-mutable-ceiling-not-taken). The down fill wants a
+-- agrees (README.md#the-mutable-ceiling-taken). The down fill wants a
 -- unit-return context: the output-stride table buys
 -- 'fbMutOdoVecdimsAddBothDown' one at a price, the fused leaf buys
 -- 'fbMutOdoVecdimsAddInLeafDown' one for free; this arm has none. The
@@ -1945,7 +1945,7 @@ fbMutOdoVecdimsDown sh (T (Strides ats) ao v) = VS.create $ do
 -- refutation as 'fbMutOdoVecdimsDown' above -- the same 40-byte fill in
 -- both binaries, and the worse probe reading of the two, its fill copy
 -- straddling a cache line on top of the reloads
--- (README.md#the-mutable-ceiling-not-taken). 'writeRun' is
+-- (README.md#the-mutable-ceiling-taken). 'writeRun' is
 -- character-identical to 'fbMutOdoVecdimsAddBothDown''s.
 {-# NOINLINE fbMutOdoVecdimsAddInDown #-}
 fbMutOdoVecdimsAddInDown :: ShapeL -> T -> VS.Vector Double
@@ -2082,9 +2082,11 @@ fbMutOdoVecdimsAddInLeafDown sh (T (Strides ats) ao v) = VS.create $ do
 -- question inside the run rather than crossing it. The dead-ideas
 -- ruling (README.md#dead-ideas) kills unrolling by the runtime @sInner@
 -- only; a fixed factor was untested until the probe of 2026-08-24
--- (README.md#the-mutable-ceiling-not-taken), which also refuted the
+-- (README.md#the-mutable-ceiling-taken), which also refuted the
 -- intermediate fused-bound form -- counter merged into the cursor,
 -- six instructions, a wash -- recorded there so it is not re-derived.
+-- This is the arm the library ships: 'genericFillStrided' in
+-- Data/Array/Internal.hs is its bang-for-bang port, landed 2026-08-24.
 {-# NOINLINE fbMutOdoVecdimsAddInLeafU2 #-}
 fbMutOdoVecdimsAddInLeafU2 :: ShapeL -> T -> VS.Vector Double
 fbMutOdoVecdimsAddInLeafU2 sh (T (Strides ats) ao v) = VS.create $ do
@@ -3034,7 +3036,7 @@ roster =
     -- biased, not the one that is merely noisy.
   , ("mut-odo-vecdims-aa",         Twin fbMutOdoVecdims)
     -- The FastReshape decomposition, four arms after their shared control
-    -- above (README.md#the-mutable-ceiling-not-taken): solo input axis,
+    -- above (README.md#the-mutable-ceiling-taken): solo input axis,
     -- solo output axis, the corner, the loop form on the corner. A block
     -- after the control's own pair, so no existing control moves.
   , ("mut-odo-vecdims-add-in",     Fill fbMutOdoVecdimsAddIn)
@@ -3045,7 +3047,7 @@ roster =
     -- first read in Run 20: the leaf call fused into the innermost outer
     -- level, solo, crossed with the count-down fill, and crowned with
     -- the unrolled fill, over the controls each varies
-    -- (README.md#the-mutable-ceiling-not-taken).
+    -- (README.md#the-mutable-ceiling-taken).
     -- The count-down fill's own solo arms sit here as 'Only', refuted by
     -- codegen the day they were written, reasons at their definitions.
     -- Appended to the family block for the block's own reason -- after
