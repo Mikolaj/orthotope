@@ -33,7 +33,6 @@ import qualified Data.DList as DL
 import Data.Kind (Type)
 import Data.List(foldl', zipWith4, zipWith5, sortBy, sortOn, foldl1')
 import Data.Proxy
-import qualified Data.Vector.Unboxed as VU
 import GHC.Exts(Constraint, build)
 import GHC.Generics(Generic)
 import GHC.TypeLits(KnownNat, natVal)
@@ -212,24 +211,6 @@ unScalarT (T _ o v) = vIndex v o
 constantT :: (Vector v, VecElem v a) => ShapeL -> a -> T v a
 constantT sh x = T (map (const 0) sh) 0 (vSingleton x)
 
--- Base offset (into the values vector) of each innermost run of an array,
--- in row-major order over the outer dimensions (all dimensions but the
--- innermost).  The outer offset grid is separable (@o0 + sum idx_d *
--- stride_d@), so it is built by iterated expansion: from the singleton
--- @[o0]@, each outer dimension expands every partial base-offset @a@ into
--- @enumFromStepN a stride_d n_d@ (a constant-stride run, no division), all
--- inside vector's stream framework rather than a hand-written loop.  The
--- result is the unboxed Int scratch 'toVectorListT' indexes; it has
--- @product osh@ elements.
-{-# INLINE runBaseOffsetsT #-}
-runBaseOffsetsT :: Int    -- ^ the array offset to start from
-                -> [Int]  -- ^ outer dimensions, i.e. @init sh@
-                -> [Int]  -- ^ outer strides, i.e. @init (strides a)@
-                -> VU.Vector Int
-runBaseOffsetsT o0 osh oats = foldl' expand (VU.singleton o0) (zip osh oats)
-  where expand !acc (!nd, !sd) =
-          VU.concatMap (\a -> VU.enumFromStepN a sd nd) acc
-
 -- Convert an array to a list of vectors, which together contain
 -- all the elements in the natural order.
 -- An invariant: if the input array is non-empty the returned list
@@ -237,7 +218,7 @@ runBaseOffsetsT o0 osh oats = foldl' expand (VU.singleton o0) (zip osh oats)
 -- The minimum/maximum operations rely on this invariant.
 {-# INLINE toVectorListT #-}
 toVectorListT :: (Vector v, VecElem v a) => ShapeL -> T v a -> [v a]
-toVectorListT sh (T ats ao v) =
+toVectorListT sh a@(T ats ao v) =
   let l : ts' = getStridesT sh
       -- Are strides ok from this point?
       oks = scanr (&&) True (zipWith (==) ats ts')
@@ -259,22 +240,8 @@ toVectorListT sh (T ats ao v) =
         -- Innermost dimension is normal, so slices are non-trivial.
         DL.toList $ loop oks sh ats ao
       else
-        -- Innermost dimension is strided, so every contiguous run has
-        -- length 1 and no slice can be taken.  Decomposing each element's
-        -- linear index into a full multi-index (a @quotRem@ per dimension)
-        -- dominates the small, high-rank shapes, so instead split off the
-        -- innermost dimension (size @sInner@, stride @tInner@): precompute
-        -- the base-offset of each run once (no division;
-        -- see 'runBaseOffsetsT'), then fill the result with a single
-        -- 'vGenerate' doing one @quotRem@ (by @sInner@) per element.
-        -- The base-offsets live in an unboxed Int vector (index scratch,
-        -- independent of the element storage @v@) for O(1) lookup.
-        let !sInner = last sh
-            !tInner = last ats
-            !baseOffsets = runBaseOffsetsT ao (init sh) (init ats)
-            gen i = case i `quotRem` sInner of
-              (!q, !r) -> vIndex v (VU.unsafeIndex baseOffsets q + r * tInner)
-        in  [vGenerate l gen]
+        -- All slices would have length 1, going via a list is faster.
+        [vFromListN l $ toListT sh a]
 
 {-# INLINE toVectorT #-}
 toVectorT :: (Vector v, VecElem v a) => ShapeL -> T v a -> v a
