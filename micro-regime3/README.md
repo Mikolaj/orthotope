@@ -207,15 +207,33 @@ of `small-pinned-churn-investigation/`, whose tax lands on later code and which
 no per-call fit prices. The flat table redirect this replaces pays 2.00x
 on the same shapes.
 
-**The one stage-one choice that could foreclose stage two is the class method's
-signature.** The per-element `vBuild` the Core identity licensed cannot express
-a block copy or a contiguous-run copy: those need the instance's mutable vector
---- a `vCreate` handing the buffer to the callback, or a whole-kernel method
-with a `vGenerate` default --- or the FastReshape `unsafeCast` escape,
-Storable-only. Choose stage one's method with that in view, or accept a second
-method later. Nothing else couples the stages: post-canonicalization every
-population this README measures keeps the vecdims family at its head, the one
-residue being `stretch-pow2stride`'s 10%, which is cache aliasing and [the
+**The class method is decided, 2026-08-24: the whole-kernel pure-typed form, one
+method for both stages --- and no `Mutable` associated type in orthotope's
+`Vector` class, which would change orthotope too much.**
+`vFillStrided :: VecElem v a => ShapeL -> [Int] -> Int -> Int -> v a -> v a` ---
+shape, strides, offset, length, source --- is shaped as `vGenerate` is,
+the mutation hidden inside each instance. Its class default is the pure
+`bq-expand` form in existing methods, so the `[]` reference instance and any
+instance outside the tree compile unchanged; the three vector-backed instances
+override with one shared driver written against `Data.Vector.Generic`, whose
+`Mutable` already exists where it belongs and whose copy primitives hand
+Storable the memcpy for free. Stage one implements that driver
+as `mut-odo-vecdims`; stage two upgrades the driver's internals ---
+canonicalization, the zero-stride conditions, the run copies --- with no further
+change to the class. Rejected the same day, so they are not re-proposed:
+a `vCreate` handing the callback the mutable buffer, which is what would need
+the `Mutable` associated type; the per-element `vBuild` alone, which cannot
+express a block copy or a contiguous-run copy and so buys a second method later;
+a CPS extension handing the callback write-and-copy functions, which avoids
+`Mutable` but is more surface than the whole-kernel form for the same wins;
+and the FastReshape `unsafeCast` escape, an instance-side trick
+with no `Storable` evidence at the generic call site. One debt travels
+with the choice: the `build`/`mut-odo` identity was dumped
+for the single-callback `vBuild` form, so the driver's workers are
+to be re-dumped in this form before any figure of theirs is trusted. Nothing
+else couples the stages: post-canonicalization every population this README
+measures keeps the vecdims family at its head, the one residue being
+`stretch-pow2stride`'s 10%, which is cache aliasing and [the
 C-gap](#the-c-gap-still-a-deeper-ceiling)'s to close.
 
 **The rework's arms enter the roster for Run 20, and Run 19 was stage one's
@@ -3690,8 +3708,9 @@ and is reported in that repo, not here.
 
 **Decided 2026-08-22: the ceiling is to be taken, and the heading keeps
 its *not taken* until the code lands.** `mut-odo-vecdims` becomes the upstream
-implementation of the regime-3 fallback, with the new mutating `Vector` method
-it needs --- the method the Core below shows is free --- and, since 2026-08-24,
+implementation of the regime-3 fallback, with the new `Vector` method it needs
+--- the signature the Core below shows is free in its callback form, and decided
+2026-08-24 as the pure-typed whole-kernel form --- and, since 2026-08-24,
 no condition on the strides: the redirect is dropped for [the two-stage
 plan](#the-two-stage-plan-and-the-rework-proposal), whose rework proposal serves
 its constituency at the dispatch instead, so the fix is fully decided. What
@@ -3815,7 +3834,10 @@ is only that its disagreement is placement rather than the abstraction, which
 is what leaves the identity above licensing `vBuild`. A pure-typed alternative
 (a strided-gather method taking the shape/stride/source and hiding the mutation
 inside each instance, as `vGenerate` already does) would keep the speed without
-`ST` in the signature.
+`ST` in the signature --- and on 2026-08-24 this form was decided,
+over a `Mutable`-exposing signature and over `vBuild` itself; [the two-stage
+plan](#the-two-stage-plan-and-the-rework-proposal) carries the ruling
+and the rejected forms.
 
 This was **deliberately not taken.** Orthotope's `Vector` API was to stay pure
 and minimal, and the gain over `bq-expand` (pure-Haskell either way, so [the
