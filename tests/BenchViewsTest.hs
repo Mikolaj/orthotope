@@ -64,6 +64,9 @@ test = testGroup "BenchViews"
       , testCase "ordered, transposed runs"
           (allocUnder (scaled orderedHeadFactor transposedBlock)
                       (headOf I.toVectorListT) transposedBlock)
+      , testCase "ordered, transposed runs, element by element"
+          (allocOver (scaled orderedHeadFactor transposedBlock)
+                     (headOf elementwise) transposedBlock)
       , testCase "unordered, transposed runs"
           (allocUnder (scaled unorderedHeadFactor transposedBlock)
                       (headOf I.toUnorderedVectorListT) transposedBlock) ]
@@ -96,9 +99,9 @@ optimised = False
 {-# NOINLINE optimised #-}
 {-# RULES "optimised" optimised = True #-}
 
--- What toVector allocates, over the view's size, where it lists a view
--- element by element, which is under 50 on these views; a fill writing the
--- result alone would meet 1.1.
+-- What toVector allocates, over the view's size, where it concatenates the
+-- ordered list of runs: up to 12 on these views; a fill writing the result
+-- alone would meet 1.1.
 toVectorFactor :: Double
 toVectorFactor = 64
 
@@ -111,10 +114,10 @@ sumAFactor :: Double
 sumAFactor = 64
 
 -- What building the head of the ordered list of a transposed view of runs
--- allocates, over the view's size: the whole view listed element by
--- element now, 1.1 for a fill.
+-- allocates, over the view's size: the whole view filled, 1.0, under a
+-- bound that listing it element by element, 21, exceeds.
 orderedHeadFactor :: Double
-orderedHeadFactor = 64
+orderedHeadFactor = 4
 
 -- The same for the unordered list, which could instead walk the runs in
 -- the order of the vector and build its head in under 32768 bytes, as it
@@ -213,13 +216,25 @@ agree what u r = counterexample (what ++ ": " ++ firstDiff) (u == r)
 -- time allocates at most the bound, in bytes; the first time can also
 -- allocate a new chunk of the thread's stack.
 allocUnder :: Int64 -> (DS.Array Double -> b) -> Layout -> Assertion
-allocUnder bound f l@(sh, ts, _, _) = do
+allocUnder bound f l = do
+  bytes <- secondAlloc f l
+  assertBool (show bytes ++ " bytes allocated, over " ++ show bound) (bytes <= bound)
+
+-- The same allocates more than the bound: the control that shows a bound
+-- tells what it holds apart.
+allocOver :: Int64 -> (DS.Array Double -> b) -> Layout -> Assertion
+allocOver bound f l = do
+  bytes <- secondAlloc f l
+  assertBool (show bytes ++ " bytes allocated, not over " ++ show bound) (bytes > bound)
+
+-- What evaluating f of the view to WHNF allocates the second time.
+secondAlloc :: (DS.Array Double -> b) -> Layout -> IO Int64
+secondAlloc f l@(sh, ts, _, _) = do
   let (t, x) = mkArray 1 l
   _ <- evaluate (sum sh + sum ts + VS.length (I.values t))
   _ <- evaluate x
   _ <- allocated f x
-  bytes <- allocated f x
-  assertBool (show bytes ++ " bytes allocated, over " ++ show bound) (bytes <= bound)
+  allocated f x
 
 -- The bytes the thread allocates evaluating f x to WHNF.
 {-# NOINLINE allocated #-}
@@ -229,6 +244,11 @@ allocated f x = do
   _ <- evaluate (f x)
   c <- getAllocationCounter
   return (maxBound - c)
+
+-- The listing a fill replaced: the elements one by one into a vector, the
+-- list forced whole first.
+elementwise :: [Int] -> I.T VS.Vector Double -> [VS.Vector Double]
+elementwise sh t = let xs = I.toListT sh t in length xs `seq` [I.vFromListN (length xs) xs]
 
 -- The head of a list of vectors of the array.
 headOf :: ([Int] -> I.T VS.Vector Double -> [VS.Vector Double])
