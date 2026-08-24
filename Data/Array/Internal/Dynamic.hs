@@ -53,7 +53,7 @@ import Test.QuickCheck hiding (generate)
 import Text.PrettyPrint.HughesPJClass hiding ((<>))
 
 import qualified Data.Array.DynamicG as G
-import Data.Array.Internal(ShapeL, Vector(..), None)
+import Data.Array.Internal(ShapeL, Vector(..), None, genericFillStrided)
 
 instance Vector V.Vector where
   type VecElem V.Vector = None
@@ -105,6 +105,8 @@ instance Vector V.Vector where
   vAll = V.all
   {-# INLINE vAny #-}
   vAny = V.any
+  {-# INLINE vFillStrided #-}
+  vFillStrided = genericFillStrided
 
 type role Array nominal
 newtype Array a = A { unA :: G.Array V.Vector a }
