@@ -1,0 +1,37 @@
+-- The GHC HEAD half of Run 19: the same source, shim and roster as
+-- cabal.project on a compiler no released freeze can name. Select it with
+-- --project-file=cabal.project.ghead; cabal.project.ghead.freeze beside it
+-- pins the resolved plan as cabal.project.freeze and cabal.project.ghc914.freeze
+-- pin theirs, at the same index-state, so the three plans differ in the boot
+-- libraries and in nothing else a freeze can see.
+--
+-- cabal.project.freeze pins base ==4.21.2.0 and so refuses every other
+-- compiler, which is why HEAD wants a project file of its own. The constraints
+-- below are what the resolver needs before a freeze exists, and are kept here
+-- rather than left to the freeze because a freeze is regenerated and these are
+-- decisions: `base installed` takes the compiler's own boot base; vector and
+-- criterion are pinned at the versions every run in this README was taken on,
+-- vector with the +boundschecks -unsafechecks that makes the gen-quotrem
+-- against gen-unsafe pair price a bounds check at all; and hashable needs
+-- naming outright, 1.5.1.0's cabal file not declaring the ghc-bignum its
+-- source imports, where 1.5.0.0's does. head.hackage is neither needed nor
+-- helpful -- its index here is stale enough that the tarball hashes no longer
+-- verify.
+--
+-- The compiler is the in-tree stage1 of the GHC checkout under
+-- ~/r/horde-ad/ghc, at 10.1.20260803. Its path is spelled out because there is
+-- no such compiler on PATH; a HEAD that moves is a different compiler and a
+-- different pair, so a run repeating this one reads the version back out of the
+-- binary rather than off this line.
+packages: .
+with-compiler: /home/mikolaj/r/horde-ad/ghc/_build/stage1/bin/ghc
+index-state: hackage.haskell.org 2026-07-25T13:22:10Z
+
+allow-newer: base, ghc-prim, ghc-bignum, template-haskell,
+             deepseq, bytestring, containers, text, time
+
+constraints: base installed,
+             criterion ==1.6.5.0,
+             vector ==0.13.2.0,
+             vector +boundschecks -unsafechecks,
+             hashable ==1.5.0.0

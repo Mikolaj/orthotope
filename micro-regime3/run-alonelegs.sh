@@ -4,8 +4,8 @@
 # bench per process, so the deflation columns can be read and the published
 # tables get their clean-absolute companions.
 #
-#     ./run-alonelegs.sh run18 g914        # the control half, first
-#     ./run-alonelegs.sh run18 g912        # the basis half, second
+#     ./run-alonelegs.sh run19 ghead       # the control half, first
+#     ./run-alonelegs.sh run19 g912        # the basis half, second
 #
 # THE SECOND ARGUMENT IS A HALF'S NAME AND NOT ITS ROLE, so which of the two
 # is the basis is the PAIR NOTE's to say and never this comment's. It used

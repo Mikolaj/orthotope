@@ -7,8 +7,8 @@
 # second instrument README's TODO list names and Run 17's pair registers as
 # a pilot.
 #
-#     ./run-counts.sh run18 g914           # the control half
-#     ./run-counts.sh run18 g912           # the basis half
+#     ./run-counts.sh run19 ghead          # the control half
+#     ./run-counts.sh run19 g912           # the basis half
 #
 # The second argument is a HALF'S NAME and not its role, so which is the
 # basis is the pair note's to say -- the same caution run-alonelegs.sh

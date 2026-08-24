@@ -2470,6 +2470,83 @@ rather than a slot in the next run, observed again:
   to notice, the band is the right band, and what a future run should
   not conclude from this is that the preamble is unstable.
 
+- `OPEN` **What Run 19 is built to answer, registered before it runs.** Its pair
+  is `run19-g912`, the basis, against `run19-ghead`, settled and built
+  2026-08-24: GHC HEAD 10.1.20260803, the in-tree stage1 of the checkout
+  under `~/r/horde-ad/ghc`, against ghc-9.12.4, on one source, one shim, one
+  roster and one regime, both halves under `WILDLOG=1 SATURATE=1`. It is Run
+  18's pair with HEAD in 9.14's place, asked for as that, and the basis recipe
+  is Run 18's basis recipe with nothing changed at all: `Main.hs` at `e9fab1e`
+  and `align-as.py` at `40f7a37` have not moved since that pair was built,
+  and the rebuild reproduces `run18-g912` byte for byte --- md5
+  `9768189b5c6947beca4ba89cad5800c8`, `.text` 20406469 B, the same tracked fills
+  and the same one 38 B straddler --- so the md5's one-sided instrument answers,
+  and every input is proved unmoved with the dependency store among them. HEAD
+  wants a project file of its own, `cabal.project.ghead`, `cabal.project.freeze`
+  pinning `base ==4.21.2.0` and so refusing this compiler outright: it takes
+  `base installed` and `allow-newer` for the boot packages, pins
+  `criterion ==1.6.5.0` and `vector ==0.13.2.0`
+  with `+boundschecks -unsafechecks` by hand, and names `hashable ==1.5.0.0`
+  outright, 1.5.1.0's cabal file not declaring the `ghc-bignum` its source
+  imports. `cabal.project.ghead.freeze` beside it pins the rest
+  at the index-state the other two plans hold, so the three differ in the boot
+  libraries and in nothing else a freeze can see. **The one pre-run risk
+  is retired before the pair exists**: the shim was written against 9.12's NCG
+  output, and on HEAD's it reads back 109 self-loops in `Main`-compiled code, 51
+  at offset 0 and none straddling, against the basis's 113, 56 and one;
+  the halves' `check` output is byte-identical on every shape it walks, their
+  `--list` identical at 1128, and `diag` reads SpecConstr on both. **And HEAD
+  groups the tracked loops differently before anything is timed**: its 28 B
+  census is a four-copy group at `[23, 0, 1, 2]`, a three-copy group
+  at `[0, 0, 13]` and a two-copy group at `[0, 0]`, where the basis holds
+  `[0, 24, 0, 4]` and `[0, 0]` --- the three-copy group being
+  `bq-mut-runs-gm-mulback`, `bq-mut-lemire-mulback` and `bq-mut-runs-mulback`
+  compiled to one seven-instruction body that 9.12 does not share between them.
+  Six registrations, each with what kills it: (1) *the repetition*, `run19-g912`
+  against `run18-g912` --- one binary, two runs a day apart on one box,
+  so `--compare` reads absolutes fairly and every arm belongs inside the drift
+  band, killed by an arm outside it; what it prices is the box and the harness
+  rather than any code; (2) *the compiler*, the registered orderings holding
+  on HEAD, killed by a BROKE that clears that half's floor, with claim 7's
+  allocation read per compiler, a compiler being able to change allocation where
+  a slot cannot --- the count and the content off `--claims` and not off
+  this sentence, which was written when thirteen of thirteen read HELD on Run
+  18's basis; (3) *the decomposition*, every shape's `list` alone leg twice
+  on each half, `SAT=` off and on through `run-alonelegs.sh`, against its roster
+  cell: the state is saturated minus clean, the rest is roster minus saturated,
+  and the registration is the distribution over the 24 shapes with its median
+  inside the floor, where Run 18 read +11.43% and +1.20%; (4) *counted work*,
+  `run-counts.sh` on both halves, the count ratio HEAD over 9.12 beside the time
+  ratio per arm --- time moving with counts is codegen and time moving without
+  them is the runtime or the memory, which is how Run 18 put
+  the placement-exposed family's seven percent on count ratios of 1.0000; taken
+  2026-08-24 ahead of the evening, counts wanting no quiet machine; (5)
+  *the plateau*, every recorded process's `@@saturate` victim inside a band
+  of the run's own, banded at 5% across them by `read-all.sh`; (6) *the offset
+  swap*, whose instrument's limit is now measured rather than assumed. Run 18
+  read the swap off a `-g3` twin per compiler, each twin reproducing its timed
+  binary's tracked offsets with its addresses a flat `0x40` below. Both twins
+  were built here before the run: the 9.12 one repeats that exactly, being
+  the same binary, and **the HEAD twin does not locate anything**. It reads
+  `[0, 31, 31, 21]` where the timed `run19-ghead` reads `[23, 0, 1, 2]`,
+  at address deltas of `0x45A9`, `0x49DF`, `0xF65E` and `0xFC13` rather than one
+  constant. Byte identity cannot stand in, the four copies being one 28 B
+  sequence by construction, and no weaker `-g` level is a way round, `-g1`
+  changing the emitted code exactly as `-g3` does. So a twin names HEAD's four
+  functions and does not say which copy is which, except
+  under the ascending-address correspondence, which the 9.12 half satisfies
+  and nothing on the HEAD half checks. What the registration may report
+  is the timed offsets, measured on both halves, and the margin; an attribution
+  of a HEAD margin to a slot is an assumption and is to be written as one.
+  The question stands --- Run 18 put `mut-odo-vecdims` and `-add-in` at 0 and 24
+  on 9.12 and at 24 and 0 on 9.14, the margin following the offset both times,
+  while the control pair sat at 0 on both and split by compiler as far ---
+  and it is the reading that is weaker here, not the question. **Not in Run
+  19**: a roster change, which would confound the compiler; the floor question,
+  whose preamble half wants one binary over the roster twice rather than a pair;
+  and the `add-in` placement probe, which [its own entry][open] defers to a run
+  that has the compilers measured.
+
 
 ### Recommended tasks after Run 18
 
@@ -6266,13 +6343,16 @@ the artifacts are what it spends.
 
 ### Other toolchains, probed and not run
 
-**These three paragraphs are probe records and not run instructions**, which
-is why they sit here rather than in [Running it](#running-it), where they stood
-between a session reading the run modes and the chapter it was reading them for.
-Their figures are a probe's on another compiler or another backend; no run here
-replaces them, and what would call for re-probing is a move in either toolchain
-rather than a run. Read them when a toolchain question arises, and not
-on the way to an evening.
+**Two of these three paragraphs are probe records and not run instructions**,
+which is why they sit here rather than in [Running it](#running-it), where they
+stood between a session reading the run modes and the chapter it was reading
+them for. Their figures are a probe's on another compiler or another backend;
+no run here replaces them, and what would call for re-probing is a move
+in either toolchain rather than a run. Read them when a toolchain question
+arises, and not on the way to an evening. **The HEAD paragraph is the exception
+since 2026-08-24**: Run 19's control half is built through the project file
+it names, so what was a probe's recipe is a pair's, and the file rather
+than the paragraph is the copy of record.
 
 **Running the suite through GHC's LLVM backend takes two flags and a different
 correction.** `--ghc-options=-fllvm` sends Main.hs through the `opt` and `llc`
@@ -6291,19 +6371,19 @@ to no figure in this README --- [the correction
 section](#sum-only-and-the-correction-now-applied) has what that trades away.
 
 **Compiling with a GHC HEAD build wants a project file of its own,
-`cabal.project.freeze` pinning `base` and so refusing every other compiler.**
-Point `-w` at the tree's stage1 `ghc` and give `--project-dir` a directory whose
-`cabal.project` names this one in `packages:`, carries `allow-newer`
-for the boot packages --- `base`, `ghc-prim`, `ghc-bignum`, `template-haskell`,
-`deepseq`, `bytestring`, `containers`, `text`, `time` ---
-and `constraints: base installed` beside them. Pin `criterion ==1.6.5.0`
-and `vector ==0.13.2.0` with `vector`'s `+boundschecks -unsafechecks` by hand,
-those being what every run here was taken on and what the freeze would otherwise
-have held. One package needs naming outright: `hashable ==1.5.0.0`, whose cabal
-file declares the `ghc-bignum` its source imports where 1.5.1.0's does not,
-so the newer one does not compile here at all. head.hackage is neither needed
-nor helpful --- its index here is stale enough that the tarball hashes no longer
-verify.
+and `cabal.project.ghead` is it** --- `cabal.project.freeze` pins `base`
+and so refuses every other compiler. It names the checkout's stage1 `ghc`
+in `with-compiler`, carries `allow-newer` for the boot packages
+and `constraints: base installed`, and pins by hand what a freeze would
+otherwise have held: `criterion ==1.6.5.0` and `vector ==0.13.2.0`
+with `vector`'s `+boundschecks -unsafechecks`, those being what every run here
+was taken on, and `hashable ==1.5.0.0`, whose cabal file declares
+the `ghc-bignum` its source imports where 1.5.1.0's does not, so the newer one
+does not compile here at all. `cabal.project.ghead.freeze` beside it pins
+the rest at the index-state the other two plans hold. head.hackage is neither
+needed nor helpful --- its index here is stale enough that the tarball hashes
+no longer verify. Why each pin is there is in the file's own comments,
+so a session building on HEAD reads that and not this.
 
 **And what the vecdims family reads under each, from probe legs and not
 from a recorded run** (2026-08-21, one bench per process so that every arm sits
@@ -8749,7 +8829,7 @@ to within a floor over the set.
 
 ### What Run 19 compares against
 
-**Run 19's regime, roster and basis are settled; its pair is not.** The regime
+**Run 19's regime, roster, basis and pair are all settled.** The regime
 is `-fspec-constr`, as every run since Run 8, and it is the regime the fix ships
 in rather than a flag priced against the shipped one. The roster is Run 16's
 1128 benches, 47 timed arms over 24 shapes, every stride class at three,
@@ -8759,12 +8839,18 @@ it, and the 24m/48m probe that could have reopened it was taken ahead of Run 17
 and killed. The basis is `run18-g912`'s recipe --- Run 17's basis
 over `saturate-preamble.patch`, on ghc-9.12.4, with `-fobject-determinism`,
 the per-sample instrument and the saturating preamble, run
-under `WILDLOG=1 SATURATE=1`. **What Run 19 varies is open**, and [the open
-list][open] carries the candidates rather than this section: the compiler
-question Run 18 was built for is answered for 9.14.1 and the natural successor
-is HEAD, while the two questions Run 18 raised without settling --- what
-tightened the floor, and whether the `add-in` margin is the slot --- each name
-a pair of their own.
+under `WILDLOG=1 SATURATE=1`. **What Run 19 varies is the compiler again,
+with GHC HEAD in 9.14's place**: `run19-g912`, the basis, against `run19-ghead`,
+built by the in-tree stage1 of the GHC checkout at 10.1.20260803 through
+`cabal.project.ghead` and its freeze. Run 18 answered the compiler question
+for 9.14.1 and named HEAD the successor; `run19-pair.txt` carries both recipes
+and [the open list][open] the registrations. **And the basis half
+is a repetition and not only a lineage**: `Main.hs` and the shim have not moved
+since Run 18 was built, so the rebuilt basis reproduces `run18-g912` byte
+for byte and the pair prices one compiler against another with nothing else
+moved at all. The two questions Run 18 raised without settling --- what
+tightened the floor, and whether the `add-in` margin is the slot --- each still
+name a pair of their own, and neither is this one.
 
 **What Run 18 leaves it to read against, and the first item is not a figure.**
 **The box changed**: its BIOS idle settings moved between Run 17 and Run 18

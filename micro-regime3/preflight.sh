@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 # The pre-run list's steps 4 to 10, in one call.
 #
-#     ./preflight.sh run18            # reads BASIS/OTHER as the others do
+#     ./preflight.sh run19            # reads BASIS/OTHER as the others do
 #
-# Its defaults moved to Run 18's halves at pre-run step 3c on 2026-08-22,
+# Its defaults moved to Run 19's halves at pre-run step 3c on 2026-08-24,
 # with run-major.sh's, run-gate.sh's, smoke-sweep.sh's and
-# install-tables.sh's. The non-vacuity note below was taken on Run 17's
-# pair and names its halves; re-reading it wants `OTHER=det BASIS=wildlog`
-# on the launch line, which is what those two variables are for.
+# install-tables.sh's -- BASIS unchanged, OTHER from g914 to ghead. The
+# non-vacuity note below was taken on Run 17's pair and names its halves;
+# re-reading it wants `OTHER=det BASIS=wildlog` on the launch line, which
+# is what those two variables are for.
 #
 # Eight tool calls became one. That is not the point: the point is that
 # step 8 is the one README says is skipped most often, and a script cannot
@@ -66,7 +67,7 @@ if [ $# -lt 1 ]; then
   exit 2
 fi
 R=$1
-OTHER=${OTHER:-g914}
+OTHER=${OTHER:-ghead}
 BASIS=${BASIS:-g912}
 if [ "$OTHER" = "$BASIS" ]; then
   echo "!! OTHER and BASIS are both '$BASIS' -- a pair is two halves"
