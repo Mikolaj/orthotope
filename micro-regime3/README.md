@@ -2470,21 +2470,23 @@ rather than a slot in the next run, observed again:
   to notice, the band is the right band, and what a future run should
   not conclude from this is that the preamble is unstable.
 
-- `OPEN` **Which of the `bq-expand`-centric claims retire, now that the fix
-  decided is `mut-odo-vecdims`.** Claims 2 to 5 and 9 are the last candidate's
-  record, and the eight *What the class says* paragraphs are written
-  to properties that have been re-aimed since. The ask and its terms
-  are the **TODO** paragraph at the foot of [the
-  claims](#the-claims-run-19-should-test), which keeps them; what is here
-  is the entry, because this list is where a live question is looked for
-  and the index above says nothing open is recorded anywhere else.
-  **The decision belongs to whoever asks for a run and not to a session**, which
-  is why no run has taken it. **What leaving it costs is not a figure**:
-  the count and the content of the registered orderings come from `--claims`'
-  own manifest rather than from any prose, so nothing can be quoted stale. What
-  it costs is a run reporting verdicts on claims that are about to go,
-  and those eight paragraphs being rewritten twice. So it wants settling before
-  an evening is paid for, not after.
+- `ANSWERED` **Which of the `bq-expand`-centric claims retire, now that the fix
+  decided is `mut-odo-vecdims`.** **Settled 2026-08-24**: claims 3, 4, 5 and 9
+  retire, claim 1 gains `bq-scan-rem-gm-mulback` and the tie at its foot,
+  and claim 2 changes its question to where `offtab` and `bq-expand` sit ---
+  thirteen registered orderings becoming eight. Each retirement's reason,
+  and the readings the two new links were measured at on both of Run 18's
+  halves, are in the settlement paragraph at the foot of [the
+  claims](#the-claims-run-19-should-test), which owns the account; the `CLAIMS`
+  manifest in `read-run.py` takes it at Run 19's write-up, so the retiring
+  orderings get one last cross-compiler reading first. **The second half
+  of the ask was already spent**, the eight *What the class says* paragraphs
+  having been written to the re-aimed properties at Run 18's write-up with only
+  the sentence asking for it surviving. The decision was whoever asks
+  for a run's, which is why it sat unmade through three runs; what kept it live
+  was that it had no entry here until 2026-08-24, the index above saying nothing
+  open is recorded anywhere else and the ask being a bolded TODO outside
+  this list.
 
 - `OPEN` **What Run 19 is built to answer, registered before it runs.** Its pair
   is `run19-g912`, the basis, against `run19-ghead`, settled and built
@@ -4373,7 +4375,14 @@ this chapter states twice and had buried both times.
 a gate that fails, evidence that is not on this machine --- and a decision
 that belongs to whoever asked for the run rather than to the procedure: whether
 the artifacts go, whether anything is pushed, which pair the next run takes,
-anything that publishes. Report those and wait; decide the rest.
+anything that publishes. Report those and wait; decide the rest. **A decision
+the WRITE-UP needs is not one of them**, however plainly it is the requester's:
+the run collects the same artifacts whatever is decided, so carry it through
+the evening and report it where it bites. A preparation that leaves one says
+that outright --- Run 19's put the claims-retirement decision at the head
+of the pair note in this paragraph's own vocabulary, with *before the gate
+is paid* beside it, and its first operator read it as a stop and lost the night
+(2026-08-24).
 
 **Confirm each long process on the screen as it finishes**, rather than folding
 it into a later summary. The gate, the sequence, a rebuild, any probe that takes
@@ -9494,11 +9503,40 @@ verdicts**, the details beside each class's table:
    of these levels moved, and the two halves agree on 1072 of 1080 allocating
    cells.
 
-**TODO: decide (ask if unsure) which of the `bq-expand`-centric claims --- 2
-to 5 and 9 --- stay as the last candidate's record and which retire.
-Then perform the rewriting of the eight *What the class says* paragraphs
-to the re-aimed properties: neither pure nor `bq-expand` is crucial any more,
-though still vaguely interesting.**
+**SETTLED 2026-08-24, and applied at Run 19's write-up rather than now**,
+so that the retiring orderings get one last cross-compiler reading
+and the retirement is recorded with it --- which is how Run 17 retired claim 4's
+tie, in prose at its write-up with the manifest taking it the same day. The test
+applied: an ordering stays only if it forecloses something anyone would propose
+again *and* can still break. What fails both is a figure, and figures live
+in the tables above. **Claims 3, 5 and 9 retire outright.** Claim 3 sets one
+output form against another on a build nothing ships, where every leading pure
+arm is a `-gm-mulback` already; claim 5's `bq-expand` / `bq-gen` says of itself
+that the refutation stands on Runs 7 and 8, and claim 6 keeps that family
+guarded through `gen-quotrem`; claim 9's two series are closed at Run 13
+by this section's own words, and a closed series in a live manifest
+is maintenance without a question. **Claim 4 retires with them, its tie moving
+into claim 1** --- and what goes with it is the one place the manifest reads
+a *builder* apart from its output, which `--pair` recovers whenever
+it is wanted, both arms staying rostered. **Claim 1 becomes the ladder
+the `needs` column already draws**, gaining `bq-scan-rem-gm-mulback`, the best
+arm needing nothing at all, between `bq-mut-runs-gm-mulback`
+and `bq-odo-gm-mulback`: the first ahead of it at **0.9060** and **0.9171**
+on Run 18's two halves, 19 and 17 of 24, which is what a mutable `Int` scratch
+buys; and the second **tied** with it at **0.9902** and **0.9936**, 13 and 12
+of 24 at p 0.84 and 1, so the two fastest pure arms are indistinguishable
+and either is what ships if the mutating method is refused. Its three existing
+links stay, the middle one redundant with the two new ones and carrying seven
+runs of history they do not. **Claim 2 keeps its number and changes
+its question** to where the arms needing something other than the fix sit:
+`offtab`, which needs only that `Int` scratch, behind `bq-scan-rem-gm-mulback`
+at **1.36** and **1.44**; and `bq-expand` behind `mut-odo-vecdims` at **2.09**
+and **2.13**, kept only while `Data/Array/Internal.hs` carries `bq-expand`
+and retired with the three `TODO: retarget` markers, which are one decision
+with it. Thirteen registered orderings become eight, claims 7 and 8 staying
+unmanifested prose. **The rewriting the ask paired with this was already done**:
+the eight *What the class says* paragraphs were written to the re-aimed
+properties at Run 18's write-up, and only the sentence asking for it survived.
 
 `--pair` works within a class JSON exactly as within the main one, and is still
 the way to compare two arms; its bootstrap interval, over three shapes, is worth
