@@ -3586,13 +3586,13 @@ evidence for that ruling --- since amended below: the evidence now prices
 the option instead of closing it. `mut-odo-vecdims` keeps the stake high rather
 than settling it: the fill's real cost was the odometer's cons-list traffic,
 not the fill itself, and Run 10 (SpecConstr) prices the class-method tier
-at 2.11x over `bq-expand`, the best pure arm then (0.4745 paired). The best pure
-arm is now `bq-scan-rem-gm-mulback` at 0.096 on Run 18, so what the class method
-would buy is `mut-odo-vecdims` over that: **1.79x**, not 2.11x --- which
-is the figure the ruling turns on, and which reads 0.5577 paired at 23 wins
-of 24. It has now read 1.80x at -O1, 1.68x on Run 8, 1.87x on Run 9, 1.85x
-on Run 10 with its aligned half giving 1.84x, and **1.84x** here --- the same
-cell and the same 23 wins of 24 as Run 10's aligned half, to four digits.
+at 2.11x over `bq-expand` (0.4745 paired). The best pure arm is now
+`bq-scan-rem-gm-mulback` at 0.096 on Run 18, so what the class method would buy
+is `mut-odo-vecdims` over that: **1.79x**, not 2.11x --- which is the figure
+the ruling turns on, and which reads 0.5577 paired at 23 wins of 24. It has now
+read 1.80x at -O1, 1.68x on Run 8, 1.87x on Run 9, 1.85x on Run 10
+with its aligned half giving 1.84x, and **1.84x** here --- the same cell
+and the same 23 wins of 24 as Run 10's aligned half, to four digits.
 So the spread is a tenth either side of 1.8 and neither the pairing
 nor a repetition moves it. Read it as *approaching 2x and volatile at the tenth*
 between runs that differ, and do not reopen or close the ruling on a movement
@@ -6991,9 +6991,10 @@ not the arm. Both readings are with the wild-cell entry.
   **Two more things the big shapes change.** The prize **grows** rather
   than shrinking with size --- 6% at `l` = 0.9M against 12-17% here, and ~40%
   for `list` --- so the guess that DRAM-bound behaviour would swamp
-  the allocator at scale is wrong. And the fix's margin over what it replaced
-  narrows under a bigger nursery at *every* size measured, 9.2x to 6.4x here
-  against 10.2x to 6.4x at `l` = 0.9M, which is the same effect at a 32x remove.
+  the allocator at scale is wrong. And `bq-expand`'s margin over what
+  it replaced narrows under a bigger nursery at *every* size measured, 9.2x
+  to 6.4x here against 10.2x to 6.4x at `l` = 0.9M, which is the same effect
+  at a 32x remove.
 
   **So, for a caller, this section said `-A64m` to `-A256m` --- and the decision
   of 2026-08-21 overrules it: every horde-ad test and benchmark runs at `-A32m`,
@@ -8979,21 +8980,22 @@ Its membership is a rule, not a habit, re-aimed 2026-08-22 and settled
 family on at least one shape of the main set or a stride class --- on Run 16
 `mut-flat-gm`, `bq-scan-rem-gm-mulback`, `build`, `mut-odo`, `bq-mut-runs`
 and `bq-mut-runs-gm-mulback`, in that order of shapes led, and `offtab-scan-rem`
-since Run 17 --- and **it only ever grows**: an arm that has earned a column
-keeps it, and no run drops one; the second table carries the same columns
-over every stride-class shape, with its class named. **One representative per
-family**, besides: where a qualifying arm is a close variant of a member
-and measures closely, the leading one keeps the column, so no strategy costs
-two. The judgement is the author's, which is why `--fingerprint` names the best
+on Run 18 --- and **it only ever grows**: an arm that has earned a column keeps
+it, and no run drops one; the second table carries the same columns over every
+stride-class shape, with its class named. **One representative per family**,
+besides: where a qualifying arm is a close variant of a member and measures
+closely, the leading one keeps the column, so no strategy costs two.
+The judgement is the author's, which is why `--fingerprint` names the best
 member on the shape a newcomer leads. **Neither way of dropping an arm
 survives.** Dropping one that leads nothing this run churns on a thousandth ---
 `offtab-scan-rem` holds `reshape1-rank10` at 0.090 against 0.091 --- and gaps
 the record wherever the column went. Judging it off the fingerprint this README
-carries is worse: that table holds the members alone, so a leaver is judged
-against seven arms where a joiner is judged against forty,
-and `bq-scan-rem-gm-mulback` was collecting `reshape1-rank10` that way until
-the arm that won it got a column. The header therefore grows, and the run writer
-narrows it by hand if it gets unwieldy. An arm nothing measures cannot
+carries is worse: that table holds the members alone, so a leaver would
+be judged against the members alone where a joiner is judged against every timed
+arm --- on `reshape1-rank10` the members' own minimum
+was `bq-scan-rem-gm-mulback` at 0.091, while the arm that won the shape read
+0.090 and had no column to be seen in. The header therefore grows, and the run
+writer narrows it by hand if it gets unwieldy. An arm nothing measures cannot
 be the subject of a future disagreement to localise, and what is given up when
 one goes is the per-shape half alone, its geomean staying in the yardstick table
 above. `list`'s own net per call rides along, guarding the baseline at every
