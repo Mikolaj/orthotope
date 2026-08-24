@@ -2532,17 +2532,18 @@ a run that is over.
    spread rather than its times. The box's half needs the BIOS back where
    it was, which is not this suite's to arrange. Until one of them is done,
    quote the floor as the run's and do not explain it.
-2. `OPEN` **The bridge wants a reader mode, and the gap is newly exposed rather
-   than newly made.** Every run until this one could read its bridge
-   with `--compare`, because the box held still and an absolute comparison
-   was a fair one. Run 18 could not, and the figure its registration was written
-   on had to be computed by hand: per shape, each arm's ratio to `list`
-   in this run over the same in the last, which cancels a box term exactly
-   and a `--compare` cannot. That is the computation this README says a write-up
-   must not improvise, so it is a defect report against the reader ---
-   and the mode it asks for is small, `--compare OTHER --bridge` over the two
-   runs' cells. Until it exists, a run whose machine check fires should expect
-   its bridge to need hand arithmetic and should say so.
+2. `ANSWERED` **The bridge wanted a reader mode and has one ---
+   `--compare OTHER --bridge`, taken 2026-08-23, the same day this asked
+   for it.** Every run until this one could read its bridge with `--compare`,
+   because the box held still and an absolute comparison was a fair one. Run 18
+   could not, and the figure its registration was written on had to be computed
+   by hand: per shape, each arm's ratio to `list` in this run over the same
+   in the last, which cancels a box term exactly and a `--compare` cannot.
+   That is the computation this README says a write-up must not improvise,
+   so it was a defect report against the reader, and the mode answers
+   it in those words: it reads each arm as a ratio to `list` in its own run, per
+   shape, over the shapes the two runs share, and its own header says
+   that is what cancels a box term where `--compare` does not.
 
 **One rider rather than a task of its own, since it fires on an event and
 not on a session.** The pinning claim --- that a shim'd build holds every
