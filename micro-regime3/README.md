@@ -1970,9 +1970,10 @@ rather than a slot in the next run, observed again:
   the collector's own symbols carrying ~1% of samples in every cell,
   so the conceptual objection above stands measured (item 56).
 
-- `OPEN` **`mut-odo-vecdims-add-in` leads `mut-odo-vecdims` on most populations,
-  and Run 18 read the margin outside a floor on one compiler and absent
-  on the other.** Registered here 2026-08-22, out of Run 17. The series
+- `PARKED` **`mut-odo-vecdims-add-in` leads `mut-odo-vecdims` on most
+  populations, and Run 18 read the margin outside a floor on one compiler
+  and absent on the other.** Registered here 2026-08-22, out of Run 17; parked
+  2026-08-25, the ruling being the last paragraph of this entry. The series
   is [under Results](runs/run19.md#results): `add-in` against the arm it varies
   read 1.0009, 0.9934, 0.9967, 1.0023 and 1.0043 across Runs 10 to 16, four
   of those five a coin flip, and Run 17 reads **0.9889 at 19 of 24, sign p
@@ -2087,6 +2088,22 @@ rather than a slot in the next run, observed again:
   then the decision of 2026-08-22 stands and ships `mut-odo-vecdims`. What
   the entry is for is that the next run should not rediscover the lead
   as a surprise, nor spend an evening on it.
+
+  **PARKED 2026-08-25: the condition that deferral named has been MET
+  and the question is retired anyway, so no run and no probe will be built
+  to answer it.** GHC 9.14 was Run 18's subject and HEAD was Run 19's, which
+  is what the deferral waited for, and both put the orderings where 9.12 does
+  --- so the placement half came due and was declined rather than deferred
+  a second time. The reason is the deferral's own and has only got stronger:
+  the margin is one to three percent, the regime 3 fix is not chosen
+  on differences that size, and no instrument of this kind will read larger,
+  so the answer cannot move the shipping choice whichever way it comes out. What
+  is given up is knowing WHY `add-in` leads -- code or slot -- and
+  that is knowingly given up. **Do not re-propose the two-shim pair, and do
+  not let a run carry it as a rider**: what the entry keeps is the reading,
+  so a later run meeting the lead again finds it recorded rather
+  than surprising, and so that a run wanting a pair for something else
+  is not told this one is owed.
 
   **RUN 18 ANSWERED THE HALF THIS ENTRY DEFERRED, and the answer is
   that the lead is the compiler's.** On one source, one shim and one roster,
