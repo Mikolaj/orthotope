@@ -378,3 +378,24 @@ arithmetic, and the canonicalized contiguous-run copies if those ever
 stop being memcpy -- and the recorded -fllvm probe (the winner's fill
 at ~0.90 of its native self, 64-byte loop heads) remains the cheaper
 whole-binary route to wider code, with its known comparability costs.
+
+2026-08-25, Run 19's session, on two checkdoc cases failing under --audit.
+Diagnosed by hand-rolling a replay: copied the a6c32e8^ reader into a temp
+directory and ran it there. It reported two causes -- an era anchor mismatch
+and `BLOCKED: ../../horde-ad is not mounted` -- and I ruled from the second
+that the replay was unrecoverable, dropped both `bug` verdicts on the file's
+own `beyond its own history` handling, and put that ruling in a commit
+message. The BLOCKED was the reproduction's own: `materialise` writes the
+revision under test into micro-regime3 precisely so the reader's
+`__file__`-relative path roots resolve, and the harness had never been
+affected. Asked whether respelling the anchor would be enough, I re-ran it
+where the harness runs it: one FAIL, and respelling gives exit 0. The fix
+was one missing counterpart, `era_main` beside `era_readme`.
+
+Two things to keep, both now in the source beside the cases rather than
+here: check which of the two states a failing replay is in before dropping a
+`bug` verdict, and run the revision under test where `materialise` puts it.
+What belongs here is the shape of the error -- a cause read off a
+reproduction was a property of the reproduction, and it reached a commit
+message as a ruling before anyone looked at the harness. The prompt that
+caught it was one question about whether the obvious fix would work.
