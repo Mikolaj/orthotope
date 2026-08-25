@@ -3063,6 +3063,33 @@ CASES = [
     # whole change; these three pin each branch, since a mode that
     # indexed always would cost a round trip on every unique match and
     # one that never indexed would not have changed anything.
+    case('class-split-across-two-shape-lists', 'read-run.py', None,
+         'a class declared in two Main.hs lists read as two populations',
+         # A CLASS IS ITS SHAPES' NAME PREFIX, which is what the binary
+         # selects one by (`classes reshape1-`) and what every block lead
+         # is written with. `dims_by_shape` also records the LIST a shape
+         # is declared in, and four sites took that for the class -- which
+         # held only while the two agreed. `reshape1-strided-r3` needed a
+         # different constructor and so a second list, and the reshape1
+         # class then read as `the reshape1 class + the reshape1 class`:
+         # `--block`, `--extremes` and `--markdown` refused it outright,
+         # and `summary_row` and `lead_shapes` returned in SILENCE, which
+         # is the half no exit code would have shown.
+         #
+         # No --audit: the fix has no earlier revision to replay against,
+         # the defect and its repair landing in one commit. The failure
+         # was taken in the working tree on 2026-08-25 instead -- with
+         # `cls` reverted to `lst`, this exact call exits 1 saying `the
+         # reshape1 class + the reshape1 class`, and four install-tables
+         # cases fail with it -- which is the same proof at the only
+         # moment it was available.
+         plant=lambda t: {'run': synth_run(
+             os.path.join(t, 'reshape1.json'),
+             [s for s in class_shapes('reshape1')])},
+         argv=['{run}', '--block', '--brief'],
+         ok=V(exit=0, has=['of the reshape1 class'],
+              hasnt=['reshape1 class + the reshape1 class'])),
+
     case('link-path-resolves-nowhere', 'read-run.py', None,
          'a link written for one file, moved into the other, pointed at'
          ' nothing',

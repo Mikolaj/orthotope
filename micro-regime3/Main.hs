@@ -2727,6 +2727,21 @@ mkBroadcastMid b normalSh =
 mkReshape1 :: ShapeL -> (ShapeL, T)
 mkReshape1 normalSh = mkBroadcast (normalSh ++ [1])
 
+-- The same trap over a STRIDED source, added 2026-08-25 so the class
+-- stays discriminating for the canonicalizing arms. 'mkReshape1' appends
+-- the size-1 dim to a DENSE array, so dropping that dim leaves a
+-- contiguous run and the composite arm short-circuits to an O(1) slice --
+-- which measures dispatch and not filling. Here the dim is appended to
+-- 'mkStrided''s innermost-two-transposed view, so the canonical form is
+-- still strided and neither a slice nor a run memcpy can serve it. Same
+-- @l@, @sInner@ and @m@ as 'reshape1-r3', whose dense shape it takes, so
+-- the pair differs in the source's stridedness and in the order of the
+-- two trailing view dims the transpose swaps.
+mkReshape1Strided :: ShapeL -> (ShapeL, T)
+mkReshape1Strided normalSh =
+  case mkStrided normalSh of
+    (sh, T (Strides ts) o v) -> (sh ++ [1], T (Strides (ts ++ [0])) o v)
+
 -- Regime-3 view as @slice@ of a transposed enclosure produces it: the
 -- dense source is the ENCLOSING shape, every dimension 2 larger, the view
 -- cut at offset 1 in each and then innermost-two transposed as usual. So
@@ -2962,6 +2977,12 @@ broadcastMidShapes =
     -- stretch by 32 and 89. It is the case where the broadcast IS the
     -- cost and the table build vanishes beside it.
   , ("bcastmid-b200k",   200000, [3, 3])      -- 1800000, stretch at the cap
+    -- The fourth shape, added 2026-08-25 with the 'mid-copy' arm: the
+    -- BLOCK taken to the cap's scale -- 150000 elements filled once and
+    -- copied three times per outer index -- where the three above run
+    -- blocks of 216, 97 and 3, so this is the block-copy arm's best case
+    -- exactly as 'b200k' above is its worst.
+  , ("bcastmid-block150k", 4, [3, 300, 500])  -- 1800000, 150000-elem block
   ]
 
 -- Listed shape is the dense array; the view appends the size-1 dim.
@@ -2975,6 +2996,13 @@ reshape1Shapes =
     -- odometer the main set carries, where the two above are rank 2
     -- and 4. Per-run overhead against nothing else.
   , ("reshape1-rank10", [3,3,3,3,3,3,3,3,3,3])  -- 59049, deepest odometer
+  ]
+
+-- Listed shape is the dense array; the view is its innermost-two
+-- transpose with the size-1 dim appended. See 'mkReshape1Strided'.
+reshape1StridedShapes :: [(String, ShapeL)]
+reshape1StridedShapes =
+  [ ("reshape1-strided-r3", [100, 50, 36])  -- 180000, r3's shape, strided
   ]
 
 slicedShapes :: [(String, ShapeL)]
@@ -3042,6 +3070,7 @@ classViews =
   ++ [(n, mkBroadcast s) | (n, s) <- broadcastShapes]
   ++ [(n, mkBroadcastMid b s) | (n, b, s) <- broadcastMidShapes]
   ++ [(n, mkReshape1 s) | (n, s) <- reshape1Shapes]
+  ++ [(n, mkReshape1Strided s) | (n, s) <- reshape1StridedShapes]
   ++ [(n, mkSliced s) | (n, s) <- slicedShapes]
   ++ [(n, mkWindow s) | (n, s) <- windowShapes]
   ++ [(n, mkScaled s sts) | (n, s, sts) <- scaledViews]
@@ -3376,14 +3405,28 @@ roster =
     -- change over 'mut-odo-vecdims' or over the previous member,
     -- reasons at the definitions. Appended after the family for the
     -- family block's own reason -- no existing control moves -- taking
-    -- five slots where the three demotions above return three, so
-    -- every slot below moves by two more than the block above already
+    -- six slots where the three demotions above return three, so
+    -- every slot below moves by three more than the block above already
     -- carries.
   , ("canon-vecdims",              Fill fbCanonVecdims)
   , ("canon-memcpy-r2",            Fill fbCanonMemcpyR2)
   , ("bcast-set",                  Fill fbBcastSet)
   , ("mid-copy",                   Fill fbMidCopy)
   , ("canon-full",                 Fill fbCanonFull)
+    -- The fourth in-situ forcing control, added 2026-08-25 with the block
+    -- it closes. The three above price the term on element-wise fills
+    -- ('mut-odo-vecdims', 'mut-flat-gm', 'bq-expand'), which is what
+    -- README's sum-only section calls the correction's remaining hole:
+    -- a fill whose WRITE PATTERN leaves the cache in some quite different
+    -- state could still be summed at a cost 'sum-only' misses. This block
+    -- is that different pattern, and 'canon-full' is the member to hang
+    -- it on -- the solo arms' copy branches fire in one class each
+    -- ('canon-memcpy-r2' in window, 'mid-copy' in bcastmid) and share
+    -- their control's body everywhere else, where the endpoint dispatches
+    -- per shape between hoisted stores, 'VS.unsafeCopy' and the stepping
+    -- loop, so it is the only new arm whose write pattern varies across
+    -- the main set at all.
+  , ("canon-full-nosum",           Force fbCanonFull)
     -- not timed: 6.20x the result
   , ("mut-offsets",                Only fbMutBaseOffsets)
   , ("build",                      Fill fbBuild)
@@ -3948,6 +3991,20 @@ check = do
   mapM_ oneBroadcast broadcastShapes
   mapM_ oneBroadcastMid broadcastMidShapes
   mapM_ oneReshape1 reshape1Shapes
+  mapM_ oneReshape1Strided reshape1StridedShapes
+  -- One hand-built view, checked and never benched: the regime-1 return
+  -- with a NONZERO offset, which no generator reaches -- 'mkReshape1'
+  -- and 'stretch-inner1' both canonicalize to natural strides at offset
+  -- 0, so the canonicalizing arms' O(1)-slice branch had never met the
+  -- offset a slice-then-reshape view hands it.
+  -- Non-vacuity, 2026-08-25: dropping the offset from 'fbCanonVecdims''s
+  -- slice return fails this view alone, every generator's offset being 0
+  -- on that branch.
+  oneView "reshape1-slice-off7" [50, 1]
+          (T (Strides [1, 0]) 7 (VS.enumFromN 0 100))
+          [ ("canon-natural-at-offset",
+             case canonView [50, 1] [1, 0] of
+               (csh, cats) -> cats == drop 1 (getStridesT csh)) ]
   mapM_ oneSliced slicedShapes
   mapM_ oneWindow windowShapes
   mapM_ oneScaled scaledViews
@@ -4060,6 +4117,25 @@ check = do
             , ("contiguous",    VS.length v == product sh
                                 && init ats
                                    == drop 1 (getStridesT (init sh))) ]
+    -- The sibling's negation, and that is the point of it: same stride-0
+    -- innermost dim, and strided once canonicalized, so neither a slice
+    -- nor a run memcpy can serve it and the canon arms measure filling
+    -- here rather than dispatch. The condition asks 'canonView' itself
+    -- for that property -- the property the shape exists for -- rather
+    -- than a proxy over the raw strides.
+    --
+    -- Non-vacuity: swapping 'mkStrided' for 'mkReshape1''s dense source
+    -- fails canon-strided alone -- which is exactly the degeneracy this
+    -- shape was added against, so the check fires on the thing it exists
+    -- to exclude. Proven over the 'canonView' form, 2026-08-25.
+    oneReshape1Strided (name, normalSh) =
+      let (sh, a@(T (Strides ats) _ _)) = mkReshape1Strided normalSh
+      in  oneView name sh a
+            [ ("stride0-inner", last ats == 0)
+            , ("canon-strided",
+               case canonView sh ats of
+                 (csh, cats) -> cats /= drop 1 (getStridesT csh)
+                                && last cats `notElem` [0, 1]) ]
     -- Non-vacuity: slicing at the origin fails offset-positive alone;
     -- zeroing the margins as well fails both conditions, the view then
     -- being 'mkStrided''s own.

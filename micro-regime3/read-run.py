@@ -319,6 +319,9 @@ def dims_by_shape(main_hs):
         ('broadcastShapes', sh_re, listed),
         ('broadcastMidShapes', r'(?P<b>\d+),\s*' + sh_re, bcastmid),
         ('reshape1Shapes', sh_re, reshape1),
+        # Same rule: the appended dim is size 1, so sInner is 1 and
+        # m = l, and `l` is the dense shape's product either way.
+        ('reshape1StridedShapes', sh_re, reshape1),
         ('slicedShapes', sh_re, strided),
         ('windowShapes', sh_re, window),
         ('scaledViews', sh_re + r',\s*Strides\s*\[[^\]]*\]', listed),
@@ -343,8 +346,22 @@ def dims_by_shape(main_hs):
                 b = (int(m.group('b'))
                      if 'b' in m.groupdict() and m.group('b') else None)
                 l, s_inner = rule(ds, b)
+                # `cls` is the population a shape belongs to and `lst`
+                 # is merely where it is declared. They were one thing
+                 # until 2026-08-25, when `reshape1-strided-r3` needed a
+                 # different constructor and so a second list: the
+                 # reshape1 class then read as TWO populations, which made
+                 # `--block`, `--extremes` and `--markdown` refuse it
+                 # outright and made `summary_row` and `lead_shapes`
+                 # return in silence. The prefix is what the binary
+                 # itself selects a class by (`classes reshape1-`) and
+                 # what `class_prefix` and every block lead already use,
+                 # so this makes one definition of a class where there
+                 # were two.
                 out[m.group(1)] = dict(
                     dims=ds, l=l, s_inner=s_inner, lst=start,
+                    cls=('main' if start in MAIN_LISTS
+                         else m.group(1).split('-')[0]),
                     m=(l // s_inner if s_inner else 0))
                 if m.group('ann'):
                     ann[m.group(1)] = int(m.group('ann'))
@@ -394,8 +411,7 @@ def population_of(shapes, dims):
     for sh in shapes:
         d = dims.get(sh)
         if d:
-            groups.setdefault('main' if d['lst'] in MAIN_LISTS else d['lst'],
-                              []).append(sh)
+            groups.setdefault(d['cls'], []).append(sh)
     if not groups:
         return POP('unknown', 'a population Main.hs does not define', '')
     named = sorted('the main set' if k == 'main' else class_label(v)
@@ -4140,10 +4156,10 @@ def summary_row(cells, shapes, strategies, args, main_hs):
     do by hand, which is where a run will meet it.
     """
     dims = dims_by_shape(main_hs)[0]
-    lists = {dims[s]['lst'] for s in shapes if s in dims}
-    if len(lists) != 1:
+    classes = {dims[s]['cls'] for s in shapes if s in dims}
+    if len(classes) != 1:
         return
-    whole = {s for s, d in dims.items() if d['lst'] in lists}
+    whole = {s for s, d in dims.items() if d['cls'] in classes}
     label = class_prefix(shapes)
     if set(shapes) != whole:
         sys.stderr.write('summary row `%s` not checked: this run carries %d'
@@ -4226,11 +4242,11 @@ def lead_shapes(shapes, args, main_hs):
     sweep's one-shape `--block` silent here rather than wrong.
     """
     dims = dims_by_shape(main_hs)[0]
-    lists = {dims[s]['lst'] for s in shapes if s in dims}
+    classes = {dims[s]['cls'] for s in shapes if s in dims}
     label = class_prefix(shapes)
-    if len(lists) != 1:
+    if len(classes) != 1:
         return
-    whole = {s for s, d in dims.items() if d['lst'] in lists}
+    whole = {s for s, d in dims.items() if d['cls'] in classes}
     if set(shapes) != whole:
         sys.stderr.write('lead `%s` not checked: this run carries %d of the'
                          ' class\'s %d shapes\n'
@@ -7193,8 +7209,8 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
         main_shapes = [s for s, d in dims.items() if d['lst'] in MAIN_LISTS]
         class_sizes = {}
         for s, d in dims.items():
-            if d['lst'] not in MAIN_LISTS:
-                class_sizes.setdefault(d['lst'], set()).add(s)
+            if d['cls'] != 'main':
+                class_sizes.setdefault(d['cls'], set()).add(s)
         want = len(timed) * len(main_shapes)
         seen = [int(m) for p in (r'takes the roster to (\d+) benches',
                                  r'roster is Run \d+\'s (\d+) benches')

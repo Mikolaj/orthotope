@@ -249,13 +249,14 @@ ride together, and the placement pair was owed for the `add-in` question alone,
 which is now [parked][open]. So the arms are in, and Run 20 has no purpose-built
 pair left to owe. They are five --- `canon-vecdims` and its memcpy-run form
 `canon-memcpy-r2`, the zero-stride conditions `bcast-set` and `mid-copy`,
-and the endpoint `canon-full` --- against the four pieces the proposal
-describes: the composite canonicalizing arm, the hoisted-read fill, the block
-copy and the contiguous-run copy. **The parking paid for them nearly exactly.**
+and the endpoint `canon-full`, with `canon-full-nosum` beside them as the fourth
+in-situ forcing control --- against the four pieces the proposal describes:
+the composite canonicalizing arm, the hoisted-read fill, the block copy
+and the contiguous-run copy. **The parking paid for them nearly exactly.**
 The three placement-family arms whose only live question it was ---
 `mut-odo-vecdims-add-out`, `-add-both` and `-add-both-down` --- drop to `Only`
 the same day, so they stay checked against the reference on every shape and stop
-costing benches, and the timed roster goes up by two rather than by five. They
+costing benches, and the timed roster goes up by three rather than by six. They
 are new functions, so Run 20 is the stronger pinning test the rider
 under [Recommended tasks](#recommended-tasks-after-run-19) waits for;
 and its write-up should expect `reshape1` to go degenerate for the composite
@@ -2211,11 +2212,11 @@ rather than a slot in the next run, observed again:
   has taken since the reversal: the `-nosum` arms read against `sum-only`
   on a build where the two can be compared at fixed iteration counts rather
   than through criterion, which separates a biased read from two biased arms ---
-  now with three `-nosum` arms rather than two, `mut-flat-gm-nosum` having
-  been added for exactly this. Until then the correction stands, and a run
-  that finds all three medians past a few percent on one side should say
-  so in its chapter rather than passing the gate silently, as Runs 16 and 17
-  did.
+  now with four `-nosum` arms rather than two, `mut-flat-gm-nosum`
+  and `canon-full-nosum` having been added for exactly this. Until
+  then the correction stands, and a run that finds all three medians past a few
+  percent on one side should say so in its chapter rather than passing the gate
+  silently, as Runs 16 and 17 did.
 - `ANSWERED` **What Run 18 was built to answer, registered before it ran ---
   and what it answered.** Its pair was `run18-g912`, the basis, against
   `run18-g914`, settled 2026-08-21 and run 2026-08-23: GHC 9.14.1 against
@@ -3992,7 +3993,7 @@ its `check-x.log` beside it; the leaf pair replicated at 0.8376 and 0.6809
 in that different binary, which is the design's own control). The fill
 **unrolled by two**, epilogue for an odd or empty run, is the arm it added,
 `mut-odo-vecdims-add-in-leaf-u2`, and the trio left timed, with the rework's
-five beside it, takes the roster to 1248 benches: a 48-byte, twelve-instruction
+block beside it, takes the roster to 1272 benches: a 48-byte, twelve-instruction
 main body --- six per element, one branch per two --- probing **0.9696
 of the corner at 9 of 9 readings below 1**, 0.9559 on `cifar-L2-16-c64-k3` and,
 the interesting cell, **0.9655 on the DRAM-bound `stretch-square-1341`**, more
@@ -4211,7 +4212,7 @@ is also the order to read them in:
 The order they are *run* in is deliberately a different one, fixed by `roster`
 in `Main.hs`, where a majority of them now take no slot at all, being checked
 and not timed; the Results table below is sorted by time, a third. Sharing
-that roster with the strategies, and not strategies themselves, are twenty-three
+that roster with the strategies, and not strategies themselves, are twenty-four
 controls: eighteen A/A arms --- `bq-expand-aa-adjacent`
 and `bq-expand-aa-distant`, `bq-scan-rem-gm-mulback-aa-adjacent`
 and `bq-scan-rem-gm-mulback-aa-distant`, `mut-odo-vecdims-aa`
@@ -4221,8 +4222,9 @@ and `mut-odo-vecdims-aa-distant`, `offtab-aa-adjacent` and `offtab-aa-distant`,
 and `mut-odo-aa-distant`, `list-aa-adjacent` and `list-aa-distant`,
 `gen-unsafe-aa-adjacent` and `gen-unsafe-aa-distant`, nine strategies each
 duplicated in both positions --- the `sum-only-early`/`sum-only-late` pair,
-and `bq-expand-nosum`, `mut-odo-vecdims-nosum` and `mut-flat-gm-nosum`, each
-its base arm forced with one element instead of the sum. [The noise
+and `bq-expand-nosum`, `mut-odo-vecdims-nosum`, `mut-flat-gm-nosum` and, added
+2026-08-25, `canon-full-nosum`, each its base arm forced with one element
+instead of the sum. [The noise
 floor](#what-moves-a-figure-when-no-strategy-changed)
 and [sum-only](#sum-only-and-the-correction-now-applied) say what each is for.
 
@@ -4270,8 +4272,8 @@ checked against the reference on every shape of every class, and not timed ---
 so the agreement net does not shrink and nothing has to be rewritten if a ruling
 is later reopened. The 23 arms the rulings dropped carry `Only` in that roster,
 each naming the bound or the multiple that disqualified it; with the controls
-the run is 52 benches, and the Run 20 trio with the rework's five takes
-the roster to 1248 benches, three placement-family arms having dropped to `Only`
+the run is 53 benches, and the Run 20 trio with the rework's block takes
+the roster to 1272 benches, three placement-family arms having dropped to `Only`
 beside them.
 
 - **A strategy with a precondition is not measured.** The column allowed `none`,
@@ -6120,7 +6122,7 @@ the artifacts are what it spends.
    failing invalidates the whole time column rather than merely leaving
    it uncorrected, and all have to be re-passed by every run rather
    than inherited --- by every *population* too, each process carrying its own
-   `sum-only` pair, its own eighteen A/A controls and its own three `-nosum`
+   `sum-only` pair, its own eighteen A/A controls and its own four `-nosum`
    arms, so a class run passes or fails the gates on its own evidence
    and a failure there invalidates that class's column and no other.
    **Then write this run's own floor at the head of the chapter as you draft it,
@@ -8648,7 +8650,7 @@ and a change of compiler. That is the control saying every run's correction
 is one correction. Each run's own span is in its file, under Provenance.
 
 **The three gates are a population's, not a run's.** Every process carries
-the `sum-only` pair and the three `-nosum` arms, so a [stride
+the `sum-only` pair and the four `-nosum` arms, so a [stride
 class](#the-stride-classes-and-what-they-cover) measures its own term
 and re-passes all three on its own cells; the main set's term licenses nothing
 about a class's, in either direction. What a small population weakens is gate 2
@@ -8657,12 +8659,16 @@ spans a fraction of the main set's range of `l` --- three shapes of nearly equal
 `l` leave it almost nothing to see. Gates 1 and 3 are as strong there as here,
 being about position and about the read.
 
-**What remains open is narrower than the original objection**: the `-nosum`
-pairs price two arms, not the whole roster, so a fill whose write pattern leaves
-the cache in some quite different state could still be summed at a cost
-`sum-only` misses. Two arms an octave apart in speed agreeing to 1% makes
-that unlikely rather than impossible, and the arms are in the roster so every
-run reprices them.
+**What remains open is narrower than the original objection, and narrower again
+since 2026-08-25**: the `-nosum` pairs price four arms, not the whole roster,
+so a fill whose write pattern leaves the cache in some quite different state
+could still be summed at a cost `sum-only` misses. The three that priced
+it until then are all element-wise fills, which is the shape of the hole;
+`canon-full-nosum` was added with the rework's block because that endpoint
+dispatches per shape between hoisted stores, `VS.unsafeCopy` and the stepping
+loop, so it is the first control here whose write pattern is not one pattern.
+Two arms an octave apart in speed agreeing to 1% makes that unlikely rather
+than impossible, and the arms are in the roster so every run reprices them.
 
 
 ## Provenance
