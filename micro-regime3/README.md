@@ -115,8 +115,9 @@ is not this README's question** and is deliberately not on its open list:
 that decision is about compile time and code size across the library,
 and the measurement that would settle it is horde-ad's `convVjpBench`
 over a real build. The 27% is what this README contributes to it. **At module
-scope it is now conditional (2026-08-24)**: the file the fix lands in sets
-`-fspec-constr` only if it matters for the adopted strategies,
+scope it is settled (2026-08-24): the shipped file does not set
+`-fspec-constr`**, the aligned HEAD probe having read the flag irrelevant
+to the shipped family ([the ceiling](#the-mutable-ceiling-taken)),
 and `-fspec-constr` stays the regime every claim below is read in rather
 than a probe of one.
 
@@ -1898,17 +1899,16 @@ rather than a slot in the next run, observed again:
   on a third write pattern* --- the control convention, not the shippability
   phrase this entry first proposed. **A return to -O1 stood behind it
   as the second debt and is retired, its premise being false** (2026-08-14): -O1
-  is not the regime the claims are read in, `-fspec-constr` --- set in the file
-  the fix is added to only if it matters for the adopted strategies --- being
-  the basis every run since Run 8 has used, so Run 7's claim set is history
-  rather than a debt. The build specification that entry had accumulated goes
-  with it, a retired run having no use for one. An -O1 reading of a single
-  ordering stays available as a filtered probe, as the 2026-08-08 twin probes
-  were; what is retired is the evening. `--check-doc` enforces the yardstick's
-  shape in the one direction it safely can: a run named aligned must also
-  be named unaligned, so dropping Run 10's unaligned column fails the check.
-  Dropping an *aligned* one cannot be checked, an unpaired run being what every
-  column before Run 10 is, and stays the reading's job.
+  is not the regime the claims are read in, `-fspec-constr` being the basis
+  every run since Run 8 has used, so Run 7's claim set is history rather
+  than a debt. The build specification that entry had accumulated goes with it,
+  a retired run having no use for one. An -O1 reading of a single ordering stays
+  available as a filtered probe, as the 2026-08-08 twin probes were; what
+  is retired is the evening. `--check-doc` enforces the yardstick's shape
+  in the one direction it safely can: a run named aligned must also be named
+  unaligned, so dropping Run 10's unaligned column fails the check. Dropping
+  an *aligned* one cannot be checked, an unpaired run being what every column
+  before Run 10 is, and stays the reading's job.
 
   **Run 11 had no unaligned half, and the check was left alone rather
   than widened --- the reading is that this was right.** Its two columns
@@ -3561,8 +3561,7 @@ needs an `l < 2^32` test choosing between the two fills --- loop-invariant
 and chosen once per call, but it must be there, since orthotope does
 not otherwise cap array length. **The conditional this paragraph used to end
 on has resolved against it**, and against shipping: the 6.0% is an -O1 figure,
-the deciding regime is `-fspec-constr` --- set in the shipped file only
-if it matters for the adopted strategies --- and under the flag the same pair
+the deciding regime is `-fspec-constr`, and under the flag the same pair
 is a dead tie --- so what there is to weigh against `MagicHash`, the helper
 and the precondition is nothing. This README still only prices the arm; at zero,
 the pricing is the answer.
@@ -3684,9 +3683,10 @@ additively, the innermost outer level fused into a dedicated run loop,
 and the run fill unrolled by two with its bound on the output cursor, so
 it is sound for zero and negative strides. The bang patterns
 are performance-essential, ported with the loop structure from the benchmarked
-arm; `-fspec-constr`, the regime every figure behind the decision was measured
-in, is set in `Data/Array/Internal.hs` only if it matters for the adopted
-strategies.
+arm; the shipped file does not set `-fspec-constr` --- the aligned HEAD probe
+read the flag irrelevant to the shipped family, the two builds agreeing to three
+decimals ([the ceiling](#the-mutable-ceiling-taken)) --- while it stays
+the regime every figure behind the decision was measured in.
 
 Validation on this branch:
 
@@ -4530,18 +4530,18 @@ since one uses `VS.!` and the other `VS.unsafeIndex`.
 `micro.cabal` builds at -O1, which is what a default `cabal build` of orthotope
 takes --- **and that is not the regime the claims decide in**, a correction made
 2026-08-14 after several entries had been written on the other reading
-and amended 2026-08-24: `-fspec-constr` is set in the file the final solution
-is added to, `Data/Array/Internal.hs`, only if it matters for the adopted
-strategies, and the deciding regime stays `-fspec-constr`, every run since Run 8
-already in it. Other regimes are command-line only, the flag landing after
-the cabal file's so the later `-O` wins: `-fspec-constr` when testing
-the `SpecConstr` optimization effect, `-O2` for the half of the scan-fusion
-refutation that inverts there (a `diag` at `-O2` is what measures it). **The RTS
-line is the second thing the shipped setting fixes, and since 2026-08-21
-this suite shares it by decision: every horde-ad test and benchmark and every
-process here runs at `-A32m`, and the area is not to vary again.** `micro.cabal`
-bakes the whole line, `-A32m -I0 -T -M8G`, the one every recorded recipe since
-Run 13 carried, so no recipe passes `-with-rtsopts` any more, and a `+RTS` line
+and amended 2026-08-24: the deciding regime is `-fspec-constr`, every run since
+Run 8 already in it, and the shipped file does not set the flag ([the
+ceiling](#the-mutable-ceiling-taken) has the probe that settled it). Other
+regimes are command-line only, the flag landing after the cabal file's
+so the later `-O` wins: `-fspec-constr` when testing the `SpecConstr`
+optimization effect, `-O2` for the half of the scan-fusion refutation
+that inverts there (a `diag` at `-O2` is what measures it). **The RTS line
+is the second thing the shipped setting fixes, and since 2026-08-21 this suite
+shares it by decision: every horde-ad test and benchmark and every process here
+runs at `-A32m`, and the area is not to vary again.** `micro.cabal` bakes
+the whole line, `-A32m -I0 -T -M8G`, the one every recorded recipe since Run 13
+carried, so no recipe passes `-with-rtsopts` any more, and a `+RTS` line
 that varies anything else repeats it in full. The caller ran at `-A1G` until
 then, a gap [the floor section][floor] priced on one shape and Runs 14 to 16
 over the table, and what closed it is the churn findings: the tax grows
@@ -9218,28 +9218,28 @@ against a 2.32% floor on the basis and 6.75% against 1.71% on HEAD.
 **Run 20's regime, roster and basis are settled; its pair is not, and
 that is the one decision it owes before anything is built.** The regime
 is `-fspec-constr`, as every run since Run 8, and it is the regime the claims
-decide in; the shipped file takes the flag only if it matters for the adopted
-strategies. The roster is Run 16's: 1128 benches, 47 timed arms over 24 shapes,
-every stride class at three, unchanged since Run 15. The allocation area
-is fixed at `-A32m` and no pair will vary it again: Runs 14, 15 and 16 priced
-it, the decision of 2026-08-21 closed it, and the 24m/48m probe that could have
-reopened it was taken ahead of Run 17 and killed. The basis is `run19-g912`'s
-recipe --- ghc-9.12.4, `-fobject-determinism`, the per-sample instrument
-and the saturating preamble, run under `WILDLOG=1 SATURATE=1` --- which is now
-the same recipe three runs running and reproduces byte for byte, so a Run 20
-basis that does not is itself a finding. **What Run 20 varies is whoever asks
-for it to say**, and this run leaves exactly one question with an instrument
-that only a purpose-built pair can carry: **the `add-in` placement question**,
-which wants one compiler, one source and two shims placing the two arms
-at swapped cache-line offsets. Run 18 thought a compiler pair gave that for free
-and Run 19 showed the free route does not carry --- the `-g3` twin names HEAD's
-four functions and cannot locate them --- so the two-shim pair is now the only
-instrument left for it. **Two things Run 20 should NOT be**: another compiler
-pair, HEAD and 9.14 both having been read and both having said the same thing
-about the orderings; and anything that changes the roster, which would confound
-whatever it does vary. **And one thing it does NOT owe**: Run 19's main-set
-rerun, declined on 2026-08-25 rather than carried forward, so Run 20 inherits
-no backlog from it.
+decide in; the shipped file does not set the flag ([the
+ceiling](#the-mutable-ceiling-taken)). The roster is Run 16's: 1128 benches, 47
+timed arms over 24 shapes, every stride class at three, unchanged since Run 15.
+The allocation area is fixed at `-A32m` and no pair will vary it again: Runs 14,
+15 and 16 priced it, the decision of 2026-08-21 closed it, and the 24m/48m probe
+that could have reopened it was taken ahead of Run 17 and killed. The basis
+is `run19-g912`'s recipe --- ghc-9.12.4, `-fobject-determinism`, the per-sample
+instrument and the saturating preamble, run under `WILDLOG=1 SATURATE=1` ---
+which is now the same recipe three runs running and reproduces byte for byte,
+so a Run 20 basis that does not is itself a finding. **What Run 20 varies
+is whoever asks for it to say**, and this run leaves exactly one question
+with an instrument that only a purpose-built pair can carry: **the `add-in`
+placement question**, which wants one compiler, one source and two shims placing
+the two arms at swapped cache-line offsets. Run 18 thought a compiler pair gave
+that for free and Run 19 showed the free route does not carry --- the `-g3` twin
+names HEAD's four functions and cannot locate them --- so the two-shim pair
+is now the only instrument left for it. **Two things Run 20 should NOT be**:
+another compiler pair, HEAD and 9.14 both having been read and both having said
+the same thing about the orderings; and anything that changes the roster, which
+would confound whatever it does vary. **And one thing it does NOT owe**: Run
+19's main-set rerun, declined on 2026-08-25 rather than carried forward, so Run
+20 inherits no backlog from it.
 
 **What Run 19 leaves it to read against, and the first item is not a figure.**
 **The box did not change**, its machine check reading -0.84% against the kept
@@ -9692,29 +9692,28 @@ Restated as the predicates the next run checks, and carrying no reading
 of its own: the figures each was last measured at are in the `Readings:`
 paragraphs above, so an entry here changes when a claim is re-aimed and not when
 a run moves a margin. **All of them are `-fspec-constr` claims, the regime they
-are read in** --- the file the solution is added to sets the flag only
-if it matters for the adopted strategies --- so they are the set that decides,
-and a run at -O1 would test Run 7's instead, the two differing in more
-than their numbers. **They are read in the caller's allocation regime now**,
-every figure here being taken at the `-A32m` Run 16 promoted to the basis
-and every horde-ad test and benchmark bakes since 2026-08-21; the gap Runs 14,
-15 and 16 priced against a prevailing `-A1G` is closed, and no claim below needs
-qualifying by it. **And all of them are read against a measured drift band
-rather than a layout span**, which is what the last three runs bought. A roster
-*order* change alone moved arms 0.966 to 1.142 between Run 9 and Run 10,
-and that is what a margin used to have to clear; with the layout pinned,
-a repetition moves an arm by at most 3.3% and most of them by under 1.5%,
-so a margin above a few percent is now evidence of a strategy. **Run 13
-is the first pair here to hold every tracked loop at one offset in both
-halves**, which is what lets its arm-by-arm comparison be read as the package
-costing nothing rather than as two terms cancelling. A claim resting on an arm
-whose own loop the shim skipped --- `list`'s, which is library code --- is still
-decidable nowhere until that loop is read. **And the pinning claim is measured
-only in its weak form**: adding `mut-flat-gm-nosum` left every tracked loop
-at the same address, but a `Force` arm reuses a rostered function and emits
-no code for emission order to move. The strong form wants an arm that emits
-its own, and until one is added the claim covers additions that cost nothing
-to place.
+are read in** --- the shipped file does not set the flag, measured irrelevant
+to the shipped family --- so they are the set that decides, and a run at -O1
+would test Run 7's instead, the two differing in more than their numbers. **They
+are read in the caller's allocation regime now**, every figure here being taken
+at the `-A32m` Run 16 promoted to the basis and every horde-ad test
+and benchmark bakes since 2026-08-21; the gap Runs 14, 15 and 16 priced against
+a prevailing `-A1G` is closed, and no claim below needs qualifying by it.
+**And all of them are read against a measured drift band rather than a layout
+span**, which is what the last three runs bought. A roster *order* change alone
+moved arms 0.966 to 1.142 between Run 9 and Run 10, and that is what a margin
+used to have to clear; with the layout pinned, a repetition moves an arm
+by at most 3.3% and most of them by under 1.5%, so a margin above a few percent
+is now evidence of a strategy. **Run 13 is the first pair here to hold every
+tracked loop at one offset in both halves**, which is what lets its arm-by-arm
+comparison be read as the package costing nothing rather than as two terms
+cancelling. A claim resting on an arm whose own loop the shim skipped ---
+`list`'s, which is library code --- is still decidable nowhere until that loop
+is read. **And the pinning claim is measured only in its weak form**: adding
+`mut-flat-gm-nosum` left every tracked loop at the same address, but a `Force`
+arm reuses a rostered function and emits no code for emission order to move.
+The strong form wants an arm that emits its own, and until one is added
+the claim covers additions that cost nothing to place.
 
 **The list needed no re-aiming this time either**, the roster it was rewritten
 onto before Run 8 being the roster Run 18 ran: every claim below names an arm
