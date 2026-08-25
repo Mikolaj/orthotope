@@ -32,8 +32,9 @@ names as missing. Do not edit any file. Read and compute only.
 TWO DOCUMENTS, and the run's numbers are in the second: README.md is what
 stands between runs, and runs/run<N>.md is this run's write-up entire --
 its head, Results, what the next run compares against, the claims it
-should test and the eight class blocks. A run replaces that file and
-edits README.md around it, so the diff spans both.
+should test, the eight class blocks and its own Provenance. A run
+replaces that file and edits README.md around it -- a bullet on the delta
+chain, and whatever the replace list turns up -- so the diff spans both.
 
 THE DIFF:  git -C /home/mikolaj/r/orthotope diff PRETIP..HEAD -- micro-regime3/README.md micro-regime3/runs
 If either document was normalised or rewrapped in that range the diff is

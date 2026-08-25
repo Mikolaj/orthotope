@@ -283,9 +283,9 @@ that every anchor in both documents resolves and that every path into `runs/`
 names the current run, so this list cannot rot silently, where line numbers
 would be wrong by the next edit and say nothing. The last entry but one leaves
 this file: **a run's own numbers are in `runs/run<N>.md`**, one file per run,
-rewritten by nobody once written and superseded by the next run's file beside
-it. That directory is not the history this section opens by refusing ---
-it holds measurements, which are what a run makes, where `MARGINALIA` holds
+superseded by the next run's file beside it rather than edited into it.
+That directory is not the history this section opens by refusing --- it holds
+measurements, which are what a run makes, where `MARGINALIA` holds
 the chronology of how the instructions got here.
 
 - [The two-stage plan and the rework
@@ -2595,12 +2595,13 @@ route works on some compilers and not on others, and nothing announces which**
 --- a twin looks exactly as usable either way until its deltas are checked.
 Check them before believing a naming, and treat the purpose-built two-shim pair
 as the only instrument that always works. **One trap met and worth writing
-down**: a literal rename of the four run-numbered headings missed a link text
-whose case differed from the heading's --- `the recommended tasks after Run 18`
-against `Recommended tasks after Run 18` --- so the anchor moved and the text
-did not, which is Run 18's own trap arriving through a different door.
-`--check-doc` reads anchors and not texts, so grep the old run number back
-afterwards rather than trusting a replace count.
+down**, from before the run-file split left one rename where there were four:
+a literal rename of the four run-numbered headings missed a link text whose case
+differed from the heading's --- `the recommended tasks after Run 18` against
+`Recommended tasks after Run 18` --- so the anchor moved and the text did not,
+which is Run 18's own trap arriving through a different door. `--check-doc`
+reads anchors and not texts, so grep the old run number back afterwards rather
+than trusting a replace count.
 
 **Both of Run 17's items are spent, and this heading no longer carries them.**
 Its first --- which shapes poison --- was answered 2026-08-18 and its account
@@ -4479,10 +4480,10 @@ not the note. Anything else is the **BUILD path**, which is 3b and those two
 lines besides. Expect `Main.hs` to have moved: this file's prose lives
 in its comments, so a write-up moves it, and only the diff tells that
 from a real change. **And the run number is one past the newest file
-in `runs/`**: that file is the run behind you, and nothing else derives it.
-The run file's own headings carry no number, which is why step 5 renames one
-heading and not four; the one that does is *Recommended tasks after Run N*,
-in the open list.
+in `runs/`**: that file is the run behind you, and the disk is where
+it is written. Two headings carry it and step 5 renames both --- the run file's
+own title, and *Recommended tasks after Run N* in the open list --- where
+the four the old chapter needed were four because none of them was a file name.
 
 The rest of this chapter is three checklists and the reasons behind them.
 The reasons restate nothing the lists carry, so reading them front to back
@@ -4598,9 +4599,12 @@ and never as a chronology.
     # Come back to a paragraph when a step surprises you.
     cd ~/r/orthotope/micro-regime3        # and re-set R and REGIME per call
     #      NN is one past the newest file in runs/, which is the run
-    #      behind you. The run file's own headings carry no number, so
-    #      nothing else derives it -- and making `runs/$R.md` is what aims
-    #      every install and every check at this run rather than that one
+    #      behind you, and the disk is where the number is written. DO
+    #      NOT MAKE `runs/$R.md` YET: every
+    #      mode defaults to the newest file, and everything before
+    #      post-run step 5 -- the gate's machine check, the claims read
+    #      back -- wants the run BEHIND you and would read this run's
+    #      empty file instead. Step 5 makes it
     #      R=runNN; REGIME=-fspec-constr -- an EMPTY regime is a plain -O1
     #      build and nothing downstream notices. That hazard is 3b's
     #      alone: REGIME reaches the build and nothing else, so on the
@@ -4638,9 +4642,10 @@ and never as a chronology.
     #      binary as the source is, so it takes step 3's two lines and
     #      step 3's verdict: a docstring-only diff leaves the shim
     #      emission-identical and the pair sound, and a change to what it
-    #      EMITS is the BUILD path. Provenance records its commit beside
-    #      the compiler's; the fork looked at neither until 2026-08-16,
-    #      when a walk found it three commits past what Provenance names
+    #      EMITS is the BUILD path. The run file's Provenance records
+    #      its commit beside the compiler's; the fork looked at neither
+    #      until 2026-08-16,
+    #      when a walk found it three commits past what that section names
     #      and had to read the diff to be sure the pair was still sound
     #  the :/ pathspec resolves from the repo root, so these answer the same
     #  from anywhere; a bare `-- Main.hs` run from the root prints nothing
@@ -5091,21 +5096,21 @@ were for four runs after they stopped being.** `install-tables.sh` writes 32
 computed paragraphs across them now --- table, controls, provenance, per-shape
 line, cross-half line --- so what is left per class is the one paragraph of what
 it says, written from the verdicts `--block` emits rather than from the table
-above it. Eight paragraphs of judgement, and nothing else. **The chapter head
-is the bulk**: fifteen paragraphs on Run 19, every one of them rewritten,
-and nothing installs any of them. **The bulk of the *cost* is adjudication
-rather than typing** --- deciding which run, which basis and which population
-a figure belongs to --- and it scales with how many comparisons the run invites
-rather than with how many tables it fills, so a run that is both a repetition
-and a pairing is the dearest to write up for that reason alone. **The shape
-to expect, in the units a session actually spends**, which are not hours
-but tool calls and how much must be read before the first one. The fixed cost
-is the reading --- this chapter and the last run's own file --- and it is larger
-than executing either checklist, which is what both checklists are for. After
-it the work divides three ways and only one part is large. *Batchable*: anything
-with one invocation per process or per claim --- a `--selftest` and an `--aa`
-apiece, the dozen-odd `--pair` lines, a `--block` per class --- goes in one call
-per kind, so steps 1 and 3 together are a handful. *One per site*: the eleven
+above it. Eight paragraphs of judgement, and nothing else. **The run file's head
+is the bulk**: every paragraph of it rewritten, and nothing installs any
+of them. **The bulk of the *cost* is adjudication rather than typing** ---
+deciding which run, which basis and which population a figure belongs to ---
+and it scales with how many comparisons the run invites rather than with how
+many tables it fills, so a run that is both a repetition and a pairing
+is the dearest to write up for that reason alone. **The shape to expect,
+in the units a session actually spends**, which are not hours but tool calls
+and how much must be read before the first one. The fixed cost is the reading
+--- this chapter and the last run's own file --- and it is larger than executing
+either checklist, which is what both checklists are for. After it the work
+divides three ways and only one part is large. *Batchable*: anything with one
+invocation per process or per claim --- a `--selftest` and an `--aa` apiece,
+the dozen-odd `--pair` lines, a `--block` per class --- goes in one call per
+kind, so steps 1 and 3 together are a handful. *One per site*: the eleven
 `--in-place` installs, three calls. *Unbatchable*: the prose, one edit per
 paragraph, and this is the bulk --- the eight class blocks alone are some thirty
 items, and no tool reduces the count, `--block`'s skeletons only removing
@@ -5219,9 +5224,8 @@ it was taken on, and a roster that moved since voids it.
 in this list asks, and starting on top of a half-written write-up is a wrong
 start no later step catches: the artifacts of a run whose step 12 was never
 reached look exactly like those of one whose deletion offer was declined.
-The evidence is the README rather than the disk --- the two forward-looking
-run-numbered headings name your run rather than the last one, and the open list
-carries its registration.
+The evidence is on the disk and in the open list --- `runs/` already carries
+a file for your run, and the open list carries its registration.
 
 Only where there is no pair, or where `Main.hs` or the regime has moved since
 the note was written, is a build the thing to do --- and there is nothing here
@@ -5944,10 +5948,11 @@ was missed, which is what they have cost.
     #   5. MAKE THE RUN'S OWN FILE, `runs/$R.md`, by copying the last
     #      run's over it: it is the whole of what a run replaces -- head,
     #      Results, what the next run compares against, the claims it
-    #      should test and the eight class blocks -- and every install
-    #      below writes it and no other document. The number is in the
-    #      NAME and in none of THAT file's headings, so the four this step
-    #      used to rename are ONE, `Recommended tasks after Run N`, which
+    #      should test, the eight class blocks and its own Provenance --
+    #      and every install below writes it and no other document. The
+    #      number is in the NAME and in none of that file's SECTIONS, so
+    #      the four this step used to rename are TWO: the file's title,
+    #      renamed by the copy, and `Recommended tasks after Run N`, which
     #      is the open list's and takes THIS run. Then repoint README's links
     #      from the run before to this file: --check-doc fails any that
     #      still name it, runs/ keeping every run, so a missed one
@@ -6134,33 +6139,45 @@ the artifacts are what it spends.
    geomean, per [the ruling](#the-stride-classes-and-what-they-cover), and there
    is no combined figure to compute, so a sentence comparing populations
    compares their tables.
-5. **Make the run's own file and repoint README at it.** `runs/run<N>.md` is one
-   run's write-up entire, so a run copies the last one's over its own name
-   and rewrites it, and what used to be four heading renames is one:
-   *Recommended tasks after Run N*, in the open list, which is about the run
-   just read. The file's own headings carry no number --- *Results*, *What
-   the next run compares against*, *The claims the next run should test*,
-   *The stride classes, run by run* --- because the name does, which is why Run
-   9's eleven dead anchors and Run 18's three half-renamed links are failures
-   this step no longer has. **What it has instead is one link check, and `runs/`
-   accumulating is what makes it necessary**: the previous run's file stays
-   on disk, so a link left pointing at it resolves, renders and quietly promises
-   figures this run replaced. `--check-doc` fails every such link and names it.
-   No source file is repointed: `Main.hs` and `read-run.py` name README anchors,
-   which no run moves, and neither names a run file --- one that did would go
-   stale at the next run, and `--check-doc` could not see it, `runs/` keeping
-   every run so the path resolves. Repoint on the UNWRAPPED form, a path rename
-   over the wrapped document missing any link text a wrap falls inside.
-   Repointing is not re-verifying: a standing-prose link into the run file
-   promises content the replacement may have moved out, and the five
-   that decayed this way kept resolving through two renames. `--check-doc` lists
-   the links naming the file AS A WHOLE, which are the ones promising something
-   unspecified; a link naming a SECTION of it is not listed, there being two
-   dozen and a wall being what nobody reads --- so those are walked by hand,
-   and by the same test: does the text still describe what is there. A link
-   whose TEXT quotes a ratio, pointing at a section that no longer carries it,
-   is what that walk is for: this refactor found one that had survived two runs
-   with its anchor resolving throughout.
+5. **Make the run's own file and repoint README at it, and not before
+   this step.** `runs/run<N>.md` is one run's write-up entire, so a run copies
+   the last one's over its own name and rewrites it --- HERE, because every mode
+   defaults to the newest file in `runs/` and everything above wants the run
+   BEHIND this one: the gate's machine check reads the previous run's
+   fingerprint and `--claims` reads back the claims it registered. Making
+   the file early aims both at an empty copy of itself. What used to be four
+   heading renames is one: *Recommended tasks after Run N*, in the open list,
+   which is about the run just read. Its SECTIONS carry no number --- *Results*,
+   *What the next run compares against*, *The claims the next run should test*,
+   *The stride classes, run by run*, *Provenance* --- because the name does;
+   the title is the second heading a run renames, and the copy renames it.
+   So Run 9's eleven dead anchors and Run 18's three half-renamed links
+   are failures this step no longer has. **What it has instead is one link
+   check, and `runs/` accumulating is what makes it necessary**: the previous
+   run's file stays on disk, so a link left pointing at it resolves, renders
+   and quietly promises figures this run replaced. `--check-doc` fails every
+   such link and names it. **Expect it to fail five ways the moment the file
+   exists and before you have touched README** --- dead anchors, links naming
+   the run before, the run file's sections uncovered by the replace list,
+   the Results section naming the previous basis, and the head unchanged
+   from the run before --- and every one of those is this step. Driven end
+   to end 2026-08-25 on a copy: all five, and the eleven tables installing
+   into the new file regardless. No source file is repointed: `Main.hs`
+   and `read-run.py` name README anchors, which no run moves, and neither names
+   a run file --- one that did would go stale at the next run, and `--check-doc`
+   could not see it, `runs/` keeping every run so the path resolves. Repoint
+   on the UNWRAPPED form, a path rename over the wrapped document missing any
+   link text a wrap falls inside. Repointing is not re-verifying:
+   a standing-prose link into the run file promises content the replacement may
+   have moved out, and the ones that decayed this way kept resolving through two
+   renames. `--check-doc` lists the links naming the file AS A WHOLE, which
+   are the ones promising something unspecified; a link naming a SECTION
+   of it is not listed, there being two dozen and a wall being what nobody reads
+   --- so those are walked by hand, and by the same test: does the text still
+   describe what is there. A link whose TEXT quotes a ratio, pointing
+   at a section that no longer carries it, is what that walk is for:
+   this refactor found one that had survived two runs with its anchor resolving
+   throughout.
 6. Walk the list under [Provenance](#provenance) of what the new numbers
    replace, and do not trust it to be complete: re-run the two sweeps it names
    and map each hit to the bullet covering it, since running the sweeps
@@ -6768,10 +6785,11 @@ docstring rather than re-derived.
                                             # is a BLANK-LINE PARAGRAPH, and
                                             # a list with no blank lines
                                             # between its items is one of
-                                            # them -- so an anchor inside
-                                            # one item is refused, and so is
-                                            # a replacement that is one item
-                                            # where the paragraph is nine
+                                            # them -- so an anchor in any
+                                            # item but the first is refused,
+                                            # and so is a replacement that is
+                                            # one item where the paragraph
+                                            # is nine
 
 **Anything this reader can emit, a session should not read.** It is why
 no write-up has ever read a table row out of either document: `--markdown`,
@@ -8494,7 +8512,7 @@ the same forcing pass; `sum-only` times that pass alone.** It is a median 17.7%
 of `bq-expand` and 2.7% of `list`, so an uncorrected ratio is compressed toward
 1 by about that much and every margin read off one is an *understatement*.
 
-**Run 6 (-O1) licensed subtracting it, and every figure in this README is net
+**Run 6 (-O1) licensed subtracting it, and every figure a run publishes is net
 of it**: its two halves agreed to 0.01% paired, flat in shape size as well
 as position, and `read-run.py` has since taken the term per shape as the mean
 of the halves and divided net of it. Nothing is comparable across that line ---
@@ -8595,6 +8613,15 @@ each blind to what the others catch:
    is real, sits inside the layout span everywhere, and is worth a sentence
    about a particular cell rather than a second correction to the column.
 
+**And the correction is invertible, which is what keeps a pre-correction figure
+comparable at all.** A raw slope is the published one plus the forcing term
+times `l`, with `l` from `Main.hs`, so any uncorrected figure recovers to within
+the term's own spread --- and the term has been within about 2% of every run's
+since Run 7, through a flag, a roster, a layout, the shim's padding,
+`-fproc-alignment=64`, an RTS line, a source patch that moves every loop offset
+and a change of compiler. That is the control saying every run's correction
+is one correction. Each run's own span is in its file, under Provenance.
+
 **The three gates are a population's, not a run's.** Every process carries
 the `sum-only` pair and the three `-nosum` arms, so a [stride
 class](#the-stride-classes-and-what-they-cover) measures its own term
@@ -8628,7 +8655,7 @@ The desktop named at the head of the run's file is the same machine whose `idiv`
 cycle counts the [Lemire
 section](#lemire-multiplicative-inverses-at-the-two-division-sites) rests on.
 A run elsewhere is a different measurement rather than a repetition, and should
-say which machine here.
+name its machine at the head of its own file, where this one does.
 
 **The delta, so the population is recoverable.** What follows is the *only* form
 in which a shape set or roster is recorded here: its difference from whatever
@@ -8706,7 +8733,7 @@ tables and its fingerprint say so.
   the estimator under `time`. What a reader has to carry besides is which half
   a figure came from: everything it published was `run13-maxskip`,
   and `run13-lookrts` contributed the yardstick's second column
-  and the arm-by-arm comparison at the run file's head.
+  and the arm-by-arm comparison at the head of Run 13's own write-up.
 - Run 12 measured the same shapes, class lists and order, on Run 13's roster
   **minus `mut-flat-gm-nosum`** --- 816 benches against Run 13's 840 --- timing
   34 of its own, winsorized likewise. Everything it published
@@ -8779,21 +8806,21 @@ its own, which every anchor and figure check passed over.
 sections and a section here runs to hundreds of lines, of which a run rewrites
 three or four paragraphs; Run 10's write-up read most of the floor section
 to change four of its leads. **Not every paragraph opens with a bolded lead**:
-457 of 868 carry a bolded span and 411 carry none, and 37 of those 411 carry
-a figure. So a `grep -n '^\*\*'` between a section's heading and the next gives
-a section's **claims** and not its contents, and a walk that stops there misses
-figure-bearing prose --- the opening section's continuous argument,
-and continuation paragraphs inside list entries. The ones a run touches
-are those whose lead or body carries a figure, which is why `--para` falls back
-to the body when no lead matches. `./read-run.py --para 'lead'` then prints any
-one of them with the line it starts at, which is what keeps a jump off
-the `grep -n`/`sed -n` pair that the install above it has already invalidated.
-`--check-doc`'s two sweeps print line numbers for the comparative
-and superlative candidates already, so between the three the walk is a list
-of jumps rather than a read. This is deliberately a recipe and not a stored list
-of paragraph names: a stored one would be a second copy of the structure
-and would rot the first time a lead was reworded, which is the failure this list
-was rewritten to escape.
+well over a third carry none, and a few dozen of those carry a figure.
+So a `grep -n '^\*\*'` between a section's heading and the next, in either
+document, gives a section's **claims** and not its contents, and a walk
+that stops there misses figure-bearing prose --- the opening section's
+continuous argument, and continuation paragraphs inside list entries. The ones
+a run touches are those whose lead or body carries a figure, which is why
+`--para` falls back to the body when no lead matches.
+`./read-run.py --para 'lead'` then prints any one of them with the line
+it starts at, which is what keeps a jump off the `grep -n`/`sed -n` pair
+that the install above it has already invalidated. `--check-doc`'s two sweeps
+print line numbers for the comparative and superlative candidates already,
+so between the three the walk is a list of jumps rather than a read.
+This is deliberately a recipe and not a stored list of paragraph names: a stored
+one would be a second copy of the structure and would rot the first time a lead
+was reworded, which is the failure this list was rewritten to escape.
 
 - [the run's own file](runs/run19.md) ENTIRE, which is what makes it a file:
   its head, carrying the run's name, regime, scale and source commit, the layout

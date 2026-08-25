@@ -205,8 +205,9 @@ def _newest_run_doc():
     """The run's own file, which is where everything a run publishes is.
 
     HALF THE FIXTURES HERE PLANT INTO IT and not into README.md: the
-    Results table, the yardstick, the fingerprint, the claims verdicts and
-    the eight class blocks all live in `runs/run<N>.md`. An absent one is a
+    Results table, the yardstick, the fingerprint, the claims verdicts,
+    the eight class blocks and the run's own provenance all live in
+    `runs/run<N>.md`. An absent one is a
     fixture that cannot be built, so it is an assertion and not a fallback
     to README.md -- which would build every one of them against a
     document that carries none of what they edit, and pass.
@@ -562,26 +563,6 @@ def rundoc_pair(tmp, held=True):
     return {'rundoc': write(os.path.join(at, 'run%d.md' % now), text)}
 
 
-def a_chapter_heading():
-    """The run chapter's heading, and the next run's number, off the README.
-
-    Named dynamically rather than pinned: three fixtures used to carry
-    `## About the last run (Run 18)` as a literal and all three stopped
-    building the hour Run 19's write-up renamed the four run-numbered
-    headings -- reported honestly as FIXTURE DID NOT BUILD rather than as
-    a pass, which is the shape this file wants, but a fixture that dies at
-    every run is a fixture nobody keeps. The heading is the anchor and the
-    number is read out of it, so both move with the document.
-    """
-    with open(README) as f:
-        for line in f:
-            m = re.match(r'^## About the last run \(Run (\d+)\)$', line)
-            if m:
-                return m.group(0), int(m.group(1))
-    raise AssertionError('no run chapter heading in the README to plant'
-                         ' against')
-
-
 def rundoc_current_run_sentence(tmp):
     """A verdict sentence attributing a figure to the run in hand.
 
@@ -686,8 +667,8 @@ def rundoc_stale_basis_in_results(tmp):
     Run 14's write-up shipped exactly this -- `run13-maxskip` standing in
     that lead while run14-lookrts's tables were installed under it -- past
     --lint, --check-doc, --selftest and --aa, none of which read the name.
-    The plant is derived from the README rather than spelled out, so it keeps
-    working when the chapter's run number moves, and it asserts what it
+    The plant is derived from the run file rather than spelled out, so it
+    keeps working when the run number moves, and it asserts what it
     swept: a Results section naming no run, or naming two, would leave the
     check passing for its own reasons.
     """
@@ -3082,6 +3063,34 @@ CASES = [
     # whole change; these three pin each branch, since a mode that
     # indexed always would cost a round trip on every unique match and
     # one that never indexed would not have changed anything.
+    case('link-path-resolves-nowhere', 'read-run.py', None,
+         'a link written for one file, moved into the other, pointed at'
+         ' nothing',
+         # THE SPLIT'S OWN SHAPE OF DEFECT, and the one the anchor check
+         # cannot see: a link's FRAGMENT is held to the document it names,
+         # and its PATH was held to nothing. A paragraph carrying
+         # `[...](runs/run19.md)` moved out of README into
+         # `runs/run19.md`, where that path means `runs/runs/run19.md`;
+         # the fragment check passed it because there is no fragment, and
+         # the every-link-names-this-run check passed it because it ends
+         # in the current basename. Found by a reader, 2026-08-25.
+         # `check_paths` was no help either: it resolves BACKTICKED names
+         # and a link target is not one.
+         plant=lambda t: {'rundoc': edited_rundoc(
+             t, ('## Results', '## Results\n\nA planted paragraph naming'
+                 ' [a file](no-such-dir/no-such.md) that is not there.'))},
+         argv=['--check-doc', '--run-doc', '{rundoc}'],
+         ok=V(exit=1, has=['no-such-dir/no-such.md',
+                           'resolve to no file'])),
+
+    case('link-path-to-a-real-file-passes', 'read-run.py', None,
+         'CONTROL: the same check over a path that is there',
+         plant=lambda t: {'rundoc': edited_rundoc(
+             t, ('## Results', '## Results\n\nA planted paragraph naming'
+                 ' [a file](../Main.hs) that is.'))},
+         argv=['--check-doc', '--run-doc', '{rundoc}'],
+         ok=V(exit=0, hasnt=['resolve to no file'])),
+
     case('replace-shrinks-a-list-to-one-item', 'read-run.py', None,
          'an anchor in a list\'s FIRST item took all four and wrote back one',
          # THE GUARD BESIDE THIS ONE HAS THE WRONG PREMISE, and using it

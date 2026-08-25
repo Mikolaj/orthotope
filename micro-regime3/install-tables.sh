@@ -273,8 +273,8 @@ for n, (c, start) in enumerate(reversed(order)):
     # section of that name would have been silently rewritten with the
     # last class's elapsed and heap line. The split of 2026-08-25 moved
     # that section into the run file too, one heading below the last
-    # class block, so the guard's subject is live and is the same one it
-    # always had. Non-vacuous 2026-08-16, both
+    # class block and promoted to `## Provenance`, so the guard's subject
+    # is live again and is the same section it always was. Non-vacuous 2026-08-16, both
     # ways over a copy carrying such a sentence: the committed version
     # replaced it with `scaled`'s provenance and this one leaves it. The
     # first attempt at that control proved nothing -- the old script was

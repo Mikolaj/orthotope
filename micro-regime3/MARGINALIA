@@ -484,3 +484,47 @@ ANCHOR TABLE, whose rows are the same shape and which was still in README.
 Moving that too is what finally broke it. So the case had been passing on the
 wrong table for a commit, and the only reason it is visible at all is that
 `--audit` replays code that cannot be aimed.
+
+2026-08-25, the second checker pass. It is not a formality, and the sharpest
+thing it returned was a claim the FIRST round of fixes had introduced: *the
+run file's own headings carry no number*, written into the pre-run fork, its
+comment twin and post-run step 5, and false of line 1 of the file it is about.
+Copying `run18.md` to `run19.md` renames the title, so step 5 renames two
+headings and not one. Nothing checks the number-free rule, so it would have
+stood.
+
+And the shape of defect the split makes and nothing here could see: a link
+written relative to README, moved into the run file with its paragraph, where
+`runs/run19.md` means `runs/runs/run19.md`. It has no fragment, so the anchor
+check had nothing to judge; it ends in the current basename, so the
+names-this-run check passed it; and `check_paths` resolves BACKTICKED names,
+which a link target is not. Three checks over the same link and a hole between
+them. The path check that went in is over link targets, resolved from each
+document's canonical directory, and the case is `link-path-resolves-nowhere`.
+
+2026-08-25, the dry run. Copying `run19.md` to `run20.md` and driving the next
+run's step 5 against Run 19's own artifacts, to see what a session will meet:
+`--check-doc` fails five ways before README is touched -- dead anchors, links
+naming the run before, the run file's sections uncovered by the replace list,
+the Results section naming the previous basis, and sixteen head paragraphs
+unchanged from Run 19 -- and the eleven tables install into the new file
+regardless. Every one of the five is step 5's, which is the design working;
+what the exercise bought is knowing the number before a session meets it and
+wonders what it broke. That clause is now in step 5.
+
+2026-08-25, the comprehension probe, and what it caught that two checker
+passes did not. It reads the two documents cold and answers the README's own
+questions, so it meets them as a stranger does, and the sentence it tripped on
+was one written an hour earlier to orient exactly that reader: the run file's
+opening said the open list "stands between runs and is in README.md", when the
+open list is on the replace list and is where a run's registrations, verdicts
+and surprises go. Two of its ten answers came out wrong off that one sentence.
+A checker scoped to a diff cannot see this: the sentence is internally
+coherent, resolves, and contradicts a section it does not link.
+
+And the write-at-the-end trap, which this README documents and which my own
+edit helper had: it applied a list of replacements and wrote once at the end,
+so an anchor that missed on item eight discarded items one to seven, silently,
+with seven `ok` lines already printed. Twice in one session. The second time
+was found only because the probe quoted a sentence I believed I had already
+rewritten. One edit, one write.

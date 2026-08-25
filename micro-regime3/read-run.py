@@ -2612,8 +2612,9 @@ def machine_check(cells, shapes, readme, thresh=3.0, spread=7.0):
     have = [(sh, cells[sh]['list']['net'], want[sh])
             for sh in shapes if sh in want and 'list' in cells[sh]]
     if not have:
-        print('machine: no shape of this run is in README\'s fingerprint, so'
-              ' there is nothing to compare -- which is itself worth reading')
+        print('machine: no shape of this run is in the run file\'s'
+              ' fingerprint, so there is nothing to compare -- which is'
+              ' itself worth reading')
         return 1
     # A non-positive net has no ratio and no log, and this is the fifth site
     # of the family the other four were guarded against on 2026-08-17. It is
@@ -3584,9 +3585,9 @@ def claims_past(run_now=None):
     sentence opening "In Run 15, `bq-expand` reads 0.9312" exempted every
     figure in itself -- and a stale CURRENT-run figure, which is the one
     kind this sweep exists to catch, was the kind it could not see. The
-    run in hand is excluded when the README names it; with no such heading
-    the old behaviour stands, which is a sweep that lists less rather than
-    one that lists wrongly. Found 2026-08-17 by review.
+    run in hand is excluded when the run file's NAME gives its number;
+    where it does not the old behaviour stands, which is a sweep that lists
+    less rather than one that lists wrongly. Found 2026-08-17 by review.
     """
     return re.compile((r'Run \d+' if run_now is None
                        else r'Run (?!%d\b)\d+' % run_now)
@@ -5841,6 +5842,40 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
             return None
         return True     # another document, which `check_paths` answers for
 
+    # AND A LINK'S PATH, which the fragment check above cannot see and
+    # `check_paths` does not read -- it resolves BACKTICKED names, and a
+    # link target is not one. The gap is the split's own shape of defect:
+    # a paragraph carrying `[...](runs/run<N>.md)` moved out of README
+    # into that very file, where the path means `runs/runs/run<N>.md`. It
+    # has no fragment, so nothing above judged it, and it ends in the
+    # current basename, so the every-link-names-this-run check passed it
+    # too. Resolved from each document's CANONICAL directory rather than
+    # from wherever a copy is being linted, as the fragments are.
+    # Cases: `link-path-resolves-nowhere`, with its live-file control.
+    at_dir = {readme: os.path.dirname(os.path.abspath(__file__))}
+    if run_doc is not None:
+        at_dir[run_doc] = os.path.join(at_dir[readme], RUNS_DIR)
+
+    def path_of(src, target):
+        rel = target.partition('#')[0]
+        if not rel or re.match(r'^[a-z][a-z0-9+.-]*://', target):
+            return None
+        return os.path.normpath(os.path.join(at_dir[src], rel))
+
+    astray = []
+    for src, text in docs:
+        for target in re.findall(r'\]\(([^)\s]+)\)', text):
+            where_ = path_of(src, target)
+            if where_ is not None and not os.path.exists(where_):
+                astray.append('%s -> %s' % (os.path.basename(src), target))
+    if astray:
+        bad.append('%d link target(s) resolve to no file: %s -- a path is'
+                   ' read from the document holding the link, so one'
+                   ' written for the other document lands nowhere'
+                   % (len(astray), ', '.join(sorted(set(astray)))))
+    else:
+        note.append('every link target that names a path resolves')
+
     refs, dead = {}, []
     for src, text in docs:
         base = os.path.basename(src)
@@ -6716,7 +6751,13 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
     # THE RUN'S FILE AGAINST THE ONE BEFORE IT, which is what a run file
     # is for. A run replaces its file whole, so a figure-bearing paragraph
     # byte-identical to one in the predecessor's file is stale, or is
-    # standing on purpose and wants rewording to say so.
+    # standing on purpose and wants rewording to say so. A write-up is
+    # done a paragraph at a time and nothing enumerates them: Run 18 left
+    # FOUR of Run 17's standing in the chapter head, one contradicting two
+    # paragraphs the same session had just written, and Run 19 left six
+    # more outside it. An independent checker found each set by
+    # set-differencing the document, which is this script's job and is one
+    # comparison.
     #
     # WHAT THIS REPLACES, and why it is better than what it replaces. The
     # same question used to be asked of README.md against `git show

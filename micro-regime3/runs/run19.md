@@ -1,12 +1,14 @@
 # Run 19 (SpecConstr)
 
 One run's write-up: its head, its Results, what the next run compares against,
-the claims that run should test, and the eight class blocks. A run replaces
-this file whole and also edits [README.md](../README.md) around it, and what
-it edits there is the replace list under [README's own Provenance][prov] ---
-so this is most of what a run replaces and not all of it. The harness, [the
-procedure][procedure] that makes a file like this one, and the open list stand
-between runs and are in README.md.
+the claims that run should test, the eight class blocks, and its own Provenance.
+A run replaces this file whole and edits [README.md](../README.md) around it,
+in the score of places [the replace list under Provenance there][prov] names ---
+the open list among them, which is where a run's registrations, verdicts
+and surprises go rather than here. So this file is most of what a run replaces
+and by no means all of it. What stands between runs is the harness, [the
+procedure][procedure] that makes a file like this one, and the rulings
+a measurement does not reach.
 
 **Run 19 (SpecConstr), and what GHC HEAD is worth to this fallback.** Criterion,
 **`--ghc-options=-fspec-constr`**; Run 16's regime, shapes, class views
@@ -2224,14 +2226,14 @@ it**, taken 2026-08-24 on a machine doing ordinary work as that rider allows,
 1128 data lines a half and no cell perf refused.
 
 **The pair's own identity, transcribed before its note went with it.** The two
-md5s, the `Main.hs` commit and the tree at launch are at [the head of the run's
-file](runs/run19.md) and are not repeated here --- one live copy, since both
-places are replaced by the same run. What this paragraph adds is what that head
-does not carry: `-fspec-constr` and `-fobject-determinism` on both halves,
-`align-as.py` as committed at `40f7a37`, and `LOOP_MAXSKIP=1 LOOP_LOOKTHROUGH=1`
-on both builds, the two differing only in `--project-file=cabal.project.ghead`
-and so in the compiler. **Both halves were built by hand**, this being a pair
-of two shims, so both recipes went into the pair note. **And the control half's
+md5s, the `Main.hs` commit and the tree at launch are at this file's own head
+and are not repeated here --- one live copy, since both places are replaced
+by the same run. What this paragraph adds is what that head does not carry:
+`-fspec-constr` and `-fobject-determinism` on both halves, `align-as.py`
+as committed at `40f7a37`, and `LOOP_MAXSKIP=1 LOOP_LOOKTHROUGH=1` on both
+builds, the two differing only in `--project-file=cabal.project.ghead` and
+so in the compiler. **Both halves were built by hand**, this being a pair of two
+shims, so both recipes went into the pair note. **And the control half's
 compiler is not a released one**, which is this pair's own provenance hazard
 and is why the version is read back out of each binary rather than off a recipe
 line: the in-tree stage1 of the GHC checkout under `~/r/horde-ad/ghc` at commit
@@ -2292,8 +2294,8 @@ to hold a corrected run against any number measured before the correction
 existed. The term is within about 2% of every run's since Run 7, so neither
 the flag, the roster, the layout, the shim's padding, `-fproc-alignment=64`,
 an RTS line, a source patch that moves every loop offset, **nor a change
-of compiler** touches the forcing pass, which is the control saying ten runs'
-corrections are one correction --- and this pair's two halves agree on
+of compiler** touches the forcing pass, which is the control saying every run's
+correction is one correction --- and this pair's two halves agree on
 it to within a thousandth of a nanosecond, so a figure differenced across
 these halves carries almost none of its own.
 
