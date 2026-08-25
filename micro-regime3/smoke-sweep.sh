@@ -132,15 +132,24 @@ if ./read-run.py smoke.json --cells --exclude-shape "$SHAPE" \
   echo "  !! --exclude-shape $SHAPE did NOT refuse a run of that shape alone"
   BAD=$((BAD + 1))
 fi
-mode smoke.json --claims          # reads the README's verdicts back too, so
-                                  # this is also the read-back's only
+mode smoke.json --claims          # reads the run file's verdicts back too,
+                                  # so this is also the read-back's only
                                   # pre-run exercise
 
-echo "=== the installers, into a copy and never at README"
-cp README.md README.smoke.md
-mode smoke.json --markdown --in-place --readme README.smoke.md
-mode smoke.json --fingerprint --in-place --readme README.smoke.md
-mode smoke-class.json --block --in-place --readme README.smoke.md
+# THE RUN'S OWN FILE, not README.md: every table an installer writes and
+# every reading `--claims` installs is in `runs/run<N>.md`, and `--in-place`
+# refuses `--readme` outright rather than writing the live one behind a
+# caller aiming at a copy. The copy keeps a `run<N>.md` name so the reader
+# can still read the run number off it.
+RUNDOC=$(ls -1 runs/run[0-9]*.md 2>/dev/null | sort -V | tail -1)
+[ -n "$RUNDOC" ] || { echo "  !! no runs/run<N>.md, so the installers have"
+  echo "     nothing to be exercised against"; exit 1; }
+SMOKEDOC=$(basename "$RUNDOC")
+echo "=== the installers, into a copy of $RUNDOC and never at it"
+cp "$RUNDOC" "$SMOKEDOC"
+mode smoke.json --markdown --in-place --run-doc "$SMOKEDOC"
+mode smoke.json --fingerprint --in-place --run-doc "$SMOKEDOC"
+mode smoke-class.json --block --in-place --run-doc "$SMOKEDOC"
 # The fourth installer is exercised by its REFUSAL, which is the only
 # answer available here: the claims are registered over the whole main
 # set, this run is one shape of it, and the install refuses anything less
@@ -158,22 +167,22 @@ mode smoke-class.json --block --in-place --readme README.smoke.md
 # Non-vacuous, same day: over a one-shape run the install exits 1 saying
 # which shape count it got and writes nothing, and over the full main set
 # it installs and exits 0, which is what this block would report.
-cp README.smoke.md README.smoke.pre
-if ./read-run.py smoke.json --claims --in-place --readme README.smoke.md \
+cp "$SMOKEDOC" README.smoke.pre
+if ./read-run.py smoke.json --claims --in-place --run-doc "$SMOKEDOC" \
      >/dev/null 2>&1; then
   echo "  !! --claims --in-place did NOT refuse a filtered run"
   BAD=$((BAD + 1))
-elif ! cmp -s README.smoke.md README.smoke.pre; then
+elif ! cmp -s "$SMOKEDOC" README.smoke.pre; then
   echo "  !! --claims --in-place refused and wrote anyway"
   BAD=$((BAD + 1))
 fi
 rm -f README.smoke.pre
-if cmp -s README.smoke.md README.md; then
+if cmp -s "$SMOKEDOC" "$RUNDOC"; then
   echo "  !! --in-place wrote nothing -- the copy is identical"
   BAD=$((BAD + 1))
 fi
 
-rm -f smoke.json smoke-other.json smoke-class.json README.smoke.md \
+rm -f smoke.json smoke-other.json smoke-class.json "$SMOKEDOC" \
       smoke.log smoke-other.log smoke-class.log
 if [ "$BAD" -eq 0 ]; then
   echo "=== sweep clean; record it on the pair note, it belongs to the pair"

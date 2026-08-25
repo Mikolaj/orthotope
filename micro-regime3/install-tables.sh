@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # The write-up's installs, all of them, in one call.
 #
-#     ./install-tables.sh run14           # writes README.md
+#     ./install-tables.sh run14           # writes runs/run14.md
 #
 # `--markdown`, `--fingerprint`, a `--block` per class and `--claims`,
 # every one from the BASIS half, every one `--in-place`. That is eleven
 # tables and one reading per claim, and those are numbers a session loses
-# count of: the failure is not a wrong table but a missing one, and a README
-# with ten of eleven installed looks exactly like a README with eleven.
+# count of: the failure is not a wrong table but a missing one, and a run
+# file with ten of eleven installed looks exactly like one with eleven.
 #
 # It installs and collects; it decides nothing. Each mode's stderr is the
 # hand-work it leaves -- a row new to the roster installs as `?` and is
@@ -29,19 +29,21 @@
 # Its defects, and the control that a full pass rewrites no table, are cases
 # in ./check-scripts.py; add one there before fixing anything here.
 #
-# WRITES THE README, so commit or park README.md first -- `git checkout --
-# README.md` is the undo, and there is no other. Read the diff afterwards
-# rather than the terminal: install prints what it replaced, not what the
-# README now says.
+# WRITES THE RUN'S OWN FILE and nothing else -- every table and every
+# claim reading a run publishes is in `runs/run<N>.md`, which is why one
+# `DOC` can serve all eleven installs. Commit or park that file first --
+# `git checkout -- runs/run<N>.md` is the undo, and there is no other. Read
+# the diff afterwards rather than the terminal: install prints what it
+# replaced, not what the file now says.
 #
 # Measured over Run 13's artifacts, 2026-08-15, against a copy: ten calls
-# write eleven tables; a full pass over a README that already carries them
+# write eleven tables; a full pass over a document that already carries them
 # leaves the ELEVEN TABLES byte-identical, so a rerun after fixing one
 # refusal costs nothing but a re-wrap: that measurement predates the
 # computed-paragraph block below, which writes its three paragraphs per
-# class as one line each where the README keeps them wrapped, so a full pass
-# now comes back word for word identical and re-wrapped -- 24 paragraphs
-# on a README carrying them already, measured 2026-08-16. Close with
+# class as one line each where the document keeps them wrapped, so a full
+# pass now comes back word for word identical and re-wrapped -- 24
+# paragraphs on a document carrying them already, measured 2026-08-16. Close with
 # `wrap80 -i`, as after any edit; and renaming a class block's bolded lead makes that one install
 # refuse -- `0 line(s) start with '**`scaled`', need exactly one` -- which
 # this reports and exits 1 on, the other ten having landed.
@@ -55,7 +57,7 @@ set -u
 cd "$(dirname "$0")" || exit 1
 
 if [ $# -lt 1 ]; then
-  echo "usage: ./install-tables.sh RUN      # e.g. run14; writes README.md"
+  echo "usage: ./install-tables.sh RUN   # e.g. run14; writes runs/run14.md"
   exit 2
 fi
 R="$1"
@@ -67,8 +69,14 @@ BASIS=${BASIS:-g912}        # the fourth file carrying a half's name, and
                              # the only one with no OTHER; run-major.sh,
                              # run-gate.sh and smoke-sweep.sh are the
                              # others, set together at pre-run step 3c
-DOC=${DOC:-README.md}        # overridable so a dry run can aim at a copy,
-                             # which is also this script's own control
+# The run's own file, named after the run this driver was given -- not the
+# newest in runs/, which is what read-run.py defaults to: installing run19's
+# tables while run20.md exists is a mistake this can refuse and that one
+# cannot see. Overridable so a dry run can aim at a copy, which is also
+# this script's own control.
+DOC=${DOC:-runs/$R.md}
+[ -f "$DOC" ] || { echo "no $DOC -- a run publishes into its own file, so"
+  echo "   make it before installing, or set DOC to name it"; exit 1; }
 
 MAIN="$R-$BASIS-main.json"
 [ -f "$MAIN" ] || { echo "no $MAIN -- wrong run or wrong BASIS?"; exit 1; }
@@ -97,9 +105,9 @@ done
 
 # The class list comes from the disk, so a class whose JSON is absent is
 # simply never installed and the tables half of this driver says nothing --
-# "a README with ten of eleven installed looks exactly like a README with
+# "a run file with ten of eleven installed looks exactly like one with
 # eleven", which is what the header opens by warning about and what this
-# loop was doing. The README's own block leads are the roster to check
+# loop was doing. The file's own block leads are the roster to check
 # against: one bolded lead per class, and a lead with no JSON is a table
 # that will not be written. Found 2026-08-16 by withholding one class JSON
 # and watching ten tables install in silence.
@@ -133,7 +141,7 @@ fi
 # the reader is RIGHT not to emit one: `--block`'s per-shape paragraph is
 # guarded by len(shapes) > 2. The computed-paragraph block below met that as
 # `--block emitted no per-shape` and exited 1 -- AFTER the eleven tables had
-# been written, so the README was left carrying fresh tables over stale
+# been written, so the file was left carrying fresh tables over stale
 # computed paragraphs, at exit 1, and the message blamed the reader's output
 # format for what the reader correctly does. Not hypothetical: five class
 # blocks were two-shape when last written, which is the state the block
@@ -163,7 +171,7 @@ HAND=""
 install () {   # $1 = json, $2.. = mode
   local f=$1; shift
   local err
-  err=$(./read-run.py "$f" "$@" --in-place --readme "$DOC" 2>&1 >/dev/null)
+  err=$(./read-run.py "$f" "$@" --in-place --run-doc "$DOC" 2>&1 >/dev/null)
   if [ $? != 0 ]; then
     echo "  !! $f $* REFUSED:"
     printf '%s\n' "$err" | sed 's/^/       /'
@@ -199,7 +207,8 @@ for c in $CLASSES; do install "$c" --block; done
 # its own line is not a table to count, and what it prints when it inserts
 # a missing reading is a notice rather than hand-work.
 echo "=== installing the claims section's readings"
-CERR=$(./read-run.py "$MAIN" --claims --in-place --readme "$DOC" 2>&1 >/dev/null)
+CERR=$(./read-run.py "$MAIN" --claims --in-place --run-doc "$DOC" \
+         2>&1 >/dev/null)
 if [ $? != 0 ]; then
   echo "  !! $MAIN --claims REFUSED:"
   printf '%s\n' "$CERR" | sed 's/^/       /'
@@ -259,10 +268,13 @@ done = 0
 for n, (c, start) in enumerate(reversed(order)):
     k = [x for x, _ in order].index(c)
     # The LAST block ends at the next heading, not at the end of the file.
-    # It used to run to len(paras), and `### Provenance` sits right after
+    # It used to run to len(paras), and `### Provenance` sat right after
     # the last class block -- so a paragraph opening `Provenance:` in the
     # section of that name would have been silently rewritten with the
-    # last class's elapsed and heap line. Non-vacuous 2026-08-16, both
+    # last class's elapsed and heap line. That section is README.md's now
+    # and the class blocks close the run file, so the guard has no live
+    # subject here; it stays because the next heading added below them
+    # would have one and nothing would say so. Non-vacuous 2026-08-16, both
     # ways over a copy carrying such a sentence: the committed version
     # replaced it with `scaled`'s provenance and this one leaves it. The
     # first attempt at that control proved nothing -- the old script was
@@ -330,7 +342,7 @@ for n, (c, start) in enumerate(reversed(order)):
                 .replace(" (copy from the process's stderr line)", ''))
     # The four fills above are unasserted replaces against wording
     # `read-run.py` owns, so a reworded emit would install the literal
-    # `___` into the README at exit 0, and nothing sweeps for it the way
+    # `___` into the run file at exit 0, and nothing sweeps for it the way
     # `check_doc` sweeps a published `?`. 2026-08-17.
     if '___' in ctrl or '___' in prov:
         print(f'  REFUSED {c}: a `___` placeholder survived the fill, so the'

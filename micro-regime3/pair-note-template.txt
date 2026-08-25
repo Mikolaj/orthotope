@@ -39,7 +39,7 @@ BASIS and OTHER in all four scripts that take a run -- run-major.sh,
 run-gate.sh, smoke-sweep.sh and install-tables.sh, the last carrying BASIS
 alone; check them rather than assuming, and say here that you did. The one
 that is easiest to leave is install-tables.sh, which is the one that writes
-eleven tables into the README.
+eleven tables into the run's own file.
 
 NAMING THE HALVES: neither name may begin with the other's followed by a
 hyphen. install-tables.sh finds the basis's class JSONs by globbing
@@ -61,9 +61,9 @@ the figures are about.
 REGISTERED BEFORE IT RAN, and in TWO places rather than one, which this
 line used to say was all one: the PREDICTION lives in the open list, as
 `What Run NN is built to answer, registered before it runs` at
-README.md#what-is-open -- that is where Run 15's is -- while
-README.md#what-run-nn-compares-against carries the regime, the roster, the
-basis and what the pair varies. A note that names only the second sends
+README.md#what-is-open -- that is where Run 15's is -- while the run's own
+file, under `What the next run compares against`, carries the regime, the
+roster, the basis and what the pair varies. A note that names only the second sends
 the next session to a section its prediction is not in.
   - each prediction, with what would kill it, in the open list. NAME the
     entry here; do NOT copy it. Two copies of a registration is one copy
@@ -98,7 +98,7 @@ HOW EACH HALF IS BUILT, there being no builder here. Both from one source:
   compiler version, so it moves the day the compiler does, and it is the
   one component of a recipe a later reader cannot reconstruct: notes
   before 2026-08-16 elide it as `db-r14a/.../micro`, which is not a
-  command, in the file this README calls the only copy of both recipes.
+  command, in the file the README calls the only copy of both recipes.
 
   Say which traps this recipe hits -- -fforce-recomp and a fresh
   --builddir for a -pgma or environment change -- and give the command

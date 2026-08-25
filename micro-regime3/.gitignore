@@ -1,14 +1,20 @@
 # Nothing a run leaves belongs in git. The normal state of this directory is
-# no run artifact at all -- the numbers live in README.md and the artifacts do
-# not -- so everything here is deleted once a run is written up and the
-# deletion accepted. Three pair notes were tracked by accident before this
-# file existed, under three names as the scheme changed, and had to be taken
-# out of history; that is what this prevents.
+# no run artifact at all -- the numbers live in `runs/runNN.md` and the
+# artifacts do not -- so everything here is deleted once a run is written up
+# and the deletion accepted. Three pair notes were tracked by accident before
+# this file existed, under three names as the scheme changed, and had to be
+# taken out of history; that is what this prevents.
 #
 # The run number is what anchors these patterns: `run[0-9]*` catches the
 # binaries, the JSONs, the logs and the pair note, and leaves `run-major.sh`
 # and `run-gate.sh` alone, which a bare `run*` would not.
 run[0-9]*
+
+# The one thing carrying a run number that IS tracked: the run's write-up,
+# which is the document the artifacts are deleted in favour of. `runs/` is
+# not itself matched above -- `s` is no digit -- so a re-include reaches
+# inside it.
+!runs/run[0-9]*.md
 
 # Binaries and notes from before the run went into every name (Runs 10 and 11
 # and the probes beside them), kept here so an old artifact cannot be staged

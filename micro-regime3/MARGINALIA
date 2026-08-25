@@ -414,3 +414,63 @@ caught it was one question about whether the obvious fix would work.
   6. *The redirect's candidates.* **HELD.** `--fingerprint --classes` reports the same six arms as the membership --- `mut-flat-gm`, `build`, `mut-odo`, `bq-scan-rem-gm-mulback`, `bq-mut-runs` and `bq-mut-runs-gm-mulback` --- which is Run 16's set exactly, though the order of shapes led differs. On the five shapes where Run 16 put the outside-family leader more than a floor ahead: `stretch-pow2stride` still goes to `bq-mut-runs`, and `reshape1-r3` and `window-64x64-k1x9` still to `mut-flat-gm`. On `stretch-inner1` and `reshape1-500k` the printed leader flips to `bq-mut-runs-gm-mulback` by **one thousandth**, 0.030 against 0.031, which is a sort-settled tie inside any floor here and not a hand-change --- and Run 16 printed those two arms tied at 0.030 and 0.031 on the same shapes. So the candidate set is a property of the strides so far, and the predicate still waits for Run 18.
 
   **Registered with the pair, out of the probe budget after the write-up, each on the basis binary and none needing a build --- and all five are now spent.** *The alone legs* ran with the evening, 54 single-bench processes over the two halves at loadavg 0.10: they put the two halves level alone at 0.9983, and the in-process deflation at **+11.51%** on the basis and **+11.62%** on the control over all 24 shapes, 23 of 24 above 1 in each and the largest on `stretch-tall-Mx2` at 1.2235 and 1.2109 --- against **+11.80%** for Run 16 over the same 24 shapes, which `--deflation` reads off that run's own legs. (Run 16's chapter quotes +11.43%, but over its sixteen no-span shapes; this write-up first held its 24-shape figure against that one, which is a different population.) The two halves agreeing to a tenth of a point is what says the instrument's between-sample allocation does not deepen the state. Both are raw slope against raw slope, an alone leg carrying no `sum-only` bench to correct with. The three anchors repeat across their second rep to within 1.22% and 0.89%. *The fixed-n rider* --- DRY-RUN 2026-08-22 on `run16-a32m` and re-aimed by it onto `list` against the alone leg and the two `sum-only` arms against the roster, the placement-exposed arms excluded --- was taken on this pair's basis after the write-up and **HELD**: three anchors by three arms, each cell two fresh processes at `-n 2N` and `-n N`, `run17-fixedn.log`. `list` reads **0.9962, 1.0122 and 0.9922** of its own alone leg on `cnn-slice-c32`, `cifar-L2-16-c64-k3` and `stretch-wide-2xM`; `sum-only-early` reads 0.9963, 1.0110 and 0.9957 of its roster slope and `sum-only-late` 1.0073, 1.0033 and 1.0044. All nine are inside 1.3% and every one is inside the floor, and wall time agrees with user plus system to within 0.19% on every cell --- so **criterion's estimator is not where the contexts differ**, on a route that shares no code with the reader and owes its sampling nothing. *The per-process floor* HELD, *the 24m/48m probe* was KILLED and *the counted-work pilot* refused the switch to counts, all three taken on `run16-a32m` ahead of the pair; their readings are below and are not re-taken here.
+
+2026-08-25. The run-file split. Four things learned in the doing, each
+already a rule somewhere and none of them archaeology anybody would want in
+an instruction.
+
+The corpus wrote eleven tables into the live `runs/run19.md` and nothing
+said so. `--in-place` had taken `--readme`, and every case drives the
+installers by pointing that at a copy; when the installs moved to
+`--run-doc` the flag went on being accepted and the install quietly found
+the newest file in `runs/` instead. `check-scripts.py` ends by diffing `git
+status --porcelain` against its start and did not see it either, the file
+being untracked at both readings. What caught it was the `?` gate on a
+published cell, three rows later, in an unrelated run of `--check-doc`.
+
+`--audit` was green before and is green after, and 22 cases lost their bug
+verdict in between. Replaying the README of the day was tried first, on the
+five cases whose plants are README-only, and it does not reach them: an era
+README carries era FIGURES, so a fixture anchored on a figure this run's
+write-up put there will not build against it. The other seventeen carry a
+flag no older reader accepts, or take a document they cannot be aimed at.
+So the mechanism the file already had for this is narrower than its own
+docstring implies -- it works where a fixture's anchor is a convention and
+not where it is a number.
+
+`.gitignore`'s `run[0-9]*` matched `runs/run19.md`, which is the one thing
+carrying a run number that is now tracked. `git add` refused it and said
+so, which is the good failure; the re-include below it is `!runs/run[0-9]*.md`
+and works because `runs` is not itself matched -- `s` is no digit.
+
+The check that was supposed to catch a paragraph left standing from the
+previous run had been going quiet exactly when a session most wanted it: it
+compared the working README against `git show HEAD:README.md`, so committing
+the write-up turned it off, and it said `there is no previous run to hold it
+to` and passed. Two files made it a diff between two paths and the git
+dependency went with it. That is written up beside the check; what is here
+is that nobody had noticed the silence, and the case that covers it
+(`chapter-head-carries-a-previous-run`) had been passing all along by
+renumbering a heading in a copy of the committed file, which is a state no
+real write-up is ever in.
+
+2026-08-25, later. Two more from the same evening, both found by using the
+thing rather than by reading it.
+
+`--replace` swallowed eight items of the non-urgent TODO list. The anchor was
+the FIRST item's lead, which the existing refusal deliberately exempts on the
+theory that quoting a list from its start is what a caller replacing all of it
+would do; it is also exactly what a caller editing the first item does. The
+echo printed `8859 chars -> 656` and was read past, which is the second time
+that echo has said the right thing to somebody not looking at it. The
+discriminator that went in is the replacement, not the anchor: a caller who
+means the list hands a list back.
+
+The independent checker earned its cost again, and the highest-yield thing it
+found was not in the diff at all: `[the 1.85x](#results)` had been in README
+since Run 10, pointing at a section whose live figure is 1.79x -- stated three
+paragraphs above the link, in the same section. Every anchor check passed it
+for nine write-ups because the anchor resolved. What the split did was turn it
+into a cross-file promise, which is what made it visible. Two of its other
+findings were the same shape: a "five things" that README's own sentence calls
+six, and a rule cited as README's that is the run file's only copy.

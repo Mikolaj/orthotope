@@ -323,7 +323,7 @@ if [ "$BAD" -eq 0 ] && [ "$SHORT" = 0 ] && [ "$NOISY" = 0 ] \
    && [ "$WILD_PLATEAU" = 0 ]; then
   echo "every process gated clean. The worst cells above are yours to read:"
   echo "  a pair inside the floor with a cell an order of magnitude outside"
-  echo "  it is a finding, not noise, and the floor goes in the chapter head"
+  echo "  it is a finding, not noise, and the floor goes in the run file's head"
 else
   # The processes that landed are still gated and their verdicts still
   # printed -- whether the nine that ran are sound is what says to resume

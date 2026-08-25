@@ -25,12 +25,18 @@ WHERE YOU ARE. Work in /home/mikolaj/r/orthotope/micro-regime3. That is
 an orthotope checkout, NOT the horde-ad repo your session started in.
 Your evidence is this run's own JSON artifacts in that directory and
 the reader ./read-run.py there, and NOTHING ELSE. No other
-repository's checkers, linters or conventions come near this README --
-they carry a per-repo configuration and will report correct names as
-missing. Do not edit any file. Read and compute only.
+repository's checkers, linters or conventions come near these two
+documents -- they carry a per-repo configuration and will report correct
+names as missing. Do not edit any file. Read and compute only.
 
-THE DIFF:  git -C /home/mikolaj/r/orthotope diff PRETIP..HEAD -- micro-regime3/README.md
-If the README was normalised or rewrapped in that range the diff is
+TWO DOCUMENTS, and the run's numbers are in the second: README.md is what
+stands between runs, and runs/run<N>.md is this run's write-up entire --
+its head, Results, what the next run compares against, the claims it
+should test and the eight class blocks. A run replaces that file and
+edits README.md around it, so the diff spans both.
+
+THE DIFF:  git -C /home/mikolaj/r/orthotope diff PRETIP..HEAD -- micro-regime3/README.md micro-regime3/runs
+If either document was normalised or rewrapped in that range the diff is
 mostly character-level; ignore that and judge the substance.
 
 FOUR THINGS YOU CANNOT DERIVE, so they are given:
@@ -94,9 +100,9 @@ attribution the correction falsified.
 === THE COMPREHENSION PROBE (a DIFFERENT agent, once the README settles) ===
 
 It must be uncontaminated: a fresh agent, never the checker, which has
-seen everything. It reads the README and nothing else -- no reader, no
-JSONs, no other repo -- and answers the README's own questions with
-citations, quoting the sentence and naming its section.
+seen everything. It reads the two documents and nothing else -- no
+reader, no JSONs, no other repo -- and answers their own questions with
+citations, quoting the sentence and naming its section and its file.
 
 Ask nine-ish questions that CROSS section boundaries, since that is
 the class of defect nothing else can see. The ones that earned their

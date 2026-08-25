@@ -158,19 +158,21 @@ Modes:
                     the BOX changed rather than the code; exits nonzero
                     when the whole baseline moved
   --cells           every cell as TSV, for anything not covered above
-  --markdown        README's Results table, numbers recomputed and the
-                    editorial column carried over from the one there --
+  --markdown        the run file's Results table, numbers recomputed and
+                    the editorial column carried over from the one there --
                     six columns instead for a stride-class run, and none
                     at all for a run spanning two populations
-  --fingerprint     the kept per-shape record (What Run N compares
+  --fingerprint     the kept per-shape record (What the next run compares
                     against): dims, `list`'s net per call, and the
-                    fingerprint arms' net ratios, as two README tables
+                    fingerprint arms' net ratios, as two tables
   --block           a stride-class block's mechanical parts in the form's
                     order: table, controls, provenance/anchor skeleton,
                     a three-shape population's per-shape line, and the
                     three properties' verdicts derived rather than eyeballed
   --in-place        with --markdown, --fingerprint or --block, install the
-                    tables into README instead of printing them: matched by
+                    tables into the RUN'S file instead of printing them --
+                    never into README.md, which carries none of them:
+                    matched by
                     whole line, count asserted, a class table narrowed by
                     its block's lead, and refusing rather than guessing
   --exclude S       drop strategy S from every aggregate (repeatable)
@@ -186,12 +188,16 @@ Modes:
   --brief           with --aa or --block, drop the standing explanation and
                     the table --in-place installs anyway; every computed
                     figure still prints
-  --check-doc       anchors, the paths the document names, replace-list
+  --check-doc       anchors, the paths the documents name, replace-list
                     coverage, widths, and a sweep of the superseded figures
-                    still quoted, in README prose and Main.hs comments
-                    alike -- no run needed
-  --para PATTERN    print README paragraphs whose bolded lead matches, with
-                    the line each starts at -- no run needed
+                    still quoted -- over README.md AND the run's own file
+                    together, and over Main.hs comments -- no run needed
+  --para PATTERN    print the paragraphs whose bolded lead matches, from
+                    either document, with the file and line each starts
+                    at -- no run needed
+  --run-doc FILE    the run's own file, `runs/run<N>.md`, which carries
+                    everything a run replaces and is what every --in-place
+                    install writes; defaults to the newest in runs/
 
 A run artifact is made when a question needs it, and kept while questions
 keep coming back to it. That is also when this script runs, so it is written
@@ -963,8 +969,25 @@ CLASS_HDR = '| strategy | time | worst | CI% | smp | alloc |'
 RESULTS_HDR = '| strategy | time | worst | CI% | smp | alloc | needs |'
 
 
+def want_run_doc(args):
+    """The run file, or a refusal naming what is missing.
+
+    Twelve sites read or write it and none may fall back to README.md: a
+    run's tables and its claims readings live in `runs/run<N>.md` and
+    nowhere else, so an absent file is a refusal and never a table
+    installed over standing prose. `--in-place` with no run file is how
+    that would have happened.
+    """
+    if args.run_doc:
+        return args.run_doc
+    sys.exit("no run file: this mode reads or writes `%s/run<N>.md`, which"
+             " carries the Results table, the fingerprint, the claims"
+             " readings and the class blocks, and that directory holds"
+             " none. Make the file, or name it with --run-doc." % RUNS_DIR)
+
+
 def readme_rows(readme, strategies, recognise=None):
-    """README's Results table, keyed by strategy: (label, style, needs).
+    """The run file's Results table, by strategy: (label, style, needs).
 
     Only the rightmost column and the emphasis are read. Those are editorial
     -- which tier a strategy needs, which rows the prose calls out -- and no
@@ -1189,7 +1212,7 @@ def emit_or_install(text, args, shapes, meta, block=False):
     if not tables:
         sys.exit('--in-place: this mode emitted no table')
     for table in tables:
-        install(args.readme, table, args.run, after)
+        install(want_run_doc(args), table, args.run, after)
     if block:
         sys.stderr.write('the block\'s prose is yours: controls, provenance'
                          ' and the paragraph are not installed\n')
@@ -1199,7 +1222,7 @@ def emit_or_install(text, args, shapes, meta, block=False):
 
 
 def markdown_table(cells, shapes, strategies, meta, args, terms):
-    """Emit README's Results table, ready to paste over the one there.
+    """Emit the run file's Results table, ready to paste over the one there.
 
     The numbers come from `strategy_rows`, the same call the terminal table
     renders, so the two cannot disagree; what a run cannot know is carried
@@ -1240,7 +1263,7 @@ def markdown_table(cells, shapes, strategies, meta, args, terms):
     # Read the table by the ROSTER, not by this run's arms, so that a row the
     # run has dropped is still seen and can be reported. See `readme_rows`.
     rostered = {n for n, _, _ in meta['roster']} or set(strategies)
-    prev = readme_rows(args.readme, set(strategies),
+    prev = readme_rows(want_run_doc(args), set(strategies),
                        rostered or set(strategies))
     fresh, gone = [], [n for n in prev if n not in strategies]
     print(RESULTS_HDR if editorial else CLASS_HDR)
@@ -1275,8 +1298,10 @@ def markdown_table(cells, shapes, strategies, meta, args, terms):
     if fresh:
         sys.stderr.write('warning: %d row(s) new since the table in %s, with'
                          ' needs left as `?` for you to write:'
-                         ' %s\n' % (len(fresh), os.path.basename(args.readme),
-                                    ', '.join(fresh)))
+                         ' %s\n'
+                         % (len(fresh),
+                            os.path.basename(args.run_doc or ''),
+                            ', '.join(fresh)))
     if gone and editorial:
         sys.stderr.write('warning: %d row(s) in that table are absent from'
                          ' this run and have been dropped; check the prose'
@@ -3148,10 +3173,10 @@ def cell_dump(cells, shapes, strategies):
                      'NA' if c['alloc'] is None else '%.4f' % c['alloc']))
 
 
-# The per-shape record README keeps between runs, in the two-table form
-# What Run N compares against pastes whole: one table over the main set,
-# and since 2026-08-22 one over every stride-class shape with the same
-# columns, emitted together when `--classes` names the class JSONs.
+# The per-shape record a run file keeps, in the two-table form
+# `What the next run compares against` pastes whole: one table over the
+# main set, and since 2026-08-22 one over every stride-class shape with
+# the same columns, emitted together when `--classes` names the class JSONs.
 # Membership mirrors that section's rule as re-aimed that day --
 # `mut-odo-vecdims` and every arm that is the best OUTSIDE the vecdims
 # family on at least one shape of the main set or a class -- and it only
@@ -3547,7 +3572,7 @@ def claims_table(cells, shapes, strategies, args):
           '\na movement clears the floor, are still the reading\'s to say.')
 
 
-CLAIMS_HEAD = re.compile(r'#+ The claims Run \d+ should test')
+CLAIMS_HEAD = re.compile(r'#+ The claims the next run should test')
 CLAIMS_FIG = re.compile(r'\b\d+(?:\.\d+)?e-\d+\b|\b\d+\.\d{2,4}\b'
                         # `3 of 3 registered orderings held` is the installed
                         # line's verdict, not one of its win counts.
@@ -3784,8 +3809,7 @@ def claims_in_doc(readme, cells, shapes, strategies, src, main_hs):
     # and they quote figures too -- the movement that is the run's reading.
     # They are read against every claim's figures rather than one's.
     every = set().union(*readings.values()) if readings else set()
-    now = re.search(r'^## About the last run \(Run (\d+)\)$', doc, re.M)
-    past_re = claims_past(int(now.group(1)) if now else None)
+    past_re = claims_past(run_no_of(readme))
     # A RETIREMENT EPITAPH IS ATTRIBUTED, not unaccounted. A claim leaving
     # the manifest takes its pair with it, so every figure in the sentence
     # recording what it last read becomes a figure this mode cannot
@@ -4078,7 +4102,7 @@ def table_leaders(cells, shapes, strategies, args):
     if not have_list:
         return None
     needs = {st: n for st, (_, _, n)
-             in readme_rows(args.readme, strategies).items()}
+             in readme_rows(want_run_doc(args), strategies).items()}
     timed = [r for r in rows if not is_control(r.st) and r.time == r.time]
     return LEADERS(rows, needs, timed,
                    [r for r in timed if not r.st.startswith(FAMILY)],
@@ -4139,7 +4163,7 @@ def summary_row(cells, shapes, strategies, args, main_hs):
             '%s %.3f' % (timed[0].st, timed[0].time),
             '%.2f%%' % (abs(aa_floor(aa).g - 1) * 100)]
     try:
-        doc = open(args.readme).read()
+        doc = open(want_run_doc(args)).read()
     except OSError as exc:
         sys.stderr.write('summary row `%s` not checked: %s\n' % (label, exc))
         return
@@ -4147,7 +4171,8 @@ def summary_row(cells, shapes, strategies, args, main_hs):
     if len(hit) != 1:
         sys.stderr.write('summary row `%s` not checked: %d line(s) in %s'
                          ' start it, need exactly one\n'
-                         % (label, len(hit), os.path.basename(args.readme)))
+                         % (label, len(hit),
+                            os.path.basename(args.run_doc or '')))
         return
     got = [c.replace('**', '').replace('`', '').strip()
            for c in hit[0].strip('|').split('|')][1:]
@@ -4211,7 +4236,7 @@ def lead_shapes(shapes, args, main_hs):
                          % (label, len(shapes), len(whole)))
         return
     try:
-        doc = open(args.readme).read()
+        doc = open(want_run_doc(args)).read()
     except OSError as exc:
         sys.stderr.write('lead `%s` not checked: %s\n' % (label, exc))
         return
@@ -4223,7 +4248,8 @@ def lead_shapes(shapes, args, main_hs):
     if len(hit) != 1:
         sys.stderr.write('lead `%s` not checked: %d paragraph(s) in %s open'
                          ' it, need exactly one\n'
-                         % (label, len(hit), os.path.basename(args.readme)))
+                         % (label, len(hit),
+                            os.path.basename(args.run_doc or '')))
         return
     text = ' '.join(hit[0].split())
     if 'Shapes:' not in text:
@@ -4375,7 +4401,7 @@ def extremes_table(paths, main_hs, args):
 
 def block_skeleton(cells, shapes, strategies, meta, args, terms):
     """A stride-class block's mechanical parts in one place, in the form's
-    order (README.md#the-stride-classes-run-by-run): the six-column table,
+    order, which the run file's class section keeps: the six-column table,
     the controls off the same computation `--aa` prints, the provenance
     and anchor skeleton -- elapsed time and heap peaks left blank, to be
     copied from the process's stderr line rather than guessed -- and, for
@@ -4420,7 +4446,7 @@ def block_skeleton(cells, shapes, strategies, meta, args, terms):
           % (fmt_abs(cells[anchor]['list']['slope']),
              fmt_abs(cells[anchor]['list']['net'])))
     if len(shapes) > 2:
-        rows = readme_rows(args.readme, strategies)
+        rows = readme_rows(want_run_doc(args), strategies)
         bold = [st for st in strategies
                 if rows.get(st, ('', '', ''))[1] == 'bold']
         print()
@@ -4849,6 +4875,76 @@ def headings_of(text):
     return out
 
 
+RUNS_DIR = 'runs'
+RUN_DOC_RE = re.compile(r'^run(\d+)\.md$')
+
+
+def run_docs(here=None):
+    """Every `runs/run<N>.md` as (N, path), newest run first.
+
+    ONE FILE PER RUN, and the number in the file name and in no heading:
+    the run file's sections are `Results`, `What the next run compares
+    against`, `The claims the next run should test` and `The stride
+    classes, run by run`, none of which carries a numeral, so a write-up
+    makes a file and renames one heading -- `Recommended tasks after Run
+    N`, which is the open list's and stays in README.md. Four renames were
+    what step 5 used to be, and Run 9 left eleven dead anchors doing them.
+
+    The directory accumulates, which is what gives the checks two files to
+    compare: a paragraph a run left standing is one identical in the file
+    beside it, where it used to be identity against `git show HEAD:` --
+    a comparison that said nothing at all once the write-up was committed.
+    """
+    at = here or os.path.dirname(os.path.abspath(__file__))
+    out = []
+    try:
+        names = os.listdir(os.path.join(at, RUNS_DIR))
+    except OSError:
+        return []
+    for name in names:
+        m = RUN_DOC_RE.match(name)
+        if m:
+            out.append((int(m.group(1)), os.path.join(at, RUNS_DIR, name)))
+    return sorted(out, reverse=True)
+
+
+def current_run_doc(here=None):
+    """The file every table and every claim reading is installed into."""
+    docs = run_docs(here)
+    return docs[0][1] if docs else None
+
+
+def previous_run_doc(run_doc):
+    """The run before `run_doc`, in whatever directory that one sits in.
+
+    Beside it rather than in this script's own `runs/`, so that `--run-doc`
+    aims the comparison as it aims everything else: a caller pointing at a
+    copy is asking about the copy's neighbours, and answering out of the
+    live directory would hold a fixture to the real previous run.
+    """
+    now = run_no_of(run_doc)
+    if now is None:
+        return None
+    at = os.path.dirname(os.path.abspath(run_doc))
+    best = None
+    try:
+        names = os.listdir(at)
+    except OSError:
+        return None
+    for name in names:
+        m = RUN_DOC_RE.match(name)
+        if m and int(m.group(1)) < now and (best is None
+                                            or int(m.group(1)) > best[0]):
+            best = (int(m.group(1)), os.path.join(at, name))
+    return best[1] if best else None
+
+
+def run_no_of(path):
+    """The run number a run file's NAME carries, or None."""
+    m = RUN_DOC_RE.match(os.path.basename(path or ''))
+    return int(m.group(1)) if m else None
+
+
 
 
 # Where a named path may live. This directory first, then the orthotope
@@ -5123,30 +5219,13 @@ def head_text_of(path):
         return None
 
 
-def chapter_head_blocks(text):
-    """The run chapter's own paragraphs: its heading to the first `###`.
-
-    Not the whole chapter, which runs to the end of the document and
-    holds the column definitions, the class-block form and the replace
-    list -- all of which deliberately outlive a run and would make this
-    check a wall. What is scoped here is the part whose closing sentence
-    says every word of it is replaced by the next run.
-    """
-    m = re.search(r'^## About the last run \(Run \d+\)$', text, re.M)
-    if not m:
-        return None
-    rest = text[m.end():]
-    nxt = re.search(r'^#{1,3} ', rest, re.M)
-    return blocks_of(rest[:nxt.start()] if nxt else rest)
-
-
 def replaced_section_blocks(text, covered):
     """Figure-bearing blocks of the sections the replace list names.
 
-    Keyed exactly as `chapter_head_blocks` keys the chapter's own, and for
-    the same reason: a block's key is its text with whitespace collapsed,
-    a fixed point of wrapping and of nothing else, so *unchanged* means
-    unchanged and never merely re-wrapped.
+    Keyed as `check_doc` keys the run file's own, and for the same
+    reason: a block's key is its text with whitespace collapsed, a fixed
+    point of wrapping and of nothing else, so *unchanged* means unchanged
+    and never merely re-wrapped.
 
     THIS IS THE CHAPTER-HEAD CHECK APPLIED WIDER, and it exists because
     the narrow one was the only thing that worked. Run 19 rewrote the
@@ -5164,9 +5243,10 @@ def replaced_section_blocks(text, covered):
     the committed copy has no such problem, because a paragraph a run
     replaced is not identical to the one it replaced.
 
-    Scoped OUT is what a run does not replace: headings, table rows,
-    indented blocks, and the chapter head, which has its own check two
-    paragraphs up and would otherwise be reported twice.
+    Scoped OUT is what a run does not replace: headings, table rows and
+    indented blocks. The run's own file is out of scope too, and by
+    construction -- these are README.md's sections, and the run file is
+    held to its predecessor rather than to a committed copy.
     """
     out = []
     if not covered:
@@ -5177,7 +5257,7 @@ def replaced_section_blocks(text, covered):
         body = parts[i + 1] if i + 1 < len(parts) else ''
         t = re.sub(r'[`*_]', '', head.lstrip('# ').strip().lower())
         slug = re.sub(r'[^a-z0-9 -]', '', t).strip().replace(' ', '-')
-        if slug not in covered or slug.startswith('about-the-last-run'):
+        if slug not in covered:
             continue
         for key, lines in blocks_of(body):
             first = lines[0]
@@ -5191,8 +5271,8 @@ def replaced_section_blocks(text, covered):
 def held_in_reworked_sections(now, was, covered, churn=0.5):
     """Blocks a run left standing in a section it otherwise rewrote.
 
-    Identity against the committed copy, as `chapter_head_blocks` does it,
-    scoped by how much of each section the run actually reworked. Sections
+    Identity against the committed copy, scoped by how much of each
+    section the run actually reworked. Sections
     a run replaces wholesale run 67% to 100% new and normally hold nothing
     of the previous run's; the reference chapters -- the open list, the
     placement chapter, the ceiling ruling -- run 0% to 11% new, and what
@@ -5257,7 +5337,7 @@ LEAD_RE = re.compile(r'\*\*(.+?)\*\*', re.S)
 PARA_BODY_CAP = 6
 
 
-def splice(readme, anchor, source):
+def splice(docs, anchor, source):
     """Replace the paragraph carrying `anchor` with the text in `source`.
 
     The write-up's edits are exact-match replacements, and a session
@@ -5290,13 +5370,33 @@ def splice(readme, anchor, source):
     an edit made against an unwrapped file leaves that paragraph on one
     line, which is what the wrap gate reports as mid-edit and not as a
     failure.
+
+    **BOTH DOCUMENTS ARE SEARCHED**, README.md and the run's own file, and
+    the count that has to be 1 is the count across the pair. A caller
+    naming a paragraph does not know which file holds it -- that is the
+    search this mode exists to replace -- and an anchor that occurs in both
+    is refused naming each, which is the state a phrase shared between
+    standing prose and a run's write-up puts it in.
     """
-    doc = open(readme).read()
-    n = doc.count(anchor)
-    if n != 1:
-        sys.stderr.write('--replace: the anchor occurs %d times, need 1 --'
-                         ' quote more of the sentence\n' % n)
+    if isinstance(docs, str):
+        docs = [docs]
+    seen = []
+    for path in docs:
+        try:
+            text = open(path).read()
+        except OSError as e:
+            sys.stderr.write('--replace: %s\n' % e)
+            return 2
+        seen.append((path, text, text.count(anchor)))
+    total = sum(k for _, _, k in seen)
+    if total != 1:
+        sys.stderr.write('--replace: the anchor occurs %d times across %s,'
+                         ' need 1 -- quote more of the sentence\n'
+                         % (total, ', '.join('%s (%d)'
+                                             % (os.path.basename(p), k)
+                                             for p, _, k in seen)))
         return 1
+    readme, doc, _ = next(t for t in seen if t[2])
     paras = doc.split('\n\n')
     hit = [i for i, q in enumerate(paras) if anchor in q]
     if len(hit) != 1:
@@ -5324,6 +5424,34 @@ def splice(readme, anchor, source):
             % len(items))
         return 1
     new = open(source).read().strip('\n')
+    # AND THE OTHER HALF OF THAT, which the guard above has the wrong
+    # premise about. It exempts an anchor in the FIRST item, on the theory
+    # that quoting a list from its start is what a caller replacing the
+    # whole list would do -- and it is also exactly what a caller EDITING
+    # THE FIRST ITEM does. Measured 2026-08-25 on this README's non-urgent
+    # TODO list: an anchor naming its first entry replaced all nine items
+    # with one, 8859 characters for 656, at exit 0, with the echo below
+    # saying so and read past. What separates the two intentions is the
+    # REPLACEMENT: a caller who means the list hands a list back. Dropping
+    # a spent item is still allowed -- the post-run procedure removes a
+    # spent task from exactly such a list every run -- and so is replacing
+    # a whole list with prose, which is what the control beside this case
+    # asserts. What is refused is the ONE shape the two intentions differ
+    # in: a replacement that is ITSELF a list item and carries fewer items
+    # than the paragraph, which is a caller editing one item and nothing
+    # else. Cases: `replace-shrinks-a-list-to-one-item`, and the two
+    # controls `replace-takes-a-whole-list-for-a-whole-list` and
+    # `replace-a-whole-list-from-its-first-item`.
+    ITEM = r'\s*(?:\d+\.|[-*])\s'
+    new_items = [l for l in new.split('\n') if re.match(ITEM, l)]
+    if (len(items) > 1 and len(new_items) < len(items)
+            and re.match(ITEM, new.split('\n')[0])):
+        sys.stderr.write(
+            '--replace: this paragraph is a %d-item list and the replacement'
+            ' carries %d item(s), so the rest would go with it -- pass the'
+            ' whole list as the replacement, or edit the one item in place\n'
+            % (len(items), len(new_items)))
+        return 1
     ol, nl = old.split('\n'), new.split('\n')
     print('--replace: %d chars -> %d, in %s'
           % (len(old), len(new), os.path.basename(readme)))
@@ -5337,7 +5465,7 @@ def splice(readme, anchor, source):
     return 0
 
 
-def paragraphs(readme, pattern, every=False):
+def paragraphs(docs, pattern, every=False):
     r"""Print the paragraphs whose BOLDED LEAD matches, and their line numbers.
 
     Retrieval, so that reading a paragraph does not mean finding it first.
@@ -5384,19 +5512,30 @@ def paragraphs(readme, pattern, every=False):
     hand-rolled slice in the first place, now returns by body and exits 0;
     `'therefore'` matches 15 bodies, prints 6 and says 9 were dropped; and a
     pattern in neither lead nor body prints the no-match line and exits 1.
+
+    **BOTH DOCUMENTS**, README.md and the run's own file, searched in that
+    order and each hit labelled with the file it is in. Which of the two
+    holds a paragraph is exactly what a caller does not know and must not
+    have to find out first.
     """
-    try:
-        lines = open(readme).read().split('\n')
-    except OSError as e:
-        sys.stderr.write('--para: %s\n' % e)
-        return 2
+    if isinstance(docs, str):
+        docs = [docs]
     rx = re.compile(pattern, re.I)
-    paras = list(unwrapped_paragraphs(lines))
+    paras = []
+    for path in docs:
+        try:
+            lines = open(path).read().split('\n')
+        except OSError as e:
+            sys.stderr.write('--para: %s\n' % e)
+            return 2
+        paras += [(path, first, para)
+                  for first, para, _ in unwrapped_paragraphs(lines)]
     lead_hits = []
-    for first, para, _ in paras:
+    for path, first, para in paras:
         lead = LEAD_RE.search(para)
         if lead and rx.search(' '.join(lead.group(1).split())):
-            lead_hits.append((first, para, ' '.join(lead.group(1).split())))
+            lead_hits.append((path, first, para,
+                              ' '.join(lead.group(1).split())))
     # ONE MATCH PRINTS WHOLE; SEVERAL PRINT AN INDEX. Retrieval is what this
     # mode is for, and a unique match is retrieved -- printing it costs the
     # caller nothing and a second call would cost a round trip for nothing.
@@ -5415,25 +5554,26 @@ def paragraphs(readme, pattern, every=False):
         print('%d paragraph(s) whose lead matches %r; --all prints them,'
               ' or narrow the pattern to one:'
               % (len(lead_hits), pattern))
-        for first, _para, lead in lead_hits:
+        for path, first, _para, lead in lead_hits:
             print('  %s:%d  %s'
-                  % (os.path.basename(readme), first, lead[:88]))
+                  % (os.path.basename(path), first, lead[:88]))
         return 0
-    for first, para, _lead in lead_hits:
-        print('%s:%d' % (os.path.basename(readme), first))
+    for path, first, para, _lead in lead_hits:
+        print('%s:%d' % (os.path.basename(path), first))
         print(para)
         print()
     if lead_hits:
         return 0
 
-    body = [(first, para) for first, para, _ in paras if rx.search(para)]
+    body = [(path, first, para) for path, first, para in paras
+            if rx.search(para)]
     if not body:
         print('no paragraph whose bolded lead or body matches %r' % pattern)
         return 1
     print('no bolded lead matches %r; falling back to the body, where %d'
           ' paragraph(s) match:' % (pattern, len(body)))
-    for first, para in body[:PARA_BODY_CAP]:
-        print('%s:%d (body)' % (os.path.basename(readme), first))
+    for path, first, para in body[:PARA_BODY_CAP]:
+        print('%s:%d (body)' % (os.path.basename(path), first))
         print(para)
         print()
     if len(body) > PARA_BODY_CAP:
@@ -5442,7 +5582,111 @@ def paragraphs(readme, pattern, every=False):
     return 0
 
 
-def check_doc(readme, main_hs):
+def wrap_verdict(path, cur, bad, note):
+    """Is one document as `wrap80` leaves it, paragraph by paragraph.
+
+    ASKED OF EACH DOCUMENT SEPARATELY, README.md and the run's file,
+    because being wrapped is a property of a file and the joined pair is
+    not one: the two ends meet at a blank line that neither file has and
+    neither would produce.
+    """
+    try:
+        want = subprocess.run(['wrap80', path], capture_output=True,
+                              text=True, check=True).stdout
+        flat = subprocess.run(['wrap80', '--unwrap', path],
+                              capture_output=True, text=True,
+                              check=True).stdout
+    except OSError:
+        # A check that did not run must not read as one that passed.
+        bad.append('BLOCKED: wrap80 is not on PATH, so the wrapping of'
+                   ' %s was not checked at all' % os.path.basename(path))
+    except subprocess.CalledProcessError as e:
+        bad.append('BLOCKED: wrap80 failed (%d), so the wrapping of %s'
+                   ' was not checked at all'
+                   % (e.returncode, os.path.basename(path)))
+    else:
+        # `doc` was read once at the top and nothing above writes the
+        # document, so the verdict is read against it rather than through
+        # a second handle -- the wallclock_window family, 9e94c9d.
+        if want == cur:
+            note.append('no paragraph of %s is wrapped by hand'
+                        % os.path.basename(path))
+        else:
+            # Aligned by index: wrapping never adds or removes a blank line,
+            # so the three agree on how many blocks there are. Where they do
+            # not, something outside this check's subject moved one, and the
+            # whole-file comparison is the honest thing left to report.
+            #
+            # NO LIVE CONTROL, and named rather than left to look exercised:
+            # over the eleven documents of these two repos the three counts
+            # never differ, and by construction cannot, wrap80 touching no
+            # blank line. The branch earns its place anyway because `zip`
+            # truncates to the shortest -- so without it a mismatch would
+            # under-check in silence, which is the one outcome worse than
+            # reporting the whole file.
+            # Judged LINE by line inside a block, because a block is not a
+            # paragraph: a bulleted run is one block holding several, and an
+            # edit to one item leaves that block matching neither form --
+            # wrap80 would re-wrap the item, the unwrapped form would put
+            # every sibling on its own line -- so a whole-block comparison
+            # called a list mid-edit hand-wrapped and failed. A line an edit
+            # left long is one the unwrapped form has, a line the formatter
+            # would produce is in its own output, and hand-wrapping is what
+            # is in neither.
+            cp, wp, fp = (t.split('\n\n') for t in (cur, want, flat))
+            if len(cp) == len(wp) == len(fp):
+                hand, loose = [], []
+                for i, (c, w, f) in enumerate(zip(cp, wp, fp)):
+                    if c == w:
+                        continue
+                    ok = set(w.split('\n')) | set(f.split('\n'))
+                    (loose if all(l in ok for l in c.split('\n'))
+                     else hand).append(i)
+                if hand:
+                    # Summed rather than searched for: a short block can occur
+                    # as a substring of an earlier one, and `index` would then
+                    # send the reader to a paragraph that is fine.
+                    at = cur.count('\n', 0,
+                                   sum(len(b) + 2 for b in cp[:hand[0]])) + 1
+                    # Two causes, one artifact: canonical lines with a long one
+                    # among them is what an Edit mid-stretch leaves AND what
+                    # hand-lengthening leaves, so this cannot tell them apart
+                    # and must name both remedies. Naming the formatter alone
+                    # sent a session round wrap-then-edit-then-red five times
+                    # in one write-up (2026-08-16): wrapping is the fix when
+                    # the document is done, unwrapping when it is not.
+                    bad.append('%d paragraph(s) of %s are wrapped by hand --'
+                               ' first at line %d; if the document is done,'
+                               ' `wrap80 -i %s`; if you are still editing,'
+                               ' `wrap80 --unwrap -i %s` and work there.'
+                               ' Never re-wrap a line by hand'
+                               % (len(hand), os.path.basename(path), at,
+                                  os.path.basename(path),
+                                  os.path.basename(path)))
+                else:
+                    note.append('no paragraph of %s is wrapped by'
+                                ' hand; %d still on one line, so it is'
+                                ' mid-edit'
+                                % (os.path.basename(path), len(loose)))
+            else:
+                # Diffed rather than compared by position: one inserted line
+                # shifts every line under it, and reporting the whole file as
+                # changed hides the one line worth looking at.
+                d = list(difflib.unified_diff(cur.split('\n'),
+                                              want.split('\n'),
+                                              lineterm='', n=0))
+                n = sum(1 for l in d
+                        if l[:1] in '+-' and not l.startswith(('---', '+++')))
+                at = next((m.group(1) for l in d
+                           for m in [re.match(r'@@ -(\d+)', l)] if m), '?')
+                bad.append('%s is not as wrap80 leaves it and its blocks do'
+                           ' not line up with the formatter\'s (%d line(s),'
+                           ' from line %s) -- run `wrap80 -i %s`'
+                           % (os.path.basename(path), n, at,
+                              os.path.basename(path)))
+
+
+def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
     """The mechanical half of verifying the write-up, as one command.
 
     Checks that used to be as many throwaway scripts, rewritten from memory
@@ -5488,36 +5732,162 @@ def check_doc(readme, main_hs):
     form the scan reads. The yardstick check: deleting the older regime's
     column from that table failed with the regime it still named, and
     deleting the table's header failed with the other message.
+
+    TWO DOCUMENTS, read as one. The run's own write-up is
+    `runs/run<N>.md` -- the chapter head, Results, what the next run
+    compares against, the claims it should test and the eight class blocks
+    -- and README.md is what stands between runs. Nearly every check here
+    is a sweep over prose or a figure quoted in several places, and those
+    places now fall either side of the split, so the sweeps read the pair
+    joined and report `file:line`. What cannot be joined is said per
+    document: which anchors a link may reach, and whether a file is as
+    `wrap80` leaves it. A run file that is absent is a BLOCKED, never a
+    quiet pass over half the figures a run publishes.
+
+    The four checks the split brought, each broken deliberately and each
+    kept as a case in `check-scripts.py` rather than as an assertion
+    here. A run file put beside a predecessor that is it verbatim names
+    every figure-bearing paragraph of its head and exits 1
+    (`chapter-head-carries-a-previous-run`), where the same file over a
+    predecessor whose leads are marked names none, the two differing in
+    the predecessor alone (`run-file-head-new-says-nothing`). A `runs/`
+    holding one file says so in words rather than passing quietly
+    (`run-file-alone-is-held-to-nothing`). A README link renumbered to
+    the run before fails naming it, which is the one thing the four
+    heading renames became and the one thing no anchor check can see, the
+    older file being really there (`link-into-a-run-file-that-is-not-this-
+    run`). And with no run file at all -- measured by hand 2026-08-25, a
+    copy of the two documents in a directory whose runs/ is empty -- the
+    BLOCKED above heads the output and the yardstick, the Results basis
+    and the class floors each report their own absence, where the
+    concatenation without it would have exited 0 over a README alone.
     """
     try:
-        doc = open(readme).read()
+        readme_doc = open(readme).read()
         main = open(main_hs).read()
+        run_text = open(run_doc).read() if run_doc else None
+        prev_text = open(prev_doc).read() if prev_doc else None
     except OSError as e:
         sys.stderr.write('check-doc: %s\n' % e)
         return 2
+    docs = [(readme, readme_doc)]
+    if run_doc is not None:
+        docs.append((run_doc, run_text))
+    doc = '\n'.join(t for _, t in docs)
     lines = doc.split('\n')
-    anchors = headings_of(doc)
-    bad, note = [], []
+    span, at = [], 0
+    for path, t in docs:
+        k = len(t.split('\n'))
+        span.append((at, at + k, os.path.basename(path)))
+        at += k
 
-    refs = dict(re.findall(r'^\[([a-z0-9-]+)\]:\s*#([a-z0-9-]+)\s*$', doc,
-                           re.M))
-    dead = [a for a in re.findall(r'\]\(#([a-z0-9-]+)\)', doc)
-            if a not in anchors]
-    dead += ['[%s]:' % k for k, v in refs.items() if v not in anchors]
-    dead += ['%s (used, undefined)' % u
-             for u in set(re.findall(r'\]\[([a-z0-9-]+)\]', doc))
-             if u not in refs and not re.search(r'^\[%s\]:' % u, doc, re.M)]
-    dead += ['Main.hs -> ' + m for m in re.findall(r'README\.md#([a-z0-9-]+)',
-                                                   main) if m not in anchors]
+    def where(i):
+        """`file:line` for a 1-based line of the joined document."""
+        for lo, hi, name in span:
+            if lo < i <= hi:
+                return '%s:%d' % (name, i - lo)
+        return '?:%d' % i
+
+    per_doc = {path: headings_of(t) for path, t in docs}
+    anchors = {}
+    for path, _t in docs:
+        anchors.update(per_doc[path])
+    bad, note = [], []
+    if run_doc is None:
+        bad.append('BLOCKED: no run file in %s/, so the Results table, the'
+                   ' fingerprint, the claims readings and the class blocks'
+                   ' were not checked at all -- everything a run publishes'
+                   ' is in that file and none of it was read' % RUNS_DIR)
+
+    # WHERE A LINK RESOLVES DEPENDS ON WHICH FILE HOLDS IT. README.md
+    # reaches the run's file as `runs/run<N>.md#...`, the run file reaches
+    # back as `../README.md#...`, and a bare `#anchor` means the document
+    # it is written in -- so resolving against one merged anchor set would
+    # pass a link that GitHub renders dead. The third answer is the one the
+    # split adds: a link into `runs/run18.md` resolves on disk, runs/
+    # keeping every run, while promising figures this run replaced.
+    # BY THE DOCUMENT A LINK NAMES, not by where the file it is in
+    # happens to sit: a checker case points `--readme` at a copy in a temp
+    # directory, and resolving `runs/run19.md#results` against THAT
+    # directory would call every link into the run file dead. What a link
+    # names is a ROLE -- the README, this run's file, some other run's --
+    # and the role is in the name.
+    def role_of(target):
+        rel = target.partition('#')[0]
+        if not rel:
+            return 'same'
+        base = os.path.basename(rel)
+        if base == 'README.md':
+            return 'readme'
+        if re.match(r'^run\d+\.md$', base) and RUNS_DIR + '/' in rel:
+            return ('run' if run_doc is not None
+                    and base == os.path.basename(run_doc) else 'other-run')
+        return 'elsewhere'
+
+    def resolve(src, target):
+        if re.match(r'^[a-z][a-z0-9+.-]*://', target):
+            return True
+        frag = target.partition('#')[2]
+        if not frag:
+            return True
+        role = role_of(target)
+        if role == 'same':
+            return frag in per_doc[src]
+        if role == 'readme':
+            return frag in per_doc[readme]
+        if role == 'run':
+            return frag in per_doc[run_doc]
+        if role == 'other-run':
+            return None
+        return True     # another document, which `check_paths` answers for
+
+    refs, dead = {}, []
+    for src, text in docs:
+        base = os.path.basename(src)
+        mine = dict(re.findall(r'^\[([a-z0-9-]+)\]:\s*(\S+)\s*$', text,
+                               re.M))
+        refs.update(mine)
+        # A well-formed fragment only: this README quotes `](#...)` in
+        # the entry that asked for the check, and a quoted link is not one.
+        for target in re.findall(r'\]\(([^)\s]*#[a-z0-9-]+)\)', text):
+            got = resolve(src, target)
+            if got is False:
+                dead.append('%s -> %s' % (base, target))
+            elif got is None:
+                dead.append('%s -> %s (this run is %s)'
+                            % (base, target,
+                               os.path.basename(run_doc or 'absent')))
+        for k, target in sorted(mine.items()):
+            got = resolve(src, target)
+            if got is False:
+                dead.append('[%s]: %s in %s' % (k, target, base))
+            elif got is None:
+                dead.append('[%s]: %s in %s (this run is %s)'
+                            % (k, target, base,
+                               os.path.basename(run_doc or 'absent')))
+        dead += ['%s (used in %s, defined nowhere in it)' % (u, base)
+                 for u in sorted(set(re.findall(r'\]\[([a-z0-9-]+)\]',
+                                                text)))
+                 if u not in mine]
+    dead += ['Main.hs -> README.md#' + m
+             for m in re.findall(r'README\.md#([a-z0-9-]+)', main)
+             if m not in per_doc[readme]]
     me = open(os.path.abspath(__file__)).read()
-    dead += ['read-run.py -> ' + m
+    dead += ['read-run.py -> README.md#' + m
              for m in re.findall(r'README\.md#([a-z0-9-]+)', me)
-             if m not in anchors]
+             if m not in per_doc[readme]]
     if dead:
-        bad.append('%d dead anchor(s): %s' % (len(dead), ', '.join(dead)))
+        # DEDUPED, which the one-document form did not need: a link into
+        # the run's file occurs two dozen times over four anchors, so
+        # listing occurrences printed the same four names twenty-four
+        # times and the reader met a wall instead of a list.
+        bad.append('%d dead anchor(s), %d distinct: %s'
+                   % (len(dead), len(set(dead)),
+                      ', '.join(sorted(set(dead)))))
     else:
         note.append('every anchor resolves, in %s, in %s and in this script'
-                    % (os.path.basename(readme), os.path.basename(main_hs)))
+                    % (' and '.join(os.path.basename(p) for p, _ in docs),
+                       os.path.basename(main_hs)))
 
     # A link's TEXT against its anchor, which resolving cannot check: the
     # rename step repoints both and Run 14 shipped four reading `[About
@@ -5543,13 +5913,47 @@ def check_doc(readme, main_hs):
                     re.findall(r'\[([^\]\n]*\bRun \d+[^\]\n]*)\]\[%s\]' % key,
                                nocode)
                     if re.search(r'\bRun (\d+)', t).group(1) != m.group(1)]
+    # AND THE SAME QUESTION OF THE FILE NAME, which is where a run number
+    # lives now: `[Run 19](runs/run18.md)` resolves, reads right and is
+    # wrong, and no anchor check can see it because the anchor is the whole
+    # file. This is the form the four-heading rename used to fail as dead
+    # anchors.
+    crossed += [(t, tg) for t, tg in
+                re.findall(r'\[([^\]\n]*\bRun (?:\d+)[^\]\n]*)\]'
+                           r'\(([^)\s]*%s/run\d+\.md[^)\s]*)\)' % RUNS_DIR,
+                           nocode)
+                if re.search(r'\bRun (\d+)', t).group(1)
+                != re.search(r'%s/run(\d+)\.md' % RUNS_DIR, tg).group(1)]
     if crossed:
-        bad.append('%d link(s) whose text and anchor name different runs: %s'
+        bad.append('%d link(s) whose text and target name different runs: %s'
                    % (len(crossed),
-                      '; '.join('%s -> #%s' % (t, a) for t, a in crossed)))
+                      '; '.join('%s -> %s'
+                                % (t, a if '/' in a else '#' + a)
+                                for t, a in crossed)))
     else:
-        note.append('every link naming a run agrees with the anchor it points'
-                    ' at')
+        note.append('every link naming a run agrees with the anchor or the'
+                    ' file it points at')
+
+    # EVERY LINK INTO runs/ NAMES THIS RUN. The directory accumulates, so a
+    # link left at the run before still resolves and still renders -- which
+    # is the whole of what the rename step now has to get right, and the
+    # only thing that replaces the four heading renames it used to be.
+    if run_doc is not None:
+        want = '%s/%s' % (RUNS_DIR, os.path.basename(run_doc))
+        old = sorted({t for _, text in docs
+                      for t in re.findall(r'\]\(([^)\s]*%s/run\d+\.md'
+                                          r'[^)\s]*)\)' % RUNS_DIR, text)
+                      if not t.split('#')[0].endswith(
+                          os.path.basename(run_doc))})
+        if old:
+            bad.append('%d link(s) point at a run file that is not this'
+                       " run's: %s -- runs/ keeps every run, so a link the"
+                       ' rename missed resolves and renders and promises'
+                       ' figures %s replaced'
+                       % (len(old), ', '.join(old), want))
+        else:
+            note.append('every link into %s/ names %s, this run'
+                        % (RUNS_DIR, os.path.basename(run_doc)))
 
     p = check_paths(doc)
     if p['unresolved']:
@@ -5624,9 +6028,22 @@ def check_doc(readme, main_hs):
                    ' the coverage check did not run')
     else:
         block = '\n'.join(canon[head[0]:tail[0]])
-        covered = set(re.findall(r'\]\(#([a-z0-9-]+)\)', block))
-        covered |= {refs[k] for k in re.findall(r'\]\[([a-z0-9-]+)\]', block)
-                    if k in refs}
+        covered = set(re.findall(r'\]\([^)\s#]*#([a-z0-9-]+)\)', block))
+        covered |= {refs[k].partition('#')[2]
+                    for k in re.findall(r'\]\[([a-z0-9-]+)\]', block)
+                    if k in refs and '#' in refs[k]}
+        # THE RUN FILE IS COVERED WHOLE by the bullet naming it, and its
+        # sections are not a list to keep. The file IS what a run replaces
+        # -- that is the whole of why it is a file -- so giving each of its
+        # sections a bullet would put run-scoped anchors back into a list
+        # this one was rewritten to stop enumerating, and would leave the
+        # coverage check able to fail for a section that cannot go stale
+        # without the file going with it.
+        if run_doc is not None and re.search(
+                r'\]\([^)\s]*%s/%s' % (RUNS_DIR,
+                                        re.escape(os.path.basename(run_doc))),
+                block):
+            covered |= set(per_doc[run_doc])
         slug = {v: k for k, v in anchors.items()}
         replace_covered = covered
         gaps = []
@@ -5690,97 +6107,8 @@ def check_doc(readme, main_hs):
     # called it hand-wrapped and failed: block 49, whose first item runs to
     # 16 lines, is the live control for that, and it is the case a whole
     # file unwrapped does not reach, every block being flat there.
-    try:
-        want = subprocess.run(['wrap80', readme], capture_output=True,
-                              text=True, check=True).stdout
-        flat = subprocess.run(['wrap80', '--unwrap', readme],
-                              capture_output=True, text=True,
-                              check=True).stdout
-    except OSError:
-        # A check that did not run must not read as one that passed.
-        bad.append('BLOCKED: wrap80 is not on PATH, so the README wrapping'
-                   ' was not checked at all')
-    except subprocess.CalledProcessError as e:
-        bad.append('BLOCKED: wrap80 failed (%d), so the README wrapping was'
-                   ' not checked at all' % e.returncode)
-    else:
-        # `doc` was read once at the top and nothing above writes the
-        # README, so the verdict is read against it rather than through
-        # a second handle -- the wallclock_window family, 9e94c9d.
-        cur = doc
-        if want == cur:
-            note.append('no paragraph of the README is wrapped by hand')
-        else:
-            # Aligned by index: wrapping never adds or removes a blank line,
-            # so the three agree on how many blocks there are. Where they do
-            # not, something outside this check's subject moved one, and the
-            # whole-file comparison is the honest thing left to report.
-            #
-            # NO LIVE CONTROL, and named rather than left to look exercised:
-            # over the eleven documents of these two repos the three counts
-            # never differ, and by construction cannot, wrap80 touching no
-            # blank line. The branch earns its place anyway because `zip`
-            # truncates to the shortest -- so without it a mismatch would
-            # under-check in silence, which is the one outcome worse than
-            # reporting the whole file.
-            # Judged LINE by line inside a block, because a block is not a
-            # paragraph: a bulleted run is one block holding several, and an
-            # edit to one item leaves that block matching neither form --
-            # wrap80 would re-wrap the item, the unwrapped form would put
-            # every sibling on its own line -- so a whole-block comparison
-            # called a list mid-edit hand-wrapped and failed. A line an edit
-            # left long is one the unwrapped form has, a line the formatter
-            # would produce is in its own output, and hand-wrapping is what
-            # is in neither.
-            cp, wp, fp = (t.split('\n\n') for t in (cur, want, flat))
-            if len(cp) == len(wp) == len(fp):
-                hand, loose = [], []
-                for i, (c, w, f) in enumerate(zip(cp, wp, fp)):
-                    if c == w:
-                        continue
-                    ok = set(w.split('\n')) | set(f.split('\n'))
-                    (loose if all(l in ok for l in c.split('\n'))
-                     else hand).append(i)
-                if hand:
-                    # Summed rather than searched for: a short block can occur
-                    # as a substring of an earlier one, and `index` would then
-                    # send the reader to a paragraph that is fine.
-                    at = cur.count('\n', 0,
-                                   sum(len(b) + 2 for b in cp[:hand[0]])) + 1
-                    # Two causes, one artifact: canonical lines with a long one
-                    # among them is what an Edit mid-stretch leaves AND what
-                    # hand-lengthening leaves, so this cannot tell them apart
-                    # and must name both remedies. Naming the formatter alone
-                    # sent a session round wrap-then-edit-then-red five times
-                    # in one write-up (2026-08-16): wrapping is the fix when
-                    # the document is done, unwrapping when it is not.
-                    bad.append('%d paragraph(s) of %s are wrapped by hand --'
-                               ' first at line %d; if the document is done,'
-                               ' `wrap80 -i %s`; if you are still editing,'
-                               ' `wrap80 --unwrap -i %s` and work there.'
-                               ' Never re-wrap a line by hand'
-                               % (len(hand), os.path.basename(readme), at,
-                                  os.path.basename(readme),
-                                  os.path.basename(readme)))
-                else:
-                    note.append('no paragraph of the README is wrapped by'
-                                ' hand; %d still on one line, so it is'
-                                ' mid-edit' % len(loose))
-            else:
-                # Diffed rather than compared by position: one inserted line
-                # shifts every line under it, and reporting the whole file as
-                # changed hides the one line worth looking at.
-                d = list(difflib.unified_diff(lines, want.split('\n'),
-                                              lineterm='', n=0))
-                n = sum(1 for l in d
-                        if l[:1] in '+-' and not l.startswith(('---', '+++')))
-                at = next((m.group(1) for l in d
-                           for m in [re.match(r'@@ -(\d+)', l)] if m), '?')
-                bad.append('%s is not as wrap80 leaves it and its blocks do'
-                           ' not line up with the formatter\'s (%d line(s),'
-                           ' from line %s) -- run `wrap80 -i %s`'
-                           % (os.path.basename(readme), n, at,
-                              os.path.basename(readme)))
+    for _path, _text in docs:
+        wrap_verdict(_path, _text, bad, note)
 
     # A paragraph that stops mid-sentence is what a scripted rewrite leaves
     # when it replaces more text than its author read. The shape is specific:
@@ -5855,14 +6183,14 @@ def check_doc(readme, main_hs):
                             sum(len(x) + 2 for x in blocks[:i])) + 1
         cut.append((at, t))
     if cut:
-        bad.append('%d paragraph(s) of %s stop mid-sentence -- first at line'
-                   ' %d, ending "%s". A scripted rewrite that anchors on a'
+        bad.append('%d prose paragraph(s) stop mid-sentence -- first at %s,'
+                   ' ending "%s". A scripted rewrite that anchors on a'
                    ' prefix replaces the whole paragraph, including the part'
                    ' you did not read; quote the full old text instead'
-                   % (len(cut), os.path.basename(readme), cut[0][0],
-                      cut[0][1][-48:]))
+                   % (len(cut), where(cut[0][0]), cut[0][1][-48:]))
     else:
-        note.append('every prose paragraph of the README ends a sentence')
+        note.append('every prose paragraph of both documents ends a'
+                    ' sentence')
 
     # This README says of itself that it cites no line and no permalink,
     # deliberately -- naming arm, strategy and shape names instead, which
@@ -5888,14 +6216,14 @@ def check_doc(readme, main_hs):
                                   r'|yml|sh|json):\d+', whole)))
     pinned = sorted(set(re.findall(r'blob/[0-9a-f]{7,40}/', whole)))
     if cited or pinned:
-        bad.append('%s cites %d line(s) and %d pinned permalink(s) where it'
-                   ' says it cites neither: %s -- name a phrase, a heading or'
-                   ' an arm, which a reflow cannot move'
-                   % (os.path.basename(readme), len(cited), len(pinned),
+        bad.append('%d line citation(s) and %d pinned permalink(s) where the'
+                   ' README says it carries neither: %s -- name a phrase, a'
+                   ' heading or an arm, which a reflow cannot move'
+                   % (len(cited), len(pinned),
                       ', '.join((cited + pinned)[:4])))
     else:
-        note.append('the README cites no line and no pinned permalink, as it'
-                    ' says of itself')
+        note.append('neither document cites a line or a pinned permalink, as'
+                    ' the README says of itself')
 
     # Main.hs and this script are code: no formatter here sets their width,
     # so they are measured against one and shortened by hand.
@@ -5914,7 +6242,7 @@ def check_doc(readme, main_hs):
     else:
         note.append('comments and this script are inside their widths')
 
-    comparatives = [('%s:%d' % (os.path.basename(readme), i), l)
+    comparatives = [(where(i), l)
                     for i, l in prose_hits(lines, COMPARATIVE_RE)]
     comparatives += [('%s:%d' % (os.path.basename(main_hs), i),
                       l.split('--', 1)[1].strip())
@@ -5924,12 +6252,13 @@ def check_doc(readme, main_hs):
                              for p in COMPARATIVE_RE)]
     foreign = [(i, l) for i, l in prose_hits(lines, [MS_RE])
                if not lines[i - 1].startswith('    ')]
-    superlatives = [('%s:%d' % (os.path.basename(readme), i), l)
+    superlatives = [(where(i), l)
                     for i, l in prose_hits(lines, SUPERLATIVE_RE)]
-    buried = [('%s:%d' % (os.path.basename(readme), i), l)
+    buried = [(where(i), l)
               for i, l in buried_actions(lines)]
 
-    added = added_lines(readme, main_hs)
+    added = added_lines(*([readme, main_hs]
+                          + ([run_doc] if run_doc else [])))
 
     def is_fresh(text, added):
         """Does this hit's text carry a line the working tree added?
@@ -6012,7 +6341,7 @@ def check_doc(readme, main_hs):
               ' the whole table, so derive it by sorting rather than from'
               ' the arms the sentence is about')
     if foreign:
-        sweep([('%s:%d' % (os.path.basename(readme), i), l)
+        sweep([(where(i), l)
                for i, l in foreign],
               'absolute time figure(s) quoted in prose; a class'
               " block's anchor is its run's, replaced with its block --"
@@ -6054,7 +6383,7 @@ def check_doc(readme, main_hs):
     # Both exemptions are COUNTED and said in either branch, the pass
     # included: an exemption nobody is told about is the silent cap this
     # directory refuses everywhere else.
-    long_ones = [('%s:%d' % (os.path.basename(readme), i), l)
+    long_ones = [(where(i), l)
                  for i, l in status_entries(lines, 'ANSWERED')
                  if len(l.split()) > ANSWERED_ACCOUNT]
     regs = [h for h in long_ones if REGISTRATION_RE.match(h[1])]
@@ -6211,39 +6540,40 @@ def check_doc(readme, main_hs):
     # tables above it.
     #
     # Non-vacuity, 2026-08-19, both directions on a copy passed with
-    # --readme, which is how a copy is read at all -- a path given
-    # positionally is a run file, so the first attempt re-checked README.md
-    # and credited this with a pass it had not earned. The README as it stands
-    # carries exactly one such token in that section, `run15-lookrts` under
-    # a Run 15 chapter, and passes; rewriting it to `run14-lookrts` fails
-    # naming both the run and the chapter. So the pass is a real pass and
-    # the check bites.
-    chap = re.search(r'^## About the last run \(Run (\d+)\)', doc, re.M)
+    # --run-doc, which is how a copy is read at all -- a path given
+    # positionally is a run JSON, so the first attempt re-checked the live
+    # document and credited this with a pass it had not earned. The run
+    # file as it stands carries exactly one such token in that section and
+    # passes; renumbering it to the run before fails, naming both the run
+    # and the file. So the pass is a real pass and the check bites, and
+    # the case is `results-names-an-older-basis-half`.
+    # THE RUN NUMBER COMES OFF THE FILE NAME, which is the only place it
+    # is written now: `runs/run19.md`. It used to come off `## About the
+    # last run (Run N)`, one of four headings a write-up renamed by hand.
+    cur = str(run_no_of(run_doc)) if run_doc else None
     start = next((i for i, ln in enumerate(lines)
-                  if ln.startswith('### Results')), None)
-    if not chap:
-        bad.append('no `## About the last run (Run N)` heading, so no run is'
-                   ' current and the half named in Results cannot be checked'
-                   ' against one')
+                  if re.match(r'#{1,6} Results\s*$', ln)), None)
+    if cur is None:
+        pass                # the BLOCKED at the top of this function said it
     elif start is None:
-        bad.append('no `### Results` heading, so the section whose tables are'
-                   ' installed from the basis half cannot be located')
+        bad.append('no `Results` heading in %s, so the section whose tables'
+                   ' are installed from the basis half cannot be located'
+                   % os.path.basename(run_doc))
     else:
-        cur = chap.group(1)
         end = next((j for j in range(start + 1, len(lines))
                     if re.match(r'#{1,6} ', lines[j])), len(lines))
         seen = {m for j in range(start, end)
                 for m in re.findall(r'\brun(\d+)-[a-z0-9]+', lines[j])}
         stale = sorted(seen - {cur}, key=int)
         if stale:
-            bad.append('the Results section names run %s while this chapter'
-                       ' is Run %s: the tables there are installed from this'
+            bad.append('the Results section names run %s while the file is'
+                       " Run %s's: the tables there are installed from this"
                        " run's basis half, so the half named beside them is"
                        ' this run\'s or the two disagree'
                        % (', run '.join(stale), cur))
         else:
-            print('ok:   the half named in Results belongs to Run %s, this'
-                  " chapter's run" % cur)
+            print('ok:   the half named in Results belongs to Run %s, whose'
+                  ' file this is' % cur)
 
     # THE CHAPTER HEAD IS REPLACED WHOLE, and its own closing paragraph
     # says so -- but a write-up is done a paragraph at a time and nothing
@@ -6377,57 +6707,110 @@ def check_doc(readme, main_hs):
                        ' is a count of something nobody wrote'
                        % (m.group(2), ', '.join(str(n) for n in undone)))
 
-    head_doc = head_text_of(readme)
-    if head_doc is None:
-        here_readme = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)), 'README.md')
-        head_doc = head_text_of(here_readme)
-    here = chapter_head_blocks(doc)
-    there = chapter_head_blocks(head_doc) if head_doc is not None else None
-    was = (re.search(r'^## About the last run \(Run (\d+)\)$',
-                     head_doc, re.M) if head_doc else None)
-    if head_doc is None:
-        print('note: no committed copy of this document, so the chapter'
-              " head's paragraphs are not held to the previous run's")
-    elif here is None or there is None or not chap or not was:
-        # No chapter heading on one side, so there is no pair of chapters
-        # to compare and nothing to say. `was` is tested with the rest
-        # because the else branch reads its run number.
-        pass
-    elif was.group(1) == chap.group(1):
-        print('ok:   the chapter head is already committed as Run %s, so'
-              ' there is no previous run to hold it to' % chap.group(1))
+    # THE RUN'S FILE AGAINST THE ONE BEFORE IT, which is what a run file
+    # is for. A run replaces its file whole, so a figure-bearing paragraph
+    # byte-identical to one in the predecessor's file is stale, or is
+    # standing on purpose and wants rewording to say so.
+    #
+    # WHAT THIS REPLACES, and why it is better than what it replaces. The
+    # same question used to be asked of README.md against `git show
+    # HEAD:README.md`, which has two faults a second file does not. It went
+    # quiet the moment the write-up was committed -- the check printed
+    # `there is no previous run to hold it to` and passed -- so a run that
+    # committed early was never held to anything. And it had to be scoped
+    # by hand, first to the chapter head and then, when Run 19 left six of
+    # Run 18's paragraphs standing outside it, by a churn threshold over
+    # the sections the replace list names. Two files need neither: nothing
+    # in this one outlives the run, so the scope is the file, and the
+    # comparison is a diff between two paths that owes git nothing.
+    #
+    # A key is a paragraph with its whitespace collapsed, so a re-wrap is
+    # not a change. Tables, indented blocks, headings and reference
+    # definitions are not paragraphs a run writes, and a paragraph with no
+    # figure in it is the file's own front matter or a form.
+    #
+    # The HEAD FAILS and the rest is a worklist, which is the split the two
+    # checks this replaces had between them: the head is a handful of
+    # paragraphs and every one is written from this run's numbers, while a
+    # class block's form and a claim's restatement can legitimately repeat.
+    def figure_blocks(text):
+        out = {}
+        for key, ls in blocks_of(text):
+            first = ls[0].lstrip()
+            if (ls[0].startswith('    ') or first.startswith('|')
+                    or re.match(r'#{1,6} |\[[^\]]+\]:', first)):
+                continue
+            if FIGURE_RE.search(' '.join(ls)):
+                out[key] = ls[0]
+        return out
+
+    def head_and_rest(text):
+        m = re.search(r'^## ', text, re.M)
+        return (text[:m.start()], text[m.start():]) if m else (text, '')
+
+    if run_doc is None:
+        pass                # the BLOCKED at the top of this function said it
+    elif prev_doc is None:
+        print('note: %s/ holds one run file, so %s is held to no'
+              ' predecessor -- this check is a diff between two run files'
+              ' and there is only one'
+              % (RUNS_DIR, os.path.basename(run_doc)))
     else:
-        old_keys = {k for k, _ in there}
-        stale = [ls[0] for k, ls in here if k in old_keys]
+        was_run = run_no_of(prev_doc)
+        now_head, now_rest = head_and_rest(run_text)
+        was_head, _was_rest = head_and_rest(prev_text)
+        old_head, old_all = figure_blocks(was_head), figure_blocks(prev_text)
+        stale = [l for k, l in figure_blocks(now_head).items()
+                 if k in old_head]
         if stale:
-            bad.append('%d paragraph(s) of the Run %s chapter head are'
-                       ' unchanged from Run %s: the chapter is replaced'
-                       ' whole, so each is stale or is standing on purpose'
-                       ' and wants rewording to say so -- %s'
-                       % (len(stale), chap.group(1), was.group(1),
+            bad.append("%d paragraph(s) of Run %s's head are unchanged from"
+                       ' Run %s: the file is replaced whole, so each is'
+                       ' stale or is standing on purpose and wants rewording'
+                       ' to say so -- %s'
+                       % (len(stale), cur, was_run,
                           '; '.join(l.strip()[:60] for l in stale)))
         else:
-            print('ok:   every paragraph of the Run %s chapter head is new'
-                  ' since Run %s' % (chap.group(1), was.group(1)))
-        # The same comparison, wider. The chapter head is one section of
-        # the twenty-odd the replace list names, and Run 19 rewrote it
-        # cleanly while leaving six of Run 18's paragraphs standing
-        # elsewhere -- three of them closing Results with this run's table
-        # above them. See `held_in_reworked_sections` for the scoping and
-        # for what it still cannot reach.
-        held = held_in_reworked_sections(doc, head_doc, replace_covered)
+            print("ok:   every figure-bearing paragraph of Run %s's head is"
+                  ' new since Run %s' % (cur, was_run))
+        held = [l for k, l in figure_blocks(now_rest).items()
+                if k in old_all]
         if held:
-            print('note: %d paragraph(s) unchanged since Run %s in'
-                  ' section(s) this run otherwise rewrote; each is stale or'
-                  ' is standing on purpose, and the ones that stand are'
-                  ' usually a column definition or a form:' % (len(held),
-                                                               was.group(1)))
+            print('note: %d paragraph(s) of %s are unchanged from Run %s;'
+                  ' each is stale or is standing on purpose, and the ones'
+                  ' that stand are usually a form or a restatement:'
+                  % (len(held), os.path.basename(run_doc), was_run))
+            for line in held:
+                print('        %s' % line.strip()[:76])
+        else:
+            print('ok:   %s holds no figure-bearing paragraph of Run %s'
+                  % (os.path.basename(run_doc), was_run))
+
+    # AND THE SAME QUESTION OF README.md, which the run file does not
+    # answer: the sections a run reaches OUTSIDE its own file -- the floor
+    # section, the opening's headline ratios, the ceiling and Lemire
+    # rulings -- are replaced by a run too, and a paragraph left standing
+    # there is what Run 19 shipped four of. Identity against the committed
+    # copy is all there is here, README.md having no predecessor to be
+    # diffed against, and the churn threshold is what keeps the reference
+    # chapters out of it. See `held_in_reworked_sections`.
+    head_doc = head_text_of(readme)
+    if head_doc is None:
+        print('note: no committed copy of %s, so its own replaced sections'
+              ' are not held to anything' % os.path.basename(readme))
+    else:
+        held = held_in_reworked_sections(readme_doc, head_doc,
+                                         replace_covered)
+        if held:
+            print('note: %d paragraph(s) of %s unchanged since it was'
+                  ' committed, in section(s) this run otherwise rewrote;'
+                  ' each is stale or is standing on purpose, and the ones'
+                  ' that stand are usually a column definition or a form:'
+                  % (len(held), os.path.basename(readme)))
             for sec_, line in held:
                 print('    [%s] %s' % (sec_[:34], line.strip()[:58]))
         elif replace_covered:
-            print('ok:   the sections this run rewrote hold no paragraph'
-                  ' of Run %s' % was.group(1))
+            print('ok:   the %s sections this run rewrote hold no paragraph'
+                  ' of its committed copy' % os.path.basename(readme))
 
     # Run-current facts stated in prose, held to the roster and to each
     # other. Three sentences quote what the current roster or the current
@@ -6641,7 +7024,12 @@ def check_doc(readme, main_hs):
         # The table comes off the RAW document and the prose off `uw`:
         # `unwrapped_paragraphs` drops table rows, every other caller
         # wanting prose, so the floor column is not in `uw` to be read.
-        cls_head = r'^### The stride classes, run by run$(.*?)^### '
+        # The section is last in the run file, so it ends at the next
+        # heading OR at the end of the document -- where it used to end at
+        # `### Provenance`, which was the next heading in README and is now
+        # a chapter of its own there.
+        cls_head = (r'^#{1,6} The stride classes, run by run$'
+                    r'(.*?)(?=^#{1,6} |\Z)')
         cls_raw = re.search(cls_head, '\n'.join(lines), re.M | re.S)
         cls_sec = re.search(cls_head, uw, re.M | re.S)
         cls_rows = dict(re.findall(r'^\| `([a-z0-9]+)` \|.*\| ([\d.]+)% \|$',
@@ -6650,9 +7038,10 @@ def check_doc(readme, main_hs):
                       re.finditer(r'^\*\*`([a-z0-9]+)` ---', cls_sec.group(1),
                                   re.M)] if cls_sec else [])
         if not cls_rows or not cls_leads:
-            bad.append('could not find the class table\'s floor column or the'
-                       ' class block leads under `The stride classes, run by'
-                       ' run`, so the per-class floor check did not run')
+            bad.append('could not find the class table\'s floor column or'
+                       ' the class block leads under `The stride classes,'
+                       ' run by run` in %s, so the per-class floor check did'
+                       ' not run' % os.path.basename(run_doc or 'no run file'))
         else:
             body, off, quoted = cls_sec.group(1), [], 0
             for i, (pos, cls) in enumerate(cls_leads):
@@ -6815,13 +7204,13 @@ def check_doc(readme, main_hs):
         # failed. Non-vacuous 2026-08-14: planting that very sentence in
         # the open list on a copy listed it with its line; the shipped README
         # lists nothing.
-        m = re.search(r'^## About the last run \(Run (\d+)\)$', doc, re.M)
+        m = run_no_of(run_doc)
         lo = [i for i, l in enumerate(lines, 1)
               if l.startswith('## What is open')]
         hi = [i for i, l in enumerate(lines, 1)
               if l.startswith('## The goal')]
         if m and lo and hi and lo[0] < hi[0]:
-            run_now = int(m.group(1))
+            run_now = m
             pro = re.compile(r'\bRun (\d+)\b[^.;]*?\b(?:will|is to be)\b'
                              r'|\b(?:will|is to be)\b[^.;]*?\bRun (\d+)\b')
             stale = []
@@ -6838,8 +7227,7 @@ def check_doc(readme, main_hs):
                       ' what it did, or say why the promise stands:'
                       % len(stale))
                 for first, para in stale:
-                    print('        %s:%d: %s'
-                          % (os.path.basename(readme), first, para[:60]))
+                    print('        %s: %s' % (where(first), para[:60]))
             # EVERY entry of this section opens with a status, which the
             # section's own preamble states and offers a grep as the use
             # of. It was true of the parent list and false of
@@ -6884,8 +7272,8 @@ def check_doc(readme, main_hs):
                            ' ones among them: %s'
                            % (len(loose),
                               '; '.join(
-                                  '%s:%d %s'
-                                  % (os.path.basename(readme), i,
+                                  '%s %s'
+                                  % (where(i),
                                      re.sub(r'^(?:- |\d+\. )', '', l)[:50])
                                   for i, l in loose[:4])))
             else:
@@ -6901,12 +7289,12 @@ def check_doc(readme, main_hs):
             # checks: BLOCKED is not a pass. Found 2026-08-17 by review,
             # the second half of it by proving the first.
             bad.append('BLOCKED: the open list (%s), the goal section (%s)'
-                       ' or the chapter heading (%s) could not be located'
+                       ' or the run number (%s) could not be located'
                        ' in that order, so no prospective promise was'
                        ' checked'
                        % ('line %d' % lo[0] if lo else 'gone',
                           'line %d' % hi[0] if hi else 'gone',
-                          'found' if m else 'gone'))
+                          m or 'no run file'))
     else:
         # `lint` fails loudly on the same nothing; this went quiet, and a
         # renamed or re-indented roster -- or a wrong --main -- left the
@@ -6917,51 +7305,58 @@ def check_doc(readme, main_hs):
                    ' counts, the floor agreement and the open-list sweep'
                    ' did not happen' % os.path.basename(main_hs))
 
-    # Links into the run chapter from standing prose. The chapter is
-    # replaced by the next run, so such a link keeps resolving -- the
-    # rename step re-points it -- while the content it promised leaves:
-    # five links reading "the head of the run chapter" decayed exactly that
-    # way, their targets' substance having moved to the floor section when
-    # Run 11's chapter was replaced. Listed for adjudication at every
-    # check, not only at the rename, because the decay happens at the
-    # replacement and nothing else looks then. Links from inside the
-    # chapter's own sections are the run's and die with it, so only lines
-    # above the chapter heading are swept; a bare link bullet -- the
-    # Contents map's entry -- promises no content beyond the heading and is
-    # exempt, or the map would head this list at every check and teach
-    # readers to skim it. Non-vacuous 2026-08-14: planting
-    # `([see the run](#about-the-last-run-run-14))` in the opening
-    # paragraph of a copy listed it with its line; the shipped README lists
-    # none, its one such link being the Contents entry the exemption is
-    # for.
-    m = re.search(r'^## About the last run', doc, re.M)
-    if m:
-        chap_at = doc[:m.start()].count('\n') + 1
-        into = [(i, l.strip()) for i, l in enumerate(lines[:chap_at - 1], 1)
-                if re.search(r'\]\(#about-the-last-run-run-\d+\)', l)
+    # Links from standing prose into the run's file. The file is
+    # replaced by the next run, so such a link keeps resolving -- step 5
+    # re-points it -- while the content it promised leaves: five links
+    # reading "the head of the run chapter" decayed exactly that way,
+    # their targets' substance having moved to the floor section when Run
+    # 11's chapter was replaced. Listed for adjudication at every check,
+    # not only at the rename, because the decay happens at the replacement
+    # and nothing else looks then. README.md alone is swept, links inside
+    # the run's own file being the run's and dying with it; a bare link
+    # bullet -- the Contents map's entry -- promises no content beyond the
+    # heading and is exempt, or the map would head this list at every
+    # check and teach readers to skim it. THE EXEMPTION IS ON THE BULLET
+    # ENDING IN THE LINK, so a gloss after it -- `- [Run 19](...), the
+    # last run` -- loses it and the map returns to the list; measured
+    # 2026-08-25, when the split's own Contents entry did exactly that.
+    # Non-vacuous 2026-08-14: planting a bare link into the opening
+    # paragraph of a copy listed it with its line; the shipped README
+    # lists the replace-list bullet and nothing else, its Contents entry
+    # being the exemption's own subject.
+    # Scoped to links naming the run file and NO section of it, which is
+    # what "the head of the run chapter" was and is the shape that promises
+    # unspecified content. A link to a named section promises that section,
+    # and the section outlives the run even where its figures do not; a
+    # sweep over every link into the file returns two dozen at every check,
+    # which is a wall and gets adjudicated as one.
+    if run_doc is not None:
+        whole = re.compile(r'\]\([^)\s#]*%s/%s\)'
+                           % (RUNS_DIR,
+                              re.escape(os.path.basename(run_doc))))
+        into = [(i, l.strip())
+                for i, l in enumerate(readme_doc.split('\n'), 1)
+                if whole.search(l)
                 and not (l.strip().startswith('- [')
                          and l.strip().endswith(')'))]
         if into:
-            print('note: %d link(s) into the run chapter from standing'
-                  ' prose; each is re-verified at the rename, its content'
-                  ' being replaced with the chapter:' % len(into))
+            print('note: %d link(s) from standing prose into %s as a whole;'
+                  ' each is re-verified when the run file is replaced, its'
+                  ' content going with it:'
+                  % (len(into), os.path.basename(run_doc)))
             for i, l in into:
                 print('        %s:%d: %s'
                       % (os.path.basename(readme), i, l[:60]))
-    else:
-        # The heading is the sweep's own boundary, so without it there is
-        # no "above the chapter" to sweep and the silence read as a README
-        # with no decayed links. Found 2026-08-17 by review, with the
-        # open-list sweep above it.
-        bad.append('BLOCKED: no `## About the last run` heading, so the'
-                   ' links into the run chapter were not swept')
+        else:
+            print('ok:   no standing prose promises content of %s beyond'
+                  ' a named section of it' % os.path.basename(run_doc))
 
     for line in bad:
         print('FAIL: ' + line)
     return 1 if bad else 0
 
 
-def check_doc_quiet(readme, main_hs):
+def check_doc_quiet(readme, main_hs, run_doc=None, prev_doc=None):
     """`--check-doc` with the worklists withheld and the verdict kept.
 
     What this replaces is a `grep FAIL` over the loud form, which a run was
@@ -6979,16 +7374,17 @@ def check_doc_quiet(readme, main_hs):
     misdirects at exactly the step, post-run 7, that exists to read
     those lists.
 
-    Non-vacuity, 2026-08-16, against a copy: renaming `## About the last
-    run (Run 14)` to `(Run 14x)` printed two FAIL lines -- the four dead
-    anchors, and the replace-list bullet that no longer covers the section
-    -- and exited 1, where the same copy unbroken printed no FAIL and
-    exited 0. The withheld counts differ by exactly those two lines, which
-    is what promoting them out of the pool should do.
+    Non-vacuity, 2026-08-16, against a copy: renaming the run chapter's
+    heading printed two FAIL lines -- the dead anchors, and the
+    replace-list bullet that no longer covers the section -- and exited 1,
+    where the same copy unbroken printed no FAIL and exited 0. The withheld
+    counts differ by exactly those two lines, which is what promoting them
+    out of the pool should do. That heading is now a file name, and the
+    same break is renaming `runs/run<N>.md` under the links that reach it.
     """
     out = io.StringIO()
     with contextlib.redirect_stdout(out):
-        rc = check_doc(readme, main_hs)
+        rc = check_doc(readme, main_hs, run_doc, prev_doc)
     lines = [l for l in out.getvalue().split('\n') if l]
     fails = [l for l in lines if l.startswith('FAIL: ')]
     for line in fails:
@@ -6998,7 +7394,7 @@ def check_doc_quiet(readme, main_hs):
     return rc
 
 
-def lint(main_hs, readme):
+def lint(main_hs, readme, run_doc=None):
     """Static checks over Main.hs and README.md, needing no run at all.
 
     The question this used to ask second -- is every benchmarked strategy
@@ -7029,10 +7425,18 @@ def lint(main_hs, readme):
     README check reads names as delimited tokens: against a scratch README
     saying only `mut-odo-vecdims`, a rostered `mut-odo` fails, where
     substring containment had passed it.
+
+    **THE DOCUMENTATION IS THE PAIR**, README.md and the run's own file:
+    an arm's only mention is often a row of the Results table or of a class
+    block, and those are in the run file. Reading README alone would have
+    reported some twenty arms as documented nowhere, which is a check that
+    fails for being pointed at half its subject.
     """
     try:
         main = open(main_hs).read()
         doc = open(readme).read()
+        if run_doc:
+            doc += '\n' + open(run_doc).read()
     except OSError as e:
         sys.stderr.write('lint: %s\n' % e)
         return 2
@@ -7055,12 +7459,14 @@ def lint(main_hs, readme):
     undocumented = [n for n in names
                     if not re.search(r'(?<![\w-])%s(?![\w-])' % re.escape(n),
                                      doc)]
+    where_ = ('README and %s' % os.path.basename(run_doc) if run_doc
+              else 'README (and no run file was given)')
     if undocumented:
-        bad.append('%d roster arm(s) named nowhere in README: %s'
-                   % (len(undocumented), ', '.join(undocumented)))
+        bad.append('%d roster arm(s) named nowhere in %s: %s'
+                   % (len(undocumented), where_, ', '.join(undocumented)))
     else:
-        print('ok:   all %d roster arms are named somewhere in README, %d of'
-              ' them timed' % (len(names), len(timed)))
+        print('ok:   all %d roster arms are named somewhere in %s, %d of'
+              ' them timed' % (len(names), where_, len(timed)))
 
     unrostered = sorted(defined - rostered)
     if unrostered:
@@ -7163,8 +7569,12 @@ def lint(main_hs, readme):
     # ("build", ...) it fails naming build, beside the rostered check
     # losing fbBuild.
     fp_arms = {a for _, _, arms in FINGERPRINT_TABLES for a in arms}
+    # The Results table is the RUN's, so the carry-forward reads the run
+    # file. Pointed at README this returned {} with a warning on stderr and
+    # `0 bolded`, which reads as a pass and checks nothing.
     bolded = [st for st, (_, style, _) in
-              readme_rows(readme, names).items() if style == 'bold']
+              readme_rows(run_doc or readme, names).items()
+              if style == 'bold']
     off = ([b for b in bolded if b not in fp_arms]
            + ['%s (not rostered)' % a for a in sorted(fp_arms)
               if a not in names])
@@ -7697,9 +8107,9 @@ def main():
                    help='restore the standing explanation --brief drops;'
                         ' no computed figure differs either way')
     p.add_argument('--in-place', action='store_true',
-                   help='install --markdown/--fingerprint/--block tables, or'
-                        " --claims' per-claim readings, into README instead"
-                        ' of printing them')
+                   help='install --markdown/--fingerprint/--block tables,'
+                        " or --claims' per-claim readings, into the run's"
+                        ' own file instead of printing them')
     p.add_argument('--selftest', action='store_true')
     p.add_argument('--lint', action='store_true')
     p.add_argument('--check-doc', action='store_true')
@@ -7735,9 +8145,18 @@ def main():
                         ' refuses unless ANCHOR occurs exactly once')
     p.add_argument('--with', dest='with_', metavar='FILE',
                    help='the replacement text for --replace')
-    p.add_argument('--readme', default=os.path.join(here, 'README.md'),
+    p.add_argument('--readme', default=None,
                    help='README.md to check bench names against'
-                        ' (default: alongside)')
+                        ' (default: alongside). It is NOT what --in-place'
+                        ' writes: a run publishes into its own file, which'
+                        ' is --run-doc')
+    p.add_argument('--run-doc', dest='run_doc', metavar='FILE',
+                   help="the run's own file, `runs/run<N>.md`, which carries"
+                        ' the Results table, the fingerprint tables, the'
+                        ' claims readings and the eight class blocks --'
+                        ' everything a run replaces. Every --in-place'
+                        ' install writes it and no other document'
+                        ' (default: the newest in runs/)')
     p.add_argument('--corr', choices=['sumonly', 'insitu'], default='sumonly',
                    help='which forcing term to subtract: `sumonly`, the'
                         ' published convention, or `insitu`, the term the'
@@ -7751,6 +8170,27 @@ def main():
     p.add_argument('--exclude-shape', action='append', default=[],
                    metavar='SHAPE')
     args = p.parse_args()
+    # RESOLVED ONCE, HERE, so that every mode below reads the same run and a
+    # session cannot install one run's tables while reading another's
+    # claims back. The default is the newest file in runs/ rather than a
+    # literal, so the write-up that adds `runs/run20.md` re-aims every mode
+    # by creating it.
+    # A COPY POINTED AT BY `--readme` DOES NOT AIM AN INSTALL, and saying
+    # so is the difference between a refusal and a table written over the
+    # real run's. Every install used to take `--readme`, so a caller aiming
+    # one at a copy -- which is how this script's own corpus drives them --
+    # aimed the whole call; now it aims half of it, and the other half
+    # would silently find the newest file in runs/. Measured on 2026-08-25,
+    # when the corpus wrote eleven tables into the live run file that way.
+    if (args.in_place and args.readme is not None and args.run_doc is None
+            and (args.markdown or args.fingerprint or args.block
+                 or args.claims)):
+        p.error('--in-place writes the run\'s own file, not --readme:'
+                ' name it with --run-doc, or drop --readme')
+    if args.readme is None:
+        args.readme = os.path.join(here, 'README.md')
+    if args.run_doc is None:
+        args.run_doc = current_run_doc(here)
 
     # The dispatch below is an if/elif over mode flags, so a flag that names
     # no reachable branch is not an error there -- it falls through and some
@@ -7863,17 +8303,26 @@ def main():
     if args.bridge and not args.compare:
         p.error('--bridge is a reading ACROSS two runs: give it --compare')
 
+    # BOTH DOCUMENTS, in reading order. `--para` and `--replace` are
+    # retrieval, and a session that had to say which file a paragraph is in
+    # before asking for it would be doing the search this mode exists to
+    # replace -- so they take the pair and the answer says which file it
+    # came from. `--replace` refuses an anchor that occurs in both.
+    docs = [args.readme] + ([args.run_doc] if args.run_doc else [])
     if args.replace:
         if not args.with_:
             sys.exit('--replace wants --with FILE, the replacement text')
-        sys.exit(splice(args.readme, args.replace, args.with_))
+        sys.exit(splice(docs, args.replace, args.with_))
     if args.para:
-        sys.exit(paragraphs(args.readme, args.para, args.all_paras))
+        sys.exit(paragraphs(docs, args.para, args.all_paras))
     if args.check_doc:
-        sys.exit(check_doc(args.readme, args.main) if args.worklists
-                 else check_doc_quiet(args.readme, args.main))
+        prev = previous_run_doc(args.run_doc)
+        sys.exit(check_doc(args.readme, args.main, args.run_doc, prev)
+                 if args.worklists
+                 else check_doc_quiet(args.readme, args.main, args.run_doc,
+                                      prev))
     if args.lint:
-        sys.exit(lint(args.main, args.readme))
+        sys.exit(lint(args.main, args.readme, args.run_doc))
     if args.extremes:
         missing = [c for c in args.classes if not os.path.exists(c)]
         if missing:
@@ -7966,12 +8415,13 @@ def main():
     elif args.pair:
         pair_table(cells, shapes, strategies, args.pair)
     elif args.claims and args.in_place:
-        install_readings(args.readme,
+        install_readings(want_run_doc(args),
                          claims_readings(cells, shapes, strategies),
                          args.run, strategies, shapes, args.main)
     elif args.claims:
         claims_table(cells, shapes, strategies, args)
-        claims_in_doc(args.readme, cells, shapes, strategies, args.run,
+        claims_in_doc(want_run_doc(args), cells, shapes, strategies,
+                      args.run,
                       args.main)
     elif args.compare and args.block:
         # --block owns the pair here: --compare is its second file and not
@@ -8006,7 +8456,7 @@ def main():
     elif args.deflation:
         sys.exit(deflation_table(args.run, cells, shapes, args.main))
     elif args.machine:
-        sys.exit(machine_check(cells, shapes, args.readme))
+        sys.exit(machine_check(cells, shapes, want_run_doc(args)))
     elif args.steps:
         step_table(args.run, cells, shapes, strategies, meta)
     elif args.cells:

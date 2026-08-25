@@ -47,6 +47,19 @@ takes it out of --audit and leaves it guarding forward. Four install cases
 went that way at the 2026-08-20 Basic Latin pass. Do not pin the
 convention into the fixtures instead: that is the second copy of it.
 
+WHAT THE RUN-FILE SPLIT COST IT, since a coverage loss nobody counted is
+the kind this file exists against. Moving a run's write-up into
+`runs/run<N>.md` on 2026-08-25 took 22 of these out of --audit at once,
+each marked at its own site with which of four things its history cannot
+take: a `--run-doc` no older reader accepts (13), a mode given no document
+and defaulting to a README that no longer carries what it reads (2), a
+fixture built from a document the era's copy is not (5), and a driver that
+reads the split itself (2). The three-valued outcome is what made that
+countable rather than quiet. Replaying the README of the day was tried
+first and does not reach them: an era README carries era FIGURES, so a
+fixture anchored on a figure this run published will not build against it,
+which is the half the docstring below already calls loosely paired.
+
 A REVIEW CLAIM IS SUBMITTED IN THE CASE FORMAT, or it costs a harness to
 vet. `(name, plant, argv, ok, bug)` is already a probe: running it IS
 vetting the claim, and a claim that survives is already a case with no
@@ -186,6 +199,32 @@ import zlib
 HERE = os.path.dirname(os.path.abspath(__file__))
 README = os.path.join(HERE, 'README.md')
 MAIN = os.path.join(HERE, 'Main.hs')
+
+
+def _newest_run_doc():
+    """The run's own file, which is where everything a run publishes is.
+
+    HALF THE FIXTURES HERE PLANT INTO IT and not into README.md: the
+    Results table, the yardstick, the fingerprint, the claims verdicts and
+    the eight class blocks all live in `runs/run<N>.md`. An absent one is a
+    fixture that cannot be built, so it is an assertion and not a fallback
+    to README.md -- which would build every one of them against a
+    document that carries none of what they edit, and pass.
+    """
+    at = os.path.join(HERE, 'runs')
+    got = []
+    for name in os.listdir(at) if os.path.isdir(at) else []:
+        m = re.match(r'^run(\d+)\.md$', name)
+        if m:
+            got.append((int(m.group(1)), os.path.join(at, name)))
+    assert got, ('no run file in %s: the Results table, the yardstick, the'
+                 ' claims verdicts and the class blocks are all in one, so'
+                 ' every fixture that plants against them is unbuildable'
+                 % at)
+    return max(got)[1]
+
+
+RUNDOC = _newest_run_doc()
 # Where --properties looks for runs: this directory, or what a case names,
 # which is how an empty corpus is handed to it.
 CORPUS = os.environ.get('CORPUS', HERE)
@@ -281,6 +320,46 @@ def write(path, text):
     return path
 
 
+def rundoc_lines(rev=None):
+    """The run's own file, as of `rev` when a revision is being replayed."""
+    rel = os.path.relpath(RUNDOC, HERE)
+    return (open(RUNDOC).read() if rev is None
+            else at_rev(rel, rev)).split('\n')
+
+
+def write_rundoc(tmp, text, name=None):
+    """A copy of the run file, KEEPING ITS NAME.
+
+    `run<N>.md` is where the run number is written now -- no heading
+    carries it -- so a copy called `R.md` reads as no run at all, and the
+    checks that ask which run this is skip themselves over it.
+    """
+    return write(os.path.join(tmp, name or os.path.basename(RUNDOC)), text)
+
+
+def edited_rundoc(tmp, *edits, **kw):
+    """`edited_readme`, against the run's own file."""
+    text = open(RUNDOC).read()
+    for old, new in edits:
+        k = text.count(old)
+        if k != 1:
+            raise AssertionError('anchor occurs %d times, need 1: %r'
+                                 % (k, old[:60]))
+        text = text.replace(old, new, 1)
+    return write_rundoc(tmp, text, kw.get('name'))
+
+
+def unwrapped_rundoc_edit(tmp, old, new):
+    """`unwrapped_readme_edit`, against the run's own file."""
+    text = subprocess.run(['wrap80', '--unwrap'], input=open(RUNDOC).read(),
+                          capture_output=True, text=True, check=True).stdout
+    k = text.count(old)
+    if k != 1:
+        raise AssertionError('anchor occurs %d times, need 1: %r'
+                             % (k, old[:60]))
+    return write_rundoc(tmp, text.replace(old, new, 1))
+
+
 def edited_readme(tmp, *edits, **kw):
     """A copy of the live README with each (old, new) applied exactly once.
 
@@ -313,7 +392,7 @@ def class_table_span(lines, cls):
     return i, j
 
 
-def readme_with_ragged_row(tmp):
+def rundoc_with_ragged_row(tmp):
     """A copy whose yardstick table has one row two cells short.
 
     This is the defect exactly as it arose: the four bottom rows of the
@@ -326,7 +405,7 @@ def readme_with_ragged_row(tmp):
     Recovered from git (`f42ef4a`, where the table was two columns wide)
     rather than guessed, 2026-08-20.
     """
-    lines = open(README).read().split('\n')
+    lines = rundoc_lines()
     h = next(i for i, l in enumerate(lines) if l.startswith('| strategy |')
              and '(' in l)
     for i in range(h + 2, len(lines)):
@@ -336,23 +415,23 @@ def readme_with_ragged_row(tmp):
         if len(cells) > 4:
             lines[i] = '|' + '|'.join(cells[:1] + cells[3:]) + '|'
             break
-    return write(os.path.join(tmp, 'R.md'), '\n'.join(lines))
+    return write_rundoc(tmp, '\n'.join(lines))
 
 
-def readme_without_class_table(tmp, cls='slice'):
-    lines = readme_lines()
+def rundoc_without_class_table(tmp, cls='slice'):
+    lines = rundoc_lines()
     i, j = class_table_span(lines, cls)
     del lines[i:j]
-    return write(os.path.join(tmp, 'R.md'), '\n'.join(lines))
+    return write_rundoc(tmp, '\n'.join(lines))
 
 
-def readme_yardstick_renamed_with_qmark(tmp):
+def rundoc_yardstick_renamed_with_qmark(tmp):
     """The yardstick header renamed, and a `?` left in a published cell.
 
     The header is found by `check_doc`'s own rule, so this fixture cannot
     drift from the check it provokes.
     """
-    lines = readme_lines()
+    lines = rundoc_lines()
     yard = [i for i, l in enumerate(lines)
             if l.startswith('| strategy |') and '(' in l]
     assert len(yard) == 1, 'yardstick header: %d line(s)' % len(yard)
@@ -361,7 +440,7 @@ def readme_yardstick_renamed_with_qmark(tmp):
     fp = [i for i, l in enumerate(lines) if cell.match(l)]
     assert fp, 'no fingerprint row to plant a `?` in'
     lines[fp[0]] = re.sub(r'\| [\d.]+ [num]?s \|', '| ? |', lines[fp[0]], 1)
-    return write(os.path.join(tmp, 'R.md'), '\n'.join(lines))
+    return write_rundoc(tmp, '\n'.join(lines))
 
 
 def readme_goal_above_open(tmp, rev=None):
@@ -381,13 +460,13 @@ def readme_goal_above_open(tmp, rev=None):
                  '\n'.join(rest[:lo] + goal + rest[lo:]))
 
 
-def readme_summary_row_short(tmp, cls='slice'):
-    lines = readme_lines()
+def rundoc_summary_row_short(tmp, cls='slice'):
+    lines = rundoc_lines()
     at = [i for i, l in enumerate(lines) if l.startswith('| `%s` |' % cls)]
     assert len(at) == 1, 'summary row `%s`: %d line(s)' % (cls, len(at))
     cells = lines[at[0]].rstrip().rstrip('|').split('|')
     lines[at[0]] = '|'.join(cells[:-1]) + '|'
-    return write(os.path.join(tmp, 'R.md'), '\n'.join(lines))
+    return write_rundoc(tmp, '\n'.join(lines))
 
 
 def readme_with_trailing_buried_action(tmp):
@@ -419,25 +498,68 @@ def unwrapped_readme_edit(tmp, old, new):
     return write(os.path.join(tmp, 'R.md'), text.replace(old, new, 1))
 
 
-def committed_readme_renumbered(tmp, bump=1):
-    """The COMMITTED README with its chapter heading renumbered.
+def _mkruns(tmp):
+    """A `runs/` under `tmp`, which is where a run file has to sit.
 
-    The defect this builds is a write-up that renamed its headings and
-    stopped, so every paragraph under the heading has to be the PREVIOUS
-    run's -- which is what the committed copy holds and what the working
-    tree stops holding the moment a chapter is rewritten. Planting the
-    working tree's text worked only while the two agreed, and broke the
-    hour Run 19's chapter was written; the check reads the committed copy
-    for its other side, so this is the side that has to come from git.
+    The reader finds the run before this one beside it, so a fixture that
+    wrote one run file into `tmp` itself would be asking a question about
+    a directory the case does not control.
     """
-    text = subprocess.run(['git', 'show', 'HEAD:./README.md'],
-                          cwd=HERE, capture_output=True, text=True,
-                          check=True).stdout
-    m = re.search(r'^## About the last run \(Run (\d+)\)$', text, re.M)
-    assert m, 'no run chapter heading in the committed README'
-    head = '## About the last run (Run %d)' % (int(m.group(1)) + bump)
+    at = os.path.join(tmp, 'runs')
+    os.makedirs(at, exist_ok=True)
+    return at
+
+
+def readme_link_to_an_older_run(tmp):
+    """A copy whose links into the run file name the run BEFORE this one.
+
+    Built by renumbering, not by spelling a path out, so it keeps working
+    at every run. `runs/` accumulates, so the older file is really there
+    and the link really resolves -- which is the whole difficulty: the
+    dead-anchor check cannot see it and the browser renders it.
+    """
+    was = os.path.basename(RUNDOC)
+    now = int(re.match(r'run(\d+)\.md$', was).group(1))
+    text = open(README).read()
+    k = text.count('runs/' + was)
+    assert k, 'no link into %s to renumber, so this fixture plants nothing' % was
     return write(os.path.join(tmp, 'R.md'),
-                 text.replace(m.group(0), head, 1))
+                 text.replace('runs/' + was, 'runs/run%d.md' % (now - 1)))
+
+
+def rundoc_pair(tmp, held=True):
+    """Two run files in one directory: this run's, and a predecessor.
+
+    The previous-run check is a DIFF BETWEEN TWO FILES, so its fixture is
+    two of them. `held` makes the predecessor this run's file verbatim,
+    which is the state a write-up that made the file and stopped is in --
+    every figure-bearing paragraph of the head the run before's. Without
+    it the predecessor's leads are marked, so no key matches and nothing
+    is held; the newer file is byte-identical in both, so the two cases
+    differ in the predecessor alone and every other check reads the same
+    document either way.
+
+    What this replaces is a copy of the COMMITTED README with its chapter
+    heading renumbered -- the only way to build the state while both runs
+    shared one file, and one that stopped being buildable the hour a
+    chapter was rewritten.
+    """
+    at = os.path.join(tmp, 'runs')
+    os.makedirs(at, exist_ok=True)
+    text = open(RUNDOC).read()
+    m = re.match(r'run(\d+)\.md$', os.path.basename(RUNDOC))
+    assert m, 'the run file is not named run<N>.md, so it names no run'
+    now = int(m.group(1))
+    was = text
+    if not held:
+        head, sep, rest = text.partition('\n## ')
+        assert sep, 'the run file has no `## ` section to end its head at'
+        marked, k = re.subn(r'(?m)^\*\*', '**zz-previous-run: ', head)
+        assert k, 'no bolded lead in the head to mark, so the control'\
+                  ' would be the held case over again'
+        was = marked + sep + rest
+    write(os.path.join(at, 'run%d.md' % (now - 1)), was)
+    return {'rundoc': write(os.path.join(at, 'run%d.md' % now), text)}
 
 
 def a_chapter_heading():
@@ -460,7 +582,7 @@ def a_chapter_heading():
                          ' against')
 
 
-def readme_current_run_sentence(tmp):
+def rundoc_current_run_sentence(tmp):
     """A verdict sentence attributing a figure to the run in hand.
 
     Its own PARAGRAPH, under the claim's lead, because the sweep reads a
@@ -477,15 +599,42 @@ def readme_current_run_sentence(tmp):
     # failed the hour the manifest shrank. Claim 2 keeps its number by that
     # settlement's own decision, and `bq-expand` is one of its arms, so the
     # planted sentence still reads as one about that claim.
-    doc = open(README).read()
-    run = re.search(r'^## About the last run \(Run (\d+)\)$', doc, re.M)
-    assert run, 'no run chapter heading to take the run number from'
+    doc = open(RUNDOC).read()
+    run = re.match(r'run(\d+)\.md$', os.path.basename(RUNDOC))
+    assert run, 'the run file is not named run<N>.md, so it names no run'
     paras = doc.split('\n\n')
     at = [i for i, p in enumerate(paras) if p.startswith(ANCHOR)]
     assert len(at) == 1, '%s lead: %d paragraph(s)' % (ANCHOR, len(at))
     paras.insert(at[0] + 1, 'In Run %s, `bq-expand` reads 0.9312 against'
                             ' it.' % run.group(1))
-    return write(os.path.join(tmp, 'R.md'), '\n\n'.join(paras))
+    return write_rundoc(tmp, '\n\n'.join(paras))
+
+
+def doc_of_a_list(tmp, items=4):
+    """A document whose one list has no blank line between its items.
+
+    Which makes it ONE paragraph, and `--replace` replaces paragraphs.
+    Built rather than borrowed so the case does not move with the README's
+    own lists.
+    """
+    body = '\n'.join('- `OPEN` **Item %d.** Its body, which is unique to it.'
+                     % k for k in range(1, items + 1))
+    return write(os.path.join(tmp, 'R.md'),
+                 '# T\n\nA paragraph before it.\n\n%s\n\nA paragraph after'
+                 ' it.\n' % body)
+
+
+def one_item(tmp):
+    """A replacement carrying ONE list item, as an edit to one would."""
+    return write(os.path.join(tmp, 'new.txt'),
+                 '- `OPEN` **Item 1.** Its body, rewritten.\n')
+
+
+def whole_list(tmp, items=4):
+    """A replacement carrying the whole list, as a caller replacing it would."""
+    return write(os.path.join(tmp, 'new.txt'),
+                 '\n'.join('- `OPEN` **Item %d.** Its body, rewritten.' % k
+                           for k in range(1, items + 1)) + '\n')
 
 
 def readme_of_leads(tmp):
@@ -499,11 +648,11 @@ def readme_of_leads(tmp):
     ]) + '\n')
 
 
-def readme_retirement_sentence(tmp, retiring=True):
+def rundoc_retirement_sentence(tmp, retiring=True):
     """A claims paragraph quoting a figure the manifest cannot account for.
 
     Planted under claim 2's lead, the same anchor
-    `readme_current_run_sentence` uses and for the same reason: it is a
+    `rundoc_current_run_sentence` uses and for the same reason: it is a
     claim the manifest still carries, so the paragraph is adjudicated at
     all. The figure is the fixture's and is not read from the run.
 
@@ -514,7 +663,7 @@ def readme_retirement_sentence(tmp, retiring=True):
     correct write-up as a defective one. Without, it is the same figure
     in an ordinary sentence, which must still be listed.
     """
-    doc = subprocess.run(['wrap80', '--unwrap'], input=open(README).read(),
+    doc = subprocess.run(['wrap80', '--unwrap'], input=open(RUNDOC).read(),
                          capture_output=True, text=True, check=True).stdout
     paras = doc.split('\n\n')
     at = [i for i, x in enumerate(paras) if x.startswith('**Claim 2 ')]
@@ -522,7 +671,7 @@ def readme_retirement_sentence(tmp, retiring=True):
     sent = ('Claim 2 retires here, having last read 0.8271 against it.'
             if retiring else 'Claim 2 reads 0.8271 against it.')
     paras.insert(at[0] + 1, sent)
-    return write(os.path.join(tmp, 'R.md'), '\n\n'.join(paras))
+    return write_rundoc(tmp, '\n\n'.join(paras))
 
 
 def readme_citing_dotfile(tmp):
@@ -531,7 +680,7 @@ def readme_citing_dotfile(tmp):
                                ' `.hlint.yaml`.\n\n## What is open'))
 
 
-def readme_stale_basis_in_results(tmp):
+def rundoc_stale_basis_in_results(tmp):
     """The Results section naming a half of the run BEFORE this chapter's.
 
     Run 14's write-up shipped exactly this -- `run13-maxskip` standing in
@@ -542,9 +691,9 @@ def readme_stale_basis_in_results(tmp):
     swept: a Results section naming no run, or naming two, would leave the
     check passing for its own reasons.
     """
-    lines = open(README).read().split('\n')
+    lines = rundoc_lines()
     start = next(i for i, l in enumerate(lines)
-                 if l.startswith('### Results'))
+                 if re.match(r'#{1,6} Results\s*$', l))
     end = next(j for j in range(start + 1, len(lines))
                if re.match(r'#{1,6} ', lines[j]))
     seg = '\n'.join(lines[start:end])
@@ -555,17 +704,17 @@ def readme_stale_basis_in_results(tmp):
     cur = runs.pop()
     lines[start:end] = seg.replace('run%s-' % cur,
                                    'run%d-' % (int(cur) - 1)).split('\n')
-    return write(os.path.join(tmp, 'R.md'), '\n'.join(lines))
+    return write_rundoc(tmp, '\n'.join(lines))
 
 
-def readme_without_class_leads(tmp):
+def rundoc_without_class_leads(tmp):
     """Every class block lead unbackticked, so the grep finds none.
 
     `install-tables.sh` checks that no class is silently skipped by holding
     the JSONs on disk to the README's leads, and the check was itself silent
     when its own search came back empty.
     """
-    src = open(README).read()
+    src = open(RUNDOC).read()
     doc, n = re.subn(r'(?m)^\*\*`([a-z0-9]+)`', r'**\1', src)
     # A sweep, so it says what it swept: a plant that quietly matches
     # nothing -- or matches something else -- leaves the old script failing
@@ -575,28 +724,23 @@ def readme_without_class_leads(tmp):
     if not n or re.search(r'(?m)^\*\*`[a-z0-9]+`', doc):
         raise AssertionError('unbackticked %d lead(s) and %s remain' %
                              (n, 'some' if n else 'all'))
-    return write(os.path.join(tmp, 'R.md'), doc)
+    return write_rundoc(tmp, doc)
 
 
-def readme_chapter_renamed(tmp):
-    return edited_readme(tmp, ('\n## About the last run (Run',
-                               '\n## About the previous run (Run'))
-
-
-def readme_heading_between_blocks(tmp):
+def rundoc_heading_between_blocks(tmp):
     """A section, with a `Provenance:` paragraph, between two class blocks.
 
     `install-tables.sh` gives each block the range up to the next LEAD and
     stops at a heading for the last block only, so anything of that shape
     standing between two blocks is inside the range of the one above it.
     """
-    paras = open(README).read().split('\n\n')
+    paras = open(RUNDOC).read().split('\n\n')
     at = [i for i, x in enumerate(paras) if x.startswith('**`revsome`')]
     assert len(at) == 1, 'revsome lead: %d paragraph(s)' % len(at)
     paras[at[0]:at[0]] = ['### A section standing between two class blocks',
                           'Provenance: ZZMARKER, and this paragraph is'
                           ' nobody\'s to rewrite.']
-    return write(os.path.join(tmp, 'R.md'), '\n\n'.join(paras))
+    return write_rundoc(tmp, '\n\n'.join(paras))
 
 
 def untracked_doc(tmp):
@@ -780,10 +924,10 @@ def an_across_paragraph():
     reinstalled with every run, so a pinned copy dies at the next
     install.
     """
-    for p in open(README).read().split('\n\n'):
+    for p in open(RUNDOC).read().split('\n\n'):
         if p.lstrip().lstrip('*').startswith('Across the halves:'):
             return p
-    raise AssertionError('no `Across the halves:` paragraph in the README'
+    raise AssertionError('no `Across the halves:` paragraph in the run file'
                          ' to delete')
 
 
@@ -1352,14 +1496,14 @@ def lead_of(cls):
     and asserted unique here so a fixture built on it cannot silently
     edit the wrong paragraph.
     """
-    hit = [p for p in open(README).read().split('\n\n')
+    hit = [p for p in open(RUNDOC).read().split('\n\n')
            if p.lstrip().startswith('**`%s` ---' % cls)]
     assert len(hit) == 1, 'lead `%s`: %d paragraph(s)' % (cls, len(hit))
     return hit[0]
 
 
-def relead(tmp, cls, rewrite, name='R.md'):
-    """A copy of the README with one class lead rewritten by `rewrite`.
+def relead(tmp, cls, rewrite, name=None):
+    """A copy of the run file with one class lead rewritten by `rewrite`.
 
     The lead is handed over UNWRAPPED, one line, because `lead_shapes`
     normalises whitespace before it reads and a plant that had to
@@ -1370,7 +1514,7 @@ def relead(tmp, cls, rewrite, name='R.md'):
     old = lead_of(cls)
     new = rewrite(' '.join(old.split()))
     assert new != ' '.join(old.split()), 'the rewrite changed nothing'
-    return edited_readme(tmp, (old, new), name=name)
+    return edited_rundoc(tmp, (old, new), name=name)
 
 
 LAST = object()   # `task_anchor(LAST)`: the list's last item, whatever
@@ -1501,7 +1645,7 @@ def readme_answered_account(tmp, lead=None, tail=''):
     return edited_readme(tmp, (lines[i], entry + '\n' + lines[i]))
 
 
-CLASS_SECTION = '### The stride classes, run by run'
+CLASS_SECTION = '## The stride classes, run by run'
 
 
 def floor_movement_para(bend=None, joiner=' to '):
@@ -1520,7 +1664,7 @@ def floor_movement_para(bend=None, joiner=' to '):
     cases want.
     """
     rows = re.findall(r'^\| `([a-z0-9]+)` \|.*\| ([\d.]+)% \|$',
-                      open(README).read(), re.M)
+                      open(RUNDOC).read(), re.M)
     assert len(rows) >= 4, 'class table floor column: %d row(s)' % len(rows)
     said = []
     for i, (cls, now) in enumerate(rows):
@@ -1531,31 +1675,31 @@ def floor_movement_para(bend=None, joiner=' to '):
             ' All of them moved: ' + ', '.join(said) + '.')
 
 
-def readme_with_floor_movement(tmp, **kw):
+def rundoc_with_floor_movement(tmp, **kw):
     """A copy carrying that paragraph, under the class section's heading.
 
     Placed right under the heading so it is inside the section the check
     reads and outside every class block, which is where the real one
     stood.
     """
-    return edited_readme(tmp, (CLASS_SECTION + '\n',
+    return edited_rundoc(tmp, (CLASS_SECTION + '\n',
                                CLASS_SECTION + '\n\n'
                                + floor_movement_para(**kw) + '\n'))
 
 
-def readme_floor_movement_off_column(tmp):
+def rundoc_floor_movement_off_column(tmp):
     """One movement landing off the column, the rest right."""
-    return readme_with_floor_movement(tmp, bend=0)
+    return rundoc_with_floor_movement(tmp, bend=0)
 
 
-def readme_floor_movement_reshaped(tmp):
+def rundoc_floor_movement_reshaped(tmp):
     """Every figure right and the shape the check matches on rewritten.
 
     What must not happen is a silent pass: keying the vacuity guard on
     the sentence's opening phrase was the first attempt, and rewording
     that phrase turned the whole check off.
     """
-    return readme_with_floor_movement(tmp, joiner=' -> ')
+    return rundoc_with_floor_movement(tmp, joiner=' -> ')
 
 
 def _scale_arm(benches, arm, factor):
@@ -1972,8 +2116,16 @@ def staged_doc(tmp):
             ' superlative in the README.\n')
     idx = os.path.join(tmp, 'index')
     env = dict(os.environ, GIT_INDEX_FILE=idx)
+    # THE RUN FILE GOES INTO THIS INDEX TOO. `added_lines` asks one
+    # `ls-files --error-unmatch` of every document it reads and falls back
+    # to its EVERYTHING sentinel if any is unknown -- so a run file this
+    # throwaway index has never heard of turns the freshness sweep off,
+    # and the case then reads a document with nothing marked NEW as a
+    # defect. Measured 2026-08-25, before the first run file was
+    # committed.
     for cmd in (('git', 'read-tree', 'HEAD'),
-                ('git', 'add', os.path.basename(doc))):
+                ('git', 'add', os.path.basename(doc),
+                 os.path.relpath(RUNDOC, HERE))):
         r = subprocess.run(cmd, cwd=HERE, env=env, capture_output=True,
                            text=True)
         assert r.returncode == 0, '%s: %s' % (cmd, r.stderr.strip())
@@ -2018,21 +2170,27 @@ CASES = [
     # ---- read-run.py, the first review's ------------------------------
     case('install-lands-in-next-block', 'read-run.py', '045ca63',
          'a class whose own table is absent took the next class\'s',
-         plant=lambda t: {'readme': readme_without_class_table(t),
+         plant=lambda t: {'rundoc': rundoc_without_class_table(t),
                           'run': synth_json(t, 'slice')},
-         argv=['{run}', '--block', '--in-place', '--readme', '{readme}'],
+         argv=['{run}', '--block', '--in-place', '--run-doc', '{rundoc}'],
          ok=V(exit=1, has=['refusing to write there'],
               hasnt=['installed at']),
-         bug=V(exit=0, has=['installed at'])),
+         # No --audit: `--run-doc` postdates every commit this case could
+         # replay against, so the older reader rejects the argv rather
+         # than reproducing anything. The run-file split, 2026-08-25.
+         ),
 
     case('block-brief-cannot-install', 'read-run.py', '045ca63',
          '--brief dropped the table --in-place had to install',
-         plant=lambda t: {'readme': edited_readme(t),
+         plant=lambda t: {'rundoc': edited_rundoc(t),
                           'run': synth_json(t, 'slice')},
          argv=['{run}', '--block', '--in-place', '--brief',
-               '--readme', '{readme}'],
+               '--run-doc', '{rundoc}'],
          ok=V(exit=0, has=['installed at']),
-         bug=V(exit=1, has=['emitted no table'])),
+         # No --audit: `--run-doc` postdates every commit this case could
+         # replay against, so the older reader rejects the argv rather
+         # than reproducing anything. The run-file split, 2026-08-25.
+         ),
 
     case('buried-action-at-eof', 'read-run.py', None,
          'the last indented block of a document was never swept',
@@ -2634,7 +2792,7 @@ CASES = [
          # one half and is a WRONG `OTHER` otherwise, and the two look
          # identical -- so the skip has to say which it might be, or the
          # previous run's cross-half line stays under this run's tables.
-         plant=lambda t: {'doc': edited_readme(t)},
+         plant=lambda t: {'doc': edited_rundoc(t)},
          shadow=dict(extra=whole_run(['lookrts'], prefix='zzxh')),
          env={'DOC': '{doc}', 'BASIS': 'lookrts', 'OTHER': 'nosuchhalf'},
          argv=['zzxh'],
@@ -2650,7 +2808,7 @@ CASES = [
          # between the ADDED branch that repairs a missing per-shape line
          # and the note that names a skipped line. A control until the
          # fix has a hash.
-         plant=lambda t: {'doc': edited_readme(t, (
+         plant=lambda t: {'doc': edited_rundoc(t, (
              '\n\n' + an_across_paragraph(), ''))},
          shadow=dict(extra=whole_run(['lookrts', 'ovhalf'],
                                      prefix='zzx5')),
@@ -2669,25 +2827,49 @@ CASES = [
          # written. An independent checker found them by set-differencing
          # the document, which is this script's job and one comparison.
          #
-         # The fixture renumbers the chapter heading and changes nothing
-         # else, so every paragraph under it is verbatim the committed
-         # run's while the heading claims a new one -- which is precisely
-         # the state a write-up that renamed its headings and stopped is
-         # in. Measured 2026-08-23: it names 15 paragraphs.
+         # The fixture puts this run's file beside a predecessor that is
+         # it VERBATIM, which is the state a write-up that made the file
+         # and stopped is in: every figure-bearing paragraph of the head
+         # is the run before's.
          #
-         # A CONTROL, the check being new. Its non-vacuity is that the
-         # unmodified document passes the same call, the two differing
-         # only in the run number, so a check that reported regardless
-         # would fail the control beside it.
-         plant=lambda t: {'readme': committed_readme_renumbered(t)},
-         argv=['--check-doc', '--quiet', '--readme', '{readme}'],
-         ok=V(exit=1, has=['chapter head are unchanged from Run'])),
+         # A CONTROL sits beside it: the same newer file over a
+         # predecessor whose leads are marked, so nothing matches. The two
+         # differ in the predecessor alone, so a check that reported
+         # regardless would fail the control.
+         plant=rundoc_pair,
+         argv=['--check-doc', '--quiet', '--run-doc', '{rundoc}'],
+         ok=V(exit=1, has=["head are unchanged from Run"])),
 
-    case('chapter-head-committed-says-nothing', 'read-run.py', None,
-         'CONTROL: a chapter already committed has no previous run to hold',
-         plant=lambda t: {'readme': committed_readme_renumbered(t, bump=0)},
-         argv=['--check-doc', '--worklists', '--readme', '{readme}'],
-         ok=V(hasnt=['chapter head are unchanged from Run'])),
+    case('run-file-head-new-says-nothing', 'read-run.py', None,
+         'CONTROL: a head rewritten since the run before is not held',
+         plant=lambda t: rundoc_pair(t, held=False),
+         argv=['--check-doc', '--worklists', '--run-doc', '{rundoc}'],
+         ok=V(hasnt=['head are unchanged from Run'])),
+
+    case('run-file-alone-is-held-to-nothing', 'read-run.py', None,
+         'CONTROL: one run file in runs/, and the diff says so',
+         # The check needs two files, and a directory holding one is the
+         # normal state of the first run under this layout. It must say
+         # that in so many words: a silence there reads exactly like a
+         # head with nothing held.
+         plant=lambda t: {'rundoc': write(
+             os.path.join(_mkruns(t), os.path.basename(RUNDOC)),
+             open(RUNDOC).read())},
+         argv=['--check-doc', '--worklists', '--run-doc', '{rundoc}'],
+         ok=V(has=['is held to no predecessor'])),
+
+    case('link-into-a-run-file-that-is-not-this-run', 'read-run.py', None,
+         'a link the rename missed resolved, rendered, and promised the'
+         ' run before',
+         # WHAT THE FOUR-HEADING RENAME BECAME. A run's write-up used to
+         # rename four headings and repoint every link to them, and
+         # `--check-doc` caught what it missed as dead anchors; now the
+         # run number is in a file name, runs/ keeps every run, so a link
+         # left at the run before resolves on disk and renders in the
+         # browser and is wrong. Nothing else here can see it.
+         plant=lambda t: {'readme': readme_link_to_an_older_run(t)},
+         argv=['--check-doc', '--readme', '{readme}'],
+         ok=V(exit=1, has=['point at a run file that is not this'])),
 
     case('bridge-divides-out-the-baseline', 'read-run.py', None,
          'a cross-run comparison a moved box made unreadable',
@@ -2801,7 +2983,10 @@ CASES = [
                                            'mut-odo-vecdims')},
          argv=['{run}', '--block', '--brief'],
          ok=V(has=['--/']),
-         bug=V(has=['summary row'], hasnt=['--/'])),
+         # No --audit: this mode is given no document and takes its own
+         # default, which before the run-file split was a README that
+         # now carries none of what it reads. 2026-08-25.
+         ),
 
     case('machine-check-drops-a-sunk-baseline', 'read-run.py', 'e2d6604',
          'a non-positive `list` net raised, and run-gate.sh files stderr'
@@ -2814,7 +2999,10 @@ CASES = [
          plant=lambda t: {'run': sunk_json(t, main_shapes(), 'list')},
          argv=['{run}', '--machine'],
          ok=V(exit=0, has=['net not positive'], hasnt=['Traceback']),
-         bug=V(has=['Traceback'])),
+         # No --audit: this mode is given no document and takes its own
+         # default, which before the run-file split was a README that
+         # now carries none of what it reads. 2026-08-25.
+         ),
 
     # ---- read-run.py, the second review's ------------------------------
     # BOTH PLANT AN ERA Main.hs, because Main.hs cites README headings by
@@ -2852,11 +3040,13 @@ CASES = [
 
     case('checkdoc-qmark-under-renamed-yardstick', 'read-run.py', 'a6c32e8',
          'a renamed yardstick header disabled the published-`?` gate',
-         plant=lambda t: {'readme': readme_yardstick_renamed_with_qmark(t)},
-         argv=['--check-doc', '--readme', '{readme}'],
+         plant=lambda t: {'rundoc': rundoc_yardstick_renamed_with_qmark(t)},
+         argv=['--check-doc', '--run-doc', '{rundoc}'],
          ok=V(has=['still carry the `?`']),
-         bug=V(exit=1, has=['the yardstick table is gone'],
-               hasnt=['still carry the `?`'])),
+         # No --audit: `--run-doc` postdates every commit this case could
+         # replay against, so the older reader rejects the argv rather
+         # than reproducing anything. The run-file split, 2026-08-25.
+         ),
 
     case('claims-current-run-not-exempt', 'read-run.py', 'a6c32e8',
          '`Run N` exempted the run in hand, the one kind that matters',
@@ -2874,11 +3064,14 @@ CASES = [
          # figure is the FIXTURE's, planted into the README copy rather
          # than read from the run, so it does not move with the run; what
          # the run has to be is CAPTURED rather than built.
-         plant=lambda t: {'readme': readme_current_run_sentence(t),
+         plant=lambda t: {'rundoc': rundoc_current_run_sentence(t),
                           'run': run_json('run18-g912-main.json')},
-         argv=['{run}', '--claims', '--readme', '{readme}'],
+         argv=['{run}', '--claims', '--run-doc', '{rundoc}'],
          ok=V(has=['0.9312']),
-         bug=V(has=['HELD'], hasnt=['0.9312'])),
+         # No --audit: `--run-doc` postdates every commit this case could
+         # replay against, so the older reader rejects the argv rather
+         # than reproducing anything. The run-file split, 2026-08-25.
+         ),
 
     # ---- --para's retrieval shape, which had no case at all ---------
     # Added with the change they describe, 2026-08-25. `--para` is the
@@ -2889,6 +3082,35 @@ CASES = [
     # whole change; these three pin each branch, since a mode that
     # indexed always would cost a round trip on every unique match and
     # one that never indexed would not have changed anything.
+    case('replace-shrinks-a-list-to-one-item', 'read-run.py', None,
+         'an anchor in a list\'s FIRST item took all four and wrote back one',
+         # THE GUARD BESIDE THIS ONE HAS THE WRONG PREMISE, and using it
+         # is what showed that. A list with no blank line between its
+         # items is one paragraph, so `--replace` replaces all of it; the
+         # existing refusal exempts an anchor in the FIRST item, on the
+         # theory that quoting a list from its start is what a caller
+         # replacing the whole list would do. It is also exactly what a
+         # caller EDITING THE FIRST ITEM does. Measured 2026-08-25 on this
+         # README's non-urgent TODO list: an anchor naming its first
+         # entry replaced all nine with one, 8859 characters for 656, at
+         # exit 0, and the echo said so and was read past.
+         #
+         # The rule that separates them is the REPLACEMENT: a caller who
+         # means the list passes a list back.
+         plant=lambda t: {'doc': doc_of_a_list(t), 'new': one_item(t)},
+         argv=['--replace', '**Item 1.**', '--with', '{new}',
+               '--readme', '{doc}'],
+         ok=V(exit=1, has=['4-item list', 'the replacement carries 1 item']),
+         probe=lambda subs: open(subs['doc']).read()),
+
+    case('replace-takes-a-whole-list-for-a-whole-list', 'read-run.py', None,
+         'CONTROL: a list handed back as a list is the caller meaning it',
+         plant=lambda t: {'doc': doc_of_a_list(t), 'new': whole_list(t)},
+         argv=['--replace', '**Item 1.**', '--with', '{new}',
+               '--readme', '{doc}'],
+         ok=V(exit=0, has=['--replace: ']),
+         probe=lambda subs: open(subs['doc']).read()),
+
     case('para-indexes-when-several-leads-match', 'read-run.py', None,
          'several matching leads printed whole where an index was wanted',
          plant=lambda t: {'readme': readme_of_leads(t)},
@@ -2915,16 +3137,16 @@ CASES = [
          # CONTROL FIRST, below: the same figure in an ordinary sentence
          # is still listed, so this pair says the exemption is the word
          # `retires` and not the mode having stopped listing anything.
-         plant=lambda t: {'readme': readme_retirement_sentence(t),
+         plant=lambda t: {'rundoc': rundoc_retirement_sentence(t),
                           'run': run_json('run19-g912-main.json')},
-         argv=['{run}', '--claims', '--readme', '{readme}'],
+         argv=['{run}', '--claims', '--run-doc', '{rundoc}'],
          ok=V(hasnt=['0.8271'])),
 
     case('ordinary-sentence-still-listed', 'read-run.py', None,
          'CONTROL: an unattributed figure outside a retirement is listed',
-         plant=lambda t: {'readme': readme_retirement_sentence(t, False),
+         plant=lambda t: {'rundoc': rundoc_retirement_sentence(t, False),
                           'run': run_json('run19-g912-main.json')},
-         argv=['{run}', '--claims', '--readme', '{readme}'],
+         argv=['{run}', '--claims', '--run-doc', '{rundoc}'],
          ok=V(has=['0.8271'])),
 
     case('results-names-an-older-basis-half', 'read-run.py', None,
@@ -2934,9 +3156,9 @@ CASES = [
          # this case was, so there is no `fix^` to replay it against. What
          # it holds is the property, which is what the next reader needs --
          # the fixture is the Run 14 defect built out of the current README.
-         plant=lambda t: {'readme': readme_stale_basis_in_results(t)},
-         argv=['--check-doc', '--readme', '{readme}'],
-         ok=V(exit=1, has=['while this chapter is Run'])),
+         plant=lambda t: {'rundoc': rundoc_stale_basis_in_results(t)},
+         argv=['--check-doc', '--run-doc', '{rundoc}'],
+         ok=V(exit=1, has=['while the file is Run'])),
 
     case('path-token-dotfile', 'read-run.py', None,
          "lstrip('./') ate the leading dot of a cited dotfile",
@@ -2987,12 +3209,14 @@ CASES = [
 
     case('summary-row-width', 'read-run.py', 'a6c32e8',
          'a row that lost a column had its tail compared against nothing',
-         plant=lambda t: {'readme': readme_summary_row_short(t),
+         plant=lambda t: {'rundoc': rundoc_summary_row_short(t),
                           'run': synth_json(t, 'slice')},
-         argv=['{run}', '--block', '--readme', '{readme}'],
+         argv=['{run}', '--block', '--run-doc', '{rundoc}'],
          ok=V(has=['not checked: it has 5 column(s)']),
-         bug=V(has=['six columns'],
-               hasnt=['not checked: it has 5 column(s)'])),
+         # No --audit: `--run-doc` postdates every commit this case could
+         # replay against, so the older reader rejects the argv rather
+         # than reproducing anything. The run-file split, 2026-08-25.
+         ),
 
     case('verbose-alone', 'read-run.py', None,
          '--verbose outside the modes that drop prose said nothing',
@@ -3059,23 +3283,18 @@ CASES = [
          ok=V(has=['allocated R2 < 0.99']),
          bug=V(has=['alloc missing for'], hasnt=['allocated R2 < 0.99'])),
 
-    case('checkdoc-chapter-heading-gone', 'read-run.py', 'a6c32e8',
-         'the chapter-link sweep lost its own boundary in silence',
-         plant=lambda t: {'readme': readme_chapter_renamed(t)},
-         argv=['--check-doc', '--readme', '{readme}'],
-         ok=V(has=['BLOCKED: no `## About the last run` heading']),
-         bug=V(exit=1, has=['dead anchor(s)'],
-               hasnt=['BLOCKED: no `## About the last run` heading'])),
-
     case('markdown-installs-into-the-main-table', 'read-run.py', 'febc2bd',
          "a class run whose shapes Main.hs lost installed into Results",
-         plant=lambda t: {'readme': edited_readme(t),
+         plant=lambda t: {'rundoc': edited_rundoc(t),
                           'run': synth_json(t, 'rev')},
          argv=['{run}', '--markdown', '--in-place', '--main', '/dev/null',
-               '--readme', '{readme}'],
+               '--run-doc', '{rundoc}'],
          ok=V(exit=1, has=['a population Main.hs does not define'],
               hasnt=['installed at']),
-         bug=V(exit=0, has=['installed at'])),
+         # No --audit: `--run-doc` postdates every commit this case could
+         # replay against, so the older reader rejects the argv rather
+         # than reproducing anything. The run-file split, 2026-08-25.
+         ),
 
     case('selftest-survives-a-sunk-cell', 'read-run.py', 'febc2bd',
          'a sunk cell gave the gate a traceback and no verdict at all',
@@ -3162,7 +3381,9 @@ CASES = [
          argv=['--properties'],
          ok=V(exit=0, has=['line(s) of reader warning withheld',
                            'kind(s)']),
-         bug=V(exit=0, hasnt=['line(s) of reader warning withheld'])),
+         # No --audit: the driver itself reads the split, so an older copy
+         # of it cannot be run against this tree at all. 2026-08-25.
+         ),
 
     case('tree-check-that-could-not-run', 'check-scripts.py', 'ea4ab06',
          'this suite\'s one guarantee about itself passed unchecked',
@@ -3332,13 +3553,16 @@ CASES = [
          # per-shape line --block installs beneath them named three.
          # --block knew both all along and compared neither.
          plant=lambda t: {
-             'readme': relead(t, 'slice', lambda s: s.replace(
+             'rundoc': relead(t, 'slice', lambda s: s.replace(
                  ', `slice-coprime-r7` (`l` 60060, `sInner` 13)', '')),
              'run': synth_run(os.path.join(t, 'slice.json'),
                               run_order_shapes('slice'))},
-         argv=['{run}', '--block', '--readme', '{readme}'],
+         argv=['{run}', '--block', '--run-doc', '{rundoc}'],
          ok=V(exit=0, has=['does not name `slice-coprime-r7`']),
-         bug=V(exit=0, hasnt=['does not name `slice-coprime-r7`'])),
+         # No --audit: `--run-doc` postdates every commit this case could
+         # replay against, so the older reader rejects the argv rather
+         # than reproducing anything. The run-file split, 2026-08-25.
+         ),
 
     case('lead-order-mislabels-the-per-shape-line', 'read-run.py', '3596ba2',
          'a lead listed its shapes in an order the installed line is not in',
@@ -3347,30 +3571,35 @@ CASES = [
          # does not go stale -- it mislabels three live ratios, which is
          # the one of the three readings no reading of the block catches.
          plant=lambda t: {
-             'readme': relead(t, 'slice', lambda s: s.replace(
+             'rundoc': relead(t, 'slice', lambda s: s.replace(
                  '`slice-cnn-L2-24x24-c32` (`l` 165888, `sInner` 3),'
                  ' `slice-primes` (`l` 250357, `sInner` 89)',
                  '`slice-primes` (`l` 250357, `sInner` 89),'
                  ' `slice-cnn-L2-24x24-c32` (`l` 165888, `sInner` 3)')),
              'run': synth_run(os.path.join(t, 'slice.json'),
                               run_order_shapes('slice'))},
-         argv=['{run}', '--block', '--readme', '{readme}'],
+         argv=['{run}', '--block', '--run-doc', '{rundoc}'],
          ok=V(exit=0, has=['it lists them `slice-primes`,'
                            ' `slice-cnn-L2-24x24-c32`']),
-         bug=V(exit=0, hasnt=['it lists them `slice-primes`,'
-                             ' `slice-cnn-L2-24x24-c32`'])),
+         # No --audit: `--run-doc` postdates every commit this case could
+         # replay against, so the older reader rejects the argv rather
+         # than reproducing anything. The run-file split, 2026-08-25.
+         ),
 
     case('lead-figures-disagree-with-main-hs', 'read-run.py', '3596ba2',
          'a lead\'s hand-copied `l` had no source but the lead',
          plant=lambda t: {
-             'readme': relead(t, 'slice', lambda s: s.replace(
+             'rundoc': relead(t, 'slice', lambda s: s.replace(
                  '`slice-primes` (`l` 250357', '`slice-primes` (`l` 250358')),
              'run': synth_run(os.path.join(t, 'slice.json'),
                               run_order_shapes('slice'))},
-         argv=['{run}', '--block', '--readme', '{readme}'],
+         argv=['{run}', '--block', '--run-doc', '{rundoc}'],
          ok=V(exit=0, has=['is written (`l` 250358, `sInner` 89) where'
                            ' Main.hs gives (`l` 250357, `sInner` 89)']),
-         bug=V(exit=0, hasnt=['is written (`l` 250358, `sInner` 89)'])),
+         # No --audit: `--run-doc` postdates every commit this case could
+         # replay against, so the older reader rejects the argv rather
+         # than reproducing anything. The run-file split, 2026-08-25.
+         ),
 
     case('lead-in-run-order-is-silent', 'read-run.py', None,
          'CONTROL: the lead as written, over the run it stands over',
@@ -3421,7 +3650,10 @@ CASES = [
          ok=V(exit=1, has=['open with no status',
                            'cannot find the live ones among them',
                            'zz-planted-tokenless']),
-         bug=V(exit=0, hasnt=['open with no status'])),
+         # No --audit: the fixture is built from today's document and
+         # plants against an anchor the era's copy does not carry, so
+         # the replay is a fixture that will not build. 2026-08-25.
+         ),
 
     case('open-list-status-check-does-not-pass-empty', 'read-run.py', '3596ba2',
          'a reshaped list would have passed the status check over nothing',
@@ -3433,7 +3665,10 @@ CASES = [
          argv=['--check-doc', '--readme', '{readme}'],
          ok=V(exit=1, has=['no top-level entry found',
                            'the status check did not run']),
-         bug=V(exit=0, hasnt=['no top-level entry found'])),
+         # No --audit: the fixture is built from today's document and
+         # plants against an anchor the era's copy does not carry, so
+         # the replay is a fixture that will not build. 2026-08-25.
+         ),
 
     case('answered-account-fails-the-document', 'read-run.py', '3596ba2',
          'an answer grew into the chapter it should have pointed at',
@@ -3456,7 +3691,10 @@ CASES = [
          argv=['--check-doc', '--readme', '{readme}'],
          ok=V(exit=1, has=['ANSWERED entry(s) past 500 words',
                            'zz-planted-account', 'only copy']),
-         bug=V(exit=0, hasnt=['ANSWERED entry(s) past 500 words'])),
+         # No --audit: the fixture is built from today's document and
+         # plants against an anchor the era's copy does not carry, so
+         # the replay is a fixture that will not build. 2026-08-25.
+         ),
 
     case('answered-only-copy-ruling-is-exempt', 'read-run.py', None,
          'a gate with no true way out for an answer nothing else records',
@@ -3516,18 +3754,21 @@ CASES = [
          # The plant is the OPPOSITE of the live document's state, one
          # figure of the paragraph moved off the column, so that the case
          # keeps meaning this when the paragraph is repaired.
-         plant=lambda t: {'readme': readme_floor_movement_off_column(t)},
-         argv=['--check-doc', '--worklists', '--readme', '{readme}'],
+         plant=lambda t: {'rundoc': rundoc_floor_movement_off_column(t)},
+         argv=['--check-doc', '--worklists', '--run-doc', '{rundoc}'],
          ok=V(exit=1, has=["reading the PREVIOUS run's column"]),
-         bug=V(exit=0, hasnt=["reading the PREVIOUS run's column"])),
+         # No --audit: `--run-doc` postdates every commit this case could
+         # replay against, so the older reader rejects the argv rather
+         # than reproducing anything. The run-file split, 2026-08-25.
+         ),
 
     case('floor-movement-built-clean-passes', 'read-run.py', None,
          'CONTROL: the same built paragraph with every figure right',
          # The two cases beside this one both plant into a paragraph this
          # fixture constructs, so this is what says they fire on the
          # plant and not on the construction.
-         plant=lambda t: {'readme': readme_with_floor_movement(t)},
-         argv=['--check-doc', '--worklists', '--readme', '{readme}'],
+         plant=lambda t: {'rundoc': rundoc_with_floor_movement(t)},
+         argv=['--check-doc', '--worklists', '--run-doc', '{rundoc}'],
          ok=V(exit=0, has=["floor movement(s) land on the class table's own"
                            ' column'])),
 
@@ -3539,10 +3780,13 @@ CASES = [
          # paragraph's SHAPE now -- four or more classes with a figure
          # apiece -- so a rewording that keeps the content still parses
          # and one that does not fails loudly.
-         plant=lambda t: {'readme': readme_floor_movement_reshaped(t)},
-         argv=['--check-doc', '--worklists', '--readme', '{readme}'],
+         plant=lambda t: {'rundoc': rundoc_floor_movement_reshaped(t)},
+         argv=['--check-doc', '--worklists', '--run-doc', '{rundoc}'],
          ok=V(exit=1, has=['if that sentence was reworded']),
-         bug=V(exit=0, hasnt=['if that sentence was reworded'])),
+         # No --audit: `--run-doc` postdates every commit this case could
+         # replay against, so the older reader rejects the argv rather
+         # than reproducing anything. The run-file split, 2026-08-25.
+         ),
 
     case('extremes-ranks-and-says-where-the-two-readings-differ',
          'read-run.py', '3596ba2',
@@ -3776,10 +4020,13 @@ CASES = [
 
     case('table-row-narrower-than-its-header', 'read-run.py', '0e2934c',
          'a row two cells short put its values under the wrong runs',
-         plant=lambda t: {'readme': readme_with_ragged_row(t)},
-         argv=['--check-doc', '--readme', '{readme}'],
+         plant=lambda t: {'rundoc': rundoc_with_ragged_row(t)},
+         argv=['--check-doc', '--run-doc', '{rundoc}'],
          ok=V(exit=1, has=['narrower than its header']),
-         bug=V(exit=0, hasnt=['narrower than its header'])),
+         # No --audit: `--run-doc` postdates every commit this case could
+         # replay against, so the older reader rejects the argv rather
+         # than reproducing anything. The run-file split, 2026-08-25.
+         ),
 
     case('machine-check-names-the-control-it-leaves', 'read-run.py',
          '0e2934c',
@@ -3826,11 +4073,14 @@ CASES = [
                                             name='moved.json',
                                             fingerprint=os.path.join(
                                                 t, 'fp-moved.md')),
-                          'readme': os.path.join(t, 'fp-moved.md')},
-         argv=['{run}', '--machine', '--readme', '{readme}'],
+                          'fp': os.path.join(t, 'fp-moved.md')},
+         argv=['{run}', '--machine', '--run-doc', '{fp}'],
          ok=V(exit=0, has=['BOX MOVED', 'moved TOGETHER',
                            'GOES AHEAD EITHER WAY'], hasnt=['STOP']),
-         bug=V(exit=1, has=['STOP'])),
+         # No --audit: `--run-doc` postdates every commit this case could
+         # replay against, so the older reader rejects the argv rather
+         # than reproducing anything. The run-file split, 2026-08-25.
+         ),
 
     case('machine-check-tells-a-level-shift-from-a-skewed-shape',
          'read-run.py', 'bc2f884',
@@ -3858,8 +4108,8 @@ CASES = [
          plant=lambda t: {'run': synth_json(t, 'main', name='same.json',
                                             fingerprint=os.path.join(
                                                 t, 'fp-same.md')),
-                          'readme': os.path.join(t, 'fp-same.md')},
-         argv=['{run}', '--machine', '--readme', '{readme}'],
+                          'fp': os.path.join(t, 'fp-same.md')},
+         argv=['{run}', '--machine', '--run-doc', '{fp}'],
          ok=V(exit=0, has=['inside 3%'], hasnt=['BOX MOVED'])),
 
     case('alone-leg-riders-are-not-populations', 'read-all.sh', 'bf9acf2',
@@ -4343,7 +4593,10 @@ CASES = [
              'the same run gives 0.69% and 0.29%')},
          argv=['--check-doc', '--readme', '{readme}'],
          ok=V(exit=1, has=['six-pair figure is quoted differently']),
-         bug=V(exit=0, hasnt=['six-pair figure is quoted differently'])),
+         # No --audit: the fixture is built from today's document and
+         # plants against an anchor the era's copy does not carry, so
+         # the replay is a fixture that will not build. 2026-08-25.
+         ),
 
     case('calibration-base-disagrees-across-sites', 'read-run.py', '054f3f1',
          'the A/A population read six pairs in one section and eighteen in another',
@@ -4357,7 +4610,10 @@ CASES = [
              'as an order of magnitude: it rests on six pairs.'))},
          argv=['--check-doc', '--readme', '{readme}'],
          ok=V(exit=1, has=['A/A population is quoted as']),
-         bug=V(exit=0, hasnt=['A/A population is quoted as'])),
+         # No --audit: the fixture is built from today's document and
+         # plants against an anchor the era's copy does not carry, so
+         # the replay is a fixture that will not build. 2026-08-25.
+         ),
 
     case('gate-arms-track-the-selection', 'run-gate.sh', 'febc2bd',
          'the expected bench count was a literal that had to equal SEL',
@@ -4420,7 +4676,9 @@ CASES = [
               'OTHER': 'a1g', 'BASIS': 'lookrts'},
          argv=['zzxf'],
          ok=V(exit=1, has=['did NOT refuse']),
-         bug=V(exit=0, has=['sweep clean'])),
+         # No --audit: the driver itself reads the split, so an older copy
+         # of it cannot be run against this tree at all. 2026-08-25.
+         ),
 
     case('major-run-runs-clean', 'run-major.sh', None,
          'CONTROL: the whole sequence, eighteen processes, on stand-ins',
@@ -4518,7 +4776,7 @@ CASES = [
     # ---- install-tables.sh ---------------------------------------------
     case('lead-patterns-disagree', 'install-tables.sh', None,
          'a lead one pattern missed was overwritten by the block above it',
-         plant=lambda t: {'doc': edited_readme(
+         plant=lambda t: {'doc': edited_rundoc(
              t, ('**`window` --- overlapping', '**`window` - overlapping'))},
          shadow=dict(extra=whole_run(['lookrts'], prefix='zzit')),
          env={'DOC': '{doc}', 'BASIS': 'lookrts'},
@@ -4531,7 +4789,7 @@ CASES = [
 
     case('no-class-block-leads', 'install-tables.sh', '4086ab8',
          'the guard against a silently skipped class was itself silent',
-         plant=lambda t: {'doc': readme_without_class_leads(t)},
+         plant=lambda t: {'doc': rundoc_without_class_leads(t)},
          shadow=dict(extra=whole_run(['lookrts'], prefix='zzit')),
          env={'DOC': '{doc}', 'BASIS': 'lookrts'},
          argv=['zzit'],
@@ -4540,7 +4798,7 @@ CASES = [
 
     case('heading-between-two-class-blocks', 'install-tables.sh', None,
          "a paragraph between blocks took the block above it's figures",
-         plant=lambda t: {'doc': readme_heading_between_blocks(t)},
+         plant=lambda t: {'doc': rundoc_heading_between_blocks(t)},
          shadow=dict(extra=whole_run(['lookrts'], prefix='zzit')),
          env={'DOC': '{doc}', 'BASIS': 'lookrts'},
          argv=['zzit'],
@@ -4552,8 +4810,8 @@ CASES = [
 
     case('placeholder-that-outlived-its-wording', 'install-tables.sh',
          None,
-         'a reworded emit installed a literal `___` into the README',
-         plant=lambda t: {'doc': edited_readme(t)},
+         'a reworded emit installed a literal `___` into the run file',
+         plant=lambda t: {'doc': edited_rundoc(t)},
          shadow=dict(mutate=[
              ('read-run.py',
               "print('**Provenance:** elapsed ___, peak ___ MiB in use, ___ MiB"
@@ -4571,7 +4829,7 @@ CASES = [
     case('two-shape-class-refused-before-writing', 'install-tables.sh',
          None,
          'a two-shape class aborted AFTER eleven tables were already in',
-         plant=lambda t: {'doc': edited_readme(t)},
+         plant=lambda t: {'doc': edited_rundoc(t)},
          shadow=dict(extra=whole_run(['lookrts'], prefix='zzts',
                                      short_class='scaled')),
          env={'DOC': '{doc}', 'BASIS': 'lookrts'},
@@ -4584,7 +4842,7 @@ CASES = [
 
     case('basis-glob-catches-no-other-half', 'install-tables.sh', '440b22d',
          'a control half named <basis>-pa was installed as the basis',
-         plant=lambda t: {'doc': edited_readme(t)},
+         plant=lambda t: {'doc': edited_rundoc(t)},
          shadow=dict(extra=whole_run(['lookrts'], prefix='zzhg')
                      + [('zzhg-lookrts-pa-rev.json', '["criterion","x",[]]')]),
          env={'DOC': '{doc}', 'BASIS': 'lookrts'},
@@ -4602,7 +4860,7 @@ CASES = [
          # and nothing had acted on. The missed block then ran inside the
          # one above it and took its figures. Refused by name now, as
          # run-major.sh refuses the class.
-         plant=lambda t: {'doc': edited_readme(
+         plant=lambda t: {'doc': edited_rundoc(
              t, ('**`bcastmid` ---', '**`bcast-mid` ---'))},
          shadow=dict(extra=whole_run(['lookrts'], prefix='zzhl')),
          env={'DOC': '{doc}', 'BASIS': 'lookrts'},
@@ -4616,8 +4874,8 @@ CASES = [
                hasnt=['carries a hyphen'])),
 
     case('install-is-idempotent', 'install-tables.sh', None,
-         'CONTROL: a full pass over an untouched README rewrites no table',
-         plant=lambda t: {'doc': edited_readme(t)},
+         'CONTROL: a full pass over an untouched run file rewrites no table',
+         plant=lambda t: {'doc': edited_rundoc(t)},
          shadow=dict(extra=whole_run(['lookrts'], prefix='zzit')),
          env={'DOC': '{doc}', 'BASIS': 'lookrts'},
          argv=['zzit'],
@@ -4996,6 +5254,10 @@ def prop_table_reads_back(m):
 
         class A:                      # the reader's own argument object
             readme, main, run = README, MAIN, f
+            # The Results table the carry-forward reads is the RUN's, and
+            # `markdown_table` refuses rather than falling back, so this
+            # stand-in has to carry it as the real argument object does.
+            run_doc = RUNDOC
         text = m.capture(m.markdown_table, cells, shapes, strategies, meta,
                          A, {})
         rows = [l for l in text.split('\n') if l.startswith('| ')

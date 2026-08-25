@@ -3237,7 +3237,8 @@ checkedArms = [(n, f) | (n, arm) <- roster, f <- fills arm]
 -- populations of 'classBenches' instead, any remaining arguments going to
 -- criterion as usual, which is how one population is selected per process
 -- (@classes rev-@). How to run: README.md#running-it. The numbers and how
--- to read them: README.md#results, README.md#the-reader-read-runpy.
+-- to read them: the Results table in the run's own file under runs/,
+-- and README.md#the-reader-read-runpy.
 -- The saturating preamble, off unless SATURATE is set in the environment
 -- to a dose multiplier -- 1 is the saturating dose, 2 the plateau control,
 -- 0 and unset are off -- and what it is for is Run 18's entry in README's

@@ -156,13 +156,13 @@ echo "=== $(date -Is) gate complete"
 
 # THE ONE CHECK THAT ASKS ABOUT THE BOX AND NOT THE CODE, added 2026-08-14.
 # `list` is the denominator of every published ratio and the arm measured
-# insusceptible to placement, and README's fingerprint keeps its net per call
-# per shape -- so the previous run's absolutes are in the README after its JSONs
+# insusceptible to placement, and the run file's fingerprint keeps its net per
+# call per shape -- so the previous run's absolutes are in runs/ after its JSONs
 # are gone, and this needs no artifact kept. The gate's own selection carries
 # `*/list` and both `sum-only` halves on every shape, so the comparison is net
 # against net, and it happens HERE because this is the cheapest hour to learn
 # it. IT DOES NOT GATE, since 2026-08-23: a box that moved between runs cannot
-# reach a within-run claim, which is every claim the README publishes, so
+# reach a within-run claim, which is every claim a run publishes, so
 # stopping for it buys nothing and costs the night. Run 18 stopped here at
 # +4.81% and the evening went on waiting for `run anyway, re-baseline`, an
 # answer never in doubt. The mode now returns 0 for a moved box, whichever way
