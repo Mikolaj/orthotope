@@ -488,6 +488,17 @@ def readme_current_run_sentence(tmp):
     return write(os.path.join(tmp, 'R.md'), '\n\n'.join(paras))
 
 
+def readme_of_leads(tmp):
+    """A small document: three leads sharing a word, and one alone."""
+    return write(os.path.join(tmp, 'R.md'), '\n\n'.join([
+        '# T',
+        '**Alpha the first.** Body one, which is unique to it.',
+        '**Alpha the second.** Body two, which is unique to it.',
+        '**Alpha the third.** Body three, which is unique to it.',
+        '**Beta alone.** Body four, which is unique to it.',
+    ]) + '\n')
+
+
 def readme_retirement_sentence(tmp, retiring=True):
     """A claims paragraph quoting a figure the manifest cannot account for.
 
@@ -2868,6 +2879,36 @@ CASES = [
          argv=['{run}', '--claims', '--readme', '{readme}'],
          ok=V(has=['0.9312']),
          bug=V(has=['HELD'], hasnt=['0.9312'])),
+
+    # ---- --para's retrieval shape, which had no case at all ---------
+    # Added with the change they describe, 2026-08-25. `--para` is the
+    # mode a session reaches for most and it was unguarded: on Run 19
+    # `--para 'What Run'` returned four registration entries WHOLE,
+    # thousands of characters each, read for one lead. Printing an index
+    # when several match and the paragraph itself when one does is the
+    # whole change; these three pin each branch, since a mode that
+    # indexed always would cost a round trip on every unique match and
+    # one that never indexed would not have changed anything.
+    case('para-indexes-when-several-leads-match', 'read-run.py', None,
+         'several matching leads printed whole where an index was wanted',
+         plant=lambda t: {'readme': readme_of_leads(t)},
+         argv=['--para', 'Alpha', '--readme', '{readme}'],
+         ok=V(exit=0, has=['3 paragraph(s) whose lead matches'],
+              hasnt=['Body one', 'Body three'])),
+
+    case('para-prints-a-unique-match-whole', 'read-run.py', None,
+         'CONTROL: one match is retrieved, not indexed for a second call',
+         plant=lambda t: {'readme': readme_of_leads(t)},
+         argv=['--para', 'Beta alone', '--readme', '{readme}'],
+         ok=V(exit=0, has=['Body four'],
+              hasnt=['paragraph(s) whose lead matches'])),
+
+    case('para-all-restores-the-set', 'read-run.py', None,
+         'CONTROL: --all is the escape for the reading that wants them all',
+         plant=lambda t: {'readme': readme_of_leads(t)},
+         argv=['--para', 'Alpha', '--all', '--readme', '{readme}'],
+         ok=V(exit=0, has=['Body one', 'Body two', 'Body three'],
+              hasnt=['paragraph(s) whose lead matches'])),
 
     case('retirement-epitaph-listed-as-unaccounted', 'read-run.py', None,
          'a retired claim\'s last reading listed as an unattributed figure',

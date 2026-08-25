@@ -4900,7 +4900,10 @@ throughout:
     #      clearing `GATE: not yet run` in the same edit. A gate answers
     #      sound or not sound; never quote a magnitude from one
     ./read-run.py --para 'What Run'       # 15. the run's registered
-    #      predictions -- and READ `What Run N compares against` besides,
+    #      predictions. SEVERAL LEADS MATCH `What Run`, so it prints an
+    #      index of leads and locations and you ask again for the one you
+    #      want; `--all` prints them whole where the set is the point.
+    #      READ `What Run N compares against` besides,
     #      because --para matches bolded open-list leads and a run whose
     #      registrations live under that heading returns only its
     #      predecessors', which reads as an empty registration. An empty

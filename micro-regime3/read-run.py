@@ -5337,7 +5337,7 @@ def splice(readme, anchor, source):
     return 0
 
 
-def paragraphs(readme, pattern):
+def paragraphs(readme, pattern, every=False):
     r"""Print the paragraphs whose BOLDED LEAD matches, and their line numbers.
 
     Retrieval, so that reading a paragraph does not mean finding it first.
@@ -5392,15 +5392,38 @@ def paragraphs(readme, pattern):
         return 2
     rx = re.compile(pattern, re.I)
     paras = list(unwrapped_paragraphs(lines))
-    hits = 0
+    lead_hits = []
     for first, para, _ in paras:
         lead = LEAD_RE.search(para)
         if lead and rx.search(' '.join(lead.group(1).split())):
-            print('%s:%d' % (os.path.basename(readme), first))
-            print(para)
-            print()
-            hits += 1
-    if hits:
+            lead_hits.append((first, para, ' '.join(lead.group(1).split())))
+    # ONE MATCH PRINTS WHOLE; SEVERAL PRINT AN INDEX. Retrieval is what this
+    # mode is for, and a unique match is retrieved -- printing it costs the
+    # caller nothing and a second call would cost a round trip for nothing.
+    # Several matches are a different thing: the caller asked for one
+    # passage and named a pattern that reaches four, so what it wants back
+    # is which one to ask for. Run 19's `--para 'What Run'` returned four
+    # registration entries whole, thousands of characters each, to be read
+    # for one lead -- the largest single avoidable read of that session.
+    #
+    # And the index makes a trap visible that the wall of prose hid: this
+    # mode matches open-list leads, so a run whose registrations live
+    # elsewhere gets back its PREDECESSORS' and nothing of its own, which
+    # reads as an empty registration. Four leads with run numbers in them
+    # say that at a glance where four entries did not.
+    if len(lead_hits) > 1 and not every:
+        print('%d paragraph(s) whose lead matches %r; --all prints them,'
+              ' or narrow the pattern to one:'
+              % (len(lead_hits), pattern))
+        for first, _para, lead in lead_hits:
+            print('  %s:%d  %s'
+                  % (os.path.basename(readme), first, lead[:88]))
+        return 0
+    for first, para, _lead in lead_hits:
+        print('%s:%d' % (os.path.basename(readme), first))
+        print(para)
+        print()
+    if lead_hits:
         return 0
 
     body = [(first, para) for first, para, _ in paras if rx.search(para)]
@@ -7698,8 +7721,14 @@ def main():
                         ' adjudication -- step 7 wants this, no other call'
                         ' does')
     p.add_argument('--para', metavar='PATTERN',
-                   help="print README paragraphs whose bolded lead matches,"
-                        " with the line each starts at; needs no run file")
+                   help="print the README paragraph whose bolded lead"
+                        " matches, with the line it starts at; where several"
+                        " match, print their leads and locations instead;"
+                        " needs no run file")
+    p.add_argument('--all', dest='all_paras', action='store_true',
+                   help='with --para: print every matching paragraph whole'
+                        ' rather than indexing them, for the reading that'
+                        ' wants the set and not one of it')
     p.add_argument('--replace', metavar='ANCHOR',
                    help='replace the README paragraph carrying ANCHOR with the'
                         ' text in --with, without printing the old one;'
@@ -7839,7 +7868,7 @@ def main():
             sys.exit('--replace wants --with FILE, the replacement text')
         sys.exit(splice(args.readme, args.replace, args.with_))
     if args.para:
-        sys.exit(paragraphs(args.readme, args.para))
+        sys.exit(paragraphs(args.readme, args.para, args.all_paras))
     if args.check_doc:
         sys.exit(check_doc(args.readme, args.main) if args.worklists
                  else check_doc_quiet(args.readme, args.main))
