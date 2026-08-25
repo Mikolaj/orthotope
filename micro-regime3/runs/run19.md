@@ -628,7 +628,7 @@ So the pair above is not owed to it, and the three arms it turned on stopped
 costing benches the same day. **Where the roster change does land is across
 runs, not across the halves.** Within the pair one thing differs and it
 is the compiler; between Run 19 and either half of Run 20 the roster has moved,
-so a figure read across that boundary on the 47 arms all three carry brings
+so a figure read across that boundary on the 44 arms all three still time brings
 a layout term with it --- Run 10 measured a reorder at 12 to 14% on the two arms
 whose loop the shim rescues. **What the roster change costs**: nine new
 functions move every address, so neither half of Run 20 can reproduce its Run 19
@@ -637,7 +637,7 @@ and the three-read hunt a moved md5 usually triggers are both off for this run,
 decided 2026-08-25, and saying so here is what stops a session hunting
 a difference the roster explains. What holds the build to something instead
 is the gate's machine check, `list`'s net per shape against Run 19's kept
-fingerprint; the 47 arms both halves and Run 19 all carry, read against
+fingerprint; the 44 arms both halves and Run 19 all time, read against
 its columns; and each half's own eighteen A/A pairs for its floor. **And one
 thing to expect of the write-up**, now that the sibling is in: `reshape1`'s
 other three shapes still go degenerate for the canonicalizing arms, whose cells

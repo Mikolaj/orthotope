@@ -2583,6 +2583,88 @@ rather than a slot in the next run, observed again:
   and this pair separates neither; the control moved three points between
   compilers in the direction the add-in pair did not. What is measured stands:
   both halves' timed offsets, and both margins.
+- `OPEN` **What Run 20 is built to answer, registered before it runs.** Its pair
+  is `run20-g912`, the basis, against `run20-ghead`: ghc-9.12.4 against GHC HEAD
+  10.1.20260803, the in-tree stage1 of the checkout under `~/r/horde-ad/ghc`
+  at `d415f38a75`, on one source, one shim, one roster and one regime, both
+  halves under `WILDLOG=1 SATURATE=1`. It is Run 19's pair over the extended
+  roster, decided 2026-08-26 by whoever asked for the run, on `run19-pair.txt`'s
+  two recipes with `Main.hs` moved from `e9fab1e` to `ba79b3c` and nothing else
+  touched: nine timed arms in, three demoted to `Only`, so the roster is 53
+  timed arms over 24 main-set shapes and 26 class views, 1272 benches and 1378,
+  where Run 19 ran 47 arms and 1128 benches over 24 and 24. `align-as.py`
+  is at `40f7a37`, unmoved since Run 18 was built, and `cabal.project.ghead`
+  names the compiler Run 19's other half was built by. **What the roster change
+  takes away is registered rather than hunted**: the new arms move every
+  address, so neither half can reproduce its Run 19 counterpart byte for byte
+  and neither owes it --- the md5 comparison and the three-read hunt a moved md5
+  usually triggers are both off for this run, decided 2026-08-25. What holds
+  the build to something instead is the gate's machine check, the 44 timed arms
+  both halves and Run 19 all carry, and each half's own eighteen A/A pairs. Six
+  registrations, each with what kills it: (1) *the shipped arm and the rework's
+  five*, this run being the first to time either.
+  `mut-odo-vecdims-add-in-leaf-u2` is the arm `genericFillStrided`
+  is a bang-for-bang port of, and no recorded run has read it: the aligned HEAD
+  probe of 2026-08-24 put it at 0.820 of `mut-odo-vecdims` over eight shapes
+  with one loss, `stretch-inner256` at 1.058, and the registration is
+  that it heads the vecdims family on the main set by a margin clearing
+  this run's own floor --- killed by `mut-odo-vecdims` ahead of it by more
+  than that floor, which would put the shipped code behind the code
+  it was refined from. The rework's five --- `canon-vecdims`, `canon-memcpy-r2`,
+  `bcast-set`, `mid-copy` and `canon-full` --- are registered by population
+  and by direction alone, the scratch probe that priced the proposal being
+  anecdotal and quoting magnitudes: `bcast-set` ahead of its control on `bcast`,
+  `mid-copy` on `bcastmid`, `canon-memcpy-r2` on `window`, and each of them
+  inside the floor of its control on a population whose condition it does
+  not fire in, killed by an arm behind its control where the probe read
+  a factor. **And the degenerate cells are named before they are read**:
+  `reshape1`'s other three shapes return O(1) for the canonicalizing arms,
+  so those cells price dispatch and not filling, and `reshape1-strided-r3`
+  is the one cell of that class that prices the fill. (2) *the pinning claim,
+  in the strong form the rider under [Recommended
+  tasks](#recommended-tasks-after-run-19) has been waiting for*, and it is read
+  at the build and not in the evening. `run19-g912` and `run20-g912` are one
+  recipe, one shim, one compiler and one dependency store apart by a roster
+  change alone --- the source diff between them touches comments
+  and the strategy table and no worker's body --- and the change brings new
+  functions, which is what the weak form, a `Force` arm reusing a rostered
+  function, could not test. The registration is every tracked loop where
+  `run19-g912` holds it, killed by one that moves --- and it is **read
+  at the build, 2026-08-26, and KILLED**: not one is, the four-copy group
+  at `[0, 24, 0, 4]` having become a six-copy group at `[0, 0, 24, 0, 0, 24]`
+  with every address moved and none of them by a constant, the two builds' 60
+  package ABI strings being identical. So the pinning claim covers additions
+  that cost nothing to place and nothing wider ([the
+  rider](#recommended-tasks-after-run-19) carries the ruling), and any figure
+  read across the Run 19 boundary --- the 44 arms all three still time ---
+  brings a layout term nothing here separates, which Run 10 priced at 12 to 14%
+  on the two arms whose loop the shim rescues. (3) *the compiler*, the eight
+  registered orderings holding on HEAD, the count and the content off `--claims`
+  and not off this sentence, thirteen having become eight at the settlement
+  of 2026-08-24; killed by a BROKE that clears that half's floor, with claim 7's
+  allocation read per compiler, a compiler being able to change allocation where
+  a slot cannot --- Run 19 read 1016 of 1080 allocating cells agreeing across
+  its halves where the 9.14 pair had 1072. (4) *the decomposition*, every
+  shape's `list` alone leg twice on each half, `SAT=` off and on through
+  `run-alonelegs.sh`, against its roster cell: the state is saturated minus
+  clean, the rest is roster minus saturated, and the registration
+  is the distribution over the 24 shapes with its median inside the floor, where
+  Run 19 read +11.73% and +12.57% for the state and +0.31% and +0.72%
+  for the rest. (5) *counted work*, `run-counts.sh` over EVERY population
+  and not the main set alone --- the narrowing Run 19 found and repaired ---
+  read with `--counts` rather than hand-rolled: the count ratio HEAD over 9.12
+  beside the time ratio per arm, so that a movement on the placement-exposed six
+  is layout or the runtime until the counts say otherwise. What is new
+  is the nine new arms' own counts, which fix what the timed columns cannot say
+  about them alone. (6) *the plateau*, every recorded process's `@@saturate`
+  victim inside a band of the run's own, banded at 5% across the eighteen
+  by `read-all.sh`; Run 19 read a 3.37% spread. **Not in Run 20**: the md5
+  repetition, which the roster change retires; the `-g3` twins and the offset
+  swap, the `add-in` placement question having been parked 2026-08-25
+  and the twin instrument having been killed on HEAD by Run 19, so a twin would
+  name this pair's functions and not locate them; and what is left of the floor
+  question, which wants one binary over the roster several times rather
+  than a pair.
 
 
 ### Recommended tasks after Run 19
@@ -2733,15 +2815,22 @@ limit belongs in the sentence that asks for the measurement.
 
 **One rider rather than a task of its own, since it fires on an event and
 not on a session.** The pinning claim --- that a shim'd build holds every
-tracked loop at one address across a roster change --- is measured only
-in its weak form: adding `mut-flat-gm-nosum` left every tracked loop where
-it was, but a `Force` arm reuses a rostered function and emits no code
-of its own, so emission order had nothing to move. **The next roster addition
-that brings a new function is the stronger test, and is to be taken as one** ---
-read the fills on one build either side of it, before anything else changes ---
-which costs nothing at the moment the arm lands and cannot be taken afterwards.
-Until then the claim covers additions that cost nothing to place, and should
-be quoted that way.
+tracked loop at one address across a roster change --- was measured only
+in its weak form until 2026-08-26: adding `mut-flat-gm-nosum` left every tracked
+loop where it was, but a `Force` arm reuses a rostered function and emits
+no code of its own, so emission order had nothing to move. **The strong form
+was taken at Run 20's build and the claim does not survive it.** `run19-g912`
+and `run20-g912` are one recipe, one shim, one compiler and one dependency store
+apart --- their 60 package ABI strings are identical --- by a roster change
+bringing nine new timed arms, and no tracked loop is where it was: the four-copy
+group at `[0, 24, 0, 4]` becomes a six-copy group at `[0, 0, 24, 0, 0, 24]`,
+every address moved and none of them by a constant. So the claim covers
+additions that cost nothing to place and nothing wider, and a reading carried
+across a roster change carries the layout term Run 10 priced at 12 to 14%
+on the two arms whose loop the shim rescues. **Every roster addition that brings
+a new function is another reading of it** --- the fills on one build either
+side, before anything else changes --- which costs nothing at the moment
+the arms land and cannot be taken afterwards.
 
 **And one class not to repropose: work that needs an aligned build.**
 `mut-odo`'s wide interval is the live case. The dispersion is documented
