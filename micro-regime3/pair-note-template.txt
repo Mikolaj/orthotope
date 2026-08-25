@@ -35,9 +35,9 @@ what the halves differ in and what they do not.
 
 THE BASIS IS $R-<basis> -- it publishes the big table, the bench counts are
 read from it, every --in-place table comes from it, and it runs second. Set
-BASIS and OTHER in all four scripts that take a run -- run-major.sh,
-run-gate.sh, smoke-sweep.sh and install-tables.sh, the last carrying BASIS
-alone; check them rather than assuming, and say here that you did. The one
+BASIS and OTHER in all five scripts that take a run -- run-major.sh,
+run-gate.sh, smoke-sweep.sh, preflight.sh and install-tables.sh; check
+them rather than assuming, and say here that you did. The one
 that is easiest to leave is install-tables.sh, which is the one that writes
 eleven tables into the run's own file.
 
