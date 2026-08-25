@@ -397,6 +397,28 @@ def readme_with_trailing_buried_action(tmp):
                    '    echo hello\n')
 
 
+def unwrapped_readme_edit(tmp, old, new):
+    """`edited_readme`, but against the README's UNWRAPPED form.
+
+    An anchor of more than a few words cannot survive in the wrapped file:
+    a line break lands inside it and the literal match silently finds
+    nothing. That is not hypothetical here -- this helper exists because
+    `the same run gives 0.49% and 0.29%` matched while README.md sat
+    unwrapped mid-write-up and stopped matching the moment the commit hook
+    wrapped it back, turning a passing case into FIXTURE DID NOT BUILD on a
+    document nobody had touched. Unwrapping first makes the anchor's
+    fortunes independent of how the file happens to be wrapped, which is
+    what every other search here is already told to do; the copy is written
+    unwrapped, which the wrap gate reads as mid-edit and passes.
+    """
+    text = subprocess.run(['wrap80', '--unwrap'], input=open(README).read(),
+                          capture_output=True, text=True, check=True).stdout
+    n = text.count(old)
+    if n != 1:
+        raise AssertionError('anchor occurs %d times, need 1: %r' % (n, old[:60]))
+    return write(os.path.join(tmp, 'R.md'), text.replace(old, new, 1))
+
+
 def committed_readme_renumbered(tmp, bump=1):
     """The COMMITTED README with its chapter heading renumbered.
 
@@ -3990,9 +4012,9 @@ CASES = [
          # at whatever sentence the floor section then quotes.
          # RE-AIMED 2026-08-25 off Run 19's floor section, from
          # 0.54%/0.31%, which its write-up replaced.
-         plant=lambda t: {'readme': edited_readme(t, (
-             'the same run gives 0.49% and 0.29%',
-             'the same run gives 0.69% and 0.29%'))},
+         plant=lambda t: {'readme': unwrapped_readme_edit(
+             t, 'the same run gives 0.49% and 0.29%',
+             'the same run gives 0.69% and 0.29%')},
          argv=['--check-doc', '--readme', '{readme}'],
          ok=V(exit=1, has=['six-pair figure is quoted differently']),
          bug=V(exit=0, hasnt=['six-pair figure is quoted differently'])),
