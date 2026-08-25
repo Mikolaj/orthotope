@@ -2614,26 +2614,26 @@ a run that is over.
 **The replace list's second sweep has a blind spot, and Run 19 measured both
 it and the obvious fix.** The preamble prescribes *grep them for the name
 of the run being superseded*; that grep cannot see a paragraph naming only runs
-OLDER than the superseded one, and this run met six such sites --- three closing
-Results, naming Runs 10 and 13 to 17 and never Run 18 while every figure in them
-was Run 18's (one contradicting this run's headline allocation finding in three
-other places), and a `1.84x` in the ceiling ruling carried forward from **Run
-11** through eight write-ups. An independent checker found all four by hand;
-every mechanical gate here passed over them. **The obvious repair was built
-and then refuted, which is why this is a note and not a mode.** A `--check-doc`
-sweep flagging paragraphs whose newest named run is behind the run in hand while
-carrying a figure returns **165** entries; excluding the run file and prose
-saying *this run* leaves 104; scoping it to the sections the replace list names
-leaves **100** --- for four that matter. The reason is structural rather
-than a tuning failure: naming an old run beside a figure is the NORMAL state
-of this document, which is full of answered entries and dated mechanism
-accounts, and *reads as current* is the discriminating property, which no cheap
-predicate has. A checker at that ratio is one nobody reads, which this file
-already knows about hint lists. **What is left for the next run is the honest
-form of the same instruction**: after the run-name grep, walk the replace-listed
-sections and ask of each figure-bearing paragraph *which run measured this*,
-which is a reading and not a grep --- and the sites above are what it costs
-to skip it.
+OLDER than the superseded one, and this run met six such sites, four of them
+named here --- three closing Results, naming Runs 10 and 13 to 17 and never Run
+18 while every figure in them was Run 18's (one contradicting this run's
+headline allocation finding in three other places), and a `1.84x` in the ceiling
+ruling carried forward from **Run 11** through eight write-ups. An independent
+checker found those four by hand; every mechanical gate here passed over them.
+**The obvious repair was built and then refuted, which is why this is a note
+and not a mode.** A `--check-doc` sweep flagging paragraphs whose newest named
+run is behind the run in hand while carrying a figure returns **165** entries;
+excluding the run file and prose saying *this run* leaves 104; scoping it
+to the sections the replace list names leaves **100** --- for four that matter.
+The reason is structural rather than a tuning failure: naming an old run beside
+a figure is the NORMAL state of this document, which is full of answered entries
+and dated mechanism accounts, and *reads as current* is the discriminating
+property, which no cheap predicate has. A checker at that ratio is one nobody
+reads, which this file already knows about hint lists. **What is left
+for the next run is the honest form of the same instruction**: after
+the run-name grep, walk the replace-listed sections and ask of each
+figure-bearing paragraph *which run measured this*, which is a reading and
+not a grep --- and the sites above are what it costs to skip it.
 
 **A whole axis of the counted-work evidence was missing and no document said
 so.** `run-counts.sh` was born at Run 18 to serve registration 4, whose question
@@ -3606,29 +3606,30 @@ the signature the Core below shows is free in its callback form, and decided
 no condition on the strides: the redirect is dropped for [the two-stage
 plan](#the-two-stage-plan-and-the-rework-proposal), whose rework proposal serves
 its constituency at the dispatch instead, so the fix is fully decided. What
-the decision rests on, requoted from Run 18 rather than carried forward:
+the decision rests on, requoted from Run 19 rather than carried forward:
 `mut-odo-vecdims` heads the main set at 0.055 of `list` with a worst shape
-of 0.125, its family heads eight of the nine populations, and its worst in any
-class is 0.107 (`reshape1-rank10`), so it was never slower than `list` anywhere
+of 0.126, its family heads eight of the nine populations, and its worst in any
+class is 0.110 (`reshape1-rank10`), so it was never slower than `list` anywhere
 this README has measured. The one population its family does not head
 is the redirect's case: in `reshape1` the flat fills own the top, `mut-flat-gm`
-at a geomean of 0.033 against `mut-odo-vecdims`'s 0.091 --- though not on every
-shape of it, `mut-flat-gm`'s worst there (0.128) lying above `mut-odo-vecdims`'s
-0.107 on the same shape, so a redirect wants a predicate on the strides finer
+at a geomean of 0.033 against `mut-odo-vecdims`'s 0.094 --- though not on every
+shape of it, `mut-flat-gm`'s worst there (0.135) lying above `mut-odo-vecdims`'s
+0.110 on the same shape, so a redirect wants a predicate on the strides finer
 than the class. On the main set, per shape, the best arm outside the family
-beats `mut-odo-vecdims` on **5 of the 24 shapes**, and only two of the five
-by more than a thousandth: `stretch-inner1` (`sInner` 1, `mut-flat-gm` 0.031
-against 0.090) and `stretch-pow2stride` (`sInner` 64, `bq-mut-runs` 0.113
-against 0.125), with `stretch-wide-2xM`, `stretch-tall-Mx2`
-and `stretch-square-1341` tied to within one thousandth. Across the class shapes
-it is **5 of 24**, three of them `reshape1`'s, with `window-64x64-k1x9`
-and `bcast-tall-Mx2` the others. So the unit and huge-`sInner` ends of the set
-are where a redirect on the strides would pay, and the summary table's *best
-outside family* column says where else: `mut-flat-gm` in `rev`, `revsome`,
-`window` and `reshape1`, `build` in `bcast`, `bcastmid` and `slice`,
-and `mut-odo` in `scaled`, only `reshape1`'s ahead of `mut-odo-vecdims`.
-**And one thing the decision now has to weigh that it did not**:
-`mut-odo-vecdims-add-in` leads the arm chosen on both halves of Run 17
+beats `mut-odo-vecdims` on **3 of the 24 shapes**, and two of the three by more
+than a thousandth: `stretch-inner1` (`sInner` 1, `bq-mut-runs-gm-mulback`
+and `mut-flat-gm` both 0.032 against 0.090) and `stretch-pow2stride` (`sInner`
+64, `bq-mut-runs` 0.115 against 0.126), with `stretch-wide-2xM` tied to within
+one thousandth and `stretch-tall-Mx2` and `stretch-square-1341` now tied
+the other way. Across the class shapes it is **5 of 24**, three of them
+`reshape1`'s, with `window-64x64-k1x9` and `bcast-tall-Mx2` the others.
+So the unit and huge-`sInner` ends of the set are where a redirect
+on the strides would pay, and the summary table's *best outside family* column
+says where else: `mut-flat-gm` in `rev`, `revsome` and `window`,
+`bq-mut-runs-gm-mulback` in `reshape1`, `build` in `bcast`, `bcastmid`
+and `slice`, and `mut-odo` in `scaled`, only `reshape1`'s ahead
+of `mut-odo-vecdims`. **And one thing the decision now has to weigh that it did
+not**: `mut-odo-vecdims-add-in` leads the arm chosen on both halves of Run 17
 with significant sign tests, at margins still inside the floor --- [its own
 entry][open] has what would settle it. Of what the decision owed, the class
 method and its instances, the suite pass and the non-vacuity break landed

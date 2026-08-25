@@ -355,10 +355,12 @@ over in [README's delta chain](../README.md#provenance), and this run's own
 floor --- no A/A pair further than 2.32% from 1 on the basis half or 1.71%
 on the control, on worst single cells of 18.50% and 17.66%, and 0.49% and 0.29%
 read on the six pairs that carry across runs --- is [in the floor
-section][floor]. That floor governs an arm against *itself*; two different rows
-of the table below are separated by their code, and in a build whose loop heads
-the shim has already placed, no longer by where each landed --- which is what
-Run 10 spent two binaries to establish and every run since has inherited.
+section][floor]. The eighteen-pair figure governs an arm against *itself*; what
+two different rows of the table below must clear is the SIX-pair one, 0.49%
+here, that being the pair that carries across runs --- and in a build whose loop
+heads the shim has already placed, two rows are separated by their code
+and no longer by where each landed --- which is what Run 10 spent two binaries
+to establish and every run since has inherited.
 
 **It is the main set's table**, and every column below is a statistic
 of that population: each stride class has a table of its own, on the same rows
@@ -598,21 +600,23 @@ than carried forward, so Run 20 inherits no backlog from it.
 fingerprint over 24 of 24 shapes, worst -1.98%; so absolutes cross from Run 18
 to Run 19 freely and the boundary that matters is still the BIOS change before
 Run 18, which no absolute crosses. **The floor is 2.32% on the basis and 1.71%
-on the control**, with the restricted six at 0.49% and 0.29%; that
-is the threshold a Run 20 margin clears or does not. **And it is not inherited
-from the pair or the build**: Run 19's basis is Run 18's basis binary byte
-for byte and read 2.32% where that binary read 1.36%, so the floor is re-drawn
-per run and a Run 20 margin is judged against Run 20's own, never against these.
-**The two columns below may NOT be differenced**: `list` moved **0.78%** between
-the halves, past the 0.7% that separates a subtractable pair from one that can
-only be ordered, where Run 18 read 0.52%. What they price is a compiler,
-and this run stopped guessing which movements that reaches: the counted-work
-column puts `bq-odo-gm-mulback` and `bq-scan-rem-gm-mulback` six to seven
-percent apart ON their instruction counts, and the placement-exposed arms
-(`build`, `offtab`, `mut-odo`, `gen-unsafe`, `gen-quotrem`, `bq-mut`) apart
-at count ratios of 1.0000. So a Run 20 movement on one of those six is layout
-or runtime until the counts say otherwise --- and the counts are one `--counts`
-call away now, which is the reading Run 19 built rather than hand-rolled.
+on the control**, with the restricted six at 0.49% and 0.29%. A Run 20 margin
+is judged on both and they answer different questions: the six-pair figure
+is what two rows of one table must clear, the eighteen-pair one is how far
+an arm differs from its own duplicate. **And it is not inherited from the pair
+or the build**: Run 19's basis is Run 18's basis binary byte for byte and read
+2.32% where that binary read 1.36%, so the floor is re-drawn per run and a Run
+20 margin is judged against Run 20's own, never against these. **The two columns
+below may NOT be differenced**: `list` moved **0.78%** between the halves, past
+the 0.7% that separates a subtractable pair from one that can only be ordered,
+where Run 18 read 0.52%. What they price is a compiler, and this run stopped
+guessing which movements that reaches: the counted-work column puts
+`bq-odo-gm-mulback` and `bq-scan-rem-gm-mulback` six to seven percent apart
+ON their instruction counts, and the placement-exposed arms (`build`, `offtab`,
+`mut-odo`, `gen-unsafe`, `gen-quotrem`, `bq-mut`) apart at count ratios
+of 1.0000. So a Run 20 movement on one of those six is layout or runtime until
+the counts say otherwise --- and the counts are one `--counts` call away now,
+which is the reading Run 19 built rather than hand-rolled.
 
 **Registered with the pair.** Run 19's six registrations, their kill conditions
 and their verdicts are [in the open list](../README.md#what-is-open);
