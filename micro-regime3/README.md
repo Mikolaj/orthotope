@@ -4785,7 +4785,11 @@ and never as a chronology.
     ./$R-<basis> --list 2>/dev/null | wc -l    # 6. roster size, then the
     diff <(./$R-<basis> --list 2>/dev/null) <(./$R-<other> --list 2>/dev/null)
     #      two halves' listings: identical is what one source built twice
-    #      looks like, and the pair note asks for that half of it
+    #      looks like, and the pair note asks for that half of it. THE
+    #      EXCEPTION IS A PAIR WHOSE VARIABLE IS THE ROSTER, where the
+    #      diff IS the variable and the note records what it should be --
+    #      Run 20 is the first, 1272 benches against 1128, so read the
+    #      note before reading a difference here as a defect
     ./read-run.py --lint                  # 7. roster and shape annotations
     ./read-run.py --check-doc --quiet     # 8. anchors, paths, widths, sweeps
     #      7+8 are the WHOLE document check here; no other repo's checkers,
@@ -4862,10 +4866,10 @@ and never as a chronology.
     #      membership moved. Where the PREVIOUS run's basis is still on
     #      disk the membership question is answered directly and in a
     #      second -- diff the two --list outputs -- rather than through
-    #      the roster delta under Provenance. Any class serves, every
-    #      one being three shapes since 2026-08-14 -- prefer one of the
-    #      five that crossed from two, which drives `--block`'s
-    #      three-shape branch. Name the artifacts probe-* or smoke-*, never
+    #      the roster delta under Provenance. Any class serves: six are
+    #      three shapes and `reshape1` and `bcastmid` are four since
+    #      2026-08-25 -- prefer one of the five that crossed from two,
+    #      which drives `--block`'s three-shape branch. Name the artifacts probe-* or smoke-*, never
     #      $R-*: NO PROBE OF ANY KIND TAKES THE RUN'S PREFIX, which is the
     #      general rule stated below and not this step's own.
     #      Record it on an `L1 ROSTER PASS:` line. With the previous run's

@@ -599,9 +599,13 @@ of Run 17 and killed. The basis is `run19-g912`'s recipe --- ghc-9.12.4,
 run under `WILDLOG=1 SATURATE=1` --- which is now the same recipe three runs
 running and reproduces byte for byte, so a Run 20 basis that does not is itself
 a finding. **Run 20 is a pair, and the roster change is its variable** ---
-decided 2026-08-25. `run20-g912` carries the 53 timed arms and `run20-g912-r19`
-Run 19's 47, one source, one compiler, one shim, one shim setting and one
-machine apart from the roster itself, so what the pair prices is what five new
+decided 2026-08-25. `run20-g912` carries the 53 timed arms and `run20-r19roster`
+Run 19's 47, one compiler, one shim, one shim setting and one machine apart
+from the roster itself --- and the control's name deliberately does not begin
+with the basis's, `install-tables.sh` refusing a half caught by its own
+`$R-$BASIS-*.json` glob. The two do NOT share source, which every pair before
+this one did: the roster is in `Main.hs`, so the halves are two source states
+and the pair note records both. so what the pair prices is what five new
 functions did to the layout of the arms that were already there. Run 10 measured
 a reorder at 12 to 14% on the two arms whose loop the shim rescues, and each
 half's own eighteen A/A pairs bound only what is inside it, so nothing else here
