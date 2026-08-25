@@ -2042,6 +2042,129 @@ def compare_table(cells, shapes, strategies, meta, other, main_hs,
           '\nsection).')
 
 
+def parse_counts(path):
+    """`run-counts.sh`'s artifact: {shape: {arm: instructions an iteration}}.
+
+    One data line a cell -- `shape arm N instructions` -- under `#` headers
+    carrying the binary's md5 and the sweep's N. A cell perf could not
+    count is a `!!` line, and it is DROPPED rather than read: a zero in a
+    geomean does not make an arm's figure wrong, it destroys it, and the
+    artifact says outright that such a line is a refusal and not a count.
+    Refusals are returned so the caller can name them, an unread line being
+    the thing this file refuses to do silently.
+    """
+    counts, refused, malformed = {}, [], []
+    with open(path) as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith('#'):
+                continue
+            if line.startswith('!!'):
+                refused.append(' '.join(line.split()[1:3]))
+                continue
+            parts = line.split()
+            if len(parts) != 4:
+                malformed.append(line)
+                continue
+            sh, arm, _n, ins = parts
+            try:
+                v = float(ins)
+            except ValueError:
+                malformed.append(line)
+                continue
+            if v > 0:
+                counts.setdefault(sh, {})[arm] = v
+            else:
+                refused.append('%s %s' % (sh, arm))
+    return counts, refused, malformed
+
+
+def counts_table(cells, shapes, strategies, meta, other, main_hs,
+                 counts_a, counts_b, brief=True):
+    """The instruction count beside the time, per arm: registration 4.
+
+    The one instrument here that owes criterion nothing. `run-counts.sh`
+    counts instructions an iteration from two fixed-`-n` processes a cell,
+    so an arm whose time moved between two halves either moved its counts
+    with it -- which is codegen -- or did not, which is the runtime or the
+    memory. Run 18 read it that way and put the `bq-expand` family's
+    movement on its counts and the placement-exposed family's seven percent
+    on count ratios of 1.0000.
+
+    It lived as a hand-rolled script for two runs, which this file's own
+    standing instruction calls a defect report against the reader: where a
+    write-up invents the computation it will invent a wrong one. The
+    direction is `--compare`'s throughout -- this run over the other, on
+    both columns -- so that the two are read side by side without one of
+    them being inverted.
+    """
+    a_counts, a_refused, a_bad = parse_counts(counts_a)
+    b_counts, b_refused, b_bad = parse_counts(counts_b)
+    b_cells, b_shapes, _b_strategies = load_other(other, main_hs,
+                                                  shapes, meta)
+
+    print('\ncounted work, this run against %s' % os.path.basename(other))
+    print('  counts: %s against %s'
+          % (os.path.basename(counts_a), os.path.basename(counts_b)))
+    for tag, refused in (('this half', a_refused), ('other half', b_refused)):
+        if refused:
+            print('  %d cell(s) perf refused on the %s, dropped: %s'
+                  % (len(refused), tag, ', '.join(sorted(refused)[:6])
+                     + (', ...' if len(refused) > 6 else '')))
+    for tag, bad in (('this half', a_bad), ('other half', b_bad)):
+        if bad:
+            print('  %d unreadable line(s) in the %s counts, dropped'
+                  % (len(bad), tag))
+
+    counted = {a for sh in a_counts for a in a_counts[sh]}
+    counted &= {a for sh in b_counts for a in b_counts[sh]}
+    stray = sorted(counted - set(strategies))
+    if stray:
+        print('  arm(s) in the counts and not in this run, skipped: %s'
+              % ', '.join(stray))
+
+    rows = []
+    for st in strategies:
+        if no_net(st) or st not in counted:
+            continue
+        crs, trs = [], []
+        for sh in shapes:
+            if sh not in b_shapes:
+                continue
+            ca = a_counts.get(sh, {}).get(st)
+            cb = b_counts.get(sh, {}).get(st)
+            if ca and cb:
+                crs.append(ca / cb)
+            a, b = cells[sh][st]['net'], b_cells[sh][st]['net']
+            if a > 0 and b > 0:
+                trs.append(a / b)
+        if crs and trs:
+            rows.append((geomean(crs), geomean(trs), len(crs), st))
+
+    if not rows:
+        print('\nno arm is in both the run and both counts files, so there'
+              '\nis nothing to read: check that the counts belong to this'
+              '\nroster and this pair.')
+        return 2
+    print('\n%-34s %8s %8s %12s %6s'
+          % ('arm', 'counts', 'time', 'time/counts', 'n'))
+    for cr, tr, n, st in sorted(rows, key=lambda r: r[1]):
+        print('%-34s %8.4f %8.4f %12.4f %6d' % (st, cr, tr, tr / cr, n))
+    if brief:
+        return 0
+    print('\n`counts` is the geomean over shapes of this half\'s instructions'
+          '\nan iteration over the other half\'s, and owes criterion nothing.'
+          '\n`time` is the same arm\'s corrected time ratio, the figure'
+          '\n--compare prints. `time/counts` is the part of the time movement'
+          '\nthe instruction count does not explain: near 1 the movement IS'
+          '\nthe codegen, and away from 1 it is the runtime or the memory --'
+          '\nwhich on a pinned pair is where placement shows, an arm whose'
+          '\nloop moved doing the same work in a different number of cycles.'
+          '\nBoth columns are this run over the other, so neither is'
+          '\ninverted against the other.')
+    return 0
+
+
 def aa_table(cells, shapes, strategies, terms, meta, brief=False):
     pos = {st: i for i, st in enumerate(strategies)}
     pairs = [(st, twin_of(st)) for st in strategies if twin_of(st)]
@@ -3136,39 +3259,40 @@ def fingerprint_table(cells, shapes, strategies, meta, classes=()):
 # is the finding and the p is not"), a tie on the sign test alone (which is
 # how claims 4 and 6 are stated), and claim 9's stable half on the two best
 # shapes of the sort, its geomean being explicitly not the claim.
+# THIRTEEN ORDERINGS BECAME EIGHT AT RUN 19'S WRITE-UP, the retirement
+# settled 2026-08-24 and deliberately applied after the run so that the four
+# retiring claims got one last cross-compiler reading -- all thirteen HELD on
+# both of Run 19's halves, which is the reading they retire on. The test the
+# settlement applied: an ordering stays only if it forecloses something
+# anyone would propose again AND can still break. The claims section's own
+# settlement paragraph owns the account and each retirement's reason; what is
+# here is the shape it asked for. Claims 3, 5 and 9 went outright, claim 4's
+# tie moved into claim 1, and the numbers 3, 4, 5 and 9 are not reused --
+# `--claims` prints in this list's order and the section's headings carry the
+# same numbers, so renumbering would silently repoint every verdict ever
+# recorded against them.
 CLAIMS = [
+    # The ladder the `needs` column draws, top to bottom: what a mutating
+    # method buys, then what a mutable `Int` scratch buys, then the two
+    # fastest arms that need nothing at all, which are indistinguishable --
+    # so either is what ships if the mutating method is refused. The third
+    # link is redundant with the two added below it and stays for the seven
+    # runs of history they do not carry.
     (1, 'the ceiling ordering, on unconditional arms',
      [('mut-odo-vecdims', 'mut-flat-gm', 'faster'),
       ('mut-flat-gm', 'bq-mut-runs-gm-mulback', 'faster'),
-      ('bq-mut-runs-gm-mulback', 'bq-odo-gm-mulback', 'faster')]),
-    (2, 'the m-length table beats the scratch that builds it and the '
-        'l-length table that replaces it',
-     [('bq-expand', 'bq-mut', 'faster'),
-      ('offtab', 'bq-expand', 'slower')]),
-    (3, 'a mul-back output pays on the `bq-expand` build',
-     [('bq-expand-gm-mulback', 'bq-expand', 'faster')]),
-    # THE SECOND HALF STOPPED BEING A TIE ON 2026-08-22, six runs having
-    # read it as one and Runs 16 and 17 having broken it identically --
-    # 0.8471 at 18 of 24 and p 0.023, then 0.8578 at 18 of 24 and the same
-    # p, on a different binary and a different basis half. Run 17's chapter
-    # retired it in prose (*the next run inherits an ordering rather than
-    # re-reading a tie*) and this line did not follow, so `--claims` went
-    # on registering a tie the document had already replaced -- which Run
-    # 18 would have broken for a third time and a session rediscovered.
-    # Run 17's own verdict stands as recorded, BROKE against the
-    # registration then in force; what moves is what the NEXT run inherits.
-    (4, 'the scan ties its own build control, and beats `bq-expand`',
-     [('bq-scan-rem-gm-mulback', 'bq-expand-gm-mulback', 'tie'),
-      ('bq-scan-rem-gm-mulback', 'bq-expand', 'faster')]),
-    (5, 'the build ordering, trimmed to its timed arms',
-     [('bq-expand', 'bq-gen', 'faster'),
-      ('bq-mut-runs', 'bq-expand', 'faster')]),
+      ('bq-mut-runs-gm-mulback', 'bq-odo-gm-mulback', 'faster'),
+      ('bq-mut-runs-gm-mulback', 'bq-scan-rem-gm-mulback', 'faster'),
+      ('bq-scan-rem-gm-mulback', 'bq-odo-gm-mulback', 'tie')]),
+    # KEEPS ITS NUMBER AND CHANGES ITS QUESTION, to where the arms needing
+    # something other than the fix sit. The second link is kept only while
+    # `Data/Array/Internal.hs` carries `bq-expand`, and retires with the
+    # three `TODO: retarget` markers, which are one decision with it.
+    (2, 'the arms needing something other than the fix sit behind it',
+     [('offtab', 'bq-scan-rem-gm-mulback', 'slower'),
+      ('bq-expand', 'mut-odo-vecdims', 'slower')]),
     (6, 'the first attempt ties the baseline',
      [('gen-quotrem', 'list', 'tie')]),
-    (9, 'read per shape, not on its geomean',
-     [('bq-expand-b', 'bq-expand',
-       ('best2', 'stretch-inner1', 'stretch-wide-2xM')),
-      ('bq-expand-zf', 'bq-expand', 'slower')]),
 ]
 
 
@@ -7277,6 +7401,12 @@ def main():
     p.add_argument('--alloc', action='store_true',
                    help='with --compare: allocation agreement instead of'
                         ' times, on the multiple the alloc column publishes')
+    p.add_argument('--counts', nargs=2, metavar=('THIS.txt', 'OTHER.txt'),
+                   help='with --compare: run-counts.sh\'s instruction counts'
+                        ' beside the time ratio, per arm -- the count column'
+                        ' owes criterion nothing, so time moving with counts'
+                        ' is codegen and time moving without them is the'
+                        ' runtime or the memory')
     p.add_argument('--ci', action='store_true',
                    help='with --compare: each arm\'s CI%% median against'
                         ' the other run\'s, the column\'s own statistic')
@@ -7382,7 +7512,7 @@ def main():
         p.error('--in-place is a modifier of --markdown, --fingerprint,'
                 ' --block or --claims and does nothing alone')
     for flag, needs in (('alloc', 'compare'), ('chapter', 'compare'),
-                        ('quiet', 'check_doc')):
+                        ('counts', 'compare'), ('quiet', 'check_doc')):
         if getattr(args, flag) and not getattr(args, needs):
             p.error('--%s is a modifier of --%s and does nothing alone'
                     % (flag, needs.replace('_', '-')))
@@ -7453,7 +7583,7 @@ def main():
     # silent drop the one-mode guard above refuses, one level down. The
     # pairwise guards this replaces covered every pair but --ci's,
     # which arrived with the same commit and missed its own roll call.
-    subs = [f for f in ('chapter', 'alloc', 'ci', 'bridge')
+    subs = [f for f in ('chapter', 'alloc', 'ci', 'bridge', 'counts')
             if getattr(args, f)]
     if len(subs) > 1:
         p.error('%s are %d readings of --compare, not one: run the'
@@ -7582,6 +7712,13 @@ def main():
     elif args.compare and args.chapter:
         chapter_skeleton(cells, shapes, strategies, meta,
                          args.compare, args.main)
+    elif args.compare and args.counts:
+        # Before the plain --compare arm below, as every other second-file
+        # mode is: --counts is a reading OF a comparison and not a mode
+        # beside one, both its columns being this run over the other.
+        sys.exit(counts_table(cells, shapes, strategies, meta, args.compare,
+                              args.main, args.counts[0], args.counts[1],
+                              not args.verbose))
     elif args.compare and args.alloc:
         compare_alloc(cells, shapes, strategies, meta, args.compare,
                       args.main)

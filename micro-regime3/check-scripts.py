@@ -397,6 +397,47 @@ def readme_with_trailing_buried_action(tmp):
                    '    echo hello\n')
 
 
+def committed_readme_renumbered(tmp, bump=1):
+    """The COMMITTED README with its chapter heading renumbered.
+
+    The defect this builds is a write-up that renamed its headings and
+    stopped, so every paragraph under the heading has to be the PREVIOUS
+    run's -- which is what the committed copy holds and what the working
+    tree stops holding the moment a chapter is rewritten. Planting the
+    working tree's text worked only while the two agreed, and broke the
+    hour Run 19's chapter was written; the check reads the committed copy
+    for its other side, so this is the side that has to come from git.
+    """
+    text = subprocess.run(['git', 'show', 'HEAD:./README.md'],
+                          cwd=HERE, capture_output=True, text=True,
+                          check=True).stdout
+    m = re.search(r'^## About the last run \(Run (\d+)\)$', text, re.M)
+    assert m, 'no run chapter heading in the committed README'
+    head = '## About the last run (Run %d)' % (int(m.group(1)) + bump)
+    return write(os.path.join(tmp, 'R.md'),
+                 text.replace(m.group(0), head, 1))
+
+
+def a_chapter_heading():
+    """The run chapter's heading, and the next run's number, off the README.
+
+    Named dynamically rather than pinned: three fixtures used to carry
+    `## About the last run (Run 18)` as a literal and all three stopped
+    building the hour Run 19's write-up renamed the four run-numbered
+    headings -- reported honestly as FIXTURE DID NOT BUILD rather than as
+    a pass, which is the shape this file wants, but a fixture that dies at
+    every run is a fixture nobody keeps. The heading is the anchor and the
+    number is read out of it, so both move with the document.
+    """
+    with open(README) as f:
+        for line in f:
+            m = re.match(r'^## About the last run \(Run (\d+)\)$', line)
+            if m:
+                return m.group(0), int(m.group(1))
+    raise AssertionError('no run chapter heading in the README to plant'
+                         ' against')
+
+
 def readme_current_run_sentence(tmp):
     """A verdict sentence attributing a figure to the run in hand.
 
@@ -405,12 +446,21 @@ def readme_current_run_sentence(tmp):
     LINE, which is where this fixture started, the sentence lands inside
     another one and the figure is never reached.
     """
+    ANCHOR = '**Claim 2 '   # RE-AIMED 2026-08-25, from claim 3, which
+    # retired at Run 19's write-up along with 4, 5 and 9. The anchor has to
+    # be a claim the MANIFEST still carries, not merely a heading the
+    # section still shows: with the claim gone from `CLAIMS` the reader
+    # computes no reading for it, so the planted sentence is never
+    # adjudicated and the figure never appears -- which is how this case
+    # failed the hour the manifest shrank. Claim 2 keeps its number by that
+    # settlement's own decision, and `bq-expand` is one of its arms, so the
+    # planted sentence still reads as one about that claim.
     doc = open(README).read()
     run = re.search(r'^## About the last run \(Run (\d+)\)$', doc, re.M)
     assert run, 'no run chapter heading to take the run number from'
     paras = doc.split('\n\n')
-    at = [i for i, p in enumerate(paras) if p.startswith('**Claim 3 ')]
-    assert len(at) == 1, 'claim 3 lead: %d paragraph(s)' % len(at)
+    at = [i for i, p in enumerate(paras) if p.startswith(ANCHOR)]
+    assert len(at) == 1, '%s lead: %d paragraph(s)' % (ANCHOR, len(at))
     paras.insert(at[0] + 1, 'In Run %s, `bq-expand` reads 0.9312 against'
                             ' it.' % run.group(1))
     return write(os.path.join(tmp, 'R.md'), '\n\n'.join(paras))
@@ -536,6 +586,42 @@ def synth_json(tmp, pop='main', name=None, **kw):
     """One population as a file: `main`, or a class by name."""
     shapes = main_shapes() if pop == 'main' else class_shapes(pop)
     return synth_run(os.path.join(tmp, name or '%s.json' % pop), shapes, **kw)
+
+
+def synth_counts(tmp, name, ratio=1.0, refuse=(), extra_arms=(), n=50):
+    """One half's `run-counts.sh` artifact, derived as `synth_run` is.
+
+    The arms come from Main.hs's roster through the reader's own parser and
+    the shapes from `main_shapes`, so a roster change moves this fixture
+    with the run beside it rather than leaving a literal to rot. `ratio`
+    scales every count, which is what a compiler emitting different code
+    looks like to `perf`; `refuse` names `(shape, arm)` cells it could not
+    count, written as the `!!` line the real artifact writes; `extra_arms`
+    names arms the counts hold and no run times, which is the narrowing
+    this file exists over.
+    """
+    m = _reader()
+    main_hs = os.path.join(HERE, 'Main.hs')
+    roster = m.roster_of(open(main_hs).read())
+    arms = [a for a, role, _ in roster if role != 'Only'] + list(extra_arms)
+    shapes = main_shapes()
+    path = os.path.join(tmp, name)
+    refused = {(s, a) for s, a in refuse}
+    with open(path, 'w') as f:
+        f.write('# %s %s N=%d 2026-01-01T00:00:00+00:00 full\n'
+                % (name, '0' * 32, n))
+        f.write('# shape arm N instructions/iter\n')
+        for sh in sorted(shapes):
+            for i, arm in enumerate(sorted(arms)):
+                if (sh, arm) in refused:
+                    f.write('!! %s %s perf refused this cell\n' % (sh, arm))
+                    continue
+                # A count per (shape, arm) that differs by arm, so that a
+                # mode folding two arms together cannot read as correct.
+                base = 1000000 + 1000 * i + 7 * len(sh)
+                f.write('%s %s %d %d\n'
+                        % (sh, arm, n, int(round(base * ratio))))
+    return path
 
 
 def a_registration_lead():
@@ -1871,6 +1957,71 @@ CASES = [
          ok=V(exit=2, has=['the riders were not taken']),
          bug=V(exit=2, hasnt=['the riders were not taken'])),
 
+    # ---- --counts, registration 4's reading ---------------------------
+    # No `fix` on either, so no `bug` and no --audit leg: the mode is
+    # younger than every revision here, so there is nothing to replay it
+    # against and a `bug` verdict would only assert that code predating a
+    # flag rejects the flag. Both were written before the mode existed and
+    # BOTH FAILED against the tree that lacked it -- argparse refusing
+    # `--counts` at exit 2 -- which is the same proof --audit gives, taken
+    # in the working tree because that is where it was available.
+    case('counts-refused-cell-read-as-a-zero', 'read-run.py', None,
+         'a cell perf refused read as a count of zero',
+         # run-counts.sh writes `!!` where perf could not count a cell, and
+         # a reader taking that line for data has a zero in a geomean --
+         # which is not a wrong figure but a destroyed one, the arm reading
+         # 0.0000 or dividing by nothing. Both halves are built at one
+         # ratio here, so every arm must read exactly 1.0000: the refused
+         # cell is dropped from its arm and NAMED, and the arm answers over
+         # the shapes that were counted.
+         plant=lambda t: {
+             'run': synth_json(t, 'main', name='a.json'),
+             'other': synth_json(t, 'main', name='b.json'),
+             'ca': synth_counts(t, 'counts-a.txt',
+                                refuse=[(sorted(main_shapes())[0],
+                                         'bq-expand')]),
+             'cb': synth_counts(t, 'counts-b.txt')},
+         argv=['{run}', '--compare', '{other}', '--counts', '{ca}', '{cb}'],
+         ok=V(exit=0, has=['perf refused'], hasnt=['0.0000'])),
+
+    case('counts-alone-does-nothing', 'read-run.py', None,
+         'the counts files were read and the mode never ran',
+         # FOUND BY PROBE at Run 19's verification, on the mode that run
+         # had just added, and written after the fix rather than before
+         # it -- which is the wrong order this file asks for and is
+         # recorded rather than hidden. `--counts` names two files and is
+         # a reading OF `--compare`; given without one it fell past every
+         # arm of the dispatch to the default table, printed it, and
+         # exited 0. That is the unread-flag family exactly, and the
+         # sibling readings of --compare (--alloc, --chapter, --ci,
+         # --bridge) were all already guarded, so the mode was added
+         # beside four guards and joined none of them. It now joins both:
+         # the modifier roll call, and the one refusing two readings of
+         # --compare at once.
+         plant=lambda t: {
+             'run': synth_json(t, 'main', name='a.json'),
+             'ca': synth_counts(t, 'counts-a.txt'),
+             'cb': synth_counts(t, 'counts-b.txt')},
+         argv=['{run}', '--counts', '{ca}', '{cb}'],
+         ok=V(exit=2, has=['does nothing alone'])),
+
+    case('counts-arm-the-run-does-not-time', 'read-run.py', None,
+         'an arm in the counts and not in the run, silently folded in',
+         # The narrowing this whole file is written against, in the one
+         # place a second artifact meets a run: the counts are taken over
+         # whatever roster the binary held that day, so an arm that has
+         # since left the run is exactly what a stale pair of counts
+         # carries. Named and skipped, never quietly counted.
+         plant=lambda t: {
+             'run': synth_json(t, 'main', name='a.json'),
+             'other': synth_json(t, 'main', name='b.json'),
+             'ca': synth_counts(t, 'counts-a.txt',
+                                extra_arms=('zz-departed-arm',)),
+             'cb': synth_counts(t, 'counts-b.txt',
+                                extra_arms=('zz-departed-arm',))},
+         argv=['{run}', '--compare', '{other}', '--counts', '{ca}', '{cb}'],
+         ok=V(exit=0, has=['zz-departed-arm'])),
+
     case('deflation-ignores-the-saturated-legs', 'read-run.py', '9b45089',
          'both rider sets on disk and only the clean one read',
          # THE GLOB TAKES BOTH AND THE MODE USED ONE. `$R-al-<half>-*`
@@ -2266,17 +2417,13 @@ CASES = [
          # unmodified document passes the same call, the two differing
          # only in the run number, so a check that reported regardless
          # would fail the control beside it.
-         plant=lambda t: {'readme': edited_readme(t, (
-             '## About the last run (Run 18)',
-             '## About the last run (Run 19)'))},
+         plant=lambda t: {'readme': committed_readme_renumbered(t)},
          argv=['--check-doc', '--quiet', '--readme', '{readme}'],
          ok=V(exit=1, has=['chapter head are unchanged from Run'])),
 
     case('chapter-head-committed-says-nothing', 'read-run.py', None,
          'CONTROL: a chapter already committed has no previous run to hold',
-         plant=lambda t: {'readme': edited_readme(t, (
-             '## About the last run (Run 18)',
-             '## About the last run (Run 18)'))},
+         plant=lambda t: {'readme': committed_readme_renumbered(t, bump=0)},
          argv=['--check-doc', '--worklists', '--readme', '{readme}'],
          ok=V(hasnt=['chapter head are unchanged from Run'])),
 
@@ -3841,9 +3988,11 @@ CASES = [
          # reported FIXTURE DID NOT BUILD until it was --- which is the
          # loud failure this case wants rather than a silent pass. Aim it
          # at whatever sentence the floor section then quotes.
+         # RE-AIMED 2026-08-25 off Run 19's floor section, from
+         # 0.54%/0.31%, which its write-up replaced.
          plant=lambda t: {'readme': edited_readme(t, (
-             'the same run gives 0.54% and 0.31%',
-             'the same run gives 0.74% and 0.31%'))},
+             'the same run gives 0.49% and 0.29%',
+             'the same run gives 0.69% and 0.29%'))},
          argv=['--check-doc', '--readme', '{readme}'],
          ok=V(exit=1, has=['six-pair figure is quoted differently']),
          bug=V(exit=0, hasnt=['six-pair figure is quoted differently'])),
