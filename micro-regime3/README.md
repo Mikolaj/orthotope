@@ -4594,6 +4594,23 @@ before starting is the single largest waste available here --- Run 16 read
 the whole of it first and needed almost none of it, and Run 18 read the whole
 of it and then took the CONFIRM path the four lines above would have given it.
 
+**What a run must read, so that nothing else is read to find out.**
+This chapter's three checklists --- a fifth of its lines --- and of the rest
+only the *part* each section keeps, since most of what these sections hold
+is the previous run's data that the write-up is about to replace. The last run's
+chapter, whole, that being the one thing worth reading entire. Of [What Run N
+compares against](#what-run-20-compares-against), the paragraphs settling
+the regime, the roster and the basis, and the column rules under the yardstick
+--- not its figures. Of [the claims](#the-claims-run-20-should-test), BOTH
+numbered sets at the end --- the five live claims and the three class
+properties, a run returning verdicts on each --- and not the previous run's
+readings above them, which `--claims` reprints. Of [the class
+blocks](#the-stride-classes-run-by-run), the six numbered items of the form
+and one example block --- not the other seven. Of [Provenance](#provenance),
+the replace list and the delta bullets. The open list is read by its status
+markers rather than end to end. Everything else in this file is reference,
+and reading it is how a write-up's budget goes without a figure to show for it.
+
 A *major run* is the whole roster over the whole shape set at criterion's
 default budget --- the main set and, by default, **every stride-class population
 with it**: one process for the main set and one per class, or two of each where
@@ -4640,14 +4657,20 @@ this chapter states twice and had buried both times.
 a gate that fails, evidence that is not on this machine --- and a decision
 that belongs to whoever asked for the run rather than to the procedure: whether
 the artifacts go, whether anything is pushed, which pair the next run takes,
-anything that publishes. Report those and wait; decide the rest. **A decision
-the WRITE-UP needs is not one of them**, however plainly it is the requester's:
-the run collects the same artifacts whatever is decided, so carry it through
-the evening and report it where it bites. A preparation that leaves one says
-that outright --- Run 19's put the claims-retirement decision at the head
+anything that publishes. Report those and wait; decide the rest. **THE TEST
+IS WHAT THE ANSWER CHANGES, NOT WHOSE THE DECISION IS: stop only where
+the answer changes what the machine does next.** Where it changes only what
+the write-up says, proceed under a stated assumption and report it where
+it bites --- the run collects the same artifacts whatever is decided. Apply
+the test and not the category: *belongs to whoever asked* cannot be applied
+from inside, since anything can be argued into it, where *changes what
+the machine does next* is answerable in a sentence and would have answered every
+stop this chapter has recorded. A preparation that leaves such a decision says
+so outright --- Run 19's put the claims-retirement decision at the head
 of the pair note in this paragraph's own vocabulary, with *before the gate
 is paid* beside it, and its first operator read it as a stop and lost the night
-(2026-08-24).
+(2026-08-24), where the test says plainly that a manifest edit due
+at the write-up changes nothing the evening does.
 
 **Confirm each long process on the screen as it finishes**, rather than folding
 it into a later summary. The gate, the sequence, a rebuild, any probe that takes
@@ -5100,26 +5123,44 @@ throughout:
     #      not one naming a population, so every one read as covering the
     #      run. A class question asked of it had no answer at all
 
-Steps 6 to 10 are read-only and fine sandboxed but for 8c and 8d, which write
-`zz-` fixtures here and remove them; 3b, 11, 12 and 14 write and are not,
-and so do 4 and 5 --- only through their redirect, but that is enough,
-the sandbox permitting the session's own directory and its own temp directory,
-and `/tmp/a.log` being in neither. Send those two logs to the temp directory
-the session actually has --- `/tmp/claude` is not it in every seat, and a walk's
-first redirect there died `No such file or directory` --- or run them
-unsandboxed with the rest. Step 16 answers less than it looks: `ps` in a session
-lists only that session's own processes, so it catches a launch made from here
-and not one made from anywhere else, and `uptime` is the half of it that reaches
-the machine. The one that is skipped most often is 8, and the one that is run
-when it should not be is 14 --- the gate belongs to the pair, so a note
-recording a pass means it is done. **And what is true of 14 is true of 11
-and 12: write each into the pair note when it passes.** All three cost machine
-time, all three are properties of the pair and its roster rather than
-of the session that ran them, and a session that cannot see they were run pays
-for them again --- twenty minutes for the roster pass, about forty for the gate.
-The note is the only thing that outlives a session, so an outcome recorded
-nowhere is an outcome nobody after you can use; the gate's own line has said
-so all along, and the other two now say it too.
+**One rule for the sandbox in this directory, since half of what a run does must
+write here.** Run everything unsandboxed except the read-only checks.
+Those are worth having cheap and are all of them safe: both `check`s, `diag`,
+`--lint`, `--check-doc`, `loop-offsets.py`, `--list`, a `grep` of the note,
+and pre-run steps 6 to 10 --- except 8c and 8d, which write `zz-` fixtures here
+and remove them. Everything that builds, benchmarks or leaves a file
+is the other kind: 3b, 11, 12, 14, 17 and 19, and steps 4 and 5 too, which write
+only through their redirect and that is enough. A session starts
+in `~/r/horde-ad`, so its sandbox permits writes there and to its own temp
+directory and nowhere else; THIS directory is outside it, and `run-major.sh`
+moves here before doing anything. **And never write `$TMPDIR` here; spell
+the scratch path in full.** That variable is set only under the sandbox,
+so the idiom that works in a read-only check writes to `/` the moment the flag
+that makes a command able to write at all is added --- silently, the write
+succeeding. The rule is about the PLACE and not the variable, because
+the conditional it would otherwise be turns on a property of the call, which
+changes call to call here, where `$TMPDIR/x` is a habit that does not.
+`/tmp/a.log` is in neither permitted directory and `/tmp/claude` is not the temp
+directory in every seat; a walk's first redirect there died
+`No such file or directory`. **The two refusals do not look alike, which
+is the part that has cost hours.** A redirection on a simple command is checked
+before exec, so the benchmark never starts at all; `log`'s `tee` is a pipeline
+whose `echo` still prints, so you get the sequence's start lines on the console,
+no wall-clock file, no JSON and no run. That reads as a run in progress, which
+is how two copies once ended up on this machine at once. Confirm a launch
+by an unsandboxed process list, never by the launching shell --- and note
+that `ps` in a session lists only that session's own processes, so it catches
+a launch made from here and not one made from anywhere else, `uptime` being
+the half of it that reaches the machine. The one that is skipped most often
+is 8, and the one that is run when it should not be is 14 --- the gate belongs
+to the pair, so a note recording a pass means it is done. **And what is true
+of 14 is true of 11 and 12: write each into the pair note when it passes.** All
+three cost machine time, all three are properties of the pair and its roster
+rather than of the session that ran them, and a session that cannot see they
+were run pays for them again --- twenty minutes for the roster pass, about forty
+for the gate. The note is the only thing that outlives a session, so an outcome
+recorded nowhere is an outcome nobody after you can use; the gate's own line has
+said so all along, and the other two now say it too.
 
 **Steps 7 and 8 are the whole of this README's document check, and no other
 repository's checkers belong on it.** Theirs carry a per-repo configuration ---
@@ -5140,28 +5181,35 @@ how long each should take is the previous run's `-wallclock.log`, which stamps
 every start and finish; it costs patience and a quiet machine, nothing else.
 Everything expensive happens after it, in the write-up, and that is where
 a session's token budget is spent and where its mistakes are made. **The eight
-class blocks are the bulk of the typing**, and mostly mechanical: write each
-from the verdicts `--block` emits rather than from the table above them, keep
-each to one paragraph, and expect them to take longer than the main set's
-write-up did. **The bulk of the *cost* is adjudication rather than typing** ---
-deciding which run, which basis and which population a figure belongs to ---
-and it scales with how many comparisons the run invites rather than with how
-many tables it fills, so a run that is both a repetition and a pairing
-is the dearest to write up for that reason alone. **The shape to expect,
-in the units a session actually spends**, which are not hours but tool calls
-and how much of this file must be read before the first one. The fixed cost
-is the reading --- this chapter and the last run's --- and it is larger
-than executing either checklist, which is what both checklists are for. After
-it the work divides three ways and only one part is large. *Batchable*: anything
-with one invocation per process or per claim --- a `--selftest` and an `--aa`
-apiece, the dozen-odd `--pair` lines, a `--block` per class --- goes in one call
-per kind, so steps 1 and 3 together are a handful. *One per site*: the eleven
-`--in-place` installs, three calls. *Unbatchable*: the prose, one edit per
-paragraph, and this is the bulk --- the eight class blocks alone are some thirty
-items, and no tool reduces the count, `--block`'s skeletons only removing
-the extraction that used to precede each. Then verification costs about what
-the prose cost, because every finding is a fix and every fix is a claim. Budget
-the prose and the verification as the work; the readings are noise beside them,
+class blocks are NO LONGER the bulk of the typing, and this paragraph said they
+were for four runs after they stopped being.** `install-tables.sh` writes 32
+computed paragraphs across them now --- table, controls, provenance, per-shape
+line, cross-half line --- so what is left per class is the one paragraph of what
+it says, written from the verdicts `--block` emits rather than from the table
+above it. Eight paragraphs of judgement, and nothing else. **The chapter head
+is the bulk**: fifteen paragraphs on Run 19, every one of them rewritten,
+and nothing installs any of them. **The bulk of the *cost* is adjudication
+rather than typing** --- deciding which run, which basis and which population
+a figure belongs to --- and it scales with how many comparisons the run invites
+rather than with how many tables it fills, so a run that is both a repetition
+and a pairing is the dearest to write up for that reason alone. **The shape
+to expect, in the units a session actually spends**, which are not hours
+but tool calls and how much of this file must be read before the first one.
+The fixed cost is the reading --- this chapter and the last run's --- and
+it is larger than executing either checklist, which is what both checklists
+are for. After it the work divides three ways and only one part is large.
+*Batchable*: anything with one invocation per process or per claim ---
+a `--selftest` and an `--aa` apiece, the dozen-odd `--pair` lines, a `--block`
+per class --- goes in one call per kind, so steps 1 and 3 together
+are a handful. *One per site*: the eleven `--in-place` installs, three calls.
+*Unbatchable*: the prose, one edit per paragraph, and this is the bulk ---
+the eight class blocks alone are some thirty items, and no tool reduces
+the count, `--block`'s skeletons only removing the extraction that used
+to precede each. Then verification costs about what the prose cost, because
+every finding is a fix and every fix is a claim --- and on Run 19 it cost rather
+more, two checker passes returning 22 defects whose fixes then wanted their own
+re-derivation. **Budget the chapter head, the verification and the eight class
+paragraphs as the work**, in that order; the readings are noise beside them,
 and the run itself is unattended. Two further consequences worth having in mind
 before starting. Prefer analysis that localises --- per shape, per control ---
 over re-quoting figures that moved a few percent and changed nothing; the first
@@ -5190,23 +5238,6 @@ mechanism cost twenty minutes and, for the latter two, no extra machine time
 at all, while the major run they hang off changed no decision. A question
 with a discriminating measurement usually deserves a filtered run now rather
 than a slot in the next full one.
-
-**What a run must read, so that nothing else is read to find out.**
-This chapter's three checklists --- a fifth of its lines --- and of the rest
-only the *part* each section keeps, since most of what these sections hold
-is the previous run's data that the write-up is about to replace. The last run's
-chapter, whole, that being the one thing worth reading entire. Of [What Run N
-compares against](#what-run-20-compares-against), the paragraphs settling
-the regime, the roster and the basis, and the column rules under the yardstick
---- not its figures. Of [the claims](#the-claims-run-20-should-test), BOTH
-numbered sets at the end --- the five live claims and the three class
-properties, a run returning verdicts on each --- and not the previous run's
-readings above them, which `--claims` reprints. Of [the class
-blocks](#the-stride-classes-run-by-run), the six numbered items of the form
-and one example block --- not the other seven. Of [Provenance](#provenance),
-the replace list and the delta bullets. The open list is read by its status
-markers rather than end to end. Everything else in this file is reference,
-and reading it is how a write-up's budget goes without a figure to show for it.
 
 **Where.** A session starts in `~/r/horde-ad`, which leaves *that* repository's
 `CLAUDE.md` resident while this repo is not governed by it, even though all
@@ -5243,34 +5274,6 @@ because a recipe composes it with a `-pgma` of its own and each wants
 an `--ghc-options=` of its own. Its value begins with a dash, so it goes inside
 the quotes --- `--ghc-options="$REGIME"` --- and never as a bare word after
 a space, which the option's parser reads as the next flag.
-
-**Everything below that writes runs unsandboxed**, which is every step
-that builds, benchmarks or leaves a file: the two builds, the smoke block,
-`run-gate.sh`, `run-major.sh`. The read-only ones --- both `check`s, `diag`,
-`--lint`, `--check-doc`, `loop-offsets.py`, `--list`, a `grep` of the note ---
-are fine sandboxed and are worth having cheap, so this is not a blanket
-instruction to drop the sandbox for the afternoon. A session starts
-in `~/r/horde-ad`, so its sandbox permits writes there and to its own temp
-directory and nowhere else; this directory is outside it, and `run-major.sh`
-moves here before doing anything. Sandboxed, every `--json` and every
-`> $out.log` is refused --- and the two refusals do not look alike.
-A redirection on a simple command is checked before exec, so the benchmark never
-starts at all, while `log`'s `tee` is a pipeline whose `echo` still prints: you
-get the sequence's start lines on the console, no wall-clock file, no JSON
-and no run. That reads as a run in progress, which is how two copies once ended
-up on this machine at the same time. Confirm a launch by an unsandboxed process
-list, never by the launching shell.
-
-**So never write `$TMPDIR` in this directory; spell the scratch path in full.**
-That variable is set only under the sandbox, so the same idiom that works
-in a read-only check writes to `/` the moment you add the flag that makes
-a command able to write at all --- silently, since the write succeeds. The fact
-is in the session-level notes and was resident when this bit: what defeats
-it is that the rule is conditional on a property of the *call*, which changes
-call to call here, while `$TMPDIR/x` is a habit that does not. A directory where
-half the commands must be unsandboxed is one where the conditional should
-not exist, which is why this is a rule about the place rather than a caution
-about the variable.
 
 **Then build what will actually be timed --- but first, is there a pair here
 already?** That is the fork, and it comes before the build rather than after it,
@@ -6079,11 +6082,27 @@ was missed, which is what they have cost.
     #      paragraph. A correction is a claim -- derive it, then re-run the
     #      gates. Then --lint, --check-doc, adjudicate the worklists,
     #      read end to end, and walk the diff against the writing rules.
-    #      The independent checker is TWO passes on one agent, tables when
-    #      they go in and then the prose WITH the fixes the first pass
-    #      caused, briefed that it works in this
-    #      directory, that its evidence is this run's JSONs and read-run.py,
-    #      and that no other repo's checkers come near this README.
+    #  7a. THE INDEPENDENT CHECKER, and it is a STEP because it is the
+    #      highest-yield thing in this list: on Run 19 it returned 22
+    #      defects, six of them whole paragraphs of the PREVIOUS run's
+    #      left standing under this run's tables, which every mechanical
+    #      gate here had passed and a truth-focused read had not caught.
+    #      TWO passes on ONE agent -- tables when they go in, then the
+    #      prose WITH the fixes the first pass caused. The second pass is
+    #      not a formality: Run 19's found SEVEN errors introduced by the
+    #      first pass's own fixes, two of them substantive, and a session
+    #      that stops at one pass ships them.
+    #      BRIEF IT WITH ALL OF THIS, since an under-briefed checker
+    #      wastes its pass: it works in THIS directory; its evidence is
+    #      this run's JSONs and read-run.py and nothing else; NO other
+    #      repository's checkers come near this README; it re-runs no
+    #      benchmark; it REPORTS ONLY and edits nothing; it quotes a
+    #      distinctive PHRASE and never a line number, the file being
+    #      rewrapped between turns; and it separates confirmed defects
+    #      from what it could not check. Give it the diff and name the
+    #      sections a run replaces.
+    #      AND CHECK ITS WORK. Run 19's said twelve arms moved past 3%
+    #      where sorting gives eleven. Its report is evidence, not verdict
     #      Once the write-up settles, one comprehension probe: a fresh
     #      session answers a few of the README's own questions from the
     #      document alone, with citations
@@ -9817,7 +9836,19 @@ read off the table by eye. **The general form, and it is a standing instruction
 rather than an observation: if a write-up hand-rolls a script to answer
 something the reader should answer, that is a defect report against the reader**
 --- fix it there, before the sentence it was written for, or the next run
-invents its own wrong version.
+invents its own wrong version. **Two riders, both bought on Run 19.** A new MODE
+joins the guards its siblings already have, and is checked against them rather
+than written beside them: `--counts` shipped able to be given without
+the `--compare` it reads, silently printing the default table and exiting 0 ---
+the unread-flag family exactly, added next to four sibling readings
+of `--compare` that were every one of them already guarded, and joining none.
+**And an instrument may be BACKED OUT, which is not a failure of the write-up
+but a result of it.** Measure what it flags before shipping it: the obvious
+mechanical repair for stale paragraphs was built and returned 100 for the four
+that mattered, so it went, and the refutation with its numbers is
+under the tasks heading --- worth more than the mode, since it stops the next
+session building the same thing. A report that never empties is one nobody
+reads, which this file already knows about hints.
 
 **And for each stride class, the same three properties, now carrying Run 19's
 verdicts**, the details beside each class's table:

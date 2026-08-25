@@ -11,6 +11,25 @@ BEFORE either binary exists, which is the order the procedure asks for.
 
 Nothing appends to this file but run-gate.sh.
 
+ENTRY POINT FOR THE SESSION THAT RUNS THIS. Not optional, and it goes
+here at the head where a session reads first. Say, in this order: which
+of the pre-run steps are SPENT and on what date; whether the gate has
+run; which path the reader is on, CONFIRM or BUILD, and why; what is
+INHERITED and must not be repaid, naming each -- the gate, the smoke
+sweep, the roster pass, the counts, anything else that cost machine time
+-- and what is still OWED. Then say outright whether anything here needs
+a rebuild, since the offsets any registration is written against die
+with one.
+
+AND SAY THAT NOTHING IN THE NOTE IS A REASON TO STOP. A preparation
+that leaves a decision open states it plainly and states that it is not
+a stop: Run 19's put a claims-retirement decision at this note's head in
+the procedure's own stop-vocabulary, with *before the gate is paid*
+beside it, and its first operator read it as a stop and lost the night
+(2026-08-24). The test the procedure applies is whether the answer
+changes what the machine does next; if it changes only the write-up, the
+note says so here.
+
 WHAT THIS PAIR MEASURES: one variable, named here, and nothing else. Say
 what the halves differ in and what they do not.
 
