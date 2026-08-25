@@ -5032,13 +5032,16 @@ is how two copies once ended up on this machine at once. Confirm a launch
 by an unsandboxed process list, never by the launching shell --- and note
 that `ps` in a session lists only that session's own processes, so it catches
 a launch made from here and not one made from anywhere else, `uptime` being
-the half of it that reaches the machine. The one that is skipped most often
-is 8, and the one that is run when it should not be is 14 --- the gate belongs
-to the pair, so a note recording a pass means it is done. **And what is true
-of 14 is true of 11 and 12: write each into the pair note when it passes.** All
-three cost machine time, all three are properties of the pair and its roster
-rather than of the session that ran them, and a session that cannot see they
-were run pays for them again --- twenty minutes for the roster pass, about forty
+the half of it that reaches the machine.
+
+**Three pre-run steps are the pair's and not the session's, and the note
+is where they survive.** The one that is skipped most often is 8, and the one
+that is run when it should not be is 14 --- the gate belongs to the pair,
+so a note recording a pass means it is done. **And what is true of 14 is true
+of 11 and 12: write each into the pair note when it passes.** All three cost
+machine time, all three are properties of the pair and its roster rather
+than of the session that ran them, and a session that cannot see they were run
+pays for them again --- twenty minutes for the roster pass, about forty
 for the gate. The note is the only thing that outlives a session, so an outcome
 recorded nowhere is an outcome nobody after you can use; the gate's own line has
 said so all along, and the other two now say it too.
@@ -5095,30 +5098,33 @@ and the run itself is unattended. Two further consequences worth having in mind
 before starting. Prefer analysis that localises --- per shape, per control ---
 over re-quoting figures that moved a few percent and changed nothing; the first
 is where the surprises have come from and the second is what has gone stale
-twice. And **a probe is not a lesser instrument than a major run ---
-and the write-up is where the instruments get built**, which is the sharper form
-of the same point. Run 13's registered question came back a null,
-and its durable output was four instruments: two checks in the reader and two
-rules in this chapter, every one of them from a mistake made while writing up
-rather than from anything the run measured. So the write-up
-is an instrument-building phase and not only a reporting one, and the four
-things worth watching for are the computation you improvised, the check
-that would have caught the error, the step you skipped, and the capability you
-found --- that set is the run's other product, and it outlives the figures,
-which the next run replaces. **Write a capability as a capability.** A fact
-recorded as a tool's limitation goes inert: this README said `run-major.sh`
-cannot give one binary two RTS configurations, which is true, and two runs each
-built a second binary and paid a forty-minute gate to price a nursery
-that `+RTS -A` sets on the binary already built. The same fact written as *any
-nursery question is answerable on an already-built binary; only a recorded run
-needs the driver* would have retired both pairs. So when a limitation is found,
-write down what it still leaves possible, in the place a session looks before
-spending. On the original point: the measurements that closed the `sum-only`
-objection, established that the forcing term scales, and settled the floor's
-mechanism cost twenty minutes and, for the latter two, no extra machine time
-at all, while the major run they hang off changed no decision. A question
-with a discriminating measurement usually deserves a filtered run now rather
-than a slot in the next full one.
+twice.
+
+**A probe is not a lesser instrument than a major run, and the write-up is where
+the instruments get built.**, which is the sharper form of the same point. Run
+13's registered question came back a null, and its durable output was four
+instruments: two checks in the reader and two rules in this chapter, every one
+of them from a mistake made while writing up rather than from anything the run
+measured. So the write-up is an instrument-building phase and not only
+a reporting one, and the four things worth watching for are the computation you
+improvised, the check that would have caught the error, the step you skipped,
+and the capability you found --- that set is the run's other product,
+and it outlives the figures, which the next run replaces.
+
+**Write a capability as a capability.** A fact recorded as a tool's limitation
+goes inert: this README said `run-major.sh` cannot give one binary two RTS
+configurations, which is true, and two runs each built a second binary and paid
+a forty-minute gate to price a nursery that `+RTS -A` sets on the binary already
+built. The same fact written as *any nursery question is answerable
+on an already-built binary; only a recorded run needs the driver* would have
+retired both pairs. So when a limitation is found, write down what it still
+leaves possible, in the place a session looks before spending. On the original
+point: the measurements that closed the `sum-only` objection, established
+that the forcing term scales, and settled the floor's mechanism cost twenty
+minutes and, for the latter two, no extra machine time at all, while the major
+run they hang off changed no decision. A question with a discriminating
+measurement usually deserves a filtered run now rather than a slot in the next
+full one.
 
 **Where.** A session starts in `~/r/horde-ad`, which leaves *that* repository's
 `CLAUDE.md` resident while this repo is not governed by it, even though all
