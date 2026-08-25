@@ -3,10 +3,10 @@
 One run's write-up: its head, its Results, what the next run compares against,
 the claims that run should test, and the eight class blocks. A run replaces
 this file whole and also edits [README.md](../README.md) around it, and what
-it edits there is the list under [Provenance][prov] --- so this is most of what
-a run replaces and not all of it. The harness, [the procedure][procedure]
-that makes a file like this one, and the open list stand between runs and
-are in README.md.
+it edits there is the replace list under [README's own Provenance][prov] ---
+so this is most of what a run replaces and not all of it. The harness, [the
+procedure][procedure] that makes a file like this one, and the open list stand
+between runs and are in README.md.
 
 **Run 19 (SpecConstr), and what GHC HEAD is worth to this fallback.** Criterion,
 **`--ghc-options=-fspec-constr`**; Run 16's regime, shapes, class views
@@ -307,8 +307,8 @@ and it read *everything in this chapter*; the split of 2026-08-25 rewrote
 it to say *file*, so what it can no longer claim of itself is the identity
 that was its whole point --- and it stands on the run before it now, as every
 other paragraph here does. What a run replaces OUTSIDE it, in README.md
-and in the sources, is [Provenance](../README.md#provenance). None of
-it is portable: a run on another machine is a different measurement rather
+and in the sources, is [README's own Provenance](../README.md#provenance). None
+of it is portable: a run on another machine is a different measurement rather
 than a repetition, which this run is in a position to be firm about, having
 repeated one binary on one box and moved its floor by 1.7x.
 
@@ -347,9 +347,10 @@ is the yardstick column.
 **Comparing runs?** The table below is Run 19's own; what to hold a new run
 against is [What the next run compares
 against](#what-the-next-run-compares-against), the claims to test are [the ones
-after it](#the-claims-the-next-run-should-test), the population and the absolute
-anchor are in [Provenance](../README.md#provenance), and this run's own floor
---- no A/A pair further than 2.32% from 1 on the basis half or 1.71%
+after it](#the-claims-the-next-run-should-test), the absolute anchor
+is under [Provenance](#provenance) below and the population it was measured
+over in [README's delta chain](../README.md#provenance), and this run's own
+floor --- no A/A pair further than 2.32% from 1 on the basis half or 1.71%
 on the control, on worst single cells of 18.50% and 17.66%, and 0.49% and 0.29%
 read on the six pairs that carry across runs --- is [in the floor
 section][floor]. That floor governs an arm against *itself*; two different rows
@@ -2152,6 +2153,149 @@ being unsettled rather than a movement. Its floor is 3.80%, against 6.15% on Run
 so the standing A/A slot did not fire this run either. The best arm outside
 the family is `mut-odo` at 0.037.
 
+
+
+## Provenance
+
+What this run's figures have to be read against, and it is a section
+of this file because a run replaces every word of it. What does NOT move
+with a run --- the delta chain that says which shape set and roster each run
+measured, and the list of what a run replaces outside this file --- is [README's
+own Provenance][prov].
+
+**Run 19's halves differ in the compiler, as Run 18's did, and this one reaches
+further than a released compiler can.** They share source, shim, shim setting,
+roster, shapes, class lists, bench order, machine and the one baked RTS line ---
+but not their position in the sequence, the control half having run first
+in every pair, which aliases *9.12* with *second of the two* again; Run 18 broke
+that tie on one class with an order probe and this run took none.
+`cabal.project.ghead`'s freeze resolves the same `vector`, `criterion`
+and `criterion-measurement` at the one index-state the other two plans hold,
+so what differs is ghc-9.12.4 against GHC HEAD 10.1.20260803 and their boot
+libraries, `base-4.21.2.0` with `ghc-internal-9.1204.0` against `base-4.23.0.0`
+with `ghc-internal-10.100.0`. `.text` is 20406469 against 20551487 bytes,
+and every address after the first difference moves: `--library` puts **11.1%**
+of library self-loops at the same offset in their cache line and 77.1%
+in the same straddle state, where two halves built from one source by one
+compiler read 100% and Run 18's cross-compiler figure was 20.1%. **The tracked
+`Main` fill groups do not even keep their shapes**, which Run 18's did:
+`[0, 24, 0, 4]` and `[0, 0]` on the basis against `[23, 0, 1, 2]`, `[0, 0, 13]`
+and `[0, 0]` on the control, the three-copy group being
+`bq-mut-runs-gm-mulback`, `bq-mut-lemire-mulback` and `bq-mut-runs-mulback`
+compiled to one seven-instruction body that 9.12 does not share between them.
+Which arm owns which copy on HEAD is a `-g3` twin's to say and **the twin cannot
+say it**, its addresses sitting at four different deltas from the timed binary's
+rather than one, which is [the add-in entry][open]'s finding and not a detail.
+**What does NOT transfer between these halves is a difference of absolutes**:
+`list` moved **0.78%**, past the 0.7% that separates a subtractable pair
+from one that can only be ordered, where Run 18 read 0.52%. **The correction
+sits evenly on both**, the in-situ forcing term reading 1.0282/1.0295/1.0552
+against 1.0267/1.0347/1.0492 as medians, so a ratio read within either half
+carries almost none of its own.
+
+**The sequence was launched once and ran to the end**, 00:21:14 to 06:52:34,
+eighteen processes, every one exiting 0 with the bench count its roster asked
+for --- 1128 twice and 141 sixteen times --- none of them reporting a selection
+it did not ask for, and **none rerun**, which Run 18 could not say.
+The wall-clock log is an unbroken record and closes with `major run complete`.
+**The control half ran first throughout**, `ghead` before `g912` on the main set
+and on each class in turn, which is the driver's order and the one the basis's
+second position is read in; **the order was NOT varied**, so every class's
+cross-half direction is aliased with its slot, where Run 18 had broken that tie
+on `slice`. **The machine carried one exposed bench, and the run can name what
+did it.** Seventeen of the eighteen processes report no bench reaching 0.25
+foreign CPU. The basis main process reports one of its 1128 ---
+`cnn-L1-6x6-c1/bq-expand` at 0.35 foreign, worst sample 201 ms --- and the cause
+is a Claude Code update installing itself, named by the machine's owner. Its own
+A/A twins bound it: the exposed copy sits 2.0 to 2.2% above two twins that agree
+with each other to 0.19%, so one shape of 24 moves that arm's geomean
+by under 0.09%, an order of magnitude inside the floor. **The rerun post-run
+step 1c asks for was not taken, and was declined on 2026-08-25** by whoever
+asked for the run, the exposure having been priced at under 0.09% on one arm;
+so this main set is published with it, and the decision is recorded rather
+than the debt. **The tree was NOT clean at launch**, and this is the run's
+second small caveat: the driver's own `git status` recorded two untracked paths,
+`micro-regime3/check-x.log` and `micro-regime3/probe-run20arms.sh`, neither
+of them in the run's namespace and neither modified source. **The alone-leg
+riders followed the sequence**, 06:53:30 onward, four invocations of 27
+single-bench processes, 108 in all --- clean and saturated on each half, which
+is what registration 3's decomposition needs. **The counted-work sweeps preceded
+it**, taken 2026-08-24 on a machine doing ordinary work as that rider allows,
+1128 data lines a half and no cell perf refused.
+
+**The pair's own identity, transcribed before its note went with it.** The two
+md5s, the `Main.hs` commit and the tree at launch are at [the head of the run's
+file](runs/run19.md) and are not repeated here --- one live copy, since both
+places are replaced by the same run. What this paragraph adds is what that head
+does not carry: `-fspec-constr` and `-fobject-determinism` on both halves,
+`align-as.py` as committed at `40f7a37`, and `LOOP_MAXSKIP=1 LOOP_LOOKTHROUGH=1`
+on both builds, the two differing only in `--project-file=cabal.project.ghead`
+and so in the compiler. **Both halves were built by hand**, this being a pair
+of two shims, so both recipes went into the pair note. **And the control half's
+compiler is not a released one**, which is this pair's own provenance hazard
+and is why the version is read back out of each binary rather than off a recipe
+line: the in-tree stage1 of the GHC checkout under `~/r/horde-ad/ghc` at commit
+`d415f38a75`, reporting 10.1.20260803. A HEAD that moves is a different compiler
+and a different pair. **No input moved that a freeze does not record**: the box
+is where Run 18 left it, its machine check reading -0.84%, so absolutes cross
+freely from Run 18 and the boundary that stops them is still the BIOS change
+before it.
+
+**Nothing moved in the shapes or the roster**, which is what a compiler pair
+needs and what its own registration required: 1128 benches, the same 47 timed
+arms over the same 24 shapes, every class at three shapes, and the same roster
+order, with both halves' `--list` listings identical to each other
+and to `run18-g912`'s, compared directly off the previous basis binary while
+it was still on disk. So no `-L1` roster pass was owed and none was run.
+**The one input that moved by design is the compiler**, which adds no bench
+and so leaves membership untouched while moving every address.
+
+**The anchor, so a moved baseline is visible** --- and this is the run where
+it stayed still. Every published figure is a ratio to `list`, so a change
+in `list` alone would move every cell without any strategy moving. The three
+anchors read **6.08 us** on `cnn-slice-c32`, **3.10 ms** on `cifar-L2-16-c64-k3`
+and **38.3 ms** on `stretch-wide-2xM`, net per call on the basis half, against
+Run 18's 6.10 us, 3.13 ms and 38.4 ms --- **-0.31%, -0.93% and -0.22%**, every
+one of them well inside this run's floor and inside the drift band besides.
+That is the same binary reading the same box a day later, and the gate's machine
+check said so before the evening was spent, at -0.42% over all 24 shapes.
+**The control half's three are 5.93 us, 3.06 ms and 37.5 ms**, 2.39%, 1.26%
+and 2.15% under the basis's --- so unlike Run 18's pair the compiler IS
+in this movement, which is the same fact as `list` moving 0.78% between
+the halves and is why these two columns are ordered rather than differenced.
+
+| shape | `l` | `list`, per call | net | HEAD, net |
+|---|---:|---:|---:|---:|
+| `cnn-slice-c32` | 288 | 6.25 us | 6.08 us | 5.93 us |
+| `cifar-L2-16-c64-k3` | 147456 | 3.19 ms | 3.10 ms | 3.06 ms |
+| `stretch-wide-2xM` | 1800000 | 39.4 ms | 38.3 ms | 37.5 ms |
+
+**Each stride class carries an anchor of its own, beside its table,
+and this time every one of the eight is inside its floor** --- which is what
+a box holding still looks like from the class end, and is the reading Run 18
+could not get because a busy window sat in the middle of it. Against Run 18's
+basis they run **-2.48% to +0.95%**, six down and two up, the extremes being
+`bcast` at -2.48% and `reshape1` at +0.95% and the other six inside a point
+and a third. Every one of those is inside its own class's floor, the tightest
+of which is `revsome`'s 2.00%. **So a class anchor is comparable across
+this boundary in both directions**, which no run since the BIOS change has
+been able to say, and the eight of them agree with the main set's three about
+the box rather than adding anything to them. What they cannot be compared across
+is still the Run 17 boundary, where the BIOS sits.
+
+**The correction is invertible, so pre-correction figures stay comparable.**
+The forcing term is **0.601--0.615 ns per element** on the basis half
+and 0.597--0.615 on the control, across the whole set, so a raw slope
+is the published one plus about `0.61e-9 * l`, with `l` from `Main.hs`.
+That recovers any uncorrected figure to within the term's own spread --- enough
+to hold a corrected run against any number measured before the correction
+existed. The term is within about 2% of every run's since Run 7, so neither
+the flag, the roster, the layout, the shim's padding, `-fproc-alignment=64`,
+an RTS line, a source patch that moves every loop offset, **nor a change
+of compiler** touches the forcing pass, which is the control saying ten runs'
+corrections are one correction --- and this pair's two halves agree on
+it to within a thousandth of a nanosecond, so a figure differenced across
+these halves carries almost none of its own.
 
 [floor]: ../README.md#what-moves-a-figure-when-no-strategy-changed
 [open]: ../README.md#what-is-open

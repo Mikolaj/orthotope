@@ -6047,6 +6047,12 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
         slug = {v: k for k, v in anchors.items()}
         replace_covered = covered
         gaps = []
+        # `Provenance` is exempt by heading text, so BOTH are: README's,
+        # whose figures are the delta chain's and belong to the runs it
+        # names rather than to this one, and the run file's, which the
+        # whole-file rule above has already covered. The second is
+        # redundant rather than a hole -- a replace list that did not link
+        # the run file would fail on its four other sections first.
         for i, line in enumerate(canon):
             if (line.lstrip().startswith('|') or line.startswith('    ')
                     or sec[i] == 'Provenance'):

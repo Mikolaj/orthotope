@@ -49,10 +49,10 @@ convention into the fixtures instead: that is the second copy of it.
 
 WHAT THE RUN-FILE SPLIT COST IT, since a coverage loss nobody counted is
 the kind this file exists against. Moving a run's write-up into
-`runs/run<N>.md` on 2026-08-25 took 22 of these out of --audit at once,
+`runs/run<N>.md` on 2026-08-25 took 23 of these out of --audit at once,
 each marked at its own site with which of four things its history cannot
 take: a `--run-doc` no older reader accepts (13), a mode given no document
-and defaulting to a README that no longer carries what it reads (2), a
+and defaulting to a README that no longer carries what it reads (3), a
 fixture built from a document the era's copy is not (5), and a driver that
 reads the split itself (2). The three-valued outcome is what made that
 countable rather than quiet. Replaying the README of the day was tried
@@ -4058,7 +4058,10 @@ CASES = [
          argv=['{run}', '--machine'],
          ok=V(exit=0, has=['BOX MOVED', 'CONDITION THE FINGERPRINT',
                            "previous run's own binary"]),
-         bug=V(exit=1, has=['PAST'], hasnt=['CONDITION THE FINGERPRINT'])),
+         # No --audit: this mode is given no document and takes its own
+         # default, which before the run-file split was a README that
+         # now carries none of what it reads. 2026-08-25.
+         ),
 
     case('machine-check-does-not-stop-a-moved-box', 'read-run.py', 'bc2f884',
          'a box that got faster or slower failed the gate, leaving a quiet'

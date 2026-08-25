@@ -474,3 +474,13 @@ for nine write-ups because the anchor resolved. What the split did was turn it
 into a cross-file promise, which is what made it visible. Two of its other
 findings were the same shape: a "five things" that README's own sentence calls
 six, and a rule cited as README's that is the run file's only copy.
+
+2026-08-25, Provenance. Splitting it left a case resting on furniture nobody
+had noticed it leaning on. `machine-check-names-the-control-it-leaves` runs
+`--machine` with no document flag, and under `--audit` the older reader read
+README's fingerprint -- except that the fingerprint had gone to the run file
+in the commit before, and what the old code had been matching since was the
+ANCHOR TABLE, whose rows are the same shape and which was still in README.
+Moving that too is what finally broke it. So the case had been passing on the
+wrong table for a commit, and the only reason it is visible at all is that
+`--audit` replays code that cannot be aimed.

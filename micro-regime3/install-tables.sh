@@ -271,10 +271,10 @@ for n, (c, start) in enumerate(reversed(order)):
     # It used to run to len(paras), and `### Provenance` sat right after
     # the last class block -- so a paragraph opening `Provenance:` in the
     # section of that name would have been silently rewritten with the
-    # last class's elapsed and heap line. That section is README.md's now
-    # and the class blocks close the run file, so the guard has no live
-    # subject here; it stays because the next heading added below them
-    # would have one and nothing would say so. Non-vacuous 2026-08-16, both
+    # last class's elapsed and heap line. The split of 2026-08-25 moved
+    # that section into the run file too, one heading below the last
+    # class block, so the guard's subject is live and is the same one it
+    # always had. Non-vacuous 2026-08-16, both
     # ways over a copy carrying such a sentence: the committed version
     # replaced it with `scaled`'s provenance and this one leaves it. The
     # first attempt at that control proved nothing -- the old script was
