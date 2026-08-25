@@ -3786,6 +3786,15 @@ def claims_in_doc(readme, cells, shapes, strategies, src, main_hs):
     every = set().union(*readings.values()) if readings else set()
     now = re.search(r'^## About the last run \(Run (\d+)\)$', doc, re.M)
     past_re = claims_past(int(now.group(1)) if now else None)
+    # A RETIREMENT EPITAPH IS ATTRIBUTED, not unaccounted. A claim leaving
+    # the manifest takes its pair with it, so every figure in the sentence
+    # recording what it last read becomes a figure this mode cannot
+    # account for -- and it is precisely the figure the settlement asked
+    # to be written down, so that the last reading survives the manifest
+    # diff. Run 19 retired four claims and put eleven such figures in two
+    # sentences; without this they list as unattributed, and a session
+    # meeting that list reads a correct write-up as a defective one.
+    retired_re = re.compile(r'\bretire(s|d|ment|ments)?\b', re.I)
     ok, listed, skipped, claim = 0, [], set(), None
     for para in paras[start + 1:end]:
         lead = re.match(r'\*\*Claims? (\d+)', para)
@@ -3804,7 +3813,7 @@ def claims_in_doc(readme, cells, shapes, strategies, src, main_hs):
                        if m.group(1) else m.group(0))
                 if fig in allowed:
                     ok += 1
-                elif not past:
+                elif not past and not retired_re.search(sent):
                     listed.append((claim, fig, sent))
     # Name the file the readings came from. A run pointed at the control
     # half lists two dozen figures as unaccounted, which is what a stale
@@ -3823,8 +3832,9 @@ def claims_in_doc(readme, cells, shapes, strategies, src, main_hs):
     if not listed:
         print('note: no unattributed figure left over.')
         return
-    print('note: %d figure(s) neither this run\'s nor attributed to another'
-          ' run; adjudicate each:' % len(listed))
+    print('note: %d figure(s) neither this run\'s, nor attributed to'
+          ' another run, nor inside a sentence about a retirement;'
+          ' adjudicate each:' % len(listed))
     for n, fig, sent in listed:
         print('        %-9s %-9s %s'
               % ('summary' if n is None else 'claim %d' % n, fig, sent[:92]))
@@ -5130,6 +5140,97 @@ def chapter_head_blocks(text):
     return blocks_of(rest[:nxt.start()] if nxt else rest)
 
 
+def replaced_section_blocks(text, covered):
+    """Figure-bearing blocks of the sections the replace list names.
+
+    Keyed exactly as `chapter_head_blocks` keys the chapter's own, and for
+    the same reason: a block's key is its text with whitespace collapsed,
+    a fixed point of wrapping and of nothing else, so *unchanged* means
+    unchanged and never merely re-wrapped.
+
+    THIS IS THE CHAPTER-HEAD CHECK APPLIED WIDER, and it exists because
+    the narrow one was the only thing that worked. Run 19 rewrote the
+    fifteen paragraphs that check named and left SIX of Run 18's standing
+    elsewhere -- three closing Results while the table above them was Run
+    19's, one of them contradicting the same write-up's headline
+    allocation figure in three other places, and a `1.84x` in the ceiling
+    ruling carried forward from Run 11 through eight write-ups. Every
+    mechanical gate passed over all six; an independent checker found them
+    by reading, two hours in.
+
+    A run-name heuristic was tried first and refused: naming an old run
+    beside a figure is the normal state of this document, and the sweep
+    returned 100 paragraphs for the four that mattered. Identity against
+    the committed copy has no such problem, because a paragraph a run
+    replaced is not identical to the one it replaced.
+
+    Scoped OUT is what a run does not replace: headings, table rows,
+    indented blocks, and the chapter head, which has its own check two
+    paragraphs up and would otherwise be reported twice.
+    """
+    out = []
+    if not covered:
+        return out
+    parts = re.split(r'^(#{1,6} .*)$', text, flags=re.M)
+    for i in range(1, len(parts), 2):
+        head = parts[i]
+        body = parts[i + 1] if i + 1 < len(parts) else ''
+        t = re.sub(r'[`*_]', '', head.lstrip('# ').strip().lower())
+        slug = re.sub(r'[^a-z0-9 -]', '', t).strip().replace(' ', '-')
+        if slug not in covered or slug.startswith('about-the-last-run'):
+            continue
+        for key, lines in blocks_of(body):
+            first = lines[0]
+            if first.lstrip().startswith('|') or first.startswith('    '):
+                continue
+            if FIGURE_RE.search(' '.join(lines)):
+                out.append((slug, key, lines))
+    return out
+
+
+def held_in_reworked_sections(now, was, covered, churn=0.5):
+    """Blocks a run left standing in a section it otherwise rewrote.
+
+    Identity against the committed copy, as `chapter_head_blocks` does it,
+    scoped by how much of each section the run actually reworked. Sections
+    a run replaces wholesale run 67% to 100% new and normally hold nothing
+    of the previous run's; the reference chapters -- the open list, the
+    placement chapter, the ceiling ruling -- run 0% to 11% new, and what
+    they hold is dated history that outlives every run. Measured over Run
+    19's write-up: six sections above the threshold holding four blocks
+    between them, against fifteen below it holding 146.
+
+    So the threshold is doing the work a maintained list of
+    replaced-wholesale sections would do, without being one -- the replace
+    list was rewritten once to stop enumerating, and this keeps that.
+
+    WHAT IT DOES NOT CATCH, stated because a gate believed to be complete
+    is worse than one known to be partial: a stale paragraph in a
+    low-churn section. Run 19 left four of those -- a `1.84x` in the
+    ceiling ruling carried from Run 11 through eight write-ups, two
+    calibration paragraphs in the placement chapter, and a sighting count
+    in the open list -- and none is reachable this way, because the
+    sections holding them are 90% unchanged every run by design. Those
+    want the reading the tasks entry describes and no checker has.
+    """
+    old = {}
+    for s, k, _ in replaced_section_blocks(was, covered):
+        old.setdefault(s, set()).add(k)
+    per = {}
+    for s, k, lines in replaced_section_blocks(now, covered):
+        d = per.setdefault(s, {'held': [], 'new': 0})
+        if k in old.get(s, set()):
+            d['held'].append(lines[0])
+        else:
+            d['new'] += 1
+    out = []
+    for s, d in sorted(per.items()):
+        total = d['new'] + len(d['held'])
+        if total and d['new'] / total >= churn:
+            out.extend((s, l) for l in d['held'])
+    return out
+
+
 def blocks_of(text):
     """The blank-line-separated blocks of a document, as (key, lines).
 
@@ -5489,6 +5590,7 @@ def check_doc(readme, main_hs):
         if m:
             cur = m.group(1)
         sec.append(cur)
+    replace_covered = None
     head = [i for i, l in enumerate(canon)
             if l.startswith('**What the next run replaces.**')]
     tail = [i for i, l in enumerate(canon)
@@ -5503,6 +5605,7 @@ def check_doc(readme, main_hs):
         covered |= {refs[k] for k in re.findall(r'\]\[([a-z0-9-]+)\]', block)
                     if k in refs}
         slug = {v: k for k, v in anchors.items()}
+        replace_covered = covered
         gaps = []
         for i, line in enumerate(canon):
             if (line.lstrip().startswith('|') or line.startswith('    ')
@@ -6284,6 +6387,24 @@ def check_doc(readme, main_hs):
         else:
             print('ok:   every paragraph of the Run %s chapter head is new'
                   ' since Run %s' % (chap.group(1), was.group(1)))
+        # The same comparison, wider. The chapter head is one section of
+        # the twenty-odd the replace list names, and Run 19 rewrote it
+        # cleanly while leaving six of Run 18's paragraphs standing
+        # elsewhere -- three of them closing Results with this run's table
+        # above them. See `held_in_reworked_sections` for the scoping and
+        # for what it still cannot reach.
+        held = held_in_reworked_sections(doc, head_doc, replace_covered)
+        if held:
+            print('note: %d paragraph(s) unchanged since Run %s in'
+                  ' section(s) this run otherwise rewrote; each is stale or'
+                  ' is standing on purpose, and the ones that stand are'
+                  ' usually a column definition or a form:' % (len(held),
+                                                               was.group(1)))
+            for sec_, line in held:
+                print('    [%s] %s' % (sec_[:34], line.strip()[:58]))
+        elif replace_covered:
+            print('ok:   the sections this run rewrote hold no paragraph'
+                  ' of Run %s' % was.group(1))
 
     # Run-current facts stated in prose, held to the roster and to each
     # other. Three sentences quote what the current roster or the current
@@ -6378,67 +6499,73 @@ def check_doc(readme, main_hs):
             print('ok:   the prose counts of controls, A/A arms, benches and'
                   ' twinned strategies all match the roster')
 
-        floors = [m for p in (
-            r'a noise floor this run measures at ([\d.]+)%[^.]*?'
-            r' and ([\d.]+)%',
-            r'floor is ([\d.]+)% on the basis half and ([\d.]+)%'
-            r' on the control',
-            r'no A/A pair further than ([\d.]+)% from 1 on the basis half'
-            r' or ([\d.]+)% on the control') for m in re.findall(p, uw)]
-        if len(floors) < 2:
-            bad.append('could not locate at least two sites quoting the'
-                       ' run\'s floor pair, so the floor-agreement check did'
-                       ' not run -- if the sentences were reworded, this'
-                       ' check\'s patterns move with them')
-        elif len(set(floors)) > 1:
-            bad.append('the run\'s floor pair is quoted differently across'
-                       ' its %d sites: %s -- the head of the run chapter'
-                       ' carries the measurement, so requote the others'
-                       % (len(floors),
-                          '; '.join('%s%%/%s%%' % f for f in set(floors))))
-        else:
-            print('ok:   the run\'s floor pair reads %s%%/%s%% at all %d'
-                  ' sites that quote it' % (floors[0] + (len(floors),)))
-
-        # The SIX-PAIR figure beside it, held the same way. The eighteen-pair
-        # floor has been checked across its sites since 2026-08-14; the
-        # restricted one was checked nowhere, and a comprehension read of
-        # Run 16 found it quoted 0.39%/0.24% in four places, 0.50% in a
-        # fifth -- a run stale -- and rounded to "half a percent" in a
-        # sixth, two of them inside one paragraph. Some sites quote the
-        # pair and some only the basis half, so both shapes are collected
-        # and the singletons are held to the pair's first figure.
-        six = [m for p in (
-            r'six pairs that carry back to Run 10[^.]*?([\d.]+)% and'
-            r' ([\d.]+)%',
-            r'([\d.]+)% and ([\d.]+)% (?:are the same over|read on) the six'
-            r' pairs') for m in re.findall(p, uw)]
-        six_one = re.findall(r'six-pair figure of the half it is read on'
-                             r'[^.]*?([\d.]+)%', uw)
-        six_one += re.findall(r'\*([\d.]+)% between any two rows of the'
-                              r' table\*', uw)
-        if len(six) < 2:
-            bad.append('could not locate at least two sites quoting the'
-                       " run's six-pair floor, so its agreement check did"
-                       ' not run -- if the sentences were reworded, this'
-                       " check's patterns move with them")
-        elif len(set(six)) > 1:
-            bad.append('the six-pair figure is quoted differently across its'
-                       ' %d sites: %s -- it is the threshold two rows of one'
-                       ' table must clear, so one wrong copy retires a'
-                       ' margin'
-                       % (len(six), '; '.join('%s%%/%s%%' % f
-                                             for f in set(six))))
-        elif any(o != six[0][0] for o in six_one):
-            bad.append('the six-pair figure reads %s%% where it is quoted as'
-                       ' a pair and %s where it is quoted alone -- the two'
-                       ' are the same number'
-                       % (six[0][0], ', '.join(sorted(set(
-                           o for o in six_one if o != six[0][0])))))
-        else:
-            print('ok:   the six-pair floor reads %s%%/%s%% at all %d sites'
-                  ' that quote it, and %s%% at the %d that quote one half'
-                  % (six[0] + (len(six), six[0][0], len(six_one))))
+        # THE FIGURES THAT MUST AGREE WHEREVER THEY APPEAR, as a table
+        # rather than one hand-written check apiece. Both rows below were
+        # written separately, and the second only after Run 16 shipped its
+        # six-pair figure three ways -- 0.39%/0.24% in four places, 0.50%
+        # in a fifth and rounded to "half a percent" in a sixth, two of
+        # them inside one paragraph. That is what a check-per-figure
+        # costs: a quantity gets one only after it has already been got
+        # wrong somewhere. A row is cheaper than a check, so the next
+        # quantity to need this is a row and not a fourth copy of the
+        # gather-compare-report below.
+        #
+        # `pats` are the sites quoting the PAIR; `alone` the sites quoting
+        # one half of it, which are held to the pair's first figure. A row
+        # whose patterns stop matching says so rather than passing: a
+        # sweep that silently narrows is the failure this file is written
+        # against, and a reworded sentence moves a pattern with it.
+        AGREEING = (
+            ('floor pair',
+             (r'a noise floor this run measures at ([\d.]+)%[^.]*?'
+              r' and ([\d.]+)%',
+              r'floor is ([\d.]+)% on the basis half and ([\d.]+)%'
+              r' on the control',
+              r'no A/A pair further than ([\d.]+)% from 1 on the basis half'
+              r' or ([\d.]+)% on the control'),
+             (),
+             'the head of the run chapter carries the measurement, so'
+             ' requote the others'),
+            ('six-pair figure',
+             (r'six pairs that carry back to Run 10[^.]*?([\d.]+)% and'
+              r' ([\d.]+)%',
+              r'([\d.]+)% and ([\d.]+)% (?:are the same over|read on) the'
+              r' six pairs'),
+             (r'six-pair figure of the half it is read on[^.]*?([\d.]+)%',
+              r'\*([\d.]+)% between any two rows of the table\*'),
+             'it is the threshold two rows of one table must clear, so one'
+             ' wrong copy retires a margin'),
+        )
+        for name, pats, alone_pats, why in AGREEING:
+            sites = [m for p in pats for m in re.findall(p, uw)]
+            alone = [m for p in alone_pats for m in re.findall(p, uw)]
+            if len(sites) < 2:
+                bad.append('could not locate at least two sites quoting the'
+                           " run's %s, so its agreement check did not run --"
+                           " if the sentences were reworded, this check's"
+                           ' patterns move with them' % name)
+            elif len(set(sites)) > 1:
+                bad.append('the %s is quoted differently across its %d'
+                           ' sites: %s -- %s'
+                           % (name, len(sites),
+                              '; '.join('%s%%/%s%%' % f for f in set(sites)),
+                              why))
+            elif any(o != sites[0][0] for o in alone):
+                bad.append('the %s reads %s%% where it is quoted as a pair'
+                           ' and %s where it is quoted alone -- the two are'
+                           ' the same number'
+                           % (name, sites[0][0],
+                              ', '.join(sorted(set(o for o in alone
+                                                   if o != sites[0][0])))))
+            elif alone_pats:
+                print('ok:   the %s reads %s%%/%s%% at all %d sites that'
+                      ' quote it, and %s%% at the %d that quote one half'
+                      % ((name,) + sites[0] + (len(sites), sites[0][0],
+                                               len(alone))))
+            else:
+                print('ok:   the %s reads %s%%/%s%% at all %d sites that'
+                      ' quote it'
+                      % ((name,) + sites[0] + (len(sites),)))
 
         # And the A/A population itself. The twelve twins took it from six
         # pairs to eighteen on 2026-08-14 and two sites kept saying six for

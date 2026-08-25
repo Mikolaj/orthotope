@@ -488,6 +488,32 @@ def readme_current_run_sentence(tmp):
     return write(os.path.join(tmp, 'R.md'), '\n\n'.join(paras))
 
 
+def readme_retirement_sentence(tmp, retiring=True):
+    """A claims paragraph quoting a figure the manifest cannot account for.
+
+    Planted under claim 2's lead, the same anchor
+    `readme_current_run_sentence` uses and for the same reason: it is a
+    claim the manifest still carries, so the paragraph is adjudicated at
+    all. The figure is the fixture's and is not read from the run.
+
+    With `retiring`, the sentence is about a retirement, which is the
+    state Run 19's write-up left eleven figures in -- a retired claim
+    takes its pair out of the manifest, so the reading recorded as its
+    epitaph is by construction unaccountable, and listing it reads a
+    correct write-up as a defective one. Without, it is the same figure
+    in an ordinary sentence, which must still be listed.
+    """
+    doc = subprocess.run(['wrap80', '--unwrap'], input=open(README).read(),
+                         capture_output=True, text=True, check=True).stdout
+    paras = doc.split('\n\n')
+    at = [i for i, x in enumerate(paras) if x.startswith('**Claim 2 ')]
+    assert len(at) == 1, 'claim 2 lead: %d paragraph(s)' % len(at)
+    sent = ('Claim 2 retires here, having last read 0.8271 against it.'
+            if retiring else 'Claim 2 reads 0.8271 against it.')
+    paras.insert(at[0] + 1, sent)
+    return write(os.path.join(tmp, 'R.md'), '\n\n'.join(paras))
+
+
 def readme_citing_dotfile(tmp):
     return edited_readme(tmp, ('\n## What is open',
                                '\nhorde-ad keeps its hlint exceptions in'
@@ -608,6 +634,18 @@ def synth_json(tmp, pop='main', name=None, **kw):
     """One population as a file: `main`, or a class by name."""
     shapes = main_shapes() if pop == 'main' else class_shapes(pop)
     return synth_run(os.path.join(tmp, name or '%s.json' % pop), shapes, **kw)
+
+
+def doc_expr(blocks):
+    """A source expression for a document of `blocks`, newline-free.
+
+    A `\\n` written into a case's argv passes through this file's own
+    parse and arrives as a real newline inside the string literal the
+    expression is built from, which is a syntax error rather than a
+    failing case. Joining with chr(10) keeps every escape out of it.
+    """
+    sep = "+chr(10)+chr(10)+"
+    return '(' + sep.join(repr(b) for b in blocks) + ')'
 
 
 def synth_counts(tmp, name, ratio=1.0, refuse=(), extra_arms=(), n=50):
@@ -2004,6 +2042,49 @@ CASES = [
     # BOTH FAILED against the tree that lacked it -- argparse refusing
     # `--counts` at exit 2 -- which is the same proof --audit gives, taken
     # in the working tree because that is where it was available.
+    # ---- the wider identity check, and its scoping ------------------
+    # Both are --unit cases over synthetic documents, because the live one
+    # cannot exercise this: the check fires only where the working tree's
+    # chapter is renumbered against the committed copy, which a committed
+    # tree never is. The two documents below are one section each -- a
+    # high-churn one and a low-churn one -- holding one identical block.
+    # ---- the wider identity check, and its scoping ------------------
+    # Both are --unit cases over synthetic documents, because the live
+    # document cannot exercise this: the check fires only where the
+    # working tree's chapter is renumbered against the committed copy,
+    # which a committed tree never is. Each document is one section
+    # holding one identical block; what differs is how much of the rest
+    # the run replaced. Newlines are built with chr(10) rather than
+    # written, an escape in a case's source passing through two layers
+    # and arriving as a real newline inside a string literal, which is a
+    # syntax error in the expression and not a failing test.
+    # NON-VACUOUS IN BOTH DIRECTIONS, 2026-08-25, and the pair pins the
+    # threshold from both sides rather than one: raising it to 1.1, so no
+    # section ever qualifies, fails the first and leaves the control
+    # green; dropping it to 0.0, so every section does, fails the control
+    # and leaves the first green. Restoring 0.5 makes both pass. So
+    # neither is passing on the function merely returning something.
+    case('held-block-in-a-reworked-section', 'read-run.py', None,
+         'a paragraph left standing where the run rewrote the section',
+         argv=['--unit', 'held_in_reworked_sections('
+               + doc_expr(['## H', 'new 0.111 prose', 'new 0.222 prose',
+                           'kept 0.999 prose'])
+               + ', ' + doc_expr(['## H', 'old 0.333 prose',
+                                  'old 0.444 prose', 'kept 0.999 prose'])
+               + ", {{'h'}})"],
+         ok=V(has=['kept 0.999 prose'])),
+
+    case('held-block-in-an-untouched-section', 'read-run.py', None,
+         'CONTROL: a reference section is mostly unchanged every run by'
+         ' design, so what it holds there is not a finding',
+         argv=['--unit', 'held_in_reworked_sections('
+               + doc_expr(['## H', 'kept 0.111 prose', 'kept 0.222 prose',
+                           'new 0.999 prose'])
+               + ', ' + doc_expr(['## H', 'kept 0.111 prose',
+                                  'kept 0.222 prose', 'old 0.888 prose'])
+               + ", {{'h'}})"],
+         ok=V(has=['[]'])),
+
     case('counts-refused-cell-read-as-a-zero', 'read-run.py', None,
          'a cell perf refused read as a count of zero',
          # run-counts.sh writes `!!` where perf could not count a cell, and
@@ -2711,6 +2792,23 @@ CASES = [
          argv=['{run}', '--claims', '--readme', '{readme}'],
          ok=V(has=['0.9312']),
          bug=V(has=['HELD'], hasnt=['0.9312'])),
+
+    case('retirement-epitaph-listed-as-unaccounted', 'read-run.py', None,
+         'a retired claim\'s last reading listed as an unattributed figure',
+         # CONTROL FIRST, below: the same figure in an ordinary sentence
+         # is still listed, so this pair says the exemption is the word
+         # `retires` and not the mode having stopped listing anything.
+         plant=lambda t: {'readme': readme_retirement_sentence(t),
+                          'run': run_json('run19-g912-main.json')},
+         argv=['{run}', '--claims', '--readme', '{readme}'],
+         ok=V(hasnt=['0.8271'])),
+
+    case('ordinary-sentence-still-listed', 'read-run.py', None,
+         'CONTROL: an unattributed figure outside a retirement is listed',
+         plant=lambda t: {'readme': readme_retirement_sentence(t, False),
+                          'run': run_json('run19-g912-main.json')},
+         argv=['{run}', '--claims', '--readme', '{readme}'],
+         ok=V(has=['0.8271'])),
 
     case('results-names-an-older-basis-half', 'read-run.py', None,
          "the Results lead named the PREVIOUS run's half under this run's"
