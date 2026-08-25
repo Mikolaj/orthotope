@@ -637,9 +637,18 @@ def health(cells, shapes, strategies, terms, corr='sumonly'):
                 and cells[sh][st]['net'] <= 0]
         if sunk:
             n, sh, st = min(sunk)
+            rows = sorted({r for _, _, r in sunk})
             out.append('%d cell(s) whose forcing term is not smaller than the'
-                       ' cell itself, worst %s/%s -- their ratios are not'
-                       ' readable' % (len(sunk), sh, st))
+                       ' cell itself, worst %s/%s -- the arm removed the work'
+                       ' there, so each reads `--` and %d row(s) are geomeans'
+                       ' over fewer shapes than the rest: %s'
+                       % (len(sunk), sh, st, len(rows),
+                          ', '.join(
+                              '%s over %d of %d' % (r, n, len(shapes)) if n
+                              else '%s not readable at all' % r
+                              for r, n in
+                              ((r, len(live_shapes(cells, shapes, r)))
+                               for r in rows))))
     for line in out:
         sys.stderr.write('warning: ' + line + '\n')
 
@@ -836,6 +845,45 @@ def winsorize(logs, k=WINSOR_K):
     return out, sum(1 for a, b in zip(logs, out) if a != b)
 
 
+def live_shapes(cells, shapes, strategy):
+    """The shapes this row's ratio to `list` can be taken over.
+
+    A cell the forcing term did not leave positive is not a broken
+    measurement. It is a fill whose work the arm REMOVED: what is left in
+    the bench is the forcing pass, and there is nothing per-element for a
+    per-element term to be subtracted from. The canonicalizing arms reach it
+    by construction, on the views they turn into regime 1
+    (README.md#sum-only-and-the-correction-now-applied) -- so refusing the
+    whole row over one such cell left `canon-full` with no `time` figure at
+    all on the main set, and three arms with none in `reshape1`, which are
+    the arms Run 20 was rostered to read. Measured 2026-08-26 at -L1, before
+    that run was paid for.
+
+    So the cell is dropped and SAID, exactly as `aa_pairs` drops a control
+    pair and says so: `health` names the cells and the rows that lost one,
+    and `--selftest` names them again as a property rather than as a fault.
+    What is NOT dropped is a sunk BASELINE cell, which takes every row of its
+    shape with it and stays a fault, nor a row left with nothing.
+
+    The cost is the one `time_of` states: two rows of one table may then
+    cover different shape sets, so a comparison between them is the reading's
+    to make rather than the column's to assert. That is what the printed
+    count is for, and why the drop is not silent.
+    """
+    if any('list' not in cells[s] for s in shapes):
+        return []
+    # The baseline's own sunk cell is not dropped with the others and is not
+    # a shape this row loses: it takes EVERY row of that shape with it, so
+    # the row has no readable population at all. Held here rather than at
+    # each caller, which is how the first draft of this leaked -- `time_of`
+    # kept its own baseline guard and returned nan while the bracket check
+    # below took the filtered list and compared that nan against a range,
+    # turning one sunk baseline into a FAIL per row. 2026-08-26.
+    if any(cells[s]['list']['net'] <= 0 for s in shapes):
+        return []
+    return [s for s in shapes if cells[s][strategy]['net'] > 0]
+
+
 def worst_of(cells, shapes, strategy):
     """The strategy's worst shape, as a ratio to `list`.
 
@@ -846,49 +894,49 @@ def worst_of(cells, shapes, strategy):
     says. Being a maximum it is also the one figure no estimator choice can
     flatter.
 
-    Reads `--` on exactly what `time_of` reads `--` on, the sunk cell
-    included: without that last test a shape whose forcing term was not
-    smaller than the cell published a plausible `worst` beside a `time --`
-    in the same README row, computed over a shape set one of whose cells
-    means nothing. Found 2026-08-17 by review; no run here carries such a
-    cell, so no published figure moves -- which is also why the proof had
-    to be made: with one cell's slope cut to a hundredth in a copy of Run
-    14's slice JSON, `mut-odo-vecdims` reads `-- --` here and `-- 0.063`
-    through the version before this.
+    Reads `--` on exactly what `time_of` reads `--` on, and drops exactly
+    what it drops: a sunk cell is left out of the maximum rather than taking
+    the row with it (`live_shapes`), and a sunk BASELINE cell reads `--` here
+    as there. The two used to disagree -- a shape whose forcing term was not
+    smaller than the cell published a plausible `worst` beside a `time --` in
+    the same README row -- which is the defect of 2026-08-17 that made them
+    share a rule. What changed on 2026-08-26 is the rule and not the sharing.
     """
-    if any('list' not in cells[s] for s in shapes):
-        return float('nan')
     if no_net(strategy):
         return float('nan')
-    if any(cells[s][strategy]['net'] <= 0 or cells[s]['list']['net'] <= 0
-           for s in shapes):
+    live = live_shapes(cells, shapes, strategy)
+    if not live:
         return float('nan')
     return max(cells[s][strategy]['net'] / cells[s]['list']['net']
-               for s in shapes)
+               for s in live)
 
 
 def time_of(cells, shapes, strategy):
     """README's `time` column: winsorized geomean of net / `list`'s net.
 
-    Over EVERY shape. Nothing is dropped, so all rows cover one population
-    and two columns are comparable; a cell far enough out to distort the mean
-    is capped instead, which bounds its influence without deleting its
-    evidence; 'winsorize' records why that beats dropping a cell.
+    Over every shape whose cell the correction can read, which was every
+    shape of every run before Run 20. Nothing is dropped for being an
+    OUTLIER -- a cell far enough out to distort the mean is capped instead,
+    which bounds its influence without deleting its evidence, and 'winsorize'
+    records why that beats dropping a cell. What is dropped is a cell the
+    forcing term did not leave positive, which is not an outlier but the
+    absence of the quantity (`live_shapes`); the row then covers fewer shapes
+    than its neighbours, `health` says which rows and over how many, and a
+    comparison between two rows of different coverage is the reading's.
 
     A filtered run need not contain the baseline; then there is no ratio to
     give and the column reads nan rather than the reader stopping. So does a
-    `sum-only` or `-nosum` arm, which never ran the forcing pass, and any
-    cell the term did not leave positive -- `health` reports that one.
+    `sum-only` or `-nosum` arm, which never ran the forcing pass, a shape
+    whose `list` the term did not leave positive, and a row with no readable
+    cell left at all.
     """
     if no_net(strategy):
         return float('nan')
-    if any('list' not in cells[s] for s in shapes):
-        return float('nan')
-    if any(cells[s][strategy]['net'] <= 0 or cells[s]['list']['net'] <= 0
-           for s in shapes):
+    live = live_shapes(cells, shapes, strategy)
+    if not live:
         return float('nan')
     logs = [math.log(cells[s][strategy]['net'] / cells[s]['list']['net'])
-            for s in shapes]
+            for s in live]
     return math.exp(stats.fmean(winsorize(logs)[0]))
 
 
@@ -7864,10 +7912,27 @@ def selftest(cells, shapes, strategies, meta):
         sunk = [(sh, st) for sh in shapes for st in strategies
                 if not no_net(st)
                 and cells[sh][st]['net'] <= 0]
-        if term_bad or sunk:
+        base_sunk = [sh for sh in shapes if 'list' in cells[sh]
+                     and cells[sh]['list']['net'] <= 0]
+        # A sunk BASELINE cell is still a fault and still fails the file: it
+        # takes every row of its shape with it, so nothing that shape carries
+        # is readable. A sunk cell of any other arm is not, and calling it one
+        # was what failed a whole run over the canonicalizing arms doing what
+        # they were rostered to do -- `live_shapes` has the ruling, taken
+        # 2026-08-26. Named and counted here rather than passed in silence.
+        if term_bad or base_sunk:
             bad.append('correction: %d shape(s) with a non-positive forcing'
-                       ' term and %d cell(s) it did not leave positive'
-                       % (len(term_bad), len(sunk)))
+                       ' term and %d whose `list` it did not leave positive,'
+                       ' which takes every row of those shapes with it'
+                       % (len(term_bad), len(base_sunk)))
+        elif sunk:
+            rows = sorted({st for _, st in sunk})
+            ok.append('correction: the forcing term is positive on all %d'
+                      ' shape(s), from %d half/halves, and leaves %d cell(s)'
+                      ' of %d row(s) non-positive -- work the arm removed,'
+                      ' dropped from those rows and named by `health`: %s'
+                      % (len(shapes), len(halves), len(sunk), len(rows),
+                         ', '.join('%s/%s' % (sh, st) for sh, st in sunk[:5])))
         else:
             ok.append('correction: the forcing term is positive on all %d'
                       ' shape(s) and leaves every cell\'s net positive, from'
@@ -7914,7 +7979,7 @@ def selftest(cells, shapes, strategies, meta):
         ok.append('winsorizing: not checked, the run carries no `list` to'
                   ' divide by -- add `*/list` to the selection to exercise it')
     else:
-        capped = 0
+        capped = short = 0
         for st in strategies:
             # The arms `time_of` declines to give a figure for: correcting
             # them is meaningless, so there is no geomean to bracket.
@@ -7935,23 +8000,30 @@ def selftest(cells, shapes, strategies, meta):
             # of reach. Found 2026-08-17 on a built run with every arm of a
             # shape sunk, which drives both `sum-only` halves and `list`
             # together and lands the baseline exactly there.
-            if any(cells[sh]['list']['net'] <= 0
-                   or cells[sh][st]['net'] <= 0 for sh in shapes):
+            live = live_shapes(cells, shapes, st)
+            if not live:
                 bad.append('%s: a cell the forcing term did not leave'
                            ' positive, so this row has no geomean to'
                            ' bracket' % st)
                 continue
+            if len(live) < len(shapes):
+                short += 1
             ratios = [cells[sh][st]['net'] / cells[sh]['list']['net']
-                      for sh in shapes]
+                      for sh in live]
             capped += winsorize([math.log(r) for r in ratios])[1]
             got = time_of(cells, shapes, st)
             if not min(ratios) - TOL <= got <= max(ratios) + TOL:
                 bad.append('%s: winsorized geomean %.6g outside the per-shape'
                            ' range %.6g..%.6g' % (st, got, min(ratios),
                                                   max(ratios)))
-        ok.append('winsorizing: every row covers all %d shapes and its geomean'
-                  ' lands inside its own per-shape range (%d cell(s) capped'
-                  ' in all)' % (len(shapes), capped))
+        ok.append('winsorizing: every row covers all %d shapes%s, and every'
+                  ' geomean lands inside its own per-shape range (%d cell(s)'
+                  ' capped in all)'
+                  % (len(shapes),
+                     '' if not short else
+                     ' but %d, which cover fewer, the sunk cells `health`'
+                     ' names' % short,
+                     capped))
 
         if 'list' in strategies:
             one = time_of(cells, shapes, 'list')

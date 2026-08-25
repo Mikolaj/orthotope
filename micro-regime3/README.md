@@ -8793,6 +8793,24 @@ loop, so it is the first control here whose write pattern is not one pattern.
 Two arms an octave apart in speed agreeing to 1% makes that unlikely rather
 than impossible, and the arms are in the roster so every run reprices them.
 
+**And a cell the term cannot correct is a shape the row loses, not a row lost
+--- ruled 2026-08-26, when Run 20's preparation met the first arms that reach
+it.** Where the forcing term is not smaller than the cell, the arm removed
+the fill's work and what is left in the bench is the forcing pass, so there
+is nothing per-element for a per-element term to be subtracted from.
+The canonicalizing arms hit that by construction on the views they turn
+into regime 1: one cell of `canon-full` on the main set and five over three arms
+in `reshape1`, read at `-L1` before the run was paid for. `read-run.py` drops
+such a cell from that row's geomean and from its `worst`, says on stderr which
+rows lost how many, and `--selftest` names them instead of failing the file ---
+which it did, and would have failed four of Run 20's eighteen processes through
+`read-all.sh` and every later preflight through `check-scripts.py --properties`.
+The cost is that two rows of one table can then cover different shape sets,
+so a comparison between them is the reading's to make rather than the column's
+to assert, which is what the printed count is for. A sunk **baseline** cell
+is untouched by the ruling: it takes every row of its shape with it and still
+fails the run.
+
 
 ## Provenance
 

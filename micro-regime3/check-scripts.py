@@ -2182,16 +2182,36 @@ CASES = [
          # reproduction of anything. Removal is the handling.
          ok=V(has=['--survey to see it'])),
 
-    case('worst-beside-a-sunk-time', 'read-run.py', '045ca63',
+    case('sunk-cell-costs-a-shape-not-a-row', 'read-run.py', '045ca63',
          'a plausible `worst` published beside `time --`',
          plant=_sunk_slice,
          argv=['{run}'],
-         # The verdict is the two columns and not the figure that used to
-         # stand in the second: `--  0.063` was this arm's real published
-         # number, so the case could only ever run on the captured JSON it
-         # came from. What it is really about is a `worst` printed beside a
-         # `time` that reads `--`, which is what these two spellings say.
-         ok=V(has=['mut-odo-vecdims                   --      --']),
+         # The defect this was born for is `worst` printed beside a `time`
+         # reading `--`, over a shape set one of whose cells means nothing --
+         # and the repair of 2026-08-17 was to blank BOTH, which is the
+         # `--      --` this case used to demand.
+         #
+         # RE-AIMED 2026-08-26, when that repair met the arms it was not
+         # written for. A cell the forcing term does not leave positive is a
+         # fill whose work an arm REMOVED, not a broken measurement, and
+         # blanking the row over one of them left `canon-full` with no `time`
+         # at all on the main set (`live_shapes` in read-run.py has the
+         # ruling). So the cell costs the row a SHAPE and the row keeps its
+         # figure, and what this case now holds is the pair of properties
+         # that replaces the blanking: both columns carry a figure, and the
+         # shortfall is SAID rather than left to be inferred from a count
+         # nobody prints.
+         #
+         # Non-vacuous against the code before the change, which is where
+         # the proof had to be taken -- the rule is younger than any commit
+         # `--audit` could replay it against, as `--counts` was at Run 19.
+         # `git show HEAD:...read-run.py` on this fixture prints
+         # `mut-odo-vecdims                   --      --` and no `over 2 of
+         # 3` line at all, so every `has` below fails there and the `hasnt`
+         # holds only here.
+         ok=V(exit=0, has=['mut-odo-vecdims over 2 of 3',
+                           'the arm removed the work there'],
+              hasnt=['mut-odo-vecdims                   --      --']),
          bug=V(has=['mut-odo-vecdims                   --  '],
                hasnt=['mut-odo-vecdims                   --      --'])),
 
@@ -3336,7 +3356,17 @@ CASES = [
          'a sunk cell gave the gate a traceback and no verdict at all',
          plant=_sunk_slice,
          argv=['{run}', '--selftest'],
-         ok=V(hasnt=['math domain error'], has=['FAIL']),
+         # The defect is the traceback, and it stays refused. What moved on
+         # 2026-08-26 is the VERDICT the gate then reaches: a sunk cell of an
+         # arm is work removed and is named, where a sunk cell of the
+         # BASELINE takes every row of its shape with it and still fails the
+         # file -- which is the case two above, unchanged, and is what keeps
+         # this pair from being one loosened check. Read them together.
+         # Non-vacuous against the code before the change, taken in the
+         # working tree for want of a commit to replay: it exits 1 there with
+         # `FAIL: correction:` and says nothing about work removed.
+         ok=V(exit=0, hasnt=['math domain error', 'Traceback', 'FAIL'],
+              has=['work the arm removed']),
          bug=V(has=['math domain error'])),
 
     case('aa-survives-a-sunk-cell', 'read-run.py', 'febc2bd',
