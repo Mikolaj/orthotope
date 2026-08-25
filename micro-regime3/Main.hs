@@ -2132,6 +2132,306 @@ fbMutOdoVecdimsAddInLeafU2 sh (T (Strides ats) ao v) = VS.create $ do
         !oshV  = VU.fromList (init sh)
         !oatsV = VU.fromList (init ats)
 
+-- The rework-proposal family
+-- (README.md#the-two-stage-plan-and-the-rework-proposal): the
+-- canonicalization pass and the arms that price it and the two
+-- zero-stride conditions, each against 'fbMutOdoVecdims', the arm the
+-- fix ships and the body every one of them varies. Their figures decide
+-- nothing about regimes 1 and 2: no generator here builds a view those
+-- regimes accept, so what the composites price is regime-3 views that
+-- CANONICALIZE into them.
+
+-- Canonicalize a view for dispatch: drop unit dimensions -- a size-1
+-- dim contributes @0 * stride@ to every index whatever its stride --
+-- then merge adjacent dimensions where @st_outer == n_inner *
+-- st_inner@, the index sum's own distributivity, sign-agnostic, so it
+-- fires on 'rev' views too. Both rewrites preserve the row-major
+-- element sequence exactly; O(rank) list work per call.
+canonView :: ShapeL -> [Int] -> (ShapeL, [Int])
+canonView sh ats =
+  let merge (!n, !st) ((n', st') : rest)
+        | st == n' * st' = (n * n', st') : rest
+      merge p rest = p : rest
+      merged = foldr merge [] [p | p@(n, _) <- zip sh ats, n /= 1]
+  in  (map fst merged, map snd merged)
+
+-- 'fbMutOdoVecdims' behind 'canonView', the canonical natural-stride
+-- case returned as an O(1) slice of the source -- the regime-1 hit the
+-- pass exists for, which every 'reshape1' shape and 'stretch-inner1'
+-- take -- and everything else filled by the control's own body over the
+-- canonical dims, a unit innermost stride landing in the same
+-- 'writeRun' at step 1. One change over 'fbMutOdoVecdims', so that arm
+-- is its control and the pair prices the pass plus the rank it sheds
+-- (the conv patch tensors merge, 'cnn-L2-24x24-c32' from rank 5 to 3).
+-- Non-vacuity, 2026-08-25: reversing the natural-stride slice fails
+-- @check@ at @stretch-inner1@, the first shape to take that branch.
+{-# NOINLINE fbCanonVecdims #-}
+fbCanonVecdims :: ShapeL -> T -> VS.Vector Double
+fbCanonVecdims sh (T (Strides ats) ao v)
+  | l == 0 = VS.empty
+  | otherwise = case canonView sh ats of
+      ([], _) -> VS.replicate l (VS.unsafeIndex v ao)
+      (csh, cats)
+        | cats == drop 1 (getStridesT csh) -> VS.slice ao l v
+        | otherwise -> VS.create $ do
+            out <- VSM.unsafeNew l
+            let !sInner = last csh
+                !tInner = last cats
+                !rOuter = length csh - 1
+                oshV, oatsV :: VU.Vector Int
+                !oshV  = VU.fromList (init csh)
+                !oatsV = VU.fromList (init cats)
+                writeRun !outPos !baseOff =
+                  let inner !j !src
+                        | j >= sInner = return ()
+                        | otherwise   = do
+                            VSM.unsafeWrite out (outPos + j)
+                                            (VS.unsafeIndex v src)
+                            inner (j + 1) (src + tInner)
+                  in  inner 0 baseOff
+                go !lev !outPos !baseOff
+                  | lev >= rOuter = writeRun outPos baseOff
+                                    >> return (outPos + sInner)
+                  | otherwise =
+                      let !n  = VU.unsafeIndex oshV lev
+                          !st = VU.unsafeIndex oatsV lev
+                          dim !i !op
+                            | i >= n    = return op
+                            | otherwise = go (lev + 1) op (baseOff + i * st)
+                                          >>= dim (i + 1)
+                      in  dim 0 outPos
+            _ <- go 0 0 ao
+            return out
+  where l = product sh
+
+-- 'fbCanonVecdims' with the canonical unit-stride runs copied by
+-- 'VS.unsafeCopy' -- memcpy for Storable -- instead of the per-element
+-- loop, the run body chosen once per call; one change, so that arm is
+-- its control. The case is the window class, whose canonical form has
+-- innermost stride 1 (contiguous runs of the kernel row); on views
+-- whose canonical innermost stride is neither natural nor 1 the two
+-- arms share their whole body.
+-- Non-vacuity, 2026-08-25: negating the copied run fails @check@
+-- at @window-64x64-k1x9@, the class the copy branch exists for.
+{-# NOINLINE fbCanonMemcpyR2 #-}
+fbCanonMemcpyR2 :: ShapeL -> T -> VS.Vector Double
+fbCanonMemcpyR2 sh (T (Strides ats) ao v)
+  | l == 0 = VS.empty
+  | otherwise = case canonView sh ats of
+      ([], _) -> VS.replicate l (VS.unsafeIndex v ao)
+      (csh, cats)
+        | cats == drop 1 (getStridesT csh) -> VS.slice ao l v
+        | otherwise -> VS.create $ do
+            out <- VSM.unsafeNew l
+            let !sInner = last csh
+                !tInner = last cats
+                !rOuter = length csh - 1
+                oshV, oatsV :: VU.Vector Int
+                !oshV  = VU.fromList (init csh)
+                !oatsV = VU.fromList (init cats)
+                writeRunStep !outPos !baseOff =
+                  let inner !j !src
+                        | j >= sInner = return ()
+                        | otherwise   = do
+                            VSM.unsafeWrite out (outPos + j)
+                                            (VS.unsafeIndex v src)
+                            inner (j + 1) (src + tInner)
+                  in  inner 0 baseOff
+                writeRunCpy !outPos !baseOff =
+                  VS.unsafeCopy (VSM.unsafeSlice outPos sInner out)
+                                (VS.unsafeSlice baseOff sInner v)
+                writeRun = if tInner == 1 then writeRunCpy else writeRunStep
+                go !lev !outPos !baseOff
+                  | lev >= rOuter = writeRun outPos baseOff
+                                    >> return (outPos + sInner)
+                  | otherwise =
+                      let !n  = VU.unsafeIndex oshV lev
+                          !st = VU.unsafeIndex oatsV lev
+                          dim !i !op
+                            | i >= n    = return op
+                            | otherwise = go (lev + 1) op (baseOff + i * st)
+                                          >>= dim (i + 1)
+                      in  dim 0 outPos
+            _ <- go 0 0 ao
+            return out
+  where l = product sh
+
+-- 'fbMutOdoVecdims' with the run's read hoisted when the innermost
+-- stride is 0 -- one read into a register, then stores, breaking the
+-- per-element load -- the body chosen once per call; every other view
+-- takes the control's own stepping run, so that arm is its control and
+-- only the bcast class can separate the pair. No canonicalization: a
+-- zero stride is not a unit dim and survives 'canonView' unchanged.
+-- Non-vacuity, 2026-08-25: adding 1 to the hoisted read fails @check@
+-- at @bcast-inner8@.
+{-# NOINLINE fbBcastSet #-}
+fbBcastSet :: ShapeL -> T -> VS.Vector Double
+fbBcastSet sh (T (Strides ats) ao v) = VS.create $ do
+  out <- VSM.unsafeNew l
+  let writeRunStep !outPos !baseOff =
+        let inner !j !src
+              | j >= sInner = return ()
+              | otherwise   = do
+                  VSM.unsafeWrite out (outPos + j) (VS.unsafeIndex v src)
+                  inner (j + 1) (src + tInner)
+        in  inner 0 baseOff
+      writeRunSet !outPos !baseOff =
+        let !x = VS.unsafeIndex v baseOff
+            inner !j
+              | j >= sInner = return ()
+              | otherwise   = VSM.unsafeWrite out (outPos + j) x
+                              >> inner (j + 1)
+        in  inner 0
+      writeRun = if tInner == 0 then writeRunSet else writeRunStep
+      go !lev !outPos !baseOff
+        | lev >= rOuter = writeRun outPos baseOff >> return (outPos + sInner)
+        | otherwise =
+            let !n  = VU.unsafeIndex oshV lev
+                !st = VU.unsafeIndex oatsV lev
+                dim !i !op
+                  | i >= n    = return op
+                  | otherwise = go (lev + 1) op (baseOff + i * st)
+                                >>= dim (i + 1)
+            in  dim 0 outPos
+  _ <- go 0 0 ao
+  return out
+  where l = product sh
+        !sInner = last sh
+        !tInner = last ats
+        !rOuter = length sh - 1
+        oshV, oatsV :: VU.Vector Int
+        !oshV  = VU.fromList (init sh)
+        !oatsV = VU.fromList (init ats)
+
+-- 'fbMutOdoVecdims' with a zero-stride OUTER level filled once and its
+-- block copied to the level's remaining positions ('VSM.unsafeCopy',
+-- disjoint output slices) -- the bcastmid case, where everything below
+-- the zero stride repeats verbatim; zero levels compose, the topmost
+-- firing and the ones below falling inside its one filled block. On
+-- views with no zero outer stride the recursion is the control's own,
+-- so 'fbMutOdoVecdims' is its control and only the bcastmid class can
+-- separate the pair.
+-- Non-vacuity, 2026-08-25: copying the block from one element over
+-- fails @check@ at @bcastmid-c32-cnn@.
+{-# NOINLINE fbMidCopy #-}
+fbMidCopy :: ShapeL -> T -> VS.Vector Double
+fbMidCopy sh (T (Strides ats) ao v) = VS.create $ do
+  out <- VSM.unsafeNew l
+  let writeRun !outPos !baseOff =
+        let inner !j !src
+              | j >= sInner = return ()
+              | otherwise   = do
+                  VSM.unsafeWrite out (outPos + j) (VS.unsafeIndex v src)
+                  inner (j + 1) (src + tInner)
+        in  inner 0 baseOff
+      go !lev !outPos !baseOff
+        | lev >= rOuter = writeRun outPos baseOff >> return (outPos + sInner)
+        | otherwise =
+            let !n  = VU.unsafeIndex oshV lev
+                !st = VU.unsafeIndex oatsV lev
+            in  if st == 0 && n > 1
+                  then do
+                    op' <- go (lev + 1) outPos baseOff
+                    let !blk = op' - outPos
+                        copies !i !dst
+                          | i >= n = return dst
+                          | otherwise = do
+                              VSM.unsafeCopy
+                                (VSM.unsafeSlice dst blk out)
+                                (VSM.unsafeSlice outPos blk out)
+                              copies (i + 1) (dst + blk)
+                    copies 1 op'
+                  else
+                    let dim !i !op
+                          | i >= n    = return op
+                          | otherwise = go (lev + 1) op (baseOff + i * st)
+                                        >>= dim (i + 1)
+                    in  dim 0 outPos
+  _ <- go 0 0 ao
+  return out
+  where l = product sh
+        !sInner = last sh
+        !tInner = last ats
+        !rOuter = length sh - 1
+        oshV, oatsV :: VU.Vector Int
+        !oshV  = VU.fromList (init sh)
+        !oatsV = VU.fromList (init ats)
+
+-- The stage-two endpoint, the arms above composed: 'canonView' first,
+-- the natural-stride case an O(1) slice, then the odometer over the
+-- canonical dims with zero-stride outer levels block-copied and the run
+-- body chosen once per call -- hoisted stores at innermost stride 0,
+-- 'VS.unsafeCopy' at 1, the stepping loop otherwise. Against
+-- 'fbMutOdoVecdims' it prices the whole rework's regime-3 behaviour;
+-- against the solo arms above, whether their conditions compose without
+-- paying for each other. Its branches are textual copies of theirs, so
+-- the non-vacuity breaks recorded at those definitions stand for these.
+{-# NOINLINE fbCanonFull #-}
+fbCanonFull :: ShapeL -> T -> VS.Vector Double
+fbCanonFull sh (T (Strides ats) ao v)
+  | l == 0 = VS.empty
+  | otherwise = case canonView sh ats of
+      ([], _) -> VS.replicate l (VS.unsafeIndex v ao)
+      (csh, cats)
+        | cats == drop 1 (getStridesT csh) -> VS.slice ao l v
+        | otherwise -> VS.create $ do
+            out <- VSM.unsafeNew l
+            let !sInner = last csh
+                !tInner = last cats
+                !rOuter = length csh - 1
+                oshV, oatsV :: VU.Vector Int
+                !oshV  = VU.fromList (init csh)
+                !oatsV = VU.fromList (init cats)
+                writeRunStep !outPos !baseOff =
+                  let inner !j !src
+                        | j >= sInner = return ()
+                        | otherwise   = do
+                            VSM.unsafeWrite out (outPos + j)
+                                            (VS.unsafeIndex v src)
+                            inner (j + 1) (src + tInner)
+                  in  inner 0 baseOff
+                writeRunSet !outPos !baseOff =
+                  let !x = VS.unsafeIndex v baseOff
+                      inner !j
+                        | j >= sInner = return ()
+                        | otherwise   = VSM.unsafeWrite out (outPos + j) x
+                                        >> inner (j + 1)
+                  in  inner 0
+                writeRunCpy !outPos !baseOff =
+                  VS.unsafeCopy (VSM.unsafeSlice outPos sInner out)
+                                (VS.unsafeSlice baseOff sInner v)
+                writeRun | tInner == 0 = writeRunSet
+                         | tInner == 1 = writeRunCpy
+                         | otherwise   = writeRunStep
+                go !lev !outPos !baseOff
+                  | lev >= rOuter = writeRun outPos baseOff
+                                    >> return (outPos + sInner)
+                  | otherwise =
+                      let !n  = VU.unsafeIndex oshV lev
+                          !st = VU.unsafeIndex oatsV lev
+                      in  if st == 0 && n > 1
+                            then do
+                              op' <- go (lev + 1) outPos baseOff
+                              let !blk = op' - outPos
+                                  copies !i !dst
+                                    | i >= n = return dst
+                                    | otherwise = do
+                                        VSM.unsafeCopy
+                                          (VSM.unsafeSlice dst blk out)
+                                          (VSM.unsafeSlice outPos blk out)
+                                        copies (i + 1) (dst + blk)
+                              copies 1 op'
+                            else
+                              let dim !i !op
+                                    | i >= n    = return op
+                                    | otherwise = go (lev + 1) op
+                                                     (baseOff + i * st)
+                                                  >>= dim (i + 1)
+                              in  dim 0 outPos
+            _ <- go 0 0 ao
+            return out
+  where l = product sh
+
 -- 'fbMutOdo' but iterating the precomputed run base-offsets list, to
 -- price what that list (a factor @sInner@ smaller than @l@) costs the
 -- odometer-free variant against its control.
@@ -3040,9 +3340,16 @@ roster =
     -- solo output axis, the corner, the loop form on the corner. A block
     -- after the control's own pair, so no existing control moves.
   , ("mut-odo-vecdims-add-in",     Fill fbMutOdoVecdimsAddIn)
-  , ("mut-odo-vecdims-add-out",    Fill fbMutOdoVecdimsAddOut)
-  , ("mut-odo-vecdims-add-both",   Fill fbMutOdoVecdimsAddBoth)
-  , ("mut-odo-vecdims-add-both-down", Fill fbMutOdoVecdimsAddBothDown)
+    -- not timed since 2026-08-25: the decomposition is priced and
+    -- spent -- the solo output axis convicted at ~16%, the corner
+    -- sub-additive over it, the down form recovering the corner's loss
+    -- to a tie with the shared control -- and the decision ships
+    -- vecdims alone, the redirect dropped
+    -- (README.md#the-two-stage-plan-and-the-rework-proposal); 'add-in'
+    -- above stays timed for its open compiler-split entry.
+  , ("mut-odo-vecdims-add-out",    Only fbMutOdoVecdimsAddOut)
+  , ("mut-odo-vecdims-add-both",   Only fbMutOdoVecdimsAddBoth)
+  , ("mut-odo-vecdims-add-both-down", Only fbMutOdoVecdimsAddBothDown)
     -- The Run 20 extension of the FastReshape block, added 2026-08-24,
     -- first read in Run 20: the leaf call fused into the innermost outer
     -- level, solo, crossed with the count-down fill, and crowned with
@@ -3062,6 +3369,21 @@ roster =
   , ("mut-odo-vecdims-add-in-leaf", Fill fbMutOdoVecdimsAddInLeaf)
   , ("mut-odo-vecdims-add-in-leaf-down", Fill fbMutOdoVecdimsAddInLeafDown)
   , ("mut-odo-vecdims-add-in-leaf-u2", Fill fbMutOdoVecdimsAddInLeafU2)
+    -- The rework-proposal block, added 2026-08-25, first read in Run 20
+    -- (README.md#the-two-stage-plan-and-the-rework-proposal): the
+    -- canonicalizing composite, its memcpy-run form, the two
+    -- zero-stride conditions solo, and the full endpoint, each one
+    -- change over 'mut-odo-vecdims' or over the previous member,
+    -- reasons at the definitions. Appended after the family for the
+    -- family block's own reason -- no existing control moves -- taking
+    -- five slots where the three demotions above return three, so
+    -- every slot below moves by two more than the block above already
+    -- carries.
+  , ("canon-vecdims",              Fill fbCanonVecdims)
+  , ("canon-memcpy-r2",            Fill fbCanonMemcpyR2)
+  , ("bcast-set",                  Fill fbBcastSet)
+  , ("mid-copy",                   Fill fbMidCopy)
+  , ("canon-full",                 Fill fbCanonFull)
     -- not timed: 6.20x the result
   , ("mut-offsets",                Only fbMutBaseOffsets)
   , ("build",                      Fill fbBuild)

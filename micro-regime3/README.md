@@ -243,20 +243,25 @@ C-gap](#the-c-gap-still-a-deeper-ceiling)'s to close.
 
 **The rework's arms enter the roster for Run 20, and Run 19 was stage one's
 as planned** --- it rostered nothing new, which is what let its pair price
-a compiler and nothing else. **That is a decision Run 20 has to take before
-it is built**, because a roster change and a placement pair cannot ride
-together: [what the next run compares
-against](runs/run19.md#what-the-next-run-compares-against) leaves its pair open
-and names the `add-in` placement question as the one instrument Run 19 left
-owing, so rostering the rework's arms is the alternative to that pair rather
-than an addition to it. Whichever is taken, the run that rosters them takes
-the composite canonicalizing arm, the hoisted-read fill, the block copy
-and the contiguous-run copy. They are new functions, so Run 20 is the stronger
-pinning test the rider under [Recommended
-tasks](#recommended-tasks-after-run-19) waits for; and its write-up should
-expect `reshape1` to go degenerate for the composite arm, whose cells there
-would measure dispatch rather than filling, so the class wants a non-collapsing
-sibling --- a `[n, 1]` view over a strided source --- to stay discriminating.
+a compiler and nothing else. **TAKEN 2026-08-25, and the alternative
+it was weighed against is gone**: a roster change and a placement pair cannot
+ride together, and the placement pair was owed for the `add-in` question alone,
+which is now [parked][open]. So the arms are in, and Run 20 has no purpose-built
+pair left to owe. They are five --- `canon-vecdims` and its memcpy-run form
+`canon-memcpy-r2`, the zero-stride conditions `bcast-set` and `mid-copy`,
+and the endpoint `canon-full` --- against the four pieces the proposal
+describes: the composite canonicalizing arm, the hoisted-read fill, the block
+copy and the contiguous-run copy. **The parking paid for them nearly exactly.**
+The three placement-family arms whose only live question it was ---
+`mut-odo-vecdims-add-out`, `-add-both` and `-add-both-down` --- drop to `Only`
+the same day, so they stay checked against the reference on every shape and stop
+costing benches, and the timed roster goes up by two rather than by five. They
+are new functions, so Run 20 is the stronger pinning test the rider
+under [Recommended tasks](#recommended-tasks-after-run-19) waits for;
+and its write-up should expect `reshape1` to go degenerate for the composite
+arm, whose cells there would measure dispatch rather than filling, so the class
+wants a non-collapsing sibling --- a `[n, 1]` view over a strided source ---
+to stay discriminating.
 
 **Weighed and dropped within the proposal, so they are not re-proposed
 with it:** tiling for the page-aliased stride (10% on one probe shape whose own
@@ -3986,23 +3991,23 @@ over `cifar-L2-16-c64-k3`, `stretch-wide-2xM` and `stretch-square-1341`,
 its `check-x.log` beside it; the leaf pair replicated at 0.8376 and 0.6809
 in that different binary, which is the design's own control). The fill
 **unrolled by two**, epilogue for an odd or empty run, is the arm it added,
-`mut-odo-vecdims-add-in-leaf-u2`, and the trio left timed takes the roster
-to 1200 benches: a 48-byte, twelve-instruction main body --- six per element,
-one branch per two --- probing **0.9696 of the corner at 9 of 9 readings below
-1**, 0.9559 on `cifar-L2-16-c64-k3` and, the interesting cell, **0.9655
-on the DRAM-bound `stretch-square-1341`**, more than its instruction count
-explains; the reading offered, as a reading, is memory-level parallelism,
-shorter iterations fitting more strided misses in the out-of-order window.
-It carries no counter at all, the bound living on the output cursor, so
-it is stride-sign-agnostic and supersedes the up/down question inside the run.
-The dead-ideas ruling below kills unrolling by the runtime `sInner` only;
-a fixed factor was untested until this probe. **The intermediate fused-bound
-form is refuted as a wash and is not rostered, recorded here so it
-is not re-derived**: the falling counter merged into the output cursor
-it duplicates compiles to the promised six-instruction body --- the seventh,
-a `test` the native backend emits redundantly after `dec`, was never
-the bottleneck --- and probes 0.9967 at 5 of 9 below 1, inside any floor.
-Unrolling by four is the one cell of this axis left unprobed.
+`mut-odo-vecdims-add-in-leaf-u2`, and the trio left timed, with the rework's
+five beside it, takes the roster to 1248 benches: a 48-byte, twelve-instruction
+main body --- six per element, one branch per two --- probing **0.9696
+of the corner at 9 of 9 readings below 1**, 0.9559 on `cifar-L2-16-c64-k3` and,
+the interesting cell, **0.9655 on the DRAM-bound `stretch-square-1341`**, more
+than its instruction count explains; the reading offered, as a reading,
+is memory-level parallelism, shorter iterations fitting more strided misses
+in the out-of-order window. It carries no counter at all, the bound living
+on the output cursor, so it is stride-sign-agnostic and supersedes the up/down
+question inside the run. The dead-ideas ruling below kills unrolling
+by the runtime `sInner` only; a fixed factor was untested until this probe.
+**The intermediate fused-bound form is refuted as a wash and is not rostered,
+recorded here so it is not re-derived**: the falling counter merged
+into the output cursor it duplicates compiles to the promised six-instruction
+body --- the seventh, a `test` the native backend emits redundantly after `dec`,
+was never the bottleneck --- and probes 0.9967 at 5 of 9 below 1, inside any
+floor. Unrolling by four is the one cell of this axis left unprobed.
 
 **A third probe, 2026-08-24 late, put the whole family on GHC HEAD with every
 hot loop aligned, on a quiet machine** --- two binaries from this branch through
@@ -4265,7 +4270,9 @@ checked against the reference on every shape of every class, and not timed ---
 so the agreement net does not shrink and nothing has to be rewritten if a ruling
 is later reopened. The 23 arms the rulings dropped carry `Only` in that roster,
 each naming the bound or the multiple that disqualified it; with the controls
-the run is 50 benches, and the Run 20 trio takes the roster to 1200 benches.
+the run is 52 benches, and the Run 20 trio with the rework's five takes
+the roster to 1248 benches, three placement-family arms having dropped to `Only`
+beside them.
 
 - **A strategy with a precondition is not measured.** The column allowed `none`,
   an empty cell, and `shape well-formed`, which is a condition on being a valid
