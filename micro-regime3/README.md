@@ -198,7 +198,25 @@ and 4.59x the result vector on allocation, some 260 bytes of slice header
 and list per nine-element run. So the rework takes promotion to regime 2 only
 together with a direct run-copy fill, or leaves short-run canonical-regime-2
 views on the regime-3 arm; promotion to regime 1 is the one reclassification
-free by itself.
+free by itself. And that bound shapes the master plan for extending the rework
+to regimes 1 and 2, ruled 2026-08-25: dispatch work and one consumer route,
+never per-regime strategies. Canonicalization moves in front of the WHOLE
+classification, in `toVectorListT` itself: regime 1 then admits every view whose
+canonical strides are natural --- and is untouched past that, being already
+the optimum, the backing handed over --- and regime 2's normal-suffix test reads
+canonical dims, so a unit dim's arbitrary stride no longer truncates the maximal
+slice and a view that hands back six slices today can hand back one.
+`toVectorListT`'s slice list itself stays, for the consumers that use it
+as a list, iterating without concatenating; what changes is `toVectorT`,
+the one-vector consumer, which routes canonical unit-stride views through
+the driver's contiguous-run copy instead of slices-plus-concat --- one branch
+of `vFillStrided`, not a strategy, the branch `canon-memcpy-r2` times
+and the tie above is the case for. All of it lands in `Data/Array/Internal.hs`'s
+dispatch and `toVectorT`; the class method and its instances do not move again.
+What stays open is only whether a NATIVE regime-1/2 input differs
+from a regime-3 view that canonicalizes into those shapes; nothing here can
+exercise one, and the question earns work only if `toVectorT` over native
+regime-2 views shows up hot in horde-ad.
 
 **On allocation the proposal never leaves the 1.00x tier and twice goes
 under it** --- and these figures are exact, allocation being deterministic per

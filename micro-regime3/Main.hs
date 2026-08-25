@@ -4000,6 +4000,13 @@ check = do
   -- Non-vacuity, 2026-08-25: dropping the offset from 'fbCanonVecdims''s
   -- slice return fails this view alone, every generator's offset being 0
   -- on that branch.
+  -- The view is a standing gate rather than a one-off -- 'checkedArms'
+  -- derives from the roster, so every future arm meets it for free --
+  -- and when the rework lands upstream the same case belongs in
+  -- orthotope's own test suite, the shipped slice branch carrying the
+  -- identical hazard. Never to be benched: timing it would measure
+  -- dispatch, the degeneracy 'reshape1-strided-r3' exists to keep out
+  -- of the class's timings.
   oneView "reshape1-slice-off7" [50, 1]
           (T (Strides [1, 0]) 7 (VS.enumFromN 0 100))
           [ ("canon-natural-at-offset",
