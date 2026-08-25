@@ -861,6 +861,16 @@ if [ "$1" = --list ]; then
     done
   done
 fi
+# The class roster, which `classes --list` answers and `--list` does not:
+# two classes so that a sweep restricted to one can be seen to have
+# EXCLUDED the other rather than merely to have run.
+if [ "$1" = classes ] && [ "$2" = --list ]; then
+  for s in rev-shape-a rev-shape-b other-shape-a; do
+    for a in list build mut-odo sum-only-early sum-only-late; do
+      echo "$s/$a"
+    done
+  done
+fi
 if [ "$1" = +RTS ] && [ "$2" = --info ]; then
   echo ' ,("Flag -with-rtsopts", "-A32m -I0 -T -M8G")'
 fi
@@ -874,12 +884,19 @@ FAKE_HALF_UNBAKED = FAKE_HALF.replace(
     '  echo \' ,("Flag -with-rtsopts", "-A32m -I0 -T -M8G")\'\nfi\n', '')
 assert 'with-rtsopts' not in FAKE_HALF_UNBAKED, 'the unbaked stand-in kept it'
 
-# And one listing nothing, which is the other wrong binary.
+# And one listing nothing, which is the other wrong binary. BOTH listing
+# branches go: a binary that lists nothing lists nothing, and stripping
+# only the main-set one left the class roster answering, which is a
+# half-listless stand-in nothing here wants. The assertion below is what
+# caught that when the class branch was added.
 FAKE_HALF_LISTLESS = FAKE_HALF.replace(
     'if [ "$1" = --list ]; then\n'
     '  for s in shape-a shape-b shape-c; do\n'
     '    for a in list build mut-odo sum-only-early sum-only-late; do\n'
     '      echo "$s/$a"\n    done\n  done\nfi\n', '')
+FAKE_HALF_LISTLESS = re.sub(
+    r'# The class roster.*?^fi\n', '', FAKE_HALF_LISTLESS,
+    flags=re.S | re.M)
 assert 'shape-a' not in FAKE_HALF_LISTLESS, 'the listless stand-in kept it'
 
 # A stand-in that RUNS: one `benchmarking` line per bench of the gate's own
@@ -3968,6 +3985,27 @@ CASES = [
          env={'HALF': 'zzac3-half', 'OUT': 'zzac3-curve'},
          argv=[],
          ok=V(exit=1, has=['already has artifacts', 'zzac3-curve-16m.json'])),
+
+    case('counts-sweeps-only-the-class-it-was-given', 'run-counts.sh', None,
+         'a class sweep took the main set, or took every class at once',
+         # `run-counts.sh` enumerated its shapes from `--list`, which is the
+         # MAIN SET, so the counted-work reading covered the main set and
+         # nothing else -- the artifact's own header said so and the gap was
+         # invisible to anyone asking a class question of it, which is how
+         # it was found. A third argument now names a class, and the two
+         # things that can go wrong with it are both here: the sweep must
+         # take that class's shapes from `classes --list` rather than the
+         # main roster's, and it must take ONLY that class, `other-shape-a`
+         # being in the stand-in's class roster for the second half of
+         # that. The file is named for the class besides, so a class sweep
+         # cannot overwrite the main-set column.
+         shadow=dict(extra=[('zzctc-g912', FAKE_HALF)]),
+         env={'N': '1'},
+         argv=['zzctc', 'g912', 'rev'],
+         probe=lambda subs: open(os.path.join(
+             subs['at'], 'zzctc-counts-g912-rev.txt')).read(),
+         ok=V(has=['rev-shape-a list', 'rev-shape-b list', 'class=rev'],
+              hasnt=['other-shape-a', 'shape-c'])),
 
     case('counts-file-says-it-was-restricted', 'run-counts.sh', None,
          'a smoke run left a counts file that read as a recorded column',

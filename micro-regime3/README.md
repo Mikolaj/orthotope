@@ -2566,64 +2566,70 @@ rather than a slot in the next run, observed again:
   cell: the state is saturated minus clean, the rest is roster minus saturated,
   and the registration is the distribution over the 24 shapes with its median
   inside the floor, where Run 18 read +11.43% and +1.20%; (4) *counted work*,
-  `run-counts.sh` on both halves, the count ratio HEAD over 9.12 beside the time
-  ratio per arm --- time moving with counts is codegen and time moving without
-  them is the runtime or the memory, which is how Run 18 put
-  the placement-exposed family's seven percent on count ratios of 1.0000; taken
-  2026-08-24 ahead of the evening, counts wanting no quiet machine; (5)
-  *the plateau*, every recorded process's `@@saturate` victim inside a band
-  of the run's own, banded at 5% across them by `read-all.sh`; (6) *the offset
-  swap*, whose instrument's limit is now measured rather than assumed. Run 18
-  read the swap off a `-g3` twin per compiler, each twin reproducing its timed
-  binary's tracked offsets with its addresses a flat `0x40` below. Both twins
-  were built here before the run: the 9.12 one repeats that exactly, being
-  the same binary, and **the HEAD twin does not locate anything**. It reads
-  `[0, 31, 31, 21]` where the timed `run19-ghead` reads `[23, 0, 1, 2]`,
-  at address deltas of `0x45A9`, `0x49DF`, `0xF65E` and `0xFC13` rather than one
-  constant. Byte identity cannot stand in, the four copies being one 28 B
-  sequence by construction, and no weaker `-g` level is a way round, `-g1`
-  changing the emitted code exactly as `-g3` does. So a twin names HEAD's four
-  functions and does not say which copy is which, except
-  under the ascending-address correspondence, which the 9.12 half satisfies
-  and nothing on the HEAD half checks. What the registration may report
-  is the timed offsets, measured on both halves, and the margin; an attribution
-  of a HEAD margin to a slot is an assumption and is to be written as one.
-  The question stands --- Run 18 put `mut-odo-vecdims` and `-add-in` at 0 and 24
-  on 9.12 and at 24 and 0 on 9.14, the margin following the offset both times,
-  while the control pair sat at 0 on both and split by compiler as far ---
-  and it is the reading that is weaker here, not the question. **Not in Run
-  19**: a roster change, which would confound the compiler; the floor question,
-  whose preamble half wants one binary over the roster twice rather than a pair;
-  and the `add-in` placement probe, which [its own entry][open] defers to a run
-  that has the compilers measured. **THE VERDICTS, 2026-08-25.** (1)
-  *The repetition*: **HELD**, and it did more than pass. Every one of the 42
-  arms landed between 0.9836 and 1.0133 with `list` at 0.9918 and the machine
-  check at -0.84%, so the box and the harness reproduce to under a percent ---
-  but the same binary's FLOOR went 1.36% to 2.32%, which answers the standing
-  floor question in this list by killing both of its candidates at once. (2)
-  *The compiler*: **HELD**, all thirteen orderings on both halves, no BROKE,
-  which is what let the four retiring claims retire on a reading rather
-  than on a decision. **Its allocation half did not**: 1016 of 1080 cells agree
-  across the halves where the 9.14 pair had 1072, so HEAD reallocates within
-  the tiers while every tier returns --- the registration named exactly
-  this as the thing a compiler can do that a slot cannot, and it is the first
-  time claim 7 has caught anything. (3) *The decomposition*: **HELD** on both
-  halves, the state at +11.73% and +12.57% against Run 18's +11.43%, the rest
-  at +0.31% and +0.72%, both geomeans inside their floors. (4) *Counted work*:
+  `run-counts.sh` on both halves --- over the MAIN SET, which is all the script
+  could then sweep --- the count ratio HEAD over 9.12 beside the time ratio per
+  arm; time moving with counts is codegen and time moving without them
+  is the runtime or the memory, which is how Run 18 put the placement-exposed
+  family's seven percent on count ratios of 1.0000; taken 2026-08-24 ahead
+  of the evening, counts wanting no quiet machine; (5) *the plateau*, every
+  recorded process's `@@saturate` victim inside a band of the run's own, banded
+  at 5% across them by `read-all.sh`; (6) *the offset swap*, whose instrument's
+  limit is now measured rather than assumed. Run 18 read the swap off a `-g3`
+  twin per compiler, each twin reproducing its timed binary's tracked offsets
+  with its addresses a flat `0x40` below. Both twins were built here before
+  the run: the 9.12 one repeats that exactly, being the same binary,
+  and **the HEAD twin does not locate anything**. It reads `[0, 31, 31, 21]`
+  where the timed `run19-ghead` reads `[23, 0, 1, 2]`, at address deltas
+  of `0x45A9`, `0x49DF`, `0xF65E` and `0xFC13` rather than one constant. Byte
+  identity cannot stand in, the four copies being one 28 B sequence
+  by construction, and no weaker `-g` level is a way round, `-g1` changing
+  the emitted code exactly as `-g3` does. So a twin names HEAD's four functions
+  and does not say which copy is which, except under the ascending-address
+  correspondence, which the 9.12 half satisfies and nothing on the HEAD half
+  checks. What the registration may report is the timed offsets, measured
+  on both halves, and the margin; an attribution of a HEAD margin to a slot
+  is an assumption and is to be written as one. The question stands --- Run 18
+  put `mut-odo-vecdims` and `-add-in` at 0 and 24 on 9.12 and at 24 and 0
+  on 9.14, the margin following the offset both times, while the control pair
+  sat at 0 on both and split by compiler as far --- and it is the reading
+  that is weaker here, not the question. **Not in Run 19**: a roster change,
+  which would confound the compiler; the floor question, whose preamble half
+  wants one binary over the roster twice rather than a pair; and the `add-in`
+  placement probe, which [its own entry][open] defers to a run that has
+  the compilers measured. **THE VERDICTS, 2026-08-25.** (1) *The repetition*:
+  **HELD**, and it did more than pass. Every one of the 42 arms landed between
+  0.9836 and 1.0133 with `list` at 0.9918 and the machine check at -0.84%,
+  so the box and the harness reproduce to under a percent --- but the same
+  binary's FLOOR went 1.36% to 2.32%, which answers the standing floor question
+  in this list by killing both of its candidates at once. (2) *The compiler*:
+  **HELD**, all thirteen orderings on both halves, no BROKE, which is what let
+  the four retiring claims retire on a reading rather than on a decision.
+  **Its allocation half did not**: 1016 of 1080 cells agree across the halves
+  where the 9.14 pair had 1072, so HEAD reallocates within the tiers while every
+  tier returns --- the registration named exactly this as the thing a compiler
+  can do that a slot cannot, and it is the first time claim 7 has caught
+  anything. (3) *The decomposition*: **HELD** on both halves, the state
+  at +11.73% and +12.57% against Run 18's +11.43%, the rest at +0.31%
+  and +0.72%, both geomeans inside their floors. (4) *Counted work*:
   **DELIVERED, and it is now the reader's.** The reading was hand-rolled for two
-  runs, so `--counts` was built here with two cases behind it, and it splits
+  runs, so `--counts` was built here with three cases behind it, and it splits
   the pair cleanly: the fast pure tier's six-to-seven-percent loss is
   on its instruction counts, and `gen-unsafe`, `mut-odo`, `offtab` and `bq-gen`
   move at count ratios of 1.0000 to 1.0019. `bq-gen` is the finding ---
   the largest movement to HEAD's credit, +7.5%, at the same instructions;
   the largest against it, `bq-odo-gm-mulback` at 0.9270, is the one the counts
-  explain. (5) *The plateau*: **HELD**, eighteen processes at 19.6244 to 20.2847
-  ms/iter, a 3.37% spread inside the 5% band. (6) *The offset swap*: **SPLIT ---
-  the margin half DELIVERED and the instrument half KILLED.** The margin
-  repeated a third time --- 0.9755 at 19 of 24 and p 0.0066 on 9.12, 0.9991
-  at 14 of 24 and p 0.54 on HEAD, the same win count and p as Run 18's 9.14 half
-  --- but under the address-order assumption HEAD arranges the two arms as 9.12
-  does, where 9.14 had them swapped, so the slot account predicts a margin
+  explain. **And the registration was narrower than it read**: the sweep covered
+  the main set alone, which no sentence in this file said, so eight of the nine
+  populations had no counted work at all. Extended and swept the same day,
+  sixteen further files: seven classes agree with the main set and `reshape1`
+  inverts, on a unit-innermost rule the chapter states. (5) *The plateau*:
+  **HELD**, eighteen processes at 19.6244 to 20.2847 ms/iter, a 3.37% spread
+  inside the 5% band. (6) *The offset swap*: **SPLIT --- the margin half
+  DELIVERED and the instrument half KILLED.** The margin repeated a third time
+  --- 0.9755 at 19 of 24 and p 0.0066 on 9.12, 0.9991 at 14 of 24 and p 0.54
+  on HEAD, the same win count and p as Run 18's 9.14 half --- but
+  under the address-order assumption HEAD arranges the two arms as 9.12 does,
+  where 9.14 had them swapped, so the slot account predicts a margin
   that is absent. Either the correspondence fails on HEAD or the margin does
   not follow the slot, and this pair separates neither; the control moved three
   points between compilers in the direction the add-in pair did not. What
@@ -2709,6 +2715,29 @@ for the next run is the honest form of the same instruction**: after
 the run-name grep, walk the replace-listed sections and ask of each
 figure-bearing paragraph *which run measured this*, which is a reading and
 not a grep --- and the sites above are what it costs to skip it.
+
+**A whole axis of the counted-work evidence was missing and no document said
+so.** `run-counts.sh` was born at Run 18 to serve registration 4, whose question
+--- separate codegen from placement in the arm-by-arm cross-half table ---
+is the main set's, so the script took its shapes from `--list`, which
+is the main roster, and covered the main set and nothing else. **The limit
+was recorded in exactly one place: a comment in the script's own header.**
+This file names the instrument **22 times and not one of those mentions
+is within 250 characters of the words *main set***; the registration reads
+*on both halves ... per arm*, which is population-blind and therefore reads
+as covering the run. So a session writing up a run would have had to open
+the driver to find that its class populations had no counted work at all,
+and nobody did until the question was asked from outside. **It was never
+a question of cost**: the eight classes hold 1128 cells, exactly the main set's
+number, and sweep FASTER --- about seven minutes a half against twelve ---
+because the cost is elements touched and not cells. The script now takes
+an optional class, names its artifact for it and refuses a class matching
+no bench, and step 20 of the run list sweeps every population. **The general
+shape, and this file already has the rule in mirror image**: *write a capability
+as a capability*, because a fact recorded as a tool's limitation goes inert.
+Here the limitation was recorded accurately and went inert anyway, because
+it was recorded where the tool lives and not where the run is planned. A scope
+limit belongs in the sentence that asks for the measurement.
 
 1. `ANSWERED` **What tightened the floor on Run 18 --- answered by Run 19,
    and the answer is that nothing did.** Run 18's halves came in at 1.36%
@@ -4906,6 +4935,36 @@ throughout:
     #      run without them cannot check a span prediction. The script
     #      refuses a previous attempt's artifacts and reads the baked line
     #      back before anything runs
+    for c in '' rev revsome bcast bcastmid reshape1 slice window scaled
+    do ./run-counts.sh $R <other> $c; ./run-counts.sh $R <basis> $c; done
+    #  20. THE COUNTED WORK, over EVERY population and not the main set
+    #      alone -- the empty first element is the main set, and the eight
+    #      that follow are the classes, `run19-counts-<half>[-<class>].txt`
+    #      apiece. Instructions an iteration from two fixed-`-n` processes
+    #      a cell, differenced, which owes criterion nothing: an arm whose
+    #      time moved between the halves either moved its counts with it,
+    #      which is codegen, or did not, which is the runtime or the
+    #      memory. `--counts` reads a pair of these files beside
+    #      `--compare`.
+    #      IT WANTS NO QUIET MACHINE, an instruction count being
+    #      insensitive to load, so this is the one owed measurement that
+    #      may be taken on a working desktop and either side of the
+    #      evening. That is why it is last here rather than in the
+    #      preparation: it belongs to the pair, not to the hour.
+    #      ABOUT TWELVE MINUTES A HALF FOR THE MAIN SET AND SEVEN FOR THE
+    #      EIGHT CLASSES, measured 2026-08-25, and the classes are cheaper
+    #      DESPITE holding the same 1128 cells because the cost is elements
+    #      touched and not cells: each cell runs 150 whole iterations, so a
+    #      class of small shapes is half a minute and `bcast`, whose three
+    #      shapes include two at l = 1.8M, is two.
+    #      perf must be able to count: kernel.perf_event_paranoid at 1 or
+    #      less, which does NOT survive a reboot here. The script probes it
+    #      on /bin/true and refuses in a millisecond rather than spending
+    #      the sweep writing `!!`
+    #      COVERED THE MAIN SET ALONE UNTIL 2026-08-25 and said so in its
+    #      own header and nowhere else -- 22 mentions of it in this file,
+    #      not one naming a population, so every one read as covering the
+    #      run. A class question asked of it had no answer at all
 
 Steps 6 to 10 are read-only and fine sandboxed but for 8c and 8d, which write
 `zz-` fixtures here and remove them; 3b, 11, 12 and 14 write and are not,
@@ -8646,6 +8705,31 @@ it the same instructions and runs them in seven percent fewer cycles, which
 no clock in this README could have told from a code change. So Run 14's standing
 caution --- read per-arm magnitudes as criterion's --- survives,
 with a non-clock instrument now saying which movements are code.
+
+**And the counted work now covers every population, which it had never done:
+it swept the main set alone until 2026-08-25.** Sixteen further sweeps, both
+halves over all eight classes, 141 cells apiece and no cell perf refused.
+**Seven of the eight classes read as the main set does** --- every arm together
+at a count geomean of 0.9892 to 0.9910, HEAD emitting about a percent more,
+with `bq-odo-gm-mulback` the most extreme arm in six of them at 0.9167
+to 0.9290. **`reshape1` inverts, and its whole class does**: 1.0032 over every
+arm, `bq-odo-gm-mulback` at 1.0066 rather than 0.93, and the extreme arm
+is `mut-odo-vecdims-add-both-down` at **1.0603** --- HEAD emitting 5.7% FEWER
+instructions where everywhere else it emits more. `window` splits the same way
+inside itself.
+
+**What sorts them is the unit innermost extent, and the rule is clean over five
+shapes in three populations.** Wherever `sInner` is 1, `bq-odo-gm-mulback`'s
+HEAD penalty is absent: `stretch-inner1` 1.0000 --- 16,005,915 instructions
+against 16,005,919, four apart in sixteen million --- `reshape1`'s three shapes
+1.0000, 1.0032 and 1.0169, and `window-64x64-k1x9` 1.0099. Everywhere else
+it runs **0.9149 to 0.9489**, which is HEAD +5.4% to +9.3%. And the same shapes
+are where `mut-odo-vecdims-add-both-down` gains most, -4.5% to -6.4%.
+So whatever HEAD does differently to this odometer is on a path a unit innermost
+dimension does not take, and one arm's regression and another's improvement
+are the same event seen twice. **That is a mechanism claim and it is registered
+rather than settled**: nothing here reads the code, and the next run can kill
+it with any `sInner` of 1 that shows the penalty.
 
 **And the correction sits on nearly the same footing in both halves, as it did
 on Run 17's and Run 18's.** The in-situ forcing term --- an arm minus
