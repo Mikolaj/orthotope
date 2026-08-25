@@ -47,28 +47,28 @@ need a new `Vector`-class method, which was measured and deliberately
 an in-tree precedent has since softened to a weight
 ([below](#the-mutable-ceiling-not-taken), amended). Plain `mut-odo` no longer
 argues for it at all: it and `bq-expand`, the arm `Data/Array/Internal.hs`
-carries today, are a tie at 0.8936 paired, 12 shapes of 24 and sign p 1
+carries today, are a tie at 0.9059 paired, 12 shapes of 24 and sign p 1
 on an interval covering 1, where Run 7 (Harness), at -O1, had it 1.51x ahead.
 
 **Several strategies measured since are faster than the last candidate,
 `bq-expand`, and need no class method --- a distinction the decision
 of 2026-08-22 retires, shipping the mutable family's arm instead.** The fastest
-pure ones on Run 18 are **`bq-scan-rem-gm-mulback`** (0.096)
+pure ones on Run 19 are **`bq-scan-rem-gm-mulback`** (0.098)
 and **`bq-odo-gm-mulback`** (0.100) against `bq-expand`'s 0.115 --- a margin
-of **1.16** and **1.15** paired, where Run 17 read 1.17 and 1.16, Run 16 1.18
-and 1.14, Run 13 1.14 and 1.15, Run 12 1.13 and 1.14, Run 11 1.15 on each
-and both halves of Run 10's pair 1.13 to 1.14. So it is no longer a margin
-sitting inside the 1.22 that placement alone is worth in an unaligned build,
-to be read as a candidate rather than a verdict: alignment removed that term,
-and a run repeating Run 10 exactly --- same binary, same roster, same order ---
-reproduces the margin to a hundredth ([the yardstick
-table](#what-run-19-compares-against)). They also carry **no size precondition
+of **1.16** and **1.15** paired, exactly Run 18's, where Run 17 read 1.17
+and 1.16, Run 16 1.18 and 1.14, Run 13 1.14 and 1.15, Run 12 1.13 and 1.14, Run
+11 1.15 on each and both halves of Run 10's pair 1.13 to 1.14. So it
+is no longer a margin sitting inside the 1.22 that placement alone is worth
+in an unaligned build, to be read as a candidate rather than a verdict:
+alignment removed that term, and a run repeating Run 10 exactly --- same binary,
+same roster, same order --- reproduces the margin to a hundredth ([the yardstick
+table](#what-run-20-compares-against)). They also carry **no size precondition
 at all**, which is the point of them, a ruling since having stopped this suite
 timing any arm that needs one ([what the benchmark
 does](#what-the-benchmark-does)). Neither is what `Data/Array/Internal.hs` does
 today. Of the trade-offs, allocation and a noise floor this run measures
-at 1.36% across the eighteen A/A pairs of the half the table comes from,
-and 1.42% across the eighteen of the other half of its pair,
+at 2.32% across the eighteen A/A pairs of the half the table comes from,
+and 1.71% across the eighteen of the other half of its pair,
 are in [Results](#results), each arm's precondition is at its entry
 in `Main.hs`'s roster, and the division sites are in [the Lemire
 section](#lemire-multiplicative-inverses-at-the-two-division-sites).
@@ -218,14 +218,18 @@ population this README measures keeps the vecdims family at its head, the one
 residue being `stretch-pow2stride`'s 10%, which is cache aliasing and [the
 C-gap](#the-c-gap-still-a-deeper-ceiling)'s to close.
 
-**The rework's arms enter the roster for Run 20, not Run 19.** Run 19 stays
-stage one's --- [what it compares against](#what-run-19-compares-against)
-and [the claims it should test](#the-claims-run-19-should-test) are written,
-and vecdims-alone simplifies what the decision owes, there being no redirect
-branches to break. Run 20 rosters the composite canonicalizing arm,
-the hoisted-read fill, the block copy and the contiguous-run copy. They are new
-functions, so Run 20 is the stronger pinning test the rider under [Recommended
-tasks](#recommended-tasks-after-run-18) waits for; and its write-up should
+**The rework's arms enter the roster for Run 20, and Run 19 was stage one's
+as planned** --- it rostered nothing new, which is what let its pair price
+a compiler and nothing else. **That is a decision Run 20 has to take before
+it is built**, because a roster change and a placement pair cannot ride
+together: [what Run 20 compares against](#what-run-20-compares-against) leaves
+its pair open and names the `add-in` placement question as the one instrument
+Run 19 left owing, so rostering the rework's arms is the alternative
+to that pair rather than an addition to it. Whichever is taken, the run
+that rosters them takes the composite canonicalizing arm, the hoisted-read fill,
+the block copy and the contiguous-run copy. They are new functions, so Run 20
+is the stronger pinning test the rider under [Recommended
+tasks](#recommended-tasks-after-run-19) waits for; and its write-up should
 expect `reshape1` to go degenerate for the composite arm, whose cells there
 would measure dispatch rather than filling, so the class wants a non-collapsing
 sibling --- a `[n, 1]` view over a strided source --- to stay discriminating.
@@ -258,7 +262,7 @@ numbers would be wrong by the next edit and say nothing.
   proposal](#the-two-stage-plan-and-the-rework-proposal)
 - [What is settled, and where](#what-is-settled-and-where)
 - [What is open](#what-is-open)
-  - [Recommended tasks after Run 18](#recommended-tasks-after-run-18)
+  - [Recommended tasks after Run 19](#recommended-tasks-after-run-19)
   - [Non-urgent TODO list](#non-urgent-todo-list)
 - [The goal of these benchmarks](#the-goal-of-these-benchmarks)
   - [How the strictly positive picture
@@ -291,10 +295,10 @@ numbers would be wrong by the next edit and say nothing.
     detector](#r2-is-the-ramp-detector-not-the-noise-detector)
   - [sum-only, and the correction now
     applied](#sum-only-and-the-correction-now-applied)
-- [About the last run (Run 18)](#about-the-last-run-run-18)
+- [About the last run (Run 19)](#about-the-last-run-run-19)
   - [Results](#results)
-  - [What Run 19 compares against](#what-run-19-compares-against)
-  - [The claims Run 19 should test](#the-claims-run-19-should-test)
+  - [What Run 20 compares against](#what-run-20-compares-against)
+  - [The claims Run 20 should test](#the-claims-run-20-should-test)
   - [The stride classes, run by run](#the-stride-classes-run-by-run)
   - [Provenance](#provenance)
 
@@ -1271,13 +1275,13 @@ rather than a slot in the next run, observed again:
   section][floor].
 - `OPEN` **A recurring transient that lands on the `bq-expand` family, worth 35
   to 74%, and which no published column would show.** Not one cell: **five
-  sightings in eleven runs**, moving each time, the largest of them Run 17's
-  74.48% and Run 18 clean at a worst cell of 23.03%. Run 8 read `bq-expand`'s
-  distant twin 44% slow on `vgg-14-c512-k3` and Run 9 41.4% on the same arm
-  and shape; Run 10 was clean; Run 11's aligned half reads
-  `lenet-L1-28-c1-k5/bq-expand` at **1.355** of what that same binary read
-  in Run 10 --- a different shape and, this time, the arm's **own** slot rather
-  than a twin's; Runs 12 to 15 came up clean. Run 10's roster fix
+  sightings in twelve runs**, moving each time, the largest of them Run 17's
+  74.48%, with Run 18 clean at a worst cell of 23.03% and Run 19 clean again
+  at 19.75%. Run 8 read `bq-expand`'s distant twin 44% slow on `vgg-14-c512-k3`
+  and Run 9 41.4% on the same arm and shape; Run 10 was clean; Run 11's aligned
+  half reads `lenet-L1-28-c1-k5/bq-expand` at **1.355** of what that same binary
+  read in Run 10 --- a different shape and, this time, the arm's **own** slot
+  rather than a twin's; Runs 12 to 15 came up clean. Run 10's roster fix
   (`sum-only-early` above `list`, so nothing is measured on an ungrown pool)
   removed the Run 8 and Run 9 instance and was confirmed at full budget; it did
   not remove the effect. **Decomposed on a kept instance, 2026-08-14, and
@@ -1559,7 +1563,7 @@ rather than a slot in the next run, observed again:
   a dispersion belonging to the *worker* from one belonging to the *slot*
   is a run with the two arms' roster positions exchanged --- which asks
   for an aligned build, a form this README has moved past ([the tasks' closing
-  ruling](#recommended-tasks-after-run-18)).
+  ruling](#recommended-tasks-after-run-19)).
 - `OPEN` **A second instrument says different arms are unstable, and the two
   disagree --- which is the finding rather than something to average.**
   The entry above prices instability by the `CI%` column, which is sampling
@@ -1923,7 +1927,7 @@ rather than a slot in the next run, observed again:
   over `wildlog-instrument.patch`, run with `WILDLOG` set --- against
   `run17-det`, the same recipe without the patch and the bridge to Run 16,
   on Run 16's roster at the fixed `-A32m` ([what it compares
-  against](#what-run-19-compares-against); the recipes are `run17-pair.txt`'s).
+  against](#what-run-20-compares-against); the recipes are `run17-pair.txt`'s).
   Six registrations. **Two held, one came apart into a split, one was killed,
   one was taken at build time, and one delivered the finding the pair was built
   for.** The killed one is the flag's cost and the split is the controls,
@@ -2235,6 +2239,32 @@ rather than a slot in the next run, observed again:
   the sibling, and it is a reason to stop treating the lead as a property
   of the arm.
 
+  **RUN 19 REPEATED THE SPLIT ON A THIRD COMPILER AND TOOK THE SLOT ACCOUNT
+  AWAY.** The margin came back in the same shape --- **0.9755 at 19 of 24, sign
+  p 0.0066** on 9.12, and **0.9991 at 14 of 24, p 0.54** on GHC HEAD, which
+  is Run 18's 9.14 win count and p to two figures --- so *the lead
+  is the compiler's* now rests on two independent second compilers and not one.
+  **What went is the reading that made it the slot.** The instrument does
+  not carry to HEAD: its `-g3` twin reads `[0, 31, 31, 21]` where the timed
+  binary reads `[23, 0, 1, 2]`, at address deltas of `0x45A9`, `0x49DF`,
+  `0xF65E` and `0xFC13` rather than the flat `0x40` that licensed Run 18's
+  naming, and byte identity cannot stand in, the four copies being one 28 B
+  sequence by construction. Under the ascending-address correspondence ---
+  an assumption on the HEAD half, satisfied on the 9.12 one --- HEAD puts
+  `mut-odo-vecdims` at **0** and `add-in` at **23**, which is 9.12's arrangement
+  and not 9.14's. **A slot account therefore predicts 9.12's margin on HEAD,
+  and there is none.** Either the correspondence fails there or the margin does
+  not follow the slot; this pair cannot separate those, and the control says
+  the same thing from the other side, `build` against `mut-odo` reading 0.9633
+  on 9.12 and **0.9325** on HEAD --- both below 1, a three-point move between
+  compilers, where on Run 18 that pair split 0.9751 against 1.0006. **So after
+  three compilers the position is: the lead is the compiler's, the mechanism
+  is unidentified, and the placement hypothesis has now failed its one real test
+  rather than merely lacking support.** What would still settle it
+  is the two-shim pair this entry has always described --- one compiler, one
+  source, two placements --- which is now the only instrument left that could,
+  the free-by-product route having been shown not to carry.
+
 - `OPEN` **Gate 3's sign reversed three runs ago and no run has adjudicated it;
   Run 18 is the first to say so.** The gate fails when the in-situ forcing
   term's medians leave 1 *on the same side by more than a few percent*, which
@@ -2477,7 +2507,7 @@ rather than a slot in the next run, observed again:
   thirteen registered orderings becoming eight. Each retirement's reason,
   and the readings the two new links were measured at on both of Run 18's
   halves, are in the settlement paragraph at the foot of [the
-  claims](#the-claims-run-19-should-test), which owns the account; the `CLAIMS`
+  claims](#the-claims-run-20-should-test), which owns the account; the `CLAIMS`
   manifest in `read-run.py` takes it at Run 19's write-up, so the retiring
   orderings get one last cross-compiler reading first. **The second half
   of the ask was already spent**, the eight *What the class says* paragraphs
@@ -2488,36 +2518,38 @@ rather than a slot in the next run, observed again:
   open is recorded anywhere else and the ask being a bolded TODO outside
   this list.
 
-- `OPEN` **What Run 19 is built to answer, registered before it runs.** Its pair
-  is `run19-g912`, the basis, against `run19-ghead`, settled and built
-  2026-08-24: GHC HEAD 10.1.20260803, the in-tree stage1 of the checkout
-  under `~/r/horde-ad/ghc`, against ghc-9.12.4, on one source, one shim, one
-  roster and one regime, both halves under `WILDLOG=1 SATURATE=1`. It is Run
-  18's pair with HEAD in 9.14's place, asked for as that, and the basis recipe
-  is Run 18's basis recipe with nothing changed at all: `Main.hs` at `e9fab1e`
-  and `align-as.py` at `40f7a37` have not moved since that pair was built,
-  and the rebuild reproduces `run18-g912` byte for byte --- md5
-  `9768189b5c6947beca4ba89cad5800c8`, `.text` 20406469 B, the same tracked fills
-  and the same one 38 B straddler --- so the md5's one-sided instrument answers,
-  and every input is proved unmoved with the dependency store among them. HEAD
-  wants a project file of its own, `cabal.project.ghead`, `cabal.project.freeze`
-  pinning `base ==4.21.2.0` and so refusing this compiler outright: it takes
-  `base installed` and `allow-newer` for the boot packages, pins
-  `criterion ==1.6.5.0` and `vector ==0.13.2.0`
-  with `+boundschecks -unsafechecks` by hand, and names `hashable ==1.5.0.0`
-  outright, 1.5.1.0's cabal file not declaring the `ghc-bignum` its source
-  imports. `cabal.project.ghead.freeze` beside it pins the rest
-  at the index-state the other two plans hold, so the three differ in the boot
-  libraries and in nothing else a freeze can see. **The one pre-run risk
-  is retired before the pair exists**: the shim was written against 9.12's NCG
-  output, and on HEAD's it reads back 109 self-loops in `Main`-compiled code, 51
-  at offset 0 and none straddling, against the basis's 113, 56 and one;
-  the halves' `check` output is byte-identical on every shape it walks, their
-  `--list` identical at 1128, and `diag` reads SpecConstr on both. **And HEAD
-  groups the tracked loops differently before anything is timed**: its 28 B
-  census is a four-copy group at `[23, 0, 1, 2]`, a three-copy group
-  at `[0, 0, 13]` and a two-copy group at `[0, 0]`, where the basis holds
-  `[0, 24, 0, 4]` and `[0, 0]` --- the three-copy group being
+- `ANSWERED` **What Run 19 was built to answer, registered before it ran ---
+  and what it answered.** **Four registrations held, one held while its own
+  claim moved underneath it, and the sixth came back a negative that
+  is this run's sharpest result.** Its pair is `run19-g912`, the basis, against
+  `run19-ghead`, settled and built 2026-08-24: GHC HEAD 10.1.20260803,
+  the in-tree stage1 of the checkout under `~/r/horde-ad/ghc`, against
+  ghc-9.12.4, on one source, one shim, one roster and one regime, both halves
+  under `WILDLOG=1 SATURATE=1`. It is Run 18's pair with HEAD in 9.14's place,
+  asked for as that, and the basis recipe is Run 18's basis recipe with nothing
+  changed at all: `Main.hs` at `e9fab1e` and `align-as.py` at `40f7a37` have
+  not moved since that pair was built, and the rebuild reproduces `run18-g912`
+  byte for byte --- md5 `9768189b5c6947beca4ba89cad5800c8`, `.text` 20406469 B,
+  the same tracked fills and the same one 38 B straddler --- so the md5's
+  one-sided instrument answers, and every input is proved unmoved
+  with the dependency store among them. HEAD wants a project file of its own,
+  `cabal.project.ghead`, `cabal.project.freeze` pinning `base ==4.21.2.0`
+  and so refusing this compiler outright: it takes `base installed`
+  and `allow-newer` for the boot packages, pins `criterion ==1.6.5.0`
+  and `vector ==0.13.2.0` with `+boundschecks -unsafechecks` by hand, and names
+  `hashable ==1.5.0.0` outright, 1.5.1.0's cabal file not declaring
+  the `ghc-bignum` its source imports. `cabal.project.ghead.freeze` beside
+  it pins the rest at the index-state the other two plans hold, so the three
+  differ in the boot libraries and in nothing else a freeze can see. **The one
+  pre-run risk is retired before the pair exists**: the shim was written against
+  9.12's NCG output, and on HEAD's it reads back 109 self-loops
+  in `Main`-compiled code, 51 at offset 0 and none straddling, against
+  the basis's 113, 56 and one; the halves' `check` output is byte-identical
+  on every shape it walks, their `--list` identical at 1128, and `diag` reads
+  SpecConstr on both. **And HEAD groups the tracked loops differently before
+  anything is timed**: its 28 B census is a four-copy group at `[23, 0, 1, 2]`,
+  a three-copy group at `[0, 0, 13]` and a two-copy group at `[0, 0]`, where
+  the basis holds `[0, 24, 0, 4]` and `[0, 0]` --- the three-copy group being
   `bq-mut-runs-gm-mulback`, `bq-mut-lemire-mulback` and `bq-mut-runs-mulback`
   compiled to one seven-instruction body that 9.12 does not share between them.
   Six registrations, each with what kills it: (1) *the repetition*, `run19-g912`
@@ -2563,70 +2595,140 @@ rather than a slot in the next run, observed again:
   19**: a roster change, which would confound the compiler; the floor question,
   whose preamble half wants one binary over the roster twice rather than a pair;
   and the `add-in` placement probe, which [its own entry][open] defers to a run
-  that has the compilers measured.
+  that has the compilers measured. **THE VERDICTS, 2026-08-25.** (1)
+  *The repetition*: **HELD**, and it did more than pass. Every one of the 42
+  arms landed between 0.9836 and 1.0133 with `list` at 0.9918 and the machine
+  check at -0.84%, so the box and the harness reproduce to under a percent ---
+  but the same binary's FLOOR went 1.36% to 2.32%, which answers the standing
+  floor question in this list by killing both of its candidates at once. (2)
+  *The compiler*: **HELD**, all thirteen orderings on both halves, no BROKE,
+  which is what let the four retiring claims retire on a reading rather
+  than on a decision. **Its allocation half did not**: 1016 of 1080 cells agree
+  across the halves where the 9.14 pair had 1072, so HEAD reallocates within
+  the tiers while every tier returns --- the registration named exactly
+  this as the thing a compiler can do that a slot cannot, and it is the first
+  time claim 7 has caught anything. (3) *The decomposition*: **HELD** on both
+  halves, the state at +11.73% and +12.57% against Run 18's +11.43%, the rest
+  at +0.31% and +0.72%, both geomeans inside their floors. (4) *Counted work*:
+  **DELIVERED, and it is now the reader's.** The reading was hand-rolled for two
+  runs, so `--counts` was built here with two cases behind it, and it splits
+  the pair cleanly: the fast pure tier's six-to-seven-percent loss is
+  on its instruction counts, and `gen-unsafe`, `mut-odo`, `offtab` and `bq-gen`
+  move at count ratios of 1.0000 to 1.0019. `bq-gen` is the finding ---
+  the largest movement to HEAD's credit, +7.5%, at the same instructions;
+  the largest against it, `bq-odo-gm-mulback` at 0.9270, is the one the counts
+  explain. (5) *The plateau*: **HELD**, eighteen processes at 19.6244 to 20.2847
+  ms/iter, a 3.37% spread inside the 5% band. (6) *The offset swap*: **SPLIT ---
+  the margin half DELIVERED and the instrument half KILLED.** The margin
+  repeated a third time --- 0.9755 at 19 of 24 and p 0.0066 on 9.12, 0.9991
+  at 14 of 24 and p 0.54 on HEAD, the same win count and p as Run 18's 9.14 half
+  --- but under the address-order assumption HEAD arranges the two arms as 9.12
+  does, where 9.14 had them swapped, so the slot account predicts a margin
+  that is absent. Either the correspondence fails on HEAD or the margin does
+  not follow the slot, and this pair separates neither; the control moved three
+  points between compilers in the direction the add-in pair did not. What
+  is measured stands: both halves' timed offsets, and both margins.
 
 
-### Recommended tasks after Run 18
+### Recommended tasks after Run 19
 
-**What Run 18 made cheaper for the next run, which is not a figure and no other
-step gathers.** **One reader gap closed and one opened.** `--deflation` now
-reads the saturated legs it was already globbing and prints the decomposition
---- the state a preamble puts on a clean process, and the rest a roster adds
-on top of it --- where this run would otherwise have hand-subtracted its own
-registration 3; the case went in before the fix, as a control rather
-than a replay, the fix having no commit for `--audit` to reach, and
-it was broken on purpose to show it fails. What opened is the bridge.
-`--compare` across two runs reads absolutes, which is right until the box moves
-under the README: it then puts `list` at +5.52% and every arm with it and says
-nothing about any arm. Registration 1 had to be read per shape as a ratio
-to `list`, by hand, and that is the shape of a mode this reader is missing.
-**The load fields' first live use answered the question they were added for,
-on a real intrusion rather than a probe**: nine processes report no bench
-reaching 0.25 foreign CPU and nine report some, and the split falls exactly
-at the process the machine's owner named. Nothing else saw it --- the sixteen
-class processes span six seconds end to end and the exposed populations' A/A
-floors are no looser than the clean ones --- so a run with only the coarse
-instruments would have published four contaminated cross-half lines believing
-itself quiet. **One capability, and it costs nothing**: a compiler pair swaps
-loop offsets by itself. The `-g3` twins put `mut-odo-vecdims` and `-add-in` at 0
-and 24 on 9.12 and at 24 and 0 on 9.14 --- the offset swap [the add-in
-entry][open] had been asking a purpose-built two-shim pair for, arriving
-as a by-product. Any pair that changes codegen is a placement experiment nobody
-has to build, so read the twins before designing one. **And the counted-work
-instrument earned its slot on its second outing**, having been refused
-as an ordering instrument by the Run 16 pilot: it separates codegen
-from everything else in one pass, putting the `bq-expand` family's time movement
-on its instruction counts and the placement-exposed family's seven percent
-on count ratios of 1.0000. **One trap met and worth writing down**: a literal
-rename over the WRAPPED document missed three link texts that a line break fell
-inside while replacing their anchors, so the anchors moved and the texts did
-not. `--check-doc` caught it the moment the file was unwrapped and could
-not have caught it before. Rename over the unwrapped form, which is what every
-other search here is already told to do.
+**What Run 19 made cheaper for the next run, which is not a figure and no other
+step gathers.** **One reader gap closed, and it is the one this list named two
+runs running.** `--counts THIS.txt OTHER.txt`, taken with `--compare`, prints
+each arm's instruction-count ratio beside its time ratio and the residue between
+them, which is registration 4's whole reading and had been hand-rolled
+at the write-up for two runs. Two cases went in first, and both were watched
+to FAIL against the tree that lacked the mode --- a new flag has no earlier
+revision for `--audit` to replay it against, so the failure was taken
+in the working tree, which is the same proof at the only moment
+it was available. They guard what the mode can silently get wrong: a `!!` cell
+perf refused, which must be dropped and named rather than read as a count
+of zero that destroys an arm's geomean, and an arm the counts hold that the run
+does not time, which must be named and skipped rather than folded in. **What
+stays open is the bridge**, unchanged from Run 18's entry: `--compare` across
+two runs reads absolutes, and no mode reads them per shape as a ratio to `list`.
+This run did not need it, its box not having moved --- which is exactly why
+it will be missing again the next time one does. **And a second gap was found
+and left**: the alone legs' cross-half level, Run 18's 1.0031, has no mode
+either, `--deflation` reading each half against its own roster and nothing
+reading the halves against each other. That line is absent from this chapter
+rather than hand-rolled into it. **The load fields paid again, and this time
+on an intrusion small enough that nothing else could have found it**: one bench
+of 1128 at 0.35 foreign CPU, in a run whose other seventeen processes are clean.
+The A/A twins then priced it without a rerun --- the exposed copy 2.0 to 2.2%
+above two twins agreeing to 0.19% --- which is a use of the eighteen A/A pairs
+this README had not made before: **they are not only a floor, they localise
+a contaminated cell to an arm and a shape and bound what it moved.** Reach
+for them whenever `--wild` names a bench, before deciding what a rerun would
+buy. **One capability RETIRED, and it is the sharper half of this entry.** Run
+18 recorded that a compiler pair swaps loop offsets for free, so a placement
+experiment need never be built again. Run 19 tried to spend that and could not:
+the `-g3` twin does not carry to GHC HEAD, its four addresses sitting at four
+different deltas from the timed binary's where 9.12 and 9.14 both gave a flat
+`0x40`, and byte identity cannot stand in, the four copies being one 28 B
+sequence by construction. **So the free route works on some compilers and
+not on others, and nothing announces which** --- a twin looks exactly as usable
+either way until its deltas are checked. Check them before believing a naming,
+and treat the purpose-built two-shim pair as the only instrument that always
+works. **One trap met and worth writing down**: a literal rename of the four
+run-numbered headings missed a link text whose case differed from the heading's
+--- `the recommended tasks after Run 18` against
+`Recommended tasks after Run 18` --- so the anchor moved and the text did not,
+which is Run 18's own trap arriving through a different door. `--check-doc`
+reads anchors and not texts, so grep the old run number back afterwards rather
+than trusting a replace count.
 
 **Both of Run 17's items are spent, and this heading no longer carries them.**
 Its first --- which shapes poison --- was answered 2026-08-18 and its account
 is [the position-term entry][open] and `small-pinned-churn-investigation`.
 Its second was Run 18's pair itself, whose last owed piece, the `-g3` twins per
-compiler, was taken at this write-up and is recorded in `run18-pair.txt`
+compiler, was taken at Run 18's write-up and is recorded in `run18-pair.txt`
 and in [the add-in entry][open]. Nothing spent stays under a heading naming
 a run that is over.
 
-1. `OPEN` **What tightened the floor, which Run 18 measured and could
-   not attribute.** Both halves came in at 1.36% and 1.42% against Run 17's
-   3.70% and 3.89%, and the restricted six at 0.54% and 0.31% against 1.31%
-   and 0.56% --- both ends and both halves, by 2.7 and 2.7 on the eighteen pairs
-   and 2.4 and 1.8 on the six. What this pair varies cannot be the reason:
-   its halves differ in the compiler and so in layout by construction, where
-   a layout account predicts them parting rather than converging. Two candidates
-   are left and neither is separated here: the box's BIOS idle settings, which
-   moved under both halves, and the saturating preamble, which puts every
-   process in one state from its first bench where earlier runs let the state
-   build up. **The preamble's half needs no pair and no quiet evening**: one
-   binary over the roster twice, `SATURATE` unset and set, read for its A/A
-   spread rather than its times. The box's half needs the BIOS back where
-   it was, which is not this suite's to arrange. Until one of them is done,
-   quote the floor as the run's and do not explain it.
+**The replace list's second sweep has a blind spot, and Run 19 measured both
+it and the obvious fix.** The preamble prescribes *grep this file for the name
+of the run being superseded*; that grep cannot see a paragraph naming only runs
+OLDER than the superseded one, and this run met four such sites --- three
+closing Results, naming Runs 10 and 13 to 17 and never Run 18 while every figure
+in them was Run 18's (one contradicting this run's headline allocation finding
+in three other places), and a `1.84x` in the ceiling ruling carried forward
+from **Run 11** through eight write-ups. An independent checker found all four
+by hand; every mechanical gate here passed over them. **The obvious repair
+was built and then refuted, which is why this is a note and not a mode.**
+A `--check-doc` sweep flagging paragraphs whose newest named run is behind
+the chapter's while carrying a figure returns **165** entries; excluding the run
+chapter and prose saying *this run* leaves 104; scoping it to the sections
+the replace list names leaves **100** --- for four that matter. The reason
+is structural rather than a tuning failure: naming an old run beside a figure
+is the NORMAL state of this document, which is full of answered entries
+and dated mechanism accounts, and *reads as current* is the discriminating
+property, which no cheap predicate has. A checker at that ratio is one nobody
+reads, which this file already knows about hint lists. **What is left
+for the next run is the honest form of the same instruction**: after
+the run-name grep, walk the replace-listed sections and ask of each
+figure-bearing paragraph *which run measured this*, which is a reading and
+not a grep --- and the sites above are what it costs to skip it.
+
+1. `ANSWERED` **What tightened the floor on Run 18 --- answered by Run 19,
+   and the answer is that nothing did.** Run 18's halves came in at 1.36%
+   and 1.42% against Run 17's 3.70% and 3.89%, and it could not attribute
+   the move: two candidates were left, the box's BIOS idle settings
+   and the saturating preamble, and its own pair separated neither. **Run 19
+   separated them by holding everything still.** Its basis half is Run 18's
+   basis BINARY, byte for byte --- same md5, same `.text`, same fills ---
+   on the same box, the same roster, the same layout, the same regime
+   and the same preamble, and it read **2.32%** where that binary read 1.36%,
+   a factor of 1.7 with every named candidate fixed. So neither candidate
+   is the mechanism, and the quantity is not one an evening's conditions set:
+   **the floor is re-drawn per run, and a run inherits nothing
+   of its predecessor's.** Where it lives is narrowed too --- the restricted six
+   barely moved across the same two runs, 0.54% to 0.49%, so the variation
+   is in the twelve pairs outside them, which are the widest-spread arms
+   the twins were added to expose. What is left open, and it is a smaller
+   question: whether the twelve's spread is criterion's sampling alone
+   or something per-process on top of it, which one binary over the roster
+   several times would answer and which no pair is needed for.
 2. `ANSWERED` **The bridge wanted a reader mode and has one ---
    `--compare OTHER --bridge`, taken 2026-08-23, the same day this asked
    for it.** Every run until this one could read its bridge with `--compare`,
@@ -3428,7 +3530,7 @@ anyway:
 
 Ordered by `sInner`, 1 at the top and half the length at the bottom, which
 is the axis the orderings turn on; the fuller per-shape record is in [What Run
-19 compares against](#what-run-19-compares-against).
+20 compares against](#what-run-20-compares-against).
 
 - **Which strategy wins is decided by the innermost extent (the size
   of the innermost dimension, `sInner` below) --- not by the rank, not
@@ -3683,18 +3785,18 @@ the option instead of closing it. `mut-odo-vecdims` keeps the stake high rather
 than settling it: the fill's real cost was the odometer's cons-list traffic,
 not the fill itself, and Run 10 (SpecConstr) prices the class-method tier
 at 2.11x over `bq-expand` (0.4745 paired). The best pure arm is now
-`bq-scan-rem-gm-mulback` at 0.096 on Run 18, so what the class method would buy
+`bq-scan-rem-gm-mulback` at 0.098 on Run 19, so what the class method would buy
 is `mut-odo-vecdims` over that: **1.79x**, not 2.11x --- which is the figure
-the ruling turns on, and which reads 0.5577 paired at 23 wins of 24. It has now
-read 1.80x at -O1, 1.68x on Run 8, 1.87x on Run 9, 1.85x on Run 10
-with its aligned half giving 1.84x, and **1.84x** here --- the same cell
-and the same 23 wins of 24 as Run 10's aligned half, to four digits.
-So the spread is a tenth either side of 1.8 and neither the pairing
-nor a repetition moves it. Read it as *approaching 2x and volatile at the tenth*
-between runs that differ, and do not reopen or close the ruling on a movement
-of that size --- Run 10 showed the volatility is not the layout's, and Run 11
-shows it is not the run's either, which leaves the roster and the regime as what
-moved it.
+the ruling turns on, and which reads **0.5572 paired at 23 wins of 24**. It has
+now read 1.80x at -O1, 1.68x on Run 8, 1.87x on Run 9, 1.85x on Run 10
+with its aligned half giving 1.84x, and **1.79x** here, against 1.79x on Run 18
+--- the same 23 wins of 24 as Run 10's aligned half, and a paired figure
+that has moved five ten-thousandths across a change of compiler. So the spread
+is a tenth either side of 1.8 and neither the pairing nor a repetition moves it.
+Read it as *approaching 2x and volatile at the tenth* between runs that differ,
+and do not reopen or close the ruling on a movement of that size --- Run 10
+showed the volatility is not the layout's, and Run 11 shows it is not the run's
+either, which leaves the roster and the regime as what moved it.
 
 **Amended 2026-08-07: the bar is now a weight.** The tree itself carries
 a precedent this section did not weigh: `Data/Array/Internal/FastReshape.hs`,
@@ -4151,7 +4253,7 @@ whose base is not measured is not a control:
   be re-measured under this roster, which is the price of the rule
   and is recorded rather than worked around. Both *questions* survive
   on the counterparts written below, and [the claims
-  list](#the-claims-run-19-should-test) has been re-aimed onto them.
+  list](#the-claims-run-20-should-test) has been re-aimed onto them.
 
 **The crossed A/A design survives the cut, at half to two thirds the span.**
 Its three distant twins are placed early and their bases late, and 23
@@ -4901,12 +5003,12 @@ This chapter's three checklists --- a fifth of its lines --- and of the rest
 only the *part* each section keeps, since most of what these sections hold
 is the previous run's data that the write-up is about to replace. The last run's
 chapter, whole, that being the one thing worth reading entire. Of [What Run N
-compares against](#what-run-19-compares-against), the paragraphs settling
+compares against](#what-run-20-compares-against), the paragraphs settling
 the regime, the roster and the basis, and the column rules under the yardstick
---- not its figures. Of [the claims](#the-claims-run-19-should-test), BOTH
-numbered sets at the end --- the nine claims and the three class properties,
-a run returning verdicts on each --- and not the previous run's readings above
-them, which `--claims` reprints. Of [the class
+--- not its figures. Of [the claims](#the-claims-run-20-should-test), BOTH
+numbered sets at the end --- the five live claims and the three class
+properties, a run returning verdicts on each --- and not the previous run's
+readings above them, which `--claims` reprints. Of [the class
 blocks](#the-stride-classes-run-by-run), the six numbered items of the form
 and one example block --- not the other seven. Of [Provenance](#provenance),
 the replace list and the delta bullets. The open list is read by its status
@@ -6698,31 +6800,35 @@ still belongs against the paired figures `read-run.py --aa` prints. Two spans
 moved by one against Run 12's, the roster having gained an arm between
 the distant twins and their bases.
 
-**On Run 18 the floor is 1.36% on the basis half and 1.42% on the control,
-and both ends tightened on the run before.** Both are over the eighteen A/A
-pairs, on the roster, that Run 17's 3.70% and 3.89% and Run 16's 2.32% and 1.22%
-were measured on, so the last four runs compare directly. `mut-odo-aa-adjacent`
-carries the basis figure and `gen-unsafe-aa-distant` the control one, both among
-the widest-spread arms the twelve twins were added to expose. Read on the six
-pairs that carry back to Run 10 the same run gives 0.54% and 0.31%, the first
-carried by `mut-odo-vecdims`'s distant pair and the second by `bq-expand`'s.
-**So both ends tightened together and by about the same factor**, the two halves
-reading within 5% of each other --- and what this run varies cannot
-be the reason, its halves differing in the compiler and so in layout
-by construction, where a layout account predicts the halves parting rather
-than converging. What did change under both is the box, whose BIOS idle settings
-moved between the runs; that and the preamble putting every process in one state
-from its first bench are the two candidates, and this pair separates neither.
-The threshold this run supports is therefore two figures --- *0.54% between any
+**On Run 19 the floor is 2.32% on the basis half and 1.71% on the control,
+and both ends loosened on the run before.** Both are over the eighteen A/A
+pairs, on the roster, that Run 18's 1.36% and 1.42%, Run 17's 3.70% and 3.89%
+and Run 16's 2.32% and 1.22% were measured on, so the last five runs compare
+directly. `offtab-aa-distant` carries the basis figure and `build-aa-distant`
+the control one, both among the widest-spread arms the twelve twins were added
+to expose. Read on the six pairs that carry back to Run 10 the same run gives
+0.49% and 0.29%, against Run 18's 0.54% and 0.31%. **And this run settles what
+Run 18 could only list candidates for.** Run 18 saw both ends tighten together
+and could not attribute it, naming the box and the preamble as the two
+candidates its pair could not separate. Run 19's basis half is Run 18's basis
+BINARY, byte for byte, on the same box, the same roster, the same layout,
+the same regime and the same preamble --- and it reads **2.32% where that binary
+read 1.36%**, a factor of 1.7 with every one of those candidates held still.
+So the floor is a property of the RUN, re-drawn each evening, and neither
+the box nor the preamble nor the pair's variable is what sets it; what remains
+is the eighteen pairs' own sampling, which the six-pair figure's steadiness
+across the same two runs (0.54% then 0.49%) locates in the twelve outside them.
+The threshold this run supports is therefore two figures --- *0.49% between any
 two rows of the table* on the six-pair basis, which is what carries across runs,
-and 1.36% on the eighteen --- where Run 17 supported 1.31% and 3.70%, Run 16
-0.39% and 2.32%, Run 14 0.29% and 2.19%, Run 12 0.35% and 0.24%, Run 11
-a quarter of a percent on its max-skip half and 1.21% on the other, Run 10 1.00%
-unaligned and 0.54% aligned, Run 9 under 0.1% with a wild cell, Run 8 0.5%
-and Run 7 nearly 4%. Runs disagreeing several-fold on the floor is itself
-the caution, and halves of one pair disagreeing twofold is the same caution one
-level down: read the floor as the run's *and the half's*, re-measured every
-time, not as a constant of the harness.
+and 2.32% on the eighteen --- where Run 18 supported 0.54% and 1.36%, Run 17
+1.31% and 3.70%, Run 16 0.39% and 2.32%, Run 14 0.29% and 2.19%, Run 12 0.35%
+and 0.24%, Run 11 a quarter of a percent on its max-skip half and 1.21%
+on the other, Run 10 1.00% unaligned and 0.54% aligned, Run 9 under 0.1%
+with a wild cell, Run 8 0.5% and Run 7 nearly 4%. Runs disagreeing several-fold
+on the floor is itself the caution, and one binary disagreeing by 1.7x
+with itself a day later is that caution sharpened as far as it goes: read
+the floor as the run's *and the half's*, re-measured every time, never
+as a constant of the harness and never inherited.
 
 **The twins have now taken every side available, which is what a sign this weak
 is worth.** Run 10 read all six pairs above 1 on its unaligned half and five
@@ -6741,35 +6847,39 @@ Those six pairs' bootstrap intervals are half-widths of 0.06-0.65% and their
 variability: it measures sampling error *within* one benchmark, while two
 separately placed benchmarks also differ in code layout, cache occupancy
 and inherited GC state. The A/A is the only column that sees that, and `--aa`
-prints the calibration outright --- on Run 18, a median interval half-width
-of 0.39% against an observed spread of 1.36% on the basis half, a factor
-of **3**, and 0.41% against 1.42% on the control, a factor of **3** ---
+prints the calibration outright --- on Run 19, a median interval half-width
+of 0.49% against an observed spread of 2.32% on the basis half, a factor
+of **5**, and 0.52% against 1.71% on the control, a factor of **3** ---
 so multiply any interval this reader prints by about that before believing it,
-where Run 17 wanted five and five, Run 16 five and two, Run 14 three and twelve,
-Run 12 one either way, Run 11 one on its max-skip half and three on its aligned
-one, Run 10 four and one, Run 9 nine, Run 8 two and Run 7 three. **That the two
-halves agree on the factor** --- three and three, as Run 17's five and five did
---- is worth more than the factor itself, the two being measured in different
-binaries and now by different compilers. Neither main set carries a wild cell,
-at 15.10% and 14.61%; the loosest cell of the run is a class's, and the chapter
-head reads it. What the basis half carries is four of its eighteen intervals
-missing 1 against the control's one, every one of them an arm whose two
-processes differ by less than its interval admits. It rests on eighteen pairs,
-so one loose pair moves it less than it did on six.
+where Run 18 wanted three and three, Run 17 five and five, Run 16 five and two,
+Run 14 three and twelve, Run 12 one either way, Run 11 one on its max-skip half
+and three on its aligned one, Run 10 four and one, Run 9 nine, Run 8 two and Run
+7 three. **That the two halves DISAGREE on the factor this run** --- five
+against three, where Run 18's agreed at three and three and Run 17's at five
+and five --- is the same fact as the basis half carrying both the wider floor
+and the wider cells, and it is the widest that gap has been since Run 14's three
+against twelve. Neither main set carries a wild cell, at 18.50% and 17.66%;
+the loosest cell of the run is a class's, and the chapter head reads it. What
+the basis half carries is two of its eighteen intervals missing 1 against
+the control's one, every one of them an arm whose two processes differ by less
+than its interval admits. It rests on eighteen pairs, so one loose pair moves
+it less than it did on six.
 
 **The class populations are where the factor still bites**, and the reason
 is arithmetic rather than noise: a two- or three-shape bootstrap gives
 an interval far narrower than the spread those shapes actually show. The run's
-largest factor by a distance is `rev`, at **15**, where Run 17's largest
-was `revsome` at nine and Run 16's was `scaled` at twenty-three; the rest sit
-between two and four, `reshape1` at two where it read eight on each of the two
-runs before. So the factor is reporting which slot happened to be disturbed
-rather than the reader's arithmetic, and it does not stay with a class from run
-to run. The classes whose intervals cover 1 least often are `rev` at 11 of 18
-and `window` at 12; `revsome`, `bcast` and `slice` all reach 16, where Run 17's
-best was thirteen. Read a class interval that misses 1 as the reader's
-arithmetic and the pair's own deviation as the finding; the per-class factors
-are with each block below.
+largest factor is `window` at **8**, with `reshape1` at 7 and `scaled` at 6
+behind it, where Run 18's largest was `rev` at fifteen, Run 17's `revsome`
+at nine and Run 16's `scaled` at twenty-three; the rest sit between three
+and five, `rev` at four where it read fifteen the run before. So the factor
+is reporting which slot happened to be disturbed rather than the reader's
+arithmetic, and it does not stay with a class from run to run --- `rev` falling
+from fifteen to four on a roster, a box and a basis binary that did not change
+is this run's own demonstration of that. The class whose intervals cover 1 least
+often is `bcastmid` at **10 of 18**, with `revsome`, `window` and `scaled`
+at 13; `bcast` reaches 16 and `reshape1` 17. Read a class interval that misses 1
+as the reader's arithmetic and the pair's own deviation as the finding;
+the per-class factors are with each block below.
 
 **And what is left when every other cause is pinned has now been measured:
 run-to-run drift is a few percent per cell and a quarter of a percent
@@ -6783,18 +6893,18 @@ of the 0.902-to-1.181 band Run 10 had to quote when the roster order moved
 the layout underneath it. Two consequences worth keeping when the run chapter
 carrying them is replaced: a margin of a few percent between two runs is still
 not evidence, and a margin between two *arms* of one run has to clear
-the six-pair figure of the half it is read on --- 0.54% on this run's basis ---
+the six-pair figure of the half it is read on --- 0.49% on this run's basis ---
 which is the A/A floor above restricted to the pairs that carry, and a different
 quantity from the eighteen-pair floor. **Three figures are in play and they
-answer three questions**: 1.36% and 1.42% are the widest an arm differs
-from its own duplicate by on each half, net and over all eighteen pairs, 0.54%
-and 0.31% are the same over the six pairs that carry back to Run 10 and so what
+answer three questions**: 2.32% and 1.71% are the widest an arm differs
+from its own duplicate by on each half, net and over all eighteen pairs, 0.49%
+and 0.29% are the same over the six pairs that carry back to Run 10 and so what
 two rows of one table must clear, and 3.3% is the across-run drift band an arm
 must clear to have moved between runs. **All three are the word *floor*,
 over different populations, and two things that are not it wear it easily.**
 A class's `floor` column is the same statistic again over that population's
 eighteen pairs, so it is a fourth member of the family and not a fourth sense.
-**The worst single A/A cell is not a floor at all** --- 23.03% on this run ---
+**The worst single A/A cell is not a floor at all** --- 19.75% on this run ---
 and the procedure says so where it is read; it is one cell where
 these are geomeans over a population, and quoting it as one overstates
 the instrument by an order of magnitude. Nor is the residue [the alignment
@@ -6892,8 +7002,8 @@ run15-a32m, the edit moves `.text` and every loop offset, so the bridge would
 cross a layout change, and per-sample logging allocates. Run 17 puts it on ONE
 half by decision of 2026-08-21 --- `run17-wildlog`, the basis, against
 `run17-det` without it --- so the pair prices the instrument rather
-than inheriting it ([What Run 19 compares
-against](#what-run-19-compares-against)). It was pointed at the `scaled` class
+than inheriting it ([What Run 20 compares
+against](#what-run-20-compares-against)). It was pointed at the `scaled` class
 process, whose disturbance turns up in six runs of eight where a wild cell
 is three of eight and none in the last four --- but **a wild cell in Run 16's
 own A/A worst cell was the trigger** to spend the budget on that process
@@ -7315,7 +7425,7 @@ answers the quantification: over the whole table the baseline moves **5.13%**
 and every ratio with it, so the two halves' `time` columns are not subtractable
 and the arm-by-arm reading is the one to use --- which is now the standing rule
 for every pair that varies the area, [stated
-under the yardstick](#what-run-19-compares-against), those runs' own chapters
+under the yardstick](#what-run-20-compares-against), those runs' own chapters
 having since been replaced.
 
 **The predictor, recorded before the run that would test it.** What decides
@@ -8357,263 +8467,281 @@ that unlikely rather than impossible, and the arms are in the roster so every
 run reprices them.
 
 
-## About the last run (Run 18)
+## About the last run (Run 19)
 
-**Run 18 (SpecConstr), and what the other compiler is worth to this fallback.**
-Criterion, **`--ghc-options=-fspec-constr`**; Run 16's regime, shapes, class
-views and roster order all unchanged, and the roster is Run 16's 1128 benches,
-47 timed arms over 24 shapes with every stride class at three. **The basis
-is the 9.12 half**, `run18-g912`: Run 17's basis recipe
-over `saturate-preamble.patch`, so it carries `-fobject-determinism`,
-the per-sample instrument and the saturating preamble, and both halves ran
-under `WILDLOG=1 SATURATE=1`. **The control is `run18-g914`**, the same source
-and the same shim built by ghc-9.14.1 through `cabal.project.ghc914`, whose
-freeze resolves the same `vector`, `criterion` and `criterion-measurement`
-at the one index-state --- so the halves differ in the compiler and its boot
-libraries and in nothing a freeze can see, and what they price is the consumer's
-9.14 build, library code recompiled included. The binaries carry `base-4.21.2.0`
-with `ghc-internal-9.1204.0` against `base-4.22.0.0`
-with `ghc-internal-9.1401.0`, criterion 1.6.5.0 on both, and `.text` of 20406469
-against 20734085 bytes. md5 `9768189b5c6947beca4ba89cad5800c8` for the basis
-and `d3a0c29bfad9f31387e4fe9a44ab870b` for the control, from `Main.hs`
-at `e9fab1e` and `align-as.py` at `40f7a37`; the tree at launch was `b07064e`
-with nothing untracked or modified. The same desktop, Zen 3, a Ryzen 7 5800X ---
-**but not the same BIOS**, which is the next paragraph. The two main processes
-both read *1h37m23s*, at *298 MiB* in use and *131 MiB* max residency
-on the basis against *300 MiB* and *132 MiB* on the control.
+**Run 19 (SpecConstr), and what GHC HEAD is worth to this fallback.** Criterion,
+**`--ghc-options=-fspec-constr`**; Run 16's regime, shapes, class views
+and roster order all unchanged, and the roster is Run 16's 1128 benches, 47
+timed arms over 24 shapes with every stride class at three. **The basis
+is the 9.12 half**, `run19-g912`: Run 18's basis recipe with nothing changed
+at all, so it carries `-fobject-determinism`, the per-sample instrument
+and the saturating preamble, and both halves ran under `WILDLOG=1 SATURATE=1`.
+**The control is `run19-ghead`**, the same source and the same shim built
+by the in-tree stage1 of the GHC checkout at 10.1.20260803 through
+`cabal.project.ghead`, whose freeze resolves the same `vector`, `criterion`
+and `criterion-measurement` at the one index-state the other two plans hold ---
+so the halves differ in the compiler and its boot libraries and in nothing
+a freeze can see, and what they price is a consumer's build on GHC HEAD, library
+code recompiled included. The binaries carry `base-4.21.2.0`
+with `ghc-internal-9.1204.0` against `base-4.23.0.0`
+with `ghc-internal-10.100.0`, criterion 1.6.5.0 on both, and `.text` of 20406469
+against 20551487 bytes. md5 `9768189b5c6947beca4ba89cad5800c8` for the basis
+and `0ef1fa2cb7686e549d50b414f11086f1` for the control, from `Main.hs`
+at `e9fab1e` and `align-as.py` at `40f7a37`; the tree at launch was `0cda6a4`,
+with two untracked scratch files and nothing modified. The same desktop, Zen 3,
+a Ryzen 7 5800X, and the same BIOS Run 18 re-baselined onto. The two main
+processes read *1h37m23s* and *1h37m50s*, at *298 MiB* in use and *131 MiB* max
+residency on the basis against *285 MiB* and *125 MiB* on the control.
 
-**The box changed under this README between the two runs, and it is a setting
-rather than a fault.** Global C-States were disabled and Power Supply Idle
-Control set to Typical, before the reboot of 2026-08-22 21:36 --- after Run 17
-ran and after the preamble's dose was measured. The gate's machine check caught
-it before the evening, at **+5.00%** on `list` against the kept fingerprint,
-and attributing it cost three filtered processes and no build: the same binary
-with `SATURATE` unset reads **+5.35%**, so it is not the preamble;
-`run17-wildlog`, the binary the fingerprint was measured on, reads **+4.50%**
-warm and **+4.81%** cold after ninety minutes idle, so it is neither the source
-nor a thermal state. Seven readings between 03:19 and 06:05 span +4.34%
-to +5.35% with no trend, and the shift is uniform over the set --- 24 of 24
-shapes slower on every one of the seven readings, the per-shape movements
-running +2.02% to +9.50% across them, over four orders of magnitude of `l`,
-which is a box-wide signature and not an allocation or cache one. **So every
-absolute here is on the new BIOS and every one up to Run 17 on the old,
-and the two are not comparable in absolute time** --- while every ratio within
-a run is untouched, which is why the pair, the claims and the compiler
-comparison below are unaffected. This run's fingerprint re-baselines the check,
-and the calibration between the two eras is `probe-boxcheck-*`, taken while
-`run17-wildlog` was still on disk and obtainable at no other moment.
+**The basis half is a repetition, and it is the first here whose rebuild
+reproduced its predecessor byte for byte.** `Main.hs` and the shim had not moved
+since Run 18 was built, so `run19-g912` IS `run18-g912` --- same md5, same
+`.text`, the same tracked fills and the same one 38 B straddler ---
+and the md5's one-sided instrument therefore answers positively, every input
+proved unmoved with the dependency store among them and no three-read hunt owed.
+What that buys is registration 1, read arm for arm on one binary two runs a day
+apart: **every one of the 42 arms lands between 0.9836 and 1.0133**, inside
+this run's own 2.32% floor, and the movement is uniform rather than per-arm ---
+`list` itself reads 0.9918, and the machine check reads **-0.84%** against
+the kept fingerprint over 24 of 24 shapes, worst -1.98% and none past 5%.
+So the box is where Run 18 left it, the harness reproduces itself to
+under a percent on the baseline, and no arm here moved. **What did not reproduce
+is the floor**, which the floor paragraph below takes up: the same binary read
+1.36% on Run 18 and 2.32% here.
 
-**Every registered ordering holds on the other compiler, which is what this pair
-was built to answer.** All **thirteen** of the manifest's orderings --- claims 1
-to 6 and 9, read off `--claims` rather than off the sentence that registered
-them --- hold on 9.14.1, and all thirteen hold on 9.12.4: no BROKE on either
-half. **Allocation says the compilers agree as well**: **1072 of the 1080**
-main-set cells that allocate in earnest match to 1e-4, and the 43 that do
-not allocate at most 17 bytes a call, where the fit resolves nothing. So 9.14
-allocates what 9.12 allocates, which is claim 7 read per compiler
-as the registration asked, and every time difference below is codegen or runtime
-rather than a change in what is allocated. And `list`, the denominator of every
-ratio here, reads **1.0052** basis over control across the main set, so the two
-columns divide by one baseline.
+**Every registered ordering holds on GHC HEAD, which is what this pair was built
+to answer.** All **thirteen** of the manifest's orderings --- claims 1 to 6
+and 9, read off `--claims` rather than off the sentence that registered them ---
+hold on 10.1.20260803, and all thirteen hold on 9.12.4: no BROKE on either half.
+That is also the reading the retiring claims retire on, the manifest having
+been held at thirteen through the run for exactly that, and the eight
+the settlement leaves hold on both halves too. **Allocation is where this pair
+parts from Run 18's**: **1016 of the 1080** main-set cells that allocate
+in earnest match to 1e-4, where the 9.14 pair matched on 1072, and the worst
+disagreement is 1.13e-02 on `cnn-slice-c32/bq-expand-qr-prim`. Allocation
+is deterministic per call, so those sixty-odd cells are a code change and never
+a slot: HEAD allocates differently where 9.14 allocated exactly what 9.12 did.
+What did not move is the tiers --- claim 7's levels return per compiler,
+and the class blocks read them unbroken in all eight populations. **And the two
+columns of this pair may NOT be differenced**: `list`, the denominator of every
+ratio here, reads **1.0078** basis over control across the main set, past
+the 0.7% that separates a subtractable pair from one that can only be ordered,
+where Run 18's read 0.52%. The gate said so before the evening was paid
+and the run confirmed it.
 
-**What the compiler is worth, arm by arm, is small on most arms and one-sided
-where it is not.** Over the 42 arms compared, 16 sit within 1% of 1 at a geomean
-of **0.9913**, 25 below and 17 above. **Nine arms move past 3%, and seven
-of them are two families.** To 9.14's credit is `bq-gen` at **1.0926**, the arm
-with by far the dearest table build, where a build that dominates its own output
-has the most room to differ; against it are `offtab` and its twins at 0.9424,
-0.9361 and 0.9433, `gen-unsafe` and its twins at 0.9371, 0.9372 and 0.9431,
-and `gen-quotrem` at 0.9686. The other two belong to neither: `bq-gen`, which
-is the only arm past 3% to 9.14's credit, and `mut-odo-vecdims-add-both-down`
-at 1.0361, the only vecdims-family arm past 3% in either direction.
-Those are the placement-exposed arms, and **on a compiler pair they are
-not a term to exempt but the term being priced**: a compiler that emits
-different code puts those loops in different places, and where they land is what
-this README has measured them to be sensitive to. The arms that sensitivity does
-not reach stay put --- `mut-odo-vecdims` at 1.0088, `bq-scan-rem-gm-mulback`
-at 0.9953, `bq-expand` at 0.9884 --- so the ordering the claims rest on survives
-the compiler while the arms known to be loose move by up to **7.2%**
-on the published `time` column, `gen-unsafe` going 1.066 against 1.143.
+**What the compiler is worth, arm by arm, is larger than 9.14 was and
+it is one-sided.** Over the 42 arms compared, 18 sit within 1% of 1 at a geomean
+of **0.9836**, 30 below and 12 above --- where the 9.14 pair read 0.9913 at 25
+below and 17 above. So HEAD is about a point and a half behind 9.12 across
+this roster, in one direction. **Eleven arms move past 3%, in five groups.**
+Against HEAD are the two fastest pure builds with their A/A twins ---
+`bq-odo-gm-mulback` at 0.9270, 0.9282 and 0.9306, and `bq-scan-rem-gm-mulback`
+at 0.9397, 0.9400 and 0.9425 --- with `bq-mut-runs-gm-mulback` at 0.9559 behind
+them, and the placement-exposed `gen-unsafe` and its twins at 0.9601, 0.9457
+and 0.9585. To HEAD's credit is `bq-gen` at **1.0753**, the arm with by far
+the dearest table build and the same arm 9.14 led on, there at 1.0926. **A whole
+family moving with its own A/A twins is the shape to read**: a twin
+is that arm's code at another slot, so three copies moving together is the arm
+and not where one of them landed --- which the counted-work paragraph below
+confirms outright. The arms the claims rest on stay put: `mut-odo-vecdims`
+at 1.0054, `mut-flat-gm` at 0.9975, `bq-expand` at 0.9914.
 
-**This run's floor is 1.36% on the basis half and 1.42% on the control, and both
-ends tightened against Run 17's 3.70% and 3.89%.** All four figures are
-over the same eighteen A/A pairs on the same roster, so the comparison
-is direct. The pairs carrying it are `mut-odo-aa-adjacent` on the basis
-and `gen-unsafe-aa-distant` on the control, and the worst A/A cell of either
-main set is **15.10%** on `stretch-wide-2xM` on the basis against **14.61%**
-on `stretch-tab7MB` on the control, where Run 17 read 23.73% and 30.61%.
-Restricted to the six pairs that carry back to Run 10 the two read **0.54%**
-and **0.31%**, against Run 17's 1.31% and 0.56%, so the tight six tightened
-with the eighteen and the two halves agree more closely than any pair since
-Run 16. Fourteen of the eighteen basis intervals cover 1 and seventeen
-of the control's. Every margin below is judged against 1.36% and 1.42%,
-not against the predecessor's. **What tightened the floor is not what this pair
-varies**: the halves differ in the compiler, so their layouts differ
-by construction and a layout account would predict the opposite --- both halves
-tightened together, on a box whose idle behaviour was the one thing to change
-under them, and no measurement here separates that from the preamble putting
-every process in one state from its first bench. Two runs at this roster would
-settle it and neither is owed.
+**This run's floor is 2.32% on the basis half and 1.71% on the control**,
+against Run 18's 1.36% and 1.42% over the same eighteen A/A pairs on the same
+roster, so both ends loosened while staying well inside Run 17's 3.70%
+and 3.89%. The pairs carrying it are `offtab-aa-distant` on the basis
+and `build-aa-distant` on the control, and the worst A/A cell of either main set
+is **18.50%** on `alexnet-L2-27-c48-k5` on the basis against **17.66%**
+on `vgg-14-c512-k3` on the control. Restricted to the six pairs that carry back
+to Run 10 the two read **0.49%** and **0.29%**, against Run 18's 0.54% and 0.31%
+--- so **the tight six did not move at all and the loosening is entirely
+in the twelve outside them**. Sixteen of the eighteen basis intervals cover 1
+and seventeen of the control's. Every margin below is judged against 2.32%
+and 1.71%, not against the predecessor's. **And this is the sharpest thing
+the repetition says**: the basis half is the same binary that read 1.36% a day
+earlier, on one box, one roster, one layout and one regime, so a floor
+is a property of the RUN and not of the pair or the build --- which is what Run
+18 could only guess at when both of its halves tightened together and it had
+nothing to hold them against. A margin between 1.36% and 2.32% is one two
+consecutive runs of one binary disagree about.
 
-**The floor tightened while the cells got noisier, and the two are different
-quantities.** `CI%` --- the median half-width of a cell's own fit --- roughly
-doubled on the fills against Run 17, `mut-odo-vecdims` reading 0.55 against
-0.28, `bq-scan-rem-gm-mulback` 0.57 against 0.24, `bq-expand` 0.60 against 0.30
-and `build` 1.66 against 0.86, while `list` held at 0.57 against 0.58 and both
-`sum-only` halves at 0.01 against 0.02. So the arms whose cells resolve worst
-are the fills and not the baseline, and the run nevertheless reproduces itself
-between processes nearly three times better than its predecessor. Sampling error
-inside one bench and agreement between two placements of one strategy
-are measured by different columns, and this run moved them in opposite
-directions. **And the preamble does not account for it.** On one binary, one box
-and the gate's own five-bench selection, switching the preamble on moves
-the median `CI%` --- the statistic the column publishes --- of `build` from 1.55
-to 1.42, of `mut-odo` from 1.34 to 1.40 and of `list` from 0.64 to 0.47: two
-of the three fall, none moves far, and a second preamble-on process of the same
-selection puts `build` at 1.47, so the two on-readings sit together and both
-below the off one. So the saturating state is not what doubled the fills' cells
-between the runs. The box and the roster context are what is left, and this pair
-separates neither.
+**The two halves' cells resolve differently, and it is the basis half
+that is noisier.** `CI%` --- the median half-width of a cell's own fit --- runs
+wider on 9.12 than on HEAD across the roster at a geomean of **1.06**,
+and the split is 26 arms wider against 21 narrower, so this is a lean and
+not a rule. **What carries it is the loose end**: the widest-resolving arms
+are the ones that part, `gen-quotrem` 2.85 against 1.62, `build` 1.64 against
+1.06 and `bq-gen` 1.43 against 1.02 --- ratios up to **1.76** --- while the arms
+that resolve well move either way, `mut-odo-vecdims` 0.65 against 0.54
+but `add-in` 0.55 against 0.72 and `offtab` 1.15 against 1.46. Against Run 18
+the basis half is where it was --- `mut-odo-vecdims` 0.65 against 0.55,
+`bq-expand` 0.61 against 0.60, `build` 1.64 against 1.66 --- so what this pair
+shows is the HEAD half resolving BETTER than either, not the 9.12 half
+degrading. **That lines up with the floors and is the same fact twice**:
+the basis carries the wider floor, 2.32% against 1.71%, and the wider cells,
+and it is also the half that carried this run's one exposed bench. Sampling
+error inside one bench and agreement between two placements of one strategy
+are still different quantities measured by different columns; what is new
+is that on this pair they move together, where Run 18 moved them in opposite
+directions.
 
-**No wild cell this run, and the standing free draw came up clean.** The worst
-A/A cell of any population is **23.03%**, on `bcast-tall-Mx2` in the basis
-half's `bcast` process, against Run 17's 74.48% and Run 16's 43.43%; the worst
-on the control side is 21.56% on `reshape1-500k`. Nothing in this run approaches
-the class of cell the last two produced, and `revsome` --- the population Run 17
-found loose, at an 18.05% floor and the 74.48% cell --- reads a floor of 4.20%
-on the basis and 2.37% on the control. So the looseness Run 17 called stable
-in that population did not repeat, which is a second run's worth of evidence
-that what `revsome` and `scaled` share is a disturbed slot rather
-than a property of the mechanism.
+**No wild cell this run either, and the standing free draw came up clean
+a second time.** The worst A/A cell of any population is **19.75%**,
+on `reshape1-500k` in the basis half's `reshape1` process, against Run 18's
+23.03%, Run 17's 74.48% and Run 16's 43.43%; the worst on the control side
+is 19.58% on `bcastmid-c32-cnn`. So the whole run's worst cell is tighter
+than its predecessor's and nothing in it approaches the class the two runs
+before that produced. `revsome`, the population Run 17 found loose at an 18.05%
+floor, reads **2.00%** on the basis half, the tightest of that half's eight ---
+though 5.96% on the control's, which is a reminder that a class floor is one
+process's. Its looseness has now failed to repeat twice running against Run 17's
+18.05%, which retires the reading that it was a property of that mechanism.
 
-**The machine stopped being quiet partway through, the run measured it,
-and the five populations it touched were run again the same evening on a quiet
-machine.** Nine of the eighteen processes --- both main sets and `rev`,
-`revsome`, `bcast` and the control half's `bcastmid` --- finished before
-the intrusion began at 10:52 and report, off the stamp's load fields,
-that no bench of theirs reaches 0.25 foreign CPU. The nine that ran into it all
-carried some, and not lightly: between 6 and 116 of each one's 141 benches
-reached 0.25 foreign, the peaks running 0.48 to **5.06** --- five further cores
-busy through a bench's samples, on a machine whose elapsed times showed nothing
-at all. **What the coarse instruments would have said is that nothing
-happened**: the sixteen class processes spanned 12m11s to 12m18s, a seven-second
-spread over six and a half hours, with the exposed nine indistinguishable
-from the clean nine. **So the five classes were rerun, both halves each**,
-18:10:22 to 20:40:12, one process per population as the protocol keeps possible
---- ten processes for nine exposed ones, the control half's `bcastmid` joining
-them though it had run clean, because a pair read across two windows is
-not a pair. All ten report no bench past 0.25 foreign; the contaminated copies
-were read, the figures above taken off them, and then deleted. **What the rerun
-bought is the cross-half baseline**, which is the reading the window moved
-and the one no elapsed time shows: `bcastmid` came back from 1.0146 to 1.0037
-and `slice` from 1.0343 to 1.0021, both inside the 0.7% that lets a pair's
-columns be differenced, while `reshape1` went 1.0566 to 0.9925, `window` 0.9659
-to 1.0104 and `scaled` 1.0055 to 1.0074 --- three of them still outside it,
-at 0.75%, 1.04% and 0.74%, and `scaled` outside having been inside before.
-**So the intrusion was most of that gap and not all of it.** What remains
-is the run's own cross-half scatter, against which 0.7% is tight,
-and those three blocks carry the line saying so. The three classes never exposed
-are unmoved at 1.0040, 1.0011 and 0.9975 --- the control on the whole operation,
-their processes being byte-identical across it --- and the main set, where
-the Results table, the fingerprint and every claim live, was clean throughout
-and was not rerun.
+**One exposed bench in eighteen processes, and this run can name what did it.**
+Seventeen of the eighteen report no bench reaching 0.25 foreign CPU. The basis
+main process reports exactly one of its 1128 --- `cnn-L1-6x6-c1/bq-expand`,
+at **0.35** foreign with a worst sample of 201 ms --- and what was running
+is known rather than inferred: a Claude Code update installing itself, named
+by the machine's owner, as Run 18's intruder was. **Its own A/A twins price it,
+which is what turns the exposure into a measurement rather than a caveat.**
+The exposed copy reads 1.5537e-06 where its two twins --- the same code at two
+other slots in the same process, on the same shape --- read 1.5227e-06
+and 1.5199e-06 and agree with each other to **0.19%**, so the cell sits 2.0
+to 2.2% above where its own code reads beside it, and its own fit is 2.3 and 5.8
+times their width; on the control half the same three agree to 0.53%. One shape
+of 24 at 2.1% moves that arm's geomean by under **0.09%**, an order of magnitude
+inside the floor, and winsorization bounds it further. **The rerun step 1c asks
+for was NOT taken, and on 2026-08-25 it was DECLINED rather than deferred** ---
+the decision being whoever asked for the run's, as every decision about what
+the machine is spent on is. What it would have cost: both main halves in one
+quiet window, a pair read across two windows not being a pair,
+and `run-major.sh` has no population filter, so three and a quarter hours
+hand-driven or six and a half through the driver. What it would have bought
+is priced above and is under 0.09% on one arm of one half. **So this run
+publishes a main set carrying one exposed bench, and says so here rather
+than anywhere it could be missed.** Nothing else in the run is touched:
+the eight class populations and the whole control half are clean. **The rule
+is not weakened by the decision** --- 1c still says rerun, a later run meeting
+a real intrusion still owes one, and what made this exposure declinable
+is that the A/A twins priced it, which is a thing a run has to do BEFORE it can
+decide anything of the sort.
 
-**One instrument still, and this run says so.** Every figure here is a criterion
-slope, corrected, read against A/A pairs measured inside the same processes;
-the alone-leg riders are a second *context* rather than a second instrument,
-being criterion slopes as well. **What this run adds is a second instrument
-of a different kind, and it is not a clock**: `run-counts.sh` counts
-instructions an iteration from two fixed-`-n` processes a cell, owes criterion
-nothing, and is what separates the `bq-expand` family's codegen movement
-from the placement-exposed family's seven percent at count ratios of 1.0000. Run
-17's fixed-n rider on the three anchors is not re-taken here and its readings
-stand as that run's. So Run 14's standing caution --- read this pair's per-arm
-magnitudes as criterion's --- survives, with a non-clock instrument now agreeing
-with it about which movements are code.
+**The counted-work instrument is in the reader now, and it cuts this pair's
+movements in two.** `run-counts.sh` counts instructions an iteration from two
+fixed-`-n` processes a cell and owes criterion nothing; for two runs the reading
+off it was hand-rolled at the write-up, which this file's own standing
+instruction calls a defect report against the reader, so `--counts` was built
+here with two cases behind it and the hand-rolling retired. **What is codegen**:
+the fast pure tier's whole loss. `bq-odo-gm-mulback` reads a count ratio
+of **0.9340** against its time ratio of 0.9270, and `bq-scan-rem-gm-mulback`
+**0.9422** against 0.9397, leaving time-over-counts at 0.9925 and 0.9973, within
+a percent of 1 --- and each arm's two A/A twins carry the SAME count ratio
+to four figures, which is the second reason it is the arm and not a slot. HEAD
+simply emits 7.1% and 6.1% more instructions for these two. **What
+is not codegen**: `gen-unsafe` and its twins move 4.0 to 5.4% in time at count
+ratios of **1.0000**, `mut-odo` 2.5% at 1.0000 and `offtab` 1.2% at 1.0000 ---
+the placement-exposed family, exactly as Run 18 found it --- and **`bq-gen`,
+the largest movement to HEAD's credit at +7.5%, sits at 1.0019**. HEAD hands
+it the same instructions and runs them in seven percent fewer cycles, which
+no clock in this README could have told from a code change. So Run 14's standing
+caution --- read per-arm magnitudes as criterion's --- survives,
+with a non-clock instrument now saying which movements are code.
 
 **And the correction sits on nearly the same footing in both halves, as it did
-on Run 17's.** The in-situ forcing term --- an arm minus its `-nosum` twin,
-against the `sum-only` the correction actually subtracts --- reads 1.0297,
-1.0354 and 1.0600 as medians on the basis and 1.0275, 1.0344 and 1.0558
-on the control, on `mut-odo-vecdims`, `mut-flat-gm` and `bq-expand`. So both
-halves subtract a term between about 3% and 6% under the in-situ pass, tilting
-the same way on all three arms and agreeing with each other to within half
-a point on each, and **a margin between these two halves is therefore
-not carrying a correction bias**. The two `sum-only` halves agree at 0.9997
-on the basis and 1.0003 on the control, worst cells 0.54% and 0.51%. What both
-halves carry is scatter --- the term's mean absolute deviation runs 4.14%
-to 10.52% on the basis and 4.73% to 10.66% on the control, worst cells 107.26%
-and 98.03%, both on `stretch-inner256` --- so the term is even on the median
-and wild per cell, which is a reason to read medians rather than a reason
-to distrust them.
+on Run 17's and Run 18's.** The in-situ forcing term --- an arm minus
+its `-nosum` twin, against the `sum-only` the correction actually subtracts ---
+reads 1.0282, 1.0295 and 1.0552 as medians on the basis and 1.0267, 1.0347
+and 1.0492 on the control, on `mut-odo-vecdims`, `mut-flat-gm` and `bq-expand`.
+So both halves subtract a term between about 3% and 6% under the in-situ pass,
+tilting the same way on all three arms and agreeing with each other to within
+0.15, 0.52 and 0.60 of a point, and **a margin between these two halves
+is therefore not carrying a correction bias**. The two `sum-only` halves agree
+at 0.9996 on the basis and 1.0001 on the control, worst cells 0.71% and 0.58%.
+Every one of those figures is within a few thousandths of Run 18's, on a pair
+one of whose halves is a compiler that did not exist when the correction
+was designed. What both halves still carry is scatter, worst cells past 100%
+on `stretch-inner256` as before --- so the term is even on the median and wild
+per cell, which is a reason to read medians rather than a reason to distrust
+them.
 
-**Both tracked fill groups are named this run, and the naming is its sharpest
-finding about the arms.** A `-g3` rebuild of each recipe --- a twin to read
-and never a binary to time --- puts the four-copy group at `[0, 24, 0, 4]`
-on the 9.12 half and `[0, 24, 0, 0]` on the 9.14 one, both in ADDRESS order
-and so not in the same arm order, and the two-copy group at `[0, 0]` on both.
-Each passes the count check the standing ruling imposes, four copies in each
-twin against four in each timed binary and two against two, at the same offsets
-mod 64. **What the names add is that the two arms of the add-in question swap
-places**: 9.12 puts `fbMutOdoVecdims` at 0 and `fbMutOdoVecdimsAddIn` at 24,
-and 9.14 puts `add-in` at 0 and `mut-odo-vecdims` at 24, so the copy at 24
-is the faster of the two in both builds and the margin moved with the slot
-rather than with the arm. **The other group is the control that stops that being
-read as placement**: `fbBuild` and `fbMutOdo` sit at offset 0 in both compilers,
-no swap at all, and their margin splits by compiler just as far --- 0.9751
-on the basis against 1.0006 on the control. So a compiler moves one
-of these sub-percent margins by two and a half points without moving either
-copy's slot. [The add-in entry][open] carries both readings; the twins
-are deleted and `run18-pair.txt` keeps the named offsets.
+**The add-in split repeats on a third compiler, and the slot account fails
+the first test that could have refuted it.** `mut-odo-vecdims-add-in` against
+the arm it varies reads **0.9755 at 19 of 24, sign p 0.0066** on the 9.12 half
+and **0.9991 at 14 of 24, p 0.54** on HEAD --- the same shape Run 18 read across
+9.12 and 9.14, and on the HEAD side the same win count and the same p to two
+figures. So the margin is a property of the compiler and not of the arm, now
+three times over. **What is new is that the offsets no longer follow it.** Run
+18 read the swap off a `-g3` twin per compiler, each reproducing its timed
+binary's tracked offsets a flat `0x40` below; on HEAD the twin does not locate
+anything, reading `[0, 31, 31, 21]` where the timed binary reads
+`[23, 0, 1, 2]`, at address deltas of `0x45A9`, `0x49DF`, `0xF65E` and `0xFC13`
+rather than one constant, and byte identity cannot stand in, the four copies
+being one 28 B sequence by construction. Under the ascending-address
+correspondence --- which the 9.12 half satisfies, which nothing on the HEAD half
+checks, and which is stated here as the assumption it is --- HEAD puts
+`mut-odo-vecdims` at 0 and `add-in` at 23, the SAME arrangement as 9.12, where
+9.14 had the two swapped. A slot account predicts 9.12's margin there, and
+it is absent. **So either the correspondence fails on HEAD or the margin does
+not follow the slot, and this pair cannot separate those two** --- what
+it removes is the reading that made the slot the answer. The control pair says
+as much on its own: `build` against `mut-odo` reads 0.9633 on the basis
+and **0.9325** on HEAD, both well below 1, where Run 18 had it split 0.9751
+against 1.0006 --- so between compilers the control moved three points,
+in the direction the add-in pair did not. [The add-in entry][open] carries all
+of it; the twins were built and read before the run and then deleted,
+and `run19-pair.txt` keeps the named offsets.
 
 **The regime was confirmed in the binary before the hours were spent**, which
 nothing afterwards can: a `diag` in the run's own regime puts `baseOffsetsScan`
-at 2408930 bytes against `baseOffsetsMut`'s 2408530 on `vgg-14-c512`, where
-plain -O1 separates the two tenfold. On the confirm-don't-rebuild path this run
-took, with no build to have carried the flag, that is the only check standing
-between a mistyped regime and the hours.
+at 2408930 bytes against `baseOffsetsMut`'s 2408530 on `vgg-14-c512`
+on the basis, and 2408978 against 2408530 on the control, where plain -O1
+separates the two tenfold. The two compilers put the scan arm's own allocation
+48 bytes apart and the mutable arm's at the same byte.
+On the confirm-don't-rebuild path this run took, with no build to have carried
+the flag, that is the only check standing between a mistyped regime
+and the hours.
 
-**Run 18 records every population twice** --- the main set and all eight stride
+**Run 19 records every population twice** --- the main set and all eight stride
 classes from each half, one process each, which is what makes its class readings
-a pair rather than a basis alone --- and **the eighteen published processes come
-from two windows**, eight from 06:05:00 to 10:33:11 and ten from 18:10:22
-to 20:40:12, each exiting 0 at the bench count its roster holds, 1128 twice
-and 141 sixteen times, with no process reporting a selection it did not ask for.
-The sixteen class processes span 12m11s to 12m18s, a seven-second spread across
-both windows. **The desktop was not idle for the whole of the first window,
-and the run says where**: it was wanted back from 10:52, which the paragraph
-above reads off the per-sample stamps rather than off those elapsed times, which
-show nothing --- and the five classes that window touched are exactly the ten
-processes of the second, rerun once it was quiet again. **The alone-leg riders
-ran between the two windows**, on a machine their own stamps call quiet rather
-than an `uptime`: no bench of the 96 instrumented legs reaches 0.16 foreign CPU,
-against the 5.06 the first window's worst exposed bench carries. 12:47:43
-to 13:03:07, 108 single-bench processes over four invocations of 27 --- the 24
+a pair rather than a basis alone --- and **the eighteen processes come from one
+unbroken window**, 00:21:14 to 06:52:34, each exiting 0 at the bench count
+its roster holds, 1128 twice and 141 sixteen times, with no process reporting
+a selection it did not ask for and none rerun. The sixteen class processes span
+12m11s to 12m19s, an eight-second spread over six and a half hours.
+**The control half ran first throughout**, `ghead` before `g912` on the main set
+and on each class in turn, which is the driver's order --- so *the 9.12 half*
+and *the second process of the two* again name the same nine processes,
+and this run took no order probe to separate them, where Run 18 broke that tie
+on one class. **The alone-leg riders followed the sequence** rather than sitting
+inside it, 108 single-bench processes over four invocations of 27 --- the 24
 shapes plus a second reading of the three anchors, each half clean
 and saturated, which is the pair of columns registration 3's decomposition
 needs.
 
-**Alone, the two halves are level, and the in-process deflation is deeper
-than Run 17's.** The riders time each shape's `list` by itself, one bench per
-process on that half's own binary, and over the 24 shapes they put the basis
-at a geomean of **1.0031** of the control, range 0.9879 to 1.0182 --- so the two
-compilers are level on the baseline outside a roster, as they are inside one.
-Against each half's own roster cell they put the deflation at **+12.76%**
-on the basis and **+12.53%** on the control, 24 of 24 shapes above 1
-on the basis and 23 of 24 on the control, the largest on `stretch-tall-Mx2`
-at 1.2249 and 1.2307, against **+11.51%** and **+11.62%** for Run 17
-over the same shapes. **And this run can say what the extra is made of**, which
-no run before it could: the saturated legs split the total into the state
-the preamble puts on a clean process, **+11.43%**, and the rest the roster adds
-on top of it, **+1.20%**, whose median sits inside this run's floor.
-So the preamble reproduces the roster's state to within the floor and the roster
-itself is worth about a point. Both readings are raw slope against raw slope,
-an alone leg carrying no `sum-only` bench to correct with, so no correction
-convention enters either.
+**The decomposition reproduces on both halves, and the roster's own share came
+in smaller than Run 18's.** The riders time each shape's `list` by itself, one
+bench per process on that half's own binary, `SAT=` off and on,
+and the saturated legs split the deflation into the state the preamble puts
+on a clean process --- **+11.73%** on the basis and **+12.57%** on the control
+--- and the rest the roster adds on top of it, **+0.31%** and **+0.72%**, both
+geomeans inside their halves' floors. Run 18 read +11.43% and +1.20%
+on its basis, so the state term reproduces across a compiler while the roster's
+own contribution fell to under a point on both halves. **The two tails
+are the same shape on both halves**, `stretch-tall-Mx2` at 1.0838 and 1.0998,
+which makes it a roster effect on one shape rather than a term belonging
+to either compiler. Both readings are raw slope against raw slope, an alone leg
+carrying no `sum-only` bench to correct with, so no correction convention enters
+either. What this run could NOT read off the riders is the two halves' level
+against each other outside a roster, Run 18's 1.0031: no reader mode produces
+it, and it is left to the next run rather than hand-rolled here.
 
-**Everything in this chapter is replaced by the next run.** What exactly,
-and in which other files, is [Provenance](#provenance). None of it is portable:
-a run on another machine is a different measurement rather than a repetition.
+**Everything in this chapter is replaced by the next run, and that sentence
+is the one paragraph here Run 19 did not rewrite** --- it says what it said,
+and it is standing rather than stale. What exactly is replaced, and in which
+other files, is [Provenance](#provenance). None of it is portable: a run
+on another machine is a different measurement rather than a repetition, which
+this run is in a position to be firm about, having repeated one binary on one
+box and moved its floor by 1.7x.
 
 
 ### Results
@@ -8624,35 +8752,36 @@ and this run's re-pass of its gates), the scratch vectors are the unboxed ones
 the shipped code uses, as they have been since Run 7 ([the scratch vector
 flavour](#the-scratch-vector-flavour) says what that severed), and **this
 is a `-fspec-constr` table**: it is not the regime `Data/Array/Internal.hs`
-compiles under, and a row's distance from Run 17's basis column is NOT drift
-alone. The flag, the roster, the order and the allocation area are all the same
-ones --- but **the box is not**, its BIOS idle settings having changed between
-the runs and taken every absolute here about 4.9% with them, the mean of seven
-readings spanning +4.34% to +5.35%, so a distance in the `time` column, which
-is a ratio, carries the box only where the box acted unevenly, and no absolute
-crosses the two runs at all. This pair's halves differ in the compiler besides,
-so they differ in layout by construction, and the placement-exposed arms move up
-to 7.2% between them on this column for that reason: read a distance on `build`,
-`offtab`, `mut-odo`, `gen-unsafe`, `gen-quotrem` or `bq-mut` as codegen
-placement until something rules it out, and a distance elsewhere as drift.
-On this run three of those six moved and three did not --- `gen-unsafe` 7.2%,
-`offtab` 6.7% and `gen-quotrem` 3.8%, against `build` and `mut-odo` at 1.0%
-and `bq-mut` at 0.7%.
+compiles under. **A row's distance from Run 18's basis column IS drift alone,
+and this is the first run that can say so flatly**: the flag, the roster,
+the order, the allocation area, the box and the binary are all the same ones,
+the basis half being Run 18's basis rebuilt to the same md5, so nothing
+but the evening separates the two columns. Every arm bore that out, landing
+between 0.9836 and 1.0133 with `list` itself at 0.9918. This pair's halves
+differ in the compiler, so they differ in layout by construction; but
+on this run the arms that moved between them are mostly
+not the placement-exposed six, and the counted-work instrument says which
+are which rather than leaving it to be assumed --- `bq-odo-gm-mulback`
+and `bq-scan-rem-gm-mulback` moved six to seven percent on their instruction
+counts, while `gen-unsafe`, `mut-odo` and `offtab` moved four, two and one
+at count ratios of 1.0000. Read a cross-half distance here as codegen where
+the counts moved and as placement or runtime where they did not, and read
+a distance from Run 18's column as drift.
 
-**And it is the basis half's**, `run18-g912`, as every published table here
+**And it is the basis half's**, `run19-g912`, as every published table here
 is from Run 11 on: the control half's column is one column on the yardstick
 below rather than a second copy of these thirty-odd rows. That the published
 half is the 9.12 one is this pair's own decision --- it keeps the lineage, being
-Run 17's basis recipe over one source change --- and the 9.14 half
+Run 18's basis recipe with nothing changed at all --- and the HEAD half
 is the yardstick column.
 
-**Comparing runs?** The table below is Run 18's own; what to hold a new run
-against is [What Run 19 compares against](#what-run-19-compares-against),
-the claims to test are [the ones after it](#the-claims-run-19-should-test),
+**Comparing runs?** The table below is Run 19's own; what to hold a new run
+against is [What Run 20 compares against](#what-run-20-compares-against),
+the claims to test are [the ones after it](#the-claims-run-20-should-test),
 the population and the absolute anchor are in [Provenance](#provenance),
-and this run's own floor --- no A/A pair further than 1.36% from 1 on the basis
-half or 1.42% on the control, on worst single cells of 15.10% and 14.61%,
-and 0.54% and 0.31% read on the six pairs that carry across runs --- is [in
+and this run's own floor --- no A/A pair further than 2.32% from 1 on the basis
+half or 1.71% on the control, on worst single cells of 18.50% and 17.66%,
+and 0.49% and 0.29% read on the six pairs that carry across runs --- is [in
 the floor section][floor]. That floor governs an arm against *itself*; two
 different rows of the table below are separated by their code, and in a build
 whose loop heads the shim has already placed, no longer by where each landed ---
@@ -8747,53 +8876,53 @@ How to read the columns:
 
 | strategy | time | worst | CI% | smp | alloc | needs |
 |---|---:|---:|---:|---:|---:|---|
-| *bq-expand-nosum* | *--* | *--* | *0.60* | *78* | *2.35x* | *its base arm, forced with one element* |
-| *mut-flat-gm-nosum* | *--* | *--* | *0.78* | *92* | *1.33x* | *the same, on a third write pattern* |
-| *mut-odo-vecdims-nosum* | *--* | *--* | *0.56* | *90* | *1.00x* | *the same, on the fastest arm* |
+| *bq-expand-nosum* | *--* | *--* | *0.53* | *78* | *2.35x* | *its base arm, forced with one element* |
+| *mut-flat-gm-nosum* | *--* | *--* | *0.68* | *92* | *1.33x* | *the same, on a third write pattern* |
+| *mut-odo-vecdims-nosum* | *--* | *--* | *0.54* | *90* | *1.00x* | *the same, on the fastest arm* |
 | *sum-only-early* | *--* | *--* | *0.01* | *101* | *0.00x* | *the term every row has subtracted* |
 | *sum-only-late* | *--* | *--* | *0.01* | *101* | *0.00x* | *the same, at the other end* |
-| mut-odo-vecdims-add-in | 0.054 | 0.125 | 0.64 | 80 | 1.00x | new mutating `Vector` method |
-| **mut-odo-vecdims** | **0.055** | 0.125 | 0.55 | 80 | 1.00x | **new mutating `Vector` method -- THE FIX, decided 2026-08-22** |
-| *mut-odo-vecdims-aa* | *0.055* | *0.125* | *0.58* | *80* | *1.00x* | *A/A control* |
-| *mut-odo-vecdims-aa-distant* | *0.055* | *0.125* | *0.52* | *80* | *1.00x* | *A/A control* |
-| mut-odo-vecdims-add-both-down | 0.058 | 0.124 | 0.60 | 80 | 1.00x | new mutating `Vector` method |
-| mut-odo-vecdims-add-both | 0.059 | 0.125 | 0.63 | 79 | 1.00x | new mutating `Vector` method |
-| mut-odo-vecdims-add-out | 0.060 | 0.125 | 0.62 | 78 | 1.00x | new mutating `Vector` method |
-| mut-flat-gm | 0.084 | 0.204 | 0.72 | 82 | 1.33x | new mutating `Vector` method |
-| bq-mut-runs-gm-mulback | 0.089 | 0.178 | 0.72 | 80 | 1.33x | mutable `Int` scratch |
-| *bq-scan-rem-gm-mulback-aa-adjacent* | *0.096* | *0.155* | *0.69* | *74* | *1.33x* | *A/A control* |
-| **bq-scan-rem-gm-mulback** | **0.096** | 0.155 | 0.57 | 74 | 1.33x | nothing (pure) |
-| *bq-scan-rem-gm-mulback-aa-distant* | *0.097* | *0.156* | *0.35* | *74* | *1.33x* | *A/A control* |
-| bq-mut-runs | 0.099 | 0.196 | 0.67 | 75 | 1.33x | mutable `Int` scratch |
-| bq-odo-gm-mulback | 0.100 | 0.177 | 0.58 | 78 | 1.51x | nothing (pure) |
-| *bq-odo-gm-mulback-aa-adjacent* | *0.100* | *0.177* | *0.62* | *78* | *1.51x* | *A/A control* |
-| *bq-odo-gm-mulback-aa-distant* | *0.100* | *0.177* | *0.48* | *78* | *1.51x* | *A/A control* |
-| *build-aa-adjacent* | *0.101* | *0.257* | *1.22* | *72* | *1.00x* | *A/A control* |
-| build | 0.103 | 0.259 | 1.66 | 72 | 1.00x | new mutating `Vector` method |
-| *build-aa-distant* | *0.103* | *0.272* | *1.21* | *70* | *1.00x* | *A/A control* |
-| bq-expand-gm-mulback | 0.103 | 0.224 | 0.57 | 78 | 2.35x | nothing (pure) |
-| mut-odo | 0.103 | 0.268 | 1.50 | 70 | 1.00x | new mutating `Vector` method |
-| *mut-odo-aa-adjacent* | *0.104* | *0.265* | *1.25* | *71* | *1.00x* | *A/A control* |
-| *mut-odo-aa-distant* | *0.105* | *0.253* | *1.66* | *70* | *1.00x* | *A/A control* |
-| bq-expand-b | 0.113 | 0.228 | 0.62 | 74 | 2.18x | nothing (pure) |
-| bq-expand-qr-prim | 0.114 | 0.230 | 0.68 | 74 | 2.35x | nothing (pure) |
-| *bq-expand-aa-adjacent* | *0.115* | *0.231* | *0.52* | *74* | *2.35x* | *A/A control* |
-| bq-expand | 0.115 | 0.230 | 0.60 | 74 | 2.35x | nothing (pure) -- the last candidate |
-| *bq-expand-aa-distant* | *0.115* | *0.230* | *0.36* | *74* | *2.35x* | *A/A control* |
-| bq-expand-zf | 0.117 | 0.248 | 0.46 | 73 | 2.35x | nothing (pure) |
-| offtab-scan-rem | 0.130 | 0.221 | 0.95 | 72 | 2.00x | nothing (pure) |
-| *offtab-aa-distant* | *0.134* | *0.285* | *1.36* | *66* | *2.00x* | *A/A control* |
-| *offtab-aa-adjacent* | *0.134* | *0.288* | *1.24* | *66* | *2.00x* | *A/A control* |
-| offtab | 0.134 | 0.279 | 1.12 | 66 | 2.00x | mutable `Int` scratch |
-| bq-mut | 0.148 | 0.285 | 0.75 | 64 | 1.33x | mutable `Int` scratch |
-| bq-gen | 0.370 | 2.094 | 1.55 | 50 | 1.33x | nothing (pure) |
-| *list-aa-distant* | *0.998* | *1.004* | *0.42* | *35* | *23.50x* | *A/A control* |
-| list (baseline) | 1.000 | 1.000 | 0.57 | 35 | 23.50x | -- |
-| *list-aa-adjacent* | *1.002* | *1.010* | *0.44* | *35* | *23.50x* | *A/A control* |
-| *gen-unsafe-aa-distant* | *1.057* | *2.927* | *1.73* | *40* | *1.00x* | *A/A control* |
-| *gen-unsafe-aa-adjacent* | *1.058* | *2.898* | *1.63* | *40* | *1.00x* | *A/A control* |
-| gen-unsafe | 1.066 | 2.795 | 1.72 | 40 | 1.00x | -- |
-| gen-quotrem | 1.106 | 2.830 | 1.74 | 40 | 1.00x | 1st attempt |
+| mut-odo-vecdims-add-in | 0.054 | 0.126 | 0.55 | 80 | 1.00x | new mutating `Vector` method |
+| *mut-odo-vecdims-aa* | *0.055* | *0.126* | *0.60* | *80* | *1.00x* | *A/A control* |
+| **mut-odo-vecdims** | **0.055** | 0.126 | 0.65 | 80 | 1.00x | **new mutating `Vector` method -- THE FIX, decided 2026-08-22** |
+| *mut-odo-vecdims-aa-distant* | *0.055* | *0.126* | *0.54* | *80* | *1.00x* | *A/A control* |
+| mut-odo-vecdims-add-both-down | 0.058 | 0.126 | 0.60 | 80 | 1.00x | new mutating `Vector` method |
+| mut-odo-vecdims-add-both | 0.059 | 0.126 | 0.61 | 79 | 1.00x | new mutating `Vector` method |
+| mut-odo-vecdims-add-out | 0.060 | 0.126 | 0.62 | 78 | 1.00x | new mutating `Vector` method |
+| mut-flat-gm | 0.083 | 0.184 | 0.71 | 82 | 1.33x | new mutating `Vector` method |
+| bq-mut-runs-gm-mulback | 0.090 | 0.181 | 0.72 | 80 | 1.33x | mutable `Int` scratch |
+| *bq-scan-rem-gm-mulback-aa-adjacent* | *0.097* | *0.155* | *0.59* | *74* | *1.33x* | *A/A control* |
+| **bq-scan-rem-gm-mulback** | **0.098** | 0.155 | 0.52 | 74 | 1.33x | nothing (pure) |
+| *bq-scan-rem-gm-mulback-aa-distant* | *0.098* | *0.155* | *0.37* | *74* | *1.33x* | *A/A control* |
+| bq-mut-runs | 0.100 | 0.198 | 0.75 | 75 | 1.33x | mutable `Int` scratch |
+| bq-odo-gm-mulback | 0.100 | 0.178 | 0.50 | 78 | 1.51x | nothing (pure) |
+| *bq-odo-gm-mulback-aa-adjacent* | *0.100* | *0.177* | *0.55* | *78* | *1.51x* | *A/A control* |
+| *bq-odo-gm-mulback-aa-distant* | *0.100* | *0.180* | *0.54* | *78* | *1.51x* | *A/A control* |
+| *build-aa-distant* | *0.102* | *0.269* | *1.93* | *71* | *1.00x* | *A/A control* |
+| *build-aa-adjacent* | *0.102* | *0.249* | *1.59* | *72* | *1.00x* | *A/A control* |
+| build | 0.103 | 0.263 | 1.64 | 71 | 1.00x | new mutating `Vector` method |
+| bq-expand-gm-mulback | 0.103 | 0.226 | 0.70 | 78 | 2.35x | nothing (pure) |
+| *mut-odo-aa-adjacent* | *0.104* | *0.273* | *1.61* | *70* | *1.00x* | *A/A control* |
+| *mut-odo-aa-distant* | *0.105* | *0.286* | *1.79* | *70* | *1.00x* | *A/A control* |
+| mut-odo | 0.106 | 0.268 | 1.41 | 70 | 1.00x | new mutating `Vector` method |
+| bq-expand-b | 0.113 | 0.230 | 0.55 | 74 | 2.18x | nothing (pure) |
+| bq-expand-qr-prim | 0.114 | 0.232 | 0.61 | 74 | 2.35x | nothing (pure) |
+| bq-expand | 0.115 | 0.231 | 0.61 | 74 | 2.35x | nothing (pure) -- the last candidate |
+| *bq-expand-aa-adjacent* | *0.115* | *0.232* | *0.55* | *74* | *2.35x* | *A/A control* |
+| *bq-expand-aa-distant* | *0.115* | *0.233* | *0.41* | *74* | *2.35x* | *A/A control* |
+| bq-expand-zf | 0.117 | 0.251 | 0.53 | 73 | 2.35x | nothing (pure) |
+| offtab-scan-rem | 0.130 | 0.223 | 0.89 | 72 | 2.00x | nothing (pure) |
+| offtab | 0.134 | 0.298 | 1.15 | 66 | 2.00x | mutable `Int` scratch |
+| *offtab-aa-adjacent* | *0.135* | *0.290* | *1.32* | *66* | *2.00x* | *A/A control* |
+| *offtab-aa-distant* | *0.137* | *0.290* | *1.24* | *66* | *2.00x* | *A/A control* |
+| bq-mut | 0.148 | 0.297 | 0.97 | 64 | 1.33x | mutable `Int` scratch |
+| bq-gen | 0.370 | 2.104 | 1.43 | 50 | 1.33x | nothing (pure) |
+| *list-aa-distant* | *0.999* | *1.011* | *0.44* | *35* | *23.50x* | *A/A control* |
+| list (baseline) | 1.000 | 1.000 | 0.49 | 35 | 23.50x | -- |
+| *list-aa-adjacent* | *1.001* | *1.009* | *0.45* | *35* | *23.50x* | *A/A control* |
+| *gen-unsafe-aa-adjacent* | *1.053* | *2.847* | *1.90* | *40* | *1.00x* | *A/A control* |
+| gen-unsafe | 1.059 | 2.850 | 1.69 | 40 | 1.00x | -- |
+| *gen-unsafe-aa-distant* | *1.061* | *2.792* | *1.52* | *40* | *1.00x* | *A/A control* |
+| gen-quotrem | 1.097 | 2.946 | 2.85 | 40 | 1.00x | 1st attempt |
 
 `concat-runs` has no row, and neither do the other 23 arms the roster holds
 and checks without timing: the reason is at each entry and the count
@@ -8802,115 +8931,123 @@ the roster's membership being Run 16's exactly, so every movement below
 is a movement and not a new arm arriving.
 
 **Three things in the table are the run's findings rather than its numbers.**
-**The whole table reproduced against Run 17's basis column**, on ratios rather
-than absolutes, the box having moved between the runs: of the eight yardstick
-rows, `mut-odo-vecdims` and `mut-flat-gm` are identical at 0.055 and 0.084,
-`offtab` and `bq-odo-gm-mulback` are within a thousandth at 0.134 and 0.100,
-and the four that move further move by two to four thousandths ---
-`bq-mut-runs-gm-mulback` 0.089 against 0.093, `bq-scan-rem-gm-mulback` 0.096
-against 0.099, `bq-expand` 0.115 against 0.117 and `build` 0.103 against 0.105.
-Every one of those is a fall, which is what a roster reads when its denominator
-rises slightly more than its arms do. **The ceiling reproduced on the arm
-the class property names**: `mut-odo-vecdims` against `bq-scan-rem-gm-mulback`,
-the fastest arm outside the family's own tier, reads **0.5577 at 23 wins of 24**
-and sign p 3e-06, against Run 17's 0.5446 at the same 23 of 24 and Run 16's
-0.5567 --- the figure [the ruling](#the-mutable-ceiling-not-taken) turns on,
-and unmoved by a compiler. **And the `alloc` column is Run 15's, Run 16's
-and Run 17's at every level**, with the two halves agreeing on 1072 of 1080
-allocating cells, which on a pair of two compilers is the column saying
-the program did not change.
+**The whole table reproduced against Run 18's basis column**, and this time
+on absolutes as well as ratios, the box having held still and the binary being
+the same one: of the eight yardstick rows, `mut-odo-vecdims`,
+`bq-odo-gm-mulback`, `build` and `offtab` are identical at 0.055, 0.100, 0.103
+and 0.134, and the four that move move by a single thousandth --- `mut-flat-gm`
+0.083 against 0.084, `bq-mut-runs-gm-mulback` 0.090 against 0.089,
+`bq-scan-rem-gm-mulback` 0.098 against 0.096 and `bq-expand` 0.115 against
+0.115, that last one unmoved in the column and 0.9927 paired. This
+is the tightest run-to-run reproduction of the eight rows this README has
+published, and it is what one binary run twice ought to look like. **The ceiling
+reproduced on the arm the class property names**: `mut-odo-vecdims` against
+`bq-scan-rem-gm-mulback`, the fastest arm outside the family's own tier, reads
+**0.5572 at 23 wins of 24** and sign p 3e-06, against Run 18's 0.5577
+at the same 23 of 24, Run 17's 0.5446 and Run 16's 0.5567 --- the figure [the
+ruling](#the-mutable-ceiling-not-taken) turns on, and unmoved by two compilers
+now. **And the `alloc` column is Run 15's through Run 18's at every level, while
+the CELLS behind it are not**: the two halves agree on **1016 of 1080**
+allocating cells where the 9.14 pair agreed on 1072, so on this pair
+of compilers the column says the tiers did not change and the cell count says
+HEAD's code did.
 
-**The series Run 14 opened on sub-percent margins has an eighth and a ninth
-reading, and they disagree with each other.** `mut-odo-vecdims-add-in` against
-the arm it varies read 1.0009 at 13 of 24 in Run 10, 0.9934 at 21 in Run 13,
-0.9967 at 13 in Run 14, 1.0023 at 14 in Run 15, 1.0043 at 12 in Run 16
-and 0.9889 at 19 and 0.9709 at 21 on Run 17's two halves --- and here it reads
-**0.9813 at 19 of 24, sign p 0.0066** on the 9.12 half and **1.0016 at 14 of 24,
-p 0.54** on the 9.14 half. So the two halves of this pair do not agree
-in direction, where Run 17's two did, and the difference between them
-is the compiler. **The `-g3` twins say the two arms swapped cache-line offsets
-between the compilers** --- `mut-odo-vecdims` at 0 and `-add-in` at 24 on 9.12,
-the reverse on 9.14 --- so the copy at 24 is the faster in both builds
-and the margin followed the slot rather than the arm. [Its own entry][open]
-carries the reading, the control that stops it being taken for settled, and what
-is still missing, which is the magnitude.
+**The series Run 14 opened on sub-percent margins has a tenth and an eleventh
+reading, and they split as the last pair's did.** `mut-odo-vecdims-add-in`
+against the arm it varies read 1.0009 at 13 of 24 in Run 10, 0.9934 at 21 in Run
+13, 0.9967 at 13 in Run 14, 1.0023 at 14 in Run 15, 1.0043 at 12 in Run 16,
+0.9889 at 19 and 0.9709 at 21 on Run 17's two halves and 0.9813 at 19 and 1.0016
+at 14 on Run 18's --- and here it reads **0.9755 at 19 of 24, sign p 0.0066**
+on the 9.12 half and **0.9991 at 14 of 24, p 0.54** on the HEAD half. So the two
+halves of this pair do not agree in direction, the difference between them
+is the compiler, and the HEAD half repeats Run 18's 9.14 win count and p
+exactly. **What Run 18 read off the `-g3` twins, this run cannot**: on HEAD
+the twin does not reproduce the timed binary's offsets, so the swap that made
+9.12 against 9.14 look like a slot effect has no counterpart here ---
+and under the correspondence that is left, HEAD arranges the two arms as 9.12
+does while the margin is absent. [Its own entry][open] carries the whole of it,
+the control beside it, and what is still missing, which is now the mechanism
+as well as the magnitude.
 
-**And the other standing control split by compiler too, at offsets that did
-NOT move --- which is the control the add-in reading needs.** `build` against
-`mut-odo` --- one worker at two slots, and the pair this README prices at 0.86
-to 1.24 across its history --- reads **0.9751 at 19 of 24, sign p 0.0066**
-on the 9.12 half and **1.0006 at 13 of 24, p 0.84** on the 9.14 half.
-That is the same shape as the add-in split, on a pair whose two copies sit
-at cache-line offset **0 in both compilers**: the `-g3` twins put the group
-at `[0, 0]` on each, differing only in which arm comes first in address order.
-**So a compiler can move one of these sub-percent margins by two and a half
-points without moving either copy's offset**, and the add-in pair's swap
-is therefore suggestive rather than decisive --- a slot account has to explain
-why the control moved as much with no slot change. Their per-shape ranges remain
-the finding rather than their geomeans, 0.893..1.084 and 0.856..1.112,
-so the two slots still disagree by a tenth on a single shape while agreeing
-to within a floor over the set.
+**And the other standing control moved further this run, and in ONE direction
+--- which is what stops the add-in split being read as placement.** `build`
+against `mut-odo` --- one worker at two slots, and the pair this README prices
+at 0.86 to 1.24 across its history --- reads **0.9633 at 18 of 24, sign p
+0.023** on the 9.12 half and **0.9325 at 20 of 24, p 0.0015** on the HEAD half.
+That is NOT the shape of the add-in split: both halves sit well below 1 where
+the add-in pair has one half below and one at it, and the two copies sit
+at cache-line offset **0 in both compilers** on 9.12's twin, the only twin
+that can still be read. Run 18 had this pair split 0.9751 against 1.0006,
+so between compilers it has now moved three points in the direction the add-in
+pair did not. **A slot account of the add-in margin has to explain a control
+that moves as much or more with no slot change, and it still cannot.** Their
+per-shape ranges remain the finding rather than their geomeans, **0.867..1.073**
+on the basis and **0.774..1.015** on the control, so on HEAD the two slots
+disagree by more than two tenths on a single shape while agreeing to within
+a floor over the set.
 
 
-### What Run 19 compares against
+### What Run 20 compares against
 
-**Run 19's regime, roster, basis and pair are all settled.** The regime
+**Run 20's regime, roster and basis are settled; its pair is not, and
+that is the one decision it owes before anything is built.** The regime
 is `-fspec-constr`, as every run since Run 8, and it is the regime the fix ships
 in rather than a flag priced against the shipped one. The roster is Run 16's
 1128 benches, 47 timed arms over 24 shapes, every stride class at three,
 unchanged since Run 15. The allocation area is fixed at `-A32m` and no pair will
 vary it again: Runs 14, 15 and 16 priced it, the decision of 2026-08-21 closed
 it, and the 24m/48m probe that could have reopened it was taken ahead of Run 17
-and killed. The basis is `run18-g912`'s recipe --- Run 17's basis
-over `saturate-preamble.patch`, on ghc-9.12.4, with `-fobject-determinism`,
-the per-sample instrument and the saturating preamble, run
-under `WILDLOG=1 SATURATE=1`. **What Run 19 varies is the compiler again,
-with GHC HEAD in 9.14's place**: `run19-g912`, the basis, against `run19-ghead`,
-built by the in-tree stage1 of the GHC checkout at 10.1.20260803 through
-`cabal.project.ghead` and its freeze. Run 18 answered the compiler question
-for 9.14.1 and named HEAD the successor; `run19-pair.txt` carries both recipes
-and [the open list][open] the registrations. **And the basis half
-is a repetition and not only a lineage**: `Main.hs` and the shim have not moved
-since Run 18 was built, so the rebuilt basis reproduces `run18-g912` byte
-for byte and the pair prices one compiler against another with nothing else
-moved at all. The two questions Run 18 raised without settling --- what
-tightened the floor, and whether the `add-in` margin is the slot --- each still
-name a pair of their own, and neither is this one.
+and killed. The basis is `run19-g912`'s recipe --- ghc-9.12.4,
+`-fobject-determinism`, the per-sample instrument and the saturating preamble,
+run under `WILDLOG=1 SATURATE=1` --- which is now the same recipe three runs
+running and reproduces byte for byte, so a Run 20 basis that does not is itself
+a finding. **What Run 20 varies is whoever asks for it to say**, and this run
+leaves exactly one question with an instrument that only a purpose-built pair
+can carry: **the `add-in` placement question**, which wants one compiler, one
+source and two shims placing the two arms at swapped cache-line offsets. Run 18
+thought a compiler pair gave that for free and Run 19 showed the free route does
+not carry --- the `-g3` twin names HEAD's four functions and cannot locate them
+--- so the two-shim pair is now the only instrument left for it. **Two things
+Run 20 should NOT be**: another compiler pair, HEAD and 9.14 both having
+been read and both having said the same thing about the orderings; and anything
+that changes the roster, which would confound whatever it does vary. **And one
+thing it does NOT owe**: Run 19's main-set rerun, declined on 2026-08-25 rather
+than carried forward, so Run 20 inherits no backlog from it.
 
-**What Run 18 leaves it to read against, and the first item is not a figure.**
-**The box changed**: its BIOS idle settings moved between Run 17 and Run 18
-and took every absolute about 4.9% with them --- the mean of the seven readings,
-which span +4.34% to +5.35% --- measured on the binary the old fingerprint came
-from among others. So the fingerprint below is a new baseline, no absolute
-crosses that boundary, and a Run 19 machine check that fires wants asking
-of the box before the code --- while every ratio, this table's columns included,
-is untouched. **The floor is 1.36% on the basis and 1.42% on the control**, less
-than half Run 17's 3.70% and 3.89% and tighter than Run 15's and Run 16's basis
-figures too, with the restricted six at 0.54% and 0.31%; that is the threshold
-a Run 19 margin clears or does not, and it tightened for a reason this pair does
-not identify. **And the two columns below may be differenced**: `list` moved
-0.52% between the halves, inside the 0.7% that separates a subtractable pair
-from a nursery one. What they price is a compiler, so the placement-exposed arms
-(`build`, `offtab`, `mut-odo`, `gen-unsafe`, `gen-quotrem`, `bq-mut`) move up
-to 7.2% between them --- three of the six do, `gen-unsafe` 7.2%, `offtab` 6.7%
-and `gen-quotrem` 3.8%, where the other three stay inside a percent ---
-and that movement is codegen placement rather than noise to exempt --- but
-it is still not a strategy difference, so a Run 19 movement on one of
-those is layout until something rules it out.
+**What Run 19 leaves it to read against, and the first item is not a figure.**
+**The box did not change**, its machine check reading -0.84% against the kept
+fingerprint over 24 of 24 shapes, worst -1.98%; so absolutes cross from Run 18
+to Run 19 freely and the boundary that matters is still the BIOS change before
+Run 18, which no absolute crosses. **The floor is 2.32% on the basis and 1.71%
+on the control**, with the restricted six at 0.49% and 0.29%; that
+is the threshold a Run 20 margin clears or does not. **And it is not inherited
+from the pair or the build**: Run 19's basis is Run 18's basis binary byte
+for byte and read 2.32% where that binary read 1.36%, so the floor is re-drawn
+per run and a Run 20 margin is judged against Run 20's own, never against these.
+**The two columns below may NOT be differenced**: `list` moved **0.78%** between
+the halves, past the 0.7% that separates a subtractable pair from one that can
+only be ordered, where Run 18 read 0.52%. What they price is a compiler,
+and this run stopped guessing which movements that reaches: the counted-work
+column puts `bq-odo-gm-mulback` and `bq-scan-rem-gm-mulback` six to seven
+percent apart ON their instruction counts, and the placement-exposed arms
+(`build`, `offtab`, `mut-odo`, `gen-unsafe`, `gen-quotrem`, `bq-mut`) apart
+at count ratios of 1.0000. So a Run 20 movement on one of those six is layout
+or runtime until the counts say otherwise --- and the counts are one `--counts`
+call away now, which is the reading Run 19 built rather than hand-rolled.
 
-**Registered with the pair.** Run 18's five registrations, their kill
-conditions, its dose measurements and what is already built are [in the open
-list](#what-is-open); the commands are `run18-pair.txt`'s. Of Run 17's own five
-riders and probes, four are spent --- the per-process floor held, the 24m/48m
-probe was killed, the counted-work pilot refused the switch to counts,
-and the alone legs ran with the evening --- and the fixed-n rider on the three
-anchors was taken after that run's write-up, so all five are spent; Run 18 did
-not re-take it, and its readings stand as Run 17's. **What Run 18 inherits
-from the riders is a decomposition it can now take**: Run 17 measured
-the in-process deflation at +11.51% and +11.62% on its two halves against Run
-16's +11.80% over the same shapes, so the preamble's third registration ---
-state saturated minus clean, and the rest roster minus saturated --- has
-a two-run figure to be read against rather than one.
+**Registered with the pair.** Run 19's six registrations, their kill conditions
+and their verdicts are [in the open list](#what-is-open); the commands
+are `run19-pair.txt`'s. **What Run 20 inherits is four riders that are now
+routine and one instrument that is new.** The alone legs, the counted-work
+sweeps, the saturating preamble and the per-sample load fields all ran to form
+and want no re-deciding; `--counts` is the new one, and it retires
+the hand-rolled reading two write-ups had been doing --- so registration 4's
+shape for Run 20 is a call and not a computation. **What it inherits as a debt**
+is nothing, Run 19's un-taken main-set rerun having been declined rather
+than deferred, and **what it inherits as a warning** is that the floor
+is re-drawn per run: Run 19's basis read 2.32% where the same binary read 1.36%
+a day earlier, so a Run 20 margin is judged against Run 20's own floor
+and against no predecessor's.
 
 **The position term was the candidate Run 15 promoted, and the probes have since
 spent it.** What Run 14 first saw and Run 15 confirmed is resolved
@@ -9013,20 +9150,20 @@ and its JSON deleted, this is the only record they have left. The rows nearest
 the decisions, in every regime that has measured them, so no comparison needs
 another section:
 
-| strategy | Run 18 (SpecConstr, max-skip +lookrts, -A32m, 9.12.4) | Run 18 (SpecConstr, max-skip +lookrts, -A32m, 9.14.1) | Run 17 (SpecConstr, max-skip +lookrts, -A32m, instrumented) | Run 17 (SpecConstr, max-skip +lookrts, -A32m, plain) | Run 16 (SpecConstr, max-skip +lookrts, -A32m) | Run 16 (SpecConstr, max-skip +lookrts, -A64m) | Run 15 (SpecConstr, max-skip +lookrts) | Run 15 (SpecConstr, max-skip +lookrts +A32m) | Run 14 (SpecConstr, max-skip +lookrts) | Run 14 (SpecConstr, max-skip +lookrts +A1G) | Run 13 (SpecConstr, max-skip) | Run 13 (SpecConstr, max-skip +lookrts) | Run 12 (SpecConstr, max-skip) | Run 12 (SpecConstr, max-skip +procalign) | Run 11 (SpecConstr, aligned) | Run 11 (SpecConstr, max-skip) | Run 10 (SpecConstr) | Run 10 (SpecConstr, aligned) | Run 9 (SpecConstr) | Run 8 (SpecConstr) | Run 7 (Harness, -O1) |
-|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| `mut-odo-vecdims` | **0.055** | 0.055 | 0.055 | 0.055 | 0.054 | 0.047 | 0.048 | 0.054 | 0.049 | 0.051 | 0.049 | 0.049 | 0.049 | 0.049 | 0.048 | 0.048 | 0.048 | 0.049 | 0.048 | 0.053 | 0.054 |
-| `mut-flat-gm` | **0.084** | 0.083 | 0.084 | 0.084 | 0.087 | 0.076 | 0.081 | 0.088 | 0.081 | 0.083 | 0.082 | 0.082 | 0.081 | 0.082 | 0.081 | 0.081 | 0.083 | 0.081 | 0.080 | -- | -- |
-| `bq-mut-runs-gm-mulback` | **0.089** | 0.091 | 0.093 | 0.092 | 0.093 | 0.080 | 0.086 | 0.094 | 0.087 | 0.088 | 0.087 | 0.087 | 0.087 | 0.088 | 0.087 | 0.086 | 0.085 | 0.088 | 0.088 | 0.086 | -- |
-| `bq-odo-gm-mulback` | **0.100** | 0.100 | 0.101 | 0.100 | 0.100 | 0.087 | 0.090 | 0.100 | 0.090 | 0.095 | 0.090 | 0.090 | 0.090 | 0.090 | 0.090 | 0.090 | 0.090 | 0.090 | 0.090 | -- | -- |
-| `bq-scan-rem-gm-mulback` | **0.096** | 0.098 | 0.099 | 0.099 | 0.096 | 0.082 | 0.091 | 0.096 | 0.091 | 0.090 | 0.091 | 0.090 | 0.090 | 0.091 | 0.089 | 0.090 | 0.090 | 0.089 | 0.090 | 0.090 | 0.119 |
-| `bq-expand` | **0.115** | 0.117 | 0.117 | 0.115 | 0.114 | 0.101 | 0.102 | 0.114 | 0.102 | 0.107 | 0.103 | 0.102 | 0.102 | 0.102 | 0.103 | 0.103 | 0.102 | 0.102 | 0.105 | 0.102 | 0.127 |
-| `build` | **0.103** | 0.102 | 0.105 | 0.106 | 0.109 | 0.097 | 0.102 | 0.110 | 0.103 | 0.097 | 0.099 | 0.099 | 0.098 | 0.098 | 0.096 | 0.100 | 0.110 | 0.096 | 0.114 | 0.095 | -- |
-| `offtab` | **0.134** | 0.143 | 0.135 | 0.141 | 0.136 | 0.124 | 0.126 | 0.138 | 0.121 | 0.121 | 0.125 | 0.121 | 0.125 | 0.131 | 0.125 | 0.123 | 0.123 | 0.124 | 0.115 | 0.146 | -- |
-| `mut-flat` | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | 0.074 | 0.063 |
-| `bq-mut-runs-mulback` | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | 0.078 | 0.072 |
-| `bq-odo-mulback` | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | 0.089 | 0.101 |
-| `bq-scan-packed-mulback` | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | 0.108 | 0.097 |
+| strategy | Run 19 (SpecConstr, max-skip +lookrts, -A32m, 9.12.4) | Run 19 (SpecConstr, max-skip +lookrts, -A32m, GHC HEAD) | Run 18 (SpecConstr, max-skip +lookrts, -A32m, 9.12.4) | Run 18 (SpecConstr, max-skip +lookrts, -A32m, 9.14.1) | Run 17 (SpecConstr, max-skip +lookrts, -A32m, instrumented) | Run 17 (SpecConstr, max-skip +lookrts, -A32m, plain) | Run 16 (SpecConstr, max-skip +lookrts, -A32m) | Run 16 (SpecConstr, max-skip +lookrts, -A64m) | Run 15 (SpecConstr, max-skip +lookrts) | Run 15 (SpecConstr, max-skip +lookrts +A32m) | Run 14 (SpecConstr, max-skip +lookrts) | Run 14 (SpecConstr, max-skip +lookrts +A1G) | Run 13 (SpecConstr, max-skip) | Run 13 (SpecConstr, max-skip +lookrts) | Run 12 (SpecConstr, max-skip) | Run 12 (SpecConstr, max-skip +procalign) | Run 11 (SpecConstr, aligned) | Run 11 (SpecConstr, max-skip) | Run 10 (SpecConstr) | Run 10 (SpecConstr, aligned) | Run 9 (SpecConstr) | Run 8 (SpecConstr) | Run 7 (Harness, -O1) |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| `mut-odo-vecdims` | **0.055** | 0.055 | 0.055 | 0.055 | 0.055 | 0.055 | 0.054 | 0.047 | 0.048 | 0.054 | 0.049 | 0.051 | 0.049 | 0.049 | 0.049 | 0.049 | 0.048 | 0.048 | 0.048 | 0.049 | 0.048 | 0.053 | 0.054 |
+| `mut-flat-gm` | **0.083** | 0.084 | 0.084 | 0.083 | 0.084 | 0.084 | 0.087 | 0.076 | 0.081 | 0.088 | 0.081 | 0.083 | 0.082 | 0.082 | 0.081 | 0.082 | 0.081 | 0.081 | 0.083 | 0.081 | 0.080 | -- | -- |
+| `bq-mut-runs-gm-mulback` | **0.090** | 0.094 | 0.089 | 0.091 | 0.093 | 0.092 | 0.093 | 0.080 | 0.086 | 0.094 | 0.087 | 0.088 | 0.087 | 0.087 | 0.087 | 0.088 | 0.087 | 0.086 | 0.085 | 0.088 | 0.088 | 0.086 | -- |
+| `bq-odo-gm-mulback` | **0.100** | 0.109 | 0.100 | 0.100 | 0.101 | 0.100 | 0.100 | 0.087 | 0.090 | 0.100 | 0.090 | 0.095 | 0.090 | 0.090 | 0.090 | 0.090 | 0.090 | 0.090 | 0.090 | 0.090 | 0.090 | -- | -- |
+| `bq-scan-rem-gm-mulback` | **0.098** | 0.106 | 0.096 | 0.098 | 0.099 | 0.099 | 0.096 | 0.082 | 0.091 | 0.096 | 0.091 | 0.090 | 0.091 | 0.090 | 0.090 | 0.091 | 0.089 | 0.090 | 0.090 | 0.089 | 0.090 | 0.090 | 0.119 |
+| `bq-expand` | **0.115** | 0.117 | 0.115 | 0.117 | 0.117 | 0.115 | 0.114 | 0.101 | 0.102 | 0.114 | 0.102 | 0.107 | 0.103 | 0.102 | 0.102 | 0.102 | 0.103 | 0.103 | 0.102 | 0.102 | 0.105 | 0.102 | 0.127 |
+| `build` | **0.103** | 0.101 | 0.103 | 0.102 | 0.105 | 0.106 | 0.109 | 0.097 | 0.102 | 0.110 | 0.103 | 0.097 | 0.099 | 0.099 | 0.098 | 0.098 | 0.096 | 0.100 | 0.110 | 0.096 | 0.114 | 0.095 | -- |
+| `offtab` | **0.134** | 0.136 | 0.134 | 0.143 | 0.135 | 0.141 | 0.136 | 0.124 | 0.126 | 0.138 | 0.121 | 0.121 | 0.125 | 0.121 | 0.125 | 0.131 | 0.125 | 0.123 | 0.123 | 0.124 | 0.115 | 0.146 | -- |
+| `mut-flat` | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | 0.074 | 0.063 |
+| `bq-mut-runs-mulback` | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | 0.078 | 0.072 |
+| `bq-odo-mulback` | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | 0.089 | 0.101 |
+| `bq-scan-packed-mulback` | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | 0.108 | 0.097 |
 
 **Every column but the last is a published geomean over the same 24 shapes,
 and most of the SpecConstr ones share a denominator too** --- `list` moved 0.47%
@@ -9127,185 +9264,198 @@ a `lemire-out` column to this same rule on the same day, and says so.
 
 | shape | `sInner` | `l` | `list`, net | vecdims | flat-gm | scan-rem-gm | build | mut-odo | mut-runs | runs-gm | offtab-rem |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| `cnn-slice-c32` | 3 | 288 | 6.1 us | 0.086 | 0.146 | 0.153 | 0.162 | 0.165 | 0.136 | 0.146 | 0.166 |
-| `cnn-L1-6x6-c1` | 3 | 324 | 7.37 us | 0.099 | 0.186 | 0.145 | 0.190 | 0.193 | 0.178 | 0.178 | 0.160 |
-| `stretch-rank12` | 2 | 4096 | 112 us | 0.096 | 0.204 | 0.131 | 0.259 | 0.268 | 0.196 | 0.169 | 0.171 |
-| `cnn-L1-24x24-c1` | 3 | 5184 | 117 us | 0.069 | 0.131 | 0.096 | 0.162 | 0.169 | 0.138 | 0.128 | 0.122 |
-| `conv1d-24` | 3 | 5184 | 102 us | 0.056 | 0.070 | 0.099 | 0.122 | 0.118 | 0.086 | 0.076 | 0.134 |
-| `lenet-L1-28-c1-k5` | 5 | 19600 | 373 us | 0.049 | 0.091 | 0.092 | 0.098 | 0.103 | 0.109 | 0.096 | 0.119 |
-| `gather48-src-50` | 3 | 22500 | 445 us | 0.053 | 0.066 | 0.096 | 0.110 | 0.117 | 0.082 | 0.074 | 0.126 |
-| `stretch-rank10` | 3 | 59049 | 1.29 ms | 0.068 | 0.108 | 0.101 | 0.154 | 0.165 | 0.118 | 0.113 | 0.135 |
-| `stretch-coprime-r7` | 13 | 60060 | 1.03 ms | 0.035 | 0.082 | 0.092 | 0.057 | 0.063 | 0.101 | 0.092 | 0.124 |
-| `cifar-L2-16-c64-k3` | 3 | 147456 | 3.13 ms | 0.057 | 0.089 | 0.097 | 0.139 | 0.141 | 0.102 | 0.096 | 0.126 |
-| `cnn-L2-24x24-c32` | 3 | 165888 | 3.53 ms | 0.059 | 0.090 | 0.096 | 0.131 | 0.143 | 0.105 | 0.096 | 0.126 |
-| `stretch-primes` | 89 | 250357 | 4.08 ms | 0.029 | 0.074 | 0.091 | 0.031 | 0.031 | 0.090 | 0.085 | 0.130 |
-| `stretch-inner1` | 1 | 500000 | 13.1 ms | 0.090 | 0.031 | 0.073 | 0.214 | 0.228 | 0.069 | 0.033 | 0.072 |
-| `alexnet-L2-27-c48-k5` | 5 | 874800 | 16.3 ms | 0.044 | 0.075 | 0.093 | 0.094 | 0.087 | 0.092 | 0.084 | 0.124 |
-| `vgg-14-c512-k3` | 3 | 903168 | 19 ms | 0.057 | 0.089 | 0.097 | 0.134 | 0.139 | 0.105 | 0.095 | 0.128 |
-| `alexnet-L1-55-c3-k11` | 11 | 1098075 | 18.7 ms | 0.036 | 0.071 | 0.089 | 0.053 | 0.056 | 0.090 | 0.081 | 0.129 |
-| `stretch-inner256` | 256 | 1750784 | 33.3 ms | 0.032 | 0.069 | 0.085 | 0.034 | 0.033 | 0.111 | 0.075 | 0.118 |
-| `stretch-pow2stride` | 64 | 1769472 | 28.7 ms | 0.125 | 0.120 | 0.146 | 0.125 | 0.126 | 0.113 | 0.132 | 0.221 |
-| `stretch-r5-8x432` | 8 | 1769472 | 34.2 ms | 0.033 | 0.061 | 0.082 | 0.060 | 0.057 | 0.078 | 0.068 | 0.116 |
-| `stretch-square-1341` | 1341 | 1798281 | 30 ms | 0.089 | 0.136 | 0.155 | 0.089 | 0.089 | 0.106 | 0.140 | 0.204 |
-| `stretch-bigstride` | 3 | 1800000 | 50 ms | 0.035 | 0.045 | 0.066 | 0.077 | 0.078 | 0.057 | 0.051 | 0.091 |
-| `stretch-tab7MB` | 2 | 1800000 | 38.7 ms | 0.063 | 0.063 | 0.100 | 0.147 | 0.149 | 0.078 | 0.068 | 0.139 |
-| `stretch-tall-Mx2` | 900000 | 1800000 | 39.6 ms | 0.024 | 0.052 | 0.063 | 0.024 | 0.024 | 0.067 | 0.057 | 0.095 |
-| `stretch-wide-2xM` | 2 | 1800000 | 38.4 ms | 0.061 | 0.061 | 0.097 | 0.137 | 0.153 | 0.077 | 0.069 | 0.136 |
+| `cnn-slice-c32` | 3 | 288 | 6.08 us | 0.085 | 0.143 | 0.155 | 0.162 | 0.158 | 0.135 | 0.145 | 0.168 |
+| `cnn-L1-6x6-c1` | 3 | 324 | 7.35 us | 0.099 | 0.184 | 0.147 | 0.187 | 0.193 | 0.178 | 0.181 | 0.161 |
+| `stretch-rank12` | 2 | 4096 | 110 us | 0.103 | 0.184 | 0.132 | 0.263 | 0.268 | 0.198 | 0.178 | 0.171 |
+| `cnn-L1-24x24-c1` | 3 | 5184 | 115 us | 0.070 | 0.134 | 0.097 | 0.160 | 0.166 | 0.140 | 0.124 | 0.122 |
+| `conv1d-24` | 3 | 5184 | 103 us | 0.056 | 0.070 | 0.098 | 0.124 | 0.126 | 0.085 | 0.075 | 0.132 |
+| `lenet-L1-28-c1-k5` | 5 | 19600 | 369 us | 0.048 | 0.093 | 0.094 | 0.100 | 0.104 | 0.109 | 0.099 | 0.120 |
+| `gather48-src-50` | 3 | 22500 | 436 us | 0.053 | 0.066 | 0.098 | 0.117 | 0.122 | 0.083 | 0.074 | 0.129 |
+| `stretch-rank10` | 3 | 59049 | 1.29 ms | 0.067 | 0.108 | 0.102 | 0.154 | 0.172 | 0.125 | 0.111 | 0.135 |
+| `stretch-coprime-r7` | 13 | 60060 | 1.02 ms | 0.036 | 0.083 | 0.093 | 0.059 | 0.058 | 0.102 | 0.092 | 0.124 |
+| `cifar-L2-16-c64-k3` | 3 | 147456 | 3.1 ms | 0.059 | 0.089 | 0.098 | 0.143 | 0.134 | 0.105 | 0.094 | 0.126 |
+| `cnn-L2-24x24-c32` | 3 | 165888 | 3.52 ms | 0.058 | 0.087 | 0.098 | 0.131 | 0.152 | 0.107 | 0.095 | 0.126 |
+| `stretch-primes` | 89 | 250357 | 4 ms | 0.030 | 0.075 | 0.092 | 0.031 | 0.031 | 0.090 | 0.086 | 0.131 |
+| `stretch-inner1` | 1 | 500000 | 12.9 ms | 0.090 | 0.032 | 0.073 | 0.215 | 0.228 | 0.070 | 0.032 | 0.073 |
+| `alexnet-L2-27-c48-k5` | 5 | 874800 | 16.2 ms | 0.045 | 0.074 | 0.093 | 0.093 | 0.100 | 0.094 | 0.085 | 0.125 |
+| `vgg-14-c512-k3` | 3 | 903168 | 19 ms | 0.058 | 0.086 | 0.097 | 0.142 | 0.151 | 0.104 | 0.095 | 0.128 |
+| `alexnet-L1-55-c3-k11` | 11 | 1098075 | 18.4 ms | 0.037 | 0.071 | 0.090 | 0.055 | 0.053 | 0.091 | 0.082 | 0.130 |
+| `stretch-inner256` | 256 | 1750784 | 32.9 ms | 0.033 | 0.070 | 0.087 | 0.034 | 0.034 | 0.111 | 0.076 | 0.118 |
+| `stretch-pow2stride` | 64 | 1769472 | 28.3 ms | 0.126 | 0.122 | 0.147 | 0.126 | 0.127 | 0.115 | 0.134 | 0.223 |
+| `stretch-r5-8x432` | 8 | 1769472 | 33.9 ms | 0.033 | 0.061 | 0.082 | 0.052 | 0.059 | 0.078 | 0.068 | 0.115 |
+| `stretch-square-1341` | 1341 | 1798281 | 30.2 ms | 0.088 | 0.131 | 0.154 | 0.088 | 0.089 | 0.107 | 0.137 | 0.203 |
+| `stretch-bigstride` | 3 | 1800000 | 49.6 ms | 0.035 | 0.044 | 0.066 | 0.078 | 0.086 | 0.057 | 0.051 | 0.091 |
+| `stretch-tab7MB` | 2 | 1800000 | 38.1 ms | 0.063 | 0.063 | 0.100 | 0.137 | 0.150 | 0.078 | 0.068 | 0.142 |
+| `stretch-tall-Mx2` | 900000 | 1800000 | 39.5 ms | 0.023 | 0.052 | 0.063 | 0.024 | 0.024 | 0.067 | 0.058 | 0.095 |
+| `stretch-wide-2xM` | 2 | 1800000 | 38.3 ms | 0.061 | 0.060 | 0.098 | 0.139 | 0.152 | 0.076 | 0.069 | 0.136 |
 
 | shape | class | `sInner` | `l` | `list`, net | vecdims | flat-gm | scan-rem-gm | build | mut-odo | mut-runs | runs-gm | offtab-rem |
 |---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| `rev-cnn-L1-24x24-c1` | `rev` | 3 | 5184 | 116 us | 0.071 | 0.135 | 0.096 | 0.159 | 0.181 | 0.137 | 0.123 | 0.122 |
-| `rev-gather48-src-50` | `rev` | 3 | 22500 | 441 us | 0.052 | 0.066 | 0.097 | 0.121 | 0.114 | 0.082 | 0.074 | 0.127 |
-| `rev-primes` | `rev` | 89 | 250357 | 4.08 ms | 0.029 | 0.072 | 0.092 | 0.031 | 0.031 | 0.090 | 0.085 | 0.127 |
-| `bcast-inner8` | `bcast` | 8 | 51200 | 875 us | 0.033 | 0.067 | 0.090 | 0.057 | 0.061 | 0.087 | 0.081 | 0.119 |
-| `bcast-inner900` | `bcast` | 900 | 1800000 | 27.8 ms | 0.022 | 0.070 | 0.087 | 0.023 | 0.023 | 0.093 | 0.088 | 0.122 |
-| `bcast-tall-Mx2` | `bcast` | 2 | 1800000 | 37.8 ms | 0.063 | 0.061 | 0.098 | 0.137 | 0.136 | 0.077 | 0.071 | 0.136 |
-| `slice-coprime-r7` | `slice` | 13 | 60060 | 1.04 ms | 0.038 | 0.083 | 0.094 | 0.058 | 0.059 | 0.099 | 0.089 | 0.125 |
-| `slice-cnn-L2-24x24-c32` | `slice` | 3 | 165888 | 3.56 ms | 0.059 | 0.091 | 0.099 | 0.139 | 0.143 | 0.102 | 0.094 | 0.130 |
-| `slice-primes` | `slice` | 89 | 250357 | 4.03 ms | 0.030 | 0.080 | 0.103 | 0.032 | 0.032 | 0.090 | 0.092 | 0.132 |
-| `bcastmid-c32-cnn` | `bcastmid` | 3 | 165888 | 3.47 ms | 0.058 | 0.090 | 0.098 | 0.141 | 0.148 | 0.108 | 0.098 | 0.125 |
-| `bcastmid-primes` | `bcastmid` | 97 | 250357 | 3.96 ms | 0.022 | 0.069 | 0.086 | 0.023 | 0.023 | 0.091 | 0.086 | 0.122 |
-| `bcastmid-b200k` | `bcastmid` | 3 | 1800000 | 46 ms | 0.037 | 0.047 | 0.071 | 0.077 | 0.094 | 0.061 | 0.056 | 0.094 |
-| `window-28x28-k5` | `window` | 5 | 14400 | 262 us | 0.044 | 0.079 | 0.095 | 0.096 | 0.095 | 0.095 | 0.085 | 0.122 |
-| `window-64x64-k1x9` | `window` | 1 | 32256 | 889 us | 0.093 | 0.046 | 0.072 | 0.251 | 0.269 | 0.086 | 0.043 | 0.072 |
-| `window-224x224-k3` | `window` | 3 | 443556 | 9.52 ms | 0.055 | 0.085 | 0.093 | 0.141 | 0.132 | 0.101 | 0.094 | 0.121 |
-| `scaled-r5` | `scaled` | 13 | 15015 | 247 us | 0.035 | 0.075 | 0.096 | 0.048 | 0.052 | 0.094 | 0.082 | 0.130 |
-| `scaled-super-r3` | `scaled` | 30 | 60000 | 969 us | 0.028 | 0.071 | 0.090 | 0.032 | 0.033 | 0.091 | 0.080 | 0.124 |
-| `scaled-rank1-m1` | `scaled` | 300000 | 300000 | 4.85 ms | 0.033 | 0.071 | 0.089 | 0.033 | 0.033 | 0.090 | 0.079 | 0.136 |
-| `revsome-outer-g48` | `revsome` | 3 | 22500 | 444 us | 0.052 | 0.067 | 0.099 | 0.111 | 0.110 | 0.082 | 0.076 | 0.128 |
-| `revsome-mid-cnn-L2` | `revsome` | 3 | 165888 | 3.52 ms | 0.058 | 0.087 | 0.097 | 0.133 | 0.138 | 0.103 | 0.097 | 0.126 |
-| `revsome-inner-primes` | `revsome` | 89 | 250357 | 4.05 ms | 0.031 | 0.081 | 0.103 | 0.032 | 0.032 | 0.090 | 0.093 | 0.132 |
-| `reshape1-rank10` | `reshape1` | 1 | 59049 | 1.91 ms | 0.117 | 0.136 | 0.091 | 0.298 | 0.337 | 0.159 | 0.118 | 0.090 |
-| `reshape1-r3` | `reshape1` | 1 | 180000 | 4.71 ms | 0.092 | 0.033 | 0.074 | 0.236 | 0.251 | 0.073 | 0.034 | 0.074 |
-| `reshape1-500k` | `reshape1` | 1 | 500000 | 12.9 ms | 0.091 | 0.032 | 0.074 | 0.213 | 0.242 | 0.071 | 0.034 | 0.074 |
+| `bcast-inner8` | `bcast` | 8 | 51200 | 871 us | 0.033 | 0.067 | 0.090 | 0.061 | 0.061 | 0.087 | 0.079 | 0.118 |
+| `bcast-inner900` | `bcast` | 900 | 1800000 | 27.1 ms | 0.022 | 0.071 | 0.089 | 0.023 | 0.023 | 0.095 | 0.089 | 0.123 |
+| `bcast-tall-Mx2` | `bcast` | 2 | 1800000 | 37.6 ms | 0.062 | 0.062 | 0.098 | 0.131 | 0.152 | 0.077 | 0.070 | 0.136 |
+| `bcastmid-c32-cnn` | `bcastmid` | 3 | 165888 | 3.42 ms | 0.059 | 0.090 | 0.100 | 0.138 | 0.157 | 0.107 | 0.100 | 0.128 |
+| `bcastmid-primes` | `bcastmid` | 97 | 250357 | 3.91 ms | 0.022 | 0.069 | 0.087 | 0.023 | 0.023 | 0.091 | 0.085 | 0.122 |
+| `bcastmid-b200k` | `bcastmid` | 3 | 1800000 | 45.6 ms | 0.037 | 0.047 | 0.071 | 0.079 | 0.090 | 0.061 | 0.056 | 0.094 |
+| `reshape1-rank10` | `reshape1` | 1 | 59049 | 1.88 ms | 0.110 | 0.135 | 0.091 | 0.311 | 0.337 | 0.162 | 0.113 | 0.092 |
+| `reshape1-r3` | `reshape1` | 1 | 180000 | 4.7 ms | 0.092 | 0.032 | 0.073 | 0.230 | 0.245 | 0.072 | 0.032 | 0.073 |
+| `reshape1-500k` | `reshape1` | 1 | 500000 | 13 ms | 0.089 | 0.032 | 0.074 | 0.228 | 0.217 | 0.069 | 0.032 | 0.073 |
+| `rev-cnn-L1-24x24-c1` | `rev` | 3 | 5184 | 115 us | 0.070 | 0.126 | 0.096 | 0.168 | 0.180 | 0.146 | 0.128 | 0.121 |
+| `rev-gather48-src-50` | `rev` | 3 | 22500 | 438 us | 0.052 | 0.065 | 0.097 | 0.118 | 0.121 | 0.082 | 0.074 | 0.126 |
+| `rev-primes` | `rev` | 89 | 250357 | 4.07 ms | 0.029 | 0.071 | 0.090 | 0.031 | 0.031 | 0.089 | 0.084 | 0.129 |
+| `revsome-outer-g48` | `revsome` | 3 | 22500 | 441 us | 0.053 | 0.067 | 0.099 | 0.117 | 0.122 | 0.082 | 0.076 | 0.127 |
+| `revsome-mid-cnn-L2` | `revsome` | 3 | 165888 | 3.47 ms | 0.059 | 0.089 | 0.097 | 0.140 | 0.136 | 0.107 | 0.096 | 0.126 |
+| `revsome-inner-primes` | `revsome` | 89 | 250357 | 4.06 ms | 0.030 | 0.079 | 0.101 | 0.032 | 0.032 | 0.088 | 0.092 | 0.131 |
+| `scaled-r5` | `scaled` | 13 | 15015 | 247 us | 0.033 | 0.073 | 0.094 | 0.047 | 0.048 | 0.093 | 0.082 | 0.128 |
+| `scaled-super-r3` | `scaled` | 30 | 60000 | 951 us | 0.029 | 0.073 | 0.092 | 0.034 | 0.033 | 0.093 | 0.081 | 0.127 |
+| `scaled-rank1-m1` | `scaled` | 300000 | 300000 | 4.79 ms | 0.033 | 0.073 | 0.090 | 0.035 | 0.035 | 0.091 | 0.081 | 0.134 |
+| `slice-coprime-r7` | `slice` | 13 | 60060 | 1.03 ms | 0.037 | 0.082 | 0.095 | 0.060 | 0.063 | 0.101 | 0.091 | 0.126 |
+| `slice-cnn-L2-24x24-c32` | `slice` | 3 | 165888 | 3.54 ms | 0.059 | 0.091 | 0.098 | 0.140 | 0.135 | 0.102 | 0.092 | 0.129 |
+| `slice-primes` | `slice` | 89 | 250357 | 4.02 ms | 0.030 | 0.081 | 0.102 | 0.032 | 0.032 | 0.091 | 0.092 | 0.132 |
+| `window-28x28-k5` | `window` | 5 | 14400 | 265 us | 0.044 | 0.078 | 0.094 | 0.089 | 0.088 | 0.094 | 0.085 | 0.120 |
+| `window-64x64-k1x9` | `window` | 1 | 32256 | 876 us | 0.097 | 0.046 | 0.074 | 0.250 | 0.263 | 0.086 | 0.045 | 0.074 |
+| `window-224x224-k3` | `window` | 3 | 443556 | 9.4 ms | 0.055 | 0.086 | 0.094 | 0.131 | 0.145 | 0.103 | 0.095 | 0.121 |
 
-**Two rows to read first, and the pair is derived rather than remembered**:
-`stretch-square-1341` and `stretch-pow2stride` are the only two shapes where
-**both** arms tying at the head of the pure tier *lose* to `bq-expand`, so treat
-a disagreement on either as the shape. They fail differently, which is why both
-are named. On `stretch-square-1341` the mutable fills win it back outright
-(`mut-odo-vecdims` 0.089 against `bq-expand`'s 0.125) while the pure arms trail;
-on `stretch-pow2stride` the two families converge instead, three of the seven
-fingerprint arms landing inside two thousandths of each other and the whole row
-spanning 0.113 to 0.146 ([the per-shape section][pershape]). Taking the tier's
-leaders one at a time gives eight shapes and three, which is why the sentence
-says both. `stretch-inner1` has `sInner` 1, so anything special-casing a unit
-dimension behaves differently there by construction.
+**Three rows to read first, and the set is derived rather than remembered ---
+it was two until this run**: `stretch-square-1341`, `stretch-pow2stride` and now
+`cnn-slice-c32` are the shapes where **both** arms tying at the head of the pure
+tier *lose* to `bq-expand`, so treat a disagreement on any of them as the shape.
+They fail differently, which is why each is named. On `stretch-square-1341`
+the mutable fills win it back outright (`mut-odo-vecdims` 0.088 against
+`bq-expand`'s 0.134) while the pure arms trail; on `stretch-pow2stride` the two
+families converge instead, three of the eight fingerprint arms landing inside
+two thousandths of each other and the whole row spanning 0.115 to 0.223,
+or 0.115 to 0.147 with `offtab-scan-rem` set aside ([the per-shape
+section][pershape]); `cnn-slice-c32` is the smallest shape in the set and is new
+to this list, which is itself the reason to watch it. Taking the tier's leaders
+one at a time gives seven shapes and three, which is why the sentence says both.
+`stretch-inner1` has `sInner` 1, so anything special-casing a unit dimension
+behaves differently there by construction.
 
 
-### The claims Run 19 should test
+### The claims Run 20 should test
 
-**Run 18's verdicts on Run 17's nine claims first**, since a run reports breaks
-rather than re-deriving the table. **All thirteen registered orderings held,
-and they held on both compilers** --- no BROKE on the 9.12 basis and none
-on the 9.14 control, which is the first clean sweep this list has had since
-the manifest reached thirteen, and the second half of it is registration 2's
-whole subject. Claim 4's second half held for the third run running, at 0.8598
-on **18 of 24, sign p 0.023**, where Run 17 read 0.8578 and Run 16 0.8471
-at the same win count and the same p --- so the retirement Run 17 made in prose,
-and the manifest took the same day, is now a reading and not a decision.
+**Run 19's verdicts first**, since a run reports breaks rather than re-deriving
+the table. **All thirteen registered orderings held, and they held on both
+compilers** --- no BROKE on the 9.12 basis and none on the GHC HEAD control,
+a second clean sweep running, and the second half of it is registration 2's
+whole subject: every ordering this README rests on survives a compiler two
+releases ahead of the one they were measured on. **And that sweep is what
+the four retiring claims retire on.** The settlement of 2026-08-24 held
+the manifest at thirteen through this run so that claims 3, 4, 5 and 9 got one
+last cross-compiler reading before going, and they got it: all four held on both
+halves. The manifest took the retirement at this write-up, thirteen orderings
+becoming eight, and the eight hold on both halves too. What follows keeps
+the surviving claims' numbers --- 1, 2, 6, 7 and 8 --- and does not renumber,
+so that a verdict recorded against a number in any earlier chapter still means
+what it said.
 
-**What moved is claim 9, and it moved back.** Run 17 broke it by reading
-`bq-expand-b`'s two best cells as `stretch-inner1` and `stretch-square-1341`
-where Runs 8 to 16 had read `stretch-inner1` and `stretch-wide-2xM`,
-and registered the follow-up explicitly: whether it moves back. It does,
-**on both compilers**, and the geomean came back with it at 0.9827 on 18 of 24
-against Run 17's 0.9823 on 22 of 24. So the mechanism the claim names ---
-seeding from `enumFromStepN` replacing the whole `concatMap` build on a rank-2
-view with one huge outer dimension --- is not wrong about which shapes it picks,
-and Run 17's reading was one run's excursion rather than a shape leaving
-the pair. **Nothing else crossed.**
+**Nothing crossed, on either half, so the four retirements are clean ones.**
+Claim 3 read 0.8992 on the basis and 0.9072 on HEAD; claim 4's tie held at sign
+p 0.84 and 0.54 and its ordering at 0.8653 and 0.9129; claim 5's two links
+at 0.3134 and 0.8702 on the basis, 0.3400 and 0.8614 on HEAD; and claim 9's
+stable pair came back `stretch-inner1` and `stretch-wide-2xM` on both, its `zf`
+link at 1.0188 and 1.0211. **Each retires a live and holding ordering rather
+than a broken one**, which is what the settlement's test asks for ---
+an ordering goes when it forecloses nothing anyone would propose again, not when
+it fails --- and each is recorded here so that the last reading survives
+the manifest entry. What the four leave rostered is every arm they named:
+`--pair` recovers any of them in one call.
 
-**Claim 1 held on all three links, and the middle one came back.** It reads
-**0.9376** here against 0.9018 on Run 17, 0.9408 on Run 16 and 0.9293 on Run
-10's aligned half --- so the link is back inside the band the aligned runs have
-read and Run 17's excursion below it did not repeat. The other two held
-at 0.6566 and 0.8971, each at 21 of 24. The ceiling's ordering has now survived
-seven runs, two changes of basis, a repetition, a layout pair and a compiler.
+**Claim 1 held on all five links, and it is five links from this run on.**
+The settlement gave it the two the retiring claim 4 was carrying, so it is now
+the whole ladder the `needs` column draws: what a mutating `Vector` method buys
+(0.6650), what one more mutable write pattern buys (0.9299), what a mutable
+`Int` scratch buys (0.9011 against the best arm needing nothing), and,
+at the foot, **the two fastest pure arms tied at 0.9943 on 13 of 24 and sign p
+0.84** --- so if the mutating method is refused upstream,
+`bq-scan-rem-gm-mulback` and `bq-odo-gm-mulback` are indistinguishable
+and either is what ships. The two new links read 0.9060 and 0.9902 on Run 18's
+basis and 0.9011 and 0.9943 here, which is the agreement that let them
+be registered at all. The ceiling's ordering has now survived eight runs, two
+changes of basis, a repetition, a layout pair and three compilers.
 
-**Readings:** `mut-odo-vecdims` / `mut-flat-gm` 0.6566, 21 of 24, sign p
-0.00028; `mut-flat-gm` / `bq-mut-runs-gm-mulback` 0.9376, 21 of 24, sign p
-0.00028; `bq-mut-runs-gm-mulback` / `bq-odo-gm-mulback` 0.8971, 21 of 24, sign p
-0.00028. 3 of 3 registered orderings held.
+**Readings:** `mut-odo-vecdims` / `mut-flat-gm` 0.6650, 21 of 24, sign p
+0.00028; `mut-flat-gm` / `bq-mut-runs-gm-mulback` 0.9299, 20 of 24, sign p
+0.0015; `bq-mut-runs-gm-mulback` / `bq-odo-gm-mulback` 0.8960, 20 of 24, sign p
+0.0015; `bq-mut-runs-gm-mulback` / `bq-scan-rem-gm-mulback` 0.9011, 19 of 24,
+sign p 0.0066; `bq-scan-rem-gm-mulback` / `bq-odo-gm-mulback` 0.9943, 13 of 24,
+sign p 0.84. 5 of 5 registered orderings held.
 
-**Claim 2 held on both links**, at 0.7748 and 1.1723. The `l`-length table stays
-behind the `m`-length one it would replace, at 1.1723 against Run 17's 1.1548
-and the 1.2095 to 1.2224 band of Runs 10 to 14 --- so the margin recovered part
-of Run 17's fall without returning to that band --- while the sign test sits
-at 7 of 24 and p 0.064, which is where it has been since Run 9. The margin
-is the finding and the p is not.
+**Claim 2 kept its number and changed its question**, from where `bq-expand` sat
+among its neighbours to where the arms needing something other than the fix sit
+behind it. Both links held. `offtab`, which needs only a mutable `Int` scratch,
+is **1.3458** behind the best arm needing nothing at all, on 6 of 24 and sign p
+0.023, where Run 18's halves read 1.36 and 1.44. `bq-expand`, the last candidate
+and what `Data/Array/Internal.hs` still carries, is **2.0741** behind the arm
+that ships, on 1 of 24 and sign p 3e-06 --- the widest and most significant
+ordering in the manifest, and the one that prices the branch's own code against
+its replacement. That second link is kept only while the branch carries
+`bq-expand`, and retires with the three `TODO: retarget` markers, which are one
+decision with it.
 
-**Readings:** `bq-expand` / `bq-mut` 0.7748, 19 of 24, sign p 0.0066; `offtab` /
-`bq-expand` 1.1723, 7 of 24, sign p 0.064. 2 of 2 registered orderings held.
-
-**Claim 3 held**, at 0.8992 on 20 of 24: a mul-back output is worth about
-a tenth on the shipped build under this flag.
-
-**Readings:** `bq-expand-gm-mulback` / `bq-expand` 0.8992, 20 of 24, sign p
-0.0015. 1 of 1 registered ordering held.
-
-**Claim 4 held on both halves, and the ordering half held for the third run
-running.** The tie is a tie --- `bq-scan-rem-gm-mulback` against its own build
-control at 0.9561 on 11 of 24 and sign p 0.84, an interval covering one ---
-and the ordering over `bq-expand` reads 0.8598 at **18 of 24, sign p 0.023**,
-the same win count and the same p as Run 17 and Run 16. What has not changed
-is the reason to distrust the point estimate: the two differ
-in `baseOffsetsScanRem` against `baseOffsetsExpand` and in nothing else, their
-output code being identical, so the first reading is about builders
-and the second about `bq-expand`.
-
-**Readings:** `bq-scan-rem-gm-mulback` / `bq-expand-gm-mulback` 0.9561, 11
-of 24, sign p 0.84; `bq-scan-rem-gm-mulback` / `bq-expand` 0.8598, 18 of 24,
-sign p 0.023. 2 of 2 registered orderings held.
-
-**Claim 5 held on both links**, 0.3128 at 21 of 24 and `bq-mut-runs` /
-`bq-expand` at 0.8640 on **24 of 24, sign p 1.2e-07** --- the only unanimous
-ordering in the manifest this run, and the mutable odometer's build is still
-the one build that beats `bq-expand`.
-
-**Readings:** `bq-expand` / `bq-gen` 0.3128, 21 of 24, sign p 0.00028;
-`bq-mut-runs` / `bq-expand` 0.8640, 24 of 24, sign p 1.2e-07. 2 of 2 registered
+**Readings:** `offtab` / `bq-scan-rem-gm-mulback` 1.3458, 6 of 24, sign p 0.023;
+`bq-expand` / `mut-odo-vecdims` 2.0741, 1 of 24, sign p 3e-06. 2 of 2 registered
 orderings held.
 
-**Claim 6 held, and the arm moved toward the baseline.** `gen-quotrem` / `list`
-reads **1.1062** at 10 of 24 and sign p 0.54, a tie by the sign test
-as registered, where Run 17 read 1.1800 at 8 of 24 --- so the first attempt's
-arithmetic sits nearer the list's allocation than on either run before it,
-on a run where the box changed under both. The claim's alarm is that a break
-here means something moved in `list` or in GHC rather than in a strategy;
-the box did move, the anchor check caught it before the evening, and the tie
-held anyway.
+**Claims 3, 4 and 5 retired at this write-up**, on the readings in the sweep
+paragraph above and for the reasons the settlement paragraph at the foot
+of this section gives. In one line each, so the last thing they said is not only
+in a manifest diff: claim 3 read `bq-expand-gm-mulback` / `bq-expand` at 0.8992
+on 20 of 24, a mul-back output worth about a tenth on a build nothing ships;
+claim 4's tie held at 0.9623 on 11 of 24 and p 0.84 and its ordering
+over `bq-expand` at 0.8653 on 17 of 24, the third and last run of a reading Run
+17 promoted from a tie; claim 5's two links read 0.3134 at 21 of 24
+and `bq-mut-runs` / `bq-expand` at **0.8702 on 24 of 24, sign p 1.2e-07**,
+the only unanimous ordering the manifest had. Every arm the three named stays
+rostered and timed, so any of these is one `--pair` call away whenever
+it is wanted again.
 
-**Readings:** `gen-quotrem` / `list` 1.1062, 10 of 24, sign p 0.54. 1 of 1
+**Claim 6 held, and this run is the one that could test its alarm properly.**
+`gen-quotrem` / `list` reads **1.0971** at 9 of 24 and sign p 0.31, a tie
+by the sign test as registered. The claim's alarm is that a break here means
+something moved in `list` or in GHC rather than in a strategy, and half
+of that was under test all evening: the control half is a compiler two releases
+on. It held there too, at the same 9 of 24 and the same p, with `gen-quotrem`
+moving 1.2% between the halves at a count ratio of 1.0000 --- so GHC HEAD
+changes neither what this arm computes nor what `list` costs relative to it.
+
+**Readings:** `gen-quotrem` / `list` 1.0971, 9 of 24, sign p 0.31. 1 of 1
 registered ordering held.
 
-**Claim 7 held, and on this pair it is the claim that says the compilers agree
-about allocation.** Every level is Run 15's, Run 16's and Run 17's to the digit
---- the mutable fills and `gen-quotrem` at 1.00x, `bq-mut` and the scan family
-1.33x, `bq-odo-gm-mulback` 1.51x, `offtab` 2.00x, `bq-expand` 2.35x, `list`
-23.50x --- and across the halves **1072 of the 1080** cells that allocate
-in earnest agree to 1e-4, the 43 that do not allocating at most 17 bytes a call
-where the fit resolves nothing. Allocation is deterministic per call, so a level
-that moves is a code change and never a slot: none moved, and 9.14 allocates
-what 9.12 allocates.
+**Claim 7 held on the levels and is the one claim this pair moved.** Every level
+is Run 15's, Run 16's, Run 17's and Run 18's to the digit --- the mutable fills
+and `gen-quotrem` at 1.00x, `bq-mut` and the scan family 1.33x,
+`bq-odo-gm-mulback` 1.51x, `offtab` 2.00x, `bq-expand` 2.35x, `list` 23.50x ---
+and the class blocks read the tiers unbroken in all eight populations.
+**But the cross-half agreement fell**: **1016 of the 1080** cells that allocate
+in earnest agree to 1e-4, where the 9.14 pair had 1072, and the worst
+disagreement is 1.13e-02 on `cnn-slice-c32/bq-expand-qr-prim`. Allocation
+is deterministic per call, so a cell that moves is a code change and never
+a slot: 9.14 allocated exactly what 9.12 allocated, and **HEAD does not**.
+The levels surviving while sixty-odd cells move is the shape to read --- HEAD
+reallocates within a tier rather than changing what any strategy fundamentally
+costs --- and it is the first thing this claim has ever caught, which is why
+it is checked first when anything else moves.
 
 **Claim 8's structural half stands.** Every pure arm in the fast tier still runs
 its output through the single in-order `vGenerate` over an `m`-length table,
 and the arms that fall behind lose on their table build: `bq-expand-zf` at 0.117
 and `offtab-scan-rem` at 0.130 lie between the leading tier and `bq-gen`'s
 0.370, as the claim says to expect. It is read off the table by eye, being
-the one claim with no named invocation.
+the one claim with no named invocation --- **and this run says what
+that costs**: the counted-work column would have told the same story
+from instruction counts, which is a route the claim could be given whenever
+someone wants it checked rather than seen.
 
-**Claim 9 held on both halves.** Its per-shape half is above: the two best cells
-are `stretch-inner1` and `stretch-wide-2xM` again, on 9.12 and on 9.14 alike.
-Its second ordering, `bq-expand-zf` behind `bq-expand`, reads 1.0189 at 8 of 24
---- Run 17's 1.0181 to within a thousandth, and inside the 1.0028-to-1.0325 band
-that series has held since Run 8. Both series stay closed at Run 13 and
-are not extended per run.
-
-**Readings:** `bq-expand-b` / `bq-expand` 0.9827, 18 of 24, sign p 0.023, best
-two cells `stretch-inner1` and `stretch-wide-2xM`; `bq-expand-zf` / `bq-expand`
-1.0189, 8 of 24, sign p 0.15. 2 of 2 registered orderings held.
+**Claim 9 retired at this write-up**, having held on both halves first: the two
+best cells are `stretch-inner1` and `stretch-wide-2xM` again, on 9.12
+and on HEAD alike, so the pair Run 17 disturbed has now returned twice running
+and the follow-up that kept it live is spent. Its second ordering,
+`bq-expand-zf` behind `bq-expand`, read 1.0188 and 1.0211 on the two halves,
+inside the 1.0028-to-1.0325 band that series has held since Run 8. Both series
+were closed at Run 13 by this section's own words, and a closed series in a live
+manifest is maintenance without a question, which is what retired it.
 
 Restated as the predicates the next run checks, and carrying no reading
 of its own: the figures each was last measured at are in the `Readings:`
@@ -9344,49 +9494,38 @@ a question with it, and none of them dropped one. The claims that read against
 at `mut-odo-vecdims`).
 
 1. `mut-odo-vecdims` < `mut-flat-gm` < `bq-mut-runs-gm-mulback` <
-   `bq-odo-gm-mulback`, the whole ordering read on unconditional arms.
-   The middle link is the one this README has seen a layout term move --- 0.9708
-   at 15 of 24 on Run 10's unaligned half against 0.9293 at 22 on its aligned
-   one --- and on a placed layout it has now read the aligned figure four runs
-   running. The ceiling's ordering has survived five runs, two changes of basis
-   and a repetition.
-2. `bq-expand` < `bq-mut` while `offtab` is *behind* `bq-expand`: the `m`-length
-   table beats both the mutable scratch that builds it and the `l`-length table
-   that replaces it. Run 9 left the second of those at 1.0969, inside the layout
-   span and undecidable there; Run 10 decided it at 1.2224, and the four runs
-   since have put it between 1.2095 and 1.2224 while the sign test went
-   from 0.064 to 0.0066. The margin is the finding and the p is not.
-3. `bq-expand-gm-mulback` < `bq-expand`: a mul-back output pays on the shipped
-   build under this flag. `bq-expand-lemire-out` --- the arm the question used
-   to be asked through --- is untimed for its `l < 2^32` precondition and has
-   no unconditional form, Granlund-Montgomery offering no `out` analogue
-   that yields quotient and remainder together.
-4. `bq-scan-rem-gm-mulback` ties its own build control `bq-expand-gm-mulback`,
-   on an interval covering one, **and its ordering over `bq-expand` is now
-   registered as an ordering** --- Runs 16 and 17 read 0.8471 and 0.8578, each
-   at **18 of 24** and sign p **0.023**, which is the win count Run 9 had when
-   it called the ordering outright and the claim was then restated as a tie. Six
-   runs read it tied at 16-of-24 and p 0.15; two consecutive runs on different
-   binaries do not, and the second was taken with the first's reading registered
-   to be re-read rather than inherited. **So the tie is retired**, and Run 18
-   read the ordering a third time at 0.8598 on the same 18 of 24 and the same p,
-   on both compilers: the first half is a tie and the second half
-   is an ordering, the scan build ahead of `bq-expand`, and a run that reads
-   it tied again is what would reopen it. What has not changed is the reason
-   to distrust the point estimate: the two differ in `baseOffsetsScanRem`
-   against `baseOffsetsExpand` and in nothing else, their output code being
-   identical, so the first reading is about builders and the second about
-   `bq-expand`. **Read the break as the sign test holding and not
-   as a magnitude** --- both point estimates sit where a tied reading's already
-   sat, and the series has crossed this threshold in both directions before.
-5. `bq-expand` < `bq-gen`: the build ordering, trimmed to its timed arms ---
-   `offsets-quot` and `bq-gen-lemire` were its two ends and are both untimed,
-   so the run cannot re-read the gap widening or the ending. That refutation
-   stands on Run 7 and Run 8, which is enough for an idea kept only so
-   that it is not re-proposed. Among the builds only the mutable odometer still
-   beats `bq-expand`, the scan build being level rather than ahead (claim 4).
-   So `bq-expand` is still the fastest build that needs neither a class
-   extension nor explicit mutation.
+   `bq-scan-rem-gm-mulback` ~ `bq-odo-gm-mulback`, the whole ordering read
+   on unconditional arms --- **the ladder the `needs` column draws**, each link
+   pricing one thing the implementation is allowed to ask for. The last link
+   is a tie and is registered as one: the two fastest arms needing nothing
+   at all are indistinguishable, so either is what ships if the mutating
+   `Vector` method is refused. The middle link is the one this README has seen
+   a layout term move --- 0.9708 at 15 of 24 on Run 10's unaligned half against
+   0.9293 at 22 on its aligned one --- and on a placed layout it has now read
+   the aligned figure five runs running. The ordering has survived eight runs,
+   two changes of basis, a repetition and three compilers.
+2. `offtab` sits behind `bq-scan-rem-gm-mulback` and `bq-expand` behind
+   `mut-odo-vecdims`: **the arms needing something other than the fix sit behind
+   it**, which is what this claim asks since the settlement of 2026-08-24
+   re-aimed it. The first prices a mutable `Int` scratch against needing
+   nothing, the second prices the branch's own code against its replacement
+   and is the widest ordering in the manifest. The second link is kept only
+   while `Data/Array/Internal.hs` carries `bq-expand`, and retires
+   with the three `TODO: retarget` markers, which are one decision with it.
+3, 4, 5. **Retired at Run 19's write-up**, on a last reading in which all three
+held on both compilers, and for the reasons in the settlement paragraph
+at the foot of this section. Their numbers are left standing here rather
+than reused: a verdict recorded against *claim 4* in any chapter above still
+means what it said. What they were, in a clause each, so that nothing
+is recoverable only from a manifest diff --- claim 3, that a mul-back output
+pays on the `bq-expand` build; claim 4, that the scan build ties its own build
+control while beating `bq-expand`, a tie Run 17 promoted to an ordering
+and three runs then read as one; claim 5, that `bq-expand` beats `bq-gen`, whose
+refutation of the generate-per-element build stands on Runs 7 and 8. **What none
+of the three could still foreclose is the point**: every one asks where
+`bq-expand` sits among arms nothing ships, on a branch whose fix
+is `mut-odo-vecdims`. The arms all stay rostered and timed, so any
+of these orderings is one `--pair` call away.
 6. `gen-quotrem` ties `list` --- the first attempt's arithmetic stops being
    dearer than the list's allocation once the flag takes its own allocation
    to 1.00x against the list's 23.5x, which is the mixed picture this suite
@@ -9397,34 +9536,37 @@ at `mut-odo-vecdims`).
 7. Allocation, median multiples of the result on this basis: the mutable fills
    1.00x, `gen-quotrem` also 1.00x, `bq-mut` and the scan family 1.33x,
    `bq-odo-gm-mulback` 1.51x, `offtab` 2.00x, `bq-expand` 2.35x, `list` 23.5x.
-   Every one of the 34 rows Run 12 also carried reproduced its figure,
-   `mut-flat-gm-nosum` being this run's addition, and the cells behind them
-   agree across the pair's halves on all 792 that allocate in earnest, which
-   is what makes this the claim to check first when anything else moves:
-   allocation is deterministic per call, so a level that *does* move is a code
-   change and never a slot.
+   Every level has reproduced since Run 15, which is what makes this the claim
+   to check first when anything else moves: allocation is deterministic per
+   call, so a level that *does* move is a code change and never a slot. **Read
+   the levels and the cells as two questions**, which Run 19 is the run
+   that separated: its levels all returned while the cross-half cell agreement
+   fell to 1016 of 1080, where the 9.14 pair had 1072 --- so a compiler can
+   reallocate within a tier without moving any tier, and only the cell count
+   sees it.
 8. Every pure arm in the fast tier runs its output through the single in-order
    `vGenerate` over an `m`-length table, and a `bq-*` arm that falls behind
    loses on its table build and not on its output. Read the structure and
    not a threshold: the gap the claim used to be stated across is populated,
    `bq-expand-zf` and `offtab-scan-rem` lying between the leading tier
    and `bq-gen`.
-9. **Read this one per shape and not on its geomean.** `bq-expand-b`'s two best
-   cells were `stretch-inner1` and `stretch-wide-2xM` in every run from Run 8
-   to Run 16 --- the rank-2 views with one huge outer dimension where seeding
-   from `enumFromStepN` replaces the whole `concatMap` build --- and
-   that was the stable part of this claim until **Run 17 read `stretch-inner1`
-   and `stretch-square-1341` instead**. So the stable part moved once in ten
-   runs and moved back on the eleventh: Run 18 reads `stretch-inner1`
-   and `stretch-wide-2xM` again, on both compilers, which is the registered
-   follow-up answered and the mechanism cleared of picking the wrong shapes.
-   What stays registered is the pair itself, a second departure being what would
-   reopen it. The geomeans were never the stable part, and the series is why:
-   across Runs 8 to 13 `bq-expand-b` / `bq-expand` read 0.996, 0.9678, 0.9943,
-   0.9819, 0.9923 and 0.9909, its sign test crossing into significance only
-   on the last of them, while `bq-expand-zf` / `bq-expand` went 3.6% behind,
-   then level at 1.0028, then 1.0325, 1.0197, 1.0256 and 1.0265. Both series
-   are closed at Run 13 and not extended per run; what this run read is above.
+9. **Retired at Run 19's write-up with 3, 4 and 5**, and for a reason of its own
+   worth keeping: its per-shape half was answered rather than abandoned.
+   `bq-expand-b`'s two best cells were `stretch-inner1` and `stretch-wide-2xM`
+   in every run from Run 8 to Run 16 --- the rank-2 views with one huge outer
+   dimension where seeding from `enumFromStepN` replaces the whole `concatMap`
+   build --- until **Run 17 read `stretch-inner1` and `stretch-square-1341`
+   instead**, which registered the follow-up. Runs 18 and 19 both read
+   the original pair back, on four compilers between them, so the excursion
+   was one run's and the mechanism is cleared of picking the wrong shapes.
+   The geomeans were never the stable part, and the series is why: across Runs 8
+   to 13 `bq-expand-b` / `bq-expand` read 0.996, 0.9678, 0.9943, 0.9819, 0.9923
+   and 0.9909, its sign test crossing into significance only on the last
+   of them, while `bq-expand-zf` / `bq-expand` went 3.6% behind, then level
+   at 1.0028, then 1.0325, 1.0197, 1.0256 and 1.0265. Both series were closed
+   at Run 13 and not extended per run, and a closed series in a live manifest
+   is maintenance without a question --- which, with the follow-up spent,
+   is the whole case for retiring it.
 
 Each ordering is one line of `--claims`, whose manifest now carries
 the registered expectation --- the direction of the geomean, a tie by sign test,
@@ -9445,7 +9587,7 @@ something the reader should answer, that is a defect report against the reader**
 --- fix it there, before the sentence it was written for, or the next run
 invents its own wrong version.
 
-**And for each stride class, the same three properties, now carrying Run 18's
+**And for each stride class, the same three properties, now carrying Run 19's
 verdicts**, the details beside each class's table:
 
 1. **The regime 3 fix's `worst` stays under 1.** Held in every one of the nine
@@ -9455,41 +9597,49 @@ verdicts**, the details beside each class's table:
    to test, no geomean can state it, and a break would be the one result here
    to bear on `Data/Array/Internal.hs` directly. Re-aimed 2026-08-22
    with the decision to ship `mut-odo-vecdims` instead, and read for that arm
-   since: **on Run 18 its worst is 0.125 on the main set and 0.107 in a class
-   (`reshape1`)**, against Run 17's 0.128 and 0.121, so the property holds
-   for the arm decided as well and both ends tightened without ever
-   approaching 1.
+   since: **on Run 19 its worst is 0.126 on the main set and 0.110 in a class
+   (`reshape1`), both read on the basis half, with the control half at 0.121
+   and 0.109** --- so the property holds for the arm decided, on both compilers,
+   and neither end comes within a factor of eight of 1. **Both halves are quoted
+   because one is not enough**: Run 18's entry here read 0.125 from its basis
+   and 0.107 from its *control*'s `reshape1` without saying so, which
+   is a floor-level figure taken from whichever half happened to be lower.
 2. **The top of the table keeps its order**: `mut-odo-vecdims` fastest,
    `bq-expand` behind it. The first clause, read as the vecdims family's rather
    than one arm's --- the ruling Run 9 left, and no run has yet separated them
    --- holds in eight of the nine populations and breaks in `reshape1` alone,
-   where the flat fills own the top outright, `mut-flat-gm` at 0.033 against
-   `mut-odo-vecdims`'s 0.091. **Which member leads has moved again**:
-   `mut-odo-vecdims-add-in` heads six of the nine --- the main set, `rev`,
-   `bcastmid`, `slice`, `window` and `scaled` --- with `mut-odo-vecdims` itself
-   taking `revsome` and `add-both-down` taking `bcast`, where Run 17 had
-   `add-in` heading seven of nine by the same count and Run 16 had it heading
-   two. **Read that by margin and not by sort, as this list has had to since Run
-   16**: every one of the eight CLASS margins is inside its population's floor,
-   from 1.0012 on `bcastmid` to 1.0197 on `rev`, and on `scaled` the pair
-   inverts when read paired, so no run has separated the family in a class yet
-   --- where the main set's own 1.87% is outside both of its floors, which
-   is the split the next sentence is about. **What is new is that the main set
-   now splits by compiler**: `add-in` leads at **0.9813 on 19 of 24 shapes, sign
-   p 0.0066** on the 9.12 half, clearing that half's restricted six of 0.54%
-   more than threefold, and reads **1.0016 at 14 of 24, p 0.54** on the 9.14
-   half, which is a coin flip on the wrong side of 1. Only the main set could
-   show this at all, a three-shape class bottoming out at p 0.25, so the eight
+   where two arms outside the family own the top outright --- `mut-flat-gm`,
+   a flat mutable fill, and `bq-mut-runs-gm-mulback`, which needs only an `Int`
+   scratch --- tied at 0.033 against `mut-odo-vecdims`'s 0.094. **Which member
+   leads has moved again**: `mut-odo-vecdims-add-in` heads five of the nine
+   by the sort --- the main set, `rev`, `bcastmid`, `slice` and `window` ---
+   with `mut-odo-vecdims` itself taking `revsome` and `scaled`
+   and `add-both-down` taking `bcast`, where Run 18 had `add-in` heading six
+   and Run 16 two. **Read that by margin and not by sort, as this list has had
+   to since Run 16**: every one of the eight CLASS margins is inside
+   its population's floor, from 0.9704 on `window` to 1.0013 on `scaled`,
+   and **`revsome` inverts outright**: its column puts `mut-odo-vecdims` first
+   while the paired reading puts `add-in` 0.96% ahead, the two printing 0.047
+   and 0.048. `scaled` is the one class agreeing with its own sort, at 1.0013,
+   which is a tenth of a percent. So no run has separated the family in a class
+   yet, and in one of the eight the sort is naming rounding. **The main set
+   is the one population that clears a floor, and it splits by compiler
+   for the second run running**: `add-in` leads at **0.9755 on 19 of 24 shapes,
+   sign p 0.0066** on the 9.12 half --- 2.45%, outside that half's 2.32%
+   and five times its restricted six --- and reads **0.9991 at 14 of 24, p
+   0.54** on the HEAD half, a coin flip. Only the main set could show
+   this at all, a three-shape class bottoming out at p 0.25, so the eight
    classes say nothing about significance either way. [Its own entry][open]
-   carries the whole of it, including the `-g3` twins that put the two arms
-   at swapped cache-line offsets on the two compilers; what belongs here
-   is that the arm leading most populations is not `mut-odo-vecdims`,
-   and that its lead is not a property of the arm. The third clause reads
-   the last candidate `bq-expand` behind `mut-odo-vecdims` and holds in all
-   nine, from 0.3363 on `scaled` to 0.7720 on `reshape1`, the main set
-   at 0.4795. The summary's outside-family slot --- what the dropped redirect
-   would have taken --- is `mut-flat-gm` in `rev`, `revsome`, `window`
-   and `reshape1`, `build` in `bcast`, `bcastmid` and `slice`, and `mut-odo`
+   carries the whole of it, including what Run 19 took away: the `-g3` twin does
+   not carry to HEAD, so the swapped-offset reading that made this placement
+   is gone and the mechanism is unidentified. What belongs here is that the arm
+   leading most populations is not `mut-odo-vecdims`, and that its lead is
+   not a property of the arm. The third clause reads the last candidate
+   `bq-expand` behind `mut-odo-vecdims` and holds in all nine, from 0.3272
+   on `scaled` to 0.7978 on `reshape1`, the main set at 0.4821. The summary's
+   outside-family slot --- what the dropped redirect would have taken ---
+   is `mut-flat-gm` in `rev`, `revsome` and `window`, `build` in `bcast`,
+   `bcastmid` and `slice`, `bq-mut-runs-gm-mulback` in `reshape1` and `mut-odo`
    in `scaled`, only `reshape1`'s ahead of `mut-odo-vecdims`.
 3. **The allocation tiers survive, and every level is Run 15's, Run 16's and Run
    17's to the digit**: the mutable fills at the result vector, `bq-expand`
@@ -9500,7 +9650,7 @@ verdicts**, the details beside each class's table:
    and `list` running 19.43x to 32.34x across them. On a pair whose two halves
    are different compilers this is the property that says the difference
    is codegen and not the program: allocation is deterministic per call, none
-   of these levels moved, and the two halves agree on 1072 of 1080 allocating
+   of these levels moved, and the two halves agree on 1016 of 1080 allocating
    cells.
 
 **SETTLED 2026-08-24, and applied at Run 19's write-up rather than now**,
@@ -9559,46 +9709,41 @@ work saved: the small shapes count as much as the largest.
 
 ### The stride classes, run by run
 
-**Run 18 (SpecConstr, max-skip +lookrts, -A32m, 9.12.4) records every class
+**Run 19 (SpecConstr, max-skip +lookrts, -A32m, 9.12.4) records every class
 on BOTH halves**, one process each, in [the
 sequence](#making-a-major-benchmark-run). Every table below is the **basis
 half**'s, which on this run is the 9.12 one, the half that keeps the lineage.
 What the second half buys is that a pair's variable can be read on a class,
 which is what settled Run 14's `scaled` question and what no run before it could
-have asked. **Read across the halves and a small direction appears, which
-this run's own pre-rerun reading denied.** Of the 336 arm-comparisons the eight
-classes carry, 198 put the 9.12 half faster and 138 slower, and all eight
-geomeans fall below 1, running **0.9866 to 0.9949** --- half a percent to one
-and a third, in the same direction every time. The intrusion had been hiding it:
-the three never-exposed classes carry that direction on their own, 78 arms
-against 48, and it was the five exposed ones, since rerun, that had been pulling
-the aggregate back to an even split. The extremes are `rev`'s `gen-unsafe`
-at 0.8704 at one end and `reshape1`'s `bq-gen` at 1.1745 at the other,
-the placement-exposed family and the dearest build in the roster. **What the run
-could not say from its own sequence is that the direction is the compiler's**,
-the control half having run first in every pair and in both windows,
+have asked. **Read across the halves and the direction Run 18 found is not only
+there, it is stronger.** Of the 336 arm-comparisons the eight classes carry,
+**206 put the 9.12 half faster and 130 slower**, and all eight geomeans fall
+below 1, running **0.9830 to 0.9889** --- one to one and seven tenths
+of a percent, in the same direction every time, where Run 18's eight ran 0.9866
+to 0.9949 against 9.14. So on the classes as on the main set, GHC HEAD costs
+this roster a little more than 9.14 did, and does it everywhere. The extremes
+are `bcast`'s `bq-odo-gm-mulback-aa-distant` at 0.8883 at one end and `window`'s
+`bq-gen` at 1.1176 at the other --- the arm the counted-work column puts six
+percent of its movement on, and the dearest build in the roster, which
+is the one arm HEAD is reliably better at, leading seven of the eight classes'
+upper extremes --- `bcast`'s is `mut-odo-vecdims-add-both-down` at 1.0381.
+**What this run cannot say from its own sequence is that the direction
+is the compiler's**, the control half having run first in every pair,
 so that *the 9.12 half* and *the second process of the two* name the same nine
-processes. **A probe the same evening separated them ON ONE CLASS**: `slice` run
-again with the order reversed puts `g912` faster from first place too, at 0.9878
-against 0.9937 from second, so there the margin survives the swap and widens
-rather than narrowing, and position does not account for it. The other seven
-were not tested, and all that carries the reading to them is that every one
-leans the same way --- suggestive, and short of the measurement, which
-is a second class reversed. The floor asymmetry went the SAME way on that class,
-the basis carrying the wider floor from either slot; both readings are [in
-the open list](#what-is-open). **Three of the eight cross-half lines are still
-not read for a level at all**: `list` runs **0.9925 to 1.0104** across
-the eight, and on `reshape1`, `window` and `scaled` it sits past the 0.7%
-that lets two columns be differenced, by 0.75%, 1.04% and 0.74%. That is what
-survived the rerun rather than what the window did --- `bcastmid` and `slice`
-came back inside the threshold and `scaled` moved out of it ([the chapter
-head](#about-the-last-run-run-18) has the account) --- so what remains
-is this run's own cross-half scatter, against which 0.7% is tight. Their tables,
-controls and floors are each one process's and stand; it is the comparison
-between halves that goes, and each block says so. This section fixes the form,
-so that a class is written up the way the main set is rather than however
-the session that ran it chose. The form is this section's own prose and is
-not a run's to rewrite, exactly as the column definitions
+processes. **And unlike Run 18 it took no order probe**, whose `slice` reversal
+separated the two there; so the alias is unbroken this run, and a Run 20
+that wants the class direction attributed owes a reversed class of its own.
+**Three of the eight cross-half lines are not read for a level at all**: `list`
+runs **0.9973 to 1.0186** across the eight, and on `revsome`, `bcastmid`
+and `window` it sits past the 0.7% that lets two columns be differenced,
+by 1.86%, 1.60% and 1.43%. They are not the three Run 18 disqualified ---
+that was `reshape1`, `window` and `scaled` --- so which classes fail
+the threshold is not a property of the class, and `window` alone failed
+it twice. Their tables, controls and floors are each one process's and stand;
+it is the comparison between halves that goes, and each block says so.
+This section fixes the form, so that a class is written up the way the main set
+is rather than however the session that ran it chose. The form is this section's
+own prose and is not a run's to rewrite, exactly as the column definitions
 under [Results](#results) outlive the table they explain; what a run replaces
 is everything below the form. What a class *is*, and the two rulings that keep
 it a population of its own, are [in the goal
@@ -9625,7 +9770,7 @@ the dropped stride-conditioned redirect would have taken, and *ceiling*
 the leading arm of the family, each with its name, since which arm leads is half
 of what the column says; *floor* is the largest deviation from 1 among
 that process's eighteen A/A controls. A cell that breaks one of [the three
-properties](#the-claims-run-19-should-test) is bolded, and the class's own
+properties](#the-claims-run-20-should-test) is bolded, and the class's own
 paragraph says what broke.
 
 Then one block per class, in `classViews`' order --- `rev`, `revsome`, `bcast`,
@@ -9682,14 +9827,14 @@ check counts.
 
 | class | shapes | mut-odo-vecdims | worst | best outside family | ceiling | floor |
 |---|---:|---:|---:|---|---|---:|
-| `rev` | 3 | 0.048 | 0.071 | `mut-flat-gm` 0.080 | `mut-odo-vecdims-add-in` 0.047 | 5.90% |
-| `revsome` | 3 | 0.046 | 0.058 | `mut-flat-gm` 0.078 | `mut-odo-vecdims` 0.046 | 4.20% |
-| `bcast` | 3 | 0.036 | 0.063 | `build` 0.056 | `mut-odo-vecdims-add-both-down` 0.035 | 6.45% |
-| `bcastmid` | 3 | 0.036 | 0.058 | `build` 0.063 | `mut-odo-vecdims-add-in` 0.036 | 3.65% |
-| `reshape1` | 3 | 0.094 | 0.117 | **`bq-mut-runs-gm-mulback`** 0.034 | **`bq-mut-runs-gm-mulback`** 0.034 | 5.79% |
-| `slice` | 3 | 0.041 | 0.059 | `build` 0.064 | `mut-odo-vecdims-add-in` 0.040 | 6.01% |
-| `window` | 3 | 0.061 | 0.093 | `mut-flat-gm` 0.073 | `mut-odo-vecdims-add-in` 0.060 | 5.17% |
-| `scaled` | 3 | 0.032 | 0.035 | `mut-odo` 0.033 | `mut-odo-vecdims-add-in` 0.031 | 6.15% |
+| `rev` | 3 | 0.047 | 0.070 | `mut-flat-gm` 0.080 | `mut-odo-vecdims-add-in` 0.046 | 2.65% |
+| `revsome` | 3 | 0.047 | 0.059 | `mut-flat-gm` 0.078 | `mut-odo-vecdims` 0.047 | 2.00% |
+| `bcast` | 3 | 0.036 | 0.062 | `build` 0.057 | `mut-odo-vecdims-add-both-down` 0.035 | 4.79% |
+| `bcastmid` | 3 | 0.037 | 0.059 | `build` 0.063 | `mut-odo-vecdims-add-in` 0.036 | 4.16% |
+| `reshape1` | 3 | 0.094 | 0.110 | **`bq-mut-runs-gm-mulback`** 0.033 | **`bq-mut-runs-gm-mulback`** 0.033 | 8.11% |
+| `slice` | 3 | 0.040 | 0.059 | `build` 0.065 | `mut-odo-vecdims-add-in` 0.040 | 2.43% |
+| `window` | 3 | 0.062 | 0.097 | `mut-flat-gm` 0.070 | `mut-odo-vecdims-add-in` 0.060 | 7.57% |
+| `scaled` | 3 | 0.032 | 0.033 | `mut-odo` 0.037 | `mut-odo-vecdims` 0.032 | 3.80% |
 
 The floor-movement paragraph that stood here was cut on 2026-08-22, having read
 Run 16's column against Run 15's while Run 17 installed this one over it ---
@@ -9710,80 +9855,81 @@ axis builds.** Shapes: `rev-cnn-L1-24x24-c1` (`l` 5184, `sInner` 3),
 
 | strategy | time | worst | CI% | smp | alloc |
 |---|---:|---:|---:|---:|---:|
-| *bq-expand-nosum* | *--* | *--* | *0.15* | *134* | *2.52x* |
-| *mut-flat-gm-nosum* | *--* | *--* | *0.20* | *142* | *1.34x* |
-| *mut-odo-vecdims-nosum* | *--* | *--* | *0.23* | *146* | *1.00x* |
+| *bq-expand-nosum* | *--* | *--* | *0.12* | *134* | *2.52x* |
+| *mut-flat-gm-nosum* | *--* | *--* | *0.16* | *142* | *1.34x* |
+| *mut-odo-vecdims-nosum* | *--* | *--* | *0.11* | *147* | *1.00x* |
 | *sum-only-early* | *--* | *--* | *0.01* | *157* | *0.00x* |
 | *sum-only-late* | *--* | *--* | *0.01* | *157* | *0.00x* |
-| mut-odo-vecdims-add-in | 0.047 | 0.066 | 0.07 | 137 | 1.00x |
-| **mut-odo-vecdims** | **0.048** | 0.071 | 0.10 | 137 | 1.00x |
-| *mut-odo-vecdims-aa-distant* | *0.048* | *0.072* | *0.12* | *137* | *1.00x* |
-| *mut-odo-vecdims-aa* | *0.048* | *0.071* | *0.11* | *137* | *1.00x* |
-| mut-odo-vecdims-add-both-down | 0.050 | 0.073 | 0.08 | 136 | 1.01x |
-| mut-odo-vecdims-add-both | 0.050 | 0.076 | 0.09 | 136 | 1.01x |
+| mut-odo-vecdims-add-in | 0.046 | 0.066 | 0.06 | 137 | 1.00x |
+| *mut-odo-vecdims-aa* | *0.047* | *0.068* | *0.11* | *137* | *1.00x* |
+| **mut-odo-vecdims** | **0.047** | 0.070 | 0.10 | 137 | 1.00x |
+| *mut-odo-vecdims-aa-distant* | *0.048* | *0.071* | *0.13* | *137* | *1.00x* |
+| mut-odo-vecdims-add-both-down | 0.049 | 0.073 | 0.05 | 136 | 1.01x |
+| mut-odo-vecdims-add-both | 0.050 | 0.076 | 0.07 | 136 | 1.01x |
 | mut-odo-vecdims-add-out | 0.052 | 0.079 | 0.07 | 135 | 1.01x |
-| mut-flat-gm | 0.080 | 0.135 | 0.13 | 134 | 1.34x |
-| *build-aa-distant* | *0.083* | *0.162* | *0.98* | *126* | *1.00x* |
-| *mut-odo-aa-distant* | *0.085* | *0.168* | *0.35* | *125* | *1.00x* |
-| mut-odo | 0.086 | 0.181 | 1.27 | 126 | 1.00x |
-| *mut-odo-aa-adjacent* | *0.087* | *0.186* | *2.27* | *126* | *1.00x* |
-| build | 0.088 | 0.159 | 1.95 | 125 | 1.00x |
-| *build-aa-adjacent* | *0.090* | *0.158* | *1.20* | *125* | *1.00x* |
-| bq-mut-runs-gm-mulback | 0.092 | 0.123 | 0.12 | 132 | 1.34x |
-| bq-expand-gm-mulback | 0.092 | 0.168 | 0.36 | 130 | 2.52x |
-| *bq-scan-rem-gm-mulback-aa-distant* | *0.095* | *0.097* | *0.08* | *128* | *1.34x* |
-| **bq-scan-rem-gm-mulback** | **0.095** | 0.097 | 0.07 | 128 | 1.34x |
-| *bq-scan-rem-gm-mulback-aa-adjacent* | *0.095* | *0.097* | *0.09* | *128* | *1.34x* |
-| bq-odo-gm-mulback | 0.095 | 0.115 | 0.11 | 131 | 1.41x |
-| *bq-odo-gm-mulback-aa-distant* | *0.096* | *0.116* | *0.11* | *130* | *1.41x* |
-| *bq-odo-gm-mulback-aa-adjacent* | *0.096* | *0.116* | *0.24* | *130* | *1.41x* |
-| bq-mut-runs | 0.099 | 0.137 | 0.10 | 131 | 1.34x |
-| *bq-expand-aa-distant* | *0.100* | *0.175* | *0.14* | *128* | *2.52x* |
-| bq-expand-b | 0.100 | 0.175 | 0.11 | 128 | 2.52x |
-| bq-expand | 0.101 | 0.175 | 0.14 | 128 | 2.52x |
-| *bq-expand-aa-adjacent* | *0.101* | *0.175* | *0.12* | *128* | *2.52x* |
-| bq-expand-zf | 0.102 | 0.186 | 0.14 | 128 | 2.52x |
-| bq-expand-qr-prim | 0.102 | 0.175 | 0.10 | 128 | 2.52x |
-| offtab | 0.114 | 0.202 | 0.81 | 122 | 2.00x |
-| *offtab-aa-adjacent* | *0.116* | *0.202* | *0.98* | *123* | *2.00x* |
-| *offtab-aa-distant* | *0.116* | *0.220* | *0.46* | *123* | *2.00x* |
-| offtab-scan-rem | 0.126 | 0.127 | 0.09 | 124 | 2.00x |
-| bq-mut | 0.150 | 0.218 | 1.35 | 119 | 1.34x |
-| bq-gen | 0.498 | 0.595 | 0.99 | 98 | 1.34x |
-| list (baseline) | 1.000 | 1.000 | 0.26 | 86 | 23.43x |
-| *list-aa-distant* | *1.002* | *1.005* | *0.28* | *86* | *23.43x* |
-| *list-aa-adjacent* | *1.002* | *1.004* | *0.35* | *86* | *23.43x* |
-| gen-unsafe | 1.115 | 1.261 | 1.71 | 84 | 1.00x |
-| *gen-unsafe-aa-adjacent* | *1.141* | *1.267* | *1.56* | *84* | *1.00x* |
-| gen-quotrem | 1.179 | 1.298 | 1.64 | 83 | 1.00x |
-| *gen-unsafe-aa-distant* | *1.181* | *1.362* | *1.23* | *83* | *1.00x* |
+| mut-flat-gm | 0.080 | 0.126 | 0.19 | 134 | 1.34x |
+| build | 0.085 | 0.168 | 1.77 | 125 | 1.00x |
+| *build-aa-adjacent* | *0.086* | *0.166* | *1.75* | *125* | *1.00x* |
+| *build-aa-distant* | *0.087* | *0.177* | *0.30* | *126* | *1.00x* |
+| *mut-odo-aa-distant* | *0.087* | *0.181* | *0.89* | *125* | *1.00x* |
+| mut-odo | 0.088 | 0.180 | 1.91 | 125 | 1.00x |
+| bq-expand-gm-mulback | 0.090 | 0.167 | 0.09 | 130 | 2.52x |
+| *mut-odo-aa-adjacent* | *0.091* | *0.172* | *2.44* | *125* | *1.00x* |
+| bq-mut-runs-gm-mulback | 0.093 | 0.128 | 0.13 | 132 | 1.34x |
+| *bq-scan-rem-gm-mulback-aa-adjacent* | *0.095* | *0.097* | *0.07* | *128* | *1.34x* |
+| **bq-scan-rem-gm-mulback** | **0.095** | 0.097 | 0.09 | 128 | 1.34x |
+| *bq-scan-rem-gm-mulback-aa-distant* | *0.095* | *0.097* | *0.06* | *128* | *1.34x* |
+| bq-odo-gm-mulback | 0.095 | 0.116 | 0.11 | 131 | 1.41x |
+| *bq-odo-gm-mulback-aa-adjacent* | *0.095* | *0.116* | *0.10* | *131* | *1.41x* |
+| *bq-odo-gm-mulback-aa-distant* | *0.095* | *0.116* | *0.11* | *131* | *1.41x* |
+| bq-mut-runs | 0.097 | 0.146 | 0.10 | 131 | 1.34x |
+| *bq-expand-aa-distant* | *0.101* | *0.175* | *0.11* | *128* | *2.52x* |
+| bq-expand-qr-prim | 0.103 | 0.175 | 0.10 | 128 | 2.52x |
+| bq-expand-b | 0.103 | 0.175 | 0.11 | 128 | 2.52x |
+| bq-expand | 0.103 | 0.175 | 0.14 | 128 | 2.52x |
+| bq-expand-zf | 0.103 | 0.186 | 0.13 | 128 | 2.52x |
+| *bq-expand-aa-adjacent* | *0.104* | *0.175* | *0.11* | *128* | *2.52x* |
+| offtab | 0.118 | 0.203 | 1.24 | 122 | 2.00x |
+| *offtab-aa-distant* | *0.120* | *0.207* | *1.20* | *122* | *2.00x* |
+| *offtab-aa-adjacent* | *0.120* | *0.208* | *1.67* | *122* | *2.00x* |
+| offtab-scan-rem | 0.125 | 0.129 | 0.07 | 124 | 2.00x |
+| bq-mut | 0.145 | 0.210 | 1.37 | 120 | 1.34x |
+| bq-gen | 0.439 | 0.643 | 1.76 | 98 | 1.34x |
+| *list-aa-adjacent* | *0.998* | *1.003* | *0.22* | *86* | *23.43x* |
+| *list-aa-distant* | *0.999* | *1.002* | *0.30* | *86* | *23.43x* |
+| list (baseline) | 1.000 | 1.000 | 0.19 | 86 | 23.43x |
+| *gen-unsafe-aa-adjacent* | *1.116* | *1.258* | *1.37* | *84* | *1.00x* |
+| gen-unsafe | 1.131 | 1.278 | 0.87 | 84 | 1.00x |
+| *gen-unsafe-aa-distant* | *1.161* | *1.267* | *1.60* | *83* | *1.00x* |
+| gen-quotrem | 1.204 | 1.330 | 2.59 | 83 | 1.00x |
 
-**Controls:** The largest A/A pair is `gen-unsafe-aa-distant` at 1.0590, worst
-cell 7.99% on `rev-cnn-L1-24x24-c1`, and 11 of 18 intervals cover 1.
-The `sum-only` halves agree at 1.0000 on a worst cell of 0.06% on `rev-primes`,
-its interval covering 1. The in-situ term reads 0.9926, 1.0150, 1.0107
-of `sum-only` as medians, on `mut-odo-vecdims`, `mut-flat-gm`, `bq-expand`. Raw,
-that pair reads 1.0574, which the correction amplifies by 1.03x --- quote both
-wherever that is past 1.5.
+**Controls:** The largest A/A pair is `gen-unsafe-aa-distant` at 1.0265, worst
+cell 4.99% on `rev-gather48-src-50`, and 15 of 18 intervals cover 1.
+The `sum-only` halves agree at 1.0005 on a worst cell of 0.38%
+on `rev-gather48-src-50`, its interval covering 1. The in-situ term reads
+0.9986, 0.9969, 1.0095 of `sum-only` as medians, on `mut-odo-vecdims`,
+`mut-flat-gm`, `bq-expand`. Raw, that pair reads 1.0257, which the correction
+amplifies by 1.03x --- quote both wherever that is past 1.5.
 
-**Provenance:** elapsed 0h12m12s, peak 88 MiB in use, 19 MiB max residency;
+**Provenance:** elapsed 0h12m11s, peak 88 MiB in use, 19 MiB max residency;
 the reader reads 47 benchmarks over 3 shapes of the rev class. Anchor:
-`rev-primes`, `list` at 4.23 ms per call raw, 4.08 ms net.
+`rev-primes`, `list` at 4.22 ms per call raw, 4.07 ms net.
 
 **Per shape, in the lead's order (rev-cnn-L1-24x24-c1, rev-gather48-src-50,
-rev-primes):** `mut-odo-vecdims` 0.071/0.052/0.029 `bq-scan-rem-gm-mulback`
-0.096/0.097/0.092
+rev-primes):** `mut-odo-vecdims` 0.070/0.052/0.029 `bq-scan-rem-gm-mulback`
+0.096/0.097/0.090
 
-**Across the halves:** 26 of the 42 arms are faster on this half and 16 slower,
-at a geomean of 0.9866, from `gen-unsafe` at 0.8704 to `bq-gen` at 1.0807,
-with `list` itself at 1.0040.
+**Across the halves:** 28 of the 42 arms are faster on this half and 14 slower,
+at a geomean of 0.9845, from `bq-odo-gm-mulback-aa-distant` at 0.9039
+to `bq-gen` at 1.0889, with `list` itself at 1.0068.
 
 **What the class says:** all three properties hold, and the class reproduces
-the main ordering. The `mut-odo-vecdims` row's `worst` is 0.071; `bq-expand`
-sits behind it at 0.4099 paired; and the vecdims family heads the table, though
-the member leading is `mut-odo-vecdims-add-in` rather than the arm itself,
-by **1.0197** paired at 1 of 3 shapes --- a gap the sort settles
-and this class's 5.90% floor swallows three times over.
+the main ordering. The `mut-odo-vecdims` row's `worst` is 0.070; `bq-expand`
+sits behind it at 2.4497 paired, behind on all three shapes; and the vecdims
+family heads the table, though the member leading is `mut-odo-vecdims-add-in`
+rather than the arm itself, by **0.9808** paired at 2 of 3 shapes --- a 1.92%
+margin inside this class's 2.65% floor, so a sort order and not a separation.
+Its floor, 2.65%, is the third tightest of the eight.
 
 **`revsome` --- a strict subset of axes reversed, so the signs are mixed.**
 Shapes: `revsome-inner-primes` (`l` 250357, `sInner` 89), `revsome-outer-g48`
@@ -9791,82 +9937,87 @@ Shapes: `revsome-inner-primes` (`l` 250357, `sInner` 89), `revsome-outer-g48`
 
 | strategy | time | worst | CI% | smp | alloc |
 |---|---:|---:|---:|---:|---:|
-| *bq-expand-nosum* | *--* | *--* | *0.15* | *90* | *2.52x* |
-| *mut-flat-gm-nosum* | *--* | *--* | *0.10* | *94* | *1.33x* |
-| *mut-odo-vecdims-nosum* | *--* | *--* | *0.14* | *113* | *1.00x* |
+| *bq-expand-nosum* | *--* | *--* | *0.11* | *90* | *2.52x* |
+| *mut-flat-gm-nosum* | *--* | *--* | *0.11* | *94* | *1.33x* |
+| *mut-odo-vecdims-nosum* | *--* | *--* | *0.20* | *113* | *1.00x* |
 | *sum-only-early* | *--* | *--* | *0.01* | *116* | *0.00x* |
 | *sum-only-late* | *--* | *--* | *0.01* | *116* | *0.00x* |
-| **mut-odo-vecdims** | **0.046** | 0.058 | 0.10 | 96 | 1.00x |
-| *mut-odo-vecdims-aa* | *0.046* | *0.058* | *0.14* | *96* | *1.00x* |
-| mut-odo-vecdims-add-in | 0.046 | 0.057 | 0.09 | 96 | 1.00x |
-| *mut-odo-vecdims-aa-distant* | *0.047* | *0.058* | *0.11* | *96* | *1.00x* |
-| mut-odo-vecdims-add-both-down | 0.049 | 0.061 | 0.11 | 96 | 1.00x |
-| mut-odo-vecdims-add-both | 0.049 | 0.063 | 0.07 | 96 | 1.00x |
-| mut-odo-vecdims-add-out | 0.053 | 0.065 | 0.12 | 96 | 1.00x |
-| mut-flat-gm | 0.078 | 0.087 | 0.13 | 88 | 1.33x |
-| *mut-odo-aa-distant* | *0.081* | *0.150* | *1.50* | *95* | *1.00x* |
-| mut-odo | 0.085 | 0.138 | 1.50 | 96 | 1.00x |
-| bq-mut-runs-gm-mulback | 0.089 | 0.097 | 0.13 | 86 | 1.33x |
-| build | 0.089 | 0.133 | 1.81 | 95 | 1.00x |
-| bq-mut-runs | 0.091 | 0.103 | 0.11 | 85 | 1.33x |
-| bq-expand-gm-mulback | 0.095 | 0.119 | 0.19 | 83 | 2.52x |
-| *bq-expand-aa-distant* | *0.099* | *0.129* | *0.24* | *83* | *2.52x* |
-| *build-aa-distant* | *0.099* | *0.138* | *1.48* | *95* | *1.00x* |
-| **bq-scan-rem-gm-mulback** | **0.099** | 0.103 | 0.14 | 87 | 1.33x |
-| *bq-scan-rem-gm-mulback-aa-distant* | *0.099* | *0.103* | *0.19* | *86* | *1.33x* |
-| bq-expand | 0.099 | 0.129 | 0.19 | 83 | 2.52x |
-| bq-expand-qr-prim | 0.100 | 0.129 | 0.12 | 83 | 2.52x |
-| *bq-scan-rem-gm-mulback-aa-adjacent* | *0.100* | *0.103* | *0.11* | *86* | *1.33x* |
-| bq-expand-b | 0.100 | 0.129 | 0.18 | 83 | 2.52x |
-| *bq-expand-aa-adjacent* | *0.100* | *0.129* | *0.18* | *83* | *2.52x* |
-| bq-expand-zf | 0.100 | 0.135 | 0.14 | 83 | 2.52x |
-| *bq-odo-gm-mulback-aa-distant* | *0.103* | *0.122* | *0.12* | *83* | *1.41x* |
-| bq-odo-gm-mulback | 0.103 | 0.123 | 0.13 | 83 | 1.41x |
-| *bq-odo-gm-mulback-aa-adjacent* | *0.103* | *0.125* | *0.12* | *83* | *1.41x* |
-| *mut-odo-aa-adjacent* | *0.104* | *0.140* | *1.09* | *95* | *1.00x* |
-| offtab | 0.108 | 0.171 | 0.19 | 89 | 2.00x |
-| *build-aa-adjacent* | *0.108* | *0.131* | *2.53* | *95* | *1.00x* |
-| *offtab-aa-adjacent* | *0.111* | *0.182* | *0.80* | *89* | *2.00x* |
-| *offtab-aa-distant* | *0.123* | *0.171* | *0.19* | *89* | *2.00x* |
-| offtab-scan-rem | 0.129 | 0.132 | 0.13 | 82 | 2.00x |
-| bq-mut | 0.157 | 0.167 | 1.50 | 83 | 1.33x |
-| bq-gen | 0.449 | 0.631 | 1.32 | 82 | 1.33x |
-| *list-aa-distant* | *0.998* | *1.002* | *0.22* | *47* | *23.43x* |
-| list (baseline) | 1.000 | 1.000 | 0.32 | 46 | 23.43x |
-| *list-aa-adjacent* | *1.000* | *1.002* | *0.22* | *46* | *23.43x* |
-| *gen-unsafe-aa-distant* | *1.142* | *1.292* | *1.42* | *44* | *1.00x* |
-| gen-unsafe | 1.143 | 1.325 | 1.77 | 44 | 1.00x |
-| *gen-unsafe-aa-adjacent* | *1.151* | *1.316* | *1.46* | *44* | *1.00x* |
-| gen-quotrem | 1.208 | 1.417 | 0.64 | 43 | 1.00x |
+| *mut-odo-vecdims-aa-distant* | *0.047* | *0.059* | *0.09* | *96* | *1.00x* |
+| *mut-odo-vecdims-aa* | *0.047* | *0.059* | *0.10* | *96* | *1.00x* |
+| **mut-odo-vecdims** | **0.047** | 0.059 | 0.10 | 96 | 1.00x |
+| mut-odo-vecdims-add-in | 0.048 | 0.057 | 0.11 | 96 | 1.00x |
+| mut-odo-vecdims-add-both-down | 0.049 | 0.061 | 0.13 | 96 | 1.00x |
+| mut-odo-vecdims-add-both | 0.050 | 0.063 | 0.15 | 96 | 1.00x |
+| mut-odo-vecdims-add-out | 0.054 | 0.065 | 0.11 | 96 | 1.00x |
+| mut-flat-gm | 0.078 | 0.089 | 0.13 | 88 | 1.33x |
+| bq-mut-runs-gm-mulback | 0.087 | 0.096 | 0.09 | 87 | 1.33x |
+| bq-mut-runs | 0.092 | 0.107 | 0.11 | 85 | 1.33x |
+| bq-expand-gm-mulback | 0.093 | 0.120 | 0.19 | 83 | 2.52x |
+| build | 0.096 | 0.140 | 1.96 | 96 | 1.00x |
+| **bq-scan-rem-gm-mulback** | **0.099** | 0.101 | 0.09 | 87 | 1.33x |
+| *bq-scan-rem-gm-mulback-aa-adjacent* | *0.099* | *0.101* | *0.12* | *87* | *1.33x* |
+| *build-aa-distant* | *0.099* | *0.134* | *0.33* | *96* | *1.00x* |
+| *bq-scan-rem-gm-mulback-aa-distant* | *0.100* | *0.102* | *0.11* | *87* | *1.33x* |
+| bq-expand-b | 0.100 | 0.130 | 0.11 | 83 | 2.52x |
+| bq-expand-qr-prim | 0.100 | 0.129 | 0.13 | 83 | 2.52x |
+| *mut-odo-aa-adjacent* | *0.100* | *0.138* | *1.83* | *96* | *1.00x* |
+| *bq-expand-aa-distant* | *0.101* | *0.130* | *0.15* | *83* | *2.52x* |
+| bq-expand-zf | 0.101 | 0.136 | 0.14 | 83 | 2.52x |
+| bq-expand | 0.101 | 0.130 | 0.10 | 83 | 2.52x |
+| *bq-expand-aa-adjacent* | *0.101* | *0.130* | *0.16* | *83* | *2.52x* |
+| bq-odo-gm-mulback | 0.102 | 0.123 | 0.12 | 83 | 1.41x |
+| *build-aa-adjacent* | *0.102* | *0.137* | *2.36* | *96* | *1.00x* |
+| *bq-odo-gm-mulback-aa-adjacent* | *0.102* | *0.123* | *0.11* | *83* | *1.41x* |
+| *bq-odo-gm-mulback-aa-distant* | *0.102* | *0.123* | *0.11* | *83* | *1.41x* |
+| *mut-odo-aa-distant* | *0.104* | *0.141* | *2.03* | *96* | *1.00x* |
+| mut-odo | 0.107 | 0.136 | 1.80 | 96 | 1.00x |
+| *offtab-aa-adjacent* | *0.110* | *0.171* | *0.26* | *90* | *2.00x* |
+| offtab | 0.111 | 0.174 | 1.95 | 90 | 2.00x |
+| *offtab-aa-distant* | *0.113* | *0.171* | *0.21* | *89* | *2.00x* |
+| offtab-scan-rem | 0.128 | 0.131 | 0.13 | 83 | 2.00x |
+| bq-mut | 0.138 | 0.166 | 1.23 | 83 | 1.33x |
+| bq-gen | 0.442 | 0.634 | 1.44 | 82 | 1.33x |
+| *list-aa-distant* | *0.998* | *1.001* | *0.25* | *47* | *23.43x* |
+| *list-aa-adjacent* | *0.999* | *0.999* | *0.22* | *47* | *23.43x* |
+| list (baseline) | 1.000 | 1.000 | 0.23 | 47 | 23.43x |
+| *gen-unsafe-aa-adjacent* | *1.133* | *1.318* | *0.80* | *44* | *1.00x* |
+| gen-unsafe | 1.150 | 1.327 | 1.20 | 43 | 1.00x |
+| *gen-unsafe-aa-distant* | *1.173* | *1.360* | *1.67* | *44* | *1.00x* |
+| gen-quotrem | 1.174 | 1.368 | 1.57 | 43 | 1.00x |
 
-**Controls:** The largest A/A pair is `offtab-aa-distant` at 1.0420, worst cell
-13.20% on `revsome-outer-g48`, and 16 of 18 intervals cover 1. The `sum-only`
-halves agree at 1.0018 on a worst cell of 0.51% on `revsome-inner-primes`,
-its interval covering 1. The in-situ term reads 1.0112, 1.0170, 1.0336
-of `sum-only` as medians, on `mut-odo-vecdims`, `mut-flat-gm`, `bq-expand`. Raw,
-that pair reads 1.0342, which the correction amplifies by 1.32x --- quote both
-wherever that is past 1.5.
+**Controls:** The largest A/A pair is `gen-unsafe-aa-distant` at 1.0200, worst
+cell 9.97% on `revsome-outer-g48`, and 13 of 18 intervals cover 1.
+The `sum-only` halves agree at 0.9976 on a worst cell of 0.40%
+on `revsome-outer-g48`, its interval covering 1. The in-situ term reads 1.0200,
+1.0206, 1.0136 of `sum-only` as medians, on `mut-odo-vecdims`, `mut-flat-gm`,
+`bq-expand`. Raw, that pair reads 1.0197, which the correction amplifies
+by 1.03x --- quote both wherever that is past 1.5.
 
-**Provenance:** elapsed 0h12m13s, peak 112 MiB in use, 19 MiB max residency;
+**Provenance:** elapsed 0h12m15s, peak 117 MiB in use, 19 MiB max residency;
 the reader reads 47 benchmarks over 3 shapes of the revsome class. Anchor:
-`revsome-inner-primes`, `list` at 4.21 ms per call raw, 4.05 ms net.
+`revsome-inner-primes`, `list` at 4.21 ms per call raw, 4.06 ms net.
 
 **Per shape, in the lead's order (revsome-inner-primes, revsome-outer-g48,
-revsome-mid-cnn-L2):** `mut-odo-vecdims` 0.031/0.052/0.058
-`bq-scan-rem-gm-mulback` 0.103/0.099/0.097
+revsome-mid-cnn-L2):** `mut-odo-vecdims` 0.030/0.053/0.059
+`bq-scan-rem-gm-mulback` 0.101/0.099/0.097
 
-**Across the halves:** 28 of the 42 arms are faster on this half and 14 slower,
-at a geomean of 0.9892, from `offtab` at 0.9169 to `bq-gen` at 1.0664,
-with `list` itself at 1.0011.
+**Across the halves:** 26 of the 42 arms are faster on this half and 16 slower,
+at a geomean of 0.9889, from `bq-odo-gm-mulback` at 0.9334 to `bq-gen`
+at 1.0638, with `list` itself at 1.0186. **The baseline moved 1.86% between
+the halves, past the 0.7% that lets two columns be differenced, so this line
+is NOT read for the pair's variable.** The table above is one process's
+and stands; what goes is the comparison.
 
-**What the class says:** all three properties hold, **and this is the one
-population where `mut-odo-vecdims` heads the table outright**, at 0.046, where
-Run 17 had `mut-odo-vecdims-add-in` leading seven of the nine.
-The `mut-odo-vecdims` row's `worst` is 0.058 and `bq-expand` sits behind
-it at 0.4295 paired. What is worth more than the ordering is the floor: 4.20%
-here against Run 17's 18.05%, which was the largest of that run's eight
-and carried its 74.48% cell. Neither the cell nor the looseness returned,
-so the population Run 17 called stably loose was not.
+**What the class says:** all three properties hold, and **this is one of the two
+populations where `mut-odo-vecdims` heads the table outright**, at 0.047,
+as it did on Run 18. The `mut-odo-vecdims` row's `worst` is 0.059
+and `bq-expand` sits behind it at 2.2952 paired, behind on all three shapes.
+What is worth more than the ordering is the floor, for the second run running:
+**2.00% here, the tightest of the eight**, against Run 18's 4.20% and Run 17's
+18.05%, which was the largest of that run's eight and carried its 74.48% cell.
+Neither the cell nor the looseness has returned in two runs, so the population
+Run 17 called stably loose was not, and that reading can now be retired rather
+than merely doubted.
 
 **`bcast` --- an innermost stride of 0, every run re-reading one element:
 a broadcast's view.** Shapes: `bcast-inner8` (`l` 51200, `sInner` 8),
@@ -9875,81 +10026,85 @@ a broadcast's view.** Shapes: `bcast-inner8` (`l` 51200, `sInner` 8),
 
 | strategy | time | worst | CI% | smp | alloc |
 |---|---:|---:|---:|---:|---:|
-| *bq-expand-nosum* | *--* | *--* | *0.59* | *52* | *1.38x* |
-| *mut-flat-gm-nosum* | *--* | *--* | *0.55* | *58* | *1.13x* |
-| *mut-odo-vecdims-nosum* | *--* | *--* | *0.42* | *81* | *1.00x* |
-| *sum-only-early* | *--* | *--* | *0.04* | *69* | *0.00x* |
-| *sum-only-late* | *--* | *--* | *0.03* | *69* | *0.00x* |
-| mut-odo-vecdims-add-both-down | 0.035 | 0.066 | 0.51 | 61 | 1.00x |
-| mut-odo-vecdims-add-in | 0.036 | 0.062 | 0.52 | 60 | 1.00x |
-| *mut-odo-vecdims-aa-distant* | *0.036* | *0.063* | *0.36* | *60* | *1.00x* |
-| **mut-odo-vecdims** | **0.036** | 0.063 | 0.53 | 60 | 1.00x |
-| *mut-odo-vecdims-aa* | *0.036* | *0.063* | *0.54* | *60* | *1.00x* |
-| mut-odo-vecdims-add-both | 0.037 | 0.067 | 0.52 | 60 | 1.00x |
+| *bq-expand-nosum* | *--* | *--* | *0.65* | *52* | *1.38x* |
+| *mut-flat-gm-nosum* | *--* | *--* | *0.70* | *58* | *1.13x* |
+| *mut-odo-vecdims-nosum* | *--* | *--* | *0.36* | *81* | *1.00x* |
+| *sum-only-early* | *--* | *--* | *0.01* | *69* | *0.00x* |
+| *sum-only-late* | *--* | *--* | *0.01* | *69* | *0.00x* |
+| mut-odo-vecdims-add-both-down | 0.035 | 0.066 | 0.48 | 61 | 1.00x |
+| *mut-odo-vecdims-aa-distant* | *0.036* | *0.062* | *0.46* | *60* | *1.00x* |
+| *mut-odo-vecdims-aa* | *0.036* | *0.062* | *0.54* | *60* | *1.00x* |
+| mut-odo-vecdims-add-in | 0.036 | 0.061 | 0.53 | 60 | 1.00x |
+| **mut-odo-vecdims** | **0.036** | 0.062 | 0.68 | 60 | 1.00x |
+| mut-odo-vecdims-add-both | 0.037 | 0.067 | 0.51 | 60 | 1.00x |
 | mut-odo-vecdims-add-out | 0.037 | 0.066 | 0.50 | 60 | 1.00x |
-| build | 0.056 | 0.137 | 2.45 | 60 | 1.00x |
-| *mut-odo-aa-distant* | *0.056* | *0.137* | *1.57* | *60* | *1.00x* |
-| *build-aa-adjacent* | *0.057* | *0.144* | *1.35* | *60* | *1.00x* |
-| mut-odo | 0.057 | 0.136 | 1.98 | 60 | 1.00x |
-| *build-aa-distant* | *0.058* | *0.156* | *2.16* | *60* | *1.00x* |
-| *mut-odo-aa-adjacent* | *0.060* | *0.167* | *1.71* | *60* | *1.00x* |
-| mut-flat-gm | 0.066 | 0.070 | 0.61 | 49 | 1.13x |
-| bq-mut-runs-gm-mulback | 0.079 | 0.088 | 0.66 | 47 | 1.13x |
-| bq-expand-gm-mulback | 0.080 | 0.082 | 1.04 | 48 | 1.38x |
-| bq-odo-gm-mulback | 0.082 | 0.086 | 0.64 | 47 | 1.14x |
-| *bq-odo-gm-mulback-aa-adjacent* | *0.082* | *0.087* | *0.65* | *47* | *1.14x* |
-| *bq-odo-gm-mulback-aa-distant* | *0.083* | *0.088* | *0.54* | *47* | *1.14x* |
-| bq-mut-runs | 0.085 | 0.093 | 0.71 | 46 | 1.13x |
-| *offtab-aa-distant* | *0.087* | *0.160* | *0.75* | *52* | *2.00x* |
-| *offtab-aa-adjacent* | *0.088* | *0.168* | *0.91* | *52* | *2.00x* |
-| bq-expand-b | 0.090 | 0.095 | 0.67 | 46 | 1.38x |
-| bq-expand-qr-prim | 0.091 | 0.095 | 0.67 | 46 | 1.38x |
-| *bq-expand-aa-distant* | *0.091* | *0.095* | *0.49* | *46* | *1.38x* |
-| bq-expand-zf | 0.092 | 0.095 | 0.67 | 46 | 1.38x |
-| *bq-expand-aa-adjacent* | *0.092* | *0.095* | *0.67* | *46* | *1.38x* |
-| *bq-scan-rem-gm-mulback-aa-adjacent* | *0.092* | *0.098* | *0.65* | *47* | *1.13x* |
-| bq-expand | 0.092 | 0.095 | 0.67 | 46 | 1.38x |
-| **bq-scan-rem-gm-mulback** | **0.092** | 0.098 | 0.68 | 47 | 1.13x |
-| *bq-scan-rem-gm-mulback-aa-distant* | *0.092* | *0.100* | *0.15* | *47* | *1.13x* |
-| offtab | 0.093 | 0.188 | 1.61 | 52 | 2.00x |
-| bq-mut | 0.120 | 0.164 | 0.72 | 46 | 1.13x |
-| offtab-scan-rem | 0.125 | 0.136 | 1.08 | 42 | 2.00x |
-| bq-gen | 0.182 | 0.291 | 1.21 | 46 | 1.13x |
-| *gen-unsafe-aa-adjacent* | *0.807* | *1.029* | *1.55* | *21* | *1.00x* |
-| gen-unsafe | 0.917 | 0.960 | 1.83 | 22 | 1.00x |
-| *gen-unsafe-aa-distant* | *0.931* | *1.008* | *1.56* | *22* | *1.00x* |
-| gen-quotrem | 0.933 | 1.013 | 4.49 | 21 | 1.00x |
-| *list-aa-distant* | *0.995* | *1.008* | *1.16* | *18* | *20.62x* |
-| *list-aa-adjacent* | *1.000* | *1.018* | *0.72* | *18* | *20.62x* |
-| list (baseline) | 1.000 | 1.000 | 1.19 | 18 | 20.62x |
+| build | 0.057 | 0.131 | 1.18 | 60 | 1.00x |
+| *build-aa-adjacent* | *0.057* | *0.146* | *1.36* | *60* | *1.00x* |
+| *build-aa-distant* | *0.057* | *0.139* | *2.13* | *60* | *1.00x* |
+| *mut-odo-aa-adjacent* | *0.058* | *0.152* | *1.37* | *60* | *1.00x* |
+| *mut-odo-aa-distant* | *0.058* | *0.150* | *1.56* | *60* | *1.00x* |
+| mut-odo | 0.059 | 0.152 | 1.13 | 60 | 1.00x |
+| mut-flat-gm | 0.067 | 0.071 | 0.62 | 49 | 1.13x |
+| bq-mut-runs-gm-mulback | 0.079 | 0.089 | 0.67 | 47 | 1.13x |
+| bq-expand-gm-mulback | 0.079 | 0.082 | 0.63 | 48 | 1.38x |
+| *bq-odo-gm-mulback-aa-adjacent* | *0.082* | *0.088* | *0.66* | *47* | *1.14x* |
+| bq-odo-gm-mulback | 0.083 | 0.088 | 0.68 | 47 | 1.14x |
+| *bq-odo-gm-mulback-aa-distant* | *0.083* | *0.088* | *0.57* | *47* | *1.14x* |
+| bq-mut-runs | 0.086 | 0.095 | 0.68 | 46 | 1.13x |
+| bq-expand-b | 0.088 | 0.096 | 0.69 | 46 | 1.38x |
+| *offtab-aa-distant* | *0.089* | *0.172* | *0.66* | *52* | *2.00x* |
+| *offtab-aa-adjacent* | *0.089* | *0.173* | *0.89* | *52* | *2.00x* |
+| offtab | 0.090 | 0.179 | 0.89 | 52 | 2.00x |
+| bq-expand-qr-prim | 0.091 | 0.096 | 0.66 | 46 | 1.38x |
+| *bq-expand-aa-adjacent* | *0.091* | *0.096* | *0.70* | *46* | *1.38x* |
+| **bq-scan-rem-gm-mulback** | **0.091** | 0.098 | 0.68 | 47 | 1.13x |
+| bq-expand-zf | 0.091 | 0.097 | 0.82 | 46 | 1.38x |
+| bq-expand | 0.091 | 0.097 | 0.66 | 46 | 1.38x |
+| *bq-expand-aa-distant* | *0.091* | *0.097* | *0.36* | *46* | *1.38x* |
+| *bq-scan-rem-gm-mulback-aa-distant* | *0.092* | *0.100* | *0.37* | *47* | *1.13x* |
+| *bq-scan-rem-gm-mulback-aa-adjacent* | *0.092* | *0.098* | *0.66* | *47* | *1.13x* |
+| bq-mut | 0.120 | 0.158 | 0.65 | 46 | 1.13x |
+| offtab-scan-rem | 0.126 | 0.136 | 1.06 | 43 | 2.00x |
+| bq-gen | 0.184 | 0.299 | 0.73 | 46 | 1.13x |
+| gen-unsafe | 0.902 | 0.986 | 2.63 | 22 | 1.00x |
+| gen-quotrem | 0.922 | 0.962 | 3.35 | 21 | 1.00x |
+| *gen-unsafe-aa-adjacent* | *0.935* | *0.978* | *2.84* | *22* | *1.00x* |
+| *gen-unsafe-aa-distant* | *0.981* | *0.985* | *1.80* | *21* | *1.00x* |
+| *list-aa-distant* | *0.997* | *1.003* | *1.21* | *18* | *20.62x* |
+| list (baseline) | 1.000 | 1.000 | 1.09 | 18 | 20.62x |
+| *list-aa-adjacent* | *1.003* | *1.011* | *0.69* | *18* | *20.62x* |
 
-**Controls:** The largest A/A pair is `offtab-aa-distant` at 0.9355, worst cell
-14.94% on `bcast-tall-Mx2`, and 16 of 18 intervals cover 1. The `sum-only`
-halves agree at 1.0023 on a worst cell of 0.54% on `bcast-inner900`,
-its interval missing 1. The in-situ term reads 1.0359, 1.0339, 1.0385
+**Controls:** The largest A/A pair is `gen-unsafe-aa-distant` at 1.0479, worst
+cell 10.82% on `bcast-tall-Mx2`, and 16 of 18 intervals cover 1. The `sum-only`
+halves agree at 1.0003 on a worst cell of 0.07% on `bcast-inner900`,
+its interval covering 1. The in-situ term reads 1.0331, 1.0126, 1.0212
 of `sum-only` as medians, on `mut-odo-vecdims`, `mut-flat-gm`, `bq-expand`. Raw,
-that pair reads 0.9463, which the correction amplifies by 1.42x --- quote both
+that pair reads 1.0453, which the correction amplifies by 1.05x --- quote both
 wherever that is past 1.5.
 
-**Provenance:** elapsed 0h12m18s, peak 137 MiB in use, 40 MiB max residency;
+**Provenance:** elapsed 0h12m16s, peak 137 MiB in use, 40 MiB max residency;
 the reader reads 47 benchmarks over 3 shapes of the bcast class. Anchor:
-`bcast-inner900`, `list` at 28.9 ms per call raw, 27.8 ms net.
+`bcast-inner900`, `list` at 28.2 ms per call raw, 27.1 ms net.
 
 **Per shape, in the lead's order (bcast-inner8, bcast-inner900,
-bcast-tall-Mx2):** `mut-odo-vecdims` 0.033/0.022/0.063 `bq-scan-rem-gm-mulback`
-0.090/0.087/0.098
+bcast-tall-Mx2):** `mut-odo-vecdims` 0.033/0.022/0.062 `bq-scan-rem-gm-mulback`
+0.090/0.089/0.098
 
-**Across the halves:** 24 of the 42 arms are faster on this half and 18 slower,
-at a geomean of 0.9928, from `offtab-aa-distant` at 0.8998 to `build-aa-distant`
-at 1.0574, with `list` itself at 0.9975.
+**Across the halves:** 21 of the 42 arms are faster on this half and 21 slower,
+at a geomean of 0.9836, from `bq-odo-gm-mulback-aa-distant` at 0.8883
+to `mut-odo-vecdims-add-both-down` at 1.0381, with `list` itself at 1.0018.
 
 **What the class says:** all three properties hold. The `mut-odo-vecdims` row's
-`worst` is 0.063, `bq-expand` sits behind it at 0.3898 paired, and the family
-member leading is `mut-odo-vecdims-add-both-down` by **1.0179** paired at 1 of 3
---- inside this class's 6.45% floor, the widest of the eight, so it is a sort
-order and not a separation. `bcast` is also the one class where Run 17 had
-`mut-odo-vecdims` itself on top; which member leads has moved again, and no run
-has yet separated them anywhere.
+`worst` is 0.062, `bq-expand` sits behind it at 2.5499 paired and behind on all
+three shapes, and the family member leading is `mut-odo-vecdims-add-both-down`
+by **0.9813** paired at 2 of 3 --- a 1.87% margin inside this class's 4.79%
+floor, so a sort order and not a separation, and the same member led here on
+Run 18. The one figure of this class that is not a fill's
+is `mut-flat-gm / mut-odo-vecdims` at 1.8606, whose interval reaches **0.9990**
+--- so the best arm outside the family is level with the fix at the bottom
+of its range here, where in five of the eight classes that interval stays clear
+of 1 entirely. Two go further than `bcast` does: `window` and `reshape1`, both
+of them putting that arm ahead on a unit-innermost shape.
 
 **`bcastmid` --- the stretched axis in the middle instead: stride 0 on an outer
 dimension.** Shapes: `bcastmid-c32-cnn` (`l` 165888, `sInner` 3),
@@ -9958,79 +10113,86 @@ dimension.** Shapes: `bcastmid-c32-cnn` (`l` 165888, `sInner` 3),
 
 | strategy | time | worst | CI% | smp | alloc |
 |---|---:|---:|---:|---:|---:|
-| *bq-expand-nosum* | *--* | *--* | *0.14* | *87* | *2.11x* |
-| *mut-flat-gm-nosum* | *--* | *--* | *0.45* | *94* | *1.33x* |
-| *mut-odo-vecdims-nosum* | *--* | *--* | *0.58* | *102* | *1.00x* |
+| *bq-expand-nosum* | *--* | *--* | *0.23* | *87* | *2.11x* |
+| *mut-flat-gm-nosum* | *--* | *--* | *0.80* | *94* | *1.33x* |
+| *mut-odo-vecdims-nosum* | *--* | *--* | *0.50* | *102* | *1.00x* |
 | *sum-only-early* | *--* | *--* | *0.01* | *108* | *0.00x* |
 | *sum-only-late* | *--* | *--* | *0.01* | *108* | *0.00x* |
-| mut-odo-vecdims-add-in | 0.036 | 0.058 | 0.10 | 94 | 1.00x |
-| **mut-odo-vecdims** | **0.036** | 0.058 | 0.30 | 94 | 1.00x |
-| *mut-odo-vecdims-aa* | *0.036* | *0.058* | *0.54* | *94* | *1.00x* |
-| *mut-odo-vecdims-aa-distant* | *0.036* | *0.059* | *0.49* | *94* | *1.00x* |
-| mut-odo-vecdims-add-both | 0.038 | 0.063 | 0.09 | 93 | 1.00x |
-| mut-odo-vecdims-add-out | 0.039 | 0.066 | 0.11 | 92 | 1.00x |
-| mut-odo-vecdims-add-both-down | 0.042 | 0.062 | 0.22 | 93 | 1.00x |
-| *build-aa-distant* | *0.062* | *0.137* | *1.56* | *81* | *1.00x* |
-| build | 0.063 | 0.141 | 1.96 | 81 | 1.00x |
-| *build-aa-adjacent* | *0.064* | *0.138* | *2.06* | *81* | *1.00x* |
-| *mut-odo-aa-distant* | *0.066* | *0.142* | *1.41* | *81* | *1.00x* |
-| mut-flat-gm | 0.066 | 0.090 | 0.41 | 87 | 1.33x |
-| *mut-odo-aa-adjacent* | *0.067* | *0.135* | *0.25* | *81* | *1.00x* |
-| mut-odo | 0.069 | 0.148 | 0.41 | 80 | 1.00x |
-| bq-mut-runs-gm-mulback | 0.078 | 0.098 | 0.66 | 84 | 1.33x |
-| bq-expand-gm-mulback | 0.084 | 0.119 | 0.16 | 83 | 2.11x |
-| bq-mut-runs | 0.084 | 0.108 | 0.72 | 84 | 1.33x |
-| *bq-scan-rem-gm-mulback-aa-adjacent* | *0.084* | *0.098* | *0.12* | *84* | *1.33x* |
-| **bq-scan-rem-gm-mulback** | **0.084** | 0.098 | 0.11 | 84 | 1.33x |
-| *bq-scan-rem-gm-mulback-aa-distant* | *0.084* | *0.098* | *0.14* | *84* | *1.33x* |
-| *bq-odo-gm-mulback-aa-adjacent* | *0.085* | *0.123* | *0.19* | *83* | *1.33x* |
-| bq-odo-gm-mulback | 0.085 | 0.123 | 0.33 | 83 | 1.33x |
-| *bq-odo-gm-mulback-aa-distant* | *0.086* | *0.123* | *0.19* | *83* | *1.33x* |
-| *offtab-aa-distant* | *0.092* | *0.171* | *0.48* | *78* | *2.00x* |
-| bq-expand-qr-prim | 0.094 | 0.129 | 0.20 | 82 | 2.11x |
-| bq-expand | 0.094 | 0.130 | 0.13 | 82 | 2.11x |
-| bq-expand-b | 0.094 | 0.129 | 0.15 | 82 | 2.11x |
-| *bq-expand-aa-adjacent* | *0.094* | *0.130* | *0.13* | *82* | *2.11x* |
-| *offtab-aa-adjacent* | *0.095* | *0.173* | *1.21* | *77* | *2.00x* |
-| *bq-expand-aa-distant* | *0.095* | *0.131* | *0.19* | *82* | *2.11x* |
-| bq-expand-zf | 0.096 | 0.135 | 0.16 | 81 | 2.11x |
-| offtab | 0.096 | 0.176 | 1.15 | 77 | 2.00x |
-| offtab-scan-rem | 0.119 | 0.125 | 0.16 | 79 | 2.00x |
-| bq-mut | 0.123 | 0.180 | 0.44 | 77 | 1.33x |
-| bq-gen | 0.273 | 0.624 | 1.16 | 55 | 1.33x |
-| gen-unsafe | 0.931 | 1.353 | 1.94 | 42 | 1.00x |
-| *gen-unsafe-aa-adjacent* | *0.947* | *1.406* | *2.91* | *41* | *1.00x* |
-| *gen-unsafe-aa-distant* | *0.960* | *1.329* | *1.29* | *42* | *1.00x* |
-| gen-quotrem | 0.963 | 1.334 | 1.01 | 41 | 1.00x |
-| *list-aa-distant* | *0.996* | *0.999* | *0.28* | *44* | *23.31x* |
-| *list-aa-adjacent* | *0.999* | *1.001* | *0.47* | *44* | *23.31x* |
-| list (baseline) | 1.000 | 1.000 | 1.06 | 44 | 23.31x |
+| mut-odo-vecdims-add-in | 0.036 | 0.058 | 0.14 | 94 | 1.00x |
+| *mut-odo-vecdims-aa* | *0.036* | *0.058* | *0.49* | *94* | *1.00x* |
+| *mut-odo-vecdims-aa-distant* | *0.037* | *0.058* | *0.47* | *94* | *1.00x* |
+| **mut-odo-vecdims** | **0.037** | 0.059 | 0.52 | 94 | 1.00x |
+| mut-odo-vecdims-add-both | 0.038 | 0.064 | 0.10 | 93 | 1.00x |
+| mut-odo-vecdims-add-out | 0.039 | 0.066 | 0.12 | 93 | 1.00x |
+| mut-odo-vecdims-add-both-down | 0.042 | 0.062 | 0.26 | 93 | 1.00x |
+| build | 0.063 | 0.138 | 1.52 | 81 | 1.00x |
+| *build-aa-adjacent* | *0.065* | *0.148* | *2.36* | *81* | *1.00x* |
+| *build-aa-distant* | *0.066* | *0.148* | *2.00* | *80* | *1.00x* |
+| mut-flat-gm | 0.066 | 0.090 | 0.43 | 87 | 1.33x |
+| *mut-odo-aa-adjacent* | *0.067* | *0.147* | *2.21* | *81* | *1.00x* |
+| *mut-odo-aa-distant* | *0.068* | *0.158* | *1.37* | *80* | *1.00x* |
+| mut-odo | 0.069 | 0.157 | 1.06 | 80 | 1.00x |
+| bq-mut-runs-gm-mulback | 0.078 | 0.100 | 0.23 | 85 | 1.33x |
+| bq-mut-runs | 0.084 | 0.107 | 0.13 | 84 | 1.33x |
+| bq-expand-gm-mulback | 0.084 | 0.122 | 0.18 | 83 | 2.11x |
+| **bq-scan-rem-gm-mulback** | **0.085** | 0.100 | 0.16 | 84 | 1.33x |
+| *bq-scan-rem-gm-mulback-aa-adjacent* | *0.085* | *0.100* | *0.13* | *84* | *1.33x* |
+| *bq-scan-rem-gm-mulback-aa-distant* | *0.086* | *0.099* | *0.12* | *84* | *1.33x* |
+| *bq-odo-gm-mulback-aa-adjacent* | *0.086* | *0.125* | *0.14* | *83* | *1.33x* |
+| bq-odo-gm-mulback | 0.086 | 0.125 | 0.13 | 83 | 1.33x |
+| *bq-odo-gm-mulback-aa-distant* | *0.086* | *0.124* | *0.19* | *83* | *1.33x* |
+| bq-expand-qr-prim | 0.094 | 0.132 | 0.18 | 82 | 2.11x |
+| bq-expand | 0.095 | 0.131 | 0.13 | 82 | 2.11x |
+| bq-expand-b | 0.095 | 0.133 | 0.13 | 82 | 2.11x |
+| *bq-expand-aa-adjacent* | *0.095* | *0.132* | *0.16* | *82* | *2.11x* |
+| *bq-expand-aa-distant* | *0.095* | *0.132* | *0.18* | *82* | *2.11x* |
+| bq-expand-zf | 0.097 | 0.139 | 0.17 | 81 | 2.11x |
+| offtab | 0.097 | 0.169 | 1.64 | 78 | 2.00x |
+| *offtab-aa-distant* | *0.098* | *0.161* | *2.40* | *79* | *2.00x* |
+| *offtab-aa-adjacent* | *0.099* | *0.175* | *1.52* | *78* | *2.00x* |
+| offtab-scan-rem | 0.116 | 0.128 | 0.19 | 79 | 2.00x |
+| bq-mut | 0.120 | 0.170 | 0.92 | 78 | 1.33x |
+| bq-gen | 0.270 | 0.654 | 2.09 | 54 | 1.33x |
+| *gen-unsafe-aa-distant* | *0.918* | *1.347* | *1.48* | *42* | *1.00x* |
+| gen-unsafe | 0.922 | 1.359 | 1.67 | 42 | 1.00x |
+| *gen-unsafe-aa-adjacent* | *0.949* | *1.336* | *3.48* | *42* | *1.00x* |
+| gen-quotrem | 0.968 | 1.405 | 2.30 | 41 | 1.00x |
+| list (baseline) | 1.000 | 1.000 | 0.30 | 44 | 23.31x |
+| *list-aa-adjacent* | *1.000* | *1.006* | *0.61* | *44* | *23.31x* |
+| *list-aa-distant* | *1.009* | *1.016* | *0.31* | *44* | *23.31x* |
 
-**Controls:** The largest A/A pair is `mut-odo-aa-distant` at 0.9635, worst cell
-5.93% on `bcastmid-b200k`, and 15 of 18 intervals cover 1. The `sum-only` halves
-agree at 1.0005 on a worst cell of 0.54% on `bcastmid-primes`, its interval
-covering 1. The in-situ term reads 1.0252, 1.0203, 1.0637 of `sum-only`
-as medians, on `mut-odo-vecdims`, `mut-flat-gm`, `bq-expand`. Raw, that pair
-reads 0.9708, which the correction amplifies by 1.50x --- quote both wherever
-that is past 1.5.
+**Controls:** The largest A/A pair is `build-aa-distant` at 1.0416, worst cell
+7.36% on `bcastmid-c32-cnn`, and 10 of 18 intervals cover 1. The `sum-only`
+halves agree at 0.9988 on a worst cell of 0.35% on `bcastmid-b200k`,
+its interval covering 1. The in-situ term reads 1.0251, 1.0173, 1.0094
+of `sum-only` as medians, on `mut-odo-vecdims`, `mut-flat-gm`, `bq-expand`. Raw,
+that pair reads 1.0316, which the correction amplifies by 1.52x --- quote both
+wherever that is past 1.5.
 
-**Provenance:** elapsed 0h12m14s, peak 124 MiB in use, 33 MiB max residency;
+**Provenance:** elapsed 0h12m15s, peak 125 MiB in use, 33 MiB max residency;
 the reader reads 47 benchmarks over 3 shapes of the bcastmid class. Anchor:
-`bcastmid-b200k`, `list` at 47.1 ms per call raw, 46 ms net.
+`bcastmid-b200k`, `list` at 46.7 ms per call raw, 45.6 ms net.
 
 **Per shape, in the lead's order (bcastmid-c32-cnn, bcastmid-primes,
-bcastmid-b200k):** `mut-odo-vecdims` 0.058/0.022/0.037 `bq-scan-rem-gm-mulback`
-0.098/0.086/0.071
+bcastmid-b200k):** `mut-odo-vecdims` 0.059/0.022/0.037 `bq-scan-rem-gm-mulback`
+0.100/0.087/0.071
 
-**Across the halves:** 23 of the 42 arms are faster on this half and 19 slower,
-at a geomean of 0.9949, from `gen-unsafe` at 0.9124 to `bq-gen` at 1.1142,
-with `list` itself at 1.0037.
+**Across the halves:** 20 of the 42 arms are faster on this half and 22 slower,
+at a geomean of 0.9887, from `bq-odo-gm-mulback` at 0.9035 to `bq-gen`
+at 1.0769, with `list` itself at 1.0160. **The baseline moved 1.60% between
+the halves, past the 0.7% that lets two columns be differenced, so this line
+is NOT read for the pair's variable.** The table above is one process's
+and stands; what goes is the comparison.
 
 **What the class says:** all three properties hold and nothing inverted.
-The `mut-odo-vecdims` row's `worst` is 0.058, `bq-expand / mut-odo-vecdims`
-reads 2.6062 paired and is behind on all three shapes,
-and `mut-odo-vecdims-add-in / mut-odo-vecdims` is **0.9955** paired at 3 of 3
---- a 0.45% margin against a 3.65% floor, which is a tie by any reading.
+The `mut-odo-vecdims` row's `worst` is 0.059, `bq-expand / mut-odo-vecdims`
+reads 2.5840 paired and is behind on all three shapes,
+and `mut-odo-vecdims-add-in / mut-odo-vecdims` is **0.9795** paired at 3 of 3
+--- a 2.05% margin against a 4.16% floor, so ahead on every shape and still
+inside the floor, which is what a three-shape population can say and no more.
+**This class's cross-half line is not read for the pair's variable**: `list`
+moved 1.60% between the halves, past the 0.7% that lets two columns
+be differenced. The table above is one process's and stands.
 
 **`reshape1` --- the `[n] -> [n, 1]` trap: innermost extent 1 on a stride-0
 axis.** Shapes: `reshape1-500k` (`l` 500000, `sInner` 1), `reshape1-r3` (`l`
@@ -10038,89 +10200,88 @@ axis.** Shapes: `reshape1-500k` (`l` 500000, `sInner` 1), `reshape1-r3` (`l`
 
 | strategy | time | worst | CI% | smp | alloc |
 |---|---:|---:|---:|---:|---:|
-| *bq-expand-nosum* | *--* | *--* | *0.44* | *83* | *5.43x* |
-| *mut-flat-gm-nosum* | *--* | *--* | *0.25* | *98* | *2.00x* |
-| *mut-odo-vecdims-nosum* | *--* | *--* | *0.34* | *87* | *1.00x* |
-| *sum-only-early* | *--* | *--* | *0.02* | *115* | *0.00x* |
+| *bq-expand-nosum* | *--* | *--* | *0.42* | *84* | *5.43x* |
+| *mut-flat-gm-nosum* | *--* | *--* | *0.31* | *97* | *2.00x* |
+| *mut-odo-vecdims-nosum* | *--* | *--* | *0.31* | *87* | *1.00x* |
+| *sum-only-early* | *--* | *--* | *0.01* | *115* | *0.00x* |
 | *sum-only-late* | *--* | *--* | *0.01* | *115* | *0.00x* |
-| bq-mut-runs-gm-mulback | 0.034 | 0.118 | 0.28 | 96 | 2.00x |
-| mut-flat-gm | 0.034 | 0.136 | 0.34 | 95 | 2.00x |
-| *bq-odo-gm-mulback-aa-distant* | *0.058* | *0.141* | *0.13* | *92* | *2.31x* |
-| bq-odo-gm-mulback | 0.058 | 0.141 | 0.15 | 92 | 2.31x |
-| *bq-odo-gm-mulback-aa-adjacent* | *0.059* | *0.141* | *0.17* | *92* | *2.31x* |
-| *bq-scan-rem-gm-mulback-aa-distant* | *0.075* | *0.091* | *0.18* | *86* | *2.00x* |
-| offtab-scan-rem | 0.075 | 0.090 | 0.14 | 86 | 2.00x |
-| bq-mut-runs | 0.075 | 0.159 | 0.28 | 86 | 2.00x |
-| *bq-scan-rem-gm-mulback-aa-adjacent* | *0.075* | *0.091* | *0.12* | *86* | *2.00x* |
-| **bq-scan-rem-gm-mulback** | **0.075** | 0.091 | 0.13 | 86 | 2.00x |
-| bq-expand-gm-mulback | 0.079 | 0.167 | 0.36 | 86 | 5.43x |
-| *mut-odo-vecdims-aa-distant* | *0.092* | *0.110* | *0.18* | *83* | *1.00x* |
-| mut-odo-vecdims-add-in | 0.093 | 0.106 | 0.19 | 82 | 1.00x |
-| **mut-odo-vecdims** | **0.094** | 0.117 | 0.21 | 82 | 1.00x |
-| *mut-odo-vecdims-aa* | *0.098* | *0.109* | *1.21* | *82* | *1.00x* |
-| mut-odo-vecdims-add-both | 0.100 | 0.120 | 0.22 | 81 | 1.00x |
-| mut-odo-vecdims-add-both-down | 0.100 | 0.116 | 0.23 | 81 | 1.00x |
-| mut-odo-vecdims-add-out | 0.102 | 0.121 | 0.09 | 81 | 1.00x |
-| bq-expand-b | 0.115 | 0.200 | 0.30 | 79 | 5.43x |
-| bq-expand | 0.121 | 0.199 | 0.36 | 79 | 5.43x |
-| bq-expand-qr-prim | 0.121 | 0.199 | 0.35 | 79 | 5.43x |
-| *bq-expand-aa-distant* | *0.122* | *0.200* | *0.27* | *79* | *5.43x* |
-| *bq-expand-aa-adjacent* | *0.122* | *0.200* | *0.30* | *79* | *5.43x* |
-| bq-expand-zf | 0.125 | 0.215 | 0.41 | 79 | 5.43x |
-| *build-aa-distant* | *0.238* | *0.291* | *2.16* | *67* | *1.00x* |
-| *build-aa-adjacent* | *0.242* | *0.285* | *2.61* | *67* | *1.00x* |
-| bq-mut | 0.244 | 0.284 | 0.70 | 66 | 2.00x |
-| build | 0.247 | 0.298 | 2.66 | 67 | 1.00x |
-| *mut-odo-aa-adjacent* | *0.258* | *0.297* | *2.67* | *65* | *1.00x* |
-| mut-odo | 0.262 | 0.337 | 3.07 | 65 | 1.00x |
-| *mut-odo-aa-distant* | *0.264* | *0.292* | *1.73* | *65* | *1.00x* |
-| offtab | 0.270 | 0.333 | 0.23 | 64 | 2.00x |
-| *offtab-aa-distant* | *0.271* | *0.297* | *0.45* | *64* | *2.00x* |
-| *offtab-aa-adjacent* | *0.294* | *0.343* | *0.76* | *63* | *2.00x* |
-| *gen-unsafe-aa-distant* | *0.874* | *1.994* | *1.98* | *44* | *1.00x* |
-| *gen-unsafe-aa-adjacent* | *0.884* | *1.958* | *1.33* | *45* | *1.00x* |
-| gen-unsafe | 0.893 | 2.018 | 1.48 | 45 | 1.00x |
-| gen-quotrem | 0.909 | 2.045 | 1.79 | 44 | 1.00x |
-| list (baseline) | 1.000 | 1.000 | 0.28 | 41 | 32.34x |
-| *list-aa-adjacent* | *1.000* | *1.008* | *0.26* | *41* | *32.34x* |
-| *list-aa-distant* | *1.001* | *1.002* | *0.28* | *41* | *32.34x* |
-| bq-gen | 1.131 | 2.984 | 2.40 | 39 | 2.00x |
+| bq-mut-runs-gm-mulback | 0.033 | 0.113 | 0.26 | 97 | 2.00x |
+| mut-flat-gm | 0.033 | 0.135 | 0.27 | 95 | 2.00x |
+| bq-odo-gm-mulback | 0.058 | 0.143 | 0.16 | 92 | 2.31x |
+| *bq-odo-gm-mulback-aa-adjacent* | *0.058* | *0.142* | *0.15* | *92* | *2.31x* |
+| *bq-odo-gm-mulback-aa-distant* | *0.058* | *0.144* | *0.13* | *92* | *2.31x* |
+| offtab-scan-rem | 0.073 | 0.092 | 0.15 | 86 | 2.00x |
+| bq-mut-runs | 0.074 | 0.162 | 0.28 | 86 | 2.00x |
+| **bq-scan-rem-gm-mulback** | **0.074** | 0.091 | 0.14 | 86 | 2.00x |
+| *bq-scan-rem-gm-mulback-aa-adjacent* | *0.074* | *0.091* | *0.13* | *86* | *2.00x* |
+| *bq-scan-rem-gm-mulback-aa-distant* | *0.076* | *0.091* | *0.12* | *86* | *2.00x* |
+| bq-expand-gm-mulback | 0.079 | 0.171 | 0.43 | 86 | 5.43x |
+| mut-odo-vecdims-add-in | 0.093 | 0.107 | 0.08 | 83 | 1.00x |
+| *mut-odo-vecdims-aa-distant* | *0.093* | *0.109* | *0.19* | *83* | *1.00x* |
+| *mut-odo-vecdims-aa* | *0.094* | *0.113* | *0.29* | *83* | *1.00x* |
+| **mut-odo-vecdims** | **0.094** | 0.110 | 0.22 | 83 | 1.00x |
+| mut-odo-vecdims-add-both | 0.102 | 0.123 | 0.08 | 81 | 1.00x |
+| mut-odo-vecdims-add-out | 0.102 | 0.123 | 0.20 | 81 | 1.00x |
+| mut-odo-vecdims-add-both-down | 0.105 | 0.118 | 0.19 | 81 | 1.00x |
+| bq-expand-b | 0.115 | 0.201 | 0.31 | 79 | 5.43x |
+| bq-expand-qr-prim | 0.121 | 0.202 | 0.33 | 79 | 5.43x |
+| bq-expand | 0.121 | 0.202 | 0.43 | 79 | 5.43x |
+| *bq-expand-aa-distant* | *0.121* | *0.204* | *0.27* | *79* | *5.43x* |
+| *bq-expand-aa-adjacent* | *0.121* | *0.202* | *0.37* | *79* | *5.43x* |
+| bq-expand-zf | 0.125 | 0.219 | 0.32 | 79 | 5.43x |
+| build | 0.231 | 0.311 | 3.84 | 67 | 1.00x |
+| bq-mut | 0.247 | 0.298 | 2.32 | 66 | 2.00x |
+| *build-aa-distant* | *0.250* | *0.297* | *3.20* | *67* | *1.00x* |
+| *build-aa-adjacent* | *0.251* | *0.303* | *2.94* | *66* | *1.00x* |
+| mut-odo | 0.262 | 0.337 | 2.33 | 66 | 1.00x |
+| *mut-odo-aa-distant* | *0.263* | *0.331* | *2.47* | *65* | *1.00x* |
+| *mut-odo-aa-adjacent* | *0.283* | *0.332* | *2.44* | *65* | *1.00x* |
+| offtab | 0.285 | 0.351 | 2.52 | 64 | 2.00x |
+| *offtab-aa-distant* | *0.288* | *0.353* | *1.43* | *64* | *2.00x* |
+| *offtab-aa-adjacent* | *0.293* | *0.366* | *0.61* | *64* | *2.00x* |
+| *gen-unsafe-aa-adjacent* | *0.877* | *2.044* | *0.85* | *45* | *1.00x* |
+| gen-unsafe | 0.895 | 2.061 | 2.02 | 45 | 1.00x |
+| *gen-unsafe-aa-distant* | *0.913* | *1.969* | *1.50* | *43* | *1.00x* |
+| gen-quotrem | 0.929 | 2.079 | 1.90 | 43 | 1.00x |
+| list (baseline) | 1.000 | 1.000 | 0.34 | 42 | 32.34x |
+| *list-aa-distant* | *1.000* | *1.009* | *0.41* | *41* | *32.34x* |
+| *list-aa-adjacent* | *1.001* | *1.004* | *0.22* | *42* | *32.34x* |
+| bq-gen | 1.110 | 2.835 | 2.08 | 39 | 2.00x |
 
-**Controls:** The largest A/A pair is `offtab-aa-distant` at 0.9421, worst cell
-10.67% on `reshape1-rank10`, and 12 of 18 intervals cover 1. The `sum-only`
-halves agree at 0.9998 on a worst cell of 0.56% on `reshape1-rank10`,
-its interval covering 1. The in-situ term reads 1.0211, 1.0657, 1.1086
+**Controls:** The largest A/A pair is `mut-odo-aa-adjacent` at 1.0811, worst
+cell 15.54% on `reshape1-500k`, and 17 of 18 intervals cover 1. The `sum-only`
+halves agree at 0.9999 on a worst cell of 0.10% on `reshape1-rank10`,
+its interval covering 1. The in-situ term reads 0.9951, 1.0298, 1.1566
 of `sum-only` as medians, on `mut-odo-vecdims`, `mut-flat-gm`, `bq-expand`. Raw,
-that pair reads 0.9459, which the correction amplifies by 1.08x --- quote both
+that pair reads 1.0735, which the correction amplifies by 1.08x --- quote both
 wherever that is past 1.5.
 
-**Provenance:** elapsed 0h12m14s, peak 123 MiB in use, 25 MiB max residency;
+**Provenance:** elapsed 0h12m15s, peak 122 MiB in use, 25 MiB max residency;
 the reader reads 47 benchmarks over 3 shapes of the reshape1 class. Anchor:
-`reshape1-500k`, `list` at 13.2 ms per call raw, 12.9 ms net.
+`reshape1-500k`, `list` at 13.3 ms per call raw, 13 ms net.
 
 **Per shape, in the lead's order (reshape1-500k, reshape1-r3,
-reshape1-rank10):** `mut-odo-vecdims` 0.091/0.092/0.117 `bq-scan-rem-gm-mulback`
-0.074/0.074/0.091
+reshape1-rank10):** `mut-odo-vecdims` 0.089/0.092/0.110 `bq-scan-rem-gm-mulback`
+0.074/0.073/0.091
 
-**Across the halves:** 26 of the 42 arms are faster on this half and 16 slower,
-at a geomean of 0.9914, from `offtab-aa-distant` at 0.8896 to `bq-gen`
-at 1.1745, with `list` itself at 0.9925. **The baseline moved 0.75% between
-the halves, past the 0.7% that lets two columns be differenced, so this line
-is NOT read for the pair's variable.** The table above is one process's
-and stands; what goes is the comparison.
+**Across the halves:** 27 of the 42 arms are faster on this half and 15 slower,
+at a geomean of 0.9873, from `mut-odo` at 0.9018 to `bq-gen` at 1.0982,
+with `list` itself at 1.0005.
 
 **What the class says:** **property 2 breaks here and only here**, as it did
-on Runs 16 and 17 and for the same reason: the fills own the top outright,
-`bq-mut-runs-gm-mulback` and `mut-flat-gm` tied at **0.034** against
-`mut-odo-vecdims`'s **0.094** --- 0.5156 and 0.5297 paired, a 48% margin
-no floor here reaches, and only the sort separating the two. Properties 1 and 3
-hold --- `worst` 0.117 on the `mut-odo-vecdims` row, the loosest of the eight,
-and `bq-expand` at 5.43x the result vector where `scaled` puts it at 1.14x,
-which is `m = l` showing through exactly as that property warns.
-`bq-expand / mut-odo-vecdims` is 1.2196, the narrowest of the eight, and
-this is the one class where that margin is not comfortable. This population
-was the standing case for a stride-conditioned redirect from Run 16 on; the drop
-of 2026-08-24 sends it to [the two-stage
+on Runs 16, 17 and 18 and for the same reason: the fills own the top outright,
+`bq-mut-runs-gm-mulback` at **0.033** and `mut-flat-gm` beside it against
+`mut-odo-vecdims`'s **0.094** --- 0.5042 and 0.5355 paired, a margin near 50%
+that this class's 8.11% floor, the widest of the eight, comes nowhere near.
+It is the one break of the eight that is a break and not a sort. Properties 1
+and 3 hold --- `worst` 0.110 on the `mut-odo-vecdims` row, the highest
+of the eight, and `bq-expand` at 5.43x the result vector where `scaled` puts
+it at 1.14x, which is `m = l` showing through exactly as that property warns.
+`bq-expand / mut-odo-vecdims` is **1.2534 on an interval reaching 0.8801, ahead
+on one shape of three**, so in this class the last candidate is not measurably
+behind the arm that ships --- the only population of the nine where
+that is true. This population was the standing case for a stride-conditioned
+redirect from Run 16 on; the drop of 2026-08-24 sends it to [the two-stage
 plan](#the-two-stage-plan-and-the-rework-proposal) instead, whose
 canonicalization pass reclassifies every shape of it to regime 1.
 
@@ -10130,80 +10291,82 @@ Shapes: `slice-cnn-L2-24x24-c32` (`l` 165888, `sInner` 3), `slice-primes` (`l`
 
 | strategy | time | worst | CI% | smp | alloc |
 |---|---:|---:|---:|---:|---:|
-| *bq-expand-nosum* | *--* | *--* | *0.11* | *90* | *1.58x* |
-| *mut-flat-gm-nosum* | *--* | *--* | *0.35* | *93* | *1.08x* |
-| *mut-odo-vecdims-nosum* | *--* | *--* | *0.13* | *113* | *1.00x* |
+| *bq-expand-nosum* | *--* | *--* | *0.15* | *90* | *1.58x* |
+| *mut-flat-gm-nosum* | *--* | *--* | *0.27* | *93* | *1.08x* |
+| *mut-odo-vecdims-nosum* | *--* | *--* | *0.14* | *113* | *1.00x* |
 | *sum-only-early* | *--* | *--* | *0.01* | *116* | *0.00x* |
 | *sum-only-late* | *--* | *--* | *0.01* | *116* | *0.00x* |
-| mut-odo-vecdims-add-in | 0.040 | 0.057 | 0.09 | 96 | 1.00x |
-| *mut-odo-vecdims-aa-distant* | *0.040* | *0.058* | *0.10* | *96* | *1.00x* |
-| *mut-odo-vecdims-aa* | *0.041* | *0.059* | *0.09* | *96* | *1.00x* |
-| **mut-odo-vecdims** | **0.041** | 0.059 | 0.13 | 96 | 1.00x |
-| mut-odo-vecdims-add-both-down | 0.041 | 0.061 | 0.11 | 96 | 1.00x |
-| mut-odo-vecdims-add-both | 0.042 | 0.063 | 0.10 | 96 | 1.00x |
-| mut-odo-vecdims-add-out | 0.043 | 0.065 | 0.08 | 96 | 1.00x |
-| *build-aa-distant* | *0.063* | *0.133* | *0.50* | *95* | *1.00x* |
-| build | 0.064 | 0.139 | 0.63 | 95 | 1.00x |
-| *mut-odo-aa-distant* | *0.064* | *0.134* | *0.70* | *95* | *1.00x* |
-| mut-odo | 0.065 | 0.143 | 0.51 | 96 | 1.00x |
-| *build-aa-adjacent* | *0.065* | *0.137* | *1.21* | *95* | *1.00x* |
-| *mut-odo-aa-adjacent* | *0.066* | *0.137* | *0.61* | *95* | *1.00x* |
-| mut-flat-gm | 0.084 | 0.091 | 0.17 | 87 | 1.08x |
-| *offtab-aa-distant* | *0.090* | *0.158* | *0.25* | *90* | *2.00x* |
-| bq-mut-runs-gm-mulback | 0.092 | 0.094 | 0.22 | 87 | 1.08x |
-| *offtab-aa-adjacent* | *0.092* | *0.159* | *0.19* | *89* | *2.00x* |
-| offtab | 0.095 | 0.182 | 0.26 | 89 | 2.00x |
-| bq-mut-runs | 0.097 | 0.102 | 0.12 | 85 | 1.08x |
-| *bq-scan-rem-gm-mulback-aa-distant* | *0.098* | *0.103* | *0.08* | *86* | *1.08x* |
-| **bq-scan-rem-gm-mulback** | **0.098** | 0.103 | 0.11 | 86 | 1.08x |
-| *bq-scan-rem-gm-mulback-aa-adjacent* | *0.099* | *0.103* | *0.13* | *86* | *1.08x* |
-| bq-expand-gm-mulback | 0.104 | 0.121 | 0.19 | 83 | 1.58x |
-| bq-expand-b | 0.110 | 0.130 | 0.18 | 83 | 1.58x |
-| bq-expand-qr-prim | 0.110 | 0.130 | 0.10 | 83 | 1.58x |
-| *bq-odo-gm-mulback-aa-distant* | *0.110* | *0.122* | *0.11* | *83* | *1.50x* |
-| *bq-expand-aa-distant* | *0.110* | *0.129* | *0.10* | *83* | *1.58x* |
-| bq-odo-gm-mulback | 0.110 | 0.123 | 0.11 | 83 | 1.50x |
-| *bq-odo-gm-mulback-aa-adjacent* | *0.111* | *0.123* | *0.10* | *83* | *1.50x* |
-| *bq-expand-aa-adjacent* | *0.111* | *0.130* | *0.10* | *83* | *1.58x* |
-| bq-expand | 0.111 | 0.130 | 0.10 | 83 | 1.58x |
-| bq-expand-zf | 0.113 | 0.136 | 0.10 | 83 | 1.58x |
-| bq-mut | 0.124 | 0.173 | 0.36 | 83 | 1.08x |
-| offtab-scan-rem | 0.129 | 0.132 | 0.15 | 82 | 2.00x |
-| bq-gen | 0.274 | 0.631 | 1.46 | 82 | 1.08x |
-| *list-aa-adjacent* | *1.000* | *1.002* | *0.22* | *46* | *20.54x* |
-| list (baseline) | 1.000 | 1.000 | 0.23 | 46 | 20.54x |
-| *list-aa-distant* | *1.001* | *1.001* | *0.19* | *46* | *20.54x* |
-| gen-unsafe | 1.429 | 2.184 | 1.57 | 44 | 1.00x |
-| *gen-unsafe-aa-adjacent* | *1.443* | *2.275* | *0.71* | *44* | *1.00x* |
-| *gen-unsafe-aa-distant* | *1.494* | *2.459* | *1.35* | *44* | *1.00x* |
-| gen-quotrem | 1.495 | 2.373 | 2.52 | 43 | 1.00x |
+| mut-odo-vecdims-add-in | 0.040 | 0.057 | 0.11 | 96 | 1.00x |
+| *mut-odo-vecdims-aa-distant* | *0.040* | *0.058* | *0.13* | *96* | *1.00x* |
+| *mut-odo-vecdims-aa* | *0.040* | *0.058* | *0.12* | *96* | *1.00x* |
+| **mut-odo-vecdims** | **0.040** | 0.059 | 0.09 | 96 | 1.00x |
+| mut-odo-vecdims-add-both-down | 0.041 | 0.061 | 0.09 | 96 | 1.00x |
+| mut-odo-vecdims-add-both | 0.042 | 0.063 | 0.09 | 96 | 1.00x |
+| mut-odo-vecdims-add-out | 0.043 | 0.065 | 0.07 | 96 | 1.00x |
+| *build-aa-distant* | *0.064* | *0.140* | *1.23* | *96* | *1.00x* |
+| *mut-odo-aa-distant* | *0.065* | *0.140* | *1.00* | *96* | *1.00x* |
+| build | 0.065 | 0.140 | 1.10 | 95 | 1.00x |
+| mut-odo | 0.065 | 0.135 | 1.32 | 96 | 1.00x |
+| *build-aa-adjacent* | *0.065* | *0.146* | *0.19* | *95* | *1.00x* |
+| *mut-odo-aa-adjacent* | *0.066* | *0.148* | *1.19* | *96* | *1.00x* |
+| mut-flat-gm | 0.083 | 0.091 | 0.25 | 88 | 1.08x |
+| bq-mut-runs-gm-mulback | 0.091 | 0.092 | 0.26 | 87 | 1.08x |
+| offtab | 0.094 | 0.170 | 0.56 | 90 | 2.00x |
+| *offtab-aa-distant* | *0.094* | *0.171* | *0.35* | *90* | *2.00x* |
+| *offtab-aa-adjacent* | *0.096* | *0.170* | *0.81* | *90* | *2.00x* |
+| **bq-scan-rem-gm-mulback** | **0.098** | 0.102 | 0.08 | 86 | 1.08x |
+| *bq-scan-rem-gm-mulback-aa-distant* | *0.098* | *0.102* | *0.09* | *86* | *1.08x* |
+| *bq-scan-rem-gm-mulback-aa-adjacent* | *0.098* | *0.102* | *0.14* | *86* | *1.08x* |
+| bq-mut-runs | 0.100 | 0.102 | 0.34 | 85 | 1.08x |
+| bq-expand-gm-mulback | 0.104 | 0.121 | 0.13 | 83 | 1.58x |
+| bq-expand-qr-prim | 0.109 | 0.129 | 0.10 | 83 | 1.58x |
+| bq-odo-gm-mulback | 0.109 | 0.122 | 0.10 | 83 | 1.50x |
+| *bq-odo-gm-mulback-aa-adjacent* | *0.110* | *0.123* | *0.09* | *83* | *1.50x* |
+| *bq-odo-gm-mulback-aa-distant* | *0.110* | *0.123* | *0.08* | *83* | *1.50x* |
+| bq-expand-b | 0.110 | 0.129 | 0.13 | 83 | 1.58x |
+| *bq-expand-aa-adjacent* | *0.110* | *0.129* | *0.10* | *83* | *1.58x* |
+| *bq-expand-aa-distant* | *0.110* | *0.129* | *0.08* | *83* | *1.58x* |
+| bq-expand | 0.110 | 0.130 | 0.10 | 83 | 1.58x |
+| bq-expand-zf | 0.112 | 0.136 | 0.13 | 83 | 1.58x |
+| bq-mut | 0.127 | 0.180 | 0.16 | 83 | 1.08x |
+| offtab-scan-rem | 0.129 | 0.132 | 0.18 | 82 | 2.00x |
+| bq-gen | 0.275 | 0.618 | 1.60 | 82 | 1.08x |
+| *list-aa-distant* | *0.996* | *0.999* | *0.22* | *46* | *20.54x* |
+| *list-aa-adjacent* | *0.999* | *1.002* | *0.22* | *46* | *20.54x* |
+| list (baseline) | 1.000 | 1.000 | 0.25 | 46 | 20.54x |
+| gen-unsafe | 1.422 | 2.248 | 0.72 | 44 | 1.00x |
+| *gen-unsafe-aa-adjacent* | *1.439* | *2.300* | *1.18* | *44* | *1.00x* |
+| *gen-unsafe-aa-distant* | *1.451* | *2.261* | *1.24* | *43* | *1.00x* |
+| gen-quotrem | 1.459 | 2.300 | 1.11 | 43 | 1.00x |
 
-**Controls:** The largest A/A pair is `offtab-aa-distant` at 0.9399, worst cell
-13.22% on `slice-cnn-L2-24x24-c32`, and 16 of 18 intervals cover 1.
-The `sum-only` halves agree at 1.0002 on a worst cell of 0.05%
-on `slice-coprime-r7`, its interval missing 1. The in-situ term reads 1.0207,
-1.0457, 1.0492 of `sum-only` as medians, on `mut-odo-vecdims`, `mut-flat-gm`,
-`bq-expand`. Raw, that pair reads 0.9522, which the correction amplifies
-by 1.39x --- quote both wherever that is past 1.5.
+**Controls:** The largest A/A pair is `offtab-aa-adjacent` at 1.0243, worst cell
+6.96% on `slice-coprime-r7`, and 15 of 18 intervals cover 1. The `sum-only`
+halves agree at 0.9995 on a worst cell of 0.37% on `slice-primes`, its interval
+covering 1. The in-situ term reads 1.0177, 1.0212, 1.0497 of `sum-only`
+as medians, on `mut-odo-vecdims`, `mut-flat-gm`, `bq-expand`. Raw, that pair
+reads 1.0175, which the correction amplifies by 1.38x --- quote both wherever
+that is past 1.5.
 
-**Provenance:** elapsed 0h12m17s, peak 117 MiB in use, 30 MiB max residency;
+**Provenance:** elapsed 0h12m13s, peak 118 MiB in use, 30 MiB max residency;
 the reader reads 47 benchmarks over 3 shapes of the slice class. Anchor:
-`slice-primes`, `list` at 4.18 ms per call raw, 4.03 ms net.
+`slice-primes`, `list` at 4.17 ms per call raw, 4.02 ms net.
 
 **Per shape, in the lead's order (slice-cnn-L2-24x24-c32, slice-primes,
-slice-coprime-r7):** `mut-odo-vecdims` 0.059/0.030/0.038
-`bq-scan-rem-gm-mulback` 0.099/0.103/0.094
+slice-coprime-r7):** `mut-odo-vecdims` 0.059/0.030/0.037
+`bq-scan-rem-gm-mulback` 0.098/0.102/0.095
 
-**Across the halves:** 23 of the 42 arms are faster on this half and 19 slower,
-at a geomean of 0.9937, from `offtab-aa-distant` at 0.8986 to `bq-gen`
-at 1.0774, with `list` itself at 1.0021.
+**Across the halves:** 32 of the 42 arms are faster on this half and 10 slower,
+at a geomean of 0.9830, from `bq-scan-rem-gm-mulback` at 0.9355 to `bq-gen`
+at 1.0581, with `list` itself at 1.0010.
 
 **What the class says:** all three properties hold and the class reproduces
 the main ordering. The `mut-odo-vecdims` row's `worst` is 0.059,
-`bq-expand / mut-odo-vecdims` is 2.7233 and is behind on all three shapes,
-and `mut-odo-vecdims-add-in / mut-odo-vecdims` is **0.9815** paired at 2 of 3
---- a 1.85% margin inside this class's 6.01% floor, which is a tie in all
-but the sort.
+`bq-expand / mut-odo-vecdims` is 2.7337 and is behind on all three shapes,
+and `mut-odo-vecdims-add-in / mut-odo-vecdims` is **0.9856** paired at 2 of 3
+--- a 1.44% margin inside this class's 2.43% floor, which is a tie in all
+but the sort. This is the class Run 18 reversed the halves' order on, to tell
+*the 9.12 half* from *the second process of the two*; no such probe was taken
+this run, so the cross-half direction here is aliased with the order again.
 
 **`window` --- overlapping im2col patches: the workload this README opens
 by naming, with the overlap the main set's bijective map drops.** Shapes:
@@ -10213,85 +10376,88 @@ by naming, with the overlap the main set's bijective map drops.** Shapes:
 | strategy | time | worst | CI% | smp | alloc |
 |---|---:|---:|---:|---:|---:|
 | *bq-expand-nosum* | *--* | *--* | *0.12* | *116* | *2.81x* |
-| *mut-flat-gm-nosum* | *--* | *--* | *1.11* | *135* | *1.33x* |
-| *mut-odo-vecdims-nosum* | *--* | *--* | *0.59* | *120* | *1.00x* |
+| *mut-flat-gm-nosum* | *--* | *--* | *0.96* | *135* | *1.33x* |
+| *mut-odo-vecdims-nosum* | *--* | *--* | *0.89* | *120* | *1.00x* |
 | *sum-only-early* | *--* | *--* | *0.01* | *150* | *0.00x* |
-| *sum-only-late* | *--* | *--* | *0.01* | *150* | *0.00x* |
-| mut-odo-vecdims-add-in | 0.060 | 0.093 | 0.07 | 116 | 1.00x |
-| **mut-odo-vecdims** | **0.061** | 0.093 | 0.25 | 116 | 1.00x |
-| *mut-odo-vecdims-aa* | *0.061* | *0.093* | *0.32* | *116* | *1.00x* |
-| *mut-odo-vecdims-aa-distant* | *0.061* | *0.094* | *0.29* | *116* | *1.00x* |
-| mut-odo-vecdims-add-both-down | 0.064 | 0.101 | 0.06 | 115 | 1.01x |
-| mut-odo-vecdims-add-both | 0.067 | 0.102 | 0.06 | 115 | 1.01x |
-| mut-odo-vecdims-add-out | 0.068 | 0.102 | 0.06 | 115 | 1.01x |
-| mut-flat-gm | 0.073 | 0.085 | 0.37 | 127 | 1.33x |
-| bq-mut-runs-gm-mulback | 0.076 | 0.094 | 0.27 | 128 | 1.33x |
-| **bq-scan-rem-gm-mulback** | **0.089** | 0.095 | 0.16 | 120 | 1.33x |
-| *bq-scan-rem-gm-mulback-aa-adjacent* | *0.090* | *0.095* | *0.05* | *120* | *1.33x* |
-| *bq-scan-rem-gm-mulback-aa-distant* | *0.093* | *0.094* | *0.06* | *120* | *1.33x* |
-| *bq-odo-gm-mulback-aa-distant* | *0.093* | *0.118* | *0.38* | *121* | *2.55x* |
-| bq-odo-gm-mulback | 0.094 | 0.119 | 0.20 | 121 | 2.55x |
-| bq-mut-runs | 0.094 | 0.101 | 0.84 | 118 | 1.33x |
-| *bq-odo-gm-mulback-aa-adjacent* | *0.094* | *0.118* | *0.22* | *121* | *2.55x* |
-| bq-expand-gm-mulback | 0.098 | 0.114 | 0.23 | 119 | 2.81x |
-| bq-expand-qr-prim | 0.118 | 0.123 | 0.10 | 112 | 2.81x |
-| bq-expand | 0.118 | 0.123 | 0.11 | 112 | 2.81x |
-| *bq-expand-aa-adjacent* | *0.118* | *0.125* | *0.13* | *112* | *2.81x* |
-| *bq-expand-aa-distant* | *0.119* | *0.126* | *0.08* | *112* | *2.81x* |
-| bq-expand-b | 0.119 | 0.126 | 0.12 | 112 | 2.81x |
-| offtab-scan-rem | 0.120 | 0.122 | 0.06 | 120 | 2.00x |
-| bq-expand-zf | 0.122 | 0.131 | 0.11 | 112 | 2.81x |
-| *build-aa-distant* | *0.146* | *0.243* | *2.24* | *99* | *1.00x* |
-| mut-odo | 0.150 | 0.269 | 1.66 | 98 | 1.00x |
-| *mut-odo-aa-adjacent* | *0.150* | *0.249* | *1.71* | *99* | *1.00x* |
-| build | 0.150 | 0.251 | 2.73 | 99 | 1.00x |
-| *build-aa-adjacent* | *0.152* | *0.256* | *2.43* | *99* | *1.00x* |
-| *mut-odo-aa-distant* | *0.155* | *0.291* | *0.88* | *97* | *1.00x* |
-| *offtab-aa-distant* | *0.172* | *0.254* | *1.36* | *98* | *2.00x* |
-| *offtab-aa-adjacent* | *0.175* | *0.280* | *1.22* | *97* | *2.00x* |
-| bq-mut | 0.181 | 0.255 | 1.12 | 98 | 1.33x |
-| offtab | 0.181 | 0.291 | 1.36 | 96 | 2.00x |
-| bq-gen | 0.578 | 1.014 | 1.52 | 72 | 1.33x |
-| gen-unsafe | 0.980 | 1.182 | 1.49 | 77 | 1.00x |
-| *gen-unsafe-aa-adjacent* | *0.990* | *1.204* | *1.53* | *77* | *1.00x* |
-| *list-aa-distant* | *0.992* | *0.995* | *0.24* | *73* | *24.76x* |
-| *list-aa-adjacent* | *0.993* | *1.000* | *0.23* | *72* | *24.76x* |
-| list (baseline) | 1.000 | 1.000 | 0.19 | 72 | 24.76x |
-| gen-quotrem | 1.010 | 1.244 | 1.51 | 76 | 1.00x |
-| *gen-unsafe-aa-distant* | *1.018* | *1.282* | *0.77* | *77* | *1.00x* |
+| *sum-only-late* | *--* | *--* | *0.02* | *150* | *0.00x* |
+| mut-odo-vecdims-add-in | 0.060 | 0.095 | 0.08 | 116 | 1.00x |
+| *mut-odo-vecdims-aa* | *0.062* | *0.096* | *0.28* | *116* | *1.00x* |
+| *mut-odo-vecdims-aa-distant* | *0.062* | *0.095* | *0.21* | *116* | *1.00x* |
+| **mut-odo-vecdims** | **0.062** | 0.097 | 0.27 | 116 | 1.00x |
+| mut-odo-vecdims-add-both-down | 0.065 | 0.103 | 0.06 | 115 | 1.01x |
+| mut-odo-vecdims-add-both | 0.067 | 0.105 | 0.06 | 114 | 1.01x |
+| mut-odo-vecdims-add-out | 0.068 | 0.105 | 0.05 | 114 | 1.01x |
+| mut-flat-gm | 0.070 | 0.086 | 0.86 | 127 | 1.33x |
+| bq-mut-runs-gm-mulback | 0.075 | 0.095 | 0.53 | 127 | 1.33x |
+| **bq-scan-rem-gm-mulback** | **0.093** | 0.094 | 0.07 | 120 | 1.33x |
+| *bq-scan-rem-gm-mulback-aa-adjacent* | *0.093* | *0.094* | *0.08* | *120* | *1.33x* |
+| *bq-scan-rem-gm-mulback-aa-distant* | *0.093* | *0.095* | *0.16* | *120* | *1.33x* |
+| bq-odo-gm-mulback | 0.094 | 0.117 | 0.25 | 121 | 2.55x |
+| *bq-odo-gm-mulback-aa-adjacent* | *0.094* | *0.118* | *0.20* | *121* | *2.55x* |
+| bq-mut-runs | 0.094 | 0.103 | 0.66 | 118 | 1.33x |
+| *bq-odo-gm-mulback-aa-distant* | *0.094* | *0.119* | *0.19* | *121* | *2.55x* |
+| bq-expand-gm-mulback | 0.098 | 0.115 | 0.13 | 119 | 2.81x |
+| bq-expand-qr-prim | 0.119 | 0.125 | 0.11 | 112 | 2.81x |
+| offtab-scan-rem | 0.119 | 0.121 | 0.10 | 120 | 2.00x |
+| bq-expand | 0.119 | 0.127 | 0.19 | 112 | 2.81x |
+| bq-expand-b | 0.119 | 0.127 | 0.13 | 112 | 2.81x |
+| *bq-expand-aa-distant* | *0.120* | *0.127* | *0.13* | *112* | *2.81x* |
+| *bq-expand-aa-adjacent* | *0.120* | *0.127* | *0.11* | *112* | *2.81x* |
+| bq-expand-zf | 0.123 | 0.132 | 0.11 | 112 | 2.81x |
+| build | 0.143 | 0.250 | 3.07 | 99 | 1.00x |
+| *build-aa-distant* | *0.147* | *0.266* | *1.99* | *98* | *1.00x* |
+| *mut-odo-aa-distant* | *0.149* | *0.254* | *2.49* | *99* | *1.00x* |
+| mut-odo | 0.149 | 0.263 | 2.76 | 99 | 1.00x |
+| *mut-odo-aa-adjacent* | *0.152* | *0.261* | *2.16* | *99* | *1.00x* |
+| *build-aa-adjacent* | *0.154* | *0.278* | *2.65* | *98* | *1.00x* |
+| offtab | 0.178 | 0.295 | 2.48 | 96 | 2.00x |
+| *offtab-aa-distant* | *0.180* | *0.299* | *2.54* | *96* | *2.00x* |
+| *offtab-aa-adjacent* | *0.180* | *0.278* | *1.89* | *97* | *2.00x* |
+| bq-mut | 0.182 | 0.256 | 1.62 | 99 | 1.33x |
+| bq-gen | 0.595 | 1.065 | 2.27 | 72 | 1.33x |
+| *gen-unsafe-aa-adjacent* | *0.977* | *1.164* | *1.32* | *77* | *1.00x* |
+| gen-unsafe | 0.982 | 1.178 | 1.07 | 77 | 1.00x |
+| *list-aa-distant* | *0.996* | *1.000* | *0.32* | *73* | *24.76x* |
+| list (baseline) | 1.000 | 1.000 | 0.41 | 73 | 24.76x |
+| *list-aa-adjacent* | *1.003* | *1.007* | *0.45* | *72* | *24.76x* |
+| *gen-unsafe-aa-distant* | *1.025* | *1.289* | *1.31* | *75* | *1.00x* |
+| gen-quotrem | 1.051 | 1.273 | 0.95 | 76 | 1.00x |
 
-**Controls:** The largest A/A pair is `offtab-aa-distant` at 0.9483, worst cell
-12.71% on `window-64x64-k1x9`, and 13 of 18 intervals cover 1. The `sum-only`
-halves agree at 0.9999 on a worst cell of 0.29% on `window-64x64-k1x9`,
-its interval covering 1. The in-situ term reads 0.9950, 0.9715, 1.0513
+**Controls:** The largest A/A pair is `build-aa-adjacent` at 1.0757, worst cell
+11.34% on `window-64x64-k1x9`, and 13 of 18 intervals cover 1. The `sum-only`
+halves agree at 1.0005 on a worst cell of 0.08% on `window-224x224-k3`,
+its interval missing 1. The in-situ term reads 1.0022, 0.9958, 1.0396
 of `sum-only` as medians, on `mut-odo-vecdims`, `mut-flat-gm`, `bq-expand`. Raw,
-that pair reads 0.9533, which the correction amplifies by 1.17x --- quote both
+that pair reads 1.0647, which the correction amplifies by 1.21x --- quote both
 wherever that is past 1.5.
 
-**Provenance:** elapsed 0h12m14s, peak 100 MiB in use, 30 MiB max residency;
+**Provenance:** elapsed 0h12m14s, peak 103 MiB in use, 30 MiB max residency;
 the reader reads 47 benchmarks over 3 shapes of the window class. Anchor:
-`window-224x224-k3`, `list` at 9.79 ms per call raw, 9.52 ms net.
+`window-224x224-k3`, `list` at 9.67 ms per call raw, 9.4 ms net.
 
 **Per shape, in the lead's order (window-28x28-k5, window-224x224-k3,
-window-64x64-k1x9):** `mut-odo-vecdims` 0.044/0.055/0.093
-`bq-scan-rem-gm-mulback` 0.095/0.093/0.072
+window-64x64-k1x9):** `mut-odo-vecdims` 0.044/0.055/0.097
+`bq-scan-rem-gm-mulback` 0.094/0.094/0.074
 
-**Across the halves:** 20 of the 42 arms are faster on this half and 22 slower,
-at a geomean of 0.9915, from `offtab-aa-distant` at 0.8880 to `bq-gen`
-at 1.1284, with `list` itself at 1.0104. **The baseline moved 1.04% between
+**Across the halves:** 28 of the 42 arms are faster on this half and 14 slower,
+at a geomean of 0.9889, from `mut-odo-aa-distant` at 0.8925 to `bq-gen`
+at 1.1176, with `list` itself at 1.0143. **The baseline moved 1.43% between
 the halves, past the 0.7% that lets two columns be differenced, so this line
 is NOT read for the pair's variable.** The table above is one process's
 and stands; what goes is the comparison.
 
 **What the class says:** all three properties hold. The `mut-odo-vecdims` row's
-`worst` is 0.093, and the shape carrying it is `window-64x64-k1x9`,
-the unit-innermost view where `mut-flat-gm / mut-odo-vecdims` falls to **0.488**
---- the same one-dimensional trap `reshape1` is built of, arriving here on one
-shape of three rather than on all of them, the paired figure over the three
-being 1.1028. `bq-expand / mut-odo-vecdims` reads 1.9366 paired, behind on all
-three shapes, and `mut-odo-vecdims-add-in / mut-odo-vecdims` is **0.9827**
-paired at 3 of 3, a whole-population sign at a 1.73% margin inside this class's
-5.17% floor.
+`worst` is 0.097, and the shape carrying it is `window-64x64-k1x9`,
+the unit-innermost view where the best arm outside the family beats the fix ---
+the same one-dimensional trap `reshape1` is built of, arriving here on one shape
+of three rather than on all of them, which is why
+`mut-flat-gm / mut-odo-vecdims` over the three reads **1.0877 on an interval
+from 0.4683 to 1.7647**, level on the point estimate and resolving nothing.
+`bq-expand / mut-odo-vecdims` reads 1.9282 paired, behind on all three shapes,
+and `mut-odo-vecdims-add-in / mut-odo-vecdims` is **0.9704** paired at 3 of 3,
+a whole-population sign at a 2.96% margin inside this class's 7.57% floor,
+the second widest of the eight. **This class's cross-half line is not read
+for the pair's variable**, `list` having moved 1.43% between the halves.
 
 **`scaled` --- superincreasing strides, none of them 1: a hand-built dilated
 view.** Shapes: `scaled-super-r3` (`l` 60000, `sInner` 30), `scaled-rank1-m1`
@@ -10300,93 +10466,89 @@ strided run), `scaled-r5` (`l` 15015, `sInner` 13).
 
 | strategy | time | worst | CI% | smp | alloc |
 |---|---:|---:|---:|---:|---:|
-| *bq-expand-nosum* | *--* | *--* | *0.07* | *119* | *1.14x* |
-| *mut-flat-gm-nosum* | *--* | *--* | *0.10* | *124* | *1.03x* |
-| *mut-odo-vecdims-nosum* | *--* | *--* | *0.15* | *144* | *1.00x* |
+| *bq-expand-nosum* | *--* | *--* | *0.08* | *119* | *1.14x* |
+| *mut-flat-gm-nosum* | *--* | *--* | *0.12* | *124* | *1.03x* |
+| *mut-odo-vecdims-nosum* | *--* | *--* | *0.19* | *144* | *1.00x* |
 | *sum-only-early* | *--* | *--* | *0.01* | *137* | *0.00x* |
 | *sum-only-late* | *--* | *--* | *0.01* | *137* | *0.00x* |
-| mut-odo-vecdims-add-in | 0.031 | 0.034 | 0.10 | 126 | 1.00x |
-| mut-odo-vecdims-add-both-down | 0.032 | 0.035 | 0.12 | 126 | 1.00x |
-| *mut-odo-vecdims-aa* | *0.032* | *0.035* | *0.12* | *126* | *1.00x* |
-| **mut-odo-vecdims** | **0.032** | 0.035 | 0.14 | 126 | 1.00x |
-| *mut-odo-vecdims-aa-distant* | *0.032* | *0.036* | *0.11* | *126* | *1.00x* |
-| mut-odo-vecdims-add-both | 0.033 | 0.037 | 0.11 | 126 | 1.00x |
-| mut-odo | 0.033 | 0.052 | 0.35 | 125 | 1.00x |
-| *mut-odo-aa-adjacent* | *0.033* | *0.052* | *0.15* | *125* | *1.00x* |
-| mut-odo-vecdims-add-out | 0.033 | 0.038 | 0.13 | 125 | 1.00x |
-| *build-aa-distant* | *0.034* | *0.051* | *0.19* | *125* | *1.00x* |
-| *mut-odo-aa-distant* | *0.034* | *0.050* | *0.16* | *125* | *1.00x* |
-| build | 0.034 | 0.048 | 0.12 | 125 | 1.00x |
-| *build-aa-adjacent* | *0.034* | *0.049* | *0.13* | *125* | *1.00x* |
-| *offtab-aa-adjacent* | *0.065* | *0.073* | *0.14* | *118* | *2.00x* |
-| *offtab-aa-distant* | *0.066* | *0.074* | *0.25* | *118* | *2.00x* |
-| offtab | 0.066 | 0.075 | 0.16 | 118 | 2.00x |
-| mut-flat-gm | 0.072 | 0.075 | 0.07 | 116 | 1.03x |
-| bq-mut-runs-gm-mulback | 0.080 | 0.082 | 0.09 | 114 | 1.03x |
-| bq-expand-gm-mulback | 0.084 | 0.089 | 0.09 | 113 | 1.14x |
-| *bq-scan-rem-gm-mulback-aa-adjacent* | *0.090* | *0.096* | *0.07* | *112* | *1.04x* |
-| *bq-odo-gm-mulback-aa-adjacent* | *0.090* | *0.093* | *0.07* | *113* | *1.04x* |
-| *bq-odo-gm-mulback-aa-distant* | *0.090* | *0.094* | *0.12* | *113* | *1.04x* |
-| bq-odo-gm-mulback | 0.090 | 0.093 | 0.07 | 113 | 1.04x |
-| *bq-scan-rem-gm-mulback-aa-distant* | *0.091* | *0.095* | *0.07* | *112* | *1.04x* |
-| **bq-scan-rem-gm-mulback** | **0.092** | 0.096 | 0.14 | 112 | 1.04x |
-| bq-mut-runs | 0.092 | 0.094 | 0.06 | 112 | 1.03x |
-| bq-expand-qr-prim | 0.095 | 0.099 | 0.05 | 112 | 1.14x |
-| bq-expand-b | 0.095 | 0.100 | 0.06 | 112 | 1.14x |
-| bq-expand-zf | 0.095 | 0.100 | 0.07 | 112 | 1.14x |
-| bq-expand | 0.095 | 0.100 | 0.07 | 112 | 1.14x |
-| *bq-expand-aa-adjacent* | *0.096* | *0.100* | *0.07* | *112* | *1.14x* |
-| *bq-expand-aa-distant* | *0.096* | *0.100* | *0.07* | *112* | *1.14x* |
-| bq-mut | 0.101 | 0.116 | 0.11 | 111 | 1.03x |
-| offtab-scan-rem | 0.130 | 0.136 | 0.09 | 107 | 2.00x |
-| bq-gen | 0.142 | 0.249 | 0.42 | 107 | 1.03x |
-| gen-unsafe | 0.833 | 1.741 | 0.90 | 70 | 1.00x |
-| *gen-unsafe-aa-adjacent* | *0.835* | *1.735* | *1.33* | *70* | *1.00x* |
-| gen-quotrem | 0.873 | 1.754 | 2.15 | 70 | 1.00x |
-| *gen-unsafe-aa-distant* | *0.884* | *1.882* | *0.62* | *70* | *1.00x* |
-| *list-aa-distant* | *0.996* | *1.015* | *0.30* | *71* | *19.43x* |
-| list (baseline) | 1.000 | 1.000 | 0.36 | 70 | 19.43x |
-| *list-aa-adjacent* | *1.003* | *1.005* | *0.37* | *70* | *19.43x* |
+| *mut-odo-vecdims-aa* | *0.032* | *0.033* | *0.09* | *126* | *1.00x* |
+| *mut-odo-vecdims-aa-distant* | *0.032* | *0.033* | *0.07* | *126* | *1.00x* |
+| **mut-odo-vecdims** | **0.032** | 0.033 | 0.10 | 126 | 1.00x |
+| mut-odo-vecdims-add-both-down | 0.032 | 0.035 | 0.09 | 126 | 1.00x |
+| mut-odo-vecdims-add-out | 0.033 | 0.036 | 0.10 | 125 | 1.00x |
+| mut-odo-vecdims-add-in | 0.033 | 0.033 | 0.10 | 126 | 1.00x |
+| *mut-odo-aa-distant* | *0.033* | *0.047* | *0.09* | *125* | *1.00x* |
+| *build-aa-distant* | *0.034* | *0.048* | *0.13* | *124* | *1.00x* |
+| mut-odo-vecdims-add-both | 0.035 | 0.035 | 0.20 | 125 | 1.00x |
+| *mut-odo-aa-adjacent* | *0.036* | *0.048* | *0.34* | *124* | *1.00x* |
+| mut-odo | 0.037 | 0.048 | 0.16 | 124 | 1.00x |
+| build | 0.037 | 0.047 | 0.19 | 124 | 1.00x |
+| *build-aa-adjacent* | *0.038* | *0.047* | *0.14* | *124* | *1.00x* |
+| *offtab-aa-adjacent* | *0.066* | *0.072* | *0.27* | *118* | *2.00x* |
+| *offtab-aa-distant* | *0.066* | *0.075* | *0.17* | *118* | *2.00x* |
+| offtab | 0.066 | 0.074 | 0.33 | 118 | 2.00x |
+| mut-flat-gm | 0.073 | 0.073 | 0.12 | 116 | 1.03x |
+| bq-mut-runs-gm-mulback | 0.081 | 0.082 | 0.14 | 114 | 1.03x |
+| bq-expand-gm-mulback | 0.085 | 0.087 | 0.09 | 113 | 1.14x |
+| *bq-odo-gm-mulback-aa-adjacent* | *0.090* | *0.092* | *0.06* | *113* | *1.04x* |
+| *bq-odo-gm-mulback-aa-distant* | *0.090* | *0.092* | *0.08* | *113* | *1.04x* |
+| bq-odo-gm-mulback | 0.090 | 0.092 | 0.06 | 113 | 1.04x |
+| *bq-scan-rem-gm-mulback-aa-adjacent* | *0.092* | *0.094* | *0.06* | *112* | *1.04x* |
+| *bq-scan-rem-gm-mulback-aa-distant* | *0.092* | *0.094* | *0.06* | *112* | *1.04x* |
+| **bq-scan-rem-gm-mulback** | **0.092** | 0.094 | 0.11 | 112 | 1.04x |
+| bq-mut-runs | 0.092 | 0.093 | 0.07 | 112 | 1.03x |
+| bq-expand-qr-prim | 0.095 | 0.098 | 0.07 | 112 | 1.14x |
+| bq-expand-b | 0.096 | 0.099 | 0.06 | 112 | 1.14x |
+| bq-expand-zf | 0.096 | 0.099 | 0.09 | 112 | 1.14x |
+| bq-expand | 0.096 | 0.099 | 0.06 | 112 | 1.14x |
+| *bq-expand-aa-adjacent* | *0.096* | *0.099* | *0.06* | *112* | *1.14x* |
+| *bq-expand-aa-distant* | *0.096* | *0.099* | *0.06* | *112* | *1.14x* |
+| bq-mut | 0.101 | 0.112 | 0.15 | 111 | 1.03x |
+| offtab-scan-rem | 0.129 | 0.134 | 0.09 | 107 | 2.00x |
+| bq-gen | 0.145 | 0.258 | 0.22 | 107 | 1.03x |
+| *gen-unsafe-aa-adjacent* | *0.832* | *1.692* | *0.48* | *70* | *1.00x* |
+| *gen-unsafe-aa-distant* | *0.834* | *1.653* | *1.35* | *70* | *1.00x* |
+| gen-unsafe | 0.862 | 1.734 | 0.90 | 70 | 1.00x |
+| gen-quotrem | 0.929 | 1.747 | 1.48 | 68 | 1.00x |
+| list (baseline) | 1.000 | 1.000 | 0.29 | 71 | 19.43x |
+| *list-aa-adjacent* | *1.003* | *1.006* | *0.19* | *71* | *19.43x* |
+| *list-aa-distant* | *1.005* | *1.012* | *0.19* | *70* | *19.43x* |
 
-**Controls:** The largest A/A pair is `gen-unsafe-aa-distant` at 1.0615, worst
-cell 8.14% on `scaled-r5`, and 12 of 18 intervals cover 1. The `sum-only` halves
-agree at 1.0017 on a worst cell of 0.31% on `scaled-r5`, its interval
-covering 1. The in-situ term reads 1.0514, 1.0011, 1.0085 of `sum-only`
-as medians, on `mut-odo-vecdims`, `mut-flat-gm`, `bq-expand`. Raw, that pair
-reads 1.0579, which the correction amplifies by 1.05x --- quote both wherever
-that is past 1.5.
+**Controls:** The largest A/A pair is `mut-odo-aa-distant` at 0.9620, worst cell
+7.15% on `scaled-rank1-m1`, and 13 of 18 intervals cover 1. The `sum-only`
+halves agree at 1.0002 on a worst cell of 0.06% on `scaled-rank1-m1`,
+its interval covering 1. The in-situ term reads 1.0325, 0.9898, 1.0160
+of `sum-only` as medians, on `mut-odo-vecdims`, `mut-flat-gm`, `bq-expand`. Raw,
+that pair reads 0.9812, which the correction amplifies by 2.00x --- quote both
+wherever that is past 1.5.
 
-**Provenance:** elapsed 0h12m17s, peak 109 MiB in use, 40 MiB max residency;
+**Provenance:** elapsed 0h12m15s, peak 110 MiB in use, 40 MiB max residency;
 the reader reads 47 benchmarks over 3 shapes of the scaled class. Anchor:
-`scaled-rank1-m1`, `list` at 5.03 ms per call raw, 4.85 ms net.
+`scaled-rank1-m1`, `list` at 4.98 ms per call raw, 4.79 ms net.
 
 **Per shape, in the lead's order (scaled-super-r3, scaled-rank1-m1,
-scaled-r5):** `mut-odo-vecdims` 0.028/0.033/0.035 `bq-scan-rem-gm-mulback`
-0.090/0.089/0.096
+scaled-r5):** `mut-odo-vecdims` 0.029/0.033/0.033 `bq-scan-rem-gm-mulback`
+0.092/0.090/0.094
 
-**Across the halves:** 28 of the 42 arms are faster on this half and 14 slower,
-at a geomean of 0.9893, from `gen-quotrem` at 0.9101
-to `mut-odo-vecdims-aa-distant` at 1.0292, with `list` itself at 1.0074.
-**The baseline moved 0.74% between the halves, past the 0.7% that lets two
-columns be differenced, so this line is NOT read for the pair's variable.**
-The table above is one process's and stands; what goes is the comparison.
+**Across the halves:** 24 of the 42 arms are faster on this half and 18 slower,
+at a geomean of 0.9857, from `bq-odo-gm-mulback-aa-adjacent` at 0.9141
+to `bq-gen` at 1.0429, with `list` itself at 0.9973.
 
 **What the class says:** all three properties hold, and this population is again
-the tightest here on every count of that kind: `worst` 0.035
+the tightest here on every count of that kind: `worst` 0.033
 on the `mut-odo-vecdims` row, the lowest of the eight;
-`bq-expand / mut-odo-vecdims` at 2.9893, the widest of the eight;
-and `bq-expand` at 1.14x the result vector, the lowest allocation multiple
-of the eight, which is the class's own small `m` showing through. **Its standing
-A/A slot did not fire this run** --- the class floor is 6.15%, carried
-by `gen-unsafe`'s distant twin rather than `mut-odo-vecdims`'s, against 5.15%
-on Run 17 and 10.10% on Run 16, so the slot is present and ordinary rather
-than disturbed. **And the family pair no longer inverts**:
-`mut-odo-vecdims-add-in / mut-odo-vecdims` reads **0.9861** paired, ahead on 2
-of 3 shapes, where the same pair on this run's pre-rerun figures put
-`mut-odo-vecdims` ahead at 1.0054. The margin is 1.39% against that 6.15% floor
-and sat inside it either way, so what the quiet machine moved is the sign
-and not the resolution: the family's internal order is still unsettled. The best
-arm outside it is `mut-odo` at 0.033.
+`bq-expand / mut-odo-vecdims` at **3.0563**, the widest of the eight and
+on the tightest interval any class gives it, 2.8449 to 3.3650; and `bq-expand`
+at 1.14x the result vector, the lowest allocation multiple of the eight, which
+is the class's own small `m` showing through. **And this is the second
+of the two populations where `mut-odo-vecdims` heads the table outright**,
+at 0.032, where Run 18 had `mut-odo-vecdims-add-in` on top by 1.39% --- inside
+the floor then and inside it now, so the two runs disagree about the sign
+of a margin neither can resolve, which is the family's internal order still
+being unsettled rather than a movement. Its floor is 3.80%, against 6.15% on Run
+18, carried by `gen-unsafe`'s distant twin rather than `mut-odo-vecdims`'s,
+so the standing A/A slot did not fire this run either. The best arm outside
+the family is `mut-odo` at 0.037.
 
 
 ### Provenance
@@ -10396,29 +10558,35 @@ what follows is what they have to be read against. The commit is recorded there
 because a run whose artifact is deleted and whose source is unrecorded cannot
 be repeated even in principle.
 
-**Run 18's halves differ in the compiler, which is the first pair here to differ
-in anything a freeze cannot see.** They share source, shim, shim setting,
+**Run 19's halves differ in the compiler, as Run 18's did, and this one reaches
+further than a released compiler can.** They share source, shim, shim setting,
 roster, shapes, class lists, bench order, machine and the one baked RTS line ---
 but not their position in the sequence, the control half having run first
-in every pair and in both windows, which aliased *9.14* with *first of the two*
-until the order probe of 2026-08-23 broke the tie on `slice` ---
-and `cabal.project.ghc914`'s freeze resolves the same `vector`, `criterion`
-and `criterion-measurement` at the one index-state --- so what differs
-is ghc-9.12.4 against ghc-9.14.1 and their boot libraries, `base-4.21.2.0`
-with `ghc-internal-9.1204.0` against `base-4.22.0.0`
-with `ghc-internal-9.1401.0`. `.text` is 20406469 against 20734085 bytes,
-and every address after the first difference moves: `--library` puts 20.1%
-of library self-loops at the same offset in their cache line, where two halves
-built from one source by one compiler read 100%. The two tracked `Main` fill
-groups keep their shapes, `[0, 24, 0, 4]` and `[0, 0]` on the basis against
-`[0, 24, 0, 0]` and `[0, 0]` on the control --- **but not their occupants**,
-the `-g3` twins putting `fbMutOdoVecdims` at 0 and `fbMutOdoVecdimsAddIn` at 24
-on 9.12 and the two swapped on 9.14, which is [the add-in entry][open]'s finding
-and not a detail. **What transfers between these halves is a ratio to `list`**,
-which moved **0.52%**, inside the 0.7% that separates a subtractable pair
-from a nursery one. **The correction sits evenly on both**, the in-situ forcing
-term reading 1.0297/1.0354/1.0600 against 1.0275/1.0344/1.0558 as medians,
-so a figure differenced across these halves carries almost none of its own.
+in every pair, which aliases *9.12* with *second of the two* again; Run 18 broke
+that tie on one class with an order probe and this run took none.
+`cabal.project.ghead`'s freeze resolves the same `vector`, `criterion`
+and `criterion-measurement` at the one index-state the other two plans hold,
+so what differs is ghc-9.12.4 against GHC HEAD 10.1.20260803 and their boot
+libraries, `base-4.21.2.0` with `ghc-internal-9.1204.0` against `base-4.23.0.0`
+with `ghc-internal-10.100.0`. `.text` is 20406469 against 20551487 bytes,
+and every address after the first difference moves: `--library` puts **11.1%**
+of library self-loops at the same offset in their cache line and 77.1%
+in the same straddle state, where two halves built from one source by one
+compiler read 100% and Run 18's cross-compiler figure was 20.1%. **The tracked
+`Main` fill groups do not even keep their shapes**, which Run 18's did:
+`[0, 24, 0, 4]` and `[0, 0]` on the basis against `[23, 0, 1, 2]`, `[0, 0, 13]`
+and `[0, 0]` on the control, the three-copy group being
+`bq-mut-runs-gm-mulback`, `bq-mut-lemire-mulback` and `bq-mut-runs-mulback`
+compiled to one seven-instruction body that 9.12 does not share between them.
+Which arm owns which copy on HEAD is a `-g3` twin's to say and **the twin cannot
+say it**, its addresses sitting at four different deltas from the timed binary's
+rather than one, which is [the add-in entry][open]'s finding and not a detail.
+**What does NOT transfer between these halves is a difference of absolutes**:
+`list` moved **0.78%**, past the 0.7% that separates a subtractable pair
+from one that can only be ordered, where Run 18 read 0.52%. **The correction
+sits evenly on both**, the in-situ forcing term reading 1.0282/1.0295/1.0552
+against 1.0267/1.0347/1.0492 as medians, so a ratio read within either half
+carries almost none of its own.
 
 The desktop named at the head of this chapter is the same machine whose `idiv`
 cycle counts the [Lemire
@@ -10426,68 +10594,60 @@ section](#lemire-multiplicative-inverses-at-the-two-division-sites) rests on.
 A run elsewhere is a different measurement rather than a repetition, and should
 say which machine here.
 
-**The sequence was launched once and ran to the end**, 06:05:00 to 12:35:31,
+**The sequence was launched once and ran to the end**, 00:21:14 to 06:52:34,
 eighteen processes, every one exiting 0 with the bench count its roster asked
-for --- 1128 twice and 141 sixteen times --- and none of them reporting
-a selection it did not ask for. **Ten of those eighteen are not what
-is published**, having been rerun the same evening on the same binaries
-at the same switches: the published set is eight processes from the first
-window, 06:05:00 to 10:33:11, and ten from a second, 18:10:22 to 20:40:12.
-**The control half ran first throughout**, `g914` before `g912` on the main set
-and on each class in turn, in both windows, which is the driver's order
-and the one the basis's second position is read in. **The order was varied once,
-outside the sequence**: a probe the same evening reran `slice` with the halves
-swapped, which is what lets that class's cross-half direction be attributed
-to the half rather than to the slot. It is one class of the eight, so the other
-seven's direction is still aliased with their order. **The machine did NOT carry
-the first window alone**, and this is the run's one provenance caveat: it began
-two hours late and the desktop was wanted back from 10:52. Nine processes
-finished before that --- both main sets and `rev`, `revsome`, `bcast`
-and the control half's `bcastmid` --- and their per-sample stamps report
-no bench reaching 0.25 foreign CPU, which is the load fields' first use
-on a real intrusion. The nine that ran into it carry some, between 6 and 116
-of each one's 141 benches reaching 0.25 foreign and the peaks running 0.48
-to 5.06. The coarse instruments see none of it: the sixteen class processes span
-12m11s to 12m18s, a seven-second spread, and the exposed populations' A/A floors
-were no looser than the clean ones. What it moved is the cross-half baselines,
-which is why the five classes it touched were rerun; every process of the second
-window reports no bench past 0.25 foreign, and the superseded copies were read
-and then deleted, their readings kept here and in the wall-clock log. **The tree
-was clean at launch**, the driver's own `git status` recording no untracked
-or modified path. **The wall-clock log is not an unbroken record, and says
-so at its end**: it closes with a corrections block covering a bench-count check
-that could never have worked, a rerun process the driver itself made noisy
-by reading this run's artifacts while it ran, and a relaunch of that process
-that dropped the instrument switches and so produced 141 clean-looking benches
-with nothing able to certify them. Three driver faults, no benchmark among them,
-each naming the artifact it left parked. **The alone-leg riders came between
-the two windows**, on a machine their own stamps show quiet --- no bench
-of the 96 instrumented legs past 0.16 foreign --- 12:47:43 to 13:03:07, four
-invocations of 27 single-bench processes, 108 in all --- clean and saturated
-on each half, which is what registration 3's decomposition needs.
+for --- 1128 twice and 141 sixteen times --- none of them reporting a selection
+it did not ask for, and **none rerun**, which Run 18 could not say.
+The wall-clock log is an unbroken record and closes with `major run complete`.
+**The control half ran first throughout**, `ghead` before `g912` on the main set
+and on each class in turn, which is the driver's order and the one the basis's
+second position is read in; **the order was NOT varied**, so every class's
+cross-half direction is aliased with its slot, where Run 18 had broken that tie
+on `slice`. **The machine carried one exposed bench, and the run can name what
+did it.** Seventeen of the eighteen processes report no bench reaching 0.25
+foreign CPU. The basis main process reports one of its 1128 ---
+`cnn-L1-6x6-c1/bq-expand` at 0.35 foreign, worst sample 201 ms --- and the cause
+is a Claude Code update installing itself, named by the machine's owner. Its own
+A/A twins bound it: the exposed copy sits 2.0 to 2.2% above two twins that agree
+with each other to 0.19%, so one shape of 24 moves that arm's geomean
+by under 0.09%, an order of magnitude inside the floor. **The rerun post-run
+step 1c asks for was not taken, and was declined on 2026-08-25** by whoever
+asked for the run, the exposure having been priced at under 0.09% on one arm;
+so this main set is published with it, and the decision is recorded rather
+than the debt. **The tree was NOT clean at launch**, and this is the run's
+second small caveat: the driver's own `git status` recorded two untracked paths,
+`micro-regime3/check-x.log` and `micro-regime3/probe-run20arms.sh`, neither
+of them in the run's namespace and neither modified source. **The alone-leg
+riders followed the sequence**, 06:53:30 onward, four invocations of 27
+single-bench processes, 108 in all --- clean and saturated on each half, which
+is what registration 3's decomposition needs. **The counted-work sweeps preceded
+it**, taken 2026-08-24 on a machine doing ordinary work as that rider allows,
+1128 data lines a half and no cell perf refused.
 
 **The pair's own identity, transcribed before its note went with it.** The two
 md5s, the `Main.hs` commit and the tree at launch are at [the head
-of this chapter](#about-the-last-run-run-18) and are not repeated here --- one
+of this chapter](#about-the-last-run-run-19) and are not repeated here --- one
 live copy, since both places are replaced by the same run. What this paragraph
 adds is what that head does not carry: `-fspec-constr`
 and `-fobject-determinism` on both halves, `align-as.py` as committed
 at `40f7a37`, and `LOOP_MAXSKIP=1 LOOP_LOOKTHROUGH=1` on both builds, the two
-differing only in `--project-file=cabal.project.ghc914` and so in the compiler.
+differing only in `--project-file=cabal.project.ghead` and so in the compiler.
 **Both halves were built by hand**, this being a pair of two shims, so both
-recipes went into the pair note. **And one input changed that no freeze records
-and no earlier run had to name**: the box's BIOS, whose idle settings --- Global
-C-States and Power Supply Idle Control --- moved before the reboot of 2026-08-22
-21:36 and took every absolute here about 4.9% from Run 17's, that being the mean
-of the seven readings. That was caught by the gate's machine check, attributed
-to the box by three filtered processes on two binaries, and is why no absolute
-crosses the Run 17 boundary.
+recipes went into the pair note. **And the control half's compiler is
+not a released one**, which is this pair's own provenance hazard and is why
+the version is read back out of each binary rather than off a recipe line:
+the in-tree stage1 of the GHC checkout under `~/r/horde-ad/ghc` at commit
+`d415f38a75`, reporting 10.1.20260803. A HEAD that moves is a different compiler
+and a different pair. **No input moved that a freeze does not record**: the box
+is where Run 18 left it, its machine check reading -0.84%, so absolutes cross
+freely from Run 18 and the boundary that stops them is still the BIOS change
+before it.
 
 **Nothing moved in the shapes or the roster**, which is what a compiler pair
 needs and what its own registration required: 1128 benches, the same 47 timed
 arms over the same 24 shapes, every class at three shapes, and the same roster
 order, with both halves' `--list` listings identical to each other
-and to `run17-wildlog`'s, compared directly off the previous basis binary while
+and to `run18-g912`'s, compared directly off the previous basis binary while
 it was still on disk. So no `-L1` roster pass was owed and none was run.
 **The one input that moved by design is the compiler**, which adds no bench
 and so leaves membership untouched while moving every address.
@@ -10511,17 +10671,26 @@ the record costs. **A fourth half arrives with the pairing and is not a delta
 at all**: which half of the pair a figure came from, which is why the tables
 below and the fingerprint say so.
 
-- Run 18 measured today's shapes, class lists, roster membership and order,
+- Run 19 measured today's shapes, class lists, roster membership and order,
   so its delta is empty --- it is today. What a reader has to carry is which
-  half a figure came from: everything published below is `run18-g912`, the 9.12
-  half, and `run18-g914` contributes the yardstick's second column,
-  the arm-by-arm comparison at the head of this chapter, and a class comparison
-  on four of the eight populations. **And two things that are not deltas.**
-  The halves differ in the compiler, so a figure crossing them carries codegen
-  and layout where Run 17's carried a source patch and Runs 14 to 16 a runtime
-  setting. And the BOX differs from every run before it, its BIOS idle settings
-  having moved, so no absolute here is comparable with Run 17's or earlier ---
-  ratios are, absolutes are not, and the fingerprint below re-baselines.
+  half a figure came from: everything published below is `run19-g912`, the 9.12
+  half, and `run19-ghead` contributes the yardstick's second column,
+  the arm-by-arm comparison at the head of this chapter, the counted-work
+  column, and a class comparison on five of the eight populations, three of them
+  being disqualified by a baseline past 0.7%. **And two things that
+  are not deltas.** The halves differ in the compiler, so a figure crossing them
+  carries codegen and layout, as Run 18's did --- but this pair's `list` moved
+  0.78% between them, so unlike Run 18's its two columns may be ordered
+  and not subtracted. And the basis half is Run 18's basis BINARY, byte
+  for byte, so absolutes cross those two runs freely and the boundary that stops
+  them is still the BIOS change before Run 18.
+- Run 18 measured the same shapes, class lists, membership and order,
+  so its delta is empty too. Everything it published was `run18-g912`
+  and `run18-g914` contributed its second yardstick column. **And one thing
+  that is not a delta**: the BOX moved under it, its BIOS idle settings having
+  changed before it, so no absolute of Run 18's or Run 19's is comparable
+  with Run 17's or earlier --- ratios are, absolutes are not, and Run 18's
+  fingerprint re-baselined them.
 - Run 17 measured the same shapes, class lists, membership and order,
   so its delta is empty too. What a reader has to carry there is which half
   a figure came from: everything it published was `run17-wildlog`,
@@ -10591,8 +10760,8 @@ below and the fingerprint say so.
   `bq-odo-gm-mulback`, `mut-flat-gm`, `offtab-scan-rem` and the four
   `mut-odo-vecdims-add-*`), **timing all of it but `concat-runs`** where today
   leaves 24 untimed, winsorized likewise. Run 7's delta is Run 8's plus
-  the regime, which is what keeps the last two columns in [What Run 19 compares
-  against](#what-run-19-compares-against) a controlled pair and the first two
+  the regime, which is what keeps the last two columns in [What Run 20 compares
+  against](#what-run-20-compares-against) a controlled pair and the first two
   a different controlled pair.
 - Run 6, still quoted here for the estimator ruling under `time`,
   for the `alloc` column's shape-dependence and for the correction's
@@ -10608,37 +10777,37 @@ below and the fingerprint say so.
   That is the whole chain between its figures and this run's.
 
 **The anchor, so a moved baseline is visible** --- and this is the run where
-it said so. Every published figure is a ratio to `list`, so a change in `list`
-alone would move every cell without any strategy moving. The three anchors read
-**6.10 us** on `cnn-slice-c32`, **3.13 ms** on `cifar-L2-16-c64-k3` and **38.4
-ms** on `stretch-wide-2xM`, net per call on the basis half, against Run 17's
-5.79 us, 2.98 ms and 36.4 ms --- **+5.22%, +5.08% and +5.49%**, every one
-of them past any floor this README has measured, and all three in one direction.
-That is the BIOS change and not the code: the gate's machine check read
-it as +5.00% over all 24 shapes before the evening was spent,
-and `run17-wildlog` itself reads +4.50% on this box today. The control half's
-three are 6.02 us, 3.12 ms and 38.3 ms, within 1.3% of the basis's,
-so the compiler is not in this movement either.
+it stayed still. Every published figure is a ratio to `list`, so a change
+in `list` alone would move every cell without any strategy moving. The three
+anchors read **6.08 us** on `cnn-slice-c32`, **3.10 ms** on `cifar-L2-16-c64-k3`
+and **38.3 ms** on `stretch-wide-2xM`, net per call on the basis half, against
+Run 18's 6.10 us, 3.13 ms and 38.4 ms --- **-0.31%, -0.93% and -0.22%**, every
+one of them well inside this run's floor and inside the drift band besides.
+That is the same binary reading the same box a day later, and the gate's machine
+check said so before the evening was spent, at -0.42% over all 24 shapes.
+**The control half's three are 5.93 us, 3.06 ms and 37.5 ms**, 2.39%, 1.26%
+and 2.15% under the basis's --- so unlike Run 18's pair the compiler IS
+in this movement, which is the same fact as `list` moving 0.78% between
+the halves and is why these two columns are ordered rather than differenced.
 
-| shape | `l` | `list`, per call | net | 9.14, net |
+| shape | `l` | `list`, per call | net | HEAD, net |
 |---|---:|---:|---:|---:|
-| `cnn-slice-c32` | 288 | 6.27 us | 6.10 us | 6.02 us |
-| `cifar-L2-16-c64-k3` | 147456 | 3.22 ms | 3.13 ms | 3.12 ms |
-| `stretch-wide-2xM` | 1800000 | 39.5 ms | 38.4 ms | 38.3 ms |
+| `cnn-slice-c32` | 288 | 6.25 us | 6.08 us | 5.93 us |
+| `cifar-L2-16-c64-k3` | 147456 | 3.19 ms | 3.10 ms | 3.06 ms |
+| `stretch-wide-2xM` | 1800000 | 39.4 ms | 38.3 ms | 37.5 ms |
 
 **Each stride class carries an anchor of its own, beside its table,
-and this time not one of the eight is inside a floor** --- which is what a box
-that moved under the README looks like from the class end. Against Run 17 they
-read **+4.13% to +20.60%** at a geomean of +8.13%, all eight up. The three
-smallest --- `bcastmid` +4.13%, `scaled` +4.72% and `rev` +5.10% --- sit where
-the main set's +4.8% box term puts them. The other five are above it and **they
-do not sort by exposure**: `window` +6.10%, `slice` +10.36% and `reshape1`
-+20.60% ran in the busy window, but so did `scaled`, and `bcast` +6.50%
-and `revsome` +8.45% are clean processes above the term. So the box covers three
-of the eight, the window plausibly covers the three largest of the rest,
-and `bcast` and `revsome` are left over --- which is why none of these
-is a statement about a mechanism, and why a class anchor is comparable across
-the boundary in neither direction until a quiet run re-reads them.
+and this time every one of the eight is inside its floor** --- which is what
+a box holding still looks like from the class end, and is the reading Run 18
+could not get because a busy window sat in the middle of it. Against Run 18's
+basis they run **-2.48% to +0.95%**, six down and two up, the extremes being
+`bcast` at -2.48% and `reshape1` at +0.95% and the other six inside a point
+and a third. Every one of those is inside its own class's floor, the tightest
+of which is `revsome`'s 2.00%. **So a class anchor is comparable across
+this boundary in both directions**, which no run since the BIOS change has
+been able to say, and the eight of them agree with the main set's three about
+the box rather than adding anything to them. What they cannot be compared across
+is still the Run 17 boundary, where the BIOS sits.
 
 **The correction is invertible, so pre-correction figures stay comparable.**
 The forcing term is **0.601--0.615 ns per element** on the basis half
@@ -10654,8 +10823,8 @@ corrections are one correction --- and this pair's two halves agree on
 it to within a thousandth of a nanosecond, so a figure differenced across
 these halves carries almost none of its own.
 
-**What the next run replaces.** Run 18's numbers reach past the Results table,
-so this is the list to walk when Run 19's land. Run 10 walked it twice
+**What the next run replaces.** Run 19's numbers reach past the Results table,
+so this is the list to walk when Run 20's land. Run 10 walked it twice
 over and not symmetrically, one half per pass; every run since has walked
 it once, one basis publishing everything, which is how it is walked from here.
 It names *sections*, not figures: a list of figures is a second copy of them,
@@ -10693,10 +10862,10 @@ This is deliberately a recipe and not a stored list of paragraph names: a stored
 one would be a second copy of the structure and would rot the first time a lead
 was reworded, which is the failure this list was rewritten to escape.
 
-- [the head of this chapter](#about-the-last-run-run-18), which carries
+- [the head of this chapter](#about-the-last-run-run-19), which carries
   the run's name, regime, scale and source commit, the layout span a roster
   order change alone is worth, and which half published what;
-- [the recommended tasks after Run 18](#recommended-tasks-after-run-18), which
+- [the recommended tasks after Run 19](#recommended-tasks-after-run-19), which
   is run-scoped by its own title: a task taken or superseded leaves it, what
   survives is renamed to the run that inherits it, and a run's own surprises
   are added to it before its chapter is replaced. **Leaving is not deleting,
@@ -10712,11 +10881,11 @@ was reworded, which is the failure this list was rewritten to escape.
   rule with no destination named is one nobody applies;
 - [the Results table](#results), which `--markdown` emits whole,
   and the findings under it;
-- [What Run 19 compares against](#what-run-19-compares-against) ---
+- [What Run 20 compares against](#what-run-20-compares-against) ---
   the yardstick geomeans in every regime measured and the two-column per-shape
   fingerprint, all of which a run replaces wholesale, and which are the only
   per-shape record kept once the JSON is deleted;
-- [The claims Run 19 should test](#the-claims-run-19-should-test), where a run
+- [The claims Run 20 should test](#the-claims-run-20-should-test), where a run
   reports which held rather than re-deriving them, and whose readings are run
   figures throughout;
 - [the noise-floor table][floor] and its prose, from `--aa` --- including
