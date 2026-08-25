@@ -636,6 +636,28 @@ def synth_json(tmp, pop='main', name=None, **kw):
     return synth_run(os.path.join(tmp, name or '%s.json' % pop), shapes, **kw)
 
 
+def compared_arm_count():
+    """How many arms a `--compare` of two synthetic runs puts in its table.
+
+    The synthetic runs take their arms from Main.hs's roster, so a case
+    asserting a count over them has to as well. Pinning the number is what
+    `movers-count-disagrees-with-its-rows` did -- `3 of 42` -- and it went
+    red the day Run 20's arms landed and the roster reached 45, on a mode
+    that was answering correctly. A fixture derived from Main.hs and an
+    expectation written out by hand are the same defect this file exists
+    over, one on each side of the assertion.
+
+    The count is the roster's timed arms less those with no corrected time
+    to divide -- `sum-only` and the `-nosum` twins -- which is what
+    `compare_table` drops, read through the reader's own `no_net` rather
+    than restated here.
+    """
+    m = _reader()
+    roster = m.roster_of(open(os.path.join(HERE, 'Main.hs')).read())
+    return sum(1 for n, role, _fn in roster
+               if role != 'Only' and not m.no_net(n))
+
+
 def doc_expr(blocks):
     """A source expression for a document of `blocks`, newline-free.
 
@@ -2128,13 +2150,29 @@ CASES = [
          # arm is skewed clear past the threshold and one clear under it,
          # so no float sits near the boundary and the case tests the
          # predicate rather than the rounding.
-         # THE COUNT IS ASSERTED WHOLE, `3 of 42 arm(s) move past 3%`,
-         # and not as the substring `3 of` -- which `13 of 42` satisfies,
+         # THE COUNT IS ASSERTED WHOLE, `3 of N arm(s) move past 3%`,
+         # and not as the substring `3 of` -- which `13 of N` satisfies,
          # so the loose form pinned nothing and would have passed an
          # implementation off by ten. Three arms are skewed clear past
          # the threshold and one clear under it, so the headline count,
          # the row set and the group count are each checked against a
          # known answer rather than against each other.
+         #
+         # N IS DERIVED AND WAS ONCE WRITTEN OUT. This case asserted `3 of
+         # 42` and went red the day Run 20's arms landed and the roster
+         # reached 45 -- on a mode that was answering correctly, which is
+         # the worst kind of red: it says the code is wrong where the
+         # fixture is. The arms come from Main.hs's roster, so the
+         # denominator does too, through `compared_arm_count`. Only the
+         # numerator is the fixture's, and it is the fixture's because
+         # the skew list above puts it there.
+         #
+         # NON-VACUITY RE-PROVED after the derivation, 2026-08-25, since a
+         # computed expectation can agree with a broken implementation by
+         # construction and this one must not. Counting the headline with
+         # a looser predicate than the rows are listed with -- the exact
+         # defect this case is named for -- fails it, and so does a
+         # denominator off by one. Restoring both makes it pass.
          plant=lambda t: {
              'run': synth_json(t, 'main', name='a.json'),
              'other': synth_json(t, 'main', name='b.json',
@@ -2146,8 +2184,8 @@ CASES = [
                                                       ('offtab', 1.01))])},
          argv=['{run}', '--compare', '{other}', '--movers', '3'],
          ok=V(exit=0,
-              has=['3 of 42 arm(s) move past 3%', 'in 3 group(s)',
-                   'bq-expand', 'bq-gen', 'mut-odo'],
+              has=['3 of %d arm(s) move past 3%%' % compared_arm_count(),
+                   'in 3 group(s)', 'bq-expand', 'bq-gen', 'mut-odo'],
               hasnt=['offtab'])),
 
     case('movers-alone-does-nothing', 'read-run.py', None,
