@@ -2187,6 +2187,81 @@ def counts_table(cells, shapes, strategies, meta, other, main_hs,
     return 0
 
 
+def movers_table(cells, shapes, strategies, meta, other, main_hs,
+                 pct, brief=True):
+    """The arms that moved past a threshold, counted and named together.
+
+    One predicate, used once. The count on the headline and the rows under
+    it come from the same comparison, so the two cannot disagree --- which
+    is the whole reason this exists, and the defect is a reader's rather
+    than this code's. Run 19's independent checker reported twelve arms
+    past 3% where eleven move, having taken the count by eye off
+    `--chapter`, whose per-arm block lists arms outside ONE percent; a
+    2.51% arm sits in the middle of that block looking like a mover. The
+    session hand-rolled the same count in awk, twice. A figure a write-up
+    quotes and no mode emits is a defect report against the reader, which
+    is the rule that built `--counts` the same evening.
+
+    Arms are GROUPED by stripping the A/A suffix, because the sentence a
+    write-up wants is usually `N arms in M groups`: three copies of one
+    strategy moving together is one finding and not three, and counting
+    the groups by eye off a sorted list is the same slip one level up.
+
+    The threshold is printed with the count, so a figure taken off this
+    output carries the threshold it was measured at.
+    """
+    b_cells, b_shapes, b_strategies = load_other(other, main_hs,
+                                                 shapes, meta)
+    both_sh = [x for x in shapes if x in b_shapes]
+    rows = []
+    for st in strategies:
+        if no_net(st) or st not in b_strategies:
+            continue
+        rs = [cells[sh][st]['net'] / b_cells[sh][st]['net'] for sh in both_sh
+              if cells[sh][st]['net'] > 0 and b_cells[sh][st]['net'] > 0]
+        if rs:
+            rows.append((geomean(rs), st, len(rs)))
+    # ONE MEASURE, used for the cut, the sort and the printed column.
+    # Selecting on `abs(g - 1)` and ordering on `abs(log g)` put `bq-gen`
+    # at +7.53% two rows BELOW an arm at -7.30% on this run's own output,
+    # so a reader taking `the largest mover` off the top row got the
+    # wrong arm -- the take-it-by-eye slip this mode exists to prevent,
+    # one level down. Linear is the measure kept, because `past PCT
+    # percent` in prose means `abs(ratio - 1)` and nothing else; its
+    # asymmetry between 0.97 and 1.03 is the asymmetry of the word
+    # `percent`, and a log cut would answer a question no sentence here
+    # asks.
+    lim = pct / 100.0
+    past = [(g, st, n) for g, st, n in rows if abs(g - 1) > lim]
+    past.sort(key=lambda r: -abs(r[0] - 1))
+    groups = {twin_of(st) or st for _, st, _n in past}
+
+    print('\nmovers, this run against %s, past %g%%'
+          % (os.path.basename(other), pct))
+    if not past:
+        print('  no arm moves past %g%% over %d compared arm(s), so there is'
+              '\n  nothing to list -- which is a reading and not an empty'
+              ' table.' % (pct, len(rows)))
+        return 0
+    print('  %d of %d arm(s) move past %g%%, in %d group(s); %d within it'
+          % (len(past), len(rows), pct, len(groups), len(rows) - len(past)))
+    print('\n%-34s %8s %8s %5s  %s'
+          % ('arm', 'ratio', 'move', 'n', 'group'))
+    for g, st, n in past:
+        print('%-34s %8.4f %+7.2f%% %5d  %s'
+              % (st, g, (g - 1) * 100, n, twin_of(st) or st))
+    if brief:
+        return 0
+    print('\nBelow 1 means this run is faster, as --compare prints it. The'
+          '\ncount, the groups and the rows are one comparison read once, so'
+          '\na figure taken off the headline cannot be at a threshold the'
+          '\nlist is not. `group` strips the A/A suffix: an arm and its two'
+          '\ntwins are one strategy moving, not three. `n` is the shapes'
+          '\nbehind the geomean, so one taken over a handful cannot pass for'
+          '\none taken over the population.')
+    return 0
+
+
 def aa_table(cells, shapes, strategies, terms, meta, brief=False):
     pos = {st: i for i, st in enumerate(strategies)}
     pairs = [(st, twin_of(st)) for st in strategies if twin_of(st)]
@@ -7423,6 +7498,11 @@ def main():
     p.add_argument('--alloc', action='store_true',
                    help='with --compare: allocation agreement instead of'
                         ' times, on the multiple the alloc column publishes')
+    p.add_argument('--movers', nargs='?', type=float, const=3.0,
+                   metavar='PCT',
+                   help='with --compare: the arms whose geomean moved past'
+                        ' PCT percent (default 3), counted and grouped by'
+                        ' the same comparison that lists them')
     p.add_argument('--counts', nargs=2, metavar=('THIS.txt', 'OTHER.txt'),
                    help='with --compare: run-counts.sh\'s instruction counts'
                         ' beside the time ratio, per arm -- the count column'
@@ -7533,9 +7613,20 @@ def main():
                               or args.block or args.claims):
         p.error('--in-place is a modifier of --markdown, --fingerprint,'
                 ' --block or --claims and does nothing alone')
+    def asked(v):
+        """Was this flag given? False and 0 are given; None is not."""
+        return v is not None and v is not False
     for flag, needs in (('alloc', 'compare'), ('chapter', 'compare'),
-                        ('counts', 'compare'), ('quiet', 'check_doc')):
-        if getattr(args, flag) and not getattr(args, needs):
+                        ('counts', 'compare'), ('movers', 'compare'),
+                        ('quiet', 'check_doc')):
+        # `is not None` and NOT truthiness: --movers takes a NUMBER, and
+        # `--movers 0` is falsy, so a truth test let one value of one flag
+        # through both this guard and the dispatcher -- printing the
+        # default table at exit 0, which is the silence this loop exists
+        # to refuse. Found by an independent checker reading the code,
+        # 2026-08-25, on a mode added beside the case written for exactly
+        # this family.
+        if asked(getattr(args, flag)) and not asked(getattr(args, needs)):
             p.error('--%s is a modifier of --%s and does nothing alone'
                     % (flag, needs.replace('_', '-')))
     # `--classes` has two owners since --extremes, and had none of this
@@ -7605,8 +7696,8 @@ def main():
     # silent drop the one-mode guard above refuses, one level down. The
     # pairwise guards this replaces covered every pair but --ci's,
     # which arrived with the same commit and missed its own roll call.
-    subs = [f for f in ('chapter', 'alloc', 'ci', 'bridge', 'counts')
-            if getattr(args, f)]
+    subs = [f for f in ('chapter', 'alloc', 'ci', 'bridge', 'counts',
+                        'movers') if asked(getattr(args, f))]
     if len(subs) > 1:
         p.error('%s are %d readings of --compare, not one: run the'
                 ' invocations README\'s checklist spells out, one at a'
@@ -7734,6 +7825,9 @@ def main():
     elif args.compare and args.chapter:
         chapter_skeleton(cells, shapes, strategies, meta,
                          args.compare, args.main)
+    elif args.compare and args.movers is not None:
+        sys.exit(movers_table(cells, shapes, strategies, meta, args.compare,
+                              args.main, args.movers, not args.verbose))
     elif args.compare and args.counts:
         # Before the plain --compare arm below, as every other second-file
         # mode is: --counts is a reading OF a comparison and not a mode

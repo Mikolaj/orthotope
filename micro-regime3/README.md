@@ -2621,19 +2621,20 @@ rather than a slot in the next run, observed again:
   explain. **And the registration was narrower than it read**: the sweep covered
   the main set alone, which no sentence in this file said, so eight of the nine
   populations had no counted work at all. Extended and swept the same day,
-  sixteen further files: seven classes agree with the main set and `reshape1`
-  inverts, on a unit-innermost rule the chapter states. (5) *The plateau*:
-  **HELD**, eighteen processes at 19.6244 to 20.2847 ms/iter, a 3.37% spread
-  inside the 5% band. (6) *The offset swap*: **SPLIT --- the margin half
-  DELIVERED and the instrument half KILLED.** The margin repeated a third time
-  --- 0.9755 at 19 of 24 and p 0.0066 on 9.12, 0.9991 at 14 of 24 and p 0.54
-  on HEAD, the same win count and p as Run 18's 9.14 half --- but
-  under the address-order assumption HEAD arranges the two arms as 9.12 does,
-  where 9.14 had them swapped, so the slot account predicts a margin
-  that is absent. Either the correspondence fails on HEAD or the margin does
-  not follow the slot, and this pair separates neither; the control moved three
-  points between compilers in the direction the add-in pair did not. What
-  is measured stands: both halves' timed offsets, and both margins.
+  sixteen further files: seven classes agree with the main set and `reshape1`'s
+  geomean inverts, by 0.3% and with 78 of its 139 cells still HEAD-heavier,
+  on a unit-innermost rule the chapter states. (5) *The plateau*: **HELD**,
+  eighteen processes at 19.6244 to 20.2847 ms/iter, a 3.37% spread inside the 5%
+  band. (6) *The offset swap*: **SPLIT --- the margin half DELIVERED
+  and the instrument half KILLED.** The margin repeated a third time --- 0.9755
+  at 19 of 24 and p 0.0066 on 9.12, 0.9991 at 14 of 24 and p 0.54 on HEAD,
+  the same win count and p as Run 18's 9.14 half --- but under the address-order
+  assumption HEAD arranges the two arms as 9.12 does, where 9.14 had them
+  swapped, so the slot account predicts a margin that is absent. Either
+  the correspondence fails on HEAD or the margin does not follow the slot,
+  and this pair separates neither; the control moved three points between
+  compilers in the direction the add-in pair did not. What is measured stands:
+  both halves' timed offsets, and both margins.
 
 
 ### Recommended tasks after Run 19
@@ -2650,39 +2651,49 @@ in the working tree, which is the same proof at the only moment
 it was available. They guard what the mode can silently get wrong: a `!!` cell
 perf refused, which must be dropped and named rather than read as a count
 of zero that destroys an arm's geomean, and an arm the counts hold that the run
-does not time, which must be named and skipped rather than folded in. **What
-stays open is the bridge**, unchanged from Run 18's entry: `--compare` across
-two runs reads absolutes, and no mode reads them per shape as a ratio to `list`.
-This run did not need it, its box not having moved --- which is exactly why
-it will be missing again the next time one does. **And a second gap was found
-and left**: the alone legs' cross-half level, Run 18's 1.0031, has no mode
-either, `--deflation` reading each half against its own roster and nothing
-reading the halves against each other. That line is absent from this chapter
-rather than hand-rolled into it. **The load fields paid again, and this time
-on an intrusion small enough that nothing else could have found it**: one bench
-of 1128 at 0.35 foreign CPU, in a run whose other seventeen processes are clean.
-The A/A twins then priced it without a rerun --- the exposed copy 2.0 to 2.2%
-above two twins agreeing to 0.19% --- which is a use of the eighteen A/A pairs
-this README had not made before: **they are not only a floor, they localise
-a contaminated cell to an arm and a shape and bound what it moved.** Reach
-for them whenever `--wild` names a bench, before deciding what a rerun would
-buy. **One capability RETIRED, and it is the sharper half of this entry.** Run
-18 recorded that a compiler pair swaps loop offsets for free, so a placement
-experiment need never be built again. Run 19 tried to spend that and could not:
-the `-g3` twin does not carry to GHC HEAD, its four addresses sitting at four
-different deltas from the timed binary's where 9.12 and 9.14 both gave a flat
-`0x40`, and byte identity cannot stand in, the four copies being one 28 B
-sequence by construction. **So the free route works on some compilers and
-not on others, and nothing announces which** --- a twin looks exactly as usable
-either way until its deltas are checked. Check them before believing a naming,
-and treat the purpose-built two-shim pair as the only instrument that always
-works. **One trap met and worth writing down**: a literal rename of the four
-run-numbered headings missed a link text whose case differed from the heading's
---- `the recommended tasks after Run 18` against
-`Recommended tasks after Run 18` --- so the anchor moved and the text did not,
-which is Run 18's own trap arriving through a different door. `--check-doc`
-reads anchors and not texts, so grep the old run number back afterwards rather
-than trusting a replace count.
+does not time, which must be named and skipped rather than folded in. **A second
+mode came out of the verification rather than the run**, and its defect
+is a reader's: `--movers PCT` lists the arms whose geomean moved past
+a threshold, counted and grouped by the same comparison that lists them. Run
+19's independent checker reported twelve arms past 3% where eleven move ---
+the eleventh sits at 3.99% and the twelfth at 2.51%, so no convention explains
+it; what does is that the count had to be taken by eye off `--chapter`, whose
+per-arm block lists arms outside ONE percent. Both the checker and this session
+hand-rolled it in `awk`. The mode prints its threshold with its count
+so a figure taken off it carries the threshold it was measured at, and it groups
+by stripping the A/A suffix, three copies of one strategy moving together being
+one finding rather than three. **What stays open is the bridge**, unchanged
+from Run 18's entry: `--compare` across two runs reads absolutes, and no mode
+reads them per shape as a ratio to `list`. This run did not need it, its box
+not having moved --- which is exactly why it will be missing again the next time
+one does. **And a second gap was found and left**: the alone legs' cross-half
+level, Run 18's 1.0031, has no mode either, `--deflation` reading each half
+against its own roster and nothing reading the halves against each other.
+That line is absent from this chapter rather than hand-rolled into it.
+**The load fields paid again, and this time on an intrusion small enough
+that nothing else could have found it**: one bench of 1128 at 0.35 foreign CPU,
+in a run whose other seventeen processes are clean. The A/A twins then priced
+it without a rerun --- the exposed copy 2.0 to 2.2% above two twins agreeing
+to 0.19% --- which is a use of the eighteen A/A pairs this README had not made
+before: **they are not only a floor, they localise a contaminated cell to an arm
+and a shape and bound what it moved.** Reach for them whenever `--wild` names
+a bench, before deciding what a rerun would buy. **One capability RETIRED,
+and it is the sharper half of this entry.** Run 18 recorded that a compiler pair
+swaps loop offsets for free, so a placement experiment need never be built
+again. Run 19 tried to spend that and could not: the `-g3` twin does not carry
+to GHC HEAD, its four addresses sitting at four different deltas from the timed
+binary's where 9.12 and 9.14 both gave a flat `0x40`, and byte identity cannot
+stand in, the four copies being one 28 B sequence by construction. **So the free
+route works on some compilers and not on others, and nothing announces which**
+--- a twin looks exactly as usable either way until its deltas are checked.
+Check them before believing a naming, and treat the purpose-built two-shim pair
+as the only instrument that always works. **One trap met and worth writing
+down**: a literal rename of the four run-numbered headings missed a link text
+whose case differed from the heading's --- `the recommended tasks after Run 18`
+against `Recommended tasks after Run 18` --- so the anchor moved and the text
+did not, which is Run 18's own trap arriving through a different door.
+`--check-doc` reads anchors and not texts, so grep the old run number back
+afterwards rather than trusting a replace count.
 
 **Both of Run 17's items are spent, and this heading no longer carries them.**
 Its first --- which shapes poison --- was answered 2026-08-18 and its account
@@ -2695,26 +2706,26 @@ a run that is over.
 **The replace list's second sweep has a blind spot, and Run 19 measured both
 it and the obvious fix.** The preamble prescribes *grep this file for the name
 of the run being superseded*; that grep cannot see a paragraph naming only runs
-OLDER than the superseded one, and this run met four such sites --- three
-closing Results, naming Runs 10 and 13 to 17 and never Run 18 while every figure
-in them was Run 18's (one contradicting this run's headline allocation finding
-in three other places), and a `1.84x` in the ceiling ruling carried forward
-from **Run 11** through eight write-ups. An independent checker found all four
-by hand; every mechanical gate here passed over them. **The obvious repair
-was built and then refuted, which is why this is a note and not a mode.**
-A `--check-doc` sweep flagging paragraphs whose newest named run is behind
-the chapter's while carrying a figure returns **165** entries; excluding the run
-chapter and prose saying *this run* leaves 104; scoping it to the sections
-the replace list names leaves **100** --- for four that matter. The reason
-is structural rather than a tuning failure: naming an old run beside a figure
-is the NORMAL state of this document, which is full of answered entries
-and dated mechanism accounts, and *reads as current* is the discriminating
-property, which no cheap predicate has. A checker at that ratio is one nobody
-reads, which this file already knows about hint lists. **What is left
-for the next run is the honest form of the same instruction**: after
-the run-name grep, walk the replace-listed sections and ask of each
-figure-bearing paragraph *which run measured this*, which is a reading and
-not a grep --- and the sites above are what it costs to skip it.
+OLDER than the superseded one, and this run met six such sites --- three closing
+Results, naming Runs 10 and 13 to 17 and never Run 18 while every figure in them
+was Run 18's (one contradicting this run's headline allocation finding in three
+other places), and a `1.84x` in the ceiling ruling carried forward from **Run
+11** through eight write-ups. An independent checker found all four by hand;
+every mechanical gate here passed over them. **The obvious repair was built
+and then refuted, which is why this is a note and not a mode.** A `--check-doc`
+sweep flagging paragraphs whose newest named run is behind the chapter's while
+carrying a figure returns **165** entries; excluding the run chapter and prose
+saying *this run* leaves 104; scoping it to the sections the replace list names
+leaves **100** --- for four that matter. The reason is structural rather
+than a tuning failure: naming an old run beside a figure is the NORMAL state
+of this document, which is full of answered entries and dated mechanism
+accounts, and *reads as current* is the discriminating property, which no cheap
+predicate has. A checker at that ratio is one nobody reads, which this file
+already knows about hint lists. **What is left for the next run is the honest
+form of the same instruction**: after the run-name grep, walk the replace-listed
+sections and ask of each figure-bearing paragraph *which run measured this*,
+which is a reading and not a grep --- and the sites above are what it costs
+to skip it.
 
 **A whole axis of the counted-work evidence was missing and no document said
 so.** `run-counts.sh` was born at Run 18 to serve registration 4, whose question
@@ -3820,12 +3831,15 @@ the ruling turns on, and which reads **0.5572 paired at 23 wins of 24**. It has
 now read 1.80x at -O1, 1.68x on Run 8, 1.87x on Run 9, 1.85x on Run 10
 with its aligned half giving 1.84x, and **1.79x** here, against 1.79x on Run 18
 --- the same 23 wins of 24 as Run 10's aligned half, and a paired figure
-that has moved five ten-thousandths across a change of compiler. So the spread
-is a tenth either side of 1.8 and neither the pairing nor a repetition moves it.
-Read it as *approaching 2x and volatile at the tenth* between runs that differ,
-and do not reopen or close the ruling on a movement of that size --- Run 10
-showed the volatility is not the layout's, and Run 11 shows it is not the run's
-either, which leaves the roster and the regime as what moved it.
+that has moved five ten-thousandths across a REPETITION of one binary --- Run
+18's basis and Run 19's are both ghc-9.12.4 and byte-identical. Across an actual
+change of compiler it moves much further, to 0.5208 on HEAD, which is 1.92x.
+So the spread is a tenth either side of 1.8 and neither the pairing
+nor a repetition moves it. Read it as *approaching 2x and volatile at the tenth*
+between runs that differ, and do not reopen or close the ruling on a movement
+of that size --- Run 10 showed the volatility is not the layout's, and Run 11
+shows it is not the run's either, which leaves the roster and the regime as what
+moved it.
 
 **Amended 2026-08-07: the bar is now a weight.** The tree itself carries
 a precedent this section did not weigh: `Data/Array/Internal/FastReshape.hs`,
@@ -6916,13 +6930,14 @@ and three on its aligned one, Run 10 four and one, Run 9 nine, Run 8 two and Run
 7 three. **That the two halves DISAGREE on the factor this run** --- five
 against three, where Run 18's agreed at three and three and Run 17's at five
 and five --- is the same fact as the basis half carrying both the wider floor
-and the wider cells, and it is the widest that gap has been since Run 14's three
-against twelve. Neither main set carries a wild cell, at 18.50% and 17.66%;
-the loosest cell of the run is a class's, and the chapter head reads it. What
-the basis half carries is two of its eighteen intervals missing 1 against
-the control's one, every one of them an arm whose two processes differ by less
-than its interval admits. It rests on eighteen pairs, so one loose pair moves
-it less than it did on six.
+and the wider cells, and it is a gap of two, where Run 16 read five against two
+and Run 14 three against twelve --- so the halves parting is not itself unusual,
+and what is new is only that this pair's did. Neither main set carries a wild
+cell, at 18.50% and 17.66%; the loosest cell of the run is a class's,
+and the chapter head reads it. What the basis half carries is two
+of its eighteen intervals missing 1 against the control's one, every one of them
+an arm whose two processes differ by less than its interval admits. It rests
+on eighteen pairs, so one loose pair moves it less than it did on six.
 
 **The class populations are where the factor still bites**, and the reason
 is arithmetic rather than noise: a two- or three-shape bootstrap gives
@@ -8710,7 +8725,7 @@ with a non-clock instrument now saying which movements are code.
 it swept the main set alone until 2026-08-25.** Sixteen further sweeps, both
 halves over all eight classes, 141 cells apiece and no cell perf refused.
 **Seven of the eight classes read as the main set does** --- every arm together
-at a count geomean of 0.9892 to 0.9910, HEAD emitting about a percent more,
+at a count geomean of 0.9892 to 0.9953, HEAD emitting about a percent more,
 with `bq-odo-gm-mulback` the most extreme arm in six of them at 0.9167
 to 0.9290. **`reshape1` inverts, and its whole class does**: 1.0032 over every
 arm, `bq-odo-gm-mulback` at 1.0066 rather than 0.93, and the extreme arm
@@ -8723,13 +8738,15 @@ shapes in three populations.** Wherever `sInner` is 1, `bq-odo-gm-mulback`'s
 HEAD penalty is absent: `stretch-inner1` 1.0000 --- 16,005,915 instructions
 against 16,005,919, four apart in sixteen million --- `reshape1`'s three shapes
 1.0000, 1.0032 and 1.0169, and `window-64x64-k1x9` 1.0099. Everywhere else
-it runs **0.9149 to 0.9489**, which is HEAD +5.4% to +9.3%. And the same shapes
-are where `mut-odo-vecdims-add-both-down` gains most, -4.5% to -6.4%.
-So whatever HEAD does differently to this odometer is on a path a unit innermost
-dimension does not take, and one arm's regression and another's improvement
-are the same event seen twice. **That is a mechanism claim and it is registered
-rather than settled**: nothing here reads the code, and the next run can kill
-it with any `sInner` of 1 that shows the penalty.
+it runs **0.9149 to 0.9702**, and the far end of that is `stretch-rank12`
+at `sInner` 2 --- the one shape between absent and the band, which is what
+a graded effect would look like rather than a switched one, which is HEAD +5.4%
+to +9.3%. And the same shapes are where `mut-odo-vecdims-add-both-down` gains
+most, -4.5% to -6.3%. So whatever HEAD does differently to this odometer is
+on a path a unit innermost dimension does not take, and one arm's regression
+and another's improvement are the same event seen twice. **That is a mechanism
+claim and it is registered rather than settled**: nothing here reads the code,
+and the next run can kill it with any `sInner` of 1 that shows the penalty.
 
 **And the correction sits on nearly the same footing in both halves, as it did
 on Run 17's and Run 18's.** The in-situ forcing term --- an arm minus
@@ -9017,22 +9034,27 @@ is a movement and not a new arm arriving.
 **Three things in the table are the run's findings rather than its numbers.**
 **The whole table reproduced against Run 18's basis column**, and this time
 on absolutes as well as ratios, the box having held still and the binary being
-the same one: of the eight yardstick rows, `mut-odo-vecdims`,
-`bq-odo-gm-mulback`, `build` and `offtab` are identical at 0.055, 0.100, 0.103
-and 0.134, and the four that move move by a single thousandth --- `mut-flat-gm`
-0.083 against 0.084, `bq-mut-runs-gm-mulback` 0.090 against 0.089,
-`bq-scan-rem-gm-mulback` 0.098 against 0.096 and `bq-expand` 0.115 against
-0.115, that last one unmoved in the column and 0.9927 paired. This
-is the tightest run-to-run reproduction of the eight rows this README has
-published, and it is what one binary run twice ought to look like. **The ceiling
-reproduced on the arm the class property names**: `mut-odo-vecdims` against
-`bq-scan-rem-gm-mulback`, the fastest arm outside the family's own tier, reads
-**0.5572 at 23 wins of 24** and sign p 3e-06, against Run 18's 0.5577
-at the same 23 of 24, Run 17's 0.5446 and Run 16's 0.5567 --- the figure [the
-ruling](#the-mutable-ceiling-not-taken) turns on, and unmoved by two compilers
-now. **And the `alloc` column is Run 15's through Run 18's at every level, while
-the CELLS behind it are not**: the two halves agree on **1016 of 1080**
-allocating cells where the 9.14 pair agreed on 1072, so on this pair
+the same one: of the eight yardstick rows, **five are identical** ---
+`mut-odo-vecdims`, `bq-odo-gm-mulback`, `bq-expand`, `build` and `offtab`
+at 0.055, 0.100, 0.115, 0.103 and 0.134, `bq-expand` reading 0.9927 paired
+besides --- and **three move**: `mut-flat-gm` 0.083 against 0.084
+and `bq-mut-runs-gm-mulback` 0.090 against 0.089 by a thousandth,
+`bq-scan-rem-gm-mulback` 0.098 against 0.096 by two. That is what one binary run
+twice ought to look like, and it is close to the only other same-binary
+repetition here: Run 11's aligned column against Run 10's reads four identical
+and four moving, none by more than a thousandth. This run has more rows
+identical and fewer moving, and one row moving further, so neither is flatly
+tighter than the other. **The ceiling reproduced on the arm the class property
+names**: `mut-odo-vecdims` against `bq-scan-rem-gm-mulback`, the fastest arm
+outside the family's own tier, reads **0.5572 at 23 wins of 24** and sign p
+3e-06, against Run 18's 0.5577 at the same 23 of 24, Run 17's 0.5446 and Run
+16's 0.5567 --- the figure [the ruling](#the-mutable-ceiling-not-taken) turns
+on. **What is unmoved by the compiler is the ORDERING and not the figure**: 23
+of 24 and p 3e-06 hold on both halves, while the ratio itself reads **0.5208**
+on HEAD, 6.5% from the basis's and three times its floor, which turns 1.79x
+into 1.92x. **And the `alloc` column is Run 15's through Run 18's at every
+level, while the CELLS behind it are not**: the two halves agree on **1016
+of 1080** allocating cells where the 9.14 pair agreed on 1072, so on this pair
 of compilers the column says the tiers did not change and the cell count says
 HEAD's code did.
 
@@ -9067,8 +9089,9 @@ pair did not. **A slot account of the add-in margin has to explain a control
 that moves as much or more with no slot change, and it still cannot.** Their
 per-shape ranges remain the finding rather than their geomeans, **0.867..1.073**
 on the basis and **0.774..1.015** on the control, so on HEAD the two slots
-disagree by more than two tenths on a single shape while agreeing to within
-a floor over the set.
+disagree by more than two tenths on a single shape --- and this run is the first
+where the pair does NOT agree to within a floor over the set either, 3.67%
+against a 2.32% floor on the basis and 6.75% against 1.71% on HEAD.
 
 
 ### What Run 20 compares against
@@ -9166,19 +9189,23 @@ column stays the yardstick for a comparison of the two regimes.
 **Which Run 15 half a comparison uses is settled here rather than per
 paragraph**, the basis change having made *against Run 15* ambiguous
 for the first time. Absolutes and anchors go against `run15-a32m`, the half
-at this run's own area: and the run bore that decision out. Against `run15-a32m`
-the three anchors read **-0.66%, -1.01% and -0.06%**, every one of them well
-inside the 2.32% floor; against `run15-lookrts` the same three would read
-**+8.81%, -9.57% and +7.74%**, which is the allocation area and not the shapes,
-and would have put all three outside the floor for a reason that is not theirs.
-The published lineage and the yardstick column go against `run15-lookrts`, which
-is what Runs 8 to 15 are read through and what a rebasing would cost this table.
-**The two rules answer different questions and neither overrides the other**:
-`run15-a32m` is what the basis change is CHECKED against, arm for arm, because
-it is the half at this run's own area; `run15-lookrts` is what the lineage
-is READ through, because it is the column every run from 8 to 15 published.
-A row's distance from the lookrts column is therefore the area plus whatever
-else moved, and only its distance from the a32m column is drift.
+at that run's own area, and Run 16 bore that decision out. **The six figures
+that follow are Run 16's and are no longer checkable here**, `run15-*`
+and `run16-*` having been deleted; they are kept because the RULING is what
+this paragraph is for and the numbers are the evidence it was taken on, and they
+are stamped so that no later run reads them as its own. Against `run15-a32m` Run
+16's three anchors read **-0.66%, -1.01% and -0.06%**, every one well inside
+the 2.32% floor it measured; against `run15-lookrts` the same three would have
+read **+8.81%, -9.57% and +7.74%**, which is the allocation area and
+not the shapes, and would have put all three outside that floor for a reason
+that is not theirs. The published lineage and the yardstick column go against
+`run15-lookrts`, which is what Runs 8 to 15 are read through and what a rebasing
+would cost this table. **The two rules answer different questions and neither
+overrides the other**: `run15-a32m` is what the basis change is CHECKED against,
+arm for arm, because it is the half at this run's own area; `run15-lookrts`
+is what the lineage is READ through, because it is the column every run from 8
+to 15 published. A row's distance from the lookrts column is therefore the area
+plus whatever else moved, and only its distance from the a32m column is drift.
 
 **Run 13 contributed two columns, and the second names a shim setting and an RTS
 line at once.** `Run 13 (SpecConstr, max-skip)` is the basis, Run 12's basis
@@ -9704,27 +9731,30 @@ verdicts**, the details beside each class's table:
    its population's floor, from 0.9704 on `window` to 1.0013 on `scaled`,
    and **`revsome` inverts outright**: its column puts `mut-odo-vecdims` first
    while the paired reading puts `add-in` 0.96% ahead, the two printing 0.047
-   and 0.048. `scaled` is the one class agreeing with its own sort, at 1.0013,
-   which is a tenth of a percent. So no run has separated the family in a class
-   yet, and in one of the eight the sort is naming rounding. **The main set
-   is the one population that clears a floor, and it splits by compiler
-   for the second run running**: `add-in` leads at **0.9755 on 19 of 24 shapes,
-   sign p 0.0066** on the 9.12 half --- 2.45%, outside that half's 2.32%
-   and five times its restricted six --- and reads **0.9991 at 14 of 24, p
-   0.54** on the HEAD half, a coin flip. Only the main set could show
-   this at all, a three-shape class bottoming out at p 0.25, so the eight
-   classes say nothing about significance either way. [Its own entry][open]
-   carries the whole of it, including what Run 19 took away: the `-g3` twin does
-   not carry to HEAD, so the swapped-offset reading that made this placement
-   is gone and the mechanism is unidentified. What belongs here is that the arm
-   leading most populations is not `mut-odo-vecdims`, and that its lead is
-   not a property of the arm. The third clause reads the last candidate
-   `bq-expand` behind `mut-odo-vecdims` and holds in all nine, from 0.3272
-   on `scaled` to 0.7978 on `reshape1`, the main set at 0.4821. The summary's
-   outside-family slot --- what the dropped redirect would have taken ---
-   is `mut-flat-gm` in `rev`, `revsome` and `window`, `build` in `bcast`,
-   `bcastmid` and `slice`, `bq-mut-runs-gm-mulback` in `reshape1` and `mut-odo`
-   in `scaled`, only `reshape1`'s ahead of `mut-odo-vecdims`.
+   and 0.048. `scaled` is the other class whose column puts `mut-odo-vecdims`
+   first, and there the paired reading agrees with it, at 1.0013 --- a tenth
+   of a percent. The other six classes sort `add-in` first and their paired
+   readings agree, so it is `revsome` alone that inverts. So no run has
+   separated the family in a class yet, and in one of the eight the sort
+   is naming rounding. **The main set is the one population that clears a floor,
+   and it splits by compiler for the second run running**: `add-in` leads
+   at **0.9755 on 19 of 24 shapes, sign p 0.0066** on the 9.12 half --- 2.45%,
+   outside that half's 2.32% and five times its restricted six --- and reads
+   **0.9991 at 14 of 24, p 0.54** on the HEAD half, a coin flip. Only the main
+   set could show this at all, a three-shape class bottoming out at p 0.25,
+   so the eight classes say nothing about significance either way. [Its own
+   entry][open] carries the whole of it, including what Run 19 took away:
+   the `-g3` twin does not carry to HEAD, so the swapped-offset reading
+   that made this placement is gone and the mechanism is unidentified. What
+   belongs here is that the arm leading most populations
+   is not `mut-odo-vecdims`, and that its lead is not a property of the arm.
+   The third clause reads the last candidate `bq-expand` behind
+   `mut-odo-vecdims` and holds in all nine, from 0.3272 on `scaled` to 0.7978
+   on `reshape1`, the main set at 0.4821. The summary's outside-family slot ---
+   what the dropped redirect would have taken --- is `mut-flat-gm` in `rev`,
+   `revsome` and `window`, `build` in `bcast`, `bcastmid` and `slice`,
+   `bq-mut-runs-gm-mulback` in `reshape1` and `mut-odo` in `scaled`, only
+   `reshape1`'s ahead of `mut-odo-vecdims`.
 3. **The allocation tiers survive, and every level is Run 15's, Run 16's and Run
    17's to the digit**: the mutable fills at the result vector, `bq-expand`
    between 1.14x and 5.43x it, `list` an order of magnitude above. Where a level

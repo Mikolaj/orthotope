@@ -2023,6 +2023,79 @@ CASES = [
          argv=['{run}', '--compare', '{other}', '--counts', '{ca}', '{cb}'],
          ok=V(exit=0, has=['perf refused'], hasnt=['0.0000'])),
 
+    # ---- --movers, the count a write-up takes by eye --------------------
+    # No `fix`, so no `bug` and no --audit leg: the mode is younger than
+    # every revision here. Both were written before it existed and BOTH
+    # FAILED against the tree that lacked it, which is the same proof
+    # --audit gives, taken where it was available.
+    case('movers-count-disagrees-with-its-rows', 'read-run.py', None,
+         'a movers count that did not match the arms it listed',
+         # THE DEFECT THIS EXISTS FOR HAPPENED TO A READER RATHER THAN TO
+         # THIS CODE, which is why it is a case and not a regression. Run
+         # 19's independent checker reported twelve arms past 3% where
+         # eleven move; the eleventh sits at 3.99% and the twelfth at
+         # 2.51%, so no threshold convention explains it. What does is
+         # that the count had to be taken BY EYE off `--chapter`, whose
+         # per-arm block is a list of arms outside ONE percent -- a
+         # 2.51% arm sits in the middle of it looking like a mover. Both
+         # the checker and the session hand-rolled the count in awk,
+         # because no mode answered it.
+         #
+         # So the property is that the headline count and the listed rows
+         # come from one predicate: a mode counting with one test and
+         # listing with another reproduces the very slip it replaces. One
+         # arm is skewed clear past the threshold and one clear under it,
+         # so no float sits near the boundary and the case tests the
+         # predicate rather than the rounding.
+         # THE COUNT IS ASSERTED WHOLE, `3 of 42 arm(s) move past 3%`,
+         # and not as the substring `3 of` -- which `13 of 42` satisfies,
+         # so the loose form pinned nothing and would have passed an
+         # implementation off by ten. Three arms are skewed clear past
+         # the threshold and one clear under it, so the headline count,
+         # the row set and the group count are each checked against a
+         # known answer rather than against each other.
+         plant=lambda t: {
+             'run': synth_json(t, 'main', name='a.json'),
+             'other': synth_json(t, 'main', name='b.json',
+                                 skew=[(sh, arm, f)
+                                       for sh in main_shapes()
+                                       for arm, f in (('bq-expand', 1.10),
+                                                      ('bq-gen', 1.12),
+                                                      ('mut-odo', 1.08),
+                                                      ('offtab', 1.01))])},
+         argv=['{run}', '--compare', '{other}', '--movers', '3'],
+         ok=V(exit=0,
+              has=['3 of 42 arm(s) move past 3%', 'in 3 group(s)',
+                   'bq-expand', 'bq-gen', 'mut-odo'],
+              hasnt=['offtab'])),
+
+    case('movers-alone-does-nothing', 'read-run.py', None,
+         'a numeric modifier whose zero slipped a truthiness guard',
+         # FOUND BY AN INDEPENDENT CHECKER READING THE CODE, 2026-08-25,
+         # and it is the counts case's defect surviving one value. The
+         # modifier roll call tested `getattr(args, flag)` for truth,
+         # which is right for a store_true flag and wrong for one taking
+         # a NUMBER: `--movers 0` is falsy, so neither the guard nor the
+         # dispatcher fired and the run printed its default table at exit
+         # 0 -- the silence that loop exists to refuse. The guard now
+         # asks whether a flag was GIVEN rather than whether its value is
+         # truthy, which is a different question and the one it meant.
+         plant=lambda t: {'run': synth_json(t, 'main', name='a.json')},
+         argv=['{run}', '--movers', '0'],
+         ok=V(exit=2, has=['does nothing alone'])),
+
+    case('movers-with-none-says-so', 'read-run.py', None,
+         'CONTROL: no arm past the threshold is an answer, not a silence',
+         # The empty aggregate this file refuses everywhere: a header, no
+         # rows and exit 0 reads as a reading. Two runs built alike move
+         # no arm at all, so the mode has to SAY none rather than print a
+         # table with nothing under it.
+         plant=lambda t: {
+             'run': synth_json(t, 'main', name='a.json'),
+             'other': synth_json(t, 'main', name='b.json')},
+         argv=['{run}', '--compare', '{other}', '--movers', '3'],
+         ok=V(exit=0, has=['no arm moves past'])),
+
     case('counts-alone-does-nothing', 'read-run.py', None,
          'the counts files were read and the mode never ran',
          # FOUND BY PROBE at Run 19's verification, on the mode that run
