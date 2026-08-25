@@ -2508,10 +2508,11 @@ rather than a slot in the next run, observed again:
   and the readings the two new links were measured at on both of Run 18's
   halves, are in the settlement paragraph at the foot of [the
   claims](#the-claims-run-20-should-test), which owns the account; the `CLAIMS`
-  manifest in `read-run.py` takes it at Run 19's write-up, so the retiring
-  orderings get one last cross-compiler reading first. **The second half
-  of the ask was already spent**, the eight *What the class says* paragraphs
-  having been written to the re-aimed properties at Run 18's write-up with only
+  manifest in `read-run.py` took it at Run 19's write-up on 2026-08-25,
+  the retiring orderings having had one last cross-compiler reading first,
+  in which all four held on both halves. **The second half of the ask
+  was already spent**, the eight *What the class says* paragraphs having
+  been written to the re-aimed properties at Run 18's write-up with only
   the sentence asking for it surviving. The decision was whoever asks
   for a run's, which is why it sat unmade through three runs; what kept it live
   was that it had no entry here until 2026-08-24, the index above saying nothing
@@ -9767,24 +9768,27 @@ verdicts**, the details beside each class's table:
    of these levels moved, and the two halves agree on 1016 of 1080 allocating
    cells.
 
-**SETTLED 2026-08-24, and applied at Run 19's write-up rather than now**,
-so that the retiring orderings get one last cross-compiler reading
-and the retirement is recorded with it --- which is how Run 17 retired claim 4's
-tie, in prose at its write-up with the manifest taking it the same day. The test
-applied: an ordering stays only if it forecloses something anyone would propose
-again *and* can still break. What fails both is a figure, and figures live
-in the tables above. **Claims 3, 5 and 9 retire outright.** Claim 3 sets one
-output form against another on a build nothing ships, where every leading pure
-arm is a `-gm-mulback` already; claim 5's `bq-expand` / `bq-gen` says of itself
-that the refutation stands on Runs 7 and 8, and claim 6 keeps that family
-guarded through `gen-quotrem`; claim 9's two series are closed at Run 13
-by this section's own words, and a closed series in a live manifest
-is maintenance without a question. **Claim 4 retires with them, its tie moving
-into claim 1** --- and what goes with it is the one place the manifest reads
-a *builder* apart from its output, which `--pair` recovers whenever
-it is wanted, both arms staying rostered. **Claim 1 becomes the ladder
-the `needs` column already draws**, gaining `bq-scan-rem-gm-mulback`, the best
-arm needing nothing at all, between `bq-mut-runs-gm-mulback`
+**SETTLED 2026-08-24 and APPLIED 2026-08-25, at Run 19's write-up rather
+than at the settlement**, so that the retiring orderings got one last
+cross-compiler reading and the retirement is recorded with it --- which is how
+Run 17 retired claim 4's tie, in prose at its write-up with the manifest taking
+it the same day. **They got it**: all thirteen held on both of Run 19's halves,
+and the eight that remain hold on both too, so each of the four retires
+on a reading rather than on a decision. `CLAIMS` in `read-run.py` now carries
+claims 1, 2 and 6 alone. The test applied: an ordering stays only
+if it forecloses something anyone would propose again *and* can still break.
+What fails both is a figure, and figures live in the tables above. **Claims 3, 5
+and 9 retire outright.** Claim 3 sets one output form against another on a build
+nothing ships, where every leading pure arm is a `-gm-mulback` already; claim
+5's `bq-expand` / `bq-gen` says of itself that the refutation stands on Runs 7
+and 8, and claim 6 keeps that family guarded through `gen-quotrem`; claim 9's
+two series are closed at Run 13 by this section's own words, and a closed series
+in a live manifest is maintenance without a question. **Claim 4 retires
+with them, its tie moving into claim 1** --- and what goes with it is the one
+place the manifest reads a *builder* apart from its output, which `--pair`
+recovers whenever it is wanted, both arms staying rostered. **Claim 1 becomes
+the ladder the `needs` column already draws**, gaining `bq-scan-rem-gm-mulback`,
+the best arm needing nothing at all, between `bq-mut-runs-gm-mulback`
 and `bq-odo-gm-mulback`: the first ahead of it at **0.9060** and **0.9171**
 on Run 18's two halves, 19 and 17 of 24, which is what a mutable `Int` scratch
 buys; and the second **tied** with it at **0.9902** and **0.9936**, 13 and 12
