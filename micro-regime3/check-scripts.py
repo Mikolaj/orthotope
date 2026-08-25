@@ -617,10 +617,30 @@ def bad_alloc_fit(benches, want):
     return hit
 
 
-def mangled_main(tmp):
-    """A Main.hs whose roster the parser cannot find."""
+def era_main(rev):
+    """Main.hs as of `rev`, or today's when `rev` is None.
+
+    The counterpart of `era_readme`, and it exists for the same reason:
+    a fixture derived from this directory is only right for the code of
+    its own era, and Main.hs cites README headings by anchor. Pairing
+    today's source with an older document reads every anchor renamed
+    since as dead -- `the-mutable-ceiling-taken` against that era's
+    `the-mutable-ceiling-not-taken`, the rename that came with the
+    decision to take the ceiling -- and a case replayed that way fails
+    on the mismatch rather than on the defect it was written for.
+    """
+    return open(MAIN).read() if rev is None else at_rev('Main.hs', rev)
+
+
+def era_main_file(tmp, rev):
+    """`era_main` as a file a case can point `--main` at."""
+    return write(os.path.join(tmp, 'era-Main.hs'), era_main(rev))
+
+
+def mangled_main(tmp, rev=None):
+    """A Main.hs whose roster the parser cannot find, of `rev`'s era."""
     return write(os.path.join(tmp, 'Main.hs'),
-                 open(MAIN).read().replace('roster', 'r0ster'))
+                 era_main(rev).replace('roster', 'r0ster'))
 
 
 def run_json(name):
@@ -2786,9 +2806,26 @@ CASES = [
          bug=V(has=['Traceback'])),
 
     # ---- read-run.py, the second review's ------------------------------
+    # BOTH PLANT AN ERA Main.hs, because Main.hs cites README headings by
+    # anchor and a fixture pairing today's source with an older document
+    # reads every anchor renamed since as dead --
+    # `the-mutable-ceiling-taken` against that era's
+    # `the-mutable-ceiling-not-taken`, the rename that came with the
+    # decision to take the ceiling. `era_main` is `era_readme`'s
+    # counterpart and the pair must move together.
+    #
+    # THE RULING, so the cheap wrong repair is not reached for: when these
+    # fail under --audit it is NOT the `beyond its own history` case the
+    # top of this file prescribes dropping the `bug` verdict for. Dropping
+    # it costs the replay permanently; respelling the anchors restores it,
+    # the old reader then exiting 0 with no failure at all. Check which of
+    # the two it is by running the revision under test where `materialise`
+    # puts it -- HERE, so its `__file__`-relative path roots resolve --
+    # since a replay run from anywhere else adds a BLOCKED of its own and
+    # reads like the unrecoverable case.
     case('checkdoc-without-a-roster', 'read-run.py', 'a6c32e8',
          'a roster it could not parse skipped five checks at exit 0',
-         plant=lambda t, rev: {'main': mangled_main(t),
+         plant=lambda t, rev: {'main': mangled_main(t, rev),
                                'readme': era_readme(t, rev)},
          argv=['--check-doc', '--main', '{main}', '--readme', '{readme}'],
          ok=V(exit=1, has=['BLOCKED: no roster parsed']),
@@ -2796,8 +2833,9 @@ CASES = [
 
     case('checkdoc-open-list-out-of-order', 'read-run.py', 'a6c32e8',
          'the goal section above the open list killed the sweep in silence',
-         plant=lambda t, rev: {'readme': readme_goal_above_open(t, rev)},
-         argv=['--check-doc', '--readme', '{readme}'],
+         plant=lambda t, rev: {'main': era_main_file(t, rev),
+                               'readme': readme_goal_above_open(t, rev)},
+         argv=['--check-doc', '--main', '{main}', '--readme', '{readme}'],
          ok=V(exit=1, has=['BLOCKED: the open list']),
          bug=V(exit=0)),
 
