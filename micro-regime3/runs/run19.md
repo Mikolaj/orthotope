@@ -569,77 +569,84 @@ against a 2.32% floor on the basis and 6.75% against 1.71% on HEAD.
 
 ## What the next run compares against
 
-**Run 20's regime, roster and basis are settled; its pair is not, and
-that is the one decision it owes before anything is built.** The regime
-is `-fspec-constr`, as every run since Run 8, and it is the regime the claims
-decide in; the shipped file does not set the flag ([the
-ceiling](../README.md#the-mutable-ceiling-taken)). **The roster is no longer Run
-16's, and Run 20 is the run that changes it**: the rework's arms landed
-2026-08-25 --- `canon-vecdims` and its memcpy-run form `canon-memcpy-r2`,
-the zero-stride conditions `bcast-set` and `mid-copy`, and the endpoint
-`canon-full` --- and three placement-family arms dropped to `Only` beside them,
-so the timed roster is 53 arms over the same 24 shapes and 1272 benches, where
-Run 19 ran 47 and 1128. The sixth of the block is `canon-full-nosum`, a fourth
-in-situ forcing control, the three standing ones all being element-wise fills
-where the endpoint's write pattern varies by shape. **And two classes go to four
-shapes on 2026-08-25**: `reshape1-strided-r3` joins `reshape1` --- the same
-dense shape as `reshape1-r3` viewed with its innermost two dimensions transposed
-before the size-1 dim is appended, so dropping that dim leaves a strided view
-where the class's other three leave a contiguous run, without which
-the canonicalizing arms measure dispatch in this class and not filling ---
-and `bcastmid-block150k` joins `bcastmid`, its block taken to 150000 elements
-where the class's blocks ran 3 to 216, the block-copy arm's best case where
-`bcastmid-b200k` is its worst. The other six classes stay at three, so the class
-view set is 26 shapes and 1378 benches, and those two processes run four shapes
-where the rest run three. The allocation area is fixed at `-A32m` and no pair
-will vary it again: Runs 14, 15 and 16 priced it, the decision of 2026-08-21
-closed it, and the 24m/48m probe that could have reopened it was taken ahead
-of Run 17 and killed. The basis is `run19-g912`'s recipe --- ghc-9.12.4,
-`-fobject-determinism`, the per-sample instrument and the saturating preamble,
-run under `WILDLOG=1 SATURATE=1` --- which is now the same recipe three runs
-running and reproduces byte for byte, so a Run 20 basis that does not is itself
-a finding. **Run 20 is a pair, and the roster change is its variable** ---
-decided 2026-08-25. `run20-g912` carries the 53 timed arms and `run20-r19roster`
-Run 19's 47, one compiler, one shim, one shim setting and one machine apart
-from the roster itself --- and the control's name deliberately does not begin
-with the basis's, `install-tables.sh` refusing a half caught by its own
-`$R-$BASIS-*.json` glob. The two do NOT share source, which every pair before
-this one did: the roster is in `Main.hs`, so the halves are two source states
-and the pair note records both. so what the pair prices is what five new
-functions did to the layout of the arms that were already there. Run 10 measured
-a reorder at 12 to 14% on the two arms whose loop the shim rescues, and each
-half's own eighteen A/A pairs bound only what is inside it, so nothing else here
-can read that. It costs the second half of the machine: about thirteen hours
-of processes rather than six and a half. **And the question a purpose-built pair
-was owed for is gone.** That question was the `add-in` placement one, which
-wanted one compiler, one source and two shims placing the two arms at swapped
-cache-line offsets --- Run 18 thought a compiler pair gave it for free and Run
-19 showed the free route does not carry, the `-g3` twin naming HEAD's four
-functions and unable to locate them --- and it was **parked 2026-08-25** ([its
-own entry][open]), the margin being too small to move the shipping choice
-whichever way it came out. So the pair above is not owed to it, and the three
-arms it turned on stopped costing benches the same day. **What that rules out
-is a second variable, not the roster change itself.** A roster change confounds
-whatever a pair varies, so a Run 20 that both extends the roster and varies
-something else can attribute neither; and another compiler pair is ruled out
-on its own evidence, HEAD and 9.14 both having been read and both having said
-the same thing about the orderings. **What the roster change costs, and
-it is not a caveat but the run's own subject**: five new functions move every
-address, so Run 20 cannot reproduce Run 19 byte for byte and **does not owe
-it** --- the md5 comparison and the three-read hunt a moved md5 usually triggers
-are both off for this run, decided 2026-08-25, and saying so here is what stops
-a session hunting a difference the roster explains. What holds the build
-to something instead is the gate's machine check, `list`'s net per shape against
-Run 19's kept fingerprint; the 47 arms both halves and Run 19 all carry, read
-against its columns; and each half's own eighteen A/A pairs for its floor.
-**And one thing to expect of the write-up**, now that the sibling is in:
-`reshape1`'s other three shapes still go degenerate for the canonicalizing arms,
-whose cells there measure dispatch rather than filling, so that class's geomean
-for them mixes three dispatch cells with one fill cell and its paragraph has
-to say which is which. `reshape1-strided-r3` is the only cell in the class
-that prices the fill. **And one thing it does NOT owe**: Run 19's main-set
-rerun, declined on 2026-08-25 rather than carried forward, so Run 20 inherits
-no backlog from it.
+**Run 20's regime, roster, basis and pair are all settled, and it owes
+no decision before it is built.** The regime is `-fspec-constr`, as every run
+since Run 8, and it is the regime the claims decide in; the shipped file does
+not set the flag ([the ceiling](../README.md#the-mutable-ceiling-taken)).
+**The roster is no longer Run 16's, and Run 20 is the run that changes it**:
+the rework's arms landed 2026-08-25 --- `canon-vecdims` and its memcpy-run form
+`canon-memcpy-r2`, the zero-stride conditions `bcast-set` and `mid-copy`,
+and the endpoint `canon-full` --- and three placement-family arms dropped
+to `Only` beside them, so the timed roster is 53 arms over the same 24 shapes
+and 1272 benches, where Run 19 ran 47 and 1128. The sixth of the block
+is `canon-full-nosum`, a fourth in-situ forcing control, the three standing ones
+all being element-wise fills where the endpoint's write pattern varies by shape.
+**And two classes go to four shapes on 2026-08-25**: `reshape1-strided-r3` joins
+`reshape1` --- the same dense shape as `reshape1-r3` viewed with its innermost
+two dimensions transposed before the size-1 dim is appended, so dropping
+that dim leaves a strided view where the class's other three leave a contiguous
+run, without which the canonicalizing arms measure dispatch in this class
+and not filling --- and `bcastmid-block150k` joins `bcastmid`, its block taken
+to 150000 elements where the class's blocks ran 3 to 216, the block-copy arm's
+best case where `bcastmid-b200k` is its worst. The other six classes stay
+at three, so the class view set is 26 shapes and 1378 benches, and those two
+processes run four shapes where the rest run three. The allocation area is fixed
+at `-A32m` and no pair will vary it again: Runs 14, 15 and 16 priced it,
+the decision of 2026-08-21 closed it, and the 24m/48m probe that could have
+reopened it was taken ahead of Run 17 and killed. The basis is `run19-g912`'s
+recipe --- ghc-9.12.4, `-fobject-determinism`, the per-sample instrument
+and the saturating preamble, run under `WILDLOG=1 SATURATE=1` --- which is now
+the same recipe three runs running and reproduces byte for byte, so a Run 20
+basis that does not is itself a finding. **Run 20 is Run 19's pair again,
+over the extended roster** --- decided 2026-08-26. `run20-g912` is the basis
+on Run 19's basis recipe, and `run20-ghead` the same source and the same shim
+built by the in-tree stage1 of the GHC checkout, as Run 19's control was. **Both
+halves carry the whole of it**, 53 timed arms over 24 main-set shapes and 26
+class views, so they share source, roster, shapes, class lists and bench order
+and differ in the compiler and its boot libraries alone. That is what every pair
+here has done and what the drivers assume: a pair whose halves differed
+in the ROSTER would fail `preflight`'s `check` comparison and make
+`run-major.sh` and `smoke-sweep.sh` hold each half to the other's bench count,
+which is why no pair varies it.
+
+**This overrides a ruling recorded in this very section, and what moved
+is the premise rather than the judgement.** Run 19 advised that Run 20
+not be another compiler pair, HEAD and 9.14 both having been read and both
+having said the same thing about the orderings. That was weighed on a Run 20
+rostering nothing new. Run 20 rosters the five rework arms and the control
+the fix actually ships, so a second compiler now buys a first reading
+of the shipped code on a compiler its consumers will build with, rather
+than a re-reading of settled orderings. Decided 2026-08-26 by whoever asked
+for the run. **And the question a purpose-built pair was owed for is gone.**
+That question was the `add-in` placement one, which wanted one compiler, one
+source and two shims placing the two arms at swapped cache-line offsets --- Run
+18 thought a compiler pair gave it for free and Run 19 showed the free route
+does not carry, the `-g3` twin naming HEAD's four functions and unable to locate
+them --- and it was **parked 2026-08-25** ([its own entry][open]), the margin
+being too small to move the shipping choice whichever way it came out.
+So the pair above is not owed to it, and the three arms it turned on stopped
+costing benches the same day. **Where the roster change does land is across
+runs, not across the halves.** Within the pair one thing differs and it
+is the compiler; between Run 19 and either half of Run 20 the roster has moved,
+so a figure read across that boundary on the 47 arms all three carry brings
+a layout term with it --- Run 10 measured a reorder at 12 to 14% on the two arms
+whose loop the shim rescues. **What the roster change costs**: nine new
+functions move every address, so neither half of Run 20 can reproduce its Run 19
+counterpart byte for byte, and **neither owes it** --- the md5 comparison
+and the three-read hunt a moved md5 usually triggers are both off for this run,
+decided 2026-08-25, and saying so here is what stops a session hunting
+a difference the roster explains. What holds the build to something instead
+is the gate's machine check, `list`'s net per shape against Run 19's kept
+fingerprint; the 47 arms both halves and Run 19 all carry, read against
+its columns; and each half's own eighteen A/A pairs for its floor. **And one
+thing to expect of the write-up**, now that the sibling is in: `reshape1`'s
+other three shapes still go degenerate for the canonicalizing arms, whose cells
+there measure dispatch rather than filling, so that class's geomean for them
+mixes three dispatch cells with one fill cell and its paragraph has to say which
+is which. `reshape1-strided-r3` is the only cell in the class that prices
+the fill. **And one thing it does NOT owe**: Run 19's main-set rerun, declined
+on 2026-08-25 rather than carried forward, so Run 20 inherits no backlog
+from it.
 
 **What Run 19 leaves it to read against, and the first item is not a figure.**
 **The box did not change**, its machine check reading -0.84% against the kept

@@ -11,7 +11,7 @@ PREVBASIS and PREVSAME are one half whenever the run changed no
 allocation area, which is the ordinary case: two names to hunt for and
 one to find is not an error.
 
-Substitute per run: RUN=run18  BASIS=g912  OTHER=g914  PREV=run17
+Substitute per run: RUN=run19  BASIS=g912  OTHER=ghead  PREV=run18
                     PREVBASIS=run17-wildlog  PREVSAME=run17-wildlog
                     PRETIP=b07064e   (the commit before the run's work)
 

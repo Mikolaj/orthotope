@@ -65,8 +65,9 @@ OTHER=${OTHER:-ghead}       # the other half, for the cross-half line the
                             # class-block form calls item 5: --block reads
                             # it only when given the second JSON, and a run
                             # that recorded one half has no such line owed
-BASIS=${BASIS:-g912}        # the fourth file carrying a half's name, and
-                             # the only one with no OTHER; run-major.sh,
+BASIS=${BASIS:-g912}        # one of the five files carrying a half's name,
+                             # and it carries OTHER too, four lines up;
+                             # run-major.sh, preflight.sh,
                              # run-gate.sh and smoke-sweep.sh are the
                              # others, set together at pre-run step 3c
 # The run's own file, named after the run this driver was given -- not the

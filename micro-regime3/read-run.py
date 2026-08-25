@@ -6936,8 +6936,12 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
         facts = [
             (r'are ([a-z\d-]+) controls: ([a-z\d-]+) A/A arms',
              (len(controls), len(aa)), "the controls sentence"),
-            (r'with the controls the run is ([a-z\d]+) benches',
-             (len(timed),), 'the bench count'),
+            # ARMS, not benches: this compares against the TIMED ROSTER
+            # and a reader met `the run is 53 benches` beside `1272
+            # benches` and had to work out they count different things.
+            # The word moved in both places at once, 2026-08-26.
+            (r'with the controls the run is ([a-z\d]+) arms',
+             (len(timed),), 'the timed-arm count'),
             (r'([A-Za-z\d]+) A/A controls run an existing strategy twice',
              (len(aa),), "the floor section's design sentence"),
             (r'([a-z\d]+) strategies, each duplicated once beside its base',

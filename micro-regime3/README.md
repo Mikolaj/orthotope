@@ -4280,19 +4280,20 @@ and persisting for a whole run rather than one bench: unretired rather
 than absent, since that case ran benchmarks of a different scale.
 
 **Two rulings taken 2026-08-08 cut the timed roster from 38 strategies to 15,
-and the arms written since bring it back to 26** --- the four unconditional
+and the arms written since bring it back to 28** --- the four unconditional
 forms the precondition ruling itself called for (below), the four FastReshape
-arms and, of the five Run 20 arms beside them, the three the probes left timed
-([the mutable ceiling](#the-mutable-ceiling-taken)). Both rulings are about what
+arms, of the five Run 20 arms beside them the three the probes left timed ([the
+mutable ceiling](#the-mutable-ceiling-taken)), and the rework's five less
+the three placement-family arms parked beside them. Both rulings are about what
 is worth spending a bench on, not about what is worth keeping: every dropped
 strategy stays in `Main.hs` and stays in the roster as `concat-runs` is ---
 checked against the reference on every shape of every class, and not timed ---
 so the agreement net does not shrink and nothing has to be rewritten if a ruling
 is later reopened. The 23 arms the rulings dropped carry `Only` in that roster,
 each naming the bound or the multiple that disqualified it; with the controls
-the run is 53 benches, and the Run 20 trio with the rework's block takes
-the roster to 1272 benches, three placement-family arms having dropped to `Only`
-beside them.
+the run is 53 arms, and the Run 20 trio with the rework's block takes the roster
+to 1272 benches, three placement-family arms having dropped to `Only` beside
+them.
 
 - **A strategy with a precondition is not measured.** The column allowed `none`,
   an empty cell, and `shape well-formed`, which is a condition on being a valid
@@ -4546,11 +4547,11 @@ against](runs/run19.md#what-the-next-run-compares-against), the paragraphs
 settling the regime, the roster and the basis, and the column rules
 under the yardstick --- not its figures. Of [the
 claims](runs/run19.md#the-claims-the-next-run-should-test), BOTH numbered sets
-at the end --- the five live claims and the three class properties, a run
-returning verdicts on each --- and not the previous run's readings above them,
-which `--claims` reprints. Of [the class
-blocks](runs/run19.md#the-stride-classes-run-by-run), the six numbered items
-of the form and one example block --- not the other seven.
+at the end --- the live claims, three of them since the settlement
+of 2026-08-24, and the three class properties, a run returning verdicts on each
+--- and not the previous run's readings above them, which `--claims` reprints.
+Of [the class blocks](runs/run19.md#the-stride-classes-run-by-run), the six
+numbered items of the form and one example block --- not the other seven.
 Of [Provenance](#provenance), the replace list and the delta bullets. The open
 list is read by its status markers rather than end to end. Everything else
 in this file is reference, and reading it is how a write-up's budget goes
@@ -4775,11 +4776,13 @@ and never as a chronology.
     #      to price the store. Run 15 did all three after its write-up
     #      had blamed the shim: the shim was emission-neutral and all 48
     #      dependencies had been relinked (2026-08-17)
-    #  3c. SET THE HALVES' NAMES in the three scripts that take an OTHER --
-    #      run-major.sh, run-gate.sh, smoke-sweep.sh -- and check that
-    #      install-tables.sh's BASIS agrees; read-all.sh is the fifth
-    #      script a run passes and needs nothing set, deriving the halves
-    #      from the filenames. Here, because the names exist
+    #  3c. SET THE HALVES' NAMES in the FIVE scripts that take them --
+    #      run-major.sh, run-gate.sh, smoke-sweep.sh, preflight.sh and
+    #      install-tables.sh, every one carrying both BASIS and OTHER;
+    #      read-all.sh is the sixth script a run passes and needs nothing
+    #      set, deriving the halves from the filenames. This list said
+    #      three and named install-tables.sh for BASIS alone until
+    #      2026-08-26, when a walk of it counted the files. Here, because the names exist
     #      from 3b and everything below reads them. A wrong OTHER stops
     #      run-major.sh and run-gate.sh at a missing binary; in
     #      smoke-sweep.sh it sweeps the wrong half and looks clean
@@ -4803,11 +4806,12 @@ and never as a chronology.
     ./$R-<basis> --list 2>/dev/null | wc -l    # 6. roster size, then the
     diff <(./$R-<basis> --list 2>/dev/null) <(./$R-<other> --list 2>/dev/null)
     #      two halves' listings: identical is what one source built twice
-    #      looks like, and the pair note asks for that half of it. THE
-    #      EXCEPTION IS A PAIR WHOSE VARIABLE IS THE ROSTER, where the
-    #      diff IS the variable and the note records what it should be --
-    #      Run 20 is the first, 1272 benches against 1128, so read the
-    #      note before reading a difference here as a defect
+    #      looks like, and the pair note asks for that half of it. A pair
+    #      whose halves differ in the ROSTER would break this and three
+    #      more of these steps -- preflight 4,5 cmps the two `check`
+    #      outputs, and run-major.sh and smoke-sweep.sh hold every half to
+    #      the BASIS's bench count -- so no pair here varies the roster,
+    #      ruled 2026-08-26 after a walk of this list found all four
     ./read-run.py --lint                  # 7. roster and shape annotations
     ./read-run.py --check-doc --quiet     # 8. anchors, paths, widths, sweeps
     #      7+8 are the WHOLE document check here; no other repo's checkers,
@@ -4886,8 +4890,10 @@ and never as a chronology.
     #      second -- diff the two --list outputs -- rather than through
     #      the roster delta under Provenance. Any class serves: six are
     #      three shapes and `reshape1` and `bcastmid` are four since
-    #      2026-08-25 -- prefer one of the five that crossed from two,
-    #      which drives `--block`'s three-shape branch. Name the artifacts probe-* or smoke-*, never
+    #      2026-08-25 -- so not any of them serves: prefer one of the
+    #      five that crossed from two to three, which drives `--block`'s
+    #      three-shape branch, and the command above names `scaled`.
+    #      Name the artifacts probe-* or smoke-*, never
     #      $R-*: NO PROBE OF ANY KIND TAKES THE RUN'S PREFIX, which is the
     #      general rule stated below and not this step's own.
     #      Record it on an `L1 ROSTER PASS:` line. With the previous run's
@@ -5309,9 +5315,11 @@ the sequence below.
 the binaries that will be timed, not a third built beside them, and the last two
 against `Main.hs` and this file, which open no binary at all:
 
-    ./$R-<basis> check > /tmp/a.log 2>&1   # every strategy agrees, every
-    ./$R-<other> check > /tmp/b.log 2>&1   #   shape regime 3, both halves
-    cmp /tmp/a.log /tmp/b.log              # and the two logs are identical
+    T=$(mktemp -d)                         # NOT /tmp/a.log, which no
+    ./$R-<basis> check > $T/a.log 2>&1     #   seat here permits sandboxed
+    ./$R-<other> check > $T/b.log 2>&1     # every strategy agrees, every
+                                           #   shape regime 3, both halves
+    cmp $T/a.log $T/b.log                  # and the two logs are identical
     #  scratch names, not $R-*.log: run-major.sh refuses to start where one
     #  of those exists, so a log named for the run blocks the run
     ./$R-<basis> --list 2>/dev/null | wc -l    # 2>/dev/null is NOT
@@ -5418,16 +5426,16 @@ and `run13-lookrts`, `run14-lookrts` and `run14-a1g`. So a new pair derives
 its own names before it has a note to read them from, and step 0's rule stands
 untouched, the tag saying what a half is and the note saying which of them
 is the basis. The names are recorded in the pair note and set in one place
-in each of the four scripts that take a run --- `run-major.sh`, `run-gate.sh`,
-`smoke-sweep.sh` and `install-tables.sh`, the last carrying `BASIS` alone ---
-as `OTHER` and `BASIS`, and each is a `${BASIS:-...}` default an environment
-variable overrides for an older pair; the basis is the half the expected bench
-counts are read from and every table is installed from, and it runs second; both
-halves run every class. **The two roles are BASIS and CONTROL**, which is what
-this README calls them where it names a role at all; the scripts' variable
-is `OTHER` and the prose often says *the other half*, and all three are one
-thing. The halves are named for what they vary --- Run 10's
-`unaligned`/`aligned`, Run 11's `maxskip`/`aligned`, Run 12's
+in each of the five scripts that take a run --- `run-major.sh`, `run-gate.sh`,
+`smoke-sweep.sh`, `preflight.sh` and `install-tables.sh`, every one of them
+carrying both --- as `OTHER` and `BASIS`, and each is a `${BASIS:-...}` default
+an environment variable overrides for an older pair; the basis is the half
+the expected bench counts are read from and every table is installed from,
+and it runs second; both halves run every class. **The two roles are BASIS
+and CONTROL**, which is what this README calls them where it names a role
+at all; the scripts' variable is `OTHER` and the prose often says *the other
+half*, and all three are one thing. The halves are named for what they vary ---
+Run 10's `unaligned`/`aligned`, Run 11's `maxskip`/`aligned`, Run 12's
 `maxskip`/`maxskippa` --- and which of them is the basis is a decision the pair
 note records, not something a half's name tells you. Run 12 is where the two
 would collide if this README still called the basis *the aligned half*:
@@ -5562,10 +5570,11 @@ is an identity of anything until there are shapes to be one over. Every claim's
 `--pair` line goes unrun, and a claim re-aimed at an arm the run does not carry
 fails only when someone runs it. And `--block`'s per-shape line is guarded
 by `len(shapes) > 2`, so it is dead on a one-shape file --- a guard that hid
-an edited line of this reader through a whole smoke sweep. Every class
-is three-shape since 2026-08-14, so any of them serves; the list above prefers
-one of the five that crossed from two, which drives `--block`'s three-shape
-branch, and `scaled` is the one it names. The pass is two processes:
+an edited line of this reader through a whole smoke sweep. Six classes
+are three-shape and `reshape1` and `bcastmid` went to four on 2026-08-25,
+so not any of them serves: the list above prefers one of the five that crossed
+from two to three, which drives `--block`'s three-shape branch, and `scaled`
+is the one it names. The pass is two processes:
 
     ./$R-<basis> -L1 --json smoke-l1-main.json
     ./$R-<basis> classes scaled- -L1 --json smoke-l1-scaled.json
@@ -6094,13 +6103,15 @@ was missed, which is what they have cost.
     #      entry, move answered ones with their measurement, and add each
     #      surprise with what would settle it. Prediction verdicts go THERE,
     #      not in the chapter the next run replaces; report a split as a
-    #      split, arm by arm    ./read-run.py $R-<basis>-main.json --deflation   # 10a. and the same
+    #      split, arm by arm
+    ./read-run.py $R-<basis>-main.json --deflation   # 10a. and the same
     #      on the control: the roster cell over its own alone leg, per
     #      shape, which is what the riders were run for. RAW over RAW,
     #      which the mode does because a leg carries no `sum-only` to
     #      correct with -- the one figure here a session had to hand-roll
     #      before the mode existed, and the one place it would reach for
-    #      the wrong numerator    #  11. NAME THE FILL GROUPS off a -g3 twin, and spend the other
+    #      the wrong numerator
+    #  11. NAME THE FILL GROUPS off a -g3 twin, and spend the other
     #      load-independent measurements while the artifacts live --
     #      allocation, Core, a `size` invocation, minutes each. The naming
     #      is what this step is for and reads like housekeeping: it turns
@@ -6144,9 +6155,10 @@ the artifacts are what it spends.
    failing invalidates the whole time column rather than merely leaving
    it uncorrected, and all have to be re-passed by every run rather
    than inherited --- by every *population* too, each process carrying its own
-   `sum-only` pair, its own eighteen A/A controls and its own four `-nosum`
-   arms, so a class run passes or fails the gates on its own evidence
-   and a failure there invalidates that class's column and no other.
+   `sum-only` pair, its own eighteen A/A controls and its own `-nosum` arms ---
+   four on today's roster, and a half built on another roster carries
+   that roster's --- so a class run passes or fails the gates on its own
+   evidence and a failure there invalidates that class's column and no other.
    **Then write this run's own floor at the head of the chapter as you draft it,
    and keep it there.** That is where every margin judged against it is written
    too, so it is published with them rather than kept where only this session
