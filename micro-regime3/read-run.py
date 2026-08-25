@@ -2097,6 +2097,14 @@ def counts_table(cells, shapes, strategies, meta, other, main_hs,
     direction is `--compare`'s throughout -- this run over the other, on
     both columns -- so that the two are read side by side without one of
     them being inverted.
+
+    WHAT THE RESIDUE IS NOT is a like-for-like ratio. perf counts the whole
+    bench and `time` is net of the shared forcing pass, so the count column
+    is raw-equivalent and the time column is corrected. Over the roster the
+    difference is about a point, the forcing term being within half a point
+    of the same share on both halves; on a single cell it reaches three,
+    which is why the trailing note sends a cell question to `--cells`.
+    Found 2026-08-25, by being asked for the largest single cell.
     """
     a_counts, a_refused, a_bad = parse_counts(counts_a)
     b_counts, b_refused, b_bad = parse_counts(counts_b)
@@ -2155,7 +2163,21 @@ def counts_table(cells, shapes, strategies, meta, other, main_hs,
     print('\n`counts` is the geomean over shapes of this half\'s instructions'
           '\nan iteration over the other half\'s, and owes criterion nothing.'
           '\n`time` is the same arm\'s corrected time ratio, the figure'
-          '\n--compare prints. `time/counts` is the part of the time movement'
+          '\n--compare prints.'
+          '\n'
+          '\nTHE TWO ARE NOT OVER THE SAME WORK, and the residue carries'
+          '\nthat: perf counts the WHOLE bench, the shared forcing pass'
+          '\nincluded, while `time` is net of it. So the count column is'
+          '\nraw-equivalent and the one beside it is corrected. Over the'
+          '\nroster it hardly matters, the forcing term sitting within half'
+          '\na point of the same share on both halves; ON ONE CELL it is'
+          '\nworth two to three points -- stretch-tall-Mx2 on'
+          '\nbq-odo-gm-mulback reads +9.30% in counts against +7.98% raw'
+          '\nand +11.26% net, subtracting a term the halves share'
+          '\namplifying what is left. Read the residue for its direction and'
+          '\nnot as a magnitude, and go to --cells for a single cell.'
+          '\n'
+          '\n`time/counts` is the part of the time movement'
           '\nthe instruction count does not explain: near 1 the movement IS'
           '\nthe codegen, and away from 1 it is the runtime or the memory --'
           '\nwhich on a pinned pair is where placement shows, an arm whose'
