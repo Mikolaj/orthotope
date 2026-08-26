@@ -11,9 +11,9 @@ PREVBASIS and PREVSAME are one half whenever the run changed no
 allocation area, which is the ordinary case: two names to hunt for and
 one to find is not an error.
 
-Substitute per run: RUN=run19  BASIS=g912  OTHER=ghead  PREV=run18
-                    PREVBASIS=run17-wildlog  PREVSAME=run17-wildlog
-                    PRETIP=b07064e   (the commit before the run's work)
+Substitute per run: RUN=run20  BASIS=g912  OTHER=ghead  PREV=run19
+                    PREVBASIS=run19-g912  PREVSAME=run19-g912
+                    PRETIP=1fb2367   (the commit before the run's work)
 
 
 === THE INDEPENDENT CHECKER, PASS 1 (launch when the tables go in) ===

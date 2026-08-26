@@ -3268,7 +3268,17 @@ FINGERPRINT = [('mut-odo-vecdims', 'vecdims'),
                ('mut-odo', 'mut-odo'),
                ('bq-mut-runs', 'mut-runs'),
                ('bq-mut-runs-gm-mulback', 'runs-gm'),
-               ('offtab-scan-rem', 'offtab-rem')]
+               ('offtab-scan-rem', 'offtab-rem'),
+               # Joined at Run 20, on the membership rule's own test: each
+               # is best outside the vecdims family on at least one shape,
+               # 17, 17 and 3 of them. `canon-memcpy-r2` and `canon-full`
+               # qualified too and are NOT here -- close variants of
+               # `canon-vecdims` measuring within four thousandths of it on
+               # the main set, so the leading one keeps the column, which
+               # is the one-representative-per-family half of the rule.
+               ('canon-vecdims', 'canon-vd'),
+               ('mid-copy', 'mid-copy'),
+               ('bcast-set', 'bcast-set')]
 FINGERPRINT_ARMS = [a for a, _ in FINGERPRINT]
 FINGERPRINT_HEADS = '| ' + ' | '.join(h for _, h in FINGERPRINT) + ' |'
 FINGERPRINT_TABLES = [
