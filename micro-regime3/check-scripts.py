@@ -3218,6 +3218,41 @@ CASES = [
          ok=V(exit=0, has=['--replace: ']),
          probe=lambda subs: open(subs['doc']).read()),
 
+    case('cross-classes-aggregates-the-blocks-own-rows', 'read-run.py', None,
+         "the class section's intro figures were assembled by hand",
+         # And got wrong twice on Run 20: a population built here read 398
+         # comparisons at 272/126 where the reader's own is 376 at
+         # 259/117, and the high end was quoted from the wrong class
+         # because the first attempt excluded a class's degenerate arms
+         # wholesale instead of naming them. The intro and the eight
+         # blocks it aggregates now come from one `cross_half_rows`,
+         # which was proved output-identical on all eight blocks before
+         # this mode was written.
+         plant=lambda t: {
+             'a': synth_run(os.path.join(t, 'rev.json'),
+                            run_order_shapes('rev')),
+             'b': synth_run(os.path.join(t, 'rev2.json'),
+                            run_order_shapes('rev'))},
+         argv=['--cross-classes', '--classes', '{a}', '--others', '{b}'],
+         ok=V(exit=0, has=['class population(s)', 'arm-comparison(s)',
+                           'geomeans'])),
+
+    case('cross-classes-refuses-unpaired-lists', 'read-run.py', None,
+         'a basis list and a control list that do not pair up',
+         # Two files against one is not eight against eight with one
+         # missing: which class lost its other half is unknowable from
+         # here, so it refuses rather than zipping to the shorter.
+         plant=lambda t: {
+             'a': synth_run(os.path.join(t, 'rev.json'),
+                            run_order_shapes('rev')),
+             'b': synth_run(os.path.join(t, 'slice.json'),
+                            run_order_shapes('slice')),
+             'c': synth_run(os.path.join(t, 'rev2.json'),
+                            run_order_shapes('rev'))},
+         argv=['--cross-classes', '--classes', '{a}', '{b}',
+               '--others', '{c}'],
+         ok=V(exit=2, has=['they pair up or nothing does'])),
+
     case('section-withholds-the-tables', 'read-run.py', None,
          'the reading a run owes was enumerated and could not be taken',
          # "not its figures", "not the previous run's readings", "not the

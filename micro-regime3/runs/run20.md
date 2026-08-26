@@ -1451,8 +1451,15 @@ properties](#the-claims-the-next-run-should-test) is bolded, and the class's own
 paragraph says what broke.
 
 **And the aggregate figures in the paragraph above the blocks are the reader's,
-transcribed.** The comparison count, the faster/slower split, the range
-of the eight geomeans and the extreme arms are each an aggregate over the eight
+emitted rather than assembled.**
+`./read-run.py --cross-classes --classes BASIS... --others CONTROL...` prints
+every one of them --- the comparison count, the faster/slower split, the range
+of the eight geomeans with the class at each end, the arm holding each extreme
+and how many populations share it, the degenerate arms it kept out,
+and the classes whose `list` is past the 0.7% bar --- from the same per-class
+rows the eight cross-half lines below print, so the intro and the blocks cannot
+part. The comparison count, the faster/slower split, the range of the eight
+geomeans and the extreme arms are each an aggregate over the eight
 `--block --compare` lines below, so they are read off those lines and never off
 a population assembled for the purpose: Run 20 assembled its own twice
 and was wrong both times --- once on the split, once on a low end that excluded

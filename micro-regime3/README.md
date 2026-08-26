@@ -6993,6 +6993,17 @@ docstring rather than re-derived.
     ./read-run.py --para 'the floor is'     # the paragraphs whose bolded
                                             # lead matches, in EITHER
                                             # document, and their lines
+    ./read-run.py --cross-classes --classes A.json... --others B.json...
+                                            # the class section's intro
+                                            # figures, aggregated from the
+                                            # same per-class rows the eight
+                                            # cross-half lines print, so the
+                                            # two cannot part -- counts, the
+                                            # geomean range with its classes,
+                                            # both extremes with the
+                                            # degenerate arms named and kept
+                                            # out, and every class whose
+                                            # `list` is past the 0.7% bar
     ./read-run.py --section 'Provenance'    # one section's PROSE, without
                                             # its tables, naming the size it
                                             # withheld -- the mode that makes

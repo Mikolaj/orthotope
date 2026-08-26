@@ -4545,21 +4545,8 @@ def block_skeleton(cells, shapes, strategies, meta, args, terms):
     # all -- which on that run disqualified four of the eight and was
     # visible in no other output.
     if getattr(args, 'compare', None):
-        b_cells, b_shapes, b_strategies = load_other(args.compare,
-                                                     args.main, shapes, meta)
-        both_sh = [sh for sh in shapes if sh in b_shapes]
-        rows, lst = [], None
-        for st in strategies:
-            if no_net(st) or st not in b_strategies:
-                continue
-            rs = [cells[sh][st]['net'] / b_cells[sh][st]['net']
-                  for sh in both_sh
-                  if cells[sh][st]['net'] > 0 and b_cells[sh][st]['net'] > 0]
-            if rs:
-                g = geomean(rs)
-                rows.append((g, st))
-                if st == 'list':
-                    lst = g
+        rows, lst = cross_half_rows(cells, shapes, strategies,
+                                    args.compare, args.main, meta)
         if rows:
             lo = min(rows)
             hi = max(rows)
@@ -5537,6 +5524,114 @@ def splice(docs, anchor, source):
     paras[hit[0]] = new
     with open(readme, 'w') as f:
         f.write('\n\n'.join(paras))
+    return 0
+
+
+def cross_half_rows(cells, shapes, strategies, other, main, meta):
+    """One population's per-arm basis/control geomeans, and `list`'s own.
+
+    Factored out so the class section's aggregate and the per-class lines
+    it aggregates cannot disagree. They did: Run 20 assembled its own
+    population for the intro twice -- once dropping whole arms on one bad
+    shape, once excluding a class the sentence said it covered -- and both
+    readings shipped before a comprehension probe caught the second. The
+    figures now come from one computation called nine times.
+    """
+    b_cells, b_shapes, b_strategies = load_other(other, main, shapes, meta)
+    both_sh = [sh for sh in shapes if sh in b_shapes]
+    rows, lst = [], None
+    for st in strategies:
+        if no_net(st) or st not in b_strategies:
+            continue
+        rs = [cells[sh][st]['net'] / b_cells[sh][st]['net']
+              for sh in both_sh
+              if cells[sh][st]['net'] > 0 and b_cells[sh][st]['net'] > 0]
+        if rs:
+            g = geomean(rs)
+            rows.append((g, st))
+            if st == 'list':
+                lst = g
+    return rows, lst
+
+
+def cross_class_summary(basis, others, main):
+    """The class section's intro figures, from the eight cross-half lines.
+
+    Every number the paragraph above the class blocks states -- the
+    comparison count, the faster/slower split, the range of the eight
+    geomeans with the class at each end, and the arm holding each extreme
+    -- aggregated from the SAME `cross_half_rows` the blocks print, so the
+    intro and the blocks cannot part.
+
+    They parted twice on Run 20. A population assembled here gave 398
+    comparisons at 272/126 where the reader's own is 376 at 259/117; and
+    the high end was quoted as `rev`'s 1.0970 when `reshape1`'s
+    `offtab-aa-distant` reads 1.1133, because the first attempt had
+    excluded that class's degenerate arms wholesale rather than naming
+    them. So the degenerate cells are NAMED and kept out of the extremes
+    rather than silently dropped or silently included: an arm whose cells
+    are not all positive on both halves cannot be a movement, and
+    `reshape1`'s canonicalizing arms return O(1) on three of its four
+    shapes.
+    """
+    if len(basis) != len(others):
+        sys.stderr.write('--cross-classes: %d basis file(s) against %d other'
+                         ' -- they pair up or nothing does\n'
+                         % (len(basis), len(others)))
+        return 2
+    tot = below = 0
+    per, degenerate = [], []
+    for b, o in zip(basis, others):
+        cells, shapes, strategies, meta = load(b, main)
+        # The correction, which `load` does not apply and every caller
+        # does: `net` is the slope less that shape's forcing term, and
+        # the ratios below are net over net as the blocks' are.
+        apply_correction(cells, shapes, strategies, 'sumonly')
+        rows, lst = cross_half_rows(cells, shapes, strategies, o, main, meta)
+        if not rows:
+            sys.stderr.write('--cross-classes: %s and %s share no arm\n'
+                             % (os.path.basename(b), os.path.basename(o)))
+            return 1
+        name = population_of(shapes, meta['dims'])[1]
+        full = len(shapes)
+        clean = [(g, st) for g, st in rows
+                 if sum(1 for sh in shapes
+                        if cells[sh][st]['net'] > 0) == full]
+        drop = [st for g, st in rows if (g, st) not in clean]
+        if drop:
+            degenerate.append((name, sorted(drop)))
+        tot += len(rows)
+        below += sum(1 for g, _ in rows if g < 1)
+        per.append((name, geomean([g for g, _ in rows]),
+                    min(clean or rows), max(clean or rows), lst))
+    print('cross-half, over %d class population(s)' % len(per))
+    print('  %d arm-comparison(s): %d put the first half faster, %d slower'
+          % (tot, below, tot - below))
+    lo_c = min(per, key=lambda t: t[1])
+    hi_c = max(per, key=lambda t: t[1])
+    print('  geomeans %.4f on %s to %.4f on %s; all below 1: %s'
+          % (lo_c[1], lo_c[0], hi_c[1], hi_c[0],
+             'yes' if all(t[1] < 1 for t in per) else 'NO'))
+    lo = min(per, key=lambda t: t[2][0])
+    hi = max(per, key=lambda t: t[3][0])
+    print('  extremes, degenerate arms excluded: `%s` %.4f on %s .. `%s`'
+          ' %.4f on %s' % (lo[2][1], lo[2][0], lo[0], hi[3][1], hi[3][0],
+                           hi[0]))
+    lows = {}
+    for name, _, l, _, _ in per:
+        lows.setdefault(l[1], []).append(name)
+    top = max(lows.items(), key=lambda kv: len(kv[1]))
+    print('  the low extreme is `%s` in %d of %d population(s)'
+          % (top[0], len(top[1]), len(per)))
+    for name, arms in degenerate:
+        print('  DEGENERATE on %s, kept out of the extremes and not a'
+              ' movement: %s' % (name, ', '.join('`%s`' % a for a in arms)))
+    off = [(n, l) for n, _, _, _, l in per if l is not None
+           and abs(l - 1) > 0.007]
+    if off:
+        print('  `list` past the 0.7%% bar, so NOT read for the pair\'s'
+              ' variable: %s'
+              % ', '.join('%s %.4f' % (n, l) for n, l in off))
     return 0
 
 
@@ -8508,6 +8603,13 @@ def main():
                    help='replace the README paragraph carrying ANCHOR with the'
                         ' text in --with, without printing the old one;'
                         ' refuses unless ANCHOR occurs exactly once')
+    p.add_argument('--cross-classes', action='store_true',
+                   help="the class section's intro figures, aggregated from"
+                        ' the same per-class cross-half readings the blocks'
+                        ' print; wants --classes for the basis half and'
+                        ' --others for the control')
+    p.add_argument('--others', nargs='+', default=[], metavar='JSON',
+                   help='the control half of each --classes file, in order')
     p.add_argument('--section', metavar='NAME',
                    help="print one section's prose by heading name, without"
                         ' its tables, so the reading a run owes can be taken'
@@ -8609,9 +8711,16 @@ def main():
     # printed as though the files had not been named. --extremes is the
     # one that cannot proceed without it, so it is refused rather than
     # dropped.
-    if args.classes and not (args.fingerprint or args.extremes):
-        p.error('--classes is a modifier of --fingerprint and --extremes'
-                ' and does nothing alone')
+    if args.classes and not (args.fingerprint or args.extremes
+                             or args.cross_classes):
+        p.error('--classes is a modifier of --fingerprint, --extremes and'
+                ' --cross-classes and does nothing alone')
+    if args.cross_classes and not (args.classes and args.others):
+        p.error('--cross-classes wants --classes for the basis half and'
+                ' --others for the control, in the same order')
+    if args.others and not args.cross_classes:
+        p.error('--others is a modifier of --cross-classes and does nothing'
+                ' alone')
     if args.extremes and not args.classes:
         p.error('--extremes ranks the populations named by --classes, and'
                 ' none were given')
@@ -8692,6 +8801,8 @@ def main():
         if not args.with_:
             sys.exit('--replace wants --with FILE, the replacement text')
         sys.exit(splice(docs, args.replace, args.with_))
+    if args.cross_classes:
+        sys.exit(cross_class_summary(args.classes, args.others, args.main))
     if args.section:
         sys.exit(section(docs, args.section, args.with_tables))
     if args.delete:
