@@ -173,6 +173,31 @@ fi
   && say 10 PASS "$(grep -m1 'same offset' "$TMP/lib" | sed 's/^ *//')" \
   || say 10 FAIL "--library refused: $(tail -1 "$TMP/lib")"
 
+# 10c. AND WHAT THE NOTE POINTS AT, which nothing else reads. The run
+# file must OUTLIVE its artifacts and --check-doc now refuses one that
+# names them; the pair note is the opposite -- it is MEANT to go with the
+# pair -- so the rule it needs is the weaker one, that anything it cites
+# outlives IT. That matters because the note is the entry point a later
+# session re-enters a prepared run through, and a preparation may be days
+# old: the fork says so outright. A note pointing at a directory somebody
+# tidied is a stale entry point, and the session that follows it finds out
+# at the moment it is trusting the note most.
+#
+# Paths are taken from backticked and bare mentions of this directory's own
+# artifact names. Anything outside the run's and probe's namespaces is not
+# a path this can check and is left alone.
+if [ -f "$R-pair.txt" ]; then
+  MISSING=$(grep -oE '(probe-[A-Za-z0-9._-]+/?|'"$R"'-[A-Za-z0-9._-]+\.(json|log|txt))' \
+              "$R-pair.txt" | sort -u \
+            | while read -r q; do [ -e "${q%/}" ] || echo "$q"; done)
+  if [ -z "$MISSING" ]; then
+    say 10c PASS "every path $R-pair.txt names is still here"
+  else
+    say 10c FAIL "$R-pair.txt points at $(printf '%s\n' "$MISSING" | wc -l) \
+path(s) that are gone: $(printf '%s ' $MISSING)"
+  fi
+fi
+
 echo
 if [ "$BAD" -eq 0 ]; then
   echo "all clear. NOT done here and still owed: 9b, the pair's own variable,"
