@@ -2585,8 +2585,18 @@ CASES = [
 
     case('claims-arm-counted-per-registration', 'read-run.py', '045ca63',
          'one filtered arm reported as eight',
+         # THE EXCLUDED ARM MUST BE ONE `CLAIMS` NAMES IN EXACTLY ONE
+         # REGISTRATION, which is the whole of what this case needs: filter
+         # one arm, and the reader must report one arm rather than the
+         # registrations it appears in. It was `bq-expand` until 2026-08-26,
+         # when claim 2's second link retired and took that arm out of the
+         # manifest -- the case then filtered nothing and said `0 arm(s)`.
+         # `offtab` is its counterpart, claim 2's remaining link and in one
+         # registration; `gen-quotrem` and `mut-odo-vecdims` would serve
+         # too, and `list` would not, being the baseline every ratio
+         # divides by.
          plant=lambda t: {'run': synth_json(t, 'main')},
-         argv=['{run}', '--claims', '--exclude', 'bq-expand'],
+         argv=['{run}', '--claims', '--exclude', 'offtab'],
          ok=V(has=['1 arm(s) of the claims list']),
          bug=V(has=['8 arm(s) of the claims list'])),
 

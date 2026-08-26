@@ -624,8 +624,9 @@ or one binary run twice --- is the one thing Run 20 could not give and the one
 this file most wants: its roster change put a layout term into every cross-run
 figure, so no reading here separates drift from placement, and a repetition
 on an unmoved roster would restore the clean drift band Run 19 had. A *third
-compiler reading* buys least: the eight orderings have now held on 9.12, 9.14
-and HEAD, and Run 19 already advised against another on that ground.
+compiler reading* buys least: the manifest's orderings --- eight when this run
+read them, seven since claim 2's second link retired --- have now held on 9.12,
+9.14 and HEAD, and Run 19 already advised against another on that ground.
 A *purpose-built pair* has no question left to answer that this run raised ---
 the leaf-block finding below is a code question that both halves already
 answered the same way, so it wants a decision about what ships rather
@@ -1006,17 +1007,19 @@ penalty on `bq-odo-gm-mulback` being absent on every `sInner` of 1 it measured.
 
 **Run 20's verdicts first**, since a run reports breaks rather than re-deriving
 the table. **All eight registered orderings held, and they held on both
-compilers** --- no BROKE on the 9.12 basis and none on the GHC HEAD control,
-a third clean sweep running. This is the first reading of the eight
-that the settlement of 2026-08-24 left, the thirteen having been held through
-Run 19 for a last cross-compiler reading and retired at its write-up; claims 3,
-4, 5 and 9 are gone and their numbers are not reused, so a verdict recorded
-against *claim 4* in an earlier run's file still means what it said. **What
-this run adds to the sweep is a roster the manifest had not been read on.** Nine
-timed arms landed and three left between Run 19 and Run 20, so every ordering
-was re-read on a build whose every address had moved; none of them noticed.
-The arms the claims name are all still timed, and `--pair` recovers any retired
-ordering in one call whenever it is wanted.
+compilers** --- eight as this run read them; claim 2's second link retired
+on that reading, 2026-08-26, leaving seven in the manifest --- --- no BROKE
+on the 9.12 basis and none on the GHC HEAD control, a third clean sweep running.
+This is the first reading of the eight that the settlement of 2026-08-24 left,
+the thirteen having been held through Run 19 for a last cross-compiler reading
+and retired at its write-up; claims 3, 4, 5 and 9 are gone and their numbers
+are not reused, so a verdict recorded against *claim 4* in an earlier run's file
+still means what it said. **What this run adds to the sweep is a roster
+the manifest had not been read on.** Nine timed arms landed and three left
+between Run 19 and Run 20, so every ordering was re-read on a build whose every
+address had moved; none of them noticed. The arms the claims name are all still
+timed, and `--pair` recovers any retired ordering in one call whenever
+it is wanted.
 
 **The four retired claims are not re-read here, and their last readings are Run
 19's.** Claims 3, 4, 5 and 9 left the manifest at Run 19's write-up, on a sweep
@@ -1053,22 +1056,34 @@ a claim being re-aimed on a decision and not on one reading.
 0.064; `bq-scan-rem-gm-mulback` / `bq-odo-gm-mulback` 0.9977, 12 of 24, sign
 p 1. 5 of 5 registered orderings held.
 
-**Claim 2 held on both links and both halves.** `offtab`, which needs only
-a mutable `Int` scratch, is **1.3647** behind the best arm needing nothing
-at all, on 6 of 24 and sign p 0.023, where Run 19 read 1.3458 and Run 18's
-halves 1.36 and 1.44; on HEAD it reads 1.2753. `bq-expand`, the last candidate
-and what `Data/Array/Internal.hs` carried until 2026-08-24, is **2.1134** behind
-the arm that ships, on 1 of 24 and sign p 3e-06, and 2.1218 on HEAD ---
-the widest and most significant ordering in the manifest, and the one
-that prices the branch's own code against its replacement. That second link
-is kept only while the branch carries `bq-expand`, and retires with the three
-`TODO: retarget` markers, which are one decision with it. **Both figures
-are within a few thousandths of Run 19's across a roster change that moved every
-address**, which is the more useful reading of them than either magnitude.
+**Claim 2 held on both links and both halves, and the second link retires
+on that reading.** `offtab`, which needs only a mutable `Int` scratch,
+is **1.3647** behind the best arm needing nothing at all, on 6 of 24 and sign p
+0.023, where Run 19 read 1.3458 and Run 18's halves 1.36 and 1.44; on HEAD
+it reads 1.2753. `bq-expand`, the last candidate and what
+`Data/Array/Internal.hs` carried until 2026-08-24, is **2.1134** behind the arm
+that ships, on 1 of 24 and sign p 3e-06, and 2.1218 on HEAD --- the widest
+and most significant ordering the manifest ever carried, and the one that priced
+the branch's own code against its replacement. **That second link is RETIRED,
+2026-08-26, and the reading above is its last.** It was kept only while
+`Data/Array/Internal.hs` carried `bq-expand` and was to retire with the three
+`TODO: retarget` markers, one decision with it; both halves were spent before
+this run was written up and nobody read the condition back. The markers
+were three inline `(TODO: retarget ...)` notes in README prose, added 2026-08-24
+and gone once that prose was re-aimed --- never in any `.hs`, which is what made
+them look like source markers nobody could find. And the file has carried
+`vFillStrided` since the same day, its three vector-backed instances overriding
+the default with `genericFillStrided`, so `bq-expand` survives there only
+as a class default the code calls speed-irrelevant. A link pricing the branch's
+code against its replacement has nothing left to price once the replacement
+*is* the branch's code. Both arms stay rostered and timed,
+so `--pair bq-expand mut-odo-vecdims` recovers the ordering whenever
+it is wanted. **Both figures are within a few thousandths of Run 19's across
+a roster change that moved every address**, which is the more useful reading
+of them than either magnitude.
 
-**Readings:** `offtab` / `bq-scan-rem-gm-mulback` 1.3647, 6 of 24, sign p 0.023;
-`bq-expand` / `mut-odo-vecdims` 2.1134, 1 of 24, sign p 3e-06. 2 of 2 registered
-orderings held.
+**Readings:** `offtab` / `bq-scan-rem-gm-mulback` 1.3647, 6 of 24, sign p 0.023.
+1 of 1 registered ordering held.
 
 **Claim 6 held, and its alarm is the reason to keep reading it.** `gen-quotrem`
 / `list` reads **1.1588** at 9 of 24 and sign p 0.31, a tie by the sign test
@@ -1167,14 +1182,15 @@ rather than re-aimed here.
    0.9293 at 22 on its aligned one --- and on a placed layout it has now read
    the aligned figure five runs running. The ordering has survived eight runs,
    two changes of basis, a repetition and three compilers.
-2. `offtab` sits behind `bq-scan-rem-gm-mulback` and `bq-expand` behind
-   `mut-odo-vecdims`: **the arms needing something other than the fix sit behind
-   it**, which is what this claim asks since the settlement of 2026-08-24
-   re-aimed it. The first prices a mutable `Int` scratch against needing
-   nothing, the second prices the branch's own code against its replacement
-   and is the widest ordering in the manifest. The second link is kept only
-   while `Data/Array/Internal.hs` carries `bq-expand`, and retires
-   with the three `TODO: retarget` markers, which are one decision with it.
+2. `offtab` sits behind `bq-scan-rem-gm-mulback`: **the arms needing something
+   other than the fix sit behind it**, which is what this claim asks since
+   the settlement of 2026-08-24 re-aimed it. It prices a mutable `Int` scratch
+   against needing nothing. **Its second link, `bq-expand` behind
+   `mut-odo-vecdims`, retired 2026-08-26** on the reading above, its condition
+   having been spent since 2026-08-24 --- what it priced was the branch's own
+   code against its replacement, and the replacement is now the branch's own
+   code. It was the widest ordering the manifest carried, and `--pair` recovers
+   it, both arms staying rostered and timed.
 3, 4, 5. **Retired at Run 19's write-up**, on a last reading in which all three
 held on both compilers, and for the reasons in the settlement paragraph
 at the foot of this section. Their numbers are left standing here rather
@@ -1368,10 +1384,14 @@ its question** to where the arms needing something other than the fix sit:
 `offtab`, which needs only that `Int` scratch, behind `bq-scan-rem-gm-mulback`
 at **1.36** and **1.44**; and `bq-expand` behind `mut-odo-vecdims` at **2.09**
 and **2.13**, kept only while `Data/Array/Internal.hs` carried `bq-expand`,
-which ended 2026-08-24, and retired with the three `TODO: retarget` markers,
-which were one decision with it. Thirteen registered orderings become eight,
-claims 7 and 8 staying unmanifested prose. **The rewriting the ask paired
-with this was already done**: the eight *What the class says* paragraphs
+and to retire with the three `TODO: retarget` markers, which were one decision
+with it. **That condition was spent the same day and the link outlived it by two
+runs**: the file went to `vFillStrided` on 2026-08-24 and the markers went
+with the prose they marked, but nothing read the condition back, so Run 20
+registered and read the link like any other and it retired only on 2026-08-26.
+Thirteen registered orderings become eight here, and seven when that second link
+finally goes; claims 7 and 8 stay unmanifested prose. **The rewriting the ask
+paired with this was already done**: the eight *What the class says* paragraphs
 were written to the re-aimed properties at Run 18's write-up, and only
 the sentence asking for it survived.
 

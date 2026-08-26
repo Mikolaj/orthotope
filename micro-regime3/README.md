@@ -2451,10 +2451,12 @@ rather than a slot in the next run, observed again:
   decided is `mut-odo-vecdims`.** **Settled 2026-08-24**: claims 3, 4, 5 and 9
   retire, claim 1 gains `bq-scan-rem-gm-mulback` and the tie at its foot,
   and claim 2 changes its question to where `offtab` and `bq-expand` sit ---
-  thirteen registered orderings becoming eight. Each retirement's reason,
-  and the readings the two new links were measured at on both of Run 18's
-  halves, are in the settlement paragraph at the foot of [the
-  claims](runs/run20.md#the-claims-the-next-run-should-test), which owns
+  thirteen registered orderings becoming eight, and seven on 2026-08-26 when
+  claim 2's `bq-expand` link retired, its condition having been spent
+  from the settlement day itself and read back by nobody until then. Each
+  retirement's reason, and the readings the two new links were measured
+  at on both of Run 18's halves, are in the settlement paragraph at the foot
+  of [the claims](runs/run20.md#the-claims-the-next-run-should-test), which owns
   the account; the `CLAIMS` manifest in `read-run.py` took it at Run 19's
   write-up on 2026-08-25, the retiring orderings having had one last
   cross-compiler reading first, in which all four held on both halves.
