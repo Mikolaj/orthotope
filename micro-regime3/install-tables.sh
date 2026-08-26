@@ -135,6 +135,20 @@ if [ -n "$MISSING" ]; then
   echo "!! $(printf '%s\n' "$MISSING" | wc -l) class block(s) in $DOC have no"
   echo "   $R-$BASIS-*.json, so their tables would go silently uninstalled:"
   printf '%s\n' "$MISSING" | sed 's/^/     /'
+  # AND THE LINE EACH WAS FOUND ON, because the JSON is usually present and
+  # the block is not: a paragraph anywhere in the document that begins a
+  # line with a bolded class name is indistinguishable from a block's lead,
+  # so this refuses naming a file that is sitting right there. Run 20 wrote
+  # `**`reshape1` sits apart at 0.9995**` into the chapter head and lost a
+  # long evening to the message above; printing the lead ends it in one
+  # call. read-run.py --check-doc now refuses such a lead outright, and
+  # this is the other end of the same defect.
+  echo "   the lead each was found on -- a block's lead sits in the class"
+  echo "   section, and anything else here is a paragraph that merely"
+  echo "   begins with a bolded class name:"
+  for m in $MISSING; do
+    grep -n "^\*\*\`$m\`" "$DOC" | sed 's/^/     /'
+  done
   exit 1
 fi
 

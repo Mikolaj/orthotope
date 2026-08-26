@@ -605,6 +605,13 @@ def doc_of_a_list(tmp, items=4):
                  ' it.\n' % body)
 
 
+def doc_of_a_big_paragraph(tmp, n=1800):
+    """A document whose middle paragraph is past `--delete`'s size bar."""
+    return write(os.path.join(tmp, 'B.md'),
+                 '# T\n\nBefore.\n\nA long one, %s end.\n\nAfter.\n'
+                 % ('x' * n))
+
+
 def one_item(tmp):
     """A replacement carrying ONE list item, as an edit to one would."""
     return write(os.path.join(tmp, 'new.txt'),
@@ -685,6 +692,43 @@ def rundoc_stale_basis_in_results(tmp):
     cur = runs.pop()
     lines[start:end] = seg.replace('run%s-' % cur,
                                    'run%d-' % (int(cur) - 1)).split('\n')
+    return write_rundoc(tmp, '\n'.join(lines))
+
+
+def rundoc_naming_its_own_artifact(tmp):
+    """The run file citing a path step 12 offers for deletion.
+
+    Run 20 wrote "the superseded artifacts are parked as
+    `probe-run20-exposed/`" into its own file and then KEPT the directory
+    because the prose cited it, which is the dependency running backwards:
+    the run file exists to outlive the artifacts. Derived from the live run
+    file so the run number moves with it.
+    """
+    lines = rundoc_lines()
+    cur = re.search(r'run(\d+)\.md$', RUNDOC).group(1)
+    start = next(i for i, l in enumerate(lines)
+                 if re.match(r'#{1,6} Results\s*$', l))
+    lines.insert(start, 'The copies are in `probe-run%s-exposed/`.\n' % cur)
+    return write_rundoc(tmp, '\n'.join(lines))
+
+
+def rundoc_with_a_stray_class_lead(tmp):
+    """A bolded class name at a line start, outside the class section.
+
+    Which is how `install-tables.sh` locates a block, so one anywhere else
+    is read as a further block with no table under it and the installer
+    refuses naming a JSON that is present. Run 20's chapter head carried
+    `**`reshape1` sits apart at 0.9995**`; unwrapped it sat mid-line and was
+    harmless, and the wrap made it a line start.
+    """
+    lines = rundoc_lines()
+    cstart = next(i for i, l in enumerate(lines)
+                  if re.match(r'#{1,6} The stride classes', l))
+    name = next(m.group(1) for l in lines[cstart:]
+                for m in [re.match(r'\*\*`([a-z0-9]+)` ---', l)] if m)
+    start = next(i for i, l in enumerate(lines)
+                 if re.match(r'#{1,6} Results\s*$', l))
+    lines.insert(start, '**`%s` sits apart, a stray lead.**\n' % name)
     return write_rundoc(tmp, '\n'.join(lines))
 
 
@@ -3166,6 +3210,36 @@ CASES = [
          ok=V(exit=0, has=['--replace: ']),
          probe=lambda subs: open(subs['doc']).read()),
 
+    case('delete-refuses-a-section-sized-paragraph', 'read-run.py', None,
+         'a range splice between two markers took 148936 characters',
+         # `--replace` exists so a paragraph is NAMED rather than sliced,
+         # and deletion had no mode -- so removing one fell back to
+         # `s.find(lead)` for the start and `s.find(chr(10)*2)` for the
+         # end. Measured 2026-08-26 in this reader's own run file: the end
+         # anchor matched a later paragraph and took 148936 characters,
+         # leaving 41 lines of 908, and the script printed the extent and
+         # the last line it was about to cut -- text from a different
+         # paragraph -- and was read past. An echo is not a refusal, which
+         # is the same lesson the list guard above records.
+         plant=lambda t: {'doc': doc_of_a_big_paragraph(t)},
+         argv=['--delete', 'A long one', '--readme', '{doc}'],
+         ok=V(exit=1, has=['REFUSED', 'the bar is 1500']),
+         probe=lambda subs: open(subs['doc']).read()),
+
+    case('delete-refuses-a-list', 'read-run.py', None,
+         'dropping one item of a list is an edit, not a deletion',
+         plant=lambda t: {'doc': doc_of_a_list(t)},
+         argv=['--delete', '**Item 2.**', '--readme', '{doc}'],
+         ok=V(exit=1, has=['4-item list']),
+         probe=lambda subs: open(subs['doc']).read()),
+
+    case('delete-takes-one-paragraph', 'read-run.py', None,
+         'CONTROL: a plain paragraph under the bar is removed, and only it',
+         plant=lambda t: {'doc': doc_of_a_big_paragraph(t, n=10)},
+         argv=['--delete', 'A long one', '--readme', '{doc}'],
+         ok=V(exit=0, has=['--delete: ']),
+         probe=lambda subs: open(subs['doc']).read()),
+
     case('para-indexes-when-several-leads-match', 'read-run.py', None,
          'several matching leads printed whole where an index was wanted',
          plant=lambda t: {'readme': readme_of_leads(t)},
@@ -3214,6 +3288,27 @@ CASES = [
          plant=lambda t: {'rundoc': rundoc_stale_basis_in_results(t)},
          argv=['--check-doc', '--run-doc', '{rundoc}'],
          ok=V(exit=1, has=['while the file is Run'])),
+
+    case('rundoc-names-an-artifact-it-outlives', 'read-run.py', None,
+         'the run file cited a directory step 12 offers for deletion',
+         # And the citation then decided what was KEPT, which is the
+         # dependency backwards: Run 20 kept probe-run20-exposed/ because
+         # its own prose named it. A past run's artifacts are history and
+         # do not die with this offer, so only `run<cur>-*` and
+         # `probe-run<cur>-` are refused.
+         plant=lambda t: {'rundoc': rundoc_naming_its_own_artifact(t)},
+         argv=['--check-doc', '--run-doc', '{rundoc}'],
+         ok=V(exit=1, has=['artifact path(s) named'])),
+
+    case('rundoc-has-a-stray-class-lead', 'read-run.py', None,
+         'a bolded class name in the head read as a ninth class block',
+         # install-tables.sh finds a block by that shape, so it found nine,
+         # one with no table, and refused naming a JSON that was present
+         # all along -- an error message pointing away from the defect.
+         # The wrap completes the trap: unwrapped the phrase sits mid-line.
+         plant=lambda t: {'rundoc': rundoc_with_a_stray_class_lead(t)},
+         argv=['--check-doc', '--run-doc', '{rundoc}'],
+         ok=V(exit=1, has=['bolded class name'])),
 
     case('path-token-dotfile', 'read-run.py', None,
          "lstrip('./') ate the leading dot of a cited dotfile",

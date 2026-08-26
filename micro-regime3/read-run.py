@@ -5540,6 +5540,82 @@ def splice(docs, anchor, source):
     return 0
 
 
+def excise(docs, anchor, limit=1500):
+    """Delete the paragraph carrying `anchor`, refusing anything larger.
+
+    `--replace` exists so a paragraph is NAMED rather than sliced, and
+    deletion had no such mode -- so removing one fell back to hand-rolled
+    index arithmetic, `s.find(lead)` for the start and `s.find('\n\n')`
+    for the end. That is the one shape the user-scope rules call
+    unwatchable: a range splice between two markers deletes everything
+    between them, however much that turns out to be, and every checker
+    here is a predicate over what is PRESENT, so none can see what went.
+
+    Measured 2026-08-26, in this reader's own run file: an end anchor
+    that matched a later paragraph took **148936 characters**, leaving 41
+    lines of a 908-line document, and the script printed the extent and
+    the last line it was about to cut -- text from a different paragraph
+    entirely -- and was read past. The echo was not enough, exactly as it
+    was not enough for the list guard above; this is the refusal that
+    replaces it.
+
+    So: the anchor must occur exactly once across the pair of documents,
+    the unit is the blank-line paragraph containing it, and the paragraph
+    must be under `limit` characters. A list is refused outright -- a
+    numbered list is one paragraph, and dropping one item is an edit, not
+    a deletion. What it prints is what it removed, first line and last.
+    """
+    if isinstance(docs, str):
+        docs = [docs]
+    seen = []
+    for path in docs:
+        try:
+            text = open(path).read()
+        except OSError as e:
+            sys.stderr.write('--delete: %s\n' % e)
+            return 2
+        seen.append((path, text, text.count(anchor)))
+    total = sum(k for _, _, k in seen)
+    if total != 1:
+        sys.stderr.write('--delete: the anchor occurs %d times across %s,'
+                         ' need 1 -- quote more of the sentence\n'
+                         % (total, ', '.join('%s (%d)'
+                                             % (os.path.basename(q), k)
+                                             for q, _, k in seen)))
+        return 1
+    path, doc, _ = next(t for t in seen if t[2])
+    paras = doc.split('\n\n')
+    hit = [i for i, q in enumerate(paras) if anchor in q]
+    if len(hit) != 1:
+        sys.stderr.write('--delete: the anchor spans a paragraph break, so'
+                         ' there is no one paragraph to delete\n')
+        return 1
+    old = paras[hit[0]]
+    items = [l for l in old.split('\n')
+             if re.match(r'\s*(?:\d+\.|[-*])\s', l)]
+    if len(items) > 1:
+        sys.stderr.write(
+            '--delete: this paragraph is a %d-item list, and dropping one'
+            ' item is an edit rather than a deletion -- use --replace with'
+            ' the whole list\n' % len(items))
+        return 1
+    if len(old) > limit:
+        sys.stderr.write(
+            '--delete: REFUSED, the paragraph is %d characters and the bar'
+            ' is %d. A deletion this size is a section, not a paragraph;'
+            ' if it is really meant, say so with --delete-limit\n'
+            % (len(old), limit))
+        return 1
+    ol = old.split('\n')
+    print('--delete: %d chars, from %s' % (len(old), os.path.basename(path)))
+    print('  out, first: %s' % ol[0][:78])
+    print('  out, last : %s' % ol[-1][-78:])
+    del paras[hit[0]]
+    with open(path, 'w') as f:
+        f.write('\n\n'.join(paras))
+    return 0
+
+
 def paragraphs(docs, pattern, every=False):
     r"""Print the paragraphs whose BOLDED LEAD matches, and their line numbers.
 
@@ -6689,6 +6765,72 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
         else:
             print('ok:   the half named in Results belongs to Run %s, whose'
                   ' file this is' % cur)
+
+    # THE RUN FILE MUST OUTLIVE THE ARTIFACTS, which is what makes it a
+    # file: post-run step 12 offers the JSONs, the logs, the wall-clock
+    # file, both binaries and the pair note for deletion, so a sentence in
+    # the run's own document that NAMES one of those is a promise that dies
+    # with the offer. Run 20 wrote two -- "the superseded artifacts are
+    # parked as `probe-run20-exposed/`" -- and then kept the directory
+    # BECAUSE the prose cited it, which is the dependency running
+    # backwards. A binary named as a build ("`run19-g912` held it at") is a
+    # fact about a compile and not a path, so only extensions are matched.
+    if cur is not None and run_doc:
+        # ITS OWN artifacts only. A past run's are history -- `run17`'s
+        # repetition is named in a rule about the namespace, and the tree
+        # at launch is recorded with the untracked paths it carried -- and
+        # history does not die with this run's deletion offer. What does is
+        # `run<cur>-*.json|log|txt` and any `probe-run<cur>-` of its own.
+        doomed = sorted({m.group(0) for m in re.finditer(
+            r'`(?:probe-run%s-[A-Za-z0-9._-]+/?'
+            r'|run%s-[A-Za-z0-9._-]+\.(?:json|log|txt))`' % (cur, cur),
+            run_text)})
+        if doomed:
+            bad.append('%d artifact path(s) named in %s, which step 12 offers'
+                       ' for deletion -- the run file outlives them, so state'
+                       ' the fact rather than the file: %s'
+                       % (len(doomed), os.path.basename(run_doc),
+                          ', '.join(doomed[:6])))
+        else:
+            print('ok:   the run file names no artifact the deletion offer'
+                  ' covers, so it survives the offer being accepted')
+
+    # A BOLDED CLASS NAME AT A LINE START IS HOW A CLASS BLOCK IS FOUND,
+    # so one anywhere else is read as a ninth block with no table under it.
+    # install-tables.sh then refuses naming a JSON that is present all
+    # along. Run 20 wrote `**`reshape1` sits apart at 0.9995**` into the
+    # chapter head; unwrapped it sat mid-line and was harmless, and the
+    # wrap made it a line start, so the defect appeared at a moment when
+    # nothing had been edited. The rule is unwritable -- no author will
+    # remember it -- so it is a check.
+    # THE RUN FILE'S OWN LINES, not the concatenated pair: `lines` is
+    # README followed by the run doc, and README carries its own heading
+    # `The stride classes and what they cover`, so a search over the pair
+    # finds that one first and the prefix examined is README's alone.
+    rlines = run_text.split('\n') if run_doc else []
+    cstart = next((i for i, ln in enumerate(rlines)
+                   if re.match(r'#{1,6} The stride classes', ln)), None)
+    # The block names come from the section's own leads rather than from a
+    # literal, so a class added or renamed moves this with it and there is
+    # nothing to keep in sync.
+    blocks = {m.group(1) for ln in (rlines[cstart:] if cstart is not None
+                                    else [])
+              for m in [re.match(r'\*\*`([a-z0-9]+)` ---', ln)] if m}
+    if cur is not None and run_doc and blocks:
+        stray = []
+        for ln in rlines[:cstart]:
+            m = re.match(r'\*\*`([a-z0-9]+)`', ln)
+            if m and m.group(1) in blocks:
+                stray.append('%s ... %s' % (m.group(1), ln[:58]))
+        if stray:
+            bad.append('%d paragraph(s) outside the class section begin a'
+                       ' line with a bolded class name, which is how a class'
+                       ' block is located -- install-tables.sh will read each'
+                       ' as a block with no table: %s'
+                       % (len(stray), '; '.join(stray[:3])))
+        else:
+            print('ok:   no bolded class-name lead outside the class section,'
+                  ' so every block install finds is a block')
 
     # THE CHAPTER HEAD IS REPLACED WHOLE, and its own closing paragraph
     # says so -- but a write-up is done a paragraph at a time and nothing
@@ -8292,6 +8434,13 @@ def main():
                    help='replace the README paragraph carrying ANCHOR with the'
                         ' text in --with, without printing the old one;'
                         ' refuses unless ANCHOR occurs exactly once')
+    p.add_argument('--delete', metavar='ANCHOR',
+                   help='delete the paragraph carrying ANCHOR, refusing a'
+                        ' list or anything past --delete-limit; the deletion'
+                        ' counterpart of --replace, so that removing a'
+                        ' paragraph never means slicing a byte range')
+    p.add_argument('--delete-limit', type=int, default=1500, metavar='N',
+                   help='the size bar --delete refuses past (default 1500)')
     p.add_argument('--with', dest='with_', metavar='FILE',
                    help='the replacement text for --replace')
     p.add_argument('--readme', default=None,
@@ -8462,6 +8611,8 @@ def main():
         if not args.with_:
             sys.exit('--replace wants --with FILE, the replacement text')
         sys.exit(splice(docs, args.replace, args.with_))
+    if args.delete:
+        sys.exit(excise(docs, args.delete, args.delete_limit))
     if args.para:
         sys.exit(paragraphs(docs, args.para, args.all_paras))
     if args.check_doc:
