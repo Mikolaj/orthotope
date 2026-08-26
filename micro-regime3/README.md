@@ -2708,6 +2708,24 @@ class-name lead OUTSIDE that section is a two-line predicate, and it would have
 named the paragraph instead of leaving the installer to refuse for a reason
 that reads like a missing file.
 
+**Two questions this run raises and does not answer, named here because two
+sentences in the run's own file point at them.** The first is what it would take
+to act on the leaf block's ordering. `genericFillStrided` is a bang-for-bang
+port of `mut-odo-vecdims-add-in-leaf-u2`, and `-add-in-leaf-down` beats
+it by 5.1% on 9.12 and 6.1% on HEAD, both clearing their halves' six-pair
+figures and in the same direction on both compilers --- on ONE run, which
+is the whole of the evidence. What would settle it is a repetition on an unmoved
+roster, since this run's own cross-run figures carry a layout term it cannot
+separate; what would kill it is either arm crossing the other on a second run.
+It is a decision about `Data/Array/Internal.hs` and not a request
+for an evening, and nothing here recommends a change on one reading. The second
+is whether claim 1's first link should be re-aimed. It reads `mut-odo-vecdims`
+against `mut-flat-gm` and so prices what a mutating `Vector` method buys against
+the arm that was fastest when the link was written; three arms now sit ahead
+of `mut-odo-vecdims` inside its own family, so the rung understates
+that by about a third while remaining true as stated. Re-aiming is a decision
+and not a reading, which is why Run 20 did not take it.
+
 **And one thing this run's own checkers caught that its author did not.**
 The yardstick table is one of the two tables edited by hand rather
 than installed, and it gains a column per run; this write-up rebuilt
@@ -7231,17 +7249,19 @@ so multiply any interval this reader prints by about that before believing it,
 where Run 18 wanted three and three, Run 17 five and five, Run 16 five and two,
 Run 14 three and twelve, Run 12 one either way, Run 11 one on its max-skip half
 and three on its aligned one, Run 10 four and one, Run 9 nine, Run 8 two and Run
-7 three. **That the two halves DISAGREE on the factor this run** --- five
-against three, where Run 18's agreed at three and three and Run 17's at five
-and five --- is the same fact as the basis half carrying both the wider floor
-and the wider cells, and it is a gap of two, where Run 16 read five against two
-and Run 14 three against twelve --- so the halves parting is not itself unusual,
-and what is new is only that this pair's did. Neither main set carries a wild
-cell, at 18.50% and 17.66%; the loosest cell of the run is a class's,
-and the run file's head reads it. What the basis half carries is two
-of its eighteen intervals missing 1 against the control's one, every one of them
-an arm whose two processes differ by less than its interval admits. It rests
-on eighteen pairs, so one loose pair moves it less than it did on six.
+7 three. **That the two halves DISAGREE on the factor this run** --- four
+against two, where Run 18's agreed at three and three and Run 17's at five
+and five --- is NOT the same fact as the basis half carrying both the wider
+floor and the wider cells, those having parted this run: the basis carries
+the wider floor and the NARROWER cells, which the run file's head reads. It
+is a gap of two, where Run 16 read five against two and Run 14 three against
+twelve --- so the halves parting is not itself unusual, and what is new is only
+that this pair's did. Neither main set carries a wild cell, at 13.66%
+and 16.22%; the loosest cell of the run is a class's, and the run file's head
+reads it. What the basis half carries is three of its eighteen intervals missing
+1 against the control's one, every one of them an arm whose two processes differ
+by less than its interval admits. It rests on eighteen pairs, so one loose pair
+moves it less than it did on six.
 
 **The class populations are where the factor still bites**, and the reason
 is arithmetic rather than noise: a two- or three-shape bootstrap gives
@@ -7254,10 +7274,13 @@ is reporting which slot happened to be disturbed rather than the reader's
 arithmetic, and it does not stay with a class from run to run --- `rev` falling
 from fifteen to four on a roster, a box and a basis binary that did not change
 is this run's own demonstration of that. The class whose intervals cover 1 least
-often is `bcastmid` at **10 of 18**, with `revsome`, `window` and `scaled`
-at 13; `bcast` reaches 16 and `reshape1` 17. Read a class interval that misses 1
-as the reader's arithmetic and the pair's own deviation as the finding;
-the per-class factors are with each block below.
+often is `bcastmid` at **11 of 18**, with `window` and `scaled` at 12
+and `revsome` at 13; `rev` reaches 15 and `bcast`, `reshape1` and `slice` 14.
+Read a class interval that misses 1 as the reader's arithmetic and the pair's
+own deviation as the finding. **The per-class factors are NOT with the blocks**,
+which print a floor, a worst cell and an interval count and no factor;
+that pointer stood for several runs and is retired here rather than aimed
+somewhere else.
 
 **And what is left when every other cause is pinned has now been measured:
 run-to-run drift is a few percent per cell and a quarter of a percent
@@ -7282,7 +7305,7 @@ must clear to have moved between runs. **All three are the word *floor*,
 over different populations, and two things that are not it wear it easily.**
 A class's `floor` column is the same statistic again over that population's
 eighteen pairs, so it is a fourth member of the family and not a fourth sense.
-**The worst single A/A cell is not a floor at all** --- 19.75% on this run ---
+**The worst single A/A cell is not a floor at all** --- 19.19% on this run ---
 and the procedure says so where it is read; it is one cell where
 these are geomeans over a population, and quoting it as one overstates
 the instrument by an order of magnitude. Nor is the residue [the alignment
@@ -8911,19 +8934,27 @@ the record costs. **A fourth half arrives with the pairing and is not a delta
 at all**: which half of the pair a figure came from, which is why the run file's
 tables and its fingerprint say so.
 
-- Run 19 measured today's shapes, class lists, roster membership and order,
-  so its delta is empty --- it is today. What a reader has to carry is which
-  half a figure came from: everything published in the run's file
-  is `run19-g912`, the 9.12 half, and `run19-ghead` contributes the yardstick's
-  second column, the arm-by-arm comparison at that file's head, the counted-work
-  column, and a class comparison on five of the eight populations, three of them
-  being disqualified by a baseline past 0.7%. **And two things that
-  are not deltas.** The halves differ in the compiler, so a figure crossing them
-  carries codegen and layout, as Run 18's did --- but this pair's `list` moved
-  0.78% between them, so unlike Run 18's its two columns may be ordered
-  and not subtracted. And the basis half is Run 18's basis BINARY, byte
-  for byte, so absolutes cross those two runs freely and the boundary that stops
-  them is still the BIOS change before Run 18.
+- Run 20 measured today's shapes and class views and NOT today's roster read
+  against Run 19's: nine timed arms landed and three dropped to `Only`,
+  so its membership is 53 timed arms over 24 main-set shapes and 26 class views,
+  1272 benches and 1378, where Run 19 ran 47 and 1128 over 24 and 24,
+  and `reshape1` and `bcastmid` went to four shapes. **So the delta against Run
+  19 is a roster and it is not empty**, which every figure read across
+  that boundary carries as a layout term besides drift, Run 10 having priced
+  a reorder at 12 to 14% on the two arms whose loop the shim rescues. Which half
+  a figure came from is the other thing to carry: everything published
+  in the run's file is `run20-g912`, the 9.12 half, and `run20-ghead`
+  contributes the yardstick column --- and this pair's `list` moved 0.71%
+  between them, past the 0.7% bar by a hair, so its two columns may be ordered
+  and not subtracted. The box did not move, its machine check reading -0.24%,
+  so absolutes cross from Run 19 freely and the boundary that stops them
+  is still the BIOS change before Run 18.
+- Run 19 measured today's shapes and class lists but the roster BEFORE Run 20's
+  arms, 47 timed arms and 1128 benches. Everything published in its file
+  is `run19-g912`, the 9.12 half; its `list` moved 0.78% between the halves,
+  so its two columns may be ordered and not subtracted; and its basis half
+  is Run 18's basis BINARY, byte for byte, so absolutes cross those two runs
+  freely.
 - Run 18 measured the same shapes, class lists, membership and order,
   so its delta is empty too. Everything it published was `run18-g912`
   and `run18-g914` contributed its second yardstick column. **And one thing

@@ -107,11 +107,13 @@ on the control, where Run 19 read 18.50% and 17.66%. Restricted to the six pairs
 that carry back to Run 10 the two read **0.44%** and **0.28%**, against Run 19's
 0.49% and 0.29% --- so the tight six are where they have been and the movement
 is in the twelve outside them, the same place Run 19's loosening lived. Fifteen
-of the eighteen basis intervals cover 1 and seventeen of the control's. Every
-margin below is judged against 1.51% and 1.18%, not against the predecessor's,
-for the reason [the floor section][floor] holds and this file does not restate
---- what Run 20 adds to it is one more reading, the same recipe on the same box
-one roster change later moving from 2.32% to 1.51%.
+of the eighteen basis intervals cover 1 and seventeen of the control's. **Which
+of the two a margin is judged against depends on what it compares**: an arm
+against its own duplicate against these, 1.51% and 1.18%; two different arms
+against the six-pair figures above, 0.44% and 0.28%. Neither is judged against
+the predecessor's, for the reason [the floor section][floor] holds and this file
+does not restate --- what Run 20 adds to it is one more reading, the same recipe
+on the same box one roster change later moving from 2.32% to 1.51%.
 
 **The two halves' cells resolve differently again, and this run the lean runs
 the other way.** `CI%` --- the median half-width of a cell's own fit --- runs
@@ -251,21 +253,30 @@ on the control. Every one of those figures is within a few thousandths of Run
 read it against a floor this tight.** `mut-odo-vecdims-add-in` against the arm
 it varies reads **0.9945 at 18 of 24, sign p 0.023** on the 9.12 half
 and **0.9913 at 16 of 24, p 0.15** on HEAD --- both below 1, and both margins,
-0.55% and 0.87%, INSIDE their halves' floors of 1.51% and 1.18%. Run 19 read
-0.9755 outside its floor on the basis and 0.9991 at a coin flip on HEAD
-and called that a split by compiler; here the two halves agree in direction
-and neither margin clears its floor, so what Run 19 saw as a compiler difference
-reads this run as an arm that cannot be separated from its base at all.
-The question was **parked on 2026-08-25** in any case, the margin being too
-small to move the shipping choice whichever way it came out, and the three arms
-it turned on stopped costing benches the same day. This reading is recorded
-because the pair was still rostered to give it, not because the question
-reopened. **What replaced it as the run's own placement question is `build`
-against `mut-odo`**, one worker at two slots: **0.9899 at 13 of 24, sign p
-0.84** on the basis and **0.9668 at 18 of 24, p 0.023** on HEAD. Run 19 read
-this pair at 0.9633 and 0.9325, both halves well below 1 and both significant;
-here the basis's margin has fallen to 1.01%, inside its 1.51% floor and a tie
-by the sign test, while HEAD's 3.32% still clears its 1.18% floor. So the pair
+0.55% and 0.87%, CLEARING the six-pair figures of 0.44% and 0.28% that two
+different rows of one table must clear. **The eighteen-pair floor is the wrong
+quantity here and this file used it at first**: 1.51% and 1.18% govern an arm
+against its own duplicate, and against those the same margins read
+as no separation at all --- which is the reading a comprehension probe caught,
+the rule sitting in Results and its application here. **What the two instruments
+then say is not the same thing, and both are reported.** By the margin, the arm
+separates from its base on both compilers and in the same direction. By the sign
+test it separates on the basis (18 of 24, p 0.023) and does not on HEAD (16
+of 24, p 0.15). Run 19 read 0.9755 outside its floor on the basis and 0.9991
+at a coin flip on HEAD and called that a split by compiler; this run has
+the direction agreeing across the compilers where Run 19 had it absent on one,
+and the significance still splitting. The question was **parked on 2026-08-25**
+in any case, the margin being too small to move the shipping choice whichever
+way it came out, and the three arms it turned on stopped costing benches
+the same day. This reading is recorded because the pair was still rostered
+to give it, not because the question reopened. **What replaced it as the run's
+own placement question is `build` against `mut-odo`**, one worker at two slots:
+**0.9899 at 13 of 24, sign p 0.84** on the basis and **0.9668 at 18 of 24, p
+0.023** on HEAD. Run 19 read this pair at 0.9633 and 0.9325, both halves well
+below 1 and both significant; here the basis's margin has fallen to 1.01%
+and HEAD's to 3.32% --- both past the six-pair figures of 0.44% and 0.28%
+that two rows of one table must clear, while the basis's sign test is a coin
+flip at 13 of 24, p 0.84, and HEAD's is 18 of 24 at p 0.023. So the pair
 that agreed across the compilers on Run 19 disagrees now, and it is the 9.12
 half that moved. Their per-shape ranges remain the finding rather than their
 geomeans, **0.884..1.053** on the basis and **0.841..1.116** on the control,
@@ -576,8 +587,9 @@ recommends it. `-down` against `-add-in-leaf` is 0.9886 on the basis, inside
 the floor, so on 9.12 alone those two cannot be separated and only
 the cross-compiler reading tells them apart. **So the reading is that `-down`
 beats the shipped variant on both compilers by a margin both floors clear**,
-on one run, and what it would take to act on that is [in the open
-list](../README.md#what-is-open) with the registration it splits.
+on one run, and what it would take to act on it is [under the recommended
+tasks](../README.md#recommended-tasks-after-run-20), beside the registration
+it splits.
 
 **The two standing placement controls both moved toward 1 on the basis half,
 and the run cannot tell that from the roster change.** `mut-odo-vecdims-add-in`
@@ -1030,8 +1042,9 @@ arms now sit ahead of `mut-odo-vecdims` inside its own family, at 0.035, 0.036
 and 0.038 against its 0.054 --- so the ladder's top rung understates what
 a mutating method buys by about a third, while remaining true as stated. Whether
 the claim should be re-aimed at the family's leader is a question for the next
-run and is [in the open list](../README.md#what-is-open); it is not re-aimed
-here, a claim being re-aimed on a decision and not on one reading.
+run and is [under the recommended
+tasks](../README.md#recommended-tasks-after-run-20); it is not re-aimed here,
+a claim being re-aimed on a decision and not on one reading.
 
 **Readings:** `mut-odo-vecdims` / `mut-flat-gm` 0.6530, 20 of 24, sign p 0.0015;
 `mut-flat-gm` / `bq-mut-runs-gm-mulback` 0.9163, 23 of 24, sign p 3e-06;
@@ -1387,30 +1400,31 @@ as the largest.
 **Run 20 (SpecConstr, max-skip +lookrts, -A32m, 9.12.4) records every class
 on BOTH halves**, one process each, in [the
 sequence](../README.md#making-a-major-benchmark-run) --- with `window`
-and `scaled` rerun in a second window after an intrusion, both halves of each,
-which each block states. Every table below is the **basis half**'s, which
-on this run is the 9.12 one, the half that keeps the lineage. What the second
-half buys is that a pair's variable can be read on a class, which is what
-settled Run 14's `scaled` question and what no run before it could have asked.
-**Read across the halves and the direction Run 19 found holds, at about the same
-size.** Of the 376 arm-comparisons the eight classes carry, **259 put the 9.12
-half faster and 117 slower**, and all eight geomeans fall below 1, running
-**0.9700 on `bcast` to 0.9952 on `window`**, where Run 19's eight ran 0.9830
-to 0.9889. So on the classes as on the main set, GHC HEAD costs this roster
-a little more, and does it everywhere. **The extreme at one end is the same arm
-in all eight classes and it is new**: `mut-odo-vecdims-add-in-leaf`,
-from **0.7120** on `bcast` to 0.8757 on `scaled`, the arm the main set puts
-at 0.8513 and the counted work splits ten points codegen to five points not.
-**The other end wants reading before it is quoted.** The largest figure any
-class reports is `reshape1`'s `canon-vecdims` at **2.7150**, and it is
-not a movement: that class's canonicalizing arms return O(1) on three
-of its four shapes, so the ratio prices dispatch and not filling. Set
-those three aside and the high end is **1.1133**, `reshape1`'s
-`offtab-aa-distant` --- a clean four-shape reading, 1.0237, 1.2062, 1.0707
-and 1.1618, with no cell dropped --- and `rev`'s `offtab-aa-adjacent` at 1.0970
-behind it. Every figure here but that one is read straight off the eight
-cross-half lines below; 1.1133 is not, those lines reporting each class's own
-maximum, which for `reshape1` is the degenerate 2.7150.
+and `scaled` rerun in a second window after an intrusion, both halves of each
+--- stated here rather than in those two blocks, whose tables and controls
+are the reruns' and carry nothing to distinguish them from the other six. Every
+table below is the **basis half**'s, which on this run is the 9.12 one, the half
+that keeps the lineage. What the second half buys is that a pair's variable can
+be read on a class, which is what settled Run 14's `scaled` question and what
+no run before it could have asked. **Read across the halves and the direction
+Run 19 found holds, at about the same size.** Of the 376 arm-comparisons
+the eight classes carry, **259 put the 9.12 half faster and 117 slower**,
+and all eight geomeans fall below 1, running **0.9700 on `bcast` to 0.9952
+on `window`**, where Run 19's eight ran 0.9830 to 0.9889. So on the classes
+as on the main set, GHC HEAD costs this roster a little more, and does
+it everywhere. **The extreme at one end is the same arm in all eight classes
+and it is new**: `mut-odo-vecdims-add-in-leaf`, from **0.7120** on `bcast`
+to 0.8757 on `scaled`, the arm the main set puts at 0.8513 and the counted work
+splits ten points codegen to five points not. **The other end wants reading
+before it is quoted.** The largest figure any class reports is `reshape1`'s
+`canon-vecdims` at **2.7150**, and it is not a movement: that class's
+canonicalizing arms return O(1) on three of its four shapes, so the ratio prices
+dispatch and not filling. Set those three aside and the high end is **1.1133**,
+`reshape1`'s `offtab-aa-distant` --- a clean four-shape reading, 1.0237, 1.2062,
+1.0707 and 1.1618, with no cell dropped --- and `rev`'s `offtab-aa-adjacent`
+at 1.0970 behind it. Every figure here but that one is read straight off
+the eight cross-half lines below; 1.1133 is not, those lines reporting each
+class's own maximum, which for `reshape1` is the degenerate 2.7150.
 
 First, one table over all of them, so that an inversion is visible without
 reading every class's table. Every figure in it is transcribed from a class's
