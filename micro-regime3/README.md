@@ -4588,6 +4588,26 @@ of its own: [Making a major benchmark run](#making-a-major-benchmark-run).
 
 ### Making a major benchmark run
 
+**What a run must read, so that nothing else is read to find out.**
+This chapter's three checklists --- a fifth of its lines --- and of the rest
+only the *part* each section keeps, since most of what these sections hold
+is the previous run's data that the write-up is about to replace. The last run's
+own file, whole, that being the one thing worth reading entire. Of [What
+the next run compares
+against](runs/run20.md#what-the-next-run-compares-against), the paragraphs
+settling the regime, the roster and the basis, and the column rules
+under the yardstick --- not its figures. Of [the
+claims](runs/run20.md#the-claims-the-next-run-should-test), BOTH numbered sets
+at the end --- the live claims, three of them since the settlement
+of 2026-08-24, and the three class properties, a run returning verdicts on each
+--- and not the previous run's readings above them, which `--claims` reprints.
+Of [the class blocks](runs/run20.md#the-stride-classes-run-by-run), the six
+numbered items of the form and one example block --- not the other seven.
+Of [Provenance](#provenance), the replace list and the delta bullets. The open
+list is read by its status markers rather than end to end. Everything else
+in this file is reference, and reading it is how a write-up's budget goes
+without a figure to show for it.
+
 **FIRST, THE FORK, because it decides how much of this chapter you owe and
 it is four commands.** A run is either already prepared or it is not,
 and the half of this procedure that builds a pair is the half most sessions do
@@ -4617,26 +4637,6 @@ The reasons restate nothing the lists carry, so reading them front to back
 before starting is the single largest waste available here --- Run 16 read
 the whole of it first and needed almost none of it, and Run 18 read the whole
 of it and then took the CONFIRM path the four lines above would have given it.
-
-**What a run must read, so that nothing else is read to find out.**
-This chapter's three checklists --- a fifth of its lines --- and of the rest
-only the *part* each section keeps, since most of what these sections hold
-is the previous run's data that the write-up is about to replace. The last run's
-own file, whole, that being the one thing worth reading entire. Of [What
-the next run compares
-against](runs/run20.md#what-the-next-run-compares-against), the paragraphs
-settling the regime, the roster and the basis, and the column rules
-under the yardstick --- not its figures. Of [the
-claims](runs/run20.md#the-claims-the-next-run-should-test), BOTH numbered sets
-at the end --- the live claims, three of them since the settlement
-of 2026-08-24, and the three class properties, a run returning verdicts on each
---- and not the previous run's readings above them, which `--claims` reprints.
-Of [the class blocks](runs/run20.md#the-stride-classes-run-by-run), the six
-numbered items of the form and one example block --- not the other seven.
-Of [Provenance](#provenance), the replace list and the delta bullets. The open
-list is read by its status markers rather than end to end. Everything else
-in this file is reference, and reading it is how a write-up's budget goes
-without a figure to show for it.
 
 A *major run* is the whole roster over the whole shape set at criterion's
 default budget --- the main set and, by default, **every stride-class population
@@ -5001,7 +5001,9 @@ clean gates into "2 process(es) FAILED" and failed
 `prop_selftest_over_the_corpus` with a traceback --- on a file no run produced,
 and both reading exactly like the run breaking. The loud half of
 this was already written at the smoke step; the quiet half is why it is stated
-here.
+here. **This is the one statement of the rule and the other sites point at it**:
+the smoke step and post-run step 1c each name it in a clause and link back,
+three copies having been what the rule cost before.
 
 **Then the run --- and this is the list that wants the machine, so it does
 not start on a session's judgement.** Steps 13 to 19 sit here rather
@@ -6095,6 +6097,16 @@ was missed, which is what they have cost.
     #   4. one JSON at a time, never merged; there is no combined figure, so
     #      a sentence comparing populations compares their tables
     #   5. MAKE THE RUN'S OWN FILE, `runs/$R.md`, by copying the last
+    #      run's over it AND COMMITTING THAT COPY BEFORE EDITING IT, which
+    #      buys three things and only one is about wrapping: the file gets
+    #      a committed form, so wrap-restore classifies it and no hand
+    #      wrap is ever owed; git holds a restore point for the whole
+    #      write-up, which is what Run 20 did not have when a range splice
+    #      took 148936 characters of it; and the write-up's own DIFF
+    #      becomes the artifact step 7a briefs the checker to read, where
+    #      an uncommitted copy enters history as a wholly new file whose
+    #      diff says nothing about what the run changed. Run 20's checker
+    #      had to snapshot the file and diff against its own copy
     #      run's over it: it is the whole of what a run replaces -- head,
     #      Results, what the next run compares against, the claims it
     #      should test, the eight class blocks and its own Provenance --
@@ -6151,7 +6163,10 @@ was missed, which is what they have cost.
     #      paragraph. A correction is a claim -- derive it, then re-run the
     #      gates. Then --lint, --check-doc, adjudicate the worklists,
     #      read end to end, and walk the diff against the writing rules.
-    #  7a. THE INDEPENDENT CHECKER, and it is a STEP because it is the
+    #  7a. THE INDEPENDENT CHECKER, PRE-AUTHORIZED by the user-scope
+    #      CLAUDE.md and not a thing to ask about -- Run 20 read Claude
+    #      Code's own conditional, missed that the standing request
+    #      discharges it, and asked. It is a STEP because it is the
     #      highest-yield thing in this list: on Run 19 it returned 22
     #      defects, six of them whole paragraphs of the PREVIOUS run's
     #      left standing under this run's tables, which every mechanical
@@ -6291,45 +6306,57 @@ the artifacts are what it spends.
    geomean, per [the ruling](#the-stride-classes-and-what-they-cover), and there
    is no combined figure to compute, so a sentence comparing populations
    compares their tables.
-5. **Make the run's own file and repoint README at it, and not before
-   this step.** `runs/run<N>.md` is one run's write-up entire, so a run copies
-   the last one's over its own name and rewrites it --- HERE, because every mode
-   defaults to the newest file in `runs/` and everything above wants the run
-   BEHIND this one: the gate's machine check reads the previous run's
-   fingerprint and `--claims` reads back the claims it registered. Making
-   the file early aims both at an empty copy of itself. What used to be four
-   heading renames is one: *Recommended tasks after Run N*, in the open list,
-   which is about the run just read. Its SECTIONS carry no number --- *Results*,
-   *What the next run compares against*, *The claims the next run should test*,
-   *The stride classes, run by run*, *Provenance* --- because the name does;
-   the title is the second heading a run renames, and the copy renames it.
-   So Run 9's eleven dead anchors and Run 18's three half-renamed links
-   are failures this step no longer has. **What it has instead is one link
-   check, and `runs/` accumulating is what makes it necessary**: the previous
-   run's file stays on disk, so a link left pointing at it resolves, renders
-   and quietly promises figures this run replaced. `--check-doc` fails every
-   such link and names it. **Expect it to fail five ways the moment the file
-   exists and before you have touched README** --- dead anchors, links naming
-   the run before, the run file's sections uncovered by the replace list,
-   the Results section naming the previous basis, and the head unchanged
-   from the run before --- and every one of those is this step. Driven end
-   to end 2026-08-25 on a copy: all five, and the eleven tables installing
-   into the new file regardless. No source file is repointed: `Main.hs`
-   and `read-run.py` name README anchors, which no run moves, and neither names
-   a run file --- one that did would go stale at the next run, and `--check-doc`
-   could not see it, `runs/` keeping every run so the path resolves. Repoint
-   on the UNWRAPPED form, a path rename over the wrapped document missing any
-   link text a wrap falls inside. Repointing is not re-verifying:
-   a standing-prose link into the run file promises content the replacement may
-   have moved out, and the ones that decayed this way kept resolving through two
-   renames. `--check-doc` lists the links naming the file AS A WHOLE, which
-   are the ones promising something unspecified; a link naming a SECTION
-   of it is not listed, there being two dozen and a wall being what nobody reads
-   --- so those are walked by hand, and by the same test: does the text still
-   describe what is there. A link whose TEXT quotes a ratio, pointing
-   at a section that no longer carries it, is what that walk is for:
-   this refactor found one that had survived two runs with its anchor resolving
-   throughout.
+5. **Make the run's own file, COMMIT THE COPY, and repoint README at it,
+   and not before this step.** `runs/run<N>.md` is one run's write-up entire,
+   so a run copies the last one's over its own name, commits that copy
+   untouched, and rewrites it --- HERE, because every mode defaults
+   to the newest file in `runs/` and everything above wants the run BEHIND
+   this one: the gate's machine check reads the previous run's fingerprint
+   and `--claims` reads back the claims it registered. Making the file early
+   aims both at an empty copy of itself. What used to be four heading renames
+   is one: *Recommended tasks after Run N*, in the open list, which is about
+   the run just read. Its SECTIONS carry no number --- *Results*, *What the next
+   run compares against*, *The claims the next run should test*, *The stride
+   classes, run by run*, *Provenance* --- because the name does; the title
+   is the second heading a run renames, and the copy renames it. So Run 9's
+   eleven dead anchors and Run 18's three half-renamed links are failures
+   this step no longer has. **What it has instead is one link check, and `runs/`
+   accumulating is what makes it necessary**: the previous run's file stays
+   on disk, so a link left pointing at it resolves, renders and quietly promises
+   figures this run replaced. `--check-doc` fails every such link and names it.
+   **Expect it to fail five ways the moment the file exists and before you have
+   touched README** --- dead anchors, links naming the run before, the run
+   file's sections uncovered by the replace list, the Results section naming
+   the previous basis, and the head unchanged from the run before --- and every
+   one of those is this step. Driven end to end 2026-08-25 on a copy: all five,
+   and the eleven tables installing into the new file regardless. No source file
+   is repointed: `Main.hs` and `read-run.py` name README anchors, which no run
+   moves, and neither names a run file --- one that did would go stale
+   at the next run, and `--check-doc` could not see it, `runs/` keeping every
+   run so the path resolves. Repoint on the UNWRAPPED form, a path rename
+   over the wrapped document missing any link text a wrap falls inside.
+   Repointing is not re-verifying: a standing-prose link into the run file
+   promises content the replacement may have moved out, and the ones
+   that decayed this way kept resolving through two renames. `--check-doc` lists
+   the links naming the file AS A WHOLE, which are the ones promising something
+   unspecified; a link naming a SECTION of it is not listed, there being two
+   dozen and a wall being what nobody reads --- so those are walked by hand,
+   and by the same test: does the text still describe what is there. A link
+   whose TEXT quotes a ratio, pointing at a section that no longer carries it,
+   is what that walk is for: this refactor found one that had survived two runs
+   with its anchor resolving throughout. **Committing the copy before editing
+   it is what makes the rest of this step cheap, and Run 20 is why it is written
+   down.** An untracked file has no committed form, so `wrap-restore` cannot
+   classify it and leaves it alone --- the one case the wrapping rules still
+   leave to be done by hand, and it need not arise. The copy also gives git
+   a restore point for the whole write-up: Run 20 lost its run file to a range
+   splice and recovered only because a subagent had left a byte-exact copy
+   in a temp directory. And it makes the write-up's own diff the artifact step
+   7a briefs the checker to read --- uncommitted, the file enters history
+   as wholly new and its diff says nothing about what the run changed, so Run
+   20's checker had to snapshot it and diff against its own copy. The cost
+   is one commit whose content is a verbatim copy, which reads as diary until
+   the next diff makes it legible.
 6. Walk the list under [Provenance](#provenance) of what the new numbers
    replace, and do not trust it to be complete: re-run the two sweeps it names
    and map each hit to the bullet covering it, since running the sweeps
@@ -6521,8 +6548,15 @@ the artifacts are what it spends.
    section](#the-reader-read-runpy).)
 
    The checks themselves:
-   1. **derive every count and ratio in the prose from `--cells`, never by eye,
-      and never from a published table** --- the second half is the one
+   1. **MEASURE, THEN WRITE THE CLAUSE --- and derive every count and ratio
+      in the prose from `--cells`, never by eye, and never from a published
+      table.** The order is the operative half and is stated first because
+      the rest of this rule is a property of the finished sentence, checked
+      at verification, while the failure is in composition: Run 20 wrote three
+      figures it had not computed --- a `list` ratio, a `build`/`mut-odo` pair
+      and a cross-half split --- each plausible, each wrong, and each caught
+      only because the number was checked afterwards. A sentence written before
+      its measurement is a guess with a citation. The second half is the one
       that looks safe: a table prints three significant figures because
       that is what a reader needs, so arithmetic on its cells is arithmetic
       on the rounding. Run 11 computed its eleven anchor movements

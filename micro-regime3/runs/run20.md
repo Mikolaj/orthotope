@@ -108,10 +108,10 @@ that carry back to Run 10 the two read **0.44%** and **0.28%**, against Run 19's
 0.49% and 0.29% --- so the tight six are where they have been and the movement
 is in the twelve outside them, the same place Run 19's loosening lived. Fifteen
 of the eighteen basis intervals cover 1 and seventeen of the control's. Every
-margin below is judged against 1.51% and 1.18%, not against the predecessor's:
-Run 19 established that a floor is a property of the RUN rather than of the pair
-or the build, its basis reading 2.32% where that same binary had read 1.36%
-a day earlier, and nothing here disturbs that finding.
+margin below is judged against 1.51% and 1.18%, not against the predecessor's,
+for the reason [the floor section][floor] holds and this file does not restate
+--- what Run 20 adds to it is one more reading, the same recipe on the same box
+one roster change later moving from 2.32% to 1.51%.
 
 **The two halves' cells resolve differently again, and this run the lean runs
 the other way.** `CI%` --- the median half-width of a cell's own fit --- runs
@@ -1218,36 +1218,42 @@ of these orderings is one `--pair` call away.
    is maintenance without a question --- which, with the follow-up spent,
    is the whole case for retiring it.
 
-Each ordering is one line of `--claims`, whose manifest now carries
-the registered expectation --- the direction of the geomean, a tie by sign test,
-or claim 9's two best shapes --- and prints HELD or BROKE beside the paired
-geomean, interval and sign test. `--claims --in-place` then installs
-that arithmetic as each claim's `Readings:` paragraph above, so a run no longer
-transcribes it at all; what stays the reading's is whether a HELD margin moved
-and whether a movement clears the floor, and a BROKE is what obliges
-the paragraph above its reading to be rewritten rather than requoted. **A claim
-with no named invocation is a gap in this list, not a claim to be checked
-by hand**: where a session has to invent the computation it will invent a wrong
-one, which is how claim 7 came to be read off the raw fitted bytes, explained
-by a mechanism the previous pair refutes, and then "corrected" onto a rounded
-print. It has `--compare --alloc` now. Claim 8 is the one still without one,
-read off the table by eye. **The general form, and it is a standing instruction
-rather than an observation: if a write-up hand-rolls a script to answer
-something the reader should answer, that is a defect report against the reader**
---- fix it there, before the sentence it was written for, or the next run
-invents its own wrong version. **Two riders, both bought on Run 19.** A new MODE
-joins the guards its siblings already have, and is checked against them rather
-than written beside them: `--counts` shipped able to be given without
-the `--compare` it reads, silently printing the default table and exiting 0 ---
-the unread-flag family exactly, added next to four sibling readings
-of `--compare` that were every one of them already guarded, and joining none.
-**And an instrument may be BACKED OUT, which is not a failure of the write-up
-but a result of it.** Measure what it flags before shipping it: the obvious
-mechanical repair for stale paragraphs was built and returned 100 for the four
-that mattered, so it went, and the refutation with its numbers is
-under the tasks heading --- worth more than the mode, since it stops the next
-session building the same thing. A report that never empties is one nobody
-reads, which this file already knows about hints.
+**Two homes, and which carries what.** Each live claim has a prose paragraph
+here and a numbered predicate at the foot, and they divide: the PROSE carries
+this run's figures and what moved, the ITEM carries the predicate the next run
+checks and no reading at all. A RETIRED claim keeps its numbered item, which
+says in a clause what it was, and gets no prose paragraph --- Run 20 wrote two
+and they restated their own items clause for clause, because stripping
+the figures had removed the only thing that distinguished them. Each ordering
+is one line of `--claims`, whose manifest now carries the registered expectation
+--- the direction of the geomean, a tie by sign test, or claim 9's two best
+shapes --- and prints HELD or BROKE beside the paired geomean, interval and sign
+test. `--claims --in-place` then installs that arithmetic as each claim's
+`Readings:` paragraph above, so a run no longer transcribes it at all; what
+stays the reading's is whether a HELD margin moved and whether a movement clears
+the floor, and a BROKE is what obliges the paragraph above its reading
+to be rewritten rather than requoted. **A claim with no named invocation
+is a gap in this list, not a claim to be checked by hand**: where a session has
+to invent the computation it will invent a wrong one, which is how claim 7 came
+to be read off the raw fitted bytes, explained by a mechanism the previous pair
+refutes, and then "corrected" onto a rounded print. It has `--compare --alloc`
+now. Claim 8 is the one still without one, read off the table by eye.
+**The general form, and it is a standing instruction rather than an observation:
+if a write-up hand-rolls a script to answer something the reader should answer,
+that is a defect report against the reader** --- fix it there, before
+the sentence it was written for, or the next run invents its own wrong version.
+**Two riders, both bought on Run 19.** A new MODE joins the guards its siblings
+already have, and is checked against them rather than written beside them:
+`--counts` shipped able to be given without the `--compare` it reads, silently
+printing the default table and exiting 0 --- the unread-flag family exactly,
+added next to four sibling readings of `--compare` that were every one of them
+already guarded, and joining none. **And an instrument may be BACKED OUT, which
+is not a failure of the write-up but a result of it.** Measure what it flags
+before shipping it: the obvious mechanical repair for stale paragraphs was built
+and returned 100 for the four that mattered, so it went, and the refutation
+with its numbers is under the tasks heading --- worth more than the mode, since
+it stops the next session building the same thing. A report that never empties
+is one nobody reads, which this file already knows about hints.
 
 **And for each stride class, the same three properties, now carrying Run 20's
 verdicts**, the details beside each class's table:
@@ -1429,6 +1435,16 @@ of what the column says; *floor* is the largest deviation from 1 among
 that process's eighteen A/A controls. A cell that breaks one of [the three
 properties](#the-claims-the-next-run-should-test) is bolded, and the class's own
 paragraph says what broke.
+
+**And the aggregate figures in the paragraph above the blocks are the reader's,
+transcribed.** The comparison count, the faster/slower split, the range
+of the eight geomeans and the extreme arms are each an aggregate over the eight
+`--block --compare` lines below, so they are read off those lines and never off
+a population assembled for the purpose: Run 20 assembled its own twice
+and was wrong both times --- once on the split, once on a low end that excluded
+a class the sentence said it covered. Where a figure genuinely cannot come off
+those lines, because a class's own maximum is a degenerate cell, the paragraph
+says so rather than quoting it as though it could.
 
 Then one block per class, in `classViews`' order --- `rev`, `revsome`, `bcast`,
 `bcastmid`, `reshape1`, `slice`, `window`, `scaled` --- each carrying the same
