@@ -1260,10 +1260,9 @@ exit 0
 
 # Two stand-ins for `perf`, for the guard that says the counting machine
 # is present before a sweep spends its hours proving otherwise. The
-# machine's own perf is deliberately NOT used by either case:
-# kernel.perf_event_paranoid is not persistent here -- 1, then 4, then 1
-# again inside two days -- so a case leaning on it would pass or fail on
-# the state the guard exists to catch.
+# machine's own perf is deliberately NOT used by either case: a case
+# leaning on it would pass or fail on the very state the guard exists to
+# catch, so it would answer for the box and not for the guard.
 PERF_BLOCKED = """\
 #!/bin/sh
 echo "Access to performance monitoring and observability operations is\
@@ -4197,14 +4196,14 @@ CASES = [
          'a blocked perf spent the whole sweep writing NaN',
          # Every cell is two `perf stat` processes, so a machine that
          # refuses the counter does not fail the sweep -- it writes a `!!`
-         # line per cell and takes a full sweep to do it.
-         # And the setting is not persistent: kernel.perf_event_paranoid
-         # read 1 on 2026-08-21, 4 on 2026-08-22 and 1 again that evening,
-         # so it is a state to assert at the moment of use.
+         # line per cell and takes a full sweep to do it. What the guard
+         # asserts is a capability at the moment of use, a counter being
+         # refusable by a container or a missing perf as much as by a
+         # setting.
          #
          # Both sides use a STUB perf and not the machine's, or the case
-         # would pass or fail on the box's current setting -- which is the
-         # very thing that moves.
+         # would pass or fail on the box's own state -- which is the very
+         # thing the guard is there to read.
          shadow=dict(extra=[('zzct3-g912', FAKE_HALF)]),
          plant=lambda t: {'stub': stub_dir(t, PERF_BLOCKED)},
          env={'PATH': '{stub}:/usr/bin:/bin', 'ONLY': 'shape-a',
@@ -4489,6 +4488,13 @@ CASES = [
                             ('zzal-al-g912-sat-cnn-slice-c32-r1.json', '[]\n'),
                             ('zzal-pair.txt', 'a stand-in pair note.\n')]),
          argv=['zzal', 'g912'],
+         # MAXBUSY=100 because the load guard below the artifact one reads
+         # the REAL machine, and a corpus that reads the box answers for
+         # the box: the bar is put where no reading can reach it, exactly
+         # as the perf cases use a stub and not the machine's counter.
+         # It doubles as this case's control that a quiet-enough box gets
+         # through that guard, the refusal having its own case beside it.
+         env={'MAXBUSY': '100'},
          # Past the guard everything goes to the driver log, which is why
          # the probe is that log: an empty stdout alone would also be what
          # a driver that died before the redirect leaves. `shapes:` is
@@ -4500,6 +4506,31 @@ CASES = [
          ok=V(has=['start:', 'shapes: 3'],
               hasnt=['already has alone-leg artifacts',
                      'baked RTS line unread'])),
+
+    case('alonelegs-refuses-a-busy-machine', 'run-alonelegs.sh', None,
+         'timed legs were launched onto a box that had got busy',
+         # The riders run AFTER the sequence, hours past where run list
+         # step 16 last looked at the machine, and they are timed one
+         # bench to a process -- so a box handed back to its owner in the
+         # meantime gets timed instead of the leg. Four were launched that
+         # way on 2026-08-26 and thrown away.
+         #
+         # MAXBUSY=-1 rather than a load: every reading of a real machine
+         # is at or above 0 and so above -1, which fires the guard whatever
+         # the box is doing. That is what makes this case deterministic on
+         # a busy runner AND on an idle one -- a bar of 0 would pass an
+         # idle box reading 0.0 and the case would then prove nothing
+         # there, which is the silent-search failure this corpus exists to
+         # refuse.
+         shadow=dict(extra=[('zzal4-g912', FAKE_HALF),
+                            ('zzal4-pair.txt', 'a stand-in pair note.\n')]),
+         argv=['zzal4', 'g912'],
+         env={'MAXBUSY': '-1'},
+         # Refused BEFORE the redirect, as its siblings are, so a refusal
+         # leaves no driver log for the relaunch guard above to read as a
+         # previous attempt -- which is asserted here and not assumed.
+         ok=V(exit=1, has=['the machine is busy'],
+              hasnt=['start:', 'shapes:'])),
 
     case('alonelegs-refuses-a-previous-attempt', 'run-alonelegs.sh', None,
          "CONTROL: the guard still fires on the sweep's OWN artifacts",
@@ -4656,10 +4687,13 @@ CASES = [
          # loud failure this case wants rather than a silent pass. Aim it
          # at whatever sentence the floor section then quotes.
          # RE-AIMED 2026-08-25 off Run 19's floor section, from
-         # 0.54%/0.31%, which its write-up replaced.
+         # 0.54%/0.31%, which its write-up replaced. RE-AIMED AGAIN
+         # 2026-08-26 off Run 20's, from 0.49%/0.29%, and the emphasis
+         # markers are part of the anchor now because that write-up
+         # bolded the pair.
          plant=lambda t: {'readme': unwrapped_readme_edit(
-             t, 'the same run gives 0.49% and 0.29%',
-             'the same run gives 0.69% and 0.29%')},
+             t, 'the same run gives **0.44% and 0.28%**',
+             'the same run gives **0.69% and 0.28%**')},
          argv=['--check-doc', '--readme', '{readme}'],
          ok=V(exit=1, has=['six-pair figure is quoted differently']),
          # No --audit: the fixture is built from today's document and

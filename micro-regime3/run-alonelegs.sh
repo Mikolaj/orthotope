@@ -80,7 +80,49 @@ fi
 # Case: `alonelegs-refuses-a-listless-half`.
 SHAPES=$("$B" --list 2>/dev/null | cut -d/ -f1 | awk '!seen[$0]++')
 [ -n "$SHAPES" ] || { echo "!! --list gave nothing; wrong binary?"; exit 1; }
+# AND THE MACHINE, which is what every guard above is blind to: these legs
+# are TIMED, one bench a process, so a box doing something else times the
+# something else. Run list step 16 is this alarm before the sequence and
+# the riders at step 19 had none, which is how four legs came to be
+# launched onto a box whose owner had taken it back and had to be thrown
+# away (2026-08-26). NOT A LOADAVG: the one-minute figure still carries
+# the sequence that has just ended, so it would refuse the launch the
+# procedure asks for -- riders follow the sequence -- while passing a box
+# that got busy a minute ago. Two reads of /proc/stat two seconds apart
+# measure what is running NOW and carry no history. MAXBUSY overrides in
+# percent, and an ONLY= smoke run skips it, being declared not a rider.
+# Case: `alonelegs-refuses-a-busy-machine`.
+#
+# BROKEN ON PURPOSE 2026-08-26, on the busy box that occasioned it, and
+# this is what it said rather than what it was meant to say. As a rider it
+# printed `the machine is busy: 10.6% of its CPUs non-idle over two
+# seconds, against a 5% bar`, exited 1 and wrote no artifact. With
+# MAXBUSY=100 on the same box it went past and into the sweep, which is
+# the pass branch. With ONLY=cnn-slice-c32 it printed `machine: 11.7% busy
+# at launch, against a 5% bar` and ran, which is the measure-but-do-not-
+# refuse branch. The driver log's own loadavg line read 2.36 beside that
+# 11.7%, which is the history contamination the paragraph above claims.
+read -r _ u1 n1 s1 i1 w1 q1 f1 t1 _ < /proc/stat
+sleep 2
+read -r _ u2 n2 s2 i2 w2 q2 f2 t2 _ < /proc/stat
+BUSY=$(awk -v a="$((u1+n1+s1+i1+w1+q1+f1+t1))" -v b="$((u2+n2+s2+i2+w2+q2+f2+t2))" \
+           -v ia="$((i1+w1))" -v ib="$((i2+w2))" \
+  'BEGIN{d=b-a; if(d<=0){print "100.0"}else{printf "%.1f",100*(d-(ib-ia))/d}}')
+# MEASURED ALWAYS AND REFUSED ONLY FOR A RIDER, so that an ONLY= smoke run
+# exercises the reading itself -- the half of this that can go wrong
+# silently -- and skips only the refusal.
+if [ -z "${ONLY-}" ]; then
+  if awk -v x="$BUSY" -v m="${MAXBUSY:-5}" 'BEGIN{exit !(x>m)}'; then
+    echo "!! the machine is busy: ${BUSY}% of its CPUs non-idle over two"
+    echo "   seconds, against a ${MAXBUSY:-5}% bar. These legs are timed one"
+    echo "   bench to a process, so what ran here would be the intruder and"
+    echo "   not the leg. Nothing ran and no artifact was written; rerun on a"
+    echo "   quiet box, or set MAXBUSY to say what you are accepting."
+    exit 1
+  fi
+fi
 exec > "$R-al-$H$SUF-driver.log" 2>&1
+echo "machine: ${BUSY-skipped}% busy at launch, against a ${MAXBUSY:-5}% bar"
 echo "start: $(date -Is), loadavg: $(cat /proc/loadavg)"
 echo "WILDLOG=${WILDLOG-unset} SAT=${SAT-unset}"
 md5sum "$B"
