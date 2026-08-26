@@ -3045,16 +3045,22 @@ codegen rather than that it cannot be built.
   2026-08-26 by reading the two run files rather than by arguing about
   phrasing.** The count is checked in the one shape that has a truth as well
   as a sentence: a run spends one process per class per half,
-  so `N class processes` must be the block count or twice it, and it reads
-  `sixteen` in run19.md and run20.md alike, one value in one sentence shape.
-  That is stronger than the agreement rows beside it, which compare sites
-  to each other and cannot see a figure stale everywhere. **The bare total
-  is refused and the evidence is what refuses it**: `N processes` carries
-  `eighteen`, `nine`, `four` and `fourteen` in run20.md alone --- the sequence,
-  one half, the reruns and what survived them, every one correct --- so a sweep
-  over it would flag right prose or admit anything, which is the phrasing
-  obstacle this entry named, now measured instead of suspected. The run window
-  goes with it, having no sentence shape either. Non-vacuity
+  so `N class processes` must be quoted *somewhere* as the block count or twice
+  it, and it reads `sixteen` in run19.md and run20.md alike, one value in one
+  sentence shape. **Somewhere and not everywhere, which is a correction to how
+  this was first written**: requiring every quoted figure to be the structural
+  one fails a run that names a subset, and a run has subsets to name --- Run 20
+  reran four of its class processes, and phrasing that as *those four class
+  processes were rerun*, one word from what it does say, failed the check
+  on right prose. A stale count is a run where no site quotes the figure, which
+  is what stale means. That is stronger than the agreement rows beside it, which
+  compare sites to each other and cannot see a figure stale everywhere.
+  **The bare total is refused and the evidence is what refuses it**:
+  `N processes` carries `eighteen`, `nine`, `four` and `fourteen` in run20.md
+  alone --- the sequence, one half, the reruns and what survived them, every one
+  correct --- so a sweep over it would flag right prose or admit anything, which
+  is the phrasing obstacle this entry named, now measured instead of suspected.
+  The run window goes with it, having no sentence shape either. Non-vacuity
   is `rundoc-miscounts-its-class-processes`, and the check reads the RUN file
   and not the pair: README says `two class processes add one each` of Run 10's
   A/A cells, which is right and is not this figure.

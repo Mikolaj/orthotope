@@ -7639,6 +7639,16 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
         # `over N shapes` is a population's size wherever it appears; `on
         # N shapes` is a win count and is not this check's, which is why
         # the pattern will not take it.
+        #
+        # THIS ONE ASKS FOR EVERY FIGURE AND THE CLASS PROCESS COUNT BELOW
+        # ASKS FOR ONE, and the difference is deliberate rather than an
+        # oversight in either: `over N shapes` is a convention, so a subset
+        # reading is written `on N of the 24` and a figure here that names
+        # no population is a sentence to rephrase -- flagging it is the
+        # check working. `N class processes` is no such convention, and a
+        # run reruns subsets of them, so requiring every figure there fails
+        # right prose. Told apart 2026-08-26 by planting a subset mention
+        # into each.
         pops = {len(main_shapes)} | {len(v) for v in class_sizes.values()}
         quoted = {int(n) for n in re.findall(r'\bover\s+(?:all\s+)?(\d+)'
                                              r' shapes', uw, re.I)}
@@ -7675,7 +7685,18 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
         # prose or admit anything. `N class processes` reads `sixteen` in
         # run19.md and run20.md, one value in one sentence shape, which is
         # the whole reason this half is checkable and that one is not.
+        #
+        # IT ASKS FOR AGREEMENT SOMEWHERE, NOT EVERYWHERE, which is the
+        # difference between this and the bare total it refused. Requiring
+        # every quoted figure to be the structural one fails a run that
+        # names a SUBSET, and a run has subsets to name: Run 20 reran four
+        # of its class processes, and writing that as `those four class
+        # processes were rerun` -- one word from what it does say -- failed
+        # the check on right prose, measured 2026-08-26. So a stale total
+        # is a run where NO site quotes the figure, which is what staleness
+        # means, and a subset beside a correct total is not a defect.
         # Case: `rundoc-miscounts-its-class-processes`.
+        #
         # THE RUN FILE'S OWN TEXT, not the concatenated pair, for the reason
         # the stray-lead check above states: README argues about the classes
         # constantly and reads `two class processes add one each` of Run 10's
@@ -7694,18 +7715,18 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
                            ' a run spends one per class per half, so with'
                            ' %d blocks it is %d or %d'
                            % (len(blocks), len(blocks), 2 * len(blocks)))
-            elif cq - want:
-                bad.append('%d class process count(s) quoted in prose are'
-                           ' not one per class per half (%s); this run has'
-                           ' %d class blocks, so the figure is %d unpaired'
-                           ' or %d paired'
-                           % (len(cq - want),
-                              ', '.join(str(n) for n in sorted(cq - want)),
+            elif not cq & want:
+                bad.append('no class process count quoted in prose is one'
+                           ' per class per half; the quoted figure(s) are'
+                           ' %s, and this run has %d class blocks, so it is'
+                           ' %d unpaired or %d paired'
+                           % (', '.join(str(n) for n in sorted(cq)),
                               len(blocks), len(blocks), 2 * len(blocks)))
             else:
                 print('ok:   the class process count reads %s, which is one'
                       ' process per class per half over %d blocks'
-                      % ('/'.join(str(n) for n in sorted(cq)), len(blocks)))
+                      % ('/'.join(str(n) for n in sorted(cq & want)),
+                         len(blocks)))
 
         # Prospective tense about a run that has already happened. An open
         # list entry written before a run says what that run WILL do, and

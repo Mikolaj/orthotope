@@ -720,6 +720,22 @@ def rundoc_naming_its_own_artifact(tmp):
     return write_rundoc(tmp, '\n'.join(lines))
 
 
+def rundoc_class_blocks(lines):
+    """The run file's class block names, off its own leads.
+
+    Derived and not listed, as `install-tables.sh` and `read-run.py` both
+    derive them: a class added or renamed moves every fixture resting on
+    this with it, where a literal rots at the next roster change and takes
+    a case down during a write-up. One helper rather than a copy per
+    planter, for the reason `read-run.py` gives about the third way of
+    finding a class block being a third thing to keep in step.
+    """
+    cstart = next(i for i, l in enumerate(lines)
+                  if re.match(r'#{1,6} The stride classes', l))
+    return [m.group(1) for l in lines[cstart:]
+            for m in [re.match(r'\*\*`([a-z0-9]+)` ---', l)] if m]
+
+
 def rundoc_with_a_stray_class_lead(tmp):
     """A bolded class name at a line start, outside the class section.
 
@@ -730,10 +746,7 @@ def rundoc_with_a_stray_class_lead(tmp):
     harmless, and the wrap made it a line start.
     """
     lines = rundoc_lines()
-    cstart = next(i for i, l in enumerate(lines)
-                  if re.match(r'#{1,6} The stride classes', l))
-    name = next(m.group(1) for l in lines[cstart:]
-                for m in [re.match(r'\*\*`([a-z0-9]+)` ---', l)] if m)
+    name = rundoc_class_blocks(lines)[0]
     start = next(i for i, l in enumerate(lines)
                  if re.match(r'#{1,6} Results\s*$', l))
     lines.insert(start, '**`%s` sits apart, a stray lead.**\n' % name)
@@ -752,10 +765,7 @@ def rundoc_with_a_stray_class_lead_in_provenance(tmp):
     form, the sibling was caught and this one was not.
     """
     lines = rundoc_lines()
-    cstart = next(i for i, l in enumerate(lines)
-                  if re.match(r'#{1,6} The stride classes', l))
-    name = next(m.group(1) for l in lines[cstart:]
-                for m in [re.match(r'\*\*`([a-z0-9]+)` ---', l)] if m)
+    name = rundoc_class_blocks(lines)[0]
     start = next(i for i, l in enumerate(lines)
                  if re.match(r'#{1,6} Provenance\s*$', l))
     lines.insert(start + 2, '**`%s` sits apart, a stray lead.**\n' % name)
@@ -774,11 +784,44 @@ def rundoc_miscounting_its_class_processes(tmp):
     where bare `N processes` carries `eighteen`, `nine`, `four` and
     `fourteen` in run20.md alone, every one of them correct.
     """
-    text = '\n'.join(rundoc_lines())
-    bent, n = re.subn(r'\bsixteen(\s+)class processes\b',
-                      r'fifteen\1class processes', text)
-    assert n == 1, 'wanted exactly one class process count, found %d' % n
+    lines = rundoc_lines()
+    n = len(rundoc_class_blocks(lines))
+    # EVERY mention is bent, and to a digit, so this needs no word map and
+    # no guess at which spelling the run used: what the check asks is that
+    # the structural figure be quoted SOMEWHERE, so leaving one correct
+    # mention standing would rightly pass. 2n+1 is outside {n, 2n} for
+    # every n >= 1.
+    bent, k = re.subn(r'\b[\w-]+(\s+class processes)\b',
+                      r'%d\1' % (2 * n + 1), '\n'.join(lines))
+    assert k >= 1, 'the run file quotes no class process count to bend'
     return write_rundoc(tmp, bent)
+
+
+def rundoc_naming_a_subset_of_its_class_processes(tmp):
+    """A run that names a SUBSET of its class processes, which is legal.
+
+    The count check asks that the structural figure be quoted somewhere,
+    not that every quoted figure be it -- because a run has subsets to
+    name. Run 20 reran four of its class processes; writing that as `those
+    four class processes were rerun`, one word from what it does say, made
+    an every-figure check fail on right prose. This plants such a sentence
+    and the run must stay clean, which is the half a check like this gets
+    wrong silently: a false positive on a correct document reads as the
+    check working.
+
+    The subset is INSERTED rather than found, and its size derived, so that
+    the fixture outlives the run it was written against: the sentence it
+    first bent, `Those four were rerun`, is in run20.md and in no other run
+    file, and `RUNDOC` follows the newest.
+    """
+    lines = rundoc_lines()
+    n = len(rundoc_class_blocks(lines))
+    assert n >= 3, 'a subset smaller than the population needs n >= 3'
+    at = next(i for i, l in enumerate(lines)
+              if re.match(r'#{1,6} Provenance\s*$', l))
+    lines.insert(at + 2, 'Those %d class processes were rerun on a quiet'
+                         ' box.\n' % (n - 1))
+    return write_rundoc(tmp, '\n'.join(lines))
 
 
 def rundoc_without_class_leads(tmp):
@@ -3455,6 +3498,22 @@ CASES = [
              'rundoc': rundoc_miscounting_its_class_processes(t)},
          argv=['--check-doc', '--run-doc', '{rundoc}'],
          ok=V(exit=1, has=['one per class per half'])),
+
+    case('rundoc-names-a-subset-of-its-class-processes', 'read-run.py', None,
+         'a legal subset mention failed the count check',
+         # The other half of the case above, and the half that fails
+         # silently: a check that flags right prose reads as a working
+         # check. The count must be quoted somewhere, not everywhere.
+         plant=lambda t: {
+             'rundoc': rundoc_naming_a_subset_of_its_class_processes(t)},
+         # BOTH refusal wordings are named, the containment form's and the
+         # intersection form's: `hasnt` with only the current wording is a
+         # search that cannot find the defect it guards, and this case
+         # passed against HEAD until both were listed. The `ok:` line says
+         # `class process count reads`, so neither string can match it.
+         argv=['--check-doc', '--worklists', '--run-doc', '{rundoc}'],
+         ok=V(hasnt=['class process count(s) quoted',
+                     'no class process count quoted'])),
 
     case('path-token-dotfile', 'read-run.py', None,
          "lstrip('./') ate the leading dot of a cited dotfile",
