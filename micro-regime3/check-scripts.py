@@ -740,6 +740,28 @@ def rundoc_with_a_stray_class_lead(tmp):
     return write_rundoc(tmp, '\n'.join(lines))
 
 
+def rundoc_with_a_stray_class_lead_in_provenance(tmp):
+    """The same stray, planted AFTER the class section instead of before it.
+
+    The sibling above plants one in the run file's opening, which the check
+    read from the start. It stopped at the class section, so Provenance --
+    the 153 lines after it, rewritten every run and naming the classes
+    throughout -- went unread, while the check's own message said `outside
+    the class section` and `install-tables.sh` grepped the whole file. This
+    case is the half that was missing: planted both ways against the narrow
+    form, the sibling was caught and this one was not.
+    """
+    lines = rundoc_lines()
+    cstart = next(i for i, l in enumerate(lines)
+                  if re.match(r'#{1,6} The stride classes', l))
+    name = next(m.group(1) for l in lines[cstart:]
+                for m in [re.match(r'\*\*`([a-z0-9]+)` ---', l)] if m)
+    start = next(i for i, l in enumerate(lines)
+                 if re.match(r'#{1,6} Provenance\s*$', l))
+    lines.insert(start + 2, '**`%s` sits apart, a stray lead.**\n' % name)
+    return write_rundoc(tmp, '\n'.join(lines))
+
+
 def rundoc_without_class_leads(tmp):
     """Every class block lead unbackticked, so the grep finds none.
 
@@ -3378,6 +3400,18 @@ CASES = [
          # all along -- an error message pointing away from the defect.
          # The wrap completes the trap: unwrapped the phrase sits mid-line.
          plant=lambda t: {'rundoc': rundoc_with_a_stray_class_lead(t)},
+         argv=['--check-doc', '--run-doc', '{rundoc}'],
+         ok=V(exit=1, has=['bolded class name'])),
+
+    case('rundoc-has-a-stray-class-lead-in-provenance', 'read-run.py', None,
+         'the same stray after the class section, where the sweep stopped',
+         # The sibling above is planted before Results and was always
+         # caught; this one is planted in Provenance and was not, the sweep
+         # having read only up to the class section while its own message
+         # said `outside the class section`. Both placements are kept so a
+         # later narrowing of either bound fails here rather than silently.
+         plant=lambda t: {
+             'rundoc': rundoc_with_a_stray_class_lead_in_provenance(t)},
          argv=['--check-doc', '--run-doc', '{rundoc}'],
          ok=V(exit=1, has=['bolded class name'])),
 

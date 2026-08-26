@@ -2689,8 +2689,8 @@ by flipping the bar to 100 and watching it report
 so that the corpus does not read the real machine --- the same principle
 its perf siblings already used in stubbing `perf` rather than calling the box's.
 
-**One hazard found the hard way, and nothing checks for it.** A paragraph
-of the run file's HEAD that begins a line with a bolded class name --- here
+**One hazard found the hard way, and the check for it went in the same day.**
+A paragraph of the run file that begins a line with a bolded class name --- here
 the paragraph read `**`reshape1` sits apart at 0.9995**`, since repaired ---
 is indistinguishable from a class block's own lead, which is how
 `install-tables.sh` finds the eight blocks. It found nine, one of them
@@ -2699,12 +2699,24 @@ with `1 class block(s) in runs/run20.md have no run20-g912-*.json`, naming
 a JSON that was present all along. The wrap is what completes the trap:
 the phrase sat mid-line while the document was unwrapped and became a line start
 when it was wrapped, so the defect appeared at a moment when nothing had
-been edited. **What would settle it is a check rather than a rule**, since
-the rule is unwritable --- no author will remember it: `--check-doc` already
-knows the class names and already parses the class section, so a bolded
-class-name lead OUTSIDE that section is a two-line predicate, and it would have
-named the paragraph instead of leaving the installer to refuse for a reason
-that reads like a missing file.
+been edited. A rule against it is unwritable --- no author will remember it ---
+so what settles it is a check, and `--check-doc` has carried one since
+`3a3d2a0`, written hours after this entry said nothing did: it derives the eight
+names from the class section's own leads and refuses such a lead outside
+that section, naming the paragraph instead of a file that is sitting there.
+**Widened 2026-08-26, having read only as far as the class section while its own
+message said *outside* it**: Provenance, the 153 lines after it that every run
+rewrites and that name the classes throughout, went unread, where
+`install-tables.sh` greps the whole file. Both placements are cases now,
+and the Provenance one fails against the narrow form, which is what says
+the widening was not cosmetic. **And a marker on the eight leads is refused
+rather than merely not taken.** Make both of the installer's patterns require
+one and a lead that dropped it is missed by both at once: they agree,
+so the disagreement refusal cannot fire; `MISSING` compares leads against JSONs
+and never the reverse; and `read-run.py`'s third finder only warns to stderr.
+One missing word would then hand a block's figures to the block above
+it in silence, which is the 2026-08-17 incident by an easier route ---
+and the malformed lead would look exactly like today's correct one.
 
 **Two questions this run raises and does not answer, named here because two
 sentences in the run's own file point at them.** The first is what it would take
@@ -9106,6 +9118,14 @@ the rulings and the tables first: a ruling resting on a figure is where a stale
 number costs a decision, a table is where nothing in the prose can go stale
 visibly, and the walk of 2026-08-26 found all eleven of its sites in those two
 places and none in the dated accounts that made up most of its shortlist.
+**And ask it of claims about the tree, not only of figures**, which is a second
+blind spot beside that one: a paragraph saying *nothing checks for it* goes
+stale the moment the check is written, moves no numeral, and names the current
+run while doing it, so no question about figure currency can reach it ---
+the class-lead entry under Recommended tasks said exactly that for the rest
+of Run 20's write-up, its check having landed the same day in `3a3d2a0`.
+So the sweep asks two questions of a paragraph and not one: *which run measured
+this*, and *does the tree still work this way*.
 
 **Inside a section, find the paragraphs rather than reading it.** The list names
 sections and a section here runs to hundreds of lines, of which a run rewrites

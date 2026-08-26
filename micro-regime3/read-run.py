@@ -6979,15 +6979,30 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
     rlines = run_text.split('\n') if run_doc else []
     cstart = next((i for i, ln in enumerate(rlines)
                    if re.match(r'#{1,6} The stride classes', ln)), None)
+    # AND WHERE THAT SECTION ENDS, because the sweep below reads the file
+    # outside it and not merely its opening -- which is what its own message
+    # has always said. The blocks carry no headings of their own, so the next
+    # level-1-or-2 heading is the end. Everything after it, Provenance, went
+    # unread: 153 lines of run20.md, rewritten every run, naming the classes
+    # throughout, where `install-tables.sh` greps the whole file and would
+    # have counted a stray there as a further block. Proved by planting one
+    # stray before Results and one in Provenance against the narrow form --
+    # the first caught, the second missed.
+    # Case: `rundoc-has-a-stray-class-lead-in-provenance`.
+    cend = (next((i for i, ln in enumerate(rlines[cstart + 1:], cstart + 1)
+                  if re.match(r'#{1,2} ', ln)), len(rlines))
+            if cstart is not None else None)
     # The block names come from the section's own leads rather than from a
     # literal, so a class added or renamed moves this with it and there is
-    # nothing to keep in sync.
-    blocks = {m.group(1) for ln in (rlines[cstart:] if cstart is not None
+    # nothing to keep in sync. Bounded by `cend` for the same reason the
+    # sweep is: a ` --- ` lead sitting in Provenance is a stray to report,
+    # never a name to take the roster from.
+    blocks = {m.group(1) for ln in (rlines[cstart:cend] if cstart is not None
                                     else [])
               for m in [re.match(r'\*\*`([a-z0-9]+)` ---', ln)] if m}
     if cur is not None and run_doc and blocks:
         stray = []
-        for ln in rlines[:cstart]:
+        for ln in rlines[:cstart] + rlines[cend:]:
             m = re.match(r'\*\*`([a-z0-9]+)`', ln)
             if m and m.group(1) in blocks:
                 stray.append('%s ... %s' % (m.group(1), ln[:58]))
