@@ -36,13 +36,16 @@ with no regression and needs no extension to orthotope classes.
 odometer and writes each innermost run, and `mut-odo-vecdims` --- the same fill
 with its dimension lists replaced by unboxed vectors --- is on Run 20
 (SpecConstr, -A32m) **2.11x** over `bq-expand` paired. Its family holds the top
-of the table. It needs a new `Vector`-class method, which was measured
-and deliberately **not** taken, to keep orthotope's `Vector` API pure
-and minimal --- a bar an in-tree precedent has since softened to a weight
-([below](#the-mutable-ceiling-taken), amended). Plain `mut-odo` no longer argues
-for it at all: it and `bq-expand`, the arm `Data/Array/Internal.hs` carries
-today, are a tie at 0.8754 paired, 12 shapes of 24 and sign p 1 on an interval
-covering 1, where Run 7 (Harness), at -O1, had it 1.51x ahead.
+of the table. It needs a new `Vector`-class method, which this README argued
+against for as long as the ceiling stood --- to keep orthotope's `Vector` API
+pure and minimal, a bar an in-tree precedent softened to a weight --- and which
+the decision of 2026-08-22 **took**, `vFillStrided` landing 2026-08-24
+([below](#the-mutable-ceiling-taken)). Plain `mut-odo` no longer argues
+for it at all: it and `bq-expand`, which survives in `Data/Array/Internal.hs`
+only as that method's class default, the three vector-backed instances
+overriding it with the mutable fill, are a tie at 0.8754 paired, 12 shapes of 24
+and sign p 1 on an interval covering 1, where Run 7 (Harness), at -O1, had
+it 1.51x ahead.
 
 **Several strategies measured since are faster than the last candidate,
 `bq-expand`, and need no class method --- a distinction the decision
@@ -4353,8 +4356,8 @@ is also the order to read them in:
   and differing only in how that table is built: `offsets-quot` (lazy list),
   `bq-mut` and `bq-mut-runs` (mutable odometer), `bq-unfold`, `bq-gen`,
   `bq-gen-lemire` (Lemire at the build site; kept because it *lost*, so the idea
-  is not re-proposed), `bq-expand` (**the arm the file carries today**),
-  `bq-expand-zf` and `bq-expand-b`.
+  is not re-proposed), `bq-expand` (**the arm the file carried until 2026-08-24,
+  and its class default since**), `bq-expand-zf` and `bq-expand-b`.
 - **The same family varying the per-element output instead**, which is the line
   every member ends in, so pricing it once prices it for all:
   `bq-expand-qr-prim`, `bq-expand-lemire-out`, `bq-expand-lemire-mulback`,
