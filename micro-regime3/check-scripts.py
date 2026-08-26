@@ -762,6 +762,25 @@ def rundoc_with_a_stray_class_lead_in_provenance(tmp):
     return write_rundoc(tmp, '\n'.join(lines))
 
 
+def rundoc_miscounting_its_class_processes(tmp):
+    """The class process count bent off one-per-class-per-half.
+
+    A run spends one process per class per half, so the figure is the block
+    count or twice it and nothing else. That is a structural truth, where
+    the floor pair and the six-pair figure are cross-site agreement and can
+    be uniformly stale -- which is why this is the one of Run 14's four
+    wrong subjects that turned out checkable. The phrasing is what makes it
+    so: `N class processes` reads `sixteen` in run19.md and run20.md alike,
+    where bare `N processes` carries `eighteen`, `nine`, `four` and
+    `fourteen` in run20.md alone, every one of them correct.
+    """
+    text = '\n'.join(rundoc_lines())
+    bent, n = re.subn(r'\bsixteen(\s+)class processes\b',
+                      r'fifteen\1class processes', text)
+    assert n == 1, 'wanted exactly one class process count, found %d' % n
+    return write_rundoc(tmp, bent)
+
+
 def rundoc_without_class_leads(tmp):
     """Every class block lead unbackticked, so the grep finds none.
 
@@ -3414,6 +3433,18 @@ CASES = [
              'rundoc': rundoc_with_a_stray_class_lead_in_provenance(t)},
          argv=['--check-doc', '--run-doc', '{rundoc}'],
          ok=V(exit=1, has=['bolded class name'])),
+
+    case('rundoc-miscounts-its-class-processes', 'read-run.py', None,
+         'a class process count that is not one per class per half',
+         # One of Run 14's four wrong subjects, and the one with both a
+         # truth and a stable phrasing. The bare total is NOT checked and
+         # the planter's docstring says why: run20.md quotes four different
+         # correct values for `N processes`, so a sweep over that would
+         # flag right prose or admit anything.
+         plant=lambda t: {
+             'rundoc': rundoc_miscounting_its_class_processes(t)},
+         argv=['--check-doc', '--run-doc', '{rundoc}'],
+         ok=V(exit=1, has=['one per class per half'])),
 
     case('path-token-dotfile', 'read-run.py', None,
          "lstrip('./') ate the leading dot of a cited dotfile",

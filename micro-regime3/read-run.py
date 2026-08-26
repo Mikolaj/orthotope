@@ -7642,6 +7642,53 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
                   ' Main.hs defines: %s'
                   % ', '.join(str(n) for n in sorted(quoted)))
 
+        # THE CLASS PROCESS COUNT, which is the one of Run 14's four wrong
+        # subjects that turned out to have both a truth and a phrasing.
+        # A run spends one process per class per half, so the figure is
+        # len(blocks) times one or two and nothing else -- a structural
+        # count, where the six-pair figure and the floor pair are only
+        # cross-site agreement and can be uniformly stale.
+        #
+        # THE BARE TOTAL RESISTED AND IS NOT CHECKED, measured 2026-08-26
+        # over both run files rather than argued: `N processes` carries
+        # `eighteen`, `nine`, `four` and `fourteen` in run20.md alone --
+        # the sequence, one half, the reruns and what survived them, every
+        # one correct -- so a set-membership sweep over it would flag right
+        # prose or admit anything. `N class processes` reads `sixteen` in
+        # run19.md and run20.md, one value in one sentence shape, which is
+        # the whole reason this half is checkable and that one is not.
+        # Case: `rundoc-miscounts-its-class-processes`.
+        # THE RUN FILE'S OWN TEXT, not the concatenated pair, for the reason
+        # the stray-lead check above states: README argues about the classes
+        # constantly and reads `two class processes add one each` of Run 10's
+        # A/A cells, which is right and is not this figure.
+        if blocks:
+            run_uw = '\n'.join(' '.join(p.split())
+                               for p in (run_text or '').split('\n\n'))
+            cq = {num(t) for t in
+                  re.findall(r'\b([\w-]+)\s+class processes\b',
+                             run_uw, re.I)}
+            cq.discard(None)
+            want = {len(blocks), 2 * len(blocks)}
+            if not cq:
+                bad.append('no site quotes the class process count as `N'
+                           ' class processes`, so that check did not run;'
+                           ' a run spends one per class per half, so with'
+                           ' %d blocks it is %d or %d'
+                           % (len(blocks), len(blocks), 2 * len(blocks)))
+            elif cq - want:
+                bad.append('%d class process count(s) quoted in prose are'
+                           ' not one per class per half (%s); this run has'
+                           ' %d class blocks, so the figure is %d unpaired'
+                           ' or %d paired'
+                           % (len(cq - want),
+                              ', '.join(str(n) for n in sorted(cq - want)),
+                              len(blocks), len(blocks), 2 * len(blocks)))
+            else:
+                print('ok:   the class process count reads %s, which is one'
+                      ' process per class per half over %d blocks'
+                      % ('/'.join(str(n) for n in sorted(cq)), len(blocks)))
+
         # Prospective tense about a run that has already happened. An open
         # list entry written before a run says what that run WILL do, and
         # the verdict pass rewrites it -- except when it does not: "Run 13

@@ -2844,8 +2844,12 @@ limit belongs in the sentence that asks for the measurement.
    the two runs share, and its own header says that is what cancels a box term
    where `--compare` does not.
 
-**One rider rather than a task of its own, since it fires on an event and
-not on a session.** The pinning claim --- that a shim'd build holds every
+**One rider, and it now lives at the step that fires it rather than here** ---
+moved 2026-08-26 into build step 3b of the run list, which already transcribes
+the fills into the pair note, so the reading is asked for where the arms land
+instead of depending on a run-scoped heading being carried forward. What stays
+here is the outcome, and it goes to the floor section with the layout term when
+this heading is emptied. The pinning claim --- that a shim'd build holds every
 tracked loop at one address across a roster change --- was measured only
 in its weak form until 2026-08-26: adding `mut-flat-gm-nosum` left every tracked
 loop where it was, but a `Force` arm reuses a rostered function and emits
@@ -2861,7 +2865,8 @@ across a roster change carries the layout term Run 10 priced at 12 to 14%
 on the two arms whose loop the shim rescues. **Every roster addition that brings
 a new function is another reading of it** --- the fills on one build either
 side, before anything else changes --- which costs nothing at the moment
-the arms land and cannot be taken afterwards.
+the arms land and cannot be taken afterwards, and step 3b is where that is now
+asked for.
 
 **And one class not to repropose: work that needs an aligned build.**
 `mut-odo`'s wide interval is the live case. The dispersion is documented
@@ -2992,22 +2997,32 @@ codegen rather than that it cannot be built.
   rendered cannot go stale and the checker fleet stops growing a check per
   defect class. The mechanism is not in doubt; the cost is a rewrite
   of the write-up procedure. **Its pilot was the claims verdicts and
-  it is taken** (2026-08-16), which leaves the question the pilot cannot answer:
-  whether one ledger file beats an installer per section. Do not design
-  it before the installers say what it would hold --- three of them now do,
-  and the fourth thing a run still writes by hand, the cross-class summary's
-  emphasis, is exactly what a ledger would have to carry and no reader can
-  derive.
+  it is taken** (2026-08-16), which left the question the pilot cannot answer:
+  whether one ledger file beats an installer per section. **REFUSED 2026-08-26,
+  and the installers answered it by arriving.** Four now write into the run file
+  --- the Results table, the fingerprint, a block per class and the claims ---
+  so the ledger would be a second home for what already has one, bought
+  with a rewrite of the write-up procedure. And the one thing it would have
+  to carry that no installer can, the cross-class summary's emphasis,
+  is a per-run judgement that no ledger can render either: it is written because
+  it is decided, not because it is stored. So the fleet stops growing a check
+  per defect class by the installers absorbing the defect classes, which
+  is the outcome this entry wanted and not the mechanism it proposed. Kept
+  as a ruling because the mechanism is attractive and was proposed twice.
 
-- `OPEN` **The repoint, done rather than checked.** Post-run step 5 used to bump
-  four run-numbered headings and repoint every link's text and anchor to them,
-  `Main.hs`'s `README.md#` references included; the run-file split left it one
-  heading --- *Recommended tasks after Run N* --- and one path rename, README's
-  links from the last run's file onto this one. `--check-doc` fails any
+- `ANSWERED` **The repoint stays hand-work --- REFUSED 2026-08-26,
+  and the entry's own argument is what refuses it.** Post-run step 5 used
+  to bump four run-numbered headings and repoint every link's text and anchor
+  to them, `Main.hs`'s `README.md#` references included; the run-file split left
+  it one heading --- *Recommended tasks after Run N* --- and one path rename,
+  README's links from the last run's file onto this one. `--check-doc` fails any
   the rename missed, `runs/` keeping every run so a stale link resolves
-  and renders rather than dying. A mode that performed the rename would leave
-  nothing to catch; it writes the README, so it wants `--in-place`'s refusals,
-  which is why it is registered rather than written.
+  and renders rather than dying. **A mode that performed the rename would leave
+  that check nothing to catch**, which is the trade this README will not take:
+  a checker branch with no live control is a silent search, and the residue
+  it would buy is one heading and a handful of links a run, where a miss is loud
+  and immediate. Registered for two runs on that reasoning without anyone
+  drawing the conclusion; drawn here so it is not registered for a third.
 - `OPEN` **More checks of the floor-consistency shape: one figure, several
   sites, must agree.** The floor pair, the roster size and every population size
   quoted as `over N shapes` are checked (the last two against Main.hs,
@@ -3020,10 +3035,24 @@ codegen rather than that it cannot be built.
   landing on the previous run's figures with `--lint`, `--check-doc` and both
   installers green over them. The paragraph was cut rather than repaired, what
   moved the floors having no account --- the entry for that is in [What
-  is open](#what-is-open). What is left of the four subjects Run 14 got wrong
-  is the run window and the process count, neither of which has a phrasing crisp
-  enough to match yet: the pattern has to distinguish a population's size
-  from a win count, which is what `on N shapes` taught.
+  is open](#what-is-open). **Of the four subjects Run 14 got wrong the process
+  count is now checked, and the run window is refused --- both settled
+  2026-08-26 by reading the two run files rather than by arguing about
+  phrasing.** The count is checked in the one shape that has a truth as well
+  as a sentence: a run spends one process per class per half,
+  so `N class processes` must be the block count or twice it, and it reads
+  `sixteen` in run19.md and run20.md alike, one value in one sentence shape.
+  That is stronger than the agreement rows beside it, which compare sites
+  to each other and cannot see a figure stale everywhere. **The bare total
+  is refused and the evidence is what refuses it**: `N processes` carries
+  `eighteen`, `nine`, `four` and `fourteen` in run20.md alone --- the sequence,
+  one half, the reruns and what survived them, every one correct --- so a sweep
+  over it would flag right prose or admit anything, which is the phrasing
+  obstacle this entry named, now measured instead of suspected. The run window
+  goes with it, having no sentence shape either. Non-vacuity
+  is `rundoc-miscounts-its-class-processes`, and the check reads the RUN file
+  and not the pair: README says `two class processes add one each` of Run 10's
+  A/A cells, which is right and is not this figure.
 - `ANSWERED` **`run-counts.sh` priced a half at forty minutes where it is twelve
   --- TAKEN 2026-08-23, by cutting the duration rather than correcting it.**
   Measured that day on the g914 half at `N=50` over the full roster, off
@@ -4883,6 +4912,20 @@ and never as a chronology.
     #      Main.hs and align-as.py commits it was built from, the GHC, the
     #      two md5s, .text and the fills -- the fill-in block is that
     #      transcription, and steps 2, 3, 9b and 10 are all reading it back.
+    #      AND WHERE `--list` SHOWS A TIMED ARM THAT BRINGS A NEW FUNCTION,
+    #      the fills read here are the pinning claim's only reading:
+    #      compare them against the previous run's note before anything
+    #      else changes. A build either side of a roster addition is the
+    #      one moment that comparison exists -- minutes of objdump, no
+    #      quiet machine, and it cannot be taken afterwards. Run 20 took it
+    #      and the claim did NOT survive: nine timed arms landed and no
+    #      tracked loop kept its address, the four-copy group at
+    #      [0, 24, 0, 4] becoming a six-copy group at [0, 0, 24, 0, 0, 24],
+    #      none of them moved by a constant. So the claim covers additions
+    #      that cost nothing to place and nothing wider, and every later
+    #      addition is another reading of it. This line is where it fires;
+    #      the account is under Recommended tasks until that heading is
+    #      emptied, and then in the floor section with the layout term.
     #      BUILD BOTH, ALWAYS. Reusing the previous run's basis binary is
     #      REFUTED (2026-08-16) and not to be re-proposed, whatever the
     #      source and the md5 say: the other half is built today, so the
