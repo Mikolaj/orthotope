@@ -5540,6 +5540,80 @@ def splice(docs, anchor, source):
     return 0
 
 
+def section(docs, name, with_tables=False):
+    """Print one section's prose, by heading name, WITHOUT its tables.
+
+    The reading a run owes is enumerated -- of the compares-against
+    section the paragraphs settling the regime and the basis and NOT its
+    figures, of the class blocks the form and one example and not the
+    other seven -- and until this mode there was no way to obey it. A
+    session opens a document with `sed -n 'A,Bp'`, the tables sit between
+    the paragraphs it is told to read, and line numbers go stale at every
+    install and every rewrap besides. So the enumeration was advice and
+    "read it whole" was the instruction that got acted on: Run 20 ingested
+    38 KB of the previous run's tables, 24% of that file, every byte of it
+    named as skippable one sentence later.
+
+    Tables are what a run does NOT read: the reader emits them, --in-place
+    installs them, and a checker recomputes them from the JSONs. They are
+    withheld with their size, so what was skipped is visible rather than
+    silent, and --with-tables prints them for the one case that wants them
+    -- the yardstick, which is hand-edited and gains a column per run.
+
+    Matching is on the heading TEXT, case-insensitively, across both
+    documents; several matches print an index rather than all of them, as
+    --para does, since a wrong section is a wrong read and not a wrong
+    line. The span runs to the next heading of the same level or higher,
+    so asking for a chapter gets its subsections and asking for one of
+    those does not get its siblings.
+    """
+    if isinstance(docs, str):
+        docs = [docs]
+    hits = []
+    for path in docs:
+        try:
+            lines = open(path).read().split('\n')
+        except OSError as e:
+            sys.stderr.write('--section: %s\n' % e)
+            return 2
+        for i, ln in enumerate(lines):
+            m = re.match(r'(#{1,6})\s+(.*?)\s*$', ln)
+            if m and name.lower() in m.group(2).lower():
+                hits.append((path, lines, i, len(m.group(1)), m.group(2)))
+    if not hits:
+        sys.stderr.write("--section: no heading matches %r in %s\n"
+                         % (name, ', '.join(os.path.basename(q)
+                                            for q in docs)))
+        return 1
+    if len(hits) > 1:
+        print('%d heading(s) match %r; narrow it to one:' % (len(hits), name))
+        for path, _, i, lvl, text in hits:
+            print('  %s:%d  %s %s'
+                  % (os.path.basename(path), i + 1, '#' * lvl, text))
+        return 1
+    path, lines, i, lvl, text = hits[0]
+    end = next((j for j in range(i + 1, len(lines))
+                if re.match(r'#{1,%d}\s' % lvl, lines[j])), len(lines))
+    body = '\n'.join(lines[i:end])
+    kept, held, held_bytes = [], 0, 0
+    for para in body.split('\n\n'):
+        if not with_tables and para.lstrip().startswith('|'):
+            held += 1
+            held_bytes += len(para)
+            continue
+        kept.append(para)
+    out = '\n\n'.join(kept)
+    print('%s: %s %s -- %d KB of prose'
+          % (os.path.basename(path), '#' * lvl, text, len(out) // 1024))
+    if held:
+        print('  %d table paragraph(s) withheld, %d KB -- --with-tables'
+              ' prints them, which the yardstick wants and nothing else does'
+              % (held, held_bytes // 1024))
+    print()
+    print(out)
+    return 0
+
+
 def excise(docs, anchor, limit=1500):
     """Delete the paragraph carrying `anchor`, refusing anything larger.
 
@@ -8434,6 +8508,13 @@ def main():
                    help='replace the README paragraph carrying ANCHOR with the'
                         ' text in --with, without printing the old one;'
                         ' refuses unless ANCHOR occurs exactly once')
+    p.add_argument('--section', metavar='NAME',
+                   help="print one section's prose by heading name, without"
+                        ' its tables, so the reading a run owes can be taken'
+                        ' as enumerated rather than whole')
+    p.add_argument('--with-tables', dest='with_tables', action='store_true',
+                   help='--section prints the tables too; the yardstick is'
+                        ' the case that wants it')
     p.add_argument('--delete', metavar='ANCHOR',
                    help='delete the paragraph carrying ANCHOR, refusing a'
                         ' list or anything past --delete-limit; the deletion'
@@ -8611,6 +8692,8 @@ def main():
         if not args.with_:
             sys.exit('--replace wants --with FILE, the replacement text')
         sys.exit(splice(docs, args.replace, args.with_))
+    if args.section:
+        sys.exit(section(docs, args.section, args.with_tables))
     if args.delete:
         sys.exit(excise(docs, args.delete, args.delete_limit))
     if args.para:

@@ -4588,25 +4588,36 @@ of its own: [Making a major benchmark run](#making-a-major-benchmark-run).
 
 ### Making a major benchmark run
 
-**What a run must read, so that nothing else is read to find out.**
-This chapter's three checklists --- a fifth of its lines --- and of the rest
-only the *part* each section keeps, since most of what these sections hold
-is the previous run's data that the write-up is about to replace. The last run's
-own file, whole, that being the one thing worth reading entire. Of [What
-the next run compares
-against](runs/run20.md#what-the-next-run-compares-against), the paragraphs
-settling the regime, the roster and the basis, and the column rules
-under the yardstick --- not its figures. Of [the
+**What a run must read, so that nothing else is read to find out --- and
+it is read BY THE PART, never whole.** This paragraph used to say the last run's
+own file was *the one thing worth reading entire* and then, in its next four
+clauses, name what to skip inside it. Whole is the sentence a session acts on,
+because it governs how the file gets opened, so the clauses read as emphasis:
+Run 20 ingested 38 KB of the previous run's tables, **24% of that file**, every
+byte of it named as skippable one sentence later. The enumeration
+is the instruction and the tables are what a run does not read --- the reader
+emits them, `--in-place` installs them, and the checker recomputes them
+from the JSONs. **`./read-run.py --section NAME` is what makes that takeable**,
+printing one section's prose without its tables and naming the size it withheld,
+since a line range cannot skip what sits between the paragraphs it spans
+and a line number does not survive a rewrap. So: this chapter's three
+checklists, a fifth of its lines. Of the last run's own file, [What the next run
+compares against](runs/run20.md#what-the-next-run-compares-against)
+for the paragraphs settling the regime, the roster and the basis, and the column
+rules under the yardstick --- not its figures; [the
 claims](runs/run20.md#the-claims-the-next-run-should-test), BOTH numbered sets
-at the end --- the live claims, three of them since the settlement
-of 2026-08-24, and the three class properties, a run returning verdicts on each
---- and not the previous run's readings above them, which `--claims` reprints.
-Of [the class blocks](runs/run20.md#the-stride-classes-run-by-run), the six
-numbered items of the form and one example block --- not the other seven.
-Of [Provenance](#provenance), the replace list and the delta bullets. The open
-list is read by its status markers rather than end to end. Everything else
-in this file is reference, and reading it is how a write-up's budget goes
-without a figure to show for it.
+at the end --- the live claims and the three class properties, a run returning
+verdicts on each --- and not the readings above them, which `--claims` reprints;
+[the class blocks](runs/run20.md#the-stride-classes-run-by-run), the six
+numbered items of the form and one example block --- not the other seven;
+and its head and Results prose, which are what the write-up's own head
+is written against. **One table is the exception and is named so it
+is not skipped**: the yardstick is hand-edited and gains a column per run,
+so it is read with `--section ... --with-tables` and Run 20 is the run
+that forgot to add its columns. Of [Provenance](#provenance), the replace list
+and the delta bullets. The open list is read by its status markers rather
+than end to end. Everything else in this file is reference, and reading
+it is how a write-up's budget goes without a figure to show for it.
 
 **FIRST, THE FORK, because it decides how much of this chapter you owe and
 it is four commands.** A run is either already prepared or it is not,

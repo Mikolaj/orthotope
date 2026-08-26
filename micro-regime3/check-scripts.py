@@ -605,6 +605,14 @@ def doc_of_a_list(tmp, items=4):
                  ' it.\n' % body)
 
 
+def doc_with_a_table(tmp):
+    """A document of three sections, the middle one carrying a table."""
+    return write(os.path.join(tmp, 'S.md'),
+                 '# T\n\n## Header one\n\nProse one.\n\n## Middle\n\n'
+                 'Prose before.\n\n| a | b |\n|---|---|\n| 1 | 2 |\n\n'
+                 'Prose after the table.\n\n## Tail\n\nProse three.\n')
+
+
 def doc_of_a_big_paragraph(tmp, n=1800):
     """A document whose middle paragraph is past `--delete`'s size bar."""
     return write(os.path.join(tmp, 'B.md'),
@@ -3209,6 +3217,34 @@ CASES = [
                '--readme', '{doc}'],
          ok=V(exit=0, has=['--replace: ']),
          probe=lambda subs: open(subs['doc']).read()),
+
+    case('section-withholds-the-tables', 'read-run.py', None,
+         'the reading a run owes was enumerated and could not be taken',
+         # "not its figures", "not the previous run's readings", "not the
+         # other seven" -- and no way to obey any of it: a session opens a
+         # document with a line range, the tables sit between the
+         # paragraphs it is told to read, and Run 20 ingested 38 KB of the
+         # previous run's tables, 24% of that file, every byte named as
+         # skippable one sentence later. The withheld size is printed so
+         # the skip is visible rather than silent.
+         plant=lambda t: {'doc': doc_with_a_table(t)},
+         argv=['--section', 'Middle', '--readme', '{doc}'],
+         ok=V(exit=0, has=['table paragraph(s) withheld', 'Prose after'],
+              hasnt=['| a | b |'])),
+
+    case('section-prints-tables-when-asked', 'read-run.py', None,
+         'CONTROL: the yardstick is hand-edited, so one caller wants them',
+         plant=lambda t: {'doc': doc_with_a_table(t)},
+         argv=['--section', 'Middle', '--with-tables', '--readme', '{doc}'],
+         ok=V(exit=0, has=['| a | b |'])),
+
+    case('section-indexes-an-ambiguous-name', 'read-run.py', None,
+         'a name matching several headings printed all of them',
+         # A wrong section is a wrong READ, not a wrong line, so this
+         # indexes rather than guessing, as --para does.
+         plant=lambda t: {'doc': doc_with_a_table(t)},
+         argv=['--section', 'e', '--readme', '{doc}'],
+         ok=V(exit=1, has=['heading(s) match'])),
 
     case('delete-refuses-a-section-sized-paragraph', 'read-run.py', None,
          'a range splice between two markers took 148936 characters',
