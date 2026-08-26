@@ -772,6 +772,26 @@ def rundoc_with_a_stray_class_lead_in_provenance(tmp):
     return write_rundoc(tmp, '\n'.join(lines))
 
 
+def rundoc_repeating_a_class_lead(tmp):
+    """The same class leading twice INSIDE the class section.
+
+    The stray sweep excludes that region on purpose, a bolded class-name
+    lead being how a block legitimately starts there, so the predicate
+    inside it is duplicate rather than stray. Both reach
+    `install-tables.sh` the same way: its loose grep counts the repeat,
+    `comm` leaves the name over, and it refuses with the `no
+    run<N>-<basis>-*.json` message naming a file that is present. This is
+    that defect reached from inside the section, where a stray planted
+    outside it is what the sibling cases plant.
+    """
+    lines = rundoc_lines()
+    name = rundoc_class_blocks(lines)[0]
+    at = next(i for i, l in enumerate(lines)
+              if re.match(r'\*\*`%s` ---' % re.escape(name), l))
+    lines.insert(at + 2, '**`%s` sits apart, a repeated lead.**\n' % name)
+    return write_rundoc(tmp, '\n'.join(lines))
+
+
 def rundoc_miscounting_its_class_processes(tmp):
     """The class process count bent off one-per-class-per-half.
 
@@ -3486,6 +3506,17 @@ CASES = [
              'rundoc': rundoc_with_a_stray_class_lead_in_provenance(t)},
          argv=['--check-doc', '--run-doc', '{rundoc}'],
          ok=V(exit=1, has=['bolded class name'])),
+
+    case('rundoc-repeats-a-class-lead', 'read-run.py', None,
+         'the same class leading twice inside the class section',
+         # The region the stray sweep excludes, where the predicate is
+         # duplicate rather than stray. Left uncovered, the loose grep
+         # counts nine leads for eight classes and the installer refuses
+         # naming a JSON that is present -- the defect both sweeps exist
+         # against, reached from the one place neither was looking.
+         plant=lambda t: {'rundoc': rundoc_repeating_a_class_lead(t)},
+         argv=['--check-doc', '--run-doc', '{rundoc}'],
+         ok=V(exit=1, has=['lead more than one paragraph'])),
 
     case('rundoc-miscounts-its-class-processes', 'read-run.py', None,
          'a class process count that is not one per class per half',

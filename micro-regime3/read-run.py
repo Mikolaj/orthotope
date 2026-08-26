@@ -7034,6 +7034,38 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
             print('ok:   no bolded class-name lead outside the class section,'
                   ' so every block install finds is a block')
 
+        # AND INSIDE THE SECTION THE PREDICATE IS DUPLICATE, NOT STRAY,
+        # which is the region the sweep above deliberately excludes: there
+        # a bolded class-name lead is how a block legitimately starts, so
+        # what cannot be right is the same class leading twice. Each class
+        # has exactly one block, so a repeat is either a second lead for
+        # one class or a paragraph imitating one, and both reach
+        # `install-tables.sh` the same way -- its loose grep counts the
+        # repeat, `comm` leaves the name over, and it refuses with the
+        # `no run<N>-<basis>-*.json` message naming a file that is present,
+        # which is the whole defect this pair of checks exists against.
+        # Measured 2026-08-26 by planting a duplicate `rev` lead mid-block:
+        # the sweep above said `ok` and the loose grep read nine leads for
+        # eight classes. The LOOSE pattern is used, without the dash, so a
+        # repeat that lost its ` --- ` is caught here rather than becoming
+        # the two-patterns-disagree refusal one step later.
+        # Case: `rundoc-repeats-a-class-lead`.
+        repeats = sorted(
+            n for n, c in collections.Counter(
+                m.group(1)
+                for ln in (rlines[cstart:cend] if cstart is not None else [])
+                for m in [re.match(r'\*\*`([a-z0-9]+)`', ln)] if m
+            ).items() if c > 1)
+        if repeats:
+            bad.append('%d class name(s) lead more than one paragraph inside'
+                       ' the class section (%s); each class has exactly one'
+                       ' block, so install-tables.sh counts the repeat and'
+                       ' refuses naming a JSON that is present'
+                       % (len(repeats), ', '.join(repeats)))
+        else:
+            print('ok:   no class leads twice inside the class section, so'
+                  ' the block count install finds is the class count')
+
     # THE CHAPTER HEAD IS REPLACED WHOLE, and its own closing paragraph
     # says so -- but a write-up is done a paragraph at a time and nothing
     # enumerated them, so Run 18 left FOUR of Run 17's standing inside it,
