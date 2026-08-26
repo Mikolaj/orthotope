@@ -6975,6 +6975,20 @@ docstring rather than re-derived.
     ./read-run.py --para 'the floor is'     # the paragraphs whose bolded
                                             # lead matches, in EITHER
                                             # document, and their lines
+    ./read-run.py --section 'Provenance'    # one section's PROSE, without
+                                            # its tables, naming the size it
+                                            # withheld -- the mode that makes
+                                            # the reading a run owes takeable,
+                                            # a line range being unable to
+                                            # skip what sits between the
+                                            # paragraphs it spans.
+                                            # --with-tables is the yardstick's
+    ./read-run.py --delete ANCHOR           # delete the paragraph carrying
+                                            # ANCHOR: --replace's counterpart,
+                                            # refusing a list and anything
+                                            # past --delete-limit, so removing
+                                            # a paragraph is never a byte
+                                            # range between two markers
     ./read-run.py --replace ANCHOR --with F # swap the paragraph carrying
                                             # ANCHOR for the text in F,
                                             # without the old text passing
