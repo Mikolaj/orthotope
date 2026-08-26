@@ -15,9 +15,9 @@
 # basis is the pair note's to say -- the same caution run-alonelegs.sh
 # carries, and for the same reason it earned there.
 #
-# perf stat -e instructions:u counts the process's user-space instructions;
-# kernel.perf_event_paranoid at 1 (2026-08-21) admits that without hand
-# work. N comes from the environment, default 50; a cell is two processes of
+# perf stat -e instructions:u counts the process's user-space instructions,
+# which this box admits unprivileged.
+# N comes from the environment, default 50; a cell is two processes of
 # 2N and N iterations, so the sweep's length follows the slowest arm. Counts
 # want no quiet machine, so this runs whenever. ONLY=<shape> and ARMS="a b"
 # restrict it, for a smoke run and never for a recorded column. Output:
@@ -48,11 +48,11 @@ N=${N:-50}
 # writes a `!!` line per cell and takes a full sweep to do it. One probe on
 # /bin/true costs a millisecond and names the reason.
 #
-# kernel.perf_event_paranoid IS NOT PERSISTENT HERE and is a state to
-# assert at the moment of use rather than a fact about the box: it read 1
-# on 2026-08-21, 4 on 2026-08-22 and 1 again that same evening. Ubuntu's
-# level 4 is its own, above the upstream maximum of 3, and refuses every
-# event. Case: `counts-refuses-a-blocked-perf`.
+# The probe asks whether perf can count HERE AND NOW, which is a capability
+# and not a setting: a counter can be refused by a container, by a missing
+# perf, or by kernel.perf_event_paranoid raised for a reason of somebody
+# else's, and the sweep cannot tell those apart nor needs to.
+# Case: `counts-refuses-a-blocked-perf`.
 if ! command -v perf > /dev/null 2>&1; then
   echo "!! no perf on PATH, so no cell here could be counted. Nothing ran."
   exit 1
@@ -62,8 +62,8 @@ if ! perf stat -x, -e instructions:u /bin/true 2>&1 | grep -q '^[0-9]\+,'; then
   echo "   back NaN and this sweep would take its full time to say so."
   echo "   kernel.perf_event_paranoid reads\
  $(cat /proc/sys/kernel/perf_event_paranoid 2>/dev/null || echo '?'), and anything above 1 is the"
-  echo "   usual cause; it does not survive a reboot. That is what it READ"
-  echo "   and not a diagnosis. Nothing ran and no $OUT was written."
+  echo "   usual cause. That is what it READ and not a diagnosis."
+  echo "   Nothing ran and no $OUT was written."
   exit 1
 fi
 # AND THE TEMP PATH, which buys the same sweep-long run of NaN by another
