@@ -414,24 +414,84 @@ toVectorT sh a = case toVectorListT sh a of
 -- Convert to a list of vectors containing altogether the right elements,
 -- but not necessarily in the right order.
 -- This is used for reduction with commutative&associative operations.
+-- The one-block test is explained right below.
 {-# INLINE toUnorderedVectorListT #-}
 toUnorderedVectorListT :: (Vector v, VecElem v a) => ShapeL -> T v a -> [v a]
-toUnorderedVectorListT sh a@(T ats ao v) =
-  -- Figure out if the array maps onto some contiguous slice of the vector.
-  -- Do this by checking if a transposition of the array corresponds to
-  -- normal strides.
-  -- First sort the strides in descending order, and rearrange the shape the same way.
-  -- Then compute the strides from this rearranged shape; these will be the normal
-  -- strides for this shape.  If these strides agree with the sorted actual strides
-  -- it is a transposition, and we can just slice out the relevant piece of the vector.
-  let
-    (ats', sh') = unzip $ sortBy (flip compare) $ zip ats sh
-    l : ts' = getStridesT sh'
-  in
-      if ats' == ts' then
-        [vSlice ao l v]
-      else
-        toVectorListT sh a
+toUnorderedVectorListT sh a@(T ats ao v)
+  | l == 0 = []
+  | otherwise =
+      let (csh, cats) = canonicalizeT sh ats
+          oneBlock =
+            let (acats, csh') =
+                  unzip $ sortBy (flip compare) $ zip (map abs cats) csh
+                _ : ts = getStridesT csh'
+            in  acats == ts
+      in  if oneBlock
+          then let !start =
+                     ao + sum [ (n - 1) * st | (n, st) <- zip csh cats, st < 0 ]
+               in  [vSlice start l v]
+          else toVectorListT sh a
+  where !l = product sh
+
+-- The one-block test of 'toUnorderedVectorListT', piece by piece.
+--
+-- Overview.  A consumer that folds with a commutative and associative
+-- operation needs the array's elements as a multiset, not in order.  So
+-- the question is whether the view reads each element of one contiguous
+-- block of the vector exactly once, in whatever order; if it does, that
+-- block is the answer as a single slice, and only otherwise are the
+-- elements materialized in row-major order through 'toVectorListT'.
+--
+-- Why canonicalizeT.  Unit dimensions carry arbitrary strides and would
+-- fail any stride test while touching nothing; merging adjacent
+-- dimensions makes the test below exact rather than sufficient (two
+-- dimensions that are one contiguous run read as one natural stride,
+-- not as two that happen to compose).  Canonicalization preserves the
+-- element sequence, so it preserves the multiset the consumer wants.
+--
+-- Why abs.  A negative stride walks an axis backwards over the same
+-- cells a positive one walks forwards.  Order is not asked for here, so
+-- only the magnitude says which cells are touched; the sign is used once
+-- more, below, to find where the block begins.
+--
+-- Why sort.  A transposition reorders the dimensions and their strides
+-- together without changing which cells are touched (an index sum does
+-- not care about the order of its terms).  Sorting by stride magnitude,
+-- descending, picks the one ordering in which a block-covering view has
+-- its dimensions from outermost to innermost, so the test need not try
+-- the permutations.
+--
+-- Why acats == ts.  Take a plain array with shape csh' built by
+-- 'fromVectorT': its strides are 'getStridesT' csh' without the head,
+-- the innermost 1 and each outer one the product of the extents inside
+-- it, and its elements are exactly the vector's first product csh'
+-- cells, each once.  The sorted view has the same extents; if its stride
+-- magnitudes equal those natural strides, then index for index it
+-- addresses the same cells as that plain array would, shifted by start
+-- --- so it is such an array up to transposition and reversals, and
+-- covers one block of product csh' cells exactly once.  Any other
+-- magnitudes fail: 0 reads one cell many times (a broadcast), a larger
+-- stride leaves gaps (a strided or interior slice), a smaller one
+-- overlaps (a window).  The plain array is never built; only the
+-- strides it would have are computed and compared.
+--
+-- Why start.  The slice has to begin at the block's lowest address, and
+-- the offset ao is not it: ao is where index (0, ..., 0) sits, which is
+-- the lowest address only when every stride is positive.  The address
+-- of index (i_0, ..., i_k) is ao + sum i_d * st_d, and the sum is
+-- smallest when each term is: at i_d = 0 for a positive stride, at
+-- i_d = n_d - 1, the last index, for a negative one, where the term is
+-- (n_d - 1) * st_d and negative.  So start is ao plus those negative
+-- terms, one per reversed axis.
+--
+-- Why st < 0.  Only the reversed axes move the block's start; a positive
+-- stride's smallest term is 0 and would add nothing to the sum, so the
+-- filter leaves it out rather than adding it as 0.  A stride of 0 cannot
+-- reach this branch, oneBlock having rejected it.  The strides here are
+-- the canonical ones, not the sorted magnitudes: the sign is what the
+-- sort threw away and this sum needs, and the extents must pair with
+-- their own strides, which zip csh cats does and the sorted lists,
+-- being reordered, would not.
 
 {-# INLINE toUnorderedVectorT #-}
 toUnorderedVectorT :: (Vector v, VecElem v a) => ShapeL -> T v a -> v a

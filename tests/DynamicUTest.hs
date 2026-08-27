@@ -225,6 +225,18 @@ test = testGroup "DynamicU" $
       reduce_3 = assertEqual "3" (fromList [3] [4,10,18]) (rerank 1 (reduce (*) 1) a2)
       -- An ordered reduction over a view of contiguous runs.
       reduce_4 = assertEqual "4" (scalar 12) (reduce (+) 0 (slice [(0,2),(0,2)] a1))
+      -- Unordered reductions over views: a transposition, reversals
+      -- of one and of both axes, unit dimensions from a reshape, a
+      -- slice at an offset and a broadcast, each against the list.
+      sumV x = assertEqual "sum" (sum (toList x)) (sumA x)
+      maxV x = assertEqual "max" (maximum (toList x)) (maximumA x)
+      sumA_1 = sumV a1 >> sumV a2
+      sumA_2 = sumV (rev [1] a1) >> maxV (rev [1] a1)
+      sumA_3 = sumV (rev [0,1] a1) >> maxV (rev [0,1] a1)
+      sumA_4 = sumV (rev [0] (transpose [1,0] a1))
+      sumA_5 = sumV (reshape [1,2,3,1] a2) >> maxV (reshape [1,2,3,1] a2)
+      sumA_6 = sumV (slice [(1,1),(0,3)] a1) >> maxV (slice [(0,2),(1,2)] a1)
+      sumA_7 = sumV (stretch [2,2,3,2] (reshape [1,2,3,1] a1))
 
       tests =
         [ testCase "show_1" show_1
@@ -297,5 +309,12 @@ test = testGroup "DynamicU" $
         , testCase "reduce_2" reduce_2
         , testCase "reduce_3" reduce_3
         , testCase "reduce_4" reduce_4
+        , testCase "sumA_1" sumA_1
+        , testCase "sumA_2" sumA_2
+        , testCase "sumA_3" sumA_3
+        , testCase "sumA_4" sumA_4
+        , testCase "sumA_5" sumA_5
+        , testCase "sumA_6" sumA_6
+        , testCase "sumA_7" sumA_7
         ]
   in  tests
