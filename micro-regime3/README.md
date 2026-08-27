@@ -3794,10 +3794,14 @@ the regime every figure behind the decision was measured in.
 
 Validation on this branch:
 
-- orthotope's own test suite: **407/407 pass** (Dynamic/Ranked/Shaped x
-  boxed/storable/unboxed), with the fallback live through the method.
+- orthotope's own test suite: **596/596 pass** (Dynamic/Ranked/Shaped x
+  boxed/storable/unboxed), with the fallback live through the method ---
+  the Storable third of it run for the first time on 2026-08-27,
+  `tests/Tests.hs` having listed the boxed and unboxed modules alone while
+  the cabal file named all nine, so every earlier figure of this bullet
+  was taken over 407 cases with no Storable instance among them.
 - Non-vacuity: deliberately dropping the `+ tInner` from the driver's unrolled
-  second read fails 63 of the 407, `rev_2` among them --- so the pass
+  second read fails 94 of the 596, `rev_2` among them --- so the pass
   is not vacuous.
 - This benchmark: `check` agrees with `list` on every shape of every class
   for the ported arm (re-run 2026-08-27 with `-u2-down` rostered),
