@@ -4,7 +4,9 @@ This branch (`speedup-strided-tovector`) changes `toVectorListT`'s regime-3
 fallback in `Data/Array/Internal.hs` --- the per-element path taken when
 the innermost dimension is strided, so no contiguous run longer than one element
 can be sliced out. What the branch carries in code is the stage-one fix, landed
-2026-08-24: `vFillStrided`, the class method, its shared driver a bang-for-bang
+2026-08-24 (stage two is on
+[`pr-mikolaj-toVectorListT`][https://github.com/Mikolaj/orthotope/tree/pr-mikolaj-toVectorListT],
+unmeasured): `vFillStrided`, the class method, its shared driver a bang-for-bang
 port of `mut-odo-vecdims-add-in-leaf-u2`; **the regime 3 fix is decided:
 on 2026-08-22 `mut-odo-vecdims` was decided as the implementation to go
 upstream, on 2026-08-24 the stride-conditioned redirect that had kept
@@ -126,12 +128,23 @@ family's `add-in-leaf-u2` arm --- refined from plain `mut-odo-vecdims`
 by the two paired probes the ceiling records --- for regime 3 alone,
 with no condition on the strides --- the prototype this replaces, a compound
 strategy with `mut-odo-vecdims` as the main element and one to three per-shape
-or per-stride redirects around it, is dead. Stage two is a proposal, recorded
-here and committing nobody: a later rework of `toVectorListT`'s whole dispatch,
-all regimes, whose own evidence is what killed the redirect --- it shows
-the redirect's constituency dissolving at the dispatch, and what remains
-of regime 3 after it is stage one's arm, so the fix taken now may prove
-to be the whole of regime 3 in the rework too.
+or per-stride redirects around it, is dead. Stage two is a rework
+of `toVectorListT`'s whole dispatch, all regimes, whose own evidence is what
+killed the redirect --- it shows the redirect's constituency dissolving
+at the dispatch, and what remains of regime 3 after it is stage one's arm.
+**It is implemented, 2026-08-27, on the permanent branch
+[`pr-mikolaj-toVectorListT`][https://github.com/Mikolaj/orthotope/tree/pr-mikolaj-toVectorListT],
+nine commits over stage one, each one piece: the canonicalization, the dispatch
+on it, `toUnorderedVectorListT`'s one-slice test on it, `toVectorT`'s route
+through the fill, the two zero-stride conditions in the driver, the Storable
+test modules wired into the suite, and `Data/Array/Internal/FastReshape.hs`
+removed as subsumed.** It was written as if Run 20's readings were complete
+and binding and as if the compiler's codegen were fixed ([the
+ceiling](#the-mutable-ceiling-taken)'s fourth reading says what is not),
+so every figure below is the benchmark's and none is the branch's: what
+the branch owes is the composed arm the roster lacks, horde-ad's end-to-end run,
+and `stretch-tall-Mx2`. This section keeps what the design rests on; the design
+itself is the branch's code and its commit messages.
 
 **The redirect's measured constituency is unit dimensions and zero strides,
 not stride classes.** [The ceiling](#the-mutable-ceiling-taken) names every
@@ -143,36 +156,26 @@ not do at all, where a redirect to a flat table arm still does all of it,
 and at `sInner` 1 pays twice the result vector in allocation for a table as long
 as the result.
 
-**The proposal's first half: canonicalize the view before the regime dispatch
---- drop unit dimensions, then merge adjacent dimensions where
-`st_outer == n_inner * st_inner`.** Both rewrites preserve the row-major element
-sequence exactly --- a unit dimension contributes `0 * stride` to every index
-whatever its stride, and the merge condition is the index sum's own
-distributivity, sign-agnostic, so it fires on `rev` views too --- and both
-are O(rank) integer work on the two lists the dispatch already holds.
-The regimes are then classified on the canonical dims: `reshape1-*`
-and `stretch-inner1` become regime 1 outright, since `simpleReshape` gives
-an appended unit dim stride 0 over data that was dense and in order all along,
-which `mkReshape1`'s comment has said since the class was built;
-`window-64x64-k1x9` becomes canonical regime 2, contiguous runs of 9;
-and the conv patch tensors stay regime 3 at lower rank, `cnn-L2-24x24-c32`
-falling from rank 5 to 3. After unit-drop no regime-3 view has `sInner` 1 ---
-only the scalar case, already special-cased --- so the flat table arms lose
-their constituency structurally, not behind a predicate.
+**The first half is canonicalization before the dispatch --- drop unit
+dimensions, merge adjacent dimensions where `st_outer == n_inner * st_inner` ---
+with the regimes classified on the canonical dims.** What that reclassifies,
+in this README's populations: `reshape1-*` and `stretch-inner1` become regime 1
+outright; `window-64x64-k1x9` becomes canonical regime 2, contiguous runs of 9;
+the conv patch tensors stay regime 3 at lower rank, `cnn-L2-24x24-c32` falling
+from rank 5 to 3. After unit-drop no regime-3 view has `sInner` 1, so the flat
+table arms lose their constituency structurally, not behind a predicate.
 
-**The second half: specialize the zero strides inside the one remaining fill,
-as conditions on the odometer rather than strategies beside it.** A zero
-innermost stride (the `bcast` class) hoists the run's one read and stores
-a register; a zero outer stride (`bcastmid`, any broadcast axis) fills the block
-below that level once and block-copies it `n - 1` times, zero levels composing
-since the topmost fires and the ones below fall inside its one filled block;
-a canonical innermost stride of 1 (`window`) was to make the run body
-a contiguous copy, and Run 20 refused it: `canon-memcpy-r2` is BEHIND the arm
+**The second half is the zero strides specialized inside the one remaining fill,
+as conditions on the odometer rather than strategies beside it:** a zero
+innermost stride (the `bcast` class) hoists the run's one read; a zero outer
+stride (`bcastmid`, any broadcast axis) fills the block below it once
+and block-copies it. A third condition, a contiguous copy at canonical innermost
+stride 1 (`window`), Run 20 refused: `canon-memcpy-r2` is BEHIND the arm
 it varies on `window`, 1.0636 at 0 of 3, because after the unit drop
 the stepping loop at stride 1 already is the run copy and a `memcpy` per run
 of 3, 5 or 9 loses to it --- so that branch is dropped for every run length
 the roster has a shape for, and earns a place only on one it has not. Both
-conditions share the vecdims odometer, chosen once per call outside the loops.
+conditions are chosen once per call, outside the loops.
 
 **A scratch probe priced the proposal, and its timings are anecdotal
 by this README's standards --- magnitudes only, nothing finer.** The instrument:
@@ -200,28 +203,17 @@ the roster has no shape for.
 alone.** Promoting the window view into today's regime 2 --- the slice-per-run
 list `toVectorT` then concatenates --- read a tie with `mut-odo-vecdims` on time
 and 4.59x the result vector on allocation, some 260 bytes of slice header
-and list per nine-element run. So the rework takes promotion to regime 2 only
-together with a direct run-copy fill, or leaves short-run canonical-regime-2
-views on the regime-3 arm; promotion to regime 1 is the one reclassification
-free by itself. And that bound shapes the master plan for extending the rework
-to regimes 1 and 2, ruled 2026-08-25: dispatch work and one consumer route,
-never per-regime strategies. Canonicalization moves in front of the WHOLE
-classification, in `toVectorListT` itself: regime 1 then admits every view whose
-canonical strides are natural --- and is untouched past that, being already
-the optimum, the backing handed over --- and regime 2's normal-suffix test reads
-canonical dims, so a unit dim's arbitrary stride no longer truncates the maximal
-slice and a view that hands back six slices today can hand back one.
-`toVectorListT`'s slice list itself stays, for the consumers that use it
-as a list, iterating without concatenating; what changes is `toVectorT`,
-the one-vector consumer, which routes canonical unit-stride views through
-the driver's own stepping fill instead of slices-plus-concat --- no branch
-of `vFillStrided` at all, the fill at stride 1 being the run copy, which is what
-`canon-memcpy-r2`'s loss on `window` says. All of it lands
-in `Data/Array/Internal.hs`'s dispatch and `toVectorT`; the class method
-and its instances do not move again. What stays open is only whether a NATIVE
-regime-1/2 input differs from a regime-3 view that canonicalizes
-into those shapes; nothing here can exercise one, and the question earns work
-only if `toVectorT` over native regime-2 views shows up hot in horde-ad.
+and list per nine-element run. So promotion to regime 2 comes only with a direct
+fill --- `toVectorT` fills a canonical-regime-2 view through the driver's
+stepping loop, which at stride 1 is the run copy, and `toVectorListT` keeps
+the slices for the consumers that iterate them --- while promotion to regime 1
+is the one reclassification free by itself. The ruling of 2026-08-25 behind
+the whole of regimes 1 and 2: dispatch work and one consumer route, never
+per-regime strategies, and the class method and its instances do not move again.
+What stays open is only whether a NATIVE regime-1/2 input differs
+from a regime-3 view that canonicalizes into those shapes; nothing here can
+exercise one, and the question earns work only if `toVectorT` over native
+regime-2 views shows up hot in horde-ad.
 
 **On allocation the proposal never leaves the 1.00x tier and twice goes
 under it** --- and these figures are exact, allocation being deterministic per
@@ -246,16 +238,15 @@ instance outside the tree compile unchanged; the three vector-backed instances
 override with one shared driver written against `Data.Vector.Generic`, whose
 `Mutable` already exists where it belongs and whose copy primitives hand
 Storable the memcpy for free. Stage one implements that driver as the family's
-`add-in-leaf-u2` arm; stage two upgrades the driver's internals ---
-canonicalization, the zero-stride conditions, the run copies --- with no further
-change to the class. Rejected the same day, so they are not re-proposed:
-a `vCreate` handing the callback the mutable buffer, which is what would need
-the `Mutable` associated type; the per-element `vBuild` alone, which cannot
-express a block copy or a contiguous-run copy and so buys a second method later;
-a CPS extension handing the callback write-and-copy functions, which avoids
-`Mutable` but is more surface than the whole-kernel form for the same wins;
-and the FastReshape `unsafeCast` escape, an instance-side trick
-with no `Storable` evidence at the generic call site. One debt travels
+`add-in-leaf-u2` arm; stage two changed the driver's internals and the dispatch
+around it and the class not at all. Rejected the same day, so they
+are not re-proposed: a `vCreate` handing the callback the mutable buffer, which
+is what would need the `Mutable` associated type; the per-element `vBuild`
+alone, which cannot express a block copy or a contiguous-run copy and so buys
+a second method later; a CPS extension handing the callback write-and-copy
+functions, which avoids `Mutable` but is more surface than the whole-kernel form
+for the same wins; and the FastReshape `unsafeCast` escape, an instance-side
+trick with no `Storable` evidence at the generic call site. One debt travels
 with the choice: the `build`/`mut-odo` identity was dumped
 for the single-callback `vBuild` form, so the driver's workers are
 to be re-dumped in this form before any figure of theirs is trusted. Nothing
@@ -3773,7 +3764,10 @@ section](#the-mutable-ceiling-taken), the signature ruling and the rejected
 forms [in the two-stage plan](#the-two-stage-plan-and-the-rework-proposal),
 and the arm's refinement from plain `mut-odo-vecdims` rests on the two paired
 probes the ceiling records. `bq-expand`, the last candidate, is what every claim
-below was measured against; the branch no longer carries it.
+below was measured against; the branch no longer carries it. This branch's
+library stays at stage one; stage two is
+[`pr-mikolaj-toVectorListT`][https://github.com/Mikolaj/orthotope/tree/pr-mikolaj-toVectorListT],
+and its figures are owed, not taken.
 
 Regime 3 now goes through the class: `toVectorListT`'s innermost-strided branch
 is `[vFillStrided sh ats ao l v]`. The method's default is the pure `bq-expand`
@@ -3976,19 +3970,20 @@ and Run 11 shows it is not the run's either, which leaves the roster
 and the regime as what moved it.
 
 **Amended 2026-08-07: the bar is now a weight.** The tree itself carries
-a precedent this section did not weigh: `Data/Array/Internal/FastReshape.hs`,
-a `runST` flattener over this same fallback territory --- structurally
-`mut-odo`, an allocate-once mutable result filled through an outer odometer
-recursion with a per-element strided inner copy loop, its outer offsets stepped
-additively where `mut-odo` multiplies --- which sidesteps the `Vector` class
-altogether by `unsafeCast` to `Double`/`Float` on element size. So neither
-mutability nor needing a new class method *disqualifies* a strategy any longer.
-What keeps both as weights against one is that FastReshape.hs is not in use ---
-absent from the cabal file, and still declaring its source project's module name
-and imports (`CoreCompiler.ArrayReshape`; `Utils.Misc`, `CoreCompiler.Error`),
-so it does not even compile in place: precedent for writing such a module,
-not for shipping one. A mutable or class-method strategy is now priced against
-that weight rather than refused at the door.
+a precedent this section did not weigh: `Data/Array/Internal/FastReshape.hs`
+(removed on the stage-two branch once the fill subsumed it), a `runST` flattener
+over this same fallback territory --- structurally `mut-odo`, an allocate-once
+mutable result filled through an outer odometer recursion with a per-element
+strided inner copy loop, its outer offsets stepped additively where `mut-odo`
+multiplies --- which sidesteps the `Vector` class altogether by `unsafeCast`
+to `Double`/`Float` on element size. So neither mutability nor needing a new
+class method *disqualifies* a strategy any longer. What keeps both as weights
+against one is that FastReshape.hs is not in use --- absent from the cabal file,
+and still declaring its source project's module name and imports
+(`CoreCompiler.ArrayReshape`; `Utils.Misc`, `CoreCompiler.Error`), so it does
+not even compile in place: precedent for writing such a module, not for shipping
+one. A mutable or class-method strategy is now priced against that weight rather
+than refused at the door.
 
 **And now weighed in code, 2026-08-08: the four FastReshape arms.** They port
 the precedent's loop arithmetic onto `mut-odo-vecdims` one axis at a time, a 2x2
