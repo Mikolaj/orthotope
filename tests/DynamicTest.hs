@@ -12,6 +12,7 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
+{-# LANGUAGE MagicHash #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies #-}
 module DynamicTest(test) where
@@ -27,6 +28,7 @@ import Data.Bits (finiteBitSize)
 import Data.List (nub, sort)
 import qualified Data.Vector as V
 import Data.Word (Word8)
+import GHC.Exts (isTrue#, reallyUnsafePtrEquality#)
 import Test.Framework (Test, testGroup)
 import Test.Framework.Providers.HUnit (testCase)
 import Test.HUnit (assertEqual, assertFailure, Assertion)
@@ -620,6 +622,7 @@ test = testGroup "Dynamic" $
         , testPropertyN "prop_mapA" prop_mapA
         , testPropertyN "prop_toListLazy" prop_toListLazy
         , testPropertyN "prop_lazy" prop_lazy
+        , testPropertyN "prop_sameElems" prop_sameElems
         ]
   in  tests
 
@@ -701,3 +704,27 @@ prop_lazy v@(View sh _) =
             , ("reduce", unScalar (reduce (\ _ _ -> 0) 0 x) == 0)
             , ("anyA", anyA (const True) x == (n > 0))
             , ("allA", allA (const False) x == (n == 0)) ] ]
+
+-- The two are one heap object; neither is forced.
+samePtr :: a -> a -> Bool
+samePtr a b = isTrue# (reallyUnsafePtrEquality# a b)
+
+-- The vectors built from a boxed view hold the elements of its source
+-- themselves and not suspended reads of them, which would keep the source
+-- vector alive.
+prop_sameElems :: View -> Property
+prop_sameElems v@(View sh _) =
+  let n = product sh
+      is = toList (mkView v [0 .. n - 1])
+      xs = map Just [0 .. n - 1]
+      src = V.fromList xs
+      x = mkView v xs
+      t = case x of DI.A (DG.A _ t') -> t'
+      same ys = and [ Just True == (samePtr <$> V.indexM src i <*> V.indexM ys k)
+                    | (k, i) <- zip [0 ..] is ]
+  in  conjoin
+        [ counterexample name ok
+        | (name, ok) <-
+            [ ("toVector", same (toVector x))
+            , ("toVectorListT", same (V.concat (I.toVectorListT (shapeL x) t)))
+            , ("normalize", same (toVector (normalize x))) ] ]
