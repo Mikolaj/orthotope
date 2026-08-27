@@ -166,29 +166,35 @@ innermost stride (the `bcast` class) hoists the run's one read and stores
 a register; a zero outer stride (`bcastmid`, any broadcast axis) fills the block
 below that level once and block-copies it `n - 1` times, zero levels composing
 since the topmost fires and the ones below fall inside its one filled block;
-a canonical innermost stride of 1 (`window`) makes the run body a contiguous
-copy. All three share the vecdims odometer, chosen once per call outside
-the loops.
+a canonical innermost stride of 1 (`window`) was to make the run body
+a contiguous copy, and Run 20 refused it: `canon-memcpy-r2` is BEHIND the arm
+it varies on `window`, 1.0636 at 0 of 3, because after the unit drop
+the stepping loop at stride 1 already is the run copy and a `memcpy` per run
+of 3, 5 or 9 loses to it --- so that branch is dropped for every run length
+the roster has a shape for, and earns a place only on one it has not. Both
+conditions share the vecdims odometer, chosen once per call outside the loops.
 
 **A scratch probe priced the proposal, and its timings are anecdotal
 by this README's standards --- magnitudes only, nothing finer.** The instrument:
 in-process fixed-iteration differencing at -O1 `-fspec-constr` and -A32m, each
 arm correctness-gated against a naive per-element reference, on a box carrying
 about one core of foreign load; only reads past 1.5x were kept,
-and those reproduced across two processes within about 20%. Against a verbatim
-`mut-odo-vecdims` port: the `reshape1-500k` analog falls from about 2 ms to tens
-of nanoseconds, the regime-1 return being O(1) --- the work is removed,
-not shrunk --- where the redirect's own leader on that shape reads about 1.6x;
-`window-64x64-k1x9` reads 6.6x with the contiguous-run copy where `mut-flat-gm`,
-the redirect's candidate there, reads 1.3x; the hoisted read pays 1.7x at run
-length 2 and about 5x at 1800; the block copy about 8x on a `bcastmid` analog.
-The two controls canonicalization cannot touch --- `stretch-primes` exactly,
-`cnn-L2-24x24-c32` up to its merge --- read ties, so the pass costs nothing
-where it does nothing. **Run 20 rosters all four pieces and its tables supersede
-these magnitudes on every shape the roster carries** --- `canon-vecdims`,
-`canon-memcpy-r2`, `canon-full`, `bcast-set` and `mid-copy` across the main set
-and all eight classes ([Results](runs/run20.md#results)) --- so read the probe
-only for the analogs the roster has no shape for.
+and those reproduced across two processes within about 20%. **Run 20 rostered
+all four pieces --- `canon-vecdims`, `canon-memcpy-r2`, `canon-full`,
+`bcast-set` and `mid-copy`, across the main set and all eight classes
+([Results](runs/run20.md#results)) --- and its tables replace the probe's
+magnitudes wherever the roster has a shape.** What held: the regime-1 return
+is O(1), three `reshape1` shapes and `stretch-inner1` reading work removed
+rather than shrunk; `window-64x64-k1x9` reads 0.020 against `mut-odo-vecdims`'s
+0.095, and that factor is canonicalization's alone; the block copy takes
+`bcastmid` outright, `mid-copy` 0.5490 at 4 of 4; the two controls
+canonicalization cannot touch --- `stretch-primes` exactly, `cnn-L2-24x24-c32`
+up to its merge --- read ties to the thousandth, so the pass costs nothing where
+it does nothing; and every new arm allocates at the mutable fills' own 1.00x.
+What shrank: the hoisted read, `bcast-set` 0.9230 at 3 of 3 on `bcast` and a tie
+on `bcast-tall-Mx2`, where the probe had read a factor. What fell
+is the run-copy branch, above. The probe's own figures stay only for the analogs
+the roster has no shape for.
 
 **One reclassification is not free, and it bounds what canonicalization may do
 alone.** Promoting the window view into today's regime 2 --- the slice-per-run
@@ -208,14 +214,14 @@ slice and a view that hands back six slices today can hand back one.
 `toVectorListT`'s slice list itself stays, for the consumers that use it
 as a list, iterating without concatenating; what changes is `toVectorT`,
 the one-vector consumer, which routes canonical unit-stride views through
-the driver's contiguous-run copy instead of slices-plus-concat --- one branch
-of `vFillStrided`, not a strategy, the branch `canon-memcpy-r2` times
-and the tie above is the case for. All of it lands in `Data/Array/Internal.hs`'s
-dispatch and `toVectorT`; the class method and its instances do not move again.
-What stays open is only whether a NATIVE regime-1/2 input differs
-from a regime-3 view that canonicalizes into those shapes; nothing here can
-exercise one, and the question earns work only if `toVectorT` over native
-regime-2 views shows up hot in horde-ad.
+the driver's own stepping fill instead of slices-plus-concat --- no branch
+of `vFillStrided` at all, the fill at stride 1 being the run copy, which is what
+`canon-memcpy-r2`'s loss on `window` says. All of it lands
+in `Data/Array/Internal.hs`'s dispatch and `toVectorT`; the class method
+and its instances do not move again. What stays open is only whether a NATIVE
+regime-1/2 input differs from a regime-3 view that canonicalizes
+into those shapes; nothing here can exercise one, and the question earns work
+only if `toVectorT` over native regime-2 views shows up hot in horde-ad.
 
 **On allocation the proposal never leaves the 1.00x tier and twice goes
 under it** --- and these figures are exact, allocation being deterministic per
@@ -273,7 +279,16 @@ and the contiguous-run copy. **The parking paid for them nearly exactly.**
 The three placement-family arms whose only live question it was ---
 `mut-odo-vecdims-add-out`, `-add-both` and `-add-both-down` --- drop to `Only`
 the same day, so they stay checked against the reference on every shape and stop
-costing benches, and the timed roster goes up by three rather than by six. They
+costing benches, and the timed roster goes up by three rather than by six.
+**Every one of the five varies plain `mut-odo-vecdims`, not the leaf body
+the branch ships** (`Main.hs`, the rework-proposal family's header), so Run 20
+priced canonicalization and the leaf block separately and composed them nowhere:
+`canon-vecdims` reads 0.049 against its control's 0.054 on the main set while
+`-add-in-leaf-u2` reads 0.038, and on `window` the shipped arm at 0.032 beats
+`canon-vecdims` at 0.037 doing none of the rework. Stage two's driver
+is therefore written on the leaf body, and the arm the next run owes
+is the composite over it --- until then the plan's *every population keeps
+the vecdims family at its head* is confirmed for the un-leafed family only. They
 are new functions, so Run 20 was the stronger pinning test the rider
 under [Recommended tasks](#recommended-tasks-after-run-20) wanted,
 **and the claim did not survive it**: no tracked loop kept its address,
@@ -2724,19 +2739,16 @@ it in silence, which is the 2026-08-17 incident by an easier route ---
 and the malformed lead would look exactly like today's correct one.
 
 **Two questions this run raises and does not answer, named here because two
-sentences in the run's own file point at them.** The first is what it would take
-to act on the leaf block's ordering. `genericFillStrided` is a bang-for-bang
-port of `mut-odo-vecdims-add-in-leaf-u2`, and `-add-in-leaf-down` beats
-it by 5.1% on 9.12 and 6.1% on HEAD, both clearing their halves' six-pair
-figures and in the same direction on both compilers --- on ONE run, which
-is the whole of the evidence. What would settle it is a repetition on an unmoved
-roster, since this run's own cross-run figures carry a layout term it cannot
-separate; what would kill it is either arm crossing the other on a second run.
-It is a decision about `Data/Array/Internal.hs` and not a request
-for an evening, and nothing here recommends a change on one reading. The second
-is whether claim 1's first link should be re-aimed. It reads `mut-odo-vecdims`
-against `mut-flat-gm` and so prices what a mutating `Vector` method buys against
-the arm that was fastest when the link was written; three arms now sit ahead
+sentences in the run's own file point at them.** The first was the leaf block's
+ordering --- `-add-in-leaf-down` beat the shipped `-add-in-leaf-u2` by 5.1%
+on 9.12 and 6.1% on HEAD --- and it is answered, on 2026-08-27, by the `-g3`
+twin's disassembly rather than by a repetition: the shipped arm's run-level loop
+spills both base pointers and the lead is the spill, [the
+ceiling](#the-mutable-ceiling-taken) has the reading, and the answer recommends
+no change to `Data/Array/Internal.hs`. The second is whether claim 1's first
+link should be re-aimed. It reads `mut-odo-vecdims` against `mut-flat-gm`
+and so prices what a mutating `Vector` method buys against the arm
+that was fastest when the link was written; three arms now sit ahead
 of `mut-odo-vecdims` inside its own family, so the rung understates
 that by about a third while remaining true as stated. Re-aiming is a decision
 and not a reading, which is why Run 20 did not take it.
@@ -3788,7 +3800,7 @@ Validation on this branch:
   second read fails 63 of the 407, `rev_2` among them --- so the pass
   is not vacuous.
 - This benchmark: `check` agrees with `list` on every shape of every class
-  for the ported arm (re-run 2026-08-24 with the Run 20 arms added),
+  for the ported arm (re-run 2026-08-27 with `-u2-down` rostered),
   so the algorithm the driver ports covers negative, mixed-sign, zero
   and overlapping strides; the library port itself is validated by the suite
   and the break above.
@@ -4188,7 +4200,8 @@ recorded here so it is not re-derived**: the falling counter merged
 into the output cursor it duplicates compiles to the promised six-instruction
 body --- the seventh, a `test` the native backend emits redundantly after `dec`,
 was never the bottleneck --- and probes 0.9967 at 5 of 9 below 1, inside any
-floor. Unrolling by four is the one cell of this axis left unprobed.
+floor. Unrolling by four was ruled out on 2026-08-27, for diminishing returns
+and the Haskell it would take, so the axis ends at two.
 
 **A third probe, 2026-08-24 late, put the whole family on GHC HEAD with every
 hot loop aligned, on a quiet machine** --- two binaries from this branch through
@@ -4218,6 +4231,53 @@ instrument checks carry the numbers: the five-arm binaries probed before
 the `Only` flip and the seven-arm binaries after it are different layouts,
 and every shared column reproduces across them to about 0.002; and rep-to-rep
 spread on the quiet machine is about 0.3%, far under every margin quoted here.
+
+**A fourth reading, 2026-08-27, is a disassembly and not a stopwatch: the `-g3`
+twin of `run20-ghead`** (`probe-g3-ghead-r20`, Run 20's HEAD recipe plus `-g3`,
+its `run`-level fill loops found byte for byte, once each, in the timed binary;
+the loops are kept beside it as `loop-u2.txt`, `loop-down.txt`
+and `loop-leaf.txt`). Every leaf arm carries two copies of its fill --- a rank-1
+copy behind the top guard and the fused `run`-level copy every rank-2+ shape
+executes --- and the two differ in exactly the property at issue, so a reading
+of the rank-1 copy is a reading of nothing that was timed. `-add-in-leaf-u2`'s
+rank-1 copy is the twelve-instruction body the second probe read, no load beyond
+the two `movsd` pairs; **its `run`-level copy is seventeen, with the source base
+and the output base reloaded from the stack before every load and every store**
+--- four reloads per two elements, three loads per element where one is the work
+--- the fused level keeping `k`, `boff`, `st`, `sInner` and `op` live across
+the fill where the rank-1 copy keeps nothing. `-add-in-leaf-down`'s is eight per
+element with one reload, `-add-in-leaf`'s nine with one, and plain
+`mut-odo-vecdims`'s, which has no fused level, eight with none.
+**So the corner's Run 20 lead is the spill and nothing else**: on every long-run
+shape the shipped arm executes more instructions and more loads per element
+than the arm it beat on the probe, and where runs are 1 to 3 the loop never
+reaches steady state, which is the run-length pattern the per-shape ratios show
+--- `-down` at 0.82 to 0.87 of `-u2` on `stretch-wide-2xM`, `-inner256`,
+`-tab7MB` and the `bcast` class, at 1.0 to 1.25 on the k3 conv shapes,
+`stretch-inner1` and `window-64x64-k1x9`, on both compilers. The same spill
+is why `-u2` trails plain `mut-odo-vecdims` on `stretch-primes`, `-inner256`
+and `-pow2stride`; `stretch-tall-Mx2`, runs of 2, is the one shape where
+the per-run step and not the loop decides and the loss is not yet separated.
+**With the bases in registers the order is the probe's**: six instructions per
+element against seven, or six once the redundant `test` after `dec` goes,
+with half the branches; nothing in Run 20 argues for `-down` under an allocator
+that behaves, and what would refute that is a `-down` lead surviving on a build
+where `-u2`'s `run`-level loop reads twelve. The trigger is the live-value class
+of horde-ad's `docs/ghc-issue-loop-invariant-reloads.md`, the mechanism a stack
+spill of the allocator's choosing rather than a closure reload. Two arms follow
+and one does not: `mut-odo-vecdims-add-in-leaf-u2-down`, the same fill
+with its bound a falling count instead of the `oEnd` cursor --- one value
+lighter, rostered `Only` on 2026-08-27 by decision until a run has a slot
+for it; a `Ptr`-walking fill under `unsafeWith`, bases folded into the cursors
+so there is nothing to spill, Storable-specific and so an instance override
+rather than the generic driver, not yet written; and NOT a per-call cross-over
+on `sInner`, which would dispatch around a codegen accident and be dead code
+once the allocator is fixed. One instrument note: the counts files read about
+seventeen instructions per element for every arm on the four `l` = 1.8M main-set
+shapes, `mut-odo-vecdims` and `-down` both 17.00 on `stretch-tall-Mx2`, which
+the loops above cannot produce and `stretch-wide-2xM`'s 41.00 against 22.50
+contradicts, so nothing here rests on the counts and that column is owed
+a reading before the next run leans on it.
 
 ### The C-gap: still a deeper ceiling
 

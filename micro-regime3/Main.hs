@@ -2132,6 +2132,64 @@ fbMutOdoVecdimsAddInLeafU2 sh (T (Strides ats) ao v) = VS.create $ do
         !oshV  = VU.fromList (init sh)
         !oatsV = VU.fromList (init ats)
 
+-- 'fbMutOdoVecdimsAddInLeafU2' with the fill's bound a falling count
+-- instead of the @oEnd@ cursor bound -- one change, so that arm is its
+-- control. It exists for the allocator and not for the algorithm: in
+-- Run 20's HEAD binary the run-level copy of the U2 fill keeps seven
+-- values live and spills both base pointers, four stack reloads per
+-- two elements, where its rank-1 copy keeps them in registers
+-- (README.md#the-mutable-ceiling-taken). The count replaces @oEnd@
+-- one for one, so the loop is a value lighter, and the same epilogue
+-- takes the odd or empty run. Rostered 'Only' on 2026-08-27, by
+-- decision: it is checked on every shape and waits for a run with a
+-- slot for it. The bound is on the count and not the cursor, so it is
+-- as sign-agnostic as its control. Non-vacuity, 2026-08-27: dropping
+-- the @+ tInner@ from the second read fails @check@ at @cnn-L1-6x6-c1@,
+-- naming this arm.
+{-# NOINLINE fbMutOdoVecdimsAddInLeafU2Down #-}
+fbMutOdoVecdimsAddInLeafU2Down :: ShapeL -> T -> VS.Vector Double
+fbMutOdoVecdimsAddInLeafU2Down sh (T (Strides ats) ao v) = VS.create $ do
+  out <- VSM.unsafeNew l
+  let writeRun !outPos !baseOff =
+        let inner !d !o !src
+              | d < 2 =
+                  if d <= 0 then return ()
+                  else VSM.unsafeWrite out o (VS.unsafeIndex v src)
+              | otherwise = do
+                  VSM.unsafeWrite out o (VS.unsafeIndex v src)
+                  VSM.unsafeWrite out (o + 1)
+                                    (VS.unsafeIndex v (src + tInner))
+                  inner (d - 2) (o + 2) (src + t2)
+        in  inner sInner outPos baseOff
+      go !lev !outPos !baseOff
+        | lev >= rOuter = writeRun outPos baseOff >> return (outPos + sInner)
+        | lev == rOuter - 1 =
+            let !n  = VU.unsafeIndex oshV lev
+                !st = VU.unsafeIndex oatsV lev
+                run !k !op !boff
+                  | k <= 0    = return op
+                  | otherwise = writeRun op boff
+                                >> run (k - 1) (op + sInner) (boff + st)
+            in  run n outPos baseOff
+        | otherwise =
+            let !n  = VU.unsafeIndex oshV lev
+                !st = VU.unsafeIndex oatsV lev
+                dim !k !op !boff
+                  | k <= 0    = return op
+                  | otherwise = go (lev + 1) op boff
+                                >>= \op' -> dim (k - 1) op' (boff + st)
+            in  dim n outPos baseOff
+  _ <- go 0 0 ao
+  return out
+  where l = product sh
+        !sInner = last sh
+        !tInner = last ats
+        !t2 = tInner + tInner
+        !rOuter = length sh - 1
+        oshV, oatsV :: VU.Vector Int
+        !oshV  = VU.fromList (init sh)
+        !oatsV = VU.fromList (init ats)
+
 -- The rework-proposal family
 -- (README.md#the-two-stage-plan-and-the-rework-proposal): the
 -- canonicalization pass and the arms that price it and the two
@@ -3398,6 +3456,9 @@ roster =
   , ("mut-odo-vecdims-add-in-leaf", Fill fbMutOdoVecdimsAddInLeaf)
   , ("mut-odo-vecdims-add-in-leaf-down", Fill fbMutOdoVecdimsAddInLeafDown)
   , ("mut-odo-vecdims-add-in-leaf-u2", Fill fbMutOdoVecdimsAddInLeafU2)
+    -- not timed, by decision (2026-08-27): the lighter-loop form of the
+    -- shipped arm, waiting for a run with a slot, see its definition
+  , ("mut-odo-vecdims-add-in-leaf-u2-down", Only fbMutOdoVecdimsAddInLeafU2Down)
     -- The rework-proposal block, added 2026-08-25, first read in Run 20
     -- (README.md#the-two-stage-plan-and-the-rework-proposal): the
     -- canonicalizing composite, its memcpy-run form, the two
