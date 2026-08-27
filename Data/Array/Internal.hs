@@ -82,11 +82,11 @@ class Vector v where
   -- the shape, the strides, the offset, the total element count
   -- (@product sh@, passed in because every caller already has it) and
   -- the source vector; the shape must be non-empty.  This method is
-  -- what makes a fast 'toVectorListT' possible, and that function's
-  -- strided fallback goes through it: when
-  -- the innermost dimension is strided no slice can be taken, and the
-  -- fast fills for that case write a mutable result buffer across runs,
-  -- which no existing method can express ('vGenerate' is stateless).
+  -- what makes a fast 'toVectorListT' and 'toVectorT' possible: every
+  -- view that is not a slice of the source goes through it, over the
+  -- view's canonical dimensions ('canonicalizeT'), and the fast fills
+  -- write a mutable result buffer across runs, which no existing
+  -- method can express ('vGenerate' is stateless).
   -- The default is a terse but fast pure form, where the base-offsets
   -- table is built by expansion ('runBaseOffsetsT'), one division
   -- per element. The vector-backed instances override it with
@@ -289,11 +289,20 @@ runBaseOffsetsT o0 osh oats = foldl' expand (VU.singleton o0) (zip osh oats)
 -- offset stepped additively, the innermost outer level fused into a
 -- dedicated run loop, and the run fill unrolled by two with its bound on
 -- the output cursor, so it is sound for zero and negative strides.
--- Written once against 'Data.Vector.Generic', which supplies the mutable
--- machinery orthotope's own 'Vector' class deliberately does not; each
--- vector-backed instance reuses it verbatim.  Ported bang-for-bang from
--- the benchmarked arm (mut-odo-vecdims-add-in-leaf-u2): the bang
--- patterns are part of what was measured. The benchmarks are preserved
+-- Two zero-stride conditions sit inside it, each decided per level of
+-- the odometer and never per element: a run of innermost stride 0 reads
+-- its one element once and stores it, and an outer level of stride 0
+-- fills the block below it once and block-copies it to its remaining
+-- positions.
+-- Given canonical dimensions ('canonicalizeT') the conditions fire
+-- wherever they can; given any other dimensions the fill is still
+-- correct.  Written once against 'Data.Vector.Generic', which supplies
+-- the mutable machinery orthotope's own 'Vector' class deliberately does
+-- not; each vector-backed instance reuses it verbatim.  Ported
+-- bang-for-bang from the fastest fill of a micro-benchmark (its arm
+-- mut-odo-vecdims-add-in-leaf-u2), with the two conditions from two more
+-- of its arms (bcast-set and mid-copy): the bang patterns are part of
+-- what was measured. The benchmarks are preserved
 -- at https://github.com/Mikolaj/orthotope/blob/speedup-strided-tovector/micro-regime3/
 -- and the implementation is similar to what once was in orthotope file
 -- FastReshape.hs, but independently discovered and improved on by Opus Fable.
