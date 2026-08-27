@@ -89,11 +89,13 @@ class Vector v where
   -- the shape, the strides, the offset, the total element count
   -- (@product sh@, passed in because every caller already has it) and
   -- the source vector; the shape must be non-empty.  This method is
-  -- what makes a fast 'toVectorListT' possible, and that function's
-  -- strided fallback goes through it: when
-  -- the innermost dimension is strided no slice can be taken, and the
-  -- fast fills for that case write a mutable result buffer across runs,
-  -- which no existing method can express ('vGenerate' is stateless).
+  -- what makes a fast 'toVectorListT' and 'toVectorT' possible: what
+  -- the conversions to vectors do not hand out as slices of the source
+  -- they fill through it, over the view's canonical dimensions
+  -- ('canonicalizeT'), and the fast fills write a mutable result buffer
+  -- across runs, which no existing method can express ('vGenerate' is
+  -- stateless).
+  --
   -- The default is a terse but fast pure form, where the base-offsets
   -- table is built by expansion ('runBaseOffsetsT'), one division
   -- per element. The vector-backed instances override it with
@@ -465,13 +467,23 @@ toVectorListT sh a@(T _ ao v)
         [vFillStrided csh cats ao l v]
   where !l = product sh
 
+-- Convert an array to one vector holding all the elements in the
+-- natural order.  Dispatches as 'toVectorListT' does, except that a
+-- view of contiguous runs is filled through 'vFillStrided' rather than
+-- sliced and concatenated: in the micro-benchmark 'genericFillStrided'
+-- links, on runs of nine elements, the slice list ties the fill on time
+-- and allocates several times the result in slice headers and list
+-- cells.  The fill's stepping loop at stride 1 is the run copy: a
+-- per-run memcpy measured slower than it on every run length tried.
 {-# INLINE toVectorT #-}
 toVectorT :: (Vector v, VecElem v a) => ShapeL -> T v a -> v a
-toVectorT sh a
+toVectorT sh a@(T _ ao v)
   | l == 0 = vConcat []
-  | otherwise = case toVectorListT sh a of
-      [v] -> v
-      vs -> vConcat vs
+  | otherwise = case regimeT sh l a of
+      Whole -> v
+      Slice -> vSlice ao l v
+      Runs csh cats -> vFillStrided csh cats ao l v
+      Strided csh cats -> vFillStrided csh cats ao l v
   where !l = product sh
 
 -- Put the array into a vector of just its elements, in the linearization
@@ -831,6 +843,10 @@ zipWithLong2 _     _     bs  = bs
 padT :: forall v a . (Vector v, VecElem v a) => a -> [(Int, Int)] -> ShapeL -> T v a -> ([Int], T v a)
 padT v aps ash at = (ss, fromVectorT ss $ vConcat $ pad' aps ash st at)
   where pad' :: [(Int, Int)] -> ShapeL -> [Int] -> T v a -> [v a]
+        -- Past the pad list, the core is taken as toVectorListT's list:
+        -- vConcat copies every part once, so a core filled by toVectorT
+        -- would be copied twice, where a view of runs gives slices copied
+        -- once that cost only their headers.
         pad' [] sh _ t = toVectorListT sh t
         pad' ((l,h):ps) (s:sh) (n:ns) t =
           [vReplicate (n*l) v] ++ concatMap (pad' ps sh ns . indexT t) [0..s-1] ++ [vReplicate (n*h) v]

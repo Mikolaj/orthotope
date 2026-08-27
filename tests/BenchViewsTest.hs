@@ -48,8 +48,11 @@ test = testGroup "BenchViews"
   [ testGroup "values"
       [ testOnce n (prop_values l) | (n, l) <- mainViews ++ otherViews ]
   , optimisedGroup "toVector allocation"
-      [ testCase n (allocUnder (scaled toVectorFactor l) toVector l)
-      | (n, l) <- mainViews ++ otherViews ]
+      $  [ testCase n (allocUnder (scaled toVectorFactor l) toVector l)
+         | (n, l) <- mainViews ++ otherViews ]
+      ++ [ testCase "transposed runs, element by element"
+             (allocOver (scaled toVectorFactor transposedBlock)
+                        (headOf elementwise) transposedBlock) ]
   , optimisedGroup "sumA allocation"
       $  [ testCase n (allocUnder 16384 sumA l) | (n, l) <- mainViews ]
       ++ [ testCase n (allocUnder (scaled sumAFactor l) sumA l) | (n, l) <- otherViews ]
@@ -98,11 +101,11 @@ optimised = False
 {-# NOINLINE optimised #-}
 {-# RULES "optimised" optimised = True #-}
 
--- What toVector allocates, over the view's size, where it concatenates the
--- ordered list of runs: up to 12 on these views; a fill writing the result
--- alone would meet 1.1.
+-- What toVector allocates, over the view's size: the result alone, 1.0 on
+-- these views, under a bound that listing the transposed runs element by
+-- element, 21, exceeds.
 toVectorFactor :: Double
-toVectorFactor = 64
+toVectorFactor = 2
 
 -- What sumA allocates, over the view's size, where the unordered list does
 -- not take the view as one block: up to 2 on these views, under a bound
