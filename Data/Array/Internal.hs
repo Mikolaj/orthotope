@@ -305,8 +305,13 @@ genericFillStrided sh ats ao l v = VG.create fill
     fill :: forall s. ST s (VG.Mutable w s a)
     fill = do
       out <- VGM.unsafeNew l
-      let writeRun :: Int -> Int -> ST s ()
-          writeRun !outPos !baseOff =
+      let -- The stepping run: the source cursor advances by the
+          -- innermost stride, the fill unrolled by two.  Both bodies are
+          -- INLINE so that inlining at their two sites each is the
+          -- source's property and not a size threshold's.
+          {-# INLINE writeRunStep #-}
+          writeRunStep :: Int -> Int -> ST s ()
+          writeRunStep !outPos !baseOff =
             let !oEnd = outPos + sInner
                 inner :: Int -> Int -> ST s ()
                 inner !o !src
@@ -319,28 +324,72 @@ genericFillStrided sh ats ao l v = VG.create fill
                         out (o + 1) (VG.unsafeIndex v (src + tInner))
                       inner (o + 2) (src + t2)
             in  inner outPos baseOff
-          go :: Int -> Int -> Int -> ST s Int
-          go !lev !outPos !baseOff
-            | lev >= rOuter = writeRun outPos baseOff
-                              >> return (outPos + sInner)
-            | lev == rOuter - 1 =
-                let !n  = VU.unsafeIndex oshV lev
-                    !st = VU.unsafeIndex oatsV lev
-                    run :: Int -> Int -> Int -> ST s Int
+          -- The broadcast run, innermost stride 0: the run's one
+          -- element read once and stored sInner times.
+          {-# INLINE writeRunSet #-}
+          writeRunSet :: Int -> Int -> ST s ()
+          writeRunSet !outPos !baseOff =
+            let !x = VG.unsafeIndex v baseOff
+                !oEnd = outPos + sInner
+                inner :: Int -> ST s ()
+                inner !o
+                  | o >= oEnd = return ()
+                  | otherwise = VGM.unsafeWrite out o x >> inner (o + 1)
+            in  inner outPos
+          -- A zero-stride outer level: everything below it repeats
+          -- verbatim, so the block below is filled once and copied to
+          -- the level's remaining n - 1 positions.  Zero levels compose,
+          -- the topmost firing and the ones below it falling inside the
+          -- one block it fills.
+          copies :: Int -> Int -> Int -> Int -> ST s Int
+          copies !n !blk !src !dst
+            | n <= 1 = return dst
+            | otherwise = do
+                VGM.unsafeCopy (VGM.unsafeSlice dst blk out)
+                               (VGM.unsafeSlice src blk out)
+                copies (n - 1) blk src (dst + blk)
+          -- The fused level: n runs, the run body a static argument, so
+          -- that each of the two uses below inlines it with the body
+          -- known, and the choice between the bodies is made once per
+          -- entry here, a row of runs, never per run.
+          {-# INLINE runsWith #-}
+          runsWith :: (Int -> Int -> ST s ())
+                   -> Int -> Int -> Int -> Int -> ST s Int
+          runsWith writeRun !n !st !outPos !baseOff
+            | st == 0 = writeRun outPos baseOff
+                        >> copies n sInner outPos (outPos + sInner)
+            | otherwise =
+                let run :: Int -> Int -> Int -> ST s Int
                     run !k !op !boff
                       | k <= 0    = return op
                       | otherwise = writeRun op boff
                                     >> run (k - 1) (op + sInner) (boff + st)
                 in  run n outPos baseOff
+          go :: Int -> Int -> Int -> ST s Int
+          go !lev !outPos !baseOff
+            | lev >= rOuter =
+                (if tInner == 0 then writeRunSet else writeRunStep)
+                  outPos baseOff
+                >> return (outPos + sInner)
             | otherwise =
-                let !n  = VU.unsafeIndex oshV lev
-                    !st = VU.unsafeIndex oatsV lev
-                    dim :: Int -> Int -> Int -> ST s Int
-                    dim !k !op !boff
-                      | k <= 0    = return op
-                      | otherwise = go (lev + 1) op boff
-                                    >>= \op' -> dim (k - 1) op' (boff + st)
-                in  dim n outPos baseOff
+                level (VU.unsafeIndex oshV lev) (VU.unsafeIndex oatsV lev)
+            where
+              level :: Int -> Int -> ST s Int
+              level !n !st
+                | lev == rOuter - 1 =
+                    if tInner == 0
+                    then runsWith writeRunSet n st outPos baseOff
+                    else runsWith writeRunStep n st outPos baseOff
+                | st == 0 = do
+                    op' <- go (lev + 1) outPos baseOff
+                    copies n (op' - outPos) outPos op'
+                | otherwise =
+                    let dim :: Int -> Int -> Int -> ST s Int
+                        dim !k !op !boff
+                          | k <= 0    = return op
+                          | otherwise = go (lev + 1) op boff
+                                        >>= \op' -> dim (k - 1) op' (boff + st)
+                    in  dim n outPos baseOff
       _ <- go 0 0 ao
       return out
     !sInner = last sh
