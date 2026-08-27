@@ -238,6 +238,35 @@ unScalarT (T _ o v) = vIndex v o
 constantT :: (Vector v, VecElem v a) => ShapeL -> a -> T v a
 constantT sh x = T (map (const 0) sh) 0 (vSingleton x)
 
+-- Canonicalize a view for dispatch.  The invariant, holding before and
+-- after: for an array of shape @sh@ and strides @ats@ over a vector at
+-- some offset, the pair returned describes, over the same vector and
+-- offset, an array with the same row-major element sequence --- the
+-- array's elements listed with the last index varying fastest, the
+-- order 'toVectorT' materializes.  Two rewrites keep it: drop the
+-- dimensions of extent 1, which contribute @0 * stride@ to every index
+-- whatever their stride; then merge each adjacent pair of dimensions
+-- where @st_outer == n_inner * st_inner@, the index sum's own
+-- distributivity, so it holds for negative strides too.  After it the
+-- shape has no extent 1 and the strides no adjacent pair satisfying
+-- that equation.
+-- So a maximal run of the array's elements that are consecutive in the
+-- vector is one canonical dimension of stride 1; a dense array (its
+-- elements filling a contiguous piece of the vector in row-major order)
+-- has the natural strides at whatever rank it was given; and a
+-- broadcast axis (a dimension of stride 0, all its indices reading one
+-- element) adjacent to another has become one with it.  O(rank) list
+-- work.
+{-# INLINE canonicalizeT #-}
+canonicalizeT :: ShapeL -> [Int] -> (ShapeL, [Int])
+canonicalizeT sh ats = canon sh ats
+  where canon [] [] = ([], [])
+        canon (1 : ns) (_ : ts) = canon ns ts
+        canon (n : ns) (t : ts) = case canon ns ts of
+          (n' : ns', t' : ts') | t == n' * t' -> (n * n' : ns', t' : ts')
+          (ns', ts') -> (n : ns', t : ts')
+        canon _ _ = error $ "canonicalizeT: rank mismatch " ++ show (sh, ats)
+
 -- Base offset (into the values vector) of each innermost run of an array,
 -- in row-major order over the outer dimensions (all dimensions but the
 -- innermost).  The outer offset grid is separable (@o0 + sum idx_d *
