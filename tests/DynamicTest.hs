@@ -254,6 +254,8 @@ test = testGroup "Dynamic" $
       reduce_1 = assertEqual "1" (scalar 720) (reduce (*) 1 a1)
       reduce_2 = assertEqual "2" (fromList [2] [6,120]) (rerank 1 (reduce (*) 1) a1)
       reduce_3 = assertEqual "3" (fromList [3] [4,10,18]) (rerank 1 (reduce (*) 1) a2)
+      -- An ordered reduction over a view of contiguous runs.
+      reduce_4 = assertEqual "4" (scalar 12) (reduce (+) 0 (slice [(0,2),(0,2)] a1))
 
       -- Test fast toVector
       toVector_10 =
@@ -351,6 +353,7 @@ test = testGroup "Dynamic" $
         , testCase "reduce_1" reduce_1
         , testCase "reduce_2" reduce_2
         , testCase "reduce_3" reduce_3
+        , testCase "reduce_4" reduce_4
         , testCase "toVector_10" toVector_10
         , testCase "toVector_11" toVector_11
         , testCase "toVector_12" toVector_12
