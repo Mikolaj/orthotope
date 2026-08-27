@@ -31,7 +31,6 @@ module Data.Array.Internal(module Data.Array.Internal) where
 import Control.DeepSeq
 import Control.Monad.ST(ST)
 import Data.Data(Data)
-import qualified Data.DList as DL
 import Data.Kind (Type)
 #if !MIN_VERSION_base(4,20,0)
 import Data.List(foldl')
@@ -285,6 +284,36 @@ unScalarT (T _ o v) = vIndex v o
 constantT :: (Vector v, VecElem v a) => ShapeL -> a -> T v a
 constantT sh x = T (map (const 0) sh) 0 (vSingleton x)
 
+-- Canonicalize a view for dispatch.  The invariant, holding before and
+-- after: for an array of shape @sh@ and strides @ats@ over a vector at
+-- some offset, the pair returned describes, over the same vector and
+-- offset, an array with the same row-major element sequence --- the
+-- array's elements listed with the last index varying fastest, the
+-- order 'toVectorT' materializes.  Two rewrites keep it: drop the
+-- dimensions of extent 1, which contribute @0 * stride@ to every index
+-- whatever their stride; then merge each adjacent pair of dimensions
+-- where @st_outer == n_inner * st_inner@, the index sum's own
+-- distributivity, so it holds for negative strides too.  After it the
+-- shape has no extent 1 and the strides no adjacent pair satisfying
+-- that equation.
+--
+-- So a maximal run of the array's elements that are consecutive in the
+-- vector is one canonical dimension of stride 1; a dense array (its
+-- elements filling a contiguous piece of the vector in row-major order)
+-- has the natural strides at whatever rank it was given; and a
+-- broadcast axis (a dimension of stride 0, all its indices reading one
+-- element) adjacent to another has become one with it.  O(rank) list
+-- work.
+{-# INLINE canonicalizeT #-}
+canonicalizeT :: ShapeL -> [Int] -> (ShapeL, [Int])
+canonicalizeT sh ats = canon sh ats
+  where canon [] [] = ([], [])
+        canon (1 : ns) (_ : ts) = canon ns ts
+        canon (n : ns) (t : ts) = case canon ns ts of
+          (n' : ns', t' : ts') | t == n' * t' -> (n * n' : ns', t' : ts')
+          (ns', ts') -> (n : ns', t : ts')
+        canon _ _ = error $ "canonicalizeT: rank mismatch " ++ show (sh, ats)
+
 -- Base offset (into the values vector) of each innermost run of an array,
 -- in row-major order over the outer dimensions (all dimensions but the
 -- innermost).  The outer offset grid is separable (@o0 + sum idx_d *
@@ -381,6 +410,35 @@ genericFillStrided sh ats ao l v = VG.create fill
   !oshV  = VU.fromList (init sh)
   !oatsV = VU.fromList (init ats)
 
+-- The regime a view falls in once canonicalized, which is what
+-- 'toVectorListT' and 'toVectorT' dispatch on.  Classified on the
+-- canonical dimensions, so a unit dimension's arbitrary stride and a
+-- reshape's appended dimensions no longer decide it.  The element count
+-- (@product sh@) is passed in because every caller already has it, as
+-- 'vFillStrided' takes it.
+data Regime
+  = Whole                  -- the canonical strides are the natural ones,
+                           -- the offset 0 and the vector's length the
+                           -- array's: the vector itself, as is
+  | Slice                  -- the natural strides at an offset or over a
+                           -- longer vector: a contiguous slice of it.
+                           -- Rank 0 lands here or above: no dimensions,
+                           -- no strides, the one element at the offset
+  | Runs ShapeL [Int]      -- canonical innermost stride 1 under other
+                           -- dimensions: contiguous runs, one per
+                           -- canonical outer index
+  | Strided ShapeL [Int]   -- any other canonical view: no run longer than
+                           -- one element
+
+{-# INLINE regimeT #-}
+regimeT :: (Vector v, VecElem v a) => ShapeL -> Int -> T v a -> Regime
+regimeT sh l (T ats ao v) = case canonicalizeT sh ats of
+  (csh, cats)
+    | cats /= ts -> if last cats == 1 then Runs csh cats else Strided csh cats
+    | ao == 0 && vLength v == l -> Whole
+    | otherwise -> Slice
+    where _ : ts = getStridesT csh
+
 -- Convert an array to a list of vectors, which together contain
 -- all the elements in the natural order.
 --
@@ -389,36 +447,23 @@ genericFillStrided sh ats ao l v = VG.create fill
 -- The minimum/maximum operations rely on this invariant.
 {-# INLINE toVectorListT #-}
 toVectorListT :: (Vector v, VecElem v a) => ShapeL -> T v a -> [v a]
-toVectorListT sh (T ats ao v) =
-  let l : ts' = getStridesT sh
-      -- Are strides ok from this point?
-      oks = scanr (&&) True (zipWith (==) ats ts')
-      loop (b:bs) (s:ss) (t:ts) !o =
-        if b then
-          -- All strides normal from this point,
-          -- so just take a slice of the underlying vector.
-          DL.singleton (vSlice o (s*t) v)
-        else
-          -- Strides are not normal, collect slices.
-          DL.concat [ loop bs ss ts (i*t + o) | i <- [0 .. s-1] ]
-      loop _ _ _ _ = error "impossible"  -- due to how @loop@ is called
-  in  if l == 0 then
-        -- An empty array, no vector
-        []
-      else if ats == ts' && vLength v == l then
-        -- All strides are normal, return entire vector
-        [v]
-      else if null sh then
-        [vSlice ao 1 v]
-      else if oks !! (length sh - 1) then  -- Special case for speed.
-        -- Innermost dimension is normal, so slices are non-trivial.
-        DL.toList $ loop oks sh ats ao
-      else
-        -- Innermost dimension is strided, so every contiguous run has
-        -- length 1 and no slice can be taken.  Fill the result through
+toVectorListT sh a@(T _ ao v)
+  | l == 0 = []
+  | otherwise = case regimeT sh l a of
+      Whole -> [v]
+      Slice -> [vSlice ao l v]
+      Runs csh cats ->
+        -- One slice per canonical run, the runs' base offsets built by
+        -- expansion as the pure fill builds them.
+        let !n = last csh
+        in  map (\o -> vSlice o n v)
+                (VU.toList (runBaseOffsetsT ao (init csh) (init cats)))
+      Strided csh cats ->
+        -- No slice can be taken.  Fill the result through
         -- 'vFillStrided', whose vector-backed instances write a mutable
         -- buffer directly.
-        [vFillStrided sh ats ao l v]
+        [vFillStrided csh cats ao l v]
+  where !l = product sh
 
 {-# INLINE toVectorT #-}
 toVectorT :: (Vector v, VecElem v a) => ShapeL -> T v a -> v a
