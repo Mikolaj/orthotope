@@ -378,11 +378,20 @@ runBaseOffsetsT o0 osh oats = foldl' expand (VU.singleton o0) (zip osh oats)
 -- offset stepped additively, the innermost outer level fused into a
 -- dedicated run loop, and the run fill unrolled by two with its bound on
 -- the output cursor, so it is sound for zero and negative strides.
--- Written once against 'Data.Vector.Generic', which supplies the mutable
--- machinery orthotope's own 'Vector' class deliberately does not; each
--- vector-backed instance reuses it verbatim.  Ported bang-for-bang from
--- the benchmarked arm (mut-odo-vecdims-add-in-leaf-u2): the bang
--- patterns are part of what was measured. The benchmarks are preserved
+-- Two zero-stride conditions sit inside it, each decided per level of
+-- the odometer and never per element: a run of innermost stride 0 reads
+-- its one element once and stores it, and an outer level of stride 0
+-- fills the block below it once and block-copies it to its remaining
+-- positions.
+-- Given canonical dimensions ('canonicalizeT') the conditions fire
+-- wherever they can; given any other dimensions the fill is still
+-- correct.  Written once against 'Data.Vector.Generic', which supplies
+-- the mutable machinery orthotope's own 'Vector' class deliberately does
+-- not; each vector-backed instance reuses it verbatim.  Ported
+-- bang-for-bang from the fastest fill of a micro-benchmark (its arm
+-- mut-odo-vecdims-add-in-leaf-u2), with the two conditions from two more
+-- of its arms (bcast-set and mid-copy): the bang patterns are part of
+-- what was measured. The benchmarks are preserved
 -- at https://github.com/Mikolaj/orthotope/tree/speedup-strided-tovector/micro-regime3/
 -- as of the commit "Read the runs' elements as genericFillStrided does"
 -- and the implementation is similar to what once was in orthotope file
@@ -405,42 +414,101 @@ genericFillStrided sh ats ao l v = VG.create fill
   fill :: forall s. ST s (VG.Mutable w s a)
   fill = do
     out <- VGM.unsafeNew l
-    let writeRun :: Int -> Int -> ST s ()
-        writeRun !outPos !baseOff =
+    let -- The stepping run: the source cursor advances by the
+        -- innermost stride, the fill unrolled by two.  Both bodies are
+        -- INLINE so that inlining at their two sites each is the
+        -- source's property and not a size threshold's.  Each element
+        -- is read by 'VG.unsafeIndexM' and then stored: 'VG.unsafeIndex'
+        -- as the store's argument would leave in a boxed result a thunk
+        -- holding the source vector.
+        {-# INLINE writeRunStep #-}
+        writeRunStep :: Int -> Int -> ST s ()
+        writeRunStep !outPos !baseOff =
           let !oEnd = outPos + sInner
               inner :: Int -> Int -> ST s ()
               inner !o !src
                 | o + 1 >= oEnd =
                     if o >= oEnd then return ()
-                    else VGM.unsafeWrite out o (VG.unsafeIndex v src)
+                    else VG.unsafeIndexM v src >>= VGM.unsafeWrite out o
                 | otherwise = do
-                    VGM.unsafeWrite out o (VG.unsafeIndex v src)
-                    VGM.unsafeWrite
-                      out (o + 1) (VG.unsafeIndex v (src + tInner))
+                    VG.unsafeIndexM v src >>= VGM.unsafeWrite out o
+                    VG.unsafeIndexM v (src + tInner)
+                      >>= VGM.unsafeWrite out (o + 1)
                     inner (o + 2) (src + t2)
           in  inner outPos baseOff
-        go :: Int -> Int -> Int -> ST s Int
-        go !lev !outPos !baseOff
-          | lev >= rOuter = writeRun outPos baseOff
-                            >> return (outPos + sInner)
-          | lev == rOuter - 1 =
-              let !n  = VU.unsafeIndex oshV lev
-                  !st = VU.unsafeIndex oatsV lev
-                  run :: Int -> Int -> Int -> ST s Int
+        -- The broadcast run, innermost stride 0: the run's one
+        -- element read once and stored sInner times.  The read is by
+        -- 'VG.unsafeIndexM', which also keeps such a thunk out of
+        -- a boxed result.
+        {-# INLINE writeRunSet #-}
+        writeRunSet :: Int -> Int -> ST s ()
+        writeRunSet !outPos !baseOff = do
+          x <- VG.unsafeIndexM v baseOff
+          let !oEnd = outPos + sInner
+              inner :: Int -> ST s ()
+              inner !o
+                | o >= oEnd = return ()
+                | otherwise = VGM.unsafeWrite out o x >> inner (o + 1)
+          -- 'VG.elemseq' forces x for unboxed elements and leaves a boxed
+          -- one unforced.  Specialization should simplify it to 'seq' or to
+          -- nothing; where it does not, as in an instance polymorphic in
+          -- 'Unbox a', it stays a call through the dictionary, which only the
+          -- Core of a caller's own call at its concrete arrays shows.
+          VG.elemseq v x (inner outPos)
+        -- A zero-stride outer level: everything below it repeats
+        -- verbatim, so the block below is filled once and copied to
+        -- the level's remaining n - 1 positions.  Zero levels compose,
+        -- the topmost firing and the ones below it falling inside the
+        -- one block it fills.
+        copies :: Int -> Int -> Int -> Int -> ST s Int
+        copies !n !blk !src !dst
+          | n <= 1 = return dst
+          | otherwise = do
+              VGM.unsafeCopy (VGM.unsafeSlice dst blk out)
+                             (VGM.unsafeSlice src blk out)
+              copies (n - 1) blk src (dst + blk)
+        -- The fused level: n runs, the run body a static argument, so
+        -- that each of the two uses below inlines it with the body
+        -- known, and the choice between the bodies is made once per
+        -- entry here, a row of runs, never per run.
+        {-# INLINE runsWith #-}
+        runsWith :: (Int -> Int -> ST s ())
+                 -> Int -> Int -> Int -> Int -> ST s Int
+        runsWith writeRun !n !st !outPos !baseOff
+          | st == 0 = writeRun outPos baseOff
+                      >> copies n sInner outPos (outPos + sInner)
+          | otherwise =
+              let run :: Int -> Int -> Int -> ST s Int
                   run !k !op !boff
                     | k <= 0    = return op
                     | otherwise = writeRun op boff
                                   >> run (k - 1) (op + sInner) (boff + st)
               in  run n outPos baseOff
+        go :: Int -> Int -> Int -> ST s Int
+        go !lev !outPos !baseOff
+          | lev >= rOuter =
+              (if tInner == 0 then writeRunSet else writeRunStep)
+                outPos baseOff
+              >> return (outPos + sInner)
           | otherwise =
-              let !n  = VU.unsafeIndex oshV lev
-                  !st = VU.unsafeIndex oatsV lev
-                  dim :: Int -> Int -> Int -> ST s Int
-                  dim !k !op !boff
-                    | k <= 0    = return op
-                    | otherwise = go (lev + 1) op boff
-                                  >>= \op' -> dim (k - 1) op' (boff + st)
-              in  dim n outPos baseOff
+              level (VU.unsafeIndex oshV lev) (VU.unsafeIndex oatsV lev)
+          where
+            level :: Int -> Int -> ST s Int
+            level !n !st
+              | lev == rOuter - 1 =
+                  if tInner == 0
+                  then runsWith writeRunSet n st outPos baseOff
+                  else runsWith writeRunStep n st outPos baseOff
+              | st == 0 = do
+                  op' <- go (lev + 1) outPos baseOff
+                  copies n (op' - outPos) outPos op'
+              | otherwise =
+                  let dim :: Int -> Int -> Int -> ST s Int
+                      dim !k !op !boff
+                        | k <= 0    = return op
+                        | otherwise = go (lev + 1) op boff
+                                      >>= \op' -> dim (k - 1) op' (boff + st)
+                  in  dim n outPos baseOff
     _ <- go 0 0 ao
     return out
   !sInner = last sh
