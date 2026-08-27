@@ -395,7 +395,8 @@ runBaseOffsetsT o0 osh oats = foldl' expand (VU.singleton o0) (zip osh oats)
 -- at https://github.com/Mikolaj/orthotope/tree/speedup-strided-tovector/micro-regime3/
 -- as of the commit "Read the runs' elements as genericFillStrided does"
 -- and the implementation is similar to what once was in orthotope file
--- FastReshape.hs.
+-- FastReshape.hs (a Storable-only odometer flatten behind an unsafeCast to
+-- Double or Float, never in the cabal file, removed once subsumed by this).
 --
 -- INLINABLE, so that a client specialises the fill at most once per
 -- instance of 'Vector' and element type instead of inlining it at
