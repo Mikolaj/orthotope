@@ -405,11 +405,24 @@ toVectorListT sh a@(T _ ao v)
         [vFillStrided csh cats ao l v]
   where !l = product sh
 
+-- Convert an array to one vector holding all the elements in the
+-- natural order.  Dispatches as 'toVectorListT' does, except that a
+-- view of contiguous runs is filled through 'vFillStrided' rather than
+-- sliced and concatenated: in the micro-benchmark 'genericFillStrided'
+-- links, on runs of nine elements, the slice list ties the fill on time
+-- and allocates several times the result in slice headers and list
+-- cells.  The fill's stepping loop at stride 1 is the run copy: a
+-- per-run memcpy measured slower than it on every run length tried.
 {-# INLINE toVectorT #-}
 toVectorT :: (Vector v, VecElem v a) => ShapeL -> T v a -> v a
-toVectorT sh a = case toVectorListT sh a of
-  [v] -> v
-  l -> vConcat l
+toVectorT sh a@(T _ ao v)
+  | l == 0 = vConcat []
+  | otherwise = case regimeT sh l a of
+      Whole -> v
+      Slice -> vSlice ao l v
+      Runs csh cats -> vFillStrided csh cats ao l v
+      Strided csh cats -> vFillStrided csh cats ao l v
+  where !l = product sh
 
 -- Convert to a list of vectors containing altogether the right elements,
 -- but not necessarily in the right order.
