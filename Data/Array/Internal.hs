@@ -305,7 +305,9 @@ runBaseOffsetsT o0 osh oats = foldl' expand (VU.singleton o0) (zip osh oats)
 -- what was measured. The benchmarks are preserved
 -- at https://github.com/Mikolaj/orthotope/blob/speedup-strided-tovector/micro-regime3/
 -- and the implementation is similar to what once was in orthotope file
--- FastReshape.hs, but independently discovered and improved on by Opus Fable.
+-- FastReshape.hs (a Storable-only odometer flatten behind an unsafeCast to
+-- Double or Float, never in the cabal file, removed once subsumed by this),
+-- but independently discovered and improved on by Opus Fable.
 {-# INLINE genericFillStrided #-}
 genericFillStrided :: forall w a. (VG.Vector w a)
                    => ShapeL -> [Int] -> Int -> Int -> w a -> w a
