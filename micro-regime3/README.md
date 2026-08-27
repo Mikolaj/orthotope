@@ -134,8 +134,8 @@ killed the redirect --- it shows the redirect's constituency dissolving
 at the dispatch, and what remains of regime 3 after it is stage one's arm.
 **It is implemented, 2026-08-27, on the permanent branch
 [`pr-mikolaj-toVectorListT`][https://github.com/Mikolaj/orthotope/tree/pr-mikolaj-toVectorListT],
-nine commits over stage one, each one piece: the canonicalization, the dispatch
-on it, `toUnorderedVectorListT`'s one-slice test on it, `toVectorT`'s route
+eight commits over stage one, each one piece: the canonicalization, the dispatch
+on it, `toUnorderedVectorListT`'s one-block test on it, `toVectorT`'s route
 through the fill, the two zero-stride conditions in the driver, the Storable
 test modules wired into the suite, and `Data/Array/Internal/FastReshape.hs`
 removed as subsumed.** It was written as if Run 20's readings were complete
@@ -175,7 +175,15 @@ it varies on `window`, 1.0636 at 0 of 3, because after the unit drop
 the stepping loop at stride 1 already is the run copy and a `memcpy` per run
 of 3, 5 or 9 loses to it --- so that branch is dropped for every run length
 the roster has a shape for, and earns a place only on one it has not. Both
-conditions are chosen once per call, outside the loops.
+conditions are decided per level of the odometer and never per element.
+**The run body must not be a closure chosen once per call** --- `bcast-set`'s
+form, `writeRun = if tInner == 0 then set else step`, and the branch's first
+port of it: an unknown function at every run site, so the fill no longer inlines
+into the run loop and every run pays a call, which is the per-run cost the leaf
+fusion was measured to remove. The branch's driver instead takes the run body
+as a static argument of an `INLINE` fused level, chosen once per row of runs,
+so each choice inlines its body; `bcast-set`'s 0.057 against 0.054 on the main
+set, inside the floor, is what that closure form is expected to have cost.
 
 **A scratch probe priced the proposal, and its timings are anecdotal
 by this README's standards --- magnitudes only, nothing finer.** The instrument:
