@@ -105,12 +105,12 @@ toVectorFactor :: Double
 toVectorFactor = 64
 
 -- What sumA allocates, over the view's size, where the unordered list does
--- not take the view as one block and goes through the ordered one; 1.1
--- once the ordered list fills a view it cannot slice.  On the transposed
--- dense arrays of mainViews, which it takes as one block, sumA allocates
--- under 16384 bytes already.
+-- not take the view as one block: up to 2 on these views, under a bound
+-- that listing a view element by element, over 40, exceeds.  On the
+-- transposed dense arrays of mainViews, which it takes as one block, sumA
+-- allocates under 16384 bytes.
 sumAFactor :: Double
-sumAFactor = 64
+sumAFactor = 4
 
 -- What building the head of the ordered list of a transposed view of runs
 -- allocates, over the view's size: the whole view filled, 1.0, under a
