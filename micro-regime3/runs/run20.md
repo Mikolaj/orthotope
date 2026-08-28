@@ -698,11 +698,14 @@ which movements that reaches: `bq-odo-gm-mulback` and `bq-scan-rem-gm-mulback`
 six to seven percent apart ON their instruction counts,
 `mut-odo-vecdims-add-in-leaf` ten points of its fifteen,
 and the placement-exposed arms (`build`, `offtab`, `mut-odo`, `gen-unsafe`,
-`gen-quotrem`, `bq-mut`) apart at count ratios of 1.0000. So a Run 21 movement
-on one of those six is layout or runtime until the counts say otherwise.
-**And one boundary is new**: the roster moved between Run 19 and Run 20, so any
-figure read across it carries a layout term as well as drift, which Run 10
-priced at 12 to 14% on the two arms whose loop the shim rescues.
+`gen-quotrem`, `bq-mut`) apart at count ratios of 1.0000. So a movement on one
+of those six is layout or runtime until the counts say otherwise --- **but only
+three of the six reach Run 21**, `offtab`, `gen-quotrem` and `bq-mut` having
+been parked on 2026-08-28, so what that run can read this way is `build`,
+`mut-odo` and `gen-unsafe`. **And one boundary is new**: the roster moved
+between Run 19 and Run 20, so any figure read across it carries a layout term
+as well as drift, which Run 10 priced at 12 to 14% on the two arms whose loop
+the shim rescues.
 
 **Registered with the pair.** Run 20's six registrations, their kill conditions
 and their verdicts are [in the open list](../README.md#what-is-open),
@@ -907,29 +910,39 @@ and `bq-mut-runs-gm-mulback`, in that order of shapes led, `offtab-scan-rem`
 on Run 18, and **on Run 20 three of the rework's arms**: `canon-vecdims`, best
 outside the family on 17 shapes, `mid-copy` on 17 and `bcast-set` on 3 ---
 and **it only ever grows**: an arm that has earned a column keeps it, and no run
-drops one; the second table carries the same columns over every stride-class
-shape, with its class named. **One representative per family**, besides: where
-a qualifying arm is a close variant of a member and measures closely,
-the leading one keeps the column, so no strategy costs two. **Run 20 is the run
-that had to apply that clause, and it kept two arms out.** `canon-memcpy-r2`
-and `canon-full` both qualified --- best outside the family on 4 shapes and 6
---- and both are close variants of `canon-vecdims` measuring within four
-thousandths of it on the main set, 0.052 and 0.053 against 0.049.
-The installer's own membership note is what settles it rather than the judgement
-alone: on nearly every shape either of them leads, the arm it beats
-is `canon-vecdims` or `bcast-set` at the same three decimals, which is what
-*measuring this closely* means. The judgement is still the author's, which
-is why `--fingerprint` names the best member on the shape a newcomer leads.
-**Neither way of dropping an arm survives.** Dropping one that leads nothing
-this run churns on a thousandth --- `offtab-scan-rem` holds `reshape1-rank10`
-at 0.090 against 0.091 --- and gaps the record wherever the column went. Judging
-it off the fingerprint this file carries is worse: that table holds the members
-alone, so a leaver would be judged against the members alone where a joiner
-is judged against every timed arm --- on `reshape1-rank10` the members' own
-minimum was `bq-scan-rem-gm-mulback` at 0.091, while the arm that won the shape
-read 0.090 and had no column to be seen in. The header therefore grows,
-and the run writer narrows it by hand if it gets unwieldy: it is fifteen columns
-now and the next run that adds one should ask whether it still reads.
+drops one --- **and the parking of 2026-08-28 put that rule in collision
+with itself, undecided**: `bq-mut-runs` holds a column and is no longer timed,
+so Run 21 can fill ten of the eleven. Three answers, and what each costs. DROP
+the column: the emitter narrows while this file's table stays eleven wide,
+and `install` matches by whole header, so it refuses until Run 21's copy
+is narrowed by hand --- measured 2026-08-28, `smoke-sweep.sh` fails on it. KEEP
+it: the table asks for a cell no run can compute, which `--check-doc` fails
+as an install `?`. UN-PARK the arm: a rebuild of both halves and a fresh gate.
+Nothing here decides it, and the fingerprint is not the yardstick, whose blank
+columns the parking did settle. The second table carries the same columns
+over every stride-class shape, with its class named. **One representative per
+family**, besides: where a qualifying arm is a close variant of a member
+and measures closely, the leading one keeps the column, so no strategy costs
+two. **Run 20 is the run that had to apply that clause, and it kept two arms
+out.** `canon-memcpy-r2` and `canon-full` both qualified --- best outside
+the family on 4 shapes and 6 --- and both are close variants of `canon-vecdims`
+measuring within four thousandths of it on the main set, 0.052 and 0.053 against
+0.049. The installer's own membership note is what settles it rather
+than the judgement alone: on nearly every shape either of them leads, the arm
+it beats is `canon-vecdims` or `bcast-set` at the same three decimals, which
+is what *measuring this closely* means. The judgement is still the author's,
+which is why `--fingerprint` names the best member on the shape a newcomer
+leads. **Neither way of dropping an arm survives.** Dropping one that leads
+nothing this run churns on a thousandth --- `offtab-scan-rem` holds
+`reshape1-rank10` at 0.090 against 0.091 --- and gaps the record wherever
+the column went. Judging it off the fingerprint this file carries is worse:
+that table holds the members alone, so a leaver would be judged against
+the members alone where a joiner is judged against every timed arm ---
+on `reshape1-rank10` the members' own minimum was `bq-scan-rem-gm-mulback`
+at 0.091, while the arm that won the shape read 0.090 and had no column
+to be seen in. The header therefore grows, and the run writer narrows it by hand
+if it gets unwieldy: it is fifteen columns now and the next run that adds one
+should ask whether it still reads.
 
 | shape | `sInner` | `l` | `list`, net | vecdims | flat-gm | scan-rem-gm | build | mut-odo | mut-runs | runs-gm | offtab-rem | canon-vd | mid-copy | bcast-set |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
