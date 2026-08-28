@@ -3255,7 +3255,13 @@ def cell_dump(cells, shapes, strategies):
 # unwieldy. `offtab-scan-rem` joined 2026-08-24. Neither way of
 # dropping an arm survives and README says why beside the rule; the
 # short of it is that this table holds the members alone, so it cannot
-# say who has stopped earning a column. Growth is capped by one
+# say who has stopped earning a column. PARKING IS THE THIRD WAY AND IT
+# DOES SURVIVE, taken 2026-08-28 on `bq-mut-runs`: an arm no run times is
+# not an arm that stopped earning its column, and the alternatives were a
+# cell nothing can compute or a rebuild of both halves. The check in
+# `lint` holds this list to the TIMED roster so the state cannot recur,
+# and the run file's tables were narrowed by hand in the same edit,
+# `install` matching a table by its whole header line. Growth is capped by one
 # representative per family: where a qualifying arm is a close variant
 # of a member and measures closely, the leading one keeps the column.
 # That is a judgement and stays the write-up's; the notice below prices
@@ -3271,7 +3277,6 @@ FINGERPRINT = [('mut-odo-vecdims', 'vecdims'),
                ('bq-scan-rem-gm-mulback', 'scan-rem-gm'),
                ('build', 'build'),
                ('mut-odo', 'mut-odo'),
-               ('bq-mut-runs', 'mut-runs'),
                ('bq-mut-runs-gm-mulback', 'runs-gm'),
                ('offtab-scan-rem', 'offtab-rem'),
                # Joined at Run 20, on the membership rule's own test: each
@@ -8084,6 +8089,23 @@ def lint(main_hs, readme, run_doc=None):
     else:
         print('ok:   every arm the claims manifest names is rostered'
               ' (%d across %d claims)' % (len(claimed), len(CLAIMS)))
+
+    # THE FINGERPRINT IS THE THIRD LIST OF ARM NAMES IN THIS FILE, and was
+    # the only one nothing held to the roster: the check above asks whether
+    # its arms are ROSTERED, which a parked arm still is, being `Only`. So
+    # a column outlived the arm that filled it -- `bq-mut-runs`, from the
+    # parking of 2026-08-28 until this check was written the same day, past
+    # two preflights and every gate here. Held to TIMED and not to rostered,
+    # which is the whole of the difference, and non-vacuous by putting the
+    # entry back: it fails naming the arm.
+    stray_fp = [a for a in FINGERPRINT_ARMS if a not in timed]
+    if stray_fp:
+        bad.append('%d fingerprint arm(s) are not timed, so `--fingerprint`'
+                   ' has a column no run can fill: %s'
+                   % (len(stray_fp), ', '.join(stray_fp)))
+    else:
+        print('ok:   every fingerprint arm is timed (%d column(s))'
+              % len(FINGERPRINT_ARMS))
 
     # THE SAME QUESTION FOR THE CLAIMS THAT HAVE NO MANIFEST, which is the
     # half the check above cannot reach: claims 7 and 8 are prose and reach

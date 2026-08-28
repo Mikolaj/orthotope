@@ -906,99 +906,100 @@ Its membership is a rule, not a habit, re-aimed 2026-08-22 and settled
 2026-08-24: `mut-odo-vecdims` and every arm that is the best outside the vecdims
 family on at least one shape of the main set or a stride class --- on Run 16
 `mut-flat-gm`, `bq-scan-rem-gm-mulback`, `build`, `mut-odo`, `bq-mut-runs`
-and `bq-mut-runs-gm-mulback`, in that order of shapes led, `offtab-scan-rem`
-on Run 18, and **on Run 20 three of the rework's arms**: `canon-vecdims`, best
-outside the family on 17 shapes, `mid-copy` on 17 and `bcast-set` on 3 ---
-and **it only ever grows**: an arm that has earned a column keeps it, and no run
-drops one --- **and the parking of 2026-08-28 put that rule in collision
-with itself, undecided**: `bq-mut-runs` holds a column and is no longer timed,
-so Run 21 can fill ten of the eleven. Three answers, and what each costs. DROP
-the column: the emitter narrows while this file's table stays eleven wide,
-and `install` matches by whole header, so it refuses until Run 21's copy
-is narrowed by hand --- measured 2026-08-28, `smoke-sweep.sh` fails on it. KEEP
-it: the table asks for a cell no run can compute, which `--check-doc` fails
-as an install `?`. UN-PARK the arm: a rebuild of both halves and a fresh gate.
-Nothing here decides it, and the fingerprint is not the yardstick, whose blank
-columns the parking did settle. The second table carries the same columns
-over every stride-class shape, with its class named. **One representative per
-family**, besides: where a qualifying arm is a close variant of a member
-and measures closely, the leading one keeps the column, so no strategy costs
-two. **Run 20 is the run that had to apply that clause, and it kept two arms
-out.** `canon-memcpy-r2` and `canon-full` both qualified --- best outside
-the family on 4 shapes and 6 --- and both are close variants of `canon-vecdims`
-measuring within four thousandths of it on the main set, 0.052 and 0.053 against
-0.049. The installer's own membership note is what settles it rather
-than the judgement alone: on nearly every shape either of them leads, the arm
-it beats is `canon-vecdims` or `bcast-set` at the same three decimals, which
-is what *measuring this closely* means. The judgement is still the author's,
-which is why `--fingerprint` names the best member on the shape a newcomer
-leads. **Neither way of dropping an arm survives.** Dropping one that leads
-nothing this run churns on a thousandth --- `offtab-scan-rem` holds
-`reshape1-rank10` at 0.090 against 0.091 --- and gaps the record wherever
-the column went. Judging it off the fingerprint this file carries is worse:
-that table holds the members alone, so a leaver would be judged against
-the members alone where a joiner is judged against every timed arm ---
-on `reshape1-rank10` the members' own minimum was `bq-scan-rem-gm-mulback`
-at 0.091, while the arm that won the shape read 0.090 and had no column
-to be seen in. The header therefore grows, and the run writer narrows it by hand
-if it gets unwieldy: it is fifteen columns now and the next run that adds one
-should ask whether it still reads.
+(dropped 2026-08-28 with its parking) and `bq-mut-runs-gm-mulback`,
+in that order of shapes led, `offtab-scan-rem` on Run 18, and **on Run 20 three
+of the rework's arms**: `canon-vecdims`, best outside the family on 17 shapes,
+`mid-copy` on 17 and `bcast-set` on 3 --- and **it only ever grows**: an arm
+that has earned a column keeps it, and no run drops one --- **except an arm
+PARKED out of the timed roster, and `bq-mut-runs` is the first, dropped
+2026-08-28**. The rule is about an arm that stops earning its column and says
+nothing about one no run measures: keeping it asks the installer for a cell
+nothing can compute, which `--check-doc` fails as an install `?`, and the only
+other answer was a rebuild of both halves. Its figures end at Run 20 and went
+from the two tables above with the column, narrowed by hand in the same edit ---
+`install` matches a table by its whole header line, so a narrowed emitter
+and a wide table refuse each other, measured that day when `smoke-sweep.sh`
+failed on exactly that. `--lint` now holds this list to the TIMED roster,
+the older check having asked only whether its arms were rostered, which a parked
+arm still is. The second table carries the same columns over every stride-class
+shape, with its class named. **One representative per family**, besides: where
+a qualifying arm is a close variant of a member and measures closely,
+the leading one keeps the column, so no strategy costs two. **Run 20 is the run
+that had to apply that clause, and it kept two arms out.** `canon-memcpy-r2`
+and `canon-full` both qualified --- best outside the family on 4 shapes and 6
+--- and both are close variants of `canon-vecdims` measuring within four
+thousandths of it on the main set, 0.052 and 0.053 against 0.049.
+The installer's own membership note is what settles it rather than the judgement
+alone: on nearly every shape either of them leads, the arm it beats
+is `canon-vecdims` or `bcast-set` at the same three decimals, which is what
+*measuring this closely* means. The judgement is still the author's, which
+is why `--fingerprint` names the best member on the shape a newcomer leads.
+**Neither way of dropping an arm survives.** Dropping one that leads nothing
+this run churns on a thousandth --- `offtab-scan-rem` holds `reshape1-rank10`
+at 0.090 against 0.091 --- and gaps the record wherever the column went. Judging
+it off the fingerprint this file carries is worse: that table holds the members
+alone, so a leaver would be judged against the members alone where a joiner
+is judged against every timed arm --- on `reshape1-rank10` the members' own
+minimum was `bq-scan-rem-gm-mulback` at 0.091, while the arm that won the shape
+read 0.090 and had no column to be seen in. The header therefore grows,
+and the run writer narrows it by hand if it gets unwieldy: it is fifteen columns
+now and the next run that adds one should ask whether it still reads.
 
-| shape | `sInner` | `l` | `list`, net | vecdims | flat-gm | scan-rem-gm | build | mut-odo | mut-runs | runs-gm | offtab-rem | canon-vd | mid-copy | bcast-set |
-|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| `cnn-slice-c32` | 3 | 288 | 5.94 us | 0.085 | 0.146 | 0.153 | 0.159 | 0.159 | 0.139 | 0.154 | 0.170 | 0.116 | 0.085 | 0.087 |
-| `cnn-L1-6x6-c1` | 3 | 324 | 7.29 us | 0.093 | 0.182 | 0.141 | 0.189 | 0.186 | 0.174 | 0.191 | 0.161 | 0.101 | 0.103 | 0.095 |
-| `stretch-rank12` | 2 | 4096 | 111 us | 0.092 | 0.186 | 0.132 | 0.257 | 0.248 | 0.189 | 0.176 | 0.169 | 0.072 | 0.109 | 0.097 |
-| `cnn-L1-24x24-c1` | 3 | 5184 | 114 us | 0.068 | 0.131 | 0.098 | 0.171 | 0.164 | 0.147 | 0.137 | 0.126 | 0.057 | 0.070 | 0.071 |
-| `conv1d-24` | 3 | 5184 | 101 us | 0.056 | 0.071 | 0.098 | 0.116 | 0.125 | 0.087 | 0.077 | 0.141 | 0.057 | 0.057 | 0.060 |
-| `lenet-L1-28-c1-k5` | 5 | 19600 | 369 us | 0.048 | 0.092 | 0.094 | 0.104 | 0.100 | 0.111 | 0.101 | 0.120 | 0.044 | 0.049 | 0.051 |
-| `gather48-src-50` | 3 | 22500 | 436 us | 0.053 | 0.066 | 0.098 | 0.110 | 0.115 | 0.083 | 0.075 | 0.133 | 0.053 | 0.053 | 0.056 |
-| `stretch-rank10` | 3 | 59049 | 1.27 ms | 0.066 | 0.108 | 0.104 | 0.158 | 0.160 | 0.126 | 0.116 | 0.137 | 0.055 | 0.071 | 0.069 |
-| `stretch-coprime-r7` | 13 | 60060 | 1.03 ms | 0.035 | 0.082 | 0.092 | 0.060 | 0.058 | 0.101 | 0.093 | 0.121 | 0.033 | 0.034 | 0.037 |
-| `cifar-L2-16-c64-k3` | 3 | 147456 | 3.09 ms | 0.057 | 0.089 | 0.098 | 0.138 | 0.148 | 0.105 | 0.095 | 0.129 | 0.056 | 0.060 | 0.060 |
-| `cnn-L2-24x24-c32` | 3 | 165888 | 3.5 ms | 0.057 | 0.089 | 0.098 | 0.138 | 0.133 | 0.103 | 0.097 | 0.128 | 0.056 | 0.059 | 0.061 |
-| `stretch-primes` | 89 | 250357 | 4.01 ms | 0.029 | 0.075 | 0.092 | 0.031 | 0.031 | 0.091 | 0.086 | 0.131 | 0.030 | 0.029 | 0.030 |
-| `stretch-inner1` | 1 | 500000 | 13 ms | 0.090 | 0.031 | 0.073 | 0.214 | 0.224 | 0.069 | 0.031 | 0.073 | 0.000 | 0.090 | 0.097 |
-| `alexnet-L2-27-c48-k5` | 5 | 874800 | 16.1 ms | 0.044 | 0.074 | 0.092 | 0.092 | 0.095 | 0.094 | 0.085 | 0.124 | 0.043 | 0.044 | 0.046 |
-| `vgg-14-c512-k3` | 3 | 903168 | 18.9 ms | 0.057 | 0.088 | 0.097 | 0.139 | 0.138 | 0.104 | 0.097 | 0.131 | 0.060 | 0.059 | 0.060 |
-| `alexnet-L1-55-c3-k11` | 11 | 1098075 | 18.5 ms | 0.034 | 0.070 | 0.088 | 0.058 | 0.055 | 0.090 | 0.081 | 0.130 | 0.033 | 0.035 | 0.037 |
-| `stretch-inner256` | 256 | 1750784 | 33.2 ms | 0.032 | 0.068 | 0.084 | 0.033 | 0.033 | 0.109 | 0.074 | 0.116 | 0.032 | 0.032 | 0.031 |
-| `stretch-pow2stride` | 64 | 1769472 | 29.2 ms | 0.122 | 0.118 | 0.143 | 0.122 | 0.123 | 0.111 | 0.130 | 0.216 | 0.122 | 0.122 | 0.122 |
-| `stretch-r5-8x432` | 8 | 1769472 | 34.1 ms | 0.032 | 0.060 | 0.081 | 0.050 | 0.051 | 0.077 | 0.068 | 0.114 | 0.031 | 0.031 | 0.034 |
-| `stretch-square-1341` | 1341 | 1798281 | 29.8 ms | 0.089 | 0.132 | 0.154 | 0.088 | 0.088 | 0.108 | 0.140 | 0.202 | 0.091 | 0.088 | 0.087 |
-| `stretch-bigstride` | 3 | 1800000 | 49.4 ms | 0.035 | 0.044 | 0.067 | 0.073 | 0.083 | 0.057 | 0.051 | 0.093 | 0.035 | 0.035 | 0.037 |
-| `stretch-tab7MB` | 2 | 1800000 | 38.2 ms | 0.063 | 0.063 | 0.100 | 0.136 | 0.149 | 0.078 | 0.068 | 0.144 | 0.062 | 0.062 | 0.067 |
-| `stretch-tall-Mx2` | 900000 | 1800000 | 39.4 ms | 0.022 | 0.051 | 0.062 | 0.023 | 0.023 | 0.066 | 0.057 | 0.095 | 0.022 | 0.022 | 0.022 |
-| `stretch-wide-2xM` | 2 | 1800000 | 38.2 ms | 0.061 | 0.060 | 0.098 | 0.136 | 0.132 | 0.076 | 0.069 | 0.141 | 0.060 | 0.060 | 0.065 |
+| shape | `sInner` | `l` | `list`, net | vecdims | flat-gm | scan-rem-gm | build | mut-odo | runs-gm | offtab-rem | canon-vd | mid-copy | bcast-set |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| `cnn-slice-c32` | 3 | 288 | 5.94 us | 0.085 | 0.146 | 0.153 | 0.159 | 0.159 | 0.154 | 0.170 | 0.116 | 0.085 | 0.087 |
+| `cnn-L1-6x6-c1` | 3 | 324 | 7.29 us | 0.093 | 0.182 | 0.141 | 0.189 | 0.186 | 0.191 | 0.161 | 0.101 | 0.103 | 0.095 |
+| `stretch-rank12` | 2 | 4096 | 111 us | 0.092 | 0.186 | 0.132 | 0.257 | 0.248 | 0.176 | 0.169 | 0.072 | 0.109 | 0.097 |
+| `cnn-L1-24x24-c1` | 3 | 5184 | 114 us | 0.068 | 0.131 | 0.098 | 0.171 | 0.164 | 0.137 | 0.126 | 0.057 | 0.070 | 0.071 |
+| `conv1d-24` | 3 | 5184 | 101 us | 0.056 | 0.071 | 0.098 | 0.116 | 0.125 | 0.077 | 0.141 | 0.057 | 0.057 | 0.060 |
+| `lenet-L1-28-c1-k5` | 5 | 19600 | 369 us | 0.048 | 0.092 | 0.094 | 0.104 | 0.100 | 0.101 | 0.120 | 0.044 | 0.049 | 0.051 |
+| `gather48-src-50` | 3 | 22500 | 436 us | 0.053 | 0.066 | 0.098 | 0.110 | 0.115 | 0.075 | 0.133 | 0.053 | 0.053 | 0.056 |
+| `stretch-rank10` | 3 | 59049 | 1.27 ms | 0.066 | 0.108 | 0.104 | 0.158 | 0.160 | 0.116 | 0.137 | 0.055 | 0.071 | 0.069 |
+| `stretch-coprime-r7` | 13 | 60060 | 1.03 ms | 0.035 | 0.082 | 0.092 | 0.060 | 0.058 | 0.093 | 0.121 | 0.033 | 0.034 | 0.037 |
+| `cifar-L2-16-c64-k3` | 3 | 147456 | 3.09 ms | 0.057 | 0.089 | 0.098 | 0.138 | 0.148 | 0.095 | 0.129 | 0.056 | 0.060 | 0.060 |
+| `cnn-L2-24x24-c32` | 3 | 165888 | 3.5 ms | 0.057 | 0.089 | 0.098 | 0.138 | 0.133 | 0.097 | 0.128 | 0.056 | 0.059 | 0.061 |
+| `stretch-primes` | 89 | 250357 | 4.01 ms | 0.029 | 0.075 | 0.092 | 0.031 | 0.031 | 0.086 | 0.131 | 0.030 | 0.029 | 0.030 |
+| `stretch-inner1` | 1 | 500000 | 13 ms | 0.090 | 0.031 | 0.073 | 0.214 | 0.224 | 0.031 | 0.073 | 0.000 | 0.090 | 0.097 |
+| `alexnet-L2-27-c48-k5` | 5 | 874800 | 16.1 ms | 0.044 | 0.074 | 0.092 | 0.092 | 0.095 | 0.085 | 0.124 | 0.043 | 0.044 | 0.046 |
+| `vgg-14-c512-k3` | 3 | 903168 | 18.9 ms | 0.057 | 0.088 | 0.097 | 0.139 | 0.138 | 0.097 | 0.131 | 0.060 | 0.059 | 0.060 |
+| `alexnet-L1-55-c3-k11` | 11 | 1098075 | 18.5 ms | 0.034 | 0.070 | 0.088 | 0.058 | 0.055 | 0.081 | 0.130 | 0.033 | 0.035 | 0.037 |
+| `stretch-inner256` | 256 | 1750784 | 33.2 ms | 0.032 | 0.068 | 0.084 | 0.033 | 0.033 | 0.074 | 0.116 | 0.032 | 0.032 | 0.031 |
+| `stretch-pow2stride` | 64 | 1769472 | 29.2 ms | 0.122 | 0.118 | 0.143 | 0.122 | 0.123 | 0.130 | 0.216 | 0.122 | 0.122 | 0.122 |
+| `stretch-r5-8x432` | 8 | 1769472 | 34.1 ms | 0.032 | 0.060 | 0.081 | 0.050 | 0.051 | 0.068 | 0.114 | 0.031 | 0.031 | 0.034 |
+| `stretch-square-1341` | 1341 | 1798281 | 29.8 ms | 0.089 | 0.132 | 0.154 | 0.088 | 0.088 | 0.140 | 0.202 | 0.091 | 0.088 | 0.087 |
+| `stretch-bigstride` | 3 | 1800000 | 49.4 ms | 0.035 | 0.044 | 0.067 | 0.073 | 0.083 | 0.051 | 0.093 | 0.035 | 0.035 | 0.037 |
+| `stretch-tab7MB` | 2 | 1800000 | 38.2 ms | 0.063 | 0.063 | 0.100 | 0.136 | 0.149 | 0.068 | 0.144 | 0.062 | 0.062 | 0.067 |
+| `stretch-tall-Mx2` | 900000 | 1800000 | 39.4 ms | 0.022 | 0.051 | 0.062 | 0.023 | 0.023 | 0.057 | 0.095 | 0.022 | 0.022 | 0.022 |
+| `stretch-wide-2xM` | 2 | 1800000 | 38.2 ms | 0.061 | 0.060 | 0.098 | 0.136 | 0.132 | 0.069 | 0.141 | 0.060 | 0.060 | 0.065 |
 
-| shape | class | `sInner` | `l` | `list`, net | vecdims | flat-gm | scan-rem-gm | build | mut-odo | mut-runs | runs-gm | offtab-rem | canon-vd | mid-copy | bcast-set |
-|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| `bcast-inner8` | `bcast` | 8 | 51200 | 877 us | 0.033 | 0.066 | 0.089 | 0.055 | 0.059 | 0.087 | 0.080 | 0.118 | 0.032 | 0.032 | 0.030 |
-| `bcast-inner900` | `bcast` | 900 | 1800000 | 26.8 ms | 0.022 | 0.072 | 0.089 | 0.022 | 0.022 | 0.095 | 0.088 | 0.124 | 0.022 | 0.021 | 0.019 |
-| `bcast-tall-Mx2` | `bcast` | 2 | 1800000 | 37.7 ms | 0.062 | 0.061 | 0.097 | 0.136 | 0.152 | 0.077 | 0.070 | 0.141 | 0.061 | 0.061 | 0.061 |
-| `bcastmid-c32-cnn` | `bcastmid` | 3 | 165888 | 3.46 ms | 0.058 | 0.090 | 0.099 | 0.147 | 0.142 | 0.107 | 0.106 | 0.129 | 0.058 | 0.012 | 0.061 |
-| `bcastmid-primes` | `bcastmid` | 97 | 250357 | 3.92 ms | 0.021 | 0.069 | 0.087 | 0.022 | 0.023 | 0.091 | 0.085 | 0.122 | 0.022 | 0.013 | 0.024 |
-| `bcastmid-b200k` | `bcastmid` | 3 | 1800000 | 47.4 ms | 0.036 | 0.045 | 0.069 | 0.075 | 0.083 | 0.058 | 0.055 | 0.094 | 0.035 | 0.032 | 0.038 |
-| `bcastmid-block150k` | `bcastmid` | 300 | 1800000 | 42.4 ms | 0.022 | 0.052 | 0.065 | 0.023 | 0.023 | 0.063 | 0.060 | 0.088 | 0.023 | 0.018 | 0.022 |
-| `reshape1-rank10` | `reshape1` | 1 | 59049 | 1.89 ms | 0.109 | 0.129 | 0.092 | 0.309 | 0.284 | 0.150 | 0.125 | 0.092 | 0.000 | 0.121 | 0.107 |
-| `reshape1-r3` | `reshape1` | 1 | 180000 | 4.72 ms | 0.091 | 0.032 | 0.073 | 0.217 | 0.252 | 0.072 | 0.032 | 0.073 | 0.000 | 0.092 | 0.092 |
-| `reshape1-strided-r3` | `reshape1` | 1 | 180000 | 4.72 ms | 0.095 | 0.033 | 0.075 | 0.254 | 0.240 | 0.071 | 0.033 | 0.075 | 0.016 | 0.094 | 0.094 |
-| `reshape1-500k` | `reshape1` | 1 | 500000 | 12.9 ms | 0.090 | 0.029 | 0.072 | 0.233 | 0.227 | 0.070 | 0.029 | 0.072 | -- | 0.090 | 0.090 |
-| `rev-cnn-L1-24x24-c1` | `rev` | 3 | 5184 | 114 us | 0.067 | 0.130 | 0.097 | 0.166 | 0.178 | 0.143 | 0.140 | 0.123 | 0.057 | 0.074 | 0.070 |
-| `rev-gather48-src-50` | `rev` | 3 | 22500 | 434 us | 0.052 | 0.065 | 0.097 | 0.118 | 0.117 | 0.082 | 0.075 | 0.132 | 0.052 | 0.052 | 0.056 |
-| `rev-primes` | `rev` | 89 | 250357 | 4.04 ms | 0.029 | 0.072 | 0.091 | 0.030 | 0.030 | 0.089 | 0.085 | 0.129 | 0.029 | 0.029 | 0.030 |
-| `revsome-outer-g48` | `revsome` | 3 | 22500 | 441 us | 0.053 | 0.067 | 0.098 | 0.110 | 0.122 | 0.081 | 0.077 | 0.131 | 0.054 | 0.053 | 0.056 |
-| `revsome-mid-cnn-L2` | `revsome` | 3 | 165888 | 3.49 ms | 0.057 | 0.087 | 0.098 | 0.138 | 0.135 | 0.108 | 0.098 | 0.128 | 0.056 | 0.060 | 0.060 |
-| `revsome-inner-primes` | `revsome` | 89 | 250357 | 4.02 ms | 0.030 | 0.080 | 0.102 | 0.031 | 0.031 | 0.089 | 0.093 | 0.131 | 0.030 | 0.030 | 0.031 |
-| `scaled-r5` | `scaled` | 13 | 15015 | 251 us | 0.034 | 0.073 | 0.094 | 0.048 | 0.049 | 0.092 | 0.081 | 0.128 | 0.032 | 0.034 | 0.037 |
-| `scaled-super-r3` | `scaled` | 30 | 60000 | 961 us | 0.028 | 0.071 | 0.090 | 0.032 | 0.033 | 0.091 | 0.080 | 0.125 | 0.028 | 0.027 | 0.028 |
-| `scaled-rank1-m1` | `scaled` | 300000 | 300000 | 4.78 ms | 0.034 | 0.071 | 0.090 | 0.034 | 0.034 | 0.091 | 0.080 | 0.134 | 0.034 | 0.034 | 0.034 |
-| `slice-coprime-r7` | `slice` | 13 | 60060 | 1.04 ms | 0.037 | 0.082 | 0.096 | 0.061 | 0.060 | 0.100 | 0.092 | 0.127 | 0.037 | 0.037 | 0.039 |
-| `slice-cnn-L2-24x24-c32` | `slice` | 3 | 165888 | 3.59 ms | 0.057 | 0.088 | 0.098 | 0.134 | 0.138 | 0.104 | 0.095 | 0.131 | 0.057 | 0.058 | 0.061 |
-| `slice-primes` | `slice` | 89 | 250357 | 4.01 ms | 0.030 | 0.080 | 0.103 | 0.032 | 0.032 | 0.090 | 0.093 | 0.132 | 0.030 | 0.030 | 0.031 |
-| `window-28x28-k5` | `window` | 5 | 14400 | 263 us | 0.044 | 0.078 | 0.095 | 0.089 | 0.096 | 0.097 | 0.087 | 0.121 | 0.045 | 0.045 | 0.047 |
-| `window-64x64-k1x9` | `window` | 1 | 32256 | 873 us | 0.095 | 0.049 | 0.074 | 0.243 | 0.261 | 0.088 | 0.047 | 0.075 | 0.020 | 0.101 | 0.103 |
-| `window-224x224-k3` | `window` | 3 | 443556 | 9.27 ms | 0.057 | 0.087 | 0.096 | 0.136 | 0.142 | 0.102 | 0.097 | 0.126 | 0.058 | 0.057 | 0.060 |
+| shape | class | `sInner` | `l` | `list`, net | vecdims | flat-gm | scan-rem-gm | build | mut-odo | runs-gm | offtab-rem | canon-vd | mid-copy | bcast-set |
+|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| `bcast-inner8` | `bcast` | 8 | 51200 | 877 us | 0.033 | 0.066 | 0.089 | 0.055 | 0.059 | 0.080 | 0.118 | 0.032 | 0.032 | 0.030 |
+| `bcast-inner900` | `bcast` | 900 | 1800000 | 26.8 ms | 0.022 | 0.072 | 0.089 | 0.022 | 0.022 | 0.088 | 0.124 | 0.022 | 0.021 | 0.019 |
+| `bcast-tall-Mx2` | `bcast` | 2 | 1800000 | 37.7 ms | 0.062 | 0.061 | 0.097 | 0.136 | 0.152 | 0.070 | 0.141 | 0.061 | 0.061 | 0.061 |
+| `bcastmid-c32-cnn` | `bcastmid` | 3 | 165888 | 3.46 ms | 0.058 | 0.090 | 0.099 | 0.147 | 0.142 | 0.106 | 0.129 | 0.058 | 0.012 | 0.061 |
+| `bcastmid-primes` | `bcastmid` | 97 | 250357 | 3.92 ms | 0.021 | 0.069 | 0.087 | 0.022 | 0.023 | 0.085 | 0.122 | 0.022 | 0.013 | 0.024 |
+| `bcastmid-b200k` | `bcastmid` | 3 | 1800000 | 47.4 ms | 0.036 | 0.045 | 0.069 | 0.075 | 0.083 | 0.055 | 0.094 | 0.035 | 0.032 | 0.038 |
+| `bcastmid-block150k` | `bcastmid` | 300 | 1800000 | 42.4 ms | 0.022 | 0.052 | 0.065 | 0.023 | 0.023 | 0.060 | 0.088 | 0.023 | 0.018 | 0.022 |
+| `reshape1-rank10` | `reshape1` | 1 | 59049 | 1.89 ms | 0.109 | 0.129 | 0.092 | 0.309 | 0.284 | 0.125 | 0.092 | 0.000 | 0.121 | 0.107 |
+| `reshape1-r3` | `reshape1` | 1 | 180000 | 4.72 ms | 0.091 | 0.032 | 0.073 | 0.217 | 0.252 | 0.032 | 0.073 | 0.000 | 0.092 | 0.092 |
+| `reshape1-strided-r3` | `reshape1` | 1 | 180000 | 4.72 ms | 0.095 | 0.033 | 0.075 | 0.254 | 0.240 | 0.033 | 0.075 | 0.016 | 0.094 | 0.094 |
+| `reshape1-500k` | `reshape1` | 1 | 500000 | 12.9 ms | 0.090 | 0.029 | 0.072 | 0.233 | 0.227 | 0.029 | 0.072 | -- | 0.090 | 0.090 |
+| `rev-cnn-L1-24x24-c1` | `rev` | 3 | 5184 | 114 us | 0.067 | 0.130 | 0.097 | 0.166 | 0.178 | 0.140 | 0.123 | 0.057 | 0.074 | 0.070 |
+| `rev-gather48-src-50` | `rev` | 3 | 22500 | 434 us | 0.052 | 0.065 | 0.097 | 0.118 | 0.117 | 0.075 | 0.132 | 0.052 | 0.052 | 0.056 |
+| `rev-primes` | `rev` | 89 | 250357 | 4.04 ms | 0.029 | 0.072 | 0.091 | 0.030 | 0.030 | 0.085 | 0.129 | 0.029 | 0.029 | 0.030 |
+| `revsome-outer-g48` | `revsome` | 3 | 22500 | 441 us | 0.053 | 0.067 | 0.098 | 0.110 | 0.122 | 0.077 | 0.131 | 0.054 | 0.053 | 0.056 |
+| `revsome-mid-cnn-L2` | `revsome` | 3 | 165888 | 3.49 ms | 0.057 | 0.087 | 0.098 | 0.138 | 0.135 | 0.098 | 0.128 | 0.056 | 0.060 | 0.060 |
+| `revsome-inner-primes` | `revsome` | 89 | 250357 | 4.02 ms | 0.030 | 0.080 | 0.102 | 0.031 | 0.031 | 0.093 | 0.131 | 0.030 | 0.030 | 0.031 |
+| `scaled-r5` | `scaled` | 13 | 15015 | 251 us | 0.034 | 0.073 | 0.094 | 0.048 | 0.049 | 0.081 | 0.128 | 0.032 | 0.034 | 0.037 |
+| `scaled-super-r3` | `scaled` | 30 | 60000 | 961 us | 0.028 | 0.071 | 0.090 | 0.032 | 0.033 | 0.080 | 0.125 | 0.028 | 0.027 | 0.028 |
+| `scaled-rank1-m1` | `scaled` | 300000 | 300000 | 4.78 ms | 0.034 | 0.071 | 0.090 | 0.034 | 0.034 | 0.080 | 0.134 | 0.034 | 0.034 | 0.034 |
+| `slice-coprime-r7` | `slice` | 13 | 60060 | 1.04 ms | 0.037 | 0.082 | 0.096 | 0.061 | 0.060 | 0.092 | 0.127 | 0.037 | 0.037 | 0.039 |
+| `slice-cnn-L2-24x24-c32` | `slice` | 3 | 165888 | 3.59 ms | 0.057 | 0.088 | 0.098 | 0.134 | 0.138 | 0.095 | 0.131 | 0.057 | 0.058 | 0.061 |
+| `slice-primes` | `slice` | 89 | 250357 | 4.01 ms | 0.030 | 0.080 | 0.103 | 0.032 | 0.032 | 0.093 | 0.132 | 0.030 | 0.030 | 0.031 |
+| `window-28x28-k5` | `window` | 5 | 14400 | 263 us | 0.044 | 0.078 | 0.095 | 0.089 | 0.096 | 0.087 | 0.121 | 0.045 | 0.045 | 0.047 |
+| `window-64x64-k1x9` | `window` | 1 | 32256 | 873 us | 0.095 | 0.049 | 0.074 | 0.243 | 0.261 | 0.047 | 0.075 | 0.020 | 0.101 | 0.103 |
+| `window-224x224-k3` | `window` | 3 | 443556 | 9.27 ms | 0.057 | 0.087 | 0.096 | 0.136 | 0.142 | 0.097 | 0.126 | 0.058 | 0.057 | 0.060 |
 
 **Two rows to read first, and the set is derived rather than remembered ---
 it was three last run and this run it is two**: `stretch-square-1341`
