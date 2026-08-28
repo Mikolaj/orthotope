@@ -5536,10 +5536,10 @@ so a note recording a pass means it is done. **And what is true of 14 is true
 of 11 and 12: write each into the pair note when it passes.** All three cost
 machine time, all three are properties of the pair and its roster rather
 than of the session that ran them, and a session that cannot see they were run
-pays for them again --- twenty minutes for the roster pass, about forty
-for the gate. The note is the only thing that outlives a session, so an outcome
-recorded nowhere is an outcome nobody after you can use; the gate's own line has
-said so all along, and the other two now say it too.
+pays for them again --- about half an hour for the roster pass, about forty
+minutes for the gate. The note is the only thing that outlives a session,
+so an outcome recorded nowhere is an outcome nobody after you can use;
+the gate's own line has said so all along, and the other two now say it too.
 
 **Steps 7 and 8 are the whole of this README's document check, and no other
 repository's checkers belong on it.** Theirs carry a per-repo configuration ---
@@ -5915,11 +5915,12 @@ It runs three `-L1` processes --- one main-set shape from each half and one
 shape of a class from the basis, that being what holds every process to one
 shape's arm count --- then every reader mode over what they wrote,
 then the `--in-place` installers into a copy of this file, and deletes all
-of it. Minutes, on a machine doing nothing else. It uses binaries already built
-rather than `cabal run`, which would build a third in whatever regime the shell
-happens to carry; it exercises the reader rather than the regime either way.
-**It is a driver, for the reason `run-major.sh` is one:** it counts, holding
-each process to the arm count `--list` gives for that shape. The reason
+of it. Minutes, and it wants no quiet machine, the preparation wanting none ---
+what the timing was taken on is not what it needs. It uses binaries already
+built rather than `cabal run`, which would build a third in whatever regime
+the shell happens to carry; it exercises the reader rather than the regime
+either way. **It is a driver, for the reason `run-major.sh` is one:** it counts,
+holding each process to the arm count `--list` gives for that shape. The reason
 it is not *also* still printed here is the one this README learned the hard way
 the same day --- a pasted copy of a driver's sequence drifts from the driver
 and nothing checks it, which is what the class loop above had done.
@@ -5978,8 +5979,8 @@ are cheap to run and expensive to be missing, and the run artifact is the only
 thing that can reproduce one, so sweep before deleting it rather than after.
 
 **After a roster change, add a `-L1` pass over the main set and one three-shape
-class**, which is about twenty minutes and reaches three things a one-shape
-smoke cannot. `--selftest` skips a whole block on one shape and says so ---
+class**, which is about half an hour and reaches three things a one-shape smoke
+cannot. `--selftest` skips a whole block on one shape and says so ---
 winsorizing, the A/A identities and the baseline identity, none of which
 is an identity of anything until there are shapes to be one over. Every claim's
 `--pair` line goes unrun, and a claim re-aimed at an arm the run does not carry
