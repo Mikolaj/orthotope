@@ -3611,7 +3611,10 @@ roster =
   , ("build-aa-distant",           Twin fbBuild)
   , ("mut-odo-aa-distant",         Twin fbMutOdo)
   , ("list-aa-distant",            Twin fbList)
-  , ("gen-quotrem",                Fill fbGenQuotRem)
+    -- parked 2026-08-28, permanently, by decision (README.md#what-is-open,
+    -- the Run 21 entry): superseded, answering no registered question;
+    -- its yardstick column stays blank from Run 21 on
+  , ("gen-quotrem",                Only fbGenQuotRem)
   , ("gen-unsafe",                 Fill fbGenUnsafe)
     -- The adjacent half of 'gen-unsafe''s pair; the distant half is early
     -- with the others. Added 2026-08-14, first read in Run 14.
@@ -3742,8 +3745,14 @@ roster =
     -- The adjacent half of 'build''s pair; the distant half is early with
     -- the others. Added 2026-08-14, first read in Run 14.
   , ("build-aa-adjacent",          Twin fbBuild)
-  , ("bq-mut",                     Fill fbBQmut)
-  , ("bq-mut-runs",                Fill fbBQmutRuns)
+    -- parked 2026-08-28, permanently, by decision (README.md#what-is-open,
+    -- the Run 21 entry): superseded, answering no registered question;
+    -- its yardstick column stays blank from Run 21 on
+  , ("bq-mut",                     Only fbBQmut)
+    -- parked 2026-08-28, permanently, by decision (README.md#what-is-open,
+    -- the Run 21 entry): superseded, answering no registered question;
+    -- its yardstick column stays blank from Run 21 on
+  , ("bq-mut-runs",                Only fbBQmutRuns)
     -- not timed: l < 2^32
   , ("bq-mut-runs-mulback",        Only fbBQmutRunsMulback)
     -- not timed: l < 2^32
@@ -3760,7 +3769,10 @@ roster =
     -- its base, as both other pairs' are, so the difference is taken between
     -- neighbours and carries no span of its own.
   , ("mut-flat-gm-nosum",          Force fbMutFlatGm)
-  , ("bq-mut-runs-gm-mulback",     Fill fbBQmutRunsGmMulback)
+    -- parked 2026-08-28, permanently, by decision (README.md#what-is-open,
+    -- the Run 21 entry): superseded, answering no registered question;
+    -- its yardstick column stays blank from Run 21 on
+  , ("bq-mut-runs-gm-mulback",     Only fbBQmutRunsGmMulback)
     -- not timed: l < 2^32
   , ("bq-mut-lemire-out",          Only fbBQmutLemireOut)
     -- not timed: l < 2^32
@@ -3776,7 +3788,10 @@ roster =
   , ("offtab-scan-rem",            Fill fbOffTabScanRem)
     -- not timed: 8.27x the result
   , ("bq-unfold",                  Only fbBQunfold)
-  , ("bq-gen",                     Fill fbBQgen)
+    -- parked 2026-08-28, permanently, by decision (README.md#what-is-open,
+    -- the Run 21 entry): superseded, answering no registered question;
+    -- its yardstick column stays blank from Run 21 on
+  , ("bq-gen",                     Only fbBQgen)
     -- The Lemire arms are placed to straddle their controls: this one
     -- runs just after 'bq-gen', and the output-substitution arms run
     -- ahead of 'bq-expand'. A group's later slots are the warmer ones,
@@ -3818,7 +3833,10 @@ roster =
     -- not timed: l < 2^32, plus its builder's m <= 2^31 and every offset
     -- in [0, 2^32)
   , ("bq-scan-packed-mulback",     Only fbBQscanPackedMulback)
-  , ("bq-expand-qr-prim",          Fill fbBQexpandQRprim)
+    -- parked 2026-08-28, permanently, by decision (README.md#what-is-open,
+    -- the Run 21 entry): superseded, answering no registered question;
+    -- its yardstick column stays blank from Run 21 on
+  , ("bq-expand-qr-prim",          Only fbBQexpandQRprim)
   , ("bq-expand",                  Fill fbBQexpand)
     -- The same fill, forced with one element instead of the sum, so that
     -- 'bq-expand' minus this one is the forcing pass AS IT OCCURS: over a
@@ -3840,8 +3858,14 @@ roster =
     -- README.md#sum-only-and-the-correction-now-applied.
   , ("bq-expand-nosum",            Force fbBQexpand)
   , ("bq-expand-aa-adjacent",      Twin fbBQexpand)
-  , ("bq-expand-zf",               Fill fbBQexpandZF)
-  , ("bq-expand-b",                Fill fbBQexpandB)
+    -- parked 2026-08-28, permanently, by decision (README.md#what-is-open,
+    -- the Run 21 entry): superseded, answering no registered question;
+    -- its yardstick column stays blank from Run 21 on
+  , ("bq-expand-zf",               Only fbBQexpandZF)
+    -- parked 2026-08-28, permanently, by decision (README.md#what-is-open,
+    -- the Run 21 entry): superseded, answering no registered question;
+    -- its yardstick column stays blank from Run 21 on
+  , ("bq-expand-b",                Only fbBQexpandB)
     -- not timed: 10.73x the result
   , ("cm-gather",                  Only fbCMGather)
     -- not timed: 8.21x the result
