@@ -285,17 +285,18 @@ priced canonicalization and the leaf block separately and composed them nowhere:
 `canon-vecdims` reads 0.049 against its control's 0.054 on the main set while
 `-add-in-leaf-u2` reads 0.038, and on `window` the shipped arm at 0.032 beats
 `canon-vecdims` at 0.037 doing none of the rework. Stage two's driver
-is therefore written on the leaf body, and the arm the next run owes
-is the composite over it --- until then the plan's *every population keeps
-the vecdims family at its head* is confirmed for the un-leafed family only. They
-are new functions, so Run 20 was the stronger pinning test the rider
-under [Recommended tasks](#recommended-tasks-after-run-20) wanted,
-**and the claim did not survive it**: no tracked loop kept its address,
-so the claim covers additions that cost nothing to place and nothing wider.
-`reshape1` did go degenerate for the canonicalizing arms, whose cells there
-price dispatch rather than filling, and the class took the non-collapsing
-sibling it wanted --- `reshape1-strided-r3`, `reshape1-r3`'s shape made strided,
-now the only cell in the class that prices the fill.
+is therefore written on the leaf body, and the composite over it is rostered
+since 2026-08-28 as `lib-stage2`, the branch's `toVectorT` ported whole ---
+until it is read, the plan's *every population keeps the vecdims family
+at its head* is confirmed for the un-leafed family only. They are new functions,
+so Run 20 was the stronger pinning test the rider under [Recommended
+tasks](#recommended-tasks-after-run-20) wanted, **and the claim did not survive
+it**: no tracked loop kept its address, so the claim covers additions that cost
+nothing to place and nothing wider. `reshape1` did go degenerate
+for the canonicalizing arms, whose cells there price dispatch rather
+than filling, and the class took the non-collapsing sibling it wanted ---
+`reshape1-strided-r3`, `reshape1-r3`'s shape made strided, now the only cell
+in the class that prices the fill.
 
 **Weighed and dropped within the proposal, so they are not re-proposed
 with it:** tiling for the page-aliased stride (10% on one probe shape whose own
@@ -1152,6 +1153,29 @@ rather than a slot in the next run, observed again:
   is the third, recovering most of the corner's loss at 0.9408 against it on 22
   shapes of 24, and reproducing Run 10's reading. Recorded here because the list
   is meant to be the only home, and a session mining it walked past this one.
+- `OPEN` **What Run 21 is built to answer, registered before it runs.** Four
+  questions, each with what kills it. (1) *The `runs` class.* `lib-stage2`
+  against `lib-stage1`, per run length: the branch's route is refuted wherever
+  `lib-stage2` reads behind its control by more than the class's floor,
+  and the expectation from horde-ad is that it does from some run length up
+  and not at 2 or 3; `lib-stage2-concat` against `lib-stage2` prices the repair
+  at every length, and its `alloc` column says what the slice list costs per run
+  where the nine-element probe read 4.59x; `canon-memcpy-r2` against
+  `canon-vecdims` on the same class says whether a memcpy inside the fill,
+  refuted at 3, 5 and 9, wins at long runs, which would make the repair
+  a run-length condition in the driver rather than a route. (2) *The composite.*
+  `lib-stage2` against `mut-odo-vecdims-add-in-leaf-u2` on the main set
+  is the leaf body with canonicalization over it, the arm the plan owed; the two
+  must tie there, the main set having nothing to canonicalize past its rank,
+  and `lib-stage2` against `canon-full` on `bcastmid` and `bcast` says whether
+  the leaf body and the conditions compose. (3) *The spill.*
+  `mut-odo-vecdims-add-in-leaf-u2-down` against `-u2`: ahead on the long-run
+  shapes if one fewer live value keeps the base pointers in registers, a tie
+  if the allocator spills them anyway; read on both compilers. (4) *Stage two
+  on every class.* `lib-stage2` against `lib-stage1` on the eight regime-3
+  classes: no class may read the branch behind stage one past its floor,
+  that being the regression the benchmark is now built to catch on its own.
+
 - `OPEN` **What is the 3% that survives alignment on `build`/`mut-odo`?**
   With both copies of one worker at offset 0 the pair still reads 0.9685
   on the main set, tying by the sign test (16 of 24) while the interval misses
@@ -3306,15 +3330,17 @@ in the middle instead), `reshape1` (the `[n] -> [n, 1]` trap, innermost extent
 1), `slice` (a view of a larger source, so a non-zero offset with positive
 strides), `window` (overlapping im2col patches --- the workload this README
 opens by naming, carrying the overlap that the main set's bijective index map
-drops) and `scaled` (superincreasing strides, none of them 1). Each is a short
-list in `Main.hs`, reusing a main-set shape where one fits so that a class
-figure has a positive-stride counterpart to stand next to; each generator's
-comment there says what it models, and the comment heading them all, above
-`mkRev`, carries the coverage argument --- a hypothesis about what a valid
-hand-built view can recombine, not a theorem --- which is not repeated here.
-*Class* unqualified means one of these; the other sense in this README always
-keeps its noun, *method* --- a `class method`, the class-method tier, or in full
-a `Vector`-class method.
+drops) `scaled` (superincreasing strides, none of them 1) and, since 2026-08-28,
+`runs` (regime 2, not 3: an innermost run of contiguous elements under a padded
+outer stride, the one population the library sends to slices rather than
+to the fill). Each is a short list in `Main.hs`, reusing a main-set shape where
+one fits so that a class figure has a positive-stride counterpart to stand next
+to; each generator's comment there says what it models, and the comment heading
+them all, above `mkRev`, carries the coverage argument --- a hypothesis about
+what a valid hand-built view can recombine, not a theorem --- which
+is not repeated here. *Class* unqualified means one of these; the other sense
+in this README always keeps its noun, *method* --- a `class method`,
+the class-method tier, or in full a `Vector`-class method.
 
 Two rulings govern how they are measured and published, both taken 2026-08-07,
 ahead of the implementation:
@@ -3348,7 +3374,28 @@ set's would be flattened away; winsorizing has almost nothing to cap
 and `--pair`'s bootstrap interval almost nothing to resample. What a class run
 can decide is whether an *ordering* inverts under its mechanism and whether any
 strategy's `worst` crosses 1 there. What it cannot do is be compared
-with a main-set number, in either direction.
+with a main-set number, in either direction. **`runs` is the one exception,
+a sweep rather than a triple**, because its question is a crossover and
+not a mechanism: seven views walk the run from 2 to 65536 at a fixed size,
+with one rank-3 entry whose inner dims merge under canonicalization
+so the library's merge and not the listing sets its run.
+
+**The `runs` class and the library-shaped arms exist for regressions
+this benchmark could not see, added 2026-08-28 after horde-ad caught one.**
+Every population above is regime 3, and every arm isolates the regime-3 fill;
+the stage-two branch changed the dispatch of every regime, and its `toVectorT`
+route for contiguous runs --- the fill's stepping loop in place of one memcpy
+per run --- was decided on a nine-element probe and then read 45% slower
+and 15.7% more allocation on horde-ad's `inp-96x96/H-exec`, whose views are rows
+of 96. So the roster carries three arms that are ports of library code
+and not strategies: `lib-stage1`, stage one's `toVectorT` whole; `lib-stage2`,
+the branch's, its driver ported bang-for-bang with both zero-stride conditions;
+and `lib-stage2-concat`, the branch with contiguous runs sent back to slices
+and a concatenation, the repair candidate. Each runs on every population,
+so a library change is read where a user would meet it, class by class,
+and the `runs` class is where the two routes part; with the timed `-u2-down`
+the block takes the roster to 1368 benches. What the next run is registered
+to answer with them is [in the open list][open].
 
 **What the eight are worth as instruments, read against each other for the first
 time on 2026-08-14, over Runs 10 to 13.** Per class: the median A/A deviation
@@ -4192,23 +4239,23 @@ its `check-x.log` beside it; the leaf pair replicated at 0.8376 and 0.6809
 in that different binary, which is the design's own control). The fill
 **unrolled by two**, epilogue for an odd or empty run, is the arm it added,
 `mut-odo-vecdims-add-in-leaf-u2`, and the trio left timed, with the rework's
-block beside it, takes the roster to 1272 benches: a 48-byte, twelve-instruction
-main body --- six per element, one branch per two --- probing **0.9696
-of the corner at 9 of 9 readings below 1**, 0.9559 on `cifar-L2-16-c64-k3` and,
-the interesting cell, **0.9655 on the DRAM-bound `stretch-square-1341`**, more
-than its instruction count explains; the reading offered, as a reading,
-is memory-level parallelism, shorter iterations fitting more strided misses
-in the out-of-order window. It carries no counter at all, the bound living
-on the output cursor, so it is stride-sign-agnostic and supersedes the up/down
-question inside the run. The dead-ideas ruling below kills unrolling
-by the runtime `sInner` only; a fixed factor was untested until this probe.
-**The intermediate fused-bound form is refuted as a wash and is not rostered,
-recorded here so it is not re-derived**: the falling counter merged
-into the output cursor it duplicates compiles to the promised six-instruction
-body --- the seventh, a `test` the native backend emits redundantly after `dec`,
-was never the bottleneck --- and probes 0.9967 at 5 of 9 below 1, inside any
-floor. Unrolling by four was ruled out on 2026-08-27, for diminishing returns
-and the Haskell it would take, so the axis ends at two.
+block beside it, took the roster to 1272 benches at Run 20: a 48-byte,
+twelve-instruction main body --- six per element, one branch per two --- probing
+**0.9696 of the corner at 9 of 9 readings below 1**, 0.9559
+on `cifar-L2-16-c64-k3` and, the interesting cell, **0.9655 on the DRAM-bound
+`stretch-square-1341`**, more than its instruction count explains; the reading
+offered, as a reading, is memory-level parallelism, shorter iterations fitting
+more strided misses in the out-of-order window. It carries no counter at all,
+the bound living on the output cursor, so it is stride-sign-agnostic
+and supersedes the up/down question inside the run. The dead-ideas ruling below
+kills unrolling by the runtime `sInner` only; a fixed factor was untested until
+this probe. **The intermediate fused-bound form is refuted as a wash and
+is not rostered, recorded here so it is not re-derived**: the falling counter
+merged into the output cursor it duplicates compiles to the promised
+six-instruction body --- the seventh, a `test` the native backend emits
+redundantly after `dec`, was never the bottleneck --- and probes 0.9967 at 5
+of 9 below 1, inside any floor. Unrolling by four was ruled out on 2026-08-27,
+for diminishing returns and the Haskell it would take, so the axis ends at two.
 
 **A third probe, 2026-08-24 late, put the whole family on GHC HEAD with every
 hot loop aligned, on a quiet machine** --- two binaries from this branch through
@@ -4520,9 +4567,10 @@ checked against the reference on every shape of every class, and not timed ---
 so the agreement net does not shrink and nothing has to be rewritten if a ruling
 is later reopened. The 23 arms the rulings dropped carry `Only` in that roster,
 each naming the bound or the multiple that disqualified it; with the controls
-the run is 53 arms, and the Run 20 trio with the rework's block takes the roster
-to 1272 benches, three placement-family arms having dropped to `Only` beside
-them.
+the run is 57 arms, and the library-shaped trio with the timed `-u2-down`, added
+2026-08-28 ([the stride classes](#the-stride-classes-and-what-they-cover)),
+takes the roster to 1368 benches from Run 20's 1272, three placement-family arms
+having dropped to `Only` beside them.
 
 - **A strategy with a precondition is not measured.** The column allowed `none`,
   an empty cell, and `shape well-formed`, which is a condition on being a valid
