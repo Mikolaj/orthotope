@@ -1157,7 +1157,7 @@ rather than a slot in the next run, observed again:
   **Decided 2026-08-28: Run 21 is Run 20 again --- its pair, `run20-pair.txt`'s
   two recipes, ghc-9.12.4 as the basis against the same GHC HEAD, one source,
   one shim, both halves under `WILDLOG=1 SATURATE=1` --- over the extended
-  roster and shapes: 57 timed arms, the `runs` class beside the eight, nothing
+  roster and shapes: 59 timed arms, the `runs` class beside the eight, nothing
   else moved.** Four questions, each with a prediction and what kills it ---
   the predictions are this file's and its author's, written before the run
   so that the run can contradict them. (1) *The `runs` class.* `lib-stage2`
@@ -1196,9 +1196,17 @@ rather than a slot in the next run, observed again:
   And on allocation, deterministic and so exact: `lib-stage2` at `lib-stage1`'s
   level on every population --- the canonicalization's transients under two
   unpinned kilobytes per call, invisible at these sizes as on Run 20 ---
-  and `lib-stage2-concat` alone above it, on `runs`; if `lib-stage2` reads above
-  `lib-stage1` anywhere, that is the other half of horde-ad's regression,
-  its 15.7% allocation, showing here, and the dispatch is where to look.
+  and `lib-stage2-concat` alone above it, on `runs`. (5) *The list consumer.*
+  `liblist-stage2` against `liblist-stage1`, the other entry point: predicted
+  a tie in time on every regime-3 population and on `runs` from 96 up, behind
+  at `runs-2`, `-3` and `-9`, where the table costs an `Int` per run beside
+  a slice of two to nine elements; and in allocation above stage one on `runs`
+  alone, by one unboxed `Int` per run --- half the result at `runs-2`, nothing
+  visible at `runs-65536`. That is the other half of horde-ad's regression,
+  its 15.7% allocation, if it is anywhere in this library: a consumer iterating
+  short runs through the list pays the table, and the repair is the slice
+  recursion back in `toVectorListT`'s `Runs` arm, which the branch dropped
+  with the DList.
 
 - `OPEN` **What is the 3% that survives alignment on `build`/`mut-odo`?**
   With both copies of one worker at offset 0 the pair still reads 0.9685
@@ -3411,15 +3419,21 @@ the stage-two branch changed the dispatch of every regime, and its `toVectorT`
 route for contiguous runs --- the fill's stepping loop in place of one memcpy
 per run --- was decided on a nine-element probe and then read 45% slower
 and 15.7% more allocation on horde-ad's `inp-96x96/H-exec`, whose views are rows
-of 96. So the roster carries three arms that are ports of library code
+of 96. So the roster carries five arms that are ports of library code
 and not strategies: `lib-stage1`, stage one's `toVectorT` whole; `lib-stage2`,
 the branch's, its driver ported bang-for-bang with both zero-stride conditions;
-and `lib-stage2-concat`, the branch with contiguous runs sent back to slices
-and a concatenation, the repair candidate. Each runs on every population,
-so a library change is read where a user would meet it, class by class,
-and the `runs` class is where the two routes part; with the timed `-u2-down`
-the block takes the roster to 1368 benches. What the next run is registered
-to answer with them is [in the open list][open].
+`lib-stage2-concat`, the branch with contiguous runs sent back to slices
+and a concatenation, the repair candidate; and the list consumer under each
+stage, `liblist-stage1` and `liblist-stage2`, the library's `toVectorListT`
+followed by one concatenation, the same term in both, so that pair prices
+the list's construction alone --- stage one's slice recursion against stage
+two's base-offset table and its `VU.toList` --- in time and, exactly,
+in allocation, which is what a consumer iterating the list pays. Each runs
+on every population, so a library change is read where a user would meet it,
+class by class, whichever of the two entry points the user takes, and the `runs`
+class is where the routes part; with the timed `-u2-down` the block takes
+the roster to 1416 benches. What the next run is registered to answer with them
+is [in the open list][open].
 
 **What the eight are worth as instruments, read against each other for the first
 time on 2026-08-14, over Runs 10 to 13.** Per class: the median A/A deviation
@@ -4591,10 +4605,11 @@ checked against the reference on every shape of every class, and not timed ---
 so the agreement net does not shrink and nothing has to be rewritten if a ruling
 is later reopened. The 23 arms the rulings dropped carry `Only` in that roster,
 each naming the bound or the multiple that disqualified it; with the controls
-the run is 57 arms, and the library-shaped trio with the timed `-u2-down`, added
-2026-08-28 ([the stride classes](#the-stride-classes-and-what-they-cover)),
-takes the roster to 1368 benches from Run 20's 1272, three placement-family arms
-having dropped to `Only` beside them.
+the run is 59 arms, and the five library-shaped arms with the timed `-u2-down`,
+added 2026-08-28 ([the stride
+classes](#the-stride-classes-and-what-they-cover)), takes the roster to 1416
+benches from Run 20's 1272, three placement-family arms having dropped to `Only`
+beside them.
 
 - **A strategy with a precondition is not measured.** The column allowed `none`,
   an empty cell, and `shape well-formed`, which is a condition on being a valid
