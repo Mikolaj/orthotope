@@ -2653,6 +2653,21 @@ CASES = [
          ok=V(has=['sat/clean', 'roster/sat']),
          bug=V(hasnt=['sat/clean'])),
 
+    case('deflation-legs-beside-the-run-not-the-cwd', 'read-run.py', 'e9a8bb3',
+         'the legs were globbed out of the cwd, not beside the run',
+         # The run and both rider sets sit in the case's temp directory
+         # and the reader runs from HERE, which is how a run named through
+         # a directory was answered "the riders were not taken" with every
+         # leg on disk -- from ~/r/orthotope, over run17-det-main.json,
+         # 2026-08-28. Shown non-vacuous by hand before the fix was
+         # committed: with the glob back on the bare pattern it FAILS on
+         # both strings; --audit replays that by itself now.
+         plant=lambda t: {'run': deflation_legs(at=t)},
+         argv=['{run}', '--deflation'],
+         ok=V(exit=0, has=['sat/clean'],
+              hasnt=['the riders were not taken']),
+         bug=V(exit=2, has=['the riders were not taken'])),
+
     case('broke-names-the-manifest', 'read-run.py', None,
          'a retirement made in prose left the manifest predicting the old',
          # THE MANIFEST IS THE OTHER HALF OF A RETIREMENT. Run 17's chapter
