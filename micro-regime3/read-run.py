@@ -3646,7 +3646,7 @@ def claims_table(cells, shapes, strategies, args):
     print('\nclaim 7 -- allocation: no pair; read it with'
           '\n  ./read-run.py BASIS.json --compare OTHER.json --alloc')
     print('claim 8 -- structural: no pair; read the fast tier off the table'
-          '\n  and check the gap to bq-gen is populated.')
+          '\n  and check the span to offtab-scan-rem is populated.')
     print('\nA verdict answers the registered predicate and nothing more.'
           '\nWhether a HELD margin moved against the run before, and whether'
           '\na movement clears the floor, are still the reading\'s to say.')

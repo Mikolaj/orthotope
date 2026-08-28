@@ -1226,9 +1226,11 @@ of these orderings is one `--pair` call away.
 8. Every pure arm in the fast tier runs its output through the single in-order
    `vGenerate` over an `m`-length table, and a `bq-*` arm that falls behind
    loses on its table build and not on its output. Read the structure and
-   not a threshold: the gap the claim used to be stated across is populated,
-   `bq-expand-zf` and `offtab-scan-rem` lying between the leading tier
-   and `bq-gen`.
+   not a threshold: the span is populated, `bq-expand-gm-mulback`
+   and `bq-expand` lying between the leading tier and `offtab-scan-rem`,
+   the slowest pure arm left. **Re-aimed 2026-08-28**, `bq-expand-zf`
+   and `bq-gen` having been parked with the eight; the reading above is the last
+   that names them.
 9. **Retired at Run 19's write-up with 3, 4 and 5**, and for a reason of its own
    worth keeping: its per-shape half was answered rather than abandoned.
    `bq-expand-b`'s two best cells were `stretch-inner1` and `stretch-wide-2xM`
