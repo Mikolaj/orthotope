@@ -5428,10 +5428,10 @@ throughout:
     #      still carrying the sequence that has just ended. Added
     #      2026-08-26, after four legs were launched onto a box that had
     #      got busy and were thrown away
-    for c in '' rev revsome bcast bcastmid reshape1 slice window scaled
+    for c in '' rev revsome bcast bcastmid reshape1 slice window scaled runs
     do ./run-counts.sh $R <other> $c; ./run-counts.sh $R <basis> $c; done
     #  20. THE COUNTED WORK, over EVERY population and not the main set
-    #      alone -- the empty first element is the main set, and the eight
+    #      alone -- the empty first element is the main set, and the nine
     #      that follow are the classes, `run19-counts-<half>[-<class>].txt`
     #      apiece. Instructions an iteration from two fixed-`-n` processes
     #      a cell, differenced, which owes criterion nothing: an arm whose
@@ -5519,13 +5519,13 @@ than its neighbours is worth looking at rather than waiting on, and what says
 how long each should take is the previous run's `-wallclock.log`, which stamps
 every start and finish; it costs patience and a quiet machine, nothing else.
 Everything expensive happens after it, in the write-up, and that is where
-a session's token budget is spent and where its mistakes are made. **The eight
+a session's token budget is spent and where its mistakes are made. **The nine
 class blocks are NO LONGER the bulk of the typing, and this paragraph said they
 were for four runs after they stopped being.** `install-tables.sh` writes 32
 computed paragraphs across them now --- table, controls, provenance, per-shape
 line, cross-half line --- so what is left per class is the one paragraph of what
 it says, written from the verdicts `--block` emits rather than from the table
-above it. Eight paragraphs of judgement, and nothing else. **The run file's head
+above it. Nine paragraphs of judgement, and nothing else. **The run file's head
 is the bulk**: every paragraph of it rewritten, and nothing installs any
 of them. **The bulk of the *cost* is adjudication rather than typing** ---
 deciding which run, which basis and which population a figure belongs to ---
@@ -5541,13 +5541,13 @@ invocation per process or per claim --- a `--selftest` and an `--aa` apiece,
 the dozen-odd `--pair` lines, a `--block` per class --- goes in one call per
 kind, so steps 1 and 3 together are a handful. *One per site*: the eleven
 `--in-place` installs, three calls. *Unbatchable*: the prose, one edit per
-paragraph, and this is the bulk --- the eight class blocks alone are some thirty
+paragraph, and this is the bulk --- the nine class blocks alone are some thirty
 items, and no tool reduces the count, `--block`'s skeletons only removing
 the extraction that used to precede each. Then verification costs about what
 the prose cost, because every finding is a fix and every fix is a claim ---
 and on Run 19 it cost rather more, two checker passes returning 22 defects whose
 fixes then wanted their own re-derivation. **Budget the run file's head,
-the verification and the eight class paragraphs as the work**, in that order;
+the verification and the nine class paragraphs as the work**, in that order;
 the readings are noise beside them, and the run itself is unattended. Two
 further consequences worth having in mind before starting. Prefer analysis
 that localises --- per shape, per control --- over re-quoting figures that moved
@@ -6156,7 +6156,7 @@ refuse to start without the pair. The sequence:
         ./$R-$h --json $R-$h-main.json > $R-$h-main.log 2>&1
         echo "$h main exit=$? $(date -Is)"
       done
-      for c in rev revsome bcast bcastmid reshape1 slice window scaled; do
+      for c in rev revsome bcast bcastmid reshape1 slice window scaled runs; do
         for h in $OTHER $BASIS; do    # adjacent, control then basis
           ./$R-$h classes $c- --json $R-$h-$c.json > $R-$h-$c.log 2>&1
           echo "$h $c exit=$? $(date -Is)"
@@ -6176,6 +6176,7 @@ is a step every reader has had to take in the script instead:
     $R-<other>-slice.json       $R-<basis>-slice.json
     $R-<other>-window.json      $R-<basis>-window.json
     $R-<other>-scaled.json      $R-<basis>-scaled.json
+    $R-<other>-runs.json        $R-<basis>-runs.json
 
 each with a `.log` beside it, and `$R-wallclock.log` over them all. The gate's
 own `$R-gate-*` files are not among them and are excluded from the relaunch
@@ -6305,8 +6306,8 @@ was missed, which is what they have cost.
     #      numbers here are the prose's own and do not move, so this is an
     #      instruction about ORDER and not a renumbering
     ./read-all.sh $R                                  # 1. gate EVERY
-    #      process -- both halves of every population, which is eighteen
-    #      --selftest and eighteen --aa, and nine is what counting by hand
+    #      process -- both halves of every population, which is twenty
+    #      --selftest and twenty --aa, and ten is what counting by hand
     #      leaves when it counts populations. A run from before
     #      2026-08-14 has ten, its classes being the basis's alone; the
     #      driver counts what is there, so read it and not this line for
