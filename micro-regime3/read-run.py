@@ -310,6 +310,10 @@ def dims_by_shape(main_hs):
         h, w, kh, kw = ds
         return (h - kh + 1) * (w - kw + 1) * kh * kw, kh
 
+    # the run is everything under the outer dim, merged or not
+    def runs(ds, _):
+        return math.prod(ds), math.prod(ds[1:])
+
     sh_re = r'(?P<dims>\[[^\]]*\])'
     blocks = [
         ('convShapes', sh_re, strided),
@@ -325,6 +329,7 @@ def dims_by_shape(main_hs):
         ('slicedShapes', sh_re, strided),
         ('windowShapes', sh_re, window),
         ('scaledViews', sh_re + r',\s*Strides\s*\[[^\]]*\]', listed),
+        ('runsShapes', sh_re, runs),
     ]
     out, ann = {}, {}
     try:

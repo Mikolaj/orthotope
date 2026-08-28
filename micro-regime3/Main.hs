@@ -2838,7 +2838,8 @@ regimeOf sh (T (Strides ats) _ v)
 -- them, the @classes@ benchmark mode times them -- one population per
 -- process, per the protocol at 'classBenches' -- while the default run
 -- stays the main set alone, and 'partitioned' holds every entry to
--- 'sizeCap'. @rotate@
+-- 'sizeCap'. Regime-2 views have their own class since 2026-08-28,
+-- 'runsShapes', for the route the library takes on them. @rotate@
 -- deliberately has no generator: it is a composite of stretch, reshape,
 -- window, stride and rev whose own output keeps innermost stride 1
 -- (regime 2), and the strides a further transpose exposes -- negated sums
@@ -3269,6 +3270,39 @@ scaledViews =
 -- artifact. The names below already read as though this were known; it was
 -- not written down until 2026-08-17, and run-major.sh now refuses a
 -- hyphenated name in CLASSES rather than leaving it to be noticed.
+-- Regime-2 views: an innermost run of contiguous elements under a padded
+-- outer stride, as @slice@ of a wider array, @window@ with a unit kernel
+-- row, or any dense array's sub-block produces them -- the one population
+-- the library dispatches to a slice-and-concatenate path and not to the
+-- regime-3 fill, and the one the stage-two branch moved to the fill. The
+-- listed shape is the view shape; the run is everything under the outer
+-- dim, the outer stride the run plus one, so the view is regime 2 and
+-- never regime 1. Unlike its siblings this class is a sweep and not a
+-- triple: its question is a crossover in run length -- one memcpy per
+-- run against the fill's stepping loop -- so it walks the run from 2 to
+-- 65536 at a fixed size, with one rank-3 entry whose two inner dims are
+-- contiguous and merge under 'canonView', so the library's merge and not
+-- the listing decides its run.
+runsShapes :: [(String, ShapeL)]
+runsShapes =
+  [ ("runs-2",        [900000, 2])      -- 1800000, runs of 2
+  , ("runs-3",        [600000, 3])      -- 1800000, a k3 conv row
+  , ("runs-9",        [200000, 9])      -- 1800000, the window probe's run
+  , ("runs-96",       [18750, 96])      -- 1800000, an image row
+  , ("runs-1024",     [1757, 1024])     -- 1799168
+  , ("runs-65536",    [27, 65536])      -- 1769472, a few long runs
+  , ("runs-r3-48x30", [1250, 48, 30])   -- 1800000, merges to runs of 1440
+  ]
+
+mkRuns :: ShapeL -> (ShapeL, T)
+mkRuns sh@(rows : inner) =
+  let run = product inner
+      rowStride = run + 1
+      v = VS.enumFromN (0 :: Double) (rows * rowStride)
+      strides = rowStride : drop 1 (getStridesT inner)
+  in  (sh, T (Strides strides) 0 v)
+mkRuns sh = error ("mkRuns: rank 2 or more expected: " ++ show sh)
+
 classViews :: [(String, (ShapeL, T))]
 classViews =
   [(n, mkRev s) | (n, s) <- revShapes]
@@ -3280,6 +3314,7 @@ classViews =
   ++ [(n, mkSliced s) | (n, s) <- slicedShapes]
   ++ [(n, mkWindow s) | (n, s) <- windowShapes]
   ++ [(n, mkScaled s sts) | (n, s, sts) <- scaledViews]
+  ++ [(n, mkRuns s) | (n, s) <- runsShapes]
 
 -- The cap that partitions the shape set: benchmarked iff @l <= sizeCap@,
 -- flagged and excluded otherwise. 'stretchShapes' is written to it exactly.
@@ -4167,7 +4202,12 @@ buildersMatch ao osh oats =
 -- fails by name rather than passing as a different, weaker input. A failed
 -- condition is named in the error like a disagreeing arm is.
 oneView :: String -> ShapeL -> T -> [(String, Bool)] -> IO ()
-oneView name sh a@(T (Strides ats) ao v) conds = do
+oneView = oneViewReg 3
+
+-- 'oneView' with the regime the class owes made explicit: 3 for every
+-- class but @runs@, whose views are regime 2 by definition.
+oneViewReg :: Int -> String -> ShapeL -> T -> [(String, Bool)] -> IO ()
+oneViewReg expReg name sh a@(T (Strides ats) ao v) conds = do
   let rList  = reference sh a
       builds = buildersMatch ao (init sh) (Strides (init ats))
       bad    = [n | (n, f) <- checkedArms, f sh a /= rList]
@@ -4182,8 +4222,10 @@ oneView name sh a@(T (Strides ats) ao v) conds = do
              ++ ", agree=" ++ show agree ++ ", builds=" ++ show builds
              ++ (if null failedConds then ""
                  else " FAILED " ++ unwords failedConds)
-  unless (agree && builds && reg == 3 && null failedConds) $
+  unless (agree && builds && reg == expReg && null failedConds) $
     error ("CHECK FAILED: " ++ name
+           ++ (if reg == expReg then "" else ", regime " ++ show reg
+               ++ " where the class owes " ++ show expReg)
            ++ (if null failedConds then ""
                else ", class conditions failed: "
                     ++ unwords failedConds)
@@ -4233,6 +4275,7 @@ check = do
   mapM_ oneSliced slicedShapes
   mapM_ oneWindow windowShapes
   mapM_ oneScaled scaledViews
+  mapM_ oneRuns runsShapes
   where
     one (name, normalSh) = do
       let (sh, a@(T (Strides ats) ao _)) = mkStrided normalSh
@@ -4383,6 +4426,15 @@ check = do
     -- Non-vacuity: a 1 in an entry's stride list fails no-unit-stride
     -- alone -- the mistyped entry being exactly what it guards -- and five
     -- elements of backing slack fail tight-backing alone.
+    -- Non-vacuity, 2026-08-28: padding the outer stride by 0 instead of 1
+    -- (a valid dense view) fails the regime, 1 where the class owes 2;
+    -- listing a rank-1 shape is refused by 'mkRuns' itself.
+    oneRuns (name, sh) =
+      let (sh', a@(T (Strides ats) _ _)) = mkRuns sh
+          (_, cats) = canonView sh' ats
+      in  oneViewReg 2 name sh' a
+            [ ("innermost-unit", last ats == 1)
+            , ("canon-rank2",    length cats == 2 && last cats == 1) ]
     oneScaled (name, sh, strides) =
       let (sh', a@(T (Strides ats) _ v)) = mkScaled sh strides
       in  oneView name sh' a
