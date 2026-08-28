@@ -607,33 +607,37 @@ it.
 
 ## What the next run compares against
 
-**Run 21's regime, roster and basis are settled; its PAIR is not,
-and that decision belongs to whoever asks for the run.** The regime
+**Run 21's regime, roster, basis and PAIR are all settled --- the pair
+on 2026-08-28, so nothing in this section is a stop.** The regime
 is `-fspec-constr`, as every run since Run 8, and it is the regime the claims
 decide in; the shipped file does not set the flag ([the
-ceiling](../README.md#the-mutable-ceiling-taken)). The roster is Run 20's unless
-something lands: 53 timed arms over 24 main-set shapes and 26 class views, 1272
-benches and 1378, with `reshape1` and `bcastmid` at four shapes and the other
-six at three. The basis is `run20-g912`'s recipe --- ghc-9.12.4,
+ceiling](../README.md#the-mutable-ceiling-taken)). **The roster MOVED after
+this was written**, on 2026-08-28: 49 timed arms over 24 main-set shapes and 33
+class views, 1176 benches and 1617, with the new `runs` class at seven shapes,
+`reshape1` and `bcastmid` at four and the other six at three --- six arms in,
+ten names out. The basis is `run20-g912`'s recipe --- ghc-9.12.4,
 `-fobject-determinism`, the per-sample instrument and the saturating preamble,
 run under `WILDLOG=1 SATURATE=1` --- which is now the same recipe four runs
 running. The allocation area is fixed at `-A32m` and no pair will vary it again.
-**What the pair is for is the open question, and this run leaves three
-candidates with what each buys.** A *repetition* --- one recipe built twice,
-or one binary run twice --- is the one thing Run 20 could not give and the one
-this file most wants: its roster change put a layout term into every cross-run
-figure, so no reading here separates drift from placement, and a repetition
-on an unmoved roster would restore the clean drift band Run 19 had. A *third
-compiler reading* buys least: the manifest's orderings --- eight when this run
-read them, seven since claim 2's second link retired --- have now held on 9.12,
-9.14 and HEAD, and Run 19 already advised against another on that ground.
-A *purpose-built pair* has no question left to answer that this run raised ---
-the leaf-block finding below is a code question that both halves already
-answered the same way, so it wants a decision about what ships rather
-than another evening. **What is NOT a candidate** is a pair varying
-the allocation area, closed 2026-08-21, or one varying the roster between
-its halves, refused because it would break `preflight`'s `check` comparison
-and both drivers' bench counts.
+**The pair, decided 2026-08-28, is none of the three candidates below**:
+it is Run 20's pair again --- the same two recipes, 9.12.4 against the same GHC
+HEAD, one source and one shim --- over the extended roster and shapes, which
+is what Run 20 itself was to Run 19. The three are kept for what each says
+it would have bought, a later run being free to want one. A *repetition* --- one
+recipe built twice, or one binary run twice --- is the one thing Run 20 could
+not give and the one this file most wants: its roster change put a layout term
+into every cross-run figure, so no reading here separates drift from placement,
+and a repetition on an unmoved roster would restore the clean drift band Run 19
+had. A *third compiler reading* buys least: the manifest's orderings --- eight
+when this run read them, seven since claim 2's second link retired --- have now
+held on 9.12, 9.14 and HEAD, and Run 19 already advised against another
+on that ground. A *purpose-built pair* has no question left to answer
+that this run raised --- the leaf-block finding below is a code question
+that both halves already answered the same way, so it wants a decision about
+what ships rather than another evening. **What is NOT a candidate** is a pair
+varying the allocation area, closed 2026-08-21, or one varying the roster
+between its halves, refused because it would break `preflight`'s `check`
+comparison and both drivers' bench counts.
 
 **This overrides a ruling recorded in this very section, and what moved
 is the premise rather than the judgement.** Run 19 advised that Run 20
@@ -1182,15 +1186,17 @@ rather than re-aimed here.
    0.9293 at 22 on its aligned one --- and on a placed layout it has now read
    the aligned figure five runs running. The ordering has survived eight runs,
    two changes of basis, a repetition and three compilers.
-2. `offtab` sits behind `bq-scan-rem-gm-mulback`: **the arms needing something
-   other than the fix sit behind it**, which is what this claim asks since
-   the settlement of 2026-08-24 re-aimed it. It prices a mutable `Int` scratch
-   against needing nothing. **Its second link, `bq-expand` behind
-   `mut-odo-vecdims`, retired 2026-08-26** on the reading above, its condition
-   having been spent since 2026-08-24 --- what it priced was the branch's own
-   code against its replacement, and the replacement is now the branch's own
-   code. It was the widest ordering the manifest carried, and `--pair` recovers
-   it, both arms staying rostered and timed.
+2. **Retired 2026-08-28** with the parking of `offtab`, the only arm
+   its surviving link named. What it asked, since the settlement of 2026-08-24
+   re-aimed it, was where the arms needing something other than the fix sit ---
+   `offtab` behind `bq-scan-rem-gm-mulback`, a mutable `Int` scratch priced
+   against needing nothing --- and its last reading is Run 20's, above.
+   **Its second link, `bq-expand` behind `mut-odo-vecdims`, had gone already,
+   2026-08-26** on the reading above, its condition having been spent since
+   2026-08-24 --- what it priced was the branch's own code against
+   its replacement, and the replacement is now the branch's own code. It
+   was the widest ordering the manifest carried, and `--pair` recovers it, both
+   arms staying rostered and timed.
 3, 4, 5. **Retired at Run 19's write-up**, on a last reading in which all three
 held on both compilers, and for the reasons in the settlement paragraph
 at the foot of this section. Their numbers are left standing here rather
@@ -1205,32 +1211,32 @@ of the three could still foreclose is the point**: every one asks where
 `bq-expand` sits among arms nothing ships, on a branch whose fix
 is `mut-odo-vecdims`. The arms all stay rostered and timed, so any
 of these orderings is one `--pair` call away.
-6. `gen-quotrem` ties `list` --- the first attempt's arithmetic stops being
-   dearer than the list's allocation once the flag takes its own allocation
-   to 1.00x against the list's 23.5x, which is the mixed picture this suite
-   exists to have refuted, arriving by a route nobody proposed. The `cm-gather`
-   < `list` half is untimed and stands as Run 8's. A break here would mean
-   something changed in `list` or in GHC, not in a strategy --- check the anchor
-   before anything else, as Run 8 had to and the five runs since did not.
+6. **Retired 2026-08-28** with the parking of `gen-quotrem`, its only link. What
+   it asked: `gen-quotrem` ties `list`, the first attempt's arithmetic ceasing
+   to be dearer than the list's allocation once the flag takes its own
+   allocation to 1.00x against the list's 23.5x --- the mixed picture this suite
+   exists to have refuted, arriving by a route nobody proposed. Its last reading
+   is Run 20's, above; the `cm-gather` < `list` half was untimed throughout
+   and stands as Run 8's. What goes with it is the standing advice to check
+   `list` as an anchor before blaming a strategy, which is now nobody's claim
+   and is why the machine check reads `list` net per shape every run.
 7. Allocation, median multiples of the result on this basis: the mutable fills
-   1.00x, `gen-quotrem` also 1.00x, `bq-mut` and the scan family 1.33x,
-   `bq-odo-gm-mulback` 1.51x, `offtab` 2.00x, `bq-expand` 2.35x, `list` 23.5x.
-   Every level has reproduced since Run 15, which is what makes this the claim
-   to check first when anything else moves: allocation is deterministic per
-   call, so a level that *does* move is a code change and never a slot. **Read
-   the levels and the cells as two questions**, which Run 19 is the run
-   that separated: its levels all returned while the cross-half cell agreement
-   fell to 1016 of 1080, where the 9.14 pair had 1072 --- so a compiler can
-   reallocate within a tier without moving any tier, and only the cell count
-   sees it.
+   1.00x, the scan family 1.33x, `bq-odo-gm-mulback` 1.51x, `offtab-scan-rem`
+   2.00x, `bq-expand` 2.35x, `list` 23.5x --- re-listed 2026-08-28, three
+   of its levels having gone with the parking. Every level has reproduced since
+   Run 15, which is what makes this the claim to check first when anything else
+   moves: allocation is deterministic per call, so a level that *does* move
+   is a code change and never a slot. **Read the levels and the cells as two
+   questions**, which Run 19 is the run that separated: its levels all returned
+   while the cross-half cell agreement fell to 1016 of 1080, where the 9.14 pair
+   had 1072 --- so a compiler can reallocate within a tier without moving any
+   tier, and only the cell count sees it.
 8. Every pure arm in the fast tier runs its output through the single in-order
    `vGenerate` over an `m`-length table, and a `bq-*` arm that falls behind
    loses on its table build and not on its output. Read the structure and
    not a threshold: the span is populated, `bq-expand-gm-mulback`
    and `bq-expand` lying between the leading tier and `offtab-scan-rem`,
-   the slowest pure arm left. **Re-aimed 2026-08-28**, `bq-expand-zf`
-   and `bq-gen` having been parked with the eight; the reading above is the last
-   that names them.
+   the slowest pure arm left. Re-aimed 2026-08-28.
 9. **Retired at Run 19's write-up with 3, 4 and 5**, and for a reason of its own
    worth keeping: its per-shape half was answered rather than abandoned.
    `bq-expand-b`'s two best cells were `stretch-inner1` and `stretch-wide-2xM`
@@ -1248,6 +1254,19 @@ of these orderings is one `--pair` call away.
    at Run 13 and not extended per run, and a closed series in a live manifest
    is maintenance without a question --- which, with the follow-up spent,
    is the whole case for retiring it.
+
+**What the parking of 2026-08-28 did to this set**, recorded in prose because
+a live item carries a predicate and no reading, and because naming a parked arm
+inside one is now a `--lint` failure. Claims 2 and 6 retired with `offtab`
+and `gen-quotrem`, the only arms their surviving links named. Claim 7 lost three
+of its levels to the same parking --- `gen-quotrem` at 1.00x, `bq-mut` at 1.33x
+and `offtab` at 2.00x, every figure of theirs ending at Run 20 ---
+and `offtab-scan-rem` carries the 2.00x tier now. Claim 8 was re-aimed off
+`bq-expand-zf` and `bq-gen`, its span running from the leading tier
+to `offtab-scan-rem` instead; the readings above are the last that name the two.
+Nothing was retired on a reading here, the parking being a decision about what
+is worth a bench, and the two claims that went had no link left that a run could
+measure.
 
 **Two homes, and which carries what.** Each live claim has a prose paragraph
 here and a numbered predicate at the foot, and they divide: the PROSE carries
@@ -1360,21 +1379,23 @@ cross-compiler reading and the retirement is recorded with it --- which is how
 Run 17 retired claim 4's tie, in prose at its write-up with the manifest taking
 it the same day. **They got it**: all thirteen held on both of Run 19's halves,
 and the eight that remain hold on both too, so each of the four retires
-on a reading rather than on a decision. `CLAIMS` in `read-run.py` now carries
-claims 1, 2 and 6 alone. The test applied: an ordering stays only
-if it forecloses something anyone would propose again *and* can still break.
-What fails both is a figure, and figures live in the tables above. **Claims 3, 5
-and 9 retire outright.** Claim 3 sets one output form against another on a build
-nothing ships, where every leading pure arm is a `-gm-mulback` already; claim
-5's `bq-expand` / `bq-gen` says of itself that the refutation stands on Runs 7
-and 8, and claim 6 keeps that family guarded through `gen-quotrem`; claim 9's
-two series are closed at Run 13 by this section's own words, and a closed series
-in a live manifest is maintenance without a question. **Claim 4 retires
-with them, its tie moving into claim 1** --- and what goes with it is the one
-place the manifest reads a *builder* apart from its output, which `--pair`
-recovers whenever it is wanted, both arms staying rostered. **Claim 1 becomes
-the ladder the `needs` column already draws**, gaining `bq-scan-rem-gm-mulback`,
-the best arm needing nothing at all, between `bq-mut-runs-gm-mulback`
+on a reading rather than on a decision. `CLAIMS` in `read-run.py` carried claims
+1, 2 and 6 alone after that settlement, and **claim 1 alone since 2026-08-28**,
+`offtab` and `gen-quotrem` having been parked. The test applied: an ordering
+stays only if it forecloses something anyone would propose again *and* can still
+break. What fails both is a figure, and figures live in the tables above.
+**Claims 3, 5 and 9 retire outright.** Claim 3 sets one output form against
+another on a build nothing ships, where every leading pure arm
+is a `-gm-mulback` already; claim 5's `bq-expand` / `bq-gen` says of itself
+that the refutation stands on Runs 7 and 8, and claim 6 keeps that family
+guarded through `gen-quotrem`; claim 9's two series are closed at Run 13
+by this section's own words, and a closed series in a live manifest
+is maintenance without a question. **Claim 4 retires with them, its tie moving
+into claim 1** --- and what goes with it is the one place the manifest reads
+a *builder* apart from its output, which `--pair` recovers whenever
+it is wanted, both arms staying rostered. **Claim 1 becomes the ladder
+the `needs` column already draws**, gaining `bq-scan-rem-gm-mulback`, the best
+arm needing nothing at all, between `bq-mut-runs-gm-mulback`
 and `bq-odo-gm-mulback`: the first ahead of it at **0.9060** and **0.9171**
 on Run 18's two halves, 19 and 17 of 24, which is what a mutable `Int` scratch
 buys; and the second **tied** with it at **0.9902** and **0.9936**, 13 and 12
