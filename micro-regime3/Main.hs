@@ -2140,9 +2140,8 @@ fbMutOdoVecdimsAddInLeafU2 sh (T (Strides ats) ao v) = VS.create $ do
 -- two elements, where its rank-1 copy keeps them in registers
 -- (README.md#the-mutable-ceiling-taken). The count replaces @oEnd@
 -- one for one, so the loop is a value lighter, and the same epilogue
--- takes the odd or empty run. Rostered 'Only' on 2026-08-27, by
--- decision: it is checked on every shape and waits for a run with a
--- slot for it. The bound is on the count and not the cursor, so it is
+-- takes the odd or empty run. Rostered 'Only' on 2026-08-27 and timed
+-- from 2026-08-28. The bound is on the count and not the cursor, so it is
 -- as sign-agnostic as its control. Non-vacuity, 2026-08-27: dropping
 -- the @+ tInner@ from the second read fails @check@ at @cnn-L1-6x6-c1@,
 -- naming this arm.
@@ -3456,9 +3455,9 @@ roster =
   , ("mut-odo-vecdims-add-in-leaf", Fill fbMutOdoVecdimsAddInLeaf)
   , ("mut-odo-vecdims-add-in-leaf-down", Fill fbMutOdoVecdimsAddInLeafDown)
   , ("mut-odo-vecdims-add-in-leaf-u2", Fill fbMutOdoVecdimsAddInLeafU2)
-    -- not timed, by decision (2026-08-27): the lighter-loop form of the
-    -- shipped arm, waiting for a run with a slot, see its definition
-  , ("mut-odo-vecdims-add-in-leaf-u2-down", Only fbMutOdoVecdimsAddInLeafU2Down)
+    -- Timed since 2026-08-28, parked 'Only' the day before: the
+    -- lighter-loop form of the shipped arm, see its definition.
+  , ("mut-odo-vecdims-add-in-leaf-u2-down", Fill fbMutOdoVecdimsAddInLeafU2Down)
     -- The rework-proposal block, added 2026-08-25, first read in Run 20
     -- (README.md#the-two-stage-plan-and-the-rework-proposal): the
     -- canonicalizing composite, its memcpy-run form, the two
