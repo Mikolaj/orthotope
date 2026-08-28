@@ -32,7 +32,7 @@ names as missing. Do not edit any file. Read and compute only.
 TWO DOCUMENTS, and the run's numbers are in the second: README.md is what
 stands between runs, and runs/run<N>.md is this run's write-up entire --
 its head, Results, what the next run compares against, the claims it
-should test, the eight class blocks and its own Provenance. A run
+should test, the nine class blocks and its own Provenance. A run
 replaces that file and edits README.md around it -- a bullet on the delta
 chain, and whatever the replace list turns up -- so the diff spans both.
 
@@ -42,7 +42,7 @@ mostly character-level; ignore that and judge the substance.
 
 FOUR THINGS YOU CANNOT DERIVE, so they are given:
  1. The basis is RUN-BASIS and publishes every table (RUN-BASIS-main.json,
-    and RUN-BASIS-<class>.json for rev revsome bcast bcastmid reshape1
+    and RUN-BASIS-<class>.json for rev revsome bcast bcastmid reshape1 runs
     slice window scaled). The control is RUN-OTHER.
  2. PREV is on disk too. Absolutes and anchors are read against
     PREVSAME, the half at this run's own area; the published lineage
@@ -77,7 +77,7 @@ FOUR THINGS YOU CANNOT DERIVE, so they are given:
 PASS 1 -- every figure. Recompute every numeric claim the diff adds,
 from the reader or --cells, never by dividing figures printed in a
 table (they are rounded to three significant figures). Be exhaustive
-on the tables -- Results, the fingerprint, the eight class tables, the
+on the tables -- Results, the fingerprint, the nine class tables, the
 cross-class summary, the yardstick's new columns -- and say how many
 rows you verified and how many disagreed.
 

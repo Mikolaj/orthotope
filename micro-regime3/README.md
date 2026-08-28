@@ -1173,7 +1173,7 @@ rather than a slot in the next run, observed again:
   rung of claim 1's ladder, three of its links running through it. Parking
   `offtab` and `gen-quotrem` retires claims 2 and 6, whose only links they were.
   So the run is 49 timed arms, 1176 main-set benches and 1617 class benches.**
-  Four questions, each with a prediction and what kills it --- the predictions
+  Five questions, each with a prediction and what kills it --- the predictions
   are this file's and its author's, written before the run so that the run can
   contradict them. (1) *The `runs` class.* `lib-stage2` against `lib-stage1`,
   per run length. Predicted: a tie inside the floor at `runs-2` and `runs-3`,
@@ -4568,16 +4568,15 @@ that roster with the strategies, and not strategies themselves, are twenty-two
 controls: sixteen A/A arms --- `bq-expand-aa-adjacent`
 and `bq-expand-aa-distant`, `bq-scan-rem-gm-mulback-aa-adjacent`
 and `bq-scan-rem-gm-mulback-aa-distant`, `mut-odo-vecdims-aa`
-and `mut-odo-vecdims-aa-distant`, `offtab-aa-adjacent` and `offtab-aa-distant`,
-`bq-odo-gm-mulback-aa-adjacent` and `bq-odo-gm-mulback-aa-distant`, and, added
-2026-08-14, `build-aa-adjacent` and `build-aa-distant`, `mut-odo-aa-adjacent`
-and `mut-odo-aa-distant`, `list-aa-adjacent` and `list-aa-distant`,
-`gen-unsafe-aa-adjacent` and `gen-unsafe-aa-distant`, nine strategies each
-duplicated in both positions --- the `sum-only-early`/`sum-only-late` pair,
-and `bq-expand-nosum`, `mut-odo-vecdims-nosum`, `mut-flat-gm-nosum` and, added
-2026-08-25, `canon-full-nosum`, each its base arm forced with one element
-instead of the sum. [The noise
-floor](#what-moves-a-figure-when-no-strategy-changed)
+and `mut-odo-vecdims-aa-distant`, `bq-odo-gm-mulback-aa-adjacent`
+and `bq-odo-gm-mulback-aa-distant`, and, added 2026-08-14, `build-aa-adjacent`
+and `build-aa-distant`, `mut-odo-aa-adjacent` and `mut-odo-aa-distant`,
+`list-aa-adjacent` and `list-aa-distant`, `gen-unsafe-aa-adjacent`
+and `gen-unsafe-aa-distant`, eight strategies each duplicated in both positions
+--- the `sum-only-early`/`sum-only-late` pair, and `bq-expand-nosum`,
+`mut-odo-vecdims-nosum`, `mut-flat-gm-nosum` and, added 2026-08-25,
+`canon-full-nosum`, each its base arm forced with one element instead
+of the sum. [The noise floor](#what-moves-a-figure-when-no-strategy-changed)
 and [sum-only](#sum-only-and-the-correction-now-applied) say what each is for.
 
 The `check` mode (below) asserts every strategy produces byte-identical vectors
@@ -5055,8 +5054,9 @@ and never as a chronology.
     #      fill-in block is complete and whose GATE line reads NOT RUN has
     #      spent this list already. Yours, from this session, enters at 13.
     #      Somebody else's, or older than today, takes CONFIRM and re-runs
-    #      the cheap read-only steps -- 4 to 10 cost seconds each and 9 is
-    #      the whole regime guard -- inheriting only the three the note
+    #      the cheap read-only steps -- 4 to 10 are one call and about
+    #      eight minutes, most of it 8c and 8d, and 9 is the whole regime
+    #      guard -- inheriting only the three the note
     #      records: the gate, the smoke sweep and the roster pass
     #  1-3 ARE THE FORK, and the two branches have names this file uses
     #  elsewhere. Missing, or moved with CODE changed, sends you down the
@@ -5432,7 +5432,7 @@ throughout:
     do ./run-counts.sh $R <other> $c; ./run-counts.sh $R <basis> $c; done
     #  20. THE COUNTED WORK, over EVERY population and not the main set
     #      alone -- the empty first element is the main set, and the nine
-    #      that follow are the classes, `run19-counts-<half>[-<class>].txt`
+    #      that follow are the classes, `$R-counts-<half>[-<class>].txt`
     #      apiece. Instructions an iteration from two fixed-`-n` processes
     #      a cell, differenced, which owes criterion nothing: an arm whose
     #      time moved between the halves either moved its counts with it,
@@ -5727,7 +5727,8 @@ both is the rule and the one-sided case is the exception that no longer arises.
 The halves are held to each other besides --- a sound pair makes the two logs
 byte-identical, agreement on every shape being a property of the strategies
 and not of where their loops landed. A difference stops the run, and the rebuild
-goes through the recipe in that pair's note. The two lines above cost seconds.
+goes through the recipe in that pair's note. The two lines above cost about
+a minute and a half on the Run 21 pair, and not the seconds this used to say.
 
 **Then confirm the regime is the one intended**, which nothing later can:
 
@@ -6132,7 +6133,7 @@ What it adds over pasting the sequence is the counting: every process's bench
 count is checked against what the roster holds, so a selection that silently
 caught the wrong set is loud in the log at once instead of at the write-up ---
 loud rather than fatal: the sequence carries on to the next process, there being
-no reading in which eight sound populations are worth discarding for one
+no reading in which nine sound populations are worth discarding for one
 that is not, so the wall-clock log is what has to be read before any figure is,
 and the exit status carries out the count of them, a sequence launched with `&`
 being read by whatever collected it. The expected count is read
@@ -6363,7 +6364,7 @@ was missed, which is what they have cost.
     ./read-run.py $R-<basis>-$c.json --compare $R-<other>-$c.json
     #      and one per class ACROSS the halves -- from Run 14 on, a run
     #      before that having no control-half class JSON to compare
-    #      against, so these eight are skipped and the chapter says they
+    #      against, so these nine are skipped and the chapter says they
     #      were. Which is what running every
     #      class on both is for and what nothing else in this list reads: a
     #      pair's variable can act on a class and not on the main set.
@@ -6391,7 +6392,7 @@ was missed, which is what they have cost.
     #      had to snapshot the file and diff against its own copy
     #      run's over it: it is the whole of what a run replaces -- head,
     #      Results, what the next run compares against, the claims it
-    #      should test, the eight class blocks and its own Provenance --
+    #      should test, the nine class blocks and its own Provenance --
     #      and every install below writes it and no other document. The
     #      number is in the NAME and in none of that file's SECTIONS, so
     #      the four this step used to rename are TWO: the file's title,
@@ -6543,7 +6544,7 @@ the artifacts are what it spends.
    failing invalidates the whole time column rather than merely leaving
    it uncorrected, and all have to be re-passed by every run rather
    than inherited --- by every *population* too, each process carrying its own
-   `sum-only` pair, its own eighteen A/A controls and its own `-nosum` arms ---
+   `sum-only` pair, its own sixteen A/A controls and its own `-nosum` arms ---
    four on today's roster, and a half built on another roster carries
    that roster's --- so a class run passes or fails the gates on its own
    evidence and a failure there invalidates that class's column and no other.
@@ -6810,23 +6811,27 @@ the artifacts are what it spends.
    rows verified rather than the ones somebody thought to check. Leave
    the placement, contradiction and writing-rule reading to yourself.
    **The brief is checked in as `checker-brief.txt` and is not to be retyped**
-   --- it carries both agents' briefs and only its first block changes from run
-   to run, which is the run name, the two half names and the previous run's two.
-   Run 16 wrote it out twice, once because a rate limit killed the agent
-   mid-pass. Four things it cannot derive are why it exists: which half
-   is the basis, and so which of the eighteen JSONs every published table comes
-   from; that it works in this directory, that its evidence is this run's own
-   JSONs and `read-run.py`, and that no other repository's checkers come near
-   this README --- it starts where your session started, so the artifacts
-   are not where it is and the checkers it arrives with are not this README's.
-   And once the write-up has settled, aim the same instrument at the finished
-   README rather than the diff: a comprehension probe --- a fresh session
-   answering a handful of the README's own questions from the document alone,
-   with citations --- reads as a stranger what every diff-scoped check reads
-   as a change, and on every run it has been given it has surfaced
-   a contradiction between standing passages that nothing above could have seen.
-   (The rule that a check must be proven able to fail governs the instruments
-   themselves and is stated with them, [in the reader's
+   --- it carries both agents' briefs, and its first block is the run name,
+   the two half names and the previous run's two. **That block is not the only
+   thing that changes, whatever its own heading says**: the class lists
+   and every count of the classes move with the roster, and the two
+   `THIS RUN ONLY` items carry one run's box event and one run's intrusion,
+   so a stale item 5 tells a checker to write off a real level shift. Walk
+   the file, not its head. Run 16 wrote it out twice, once because a rate limit
+   killed the agent mid-pass. Four things it cannot derive are why it exists:
+   which half is the basis, and so which of the twenty JSONs every published
+   table comes from; that it works in this directory, that its evidence
+   is this run's own JSONs and `read-run.py`, and that no other repository's
+   checkers come near this README --- it starts where your session started,
+   so the artifacts are not where it is and the checkers it arrives with
+   are not this README's. And once the write-up has settled, aim the same
+   instrument at the finished README rather than the diff: a comprehension probe
+   --- a fresh session answering a handful of the README's own questions
+   from the document alone, with citations --- reads as a stranger what every
+   diff-scoped check reads as a change, and on every run it has been given
+   it has surfaced a contradiction between standing passages that nothing above
+   could have seen. (The rule that a check must be proven able to fail governs
+   the instruments themselves and is stated with them, [in the reader's
    section](#the-reader-read-runpy).)
 
    The checks themselves:
