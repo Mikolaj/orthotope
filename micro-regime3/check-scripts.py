@@ -571,22 +571,23 @@ def rundoc_current_run_sentence(tmp):
     LINE, which is where this fixture started, the sentence lands inside
     another one and the figure is never reached.
     """
-    ANCHOR = '**Claim 2 '   # RE-AIMED 2026-08-25, from claim 3, which
+    ANCHOR = '**Claim 1 '   # RE-AIMED 2026-08-28, from claim 2, retired
+    # that day with its arm parked; and 2026-08-25 from claim 3, which
     # retired at Run 19's write-up along with 4, 5 and 9. The anchor has to
     # be a claim the MANIFEST still carries, not merely a heading the
     # section still shows: with the claim gone from `CLAIMS` the reader
     # computes no reading for it, so the planted sentence is never
     # adjudicated and the figure never appears -- which is how this case
-    # failed the hour the manifest shrank. Claim 2 keeps its number by that
-    # settlement's own decision, and `bq-expand` is one of its arms, so the
-    # planted sentence still reads as one about that claim.
+    # failed the hour the manifest shrank, and again on 2026-08-28 when
+    # claim 2 retired with its arm: the sentence now names a claim-1 arm,
+    # `mut-flat-gm`, so it reads as one about the claim that is left.
     doc = open(RUNDOC).read()
     run = re.match(r'run(\d+)\.md$', os.path.basename(RUNDOC))
     assert run, 'the run file is not named run<N>.md, so it names no run'
     paras = doc.split('\n\n')
     at = [i for i, p in enumerate(paras) if p.startswith(ANCHOR)]
     assert len(at) == 1, '%s lead: %d paragraph(s)' % (ANCHOR, len(at))
-    paras.insert(at[0] + 1, 'In Run %s, `bq-expand` reads 0.9312 against'
+    paras.insert(at[0] + 1, 'In Run %s, `mut-flat-gm` reads 0.9312 against'
                             ' it.' % run.group(1))
     return write_rundoc(tmp, '\n\n'.join(paras))
 
@@ -662,10 +663,10 @@ def rundoc_retirement_sentence(tmp, retiring=True):
     doc = subprocess.run(['wrap80', '--unwrap'], input=open(RUNDOC).read(),
                          capture_output=True, text=True, check=True).stdout
     paras = doc.split('\n\n')
-    at = [i for i, x in enumerate(paras) if x.startswith('**Claim 2 ')]
-    assert len(at) == 1, 'claim 2 lead: %d paragraph(s)' % len(at)
-    sent = ('Claim 2 retires here, having last read 0.8271 against it.'
-            if retiring else 'Claim 2 reads 0.8271 against it.')
+    at = [i for i, x in enumerate(paras) if x.startswith('**Claim 1 ')]
+    assert len(at) == 1, 'claim 1 lead: %d paragraph(s)' % len(at)
+    sent = ('Claim 1 retires here, having last read 0.8271 against it.'
+            if retiring else 'Claim 1 reads 0.8271 against it.')
     paras.insert(at[0] + 1, sent)
     return write_rundoc(tmp, '\n\n'.join(paras))
 
@@ -2545,14 +2546,15 @@ CASES = [
                                  skew=[(sh, arm, f)
                                        for sh in main_shapes()
                                        for arm, f in (('bq-expand', 1.10),
-                                                      ('bq-gen', 1.12),
+                                                      ('bq-expand-gm-mulback', 1.12),
                                                       ('mut-odo', 1.08),
-                                                      ('offtab', 1.01))])},
+                                                      ('offtab-scan-rem', 1.01))])},
          argv=['{run}', '--compare', '{other}', '--movers', '3'],
          ok=V(exit=0,
               has=['3 of %d arm(s) move past 3%%' % compared_arm_count(),
-                   'in 3 group(s)', 'bq-expand', 'bq-gen', 'mut-odo'],
-              hasnt=['offtab'])),
+                   'in 3 group(s)', 'bq-expand', 'bq-expand-gm-mulback',
+                   'mut-odo'],
+              hasnt=['offtab-scan-rem'])),
 
     case('movers-alone-does-nothing', 'read-run.py', None,
          'a numeric modifier whose zero slipped a truthiness guard',
@@ -2680,7 +2682,7 @@ CASES = [
          # too, and `list` would not, being the baseline every ratio
          # divides by.
          plant=lambda t: {'run': synth_json(t, 'main')},
-         argv=['{run}', '--claims', '--exclude', 'offtab'],
+         argv=['{run}', '--claims', '--exclude', 'mut-flat-gm'],
          ok=V(has=['1 arm(s) of the claims list']),
          bug=V(has=['8 arm(s) of the claims list'])),
 
@@ -3686,7 +3688,7 @@ CASES = [
          'a missing alloc read as "allocated nothing", silencing the warning',
          plant=lambda t: {'run': doctored(
              t, 'slice',
-             lambda bs: bad_alloc_fit(bs, 'slice-primes/offtab'))},
+             lambda bs: bad_alloc_fit(bs, 'slice-primes/bq-expand'))},
          argv=['{run}', '--main', '/dev/null'],
          ok=V(has=['allocated R2 < 0.99']),
          bug=V(has=['alloc missing for'], hasnt=['allocated R2 < 0.99'])),
@@ -4046,7 +4048,7 @@ CASES = [
          'nothing said whether a break was wider than the run could see',
          plant=lambda t: {'run': doctored(
              t, 'revsome',
-             lambda bs: _scale_arm(bs, 'offtab-aa-distant', 2.5),
+             lambda bs: _scale_arm(bs, 'bq-expand-aa-distant', 2.5),
              'wide-floor.json')},
          argv=['{run}', '--block'],
          ok=V(exit=0, has=['priced:', 'INSIDE the floor'],
