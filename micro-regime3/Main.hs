@@ -2666,6 +2666,155 @@ mkStrided normalSh =
       strides' = swapLast2 normalStrides
   in  (sh', T (Strides strides') 0 v)
 
+-- The library-shaped arms: the whole of what a user's 'toVectorT' costs,
+-- dispatch included, on every population -- so that a run reads a
+-- library change class by class, not only the regime-3 fill the rest
+-- of the roster isolates. Three, one per library form, each a port of
+-- the library code and not a strategy of its own; their pairs are what
+-- an orthotope user would measure.
+--
+-- Stage one as it shipped (Data/Array/Internal.hs at 0386073): regime 1
+-- the vector itself or a slice, regime 2 one slice per maximal normal
+-- suffix and a concatenation, regime 3 the fill 'genericFillStrided'
+-- ports from 'fbMutOdoVecdimsAddInLeafU2'.
+-- Non-vacuity, 2026-08-28: dropping the regime-2 branch (so those views
+-- take the fill) leaves @check@ green, the fill being correct there --
+-- which is why the runs class prices it rather than a check; slicing
+-- from @o + 1@ fails @check@ at @runs-2@.
+{-# NOINLINE fbLibStage1 #-}
+fbLibStage1 :: ShapeL -> T -> VS.Vector Double
+fbLibStage1 sh a@(T (Strides ats) ao v)
+  | ats == ts' && VS.length v == l = v
+  | null sh = VS.slice ao 1 v
+  | oks !! (length sh - 1) = VS.concat (loop oks sh ats ao)
+  | otherwise = fbMutOdoVecdimsAddInLeafU2 sh a
+  where l : ts' = getStridesT sh
+        oks = scanr (&&) True (zipWith (==) ats ts')
+        loop (b : bs) (n : ns) (t : ts) !o
+          | b = [VS.slice o (n * t) v]
+          | otherwise = concat [loop bs ns ts (i * t + o) | i <- [0 .. n - 1]]
+        loop _ _ _ _ = error "fbLibStage1: impossible"
+
+-- Stage two as the branch pr-mikolaj-toVectorListT has it: the view
+-- canonicalized ('canonView'), natural canonical strides the vector or a
+-- slice, and everything else -- contiguous runs included -- filled by
+-- 'fillStage2', the branch's driver. One change over 'fbLibStage1' per
+-- population: on the main set none (both fill, the same loop), on the
+-- runs class the route, on the broadcast classes the conditions.
+{-# NOINLINE fbLibStage2 #-}
+fbLibStage2 :: ShapeL -> T -> VS.Vector Double
+fbLibStage2 sh (T (Strides ats) ao v)
+  | l == 0 = VS.empty
+  | otherwise = case canonView sh ats of
+      (csh, cats)
+        | cats /= ts -> fillStage2 csh cats ao l v
+        | ao == 0 && VS.length v == l -> v
+        | otherwise -> VS.slice ao l v
+        where _ : ts = getStridesT csh
+  where l = product sh
+
+-- 'fbLibStage2' with canonical contiguous runs sent back to one slice
+-- per run and a concatenation, stage one's route for them over stage
+-- two's dispatch -- the repair candidate if the runs class reads the
+-- fill behind the memcpy at long runs. One change over 'fbLibStage2',
+-- so that arm is its control, and the pair is the runs class's question.
+{-# NOINLINE fbLibStage2Concat #-}
+fbLibStage2Concat :: ShapeL -> T -> VS.Vector Double
+fbLibStage2Concat sh (T (Strides ats) ao v)
+  | l == 0 = VS.empty
+  | otherwise = case canonView sh ats of
+      (csh, cats)
+        | cats /= ts ->
+            if last cats == 1
+            then let !n = last csh
+                 in  VS.concat
+                       [ VS.slice o n v
+                       | o <- VU.toList (baseOffsetsList ao (init csh)
+                                                         (Strides (init cats))) ]
+            else fillStage2 csh cats ao l v
+        | ao == 0 && VS.length v == l -> v
+        | otherwise -> VS.slice ao l v
+        where _ : ts = getStridesT csh
+  where l = product sh
+
+-- The branch's 'genericFillStrided' at Storable Double, ported
+-- bang-for-bang: 'fbMutOdoVecdimsAddInLeafU2''s odometer and unrolled
+-- run, the run body a static argument of the INLINE fused level, the
+-- broadcast run hoisted at innermost stride 0, zero-stride outer levels
+-- filled once and block-copied. Kept in step with the library by hand;
+-- 'check' holds it to the reference on every view.
+{-# NOINLINE fillStage2 #-}
+fillStage2 :: ShapeL -> [Int] -> Int -> Int -> VS.Vector Double
+           -> VS.Vector Double
+fillStage2 sh ats ao l v = VS.create $ do
+  out <- VSM.unsafeNew l
+  let writeRunStep !outPos !baseOff =
+        let !oEnd = outPos + sInner
+            inner !o !src
+              | o + 1 >= oEnd =
+                  if o >= oEnd then return ()
+                  else VSM.unsafeWrite out o (VS.unsafeIndex v src)
+              | otherwise = do
+                  VSM.unsafeWrite out o (VS.unsafeIndex v src)
+                  VSM.unsafeWrite out (o + 1)
+                                    (VS.unsafeIndex v (src + tInner))
+                  inner (o + 2) (src + t2)
+        in  inner outPos baseOff
+      writeRunSet !outPos !baseOff =
+        let !x = VS.unsafeIndex v baseOff
+            !oEnd = outPos + sInner
+            inner !o
+              | o >= oEnd = return ()
+              | otherwise = VSM.unsafeWrite out o x >> inner (o + 1)
+        in  inner outPos
+      copies !n !blk !src !dst
+        | n <= 1 = return dst
+        | otherwise = do
+            VSM.unsafeCopy (VSM.unsafeSlice dst blk out)
+                           (VSM.unsafeSlice src blk out)
+            copies (n - 1) blk src (dst + blk)
+      {-# INLINE runsWith #-}
+      runsWith writeRun !n !st !outPos !baseOff
+        | st == 0 = writeRun outPos baseOff
+                    >> copies n sInner outPos (outPos + sInner)
+        | otherwise =
+            let run !k !op !boff
+                  | k <= 0    = return op
+                  | otherwise = writeRun op boff
+                                >> run (k - 1) (op + sInner) (boff + st)
+            in  run n outPos baseOff
+      go !lev !outPos !baseOff
+        | lev >= rOuter =
+            (if tInner == 0 then writeRunSet else writeRunStep)
+              outPos baseOff
+            >> return (outPos + sInner)
+        | otherwise =
+            level (VU.unsafeIndex oshV lev) (VU.unsafeIndex oatsV lev)
+        where
+          level !n !st
+            | lev == rOuter - 1 =
+                if tInner == 0
+                then runsWith writeRunSet n st outPos baseOff
+                else runsWith writeRunStep n st outPos baseOff
+            | st == 0 = do
+                op' <- go (lev + 1) outPos baseOff
+                copies n (op' - outPos) outPos op'
+            | otherwise =
+                let dim !k !op !boff
+                      | k <= 0    = return op
+                      | otherwise = go (lev + 1) op boff
+                                    >>= \op' -> dim (k - 1) op' (boff + st)
+                in  dim n outPos baseOff
+  _ <- go 0 0 ao
+  return out
+  where !sInner = last sh
+        !tInner = last ats
+        !t2 = tInner + tInner
+        !rOuter = length sh - 1
+        oshV, oatsV :: VU.Vector Int
+        !oshV  = VU.fromList (init sh)
+        !oatsV = VU.fromList (init ats)
+
 -- Which of toVectorListT's regimes a (shape, T) pair takes: 1 whole-vector
 -- memcpy, 2 innermost-normal per-run loop, 3 innermost-strided
 -- per-element fallback (the one this benchmark is about). Mirrors the
@@ -3487,6 +3636,15 @@ roster =
     -- loop, so it is the only new arm whose write pattern varies across
     -- the main set at all.
   , ("canon-full-nosum",           Force fbCanonFull)
+    -- The library-shaped block, added 2026-08-28: what a user's
+    -- toVectorT costs under stage one, under stage two, and under stage
+    -- two with contiguous runs routed to slices -- each a port of the
+    -- library code, reasons at the definitions. Appended for the
+    -- family block's own reason -- no existing control moves -- at
+    -- three slots.
+  , ("lib-stage1",                 Fill fbLibStage1)
+  , ("lib-stage2",                 Fill fbLibStage2)
+  , ("lib-stage2-concat",          Fill fbLibStage2Concat)
     -- not timed: 6.20x the result
   , ("mut-offsets",                Only fbMutBaseOffsets)
   , ("build",                      Fill fbBuild)
