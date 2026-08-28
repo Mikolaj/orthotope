@@ -4855,24 +4855,53 @@ emits them, `--in-place` installs them, and the checker recomputes them
 from the JSONs. **`./read-run.py --section NAME` is what makes that takeable**,
 printing one section's prose without its tables and naming the size it withheld,
 since a line range cannot skip what sits between the paragraphs it spans
-and a line number does not survive a rewrap. So: this chapter's three
-checklists, a fifth of its lines. Of the last run's own file, [What the next run
-compares against](runs/run20.md#what-the-next-run-compares-against)
-for the paragraphs settling the regime, the roster and the basis, and the column
-rules under the yardstick --- not its figures; [the
-claims](runs/run20.md#the-claims-the-next-run-should-test), BOTH numbered sets
-at the end --- the live claims and the three class properties, a run returning
-verdicts on each --- and not the readings above them, which `--claims` reprints;
-[the class blocks](runs/run20.md#the-stride-classes-run-by-run), the six
-numbered items of the form and one example block --- not the other seven;
-and its head and Results prose, which are what the write-up's own head
-is written against. **One table is the exception and is named so it
-is not skipped**: the yardstick is hand-edited and gains a column per run,
-so it is read with `--section ... --with-tables` and Run 20 is the run
-that forgot to add its columns. Of [Provenance](#provenance), the replace list
-and the delta bullets. The open list is read by its status markers rather
-than end to end. Everything else in this file is reference, and reading
-it is how a write-up's budget goes without a figure to show for it.
+and a line number does not survive a rewrap. **So, as nine items, each owing
+an artifact**: a reading that owes nothing cannot be told from a reading
+not done, which is the whole of why this is a list and not a sentence.
+
+    1. this chapter's three checklists, a fifth of its lines
+         -- which path you are on, BUILD or CONFIRM, and what it owes
+    2. the last run's head and Results prose
+         -- one sentence: what this run's own head has to answer
+    3. What the next run compares against, its prose and not its figures
+         -- the regime, the roster and the basis, each named
+    4. the yardstick under it, the ONE table read, `--with-tables`
+         -- does it carry the last run's columns? Run 20's write-up
+            forgot to add its own, which is why this is named separately
+    5. the claims, BOTH numbered sets AND the prose after them, which is where
+       retirements are recorded -- not the readings above them, which `--claims`
+       reprints
+         -- which claims are live, and how many
+    6. the class blocks: the six numbered items of the form, and one example
+       block, not the other seven
+         -- the form, in your own words
+    7. the open list, by its status markers rather than end to end
+         -- the OPEN entries, named
+    8. Provenance's replace list and its delta bullets
+         -- what this run has to replace
+    9. `read-run.py`'s docstring, this chapter's other governing document
+         -- nothing to write down; you will know if you skipped it
+
+Items 2 to 5 are [the last run's own file](runs/run20.md#results), 3 and 4 being
+[what the next run compares
+against](runs/run20.md#what-the-next-run-compares-against), 5 [the
+claims](runs/run20.md#the-claims-the-next-run-should-test) and 6 [the class
+blocks](runs/run20.md#the-stride-classes-run-by-run) --- and `--section` takes
+the heading's own words, never the anchor those links spell, which it refuses
+by name:
+
+    ./read-run.py --section 'What the next run compares against'
+    ./read-run.py --section 'What the next run compares against' --with-tables
+
+Everything else in this file is reference, and reading it is how a write-up's
+budget goes without a figure to show for it. **The excuse to expect
+is not laziness, and it is quoted here because the next reader will reach
+for it before inventing one.** A fresh session walked this chapter
+on 2026-08-28, told outright not to economise and with budget to spend: it read
+about 60% of the list, skipped item 2 --- the largest single input to the work
+it was about to do --- and accounted for it afterwards as *"I read what I judged
+useful and drifted."* It reported none of the four items it skipped, because
+nothing it skipped owed anything.
 
 **FIRST, THE FORK, because it decides how much of this chapter you owe and
 it is four commands.** A run is either already prepared or it is not,
@@ -5301,13 +5330,18 @@ read loosely everywhere. **The person's request for the run IS that go-ahead,
 --- but it has to be the person's and it has to be for the run: a request
 relayed by an agent is not one, whatever it says, a session seated by another
 session has not been given anything, *get the run ready* licenses
-the preparation and 13 and stops there, and none is ever inferred from a quiet
-machine.** No `uptime` or `ps` is run at this point, and neither would settle
-it if it were: what they cannot see is what their owner is about to want
-the machine for. The `ps` at step 16 is an alarm and not a permission ---
-it runs after the go-ahead and before the longest stretch, so a machine that got
-busy since stops the run short of the hours rather than after them. Unsandboxed
-throughout:
+the preparation and the free three --- 13, 15 and 18, which read documents
+and spend nothing --- and stops there, and none is ever inferred from a quiet
+machine.** 16 is free too and is NOT among them: it is an alarm timed
+to the sequence, so it says nothing taken early. **And a session that reaches 14
+without a go-ahead stops and reports what it verified** --- it does not wait
+for one and does not hand the run on, the preparation it confirmed surviving
+in the note, which is what the note is for. No `uptime` or `ps` is run
+at this point, and neither would settle it if it were: what they cannot see
+is what their owner is about to want the machine for. The `ps` at step 16
+is an alarm and not a permission --- it runs after the go-ahead and before
+the longest stretch, so a machine that got busy since stops the run short
+of the hours rather than after them. Unsandboxed throughout:
 
     grep -i gate $R-pair.txt              # 13. has the gate run and passed?
     #      read UP: the newest GATE: line is the script's own "reading still
@@ -5418,6 +5452,12 @@ throughout:
     #      run without them cannot check a span prediction. The script
     #      refuses a previous attempt's artifacts and reads the baked line
     #      back before anything runs
+    #      TWO LINES HERE IS THE FLOOR AND THE NOTE MAY DOUBLE IT: a pair
+    #      carrying the saturating preamble owes each half twice, clean
+    #      and `SAT=1`, which is the decomposition's pair of columns, so
+    #      read the note's own rider block rather than this pair of lines.
+    #      Run 20's owed four and Run 21's does; `SAT=` is the rider's
+    #      spelling and reaches the process as SATURATE=
     #      AND IT REFUSES A BUSY MACHINE, which is step 16's alarm moved
     #      into the one place that needed it and could not have it: the
     #      riders run AFTER the sequence, hours past where a session last
