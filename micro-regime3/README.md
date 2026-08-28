@@ -4873,7 +4873,7 @@ not done, which is the whole of why this is a list and not a sentence.
        reprints
          -- which claims are live, and how many
     6. the class blocks: the six numbered items of the form, and one example
-       block, not the other seven
+       block, not the other eight
          -- the form, in your own words
     7. the open list, by its status markers rather than end to end
          -- the OPEN entries, named
@@ -4882,7 +4882,7 @@ not done, which is the whole of why this is a list and not a sentence.
     9. `read-run.py`'s docstring, this chapter's other governing document
          -- nothing to write down; you will know if you skipped it
 
-Items 2 to 5 are [the last run's own file](runs/run20.md#results), 3 and 4 being
+Items 2 to 6 are [the last run's own file](runs/run20.md#results), 3 and 4 being
 [what the next run compares
 against](runs/run20.md#what-the-next-run-compares-against), 5 [the
 claims](runs/run20.md#the-claims-the-next-run-should-test) and 6 [the class

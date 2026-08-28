@@ -1186,17 +1186,18 @@ rather than re-aimed here.
    0.9293 at 22 on its aligned one --- and on a placed layout it has now read
    the aligned figure five runs running. The ordering has survived eight runs,
    two changes of basis, a repetition and three compilers.
-2. **Retired 2026-08-28** with the parking of `offtab`, the only arm
-   its surviving link named. What it asked, since the settlement of 2026-08-24
-   re-aimed it, was where the arms needing something other than the fix sit ---
-   `offtab` behind `bq-scan-rem-gm-mulback`, a mutable `Int` scratch priced
-   against needing nothing --- and its last reading is Run 20's, above.
-   **Its second link, `bq-expand` behind `mut-odo-vecdims`, had gone already,
-   2026-08-26** on the reading above, its condition having been spent since
-   2026-08-24 --- what it priced was the branch's own code against
-   its replacement, and the replacement is now the branch's own code. It
-   was the widest ordering the manifest carried, and `--pair` recovers it, both
-   arms staying rostered and timed.
+2. **Retired 2026-08-28** with the parking of `offtab`, the arm its surviving
+   link turned on --- the other, `bq-scan-rem-gm-mulback`, is timed still. What
+   it asked, since the settlement of 2026-08-24 re-aimed it, was where the arms
+   needing something other than the fix sit --- `offtab` behind
+   `bq-scan-rem-gm-mulback`, a mutable `Int` scratch priced against needing
+   nothing --- and its last reading is Run 20's, above. **Its second link,
+   `bq-expand` behind `mut-odo-vecdims`, had gone already, 2026-08-26**
+   on the reading above, its condition having been spent since 2026-08-24 ---
+   what it priced was the branch's own code against its replacement,
+   and the replacement is now the branch's own code. It was the widest ordering
+   the manifest carried, and `--pair` recovers it, both arms staying rostered
+   and timed.
 3, 4, 5. **Retired at Run 19's write-up**, on a last reading in which all three
 held on both compilers, and for the reasons in the settlement paragraph
 at the foot of this section. Their numbers are left standing here rather
@@ -1211,26 +1212,28 @@ of the three could still foreclose is the point**: every one asks where
 `bq-expand` sits among arms nothing ships, on a branch whose fix
 is `mut-odo-vecdims`. The arms all stay rostered and timed, so any
 of these orderings is one `--pair` call away.
-6. **Retired 2026-08-28** with the parking of `gen-quotrem`, its only link. What
-   it asked: `gen-quotrem` ties `list`, the first attempt's arithmetic ceasing
-   to be dearer than the list's allocation once the flag takes its own
-   allocation to 1.00x against the list's 23.5x --- the mixed picture this suite
-   exists to have refuted, arriving by a route nobody proposed. Its last reading
-   is Run 20's, above; the `cm-gather` < `list` half was untimed throughout
-   and stands as Run 8's. What goes with it is the standing advice to check
-   `list` as an anchor before blaming a strategy, which is now nobody's claim
-   and is why the machine check reads `list` net per shape every run.
+6. **Retired 2026-08-28** with the parking of `gen-quotrem`, the arm its only
+   link turned on. What it asked: `gen-quotrem` ties `list`, the first attempt's
+   arithmetic ceasing to be dearer than the list's allocation once the flag
+   takes its own allocation to 1.00x against the list's 23.5x --- the mixed
+   picture this suite exists to have refuted, arriving by a route nobody
+   proposed. Its last reading is Run 20's, above; the `cm-gather` < `list` half
+   was untimed throughout and stands as Run 8's. What goes with it
+   is the standing advice to check `list` as an anchor before blaming
+   a strategy, which is now nobody's claim and is why the machine check reads
+   `list` net per shape every run.
 7. Allocation, median multiples of the result on this basis: the mutable fills
    1.00x, the scan family 1.33x, `bq-odo-gm-mulback` 1.51x, `offtab-scan-rem`
    2.00x, `bq-expand` 2.35x, `list` 23.5x --- re-listed 2026-08-28, three
-   of its levels having gone with the parking. Every level has reproduced since
-   Run 15, which is what makes this the claim to check first when anything else
-   moves: allocation is deterministic per call, so a level that *does* move
-   is a code change and never a slot. **Read the levels and the cells as two
-   questions**, which Run 19 is the run that separated: its levels all returned
-   while the cross-half cell agreement fell to 1016 of 1080, where the 9.14 pair
-   had 1072 --- so a compiler can reallocate within a tier without moving any
-   tier, and only the cell count sees it.
+   of the arms that carried these levels having gone with the parking and every
+   level having kept one. Every level has reproduced since Run 15, which is what
+   makes this the claim to check first when anything else moves: allocation
+   is deterministic per call, so a level that *does* move is a code change
+   and never a slot. **Read the levels and the cells as two questions**, which
+   Run 19 is the run that separated: its levels all returned while
+   the cross-half cell agreement fell to 1016 of 1080, where the 9.14 pair had
+   1072 --- so a compiler can reallocate within a tier without moving any tier,
+   and only the cell count sees it.
 8. Every pure arm in the fast tier runs its output through the single in-order
    `vGenerate` over an `m`-length table, and a `bq-*` arm that falls behind
    loses on its table build and not on its output. Read the structure and
@@ -1258,15 +1261,16 @@ of these orderings is one `--pair` call away.
 **What the parking of 2026-08-28 did to this set**, recorded in prose because
 a live item carries a predicate and no reading, and because naming a parked arm
 inside one is now a `--lint` failure. Claims 2 and 6 retired with `offtab`
-and `gen-quotrem`, the only arms their surviving links named. Claim 7 lost three
-of its levels to the same parking --- `gen-quotrem` at 1.00x, `bq-mut` at 1.33x
-and `offtab` at 2.00x, every figure of theirs ending at Run 20 ---
-and `offtab-scan-rem` carries the 2.00x tier now. Claim 8 was re-aimed off
-`bq-expand-zf` and `bq-gen`, its span running from the leading tier
-to `offtab-scan-rem` instead; the readings above are the last that name the two.
-Nothing was retired on a reading here, the parking being a decision about what
-is worth a bench, and the two claims that went had no link left that a run could
-measure.
+and `gen-quotrem`, the arms their surviving links turned on. Claim 7 lost three
+of the arms that carried its levels --- `gen-quotrem` at 1.00x, `bq-mut`
+at 1.33x and `offtab` at 2.00x, every figure of theirs ending at Run 20 ---
+but no level with them: `offtab-scan-rem` carries the 2.00x tier, the mutable
+fills the 1.00x and the scan family the 1.33x, so the list is the same six
+levels it was. Claim 8 was re-aimed off `bq-expand-zf` and `bq-gen`, its span
+running from the leading tier to `offtab-scan-rem` instead; the readings above
+are the last that name the two. Nothing was retired on a reading here,
+the parking being a decision about what is worth a bench, and the two claims
+that went had no link left that a run could measure.
 
 **Two homes, and which carries what.** Each live claim has a prose paragraph
 here and a numbered predicate at the foot, and they divide: the PROSE carries

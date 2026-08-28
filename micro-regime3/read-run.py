@@ -8121,8 +8121,9 @@ def lint(main_hs, readme, run_doc=None):
     # refuses elsewhere.
     if run_doc:
         untimed = set(names) - set(timed)
+        items = claim_items(run_text)
         stale = []
-        for num, ln, body in claim_items(run_text):
+        for num, ln, body in items:
             if body.lstrip().startswith('**Retired'):
                 continue
             gone = sorted(set(re.findall(r'`([A-Za-z][A-Za-z0-9-]*)`', body))
@@ -8136,10 +8137,23 @@ def lint(main_hs, readme, run_doc=None):
                        ' times, so the claim cannot be read on this run --'
                        ' retire it or re-aim it:\n        %s'
                        % (len(stale), '\n        '.join(stale)))
-        else:
+        elif items:
             print('ok:   every arm a live claim names is still timed'
                   ' (%d claim item(s) read, %d untimed arm(s) to avoid)'
-                  % (len(claim_items(run_text)), len(untimed)))
+                  % (len(items), len(untimed)))
+        else:
+            # An `ok` over zero items is the vacuous pass this file refuses
+            # everywhere else, and it is reachable: a run file whose claims
+            # section has not been written yet parses to no items at all.
+            # Proved by `--run-doc /dev/null`, which read 0 and said `ok`
+            # until this branch existed.
+            print('skip: no claims section in %s, so no live claim was held'
+                  ' to the roster' % os.path.basename(run_doc))
+    else:
+        # `--run-doc` defaults to the newest in runs/, so this fires only
+        # where that directory is empty -- and a check that says nothing
+        # there would be a silent search, which this file refuses.
+        print('skip: no run file, so no live claim was held to the roster')
 
     def mirrors(entries, resolve, what):
         """Every arm here whose name promises a base it does not run.
@@ -8846,7 +8860,7 @@ def main():
     p.add_argument('--run-doc', dest='run_doc', metavar='FILE',
                    help="the run's own file, `runs/run<N>.md`, which carries"
                         ' the Results table, the fingerprint tables, the'
-                        ' claims readings and the eight class blocks --'
+                        ' claims readings and the nine class blocks --'
                         ' everything a run replaces. Every --in-place'
                         ' install writes it and no other document'
                         ' (default: the newest in runs/)')

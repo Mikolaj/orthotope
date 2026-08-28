@@ -42,8 +42,8 @@ mostly character-level; ignore that and judge the substance.
 
 FOUR THINGS YOU CANNOT DERIVE, so they are given:
  1. The basis is RUN-BASIS and publishes every table (RUN-BASIS-main.json,
-    and RUN-BASIS-<class>.json for rev revsome bcast bcastmid reshape1 runs
-    slice window scaled). The control is RUN-OTHER.
+    and RUN-BASIS-<class>.json for rev revsome bcast bcastmid reshape1
+    slice window scaled runs). The control is RUN-OTHER.
  2. PREV is on disk too. Absolutes and anchors are read against
     PREVSAME, the half at this run's own area; the published lineage
     and the yardstick column against PREVBASIS.
