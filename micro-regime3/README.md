@@ -1159,48 +1159,51 @@ rather than a slot in the next run, observed again:
   one shim, both halves under `WILDLOG=1 SATURATE=1` --- over the extended
   roster and shapes: 59 timed arms less the eight parked below, the `runs` class
   beside the eight, nothing else moved. Parked permanently, 2026-08-28, buying
-  back about an eighth of a run's length, each a superseded pure or scratch arm
+  back about a fifth of a run's length, each a superseded pure or scratch arm
   answering none of the questions here nor any a later run is expected to ask
   --- `bq-expand-b`, `bq-expand-qr-prim`, `bq-expand-zf`, `bq-mut`, `bq-gen`,
-  `gen-quotrem`, `bq-mut-runs` and `bq-mut-runs-gm-mulback` --- so their
-  yardstick columns stay blank from Run 21 on, by decision; a later question
-  that wants one of them re-times it for that run. Not parked, though as idle:
-  `offtab` and `gen-unsafe` with their A/A twins, which are four of the floor's
-  eighteen pairs and which the reader files by role, so a parked twin is a lint
-  failure and a floor over fewer pairs; and `mut-flat-gm`, the base its `-nosum`
-  gate subtracts from. So the run is 51 timed arms, 1224 main-set benches
-  and 1683 class benches.** Four questions, each with a prediction and what
-  kills it --- the predictions are this file's and its author's, written before
-  the run so that the run can contradict them. (1) *The `runs` class.*
-  `lib-stage2` against `lib-stage1`, per run length. Predicted: a tie inside
-  the floor at `runs-2` and `runs-3`, `lib-stage2` ahead at `runs-9`
-  (the nine-element probe's tie, less the concatenation's allocation),
-  and behind from `runs-96` up, by a factor growing with the run --- memcpy
-  against a stepping loop --- so the crossover falls between 9 and 96,
-  and `runs-r3-48x30` reads as `runs-1024` would. Killed if `lib-stage2`
-  is not behind past the floor on any of `runs-96`, `-1024`, `-65536`, in which
-  case horde-ad's regression is not this route. `lib-stage2-concat` against
-  `lib-stage2` is predicted to restore stage one's figure at every length,
-  its `alloc` above 1.00x by the slice headers, largest at `runs-2`;
-  `canon-memcpy-r2` against `canon-vecdims` is predicted behind at 3 and 9
-  as on `window` and ahead at 96 and up, which would put a run-length condition
-  inside the driver on the table beside the route. (2) *The composite.*
-  `lib-stage2` against `mut-odo-vecdims-add-in-leaf-u2` on the main set:
-  predicted a tie inside the floor, the main set having nothing to canonicalize
-  past its rank and the dispatch costing a list walk per call; killed
-  by a margin past the floor either way. `lib-stage2` against `canon-full`
-  on `bcast` and `bcastmid`: predicted ahead by the leaf body's own margin
-  over plain `mut-odo-vecdims` there, the conditions composing with it. (3)
-  *The spill.* `mut-odo-vecdims-add-in-leaf-u2-down` against `-u2`: predicted
-  ahead on the long-run main-set shapes --- `stretch-wide-2xM`, `-inner256`,
-  `-tab7MB`, the `bcast` class --- by up to the 15 to 18% `-down` took there
-  on Run 20, and a tie on the k3 conv shapes, on both compilers, if one fewer
-  live value keeps the base pointers in registers; a tie everywhere means
-  the allocator spills them anyway and the `-g3` dump of the new arm is owed
-  before anything else. (4) *Stage two on every class.* `lib-stage2` against
-  `lib-stage1` on the eight regime-3 classes: predicted a tie inside the floor
-  on `rev`, `revsome`, `slice`, `scaled` and `window`, ahead on `bcast`
-  and `bcastmid` by the conditions' Run 20 margins (0.92 and 0.55),
+  `gen-quotrem`, `bq-mut-runs` and `offtab` --- so their yardstick columns stay
+  blank from Run 21 on, by decision; a later question that wants one of them
+  re-times it for that run. `offtab`'s two A/A twins are removed with it, a twin
+  of an untimed arm pricing nothing, so the floor reads over sixteen pairs
+  from this run on and its eighteen-pair figures end at Run 20. Not parked,
+  though as idle: `gen-unsafe` with its twins, two of the sixteen, the last
+  reading of the released library's own fallback; `mut-flat-gm`, the base
+  its `-nosum` gate subtracts from; and `bq-mut-runs-gm-mulback`, the middle
+  rung of claim 1's ladder, three of its links running through it. Parking
+  `offtab` and `gen-quotrem` retires claims 2 and 6, whose only links they were.
+  So the run is 49 timed arms, 1176 main-set benches and 1617 class benches.**
+  Four questions, each with a prediction and what kills it --- the predictions
+  are this file's and its author's, written before the run so that the run can
+  contradict them. (1) *The `runs` class.* `lib-stage2` against `lib-stage1`,
+  per run length. Predicted: a tie inside the floor at `runs-2` and `runs-3`,
+  `lib-stage2` ahead at `runs-9` (the nine-element probe's tie, less
+  the concatenation's allocation), and behind from `runs-96` up, by a factor
+  growing with the run --- memcpy against a stepping loop --- so the crossover
+  falls between 9 and 96, and `runs-r3-48x30` reads as `runs-1024` would. Killed
+  if `lib-stage2` is not behind past the floor on any of `runs-96`, `-1024`,
+  `-65536`, in which case horde-ad's regression is not this route.
+  `lib-stage2-concat` against `lib-stage2` is predicted to restore stage one's
+  figure at every length, its `alloc` above 1.00x by the slice headers, largest
+  at `runs-2`; `canon-memcpy-r2` against `canon-vecdims` is predicted behind
+  at 3 and 9 as on `window` and ahead at 96 and up, which would put a run-length
+  condition inside the driver on the table beside the route. (2)
+  *The composite.* `lib-stage2` against `mut-odo-vecdims-add-in-leaf-u2`
+  on the main set: predicted a tie inside the floor, the main set having nothing
+  to canonicalize past its rank and the dispatch costing a list walk per call;
+  killed by a margin past the floor either way. `lib-stage2` against
+  `canon-full` on `bcast` and `bcastmid`: predicted ahead by the leaf body's own
+  margin over plain `mut-odo-vecdims` there, the conditions composing with it.
+  (3) *The spill.* `mut-odo-vecdims-add-in-leaf-u2-down` against `-u2`:
+  predicted ahead on the long-run main-set shapes --- `stretch-wide-2xM`,
+  `-inner256`, `-tab7MB`, the `bcast` class --- by up to the 15 to 18% `-down`
+  took there on Run 20, and a tie on the k3 conv shapes, on both compilers,
+  if one fewer live value keeps the base pointers in registers; a tie everywhere
+  means the allocator spills them anyway and the `-g3` dump of the new arm
+  is owed before anything else. (4) *Stage two on every class.* `lib-stage2`
+  against `lib-stage1` on the eight regime-3 classes: predicted a tie inside
+  the floor on `rev`, `revsome`, `slice`, `scaled` and `window`, ahead
+  on `bcast` and `bcastmid` by the conditions' Run 20 margins (0.92 and 0.55),
   and `reshape1` degenerate for stage two as for the canonicalizing arms;
   no class may read the branch behind stage one past its floor, that being
   the regression the benchmark is now built to catch on its own.
@@ -2534,8 +2537,13 @@ rather than a slot in the next run, observed again:
   and claim 2 changes its question to where `offtab` and `bq-expand` sit ---
   thirteen registered orderings becoming eight, and seven on 2026-08-26 when
   claim 2's `bq-expand` link retired, its condition having been spent
-  from the settlement day itself and read back by nobody until then. Each
-  retirement's reason, and the readings the two new links were measured
+  from the settlement day itself and read back by nobody until then, and five
+  on 2026-08-28 when claims 2 and 6 retired with the parking of `offtab`
+  and `gen-quotrem`, the only arms either linked: a claim over a parked arm
+  cannot be installed, and neither had a question left --- `offtab`'s place
+  behind the pure yardstick and the first attempt's tie with the baseline
+  were both settled orderings a reader can take from Run 20's tables for good.
+  Each retirement's reason, and the readings the two new links were measured
   at on both of Run 18's halves, are in the settlement paragraph at the foot
   of [the claims](runs/run20.md#the-claims-the-next-run-should-test), which owns
   the account; the `CLAIMS` manifest in `read-run.py` took it at Run 19's
@@ -3443,9 +3451,9 @@ in allocation, which is what a consumer iterating the list pays. Each runs
 on every population, so a library change is read where a user would meet it,
 class by class, whichever of the two entry points the user takes, and the `runs`
 class is where the routes part; with the timed `-u2-down` the block takes
-the roster to 1224 benches, eight superseded arms parked permanently since
-Run 21. What the next run is registered to answer with them is [in the open
-list][open].
+the roster to 1176 benches, eight superseded arms parked permanently since Run
+21, `offtab`'s twins removed with it. What the next run is registered to answer
+with them is [in the open list][open].
 
 **What the eight are worth as instruments, read against each other for the first
 time on 2026-08-14, over Runs 10 to 13.** Per class: the median A/A deviation
@@ -4556,8 +4564,8 @@ is also the order to read them in:
 The order they are *run* in is deliberately a different one, fixed by `roster`
 in `Main.hs`, where a majority of them now take no slot at all, being checked
 and not timed; the Results table below is sorted by time, a third. Sharing
-that roster with the strategies, and not strategies themselves, are twenty-four
-controls: eighteen A/A arms --- `bq-expand-aa-adjacent`
+that roster with the strategies, and not strategies themselves, are twenty-two
+controls: sixteen A/A arms --- `bq-expand-aa-adjacent`
 and `bq-expand-aa-distant`, `bq-scan-rem-gm-mulback-aa-adjacent`
 and `bq-scan-rem-gm-mulback-aa-distant`, `mut-odo-vecdims-aa`
 and `mut-odo-vecdims-aa-distant`, `offtab-aa-adjacent` and `offtab-aa-distant`,
@@ -4617,12 +4625,12 @@ checked against the reference on every shape of every class, and not timed ---
 so the agreement net does not shrink and nothing has to be rewritten if a ruling
 is later reopened. The 23 arms the rulings dropped carry `Only` in that roster,
 each naming the bound or the multiple that disqualified it; with the controls
-the run is 51 arms, and the five library-shaped arms with the timed `-u2-down`,
+the run is 49 arms, and the five library-shaped arms with the timed `-u2-down`,
 added 2026-08-28 ([the stride
 classes](#the-stride-classes-and-what-they-cover)), less the eight parked
-permanently since Run 21 ([its entry][open]), takes the roster to 1224 benches
-from Run 20's 1272, three placement-family arms having dropped to `Only` beside
-them.
+permanently since Run 21 and `offtab`'s two twins removed ([its entry][open]),
+takes the roster to 1176 benches from Run 20's 1272, three placement-family arms
+having dropped to `Only` beside them.
 
 - **A strategy with a precondition is not measured.** The column allowed `none`,
   an empty cell, and `shape well-formed`, which is a condition on being a valid
@@ -7417,8 +7425,8 @@ capped. `--aa` prints both and `--selftest` asserts the identity where it holds.
 
 ### What moves a figure when no strategy changed
 
-Eighteen A/A controls run an existing strategy twice under a second name ---
-nine strategies, each duplicated once beside its base and once at a distance,
+Sixteen A/A controls run an existing strategy twice under a second name ---
+eight strategies, each duplicated once beside its base and once at a distance,
 so position varies within a strategy and strategy within a position. Twelve
 of them were added on 2026-08-14 --- the `offtab` and `bq-odo-gm-mulback` pairs
 for the coverage gap the wild-cell entry names and for the spread instrument's

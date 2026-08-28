@@ -3584,8 +3584,9 @@ roster =
     -- and had no twin to separate its position from its code, and
     -- 'bq-odo-gm-mulback' heads the pure tier while sharing the expansion
     -- family's susceptibility to the wild cell, which the A/A worst-cell
-    -- gate could not see on it. Added 2026-08-14, first read in Run 14.
-  , ("offtab-aa-distant",          Twin fbOffTab)
+    -- gate could not see on it. Added 2026-08-14, first read in Run 14;
+    -- 'offtab''s twins removed 2026-08-28 with the arm's parking, so the
+    -- slot below was theirs and this comment names a pair now gone.
   , ("bq-odo-gm-mulback-aa-distant", Twin fbBQodoGmMulback)
     -- The sixth to ninth twinned strategies, added 2026-08-14 once the
     -- session that worked the task list down could say what twin coverage
@@ -3769,18 +3770,17 @@ roster =
     -- its base, as both other pairs' are, so the difference is taken between
     -- neighbours and carries no span of its own.
   , ("mut-flat-gm-nosum",          Force fbMutFlatGm)
-    -- parked 2026-08-28, permanently, by decision (README.md#what-is-open,
-    -- the Run 21 entry): superseded, answering no registered question;
-    -- its yardstick column stays blank from Run 21 on
-  , ("bq-mut-runs-gm-mulback",     Only fbBQmutRunsGmMulback)
+  , ("bq-mut-runs-gm-mulback",     Fill fbBQmutRunsGmMulback)
     -- not timed: l < 2^32
   , ("bq-mut-lemire-out",          Only fbBQmutLemireOut)
     -- not timed: l < 2^32
   , ("bq-mut-lemire-mulback",      Only fbBQmutLemireMulback)
-  , ("offtab",                     Fill fbOffTab)
-    -- The adjacent half of 'offtab''s pair; the distant half is early with
-    -- the others. Added 2026-08-14, first read in Run 14.
-  , ("offtab-aa-adjacent",         Twin fbOffTab)
+    -- parked 2026-08-28, permanently, by decision (README.md#what-is-open,
+    -- the Run 21 entry): superseded, answering no registered question;
+    -- its yardstick column stays blank from Run 21 on, and its two A/A
+    -- twins, added 2026-08-14 and read from Run 14 to Run 20, are gone
+    -- with it -- a twin of an untimed arm prices nothing.
+  , ("offtab",                     Only fbOffTab)
     -- not timed: 'int32Fits' on the source, i.e. at most 2^31 elements
   , ("offtab32",                   Only fbOffTab32)
     -- not timed: m < 2^32, its builder's

@@ -3486,33 +3486,15 @@ CLAIMS = [
       ('bq-mut-runs-gm-mulback', 'bq-odo-gm-mulback', 'faster'),
       ('bq-mut-runs-gm-mulback', 'bq-scan-rem-gm-mulback', 'faster'),
       ('bq-scan-rem-gm-mulback', 'bq-odo-gm-mulback', 'tie')]),
-    # KEEPS ITS NUMBER AND CHANGES ITS QUESTION, to where the arms needing
-    # something other than the fix sit.
-    #
-    # ITS SECOND LINK IS RETIRED, 2026-08-26, its condition having fired
-    # twice over without anyone reading it back. `bq-expand` / `mut-odo-
-    # vecdims` was kept only while `Data/Array/Internal.hs` carried
-    # `bq-expand`, and was to retire with the three `TODO: retarget`
-    # markers, one decision with it. Both halves are spent: the markers
-    # were three inline `(TODO: retarget ...)` notes in README prose, added
-    # 2026-08-24 by `00dadbc` and gone once that prose was re-aimed -- they
-    # were never in any .hs, which is what made the condition look
-    # unobservable; and the file has carried `vFillStrided` since
-    # 2026-08-24, its three vector-backed instances overriding the default
-    # with `genericFillStrided`, so `bq-expand` survives there only as a
-    # class default the code's own comment calls speed-irrelevant. A link
-    # pricing the branch's code against its replacement has nothing left to
-    # price once the replacement is the branch's code.
-    #
-    # Its last reading is Run 20's, 2.1134 on the basis at 1 of 24 and sign
-    # p 3e-06 and 2.1218 on HEAD, the widest and most significant ordering
-    # the manifest ever carried; both arms stay rostered and timed, so
-    # `--pair bq-expand mut-odo-vecdims` recovers it whenever it is wanted,
-    # which is the whole of what retiring it gives up.
-    (2, 'the arms needing something other than the fix sit behind it',
-     [('offtab', 'bq-scan-rem-gm-mulback', 'slower')]),
-    (6, 'the first attempt ties the baseline',
-     [('gen-quotrem', 'list', 'tie')]),
+    # CLAIMS 2 AND 6 RETIRED 2026-08-28 with the parking of `offtab` and
+    # `gen-quotrem`, the only arms either linked: a claim over a parked arm
+    # cannot be installed, and both were settled orderings a reader takes
+    # from Run 20's tables for good. Claim 2 had already lost its
+    # `bq-expand` / `mut-odo-vecdims` link on 2026-08-26, kept only while
+    # `Data/Array/Internal.hs` carried `bq-expand`, which `vFillStrided`
+    # ended on 2026-08-24; its last reading is Run 20's, 2.1134 on the
+    # basis at 1 of 24, and `--pair bq-expand mut-odo-vecdims` recovers
+    # it, both arms staying timed.
 ]
 
 
