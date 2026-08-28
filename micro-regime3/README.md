@@ -1153,22 +1153,27 @@ rather than a slot in the next run, observed again:
   is the third, recovering most of the corner's loss at 0.9408 against it on 22
   shapes of 24, and reproducing Run 10's reading. Recorded here because the list
   is meant to be the only home, and a session mining it walked past this one.
-- `OPEN` **What Run 21 is built to answer, registered before it runs.** Four
-  questions, each with what kills it. (1) *The `runs` class.* `lib-stage2`
-  against `lib-stage1`, per run length: the branch's route is refuted wherever
-  `lib-stage2` reads behind its control by more than the class's floor,
-  and the expectation from horde-ad is that it does from some run length up
-  and not at 2 or 3; `lib-stage2-concat` against `lib-stage2` prices the repair
-  at every length, and its `alloc` column says what the slice list costs per run
-  where the nine-element probe read 4.59x; `canon-memcpy-r2` against
-  `canon-vecdims` on the same class says whether a memcpy inside the fill,
-  refuted at 3, 5 and 9, wins at long runs, which would make the repair
-  a run-length condition in the driver rather than a route. (2) *The composite.*
-  `lib-stage2` against `mut-odo-vecdims-add-in-leaf-u2` on the main set
-  is the leaf body with canonicalization over it, the arm the plan owed; the two
-  must tie there, the main set having nothing to canonicalize past its rank,
-  and `lib-stage2` against `canon-full` on `bcastmid` and `bcast` says whether
-  the leaf body and the conditions compose. (3) *The spill.*
+- `OPEN` **What Run 21 is built to answer, registered before it runs.**
+  **Decided 2026-08-28: Run 21 is Run 20 again --- its pair, `run20-pair.txt`'s
+  two recipes, ghc-9.12.4 as the basis against the same GHC HEAD, one source,
+  one shim, both halves under `WILDLOG=1 SATURATE=1` --- over the extended
+  roster and shapes: 57 timed arms, the `runs` class beside the eight, nothing
+  else moved.** Four questions, each with what kills it. (1) *The `runs` class.*
+  `lib-stage2` against `lib-stage1`, per run length: the branch's route
+  is refuted wherever `lib-stage2` reads behind its control by more
+  than the class's floor, and the expectation from horde-ad is that it does
+  from some run length up and not at 2 or 3; `lib-stage2-concat` against
+  `lib-stage2` prices the repair at every length, and its `alloc` column says
+  what the slice list costs per run where the nine-element probe read 4.59x;
+  `canon-memcpy-r2` against `canon-vecdims` on the same class says whether
+  a memcpy inside the fill, refuted at 3, 5 and 9, wins at long runs, which
+  would make the repair a run-length condition in the driver rather
+  than a route. (2) *The composite.* `lib-stage2` against
+  `mut-odo-vecdims-add-in-leaf-u2` on the main set is the leaf body
+  with canonicalization over it, the arm the plan owed; the two must tie there,
+  the main set having nothing to canonicalize past its rank, and `lib-stage2`
+  against `canon-full` on `bcastmid` and `bcast` says whether the leaf body
+  and the conditions compose. (3) *The spill.*
   `mut-odo-vecdims-add-in-leaf-u2-down` against `-u2`: ahead on the long-run
   shapes if one fewer live value keeps the base pointers in registers, a tie
   if the allocator spills them anyway; read on both compilers. (4) *Stage two
