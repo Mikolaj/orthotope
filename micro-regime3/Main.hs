@@ -2815,6 +2815,57 @@ fillStage2 sh ats ao l v = VS.create $ do
         !oshV  = VU.fromList (init sh)
         !oatsV = VU.fromList (init ats)
 
+-- The list consumer under each stage: 'toVectorListT' as the library has
+-- it, then one concatenation of what it returns. The concatenation is the
+-- same term in both arms, so the pair prices what building the list costs
+-- -- stage one's slice recursion against stage two's base-offset table and
+-- its 'VU.toList' -- in time and, exactly, in allocation. What a library
+-- consumer that iterates the list pays, 'reduceT' and 'padT' among them.
+--
+-- Stage one's list (Data/Array/Internal.hs at 0386073): regime 1 the
+-- vector, regime 2 the slice recursion over the normal suffix, regime 3
+-- the fill as one element. 'fbLibStage1' is the same dispatch feeding
+-- 'VS.concat' the same lists, so the two agree by construction.
+{-# NOINLINE fbLibListStage1 #-}
+fbLibListStage1 :: ShapeL -> T -> VS.Vector Double
+fbLibListStage1 sh a@(T (Strides ats) ao v) = VS.concat parts
+  where parts
+          | ats == ts' && VS.length v == l = [v]
+          | null sh = [VS.slice ao 1 v]
+          | oks !! (length sh - 1) = loop oks sh ats ao
+          | otherwise = [fbMutOdoVecdimsAddInLeafU2 sh a]
+        l : ts' = getStridesT sh
+        oks = scanr (&&) True (zipWith (==) ats ts')
+        loop (b : bs) (n : ns) (t : ts) !o
+          | b = [VS.slice o (n * t) v]
+          | otherwise = concat [loop bs ns ts (i * t + o) | i <- [0 .. n - 1]]
+        loop _ _ _ _ = error "fbLibListStage1: impossible"
+
+-- Stage two's list, the branch's 'toVectorListT': the canonical
+-- dispatch, contiguous runs as one slice each off a base-offset table
+-- built by expansion ('runBaseOffsetsT' in the library, 'baseOffsetsExpand'
+-- here, the same expansion) and listed, everything strided as one filled
+-- element. One change over 'fbLibListStage1' per population: the list's
+-- construction.
+{-# NOINLINE fbLibListStage2 #-}
+fbLibListStage2 :: ShapeL -> T -> VS.Vector Double
+fbLibListStage2 sh (T (Strides ats) ao v) = VS.concat parts
+  where parts
+          | l == 0 = []
+          | otherwise = case canonView sh ats of
+              (csh, cats)
+                | cats /= ts ->
+                    if last cats == 1
+                    then let !n = last csh
+                         in  [ VS.slice o n v
+                             | o <- VU.toList (baseOffsetsExpand ao (init csh)
+                                                 (Strides (init cats))) ]
+                    else [fillStage2 csh cats ao l v]
+                | ao == 0 && VS.length v == l -> [v]
+                | otherwise -> [VS.slice ao l v]
+                where _ : ts = getStridesT csh
+        l = product sh
+
 -- Which of toVectorListT's regimes a (shape, T) pair takes: 1 whole-vector
 -- memcpy, 2 innermost-normal per-run loop, 3 innermost-strided
 -- per-element fallback (the one this benchmark is about). Mirrors the
@@ -3680,6 +3731,11 @@ roster =
   , ("lib-stage1",                 Fill fbLibStage1)
   , ("lib-stage2",                 Fill fbLibStage2)
   , ("lib-stage2-concat",          Fill fbLibStage2Concat)
+    -- The list consumer under each stage, added the same day: the
+    -- library's toVectorListT and one concatenation, so the pair prices
+    -- the list's construction alone, reasons at the definitions.
+  , ("liblist-stage1",             Fill fbLibListStage1)
+  , ("liblist-stage2",             Fill fbLibListStage2)
     -- not timed: 6.20x the result
   , ("mut-offsets",                Only fbMutBaseOffsets)
   , ("build",                      Fill fbBuild)
