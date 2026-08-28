@@ -1158,28 +1158,47 @@ rather than a slot in the next run, observed again:
   two recipes, ghc-9.12.4 as the basis against the same GHC HEAD, one source,
   one shim, both halves under `WILDLOG=1 SATURATE=1` --- over the extended
   roster and shapes: 57 timed arms, the `runs` class beside the eight, nothing
-  else moved.** Four questions, each with what kills it. (1) *The `runs` class.*
-  `lib-stage2` against `lib-stage1`, per run length: the branch's route
-  is refuted wherever `lib-stage2` reads behind its control by more
-  than the class's floor, and the expectation from horde-ad is that it does
-  from some run length up and not at 2 or 3; `lib-stage2-concat` against
-  `lib-stage2` prices the repair at every length, and its `alloc` column says
-  what the slice list costs per run where the nine-element probe read 4.59x;
-  `canon-memcpy-r2` against `canon-vecdims` on the same class says whether
-  a memcpy inside the fill, refuted at 3, 5 and 9, wins at long runs, which
-  would make the repair a run-length condition in the driver rather
-  than a route. (2) *The composite.* `lib-stage2` against
-  `mut-odo-vecdims-add-in-leaf-u2` on the main set is the leaf body
-  with canonicalization over it, the arm the plan owed; the two must tie there,
-  the main set having nothing to canonicalize past its rank, and `lib-stage2`
-  against `canon-full` on `bcastmid` and `bcast` says whether the leaf body
-  and the conditions compose. (3) *The spill.*
-  `mut-odo-vecdims-add-in-leaf-u2-down` against `-u2`: ahead on the long-run
-  shapes if one fewer live value keeps the base pointers in registers, a tie
-  if the allocator spills them anyway; read on both compilers. (4) *Stage two
-  on every class.* `lib-stage2` against `lib-stage1` on the eight regime-3
-  classes: no class may read the branch behind stage one past its floor,
-  that being the regression the benchmark is now built to catch on its own.
+  else moved.** Four questions, each with a prediction and what kills it ---
+  the predictions are this file's and its author's, written before the run
+  so that the run can contradict them. (1) *The `runs` class.* `lib-stage2`
+  against `lib-stage1`, per run length. Predicted: a tie inside the floor
+  at `runs-2` and `runs-3`, `lib-stage2` ahead at `runs-9` (the nine-element
+  probe's tie, less the concatenation's allocation), and behind from `runs-96`
+  up, by a factor growing with the run --- memcpy against a stepping loop ---
+  so the crossover falls between 9 and 96, and `runs-r3-48x30` reads
+  as `runs-1024` would. Killed if `lib-stage2` is not behind past the floor
+  on any of `runs-96`, `-1024`, `-65536`, in which case horde-ad's regression
+  is not this route. `lib-stage2-concat` against `lib-stage2` is predicted
+  to restore stage one's figure at every length, its `alloc` above 1.00x
+  by the slice headers, largest at `runs-2`; `canon-memcpy-r2` against
+  `canon-vecdims` is predicted behind at 3 and 9 as on `window` and ahead at 96
+  and up, which would put a run-length condition inside the driver on the table
+  beside the route. (2) *The composite.* `lib-stage2` against
+  `mut-odo-vecdims-add-in-leaf-u2` on the main set: predicted a tie inside
+  the floor, the main set having nothing to canonicalize past its rank
+  and the dispatch costing a list walk per call; killed by a margin past
+  the floor either way. `lib-stage2` against `canon-full` on `bcast`
+  and `bcastmid`: predicted ahead by the leaf body's own margin over plain
+  `mut-odo-vecdims` there, the conditions composing with it. (3) *The spill.*
+  `mut-odo-vecdims-add-in-leaf-u2-down` against `-u2`: predicted ahead
+  on the long-run main-set shapes --- `stretch-wide-2xM`, `-inner256`,
+  `-tab7MB`, the `bcast` class --- by up to the 15 to 18% `-down` took there
+  on Run 20, and a tie on the k3 conv shapes, on both compilers, if one fewer
+  live value keeps the base pointers in registers; a tie everywhere means
+  the allocator spills them anyway and the `-g3` dump of the new arm is owed
+  before anything else. (4) *Stage two on every class.* `lib-stage2` against
+  `lib-stage1` on the eight regime-3 classes: predicted a tie inside the floor
+  on `rev`, `revsome`, `slice`, `scaled` and `window`, ahead on `bcast`
+  and `bcastmid` by the conditions' Run 20 margins (0.92 and 0.55),
+  and `reshape1` degenerate for stage two as for the canonicalizing arms;
+  no class may read the branch behind stage one past its floor, that being
+  the regression the benchmark is now built to catch on its own.
+  And on allocation, deterministic and so exact: `lib-stage2` at `lib-stage1`'s
+  level on every population --- the canonicalization's transients under two
+  unpinned kilobytes per call, invisible at these sizes as on Run 20 ---
+  and `lib-stage2-concat` alone above it, on `runs`; if `lib-stage2` reads above
+  `lib-stage1` anywhere, that is the other half of horde-ad's regression,
+  its 15.7% allocation, showing here, and the dispatch is where to look.
 
 - `OPEN` **What is the 3% that survives alignment on `build`/`mut-odo`?**
   With both copies of one worker at offset 0 the pair still reads 0.9685
