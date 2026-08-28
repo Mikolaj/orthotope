@@ -7950,6 +7950,41 @@ def check_doc_quiet(readme, main_hs, run_doc=None, prev_doc=None):
     return rc
 
 
+def claim_items(text):
+    """The claims section's numbered items, as (number, line, body).
+
+    BOTH numbered sets -- the live claims and the class properties -- since
+    a run returns a verdict on each. The prose between and after them is
+    deliberately NOT included: that is where retirements are recorded, and
+    a retirement names the arm it retires, so a check over the section
+    would fire on every one of them.
+    """
+    lines = text.split('\n')
+    try:
+        i = next(k for k, l in enumerate(lines) if CLAIMS_HEAD.match(l))
+    except StopIteration:
+        return []
+    end = next((k for k, l in enumerate(lines[i + 1:], i + 1)
+                if l.startswith('## ')), len(lines))
+    out, cur = [], None
+    for k in range(i, end):
+        l = lines[k]
+        m = re.match(r'^(\d[\d, ]*)\. ', l)
+        if m:
+            if cur:
+                out.append(cur)
+            cur = [m.group(1), k + 1, l[m.end():]]
+        elif cur is not None:
+            if l.startswith('   ') and l.strip():
+                cur[2] += ' ' + l.strip()
+            else:
+                out.append(cur)
+                cur = None
+    if cur:
+        out.append(cur)
+    return [tuple(c) for c in out]
+
+
 def lint(main_hs, readme, run_doc=None):
     """Static checks over Main.hs and README.md, needing no run at all.
 
@@ -7991,8 +8026,9 @@ def lint(main_hs, readme, run_doc=None):
     try:
         main = open(main_hs).read()
         doc = open(readme).read()
+        run_text = open(run_doc).read() if run_doc else ''
         if run_doc:
-            doc += '\n' + open(run_doc).read()
+            doc += '\n' + run_text
     except OSError as e:
         sys.stderr.write('lint: %s\n' % e)
         return 2
@@ -8048,6 +8084,62 @@ def lint(main_hs, readme, run_doc=None):
     else:
         print('ok:   every arm the claims manifest names is rostered'
               ' (%d across %d claims)' % (len(claimed), len(CLAIMS)))
+
+    # THE SAME QUESTION FOR THE CLAIMS THAT HAVE NO MANIFEST, which is the
+    # half the check above cannot reach: claims 7 and 8 are prose and reach
+    # `CLAIMS` not at all, so an arm parked out of the TIMED roster leaves
+    # them naming what no run measures, and nothing here saw it. Not
+    # hypothetical -- the parking of 2026-08-28 retired claims 2 and 6 in
+    # `CLAIMS` and left both live in the run file naming `offtab` and
+    # `gen-quotrem`, claim 7's levels naming two more and claim 8's span a
+    # third, through two preflights, `--check-doc`, `check-scripts.py` and
+    # every gate here.
+    #
+    # A retired item is exempt by the marker it already carries, `**Retired`
+    # opening its body, which is the form all six retirements in the run
+    # file use -- so retiring a claim in prose is what clears it here, and
+    # that is the coupling this check exists to force.
+    #
+    # NON-VACUITY, 2026-08-28, and on the real document rather than a
+    # fixture: pointed by `--run-doc` at run20.md as the parking commit left
+    # it (`git show 8f2a4e5:micro-regime3/runs/run20.md`, on the working
+    # branch, so un-retiring claims 2 and 6 rebuilds the control if that
+    # commit is ever squashed away) it exits 1 naming
+    # all four -- claim 2 `offtab`, claim 6 `cm-gather` and `gen-quotrem`,
+    # claim 7 `bq-mut`, `gen-quotrem` and `offtab`, claim 8 `bq-expand-zf`
+    # and `bq-gen` -- and on the repaired file it returns the ok line. That
+    # control is a commit and cannot rot the way a fixture does.
+    #
+    # THE RULE IS STRICTER THAN THE PARKING THAT PROMPTED IT, which the same
+    # control shows: `cm-gather` is untimed and claim 6 named it for five
+    # runs while SAYING SO -- `the cm-gather < list half is untimed and
+    # stands as Run 8's`. So a live claim may not name an untimed arm even
+    # to say that it is untimed; that half belongs in the prose beside the
+    # item, where every reading does. Loosening this to exempt a
+    # self-declaring clause is refused: the predicate would be `does the
+    # sentence admit it`, which is the noise-for-signal shape this file
+    # refuses elsewhere.
+    if run_doc:
+        untimed = set(names) - set(timed)
+        stale = []
+        for num, ln, body in claim_items(run_text):
+            if body.lstrip().startswith('**Retired'):
+                continue
+            gone = sorted(set(re.findall(r'`([A-Za-z][A-Za-z0-9-]*)`', body))
+                          & untimed)
+            if gone:
+                stale.append('claim %s (%s:%d): %s'
+                             % (num, os.path.basename(run_doc), ln,
+                                ', '.join(gone)))
+        if stale:
+            bad.append('%d live claim(s) name arms the roster no longer'
+                       ' times, so the claim cannot be read on this run --'
+                       ' retire it or re-aim it:\n        %s'
+                       % (len(stale), '\n        '.join(stale)))
+        else:
+            print('ok:   every arm a live claim names is still timed'
+                  ' (%d claim item(s) read, %d untimed arm(s) to avoid)'
+                  % (len(claim_items(run_text)), len(untimed)))
 
     def mirrors(entries, resolve, what):
         """Every arm here whose name promises a base it does not run.
