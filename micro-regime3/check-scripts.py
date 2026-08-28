@@ -1866,13 +1866,32 @@ def class_names():
                    if d['lst'] not in ('convShapes', 'stretchShapes')})
 
 
+def recorded_classes():
+    """The classes the newest run file carries a block for, of Main.hs's.
+
+    A class added to Main.hs ahead of its first run has no block in any
+    run file yet, and install-tables.sh is right to refuse a JSON with no
+    block -- so a fixture installed into the live run file models the run
+    that file records and passes these, where a fixture a driver lists
+    and launches models the next run and keeps `class_names()`, the
+    default. Otherwise every install case fails from the day a class is
+    added to the day it is first run. The leads are read as the installer
+    reads them. Found 2026-08-28, when the `runs` class landed a run
+    ahead of its file.
+    """
+    leads = set(re.findall(r'^\*\*`([a-z0-9]*)`', open(RUNDOC).read(),
+                           re.M))
+    return [c for c in class_names() if c in leads]
+
+
 _WHOLE = {}
 
 
 SRC = 'srcrun'      # the stand-ins' data, named OUTSIDE any run's own glob
 
 
-def whole_run(halves_of, samples=2, prefix=SRC, short_class=None):
+def whole_run(halves_of, samples=2, prefix=SRC, short_class=None,
+              classes=None):
     """Every population of a paired run, as `extra` entries for a shadow.
 
     Named `srcrun-<half>-<pop>` and NOT after the case's run: `$R-*.json`
@@ -1889,7 +1908,9 @@ def whole_run(halves_of, samples=2, prefix=SRC, short_class=None):
     Two samples a bench, the drivers reading counts and names and never a
     figure. Memoised per tag, building it being the only slow thing here.
     """
-    key = (tuple(halves_of), samples, prefix, short_class)
+    if classes is None:
+        classes = class_names()
+    key = (tuple(halves_of), samples, prefix, short_class, tuple(classes))
     if key not in _WHOLE:
         out = []
         for half in halves_of:
@@ -1900,7 +1921,7 @@ def whole_run(halves_of, samples=2, prefix=SRC, short_class=None):
             # been three shapes since 2026-08-14, so nothing on disk
             # carries it and it has to be built.
             pops += [(c, class_shapes(c)[:2 if c == short_class else None])
-                     for c in class_names()]
+                     for c in classes]
             for pop, shapes in pops:
                 out.append(('%s-%s-%s.json' % (prefix, half, pop),
                             synth_text(shapes, samples=samples)))
@@ -2959,7 +2980,8 @@ CASES = [
          # identical -- so the skip has to say which it might be, or the
          # previous run's cross-half line stays under this run's tables.
          plant=lambda t: {'doc': edited_rundoc(t)},
-         shadow=dict(extra=whole_run(['lookrts'], prefix='zzxh')),
+         shadow=dict(extra=whole_run(['lookrts'], prefix='zzxh',
+                                      classes=recorded_classes())),
          env={'DOC': '{doc}', 'BASIS': 'lookrts', 'OTHER': 'nosuchhalf'},
          argv=['zzxh'],
          ok=V(exit=0, has=['no cross-half line is installed'])),
@@ -5085,7 +5107,7 @@ CASES = [
 
     case('class-name-carries-no-hyphen', 'run-major.sh', '8cb5eb7',
          'a hyphenated class merged with the one before its hyphen',
-         shadow=dict(mutate=[('run-major.sh', 'reshape1 slice window scaled"',
+         shadow=dict(mutate=[('run-major.sh', 'reshape1 slice window scaled runs"',
                               'reshape1 slice window scaled bcast-mid"')],
                      extra=halves('zzhy-lookrts', 'zzhy-a1g')
                      + [('zzhy-pair.txt', 'a stand-in pair note.\n')]),
@@ -5212,7 +5234,8 @@ CASES = [
          'a lead one pattern missed was overwritten by the block above it',
          plant=lambda t: {'doc': edited_rundoc(
              t, ('**`window` --- overlapping', '**`window` - overlapping'))},
-         shadow=dict(extra=whole_run(['lookrts'], prefix='zzit')),
+         shadow=dict(extra=whole_run(['lookrts'], prefix='zzit',
+                                      classes=recorded_classes())),
          env={'DOC': '{doc}', 'BASIS': 'lookrts'},
          argv=['zzit'],
          # No --audit: this fixture is built from the live README, which
@@ -5224,7 +5247,8 @@ CASES = [
     case('no-class-block-leads', 'install-tables.sh', '4086ab8',
          'the guard against a silently skipped class was itself silent',
          plant=lambda t: {'doc': rundoc_without_class_leads(t)},
-         shadow=dict(extra=whole_run(['lookrts'], prefix='zzit')),
+         shadow=dict(extra=whole_run(['lookrts'], prefix='zzit',
+                                      classes=recorded_classes())),
          env={'DOC': '{doc}', 'BASIS': 'lookrts'},
          argv=['zzit'],
          ok=V(exit=1, has=['no class block leads'], hasnt=['REFUSED']),
@@ -5233,7 +5257,8 @@ CASES = [
     case('heading-between-two-class-blocks', 'install-tables.sh', None,
          "a paragraph between blocks took the block above it's figures",
          plant=lambda t: {'doc': rundoc_heading_between_blocks(t)},
-         shadow=dict(extra=whole_run(['lookrts'], prefix='zzit')),
+         shadow=dict(extra=whole_run(['lookrts'], prefix='zzit',
+                                      classes=recorded_classes())),
          env={'DOC': '{doc}', 'BASIS': 'lookrts'},
          argv=['zzit'],
          probe=lambda subs: open(subs['doc']).read(),
@@ -5310,7 +5335,8 @@ CASES = [
     case('install-is-idempotent', 'install-tables.sh', None,
          'CONTROL: a full pass over an untouched run file rewrites no table',
          plant=lambda t: {'doc': edited_rundoc(t)},
-         shadow=dict(extra=whole_run(['lookrts'], prefix='zzit')),
+         shadow=dict(extra=whole_run(['lookrts'], prefix='zzit',
+                                      classes=recorded_classes())),
          env={'DOC': '{doc}', 'BASIS': 'lookrts'},
          argv=['zzit'],
          ok=V(exit=0, has=['11 table(s) installed'])),
