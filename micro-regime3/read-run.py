@@ -3487,7 +3487,7 @@ CLAIMS = [
       ('bq-mut-runs-gm-mulback', 'bq-scan-rem-gm-mulback', 'faster'),
       ('bq-scan-rem-gm-mulback', 'bq-odo-gm-mulback', 'tie')]),
     # CLAIMS 2 AND 6 RETIRED 2026-08-28 with the parking of `offtab` and
-    # `gen-quotrem`, the only arms either linked: a claim over a parked arm
+    # `gen-quotrem`, the arm each of them turned on: a claim over a parked arm
     # cannot be installed, and both were settled orderings a reader takes
     # from Run 20's tables for good. Claim 2 had already lost its
     # `bq-expand` / `mut-odo-vecdims` link on 2026-08-26, kept only while

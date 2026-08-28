@@ -1171,39 +1171,40 @@ rather than a slot in the next run, observed again:
   reading of the released library's own fallback; `mut-flat-gm`, the base
   its `-nosum` gate subtracts from; and `bq-mut-runs-gm-mulback`, the middle
   rung of claim 1's ladder, three of its links running through it. Parking
-  `offtab` and `gen-quotrem` retires claims 2 and 6, whose only links they were.
-  So the run is 49 timed arms, 1176 main-set benches and 1617 class benches.**
-  Five questions, each with a prediction and what kills it --- the predictions
-  are this file's and its author's, written before the run so that the run can
-  contradict them. (1) *The `runs` class.* `lib-stage2` against `lib-stage1`,
-  per run length. Predicted: a tie inside the floor at `runs-2` and `runs-3`,
-  `lib-stage2` ahead at `runs-9` (the nine-element probe's tie, less
-  the concatenation's allocation), and behind from `runs-96` up, by a factor
-  growing with the run --- memcpy against a stepping loop --- so the crossover
-  falls between 9 and 96, and `runs-r3-48x30` reads as `runs-1024` would. Killed
-  if `lib-stage2` is not behind past the floor on any of `runs-96`, `-1024`,
-  `-65536`, in which case horde-ad's regression is not this route.
-  `lib-stage2-concat` against `lib-stage2` is predicted to restore stage one's
-  figure at every length, its `alloc` above 1.00x by the slice headers, largest
-  at `runs-2`; `canon-memcpy-r2` against `canon-vecdims` is predicted behind
-  at 3 and 9 as on `window` and ahead at 96 and up, which would put a run-length
-  condition inside the driver on the table beside the route. (2)
-  *The composite.* `lib-stage2` against `mut-odo-vecdims-add-in-leaf-u2`
-  on the main set: predicted a tie inside the floor, the main set having nothing
-  to canonicalize past its rank and the dispatch costing a list walk per call;
-  killed by a margin past the floor either way. `lib-stage2` against
-  `canon-full` on `bcast` and `bcastmid`: predicted ahead by the leaf body's own
-  margin over plain `mut-odo-vecdims` there, the conditions composing with it.
-  (3) *The spill.* `mut-odo-vecdims-add-in-leaf-u2-down` against `-u2`:
-  predicted ahead on the long-run main-set shapes --- `stretch-wide-2xM`,
-  `-inner256`, `-tab7MB`, the `bcast` class --- by up to the 15 to 18% `-down`
-  took there on Run 20, and a tie on the k3 conv shapes, on both compilers,
-  if one fewer live value keeps the base pointers in registers; a tie everywhere
-  means the allocator spills them anyway and the `-g3` dump of the new arm
-  is owed before anything else. (4) *Stage two on every class.* `lib-stage2`
-  against `lib-stage1` on the eight regime-3 classes: predicted a tie inside
-  the floor on `rev`, `revsome`, `slice`, `scaled` and `window`, ahead
-  on `bcast` and `bcastmid` by the conditions' Run 20 margins (0.92 and 0.55),
+  `offtab` and `gen-quotrem` retires claims 2 and 6, being the arms their only
+  surviving links turned on. So the run is 49 timed arms, 1176 main-set benches
+  and 1617 class benches.** Five questions, each with a prediction and what
+  kills it --- the predictions are this file's and its author's, written before
+  the run so that the run can contradict them. (1) *The `runs` class.*
+  `lib-stage2` against `lib-stage1`, per run length. Predicted: a tie inside
+  the floor at `runs-2` and `runs-3`, `lib-stage2` ahead at `runs-9`
+  (the nine-element probe's tie, less the concatenation's allocation),
+  and behind from `runs-96` up, by a factor growing with the run --- memcpy
+  against a stepping loop --- so the crossover falls between 9 and 96,
+  and `runs-r3-48x30` reads as `runs-1024` would. Killed if `lib-stage2`
+  is not behind past the floor on any of `runs-96`, `-1024`, `-65536`, in which
+  case horde-ad's regression is not this route. `lib-stage2-concat` against
+  `lib-stage2` is predicted to restore stage one's figure at every length,
+  its `alloc` above 1.00x by the slice headers, largest at `runs-2`;
+  `canon-memcpy-r2` against `canon-vecdims` is predicted behind at 3 and 9
+  as on `window` and ahead at 96 and up, which would put a run-length condition
+  inside the driver on the table beside the route. (2) *The composite.*
+  `lib-stage2` against `mut-odo-vecdims-add-in-leaf-u2` on the main set:
+  predicted a tie inside the floor, the main set having nothing to canonicalize
+  past its rank and the dispatch costing a list walk per call; killed
+  by a margin past the floor either way. `lib-stage2` against `canon-full`
+  on `bcast` and `bcastmid`: predicted ahead by the leaf body's own margin
+  over plain `mut-odo-vecdims` there, the conditions composing with it. (3)
+  *The spill.* `mut-odo-vecdims-add-in-leaf-u2-down` against `-u2`: predicted
+  ahead on the long-run main-set shapes --- `stretch-wide-2xM`, `-inner256`,
+  `-tab7MB`, the `bcast` class --- by up to the 15 to 18% `-down` took there
+  on Run 20, and a tie on the k3 conv shapes, on both compilers, if one fewer
+  live value keeps the base pointers in registers; a tie everywhere means
+  the allocator spills them anyway and the `-g3` dump of the new arm is owed
+  before anything else. (4) *Stage two on every class.* `lib-stage2` against
+  `lib-stage1` on the eight regime-3 classes: predicted a tie inside the floor
+  on `rev`, `revsome`, `slice`, `scaled` and `window`, ahead on `bcast`
+  and `bcastmid` by the conditions' Run 20 margins (0.92 and 0.55),
   and `reshape1` degenerate for stage two as for the canonicalizing arms;
   no class may read the branch behind stage one past its floor, that being
   the regression the benchmark is now built to catch on its own.
@@ -2539,7 +2540,7 @@ rather than a slot in the next run, observed again:
   claim 2's `bq-expand` link retired, its condition having been spent
   from the settlement day itself and read back by nobody until then, and five
   on 2026-08-28 when claims 2 and 6 retired with the parking of `offtab`
-  and `gen-quotrem`, the only arms either linked: a claim over a parked arm
+  and `gen-quotrem`, the arm each of them turned on: a claim over a parked arm
   cannot be installed, and neither had a question left --- `offtab`'s place
   behind the pure yardstick and the first attempt's tie with the baseline
   were both settled orderings a reader can take from Run 20's tables for good.
@@ -4794,14 +4795,16 @@ is a hand check that `vector` and `criterion` have been the same versions since
 Failed Run 6 inclusive, which is what lets a question about generated code
 be asked across those runs at all. One pin is load-bearing rather
 than housekeeping: `vector` is built `+boundschecks -unsafechecks`, which
-is what makes the `gen-quotrem`/`gen-unsafe` pair price a bounds check at all,
-since one uses `VS.!` and the other `VS.unsafeIndex`. **And the module itself
-is not what varies, which Run 17 settled and no run re-asks**: two builds of one
-recipe back to back gave one `Main.o` by md5 WITHOUT `-fobject-determinism`,
-and the control --- the previous run's recipe, twice --- gave one as well, where
-two had been registered. So the flag is priced at nothing on this module, having
-reproduced without it, and the run-to-run binary differences this README has met
-are the store's and not this module's.
+is what MADE the `gen-quotrem`/`gen-unsafe` pair price a bounds check at all,
+since one uses `VS.!` and the other `VS.unsafeIndex` --- **that pair ended
+with the parking of `gen-quotrem` on 2026-08-28**, leaving the pin load-bearing
+for comparability alone, every figure in this README having been taken at it.
+**And the module itself is not what varies, which Run 17 settled and no run
+re-asks**: two builds of one recipe back to back gave one `Main.o` by md5
+WITHOUT `-fobject-determinism`, and the control --- the previous run's recipe,
+twice --- gave one as well, where two had been registered. So the flag is priced
+at nothing on this module, having reproduced without it, and the run-to-run
+binary differences this README has met are the store's and not this module's.
 
 `micro.cabal` builds at -O1, which is what a default `cabal build` of orthotope
 takes --- **and that is not the regime the claims decide in**, a correction made
