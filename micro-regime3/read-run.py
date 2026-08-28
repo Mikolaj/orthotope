@@ -3253,12 +3253,17 @@ def cell_dump(cells, shapes, strategies):
 # ever GROWS: an arm that has earned a column keeps it, no run drops
 # one, and the run writer prunes the header by hand if it gets
 # unwieldy. `offtab-scan-rem` joined 2026-08-24. Neither way of
-# dropping an arm survives and README says why beside the rule; the
+# dropping an arm survives and the RUN FILE says why beside the rule,
+# under `What the next run compares against` -- not README, which
+# carries no word of this rule; the
 # short of it is that this table holds the members alone, so it cannot
-# say who has stopped earning a column. PARKING IS THE THIRD WAY AND IT
-# DOES SURVIVE, taken 2026-08-28 on `bq-mut-runs`: an arm no run times is
-# not an arm that stopped earning its column, and the alternatives were a
-# cell nothing can compute or a rebuild of both halves. The check in
+# say who has stopped earning a column. ARMS GET DROPPED ALL THE SAME,
+# and have been many times -- a trim of fifteen, Run 20's three demotions
+# to `Only`, Run 21's eight parkings and two twins -- so the rule beside
+# the table in the run file is a preference and says so since 2026-08-28.
+# `bq-mut-runs` is the first COLUMN to go with an arm, taken that day: an
+# untimed arm cannot fill a cell, and the alternatives were a cell
+# nothing can compute or a rebuild of both halves. The check in
 # `lint` holds this list to the TIMED roster so the state cannot recur,
 # and the run file's tables were narrowed by hand in the same edit,
 # `install` matching a table by its whole header line. Growth is capped by one

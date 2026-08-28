@@ -910,40 +910,52 @@ family on at least one shape of the main set or a stride class --- on Run 16
 in that order of shapes led, `offtab-scan-rem` on Run 18, and **on Run 20 three
 of the rework's arms**: `canon-vecdims`, best outside the family on 17 shapes,
 `mid-copy` on 17 and `bcast-set` on 3 --- and **it only ever grows**: an arm
-that has earned a column keeps it, and no run drops one --- **except an arm
-PARKED out of the timed roster, and `bq-mut-runs` is the first, dropped
-2026-08-28**. The rule is about an arm that stops earning its column and says
-nothing about one no run measures: keeping it asks the installer for a cell
-nothing can compute, which `--check-doc` fails as an install `?`, and the only
-other answer was a rebuild of both halves. Its figures end at Run 20 and went
-from the two tables above with the column, narrowed by hand in the same edit ---
-`install` matches a table by its whole header line, so a narrowed emitter
-and a wide table refuse each other, measured that day when `smoke-sweep.sh`
-failed on exactly that. `--lint` now holds this list to the TIMED roster,
-the older check having asked only whether its arms were rostered, which a parked
-arm still is. The second table carries the same columns over every stride-class
-shape, with its class named. **One representative per family**, besides: where
-a qualifying arm is a close variant of a member and measures closely,
-the leading one keeps the column, so no strategy costs two. **Run 20 is the run
-that had to apply that clause, and it kept two arms out.** `canon-memcpy-r2`
-and `canon-full` both qualified --- best outside the family on 4 shapes and 6
---- and both are close variants of `canon-vecdims` measuring within four
-thousandths of it on the main set, 0.052 and 0.053 against 0.049.
-The installer's own membership note is what settles it rather than the judgement
-alone: on nearly every shape either of them leads, the arm it beats
-is `canon-vecdims` or `bcast-set` at the same three decimals, which is what
-*measuring this closely* means. The judgement is still the author's, which
-is why `--fingerprint` names the best member on the shape a newcomer leads.
-**Neither way of dropping an arm survives.** Dropping one that leads nothing
-this run churns on a thousandth --- `offtab-scan-rem` holds `reshape1-rank10`
-at 0.090 against 0.091 --- and gaps the record wherever the column went. Judging
-it off the fingerprint this file carries is worse: that table holds the members
-alone, so a leaver would be judged against the members alone where a joiner
-is judged against every timed arm --- on `reshape1-rank10` the members' own
-minimum was `bq-scan-rem-gm-mulback` at 0.091, while the arm that won the shape
-read 0.090 and had no column to be seen in. The header therefore grows,
-and the run writer narrows it by hand if it gets unwieldy: it is fifteen columns
-now and the next run that adds one should ask whether it still reads.
+that has earned a column keeps it, and no run drops one --- **which
+is a preference, not a law, and is superseded here. ARMS GET DROPPED, AND HAVE
+BEEN MANY TIMES; ruled 2026-08-28.** A trim took fifteen at once; Run 20 demoted
+`mut-odo-vecdims-add-out`, `-add-both` and `-add-both-down` to `Only`
+on 2026-08-25; Run 21 parked eight permanently and removed `offtab`'s two A/A
+twins on 2026-08-28; and this table lost `bq-mut-runs` with them, the first
+column to go. What the preference buys is that a column is not churned
+on a thousandth, which is worth having and is not a proof that none can go.
+**What governs a drop is two questions**, and the paragraph below prices
+the cost of taking one rather than forbidding it: is the arm still TIMED,
+an untimed one being unable to fill a cell at all --- keeping `bq-mut-runs`
+asked the installer for a cell nothing can compute, which `--check-doc` fails
+as an install `?`, and the only other answer was a rebuild of both halves;
+and is the column the only copy of what it holds, which it never is, a run's own
+figures living in its Results and class tables whatever the fingerprint carries.
+Its figures end at Run 20 and went from the two tables below with the column,
+narrowed by hand in the same edit --- `install` matches a table by its whole
+header line, so a narrowed emitter and a wide table refuse each other, measured
+that day when `smoke-sweep.sh` failed on exactly that. `--lint` now holds
+this list to the TIMED roster, the older check having asked only whether
+its arms were rostered, which a parked arm still is. The second table carries
+the same columns over every stride-class shape, with its class named. **One
+representative per family**, besides: where a qualifying arm is a close variant
+of a member and measures closely, the leading one keeps the column,
+so no strategy costs two. **Run 20 is the run that had to apply that clause,
+and it kept two arms out.** `canon-memcpy-r2` and `canon-full` both qualified
+--- best outside the family on 4 shapes and 6 --- and both are close variants
+of `canon-vecdims` measuring within four thousandths of it on the main set,
+0.052 and 0.053 against 0.049. The installer's own membership note is what
+settles it rather than the judgement alone: on nearly every shape either of them
+leads, the arm it beats is `canon-vecdims` or `bcast-set` at the same three
+decimals, which is what *measuring this closely* means. The judgement is still
+the author's, which is why `--fingerprint` names the best member on the shape
+a newcomer leads. **Neither way of dropping an arm THAT STOPPED EARNING
+ITS COLUMN survives**, which is what this paragraph is about; an arm PARKED out
+of the timed roster is the other case and is ruled on above. Dropping one
+that leads nothing this run churns on a thousandth --- `offtab-scan-rem` holds
+`reshape1-rank10` at 0.090 against 0.091 --- and gaps the record wherever
+the column went. Judging it off the fingerprint this file carries is worse:
+that table holds the members alone, so a leaver would be judged against
+the members alone where a joiner is judged against every timed arm ---
+on `reshape1-rank10` the members' own minimum was `bq-scan-rem-gm-mulback`
+at 0.091, while the arm that won the shape read 0.090 and had no column
+to be seen in. The header therefore grows, and the run writer narrows it by hand
+if it gets unwieldy: it is fourteen columns now, one fewer than Run 20
+published, and the next run that adds one should ask whether it still reads.
 
 | shape | `sInner` | `l` | `list`, net | vecdims | flat-gm | scan-rem-gm | build | mut-odo | runs-gm | offtab-rem | canon-vd | mid-copy | bcast-set |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|

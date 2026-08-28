@@ -4629,8 +4629,9 @@ the run is 49 arms, and the five library-shaped arms with the timed `-u2-down`,
 added 2026-08-28 ([the stride
 classes](#the-stride-classes-and-what-they-cover)), less the eight parked
 permanently since Run 21 and `offtab`'s two twins removed ([its entry][open]),
-takes the roster to 1176 benches from Run 20's 1272, three placement-family arms
-having dropped to `Only` beside them.
+takes the roster to 1176 benches from Run 20's 1272. The three placement-family
+arms went to `Only` a run earlier, on 2026-08-25, so Run 20's 1272 already
+excludes them and they are no part of this arithmetic.
 
 - **A strategy with a precondition is not measured.** The column allowed `none`,
   an empty cell, and `shape well-formed`, which is a condition on being a valid
