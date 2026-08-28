@@ -2851,8 +2851,13 @@ def deflation_table(run_path, cells, shapes, main_hs):
         return 2
     prefix, half = m.group(1), m.group(2)
     pat = '%s-al-%s-' % (prefix, half)
+    # BESIDE THE RUN, as the refusal below says: globbed out of the cwd
+    # until 2026-08-28, so a run named through a directory found no leg
+    # and was told its riders were never taken. Case:
+    # `deflation-legs-beside-the-run-not-the-cwd`.
+    at = os.path.dirname(os.path.abspath(run_path))
     legs, sat = {}, {}
-    for path in sorted(glob.glob('%s*-r1.json' % pat)):
+    for path in sorted(glob.glob(os.path.join(at, '%s*-r1.json' % pat))):
         shape = os.path.basename(path)[len(pat):-len('-r1.json')]
         # THE GLOB TAKES BOTH RIDER SETS. `-sat` is a suffix on the half's
         # name, so `$R-al-<half>-*` matches the saturated legs too; they

@@ -1112,12 +1112,13 @@ def class_pair_with_log(tmp, cls='rev', slow=1.0):
     return a, b
 
 
-def deflation_legs(tag='runzzd', half='h', n=3, clean=True, sat=True):
+def deflation_legs(tag='runzzd', half='h', n=3, clean=True, sat=True,
+                   at=None):
     """A run with BOTH rider sets beside it, clean and saturated.
 
-    `--deflation` globs the legs out of the CWD rather than out of the
-    run's directory, so these go in HERE and are swept with the rest.
-    Run 18 takes each shape's `list` alone twice -- `SAT=` off and on --
+    In HERE and swept with the rest, or under `at`, a directory that is
+    not the cwd the cases run in, for the case that wants the legs found
+    beside the run rather than beside the caller. Run 18 takes each shape's `list` alone twice -- `SAT=` off and on --
     because its registration 3 is a decomposition and not one ratio: the
     state is the saturated leg over the clean one and the rest is the
     roster cell over the saturated one. Two legs a shape is what makes
@@ -1125,14 +1126,15 @@ def deflation_legs(tag='runzzd', half='h', n=3, clean=True, sat=True):
     a write-up.
     """
     shapes = main_shapes()[:n]
-    run = here_file('%s-%s-main.json' % (tag, half))
+    place = (lambda name: os.path.join(at, name)) if at else here_file
+    run = place('%s-%s-main.json' % (tag, half))
     synth_run(run, shapes)
     for sh in shapes:
         if clean:
-            synth_run(here_file('%s-al-%s-%s-r1.json' % (tag, half, sh)), [sh])
+            synth_run(place('%s-al-%s-%s-r1.json' % (tag, half, sh)), [sh])
         if sat:
-            synth_run(here_file('%s-al-%s-sat-%s-r1.json'
-                                % (tag, half, sh)), [sh])
+            synth_run(place('%s-al-%s-sat-%s-r1.json'
+                            % (tag, half, sh)), [sh])
     return run
 
 
