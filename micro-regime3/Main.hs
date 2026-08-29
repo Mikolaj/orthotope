@@ -3616,7 +3616,7 @@ roster =
   , ("list-aa-distant",            Twin fbList)
     -- parked 2026-08-28, permanently, by decision (README.md#what-is-open,
     -- the Run 21 entry): superseded, answering no registered question;
-    -- its yardstick column stays blank from Run 21 on
+    -- its column in a run's own geomean table stays blank from Run 21 on
   , ("gen-quotrem",                Only fbGenQuotRem)
   , ("gen-unsafe",                 Fill fbGenUnsafe)
     -- The adjacent half of 'gen-unsafe''s pair; the distant half is early
@@ -3750,11 +3750,11 @@ roster =
   , ("build-aa-adjacent",          Twin fbBuild)
     -- parked 2026-08-28, permanently, by decision (README.md#what-is-open,
     -- the Run 21 entry): superseded, answering no registered question;
-    -- its yardstick column stays blank from Run 21 on
+    -- its column in a run's own geomean table stays blank from Run 21 on
   , ("bq-mut",                     Only fbBQmut)
     -- parked 2026-08-28, permanently, by decision (README.md#what-is-open,
     -- the Run 21 entry): superseded, answering no registered question;
-    -- its yardstick column stays blank from Run 21 on
+    -- its column in a run's own geomean table stays blank from Run 21 on
   , ("bq-mut-runs",                Only fbBQmutRuns)
     -- not timed: l < 2^32
   , ("bq-mut-runs-mulback",        Only fbBQmutRunsMulback)
@@ -3779,8 +3779,9 @@ roster =
   , ("bq-mut-lemire-mulback",      Only fbBQmutLemireMulback)
     -- parked 2026-08-28, permanently, by decision (README.md#what-is-open,
     -- the Run 21 entry): superseded, answering no registered question;
-    -- its yardstick column stays blank from Run 21 on, and its two A/A
-    -- twins, added 2026-08-14 and read from Run 14 to Run 20, are gone
+    -- its column in a run's own geomean table stays blank from Run 21 on,
+    -- and its two A/A twins, added 2026-08-14 and read from Run 14 to Run
+    -- 20, are gone
     -- with it -- a twin of an untimed arm prices nothing.
   , ("offtab",                     Only fbOffTab)
     -- not timed: 'int32Fits' on the source, i.e. at most 2^31 elements
@@ -3792,7 +3793,7 @@ roster =
   , ("bq-unfold",                  Only fbBQunfold)
     -- parked 2026-08-28, permanently, by decision (README.md#what-is-open,
     -- the Run 21 entry): superseded, answering no registered question;
-    -- its yardstick column stays blank from Run 21 on
+    -- its column in a run's own geomean table stays blank from Run 21 on
   , ("bq-gen",                     Only fbBQgen)
     -- The Lemire arms are placed to straddle their controls: this one
     -- runs just after 'bq-gen', and the output-substitution arms run
@@ -3838,7 +3839,7 @@ roster =
   , ("bq-scan-packed-mulback",     Only fbBQscanPackedMulback)
     -- parked 2026-08-28, permanently, by decision (README.md#what-is-open,
     -- the Run 21 entry): superseded, answering no registered question;
-    -- its yardstick column stays blank from Run 21 on
+    -- its column in a run's own geomean table stays blank from Run 21 on
   , ("bq-expand-qr-prim",          Only fbBQexpandQRprim)
   , ("bq-expand",                  Fill fbBQexpand)
     -- The same fill, forced with one element instead of the sum, so that
@@ -3863,11 +3864,11 @@ roster =
   , ("bq-expand-aa-adjacent",      Twin fbBQexpand)
     -- parked 2026-08-28, permanently, by decision (README.md#what-is-open,
     -- the Run 21 entry): superseded, answering no registered question;
-    -- its yardstick column stays blank from Run 21 on
+    -- its column in a run's own geomean table stays blank from Run 21 on
   , ("bq-expand-zf",               Only fbBQexpandZF)
     -- parked 2026-08-28, permanently, by decision (README.md#what-is-open,
     -- the Run 21 entry): superseded, answering no registered question;
-    -- its yardstick column stays blank from Run 21 on
+    -- its column in a run's own geomean table stays blank from Run 21 on
   , ("bq-expand-b",                Only fbBQexpandB)
     -- not timed: 10.73x the result
   , ("cm-gather",                  Only fbCMGather)

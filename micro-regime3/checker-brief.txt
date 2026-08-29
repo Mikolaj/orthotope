@@ -46,7 +46,7 @@ FOUR THINGS YOU CANNOT DERIVE, so they are given:
     slice window scaled runs). The control is RUN-OTHER.
  2. PREV is on disk too. Absolutes and anchors are read against
     PREVSAME, the half at this run's own area; the published lineage
-    and the yardstick column against PREVBASIS.
+    and that run's own second column against PREVBASIS.
  3. Alone-leg riders are RUN-al-<half>-<shape>-r1.json, one bench each.
     Probes are probe-*.json/.log.
  4. read-run.py is the only reader; start with --help. --cells gives
@@ -85,7 +85,7 @@ PASS 1 -- every figure. Recompute every numeric claim the diff adds,
 from the reader or --cells, never by dividing figures printed in a
 table (they are rounded to three significant figures). Be exhaustive
 on the tables -- Results, the fingerprint, the nine class tables, the
-cross-class summary, the yardstick's new columns -- and say how many
+cross-class summary, the run's own two geomean columns -- and say how many
 rows you verified and how many disagreed.
 
 PASS 2 -- every superlative and count. Every "only", "largest",

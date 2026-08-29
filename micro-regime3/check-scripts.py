@@ -210,7 +210,8 @@ def _newest_run_doc():
     """The run's own file, which is where everything a run publishes is.
 
     HALF THE FIXTURES HERE PLANT INTO IT and not into README.md: the
-    Results table, the yardstick, the fingerprint, the claims verdicts,
+    Results table, the run's own geomeans, the fingerprint, the claims
+    verdicts,
     the eight class blocks and the run's own provenance all live in
     `runs/run<N>.md`. An absent one is a
     fixture that cannot be built, so it is an assertion and not a fallback
@@ -223,7 +224,8 @@ def _newest_run_doc():
         m = re.match(r'^run(\d+)\.md$', name)
         if m:
             got.append((int(m.group(1)), os.path.join(at, name)))
-    assert got, ('no run file in %s: the Results table, the yardstick, the'
+    assert got, ('no run file in %s: the Results table, its own geomeans,'
+                 ' the'
                  ' claims verdicts and the class blocks are all in one, so'
                  ' every fixture that plants against them is unbuildable'
                  % at)
@@ -3501,7 +3503,8 @@ CASES = [
               hasnt=['| a | b |'])),
 
     case('section-prints-tables-when-asked', 'read-run.py', None,
-         'CONTROL: the yardstick is hand-edited, so one caller wants them',
+         'CONTROL: the geomean table is hand-edited, so one caller wants'
+         ' them',
          plant=lambda t: {'doc': doc_with_a_table(t)},
          argv=['--section', 'Middle', '--with-tables', '--readme', '{doc}'],
          ok=V(exit=0, has=['| a | b |'])),
@@ -4233,7 +4236,7 @@ CASES = [
          # Six entries a reader cleared by hand each time the list was
          # printed, all of them long for the same recorded reason: a
          # registration is the only copy, the run chapter being replaced
-         # every run and the yardstick keeping one geomean per strategy
+         # every run and the run file keeping one geomean per strategy
          # per half. Exempt by the lead the family shares, and COUNTED.
          plant=lambda t: {'readme': readme_answered_account(
              t, lead='**What Run 99 was built to answer, registered before'
