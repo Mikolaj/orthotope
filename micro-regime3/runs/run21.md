@@ -227,26 +227,23 @@ of its fifteen being HEAD emitting more instructions and the remaining five not.
 20 drew.** Eighteen sweeps, both halves over all nine classes, 147, 196 or 343
 cells apiece and no cell perf refused anywhere in the twenty files. **Eight
 of the nine read as the main set does** --- every arm together at a count
-geomean of 0.9840 to 0.9936, HEAD emitting about a percent more --- while
-**the ninth sits apart at 0.9996**, near enough to 1 that HEAD and 9.12 emit
-the same instructions across that whole class. That ninth is `reshape1`,
-as it was Run 20's eighth, so what Run 19 read as an inversion and Run 20 read
-as flat is flat again: `reshape1` is the class HEAD does not cost, on three
-runs, and `window` is the runner-up here as it was there. **The two runs'
-magnitudes are not directly comparable and one of Run 20's does not re-derive
-at all**: a class geomean of this kind is taken over the arms the two halves
-share, 43 here against 47 there, so the arm sets differ. That accounts
-for `window`, whose published 0.9918 re-derives from Run 20's own artifacts
-as 0.9917. It does NOT account for `reshape1`, whose published 0.9995 re-derives
-as 1.0001 over Run 20's own 47 arms and 1.0009 over the 37 the two runs share
---- a Run 20 figure that reproduces from neither set, and a question
-for that run's artifacts rather than this run's. So quote no cross-run magnitude
-here. What carries is the ORDERING --- `reshape1` apart from the other eight,
-`window` next to it --- and that has now held three times. **The most extreme
-arm is the same one in all nine classes and it is the same one Run 20 named**:
-`mut-odo-vecdims-add-in-leaf`, from 0.8653 on `runs` to 0.9286 on `reshape1`,
-where Run 20 read 0.8694 on `bcast` to 0.9286 on `reshape1` --- the same arm,
-the same top of the range to four figures, over a roster change.
+geomean of 0.9852 to 0.9934, HEAD emitting about a percent more --- while
+**the ninth sits apart at 0.9990**, near enough to 1 that HEAD and 9.12 emit
+almost the same instructions across that whole class. That ninth is `reshape1`,
+as it was Run 20's eighth at 0.9995 against its seven at 0.9860 to 0.9918,
+so what Run 19 read as an inversion and Run 20 read as flat is flat again:
+`reshape1` is the class HEAD does not cost, on three runs. `window`
+is the runner-up at 0.9934, as it was at 0.9918. **These nine are taken the way
+Run 20 took its eight** --- the geomean over every arm the counts sweep carries,
+controls included, which is 49 here and was 53 there --- so the two runs'
+figures are commensurable and Run 20's reproduce from its own artifacts
+to the digit. A geomean over the 43 arms `--counts` PRINTS is a different
+number, `reshape1` reading 0.9996 that way, and the two must not be mixed.
+**The most extreme arm is the same one in all nine classes and it is the same
+one Run 20 named**: `mut-odo-vecdims-add-in-leaf`, from 0.8653 on `runs`
+to 0.9286 on `reshape1`, where Run 20 read 0.8694 on `bcast` to 0.9286
+on `reshape1` --- the same arm, the same top of the range to four figures,
+over a roster change.
 
 **The unit-innermost-extent rule was registered as a mechanism claim,
 and a second run has now declined to kill it.** Wherever `sInner` is 1,

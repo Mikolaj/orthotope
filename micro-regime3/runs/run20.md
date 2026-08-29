@@ -236,18 +236,18 @@ of the code, so the claim stays registered rather than settled.
 **And the correction sits on nearly the same footing in both halves, as it did
 on Runs 17, 18 and 19.** The in-situ forcing term --- an arm minus its `-nosum`
 twin, against the `sum-only` the correction actually subtracts --- reads 1.0266,
-1.0341 and 1.0701 as medians on the basis and 1.0298, 1.0214 and 1.0655
-on the control, on `mut-odo-vecdims`, `mut-flat-gm` and `bq-expand`. So both
-halves subtract a term between about 2% and 7% under the in-situ pass, tilting
-the same way on all three arms and agreeing with each other to within 0.32, 1.27
-and 0.46 of a point, and **a margin between these two halves is therefore
-not carrying a correction bias**. The fourth control the rework brought,
-`canon-full-nosum`, reads 1.0267 and 1.0239 --- so the endpoint arm, whose write
-pattern varies by shape where the three standing controls are element-wise
-fills, sits with them rather than apart, which is what it was added to find out.
-The two `sum-only` halves agree at 1.0004 on the basis and 1.0002
-on the control. Every one of those figures is within a few thousandths of Run
-19's on the three arms it shares.
+1.0341 and 1.0701 as `--aa`'s `ratio` column on the basis and 1.0298, 1.0214
+and 1.0655 on the control, on `mut-odo-vecdims`, `mut-flat-gm` and `bq-expand`.
+So both halves subtract a term between about 2% and 7% under the in-situ pass,
+tilting the same way on all three arms and agreeing with each other to within
+0.32, 1.27 and 0.46 of a point, and **a margin between these two halves
+is therefore not carrying a correction bias**. The fourth control the rework
+brought, `canon-full-nosum`, reads 1.0267 and 1.0239 --- so the endpoint arm,
+whose write pattern varies by shape where the three standing controls
+are element-wise fills, sits with them rather than apart, which is what
+it was added to find out. The two `sum-only` halves agree at 1.0004 on the basis
+and 1.0002 on the control. Every one of those figures is within a few
+thousandths of Run 19's on the three arms it shares.
 
 **The add-in split did not repeat, and this run is the first that could have
 read it against a floor this tight.** `mut-odo-vecdims-add-in` against the arm
