@@ -23,7 +23,7 @@
 #       variable leaves no trace. There is no general form of it, and a
 #       script that guessed one would report a pair sound on a reading
 #       that was never about that pair.
-#   10a/10b, the --survey legs -- BUILD path only, and their answer is the
+#   10a/10b, the --survey legs -- the build's, and their answer is the
 #       binary's rather than the reading session's, so they go in the note
 #       at 3b and not here. And 10's own `--library` figure is a registered
 #       variable of the pair, read against the note and not against any
@@ -179,7 +179,7 @@ fi
 # pair -- so the rule it needs is the weaker one, that anything it cites
 # outlives IT. That matters because the note is the entry point a later
 # session re-enters a prepared run through, and a preparation may be days
-# old: the fork says so outright. A note pointing at a directory somebody
+# old, this chapter says so outright. A note pointing at a directory somebody
 # tidied is a stale entry point, and the session that follows it finds out
 # at the moment it is trusting the note most.
 #

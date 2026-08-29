@@ -5213,7 +5213,7 @@ an artifact**: a reading that owes nothing cannot be told from a reading
 not done, which is the whole of why this is a list and not a sentence.
 
     1. this chapter's three checklists, a fifth of its lines
-         -- which path you are on, BUILD or CONFIRM, and what it owes
+         -- every step of them is owed, the build included
     2. the last run's head and Results prose
          -- one sentence: what this run's own head has to answer
     3. What the next run compares against, its prose and not its figures
@@ -5256,29 +5256,24 @@ it was about to do --- and accounted for it afterwards as *"I read what I judged
 useful and drifted."* It reported none of the four items it skipped, because
 nothing it skipped owed anything.
 
-**FIRST, THE FORK, because it decides how much of this chapter you owe and
-it is four commands.** A run is either already prepared or it is not,
-and the half of this procedure that builds a pair is the half most sessions do
-not need. Answer these before reading anything else here:
+**FIRST, THE RULING, because it decides what this chapter is: BOTH HALVES
+ARE BUILT ANEW, EVERY RUN.** A recorded run's two binaries are built during
+this preparation, back to back, from the two recipes its note carries. Four
+shortcuts are refused by name, and none of them is a judgement call:
+the previous run's binary, a binary built for a probe, one half copied to stand
+as the other, and one binary run twice under two sets of flags. So there
+is no fork and no path to be on --- step 3b is unconditional and every run owes
+the whole of this chapter, however recently the last one built what looks like
+the same pair. Why a shortcut cannot be argued sound from its inputs
+is under *Why step 3b's three rules are what they are*: the drift it admits
+is between the RUNS, nothing is rebuilt between the halves to expose it,
+and no step here can see it.
 
-    cd ~/r/orthotope/micro-regime3
-    cat $R-pair.txt                    # NO SUCH FILE = the BUILD path
-    md5sum $R-<basis> $R-<other>       # do they match the note's?
-    git log -1 --format=%h -- :/micro-regime3/Main.hs
-    git log -1 --format=%h -- :/micro-regime3/align-as.py
-
-A pair whose note matches, whose md5s match and whose `Main.hs` and shim have
-either not moved or moved by comments only is the **CONFIRM path**: you owe
-`./preflight.sh $R`, step 9b, and then the run list from step 13, and you owe
-NOTHING of the building half --- not 3b, not the two `--survey` legs,
-not the note. Anything else is the **BUILD path**, which is 3b and those two
-lines besides. Expect `Main.hs` to have moved: this file's prose lives
-in its comments, so a write-up moves it, and only the diff tells that
-from a real change. **And the run number is one past the newest file
-in `runs/`**: that file is the run behind you, and the disk is where
-it is written. Two headings carry it and step 5 renames both --- the run file's
-own title, and *Recommended tasks after Run N* in the open list --- where
-the four the old chapter needed were four because none of them was a file name.
+**And the run number is one past the newest file in `runs/`**: that file
+is the run behind you, and the disk is where it is written. Two headings carry
+it and step 5 renames both --- the run file's own title, and *Recommended tasks
+after Run N* in the open list --- where the four the old chapter needed
+were four because none of them was a file name.
 
 The rest of this chapter is three checklists and the reasons behind them.
 The reasons restate nothing the lists carry, so reading them front to back
@@ -5382,76 +5377,50 @@ and never as a chronology.
     #      empty file instead. Step 5 makes it
     #      R=runNN; REGIME=-fspec-constr -- an EMPTY regime is a plain -O1
     #      build and nothing downstream notices. That hazard is 3b's
-    #      alone: REGIME reaches the build and nothing else, so on the
-    #      CONFIRM path nothing reads it and setting it buys nothing.
+    #      alone: REGIME reaches the build and nothing else.
     #      Governing docs are this
     #      file and read-run.py's docstring; horde-ad's CLAUDE.md is not
     cat $R-pair.txt                       # 0. the note: six steps quote it,
     #      four here and two in the run list -- the halves' roles, the
     #      md5s, the commit, the gate line, and any environment its LAUNCH
-    #      line puts in FRONT of a command. NO SUCH FILE is the answer to
-    #      the fork rather than an error: you are on the BUILD path, and
-    #      the note is written at 3b, before either binary exists. Come
+    #      line puts in FRONT of a command. NO SUCH FILE is the expected
+    #      state here: the note is written at 3b, before either binary
+    #      exists. Come
     #      back to this line after it, since the steps below quote it
     #      BASIS/OTHER come from it, never from a half's name; setting
-    #      them in the scripts is step 3c, and reading an older pair whose
-    #      basis differs is what the environment override is for.
+    #      them in the scripts is step 3c.
     #      The basis runs second, and both halves run the classes
-    ls $R-*                               # 1. is there a pair? A note-only
-    #      listing is the answer NO, and so is nothing at all: the note is
-    #      written at 3b, so an empty listing is a run that has not reached
-    #      3b rather than an impossible state
-    md5sum $R-<basis> $R-<other>          # 2. is it the note's pair? On the
-    #      BUILD path there is nothing to sum yet: 3b transcribes the md5s
-    #      as it builds, and this line is that transcription's check
-    git log -1 --format=%h -- :/micro-regime3/Main.hs   # 3. has it moved?
-    git diff <note's commit> HEAD -- :/micro-regime3/Main.hs  # comment-only?
-    #      MOVED IS NOT REBUILT, and this line is what tells the two
-    #      apart: a comment-only diff leaves the binary the note's, so it
-    #      is the CONFIRM path. EXPECT a move -- this file's own prose
-    #      lives in Main.hs's comments, so a documentation commit touches
-    #      it -- and read a diff that reaches CODE as the BUILD path
-    git log -1 --format=%h -- :/micro-regime3/align-as.py  # 3a. and the SHIM,
-    git diff <note's shim commit> HEAD -- :/micro-regime3/align-as.py
-    #      which is on the recipe's -pgma and is as much an input to the
-    #      binary as the source is, so it takes step 3's two lines and
-    #      step 3's verdict: a docstring-only diff leaves the shim
-    #      emission-identical and the pair sound, and a change to what it
-    #      EMITS is the BUILD path. The run file's Provenance records
-    #      its commit beside the compiler's; the fork looked at neither
-    #      until 2026-08-16,
-    #      when a walk found it three commits past what that section names
-    #      and had to read the diff to be sure the pair was still sound
+    ls $R-*                               # 1. nothing named for this run may
+    #      exist yet -- an empty listing is what a run about to be prepared
+    #      looks like, and anything else is a run already under way or a
+    #      leftover to clear, never a pair to adopt
+    md5sum $R-<basis> $R-<other>          # 2. the note's fill-in block, read
+    git log -1 --format=%h -- :/micro-regime3/Main.hs   # 3. back: the two
+    git log -1 --format=%h -- :/micro-regime3/align-as.py  # 3a. md5s, the
+    #      Main.hs commit and the SHIM's, which is on the recipe's -pgma and
+    #      is as much an input to the binary as the source is. The run file's
+    #      Provenance records the shim's beside the compiler's
+    #      2, 3 AND 3a RUN AFTER 3b, being read-backs of what 3b transcribes:
+    #      there is nothing to sum, and nothing to check a transcription
+    #      against, until both halves are built. The numbers are the prose's
+    #      own and do not move, so this is an instruction about ORDER and not
+    #      a renumbering -- as at post-run step 11
     #  the :/ pathspec resolves from the repo root, so these answer the same
     #  from anywhere; a bare `-- Main.hs` run from the root prints nothing
-    #  and exits 0, which reads exactly like an unmoved source. Where the
-    #  note records two commits, the other is the tree it was built in
-    #  BEFORE THE FORK: if the run's own JSONs are already here, this list
-    #      and the run list are both spent and the entry point is post-run
-    #      step 1. Do NOT read a moved Main.hs as a licence to rebuild --
-    #      the landed JSONs are provenanced to the binaries that made
-    #      them, and the fork answers a question about a run that has not
-    #      happened
+    #  and exits 0, which reads exactly like an unmoved source
+    #  IF THE RUN'S OWN JSONS ARE ALREADY HERE, this list and the run list
+    #      are both spent and the entry point is post-run step 1: the
+    #      landed JSONs are provenanced to the binaries that made them, and
+    #      rebuilding now would orphan them
     #  AND IF THE PREPARATION IS SPENT BUT THE GATE IS NOT: a note whose
     #      fill-in block is complete and whose GATE line reads NOT RUN has
-    #      spent this list already. Yours, from this session, enters at 13.
-    #      Somebody else's, or older than today, takes CONFIRM and re-runs
-    #      the cheap read-only steps -- 4 to 10 are one call and about
-    #      eight minutes, most of it 8c and 8d, and 9 is the whole regime
-    #      guard -- inheriting only the three the note
-    #      records: the gate, the smoke sweep and the roster pass
-    #  1-3 ARE THE FORK, and the two branches have names this file uses
-    #  elsewhere. Missing, or moved with CODE changed, sends you down the
-    #  BUILD path: 3b and the two --survey lines, and nothing else. Moved
-    #  comment-only is CONFIRM, the binary still being the note's.
-    #  Matching sends you down
-    #  the CONFIRM path, where those are skipped and step 9 carries the
-    #  whole guard instead, there being no build to have carried the
-    #  regime (About the current harness has that, at `--survey`). Every
-    #  other step is the same on both, in the same order, which is why
-    #  this is one list and not two: the fork is one step wide
-    #  3b. BUILD BOTH HALVES -- the BUILD path's own step, only if 1-3 say
-    #      so and from the note's own
+    #      spent this list already, and the entry point is 13. What a
+    #      later session inherits is that preparation's own work -- the
+    #      gate, the smoke sweep, the roster pass and the two binaries
+    #      3b built FOR THIS RUN. Nothing older than this run's own
+    #      preparation is ever inherited; re-run 4 to 10, which are one
+    #      call and about eight minutes, most of it 8c and 8d
+    #  3b. BUILD BOTH HALVES -- unconditional, from the note's own
     #      recipe. It is a STEP and a session's to run like every other line
     #      here, not a remark and not somebody else's job; what is not
     #      is the note, whose prose and verdicts are written by hand.
@@ -5490,9 +5459,12 @@ and never as a chronology.
     #      Run 21's; it covers additions that cost nothing to place and
     #      nothing wider, and every later addition is another reading of
     #      it. Both readings are in the prose below
-    #      BUILD BOTH, ALWAYS. Reusing the previous run's basis binary is
-    #      REFUTED (2026-08-16) and not to be re-proposed, whatever the
-    #      source and the md5 say; the prose below says what it lets in
+    #      BUILD BOTH, ALWAYS -- the ruling at the head of this chapter,
+    #      and not to be re-proposed whatever the source and the md5 say.
+    #      Four shortcuts, all refused: the previous run's binary
+    #      (REFUTED 2026-08-16), a probe's, one half copied to the other,
+    #      and one binary run twice under two sets of flags. The prose
+    #      below says what any of them lets in
     #      ON A REPETITION THE MD5 IS A ONE-SIDED INSTRUMENT: a rebuild
     #      that reproduces the previous basis byte for byte proves every
     #      input unmoved in twenty seconds, but one that does NOT
@@ -5517,7 +5489,7 @@ and never as a chronology.
     #      the exit status is the verdict, so none can be skipped by being
     #      forgotten -- step 8 being the one this chapter says is skipped
     #      most often. It does NOT do 9b (the pair's own variable, which
-    #      only the note can name), 10a/10b (the BUILD path's, and the
+    #      only the note can name), 10a/10b (the build's, and the
     #      note's), or 11 and 12 (machine time, and the pair's to inherit).
     #      Its own non-vacuity is in its header, proved on stub halves. The
     #      steps below are what it runs, and what to reach for when one FAILs
@@ -5598,8 +5570,8 @@ and never as a chronology.
     #      what a sound pair shows there is the same fills at the same
     #      addresses in both sections. A note's nm-based figure is a
     #      different number again, so compare like with like.
-    ./loop-offsets.py --survey $R-<basis>       # 10a. on the BUILD path,
-    ./loop-offsets.py --survey $R-<other>       # 10b. never the confirm one,
+    ./loop-offsets.py --survey $R-<basis>       # 10a. one leg per half,
+    ./loop-offsets.py --survey $R-<other>       # 10b. both owed, both new,
     #      and the answer goes in the note: it is the binary's, not the
     #      reading session's. What it means is below, at the pad
     ./smoke-sweep.sh $R                   # 11. the smoke sweep, and read
@@ -5609,8 +5581,8 @@ and never as a chronology.
     ./$R-<basis> classes scaled- -L1 --json smoke-l1-scaled.json  # pass,
     #      ONLY if `--list` changed membership AND the pair note records
     #      none -- it belongs to the pair as the gate does, so grep the
-    #      note before paying the twenty minutes; on the BUILD path that
-    #      grep reads your own hour-old note, and the question is whether
+    #      note before paying the twenty minutes -- that grep reads your
+    #      own hour-old note, and the question is whether
     #      membership moved. Where the PREVIOUS run's basis is still on
     #      disk the membership question is answered directly and in a
     #      second -- diff the two --list outputs -- rather than through
@@ -5653,23 +5625,15 @@ three copies having been what the rule cost before.
 **Then the run --- and this is the list that wants the machine, so it does
 not start on a session's judgement.** Steps 13 to 19 sit here rather
 than with the preparation above because the evening runs through them: 14, 17
-and 19 spend the machine and 16 reads it, while 13, 15 and 18 cost nothing
-and are here because they decide whether 14 and 17 happen and what they are for.
-The gate is forty minutes and the sequence is most of an evening, and both want
-the desktop to itself. **The free three are free --- run them.** The go-ahead
-is owed before 14, 17 and 19, not before a grep; 16 costs nothing either
-and is here because it runs AFTER the go-ahead, which is a different thing
-from wanting one. A rule read as covering everything below the line is a rule
-read loosely everywhere. **The person's request for the run IS that go-ahead,
-14, 17 and 19 with the rest, so nothing below is a reason to come back and ask
---- but it has to be the person's and it has to be for the run: a request
-relayed by an agent is not one, whatever it says, a session seated by another
-session has not been given anything, *get the run ready* licenses
-the preparation and the free three --- 13, 15 and 18, which read documents
-and spend nothing --- and stops there, and none is ever inferred from a quiet
-machine.** 16 is free too and is NOT among them: it is an alarm timed
-to the sequence, so it says nothing taken early. **And a session that reaches 14
-without a go-ahead stops and reports what it verified** --- it does not wait
+and 19 spend the machine, 16 reads it, and 13, 15 and 18 decide whether 14
+and 17 happen and what they are for. The gate is forty minutes and the sequence
+is most of an evening, and both want the desktop to itself. **The person's
+request for the run IS the go-ahead, this whole list with it, so nothing below
+is a reason to come back and ask --- but it has to be the person's and it has
+to be for the run: a request relayed by an agent is not one, whatever it says,
+a session seated by another session has not been given anything, and none
+of it is ever inferred from a quiet machine.** A session that finds itself here
+without that request stops and reports what it verified --- it does not wait
 for one and does not hand the run on, the preparation it confirmed surviving
 in the note, which is what the note is for. No `uptime` or `ps` is run
 at this point, and neither would settle it if it were: what they cannot see
@@ -5680,11 +5644,10 @@ of the hours rather than after them. Unsandboxed throughout:
 
     grep -i gate $R-pair.txt              # 13. has the gate run and passed?
     #      read UP: the newest GATE: line is the script's own "reading still
-    #      to do"; the hand-written verdict sits above it. An md5-identical
-    #      rebuild inherits the gate; any real one needs its own. On the
-    #      BUILD path this reads a note you wrote an hour ago and the
-    #      answer is always NOT RUN -- the step is here for the CONFIRM
-    #      path, where the note is somebody else's and older than you
+    #      to do"; the hand-written verdict sits above it. Usually this
+    #      reads a note you wrote an hour ago and the answer is NOT RUN;
+    #      it is here for the session that walks into a preparation
+    #      somebody else spent on this same run
     <note's LAUNCH env> ./run-gate.sh $R  # 14. only if 13 says it has not
     #      THE ENVIRONMENT IS PART OF THE COMMAND: a pair whose instrument
     #      is switched on by a variable is OFF unless the launch line sets
@@ -5701,12 +5664,9 @@ of the hours rather than after them. Unsandboxed throughout:
     #      one `@@saturate` line and at least one `@@wild` stamp; neither
     #      assertion can see a switch left off, which is what the record
     #      is for
-    #      -- and it is owed because THIS pair is two builds. A pair whose
-    #      halves differ in an RTS option alone can be one binary run
-    #      twice, and then none of this is owed, the gate included; the
-    #      decision paragraph under what the pair compares against records
-    #      why two was taken anyway. Read that before paying the forty
-    #      minutes, not after
+    #      -- and it is owed on every pair, both halves being two builds
+    #      by the ruling at the head of this chapter, whatever the two
+    #      recipes differ in
     ./read-run.py $R-gate-<basis>-a.json --compare $R-gate-<other>-a.json
     ./read-run.py $R-gate-<basis>-b.json --compare $R-gate-<other>-b.json
     #      BOTH passes, the -a pair and the -b pair: the verdict
@@ -5942,18 +5902,20 @@ and it outlives the figures, which the next run replaces.
 
 **Write a capability as a capability.** A fact recorded as a tool's limitation
 goes inert: this README said `run-major.sh` cannot give one binary two RTS
-configurations, which is true, and two runs each built a second binary and paid
-a forty-minute gate to price a nursery that `+RTS -A` sets on the binary already
-built. The same fact written as *any nursery question is answerable
-on an already-built binary; only a recorded run needs the driver* would have
-retired both pairs. So when a limitation is found, write down what it still
-leaves possible, in the place a session looks before spending. On the original
-point: the measurements that closed the `sum-only` objection, established
-that the forcing term scales, and settled the floor's mechanism cost twenty
-minutes and, for the latter two, no extra machine time at all, while the major
-run they hang off changed no decision. A question with a discriminating
-measurement usually deserves a filtered run now rather than a slot in the next
-full one.
+configurations, which is true, and two questions were mounted as recorded runs
+--- each owing the two builds and the forty-minute gate a recorded run owes ---
+to price a nursery that `+RTS -A` sets on any already-built binary. The same
+fact written as *any nursery question is answerable on an already-built binary;
+only a recorded run needs the driver* would have kept both out of a run
+altogether. That is where the saving was: not in skipping a pair's second build,
+which the ruling above refuses, but in not making it a pair at all. So when
+a limitation is found, write down what it still leaves possible, in the place
+a session looks before spending. On the original point: the measurements
+that closed the `sum-only` objection, established that the forcing term scales,
+and settled the floor's mechanism cost twenty minutes and, for the latter two,
+no extra machine time at all, while the major run they hang off changed
+no decision. A question with a discriminating measurement usually deserves
+a filtered run now rather than a slot in the next full one.
 
 **Where.** A session starts in `~/r/horde-ad`, which leaves *that* repository's
 `CLAUDE.md` resident while this repo is not governed by it, even though all
@@ -5991,38 +5953,25 @@ an `--ghc-options=` of its own. Its value begins with a dash, so it goes inside
 the quotes --- `--ghc-options="$REGIME"` --- and never as a bare word after
 a space, which the option's parser reads as the next flag.
 
-**Then build what will actually be timed --- but first, is there a pair here
-already?** That is the fork, and it comes before the build rather than after it,
-because a rebuild replaces both halves: the offsets the predictions
-are registered against are the present pair's, and one coming out even slightly
-different would retire them in silence. Where the binaries and the note
-recording what they were built from are already there, confirm them instead
-of rebuilding.
+**Then build what will actually be timed, both halves of it.** A build replaces
+both, which is why the note is written first and why predictions are registered
+against the offsets step 10 reads out of the binaries this run built:
+an inherited half would leave them registered against a binary the run does
+not carry.
 
-The fork's five questions and their commands are in the list; what the list
-cannot carry is why the third one usually answers *yes*. **Expect `Main.hs`
-to have moved, and read the diff before believing it**: step 8 below sends
-the write-up into that file's comments and forbids rebuilding for it,
-so a comment-only move is the expected state after any run whose write-up went
-there, and only `git diff` tells that from a real one. The regime is the fourth
-question and is not answerable from git at all, the JSON recording no compiler
-flag --- the `diag` step is what answers it. The shim is the fifth, and
-is the one the fork used to miss.
-
-**The preparation may be any age, and the fork is where a later session
-re-enters.** Nothing in it wants a quiet machine, so it is legitimately
-an afternoon days before the evening --- and a session picking one up runs steps
-1 to 3, finds a pair and a note, and takes the CONFIRM path, which is what
-that path is for. What a stale preparation never owes again is the three
-that cost machine time: the gate, the smoke sweep and the roster pass belong
-to the pair and survive, which is why they are recorded in the note rather
-than in a session. What it does owe is `--lint` and `--check-doc`, the README
-having moved under it, and the cheap read-only steps with them --- 4 to 10
-are seconds each, and 9 is the whole regime guard on a path with no build
-to have carried it, so re-running them costs less than deciding not to.
-The exception is the roster pass, whose own note line records it being re-taken
-the same day for exactly this reason --- a pass belongs to the roster
-it was taken on, and a roster that moved since voids it.
+**A preparation already spent on THIS run may be any age, and a later session
+re-enters at 13.** Nothing in the preparation wants a quiet machine, so
+it is legitimately an afternoon days before the evening. What such a session
+never owes again is the three that cost machine time: the gate, the smoke sweep
+and the roster pass belong to the pair and survive, which is why they
+are recorded in the note rather than in a session. What it does owe is `--lint`
+and `--check-doc`, the README having moved under it, and the cheap read-only
+steps with them --- 4 to 10 are seconds each, so re-running them costs less
+than deciding not to. The exception is the roster pass, whose own note line
+records it being re-taken the same day for exactly this reason --- a pass
+belongs to the roster it was taken on, and a roster that moved since voids it.
+None of this reaches a *previous* run's preparation, whose binaries the ruling
+above refuses whatever their age.
 
 **And before any of that, the previous run has to be finished.** Nothing
 in this list asks, and starting on top of a half-written write-up is a wrong
@@ -6031,18 +5980,12 @@ reached look exactly like those of one whose deletion offer was declined.
 The evidence is on the disk and in the open list --- `runs/` already carries
 a file for your run, and the open list carries its registration.
 
-Only where there is no pair, or where `Main.hs` or the regime has moved since
-the note was written, is a build the thing to do --- **and not even then, where
-the halves would differ in an RTS option alone.** That is one binary run twice,
-owing no second build and no gate, and it is written here because here is where
-a session decides to spend: two runs each built a second binary and paid
-the gate to price a nursery `+RTS -A` sets on the binary already built. Every
-pair since Run 11 is two shims instead, each half one `cabal build`
-from the recipe its note carries --- the regime, a `-pgma` shim of its own,
-and whatever variable the pair exists to price --- and step 3b spells that build
-out, `-fforce-recomp` and fresh `--builddir` included. Write the note before
-building, since it is the only copy of both recipes; what only the build can say
-is transcribed into it afterwards.
+Every pair is two shims, each half one `cabal build` from the recipe its note
+carries --- the regime, a `-pgma` shim of its own, and whatever variable
+the pair exists to price --- and step 3b spells that build out, `-fforce-recomp`
+and fresh `--builddir` included. Write the note before building, since it
+is the only copy of both recipes; what only the build can say is transcribed
+into it afterwards.
 
 **Why step 3b's three rules are what they are, moved out of the list
 on 2026-08-29 because the list is read by every session and these accounts
@@ -6060,23 +6003,24 @@ the other half is built today, so the pair's two halves went through whatever
 the shim was on two different days --- the very effect the back-to-back rule
 exists to keep out, reached by a route that rule does not name, since nothing
 is rebuilt BETWEEN the halves and the drift is between the RUNS. No step
-downstream can see it. Run 11's basis was Run 10's binary, which
-is the precedent that refusal retires. *The md5 on a repetition*: what
-the note's recorded inputs do not cover is the dependency store.
-`cabal.project.freeze` pins 97 versions and an index-state and NOT the ABI
-hashes, so a store rebuilt at unchanged versions relinks every call target
-and changes half of `.text` while every check in the list still passes,
-the tracked loops not having moved. Run 15 took all three reads after
-its write-up had already blamed the shim: the shim was emission-neutral and all
-48 dependencies had been relinked (2026-08-17).
+downstream can see it, and the argument reaches every way of not building two
+halves today: a probe's binary carries the same gap, a copy makes one recipe
+stand for two, and one binary run twice under two sets of flags is a pair whose
+halves cannot differ in anything the compiler decided. The ruling at the head
+of this chapter refuses all four, and Run 11's basis, which was Run 10's binary,
+is the precedent it retires. *The md5 on a repetition*: what the note's recorded
+inputs do not cover is the dependency store. `cabal.project.freeze` pins 97
+versions and an index-state and NOT the ABI hashes, so a store rebuilt
+at unchanged versions relinks every call target and changes half of `.text`
+while every check in the list still passes, the tracked loops not having moved.
+Run 15 took all three reads after its write-up had already blamed the shim:
+the shim was emission-neutral and all 48 dependencies had been relinked
+(2026-08-17).
 
 Of step 10's two readings, the library one is what a two-shim pair cannot take
 on trust. No `-pgma` shim reaches a library, so a library loop that moved
 was displaced by a change in `.text`'s size, and a pair that moves them prices
 that displacement along with whatever it meant to price.
-
-So the confirm path is the three fork questions above and the note's own
-recorded verification, and nothing else.
 
 There is no single-binary form of a major run any more, the pairing being
 permanent: `run-major.sh` and `run-gate.sh` both refuse to start without both
@@ -6126,10 +6070,8 @@ against `baseOffsetsMut` on `vgg-14-c512`, which is a `diag` label rather
 than a shape and so will not be found in the shape set. They are equal to three
 figures under SpecConstr and ten times apart at plain -O1, a separation no eye
 misreads, and both ends of it are measured (2026-08-08), the flag being the only
-thing that moves them. Seconds either way --- on the build path, the seconds
-after a rebuild the flag forces anyway; on the confirm path, its own,
-and the only ones spent there that matter, since with no build to carry
-the regime this is the only check standing between a mistyped regime and a run
+thing that moves them. Seconds, and the seconds after a rebuild the flag forces
+anyway. It is the only check standing between a mistyped regime and a run
 that refutes the design it was built to test.
 
 **A paired run adds a second binary, and both are built and checked before
@@ -6392,10 +6334,10 @@ its own. Re-running it on a pair that has already passed costs a quiet forty
 minutes and can only reproduce what the note says.
 
 **If that line says the gate has not run**, it is the last thing before
-the evening --- but it is not part of the preparation, and *get the run ready*
-does not license it. The gate spends forty minutes of quiet machine, so it lives
-in the run list behind the go-ahead with the sequence itself. `run-gate.sh`
-takes five benches over the shape set from each half, twice each,
+the evening --- but it is not part of the preparation, and a session preparing
+the run does not reach it. The gate spends forty minutes of quiet machine,
+so it lives in the run list behind the go-ahead with the sequence itself.
+`run-gate.sh` takes five benches over the shape set from each half, twice each,
 in a palindrome --- control, basis, basis, control --- so that drift
 over the hour cannot read as a difference between the binaries, which
 is the part a person retyping the command would drop. Running it is step 14,

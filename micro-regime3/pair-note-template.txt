@@ -14,12 +14,14 @@ Nothing appends to this file but run-gate.sh.
 ENTRY POINT FOR THE SESSION THAT RUNS THIS. Not optional, and it goes
 here at the head where a session reads first. Say, in this order: which
 of the pre-run steps are SPENT and on what date; whether the gate has
-run; which path the reader is on, CONFIRM or BUILD, and why; what is
+run; what is
 INHERITED and must not be repaid, naming each -- the gate, the smoke
 sweep, the roster pass, the counts, anything else that cost machine time
 -- and what is still OWED. Then say outright whether anything here needs
 a rebuild, since the offsets any registration is written against die
-with one.
+with one. INHERITED never reaches the binaries: both are built at 3b of
+this run's own preparation, never taken from a previous run, a probe, a
+copy of the other half, or one binary run twice under two sets of flags.
 
 AND SAY THAT NOTHING IN THE NOTE IS A REASON TO STOP. A preparation
 that leaves a decision open states it plainly and states that it is not
