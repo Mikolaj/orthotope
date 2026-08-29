@@ -6203,12 +6203,34 @@ def main():
     # exit 2, not a silent full run and not a silent empty one: the
     # question was not answered.
     if args.changed is not None:
+        # IT SELECTS CASES, so a mode that runs none is not a combination
+        # this can honour: `--properties` is quantified over the run JSONs
+        # and `--families` over the Python source, neither reading `cases`
+        # at all. Filtering to nothing and returning 0 would have reported
+        # success for work that never ran, which is the shape this suite
+        # exists to refuse -- and it did, until this refusal was written.
+        if args.properties or args.families or args.audit or args.against:
+            print('--changed selects cases, and --properties, --families,'
+                  ' --audit and --against do not run them by selection --'
+                  ' so the combination asks for nothing. Run them alone.')
+            return 2
         progs = sorted({c.prog for c in cases})
         moved = []
         for prog in progs:
+            at = os.path.join(HERE, prog)
+            # UNTRACKED IS CHANGED. `git diff` compares the index and the
+            # tree against a commit and says nothing about a file git has
+            # never seen, so a brand-new script's cases would be skipped
+            # by the one mode written to find them. Ask tracking first.
+            tracked = subprocess.run(['git', 'ls-files', '--error-unmatch',
+                                      '--', at],
+                                     cwd=HERE, capture_output=True)
+            if tracked.returncode:
+                moved.append(prog)
+                continue
             try:
                 r = subprocess.run(['git', 'diff', '--quiet', args.changed,
-                                    '--', os.path.join(HERE, prog)],
+                                    '--', at],
                                    cwd=HERE, capture_output=True)
             except OSError as e:
                 print('BLOCKED: git could not be run (%s), so --changed'
