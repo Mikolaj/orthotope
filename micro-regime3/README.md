@@ -1172,18 +1172,18 @@ rather than a slot in the next run, observed again:
   and 6.5. What was refuted is the short-run prediction of *a tie inside
   the floor at `runs-2` and `runs-3`*: stage two is twelvefold and sixfold
   **ahead** there. `lib-stage2-concat` restoring stage one's figure at every
-  length **HELD**, at 1.0023, 0.9891, 1.0584, 1.0186, 1.0047, 0.9958 and 1.0044.
+  length **HELD**, at 1.0027, 0.9893, 1.0584, 1.0185, 1.0046, 0.9961 and 1.0044.
   The `canon-memcpy-r2` against `canon-vecdims` prediction --- behind at 3
   and 9, ahead at 96 and up --- is **PARTIAL**: it crosses between 3 and 9
   (1.3706 then 0.9486), one step earlier than registered. (2) *The composite.*
   **KILLED, by its own condition and by a wide margin.** `lib-stage2` against
   `mut-odo-vecdims-add-in-leaf-u2` on the main set was predicted a tie inside
   the floor, killed by a margin past it either way; it reads **2.5132 at 1 of 24
-  shapes, sign p 3e-06** on the basis and 2.3496 on HEAD, which is two orders
-  of magnitude past the 2.92% floor. Against `canon-full` on the broadcast
-  classes it was predicted ahead by the leaf body's margin; it reads 1.0459
-  on `bcast` and **1.2149** on `bcastmid`, so behind on one and level
-  on the other. (3) *The spill.* **REFUTED, with the sign inverted
+  shapes, sign p 3e-06** on the basis and 2.3496 on HEAD, a margin of 151%
+  against a 2.92% floor, so past it fifty times over. Against `canon-full`
+  on the broadcast classes it was predicted ahead by the leaf body's margin;
+  it reads 1.0459 on `bcast` and **1.2149** on `bcastmid`, so behind on one
+  and level on the other. (3) *The spill.* **REFUTED, with the sign inverted
   and the magnitude right.** `-u2-down` against `-u2` was predicted ahead
   on the long-run shapes by up to the 15 to 18% `-down` took there on Run 20;
   it is **behind** on exactly those three, 1.1590 on `stretch-wide-2xM`, 1.0760
@@ -1196,7 +1196,7 @@ rather than a slot in the next run, observed again:
   on every class.* **KILLED --- this is the registered regression the benchmark
   was built to catch, and it fired.** No class was to read the branch behind
   stage one past its floor. Six do, by factors: `rev` 4.0152, `revsome` 4.5377,
-  `slice` 4.0984, `scaled` 4.0765, `window` 3.7237 and the main set 2.5132, each
+  `slice` 4.0984, `scaled` 4.0765, `window` 3.7237 and the main set 2.4323, each
   reproducing on HEAD within a tenth. The predicted ties on `rev`, `revsome`,
   `slice`, `scaled` and `window` are all refuted; `bcast` was predicted ahead
   at 0.92 and reads 1.2496; `bcastmid` was predicted ahead at 0.55 and reads
@@ -2935,7 +2935,7 @@ limit belongs in the sentence that asks for the measurement.
    the fill it replaces.** Run 21's registration 4 fired its kill condition:
    on every population whose views will not canonicalize, `lib-stage2` is behind
    `lib-stage1` past the floor by factors --- `rev` 4.0152, `revsome` 4.5377,
-   `slice` 4.0984, `scaled` 4.0765, `window` 3.7237, the main set 2.5132 ---
+   `slice` 4.0984, `scaled` 4.0765, `window` 3.7237, the main set 2.4323 ---
    and it reproduces on GHC HEAD within a tenth of each. Stage one reaches
    `genericFillStrided` there, which is a bang-for-bang port
    of `mut-odo-vecdims-add-in-leaf-u2`, so the gap is between two fills
@@ -2981,15 +2981,15 @@ limit belongs in the sentence that asks for the measurement.
    the whole-set figure ran 1.36%, 2.32%, 1.51% and 2.92%, so the movement
    is in the pairs outside the six --- now ten of sixteen, `offtab`'s two twins
    having gone with its parking. Run 21 sharpens the question rather
-   than answering it: its widest pair is `mut-odo-aa-distant` at 3.6% while both
-   `mut-odo` twins sit BELOW their base on the basis and both sit ABOVE
-   it on the control, and post-run step 11 has now named that base's tracked
-   loop and put it at offset 0 on both halves --- so the spread is
-   not the cache-line offset of the tracked loop. **What would settle it**: one
-   binary run over the roster several times in one evening, which needs no pair
-   and no second recipe, and which separates per-process variation from sampling
-   inside a bench directly. It is the cheapest unspent measurement this file
-   has.
+   than answering it: its widest pair is `mut-odo-aa-distant`, whose paired
+   figure of 2.92% IS this run's floor while both `mut-odo` twins sit BELOW
+   their base on the basis and both sit ABOVE it on the control, and post-run
+   step 11 has now named that base's tracked loop and put it at offset 0 on both
+   halves --- so the spread is not the cache-line offset of the tracked loop.
+   **What would settle it**: one binary run over the roster several times in one
+   evening, which needs no pair and no second recipe, and which separates
+   per-process variation from sampling inside a bench directly. It
+   is the cheapest unspent measurement this file has.
 
 **One rider, and it now lives at the step that fires it rather than here** ---
 moved 2026-08-26 into build step 3b of the run list, which already transcribes
@@ -4122,21 +4122,22 @@ the option instead of closing it. `mut-odo-vecdims` keeps the stake high rather
 than settling it: the fill's real cost was the odometer's cons-list traffic,
 not the fill itself, and Run 10 (SpecConstr) prices the class-method tier
 at 2.11x over `bq-expand` (0.4745 paired). The best pure arm is now
-`bq-scan-rem-gm-mulback` at 0.098 on Run 20, so what the class method would buy
-is `mut-odo-vecdims` over that: **1.83x**, not 2.11x --- which is the figure
-the ruling turns on, and which reads **0.5479 paired at 23 wins of 24**. It has
+`bq-scan-rem-gm-mulback` at 0.099 on Run 21, so what the class method would buy
+is `mut-odo-vecdims` over that: **1.84x**, not 2.11x --- which is the figure
+the ruling turns on, and which reads **0.5424 paired at 23 wins of 24**. It has
 now read 1.80x at -O1, 1.68x on Run 8, 1.87x on Run 9, 1.85x on Run 10
-with its aligned half giving 1.84x, and 1.79x on Run 18 and again on Run 19 ---
+with its aligned half giving 1.84x, 1.79x on Run 18 and again on Run 19 ---
 a paired figure that moved five ten-thousandths across a REPETITION of one
 binary, Run 18's basis and Run 19's being both ghc-9.12.4 and byte-identical ---
-and **1.83x** here, on the same 23 wins of 24 Run 10's aligned half gave. Across
-an actual change of compiler it moves further, to 0.5159 on HEAD, which
-is 1.94x. So the spread is a tenth or so either side of 1.8 and neither
-the pairing nor a repetition moves it. Read it as *approaching 2x and volatile
-at the tenth* between runs that differ, and do not reopen or close the ruling
-on a movement of that size --- Run 10 showed the volatility is not the layout's,
-and Run 11 shows it is not the run's either, which leaves the roster
-and the regime as what moved it.
+1.83x on Run 20, and **1.84x** here, on the same 23 wins of 24 Run 10's aligned
+half gave. Across an actual change of compiler it moves further, to 0.5164
+on HEAD, which is 1.94x, where Run 20 read 0.5159 for the same 1.94x.
+So the spread is a tenth or so either side of 1.8 and neither the pairing
+nor a repetition moves it. Read it as *approaching 2x and volatile at the tenth*
+between runs that differ, and do not reopen or close the ruling on a movement
+of that size --- Run 10 showed the volatility is not the layout's, and Run 11
+shows it is not the run's either, which leaves the roster and the regime as what
+moved it.
 
 **Amended 2026-08-07: the bar is now a weight.** The tree itself carries
 a precedent this section did not weigh: `Data/Array/Internal/FastReshape.hs`
@@ -9321,6 +9322,30 @@ the record costs. **A fourth half arrives with the pairing and is not a delta
 at all**: which half of the pair a figure came from, which is why the run file's
 tables and its fingerprint say so.
 
+- Run 21 measured today's shapes, class views and roster, so its delta against
+  `Main.hs` is empty --- and its delta against RUN 20 is not: 49 timed arms
+  over 24 main-set shapes and 33 class views in NINE classes, 1176 benches
+  and 1617, where Run 20 ran 53 arms and 26 views in eight classes, 1272
+  and 1378. Six timed arms landed (`mut-odo-vecdims-add-in-leaf-u2-down`,
+  `lib-stage1`, `lib-stage2`, `lib-stage2-concat`, `liblist-stage1`,
+  `liblist-stage2`) and ten names left --- eight arms parked permanently
+  on 2026-08-28 (`bq-expand-b`, `bq-expand-qr-prim`, `bq-expand-zf`, `bq-mut`,
+  `bq-gen`, `gen-quotrem`, `bq-mut-runs`, `offtab`) with `offtab`'s two A/A
+  twins, so the floor reads over SIXTEEN pairs from this run on
+  and the eighteen-pair series ends at Run 20. The `runs` class is new: seven
+  regime-2 views sweeping run length from 2 to 65536, all at `l` of about 1.8M.
+  **So the delta against Run 20 is a roster and a population both**, and every
+  figure read across that boundary carries a layout term besides drift, Run 10
+  having priced a reorder at 12 to 14% on the two arms whose loop the shim
+  rescues --- the build-time fill reading found no tracked address surviving
+  between the two builds. Which half a figure came from is the other thing
+  to carry: everything published in the run's file is `run21-g912`, the 9.12
+  half, and `run21-ghead` contributes the yardstick column --- and this pair's
+  `list` moved 0.64% between them, INSIDE the 0.7% bar, so its two columns may
+  be differenced as well as ordered, which neither Run 19's nor Run 20's could.
+  The box did not move, its machine check reading -0.33%, so absolutes cross
+  from Run 20 freely and the boundary that stops them is still the BIOS change
+  before Run 18.
 - Run 20 measured today's shapes and class views and NOT today's roster read
   against Run 19's: nine timed arms landed and three dropped to `Only`,
   so its membership is 53 timed arms over 24 main-set shapes and 26 class views,
