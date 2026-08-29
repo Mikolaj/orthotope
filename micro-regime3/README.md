@@ -6162,9 +6162,9 @@ everything a run leaves**, the binaries and the pair note with the JSONs:
 writing one filename. Binaries from Run 11 and earlier were named for the half
 alone (`micro-aligned`, `micro-unaligned`), which is what this README's history
 calls them. The README carries one basis and not one per half, and what
-the other half contributes is the `--compare` and a yardstick column. Run 10
-is the one run that answered otherwise, its Results table coming
-from the unaligned half while its fingerprint and its class blocks came
+the other half contributes is the `--compare` and a second column in the run's
+own file. Run 10 is the one run that answered otherwise, its Results table
+coming from the unaligned half while its fingerprint and its class blocks came
 from the aligned one --- a split it needed because its aligned half
 was the first here and had no predecessor to succeed. That ended with Run 11:
 **the basis half is the table and the other half is the control**, whatever
@@ -9614,12 +9614,12 @@ tables and its fingerprint say so.
   rescues --- the build-time fill reading found no tracked address surviving
   between the two builds. Which half a figure came from is the other thing
   to carry: everything published in the run's file is `run21-g912`, the 9.12
-  half, and `run21-ghead` contributes the yardstick column --- and this pair's
-  `list` moved 0.64% between them, INSIDE the 0.7% bar, so its two columns may
-  be differenced as well as ordered, which neither Run 19's nor Run 20's could.
-  The box did not move, its machine check reading -0.33%, so absolutes cross
-  from Run 20 freely and the boundary that stops them is still the BIOS change
-  before Run 18.
+  half, and `run21-ghead` contributes this file's second column ---
+  and this pair's `list` moved 0.64% between them, INSIDE the 0.7% bar,
+  so its two columns may be differenced as well as ordered, which neither Run
+  19's nor Run 20's could. The box did not move, its machine check reading
+  -0.33%, so absolutes cross from Run 20 freely and the boundary that stops them
+  is still the BIOS change before Run 18.
 - Run 20 measured today's main-set shapes but NOT today's class views --- 26
   in eight classes, where today's are 33 in nine --- and NOT today's roster read
   against Run 19's: nine timed arms landed and three dropped to `Only`,
@@ -9631,10 +9631,10 @@ tables and its fingerprint say so.
   a reorder at 12 to 14% on the two arms whose loop the shim rescues. Which half
   a figure came from is the other thing to carry: everything published
   in the run's file is `run20-g912`, the 9.12 half, and `run20-ghead`
-  contributes the yardstick column --- and this pair's `list` moved 0.71%
-  between them, past the 0.7% bar by a hair, so its two columns may be ordered
-  and not subtracted. The box did not move, its machine check reading -0.24%,
-  so absolutes cross from Run 19 freely and the boundary that stops them
+  contributes the second column of `runs/run20.md` --- and this pair's `list`
+  moved 0.71% between them, past the 0.7% bar by a hair, so its two columns may
+  be ordered and not subtracted. The box did not move, its machine check reading
+  -0.24%, so absolutes cross from Run 19 freely and the boundary that stops them
   is still the BIOS change before Run 18.
 - Run 19 measured today's main-set shapes but neither today's class views --- 24
   in eight classes, where today's are 33 in nine --- nor today's roster, running
@@ -9645,35 +9645,35 @@ tables and its fingerprint say so.
   those two runs freely.
 - Run 18 measured the same shapes, class lists, membership and order,
   so its delta is empty too. Everything it published was `run18-g912`
-  and `run18-g914` contributed its second yardstick column. **And one thing
-  that is not a delta**: the BOX moved under it, its BIOS idle settings having
-  changed before it, so no absolute of Run 18's or Run 19's is comparable
+  and `run18-g914` contributed the second column of `runs/run18.md`. **And one
+  thing that is not a delta**: the BOX moved under it, its BIOS idle settings
+  having changed before it, so no absolute of Run 18's or Run 19's is comparable
   with Run 17's or earlier --- ratios are, absolutes are not, and Run 18's
   fingerprint re-baselined them.
 - Run 17 measured the same shapes, class lists, membership and order,
   so its delta is empty too. What a reader has to carry there is which half
   a figure came from: everything it published was `run17-wildlog`,
-  the instrumented half, and `run17-det` contributed the yardstick's second
-  column and a class comparison on all eight populations. **And one thing
-  that is not a delta**: its two halves differed in `.text` size, so a figure
-  crossing them carries a layout term where Runs 14 to 16 carried a runtime
-  setting.
+  the instrumented half, and `run17-det` contributed the second column
+  of `runs/run17.md` and a class comparison on all eight populations. **And one
+  thing that is not a delta**: its two halves differed in `.text` size,
+  so a figure crossing them carries a layout term where Runs 14 to 16 carried
+  a runtime setting.
 - Run 16 measured the same shapes, class lists, membership and order,
   so its delta is empty too. What a reader has to carry there is which half
   a figure came from: everything it published was `run16-a32m` and `run16-a64m`
-  contributed its second yardstick column, and **its basis moved off the default
-  nursery**, so a row's distance from any column before Run 16 carries
-  the allocation area with it.
+  contributed the second column of `runs/run16.md`, and **its basis moved off
+  the default nursery**, so a row's distance from any column before Run 16
+  carries the allocation area with it.
 - Run 15 measured the same shapes, class lists, membership and order,
   so its delta is empty too. What a reader has to carry there is which half
   a figure came from: everything it published was `run15-lookrts`,
   the default-nursery half, and `run15-a32m` --- the half at this run's own
   area, and so the one Run 16's basis is checked against --- contributed
-  its yardstick column. **And one input that is not a delta and not a half**:
-  the dependency store, whose 48 packages were rebuilt between the two runs
-  at unchanged versions, so Run 14's binary and this one share no package ABI
-  hash. The assembler shim also moved, `9a70576` against `89c7ae8`,
-  and is emission-neutral.
+  the second column of `runs/run15.md`. **And one input that is not a delta
+  and not a half**: the dependency store, whose 48 packages were rebuilt between
+  the two runs at unchanged versions, so Run 14's binary and this one share
+  no package ABI hash. The assembler shim also moved, `9a70576` against
+  `89c7ae8`, and is emission-neutral.
 - Run 14 measured the same shapes, class lists, membership and order,
   so its delta is empty too --- what a reader has to carry there is
   that its control was `run14-a1g`, at two hundred and fifty-six times
@@ -9686,14 +9686,15 @@ tables and its fingerprint say so.
   today's 1128 --- timing 35 of its own and leaving 24 untimed, winsorized per
   the estimator under `time`. What a reader has to carry besides is which half
   a figure came from: everything it published was `run13-maxskip`,
-  and `run13-lookrts` contributed the yardstick's second column
+  and `run13-lookrts` contributed the second column of `runs/run13.md`
   and the arm-by-arm comparison at the head of Run 13's own write-up.
 - Run 12 measured the same shapes, class lists and order, on Run 13's roster
   **minus `mut-flat-gm-nosum`** --- 816 benches against Run 13's 840 --- timing
   34 of its own, winsorized likewise. Everything it published
-  was `run12-maxskip`, `run12-maxskippa` contributing its yardstick column,
-  and its class tables are a max-skip half's as this run's are, which is the one
-  thing that makes the two runs' class figures a same-kind-of-build comparison.
+  was `run12-maxskip`, `run12-maxskippa` contributing the second column
+  of `runs/run12.md`, and its class tables are a max-skip half's as this run's
+  are, which is the one thing that makes the two runs' class figures
+  a same-kind-of-build comparison.
 - Run 11 measured the same shapes, class lists and order, on the roster Run 12
   had, so its delta is Run 12's --- what a reader has to carry there is
   that its published tables were the *aligned* half's, where Run 12's and Run

@@ -385,15 +385,15 @@ them, and the table's cross-half distances are read as codegen where the counts
 moved and as placement or runtime where they did not.
 
 **And it is the basis half's**, `run21-g912`, as every published table here
-is from Run 11 on: the control half's column is one column on the yardstick
-below rather than a second copy of these forty-odd rows. That the published half
-is the 9.12 one is this pair's own decision --- it keeps the lineage, being Run
-20's basis recipe with only the source moved --- and the HEAD half
-is the yardstick column. **Six rows here are first readings**: `lib-stage1`,
-`lib-stage2`, `lib-stage2-concat`, `liblist-stage1`, `liblist-stage2`
-and `mut-odo-vecdims-add-in-leaf-u2-down`. A first reading has no predecessor
-to be drift against, so nothing in this file compares one to an earlier column,
-and the registrations they answer are [in the open
+is from Run 11 on: the control half's column sits beside the basis one
+in this file rather than as a second copy of these forty-odd rows.
+That the published half is the 9.12 one is this pair's own decision --- it keeps
+the lineage, being Run 20's basis recipe with only the source moved ---
+and the HEAD half is the yardstick column. **Six rows here are first readings**:
+`lib-stage1`, `lib-stage2`, `lib-stage2-concat`, `liblist-stage1`,
+`liblist-stage2` and `mut-odo-vecdims-add-in-leaf-u2-down`. A first reading has
+no predecessor to be drift against, so nothing in this file compares one
+to an earlier column, and the registrations they answer are [in the open
 list](../README.md#what-is-open).
 
 **Comparing runs?** The table below is Run 21's own; what to hold a new run
@@ -747,88 +747,37 @@ outright, here and in every horde-ad suite, so the one-binary runner
 this section used to ask for is not owed, and no further `-A` question
 is the README's.
 
-**Run 16 contributed two columns.** They
-are `Run 16 (SpecConstr, max-skip +lookrts, -A32m)` --- that run's basis,
-and the first `-A32m` column published as one ---
-and `Run 16 (SpecConstr, max-skip +lookrts, -A64m)`. The basis column was read
-against Run 15's `-A32m` column arm for arm and reproduced it, seven of eight
-rows within a thousandth, which is what licensed the change of basis; the -O1
-column stays the yardstick for a comparison of the two regimes.
+**Where a run changes basis, the new basis is checked against the half
+at its OWN allocation area and against no other**, which is the rule the Run 15
+to Run 16 change settled and the one place *against the previous run* can still
+be ambiguous. **The six figures that follow are Run 16's, are no longer
+checkable, and are stamped so that no later run reads them as its own**,
+`run15-*` and `run16-*` having been deleted; they are kept as the evidence
+the ruling was taken on. Against `run15-a32m` Run 16's three anchors read
+**-0.66%, -1.01% and -0.06%**, every one well inside the 2.32% floor
+it measured; against `run15-lookrts` the same three would have read **+8.81%,
+-9.57% and +7.74%**, which is the allocation area and not the shapes, and would
+have put all three outside that floor for a reason that is not theirs. Distance
+from a half at another area is that area plus whatever else moved; only distance
+from the half at this run's own area is drift.
 
-**Which Run 15 half a comparison uses is settled here rather than per
-paragraph**, the basis change having made *against Run 15* ambiguous
-for the first time. Absolutes and anchors go against `run15-a32m`, the half
-at that run's own area, and Run 16 bore that decision out. **The six figures
-that follow are Run 16's and are no longer checkable here**, `run15-*`
-and `run16-*` having been deleted; they are kept because the RULING is what
-this paragraph is for and the numbers are the evidence it was taken on, and they
-are stamped so that no later run reads them as its own. Against `run15-a32m` Run
-16's three anchors read **-0.66%, -1.01% and -0.06%**, every one well inside
-the 2.32% floor it measured; against `run15-lookrts` the same three would have
-read **+8.81%, -9.57% and +7.74%**, which is the allocation area and
-not the shapes, and would have put all three outside that floor for a reason
-that is not theirs. The published lineage and the yardstick column go against
-`run15-lookrts`, which is what Runs 8 to 15 are read through and what a rebasing
-would cost this table. **The two rules answer different questions and neither
-overrides the other**: `run15-a32m` is what the basis change is CHECKED against,
-arm for arm, because it is the half at this run's own area; `run15-lookrts`
-is what the lineage is READ through, because it is the column every run from 8
-to 15 published. A row's distance from the lookrts column is therefore the area
-plus whatever else moved, and only its distance from the a32m column is drift.
+**A pair's two halves are never folded into one.** Merging them puts back,
+in the record built to outlive every artifact, exactly the term the pairing
+exists to separate --- and what a given pair's two columns price is that run's
+own file's to say, not this section's. `--check-doc` catches one half of it:
+a run named aligned must also be named unaligned. Pruning an aligned column,
+merging two, and naming a second half accurately are the reading's to catch ---
+the check cannot demand an unaligned half of every pair without failing the last
+two runs, which have none, nor an aligned column of every run without failing
+Runs 6 through 9, which had none either.
 
-**Run 13 contributed two columns, and the second names a shim setting and an RTS
-line at once.** `Run 13 (SpecConstr, max-skip)` is the basis, Run 12's basis
-recipe unchanged; `Run 13 (SpecConstr, max-skip +lookrts)` is the same source
-and compile with the shim's look-through and an RTS default of `-I0 -T -M8G`
-in place of `-T -M2G`. The two changes are deliberately not separable ---
-the pair varies both by request --- so read the columns as pricing the package
-and never either change alone.
-
-**Run 12 contributed two columns, and both name a shim rather than a build.**
-`Run 12 (SpecConstr, max-skip)` is the basis;
-`Run 12 (SpecConstr, max-skip +procalign)` is the same source, shim and compile
-with `-fproc-alignment=64` added, which pins every procedure start to a 64-byte
-boundary. The rule against pruning a column is joined by one against **merging**
-two: folding two halves into one column would put back, in the one table built
-to outlive every artifact, exactly the term the pairing exists to separate.
-`--check-doc` catches one half of that: a run named aligned must also be named
-unaligned, so pruning Run 10's unaligned column fails it. Pruning an aligned
-column, merging two, and naming a second half accurately are the reading's
-to catch --- the check cannot demand an unaligned half of every pair without
-failing the last two runs, which have none, nor an aligned column of every run
-without failing Runs 6 through 9, which had none either.
-
-**Run 11 contributed two columns, and the second names a shim rather
-than a build.** `Run 11 (SpecConstr, aligned)` is the basis, and is Run 10's
-aligned binary run again; `Run 11 (SpecConstr, max-skip)` is the same source
-and compile with the assembler shim padding only the heads that needed it.
-
-**What each pair of columns is for differs, and the table cannot say
-so itself.** Run 10's two are one source and one compile apart and price
-**layout**: 12 to 14% on the two arms whose loop straddled a cache line,
-a percent or two the other way where none did. Run 11's two are one *shim* apart
-and price what that padding costs when it rescues nothing: nothing below 0.99
-and up to 1.06 against the fully padded half. Run 12's two are one *compiler
-flag* apart and price what pinning every procedure start costs on top
-of that shim: `offtab` 0.125 against 0.131 is the widest of them, and the flag
-is the dearer build. Run 13's two are one shim setting and one RTS line apart,
-both at once, and price the package at nothing: `offtab`'s 0.125 against 0.121
-is the widest of them and sits inside the drift band, the paired reading putting
-it at 1.0269. Reading Run 11's aligned column against Run 10's aligned one
-is a further thing again --- the same binary twice, which is drift and nothing
-else.
-
-**Neither of the older columns is to be pruned**, however much each looks like
-a leftover. The -O1 one is the only place Run 7's basis survives, so deleting
-it leaves any comparison of the two regimes with no yardstick at all and nothing
-to recover one from once the artifacts are gone --- and it is now the *only*
-form that comparison can take, the -O1 run that would have replaced this column
-being retired with its premise; `--check-doc` fails if the column disappears.
-The Run 8 one is now load-bearing for a second reason: its four bottom rows name
-arms **nothing times any more**, so with Run 8's Results table replaced above
-and its JSON deleted, this is the only record they have left. The rows nearest
-the decisions, in every regime that has measured them, so no comparison needs
-another section:
+**The next run compares against Run 21 and against nothing before it.** Each
+run's figures and the names of its halves are in its own file, `runs/run<N>.md`,
+back-filled to Run 7 on 2026-08-29; a comparison reaching further back
+is a chain of one-step comparisons, each recorded by the run that made it,
+and walking that chain here is what this section stopped doing. So an older run
+is read by opening its file, not by reading a column across. The rows nearest
+the decisions, in every regime that has measured them:
 
 | strategy | Run 21 (SpecConstr, max-skip +lookrts, -A32m, 9.12.4) | Run 21 (SpecConstr, max-skip +lookrts, -A32m, GHC HEAD) | Run 20 (SpecConstr, max-skip +lookrts, -A32m, 9.12.4) | Run 20 (SpecConstr, max-skip +lookrts, -A32m, GHC HEAD) | Run 19 (SpecConstr, max-skip +lookrts, -A32m, 9.12.4) | Run 19 (SpecConstr, max-skip +lookrts, -A32m, GHC HEAD) | Run 18 (SpecConstr, max-skip +lookrts, -A32m, 9.12.4) | Run 18 (SpecConstr, max-skip +lookrts, -A32m, 9.14.1) | Run 17 (SpecConstr, max-skip +lookrts, -A32m, instrumented) | Run 17 (SpecConstr, max-skip +lookrts, -A32m, plain) | Run 16 (SpecConstr, max-skip +lookrts, -A32m) | Run 16 (SpecConstr, max-skip +lookrts, -A64m) | Run 15 (SpecConstr, max-skip +lookrts) | Run 15 (SpecConstr, max-skip +lookrts +A32m) | Run 14 (SpecConstr, max-skip +lookrts) | Run 14 (SpecConstr, max-skip +lookrts +A1G) | Run 13 (SpecConstr, max-skip) | Run 13 (SpecConstr, max-skip +lookrts) | Run 12 (SpecConstr, max-skip) | Run 12 (SpecConstr, max-skip +procalign) | Run 11 (SpecConstr, aligned) | Run 11 (SpecConstr, max-skip) | Run 10 (SpecConstr) | Run 10 (SpecConstr, aligned) | Run 9 (SpecConstr) | Run 8 (SpecConstr) | Run 7 (Harness, -O1) |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
@@ -845,39 +794,24 @@ another section:
 | `bq-odo-mulback` | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | 0.089 | 0.101 |
 | `bq-scan-packed-mulback` | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | 0.108 | 0.097 |
 
-**Every column but the last is a published geomean over the same 24 shapes,
-and most of the SpecConstr ones share a denominator too** --- `list` moved 0.47%
-between the two Run 13 columns, 0.24% between the two Run 12 ones, 0.7% between
-the two Run 11 ones, and 0.6% and 0.4% inside Run 10 and against Run 9 ---
-so those may be subtracted and not merely ordered, which is what the -O1 column
-cannot do at an 8% baseline shift. **The three nursery pairs are the exception,
-and no such pair's columns may be subtracted from each other.** `list` moved
-**9.20%** between Run 14's two halves, **5.13%** between Run 15's and **16.51%**
-between Run 16's, where no other within-run pair here moves it past 0.7%. **Run
-16's is the largest of the three and was registered to be the smallest**,
-on the reasoning that its two halves both sit at enlarged areas where
-the earlier two each crossed the default --- a prediction refuted by its own
-run, and the refutation is the finding: what moves the baseline is
-not the distance from the default but the in-process deflation, which at roster
-scale is worse at 64 MB than at 32 MB by more than the whole default-to-32 MB
-step was worth. So the exception widens rather than narrowing, and it now covers
-every pair that varies the allocation area at all. Every cell of a nursery
-pair's second column is scaled by a denominator the pairing moved: read such
-a column for the pairing's direction and take no strategy quality off it,
-and read the arm-by-arm comparison at the head of this file instead, which
-divides absolutes rather than ratios. **Across the Run 11/Run 12 boundary
-the sharing holds more loosely**, the two runs sharing no binary, Run 11's
-having been deleted --- but its **JSONs were kept**, so the baseline comparison
-is measured rather than guessed: `list` reads **0.9953** of its Run 11 max-skip
-self over the 24 shapes, scattering 0.9611 to 1.0431 per shape. Half a percent
-on the geomean is small enough to subtract across; five percent on a cell
-is not, so read a per-shape difference of a point or two there as unresolved
-rather than as a movement. Read the two Run 12 columns against each other
-for the **flag's term**: `offtab`'s 0.125 against 0.131 is the same arm
-in the same run, one compiler flag apart. Read the two Run 11 columns
-for the **padding term** --- `build`'s 0.096 against 0.100, one shim apart ---
-and the two Run 10 columns for the **layout term**, `build`'s 0.110 against
-0.096, and the -O1 column for orderings only.
+**A published geomean is over the same 24 shapes, and two halves of one
+SpecConstr run usually share a denominator too**, `list` moving under 0.7%
+between them --- so such a pair may be subtracted and not merely ordered, which
+is what an -O1 reading cannot do at an 8% baseline shift. **A pair that varies
+the allocation area is the exception, and its two halves may never be subtracted
+from each other.** `list` moved **9.20%** between Run 14's halves, **5.13%**
+between Run 15's and **16.51%** between Run 16's. **Run 16's is the largest
+of the three and was registered to be the smallest**, on the reasoning
+that its two halves both sit at enlarged areas where the earlier two each
+crossed the default --- a prediction refuted by its own run, and the refutation
+is the finding: what moves the baseline is not the distance from the default
+but the in-process deflation, which at roster scale is worse at 64 MB than at 32
+MB by more than the whole default-to-32 MB step was worth. So the exception
+widens rather than narrowing, and it covers every pair that varies the area
+at all. Every cell of such a pair's second column is scaled by a denominator
+the pairing moved: read it for the pairing's direction, take no strategy quality
+off it, and read the arm-by-arm comparison at the head of this file instead,
+which divides absolutes rather than ratios.
 
 **Each stride class's yardstick is its own table below.** Run 8 re-ran every
 class with the populations pinned, and every run since has again, so each
