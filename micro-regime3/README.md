@@ -6032,14 +6032,17 @@ The evidence is on the disk and in the open list --- `runs/` already carries
 a file for your run, and the open list carries its registration.
 
 Only where there is no pair, or where `Main.hs` or the regime has moved since
-the note was written, is a build the thing to do --- and there is nothing here
-that does it. Every pair since Run 11 is two shims, and each half is one
-`cabal build` from the recipe its note carries: the regime, a `-pgma` shim
-of its own, whatever variable the pair exists to price, and `-fforce-recomp`
-with a fresh `--builddir` --- without which a shim change comes to be measured
-against itself, which is what step 3b's *Up to date* warning is about. Write
-the note first, since it is the only copy of both recipes, and read the pair
-afterwards:
+the note was written, is a build the thing to do --- **and not even then, where
+the halves would differ in an RTS option alone.** That is one binary run twice,
+owing no second build and no gate, and it is written here because here is where
+a session decides to spend: two runs each built a second binary and paid
+the gate to price a nursery `+RTS -A` sets on the binary already built. Every
+pair since Run 11 is two shims instead, each half one `cabal build`
+from the recipe its note carries --- the regime, a `-pgma` shim of its own,
+and whatever variable the pair exists to price --- and step 3b spells that build
+out, `-fforce-recomp` and fresh `--builddir` included. Write the note before
+building, since it is the only copy of both recipes; what only the build can say
+is transcribed into it afterwards.
 
 **Why step 3b's three rules are what they are, moved out of the list
 on 2026-08-29 because the list is read by every session and these accounts
@@ -6067,13 +6070,10 @@ the tracked loops not having moved. Run 15 took all three reads after
 its write-up had already blamed the shim: the shim was emission-neutral and all
 48 dependencies had been relinked (2026-08-17).
 
-    ./loop-offsets.py $R-<other> $R-<basis>
-    ./loop-offsets.py --library $R-<basis> $R-<other>
-
-The second is the one a two-shim pair cannot take on trust. No `-pgma` shim
-reaches a library, so a library loop that moved was displaced by a change
-in `.text`'s size, and a pair that moves them prices that displacement along
-with whatever it meant to price.
+Of step 10's two readings, the library one is what a two-shim pair cannot take
+on trust. No `-pgma` shim reaches a library, so a library loop that moved
+was displaced by a change in `.text`'s size, and a pair that moves them prices
+that displacement along with whatever it meant to price.
 
 So the confirm path is the three fork questions above and the note's own
 recorded verification, and nothing else.
@@ -6086,23 +6086,12 @@ a filtered handful of benches answering one question --- and those are run
 with `cabal run micro ${REGIME:+--ghc-options=$REGIME} --`, never through
 the sequence below.
 
-**Before spending the hours**, the cheap checks --- the first three against
-the binaries that will be timed, not a third built beside them, and the last two
-against `Main.hs` and this file, which open no binary at all:
-
-    T=$(mktemp -d)                         # NOT /tmp/a.log, which no
-    ./$R-<basis> check > $T/a.log 2>&1     #   seat here permits sandboxed
-    ./$R-<other> check > $T/b.log 2>&1     # every strategy agrees, every
-                                           #   shape regime 3, both halves
-    cmp $T/a.log $T/b.log                  # and the two logs are identical
-    #  scratch names, not $R-*.log: run-major.sh refuses to start where one
-    #  of those exists, so a log named for the run blocks the run
-    ./$R-<basis> --list 2>/dev/null | wc -l    # 2>/dev/null is NOT
-                                 #   optional:
-                                 #   the provenance line goes to stderr and
-                                 #   interleaves inside a bench name without it
-    ./read-run.py --lint         # the roster and the shape annotations
-    ./read-run.py --check-doc    # anchors, coverage, widths, stale figures
+**Before spending the hours**, the cheap checks are steps 4 to 8 of the list
+above --- the first three against the binaries that will be timed, not a third
+built beside them, and the last two against `Main.hs` and this file, which open
+no binary at all. One reason the list has no room for: the `2>/dev/null`
+on `--list` is not optional, the provenance line going to stderr
+and interleaving inside a bench name without it.
 
 **What the `note:` lines ARE, the list having said only that they do not stop
 you.** They are the write-up's adjudication material and nothing a preparation
@@ -6131,20 +6120,17 @@ and not of where their loops landed. A difference stops the run, and the rebuild
 goes through the recipe in that pair's note. The two lines above cost about
 a minute and a half on the Run 21 pair, and not the seconds this used to say.
 
-**Then confirm the regime is the one intended**, which nothing later can:
-
-    ./$R-<basis> diag
-
-and read one row of it --- the allocated bytes of `baseOffsetsScan` against
-`baseOffsetsMut` on `vgg-14-c512`, which is a `diag` label rather than a shape
-and so will not be found in the shape set. They are equal to three figures
-under SpecConstr and ten times apart at plain -O1, a separation no eye misreads,
-and both ends of it are measured (2026-08-08), the flag being the only thing
-that moves them. Seconds either way --- on the build path, the seconds after
-a rebuild the flag forces anyway; on the confirm path, its own, and the only
-ones spent there that matter, since with no build to carry the regime
-this is the only check standing between a mistyped regime and a run that refutes
-the design it was built to test.
+**Then confirm the regime is the one intended**, which nothing later can: step
+9's `diag`, and read one row of it --- the allocated bytes of `baseOffsetsScan`
+against `baseOffsetsMut` on `vgg-14-c512`, which is a `diag` label rather
+than a shape and so will not be found in the shape set. They are equal to three
+figures under SpecConstr and ten times apart at plain -O1, a separation no eye
+misreads, and both ends of it are measured (2026-08-08), the flag being the only
+thing that moves them. Seconds either way --- on the build path, the seconds
+after a rebuild the flag forces anyway; on the confirm path, its own,
+and the only ones spent there that matter, since with no build to carry
+the regime this is the only check standing between a mistyped regime and a run
+that refutes the design it was built to test.
 
 **A paired run adds a second binary, and both are built and checked before
 either is timed.** Alignment is not a regime flag: it arrives on `-pgma`, GHC
@@ -6268,16 +6254,13 @@ not the reason against it.
 
 **And one more, nearly free**, because everything above exercises
 the *benchmark* while nothing exercises the *reader* until hours later ---
-at `-L1`, since the smoke tests the reader's code paths, not its statistics:
-
-    ./smoke-sweep.sh $R
-
-It runs three `-L1` processes --- one main-set shape from each half and one
-shape of a class from the basis, that being what holds every process to one
-shape's arm count --- then every reader mode over what they wrote,
-then the `--in-place` installers into a copy of this file, and deletes all
-of it. Minutes, and it wants no quiet machine, the preparation wanting none ---
-what the timing was taken on is not what it needs. It uses binaries already
+at `-L1`, since the smoke tests the reader's code paths, not its statistics.
+`smoke-sweep.sh`, step 11, runs three `-L1` processes --- one main-set shape
+from each half and one shape of a class from the basis, that being what holds
+every process to one shape's arm count --- then every reader mode over what they
+wrote, then the `--in-place` installers into a copy of this file, and deletes
+all of it. Minutes, and it wants no quiet machine, the preparation wanting none
+--- what the timing was taken on is not what it needs. It uses binaries already
 built rather than `cabal run`, which would build a third in whatever regime
 the shell happens to carry; it exercises the reader rather than the regime
 either way. **It is a driver, for the reason `run-major.sh` is one:** it counts,
@@ -6351,10 +6334,7 @@ an edited line of this reader through a whole smoke sweep. Six classes
 are three-shape and `reshape1` and `bcastmid` went to four on 2026-08-25,
 so not any of them serves: the list above prefers one of the five that crossed
 from two to three, which drives `--block`'s three-shape branch, and `scaled`
-is the one it names. The pass is two processes:
-
-    ./$R-<basis> -L1 --json smoke-l1-main.json
-    ./$R-<basis> classes scaled- -L1 --json smoke-l1-scaled.json
+is the one it names. The pass is the two processes of step 12.
 
 Its numbers go nowhere: `-L1` is a rougher budget than any recorded run's,
 and this pass is a test of the reader, not a measurement. It is recorded
@@ -6418,9 +6398,10 @@ in the run list behind the go-ahead with the sequence itself. `run-gate.sh`
 takes five benches over the shape set from each half, twice each,
 in a palindrome --- control, basis, basis, control --- so that drift
 over the hour cannot read as a difference between the binaries, which
-is the part a person retyping the command would drop:
+is the part a person retyping the command would drop. Running it is step 14,
+which spells the launch environment the bare command silently omits; what
+the list does not carry is the two reads:
 
-    ./run-gate.sh $R
     ./read-run.py $R-gate-<basis>-a.json \
       --compare $R-gate-<other>-a.json
     ./read-run.py $R-gate-<basis>-b.json \
