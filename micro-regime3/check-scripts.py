@@ -6324,10 +6324,21 @@ def main():
         # a pipeline exits with tail's status and not this one.
         print('VERDICT: FAIL (exit 1)')
         return 1
-    if not (args.audit or args.properties or args.families or args.against):
+    # SAY WHAT A FULL SWEEP COST AND WHAT WOULD HAVE COST LESS, HERE, where
+    # a session that just paid it is looking. Both narrowing modes were
+    # documented in the usage above and in README's step 8d, and a session
+    # doing an ad-hoc round reads neither: the one that ADDED `--changed`
+    # then ran this suite bare eight times in the same evening. A mode
+    # nobody meets at the moment of paying for it is a mode nobody uses.
+    if not (args.audit or args.properties or args.families or args.against
+            or args.pattern or args.changed is not None):
         print('\n(--properties asks the reader\'s own invariants, and two'
               ' more, of every run\n on disk rather than of any fixture:'
               ' fifteen seconds, and not run here)')
+        print('\n(that was every case, about four and a half minutes.'
+              ' --changed [REV] runs\n only the cases whose own script'
+              ' differs from REV, HEAD by default, and\n -k SUBSTRING runs'
+              ' the cases whose name matches -- one checker is seconds)')
     print('\nevery %s%s'
           % ('family comes back clean' if args.families
              else 'property holds over every run on disk' if args.properties

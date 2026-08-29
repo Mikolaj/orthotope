@@ -6705,7 +6705,19 @@ and a fix without one has come back twice here already. What it does NOT yet do
 thing that would find an instance nobody has observed --- is recorded in its own
 docstring rather than re-derived.
 
-    ./check-scripts.py                      # the scripts' own defect corpus
+    ./check-scripts.py                      # the scripts' own defect corpus,
+                                            # all 217 cases and four and a
+                                            # half minutes -- which is what
+                                            # the two below are for
+    ./check-scripts.py --changed [REV]      # only the cases whose own script
+                                            # differs from REV, HEAD by
+                                            # default: what an edit owes, and
+                                            # what step 8d asks for
+    ./check-scripts.py -k SUBSTRING         # the cases whose NAME matches, for
+                                            # iterating on one checker; it
+                                            # refuses a pattern matching none,
+                                            # but a pattern matching FEWER
+                                            # than you meant is yours to catch
     ./check-scripts.py --families           # and the shapes these defects
                                             # keep returning in, over the
                                             # Python source: the only one
