@@ -477,8 +477,13 @@ def readme_with_trailing_buried_action(tmp):
                    '    echo hello\n')
 
 
-def unwrapped_readme_edit(tmp, old, new):
+def unwrapped_readme_edit(tmp, old, new, *more):
     """`edited_readme`, but against the README's UNWRAPPED form.
+
+    `more` takes further (old, new) pairs flat, for a defect that only
+    exists when SEVERAL sites move together -- the A/A population agreeing
+    with itself and disagreeing with the roster is the case that wanted it,
+    and one edit cannot express it.
 
     An anchor of more than a few words cannot survive in the wrapped file:
     a line break lands inside it and the literal match silently finds
@@ -493,10 +498,14 @@ def unwrapped_readme_edit(tmp, old, new):
     """
     text = subprocess.run(['wrap80', '--unwrap'], input=open(README).read(),
                           capture_output=True, text=True, check=True).stdout
-    n = text.count(old)
-    if n != 1:
-        raise AssertionError('anchor occurs %d times, need 1: %r' % (n, old[:60]))
-    return write(os.path.join(tmp, 'R.md'), text.replace(old, new, 1))
+    pairs = [(old, new)] + list(zip(more[::2], more[1::2]))
+    for o, w in pairs:
+        n = text.count(o)
+        if n != 1:
+            raise AssertionError('anchor occurs %d times, need 1: %r'
+                                 % (n, o[:60]))
+        text = text.replace(o, w, 1)
+    return write(os.path.join(tmp, 'R.md'), text)
 
 
 def _mkruns(tmp):
@@ -5089,6 +5098,49 @@ CASES = [
          # plants against an anchor the era's copy does not carry, so
          # the replay is a fixture that will not build. 2026-08-25.
          ),
+
+    # The three below hold the DOCUMENTS to Main.hs rather than to each
+    # other, added 2026-08-29 after Run 21 shipped a set of counts that
+    # agreed everywhere and were wrong everywhere. No `fix` on any of them:
+    # the checks postdate every commit here, so there is nothing for
+    # --audit to replay against, and each was instead proved able to fail
+    # by hand on the live documents the day it was written.
+    case('aa-population-agrees-with-itself-and-not-the-roster', 'read-run.py',
+         None,
+         'every site said eighteen pairs while the roster had sixteen',
+         # THE CASE THE OLD CHECK COULD NOT SEE. It compared the sites to
+         # each other, so a population that moved under all of them at once
+         # passed: `offtab`'s parking took the A/A pairs from eighteen to
+         # sixteen on 2026-08-28 and every site still read eighteen, in
+         # agreement and wrong, through a whole write-up.
+         plant=lambda t: {'readme': unwrapped_readme_edit(
+             t, 'as an order of magnitude: it rests on sixteen pairs',
+             'as an order of magnitude: it rests on eighteen pairs',
+             'The same sixteen controls ride every process',
+             'The same eighteen controls ride every process')},
+         argv=['--check-doc', '--readme', '{readme}'],
+         ok=V(exit=1, has=['where the roster has'])),
+
+    case('class-blocks-disagree-with-main-hs', 'read-run.py', None,
+         'the run file carried one class block fewer than Main.hs defines',
+         # Run 21 added a ninth class and shipped five stale `eight`s. A
+         # count of the blocks against the shape lists needs no artifact,
+         # so it survives the JSONs going.
+         plant=lambda t: {'rundoc': unwrapped_rundoc_edit(
+             t, '**`runs` --- run length swept',
+             '**runs --- run length swept')},
+         argv=['--check-doc', '--quiet', '--run-doc', '{rundoc}'],
+         ok=V(exit=1, has=['class block(s) where Main.hs defines'])),
+
+    case('class-table-shapes-disagree-with-main-hs', 'read-run.py', None,
+         'the cross-class table gave a class a shape count Main.hs refutes',
+         # The table is hand-assembled and its `shapes` column was held to
+         # nothing: `reshape1` and `bcastmid` went to four shapes on
+         # 2026-08-25 and `runs` arrived at seven on 2026-08-28.
+         plant=lambda t: {'rundoc': unwrapped_rundoc_edit(
+             t, '| `runs` | 7 |', '| `runs` | 5 |')},
+         argv=['--check-doc', '--quiet', '--run-doc', '{rundoc}'],
+         ok=V(exit=1, has=['shape counts disagree with Main.hs'])),
 
     case('gate-arms-track-the-selection', 'run-gate.sh', 'febc2bd',
          'the expected bench count was a literal that had to equal SEL',

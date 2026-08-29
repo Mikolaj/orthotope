@@ -123,6 +123,8 @@ Modes:
                     and the in-situ forcing term off the `-nosum` arms
   --pair A B        compare two arms shape by shape: paired geomean, a
                     bootstrap interval, win count and sign test
+  --pair A B --per-shape  and the per-shape ratios the range line is a max
+                    and min of, which is where a crossover lives
   --compare OTHER   compare one arm across two runs of the same population,
                     every arm at once -- what a paired run's two halves want
   --compare O --alloc   whether the two agree on what each arm allocates,
@@ -1476,7 +1478,8 @@ def pair_stats(cells, shapes, a, b):
     return raw, [cells[s][a][key] / cells[s][b][key] for s in shapes]
 
 
-def pair_table(cells, shapes, strategies, pairs, quiet=False):
+def pair_table(cells, shapes, strategies, pairs, quiet=False,
+               per_shape=False):
     """Compare two arms shape by shape, which is the sharp way to compare them.
 
     A strategy's ratio to `list` spans six-fold across this shape set, so an
@@ -1515,6 +1518,16 @@ def pair_table(cells, shapes, strategies, pairs, quiet=False):
         lo, hi = min(zip(r, shapes)), max(zip(r, shapes))
         print('%46s range %.3f (%s) .. %.3f (%s)'
               % ('', lo[0], lo[1], hi[0], hi[1]))
+        # THE CELLS THE RANGE IS A MAX AND MIN OF. They were computed here
+        # all along and thrown away, so a question about the SHAPE of a
+        # pair -- where it crosses, whether it is flat, which end carries
+        # it -- wanted a script over --cells, and Run 21 wrote one. What
+        # that script found is the run's sharpest reading, `lib-stage1`
+        # above the `list` baseline at `runs-2`, and nothing the reader
+        # printed would have shown it. Added 2026-08-29.
+        if per_shape:
+            for ratio, sh in sorted(zip(r, shapes), key=lambda t: t[1]):
+                print('%46s   %-24s %.4f' % ('', sh, ratio))
         print('%46s published-column ratio %s%s'
               % ('', '--' if pub != pub else '%.4f' % pub,
                  '; compared RAW, one arm has no corrected time' if raw
@@ -2252,6 +2265,34 @@ def counts_table(cells, shapes, strategies, meta, other, main_hs,
           % ('arm', 'counts', 'time', 'time/counts', 'n'))
     for cr, tr, n, st in sorted(rows, key=lambda r: r[1]):
         print('%-34s %8.4f %8.4f %12.4f %6d' % (st, cr, tr, tr / cr, n))
+
+    # THE AGGREGATE, AND BOTH POPULATIONS OF IT, BECAUSE THE MODE OWNS THE
+    # DEFINITION OR TWO SESSIONS INVENT TWO. A per-class count geomean had
+    # no mode until now, so Run 20 took one over every arm its sweep
+    # carried and Run 21 took one over the arms this table prints -- and
+    # then Run 21 published that Run 20's figure `reproduces from neither
+    # set`, of a figure that reproduces exactly over the population Run 20
+    # used. Neither had said which population it was. So both are printed
+    # and both are named, and a run file quoting one says which.
+    # Added 2026-08-29.
+    everything = sorted(set(counted) & set(strategies))
+    all_rs = []
+    for st in everything:
+        rs = [a_counts[sh][st] / b_counts[sh][st] for sh in shapes
+              if sh in b_shapes and a_counts.get(sh, {}).get(st)
+              and b_counts.get(sh, {}).get(st)]
+        if rs:
+            all_rs.append(geomean(rs))
+    print('\ncounts geomean over the %d arm(s) above, which are the arms'
+          ' with a\ncorrected time: %.4f'
+          % (len(rows), geomean([r[0] for r in rows])))
+    if all_rs:
+        print('counts geomean over all %d arm(s) the sweep carries, the'
+              ' `sum-only`\nand `-nosum` controls included: %.4f'
+              % (len(all_rs), geomean(all_rs)))
+    print('They differ by the controls alone. QUOTE ONE AND NAME IT: a'
+          '\ncross-run comparison of this figure is worthless unless both'
+          '\nsides took the same population.')
     if brief:
         return 0
     print('\n`counts` is the geomean over shapes of this half\'s instructions'
@@ -7496,6 +7537,24 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
         base |= set(re.findall(r'\*\*(Six|Sixteen|Eighteen)\*\* A/A controls'
                                r' run an existing strategy', uw))
         base = {b.lower() for b in base}
+        # AGAINST THE ROSTER, not only against each other. Agreement between
+        # sites says they were edited together and nothing about whether any
+        # is right: the parking of 2026-08-28 took the population to sixteen
+        # and every site still read eighteen, in agreement and wrong. The
+        # roster is the authority and Main.hs carries it, so this costs no
+        # artifact and survives their deletion. Added 2026-08-29.
+        WORDS = {'four': 4, 'six': 6, 'eight': 8, 'ten': 10, 'twelve': 12,
+                 'fourteen': 14, 'sixteen': 16, 'eighteen': 18, 'twenty': 20}
+        want = len(aa)
+        named = sorted(w for w, v in WORDS.items() if v == want)
+        for b in sorted(base):
+            if WORDS.get(b) != want:
+                bad.append('the A/A population is named `%s` where the roster'
+                           ' has %d Twin arm(s)%s -- Main.hs is the authority,'
+                           ' and sites agreeing with each other is not'
+                           ' evidence that any of them is right'
+                           % (b, want, ', which is `%s`' % named[0]
+                              if named else ''))
         if not base:
             bad.append("could not locate any site naming the A/A population's"
                        ' size, so that agreement check did not run')
@@ -7588,6 +7647,49 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
                       ' quotes its own, against %d row(s) of the class table'
                       ' (%d block(s) quote none, the table carrying it)'
                       % (quoted, len(cls_rows), len(cls_leads) - quoted))
+
+            # AND THE CLASS COUNTS, against Main.hs rather than against
+            # the document's own other sentences. Run 21 added a ninth class
+            # and shipped five stale `eight`s plus a summary table nobody
+            # held to the shape lists; a class count and a per-class shape
+            # count are both derivable with no artifact, so they survive the
+            # JSONs being deleted. Structural, not textual: the blocks are
+            # counted and the table's own `shapes` column is read, so no
+            # phrasing carries the check and rewording cannot silence it.
+            # Added 2026-08-29.
+            try:
+                cdims = dims_by_shape(main_hs)[0]
+                want = collections.Counter(
+                    class_prefix([sh]) for sh, d in cdims.items()
+                    if d['lst'] not in MAIN_LISTS)
+            except Exception as exc:                       # noqa: BLE001
+                want = None
+                bad.append('could not derive the classes from %s (%s), so'
+                           ' the class-count checks did NOT run'
+                           % (os.path.basename(str(main_hs)), exc))
+            if want:
+                if len(cls_leads) != len(want):
+                    bad.append('the run file carries %d class block(s) where'
+                               ' Main.hs defines %d class(es): %s'
+                               % (len(cls_leads), len(want),
+                                  ', '.join(sorted(want))))
+                shape_rows = dict(re.findall(
+                    r'^\| `([a-z0-9]+)` \| (\d+) \|', cls_raw.group(1), re.M))
+                if not shape_rows:
+                    bad.append("the class table's `shapes` column did not"
+                               ' parse, so the per-class shape check did NOT'
+                               ' run')
+                shp = ['`%s` says %s where Main.hs defines %d'
+                       % (c, shape_rows[c], want[c])
+                       for c in sorted(shape_rows)
+                       if c in want and int(shape_rows[c]) != want[c]]
+                if shp:
+                    bad.append('the class table\'s shape counts disagree with'
+                               ' Main.hs: %s' % '; '.join(shp))
+                elif shape_rows and not shp and len(cls_leads) == len(want):
+                    print('ok:   %d class block(s) and their table\'s shape'
+                          ' counts match the %d class(es) Main.hs defines'
+                          % (len(cls_leads), len(want)))
 
             # The MOVEMENT sentence above the blocks, which neither check
             # reaches. It reads each class's floor against its
@@ -8800,6 +8902,9 @@ def main():
                         ' JSON: each bench\'s pre/post pair differenced, and'
                         ' the foreign CPU during its samples where the stamp'
                         ' carries the load fields')
+    p.add_argument('--per-shape', action='store_true',
+                   help='with --pair, the per-shape ratios the range'
+                        ' line is a max and min of')
     p.add_argument('--pair', nargs=2, action='append', default=[],
                    metavar=('A', 'B'))
     p.add_argument('--compare', metavar='OTHER.json',
@@ -9203,7 +9308,8 @@ def main():
     elif args.aa:
         aa_table(cells, shapes, strategies, terms, meta, not args.verbose)
     elif args.pair:
-        pair_table(cells, shapes, strategies, args.pair)
+        pair_table(cells, shapes, strategies, args.pair,
+                   per_shape=args.per_shape)
     elif args.claims and args.in_place:
         install_readings(want_run_doc(args),
                          claims_readings(cells, shapes, strategies),
