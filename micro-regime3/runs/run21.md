@@ -160,8 +160,9 @@ populations' worth of work, and they differ in opposite directions. **On regime
 3 the branch is a plain regression against what ships**: `lib-stage2` against
 `lib-stage1` reads **4.0152** on `rev`, 4.5377 on `revsome`, 4.0984 on `slice`,
 4.0765 on `scaled`, 3.7237 on `window` and **2.4323** on the main set at 1 of 24
-shapes and sign p 3e-06, 2.2588 on HEAD, each of them past its population's
-floor by a factor between thirty and ninety-five, and each within 8% of its HEAD
+shapes and sign p 3e-06, 2.2588 on HEAD, these being factors where their
+populations' floors are 3.3 to 9.0 percent, so nothing here is near the floor
+and no arithmetic against it is worth doing; and each within 8% of its HEAD
 counterpart. That is the condition registration 4 named as the regression
 this benchmark now exists to catch, and it fired: on a view that will
 not canonicalize, stage one falls through to the shipped fill and the branch's
