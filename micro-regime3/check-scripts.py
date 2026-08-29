@@ -6164,6 +6164,32 @@ def main():
               % (len(cases), len(set(c.prog for c in cases))))
         return 0
 
+    # THIS SUITE PLANTS FILES IN THIS DIRECTORY, SO IT MUST RUN
+    # UNSANDBOXED. A session's sandbox permits writes under the repo it
+    # started in and nowhere else, and this directory is outside it
+    # (README.md, the one rule for the sandbox), so every fixture that
+    # writes here dies on `Read-only file system`. That is reported as
+    # FIXTURE DID NOT BUILD, which is neither a pass nor a failure --
+    # honest, and unreadable: twenty of them and a FAIL verdict looks
+    # exactly like a regression in the code under test. The README says
+    # this of pre-run steps 8c and 8d, which is where a run meets it; an
+    # ad-hoc invocation never reads that, so the refusal is here too, and
+    # it is a BLOCKED rather than a failure because nothing was tried.
+    # Probed by writing rather than by `os.access`, which answers from the
+    # mode bits and says writable under a sandbox that will refuse.
+    probe = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                         'zz-sandbox-probe.tmp')
+    try:
+        with open(probe, 'w') as h:
+            h.write('')
+        os.unlink(probe)
+    except OSError as e:
+        print('BLOCKED: cannot write in %s (%s), and this suite plants its'
+              ' fixtures here.' % (os.path.dirname(probe) or '.', e.strerror))
+        print('         Run it unsandboxed. Nothing was tried, so this is'
+              ' no verdict about any script.')
+        return 2
+
     before = tree_state()
     if args.families:
         print('the defect families, over this directory\'s Python source:')
