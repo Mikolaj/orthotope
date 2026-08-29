@@ -1630,12 +1630,12 @@ rather than a slot in the next run, observed again:
   the collector's own symbols carrying ~1% of samples in every cell,
   so the conceptual objection above stands measured (item 56).
 
-- `PARKED` **`mut-odo-vecdims-add-in` leads `mut-odo-vecdims` on most
-  populations, and Run 18 read the margin outside a floor on one compiler
-  and absent on the other.** Registered here 2026-08-22, out of Run 17; parked
-  2026-08-25, the ruling being the last paragraph of this entry. The series
-  is [under Results](runs/run21.md#results): `add-in` against the arm it varies
-  read 1.0009, 0.9934, 0.9967, 1.0023 and 1.0043 across Runs 10 to 16, four
+- `OPEN` **`mut-odo-vecdims-add-in` leads `mut-odo-vecdims` on most populations,
+  and Run 18 read the margin outside a floor on one compiler and absent
+  on the other.** Registered here 2026-08-22, out of Run 17; parked 2026-08-25,
+  the ruling being the last paragraph of this entry. The series is [under
+  Results](runs/run21.md#results): `add-in` against the arm it varies read
+  1.0009, 0.9934, 0.9967, 1.0023 and 1.0043 across Runs 10 to 16, four
   of those five a coin flip, and Run 17 reads **0.9889 at 19 of 24, sign p
   0.0066** on its basis and **0.9709 at 21 of 24, p 0.00028** on its control.
   **What is new is not the margin but the agreement**: the two halves differ
@@ -1736,18 +1736,28 @@ rather than a slot in the next run, observed again:
   against `mut-odo-vecdims-add-in`. If the ordering follows the offsets
   it is placement; if it survives them the arm is really faster. That is two
   twenty-second builds and a filtered probe, and it needs no run. Artifacts
-  `probe-addin-*` and `probe-addin2-*`. **DEFERRED TO A FUTURE RUN by decision
-  of 2026-08-22, and the decision is about what could change the shipping choice
-  rather than about the probe's cost.** A margin of one to three percent does
-  not move it: the regime 3 fix is not chosen on differences that size,
-  and no reading here or in a probe of this kind will be larger. Nor
-  is it chosen before the compilers the library's consumers build with have
-  been measured --- GHC 9.14, which is Run 18's own subject, and HEAD after
-  it --- since an ordering that holds on 9.12 alone is not the ordering
-  the shipped code will meet. So the placement half waits for those, and until
-  then the decision of 2026-08-22 stands and ships `mut-odo-vecdims`. What
-  the entry is for is that the next run should not rediscover the lead
-  as a surprise, nor spend an evening on it.
+  `probe-addin-*` and `probe-addin2-*`. **DEFERRED 2026-08-22, and UNPARKED
+  2026-08-29: both halves of that deferral are spent.** The deferral was about
+  what could change the shipping choice, not about the probe's cost,
+  and it rested on two things. One: an ordering holding on 9.12 alone is
+  not the ordering the shipped code meets, so the placement half waits until
+  the consumers' compilers are measured --- GHC 9.14, which was Run 18's own
+  subject, and HEAD after it. Runs 19, 20 and 21 each ran HEAD beside 9.12,
+  so that wait is over. Two: a margin of one to three percent could not move
+  a fix that was going to be `mut-odo-vecdims`. It did not have to --- what
+  ships is `mut-odo-vecdims-add-in-leaf-u2`, an `add-in` arm,
+  `genericFillStrided` being a bang-for-bang port of it, so the sentence
+  this ruling used to end on, that the decision stands and ships
+  `mut-odo-vecdims`, describes no shipped code. **What is owed is therefore
+  the probe and not a decision**: one source, two builds a shim setting apart,
+  chosen so the two arms' offsets swap or converge, read on nothing else --- two
+  twenty-second builds and a filtered run, artifacts `probe-addin-*`.
+  It no longer chooses what ships; it says whether the family's lead is code
+  or placement, which is the same question Run 21 raised one level down when
+  `-add-in-leaf-down` came in 5 to 6% ahead of the shipped `-u2` on both
+  compilers, outside either half's floor. Answer it there and this entry answers
+  with it. What the entry is still for is that a run should not rediscover
+  the lead as a surprise, nor spend an evening on it.
 
   **PARKED 2026-08-25: the condition that deferral named has been MET
   and the question is retired anyway, so no run and no probe will be built
