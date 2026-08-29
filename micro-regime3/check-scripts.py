@@ -6275,9 +6275,18 @@ def main():
     probe = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                          'zz-sandbox-probe.tmp')
     try:
-        with open(probe, 'w') as h:
-            h.write('')
-        os.unlink(probe)
+        try:
+            with open(probe, 'w') as h:
+                h.write('')
+        finally:
+            # THE UNLINK IS IN A finally, so a write that succeeded and an
+            # unlink that did not cannot leave the probe behind under a
+            # name this directory's own fixtures use. It is not reachable
+            # by the sandbox -- there the open fails and there is nothing
+            # to remove -- which is exactly why it wanted writing down
+            # rather than testing.
+            if os.path.exists(probe):
+                os.unlink(probe)
     except OSError as e:
         print('BLOCKED: cannot write in %s (%s), and this suite plants its'
               ' fixtures here.' % (os.path.dirname(probe) or '.', e.strerror))
