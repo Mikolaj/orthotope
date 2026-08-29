@@ -3537,16 +3537,27 @@ def fingerprint_table(cells, shapes, strategies, meta, classes=()):
 CLAIMS = [
     # The ladder the `needs` column draws, top to bottom: what a mutating
     # method buys, then what a mutable `Int` scratch buys, then the two
-    # fastest arms that need nothing at all, which are indistinguishable --
-    # so either is what ships if the mutating method is refused. The third
-    # link is redundant with the two added below it and stays for the seven
-    # runs of history they do not carry.
+    # arms that need nothing at all. The third link is redundant with the
+    # two added below it and stays for the seven runs of history they do
+    # not carry.
+    # CLAIM 1'S FOOT RUNG RETIRED 2026-08-29, on a decision rather than on
+    # a reading. It registered `bq-scan-rem-gm-mulback` against
+    # `bq-odo-gm-mulback` as a tie, so that either was what ships if the
+    # mutating method were refused upstream -- which is still undecided,
+    # `vFillStrided` sitting on the unmerged `pr-mikolaj-toVectorListT` and
+    # on neither master -- and it read as a tie on every run that carried
+    # it. Both arms stay above, so `--lint`'s rostered check still names
+    # them; `--pair bq-scan-rem-gm-mulback bq-odo-gm-mulback` recovers the
+    # reading, and its last is Run 21's. WHAT GOES DARK WITH IT: no live
+    # registration expects `tie` any more, so the two `expect == 'tie'`
+    # branches below -- in `claim_readings` and in the `--claims` printer
+    # -- are unexercised by this manifest and a change to either would
+    # pass every check here. Re-register a tie to exercise them.
     (1, 'the ceiling ordering, on unconditional arms',
      [('mut-odo-vecdims', 'mut-flat-gm', 'faster'),
       ('mut-flat-gm', 'bq-mut-runs-gm-mulback', 'faster'),
       ('bq-mut-runs-gm-mulback', 'bq-odo-gm-mulback', 'faster'),
-      ('bq-mut-runs-gm-mulback', 'bq-scan-rem-gm-mulback', 'faster'),
-      ('bq-scan-rem-gm-mulback', 'bq-odo-gm-mulback', 'tie')]),
+      ('bq-mut-runs-gm-mulback', 'bq-scan-rem-gm-mulback', 'faster')]),
     # CLAIMS 2 AND 6 RETIRED 2026-08-28 with the parking of `offtab` and
     # `gen-quotrem`, the arm each of them turned on: a claim over a parked arm
     # cannot be installed, and both were settled orderings a reader takes

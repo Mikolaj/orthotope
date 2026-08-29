@@ -53,20 +53,20 @@ it 1.51x ahead.
 **Several strategies measured since are faster than the last candidate,
 `bq-expand`, and need no class method --- a distinction the decision
 of 2026-08-22 retires, shipping the mutable family's arm instead.** The fastest
-pure ones on Run 20 are **`bq-scan-rem-gm-mulback`** (0.098)
-and **`bq-odo-gm-mulback`** (0.099) against `bq-expand`'s 0.114, and what
+pure ones are **`bq-scan-rem-gm-mulback`** and **`bq-odo-gm-mulback`**, and what
 survives of that ordering is the pure yardstick [the mutable
-ceiling](#the-mutable-ceiling-taken) prices the shipped arm against.
-**The per-run margin over `bq-expand` is retired with the candidacy and
-is not to be re-quoted**: it was extended every run from Run 10 to Run 20,
-and no decision turns on it now that the class method has landed. They also
-carry **no size precondition at all**, which is the point of them, a ruling
-since having stopped this suite timing any arm that needs one ([what
-the benchmark does](#what-the-benchmark-does)). Of the trade-offs, allocation
-and the noise floor --- measured per run over the A/A pairs of each half,
-and quoted with its carrying pair in [the floor section][floor], which owns
-it --- are in [Results](runs/run21.md#results), each arm's precondition
-is at its entry in `Main.hs`'s roster, and the division sites are in [the Lemire
+ceiling](#the-mutable-ceiling-taken) prices the shipped arm against, which
+is where its figure is kept and requoted. **The per-run margin over `bq-expand`
+is retired with the candidacy and is not to be re-quoted**: it was extended
+every run from Run 10 to Run 20, and no decision turns on it now that the class
+method has landed. They also carry **no size precondition at all**, which
+is the point of them, a ruling since having stopped this suite timing any arm
+that needs one ([what the benchmark does](#what-the-benchmark-does)).
+Of the trade-offs, allocation and the noise floor --- measured per run
+over the A/A pairs of each half, and quoted with its carrying pair in [the floor
+section][floor], which owns it --- are in [Results](runs/run21.md#results), each
+arm's precondition is at its entry in `Main.hs`'s roster, and the division sites
+are in [the Lemire
 section](#lemire-multiplicative-inverses-at-the-two-division-sites).
 
 Every figure in this README is **net of the shared forcing pass** every strategy
@@ -3959,8 +3959,13 @@ against](runs/run21.md#what-the-next-run-compares-against).
   the timed roster and their per-shape columns left the fingerprint with them;
   the reading is Run 8's and is what a later run would have to re-establish
   before using it. Read such a cell first and average it away last.
+- **The rows where both leaders of the pure tier lost to `bq-expand`
+  are not derived again**, a set a run had re-derived under its yardstick since
+  Run 19. `vFillStrided` ships the mutable fill, so that ordering flags nothing
+  and no run owes its yardstick section such a paragraph; the last of them
+  is in Run 21's file.
 
-All three bullets are measured on positive-stride views. The [stride
+The measured bullets above are on positive-stride views. The [stride
 classes](#the-stride-classes-and-what-they-cover) put the same axis under other
 mechanisms --- `bcast`'s innermost stride of 0 has every run re-read one element
 whatever its extent, `reshape1`'s extent is 1 by construction, `scaled-rank1-m1`
@@ -4734,8 +4739,9 @@ of it is unmeasured.
 
 Regime 3 has no contiguous runs to hand a bulk kernel, so the transfer stays
 per-element in Haskell however the fallback is written. Closing it needs C;
-the mutable fill behind `vFillStrided` is the win to take meanwhile,
-not a replacement for it. This is discussed further in the horde-ad repo.
+the mutable fill `vFillStrided` shipped on 2026-08-24 is a win
+under this ceiling and not a step toward closing it. This is discussed further
+in the horde-ad repo.
 
 
 ### Dead ideas
@@ -9906,14 +9912,17 @@ was reworded, which is the failure this list was rewritten to escape.
   every class shape; the layout above them is not, in the way the column
   definitions are not. A run that leaves a population out says so there, rather
   than leaving the previous run's table standing under a new run's name;
-- [The mutable ceiling (taken)](#the-mutable-ceiling-taken) and the shipping
-  paragraph closing [the Lemire section][lemire]. These are *rulings resting
+- [The mutable ceiling (taken)](#the-mutable-ceiling-taken), a *ruling resting
   on figures*, so a stale number re-opens a decision rather than merely
   misreporting one --- and a ruling's number moves for reasons its verdict does
-  not. Both now carry two regimes, and the Lemire one turns on which regime
-  orthotope compiles under, so a run in a third would have to say what it does
-  to that decision rather than only to the figure. Requote from the run; do
-  not carry forward;
+  not. It now carries two regimes. Requote from the run; do not carry forward;
+- the shipping paragraph closing [the Lemire section][lemire], a ruling
+  of the same kind and the one a run CANNOT requote: both arms it rests
+  on are checked and not timed since the precondition ruling, so its figures
+  are frozen at Runs 7 and 8 and what the walk owes them is currency,
+  not a requote. What bears on the decision is a change of regime --- orthotope
+  compiling under a third would have to say what that does to the verdict rather
+  than to the figure;
 - [The C-gap](#the-c-gap-still-a-deeper-ceiling), whose figures are horde-ad's,
   not a run's: no run here replaces them, and they move when that repo
   re-measures --- so the walk checks their currency instead;
@@ -9938,8 +9947,8 @@ was reworded, which is the failure this list was rewritten to escape.
 - [sum-only](#sum-only-and-the-correction-now-applied), where what a run decides
   is no longer *whether* to correct but whether the term still passes its three
   gates, any failure invalidating the column rather than informing it;
-- [R2 is the ramp detector][ramp], [the Lemire section][lemire], and [the
-  per-shape `stretch-*` table][pershape];
+- [R2 is the ramp detector][ramp] and [the per-shape `stretch-*`
+  table][pershape];
 - [what the benchmark does](#what-the-benchmark-does), whose two roster rulings
   quote the run they were cut on --- the arms they drop and the allocation tier
   the threshold sits above --- and whose membership a later ruling can reopen;

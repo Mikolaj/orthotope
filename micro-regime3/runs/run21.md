@@ -1022,24 +1022,16 @@ published, and the next run that adds one should ask whether it still reads.
 | `window-64x64-k1x9` | `window` | 1 | 32256 | 871 us | 0.095 | 0.048 | 0.074 | 0.283 | 0.264 | 0.048 | 0.074 | 0.020 | 0.101 | 0.103 |
 | `window-224x224-k3` | `window` | 3 | 443556 | 9.21 ms | 0.058 | 0.089 | 0.098 | 0.141 | 0.154 | 0.099 | 0.127 | 0.057 | 0.058 | 0.060 |
 
-**Two rows to read first, and this run the set reproduced rather than moving ---
-it was three at Run 19, two at Run 20 and it is the same two here**:
-`stretch-square-1341` and `stretch-pow2stride` are the shapes where **both**
-arms tying at the head of the pure tier *lose* to `bq-expand`, so treat
-a disagreement on either as the shape. That the pair repeated across a roster
-change that moved every address is the useful part; `cnn-slice-c32` left
-the list at Run 20 and has stayed off it. The two still fail differently, which
-is why each is named. On `stretch-square-1341` the mutable fills win it back
-outright (`mut-odo-vecdims` 0.086 against `bq-expand`'s 0.131) while the pure
-pair trails together at 0.153; on `stretch-pow2stride` the families converge
-instead, the pure pair landing within two thousandths of each other at 0.147
-and 0.145 against `bq-expand`'s 0.130, with the fix at 0.125 and the leaf
-variant at 0.121 ([the per-shape section][pershape]). Taking the tier's leaders
-one at a time gives seven shapes and not two, which is why the sentence says
-both. `stretch-inner1` has `sInner` 1, so anything special-casing a unit
-dimension behaves differently there by construction --- which this run's counted
-work makes concrete for the second time, the HEAD penalty on `bq-odo-gm-mulback`
-reading exactly 1.0000 there and 0.9149 to 0.9701 everywhere else.
+**One row to read first, and it is a property of the shape and not of any arm**:
+`stretch-inner1` has `sInner` 1, so anything special-casing a unit dimension
+behaves differently there by construction --- which this run's counted work
+makes concrete for the second time, the HEAD penalty on `bq-odo-gm-mulback`
+reading exactly 1.0000 there and 0.9149 to 0.9701 everywhere else. **The two
+rows this paragraph used to name are retired with the arms that derived them**:
+`stretch-square-1341` and `stretch-pow2stride` were the shapes where both arms
+tying at the head of the pure tier lost to `bq-expand`, a set re-derived every
+run since Run 19; `vFillStrided` ships the mutable fill, so that ordering flags
+nothing and the set is not derived again.
 
 
 ## The claims the next run should test
@@ -1071,16 +1063,24 @@ of those orderings one `--pair` call away, and the parked ones would want a run
 that re-times them --- which is the whole of what retiring them gave up.
 
 **Claim 1 held on all five links, on both halves, and the family above its top
-rung has grown again.** The five links are what the `needs` column draws: what
+rung has grown again.** The five links are what the `needs` column drew: what
 a mutating `Vector` method buys (**0.6463** on the basis), what one more mutable
 write pattern buys (0.9154), what a mutable `Int` scratch buys (0.9168
-and 0.9169 against the two fastest arms needing nothing), and, at the foot,
-**the two fastest pure arms tied at 0.9999 on 11 of 24 and sign p 0.84** ---
-so if the mutating method is refused upstream, `bq-scan-rem-gm-mulback`
-and `bq-odo-gm-mulback` are indistinguishable and either is what ships. On HEAD
-the same five hold at 0.6466, 0.9066, 0.8670, 0.8810 and a tie at p 0.31. Every
-figure is within a few thousandths of Run 20's on the links they share, across
-a roster change that moved every address.
+and 0.9169 against the two fastest arms needing nothing), and, at the foot
+and **retired on 2026-08-29 with this as its last reading**, the two fastest
+pure arms tied at 0.9999 on 11 of 24 and sign p 0.84 --- so while the mutating
+method's upstream answer stayed open, `bq-scan-rem-gm-mulback`
+and `bq-odo-gm-mulback` were indistinguishable and either was what would ship.
+On HEAD the same five hold at 0.6466, 0.9066, 0.8670, 0.8810 and a tie at p
+0.31. Every figure is within a few thousandths of Run 20's on the links they
+share, across a roster change that moved every address. **The manifest below
+therefore carries four links where this paragraph reads five.**
+
+**Readings:** `mut-odo-vecdims` / `mut-flat-gm` 0.6463, 20 of 24, sign p 0.0015;
+`mut-flat-gm` / `bq-mut-runs-gm-mulback` 0.9154, 24 of 24, sign p 1.2e-07;
+`bq-mut-runs-gm-mulback` / `bq-odo-gm-mulback` 0.9168, 20 of 24, sign p 0.0015;
+`bq-mut-runs-gm-mulback` / `bq-scan-rem-gm-mulback` 0.9169, 17 of 24, sign p
+0.064. 4 of 4 registered orderings held.
 
 **The first link is the one this run's new arms bear on, and the claim sees
 it less well than it did.** Claim 1 reads `mut-odo-vecdims` against
@@ -1095,13 +1095,6 @@ is named for. Whether the claim should be re-aimed at the family's leader
 is a question for the next run and is [under the recommended
 tasks](../README.md#recommended-tasks-after-run-21); it is not re-aimed here,
 a claim being re-aimed on a decision and not on one reading.
-
-**Readings:** `mut-odo-vecdims` / `mut-flat-gm` 0.6463, 20 of 24, sign p 0.0015;
-`mut-flat-gm` / `bq-mut-runs-gm-mulback` 0.9154, 24 of 24, sign p 1.2e-07;
-`bq-mut-runs-gm-mulback` / `bq-odo-gm-mulback` 0.9168, 20 of 24, sign p 0.0015;
-`bq-mut-runs-gm-mulback` / `bq-scan-rem-gm-mulback` 0.9169, 17 of 24, sign p
-0.064; `bq-scan-rem-gm-mulback` / `bq-odo-gm-mulback` 0.9999, 11 of 24, sign p
-0.84. 5 of 5 registered orderings held.
 
 **Claim 7 held on the levels, and the cell count moved with the roster rather
 than with the compiler.** Every level is Run 15's through Run 20's to the digit
@@ -1173,23 +1166,27 @@ so those two retired on 2026-08-28 rather than on a reading --- which is the one
 thing the re-aiming of the 2026-08-24 era did not insure against: it wrote
 unconditional counterparts so that dropping a PRECONDITION would not drop
 a question, and what dropped here was the arm itself. Claim 1 needed nothing:
-every arm its five links name is still timed. **What the roster does raise
+every arm its links name is still timed. **What the roster does raise
 is a question the manifest cannot see**, and it is claim 1's first link: seven
 arms now read below `mut-odo-vecdims`, four of them inside its own family,
 so the ladder's top rung understates what a mutating method buys. That is left
 to the next run rather than re-aimed here.
 
-1. `mut-odo-vecdims` < `mut-flat-gm` < `bq-mut-runs-gm-mulback` <
-   `bq-scan-rem-gm-mulback` ~ `bq-odo-gm-mulback`, the whole ordering read
+1. `mut-odo-vecdims` < `mut-flat-gm` < `bq-mut-runs-gm-mulback` < each
+   of `bq-scan-rem-gm-mulback` and `bq-odo-gm-mulback`, the whole ordering read
    on unconditional arms --- **the ladder the `needs` column draws**, each link
-   pricing one thing the implementation is allowed to ask for. The last link
-   is a tie and is registered as one: the two fastest arms needing nothing
-   at all are indistinguishable, so either is what ships if the mutating
-   `Vector` method is refused. The middle link is the one the README has seen
-   a layout term move --- 0.9708 at 15 of 24 on Run 10's unaligned half against
-   0.9293 at 22 on its aligned one --- and on a placed layout it has now read
-   the aligned figure five runs running. The ordering has survived eight runs,
-   two changes of basis, a repetition and three compilers.
+   pricing one thing the implementation is allowed to ask for. **The foot rung
+   retired 2026-08-29**, on a decision rather than on a reading: it registered
+   the two arms needing nothing at all as a tie, so that either was what would
+   ship if the mutating `Vector` method were refused upstream, and it had read
+   as a tie on every run that carried it. Both arms stay rostered and stay
+   in the rung above, `--pair bq-scan-rem-gm-mulback bq-odo-gm-mulback` recovers
+   the reading whenever the upstream answer wants it, and its last is Run 21's,
+   above. The middle link is the one the README has seen a layout term move ---
+   0.9708 at 15 of 24 on Run 10's unaligned half against 0.9293 at 22
+   on its aligned one --- and on a placed layout it has now read the aligned
+   figure five runs running. The ordering has survived eight runs, two changes
+   of basis, a repetition and three compilers.
 2. **Retired 2026-08-28** with the parking of `offtab`, the arm its surviving
    link turned on --- the other, `bq-scan-rem-gm-mulback`, is timed still. What
    it asked, since the settlement of 2026-08-24 re-aimed it, was where the arms
