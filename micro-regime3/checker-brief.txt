@@ -11,9 +11,9 @@ PREVBASIS and PREVSAME are one half whenever the run changed no
 allocation area, which is the ordinary case: two names to hunt for and
 one to find is not an error.
 
-Substitute per run: RUN=run20  BASIS=g912  OTHER=ghead  PREV=run19
-                    PREVBASIS=run19-g912  PREVSAME=run19-g912
-                    PRETIP=1fb2367   (the commit before the run's work)
+Substitute per run: RUN=run21  BASIS=g912  OTHER=ghead  PREV=run20
+                    PREVBASIS=run20-g912  PREVSAME=run20-g912
+                    PRETIP=ec45334   (the commit before the run's work)
 
 
 === THE INDEPENDENT CHECKER, PASS 1 (launch when the tables go in) ===
@@ -32,7 +32,7 @@ names as missing. Do not edit any file. Read and compute only.
 TWO DOCUMENTS, and the run's numbers are in the second: README.md is what
 stands between runs, and runs/run<N>.md is this run's write-up entire --
 its head, Results, what the next run compares against, the claims it
-should test, the nine class blocks and its own Provenance. A run
+should test, the NINE class blocks and its own Provenance. A run
 replaces that file and edits README.md around it -- a bullet on the delta
 chain, and whatever the replace list turns up -- so the diff spans both.
 
@@ -52,27 +52,34 @@ FOUR THINGS YOU CANNOT DERIVE, so they are given:
  4. read-run.py is the only reader; start with --help. --cells gives
     TSV (slope_s raw, slope_net_s corrected); --pair, --compare, --aa,
     --claims, --block, --fingerprint, --machine are the modes.
- 5. THIS RUN ONLY -- THE BOX CHANGED between PREV and RUN: a BIOS idle
-    setting moved and every absolute time is about 4.8% higher than
-    PREV's. So no ABSOLUTE is comparable across that boundary and the
-    write-up says so; RATIOS are unaffected. `--compare` across the two
-    runs reads absolutes and will therefore put every arm near +5%,
-    which is the box and not a discrepancy. A cross-run arm comparison
-    has to be done per shape as a ratio to `list`.
+ 5. THIS RUN ONLY -- THE BOX DID NOT CHANGE between PREV and RUN. The
+    gate's machine check read -0.33% on `list`'s net over 24 of 24
+    shapes against the fingerprint PREV kept, worst -3.52%, none past
+    5%. So absolutes DO cross that boundary freely and a cross-run
+    absolute comparison is fair. (The last box event was before Run
+    18; nothing since.) What DOES ride in every cross-run figure is a
+    LAYOUT term: RUN's roster is not PREV's -- six timed arms landed
+    and ten names left -- so every address moved, and the write-up
+    says a distance from PREV's column is drift PLUS layout. Treat
+    that disclosure as correct rather than as a hedge.
  6. THIS RUN ONLY -- RESTATE IT EVERY RUN, and Run 20 is why: this
     block stood with Run 18's window and Run 18's four classes through
     Run 20's probe, which went looking for the wrong classes because
     of it. Only the first block is meant to change per run, and this
     is the second thing in the file that does.
-    On Run 20: the machine went busy near the END of the sequence and
-    `window` and `scaled` were exposed on BOTH halves, four processes
-    of the eighteen, and were rerun on a quiet box; the reruns are what
-    is published. FIVE classes (rev, revsome, bcastmid, reshape1,
-    slice) have cross-half baselines past the 0.7% differencing
-    threshold and their cross-half lines are explicitly not read for
-    the compiler. Both are disclosed, not hidden; check that the
-    disclosure matches the JSONs rather than treating either as an
-    error.
+    On Run 21: NO intrusion and NO rerun. All twenty processes ran in
+    one unbroken window, 2026-08-28T23:31:03 to 2026-08-29T07:35:03,
+    each exiting 0 at its roster's count; no bench in any of them
+    reached 0.25 foreign CPU, and the plateau gate reads all twenty
+    preamble victims inside a 4.30% spread against a 5% band. THREE
+    classes (rev, bcastmid, window) have cross-half baselines past the
+    0.7% differencing threshold and their cross-half lines are
+    explicitly not read for the compiler; the MAIN SET is inside it at
+    0.64%, which is the first time in three runs. There are NINE
+    classes, not eight -- `runs` is new this run, seven shapes sweeping
+    run length from 2 to 65536. Both are disclosed, not hidden; check
+    that the disclosure matches the JSONs rather than treating either
+    as an error.
 
 PASS 1 -- every figure. Recompute every numeric claim the diff adds,
 from the reader or --cells, never by dividing figures printed in a
