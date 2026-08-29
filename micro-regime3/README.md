@@ -1182,49 +1182,49 @@ rather than a slot in the next run, observed again:
   **KILLED, by its own condition and by a wide margin.** `lib-stage2` against
   `mut-odo-vecdims-add-in-leaf-u2` on the main set was predicted a tie inside
   the floor, killed by a margin past it either way; it reads **2.5132 at 1 of 24
-  shapes, sign p 3e-06** on the basis and 2.3496 on HEAD, a margin of 151%
-  against a 2.92% floor, so past it fifty times over. Against `canon-full`
-  on the broadcast classes it was predicted ahead by the leaf body's margin;
-  it reads 1.0459 on `bcast` and **1.2149** on `bcastmid`, so behind on one
-  and level on the other. (3) *The spill.* **REFUTED, with the sign inverted
-  and the magnitude right.** `-u2-down` against `-u2` was predicted ahead
-  on the long-run shapes by up to the 15 to 18% `-down` took there on Run 20;
-  it is **behind** on exactly those three, 1.1590 on `stretch-wide-2xM`, 1.0760
-  on `-inner256` and 1.1369 on `-tab7MB` on the basis, and 1.1743, 1.0912
-  and 1.1550 on HEAD, for main-set geomeans of 1.0506 and 1.0777 at 3 and 2 wins
-  of 24. The k3-conv tie half **held on the basis alone** (1.0088, 1.0134,
-  0.9903) and not on HEAD (1.1078, 1.1113, 1.1158). The registration said a tie
-  everywhere would oblige a `-g3` dump of the new arm before anything else;
-  a loss of this size obliges it more, so **that dump is owed**. (4) *Stage two
-  on every class.* **KILLED --- this is the registered regression the benchmark
-  was built to catch, and it fired.** No class was to read the branch behind
-  stage one past its floor. Six do, by factors: `rev` 4.0152, `revsome` 4.5377,
-  `slice` 4.0984, `scaled` 4.0765, `window` 3.7237 and the main set 2.4323, each
-  reproducing on HEAD within a tenth. The predicted ties on `rev`, `revsome`,
-  `slice`, `scaled` and `window` are all refuted; `bcast` was predicted ahead
-  at 0.92 and reads 1.2496; `bcastmid` was predicted ahead at 0.55 and reads
-  0.8648, ahead but by a quarter of what was registered; `reshape1` degenerate
-  for stage two **HELD**, and its one non-degenerate cell,
-  `reshape1-strided-r3`, reads the same regression at 3.66. On allocation,
-  `lib-stage2-concat` alone above stage one on `runs` **HELD** (15.99x against
-  14.49x at `runs-2`), while *`lib-stage2` at `lib-stage1`'s level on every
-  population* is **refuted in stage two's favour**: it reads 1.00x flat where
-  stage one runs to 14.49x, stage one's concat route being what allocates. (5)
-  *The list consumer.* **REFUTED in both halves and in the opposite direction
-  to the one registered.** `liblist-stage2` against `liblist-stage1`
-  was predicted a tie in time on every regime-3 population and behind
-  at `runs-2`, `-3` and `-9`; it reads **2.3811** on the main set, 3.1627
-  on `rev` and 1.1896 on `bcast` --- far behind, not tied --- and on `runs`
-  it is **ahead at every length**, 0.8278, 0.7971, 0.6237, 0.7468, 0.9487,
-  1.0008 and 0.9581. In allocation it was predicted above stage one on `runs`
-  by an `Int` per run; it is **below** it, 10.99x against 14.49x at `runs-2`
-  and 3.22x against 4.00x at `runs-9`. **What the set is worth despite that**:
-  every one of the five was decidable, none came back a null, and the four
-  refutations locate the same object from four directions --- `fillStage2`
-  is the branch's cost and canonicalization is its benefit, with the boundary
-  between them measurable in run length. The horde-ad regression
-  the registrations were aimed at is therefore not the table an `Int` per run
-  buys; it is the driver.
+  shapes, sign p 3e-06** on the basis and 2.3496 on HEAD, where the floor
+  is 2.92% --- a factor and a noise floor, so no arithmetic between them
+  is worth doing at this size. Against `canon-full` on the broadcast classes
+  it was predicted ahead by the leaf body's margin; it reads 1.0459 on `bcast`
+  and **1.2149** on `bcastmid`, so behind on one and level on the other. (3)
+  *The spill.* **REFUTED, with the sign inverted and the magnitude right.**
+  `-u2-down` against `-u2` was predicted ahead on the long-run shapes by up
+  to the 15 to 18% `-down` took there on Run 20; it is **behind** on exactly
+  those three, 1.1590 on `stretch-wide-2xM`, 1.0760 on `-inner256` and 1.1369
+  on `-tab7MB` on the basis, and 1.1743, 1.0912 and 1.1550 on HEAD, for main-set
+  geomeans of 1.0506 and 1.0777 at 3 and 2 wins of 24. The k3-conv tie half
+  **held on the basis alone** (1.0088, 1.0134, 0.9903) and not on HEAD (1.1078,
+  1.1113, 1.1158). The registration said a tie everywhere would oblige a `-g3`
+  dump of the new arm before anything else; a loss of this size obliges it more,
+  so **that dump is owed**. (4) *Stage two on every class.* **KILLED ---
+  this is the registered regression the benchmark was built to catch,
+  and it fired.** No class was to read the branch behind stage one past
+  its floor. Six do, by factors: `rev` 4.0152, `revsome` 4.5377, `slice` 4.0984,
+  `scaled` 4.0765, `window` 3.7237 and the main set 2.4323, each reproducing
+  on HEAD within a tenth. The predicted ties on `rev`, `revsome`, `slice`,
+  `scaled` and `window` are all refuted; `bcast` was predicted ahead at 0.92
+  and reads 1.2496; `bcastmid` was predicted ahead at 0.55 and reads 0.8648,
+  ahead but by a quarter of what was registered; `reshape1` degenerate for stage
+  two **HELD**, and its one non-degenerate cell, `reshape1-strided-r3`, reads
+  the same regression at 3.66. On allocation, `lib-stage2-concat` alone above
+  stage one on `runs` **HELD** (15.99x against 14.49x at `runs-2`), while
+  *`lib-stage2` at `lib-stage1`'s level on every population* is **refuted
+  in stage two's favour**: it reads 1.00x flat where stage one runs to 14.49x,
+  stage one's concat route being what allocates. (5) *The list consumer.*
+  **REFUTED in both halves and in the opposite direction to the one
+  registered.** `liblist-stage2` against `liblist-stage1` was predicted a tie
+  in time on every regime-3 population and behind at `runs-2`, `-3` and `-9`;
+  it reads **2.3811** on the main set, 3.1627 on `rev` and 1.1896 on `bcast` ---
+  far behind, not tied --- and on `runs` it is **ahead at every length**,
+  0.8278, 0.7971, 0.6237, 0.7468, 0.9487, 1.0008 and 0.9581. In allocation
+  it was predicted above stage one on `runs` by an `Int` per run;
+  it is **below** it, 10.99x against 14.49x at `runs-2` and 3.22x against 4.00x
+  at `runs-9`. **What the set is worth despite that**: every one of the five
+  was decidable, none came back a null, and the four refutations locate the same
+  object from four directions --- `fillStage2` is the branch's cost
+  and canonicalization is its benefit, with the boundary between them measurable
+  in run length. The horde-ad regression the registrations were aimed
+  at is therefore not the table an `Int` per run buys; it is the driver.
 
 - `OPEN` **What is the 3% that survives alignment on `build`/`mut-odo`?**
   With both copies of one worker at offset 0 the pair still reads 0.9685

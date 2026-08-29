@@ -166,19 +166,19 @@ and no arithmetic against it is worth doing; and each within 8% of its HEAD
 counterpart. That is the condition registration 4 named as the regression
 this benchmark now exists to catch, and it fired: on a view that will
 not canonicalize, stage one falls through to the shipped fill and the branch's
-`fillStage2` is three-and-a-half to four-and-a-half times slower than it.
-**On regime 2 the branch is a large win and a large loss at once**,
-and the `runs` class was built to find where they cross. `lib-stage2` /
-`lib-stage1` reads 0.0854, 0.1529, 0.4626, 2.8823, 5.2058, 6.4790 and 5.6810
-across `runs-2`, `-3`, `-9`, `-96`, `-1024`, `-65536` and `-r3-48x30`
-on the basis, and 0.0821 to 6.2086 on HEAD --- **so the crossover falls between
-`runs-9` and `runs-96`, exactly where it was registered**, and the kill
-condition for that registration was that stage two not be behind past the floor
-at 96, 1024 and 65536, which it is by factors of 2.9, 5.2 and 6.5. **The two
-broadcast classes are where the branch's conditions earn something, and only one
-of them earns enough**: `bcastmid` reads 0.8648, stage two ahead by 13.5%, while
-`bcast` reads 1.2496 --- still behind, though by a quarter rather than
-by the fourfold the regime-3 classes report.
+`fillStage2` is two-and-a-half to four-and-a-half times slower than it, the main
+set at the near end and `revsome` at the far one. **On regime 2 the branch
+is a large win and a large loss at once**, and the `runs` class was built
+to find where they cross. `lib-stage2` / `lib-stage1` reads 0.0854, 0.1529,
+0.4626, 2.8823, 5.2058, 6.4790 and 5.6810 across `runs-2`, `-3`, `-9`, `-96`,
+`-1024`, `-65536` and `-r3-48x30` on the basis, and 0.0821 to 6.2086 on HEAD ---
+**so the crossover falls between `runs-9` and `runs-96`, exactly where
+it was registered**, and the kill condition for that registration was that stage
+two not be behind past the floor at 96, 1024 and 65536, which it is by factors
+of 2.9, 5.2 and 6.5. **The two broadcast classes are where the branch's
+conditions earn something, and only one of them earns enough**: `bcastmid` reads
+0.8648, stage two ahead by 13.5%, while `bcast` reads 1.2496 --- still behind,
+though by a quarter rather than by the fourfold the regime-3 classes report.
 
 **What the run-length sweep exposes is not the branch's fault, and this
 is the finding under the finding: the SHIPPED route is the pathological one
