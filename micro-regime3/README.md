@@ -6,8 +6,9 @@ the innermost dimension is strided, so no contiguous run longer than one element
 can be sliced out. What the branch carries in code is the stage-one fix, landed
 2026-08-24 (stage two is on
 [`pr-mikolaj-toVectorListT`][https://github.com/Mikolaj/orthotope/tree/pr-mikolaj-toVectorListT],
-unmeasured): `vFillStrided`, the class method, its shared driver a bang-for-bang
-port of `mut-odo-vecdims-add-in-leaf-u2`; **the regime 3 fix is decided:
+measured on Run 21 and a regression on every regime-3 population):
+`vFillStrided`, the class method, its shared driver a bang-for-bang port
+of `mut-odo-vecdims-add-in-leaf-u2`; **the regime 3 fix is decided:
 on 2026-08-22 `mut-odo-vecdims` was decided as the implementation to go
 upstream, on 2026-08-24 the stride-conditioned redirect that had kept
 the decision open was dropped, and the same day the arm was refined
@@ -287,16 +288,18 @@ priced canonicalization and the leaf block separately and composed them nowhere:
 `canon-vecdims` at 0.037 doing none of the rework. Stage two's driver
 is therefore written on the leaf body, and the composite over it is rostered
 since 2026-08-28 as `lib-stage2`, the branch's `toVectorT` ported whole ---
-until it is read, the plan's *every population keeps the vecdims family
-at its head* is confirmed for the un-leafed family only. They are new functions,
-so Run 20 was the stronger pinning test the rider under [Recommended
-tasks](#recommended-tasks-after-run-21) wanted, **and the claim did not survive
-it**: no tracked loop kept its address, so the claim covers additions that cost
-nothing to place and nothing wider. `reshape1` did go degenerate
-for the canonicalizing arms, whose cells there price dispatch rather
-than filling, and the class took the non-collapsing sibling it wanted ---
-`reshape1-strided-r3`, `reshape1-r3`'s shape made strided, now the only cell
-in the class that prices the fill.
+and Run 21 read it: the plan's *every population keeps the vecdims family
+at its head* survives, `mut-odo-vecdims` and its siblings heading every
+population, but the plan's own driver does not, `lib-stage2` reading 2.4 to 4.5
+times `lib-stage1` wherever canonicalization does not collapse the view. They
+are new functions, so Run 20 was the stronger pinning test the rider
+under [Recommended tasks](#recommended-tasks-after-run-21) wanted,
+**and the claim did not survive it**: no tracked loop kept its address,
+so the claim covers additions that cost nothing to place and nothing wider.
+`reshape1` did go degenerate for the canonicalizing arms, whose cells there
+price dispatch rather than filling, and the class took the non-collapsing
+sibling it wanted --- `reshape1-strided-r3`, `reshape1-r3`'s shape made strided,
+now the only cell in the class that prices the fill.
 
 **Weighed and dropped within the proposal, so they are not re-proposed
 with it:** tiling for the page-aliased stride (10% on one probe shape whose own
@@ -1915,7 +1918,7 @@ rather than a slot in the next run, observed again:
   goes the same way and strengthens it**, counted 2026-08-23 over its own eight
   classes: **6 of 8**, taking the running count to **24 of 32** and the sign
   test from p 0.023 to **p 0.007**. The one figure to take from a class here
-  is its FLOOR, the max over its eighteen A/A pairs, which is what `--block`
+  is its FLOOR, the max over its sixteen A/A pairs, which is what `--block`
   prints and what the class table's floor column carries --- not `read-all.sh`'s
   A/A worst-cell column, a max over cells, which for `run18-g912-slice` reads
   13.22% where the floor reads 6.01%. Counting this with the worst cell instead
@@ -1926,24 +1929,24 @@ rather than a slot in the next run, observed again:
   movements under the class table was cut on 2026-08-22 for quoting the previous
   run's, and its subject is here instead. **The measurement it registered
   was taken 2026-08-23, wanting no quiet machine and no new run, and the first
-  branch fired.** The floor is a MAX over eighteen pairs, so a half with one
-  wild cell carries a wider one at the same dispersion; read the median A/A
-  deviation per half beside it, over the same JSONs, and the two halves
-  are alike --- the basis is wider on the median in **9 of the 24** comparisons
-  at sign p 0.31, against **18 of 24** at p 0.023 on the max. **So the ruling
-  is that a floor is an order statistic and not a spread**, and what
-  is asymmetric between the halves is the tail rather than the dispersion:
-  the basis half carries the wilder cell, not the noisier roster. **Run 18
-  then found the same asymmetry in the LEVEL, once the intrusion was rerun out
-  of its way**: all eight class geomeans put the basis half faster, **0.9866
-  to 0.9949**, on 198 of the 336 arms, where the pre-rerun figures straddled 1
-  and showed nothing. That retires the dispersion candidate and leaves
-  the evening's process order, which the artifacts can still answer, every
-  process being timestamped --- the control half having run first in every pair
-  of Run 18 and in both of its windows, so *which half it is* and *when it ran*
-  name the same nine processes throughout. **The measurement that separates them
-  was taken 2026-08-23 on `slice`, and it SPLITS this item.** The pair was run
-  again with the halves' order reversed --- `g912` first, `g914` second ---
+  branch fired.** The floor is a MAX over sixteen pairs, so a half with one wild
+  cell carries a wider one at the same dispersion; read the median A/A deviation
+  per half beside it, over the same JSONs, and the two halves are alike ---
+  the basis is wider on the median in **9 of the 24** comparisons at sign p
+  0.31, against **18 of 24** at p 0.023 on the max. **So the ruling is
+  that a floor is an order statistic and not a spread**, and what is asymmetric
+  between the halves is the tail rather than the dispersion: the basis half
+  carries the wilder cell, not the noisier roster. **Run 18 then found the same
+  asymmetry in the LEVEL, once the intrusion was rerun out of its way**: all
+  eight class geomeans put the basis half faster, **0.9866 to 0.9949**, on 198
+  of the 336 arms, where the pre-rerun figures straddled 1 and showed nothing.
+  That retires the dispersion candidate and leaves the evening's process order,
+  which the artifacts can still answer, every process being timestamped ---
+  the control half having run first in every pair of Run 18 and in both
+  of its windows, so *which half it is* and *when it ran* name the same nine
+  processes throughout. **The measurement that separates them was taken
+  2026-08-23 on `slice`, and it SPLITS this item.** The pair was run again
+  with the halves' order reversed --- `g912` first, `g914` second ---
   on the same binaries, the same switches and the same evening, both halves
   clean of foreign CPU and both baselines inside the 0.7%. **The LEVEL follows
   the half.** `g912` is faster in both orders, at 0.9937 running second
@@ -3471,21 +3474,21 @@ ahead of the implementation:
   at the builder, the numbers and the argument recorded at the assert and both
   Int32 comment sites.
 
-**A class population is three shapes**, against the main set's two dozen, which
-is deliberate --- the classes are there to vary the *mechanism*, and varying
-size and rank within one is the main set's job --- but it decides how their
-results read. A class geomean rests on three cells, so it is a summary
-of a handful of numbers rather than a statistic over a spread; the per-shape
-figures are nearly the whole population and are worth quoting where the main
-set's would be flattened away; winsorizing has almost nothing to cap
-and `--pair`'s bootstrap interval almost nothing to resample. What a class run
-can decide is whether an *ordering* inverts under its mechanism and whether any
-strategy's `worst` crosses 1 there. What it cannot do is be compared
-with a main-set number, in either direction. **`runs` is the one exception,
-a sweep rather than a triple**, because its question is a crossover and
-not a mechanism: seven views walk the run from 2 to 65536 at a fixed size,
-with one rank-3 entry whose inner dims merge under canonicalization
-so the library's merge and not the listing sets its run.
+**A class population is three shapes, or four, or seven**, against the main
+set's two dozen, which is deliberate --- the classes are there to vary
+the *mechanism*, and varying size and rank within one is the main set's job ---
+but it decides how their results read. A class geomean rests on three cells,
+so it is a summary of a handful of numbers rather than a statistic
+over a spread; the per-shape figures are nearly the whole population
+and are worth quoting where the main set's would be flattened away; winsorizing
+has almost nothing to cap and `--pair`'s bootstrap interval almost nothing
+to resample. What a class run can decide is whether an *ordering* inverts
+under its mechanism and whether any strategy's `worst` crosses 1 there. What
+it cannot do is be compared with a main-set number, in either direction.
+**`runs` is the one exception, a sweep rather than a triple**, because
+its question is a crossover and not a mechanism: seven views walk the run from 2
+to 65536 at a fixed size, with one rank-3 entry whose inner dims merge
+under canonicalization so the library's merge and not the listing sets its run.
 
 **The `runs` class and the library-shaped arms exist for regressions
 this benchmark could not see, added 2026-08-28 after horde-ad caught one.**
@@ -3936,7 +3939,10 @@ probes the ceiling records. `bq-expand`, the last candidate, is what every claim
 below was measured against; the branch no longer carries it. This branch's
 library stays at stage one; stage two is
 [`pr-mikolaj-toVectorListT`][https://github.com/Mikolaj/orthotope/tree/pr-mikolaj-toVectorListT],
-and its figures are owed, not taken.
+and its figures were taken on Run 21: rostered as `lib-stage2`, it runs 2.4
+to 4.5 times stage one on every population whose views will not canonicalize,
+and crosses stage one between `runs-9` and `runs-96` on the class built to find
+where ([Run 21's file](runs/run21.md#results), and [task 1][open]).
 
 Regime 3 now goes through the class: `toVectorListT`'s innermost-strided branch
 is `[vFillStrided sh ats ao l v]`. The method's default is the pure `bq-expand`
@@ -3991,34 +3997,34 @@ plan](#the-two-stage-plan-and-the-rework-proposal), whose rework proposal serves
 its constituency at the dispatch instead, so the fix is fully decided. What
 the decision rests on, requoted from Run 20 rather than carried forward:
 `mut-odo-vecdims` reads **0.054** of `list` on the main set with a worst shape
-of 0.122, and its worst in any class is 0.109 (`reshape1-rank10`), so
-it is nowhere slower than `list` on anything this README has measured. **What
-Run 20 moves is which member of the tier leads, not the tier.** Six arms sit
-clear of the fix on the main set and a seventh level with it --- the leaf
-block's `-add-in-leaf-down`, `-add-in-leaf` and `-add-in-leaf-u2` at 0.035,
-0.036 and 0.038, the rework's `canon-vecdims`, `canon-memcpy-r2`
-and `canon-full` at 0.049, 0.052 and 0.053, and `mut-odo-vecdims-add-in`
-at 0.054 --- and every one of the seven needs a mutating `Vector` method
-and nothing more, which is exactly what the fix needs, so none of them reopens
-the decision and one of them, `-add-in-leaf-u2`, is what the branch ports.
-Its family heads seven of the nine populations, and the two it does not
-are the rework's: `reshape1`, where `canon-memcpy-r2` reads 0.000 against
-`mut-odo-vecdims`'s 0.095 on cells that price dispatch rather than filling,
-and `bcastmid`, where `mid-copy` reads 0.017 against 0.031 and leads on all four
-shapes. On the main set, per shape, the best arm outside the family beats
-`mut-odo-vecdims` on **18 of the 24 shapes**, ten of them by a thousandth
-or less, and across the class shapes on **20 of 26** --- counts that moved
-from Run 19's 3 and 5 because the canonicalizing arms are rostered now
-and this file counts them outside the family. The summary table's *best outside
-family* column is theirs throughout: `canon-vecdims` in `rev`, `slice`
-and `window`, `mid-copy` in `revsome` and `bcastmid`, `bcast-set` in `bcast`,
-`canon-full` in `scaled` and `canon-memcpy-r2` in `reshape1`. Of what
-the decision owed, the class method and its instances, the suite pass
-and the non-vacuity break landed 2026-08-24 ([the fix
-section](#the-fix-in-dataarrayinternalhs) has them); the claims re-read
-is settled, applied at Run 19's write-up; what stays owed is horde-ad's
-end-to-end re-measurement, its recorded gather figures being the `bq-expand`
-form's.
+of 0.125, and its worst in any class is 0.108 (`reshape1`), so it is nowhere
+slower than `list` on anything this README has measured. **What Run 20 moves
+is which member of the tier leads, not the tier.** Seven arms read below the fix
+on the main set and two more are level with it --- the leaf block's
+`-add-in-leaf-down`, `-add-in-leaf` and `-add-in-leaf-u2` at 0.035, 0.036
+and 0.038, the rework's `canon-vecdims`, `canon-memcpy-r2` and `canon-full`
+at 0.049, 0.052 and 0.053, and `mut-odo-vecdims-add-in` at 0.054 --- and every
+one of the seven needs a mutating `Vector` method and nothing more, which
+is exactly what the fix needs, so none of them reopens the decision and one
+of them, `-add-in-leaf-u2`, is what the branch ports. Its family heads seven
+of the nine populations, and the two it does not are the rework's: `reshape1`,
+where `canon-memcpy-r2` reads 0.000 against `mut-odo-vecdims`'s 0.095 on cells
+that price dispatch rather than filling, and `bcastmid`, where `mid-copy` reads
+0.017 against 0.031 and leads on all four shapes. On the main set, per shape,
+the best arm outside the family beats `mut-odo-vecdims` on **18 of the 24
+shapes**, ten of them by a thousandth or less, and across the class shapes
+on **20 of 26** --- counts that moved from Run 19's 3 and 5 because
+the canonicalizing arms are rostered now and this file counts them outside
+the family. The summary table's *best outside family* column was theirs
+throughout on Run 20 and is no longer: on Run 21 the library-shaped `lib-stage1`
+holds it in `rev`, `revsome`, `bcast`, `slice` and `window`,
+with `canon-vecdims` in `scaled` and the new `runs`, `mid-copy` in `bcastmid`
+and `lib-stage2-concat` in `reshape1`. Of what the decision owed, the class
+method and its instances, the suite pass and the non-vacuity break landed
+2026-08-24 ([the fix section](#the-fix-in-dataarrayinternalhs) has them);
+the claims re-read is settled, applied at Run 19's write-up; what stays owed
+is horde-ad's end-to-end re-measurement, its recorded gather figures being
+the `bq-expand` form's.
 
 **The `bq-*` strategies still fill the result one element at a time.**
 The tightest possible shape drops to a **mutable result buffer**: allocate
@@ -7427,7 +7433,8 @@ to be exactly 1, so they are the only place an interval can be held
 to an answer. `--aa` reports whether each covers 1 and how its half-width
 compares with the spread the pairs actually show, which turns the floor
 from a threshold someone chose into a factor a run measured. Read that factor
-as an order of magnitude: it rests on eighteen pairs.
+as an order of magnitude: it rests on sixteen pairs since the parking
+of 2026-08-28, and on eighteen before it.
 
 `--markdown` renders the same rows the plain table does, from one shared call,
 so the published figures cannot drift from the terminal's. It reads the Results
@@ -7542,7 +7549,7 @@ day, the placement-sensitive pair that carries Run 14's own control,
 the denominator every ratio divides by, and the one wide arm flat against every
 shape dimension --- and were first read in Run 14. The table below is the other
 six, the ones that carry back to Run 10, which is why this README quotes
-a six-pair figure beside the eighteen-pair one and compares two rows
+a six-pair figure beside the sixteen-pair one and compares two rows
 of the Results table on the six. They are the only rows whose true ratio
 is known to be exactly 1 --- or were, until [the mutable
 ceiling](#the-mutable-ceiling-taken) turned up another by accident:
@@ -7650,22 +7657,22 @@ on eighteen.
 
 **The class populations are where the factor still bites**, and the reason
 is arithmetic rather than noise: a two- or three-shape bootstrap gives
-an interval far narrower than the spread those shapes actually show. The run's
-largest factor is `window` at **8**, with `reshape1` at 7 and `scaled` at 6
-behind it, where Run 18's largest was `rev` at fifteen, Run 17's `revsome`
-at nine and Run 16's `scaled` at twenty-three; the rest sit between three
-and five, `rev` at four where it read fifteen the run before. So the factor
-is reporting which slot happened to be disturbed rather than the reader's
-arithmetic, and it does not stay with a class from run to run --- `rev` falling
-from fifteen to four on a roster, a box and a basis binary that did not change
-is this run's own demonstration of that. The class whose intervals cover 1 least
-often is `bcastmid` at **11 of 18**, with `window` and `scaled` at 12
-and `revsome` at 13; `rev` reaches 15 and `bcast`, `reshape1` and `slice` 14.
-Read a class interval that misses 1 as the reader's arithmetic and the pair's
-own deviation as the finding. **The per-class factors are NOT with the blocks**,
-which print a floor, a worst cell and an interval count and no factor;
-that pointer stood for several runs and is retired here rather than aimed
-somewhere else.
+an interval far narrower than the spread those shapes actually show. Run 21's
+largest factor is `rev` at **20**, with `scaled` at 12 and `revsome` at 10
+behind it, where Run 20's largest was `window` at eight, Run 18's `rev`
+at fifteen, Run 17's `revsome` at nine and Run 16's `scaled` at twenty-three;
+the rest sit between five and nine, `rev` at four where it read fifteen the run
+before. So the factor is reporting which slot happened to be disturbed rather
+than the reader's arithmetic, and it does not stay with a class from run to run
+--- `rev` falling from fifteen to four on a roster, a box and a basis binary
+that did not change is this run's own demonstration of that. On Run 21 the class
+whose intervals cover 1 least often is `slice` at **6 of 16**, with `reshape1`
+and `scaled` at 7 and `runs` at 9; `bcast`, `bcastmid` and `window` reach 12
+and `rev` and `revsome` 11. Read a class interval that misses 1 as the reader's
+arithmetic and the pair's own deviation as the finding. **The per-class factors
+are NOT with the blocks**, which print a floor, a worst cell and an interval
+count and no factor; that pointer stood for several runs and is retired here
+rather than aimed somewhere else.
 
 **And what is left when every other cause is pinned has now been measured:
 run-to-run drift is a few percent per cell and a quarter of a percent
@@ -9048,9 +9055,9 @@ compares something new --- two populations, two machines, two GHC versions,
 an arm against a prediction --- ask which of these bounds it, and if none does,
 say so in the sentence rather than borrowing the nearest number.
 
-**Each population measures its own floor.** The same eighteen controls ride
-every process, so a stride-class run prices the noise of the process its own
-figures came out of --- which is the only process they can be judged in ---
+**Each population measures its own floor.** The same sixteen controls ride every
+process, so a stride-class run prices the noise of the process its own figures
+came out of --- which is the only process they can be judged in ---
 but it prices it over three cells where the main set has two dozen. Read
 a class's controls as this floor confirmed there or not, rather than
 as a threshold of that class's own, and never carry the main set's figure
@@ -9461,8 +9468,8 @@ tables and its fingerprint say so.
   the conversion since replaced, and with no stride class in existence.
   That is the whole chain between its figures and this run's.
 
-**What the next run replaces.** Run 19's numbers reach past the Results table,
-so this is the list to walk when Run 20's land. Run 10 walked it twice
+**What the next run replaces.** Run 21's numbers reach past the Results table,
+so this is the list to walk when Run 22's land. Run 10 walked it twice
 over and not symmetrically, one half per pass; every run since has walked
 it once, one basis publishing everything, which is how it is walked from here.
 It names *sections*, not figures: a list of figures is a second copy of them,

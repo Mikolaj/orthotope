@@ -59,15 +59,16 @@ that both adds and removes.
 a relink.** The gate's machine check reads **-0.33%** on `list`'s net against
 the fingerprint Run 20 kept, over 24 of 24 shapes, worst `stretch-pow2stride`
 -3.52% and none past 5% --- inside 3%, so the box measures as it did
-and no absolute is re-baselined. The 43 arms both halves and Run 20 all time
-read against Run 20's columns, with the caveat the roster change puts on them:
-a layout term nothing here separates, which Run 10 priced at 12 to 14%
-on the two arms whose loop the shim rescues. And each half's own sixteen A/A
-pairs give it a floor. **The counted work is the fourth and it is the strongest
-of them**: `bq-odo-gm-mulback` reads a count ratio of **0.9340** where Run 20
-read 0.9340 and Run 19 read 0.9340, and `bq-scan-rem-gm-mulback` **0.9422**
-against 0.9423 --- four figures and three figures across two roster changes,
-on an instrument that owes criterion nothing.
+and no absolute is re-baselined. The 37 arms both halves and Run 20 all give
+a corrected time read against Run 20's columns, with the caveat the roster
+change puts on them: a layout term nothing here separates, which Run 10 priced
+at 12 to 14% on the two arms whose loop the shim rescues. And each half's own
+sixteen A/A pairs give it a floor. **The counted work is the fourth and
+it is the strongest of them**: `bq-odo-gm-mulback` reads a count ratio
+of **0.9340** where Run 20 read 0.9340 and Run 19 read 0.9340,
+and `bq-scan-rem-gm-mulback` **0.9422** against 0.9423 --- four figures
+and three figures across two roster changes, on an instrument that owes
+criterion nothing.
 
 **The manifest's one surviving claim held on both compilers, and the set is now
 a single ladder.** Claim 1's five links all hold on the 9.12 basis --- 0.6463,
@@ -555,8 +556,10 @@ How to read the columns:
 and checks without timing --- 37 of its 86 in all, the parking of 2026-08-28
 having moved eight of them from timed to checked: the reason is at each entry
 and the count is [`--lint`'s](../README.md#the-reader-read-runpy). So a movement
-below is a movement only on the 43 arms this run shares with Run 20; the six
-first readings are named in the section's own opening.
+below is a movement only on the 37 arms this run and Run 20 both give
+a corrected time --- 43 names are shared, but six of them are `sum-only`
+and `-nosum` controls with no corrected time to move; the six first readings
+are named in the section's own opening.
 
 **Three things in the table are the run's findings rather than its numbers.**
 **The head of the table moved further from the fix, and seven arms now read
@@ -690,19 +693,19 @@ moves by a factor of two in either direction for reasons no run has isolated,
 and a Run 22 margin is judged against Run 22's own, never against these.
 **The two columns below MAY be differenced, which is new**: `list` moved
 **0.64%** between the halves against the 0.7% bar, where Run 20 read 0.71%
-and Run 19 0.78% and both were refused. That is a hair the other side
-of the line, so treat it as marginal and prefer the within-run comparisons
-anyway; and note that it is the MAIN SET's figure alone --- `rev` at 1.0126,
-`bcastmid` at 1.0137 and `window` at 1.0097 are past the bar, so those three
-class blocks say in their cross-half lines that they are not read for the pair's
-variable. What the columns price is a compiler, and the counted-work column says
-which movements that reaches: `bq-odo-gm-mulback` and `bq-scan-rem-gm-mulback`
-six to seven percent apart ON their instruction counts,
-`mut-odo-vecdims-add-in-leaf` ten points of its fifteen, `canon-full` moving
-12.4% in time at a count ratio of 0.9712, and the placement-exposed arms
-`build`, `mut-odo` and `gen-unsafe` apart at count ratios of 1.0000.
-So a movement on one of those three is layout or runtime until the counts say
-otherwise.
+and Run 19 0.78% and both were refused. That is a hair INSIDE the bar rather
+than past it, which is the passing side; treat it as marginal all the same
+and prefer the within-run comparisons; and note that it is the MAIN SET's figure
+alone --- `rev` at 1.0126, `bcastmid` at 1.0137 and `window` at 1.0097 are past
+the bar, so those three class blocks say in their cross-half lines that they
+are not read for the pair's variable. What the columns price is a compiler,
+and the counted-work column says which movements that reaches:
+`bq-odo-gm-mulback` and `bq-scan-rem-gm-mulback` six to seven percent apart
+ON their instruction counts, `mut-odo-vecdims-add-in-leaf` ten points
+of its fifteen, `canon-full` moving 12.4% in time at a count ratio of 0.9712,
+and the placement-exposed arms `build`, `mut-odo` and `gen-unsafe` apart
+at count ratios of 1.0000. So a movement on one of those three is layout
+or runtime until the counts say otherwise.
 
 **Registered with the pair.** Run 21's five registrations, their kill conditions
 and their verdicts are [in the open list](../README.md#what-is-open),
@@ -1326,40 +1329,46 @@ class's table:
    **on Run 21 its worst is 0.125 on the main set and 0.108 in a class
    (`reshape1`), both read on the basis half, with the control half at 0.126
    and 0.109** --- so the property holds for the arm decided, on both compilers,
-   and neither end comes within a factor of eight of 1 --- 7.98 at the main-set
-   end, on `stretch-pow2stride`, and 9.25 in the class. Both halves are quoted
-   because one is not enough: Run 18's entry here read a floor-level figure
-   from whichever half happened to be lower, which is the defect this phrasing
-   exists to prevent. **What the new class adds is the first FILL to break it.**
-   `gen-unsafe` carries a `worst` above 1 in all ten populations, from 1.039
-   on `runs` to 3.324 on the main set, and at least one `list` twin does in each
-   --- but they are a baseline variant and the baseline's own controls rather
-   than candidate fills; `lib-stage1`, the shipped library route, is not,
-   and it reads a `worst` of **1.335** on `runs`, at `runs-2`, so on that shape
-   the route is slower than the baseline it replaces. The property is stated
-   of the fix and the fix holds; that a library-shaped arm does not
-   is this run's finding and is read at the class's own block.
+   and neither end is within a tenth of 1 --- the main-set end is a factor
+   of 7.98 inside it, on `stretch-pow2stride`, and the class end 9.25. Both
+   halves are quoted because one is not enough: Run 18's entry here read
+   a floor-level figure from whichever half happened to be lower, which
+   is the defect this phrasing exists to prevent. **What the new class adds
+   is the first FILL to break it.** `gen-unsafe` carries a `worst` above 1
+   in all ten populations, from 1.039 on `runs` to 3.324 on the main set,
+   and at least one `list` twin does in each --- but they are a baseline variant
+   and the baseline's own controls rather than candidate fills;
+   the library-shaped arms are not, and FOUR of them break it on `runs`, all
+   at `runs-2`: `liblist-stage1` at **1.371**, `lib-stage2-concat` at 1.338,
+   `lib-stage1` --- the shipped route --- at **1.335**, and `liblist-stage2`
+   at 1.135. So on that shape every route the library offers is slower
+   than the baseline it replaces, and the branch's fill is the only arm
+   of the four that is not. The property is stated of the fix and the fix holds;
+   that a library-shaped arm does not is this run's finding and is read
+   at the class's own block.
 
 2. **The top of the table keeps its order**: `mut-odo-vecdims` fastest,
-   `bq-expand` behind it. **The first clause breaks in all nine populations
-   this run, and in seven of them it breaks to a sibling.** Read as the vecdims
-   family's rather than one arm's --- the ruling Run 9 left, and no run has yet
-   separated them --- it holds in seven: `rev`, `revsome`, `bcast`, `slice`,
-   `window`, `scaled` and the new `runs` are each led by a `mut-odo-vecdims`
-   variant from the leaf block, at margins of 7.5% (`scaled`) to 47.2%
-   (`window`) against those populations' own floors, every one of them outside.
-   **In two it breaks outright, to arms outside the family.** `bcastmid` is led
-   by `mid-copy` at 0.017 against the fix's 0.032 --- **0.5429 paired, ahead
-   on 4 of 4 shapes**, and within six thousandths of Run 20's 0.5490 on the same
-   pair --- and `reshape1` by `lib-stage2-concat`, whose cells there
-   are degenerate and price dispatch rather than filling, so that one is a break
-   in the sort and not in the work. **What changed since Run 20 is which arm
-   holds the outside-family slot, and it is the same arm in five of the nine**:
-   `lib-stage1` leads outside the family on `rev`, `revsome`, `bcast`, `slice`
-   and `window`, `canon-vecdims` on `scaled` and `runs`, and the two outright
-   breaks hold their own slot --- where Run 20 had the rework's arms in all
-   eight. The third clause reads the last candidate `bq-expand` behind
-   `mut-odo-vecdims` and holds in all nine.
+   `bq-expand` behind it. **The first clause breaks in all nine CLASS
+   populations this run --- the main set is the tenth and is counted separately
+   throughout this section --- and in seven of the nine it breaks
+   to a sibling.** Read as the vecdims family's rather than one arm's ---
+   the ruling Run 9 left, and no run has yet separated them --- it holds
+   in seven: `rev`, `revsome`, `bcast`, `slice`, `window`, `scaled` and the new
+   `runs` are each led by a `mut-odo-vecdims` variant from the leaf block,
+   at margins of 7.5% (`scaled`) to 47.2% (`window`) against those populations'
+   own floors, every one of them outside. **In two it breaks outright, to arms
+   outside the family.** `bcastmid` is led by `mid-copy` at 0.017 against
+   the fix's 0.032 --- **0.5429 paired, ahead on 4 of 4 shapes**, and within six
+   thousandths of Run 20's 0.5490 on the same pair --- and `reshape1`
+   by `lib-stage2-concat`, whose cells there are degenerate and price dispatch
+   rather than filling, so that one is a break in the sort and not in the work.
+   **What changed since Run 20 is which arm holds the outside-family slot,
+   and it is the same arm in five of the nine**: `lib-stage1` leads outside
+   the family on `rev`, `revsome`, `bcast`, `slice` and `window`,
+   `canon-vecdims` on `scaled` and `runs`, and the two outright breaks hold
+   their own slot --- where Run 20 had the rework's arms in all eight. The third
+   clause reads the last candidate `bq-expand` behind `mut-odo-vecdims`
+   and holds in all nine.
 
 3. **The allocation tiers survive, and every level is Run 15's through Run 20's
    to the digit**: the mutable fills at the result vector, `bq-expand` between
@@ -1491,7 +1500,7 @@ looked the table up the same wrong way the paste did.
 the dropped stride-conditioned redirect would have taken, and *ceiling*
 the leading arm of the family, each with its name, since which arm leads is half
 of what the column says; *floor* is the largest deviation from 1 among
-that process's eighteen A/A controls. A cell that breaks one of [the three
+that process's sixteen A/A controls. A cell that breaks one of [the three
 properties](#the-claims-the-next-run-should-test) is bolded, and the class's own
 paragraph says what broke.
 
@@ -1537,8 +1546,9 @@ the same six things and nothing else:
    a table of ratios hides completely. A three-shape class adds one line here
    --- the bolded rows' per-shape net ratios, in the lead's shape order ---
    because its table under-determines its cells, where a two-shape table carried
-   them already, `time` and `worst` jointly fixing both; every class
-   is three-shape now, so the line always prints;
+   them already, `time` and `worst` jointly fixing both; every class is three
+   shapes or more now --- six at three, `bcastmid` and `reshape1` at four
+   and `runs` at seven --- so the line always prints;
 5. the cross-half reading, one line, which `--block --compare` against the other
    half's JSON now emits and `install-tables.sh` writes in with the other three
    --- how many of the population's arms move, which way, and the spread. Both

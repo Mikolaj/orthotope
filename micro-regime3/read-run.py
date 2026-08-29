@@ -7481,20 +7481,28 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
         # three runs -- the reader's own section and the floor section's
         # per-population rule -- while every class block printed "N of 18".
         # Nothing compared them, so the stale pair rode three write-ups.
-        base = set(re.findall(r'it rests on (six|eighteen) pairs', uw))
-        base |= set(re.findall(r'The same (six|eighteen) controls ride every'
-                               r' process', uw))
-        base |= set(re.findall(r'\*\*(Six|Eighteen)\*\* A/A controls run an'
-                               r' existing strategy', uw))
+        # `sixteen` joined on 2026-08-29, the parking of `offtab` having
+        # removed its two twins: a size this vocabulary does not carry makes
+        # the check find NOTHING and say so, which is why the empty case is
+        # a FAIL and not a pass -- met the moment the roster moved.
+        # Non-vacuity, 2026-08-29, both branches proved by hand on README:
+        # one site changed to `eighteen` while the rest read `sixteen`
+        # FAILs naming both; changing every site to a word outside the
+        # vocabulary FAILs with the could-not-locate message; restoring
+        # exits 0. So neither branch passes vacuously.
+        base = set(re.findall(r'it rests on (six|sixteen|eighteen) pairs', uw))
+        base |= set(re.findall(r'The same (six|sixteen|eighteen) controls'
+                               r' ride every process', uw))
+        base |= set(re.findall(r'\*\*(Six|Sixteen|Eighteen)\*\* A/A controls'
+                               r' run an existing strategy', uw))
         base = {b.lower() for b in base}
         if not base:
             bad.append("could not locate any site naming the A/A population's"
                        ' size, so that agreement check did not run')
         elif len(base) > 1:
             bad.append('the A/A population is quoted as %s across its sites'
-                       ' -- the twelve twins took it to eighteen and every'
-                       ' class block prints that, so a site still saying six'
-                       ' is three runs stale'
+                       ' -- the roster fixes it and every class block prints'
+                       ' that count, so a site naming another is stale'
                        % ' and '.join(sorted(base)))
         else:
             print("ok:   the A/A population reads %s pairs everywhere it is"

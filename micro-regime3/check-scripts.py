@@ -5064,8 +5064,8 @@ CASES = [
          # markers are part of the anchor now because that write-up
          # bolded the pair.
          plant=lambda t: {'readme': unwrapped_readme_edit(
-             t, 'the same run gives **0.44% and 0.28%**',
-             'the same run gives **0.69% and 0.28%**')},
+             t, 'the same run gives **0.46% and 0.60%**',
+             'the same run gives **0.69% and 0.60%**')},
          argv=['--check-doc', '--readme', '{readme}'],
          ok=V(exit=1, has=['six-pair figure is quoted differently']),
          # No --audit: the fixture is built from today's document and
@@ -5081,8 +5081,8 @@ CASES = [
          # per-population rule -- while every class block printed
          # "N of 18". Nothing compared them.
          plant=lambda t: {'readme': edited_readme(t, (
-             'as an order of magnitude: it rests on eighteen pairs.',
-             'as an order of magnitude: it rests on six pairs.'))},
+             'as an order of magnitude: it rests on sixteen pairs',
+             'as an order of magnitude: it rests on six pairs'))},
          argv=['--check-doc', '--readme', '{readme}'],
          ok=V(exit=1, has=['A/A population is quoted as']),
          # No --audit: the fixture is built from today's document and
@@ -5284,7 +5284,7 @@ CASES = [
          # No --audit: this fixture is built from the live README, which
          # the Basic Latin pass reworded under it. Removal is the handling.
          ok=V(exit=0, has=['ZZMARKER',
-                           'across 8 class block(s)'])),
+                           'across 9 class block(s)'])),
 
     case('placeholder-that-outlived-its-wording', 'install-tables.sh',
          None,
@@ -5358,7 +5358,7 @@ CASES = [
                                       classes=recorded_classes())),
          env={'DOC': '{doc}', 'BASIS': 'lookrts'},
          argv=['zzit'],
-         ok=V(exit=0, has=['11 table(s) installed'])),
+         ok=V(exit=0, has=['12 table(s) installed'])),
 ]
 
 
