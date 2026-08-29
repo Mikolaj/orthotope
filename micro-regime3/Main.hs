@@ -2748,7 +2748,8 @@ fillStage2 :: ShapeL -> [Int] -> Int -> Int -> VS.Vector Double
            -> VS.Vector Double
 fillStage2 sh ats ao l v = VS.create $ do
   out <- VSM.unsafeNew l
-  let writeRunStep !outPos !baseOff =
+  let {-# INLINE writeRunStep #-}
+      writeRunStep !outPos !baseOff =
         let !oEnd = outPos + sInner
             inner !o !src
               | o + 1 >= oEnd =
@@ -2760,6 +2761,7 @@ fillStage2 sh ats ao l v = VS.create $ do
                                     (VS.unsafeIndex v (src + tInner))
                   inner (o + 2) (src + t2)
         in  inner outPos baseOff
+      {-# INLINE writeRunSet #-}
       writeRunSet !outPos !baseOff =
         let !x = VS.unsafeIndex v baseOff
             !oEnd = outPos + sInner
