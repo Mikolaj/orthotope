@@ -2992,17 +2992,19 @@ limit belongs in the sentence that asks for the measurement.
    eighth reading: one bang an argument in the library and in the port alike
    takes the fill to fourteen instructions over two stack accesses, below
    the shipped fill's own eighteen and four. **So every figure in this entry
-   is PRE-FIX and none of it is a reading of what the branch now holds.** What
-   is left is therefore a re-measurement and not a dump: whether the 2.4 to 4.5
-   collapses as the instruction counts say it must, and what survives
-   of the second term, which loses its candidates on the regime-3 populations
-   --- the frame and its store-to-load chains are gone. Whether `bcast`'s 1.481
-   and `bcastmid`'s 2.118 keep theirs is NOT settled by that: their loops never
-   scrutinised the vector, but their arms are not thereby untouched, and a first
-   reading says they moved. Until that run the branch should not replace
-   the shipped fill on regime-3 views, and `a29748b`'s `INLINE` pragmas
-   were never what stood in the way: they emit byte-identical code, having fired
-   all along.
+   is PRE-FIX and none of it is a reading of what the branch now holds.**
+   **The instruction half of that re-measurement is TAKEN**, [the
+   ceiling][ceiling]'s ninth reading: the counted work now reads 0.79 to 1.05
+   where it read 2.2 to 3.5, so the first term is gone on every population
+   that carried it. What is left is TIME, the 2.4 to 4.5 being a time ratio,
+   and what survives of the second term, which loses its candidates
+   on the regime-3 populations --- the frame and its store-to-load chains
+   are gone. Whether `bcast`'s 1.481 and `bcastmid`'s 2.118 keep theirs
+   is NOT settled by that: their loops never scrutinised the vector, but their
+   arms are not thereby untouched, and a first reading says they moved. Until
+   that run the branch should not replace the shipped fill on regime-3 views,
+   and `a29748b`'s `INLINE` pragmas were never what stood in the way: they emit
+   byte-identical code, having fired all along.
 2. `OPEN` **The run-length condition, which the `runs` class measured rather
    than assumed --- and whose every figure below is PRE-FIX, so the threshold
    moves before the arm this asks for can be built to it.** [The
@@ -3026,7 +3028,10 @@ limit belongs in the sentence that asks for the measurement.
    measured, timed on `runs` against all three, which is one Main.hs arm and one
    evening's slot on the existing class. `canon-memcpy-r2` against
    `canon-vecdims` crosses one step earlier, between 3 and 9, so the threshold
-   is worth reading per route rather than assumed shared. A second crossover
+   is worth reading per route rather than assumed shared. The counted work after
+   the fix puts `runs` at 1.139, the one population where stage two now costs
+   more in instructions than stage one --- a first bearing on where
+   the crossover has gone and no substitute for timing it. A second crossover
    wants that same evening and that same class: `-u2` against `-down` on a build
    where neither spills, which [the ceiling][ceiling] prices at half
    an instruction an element against five memory accesses a run. **What the two
@@ -4694,6 +4699,28 @@ and the straddle survey reads 139 self-loops with 75 at offset 0 and NONE
 straddling against the pair note's 135, 71 and none. So a change confined to one
 function's body left the shim holding what a roster change did not,
 and the placement-exposed arms carry no layout term across this edit.
+
+**A ninth reading, 2026-08-29, is the counted work after the fix, so the first
+term is measured gone rather than predicted gone.** (`probe-bang-g912`, the Run
+21 basis recipe over the current source; `run-counts.sh` over the main set
+and all nine classes at 49 arms throughout. Instructions want no quiet machine,
+and a criterion allocation pass ran beside this one without reaching it.)
+`lib-stage2` against `lib-stage1` with `sum-only-early` subtracted reads **0.940
+on `rev`, 1.048 on `slice`, 1.016 on `scaled`, 0.789 on `window` and 0.978
+on the main set**, against the 2.776, 2.979, 3.516, 2.237 and 1.743 Run 21 read
+--- parity or better on every population that carried the term.
+**The instrument's control is that its unchanged figures are unchanged**:
+an allocation pass over the three library arms on `runs` reproduces Run 21
+to the digit, 14.49 and 1.00 and 15.99 at `runs-2`, stage one's 4.00
+at `runs-9`, stage two flat at 1.00 across every length --- so what moved, moved
+against a backdrop that did not. **And where the eighth reading was too narrow
+is here**: `bcast` reads 0.704 against 0.844 and `bcastmid` 0.268 against 0.408,
+so the broadcast paths moved too, in stage two's favour and for a reason
+this reading does not name --- their loops never scrutinised the vector,
+so it is the `ao` and `l` bangs or the leaf's dispatch and not the fill. **What
+none of it settles is time**, the 2.4 to 4.5 being a time ratio and the second
+term untouched; and `runs` at 1.139 is the one population where stage two now
+costs MORE in instructions, which is [task 2][open]'s to read.
 
 ### The C-gap: still a deeper ceiling
 
@@ -9851,19 +9878,22 @@ was reworded, which is the failure this list was rewritten to escape.
   span. The bullets that used to name those sections one by one are this one,
   and the coverage check below reads it as covering every heading in that file;
 - [the recommended tasks after Run 21](#recommended-tasks-after-run-21), which
-  is run-scoped by its own title: a task taken or superseded leaves it, what
-  survives is renamed to the run that inherits it, and a run's own surprises
-  are added to it before the run file is replaced. **Leaving is not deleting,
-  and where it goes is the half this used to omit**: a spent task's outcome
-  and a pointer to whatever holds its account --- an entry of the open list,
-  a topical section, an investigation directory --- go to that home,
-  and the item itself goes. Item 1 of Run 17's subsection shows the migration
-  done and the removal not: its evening is consolidated into the position-term
-  entry and its raw material into `small-pinned-churn-investigation`,
-  and a hundred words of it stand here anyway. **Nothing spent stays
-  under a heading naming a run that is over**, which Run 17's items did until
-  Run 18's write-up removed them and named where each had gone --- a departure
-  rule with no destination named is one nobody applies;
+  is run-scoped by its own title: a task taken or superseded leaves it --- which
+  RENUMBERS the rest, so `grep -n 'task [0-9]'` over this file and the run's
+  is owed with the departure, nothing else catching a pointer left behind ---
+  what survives is renamed to the run that inherits it, and a run's own
+  surprises are added to it before the run file is replaced. **Leaving
+  is not deleting, and where it goes is the half this used to omit**: a spent
+  task's outcome and a pointer to whatever holds its account --- an entry
+  of the open list, a topical section, an investigation directory --- go
+  to that home, and the item itself goes. Item 1 of Run 17's subsection shows
+  the migration done and the removal not: its evening is consolidated
+  into the position-term entry and its raw material
+  into `small-pinned-churn-investigation`, and a hundred words of it stand here
+  anyway. **Nothing spent stays under a heading naming a run that is over**,
+  which Run 17's items did until Run 18's write-up removed them and named where
+  each had gone --- a departure rule with no destination named is one nobody
+  applies;
 - [the noise-floor table][floor] and its prose, from `--aa` --- including
   the raw-slope six it compares against, the position verdict the crossed
   controls now disagree about between runs, and the `build`/`mut-odo` pair read
