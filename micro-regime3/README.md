@@ -2931,7 +2931,7 @@ Here the limitation was recorded accurately and went inert anyway, because
 it was recorded where the tool lives and not where the run is planned. A scope
 limit belongs in the sentence that asks for the measurement.
 
-1. `OPEN` **`fillStage2` is the branch's cost, and it is 2.5 to 4.5 times
+1. `OPEN` **`fillStage2` is the branch's cost, and it is 2.4 to 4.5 times
    the fill it replaces.** Run 21's registration 4 fired its kill condition:
    on every population whose views will not canonicalize, `lib-stage2` is behind
    `lib-stage1` past the floor by factors --- `rev` 4.0152, `revsome` 4.5377,
@@ -9346,7 +9346,8 @@ tables and its fingerprint say so.
   The box did not move, its machine check reading -0.33%, so absolutes cross
   from Run 20 freely and the boundary that stops them is still the BIOS change
   before Run 18.
-- Run 20 measured today's shapes and class views and NOT today's roster read
+- Run 20 measured today's main-set shapes but NOT today's class views --- 26
+  in eight classes, where today's are 33 in nine --- and NOT today's roster read
   against Run 19's: nine timed arms landed and three dropped to `Only`,
   so its membership is 53 timed arms over 24 main-set shapes and 26 class views,
   1272 benches and 1378, where Run 19 ran 47 and 1128 over 24 and 24,
@@ -9361,12 +9362,13 @@ tables and its fingerprint say so.
   and not subtracted. The box did not move, its machine check reading -0.24%,
   so absolutes cross from Run 19 freely and the boundary that stops them
   is still the BIOS change before Run 18.
-- Run 19 measured today's shapes and class lists but the roster BEFORE Run 20's
-  arms, 47 timed arms and 1128 benches. Everything published in its file
-  is `run19-g912`, the 9.12 half; its `list` moved 0.78% between the halves,
-  so its two columns may be ordered and not subtracted; and its basis half
-  is Run 18's basis BINARY, byte for byte, so absolutes cross those two runs
-  freely.
+- Run 19 measured today's main-set shapes but neither today's class views --- 24
+  in eight classes, where today's are 33 in nine --- nor today's roster, running
+  the one BEFORE Run 20's arms: 47 timed arms and 1128 benches. Everything
+  published in its file is `run19-g912`, the 9.12 half; its `list` moved 0.78%
+  between the halves, so its two columns may be ordered and not subtracted;
+  and its basis half is Run 18's basis BINARY, byte for byte, so absolutes cross
+  those two runs freely.
 - Run 18 measured the same shapes, class lists, membership and order,
   so its delta is empty too. Everything it published was `run18-g912`
   and `run18-g914` contributed its second yardstick column. **And one thing

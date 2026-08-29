@@ -143,11 +143,11 @@ had to rerun `window` and `scaled` on both halves. **The class floors moved
 and they did not move together**: on the basis half the widest is `rev`'s
 **8.95%** and the tightest `scaled`'s **3.30%**, where Run 20 read `reshape1`
 at 8.31% and `scaled` at 3.01%. So the tight end did NOT change hands ---
-`scaled` holds it for a second run, a tenth of a point looser --- while the wide
-end did, `rev` going from 4.14% to 8.95% and `reshape1` from 8.31% to 6.31%.
-The new class lands second tightest at 3.50%, between `scaled` and `slice`'s
-3.55%, which is the floor being a property of the run said once more at class
-scale.
+`scaled` holds it for a second run, three tenths of a point looser --- while
+the wide end did, `rev` going from 4.14% to 8.95% and `reshape1` from 8.31%
+to 6.31%. The new class lands second tightest at 3.50%, between `scaled`
+and `slice`'s 3.55%, which is the floor being a property of the run said once
+more at class scale.
 
 **The rework is what this run was built to price, and the answer is a boundary
 in run length rather than a verdict on the branch.** `lib-stage1` is stage one
@@ -160,8 +160,8 @@ populations' worth of work, and they differ in opposite directions. **On regime
 `lib-stage1` reads **4.0152** on `rev`, 4.5377 on `revsome`, 4.0984 on `slice`,
 4.0765 on `scaled`, 3.7237 on `window` and **2.4323** on the main set at 1 of 24
 shapes and sign p 3e-06, 2.2588 on HEAD, each of them past its population's
-floor by a factor between thirty and ninety, and each reproducing on HEAD within
-a tenth. That is the condition registration 4 named as the regression
+floor by a factor between thirty and ninety-five, and each within 8% of its HEAD
+counterpart. That is the condition registration 4 named as the regression
 this benchmark now exists to catch, and it fired: on a view that will
 not canonicalize, stage one falls through to the shipped fill and the branch's
 `fillStage2` is three-and-a-half to four-and-a-half times slower than it.
@@ -186,19 +186,20 @@ at short runs.** Read as ratios to the `list` baseline each arm exists to beat,
 0.3301, 0.0538, 0.0300, 0.0244 and 0.0269**. So at `runs-2`, which is 900000
 runs of two elements, stage one's slice-per-run concatenation is **a third
 slower than doing nothing at all**, and at `runs-3` it barely breaks even; only
-at `runs-9` and longer does it become the right route, and by `runs-65536`
-it is six times better than the branch's fill. **That reverses the reading
-of the repair candidate.** `lib-stage2-concat` --- stage two with canonical
-contiguous runs sent back to one slice per run --- restores stage one's figure
-at every length, 1.0027, 0.9893, 1.0584, 1.0185, 1.0046, 0.9961 and 1.0044
-against it, which is what registration 1 predicted and what makes it a faithful
-repair of the long-run loss. But restoring stage one's figure at `runs-2` means
-restoring **1.3382**, so the candidate buys back the long runs by giving up
-a twelvefold win at the short ones. Neither arm is the answer on its own,
-and what the class puts on the table instead is the run-length condition
-registration 1 already named when it asked the same question
-of `canon-memcpy-r2` against `canon-vecdims`: fill the short runs, copy the long
-ones, and the crossover this class measures is between 9 and 96.
+from `runs-96` up does it become the right route --- at `runs-9` stage two
+is still ahead, 0.4626 of it, and by `runs-65536` it is six times better
+than the branch's fill. **That reverses the reading of the repair candidate.**
+`lib-stage2-concat` --- stage two with canonical contiguous runs sent back
+to one slice per run --- restores stage one's figure at every length, 1.0027,
+0.9893, 1.0584, 1.0185, 1.0046, 0.9961 and 1.0044 against it, which is what
+registration 1 predicted and what makes it a faithful repair of the long-run
+loss. But restoring stage one's figure at `runs-2` means restoring **1.3382**,
+so the candidate buys back the long runs by giving up a twelvefold win
+at the short ones. Neither arm is the answer on its own, and what the class puts
+on the table instead is the run-length condition registration 1 already named
+when it asked the same question of `canon-memcpy-r2` against `canon-vecdims`:
+fill the short runs, copy the long ones, and the crossover this class measures
+is between 9 and 96.
 
 **The counted-work instrument cuts this pair's movements in two,
 and it reproduces the previous two runs to four figures.** `run-counts.sh`
@@ -231,13 +232,17 @@ the same instructions across that whole class. That ninth is `reshape1`,
 as it was Run 20's eighth, so what Run 19 read as an inversion and Run 20 read
 as flat is flat again: `reshape1` is the class HEAD does not cost, on three
 runs, and `window` is the runner-up here as it was there. **The two runs'
-figures are not directly comparable and this file will not pretend they are**:
-a class geomean of this kind is taken over the arms the two halves share, which
-is 43 here and was 47 on Run 20, so Run 20's published 0.9995 and 0.9918
-re-derive over its own arm set and not over this one. What carries across
-is the ORDERING --- `reshape1` apart from the other eight, `window` next
-to it --- and that is what has now held three times. **The most extreme arm
-is the same one in all nine classes and it is the same one Run 20 named**:
+magnitudes are not directly comparable and one of Run 20's does not re-derive
+at all**: a class geomean of this kind is taken over the arms the two halves
+share, 43 here against 47 there, so the arm sets differ. That accounts
+for `window`, whose published 0.9918 re-derives from Run 20's own artifacts
+as 0.9917. It does NOT account for `reshape1`, whose published 0.9995 re-derives
+as 1.0001 over Run 20's own 47 arms and 1.0009 over the 37 the two runs share
+--- a Run 20 figure that reproduces from neither set, and a question
+for that run's artifacts rather than this run's. So quote no cross-run magnitude
+here. What carries is the ORDERING --- `reshape1` apart from the other eight,
+`window` next to it --- and that has now held three times. **The most extreme
+arm is the same one in all nine classes and it is the same one Run 20 named**:
 `mut-odo-vecdims-add-in-leaf`, from 0.8653 on `runs` to 0.9286 on `reshape1`,
 where Run 20 read 0.8694 on `bcast` to 0.9286 on `reshape1` --- the same arm,
 the same top of the range to four figures, over a roster change.
@@ -255,21 +260,24 @@ stays registered rather than settled.
 
 **And the correction sits on nearly the same footing in both halves, as it has
 on every run since Run 17.** The in-situ forcing term --- an arm minus
-its `-nosum` twin, against the `sum-only` the correction actually subtracts ---
-reads 1.0243, 1.0204, 1.0043 and 1.0768 on the basis and 1.0256, 1.0198, 1.0325
-and 1.0677 on the control --- the reader's `ratio` column, which is the figure
-Run 20 published and called a median, on `mut-odo-vecdims`, `canon-full`,
-`mut-flat-gm` and `bq-expand`. So both halves subtract a term between about half
-a point and eight points under the in-situ pass, every one of the eight figures
-tilting the same way, and the two halves agree with each other to within 0.13,
-0.06 and 0.91 of a point on `mut-odo-vecdims`, `canon-full` and `bq-expand`.
-`mut-flat-gm` is the one where they part in SIZE rather than direction, 1.0043
-against 1.0325, and it is the arm whose in-situ term is noisiest on both halves
---- its `mean|d|` reads 4.88% and 6.72% against 3.03% and 3.04% on the fix.
-**A margin between these two halves is therefore not carrying a correction
-bias**, which rests on the term the correction actually subtracts rather
-than on the in-situ check: the two `sum-only` halves agree at 0.9996
-on the basis and 0.9999 on the control, both intervals covering 1.
+its `-nosum` twin, against the `sum-only` the correction actually subtracts,
+and read here off `--aa`'s `ratio` column where each class block below prints
+its `median` one, so the two are not the same statistic under the same phrase
+--- reads 1.0243, 1.0204, 1.0043 and 1.0768 on the basis and 1.0256, 1.0198,
+1.0325 and 1.0677 on the control --- the reader's `ratio` column, which
+is the figure Run 20 published and called a median, on `mut-odo-vecdims`,
+`canon-full`, `mut-flat-gm` and `bq-expand`. So both halves subtract a term
+between about half a point and eight points under the in-situ pass, every one
+of the eight figures tilting the same way, and the two halves agree with each
+other to within 0.13, 0.06 and 0.91 of a point on `mut-odo-vecdims`,
+`canon-full` and `bq-expand`. `mut-flat-gm` is the one where they part in SIZE
+rather than direction, 1.0043 against 1.0325, and it is the arm whose in-situ
+term is noisiest on both halves --- its `mean|d|` reads 4.88% and 6.72% against
+3.03% and 3.04% on the fix. **A margin between these two halves is therefore
+not carrying a correction bias**, which rests on the term the correction
+actually subtracts rather than on the in-situ check: the two `sum-only` halves
+agree at 0.9996 on the basis and 0.9999 on the control, both intervals
+covering 1.
 
 **The run's standing placement pair moved, and this time the fills say what
 it is not.** `build` against `mut-odo`, one worker at two slots, reads **0.9870
@@ -1323,13 +1331,14 @@ class's table:
    because one is not enough: Run 18's entry here read a floor-level figure
    from whichever half happened to be lower, which is the defect this phrasing
    exists to prevent. **What the new class adds is the first FILL to break it.**
-   `gen-unsafe` and the `list` twins carry a `worst` above 1 in every population
-   and always have, being a baseline variant and controls rather than candidate
-   fills; `lib-stage1`, the shipped library route, is not, and it reads
-   a `worst` of **1.335** on `runs`, at `runs-2`, so on that shape the route
-   is slower than the baseline it replaces. The property is stated of the fix
-   and the fix holds; that a library-shaped arm does not is this run's finding
-   and is read at the class's own block.
+   `gen-unsafe` carries a `worst` above 1 in all ten populations, from 1.039
+   on `runs` to 3.324 on the main set, and at least one `list` twin does in each
+   --- but they are a baseline variant and the baseline's own controls rather
+   than candidate fills; `lib-stage1`, the shipped library route, is not,
+   and it reads a `worst` of **1.335** on `runs`, at `runs-2`, so on that shape
+   the route is slower than the baseline it replaces. The property is stated
+   of the fix and the fix holds; that a library-shaped arm does not
+   is this run's finding and is read at the class's own block.
 
 2. **The top of the table keeps its order**: `mut-odo-vecdims` fastest,
    `bq-expand` behind it. **The first clause breaks in all nine populations
@@ -2301,8 +2310,8 @@ than by the factor it clears by elsewhere; a family member again, so the first
 clause holds. The best outside the family is `canon-vecdims` at 0.030, against
 `canon-full` at 0.031 in Run 20. The floor is `gen-unsafe-aa-adjacent`'s 3.30%,
 against Run 20's 3.01%, so this class holds the run's tightest floor
-for a second run and moved a tenth of a point doing it, while the run's floors
-as a whole roughly doubled.
+for a second run and moved three tenths of a point doing it, while the run's
+floors as a whole roughly doubled.
 
 **`runs` --- run length swept from 2 to 65536 with innermost stride 1
 throughout: regime 2, which the library reaches by a route of its own,
@@ -2545,8 +2554,9 @@ these halves carries almost none of its own. **The fourth arm of the control,
 added at Run 20, reads it again**: `canon-full-nosum`, whose write pattern
 varies by shape where the three standing ones are element-wise fills, reads
 1.0204 and 1.0198 of `sum-only` against the others' 1.0043 to 1.0768
-on the basis and 1.0256 to 1.0677 on the control --- so it sits inside their
-span on both halves rather than apart from it, as it did on Run 20. The hole
+on the basis and 1.0256 to 1.0677 on the control --- so on the basis it sits
+inside their span, as it did on both of Run 20's halves, while on the control
+it sits just BELOW all three rather than apart from them the other way. The hole
 the sum-only section names --- a fill whose write pattern leaves the cache
 in a quite different state being summed at a cost `sum-only` misses ---
 is therefore not open on the one arm built to look for it, on two runs.
