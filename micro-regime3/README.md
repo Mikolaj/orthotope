@@ -292,14 +292,13 @@ and Run 21 read it: the plan's *every population keeps the vecdims family
 at its head* survives, `mut-odo-vecdims` and its siblings heading every
 population, but the plan's own driver does not, `lib-stage2` reading 2.4 to 4.5
 times `lib-stage1` wherever canonicalization does not collapse the view. They
-are new functions, so Run 20 was the stronger pinning test the rider
-under [Recommended tasks](#recommended-tasks-after-run-21) wanted,
-**and the claim did not survive it**: no tracked loop kept its address,
-so the claim covers additions that cost nothing to place and nothing wider.
-`reshape1` did go degenerate for the canonicalizing arms, whose cells there
-price dispatch rather than filling, and the class took the non-collapsing
-sibling it wanted --- `reshape1-strided-r3`, `reshape1-r3`'s shape made strided,
-now the only cell in the class that prices the fill.
+are new functions, so Run 20 was the stronger pinning test [the floor
+section][floor] wanted, **and the claim did not survive it**: no tracked loop
+kept its address, so the claim covers additions that cost nothing to place
+and nothing wider. `reshape1` did go degenerate for the canonicalizing arms,
+whose cells there price dispatch rather than filling, and the class took
+the non-collapsing sibling it wanted --- `reshape1-strided-r3`, `reshape1-r3`'s
+shape made strided, now the only cell in the class that prices the fill.
 
 **Weighed and dropped within the proposal, so they are not re-proposed
 with it:** tiling for the page-aliased stride (10% on one probe shape whose own
@@ -1195,36 +1194,40 @@ rather than a slot in the next run, observed again:
   geomeans of 1.0506 and 1.0777 at 3 and 2 wins of 24. The k3-conv tie half
   **held on the basis alone** (1.0088, 1.0134, 0.9903) and not on HEAD (1.1078,
   1.1113, 1.1158). The registration said a tie everywhere would oblige a `-g3`
-  dump of the new arm before anything else; a loss of this size obliges it more,
-  so **that dump is owed**. (4) *Stage two on every class.* **KILLED ---
-  this is the registered regression the benchmark was built to catch,
-  and it fired.** No class was to read the branch behind stage one past
-  its floor. Six do, by factors: `rev` 4.0152, `revsome` 4.5377, `slice` 4.0984,
-  `scaled` 4.0765, `window` 3.7237 and the main set 2.4323, each reproducing
-  on HEAD within a tenth. The predicted ties on `rev`, `revsome`, `slice`,
-  `scaled` and `window` are all refuted; `bcast` was predicted ahead at 0.92
-  and reads 1.2496; `bcastmid` was predicted ahead at 0.55 and reads 0.8648,
-  ahead but by a quarter of what was registered; `reshape1` degenerate for stage
-  two **HELD**, and its one non-degenerate cell, `reshape1-strided-r3`, reads
-  the same regression at 3.66. On allocation, `lib-stage2-concat` alone above
-  stage one on `runs` **HELD** (15.99x against 14.49x at `runs-2`), while
-  *`lib-stage2` at `lib-stage1`'s level on every population* is **refuted
-  in stage two's favour**: it reads 1.00x flat where stage one runs to 14.49x,
-  stage one's concat route being what allocates. (5) *The list consumer.*
-  **REFUTED in both halves and in the opposite direction to the one
-  registered.** `liblist-stage2` against `liblist-stage1` was predicted a tie
-  in time on every regime-3 population and behind at `runs-2`, `-3` and `-9`;
-  it reads **2.3811** on the main set, 3.1627 on `rev` and 1.1896 on `bcast` ---
-  far behind, not tied --- and on `runs` it is **ahead at every length**,
-  0.8278, 0.7971, 0.6237, 0.7468, 0.9487, 1.0008 and 0.9581. In allocation
-  it was predicted above stage one on `runs` by an `Int` per run;
-  it is **below** it, 10.99x against 14.49x at `runs-2` and 3.22x against 4.00x
-  at `runs-9`. **What the set is worth despite that**: every one of the five
-  was decidable, none came back a null, and the four refutations locate the same
-  object from four directions --- `fillStage2` is the branch's cost
-  and canonicalization is its benefit, with the boundary between them measurable
-  in run length. The horde-ad regression the registrations were aimed
-  at is therefore not the table an `Int` per run buys; it is the driver.
+  dump of the new arm before anything else; a loss of this size obliged it more,
+  and **the dump was taken 2026-08-29 and refutes the reasoning rather
+  than the arm's placement** --- the count-down form is a value heavier
+  in the run loop, `oEnd` doubling as the next run's `op` where a falling count
+  does not --- [the ceiling][ceiling]'s fifth reading. (4) *Stage two on every
+  class.* **KILLED --- this is the registered regression the benchmark was built
+  to catch, and it fired.** No class was to read the branch behind stage one
+  past its floor. Six do, by factors: `rev` 4.0152, `revsome` 4.5377, `slice`
+  4.0984, `scaled` 4.0765, `window` 3.7237 and the main set 2.4323, each
+  reproducing on HEAD within a tenth. The predicted ties on `rev`, `revsome`,
+  `slice`, `scaled` and `window` are all refuted; `bcast` was predicted ahead
+  at 0.92 and reads 1.2496; `bcastmid` was predicted ahead at 0.55 and reads
+  0.8648, ahead but by a quarter of what was registered; `reshape1` degenerate
+  for stage two **HELD**, and its one non-degenerate cell,
+  `reshape1-strided-r3`, reads the same regression at 3.66. On allocation,
+  `lib-stage2-concat` alone above stage one on `runs` **HELD** (15.99x against
+  14.49x at `runs-2`), while *`lib-stage2` at `lib-stage1`'s level on every
+  population* is **refuted in stage two's favour**: it reads 1.00x flat where
+  stage one runs to 14.49x, stage one's concat route being what allocates. (5)
+  *The list consumer.* **REFUTED in both halves and in the opposite direction
+  to the one registered.** `liblist-stage2` against `liblist-stage1`
+  was predicted a tie in time on every regime-3 population and behind
+  at `runs-2`, `-3` and `-9`; it reads **2.3811** on the main set, 3.1627
+  on `rev` and 1.1896 on `bcast` --- far behind, not tied --- and on `runs`
+  it is **ahead at every length**, 0.8278, 0.7971, 0.6237, 0.7468, 0.9487,
+  1.0008 and 0.9581. In allocation it was predicted above stage one on `runs`
+  by an `Int` per run; it is **below** it, 10.99x against 14.49x at `runs-2`
+  and 3.22x against 4.00x at `runs-9`. **What the set is worth despite that**:
+  every one of the five was decidable, none came back a null, and the four
+  refutations locate the same object from four directions --- `fillStage2`
+  is the branch's cost and canonicalization is its benefit, with the boundary
+  between them measurable in run length. The horde-ad regression
+  the registrations were aimed at is therefore not the table an `Int` per run
+  buys; it is the driver.
 
 - `OPEN` **What is the 3% that survives alignment on `build`/`mut-odo`?**
   With both copies of one worker at offset 0 the pair still reads 0.9685
@@ -1415,8 +1418,8 @@ rather than a slot in the next run, observed again:
   0.9391 to 0.9517 plain over `-g3`, four to six times the floor and one
   direction. **And no weaker level is a way round it** --- `-g1` is the weakest
   GHC has and changes the emitted code exactly as `-g3` does, which is what
-  horde-ad's `docs/ghc-issue-debug-changes-codegen.md` reports as [GHC work item
-  27687](https://gitlab.haskell.org/ghc/ghc/-/work_items/27687). The gate's
+  horde-ad's `docs/ghc-issue-debug-changes-codegen.md` reports as GHC
+  [#27687](https://gitlab.haskell.org/ghc/ghc/-/work_items/27687). The gate's
   figures and the copy census that bounds the naming are in [the floor
   section][floor].
 - `OPEN` **A recurring transient that lands on the `bq-expand` family, worth 35
@@ -1602,10 +1605,10 @@ rather than a slot in the next run, observed again:
 
   **The block-pool issue this project filed is the nearest precedent,
   and its methods are the ones to reach for next** ---
-  `docs/ghc-issue-block-pool-fragmentation.md` in horde-ad, filed as [GHC work
-  item 27601](https://gitlab.haskell.org/ghc/ghc/-/work_items/27601),
-  with the full analysis in `docs/position-effect.md`. **The bug itself
-  is probably not this**: its symptom is a pool that doubles and stays doubled,
+  `docs/ghc-issue-block-pool-fragmentation.md` in horde-ad, filed as GHC
+  [#27601](https://gitlab.haskell.org/ghc/ghc/-/work_items/27601), with the full
+  analysis in `docs/position-effect.md`. **The bug itself is probably
+  not this**: its symptom is a pool that doubles and stays doubled,
   and `max_mem_in_use` across the four main-set processes of Runs 10 and 11 sits
   at 218 to 220 MiB with the *wild* process the smallest of them; nor does any
   of the 24 main-set shapes allocate in the worst-case band just above
@@ -2064,7 +2067,7 @@ rather than a slot in the next run, observed again:
   the ladder is flat at `-A4m`, and the victim's added cost is mutator LLC
   misses at flat instructions and dTLB, the counter signature that has held
   through everything since. **It is not the pinned-spray pool condition of GHC
-  work item 27601**, by controls and by a conceptual objection that stands,
+  #27601**, by controls and by a conceptual objection that stands,
   and everything reproduces on GHC HEAD where that issue is itself unfixed.
   The account is in [the floor section][floor]; the measurements, their tables
   and the recipes to re-take them
@@ -2398,23 +2401,23 @@ rather than a slot in the next run, observed again:
   elsewhere is a lottery the next source change re-rolls, no claim rests
   on `bq-expand-zf`, whose series closed at Run 13, and raising the shim's skip
   budget would be a regime change that confounds the compiler. **And it
-  is a weak answer to the pinning claim rather than the strong one [the rider
-  asks for][open]**: all six tracked copies moved by 3200 bytes, a whole
-  multiple of 64, so nothing forced the shim to re-pin anything. **And the fills
-  half of it is already answered and answers nothing**: `sat-probe` read
-  `[0, 24, 0, 4]` and `[0, 0]`, Run 17's exactly, so that clause is measured
-  rather than predicted --- and Run 17's twelve arms moved while its own two
-  halves' fills were identical, which is why a fill match is not evidence
-  the arms held still; (2) *the compiler*, the registered orderings holding
-  on 9.14.1, killed by a BROKE that clears that half's floor --- a margin moving
-  is the finding and not a break, as claim 4's history says --- with claim 7's
-  allocation levels read per compiler, a compiler being able to change
-  allocation where a slot cannot. **Which orderings, read off `--claims`
-  and not off this sentence, which was written before Run 17 ran and said
-  thirteen**: Run 17 broke two of that thirteen --- claim 4's second half, now
-  twice running, and claim 9's first --- and *restated* claim 4, so what Run 18
-  inherits is an ordering where the manifest had a tie. Re-read the count
-  and the content out of the manifest before the evening; (3)
+  is a weak answer to the pinning claim rather than the strong one [the floor
+  section asks for][floor]**: all six tracked copies moved by 3200 bytes,
+  a whole multiple of 64, so nothing forced the shim to re-pin anything.
+  **And the fills half of it is already answered and answers nothing**:
+  `sat-probe` read `[0, 24, 0, 4]` and `[0, 0]`, Run 17's exactly,
+  so that clause is measured rather than predicted --- and Run 17's twelve arms
+  moved while its own two halves' fills were identical, which is why a fill
+  match is not evidence the arms held still; (2) *the compiler*, the registered
+  orderings holding on 9.14.1, killed by a BROKE that clears that half's floor
+  --- a margin moving is the finding and not a break, as claim 4's history says
+  --- with claim 7's allocation levels read per compiler, a compiler being able
+  to change allocation where a slot cannot. **Which orderings, read off
+  `--claims` and not off this sentence, which was written before Run 17 ran
+  and said thirteen**: Run 17 broke two of that thirteen --- claim 4's second
+  half, now twice running, and claim 9's first --- and *restated* claim 4,
+  so what Run 18 inherits is an ordering where the manifest had a tie. Re-read
+  the count and the content out of the manifest before the evening; (3)
   *the decomposition*, every shape's `list` alone leg twice on the basis, `SAT=`
   off and on through `run-alonelegs.sh`, against its roster cell: the state
   is saturated minus clean and the rest is roster minus saturated. The dry run
@@ -2815,8 +2818,15 @@ and min of and threw away. The standing rule earned its place twice over here
 --- a hand-rolled aggregate is not merely inconvenient, it is how one session's
 correct figure gets called wrong by the next.
 
-**And two items left this subsection, which is what a heading naming the current
-run obliges.** *What tightened the floor on Run 18* was answered by Run 19
+**And three items left this subsection, which is what a heading naming
+the current run obliges.** *The `-down` spill reading inverted and a `-g3` dump
+was owed on it* was taken 2026-08-29, off Run 21's own twins and the STG of one
+of them, and its account is [the ceiling][ceiling]'s fifth reading: registration
+3 predicted `-u2-down` ahead of `-u2` because the count replaces `oEnd` one
+for one, and inside the fill it does --- twelve values live either way at both
+copies --- but `oEnd` is also the next run's `op`, which a count is not,
+so the run loop keeps two values more and the arm is a register poorer rather
+than richer. *What tightened the floor on Run 18* was answered by Run 19
 and its account is [the floor section][floor], which carries the 1.7x one binary
 read against itself and now Run 21's second demonstration of the same thing
 with the sign reversed; its one live remainder --- whether the spread
@@ -2972,13 +2982,20 @@ limit belongs in the sentence that asks for the measurement.
    instructions than stage one, 0.844 and 0.408 --- the block-copy and splat
    paths earning their place --- while still reading 1.481 and 2.118 on time
    over instructions, which is why `bcast` loses in time on an arm that emits
-   less code. **What is left to settle** is only the second term
-   and the mechanism of the first: a `-g3` dump of the two fills over one
-   regime-3 shape, minutes and no quiet machine, available while the binaries
-   live. No mechanism is proposed here --- fewer instructions per cycle
-   is consistent with several, and this file does not guess between them. Until
-   then the branch should not replace the shipped fill on regime-3 views,
-   whatever it does elsewhere.
+   less code. **The mechanism of the first term is TAKEN, 2026-08-29,
+   and the remainder is the second term alone.** [The ceiling][ceiling]'s
+   seventh reading has the dump: the branch's fill re-scrutinises the boxed
+   source vector every iteration where the shipped one reads through an unboxed
+   `Addr#`, spending fifty instructions and twenty-three stack accesses per two
+   elements against eighteen and four, which is the 2.78 the counter read
+   as 2.776. **What is left to settle** is why it also retires fewer
+   instructions per cycle, and that wants a counter reading of stalls
+   and mispredicts rather than another dump --- the frame's store-to-load chains
+   and its indirect branch are candidates the dump found present, not causes
+   it measured. Until then the branch should not replace the shipped fill
+   on regime-3 views, whatever it does elsewhere, and `a29748b`'s `INLINE`
+   pragmas do not lift that: they emit byte-identical code, having fired all
+   along.
 2. `OPEN` **The run-length condition, which the `runs` class measured rather
    than assumed.** Stage two's fill is flat in run length at 0.114 to 0.158
    of `list`; stage one's slice-per-run concatenation runs 1.3346, 0.9672,
@@ -2993,21 +3010,23 @@ limit belongs in the sentence that asks for the measurement.
    on `runs` against all three, which is one Main.hs arm and one evening's slot
    on the existing class. `canon-memcpy-r2` against `canon-vecdims` crosses one
    step earlier, between 3 and 9, so the threshold is worth reading per route
-   rather than assumed shared.
-3. `OPEN` **The `-down` spill reading inverted, and a `-g3` dump is owed
-   on it.** Registration 3 predicted `mut-odo-vecdims-add-in-leaf-u2-down` ahead
-   of `-u2` on the long-run shapes by up to 15 to 18%, on the reasoning that one
-   fewer live value keeps the base pointers in registers. It is behind by about
-   that much instead --- 1.1590 on `stretch-wide-2xM`, 1.0760 on `-inner256`,
-   1.1369 on `-tab7MB` on the basis and 1.1743, 1.0912, 1.1550 on HEAD --- while
-   the plain `-down` variant beats `-u2` on both halves (0.9440 and 0.9327).
-   So the count-down form helps and the unrolled count-down form hurts, which
-   is the composition failing rather than either part. The registration named
-   the dump as owed on a tie; a loss of this size obliges it more. **What would
-   settle it**: `-g3` Core and the emitted loop for `-u2-down` against `-u2`
-   and against `-down`, on one long-run shape --- a compile and an objdump,
-   no quiet machine.
-4. `OPEN` **Is the spread of the pairs outside the restricted six criterion's
+   rather than assumed shared. A second crossover wants that same evening
+   and that same class: `-u2` against `-down` on a build where neither spills,
+   which [the ceiling][ceiling] prices at half an instruction an element against
+   five memory accesses a run. **What the two together cost, the second having
+   been added without saying**: TWO quiet processes and not one, about half
+   an hour each, plus an `-fllvm` binary --- minutes, no quiet machine,
+   and `check` owed on it before a figure is read. The dispatch arm is the only
+   new code; `-u2` against `-down` needs none, both being timed on every class
+   view already. **And the halves are not equally cheap to believe.**
+   The dispatch question moves by the factors above and one process settles it,
+   where the other is a single-digit percent at the long end, judged against
+   the `runs` floor of whichever run takes it, so a wide floor there costs
+   that process twice. A second compiler doubles the whole and is owed
+   by the threshold, which a compiler can move, rather than by the allocator
+   reading --- whose figures stay a diagnostic whatever they say, `-fllvm` being
+   a regime this README will not publish from.
+3. `OPEN` **Is the spread of the pairs outside the restricted six criterion's
    sampling, or something per-process on top of it?** Carried here from the Run
    18 floor item, whose other half is answered. Across four runs the six-pair
    figure has read 0.54%, 0.49%, 0.44% and 0.46% on the basis while
@@ -3023,30 +3042,6 @@ limit belongs in the sentence that asks for the measurement.
    evening, which needs no pair and no second recipe, and which separates
    per-process variation from sampling inside a bench directly. It
    is the cheapest unspent measurement this file has.
-
-**One rider, and it now lives at the step that fires it rather than here** ---
-moved 2026-08-26 into build step 3b of the run list, which already transcribes
-the fills into the pair note, so the reading is asked for where the arms land
-instead of depending on a run-scoped heading being carried forward. What stays
-here is the outcome, and it goes to the floor section with the layout term when
-this heading is emptied. The pinning claim --- that a shim'd build holds every
-tracked loop at one address across a roster change --- was measured only
-in its weak form until 2026-08-26: adding `mut-flat-gm-nosum` left every tracked
-loop where it was, but a `Force` arm reuses a rostered function and emits
-no code of its own, so emission order had nothing to move. **The strong form
-was taken at Run 20's build and the claim does not survive it.** `run19-g912`
-and `run20-g912` are one recipe, one shim, one compiler and one dependency store
-apart --- their package ABI strings are identical --- by a roster change
-bringing nine new timed arms, and no tracked loop is where it was: the four-copy
-group at `[0, 24, 0, 4]` becomes a six-copy group at `[0, 0, 24, 0, 0, 24]`,
-every address moved and none of them by a constant. So the claim covers
-additions that cost nothing to place and nothing wider, and a reading carried
-across a roster change carries the layout term Run 10 priced at 12 to 14%
-on the two arms whose loop the shim rescues. **Every roster addition that brings
-a new function is another reading of it** --- the fills on one build either
-side, before anything else changes --- which costs nothing at the moment
-the arms land and cannot be taken afterwards, and step 3b is where that is now
-asked for.
 
 **And one class not to repropose: work that needs an aligned build.**
 `mut-odo`'s wide interval is the live case. The dispersion is documented
@@ -4468,21 +4463,186 @@ element against seven, or six once the redundant `test` after `dec` goes,
 with half the branches; nothing in Run 20 argues for `-down` under an allocator
 that behaves, and what would refute that is a `-down` lead surviving on a build
 where `-u2`'s `run`-level loop reads twelve. The trigger is the live-value class
-of horde-ad's `docs/ghc-issue-loop-invariant-reloads.md`, the mechanism a stack
-spill of the allocator's choosing rather than a closure reload. Two arms follow
-and one does not: `mut-odo-vecdims-add-in-leaf-u2-down`, the same fill
-with its bound a falling count instead of the `oEnd` cursor --- one value
-lighter, rostered `Only` on 2026-08-27 by decision until a run has a slot
-for it; a `Ptr`-walking fill under `unsafeWith`, bases folded into the cursors
-so there is nothing to spill, Storable-specific and so an instance override
-rather than the generic driver, not yet written; and NOT a per-call cross-over
-on `sInner`, which would dispatch around a codegen accident and be dead code
-once the allocator is fixed. One instrument note: the counts files read about
-seventeen instructions per element for every arm on the four `l` = 1.8M main-set
-shapes, `mut-odo-vecdims` and `-down` both 17.00 on `stretch-tall-Mx2`, which
-the loops above cannot produce and `stretch-wide-2xM`'s 41.00 against 22.50
-contradicts, so nothing here rests on the counts and that column is owed
-a reading before the next run leans on it.
+of GHC [#27737](https://gitlab.haskell.org/ghc/ghc/-/work_items/27737), whose
+record is horde-ad's `docs/ghc-issue-loop-invariant-reloads.md`, the mechanism
+a stack spill of the allocator's choosing rather than a closure reload. Two arms
+were to follow and neither will: `mut-odo-vecdims-add-in-leaf-u2-down`, the same
+fill with its bound a falling count instead of the `oEnd` cursor --- a value
+lighter as the source reads and, the fifth reading below says, a value heavier
+where it runs, timed at Run 21 and refuted; a `Ptr`-walking fill
+under `unsafeWith`, bases folded into the cursors so there is nothing to spill,
+Storable-specific and so an instance override rather than the generic driver ---
+refused 2026-08-29 as below the level this library is written at, the sixth
+reading having measured that it would work ([dead ideas][dead]); and
+NOT a per-call cross-over on `sInner`, which would dispatch around a codegen
+accident and be dead code once the allocator is fixed. One instrument note:
+the counts files read about seventeen instructions per element for every arm
+on the four `l` = 1.8M main-set shapes, `mut-odo-vecdims` and `-down` both 17.00
+on `stretch-tall-Mx2`, which the loops above cannot produce
+and `stretch-wide-2xM`'s 41.00 against 22.50 contradicts, so nothing here rests
+on the counts and that column is owed a reading before the next run leans on it.
+
+**A fifth reading, 2026-08-29, is the dump registration 3 owed, and it kills
+`-u2-down` in the STG before the assembly is reached: the count-down form
+is a value HEAVIER across the loop that runs, which is the registration inverted
+at its premise.** (Run 21's own twins `probe-g3-g912-r21`
+and `probe-g3-ghead-r21`, with `-ddump-stg-final` added to the g912 recipe
+for the source half; each fill is located by the arm's own `Main.hs` lines
+through the DWARF line table rather than by a symbol, so no correspondence has
+to be established.) Both arms carry the fill twice, as the fourth reading
+describes, and inside the fill the exchange is the wash the registration
+expected: `-u2`'s `$winner` is arity 3 with 9 free variables, `-u2-down`'s arity
+4 with 8, the same twelve either way at both copies, state token included ---
+`oEnd` leaves the free-variable set and the count `d` enters the argument list.
+**The value that decides sits one level up, in the run loop,
+and the registration counted the wrong one.** `-u2`'s bound
+is `oEnd = op + sInner`, computed once at run entry and serving twice: it bounds
+the fill AND it is the next run's `op`, so `op` dies at run entry and `$wrun`'s
+continuation carries four free variables, hands `oEnd` straight back
+(`MkSolo# [oEnd]`) and compiles to a move (`mov %r10,%rsi` on 9.12,
+`mov %rdx,%rsi` on HEAD). A falling count bounds the fill and nothing else,
+so `-u2-down` must hold `op` and `sInner` live across the fill and add them
+at run end: **six** free variables in the same continuation, `+# [op sInner]`
+where `-u2` has the bound already, and `add %r9,%rsi` where `-u2` has the move.
+So the count-down form spends a register the up form does not, and it
+is the live-value class of GHC
+[#27737](https://gitlab.haskell.org/ghc/ghc/-/work_items/27737) again, one level
+up from where the fourth reading met it. **The rank-1 copies come out identical
+and the fused copies do not**, which is why the loss lands on exactly the shapes
+that run the fused one. Rank-1, both compilers, both arms: twelve instructions
+per two elements and no stack traffic. Fused on 9.12.4: `-u2` sixteen
+instructions and two padding NOPs per two elements over four stack accesses,
+`-u2-down` eighteen instructions and no padding over **six**, spilling both
+bases where `-u2` spills one and running two store-to-load chains an iteration
+where `-u2` runs one. Fused on HEAD: `-u2` sixteen over four stack LOADS
+and no store at all, `-u2-down` seventeen over five, the output base spilled
+and restored inside the loop, with five NOPs besides. So 9.12 issues the same
+count from both arms and loses on memory traffic alone while HEAD loses on both,
+which is the sign the run measured on either half. `-add-in-leaf-down` reads
+as it did, eight instructions per element with one reload. **So no change
+to `Data/Array/Internal.hs`**: the shipped `-u2` fill is the better of the two
+wherever the fused level runs, and what would take the spill out of both
+is the `Ptr`-walking fill above --- refused ([dead ideas][dead]) ---
+and not another loop bound. Whether a refuted arm stays timed is the roster's
+question and not this reading's.
+
+**A sixth reading, 2026-08-29, answers what the fifth leaves open --- whether
+the fused loop CAN be allocated without spilling --- and it can.**
+(`probe-llvm-g912`, the g912 recipe with `-fllvm` for the shim, `-fforce-recomp`
+into a fresh builddir as the recompilation trap demands; a codegen reading
+and not a stopwatch, `-fllvm` being a regime this README refuses. It carries
+neither `.debug_line` nor per-worker symbols, so the fills are matched by GHC's
+own uniques, `Q49H`, `Q3Yz` and `Q4kO` naming the same three bindings in both
+builds.) Innermost fills, per two elements: `-u2` **thirteen instructions
+over no stack access at all** against the NCG's sixteen and two NOPs over four,
+`-u2-down` **fourteen over none** against eighteen over six, and `-down` seven
+per element over none against eight over one. The run-level values are paid
+for once per run instead, five stack accesses in `-u2`'s outer loop and six
+in `-u2-down`'s, which is exactly the placement the NCG inverts. **What fits
+it is not a smaller live set but a better-placed spill, and the count says
+so against the first reading of this**: BOTH loops want more than the eleven
+registers there are, so both spill. LLVM sends four run-level values
+to the stack and reloads them once per RUN; the NCG sends `base_in` there, read
+twice per ELEMENT, keeps `boff`, `st`, `k` and `sInner` --- read not at all
+inside the fill --- in registers, and then borrows one of them back per
+iteration anyway. LLVM's inner loop in fact holds MORE live values
+than the NCG's, nine registers with five more surviving across it against
+the NCG's twelve wanted for eleven. It does also strength-reduce the indexing
+to pointer walking, `movsd (%r14),%xmm0` with `add %r13,%r14` where the NCG
+keeps `movsd (%r14,%r11,8),%xmm0` and a separate index --- LSR's work,
+and no multiply is saved by it, x86's scaled-index mode being free --- but what
+that changes in the live count is not isolated here and the placement alone
+accounts for the traffic. So what would close this is a spill cost that scales
+with loop depth, a report's lever and not this file's --- **and whether GHC's
+allocator lacks that weighting or merely loses it at the back edge is now read
+rather than left open** (`GHC.CmmToAsm.Reg.Linear`, in the checkout
+at `d415f38a75` that builds the HEAD half): it lacks it, and lacks every other.
+`allocRegsAndSpill_spill` builds its eviction candidates with `nonDetUFMToList`
+over the assignment map and takes the HEAD of that list --- no next-use
+distance, no use count, no loop depth --- keeping one structural preference
+only, that a temp already in both a register and its slot goes before one only
+in a register, evicting it costing no store. **The module's own algorithm note
+carries the gap as its own ToDo**, *Find a temporary to spill. Pick one
+that is not used in this instruction (ToDo: not used for a while...)*, so what
+is missing is not merely loop depth but next use as well; and the victim
+following the order the values are introduced in, which GHC
+[#27742](https://gitlab.haskell.org/ghc/ghc/-/work_items/27742) reads
+from outside, is that map's traversal order showing through. The graph allocator
+has the slot and does not fill it either --- `GHC.CmmToAsm.Reg.Graph.SpillCost`
+writes Chaitin's cost with a frequency term and then says *There are no loops
+in our code at the moment, so we can set the freq's to 1* --- and it is disabled
+regardless (GHC #7679). **The allocator IS loop-aware in one place, and
+it is not this one**: `findPrefRealReg` prefers the register a vreg was first
+assigned to, for the stated reason that a loop's variables then land in the same
+registers at its head and its tail. And the restore an iteration is a block
+boundary's rather than the fill's --- it sits at the end of the body block,
+before a label another edge also targets, reloading a value that block never
+reads, which is the assignment reconciliation
+`GHC.CmmToAsm.Reg.Linear.JoinToTargets` opens by describing. The `Ptr`-walking
+fill above would have sidestepped the question rather than answered it ([dead
+ideas][dead]). **What it does not do is rescue `-u2-down`**, fourteen against
+thirteen with both arms spill-free: the count-down form maintains a counter
+AND the output cursor where the up form maintains the cursor and tests
+it against an invariant, so it is one instruction heavier per two elements
+under an allocator that behaves, and the run's 16% is that deficit amplified.
+
+**What the same numbers say about `-u2` against `-down` --- arithmetic
+over the sixth reading and not a further measurement, so it predicts rather
+than reports.** Spill-free the two differ in two places and in opposite
+directions: the fused fill costs `-u2` **6.5 instructions an element** against
+`-down`'s **7.0**, while the run loop above it costs `-u2` **five stack accesses
+a run** where `-down`'s costs none. LLVM gets all three of `-down`'s loops
+to no stack traffic at all and all of `-u2`'s but the run loop, which
+is a register demand no allocator can be asked out of --- the unrolled body
+wants more than the machine has, and a perfect one cannot make registers.
+So half an instruction an element is bought with about five memory operations
+a run, **which makes the ordering a run-length question and not a settled one**,
+neither arm being better for every input. **Two things follow before anyone
+reads the NCG figures as the answer.** The `-down` lead of 0.82 to 0.87
+on the long-run shapes is the spill, whose cost is per element, so removing
+it is predicted to REVERSE that ordering, which no run has tested. And where
+the strided load rather than the issue rate decides, both arms fetch the same
+two loads and two stores per two elements and neither figure need appear at all
+--- the scope condition the pad probe established for the alignment effect, met
+again here. **What would settle it**: the two arms timed against each other
+inside one spill-free binary over the `runs` class, which already sweeps run
+length from 2 to 65536. That is an arm-against-arm ratio in one process,
+so it READS such a build rather than adopting it as a regime, and it wants
+the same evening as the crossover [task 2][open] asks for.
+
+**A seventh reading, 2026-08-29, is the dump [task 1][open] asked for,
+and the first term is a BOXING failure and not an inlining one.** `fillStage2`'s
+fill re-scrutinises the source vector on every iteration --- its STG reads
+`case v of Vector _ bx1 bx2 -> readDoubleOffAddr# [bx1 ...]` INSIDE the loop,
+where the shipped fill reads through an unboxed `Addr#` it holds as a free
+variable and scrutinises nothing. So per two elements the branch's fill pushes
+an eighty-eight-byte continuation frame and writes TEN live values into it,
+tag-tests that boxed vector and enters it if untagged, unpacks two
+of its fields, pops the frame and reloads all ten, and only then does the four
+`movsd` the elements need. **Fifty instructions and twenty-three stack accesses
+per two elements, against the shipped fill's eighteen and four.** Three such
+bodies sit in the function, at frame sizes 0x58, 0x60 and 0x68, so all three
+of its run sites carry one. **The counter and the dump agree without being
+fitted to each other**: 50 over 18 is 2.78 where the counted work read **2.776**
+on `rev`, which is what says the fill and not something around it is the term.
+**The second term is not settled by this and the dump does not guess at it** ---
+what it does supply is candidates that are present rather than hypothesised,
+twenty-three stack touches an iteration with a store-to-load chain across
+the frame on each of the ten saved values, and an indirect branch per two
+elements. Whether those account for the measured 1.16 to 1.67 of time
+over instructions wants a counter reading of stalls and mispredicts, not another
+dump. **And the repair already committed for this could not have worked,
+the pragmas having fired all along**: `a29748b` of 2026-08-29 marks
+`writeRunStep` and `writeRunSet` `INLINE`, and those two and `runsWith`
+are absent from Core and from STG alike, which is what an inlined helper looks
+like; a twin rebuilt from that source with the same recipe emits `fillStage2`
+BYTE-IDENTICAL to the pre-fix twin's --- different binaries by md5, their line
+tables shifted by the pragmas' own one and two lines, so the build read
+the change and the code did not move. **What would lift it is getting the vector
+unboxed out of the fill, and no further pragma of that kind can**, which
+is worth knowing before anyone spends a second attempt on one. The 2.4 to 4.5
+stands as measured and the arm is not mended, so [task 1][open]'s hold
+on the branch stands with it.
 
 ### The C-gap: still a deeper ceiling
 
@@ -4505,8 +4665,24 @@ This is discussed further in the horde-ad repo.
 
 ### Dead ideas
 
-Ideas that **died on paper**, recorded so they are not re-proposed:
+Ideas that **died on paper**, recorded so they are not re-proposed --- and,
+first, the one that did not die on paper at all:
 
+- **A `Ptr`-walking fill under `unsafeWith`**, bases folded into the cursors
+  so there is nothing to spill --- **it would work, and it will not be done.**
+  What it would buy is measured rather than argued: LLVM performs exactly
+  this transformation on the same source, and [the ceiling][ceiling]'s sixth
+  reading reads every fill out of that build with no stack access at all,
+  thirteen instructions per two elements where the native backend spends sixteen
+  and two NOPs over four. **RULED OUT 2026-08-29 all the same, and not
+  on a measurement**: raw pointer arithmetic under `unsafeWith` is below
+  the level orthotope's fallback is written at, and buying a code generator's
+  defect back with a Storable-only instance override is not a trade this library
+  makes. So the spill stands until GHC's linear allocator weighs an eviction
+  by anything at all, which is a report's lever and not this file's,
+  and no future reading of what the fill would buy reopens it --- the refusal
+  is about where the code belongs, so a larger figure argues for the report
+  and not for the fill.
 - **Delta-compressing an offset table** (storing Int8/Int16 steps, mostly
   the constant `tInner`, instead of absolute offsets) fails `vGenerate`'s
   contract: the callback is random-access, and recovering an absolute offset
@@ -8115,10 +8291,10 @@ size class.** Run 14's probes found it (2026-08-15/16): `vgg-14-c512-k3/list`
 read 14.1 ms with nothing before it and 22.3 ms after certain shapes, the same
 ladder was flat at `-A4m`, and the victim's added cost was mutator LLC misses
 at flat instructions and dTLB --- the counter signature that has held through
-everything since. **It is not the pinned-spray pool condition of GHC work item
-27601**, by controls and by a conceptual objection that stands: on one machine
-and one compiler `+RTS -H2G` removes that reproducer's penalty and leaves
-this one whole, `max_mem_in_use_bytes` moves 2.7% here against a doubling there,
+everything since. **It is not the pinned-spray pool condition of GHC #27601**,
+by controls and by a conceptual objection that stands: on one machine and one
+compiler `+RTS -H2G` removes that reproducer's penalty and leaves this one
+whole, `max_mem_in_use_bytes` moves 2.7% here against a doubling there,
 and that issue's mechanism needs rare collections to let block groups accumulate
 where this condition's disturbance is full size at 4 MB and merely unpaid.
 Everything reproduces on GHC HEAD, where that issue is itself unfixed. Run 15
@@ -8653,8 +8829,8 @@ or 32 ending inside its line either way.
 
 **An isolated reproducer prices the same effect at 1.58x, and names what
 it needs to appear** --- horde-ad's `docs/ghc-issue-no-loop-alignment.md`, filed
-as [GHC work item 27668](https://gitlab.haskell.org/ghc/ghc/-/work_items/27668),
-which is where this belongs written up and which cites this benchmark for what
+as GHC [#27668](https://gitlab.haskell.org/ghc/ghc/-/work_items/27668), which
+is where this belongs written up and which cites this benchmark for what
 `-fproc-alignment=64` does in a larger program and what the correction costs
 there. A 23-byte loop stepped through all eight 8-byte positions of a line runs
 0.256 to 0.261 ns an iteration at the six that keep it whole and 0.410
@@ -8830,8 +9006,8 @@ and it changes the emitted code exactly as `-g3` does: one instruction fewer
 and a different register assignment on an eight-line module, the same on GHC
 9.10.3, 9.12.4, 9.14.1 and HEAD, with `-g2` between them behaving alike.
 The reproducer and that table are horde-ad's
-`docs/ghc-issue-debug-changes-codegen.md`, filed as [GHC work item
-27687](https://gitlab.haskell.org/ghc/ghc/-/work_items/27687), which
+`docs/ghc-issue-debug-changes-codegen.md`, filed as GHC
+[#27687](https://gitlab.haskell.org/ghc/ghc/-/work_items/27687), which
 this README's finding produced; what they settle here is that no debug level
 is a cheap way to put names in a binary that will be timed.
 
@@ -8896,8 +9072,8 @@ that toggles a flag must force the rebuild** --- `-fforce-recomp` or a fresh
 they were built in separate trees. The first round of the alignment experiment
 had neither and read its flag as inert. Written up
 as `docs/ghc-issue-recompilation-ignores-codegen-flags.md` in horde-ad, beside
-the block-pool issue and in the same form, and filed from there as [GHC work
-item 27667](https://gitlab.haskell.org/ghc/ghc/-/work_items/27667) --- that file
+the block-pool issue and in the same form, and filed from there as GHC
+[#27667](https://gitlab.haskell.org/ghc/ghc/-/work_items/27667) --- that file
 carries the cause in GHC's own source and the list of settings, and is the copy
 to read.
 
@@ -8921,6 +9097,27 @@ carries its own control, and the control is `list`: it is predicted not to move,
 and if it does then the baseline was carrying layout too, every published ratio
 has been divided by a moving denominator, and that is a larger finding
 than whatever the pairing was run for.
+
+**A shim'd build does not hold its tracked loops at one address across a roster
+change, so a figure read across one carries the layout term as well as drift.**
+The claim was measured only in its weak form until 2026-08-26: adding
+`mut-flat-gm-nosum` left every tracked loop where it was, but a `Force` arm
+reuses a rostered function and emits no code of its own, so emission order had
+nothing to move. **The strong form was taken at Run 20's build and the claim
+does not survive it.** `run19-g912` and `run20-g912` are one recipe, one shim,
+one compiler and one dependency store apart --- their package ABI strings
+are identical --- by a roster change bringing nine new timed arms,
+and no tracked loop is where it was: the four-copy group at `[0, 24, 0, 4]`
+becomes a six-copy group at `[0, 0, 24, 0, 0, 24]`, every address moved and none
+of them by a constant. Run 21's build read it again over a change that both adds
+and removes, six timed arms in and ten names out, and no address survives there
+either --- `[0, 0, 24, 0, 0, 8]`. So the claim covers additions that cost
+nothing to place and nothing wider, and the term Run 10 priced at 12 to 14%
+on the two arms whose loop the shim rescues rides on every figure read across
+a roster change. **Every roster addition that brings a new function is another
+reading of it** --- the fills on one build either side, before anything else
+changes --- which costs nothing at the moment the arms land and cannot be taken
+afterwards; build step 3b of the run list is where it is asked for.
 
 **And the identical-code pair collapsed across all nine populations at once when
 the loops were aligned**, which is the strongest single result the pairing gave.

@@ -646,7 +646,7 @@ is what this file has wanted for three runs and has now been refused three
 times, each roster change putting a layout term into every cross-run figure;
 and Run 21 makes the case sharper than argument, its floor having gone 2.32%,
 1.51%, 2.92% over two roster changes with box, recipe and regime held still.
-It is also the pair that would answer [task 4][open], the cheapest unspent
+It is also the pair that would answer [task 3][open], the cheapest unspent
 measurement here, which wants one binary over the roster several times
 and no second recipe at all. A *fourth compiler reading* buys least,
 the surviving manifest claim having now held on 9.12, 9.14 and HEAD four times.
