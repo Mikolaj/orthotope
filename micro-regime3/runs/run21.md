@@ -77,13 +77,13 @@ HEAD at 0.6466, 0.9066, 0.8670, 0.8810 and a tie at p 0.31: no BROKE on either
 half, a fourth clean sweep running. Claims 2 and 6 retired on 2026-08-28
 with the parking of `offtab` and `gen-quotrem`, the arms their only surviving
 links turned on, so what was thirteen orderings through Run 19 and eight at Run
-20 is five links of one claim here. Claims 7 and 8 stay unmanifested prose
-and are read below. **What the ladder does not see is the same thing Run 20 said
-it does not see, and this run widens it**: claim 1's top rung reads
-`mut-odo-vecdims` against `mut-flat-gm`, and seven arms now read below
-`mut-odo-vecdims`, four of them inside its own family, so the rung understates
-what a mutating method buys. Re-aiming it is a decision and not a reading,
-and it is [under the recommended
+20 is five links of one claim here. Claim 7 stays unmanifested prose and is read
+below; claim 8, prose too, retired on 2026-08-29. **What the ladder does not see
+is the same thing Run 20 said it does not see, and this run widens it**: claim
+1's top rung reads `mut-odo-vecdims` against `mut-flat-gm`, and seven arms now
+read below `mut-odo-vecdims`, four of them inside its own family, so the rung
+understates what a mutating method buys. Re-aiming it is a decision and
+not a reading, and it is [under the recommended
 tasks](../README.md#recommended-tasks-after-run-21).
 
 **What the compiler is worth, arm by arm, stopped being one-sided, and
@@ -1116,22 +1116,6 @@ and never a slot: the levels surviving while a hundred-odd cells move is HEAD
 reallocating within a tier rather than changing what any strategy fundamentally
 costs.
 
-**Claim 8's structural half stands, and the span it was re-aimed onto this year
-is populated.** Every pure arm in the fast tier still runs its output through
-the single in-order `vGenerate` over an `m`-length table, and the arms that fall
-behind lose on their table build: re-aimed on 2026-08-28 off the two parked arms
-it used to name, the span now runs from the leading tier to `offtab-scan-rem`,
-and `bq-expand-gm-mulback` at 0.104 and `bq-expand` at 0.115 lie between
-`bq-scan-rem-gm-mulback`'s 0.099 and `offtab-scan-rem`'s 0.132, as the claim
-says to expect. **What the claim does not describe is the top of the table,
-and this run widens that gap too**: seven arms now read below `mut-odo-vecdims`,
-with two more level, and not one of the nine is a `bq-*` arm, so the structure
-the claim is about governs a tier that starts a third of the way down. The claim
-is still true and its subject has shrunk again. It remains the one claim
-with no named invocation, read off the table by eye --- and the counted-work
-column would tell the same story from instruction counts, which is a route
-the claim could be given whenever someone wants it checked rather than seen.
-
 Restated as the predicates the next run checks, and carrying no reading
 of its own: the figures each was last measured at are in the `Readings:`
 paragraphs above, so an entry here changes when a claim is re-aimed and not when
@@ -1235,12 +1219,17 @@ of these orderings is one `--pair` call away.
    the cross-half cell agreement fell to 1016 of 1080, where the 9.14 pair had
    1072 --- so a compiler can reallocate within a tier without moving any tier,
    and only the cell count sees it.
-8. Every pure arm in the fast tier runs its output through the single in-order
-   `vGenerate` over an `m`-length table, and a `bq-*` arm that falls behind
-   loses on its table build and not on its output. Read the structure and
-   not a threshold: the span is populated, `bq-expand-gm-mulback`
-   and `bq-expand` lying between the leading tier and `offtab-scan-rem`,
-   the slowest pure arm left. Re-aimed 2026-08-28.
+8. **Retired 2026-08-29**, on a decision and one day after its last re-aiming.
+   What it asked: that every pure arm in the fast tier run its output through
+   the single in-order `vGenerate` over an `m`-length table, so a `bq-*` arm
+   falling behind loses on its table build and not on its output. Its last
+   reading is Run 21's, which found it true and its subject smaller again ---
+   nine arms at or below `mut-odo-vecdims` and not one of them a `bq-*`,
+   so the structure it described governed a tier starting a third of the way
+   down. What retires it is that subject: the pure tier is no longer what ships,
+   and a claim quantified over it was being re-aimed and re-read every run
+   to say so. It was also the one claim with no named invocation, read off
+   the table by eye throughout, so nothing mechanical goes with it.
 9. **Retired at Run 19's write-up with 3, 4 and 5**, and for a reason of its own
    worth keeping: its per-shape half was answered rather than abandoned.
    `bq-expand-b`'s two best cells were `stretch-inner1` and `stretch-wide-2xM`
@@ -1292,23 +1281,23 @@ is a gap in this list, not a claim to be checked by hand**: where a session has
 to invent the computation it will invent a wrong one, which is how claim 7 came
 to be read off the raw fitted bytes, explained by a mechanism the previous pair
 refutes, and then "corrected" onto a rounded print. It has `--compare --alloc`
-now. Claim 8 is the one still without one, read off the table by eye.
-**The general form, and it is a standing instruction rather than an observation:
-if a write-up hand-rolls a script to answer something the reader should answer,
-that is a defect report against the reader** --- fix it there, before
-the sentence it was written for, or the next run invents its own wrong version.
-**Two riders, both bought on Run 19.** A new MODE joins the guards its siblings
-already have, and is checked against them rather than written beside them:
-`--counts` shipped able to be given without the `--compare` it reads, silently
-printing the default table and exiting 0 --- the unread-flag family exactly,
-added next to four sibling readings of `--compare` that were every one of them
-already guarded, and joining none. **And an instrument may be BACKED OUT, which
-is not a failure of the write-up but a result of it.** Measure what it flags
-before shipping it: the obvious mechanical repair for stale paragraphs was built
-and returned 100 for the four that mattered, so it went, and the refutation
-with its numbers is under the tasks heading --- worth more than the mode, since
-it stops the next session building the same thing. A report that never empties
-is one nobody reads, which this file already knows about hints.
+now, and no live claim is without one since claim 8 retired. **The general form,
+and it is a standing instruction rather than an observation: if a write-up
+hand-rolls a script to answer something the reader should answer, that
+is a defect report against the reader** --- fix it there, before the sentence
+it was written for, or the next run invents its own wrong version. **Two riders,
+both bought on Run 19.** A new MODE joins the guards its siblings already have,
+and is checked against them rather than written beside them: `--counts` shipped
+able to be given without the `--compare` it reads, silently printing the default
+table and exiting 0 --- the unread-flag family exactly, added next to four
+sibling readings of `--compare` that were every one of them already guarded,
+and joining none. **And an instrument may be BACKED OUT, which is not a failure
+of the write-up but a result of it.** Measure what it flags before shipping it:
+the obvious mechanical repair for stale paragraphs was built and returned 100
+for the four that mattered, so it went, and the refutation with its numbers
+is under the tasks heading --- worth more than the mode, since it stops the next
+session building the same thing. A report that never empties is one nobody
+reads, which this file already knows about hints.
 
 **And for each stride class, the same three properties, now carrying Run 21's
 verdicts** over nine populations rather than eight, the details beside each
@@ -1407,21 +1396,22 @@ arm needing nothing at all, between `bq-mut-runs-gm-mulback`
 and `bq-odo-gm-mulback`: the first ahead of it at **0.9060** and **0.9171**
 on Run 18's two halves, 19 and 17 of 24, which is what a mutable `Int` scratch
 buys; and the second **tied** with it at **0.9902** and **0.9936**, 13 and 12
-of 24 at p 0.84 and 1, so the two fastest pure arms are indistinguishable
-and either is what ships if the mutating method is refused. Its three existing
-links stay, the middle one redundant with the two new ones and carrying seven
-runs of history they do not. **Claim 2 keeps its number and changes
-its question** to where the arms needing something other than the fix sit:
-`offtab`, which needs only that `Int` scratch, behind `bq-scan-rem-gm-mulback`
-at **1.36** and **1.44**; and `bq-expand` behind `mut-odo-vecdims` at **2.09**
-and **2.13**, kept only while `Data/Array/Internal.hs` carried `bq-expand`,
-and to retire with the three `TODO: retarget` markers, which were one decision
-with it. **That condition was spent the same day and the link outlived it by two
-runs**: the file went to `vFillStrided` on 2026-08-24 and the markers went
+of 24 at p 0.84 and 1, so the two fastest pure arms were indistinguishable
+and either was what would ship if the mutating method were refused --- the rung
+this installed, and retired again on 2026-08-29. Its three existing links stay,
+the middle one redundant with the two new ones and carrying seven runs
+of history they do not. **Claim 2 keeps its number and changes its question**
+to where the arms needing something other than the fix sit: `offtab`, which
+needs only that `Int` scratch, behind `bq-scan-rem-gm-mulback` at **1.36**
+and **1.44**; and `bq-expand` behind `mut-odo-vecdims` at **2.09** and **2.13**,
+kept only while `Data/Array/Internal.hs` carried `bq-expand`, and to retire
+with the three `TODO: retarget` markers, which were one decision with it.
+**That condition was spent the same day and the link outlived it by two runs**:
+the file went to `vFillStrided` on 2026-08-24 and the markers went
 with the prose they marked, but nothing read the condition back, so Run 20
 registered and read the link like any other and it retired only on 2026-08-26.
 Thirteen registered orderings become eight here, and seven when that second link
-finally goes; claims 7 and 8 stay unmanifested prose. **The rewriting the ask
+finally goes; claims 7 and 8 stayed unmanifested prose. **The rewriting the ask
 paired with this was already done**: the eight *What the class says* paragraphs
 were written to the re-aimed properties at Run 18's write-up, and only
 the sentence asking for it survived.

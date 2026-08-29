@@ -3823,8 +3823,9 @@ roster =
     -- at 'bq-scan-mulback' until the precondition ruling stopped timing it
     -- (README.md#what-the-benchmark-does): a control whose base is not
     -- measured is not a control, so they were re-pointed at the fastest
-    -- surviving pure arm, which carries no precondition and is the one the
-    -- shipping question now turns on.
+    -- surviving pure arm, chosen for carrying no precondition. It is not
+    -- singled out by any claim: the ordering that tied it with
+    -- 'bq-odo-gm-mulback' retired 2026-08-29, so either would serve.
   , ("bq-scan-rem-gm-mulback-aa-adjacent", Twin fbBQscanRemGmMulback)
     -- not timed: l < 2^32
   , ("bq-odo-mulback",             Only fbBQodoMulback)

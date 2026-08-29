@@ -3511,8 +3511,10 @@ def fingerprint_table(cells, shapes, strategies, meta, classes=()):
 # machine-readable -- claim 2's second half is `offtab` BEHIND `bq-expand`
 # rather than an `A < B` ordering, and claim 4 states two readings of
 # one arm -- so anything scraping them would be wrong on exactly the two
-# that need care. Claims 7 and 8 name no pair: 7 is the allocation column,
-# read by `--compare --alloc`, and 8 is structural, read off the table.
+# that need care. Claim 7 names no pair: it is the allocation column, read
+# by `--compare --alloc`. Claim 8 named none either and was structural,
+# read off the table by eye; it retired 2026-08-29 with the pure tier it
+# quantified over.
 # `--lint` holds every arm here to the roster, which is what stops a
 # re-aimed claim from leaving a verdict checking an arm no run times.
 # Each pair carries its registered expectation, so `--claims` prints a
@@ -3629,10 +3631,11 @@ def claims_table(cells, shapes, strategies, args):
     a movement clears the floor -- a margin inside it is requoted without
     comment.
 
-    Claims 7 and 8 print as reminders with no figures, having no pair:
-    7 is `--compare --alloc` between the halves and 8 is read off the
-    table. Naming them here rather than omitting them is the point -- a
-    list of seven where the README has nine is how a claim goes unchecked.
+    Claim 7 prints as a reminder with no figures, having no pair: it is
+    `--compare --alloc` between the halves. Naming it here rather than
+    omitting it is the point -- a printed list short of what the run file
+    carries live is how a claim goes unchecked. Claim 8 printed the same
+    way until it retired on 2026-08-29.
 
     Born checked: run against Run 13's basis, every ordering it prints
     reproduces the figure that run published -- geomean, win count and
@@ -3717,8 +3720,6 @@ def claims_table(cells, shapes, strategies, args):
                   ' one replaced.')
     print('\nclaim 7 -- allocation: no pair; read it with'
           '\n  ./read-run.py BASIS.json --compare OTHER.json --alloc')
-    print('claim 8 -- structural: no pair; read the fast tier off the table'
-          '\n  and check the span to offtab-scan-rem is populated.')
     print('\nA verdict answers the registered predicate and nothing more.'
           '\nWhether a HELD margin moved against the run before, and whether'
           '\na movement clears the floor, are still the reading\'s to say.')
@@ -8277,9 +8278,10 @@ def lint(main_hs, readme, run_doc=None):
               % len(FINGERPRINT_ARMS))
 
     # THE SAME QUESTION FOR THE CLAIMS THAT HAVE NO MANIFEST, which is the
-    # half the check above cannot reach: claims 7 and 8 are prose and reach
-    # `CLAIMS` not at all, so an arm parked out of the TIMED roster leaves
-    # them naming what no run measures, and nothing here saw it. Not
+    # half the check above cannot reach: claim 7 is prose and reaches
+    # `CLAIMS` not at all -- claim 8 was too until it retired 2026-08-29 --
+    # so an arm parked out of the TIMED roster leaves such a claim naming
+    # what no run measures, and nothing here saw it. Not
     # hypothetical -- the parking of 2026-08-28 retired claims 2 and 6 in
     # `CLAIMS` and left both live in the run file naming `offtab` and
     # `gen-quotrem`, claim 7's levels naming two more and claim 8's span a
