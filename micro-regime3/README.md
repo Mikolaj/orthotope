@@ -188,7 +188,7 @@ in-process fixed-iteration differencing at -O1 `-fspec-constr` and -A32m, each
 arm correctness-gated against a naive per-element reference, on a box carrying
 about one core of foreign load; only reads past 1.5x were kept,
 and those reproduced across two processes within about 20%. **Run 20 rostered
-all four pieces --- `canon-vecdims`, `canon-memcpy-r2`, `canon-full`,
+all five pieces --- `canon-vecdims`, `canon-memcpy-r2`, `canon-full`,
 `bcast-set` and `mid-copy`, across the main set and all eight classes
 ([Results](runs/run21.md#results)) --- and its tables replace the probe's
 magnitudes wherever the roster has a shape.** What held: the regime-1 return
@@ -916,16 +916,20 @@ rather than a slot in the next run, observed again:
   of them; quoting the first without the second would be the same error one
   level down.
 
-- `STANDING` **The registrations those verdicts are read against.** Its order
-  was chosen for heap state --- `sum-only-early` above `list`, so nothing
-  is measured on an ungrown pool --- and the layout it happens to give
-  was then read off the binary rather than shopped for, which is the distinction
-  that keeps the run from being confirmatory. **Run 10 is now two binaries
-  rather than one**, differing only in the assembler shim, so each prediction
-  below says which half it is read on and the last two exist only because there
-  are two ([the run's plan](#making-a-major-benchmark-run) has why,
-  and the build and check sequence). Against Run 9's offsets, both
-  of the straddle hypothesis's arms move, in opposite directions:
+- `STANDING` **Run 10's five alignment registrations, and how each was decided
+  --- a closed record, read or re-aimed by no later run.** They are kept because
+  nothing else holds the 2026-08-10 gate's verdicts, its two corrections
+  or the per-shape readings under them; every count and half below is Run 10's,
+  and none of it moves with the roster. Its order was chosen for heap state ---
+  `sum-only-early` above `list`, so nothing is measured on an ungrown pool ---
+  and the layout it happens to give was then read off the binary rather
+  than shopped for, which is the distinction that keeps the run from being
+  confirmatory. **Run 10 is now two binaries rather than one**, differing only
+  in the assembler shim, so each prediction below says which half it is read
+  on and the last two exist only because there are two ([the run's
+  plan](#making-a-major-benchmark-run) has why, and the build and check
+  sequence). Against Run 9's offsets, both of the straddle hypothesis's arms
+  move, in opposite directions:
   1. **The FastReshape three go straddling to resident** (mod 40, 44, 44 to mod
      0, 36, 36) while their control stays resident (24 to 16). The hypothesis
      predicts 1.1552, 1.1795 and 1.1645 collapse toward 1.00. If they hold near
@@ -2942,16 +2946,15 @@ is within 250 characters of the words *main set***; the registration reads
 as covering the run. So a session writing up a run would have had to open
 the driver to find that its class populations had no counted work at all,
 and nobody did until the question was asked from outside. **It was never
-a question of cost**: the eight classes hold 1128 cells, exactly the main set's
-number, and sweep FASTER --- about seven minutes a half against twelve ---
-because the cost is elements touched and not cells. The script now takes
-an optional class, names its artifact for it and refuses a class matching
-no bench, and step 20 of the run list sweeps every population. **The general
-shape, and this file already has the rule in mirror image**: *write a capability
-as a capability*, because a fact recorded as a tool's limitation goes inert.
-Here the limitation was recorded accurately and went inert anyway, because
-it was recorded where the tool lives and not where the run is planned. A scope
-limit belongs in the sentence that asks for the measurement.
+a question of cost**: the classes hold about as many cells as the main set
+and sweep FASTER, because the cost is elements touched and not cells. The script
+now takes an optional class, names its artifact for it and refuses a class
+matching no bench, and step 20 of the run list sweeps every population.
+**The general shape, and this file already has the rule in mirror image**:
+*write a capability as a capability*, because a fact recorded as a tool's
+limitation goes inert. Here the limitation was recorded accurately and went
+inert anyway, because it was recorded where the tool lives and not where the run
+is planned. A scope limit belongs in the sentence that asks for the measurement.
 
 1. `OPEN` **`fillStage2` is the branch's cost, and it is 2.4 to 4.5 times
    the fill it replaces.** Run 21's registration 4 fired its kill condition:
@@ -4055,8 +4058,8 @@ at 0.049, 0.052 and 0.053, and `mut-odo-vecdims-add-in` at 0.054 --- and every
 one of the seven needs a mutating `Vector` method and nothing more, which
 is exactly what the fix needs, so none of them reopens the decision and one
 of them, `-add-in-leaf-u2`, is what the branch ports. Its family heads seven
-of the nine populations, and the two it does not are the rework's: `reshape1`,
-where `canon-memcpy-r2` reads 0.000 against `mut-odo-vecdims`'s 0.095 on cells
+of the nine classes, and the two it does not are the rework's: `reshape1`, where
+`canon-memcpy-r2` reads 0.000 against `mut-odo-vecdims`'s 0.095 on cells
 that price dispatch rather than filling, and `bcastmid`, where `mid-copy` reads
 0.017 against 0.031 and leads on all four shapes. On the main set, per shape,
 the best arm outside the family beats `mut-odo-vecdims` on **18 of the 24

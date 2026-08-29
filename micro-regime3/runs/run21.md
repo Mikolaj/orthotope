@@ -1100,13 +1100,13 @@ a claim being re-aimed on a decision and not on one reading.
 than with the compiler.** Every level is Run 15's through Run 20's to the digit
 --- the mutable fills at 1.00x, the scan family 1.33x, `bq-odo-gm-mulback`
 1.51x, `offtab-scan-rem` 2.00x, `bq-expand` 2.35x, `list` 23.50x ---
-and the class blocks read the tiers unbroken in all nine populations,
-`bq-expand` running 1.14x on `scaled` to 4.91x on `reshape1` where that class's
-own `m` shows through. **Six rows joined and moved no level**: five of the new
-arms read 1.00x, the mutable fills' own tier, and only the two list-entry arms
-sit above it at 2.00x, so the rework and the library-shaped arms buy their time
-without buying allocation. **The cross-half agreement is where the pair parts,
-as on the two runs before**: **1026 of the 1128** main-set cells that allocate
+and the class blocks read the tiers unbroken in all nine classes, `bq-expand`
+running 1.14x on `scaled` to 4.91x on `reshape1` where that class's own `m`
+shows through. **Six rows joined and moved no level**: five of the new arms read
+1.00x, the mutable fills' own tier, and only the two list-entry arms sit above
+it at 2.00x, so the rework and the library-shaped arms buy their time without
+buying allocation. **The cross-half agreement is where the pair parts, as
+on the two runs before**: **1026 of the 1128** main-set cells that allocate
 in earnest agree to 1e-4, where Run 20 read 1143 of 1224 and Run 19 1016
 of 1080, and the worst disagreement is **6.24e-03
 on `cnn-slice-c32/bq-mut-runs-gm-mulback`** --- the same shape Run 19 and Run 20
@@ -1300,8 +1300,8 @@ session building the same thing. A report that never empties is one nobody
 reads, which this file already knows about hints.
 
 **And for each stride class, the same three properties, now carrying Run 21's
-verdicts** over nine populations rather than eight, the details beside each
-class's table:
+verdicts** over nine classes rather than eight, the details beside each class's
+table:
 
 1. **The regime 3 fix's `worst` stays under 1.** Held in every one of the ten
    populations, in every regime, roster and layout the README has run ---
