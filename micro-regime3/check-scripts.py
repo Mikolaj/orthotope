@@ -5,6 +5,11 @@
     ./check-scripts.py --audit      # every case against the code before its
                                     #   own fix, where it MUST fail
     ./check-scripts.py -k install   # the cases whose name matches
+    ./check-scripts.py --changed    # only the cases whose own script differs
+                                    #   from HEAD: what an edit owes, where
+                                    #   the whole suite is four and a half
+                                    #   minutes and one shell driver is
+                                    #   fourteen cases
     ./check-scripts.py --list       # what is covered, and by which fix
     ./check-scripts.py --against REV  # diagnose some other revision
     ./check-scripts.py --properties # the properties, over every run on disk
@@ -6167,12 +6172,59 @@ def main():
     p.add_argument('--families', action='store_true',
                    help='the shapes these defects keep returning in, over'
                         ' the source of every Python program here')
+    p.add_argument('--changed', metavar='REV', nargs='?', const='HEAD',
+                   help='only the cases whose own script differs from REV'
+                        ' (default HEAD, so: what my edits owe)')
     args = p.parse_args()
 
     cases = [c for c in CASES
              if not args.pattern or args.pattern in c.name]
     if not cases:
         sys.exit('no case matches %r' % args.pattern)
+
+    # ONLY WHAT THE EDIT OWES. 217 cases at about 1.2 s each is four and a
+    # half minutes, every one of them a fresh reader over the whole
+    # document set, and a round that touched one shell driver needs the
+    # dozen-odd cases aimed at it. Pre-run step 8d has always asked for
+    # this in words -- "if any script here has changed since the last run"
+    # -- and nothing enforced it, so the answer was always all 217.
+    #
+    # The scope is a case's OWN script, which every case already names.
+    # REV defaults to HEAD, which answers "what do my uncommitted edits
+    # owe"; pass the last run's commit to ask what has changed since it.
+    #
+    # AN EMPTY SELECTION IS SAID AND NOT PASSED. `every case holds` over
+    # nothing is the vacuous pass this suite exists to refuse, so a run
+    # that selects no case says which revision it compared against and
+    # exits 0 having claimed nothing. And git failing is a BLOCKED at
+    # exit 2, not a silent full run and not a silent empty one: the
+    # question was not answered.
+    if args.changed is not None:
+        progs = sorted({c.prog for c in cases})
+        moved = []
+        for prog in progs:
+            try:
+                r = subprocess.run(['git', 'diff', '--quiet', args.changed,
+                                    '--', os.path.join(HERE, prog)],
+                                   cwd=HERE, capture_output=True)
+            except OSError as e:
+                print('BLOCKED: git could not be run (%s), so --changed'
+                      ' cannot say which scripts moved' % e)
+                return 2
+            if r.returncode == 128:
+                print('BLOCKED: git cannot diff %s against %r: %s'
+                      % (prog, args.changed,
+                         r.stderr.decode().strip().split('\n')[0]))
+                return 2
+            if r.returncode:
+                moved.append(prog)
+        cases = [c for c in cases if c.prog in moved]
+        if not cases:
+            print('no script here differs from %s, so no case is owed --'
+                  ' this is not a pass over the suite, it is an empty'
+                  ' selection' % args.changed)
+            return 0
+        print('changed against %s: %s' % (args.changed, ', '.join(moved)))
 
     if args.list:
         for c in cases:

@@ -4695,9 +4695,13 @@ and never as a chronology.
     #      verdict. A kind with a count of one is a warning this corpus
     #      has not shown before and is the thing to read; `--warnings`
     #      restores them verbatim
-    ./check-scripts.py                    # 8d. and if any script here has
-    #      changed since the last run: every defect these scripts have had,
-    #      planted again and refused again. Seconds, and it writes nothing
+    ./check-scripts.py --changed <last run's commit>   # 8d. and if any
+    #      script here has changed since the last run: every defect those
+    #      scripts have had, planted again and refused again. `--changed`
+    #      is what makes this step the size of the edit -- it runs only
+    #      the cases whose own script moved, and says so and claims
+    #      nothing where none did; bare, it is all 217 cases and four and
+    #      a half minutes. It writes nothing
     #      OF RECORD -- no run file, no README, not even the index -- but
     #      it and 8c both write `zz-` fixtures here and remove them, so
     #      both want an unsandboxed seat. `--audit` replays each
