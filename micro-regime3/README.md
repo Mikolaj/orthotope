@@ -54,23 +54,19 @@ it 1.51x ahead.
 `bq-expand`, and need no class method --- a distinction the decision
 of 2026-08-22 retires, shipping the mutable family's arm instead.** The fastest
 pure ones on Run 20 are **`bq-scan-rem-gm-mulback`** (0.098)
-and **`bq-odo-gm-mulback`** (0.099) against `bq-expand`'s 0.114 --- a margin
-of **1.16** on each paired, where Run 19 read 1.16 and 1.15, exactly Run 18's,
-Run 17 1.17 and 1.16, Run 16 1.18 and 1.14, Run 13 1.14 and 1.15, Run 12 1.13
-and 1.14, Run 11 1.15 on each and both halves of Run 10's pair 1.13 to 1.14.
-So it is no longer a margin sitting inside the 1.22 that placement alone
-is worth in an unaligned build, to be read as a candidate rather than a verdict:
-alignment removed that term, and a run repeating Run 10 exactly --- same binary,
-same roster, same order --- reproduces the margin to a hundredth ([the yardstick
-table](runs/run21.md#what-the-next-run-compares-against)). They also carry
-**no size precondition at all**, which is the point of them, a ruling since
-having stopped this suite timing any arm that needs one ([what the benchmark
-does](#what-the-benchmark-does)). Neither is what `Data/Array/Internal.hs` does
-today. Of the trade-offs, allocation and the noise floor --- measured per run
-over the A/A pairs of each half, and quoted with its carrying pair in [the floor
-section][floor], which owns it --- are in [Results](runs/run21.md#results), each
-arm's precondition is at its entry in `Main.hs`'s roster, and the division sites
-are in [the Lemire
+and **`bq-odo-gm-mulback`** (0.099) against `bq-expand`'s 0.114, and what
+survives of that ordering is the pure yardstick [the mutable
+ceiling](#the-mutable-ceiling-taken) prices the shipped arm against.
+**The per-run margin over `bq-expand` is retired with the candidacy and
+is not to be re-quoted**: it was extended every run from Run 10 to Run 20,
+and no decision turns on it now that the class method has landed. They also
+carry **no size precondition at all**, which is the point of them, a ruling
+since having stopped this suite timing any arm that needs one ([what
+the benchmark does](#what-the-benchmark-does)). Of the trade-offs, allocation
+and the noise floor --- measured per run over the A/A pairs of each half,
+and quoted with its carrying pair in [the floor section][floor], which owns
+it --- are in [Results](runs/run21.md#results), each arm's precondition
+is at its entry in `Main.hs`'s roster, and the division sites are in [the Lemire
 section](#lemire-multiplicative-inverses-at-the-two-division-sites).
 
 Every figure in this README is **net of the shared forcing pass** every strategy
@@ -3379,7 +3375,10 @@ one.
 
 ### How the strictly positive picture was achieved
 
-Four findings turned the mixed picture into `bq-expand`. **Price the outer
+Four findings turned the mixed picture into `bq-expand`, which since 2026-08-24
+is `vFillStrided`'s class default and not what the three vector-backed instances
+run --- so this is the account of the pure default, and the shipped fill's
+is [the mutable ceiling](#the-mutable-ceiling-taken). **Price the outer
 multi-index once per run, not once per element**: an `m`-element base-offsets
 table (`m = product (init sh)`) drops the output to one `quotRem` per element,
 where the first attempt paid one per *dimension* per element, which
@@ -3860,20 +3859,18 @@ and it recovered part of the build site's loss too --- enough to see, nowhere
 near enough to reverse it. Why the low half must not be recomputed is recorded
 as a comment on `fastQR`, so the loose form is not written again.
 
-**On shipping it.** `bq-expand-lemire-out` is pure, so the argument that kept
-`mut-odo` out (a bar then, a weight since the mutable ceiling's amendment) does
-not apply; what it costs is `MagicHash` and `UnboxedTuples`
-in `Data/Array/Internal.hs`, about a dozen lines of helper, and a precondition.
-The precondition is the substantive part: Lemire's identity holds
-for `d, n < 2^32`, and `n` here is the linear output index, so a shipped version
-needs an `l < 2^32` test choosing between the two fills --- loop-invariant
-and chosen once per call, but it must be there, since orthotope does
-not otherwise cap array length. **The conditional this paragraph used to end
-on has resolved against it**, and against shipping: the 6.0% is an -O1 figure,
-the deciding regime is `-fspec-constr`, and under the flag the same pair
-is a dead tie --- so what there is to weigh against `MagicHash`, the helper
-and the precondition is nothing. This README still only prices the arm; at zero,
-the pricing is the answer.
+**On shipping it: not shipped.** What `bq-expand-lemire-out` would cost
+is `MagicHash` and `UnboxedTuples` in `Data/Array/Internal.hs`, about a dozen
+lines of helper, and a precondition. The precondition is the substantive part:
+Lemire's identity holds for `d, n < 2^32`, and `n` here is the linear output
+index, so a shipped version needs an `l < 2^32` test choosing between the two
+fills --- loop-invariant and chosen once per call, but it must be there, since
+orthotope does not otherwise cap array length. **The conditional this paragraph
+used to end on has resolved against it**, and against shipping: the 6.0%
+is an -O1 figure, the deciding regime is `-fspec-constr`, and under the flag
+the same pair is a dead tie --- so what there is to weigh against `MagicHash`,
+the helper and the precondition is nothing. This README still only prices
+the arm; at zero, the pricing is the answer.
 
 
 ### Per shape, where the geomean hides the ordering
@@ -4736,9 +4733,9 @@ of magnitude the released fallback showed. What a C strided copy would leave
 of it is unmeasured.
 
 Regime 3 has no contiguous runs to hand a bulk kernel, so the transfer stays
-per-element in Haskell however the fallback is written. Closing it needs C.
-`bq-expand` is the pure win to take meanwhile, not a replacement for it.
-This is discussed further in the horde-ad repo.
+per-element in Haskell however the fallback is written. Closing it needs C;
+the mutable fill behind `vFillStrided` is the win to take meanwhile,
+not a replacement for it. This is discussed further in the horde-ad repo.
 
 
 ### Dead ideas
