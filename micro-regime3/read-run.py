@@ -6366,17 +6366,30 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
         note.append('every link naming a run agrees with the anchor or the'
                     ' file it points at')
 
-    # EVERY LINK INTO runs/ NAMES THIS RUN. The directory accumulates, so a
-    # link left at the run before still resolves and still renders -- which
-    # is the whole of what the rename step now has to get right, and the
-    # only thing that replaces the four heading renames it used to be.
+    # EVERY LINK INTO runs/ NAMES THIS RUN, UNLESS ITS TEXT NAMES ANOTHER.
+    # The directory accumulates, so a link left at the run before still
+    # resolves and still renders -- which is the whole of what the rename
+    # step now has to get right, and the only thing that replaces the four
+    # heading renames it used to be.
+    #
+    # The exemption is for a DELIBERATE link into an older run's file, which
+    # the run-file split made possible and Run 10's registrations made real
+    # on 2026-08-29: an account that belongs to one run lives in that run's
+    # file and is cited from README for good. Such a link says whose it is
+    # in its own text --- `[Run 10's file](runs/run10.md)` --- and the check
+    # above already holds text and target to naming the SAME run, so the
+    # pair cannot drift apart. A link the rename missed looks nothing like
+    # it: its text names this run's content, or no run at all, while its
+    # target names the run before, and that is still caught here.
     if run_doc is not None:
         want = '%s/%s' % (RUNS_DIR, os.path.basename(run_doc))
+        pair = re.compile(r'\[([^\]]*)\]\(([^)\s]*%s/run(\d+)\.md'
+                          r'[^)\s]*)\)' % RUNS_DIR)
         old = sorted({t for _, text in docs
-                      for t in re.findall(r'\]\(([^)\s]*%s/run\d+\.md'
-                                          r'[^)\s]*)\)' % RUNS_DIR, text)
+                      for txt, t, n in pair.findall(text)
                       if not t.split('#')[0].endswith(
-                          os.path.basename(run_doc))})
+                          os.path.basename(run_doc))
+                      and not re.search(r'\bRun %s\b' % n, txt)})
         if old:
             bad.append('%d link(s) point at a run file that is not this'
                        " run's: %s -- runs/ keeps every run, so a link the"
