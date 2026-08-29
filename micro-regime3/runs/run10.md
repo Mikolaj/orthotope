@@ -222,3 +222,135 @@ was two binaries and the fifth is what made the fourth readable. The pad probe
 having answered the hypothesis first, the first two were replications carrying
 point predictions rather than the evidence --- which is what that probe's window
 was spent to buy, and why the run's own weight sat on 4.
+
+
+## The queue of experiments this run was ordered against
+
+**The queue of experiments that want a quiet machine**, ranked, so that the next
+quiet window is not spent deciding what to spend it on. Written down 2026-08-09
+with Run 9's artifacts still alive, and the ranking turns on one thing worth
+stating: *the binary must not be rebuilt between the arms of a comparison*,
+since a rebuild is worth up to 18% on a susceptible arm and swamps most of what
+is being asked.
+
+**Ordered against Run 10 rather than by value, 2026-08-10, now that its regime
+and roster are fixed.** One entry goes before it and the rest after,
+and the reasons are the schedule rather than the ranking: an experiment whose
+answer changes how Run 10 is *read* is worth its window first, while one Run 10
+supplies half of for nothing is worth waiting for. Durations below
+are quiet-machine costs, derived from the elapsed time and bench count a run's
+own provenance line reports --- about five seconds a bench-shape cell, criterion
+spending its budget whether the call is fast or slow --- and nothing here
+measures what contention does to them. **The gate entry below has since
+been folded into Run 10 rather than queued behind it**, alignment having turned
+out to be the thing that decides whether the rest of the queue is measuring
+anything; what stays there is the cheap gate that runs before the run does.
+Entries are referred to by name and not by number, two having been removed
+from under a reference already. **Nothing below is outstanding**: each has
+been run or closed, and what the list holds now is what each bought
+and the ordering rule above, which is what a later queue would be built on.
+1. **The pad probe done properly --- run 2026-08-10, and the hypothesis
+   survives.** Eight binaries differing only in inert pad arms, two interleaved
+   passes over all eight, 2h12m, with `build` and `mut-odo` both timed this time
+   (the first attempt lost them to a shell glob) and each stepped through all
+   eight 8-byte offsets --- the step being all GHC aligns the loop to ---
+   with membership fixed throughout. A straddled copy costs 1.19, or 1.10 where
+   only three bytes precede the boundary, and the two discriminating binaries
+   invert as predicted: [the floor
+   section](../README.md#what-moves-a-figure-when-no-strategy-changed) carries
+   the verdict, the graded penalty and the controls. Placement and the allocator
+   are separate effects, which is why this wanted a window of its own rather
+   than being shrunk by 1: the `build`/`mut-odo` gap was measured across
+   the nursery change and did not move.
+
+   **Two pad designs relocate nothing, so they are not retried** --- measured
+   on 2026-08-10 rather than reasoned about, and recorded here because
+   the directory that first held them is to be deleted. Module-level inert pads
+   that nothing rosters left both arms exactly where they were, across six
+   variants. So did permuting two untimed roster entries deep in the list, which
+   relocates only each other. What works is a pad rostered *before* the arm
+   it must displace, emission order tracking first reference from `roster`;
+   a pad kept inert by rostering it `Only` is checked on every shape and timed
+   on none, so the selection stays what it was. Nothing else in that file
+   was load-bearing, which was checked before deleting it: its shell-glob trap,
+   its rule about counting what a filtered run selected and its correction
+   caveat were already in [the reader](../README.md#the-reader-read-runpy)
+   and [the procedure](#making-a-major-benchmark-run), and what went with
+   it was a per-binary offset map for binaries that are themselves gone.
+
+   **It went before Run 10, which makes Run 10 a replication rather
+   than the evidence** --- the point of that ordering, two of Run 10's
+   registered predictions being the straddle hypothesis, and Run 10 testing
+   it while moving roster order, heap warmth and code layout together where
+   these binaries moved one thing and held the rest. It did more than replicate,
+   in the end: answering the hypothesis is what turned Run 10 from one binary
+   into two, since an effect this size is worth removing once it is no longer
+   in doubt. The asymmetric risk it was run against did not materialise: [the
+   floor section](../README.md#what-moves-a-figure-when-no-strategy-changed)'s
+   loop table and [the suspension of two FastReshape axis
+   figures](../README.md#the-mutable-ceiling-taken) both rested on a correlation
+   inside one binary, and both stand, the suspension now with an out-of-sample
+   check of its own. The binaries and the sixteen run files were untracked
+   in `pad-probe/`, ~280 MB, and are deleted: this README carries what they
+   showed, and the effect has a self-contained public reproducer in the filed
+   issue.
+2. **A third `-nosum` arm, on a flat fill** --- the one probe that separates
+   *the read is biased* from *those two arms are*. Landed as `mut-flat-gm-nosum`
+   (2026-08-13) after waiting out two runs, membership having had to stay pinned
+   through Run 11's repetition and unconfounded with Run 12's change of shim;
+   its readings are with gate 3 and the roster entry. Two things
+   from its scheduling outlive it. **The run's question goes in the second
+   half**: Run 10 paired against an unaligned build and priced layout, Run 11
+   against max-skip and priced the padding, Run 12 against `-fproc-alignment=64`
+   and priced the flag --- the new variable rides the control half and the basis
+   stays comparable. And **`micro-both` was the obvious candidate for Run 12's
+   pair and the wrong one**: it carries the *unconditional* shim with the flag
+   because it was built hours before the max-skip form existed --- a composition
+   that is chronology and not design, and a name that invites being read
+   as design. Nor can such a pair separate the flag from the offsets
+   it produces, pinning procedures being *how* it works; the resident offset's
+   own price stays a probe on the pad-probe model.
+3. **The five-bench gate before Run 10's aligned half --- run 2026-08-10
+   and it passes**, its verdicts and two corrections being in [Run 10's
+   file](runs/run10.md) with the predictions above. Kept because a later paired
+   run wants the same gate before its own evening:
+
+       ./run-gate.sh $R     # the two-process form this entry used to spell
+                            # out is superseded: the script runs four, in a
+                            # palindrome, and names its files
+                            # $R-gate-<half>-<pass>.json -- the unprefixed
+                            # form it used once silently overwrote Run 10's
+                            # two aligned gate files
+
+   run against `micro-unaligned` too, and expect 120 `benchmarking` lines each,
+   then `--compare` one against the other, which is the reader's mode for an arm
+   across two runs of one population and what [Run 10's prediction
+   4](runs/run10.md) is read with. `*/list` is in it for two reasons: it gives
+   prediction 5 an early reading, and without a baseline `--selftest` has
+   no ratios to check. With both executed copies resident at 0,
+   `build`/`mut-odo` must read **1.00** and both arms must run at the resident
+   level, which against Run 9's placement is 10 to 19% faster rather than merely
+   equal. A pair that reads 1.00 while neither arm moves would refute
+   the penalty while confirming the symmetry, and that is a distinction no run
+   so far can draw. Minutes, and it is the cheapest place to find out
+   that the aligned binary is wrong before an hour of main set is spent on it.
+   The dear half of this entry --- a main set aligned against one unaligned ---
+   is no longer a queue item at all: it *is* Run 10, whose fourth prediction
+   is that comparison read arm by arm.
+And three things **not** worth a quiet window, recorded so they are not reached
+for. The *how many preceding benches warm it* sweep, which the nursery finding
+supersedes --- the bench count is the symptom and the allocation area
+is the cause. The element-type re-probe, whose trigger is a run that moves
+the ordering at `Storable Double`, which Run 9 does only through layout
+and membership rather than anything an element type would feel. And **an A/B
+of the pre-swap binary against the post-swap one, to price the roster swap
+on its own** --- proposed and refuted the same day: that swap moved heap warmth
+*and* relocated every worker by ~40 KB, so binary against binary conflates
+exactly the two things Run 10's unaligned half conflates, and buys a number Run
+10 supplies anyway at the price of a quiet hour and a false sense that one
+variable had been pinned. **Half of that refutation has since expired
+and the other half has not.** In an aligned build a roster swap relocates
+no loop, so such a pairing would no longer conflate the two --- but it would
+still buy a number Run 10's third prediction supplies for nothing, which
+was always the stronger of the two reasons. Recorded because the expiry
+of a premise is exactly what makes a dead idea look alive again.
