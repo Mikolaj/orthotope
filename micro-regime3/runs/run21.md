@@ -389,8 +389,8 @@ is from Run 11 on: the control half's column sits beside the basis one
 in this file rather than as a second copy of these forty-odd rows.
 That the published half is the 9.12 one is this pair's own decision --- it keeps
 the lineage, being Run 20's basis recipe with only the source moved ---
-and the HEAD half is the yardstick column. **Six rows here are first readings**:
-`lib-stage1`, `lib-stage2`, `lib-stage2-concat`, `liblist-stage1`,
+and the HEAD half is the second column below. **Six rows here are first
+readings**: `lib-stage1`, `lib-stage2`, `lib-stage2-concat`, `liblist-stage1`,
 `liblist-stage2` and `mut-odo-vecdims-add-in-leaf-u2-down`. A first reading has
 no predecessor to be drift against, so nothing in this file compares one
 to an earlier column, and the registrations they answer are [in the open
@@ -776,23 +776,18 @@ run's figures and the names of its halves are in its own file, `runs/run<N>.md`,
 back-filled to Run 7 on 2026-08-29; a comparison reaching further back
 is a chain of one-step comparisons, each recorded by the run that made it,
 and walking that chain here is what this section stopped doing. So an older run
-is read by opening its file, not by reading a column across. The rows nearest
-the decisions, in every regime that has measured them:
+is read by opening its file, not by reading a column across. This run's own two
+halves, on the rows nearest the decisions:
 
-| strategy | Run 21 (SpecConstr, max-skip +lookrts, -A32m, 9.12.4) | Run 21 (SpecConstr, max-skip +lookrts, -A32m, GHC HEAD) | Run 20 (SpecConstr, max-skip +lookrts, -A32m, 9.12.4) | Run 20 (SpecConstr, max-skip +lookrts, -A32m, GHC HEAD) | Run 19 (SpecConstr, max-skip +lookrts, -A32m, 9.12.4) | Run 19 (SpecConstr, max-skip +lookrts, -A32m, GHC HEAD) | Run 18 (SpecConstr, max-skip +lookrts, -A32m, 9.12.4) | Run 18 (SpecConstr, max-skip +lookrts, -A32m, 9.14.1) | Run 17 (SpecConstr, max-skip +lookrts, -A32m, instrumented) | Run 17 (SpecConstr, max-skip +lookrts, -A32m, plain) | Run 16 (SpecConstr, max-skip +lookrts, -A32m) | Run 16 (SpecConstr, max-skip +lookrts, -A64m) | Run 15 (SpecConstr, max-skip +lookrts) | Run 15 (SpecConstr, max-skip +lookrts +A32m) | Run 14 (SpecConstr, max-skip +lookrts) | Run 14 (SpecConstr, max-skip +lookrts +A1G) | Run 13 (SpecConstr, max-skip) | Run 13 (SpecConstr, max-skip +lookrts) | Run 12 (SpecConstr, max-skip) | Run 12 (SpecConstr, max-skip +procalign) | Run 11 (SpecConstr, aligned) | Run 11 (SpecConstr, max-skip) | Run 10 (SpecConstr) | Run 10 (SpecConstr, aligned) | Run 9 (SpecConstr) | Run 8 (SpecConstr) | Run 7 (Harness, -O1) |
-|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| `mut-odo-vecdims` | **0.054** | 0.055 | 0.054 | 0.055 | 0.055 | 0.055 | 0.055 | 0.055 | 0.055 | 0.055 | 0.054 | 0.047 | 0.048 | 0.054 | 0.049 | 0.051 | 0.049 | 0.049 | 0.049 | 0.049 | 0.048 | 0.048 | 0.048 | 0.049 | 0.048 | 0.053 | 0.054 |
-| `mut-flat-gm` | **0.084** | 0.085 | 0.083 | 0.083 | 0.083 | 0.084 | 0.084 | 0.083 | 0.084 | 0.084 | 0.087 | 0.076 | 0.081 | 0.088 | 0.081 | 0.083 | 0.082 | 0.082 | 0.081 | 0.082 | 0.081 | 0.081 | 0.083 | 0.081 | 0.080 | -- | -- |
-| `bq-mut-runs-gm-mulback` | **0.092** | 0.094 | 0.090 | 0.093 | 0.090 | 0.094 | 0.089 | 0.091 | 0.093 | 0.092 | 0.093 | 0.080 | 0.086 | 0.094 | 0.087 | 0.088 | 0.087 | 0.087 | 0.087 | 0.088 | 0.087 | 0.086 | 0.085 | 0.088 | 0.088 | 0.086 | -- |
-| `bq-odo-gm-mulback` | **0.100** | 0.108 | 0.099 | 0.108 | 0.100 | 0.109 | 0.100 | 0.100 | 0.101 | 0.100 | 0.100 | 0.087 | 0.090 | 0.100 | 0.090 | 0.095 | 0.090 | 0.090 | 0.090 | 0.090 | 0.090 | 0.090 | 0.090 | 0.090 | 0.090 | -- | -- |
-| `bq-scan-rem-gm-mulback` | **0.099** | 0.106 | 0.098 | 0.105 | 0.098 | 0.106 | 0.096 | 0.098 | 0.099 | 0.099 | 0.096 | 0.082 | 0.091 | 0.096 | 0.091 | 0.090 | 0.091 | 0.090 | 0.090 | 0.091 | 0.089 | 0.090 | 0.090 | 0.089 | 0.090 | 0.090 | 0.119 |
-| `bq-expand` | **0.115** | 0.116 | 0.114 | 0.116 | 0.115 | 0.117 | 0.115 | 0.117 | 0.117 | 0.115 | 0.114 | 0.101 | 0.102 | 0.114 | 0.102 | 0.107 | 0.103 | 0.102 | 0.102 | 0.102 | 0.103 | 0.103 | 0.102 | 0.102 | 0.105 | 0.102 | 0.127 |
-| `build` | **0.104** | 0.111 | 0.101 | 0.101 | 0.103 | 0.101 | 0.103 | 0.102 | 0.105 | 0.106 | 0.109 | 0.097 | 0.102 | 0.110 | 0.103 | 0.097 | 0.099 | 0.099 | 0.098 | 0.098 | 0.096 | 0.100 | 0.110 | 0.096 | 0.114 | 0.095 | -- |
-| `offtab` | -- | -- | 0.135 | 0.135 | 0.134 | 0.136 | 0.134 | 0.143 | 0.135 | 0.141 | 0.136 | 0.124 | 0.126 | 0.138 | 0.121 | 0.121 | 0.125 | 0.121 | 0.125 | 0.131 | 0.125 | 0.123 | 0.123 | 0.124 | 0.115 | 0.146 | -- |
-| `mut-flat` | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | 0.074 | 0.063 |
-| `bq-mut-runs-mulback` | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | 0.078 | 0.072 |
-| `bq-odo-mulback` | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | 0.089 | 0.101 |
-| `bq-scan-packed-mulback` | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | 0.108 | 0.097 |
+| strategy | Run 21 (SpecConstr, max-skip +lookrts, -A32m, 9.12.4) | Run 21 (SpecConstr, max-skip +lookrts, -A32m, GHC HEAD) |
+|---|---:|---:|
+| `mut-odo-vecdims` | **0.054** | 0.055 |
+| `mut-flat-gm` | **0.084** | 0.085 |
+| `bq-mut-runs-gm-mulback` | **0.092** | 0.094 |
+| `bq-odo-gm-mulback` | **0.100** | 0.108 |
+| `bq-scan-rem-gm-mulback` | **0.099** | 0.106 |
+| `bq-expand` | **0.115** | 0.116 |
+| `build` | **0.104** | 0.111 |
 
 **A published geomean is over the same 24 shapes, and two halves of one
 SpecConstr run usually share a denominator too**, `list` moving under 0.7%
@@ -813,28 +808,29 @@ the pairing moved: read it for the pairing's direction, take no strategy quality
 off it, and read the arm-by-arm comparison at the head of this file instead,
 which divides absolutes rather than ratios.
 
-**Each stride class's yardstick is its own table below.** Run 8 re-ran every
-class with the populations pinned, and every run since has again, so each
-class's paragraph carries what the last change moved and the table above
-it is what Run 13 reads against. **The two sides of a class comparison across
-the Run 11/Run 12 boundary are not the same build**, and this is the one place
-that bites: Run 11's class tables are its *aligned* half's, Run 12's
-are its *max-skip* basis half's, and the main set prices that difference
-at nothing below 0.99 and up to 1.06. So read a class figure that moved a point
-or two across that boundary as the shim rather than as the class, and take
-the two Run 12 columns above as what a same-build comparison looks like.
-From Run 13 on, both sides are max-skip again.
+**Each stride class has its own table below.** Run 8 re-ran every class
+with the populations pinned, and every run since has again, so each class's
+paragraph carries what the last change moved and the table above it is what Run
+13 reads against. **The two sides of a class comparison across the Run 11/Run 12
+boundary are not the same build**, and this is the one place that bites: Run
+11's class tables are its *aligned* half's, Run 12's are its *max-skip* basis
+half's, and the main set prices that difference at nothing below 0.99 and up
+to 1.06. So read a class figure that moved a point or two across that boundary
+as the shim rather than as the class, and take the two Run 12 columns above
+as what a same-build comparison looks like. From Run 13 on, both sides
+are max-skip again.
 
 **Two tables in this file are NOT installed and are edited by hand:
-the yardstick above and the cross-class summary below.** Every other table a run
-publishes comes from `install-tables.sh` and is replaced whole. These two gain
-a column or a row per run instead, which is why they outlive the artifacts ---
-and it is why a run edits them with the whole line named, never with a prefix
-anchor. On Run 17 an insertion anchored on ``| `arm` | `` matched an earlier
-table and put two cells into the element-type probe's header and a loop-offsets
-row; `--check-doc`'s width pass caught it in the same call, which is the only
-reason it cost minutes. Name the whole row, assert it occurs exactly once,
-and read the width check's verdict afterwards.
+the two-column one above and the cross-class summary below.** Every other table
+a run publishes comes from `install-tables.sh` and is replaced whole. The one
+above is replaced whole too, being this run's own halves and no earlier run's;
+the summary gains a row per run instead. A hand-edited table is edited
+with the whole line named, never with a prefix anchor. On Run 17 an insertion
+anchored on ``| `arm` | `` matched an earlier table and put two cells
+into the element-type probe's header and a loop-offsets row; `--check-doc`'s
+width pass caught it in the same call, which is the only reason it cost minutes.
+Name the whole row, assert it occurs exactly once, and read the width check's
+verdict afterwards.
 
 And because a geomean cannot say *where* it moved, the **fingerprint** below
 is kept so a future disagreement can be localised rather than only noticed.

@@ -4894,7 +4894,7 @@ ANSWERED_ACCOUNT = 500
 
 # The one family the length rule does not reach, matched on the lead the
 # seven of them share. A run registration is long because it is the ONLY
-# copy -- the run chapter is replaced every run and the yardstick keeps
+# copy -- the run chapter is replaced every run and the run file keeps
 # one geomean per strategy per half, where a registration's answers are
 # half-against-half and control readings no table here carries -- which
 # is the ruling in the open list's preamble and the reason these were
@@ -5731,7 +5731,7 @@ def section(docs, name, with_tables=False):
     installs them, and a checker recomputes them from the JSONs. They are
     withheld with their size, so what was skipped is visible rather than
     silent, and --with-tables prints them for the one case that wants them
-    -- the yardstick, which is hand-edited and gains a column per run.
+    -- the run's own two-column geomeans, which are hand-edited.
 
     Matching is on the heading TEXT, case-insensitively, across both
     documents; several matches print an index rather than all of them, as
@@ -5780,7 +5780,7 @@ def section(docs, name, with_tables=False):
           % (os.path.basename(path), '#' * lvl, text, len(out) // 1024))
     if held:
         print('  %d table paragraph(s) withheld, %d KB -- --with-tables'
-              ' prints them, which the yardstick wants and nothing else does'
+              ' prints them, which the two-column table wants and nothing else'
               % (held, held_bytes // 1024))
     print()
     print(out)
@@ -6127,9 +6127,9 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
     script's own anchor scan: appending a bogus README anchor
     (`no-such-anchor`) here failed the run and named this file -- and so did
     this sentence's first draft, which spelled the anchor out in the very
-    form the scan reads. The yardstick check: deleting the older regime's
-    column from that table failed with the regime it still named, and
-    deleting the table's header failed with the other message.
+    form the scan reads. The two-column check: deleting one half's column
+    from that table failed with the regime it still named, and deleting
+    the table's header failed with the other message.
 
     TWO DOCUMENTS, read as one. The run's own write-up is
     `runs/run<N>.md` -- the chapter head, Results, what the next run
@@ -6156,7 +6156,7 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
     older file being really there (`link-into-a-run-file-that-is-not-this-
     run`). And with no run file at all -- measured by hand 2026-08-25, a
     copy of the two documents in a directory whose runs/ is empty -- the
-    BLOCKED above heads the output and the yardstick, the Results basis
+    BLOCKED above heads the output and the two-column table, the Results basis
     and the class floors each report their own absence, where the
     concatenation without it would have exited 0 over a README alone.
     """
@@ -6845,12 +6845,14 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
         print('ok:   no ANSWERED entry is past %d words but the exempt ones,'
               ' and %s' % (ANSWERED_ACCOUNT, said))
 
-    # The yardstick table keeps a column for the regime this run is NOT in,
-    # which reads like a leftover and is the opposite: it is the only place
-    # the previous run's basis survives once this chapter has replaced
-    # everything else of it, and a return to that regime would have nothing
-    # to read against. Prose asks for it to be kept; this makes the asking
-    # stick.
+    # The run file's own two-column table keeps a column for each half,
+    # including the regime this run's tables are NOT published from, which
+    # reads like a leftover and is the opposite: a return to that regime
+    # would otherwise have nothing to read against. It used to be the only
+    # place the previous run's basis survived; since 2026-08-29 every run
+    # from 7 on has a file of its own, so what this now protects is the
+    # pairing rather than the record. Prose asks for it; this makes the
+    # asking stick.
     # `install --in-place` writes `?` into any cell it cannot carry
     # forward -- a row new to the roster -- and says so once, on stderr,
     # hours before anyone reads the table. Twelve reached a published
@@ -6858,8 +6860,8 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
     # A warning nobody re-reads is a gate that does not exist, so this
     # is the gate: no cell of a published table may still be `?`.
     #
-    # OUTSIDE the yardstick block below, reading nothing of it: it sat
-    # inside, so a renamed yardstick header disabled this gate as well as
+    # OUTSIDE the two-column block below, reading nothing of it: it sat
+    # inside, so a renamed header disabled this gate as well as
     # that one, and the `?` cells the comment above says shipped would
     # have gone unreported for that run. Moved 2026-08-17 by review.
     qmark = [i + 1 for i, ln in enumerate(lines)
@@ -6877,7 +6879,7 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
     # row without complaint, filling from the LEFT, so a row that was
     # written when the table was narrower goes on rendering -- with each
     # value now under whichever column later runs pushed it to. That is
-    # how the yardstick's four bottom rows came to sit five columns from
+    # how the old yardstick's four bottom rows came to sit five columns from
     # the runs the prose said they were: they were written at `f42ef4a`,
     # when the table was `| strategy | Run 8 | Run 7 |`, and every run
     # since prepended a column without padding them. No anchor, figure or
@@ -6910,18 +6912,18 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
 
     yard = [l for l in lines if l.startswith('| strategy |') and '(' in l]
     if not yard:
-        bad.append('the yardstick table is gone: no `| strategy |` header'
-                   ' naming its runs, so no run has a basis to be read'
-                   ' against')
+        bad.append("the run file's two-column geomeans are gone: no"
+                   ' `| strategy |` header naming the run and its halves,'
+                   ' so the next run has no basis to be read against')
     else:
         regimes = set(re.findall(r'\(([^)]*)\)', yard[0]))
         if len(regimes) < 2:
-            bad.append('the yardstick table names one regime (%s); the'
-                       " other regime's column is the only surviving record"
-                       ' of that run and is not to be pruned'
+            bad.append('the two-column table names one regime (%s); a'
+                       ' paired run publishes a column per half and neither'
+                       ' is folded into the other'
                        % (', '.join(sorted(regimes)) or 'none'))
         else:
-            print('ok:   the yardstick keeps a column per regime (%s)'
+            print('ok:   the run file keeps a column per regime (%s)'
                   % ' / '.join(sorted(regimes)))
 
         # A paired run puts two columns here, one per half, and neither may
@@ -6957,7 +6959,7 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
             halves[run].add(bool(re.search(r'(?<!un)aligned', regime)))
         for run, kinds in sorted(halves.items()):
             if kinds == {True}:
-                bad.append('the yardstick names Run %s aligned and nothing'
+                bad.append('the run file names Run %s aligned and nothing'
                            ' else: a paired run publishes a column per half,'
                            ' the other one being named for the build it is'
                            ' -- unaligned, max-skip -- and never folded in'
@@ -9053,8 +9055,8 @@ def main():
                         ' its tables, so the reading a run owes can be taken'
                         ' as enumerated rather than whole')
     p.add_argument('--with-tables', dest='with_tables', action='store_true',
-                   help='--section prints the tables too; the yardstick is'
-                        ' the case that wants it')
+                   help='--section prints the tables too; the run''\'''s own'
+                        ' two-column geomeans are the case that wants it')
     p.add_argument('--delete', metavar='ANCHOR',
                    help='delete the paragraph carrying ANCHOR, refusing a'
                         ' list or anything past --delete-limit; the deletion'

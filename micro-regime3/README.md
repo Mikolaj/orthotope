@@ -543,14 +543,14 @@ ones is REFUSED --- 2026-08-22, on reading two of them.**
 `What Run N was built to answer` arrives once a run and none has ever left,
 which makes the family the one part of this section that grows on a schedule;
 cutting the older ones to a verdict and a pointer was the obvious answer
-and the pointer has nowhere to aim. The run's file is replaced every run,
-and the yardstick keeps one geomean per strategy per half --- where
-a registration's answers are half-against-half and control readings
-that no table here carries: Run 11's `list` scatter of 0.958 to 1.043
-and its two-and-two max-skip split, Run 16's 35 arms of 42 inside 1.5%. So they
-are not long entries that failed to point but the only copy there is. The length
-rule happens to pass them by, every one of them pointing somewhere as well;
-where one does not, this ruling is the authority and not the rule.
+and the pointer has nowhere to aim. The run's file is replaced every run
+and keeps one geomean per strategy per half --- where a registration's answers
+are half-against-half and control readings that no table here carries: Run 11's
+`list` scatter of 0.958 to 1.043 and its two-and-two max-skip split, Run 16's 35
+arms of 42 inside 1.5%. So they are not long entries that failed to point
+but the only copy there is. The length rule happens to pass them by, every one
+of them pointing somewhere as well; where one does not, this ruling
+is the authority and not the rule.
 
 **The spent run registrations are not here, and where they went is the half
 a removal owes.** Runs 10 to 16's went to `MARGINALIA` on 2026-08-23, verbatim
@@ -2045,11 +2045,11 @@ rather than a slot in the next run, observed again:
   than a debt. The build specification that entry had accumulated goes with it,
   a retired run having no use for one. An -O1 reading of a single ordering stays
   available as a filtered probe, as the 2026-08-08 twin probes were; what
-  is retired is the evening. `--check-doc` enforces the yardstick's shape
-  in the one direction it safely can: a run named aligned must also be named
-  unaligned, so dropping Run 10's unaligned column fails the check. Dropping
-  an *aligned* one cannot be checked, an unpaired run being what every column
-  before Run 10 is, and stays the reading's job.
+  is retired is the evening. `--check-doc` enforces the run file's own
+  two-column table in the one direction it safely can: a run named aligned must
+  also be named unaligned, so dropping the unaligned half fails the check.
+  Dropping an *aligned* one cannot be checked, an unpaired run being what every
+  column before Run 10 is, and stays the reading's job.
 
   **Run 11 had no unaligned half, and the check was left alone rather
   than widened --- the reading is that this was right.** Its two columns
@@ -2882,14 +2882,14 @@ that by about a third while remaining true as stated. Re-aiming is a decision
 and not a reading, which is why Run 20 did not take it.
 
 **And one thing this run's own checkers caught that its author did not.**
-The yardstick table is one of the two tables edited by hand rather
-than installed, and it gains a column per run; this write-up rebuilt
-the cross-class summary and forgot the yardstick entirely. What surfaced
-it was `--check-doc`'s note of paragraphs unchanged from the previous run ---
-the paragraph explaining what each pair of columns is for stood untouched, which
-is exactly what a table that never gained its columns looks like from the prose
-side. The note is worth reading for that reason and not only for staleness:
-an unchanged explanation is evidence about the thing it explains.
+The run file's own two-column table is one of the two edited by hand rather
+than installed; this write-up rebuilt the cross-class summary and forgot
+that one entirely. What surfaced it was `--check-doc`'s note of paragraphs
+unchanged from the previous run --- the paragraph explaining what each pair
+of columns is for stood untouched, which is exactly what a table that never
+gained its columns looks like from the prose side. The note is worth reading
+for that reason and not only for staleness: an unchanged explanation is evidence
+about the thing it explains.
 
 **Both of Run 17's items are spent, and this heading no longer carries them.**
 Its first --- which shapes poison --- was answered 2026-08-18 and its account
@@ -3963,10 +3963,10 @@ against](runs/run21.md#what-the-next-run-compares-against).
   the reading is Run 8's and is what a later run would have to re-establish
   before using it. Read such a cell first and average it away last.
 - **The rows where both leaders of the pure tier lost to `bq-expand`
-  are not derived again**, a set a run had re-derived under its yardstick since
+  are not derived again**, a set a run had re-derived under that section since
   Run 19. `vFillStrided` ships the mutable fill, so that ordering flags nothing
-  and no run owes its yardstick section such a paragraph; the last of them
-  is in Run 21's file.
+  and no run owes that section such a paragraph; the last of them is in Run 21's
+  file.
 
 The measured bullets above are on positive-stride views. The [stride
 classes](#the-stride-classes-and-what-they-cover) put the same axis under other
@@ -5221,7 +5221,7 @@ not done, which is the whole of why this is a list and not a sentence.
          -- one sentence: what this run's own head has to answer
     3. What the next run compares against, its prose and not its figures
          -- the regime, the roster and the basis, each named
-    4. the yardstick under it, the ONE table read, `--with-tables`
+    4. the two-column table under it, the ONE table read, `--with-tables`
          -- does it carry the last run's columns? Run 20's write-up
             forgot to add its own, which is why this is named separately
     5. the claims, BOTH numbered sets AND the prose after them, which is where
@@ -7622,7 +7622,7 @@ docstring rather than re-derived.
                                             # a line range being unable to
                                             # skip what sits between the
                                             # paragraphs it spans.
-                                            # --with-tables is the yardstick's
+                                            # --with-tables is that table's
     ./read-run.py --delete ANCHOR           # delete the paragraph carrying
                                             # ANCHOR: --replace's counterpart,
                                             # refusing a list and anything
@@ -8465,9 +8465,9 @@ and `-A32m` against bases identical to them but for the allocation area. Run 15
 answers the quantification: over the whole table the baseline moves **5.13%**
 and every ratio with it, so the two halves' `time` columns are not subtractable
 and the arm-by-arm reading is the one to use --- which is now the standing rule
-for every pair that varies the area, [stated
-under the yardstick](runs/run21.md#what-the-next-run-compares-against),
-those runs' own files having since been replaced.
+for every pair that varies the area, [stated under what the next run compares
+against](runs/run21.md#what-the-next-run-compares-against), those runs' own
+files having since been replaced.
 
 **The predictor, recorded before the run that would test it.** What decides
 whether an arm feels the nursery is not its total allocation but its allocation
@@ -9799,14 +9799,15 @@ was reworded, which is the failure this list was rewritten to escape.
 - [the run's own file](runs/run21.md) ENTIRE, which is what makes it a file:
   its head, carrying the run's name, regime, scale and source commit, the layout
   span a roster order change alone is worth and which half published what;
-  the Results table and the findings under it; the yardstick and the two-column
-  per-shape fingerprint, which are the only per-shape record kept once the JSON
-  is deleted; the claims, where a run reports which held rather than re-deriving
-  them; each class's own table, controls, provenance, anchor and paragraph;
-  and its own Provenance, carrying what the pair was, how the sequence ran,
-  the three main-set anchors with the eight class ones, and the correction's
-  span. The bullets that used to name those sections one by one are this one,
-  and the coverage check below reads it as covering every heading in that file;
+  the Results table and the findings under it; its own two-column geomeans
+  and the two-column per-shape fingerprint, which are the only record kept once
+  the JSON is deleted; the claims, where a run reports which held rather
+  than re-deriving them; each class's own table, controls, provenance, anchor
+  and paragraph; and its own Provenance, carrying what the pair was, how
+  the sequence ran, the three main-set anchors with the eight class ones,
+  and the correction's span. The bullets that used to name those sections one
+  by one are this one, and the coverage check below reads it as covering every
+  heading in that file;
 - [the recommended tasks after Run 21](#recommended-tasks-after-run-21), which
   is run-scoped by its own title: a task taken or superseded leaves it --- which
   RENUMBERS the rest, so `grep -n 'task [0-9]'` over this file and the run's

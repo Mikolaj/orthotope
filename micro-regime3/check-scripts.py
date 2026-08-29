@@ -405,16 +405,25 @@ def rundoc_with_ragged_row(tmp):
     the values were Run 8's while the table put them five columns away.
     Recovered from git (`f42ef4a`, where the table was two columns wide)
     rather than guessed, 2026-08-20.
+
+    The table it plants in is now the run's OWN two halves and no earlier
+    run's, the yardstick having been removed on 2026-08-29 once every run
+    from 7 on had a file of its own. So this drops ONE cell where it used
+    to drop two: a row a single cell short is as ragged as one five short
+    and is what a hand-edited two-column table can actually suffer. The
+    defect the docstring above describes is the wide table's and is kept
+    because it is why the width pass exists.
     """
     lines = rundoc_lines()
     h = next(i for i, l in enumerate(lines) if l.startswith('| strategy |')
              and '(' in l)
     for i in range(h + 2, len(lines)):
         if not lines[i].startswith('|'):
-            raise AssertionError('no data row found under the yardstick')
+            raise AssertionError('no data row found under the'
+                                 " run's two-column table")
         cells = lines[i].split('|')[1:-1]
-        if len(cells) > 4:
-            lines[i] = '|' + '|'.join(cells[:1] + cells[3:]) + '|'
+        if len(cells) > 2:
+            lines[i] = '|' + '|'.join(cells[:1] + cells[2:]) + '|'
             break
     return write_rundoc(tmp, '\n'.join(lines))
 
