@@ -23,6 +23,17 @@ Run 21's file carried, which until then was the only record of these figures.
 
 ## The five alignment registrations, and how each was decided
 
+The run's roster order was chosen for heap state --- `sum-only-early` above
+`list`, so nothing is measured on an ungrown pool --- and the layout it happens
+to give was then read off the binary rather than shopped for, which
+is the distinction that keeps the run from being confirmatory. **Run 10 is now
+two binaries rather than one**, differing only in the assembler shim, so each
+prediction below says which half it is read on and the last two exist only
+because there are two ([the run's
+plan](../README.md#making-a-major-benchmark-run) has why, and the build
+and check sequence). Against Run 9's offsets, both of the straddle hypothesis's
+arms move, in opposite directions:
+
 1. **The FastReshape three go straddling to resident** (mod 40, 44, 44 to mod 0,
    36, 36) while their control stays resident (24 to 16). The hypothesis
    predicts 1.1552, 1.1795 and 1.1645 collapse toward 1.00. If they hold near
