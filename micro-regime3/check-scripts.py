@@ -435,6 +435,33 @@ def rundoc_without_class_table(tmp, cls='slice'):
     return write_rundoc(tmp, '\n'.join(lines))
 
 
+def rundoc_paired_run_aligned_only(tmp):
+    """A copy naming one half aligned and no counterpart.
+
+    The check this provokes had a control in the document until
+    2026-08-29: the yardstick carried Run 10's aligned column beside its
+    unaligned one, so the passing branch was a real pass and deleting one
+    of them failed (re-proved 2026-08-11). Removing the yardstick took
+    that control with it -- the run file now carries only this run's two
+    halves, and no live run names a half aligned -- which left the branch
+    a silent search. This is its control now, planted rather than found,
+    and it is the whole reason the fixture exists.
+    """
+    lines = rundoc_lines()
+    yard = [i for i, l in enumerate(lines)
+            if l.startswith('| strategy |') and '(' in l]
+    assert len(yard) == 1, 'two-column header: %d line(s)' % len(yard)
+    h = lines[yard[0]]
+    cells = h.split('|')
+    hit = [k for k, c in enumerate(cells) if 'Run ' in c and '(' in c]
+    assert len(hit) >= 2, 'header names %d halves, need a pair' % len(hit)
+    cells[hit[0]] = re.sub(r'\(([^)]*)\)', '(SpecConstr, aligned)',
+                           cells[hit[0]])
+    cells[hit[1]] = re.sub(r'\(([^)]*)\)', '(SpecConstr, aligned)',
+                           cells[hit[1]])
+    lines[yard[0]] = '|'.join(cells)
+    return write_rundoc(tmp, '\n'.join(lines))
+
 def rundoc_yardstick_renamed_with_qmark(tmp):
     """The yardstick header renamed, and a `?` left in a published cell.
 
@@ -3262,6 +3289,16 @@ CASES = [
          argv=['--check-doc', '--main', '{main}', '--readme', '{readme}'],
          ok=V(exit=1, has=['BLOCKED: the open list']),
          bug=V(exit=0)),
+
+    case('checkdoc-paired-run-aligned-with-no-counterpart',
+         'read-run.py', 'a6c32e8',
+         'a half named aligned with no counterpart folds a pair into one',
+         plant=lambda t: {'rundoc': rundoc_paired_run_aligned_only(t)},
+         argv=['--check-doc', '--run-doc', '{rundoc}'],
+         ok=V(has=['aligned and nothing']),
+         # No --audit, for the reason the case below gives: `--run-doc`
+         # postdates every commit this could replay against.
+         ),
 
     case('checkdoc-qmark-under-renamed-yardstick', 'read-run.py', 'a6c32e8',
          'a renamed yardstick header disabled the published-`?` gate',

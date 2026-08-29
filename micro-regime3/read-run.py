@@ -6930,11 +6930,16 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
         # be dropped or folded into the other: an aligned build is a regime
         # and not a second reading of the one beside it. Keyed off the run
         # number so this holds for any later pairing and not just Run 10.
-        # It HAS a live control now that Run 10 has landed: the yardstick
-        # carries its two columns, so the pass above is a real pass, and
-        # deleting the unaligned one from a copy fails with the message below
-        # (re-proved 2026-08-11). Before that it could not fire at all and was
-        # exercised by hand only. The run that would have published an aligned
+        # Its control was Run 10's two columns in the yardstick until that
+        # table went on 2026-08-29: no live run names a half aligned any
+        # more, so nothing in these documents can make this branch fire and
+        # the pass above is vacuous on its own. Its control is planted now,
+        # `checkdoc-paired-run-aligned-with-no-counterpart` in
+        # check-scripts.py, which renames both halves of the run file's own
+        # table aligned and expects the message below; proved able to fail
+        # the day it was written, by breaking its expectation. Before Run 10
+        # landed it could not fire either and was exercised by hand only.
+        # The run that would have published an aligned
         # column and no unaligned one was Run 11, aligned against a max-skip
         # half; SETTLED BY RENAMING THE COLUMNS, not by widening this, so the
         # rule below is unchanged and reads as "a paired run publishes a
