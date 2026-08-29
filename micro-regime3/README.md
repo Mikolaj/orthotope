@@ -2942,12 +2942,29 @@ limit belongs in the sentence that asks for the measurement.
    and it reproduces on GHC HEAD within a tenth of each. Stage one reaches
    `genericFillStrided` there, which is a bang-for-bang port
    of `mut-odo-vecdims-add-in-leaf-u2`, so the gap is between two fills
-   and not between two dispatches. **What would settle what the gap IS**:
-   the counted work already run on both halves does not separate them, both
-   being one binary's arms, so the measurement is a `-g3` dump of `fillStage2`
-   against `genericFillStrided` and an instruction count of the two over one
-   shape --- minutes, no quiet machine, and available while the binaries live.
-   Until then the branch should not replace the shipped fill on regime-3 views,
+   and not between two dispatches. **HALF OF WHAT THE GAP IS, measured
+   2026-08-29 off the counted work already on disk.** Both arms sit in one
+   binary, so an arm-against-arm instruction count has no codegen-between-halves
+   confound; subtracting `sum-only-early` from each, as the time column
+   subtracts it, `lib-stage2` against `lib-stage1` reads **2.776 on `rev`, 2.979
+   on `slice`, 3.516 on `scaled`, 2.237 on `window` and 1.743 on the main set
+   IN INSTRUCTIONS** against time ratios of 4.015, 4.098, 4.077, 3.724
+   and 2.432. So on regime 3 the dominant term is that the branch's fill
+   executes about THREE TIMES the instructions per element, which is a code
+   question and readable without another run. A second term rides on top
+   of it and does not go away: time over instructions runs **1.16 to 1.67**
+   on those five and never approaches 1, so the branch's fill also retires fewer
+   instructions per cycle. **And the broadcast classes invert the first term
+   without escaping the second**: `bcast` and `bcastmid` execute FEWER
+   instructions than stage one, 0.844 and 0.408 --- the block-copy and splat
+   paths earning their place --- while still reading 1.481 and 2.118 on time
+   over instructions, which is why `bcast` loses in time on an arm that emits
+   less code. **What is left to settle** is only the second term
+   and the mechanism of the first: a `-g3` dump of the two fills over one
+   regime-3 shape, minutes and no quiet machine, available while the binaries
+   live. No mechanism is proposed here --- fewer instructions per cycle
+   is consistent with several, and this file does not guess between them. Until
+   then the branch should not replace the shipped fill on regime-3 views,
    whatever it does elsewhere.
 2. `OPEN` **The run-length condition, which the `runs` class measured rather
    than assumed.** Stage two's fill is flat in run length at 0.114 to 0.158
