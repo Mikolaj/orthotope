@@ -2548,3 +2548,87 @@ misses --- is not open on the one arm built to look for it.
 [pershape]: ../README.md#per-shape-where-the-geomean-hides-the-ordering
 [procedure]: ../README.md#making-a-major-benchmark-run
 [prov]: ../README.md#provenance
+
+
+## What this run was built to answer, and what it answered
+
+**Three registrations held, one was killed at the build, one split, and one
+fired before it passed --- which is the plateau gate doing the job it was added
+for.** Its pair is `run20-g912`, the basis, against `run20-ghead`: ghc-9.12.4
+against GHC HEAD 10.1.20260803, the in-tree stage1 of the checkout
+under `~/r/horde-ad/ghc` at `d415f38a75`, on one source, one shim, one roster
+and one regime, both halves under `WILDLOG=1 SATURATE=1`. It is Run 19's pair
+over the extended roster, decided 2026-08-26 by whoever asked for the run,
+on `run19-pair.txt`'s two recipes with `Main.hs` moved from `e9fab1e`
+to `ba79b3c`: nine timed arms in, three demoted to `Only`, so the roster is 53
+timed arms over 24 main-set shapes and 26 class views, 1272 benches and 1378.
+`align-as.py` is at `40f7a37`, unmoved since Run 18 was built. Six
+registrations, each with what killed it or did not:
+
+1. *The shipped arm and the rework's five.* **SPLIT, and the split is the run's
+   most useful finding.** `mut-odo-vecdims-add-in-leaf-u2`, the arm
+   `genericFillStrided` is a bang-for-bang port of, is emphatically ahead
+   of the arm it refines --- **0.7034 at 20 of 24, sign p 0.0015** on the basis
+   and **0.7022 at 19 of 24, p 0.0066** on HEAD --- so the kill condition,
+   `mut-odo-vecdims` ahead of it by more than the floor, did not fire
+   and the shipped code is not behind the code it was refined from.
+   **But it does not head the vecdims family, which the registration also
+   asserted**: `mut-odo-vecdims-add-in-leaf-down` reads **0.9489 of it at 17
+   of 24 (p 0.064)** on the basis and **0.9389 at 19 of 24 (p 0.0066)** on HEAD,
+   5.1% and 6.1%, each outside its half's floor of 1.51% and 1.18% and
+   in the same direction on both compilers. The third member, `-add-in-leaf`,
+   does not carry across the compilers at all --- 0.9598 of `-u2` on the basis
+   and **1.1267** on HEAD --- and is the run's largest cross-half movement
+   at 0.8513, so nothing recommends it. **Of the rework's five, two held their
+   registered population and one broke.** `bcast-set` is ahead of its control
+   on `bcast` at **0.9230, 3 of 3**; `mid-copy` on `bcastmid` at **0.5490, 4
+   of 4**, and it takes that class's table outright at 0.017 against the fix's
+   0.031, which is property 2 breaking outside the family. `canon-memcpy-r2`
+   on `window` is **BEHIND** the arm it varies, **1.0636 at 0 of 3**, where
+   the registration asked for ahead and the scratch probe had read a factor.
+   Both conditions stay inside their controls' floors where they do not fire ---
+   on `slice`, `bcast-set` 1.0530 against a 5.73% floor and `mid-copy` 1.0074.
+   And the degenerate cells arrived as named: `reshape1`'s other three shapes
+   return O(1) for the canonicalizing arms, so `reshape1-strided-r3` is the one
+   cell of that class pricing a fill, and the reader's sunk-cell rule drops
+   the other three from those rows rather than failing the file.
+2. *The pinning claim, in its strong form.* **KILLED, at the build on 2026-08-26
+   and not in the evening.** Not one tracked loop stayed where `run19-g912` held
+   it: the four-copy group at `[0, 24, 0, 4]` became a six-copy group
+   at `[0, 0, 24, 0, 0, 24]`, every address moved and none by a constant, on two
+   builds one recipe, one shim, one compiler and one dependency store apart ---
+   their package ABI strings identical as sets. So the pinning claim covers
+   additions that cost nothing to place and nothing wider, and every figure read
+   across the Run 19 boundary carries a layout term this run cannot separate.
+3. *The compiler.* **HELD, 8 of 8 on both halves**, the count and content off
+   `--claims`: no BROKE on 9.12.4 and none on 10.1.20260803, a third clean sweep
+   and the first on the eight the settlement of 2026-08-24 left. Claim 7's
+   allocation read per compiler as registered: **1143 of 1224** allocating cells
+   agree to 1e-4, worst **1.13e-02 on `cnn-slice-c32/bq-expand-qr-prim`** ---
+   the same arm on the same shape Run 19 named, where it read 1016 of 1080.
+   A compiler reallocates within a tier; no tier moved.
+4. *The decomposition.* **HELD on both halves.** The state term reads
+   **+12.27%** on the basis and **+13.27%** on the control, the roster's own
+   share **+0.66%** and **+0.29%**, both geomeans inside their halves' floors,
+   against Run 19's +11.73%/+12.57% and +0.31%/+0.72%. The tail is the same
+   shape on both halves and the same one Run 19 named, `stretch-tall-Mx2`
+   at 1.0999 and 1.1301.
+5. *Counted work.* **DELIVERED over every population**, both halves, 5300 cells,
+   no cell perf refused, read with `--counts` rather than hand-rolled. It splits
+   the pair's movements as registered: `bq-odo-gm-mulback`
+   and `bq-scan-rem-gm-mulback` at count ratios of 0.9340 and 0.9423 --- Run
+   19's two figures --- against the placement-exposed six at 1.0000 to four
+   figures. **What is new is the nine new arms' own counts**:
+   `mut-odo-vecdims-add-in-leaf` reads 0.8971 on the counts against 0.8513
+   in time, so ten of its fifteen points are codegen and five are not, while
+   `canon-vecdims` moves 4.7% in time at a count ratio of 0.9997
+   and is placement or runtime entire.
+6. *The plateau.* **FIRED, then HELD, and the firing is the result.** The gate
+   read an **8.72%** spread against a 5% band over the eighteen processes;
+   the per-sample instrument confirmed an intrusion rather than a wild cell,
+   at 71, 54, 134 and 131 benches above 0.25 foreign CPU on `window`
+   and `scaled`, both halves. Those four were rerun on a quiet box
+   and the plateau now reads **4.26%**. So the instrument caught a contaminated
+   evening that every within-process gate had passed --- eighteen `--selftest`s
+   and eighteen `--aa`s were clean throughout --- which is exactly what
+   it was registered to do.

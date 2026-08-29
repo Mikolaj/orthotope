@@ -2866,9 +2866,27 @@ CASES = [
          # three of Run 12's four items shout (`ANSWERED:`, `REFUTED,`,
          # `THE RUN IS CLEAN`) and the fourth does not (`the debt is
          # PAID`), so an all-caps rule passed the one case it existed for.
+         #
+         # THE BODIES LEFT README ON 2026-08-29, each registration moving
+         # into the file of the run that made it and leaving a verdict and
+         # a pointer. A stub carries no numbered items, so flipping its
+         # marker trips nothing and this case stopped firing -- found by
+         # the suite the same hour, which is what it is for. So the entry
+         # is planted WHOLE now: the lead, the bad marker, and two items
+         # carrying verdicts, one shouting and one not, which is the
+         # distinction the pattern was keyed on.
          plant=lambda t: {'readme': edited_readme(t, (
              a_registration_lead(),
-             a_registration_lead().replace('`ANSWERED`', '`OPEN`', 1)))},
+             a_registration_lead().replace('`ANSWERED`', '`OPEN`', 1)
+             # The verdict must sit INSIDE the bolded span, which is
+             # where `adjudicated` looks and where every real item
+             # puts it; outside it the item reads unadjudicated and
+             # neither branch fires, which is silence and not a pass.
+             + '\n  1. **A registered question. ANSWERED: it held.**'
+               ' With its reading.'
+             + '\n  2. **A second one, and the debt is PAID.**'
+               ' With its reading too.'
+             + '\n'))},
          argv=['--check-doc', '--quiet', '--readme', '{readme}'],
          ok=V(exit=1, has=["registration is marked OPEN"])),
 

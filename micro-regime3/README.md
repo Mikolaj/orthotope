@@ -538,19 +538,17 @@ the exemption and gets listed, which is a failure a reader can see; Run 10's had
 drifted, its lead saying *predictions* where its own text calls them
 registrations, and was normalised back.
 
-**The run registrations are the standing exception to it, and reducing the old
-ones is REFUSED --- 2026-08-22, on reading two of them.**
-`What Run N was built to answer` arrives once a run and none has ever left,
-which makes the family the one part of this section that grows on a schedule;
-cutting the older ones to a verdict and a pointer was the obvious answer
-and the pointer has nowhere to aim. The run's file is replaced every run
-and keeps one geomean per strategy per half --- where a registration's answers
-are half-against-half and control readings that no table here carries: Run 11's
-`list` scatter of 0.958 to 1.043 and its two-and-two max-skip split, Run 16's 35
-arms of 42 inside 1.5%. So they are not long entries that failed to point
-but the only copy there is. The length rule happens to pass them by, every one
-of them pointing somewhere as well; where one does not, this ruling
-is the authority and not the rule.
+**The run registrations were the standing exception to it, and the refusal
+of 2026-08-22 is SPENT --- its premise, not its reasoning, is what went.**
+`What Run N was built to answer` arrives once a run; cutting the older ones
+to a verdict and a pointer was the obvious answer and was refused because
+**the pointer had nowhere to aim**, a run's file being replaced every run while
+a registration's answers are half-against-half and control readings no table
+carries. The run-file split ended that, and the back-fill of 2026-08-29 finished
+it: `runs/` accumulates, every run from 7 on has a file, and a registration now
+sits in the file of the run that made it, with a verdict and a pointer here.
+Nothing was reduced, which is what the refusal actually forbade --- each entry
+moved whole. The length rule therefore binds this family like any other.
 
 **The spent run registrations are not here, and where they went is the half
 a removal owes.** Runs 10 to 16's went to `MARGINALIA` on 2026-08-23, verbatim
@@ -951,79 +949,10 @@ rather than a slot in the next run, observed again:
   shapes of 24, and reproducing Run 10's reading. Recorded here because the list
   is meant to be the only home, and a session mining it walked past this one.
 - `ANSWERED` **What Run 21 was built to answer, registered before it ran ---
-  and what it answered.** The pair was Run 20's again, `run21-g912` against
-  `run21-ghead`, one source and one shim, both under `WILDLOG=1 SATURATE=1`,
-  over the extended roster: 49 timed arms, 1176 main-set benches and 1617 class
-  benches over nine classes. Five questions were registered on 2026-08-28
-  with a prediction and a kill condition each; **four of the five are refuted
-  and the fifth is a split**, which is the most one-sided set of verdicts any
-  run here has returned, and the reason is one fact the registrations shared:
-  they were written expecting the branch's `fillStage2` to be about as fast
-  as the fill it replaces, and it is not. (1) *The `runs` class.* **SPLIT,
-  and the half that held is the half that was doubted.** `lib-stage2` /
-  `lib-stage1` reads 0.0854, 0.1529, 0.4626, 2.8823, 5.2058, 6.4790 and 5.6810
-  across the seven run lengths on the basis and 0.0821 to 6.2086 on HEAD,
-  so **the crossover falls between `runs-9` and `runs-96` exactly
-  as registered** and the kill condition --- stage two not behind past the floor
-  at 96, 1024 and 65536 --- did not fire, it being behind by factors of 2.9, 5.2
-  and 6.5. What was refuted is the short-run prediction of *a tie inside
-  the floor at `runs-2` and `runs-3`*: stage two is twelvefold and sixfold
-  **ahead** there. `lib-stage2-concat` restoring stage one's figure at every
-  length **HELD**, at 1.0027, 0.9893, 1.0584, 1.0185, 1.0046, 0.9961 and 1.0044.
-  The `canon-memcpy-r2` against `canon-vecdims` prediction --- behind at 3
-  and 9, ahead at 96 and up --- is **PARTIAL**: it crosses between 3 and 9
-  (1.3706 then 0.9486), one step earlier than registered. (2) *The composite.*
-  **KILLED, by its own condition and by a wide margin.** `lib-stage2` against
-  `mut-odo-vecdims-add-in-leaf-u2` on the main set was predicted a tie inside
-  the floor, killed by a margin past it either way; it reads **2.5132 at 1 of 24
-  shapes, sign p 3e-06** on the basis and 2.3496 on HEAD, where the floor
-  is 2.92% --- a factor and a noise floor, so no arithmetic between them
-  is worth doing at this size. Against `canon-full` on the broadcast classes
-  it was predicted ahead by the leaf body's margin; it reads 1.0459 on `bcast`
-  and **1.2149** on `bcastmid`, so behind on one and level on the other. (3)
-  *The spill.* **REFUTED, with the sign inverted and the magnitude right.**
-  `-u2-down` against `-u2` was predicted ahead on the long-run shapes by up
-  to the 15 to 18% `-down` took there on Run 20; it is **behind** on exactly
-  those three, 1.1590 on `stretch-wide-2xM`, 1.0760 on `-inner256` and 1.1369
-  on `-tab7MB` on the basis, and 1.1743, 1.0912 and 1.1550 on HEAD, for main-set
-  geomeans of 1.0506 and 1.0777 at 3 and 2 wins of 24. The k3-conv tie half
-  **held on the basis alone** (1.0088, 1.0134, 0.9903) and not on HEAD (1.1078,
-  1.1113, 1.1158). The registration said a tie everywhere would oblige a `-g3`
-  dump of the new arm before anything else; a loss of this size obliged it more,
-  and **the dump was taken 2026-08-29 and refutes the reasoning rather
-  than the arm's placement** --- the count-down form is a value heavier
-  in the run loop, `oEnd` doubling as the next run's `op` where a falling count
-  does not --- [the ceiling][ceiling]'s fifth reading. (4) *Stage two on every
-  class.* **KILLED --- this is the registered regression the benchmark was built
-  to catch, and it fired.** No class was to read the branch behind stage one
-  past its floor. Six do, by factors: `rev` 4.0152, `revsome` 4.5377, `slice`
-  4.0984, `scaled` 4.0765, `window` 3.7237 and the main set 2.4323, each
-  reproducing on HEAD within a tenth. The predicted ties on `rev`, `revsome`,
-  `slice`, `scaled` and `window` are all refuted; `bcast` was predicted ahead
-  at 0.92 and reads 1.2496; `bcastmid` was predicted ahead at 0.55 and reads
-  0.8648, ahead but by a quarter of what was registered; `reshape1` degenerate
-  for stage two **HELD**, and its one non-degenerate cell,
-  `reshape1-strided-r3`, reads the same regression at 3.66. On allocation,
-  `lib-stage2-concat` alone above stage one on `runs` **HELD** (15.99x against
-  14.49x at `runs-2`), while *`lib-stage2` at `lib-stage1`'s level on every
-  population* is **refuted in stage two's favour**: it reads 1.00x flat where
-  stage one runs to 14.49x, stage one's concat route being what allocates. (5)
-  *The list consumer.* **REFUTED in both halves and in the opposite direction
-  to the one registered.** `liblist-stage2` against `liblist-stage1`
-  was predicted a tie in time on every regime-3 population and behind
-  at `runs-2`, `-3` and `-9`; it reads **2.3811** on the main set, 3.1627
-  on `rev` and 1.1896 on `bcast` --- far behind, not tied --- and on `runs`
-  it is **ahead at every length**, 0.8278, 0.7971, 0.6237, 0.7468, 0.9487,
-  1.0008 and 0.9581. In allocation it was predicted above stage one on `runs`
-  by an `Int` per run; it is **below** it, 10.99x against 14.49x at `runs-2`
-  and 3.22x against 4.00x at `runs-9`. **What the set is worth despite that**:
-  every one of the five was decidable, none came back a null, and the four
-  refutations locate the same object from four directions --- `fillStage2`
-  is the branch's cost and canonicalization is its benefit, with the boundary
-  between them measurable in run length. The horde-ad regression
-  the registrations were aimed at is therefore not the table an `Int` per run
-  buys; it is the driver.
-
+  and what it answered.** The registrations, their kill conditions and their
+  verdicts are [in Run 21's own file](runs/run21.md), where they were moved
+  on 2026-08-29; a registration is that run's record and reads against
+  that run's tables.
 - `OPEN` **What is the 3% that survives alignment on `build`/`mut-odo`?**
   With both copies of one worker at offset 0 the pair still reads 0.9685
   on the main set, tying by the sign test (16 of 24) while the interval misses
@@ -2122,217 +2051,10 @@ rather than a slot in the next run, observed again:
   percent on one side should say so in its chapter rather than passing the gate
   silently, as Runs 16 and 17 did.
 - `ANSWERED` **What Run 18 was built to answer, registered before it ran ---
-  and what it answered.** Its pair was `run18-g912`, the basis, against
-  `run18-g914`, settled 2026-08-21 and run 2026-08-23: GHC 9.14.1 against
-  9.12.4, on one source carrying `-fobject-determinism`, the per-sample
-  instrument and a saturating preamble. Five registrations. **Three held, one
-  broke narrowly and one failed to the machine rather than to the pair.**
-  The basis is Run 17's basis recipe over `saturate-preamble.patch` (applied
-  after `wildlog-instrument.patch`, whose `lookupEnv` it uses); the other half
-  is the same source and shim on 9.14.1 through `cabal.project.ghc914`, whose
-  freeze resolves the same `vector`, `criterion` and `criterion-measurement`
-  versions at the one index-state, so the halves differ in the compiler
-  and its boot libraries and in nothing a freeze can see --- which prices
-  the consumer's 9.14 build, library code recompiled included, and is to be read
-  as such. The preamble is the state made an input: `SATURATE=<dose>` sprays
-  dose x 1.15M short-lived pinned buffers of 2304 B before criterion sees
-  the roster, collects, and prints one `@@saturate` line carrying
-  a fixed-iteration reading of `vgg-14-c512-k3/list` and the heap peak;
-  on for every recorded process and every probe read against a recorded cell,
-  off for the clean alone legs, skipped by `check`, `diag` and `--list`.
-  **Its non-vacuity and its dose are measured, on a quiet machine** (2026-08-22,
-  `sat-probe`, the basis recipe's binary, loadavg under 1; a first evening's
-  figures at loadavg 1.5 to 2.0 had read +31% and scattered, and were the load).
-  `vgg-14-c512-k3/list` alone reads 16.6 to 16.8 ms clean; after
-  the reproducer's pure pinned burst 18.2 to 18.7 at dose 1 and 18.0 to 18.3
-  at dose 2, +9 to +11%; after the roster's own sprayer ---
-  `cnn-slice-c32/list`'s fill for a fixed million iterations, each a 288-cell
-  cons list and a 2304 B pinned result, both formation routes at once --- 19.1
-  to 19.3 at dose 1 and 19.2 at dose 2, +14 to +15%; and with that sprayer run
-  as a criterion bench ahead of the victim in one process, no preamble, 18.6
-  to 19.0, where Run 16's roster cell read 18.45 against its alone leg's 16.38.
-  So the plateau holds for both doses, dose zero is the clean level, and
-  on that shape the roster's own sprayer reproduces the roster's state where
-  the pure burst falls some three points short --- which is why `SATURATE_BY`
-  defaults to `list` and keeps `spray` as the control. The 9.14 binary reads
-  the same, 19.04 against 16.96. **Over five more shapes the picture
-  is flatter** (`probe-decomp-dryrun.log`, the same binary and evening):
-  the `list` dose lifts `list` by 12 to 16% and the `spray` dose by 10 to 14.5%,
-  against Run 16's roster-over-alone-leg deflations of 9 to 13.5% on the same
-  shapes, so both doses land in the roster's band within a few points,
-  the `list` dose erring about two points high on average and the `spray` dose
-  about half a point low, with the sign varying by shape ---
-  `stretch-inner256`'s roster cell sits five points under both. The default
-  stands, both routes being in it, and what changes is how registration 3 reads:
-  the rest is a few points of either sign and not a constant. Registrations,
-  each with what kills it: (1) *the bridge*, the 9.12 basis against
-  `run17-wildlog` across the preamble's source change, every arm inside
-  the drift band and the fills where Run 17 held them, killed by an arm outside
-  it --- **but the placement-exposed arms are outside that condition
-  and were put there 2026-08-22, on Run 17's own measurement**: this
-  is a `.text`-changing comparison and by a long way, the two source changes
-  between the halves adding **24576 bytes** to `run17-wildlog`'s 20381893 ---
-  12288 for the preamble and 12288 again for the load fields, three pages each,
-  measured at 20394181 and 20406469 --- where the instrument patch Run 17 priced
-  added 4096, and 4096 was worth up to 8% on `gen-unsafe`, `gen-quotrem`,
-  `build`, `mut-odo`, `offtab` and `bq-mut` with no strategy changed. Six times
-  that shift is what the bridge is read across. So a movement on those six
-  families is layout and kills nothing; the other arms are what the registration
-  is over --- **less one more, `bq-expand-zf`, exempted 2026-08-22
-  on a measurement taken because it could not be taken afterwards.** Two builds
-  of the basis recipe either side of the load fields, differing in nothing else,
-  put the tracked fills at `[0, 24, 0, 4]` and `[0, 0]` on both, every copy
-  fitting --- so the fields do not move the fills, which is the question Run 18
-  had to ask --- but the second carries **one straddling loop where the first
-  carries none**, 38 bytes at offset 32, and a `-g3` twin names
-  it `fbBQexpandZF`, which is `bq-expand-zf` and a timed arm rather
-  than the instrument's own code. Run 17's basis straddled nowhere, so Run 18's
-  basis carries a straddle its predecessor had not, on an arm [Run 10 priced
-  a straddle at 12 to 14%](#what-moves-a-figure-when-no-strategy-changed).
-  It is in BOTH halves, one source building them, so the compiler registration
-  is untouched and only the bridge sees it. **Not chased, and the ruling
-  is this README's own**: layout is not hand-tuned here, which is what the shim
-  is for --- moving the new functions about the module until the straddle lands
-  elsewhere is a lottery the next source change re-rolls, no claim rests
-  on `bq-expand-zf`, whose series closed at Run 13, and raising the shim's skip
-  budget would be a regime change that confounds the compiler. **And it
-  is a weak answer to the pinning claim rather than the strong one [the floor
-  section asks for][floor]**: all six tracked copies moved by 3200 bytes,
-  a whole multiple of 64, so nothing forced the shim to re-pin anything.
-  **And the fills half of it is already answered and answers nothing**:
-  `sat-probe` read `[0, 24, 0, 4]` and `[0, 0]`, Run 17's exactly,
-  so that clause is measured rather than predicted --- and Run 17's twelve arms
-  moved while its own two halves' fills were identical, which is why a fill
-  match is not evidence the arms held still; (2) *the compiler*, the registered
-  orderings holding on 9.14.1, killed by a BROKE that clears that half's floor
-  --- a margin moving is the finding and not a break, as claim 4's history says
-  --- with claim 7's allocation levels read per compiler, a compiler being able
-  to change allocation where a slot cannot. **Which orderings, read off
-  `--claims` and not off this sentence, which was written before Run 17 ran
-  and said thirteen**: Run 17 broke two of that thirteen --- claim 4's second
-  half, now twice running, and claim 9's first --- and *restated* claim 4,
-  so what Run 18 inherits is an ordering where the manifest had a tie. Re-read
-  the count and the content out of the manifest before the evening; (3)
-  *the decomposition*, every shape's `list` alone leg twice on the basis, `SAT=`
-  off and on through `run-alonelegs.sh`, against its roster cell: the state
-  is saturated minus clean and the rest is roster minus saturated. The dry run
-  over six shapes puts the rest between -1.4 and +5 points with no constant
-  sign, so the registration is the distribution over the 24 shapes and
-  not a cell: its median inside the floor, its tails named and read per shape,
-  a median past the floor naming what the state is not, criterion's own
-  interleaving between samples the first suspect. The `spray` dose's legs,
-  a third column if the budget allows, price the burst route's share, some ten
-  of the thirteen points on `vgg-14-c512-k3` and within two points of the `list`
-  dose elsewhere. The alone legs themselves are sound: ten processes
-  of `cifar-L2-16-c64-k3/list` land within 0.9%, so `list` is immune
-  to the per-process placement term that unreads `offtab` and `build`; (4)
-  *counted work*, `run-counts.sh` on both halves, instructions an iteration
-  for every arm and shape from two fixed-`-n` processes a cell --- not
-  for the orderings, which the pilot on Run 16 refused it (the TODO list's
-  ruling), but per arm the count ratio 9.14/9.12 beside the time ratio: time
-  moving with counts is codegen, time moving without counts is the runtime
-  or memory, layout being pinned --- a compiler's codegen term and runtime term
-  separated for the first time; (5) *the plateau*, every recorded process's
-  `@@saturate` victim reading inside a band of the run's own, a process outside
-  it read before its figures are. **What is built**: `saturate-preamble.patch`,
-  with its two doses, proved to build and to fire on both compilers; `sat-probe`
-  and `sat-probe-914`, its binaries for the between-run probes, deleted after
-  their read-backs and rebuilt from `run18-pair.txt`'s recipes when wanted;
-  `cabal.project.ghc914` and its freeze; `run-counts.sh`, proved on one cell
-  (`vgg-14-c512-k3/list` 260.6M instructions an iteration, `mut-odo` 54.4M,
-  `sum-only-early` 8.1M, `N` = 5); the `SAT=` mode of `run-alonelegs.sh`, which
-  refuses a binary without the preamble. **Both patches landed in `Main.hs`
-  by commit on 2026-08-22**, Run 17's pair being spent, so every recipe lost
-  its apply step and each patch file stays as the record of what it was as one
-  diff, refusing a second application in its own header. **The one pre-run risk
-  is retired**: the shim reads back on 9.14's assembly --- `sat-probe-914`,
-  the other half's recipe, has 113 self-loops in `Main`-compiled code, 61
-  at offset 0 and none straddling, the 9.12 probe 110, 56 and none, the tracked
-  28 B groups reading `[0, 24, 0, 0]` and `[0, 0]` against `[0, 24, 0, 4]`
-  and `[0, 0]`; its `--list` and its `check` output are byte-identical
-  to the 9.12 probe's, and the preamble fires there alike. One trap
-  for the read-back: on 9.14 the baked RTS line is stored with a byte before it,
-  so `strings | grep -x` misses it while `+RTS --info` reports it and the heap
-  peak shows it in effect --- the notes and `run-alonelegs.sh` read
-  it by `--info` now. **What was owed before the evening was taken 2026-08-22,
-  before any build, and only the `-g3` twins per compiler are left, which belong
-  at the write-up.** The stamp carries its load fields: the `@@wild` line gains
-  `load=` (the 1-minute average from `/proc/loadavg`), `run=` (that line's
-  instantaneous count of runnable tasks) and `cpu=` (the machine-wide busy
-  jiffies from `/proc/stat`'s first line, in USER_HZ, which the kernel fixes
-  at 100 whatever it ticks at), read in the same hooks outside the timed block;
-  `./read-run.py --wild LOG` differences a bench's `pre` and `post` stamps
-  and prints the CPU something else consumed during its samples, the `cpu` delta
-  less the process's own mutator-plus-collector delta the line already carries.
-  The reason is the wild cell: from inside a process its signature ---
-  a non-reproducing mutator step at flat RTS totals --- is exactly an external
-  intrusion's, and Run 16's updater cell was told apart only by a wall-clock
-  window; these fields tell the two apart, foreign CPU during a bench's samples
-  being the updater class and none the machine's own. The 1-minute average alone
-  dates a multi-minute intruder and barely marks a ten-second one (it is damped
-  over 60 s and updated every 5 s), which is why the other two ride with it.
-  Stamped per sample with the rest of the line and *reported* per bench,
-  /proc/stat's 10 ms jiffy saying nothing inside one short sample. The plateau
-  is counted per process in `run-major.sh`, exactly as bench counts are,
-  and banded across them in `read-all.sh`, at 5% --- loose against the 0.9% ten
-  alone-leg processes span, tight against the 14% an unsaturated process reads
-  below a saturated one --- with `check-scripts.py` cases behind all of it,
-  controls among them; and `run-alonelegs.sh` and `run-counts.sh` have cases
-  now, each written against a defect it turned out to have. **Not in Run 18**:
-  a roster change, which would confound the compiler. The 24m/48m probe, which
-  could have reopened the area, was taken ahead of Run 17 and killed.
-  And the `add-in` placement question, deferred by [its own entry][open]
-  to a run that has the compilers measured.
-
-  **THE VERDICTS, 2026-08-23.** (1) *The bridge*: **BROKEN, and narrowly.** Read
-  as it has to be on this run --- per shape as a ratio to `list`, because
-  the box moved 4.8% between the two runs and `--compare` across runs reads
-  absolutes, so its own output puts `list` at +5.52% and every arm with it ---
-  the 26 arms the registration covers give a geomean of 0.9867 with **two
-  outside the 3.3% drift band**: `bq-gen` at 0.9545 and `bq-mut-runs-gm-mulback`
-  at 0.9639. The kill condition was an arm outside the band, and two are.
-  `mut-odo-vecdims` reads 1.0062, `mut-flat-gm` 1.0022, `bq-scan-rem-gm-mulback`
-  0.9825 and `bq-expand` 0.9803, so the arms the claims rest on are inside
-  it and the break is at the edges of the roster. The exempted placement-exposed
-  families run 0.9333 to 1.0216, which is why they are exempted. (2)
-  *The compiler*: **HELD, and it is the run's headline.** All thirteen
-  registered orderings hold on 9.14.1 and all thirteen on 9.12.4, no BROKE
-  on either half, and claim 7's allocation reads per compiler at 1072 of 1080
-  cells agreeing to 1e-4. (3) *The decomposition*: **HELD.** The total
-  in-process deflation is +12.76% on the basis and +12.53% on the control,
-  and the preamble splits it: the **state** is +11.43% and the **rest**
-  the roster adds on top is **+1.20%**, whose median sits inside this run's
-  1.36% floor, which is what the registration asked. Twenty of the 24 shapes put
-  the rest above 1 and the tails are named --- 0.9905 on `stretch-bigstride`
-  and **1.1004** on `stretch-tall-Mx2`, the one shape where the roster adds ten
-  points beyond the saturated state. So the preamble reproduces the roster's
-  state to within the floor and the dose is right. (4) *Counted work*:
-  **DELIVERED, and it separates the two terms for the first time.** Instructions
-  an iteration on both halves, over 42 arms, split the roster cleanly in two.
-  The `bq-expand` family moves in counts and time **together** --- counts 0.9889
-  and time 0.9884 on `bq-expand` itself, with its twins, `-b`, `-qr-prim`, `-zf`
-  and `-gm-mulback` all at counts 0.988 to 0.991 ---
-  and `mut-odo-vecdims-add-both-down` likewise at counts 1.0278 against time
-  1.0361. That is codegen, and it is the whole of the codegen this pair found.
-  The arms with the **largest** time differences move at count ratios
-  of **1.0000**: `bq-gen` +9.26% in time, `offtab` -5.76%, `gen-unsafe` -6.29%
-  and `gen-quotrem` -3.14%, every one of them emitting the same number
-  of instructions on both compilers to four decimal places. Time without counts
-  is the runtime or memory rather than the code, and the correlation of the log
-  ratios over all 42 arms is 0.213, weak as the Run 16 pilot found.
-  **So the placement-exposed family's seven percent is not 9.14 emitting
-  different code for it**, which is the sharpest thing this instrument has said
-  and is a second, independent line on the same conclusion the `-g3` twins
-  reach. (5) *The plateau*: **FAILED, and the failure is the machine rather
-  than the pair.** The eighteen processes read the preamble's victim
-  from 20.0411 to 21.7604 ms an iteration, an 8.58% spread against the 5% band
-  `read-all.sh` gates at. The nine that ran before 10:52 span 20.04 to 20.38 ---
-  **1.7%**, well inside the band --- and every reading above 21 belongs
-  to a process that started after it, `g912-reshape1` at 21.76 and `g914-slice`
-  at 21.73 leading them. So the gate is reading the intrusion it was built
-  to notice, the band is the right band, and what a future run should
-  not conclude from this is that the preamble is unstable.
-
+  and what it answered.** The registrations, their kill conditions and their
+  verdicts are [in Run 18's own file](runs/run18.md), where they were moved
+  on 2026-08-29; a registration is that run's record and reads against
+  that run's tables.
 - `ANSWERED` **Which of the `bq-expand`-centric claims retire, now that the fix
   decided is `mut-odo-vecdims`.** **Settled 2026-08-24**: claims 3, 4, 5 and 9
   retire, claim 1 gains `bq-scan-rem-gm-mulback` and the tie at its foot,
@@ -2360,209 +2082,15 @@ rather than a slot in the next run, observed again:
   TODO outside this list.
 
 - `ANSWERED` **What Run 19 was built to answer, registered before it ran ---
-  and what it answered.** **Four registrations held, one held while its own
-  claim moved underneath it, and the sixth came back a negative that
-  is this run's sharpest result.** Its pair is `run19-g912`, the basis, against
-  `run19-ghead`, settled and built 2026-08-24: GHC HEAD 10.1.20260803,
-  the in-tree stage1 of the checkout under `~/r/horde-ad/ghc`, against
-  ghc-9.12.4, on one source, one shim, one roster and one regime, both halves
-  under `WILDLOG=1 SATURATE=1`. It is Run 18's pair with HEAD in 9.14's place,
-  asked for as that, and the basis recipe is Run 18's basis recipe with nothing
-  changed at all: `Main.hs` at `e9fab1e` and `align-as.py` at `40f7a37` have
-  not moved since that pair was built, and the rebuild reproduces `run18-g912`
-  byte for byte --- md5 `9768189b5c6947beca4ba89cad5800c8`, `.text` 20406469 B,
-  the same tracked fills and the same one 38 B straddler --- so the md5's
-  one-sided instrument answers, and every input is proved unmoved
-  with the dependency store among them. HEAD wants a project file of its own,
-  `cabal.project.ghead`, `cabal.project.freeze` pinning `base ==4.21.2.0`
-  and so refusing this compiler outright: it takes `base installed`
-  and `allow-newer` for the boot packages, pins `criterion ==1.6.5.0`
-  and `vector ==0.13.2.0` with `+boundschecks -unsafechecks` by hand, and names
-  `hashable ==1.5.0.0` outright, 1.5.1.0's cabal file not declaring
-  the `ghc-bignum` its source imports. `cabal.project.ghead.freeze` beside
-  it pins the rest at the index-state the other two plans hold, so the three
-  differ in the boot libraries and in nothing else a freeze can see. **The one
-  pre-run risk is retired before the pair exists**: the shim was written against
-  9.12's NCG output, and on HEAD's it reads back 109 self-loops
-  in `Main`-compiled code, 51 at offset 0 and none straddling, against
-  the basis's 113, 56 and one; the halves' `check` output is byte-identical
-  on every shape it walks, their `--list` identical at 1128, and `diag` reads
-  SpecConstr on both. **And HEAD groups the tracked loops differently before
-  anything is timed**: its 28 B census is a four-copy group at `[23, 0, 1, 2]`,
-  a three-copy group at `[0, 0, 13]` and a two-copy group at `[0, 0]`, where
-  the basis holds `[0, 24, 0, 4]` and `[0, 0]` --- the three-copy group being
-  `bq-mut-runs-gm-mulback`, `bq-mut-lemire-mulback` and `bq-mut-runs-mulback`
-  compiled to one seven-instruction body that 9.12 does not share between them.
-  Six registrations, each with what kills it: (1) *the repetition*, `run19-g912`
-  against `run18-g912` --- one binary, two runs a day apart on one box,
-  so `--compare` reads absolutes fairly and every arm belongs inside the drift
-  band, killed by an arm outside it; what it prices is the box and the harness
-  rather than any code; (2) *the compiler*, the registered orderings holding
-  on HEAD, killed by a BROKE that clears that half's floor, with claim 7's
-  allocation read per compiler, a compiler being able to change allocation where
-  a slot cannot --- the count and the content off `--claims` and not off
-  this sentence, which was written when thirteen of thirteen read HELD on Run
-  18's basis; (3) *the decomposition*, every shape's `list` alone leg twice
-  on each half, `SAT=` off and on through `run-alonelegs.sh`, against its roster
-  cell: the state is saturated minus clean, the rest is roster minus saturated,
-  and the registration is the distribution over the 24 shapes with its median
-  inside the floor, where Run 18 read +11.43% and +1.20%; (4) *counted work*,
-  `run-counts.sh` on both halves --- over the MAIN SET, which is all the script
-  could then sweep --- the count ratio HEAD over 9.12 beside the time ratio per
-  arm; time moving with counts is codegen and time moving without them
-  is the runtime or the memory, which is how Run 18 put the placement-exposed
-  family's seven percent on count ratios of 1.0000; taken 2026-08-24 ahead
-  of the evening, counts wanting no quiet machine; (5) *the plateau*, every
-  recorded process's `@@saturate` victim inside a band of the run's own, banded
-  at 5% across them by `read-all.sh`; (6) *the offset swap*, whose instrument's
-  limit is now measured rather than assumed. Run 18 read the swap off a `-g3`
-  twin per compiler, each twin reproducing its timed binary's tracked offsets
-  with its addresses a flat `0x40` below. Both twins were built here before
-  the run: the 9.12 one repeats that exactly, being the same binary,
-  and **the HEAD twin does not locate anything**. It reads `[0, 31, 31, 21]`
-  where the timed `run19-ghead` reads `[23, 0, 1, 2]`, at address deltas
-  of `0x45A9`, `0x49DF`, `0xF65E` and `0xFC13` rather than one constant. Byte
-  identity cannot stand in, the four copies being one 28 B sequence
-  by construction, and no weaker `-g` level is a way round, `-g1` changing
-  the emitted code exactly as `-g3` does. So a twin names HEAD's four functions
-  and does not say which copy is which, except under the ascending-address
-  correspondence, which the 9.12 half satisfies and nothing on the HEAD half
-  checks. What the registration may report is the timed offsets, measured
-  on both halves, and the margin; an attribution of a HEAD margin to a slot
-  is an assumption and is to be written as one. The question stands --- Run 18
-  put `mut-odo-vecdims` and `-add-in` at 0 and 24 on 9.12 and at 24 and 0
-  on 9.14, the margin following the offset both times, while the control pair
-  sat at 0 on both and split by compiler as far --- and it is the reading
-  that is weaker here, not the question. **Not in Run 19**: a roster change,
-  which would confound the compiler; the floor question, whose preamble half
-  wants one binary over the roster twice rather than a pair; and the `add-in`
-  placement probe, which [its own entry][open] defers to a run that has
-  the compilers measured. **THE VERDICTS, 2026-08-25.** (1) *The repetition*:
-  **HELD**, and it did more than pass. Every one of the 42 arms landed between
-  0.9836 and 1.0133 with `list` at 0.9918 and the machine check at -0.84%,
-  so the box and the harness reproduce to under a percent --- but the same
-  binary's FLOOR went 1.36% to 2.32%, which answers the standing floor question
-  in this list by killing both of its candidates at once. (2) *The compiler*:
-  **HELD**, all thirteen orderings on both halves, no BROKE, which is what let
-  the four retiring claims retire on a reading rather than on a decision.
-  **Its allocation half did not**: 1016 of 1080 cells agree across the halves
-  where the 9.14 pair had 1072, so HEAD reallocates within the tiers while every
-  tier returns --- the registration named exactly this as the thing a compiler
-  can do that a slot cannot, and it is the first time claim 7 has caught
-  anything. (3) *The decomposition*: **HELD** on both halves, the state
-  at +11.73% and +12.57% against Run 18's +11.43%, the rest at +0.31%
-  and +0.72%, both geomeans inside their floors. (4) *Counted work*:
-  **DELIVERED, and it is now the reader's.** The reading was hand-rolled for two
-  runs, so `--counts` was built here with three cases behind it, and it splits
-  the pair cleanly: the fast pure tier's six-to-seven-percent loss is
-  on its instruction counts, and `gen-unsafe`, `mut-odo`, `offtab` and `bq-gen`
-  move at count ratios of 1.0000 to 1.0019. `bq-gen` is the finding ---
-  the largest movement to HEAD's credit, +7.5%, at the same instructions;
-  the largest against it, `bq-odo-gm-mulback` at 0.9270, is the one the counts
-  explain. **And the registration was narrower than it read**: the sweep covered
-  the main set alone, which no sentence in this file said, so eight of the nine
-  populations had no counted work at all. Extended and swept the same day,
-  sixteen further files: seven classes agree with the main set and `reshape1`'s
-  geomean inverts, by 0.3% and with 78 of its 139 cells still HEAD-heavier,
-  on a unit-innermost rule the chapter states. (5) *The plateau*: **HELD**,
-  eighteen processes at 19.6244 to 20.2847 ms/iter, a 3.37% spread inside the 5%
-  band. (6) *The offset swap*: **SPLIT --- the margin half DELIVERED
-  and the instrument half KILLED.** The margin repeated a third time --- 0.9755
-  at 19 of 24 and p 0.0066 on 9.12, 0.9991 at 14 of 24 and p 0.54 on HEAD,
-  the same win count and p as Run 18's 9.14 half --- but under the address-order
-  assumption HEAD arranges the two arms as 9.12 does, where 9.14 had them
-  swapped, so the slot account predicts a margin that is absent. Either
-  the correspondence fails on HEAD or the margin does not follow the slot,
-  and this pair separates neither; the control moved three points between
-  compilers in the direction the add-in pair did not. What is measured stands:
-  both halves' timed offsets, and both margins.
+  and what it answered.** The registrations, their kill conditions and their
+  verdicts are [in Run 19's own file](runs/run19.md), where they were moved
+  on 2026-08-29; a registration is that run's record and reads against
+  that run's tables.
 - `ANSWERED` **What Run 20 was built to answer, registered before it ran ---
-  and what it answered.** **Three registrations held, one was killed
-  at the build, one split, and one fired before it passed --- which
-  is the plateau gate doing the job it was added for.** Its pair
-  is `run20-g912`, the basis, against `run20-ghead`: ghc-9.12.4 against GHC HEAD
-  10.1.20260803, the in-tree stage1 of the checkout under `~/r/horde-ad/ghc`
-  at `d415f38a75`, on one source, one shim, one roster and one regime, both
-  halves under `WILDLOG=1 SATURATE=1`. It is Run 19's pair over the extended
-  roster, decided 2026-08-26 by whoever asked for the run, on `run19-pair.txt`'s
-  two recipes with `Main.hs` moved from `e9fab1e` to `ba79b3c`: nine timed arms
-  in, three demoted to `Only`, so the roster is 53 timed arms over 24 main-set
-  shapes and 26 class views, 1272 benches and 1378. `align-as.py`
-  is at `40f7a37`, unmoved since Run 18 was built. Six registrations, each
-  with what killed it or did not:
-
-  1. *The shipped arm and the rework's five.* **SPLIT, and the split
-     is the run's most useful finding.** `mut-odo-vecdims-add-in-leaf-u2`,
-     the arm `genericFillStrided` is a bang-for-bang port of, is emphatically
-     ahead of the arm it refines --- **0.7034 at 20 of 24, sign p 0.0015**
-     on the basis and **0.7022 at 19 of 24, p 0.0066** on HEAD --- so the kill
-     condition, `mut-odo-vecdims` ahead of it by more than the floor, did
-     not fire and the shipped code is not behind the code it was refined from.
-     **But it does not head the vecdims family, which the registration also
-     asserted**: `mut-odo-vecdims-add-in-leaf-down` reads **0.9489 of it at 17
-     of 24 (p 0.064)** on the basis and **0.9389 at 19 of 24 (p 0.0066)**
-     on HEAD, 5.1% and 6.1%, each outside its half's floor of 1.51% and 1.18%
-     and in the same direction on both compilers. The third member,
-     `-add-in-leaf`, does not carry across the compilers at all --- 0.9598
-     of `-u2` on the basis and **1.1267** on HEAD --- and is the run's largest
-     cross-half movement at 0.8513, so nothing recommends it. **Of the rework's
-     five, two held their registered population and one broke.** `bcast-set`
-     is ahead of its control on `bcast` at **0.9230, 3 of 3**; `mid-copy`
-     on `bcastmid` at **0.5490, 4 of 4**, and it takes that class's table
-     outright at 0.017 against the fix's 0.031, which is property 2 breaking
-     outside the family. `canon-memcpy-r2` on `window` is **BEHIND** the arm
-     it varies, **1.0636 at 0 of 3**, where the registration asked for ahead
-     and the scratch probe had read a factor. Both conditions stay inside their
-     controls' floors where they do not fire --- on `slice`, `bcast-set` 1.0530
-     against a 5.73% floor and `mid-copy` 1.0074. And the degenerate cells
-     arrived as named: `reshape1`'s other three shapes return O(1)
-     for the canonicalizing arms, so `reshape1-strided-r3` is the one cell
-     of that class pricing a fill, and the reader's sunk-cell rule drops
-     the other three from those rows rather than failing the file.
-  2. *The pinning claim, in its strong form.* **KILLED, at the build
-     on 2026-08-26 and not in the evening.** Not one tracked loop stayed where
-     `run19-g912` held it: the four-copy group at `[0, 24, 0, 4]` became
-     a six-copy group at `[0, 0, 24, 0, 0, 24]`, every address moved and none
-     by a constant, on two builds one recipe, one shim, one compiler and one
-     dependency store apart --- their package ABI strings identical as sets.
-     So the pinning claim covers additions that cost nothing to place
-     and nothing wider, and every figure read across the Run 19 boundary carries
-     a layout term this run cannot separate.
-  3. *The compiler.* **HELD, 8 of 8 on both halves**, the count and content off
-     `--claims`: no BROKE on 9.12.4 and none on 10.1.20260803, a third clean
-     sweep and the first on the eight the settlement of 2026-08-24 left. Claim
-     7's allocation read per compiler as registered: **1143 of 1224** allocating
-     cells agree to 1e-4, worst **1.13e-02
-     on `cnn-slice-c32/bq-expand-qr-prim`** --- the same arm on the same shape
-     Run 19 named, where it read 1016 of 1080. A compiler reallocates within
-     a tier; no tier moved.
-  4. *The decomposition.* **HELD on both halves.** The state term reads
-     **+12.27%** on the basis and **+13.27%** on the control, the roster's own
-     share **+0.66%** and **+0.29%**, both geomeans inside their halves' floors,
-     against Run 19's +11.73%/+12.57% and +0.31%/+0.72%. The tail is the same
-     shape on both halves and the same one Run 19 named, `stretch-tall-Mx2`
-     at 1.0999 and 1.1301.
-  5. *Counted work.* **DELIVERED over every population**, both halves, 5300
-     cells, no cell perf refused, read with `--counts` rather than hand-rolled.
-     It splits the pair's movements as registered: `bq-odo-gm-mulback`
-     and `bq-scan-rem-gm-mulback` at count ratios of 0.9340 and 0.9423 --- Run
-     19's two figures --- against the placement-exposed six at 1.0000 to four
-     figures. **What is new is the nine new arms' own counts**:
-     `mut-odo-vecdims-add-in-leaf` reads 0.8971 on the counts against 0.8513
-     in time, so ten of its fifteen points are codegen and five are not, while
-     `canon-vecdims` moves 4.7% in time at a count ratio of 0.9997
-     and is placement or runtime entire.
-  6. *The plateau.* **FIRED, then HELD, and the firing is the result.** The gate
-     read an **8.72%** spread against a 5% band over the eighteen processes;
-     the per-sample instrument confirmed an intrusion rather than a wild cell,
-     at 71, 54, 134 and 131 benches above 0.25 foreign CPU on `window`
-     and `scaled`, both halves. Those four were rerun on a quiet box
-     and the plateau now reads **4.26%**. So the instrument caught
-     a contaminated evening that every within-process gate had passed ---
-     eighteen `--selftest`s and eighteen `--aa`s were clean throughout --- which
-     is exactly what it was registered to do.
-
-
+  and what it answered.** The registrations, their kill conditions and their
+  verdicts are [in Run 20's own file](runs/run20.md), where they were moved
+  on 2026-08-29; a registration is that run's record and reads against
+  that run's tables.
 ### Recommended tasks after Run 21
 
 **What Run 21 made cheaper for the next run, which is not a figure and no other
@@ -5471,17 +4999,15 @@ of the hours rather than after them. Unsandboxed throughout:
     #      is the two agreeing. Write it by hand ABOVE the script's block,
     #      clearing `GATE: not yet run` in the same edit. A gate answers
     #      sound or not sound; never quote a magnitude from one
-    ./read-run.py --para 'What Run'       # 15. the run's registered
-    #      predictions. SEVERAL LEADS MATCH `What Run`, so it prints an
-    #      index of leads and locations and you ask again for the one you
-    #      want; `--all` prints them whole where the set is the point.
-    #      READ `What Run N compares against` besides,
-    #      because --para matches bolded open-list leads and a run whose
-    #      registrations live under that heading returns only its
-    #      predecessors', which reads as an empty registration. An empty
-    #      one really is not a blocker, so this step's own licence to
-    #      record it and go is what hides the miss. The pair note names
-    #      where its registrations are; believe the note over the mode
+    ./read-run.py --section 'What this run was built to answer'
+    #      15. the PREVIOUS run's registered predictions and its verdicts,
+    #      in its own file, where they have lived since 2026-08-29. The
+    #      open list's entry per run is a lead, a verdict and a pointer,
+    #      so `--para 'What Run'` now reads the pointer and not the
+    #      registration -- which returns something, and an empty-looking
+    #      registration is not a blocker, so believing it is how the miss
+    #      hides. Read the section, and the pair note names where a run
+    #      put its own if it differs
     uptime; ps -eo pid,etime,comm | grep $R-      # 16. the ALARM, never
     #      the permission -- unsandboxed, or ps sees only this session's
     #      own processes. It runs here, after the go-ahead and before the
@@ -6639,9 +6165,13 @@ was missed, which is what they have cost.
     #      as 10a and 10b do in the pre-run list, and never precedes it
     #  10. walk the open list: grep the settled index before adding an
     #      entry, move answered ones with their measurement, and add each
-    #      surprise with what would settle it. Prediction verdicts go THERE,
-    #      not in the chapter the next run replaces; report a split as a
-    #      split, arm by arm
+    #      surprise with what would settle it. PREDICTION VERDICTS DO NOT
+    #      GO HERE: since 2026-08-29 a run's registrations and their
+    #      verdicts live in `What this run was built to answer, and what
+    #      it answered` in the run's OWN file, written at step 5 with the
+    #      rest of it, and the open list keeps one `ANSWERED` entry per
+    #      run -- the lead, a verdict in a clause, and a link to that
+    #      file. Report a split as a split, arm by arm
     ./read-run.py $R-<basis>-main.json --deflation   # 10a. and the same
     #      on the control: the roster cell over its own alone leg, per
     #      shape, which is what the riders were run for. RAW over RAW,
