@@ -193,7 +193,12 @@ Modes:
   --check-doc       anchors, the paths the documents name, replace-list
                     coverage, widths, and a sweep of the superseded figures
                     still quoted -- over README.md AND the run's own file
-                    together, and over Main.hs comments -- no run needed
+                    together, and over Main.hs comments -- no run needed.
+                    Three counts are held to MAIN.HS and not to the
+                    documents' own other sentences: the A/A population,
+                    the class-block count and the class table's `shapes`
+                    column. Sites agreeing with each other say only that
+                    they were edited together
   --para PATTERN    print the paragraphs whose bolded lead matches, from
                     either document, with the file and line each starts
                     at -- no run needed
@@ -7543,11 +7548,30 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
         # and every site still read eighteen, in agreement and wrong. The
         # roster is the authority and Main.hs carries it, so this costs no
         # artifact and survives their deletion. Added 2026-08-29.
-        WORDS = {'four': 4, 'six': 6, 'eight': 8, 'ten': 10, 'twelve': 12,
-                 'fourteen': 14, 'sixteen': 16, 'eighteen': 18, 'twenty': 20}
+        # Non-vacuity, 2026-08-29, all three branches: every site moved to
+        # `eighteen` together FAILs naming the roster where the older
+        # site-against-site check passed (corpus case
+        # `aa-population-agrees-with-itself-and-not-the-roster`); a roster
+        # doctored to 21 Twin arms FAILs with the no-word message; and the
+        # live documents exit 0.
+        WORDS = {'two': 2, 'three': 3, 'four': 4, 'five': 5, 'six': 6,
+                 'seven': 7, 'eight': 8, 'nine': 9, 'ten': 10, 'eleven': 11,
+                 'twelve': 12, 'thirteen': 13, 'fourteen': 14, 'fifteen': 15,
+                 'sixteen': 16, 'seventeen': 17, 'eighteen': 18,
+                 'nineteen': 19, 'twenty': 20, 'twenty-two': 22,
+                 'twenty-four': 24}
         want = len(aa)
         named = sorted(w for w, v in WORDS.items() if v == want)
-        for b in sorted(base):
+        # A roster count this vocabulary cannot SPELL is the checker's gap
+        # and not the document's, so it says so rather than failing prose
+        # that may be perfectly right. Same shape as the empty-search FAIL
+        # above: a check that cannot run says it did not run.
+        if not named:
+            bad.append('the roster has %d Twin arm(s) and this check has no'
+                       ' word for that count, so it could not be compared'
+                       ' -- teach WORDS the spelling in the same edit that'
+                       ' first uses it' % want)
+        for b in sorted(base) if named else []:
             if WORDS.get(b) != want:
                 bad.append('the A/A population is named `%s` where the roster'
                            ' has %d Twin arm(s)%s -- Main.hs is the authority,'

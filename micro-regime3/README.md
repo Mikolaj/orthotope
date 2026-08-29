@@ -2781,26 +2781,39 @@ printing `out, first` and `out, last` beside `in, first` and `in, last`; reading
 only the incoming pair is what hid it for one call. **So the rule is to read
 both sides of every `--replace`**, and the recovery is cheap for the reason
 post-run step 5 gives: the run file was committed verbatim before the write-up
-began, so the lost paragraph came back out of git exactly. **Two other refusals
-fired and both were right**: `--delete` refused a 1830-character paragraph
-as section-shaped until `--delete-limit` said the deletion was meant,
-and `--replace` refused a list item that was not its list's first, naming
-the items it would have discarded. **One skipped step, recorded because
-this README names the trap and the session walked into it anyway**:
-`--check-doc` was read through `tail`, so the exit status reported was `tail`'s
-and not the checker's. The verdict happened to be the same; the practice
-was not, and the run chapter's own *a verification command must not be piped*
-is the rule that was there to be followed. **And two computations
-were improvised that the reader should own.** A per-class counted-work geomean
-has no mode --- `--counts` prints per-arm rows per population and no aggregate
-over them --- so the nine class figures in the run file's head were computed
-over its printed rows by hand. And the reading that turned out to be this run's
-sharpest, `lib-stage1` sitting ABOVE the `list` baseline at `runs-2`, came out
-of a hand-rolled per-shape ratio table over `--cells`; `--block` prints
-a per-shape line for two fixed arms and nothing that would have shown it. Both
-are defect reports against the reader by this file's own standing rule,
-and the second is the one that would have changed what a reader of the class
-block sees.
+began, so the lost paragraph came back out of git exactly. That rule is now
+a line of post-run step 6a rather than a sentence here, which is where a fact
+that changes what an executor does belongs --- a 9a finding left in prose is one
+the next session pays for again, and this section had no way of reaching
+the lists until 2026-08-29. **Two other refusals fired and both were right**:
+`--delete` refused a 1830-character paragraph as section-shaped until
+`--delete-limit` said the deletion was meant, and `--replace` refused a list
+item that was not its list's first, naming the items it would have discarded.
+**One skipped step, recorded because this README names the trap and the session
+walked into it anyway**: `--check-doc` was read through `tail`, so the exit
+status reported was `tail`'s and not the checker's. The verdict happened
+to be the same; the practice was not, and the run chapter's own *a verification
+command must not be piped* is the rule that was there to be followed --- stated
+three times across these documents and broken anyway, which is why the answer
+taken was not a fourth statement of it: `--lint`, `--check-doc`
+and `check-scripts.py` now end with `VERDICT: PASS/FAIL (exit N)`, so a run
+piped into `tail` shows the answer instead of hiding it. **And two computations
+were improvised that the reader should own --- both filed as defect reports
+against it, and both DISCHARGED on 2026-08-29.** A per-class counted-work
+geomean had no mode, `--counts` printing per-arm rows per population
+and no aggregate over them, so the nine class figures in the run file's head
+were computed over its printed rows by hand --- and then Run 20's figure, taken
+over a different population, was published as reproducing from neither.
+`--counts` now prints the geomean over BOTH populations and names each, which
+is the fix that matters: the arithmetic was never the difficulty, the unstated
+population was. And the reading that turned out to be this run's sharpest,
+`lib-stage1` sitting ABOVE the `list` baseline at `runs-2`, came out
+of a hand-rolled per-shape ratio table over `--cells`, `--block` printing
+a per-shape line for two fixed arms and nothing that would have shown it;
+`--pair A B --per-shape` now prints the ratios the range line was already a max
+and min of and threw away. The standing rule earned its place twice over here
+--- a hand-rolled aggregate is not merely inconvenient, it is how one session's
+correct figure gets called wrong by the next.
 
 **And two items left this subsection, which is what a heading naming the current
 run obliges.** *What tightened the floor on Run 18* was answered by Run 19
