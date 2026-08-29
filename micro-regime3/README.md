@@ -2988,44 +2988,60 @@ limit belongs in the sentence that asks for the measurement.
    source vector every iteration where the shipped one reads through an unboxed
    `Addr#`, spending fifty instructions and twenty-three stack accesses per two
    elements against eighteen and four, which is the 2.78 the counter read
-   as 2.776. **What is left to settle** is why it also retires fewer
-   instructions per cycle, and that wants a counter reading of stalls
-   and mispredicts rather than another dump --- the frame's store-to-load chains
-   and its indirect branch are candidates the dump found present, not causes
-   it measured. Until then the branch should not replace the shipped fill
-   on regime-3 views, whatever it does elsewhere, and `a29748b`'s `INLINE`
-   pragmas do not lift that: they emit byte-identical code, having fired all
-   along.
+   as 2.776. **And the fix is taken the same day**, [the ceiling][ceiling]'s
+   eighth reading: one bang an argument in the library and in the port alike
+   takes the fill to fourteen instructions over two stack accesses, below
+   the shipped fill's own eighteen and four. **So every figure in this entry
+   is PRE-FIX and none of it is a reading of what the branch now holds.** What
+   is left is therefore a re-measurement and not a dump: whether the 2.4 to 4.5
+   collapses as the instruction counts say it must, and what survives
+   of the second term, which loses its candidates on the regime-3 populations
+   --- the frame and its store-to-load chains are gone. Whether `bcast`'s 1.481
+   and `bcastmid`'s 2.118 keep theirs is NOT settled by that: their loops never
+   scrutinised the vector, but their arms are not thereby untouched, and a first
+   reading says they moved. Until that run the branch should not replace
+   the shipped fill on regime-3 views, and `a29748b`'s `INLINE` pragmas
+   were never what stood in the way: they emit byte-identical code, having fired
+   all along.
 2. `OPEN` **The run-length condition, which the `runs` class measured rather
-   than assumed.** Stage two's fill is flat in run length at 0.114 to 0.158
-   of `list`; stage one's slice-per-run concatenation runs 1.3346, 0.9672,
-   0.3301, 0.0538, 0.0300, 0.0244 and 0.0269 across `runs-2` to `runs-r3-48x30`.
-   So each is right on one side of a crossover that falls **between `runs-9`
-   and `runs-96`**, and neither is right on both --- and the shipped route
-   is the one that is pathological at the short end, a third slower
-   than the `list` baseline it exists to beat at `runs-2`. `lib-stage2-concat`
-   restores stage one's figure at every length, which recovers the long runs
-   and gives back the short ones. **What would settle it**: an arm
-   that dispatches on run length at the crossover this class measured, timed
-   on `runs` against all three, which is one Main.hs arm and one evening's slot
-   on the existing class. `canon-memcpy-r2` against `canon-vecdims` crosses one
-   step earlier, between 3 and 9, so the threshold is worth reading per route
-   rather than assumed shared. A second crossover wants that same evening
-   and that same class: `-u2` against `-down` on a build where neither spills,
-   which [the ceiling][ceiling] prices at half an instruction an element against
-   five memory accesses a run. **What the two together cost, the second having
-   been added without saying**: TWO quiet processes and not one, about half
-   an hour each, plus an `-fllvm` binary --- minutes, no quiet machine,
-   and `check` owed on it before a figure is read. The dispatch arm is the only
-   new code; `-u2` against `-down` needs none, both being timed on every class
-   view already. **And the halves are not equally cheap to believe.**
-   The dispatch question moves by the factors above and one process settles it,
-   where the other is a single-digit percent at the long end, judged against
-   the `runs` floor of whichever run takes it, so a wide floor there costs
-   that process twice. A second compiler doubles the whole and is owed
-   by the threshold, which a compiler can move, rather than by the allocator
-   reading --- whose figures stay a diagnostic whatever they say, `-fllvm` being
-   a regime this README will not publish from.
+   than assumed --- and whose every figure below is PRE-FIX, so the threshold
+   moves before the arm this asks for can be built to it.** [The
+   ceiling][ceiling]'s eighth reading takes stage two's fill from fifty
+   instructions per two elements to fourteen, which keeps it competitive
+   at longer runs and so pushes the crossover out; an arm cut to the crossover
+   measured here would be cut to one that no longer exists. **So this task's
+   order is fixed: re-take the class first, then dispatch.** `lib-stage2-concat`
+   is no control against that, routing through the same fill. What the fix does
+   NOT touch is the second crossover below, `-u2` against `-down` being strategy
+   arms it never reaches. Stage two's fill is flat in run length at 0.114
+   to 0.158 of `list`; stage one's slice-per-run concatenation runs 1.3346,
+   0.9672, 0.3301, 0.0538, 0.0300, 0.0244 and 0.0269 across `runs-2`
+   to `runs-r3-48x30`. So each is right on one side of a crossover that falls
+   **between `runs-9` and `runs-96`**, and neither is right on both ---
+   and the shipped route is the one that is pathological at the short end,
+   a third slower than the `list` baseline it exists to beat at `runs-2`.
+   `lib-stage2-concat` restores stage one's figure at every length, which
+   recovers the long runs and gives back the short ones. **What would settle
+   it**: an arm that dispatches on run length at the crossover this class
+   measured, timed on `runs` against all three, which is one Main.hs arm and one
+   evening's slot on the existing class. `canon-memcpy-r2` against
+   `canon-vecdims` crosses one step earlier, between 3 and 9, so the threshold
+   is worth reading per route rather than assumed shared. A second crossover
+   wants that same evening and that same class: `-u2` against `-down` on a build
+   where neither spills, which [the ceiling][ceiling] prices at half
+   an instruction an element against five memory accesses a run. **What the two
+   together cost, the second having been added without saying**: TWO quiet
+   processes and not one, about half an hour each, plus an `-fllvm` binary ---
+   minutes, no quiet machine, and `check` owed on it before a figure is read.
+   The dispatch arm is the only new code; `-u2` against `-down` needs none, both
+   being timed on every class view already. **And the halves are not equally
+   cheap to believe.** The dispatch question moves by the factors above and one
+   process settles it, where the other is a single-digit percent at the long
+   end, judged against the `runs` floor of whichever run takes it, so a wide
+   floor there costs that process twice. A second compiler doubles the whole
+   and is owed by the threshold, which a compiler can move, rather than
+   by the allocator reading --- whose figures stay a diagnostic whatever they
+   say, `-fllvm` being a regime this README will not publish from.
 3. `OPEN` **Is the spread of the pairs outside the restricted six criterion's
    sampling, or something per-process on top of it?** Carried here from the Run
    18 floor item, whose other half is answered. Across four runs the six-pair
@@ -4643,6 +4659,41 @@ unboxed out of the fill, and no further pragma of that kind can**, which
 is worth knowing before anyone spends a second attempt on one. The 2.4 to 4.5
 stands as measured and the arm is not mended, so [task 1][open]'s hold
 on the branch stands with it.
+
+**An eighth reading, 2026-08-29, takes the fix the seventh named, and it is one
+bang an argument.** `genericFillStrided` and the `vFillStrided` default beside
+it in `Data/Array/Internal.hs`, and the port `fillStage2` here, now read
+`sh ats !ao !l !v` --- mirrored, because a bang the port carried and the library
+did not would make `lib-stage2` stop measuring what the branch ships, which
+is worse than leaving it slow. **What it buys, off the same instrument
+the seventh used**: `$wfillStage2` takes `Addr#` and `ForeignPtrContents` where
+it took a boxed `Vector`, which is the shipped fill's own worker shape,
+and the fill becomes a real loop of **fourteen instructions over two stack
+accesses per two elements** against the seventh's fifty and twenty-three ---
+and against the shipped `-u2` fill's eighteen and four, so it is now the cheaper
+of the two. `check` agrees with `list` on every view of every class.
+**The library half wanted measuring rather than assuming, and it transfers
+by a different route than the port's.** `genericFillStrided` is `INLINE`
+at arity 5 with `v` under an inner lambda, so its demand signature does not move
+at all --- `<L><L><L><L>` before the bangs and after --- and what moves
+is its INLINING TEMPLATE, which gains `case ao`, `case l` and `case v5`
+at the head of the body it hands to every call site. The strictness therefore
+arrives at the consumer's compilation and not at the library's, which is why
+the library's own Core is the wrong place to look for it and the monomorphic
+port is the right one. **`ao` and `l` are banged for the correspondence
+and not for a reading**: in the port they were already `Int#`, so their bangs
+are vacuous there; in the library nothing was strict at all, so they
+are not vacuous there, and the two files carry the same three either way.
+Nothing here touches `-u2`, whose own eighteen and four are the spill [the dead
+ideas][dead] rule on and are unchanged. **And the build's layout reading, which
+the rider in [the floor section][floor] obliges of a build that changes code,
+comes back holding**: every tracked group keeps its cache-line offsets against
+`run21-g912` --- the six-copy at `[0, 0, 24, 0, 0, 8]`, the two-copy
+at `[0, 0]`, the statistics pair at `[23, 31]` --- while every ADDRESS moves,
+and the straddle survey reads 139 self-loops with 75 at offset 0 and NONE
+straddling against the pair note's 135, 71 and none. So a change confined to one
+function's body left the shim holding what a roster change did not,
+and the placement-exposed arms carry no layout term across this edit.
 
 ### The C-gap: still a deeper ceiling
 

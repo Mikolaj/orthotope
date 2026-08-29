@@ -94,7 +94,7 @@ class Vector v where
   -- the faster mutable fill 'genericFillStrided'.  If the default's
   -- speed mattered, which it does not, -fspec-constr would improve it.
   vFillStrided :: (VecElem v a) => ShapeL -> [Int] -> Int -> Int -> v a -> v a
-  vFillStrided sh ats ao l v =
+  vFillStrided sh ats !ao !l !v =
     let !sInner = last sh
         !tInner = last ats
         !baseOffsets = runBaseOffsetsT ao (init sh) (init ats)
@@ -272,7 +272,7 @@ runBaseOffsetsT o0 osh oats = foldl' expand (VU.singleton o0) (zip osh oats)
 {-# INLINE genericFillStrided #-}
 genericFillStrided :: forall w a. (VG.Vector w a)
                    => ShapeL -> [Int] -> Int -> Int -> w a -> w a
-genericFillStrided sh ats ao l v = VG.create fill
+genericFillStrided sh ats !ao !l !v = VG.create fill
   where
     fill :: forall s. ST s (VG.Mutable w s a)
     fill = do

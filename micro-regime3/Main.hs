@@ -2746,7 +2746,7 @@ fbLibStage2Concat sh (T (Strides ats) ao v)
 {-# NOINLINE fillStage2 #-}
 fillStage2 :: ShapeL -> [Int] -> Int -> Int -> VS.Vector Double
            -> VS.Vector Double
-fillStage2 sh ats ao l v = VS.create $ do
+fillStage2 sh ats !ao !l !v = VS.create $ do
   out <- VSM.unsafeNew l
   let {-# INLINE writeRunStep #-}
       writeRunStep !outPos !baseOff =
