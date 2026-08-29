@@ -7932,6 +7932,14 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
 
     for line in bad:
         print('FAIL: ' + line)
+    # LAST LINE, ALWAYS, so that a run piped into `tail` still shows the
+    # answer. A pipeline exits with its LAST command's status, so a
+    # `| tail` reports tail's 0 whatever this returned -- the rule
+    # against piping a verification command is stated three times in
+    # these documents and was broken anyway on 2026-08-29. A verdict
+    # that survives the pipe is cheaper than a fourth copy of the rule.
+    print('VERDICT: %s (exit %d)' % ('FAIL' if bad else 'PASS',
+                                     1 if bad else 0))
     return 1 if bad else 0
 
 
@@ -7966,10 +7974,16 @@ def check_doc_quiet(readme, main_hs, run_doc=None, prev_doc=None):
         rc = check_doc(readme, main_hs, run_doc, prev_doc)
     lines = [l for l in out.getvalue().split('\n') if l]
     fails = [l for l in lines if l.startswith('FAIL: ')]
+    verdict = [l for l in lines if l.startswith('VERDICT: ')]
+    rest = [l for l in lines if l not in fails and l not in verdict]
     for line in fails:
         print(line)
-    print('%d line(s) withheld; rerun with --worklists for them'
-          % (len(lines) - len(fails)))
+    print('%d line(s) withheld; rerun with --worklists for them' % len(rest))
+    # The verdict goes LAST here as it does unpiped, for the same reason:
+    # this mode is the one a session pipes, and a withheld count is not an
+    # answer. Added 2026-08-29.
+    for line in verdict:
+        print(line)
     return rc
 
 
@@ -8368,6 +8382,14 @@ def lint(main_hs, readme, run_doc=None):
             print('        ' + line)
     for line in bad:
         print('FAIL: ' + line)
+    # LAST LINE, ALWAYS, so that a run piped into `tail` still shows the
+    # answer. A pipeline exits with its LAST command's status, so a
+    # `| tail` reports tail's 0 whatever this returned -- the rule
+    # against piping a verification command is stated three times in
+    # these documents and was broken anyway on 2026-08-29. A verdict
+    # that survives the pipe is cheaper than a fourth copy of the rule.
+    print('VERDICT: %s (exit %d)' % ('FAIL' if bad else 'PASS',
+                                     1 if bad else 0))
     return 1 if bad else 0
 
 
@@ -8742,6 +8764,14 @@ def selftest(cells, shapes, strategies, meta):
         print('skip: ' + line)
     for line in bad:
         print('FAIL: ' + line)
+    # LAST LINE, ALWAYS, so that a run piped into `tail` still shows the
+    # answer. A pipeline exits with its LAST command's status, so a
+    # `| tail` reports tail's 0 whatever this returned -- the rule
+    # against piping a verification command is stated three times in
+    # these documents and was broken anyway on 2026-08-29. A verdict
+    # that survives the pipe is cheaper than a fourth copy of the rule.
+    print('VERDICT: %s (exit %d)' % ('FAIL' if bad else 'PASS',
+                                     1 if bad else 0))
     return 1 if bad else 0
 
 

@@ -119,6 +119,17 @@ GATE: NOT RUN. run-gate.sh takes five benches over the shape set from each
 half, twice each, in a palindrome, and both passes are read. Until a line
 below states an outcome, this pair has no gate.
 
+ANY OTHER GATE THIS NOTE SETS MUST NAME WHAT DISCHARGES IT AND WHERE THE
+DISCHARGE IS WRITTEN. A note may hold the run back on something the gate
+line does not cover -- the commonest is the previous run's artifacts,
+which the cross-run readings need and which a `DO NOT DELETE ... BEFORE
+...` line protects. Written that way it has no off switch: the session
+that makes those readings has nowhere to say so, and the next one re-reads
+a prohibition already spent. So give every such line the shape the GATE
+line has -- a condition, and a slot beneath it for the outcome and its
+date. Run 21 had to add that slot by hand on 2026-08-29 after discharging
+Run 20's deletion gate.
+
 THE FILL-IN BLOCK BELOW IS OBSERVATIONS AND NOT INTERPRETATIONS. Record
 what was measured -- the commits, the md5s, the byte counts, what agreed
 with what -- and leave WHY to the write-up, where a checker can reach it and

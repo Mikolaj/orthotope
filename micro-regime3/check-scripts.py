@@ -6126,6 +6126,9 @@ def main():
             ' revision it wanted is not there' % unbuilt)
     if bad or unbuilt:
         print('\n%s' % verdict)
+        # LAST, so a run piped into `tail` still shows the answer;
+        # a pipeline exits with tail's status and not this one.
+        print('VERDICT: FAIL (exit 1)')
         return 1
     if not (args.audit or args.properties or args.families or args.against):
         print('\n(--properties asks the reader\'s own invariants, and two'
@@ -6137,6 +6140,7 @@ def main():
              else 'case reproduced its defect' if args.audit
              else 'case holds',
              ', %d control(s) not replayed' % skipped if skipped else ''))
+    print('VERDICT: PASS (exit 0)')
     return 0
 
 

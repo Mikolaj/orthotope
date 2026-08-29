@@ -66,11 +66,11 @@ table](runs/run21.md#what-the-next-run-compares-against)). They also carry
 **no size precondition at all**, which is the point of them, a ruling since
 having stopped this suite timing any arm that needs one ([what the benchmark
 does](#what-the-benchmark-does)). Neither is what `Data/Array/Internal.hs` does
-today. Of the trade-offs, allocation and a noise floor this run measures
-at 2.92% across the sixteen A/A pairs of the half the table comes from,
-and 2.16% across the sixteen of the other half of its pair,
-are in [Results](runs/run21.md#results), each arm's precondition is at its entry
-in `Main.hs`'s roster, and the division sites are in [the Lemire
+today. Of the trade-offs, allocation and the noise floor --- measured per run
+over the A/A pairs of each half, and quoted with its carrying pair in [the floor
+section][floor], which owns it --- are in [Results](runs/run21.md#results), each
+arm's precondition is at its entry in `Main.hs`'s roster, and the division sites
+are in [the Lemire
 section](#lemire-multiplicative-inverses-at-the-two-division-sites).
 
 Every figure in this README is **net of the shared forcing pass** every strategy
@@ -5215,41 +5215,23 @@ and never as a chronology.
     #      compare them against the previous run's note before anything
     #      else changes. A build either side of a roster addition is the
     #      one moment that comparison exists -- minutes of objdump, no
-    #      quiet machine, and it cannot be taken afterwards. Run 20 took it
-    #      and the claim did NOT survive: nine timed arms landed and no
-    #      tracked loop kept its address, the four-copy group at
-    #      [0, 24, 0, 4] becoming a six-copy group at [0, 0, 24, 0, 0, 24],
-    #      none of them moved by a constant. So the claim covers additions
-    #      that cost nothing to place and nothing wider, and every later
-    #      addition is another reading of it. This line is where it fires;
-    #      the account is under Recommended tasks until that heading is
-    #      emptied, and then in the floor section with the layout term.
+    #      quiet machine, and it cannot be taken afterwards. The claim was
+    #      KILLED in its strong form at Run 20's build and read again at
+    #      Run 21's; it covers additions that cost nothing to place and
+    #      nothing wider, and every later addition is another reading of
+    #      it. Both readings are in the prose below
     #      BUILD BOTH, ALWAYS. Reusing the previous run's basis binary is
     #      REFUTED (2026-08-16) and not to be re-proposed, whatever the
-    #      source and the md5 say: the other half is built today, so the
-    #      pair's two halves went through whatever the shim was on two
-    #      different days. That is the effect the back-to-back rule exists
-    #      to keep out, reached by a route that rule does not name --
-    #      nothing is rebuilt BETWEEN the halves, the drift is between the
-    #      runs -- and no step downstream can see it. Run 11's basis was
-    #      Run 10's binary, which is the precedent this retires
+    #      source and the md5 say; the prose below says what it lets in
     #      ON A REPETITION THE MD5 IS A ONE-SIDED INSTRUMENT: a rebuild
     #      that reproduces the previous basis byte for byte proves every
     #      input unmoved in twenty seconds, but one that does NOT
-    #      reproduce DOES NOT NAME ITS CAUSE, and the note's recorded
-    #      inputs do not cover them all. What is missing is the
-    #      dependency store: cabal.project.freeze pins 97 versions and an
-    #      index-state, NOT the ABI hashes, so a store rebuilt at
-    #      unchanged versions relinks every call target and changes half
-    #      of .text while every check here still passes, the tracked
-    #      loops not having moved. So a non-reproducing md5 is a finding
-    #      and not a stop, and locating it takes THREE reads, not one:
+    #      reproduce DOES NOT NAME ITS CAUSE. So a non-reproducing md5 is
+    #      a finding and not a stop, and locating it takes THREE reads:
     #      diff the source, rebuild once with the previous shim commit to
     #      price the shim, and compare the two binaries' package ABI
     #      hashes (`strings B | grep -oE '[A-Za-z][A-Za-z0-9-]*zm[0-9zi.]+zm[0-9a-f]{32,}'` --- the narrower `[a-z-]` class silently drops `QuickCheck`, `Glob` and `text-iso8601`)
-    #      to price the store. Run 15 did all three after its write-up
-    #      had blamed the shim: the shim was emission-neutral and all 48
-    #      dependencies had been relinked (2026-08-17)
+    #      to price the store, which is what the note's inputs do not cover
     #  3c. SET THE HALVES' NAMES in the FIVE scripts that take them --
     #      run-major.sh, run-gate.sh, smoke-sweep.sh, preflight.sh and
     #      install-tables.sh, every one carrying both BASIS and OTHER;
@@ -5788,6 +5770,32 @@ with a fresh `--builddir` --- without which a shim change comes to be measured
 against itself, which is what step 3b's *Up to date* warning is about. Write
 the note first, since it is the only copy of both recipes, and read the pair
 afterwards:
+
+**Why step 3b's three rules are what they are, moved out of the list
+on 2026-08-29 because the list is read by every session and these accounts
+are read by none.** *The fills read at the build*: the pinning claim held
+that an addition costing nothing to place leaves the tracked loops where they
+were. Run 20's build read it in its strong form and KILLED it --- nine timed
+arms landed and no tracked loop kept its address, the four-copy group
+at `[0, 24, 0, 4]` becoming a six-copy group at `[0, 0, 24, 0, 0, 24]`, none
+moved by a constant --- and Run 21's build repeated the reading over a roster
+change that both adds and removes, `[0, 0, 24, 0, 0, 24]` becoming
+`[0, 0, 24, 0, 0, 8]` with no address surviving. So what the claim covers
+is additions that cost nothing to place and nothing wider. *Build both, always*:
+reusing the previous run's basis binary was refused on 2026-08-16 because
+the other half is built today, so the pair's two halves went through whatever
+the shim was on two different days --- the very effect the back-to-back rule
+exists to keep out, reached by a route that rule does not name, since nothing
+is rebuilt BETWEEN the halves and the drift is between the RUNS. No step
+downstream can see it. Run 11's basis was Run 10's binary, which
+is the precedent that refusal retires. *The md5 on a repetition*: what
+the note's recorded inputs do not cover is the dependency store.
+`cabal.project.freeze` pins 97 versions and an index-state and NOT the ABI
+hashes, so a store rebuilt at unchanged versions relinks every call target
+and changes half of `.text` while every check in the list still passes,
+the tracked loops not having moved. Run 15 took all three reads after
+its write-up had already blamed the shim: the shim was emission-neutral and all
+48 dependencies had been relinked (2026-08-17).
 
     ./loop-offsets.py $R-<other> $R-<basis>
     ./loop-offsets.py --library $R-<basis> $R-<other>
@@ -6547,6 +6555,12 @@ was missed, which is what they have cost.
     #      installs as `?` and is filled by hand, a departed row is
     #      dropped with a warning. The cross-class summary
     #      is assembled LAST, transcribed from the class tables
+    #      AND LAUNCH 7a's FIRST PASS HERE, the moment these land. Its own
+    #      text says `launched when the tables go in rather than at the
+    #      end` and this list then numbers it after 6 and 7, so a session
+    #      reading the list in order launches it last. Run 21 did, and paid
+    #      the multiplier that entry documents: its second pass returned
+    #      nine findings, SEVEN of them created by the first round of fixes
     #   6. walk the replace list under Provenance, re-run the two sweeps it
     #      names, and map every hit to the bullet covering it -- running
     #      them is not reading them. REPLACE, do not annotate: a figure that
@@ -6558,6 +6572,25 @@ was missed, which is what they have cost.
     #      searches BOTH documents and refuses an anchor found in each,
     #      so which file holds a paragraph is not yours to know first;
     #      `--para` prints the file it found one in
+    #      READ THE `out` LINES AND NOT ONLY THE `in` ONES. Refusing a
+    #      non-unique anchor reads like a complete guard and is not:
+    #      replace two paragraphs in a row and the FIRST replacement can
+    #      remove the second anchor's other occurrence, leaving it unique
+    #      somewhere you did not mean. The mode prints `out, first` and
+    #      `out, last` beside the `in` pair for exactly this, and reading
+    #      only the `in` pair is what hides it -- Run 21 put a head
+    #      paragraph 2820 characters into the wrong section that way,
+    #      and recovered it only because step 5 had committed the copy
+    #  6b. THE WRITE-UP IS DONE UNWRAPPED, and the stretch ends at every
+    #      turn boundary whether you like it or not: `wrap-restore` runs on
+    #      Stop and before any git commit, so a document unwrapped in one
+    #      turn is wrapped again in the next and every anchor spanning a
+    #      line break stops matching. `wrap80 --unwrap -i` both documents
+    #      at the head of each turn that edits them, and never wrap by
+    #      hand -- a hand-wrapped paragraph is the one thing --check-doc's
+    #      wrap pass FAILS, where a paragraph left long is mid-edit and
+    #      passes. The rules are in ~/.claude/rules/markdown-wrapping.md,
+    #      which does not reliably load; read it before the first edit
     #   7. verify. Every count and ratio comes from --cells or --pair, never
     #      from a printed table, which is rounded to three figures; before
     #      re-deriving a figure a previous run published, reproduce THAT

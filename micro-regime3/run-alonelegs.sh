@@ -24,7 +24,11 @@
 # so a half that wants WILDLOG set gets it from the launch line, as its major
 # processes did, and the driver log records whether it was. The three Provenance
 # anchors get a second rep, the rest single runs read against the known
-# multi-process draw band (~2%). About 15-20 min a half.
+# multi-process draw band (~2%). About two and a half minutes a half clean
+# and five and a half saturated, measured over Run 21's four 27-leg sweeps
+# on 2026-08-29. It read "15-20 min a half" until then, which is a
+# duration a session PLANS the quiet window around: the figure was six
+# times the truth and had the riders budgeted an hour.
 #
 # Refuses to start over a previous attempt's artifacts, as run-major.sh does:
 # the JSONs would be overwritten in place and nothing said. ONLY=<shape>
