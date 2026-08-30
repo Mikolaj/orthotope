@@ -2223,21 +2223,17 @@ is planned. A scope limit belongs in the sentence that asks for the measurement.
    and this entry does not pretend otherwise**: at runs of 11 and 13 the branch
    was ahead before any of this, so something of the opposite sign is there
    that no reading here isolates.
-5. `OPEN` **The vecdims family's ordering wants re-taking in time, one quiet
-   process, because the fill change moved its basis and not its verdict.** [The
-   ceiling][ceiling]'s fifteenth reading takes a live value out of `-u2`
-   and `-u2-down` and out of neither `-down` nor the un-unrolled leaf,
-   and the seventeenth reads what that did to the counted work: `-u2` against
-   `-down` goes 1.0055 to 0.7982 on `runs` and 0.9969 to 0.8554 on the main set,
-   `-u2` against `-u2-down` 0.9175 to 1.0139. **The verdicts those inversions
-   bear on are the fifth, sixth and twelfth readings', and all three are about
-   TIME**, which no instruction count settles --- least of all on this class,
-   where the second term is largest. **What would settle it**: the `runs` class
-   at criterion's default budget on the current build, one process and about
-   half an hour, read as `--pair` between the three arms; the counted work
-   beside it is already taken and wants no machine. Until then the twelfth
-   reading's *`-u2` is behind `-down`* is a reading of codegen that no longer
-   exists, and no shipping decision should be hung on it either way.
+5. `ANSWERED` **The vecdims family's ordering, re-taken in time 2026-08-30,
+   and both of its comparisons moved.** `-u2` against `-down` reads **0.8348**
+   in-process on `runs`, 7 wins of 7 at sign p 0.016, where the same pair
+   on the unchanged fill reads 1.1070 at 1 of 7 --- so the shipped fill goes
+   from a tenth behind to a sixth ahead, both past the class's floor. `-u2`
+   against `-u2-down` becomes a tie, 0.9981 at 2 of 7. [The ceiling][ceiling]'s
+   eighteenth reading has it, and the twelfth's verdict is refuted for the fill
+   that now exists. **What the same pair also shows, and what stops it being
+   read further**: `-down`, which the change does not touch and whose counted
+   work is identical between the halves, moved 15.13% in time --- so nothing
+   here may be read across the halves, only within them.
 6. `OPEN` **The shim pads inside a loop wherever two cycles overlap,
    and a one-line containment test would stop it --- worth measuring because
    the shim is this benchmark's own instrument.** [What moves
@@ -4193,6 +4189,40 @@ than refuted --- the second term is exactly what stands between the two,
 and this class is where it is largest. **So the readings above are stale rather
 than wrong, and what would settle them is one quiet process**, the `runs` class
 timed on the current build, which [task 5][open] carries.
+
+**An eighteenth reading, 2026-08-30, answers [task 5][open] in TIME and refutes
+the twelfth's verdict for the code that now exists.** (A pair on one recipe ---
+Run 21's basis, the max-skip shim --- whose halves differ in sixteen lines
+confined to the two unrolled fills, rosters identical so no slot moves
+and `check` byte-identical between them; the `runs` class at criterion's default
+budget on each, 350 benches apiece, clean. The orderings below are IN-PROCESS,
+which is what an ordering question wants and what the cross-half comparison
+cannot give, for the reason the next paragraph is about.) **`-u2` against
+`-down` has inverted**: 1.1070 with the fill unchanged, 1 win of 7, and **0.8348
+with it changed, 7 of 7, sign p 0.016** --- so the shipped fill goes
+from a tenth behind to a sixth ahead, both readings far past the class's 3.5
+to 3.8 percent floor. **And `-u2` against `-u2-down` has become a tie**: 0.9243
+at 7 wins of 7 becomes **0.9981 at 2 of 7 and sign p 0.45**, inside the floor
+and indistinguishable. So [the ceiling][ceiling]'s twelfth reading --- `-u2`
+behind `-down` at every one of the seven lengths --- is refuted for the current
+fill, and the fifth's account of why `-u2-down` loses is spent with it.
+The counted work predicted both directions and overstated both magnitudes,
+0.7982 against a timed 0.8348 and 1.0139 against 0.9981, which is the second
+term doing what this class makes it do.
+
+**And the pair carries one datum that is not about the fill at all, worth more
+than the ordering it confounds.** `-down` is not touched by the change:
+its counted work is identical between the halves to within counter noise, five
+to five hundred instructions in thirty to forty million. **It moved +15.13%
+in TIME.** `canon-full`, also untouched, moved -3.28%. Two unrolled fills got
+shorter, every address after them moved, and arms whose instructions did
+not change by one part in a million changed by a sixth on the clock ---
+**through the shim, which exists to bound exactly this**. So a cross-half
+comparison of an arm the pair did not change is not a reading of that arm,
+and the in-process ordering is the only form this pair supports. It is also
+the sharpest instance this file has of counted work and the clock answering
+different questions, the two disagreeing not by the second term's usual tenths
+but by a sixth on an arm whose code is the same.
 
 ### The C-gap: still a deeper ceiling
 
