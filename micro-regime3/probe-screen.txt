@@ -1,0 +1,282 @@
+fbList: dump lines 95521..96041, 70 Cmm block(s), 70 assembly block(s) under them
+    Qbrw/Qbrw + QbrE + QbrD + Qbrh + Qbrs:  32 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 12, C stack(%rsp) 0
+    Qbqs/Qbqs + Qbqd + Qbqg + Qbqj + Qbqh + Qbqp:  40 instructions, 1 double load(s), 0 double store(s), Sp(%rbp) 14, C stack(%rsp) 0
+
+fbBQscanRemGmMulback: dump lines 70704..72191, 190 Cmm block(s), 190 assembly block(s) under them
+    Q8bJ/Q8bJ + Q8bE:   9 instructions, 1 double load(s), 0 double store(s), Sp(%rbp) 0, C stack(%rsp) 0
+    Q8eB/Q8eB + Q8ej + Q8ex:  14 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 3, C stack(%rsp) 0
+    Q8fh/Q8fh + Q8eZ + Q8fd:  21 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 7, C stack(%rsp) 2
+    Q8cJ/Q8cJ + Q8cR + Q8de + Q8cQ + Q8cu + Q8cF:  27 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 9, C stack(%rsp) 0
+    Q8j6/Q8j6 + Q8je + Q88b + Q8jd + Q8iR + Q8j2:  34 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 12, C stack(%rsp) 0
+    Q8a4/Q8a4 + Q8aF + Q8aN + Q8ba + Q8aM + Q8aq + Q8aB + Q8aw + Q8ak + Q8aj + Q88L + Q8ab + Q8a5:  48 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 9, C stack(%rsp) 2
+    Q8hU/Q8hU + Q8fG + Q8iC + Q8iB + Q8in + Q8i5 + Q8ij + Q8ib + Q8ie + Q8id + Q8fS + Q8fR + Q8fX + Q8fW:  51 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 14, C stack(%rsp) 0
+    Q8hn/Q8hn + Q88O + Q88S + Q897 + Q891 + Q89P + Q894 + Q8br + Q8bu + Q8dv + Q8dz + Q8gH + Q8h4 + Q8gd + Q8gm + Q8ho + Q8gM + Q8gE + Q8gt + Q8hm + Q8he + Q8gV: 171 instructions, 1 double load(s), 0 double store(s), Sp(%rbp) 38, C stack(%rsp) 19
+
+fbBQexpand: dump lines 58189..59477, 140 Cmm block(s), 140 assembly block(s) under them
+    Q6E7/Q6E7 + Q6E2:   6 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 0, C stack(%rsp) 0
+    Q6AC/Q6AC + Q6Ak + Q6Ay:  14 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 3, C stack(%rsp) 0
+    Q6Bi/Q6Bi + Q6B0 + Q6Be:  17 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 7, C stack(%rsp) 0
+    Q6xX/Q6xX + Q6yW + Q6y2 + Q6yS + Q6yu:  46 instructions, 2 double load(s), 0 double store(s), Sp(%rbp) 0, C stack(%rsp) 10
+    Q6zG/Q6zG + Q6zO + Q6Ab + Q6zN + Q6zr + Q6zC:  29 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 9, C stack(%rsp) 0
+    Q6Ch/Q6Ch + Q6EG + Q6C9 + Q6C8 + Q6Br + Q6BD + Q6BJ + Q6BH + Q6BO + Q6BS + Q6BR + Q6BX + Q6BW + Q6C0:  90 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 27, C stack(%rsp) 8
+
+fbMutOdoVecdims: dump lines 46478..47779, 150 Cmm block(s), 150 assembly block(s) under them
+    Q58D/Q58D + Q58A:   8 instructions, 1 double load(s), 0 double store(s), Sp(%rbp) 0, C stack(%rsp) 0
+    Q5bz/Q5bz + Q5bh + Q5bv:  14 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 3, C stack(%rsp) 0
+    Q5cf/Q5cf + Q5bX + Q5cb:  12 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 3, C stack(%rsp) 0
+    Q5aD/Q5aD + Q5aL + Q5b8 + Q5aK + Q5ao + Q5az:  29 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 9, C stack(%rsp) 0
+    Q5cO/Q5cO + Q5cR + Q5cP + Q5d0 + Q5cY + Q59s + Q5cA + Q5cM:  48 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 19, C stack(%rsp) 0
+    Q5ew/Q5ew + Q5ez + Q5ex + Q5eI + Q5eG + Q59e + Q5ei + Q5eu:  48 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 19, C stack(%rsp) 0
+
+fbBQodoGmMulback: dump lines 72192..73810, 202 Cmm block(s), 202 assembly block(s) under them
+    Q8ps/Q8ps + Q8pn:   9 instructions, 1 double load(s), 0 double store(s), Sp(%rbp) 0, C stack(%rsp) 0
+    Q8sk/Q8sk + Q8s2 + Q8sg:  14 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 3, C stack(%rsp) 0
+    Q8t0/Q8t0 + Q8sI + Q8sW:  21 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 7, C stack(%rsp) 2
+    Q8mQ/Q8mQ + Q8mK + Q8ny:  34 instructions, 1 double load(s), 0 double store(s), Sp(%rbp) 0, C stack(%rsp) 10
+    Q8qs/Q8qs + Q8qA + Q8qX + Q8qz + Q8qd + Q8qo:  27 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 9, C stack(%rsp) 0
+    Q8wx/Q8wx + Q8wF + Q8lV + Q8wE + Q8wi + Q8wt:  34 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 12, C stack(%rsp) 0
+    Q8u2/Q8u2 + Q8u7 + Q8u9 + Q8tY + Q8u1 + Q8uh + Q8uE + Q8uG + Q8uY + Q8uP + Q8uJ:  80 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 13, C stack(%rsp) 4
+    Q8nN/Q8nN + Q8oo + Q8ow + Q8oT + Q8ov + Q8o9 + Q8ok + Q8of + Q8o3 + Q8o2 + Q8mu + Q8nU + Q8nO:  48 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 9, C stack(%rsp) 2
+    Q8vl/Q8vl + Q8tp + Q8w2 + Q8w1 + Q8vN + Q8vv + Q8vJ + Q8vB + Q8vE + Q8vD + Q8tA + Q8tz + Q8tE + Q8tD:  49 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 14, C stack(%rsp) 0
+
+fbBuild: dump lines 33622..34642, 101 Cmm block(s), 101 assembly block(s) under them
+    Q3w5/Q3w5 + Q3w2:   8 instructions, 1 double load(s), 0 double store(s), Sp(%rbp) 0, C stack(%rsp) 0
+    Q3wK/Q3wK + Q3wH:   8 instructions, 1 double load(s), 0 double store(s), Sp(%rbp) 0, C stack(%rsp) 0
+    Q3Ak/Q3Ak + Q3A2 + Q3Ag:  18 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 5, C stack(%rsp) 2
+    Q3AO/Q3AO + Q3Aw + Q3AK:  25 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 13, C stack(%rsp) 0
+    Q3zI/Q3zI + Q3zQ + Q3zP + Q3zt + Q3zE:  32 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 10, C stack(%rsp) 2
+
+fbMutOdo: dump lines 47780..48806, 101 Cmm block(s), 101 assembly block(s) under them
+    Q5hM/Q5hM + Q5hJ:   8 instructions, 1 double load(s), 0 double store(s), Sp(%rbp) 0, C stack(%rsp) 0
+    Q5ir/Q5ir + Q5io:   8 instructions, 1 double load(s), 0 double store(s), Sp(%rbp) 0, C stack(%rsp) 0
+    Q5m1/Q5m1 + Q5lJ + Q5lX:  18 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 5, C stack(%rsp) 2
+    Q5mv/Q5mv + Q5md + Q5mr:  25 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 13, C stack(%rsp) 0
+    Q5lp/Q5lp + Q5lx + Q5lw + Q5la + Q5ll:  32 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 10, C stack(%rsp) 2
+
+fbGenUnsafe: dump lines 96433..97240, 64 Cmm block(s), 64 assembly block(s) under them
+    QbxR/QbxR + Qbwv + QbwA + QbwE + QbwD:  18 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 2, C stack(%rsp) 0
+
+fbMutOdoVecdimsAddIn: dump lines 45204..46477, 150 Cmm block(s), 150 assembly block(s) under them
+    Q4Z0/Q4Z0 + Q4YX:   8 instructions, 1 double load(s), 0 double store(s), Sp(%rbp) 0, C stack(%rsp) 0
+    Q51W/Q51W + Q51E + Q51S:  14 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 3, C stack(%rsp) 0
+    Q52C/Q52C + Q52k + Q52y:  12 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 3, C stack(%rsp) 0
+    Q510/Q510 + Q518 + Q51v + Q517 + Q50L + Q50W:  29 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 9, C stack(%rsp) 0
+    Q53b/Q53b + Q53e + Q53c + Q53n + Q53l + Q4ZP + Q52X + Q539:  48 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 19, C stack(%rsp) 0
+    Q54T/Q54T + Q54W + Q54U + Q555 + Q553 + Q4ZB + Q54F + Q54R:  48 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 19, C stack(%rsp) 0
+
+fbMutOdoVecdimsAddInLeaf: dump lines 41278..42591, 158 Cmm block(s), 158 assembly block(s) under them
+    Q4wd/Q4wd + Q4wa:   8 instructions, 1 double load(s), 0 double store(s), Sp(%rbp) 0, C stack(%rsp) 0
+    Q4z5/Q4z5 + Q4yN + Q4z1:  14 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 3, C stack(%rsp) 0
+    Q4zL/Q4zL + Q4zt + Q4zH:  12 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 3, C stack(%rsp) 0
+    Q4vo/Q4vo + Q4vl + Q4vD + Q4v2 + Q4vI:  17 instructions, 1 double load(s), 0 double store(s), Sp(%rbp) 0, C stack(%rsp) 1
+    Q4y9/Q4y9 + Q4yh + Q4yE + Q4yg + Q4xU + Q4y5:  29 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 9, C stack(%rsp) 0
+    Q4Ak/Q4Ak + Q4An + Q4Al + Q4Aw + Q4Au + Q4wY + Q4A6 + Q4Ai:  48 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 19, C stack(%rsp) 0
+    Q4C2/Q4C2 + Q4C5 + Q4C3 + Q4Ce + Q4Cc + Q4wK + Q4BO + Q4C0:  48 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 19, C stack(%rsp) 0
+
+fbMutOdoVecdimsAddInLeafDown: dump lines 39967..41277, 158 Cmm block(s), 158 assembly block(s) under them
+    Q4lC/Q4lC + Q4lz:   7 instructions, 1 double load(s), 0 double store(s), Sp(%rbp) 0, C stack(%rsp) 0
+    Q4ov/Q4ov + Q4od + Q4or:  14 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 3, C stack(%rsp) 0
+    Q4pb/Q4pb + Q4oT + Q4p7:  12 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 3, C stack(%rsp) 0
+    Q4kM/Q4kM + Q4kJ + Q4l2 + Q4kq + Q4l7:  17 instructions, 1 double load(s), 0 double store(s), Sp(%rbp) 0, C stack(%rsp) 1
+    Q4nz/Q4nz + Q4nH + Q4o4 + Q4nG + Q4nk + Q4nv:  29 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 9, C stack(%rsp) 0
+    Q4pK/Q4pK + Q4pN + Q4pL + Q4pW + Q4pU + Q4mo + Q4pw + Q4pI:  48 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 19, C stack(%rsp) 0
+    Q4rs/Q4rs + Q4rv + Q4rt + Q4rE + Q4rC + Q4ma + Q4re + Q4rq:  48 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 19, C stack(%rsp) 0
+
+fbMutOdoVecdimsAddInLeafU2: dump lines 38629..39966, 162 Cmm block(s), 162 assembly block(s) under them
+    Q4aU/Q4aU + Q4aR:  11 instructions, 2 double load(s), 0 double store(s), Sp(%rbp) 0, C stack(%rsp) 0
+    Q4dT/Q4dT + Q4dB + Q4dP:  14 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 3, C stack(%rsp) 0
+    Q4ez/Q4ez + Q4eh + Q4ev:  12 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 3, C stack(%rsp) 0
+    Q4cX/Q4cX + Q4d5 + Q4ds + Q4d4 + Q4cI + Q4cT:  29 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 9, C stack(%rsp) 0
+    Q49J/Q49J + Q49G + Q4a1 + Q49r + Q49g + Q497 + Q4a8:  26 instructions, 3 double load(s), 0 double store(s), Sp(%rbp) 0, C stack(%rsp) 2
+    Q4f8/Q4f8 + Q4fb + Q4f9 + Q4fk + Q4fi + Q4bM + Q4eU + Q4f6:  48 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 19, C stack(%rsp) 0
+    Q4gQ/Q4gQ + Q4gT + Q4gR + Q4h2 + Q4h0 + Q4by + Q4gC + Q4gO:  48 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 19, C stack(%rsp) 0
+
+fbMutOdoVecdimsAddInLeafU2Down: dump lines 37292..38628, 162 Cmm block(s), 162 assembly block(s) under them
+    Q3ZB/Q3ZB + Q3Zy:  11 instructions, 2 double load(s), 0 double store(s), Sp(%rbp) 0, C stack(%rsp) 0
+    Q42A/Q42A + Q42i + Q42w:  14 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 3, C stack(%rsp) 0
+    Q43g/Q43g + Q42Y + Q43c:  12 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 3, C stack(%rsp) 0
+    Q41E/Q41E + Q41M + Q429 + Q41L + Q41p + Q41A:  29 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 9, C stack(%rsp) 0
+    Q3Yq/Q3Yq + Q3Yn + Q3YL + Q3Y7 + Q3XU + Q3XL + Q3YQ:  26 instructions, 3 double load(s), 0 double store(s), Sp(%rbp) 0, C stack(%rsp) 2
+    Q43P/Q43P + Q43S + Q43Q + Q441 + Q43Z + Q40t + Q43B + Q43N:  48 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 19, C stack(%rsp) 0
+    Q45x/Q45x + Q45A + Q45y + Q45J + Q45H + Q40f + Q45j + Q45v:  48 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 19, C stack(%rsp) 0
+
+fbCanonVecdims: dump lines 102116..103541, 174 Cmm block(s), 174 assembly block(s) under them
+    QcaA/QcaA + Qcax:   8 instructions, 1 double load(s), 0 double store(s), Sp(%rbp) 0, C stack(%rsp) 0
+    QcdT/QcdT + QcdB + QcdP:  12 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 3, C stack(%rsp) 0
+    QceA/QceA + Qcei + Qcew:  12 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 3, C stack(%rsp) 0
+    Qcjq/Qcjq + Qcjy + Qcjx + Qcjb + Qcjm:  38 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 18, C stack(%rsp) 0
+    Qcf9/Qcf9 + Qcfc + Qcfa + Qcfl + Qcfj + Qcd0 + QceV + Qcf7:  48 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 19, C stack(%rsp) 0
+    QcgN/QcgN + QcgQ + QcgO + QcgZ + QcgX + QccP + Qcgz + QcgL:  50 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 21, C stack(%rsp) 0
+
+fbCanonMemcpyR2: dump lines 103542..104977, 176 Cmm block(s), 176 assembly block(s) under them
+    QclE/QclE + QclB:  10 instructions, 1 double load(s), 0 double store(s), Sp(%rbp) 0, C stack(%rsp) 0
+    Qcpg/Qcpg + QcoY + Qcpc:  12 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 3, C stack(%rsp) 0
+    QcpX/QcpX + QcpF + QcpT:  12 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 3, C stack(%rsp) 0
+    QcuN/QcuN + QcuV + QcuU + Qcuy + QcuJ:  38 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 18, C stack(%rsp) 0
+    Qcqw/Qcqw + Qcqz + Qcqx + QcqI + QcqG + Qcon + Qcqi + Qcqu:  48 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 19, C stack(%rsp) 0
+    Qcsa/Qcsa + Qcsd + Qcsb + Qcsm + Qcsk + Qcoc + QcrW + Qcs8:  50 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 21, C stack(%rsp) 0
+
+fbBcastSet: dump lines 36002..37291, 154 Cmm block(s), 154 assembly block(s) under them
+    Q3NW/Q3NW + Q3NT:   9 instructions, 1 double load(s), 0 double store(s), Sp(%rbp) 0, C stack(%rsp) 0
+    Q3On/Q3On + Q3Ok:   6 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 0, C stack(%rsp) 0
+    Q3Re/Q3Re + Q3QW + Q3Ra:  14 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 3, C stack(%rsp) 0
+    Q3RU/Q3RU + Q3RC + Q3RQ:  12 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 3, C stack(%rsp) 0
+    Q3Qi/Q3Qi + Q3Qq + Q3QN + Q3Qp + Q3Q3 + Q3Qe:  29 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 9, C stack(%rsp) 0
+    Q3St/Q3St + Q3Sw + Q3Su + Q3SF + Q3SD + Q3P7 + Q3Sf + Q3Sr:  48 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 19, C stack(%rsp) 0
+    Q3Ub/Q3Ub + Q3Ue + Q3Uc + Q3Un + Q3Ul + Q3OT + Q3TX + Q3U9:  48 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 19, C stack(%rsp) 0
+
+fbMidCopy: dump lines 34643..36001, 162 Cmm block(s), 162 assembly block(s) under them
+    Q3Dq/Q3Dq + Q3Dn:  35 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 0, C stack(%rsp) 8
+    Q3El/Q3El + Q3Ei:   8 instructions, 1 double load(s), 0 double store(s), Sp(%rbp) 0, C stack(%rsp) 0
+    Q3Hf/Q3Hf + Q3GX + Q3Hb:  14 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 3, C stack(%rsp) 0
+    Q3HV/Q3HV + Q3HD + Q3HR:  12 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 3, C stack(%rsp) 0
+    Q3Gj/Q3Gj + Q3Gr + Q3GO + Q3Gq + Q3G4 + Q3Gf:  29 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 9, C stack(%rsp) 0
+    Q3Iu/Q3Iu + Q3Ix + Q3Iv + Q3IG + Q3IE + Q3F8 + Q3Ig + Q3Is:  48 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 19, C stack(%rsp) 0
+    Q3Kc/Q3Kc + Q3Kf + Q3Kd + Q3Ko + Q3Km + Q3EU + Q3JY + Q3Ka:  48 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 19, C stack(%rsp) 0
+
+fbCanonFull: dump lines 104978..106616, 217 Cmm block(s), 217 assembly block(s) under them
+    Qcxc/Qcxc + Qcx9:  35 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 0, C stack(%rsp) 8
+    Qcyw/Qcyw + Qcyt:   8 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 0, C stack(%rsp) 0
+    Qcy7/Qcy7 + Qcy4:  11 instructions, 1 double load(s), 0 double store(s), Sp(%rbp) 0, C stack(%rsp) 0
+    QcC0/QcC0 + QcBI + QcBW:  12 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 3, C stack(%rsp) 0
+    QcCH/QcCH + QcCp + QcCD:  12 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 3, C stack(%rsp) 0
+    QcHx/QcHx + QcHF + QcHE + QcHi + QcHt:  38 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 18, C stack(%rsp) 0
+    QcDg/QcDg + QcDj + QcDh + QcDs + QcDq + QcB7 + QcD2 + QcDe:  48 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 19, C stack(%rsp) 0
+    QcEU/QcEU + QcEX + QcEV + QcF6 + QcF4 + QcAW + QcEG + QcES:  50 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 21, C stack(%rsp) 0
+
+fbLibStage1: dump lines 106617..107973, 174 Cmm block(s), 174 assembly block(s) under them
+    QcRm/QcRm + QcRH + QcRG + QcR7 + QcRi:  58 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 14, C stack(%rsp) 4
+    QcSm/QcSm + QcSu + QcQI + QcSt + QcS7 + QcSi:  32 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 10, C stack(%rsp) 0
+
+fbLibStage2: dump lines 107974..109093, 110 Cmm block(s), 110 assembly block(s) under them
+    QcVK/QcVK + QcVS + QcVR + QcVv + QcVG:  38 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 18, C stack(%rsp) 0
+
+fbLibStage2Concat: dump lines 109094..110872, 204 Cmm block(s), 204 assembly block(s) under them
+    Qd4T/Qd4T + Qd4B + Qd4P:  14 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 3, C stack(%rsp) 2
+    Qd5r/Qd5r + Qd59 + Qd5n:  12 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 3, C stack(%rsp) 0
+    Qd2J/Qd2J + Qd34 + Qd33 + Qd2u + Qd2F:  58 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 14, C stack(%rsp) 4
+    Qd6N/Qd6N + Qd6V + Qd6U + Qd6y + Qd6J:  38 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 18, C stack(%rsp) 0
+    Qd3J/Qd3J + Qd3R + Qd24 + Qd3Q + Qd3u + Qd3F:  32 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 10, C stack(%rsp) 0
+    Qd4f/Qd4f + Qd4n + Qd1T + Qd4m + Qd40 + Qd4b:  44 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 22, C stack(%rsp) 0
+
+fbLibStage2Disp: dump lines 110873..112106, 155 Cmm block(s), 155 assembly block(s) under them
+    Qdgh/Qdgh + QdfZ + Qdgd:  12 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 3, C stack(%rsp) 0
+    QdgQ/QdgQ + Qdgy + QdgM:  12 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 3, C stack(%rsp) 0
+    Qdhp/Qdhp + Qdh7 + Qdhl:  12 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 3, C stack(%rsp) 0
+    Qde7/Qde7 + Qdes + Qder + QddS + Qde3:  58 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 14, C stack(%rsp) 4
+    QdiL/QdiL + QdiT + QdiS + Qdiw + QdiH:  38 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 18, C stack(%rsp) 0
+    Qdf7/Qdf7 + Qdff + Qdds + Qdfe + QdeS + Qdf3:  32 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 10, C stack(%rsp) 0
+    QdfD/QdfD + QdfL + Qddh + QdfK + Qdfo + Qdfz:  44 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 22, C stack(%rsp) 0
+
+fbLibListStage1: dump lines 112107..113979, 212 Cmm block(s), 212 assembly block(s) under them
+    QdrO/QdrO + QdrW + QdrV + Qdrz + QdrK:  32 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 10, C stack(%rsp) 2
+    QdqN/QdqN + Qdr9 + Qdr8 + Qdqy + QdqJ:  60 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 16, C stack(%rsp) 4
+
+fbLibListStage2: dump lines 113980..146346, 3423 Cmm block(s), 3423 assembly block(s) under them
+    QfwM/QfwM + QfwH:   6 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 0, C stack(%rsp) 0
+    QejB/QejB + Qejy:   7 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 0, C stack(%rsp) 0
+    Qeh3/Qeh3 + Qeh0:   6 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 0, C stack(%rsp) 0
+    QdEb/QdEb + QdDT + QdE7:  14 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 3, C stack(%rsp) 2
+    QfXQ/QfXQ + QfXL + QfXN:   9 instructions, 1 double load(s), 0 double store(s), Sp(%rbp) 0, C stack(%rsp) 0
+    QfWT/QfWT + QfWO + QfWQ:   9 instructions, 1 double load(s), 0 double store(s), Sp(%rbp) 0, C stack(%rsp) 0
+    QfVV/QfVV + QfVQ + QfVS:   9 instructions, 1 double load(s), 0 double store(s), Sp(%rbp) 0, C stack(%rsp) 0
+    QfoD/QfoD + Qfol + Qfoz:  12 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 3, C stack(%rsp) 0
+    QflO/QflO + Qflw + QflK:  12 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 3, C stack(%rsp) 0
+    QeF1/QeF1 + QeEF + QeEX:  14 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 3, C stack(%rsp) 0
+    QeEt/QeEt + QeE6 + QeEp:  14 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 3, C stack(%rsp) 0
+    QeDT/QeDT + QeDx + QeDP:  14 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 3, C stack(%rsp) 0
+    QeCd/QeCd + QeBR + QeC9:  14 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 3, C stack(%rsp) 0
+    Qe0D/Qe0D + Qe0y + Qe0A:   9 instructions, 1 double load(s), 0 double store(s), Sp(%rbp) 0, C stack(%rsp) 0
+    QdYH/QdYH + QdYC + QdYE:   9 instructions, 1 double load(s), 0 double store(s), Sp(%rbp) 0, C stack(%rsp) 0
+    QdXU/QdXU + QdXP + QdXR:   9 instructions, 1 double load(s), 0 double store(s), Sp(%rbp) 0, C stack(%rsp) 0
+    QdM4/QdM4 + QdLE + QdM1 + QdM2:  17 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 6, C stack(%rsp) 0
+    Qdz3/Qdz3 + Qdzb + Qdza + QdyO + QdyZ:  32 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 10, C stack(%rsp) 2
+    QdFD/QdFD + QdFL + QdFK + QdFo + QdFz:  43 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 22, C stack(%rsp) 0
+    QfCO/QfCO + QfCs + QfCD + QfCI + QfCH:  30 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 12, C stack(%rsp) 0
+    QfAw/QfAw + QfAE + QfAD + QfAh + QfAs:  34 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 11, C stack(%rsp) 2
+    QfpA/QfpA + Qfpe + Qfpp + Qfpu + Qfpt:  28 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 10, C stack(%rsp) 0
+    QfmL/QfmL + Qfmp + QfmA + QfmF + QfmE:  28 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 10, C stack(%rsp) 0
+    QeGK/QeGK + QeGS + QeGR + QeGy + QeGG:  27 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 8, C stack(%rsp) 0
+    Qe5z/Qe5z + Qe5E + Qe5D + Qe5n + Qe5v:  21 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 4, C stack(%rsp) 0
+    Qe4P/Qe4P + Qe4U + Qe4T + Qe4D + Qe4L:  21 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 4, C stack(%rsp) 0
+    Qe4b/Qe4b + Qe4g + Qe4f + Qe3Z + Qe47:  21 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 4, C stack(%rsp) 0
+    Qe3r/Qe3r + Qe3w + Qe3v + Qe3f + Qe3n:  21 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 4, C stack(%rsp) 0
+    QgcF/QgcF + QgcN + QgcM + Qgcq + QgcB:  31 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 10, C stack(%rsp) 2
+    QfOY/QfOY + QfP6 + QfPe + QfP5 + QfOJ + QfOU:  31 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 10, C stack(%rsp) 0
+    QfNh/QfNh + QfNp + QfNx + QfNo + QfN2 + QfNd:  31 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 10, C stack(%rsp) 0
+    QfM4/QfM4 + QfLL + QfLV + QfM0 + QfLZ + QfM3:  23 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 6, C stack(%rsp) 0
+    QfJg/QfJg + QfIX + QfJ7 + QfJc + QfJb + QfJf:  23 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 6, C stack(%rsp) 0
+    QfGx/QfGx + QfGF + QfG7 + QfGE + QfGi + QfGt:  31 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 10, C stack(%rsp) 0
+    QfEG/QfEG + QfEO + QfEg + QfEN + QfEr + QfEC:  31 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 10, C stack(%rsp) 0
+    QfyY/QfyY + Qfz6 + Qfzd + Qfz5 + QfyJ + QfyU:  35 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 14, C stack(%rsp) 0
+    Qfvo/Qfvo + Qfvw + QfvD + Qfvv + Qfv9 + Qfvk:  35 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 14, C stack(%rsp) 0
+    Qfsu/Qfsu + QfsE + QfsM + QfsD + Qfsf + Qfsq:  32 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 10, C stack(%rsp) 0
+    QfqJ/QfqJ + QfqT + Qfr1 + QfqS + Qfqu + QfqF:  32 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 10, C stack(%rsp) 0
+    QfaN/QfaN + QfaV + Qfb2 + QfaU + Qfay + QfaJ:  39 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 18, C stack(%rsp) 0
+    QeZq/QeZq + QeZy + QeZF + QeZx + QeZb + QeZm:  39 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 18, C stack(%rsp) 0
+    QeW2/QeW2 + QeWa + QeVj + QeW9 + QeVN + QeVY:  31 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 10, C stack(%rsp) 0
+    QeV1/QeV1 + QeV9 + QeUz + QeV8 + QeUM + QeUX:  31 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 10, C stack(%rsp) 0
+    QeWD/QeWD + QeWL + QeWT + QeWK + QeWo + QeWz:  35 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 14, C stack(%rsp) 0
+    QeGb/QeGb + QeFT + QeG1 + QeG6 + QeG5 + QeGa:  23 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 4, C stack(%rsp) 0
+    QeFC/QeFC + QeFl + QeFt + QeFy + QeFx + QeFB:  23 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 4, C stack(%rsp) 0
+    QeDg/QeDg + QeCY + QeD6 + QeDb + QeDa + QeDf:  23 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 4, C stack(%rsp) 0
+    Qew7/Qew7 + Qewf + Qewm + Qewe + QevS + Qew3:  33 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 12, C stack(%rsp) 0
+    Qeva/Qeva + Qevi + Qevp + Qevh + QeuV + Qev6:  29 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 8, C stack(%rsp) 0
+    Qg2v/Qg2v + Qg2A + Qg2a + Qg2z + Qg2h + Qg2r:  24 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 6, C stack(%rsp) 0
+    Qg2Y/Qg2Y + Qg33 + Qg3a + Qg32 + Qg2K + Qg2U:  23 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 6, C stack(%rsp) 0
+    Qelo/Qelo + QekZ + Qel1 + Qel0 + Qel6 + Qel9 + Qel8 + Qelf + Qele:  36 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 6, C stack(%rsp) 0
+    QdL3/QdL3 + QdKA + QdKC + QdKB + QdKH + QdKK + QdKJ + QdL0 + QdKZ:  39 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 7, C stack(%rsp) 0
+    QdJD/QdJD + QdJl + QdJn + QdJm + QdJs + QdJv + QdJu + QdJA + QdJz:  33 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 5, C stack(%rsp) 0
+    QeQZ/QeQZ + QeR1 + QeRd + QeRl + QeRo + QeRs + QeRr + QeRx + QeRw + QeRB:  52 instructions, 3 double load(s), 0 double store(s), Sp(%rbp) 16, C stack(%rsp) 0
+    Qf6Q/Qf6Q + Qf6S + Qf74 + Qf7c + Qf7f + Qf7j + Qf7i + Qf7o + Qf7n + Qf7s:  52 instructions, 3 double load(s), 0 double store(s), Sp(%rbp) 16, C stack(%rsp) 0
+    QfjQ/QfjQ + QfjW + QfjV + Qfk7 + Qfki + Qfk6 + Qfjr + QfjC + QfjI + QfjG + QfjN:  60 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 21, C stack(%rsp) 0
+    QfhL/QfhL + QfhR + QfhQ + Qfi2 + Qfid + Qfi1 + Qfhm + Qfhx + QfhD + QfhB + QfhI:  60 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 21, C stack(%rsp) 0
+    QdME/QdME + QdMI + QdMH + QdMN + QdMj + QdMr + QdMw + QdMv + QdMB + QdMA + QdMM:  46 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 11, C stack(%rsp) 0
+    QdQt/QdQt + QdQv + QdQu + QdPX + QdQ5 + QdQy + QdQA + QdQz + QdQp + QdQl + QdQm + QdQ8 + QdQi + QdQg:  62 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 13, C stack(%rsp) 0
+    QfLh/QfLh + QfLv + QfKt + QfKE + QfKK + QfKI + QfKP + QfKT + QfKS + QfL2 + QfL4 + QfL3 + QfKW + QfKY + QfKX:  71 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 24, C stack(%rsp) 0
+    QfIt/QfIt + QfIH + QfHF + QfHQ + QfHW + QfHU + QfI1 + QfI5 + QfI4 + QfIe + QfIg + QfIf + QfI8 + QfIa + QfI9:  71 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 24, C stack(%rsp) 0
+    QdEQ/QdEQ + QdEJ + QdEr + QdEF + QdEx + QdEA + QdzC + QdEz + QdzE + QdzG + QdxA + QdxE + QdxD + Qdy2 + Qdyo + Qdyn + QdxN + QdxY + QdxT + Qdzk + Qdzo + Qdzq + Qdzt + Qdzx + QdA7 + QdAf + QdBY + QdBm + QdD1 + QdCW + QdCZ + QdBu + QdBb + QdDA + QdB4 + QdB3 + QdAl + QdAy + QdAE + QdAC + QdAJ + QdAN + QdAM + QdAS + QdAR + QdAV + QdAU + Qdzz: 382 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 113, C stack(%rsp) 42
+    Qgar/Qgar + Qgab + Qgad + Qg5M + Qg7k + Qg74 + Qg77 + Qg79 + Qg7j + Qg78 + Qg6Q + Qg6W + Qg6L + Qg5Q + Qg5S + Qg5V + Qg6p + Qg6s + Qg6v + Qg6y + Qg5W + Qg5Z + Qg60 + Qg63 + Qg69 + Qg6b + Qg64 + Qg8k + Qg8s + Qg8A + Qg8r + Qg85 + Qg8g + Qg8b + Qg7V + Qg7X + Qg8H + Qg7W + Qg7s + Qg7C + Qg7H + Qg7G + Qg7M + Qg7L + Qg7y + Qg9B + Qg9J + Qg9R + Qg9I + Qg9m + Qg9x + Qg9s + Qg9c + Qg9e + Qgac + Qg9d + Qg8O + Qg8Y + Qg93 + Qg92 + Qg8U + Qg8I + QgbG + QgbO + QgbW + QgbN + Qgbr + QgbC + Qgbx + Qgbh + Qgbj + Qgch + Qgbi + QgaT + Qgb3 + Qgb8 + Qgb7 + QgaZ + QgaA + QgaI + QgaH + Qgal + Qgaw: 327 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 73, C stack(%rsp) 2
+
+fbMutFlatGm: dump lines 73811..75300, 176 Cmm block(s), 176 assembly block(s) under them
+    Q8Cy/Q8Cy + Q8Cv:   6 instructions, 1 double load(s), 0 double store(s), Sp(%rbp) 0, C stack(%rsp) 0
+    Q8yC/Q8yC + Q8yz:   7 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 0, C stack(%rsp) 0
+    Q8zd/Q8zd + Q8za:   7 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 0, C stack(%rsp) 0
+    Q8BG/Q8BG + Q8BC + Q8Ce:  30 instructions, 1 double load(s), 0 double store(s), Sp(%rbp) 0, C stack(%rsp) 4
+    Q8Hl/Q8Hl + Q8H3 + Q8Hh:  14 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 3, C stack(%rsp) 0
+    Q8I1/Q8I1 + Q8HJ + Q8HX:  16 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 5, C stack(%rsp) 0
+    Q8Fc/Q8Fc + Q8EU + Q8F8:  14 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 3, C stack(%rsp) 0
+    Q8FS/Q8FS + Q8FA + Q8FO:  19 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 5, C stack(%rsp) 2
+    Q8Dm/Q8Dm + Q8Du + Q8DQ + Q8Dt + Q8D7 + Q8Di:  29 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 9, C stack(%rsp) 0
+    Q8ID/Q8ID + Q8IL + Q8AO + Q8IK + Q8Io + Q8Iz:  32 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 10, C stack(%rsp) 0
+
+fbBQmutRunsGmMulback: dump lines 69206..70703, 196 Cmm block(s), 196 assembly block(s) under them
+    Q7ZI/Q7ZI + Q7ZD:   7 instructions, 1 double load(s), 0 double store(s), Sp(%rbp) 0, C stack(%rsp) 0
+    Q7TY/Q7TY + Q7TV:   7 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 0, C stack(%rsp) 0
+    Q7Uz/Q7Uz + Q7Uw:   7 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 0, C stack(%rsp) 0
+    Q7X9/Q7X9 + Q7X3 + Q7XO:  31 instructions, 1 double load(s), 0 double store(s), Sp(%rbp) 0, C stack(%rsp) 7
+    Q84H/Q84H + Q84p + Q84D:  14 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 3, C stack(%rsp) 0
+    Q85n/Q85n + Q855 + Q85j:  16 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 5, C stack(%rsp) 0
+    Q82y/Q82y + Q82g + Q82u:  14 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 3, C stack(%rsp) 0
+    Q83e/Q83e + Q82W + Q83a:  19 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 5, C stack(%rsp) 2
+    Q80G/Q80G + Q80O + Q81b + Q80N + Q80r + Q80C:  27 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 9, C stack(%rsp) 0
+    Q85Z/Q85Z + Q867 + Q7Wa + Q866 + Q85K + Q85V:  32 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 10, C stack(%rsp) 0
+    Q7Y3/Q7Y3 + Q7YE + Q7YM + Q7Z9 + Q7YL + Q7Yp + Q7YA + Q7Yv + Q7Yj + Q7Yi + Q7WN + Q7Ya + Q7Y4:  48 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 9, C stack(%rsp) 2
+
+fbOffTabScanRem: dump lines 52896..53930, 115 Cmm block(s), 115 assembly block(s) under them
+    Q5SS/Q5SS + Q5SN:   9 instructions, 1 double load(s), 0 double store(s), Sp(%rbp) 0, C stack(%rsp) 0
+    Q5TU/Q5TU + Q5U2 + Q5U1 + Q5TF + Q5TQ:  34 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 12, C stack(%rsp) 2
+    Q5XR/Q5XR + Q5XZ + Q5XY + Q5XC + Q5XN:  38 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 18, C stack(%rsp) 0
+    Q5WF/Q5WF + Q5Ur + Q5Xn + Q5Xm + Q5X8 + Q5WQ + Q5X4 + Q5WW + Q5WZ + Q5WY + Q5UD + Q5UC + Q5UI + Q5UH:  51 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 14, C stack(%rsp) 0
+    Q5W6/Q5W6 + Q5SA + Q5SD + Q5Vs + Q5VP + Q5UY + Q5V7 + Q5W9 + Q5Vx + Q5Vp + Q5Ve + Q5W7 + Q5VZ + Q5VG: 100 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 26, C stack(%rsp) 8
+
+fbBQexpandGmMulback: dump lines 67805..69205, 175 Cmm block(s), 175 assembly block(s) under them
+    Q7L2/Q7L2 + Q7KX:   9 instructions, 1 double load(s), 0 double store(s), Sp(%rbp) 0, C stack(%rsp) 0
+    Q7Rp/Q7Rp + Q7Rk:   6 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 0, C stack(%rsp) 0
+    Q7Iq/Q7Iq + Q7Ik + Q7J8:  32 instructions, 1 double load(s), 0 double store(s), Sp(%rbp) 0, C stack(%rsp) 8
+    Q7NU/Q7NU + Q7NC + Q7NQ:  14 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 3, C stack(%rsp) 0
+    Q7OA/Q7OA + Q7Oi + Q7Ow:  17 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 7, C stack(%rsp) 0
+    Q7M2/Q7M2 + Q7Ma + Q7Mx + Q7M9 + Q7LN + Q7LY:  27 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 9, C stack(%rsp) 0
+    Q7Jn/Q7Jn + Q7JY + Q7K6 + Q7Kt + Q7K5 + Q7JJ + Q7JU + Q7JP + Q7JD + Q7JC + Q7I4 + Q7Ju + Q7Jo:  48 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 9, C stack(%rsp) 2
+    Q7Pz/Q7Pz + Q7RY + Q7Pr + Q7Pq + Q7OJ + Q7OV + Q7P1 + Q7OZ + Q7P6 + Q7Pa + Q7P9 + Q7Pf + Q7Pe + Q7Pi:  90 instructions, 0 double load(s), 0 double store(s), Sp(%rbp) 27, C stack(%rsp) 8
+
