@@ -2238,6 +2238,26 @@ is planned. A scope limit belongs in the sentence that asks for the measurement.
    beside it is already taken and wants no machine. Until then the twelfth
    reading's *`-u2` is behind `-down`* is a reading of codegen that no longer
    exists, and no shipping decision should be hung on it either way.
+6. `OPEN` **The shim pads inside a loop wherever two cycles overlap,
+   and a one-line containment test would stop it --- worth measuring because
+   the shim is this benchmark's own instrument.** [What moves
+   a figure](#what-moves-a-figure-when-no-strategy-changed) has the mechanism:
+   the padded block is a genuine loop head, but one whose cycle begins inside
+   another's and ends after it, so its pad is paid on that other loop's
+   iterations. 331 of this module's 1172 heads are in that position. **What
+   it is worth is unmeasured and could be nothing**: an exposure count is
+   not a cost, most of those heads are cold, and the one case priced ---
+   `slice-primes`'s fill --- was worth about 5% between two arms because
+   its inner trip count is 44. **What would settle it**: the containment test
+   in `align-as.py`, a rebuild, and the counted work over the main set against
+   the current shim, which is minutes and wants no quiet machine;
+   then a `--survey` to confirm the nested heads still get their alignment,
+   since a test that skipped everything would look like a win on the counter
+   and be a loss on the clock. **And it is a basis change if taken**: every
+   figure in this file is measured through this shim, so a shim that pads
+   differently is a new basis and not a bug fix, which is the same ruling
+   `LOOP_MAXSKIP` carries and the reason that one is a switch rather
+   than a default.
 
 **And one class not to repropose: work that needs an aligned build.**
 `mut-odo`'s wide interval is the live case. The dispersion is documented
@@ -7265,22 +7285,42 @@ on `slice-primes`'s fill the body's last instruction, `add $0x2,%rsi`, falls
 straight into the nops. So the pad is paid once an ITERATION, which here is once
 per two elements. Two arms whose bodies end at different offsets modulo
 the boundary get different pads, and that difference is paid at the same rate.
-**Read out of the timed binary itself**, at the addresses sampling it put
-the instructions at rather than in a twin: on `slice-primes` the branch's fill
-and the shipped fill are the SAME CODE, sixteen real instructions and four stack
-accesses per two elements each, and they differ by one nop, three against two,
-because one body ends a byte earlier before the pad. That is **one retired
-instruction per two elements**, and it closes the arithmetic with the epilogue
-term beside it: `slice-primes` is 2813 runs of 89, so 44 body iterations a run,
-and 44 x 2813 = 123772 extra nops plus one extra epilogue instruction a run,
-2813, predicts **126585** against a measured excess of **127331** --- **99.4%**,
-in two terms that are the shim's and [the ceiling][ceiling]'s thirteenth
-reading's respectively, one paid per iteration and one per run. **The control
-is a build without the shim**, roster and `check` identical, where the excess
-falls to **+0.18%** from +5.57% -- and the counted ratio of those two arms moves
-on every population, all in the branch's favour: the main set 0.672 to 0.652,
-`rev` 0.940 to 0.908, `revsome` 1.047 to 1.015, `slice` 1.048 to 1.013, `scaled`
-1.015 to 0.982, `window` 0.789 to 0.744, `runs` 1.137 to 0.985. **What this does
+**And the shim is not misidentifying the head, which is the first thing to check
+and the answer changes what a fix would be.** Its rule is *a local label a later
+instruction jumps backwards to*, and the padded block IS one: on `slice-primes`
+the block at the fill's latch is the target of the RUN loop's own backward jump,
+so it is that loop's head, correctly found. What the rule does not account
+for is that GHC laid the two cycles OVERLAPPING rather than nested ---
+the fill's latch is the run loop's head, so the run cycle begins inside the fill
+cycle and ends after it --- and a pad before a head in that position is paid
+on the OTHER loop's iterations, amplified by its trip count and not
+by the padded loop's. Ordinary nesting is the opposite and is what the shim
+is for: an inner head inside an outer cycle costs one pad per outer iteration,
+which is the trade it was built to make. **The two are told apart
+by a containment test on data the shim already has**, every (head, back-edge)
+pair being how it finds heads at all: skip a head whose own cycle `(H, J)`
+overlaps another `(a, b)` with `a < H < b < J`, and leave the nested case alone.
+**Over this module's assembly that separates 840 nested heads from 331
+overlapping ones, 28.2% of 1172** --- an exposure count from a static pass
+with instruction indices standing in for addresses, so a bound on how many heads
+could be affected and not a measurement of what they cost. What it would cost
+to find out is [task 6][open]. **Read out of the timed binary itself**,
+at the addresses sampling it put the instructions at rather than in a twin:
+on `slice-primes` the branch's fill and the shipped fill are the SAME CODE,
+sixteen real instructions and four stack accesses per two elements each,
+and they differ by one nop, three against two, because one body ends a byte
+earlier before the pad. That is **one retired instruction per two elements**,
+and it closes the arithmetic with the epilogue term beside it: `slice-primes`
+is 2813 runs of 89, so 44 body iterations a run, and 44 x 2813 = 123772 extra
+nops plus one extra epilogue instruction a run, 2813, predicts **126585**
+against a measured excess of **127331** --- **99.4%**, in two terms that
+are the shim's and [the ceiling][ceiling]'s thirteenth reading's respectively,
+one paid per iteration and one per run. **The control is a build without
+the shim**, roster and `check` identical, where the excess falls to **+0.18%**
+from +5.57% -- and the counted ratio of those two arms moves on every
+population, all in the branch's favour: the main set 0.672 to 0.652, `rev` 0.940
+to 0.908, `revsome` 1.047 to 1.015, `slice` 1.048 to 1.013, `scaled` 1.015
+to 0.982, `window` 0.789 to 0.744, `runs` 1.137 to 0.985. **What this does
 NOT say is that the shim is wrong or that a figure here is**: the shim
 is this benchmark's deliberate instrument, Run 10 having priced layout at 12
 to 14% on the arms whose loop it rescues, and every figure in this file is taken
