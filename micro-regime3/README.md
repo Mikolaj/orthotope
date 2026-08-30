@@ -2751,8 +2751,8 @@ to resample. What a class run can decide is whether an *ordering* inverts
 under its mechanism and whether any strategy's `worst` crosses 1 there. What
 it cannot do is be compared with a main-set number, in either direction.
 **`runs` is the one exception, a sweep rather than a triple**, because
-its question is a crossover and not a mechanism: seven views walk the run from 2
-to 65536 at a fixed size, with one rank-3 entry whose inner dims merge
+its question is a crossover and not a mechanism: eleven views walk the run
+from 2 to 65536 at a fixed size, with one rank-3 entry whose inner dims merge
 under canonicalization so the library's merge and not the listing sets its run.
 
 **The `runs` class and the library-shaped arms exist for regressions
@@ -2776,11 +2776,44 @@ those five sits `lib-stage2-disp`, which is a candidate and not a port
 of anything**, added 2026-08-30: `lib-stage2-concat` with the slice route taken
 only where the canonical run reaches `dispRun`, so it is stage two below
 the crossover and stage one above it, and the runs class is what cuts it to one.
-Each runs on every population, so a library change is read where a user would
-meet it, class by class, whichever of the two entry points the user takes,
-and the `runs` class is where the routes part; with the timed `-u2-down`
-and the dispatch arm the block takes the roster to 1200 benches, eight
-superseded arms parked permanently since Run 21, `offtab`'s twins removed
+**Beside it, for Run 22, sit three fill candidates**, each a fill change
+under the same dispatch: `lib-stage2-u4`, the stepping run unrolled by four;
+`lib-stage2-short`, a canonical run of 2 to 5 elements written by a body
+of exactly that length, chosen once per row as the broadcast body is;
+and `lib-stage2-lean`, the same fill under a leaner dispatch: a canonical view
+of rank 2 or more can never carry the natural strides, the merge that made
+it canonical having consumed every natural pair, so the regimes are read off
+the merged form alone and the strides comparison the control's dispatch pays
+is not paid. **And beside those, the unordered entry point joins the family**:
+`libunord-stage1` and `libunord-stage2`, each stage's `toUnorderedVectorListT`
+one-block test in front of its liblist body and one concatenation -- the third
+route the branch changes, rostered so that a shim-switch reading (Run 23's
+LOOP_NOOVERLAP among them) has its sanity readings, which no test of the branch
+alone can show until GHC itself grows such a capability. In instructions,
+shim-free and net of the sum term, the short bodies read 0.50 at `runs-2`, 0.59
+at `runs-3`, 0.61 to 0.88 on every k3 and k5 conv shape, and above five nothing
+past the per-row choice's cost, `stretch-coprime-r7`'s 1.0208 the worst cell,
+while the quad loop reads 0.83 to 0.85 at long runs and 1.08 to 1.15 at runs
+of 2 and 3 --- so each moves its own end of the run axis and Run 22 prices
+the two in time. **A ruling stands over the quad loop, 2026-08-30, and
+it is Mikolaj's rather than a measurement's: a stepping run unrolled by four
+is too complex for orthotope, so `lib-stage2-u4` prices what that feature would
+buy and is not a candidate to ship.** The measure is an intuitive estimate
+of complexity taken PER ORTHOGONAL FEATURE, not a count of lines or loops
+and not a total over a function that composes several: the shipped by-two loop
+is fine but close to the bar, so a simpler loop is preferred over it where
+the performance is close, while a function that joins that loop with further
+orthogonal features --- the short bodies of `lib-stage2-short` among them ---
+is judged feature by feature, and the short bodies stand or fall on their own.
+The runs class gained `runs-4` and `runs-5` the same day -- no view in the suite
+had a canonical innermost extent of 4, so the short bodies' one unexercised
+branch was invisible even to `check` -- and `runs-256` and `runs-512`,
+bracketing `dispRun` within a factor of two. Each runs on every population,
+so a library change is read where a user would meet it, class by class,
+whichever of the two entry points the user takes, and the `runs` class is where
+the routes part; with the timed `-u2-down` the dispatch arm, the three fill
+candidates and the unordered pair the block takes the roster to 1320 benches,
+eight superseded arms parked permanently since Run 21, `offtab`'s twins removed
 with it. What the next run is registered to answer with them is [in the open
 list][open].
 
@@ -4496,14 +4529,13 @@ checked against the reference on every shape of every class, and not timed ---
 so the agreement net does not shrink and nothing has to be rewritten if a ruling
 is later reopened. The 23 arms the rulings dropped carry `Only` in that roster,
 each naming the bound or the multiple that disqualified it; with the controls
-the run is 50 arms, and the five library-shaped arms with the timed `-u2-down`,
+the run is 55 arms, and the five library-shaped arms with the timed `-u2-down`,
 added 2026-08-28 ([the stride
 classes](#the-stride-classes-and-what-they-cover)), less the eight parked
 permanently since Run 21 and `offtab`'s two twins removed ([its entry][open]),
-plus the dispatch arm added 2026-08-30, takes the roster to 1200 benches
-from Run 20's 1272. The three placement-family arms went to `Only` a run
-earlier, on 2026-08-25, so Run 20's 1272 already excludes them and they
-are no part of this arithmetic.
+plus the six arms added 2026-08-30, takes the roster to 1320 benches. The three
+placement-family arms went to `Only` a run earlier, on 2026-08-25, so Run 20's
+1272 already excludes them and they are no part of this arithmetic.
 
 - **A strategy with a precondition is not measured.** The column allowed `none`,
   an empty cell, and `shape well-formed`, which is a condition on being a valid
@@ -9222,13 +9254,18 @@ at all**: which half of the pair a figure came from, which is why the run file's
 tables and its fingerprint say so.
 
 - Run 21 measured today's shapes and class views, and its roster is today's LESS
-  ONE: `lib-stage2-disp` was added 2026-08-30, after the run, so every slot
-  below `lib-stage2-concat` has moved by one and a figure read across
+  SIX: `lib-stage2-disp`, `lib-stage2-u4`, `lib-stage2-short`,
+  `lib-stage2-lean`, `libunord-stage1` and `libunord-stage2` were added
+  2026-08-30, after the run, so every slot below `lib-stage2-concat` has moved
+  by four, every slot below `liblist-stage2` by six, and a figure read across
   that boundary carries the layout term the delta against Run 20 already names.
-  Its delta against RUN 20 is larger again: 49 timed arms over 24 main-set
-  shapes and 33 class views in NINE classes, 1176 benches and 1617, where Run 20
-  ran 53 arms and 26 views in eight classes, 1272 and 1378. Six timed arms
-  landed (`mut-odo-vecdims-add-in-leaf-u2-down`, `lib-stage1`, `lib-stage2`,
+  Its `runs` class is today's LESS FOUR: `runs-4`, `runs-5`, `runs-256`
+  and `runs-512` were added 2026-08-30, after the run, so its seven views
+  are read against today's eleven only where a length is shared. Its delta
+  against RUN 20 is larger again: 49 timed arms over 24 main-set shapes and 33
+  class views in NINE classes, 1176 benches and 1617, where Run 20 ran 53 arms
+  and 26 views in eight classes, 1272 and 1378. Six timed arms landed
+  (`mut-odo-vecdims-add-in-leaf-u2-down`, `lib-stage1`, `lib-stage2`,
   `lib-stage2-concat`, `liblist-stage1`, `liblist-stage2`) and ten names left
   --- eight arms parked permanently on 2026-08-28 (`bq-expand-b`,
   `bq-expand-qr-prim`, `bq-expand-zf`, `bq-mut`, `bq-gen`, `gen-quotrem`,

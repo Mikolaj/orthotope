@@ -5214,6 +5214,22 @@ CASES = [
          argv=['--check-doc', '--quiet', '--run-doc', '{rundoc}'],
          ok=V(exit=1, has=['shape counts disagree with Main.hs'])),
 
+    case('class-shapes-added-after-the-run-are-exempt', 'read-run.py', None,
+         "a class shape added between runs failed the run file's true count",
+         # Two runs shapes landed 2026-08-30 with Run 21's file the newest,
+         # and both class-shape checks held that file's 7 to Main.hs's 9;
+         # README's provenance bullet now declares the addition and the
+         # reader takes the declared names out of what the file is held
+         # to. Take the declaration away and the file is held to 9 again.
+         plant=lambda t: {'readme': unwrapped_readme_edit(
+             t, '`runs-4`, `runs-5`, `runs-256` and `runs-512` were'
+                ' added 2026-08-30, after the run',
+             '`runs-4`, `runs-5`, `runs-256` and `runs-512` were'
+             ' added 2026-08-30')},
+         argv=['--check-doc', '--quiet', '--readme', '{readme}'],
+         ok=V(exit=1, has=['shape counts disagree with Main.hs',
+                           'match no population Main.hs defines (7)'])),
+
     case('gate-arms-track-the-selection', 'run-gate.sh', 'febc2bd',
          'the expected bench count was a literal that had to equal SEL',
          shadow=dict(

@@ -31,7 +31,8 @@ import           Criterion.Types              (Benchmarkable (..),
                                                Config (regressions))
 import           Data.Bits                    (countLeadingZeros, shiftR, (.&.))
 import           Data.Int                     (Int32, Int64)
-import           Data.List                    (foldl')
+import           Data.List                    (foldl', isPrefixOf, sort,
+                                               sortBy)
 import qualified Data.Vector.Storable         as VS
 import qualified Data.Vector.Storable.Mutable as VSM
 import qualified Data.Vector.Unboxed          as VU
@@ -2864,6 +2865,289 @@ fillStage2 sh ats !ao !l !v = VS.create $ do
         !oshV  = VU.fromList (init sh)
         !oatsV = VU.fromList (init ats)
 
+-- 'fillStage2' with the stepping run unrolled by FOUR instead of two,
+-- the odd remainder taken by the by-two loop and then the by-one tail
+-- -- one change over that fill, so 'lib-stage2' is this arm's control.
+-- What it buys is the loop's own overhead per element on long runs, the
+-- cursor arithmetic and the bound test being paid once a quad rather
+-- than once a pair; what it risks is the tail on short runs, where a
+-- run of 3 or 5 never enters the quad loop and pays its test for
+-- nothing. No live value is added: the quad steps the same cursor by
+-- the same stride, which is the condition the NCG's allocator was
+-- measured to want (README.md#what-moves-a-figure-when-no-strategy-changed).
+-- RULED OUT FOR THE LIBRARY, 2026-08-30, by Mikolaj: a run unrolled by
+-- four is too complex for orthotope, the shipped by-two loop being
+-- itself close to that bar, and a simpler loop preferred over it where
+-- the performance is close. The bar is taken per orthogonal feature, so
+-- it rules out this loop wherever it appears and says nothing about
+-- the features beside it. So this arm prices
+-- what the loop would buy and is not a candidate to ship; the ruling is
+-- in README beside the arm's entry.
+{-# NOINLINE fillStage2U4 #-}
+fillStage2U4 :: ShapeL -> [Int] -> Int -> Int -> VS.Vector Double
+             -> VS.Vector Double
+fillStage2U4 sh ats !ao !l !v = VS.create $ do
+  out <- VSM.unsafeNew l
+  let {-# INLINE writeRunStep #-}
+      writeRunStep !outPos !baseOff =
+        let !oEnd = outPos + sInner
+            inner !o !src
+              | o + 3 >= oEnd = pairs o src
+              | otherwise = do
+                  VSM.unsafeWrite out o (VS.unsafeIndex v src)
+                  let !src1 = src + tInner
+                  VSM.unsafeWrite out (o + 1) (VS.unsafeIndex v src1)
+                  let !src2 = src1 + tInner
+                  VSM.unsafeWrite out (o + 2) (VS.unsafeIndex v src2)
+                  let !src3 = src2 + tInner
+                  VSM.unsafeWrite out (o + 3) (VS.unsafeIndex v src3)
+                  inner (o + 4) (src3 + tInner)
+            pairs !o !src
+              | o + 1 >= oEnd =
+                  if o >= oEnd then return ()
+                  else VSM.unsafeWrite out o (VS.unsafeIndex v src)
+              | otherwise = do
+                  VSM.unsafeWrite out o (VS.unsafeIndex v src)
+                  let !src' = src + tInner
+                  VSM.unsafeWrite out (o + 1) (VS.unsafeIndex v src')
+                  pairs (o + 2) (src' + tInner)
+        in  inner outPos baseOff
+      {-# INLINE writeRunSet #-}
+      writeRunSet !outPos !baseOff =
+        let !x = VS.unsafeIndex v baseOff
+            !oEnd = outPos + sInner
+            inner !o
+              | o >= oEnd = return ()
+              | otherwise = VSM.unsafeWrite out o x >> inner (o + 1)
+        in  inner outPos
+      copies !n !blk !src !dst
+        | n <= 1 = return dst
+        | otherwise = do
+            VSM.unsafeCopy (VSM.unsafeSlice dst blk out)
+                           (VSM.unsafeSlice src blk out)
+            copies (n - 1) blk src (dst + blk)
+      {-# INLINE runsWith #-}
+      runsWith writeRun !n !st !outPos !baseOff
+        | st == 0 = writeRun outPos baseOff
+                    >> copies n sInner outPos (outPos + sInner)
+        | otherwise =
+            let run !k !op !boff
+                  | k <= 0    = return op
+                  | otherwise = writeRun op boff
+                                >> run (k - 1) (op + sInner) (boff + st)
+            in  run n outPos baseOff
+      go !lev !outPos !baseOff
+        | lev >= rOuter =
+            (if tInner == 0 then writeRunSet else writeRunStep)
+              outPos baseOff
+            >> return (outPos + sInner)
+        | otherwise =
+            level (VU.unsafeIndex oshV lev) (VU.unsafeIndex oatsV lev)
+        where
+          level !n !st
+            | lev == rOuter - 1 =
+                if tInner == 0
+                then runsWith writeRunSet n st outPos baseOff
+                else runsWith writeRunStep n st outPos baseOff
+            | st == 0 = do
+                op' <- go (lev + 1) outPos baseOff
+                copies n (op' - outPos) outPos op'
+            | otherwise =
+                let dim !k !op !boff
+                      | k <= 0    = return op
+                      | otherwise = go (lev + 1) op boff
+                                    >>= \op' -> dim (k - 1) op' (boff + st)
+                in  dim n outPos baseOff
+  _ <- go 0 0 ao
+  return out
+  where !sInner = last sh
+        !tInner = last ats
+        !rOuter = length sh - 1
+        oshV, oatsV :: VU.Vector Int
+        !oshV  = VU.fromList (init sh)
+        !oatsV = VU.fromList (init ats)
+
+-- 'fillStage2' with a run of 2, 3, 4 or 5 elements written by a body
+-- unrolled to exactly that length -- no inner loop, no bound test, no
+-- tail -- the body chosen once per row of runs as the broadcast body
+-- already is, and every other run length taking the stepping loop
+-- unchanged. One change over that fill, so 'lib-stage2' is this arm's
+-- control. What it aims at is the per-run cost the counts put at about
+-- thirteen instructions a run against about six an element, which on
+-- the k3 and k5 convolution shapes and on the runs class's short end is
+-- half the work or more; 'canonView' has already merged every run that
+-- could be longer, so a short run here is short for good. One
+-- deliberate asymmetry: the rank-1 leaf keeps the stepping loop at
+-- every length, no rostered view reaching it with a short extent. The
+-- complexity bar recorded at 'fillStage2U4' is taken per orthogonal
+-- feature, so the short bodies are judged on their own and not with
+-- the loop beside them; nothing rules them out, and Run 22 prices them.
+{-# NOINLINE fillStage2Short #-}
+fillStage2Short :: ShapeL -> [Int] -> Int -> Int -> VS.Vector Double
+                -> VS.Vector Double
+fillStage2Short sh ats !ao !l !v = VS.create $ do
+  out <- VSM.unsafeNew l
+  let {-# INLINE writeRunStep #-}
+      writeRunStep !outPos !baseOff =
+        let !oEnd = outPos + sInner
+            inner !o !src
+              | o + 1 >= oEnd =
+                  if o >= oEnd then return ()
+                  else VSM.unsafeWrite out o (VS.unsafeIndex v src)
+              | otherwise = do
+                  VSM.unsafeWrite out o (VS.unsafeIndex v src)
+                  let !src' = src + tInner
+                  VSM.unsafeWrite out (o + 1) (VS.unsafeIndex v src')
+                  inner (o + 2) (src' + tInner)
+        in  inner outPos baseOff
+      -- The four unrolled bodies, one per short run length.
+      {-# INLINE writeRun2 #-}
+      writeRun2 !outPos !baseOff = do
+        VSM.unsafeWrite out outPos (VS.unsafeIndex v baseOff)
+        VSM.unsafeWrite out (outPos + 1) (VS.unsafeIndex v (baseOff + tInner))
+      {-# INLINE writeRun3 #-}
+      writeRun3 !outPos !baseOff = do
+        VSM.unsafeWrite out outPos (VS.unsafeIndex v baseOff)
+        let !src1 = baseOff + tInner
+        VSM.unsafeWrite out (outPos + 1) (VS.unsafeIndex v src1)
+        VSM.unsafeWrite out (outPos + 2) (VS.unsafeIndex v (src1 + tInner))
+      {-# INLINE writeRun4 #-}
+      writeRun4 !outPos !baseOff = do
+        VSM.unsafeWrite out outPos (VS.unsafeIndex v baseOff)
+        let !src1 = baseOff + tInner
+        VSM.unsafeWrite out (outPos + 1) (VS.unsafeIndex v src1)
+        let !src2 = src1 + tInner
+        VSM.unsafeWrite out (outPos + 2) (VS.unsafeIndex v src2)
+        VSM.unsafeWrite out (outPos + 3) (VS.unsafeIndex v (src2 + tInner))
+      {-# INLINE writeRun5 #-}
+      writeRun5 !outPos !baseOff = do
+        VSM.unsafeWrite out outPos (VS.unsafeIndex v baseOff)
+        let !src1 = baseOff + tInner
+        VSM.unsafeWrite out (outPos + 1) (VS.unsafeIndex v src1)
+        let !src2 = src1 + tInner
+        VSM.unsafeWrite out (outPos + 2) (VS.unsafeIndex v src2)
+        let !src3 = src2 + tInner
+        VSM.unsafeWrite out (outPos + 3) (VS.unsafeIndex v src3)
+        VSM.unsafeWrite out (outPos + 4) (VS.unsafeIndex v (src3 + tInner))
+      {-# INLINE writeRunSet #-}
+      writeRunSet !outPos !baseOff =
+        let !x = VS.unsafeIndex v baseOff
+            !oEnd = outPos + sInner
+            inner !o
+              | o >= oEnd = return ()
+              | otherwise = VSM.unsafeWrite out o x >> inner (o + 1)
+        in  inner outPos
+      copies !n !blk !src !dst
+        | n <= 1 = return dst
+        | otherwise = do
+            VSM.unsafeCopy (VSM.unsafeSlice dst blk out)
+                           (VSM.unsafeSlice src blk out)
+            copies (n - 1) blk src (dst + blk)
+      {-# INLINE runsWith #-}
+      runsWith writeRun !n !st !outPos !baseOff
+        | st == 0 = writeRun outPos baseOff
+                    >> copies n sInner outPos (outPos + sInner)
+        | otherwise =
+            let run !k !op !boff
+                  | k <= 0    = return op
+                  | otherwise = writeRun op boff
+                                >> run (k - 1) (op + sInner) (boff + st)
+            in  run n outPos baseOff
+      go !lev !outPos !baseOff
+        | lev >= rOuter =
+            (if tInner == 0 then writeRunSet else writeRunStep)
+              outPos baseOff
+            >> return (outPos + sInner)
+        | otherwise =
+            level (VU.unsafeIndex oshV lev) (VU.unsafeIndex oatsV lev)
+        where
+          level !n !st
+            | lev == rOuter - 1 =
+                -- The choice, once per row: the broadcast body first,
+                -- as in the control, then the short bodies by length.
+                if tInner == 0
+                then runsWith writeRunSet n st outPos baseOff
+                else case sInner of
+                  2 -> runsWith writeRun2 n st outPos baseOff
+                  3 -> runsWith writeRun3 n st outPos baseOff
+                  4 -> runsWith writeRun4 n st outPos baseOff
+                  5 -> runsWith writeRun5 n st outPos baseOff
+                  _ -> runsWith writeRunStep n st outPos baseOff
+            | st == 0 = do
+                op' <- go (lev + 1) outPos baseOff
+                copies n (op' - outPos) outPos op'
+            | otherwise =
+                let dim !k !op !boff
+                      | k <= 0    = return op
+                      | otherwise = go (lev + 1) op boff
+                                    >>= \op' -> dim (k - 1) op' (boff + st)
+                in  dim n outPos baseOff
+  _ <- go 0 0 ao
+  return out
+  where !sInner = last sh
+        !tInner = last ats
+        !rOuter = length sh - 1
+        oshV, oatsV :: VU.Vector Int
+        !oshV  = VU.fromList (init sh)
+        !oatsV = VU.fromList (init ats)
+
+-- 'fbLibStage2' over 'fillStage2U4' -- the same dispatch, the fill the
+-- one change, so 'lib-stage2' is the control and every population where
+-- the fill runs reads the unrolling.
+{-# NOINLINE fbLibStage2U4 #-}
+fbLibStage2U4 :: ShapeL -> T -> VS.Vector Double
+fbLibStage2U4 sh (T (Strides ats) ao v)
+  | l == 0 = VS.empty
+  | otherwise = case canonView sh ats of
+      (csh, cats)
+        | cats /= ts -> fillStage2U4 csh cats ao l v
+        | ao == 0 && VS.length v == l -> v
+        | otherwise -> VS.slice ao l v
+        where _ : ts = getStridesT csh
+  where l = product sh
+
+-- 'fbLibStage2' over 'fillStage2Short' -- the same dispatch, the fill
+-- the one change, so 'lib-stage2' is the control; it can move only where
+-- the canonical run is 2 to 5 elements long, and every other view is the
+-- control's code.
+{-# NOINLINE fbLibStage2Short #-}
+fbLibStage2Short :: ShapeL -> T -> VS.Vector Double
+fbLibStage2Short sh (T (Strides ats) ao v)
+  | l == 0 = VS.empty
+  | otherwise = case canonView sh ats of
+      (csh, cats)
+        | cats /= ts -> fillStage2Short csh cats ao l v
+        | ao == 0 && VS.length v == l -> v
+        | otherwise -> VS.slice ao l v
+        where _ : ts = getStridesT csh
+  where l = product sh
+
+-- 'fbLibStage2' with the dispatch read off the merged form alone --
+-- the same 'fillStage2', so the pair prices the dispatch and nothing
+-- else. What licenses it: a canonical view of rank 2 or more can never
+-- carry the natural strides, because 'canonView' merges exactly the
+-- adjacent pairs the natural strides consist of -- 'getStridesT' sets
+-- each outer stride to the inner dim times the inner stride, which is
+-- the merge condition -- so the `cats /= ts` the control asks is
+-- decided by the merged rank and the innermost stride, and the strides
+-- list the control's dispatch builds and compares is not built. One
+-- change over 'fbLibStage2', so that arm is the control, and 'check'
+-- holds the equivalence on every view. It is also the simpler form,
+-- which the complexity ruling at 'fillStage2U4' prefers where the
+-- performance is close.
+{-# NOINLINE fbLibStage2Lean #-}
+fbLibStage2Lean :: ShapeL -> T -> VS.Vector Double
+fbLibStage2Lean sh (T (Strides ats) ao v)
+  | l == 0 = VS.empty
+  | otherwise = case canonView sh ats of
+      ([], _) -> whole
+      ([_], [1]) -> whole
+      (csh, cats) -> fillStage2 csh cats ao l v
+  where
+    l = product sh
+    whole | ao == 0 && VS.length v == l = v
+          | otherwise = VS.slice ao l v
+
 -- The list consumer under each stage: 'toVectorListT' as the library has
 -- it, then one concatenation of what it returns. The concatenation is the
 -- same term in both arms, so the pair prices what building the list costs
@@ -2914,6 +3198,51 @@ fbLibListStage2 sh (T (Strides ats) ao v) = VS.concat parts
                 | otherwise -> [VS.slice ao l v]
                 where _ : ts = getStridesT csh
         l = product sh
+
+-- The unordered-list consumer under each stage: 'toUnorderedVectorListT'
+-- and one concatenation, the third entry point the branch changes and
+-- the one commutative reductions take. Each arm is its stage's
+-- one-block test in front of that stage's list body, so the liblist
+-- arms are the fall-back halves and the pair prices the entry point end
+-- to end. Added 2026-08-30 so that a shim-switch reading on the fills
+-- (Run 23's LOOP_NOOVERLAP) has these routes' sanity readings beside
+-- it, which no test of the branch can show until GHC itself grows such
+-- a capability.
+--
+-- Stage one's test (Data/Array/Internal.hs at 0386073): sort the raw
+-- (stride, dim) pairs descending and ask whether the sorted strides
+-- are the sorted shape's natural strides; one slice if so, the released
+-- 'toVectorListT' otherwise. Unit dims, mergeable dims and negative
+-- strides all defeat it.
+{-# NOINLINE fbLibUnordStage1 #-}
+fbLibUnordStage1 :: ShapeL -> T -> VS.Vector Double
+fbLibUnordStage1 sh a@(T (Strides ats) ao v)
+  | ats' == ts' = VS.slice ao l v
+  | otherwise = fbLibListStage1 sh a
+  where (ats', sh') = unzip (sortBy (flip compare) (zip ats sh))
+        l : ts' = getStridesT sh'
+
+-- Stage two's test, the branch's: the same question asked of the
+-- CANONICAL dims and sorted by absolute stride, so unit and mergeable
+-- dims no longer defeat it and a reversed view is one block, read from
+-- its lowest offset. One change over 'fbLibUnordStage1' per population:
+-- the test and the fall-back move together, as this family's stage
+-- pairs do throughout.
+{-# NOINLINE fbLibUnordStage2 #-}
+fbLibUnordStage2 :: ShapeL -> T -> VS.Vector Double
+fbLibUnordStage2 sh a@(T (Strides ats) ao v)
+  | l == 0 = VS.empty
+  | oneBlock =
+      let !start = ao + sum [ (n - 1) * st | (n, st) <- zip csh cats, st < 0 ]
+      in  VS.slice start l v
+  | otherwise = fbLibListStage2 sh a
+  where !l = product sh
+        (csh, cats) = canonView sh ats
+        oneBlock =
+          let (acats, csh') =
+                unzip $ sortBy (flip compare) $ zip (map abs cats) csh
+              _ : ts = getStridesT csh'
+          in  acats == ts
 
 -- Which of toVectorListT's regimes a (shape, T) pair takes: 1 whole-vector
 -- memcpy, 2 innermost-normal per-run loop, 3 innermost-strided
@@ -3387,8 +3716,15 @@ runsShapes :: [(String, ShapeL)]
 runsShapes =
   [ ("runs-2",        [900000, 2])      -- 1800000, runs of 2
   , ("runs-3",        [600000, 3])      -- 1800000, a k3 conv row
+  , ("runs-4",        [450000, 4])      -- 1800000, a 2x2 pooling window
+  , ("runs-5",        [360000, 5])      -- 1800000, a k5 conv row
   , ("runs-9",        [200000, 9])      -- 1800000, the window probe's run
   , ("runs-96",       [18750, 96])      -- 1800000, an image row
+    -- Two lengths that bracket 'dispRun' within a factor of two, added
+    -- 2026-08-30: the class jumped 96 -> 1024 with the crossover inside,
+    -- so the threshold was cut to a bracket an order of magnitude wide.
+  , ("runs-256",      [7031, 256])      -- 1799936
+  , ("runs-512",      [3515, 512])      -- 1799680
   , ("runs-1024",     [1757, 1024])     -- 1799168
   , ("runs-65536",    [27, 65536])      -- 1769472, a few long runs
   , ("runs-r3-48x30", [1250, 48, 30])   -- 1800000, merges to runs of 1440
@@ -3790,11 +4126,26 @@ roster =
     -- below moves by one against Run 21, which any cross-run read of those
     -- slots has to carry.
   , ("lib-stage2-disp",            Fill fbLibStage2Disp)
+    -- Three candidates for the branch, added 2026-08-30 for Run 22: the
+    -- run unrolled by four, a run of 2 to 5 elements written by a body
+    -- of exactly that length, and the same fill under a leaner dispatch,
+    -- each one change over 'lib-stage2'. Placed beside their control as
+    -- the entry above is, and moving every slot below by three more;
+    -- reasons at the definitions.
+  , ("lib-stage2-u4",              Fill fbLibStage2U4)
+  , ("lib-stage2-short",           Fill fbLibStage2Short)
+  , ("lib-stage2-lean",            Fill fbLibStage2Lean)
     -- The list consumer under each stage, added the same day: the
     -- library's toVectorListT and one concatenation, so the pair prices
     -- the list's construction alone, reasons at the definitions.
   , ("liblist-stage1",             Fill fbLibListStage1)
   , ("liblist-stage2",             Fill fbLibListStage2)
+    -- The unordered entry point under each stage, added 2026-08-30 with
+    -- the fill candidates and for the same run: one-block test in front
+    -- of the liblist body, reasons at the definitions. Every slot below
+    -- moves by two more, six in all against Run 21.
+  , ("libunord-stage1",            Fill fbLibUnordStage1)
+  , ("libunord-stage2",            Fill fbLibUnordStage2)
     -- not timed: 6.20x the result
   , ("mut-offsets",                Only fbMutBaseOffsets)
   , ("build",                      Fill fbBuild)
@@ -3978,6 +4329,24 @@ reference sh a = case [f | (_, Base f) <- roster] of
 -- the roster now leans on for a majority of its strategies: the same
 -- shortening of 'fbBQodoMulback' fails at the first shape naming
 -- @bq-odo-mulback@, an arm nothing times.
+-- The one deliberate weakening of the agreement: the 'libunord' arms
+-- port 'toUnorderedVectorListT', whose contract is the right elements in
+-- ANY order -- on a one-block view they return the source block in
+-- memory order -- so holding them to the reference elementwise fails
+-- the arm for keeping its own contract. They are held to it as a
+-- MULTISET instead, by sorted equality, which still fails on a wrong
+-- result: shortening stage two's one-block slice by one element fails
+-- @check@ at the first shape naming @libunord-stage2@ (non-vacuity,
+-- 2026-08-30, the same breakage the elementwise chain was proven by).
+-- Every other arm stays elementwise, and an unordered arm that agrees
+-- elementwise skips the sorts.
+agreesWithRef :: VS.Vector Double -> String -> VS.Vector Double -> Bool
+agreesWithRef rList n u
+  | u == rList = True
+  | "libunord-" `isPrefixOf` n =
+      sort (VS.toList u) == sort (VS.toList rList)
+  | otherwise = False
+
 checkedArms :: [(String, ShapeL -> T -> VS.Vector Double)]
 checkedArms = [(n, f) | (n, arm) <- roster, f <- fills arm]
   where fills (Fill f) = [f]
@@ -4347,7 +4716,8 @@ oneViewReg :: Int -> String -> ShapeL -> T -> [(String, Bool)] -> IO ()
 oneViewReg expReg name sh a@(T (Strides ats) ao v) conds = do
   let rList  = reference sh a
       builds = buildersMatch ao (init sh) (Strides (init ats))
-      bad    = [n | (n, f) <- checkedArms, f sh a /= rList]
+      bad    = [n | (n, f) <- checkedArms,
+                    not (agreesWithRef rList n (f sh a))]
       agree  = null bad
       reg    = regimeOf sh a
       failedConds = [c | (c, ok) <- conds, not ok]
@@ -4420,7 +4790,8 @@ check = do
           -- The builders' direct comparison lives in 'buildersMatch', whose
           -- comment carries the reason and the per-conjunct non-vacuity.
           builds  = buildersMatch ao (init sh) (Strides (init ats))
-          bad     = [n | (n, f) <- checkedArms, f sh a /= rList]
+          bad     = [n | (n, f) <- checkedArms,
+                         not (agreesWithRef rList n (f sh a))]
           agree   = null bad
           reg     = regimeOf sh a
           -- What @read-run.py@ can only assume, asserted where the view is

@@ -7443,6 +7443,27 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
 
         paras = unwrapped_paragraphs(lines)
         uw = '\n'.join(p for _, p, _ in paras)
+        # A CLASS SHAPE ADDED AFTER THE RUN. The run file's class table
+        # and its `over N shapes` figures describe the roster its run
+        # measured, and the two checks below hold them to Main.hs as it is
+        # now -- so a class shape added between runs failed the newest
+        # run file's TRUE count, and the only edit that passed was one
+        # that made Run 21 claim a population it never timed. README's
+        # provenance bullet already declares such additions for arms;
+        # the same sentence declares them for shapes, and the names in it
+        # that are class shapes are taken out of what the run file is
+        # held to. The declaration lives in the provenance bullet and
+        # leaves with it at the next run's write-up; left standing, it
+        # would hold that run's true table to the reduced count, which
+        # is why a mismatch under an exclusion names both numbers:
+        #     `runs-256` and `runs-512` were added 2026-08-30, after the run
+        # Added 2026-08-30. Case:
+        # `class-shapes-added-after-the-run-are-exempt`.
+        added_after = set()
+        for m in re.finditer(r'((?:`[\w.-]+`(?:,\s+(?:and\s+)?|\s+and\s+))*'
+                             r'`[\w.-]+`)\s+(?:was|were) added'
+                             r' \d{4}-\d{2}-\d{2}, after the run', uw):
+            added_after |= set(re.findall(r'`([\w.-]+)`', m.group(1)))
         aa = [n for n, r, _ in roster if r == 'Twin']
         controls = [n for n, r, _ in roster if r in ('Twin', 'Term', 'Force')]
         timed = [n for n, r, _ in roster if r != 'Only']
@@ -7717,6 +7738,9 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
                 cdims = dims_by_shape(main_hs)[0]
                 want = collections.Counter(
                     class_prefix([sh]) for sh, d in cdims.items()
+                    if d['lst'] not in MAIN_LISTS and sh not in added_after)
+                full = collections.Counter(
+                    class_prefix([sh]) for sh, d in cdims.items()
                     if d['lst'] not in MAIN_LISTS)
             except Exception as exc:                       # noqa: BLE001
                 want = None
@@ -7737,6 +7761,9 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
                                ' run')
                 shp = ['`%s` says %s where Main.hs defines %d'
                        % (c, shape_rows[c], want[c])
+                       + ('' if full[c] == want[c] else
+                          ' (%d defined, %d declared added after the run)'
+                          % (full[c], full[c] - want[c]))
                        for c in sorted(shape_rows)
                        if c in want and int(shape_rows[c]) != want[c]]
                 if shp:
@@ -7815,7 +7842,7 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
         main_shapes = [s for s, d in dims.items() if d['lst'] in MAIN_LISTS]
         class_sizes = {}
         for s, d in dims.items():
-            if d['cls'] != 'main':
+            if d['cls'] != 'main' and s not in added_after:
                 class_sizes.setdefault(d['cls'], set()).add(s)
         want = len(timed) * len(main_shapes)
         seen = [int(m) for p in (r'takes the roster to (\d+) benches',
