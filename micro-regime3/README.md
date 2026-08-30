@@ -4147,13 +4147,19 @@ that inlines its loop into a library function.
 
 **A seventeenth reading, 2026-08-30: the fifteenth's change frees a register
 in the two UNROLLED fills and in nothing else, so it re-opens an ordering three
-readings had settled.** `-down` and the un-unrolled leaf read +0.00% on every
-shape, which is what says the sweep measures the change; `-u2` drops 20.6%
-of its instructions on `runs` and `-u2-down` 28.2%, and both of the family's
-comparisons invert in counted work. **The eighteenth reading settles them
-in time**, where the fifth, sixth and twelfth readings' verdicts actually live;
-what this one is worth keeping for is that it had both directions right and both
-magnitudes too large.
+readings had settled.** In a SHIM-FREE build --- which is the regime every
+figure in this paragraph belongs to, and naming it is not decoration --- `-down`
+and the un-unrolled leaf read +0.00% on every shape, which is what says
+the sweep measures the change; `-u2` drops 20.6% of its instructions on `runs`
+and `-u2-down` 28.2%, and both of the family's comparisons invert in counted
+work. **In the benchmark's own shimmed build the control does NOT hold
+and the inversion is larger**: `-u2` drops 18.6% there and `-down` RISES 15.25%
+on the main set, the shim padding a loop the change displaced, which
+is the nineteenth reading's correction and the reason this paragraph now says
+which build it means. **The eighteenth reading settles them in time**, where
+the fifth, sixth and twelfth readings' verdicts actually live; what this one
+is worth keeping for is that it had both directions right and both magnitudes
+too large.
 
 **An eighteenth reading, 2026-08-30, answers [task 5][open] in TIME and refutes
 the twelfth's verdict for the code that now exists.** (A pair on one recipe ---
