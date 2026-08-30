@@ -802,6 +802,115 @@ rather than a slot in the next run, observed again:
   is the third, recovering most of the corner's loss at 0.9408 against it on 22
   shapes of 24, and reproducing Run 10's reading. Recorded here because the list
   is meant to be the only home, and a session mining it walked past this one.
+- `OPEN` **What Run 22 is built to answer, registered before it runs.**
+  **Decided 2026-08-30: Run 22 is Run 21 again --- its pair, `run21-pair.txt`'s
+  two recipes, ghc-9.12.4 as the basis against the same GHC HEAD stage1
+  at 10.1.20260803, one source, one shim, both halves
+  under `WILDLOG=1 SATURATE=1` --- over the extended roster and shapes,
+  and nothing else moved. Six timed arms landed on 2026-08-30 and none left:
+  `lib-stage2-disp`, the run-length dispatch, the three fill candidates
+  `lib-stage2-u4`, `lib-stage2-short` and `lib-stage2-lean`, and the unordered
+  entry point's `libunord-stage1` and `libunord-stage2`; the `runs` class took
+  `runs-4`, `runs-5`, `runs-256` and `runs-512`, going from seven views
+  to eleven. So the run is 55 timed arms, 1320 main-set benches and 2035 class
+  benches over 37 views in nine classes, where Run 21 ran 49, 1176 and 1617
+  over 33. And FIVE OF RUN 21's COLUMNS ARE NOT THIS RUN'S DRIFT: `fillStage2`
+  unboxed its source vector on 2026-08-29 and steps its cursor twice since
+  2026-08-30, which reaches `lib-stage2` and `lib-stage2-concat` through
+  the call, while `lib-stage2-concat`, `liblist-stage2`, `-add-in-leaf-u2`
+  and `-u2-down` changed in their own bodies beside it --- so those five arms
+  are different code and no distance from Run 21's column there is drift
+  or layout.** Five questions, each with a prediction and what kills it;
+  the predictions are read off the counted work and the filtered probes
+  of 2026-08-29 and 2026-08-30, and what this run adds to them is time at full
+  budget over every population, which is what none of them had. (1) *The fill
+  in time, over every population.* The unboxing of 2026-08-29 and the doubled
+  cursor of 2026-08-30 were priced in instructions and in filtered processes,
+  and this run is the first to price them at full budget. `lib-stage2` against
+  `lib-stage1` is predicted inside **0.78 to 1.08** on the six populations
+  that carried Run 21's 2.43 to 4.54 regression, and `slice` --- the one still
+  behind past its floor by eight points, and unmeasured in time since --- inside
+  **1.05**, the epilogue instruction that cost it being gone and the shim's
+  three points staying. Killed if any regime-3 population reads the branch
+  behind stage one by more than a tenth, which would put the residue back where
+  the counted work says it is not. The two broadcast classes are the registered
+  exception rather than a failure of it: `bcast` at about 1.49 and `bcastmid`
+  at 2.50 in time over counted work, unmoved, that term being bandwidth
+  and no unboxing reaching it. (2) *The three fill candidates in time.*
+  `lib-stage2-short` --- a canonical run of 2 to 5 elements written by a body
+  of exactly that length --- is predicted about **0.50** of `lib-stage2`
+  at `runs-2`, 0.59 at `runs-3` and 0.61 to 0.88 on every k3 and k5 conv shape,
+  and inside 2% above five, `stretch-coprime-r7`'s 1.0208 being the counted
+  work's worst cell; `runs-4` is the first view in the suite with a canonical
+  innermost extent of 4, the short bodies' one branch that nothing exercised,
+  `check` included, and `runs-5` sits beside it; both are predicted to read
+  as `runs-3` does. `lib-stage2-u4` --- the stepping run unrolled by four,
+  and by the ruling of 2026-08-30 a price and not a candidate --- is predicted
+  **0.83 to 0.85** at long runs and 1.08 to 1.15 at `runs-2` and `runs-3`.
+  `lib-stage2-lean`, whose leaner dispatch does not pay the strides comparison,
+  has no counted reading at all and is predicted at or below `lib-stage2`
+  everywhere by a margin scaling as 1/`l`, a dispatch being one cost per call
+  --- so visible on `cnn-slice-c32` and nowhere near visible at `l` of 1.8M.
+  Each is killed by a sign it does not have: `-short` behind past a population's
+  floor anywhere the counted work put it at or below 1, `-u4` not ahead past
+  the `runs` floor at the long lengths, `-lean` behind `lib-stage2` past
+  a floor, or level with it on the smallest shapes. (3) *The dispatch.*
+  `lib-stage2-disp`, `fbLibStage2Concat` with the slice route taken only
+  at a canonical run of `dispRun` or more and `dispRun` cut to 256, is predicted
+  at or below the better of `lib-stage1` and `lib-stage2` at every one
+  of the eleven run lengths and past neither by more than the class's floor,
+  reproducing 0.0283, 0.0312, 0.0951, 0.6190, 1.0029, 1.0096 and 1.0075 against
+  stage one at the seven lengths the filtered sweep read; `runs-256`
+  and `runs-512` bracket `dispRun` within a factor of two and are where its own
+  threshold is read, having had no reading of any kind. Killed if it is behind
+  the better route past the floor at any length. **And its other half
+  is the control**: `dispRun` is cut to 9.12, HEAD's crossover sitting a step
+  further out, between `runs-1024` and `runs-65536`, so on the control half
+  `lib-stage2-disp` takes the slice route at `runs-1024` where stage two
+  is still the better one and is predicted BEHIND `lib-stage2` there by about
+  **four points** --- stage one's 1.00 against stage two's 0.9583 --- where
+  on the basis the same two read 1.0096 and 1.1037 and the dispatch is ahead.
+  A threshold read on one compiler failing on the other is what makes
+  it a bracket, and a control half reproducing 9.12's ordering refutes
+  that reading. (4) *The unordered entry point.* `libunord-stage1`
+  and `libunord-stage2` put each stage's `toUnorderedVectorListT` one-block test
+  in front of its liblist body, and the two tests differ in one word: stage one
+  compares the SIGNED strides against the sorted shape's natural ones, stage two
+  their absolute values after canonicalization. Where each fires was EVALUATED
+  rather than predicted, 2026-08-30, by running both tests over every view
+  `check` prints strides for: stage two's fires on **ten** of the 37 rostered
+  class views --- every view of `rev`, `revsome` and `reshape1`,
+  `reshape1-strided-r3` included, an unordered consumer not minding
+  a permutation --- and stage one's on **none** of the 38. So `libunord-stage2`
+  is predicted degenerate on those three whole classes, a single `VS.slice`
+  reading at or below the `list` baseline's own cell, where `libunord-stage1`
+  tracks `liblist-stage1` inside the floor there; and on the six classes where
+  neither fires both track their own stage's liblist arm inside the floor,
+  the test being one comparison a call. **The main set was left unpredicted here
+  and the roster pass then answered it, which is a finding and not a reading
+  of the run**: `check` prints no strides for its rows, so neither test could
+  be evaluated on them, but the `-L1` pass of 2026-08-30 shows BOTH tests firing
+  there --- `libunord-stage1` sinks three cells and `libunord-stage2` four,
+  on `stretch-wide-2xM`, `stretch-bigstride`, `stretch-tall-Mx2`
+  and `stretch-inner256`, every one a transposed view an unordered consumer may
+  take whole. So stage one's test is not idle on the main set as it is
+  on the classes, and **the eight sunk cells are the thing to settle before
+  the gate**, not a prediction: at `-L1` those arms run at or under the shared
+  forcing pass, so the correction cannot be taken, each cell reads `--`,
+  and three rows become geomeans over 20, 21 and 23 of 24 shapes where every
+  other row covers 24. That breaks the *all rows cover one population* property
+  the Results table rests on. Killed by a margin past the floor on any
+  of the six classes where neither test fires, or by stage two not collapsing
+  on `rev`. (5) *The vecdims family's ordering, at full budget.* Run 21 read
+  `-add-in-leaf-down` **ahead** of the shipped `-add-in-leaf-u2` by 5.6%
+  and 6.7% on its two halves, and the in-process re-take of 2026-08-30 reverses
+  it, `-u2` against `-down` reading 0.8348 on `runs` at 7 wins of 7 ---
+  but about fifteen of those twenty-five points are `-down` moving on code
+  the change does not touch, so that reading is within-half and was recorded
+  as not durable. Predicted: `-u2` ahead of `-down` on the main set and on every
+  class, past each population's floor, and `-u2` against `-u2-down` a tie inside
+  it. Killed if `-down` is still ahead past a floor anywhere, which would say
+  the in-process reading was the displacement and not the change.
 - `ANSWERED` **What Run 21 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
   verdicts are [in Run 21's own file](runs/run21.md), where they were moved
