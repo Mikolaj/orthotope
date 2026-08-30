@@ -302,7 +302,9 @@ runBaseOffsetsT o0 osh oats = foldl' expand (VU.singleton o0) (zip osh oats)
 -- bang-for-bang from the fastest fill of a micro-benchmark (its arm
 -- mut-odo-vecdims-add-in-leaf-u2), with the two conditions from two more
 -- of its arms (bcast-set and mid-copy): the bang patterns are part of
--- what was measured. The benchmarks are preserved
+-- what was measured.  One deliberate divergence from that arm since
+-- 2026-08-30, marked at the line it is on: it is for the NCG and costs
+-- -fllvm a little. The benchmarks are preserved
 -- at https://github.com/Mikolaj/orthotope/blob/speedup-strided-tovector/micro-regime3/
 -- and the implementation is similar to what once was in orthotope file
 -- FastReshape.hs (a Storable-only odometer flatten behind an unsafeCast to
@@ -329,11 +331,19 @@ genericFillStrided sh ats !ao !l !v = VG.create fill
                   | o + 1 >= oEnd =
                       if o >= oEnd then return ()
                       else VGM.unsafeWrite out o (VG.unsafeIndex v src)
+                  -- FOR THE NCG, AND A REGRESSION UNDER -fllvm.  The
+                  -- cursor steps twice by tInner instead of once by a
+                  -- doubled stride: one live value fewer, which is what
+                  -- lets the NCG's allocator keep the output base in a
+                  -- register instead of reloading it twice a pair.  Worth
+                  -- 5 to 25% of the fill's instructions there, most at
+                  -- long runs; -fllvm needs neither, keeps two induction
+                  -- variables and loses 1 to 8%.
                   | otherwise = do
                       VGM.unsafeWrite out o (VG.unsafeIndex v src)
-                      VGM.unsafeWrite
-                        out (o + 1) (VG.unsafeIndex v (src + tInner))
-                      inner (o + 2) (src + t2)
+                      let !src' = src + tInner
+                      VGM.unsafeWrite out (o + 1) (VG.unsafeIndex v src')
+                      inner (o + 2) (src' + tInner)
             in  inner outPos baseOff
           -- The broadcast run, innermost stride 0: the run's one
           -- element read once and stored sInner times.
@@ -405,7 +415,7 @@ genericFillStrided sh ats !ao !l !v = VG.create fill
       return out
     !sInner = last sh
     !tInner = last ats
-    !t2 = tInner + tInner
+    -- No doubled stride here any more; see the fill's own note.
     !rOuter = length sh - 1
     oshV, oatsV :: VU.Vector Int
     !oshV  = VU.fromList (init sh)
