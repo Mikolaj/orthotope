@@ -1,0 +1,54 @@
+=== probe-stalls.sh non-vacuity, 2026-08-30T02:05:09+02:00: each guard broken deliberately, and a control
+
+--- 1. an OUT in a run's own namespace
+OUT is 'run22stall': a probe's artifacts are probe-* or smoke-*, never a run's
+exit=2
+
+--- 2. no ARMS
+set ARMS: this sweep is five events a cell and is not for a whole roster
+exit=2
+
+--- 3. a shape the binary does not have
+!! not in ./probe-bang-g912 --list: nosuchshape
+   each would select no bench and difference to process noise,
+   which reads exactly like a measured cell. Nothing ran, no probe-zzstall.txt written.
+exit=2
+
+--- 4. an arm the binary does not have
+!! not in ./probe-bang-g912 --list: nosucharm
+   each would select no bench and difference to process noise,
+   which reads exactly like a measured cell. Nothing ran, no probe-zzstall.txt written.
+exit=2
+
+--- 5. a class prefix matching nothing
+!! class prefix nosuchclass- matches no bench -- nothing ran, no probe-zzstall-nosuchclass.txt written
+exit=1
+
+--- 6. an event this CPU cannot count
+!! perf will not count these here, or not for the whole run:
+   stalled-cycles-backend:u (<not supported> at 100.00%)
+   kernel.perf_event_paranoid reads 1, and an
+   event this CPU does not implement reads <not supported> instead.
+   That is what it READ and not a diagnosis. Nothing ran, no probe-zzstall.txt written.
+exit=1
+
+--- 7. an event list too long for the counters
+!! perf will not count these here, or not for the whole run:
+   instructions:u (59872 at 30.00%)
+   L1-dcache-load-misses:u (3311 at 69.00%)
+   kernel.perf_event_paranoid reads 1, and an
+   event this CPU does not implement reads <not supported> instead.
+   That is what it READ and not a diagnosis. Nothing ran, no probe-zzstall.txt written.
+exit=1
+
+--- 8. an existing artifact
+probe-zzstall.txt exists; move it aside first
+exit=1
+
+--- control: the cell step 8 left, which is a real one
+# ./probe-bang-g912 70e9e93ed72f61ee04b0bc0f4e71e36b N=50 2026-08-30T02:05:09+02:00 ARMS=list ONLY=cnn-L1-6x6-c1
+# shape arm N instructions:u cycles:u stalled-cycles-frontend:u branch-misses:u cache-misses:u
+# every cell is (-n 2N) minus (-n N), over N, as run-counts.sh takes it
+# ARMS-RESTRICTED BY CONSTRUCTION: this sweep is never a roster column
+cnn-L1-6x6-c1 list 50 104470 45054 2658 39 -13
+# end 2026-08-30T02:05:09+02:00

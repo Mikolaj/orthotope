@@ -2211,16 +2211,27 @@ is planned. A scope limit belongs in the sentence that asks for the measurement.
    the shipped fill's eighteen --- so the fill saves about one an element
    and the arm spends about half a one more, leaving roughly one and a half
    an element unaccounted for outside the fill. And `canonView` cannot be it:
-   that is O(rank) per call, where this scales with the work. **What would
-   settle it**: which of `fillStage2`'s three run bodies a non-canonicalizing
-   view reaches, and what its outer levels cost against
-   `fbMutOdoVecdimsAddInLeafU2`'s --- one dump of one binary, minutes, no quiet
-   machine, and the instrument is the seventh reading's. **Why it is `slice`
-   that shows it and not the others**: `revsome` carries the same 4.7%
-   in instructions and reads 1.0628 in time, inside its 5.8% floor, where
-   `slice`'s floor is the tightest of the classes at 4.4% and its 1.0811 clears
-   it. So the population is the one where the residue is VISIBLE, not the one
-   where it is largest, and a fix reaches all of them.
+   that is O(rank) per call, where this scales with the work. **The dump
+   was taken the same day and it halves the question rather than answering it.**
+   (`probe-disp-g912`'s own assembly and `-ddump-cmm`, the binary reproducing
+   byte for byte with either flag added; `probe-nospill-fills.py`, which now
+   reads the native backend too, where a loop is several Cmm blocks
+   and a self-loop finder sees nothing.) **The outer levels are not it**: both
+   arms emit the same odometer loop, eight blocks and 48 instructions over 19
+   stack accesses, identical in shape. **What differs is how many run bodies
+   the branch emits** --- fourteen loops against the shipped fill's seven, which
+   is `runsWith` specialised at both `writeRun` arguments and a `tInner == 0`
+   test carried down every level --- and their costs straddle: the branch's
+   cheapest two-element body is twelve instructions over no stack access,
+   as the shipped fill's is, and its next is fourteen over two. **So the residue
+   is a body-selection question and the remaining measurement is attribution**:
+   which of the fourteen a non-canonicalizing view actually reaches. That
+   is a read of the Cmm blocks rather than another sweep, minutes, and no quiet
+   machine. **Why it is `slice` that shows it and not the others**: `revsome`
+   carries the same 4.7% in instructions and reads 1.0628 in time, inside
+   its 5.8% floor, where `slice`'s floor is the tightest of the classes at 4.4%
+   and its 1.0811 clears it. So the population is the one where the residue
+   is VISIBLE, not the one where it is largest, and a fix reaches all of them.
 
 **And one class not to repropose: work that needs an aligned build.**
 `mut-odo`'s wide interval is the live case. The dispersion is documented

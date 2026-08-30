@@ -1,0 +1,42 @@
+=== probe-times.sh non-vacuity, 2026-08-30T01:30:37+02:00: each guard broken deliberately
+
+--- 1. an OUT in a run's own namespace
+OUT is 'run22': a probe's artifacts are probe-* or smoke-*, never a
+run's own prefix -- read-all.sh would read them as that run's
+processes and gate the run on them.
+exit=2
+
+--- 2. a population matching no bench
+=== 2026-08-30T01:30:37+02:00 probe-zz begins on ./zz-probe-times-stub, md5 a0fd561e49c0fe863e750890569132bf; tree at c678d1d, Main.hs at 6cb2bd9; populations: nosuchclass
+=== 2026-08-30T01:30:37+02:00 launch env: WILDLOG=unset SATURATE=unset -- both are Run 21's, and a process missing one is not comparable with it
+ 01:30:37 up 3 days, 23:28,  0 user,  load average: 0.32, 0.49, 0.66
+=== 2026-08-30T01:30:37+02:00   !! population nosuchclass matches no bench -- skipped, not run empty
+=== 2026-08-30T01:30:37+02:00 probe-zz complete, with 1 complaint(s) above -- read them before any figure
+exit=1
+
+--- 3. an under-run process, and neither switch asserted
+=== 2026-08-30T01:30:37+02:00 probe-zz begins on ./zz-probe-times-stub, md5 a0fd561e49c0fe863e750890569132bf; tree at c678d1d, Main.hs at 6cb2bd9; populations: runs
+=== 2026-08-30T01:30:37+02:00 launch env: WILDLOG=1 SATURATE=1 -- both are Run 21's, and a process missing one is not comparable with it
+ 01:30:37 up 3 days, 23:28,  0 user,  load average: 0.32, 0.49, 0.66
+=== 2026-08-30T01:30:37+02:00 start probe-zz-runs (3 benches expected)
+=== 2026-08-30T01:30:37+02:00 done  probe-zz-runs rc=0 benchmarking=2 saturate=0 wild=0
+=== 2026-08-30T01:30:37+02:00   !! probe-zz-runs: expected 3 benches, got 2 -- the selection is not what was asked for
+=== 2026-08-30T01:30:37+02:00   !! probe-zz-runs: SATURATE=1 was set and this log carries 0 @@saturate line(s), not 1 -- the process did not assert its state, so its figures are not this probe's
+=== 2026-08-30T01:30:37+02:00   !! probe-zz-runs: WILDLOG=1 was set and this log carries no @@wild stamps -- the instrument is not in this binary
+=== 2026-08-30T01:30:37+02:00 probe-zz complete, with 3 complaint(s) above -- read them before any figure
+exit=1
+
+--- 4. a relaunch over the artifacts step 3 left
+probe-zz-runs already has artifacts:
+  probe-zz-runs.log
+relaunching would overwrite them. Move them aside first.
+exit=1
+
+--- control: the same stub run for the count it does hold
+=== 2026-08-30T01:30:37+02:00 probe-zz begins on ./zz-probe-times-stub, md5 9f81772713627993d728268758228f65; tree at c678d1d, Main.hs at 6cb2bd9; populations: runs
+=== 2026-08-30T01:30:37+02:00 launch env: WILDLOG=unset SATURATE=unset -- both are Run 21's, and a process missing one is not comparable with it
+ 01:30:37 up 3 days, 23:28,  0 user,  load average: 0.32, 0.49, 0.66
+=== 2026-08-30T01:30:37+02:00 start probe-zz-runs (3 benches expected)
+=== 2026-08-30T01:30:37+02:00 done  probe-zz-runs rc=0 benchmarking=3 saturate=0 wild=0
+=== 2026-08-30T01:30:37+02:00 probe-zz complete; every process ran the count asked of it
+exit=0
