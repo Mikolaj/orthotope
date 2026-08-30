@@ -6,8 +6,10 @@ the innermost dimension is strided, so no contiguous run longer than one element
 can be sliced out. What the branch carries in code is the stage-one fix, landed
 2026-08-24 (stage two is on
 [`pr-mikolaj-toVectorListT`][https://github.com/Mikolaj/orthotope/tree/pr-mikolaj-toVectorListT],
-measured on Run 21 and a regression on every regime-3 population):
-`vFillStrided`, the class method, its shared driver a bang-for-bang port
+a regression on every regime-3 population when Run 21 measured it and at parity
+there since the unboxing fix of 2026-08-29, [the
+ceiling](#the-mutable-ceiling-taken)'s tenth reading): `vFillStrided`, the class
+method, its shared driver a bang-for-bang port
 of `mut-odo-vecdims-add-in-leaf-u2`; **the regime 3 fix is decided:
 on 2026-08-22 `mut-odo-vecdims` was decided as the implementation to go
 upstream, on 2026-08-24 the stride-conditioned redirect that had kept
@@ -286,11 +288,13 @@ is therefore written on the leaf body, and the composite over it is rostered
 since 2026-08-28 as `lib-stage2`, the branch's `toVectorT` ported whole ---
 and Run 21 read it: the plan's *every population keeps the vecdims family
 at its head* survives, `mut-odo-vecdims` and its siblings heading every
-population, but the plan's own driver does not, `lib-stage2` reading 2.4 to 4.5
-times `lib-stage1` wherever canonicalization does not collapse the view. They
-are new functions, so Run 20 was the stronger pinning test [the floor
-section][floor] wanted, **and the claim did not survive it**: no tracked loop
-kept its address, so the claim covers additions that cost nothing to place
+population, but the plan's own driver did not, `lib-stage2` reading 2.4 to 4.5
+times `lib-stage1` wherever canonicalization does not collapse the view ---
+a gap the unboxing fix of 2026-08-29 closed to parity, so this sentence is Run
+21's reading and not the branch's standing ([the ceiling][ceiling]'s tenth
+reading). They are new functions, so Run 20 was the stronger pinning test [the
+floor section][floor] wanted, **and the claim did not survive it**: no tracked
+loop kept its address, so the claim covers additions that cost nothing to place
 and nothing wider. `reshape1` did go degenerate for the canonicalizing arms,
 whose cells there price dispatch rather than filling, and the class took
 the non-collapsing sibling it wanted --- `reshape1-strided-r3`, `reshape1-r3`'s
@@ -304,6 +308,35 @@ ruling stays whole); normalizing strides at view construction (observable
 through the API, so the pass stays local to `toVectorListT`); and algebraic
 shortcuts in reductions over broadcasts (the consumer's business,
 not this fallback's).
+
+**The run length the two routes cross at, re-taken after the unboxing fix
+and dispatched to, 2026-08-30 --- and it is a bracket per compiler and
+not a number.** Stage two fills contiguous runs where stage one slices
+and concatenates them, so on regime-2 views the branch is a large win at short
+runs and a large loss at long ones, and the `runs` class exists to find where
+they cross. **The fix moved it out one step, as the eighth reading's fourteen
+instructions per two elements said it would**: `lib-stage2` against `lib-stage1`
+reads 0.0284, 0.0309, 0.0954, **0.6207**, **1.1037**, 1.3500 and 1.2066 across
+`runs-2` to `runs-r3-48x30`, where Run 21 read 0.0854 to 6.4790 and crossed
+between `runs-9` and `runs-96`. The class was re-taken BEFORE the arm was cut,
+which is what kept the prediction from choosing the threshold. **The arm
+is `lib-stage2-disp`, `fbLibStage2Concat` with the slice route taken only
+at a canonical run of `dispRun` or more, cut to 256 inside that bracket** ---
+and it buys what a dispatch has to buy, reading 0.0283, 0.0312, 0.0951, 0.6190,
+1.0029, 1.0096 and 1.0075 against stage one, so it is stage two below
+the crossover and stage one above it and past neither by more than the class's
+floor. Against `lib-stage2` it is 0.9148 paired, 0.7342 at the longest run;
+against `lib-stage2-concat`, 0.2430. **What the second compiler is for,
+and it earned its process**: on GHC HEAD stage two reads **0.9583**
+at `runs-1024`, still ahead, where 9.12 reads **1.1037** --- fourteen points
+at one shape, past both halves' floors --- so HEAD's crossover sits a step
+further out again, between `runs-1024` and `runs-65536`. A threshold read on one
+compiler is therefore not the other's, and a library taking this dispatch owes
+its own sweep; `dispRun` as it stands is cut to 9.12 and is a bracket's
+representative rather than a measurement. **And the two routes' thresholds
+are further apart than they were**: `canon-memcpy-r2` against `canon-vecdims`
+still crosses between `runs-3` and `runs-9`, which the fix does not touch,
+so what Run 21 recorded as one step of the class between them is now two.
 
 
 ## Contents
@@ -2110,96 +2143,43 @@ limitation goes inert. Here the limitation was recorded accurately and went
 inert anyway, because it was recorded where the tool lives and not where the run
 is planned. A scope limit belongs in the sentence that asks for the measurement.
 
-1. `OPEN` **`fillStage2` is the branch's cost, and it is 2.4 to 4.5 times
-   the fill it replaces.** Run 21's registration 4 fired its kill condition:
-   on every population whose views will not canonicalize, `lib-stage2` is behind
-   `lib-stage1` past the floor by factors --- `rev` 4.0152, `revsome` 4.5377,
-   `slice` 4.0984, `scaled` 4.0765, `window` 3.7237, the main set 2.4323 ---
-   and it reproduces on GHC HEAD within a tenth of each. Stage one reaches
-   `genericFillStrided` there, which is a bang-for-bang port
-   of `mut-odo-vecdims-add-in-leaf-u2`, so the gap is between two fills
-   and not between two dispatches. **HALF OF WHAT THE GAP IS, measured
-   2026-08-29 off the counted work already on disk.** Both arms sit in one
-   binary, so an arm-against-arm instruction count has no codegen-between-halves
-   confound; subtracting `sum-only-early` from each, as the time column
-   subtracts it, `lib-stage2` against `lib-stage1` reads **2.776 on `rev`, 2.979
-   on `slice`, 3.516 on `scaled`, 2.237 on `window` and 1.743 on the main set
-   IN INSTRUCTIONS** against time ratios of 4.015, 4.098, 4.077, 3.724
-   and 2.432. So on regime 3 the dominant term is that the branch's fill
-   executes about THREE TIMES the instructions per element, which is a code
-   question and readable without another run. A second term rides on top
-   of it and does not go away: time over instructions runs **1.16 to 1.67**
-   on those five and never approaches 1, so the branch's fill also retires fewer
-   instructions per cycle. **And the broadcast classes invert the first term
-   without escaping the second**: `bcast` and `bcastmid` execute FEWER
-   instructions than stage one, 0.844 and 0.408 --- the block-copy and splat
-   paths earning their place --- while still reading 1.481 and 2.118 on time
-   over instructions, which is why `bcast` loses in time on an arm that emits
-   less code. **The mechanism of the first term is TAKEN, 2026-08-29,
-   and the remainder is the second term alone.** [The ceiling][ceiling]'s
-   seventh reading has the dump: the branch's fill re-scrutinises the boxed
-   source vector every iteration where the shipped one reads through an unboxed
-   `Addr#`, spending fifty instructions and twenty-three stack accesses per two
-   elements against eighteen and four, which is the 2.78 the counter read
-   as 2.776. **And the fix is taken the same day**, [the ceiling][ceiling]'s
-   eighth reading: one bang an argument in the library and in the port alike
-   takes the fill to fourteen instructions over two stack accesses, below
-   the shipped fill's own eighteen and four. **So every figure in this entry
-   is PRE-FIX and none of it is a reading of what the branch now holds.**
-   **The instruction half of that re-measurement is TAKEN**, [the
-   ceiling][ceiling]'s ninth reading: the counted work now reads 0.79 to 1.05
-   where it read 2.2 to 3.5, so the first term is gone on every population
-   that carried it. What is left is TIME, the 2.4 to 4.5 being a time ratio,
-   and what survives of the second term, which loses its candidates
-   on the regime-3 populations --- the frame and its store-to-load chains
-   are gone. Whether `bcast`'s 1.481 and `bcastmid`'s 2.118 keep theirs
-   is NOT settled by that: their loops never scrutinised the vector, but their
-   arms are not thereby untouched, and a first reading says they moved. Until
-   that run the branch should not replace the shipped fill on regime-3 views,
-   and `a29748b`'s `INLINE` pragmas were never what stood in the way: they emit
-   byte-identical code, having fired all along.
-2. `OPEN` **The run-length condition, which the `runs` class measured rather
-   than assumed --- and whose every figure below is PRE-FIX, so the threshold
-   moves before the arm this asks for can be built to it.** [The
-   ceiling][ceiling]'s eighth reading takes stage two's fill from fifty
-   instructions per two elements to fourteen, which keeps it competitive
-   at longer runs and so pushes the crossover out; an arm cut to the crossover
-   measured here would be cut to one that no longer exists. **So this task's
-   order is fixed: re-take the class first, then dispatch.** `lib-stage2-concat`
-   is no control against that, routing through the same fill. What the fix does
-   NOT touch is the second crossover below, `-u2` against `-down` being strategy
-   arms it never reaches. Stage two's fill is flat in run length at 0.114
-   to 0.158 of `list`; stage one's slice-per-run concatenation runs 1.3346,
-   0.9672, 0.3301, 0.0538, 0.0300, 0.0244 and 0.0269 across `runs-2`
-   to `runs-r3-48x30`. So each is right on one side of a crossover that falls
-   **between `runs-9` and `runs-96`**, and neither is right on both ---
-   and the shipped route is the one that is pathological at the short end,
-   a third slower than the `list` baseline it exists to beat at `runs-2`.
-   `lib-stage2-concat` restores stage one's figure at every length, which
-   recovers the long runs and gives back the short ones. **What would settle
-   it**: an arm that dispatches on run length at the crossover this class
-   measured, timed on `runs` against all three, which is one Main.hs arm and one
-   evening's slot on the existing class. `canon-memcpy-r2` against
-   `canon-vecdims` crosses one step earlier, between 3 and 9, so the threshold
-   is worth reading per route rather than assumed shared. The counted work after
-   the fix puts `runs` at 1.139, the one population where stage two now costs
-   more in instructions than stage one --- a first bearing on where
-   the crossover has gone and no substitute for timing it. A second crossover
-   wants that same evening and that same class: `-u2` against `-down` on a build
-   where neither spills, which [the ceiling][ceiling] prices at half
-   an instruction an element against five memory accesses a run. **What the two
-   together cost, the second having been added without saying**: TWO quiet
-   processes and not one, about half an hour each, plus an `-fllvm` binary ---
-   minutes, no quiet machine, and `check` owed on it before a figure is read.
-   The dispatch arm is the only new code; `-u2` against `-down` needs none, both
-   being timed on every class view already. **And the halves are not equally
-   cheap to believe.** The dispatch question moves by the factors above and one
-   process settles it, where the other is a single-digit percent at the long
-   end, judged against the `runs` floor of whichever run takes it, so a wide
-   floor there costs that process twice. A second compiler doubles the whole
-   and is owed by the threshold, which a compiler can move, rather than
-   by the allocator reading --- whose figures stay a diagnostic whatever they
-   say, `-fllvm` being a regime this README will not publish from.
+1. `ANSWERED` **`fillStage2` WAS the branch's cost, 2.4 to 4.5 times the fill
+   it replaces, and one bang an argument took it back to parity, 2026-08-30.**
+   The whole chain is [the ceiling][ceiling]'s, four readings in two days:
+   the seventh found the fill re-scrutinising its boxed source vector on every
+   iteration where the shipped one reads through an unboxed `Addr#`, the eighth
+   unboxed it, the ninth measured the instructions gone and the tenth the TIME
+   gone. `lib-stage2` against `lib-stage1` now reads **0.78 to 1.08** across
+   the six populations that carried the regression, against the 2.43 to 4.54 Run
+   21 read, and against floors of 4.0 to 7.4 percent. **What is left is one
+   population and one mechanism, and neither of them is the fill.** `slice`
+   is the one population still behind past its floor, by an eighth where
+   it was behind by four times. And the broadcast classes keep the second term
+   entire --- `bcast` at 1.49 and `bcastmid` at 2.50 in time over counted work,
+   unmoved from 1.48 and 2.12 --- which the eleventh reading names rather
+   than leaving open: it is bandwidth and not code, cache misses running 1.55x
+   and 6.7x per instruction executed, with front-end stalls and mispredicts
+   beside them on `bcastmid` alone. Those paths execute a QUARTER of stage one's
+   instructions and take longer doing it, so instructions retired is the wrong
+   currency for them and no further unboxing reaches them. **The hold this entry
+   put on the branch is discharged as a reading and is not a decision to ship**:
+   the measurement licenses the branch's fill on every regime-3 population
+   its own figures reach, `slice` excepted, and whether stage two replaces stage
+   one belongs to whoever asked for the run.
+2. `ANSWERED` **The run-length condition, both halves, 2026-08-30 --- and one
+   of them refuted.** The class was re-taken before the arm was cut, which
+   is the order this entry fixed and the reason the fix's own prediction did
+   not get to choose the threshold. **The crossover moved out one step,
+   to between `runs-96` and `runs-1024`, and `lib-stage2-disp` is cut to
+   it and is at or below the better of the two routes at every length
+   of the sweep**; the account, the figures and the second compiler --- which
+   puts HEAD's crossover a step further out again, so what the class settles
+   is a bracket per compiler and not a number --- are [in the two-stage
+   plan](#the-two-stage-plan-and-the-rework-proposal). **The second half
+   is REFUTED**: `-u2` is behind `-down` at all seven lengths in a spill-free
+   binary and by the same margin the native backend reads, so there
+   is no crossover there and taking the spill out changed nothing, which is [the
+   ceiling][ceiling]'s twelfth reading and an amendment to its sixth.
 3. `OPEN` **Is the spread of the pairs outside the restricted six criterion's
    sampling, or something per-process on top of it?** Carried here from the Run
    18 floor item, whose other half is answered. Across four runs the six-pair
@@ -2216,6 +2196,31 @@ is planned. A scope limit belongs in the sentence that asks for the measurement.
    evening, which needs no pair and no second recipe, and which separates
    per-process variation from sampling inside a bench directly. It
    is the cheapest unspent measurement this file has.
+4. `OPEN` **What is left of task 1: stage two executes a few percent more
+   instructions than stage one on the populations that will not canonicalize,
+   and on `slice` that shows in time past the floor.** The tenth reading retires
+   the regression everywhere else; this is its residue, and it is a code
+   question rather than a run's. **The decomposition is already on disk
+   and costs nothing to state**, off the counted work of 2026-08-29: the excess
+   is neither per call nor flat per element but both, fitting **about half
+   an instruction an element plus about eight tenths of one per RUN** across
+   `slice`'s three shapes, whose innermost extents are 3, 13 and 89 and whose
+   excesses run 0.78, 0.59 and 0.51 an element. Two things make that worth
+   a dump rather than a shrug. It has the wrong SIGN against the eighth reading,
+   which put stage two's fill at fourteen instructions per two elements against
+   the shipped fill's eighteen --- so the fill saves about one an element
+   and the arm spends about half a one more, leaving roughly one and a half
+   an element unaccounted for outside the fill. And `canonView` cannot be it:
+   that is O(rank) per call, where this scales with the work. **What would
+   settle it**: which of `fillStage2`'s three run bodies a non-canonicalizing
+   view reaches, and what its outer levels cost against
+   `fbMutOdoVecdimsAddInLeafU2`'s --- one dump of one binary, minutes, no quiet
+   machine, and the instrument is the seventh reading's. **Why it is `slice`
+   that shows it and not the others**: `revsome` carries the same 4.7%
+   in instructions and reads 1.0628 in time, inside its 5.8% floor, where
+   `slice`'s floor is the tightest of the classes at 4.4% and its 1.0811 clears
+   it. So the population is the one where the residue is VISIBLE, not the one
+   where it is largest, and a fix reaches all of them.
 
 **And one class not to repropose: work that needs an aligned build.**
 `mut-odo`'s wide interval is the live case. The dispersion is documented
@@ -3149,10 +3154,11 @@ probes the ceiling records. `bq-expand`, the last candidate, is what every claim
 below was measured against; the branch no longer carries it. This branch's
 library stays at stage one; stage two is
 [`pr-mikolaj-toVectorListT`][https://github.com/Mikolaj/orthotope/tree/pr-mikolaj-toVectorListT],
-and its figures were taken on Run 21: rostered as `lib-stage2`, it runs 2.4
-to 4.5 times stage one on every population whose views will not canonicalize,
-and crosses stage one between `runs-9` and `runs-96` on the class built to find
-where ([Run 21's file](runs/run21.md#results), and [task 1][open]).
+and its figures were taken on Run 21, where it ran several times stage one
+on every population whose views will not canonicalize, and re-taken after
+the unboxing fix, which puts it at parity there and moves the run length
+it crosses stage one at ([Run 21's file](runs/run21.md#results), [the
+ceiling][ceiling]'s tenth reading for the figures, and [tasks 1 and 2][open]).
 
 Regime 3 now goes through the class: `toVectorListT`'s innermost-strided branch
 is `[vFillStrided sh ats ao l v]`. The method's default is the pure `bq-expand`
@@ -3793,7 +3799,19 @@ again here. **What would settle it**: the two arms timed against each other
 inside one spill-free binary over the `runs` class, which already sweeps run
 length from 2 to 65536. That is an arm-against-arm ratio in one process,
 so it READS such a build rather than adopting it as a regime, and it wants
-the same evening as the crossover [task 2][open] asks for.
+the same evening as the crossover [task 2][open] asks for. **TAKEN 2026-08-30,
+and every prediction in this paragraph is REFUTED.** In a fresh `-fllvm` binary
+`-u2` is behind `-down` at all seven lengths, 0 of 7 at sign p 0.016,
+and the native backend reads the same ordering to within a point --- so removing
+the spill did not reverse it, did not move it, and there is no run-length
+question here to be answered. Nor does the arithmetic survive a rebuild:
+that binary re-rolls `-u2`'s hand-unrolled body and pays a `cmpq` for the cursor
+bound, putting it at seven instructions an element against `-down`'s six,
+so the half-instruction this reasoning is built on has changed sign between two
+LLVM builds of one source. **What that leaves standing is the method and
+not the arithmetic**: an instruction count differenced off a dump predicts
+an ordering only where the counts hold across the builds being compared, which
+the timing here says they do not. Task 2 has the figures.
 
 **A seventh reading, 2026-08-29, is the dump [task 1][open] asked for,
 and the first term is a BOXING failure and not an inlining one.** `fillStage2`'s
@@ -3826,8 +3844,9 @@ tables shifted by the pragmas' own one and two lines, so the build read
 the change and the code did not move. **What would lift it is getting the vector
 unboxed out of the fill, and no further pragma of that kind can**, which
 is worth knowing before anyone spends a second attempt on one. The 2.4 to 4.5
-stands as measured and the arm is not mended, so [task 1][open]'s hold
-on the branch stands with it.
+stood as measured when this was written and the arm was not mended; the eighth
+reading mended it the same day and the tenth measured the time, so what
+this paragraph says about the hold is spent and the entry says where it went.
 
 **An eighth reading, 2026-08-29, takes the fix the seventh named, and it is one
 bang an argument.** `genericFillStrided` and the `vFillStrided` default beside
@@ -3884,7 +3903,100 @@ this reading does not name --- their loops never scrutinised the vector,
 so it is the `ao` and `l` bangs or the leaf's dispatch and not the fill. **What
 none of it settles is time**, the 2.4 to 4.5 being a time ratio and the second
 term untouched; and `runs` at 1.139 is the one population where stage two now
-costs MORE in instructions, which is [task 2][open]'s to read.
+costs MORE in instructions, which was [task 2][open]'s to read. Both are read
+the next day, in the tenth reading and the eleventh.
+
+**A tenth reading, 2026-08-30, is the TIME the ninth left, and it retires
+the regression this benchmark was built to catch.** (`probe-bang-g912` again,
+so the instrument is the ninth reading's own and every arm sits at its Run 21
+slot; one criterion process per population at the default budget, under Run 21's
+own `WILDLOG=1 SATURATE=1`, since the saturating preamble is the block-pool
+state that run measured in. Ten processes, one a population, each at the bench
+count `--list` gives it and none complaining; `probe-times-note.txt` carries
+the preparation, and task 2's three processes are its own.) `lib-stage2` against
+`lib-stage1` now reads **0.9294 on `rev`, 1.0628 on `revsome`, 1.0811
+on `slice`, 1.0087 on `scaled`, 0.9005 on `window` and 0.7840 on the main set**,
+against the 4.0152, 4.5377, 4.0984, 4.0765, 3.7237 and 2.4323 Run 21 read. Their
+populations' floors are 4.0 to 7.4 percent on the worst A/A pair, so **`slice`
+is the one population still behind past its floor and it is behind by an eighth,
+where it was behind by four times**; every other regime-3 population is inside
+its floor or ahead of it. **Two controls say the reading is the fix and
+not the evening.** The box did not move --- `--machine` puts this run's `list`
+absolutes at -0.03% geomean against the kept fingerprint, worst +1.43%, nothing
+past 5% --- and `--movers 5` against Run 21 finds **one arm of 43 past five
+percent on `runs`**, `lib-stage2` at -77%, and four on the main set, three
+of them the three arms that call `fillStage2` and the fourth an A/A control
+at -6%. So the whole of what moved is the three arms the bang reached.
+**The second term dies with it on regime 3 and survives untouched
+on broadcast.** Time over counted work, both sides net of `sum-only-early`
+and the quotient capped as the reader caps a ratio, reads **0.99 on `rev`, 1.01
+on `revsome`, 1.03 on `slice`, 1.00 on `scaled`, 1.02 on the main set and 1.14
+on `window`** where Run 21 read 1.16 to 1.67 --- and **1.49 on `bcast` and 2.50
+on `bcastmid`**, where it read 1.48 and 2.12 and has not moved at all.
+That is the seventh reading's mechanism confirmed from the other side: the term
+was the frame and its store-to-load chains, so it goes exactly where the frame
+went, and the broadcast paths, whose loops never scrutinised the vector
+and so never had a frame, keep theirs entire. **`reshape1` is no longer readable
+rather than degenerate**: stage two canonicalizes two of its four views
+to regime 1, and their net time now sits at or below the forcing term,
+so the reader refuses the pair instead of publishing the 0.0178 Run 21 quoted
+--- the same finding, said louder.
+
+**An eleventh reading, 2026-08-30, is the counter reading the seventh asked
+for by name, and it names the surviving term.** That reading closed *whether
+those account for the measured 1.16 to 1.67 of time over instructions wants
+a counter reading of stalls and mispredicts, not another dump*, and this is it.
+(`probe-stalls.sh`, which is `run-counts.sh`'s differencing --- `-n 2N` minus
+`-n N` over `N`, two processes a cell --- with cycles, front-end stalls, branch
+misses and cache misses counted beside instructions. Five arms and every
+population. **Unlike an instruction count it wants the quiet machine**, a cycle
+spent waiting for somebody else's core counting exactly as a cycle spent waiting
+for memory, which is why it ran in the evening and not beside it.) **The second
+term IS a ratio of cycles per instruction, so this measures it a second way,
+owing criterion nothing** --- and the two agree: 1.02 against the clock's 1.02
+on the main set, 0.98 against 0.99 on `rev`, 1.05 against 1.03 on `slice`, 1.16
+against 1.14 on `window`, **1.49 against 1.49 on `bcast` and 2.52 against 2.50
+on `bcastmid`**. **What the cycles went on, as rates per instruction executed,
+stage two over stage one**: on `bcastmid` front-end stalls **6.0x**, cache
+misses **6.7x** and branch misses **2.9x**, all three at once; on `bcast` cache
+misses **1.55x** and neither other hazard past 1.1, so that one is memory alone;
+on the regime-3 populations no hazard is consistently elevated and the CPI ratio
+sits at 1. So the branch's broadcast paths execute a quarter to seven tenths
+of stage one's instructions and spend more time doing it, which is
+not a code-generation question at all: the block copy and the splat
+are bandwidth-bound, and instructions retired is the wrong currency for them.
+
+
+**A twelfth reading, 2026-08-30, times `-u2` against `-down` in a spill-free
+binary, which is what the sixth reading asked for --- and it refutes what
+the sixth predicted from it.** (`probe-nospill-g912`, the g912 recipe
+with `-fllvm` and 64-byte loop heads in place of the assembler shim, `check`
+byte-identical to the native binary's; one process over the `runs` class, read
+with `--corr=insitu`, `sum-only` running larger than the bench
+under that backend. The premise was read in the binary rather than inherited:
+`probe-nospill-fills.py` maps GHC's block uniques out of the `-ddump-cmm` dump
+into the assembly's `_blk_Q<unique>$def` labels, and both arms' innermost fills
+carry zero stack accesses. That the assembly is the TIMED binary's and
+not a twin's is a demonstration and not an assumption --- the recipe reproduced
+byte for byte three times, plain and with either dump flag added --- which
+matters because GHC's LLVM backend emits no `.debug_line` under `-g3`,
+so the usual twin could not have said it.) **`-u2` is behind at every one
+of the seven lengths**: 1.3537, 1.2295 and 1.0962 at `runs-2`, `-3` and `-9`,
+past a floor of 6.9 percent, and 1.0086 to 1.0474 at the four longest, inside
+it. 0 of 7, sign p 0.016. **The native backend reads the same ordering
+at 1.1117, so taking the spill out changed the ordering not at all** --- where
+the sixth reading predicted it would REVERSE the `-down` lead on the long-run
+shapes. **Nor does the arithmetic behind that prediction survive a rebuild.**
+In this binary LLVM re-rolls `-u2`'s hand-unrolled body back to one element
+an iteration and pays a `cmpq` for the cursor bound, putting it at seven
+instructions an element against `-down`'s six, where the sixth reading had 6.5
+against 7.0 --- so the half-instruction the whole prediction rested on changed
+sign between two LLVM builds of one source. What survives is narrower
+than the method looked: an ordering differenced off a dump predicts only where
+the counts hold across the builds being compared, and here they did not. **One
+half of the sixth reading does hold**: `-u2` against `-u2-down` reads 0.9499,
+ahead at all seven lengths, as a count-down form a value heavier in the run loop
+should be.
 
 ### The C-gap: still a deeper ceiling
 
