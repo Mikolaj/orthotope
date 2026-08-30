@@ -31,7 +31,8 @@
 #   11 and 12, the smoke sweep and the roster pass -- machine time, and
 #       properties of the pair rather than of the session, so they are
 #       recorded in the note and inherited. Running them here would pay for
-#       them again.
+#       them again. Each has a script of its own for when it IS owed:
+#       ./smoke-sweep.sh RUN and ./smoke-l1.sh RUN [CLASS ...].
 #   13 onward -- the run list, which wants a quiet machine and a go-ahead.
 #
 # Non-vacuity, 2026-08-22, and demonstrated rather than asserted: two stub

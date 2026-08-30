@@ -5266,8 +5266,15 @@ and never as a chronology.
     ./smoke-sweep.sh $R                   # 11. the smoke sweep, and read
     #      its counting: it holds each process to the arm count `--list`
     #      gives for that shape
-    ./$R-<basis> -L1 --json smoke-l1-main.json         # 12. the roster
-    ./$R-<basis> classes scaled- -L1 --json smoke-l1-scaled.json  # pass,
+    ./smoke-l1.sh $R [CLASS ...]          # 12. THE ROSTER PASS, every
+    #      leg and every reader mode in one call, as preflight.sh is
+    #      steps 4 to 10 -- the main set plus a leg per class named,
+    #      `scaled` by default. It holds each leg to the count `--list`
+    #      gives for that population, then holds every leg to the reader
+    #      modes that must read it, naming the ones asked outside their
+    #      kind rather than counting them; its own non-vacuity is in its
+    #      header, proved on a stub. Artifacts are `smoke-l1-$R-*` and it
+    #      REFUSES a previous attempt's rather than overwriting them
     #      ONLY if `--list` changed membership AND the pair note records
     #      none -- it belongs to the pair as the gate does, so grep the
     #      note before paying the twenty minutes -- that grep reads your
@@ -5275,12 +5282,17 @@ and never as a chronology.
     #      membership moved. Where the PREVIOUS run's basis is still on
     #      disk the membership question is answered directly and in a
     #      second -- diff the two --list outputs -- rather than through
-    #      the roster delta under Provenance. Any class serves: six are
-    #      three shapes and `reshape1` and `bcastmid` are four since
-    #      2026-08-25 -- so not any of them serves: prefer one of the
-    #      five that crossed from two to three, which drives `--block`'s
-    #      three-shape branch, and the command above names `scaled`.
-    #      Name the artifacts probe-* or smoke-*, never
+    #      the roster delta under Provenance. NAME A CLASS BESIDES THE
+    #      DEFAULT whenever its population moved since the last pass: a
+    #      reader mode that has never seen a population is what this pass
+    #      is for, which is why Run 22 named `runs` at eleven views where
+    #      Run 21 had taken it at seven. Which class the default is, and
+    #      why: six classes are three shapes and `reshape1` and
+    #      `bcastmid` are four since 2026-08-25, `runs` eleven since
+    #      2026-08-30 -- so not any of them serves, and the default is
+    #      one of the five that crossed from two to three, which drives
+    #      `--block`'s three-shape branch.
+    #      The script's artifacts are smoke-*, never
     #      $R-*: NO PROBE OF ANY KIND TAKES THE RUN'S PREFIX, which is the
     #      general rule stated below and not this step's own.
     #      Record it on an `L1 ROSTER PASS:` line. With the previous run's
