@@ -2223,15 +2223,42 @@ is planned. A scope limit belongs in the sentence that asks for the measurement.
    is `runsWith` specialised at both `writeRun` arguments and a `tInner == 0`
    test carried down every level --- and their costs straddle: the branch's
    cheapest two-element body is twelve instructions over no stack access,
-   as the shipped fill's is, and its next is fourteen over two. **So the residue
-   is a body-selection question and the remaining measurement is attribution**:
-   which of the fourteen a non-canonicalizing view actually reaches. That
-   is a read of the Cmm blocks rather than another sweep, minutes, and no quiet
-   machine. **Why it is `slice` that shows it and not the others**: `revsome`
-   carries the same 4.7% in instructions and reads 1.0628 in time, inside
-   its 5.8% floor, where `slice`'s floor is the tightest of the classes at 4.4%
-   and its 1.0811 clears it. So the population is the one where the residue
-   is VISIBLE, not the one where it is largest, and a fix reaches all of them.
+   as the shipped fill's is, and its next is fourteen over two.
+   **The attribution was taken the same day and it is a TRADE, not a site.**
+   (`probe-attr.sh` samples `instructions:u` on `probe-attr-g912`, the `-g3`
+   twin, which is the only binary here that carries a line table;
+   `probe-attr-read.py` buckets the histogram by spans it derives from Main.hs
+   by anchor phrase. **What licenses the twin to speak is measured rather
+   than assumed**: it reproduces the excess the counted-work sweep read
+   on the TIMED binary, 127985 against 127334 an iteration on `slice-primes`.
+   What it may not be asked is an absolute per-element count, `-g3` being
+   a different program in exactly that respect.) **The excess is inside the fill
+   function and moves between its two loops with the run length.**
+   On `slice-primes`, runs of 89, the element loop is +159k an iteration
+   and the loop nest -34k, over three repetitions; on `slice-cnn-L2-24x24-c32`,
+   runs of 3, it inverts, the nest carrying +162k and the element loop at parity
+   or below; `slice-coprime-r7`, runs of 13, sits between. So `fillStage2` pays
+   more per element and less per level than the shipped fill, and this class's
+   three shapes happen to span the trade. **`canonView` is excluded outright**
+   --- 0.02% of the histogram, and it is O(rank) a call where the excess scales
+   with the work. **Three controls, and the third is what the first two
+   are for**: the shared forcing pass reads zero in every comparison,
+   `scaled-rank1-m1`, which the counted sweep puts at 0.01%, reads zero here
+   too, and a repetition at ten times the samples is what showed the split's
+   MAGNITUDES do not reproduce tightly where its sign does --- at the first
+   sample count they moved by more than themselves between runs whose totals
+   agreed to a tenth of a percent. **What is left, and this box cannot take
+   it**: which emitted copy of each fill a given view runs, which wants
+   a skid-free counter --- no `instructions:pp` and no IBS on this Ryzen ---
+   or a static read of the timed binary's own assembly, kept
+   as `probe-slice-main.s`. Until that, [the ceiling][ceiling]'s eighth
+   reading's *now the cheaper of the two* stands as a statement about the two
+   workers it dumped and not about the copies this population reaches. **Why
+   it is `slice` that shows it and not the others**: `revsome` carries the same
+   4.7% in instructions and reads 1.0628 in time, inside its 5.8% floor, where
+   `slice`'s floor is the tightest of the classes at 4.4% and its 1.0811 clears
+   it. So the population is the one where the residue is VISIBLE, not the one
+   where it is largest, and a fix reaches all of them.
 
 **And one class not to repropose: work that needs an aligned build.**
 `mut-odo`'s wide interval is the live case. The dispersion is documented
