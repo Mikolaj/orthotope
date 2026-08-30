@@ -2737,6 +2737,53 @@ fbLibStage2Concat sh (T (Strides ats) ao v)
         where _ : ts = getStridesT csh
   where l = product sh
 
+-- The run length at or above which 'fbLibStage2Disp' sends a contiguous
+-- canonical run back to one slice, and the only thing it varies over
+-- 'fbLibStage2Concat'. Read off the runs class rather than chosen: the
+-- class sweeps the run from 2 to 65536, so what it can settle is which
+-- pair of its lengths the crossover falls between, and any value inside
+-- that pair selects the same route on every view this suite holds. The
+-- number is therefore a bracket's representative and not a measurement of
+-- its own, and a library taking this dispatch would want its own sweep.
+dispRun :: Int
+dispRun = 256
+
+-- 'fbLibStage2Concat' with the slice route taken only where the canonical
+-- run reaches 'dispRun' -- the dispatch on run length the runs class
+-- measured a crossover for, and ONE change over that arm, so 'lib-stage2-
+-- concat' is this one's control and 'lib-stage2' the other side of what it
+-- dispatches between. Below the threshold stage two's fill wins and this
+-- arm is 'fbLibStage2'; at or above it one memcpy per run wins and this
+-- arm is 'fbLibStage2Concat'. Nothing that stays strided after
+-- canonicalization is touched, so on every regime-3 population all three
+-- are the same code and only the runs class separates them.
+--
+-- Non-vacuity is not something 'check' can give: every threshold is
+-- correct, so the route has to be read off ALLOCATION, where the two
+-- branches differ by construction -- the slice route builds a base-offset
+-- table per call and the fill builds none. At 'dispRun' between the two
+-- bracketing lengths this arm reads stage two's flat multiple below the
+-- bracket and stage one's above it, which is what
+-- probe-runlen-vacuity.log records.
+{-# NOINLINE fbLibStage2Disp #-}
+fbLibStage2Disp :: ShapeL -> T -> VS.Vector Double
+fbLibStage2Disp sh (T (Strides ats) ao v)
+  | l == 0 = VS.empty
+  | otherwise = case canonView sh ats of
+      (csh, cats)
+        | cats /= ts ->
+            if last cats == 1 && last csh >= dispRun
+            then let !n = last csh
+                 in  VS.concat
+                       [ VS.slice o n v
+                       | o <- VU.toList (baseOffsetsList ao (init csh)
+                                                         (Strides (init cats))) ]
+            else fillStage2 csh cats ao l v
+        | ao == 0 && VS.length v == l -> v
+        | otherwise -> VS.slice ao l v
+        where _ : ts = getStridesT csh
+  where l = product sh
+
 -- The branch's 'genericFillStrided' at Storable Double, ported
 -- bang-for-bang: 'fbMutOdoVecdimsAddInLeafU2''s odometer and unrolled
 -- run, the run body a static argument of the INLINE fused level, the
@@ -3737,6 +3784,12 @@ roster =
   , ("lib-stage1",                 Fill fbLibStage1)
   , ("lib-stage2",                 Fill fbLibStage2)
   , ("lib-stage2-concat",          Fill fbLibStage2Concat)
+    -- The dispatch arm the runs class's crossover asks for, added
+    -- 2026-08-30: one change over the entry above, and placed beside it
+    -- so the two are read as neighbours -- at the price that every slot
+    -- below moves by one against Run 21, which any cross-run read of those
+    -- slots has to carry.
+  , ("lib-stage2-disp",            Fill fbLibStage2Disp)
     -- The list consumer under each stage, added the same day: the
     -- library's toVectorListT and one concatenation, so the pair prices
     -- the list's construction alone, reasons at the definitions.

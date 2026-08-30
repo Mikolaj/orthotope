@@ -2708,13 +2708,18 @@ stage, `liblist-stage1` and `liblist-stage2`, the library's `toVectorListT`
 followed by one concatenation, the same term in both, so that pair prices
 the list's construction alone --- stage one's slice recursion against stage
 two's base-offset table and its `VU.toList` --- in time and, exactly,
-in allocation, which is what a consumer iterating the list pays. Each runs
-on every population, so a library change is read where a user would meet it,
-class by class, whichever of the two entry points the user takes, and the `runs`
-class is where the routes part; with the timed `-u2-down` the block takes
-the roster to 1176 benches, eight superseded arms parked permanently since Run
-21, `offtab`'s twins removed with it. What the next run is registered to answer
-with them is [in the open list][open].
+in allocation, which is what a consumer iterating the list pays. **Beside
+those five sits `lib-stage2-disp`, which is a candidate and not a port
+of anything**, added 2026-08-30: `lib-stage2-concat` with the slice route taken
+only where the canonical run reaches `dispRun`, so it is stage two below
+the crossover and stage one above it, and the runs class is what cuts it to one.
+Each runs on every population, so a library change is read where a user would
+meet it, class by class, whichever of the two entry points the user takes,
+and the `runs` class is where the routes part; with the timed `-u2-down`
+and the dispatch arm the block takes the roster to 1200 benches, eight
+superseded arms parked permanently since Run 21, `offtab`'s twins removed
+with it. What the next run is registered to answer with them is [in the open
+list][open].
 
 **What the eight are worth as instruments, read against each other for the first
 time on 2026-08-14, over Runs 10 to 13.** Per class: the median A/A deviation
@@ -4131,13 +4136,14 @@ checked against the reference on every shape of every class, and not timed ---
 so the agreement net does not shrink and nothing has to be rewritten if a ruling
 is later reopened. The 23 arms the rulings dropped carry `Only` in that roster,
 each naming the bound or the multiple that disqualified it; with the controls
-the run is 49 arms, and the five library-shaped arms with the timed `-u2-down`,
+the run is 50 arms, and the five library-shaped arms with the timed `-u2-down`,
 added 2026-08-28 ([the stride
 classes](#the-stride-classes-and-what-they-cover)), less the eight parked
 permanently since Run 21 and `offtab`'s two twins removed ([its entry][open]),
-takes the roster to 1176 benches from Run 20's 1272. The three placement-family
-arms went to `Only` a run earlier, on 2026-08-25, so Run 20's 1272 already
-excludes them and they are no part of this arithmetic.
+plus the dispatch arm added 2026-08-30, takes the roster to 1200 benches
+from Run 20's 1272. The three placement-family arms went to `Only` a run
+earlier, on 2026-08-25, so Run 20's 1272 already excludes them and they
+are no part of this arithmetic.
 
 - **A strategy with a precondition is not measured.** The column allowed `none`,
   an empty cell, and `shape well-formed`, which is a condition on being a valid
@@ -8769,30 +8775,33 @@ the record costs. **A fourth half arrives with the pairing and is not a delta
 at all**: which half of the pair a figure came from, which is why the run file's
 tables and its fingerprint say so.
 
-- Run 21 measured today's shapes, class views and roster, so its delta against
-  `Main.hs` is empty --- and its delta against RUN 20 is not: 49 timed arms
-  over 24 main-set shapes and 33 class views in NINE classes, 1176 benches
-  and 1617, where Run 20 ran 53 arms and 26 views in eight classes, 1272
-  and 1378. Six timed arms landed (`mut-odo-vecdims-add-in-leaf-u2-down`,
-  `lib-stage1`, `lib-stage2`, `lib-stage2-concat`, `liblist-stage1`,
-  `liblist-stage2`) and ten names left --- eight arms parked permanently
-  on 2026-08-28 (`bq-expand-b`, `bq-expand-qr-prim`, `bq-expand-zf`, `bq-mut`,
-  `bq-gen`, `gen-quotrem`, `bq-mut-runs`, `offtab`) with `offtab`'s two A/A
-  twins, so the floor reads over SIXTEEN pairs from this run on
-  and the eighteen-pair series ends at Run 20. The `runs` class is new: seven
-  regime-2 views sweeping run length from 2 to 65536, all at `l` of about 1.8M.
-  **So the delta against Run 20 is a roster and a population both**, and every
-  figure read across that boundary carries a layout term besides drift, Run 10
-  having priced a reorder at 12 to 14% on the two arms whose loop the shim
-  rescues --- the build-time fill reading found no tracked address surviving
-  between the two builds. Which half a figure came from is the other thing
-  to carry: everything published in the run's file is `run21-g912`, the 9.12
-  half, and `run21-ghead` contributes this file's second column ---
-  and this pair's `list` moved 0.64% between them, INSIDE the 0.7% bar,
-  so its two columns may be differenced as well as ordered, which neither Run
-  19's nor Run 20's could. The box did not move, its machine check reading
-  -0.33%, so absolutes cross from Run 20 freely and the boundary that stops them
-  is still the BIOS change before Run 18.
+- Run 21 measured today's shapes and class views, and its roster is today's LESS
+  ONE: `lib-stage2-disp` was added 2026-08-30, after the run, so every slot
+  below `lib-stage2-concat` has moved by one and a figure read across
+  that boundary carries the layout term the delta against Run 20 already names.
+  Its delta against RUN 20 is larger again: 49 timed arms over 24 main-set
+  shapes and 33 class views in NINE classes, 1176 benches and 1617, where Run 20
+  ran 53 arms and 26 views in eight classes, 1272 and 1378. Six timed arms
+  landed (`mut-odo-vecdims-add-in-leaf-u2-down`, `lib-stage1`, `lib-stage2`,
+  `lib-stage2-concat`, `liblist-stage1`, `liblist-stage2`) and ten names left
+  --- eight arms parked permanently on 2026-08-28 (`bq-expand-b`,
+  `bq-expand-qr-prim`, `bq-expand-zf`, `bq-mut`, `bq-gen`, `gen-quotrem`,
+  `bq-mut-runs`, `offtab`) with `offtab`'s two A/A twins, so the floor reads
+  over SIXTEEN pairs from this run on and the eighteen-pair series ends at
+  Run 20. The `runs` class is new: seven regime-2 views sweeping run length
+  from 2 to 65536, all at `l` of about 1.8M. **So the delta against Run 20
+  is a roster and a population both**, and every figure read across
+  that boundary carries a layout term besides drift, Run 10 having priced
+  a reorder at 12 to 14% on the two arms whose loop the shim rescues ---
+  the build-time fill reading found no tracked address surviving between the two
+  builds. Which half a figure came from is the other thing to carry: everything
+  published in the run's file is `run21-g912`, the 9.12 half, and `run21-ghead`
+  contributes this file's second column --- and this pair's `list` moved 0.64%
+  between them, INSIDE the 0.7% bar, so its two columns may be differenced
+  as well as ordered, which neither Run 19's nor Run 20's could. The box did
+  not move, its machine check reading -0.33%, so absolutes cross from Run 20
+  freely and the boundary that stops them is still the BIOS change before
+  Run 18.
 - Run 20 measured today's main-set shapes but NOT today's class views --- 26
   in eight classes, where today's are 33 in nine --- and NOT today's roster read
   against Run 19's: nine timed arms landed and three dropped to `Only`,
