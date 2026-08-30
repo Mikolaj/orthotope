@@ -855,33 +855,34 @@ rather than a slot in the next run, observed again:
   **0.83 to 0.85** at long runs and 1.08 to 1.15 at `runs-2` and `runs-3`.
   `lib-stage2-lean`, whose leaner dispatch does not pay the strides comparison,
   has a counted reading after all --- the shim-free sweep of 2026-08-30
-  that priced the other two carried it too, in the arms' session's artifact,
-  which the drafting session could not see --- and it reads **0.9189**
-  and 0.9105 on the two smallest shapes, 0.9874 to 1.0000 on the remaining conv
-  shapes, within 0.7% of a tie on every stretch shape but one, and **0.7871**
-  on `stretch-inner1`, where canonicalization collapses the call to a slice
-  and the dispatch is the whole cost; geomean 0.9812 over the main set.
-  So the margin is not 1/`l` alone: it is the dispatch's share of the call,
-  largest where the call is small or where the regime-1 return makes
-  the dispatch the call. Predicted in time: at or below `lib-stage2` everywhere,
-  past a floor only on `cnn-L1-6x6-c1`, `cnn-slice-c32` and `stretch-inner1`.
-  Each is killed by a sign it does not have: `-short` behind past a population's
-  floor anywhere the counted work put it at or below 1, `-u4` not ahead past
-  the `runs` floor at the long lengths, `-lean` behind `lib-stage2` past
-  a floor, or level with it on the two smallest shapes or on `stretch-inner1`,
-  where the counts put it 8 to 21 points ahead. (3) *The dispatch.*
-  `lib-stage2-disp`, `fbLibStage2Concat` with the slice route taken only
-  at a canonical run of `dispRun` or more and `dispRun` cut to 256, is predicted
-  at or below the better of `lib-stage1` and `lib-stage2` at every one
-  of the eleven run lengths and past neither by more than the class's floor,
-  reproducing 0.0283, 0.0312, 0.0951, 0.6190, 1.0029, 1.0096 and 1.0075 against
-  stage one at the seven lengths the filtered sweep read; `runs-256`
-  and `runs-512` bracket `dispRun` within a factor of two and are where its own
-  threshold is read, having had no reading of any kind; at exactly 256 the slice
-  route fires, `>= dispRun` being the condition, so `runs-256` reads
-  the boundary's own cell. Killed if it is behind the better route past
-  the floor at any length the filtered sweep read; at the two unread lengths
-  a fill win past the floor re-cuts `dispRun` inside its bracket rather
+  that priced the other two carried it too,
+  in `probe-r22noshim-counts-g912.txt`, which the drafting session did not look
+  in, and which says of itself that it is a smoke run and not a recorded column
+  --- and it reads **0.9189** and 0.9105 on the two smallest shapes, 0.9874
+  to 1.0000 on the remaining conv shapes, within 0.7% of a tie on every stretch
+  shape but one, and **0.7871** on `stretch-inner1`, where canonicalization
+  collapses the call to a slice and the dispatch is the whole cost; geomean
+  0.9812 over the main set. So the margin is not 1/`l` alone: it
+  is the dispatch's share of the call, largest where the call is small or where
+  the regime-1 return makes the dispatch the call. Predicted in time:
+  at or below `lib-stage2` everywhere, past a floor only on `cnn-L1-6x6-c1`,
+  `cnn-slice-c32` and `stretch-inner1`. Each is killed by a sign it does
+  not have: `-short` behind past a population's floor anywhere the counted work
+  put it at or below 1, `-u4` not ahead past the `runs` floor at the long
+  lengths, `-lean` behind `lib-stage2` past a floor, or level with it on the two
+  smallest shapes or on `stretch-inner1`, where the counts put it 8 to 21 points
+  ahead. (3) *The dispatch.* `lib-stage2-disp`, `fbLibStage2Concat`
+  with the slice route taken only at a canonical run of `dispRun` or more
+  and `dispRun` cut to 256, is predicted at or below the better of `lib-stage1`
+  and `lib-stage2` at every one of the eleven run lengths and past neither
+  by more than the class's floor, reproducing 0.0283, 0.0312, 0.0951, 0.6190,
+  1.0029, 1.0096 and 1.0075 against stage one at the seven lengths the filtered
+  sweep read; `runs-256` and `runs-512` bracket `dispRun` within a factor of two
+  and are where its own threshold is read, having had no reading of any kind;
+  at exactly 256 the slice route fires, `>= dispRun` being the condition,
+  so `runs-256` reads the boundary's own cell. Killed if it is behind the better
+  route past the floor at any length the filtered sweep read; at the two unread
+  lengths a fill win past the floor re-cuts `dispRun` inside its bracket rather
   than killing the dispatch, the number being a bracket's representative
   and not a measurement. **And its other half is the control**: `dispRun` is cut
   to 9.12, HEAD's crossover sitting a step further out, between `runs-1024`
@@ -2920,30 +2921,33 @@ one-block test in front of its liblist body and one concatenation -- the third
 route the branch changes, rostered so that a shim-switch reading (Run 23's
 LOOP_NOOVERLAP among them) has its sanity readings, which no test of the branch
 alone can show until GHC itself grows such a capability. In instructions,
-shim-free and net of the sum term, the short bodies read 0.50 at `runs-2`, 0.59
-at `runs-3`, 0.61 to 0.88 on every k3 and k5 conv shape, and above five nothing
-past the per-row choice's cost, `stretch-coprime-r7`'s 1.0208 the worst cell,
-while the quad loop reads 0.83 to 0.85 at long runs and 1.08 to 1.15 at runs
-of 2 and 3 --- so each moves its own end of the run axis and Run 22 prices
-the two in time. **A ruling stands over the quad loop, 2026-08-30, and
-it is Mikolaj's rather than a measurement's: a stepping run unrolled by four
-is too complex for orthotope, so `lib-stage2-u4` prices what that feature would
-buy and is not a candidate to ship.** The measure is an intuitive estimate
-of complexity taken PER ORTHOGONAL FEATURE, not a count of lines or loops
-and not a total over a function that composes several: the shipped by-two loop
-is fine but close to the bar, so a simpler loop is preferred over it where
-the performance is close, while a function that joins that loop with further
-orthogonal features --- the short bodies of `lib-stage2-short` among them ---
-is judged feature by feature, and the short bodies stand or fall on their own.
-The runs class gained `runs-4` and `runs-5` the same day -- no view in the suite
-had a canonical innermost extent of 4, so the short bodies' one unexercised
-branch was invisible even to `check` -- and `runs-256` and `runs-512`,
-bracketing `dispRun` within a factor of two. Each runs on every population,
-so a library change is read where a user would meet it, class by class,
-whichever of the two entry points the user takes, and the `runs` class is where
-the routes part; with the timed `-u2-down` the dispatch arm, the three fill
-candidates and the unordered pair the block takes the roster to 1320 benches,
-eight superseded arms parked permanently since Run 21, `offtab`'s twins removed
+shim-free and net of the sum term --- `probe-r22noshim-counts-g912.txt`
+and its `-runs` sibling, which say of themselves that they are a smoke run
+of `run-counts.sh` and NOT a recorded column --- the short bodies read 0.50
+at `runs-2`, 0.59 at `runs-3`, 0.61 to 0.88 on every k3 and k5 conv shape,
+and above five nothing past the per-row choice's cost, `stretch-coprime-r7`'s
+1.0208 the worst cell, while the quad loop reads 0.83 to 0.85 at long runs
+and 1.08 to 1.15 at runs of 2 and 3 --- so each moves its own end of the run
+axis and Run 22 prices the two in time, which is what those two files cannot do.
+**A ruling stands over the quad loop, 2026-08-30, and it is Mikolaj's rather
+than a measurement's: a stepping run unrolled by four is too complex
+for orthotope, so `lib-stage2-u4` prices what that feature would buy and
+is not a candidate to ship.** The measure is an intuitive estimate of complexity
+taken PER ORTHOGONAL FEATURE, not a count of lines or loops and not a total
+over a function that composes several: the shipped by-two loop is fine but close
+to the bar, so a simpler loop is preferred over it where the performance
+is close, while a function that joins that loop with further orthogonal features
+--- the short bodies of `lib-stage2-short` among them --- is judged feature
+by feature, and the short bodies stand or fall on their own. The runs class
+gained `runs-4` and `runs-5` the same day -- no view in the suite had
+a canonical innermost extent of 4, so the short bodies' one unexercised branch
+was invisible even to `check` -- and `runs-256` and `runs-512`, bracketing
+`dispRun` within a factor of two. Each runs on every population, so a library
+change is read where a user would meet it, class by class, whichever of the two
+entry points the user takes, and the `runs` class is where the routes part;
+with the timed `-u2-down` the dispatch arm, the three fill candidates
+and the unordered pair the block takes the roster to 1320 benches, eight
+superseded arms parked permanently since Run 21, `offtab`'s twins removed
 with it. What the next run is registered to answer with them is [in the open
 list][open].
 
