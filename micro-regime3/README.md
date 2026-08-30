@@ -814,22 +814,27 @@ rather than a slot in the next run, observed again:
   `runs-4`, `runs-5`, `runs-256` and `runs-512`, going from seven views
   to eleven. So the run is 55 timed arms, 1320 main-set benches and 2035 class
   benches over 37 views in nine classes, where Run 21 ran 49, 1176 and 1617
-  over 33. And FIVE OF RUN 21's COLUMNS ARE NOT THIS RUN'S DRIFT: `fillStage2`
+  over 33. And SEVEN OF RUN 21's COLUMNS ARE NOT THIS RUN'S DRIFT: `fillStage2`
   unboxed its source vector on 2026-08-29 and steps its cursor twice since
   2026-08-30, which reaches `lib-stage2` and `lib-stage2-concat` through
-  the call, while `lib-stage2-concat`, `liblist-stage2`, `-add-in-leaf-u2`
-  and `-u2-down` changed in their own bodies beside it --- so those five arms
-  are different code and no distance from Run 21's column there is drift
-  or layout.** Five questions, each with a prediction and what kills it;
-  the predictions are read off the counted work and the filtered probes
+  the call; `lib-stage2-concat`, `liblist-stage2`, `-add-in-leaf-u2`
+  and `-u2-down` changed in their own bodies beside it; and `lib-stage1`
+  and `liblist-stage1`, their own texts byte-identical across the runs, fall
+  back to `-add-in-leaf-u2` on every regime-3 view, so they are different code
+  there too --- and no distance from Run 21's column on any of the seven
+  is drift or layout.** Five questions, each with a prediction and what kills
+  it; the predictions are read off the counted work and the filtered probes
   of 2026-08-29 and 2026-08-30, and what this run adds to them is time at full
   budget over every population, which is what none of them had. (1) *The fill
   in time, over every population.* The unboxing of 2026-08-29 and the doubled
   cursor of 2026-08-30 were priced in instructions and in filtered processes,
   and this run is the first to price them at full budget. `lib-stage2` against
   `lib-stage1` is predicted inside **0.78 to 1.08** on the six populations
-  that carried Run 21's 2.43 to 4.54 regression, and `slice` --- the one still
-  behind past its floor by eight points, and unmeasured in time since --- inside
+  that carried Run 21's 2.43 to 4.54 regression --- a ratio whose BOTH sides
+  are changed code, stage one's regime-3 fallback being the re-stepped
+  `-add-in-leaf-u2`, so it prices the two routes as they now are and
+  not the fill against its old self --- and `slice` --- the one still behind
+  past its floor by eight points, and unmeasured in time since --- inside
   **1.05**, the epilogue instruction that cost it being gone and the shim's
   three points staying. Killed if any regime-3 population reads the branch
   behind stage one by more than a tenth, which would put the residue back where
@@ -843,18 +848,28 @@ rather than a slot in the next run, observed again:
   and inside 2% above five, `stretch-coprime-r7`'s 1.0208 being the counted
   work's worst cell; `runs-4` is the first view in the suite with a canonical
   innermost extent of 4, the short bodies' one branch that nothing exercised,
-  `check` included, and `runs-5` sits beside it; both are predicted to read
-  as `runs-3` does. `lib-stage2-u4` --- the stepping run unrolled by four,
-  and by the ruling of 2026-08-30 a price and not a candidate --- is predicted
+  `check` included, and `runs-5` sits beside it; both are counted already,
+  **0.5528** and 0.6099 bracketing `runs-3`'s 0.5864, and are predicted to read
+  so in time. `lib-stage2-u4` --- the stepping run unrolled by four, and
+  by the ruling of 2026-08-30 a price and not a candidate --- is predicted
   **0.83 to 0.85** at long runs and 1.08 to 1.15 at `runs-2` and `runs-3`.
   `lib-stage2-lean`, whose leaner dispatch does not pay the strides comparison,
-  has no counted reading at all and is predicted at or below `lib-stage2`
-  everywhere by a margin scaling as 1/`l`, a dispatch being one cost per call
-  --- so visible on `cnn-slice-c32` and nowhere near visible at `l` of 1.8M.
+  has a counted reading after all --- the shim-free sweep of 2026-08-30
+  that priced the other two carried it too, in the arms' session's artifact,
+  which the drafting session could not see --- and it reads **0.9189**
+  and 0.9105 on the two smallest shapes, 0.9874 to 1.0000 on the remaining conv
+  shapes, within 0.7% of a tie on every stretch shape but one, and **0.7871**
+  on `stretch-inner1`, where canonicalization collapses the call to a slice
+  and the dispatch is the whole cost; geomean 0.9812 over the main set.
+  So the margin is not 1/`l` alone: it is the dispatch's share of the call,
+  largest where the call is small or where the regime-1 return makes
+  the dispatch the call. Predicted in time: at or below `lib-stage2` everywhere,
+  past a floor only on `cnn-L1-6x6-c1`, `cnn-slice-c32` and `stretch-inner1`.
   Each is killed by a sign it does not have: `-short` behind past a population's
   floor anywhere the counted work put it at or below 1, `-u4` not ahead past
   the `runs` floor at the long lengths, `-lean` behind `lib-stage2` past
-  a floor, or level with it on the smallest shapes. (3) *The dispatch.*
+  a floor, or level with it on the two smallest shapes or on `stretch-inner1`,
+  where the counts put it 8 to 21 points ahead. (3) *The dispatch.*
   `lib-stage2-disp`, `fbLibStage2Concat` with the slice route taken only
   at a canonical run of `dispRun` or more and `dispRun` cut to 256, is predicted
   at or below the better of `lib-stage1` and `lib-stage2` at every one
@@ -862,31 +877,37 @@ rather than a slot in the next run, observed again:
   reproducing 0.0283, 0.0312, 0.0951, 0.6190, 1.0029, 1.0096 and 1.0075 against
   stage one at the seven lengths the filtered sweep read; `runs-256`
   and `runs-512` bracket `dispRun` within a factor of two and are where its own
-  threshold is read, having had no reading of any kind. Killed if it is behind
-  the better route past the floor at any length. **And its other half
-  is the control**: `dispRun` is cut to 9.12, HEAD's crossover sitting a step
-  further out, between `runs-1024` and `runs-65536`, so on the control half
-  `lib-stage2-disp` takes the slice route at `runs-1024` where stage two
-  is still the better one and is predicted BEHIND `lib-stage2` there by about
-  **four points** --- stage one's 1.00 against stage two's 0.9583 --- where
-  on the basis the same two read 1.0096 and 1.1037 and the dispatch is ahead.
-  A threshold read on one compiler failing on the other is what makes
-  it a bracket, and a control half reproducing 9.12's ordering refutes
-  that reading. (4) *The unordered entry point.* `libunord-stage1`
-  and `libunord-stage2` put each stage's `toUnorderedVectorListT` one-block test
-  in front of its liblist body, and the two tests differ in one word: stage one
-  compares the SIGNED strides against the sorted shape's natural ones, stage two
-  their absolute values after canonicalization. Where each fires was EVALUATED
+  threshold is read, having had no reading of any kind; at exactly 256 the slice
+  route fires, `>= dispRun` being the condition, so `runs-256` reads
+  the boundary's own cell. Killed if it is behind the better route past
+  the floor at any length the filtered sweep read; at the two unread lengths
+  a fill win past the floor re-cuts `dispRun` inside its bracket rather
+  than killing the dispatch, the number being a bracket's representative
+  and not a measurement. **And its other half is the control**: `dispRun` is cut
+  to 9.12, HEAD's crossover sitting a step further out, between `runs-1024`
+  and `runs-65536`, so on the control half `lib-stage2-disp` takes the slice
+  route at `runs-1024` where stage two is still the better one and is predicted
+  BEHIND `lib-stage2` there by about **four points** --- stage one's 1.00
+  against stage two's 0.9583 --- where on the basis the same two read 1.0029
+  and 1.1037 and the dispatch is ahead. A threshold read on one compiler failing
+  on the other is what makes it a bracket, and a control half reproducing 9.12's
+  ordering refutes that reading. (4) *The unordered entry point.*
+  `libunord-stage1` and `libunord-stage2` put each stage's
+  `toUnorderedVectorListT` one-block test in front of its liblist body,
+  and the two tests differ in two moves: stage one compares the SIGNED strides
+  of the raw dims against the sorted shape's natural ones, stage two
+  the ABSOLUTE values of the canonical ones. Where each fires was EVALUATED
   rather than predicted, 2026-08-30, by running both tests over every view
   `check` prints strides for: stage two's fires on **ten** of the 37 rostered
   class views --- every view of `rev`, `revsome` and `reshape1`,
   `reshape1-strided-r3` included, an unordered consumer not minding
-  a permutation --- and stage one's on **none** of the 38. So `libunord-stage2`
-  is predicted degenerate on those three whole classes, a single `VS.slice`
-  reading at or below the `list` baseline's own cell, where `libunord-stage1`
-  tracks `liblist-stage1` inside the floor there; and on the six classes where
-  neither fires both track their own stage's liblist arm inside the floor,
-  the test being one comparison a call. **The main set was left unpredicted here
+  a permutation --- and stage one's on **none** of the 38, the thirty-eighth
+  being the check-only `reshape1-slice-off7`. So `libunord-stage2` is predicted
+  degenerate on those three whole classes, a single `VS.slice` reading
+  at or below the `list` baseline's own cell, where `libunord-stage1` tracks
+  `liblist-stage1` inside the floor there; and on the six classes where neither
+  fires both track their own stage's liblist arm inside the floor, the test
+  being one comparison a call. **The main set was left unpredicted here
   and the roster pass then answered it, which is a finding and not a reading
   of the run**: `check` prints no strides for its rows, so neither test could
   be evaluated on them, but the `-L1` pass of 2026-08-30 shows BOTH tests firing
