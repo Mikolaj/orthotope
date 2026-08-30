@@ -4123,13 +4123,16 @@ agreeing with the reference on every view of every class. **And
 it is BACKEND-SPECIFIC, which is the whole of why it needs saying twice**:
 under `-fllvm` the same loop already spills nothing and the backend
 strength-reduces the two strides into independent induction variables,
-so the sequential form denies it that and **costs 1 to 8%**, most at long runs.
-The NCG is what a default build uses and every figure in this file is taken
-on it, so the change is worth taking and an `-fllvm` user pays for it; the line
-carries a comment saying so. **The shipped fill is the same loop and gains
-the same, and it TOOK the change the same day** --- the fifteenth reading, which
-also says why the ratio above is one-sided and what it becomes when both sides
-have it. The branch's fill has it as of `pr-mikolaj-toVectorListT`'s `462c67c`.
+so the sequential form denies it that and **costs 1 to 8%**, most at long runs
+--- a range the fifteenth reading re-takes at a geomean of 4.52% on a pair whose
+halves are both reproducible from commits, where this one's `after`
+was an intermediate source matching none and its binary is deleted. The NCG
+is what a default build uses and every figure in this file is taken on it,
+so the change is worth taking and an `-fllvm` user pays for it; the line carries
+a comment saying so. **The shipped fill is the same loop and gains the same,
+and it TOOK the change the same day** --- the fifteenth reading, which also says
+why the ratio above is one-sided and what it becomes when both sides have it.
+The branch's fill has it as of `pr-mikolaj-toVectorListT`'s `462c67c`.
 
 **A fifteenth reading, 2026-08-30, gives the SHIPPED fill the fourteenth's
 change --- and retires the fourteenth's headline, which was one-sided.**
