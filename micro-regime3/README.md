@@ -4897,7 +4897,7 @@ emits them, `--in-place` installs them, and the checker recomputes them
 from the JSONs. **`./read-run.py --section NAME` is what makes that takeable**,
 printing one section's prose without its tables and naming the size it withheld,
 since a line range cannot skip what sits between the paragraphs it spans
-and a line number does not survive a rewrap. **So, as nine items, each owing
+and a line number does not survive a rewrap. **So, as ten items, each owing
 an artifact**: a reading that owes nothing cannot be told from a reading
 not done, which is the whole of why this is a list and not a sentence.
 
@@ -4923,9 +4923,29 @@ not done, which is the whole of why this is a list and not a sentence.
          -- what this run has to replace
     9. `read-run.py`'s docstring, this chapter's other governing document
          -- nothing to write down; you will know if you skipped it
+    10. the PREVIOUS run's pair note, `$PREV-pair.txt`, and
+         pair-note-template.txt beside it -- that note is the only copy
+         of both recipes and is what this run's note is written FROM,
+         and the template says what a note owes
+         -- the two recipes, and which of their lines the pair varies
 
-Items 2 to 6 are [the last run's own file](runs/run21.md#results), 3 and 4 being
-[what the next run compares
+**WHICH OF THE TEN A SESSION OWES DEPENDS ON WHICH HALF IT WAS ASKED FOR,
+and the numbers never move so that a reference to an item still lands.**
+A session asked for the whole run owes all ten. A session asked to PREPARE a run
+--- the pre-run half, stopping at 12 --- owes **1** (its pre-run and run lists;
+the post-run one is write-up material), **3**, **7**, **8**'s delta bullets,
+**9** and **10**, which are what decide the pair, the roster, the note and what
+this run is for. It does NOT owe **2**, **4**, **5**, **6**, **8**'s replace
+list or the post-run list, every one of which answers a question the write-up
+asks and none of which changes a preparation: the replace list is walked
+at post-run step 6 and gains nothing from being read hours early --- run list
+step 18 says so of it already --- and the class blocks' form is not used until
+a block is written. The write-up owes those, and owes them then. Reading
+the write-up's half during a preparation is the single largest avoidable spend
+in this chapter after the prose itself, and it was the shape of a walk
+on 2026-08-30, which read the post-run list and an example class block and used
+neither. Items 2 to 6 are [the last run's own file](runs/run21.md#results), 3
+and 4 being [what the next run compares
 against](runs/run21.md#what-the-next-run-compares-against), 5 [the
 claims](runs/run21.md#the-claims-the-next-run-should-test) and 6 [the class
 blocks](runs/run21.md#the-stride-classes-run-by-run) --- and `--section` takes
@@ -5305,8 +5325,44 @@ and never as a chronology.
     #  11 and 12 here, and 14 in the run list below, all belong to the
     #      PAIR: on passing, write each into $R-pair.txt, or the next
     #      session repays the hour
-    #  that is the preparation, and none of it wants a quiet machine. What
-    #      does is the run list below, which starts on an explicit
+    #  AND 11 AND 12 ARE THE ONLY MACHINE TIME IN THIS HALF, so the
+    #      numbering is an order and not a schedule: neither wants a
+    #      quiet machine, 12 needs only the BASIS half, and it is the
+    #      long one -- about three quarters of an hour where 4 to 10 are
+    #      eight minutes. Launch it in the background straight after 3b
+    #      and run 4 to 11 under it and the half is the length of its
+    #      longest step rather than the sum. What that costs is
+    #      contention in the elapsed times 12 records, which are a sanity
+    #      reading against the previous pass and not a measurement, and
+    #      it costs the smoke sweep the same; what it buys is the ten
+    #      minutes a session otherwise spends watching. Confirm the
+    #      launch from an UNSANDBOXED process list and with `args`, never
+    #      `comm`, which truncates at 15 characters and shows nothing for
+    #      a `preflight.sh` or a `smoke-l1.sh`
+    ./read-run.py --para '<a lead you just wrote>'   # 12b. READ BACK
+    #      WHAT THIS HALF WROTE, which nothing above does: 4 to 10 are
+    #      predicates over structure and not one of them reads a
+    #      sentence, so a note and a registration full of quoted figures
+    #      pass eleven PASS untouched. This is post-run step 7 scoped to
+    #      the preparation and it is owed for the same reason: re-derive
+    #      every figure the note and the registration quote FROM THE FILE
+    #      IT CAME FROM, never from the sentence beside it, and then read
+    #      both back end to end. It costs minutes
+    #      WHAT IT CATCHES, from the walk that made it a step, 2026-08-30
+    #      -- six defects in one preparation's own prose, every one past
+    #      every gate here: a figure taken from the wrong position of a
+    #      length-ordered series (a dispatch cell quoted at runs-1024
+    #      that was runs-65536's); a compressed clause false as written
+    #      (`the two tests differ in one word`, its own next clause
+    #      listing two); an attribution to the wrong cause; and a count
+    #      of changed arms that was wrong TWICE, first off `git diff`
+    #      hunk headers, which name the definition BEFORE an insertion,
+    #      and then off a definition-by-definition diff, which cannot see
+    #      a CALL and so missed two arms whose regime-3 fallback had
+    #      moved under them. A positional series, a compression and a
+    #      call graph are three things no checker here reads
+    #  that is the preparation. What wants a quiet machine is the run
+    #      list below, which starts on an explicit
     #      go-ahead and never on a session's own reading of the box
 
 **THE RUN'S PREFIX BELONGS TO THE RUN'S OWN PROCESSES, and nothing else may take
@@ -6247,6 +6303,23 @@ more arms than intended. The sequence's own processes have this done for them
 by `run-major.sh`, class ones included; what is left to the runner is every
 filtered probe made by hand, which is where the rule was learned and where
 nothing counts on its behalf.
+
+**And the sharper form of the same rule, for the checks themselves: A STAGE
+THAT CANNOT FAIL IS A STAGE NOBODY READS.** *Prove a check non-vacuous* asks
+whether a check that CAN fail does; this asks the prior question, whether
+it can. A stage that only reports looks exactly like coverage and is not,
+and the two are told apart by one question --- what input would make this print
+a finding? If none, it is a reading dressed as a gate. The live case
+is `smoke-l1.sh`, whose first version ran every reader mode over every leg
+of the roster pass and printed which refused: correct output, no verdict,
+and a leg whose *every* mode refused read as clean. The stub run is what exposed
+it --- an empty JSON, all modes refusing, exit 0 --- and the repair was to split
+the modes into the ones that gate and the ones that are named, `--block`
+and `--machine` moving between the groups by leg because a class file
+and a main-set file owe different modes. The same shape is worth suspecting
+wherever a script's output is a list rather than a count: the counted-work
+sweep's `!!` lines, a driver's per-process summary, and any step of this chapter
+whose only product is a paragraph in the write-up.
 
 **Probes whose designs predate the run ride the same script.** The machine
 is quiet for the whole sequence either way, so a question already on [the open

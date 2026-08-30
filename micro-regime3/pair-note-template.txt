@@ -6,12 +6,40 @@ person's, and only the slots are known in advance. Run 12's note carried
 no commit and Run 14's carried none until the pair was built, both because
 each note was written from scratch and nothing listed what a note owes.
 
+BUT COPY FROM THE PREVIOUS NOTE AND NOT FROM HERE, and the ruling above
+is about the DECISIONS and not about every line. Most of a note does not
+vary from pair to pair, and a session that re-derives the invariant part
+spends its attention where nothing is at stake. The blocks below are
+marked [SAME] or [PAIR'S]:
+  [SAME]    carried over from the previous note with the names changed
+            and re-read rather than re-decided -- the naming rule, the
+            launch lines, the riders, the counts recipe, the read-back
+            block, the machine paragraph, the gate line, and the shape
+            of the fill-in block. If one of these differs from the last
+            note, that is a finding and the note says why.
+  [PAIR'S]  written for this pair and never copied -- the entry point,
+            what the pair measures and prices, why the basis is this
+            recipe, the two recipes, the registrations and the roster.
+            Copying one of these forward is how a note comes to describe
+            the run before it.
+A note that is mostly [SAME] is the normal state and not a lazy one. What
+it must not be is mostly [SAME] in the [PAIR'S] blocks.
+
+AND KEEP THE FIGURES OUT OF IT. A note is gitignored and goes with the
+pair, so a session other than the one that wrote it cannot correct it:
+Run 22's arms' session amended that run's registration in README.md at
+ce8f5f7 and could not touch the note, which went on asserting a
+superseded count until the preparing session came back to it. So state a
+figure here only where this file is the ONLY place it lives -- the md5s,
+the .text bytes, the fills, the counts a leg came out at -- and point at
+README.md or the run's own file for everything else.
+
 The pair $R-<basis> and $R-<other>, Run NN's, written by hand YYYY-MM-DD
 BEFORE either binary exists, which is the order the procedure asks for.
 
 Nothing appends to this file but run-gate.sh.
 
-ENTRY POINT FOR THE SESSION THAT RUNS THIS. Not optional, and it goes
+ENTRY POINT FOR THE SESSION THAT RUNS THIS [PAIR'S]. Not optional, and it goes
 here at the head where a session reads first. Say, in this order: which
 of the pre-run steps are SPENT and on what date; whether the gate has
 run; what is
@@ -23,7 +51,7 @@ with one. INHERITED never reaches the binaries: both are built at 3b of
 this run's own preparation, never taken from a previous run, a probe, a
 copy of the other half, or one binary run twice under two sets of flags.
 
-AND SAY THAT NOTHING IN THE NOTE IS A REASON TO STOP. A preparation
+AND SAY THAT NOTHING IN THE NOTE IS A REASON TO STOP [PAIR'S]. A preparation
 that leaves a decision open states it plainly and states that it is not
 a stop: Run 19's put a claims-retirement decision at this note's head in
 the procedure's own stop-vocabulary, with *before the gate is paid*
@@ -32,10 +60,10 @@ beside it, and its first operator read it as a stop and lost the night
 changes what the machine does next; if it changes only the write-up, the
 note says so here.
 
-WHAT THIS PAIR MEASURES: one variable, named here, and nothing else. Say
+WHAT THIS PAIR MEASURES [PAIR'S]: one variable, named here, and nothing else. Say
 what the halves differ in and what they do not.
 
-THE BASIS IS $R-<basis> -- it publishes the big table, the bench counts are
+THE BASIS IS $R-<basis> [PAIR'S] -- it publishes the big table, the bench counts are
 read from it, every --in-place table comes from it, and it runs second. Set
 BASIS and OTHER in all five scripts that take a run -- run-major.sh,
 run-gate.sh, smoke-sweep.sh, preflight.sh and install-tables.sh; check
@@ -43,7 +71,7 @@ them rather than assuming, and say here that you did. The one
 that is easiest to leave is install-tables.sh, which is the one that writes
 eleven tables into the run's own file.
 
-NAMING THE HALVES: neither name may begin with the other's followed by a
+NAMING THE HALVES [SAME]: neither name may begin with the other's followed by a
 hyphen. install-tables.sh finds the basis's class JSONs by globbing
 `$R-<basis>-*.json`, so a control called `<basis>-pa` is caught by it, and
 `ls` sorts that file after the basis's own -- leaving the CONTROL half's
@@ -54,42 +82,53 @@ hyphen-free (`aligned`, `maxskip`, `maxskippa`, `lookrts`, `a1g`, `a32m`);
 note that `maxskip`/`maxskippa` is a bare prefix and safe -- it is the
 hyphen that collides.
 
-WHY THE BASIS IS THIS RECIPE, decided YYYY-MM-DD: a decision and not a
+WHY THE BASIS IS THIS RECIPE [PAIR'S], decided YYYY-MM-DD: a decision and not a
 measurement, so the reason belongs here where the next session meets it.
 
-WHAT THE PAIR PRICES, said plainly: what a reader of the run should think
+WHAT THE PAIR PRICES [PAIR'S], said plainly: what a reader of the run should think
 the figures are about.
 
-REGISTERED BEFORE IT RAN, and in TWO places rather than one, which this
-line used to say was all one: the PREDICTION lives in the open list, as
-`What Run NN is built to answer, registered before it runs` at
-README.md#what-is-open -- that is where Run 15's is -- while the run's own
-file, under `What the next run compares against`, carries the regime, the
-roster, the basis and what the pair varies. A note that names only the second sends
-the next session to a section its prediction is not in.
+REGISTERED BEFORE IT RAN [PAIR'S], and in TWO places rather than one,
+which this line used to say was all one: the PREDICTION lives in the open
+list, as `What Run NN is built to answer, registered before it runs` at
+README.md#what-is-open, while the PREVIOUS run's own file, under `What
+the next run compares against`, carries the regime, the roster, the basis
+and what the pair varies. A note that names only the second sends the
+next session to a section its prediction is not in.
+  AND A REGISTRATION MOVES HOUSE ONCE, which is why this file and
+  post-run step 10 look as though they disagree and do not. BEFORE the
+  run it is an `OPEN` entry of the open list, which is the only home it
+  can have: `runs/$R.md` does not exist yet and the pre-run list forbids
+  making it. AT THE WRITE-UP, post-run step 5 moves it whole into that
+  file, under `What this run was built to answer, and what it answered`,
+  where it gains its verdicts -- a rule of 2026-08-29 -- and the open
+  list keeps one `ANSWERED` entry per run: a lead, a verdict in a clause,
+  and a link. So `--para 'What Run'` reads the POINTER for a finished run
+  and the REGISTRATION for the one in hand, and an empty-looking answer
+  from it is not evidence that a run registered nothing.
   - each prediction, with what would kill it, in the open list. NAME the
     entry here; do NOT copy it. Two copies of a registration is one copy
     that goes stale, and this note is the one nobody re-reads;
   - what the pair varies and against what, in the compares-against section;
   - anything the pair answers that no earlier pair could.
 
-THE ROSTER: N benches, M timed arms over K shapes. Say what landed since
+THE ROSTER [PAIR'S]: N benches, M timed arms over K shapes. Say what landed since
 the last run and what that owes -- an -L1 roster pass, a membership
 invariance read, and whether either is weak form.
 
-THE COMPILER: what `ghc --version` said at build time. The recipe below
+THE COMPILER [PAIR'S]: what `ghc --version` said at build time. The recipe below
 carries --ghc-options and not the compiler, so nothing else here records
 it, post-run step 9 asks this note for it, and a repetition read against
 an earlier run needs both notes to name one.
 
-THE SHIM: the commit align-as.py stood at, `git log -1 --format=%h --
+THE SHIM [PAIR'S]: the commit align-as.py stood at, `git log -1 --format=%h --
 :/micro-regime3/align-as.py`. It is on the recipe's -pgma and is as much
 an input to the binary as the source; pre-run step 3a reads this back. A
 a repetition read against an earlier run wants both notes to name the
 same one, a shim that moved between them being a difference in the
 binaries that no figure attributes to the shim.
 
-HOW EACH HALF IS BUILT, there being no builder here. Both from one source:
+HOW EACH HALF IS BUILT [PAIR'S], there being no builder here. Both from one source:
 
   $R-<basis>    cd here, then the full command, with --builddir, the
                 regime, -fforce-recomp and every --ghc-options spelled out
@@ -108,10 +147,10 @@ HOW EACH HALF IS BUILT, there being no builder here. Both from one source:
   to run. The RTS line is micro.cabal's since 2026-08-21 and no recipe
   passes one.
 
-THE SECOND BUILD IS A CHOICE OR A NECESSITY: say which, and if a one-binary
+THE SECOND BUILD IS A CHOICE OR A NECESSITY [PAIR'S]: say which, and if a one-binary
 form would do, record it here as the alternative so the decision stays one.
 
-WHAT TO READ BACK BEFORE THE EVENING:
+WHAT TO READ BACK BEFORE THE EVENING [SAME]:
   ./loop-offsets.py $R-<other> $R-<basis>
   ./loop-offsets.py --library $R-<basis> $R-<other>
   md5sum $R-<basis> $R-<other>
@@ -121,7 +160,7 @@ GATE: NOT RUN. run-gate.sh takes five benches over the shape set from each
 half, twice each, in a palindrome, and both passes are read. Until a line
 below states an outcome, this pair has no gate.
 
-ANY OTHER GATE THIS NOTE SETS MUST NAME WHAT DISCHARGES IT AND WHERE THE
+ANY OTHER GATE THIS NOTE SETS [SAME] MUST NAME WHAT DISCHARGES IT AND WHERE THE
 DISCHARGE IS WRITTEN. A note may hold the run back on something the gate
 line does not cover -- the commonest is the previous run's artifacts,
 which the cross-run readings need and which a `DO NOT DELETE ... BEFORE
@@ -132,7 +171,7 @@ line has -- a condition, and a slot beneath it for the outcome and its
 date. Run 21 had to add that slot by hand on 2026-08-29 after discharging
 Run 20's deletion gate.
 
-THE FILL-IN BLOCK BELOW IS OBSERVATIONS AND NOT INTERPRETATIONS. Record
+THE FILL-IN BLOCK BELOW [SAME in shape, PAIR'S in content] IS OBSERVATIONS AND NOT INTERPRETATIONS. Record
 what was measured -- the commits, the md5s, the byte counts, what agreed
 with what -- and leave WHY to the write-up, where a checker can reach it and
 an independent reader will re-derive it. Run 15's note wrote that the shim
