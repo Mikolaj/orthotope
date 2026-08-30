@@ -2234,26 +2234,33 @@ is planned. A scope limit belongs in the sentence that asks for the measurement.
    read further**: `-down`, which the change does not touch and whose counted
    work is identical between the halves, moved 15.13% in time --- so nothing
    here may be read across the halves, only within them.
-6. `OPEN` **The shim pads inside a loop wherever two cycles overlap,
-   and a one-line containment test would stop it --- worth measuring because
-   the shim is this benchmark's own instrument.** [What moves
-   a figure](#what-moves-a-figure-when-no-strategy-changed) has the mechanism:
-   the padded block is a genuine loop head, but one whose cycle begins inside
-   another's and ends after it, so its pad is paid on that other loop's
-   iterations. 331 of this module's 1172 heads are in that position. **What
-   it is worth is unmeasured and could be nothing**: an exposure count is
-   not a cost, most of those heads are cold, and the one case priced ---
-   `slice-primes`'s fill --- was worth about 5% between two arms because
-   its inner trip count is 44. **What would settle it**: the containment test
-   in `align-as.py`, a rebuild, and the counted work over the main set against
-   the current shim, which is minutes and wants no quiet machine;
-   then a `--survey` to confirm the nested heads still get their alignment,
-   since a test that skipped everything would look like a win on the counter
-   and be a loss on the clock. **And it is a basis change if taken**: every
-   figure in this file is measured through this shim, so a shim that pads
-   differently is a new basis and not a bug fix, which is the same ruling
-   `LOOP_MAXSKIP` carries and the reason that one is a switch rather
-   than a default.
+6. `OPEN` **The shim pads inside a loop wherever two cycles overlap;
+   the containment test is written, and it is REFUSED on the evidence a busy
+   machine can give --- the counter calls it a win and the alignment survey
+   calls it a loss.** [What moves
+   a figure](#what-moves-a-figure-when-no-strategy-changed) has the mechanism.
+   `LOOP_NOOVERLAP=1` is the test, off by default and a switch for the reason
+   `LOOP_MAXSKIP` is one: **off it reproduces the current binary byte
+   for byte**, so it is a switch and not a basis moved by accident, and `check`
+   is byte-identical with it on. **What the counter says**: the arms whose fills
+   carried a pad drop **7.2 to 7.3% of their instructions**, and the arm whose
+   head the test does not skip reads +0.00%. **What the survey says**: 18
+   self-loops straddle a cache line where NONE did, and 16 fewer sit at
+   offset 0. So it removes real padding and breaks real alignment,
+   and the counter cannot see the second --- which is exactly the failure
+   this entry was written to guard against, caught by the guard. **The rule
+   is too blunt and the reason is a quantity the shim cannot have**: whether
+   skipping a head beats padding it turns on the two loops' trip counts,
+   and an assembler shim knows neither. **What is left is one quiet process**:
+   `runs` or the main set timed with the switch on against off, which
+   is the only instrument that can adjudicate a pad against a straddle. Until
+   then the test stays written, off, and unrecommended. **And one thing measured
+   on the way, worth more than the test**: the shim's padding is 7%
+   of these arms' instructions and nearly cancels in a RATIO between two of them
+   --- `lib-stage2` over `lib-stage1` moves 0.6464 to 0.6457 --- so what
+   a counted ratio sees of the shim is only the differential, one nop where two
+   arms' pads differ, which is the whole of what the `slice` residue turned out
+   to be.
 
 **And one class not to repropose: work that needs an aligned build.**
 `mut-odo`'s wide interval is the live case. The dispersion is documented

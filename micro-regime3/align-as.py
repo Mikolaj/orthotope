@@ -23,6 +23,11 @@ the old object code and reports nothing (README.md, same section).
                follows an info table, which a `-g` assembly gets anyway;
                on a plain one it finds 27 heads more and so is a basis
                change, which is why it is a switch and off by default
+  LOOP_NOOVERLAP  leave alone a head whose own cycle begins inside
+               another's and ends after it, `a < h < b < j`, where the pad
+               would sit on that other loop's back-edge path and be paid at
+               its trip count. Ordinary nesting is untouched. A basis
+               change, so off by default, as LOOP_MAXSKIP is
   PAD_BYTES    dead bytes appended after the first module's text, default 0
   REAL_AS      the real assembler, default /usr/bin/gcc
   ALIGN_AS_VERBOSE  report the budgets emitted, the heads fallen back on,
@@ -273,6 +278,7 @@ REAL = os.environ.get('REAL_AS', '/usr/bin/gcc')
 ALIGN = str(number('LOOP_ALIGN', 6))
 MAXSKIP = switch('LOOP_MAXSKIP')
 LOOKTHROUGH = switch('LOOP_LOOKTHROUGH')
+NOOVERLAP = switch('LOOP_NOOVERLAP')
 VERBOSE = switch('ALIGN_AS_VERBOSE')
 PAD = number('PAD_BYTES', 0)
 BOUND = 1 << int(ALIGN)
@@ -323,6 +329,48 @@ def heads_of(src):
         if m and m.group(1) in seen:     # jumps back: its target is a loop head
             heads.add(m.group(1))
     return heads
+
+
+def spans_of(src):
+    """head label -> (its line, its furthest backward jump's line).
+
+    `heads_of` answers WHICH labels are heads and throws away where, which
+    is all the alignment needs and not enough to say whether a pad at one
+    head is paid by another loop.
+    """
+    seen, back = {}, {}
+    for i, line in enumerate(src):
+        st = line.strip()
+        m = LABEL.match(st)
+        if m:
+            seen.setdefault(m.group(1), i)
+            continue
+        m = JUMP.match(st)
+        if m and m.group(1) in seen:
+            lbl = m.group(1)
+            back[lbl] = max(back.get(lbl, i), i)
+    return {h: (seen[h], j) for h, j in back.items()}
+
+
+def overlapped(spans):
+    """The heads whose pad another loop pays for, by the containment test.
+
+    A pad goes in FRONT of a head, so it is executed by whatever cycles run
+    through that point. For ordinary nesting -- an inner head inside an
+    outer cycle -- that is the trade this script exists to make: one pad per
+    outer iteration to align the inner loop. The bad case is the other
+    shape, a head whose own cycle BEGINS inside another's and ENDS after it,
+    `a < h < b < j`: the pad then sits on the other loop's back-edge path
+    and is paid at ITS trip count, which is not the padded loop's and may be
+    orders larger.
+
+    It is a real shape and not a corner: GHC rotates an inner loop so its
+    test is at the bottom, and an enclosing loop re-enters at that test, so
+    the inner loop's latch IS the outer loop's head. On the assembly this
+    file was written for, 331 of 1172 heads are in that position.
+    """
+    return {h for h, (i, j) in spans.items()
+            if any(a < i < b < j for a, b in spans.values() if (a, b) != (i, j))}
 
 
 def sites(src, heads):
@@ -496,6 +544,15 @@ def rewrite(path, args):
         src = f.read().split('\n')
 
     heads = heads_of(src)
+    # Off by default and a switch for the reason LOOP_MAXSKIP is one: every
+    # figure this benchmark has published was measured through this shim, so
+    # padding differently is a new basis and not a bug fix.
+    if NOOVERLAP:
+        bad = overlapped(spans_of(src)) & heads
+        heads = heads - bad
+        if VERBOSE:
+            print('align-as: %s: %d head(s) left alone as overlapping'
+                  % (path, len(bad)), file=sys.stderr)
     st = sites(src, heads)
     dropped = len(heads) - len(st)
     if not st:
