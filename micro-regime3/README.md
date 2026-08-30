@@ -2226,15 +2226,17 @@ is planned. A scope limit belongs in the sentence that asks for the measurement.
    by [the ceiling][ceiling]'s nineteenth reading, which prices the pair on two
    more populations and splits that swing in two.** `-down` is not merely
    displaced in `runs`: it reads 1.1841 on the main set, 1.1586 on `slice`
-   and 1.1513 on `runs` between the halves, unchanged code with identical
-   counted work, in every population --- while the other 43 arms sit inside
-   a middle half spanning about a percent. So of the 24.6% between 1.1070
-   and 0.8348, about thirteen points are the change and about fifteen
-   are `-down` moving under it: **the change is worth a tenth to a seventh
-   in time, not a quarter**. What stands is the within-half ordering, which
-   is a fact about the binaries measured; what does not is reading
-   it as durable, an arm that moves 18% between two builds of one source being
-   the wrong thing to hold an ordering against.
+   and 1.1513 on `runs` between the halves, on code the change does not touch,
+   while the other 43 arms sit inside a middle half spanning about a percent.
+   **And it is instructions and not placement**, its counted work on the shimmed
+   pair rising 15.25% and 21.65% --- the shim padding a loop that the change
+   moved, which the nineteenth reading has and got wrong once before getting
+   right. So of the 24.6% between 1.1070 and 0.8348, about thirteen points
+   are the change and about fifteen are `-down` moving under it: **the change
+   is worth a tenth to a seventh in time, not a quarter**. What stands
+   is the within-half ordering, which is a fact about the binaries measured;
+   what does not is reading it as durable, an arm that moves 18% between two
+   builds of one source being the wrong thing to hold an ordering against.
 6. `OPEN` **The shim pads inside a loop wherever two cycles overlap;
    the containment test is written, and it is REFUSED on the evidence a busy
    machine can give --- the counter calls it a win and the alignment survey
@@ -4196,25 +4198,41 @@ and 0.8682 on `runs`**, and `-u2-down` 0.8584, 0.8039 and 0.8041. A user's
 on `runs`, which is the reading's own consistency check**: that class is regime
 2, stage one takes the slice-and-concatenate route there and never reaches
 the fill, so an arm that cannot have changed does not. **Against the counted
-work this is about two thirds**: 14.19% of the instructions gone on the main set
-buys 9.7% of the time, and 20.62% on `runs` buys 13.2%, which is what removing
-padding nops and a register move rather than a cache miss looks like.
+work of the SAME BINARIES this is about three quarters**: 13.1%
+of the instructions gone on the main set buys 9.7% of the time and 18.6%
+on `runs` buys 13.2%. (Corrected the same day. The figures first written here,
+14.19% and 20.62%, are the NO-SHIM pair's, and this pair is shimmed ---
+the change alters the loop's byte length, so it alters the padding too,
+and an instruction delta does not carry between the two builds.)
 **And the roster is flat, which is what licenses reading any of it**: over 44
 arms the middle half spans 0.9% on the main set, 0.8% on `runs` and 3.1%
 on `slice`, with `list` at 1.0024, 0.9913 and 0.9962 and the un-unrolled leaf
 at 1.0037, 0.9994 and 1.0082. **One arm is not flat, it is UNCHANGED, and
 it is the one the eighteenth reading measured against**: `-down` reads **1.1841
 on the main set, 1.1586 on `slice` and 1.1513 on `runs`** --- fifteen
-to eighteen percent slower in the B half, on identical code with identical
-counted work, in every population. That is placement, of the size Run 10 priced
-a reorder at on the arms whose loop the shim rescues, and it is systematic
-rather than a class's accident. **So the eighteenth's 0.8348 is two terms
-and not one**: of its 24.6% swing against `-down`, about thirteen points
-are the change and about fifteen are `-down` moving under it. The change
-is worth a tenth to a seventh, not a quarter; the within-half ordering
-it reports is true of the binaries measured; and an ordering read across two
-builds against an arm that moves 18% between them is not a durable one, which
-is what [task 5][open] now says.
+to eighteen percent slower in the B half, on code the change does not touch,
+in every population. **What that is was got wrong here first and is corrected
+the same day: it is not placement, it is INSTRUCTIONS.** On the shimmed pair
+that was timed `-down`'s counted work RISES 15.25% on the main set and 21.65%
+on `runs`, and time then tracks instructions arm for arm --- 1.03, 0.95 and 1.00
+for `-down`, `-down` on `runs` and the untouched leaf, and 1.04 and 1.07
+for the changed arm --- so no residual placement term is left to find.
+The mechanism is [what moves
+a figure](#what-moves-a-figure-when-no-strategy-changed)'s, arriving one step
+further along than it was written for: the change alters `-u2`'s loop LENGTH,
+everything after it shifts, `-down`'s loop lands at a different offset modulo
+the boundary, and the shim pads it more. **And the error worth keeping is how
+it was made**: the control that said `-down`'s counted work was identical
+is real and belongs to the NO-SHIM pair, where it reads +0.00% --- imported
+to a shimmed pair it measured nothing, which is the one thing this file's own
+shim finding should have predicted. A control is a property of the pair
+it was taken on. **So the eighteenth's 0.8348 is two terms and not one**:
+of its 24.6% swing against `-down`, about thirteen points are the change
+and about fifteen are `-down` moving under it. The change is worth a tenth
+to a seventh, not a quarter; the within-half ordering it reports is true
+of the binaries measured; and an ordering read across two builds against an arm
+that moves 18% between them is not a durable one, which is what [task 5][open]
+now says.
 
 ### The C-gap: still a deeper ceiling
 
