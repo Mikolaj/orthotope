@@ -2223,6 +2223,21 @@ is planned. A scope limit belongs in the sentence that asks for the measurement.
    and this entry does not pretend otherwise**: at runs of 11 and 13 the branch
    was ahead before any of this, so something of the opposite sign is there
    that no reading here isolates.
+5. `OPEN` **The vecdims family's ordering wants re-taking in time, one quiet
+   process, because the fill change moved its basis and not its verdict.** [The
+   ceiling][ceiling]'s fifteenth reading takes a live value out of `-u2`
+   and `-u2-down` and out of neither `-down` nor the un-unrolled leaf,
+   and the seventeenth reads what that did to the counted work: `-u2` against
+   `-down` goes 1.0055 to 0.7982 on `runs` and 0.9969 to 0.8554 on the main set,
+   `-u2` against `-u2-down` 0.9175 to 1.0139. **The verdicts those inversions
+   bear on are the fifth, sixth and twelfth readings', and all three are about
+   TIME**, which no instruction count settles --- least of all on this class,
+   where the second term is largest. **What would settle it**: the `runs` class
+   at criterion's default budget on the current build, one process and about
+   half an hour, read as `--pair` between the three arms; the counted work
+   beside it is already taken and wants no machine. Until then the twelfth
+   reading's *`-u2` is behind `-down`* is a reading of codegen that no longer
+   exists, and no shipping decision should be hung on it either way.
 
 **And one class not to repropose: work that needs an aligned build.**
 `mut-odo`'s wide interval is the live case. The dispersion is documented
@@ -4005,7 +4020,11 @@ than the method looked: an ordering differenced off a dump predicts only where
 the counts hold across the builds being compared, and here they did not. **One
 half of the sixth reading does hold**: `-u2` against `-u2-down` reads 0.9499,
 ahead at all seven lengths, as a count-down form a value heavier in the run loop
-should be.
+should be. **AND EVERY ORDERING IN THIS PARAGRAPH IS NOW STALE, the same day**:
+the fifteenth reading takes a live value out of `-u2` and `-u2-down` and out
+of neither `-down` nor the un-unrolled leaf, which moves exactly the arms
+this compared. The seventeenth has the new basis; what is written above
+was measured on the codegen before it.
 
 **A thirteenth reading, 2026-08-30, is what is left of the branch's cost once
 the shim's padding is out of the counted work --- and it is ONE INSTRUCTION
@@ -4135,6 +4154,25 @@ stride confirms rather than the screen. **What the screen cannot see, said
 because a silent search proves nothing**: it reads Main-compiled code only,
 so `gen-unsafe`, whose loop is inside `vector`'s `generate`, has no entry
 at all, and so would any arm that inlines its loop into a library function.
+
+**A seventeenth reading, 2026-08-30, is the cost of the fifteenth that nobody
+asked for: it re-opens an ordering three readings had settled.** The change
+frees a register in the two UNROLLED fills and in nothing else, so `-down`
+and the un-unrolled leaf are untouched --- +0.00% on every shape, which is what
+says the sweep measures the change --- while `-u2` drops 20.6%
+of its instructions on the `runs` class and `-u2-down` 28.2%. **So the family's
+two live comparisons both invert.** `-u2` against `-down` reads **0.7982** where
+it read 1.0055, and `-u2` against `-u2-down` **1.0139** where it read 0.9175;
+on the main set the first goes 0.9969 to 0.8554. The shipped fill was level
+with `-down` in counted work and is now a fifth ahead of it, and was ahead
+of `-u2-down` and is now a point and a half behind. **What this does NOT settle
+is time, which is what those readings were about**: the twelfth had `-u2` behind
+`-down` at all seven lengths in a spill-free binary and at 1.1117 on the native
+backend, and a 20% instruction reduction makes that ordering implausible rather
+than refuted --- the second term is exactly what stands between the two,
+and this class is where it is largest. **So the readings above are stale rather
+than wrong, and what would settle them is one quiet process**, the `runs` class
+timed on the current build, which [task 5][open] carries.
 
 ### The C-gap: still a deeper ceiling
 

@@ -1,0 +1,40 @@
+# ./probe-ship-g912 56de54004a015275febc5643f783843a N=50 2026-08-30T11:51:45+02:00 ARMS=mut-odo-vecdims-add-in-leaf-u2 mut-odo-vecdims-add-in-leaf-u2-down mut-odo-vecdims-add-in-leaf-down mut-odo-vecdims-add-in-leaf sum-only-early class=runs
+# shape arm N instructions:u
+# every cell is (-n 2N) minus (-n N), over N, as run-counts.sh takes it
+# ARMS-RESTRICTED BY CONSTRUCTION: this sweep is never a roster column
+runs-1024 mut-odo-vecdims-add-in-leaf-u2 50 27018041
+runs-1024 mut-odo-vecdims-add-in-leaf-u2-down 50 27016278
+runs-1024 mut-odo-vecdims-add-in-leaf-down 50 30611121
+runs-1024 mut-odo-vecdims-add-in-leaf 50 32408522
+runs-1024 sum-only-early 50 16192671
+runs-2 mut-odo-vecdims-add-in-leaf-u2 50 39605951
+runs-2 mut-odo-vecdims-add-in-leaf-u2-down 50 38705417
+runs-2 mut-odo-vecdims-add-in-leaf-down 50 40505938
+runs-2 mut-odo-vecdims-add-in-leaf 50 41405935
+runs-2 sum-only-early 50 16200288
+runs-3 mut-odo-vecdims-add-in-leaf-u2 50 33605497
+runs-3 mut-odo-vecdims-add-in-leaf-u2-down 50 33006888
+runs-3 mut-odo-vecdims-add-in-leaf-down 50 37206978
+runs-3 mut-odo-vecdims-add-in-leaf 50 38405939
+runs-3 sum-only-early 50 16200139
+runs-65536 mut-odo-vecdims-add-in-leaf-u2 50 26549361
+runs-65536 mut-odo-vecdims-add-in-leaf-u2-down 50 26547927
+runs-65536 mut-odo-vecdims-add-in-leaf-down 50 30087242
+runs-65536 mut-odo-vecdims-add-in-leaf 50 31856695
+runs-65536 sum-only-early 50 15925400
+runs-9 mut-odo-vecdims-add-in-leaf-u2 50 29205930
+runs-9 mut-odo-vecdims-add-in-leaf-u2-down 50 29005914
+runs-9 mut-odo-vecdims-add-in-leaf-down 50 32805937
+runs-9 mut-odo-vecdims-add-in-leaf 50 34406883
+runs-9 sum-only-early 50 16199964
+runs-96 mut-odo-vecdims-add-in-leaf-u2 50 27268409
+runs-96 mut-odo-vecdims-add-in-leaf-u2-down 50 27249676
+runs-96 mut-odo-vecdims-add-in-leaf-down 50 30812175
+runs-96 mut-odo-vecdims-add-in-leaf 50 32593408
+runs-96 sum-only-early 50 16200140
+runs-r3-48x30 mut-odo-vecdims-add-in-leaf-u2 50 27918886
+runs-r3-48x30 mut-odo-vecdims-add-in-leaf-u2-down 50 27858870
+runs-r3-48x30 mut-odo-vecdims-add-in-leaf-down 50 31338899
+runs-r3-48x30 mut-odo-vecdims-add-in-leaf 50 33082639
+runs-r3-48x30 sum-only-early 50 16200143
+# end 2026-08-30T11:52:00+02:00
