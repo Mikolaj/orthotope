@@ -292,8 +292,10 @@ genericFillStrided sh ats !ao !l !v = VG.create fill
                   -- register instead of reloading it twice a pair.  Worth
                   -- 15% of the fill's instructions on the benchmark's
                   -- shape set, 6% at a three-wide inner run and 25% at a
-                  -- long one; -fllvm needs neither, keeps two induction
-                  -- variables and loses 4.5%.
+                  -- long one, and a tenth of its TIME on that set and a
+                  -- seventh on views a slice produces; -fllvm needs
+                  -- neither, keeps two induction variables and loses
+                  -- 4.5% of the instructions.
                   | otherwise = do
                       VGM.unsafeWrite out o (VG.unsafeIndex v src)
                       let !src' = src + tInner

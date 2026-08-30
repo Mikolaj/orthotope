@@ -2252,16 +2252,28 @@ is planned. A scope limit belongs in the sentence that asks for the measurement.
    this entry was written to guard against, caught by the guard. **The rule
    is too blunt and the reason is a quantity the shim cannot have**: whether
    skipping a head beats padding it turns on the two loops' trip counts,
-   and an assembler shim knows neither. **What is left is one quiet process**:
-   `runs` or the main set timed with the switch on against off, which
-   is the only instrument that can adjudicate a pad against a straddle. Until
-   then the test stays written, off, and unrecommended. **And one thing measured
-   on the way, worth more than the test**: the shim's padding is 7%
-   of these arms' instructions and nearly cancels in a RATIO between two of them
-   --- `lib-stage2` over `lib-stage1` moves 0.6464 to 0.6457 --- so what
-   a counted ratio sees of the shim is only the differential, one nop where two
-   arms' pads differ, which is the whole of what the `slice` residue turned out
-   to be.
+   and an assembler shim knows neither. **What is left is one quiet EVENING
+   and not one process, which an attempt on 2026-08-30 established and threw
+   its own half away to say.** The main set was timed with the switch off,
+   cleanly, and the `on` half was stopped after eight minutes when the machine
+   was wanted; the off half was then DELETED rather than kept for a later
+   partner. The reason is that this pair, alone among the pairs here, has
+   no flatness control: every other one can point at arms the change does
+   not touch and hold them to 1.00, which is what caught `-down`'s 15 to 18%
+   displacement in [the ceiling][ceiling]'s nineteenth reading --- and a LAYOUT
+   test invalidates exactly that assumption, since it may move any arm.
+   With the effect a few percent by the counter's own reckoning, the floors 3.5
+   to 4%, and an adjacent pair still displacing an arm by 15% on this box,
+   a half-pair collected hours apart could not be read either way. So: both
+   halves, adjacent, about three and a half hours, and the controls left
+   are `list` against the kept fingerprint, the A/A twins for the floor,
+   and the arms whose heads the test does not skip. Until then the test stays
+   written, off, and unrecommended. **And one thing measured on the way, worth
+   more than the test**: the shim's padding is 7% of these arms' instructions
+   and nearly cancels in a RATIO between two of them --- `lib-stage2`
+   over `lib-stage1` moves 0.6464 to 0.6457 --- so what a counted ratio sees
+   of the shim is only the differential, one nop where two arms' pads differ,
+   which is the whole of what the `slice` residue turned out to be.
 
 **And one class not to repropose: work that needs an aligned build.**
 `mut-odo`'s wide interval is the live case. The dispersion is documented
