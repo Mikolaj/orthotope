@@ -1,0 +1,20 @@
+# ./probe-bang-g912 70e9e93ed72f61ee04b0bc0f4e71e36b N=50 2026-08-30T07:34:42+02:00 ARMS=list lib-stage1 lib-stage2 mut-odo-vecdims-add-in-leaf-u2 sum-only-early class=bcast
+# shape arm N instructions:u cycles:u stalled-cycles-frontend:u branch-misses:u cache-misses:u
+# every cell is (-n 2N) minus (-n N), over N, as run-counts.sh takes it
+# ARMS-RESTRICTED BY CONSTRUCTION: this sweep is never a roster column
+bcast-inner8 list 50 12577523 3809156 96821 9472 5870
+bcast-inner8 lib-stage1 50 1021896 275910 4073 136 690
+bcast-inner8 lib-stage2 50 851346 275905 2858 59 733
+bcast-inner8 mut-odo-vecdims-add-in-leaf-u2 50 1021253 270890 2159 147 1029
+bcast-inner8 sum-only-early 50 460861 152663 2187 6 259
+bcast-inner900 list 50 409871671 119280042 2093839 68945 165601
+bcast-inner900 lib-stage1 50 32439056 9048500 62824 2106 9090
+bcast-inner900 lib-stage2 50 27032058 9612155 60663 2019 9149
+bcast-inner900 mut-odo-vecdims-add-in-leaf-u2 50 32437773 9110379 58268 2088 8850
+bcast-inner900 sum-only-early 50 16200141 5431987 27001 0 4136
+bcast-tall-Mx2 list 50 541709128 165859708 5370940 89523 232622
+bcast-tall-Mx2 lib-stage1 50 45007123 10445486 73498 -7 11084
+bcast-tall-Mx2 lib-stage2 50 37807887 10405333 68525 18 12218
+bcast-tall-Mx2 mut-odo-vecdims-add-in-leaf-u2 50 45006233 10421841 72554 39 10941
+bcast-tall-Mx2 sum-only-early 50 16200139 5444949 19951 17 4251
+# end 2026-08-30T07:34:55+02:00

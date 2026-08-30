@@ -1,0 +1,25 @@
+# ./probe-bang-g912 70e9e93ed72f61ee04b0bc0f4e71e36b N=50 2026-08-30T07:35:14+02:00 ARMS=list lib-stage1 lib-stage2 mut-odo-vecdims-add-in-leaf-u2 sum-only-early class=reshape1
+# shape arm N instructions:u cycles:u stalled-cycles-frontend:u branch-misses:u cache-misses:u
+# every cell is (-n 2N) minus (-n N), over N, as run-counts.sh takes it
+# ARMS-RESTRICTED BY CONSTRUCTION: this sweep is never a roster column
+reshape1-500k list 50 186962636 55696958 937605 34003 78337
+reshape1-500k lib-stage1 50 13004893 2786613 20330 25 4050
+reshape1-500k lib-stage2 50 4501030 1503605 5436 20 1203
+reshape1-500k mut-odo-vecdims-add-in-leaf-u2 50 13003966 2783453 15640 5 3425
+reshape1-500k sum-only-early 50 4500091 1483604 988 17 1019
+reshape1-r3 list 50 68051892 20197057 319057 16444 32249
+reshape1-r3 lib-stage1 50 4997600 1139233 16130 305 3145
+reshape1-r3 lib-stage2 50 1621391 546931 4597 0 445
+reshape1-r3 mut-odo-vecdims-add-in-leaf-u2 50 4995721 1120805 16131 287 2181
+reshape1-r3 sum-only-early 50 1620080 545087 2634 3 363
+reshape1-rank10 list 50 26425581 8159522 188327 14490 20956
+reshape1-rank10 lib-stage1 50 3356600 759224 9666 611 850
+reshape1-rank10 lib-stage2 50 534220 179107 456 -13 219
+reshape1-rank10 mut-odo-vecdims-add-in-leaf-u2 50 3351378 754588 9715 867 646
+reshape1-rank10 sum-only-early 50 531494 176173 1469 -15 190
+reshape1-strided-r3 list 50 67845601 20261830 326543 15005 104986
+reshape1-strided-r3 lib-stage1 50 4912095 1186743 16576 282 22362
+reshape1-strided-r3 lib-stage2 50 3392810 1014231 20317 348 23196
+reshape1-strided-r3 mut-odo-vecdims-add-in-leaf-u2 50 4910337 1157114 18060 332 22084
+reshape1-strided-r3 sum-only-early 50 1620081 538958 1054 57 516
+# end 2026-08-30T07:35:20+02:00

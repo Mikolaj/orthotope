@@ -1,0 +1,20 @@
+# ./probe-bang-g912 70e9e93ed72f61ee04b0bc0f4e71e36b N=50 2026-08-30T07:35:27+02:00 ARMS=list lib-stage1 lib-stage2 mut-odo-vecdims-add-in-leaf-u2 sum-only-early class=scaled
+# shape arm N instructions:u cycles:u stalled-cycles-frontend:u branch-misses:u cache-misses:u
+# every cell is (-n 2N) minus (-n N), over N, as run-counts.sh takes it
+# ARMS-RESTRICTED BY CONSTRUCTION: this sweep is never a roster column
+scaled-r5 list 50 3597898 1075148 24901 1888 2153
+scaled-r5 lib-stage1 50 291945 96888 5056 81 395
+scaled-r5 lib-stage2 50 290988 100536 2974 58 481
+scaled-r5 mut-odo-vecdims-add-in-leaf-u2 50 289853 93839 2290 84 459
+scaled-r5 sum-only-early 50 135193 45725 701 -15 -15
+scaled-rank1-m1 list 50 68244540 20169174 362666 11041 31844
+scaled-rank1-m1 lib-stage1 50 4503440 1738461 24833 8 32234
+scaled-rank1-m1 lib-stage2 50 4503681 1699592 22932 -18 35205
+scaled-rank1-m1 mut-odo-vecdims-add-in-leaf-u2 50 4502988 1708030 21223 17 35531
+scaled-rank1-m1 sum-only-early 50 2700067 904653 3037 -3 683
+scaled-super-r3 list 50 13925157 4171265 86022 4204 6781
+scaled-super-r3 lib-stage1 50 1114398 319928 7292 143 1381
+scaled-super-r3 lib-stage2 50 1145016 361539 9019 109 1023
+scaled-super-r3 mut-odo-vecdims-add-in-leaf-u2 50 1113114 327638 6752 111 1227
+scaled-super-r3 sum-only-early 50 540058 181134 -57 0 206
+# end 2026-08-30T07:35:29+02:00

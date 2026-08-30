@@ -1,0 +1,20 @@
+# ./probe-bang-g912 70e9e93ed72f61ee04b0bc0f4e71e36b N=50 2026-08-30T07:35:24+02:00 ARMS=list lib-stage1 lib-stage2 mut-odo-vecdims-add-in-leaf-u2 sum-only-early class=window
+# shape arm N instructions:u cycles:u stalled-cycles-frontend:u branch-misses:u cache-misses:u
+# every cell is (-n 2N) minus (-n N), over N, as run-counts.sh takes it
+# ARMS-RESTRICTED BY CONSTRUCTION: this sweep is never a roster column
+window-224x224-k3 list 50 129829141 40415434 1371852 73195 79858
+window-224x224-k3 lib-stage1 50 12193358 2953091 19081 269 2613
+window-224x224-k3 lib-stage2 50 12538833 3011620 23899 290 2745
+window-224x224-k3 mut-odo-vecdims-add-in-leaf-u2 50 12191659 2937967 20366 405 2522
+window-224x224-k3 sum-only-early 50 3992090 1343179 5526 -32 1037
+window-28x28-k5 list 50 3782504 1163682 43240 1240 2673
+window-28x28-k5 lib-stage1 50 323153 98945 3382 72 47
+window-28x28-k5 lib-stage2 50 333100 106974 4655 92 203
+window-28x28-k5 mut-odo-vecdims-add-in-leaf-u2 50 321459 94798 1910 91 125
+window-28x28-k5 sum-only-early 50 129657 45230 3034 4 -31
+window-64x64-k1x9 list 50 12610335 3774008 71633 5741 5830
+window-64x64-k1x9 lib-stage1 50 1069723 261217 5019 224 337
+window-64x64-k1x9 lib-stage2 50 639553 204958 7196 213 915
+window-64x64-k1x9 mut-odo-vecdims-add-in-leaf-u2 50 1068652 263183 6176 243 426
+window-64x64-k1x9 sum-only-early 50 290370 91296 -1123 5 348
+# end 2026-08-30T07:35:27+02:00

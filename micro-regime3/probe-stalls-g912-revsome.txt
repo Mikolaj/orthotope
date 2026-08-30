@@ -1,0 +1,20 @@
+# ./probe-bang-g912 70e9e93ed72f61ee04b0bc0f4e71e36b N=50 2026-08-30T07:34:39+02:00 ARMS=list lib-stage1 lib-stage2 mut-odo-vecdims-add-in-leaf-u2 sum-only-early class=revsome
+# shape arm N instructions:u cycles:u stalled-cycles-frontend:u branch-misses:u cache-misses:u
+# every cell is (-n 2N) minus (-n N), over N, as run-counts.sh takes it
+# ARMS-RESTRICTED BY CONSTRUCTION: this sweep is never a roster column
+revsome-inner-primes list 50 57320322 17410481 401885 12101 168318
+revsome-inner-primes lib-stage1 50 4540240 1366005 13152 118 32692
+revsome-inner-primes lib-stage2 50 4667624 1403286 14626 126 38772
+revsome-inner-primes mut-odo-vecdims-add-in-leaf-u2 50 4538886 1357240 11744 151 31846
+revsome-inner-primes sum-only-early 50 2253276 750994 2145 -5 736
+revsome-mid-cnn-L2 list 50 48577848 15033582 626913 27127 26554
+revsome-mid-cnn-L2 lib-stage1 50 4596933 1200974 22675 846 2692
+revsome-mid-cnn-L2 lib-stage2 50 4690553 1209059 29117 310 2829
+revsome-mid-cnn-L2 mut-odo-vecdims-add-in-leaf-u2 50 4594757 1198106 22428 1205 2531
+revsome-mid-cnn-L2 sum-only-early 50 1493084 496451 435 -226 399
+revsome-outer-g48 list 50 6240936 1924988 74073 1215 6824
+revsome-outer-g48 lib-stage1 50 481781 148979 6352 139 2757
+revsome-outer-g48 lib-stage2 50 497592 161181 7541 163 4216
+revsome-outer-g48 mut-odo-vecdims-add-in-leaf-u2 50 480049 146907 6211 163 2898
+revsome-outer-g48 sum-only-early 50 202582 73367 1204 6 103
+# end 2026-08-30T07:34:42+02:00

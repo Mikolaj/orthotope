@@ -1,0 +1,25 @@
+# ./probe-bang-g912 70e9e93ed72f61ee04b0bc0f4e71e36b N=50 2026-08-30T07:34:55+02:00 ARMS=list lib-stage1 lib-stage2 mut-odo-vecdims-add-in-leaf-u2 sum-only-early class=bcastmid
+# shape arm N instructions:u cycles:u stalled-cycles-frontend:u branch-misses:u cache-misses:u
+# every cell is (-n 2N) minus (-n N), over N, as run-counts.sh takes it
+# ARMS-RESTRICTED BY CONSTRUCTION: this sweep is never a roster column
+bcastmid-b200k list 50 686132940 217452227 7578382 132365 415285
+bcastmid-b200k lib-stage1 50 37208201 9441640 51984 33 8974
+bcastmid-b200k lib-stage2 50 39609271 12802892 80914 52 8881
+bcastmid-b200k mut-odo-vecdims-add-in-leaf-u2 50 37206875 9430538 55859 38 8797
+bcastmid-b200k sum-only-early 50 16200166 5548487 71067 2 4021
+bcastmid-block150k list 50 577801949 183172887 4233059 118278 2990063
+bcastmid-block150k lib-stage1 50 32493837 10742782 91630 6019 55336
+bcastmid-block150k lib-stage2 50 21519679 9517879 74171 1564 114956
+bcastmid-block150k mut-odo-vecdims-add-in-leaf-u2 50 32492122 10618067 89376 6066 53978
+bcastmid-block150k sum-only-early 50 16200126 5442865 22123 8 3351
+bcastmid-c32-cnn list 50 48605655 15004670 535477 26390 28083
+bcastmid-c32-cnn lib-stage1 50 4608775 1205540 22007 1312 1151
+bcastmid-c32-cnn lib-stage2 50 1775126 704506 12939 443 2368
+bcastmid-c32-cnn mut-odo-vecdims-add-in-leaf-u2 50 4606653 1206104 23515 1507 1052
+bcastmid-c32-cnn sum-only-early 50 1493039 500925 -1296 6 381
+bcastmid-primes list 50 57279576 16870820 258201 11763 101089
+bcastmid-primes lib-stage1 50 4534169 1264364 8795 53 1970
+bcastmid-primes lib-stage2 50 2609788 1005205 10240 171 3126
+bcastmid-primes mut-odo-vecdims-add-in-leaf-u2 50 4532884 1240810 8396 32 1826
+bcastmid-primes sum-only-early 50 2253297 759633 3065 -13 488
+# end 2026-08-30T07:35:14+02:00

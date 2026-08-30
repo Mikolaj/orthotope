@@ -1,0 +1,20 @@
+# ./probe-bang-g912 70e9e93ed72f61ee04b0bc0f4e71e36b N=50 2026-08-30T07:35:20+02:00 ARMS=list lib-stage1 lib-stage2 mut-odo-vecdims-add-in-leaf-u2 sum-only-early class=slice
+# shape arm N instructions:u cycles:u stalled-cycles-frontend:u branch-misses:u cache-misses:u
+# every cell is (-n 2N) minus (-n N), over N, as run-counts.sh takes it
+# ARMS-RESTRICTED BY CONSTRUCTION: this sweep is never a roster column
+slice-cnn-L2-24x24-c32 list 50 48578031 15150547 574258 26890 35111
+slice-cnn-L2-24x24-c32 lib-stage1 50 4596728 1199321 20414 890 7628
+slice-cnn-L2-24x24-c32 lib-stage2 50 4725566 1231441 33607 798 17194
+slice-cnn-L2-24x24-c32 mut-odo-vecdims-add-in-leaf-u2 50 4594611 1188552 22427 663 6637
+slice-cnn-L2-24x24-c32 sum-only-early 50 1493074 486388 -2941 -3 385
+slice-coprime-r7 list 50 14695026 4424161 110032 8063 14189
+slice-coprime-r7 lib-stage1 50 1281497 405431 16842 477 3679
+slice-coprime-r7 lib-stage2 50 1316929 423937 18958 472 2409
+slice-coprime-r7 mut-odo-vecdims-add-in-leaf-u2 50 1278548 414869 17106 449 3528
+slice-coprime-r7 sum-only-early 50 540604 180098 3956 9 216
+slice-primes list 50 57320384 17264914 318247 12046 167173
+slice-primes lib-stage1 50 4540184 1273962 11434 119 33233
+slice-primes lib-stage2 50 4667519 1421491 15124 115 37778
+slice-primes mut-odo-vecdims-add-in-leaf-u2 50 4538895 1367275 13257 129 33511
+slice-primes sum-only-early 50 2253281 749594 1977 3 389
+# end 2026-08-30T07:35:23+02:00
