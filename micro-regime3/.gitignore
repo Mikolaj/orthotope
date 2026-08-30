@@ -35,14 +35,16 @@ micro-pair*.txt
 # suffixes were an accident of which probes came first.
 #
 # BUT THE PREFIX IS NOT THE WHOLE RULE, which is why the two lines
-# below exist: two probes ARE tracked, a shell driver and a Haskell
-# sketch that are inputs to this README rather than artifacts of a run.
+# below exist: three probes ARE tracked, a shell driver, a Haskell
+# sketch and a predicate port, being inputs to this README rather than
+# artifacts of a run.
 # Ignoring a tracked file is harmless until someone deletes and re-adds
 # it, at which point `git add` refuses in silence -- so they are named
 # here, and a probe worth tracking in future is named beside them.
 probe-*
 !probe-areacurve.sh
 !probe-rework-proposal.hs
+!probe-oneblock.py
 
 # The reader's smoke sweep, which writes these and deletes them again; a
 # failed sweep can leave them behind. The .log line is not decoration:

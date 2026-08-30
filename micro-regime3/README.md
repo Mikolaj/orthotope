@@ -898,41 +898,43 @@ rather than a slot in the next run, observed again:
   and the two tests differ in two moves: stage one compares the SIGNED strides
   of the raw dims against the sorted shape's natural ones, stage two
   the ABSOLUTE values of the canonical ones. Where each fires was EVALUATED
-  rather than predicted, 2026-08-30, by running both tests over every view
-  `check` prints strides for: stage two's fires on **ten** of the 37 rostered
-  class views --- every view of `rev`, `revsome` and `reshape1`,
-  `reshape1-strided-r3` included, an unordered consumer not minding
-  a permutation --- and stage one's on **none** of the 38, the thirty-eighth
-  being the check-only `reshape1-slice-off7`. So `libunord-stage2` is predicted
-  degenerate on those three whole classes, a single `VS.slice` reading
-  at or below the `list` baseline's own cell, where `libunord-stage1` tracks
-  `liblist-stage1` inside the floor there; and on the six classes where neither
-  fires both track their own stage's liblist arm inside the floor, the test
-  being one comparison a call. **The main set was left unpredicted here
-  and the roster pass then answered it, which is a finding and not a reading
-  of the run**: `check` prints no strides for its rows, so neither test could
-  be evaluated on them, but the `-L1` pass of 2026-08-30 shows BOTH tests firing
-  there --- `libunord-stage1` sinks three cells and `libunord-stage2` four,
-  on `stretch-wide-2xM`, `stretch-bigstride`, `stretch-tall-Mx2`
-  and `stretch-inner256`, every one a transposed view an unordered consumer may
-  take whole. So stage one's test is not idle on the main set as it is
-  on the classes, and **the eight sunk cells are the thing to settle before
-  the gate**, not a prediction: at `-L1` those arms run at or under the shared
-  forcing pass, so the correction cannot be taken, each cell reads `--`,
-  and three rows become geomeans over 20, 21 and 23 of 24 shapes where every
-  other row covers 24. That breaks the *all rows cover one population* property
-  the Results table rests on. Killed by a margin past the floor on any
-  of the six classes where neither test fires, or by stage two not collapsing
-  on `rev`. (5) *The vecdims family's ordering, at full budget.* Run 21 read
-  `-add-in-leaf-down` **ahead** of the shipped `-add-in-leaf-u2` by 5.6%
-  and 6.7% on its two halves, and the in-process re-take of 2026-08-30 reverses
-  it, `-u2` against `-down` reading 0.8348 on `runs` at 7 wins of 7 ---
-  but about fifteen of those twenty-five points are `-down` moving on code
-  the change does not touch, so that reading is within-half and was recorded
-  as not durable. Predicted: `-u2` ahead of `-down` on the main set and on every
-  class, past each population's floor, and `-u2` against `-u2-down` a tie inside
-  it. Killed if `-down` is still ahead past a floor anywhere, which would say
-  the in-process reading was the displacement and not the change.
+  rather than predicted, 2026-08-30, by `./probe-oneblock.py run22-g912`, which
+  ports both tests and runs them over every view `check` prints strides for,
+  so the reading is re-derivable when the roster moves: stage two's fires
+  on **ten** of the 37 rostered class views --- every view of `rev`, `revsome`
+  and `reshape1`, `reshape1-strided-r3` included, an unordered consumer
+  not minding a permutation --- and stage one's on **none** of the 38,
+  the thirty-eighth being the check-only `reshape1-slice-off7`.
+  So `libunord-stage2` is predicted degenerate on those three whole classes,
+  a single `VS.slice` reading at or below the `list` baseline's own cell, where
+  `libunord-stage1` tracks `liblist-stage1` inside the floor there; and
+  on the six classes where neither fires both track their own stage's liblist
+  arm inside the floor, the test being one comparison a call. **The main set
+  was left unpredicted here and the roster pass then answered it, which
+  is a finding and not a reading of the run**: `check` prints no strides
+  for its rows, so neither test could be evaluated on them, but the `-L1` pass
+  of 2026-08-30 shows BOTH tests firing there --- `libunord-stage1` sinks three
+  cells and `libunord-stage2` four, on `stretch-wide-2xM`, `stretch-bigstride`,
+  `stretch-tall-Mx2` and `stretch-inner256`, every one a transposed view
+  an unordered consumer may take whole. So stage one's test is not idle
+  on the main set as it is on the classes, and **the eight sunk cells
+  are the thing to settle before the gate**, not a prediction: at `-L1`
+  those arms run at or under the shared forcing pass, so the correction cannot
+  be taken, each cell reads `--`, and three rows become geomeans over 20, 21
+  and 23 of 24 shapes where every other row covers 24. That breaks the *all rows
+  cover one population* property the Results table rests on. Killed by a margin
+  past the floor on any of the six classes where neither test fires, or by stage
+  two not collapsing on `rev`. (5) *The vecdims family's ordering, at full
+  budget.* Run 21 read `-add-in-leaf-down` **ahead** of the shipped
+  `-add-in-leaf-u2` by 5.6% and 6.7% on its two halves, and the in-process
+  re-take of 2026-08-30 reverses it, `-u2` against `-down` reading 0.8348
+  on `runs` at 7 wins of 7 --- but about fifteen of those twenty-five points
+  are `-down` moving on code the change does not touch, so that reading
+  is within-half and was recorded as not durable. Predicted: `-u2` ahead
+  of `-down` on the main set and on every class, past each population's floor,
+  and `-u2` against `-u2-down` a tie inside it. Killed if `-down` is still ahead
+  past a floor anywhere, which would say the in-process reading
+  was the displacement and not the change.
 - `ANSWERED` **What Run 21 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
   verdicts are [in Run 21's own file](runs/run21.md), where they were moved
@@ -4929,23 +4931,34 @@ not done, which is the whole of why this is a list and not a sentence.
          and the template says what a note owes
          -- the two recipes, and which of their lines the pair varies
 
-**WHICH OF THE TEN A SESSION OWES DEPENDS ON WHICH HALF IT WAS ASKED FOR,
-and the numbers never move so that a reference to an item still lands.**
-A session asked for the whole run owes all ten. A session asked to PREPARE a run
---- the pre-run half, stopping at 12 --- owes **1** (its pre-run and run lists;
-the post-run one is write-up material), **3**, **7**, **8**'s delta bullets,
-**9** and **10**, which are what decide the pair, the roster, the note and what
-this run is for. It does NOT owe **2**, **4**, **5**, **6**, **8**'s replace
-list or the post-run list, every one of which answers a question the write-up
-asks and none of which changes a preparation: the replace list is walked
-at post-run step 6 and gains nothing from being read hours early --- run list
-step 18 says so of it already --- and the class blocks' form is not used until
-a block is written. The write-up owes those, and owes them then. Reading
-the write-up's half during a preparation is the single largest avoidable spend
-in this chapter after the prose itself, and it was the shape of a walk
-on 2026-08-30, which read the post-run list and an example class block and used
-neither. Items 2 to 6 are [the last run's own file](runs/run21.md#results), 3
-and 4 being [what the next run compares
+**A RUN IS ALWAYS TWO SESSIONS, SO THIS IS TWO LISTS.** No session owns a whole
+run: one PREPARES it, through step 12, and hands over `$R-pair.txt`; another
+EXECUTES it from step 13 and writes it up. So there is no case in which
+a session owes all ten, and which ten it owes is not a judgement
+but a consequence of which half it was asked for. The numbers never move,
+so a reference to an item still lands. **The PREPARATION owes 1, 3, 7, 8's delta
+bullets, 9 and 10** --- of item 1, the pre-run list and the run list, the run
+list because the note's launch, rider and counts lines are written out of it,
+and NOT the post-run one. Those six decide the pair, the roster, the note
+and what this run is for, and nothing else does. **The EXECUTION owes 1 ---
+the run and post-run lists --- with 2, 4, 5, 6 and 8's replace list**, every one
+of which answers a question the write-up asks: the replace list is walked
+at post-run step 6 and gains nothing from being read hours early, which run list
+step 18 already says of it, and the class blocks' form is not used until a block
+is written. **ONE OF THOSE CROSSES BACK, and it is 5.** A roster change
+that parks or drops an arm can leave a live claim naming an untimed one, which
+`--lint` refuses at step 7 --- so the preparation that made the change
+is the one that must retire or re-aim the claim, and it owes the claims section
+to do it. Run 21's preparation is the case: parking `offtab` and `gen-quotrem`
+retired claims 2 and 6 and re-aimed 8, all of it before that run started.
+A preparation that parks nothing does not owe 5, and step 7 is what tells
+it which it is. **Reading the other session's half is the largest avoidable
+spend in this chapter after the prose itself.** It was the shape
+of a preparation on 2026-08-30, which read the whole post-run list
+and an example class block and used neither, and it is a spend the split makes
+invisible: nothing in a handover shows what the session before it read
+for nothing. Items 2 to 6 are [the last run's own file](runs/run21.md#results),
+3 and 4 being [what the next run compares
 against](runs/run21.md#what-the-next-run-compares-against), 5 [the
 claims](runs/run21.md#the-claims-the-next-run-should-test) and 6 [the class
 blocks](runs/run21.md#the-stride-classes-run-by-run) --- and `--section` takes
@@ -5000,17 +5013,24 @@ and written into the run's own file. What follows is the procedure, and
 it is written to outlive any one run.
 
 **What asking for a run asks for, since the request is one sentence and the work
-is this chapter.** The whole of it, without coming back for permission between
-the steps: the pre-run checks, the sequence, the write-up, and the probes
-the results turn out to justify. The procedure is the permission --- each step
-names what it needs and what it must not do --- so a question this chapter
-answers is not a reason to stop. **Two parties appear below and this README
-keeps them apart.** *A session* is whoever executes the run, here as
-in the twenty-odd other places this README says it. *Whoever asked for the run*
-holds the decisions a procedure cannot make, and is never called *the author*:
+is this chapter --- and it is asked TWICE, because a run is always two
+sessions.** A run is never owned end to end: one session PREPARES it,
+the pre-run half through step 12, and its product is `$R-pair.txt`; another
+EXECUTES it, from step 13 through the write-up and the probes the results
+justify. Each is asked separately and each is given its whole half without
+coming back for permission between the steps --- the procedure
+is the permission, each step naming what it needs and what it must not do,
+so a question this chapter answers is not a reason to stop. What does not carry
+across the boundary is the go-ahead: the preparing session cannot hand one on,
+and step 13 says so where it bites. **THREE parties appear below and this README
+keeps them apart.** *The preparing session* builds the pair and writes the note,
+and stops at 12. *The executing session* spends the machine and writes the run
+up; where this README says *a session* with no qualifier it means that one, here
+as in the twenty-odd other places it says it. *Whoever asked for the run* holds
+the decisions a procedure cannot make, and is never called *the author*:
 that word means the session writing a block --- the one whose prose
 an independent checker is set against --- and it is the executor,
-not the requester.
+not the requester and not the preparer.
 
 **A probe budget rides with it, and it is spent AFTER the write-up rather
 than before.** It is separate from the pre-registered questions, which
@@ -5117,18 +5137,14 @@ and never as a chronology.
     #  the :/ pathspec resolves from the repo root, so these answer the same
     #  from anywhere; a bare `-- Main.hs` run from the root prints nothing
     #  and exits 0, which reads exactly like an unmoved source
-    #  IF THE RUN'S OWN JSONS ARE ALREADY HERE, this list and the run list
-    #      are both spent and the entry point is post-run step 1: the
-    #      landed JSONs are provenanced to the binaries that made them, and
-    #      rebuilding now would orphan them
-    #  AND IF THE PREPARATION IS SPENT BUT THE GATE IS NOT: a note whose
-    #      fill-in block is complete and whose GATE line reads NOT RUN has
-    #      spent this list already, and the entry point is 13. What a
-    #      later session inherits is that preparation's own work -- the
-    #      gate, the smoke sweep, the roster pass and the two binaries
-    #      3b built FOR THIS RUN. Nothing older than this run's own
-    #      preparation is ever inherited; re-run 4 to 10, which are one
-    #      call and about eight minutes, most of it 8c and 8d
+    #  IF ANYTHING FOR THIS RUN IS ALREADY HERE, step 1 has caught a
+    #      preparation that is not yours to redo, and what landed says
+    #      which entry point it is: the run's own JSONs mean post-run
+    #      step 1, rebuilding now orphaning the binaries they are
+    #      provenanced to; a complete note whose GATE line reads NOT RUN
+    #      means 13, which is the executing session's normal entry, with
+    #      `./preflight.sh $R` re-running 4 to 10 in one call. Nothing
+    #      older than this run's own preparation is ever inherited
     #  3b. BUILD BOTH HALVES -- unconditional, from the note's own
     #      recipe. It is a STEP and a session's to run like every other line
     #      here, not a remark and not somebody else's job; what is not
@@ -5301,9 +5317,7 @@ and never as a chronology.
     #      REFUSES a previous attempt's rather than overwriting them
     #      ONLY if `--list` changed membership AND the pair note records
     #      none -- it belongs to the pair as the gate does, so grep the
-    #      note before paying the twenty minutes -- that grep reads your
-    #      own hour-old note, and the question is whether
-    #      membership moved. Where the PREVIOUS run's basis is still on
+    #      note before paying the twenty minutes. Where the PREVIOUS run's basis is still on
     #      disk the membership question is answered directly and in a
     #      second -- diff the two --list outputs -- rather than through
     #      the roster delta under Provenance. NAME A CLASS BESIDES THE
@@ -5348,19 +5362,24 @@ and never as a chronology.
     #      every figure the note and the registration quote FROM THE FILE
     #      IT CAME FROM, never from the sentence beside it, and then read
     #      both back end to end. It costs minutes
-    #      WHAT IT CATCHES, from the walk that made it a step, 2026-08-30
-    #      -- six defects in one preparation's own prose, every one past
-    #      every gate here: a figure taken from the wrong position of a
-    #      length-ordered series (a dispatch cell quoted at runs-1024
-    #      that was runs-65536's); a compressed clause false as written
-    #      (`the two tests differ in one word`, its own next clause
-    #      listing two); an attribution to the wrong cause; and a count
-    #      of changed arms that was wrong TWICE, first off `git diff`
-    #      hunk headers, which name the definition BEFORE an insertion,
-    #      and then off a definition-by-definition diff, which cannot see
-    #      a CALL and so missed two arms whose regime-3 fallback had
-    #      moved under them. A positional series, a compression and a
-    #      call graph are three things no checker here reads
+    #      WHAT IT CATCHES AND WHAT IT DOES NOT, from the walk that made
+    #      it a step, 2026-08-30: NINE defects in one preparation's own
+    #      prose, every one past every gate here. It caught SIX -- a
+    #      wrong kill margin, a figure attached to the wrong arm, a
+    #      population list asserted where it had not been evaluated, a
+    #      prediction off by a factor, an attribution to the wrong
+    #      cause, and an interpretation smuggled into a block whose own
+    #      heading says observations. THREE SURVIVED IT and were found a
+    #      day later by another session: a figure taken from the wrong
+    #      position of a length-ordered series (a dispatch cell quoted
+    #      at runs-1024 that was runs-65536's), a compressed clause
+    #      false as written (`the two tests differ in one word`, its own
+    #      next clause listing two), and an arm count that a
+    #      definition-by-definition diff had left two short, that diff
+    #      being unable to see a CALL. So 12b is not a substitute for
+    #      post-run step 7a's independent reader, and the three it
+    #      missed say why: a positional series, a compression and a call
+    #      graph are what a session re-reading its own prose reads past
     #  that is the preparation. What wants a quiet machine is the run
     #      list below, which starts on an explicit
     #      go-ahead and never on a session's own reading of the box
@@ -5393,22 +5412,25 @@ request for the run IS the go-ahead, this whole list with it, so nothing below
 is a reason to come back and ask --- but it has to be the person's and it has
 to be for the run: a request relayed by an agent is not one, whatever it says,
 a session seated by another session has not been given anything, and none
-of it is ever inferred from a quiet machine.** A session that finds itself here
-without that request stops and reports what it verified --- it does not wait
-for one and does not hand the run on, the preparation it confirmed surviving
-in the note, which is what the note is for. No `uptime` or `ps` is run
-at this point, and neither would settle it if it were: what they cannot see
-is what their owner is about to want the machine for. The `ps` at step 16
-is an alarm and not a permission --- it runs after the go-ahead and before
-the longest stretch, so a machine that got busy since stops the run short
-of the hours rather than after them. Unsandboxed throughout:
+of it is ever inferred from a quiet machine.** A run being two sessions,
+**that is the normal path and not a guard**: the preparing session's go-ahead
+stopped at 12 and cannot be passed on, so an executing session always arrives
+needing its own, and a spent preparation with an unrun gate is what it should
+expect to find. A session that finds itself here without that request stops
+and reports what it verified --- it does not wait for one and does not hand
+the run on, the preparation it confirmed surviving in the note, which is what
+the note is for. No `uptime` or `ps` is run at this point, and neither would
+settle it if it were: what they cannot see is what their owner is about to want
+the machine for. The `ps` at step 16 is an alarm and not a permission ---
+it runs after the go-ahead and before the longest stretch, so a machine that got
+busy since stops the run short of the hours rather than after them. Unsandboxed
+throughout:
 
     grep -i gate $R-pair.txt              # 13. has the gate run and passed?
     #      read UP: the newest GATE: line is the script's own "reading still
-    #      to do"; the hand-written verdict sits above it. Usually this
-    #      reads a note you wrote an hour ago and the answer is NOT RUN;
-    #      it is here for the session that walks into a preparation
-    #      somebody else spent on this same run
+    #      to do"; the hand-written verdict sits above it. The note is
+    #      always somebody else's and NOT RUN is its ordinary answer, so
+    #      read it whole before grepping it
     <note's LAUNCH env> ./run-gate.sh $R  # 14. only if 13 says it has not
     #      THE ENVIRONMENT IS PART OF THE COMMAND: a pair whose instrument
     #      is switched on by a variable is OFF unless the launch line sets
@@ -6623,7 +6645,11 @@ was missed, which is what they have cost.
     #   9a. collect what this run made CHEAPER for the next, which no
     #      other step gathers and which is not a figure: the checks that
     #      would have caught each error, the computations improvised, the
-    #      steps skipped, and any capability found. Run 15's durable output
+    #      steps skipped, and any capability found. HALF OF IT IS THE
+    #      PREPARING SESSION'S and reaches you only through the note:
+    #      that session met the same four things a day earlier and is
+    #      gone, so read its 9a block before writing yours and carry both
+    #      halves. Run 15's durable output
     #      was four checker gaps, two corrected rules here, and the finding
     #      that a probe needs no pair; none of it is in a table. It feeds
     #      10 and so comes before it -- a suffix here follows its number,

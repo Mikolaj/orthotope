@@ -39,13 +39,21 @@ BEFORE either binary exists, which is the order the procedure asks for.
 
 Nothing appends to this file but run-gate.sh.
 
-ENTRY POINT FOR THE SESSION THAT RUNS THIS [PAIR'S]. Not optional, and it goes
-here at the head where a session reads first. Say, in this order: which
-of the pre-run steps are SPENT and on what date; whether the gate has
-run; what is
+ENTRY POINT FOR THE SESSION THAT RUNS THIS [PAIR'S]. It is a HANDOVER and
+not a courtesy: a run is always two sessions, this file is the whole of
+what crosses between them, and the session that reads it wrote none of it
+and cannot ask you. So it goes here at the head, and it says, in this
+order: which of the pre-run steps are SPENT and on what date; whether the
+gate has run; what is
 INHERITED and must not be repaid, naming each -- the gate, the smoke
 sweep, the roster pass, the counts, anything else that cost machine time
--- and what is still OWED. Then say outright whether anything here needs
+-- and what is still OWED; and, last, WHAT THE PREPARATION LEARNED, which
+is post-run step 9a's four things met a day early -- a check that would
+have caught an error, a computation improvised, a step skipped, a
+capability found. Step 9a is the executing session's and that session was
+not here, so this block is the only route those findings have. Those
+lists are the interface; anything true of this run and in none of them is
+lost. Then say outright whether anything here needs
 a rebuild, since the offsets any registration is written against die
 with one. INHERITED never reaches the binaries: both are built at 3b of
 this run's own preparation, never taken from a previous run, a probe, a
