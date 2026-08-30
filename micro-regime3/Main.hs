@@ -2804,9 +2804,9 @@ fillStage2 sh ats !ao !l !v = VS.create $ do
                   else VSM.unsafeWrite out o (VS.unsafeIndex v src)
               | otherwise = do
                   VSM.unsafeWrite out o (VS.unsafeIndex v src)
-                  VSM.unsafeWrite out (o + 1)
-                                    (VS.unsafeIndex v (src + tInner))
-                  inner (o + 2) (src + t2)
+                  let !src' = src + tInner
+                  VSM.unsafeWrite out (o + 1) (VS.unsafeIndex v src')
+                  inner (o + 2) (src' + tInner)
         in  inner outPos baseOff
       {-# INLINE writeRunSet #-}
       writeRunSet !outPos !baseOff =
@@ -2858,7 +2858,7 @@ fillStage2 sh ats !ao !l !v = VS.create $ do
   return out
   where !sInner = last sh
         !tInner = last ats
-        !t2 = tInner + tInner
+        -- No doubled stride here any more; see the fill's own note.
         !rOuter = length sh - 1
         oshV, oatsV :: VU.Vector Int
         !oshV  = VU.fromList (init sh)

@@ -2200,31 +2200,29 @@ is planned. A scope limit belongs in the sentence that asks for the measurement.
    evening, which needs no pair and no second recipe, and which separates
    per-process variation from sampling inside a bench directly. It
    is the cheapest unspent measurement this file has.
-4. `ANSWERED` **What was left of task 1 was two things and neither
-   was the fill's body: this benchmark's own assembler shim, and one instruction
-   a run in the branch's epilogue, 2026-08-30.** The counted work put stage two
-   a few percent above stage one wherever the view will not canonicalize. **Most
-   of that was padding.** The two unrolled bodies are the same code --- sixteen
-   real instructions and four stack accesses per two elements, read out
-   of the timed binary at the addresses sampling put them at --- and they differ
-   by one nop, which the shim emits three of where the other gets two; a build
-   without the shim takes `slice-primes` from +5.57% to +0.18%, and the account
-   is [in what moves a figure](#what-moves-a-figure-when-no-strategy-changed),
-   which is where it bears on every counted reading this file takes. **What
-   survives the shim's removal is real, small, and lands exactly where
-   this benchmark exists**: the branch's odd-element epilogue costs one
-   instruction more than the shipped fill's, because it reloads the output base
-   where the other keeps it in a register, so it is paid once a run and only
-   at ODD run lengths. Every even-run shape reads 1.0000, six of six; one
-   instruction a run predicts the odd ones to a few tenths of a point
-   over a four-hundredfold span of run length; and **convolution kernels are odd
-   by construction**, so it fires on every run of every conv gather and is worth
-   about two percent at a three-wide one. [The ceiling][ceiling]'s thirteenth
-   reading has it, and names the local change that would close it. **One term
-   is left unseparated and this entry does not pretend otherwise**: at runs
-   of 11 and 13 the branch is AHEAD by three quarters of a point and a point
-   and a half, so something of the opposite sign is there that no reading here
-   isolates.
+4. `ANSWERED` **What was left of task 1 was two things, neither the fill's body,
+   and both are now closed --- the second by a fix that leaves the branch's fill
+   AHEAD of the shipped one, 2026-08-30.** The counted work put stage two a few
+   percent above stage one wherever the view will not canonicalize. **Most
+   of it was padding**: the two unrolled bodies were the same code and differed
+   by one alignment nop, and a build without the assembler shim takes
+   `slice-primes` from +5.57% to +0.18% ([what moves
+   a figure](#what-moves-a-figure-when-no-strategy-changed), which is where
+   it bears on every counted reading this file takes). **What survived was one
+   instruction a run in the odd-element epilogue**, fired by every conv gather
+   because kernel widths are odd, and it is [the ceiling][ceiling]'s thirteenth
+   reading. **The fix came from the other end and it is one line**: one live
+   value out of the fill takes the emitted loop from sixteen instructions
+   and four stack accesses per two elements to twelve and one, which puts
+   `lib-stage2` against `lib-stage1` at a main-set geomean of 0.80 where
+   it was 0.95, and takes the epilogue to the shipped fill's own three
+   instructions on the way. It is the NCG's alone --- `-fllvm` loses 1 to 8%
+   by it --- and the shipped fill would gain the same 5 to 25% from a change
+   not made here, being a decision about what ships. The fourteenth reading has
+   it, and the refuted first candidate beside it. **One term is left unseparated
+   and this entry does not pretend otherwise**: at runs of 11 and 13 the branch
+   was ahead before any of this, so something of the opposite sign is there
+   that no reading here isolates.
 
 **And one class not to repropose: work that needs an aligned build.**
 `mut-odo`'s wide interval is the live case. The dispersion is documented
@@ -4036,14 +4034,61 @@ otherwise read as the whole account**: at runs of 11 and 13 the branch comes out
 AHEAD, -0.79% and -1.53%, so a second term of the opposite sign is there
 and nothing here separates it; and `cnn-slice-c32`, 96 runs and eight thousand
 instructions an iteration, is dominated by per-call work and is no test
-of a per-run term either way. **Why this is not a rounding error to file away:
-convolution kernels are odd by construction.** 3, 5, 7 and 11 are the widths
+of a per-run term either way. **FIXED the same day, and not where this reading
+was looking**: the fourteenth takes one live value out of the fill
+and the epilogue falls to the shipped fill's three instructions with it, so what
+follows here is why the term mattered rather than a term the branch still has.
+**Convolution kernels are odd by construction.** 3, 5, 7 and 11 are the widths
 this shape set carries because they are the widths convolutions have,
 so the leftover fires on every run of every conv gather, and at a three-wide
 kernel that is about two percent of the fill. What it names is small and local
 --- hold the output base across the epilogue as the shipped fill does ---
 and it is the only thing between the branch's fill and parity on the shapes
 this benchmark exists for.
+
+**A fourteenth reading, 2026-08-30, fixes the thirteenth's term and does
+it from the other end --- and the fix is the NCG's alone.** The term was one
+instruction in the odd-element epilogue, and the epilogue is not where
+it was reachable from: what the shipped fill has there is the output base
+in a register, which is an allocator outcome and not something a source line
+asks for. **The first candidate was the obvious one and it is REFUTED**:
+hoisting the odd tail out of the loop, so the bound becomes one comparison
+and the tail a straight-line write, costs two new free variables and made every
+odd shape WORSE --- `stretch-primes` from 1.0018 to 1.1813,
+`stretch-square-1341` from 1.0001 to 1.1871. In a fill whose binding constraint
+is register pressure, and under an allocator with no next-use information (GHC
+[#27742](https://gitlab.haskell.org/ghc/ghc/-/work_items/27742)), a source
+change that ADDS a live value cannot be argued sound however much arithmetic
+it saves. **What works is the opposite, and it is one line**: step the source
+cursor twice by `tInner` instead of once by a doubled stride, which drops
+that stride from the live set. **The doubled stride's `where` binding then goes
+too, and that half is INERT**: it is dead once its only reader is gone,
+so the library wants it out under `-Wall`, and a build with it still standing
+is byte-identical to one without --- md5 `ea90a0a841854c3b1d1989002fefa86c`
+either way, which is worth having measured rather than argued, a banged `where`
+binding being a `seq` and not merely a `let`. So the figures below are one
+change's, and they describe the branch's source verbatim. The emitted loop goes
+from **sixteen instructions and four stack accesses per two elements to twelve
+and one** --- the output base now lives in `%rcx` across the whole fill
+and the source base is loaded once and reused for both reads ---
+and the epilogue falls to three instructions and one stack access, which
+is the shipped fill's own figure, so the thirteenth reading's term is gone
+as a side effect rather than as the target. **What it is worth**: `lib-stage2`
+against `lib-stage1` over the main set moves from a geomean of 0.9513
+to **0.8036** without the shim and 0.9827 to **0.8164** with it, and per shape
+from 0.92 at a three-wide inner run to **0.75** at a long one, with `check`
+agreeing with the reference on every view of every class. **And
+it is BACKEND-SPECIFIC, which is the whole of why it needs saying twice**:
+under `-fllvm` the same loop already spills nothing and the backend
+strength-reduces the two strides into independent induction variables,
+so the sequential form denies it that and **costs 1 to 8%**, most at long runs.
+The NCG is what a default build uses and every figure in this file is taken
+on it, so the change is worth taking and an `-fllvm` user pays for it; the line
+carries a comment saying so. **The shipped fill is the same loop and gains
+the same 5 to 25%, and that change is NOT made here** --- it is a change to what
+already ships, under the same tradeoff, so it is a decision and not a follow-on.
+The branch's fill has it as of `pr-mikolaj-toVectorListT`'s `462c67c`,
+and the port here is kept in step with that commit and with nothing else.
 
 ### The C-gap: still a deeper ceiling
 
