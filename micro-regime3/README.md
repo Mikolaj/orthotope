@@ -7254,23 +7254,34 @@ capped. `--aa` prints both and `--selftest` asserts the identity where it holds.
 
 **And one thing that moves a COUNTED figure when no strategy changed, found
 2026-08-30 and not previously suspected: the assembler shim's own padding.**
-`run-counts.sh` counts retired instructions, and a padding nop retires. The shim
-aligns a block inside each hot loop, so where two arms' loop bodies end
-at different offsets modulo the boundary their pads differ -- and a pad
-that lands INSIDE the loop is paid every iteration. **Read out of the timed
-binary itself**, at the addresses sampling it put the instructions at rather
-than in a twin: on `slice-primes` the branch's fill and the shipped fill
-are the SAME CODE, sixteen real instructions and four stack accesses per two
-elements each, and they differ by one nop, three against two, because one body
-ends a byte earlier before the pad. That is **one retired instruction per two
-elements**: 123772 of them predicted on that view against a measured excess
-of 127331, so 97% of the gap. **The control is a build without the shim**,
-roster and `check` identical, where the excess falls to **+0.18%** from +5.57%
--- and the counted ratio of those two arms moves on every population, all
-in the branch's favour: the main set 0.672 to 0.652, `rev` 0.940 to 0.908,
-`revsome` 1.047 to 1.015, `slice` 1.048 to 1.013, `scaled` 1.015 to 0.982,
-`window` 0.789 to 0.744, `runs` 1.137 to 0.985. **What this does NOT say
-is that the shim is wrong or that a figure here is**: the shim
+`run-counts.sh` counts retired instructions, and a padding nop retires.
+**And where it lands is the INNERMOST loop's own back-edge cycle, not some outer
+one, which is the whole reason it is worth percent and not parts per million.**
+These fills are test-first, so the block a loop is ENTERED at is its latch,
+and the latch sits mid-cycle: the body falls through to it and it jumps back
+to the body. Aligning an entry target therefore pads BETWEEN the body
+and the latch rather than before the loop, and nothing branches over it --
+on `slice-primes`'s fill the body's last instruction, `add $0x2,%rsi`, falls
+straight into the nops. So the pad is paid once an ITERATION, which here is once
+per two elements. Two arms whose bodies end at different offsets modulo
+the boundary get different pads, and that difference is paid at the same rate.
+**Read out of the timed binary itself**, at the addresses sampling it put
+the instructions at rather than in a twin: on `slice-primes` the branch's fill
+and the shipped fill are the SAME CODE, sixteen real instructions and four stack
+accesses per two elements each, and they differ by one nop, three against two,
+because one body ends a byte earlier before the pad. That is **one retired
+instruction per two elements**, and it closes the arithmetic with the epilogue
+term beside it: `slice-primes` is 2813 runs of 89, so 44 body iterations a run,
+and 44 x 2813 = 123772 extra nops plus one extra epilogue instruction a run,
+2813, predicts **126585** against a measured excess of **127331** --- **99.4%**,
+in two terms that are the shim's and [the ceiling][ceiling]'s thirteenth
+reading's respectively, one paid per iteration and one per run. **The control
+is a build without the shim**, roster and `check` identical, where the excess
+falls to **+0.18%** from +5.57% -- and the counted ratio of those two arms moves
+on every population, all in the branch's favour: the main set 0.672 to 0.652,
+`rev` 0.940 to 0.908, `revsome` 1.047 to 1.015, `slice` 1.048 to 1.013, `scaled`
+1.015 to 0.982, `window` 0.789 to 0.744, `runs` 1.137 to 0.985. **What this does
+NOT say is that the shim is wrong or that a figure here is**: the shim
 is this benchmark's deliberate instrument, Run 10 having priced layout at 12
 to 14% on the arms whose loop it rescues, and every figure in this file is taken
 at it, so the no-shim build is a control and never a regime. What it says
