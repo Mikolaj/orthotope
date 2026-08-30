@@ -2153,11 +2153,11 @@ is planned. A scope limit belongs in the sentence that asks for the measurement.
    the six populations that carried the regression, against the 2.43 to 4.54 Run
    21 read, and against floors of 4.0 to 7.4 percent. **What is left is one
    population and one mechanism, and neither of them is the fill.** `slice`
-   is the one population still behind past its floor, by an eighth where
-   it was behind by four times --- and item 4 answers what those eight points
-   are: about three of them are this benchmark's own assembler shim, and what
-   survives it is one instruction a run in the branch's odd-element epilogue,
-   which fires on every conv gather because kernel widths are odd.
+   was the one population still behind past its floor, by an eighth where
+   it was behind by four times, and item 4 has what those eight points were:
+   about three the assembler shim's padding and the rest one instruction a run
+   in the branch's epilogue, **both since explained and the second since
+   fixed**. What `slice` reads now is unmeasured in time, its pair being unrun.
    And the broadcast classes keep the second term entire --- `bcast` at 1.49
    and `bcastmid` at 2.50 in time over counted work, unmoved from 1.48 and 2.12
    --- which the eleventh reading names rather than leaving open:
@@ -2200,29 +2200,18 @@ is planned. A scope limit belongs in the sentence that asks for the measurement.
    evening, which needs no pair and no second recipe, and which separates
    per-process variation from sampling inside a bench directly. It
    is the cheapest unspent measurement this file has.
-4. `ANSWERED` **What was left of task 1 was two things, neither the fill's body,
-   and both are now closed --- the second by a fix that leaves the branch's fill
-   AHEAD of the shipped one, 2026-08-30.** The counted work put stage two a few
-   percent above stage one wherever the view will not canonicalize. **Most
-   of it was padding**: the two unrolled bodies were the same code and differed
-   by one alignment nop, and a build without the assembler shim takes
-   `slice-primes` from +5.57% to +0.18% ([what moves
-   a figure](#what-moves-a-figure-when-no-strategy-changed), which is where
-   it bears on every counted reading this file takes). **What survived was one
-   instruction a run in the odd-element epilogue**, fired by every conv gather
-   because kernel widths are odd, and it is [the ceiling][ceiling]'s thirteenth
-   reading. **The fix came from the other end and it is one line**: one live
-   value out of the fill takes the emitted loop from sixteen instructions
-   and four stack accesses per two elements to twelve and one, which puts
-   `lib-stage2` against `lib-stage1` at a main-set geomean of 0.80 where
-   it was 0.95, and takes the epilogue to the shipped fill's own three
-   instructions on the way. It is the NCG's alone --- `-fllvm` loses 1 to 8%
-   by it --- and the shipped fill would gain the same 5 to 25% from a change
-   not made here, being a decision about what ships. The fourteenth reading has
-   it, and the refuted first candidate beside it. **One term is left unseparated
-   and this entry does not pretend otherwise**: at runs of 11 and 13 the branch
-   was ahead before any of this, so something of the opposite sign is there
-   that no reading here isolates.
+4. `ANSWERED` **Task 1's residue was two things and neither was the branch's
+   code, 2026-08-30.** **The shim's padding was most of it.** The two unrolled
+   bodies are the same code and differ by one alignment nop, and a build without
+   the shim takes `slice-primes` from +5.57% to **+0.18%** --- [what moves
+   a figure](#what-moves-a-figure-when-no-strategy-changed) has that, and what
+   it costs every counted reading here. **The rest was one instruction a run
+   in the branch's odd-element epilogue**, fired by every conv gather because
+   kernel widths are odd, and it is gone: [the ceiling][ceiling]'s fourteenth
+   and fifteenth readings take a live value out of both fills, which frees
+   the register the epilogue wanted. **One term is left unseparated**: at runs
+   of 11 and 13 the branch was ahead before any of this, so something
+   of the opposite sign is there that no reading here isolates.
 5. `ANSWERED` **The vecdims family's ordering, re-taken in time 2026-08-30,
    and both of its comparisons moved.** `-u2` against `-down` reads **0.8348**
    in-process on `runs`, 7 wins of 7 at sign p 0.016, where the same pair
@@ -3965,29 +3954,30 @@ is the one population still behind past its floor and it is behind by an eighth,
 where it was behind by four times**; every other regime-3 population is inside
 its floor or ahead of it. **About three of `slice`'s eight points turn out
 to be this benchmark's own assembler shim** and not the branch, which is [what
-moves a figure](#what-moves-a-figure-when-no-strategy-changed)'s to say, taken
-2026-08-30 after this reading; what survives that is one instruction a run
-in the branch's epilogue, the thirteenth reading's. **Two controls say
-the reading is the fix and not the evening.** The box did not move ---
-`--machine` puts this run's `list` absolutes at -0.03% geomean against the kept
-fingerprint, worst +1.43%, nothing past 5% --- and `--movers 5` against Run 21
-finds **one arm of 43 past five percent on `runs`**, `lib-stage2` at -77%,
-and four on the main set, three of them the three arms that call `fillStage2`
-and the fourth an A/A control at -6%. So the whole of what moved is the three
-arms the bang reached. **The second term dies with it on regime 3 and survives
-untouched on broadcast.** Time over counted work, both sides net
-of `sum-only-early` and the quotient capped as the reader caps a ratio, reads
-**0.99 on `rev`, 1.01 on `revsome`, 1.03 on `slice`, 1.00 on `scaled`, 1.02
-on the main set and 1.14 on `window`** where Run 21 read 1.16 to 1.67 ---
-and **1.49 on `bcast` and 2.50 on `bcastmid`**, where it read 1.48 and 2.12
-and has not moved at all. That is the seventh reading's mechanism confirmed
-from the other side: the term was the frame and its store-to-load chains,
-so it goes exactly where the frame went, and the broadcast paths, whose loops
-never scrutinised the vector and so never had a frame, keep theirs entire.
-**`reshape1` is no longer readable rather than degenerate**: stage two
-canonicalizes two of its four views to regime 1, and their net time now sits
-at or below the forcing term, so the reader refuses the pair instead
-of publishing the 0.0178 Run 21 quoted --- the same finding, said louder.
+moves a figure](#what-moves-a-figure-when-no-strategy-changed)'s to say,
+and the rest is the thirteenth reading's epilogue term, fixed by the fourteenth;
+both were taken after this reading, so the eight points are this run's
+and are not the branch's standing. **Two controls say the reading is the fix
+and not the evening.** The box did not move --- `--machine` puts this run's
+`list` absolutes at -0.03% geomean against the kept fingerprint, worst +1.43%,
+nothing past 5% --- and `--movers 5` against Run 21 finds **one arm of 43 past
+five percent on `runs`**, `lib-stage2` at -77%, and four on the main set, three
+of them the three arms that call `fillStage2` and the fourth an A/A control
+at -6%. So the whole of what moved is the three arms the bang reached.
+**The second term dies with it on regime 3 and survives untouched
+on broadcast.** Time over counted work, both sides net of `sum-only-early`
+and the quotient capped as the reader caps a ratio, reads **0.99 on `rev`, 1.01
+on `revsome`, 1.03 on `slice`, 1.00 on `scaled`, 1.02 on the main set and 1.14
+on `window`** where Run 21 read 1.16 to 1.67 --- and **1.49 on `bcast` and 2.50
+on `bcastmid`**, where it read 1.48 and 2.12 and has not moved at all.
+That is the seventh reading's mechanism confirmed from the other side: the term
+was the frame and its store-to-load chains, so it goes exactly where the frame
+went, and the broadcast paths, whose loops never scrutinised the vector
+and so never had a frame, keep theirs entire. **`reshape1` is no longer readable
+rather than degenerate**: stage two canonicalizes two of its four views
+to regime 1, and their net time now sits at or below the forcing term,
+so the reader refuses the pair instead of publishing the 0.0178 Run 21 quoted
+--- the same finding, said louder.
 
 **An eleventh reading, 2026-08-30, is the counter reading the seventh asked
 for by name, and it names the surviving term.** That reading closed *whether
@@ -4015,124 +4005,68 @@ are bandwidth-bound, and instructions retired is the wrong currency for them.
 
 
 **A twelfth reading, 2026-08-30, times `-u2` against `-down` in a spill-free
-binary, which is what the sixth reading asked for --- and it refutes what
-the sixth predicted from it.** (`probe-nospill-g912`, the g912 recipe
-with `-fllvm` and 64-byte loop heads in place of the assembler shim, `check`
-byte-identical to the native binary's; one process over the `runs` class, read
-with `--corr=insitu`, `sum-only` running larger than the bench
-under that backend. The premise was read in the binary rather than inherited:
-`probe-nospill-fills.py` maps GHC's block uniques out of the `-ddump-cmm` dump
-into the assembly's `_blk_Q<unique>$def` labels, and both arms' innermost fills
-carry zero stack accesses. That the assembly is the TIMED binary's and
-not a twin's is a demonstration and not an assumption --- the recipe reproduced
-byte for byte three times, plain and with either dump flag added --- which
-matters because GHC's LLVM backend emits no `.debug_line` under `-g3`,
-so the usual twin could not have said it.) **`-u2` is behind at every one
-of the seven lengths**: 1.3537, 1.2295 and 1.0962 at `runs-2`, `-3` and `-9`,
-past a floor of 6.9 percent, and 1.0086 to 1.0474 at the four longest, inside
-it. 0 of 7, sign p 0.016. **The native backend reads the same ordering
-at 1.1117, so taking the spill out changed the ordering not at all** --- where
-the sixth reading predicted it would REVERSE the `-down` lead on the long-run
-shapes. **Nor does the arithmetic behind that prediction survive a rebuild.**
-In this binary LLVM re-rolls `-u2`'s hand-unrolled body back to one element
-an iteration and pays a `cmpq` for the cursor bound, putting it at seven
-instructions an element against `-down`'s six, where the sixth reading had 6.5
-against 7.0 --- so the half-instruction the whole prediction rested on changed
-sign between two LLVM builds of one source. What survives is narrower
-than the method looked: an ordering differenced off a dump predicts only where
-the counts hold across the builds being compared, and here they did not. **One
-half of the sixth reading does hold**: `-u2` against `-u2-down` reads 0.9499,
-ahead at all seven lengths, as a count-down form a value heavier in the run loop
-should be. **AND EVERY ORDERING IN THIS PARAGRAPH IS NOW STALE, the same day**:
-the fifteenth reading takes a live value out of `-u2` and `-u2-down` and out
-of neither `-down` nor the un-unrolled leaf, which moves exactly the arms
-this compared. The seventeenth has the new basis; what is written above
-was measured on the codegen before it.
+binary, which is what the sixth reading asked for --- and refutes what the sixth
+predicted from it.** (`probe-nospill-g912`, the g912 recipe with `-fllvm`
+and 64-byte loop heads in place of the assembler shim, `check` byte-identical
+to the native binary's; the `runs` class read with `--corr=insitu`, `sum-only`
+running larger than the bench under that backend. The spill-free premise
+was read in the timed binary and not inherited: `probe-nospill-fills.py` maps
+GHC's block uniques out of a `-ddump-cmm` dump into the assembly's own labels,
+which is the only way to find a fill in an `-fllvm` build, that backend emitting
+no `.debug_line` even under `-g3`.) **Taking the spill out changed the ordering
+not at all** --- `-u2` behind at all seven lengths, 0 of 7 at sign p 0.016,
+and the native backend reading the same at 1.1117 --- where the sixth predicted
+it would REVERSE the `-down` lead on the long-run shapes. **Nor does
+the arithmetic behind that prediction survive a rebuild**: this binary re-rolls
+`-u2`'s hand-unrolled body and pays a `cmpq` for the cursor bound, putting
+it at seven instructions an element against `-down`'s six where the sixth had
+6.5 against 7.0, so the half-instruction it rested on changed sign between two
+LLVM builds of one source. **What survives is narrower than the method looked**:
+an ordering differenced off a dump predicts only where the counts hold across
+the builds compared, and here they did not. **This reading's own verdict
+is in turn refuted** --- the fifteenth reading's change moves `-u2`
+and not `-down`, and the eighteenth reads the ordering in time on the fill
+that now exists.
 
-**A thirteenth reading, 2026-08-30, is what is left of the branch's cost once
-the shim's padding is out of the counted work --- and it is ONE INSTRUCTION
-A RUN, paid only when the run is odd.** (`probe-noshim-g912`, the g912 recipe
-without the assembler shim, `check` and roster identical to the timed binary's;
-the two arms' addresses found by sampling that binary and the disassembly taken
-at them, so this is emitted code and not a twin's.) **The unrolled bodies
-are the same and the EPILOGUE is not.** On a conv-shaped view the per-run path
-is 26 instructions under the shipped fill and 27 under the branch's,
-and the whole difference is the odd-element leftover: three instructions against
-four, because the shipped fill still has the output base in a register there
-and the branch's reloads it from the stack. The unrolled body itself reads four
-stack accesses either way. **So the term is one retired instruction a run,
-and it fires only where the run length is odd** --- an even run leaves
-the leftover unentered, and a long one amortises it away. **The prediction
-that makes and the test it passes**: every EVEN-run shape of the main set whose
-view neither arm collapses reads **1.0000 to 1.0002** --- `stretch-tab7MB`
-and `-wide-2xM` at 2, `-r5-8x432` at 8, `-pow2stride` at 64, `-inner256` at 256
-and `-tall-Mx2` at 900000, six of six --- and one instruction a run predicts
-the odd ones where the term is largest: **3.03% against a measured 3.03%
-on `stretch-bigstride`**, 1.86 against 1.81 on `cifar-L2-16-c64-k3`, 1.63
-against 1.51 on `alexnet-L2-27-c48-k5`, 0.14 against 0.18 on `stretch-primes`
-and 0.01 against 0.01 on `stretch-square-1341`, over a four-hundredfold span
-of run length. **What it does NOT cover, said because the fit above would
-otherwise read as the whole account**: at runs of 11 and 13 the branch comes out
-AHEAD, -0.79% and -1.53%, so a second term of the opposite sign is there
-and nothing here separates it; and `cnn-slice-c32`, 96 runs and eight thousand
-instructions an iteration, is dominated by per-call work and is no test
-of a per-run term either way. **FIXED the same day, and not where this reading
-was looking**: the fourteenth takes one live value out of the fill
-and the epilogue falls to the shipped fill's three instructions with it, so what
-follows here is why the term mattered rather than a term the branch still has.
-**Convolution kernels are odd by construction.** 3, 5, 7 and 11 are the widths
-this shape set carries because they are the widths convolutions have,
-so the leftover fires on every run of every conv gather, and at a three-wide
-kernel that is about two percent of the fill. What it names is small and local
---- hold the output base across the epilogue as the shipped fill does ---
-and it is the only thing between the branch's fill and parity on the shapes
-this benchmark exists for.
+**A thirteenth reading, 2026-08-30, is what was left of the branch's cost once
+the shim's padding came out of the counted work: ONE INSTRUCTION A RUN, and only
+at odd run lengths.** (`probe-noshim-g912`; both arms' addresses found
+by sampling that binary and the disassembly taken at them, so this is emitted
+code and not a twin's.) The unrolled bodies were the same and the epilogue
+was not --- three instructions against four, the shipped fill holding the output
+base in a register there where the branch's reloaded it. **What makes the shape
+checkable rather than plausible is a parity prediction**: an even run never
+enters the leftover, and every even-run shape of the main set whose view neither
+arm collapses read **1.0000 to 1.0002**, six of six, while one instruction a run
+predicted the odd ones to a few tenths of a point over a four-hundredfold span
+of run length. **The term is gone**, the fourteenth reading having freed
+the register it wanted; what survives here is the method, a per-run term being
+visible as an even/odd split where a per-element one is not.
 
 **A fourteenth reading, 2026-08-30, fixes the thirteenth's term and does
-it from the other end --- and the fix is the NCG's alone.** The term was one
-instruction in the odd-element epilogue, and the epilogue is not where
-it was reachable from: what the shipped fill has there is the output base
-in a register, which is an allocator outcome and not something a source line
-asks for. **The first candidate was the obvious one and it is REFUTED**:
+it from the other end.** The epilogue is not where the term was reachable from:
+what the shipped fill has there is the output base in a register, which
+is an allocator outcome and not something a source line asks for. **The first
+candidate is REFUTED and is the ruling this reading is worth keeping for**:
 hoisting the odd tail out of the loop, so the bound becomes one comparison
 and the tail a straight-line write, costs two new free variables and made every
-odd shape WORSE --- `stretch-primes` from 1.0018 to 1.1813,
-`stretch-square-1341` from 1.0001 to 1.1871. In a fill whose binding constraint
-is register pressure, and under an allocator with no next-use information (GHC
+odd shape WORSE --- `stretch-primes` 1.0018 to 1.1813, `stretch-square-1341`
+1.0001 to 1.1871. In a fill whose binding constraint is register pressure,
+under an allocator with no next-use information (GHC
 [#27742](https://gitlab.haskell.org/ghc/ghc/-/work_items/27742)), a source
 change that ADDS a live value cannot be argued sound however much arithmetic
-it saves. **What works is the opposite, and it is one line**: step the source
+it saves. **What works is the opposite and it is one line**: step the source
 cursor twice by `tInner` instead of once by a doubled stride, which drops
-that stride from the live set. **The doubled stride's `where` binding then goes
-too, and that half is INERT**: it is dead once its only reader is gone,
-so the library wants it out under `-Wall`, and a build with it still standing
-is byte-identical to one without --- md5 `ea90a0a841854c3b1d1989002fefa86c`
-either way, which is worth having measured rather than argued, a banged `where`
-binding being a `seq` and not merely a `let`. So the figures below are one
-change's, and they describe the branch's source verbatim. The emitted loop goes
-from **sixteen instructions and four stack accesses per two elements to twelve
-and one** --- the output base now lives in `%rcx` across the whole fill
-and the source base is loaded once and reused for both reads ---
-and the epilogue falls to three instructions and one stack access, which
-is the shipped fill's own figure, so the thirteenth reading's term is gone
-as a side effect rather than as the target. **What it is worth**: `lib-stage2`
-against `lib-stage1` over the main set moves from a geomean of 0.9513
-to **0.8036** without the shim and 0.9827 to **0.8164** with it, and per shape
-from 0.92 at a three-wide inner run to **0.75** at a long one, with `check`
-agreeing with the reference on every view of every class. **And
-it is BACKEND-SPECIFIC, which is the whole of why it needs saying twice**:
-under `-fllvm` the same loop already spills nothing and the backend
-strength-reduces the two strides into independent induction variables,
-so the sequential form denies it that and **costs 1 to 8%**, most at long runs
---- a range the fifteenth reading re-takes at a geomean of 4.52% on a pair whose
-halves are both reproducible from commits, where this one's `after`
-was an intermediate source matching none and its binary is deleted. The NCG
-is what a default build uses and every figure in this file is taken on it,
-so the change is worth taking and an `-fllvm` user pays for it; the line carries
-a comment saying so. **The shipped fill is the same loop and gains the same,
-and it TOOK the change the same day** --- the fifteenth reading, which also says
-why the ratio above is one-sided and what it becomes when both sides have it.
-The branch's fill has it as of `pr-mikolaj-toVectorListT`'s `462c67c`.
+that stride from the live set and takes the emitted loop from **sixteen
+instructions and four stack accesses per two elements to twelve and one** ---
+the output base living in a register across the fill and the source base loaded
+once for both reads, so the epilogue falls to the shipped fill's own three
+instructions as a side effect. **The doubled stride's `where` binding goes
+with its only reader and that half is INERT**: a build with it still standing
+is byte-identical to one without, md5 `ea90a0a841854c3b1d1989002fefa86c` either
+way, which is worth having measured rather than argued, a banged `where` binding
+being a `seq` and not merely a `let`. The fifteenth reading gives the shipped
+fill the same line and carries what both are worth, by backend.
 
 **A fifteenth reading, 2026-08-30, gives the SHIPPED fill the fourteenth's
 change --- and retires the fourteenth's headline, which was one-sided.**
@@ -4181,24 +4115,15 @@ because a silent search proves nothing**: it reads Main-compiled code only,
 so `gen-unsafe`, whose loop is inside `vector`'s `generate`, has no entry
 at all, and so would any arm that inlines its loop into a library function.
 
-**A seventeenth reading, 2026-08-30, is the cost of the fifteenth that nobody
-asked for: it re-opens an ordering three readings had settled.** The change
-frees a register in the two UNROLLED fills and in nothing else, so `-down`
-and the un-unrolled leaf are untouched --- +0.00% on every shape, which is what
-says the sweep measures the change --- while `-u2` drops 20.6%
-of its instructions on the `runs` class and `-u2-down` 28.2%. **So the family's
-two live comparisons both invert.** `-u2` against `-down` reads **0.7982** where
-it read 1.0055, and `-u2` against `-u2-down` **1.0139** where it read 0.9175;
-on the main set the first goes 0.9969 to 0.8554. The shipped fill was level
-with `-down` in counted work and is now a fifth ahead of it, and was ahead
-of `-u2-down` and is now a point and a half behind. **What this does NOT settle
-is time, which is what those readings were about**: the twelfth had `-u2` behind
-`-down` at all seven lengths in a spill-free binary and at 1.1117 on the native
-backend, and a 20% instruction reduction makes that ordering implausible rather
-than refuted --- the second term is exactly what stands between the two,
-and this class is where it is largest. **So the readings above are stale rather
-than wrong, and what would settle them is one quiet process**, the `runs` class
-timed on the current build, which [task 5][open] carries.
+**A seventeenth reading, 2026-08-30: the fifteenth's change frees a register
+in the two UNROLLED fills and in nothing else, so it re-opens an ordering three
+readings had settled.** `-down` and the un-unrolled leaf read +0.00% on every
+shape, which is what says the sweep measures the change; `-u2` drops 20.6%
+of its instructions on `runs` and `-u2-down` 28.2%, and both of the family's
+comparisons invert in counted work. **The eighteenth reading settles them
+in time**, where the fifth, sixth and twelfth readings' verdicts actually live;
+what this one is worth keeping for is that it had both directions right and both
+magnitudes too large.
 
 **An eighteenth reading, 2026-08-30, answers [task 5][open] in TIME and refutes
 the twelfth's verdict for the code that now exists.** (A pair on one recipe ---
