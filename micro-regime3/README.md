@@ -4138,9 +4138,11 @@ and it is besides the denominator every ratio here divides by, so changing
 it rebases every published figure, which Run 10 did once and this file treats
 as breaking comparability with every run. `bq-expand`'s loop keeps the innermost
 extent, the innermost stride and a base-offset table, and none of the three
-is derivable from another. **The pattern itself was in exactly two arms and both
-are fixed**, which a grep for the doubled stride confirms rather
-than the screen. **What the screen cannot see, said because a silent search
+is derivable from another. **The pattern itself was in three arms and all three
+are fixed**, which a grep for the doubled stride confirms rather than the screen
+--- `fillStage2` first, then `-u2` and `-u2-down`; the grep behind this sentence
+ran when the first was already done and so found two, which is what it said
+until it was re-read. **What the screen cannot see, said because a silent search
 proves nothing**: it reads Main-compiled code only, so `gen-unsafe`, whose loop
 is inside `vector`'s `generate`, has no entry at all, and so would any arm
 that inlines its loop into a library function.
