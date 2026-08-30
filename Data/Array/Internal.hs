@@ -285,11 +285,20 @@ genericFillStrided sh ats !ao !l !v = VG.create fill
                   | o + 1 >= oEnd =
                       if o >= oEnd then return ()
                       else VGM.unsafeWrite out o (VG.unsafeIndex v src)
+                  -- FOR THE NCG, AND A REGRESSION UNDER -fllvm.  The
+                  -- cursor steps twice by tInner instead of once by a
+                  -- doubled stride: one live value fewer, which is what
+                  -- lets the NCG's allocator keep the output base in a
+                  -- register instead of reloading it twice a pair.  Worth
+                  -- 15% of the fill's instructions on the benchmark's
+                  -- shape set, 6% at a three-wide inner run and 25% at a
+                  -- long one; -fllvm needs neither, keeps two induction
+                  -- variables and loses 4.5%.
                   | otherwise = do
                       VGM.unsafeWrite out o (VG.unsafeIndex v src)
-                      VGM.unsafeWrite
-                        out (o + 1) (VG.unsafeIndex v (src + tInner))
-                      inner (o + 2) (src + t2)
+                      let !src' = src + tInner
+                      VGM.unsafeWrite out (o + 1) (VG.unsafeIndex v src')
+                      inner (o + 2) (src' + tInner)
             in  inner outPos baseOff
           go :: Int -> Int -> Int -> ST s Int
           go !lev !outPos !baseOff
@@ -317,7 +326,7 @@ genericFillStrided sh ats !ao !l !v = VG.create fill
       return out
     !sInner = last sh
     !tInner = last ats
-    !t2 = tInner + tInner
+    -- No doubled stride here any more; see the fill's own note.
     !rOuter = length sh - 1
     oshV, oatsV :: VU.Vector Int
     !oshV  = VU.fromList (init sh)

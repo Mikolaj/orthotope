@@ -2099,9 +2099,9 @@ fbMutOdoVecdimsAddInLeafU2 sh (T (Strides ats) ao v) = VS.create $ do
                   else VSM.unsafeWrite out o (VS.unsafeIndex v src)
               | otherwise = do
                   VSM.unsafeWrite out o (VS.unsafeIndex v src)
-                  VSM.unsafeWrite out (o + 1)
-                                    (VS.unsafeIndex v (src + tInner))
-                  inner (o + 2) (src + t2)
+                  let !src' = src + tInner
+                  VSM.unsafeWrite out (o + 1) (VS.unsafeIndex v src')
+                  inner (o + 2) (src' + tInner)
         in  inner outPos baseOff
       go !lev !outPos !baseOff
         | lev >= rOuter = writeRun outPos baseOff >> return (outPos + sInner)
@@ -2126,7 +2126,7 @@ fbMutOdoVecdimsAddInLeafU2 sh (T (Strides ats) ao v) = VS.create $ do
   where l = product sh
         !sInner = last sh
         !tInner = last ats
-        !t2 = tInner + tInner
+        -- No doubled stride here any more; see the fill's own note.
         !rOuter = length sh - 1
         oshV, oatsV :: VU.Vector Int
         !oshV  = VU.fromList (init sh)
@@ -2156,9 +2156,9 @@ fbMutOdoVecdimsAddInLeafU2Down sh (T (Strides ats) ao v) = VS.create $ do
                   else VSM.unsafeWrite out o (VS.unsafeIndex v src)
               | otherwise = do
                   VSM.unsafeWrite out o (VS.unsafeIndex v src)
-                  VSM.unsafeWrite out (o + 1)
-                                    (VS.unsafeIndex v (src + tInner))
-                  inner (d - 2) (o + 2) (src + t2)
+                  let !src' = src + tInner
+                  VSM.unsafeWrite out (o + 1) (VS.unsafeIndex v src')
+                  inner (d - 2) (o + 2) (src' + tInner)
         in  inner sInner outPos baseOff
       go !lev !outPos !baseOff
         | lev >= rOuter = writeRun outPos baseOff >> return (outPos + sInner)
@@ -2183,7 +2183,7 @@ fbMutOdoVecdimsAddInLeafU2Down sh (T (Strides ats) ao v) = VS.create $ do
   where l = product sh
         !sInner = last sh
         !tInner = last ats
-        !t2 = tInner + tInner
+        -- No doubled stride here any more; see the fill's own note.
         !rOuter = length sh - 1
         oshV, oatsV :: VU.Vector Int
         !oshV  = VU.fromList (init sh)

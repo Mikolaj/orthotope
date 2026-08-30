@@ -4085,10 +4085,32 @@ so the sequential form denies it that and **costs 1 to 8%**, most at long runs.
 The NCG is what a default build uses and every figure in this file is taken
 on it, so the change is worth taking and an `-fllvm` user pays for it; the line
 carries a comment saying so. **The shipped fill is the same loop and gains
-the same 5 to 25%, and that change is NOT made here** --- it is a change to what
-already ships, under the same tradeoff, so it is a decision and not a follow-on.
-The branch's fill has it as of `pr-mikolaj-toVectorListT`'s `462c67c`,
-and the port here is kept in step with that commit and with nothing else.
+the same, and it TOOK the change the same day** --- the fifteenth reading, which
+also says why the ratio above is one-sided and what it becomes when both sides
+have it. The branch's fill has it as of `pr-mikolaj-toVectorListT`'s `462c67c`.
+
+**A fifteenth reading, 2026-08-30, gives the SHIPPED fill the fourteenth's
+change --- and retires the fourteenth's headline, which was one-sided.**
+`genericFillStrided` on this branch is the same loop the branch's is,
+so it wants the same line, and `mut-odo-vecdims-add-in-leaf-u2` is its port
+and takes it here. **`-u2-down` takes it too, and not as a bonus**: the roster
+has that arm as `-u2` with ONE change, the fill's bound a falling count instead
+of the cursor, and an arm that keeps the doubled stride while its base drops
+it is two changes away and has stopped being a control. **What it is worth
+on the NCG**: the shipped fill reads **-14.76% of its own instructions**
+over the main set, from -6.2% at `cnn-L1-6x6-c1`'s three-wide run to **-25.0%**
+at `stretch-tall-Mx2`'s, and `-u2-down` -20.34%, its lighter loop having more
+to gain. **Under `-fllvm` it costs +4.52%**, +1.26% to +7.68%, which is the same
+trade the fourteenth priced and is now measured on the arm that ships.
+**The control is the arm that has no doubled stride to lose**:
+`mut-odo-vecdims-add-in-leaf`, the same fill un-unrolled, reads **+0.00%
+on every shape of the set**, so the sweep is measuring this change and
+not the day. `check` is byte-identical throughout and the library builds clean
+at `-Wall`. **And the fourteenth's 0.8036 was an artefact of one side having
+it**: with both fills changed, `lib-stage2` against `lib-stage1` reads
+**0.9414** where before any of this it read 0.9513. The two stages differ
+in dispatch, as they always did; nothing about the branch's fill was ever ahead
+of the shipped one, and this file said so for one commit.
 
 ### The C-gap: still a deeper ceiling
 
