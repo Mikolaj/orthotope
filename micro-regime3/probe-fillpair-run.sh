@@ -6,7 +6,10 @@
 set -u
 cd "$(dirname "$0")" || exit 1
 export WILDLOG=1 SATURATE=1
-for pop in runs main slice; do
+# The populations are the argument when there is one, so a stopped
+# evening resumes at the population it stopped in rather than
+# refusing over the artifacts of the ones that finished.
+for pop in "${@:-runs main slice}"; do
   for h in A B; do
     BIN=./probe-fill$h-g912 OUT=probe-fill$h ./probe-times.sh "$pop" \
       || echo "!! probe-fill$h $pop complained"

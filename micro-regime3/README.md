@@ -2222,7 +2222,19 @@ is planned. A scope limit belongs in the sentence that asks for the measurement.
    that now exists. **What the same pair also shows, and what stops it being
    read further**: `-down`, which the change does not touch and whose counted
    work is identical between the halves, moved 15.13% in time --- so nothing
-   here may be read across the halves, only within them.
+   here may be read across the halves, only within them. **AMENDED the same day
+   by [the ceiling][ceiling]'s nineteenth reading, which prices the pair on two
+   more populations and splits that swing in two.** `-down` is not merely
+   displaced in `runs`: it reads 1.1841 on the main set, 1.1586 on `slice`
+   and 1.1513 on `runs` between the halves, unchanged code with identical
+   counted work, in every population --- while the other 43 arms sit inside
+   a middle half spanning about a percent. So of the 24.6% between 1.1070
+   and 0.8348, about thirteen points are the change and about fifteen
+   are `-down` moving under it: **the change is worth a tenth to a seventh
+   in time, not a quarter**. What stands is the within-half ordering, which
+   is a fact about the binaries measured; what does not is reading
+   it as durable, an arm that moves 18% between two builds of one source being
+   the wrong thing to hold an ordering against.
 6. `OPEN` **The shim pads inside a loop wherever two cycles overlap;
    the containment test is written, and it is REFUSED on the evidence a busy
    machine can give --- the counter calls it a win and the alignment survey
@@ -4158,6 +4170,39 @@ and the in-process ordering is the only form this pair supports. It is also
 the sharpest instance this file has of counted work and the clock answering
 different questions, the two disagreeing not by the second term's usual tenths
 but by a sixth on an arm whose code is the same.
+
+**A nineteenth reading, 2026-08-30, prices the fill change in TIME on the main
+set and on `slice`, which every reading of it before this one left out ---
+and it corrects the eighteenth's magnitude.** (The same pair the eighteenth
+used, `probe-fillA-g912` against `probe-fillB-g912`: one recipe, identical
+rosters so no slot moves, `check` byte-identical between the halves,
+and a source diff of sixteen lines confined to the two unrolled fills. Six
+processes, each at the count `--list` gives it.) **The change is worth,
+in time**: the shipped fill reads **0.9031 on the main set, 0.8541 on `slice`
+and 0.8682 on `runs`**, and `-u2-down` 0.8584, 0.8039 and 0.8041. A user's
+`toVectorT` over it, `lib-stage1`, reads 0.9087 and 0.8560 --- and **1.0026
+on `runs`, which is the reading's own consistency check**: that class is regime
+2, stage one takes the slice-and-concatenate route there and never reaches
+the fill, so an arm that cannot have changed does not. **Against the counted
+work this is about two thirds**: 14.19% of the instructions gone on the main set
+buys 9.7% of the time, and 20.62% on `runs` buys 13.2%, which is what removing
+padding nops and a register move rather than a cache miss looks like.
+**And the roster is flat, which is what licenses reading any of it**: over 44
+arms the middle half spans 0.9% on the main set, 0.8% on `runs` and 3.1%
+on `slice`, with `list` at 1.0024, 0.9913 and 0.9962 and the un-unrolled leaf
+at 1.0037, 0.9994 and 1.0082. **One arm is not flat, it is UNCHANGED, and
+it is the one the eighteenth reading measured against**: `-down` reads **1.1841
+on the main set, 1.1586 on `slice` and 1.1513 on `runs`** --- fifteen
+to eighteen percent slower in the B half, on identical code with identical
+counted work, in every population. That is placement, of the size Run 10 priced
+a reorder at on the arms whose loop the shim rescues, and it is systematic
+rather than a class's accident. **So the eighteenth's 0.8348 is two terms
+and not one**: of its 24.6% swing against `-down`, about thirteen points
+are the change and about fifteen are `-down` moving under it. The change
+is worth a tenth to a seventh, not a quarter; the within-half ordering
+it reports is true of the binaries measured; and an ordering read across two
+builds against an arm that moves 18% between them is not a durable one, which
+is what [task 5][open] now says.
 
 ### The C-gap: still a deeper ceiling
 
