@@ -5216,7 +5216,13 @@ of the hours rather than after them. Unsandboxed throughout:
     #      bench, so a roster that grew since makes every process slower
     #      than its counterpart there for no reason worth chasing
     #      no resume. If it dies mid-sequence, hand-run the class loop over
-    #      both halves with `[ -e "$out.json" ] && continue`, check each
+    #      both halves, skipping a population on whether its JSON PARSES
+    #      and never on whether it exists -- criterion writes that file as
+    #      it goes, so a process killed part way leaves a truncated one
+    #      that `-e` calls done and nothing can read (measured 2026-08-30,
+    #      3.3 MB of an expected 24). `python3 -c 'import json,sys;
+    #      json.load(open(sys.argv[1]))' "$out.json" 2>/dev/null &&
+    #      continue` is the test. Check each
     #      benchmarking count against `classes --list`, append to the same
     #      $R-wallclock.log, and say in the write-up that the populations
     #      ran in more than one window
@@ -5941,14 +5947,21 @@ an interrupted sequence a hand job --- expect that, since the machine gets
 wanted back.** The guard is right (relaunching overwrites hours in place),
 but it has no resume, so finishing a sequence whose main sets landed and whose
 classes did not means running the class loop yourself: the `for c in ...` half
-of the sequence above, both halves inside it,
-an `[ -e "$out.json" ] && continue` before each so a population that already ran
-is skipped rather than redone, and its `benchmarking` count checked against
-`classes --list` as the driver does. Stamp each into the same
-`$R-wallclock.log`, so the run's own record stays one file, and say
-in the write-up that the populations ran in more than one window --- one process
-per population is what makes that harmless, each carrying its own controls
-and gates, but it is a fact about the run and the run file states it.
+of the sequence above, both halves inside it, a skip before each so a population
+that already ran is not redone --- **and the skip tests that the JSON PARSES,
+never that it exists**, because criterion writes that file as it goes
+and a process killed part way leaves a truncated one: `-e` calls that population
+done, the reader cannot open it, and the sequence comes out silently short,
+which is the failure shape every driver here refuses. Measured 2026-08-30
+on a half stopped by hand, 3.3 MB where 24 were due and invalid at the last
+object.
+`python3 -c 'import json,sys; json.load(open(sys.argv[1]))' "$out.json" 2>/dev/null && continue`
+is the test --- and its `benchmarking` count checked against `classes --list`
+as the driver does. Stamp each into the same `$R-wallclock.log`, so the run's
+own record stays one file, and say in the write-up that the populations ran
+in more than one window --- one process per population is what makes
+that harmless, each carrying its own controls and gates, but it is a fact about
+the run and the run file states it.
 
 What it adds over pasting the sequence is the counting: every process's bench
 count is checked against what the roster holds, so a selection that silently
