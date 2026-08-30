@@ -2154,12 +2154,14 @@ is planned. A scope limit belongs in the sentence that asks for the measurement.
    21 read, and against floors of 4.0 to 7.4 percent. **What is left is one
    population and one mechanism, and neither of them is the fill.** `slice`
    is the one population still behind past its floor, by an eighth where
-   it was behind by four times. And the broadcast classes keep the second term
-   entire --- `bcast` at 1.49 and `bcastmid` at 2.50 in time over counted work,
-   unmoved from 1.48 and 2.12 --- which the eleventh reading names rather
-   than leaving open: it is bandwidth and not code, cache misses running 1.55x
-   and 6.7x per instruction executed, with front-end stalls and mispredicts
-   beside them on `bcastmid` alone. Those paths execute a QUARTER of stage one's
+   it was behind by four times --- and about three of those eight points
+   are the assembler shim's padding rather than the branch's code, which is item
+   4 and is answered. And the broadcast classes keep the second term entire ---
+   `bcast` at 1.49 and `bcastmid` at 2.50 in time over counted work, unmoved
+   from 1.48 and 2.12 --- which the eleventh reading names rather than leaving
+   open: it is bandwidth and not code, cache misses running 1.55x and 6.7x per
+   instruction executed, with front-end stalls and mispredicts beside them
+   on `bcastmid` alone. Those paths execute a QUARTER of stage one's
    instructions and take longer doing it, so instructions retired is the wrong
    currency for them and no further unboxing reaches them. **The hold this entry
    put on the branch is discharged as a reading and is not a decision to ship**:
@@ -2196,69 +2198,27 @@ is planned. A scope limit belongs in the sentence that asks for the measurement.
    evening, which needs no pair and no second recipe, and which separates
    per-process variation from sampling inside a bench directly. It
    is the cheapest unspent measurement this file has.
-4. `OPEN` **What is left of task 1: stage two executes a few percent more
-   instructions than stage one on the populations that will not canonicalize,
-   and on `slice` that shows in time past the floor.** The tenth reading retires
-   the regression everywhere else; this is its residue, and it is a code
-   question rather than a run's. **The decomposition is already on disk
-   and costs nothing to state**, off the counted work of 2026-08-29: the excess
-   is neither per call nor flat per element but both, fitting **about half
-   an instruction an element plus about eight tenths of one per RUN** across
-   `slice`'s three shapes, whose innermost extents are 3, 13 and 89 and whose
-   excesses run 0.78, 0.59 and 0.51 an element. Two things make that worth
-   a dump rather than a shrug. It has the wrong SIGN against the eighth reading,
-   which put stage two's fill at fourteen instructions per two elements against
-   the shipped fill's eighteen --- so the fill saves about one an element
-   and the arm spends about half a one more, leaving roughly one and a half
-   an element unaccounted for outside the fill. And `canonView` cannot be it:
-   that is O(rank) per call, where this scales with the work. **The dump
-   was taken the same day and it halves the question rather than answering it.**
-   (`probe-disp-g912`'s own assembly and `-ddump-cmm`, the binary reproducing
-   byte for byte with either flag added; `probe-nospill-fills.py`, which now
-   reads the native backend too, where a loop is several Cmm blocks
-   and a self-loop finder sees nothing.) **The outer levels are not it**: both
-   arms emit the same odometer loop, eight blocks and 48 instructions over 19
-   stack accesses, identical in shape. **What differs is how many run bodies
-   the branch emits** --- fourteen loops against the shipped fill's seven, which
-   is `runsWith` specialised at both `writeRun` arguments and a `tInner == 0`
-   test carried down every level --- and their costs straddle: the branch's
-   cheapest two-element body is twelve instructions over no stack access,
-   as the shipped fill's is, and its next is fourteen over two.
-   **The attribution was taken the same day and it is a TRADE, not a site.**
-   (`probe-attr.sh` samples `instructions:u` on `probe-attr-g912`, the `-g3`
-   twin, which is the only binary here that carries a line table;
-   `probe-attr-read.py` buckets the histogram by spans it derives from Main.hs
-   by anchor phrase. **What licenses the twin to speak is measured rather
-   than assumed**: it reproduces the excess the counted-work sweep read
-   on the TIMED binary, 127985 against 127334 an iteration on `slice-primes`.
-   What it may not be asked is an absolute per-element count, `-g3` being
-   a different program in exactly that respect.) **The excess is inside the fill
-   function and moves between its two loops with the run length.**
-   On `slice-primes`, runs of 89, the element loop is +159k an iteration
-   and the loop nest -34k, over three repetitions; on `slice-cnn-L2-24x24-c32`,
-   runs of 3, it inverts, the nest carrying +162k and the element loop at parity
-   or below; `slice-coprime-r7`, runs of 13, sits between. So `fillStage2` pays
-   more per element and less per level than the shipped fill, and this class's
-   three shapes happen to span the trade. **`canonView` is excluded outright**
-   --- 0.02% of the histogram, and it is O(rank) a call where the excess scales
-   with the work. **Three controls, and the third is what the first two
-   are for**: the shared forcing pass reads zero in every comparison,
-   `scaled-rank1-m1`, which the counted sweep puts at 0.01%, reads zero here
-   too, and a repetition at ten times the samples is what showed the split's
-   MAGNITUDES do not reproduce tightly where its sign does --- at the first
-   sample count they moved by more than themselves between runs whose totals
-   agreed to a tenth of a percent. **What is left, and this box cannot take
-   it**: which emitted copy of each fill a given view runs, which wants
-   a skid-free counter --- no `instructions:pp` and no IBS on this Ryzen ---
-   or a static read of the timed binary's own assembly, kept
-   as `probe-slice-main.s`. Until that, [the ceiling][ceiling]'s eighth
-   reading's *now the cheaper of the two* stands as a statement about the two
-   workers it dumped and not about the copies this population reaches. **Why
-   it is `slice` that shows it and not the others**: `revsome` carries the same
-   4.7% in instructions and reads 1.0628 in time, inside its 5.8% floor, where
-   `slice`'s floor is the tightest of the classes at 4.4% and its 1.0811 clears
-   it. So the population is the one where the residue is VISIBLE, not the one
-   where it is largest, and a fix reaches all of them.
+4. `ANSWERED` **What was left of task 1 was not the branch's code
+   but this benchmark's own assembler shim, 2026-08-30.** The counted work put
+   stage two a few percent above stage one on the populations that will
+   not canonicalize, and `slice`, whose floor is the tightest of the classes,
+   was the one where that showed in time past its floor. **The two fills turn
+   out to be the same code** --- sixteen real instructions and four stack
+   accesses per two elements each, read out of the timed binary at the addresses
+   sampling put them at --- **and to differ by one padding nop**, which the shim
+   emits three of where the other gets two because one body ends a byte earlier
+   before the pad it aligns on. A build without the shim takes the excess
+   on `slice-primes` from +5.57% to +0.18%. The account, the control and what
+   it costs every counted reading are [in what moves
+   a figure](#what-moves-a-figure-when-no-strategy-changed). **What survives
+   as a question is smaller and belongs to a shape and not to an arm**:
+   on `slice-cnn-L2-24x24-c32`, runs of three, the no-shim excess is still
+   +2.46%, and the attribution puts that in the loop NEST rather
+   than the element loop --- `fillStage2` reaching its run body through
+   `runsWith` and a `tInner` test where the shipped fill has the run loop
+   written into `go`. That is worth a reading only if a regime-2-shaped
+   population starts mattering, every regime-3 view in this suite having runs
+   long enough for it to vanish.
 
 **And one class not to repropose: work that needs an aligned build.**
 `mut-odo`'s wide interval is the live case. The dispersion is documented
@@ -2347,18 +2307,21 @@ codegen rather than that it cannot be built.
   an installer only makes one cheaper to write. Both candidates were written
   2026-08-14 from a review of the apparatus rather than from any run, and each
   names the pilot that would settle it. **Counted work instead of sampled time,
-  wherever the question is an ordering.** Counted work is layout-independent ---
-  the wild-cell probe read an A/A pair's instructions agreeing to 5e-5 ---
-  so a cachegrind or fixed-`-n` counter table would want no quiet machine
-  and no floor and would reproduce on any box, the clock staying
-  for the boundaries where a memory-system effect can invert an ordering. Pilot:
-  counts for every timed arm over the shape set, read against a published time
-  column --- orderings that agree license the switch, and the cells
-  that disagree are the memory-bound residue the clock is still for. **Taken
-  2026-08-22 on `run16-a32m` against Run 16's column, and the switch
-  is REFUSED**: over the 44 timed arms the count ordering agrees with the time
-  ordering at Spearman 0.725, 201 of 946 pairs inverting, and the disagreement
-  is not a residue but the fast tier --- `mut-flat-gm-nosum` executes 1.9 times
+  wherever the question is an ordering.** Counted work is layout-independent
+  for an A/A PAIR --- the wild-cell probe read one's instructions agreeing
+  to 5e-5 --- though not, it turned out on 2026-08-30, between two different
+  arms under the assembler shim, whose padding retires ([what moves
+  a figure](#what-moves-a-figure-when-no-strategy-changed)) --- so a cachegrind
+  or fixed-`-n` counter table would want no quiet machine and no floor and would
+  reproduce on any box, the clock staying for the boundaries where
+  a memory-system effect can invert an ordering. Pilot: counts for every timed
+  arm over the shape set, read against a published time column --- orderings
+  that agree license the switch, and the cells that disagree
+  are the memory-bound residue the clock is still for. **Taken 2026-08-22
+  on `run16-a32m` against Run 16's column, and the switch is REFUSED**:
+  over the 44 timed arms the count ordering agrees with the time ordering
+  at Spearman 0.725, 201 of 946 pairs inverting, and the disagreement is
+  not a residue but the fast tier --- `mut-flat-gm-nosum` executes 1.9 times
   `list`'s instructions per unit time and `bq-gen` 0.83, so what an instruction
   costs spans more than twofold across arms, and where arms differ in
   it the clock decides. What the pilot confirmed is the other half of the claim:
@@ -3958,11 +3921,14 @@ against the 4.0152, 4.5377, 4.0984, 4.0765, 3.7237 and 2.4323 Run 21 read. Their
 populations' floors are 4.0 to 7.4 percent on the worst A/A pair, so **`slice`
 is the one population still behind past its floor and it is behind by an eighth,
 where it was behind by four times**; every other regime-3 population is inside
-its floor or ahead of it. **Two controls say the reading is the fix and
-not the evening.** The box did not move --- `--machine` puts this run's `list`
-absolutes at -0.03% geomean against the kept fingerprint, worst +1.43%, nothing
-past 5% --- and `--movers 5` against Run 21 finds **one arm of 43 past five
-percent on `runs`**, `lib-stage2` at -77%, and four on the main set, three
+its floor or ahead of it. **About three of `slice`'s eight points turn out
+to be this benchmark's own assembler shim** and not the branch, which is [what
+moves a figure](#what-moves-a-figure-when-no-strategy-changed)'s to say, taken
+2026-08-30 after this reading. **Two controls say the reading is the fix
+and not the evening.** The box did not move --- `--machine` puts this run's
+`list` absolutes at -0.03% geomean against the kept fingerprint, worst +1.43%,
+nothing past 5% --- and `--movers 5` against Run 21 finds **one arm of 43 past
+five percent on `runs`**, `lib-stage2` at -77%, and four on the main set, three
 of them the three arms that call `fillStage2` and the fourth an A/A control
 at -6%. So the whole of what moved is the three arms the bang reached.
 **The second term dies with it on regime 3 and survives untouched
@@ -7113,6 +7079,48 @@ capped. `--aa` prints both and `--selftest` asserts the identity where it holds.
 
 
 ### What moves a figure when no strategy changed
+
+**And one thing that moves a COUNTED figure when no strategy changed, found
+2026-08-30 and not previously suspected: the assembler shim's own padding.**
+`run-counts.sh` counts retired instructions, and a padding nop retires. The shim
+aligns a block inside each hot loop, so where two arms' loop bodies end
+at different offsets modulo the boundary their pads differ -- and a pad
+that lands INSIDE the loop is paid every iteration. **Read out of the timed
+binary itself**, at the addresses sampling it put the instructions at rather
+than in a twin: on `slice-primes` the branch's fill and the shipped fill
+are the SAME CODE, sixteen real instructions and four stack accesses per two
+elements each, and they differ by one nop, three against two, because one body
+ends a byte earlier before the pad. That is **one retired instruction per two
+elements**: 123772 of them predicted on that view against a measured excess
+of 127331, so 97% of the gap. **The control is a build without the shim**,
+roster and `check` identical, where the excess falls to **+0.18%** from +5.57%
+-- and the counted ratio of those two arms moves on every population, all
+in the branch's favour: the main set 0.672 to 0.652, `rev` 0.940 to 0.908,
+`revsome` 1.047 to 1.015, `slice` 1.048 to 1.013, `scaled` 1.015 to 0.982,
+`window` 0.789 to 0.744, `runs` 1.137 to 0.985. **What this does NOT say
+is that the shim is wrong or that a figure here is**: the shim
+is this benchmark's deliberate instrument, Run 10 having priced layout at 12
+to 14% on the arms whose loop it rescues, and every figure in this file is taken
+at it, so the no-shim build is a control and never a regime. What it says
+is narrower and sharper -- **an instruction-count difference between two
+DIFFERENT arms can be padding rather than code, and the counter cannot tell you
+which** -- and the practical form is that a counted ratio being used to argue
+about CODE wants the no-shim control beside it, where one used to argue about
+an ordering does not. **It also refines the layout-independence this file leans
+on** [in the parked entry](#non-urgent-todo-list): an A/A pair's counts agree
+to 5e-5 because both halves are the same code and carry the same pad, which
+is exactly the case that cannot show this. **And what the no-shim build costs
+is what the shim was bought for, which the same evening measured**: timed
+over `slice` it puts the two arms at 1.0536 paired against the shimmed build's
+1.0811 --- so about three of those eight points are the padding, as the counted
+work says --- but its floor is **8.36%** against the shimmed build's **4.44%**,
+so the five points left are inside it and the un-shimmed build cannot resolve
+what the shimmed one can. The per-shape figures say the same thing louder:
+`slice-coprime-r7` reads 1.1135 shimmed and 0.9990 not. **So neither build
+is the honest one on its own** --- the shimmed one resolves a margin it partly
+creates, the other creates less and resolves nothing --- and the pair of them
+is the reading. That is the shim's standing rule restated from a new direction
+and not a case against it.
 
 Sixteen A/A controls run an existing strategy twice under a second name ---
 eight strategies, each duplicated once beside its base and once at a distance,

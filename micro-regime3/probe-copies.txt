@@ -1,0 +1,45 @@
+The two fill copies slice-primes actually runs, read out of probe-disp-g912
+itself (md5 dc686f42f7f2a35b278573a6ec4d5465), the addresses found by
+sampling that binary and the disassembly taken at them. Not a twin: this
+is the binary the counted work and the timed run were taken on.
+
+=== lib-stage1, fbMutOdoVecdimsAddInLeafU2's fill, loop 424aee..424b47
+  424aee:	mov    0x40(%rsp),%r14
+  424af3:	movsd  (%r14,%r11,8),%xmm0
+  424af9:	movsd  %xmm0,(%rcx,%rsi,8)
+  424afe:	mov    %r11,%r14
+  424b01:	add    %r8,%r14
+  424b04:	mov    %rdi,0x60(%rsp)
+  424b09:	mov    0x40(%rsp),%rdi
+  424b0e:	movsd  (%rdi,%r14,8),%xmm0
+  424b14:	lea    0x1(%rsi),%r14
+  424b18:	movsd  %xmm0,(%rcx,%r14,8)
+  424b1e:	add    %rax,%r11
+  424b21:	add    $0x2,%rsi
+  424b25:	mov    0x60(%rsp),%rdi
+  424b2a:	data16 cs nopw 0x0(%rax,%rax,1)
+  424b35:	data16 cs nopw 0x0(%rax,%rax,1)
+  424b40:	lea    0x1(%rsi),%r14
+  424b44:	cmp    %r10,%r14
+  424b47:	jl     424aee <microzm0zi1zminplacezmmicro_Main_zdfNFDataT_info+0x19226>
+
+=== lib-stage2, fillStage2's fill, loop 41f1ec..41f247
+  41f1ec:	mov    0x40(%rsp),%r11
+  41f1f1:	movsd  (%r11,%r8,8),%xmm0
+  41f1f7:	mov    0x48(%rsp),%r14
+  41f1fc:	movsd  %xmm0,(%r14,%rsi,8)
+  41f202:	mov    %r8,%r11
+  41f205:	add    %r10,%r11
+  41f208:	mov    0x40(%rsp),%r14
+  41f20d:	movsd  (%r14,%r11,8),%xmm0
+  41f213:	lea    0x1(%rsi),%r11
+  41f217:	mov    0x48(%rsp),%r14
+  41f21c:	movsd  %xmm0,(%r14,%r11,8)
+  41f222:	add    %rcx,%r8
+  41f225:	add    $0x2,%rsi
+  41f229:	data16 cs nopw 0x0(%rax,%rax,1)
+  41f234:	data16 cs nopw 0x0(%rax,%rax,1)
+  41f23f:	nop
+  41f240:	lea    0x1(%rsi),%r11
+  41f244:	cmp    %rbx,%r11
+  41f247:	jl     41f1ec <microzm0zi1zminplacezmmicro_Main_zdfNFDataT_info+0x13924>
