@@ -2154,12 +2154,14 @@ is planned. A scope limit belongs in the sentence that asks for the measurement.
    21 read, and against floors of 4.0 to 7.4 percent. **What is left is one
    population and one mechanism, and neither of them is the fill.** `slice`
    is the one population still behind past its floor, by an eighth where
-   it was behind by four times --- and about three of those eight points
-   are the assembler shim's padding rather than the branch's code, which is item
-   4 and is answered. And the broadcast classes keep the second term entire ---
-   `bcast` at 1.49 and `bcastmid` at 2.50 in time over counted work, unmoved
-   from 1.48 and 2.12 --- which the eleventh reading names rather than leaving
-   open: it is bandwidth and not code, cache misses running 1.55x and 6.7x per
+   it was behind by four times --- and item 4 answers what those eight points
+   are: about three of them are this benchmark's own assembler shim, and what
+   survives it is one instruction a run in the branch's odd-element epilogue,
+   which fires on every conv gather because kernel widths are odd.
+   And the broadcast classes keep the second term entire --- `bcast` at 1.49
+   and `bcastmid` at 2.50 in time over counted work, unmoved from 1.48 and 2.12
+   --- which the eleventh reading names rather than leaving open:
+   it is bandwidth and not code, cache misses running 1.55x and 6.7x per
    instruction executed, with front-end stalls and mispredicts beside them
    on `bcastmid` alone. Those paths execute a QUARTER of stage one's
    instructions and take longer doing it, so instructions retired is the wrong
@@ -2198,27 +2200,31 @@ is planned. A scope limit belongs in the sentence that asks for the measurement.
    evening, which needs no pair and no second recipe, and which separates
    per-process variation from sampling inside a bench directly. It
    is the cheapest unspent measurement this file has.
-4. `ANSWERED` **What was left of task 1 was not the branch's code
-   but this benchmark's own assembler shim, 2026-08-30.** The counted work put
-   stage two a few percent above stage one on the populations that will
-   not canonicalize, and `slice`, whose floor is the tightest of the classes,
-   was the one where that showed in time past its floor. **The two fills turn
-   out to be the same code** --- sixteen real instructions and four stack
-   accesses per two elements each, read out of the timed binary at the addresses
-   sampling put them at --- **and to differ by one padding nop**, which the shim
-   emits three of where the other gets two because one body ends a byte earlier
-   before the pad it aligns on. A build without the shim takes the excess
-   on `slice-primes` from +5.57% to +0.18%. The account, the control and what
-   it costs every counted reading are [in what moves
-   a figure](#what-moves-a-figure-when-no-strategy-changed). **What survives
-   as a question is smaller and belongs to a shape and not to an arm**:
-   on `slice-cnn-L2-24x24-c32`, runs of three, the no-shim excess is still
-   +2.46%, and the attribution puts that in the loop NEST rather
-   than the element loop --- `fillStage2` reaching its run body through
-   `runsWith` and a `tInner` test where the shipped fill has the run loop
-   written into `go`. That is worth a reading only if a regime-2-shaped
-   population starts mattering, every regime-3 view in this suite having runs
-   long enough for it to vanish.
+4. `ANSWERED` **What was left of task 1 was two things and neither
+   was the fill's body: this benchmark's own assembler shim, and one instruction
+   a run in the branch's epilogue, 2026-08-30.** The counted work put stage two
+   a few percent above stage one wherever the view will not canonicalize. **Most
+   of that was padding.** The two unrolled bodies are the same code --- sixteen
+   real instructions and four stack accesses per two elements, read out
+   of the timed binary at the addresses sampling put them at --- and they differ
+   by one nop, which the shim emits three of where the other gets two; a build
+   without the shim takes `slice-primes` from +5.57% to +0.18%, and the account
+   is [in what moves a figure](#what-moves-a-figure-when-no-strategy-changed),
+   which is where it bears on every counted reading this file takes. **What
+   survives the shim's removal is real, small, and lands exactly where
+   this benchmark exists**: the branch's odd-element epilogue costs one
+   instruction more than the shipped fill's, because it reloads the output base
+   where the other keeps it in a register, so it is paid once a run and only
+   at ODD run lengths. Every even-run shape reads 1.0000, six of six; one
+   instruction a run predicts the odd ones to a few tenths of a point
+   over a four-hundredfold span of run length; and **convolution kernels are odd
+   by construction**, so it fires on every run of every conv gather and is worth
+   about two percent at a three-wide one. [The ceiling][ceiling]'s thirteenth
+   reading has it, and names the local change that would close it. **One term
+   is left unseparated and this entry does not pretend otherwise**: at runs
+   of 11 and 13 the branch is AHEAD by three quarters of a point and a point
+   and a half, so something of the opposite sign is there that no reading here
+   isolates.
 
 **And one class not to repropose: work that needs an aligned build.**
 `mut-odo`'s wide interval is the live case. The dispersion is documented
@@ -3924,27 +3930,28 @@ where it was behind by four times**; every other regime-3 population is inside
 its floor or ahead of it. **About three of `slice`'s eight points turn out
 to be this benchmark's own assembler shim** and not the branch, which is [what
 moves a figure](#what-moves-a-figure-when-no-strategy-changed)'s to say, taken
-2026-08-30 after this reading. **Two controls say the reading is the fix
-and not the evening.** The box did not move --- `--machine` puts this run's
-`list` absolutes at -0.03% geomean against the kept fingerprint, worst +1.43%,
-nothing past 5% --- and `--movers 5` against Run 21 finds **one arm of 43 past
-five percent on `runs`**, `lib-stage2` at -77%, and four on the main set, three
-of them the three arms that call `fillStage2` and the fourth an A/A control
-at -6%. So the whole of what moved is the three arms the bang reached.
-**The second term dies with it on regime 3 and survives untouched
-on broadcast.** Time over counted work, both sides net of `sum-only-early`
-and the quotient capped as the reader caps a ratio, reads **0.99 on `rev`, 1.01
-on `revsome`, 1.03 on `slice`, 1.00 on `scaled`, 1.02 on the main set and 1.14
-on `window`** where Run 21 read 1.16 to 1.67 --- and **1.49 on `bcast` and 2.50
-on `bcastmid`**, where it read 1.48 and 2.12 and has not moved at all.
-That is the seventh reading's mechanism confirmed from the other side: the term
-was the frame and its store-to-load chains, so it goes exactly where the frame
-went, and the broadcast paths, whose loops never scrutinised the vector
-and so never had a frame, keep theirs entire. **`reshape1` is no longer readable
-rather than degenerate**: stage two canonicalizes two of its four views
-to regime 1, and their net time now sits at or below the forcing term,
-so the reader refuses the pair instead of publishing the 0.0178 Run 21 quoted
---- the same finding, said louder.
+2026-08-30 after this reading; what survives that is one instruction a run
+in the branch's epilogue, the thirteenth reading's. **Two controls say
+the reading is the fix and not the evening.** The box did not move ---
+`--machine` puts this run's `list` absolutes at -0.03% geomean against the kept
+fingerprint, worst +1.43%, nothing past 5% --- and `--movers 5` against Run 21
+finds **one arm of 43 past five percent on `runs`**, `lib-stage2` at -77%,
+and four on the main set, three of them the three arms that call `fillStage2`
+and the fourth an A/A control at -6%. So the whole of what moved is the three
+arms the bang reached. **The second term dies with it on regime 3 and survives
+untouched on broadcast.** Time over counted work, both sides net
+of `sum-only-early` and the quotient capped as the reader caps a ratio, reads
+**0.99 on `rev`, 1.01 on `revsome`, 1.03 on `slice`, 1.00 on `scaled`, 1.02
+on the main set and 1.14 on `window`** where Run 21 read 1.16 to 1.67 ---
+and **1.49 on `bcast` and 2.50 on `bcastmid`**, where it read 1.48 and 2.12
+and has not moved at all. That is the seventh reading's mechanism confirmed
+from the other side: the term was the frame and its store-to-load chains,
+so it goes exactly where the frame went, and the broadcast paths, whose loops
+never scrutinised the vector and so never had a frame, keep theirs entire.
+**`reshape1` is no longer readable rather than degenerate**: stage two
+canonicalizes two of its four views to regime 1, and their net time now sits
+at or below the forcing term, so the reader refuses the pair instead
+of publishing the 0.0178 Run 21 quoted --- the same finding, said louder.
 
 **An eleventh reading, 2026-08-30, is the counter reading the seventh asked
 for by name, and it names the surviving term.** That reading closed *whether
@@ -4001,6 +4008,42 @@ the counts hold across the builds being compared, and here they did not. **One
 half of the sixth reading does hold**: `-u2` against `-u2-down` reads 0.9499,
 ahead at all seven lengths, as a count-down form a value heavier in the run loop
 should be.
+
+**A thirteenth reading, 2026-08-30, is what is left of the branch's cost once
+the shim's padding is out of the counted work --- and it is ONE INSTRUCTION
+A RUN, paid only when the run is odd.** (`probe-noshim-g912`, the g912 recipe
+without the assembler shim, `check` and roster identical to the timed binary's;
+the two arms' addresses found by sampling that binary and the disassembly taken
+at them, so this is emitted code and not a twin's.) **The unrolled bodies
+are the same and the EPILOGUE is not.** On a conv-shaped view the per-run path
+is 26 instructions under the shipped fill and 27 under the branch's,
+and the whole difference is the odd-element leftover: three instructions against
+four, because the shipped fill still has the output base in a register there
+and the branch's reloads it from the stack. The unrolled body itself reads four
+stack accesses either way. **So the term is one retired instruction a run,
+and it fires only where the run length is odd** --- an even run leaves
+the leftover unentered, and a long one amortises it away. **The prediction
+that makes and the test it passes**: every EVEN-run shape of the main set whose
+view neither arm collapses reads **1.0000 to 1.0002** --- `stretch-tab7MB`
+and `-wide-2xM` at 2, `-r5-8x432` at 8, `-pow2stride` at 64, `-inner256` at 256
+and `-tall-Mx2` at 900000, six of six --- and one instruction a run predicts
+the odd ones where the term is largest: **3.03% against a measured 3.03%
+on `stretch-bigstride`**, 1.86 against 1.81 on `cifar-L2-16-c64-k3`, 1.63
+against 1.51 on `alexnet-L2-27-c48-k5`, 0.14 against 0.18 on `stretch-primes`
+and 0.01 against 0.01 on `stretch-square-1341`, over a four-hundredfold span
+of run length. **What it does NOT cover, said because the fit above would
+otherwise read as the whole account**: at runs of 11 and 13 the branch comes out
+AHEAD, -0.79% and -1.53%, so a second term of the opposite sign is there
+and nothing here separates it; and `cnn-slice-c32`, 96 runs and eight thousand
+instructions an iteration, is dominated by per-call work and is no test
+of a per-run term either way. **Why this is not a rounding error to file away:
+convolution kernels are odd by construction.** 3, 5, 7 and 11 are the widths
+this shape set carries because they are the widths convolutions have,
+so the leftover fires on every run of every conv gather, and at a three-wide
+kernel that is about two percent of the fill. What it names is small and local
+--- hold the output base across the epilogue as the shipped fill does ---
+and it is the only thing between the branch's fill and parity on the shapes
+this benchmark exists for.
 
 ### The C-gap: still a deeper ceiling
 

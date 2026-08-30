@@ -23,7 +23,8 @@
 set -u
 cd "$(dirname "$0")" || exit 1
 [ $# -ge 2 ] || { echo "usage: ./probe-attr.sh SHAPE ARM [ARM ...]"; exit 2; }
-B=./probe-attr-g912
+B=${BIN:-./probe-attr-g912}
+case $B in /*|./*) ;; *) B=./$B ;; esac
 [ -x "$B" ] || { echo "no $B -- probe-attr-build.sh makes it"; exit 1; }
 SH=$1; shift
 N=${N:-2000}
@@ -40,9 +41,26 @@ command -v perf > /dev/null 2>&1 || { echo "!! no perf on PATH"; exit 1; }
 # the process benchmarks nothing and every histogram below is of the
 # runtime's own startup -- which reads exactly like a measured one. Held
 # to `classes --list` for the same reason probe-stalls.sh holds its own.
+# MAIN SET OR A CLASS, decided by which listing holds the shape: the
+# conv shapes this was extended for are the MAIN set's, and passing
+# `classes` for one of them selects nothing at all -- a process that
+# benchmarks nothing and exits 0, which is the failure shape every driver
+# here refuses. A name in neither listing, or in both, refuses too.
+SEL=classes
 LIST=$("$B" classes --list 2>/dev/null)
-printf '%s\n' "$LIST" | cut -d/ -f1 | grep -qxF "$SH" \
-  || { echo "!! $SH is not a shape of $B classes --list -- nothing ran"; exit 2; }
+MLIST=$("$B" --list 2>/dev/null)
+inc() { printf '%s\n' "$1" | cut -d/ -f1 | grep -qxF "$2"; }
+if inc "$MLIST" "$SH" && inc "$LIST" "$SH"; then
+  echo "!! $SH is in BOTH the main listing and the class listing, so which"
+  echo "   population it names is not decidable here -- nothing ran"; exit 2
+elif inc "$MLIST" "$SH"; then
+  SEL=; LIST=$MLIST
+elif inc "$LIST" "$SH"; then
+  SEL=classes
+else
+  echo "!! $SH is in neither $B --list nor $B classes --list -- nothing ran"
+  exit 2
+fi
 # TAG names a repetition, which is what the histogram's stability has to
 # be read off: at N=200 the per-role split moved by more than the split
 # itself between two runs whose TOTALS agreed to a tenth of a percent,
@@ -53,7 +71,7 @@ OUT=probe-attr-$SH${TAG:+-$TAG}.txt
 [ -e "$OUT" ] && { echo "$OUT exists; move it aside first"; exit 1; }
 BAD=0
 {
-  echo "# $B $(md5sum "$B" | cut -d' ' -f1) $(date -Is)"
+  echo "# $B $(md5sum "$B" | cut -d' ' -f1) $(date -Is) sel=${SEL:-main}"
   echo "# shape=$SH N=$N period=$PERIOD event=instructions:u"
   echo "# A -g3 TWIN, so the counts are its own; the control is that its"
   echo "# per-iteration total matches the timed binary's counted work."
@@ -63,7 +81,7 @@ for A in "$@"; do
     || { echo "!! $A is not an arm of the roster -- skipped" | tee -a "$OUT"; BAD=1; continue; }
   D=probe-attr-$SH${TAG:+-$TAG}-$A.data
   perf record -q -e instructions:u -c "$PERIOD" -o "$D" \
-    "$B" classes -m glob "$SH/$A" -n "$N" > /dev/null 2>&1
+    "$B" $SEL -m glob "$SH/$A" -n "$N" > /dev/null 2>&1
   rc=$?
   R=$(perf report --stdio --sort srcline -i "$D" 2>/dev/null)
   TOT=$(printf '%s\n' "$R" | sed -n 's/^# Event count (approx.): *\([0-9]*\)/\1/p')
@@ -78,7 +96,7 @@ for A in "$@"; do
   # `Total Lost Samples: 0`. One counting process a cell settles it, and it
   # validates the histogram's SCALE besides, which nothing else here does.
   TRUE=$(perf stat -x, -e instructions:u \
-           "$B" classes -m glob "$SH/$A" -n "$N" 2>&1 >/dev/null \
+           "$B" $SEL -m glob "$SH/$A" -n "$N" 2>&1 >/dev/null \
          | sed -n 's/^\([0-9]*\),.*instructions:u.*/\1/p')
   if [ "${LOST:-0}" != 0 ]; then
     echo "!! $A: perf lost $LOST sample(s), so this histogram is biased toward"\

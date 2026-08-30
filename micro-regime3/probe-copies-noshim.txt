@@ -1,0 +1,60 @@
+The two per-run paths on a conv-shaped view (vgg-14-c512-k3, inner run 3),
+read out of probe-noshim-g912 -- the build WITHOUT the assembler shim, so
+no padding is in these counts. Addresses found by sampling that binary.
+
+=== lib-stage1: unrolled body, latch, epilogue test, LEFTOVER, run advance
+  424360:	mov    0x40(%rsp),%r14
+  424365:	movsd  (%r14,%r11,8),%xmm0
+  42436b:	movsd  %xmm0,(%rcx,%rsi,8)
+  424370:	mov    %r11,%r14
+  424373:	add    %r8,%r14
+  424376:	mov    %rdi,0x60(%rsp)
+  42437b:	mov    0x40(%rsp),%rdi
+  424380:	movsd  (%rdi,%r14,8),%xmm0
+  424386:	lea    0x1(%rsi),%r14
+  42438a:	movsd  %xmm0,(%rcx,%r14,8)
+  424390:	add    %rax,%r11
+  424393:	add    $0x2,%rsi
+  424397:	mov    0x60(%rsp),%rdi
+  42439c:	lea    0x1(%rsi),%r14
+  4243a0:	cmp    %r10,%r14
+  4243a3:	jl     424360 <microzm0zi1zminplacezmmicro_Main_zdfNFDataT_info+0x18ab0>
+  4243a5:	cmp    %r10,%rsi
+  4243a8:	jge    4243ba <microzm0zi1zminplacezmmicro_Main_zdfNFDataT_info+0x18b0a>
+  4243aa:	mov    0x40(%rsp),%r14
+  4243af:	movsd  (%r14,%r11,8),%xmm0
+  4243b5:	movsd  %xmm0,(%rcx,%rsi,8)
+  4243ba:	add    %rbx,%rdi
+  4243bd:	dec    %rdx
+  4243c0:	mov    %r10,%rsi
+  4243c3:	test   %rdx,%rdx
+  4243c6:	jle    4243d3 <microzm0zi1zminplacezmmicro_Main_zdfNFDataT_info+0x18b23>
+
+=== lib-stage2: the same five parts
+  41eb87:	mov    0x40(%rsp),%r11
+  41eb8c:	movsd  (%r11,%r8,8),%xmm0
+  41eb92:	mov    0x48(%rsp),%r14
+  41eb97:	movsd  %xmm0,(%r14,%rsi,8)
+  41eb9d:	mov    %r8,%r11
+  41eba0:	add    %r10,%r11
+  41eba3:	mov    0x40(%rsp),%r14
+  41eba8:	movsd  (%r14,%r11,8),%xmm0
+  41ebae:	lea    0x1(%rsi),%r11
+  41ebb2:	mov    0x48(%rsp),%r14
+  41ebb7:	movsd  %xmm0,(%r14,%r11,8)
+  41ebbd:	add    %rcx,%r8
+  41ebc0:	add    $0x2,%rsi
+  41ebc4:	lea    0x1(%rsi),%r11
+  41ebc8:	cmp    %rbx,%r11
+  41ebcb:	jl     41eb87 <microzm0zi1zminplacezmmicro_Main_zdfNFDataT_info+0x132d7>
+  41ebcd:	cmp    %rbx,%rsi
+  41ebd0:	jge    41ebe8 <microzm0zi1zminplacezmmicro_Main_zdfNFDataT_info+0x13338>
+  41ebd2:	mov    0x40(%rsp),%r11
+  41ebd7:	movsd  (%r11,%r8,8),%xmm0
+  41ebdd:	mov    0x48(%rsp),%r8
+  41ebe2:	movsd  %xmm0,(%r8,%rsi,8)
+  41ebe8:	add    %rdx,%rdi
+  41ebeb:	dec    %rax
+  41ebee:	mov    %rbx,%rsi
+  41ebf1:	test   %rax,%rax
+  41ebf4:	jle    41ec01 <microzm0zi1zminplacezmmicro_Main_zdfNFDataT_info+0x13351>

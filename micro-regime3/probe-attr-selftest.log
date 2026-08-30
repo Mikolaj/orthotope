@@ -1,35 +1,38 @@
-=== probe-attr.sh and probe-attr-read.py non-vacuity, 2026-08-30T09:39:27+02:00: each guard
+=== probe-attr.sh and probe-attr-read.py non-vacuity, 2026-08-30T10:28:52+02:00: each guard
 === broken deliberately, and a control that the pass is not vacuous.
 
---- 1. a shape the binary does not hold
-!! nosuchshape is not a shape of ./probe-attr-g912 classes --list -- nothing ran
+--- 1. a shape in neither listing
+!! nosuchshape is in neither ./probe-attr-g912 --list nor ./probe-attr-g912 classes --list -- nothing ran
 exit=2
 
 --- 2. an arm the roster does not hold
 !! nosucharm is not an arm of the roster -- skipped
-!! nosucharm is not an arm of the roster -- skipped
 exit=1
 
 --- 3. an existing artifact
-# ./probe-attr-g912 4b43c28c3ac4c5ceb70f6c7f0285330e 2026-08-30T09:39:27+02:00
 probe-attr-slice-primes-r1.txt exists; move it aside first
 exit=1
 
---- 4. a sample period short enough that the kernel throttles the counter,
+--- 4. a period short enough that the kernel throttles the counter,
 ---    which Total Lost Samples does NOT see and the counted control does
-!! lib-stage1: the sampled total is 185440000 against a counted 923841336, 20% -- the counter was off for part of the run, so raise PERIOD; this histogram is not usable
+!! lib-stage1: the sampled total is 188000000 against a counted 923841295, 20% -- the counter was off for part of the run, so raise PERIOD; this histogram is not usable
 exit=1
 
 --- 5. an anchor the source no longer carries
-span lib-stage1/driver not found after line 2083 of Main.hs
+span lib-stage1/run not found after line 2083 of Main.hs
 exit=1
 
 --- 6. a function anchor the source carries twice
 lib-stage2 does not name one definition in Main.hs (2 matches)
 exit=1
 
---- control: the three repetitions item 4's answer rests on, and the
---- harness column, which is the shared forcing pass and must read zero
-difference             162257       -35535          886          377       127985   <-- stage two minus stage one
-difference             159635       -36159         -111          831       124196   <-- stage two minus stage one
-difference             155765       -30310        -2288         2704       125871   <-- stage two minus stage one
+--- 7. two roles given one opening anchor, which an unbounded trim
+---    absorbed silently until 2026-08-30 and now refuses
+spans lib-stage1/odo and the role before it overlap by 10 line(s), so one of the two anchors is wrong; only the shared boundary line is trimmed
+exit=1
+
+--- control: the three repetitions the long-run reading rests on;
+--- the harness column is the shared forcing pass and must read zero
+difference             3059     159198     -56714      21179        886        377     127985   <-- stage two minus one
+difference             1240     158395     -52714      16555       -111        831     124196   <-- stage two minus one
+difference              318     155447     -47293      16983      -2288       2704     125871   <-- stage two minus one
