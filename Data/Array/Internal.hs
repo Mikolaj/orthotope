@@ -289,13 +289,14 @@ genericFillStrided sh ats !ao !l !v = VG.create fill
                   -- cursor steps twice by tInner instead of once by a
                   -- doubled stride: one live value fewer, which is what
                   -- lets the NCG's allocator keep the output base in a
-                  -- register instead of reloading it twice a pair.  Worth
-                  -- 15% of the fill's instructions on the benchmark's
-                  -- shape set, 6% at a three-wide inner run and 25% at a
-                  -- long one, and a tenth of its TIME on that set and a
-                  -- seventh on views a slice produces; -fllvm needs
-                  -- neither, keeps two induction variables and loses
-                  -- 4.5% of the instructions.
+                  -- register instead of reloading it twice a pair.  In a
+                  -- plain build, worth 15% of the fill's instructions over
+                  -- the benchmark's shape set, 6% at a three-wide inner
+                  -- run and 25% at a long one; -fllvm needs neither, keeps
+                  -- two induction variables and loses 4.5%.  Timed only in
+                  -- the benchmark's own build, which pads loop heads and
+                  -- so saves 13% rather than 15%: about a tenth of the
+                  -- fill's time there, and a seventh on sliced views.
                   | otherwise = do
                       VGM.unsafeWrite out o (VG.unsafeIndex v src)
                       let !src' = src + tInner

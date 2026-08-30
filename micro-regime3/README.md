@@ -4123,23 +4123,27 @@ than argued.** The change pays by freeing a register in a loop
 that was spilling, so an arm whose loop does not spill cannot gain from it:
 that is not a hunch but the same mechanism that makes it COST 4.5%
 under `-fllvm`, where these loops spill nothing. So the screen is mechanical ---
-`probe-nospill-fills.py` over a dump build byte-identical to the timed binary,
-every timed arm's fill, each self-looping block reported with its stack traffic
-(`probe-screen.txt`). **Twenty of the twenty-two arms with a findable element
-loop carry NO stack access in it**, at six to eleven instructions a loop, `-u2`
-and `-u2-down` among them now. **Two spill and neither has anything to drop.**
-`list` is `VS.fromListN` over `toListT` and has no derived constant at all ---
-its fourteen stack touches are the recursion's closure traffic, not a spilled
-induction variable --- and it is besides the denominator every ratio here
-divides by, so changing it rebases every published figure, which Run 10 did once
-and this file treats as breaking comparability with every run. `bq-expand`'s
-loop keeps the innermost extent, the innermost stride and a base-offset table,
-and none of the three is derivable from another. **The pattern itself
-was in exactly two arms and both are fixed**, which a grep for the doubled
-stride confirms rather than the screen. **What the screen cannot see, said
-because a silent search proves nothing**: it reads Main-compiled code only,
-so `gen-unsafe`, whose loop is inside `vector`'s `generate`, has no entry
-at all, and so would any arm that inlines its loop into a library function.
+`probe-nospill-fills.py` over a dump build byte-identical to `probe-ship-g912`,
+which is the SHIM-FREE build the counted work was taken on and was never timed
+--- the right regime for the question, stack traffic being a register allocation
+and not a padding, and the instruction counts below are that build's rather
+than a timed one's. Every timed arm's fill, each self-looping block reported
+with its stack traffic (`probe-screen.txt`). **Twenty of the twenty-two arms
+with a findable element loop carry NO stack access in it**, at six to eleven
+instructions a loop, `-u2` and `-u2-down` among them now. **Two spill
+and neither has anything to drop.** `list` is `VS.fromListN` over `toListT`
+and has no derived constant at all --- its fourteen stack touches
+are the recursion's closure traffic, not a spilled induction variable ---
+and it is besides the denominator every ratio here divides by, so changing
+it rebases every published figure, which Run 10 did once and this file treats
+as breaking comparability with every run. `bq-expand`'s loop keeps the innermost
+extent, the innermost stride and a base-offset table, and none of the three
+is derivable from another. **The pattern itself was in exactly two arms and both
+are fixed**, which a grep for the doubled stride confirms rather
+than the screen. **What the screen cannot see, said because a silent search
+proves nothing**: it reads Main-compiled code only, so `gen-unsafe`, whose loop
+is inside `vector`'s `generate`, has no entry at all, and so would any arm
+that inlines its loop into a library function.
 
 **A seventeenth reading, 2026-08-30: the fifteenth's change frees a register
 in the two UNROLLED fills and in nothing else, so it re-opens an ordering three
