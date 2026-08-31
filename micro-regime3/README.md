@@ -6727,10 +6727,17 @@ was missed, which is what they have cost.
     #      whether the document can be READ, not whether it is right, so
     #      it does not wait on 7's corrections; what it finds is a
     #      navigation defect, which no gate here has ever caught and no
-    #      figure check can.
+    #      figure check can. ITS FINDINGS ARE THE THIRD REPORT 7 MERGES,
+    #      so the probe is not a formality either: a question the
+    #      document cannot answer is an edit owed, and answering it in
+    #      the reply instead is how it goes unmade.
     #   7. CONVERGE TO ONE WRITER and fix, which is all that is left
-    #      here: merge 6d's report and 6e's worklist into a SINGLE cycle
-    #      and apply it. Two sources of fixes for one defect is how the
+    #      here: merge THREE reports into a SINGLE cycle and apply it --
+    #      6d's over both files, 6e's worklist, and 6f's probe, whose
+    #      findings are navigation defects rather than figures and are
+    #      edits to the same documents all the same. 6b's is NOT among
+    #      them, that pass having been fixed at 6b, which is why 6b owns
+    #      its fixing. Several sources of fixes for one defect is how the
     #      errors 6d exists to catch get made twice over. A correction is
     #      a claim -- derive it, then RE-RUN THE GATES, which 6e ran
     #      before these fixes existed and which nothing else re-runs: the
