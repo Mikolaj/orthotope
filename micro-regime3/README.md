@@ -6647,6 +6647,17 @@ was missed, which is what they have cost.
     #      FIXING IS THIS STEP'S OTHER HALF and not 6d's: a finding is
     #      not fixed by being reported, and 6d exists to read what the
     #      fixing broke.
+    #      KEEP CHAPTER EDITS OUT OF THE WRITE-UP'S COMMITS, which is
+    #      what makes `that commit's diff` mean anything: a run's own
+    #      commits are what both passes read, and an edit to THIS
+    #      chapter interleaved among them puts churn under review by
+    #      nobody into the same diff. Run 22 made twelve such commits
+    #      between its write-up and its second pass, 576 lines of
+    #      README against the write-up's 224. Do them before the run or
+    #      after it; where they have already happened, bound README's
+    #      diff at the run's own last commit, which is what the brief's
+    #      RUNTIP is for. The run file needs no bound, nothing but a
+    #      write-up ever touching it.
     #      THE BRIEF IS CHECKED IN AS `checker-brief.txt` AND IS NOT TO
     #      BE RETYPED -- nor summarised here, which is why this step
     #      does not say what is in it. It carries all three briefs, this
