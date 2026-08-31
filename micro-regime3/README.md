@@ -5290,8 +5290,8 @@ clean gates into "2 process(es) FAILED" and failed
 and both reading exactly like the run breaking. The loud half of
 this was already written at the smoke step; the quiet half is why it is stated
 here. **This is the one statement of the rule and the other sites point at it**:
-the smoke step and post-run step 1c each name it in a clause and link back,
-three copies having been what the rule cost before.
+the smoke step and post-run step 3 each name it in a clause and link back, three
+copies having been what the rule cost before.
 
 **Then the run --- and this is the list that wants the machine, so it does
 not start on a session's judgement.** Steps 13 to 19 sit here rather
@@ -6320,10 +6320,12 @@ answer the majority of arms gives, which loses the finding.
 **After it lands**, in this order:
 
 **The post-run half as a list, for the same reason the pre-run half has one.**
-Its twelve steps below are the prose's own numbers, so a reference to step 7.7
-still lands; the prose is where the reasons live and is not replaced by this.
-What it replaces is reading the twelve paragraphs three times to be sure nothing
-was missed, which is what they have cost.
+Its steps below are the prose's own numbers, so a reference to one of them still
+lands in both places --- which is a thing to KEEP true: renumber the list
+and the prose's items move with it, or a reader following a pointer arrives
+at the wrong reason; the prose is where the reasons live and is not replaced
+by this. What it replaces is reading the twelve paragraphs three times
+to be sure nothing was missed, which is what they have cost.
 
     #  DO STEP 11 AS SOON AS THESE GATES PASS, out of order and before
     #      any prose. It is the only step whose window closes -- it spends
@@ -6356,7 +6358,7 @@ was missed, which is what they have cost.
     #      @@saturate reading inside 5% of the run's. A process outside
     #      that band measured in a state the others did not, and every
     #      other gate here is WITHIN one process and cannot see it
-    ./read-run.py $R-<half>-<pop>.log --wild          # 1b. and, on an
+    ./read-run.py $R-<half>-<pop>.log --wild          # 2. and, on an
     #      instrumented run, the per-sample stamps that log carries:
     #      allocation, mutator, collector and in-use per bench, and the
     #      foreign CPU during its samples. That last is what tells a WILD
@@ -6364,7 +6366,7 @@ was missed, which is what they have cost.
     #      clock at flat RTS totals, and the difference being whether
     #      anything else was running. Reach for it when a cell in step 1's
     #      worst-cell column wants explaining, not on every process
-    #  1c. if 1b names an intrusion, RERUN the populations it touched,
+    #   3. if 2 names an intrusion, RERUN the populations it touched,
     #      BOTH halves of each -- a pair read across two windows is not a
     #      pair, so a clean half is rerun with its exposed twin. About
     #      12m15s a process, which is what one process per population
@@ -6380,9 +6382,11 @@ was missed, which is what they have cost.
     #      so a superseded copy left in that namespace fails the gate
     #      -- which is what a driver's own stdout redirected to
     #      $R-install.log did on 2026-08-23
-    #   2. match bases before reading any ratio -- same population, same
-    #      restriction, the basis the claim was stated on
-    ./read-run.py $R-<basis>-main.json --claims       # 3. every claim's
+    #   4. match bases before reading any ratio -- same population, same
+    #      restriction, the basis the claim was stated on;
+    #      one JSON at a time, never merged; there is no combined figure, so
+    #      a sentence comparing populations compares their tables
+    ./read-run.py $R-<basis>-main.json --claims       # 4a. every claim's
     #      ordering and registered verdict in one call, in the claims
     #      section's own order -- and, after them, the README's own verdict
     #      figures read back against these readings. Give it the BASIS:
@@ -6405,8 +6409,6 @@ was missed, which is what they have cost.
     #      paragraph from --block's VERDICTS, never from its table, one
     #      paragraph each. Use --brief on --aa and --block: no computed
     #      figure is lost. Do not write a second reader
-    #   4. one JSON at a time, never merged; there is no combined figure, so
-    #      a sentence comparing populations compares their tables
     #   5. MAKE THE RUN'S OWN FILE, `runs/$R.md`, by copying the last
     #      run's over it AND COMMITTING THAT COPY BEFORE EDITING IT, which
     #      buys three things and only one is about wrapping: the file gets
@@ -6739,12 +6741,12 @@ was missed, which is what they have cost.
     #      once, after step 7 is done AND presented, saying what keeping
     #      them buys. Offering is the step; deleting is not
 
-Steps 1 to 4 are readings and cost only tool calls; 5, 6 and the installs write;
-7 is the one that finds things. The same contract holds here: the operative
-facts are in the list, the reasons are below it, and step 11's window closes
-when the artifacts go. The step most often skipped is 11, because by
-then the run reads finished, and it is the only one whose window closes:
-the artifacts are what it spends.
+Steps 1 to 4a are readings and cost only tool calls; 5, 5a and 6's two halves
+write; 6b, 6d and 6e are what find things, and 7 is where what they find
+is applied. The same contract holds here: the operative facts are in the list,
+the reasons are below it, and step 11's window closes when the artifacts go.
+The step most often skipped is 11, because by then the run reads finished,
+and it is the only one whose window closes: the artifacts are what it spends.
 
 
 
@@ -6780,37 +6782,35 @@ the artifacts are what it spends.
    the net figure is the floor between two published rows, the raw one is how
    much an arm disagrees with itself, and quoting the first as the second
    overstates it by 1/(1-f).
-2. **Match bases before reading any ratio.** The first act of a comparison
+4. **Match bases before reading any ratio.** The first act of a comparison
    is making its two sides one basis --- the same population, the same
    restriction, the basis a claim was stated on --- and only then reading
    figures. Run 7's first claim check ran on its 24 shapes against claims stated
-   on 22, and every pair had to be re-run.
-3. Analyse with `./read-run.py`, which is where every table in this file comes
-   from --- read [the reader's own section](#the-reader-read-runpy) first,
-   and do not write another reader. **The claims are part of this and
-   are the thing these steps are likeliest to leave out**: the run's file names
-   three things a run reads, and the claims section is the third, each
-   of its orderings carried in `--claims` with its registered expectation,
-   so that a run transcribes printed verdicts rather than re-deriving the table.
-   The class properties are the same job three times a population, off
-   the verdicts `--block` emits, and the set is restated for the next run
-   on this run's basis while the readings are still in front of you. **A paired
-   run's own mode is `--compare`, and its direction is a convention worth
-   stating**: the run given first is the one the ratios are *of*,
-   the `--compare` argument being what they are divided by,
-   so `basis --compare control` puts a figure below 1 where the basis is faster
-   --- for Run 10, whose control was unaligned, that was where alignment
-   was faster. Prediction 4's per-arm term and the aligned half's published
-   column both read that way round; reversed, every one of them inverts
-   and nothing in the output says so.
-4. **One JSON at a time, never merged.** The reader takes one file,
-   and its geomean is that file's population --- the main set's or one class's.
-   Every mode names that population in its first line, `--selftest` fails a file
-   spanning two and `--markdown` declines to emit a table for one, so a merged
-   run is caught rather than published. The class tables stand beside the main
-   geomean, per [the ruling](#the-stride-classes-and-what-they-cover), and there
-   is no combined figure to compute, so a sentence comparing populations
-   compares their tables.
+   on 22, and every pair had to be re-run. **One JSON at a time, never merged.**
+   The reader takes one file, and its geomean is that file's population ---
+   the main set's or one class's. Every mode names that population in its first
+   line, `--selftest` fails a file spanning two and `--markdown` declines
+   to emit a table for one, so a merged run is caught rather than published.
+   The class tables stand beside the main geomean, per [the
+   ruling](#the-stride-classes-and-what-they-cover), and there is no combined
+   figure to compute, so a sentence comparing populations compares their tables.
+4a. Analyse with `./read-run.py`, which is where every table in this file comes
+from --- read [the reader's own section](#the-reader-read-runpy) first, and do
+not write another reader. **The claims are part of this and are the thing
+these steps are likeliest to leave out**: the run's file names three things
+a run reads, and the claims section is the third, each of its orderings carried
+in `--claims` with its registered expectation, so that a run transcribes printed
+verdicts rather than re-deriving the table. The class properties are the same
+job three times a population, off the verdicts `--block` emits, and the set
+is restated for the next run on this run's basis while the readings are still
+in front of you. **A paired run's own mode is `--compare`, and its direction
+is a convention worth stating**: the run given first is the one the ratios
+are *of*, the `--compare` argument being what they are divided by,
+so `basis --compare control` puts a figure below 1 where the basis is faster ---
+for Run 10, whose control was unaligned, that was where alignment was faster.
+Prediction 4's per-arm term and the aligned half's published column both read
+that way round; reversed, every one of them inverts and nothing in the output
+says so.
 5. **Make the run's own file, COMMIT THE COPY, and repoint README at it,
    and not before this step.** `runs/run<N>.md` is one run's write-up entire,
    so a run copies the last one's over its own name, commits that copy
@@ -6878,8 +6878,25 @@ the artifacts are what it spends.
    already here for adjudication. And a figure that moved *inside* the floor
    is requoted without comment --- only a movement past the floor earns
    a sentence.
-7. **Verify the write-up before deleting anything.** These are the checks
-   the procedure used to leave to judgement, each of which has caught something.
+6a, whose reasons these are since the recording moved there. Record beside
+the numbers the run's name and regime, each process's stderr provenance line,
+which machine, **and the commit the binary was built from** --- for a paired
+run, transcribed from `<prefix>-pair.txt`, which carries the commit, the regime,
+the GHC and both md5s because this step asks for them --- the GHC only since
+2026-08-16, the template having had no slot for it and Run 14's note therefore
+having none, where `strings $R-<basis> | grep -oE 'ghc-[0-9.]+'` reads it back
+out of a binary still on disk --- and the note outlives the session that built
+the pair (the JSONs do not survive, so the source is the only thing that makes
+a run reproducible even in principle --- this README's figures are one desktop's
+and are not portable, see [Provenance](#provenance)). A class process's line
+is measured for its elapsed time and its two heap peaks but not for its shape
+count: that count is fixed before criterion does the selecting, so it reads
+every class view rather than the population that ran, and the population's own
+size comes from the reader's first line;
+7. **Verify the write-up before deleting anything --- and the reasons here cover
+   6b, 6d, 6e, 7 and 7a, which is what one step's worth of verification
+   was split into.** These are the checks the procedure used to leave
+   to judgement, each of which has caught something.
 
    **This step is the whole of the document verification a run owes, and nothing
    else is to be reached for. Four passes, in this order:** run
@@ -7215,21 +7232,6 @@ the artifacts are what it spends.
    A comment edit after the run leaves the timed binaries correct and the source
    they were built from moved by a comment; say so in the write-up rather
    than rebuilding to hide it;
-9. Record beside the numbers the run's name and regime, each process's stderr
-   provenance line, which machine, **and the commit the binary was built
-   from** --- for a paired run, transcribed from `<prefix>-pair.txt`, which
-   carries the commit, the regime, the GHC and both md5s because this step asks
-   for them --- the GHC only since 2026-08-16, the template having had no slot
-   for it and Run 14's note therefore having none, where
-   `strings $R-<basis> | grep -oE 'ghc-[0-9.]+'` reads it back out of a binary
-   still on disk --- and the note outlives the session that built the pair
-   (the JSONs do not survive, so the source is the only thing that makes a run
-   reproducible even in principle --- this README's figures are one desktop's
-   and are not portable, see [Provenance](#provenance)). A class process's line
-   is measured for its elapsed time and its two heap peaks but not for its shape
-   count: that count is fixed before criterion does the selecting, so it reads
-   every class view rather than the population that ran, and the population's
-   own size comes from the reader's first line;
 10. **Walk the open list against what this session actually did**, which nothing
     checks. **Grep [the settled index][settled] before adding an entry ---
     and before ASSERTING anything this README may already have ruled on**,

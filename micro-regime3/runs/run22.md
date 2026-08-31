@@ -151,7 +151,7 @@ inside **19.8075 to 20.3228 ms/iter, a 2.60% spread** against a 5% band, the two
 late processes among them, so every process measured in the same in-process
 state whatever the clock said. Both `runs` legs exited 0 at the 605 benches
 their roster holds, each carrying its one `@@saturate` line and its `@@wild`
-stamps. No population was rerun for an intrusion and post-run step 1c is owed
+stamps. No population was rerun for an intrusion and post-run step 3 is owed
 nothing.
 
 **What this run was built to price is `fillStage2` after the unboxing
@@ -851,7 +851,7 @@ it inherits as a debt** is one thing and it is procedural rather than measured:
 this run's sequence ran in two windows, the machine having been wanted back part
 way, so a session comparing process elapsed times against this run's wall-clock
 log must read the two `runs` processes as a separate window. No population
-was rerun for an intrusion, no gate failed, and post-run step 1c was owed
+was rerun for an intrusion, no gate failed, and post-run step 3 was owed
 nothing. **What it inherits as a warning** is that a registration written off
 counted work can be right in sign and wrong by a factor: `lib-stage2-short`
 was predicted at 0.50 and 0.59 where it reads 0.81 and 0.97,
@@ -2567,13 +2567,13 @@ the twenty one run rather than two is TWO things and the chapter names only
 the first.** The procedure's own warrant is that one process per population
 is what makes more than one window harmless, each carrying its own controls
 and its own three gates, neither inherited nor lent --- which this run
-satisfies, and which is why post-run step 1c's *a pair read across two windows
+satisfies, and which is why post-run step 3's *a pair read across two windows
 is not a pair* is met too, BOTH `runs` halves having been re-driven together
 rather than a clean one left beside an exposed twin. The evidence on top
 of it is the plateau gate: every process asserts its preamble victim inside
 **19.8075 to 20.3228 ms/iter, a 2.60% spread** against a 5% band, the two late
 ones among them, so the second window measured in the state the first did.
-No population was rerun for an intrusion, no gate failed, and post-run step 1c
+No population was rerun for an intrusion, no gate failed, and post-run step 3
 is owed nothing. A session comparing elapsed times against this run's wall-clock
 log must read the two `runs` processes as their own window.
 
