@@ -806,139 +806,66 @@ rather than a slot in the next run, observed again:
   is the third, recovering most of the corner's loss at 0.9408 against it on 22
   shapes of 24, and reproducing Run 10's reading. Recorded here because the list
   is meant to be the only home, and a session mining it walked past this one.
-- `OPEN` **What Run 22 is built to answer, registered before it runs.**
-  **Decided 2026-08-30: Run 22 is Run 21 again --- its pair, `run21-pair.txt`'s
-  two recipes, ghc-9.12.4 as the basis against the same GHC HEAD stage1
-  at 10.1.20260803, one source, one shim, both halves
-  under `WILDLOG=1 SATURATE=1` --- over the extended roster and shapes,
-  and nothing else moved. Six timed arms landed on 2026-08-30 and none left:
-  `lib-stage2-disp`, the run-length dispatch, the three fill candidates
-  `lib-stage2-u4`, `lib-stage2-short` and `lib-stage2-lean`, and the unordered
-  entry point's `libunord-stage1` and `libunord-stage2`; the `runs` class took
-  `runs-4`, `runs-5`, `runs-256` and `runs-512`, going from seven views
-  to eleven. So the run is 55 timed arms, 1320 main-set benches and 2035 class
-  benches over 37 views in nine classes, where Run 21 ran 49, 1176 and 1617
-  over 33. And SEVEN OF RUN 21's COLUMNS ARE NOT THIS RUN'S DRIFT: `fillStage2`
-  unboxed its source vector on 2026-08-29 and steps its cursor twice since
-  2026-08-30, which reaches `lib-stage2` and `lib-stage2-concat` through
-  the call; `lib-stage2-concat`, `liblist-stage2`, `-add-in-leaf-u2`
-  and `-u2-down` changed in their own bodies beside it; and `lib-stage1`
-  and `liblist-stage1`, their own texts byte-identical across the runs, fall
-  back to `-add-in-leaf-u2` on every regime-3 view, so they are different code
-  there too --- and no distance from Run 21's column on any of the seven
-  is drift or layout.** Five questions, each with a prediction and what kills
-  it; the predictions are read off the counted work and the filtered probes
-  of 2026-08-29 and 2026-08-30, and what this run adds to them is time at full
-  budget over every population, which is what none of them had. (1) *The fill
-  in time, over every population.* The unboxing of 2026-08-29 and the doubled
-  cursor of 2026-08-30 were priced in instructions and in filtered processes,
-  and this run is the first to price them at full budget. `lib-stage2` against
-  `lib-stage1` is predicted inside **0.78 to 1.08** on the six populations
-  that carried Run 21's 2.43 to 4.54 regression --- a ratio whose BOTH sides
-  are changed code, stage one's regime-3 fallback being the re-stepped
-  `-add-in-leaf-u2`, so it prices the two routes as they now are and
-  not the fill against its old self --- and `slice` --- the one still behind
-  past its floor by eight points, and unmeasured in time since --- inside
-  **1.05**, the epilogue instruction that cost it being gone and the shim's
-  three points staying. Killed if any regime-3 population reads the branch
-  behind stage one by more than a tenth, which would put the residue back where
-  the counted work says it is not. The two broadcast classes are the registered
-  exception rather than a failure of it: `bcast` at about 1.49 and `bcastmid`
-  at 2.50 in time over counted work, unmoved, that term being bandwidth
-  and no unboxing reaching it. (2) *The three fill candidates in time.*
-  `lib-stage2-short` --- a canonical run of 2 to 5 elements written by a body
-  of exactly that length --- is predicted about **0.50** of `lib-stage2`
-  at `runs-2`, 0.59 at `runs-3` and 0.61 to 0.88 on every k3 and k5 conv shape,
-  and inside 2% above five, `stretch-coprime-r7`'s 1.0208 being the counted
-  work's worst cell; `runs-4` is the first view in the suite with a canonical
-  innermost extent of 4, the short bodies' one branch that nothing exercised,
-  `check` included, and `runs-5` sits beside it; both are counted already,
-  **0.5528** and 0.6099 bracketing `runs-3`'s 0.5864, and are predicted to read
-  so in time. `lib-stage2-u4` --- the stepping run unrolled by four, and
-  by the ruling of 2026-08-30 a price and not a candidate --- is predicted
-  **0.83 to 0.85** at long runs and 1.08 to 1.15 at `runs-2` and `runs-3`.
-  `lib-stage2-lean`, whose leaner dispatch does not pay the strides comparison,
-  has a counted reading after all --- the shim-free sweep of 2026-08-30
-  that priced the other two carried it too,
-  in `probe-r22noshim-counts-g912.txt`, which the drafting session did not look
-  in, and which says of itself that it is a smoke run and not a recorded column
-  --- and it reads **0.9189** and 0.9105 on the two smallest shapes, 0.9874
-  to 1.0000 on the remaining conv shapes, within 0.7% of a tie on every stretch
-  shape but one, and **0.7871** on `stretch-inner1`, where canonicalization
-  collapses the call to a slice and the dispatch is the whole cost; geomean
-  0.9812 over the main set. So the margin is not 1/`l` alone: it
-  is the dispatch's share of the call, largest where the call is small or where
-  the regime-1 return makes the dispatch the call. Predicted in time:
-  at or below `lib-stage2` everywhere, past a floor only on `cnn-L1-6x6-c1`,
-  `cnn-slice-c32` and `stretch-inner1`. Each is killed by a sign it does
-  not have: `-short` behind past a population's floor anywhere the counted work
-  put it at or below 1, `-u4` not ahead past the `runs` floor at the long
-  lengths, `-lean` behind `lib-stage2` past a floor, or level with it on the two
-  smallest shapes or on `stretch-inner1`, where the counts put it 8 to 21 points
-  ahead. (3) *The dispatch.* `lib-stage2-disp`, `fbLibStage2Concat`
-  with the slice route taken only at a canonical run of `dispRun` or more
-  and `dispRun` cut to 256, is predicted at or below the better of `lib-stage1`
-  and `lib-stage2` at every one of the eleven run lengths and past neither
-  by more than the class's floor, reproducing 0.0283, 0.0312, 0.0951, 0.6190,
-  1.0029, 1.0096 and 1.0075 against stage one at the seven lengths the filtered
-  sweep read; `runs-256` and `runs-512` bracket `dispRun` within a factor of two
-  and are where its own threshold is read, having had no reading of any kind;
-  at exactly 256 the slice route fires, `>= dispRun` being the condition,
-  so `runs-256` reads the boundary's own cell. Killed if it is behind the better
-  route past the floor at any length the filtered sweep read; at the two unread
-  lengths a fill win past the floor re-cuts `dispRun` inside its bracket rather
-  than killing the dispatch, the number being a bracket's representative
-  and not a measurement. **And its other half is the control**: `dispRun` is cut
-  to 9.12, HEAD's crossover sitting a step further out, between `runs-1024`
-  and `runs-65536`, so on the control half `lib-stage2-disp` takes the slice
-  route at `runs-1024` where stage two is still the better one and is predicted
-  BEHIND `lib-stage2` there by about **four points** --- stage one's 1.00
-  against stage two's 0.9583 --- where on the basis the same two read 1.0029
-  and 1.1037 and the dispatch is ahead. A threshold read on one compiler failing
-  on the other is what makes it a bracket, and a control half reproducing 9.12's
-  ordering refutes that reading. (4) *The unordered entry point.*
-  `libunord-stage1` and `libunord-stage2` put each stage's
-  `toUnorderedVectorListT` one-block test in front of its liblist body,
-  and the two tests differ in two moves: stage one compares the SIGNED strides
-  of the raw dims against the sorted shape's natural ones, stage two
-  the ABSOLUTE values of the canonical ones. Where each fires was EVALUATED
-  rather than predicted, 2026-08-30, by `./probe-oneblock.py run22-g912`, which
-  ports both tests and runs them over every view `check` prints strides for,
-  so the reading is re-derivable when the roster moves: stage two's fires
-  on **ten** of the 37 rostered class views --- every view of `rev`, `revsome`
-  and `reshape1`, `reshape1-strided-r3` included, an unordered consumer
-  not minding a permutation --- and stage one's on **none** of the 38,
-  the thirty-eighth being the check-only `reshape1-slice-off7`.
-  So `libunord-stage2` is predicted degenerate on those three whole classes,
-  a single `VS.slice` reading at or below the `list` baseline's own cell, where
-  `libunord-stage1` tracks `liblist-stage1` inside the floor there; and
-  on the six classes where neither fires both track their own stage's liblist
-  arm inside the floor, the test being one comparison a call. **The main set
-  was left unpredicted here and the roster pass then answered it, which
-  is a finding and not a reading of the run**: `check` prints no strides
-  for its rows, so neither test could be evaluated on them, but the `-L1` pass
-  of 2026-08-30 shows BOTH tests firing there --- `libunord-stage1` sinks three
-  cells and `libunord-stage2` four, on `stretch-wide-2xM`, `stretch-bigstride`,
-  `stretch-tall-Mx2` and `stretch-inner256`, every one a transposed view
-  an unordered consumer may take whole. So stage one's test is not idle
-  on the main set as it is on the classes, and **the eight sunk cells
-  are the thing to settle before the gate**, not a prediction: at `-L1`
-  those arms run at or under the shared forcing pass, so the correction cannot
-  be taken, each cell reads `--`, and three rows become geomeans over 20, 21
-  and 23 of 24 shapes where every other row covers 24. That breaks the *all rows
-  cover one population* property the Results table rests on. Killed by a margin
-  past the floor on any of the six classes where neither test fires, or by stage
-  two not collapsing on `rev`. (5) *The vecdims family's ordering, at full
-  budget.* Run 21 read `-add-in-leaf-down` **ahead** of the shipped
-  `-add-in-leaf-u2` by 5.6% and 6.7% on its two halves, and the in-process
-  re-take of 2026-08-30 reverses it, `-u2` against `-down` reading 0.8348
-  on `runs` at 7 wins of 7 --- but about fifteen of those twenty-five points
-  are `-down` moving on code the change does not touch, so that reading
-  is within-half and was recorded as not durable. Predicted: `-u2` ahead
-  of `-down` on the main set and on every class, past each population's floor,
-  and `-u2` against `-u2-down` a tie inside it. Killed if `-down` is still ahead
-  past a floor anywhere, which would say the in-process reading
-  was the displacement and not the change.
+- `ANSWERED` **What Run 22 was built to answer, registered before it ran ---
+  and what it answered.** The five registrations, their kill conditions
+  and their verdicts are [in Run 22's own
+  file](runs/run22.md#what-this-run-was-built-to-answer-and-what-it-answered),
+  where a run's registrations have lived since 2026-08-29; a registration
+  is that run's record and reads against that run's tables. **Two held, one
+  split and two were killed**, and unlike Run 21's one-sided set they share
+  a subject rather than a mistake: `fillStage2` got fast enough between the two
+  runs that a threshold, an unrolling and a family ordering all cut around
+  its old cost are each mis-cut. The headline is that Run 21's 2.43-to-4.54
+  regime-3 regression is gone --- 0.74 to 1.03 on the same six populations.
+
+- `OPEN` **`dispRun` is now demonstrably mis-cut, and its right value
+  is a measurement rather than a guess.** The threshold was set at 256 when
+  the crossover sat between `runs-9` and `runs-96`; Run 22 puts the crossover
+  between `runs-1024` and `runs-65536` on BOTH compilers, so the slice route
+  fires three lengths too early and `lib-stage2-disp` is 6.65% behind stage two
+  at `runs-1024` on the basis and 4.22% on the control, past both floors. What
+  settles it is the cheapest pair this file has been able to name in four runs:
+  one binary, one new arm per candidate threshold, over the `runs` class alone.
+  It does not want an evening and it does not want a second recipe.
+
+- `OPEN` **A hand-edited table goes stale unchecked, and this is the second run
+  running.** The run file carries two tables `--in-place` does not write ---
+  the two-column geomeans and the Provenance anchors --- and on Run 20 the first
+  was forgotten entirely, on Run 22 the second carried the previous run's
+  figures in seven of nine cells through every gate and a full checker pass.
+  It also corrupted a published figure, `--machine` resolving its fingerprint
+  off the stale row. What would settle it is a check that recomputes both
+  hand-edited tables from the JSONs, which is what `--in-place` already
+  guarantees for the other eleven.
+
+- `ANSWERED` **A run's sequence can be split across two windows and still be one
+  run.** Run 22's was stopped by hand at the `scaled`/`runs` boundary when
+  the machine was wanted back, and the two `runs` processes ran eight hours
+  later. What certifies it is the plateau gate rather than the clock: all twenty
+  processes assert their preamble victim inside a 2.60% spread against a 5%
+  band, the two late ones among them. A hand-stop three seconds into a process
+  leaves no JSON at all, so nothing had to be discarded. The account is in [Run
+  22's Provenance](runs/run22.md#provenance).
+
+- `OPEN` **The unordered entry point buys a level BELOW the result vector, which
+  no arm here had.** `libunord-stage1` and `libunord-stage2` read 0.00x
+  allocation where every mutable fill reads 1.00x: where the one-block test
+  fires they return a slice of the source and allocate nothing. Claim 7's ladder
+  has a floor under its floor. What is not known is what that is worth
+  to a consumer who cannot accept a view, and whether the test's cost is visible
+  where it does NOT fire --- Run 22 reads both arms inside the floor on the six
+  classes where it does not, which bounds it but does not price it.
+
+- `OPEN` **A candidate can lead whole classes and still fail its own
+  registration, and Run 22 has two.** `lib-stage2-u4` was killed
+  for not clearing the `runs` floor at long lengths, and leads `bcast`,
+  `bcastmid` and `scaled` by 40.3%, 47.4% and 11.9%; `lib-stage2-short`
+  was killed on `stretch-inner1` and leads `slice`, `window` and `runs`
+  by 24.8%, 67.1% and 23.5%. Both readings are sound and they are about
+  different populations. What would settle whether either ships
+  is a registration scoped to the classes they lead rather than to the length
+  sweep they were written for.
+
 - `ANSWERED` **What Run 21 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
   verdicts are [in Run 21's own file](runs/run21.md), where they were moved
@@ -2094,126 +2021,75 @@ rather than a slot in the next run, observed again:
   that run's tables.
 ### Recommended tasks after Run 22
 
-**What Run 21 made cheaper for the next run, which is not a figure and no other
-step gathers.** **The instrument that earned its place is `--replace`'s own
-echo, and it earned it by catching this session.** The mode refuses an anchor
-that is not unique, which reads like a complete guard and is not: replace two
-paragraphs in sequence and the first replacement can REMOVE the second anchor's
-other occurrence, leaving the anchor unique somewhere else entirely.
-That happened here --- a head paragraph and a paragraph of *What the next run
-compares against* shared the phrase *What holds the build to something instead*,
-the head one went first, and the second replacement then landed 2820 characters
-into the wrong section without anything refusing. What caught it was the mode
-printing `out, first` and `out, last` beside `in, first` and `in, last`; reading
-only the incoming pair is what hid it for one call. **So the rule is to read
-both sides of every `--replace`**, and the recovery is cheap for the reason
-post-run step 5 gives: the run file was committed verbatim before the write-up
-began, so the lost paragraph came back out of git exactly. That rule is now
-a bullet of post-run step 6 rather than a sentence here, which is where a fact
-that changes what an executor does belongs --- a 9a finding left in prose is one
-the next session pays for again, and this section had no way of reaching
-the lists until 2026-08-29. **Two other refusals fired and both were right**:
-`--delete` refused a 1830-character paragraph as section-shaped until
-`--delete-limit` said the deletion was meant, and `--replace` refused a list
-item that was not its list's first, naming the items it would have discarded.
-**One skipped step, recorded because this README names the trap and the session
-walked into it anyway**: `--check-doc` was read through `tail`, so the exit
-status reported was `tail`'s and not the checker's. The verdict happened
-to be the same; the practice was not, and the run chapter's own *a verification
-command must not be piped* is the rule that was there to be followed --- stated
-three times across these documents and broken anyway, which is why the answer
-taken was not a fourth statement of it: `--lint`, `--check-doc`
-and `check-scripts.py` now end with `VERDICT: PASS/FAIL (exit N)`, so a run
-piped into `tail` shows the answer instead of hiding it. **And two computations
-were improvised that the reader should own --- both filed as defect reports
-against it, and both DISCHARGED on 2026-08-29.** A per-class counted-work
-geomean had no mode, `--counts` printing per-arm rows per population
-and no aggregate over them, so the nine class figures in the run file's head
-were computed over its printed rows by hand --- and then Run 20's figure, taken
-over a different population, was published as reproducing from neither.
-`--counts` now prints the geomean over BOTH populations and names each, which
-is the fix that matters: the arithmetic was never the difficulty, the unstated
-population was. And the reading that turned out to be this run's sharpest,
-`lib-stage1` sitting ABOVE the `list` baseline at `runs-2`, came out
-of a hand-rolled per-shape ratio table over `--cells`, `--block` printing
-a per-shape line for two fixed arms and nothing that would have shown it;
-`--pair A B --per-shape` now prints the ratios the range line was already a max
-and min of and threw away. The standing rule earned its place twice over here
---- a hand-rolled aggregate is not merely inconvenient, it is how one session's
-correct figure gets called wrong by the next.
+**What Run 22 made cheaper for the next run, which is not a figure and no other
+step gathers --- and it is TWO sessions' worth, the preparation's reaching
+the executor only through the pair note.** **The preparing session's half, met
+a day early**: the check that would have caught its errors did not exist and now
+does, pre-run 12b, a read-back of what the half wrote, six defects having gone
+past eleven PASS; the two computations it improvised were which arms' code
+changed --- got wrong twice, off `git diff` hunk headers, which name
+the definition BEFORE an insertion, and then off a definition-by-definition
+diff, which cannot see a CALL --- and where each one-block test fires, done
+by reimplementing both tests over `check`'s printed strides; and what it found
+was `./smoke-l1.sh`, `ps -eo comm` truncating at fifteen characters,
+and a README code block's eight-space continuation being reflowed as a list
+where nine is left alone.
 
-**And three items left this subsection, which is what a heading naming
-the current run obliges.** *The `-down` spill reading inverted and a `-g3` dump
-was owed on it* was taken 2026-08-29, off Run 21's own twins and the STG of one
-of them, and its account is [the ceiling][ceiling]'s fifth reading: registration
-3 predicted `-u2-down` ahead of `-u2` because the count replaces `oEnd` one
-for one, and inside the fill it does --- twelve values live either way at both
-copies --- but `oEnd` is also the next run's `op`, which a count is not,
-so the run loop keeps two values more and the arm is a register poorer rather
-than richer. *What tightened the floor on Run 18* was answered by Run 19
-and its account is [the floor section][floor], which carries the 1.7x one binary
-read against itself and now Run 21's second demonstration of the same thing
-with the sign reversed; its one live remainder --- whether the spread
-of the pairs outside the restricted six is criterion's sampling alone
-or something per-process on top of it --- is carried below as a task rather
-than deleted with the item. *The bridge wanted a reader mode and has one*
-is discharged by `--compare OTHER --bridge`, whose own docstring
-in `read-run.py` says what it cancels and why `--compare` cannot; nothing else
-held that account, and now the mode does.
+**THE CHECK THAT WOULD HAVE CAUGHT THIS HALF'S ERRORS is one nobody has written,
+and the run's worst defect names it.** The Provenance anchor table
+is hand-edited rather than installed, and it survived the whole write-up
+carrying Run 21's figures in seven of its nine cells --- past `--lint`, past
+`--check-doc`, past a full first checker pass. It then corrupted a headline:
+`--machine` resolves its fingerprint by matching the last absolute in the file,
+so the main-set machine check came back off the stale row and the head published
+it as a second instrument agreeing with the gate. **A check that recomputed
+the two hand-edited tables against the JSONs, as `--in-place` guarantees
+the eleven installed ones, would have caught both** --- and this is the second
+run running in which a hand-edited table went stale, Run 20 having forgotten
+the two-column one. That is a defect report against the reader and the sharpest
+thing this run has to give the next.
 
-**One hazard found the hard way, and the check for it went in the same day.**
-A paragraph of the run file that begins a line with a bolded class name --- here
-the paragraph read `**`reshape1` sits apart at 0.9995**`, since repaired ---
-is indistinguishable from a class block's own lead, which is how
-`install-tables.sh` finds the eight blocks. It found nine, one of them
-with no table under it, and refused
-with `1 class block(s) in runs/run20.md have no run20-g912-*.json`, naming
-a JSON that was present all along. The wrap is what completes the trap:
-the phrase sat mid-line while the document was unwrapped and became a line start
-when it was wrapped, so the defect appeared at a moment when nothing had
-been edited. A rule against it is unwritable --- no author will remember it ---
-so what settles it is a check, and `--check-doc` has carried one since
-`3a3d2a0`, written hours after this entry said nothing did: it derives the eight
-names from the class section's own leads and refuses such a lead outside
-that section, naming the paragraph instead of a file that is sitting there.
-**Widened 2026-08-26, having read only as far as the class section while its own
-message said *outside* it**: Provenance, the 153 lines after it that every run
-rewrites and that name the classes throughout, went unread, where
-`install-tables.sh` greps the whole file. Both placements are cases now,
-and the Provenance one fails against the narrow form, which is what says
-the widening was not cosmetic. **And a marker on the eight leads is refused
-rather than merely not taken.** Make both of the installer's patterns require
-one and a lead that dropped it is missed by both at once: they agree,
-so the disagreement refusal cannot fire; `MISSING` compares leads against JSONs
-and never the reverse; and `read-run.py`'s third finder only warns to stderr.
-One missing word would then hand a block's figures to the block above
-it in silence, which is the 2026-08-17 incident by an easier route ---
-and the malformed lead would look exactly like today's correct one.
+**THE SECOND CHECK IS FOR THE SHAPE OF A FIX, not for a figure**, and thirteen
+of the second pass's twenty findings are the case for it: **a correction applied
+at one site of a fact the documents hold at two**. A lead over a body
+that was rewritten, a closing tally seventy lines from the tally corrected,
+a fourth cell appended to a sentence that counts three, a calibration factor
+fixed and the sentence reading it left behind, and a previous run dropped out
+of three series when *here* moved on. **A mechanical form exists**: given
+a figure just corrected, grep BOTH documents for its old value before
+committing, which is the sweep the replace list already prescribes
+for a superseded run and which nothing prescribes for a superseded figure
+of this run's own.
 
-**Two questions this run raises and does not answer, named here because two
-sentences in the run's own file point at them.** The first was the leaf block's
-ordering --- `-add-in-leaf-down` beat the shipped `-add-in-leaf-u2` by 5.1%
-on 9.12 and 6.1% on HEAD --- and it is answered, on 2026-08-27, by the `-g3`
-twin's disassembly rather than by a repetition: the shipped arm's run-level loop
-spills both base pointers and the lead is the spill, [the
-ceiling](#the-mutable-ceiling-taken) has the reading, and the answer recommends
-no change to `Data/Array/Internal.hs`. The second is whether claim 1's first
-link should be re-aimed. It reads `mut-odo-vecdims` against `mut-flat-gm`
-and so prices what a mutating `Vector` method buys against the arm
-that was fastest when the link was written; three arms now sit ahead
-of `mut-odo-vecdims` inside its own family, so the rung understates
-that by about a third while remaining true as stated. Re-aiming is a decision
-and not a reading, which is why Run 20 did not take it.
+**THE COMPUTATIONS IMPROVISED, both of which the reader should own.** PER-SHAPE
+COUNTED WORK: `--counts` aggregates per arm and prints no per-shape column,
+so the `sInner`-of-1 mechanism claim was computed from the two counts files
+directly --- which is the reader's gap by this README's own rule, and the same
+gap the checker's brief now has to name so an agent does not report the claim
+as uncheckable, which Run 22's first pass did. THE FLOOR AND SIX-PAIR FIGURES:
+derived by hand from `--aa` before `--chapter` was found to print both,
+and the restricted six identified by guessing at the pairs and being wrong,
+the definition being in a README table rather than in the reader.
 
-**And one thing this run's own checkers caught that its author did not.**
-The run file's own two-column table is one of the two edited by hand rather
-than installed; this write-up rebuilt the cross-class summary and forgot
-that one entirely. What surfaced it was `--check-doc`'s note of paragraphs
-unchanged from the previous run --- the paragraph explaining what each pair
-of columns is for stood untouched, which is exactly what a table that never
-gained its columns looks like from the prose side. The note is worth reading
-for that reason and not only for staleness: an unchanged explanation is evidence
-about the thing it explains.
+**THE STEP SKIPPED, and it is the one that cost most.** `checker-brief.txt`
+is checked in, carries all three agents' briefs, and says in its own first
+paragraph that it is not to be retyped. The first pass was launched on a brief
+typed from scratch without the file being opened, which is why three
+of that pass's seven `could not check` items were checkable: the file names
+the paths. The brief also said its evidence was *JSON artifacts and NOTHING
+ELSE*, so the file that would have saved them would also have starved them ---
+both are now fixed, and 6b leads with the file rather than mentioning it.
+
+**THE CAPABILITIES FOUND.** A sequence can be STOPPED AT A CLASS BOUNDARY
+and resumed hours later: a hand-stop three seconds into a process leaves no JSON
+at all rather than a truncated one, and the plateau gate is what certifies
+the two windows as one run --- all twenty processes inside a 2.60% spread,
+the two late ones among them. `check-scripts.py --families` scans every Python
+file in this directory, so a session's own scratch probes join the corpus
+the moment they are written and its verdict is not a property of the tracked
+tools alone. And `--replace`'s `out` lines are what catch a too-short anchor:
+this run turned `0.46%` into `0.47%` by anchoring on `6% between any two rows`,
+and the checker found it on the next pass.
 
 **Both of Run 17's items are spent, and this heading no longer carries them.**
 Its first --- which shapes poison --- was answered 2026-08-18 and its account
