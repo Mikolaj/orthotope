@@ -6627,14 +6627,32 @@ was missed, which is what they have cost.
     #      Code's own conditional, missed that the standing request
     #      discharges it, and asked. It is a STEP because it is the
     #      highest-yield thing in this list: on Run 19 it returned 22
-    #      defects, six of them whole paragraphs of the PREVIOUS run's
-    #      left standing under this run's tables, which every mechanical
-    #      gate here had passed and a truth-focused read had not caught.
-    #      TWO passes on ONE agent -- 6a's prose the moment it lands, then
-    #      prose WITH the fixes the first pass caused. The second pass is
-    #      not a formality: Run 19's found SEVEN errors introduced by the
-    #      first pass's own fixes, two of them substantive, and a session
+    #      defects that every mechanical gate here had passed and
+    #      a truth-focused read had not caught.
+    #      TWO passes on ONE agent -- 6a's prose the moment it lands,
+    #      then the prose WITH the fixes the first pass caused. The
+    #      second pass is not a formality: Run 19's found SEVEN errors
+    #      introduced by the first pass's own fixes, two of them
+    #      substantive, and Run 21's returned nine findings of which
+    #      SEVEN were created by its own first round of fixes. A session
     #      that stops at one pass ships them.
+    #      EACH PASS HAS ITS OWN SCOPE AND ITS OWN POSITION, and until
+    #      2026-08-31 the second had neither -- it was `then the prose
+    #      with the fixes`, a condition and not a place, so a session
+    #      could satisfy it anywhere or not at all.
+    #      PASS ONE reads THE RUN FILE ALONE, which is 6a's output; run
+    #      6c beside it. The checker REPORTS ONLY and edits nothing, and
+    #      6c edits the other file, so the two cannot collide; give the
+    #      pass a COMMITTED object to diff and 6c's edits cannot move
+    #      under it either. A session that waits instead idles for the
+    #      pass's whole length -- Run 22 did, seventeen minutes, having
+    #      pointed it at the working tree.
+    #      PASS TWO comes AFTER 6c and reads BOTH FILES: 6a's prose with
+    #      the fixes pass one caused, and 6c's requotes, which is the
+    #      first moment all of this run's prose exists. Scoping it to the
+    #      run file would leave README's half read by nothing but
+    #      --check-doc and your own end-to-end pass at 7, and a
+    #      cross-document figure checked on one side only.
     #      BRIEF IT WITH ALL OF THIS, since an under-briefed checker
     #      wastes its pass: it works in THIS directory; its evidence is
     #      this run's JSONs and read-run.py and nothing else; NO other
@@ -6672,6 +6690,15 @@ was missed, which is what they have cost.
     #      paragraph. A correction is a claim -- derive it, then re-run the
     #      gates. Then --lint, --check-doc, adjudicate the worklists,
     #      read end to end, and walk the diff against the writing rules.
+    #      WHAT IS VERIFIED IS EVERY FILE THIS RUN WROTE, which is more
+    #      than the run's own: `runs/$R.md` and `README.md` always, both
+    #      halves of 6 being edits, and -- where 6c reached them --
+    #      `read-run.py`'s docstring, `micro.cabal`'s `-M8G` note and
+    #      `Main.hs` wherever a comment cites a figure. --lint and
+    #      --check-doc read the two DOCUMENTS and hold cross-document
+    #      figures to agreement; the three source files are the reading's
+    #      alone, nothing gating their comments, so a stale figure there
+    #      survives every green run until someone opens the file.
     ./read-run.py --lint          # 8. again after ANY Main.hs edit, and
     #      never rebuild the pair to satisfy it: say in the write-up that
     #      the comment-only move happened
