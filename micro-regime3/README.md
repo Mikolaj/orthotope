@@ -7864,55 +7864,59 @@ ceiling](#the-mutable-ceiling-taken) turned up another by accident:
 | `bq-expand` vs adjacent twin | 1 | 0.9997 | 1.0005 | 0.24 / 0.18% |
 | `bq-scan-rem-gm-mulback` vs distant twin | 37 | 1.0017 | 0.9994 | 0.86 / 0.65% |
 
-Run 20 is paired, so each pair reads twice; the two columns are the two
-binaries, which differ in the compiler and nothing else. **Two of the six had
-a cell capped on the basis half and three on the control**, so a published
-figure above is no longer always its paired one --- `bq-scan-rem-gm-mulback`
-against its distant twin reads 1.0017 published and 1.0044 paired on the basis
-and 0.9994 against 1.0028 on the control, the two widest such gaps --- and where
-they part it is the published column that is the yardstick for comparing two
-rows of the Results table, while a margin measured per shape belongs against
-the paired figures `read-run.py --aa` prints. The three distant spans grew, 3,
-25 and 22 on Run 13 to 10, 41 and 37, the roster having gained arms between
-those twins and their bases; the three adjacent spans are unchanged.
+**That table is RUN 20's and no later run has replaced it**, which
+its `g912`/`ghead` header does not say and a reader re-stamping the section
+around it will assume otherwise. Run 20 is paired, so each pair reads twice;
+the two columns are the two binaries, which differ in the compiler and nothing
+else. **Two of the six had a cell capped on the basis half and three
+on the control**, so a published figure above is no longer always its paired one
+--- `bq-scan-rem-gm-mulback` against its distant twin reads 1.0017 published
+and 1.0044 paired on the basis and 0.9994 against 1.0028 on the control, the two
+widest such gaps --- and where they part it is the published column that
+is the yardstick for comparing two rows of the Results table, while a margin
+measured per shape belongs against the paired figures `read-run.py --aa` prints.
+The three distant spans grew, 3, 25 and 22 on Run 13 to 10, 41 and 37,
+the roster having gained arms between those twins and their bases; the three
+adjacent spans are unchanged.
 
 **On Run 22 the floor is 2.12% on the basis half and 1.08% on the control,
 and both ends tightened on the run before.** Both are over the **sixteen** A/A
 pairs this roster leaves --- `offtab`'s two twins went with its parking
-on 2026-08-28, so the eighteen-pair series ends at Run 20 --- against Run 20's
-1.51% and 1.18%, Run 19's 2.32% and 1.71%, Run 18's 1.36% and 1.42%, Run 17's
-3.70% and 3.89% and Run 16's 2.32% and 1.22%, every one of those over eighteen.
-The caveat Run 20 introduced applies again and harder: Run 22's roster
-is not Run 21's, six timed arms having landed and none left, so neither the pair
-count nor the process the pairs sit in is the same. `build-aa-distant` carries
-the basis figure and the control one alike, which no run before this had. Read
-on the six pairs that carry back to Run 10 the same run gives **0.37%
-and 0.51%**, against Run 21's 0.46% and 0.60%. **What Run 19 settled about
-the floor, Run 22 restates in the other direction.** Run 19's basis half was Run
-18's basis BINARY byte for byte and read 2.32% where that binary read 1.36%,
-a factor of 1.7 with box, roster, layout, regime and preamble all held still ---
-so the floor is a property of the RUN, re-drawn each evening. Run 22 cannot
-repeat that demonstration either, its roster having moved, and it adds
-the weaker form a third time and with the sign reversed: the same recipe
-on the same box read 2.32%, then 1.51%, then 2.92%, then 2.12% over three roster
-changes, so the movement is not a trend and nothing about it is inherited.
-**Where the movement lives is the one thing three runs now agree on.**
-The six-pair figure has read 0.54%, 0.49%, 0.44%, 0.46% and 0.37% across five
-runs on the basis while the whole-set figure ran 1.36%, 2.32%, 1.51%, 2.92%
-and 2.12%, so the pairs outside the six are what move and the six are steady
-enough to compare rows with --- with Run 21's control half the one reading
-that strains it, its six-pair figure having gone from 0.28% to 0.60%.
-The threshold this run supports is therefore two figures --- *0.37% between any
-two rows of the table* on the six-pair basis, which is what carries across runs,
-and 2.12% on the sixteen --- where Run 21 supported 0.46% and 2.92%, Run 20
-0.44% and 1.51%, Run 19 0.49% and 2.32%, Run 18 0.54% and 1.36%, Run 17 1.31%
-and 3.70%, Run 16 0.39% and 2.32%, Run 14 0.29% and 2.19%, Run 12 0.35%
-and 0.24%, Run 11 a quarter of a percent on its max-skip half and 1.21%
-on the other, Run 10 1.00% unaligned and 0.54% aligned, Run 9 under 0.1%
-with a wild cell, Run 8 0.5% and Run 7 nearly 4%. Runs disagreeing several-fold
-on the floor is itself the caution, and one binary disagreeing by 1.7x
-with itself a day later is that caution sharpened as far as it goes: read
-the floor as the run's *and the half's*, re-measured every time, never
+on 2026-08-28, so the eighteen-pair series ends at Run 20 --- against Run 21's
+2.92% and 2.16%, which is the run it tightened on and is over SIXTEEN pairs
+as this one is, and Run 20's 1.51% and 1.18%, Run 19's 2.32% and 1.71%, Run 18's
+1.36% and 1.42%, Run 17's 3.70% and 3.89% and Run 16's 2.32% and 1.22%, every
+one of THOSE over eighteen. The caveat Run 20 introduced applies again
+and harder: Run 22's roster is not Run 21's, six timed arms having landed
+and none left, so neither the pair count nor the process the pairs sit in
+is the same. `build-aa-distant` carries the basis figure and the control one
+alike, which no run before this had. Read on the six pairs that carry back
+to Run 10 the same run gives **0.37% and 0.51%**, against Run 21's 0.46%
+and 0.60%. **What Run 19 settled about the floor, Run 22 restates in the other
+direction.** Run 19's basis half was Run 18's basis BINARY byte for byte
+and read 2.32% where that binary read 1.36%, a factor of 1.7 with box, roster,
+layout, regime and preamble all held still --- so the floor is a property
+of the RUN, re-drawn each evening. Run 22 cannot repeat that demonstration
+either, its roster having moved, and it adds the weaker form a third time
+and with the sign reversed: the same recipe on the same box read 2.32%,
+then 1.51%, then 2.92%, then 2.12% over three roster changes, so the movement
+is not a trend and nothing about it is inherited. **Where the movement lives
+is the one thing three runs now agree on.** The six-pair figure has read 0.54%,
+0.49%, 0.44%, 0.46% and 0.37% across five runs on the basis while the whole-set
+figure ran 1.36%, 2.32%, 1.51%, 2.92% and 2.12%, so the pairs outside the six
+are what move and the six are steady enough to compare rows with --- with Run
+21's control half the one reading that strains it, its six-pair figure having
+gone from 0.28% to 0.60%. The threshold this run supports is therefore two
+figures --- *0.37% between any two rows of the table* on the six-pair basis,
+which is what carries across runs, and 2.12% on the sixteen --- where Run 21
+supported 0.46% and 2.92%, Run 20 0.44% and 1.51%, Run 19 0.49% and 2.32%, Run
+18 0.54% and 1.36%, Run 17 1.31% and 3.70%, Run 16 0.39% and 2.32%, Run 14 0.29%
+and 2.19%, Run 12 0.35% and 0.24%, Run 11 a quarter of a percent on its max-skip
+half and 1.21% on the other, Run 10 1.00% unaligned and 0.54% aligned, Run 9
+under 0.1% with a wild cell, Run 8 0.5% and Run 7 nearly 4%. Runs disagreeing
+several-fold on the floor is itself the caution, and one binary disagreeing
+by 1.7x with itself a day later is that caution sharpened as far as it goes:
+read the floor as the run's *and the half's*, re-measured every time, never
 as a constant of the harness and never inherited.
 
 **The twins have now taken every side available, which is what a sign this weak
@@ -7957,24 +7961,26 @@ against the control's four, every one of them an arm whose two processes differ
 by less than its interval admits. It rests on sixteen pairs since the parking
 of 2026-08-28, so one loose pair moves it more than it did on eighteen.
 
-**The class populations are where the factor still bites**, and the reason
-is arithmetic rather than noise: a two- or three-shape bootstrap gives
-an interval far narrower than the spread those shapes actually show. Run 21's
-largest factor is `rev` at **20**, with `scaled` at 12 and `revsome` at 10
-behind it, where Run 20's largest was `window` at eight, Run 18's `rev`
-at fifteen, Run 17's `revsome` at nine and Run 16's `scaled` at twenty-three;
-the rest sit between five and nine. So the factor is reporting which slot
-happened to be disturbed rather than the reader's arithmetic, and it does
-not stay with a class from run to run --- `rev` running fifteen, four and twenty
-over three runs, a box and a basis binary that did not change is this run's own
-demonstration of that. On Run 21 the class whose intervals cover 1 least often
-is `slice` at **6 of 16**, with `reshape1` and `scaled` at 7 and `runs` at 9;
-`bcast`, `bcastmid` and `window` reach 12 and `rev` and `revsome` 11. Read
-a class interval that misses 1 as the reader's arithmetic and the pair's own
-deviation as the finding. **The per-class factors are NOT with the blocks**,
-which print a floor, a worst cell and an interval count and no factor;
-that pointer stood for several runs and is retired here rather than aimed
-somewhere else.
+**The class populations are where the factor still bites, and THESE FIGURES
+ARE RUN 21'S** --- the class half of this section was not re-taken for Run 22
+and is stamped so rather than left to be read as current, the paragraphs either
+side of it saying *here* and meaning Run 22. The reason is arithmetic rather
+than noise: a two- or three-shape bootstrap gives an interval far narrower
+than the spread those shapes actually show. Run 21's largest factor is `rev`
+at **20**, with `scaled` at 12 and `revsome` at 10 behind it, where Run 20's
+largest was `window` at eight, Run 18's `rev` at fifteen, Run 17's `revsome`
+at nine and Run 16's `scaled` at twenty-three; the rest sit between five
+and nine. So the factor is reporting which slot happened to be disturbed rather
+than the reader's arithmetic, and it does not stay with a class from run to run
+--- `rev` running fifteen, four and twenty over three runs, a box and a basis
+binary that did not change is this run's own demonstration of that. On Run 21
+the class whose intervals cover 1 least often is `slice` at **6 of 16**,
+with `reshape1` and `scaled` at 7 and `runs` at 9; `bcast`, `bcastmid`
+and `window` reach 12 and `rev` and `revsome` 11. Read a class interval
+that misses 1 as the reader's arithmetic and the pair's own deviation
+as the finding. **The per-class factors are NOT with the blocks**, which print
+a floor, a worst cell and an interval count and no factor; that pointer stood
+for several runs and is retired here rather than aimed somewhere else.
 
 **And what is left when every other cause is pinned has now been measured:
 run-to-run drift is a few percent per cell and a quarter of a percent

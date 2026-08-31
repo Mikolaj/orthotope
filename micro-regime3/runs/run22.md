@@ -926,21 +926,24 @@ halves, on the rows nearest the decisions:
 **A published geomean is over the same 24 shapes, and two halves of one
 SpecConstr run usually share a denominator too**, `list` moving under 0.7%
 between them --- so such a pair may be subtracted and not merely ordered, which
-is what an -O1 reading cannot do at an 8% baseline shift. **A pair that varies
-the allocation area is the exception, and its two halves may never be subtracted
-from each other.** `list` moved **9.20%** between Run 14's halves, **5.13%**
-between Run 15's and **16.51%** between Run 16's. **Run 16's is the largest
-of the three and was registered to be the smallest**, on the reasoning
-that its two halves both sit at enlarged areas where the earlier two each
-crossed the default --- a prediction refuted by its own run, and the refutation
-is the finding: what moves the baseline is not the distance from the default
-but the in-process deflation, which at roster scale is worse at 64 MB than at 32
-MB by more than the whole default-to-32 MB step was worth. So the exception
-widens rather than narrowing, and it covers every pair that varies the area
-at all. Every cell of such a pair's second column is scaled by a denominator
-the pairing moved: read it for the pairing's direction, take no strategy quality
-off it, and read the arm-by-arm comparison at the head of this file instead,
-which divides absolutes rather than ratios.
+is what an -O1 reading cannot do at an 8% baseline shift. **THE TABLE ABOVE
+IS NOT SUCH A PAIR**, `list` having moved 0.81% on this run's main set, which
+is why the paragraph before it refuses the subtraction; *usually* is doing
+the work in this sentence and this run is the exception it allows for. **A pair
+that varies the allocation area is the exception, and its two halves may never
+be subtracted from each other.** `list` moved **9.20%** between Run 14's halves,
+**5.13%** between Run 15's and **16.51%** between Run 16's. **Run 16's
+is the largest of the three and was registered to be the smallest**,
+on the reasoning that its two halves both sit at enlarged areas where
+the earlier two each crossed the default --- a prediction refuted by its own
+run, and the refutation is the finding: what moves the baseline is
+not the distance from the default but the in-process deflation, which at roster
+scale is worse at 64 MB than at 32 MB by more than the whole default-to-32 MB
+step was worth. So the exception widens rather than narrowing, and it covers
+every pair that varies the area at all. Every cell of such a pair's second
+column is scaled by a denominator the pairing moved: read it for the pairing's
+direction, take no strategy quality off it, and read the arm-by-arm comparison
+at the head of this file instead, which divides absolutes rather than ratios.
 
 **Each stride class has its own table below.** Run 8 re-ran every class
 with the populations pinned, and every run since has again, so each class's
@@ -1394,7 +1397,11 @@ verdicts** over nine classes, the details beside each class's table:
    `lib-stage2-concat` and the two `liblist` arms, and both unordered entry
    points --- while `lib-stage2`, the three fill candidates and the dispatch
    built on it fill every run whatever its length and are the five that are not.
-   The property is stated of the fix and the fix holds.
+   **The property is stated of `mut-odo-vecdims` and holds of it; it does
+   NOT hold of what the library actually calls.** `lib-stage1` is the shipped
+   route and is among the six, at 1.3149 --- so a reader taking property 1
+   as clearance for the code that ships is reading it wider than it is stated,
+   and the class that catches the difference is `runs`.
 
 2. **The top of the table keeps its order**: `mut-odo-vecdims` fastest,
    `bq-expand` behind it. **The first clause breaks in all nine CLASS
@@ -1554,9 +1561,12 @@ looked the table up the same wrong way the paste did.
 `mut-odo-vecdims` and `worst` are that arm's two columns in that class's table;
 *best outside family* is the leading arm outside the vecdims family, what
 the dropped stride-conditioned redirect would have taken, and *ceiling*
-the leading arm of the family, each with its name, since which arm leads is half
-of what the column says; *floor* is the largest deviation from 1 among
-that process's sixteen A/A controls. A cell that breaks one of [the three
+the leading arm OF the family, each with its name, since which arm leads is half
+of what the column says --- so where property 2 breaks the two name different
+arms and the gap between them is what the break is worth, and Run 21's table,
+which repeated one arm in both columns on `bcastmid` and `reshape1`, was wrong
+to; *floor* is the largest deviation from 1 among that process's sixteen A/A
+controls. A cell that breaks one of [the three
 properties](#the-claims-the-next-run-should-test) is bolded, and the class's own
 paragraph says what broke.
 
@@ -1633,15 +1643,15 @@ check counts.
 
 | class | shapes | mut-odo-vecdims | worst | best outside family | ceiling | floor |
 |---|---:|---:|---:|---|---|---:|
-| `rev` | 3 | 0.046 | 0.067 | **`libunord-stage2`** 0.001 | **`libunord-stage2`** 0.001 | 2.35% |
-| `revsome` | 3 | 0.048 | 0.058 | **`libunord-stage2`** 0.000 | **`libunord-stage2`** 0.000 | 3.31% |
-| `bcast` | 3 | 0.035 | 0.062 | **`lib-stage2-u4`** 0.019 | **`lib-stage2-u4`** 0.019 | 4.57% |
-| `bcastmid` | 4 | 0.032 | 0.058 | **`lib-stage2-u4`** 0.017 | **`lib-stage2-u4`** 0.017 | 5.39% |
-| `reshape1` | 4 | 0.094 | 0.109 | **`libunord-stage2`** 0.000 | **`libunord-stage2`** 0.000 | 4.96% |
-| `slice` | 3 | 0.040 | 0.057 | **`lib-stage2-short`** 0.030 | **`lib-stage2-short`** 0.030 | 3.44% |
-| `window` | 3 | 0.062 | 0.095 | **`lib-stage2-short`** 0.020 | **`lib-stage2-short`** 0.020 | 4.77% |
-| `scaled` | 3 | 0.032 | 0.033 | **`lib-stage2-u4`** 0.026 | **`lib-stage2-u4`** 0.026 | 4.14% |
-| `runs` | 11 | 0.034 | 0.063 | **`lib-stage2-short`** 0.027 | **`lib-stage2-short`** 0.027 | 3.26% |
+| `rev` | 3 | 0.046 | 0.067 | **`libunord-stage2`** 0.001 | `mut-odo-vecdims-add-in-leaf-u2` 0.029 | 2.35% |
+| `revsome` | 3 | 0.048 | 0.058 | **`libunord-stage2`** 0.000 | `mut-odo-vecdims-add-in-leaf-u2` 0.027 | 3.31% |
+| `bcast` | 3 | 0.035 | 0.062 | **`lib-stage2-u4`** 0.019 | `mut-odo-vecdims-add-in-leaf` 0.022 | 4.57% |
+| `bcastmid` | 4 | 0.032 | 0.058 | **`lib-stage2-u4`** 0.017 | `mut-odo-vecdims-add-in-leaf-u2` 0.022 | 5.39% |
+| `reshape1` | 4 | 0.094 | 0.109 | **`libunord-stage2`** 0.000 | `mut-odo-vecdims-add-in-leaf-u2-down` 0.024 | 4.96% |
+| `slice` | 3 | 0.040 | 0.057 | **`lib-stage2-short`** 0.030 | `mut-odo-vecdims-add-in-leaf-u2` 0.030 | 3.44% |
+| `window` | 3 | 0.062 | 0.095 | **`lib-stage2-short`** 0.020 | `mut-odo-vecdims-add-in-leaf-u2` 0.029 | 4.77% |
+| `scaled` | 3 | 0.032 | 0.033 | **`lib-stage2-u4`** 0.026 | `mut-odo-vecdims-add-in-leaf-u2` 0.027 | 4.14% |
+| `runs` | 11 | 0.034 | 0.063 | **`lib-stage2-short`** 0.027 | `mut-odo-vecdims-add-in-leaf-u2` 0.028 | 3.26% |
 
 The floor-movement paragraph that stood here was cut on 2026-08-22, having read
 Run 16's column against Run 15's while Run 17 installed this one over it ---
@@ -2553,12 +2563,19 @@ at 16:41:21 to 18:26:27, on a box the driver measured at 0.6% non-idle before
 it started, under the same launch line and with the same four per-process
 assertions the sequence applies --- exit status, bench count read
 from the binary, one `@@saturate` line, `@@wild` stamps present. **What makes
-the twenty one run rather than two is the plateau gate**: every process asserts
-its preamble victim inside **19.8075 to 20.3228 ms/iter, a 2.60% spread**
-against a 5% band, the two late ones among them. No population was rerun
-for an intrusion, no gate failed, and post-run step 1c is owed nothing.
-A session comparing elapsed times against this run's wall-clock log must read
-the two `runs` processes as their own window.
+the twenty one run rather than two is TWO things and the chapter names only
+the first.** The procedure's own warrant is that one process per population
+is what makes more than one window harmless, each carrying its own controls
+and its own three gates, neither inherited nor lent --- which this run
+satisfies, and which is why post-run step 1c's *a pair read across two windows
+is not a pair* is met too, BOTH `runs` halves having been re-driven together
+rather than a clean one left beside an exposed twin. The evidence on top
+of it is the plateau gate: every process asserts its preamble victim inside
+**19.8075 to 20.3228 ms/iter, a 2.60% spread** against a 5% band, the two late
+ones among them, so the second window measured in the state the first did.
+No population was rerun for an intrusion, no gate failed, and post-run step 1c
+is owed nothing. A session comparing elapsed times against this run's wall-clock
+log must read the two `runs` processes as their own window.
 
 **The pair's own identity, transcribed before its note goes with it.** The two
 binaries are `run22-g912`, md5 `9bac6d77a913f139171430874f99b985`,
