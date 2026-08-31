@@ -2105,7 +2105,7 @@ only the incoming pair is what hid it for one call. **So the rule is to read
 both sides of every `--replace`**, and the recovery is cheap for the reason
 post-run step 5 gives: the run file was committed verbatim before the write-up
 began, so the lost paragraph came back out of git exactly. That rule is now
-a line of post-run step 6c rather than a sentence here, which is where a fact
+a bullet of post-run step 6 rather than a sentence here, which is where a fact
 that changes what an executor does belongs --- a 9a finding left in prose is one
 the next session pays for again, and this section had no way of reaching
 the lists until 2026-08-29. **Two other refusals fired and both were right**:
@@ -6573,30 +6573,52 @@ was missed, which is what they have cost.
     #   6. walk the replace list under Provenance, re-run the two sweeps it
     #      names, and map every hit to the bullet covering it -- running
     #      them is not reading them. REPLACE, do not annotate: a figure that
-    #      moved inside the floor is requoted without comment.
-    #      UNWRAP BOTH DOCUMENTS FIRST, and again at the head of every
-    #      turn that edits them -- `wrap80 --unwrap -i`. The write-up is
-    #      done unwrapped and the stretch ends at every turn boundary
-    #      whether you like it or not: `wrap-restore` runs on Stop and
-    #      before any git commit, so a document unwrapped in one turn is
-    #      wrapped again in the next and every anchor spanning a line
-    #      break stops matching, an --replace or an exact-match edit then
-    #      reporting no match at all. Never wrap by hand -- a
-    #      hand-wrapped paragraph is the one thing --check-doc's wrap pass
-    #      FAILS, where a paragraph left long is mid-edit and passes. The
-    #      rules are in ~/.claude/rules/markdown-wrapping.md, which does
-    #      not reliably load; read it before the first edit. THIS IS PART
-    #      OF 6 AND NOT A SUB-STEP because it governs 6a, 6b and 6c alike
-    #      and is a precondition rather than an action: it was 6d until
-    #      2026-08-31, and a session that met it there met it after an
-    #      install had already reported no match on a rewrapped file
-    #      IT IS TWO HALVES IN TWO FILES, 6a and 6b below, and the list
-    #      does not look like it: the replace list's FIRST bullet is the
-    #      run's own file ENTIRE and every other bullet is a README
-    #      section, so a session reading 6 as one walk writes a whole
-    #      document without a step naming that it did. Split 2026-08-31,
-    #      after a run wrote the two halves hours apart and could point
-    #      at no step for either
+    #      moved inside the floor is requoted without comment. The three
+    #      bullets below GOVERN the walk rather than following it, which
+    #      is why they are bullets and not sub-steps; 6a and 6b ARE it
+    #      * UNWRAP BOTH DOCUMENTS FIRST, and again at the head of every
+    #        turn that edits them -- `wrap80 --unwrap -i`. The write-up is
+    #        done unwrapped and the stretch ends at every turn boundary
+    #        whether you like it or not: `wrap-restore` runs on Stop and
+    #        before any git commit, so a document unwrapped in one turn is
+    #        wrapped again in the next and every anchor spanning a line
+    #        break stops matching, a `--replace` or an exact-match edit
+    #        then reporting no match at all. Never wrap by hand -- a
+    #        hand-wrapped paragraph is the one thing --check-doc's wrap
+    #        pass FAILS, where a paragraph left long is mid-edit and
+    #        passes. The rules are in
+    #        ~/.claude/rules/markdown-wrapping.md, which does not reliably
+    #        load; read it before the first edit. A precondition and not
+    #        an action: it was step 6d until 2026-08-31, and a session
+    #        that met it there met it after an install had already
+    #        reported no match on a rewrapped file
+    #      * REPLACE BY ANCHOR, the method for every prose edit here, and
+    #        it REACHES PAST 6: 6a and 6b, then 7's corrections and 9, 9a
+    #        and 10, which all edit paragraphs too. `--replace ANCHOR
+    #        --with FILE` swaps a paragraph without its old text passing
+    #        through a transcript, which is what quoting it into a script
+    #        costs and what Run 18 paid sixty times over. Quote only what
+    #        you are EDITING. It searches BOTH documents and refuses an
+    #        anchor found in each, so which file holds a paragraph is not
+    #        yours to know first; `--para` prints the file it found one in
+    #        READ THE `out` LINES AND NOT ONLY THE `in` ONES. Refusing a
+    #        non-unique anchor reads like a complete guard and is not:
+    #        replace two paragraphs in a row and the FIRST replacement can
+    #        remove the second anchor's other occurrence, leaving it
+    #        unique somewhere you did not mean. The mode prints `out,
+    #        first` and `out, last` beside the `in` pair for exactly this,
+    #        and reading only the `in` pair is what hides it -- Run 21 put
+    #        a head paragraph 2820 characters into the wrong section that
+    #        way, and recovered it only because step 5 had committed the
+    #        copy. It was step 6c until 2026-08-31, where being numbered
+    #        among the halves read as belonging to one of them
+    #      * TWO HALVES IN TWO FILES, 6a and 6b below, and the replace
+    #        list does not look like it: its FIRST bullet is the run's own
+    #        file ENTIRE and every other bullet is a README section, so a
+    #        session reading 6 as one walk writes a whole document with no
+    #        step naming that it did. Split 2026-08-31, after a run wrote
+    #        the two halves hours apart and could point at no step for
+    #        either
     #  6a. THE RUN'S OWN FILE, which is that first bullet and is the bulk
     #      of the run: its head, Results and the findings under it, what
     #      the next run compares against with its hand-edited two-column
@@ -6617,22 +6639,6 @@ was missed, which is what they have cost.
     #      agreement, so a half-done 6b FAILS that gate rather than
     #      passing quietly, which is the one place this half announces
     #      itself
-    #  6c. REPLACE BY ANCHOR: `--replace ANCHOR --with FILE` swaps a
-    #      paragraph without its old text passing through a transcript,
-    #      which is what quoting it into a script costs and what Run 18
-    #      paid sixty times over. Quote only what you are EDITING. It
-    #      searches BOTH documents and refuses an anchor found in each,
-    #      so which file holds a paragraph is not yours to know first;
-    #      `--para` prints the file it found one in
-    #      READ THE `out` LINES AND NOT ONLY THE `in` ONES. Refusing a
-    #      non-unique anchor reads like a complete guard and is not:
-    #      replace two paragraphs in a row and the FIRST replacement can
-    #      remove the second anchor's other occurrence, leaving it unique
-    #      somewhere you did not mean. The mode prints `out, first` and
-    #      `out, last` beside the `in` pair for exactly this, and reading
-    #      only the `in` pair is what hides it -- Run 21 put a head
-    #      paragraph 2820 characters into the wrong section that way,
-    #      and recovered it only because step 5 had committed the copy
     #   7. verify. Every count and ratio comes from --cells or --pair, never
     #      from a printed table, which is rounded to three figures; before
     #      re-deriving a figure a previous run published, reproduce THAT
