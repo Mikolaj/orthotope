@@ -6760,6 +6760,29 @@ whose window closes, the artifacts being what it spends.
 
 
 
+0. **Name the fill groups, and spend the other load-independent measurements,
+   before the artifacts go --- first, because this is the only step whose window
+   closes.** Allocation is deterministic per call, Core is a compile,
+   and a binary's size is a `size` invocation --- none of them wants a quiet
+   machine or a run slot, and each is minutes. Run 8 stopped at the write-up
+   and left a Core diff, a two-regime `diag` and a code-size figure undone; all
+   three were done later, two of them changed rulings, and one answered an open
+   question outright. So before the offer at step 11, take every question
+   the open list already carries whose measurement is a compile, an allocation
+   or an arithmetic re-derivation, and take it now --- the questions this run
+   raises are step 10's and get their turn there. **One of them is owed by every
+   paired run and is named here so it is not rediscovered: export the pair's
+   NAMED fills into its note.** `loop-offsets.py` names a copy only in a `-g3`
+   build, so each half's recipe is rebuilt with `-g3` added and the twin's
+   groups matched to the timed ones by byte identity of the loop body --- never
+   by proximity or by which group sorts first. Bare offsets are what the note
+   records otherwise, and the map is a property of the binary: once the binaries
+   go, no offset this README quotes can ever be tied to an arm again. Run 12's
+   were derived this way on the last day they existed and refuted two accounts
+   of its own split; Run 10's and Run 11's are gone unnamed. What is left
+   over is the timing work, which is what a quiet machine is for. Nothing above
+   this step is owed first: it reads the binaries rather than the measurements,
+   so it does not wait on the gates either.
 1. **Gate every population on the correction, before reading any figure ---
    and read the A/A *worst cell*, not only the pair's geomean.** A control
    that passes its gate can still be the run's most informative measurement:
@@ -6872,6 +6895,45 @@ says so.
    20's checker had to snapshot it and diff against its own copy. The cost
    is one commit whose content is a verbatim copy, which reads as diary until
    the next diff makes it legible.
+5a. **Install the tables with `--in-place` rather than pasting them.**
+`--markdown`, `--fingerprint`, `--block` and `--claims` each take it ---
+the last installing a `Readings:` paragraph under each claim's lead rather
+than a table --- and each refuses rather than guessing: the match is by whole
+line, the count is asserted, and a class table is narrowed by its block's bolded
+lead. **A claim's reading is placed by its `**Claim N` lead the same way, which
+is prose the write-up is editing while it works**: rename a lead and the install
+that fills the paragraph beneath it refuses, naming the claim. Hand-pasting
+is what this replaces, and the reason is on the record --- the cross-class
+summary's header is written out twice, once indented as the spec that fixes
+the columns, and a session locating the table by searching for that text put Run
+8's rows under the spec and left Run 7's table standing, with every check green
+because the check looked it up the same way. If you paste by hand anyway, do
+not edit the table: it renders the same rows the terminal does, and carries
+`needs` and the emphasis forward from the table already there. `--aa`
+and `--block` both take `--brief`, which drops the standing explanation
+and the table `--in-place` installs anyway, costing no computed figure; across
+a run's processes that is several hundred lines you have already read.
+Its stderr is the whole of what is left by hand: a row new to the roster comes
+out with `?`, a departed row is dropped with a warning. Run 9 had ten such rows
+and filled them from a note written here before the run, which is the practice
+to repeat whenever a roster change is known in advance --- the cell then gets
+transcribed rather than invented at the end of a long day. Each class JSON emits
+its own table the same way and is pasted the same way, into its block in [The
+stride classes, run by run](runs/run22.md#the-stride-classes-run-by-run);
+those come out six columns wide, `needs` being a property of a strategy rather
+than of a population and so stated in the main table alone. The per-shape
+fingerprint is pasted the same way, whole, from `--fingerprint`.
+
+**Assemble the cross-class summary last, from the tables and not
+from the JSONs.** Every cell of it appears in one of the class tables above it,
+so it is a transcription and is checked as one --- cell against table, each
+in turn --- where recomputing it from the runs would be a second derivation able
+to disagree with the tables it summarises. **Each class's `--block` now checks
+its own row** and names the cell on stderr, so `install-tables.sh` reports
+a wrong transcription among what it leaves you; the table stays hand-assembled
+because its emphasis is a judgement no reader can derive, and the marks have
+already drifted between runs.
+
 6. Walk the list under [Provenance](#provenance) of what the new numbers
    replace, and do not trust it to be complete: re-run the two sweeps it names
    and map each hit to the bullet covering it, since running the sweeps
@@ -6912,12 +6974,14 @@ size comes from the reader's first line;
    else is to be reached for. Four passes, in this order:** run
    `./read-run.py --lint` and `--check-doc` --- **without `--quiet`, this being
    the one call that reads the worklists rather than the verdict** --- whose
-   exit codes are the verdict; read the worklists they print and adjudicate each
-   entry; read the write-up end to end against the run's own artifacts; and hand
-   the diff to an independent checker, which the paragraph after next briefs.
-   None of them is optional, the third is the one that keeps finding real
-   errors, and the fourth is what catches what the third cannot see in its own
-   writing.
+   exit codes are the verdict, anchors and the replace list's coverage of every
+   figure-bearing section among what they settle; read the worklists they print
+   and adjudicate each entry; read the write-up end to end against the run's own
+   artifacts; and hand the diff to an independent checker, which the paragraph
+   after next briefs. None of them is optional --- and the first is re-run after
+   the fixing, findings renaming headings and a renamed heading breaking a link
+   silently. The third is the one that keeps finding real errors, and the fourth
+   is what catches what the third cannot see in its own writing.
 
    **REPLACE A PARAGRAPH BY ITS ANCHOR, NOT BY QUOTING IT.**
    `./read-run.py --replace ANCHOR --with FILE` swaps the paragraph carrying
@@ -7142,52 +7206,7 @@ size comes from the reader's first line;
       was neither sampling nor sample size but which clock was being read. Until
       it is located, neither number is evidence, and a retraction made
       on the strength of the wrong one is worse than the claim it withdrew;
-   4. **install the tables with `--in-place` rather than pasting them.**
-      `--markdown`, `--fingerprint`, `--block` and `--claims` each take it ---
-      the last installing a `Readings:` paragraph under each claim's lead rather
-      than a table --- and each refuses rather than guessing: the match
-      is by whole line, the count is asserted, and a class table is narrowed
-      by its block's bolded lead. **A claim's reading is placed
-      by its `**Claim N` lead the same way, which is prose the write-up
-      is editing while it works**: rename a lead and the install that fills
-      the paragraph beneath it refuses, naming the claim. Hand-pasting is what
-      this replaces, and the reason is on the record --- the cross-class
-      summary's header is written out twice, once indented as the spec
-      that fixes the columns, and a session locating the table by searching
-      for that text put Run 8's rows under the spec and left Run 7's table
-      standing, with every check green because the check looked it up the same
-      way. If you paste by hand anyway, do not edit the table: it renders
-      the same rows the terminal does, and carries `needs` and the emphasis
-      forward from the table already there. `--aa` and `--block` both take
-      `--brief`, which drops the standing explanation and the table `--in-place`
-      installs anyway, costing no computed figure; across a run's processes
-      that is several hundred lines you have already read. Its stderr
-      is the whole of what is left by hand: a row new to the roster comes out
-      with `?`, a departed row is dropped with a warning. Run 9 had ten such
-      rows and filled them from a note written here before the run, which
-      is the practice to repeat whenever a roster change is known in advance ---
-      the cell then gets transcribed rather than invented at the end of a long
-      day. Each class JSON emits its own table the same way and is pasted
-      the same way, into its block in [The stride classes, run
-      by run](runs/run22.md#the-stride-classes-run-by-run); those come out six
-      columns wide, `needs` being a property of a strategy rather than
-      of a population and so stated in the main table alone. The per-shape
-      fingerprint is pasted the same way, whole, from `--fingerprint`;
-   5. **assemble the cross-class summary last, from the tables and not
-      from the JSONs.** Every cell of it appears in one of the class tables
-      above it, so it is a transcription and is checked as one --- cell against
-      table, each in turn --- where recomputing it from the runs would
-      be a second derivation able to disagree with the tables it summarises.
-      **Each class's `--block` now checks its own row** and names the cell
-      on stderr, so `install-tables.sh` reports a wrong transcription among what
-      it leaves you; the table stays hand-assembled because its emphasis
-      is a judgement no reader can derive, and the marks have already drifted
-      between runs;
-   6. **check that every `](#...)` resolves**, here and in `Main.hs`'s
-      `README.md#...` references, and that every figure-bearing section
-      is linked from the Provenance list. Findings rename headings,
-      and a renamed heading breaks a link silently;
-   7. **walk the diff against the writing rules as a check of its own, not only
+   4. **walk the diff against the writing rules as a check of its own, not only
       while writing.** The replace-list walk manufactures "now X, where
       it was Y", requoting a count in place preserves a sentence that should
       have lost its numeral, and a class paragraph's close invites a mechanism
@@ -7196,7 +7215,7 @@ size comes from the reader's first line;
       reading the file around them, but the redo test itself is the reader's.
       Run 7's write-up carried fifteen-odd such sentences past every green check
       here, found only when a reader asked;
-   8. **read the document end to end**, and aim the reading at what
+   5. **read the document end to end**, and aim the reading at what
       the instruments cannot see. The mechanical passes above do not catch
       a bullet contradicting the table three lines below it, which is how
       "`bq-mut` ties `bq-expand`" survived two runs beside a build ordering
@@ -7257,25 +7276,6 @@ size comes from the reader's first line;
     was answered into the answered block with its measurement, leave what
     a probe narrowed as narrowed, and add the run's surprises
     with the measurement that would settle each.
-11. **Spend the load-independent measurements before the artifacts go.**
-    Allocation is deterministic per call, Core is a compile, and a binary's size
-    is a `size` invocation --- none of them wants a quiet machine or a run slot,
-    and each is minutes. Run 8 stopped at the write-up and left a Core diff,
-    a two-regime `diag` and a code-size figure undone; all three were done
-    later, two of them changed rulings, and one answered an open question
-    outright. So before step 11, take every question on the open list whose
-    measurement is a compile, an allocation or an arithmetic re-derivation,
-    and take it now. **One of them is owed by every paired run and is named here
-    so it is not rediscovered: export the pair's NAMED fills into its note.**
-    `loop-offsets.py` names a copy only in a `-g3` build, so each half's recipe
-    is rebuilt with `-g3` added and the twin's groups matched to the timed ones
-    by byte identity of the loop body --- never by proximity or by which group
-    sorts first. Bare offsets are what the note records otherwise, and the map
-    is a property of the binary: once the binaries go, no offset this README
-    quotes can ever be tied to an arm again. Run 12's were derived this way
-    on the last day they existed and refuted two accounts of its own split; Run
-    10's and Run 11's are gone unnamed. What is left over is the timing work,
-    which is what a quiet machine is for.
 11. **Only then, offer the artifacts for deletion --- once --- and abide
     by the answer.** The JSONs, the logs and the wall-clock file, and
     for a paired run the two binaries and their `$R-pair.txt` with them,
