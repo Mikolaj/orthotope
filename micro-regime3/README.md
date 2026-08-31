@@ -2212,13 +2212,13 @@ is planned. A scope limit belongs in the sentence that asks for the measurement.
    whose paired figure of 2.12% IS this run's floor, while both `mut-odo` twins
    sit ABOVE their base on the basis at 1.0059 and 1.0034 and BELOW it
    on the control at 0.9993 and 0.9895 --- paired figures, which for this capped
-   pair carry the opposite sign to the published column, and post-run step 11
-   has now named that base's tracked loop and put it at offset 0 on both halves
-   --- so the spread is not the cache-line offset of the tracked loop. **What
-   would settle it**: one binary run over the roster several times in one
-   evening, which needs no pair and no second recipe, and which separates
-   per-process variation from sampling inside a bench directly. It
-   is the cheapest unspent measurement this file has.
+   pair carry the opposite sign to the published column, and post-run step 0 has
+   now named that base's tracked loop and put it at offset 0 on both halves ---
+   so the spread is not the cache-line offset of the tracked loop. **What would
+   settle it**: one binary run over the roster several times in one evening,
+   which needs no pair and no second recipe, and which separates per-process
+   variation from sampling inside a bench directly. It is the cheapest unspent
+   measurement this file has.
 4. `ANSWERED` **Task 1's residue was two things and neither was the branch's
    code, 2026-08-30.** **The shim's padding was most of it.** The two unrolled
    bodies are the same code and differ by one alignment nop, and a build without
@@ -5023,8 +5023,10 @@ and never as a chronology.
     #      2, 3 AND 3a RUN AFTER 3b, being read-backs of what 3b transcribes:
     #      there is nothing to sum, and nothing to check a transcription
     #      against, until both halves are built. The numbers are the prose's
-    #      own and do not move, so this is an instruction about ORDER and not
-    #      a renumbering -- as at post-run step 11
+    #      own and do not move. THIS IS AN INSTRUCTION ABOUT ORDER AND THE
+    #      NUMBERING SHOULD CARRY IT: the post-run list had the same shape
+    #      and lost it on 2026-09-01 by renumbering its last-but-one step
+    #      to 0, which is what these four want too
     #  the :/ pathspec resolves from the repo root, so these answer the same
     #  from anywhere; a bare `-- Main.hs` run from the root prints nothing
     #  and exits 0, which reads exactly like an unmoved source
@@ -5653,7 +5655,7 @@ above refuses whatever their age.
 
 **And before any of that, the previous run has to be finished.** Nothing
 in this list asks, and starting on top of a half-written write-up is a wrong
-start no later step catches: the artifacts of a run whose step 12 was never
+start no later step catches: the artifacts of a run whose step 11 was never
 reached look exactly like those of one whose deletion offer was declined.
 The evidence is on the disk and in the open list --- `runs/` already carries
 a file for your run, and the open list carries its registration.
@@ -6327,15 +6329,34 @@ at the wrong reason; the prose is where the reasons live and is not replaced
 by this. What it replaces is reading the twelve paragraphs three times
 to be sure nothing was missed, which is what they have cost.
 
-    #  DO STEP 11 AS SOON AS THESE GATES PASS, out of order and before
-    #      any prose. It is the only step whose window closes -- it spends
-    #      the artifacts -- and it is numbered last but one, so it is what
-    #      a session that runs out of will loses. On Run 18 it produced
-    #      the sharpest finding of the evening, the two add-in arms
-    #      swapping cache-line offsets between the compilers, which no
-    #      later session could have recovered once the binaries went. The
-    #      numbers here are the prose's own and do not move, so this is an
-    #      instruction about ORDER and not a renumbering
+    #   0. NAME THE FILL GROUPS off a -g3 twin, and spend the other
+    #      load-independent measurements while the artifacts live --
+    #      allocation, Core, a `size` invocation, minutes each. FIRST,
+    #      because it is the only step whose window CLOSES: it spends the
+    #      binaries, and every step below it can be taken afterwards from
+    #      the JSONs and the two documents. It does not wait on the gates
+    #      either, reading the binaries rather than the measurements,
+    #      which is what lets it go here. It was numbered last but one
+    #      until 2026-09-01, with a paragraph in this position telling a
+    #      session to take it out of order -- which is what a wrong
+    #      number costs, and the reason it is 0 rather than explained.
+    #      The naming is what the step is for and reads like
+    #      housekeeping: it turns `[0, 24, 0, 4]` into four arms, and on
+    #      Run 17 it collapsed two of this README's open questions into
+    #      one object by showing the `[0, 0]` group IS the build/mut-odo
+    #      residue; on Run 18 it produced the sharpest finding of the
+    #      evening, the two add-in arms swapping cache-line offsets
+    #      between the compilers, which no later session could have
+    #      recovered once the binaries went.
+    #      Owed by every paired run: rebuild each recipe with -g3, export
+    #      the NAMED fills into the note, match groups by byte identity
+    #      of the loop body and never by proximity, and read the count
+    #      check -- a group whose twin carries fewer copies than the
+    #      timed binary is not named from the twin at all. THAT CHECK IS
+    #      WHAT MAKES A NEGATIVE HONEST: Run 22's twin named one of four
+    #      straddling loops and refused the other three, having no
+    #      byte-identical copy of them, and the one it did name sits in
+    #      the branch's own fill.
     ./read-all.sh $R                                  # 1. gate EVERY
     #      process -- both halves of every population, which is twenty
     #      --selftest and twenty --aa, and ten is what counting by hand
@@ -6724,19 +6745,7 @@ to be sure nothing was missed, which is what they have cost.
     #      correct with -- the one figure here a session had to hand-roll
     #      before the mode existed, and the one place it would reach for
     #      the wrong numerator
-    #  11. NAME THE FILL GROUPS off a -g3 twin, and spend the other
-    #      load-independent measurements while the artifacts live --
-    #      allocation, Core, a `size` invocation, minutes each. The naming
-    #      is what this step is for and reads like housekeeping: it turns
-    #      `[0, 24, 0, 4]` into four arms, and on Run 17 it collapsed two
-    #      of this README's open questions into one object by showing the
-    #      `[0, 0]` group IS the build/mut-odo residue. Owed by every
-    #      paired run: rebuild each recipe with -g3, export the NAMED
-    #      fills into the note, match groups by byte identity of the loop
-    #      body and never by proximity, and read the count check -- a
-    #      group whose twin carries fewer copies than the timed binary is
-    #      not named from the twin at all
-    #  12. offer the artifacts for deletion -- the JSONs, the logs, the
+    #  11. offer the artifacts for deletion -- the JSONs, the logs, the
     #      wall-clock file, and for a pair both binaries and $R-pair.txt --
     #      once, after step 7 is done AND presented, saying what keeping
     #      them buys. Offering is the step; deleting is not
@@ -6744,9 +6753,10 @@ to be sure nothing was missed, which is what they have cost.
 Steps 1 to 4a are readings and cost only tool calls; 5, 5a and 6's two halves
 write; 6b, 6d and 6e are what find things, and 7 is where what they find
 is applied. The same contract holds here: the operative facts are in the list,
-the reasons are below it, and step 11's window closes when the artifacts go.
-The step most often skipped is 11, because by then the run reads finished,
-and it is the only one whose window closes: the artifacts are what it spends.
+the reasons are below it, and step 0's window closes when the artifacts go.
+It was step 11 and was the step most often skipped, because by then the run read
+finished; putting it first is what retires that, and it is still the only one
+whose window closes, the artifacts being what it spends.
 
 
 
@@ -7253,7 +7263,7 @@ size comes from the reader's first line;
     and each is minutes. Run 8 stopped at the write-up and left a Core diff,
     a two-regime `diag` and a code-size figure undone; all three were done
     later, two of them changed rulings, and one answered an open question
-    outright. So before step 12, take every question on the open list whose
+    outright. So before step 11, take every question on the open list whose
     measurement is a compile, an allocation or an arithmetic re-derivation,
     and take it now. **One of them is owed by every paired run and is named here
     so it is not rediscovered: export the pair's NAMED fills into its note.**
@@ -7266,7 +7276,7 @@ size comes from the reader's first line;
     on the last day they existed and refuted two accounts of its own split; Run
     10's and Run 11's are gone unnamed. What is left over is the timing work,
     which is what a quiet machine is for.
-12. **Only then, offer the artifacts for deletion --- once --- and abide
+11. **Only then, offer the artifacts for deletion --- once --- and abide
     by the answer.** The JSONs, the logs and the wall-clock file, and
     for a paired run the two binaries and their `$R-pair.txt` with them,
     that note being about a pair and worth little once the pair is gone.
@@ -7891,10 +7901,10 @@ question][open] asks about, which is an effect size that survived a control
 rather than a spread the run measured. The exceptions are `build` and `mut-odo`,
 one worker at two slots, whose cells reach 1.129 on this run's basis and 1.126
 on its control --- and Run 21 is the run that took the reading those two have
-always wanted: post-run step 11 named the tracked two-copy group off a `-g3`
-twin and it IS `fbBuild` and `fbMutOdo`, both at offset 0 in their cache line
-on BOTH halves. So the residue the pairing cannot reach is not a cache-line
-offset, and what it is remains [the open list][open]'s.
+always wanted: post-run step 0 named the tracked two-copy group off a `-g3` twin
+and it IS `fbBuild` and `fbMutOdo`, both at offset 0 in their cache line on BOTH
+halves. So the residue the pairing cannot reach is not a cache-line offset,
+and what it is remains [the open list][open]'s.
 
 **And a busy machine has now been measured rather than only avoided, which
 is what says the wild cell is not one.** Run 11's sequence was launched twice;

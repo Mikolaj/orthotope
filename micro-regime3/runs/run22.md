@@ -58,7 +58,7 @@ of the fills says how far the addresses went: `run21-g912` held its six-copy
 group at `[0, 0, 24, 0, 0, 8]` and `run22-g912` holds one
 at `[0, 0, 24, 0, 0, 24]`, no tracked address surviving and none moved
 by a constant, five of the six mod-64 offsets those Run 21 held and the sixth
---- `fbCanonVecdims`, named at post-run step 11 --- moved from 8 to 24.
+--- `fbCanonVecdims`, named at post-run step 0 --- moved from 8 to 24.
 
 **What holds the build to something instead is four readings that survive
 a relink.** The gate's machine check reads **-0.87%** on `list`'s net against
@@ -377,7 +377,7 @@ against the base's own row. The pair is capped, which is the one case the two
 statistics part; read the table for the column and these for the pair, and never
 the two as one picture --- so `mut-odo`'s base slot is the fast one on 9.12
 and the slow one on HEAD, and the pair above is reading that rather
-than anything about the two workers. Post-run step 11 named the two-copy group
+than anything about the two workers. Post-run step 0 named the two-copy group
 off a `-g3` twin again --- `fbBuild` at `0x423e00` and `fbMutOdo` at `0x42ed40`,
 both at offset 0 on both halves and at addresses identical in twin and timed
 binary --- so what separates these two slots is not where the tracked loop
@@ -411,15 +411,14 @@ it this run at 1.0069, as are `revsome`, `bcast` and `slice`.
 **And the one straddling loop this run can name lies in the branch's own fill.**
 The build-time reading found four self-loops straddling a cache line
 in the basis half's `Main`-compiled code where Run 21 found none, and post-run
-step 11's `-g3` twin can name exactly one of them: the 6-byte loop
-at `0x42207c`, offset 60, which is byte-identical in the twin **at the same
-address** and which the twin's DWARF puts inside `fillStage2`, in the `copies`
-loop that doubles a canonical run by `unsafeCopy`. The other three are 63-byte
-bodies of which the twin holds no byte-identical copy --- it carries 152
-self-loops and one straddler against the timed binary's 158 and four --- so they
-are not named from it, and the source lines it offers at those addresses
-are discarded as read off code that is not the same code. [What moves a figure
-when no strategy
+step 0's `-g3` twin can name exactly one of them: the 6-byte loop at `0x42207c`,
+offset 60, which is byte-identical in the twin **at the same address** and which
+the twin's DWARF puts inside `fillStage2`, in the `copies` loop that doubles
+a canonical run by `unsafeCopy`. The other three are 63-byte bodies of which
+the twin holds no byte-identical copy --- it carries 152 self-loops and one
+straddler against the timed binary's 158 and four --- so they are not named
+from it, and the source lines it offers at those addresses are discarded as read
+off code that is not the same code. [What moves a figure when no strategy
 changed](../README.md#what-moves-a-figure-when-no-strategy-changed) prices
 a straddling loop as a per-element term; that it lands in `fillStage2`,
 the function this run exists to price and the one whose code moved, is a thing
@@ -2601,7 +2600,7 @@ to eleven, so `--list` reads 1320 against Run 21's 1176 and `classes --list`
 the two runs' basis binaries and none moved by a constant: `run21-g912` held
 its six-copy group at `[0, 0, 24, 0, 0, 8]` and `run22-g912` holds one
 at `[0, 0, 24, 0, 0, 24]`, five of the six mod-64 offsets unchanged
-and the sixth --- `fbCanonVecdims`, named off a `-g3` twin at post-run step 11
+and the sixth --- `fbCanonVecdims`, named off a `-g3` twin at post-run step 0
 --- moved from 8 to 24. **The basis half also gained four straddling self-loops
 where Run 21 had none**, 158 loops against 135 and 80 at offset 0 against 71;
 three are 63-byte bodies the twin cannot name, and the fourth, 6 bytes at offset
