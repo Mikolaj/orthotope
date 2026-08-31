@@ -6628,68 +6628,42 @@ was missed, which is what they have cost.
     #      WHAT THE AGENT WORKS ON -- not the working tree, not a range.
     #      Then THE INDEPENDENT CHECKER, FIRST PASS, and fixing what it
     #      returns. The commit is the first action and not housekeeping:
-    #      given the diff of one commit the pass has a fixed object, so
-    #      6c's edits cannot move under it and you need not stop
-    #      writing -- PRE-AUTHORIZED by the user-scope CLAUDE.md and not
-    #      a thing to ask about; Run 20 read Claude Code's own
-    #      conditional, missed that the standing request discharges it,
-    #      and asked. It is a STEP because it is the highest-yield thing
-    #      in this list: on Run 19 it returned 22 defects that every
-    #      mechanical gate here had passed and a truth-focused read had
-    #      not caught. ONE AGENT, TWO PASSES: this is the first and 6d is
-    #      the second, on the SAME agent, which keeps its reading of this
-    #      run's JSONs and pays no second bootstrap.
-    #      IT READS THE RUN FILE ALONE, which is 6a's output. COMMIT
-    #      FIRST and give it the committed diff, not the working tree:
-    #      then 6c's edits cannot move under it and you need not stop
-    #      writing. RUN 6c BESIDE IT -- the checker REPORTS ONLY and
-    #      edits nothing, and 6c edits the other file, so the two cannot
-    #      collide. A session that waits instead idles for the pass's
-    #      whole length: Run 22 did, seventeen minutes, having pointed it
-    #      at the working tree.
+    #      given one commit's diff the pass has a fixed object, so 6c's
+    #      edits cannot move under it and you need not stop writing.
+    #      PRE-AUTHORIZED by the user-scope CLAUDE.md and not a thing to
+    #      ask about; Run 20 read Claude Code's own conditional, missed
+    #      that the standing request discharges it, and asked. It is a
+    #      STEP because it is the highest-yield thing in this list: on
+    #      Run 19 it returned 22 defects that every mechanical gate here
+    #      had passed and a truth-focused read had not caught.
+    #      ONE AGENT, TWO PASSES: this is the first and 6d the second,
+    #      on the SAME agent, which keeps its reading of this run's
+    #      artifacts and pays no second bootstrap. IT READS THE RUN FILE
+    #      ALONE here, 6d reads both. RUN 6c BESIDE IT -- the checker
+    #      REPORTS ONLY and edits nothing, and 6c edits the other file,
+    #      so the two cannot collide. A session that waits instead idles
+    #      for the pass's whole length: Run 22 did, seventeen minutes,
+    #      having pointed it at the working tree.
     #      FIXING IS THIS STEP'S OTHER HALF and not 6d's: a finding is
     #      not fixed by being reported, and 6d exists to read what the
     #      fixing broke.
     #      THE BRIEF IS CHECKED IN AS `checker-brief.txt` AND IS NOT TO
-    #      BE RETYPED. It carries BOTH agents' briefs -- this pass's and
-    #      7a's probe -- and every fact an agent cannot derive: which
-    #      half is the basis, and so which of the twenty JSONs every
-    #      published table comes from; that it works in THIS directory;
-    #      that its evidence is THIS RUN'S OWN ARTIFACTS with
-    #      read-run.py -- the JSONs, the process logs behind `--wild`,
-    #      the counted-work `.txt` files, the riders, the gate, the PAIR
-    #      NOTE for anything about the binaries, and the previous run's
-    #      for a cross-run figure -- and that what is excluded is other
-    #      repositories' tooling and NOT this run's own files, a
-    #      distinction Run 22 paid for: its checker returned seven
-    #      `could not check` items of which three were checkable, the
-    #      brief then reading `JSONs and nothing else` while all three
-    #      lived in `.txt` and `.log`; that it re-runs no benchmark, REPORTS ONLY and
-    #      edits nothing; that it quotes a distinctive PHRASE and never
-    #      a line number, the documents being rewrapped between turns;
-    #      and that it separates confirmed defects from what it could
-    #      not check. An agent starts where your session started, so
-    #      none of that is visible to it.
-    #      EDIT ITS FIRST BLOCK IN THE FILE and not in the prompt -- the
-    #      run, the two half names, the previous run's two and the
-    #      commit before this run's work -- because a value living only
-    #      in a prompt is one the next run retypes. WALK THE FILE, NOT
-    #      ITS HEAD: the class lists and every count of the classes move
-    #      with the roster, and the two `THIS RUN ONLY` items carry one
-    #      run's box event and one run's intrusion, so a stale one tells
-    #      a checker to write off a real level shift. Run 16 wrote the
-    #      brief out twice, once because a rate limit killed the agent
-    #      mid-pass; Run 22 never opened it, typed its own, and left
-    #      three of seven `could not check` items checkable for want of
-    #      the paths this file names.
-    #      WHAT TO ASK IT FOR: recompute every added figure from the
-    #      reader, re-derive every *only*, *largest* and *N of the nine*
-    #      by SORTING the population it quantifies over, and report
-    #      discrepancies rather than opinions. NOT the installed
-    #      figures, which `--in-place` already guarantees and two runs
-    #      have measured as buying nothing (the paragraph on re-deriving
-    #      them, below), and NOT the placement, contradiction and
-    #      writing-rule reading, which is 6e's and yours.
+    #      BE RETYPED -- nor summarised here, which is why this step
+    #      does not say what is in it. It carries all three briefs, this
+    #      pass's, 6d's and 7a's, and every fact an agent cannot derive:
+    #      one starts where your session started, so the basis, the
+    #      directory, the artifact set and the no-other-repo rule are
+    #      invisible to it. TWO THINGS ARE OWED THE FILE, both at the
+    #      write-up. EDIT ITS FIRST BLOCK IN THE FILE and not in the
+    #      prompt, a value living only in a prompt being one the next
+    #      run retypes. And WALK THE FILE, NOT ITS HEAD: its two `THIS
+    #      RUN ONLY` items carry one run's box event and one run's
+    #      window, and the class counts move with the roster, so a stale
+    #      one tells a checker to write off a real level shift. Run 16
+    #      wrote the brief out twice, once because a rate limit killed
+    #      the agent mid-pass; Run 22 never opened it, typed its own,
+    #      and left three of seven `could not check` items checkable for
+    #      want of paths the file names.
     #      AND CHECK ITS WORK. Run 19's said twelve arms moved past 3%
     #      where sorting gives eleven, and Run 22's put the runs-class
     #      crossover a length out by skipping a shape. Its report is
@@ -6729,14 +6703,15 @@ was missed, which is what they have cost.
     #      and not the scope: the diff of both files since the run's base
     #      commit is exactly what this run wrote and no more, so it never
     #      means reading README whole.
-    #      THREE DISCIPLINES, and they are what make the parallel half
-    #      safe. COMMIT BEFORE LAUNCHING, so the diff cannot move under
-    #      it. FREEZE WRITES to both documents while it runs, unlike 6b:
-    #      there is no third file to be editing, and a finding quotes a
-    #      phrase you may have already changed. RUN 7's READ-ONLY HALF
-    #      MEANWHILE, which is 6e: it produces a worklist and not an
-    #      edit, so the window is not idle and nothing it does can move
-    #      under this pass.
+    #      TWO DISCIPLINES BESIDE THE COMMIT ABOVE, and they are what
+    #      make the parallel half safe. FREEZE WRITES to both documents
+    #      while it runs, which 6b does not need: there is no third file
+    #      to be editing, and a finding quotes a phrase you may have
+    #      already changed. And RUN 6e MEANWHILE: it produces a worklist
+    #      and not an edit, so the window is not idle and nothing it
+    #      does can move under this pass. Everything else about
+    #      launching one -- the brief, its maintenance, checking its
+    #      work -- is 6b's and is not repeated here.
     #  6e. VERIFY, THE READ-ONLY HALF, run in parallel with 6d and
     #      producing a worklist rather than an edit -- which is what lets
     #      it share the window. Every count and ratio comes from --cells
@@ -6783,9 +6758,10 @@ was missed, which is what they have cost.
     #      and not before: a fresh session -- NOT the 6b/6d agent, which
     #      has read this run's JSONs and cannot be surprised by the
     #      document -- answers a few of the README's own questions from
-    #      the document alone, with citations. ITS BRIEF IS THE SECOND
+    #      the document alone, with citations. ITS BRIEF IS THE THIRD
     #      BLOCK OF `checker-brief.txt`, the same file 6b names and the
-    #      same rule: edit it there, do not retype it. It asks whether the
+    #      same rule: edit it there, do not retype it. The first two are
+    #      6b's and 6d's, on the one agent this probe must not be. It asks whether the
     #      document can be READ, not whether it is right; what it finds
     #      is a navigation defect, which no gate here has ever caught and
     #      no figure check can.

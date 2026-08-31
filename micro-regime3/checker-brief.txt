@@ -11,9 +11,9 @@ PREVBASIS and PREVSAME are one half whenever the run changed no
 allocation area, which is the ordinary case: two names to hunt for and
 one to find is not an error.
 
-Substitute per run: RUN=run21  BASIS=g912  OTHER=ghead  PREV=run20
-                    PREVBASIS=run20-g912  PREVSAME=run20-g912
-                    PRETIP=ec45334   (the commit before the run's work)
+Substitute per run: RUN=run22  BASIS=g912  OTHER=ghead  PREV=run21
+                    PREVBASIS=run21-g912  PREVSAME=run21-g912
+                    PRETIP=bd8493c   (the commit before the run's work)
 
 
 === THE INDEPENDENT CHECKER, PASS 1 (checklist 6b: after 6a's prose,
@@ -65,7 +65,8 @@ THE DIFF:  git -C /home/mikolaj/r/orthotope diff PRETIP..HEAD -- micro-regime3/R
 If either document was normalised or rewrapped in that range the diff is
 mostly character-level; ignore that and judge the substance.
 
-FOUR THINGS YOU CANNOT DERIVE, so they are given:
+SIX THINGS YOU CANNOT DERIVE, so they are given -- and items 5 and 6
+are THIS RUN'S and are rewritten every run:
  1. The basis is RUN-BASIS and publishes every table (RUN-BASIS-main.json,
     and RUN-BASIS-<class>.json for rev revsome bcast bcastmid reshape1
     slice window scaled runs). The control is RUN-OTHER.
@@ -78,33 +79,45 @@ FOUR THINGS YOU CANNOT DERIVE, so they are given:
     TSV (slope_s raw, slope_net_s corrected); --pair, --compare, --aa,
     --claims, --block, --fingerprint, --machine are the modes.
  5. THIS RUN ONLY -- THE BOX DID NOT CHANGE between PREV and RUN. The
-    gate's machine check read -0.33% on `list`'s net over 24 of 24
-    shapes against the fingerprint PREV kept, worst -3.52%, none past
-    5%. So absolutes DO cross that boundary freely and a cross-run
+    gate's machine check read -0.87% on `list`'s net over 24 of 24
+    shapes against the fingerprint PREV kept, worst `stretch-primes`
+    -1.66%, none past 5%; the run's own main-set process reads the
+    same check at +0.04%, worst `cnn-slice-c32` +0.97%. Both inside
+    3%, so absolutes DO cross that boundary freely and a cross-run
     absolute comparison is fair. (The last box event was before Run
-    18; nothing since.) What DOES ride in every cross-run figure is a
+    18; nothing since.) TWO THINGS ride in a cross-run figure. A
     LAYOUT term: RUN's roster is not PREV's -- six timed arms landed
-    and ten names left -- so every address moved, and the write-up
-    says a distance from PREV's column is drift PLUS layout. Treat
-    that disclosure as correct rather than as a hedge.
+    and NONE left -- so every address moved. And SEVEN of PREV's
+    columns are different CODE, not drift: fillStage2 unboxed its
+    source vector and steps its cursor twice, reaching lib-stage2 and
+    lib-stage2-concat through the call; lib-stage2-concat,
+    liblist-stage2, -add-in-leaf-u2 and -u2-down changed in their own
+    bodies; and lib-stage1 and liblist-stage1 fall back to
+    -add-in-leaf-u2 on every regime-3 view. The write-up says both.
+    Treat that disclosure as correct rather than as a hedge.
  6. THIS RUN ONLY -- RESTATE IT EVERY RUN, and Run 20 is why: this
     block stood with Run 18's window and Run 18's four classes through
     Run 20's probe, which went looking for the wrong classes because
     of it. Only the first block is meant to change per run, and this
     is the second thing in the file that does.
-    On Run 21: NO intrusion and NO rerun. All twenty processes ran in
-    one unbroken window, 2026-08-28T23:31:03 to 2026-08-29T07:35:03,
-    each exiting 0 at its roster's count; no bench in any of them
-    reached 0.25 foreign CPU, and the plateau gate reads all twenty
-    preamble victims inside a 4.30% spread against a 5% band. THREE
-    classes (rev, bcastmid, window) have cross-half baselines past the
-    0.7% differencing threshold and their cross-half lines are
-    explicitly not read for the compiler; the MAIN SET is inside it at
-    0.64%, which is the first time in three runs. There are NINE
-    classes, not eight -- `runs` is new this run, seven shapes sweeping
-    run length from 2 to 65536. Both are disclosed, not hidden; check
-    that the disclosure matches the JSONs rather than treating either
-    as an error.
+    On Run 22: NO intrusion and NO rerun, but TWO WINDOWS and not one.
+    Eighteen processes ran 2026-08-31T01:57:43 to 09:53:49; the
+    machine was wanted by its owner, so the sequence was stopped BY
+    HAND at the scaled/runs boundary and the two `runs` processes ran
+    16:41:21 to 18:26:27. Every one exited 0 at its roster's count,
+    and the plateau gate reads all twenty preamble victims inside a
+    2.60% spread against a 5% band, which is what makes them one run.
+    FIVE classes (bcastmid, reshape1, window, scaled, runs) have
+    cross-half baselines past the 0.7% differencing threshold and
+    their cross-half lines are explicitly not read for the compiler --
+    AND SO IS THE MAIN SET, at 0.81%, so no cross-half figure in this
+    run may be differenced. There are NINE classes and `runs` now has
+    ELEVEN shapes, not seven. And SEVENTEEN cells on the CONTROL half
+    sink below the shared forcing pass against the basis's two, so
+    eleven of its rows are geomeans over 23 or 20 shapes of 24 and
+    lib-stage2 against lib-stage1 is not readable there at all. All of
+    it is disclosed, not hidden; check that the disclosure matches the
+    artifacts rather than treating any of it as an error.
 
 PASS 1 -- every figure. Recompute every numeric claim the diff adds,
 from the reader or --cells, never by dividing figures printed in a
