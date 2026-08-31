@@ -6577,7 +6577,9 @@ was missed, which is what they have cost.
     #        before any git commit, so a document unwrapped in one turn is
     #        wrapped again in the next and every anchor spanning a line
     #        break stops matching, a `--replace` or an exact-match edit
-    #        then reporting no match at all. Never wrap by hand -- a
+    #        then reporting no match at all. A COMMIT REWRAPS THEM TOO,
+    #        and 6b, 6d and 7a each open with one, so each is followed
+    #        by an unwrap before the next edit. Never wrap by hand -- a
     #        hand-wrapped paragraph is the one thing --check-doc's wrap
     #        pass FAILS, where a paragraph left long is mid-edit and
     #        passes. The rules are in
@@ -6622,8 +6624,11 @@ was missed, which is what they have cost.
     #      one edit per paragraph, and no tool reduces that count. Budget
     #      the head and the nine class paragraphs as the work. FIRST, and
     #      not for tidiness: 6b's figures are requoted FROM this half
-    #  6b. THE INDEPENDENT CHECKER, FIRST PASS, and fixing what it
-    #      returns -- PRE-AUTHORIZED by the user-scope CLAUDE.md and not
+    #  6b. COMMIT 6a'S WORK, then THE INDEPENDENT CHECKER, FIRST PASS,
+    #      and fixing what it returns. The commit is the first action
+    #      and not housekeeping: the pass diffs a committed object, so
+    #      6c's edits cannot move under it and you need not stop
+    #      writing -- PRE-AUTHORIZED by the user-scope CLAUDE.md and not
     #      a thing to ask about; Run 20 read Claude Code's own
     #      conditional, missed that the standing request discharges it,
     #      and asked. It is a STEP because it is the highest-yield thing
@@ -6670,7 +6675,10 @@ was missed, which is what they have cost.
     #      agreement, so a half-done 6b FAILS that gate rather than
     #      passing quietly, which is the one place this half announces
     #      itself
-    #  6d. THE SECOND PASS, same agent, AFTER 6b AND 6c BOTH. It is not
+    #  6d. COMMIT 6b'S AND 6c'S WORK, then THE SECOND PASS, same agent,
+    #      AFTER 6b AND 6c BOTH -- the commit being what makes `both`
+    #      checkable rather than remembered, and what the pass diffs.
+    #      It is not
     #      a formality: Run 19's found SEVEN errors introduced by the
     #      first pass's own fixes, two of them substantive, and Run 21's
     #      returned nine findings of which SEVEN were made by its own
@@ -6719,14 +6727,11 @@ was missed, which is what they have cost.
     #      figures to agreement; the three source files are the reading's
     #      alone, nothing gating their comments, so a stale figure there
     #      survives every green run until someone opens the file.
-    #  6f. WAIT FOR 6d AND 6e BOTH, which is the barrier this list
-    #      otherwise has none of: 7 merges their two reports and cannot
-    #      start on one. That is the whole of this step: a barrier is a
-    #      step here because nothing else in the list is one, and a
-    #      session that starts 7 on whichever report came back first
-    #      fixes half a document twice.
-    #   7. CONVERGE TO ONE WRITER and fix, which is all that is left
-    #      here: merge BOTH reports into a SINGLE cycle and apply it --
+    #   7. WAIT FOR 6d AND 6e BOTH -- the one barrier in this list, and
+    #      a session that starts on whichever report came back first
+    #      fixes half a document twice. Then CONVERGE TO ONE WRITER and
+    #      fix, which is all that is left here: merge BOTH reports into
+    #      a SINGLE cycle and apply it --
     #      6d's over both files and 6e's worklist. 6b's is NOT among
     #      them, that pass having been fixed at 6b, which is why 6b owns
     #      its fixing; 7a's probe comes after and is its own small cycle.
@@ -6736,7 +6741,8 @@ was missed, which is what they have cost.
     #      before these fixes existed and which nothing else re-runs: the
     #      fix cycle is the one stretch of the write-up no pass and no
     #      gate has seen.
-    #  7a. THE COMPREHENSION PROBE, and it is HERE because its own
+    #  7a. COMMIT 7'S WORK, then THE COMPREHENSION PROBE. It is HERE
+    #      because its own
     #      condition is `once the write-up settles`, which happens at 7
     #      and not before: a fresh session -- NOT the 6b/6d agent, which
     #      has read this run's JSONs and cannot be surprised by the
