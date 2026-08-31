@@ -118,7 +118,9 @@ are THIS RUN'S and are rewritten every run:
     gate's machine check read -0.87% on `list`'s net over 24 of 24
     shapes against the fingerprint PREV kept, worst `stretch-primes`
     -1.66%, none past 5%; the run's own main-set process reads the
-    same check at +0.04%, worst `cnn-slice-c32` +0.97%. Both inside
+    same comparison at +0.08%, worst `stretch-r5-8x432` +1.85%, which
+    wants --run-doc pointed at PREV's kept fingerprint -- a plain
+    --machine reads this run's own and gives -0.03%. Both inside
     3%, so absolutes DO cross that boundary freely and a cross-run
     absolute comparison is fair. (The last box event was before Run
     18; nothing since.) TWO THINGS ride in a cross-run figure. A

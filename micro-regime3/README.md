@@ -330,13 +330,17 @@ against `lib-stage2-concat`, 0.2430. **What the second compiler is for,
 and it earned its process**: on GHC HEAD stage two reads **0.9583**
 at `runs-1024`, still ahead, where 9.12 reads **1.1037** --- fourteen points
 at one shape, past both halves' floors --- so HEAD's crossover sits a step
-further out again, between `runs-1024` and `runs-65536`. A threshold read on one
-compiler is therefore not the other's, and a library taking this dispatch owes
-its own sweep; `dispRun` as it stands is cut to 9.12 and is a bracket's
-representative rather than a measurement. **And the two routes' thresholds
-are further apart than they were**: `canon-memcpy-r2` against `canon-vecdims`
-still crosses between `runs-3` and `runs-9`, which the fix does not touch,
-so what Run 21 recorded as one step of the class between them is now two.
+further out again, between `runs-1024` and `runs-65536`. **SUPERSEDED BY RUN 22,
+and it is the reading rather than the threshold that was wrong**: at full budget
+BOTH halves put the crossover between `runs-1024` and `runs-65536`,
+so the difference this paragraph reads as a compiler's is the filtered sweep's
+own. A threshold read on one compiler is therefore not the other's,
+and a library taking this dispatch owes its own sweep; `dispRun` as it stands
+is cut to 9.12 and is a bracket's representative rather than a measurement.
+**And the two routes' thresholds are further apart than they were**:
+`canon-memcpy-r2` against `canon-vecdims` still crosses between `runs-3`
+and `runs-9`, which the fix does not touch, so what Run 21 recorded as one step
+of the class between them is now two.
 
 
 ## Contents
@@ -2309,9 +2313,13 @@ is planned. A scope limit belongs in the sentence that asks for the measurement.
    not get to choose the threshold. **The crossover moved out one step,
    to between `runs-96` and `runs-1024`, and `lib-stage2-disp` is cut to
    it and is at or below the better of the two routes at every length
-   of the sweep**; the account, the figures and the second compiler --- which
-   puts HEAD's crossover a step further out again, so what the class settles
-   is a bracket per compiler and not a number --- are [in the two-stage
+   of the sweep --- BOTH CLAUSES SUPERSEDED BY RUN 22 at full budget, which puts
+   the crossover between `runs-1024` and `runs-65536` and the dispatch 6.65%
+   behind stage two at `runs-1024`, past that class's floor, killing it ([its
+   file](runs/run22.md#what-this-run-was-built-to-answer-and-what-it-answered))**;
+   the account, the figures and the second compiler --- which puts HEAD's
+   crossover a step further out again, so what the class settles is a bracket
+   per compiler and not a number --- are [in the two-stage
    plan](#the-two-stage-plan-and-the-rework-proposal). **The second half
    is REFUTED**: `-u2` is behind `-down` at all seven lengths in a spill-free
    binary and by the same margin the native backend reads, so there
@@ -3389,7 +3397,8 @@ where Run 21 read 2.43 to 4.54, and the run length the two routes cross at has
 moved from between `runs-9` and `runs-96` to between `runs-1024`
 and `runs-65536`, by the same step on both compilers ([Run 22's
 file](runs/run22.md#results), [the ceiling][ceiling]'s tenth reading
-for the figures, and [tasks 1 and 2][open]).
+for the filtered-probe figures Run 22 superseded, and [tasks 1 and 2][open],
+whose crossover accounts it also supersedes).
 
 Regime 3 now goes through the class: `toVectorListT`'s innermost-strided branch
 is `[vFillStrided sh ats ao l v]`. The method's default is the pure `bq-expand`
@@ -3446,8 +3455,8 @@ the decision rests on, requoted from Run 20 rather than carried forward:
 `mut-odo-vecdims` reads **0.054** of `list` on the main set with a worst shape
 of 0.125, and its worst in any class is 0.108 (`reshape1`), so it is nowhere
 slower than `list` on anything this README has measured. **What Run 20 moves
-is which member of the tier leads, not the tier.** Seven arms read below the fix
-on the main set and two more are level with it --- the leaf block's
+is which member of the tier leads, not the tier.** Six arms read below the fix
+on the main set and one more is level with it --- the leaf block's
 `-add-in-leaf-down`, `-add-in-leaf` and `-add-in-leaf-u2` at 0.035, 0.036
 and 0.038, the rework's `canon-vecdims`, `canon-memcpy-r2` and `canon-full`
 at 0.049, 0.052 and 0.053, and `mut-odo-vecdims-add-in` at 0.054 --- and every
@@ -3582,15 +3591,15 @@ now read 1.80x at -O1, 1.68x on Run 8, 1.87x on Run 9, 1.85x on Run 10
 with its aligned half giving 1.84x, 1.79x on Run 18 and again on Run 19 ---
 a paired figure that moved five ten-thousandths across a REPETITION of one
 binary, Run 18's basis and Run 19's being both ghc-9.12.4 and byte-identical ---
-1.83x on Run 20, and **1.84x** here, on the same 23 wins of 24 Run 10's aligned
-half gave. Across an actual change of compiler it moves further, to 0.5184
-on HEAD, which is 1.93x, where Run 21 read 0.5164 and Run 20 0.5159 for the same
-1.94x. So the spread is a tenth or so either side of 1.8 and neither the pairing
-nor a repetition moves it. Read it as *approaching 2x and volatile at the tenth*
-between runs that differ, and do not reopen or close the ruling on a movement
-of that size --- Run 10 showed the volatility is not the layout's, and Run 11
-shows it is not the run's either, which leaves the roster and the regime as what
-moved it.
+1.83x on Run 20, 1.84x on Run 21, and **1.84x** here, on the same 23 wins of 24
+Run 10's aligned half gave. Across an actual change of compiler it moves
+further, to 0.5184 on HEAD, which is 1.93x, where Run 21 read 0.5164 and Run 20
+0.5159 for the same 1.94x. So the spread is a tenth or so either side of 1.8
+and neither the pairing nor a repetition moves it. Read it as *approaching 2x
+and volatile at the tenth* between runs that differ, and do not reopen or close
+the ruling on a movement of that size --- Run 10 showed the volatility
+is not the layout's, and Run 11 shows it is not the run's either, which leaves
+the roster and the regime as what moved it.
 
 **Amended 2026-08-07: the bar is now a weight.** The tree itself carries
 a precedent this section did not weigh: `Data/Array/Internal/FastReshape.hs`
@@ -7863,18 +7872,18 @@ pairs this roster leaves --- `offtab`'s two twins went with its parking
 on 2026-08-28, so the eighteen-pair series ends at Run 20 --- against Run 20's
 1.51% and 1.18%, Run 19's 2.32% and 1.71%, Run 18's 1.36% and 1.42%, Run 17's
 3.70% and 3.89% and Run 16's 2.32% and 1.22%, every one of those over eighteen.
-The caveat Run 20 introduced applies again and harder: Run 21's roster
-is not Run 20's, six timed arms having landed and ten left, so neither the pair
+The caveat Run 20 introduced applies again and harder: Run 22's roster
+is not Run 21's, six timed arms having landed and none left, so neither the pair
 count nor the process the pairs sit in is the same. `build-aa-distant` carries
 the basis figure and the control one alike, which no run before this had. Read
 on the six pairs that carry back to Run 10 the same run gives **0.37%
 and 0.51%**, against Run 21's 0.46% and 0.60%. **What Run 19 settled about
-the floor, Run 21 restates in the other direction.** Run 19's basis half was Run
+the floor, Run 22 restates in the other direction.** Run 19's basis half was Run
 18's basis BINARY byte for byte and read 2.32% where that binary read 1.36%,
 a factor of 1.7 with box, roster, layout, regime and preamble all held still ---
-so the floor is a property of the RUN, re-drawn each evening. Run 21 cannot
+so the floor is a property of the RUN, re-drawn each evening. Run 22 cannot
 repeat that demonstration either, its roster having moved, and it adds
-the weaker form a second time and with the sign reversed: the same recipe
+the weaker form a third time and with the sign reversed: the same recipe
 on the same box read 2.32%, then 1.51%, then 2.92%, then 2.12% over three roster
 changes, so the movement is not a trend and nothing about it is inherited.
 **Where the movement lives is the one thing three runs now agree on.**
@@ -7885,15 +7894,16 @@ enough to compare rows with --- with Run 21's control half the one reading
 that strains it, its six-pair figure having gone from 0.28% to 0.60%.
 The threshold this run supports is therefore two figures --- *0.37% between any
 two rows of the table* on the six-pair basis, which is what carries across runs,
-and 2.12% on the sixteen --- where Run 20 supported 0.44% and 1.51%, Run 19
-0.49% and 2.32%, Run 18 0.54% and 1.36%, Run 17 1.31% and 3.70%, Run 16 0.39%
-and 2.32%, Run 14 0.29% and 2.19%, Run 12 0.35% and 0.24%, Run 11 a quarter
-of a percent on its max-skip half and 1.21% on the other, Run 10 1.00% unaligned
-and 0.54% aligned, Run 9 under 0.1% with a wild cell, Run 8 0.5% and Run 7
-nearly 4%. Runs disagreeing several-fold on the floor is itself the caution,
-and one binary disagreeing by 1.7x with itself a day later is that caution
-sharpened as far as it goes: read the floor as the run's *and the half's*,
-re-measured every time, never as a constant of the harness and never inherited.
+and 2.12% on the sixteen --- where Run 21 supported 0.46% and 2.92%, Run 20
+0.44% and 1.51%, Run 19 0.49% and 2.32%, Run 18 0.54% and 1.36%, Run 17 1.31%
+and 3.70%, Run 16 0.39% and 2.32%, Run 14 0.29% and 2.19%, Run 12 0.35%
+and 0.24%, Run 11 a quarter of a percent on its max-skip half and 1.21%
+on the other, Run 10 1.00% unaligned and 0.54% aligned, Run 9 under 0.1%
+with a wild cell, Run 8 0.5% and Run 7 nearly 4%. Runs disagreeing several-fold
+on the floor is itself the caution, and one binary disagreeing by 1.7x
+with itself a day later is that caution sharpened as far as it goes: read
+the floor as the run's *and the half's*, re-measured every time, never
+as a constant of the harness and never inherited.
 
 **The twins have now taken every side available, which is what a sign this weak
 is worth.** Run 10 read all six pairs above 1 on its unaligned half and five
@@ -7916,26 +7926,26 @@ The A/A is the only column that sees that, and `--aa` prints the calibration
 outright --- on Run 22, a median interval half-width of 0.31% against
 an observed spread of 2.12% on the basis half, a factor of **7**, and 0.36%
 against 1.08% on the control, a factor of **3** --- so multiply any interval
-this reader prints by about that before believing it, where Run 20 wanted four
-and two, Run 18 three and three, Run 17 five and five, Run 16 five and two, Run
-14 three and twelve, Run 12 one either way, Run 11 one on its max-skip half
-and three on its aligned one, Run 10 four and one, Run 9 nine, Run 8 two and Run
-7 three. **That the two halves DISAGREE on the factor is now the ordinary case
-rather than this run's news** --- nine against six here, four against two on Run
-20, five against two on Run 16 and three against twelve on Run 14, against Run
-18's three and three and Run 17's five and five --- and the gap of three here
-is the largest since Run 14. It is not the same fact as which half carries
-the wider floor: this run's basis carries the wider floor AND the wider cells,
-where Run 20's carried the wider floor and the narrower ones, so the two do
-not track. **And this run inverts where the loosest cell sits**: its worst A/A
-cell is 22.86% and it is the BASIS MAIN SET's, on `vgg-14-c512-k3`, against
-the control main set's 14.47% and the widest class cell's 21.73% --- where
-on Run 20, Run 19, Run 18 and Run 17 the loosest cell of the run was always
-a class's. What the basis half carries besides is five of its sixteen intervals
-missing 1 against the control's four, every one of them an arm whose two
-processes differ by less than its interval admits. It rests on sixteen pairs
-since the parking of 2026-08-28, so one loose pair moves it more than it did
-on eighteen.
+this reader prints by about that before believing it, where Run 21 wanted nine
+and six, Run 20 four and two, Run 18 three and three, Run 17 five and five, Run
+16 five and two, Run 14 three and twelve, Run 12 one either way, Run 11 one
+on its max-skip half and three on its aligned one, Run 10 four and one, Run 9
+nine, Run 8 two and Run 7 three. **That the two halves DISAGREE on the factor
+is now the ordinary case rather than this run's news** --- seven against three
+here, four against two on Run 20, five against two on Run 16 and three against
+twelve on Run 14, against Run 18's three and three and Run 17's five and five
+--- and the gap of four here is the largest since Run 14. It is not the same
+fact as which half carries the wider floor: this run's basis carries the wider
+floor AND the wider cells, where Run 20's carried the wider floor
+and the narrower ones, so the two do not track. **And this run inverts where
+the loosest cell sits**: its worst A/A cell is 19.44% and it is the BASIS MAIN
+SET's, on `stretch-r5-8x432`, against the control main set's 14.40%
+and the widest class cell's 18.15%, `reshape1-strided-r3`'s --- where on Run 20,
+Run 19, Run 18 and Run 17 the loosest cell of the run was always a class's. What
+the basis half carries besides is three of its sixteen intervals missing 1
+against the control's four, every one of them an arm whose two processes differ
+by less than its interval admits. It rests on sixteen pairs since the parking
+of 2026-08-28, so one loose pair moves it more than it did on eighteen.
 
 **The class populations are where the factor still bites**, and the reason
 is arithmetic rather than noise: a two- or three-shape bootstrap gives
@@ -7943,18 +7953,18 @@ an interval far narrower than the spread those shapes actually show. Run 21's
 largest factor is `rev` at **20**, with `scaled` at 12 and `revsome` at 10
 behind it, where Run 20's largest was `window` at eight, Run 18's `rev`
 at fifteen, Run 17's `revsome` at nine and Run 16's `scaled` at twenty-three;
-the rest sit between five and nine, `rev` at four where it read fifteen the run
-before. So the factor is reporting which slot happened to be disturbed rather
-than the reader's arithmetic, and it does not stay with a class from run to run
---- `rev` falling from fifteen to four on a roster, a box and a basis binary
-that did not change is this run's own demonstration of that. On Run 21 the class
-whose intervals cover 1 least often is `slice` at **6 of 16**, with `reshape1`
-and `scaled` at 7 and `runs` at 9; `bcast`, `bcastmid` and `window` reach 12
-and `rev` and `revsome` 11. Read a class interval that misses 1 as the reader's
-arithmetic and the pair's own deviation as the finding. **The per-class factors
-are NOT with the blocks**, which print a floor, a worst cell and an interval
-count and no factor; that pointer stood for several runs and is retired here
-rather than aimed somewhere else.
+the rest sit between five and nine. So the factor is reporting which slot
+happened to be disturbed rather than the reader's arithmetic, and it does
+not stay with a class from run to run --- `rev` running fifteen, four and twenty
+over three runs, a box and a basis binary that did not change is this run's own
+demonstration of that. On Run 21 the class whose intervals cover 1 least often
+is `slice` at **6 of 16**, with `reshape1` and `scaled` at 7 and `runs` at 9;
+`bcast`, `bcastmid` and `window` reach 12 and `rev` and `revsome` 11. Read
+a class interval that misses 1 as the reader's arithmetic and the pair's own
+deviation as the finding. **The per-class factors are NOT with the blocks**,
+which print a floor, a worst cell and an interval count and no factor;
+that pointer stood for several runs and is retired here rather than aimed
+somewhere else.
 
 **And what is left when every other cause is pinned has now been measured:
 run-to-run drift is a few percent per cell and a quarter of a percent
@@ -7979,13 +7989,13 @@ to have moved between runs. **All three are the word *floor*, over different
 populations, and two things that are not it wear it easily.** A class's `floor`
 column is the same statistic again over that population's sixteen pairs,
 so it is a fourth member of the family and not a fourth sense. **The worst
-single A/A cell is not a floor at all** --- 22.86% on this run ---
+single A/A cell is not a floor at all** --- 19.44% on this run ---
 and the procedure says so where it is read; it is one cell where
 these are geomeans over a population, and quoting it as one overstates
 the instrument by an order of magnitude. Nor is the residue [the alignment
 question][open] asks about, which is an effect size that survived a control
 rather than a spread the run measured. The exceptions are `build` and `mut-odo`,
-one worker at two slots, whose cells reach 1.076 on this run's basis and 1.212
+one worker at two slots, whose cells reach 1.129 on this run's basis and 1.126
 on its control --- and Run 21 is the run that took the reading those two have
 always wanted: post-run step 11 named the tracked two-copy group off a `-g3`
 twin and it IS `fbBuild` and `fbMutOdo`, both at offset 0 in their cache line
@@ -9802,7 +9812,7 @@ tables and its fingerprint say so.
   That is the whole chain between its figures and this run's.
 
 **What the next run replaces.** Run 21's numbers reach past the Results table,
-so this is the list to walk when Run 22's land. Run 10 walked it twice
+so this is the list Run 22's numbers were walked against. Run 10 walked it twice
 over and not symmetrically, one half per pass; every run since has walked
 it once, one basis publishing everything, which is how it is walked from here.
 It names *sections*, not figures: a list of figures is a second copy of them,
