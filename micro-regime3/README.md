@@ -5381,7 +5381,7 @@ and never as a chronology.
     #      next clause listing two), and an arm count that a
     #      definition-by-definition diff had left two short, that diff
     #      being unable to see a CALL. So 12b is not a substitute for
-    #      post-run step 7a's independent reader, and the three it
+    #      post-run step 6b's independent reader, and the three it
     #      missed say why: a positional series, a compression and a call
     #      graph are what a session re-reading its own prose reads past
     #  that is the preparation. What wants a quiet machine is the run
@@ -6527,7 +6527,7 @@ was missed, which is what they have cost.
     #      wrap is ever owed; git holds a restore point for the whole
     #      write-up, which is what Run 20 did not have when a range splice
     #      took 148936 characters of it; and the write-up's own DIFF
-    #      becomes the artifact step 7a briefs the checker to read, where
+    #      becomes the artifact step 6b briefs the checker to read, where
     #      an uncommitted copy enters history as a wholly new file whose
     #      diff says nothing about what the run changed. Run 20's checker
     #      had to snapshot the file and diff against its own copy
@@ -6564,12 +6564,6 @@ was missed, which is what they have cost.
     #      installs as `?` and is filled by hand, a departed row is
     #      dropped with a warning. The cross-class summary
     #      is assembled LAST, transcribed from the class tables
-    #      AND LAUNCH 7a's FIRST PASS HERE, the moment these land. Its own
-    #      text says `launched when the tables go in rather than at the
-    #      end` and this list then numbers it after 6 and 7, so a session
-    #      reading the list in order launches it last. Run 21 did, and paid
-    #      the multiplier that entry documents: its second pass returned
-    #      nine findings, SEVEN of them created by the first round of fixes
     #   6. walk the replace list under Provenance, re-run the two sweeps it
     #      names, and map every hit to the bullet covering it -- running
     #      them is not reading them. REPLACE, do not annotate: a figure that
@@ -6628,7 +6622,34 @@ was missed, which is what they have cost.
     #      one edit per paragraph, and no tool reduces that count. Budget
     #      the head and the nine class paragraphs as the work. FIRST, and
     #      not for tidiness: 6b's figures are requoted FROM this half
-    #  6b. THE README SECTIONS, every other bullet: the floor table and
+    #  6b. THE INDEPENDENT CHECKER, PRE-AUTHORIZED by the user-scope
+    #      CLAUDE.md and not a thing to ask about -- Run 20 read Claude
+    #      Code's own conditional, missed that the standing request
+    #      discharges it, and asked. It is a STEP because it is the
+    #      highest-yield thing in this list: on Run 19 it returned 22
+    #      defects, six of them whole paragraphs of the PREVIOUS run's
+    #      left standing under this run's tables, which every mechanical
+    #      gate here had passed and a truth-focused read had not caught.
+    #      TWO passes on ONE agent -- 6a's prose the moment it lands, then
+    #      prose WITH the fixes the first pass caused. The second pass is
+    #      not a formality: Run 19's found SEVEN errors introduced by the
+    #      first pass's own fixes, two of them substantive, and a session
+    #      that stops at one pass ships them.
+    #      BRIEF IT WITH ALL OF THIS, since an under-briefed checker
+    #      wastes its pass: it works in THIS directory; its evidence is
+    #      this run's JSONs and read-run.py and nothing else; NO other
+    #      repository's checkers come near this README; it re-runs no
+    #      benchmark; it REPORTS ONLY and edits nothing; it quotes a
+    #      distinctive PHRASE and never a line number, the file being
+    #      rewrapped between turns; and it separates confirmed defects
+    #      from what it could not check. Give it the diff and name the
+    #      sections a run replaces.
+    #      AND CHECK ITS WORK. Run 19's said twelve arms moved past 3%
+    #      where sorting gives eleven. Its report is evidence, not verdict
+    #      Once the write-up settles, one comprehension probe: a fresh
+    #      session answers a few of the README's own questions from the
+    #      document alone, with citations
+    #  6c. THE README SECTIONS, every other bullet: the floor table and
     #      its prose, the opening, the mutable ceiling, the Lemire
     #      shipping paragraph, the stride-class chapter, the delta chain
     #      -- which gains a bullet for the run just read -- What is open,
@@ -6651,33 +6672,6 @@ was missed, which is what they have cost.
     #      paragraph. A correction is a claim -- derive it, then re-run the
     #      gates. Then --lint, --check-doc, adjudicate the worklists,
     #      read end to end, and walk the diff against the writing rules.
-    #  7a. THE INDEPENDENT CHECKER, PRE-AUTHORIZED by the user-scope
-    #      CLAUDE.md and not a thing to ask about -- Run 20 read Claude
-    #      Code's own conditional, missed that the standing request
-    #      discharges it, and asked. It is a STEP because it is the
-    #      highest-yield thing in this list: on Run 19 it returned 22
-    #      defects, six of them whole paragraphs of the PREVIOUS run's
-    #      left standing under this run's tables, which every mechanical
-    #      gate here had passed and a truth-focused read had not caught.
-    #      TWO passes on ONE agent -- tables when they go in, then the
-    #      prose WITH the fixes the first pass caused. The second pass is
-    #      not a formality: Run 19's found SEVEN errors introduced by the
-    #      first pass's own fixes, two of them substantive, and a session
-    #      that stops at one pass ships them.
-    #      BRIEF IT WITH ALL OF THIS, since an under-briefed checker
-    #      wastes its pass: it works in THIS directory; its evidence is
-    #      this run's JSONs and read-run.py and nothing else; NO other
-    #      repository's checkers come near this README; it re-runs no
-    #      benchmark; it REPORTS ONLY and edits nothing; it quotes a
-    #      distinctive PHRASE and never a line number, the file being
-    #      rewrapped between turns; and it separates confirmed defects
-    #      from what it could not check. Give it the diff and name the
-    #      sections a run replaces.
-    #      AND CHECK ITS WORK. Run 19's said twelve arms moved past 3%
-    #      where sorting gives eleven. Its report is evidence, not verdict
-    #      Once the write-up settles, one comprehension probe: a fresh
-    #      session answers a few of the README's own questions from the
-    #      document alone, with citations
     ./read-run.py --lint          # 8. again after ANY Main.hs edit, and
     #      never rebuild the pair to satisfy it: say in the write-up that
     #      the comment-only move happened
@@ -6848,7 +6842,7 @@ the artifacts are what it spends.
    a restore point for the whole write-up: Run 20 lost its run file to a range
    splice and recovered only because a subagent had left a byte-exact copy
    in a temp directory. And it makes the write-up's own diff the artifact step
-   7a briefs the checker to read --- uncommitted, the file enters history
+   6b briefs the checker to read --- uncommitted, the file enters history
    as wholly new and its diff says nothing about what the run changed, so Run
    20's checker had to snapshot it and diff against its own copy. The cost
    is one commit whose content is a verbatim copy, which reads as diary until
