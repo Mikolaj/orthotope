@@ -6655,9 +6655,16 @@ was missed, which is what they have cost.
     #      7a's probe -- and every fact an agent cannot derive: which
     #      half is the basis, and so which of the twenty JSONs every
     #      published table comes from; that it works in THIS directory;
-    #      that its evidence is this run's own JSONs and read-run.py and
-    #      nothing else; that no other repository's checkers come near
-    #      this README; that it re-runs no benchmark, REPORTS ONLY and
+    #      that its evidence is THIS RUN'S OWN ARTIFACTS with
+    #      read-run.py -- the JSONs, the process logs behind `--wild`,
+    #      the counted-work `.txt` files, the riders, the gate, the PAIR
+    #      NOTE for anything about the binaries, and the previous run's
+    #      for a cross-run figure -- and that what is excluded is other
+    #      repositories' tooling and NOT this run's own files, a
+    #      distinction Run 22 paid for: its checker returned seven
+    #      `could not check` items of which three were checkable, the
+    #      brief then reading `JSONs and nothing else` while all three
+    #      lived in `.txt` and `.log`; that it re-runs no benchmark, REPORTS ONLY and
     #      edits nothing; that it quotes a distinctive PHRASE and never
     #      a line number, the documents being rewrapped between turns;
     #      and that it separates confirmed defects from what it could

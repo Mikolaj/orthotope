@@ -16,18 +16,43 @@ Substitute per run: RUN=run21  BASIS=g912  OTHER=ghead  PREV=run20
                     PRETIP=ec45334   (the commit before the run's work)
 
 
-=== THE INDEPENDENT CHECKER, PASS 1 (launch when the tables go in) ===
+=== THE INDEPENDENT CHECKER, PASS 1 (checklist 6b: after 6a's prose,
+    on that one commit's diff, with 6c running beside it) ===
 
 You are an independent checker for a benchmark write-up. Report
 DISCREPANCIES, not opinions or style preferences.
 
 WHERE YOU ARE. Work in /home/mikolaj/r/orthotope/micro-regime3. That is
 an orthotope checkout, NOT the horde-ad repo your session started in.
-Your evidence is this run's own JSON artifacts in that directory and
-the reader ./read-run.py there, and NOTHING ELSE. No other
-repository's checkers, linters or conventions come near these two
-documents -- they carry a per-repo configuration and will report correct
-names as missing. Do not edit any file. Read and compute only.
+Your evidence is THIS RUN'S OWN ARTIFACTS in that directory, with the
+reader ./read-run.py there. They are MORE THAN THE JSONS, and a claim
+you cannot settle from the JSONs is usually settled by one of the rest:
+  RUN-HALF-POP.json  the twenty timed processes; every published table
+  RUN-HALF-POP.log   the same processes' per-sample stamps -- allocation,
+                     mutator, collector, foreign CPU, and the @@saturate
+                     plateau line -- read with ./read-run.py FILE --wild
+  RUN-counts-HALF[-CLASS].txt  instructions an iteration, PER SHAPE and
+                     arm. No reader mode prints a per-shape count, so a
+                     per-shape count claim is checked by reading this
+                     file directly
+  RUN-al-*           the alone-leg riders, behind --deflation
+  RUN-gate-*         the gate's four processes
+  RUN-pair.txt       the pair note: md5s, .text sizes, the compilers and
+                     their commits, the build recipes, the baked RTS
+                     line, the fills. EVERY claim about the BINARIES is
+                     checkable here and nowhere else
+  PREV-*             the previous run's artifacts, for any cross-run
+                     figure the write-up quotes
+  Main.hs            the shape, class and roster definitions
+What is excluded is OTHER REPOSITORIES' tooling, not this run's own
+files: no other repository's checkers, linters or conventions come near
+these two documents -- they carry a per-repo configuration and will
+report correct names as missing. Say `could not check` only after
+looking in the list above; Run 22's checker returned seven such items
+of which THREE were checkable -- the per-shape counts, the binary
+identity and the plateau -- because this paragraph used to read `JSON
+artifacts and NOTHING ELSE` and all three live in .txt and .log files.
+Do not edit any file. Read and compute only.
 
 TWO DOCUMENTS, and the run's numbers are in the second: README.md is what
 stands between runs, and runs/run<N>.md is this run's write-up entire --
@@ -100,7 +125,14 @@ disagreement -- plus per-pass counts of what you verified. Say
 explicitly what you could not compute rather than guessing.
 
 
-=== THE SAME AGENT, PASS 2 (after the first round of fixes) ===
+=== THE SAME AGENT, PASS 2 (checklist 6d: after 6b AND 6c, over BOTH
+    documents, on the single commit that carries them) ===
+
+IT READS BOTH FILES and this is the only pass that can: the run file
+with pass one's fixes in it, and README with 6c's requotes. That is
+the first moment all of a run's prose exists. A figure quoted in BOTH
+-- the floor pair, the six-pair one -- is checked here on both sides
+for the first and only time.
 
 Send it the fixes, not the prose again. On Runs 15 and 16 most of the
 second pass's findings existed ONLY because the first round of fixes
@@ -108,11 +140,13 @@ had been written -- nine of thirteen on Run 16 -- so that is what it
 is hunting. List each fix you made, so it checks rather than
 rediscovers, and ask specifically for: any NEW superlative or count
 the fixes introduced, any place a fix now contradicts a neighbouring
-sentence left untouched, and any figure a fix corrected whose
-attribution the correction falsified.
+sentence left untouched, any figure a fix corrected whose attribution
+the correction falsified, and any cross-document figure whose two
+copies now disagree.
 
 
-=== THE COMPREHENSION PROBE (a DIFFERENT agent, once the README settles) ===
+=== THE COMPREHENSION PROBE (checklist 7a: a DIFFERENT agent, once
+    7's fixes are committed and the documents have settled) ===
 
 It must be uncontaminated: a fresh agent, never the checker, which has
 seen everything. It reads the two documents and nothing else -- no
