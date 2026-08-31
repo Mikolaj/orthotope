@@ -6628,7 +6628,20 @@ was missed, which is what they have cost.
     #      of the run: its head, Results and the findings under it, what
     #      the next run compares against with its hand-edited two-column
     #      table, the claims, the nine class leads and paragraphs, its
-    #      Provenance and its registrations. The tables went in at 5a and
+    #      Provenance and its registrations. TWO TABLES HERE ARE
+    #      HAND-EDITED and neither is installed: the two-column geomeans
+    #      and the PROVENANCE ANCHORS. Run 20 forgot the first entirely
+    #      and Run 22 left the second carrying the previous run's figures
+    #      in seven of nine cells, through every gate and a whole checker
+    #      pass, whereupon --machine resolved its fingerprint off the
+    #      stale row and published a corrupted headline. Recompute both
+    #      from the JSONs. AND PROVENANCE OWES A FIXED LIST besides its
+    #      anchors: the run's name and regime, each process's stderr
+    #      line, the machine, which half ran first, and THE COMMIT
+    #      transcribed from `$R-pair.txt` -- that note going with the
+    #      pair at 12, so the transcription cannot wait. A class line's
+    #      shape count is the whole class-view set, so the population
+    #      size comes from the reader. The tables went in at 5a and
     #      are not touched here; what is written is the prose around them,
     #      one edit per paragraph, and no tool reduces that count. Budget
     #      the head and the nine class paragraphs as the work. FIRST, and
@@ -6804,22 +6817,17 @@ was missed, which is what they have cost.
     ./read-run.py --lint          # 8. again after ANY Main.hs edit, and
     #      never rebuild the pair to satisfy it: say in the write-up that
     #      the comment-only move happened
-    #   9. record the run's name and regime, each process's stderr line,
-    #      the machine, and THE COMMIT, transcribed from $R-pair.txt; also
-    #      which half ran first. A class line's shape count is the whole
-    #      class-view set, so the population size comes from the reader
-    #   9a. collect what this run made CHEAPER for the next, which no
+    #   9. collect what this run made CHEAPER for the next, which no
     #      other step gathers and which is not a figure: the checks that
     #      would have caught each error, the computations improvised, the
     #      steps skipped, and any capability found. HALF OF IT IS THE
     #      PREPARING SESSION'S and reaches you only through the note:
     #      that session met the same four things a day earlier and is
-    #      gone, so read its 9a block before writing yours and carry both
+    #      gone, so read its 9 block before writing yours and carry both
     #      halves. Run 15's durable output
     #      was four checker gaps, two corrected rules here, and the finding
     #      that a probe needs no pair; none of it is in a table. It feeds
-    #      10 and so comes before it -- a suffix here follows its number,
-    #      as 10a and 10b do in the pre-run list, and never precedes it
+    #      10 and so comes before it
     #  10. walk the open list: grep the settled index before adding an
     #      entry, move answered ones with their measurement, and add each
     #      surprise with what would settle it. PREDICTION VERDICTS DO NOT
