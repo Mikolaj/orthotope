@@ -89,11 +89,23 @@ are THIS RUN'S and are rewritten every run:
  2. PREV is on disk too. Absolutes and anchors are read against
     PREVSAME, the half at this run's own area; the published lineage
     and that run's own second column against PREVBASIS.
- 3. Alone-leg riders are RUN-al-<half>-<shape>-r1.json, one bench each.
-    Probes are probe-*.json/.log.
+ 3. Alone-leg riders are RUN-al-<half>-<shape>-r1.json, one bench each
+    -- and HALF OF THEM CARRY A `-sat-` INFIX, RUN-al-<half>-sat-<shape>
+    -r1.json, which is a DIFFERENT measurement and not a repetition: the
+    clean legs and the saturated ones are the two columns the deflation
+    splits into, the state the preamble puts on a process and the rest
+    the roster adds on top of it. Count them apart. A run has 27 legs a
+    half in each state. Probes are probe-*.json/.log.
  4. read-run.py is the only reader; start with --help. --cells gives
-    TSV (slope_s raw, slope_net_s corrected); --pair, --compare, --aa,
-    --claims, --block, --fingerprint, --machine are the modes.
+    TSV (slope_s raw, slope_net_s corrected); --pair (with --per-shape),
+    --compare (with --chapter, --alloc, --movers, --ci, --counts), --aa,
+    --claims, --block, --fingerprint, --machine, --cross-classes and
+    --section are the modes for the JSONs and the documents. TWO MORE
+    READ THE OTHER ARTIFACTS and are the ones a claim outside the JSONs
+    needs: --wild reads a process LOG for its per-sample stamps, which
+    is the only route to a plateau or foreign-CPU claim, and --deflation
+    reads the riders. The counted-work .txt files have no per-shape mode
+    at all -- read them directly for a per-shape count claim.
  5. THIS RUN ONLY -- THE BOX DID NOT CHANGE between PREV and RUN. The
     gate's machine check read -0.87% on `list`'s net over 24 of 24
     shapes against the fingerprint PREV kept, worst `stretch-primes`
