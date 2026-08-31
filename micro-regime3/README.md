@@ -6569,7 +6569,7 @@ was missed, which is what they have cost.
     #      them is not reading them. REPLACE, do not annotate: a figure that
     #      moved inside the floor is requoted without comment. The three
     #      bullets below GOVERN the walk rather than following it, which
-    #      is why they are bullets and not sub-steps; 6a and 6b ARE it
+    #      is why they are bullets and not sub-steps; 6a and 6c ARE it
     #      * UNWRAP BOTH DOCUMENTS FIRST, and again at the head of every
     #        turn that edits them -- `wrap80 --unwrap -i`. The write-up is
     #        done unwrapped and the stretch ends at every turn boundary
@@ -6583,12 +6583,13 @@ was missed, which is what they have cost.
     #        passes. The rules are in
     #        ~/.claude/rules/markdown-wrapping.md, which does not reliably
     #        load; read it before the first edit. A precondition and not
-    #        an action: it was step 6d until 2026-08-31, and a session
-    #        that met it there met it after an install had already
-    #        reported no match on a rewrapped file
+    #        an action, which is why it is a bullet: a session that meets
+    #        it after the edits meets it after an install has already
+    #        reported no match on a rewrapped file, as Run 22's did
     #      * REPLACE BY ANCHOR, the method for every prose edit here, and
-    #        it REACHES PAST 6: 6a and 6b, then 7's corrections and 9, 9a
-    #        and 10, which all edit paragraphs too. `--replace ANCHOR
+    #        it REACHES PAST 6: 6a and 6c, the fixes at 6b and 6d, then
+    #        7's corrections and 9, 9a and 10, all of them paragraph
+    #        edits. `--replace ANCHOR
     #        --with FILE` swaps a paragraph without its old text passing
     #        through a transcript, which is what quoting it into a script
     #        costs and what Run 18 paid sixty times over. Quote only what
@@ -6604,9 +6605,8 @@ was missed, which is what they have cost.
     #        and reading only the `in` pair is what hides it -- Run 21 put
     #        a head paragraph 2820 characters into the wrong section that
     #        way, and recovered it only because step 5 had committed the
-    #        copy. It was step 6c until 2026-08-31, where being numbered
-    #        among the halves read as belonging to one of them
-    #      * TWO HALVES IN TWO FILES, 6a and 6b below, and the replace
+    #        copy
+    #      * TWO HALVES IN TWO FILES, 6a and 6c below, and the replace
     #        list does not look like it: its FIRST bullet is the run's own
     #        file ENTIRE and every other bullet is a README section, so a
     #        session reading 6 as one walk writes a whole document with no
@@ -6622,37 +6622,27 @@ was missed, which is what they have cost.
     #      one edit per paragraph, and no tool reduces that count. Budget
     #      the head and the nine class paragraphs as the work. FIRST, and
     #      not for tidiness: 6b's figures are requoted FROM this half
-    #  6b. THE INDEPENDENT CHECKER, PRE-AUTHORIZED by the user-scope
-    #      CLAUDE.md and not a thing to ask about -- Run 20 read Claude
-    #      Code's own conditional, missed that the standing request
-    #      discharges it, and asked. It is a STEP because it is the
-    #      highest-yield thing in this list: on Run 19 it returned 22
-    #      defects that every mechanical gate here had passed and
-    #      a truth-focused read had not caught.
-    #      TWO passes on ONE agent -- 6a's prose the moment it lands,
-    #      then the prose WITH the fixes the first pass caused. The
-    #      second pass is not a formality: Run 19's found SEVEN errors
-    #      introduced by the first pass's own fixes, two of them
-    #      substantive, and Run 21's returned nine findings of which
-    #      SEVEN were created by its own first round of fixes. A session
-    #      that stops at one pass ships them.
-    #      EACH PASS HAS ITS OWN SCOPE AND ITS OWN POSITION, and until
-    #      2026-08-31 the second had neither -- it was `then the prose
-    #      with the fixes`, a condition and not a place, so a session
-    #      could satisfy it anywhere or not at all.
-    #      PASS ONE reads THE RUN FILE ALONE, which is 6a's output; run
-    #      6c beside it. The checker REPORTS ONLY and edits nothing, and
-    #      6c edits the other file, so the two cannot collide; give the
-    #      pass a COMMITTED object to diff and 6c's edits cannot move
-    #      under it either. A session that waits instead idles for the
-    #      pass's whole length -- Run 22 did, seventeen minutes, having
-    #      pointed it at the working tree.
-    #      PASS TWO comes AFTER 6c and reads BOTH FILES: 6a's prose with
-    #      the fixes pass one caused, and 6c's requotes, which is the
-    #      first moment all of this run's prose exists. Scoping it to the
-    #      run file would leave README's half read by nothing but
-    #      --check-doc and your own end-to-end pass at 7, and a
-    #      cross-document figure checked on one side only.
+    #  6b. THE INDEPENDENT CHECKER, FIRST PASS, and fixing what it
+    #      returns -- PRE-AUTHORIZED by the user-scope CLAUDE.md and not
+    #      a thing to ask about; Run 20 read Claude Code's own
+    #      conditional, missed that the standing request discharges it,
+    #      and asked. It is a STEP because it is the highest-yield thing
+    #      in this list: on Run 19 it returned 22 defects that every
+    #      mechanical gate here had passed and a truth-focused read had
+    #      not caught. ONE AGENT, TWO PASSES: this is the first and 6d is
+    #      the second, on the SAME agent, which keeps its reading of this
+    #      run's JSONs and pays no second bootstrap.
+    #      IT READS THE RUN FILE ALONE, which is 6a's output. COMMIT
+    #      FIRST and give it the committed diff, not the working tree:
+    #      then 6c's edits cannot move under it and you need not stop
+    #      writing. RUN 6c BESIDE IT -- the checker REPORTS ONLY and
+    #      edits nothing, and 6c edits the other file, so the two cannot
+    #      collide. A session that waits instead idles for the pass's
+    #      whole length: Run 22 did, seventeen minutes, having pointed it
+    #      at the working tree.
+    #      FIXING IS THIS STEP'S OTHER HALF and not 6d's: a finding is
+    #      not fixed by being reported, and 6d exists to read what the
+    #      fixing broke.
     #      BRIEF IT WITH ALL OF THIS, since an under-briefed checker
     #      wastes its pass: it works in THIS directory; its evidence is
     #      this run's JSONs and read-run.py and nothing else; NO other
@@ -6661,12 +6651,14 @@ was missed, which is what they have cost.
     #      distinctive PHRASE and never a line number, the file being
     #      rewrapped between turns; and it separates confirmed defects
     #      from what it could not check. Give it the diff and name the
-    #      sections a run replaces.
+    #      sections a run replaces, and name the FILES its evidence is
+    #      in -- Run 22 left three of its seven `could not check` items
+    #      checkable, the per-shape counts among them, for want of a
+    #      path.
     #      AND CHECK ITS WORK. Run 19's said twelve arms moved past 3%
-    #      where sorting gives eleven. Its report is evidence, not verdict
-    #      Once the write-up settles, one comprehension probe: a fresh
-    #      session answers a few of the README's own questions from the
-    #      document alone, with citations
+    #      where sorting gives eleven, and Run 22's put the runs-class
+    #      crossover a length out by skipping a shape. Its report is
+    #      evidence, not verdict
     #  6c. THE README SECTIONS, every other bullet: the floor table and
     #      its prose, the opening, the mutable ceiling, the Lemire
     #      shipping paragraph, the stride-class chapter, the delta chain
@@ -6678,6 +6670,39 @@ was missed, which is what they have cost.
     #      agreement, so a half-done 6b FAILS that gate rather than
     #      passing quietly, which is the one place this half announces
     #      itself
+    #  6d. THE SECOND PASS, same agent, AFTER 6b AND 6c BOTH. It is not
+    #      a formality: Run 19's found SEVEN errors introduced by the
+    #      first pass's own fixes, two of them substantive, and Run 21's
+    #      returned nine findings of which SEVEN were made by its own
+    #      first round of fixes. A session that stops at one pass ships
+    #      them. Until 2026-08-31 this pass had no position at all --
+    #      `then the prose with the fixes` is a condition, not a place,
+    #      so it could be satisfied anywhere or not at all.
+    #      IT READS BOTH FILES, and this is the one pass that can: 6a's
+    #      prose with 6b's fixes in it, and 6c's requotes. That is the
+    #      first moment all of a run's prose exists. Scoped to the run
+    #      file it would leave README's half read by nothing but
+    #      --check-doc and your own end-to-end pass at 7, and a figure
+    #      quoted in BOTH documents -- the floor pair, the six-pair one
+    #      -- checked on one side only. What bounds it is the ARTIFACT
+    #      and not the scope: the diff of both files since the run's base
+    #      commit is exactly what this run wrote and no more, so it never
+    #      means reading README whole.
+    #      THREE DISCIPLINES, and they are what make the parallel half
+    #      safe. COMMIT BEFORE LAUNCHING, so the diff cannot move under
+    #      it. FREEZE WRITES to both documents while it runs, unlike 6b:
+    #      there is no third file to be editing, and a finding quotes a
+    #      phrase you may have already changed. RUN 7's READ-ONLY HALF
+    #      MEANWHILE -- the re-derivations from --cells and --pair,
+    #      --lint, --check-doc and its worklists -- which produces a
+    #      worklist and not an edit, so the window is not idle.
+    #      THEN CONVERGE TO ONE WRITER: merge 7's worklist and this
+    #      pass's report into a SINGLE fix cycle. Two sources of fixes
+    #      for one defect is how the errors this pass exists to catch get
+    #      made twice over.
+    #      Once the write-up settles, one comprehension probe: a fresh
+    #      session -- not this agent -- answers a few of the README's own
+    #      questions from the document alone, with citations
     #   7. verify. Every count and ratio comes from --cells or --pair, never
     #      from a printed table, which is rounded to three figures; before
     #      re-deriving a figure a previous run published, reproduce THAT
