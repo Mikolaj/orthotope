@@ -68,10 +68,18 @@ stands between runs, and runs/run<N>.md is this run's write-up entire --
 its head, Results, what the next run compares against, the claims it
 should test, the NINE class blocks and its own Provenance. A run
 replaces that file and edits README.md around it -- a bullet on the delta
-chain, and whatever the replace list turns up -- so the diff spans both.
+chain, and whatever the replace list turns up.
 
-THE DIFF, and it is TWO commands because the two files have different
-histories. The run file is touched by the write-up ALONE, so it needs no
+THE TWO INVOCATIONS SEE DIFFERENT DOCUMENTS, and this is not a
+simplification to ignore. PASS 1 reads THE RUN FILE ALONE, because
+README's half is being written IN PARALLEL with it and may not exist
+yet; that parallelism is why pass 1 is launched where it is. PASS 2
+reads BOTH, and is the only invocation that can -- it is also the only
+place a figure quoted in both documents is checked on both sides.
+
+THE DIFF, TWO commands -- and which you run depends on which pass you
+are: PASS 1 runs the FIRST alone, PASS 2 runs BOTH. They are separate
+because the two files have different histories. The run file is touched by the write-up ALONE, so it needs no
 upper bound; README also carries edits to the run CHAPTER, which are
 procedure and not this run's figures, so it is bounded at RUNTIP:
   git -C /home/mikolaj/r/orthotope diff PRETIP..HEAD   -- micro-regime3/runs
@@ -148,14 +156,17 @@ are THIS RUN'S and are rewritten every run:
     it is disclosed, not hidden; check that the disclosure matches the
     artifacts rather than treating any of it as an error.
 
-PASS 1 -- every figure. Recompute every numeric claim the diff adds,
+THE FIGURE SWEEP -- and it is a SWEEP, not a pass: `pass` in this file
+means one of the two agent invocations above, and both sweeps below are
+done in EACH of them. Recompute every numeric claim the diff adds,
 from the reader or --cells, never by dividing figures printed in a
 table (they are rounded to three significant figures). Be exhaustive
 on the tables -- Results, the fingerprint, the nine class tables, the
 cross-class summary, the run's own two geomean columns -- and say how many
 rows you verified and how many disagreed.
 
-PASS 2 -- every superlative and count. Every "only", "largest",
+THE SUPERLATIVE SWEEP -- every superlative and count. Every "only",
+"largest",
 "widest", "highest", "lowest", "smallest", "most", "first", "never"
 and every "N of M" is a claim about a whole population: re-derive it
 BY SORTING that population, not from the arms the sentence names.
@@ -163,7 +174,7 @@ Flag any sentence contradicting a table or another sentence.
 
 Report a numbered list of discrepancies only -- the claim as written,
 what you computed, the command you used, and the size of the
-disagreement -- plus per-pass counts of what you verified. Say
+disagreement -- plus per-sweep counts of what you verified. Say
 explicitly what you could not compute rather than guessing.
 
 
