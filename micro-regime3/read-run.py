@@ -9073,7 +9073,7 @@ def main():
     p.add_argument('--worklists', action='store_true',
                    help='with --check-doc: print the superseded-figure,'
                         ' superlative and absolute-time worklists for'
-                        ' adjudication -- step 7 wants this, no other call'
+                        ' adjudication -- post-run 6e wants this, no other'
                         ' does')
     p.add_argument('--para', metavar='PATTERN',
                    help="print the README paragraph whose bolded lead"
