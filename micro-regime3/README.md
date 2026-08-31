@@ -6587,8 +6587,8 @@ was missed, which is what they have cost.
     #        it after the edits meets it after an install has already
     #        reported no match on a rewrapped file, as Run 22's did
     #      * REPLACE BY ANCHOR, the method for every prose edit here, and
-    #        it REACHES PAST 6: 6a and 6c, the fixes at 6b and 6d, then
-    #        7's corrections and 9, 9a and 10, all of them paragraph
+    #        it REACHES PAST 6: 6a and 6c, the fixes at 6b, then 7's
+    #        merged fix cycle and 9, 9a and 10, all of them paragraph
     #        edits. `--replace ANCHOR
     #        --with FILE` swaps a paragraph without its old text passing
     #        through a transcript, which is what quoting it into a script
@@ -6693,28 +6693,23 @@ was missed, which is what they have cost.
     #      it. FREEZE WRITES to both documents while it runs, unlike 6b:
     #      there is no third file to be editing, and a finding quotes a
     #      phrase you may have already changed. RUN 7's READ-ONLY HALF
-    #      MEANWHILE -- the re-derivations from --cells and --pair,
-    #      --lint, --check-doc and its worklists -- which produces a
-    #      worklist and not an edit, so the window is not idle.
-    #      THEN CONVERGE TO ONE WRITER: merge 7's worklist and this
-    #      pass's report into a SINGLE fix cycle. Two sources of fixes
-    #      for one defect is how the errors this pass exists to catch get
-    #      made twice over.
-    #      Once the write-up settles, one comprehension probe: a fresh
-    #      session -- not this agent -- answers a few of the README's own
-    #      questions from the document alone, with citations
-    #   7. verify. Every count and ratio comes from --cells or --pair, never
-    #      from a printed table, which is rounded to three figures; before
-    #      re-deriving a figure a previous run published, reproduce THAT
-    #      run's value with your method first. A new column needs a route
-    #      sharing no code with the reader -- difference wall, or user AND
-    #      system, at two iteration counts. Two instruments disagreeing is
-    #      the finding: locate it, and until then neither is evidence. If
-    #      any edit was scripted, assert its extent and read a
-    #      `wrap80 --unwrap` diff of both sides: nothing else sees a lost
-    #      paragraph. A correction is a claim -- derive it, then re-run the
-    #      gates. Then --lint, --check-doc, adjudicate the worklists,
-    #      read end to end, and walk the diff against the writing rules.
+    #      MEANWHILE, which is 6e: it produces a worklist and not an
+    #      edit, so the window is not idle and nothing it does can move
+    #      under this pass.
+    #  6e. VERIFY, THE READ-ONLY HALF, run in parallel with 6d and
+    #      producing a worklist rather than an edit -- which is what lets
+    #      it share the window. Every count and ratio comes from --cells
+    #      or --pair, never from a printed table, which is rounded to
+    #      three figures; before re-deriving a figure a previous run
+    #      published, reproduce THAT run's value with your method first.
+    #      A new column needs a route sharing no code with the reader --
+    #      difference wall, or user AND system, at two iteration counts.
+    #      Two instruments disagreeing is the finding: locate it, and
+    #      until then neither is evidence. If any edit was scripted,
+    #      assert its extent and read a `wrap80 --unwrap` diff of both
+    #      sides: nothing else sees a lost paragraph. Then --lint,
+    #      --check-doc, adjudicate the worklists, read end to end, and
+    #      walk the diff against the writing rules.
     #      WHAT IS VERIFIED IS EVERY FILE THIS RUN WROTE, which is more
     #      than the run's own: `runs/$R.md` and `README.md` always, both
     #      halves of 6 being edits, and -- where 6c reached them --
@@ -6724,6 +6719,23 @@ was missed, which is what they have cost.
     #      figures to agreement; the three source files are the reading's
     #      alone, nothing gating their comments, so a stale figure there
     #      survives every green run until someone opens the file.
+    #  6f. WAIT FOR 6d AND 6e BOTH, which is the barrier this list
+    #      otherwise has none of: 7 merges their two reports and cannot
+    #      start on one. Then one comprehension probe -- a fresh session,
+    #      NOT the 6b/6d agent, answering a few of the README's own
+    #      questions from the document alone, with citations. It asks
+    #      whether the document can be READ, not whether it is right, so
+    #      it does not wait on 7's corrections; what it finds is a
+    #      navigation defect, which no gate here has ever caught and no
+    #      figure check can.
+    #   7. CONVERGE TO ONE WRITER and fix, which is all that is left
+    #      here: merge 6d's report and 6e's worklist into a SINGLE cycle
+    #      and apply it. Two sources of fixes for one defect is how the
+    #      errors 6d exists to catch get made twice over. A correction is
+    #      a claim -- derive it, then RE-RUN THE GATES, which 6e ran
+    #      before these fixes existed and which nothing else re-runs: the
+    #      fix cycle is the one stretch of the write-up no pass and no
+    #      gate has seen.
     ./read-run.py --lint          # 8. again after ANY Main.hs edit, and
     #      never rebuild the pair to satisfy it: say in the write-up that
     #      the comment-only move happened
