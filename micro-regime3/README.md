@@ -6624,9 +6624,11 @@ was missed, which is what they have cost.
     #      one edit per paragraph, and no tool reduces that count. Budget
     #      the head and the nine class paragraphs as the work. FIRST, and
     #      not for tidiness: 6b's figures are requoted FROM this half
-    #  6b. COMMIT 6a'S WORK, then THE INDEPENDENT CHECKER, FIRST PASS,
-    #      and fixing what it returns. The commit is the first action
-    #      and not housekeeping: the pass diffs a committed object, so
+    #  6b. COMMIT 6a'S WORK IN ONE COMMIT, and THAT COMMIT'S DIFF IS
+    #      WHAT THE AGENT WORKS ON -- not the working tree, not a range.
+    #      Then THE INDEPENDENT CHECKER, FIRST PASS, and fixing what it
+    #      returns. The commit is the first action and not housekeeping:
+    #      given the diff of one commit the pass has a fixed object, so
     #      6c's edits cannot move under it and you need not stop
     #      writing -- PRE-AUTHORIZED by the user-scope CLAUDE.md and not
     #      a thing to ask about; Run 20 read Claude Code's own
@@ -6648,18 +6650,39 @@ was missed, which is what they have cost.
     #      FIXING IS THIS STEP'S OTHER HALF and not 6d's: a finding is
     #      not fixed by being reported, and 6d exists to read what the
     #      fixing broke.
-    #      BRIEF IT WITH ALL OF THIS, since an under-briefed checker
-    #      wastes its pass: it works in THIS directory; its evidence is
-    #      this run's JSONs and read-run.py and nothing else; NO other
-    #      repository's checkers come near this README; it re-runs no
-    #      benchmark; it REPORTS ONLY and edits nothing; it quotes a
-    #      distinctive PHRASE and never a line number, the file being
-    #      rewrapped between turns; and it separates confirmed defects
-    #      from what it could not check. Give it the diff and name the
-    #      sections a run replaces, and name the FILES its evidence is
-    #      in -- Run 22 left three of its seven `could not check` items
-    #      checkable, the per-shape counts among them, for want of a
-    #      path.
+    #      THE BRIEF IS CHECKED IN AS `checker-brief.txt` AND IS NOT TO
+    #      BE RETYPED. It carries BOTH agents' briefs -- this pass's and
+    #      7a's probe -- and every fact an agent cannot derive: which
+    #      half is the basis, and so which of the twenty JSONs every
+    #      published table comes from; that it works in THIS directory;
+    #      that its evidence is this run's own JSONs and read-run.py and
+    #      nothing else; that no other repository's checkers come near
+    #      this README; that it re-runs no benchmark, REPORTS ONLY and
+    #      edits nothing; that it quotes a distinctive PHRASE and never
+    #      a line number, the documents being rewrapped between turns;
+    #      and that it separates confirmed defects from what it could
+    #      not check. An agent starts where your session started, so
+    #      none of that is visible to it.
+    #      EDIT ITS FIRST BLOCK IN THE FILE and not in the prompt -- the
+    #      run, the two half names, the previous run's two and the
+    #      commit before this run's work -- because a value living only
+    #      in a prompt is one the next run retypes. WALK THE FILE, NOT
+    #      ITS HEAD: the class lists and every count of the classes move
+    #      with the roster, and the two `THIS RUN ONLY` items carry one
+    #      run's box event and one run's intrusion, so a stale one tells
+    #      a checker to write off a real level shift. Run 16 wrote the
+    #      brief out twice, once because a rate limit killed the agent
+    #      mid-pass; Run 22 never opened it, typed its own, and left
+    #      three of seven `could not check` items checkable for want of
+    #      the paths this file names.
+    #      WHAT TO ASK IT FOR: recompute every added figure from the
+    #      reader, re-derive every *only*, *largest* and *N of the nine*
+    #      by SORTING the population it quantifies over, and report
+    #      discrepancies rather than opinions. NOT the installed
+    #      figures, which `--in-place` already guarantees and two runs
+    #      have measured as buying nothing (the paragraph on re-deriving
+    #      them, below), and NOT the placement, contradiction and
+    #      writing-rule reading, which is 6e's and yours.
     #      AND CHECK ITS WORK. Run 19's said twelve arms moved past 3%
     #      where sorting gives eleven, and Run 22's put the runs-class
     #      crossover a length out by skipping a shape. Its report is
@@ -6675,10 +6698,13 @@ was missed, which is what they have cost.
     #      agreement, so a half-done 6b FAILS that gate rather than
     #      passing quietly, which is the one place this half announces
     #      itself
-    #  6d. COMMIT 6b'S AND 6c'S WORK, then THE SECOND PASS, same agent,
-    #      AFTER 6b AND 6c BOTH -- the commit being what makes `both`
-    #      checkable rather than remembered, and what the pass diffs.
-    #      It is not
+    #  6d. COMMIT 6b'S AND 6c'S WORK AS A SINGLE COMMIT, and THAT
+    #      COMMIT'S DIFF IS WHAT THE AGENT WORKS ON. One commit and not
+    #      two: the pass reads both files together, so two commits would
+    #      hand it two diffs and let it read one and call the run
+    #      covered. It also makes `after 6b and 6c both` checkable
+    #      rather than remembered. Then THE SECOND PASS, same agent,
+    #      AFTER 6b AND 6c BOTH. It is not
     #      a formality: Run 19's found SEVEN errors introduced by the
     #      first pass's own fixes, two of them substantive, and Run 21's
     #      returned nine findings of which SEVEN were made by its own
@@ -6741,13 +6767,18 @@ was missed, which is what they have cost.
     #      before these fixes existed and which nothing else re-runs: the
     #      fix cycle is the one stretch of the write-up no pass and no
     #      gate has seen.
-    #  7a. COMMIT 7'S WORK, then THE COMPREHENSION PROBE. It is HERE
-    #      because its own
+    #  7a. COMMIT 7'S WORK, so the probe reads a settled document and
+    #      its findings name text that still exists. Then THE
+    #      COMPREHENSION PROBE -- which reads the finished documents
+    #      rather than a diff, so the commit is a fixed point and not
+    #      its input. It is HERE because its own
     #      condition is `once the write-up settles`, which happens at 7
     #      and not before: a fresh session -- NOT the 6b/6d agent, which
     #      has read this run's JSONs and cannot be surprised by the
     #      document -- answers a few of the README's own questions from
-    #      the document alone, with citations. It asks whether the
+    #      the document alone, with citations. ITS BRIEF IS THE SECOND
+    #      BLOCK OF `checker-brief.txt`, the same file 6b names and the
+    #      same rule: edit it there, do not retype it. It asks whether the
     #      document can be READ, not whether it is right; what it finds
     #      is a navigation defect, which no gate here has ever caught and
     #      no figure check can.
@@ -7083,51 +7114,28 @@ the artifacts are what it spends.
    and read the probe's findings as being about the README rather than about
    the run.**
 
-   **So put an independent checker on the diff against the artifacts, launched
-   when the tables go in rather than at the end --- and the cost of launching
-   late is measured** (Run 15, which launched once the whole write-up
-   was drafted): its first pass returned seventeen findings, several of them
-   prose built on a table figure a table-time pass would have caught first,
-   and its second pass returned seven more of which four existed *only* because
-   the first round of fixes had been written. Late launching does not merely
-   delay the findings, it multiplies them --- and it is **two passes on one
-   agent**, since at that moment only the tables exist: the tables as they go
-   in, then the prose together with the fixes the first pass caused, the second
-   continuing the first rather than paying a fresh bootstrap. Run 13's first
-   pass verified 341 table lines and found the cross-class summary untouched;
-   its second found six prose errors, including a previous run's figure
-   presented as this one's. One agent, briefed to recompute every added figure
-   from the reader and to re-derive every *only*, *largest* and *N of the nine*
-   by sorting, and to report discrepancies rather than opinions. It is dear per
-   finding --- Run 11's cost some thirty times what the same session's own
-   targeted re-checks did --- and it is worth it anyway, because its findings
-   are the ones a session has already proved it cannot see in its own prose,
-   and because it returns a completeness the author cannot: 306 of 306 table
-   rows verified rather than the ones somebody thought to check. Leave
-   the placement, contradiction and writing-rule reading to yourself.
-   **The brief is checked in as `checker-brief.txt` and is not to be retyped**
-   --- it carries both agents' briefs, and its first block is the run name,
-   the two half names and the previous run's two. **That block is not the only
-   thing that changes, whatever its own heading says**: the class lists
-   and every count of the classes move with the roster, and the two
-   `THIS RUN ONLY` items carry one run's box event and one run's intrusion,
-   so a stale item 5 tells a checker to write off a real level shift. Walk
-   the file, not its head. Run 16 wrote it out twice, once because a rate limit
-   killed the agent mid-pass. Four things it cannot derive are why it exists:
-   which half is the basis, and so which of the twenty JSONs every published
-   table comes from; that it works in this directory, that its evidence
-   is this run's own JSONs and `read-run.py`, and that no other repository's
-   checkers come near this README --- it starts where your session started,
-   so the artifacts are not where it is and the checkers it arrives with
-   are not this README's. And once the write-up has settled, aim the same
-   instrument at the finished README rather than the diff: a comprehension probe
-   --- a fresh session answering a handful of the README's own questions
-   from the document alone, with citations --- reads as a stranger what every
-   diff-scoped check reads as a change, and on every run it has been given
-   it has surfaced a contradiction between standing passages that nothing above
-   could have seen. (The rule that a check must be proven able to fail governs
-   the instruments themselves and is stated with them, [in the reader's
-   section](#the-reader-read-runpy).)
+   **An independent checker on the diff is the highest-yield instrument here,
+   and the cost of launching it late is measured** (Run 15, which launched once
+   the whole write-up was drafted): its first pass returned seventeen findings,
+   several of them prose built on a table figure an earlier pass would have
+   caught first, and its second returned seven more of which four existed *only*
+   because the first round of fixes had been written. Late launching does
+   not merely delay the findings, it multiplies them --- which is why
+   the checklist gives each pass a commit to work from and a position rather
+   than a condition, and why the fixing belongs to the pass that caused it. Run
+   13's first pass verified 341 table lines and found the cross-class summary
+   untouched; its second found six prose errors, including a previous run's
+   figure presented as this one's. It is dear per finding --- Run 11's cost some
+   thirty times what the same session's own targeted re-checks did --- and
+   it is worth it anyway, because its findings are the ones a session has
+   already proved it cannot see in its own prose, and because it returns
+   a completeness the author cannot: 306 of 306 table rows verified rather
+   than the ones somebody thought to check. The comprehension probe that follows
+   the fixes reads as a stranger what every diff-scoped check reads as a change,
+   and on every run it has been given it has surfaced a contradiction between
+   standing passages that nothing above could have seen. (The rule that a check
+   must be proven able to fail governs the instruments themselves and is stated
+   with them, [in the reader's section](#the-reader-read-runpy).)
 
    The checks themselves:
    1. **MEASURE, THEN WRITE THE CLAUSE --- and derive every count and ratio
