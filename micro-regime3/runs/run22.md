@@ -63,10 +63,11 @@ by a constant, five of the six mod-64 offsets those Run 21 held and the sixth
 **What holds the build to something instead is four readings that survive
 a relink.** The gate's machine check reads **-0.87%** on `list`'s net against
 the fingerprint Run 21 kept, over 24 of 24 shapes, worst `stretch-primes` -1.66%
-and none past 5%; the run's own main-set process reads the same check
-at **+0.04%**, worst `cnn-slice-c32` +0.97% --- two instruments, both inside 3%,
-so the box measures as it did and no absolute is re-baselined. The 43 arms both
-halves and Run 21 all give a corrected time read against Run 21's columns,
+and none past 5%; the run's own main-set process reads the same comparison
+at **+0.08%**, worst `stretch-r5-8x432` +1.85% --- two readings against the SAME
+kept fingerprint rather than two instruments, both inside 3%, so the box
+measures as it did and no absolute is re-baselined. The 43 arms both halves
+and Run 21 all give a corrected time read against Run 21's columns,
 with the caveat above: seven of them are changed code and the rest carry
 a layout term nothing here separates. Each half's own sixteen A/A pairs give
 it a floor. **And the counted work is the fourth and strongest**:
@@ -178,9 +179,10 @@ and `-r3-48x30` on the basis, and 0.0230 to 1.1513 on the control.
 and behind only at `runs-65536` and `runs-r3-48x30`, where Run 21 had it behind
 from `runs-96` up by factors of 2.9, 5.2 and 6.5. The crossover has therefore
 moved from between `runs-9` and `runs-96` to between `runs-1024`
-and `runs-65536` --- about sixty-four-fold outward --- and it moved by the same
-step on both compilers, the control reading 0.9601 at `runs-1024` against
-the basis's 0.9254.
+and `runs-65536` --- the bracket's lower edge moving 114-fold and its upper
+683-fold, so the crossing itself went out by something near two hundred ---
+and it moved by the same step on both compilers, the control reading 0.9601
+at `runs-1024` against the basis's 0.9254.
 
 **And that is what kills registration 3.** `lib-stage2-disp` cuts the slice
 route in at a canonical run of `dispRun` or more with `dispRun` at 256, a number
@@ -215,24 +217,30 @@ with `runs-4` and `runs-5` bracketing them at 0.5528 and 0.6099 in counts.
 In time it reads **0.8066, 0.9678, 0.8311 and 0.9407** at those four lengths:
 the win is real and its direction is right, and it is a third to a sixth
 of the size the counts predicted. Its kill condition was being behind past
-a population's floor anywhere the counts put it at or below 1, and its three
-cells above 1 --- `runs-256` 1.0135, `runs-512` 1.0112, `runs-r3-48x30` 1.0230
---- are every one inside the 3.26% floor, so **it survives while its magnitudes
-are refuted**. `lib-stage2-u4`, the stepping run unrolled by four, was predicted
-0.83 to 0.85 at the long runs; it reads **0.9759 at `runs-65536`, 0.9916
-at `runs-1024` and 0.9821 at `runs-512`** --- ahead, but by 2.4%, 0.8% and 1.8%
-against that class's 3.26% floor, so not ahead past it at any long length, which
-is its own kill condition. **KILLED.** `lib-stage2-lean`, whose leaner dispatch
-skips the strides comparison, was predicted at or below `lib-stage2` everywhere
-and past a floor only on `cnn-L1-6x6-c1`, `cnn-slice-c32` and `stretch-inner1`.
-Two of those three hold and are the run's cleanest confirmation of a counted
-reading: **0.8771 and 0.8565**, both far past the 2.12% main-set floor.
-The third inverts. On `stretch-inner1`, where canonicalization collapses
-the call to a slice and the counted sweep put the lean dispatch 21 points ahead,
-it reads **1.0617** --- behind by 6.2%, past the floor, which is the kill
-condition in the letter and in the direction nobody registered. **KILLED**,
-and it is the run's one place where an instruction count and a clock disagree
-about a sign rather than a size.
+a population's floor anywhere the counts put it at or below 1, and **it fires**.
+Its three cells above 1 on `runs` are inside that class's 3.26% floor ---
+`runs-256` 1.0135, `runs-512` 1.0112, `runs-r3-48x30` 1.0230, with `runs-9`
+at 1.0010 --- but the MAIN SET carries six more, and one of them
+is `stretch-inner1` at **1.0308**, 3.08% behind against a 2.12% floor where
+this run's own counted work reads the arm at 0.999997, at or below 1.
+**KILLED**, and the magnitudes refuted with it. `lib-stage2-u4`, the stepping
+run unrolled by four, was predicted 0.83 to 0.85 at the long runs; it reads
+**0.9759 at `runs-65536`, 0.9916 at `runs-1024` and 0.9821 at `runs-512`** ---
+ahead, but by 2.4%, 0.8% and 1.8% against that class's 3.26% floor, so not ahead
+past it at any long length, which is its own kill condition. **KILLED.**
+`lib-stage2-lean`, whose leaner dispatch skips the strides comparison,
+was predicted at or below `lib-stage2` everywhere and past a floor only
+on `cnn-L1-6x6-c1`, `cnn-slice-c32` and `stretch-inner1`. Two of those three
+hold and are the run's cleanest confirmation of a counted reading: **0.8771
+and 0.8565**, both far past the 2.12% main-set floor. The third inverts.
+On `stretch-inner1`, where canonicalization collapses the call to a slice
+and the counted sweep put the lean dispatch 21 points ahead, it reads **1.0617**
+--- behind by 6.2%, past the floor, which is the kill condition in the letter
+and in the direction nobody registered. **KILLED** --- and the sign disagreement
+is the REGISTERING sweep's against this run's clock, not this run's own:
+the shim-free sweep of 2026-08-30 put the arm 21 points ahead there, while
+this run's counted work reads it at 1.0000, agreeing with the clock that
+it is not.
 
 **The unordered entry point is the registration that was evaluated rather
 than predicted, and it came back exactly as evaluated.** `probe-oneblock.py` had
@@ -314,8 +322,9 @@ in all nine classes belongs to the same arm and it is the one Runs 20 and 21
 named**, `mut-odo-vecdims-add-in-leaf`, from 0.8649 on `runs` to 0.9286
 on `reshape1`, where Run 21 read 0.8653 to 0.9286 --- the same arm and the same
 far end to four figures over a roster change. It is not the widest DEVIATION
-in every class, `-add-in-leaf-down` sitting further from 1 in three of the nine,
-which is a distinction Run 21's phrasing did not have to make.
+in every class, `-add-in-leaf-down` sitting further from 1 in two of the nine,
+`reshape1` and `window`, which is a distinction Run 21's phrasing did not have
+to make.
 
 **The unit-innermost-extent rule was registered as a mechanism claim,
 and a third run has now declined to kill it.** Wherever `sInner` is 1,
@@ -377,7 +386,7 @@ against Run 21's 0.5424, Run 20's 0.5479, Run 19's 0.5572, Run 18's 0.5577, Run
 17's 0.5446 and Run 16's 0.5567 --- the figure [the
 ruling](../README.md#the-mutable-ceiling-taken) turns on, unmoved by a third
 consecutive roster change that moved every address. On HEAD it reads **0.5184**,
-against Run 21's 0.5164, at the same 23 of 24 and the same p. Six runs, three
+against Run 21's 0.5164, at the same 23 of 24 and the same p. Seven runs, three
 compilers and four rosters have now put it between 0.5184 and 0.5577.
 
 **And this run's two columns MAY NOT be differenced, which reverses Run 21
@@ -386,12 +395,12 @@ the halves on the main set against the 0.7% bar --- past it, where Run 21 read
 0.64% and called that a hair inside while preferring the within-run comparisons
 anyway. So the cross-half figures here are read as an ordering and not
 as a subtraction, and the counted work is what carries any claim about *why*
-an arm moved. **The bar bites five of the nine classes too, and not the ones Run
-21 named**: `bcastmid` at 1.0106, `reshape1` at 0.9900, `window` at 1.0082,
-`scaled` at 0.9911 and `runs` at 1.0114 are past it, so those five class blocks
-say in their cross-half lines that they are not read for the pair's variable ---
-while `rev`, which Run 21 disqualified at 1.0126, is inside it this run
-at 1.0069, as are `revsome`, `bcast` and `slice`.
+an arm moved. **The bar bites five of the nine classes too, overlapping Run 21's
+three in two of them**: `bcastmid` at 1.0106, `reshape1` at 0.9900, `window`
+at 1.0082, `scaled` at 0.9911 and `runs` at 1.0114 are past it, so those five
+class blocks say in their cross-half lines that they are not read for the pair's
+variable --- while `rev`, which Run 21 disqualified at 1.0126, is inside
+it this run at 1.0069, as are `revsome`, `bcast` and `slice`.
 
 **And the one straddling loop this run can name lies in the branch's own fill.**
 The build-time reading found four self-loops straddling a cache line
@@ -415,10 +424,10 @@ to this one.
 nothing afterwards can: a `diag` in the run's own regime puts `baseOffsetsScan`
 at 2408930 bytes against `baseOffsetsMut`'s 2408530 on `vgg-14-c512`
 on the basis, and 2408978 against 2408530 on the control, where plain -O1
-separates the two tenfold. Those are Run 21's three figures to the byte,
-and this run's preflight read them of both halves where Run 21's asked only
-the basis. With no rebuild between the gate and the sequence, that is the only
-check standing between a mistyped regime and the hours.
+separates the two tenfold. Those are Run 21's three figures to the byte, both
+runs' preflight having asked the basis alone while both notes record the pair.
+With no rebuild between the gate and the sequence, that is the only check
+standing between a mistyped regime and the hours.
 
 **Run 22 records every population twice** --- the main set and all nine stride
 classes from each half, one process each, which is what makes its class readings
@@ -437,7 +446,7 @@ to be the longest and they are. **The control half ran first throughout**,
 `ghead` before `g912` on the main set and on each class in turn, which
 is the driver's order. **The alone-leg riders followed the sequence**, 108
 single-bench processes over four invocations of 27, each half clean
-and saturated, each invocation launching on a box between 0.1% and 0.6%
+and saturated, each invocation launching on a box between 0.0% and 0.3%
 non-idle.
 
 **The decomposition reproduces on both halves for a fourth run.** The riders
@@ -454,7 +463,7 @@ is the same shape on both halves and it is the shape Runs 19, 20 and 21 all
 named**, `stretch-tall-Mx2` at 1.0858 and 1.0960 against Run 21's 1.0944
 and 1.0956 --- a roster effect on one shape rather than a term belonging
 to either compiler, now on four rosters. All 108 rider legs ran on a box
-the script measured at 0.1% to 0.6% non-idle before each of the four
+the script measured at 0.0% to 0.3% non-idle before each of the four
 invocations.
 
 **Everything in this file is replaced by the next run, which is what makes
@@ -1155,10 +1164,11 @@ tier, so the candidates buy their time without buying allocation.
 before**: **1123 of the 1272** main-set cells that allocate in earnest agree
 to 1e-4, where Run 21 read 1026 of 1128 and Run 20 1143 of 1224, and the worst
 disagreement is **6.24e-03 on `cnn-slice-c32/mut-flat-gm-nosum`** --- the same
-shape Runs 19, 20 and 21 all named, on a different arm each time. Allocation
-is deterministic per call, so a cell that moves is a code change and never
-a slot: the levels surviving while a hundred-odd cells move is HEAD reallocating
-within a tier rather than changing what any strategy fundamentally costs.
+shape Runs 19, 20 and 21 all named, on a different arm this run and the same one
+on Runs 19 and 20. Allocation is deterministic per call, so a cell that moves
+is a code change and never a slot: the levels surviving while a hundred-odd
+cells move is HEAD reallocating within a tier rather than changing what any
+strategy fundamentally costs.
 
 Restated as the predicates the next run checks, and carrying no reading
 of its own: the figures each was last measured at are in the `Readings:`
@@ -1362,12 +1372,14 @@ verdicts** over nine classes, the details beside each class's table:
    on `bcast` to 3.056 on the main set, and at least one `list` twin does
    in each --- but they are a baseline variant and the baseline's own controls.
    **The library-shaped arms break it on `runs` alone and all at `runs-2`**,
-   as they did last run: `liblist-stage1` at **1.3485**, `lib-stage2-concat`
-   at 1.3311, `lib-stage1` --- the shipped route --- at **1.3149**,
-   and `liblist-stage2` at 1.1399. So on 900000 runs of two elements every route
-   the library offers is still slower than the baseline it replaces,
-   and the branch's fill is still the only one of them that is not. The property
-   is stated of the fix and the fix holds.
+   and this run they are SIX where Run 21 had four, the two unordered arms
+   having joined them: `liblist-stage1` at **1.3485**, `libunord-stage1`
+   at 1.3467, `lib-stage2-concat` at 1.3311, `lib-stage1` --- the shipped route
+   --- at **1.3149**, `liblist-stage2` at 1.1399 and `libunord-stage2`
+   at 1.1368. So on 900000 runs of two elements every library-shaped route
+   this roster carries is slower than the baseline it replaces, the unordered
+   entry point included, and `lib-stage2` is the one arm of the seven
+   that is not. The property is stated of the fix and the fix holds.
 
 2. **The top of the table keeps its order**: `mut-odo-vecdims` fastest,
    `bq-expand` behind it. **The first clause breaks in all nine CLASS
@@ -1377,7 +1389,7 @@ verdicts** over nine classes, the details beside each class's table:
    21, which broke to a sibling in seven of the nine and outright in two,
    and from Run 20, which broke to the rework's arms in all eight. The nine
    heads divide three ways. **Three are degenerate**: `libunord-stage2` leads
-   `rev`, `revsome` and `reshape1` at 0.0197, 0.0076 and 0.0008 of the fix,
+   `rev`, `revsome` and `reshape1` at 0.0174, 0.0076 and 0.0008 of the fix,
    which is its one-block test firing on every view of those classes
    and collapsing them to a single slice, so it prices dispatch and not filling.
    **Three are the unrolled fill**: `lib-stage2-u4` leads `bcast`, `bcastmid`
@@ -1495,10 +1507,10 @@ fall below 1: they run **0.9595 on `bcast` to 1.1441 on `reshape1`**, where Run
 on the classes, unlike on the three runs before, GHC HEAD does not cost
 this roster everywhere. **The extreme at one end is the arm Runs 20 and 21 both
 named and it now holds eight of the nine**: `mut-odo-vecdims-add-in-leaf`
-is the low extreme in eight populations, reaching **0.6753** on `bcast` ---
-though that cell is `lib-stage2-disp`'s, the arm itself reading 0.7100 there.
-**The other end wants reading before it is quoted**, as it has every run:
-the largest figure any class reports is `lib-stage2` at **2.6120**
+is the low extreme in eight of the nine, `bcast` being the exception --- there
+the class's low extreme is `lib-stage2-disp` at **0.6753** and the leaf arm
+reads 0.7100. **The other end wants reading before it is quoted**, as it has
+every run: the largest figure any class reports is `lib-stage2` at **2.6120**
 on `reshape1`, and that class's canonicalizing arms return O(1) on three
 of its four shapes, so a ratio there prices dispatch and not filling ---
 `lib-stage2-lean`, `lib-stage2-short` and `lib-stage2-u4` are degenerate there
@@ -1577,7 +1589,7 @@ the same six things and nothing else:
    because its table under-determines its cells, where a two-shape table carried
    them already, `time` and `worst` jointly fixing both; every class is three
    shapes or more now --- six at three, `bcastmid` and `reshape1` at four
-   and `runs` at seven --- so the line always prints;
+   and `runs` at eleven --- so the line always prints;
 5. the cross-half reading, one line, which `--block --compare` against the other
    half's JSON now emits and `install-tables.sh` writes in with the other three
    --- how many of the population's arms move, which way, and the spread. Both
@@ -2576,9 +2588,9 @@ shape set.
 
 | shape | `l` | `list`, per call | net | HEAD, net |
 |---|---:|---:|---:|---:|
-| `cnn-slice-c32` | 288 | 6.09 us | 5.92 us | 5.92 us |
-| `cifar-L2-16-c64-k3` | 147456 | 3.14 ms | 3.05 ms | 3.04 ms |
-| `stretch-wide-2xM` | 1800000 | 39.0 ms | 37.9 ms | 37.3 ms |
+| `cnn-slice-c32` | 288 | 6.15 us | 5.98 us | 5.94 us |
+| `cifar-L2-16-c64-k3` | 147456 | 3.16 ms | 3.07 ms | 3.05 ms |
+| `stretch-wide-2xM` | 1800000 | 39.0 ms | 37.9 ms | 37.2 ms |
 
 **Each stride class carries an anchor of its own, beside its table, and all nine
 are `list` on one of that class's shapes, raw and net.** The main set's three
@@ -2611,9 +2623,9 @@ The pair was Run 21's again, `run22-g912` against `run22-ghead`, one source
 and one shim, both under `WILDLOG=1 SATURATE=1`, over an extended roster: 55
 timed arms, 1320 main-set benches and 2035 class benches over 37 views in nine
 classes. Five questions were registered on 2026-08-30 and amended at `ce8f5f7`
-with a prediction and a kill condition each; **two held, two split and one
-was killed**, and unlike Run 21's one-sided set they do not share a cause ---
-they share a subject, `fillStage2`, which got fast enough between the two runs
+with a prediction and a kill condition each; **two held, one split and two
+killed**, and unlike Run 21's one-sided set they do not share a cause --- they
+share a subject, `fillStage2`, which got fast enough between the two runs
 to move everything registered around it. (1) *The fill in time, over every
 population.* **HELD, and by a wider margin than it dared.** `lib-stage2` against
 `lib-stage1` was predicted inside **0.78 to 1.08** on the six populations
@@ -2625,62 +2637,66 @@ and nothing is within six points of the kill condition. `slice`, singled out
 as the one still behind past its floor and predicted inside 1.05, reads 1.0344.
 The broadcast exception held as stated, `bcast` and `bcastmid` being
 bandwidth-bound and unreached by an unboxing. (2) *The three fill candidates
-in time.* **SPLIT, and it is the registration that shows what a counted reading
-is worth.** `lib-stage2-short` was predicted about 0.50 of `lib-stage2`
-at `runs-2`, 0.59 at `runs-3`, with `runs-4` and `runs-5` counted at 0.5528
-and 0.6099; in time it reads **0.8066, 0.9678, 0.8311 and 0.9407** --- right
-in sign, a third to a sixth of the size --- and its three cells above 1 all sit
-inside the floor, so it survives with its magnitudes refuted. `lib-stage2-u4`
-was predicted 0.83 to 0.85 at the long runs and reads 0.9759, 0.9916 and 0.9821
-at `runs-65536`, `-1024` and `-512`: ahead, but never past the 3.26% floor,
-which is its own kill condition. **KILLED.** `lib-stage2-lean` was predicted
-at or below `lib-stage2` everywhere and past a floor on exactly three main-set
-shapes; two are its cleanest confirmation, `cnn-L1-6x6-c1` at **0.8771**
-and `cnn-slice-c32` at **0.8565**, and the third inverts --- `stretch-inner1`
-reads **1.0617**, behind by 6.2% past the floor, where the counted sweep put
-it 21 points ahead. **KILLED**, and it is this run's one disagreement between
-an instruction count and a clock about a *sign* rather than a size. (3)
-*The dispatch.* **KILLED, on both halves, and the reason is registration 1.**
-`lib-stage2-disp` reproduces the filtered sweep at the seven lengths that sweep
-read --- 0.0227, 0.0273, 0.0834, 0.5193, 0.9870, 1.0083 and 1.0102 against stage
-one, where 0.0283, 0.0312, 0.0951, 0.6190, 1.0029, 1.0096 and 1.0075
-were registered --- but its kill condition is being behind the better route past
-the floor at any of those lengths, and at `runs-1024` the better route is now
-stage two and the dispatch is **6.65%** behind it against a 3.26% floor,
-**4.22%** against 3.33% on the control. `dispRun` was cut to 256 when
-the crossover sat between `runs-9` and `runs-96`; the crossover now sits between
-`runs-1024` and `runs-65536`, so the threshold fires the slice route three
-lengths too early. **Its control-half prediction is the one thing here
-that landed exactly** --- behind `lib-stage2` at `runs-1024` by *about four
-points*, read 4.22% --- while its reason is refuted: it expected the basis ahead
-there because 9.12's crossover sat earlier than HEAD's, and both halves put
-the crossover in the same place, so the failure is not a compiler difference
-but the fill improving on both. (4) *The unordered entry point.* **HELD,
-and it is the one registration that neither moved nor surprised**, because
-it was evaluated rather than predicted. `probe-oneblock.py` had said stage two's
-one-block test fires on ten of the 37 rostered class views --- every view
-of `rev`, `revsome` and `reshape1` --- and stage one's on none.
-`libunord-stage2` against `liblist-stage2` reads **0.0197, 0.0081 and 0.0064**
-on those three classes and 0.9867, 1.0013, 1.0239, 1.0256, 1.0185 and 0.9999
-on the six where neither fires, every one inside that class's floor;
-`libunord-stage1` tracks `liblist-stage1` the same way. Neither kill condition
-fired. **What the run adds is the main set, which the registration left
-unpredicted and the roster pass answered**: both tests fire there, and at full
-budget two cells sink below the shared forcing pass on the basis and twenty
-on the control. (5) *The vecdims family's ordering.* **SPLIT on one population
-of twenty.** `-u2` was predicted ahead of `-down` on the main set and every
-class past each floor; on the basis it is, in all ten, from **0.6686**
-on `reshape1` to 0.8522 on `scaled`, the main set at **0.7938 at 23 of 24, sign
-p 3e-06** --- so Run 21's 5.6% and 6.7% the other way are reversed
-and the in-process re-take of 2026-08-30 was reading the change and
-not a displacement. On the control it is ahead in nine of ten. The tenth
-is `bcast`, where `-down` leads at **1.1306 on 0 of 3 shapes**, 13% past
-that class's own control floor of 2.79%, which is the kill condition fired
-on one cell of twenty. `-u2` against `-u2-down` was predicted a tie inside
-the floor and is one, 1.0004 and 1.0091. **What the set is worth**: all five
-were decidable, none came back a null, and the two that died plus the two
-that split all died to the same fact --- `fillStage2` is now fast enough
-that a threshold, an unrolling and a family ordering chosen around its old cost
-are each mis-cut. The registration a horde-ad consumer should take from
-this is not any one of the five: it is that the branch's driver has stopped
-being the regression this benchmark was built to catch.
+in time.* **KILLED, all three of them, and it is the registration that shows
+what a counted reading is worth.** `lib-stage2-short` was predicted about 0.50
+of `lib-stage2` at `runs-2`, 0.59 at `runs-3`, with `runs-4` and `runs-5`
+counted at 0.5528 and 0.6099; in time it reads **0.8066, 0.9678, 0.8311
+and 0.9407** --- right in sign, a third to a sixth of the size --- and
+it is **KILLED** besides: on `stretch-inner1` it reads 1.0308, 3.08% behind
+against the main set's 2.12% floor, where the counted work puts it at 0.999997.
+Its three `runs` cells above 1 are inside that class's floor, which is what
+a scan stopping at `runs` sees. `lib-stage2-u4` was predicted 0.83 to 0.85
+at the long runs and reads 0.9759, 0.9916 and 0.9821 at `runs-65536`, `-1024`
+and `-512`: ahead, but never past the 3.26% floor, which is its own kill
+condition. **KILLED.** `lib-stage2-lean` was predicted at or below `lib-stage2`
+everywhere and past a floor on exactly three main-set shapes; two
+are its cleanest confirmation, `cnn-L1-6x6-c1` at **0.8771** and `cnn-slice-c32`
+at **0.8565**, and the third inverts --- `stretch-inner1` reads **1.0617**,
+behind by 6.2% past the floor, where the sweep it was registered off put it 21
+points ahead. **KILLED** --- and the disagreement is that sweep's against
+the clock, not this run's: this run's own counted work reads the arm at 1.0000
+on that shape and agrees with the clock. (3) *The dispatch.* **KILLED, on both
+halves, and the reason is registration 1.** `lib-stage2-disp` reproduces
+the filtered sweep at the seven lengths that sweep read --- 0.0227, 0.0273,
+0.0834, 0.5193, 0.9870, 1.0083 and 1.0102 against stage one, where 0.0283,
+0.0312, 0.0951, 0.6190, 1.0029, 1.0096 and 1.0075 were registered ---
+but its kill condition is being behind the better route past the floor at any
+of those lengths, and at `runs-1024` the better route is now stage two
+and the dispatch is **6.65%** behind it against a 3.26% floor, **4.22%** against
+3.33% on the control. `dispRun` was cut to 256 when the crossover sat between
+`runs-9` and `runs-96`; the crossover now sits between `runs-1024`
+and `runs-65536`, so the threshold fires the slice route three lengths too
+early. **Its control-half prediction is the one thing here that landed exactly**
+--- behind `lib-stage2` at `runs-1024` by *about four points*, read 4.22% ---
+while its reason is refuted: it expected the basis ahead there because 9.12's
+crossover sat earlier than HEAD's, and both halves put the crossover in the same
+place, so the failure is not a compiler difference but the fill improving
+on both. (4) *The unordered entry point.* **HELD, and it is the one registration
+that neither moved nor surprised**, because it was evaluated rather
+than predicted. `probe-oneblock.py` had said stage two's one-block test fires
+on ten of the 37 rostered class views --- every view of `rev`, `revsome`
+and `reshape1` --- and stage one's on none. `libunord-stage2` against
+`liblist-stage2` reads **0.0197, 0.0081 and 0.0064** on those three classes
+and 0.9867, 1.0013, 1.0239, 1.0256, 1.0185 and 0.9999 on the six where neither
+fires, every one inside that class's floor; `libunord-stage1` tracks
+`liblist-stage1` the same way. Neither kill condition fired. **What the run adds
+is the main set, which the registration left unpredicted and the roster pass
+answered**: both tests fire there, and at full budget two cells sink below
+the shared forcing pass on the basis and seventeen on the control. (5)
+*The vecdims family's ordering.* **SPLIT on one population of twenty.** `-u2`
+was predicted ahead of `-down` on the main set and every class past each floor;
+on the basis it is, in all ten, from **0.6686** on `reshape1` to 0.8522
+on `scaled`, the main set at **0.7938 at 23 of 24, sign p 3e-06** --- so Run
+21's 5.6% and 6.7% the other way are reversed and the in-process re-take
+of 2026-08-30 was reading the change and not a displacement. On the control
+it is ahead in nine of ten. The tenth is `bcast`, where `-down` leads
+at **1.1306 on 0 of 3 shapes**, 13% past that class's own control floor
+of 2.79%, which is the kill condition fired on one cell of twenty. `-u2` against
+`-u2-down` was predicted a tie inside the floor and is one, 1.0004 and 1.0091.
+**What the set is worth**: all five were decidable, none came back a null,
+and the two that died plus the two that split all died to the same fact ---
+`fillStage2` is now fast enough that a threshold, an unrolling and a family
+ordering chosen around its old cost are each mis-cut. The registration
+a horde-ad consumer should take from this is not any one of the five: it
+is that the branch's driver has stopped being the regression this benchmark
+was built to catch.
