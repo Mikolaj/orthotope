@@ -4875,10 +4875,10 @@ this preparation, back to back, from the two recipes its note carries. Four
 shortcuts are refused by name, and none of them is a judgement call:
 the previous run's binary, a binary built for a probe, one half copied to stand
 as the other, and one binary run twice under two sets of flags. So there
-is no fork and no path to be on --- step 3b is unconditional and every run owes
-the whole of this chapter, however recently the last one built what looks like
-the same pair. Why a shortcut cannot be argued sound from its inputs
-is under *Why step 3b's three rules are what they are*: the drift it admits
+is no fork and no path to be on --- the build step is unconditional and every
+run owes the whole of this chapter, however recently the last one built what
+looks like the same pair. Why a shortcut cannot be argued sound from its inputs
+is under *Why the build's three rules are what they are*: the drift it admits
 is between the RUNS, nothing is rebuilt between the halves to expose it,
 and no step here can see it.
 
@@ -4996,49 +4996,23 @@ and never as a chronology.
     #      back -- wants the run BEHIND you and would read this run's
     #      empty file instead. Step 5 makes it
     #      R=runNN; REGIME=-fspec-constr -- an EMPTY regime is a plain -O1
-    #      build and nothing downstream notices. That hazard is 3b's
+    #      build and nothing downstream notices. That hazard is step 2's
     #      alone: REGIME reaches the build and nothing else.
     #      Governing docs are this
     #      file and read-run.py's docstring; horde-ad's CLAUDE.md is not
-    cat $R-pair.txt                       # 0. the note: six steps quote it,
-    #      four here and two in the run list -- the halves' roles, the
-    #      md5s, the commit, the gate line, and any environment its LAUNCH
-    #      line puts in FRONT of a command. NO SUCH FILE is the expected
-    #      state here: the note is written at 3b, before either binary
-    #      exists. Come
-    #      back to this line after it, since the steps below quote it
-    #      BASIS/OTHER come from it, never from a half's name; setting
-    #      them in the scripts is step 3c.
-    #      The basis runs second, and both halves run the classes
     ls $R-*                               # 1. nothing named for this run may
     #      exist yet -- an empty listing is what a run about to be prepared
     #      looks like, and anything else is a run already under way or a
     #      leftover to clear, never a pair to adopt
-    md5sum $R-<basis> $R-<other>          # 2. the note's fill-in block, read
-    git log -1 --format=%h -- :/micro-regime3/Main.hs   # 3. back: the two
-    git log -1 --format=%h -- :/micro-regime3/align-as.py  # 3a. md5s, the
-    #      Main.hs commit and the SHIM's, which is on the recipe's -pgma and
-    #      is as much an input to the binary as the source is. The run file's
-    #      Provenance records the shim's beside the compiler's
-    #      2, 3 AND 3a RUN AFTER 3b, being read-backs of what 3b transcribes:
-    #      there is nothing to sum, and nothing to check a transcription
-    #      against, until both halves are built. The numbers are the prose's
-    #      own and do not move. THIS IS AN INSTRUCTION ABOUT ORDER AND THE
-    #      NUMBERING SHOULD CARRY IT: the post-run list had the same shape
-    #      and lost it on 2026-09-01 by renumbering its last-but-one step
-    #      to 0, which is what these four want too
-    #  the :/ pathspec resolves from the repo root, so these answer the same
-    #  from anywhere; a bare `-- Main.hs` run from the root prints nothing
-    #  and exits 0, which reads exactly like an unmoved source
     #  IF ANYTHING FOR THIS RUN IS ALREADY HERE, step 1 has caught a
     #      preparation that is not yours to redo, and what landed says
     #      which entry point it is: the run's own JSONs mean post-run
-    #      step 1, rebuilding now orphaning the binaries they are
+    #      step 0, rebuilding now orphaning the binaries they are
     #      provenanced to; a complete note whose GATE line reads NOT RUN
     #      means 13, which is the executing session's normal entry, with
     #      `./preflight.sh $R` re-running 4 to 10 in one call. Nothing
     #      older than this run's own preparation is ever inherited
-    #  3b. BUILD BOTH HALVES -- unconditional, from the note's own
+    #   2. BUILD BOTH HALVES -- unconditional, from the note's own
     #      recipe. It is a STEP and a session's to run like every other line
     #      here, not a remark and not somebody else's job; what is not
     #      is the note, whose prose and verdicts are written by hand.
@@ -5066,7 +5040,7 @@ and never as a chronology.
     #      Then transcribe into the note what only the build can say: the
     #      Main.hs and align-as.py commits it was built from, the GHC, the
     #      two md5s, .text and the fills -- the fill-in block is that
-    #      transcription, and steps 2, 3, 9b and 10 are all reading it back.
+    #      transcription, and steps 3, 9b and 10 are all reading it back.
     #      AND WHERE `--list` SHOWS A TIMED ARM THAT BRINGS A NEW FUNCTION,
     #      the fills read here are the pinning claim's only reading:
     #      compare them against the previous run's note before anything
@@ -5092,16 +5066,43 @@ and never as a chronology.
     #      price the shim, and compare the two binaries' package ABI
     #      hashes (`strings B | grep -oE '[A-Za-z][A-Za-z0-9-]*zm[0-9zi.]+zm[0-9a-f]{32,}'` --- the narrower `[a-z-]` class silently drops `QuickCheck`, `Glob` and `text-iso8601`)
     #      to price the store, which is what the note's inputs do not cover
-    #  3c. SET THE HALVES' NAMES in the FIVE scripts that take them --
+    cat $R-pair.txt                       # 2a. the note, quoted by steps
+    #      here and in the run list alike -- the halves' roles, the
+    #      md5s, the commit, the gate line, and any environment its LAUNCH
+    #      line puts in FRONT of a command. It is WRITTEN at step 2,
+    #      from pair-note-template.txt and before either binary exists;
+    #      here it is read, and the steps below quote it
+    #      BASIS/OTHER come from it, never from a half's name; setting
+    #      them in the scripts is step 2b.
+    #      The basis runs second, and both halves run the classes
+    #  2b. SET THE HALVES' NAMES in the FIVE scripts that take them --
     #      run-major.sh, run-gate.sh, smoke-sweep.sh, preflight.sh and
     #      install-tables.sh, every one carrying both BASIS and OTHER;
     #      read-all.sh is the sixth script a run passes and needs nothing
     #      set, deriving the halves from the filenames. This list said
     #      three and named install-tables.sh for BASIS alone until
     #      2026-08-26, when a walk of it counted the files. Here, because the names exist
-    #      from 3b and everything below reads them. A wrong OTHER stops
+    #      from step 2 and everything below reads them. A wrong OTHER stops
     #      run-major.sh and run-gate.sh at a missing binary; in
     #      smoke-sweep.sh it sweeps the wrong half and looks clean
+    md5sum $R-<basis> $R-<other>          # 3. the note's fill-in block, read
+    git log -1 --format=%h -- :/micro-regime3/Main.hs   #    back: the two
+    git log -1 --format=%h -- :/micro-regime3/align-as.py  #    md5s, the
+    #      Main.hs commit and the SHIM's, which is on the recipe's -pgma and
+    #      is as much an input to the binary as the source is. The run file's
+    #      Provenance records the shim's beside the compiler's
+    #      THREE COMMANDS, ONE STEP, and it stands after the build
+    #      because there is nothing to sum, and nothing to check a
+    #      transcription against, until both halves exist. It was
+    #      numbered 2, 3 and 3a until 2026-09-01, when the head was
+    #      renumbered to run in the order it is taken: the build was
+    #      3b, reading the note was 0, setting the names was 3c, and
+    #      these three stood above the build with a paragraph here
+    #      telling a session to take them out of order. An older
+    #      note's labels resolve through that map
+    #  the :/ pathspec resolves from the repo root, so these answer the same
+    #  from anywhere; a bare `-- Main.hs` run from the root prints nothing
+    #  and exits 0, which reads exactly like an unmoved source
     ./preflight.sh $R                     # 4-10 IN ONE CALL, and the way
     #      to run them: each step prints PASS or FAIL with what it read and
     #      the exit status is the verdict, so none can be skipped by being
@@ -5236,7 +5237,7 @@ and never as a chronology.
     #      numbering is an order and not a schedule: neither wants a
     #      quiet machine, 12 needs only the BASIS half, and it is the
     #      long one -- about three quarters of an hour where 4 to 10 are
-    #      eight minutes. Launch it in the background straight after 3b
+    #      eight minutes. Launch it in the background straight after the build
     #      and run 4 to 11 under it and the half is the length of its
     #      longest step rather than the sum. What that costs is
     #      contention in the elapsed times 12 records, which are a sanity
@@ -5480,7 +5481,7 @@ Those are worth having cheap and are all of them safe: both `check`s, `diag`,
 `--lint`, `--check-doc`, `loop-offsets.py`, `--list`, a `grep` of the note,
 and pre-run steps 6 to 10 --- except 8c and 8d, which write `zz-` fixtures here
 and remove them. Everything that builds, benchmarks or leaves a file
-is the other kind: 3b, 11, 12, 14, 17 and 19, and steps 4 and 5 too, which write
+is the other kind: 2, 11, 12, 14, 17 and 19, and steps 4 and 5 too, which write
 only through their redirect and that is enough. A session starts
 in `~/r/horde-ad`, so its sandbox permits writes there and to its own temp
 directory and nowhere else; THIS directory is outside it, and `run-major.sh`
@@ -5662,12 +5663,12 @@ a file for your run, and the open list carries its registration.
 
 Every pair is two shims, each half one `cabal build` from the recipe its note
 carries --- the regime, a `-pgma` shim of its own, and whatever variable
-the pair exists to price --- and step 3b spells that build out, `-fforce-recomp`
+the pair exists to price --- and step 2 spells that build out, `-fforce-recomp`
 and fresh `--builddir` included. Write the note before building, since it
 is the only copy of both recipes; what only the build can say is transcribed
 into it afterwards.
 
-**Why step 3b's three rules are what they are, moved out of the list
+**Why the build's three rules are what they are, moved out of the list
 on 2026-08-29 because the list is read by every session and these accounts
 are read by none.** *The fills read at the build*: the pinning claim held
 that an addition costing nothing to place leaves the tracked loops where they
@@ -5808,7 +5809,7 @@ with 50 straddling.
 but how they are named is not.** A half is `$R-<tag>`, the tag naming what
 that half *is* rather than which role it holds: `run13-maxskip`
 and `run13-lookrts`, `run14-lookrts` and `run14-a1g`. So a new pair derives
-its own names before it has a note to read them from, and step 0's rule stands
+its own names before it has a note to read them from, and step 2a's rule stands
 untouched, the tag saying what a half is and the note saying which of them
 is the basis. The names are recorded in the pair note and set in one place
 in each of the five scripts that take a run --- `run-major.sh`, `run-gate.sh`,
@@ -6461,13 +6462,17 @@ to be sure nothing was missed, which is what they have cost.
     #      naming the run file AS A WHOLE; walk those and the section
     #      links both, against what the file now says. It lists the second
     #      kind nowhere, there being two dozen of them
-    ./install-tables.sh $R                            # 5a. install, never
+    #  5a. TAKE THE MOVEMENT READING, whose window 5b closes: a
+    #      "moved from X to Y" sentence compares against the figures
+    #      the claims install overwrites, and after it they are in git
+    #      or in the kept JSON only. It was a clause inside 5b until
+    #      2026-09-01, telling a session to take it before the line it
+    #      was written under, which is what an unnumbered step costs
+    ./install-tables.sh $R                            # 5b. install, never
     #      paste: --markdown, --fingerprint, a --block per class and
     #      --claims, eleven tables and a reading per claim, all from the
     #      BASIS half and all into `runs/$R.md`, which is the one
-    #      document any of them writes. Take the movement reading BEFORE this: the claims
-    #      install overwrites the figures a "moved from" sentence compares
-    #      against, and after it they are in git or in the kept JSON only.
+    #      document any of them writes.
     #      Commit or park this file first, since every one of them writes
     #      it. Read
     #      what the driver collects at the end: a row new to the roster
@@ -6542,7 +6547,7 @@ to be sure nothing was missed, which is what they have cost.
     #      transcribed from `$R-pair.txt` -- that note going with the
     #      pair at 12, so the transcription cannot wait. A class line's
     #      shape count is the whole class-view set, so the population
-    #      size comes from the reader. The tables went in at 5a and
+    #      size comes from the reader. The tables went in at 5b and
     #      are not touched here; what is written is the prose around them,
     #      one edit per paragraph, and no tool reduces that count. Budget
     #      the head and the nine class paragraphs as the work. FIRST, and
@@ -6750,13 +6755,14 @@ to be sure nothing was missed, which is what they have cost.
     #      once, after step 7 is done AND presented, saying what keeping
     #      them buys. Offering is the step; deleting is not
 
-Steps 1 to 4a are readings and cost only tool calls; 5, 5a and 6's two halves
-write; 6b, 6d and 6e are what find things, and 7 is where what they find
-is applied. The same contract holds here: the operative facts are in the list,
-the reasons are below it, and step 0's window closes when the artifacts go.
-It was step 11 and was the step most often skipped, because by then the run read
-finished; putting it first is what retires that, and it is still the only one
-whose window closes, the artifacts being what it spends.
+Steps 1 to 4a are readings and cost only tool calls, 5a another; 5, 5b and 6's
+two halves write; 6b, 6d and 6e are what find things, and 7 is where what they
+find is applied. The same contract holds here: the operative facts are
+in the list, the reasons are below it, and step 0's window closes when
+the artifacts go. It was step 11 and was the step most often skipped, because
+by then the run read finished; putting it first is what retires that, and
+it is still the only one whose window closes, the artifacts being what
+it spends.
 
 
 
@@ -6895,7 +6901,7 @@ says so.
    20's checker had to snapshot it and diff against its own copy. The cost
    is one commit whose content is a verbatim copy, which reads as diary until
    the next diff makes it legible.
-5a. **Install the tables with `--in-place` rather than pasting them.**
+5b. **Install the tables with `--in-place` rather than pasting them.**
 `--markdown`, `--fingerprint`, `--block` and `--claims` each take it ---
 the last installing a `Readings:` paragraph under each claim's lead rather
 than a table --- and each refuses rather than guessing: the match is by whole
@@ -9075,7 +9081,7 @@ on the two arms whose loop the shim rescues rides on every figure read across
 a roster change. **Every roster addition that brings a new function is another
 reading of it** --- the fills on one build either side, before anything else
 changes --- which costs nothing at the moment the arms land and cannot be taken
-afterwards; build step 3b of the run list is where it is asked for.
+afterwards; the build step of the run list is where it is asked for.
 
 **And the identical-code pair collapsed across all nine populations at once when
 the loops were aligned**, which is the strongest single result the pairing gave.

@@ -3,7 +3,7 @@
 #
 #     ./preflight.sh run19            # reads BASIS/OTHER as the others do
 #
-# Its defaults moved to Run 19's halves at pre-run step 3c on 2026-08-24,
+# Its defaults moved to Run 19's halves at pre-run step 2b on 2026-08-24,
 # with run-major.sh's, run-gate.sh's, smoke-sweep.sh's and
 # install-tables.sh's -- BASIS unchanged, OTHER from g914 to ghead. The
 # non-vacuity note below was taken on Run 17's pair and names its halves;
@@ -25,7 +25,7 @@
 #       that was never about that pair.
 #   10a/10b, the --survey legs -- the build's, and their answer is the
 #       binary's rather than the reading session's, so they go in the note
-#       at 3b and not here. And 10's own `--library` figure is a registered
+#       at step 2 and not here. And 10's own `--library` figure is a registered
 #       variable of the pair, read against the note and not against any
 #       threshold here, so its PASS says the figure was read and no more.
 #   11 and 12, the smoke sweep and the roster pass -- machine time, and

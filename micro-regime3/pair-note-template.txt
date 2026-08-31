@@ -55,7 +55,7 @@ not here, so this block is the only route those findings have. Those
 lists are the interface; anything true of this run and in none of them is
 lost. Then say outright whether anything here needs
 a rebuild, since the offsets any registration is written against die
-with one. INHERITED never reaches the binaries: both are built at 3b of
+with one. INHERITED never reaches the binaries: both are built at step 2 of
 this run's own preparation, never taken from a previous run, a probe, a
 copy of the other half, or one binary run twice under two sets of flags.
 
@@ -131,7 +131,7 @@ an earlier run needs both notes to name one.
 
 THE SHIM [PAIR'S]: the commit align-as.py stood at, `git log -1 --format=%h --
 :/micro-regime3/align-as.py`. It is on the recipe's -pgma and is as much
-an input to the binary as the source; pre-run step 3a reads this back. A
+an input to the binary as the source; pre-run step 3 reads this back. A
 a repetition read against an earlier run wants both notes to name the
 same one, a shim that moved between them being a difference in the
 binaries that no figure attributes to the shim.

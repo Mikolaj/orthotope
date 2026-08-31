@@ -69,7 +69,7 @@ BASIS=${BASIS:-g912}        # one of the five files carrying a half's name,
                              # and it carries OTHER too, four lines up;
                              # run-major.sh, preflight.sh,
                              # run-gate.sh and smoke-sweep.sh are the
-                             # others, set together at pre-run step 3c
+                             # others, set together at pre-run step 2b
 # The run's own file, named after the run this driver was given -- not the
 # newest in runs/, which is what read-run.py defaults to: installing run19's
 # tables while run20.md exists is a mistake this can refuse and that one
