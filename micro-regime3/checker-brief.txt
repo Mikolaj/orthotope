@@ -2,9 +2,10 @@ The brief for a run's independent checker, and for the comprehension
 probe after it. Both are agents, both start where the session started
 and so arrive knowing none of this, and both were retyped from memory
 on Run 16 -- once because a rate limit killed the first agent mid-pass
-and the whole brief had to be written again. Only the first block
-changes from run to run, and it is EDITED HERE at the write-up rather
-than substituted in the prompt -- the file is the copy both agents are
+and the whole brief had to be written again. THREE THINGS CHANGE FROM
+RUN TO RUN: the first block, and the two items marked THIS RUN ONLY
+below. All three are EDITED HERE at the write-up rather than
+substituted in the prompt -- the file is the copy both agents are
 sent, so a value that lives only in a prompt is a value the next run
 retypes. It carries the run whose write-up is happening.
 PREVBASIS and PREVSAME are one half whenever the run changed no
@@ -113,8 +114,9 @@ are THIS RUN'S and are rewritten every run:
  6. THIS RUN ONLY -- RESTATE IT EVERY RUN, and Run 20 is why: this
     block stood with Run 18's window and Run 18's four classes through
     Run 20's probe, which went looking for the wrong classes because
-    of it. Only the first block is meant to change per run, and this
-    is the second thing in the file that does.
+    of it. The head names this item and item 5 beside the first
+    block as the three things that change; it used to say the first
+    block ALONE, which is how this one stood stale for three runs.
     On Run 22: NO intrusion and NO rerun, but TWO WINDOWS and not one.
     Eighteen processes ran 2026-08-31T01:57:43 to 09:53:49; the
     machine was wanted by its owner, so the sequence was stopped BY

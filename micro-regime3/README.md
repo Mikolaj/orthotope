@@ -6658,23 +6658,30 @@ was missed, which is what they have cost.
     #      diff at the run's own last commit, which is what the brief's
     #      RUNTIP is for. The run file needs no bound, nothing but a
     #      write-up ever touching it.
-    #      THE BRIEF IS CHECKED IN AS `checker-brief.txt` AND IS NOT TO
-    #      BE RETYPED -- nor summarised here, which is why this step
-    #      does not say what is in it. It carries all three briefs, this
-    #      pass's, 6d's and 7a's, and every fact an agent cannot derive:
-    #      one starts where your session started, so the basis, the
-    #      directory, the artifact set and the no-other-repo rule are
-    #      invisible to it. TWO THINGS ARE OWED THE FILE, both at the
-    #      write-up. EDIT ITS FIRST BLOCK IN THE FILE and not in the
-    #      prompt, a value living only in a prompt being one the next
-    #      run retypes. And WALK THE FILE, NOT ITS HEAD: its two `THIS
-    #      RUN ONLY` items carry one run's box event and one run's
-    #      window, and the class counts move with the roster, so a stale
-    #      one tells a checker to write off a real level shift. Run 16
-    #      wrote the brief out twice, once because a rate limit killed
-    #      the agent mid-pass; Run 22 never opened it, typed its own,
-    #      and left three of seven `could not check` items checkable for
-    #      want of paths the file names.
+    #      THE BRIEF IS `checker-brief.txt`, AND IT IS EDITED EVERY RUN
+    #      BEFORE EITHER PASS IS LAUNCHED. Put that first because it is
+    #      the half that gets skipped: a STALE brief looks exactly like
+    #      a used one, carrying the previous run's box reading, window,
+    #      class counts and threshold list, and Run 20's probe went
+    #      looking for the wrong classes on one. TWO PARTS ARE EDITED,
+    #      and only the first announces itself. Its FIRST BLOCK: the
+    #      run, the two halves, the previous run's, and the two commits
+    #      the diffs are taken between -- of which one advances AGAIN
+    #      as the fixes land, so this block is touched more than once a
+    #      run. And its two `THIS RUN ONLY` items, which carry one
+    #      run's box event and one run's window, with the class counts
+    #      moving under them as the roster does. WALK THE FILE, NOT ITS
+    #      HEAD.
+    #      IT IS NOT TO BE RETYPED -- nor summarised here, which is why
+    #      this step does not say what else is in it. It carries all
+    #      three briefs, this pass's, 6d's and 7a's, and every fact an
+    #      agent cannot derive: one starts where your session started,
+    #      so the basis, the directory, the artifact set and the
+    #      no-other-repo rule are invisible to it. Run 16 wrote it out
+    #      twice, once because a rate limit killed the agent mid-pass;
+    #      Run 22 never opened it, typed its own, and left three of
+    #      seven `could not check` items checkable for want of paths
+    #      the file names.
     #      AND CHECK ITS WORK. Run 19's said twelve arms moved past 3%
     #      where sorting gives eleven, and Run 22's put the runs-class
     #      crossover a length out by skipping a shape. Its report is
