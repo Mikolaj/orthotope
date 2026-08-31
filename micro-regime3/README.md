@@ -2294,7 +2294,7 @@ is planned. A scope limit belongs in the sentence that asks for the measurement.
    it was behind by four times, and item 4 has what those eight points were:
    about three the assembler shim's padding and the rest one instruction a run
    in the branch's epilogue, **both since explained and the second since
-   fixed**. What `slice` reads now is unmeasured in time, its pair being unrun.
+   fixed**. What `slice` reads now is 1.0344, measured at full budget by Run 22.
    And the broadcast classes keep the second term entire --- `bcast` at 1.49
    and `bcastmid` at 2.50 in time over counted work, unmoved from 1.48 and 2.12
    --- which the eleventh reading names rather than leaving open:
@@ -2331,16 +2331,18 @@ is planned. A scope limit belongs in the sentence that asks for the measurement.
    figure has read 0.54%, 0.49%, 0.44%, 0.46% and 0.37% on the basis while
    the whole-set figure ran 1.36%, 2.32%, 1.51%, 2.92% and 2.12%,
    so the movement is in the pairs outside the six --- now ten of sixteen,
-   `offtab`'s two twins having gone with its parking. Run 21 sharpens
+   `offtab`'s two twins having gone with its parking. Run 22 sharpens
    the question rather than answering it: its widest pair is `build-aa-distant`,
-   whose paired figure of 2.12% IS this run's floor while both `mut-odo` twins
-   sit BELOW their base on the basis and both sit ABOVE it on the control,
-   and post-run step 11 has now named that base's tracked loop and put
-   it at offset 0 on both halves --- so the spread is not the cache-line offset
-   of the tracked loop. **What would settle it**: one binary run over the roster
-   several times in one evening, which needs no pair and no second recipe,
-   and which separates per-process variation from sampling inside a bench
-   directly. It is the cheapest unspent measurement this file has.
+   whose paired figure of 2.12% IS this run's floor, while both `mut-odo` twins
+   sit ABOVE their base on the basis at 1.0059 and 1.0034 and BELOW it
+   on the control at 0.9993 and 0.9895 --- paired figures, which for this capped
+   pair carry the opposite sign to the published column, and post-run step 11
+   has now named that base's tracked loop and put it at offset 0 on both halves
+   --- so the spread is not the cache-line offset of the tracked loop. **What
+   would settle it**: one binary run over the roster several times in one
+   evening, which needs no pair and no second recipe, and which separates
+   per-process variation from sampling inside a bench directly. It
+   is the cheapest unspent measurement this file has.
 4. `ANSWERED` **Task 1's residue was two things and neither was the branch's
    code, 2026-08-30.** **The shim's padding was most of it.** The two unrolled
    bodies are the same code and differ by one alignment nop, and a build without
