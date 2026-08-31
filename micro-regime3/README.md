@@ -6721,28 +6721,39 @@ was missed, which is what they have cost.
     #      survives every green run until someone opens the file.
     #  6f. WAIT FOR 6d AND 6e BOTH, which is the barrier this list
     #      otherwise has none of: 7 merges their two reports and cannot
-    #      start on one. Then one comprehension probe -- a fresh session,
-    #      NOT the 6b/6d agent, answering a few of the README's own
-    #      questions from the document alone, with citations. It asks
-    #      whether the document can be READ, not whether it is right, so
-    #      it does not wait on 7's corrections; what it finds is a
-    #      navigation defect, which no gate here has ever caught and no
-    #      figure check can. ITS FINDINGS ARE THE THIRD REPORT 7 MERGES,
-    #      so the probe is not a formality either: a question the
-    #      document cannot answer is an edit owed, and answering it in
-    #      the reply instead is how it goes unmade.
+    #      start on one. That is the whole of this step: a barrier is a
+    #      step here because nothing else in the list is one, and a
+    #      session that starts 7 on whichever report came back first
+    #      fixes half a document twice.
     #   7. CONVERGE TO ONE WRITER and fix, which is all that is left
-    #      here: merge THREE reports into a SINGLE cycle and apply it --
-    #      6d's over both files, 6e's worklist, and 6f's probe, whose
-    #      findings are navigation defects rather than figures and are
-    #      edits to the same documents all the same. 6b's is NOT among
+    #      here: merge BOTH reports into a SINGLE cycle and apply it --
+    #      6d's over both files and 6e's worklist. 6b's is NOT among
     #      them, that pass having been fixed at 6b, which is why 6b owns
-    #      its fixing. Several sources of fixes for one defect is how the
+    #      its fixing; 7a's probe comes after and is its own small cycle.
+    #      Two sources of fixes for one defect is how the
     #      errors 6d exists to catch get made twice over. A correction is
     #      a claim -- derive it, then RE-RUN THE GATES, which 6e ran
     #      before these fixes existed and which nothing else re-runs: the
     #      fix cycle is the one stretch of the write-up no pass and no
     #      gate has seen.
+    #  7a. THE COMPREHENSION PROBE, and it is HERE because its own
+    #      condition is `once the write-up settles`, which happens at 7
+    #      and not before: a fresh session -- NOT the 6b/6d agent, which
+    #      has read this run's JSONs and cannot be surprised by the
+    #      document -- answers a few of the README's own questions from
+    #      the document alone, with citations. It asks whether the
+    #      document can be READ, not whether it is right; what it finds
+    #      is a navigation defect, which no gate here has ever caught and
+    #      no figure check can.
+    #      IT IS ALSO THE ONLY READING THE POST-FIX DOCUMENT GETS. 6e ran
+    #      the gates before 7's fixes existed and 6d read the prose
+    #      before them, so the fix cycle is otherwise seen by nothing --
+    #      which 7 says of itself. APPLY WHAT IT FINDS and re-run the
+    #      gates: it is a second fix cycle and a small one, few and
+    #      structural, and naming its destination is what stops the
+    #      findings being answered in a reply and never made. A FIGURE
+    #      defect here is not routine: it is a signal that 6d or 6e
+    #      missed something, and it is read as that rather than patched.
     ./read-run.py --lint          # 8. again after ANY Main.hs edit, and
     #      never rebuild the pair to satisfy it: say in the write-up that
     #      the comment-only move happened
