@@ -6971,17 +6971,18 @@ size comes from the reader's first line;
    to judgement, each of which has caught something.
 
    **This step is the whole of the document verification a run owes, and nothing
-   else is to be reached for. Four passes, in this order:** run
-   `./read-run.py --lint` and `--check-doc` --- **without `--quiet`, this being
-   the one call that reads the worklists rather than the verdict** --- whose
-   exit codes are the verdict, anchors and the replace list's coverage of every
-   figure-bearing section among what they settle; read the worklists they print
-   and adjudicate each entry; read the write-up end to end against the run's own
-   artifacts; and hand the diff to an independent checker, which the paragraph
-   after next briefs. None of them is optional --- and the first is re-run after
-   the fixing, findings renaming headings and a renamed heading breaking a link
-   silently. The third is the one that keeps finding real errors, and the fourth
-   is what catches what the third cannot see in its own writing.
+   else is to be reached for. Four passes, in this order --- and a fifth, first,
+   where any edit was scripted:** run `./read-run.py --lint` and `--check-doc`
+   --- **without `--quiet`, this being the one call that reads the worklists
+   rather than the verdict** --- whose exit codes are the verdict, anchors
+   and the replace list's coverage of every figure-bearing section among what
+   they settle; read the worklists they print and adjudicate each entry; read
+   the write-up end to end against the run's own artifacts; and hand the diff
+   to an independent checker, which the paragraph after next briefs. None
+   of them is optional --- and the first is re-run after the fixing, findings
+   renaming headings and a renamed heading breaking a link silently. The third
+   is the one that keeps finding real errors, and the fourth is what catches
+   what the third cannot see in its own writing.
 
    **REPLACE A PARAGRAPH BY ITS ANCHOR, NOT BY QUOTING IT.**
    `./read-run.py --replace ANCHOR --with FILE` swaps the paragraph carrying
@@ -7010,29 +7011,29 @@ size comes from the reader's first line;
    *wrong*, which is the next paragraph, and it is the failure to expect first
    because it is the quiet one.
 
-   **Then one mechanical read comes before those four.** Unwrap both sides
-   and diff them --- `wrap80 --unwrap` over the committed version and
-   over the working one --- and read that diff for text that left without
-   a replacement arriving. **And run the figure sweep BEFORE unwrapping,
-   or re-wrap to read it**: `--check-doc` marks its worklist hits as added
-   by this diff by comparing against the committed README, so while the document
-   is unwrapped every line reads as changed and the classification is worthless.
-   Run 16 unwrapped to edit --- which the wrapping rules ask for --- and thereby
-   disabled the one sweep that would have found the stale prose the replace-list
-   walk missed, being told 54 figures were new when most were untouched.
-   A scripted rewrite fails in two shapes and neither is a wrong figure.
-   Anchored on a *prefix*, it replaces the whole paragraph and drops whatever
-   followed the part its author had read; `--check-doc` catches that one, every
-   prose paragraph being required to end a sentence. Anchored on two *markers*,
-   it deletes every paragraph between them, however many that turns out
-   to be --- and nothing catches it: the survivors still end sentences,
-   the anchors still resolve, the figures still match, and every check here
-   is a predicate over what is **present**, so none can see what is gone.
-   Measured on 2026-08-14, when a paragraph recording that the regime had
-   been confirmed in the binary was removed from this file and `--lint`,
-   `--check-doc` and the truncation check all exited 0. So assert the extent
-   in the script, echo what it is about to overwrite, and read the unwrapped
-   diff afterwards, which is the only place a lost paragraph shows.
+   **That fifth pass is one mechanical read.** Unwrap both sides and diff them
+   --- `wrap80 --unwrap` over the committed version and over the working one ---
+   and read that diff for text that left without a replacement arriving.
+   **And run the figure sweep BEFORE unwrapping, or re-wrap to read it**:
+   `--check-doc` marks its worklist hits as added by this diff by comparing
+   against the committed README, so while the document is unwrapped every line
+   reads as changed and the classification is worthless. Run 16 unwrapped
+   to edit --- which the wrapping rules ask for --- and thereby disabled the one
+   sweep that would have found the stale prose the replace-list walk missed,
+   being told 54 figures were new when most were untouched. A scripted rewrite
+   fails in two shapes and neither is a wrong figure. Anchored on a *prefix*,
+   it replaces the whole paragraph and drops whatever followed the part
+   its author had read; `--check-doc` catches that one, every prose paragraph
+   being required to end a sentence. Anchored on two *markers*, it deletes every
+   paragraph between them, however many that turns out to be --- and nothing
+   catches it: the survivors still end sentences, the anchors still resolve,
+   the figures still match, and every check here is a predicate over what
+   is **present**, so none can see what is gone. Measured on 2026-08-14, when
+   a paragraph recording that the regime had been confirmed in the binary
+   was removed from this file and `--lint`, `--check-doc` and the truncation
+   check all exited 0. So assert the extent in the script, echo what it is about
+   to overwrite, and read the unwrapped diff afterwards, which is the only place
+   a lost paragraph shows.
 
    **A correction is a claim, and is written under exactly the conditions
    that produce bad ones.** Whatever the verification turns up gets fixed
