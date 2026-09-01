@@ -61,7 +61,7 @@ if [ $# -lt 1 ]; then
   exit 2
 fi
 R="$1"
-OTHER=${OTHER:-ghead}       # the other half, for the cross-half line the
+OTHER=${OTHER:-spot}       # the other half, for the cross-half line the
                             # class-block form calls item 5: --block reads
                             # it only when given the second JSON, and a run
                             # that recorded one half has no such line owed

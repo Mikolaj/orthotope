@@ -3,9 +3,9 @@
 #
 #     ./preflight.sh run19            # reads BASIS/OTHER as the others do
 #
-# Its defaults moved to Run 19's halves at pre-run step 2b on 2026-08-24,
+# Its defaults moved to Run 23's halves at pre-run step 2b on 2026-09-01,
 # with run-major.sh's, run-gate.sh's, smoke-sweep.sh's and
-# install-tables.sh's -- BASIS unchanged, OTHER from g914 to ghead. The
+# install-tables.sh's -- BASIS unchanged, OTHER from ghead to spot. The
 # non-vacuity note below was taken on Run 17's pair and names its halves;
 # re-reading it wants `OTHER=det BASIS=wildlog` on the launch line, which
 # is what those two variables are for.
@@ -68,7 +68,7 @@ if [ $# -lt 1 ]; then
   exit 2
 fi
 R=$1
-OTHER=${OTHER:-ghead}
+OTHER=${OTHER:-spot}
 BASIS=${BASIS:-g912}
 if [ "$OTHER" = "$BASIS" ]; then
   echo "!! OTHER and BASIS are both '$BASIS' -- a pair is two halves"

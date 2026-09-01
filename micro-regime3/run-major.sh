@@ -66,7 +66,7 @@ PREFIX="$R"                  # the binaries and their note carry the run, as
 # 2026-08-14 -- the loop below says what changed and why. Change these two names per pair -- and
 # nothing else here, the counting below being what makes a wrong selection
 # loud in the log rather than at the write-up.
-OTHER=${OTHER:-ghead}
+OTHER=${OTHER:-spot}
 BASIS=${BASIS:-g912}
 HALVES="$OTHER $BASIS"
 # A pair is two halves, and nothing downstream can tell that it is not. With

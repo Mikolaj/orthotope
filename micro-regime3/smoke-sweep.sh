@@ -37,7 +37,7 @@ if [ $# -lt 1 ]; then
   exit 2
 fi
 R="$1"
-OTHER=${OTHER:-ghead}       # the pair's two halves, as in run-major.sh,
+OTHER=${OTHER:-spot}       # the pair's two halves, as in run-major.sh,
 BASIS=${BASIS:-g912}        # run-gate.sh, preflight.sh and
                              # install-tables.sh, which carries OTHER too:
                              # FIVE files, and pre-run step 3c is where they
