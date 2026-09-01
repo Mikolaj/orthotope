@@ -149,7 +149,8 @@ step_8 () {
   # the last character class is for: `.` is in the body class, so a name at
   # the end of a SENTENCE used to be captured with the full stop attached and
   # reported gone. A `probe-ds-{off,on}-g912` brace form is captured WHOLE,
-  # the braces being in the body class, and expanded by hand below: a body
+  # the braces being in the body class, and expanded by hand below, however
+  # many groups and an empty alternative among them: a body
   # class that stopped at the brace captured `probe-ds-`, and a last class
   # admitting `-` let that truncation through, so a note naming the form
   # FAILed with every path present -- Run 23's preparation met both forms
@@ -159,19 +160,30 @@ step_8 () {
   # `probe-zzst-{a,b}` each PASS, `probe-nosuchthing-g912` FAILs naming
   # that path, and the brace form FAILs naming `probe-zzst-b` once that
   # directory is removed -- so the arm that fires on an absent path is
-  # reachable through the plain form and the expanded one alike.
+  # reachable through the plain form and the expanded one alike. The same
+  # day on `probe-zzst-{a,b}-{c,d}` over four stub directories: PASS with
+  # all four present, FAIL naming `probe-zzst-b-d` with that one removed.
   if [ -f "$R-pair.txt" ]; then
     MISSING=$(grep -oE '(probe-[A-Za-z0-9._{},-]*[A-Za-z0-9_}]/?|'"$R"'-[A-Za-z0-9._-]+\.(json|log|txt))' \
                 "$R-pair.txt" | sort -u \
               | while read -r q; do
                   q=${q%/}
                   case $q in
-                    *\{*\}*)  # one brace group, expanded without eval;
-                              # `read -a` keeps an empty alternative, `{,-x}`
-                      pre=${q%%\{*}; rest=${q#*\{}; post=${rest#*\}}
-                      IFS=, read -ra alts <<< "${rest%%\}*}"
-                      for alt in "${alts[@]}"; do
-                        [ -e "$pre$alt$post" ] || echo "$pre$alt$post"
+                    *\{*\}*)  # brace groups, expanded without eval, one
+                              # group a pass until none is left; `read -a`
+                              # keeps an empty alternative, `{,-x}`
+                      todo=("$q")
+                      while [ "${#todo[@]}" -gt 0 ]; do
+                        q=${todo[0]}; todo=("${todo[@]:1}")
+                        case $q in
+                          *\{*\}*)
+                            pre=${q%%\{*}; rest=${q#*\{}; post=${rest#*\}}
+                            IFS=, read -ra alts <<< "${rest%%\}*}"
+                            for alt in "${alts[@]}"; do
+                              todo+=("$pre$alt$post")
+                            done ;;
+                          *) [ -e "$q" ] || echo "$q" ;;
+                        esac
                       done ;;
                     *) [ -e "$q" ] || echo "$q" ;;
                   esac
