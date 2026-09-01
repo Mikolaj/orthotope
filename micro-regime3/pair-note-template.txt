@@ -48,9 +48,9 @@ gate has run; what is
 INHERITED and must not be repaid, naming each -- the gate, the smoke
 sweep, the roster pass, the counts, anything else that cost machine time
 -- and what is still OWED; and, last, WHAT THE PREPARATION LEARNED, which
-is post-run step 9a's four things met a day early -- a check that would
+is post-run step 9's four things met a day early -- a check that would
 have caught an error, a computation improvised, a step skipped, a
-capability found. Step 9a is the executing session's and that session was
+capability found. Step 9 is the executing session's and that session was
 not here, so this block is the only route those findings have. Those
 lists are the interface; anything true of this run and in none of them is
 lost. Then say outright whether anything here needs

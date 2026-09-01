@@ -6336,8 +6336,8 @@ Its steps below are the prose's own numbers, so a reference to one of them still
 lands in both places --- which is a thing to KEEP true: renumber the list
 and the prose's items move with it, or a reader following a pointer arrives
 at the wrong reason; the prose is where the reasons live and is not replaced
-by this. What it replaces is reading the twelve paragraphs three times
-to be sure nothing was missed, which is what they have cost.
+by this. What it replaces is reading those paragraphs three times to be sure
+nothing was missed, which is what they have cost.
 
     #   0. NAME THE FILL GROUPS off a -g3 twin, and spend the other
     #      load-independent measurements while the artifacts live --
@@ -6445,10 +6445,6 @@ to be sure nothing was missed, which is what they have cost.
     #   5. MAKE THE RUN'S OWN FILE, `runs/$R.md`, by copying the last
     #      run's over it AND COMMITTING THAT COPY BEFORE EDITING IT --
     #      three reasons, all of them below and only one about wrapping.
-    #      NAME THE STEP IN THE COMMIT SUBJECT, here and at 6b, 6d and
-    #      7a: those four commits are the only record of which post-run
-    #      steps have run, so a session returning to an interrupted
-    #      write-up reads `git log` rather than its own memory.
     #      The file is the whole of what a run replaces -- head,
     #      Results, what the next run compares against, the claims it
     #      should test, the nine class blocks and its own Provenance --
@@ -6468,6 +6464,10 @@ to be sure nothing was missed, which is what they have cost.
     #      naming the run file AS A WHOLE; walk those and the section
     #      links both, against what the file now says. It lists the second
     #      kind nowhere, there being two dozen of them
+    #      NAME THE STEP IN THE COMMIT SUBJECT, here and at 6b, 6d and
+    #      7a: those four commits are the only record of which post-run
+    #      steps have run, so a session returning to an interrupted
+    #      write-up reads `git log` rather than its own memory
     #      why: --para 'COMMIT THE COPY'
     #  5a. TAKE THE MOVEMENT READING, whose window 5b closes: a
     #      "moved from X to Y" sentence compares against the figures
@@ -6497,8 +6497,10 @@ to be sure nothing was missed, which is what they have cost.
     #        --delete and --para match the flattened form, so an anchor
     #        spanning a line break is found on either form and nothing is
     #        unwrapped before editing or after a commit's re-wrap. What
-    #        still breaks on one is an EXACT-MATCH edit, which is why the
-    #        next bullet prefers the anchor. Never wrap by hand -- a
+    #        still breaks on one is an EXACT-MATCH edit -- which is why
+    #        the next bullet prefers the anchor, and why step 5's link
+    #        repoint, a literal rename, still asks for the unwrapped
+    #        form. Never wrap by hand -- a
     #        hand-wrapped paragraph is the one thing --check-doc's wrap
     #        pass FAILS, where a paragraph left long is mid-edit and
     #        passes; the rules are in
@@ -6506,7 +6508,7 @@ to be sure nothing was missed, which is what they have cost.
     #        reliably load, so read it before the first edit
     #      * REPLACE BY ANCHOR, the method for every prose edit here, and
     #        it REACHES PAST 6: 6a and 6c, the fixes at 6b, then 7's
-    #        merged fix cycle and 9, 9a and 10, all of them paragraph
+    #        merged fix cycle and 9 and 10, all of them paragraph
     #        edits. `--replace ANCHOR
     #        --with FILE` swaps a paragraph without its old text passing
     #        through a transcript, which is what quoting it into a script
@@ -6615,6 +6617,7 @@ to be sure nothing was missed, which is what they have cost.
     #      agreement, so a half-done 6b FAILS that gate rather than
     #      passing quietly, which is the one place this half announces
     #      itself
+    #      why: --para 'What skipping this costs is measured'
     #  6d. COMMIT 6b'S AND 6c'S WORK AS A SINGLE COMMIT, subject naming
     #      the step, and THAT COMMIT'S DIFF IS WHAT THE AGENT WORKS ON. One commit and not
     #      two: the pass reads both files together, so two commits would
@@ -6648,6 +6651,7 @@ to be sure nothing was missed, which is what they have cost.
     #      does can move under this pass. Everything else about
     #      launching one -- the brief, its maintenance, checking its
     #      work -- is 6b's and is not repeated here.
+    #      why: --para 'Verify the write-up before deleting'
     #  6e. VERIFY, THE READ-ONLY HALF, run in parallel with 6d and
     #      producing a worklist rather than an edit -- which is what lets
     #      it share the window. Every count and ratio comes from --cells
@@ -6713,6 +6717,7 @@ to be sure nothing was missed, which is what they have cost.
     #      findings being answered in a reply and never made. A FIGURE
     #      defect here is not routine: it is a signal that 6d or 6e
     #      missed something, and it is read as that rather than patched.
+    #      why: --para 'Verify the write-up before deleting'
     ./read-run.py --lint          # 8. again after ANY Main.hs edit, and
     #      never rebuild the pair to satisfy it: say in the write-up that
     #      the comment-only move happened
