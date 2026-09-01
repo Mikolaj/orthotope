@@ -1652,14 +1652,14 @@ check counts.
 | class | shapes | mut-odo-vecdims | worst | best outside family | ceiling | floor |
 |---|---:|---:|---:|---|---|---:|
 | `rev` | 3 | 0.046 | 0.067 | **`libunord-stage2`** 0.001 | `mut-odo-vecdims-add-in-leaf-u2` 0.029 | 2.35% |
-| `revsome` | 3 | 0.048 | 0.058 | **`libunord-stage2`** 0.000 | `mut-odo-vecdims-add-in-leaf-u2` 0.027 | 3.31% |
+| `revsome` | 3 | 0.048 | 0.058 | **`libunord-stage2`** 0.000 | `mut-odo-vecdims-add-in-leaf-u2-down` 0.027 | 3.31% |
 | `bcast` | 3 | 0.035 | 0.062 | **`lib-stage2-u4`** 0.019 | `mut-odo-vecdims-add-in-leaf` 0.022 | 4.57% |
 | `bcastmid` | 4 | 0.032 | 0.058 | **`lib-stage2-u4`** 0.017 | `mut-odo-vecdims-add-in-leaf-u2` 0.022 | 5.39% |
 | `reshape1` | 4 | 0.094 | 0.109 | **`libunord-stage2`** 0.000 | `mut-odo-vecdims-add-in-leaf-u2-down` 0.024 | 4.96% |
-| `slice` | 3 | 0.040 | 0.057 | **`lib-stage2-short`** 0.030 | `mut-odo-vecdims-add-in-leaf-u2` 0.030 | 3.44% |
-| `window` | 3 | 0.062 | 0.095 | **`lib-stage2-short`** 0.020 | `mut-odo-vecdims-add-in-leaf-u2` 0.029 | 4.77% |
+| `slice` | 3 | 0.040 | 0.057 | **`lib-stage2-short`** 0.030 | `mut-odo-vecdims-add-in-leaf-u2-down` 0.030 | 3.44% |
+| `window` | 3 | 0.062 | 0.095 | **`lib-stage2-short`** 0.020 | `mut-odo-vecdims-add-in-leaf-u2-down` 0.029 | 4.77% |
 | `scaled` | 3 | 0.032 | 0.033 | **`lib-stage2-u4`** 0.026 | `mut-odo-vecdims-add-in-leaf-u2` 0.027 | 4.14% |
-| `runs` | 11 | 0.034 | 0.063 | **`lib-stage2-short`** 0.027 | `mut-odo-vecdims-add-in-leaf-u2` 0.028 | 3.26% |
+| `runs` | 11 | 0.034 | 0.063 | **`lib-stage2-short`** 0.027 | `mut-odo-vecdims-add-in-leaf-u2-down` 0.028 | 3.26% |
 
 The floor-movement paragraph that stood here was cut on 2026-08-22, having read
 Run 16's column against Run 15's while Run 17 installed this one over it ---
