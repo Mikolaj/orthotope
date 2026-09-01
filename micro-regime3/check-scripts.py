@@ -673,6 +673,27 @@ def doc_of_a_big_paragraph(tmp, n=1800):
                  % ('x' * n))
 
 
+def doc_wrapped(tmp):
+    """A document whose paragraphs are WRAPPED, as every committed one here is.
+
+    The anchor modes are handed a phrase a caller read in the rendered
+    prose; where the formatter's break falls inside it, matching the bytes
+    finds nothing. Built rather than borrowed so the case does not move
+    when the README is re-wrapped.
+    """
+    return write(os.path.join(tmp, 'W.md'),
+                 '# T\n\nA paragraph whose sentence runs\nover a line break'
+                 ' here.\n\nAnother paragraph.\n')
+
+
+def doc_wrapped_list(tmp):
+    """A wrapped list whose FIRST item runs over two lines."""
+    return write(os.path.join(tmp, 'WL.md'),
+                 '# T\n\n- `OPEN` **Item 1.** Its body, which is long\n'
+                 '  enough to be wrapped.\n'
+                 '- `OPEN` **Item 2.** Its body.\n\nAfter it.\n')
+
+
 def one_item(tmp):
     """A replacement carrying ONE list item, as an edit to one would."""
     return write(os.path.join(tmp, 'new.txt'),
@@ -864,9 +885,19 @@ def rundoc_miscounting_its_class_processes(tmp):
     # the structural figure be quoted SOMEWHERE, so leaving one correct
     # mention standing would rightly pass. 2n+1 is outside {n, 2n} for
     # every n >= 1.
-    bent, k = re.subn(r'\b[\w-]+(\s+class processes)\b',
+    # WHITESPACE-TOLERANT THROUGHOUT, because the document is WRAPPED and
+    # the formatter puts its breaks where the width falls: a literal space
+    # between `class` and `processes` bent one of run22.md's two mentions
+    # and left the other, so the checker saw a correct figure, rightly
+    # passed, and the case failed for a reason that was the fixture's.
+    # Assert the count rather than `>= 1` for the same reason -- an
+    # under-bent fixture must be loud where it was silent.
+    want = len(re.findall(r'\b[\w-]+\s+class\s+processes\b',
+                          '\n'.join(lines)))
+    bent, k = re.subn(r'\b[\w-]+(\s+class\s+processes)\b',
                       r'%d\1' % (2 * n + 1), '\n'.join(lines))
-    assert k >= 1, 'the run file quotes no class process count to bend'
+    assert want and k == want, ('bent %d of %d class process count(s)'
+                                % (k, want))
     return write_rundoc(tmp, bent)
 
 
@@ -3453,6 +3484,61 @@ CASES = [
          ok=V(exit=0, has=['--replace: ']),
          probe=lambda subs: open(subs['doc']).read()),
 
+    case('para-pointer-names-no-paragraph', 'read-run.py', None,
+         'a step pointed at a paragraph lead a later edit had renamed',
+         # THE POINTERS ARE WHAT MAKES SKIPPING THE PROSE SAFE. The list
+         # says reading it front to back is the largest waste available
+         # here, and what replaces that is fetching the one paragraph a
+         # step hangs on -- which needs the step to name it. A named lead
+         # is exactly what a later edit renames in silence, every other
+         # check here staying green while the pointer aims at nothing,
+         # which is the decay `--check-doc` already refuses for anchors.
+         plant=lambda t: {'readme': edited_readme(
+             t, ("why: --para 'Then confirm the regime'",
+                 "why: --para 'Then confirm the regime it once had'"))},
+         argv=['--check-doc', '--readme', '{readme}'],
+         ok=V(exit=1, has=['--para pointer', 'Then confirm the regime it'])),
+
+    case('para-pointer-that-resolves-passes', 'read-run.py', None,
+         'CONTROL: the pointers as they stand name one paragraph each',
+         plant=lambda t: {'readme': edited_readme(t, ('# regime-3 micro',
+                                                      '# regime-3 micro'))},
+         argv=['--check-doc', '--worklists', '--readme', '{readme}'],
+         ok=V(exit=0, has=['every --para pointer in the checklists'])),
+
+    case('replace-matches-across-a-line-break', 'read-run.py', None,
+         'an anchor the formatter broke in two counted 0 and was refused',
+         # THE WRAPPING WAS THE CALLER'S PROBLEM AND SHOULD NOT HAVE BEEN.
+         # A paragraph's line breaks are `wrap80`'s, put where the width
+         # falls and moved by the next edit above, so an anchor quoted
+         # from the rendered prose matched on one form of the document
+         # and not the other. The chapter carried a whole precondition
+         # about it -- unwrap before editing, and again after every
+         # commit, because `wrap-restore` re-wraps -- for a distinction
+         # no caller ever meant. Matching the flattened form retires it.
+         plant=lambda t: {'doc': doc_wrapped(t), 'new': one_item(t)},
+         argv=['--replace', 'sentence runs over a line', '--with', '{new}',
+               '--readme', '{doc}'],
+         ok=V(exit=0, has=['--replace: ']),
+         probe=lambda subs: open(subs['doc']).read()),
+
+    case('replace-still-refuses-an-anchor-found-twice', 'read-run.py', None,
+         'CONTROL: flattening must not make a second occurrence invisible',
+         plant=lambda t: {'doc': doc_wrapped(t), 'new': one_item(t)},
+         argv=['--replace', 'paragraph', '--with', '{new}',
+               '--readme', '{doc}'],
+         ok=V(exit=1, has=['the anchor occurs'])),
+
+    case('replace-takes-a-wrapped-lists-first-item', 'read-run.py', None,
+         "an anchor quoted from a wrapped item's start landed on line two",
+         # The first-item exemption tested the first LINE, so on a wrapped
+         # list it exempted only what fitted there and refused the rest as
+         # an anchor from the middle. It tests the first ITEM now.
+         plant=lambda t: {'doc': doc_wrapped_list(t), 'new': one_item(t)},
+         argv=['--replace', 'long enough to be wrapped', '--with', '{new}',
+               '--readme', '{doc}'],
+         ok=V(exit=1, has=['2-item list', 'the replacement carries 1 item'])),
+
     case('cross-classes-aggregates-the-blocks-own-rows', 'read-run.py', None,
          "the class section's intro figures were assembled by hand",
          # And got wrong twice on Run 20: a population built here read 398
@@ -5145,8 +5231,8 @@ CASES = [
          # markers are part of the anchor now because that write-up
          # bolded the pair.
          plant=lambda t: {'readme': unwrapped_readme_edit(
-             t, 'the same run gives **0.46% and 0.60%**',
-             'the same run gives **0.69% and 0.60%**')},
+             t, 'the same run gives **0.37% and 0.51%**',
+             'the same run gives **0.69% and 0.51%**')},
          argv=['--check-doc', '--readme', '{readme}'],
          ok=V(exit=1, has=['six-pair figure is quoted differently']),
          # No --audit: the fixture is built from today's document and
@@ -5210,7 +5296,7 @@ CASES = [
          # nothing: `reshape1` and `bcastmid` went to four shapes on
          # 2026-08-25 and `runs` arrived at seven on 2026-08-28.
          plant=lambda t: {'rundoc': unwrapped_rundoc_edit(
-             t, '| `runs` | 7 |', '| `runs` | 5 |')},
+             t, '| `runs` | 11 |', '| `runs` | 5 |')},
          argv=['--check-doc', '--quiet', '--run-doc', '{rundoc}'],
          ok=V(exit=1, has=['shape counts disagree with Main.hs'])),
 
@@ -5218,17 +5304,28 @@ CASES = [
          "a class shape added between runs failed the run file's true count",
          # Two runs shapes landed 2026-08-30 with Run 21's file the newest,
          # and both class-shape checks held that file's 7 to Main.hs's 9;
-         # README's provenance bullet now declares the addition and the
-         # reader takes the declared names out of what the file is held
-         # to. Take the declaration away and the file is held to 9 again.
-         plant=lambda t: {'readme': unwrapped_readme_edit(
-             t, '`runs-4`, `runs-5`, `runs-256` and `runs-512` were'
-                ' added 2026-08-30, after the run',
-             '`runs-4`, `runs-5`, `runs-256` and `runs-512` were'
-             ' added 2026-08-30')},
-         argv=['--check-doc', '--quiet', '--readme', '{readme}'],
-         ok=V(exit=1, has=['shape counts disagree with Main.hs',
-                           'match no population Main.hs defines (7)'])),
+         # README's provenance bullet declares such an addition and the
+         # reader takes the declared names out of what the file is held to.
+         #
+         # THE FIXTURE BUILDS ITS OWN SUBJECT, since 2026-09-01. It used to
+         # take today's declaration away and watch the check fire, which
+         # worked only while some class had grown SINCE the newest run --
+         # and Run 22 ran with all four `runs` shapes in it, so the branch
+         # had no live subject and the fixture stopped building, which is a
+         # silent search dressed as a case. Now it plants both halves: a
+         # declaration in README and a run file short by exactly the
+         # declared four, where the exemption must hold.
+         plant=lambda t: {
+             'readme': unwrapped_readme_edit(
+                 t, '`runs-4`, `runs-5`, `runs-256` and `runs-512` on'
+                    ' 2026-08-30, before the run',
+                 '`runs-4`, `runs-5`, `runs-256` and `runs-512` were added'
+                 ' 2026-08-30, after the run'),
+             'rundoc': unwrapped_rundoc_edit(t, '| `runs` | 11 |',
+                                             '| `runs` | 7 |')},
+         argv=['--check-doc', '--quiet', '--readme', '{readme}',
+               '--run-doc', '{rundoc}'],
+         ok=V(hasnt=['shape counts disagree with Main.hs'])),
 
     case('gate-arms-track-the-selection', 'run-gate.sh', 'febc2bd',
          'the expected bench count was a literal that had to equal SEL',

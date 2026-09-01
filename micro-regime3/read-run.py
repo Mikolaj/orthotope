@@ -5477,6 +5477,23 @@ LEAD_RE = re.compile(r'\*\*(.+?)\*\*', re.S)
 PARA_BODY_CAP = 6
 
 
+def flat(s):
+    """One space for each run of whitespace, so a wrapped document and an
+    unwrapped one answer the same anchor.
+
+    The anchor modes match a paragraph, and a paragraph's line breaks are
+    the formatter's rather than the text's: `wrap80` puts them wherever
+    the width falls and moves them on the next edit above. Matching the
+    bytes therefore made every anchor spanning a break fail on exactly
+    one of the two forms, which is why the write-up used to be done
+    unwrapped and re-wrapped at each commit -- a whole precondition, in
+    a chapter that had to state it, for a distinction the caller never
+    meant. `--para` had always flattened its lead; `--replace` and
+    `--delete` did not, and now do.
+    """
+    return ' '.join(s.split())
+
+
 def splice(docs, anchor, source):
     """Replace the paragraph carrying `anchor` with the text in `source`.
 
@@ -5527,7 +5544,7 @@ def splice(docs, anchor, source):
         except OSError as e:
             sys.stderr.write('--replace: %s\n' % e)
             return 2
-        seen.append((path, text, text.count(anchor)))
+        seen.append((path, text, flat(text).count(flat(anchor))))
     total = sum(k for _, _, k in seen)
     if total != 1:
         sys.stderr.write('--replace: the anchor occurs %d times across %s,'
@@ -5538,7 +5555,7 @@ def splice(docs, anchor, source):
         return 1
     readme, doc, _ = next(t for t in seen if t[2])
     paras = doc.split('\n\n')
-    hit = [i for i, q in enumerate(paras) if anchor in q]
+    hit = [i for i, q in enumerate(paras) if flat(anchor) in flat(q)]
     if len(hit) != 1:
         sys.stderr.write('--replace: the anchor spans a paragraph break, so'
                          ' there is no one paragraph to replace\n')
@@ -5553,9 +5570,16 @@ def splice(docs, anchor, source):
     # item 3, and saying so was not enough -- which is the difference
     # between a warning and a refusal, and the reason this is the second.
     # Pass the whole list as the replacement, or edit the item in place.
-    items = [l for l in old.split('\n')
+    ol = old.split('\n')
+    marks = [i for i, l in enumerate(ol)
              if re.match(r'\s*(?:\d+\.|[-*])\s', l)]
-    if len(items) > 1 and anchor not in old.split('\n')[0]:
+    items = [ol[i] for i in marks]
+    # THE FIRST ITEM, not the first LINE: on a wrapped document an item
+    # runs over several lines and the anchor a caller quotes from its
+    # start lands on the second, which read as an anchor from the middle
+    # of the list and was refused.
+    first_item = '\n'.join(ol[:marks[1]]) if len(marks) > 1 else old
+    if len(items) > 1 and flat(anchor) not in flat(first_item):
         sys.stderr.write(
             '--replace: this paragraph is a %d-item list and the anchor is'
             ' not in its first item, so replacing it would discard the items'
@@ -5821,7 +5845,7 @@ def excise(docs, anchor, limit=1500):
         except OSError as e:
             sys.stderr.write('--delete: %s\n' % e)
             return 2
-        seen.append((path, text, text.count(anchor)))
+        seen.append((path, text, flat(text).count(flat(anchor))))
     total = sum(k for _, _, k in seen)
     if total != 1:
         sys.stderr.write('--delete: the anchor occurs %d times across %s,'
@@ -5832,7 +5856,7 @@ def excise(docs, anchor, limit=1500):
         return 1
     path, doc, _ = next(t for t in seen if t[2])
     paras = doc.split('\n\n')
-    hit = [i for i, q in enumerate(paras) if anchor in q]
+    hit = [i for i, q in enumerate(paras) if flat(anchor) in flat(q)]
     if len(hit) != 1:
         sys.stderr.write('--delete: the anchor spans a paragraph break, so'
                          ' there is no one paragraph to delete\n')
@@ -5931,7 +5955,16 @@ def paragraphs(docs, pattern, every=False):
     lead_hits = []
     for path, first, para in paras:
         lead = LEAD_RE.search(para)
-        if lead and rx.search(' '.join(lead.group(1).split())):
+        # MATCHED WITH ITS MARKUP AND WITHOUT IT. A caller quoting a lead
+        # types what it reads, and a lead carrying backticks or italics
+        # renders without them -- so `--para 'the three check-scripts.py
+        # steps'` found nothing and fell through to the body, where it
+        # matched the pointer line that named it and nothing else. The
+        # pattern is a regex, so it is the LEAD that is stripped rather
+        # than the pattern: stripping a `*` out of a pattern would eat a
+        # quantifier.
+        flat = ' '.join(lead.group(1).split()) if lead else ''
+        if lead and (rx.search(flat) or rx.search(re.sub(r'[`*]', '', flat))):
             lead_hits.append((path, first, para,
                               ' '.join(lead.group(1).split())))
     # ONE MATCH PRINTS WHOLE; SEVERAL PRINT AN INDEX. Retrieval is what this
@@ -6191,6 +6224,44 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
     for path, _t in docs:
         anchors.update(per_doc[path])
     bad, note = [], []
+
+    # EVERY `--para` POINTER IN THE CHECKLISTS RESOLVES, or the list's own
+    # instruction -- come back to a paragraph when a step surprises you --
+    # names a paragraph that is not there. The chapter's fixed cost is the
+    # reading, and the list says so: reading the prose front to back before
+    # beginning is the largest waste available here. What makes skipping it
+    # safe is that a surprised session can fetch the ONE paragraph its step
+    # hangs on, which needs the step to name it -- and a named lead is
+    # exactly the thing a later edit renames in silence, every other check
+    # here staying green while the pointer aims at nothing. So the pointers
+    # are checked the way the anchors are.
+    # `why: --para '...'` and not a bare `--para`, which the prose also
+    # writes when it is talking ABOUT the mode rather than pointing with
+    # it: the first draft of this check read three such mentions as dead
+    # pointers, one of them a placeholder in a command line.
+    pointers = set(re.findall(r"why: --para '([^']+)'", readme_doc))
+    if pointers:
+        leads = []
+        for _first, para, _spans in unwrapped_paragraphs(readme_doc
+                                                         .split('\n')):
+            m = LEAD_RE.search(para)
+            if m:
+                leads.append(' '.join(m.group(1).split()))
+        # MARKUP IS NOT PART OF THE POINTER: a lead carrying backticks or
+        # italics would otherwise have to be quoted with them, and a
+        # later edit that merely emphasises a word would break a pointer
+        # naming the same paragraph. Both sides are stripped of ` and *.
+        def bare(t):
+            return re.sub(r'[`*]', '', t).lower()
+        dead = sorted(q for q in pointers
+                      if sum(1 for l in leads if bare(q) in bare(l)) != 1)
+        if dead:
+            bad.append('%d --para pointer(s) resolve to no paragraph lead,'
+                       ' or to several: %s'
+                       % (len(dead), '; '.join(dead)))
+        else:
+            note.append('every --para pointer in the checklists names one'
+                        ' paragraph (%d)' % len(pointers))
     if run_doc is None:
         bad.append('BLOCKED: no run file in %s/, so the Results table, the'
                    ' fingerprint, the claims readings and the class blocks'

@@ -485,6 +485,7 @@ and one regime. A quantity that moves by a factor of two in each direction
 over three roster changes is not a property any run inherits from the one before
 it.
 ## Results
+
 The shared forcing pass is subtracted here, as every run since Run 6 must
 ([sum-only](../README.md#sum-only-and-the-correction-now-applied) carries
 that decision and this run's re-pass of its gates), the scratch vectors
@@ -762,6 +763,7 @@ in twin and timed binary, so the cache-line reading is not what separates them
 
 
 ## What the next run compares against
+
 **Run 23's regime, roster and basis are settled; its PAIR is the one decision
 this section leaves open, and it belongs to whoever asks for the run.**
 The regime is `-fspec-constr`, as every run since Run 8, and it is the regime
@@ -1105,6 +1107,7 @@ nothing and the set is not derived again.
 
 
 ## The claims the next run should test
+
 **Run 22's verdicts first**, since a run reports breaks rather than re-deriving
 the table. **The one manifest claim left held on both compilers**, all four
 of claim 1's links on the 9.12 basis and all four on GHC HEAD --- no BROKE
@@ -1509,6 +1512,7 @@ as the largest.
 
 
 ## The stride classes, run by run
+
 **Run 22 (SpecConstr, max-skip +lookrts, -A32m, 9.12.4) records every class
 on BOTH halves**, one process each, in [the
 sequence](../README.md#making-a-major-benchmark-run) --- but NOT all in one

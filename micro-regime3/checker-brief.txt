@@ -163,9 +163,10 @@ means one of the two agent invocations above, and both sweeps below are
 done in EACH of them. Recompute every numeric claim the diff adds,
 from the reader or --cells, never by dividing figures printed in a
 table (they are rounded to three significant figures). Be exhaustive
-on the tables -- Results, the fingerprint, the nine class tables, the
-cross-class summary, the run's own two geomean columns -- and say how many
-rows you verified and how many disagreed.
+on the tables IN PASS 1 -- Results, the fingerprint, the nine class
+tables, the cross-class summary, the run's own two geomean columns --
+and say how many rows you verified and how many disagreed. Pass 2's
+scope is narrower and is stated in its own block.
 
 THE SUPERLATIVE SWEEP -- every superlative and count. Every "only",
 "largest",
@@ -188,6 +189,15 @@ with pass one's fixes in it, and README with 6c's requotes. That is
 the first moment all of a run's prose exists. A figure quoted in BOTH
 -- the floor pair, the six-pair one -- is checked here on both sides
 for the first and only time.
+
+YOUR SCOPE IS THIS COMMIT'S DIFF AND NOTHING PASS 1 ALREADY VERIFIED.
+Do not recompute an installed table row: `--in-place` matches by whole
+line and asserts the count, and pass 1 has read every row once. Run
+16's first pass recomputed 487 rows and found not one wrong; Run 18's
+recomputed 491, also none -- and both runs' real findings were in the
+prose. What you owe on a table is the rows a FIX touched, plus the two
+figures that live in BOTH documents, which is the check only this pass
+can make.
 
 Send it the fixes, not the prose again. On Runs 15 and 16 most of the
 second pass's findings existed ONLY because the first round of fixes

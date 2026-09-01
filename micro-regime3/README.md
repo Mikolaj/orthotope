@@ -4778,6 +4778,13 @@ of its own: [Making a major benchmark run](#making-a-major-benchmark-run).
 
 ### Making a major benchmark run
 
+**A RUN IS ALWAYS TWO SESSIONS, and which one you are decides everything
+below.** One PREPARES the run, through step 12 of the pre-run list, and hands
+over `$R-pair.txt`; another EXECUTES it from step 13 and writes it up. Which
+half you were asked for decides which of the readings below you owe, which list
+you start in, and what is already spent and not yours to redo --- so settle
+it before reading anything else.
+
 **What a run must read, so that nothing else is read to find out --- and
 it is read BY THE PART, never whole.** This paragraph used to say the last run's
 own file was *the one thing worth reading entire* and then, in its next four
@@ -4822,32 +4829,29 @@ not done, which is the whole of why this is a list and not a sentence.
          and the template says what a note owes
          -- the two recipes, and which of their lines the pair varies
 
-**A RUN IS ALWAYS TWO SESSIONS, SO THIS IS TWO LISTS.** No session owns a whole
-run: one PREPARES it, through step 12, and hands over `$R-pair.txt`; another
-EXECUTES it from step 13 and writes it up. So there is no case in which
-a session owes all ten, and which ten it owes is not a judgement
-but a consequence of which half it was asked for. The numbers never move,
-so a reference to an item still lands. **The PREPARATION owes 1, 3, 7, 8's delta
-bullets, 9 and 10** --- of item 1, the pre-run list and the run list, the run
-list because the note's launch, rider and counts lines are written out of it,
-and NOT the post-run one. Those six decide the pair, the roster, the note
-and what this run is for, and nothing else does. **The EXECUTION owes 1 ---
-the run and post-run lists --- with 2, 4, 5, 6 and 8's replace list**, every one
-of which answers a question the write-up asks: the replace list is walked
-at post-run step 6 and gains nothing from being read hours early, which run list
-step 18 already says of it, and the class blocks' form is not used until a block
-is written. **ONE OF THOSE CROSSES BACK, and it is 5.** A roster change
-that parks or drops an arm can leave a live claim naming an untimed one, which
-`--lint` refuses at step 7 --- so the preparation that made the change
-is the one that must retire or re-aim the claim, and it owes the claims section
-to do it. Run 21's preparation is the case: parking `offtab` and `gen-quotrem`
-retired claims 2 and 6 and re-aimed 8, all of it before that run started.
-A preparation that parks nothing does not owe 5, and step 7 is what tells
-it which it is. **Reading the other session's half is the largest avoidable
-spend in this chapter after the prose itself.** It was the shape
-of a preparation on 2026-08-30, which read the whole post-run list
-and an example class block and used neither, and it is a spend the split makes
-invisible: nothing in a handover shows what the session before it read
+**SO THIS IS TWO LISTS, and there is no case in which a session owes all ten**,
+and which ten it owes is not a judgement but a consequence of which half
+it was asked for. The numbers never move, so a reference to an item still lands.
+**The PREPARATION owes 1, 3, 7, 8's delta bullets, 9 and 10** --- of item 1,
+the pre-run list and the run list, the run list because the note's launch, rider
+and counts lines are written out of it, and NOT the post-run one. Those six
+decide the pair, the roster, the note and what this run is for, and nothing else
+does. **The EXECUTION owes 1 --- the run and post-run lists --- with 2, 4, 5, 6
+and 8's replace list**, every one of which answers a question the write-up asks:
+the replace list is walked at post-run step 6 and gains nothing from being read
+hours early, which run list step 18 already says of it, and the class blocks'
+form is not used until a block is written. **ONE OF THOSE CROSSES BACK,
+and it is 5.** A roster change that parks or drops an arm can leave a live claim
+naming an untimed one, which `--lint` refuses at step 7 --- so the preparation
+that made the change is the one that must retire or re-aim the claim,
+and it owes the claims section to do it. Run 21's preparation is the case:
+parking `offtab` and `gen-quotrem` retired claims 2 and 6 and re-aimed 8, all
+of it before that run started. A preparation that parks nothing does not owe 5,
+and step 7 is what tells it which it is. **Reading the other session's half
+is the largest avoidable spend in this chapter after the prose itself.**
+It was the shape of a preparation on 2026-08-30, which read the whole post-run
+list and an example class block and used neither, and it is a spend the split
+makes invisible: nothing in a handover shows what the session before it read
 for nothing. Items 2 to 6 are [the last run's own file](runs/run22.md#results),
 3 and 4 being [what the next run compares
 against](runs/run22.md#what-the-next-run-compares-against), 5 [the
@@ -4986,7 +4990,9 @@ and never as a chronology.
     # restates no fact you need, so reading it front to back before
     # beginning is the single largest waste available here -- Run 16 read
     # the whole of it first and needed almost none of it for this half.
-    # Come back to a paragraph when a step surprises you.
+    # Come back to a paragraph when a step surprises you: the step
+    # NAMES it, on a `why:` line, and --check-doc holds every one of
+    # those pointers to a paragraph that is still there.
     cd ~/r/orthotope/micro-regime3        # and re-set R and REGIME per call
     #      NN is one past the newest file in runs/, which is the run
     #      behind you, and the disk is where the number is written. DO
@@ -5012,6 +5018,7 @@ and never as a chronology.
     #      means 13, which is the executing session's normal entry, with
     #      `./preflight.sh $R` re-running 4 to 10 in one call. Nothing
     #      older than this run's own preparation is ever inherited
+    #      why: --para 'A preparation already spent'
     #   2. BUILD BOTH HALVES -- unconditional, from the note's own
     #      recipe. It is a STEP and a session's to run like every other line
     #      here, not a remark and not somebody else's job; what is not
@@ -5060,8 +5067,10 @@ and never as a chronology.
     #      a finding and not a stop, and locating it takes THREE reads:
     #      diff the source, rebuild once with the previous shim commit to
     #      price the shim, and compare the two binaries' package ABI
-    #      hashes (`strings B | grep -oE '[A-Za-z][A-Za-z0-9-]*zm[0-9zi.]+zm[0-9a-f]{32,}'` --- the narrower `[a-z-]` class silently drops `QuickCheck`, `Glob` and `text-iso8601`)
-    #      to price the store, which is what the note's inputs do not cover
+    #      hashes to price the store -- the prose spells that one out,
+    #      including the character class that silently drops three
+    #      packages
+    #      why: --para 'three rules are what they are'
     cat $R-pair.txt                       # 2a. the note, quoted by steps
     #      here and in the run list alike -- the halves' roles, the
     #      md5s, the commit, the gate line, and any environment its LAUNCH
@@ -5071,6 +5080,7 @@ and never as a chronology.
     #      BASIS/OTHER come from it, never from a half's name; setting
     #      them in the scripts is step 2b.
     #      The basis runs second, and both halves run the classes
+    #      why: --para 'Which two halves a pair has'
     #  2b. SET THE HALVES' NAMES in the FIVE scripts that take them --
     #      run-major.sh, run-gate.sh, smoke-sweep.sh, preflight.sh and
     #      install-tables.sh, every one carrying both BASIS and OTHER;
@@ -5079,6 +5089,7 @@ and never as a chronology.
     #      from step 2 and everything below reads them. A wrong OTHER stops
     #      run-major.sh and run-gate.sh at a missing binary; in
     #      smoke-sweep.sh it sweeps the wrong half and looks clean
+    #      why: --para 'Name the artifacts by half'
     md5sum $R-<basis> $R-<other>          # 3. the note's fill-in block, read
     git log -1 --format=%h -- :/micro-regime3/Main.hs   #    back: the two
     git log -1 --format=%h -- :/micro-regime3/align-as.py  #    md5s, the
@@ -5124,6 +5135,7 @@ and never as a chronology.
     #      the BASIS's bench count -- so no pair here varies the roster,
     #      ruled 2026-08-26 after a walk of this list found all four
     ./read-run.py --lint                  # 7. roster and shape annotations
+    #      why: --para 'Steps 7 and 8 are the whole'
     ./read-run.py --check-doc --quiet     # 8. anchors, paths, widths, sweeps
     #      7+8 are the WHOLE document check here; no other repo's checkers,
     #      now or at post-run step 7. Exit code is the verdict: the
@@ -5139,37 +5151,29 @@ and never as a chronology.
     #      cannot be told from one nothing searched. Get the checkout
     #      mounted and rerun, or run with it blocked and say so in the
     #      write-up -- the one thing not available is reading it as a pass
-    ./check-scripts.py --families         # 8b. and the defect families, over
-    #      the source of every Python program here -- the shell drivers are
-    #      outside an AST family's reach -- which is the one of the three
-    #      that can name a site nobody has met
-    ./check-scripts.py --properties       # 8c. and its properties, which
-    #      are quantified over every run JSON here rather than over a
-    #      fixture, so they answer for inputs no case anticipated. It
-    #      WITHHOLDS the reader's own stderr and counts it BY KIND -- the
-    #      reader warns once per run per table about rows a later roster
-    #      dropped, which is correct and was 198 KB against six lines of
-    #      verdict. A kind with a count of one is a warning this corpus
-    #      has not shown before and is the thing to read; `--warnings`
-    #      restores them verbatim
+    #      why: --para 'lines ARE'
+    ./check-scripts.py --families         # 8b. the defect families, over
+    #      the source of every Python program here -- the one of the
+    #      three that can name a site nobody has met
+    ./check-scripts.py --properties       # 8c. its properties, quantified
+    #      over every run JSON here rather than over a fixture, so they
+    #      answer for inputs no case anticipated. It WITHHOLDS the
+    #      reader's own stderr and counts it BY KIND: a kind with a count
+    #      of one is a warning this corpus has not shown before and is
+    #      the thing to read, and `--warnings` restores them verbatim
     ./check-scripts.py --changed <last run's commit>   # 8d. and if any
     #      script here has changed since the last run: every defect those
-    #      scripts have had, planted again and refused again. `--changed`
-    #      is what makes this step the size of the edit -- it runs only
-    #      the cases whose own script moved, and says so and claims
-    #      nothing where none did; bare, it is all 217 cases and four and
-    #      a half minutes. It writes nothing
-    #      OF RECORD -- no run file, no README, not even the index -- but
-    #      it and 8c both write `zz-` fixtures here and remove them, so
-    #      both want an unsandboxed seat. `--audit` replays each
-    #      case against the code before its own fix, where it MUST fail,
-    #      which is the suite's own non-vacuity and worth a look after
-    #      adding one
+    #      scripts have had, planted again and refused again, and
+    #      `--changed` is what makes the step the size of the edit. 8c
+    #      and 8d write `zz-` fixtures here and remove them, so both want
+    #      an unsandboxed seat, and neither writes anything of record
+    #      why: --para 'What the three check-scripts.py steps'
     ./$R-<basis> diag                     # 9. the regime, in the binary
     #      read one row: allocated bytes of baseOffsetsScan against
     #      baseOffsetsMut on vgg-14-c512 -- equal to three figures under
     #      SpecConstr, 2.4 MB against 2.4 MB where plain -O1 is ten times
     #      apart, and no eye misreads that
+    #      why: --para 'Then confirm the regime'
     #  9b. and the pair's own variable, by whatever the note says reads it:
     #      diag answers for the regime and for nothing else, so what the
     #      halves differ in is checked by the note's own command -- or by
@@ -5188,6 +5192,7 @@ and never as a chronology.
     #      what a sound pair shows there is the same fills at the same
     #      addresses in both sections. A note's nm-based figure is a
     #      different number again, so compare like with like.
+    #      why: --para 'differed by more than Main'
     ./loop-offsets.py --survey $R-<basis>       # 10a. one leg per half,
     ./loop-offsets.py --survey $R-<other>       # 10b. both owed, both new,
     #      and the answer goes in the note: it is the binary's, not the
@@ -5195,6 +5200,7 @@ and never as a chronology.
     ./smoke-sweep.sh $R                   # 11. the smoke sweep, and read
     #      its counting: it holds each process to the arm count `--list`
     #      gives for that shape
+    #      why: --para 'And one more, nearly free'
     ./smoke-l1.sh $R [CLASS ...]          # 12. THE ROSTER PASS, every
     #      leg and every reader mode in one call, as preflight.sh is
     #      steps 4 to 10 -- the main set plus a leg per class named,
@@ -5236,6 +5242,7 @@ and never as a chronology.
     #      launch from an UNSANDBOXED process list and with `args`, never
     #      `comm`, which truncates at 15 characters and shows nothing for
     #      a `preflight.sh` or a `smoke-l1.sh`
+    #      why: --para 'After a roster change'
     ./read-run.py --para '<a lead you just wrote>'   # 12b. READ BACK
     #      WHAT THIS HALF WROTE, which nothing above does: 4 to 10 are
     #      predicates over structure and not one of them reads a
@@ -5244,25 +5251,9 @@ and never as a chronology.
     #      the preparation and it is owed for the same reason: re-derive
     #      every figure the note and the registration quote FROM THE FILE
     #      IT CAME FROM, never from the sentence beside it, and then read
-    #      both back end to end. It costs minutes
-    #      WHAT IT CATCHES AND WHAT IT DOES NOT, from the walk that made
-    #      it a step, 2026-08-30: NINE defects in one preparation's own
-    #      prose, every one past every gate here. It caught SIX -- a
-    #      wrong kill margin, a figure attached to the wrong arm, a
-    #      population list asserted where it had not been evaluated, a
-    #      prediction off by a factor, an attribution to the wrong
-    #      cause, and an interpretation smuggled into a block whose own
-    #      heading says observations. THREE SURVIVED IT and were found a
-    #      day later by another session: a figure taken from the wrong
-    #      position of a length-ordered series (a dispatch cell quoted
-    #      at runs-1024 that was runs-65536's), a compressed clause
-    #      false as written (`the two tests differ in one word`, its own
-    #      next clause listing two), and an arm count that a
-    #      definition-by-definition diff had left two short, that diff
-    #      being unable to see a CALL. So 12b is not a substitute for
-    #      post-run step 6b's independent reader, and the three it
-    #      missed say why: a positional series, a compression and a call
-    #      graph are what a session re-reading its own prose reads past
+    #      both back end to end. It costs minutes, and it is not a
+    #      substitute for post-run step 6b's independent reader
+    #      why: --para 'What 12b catches and what it does not'
     #  that is the preparation. What wants a quiet machine is the run
     #      list below, which starts on an explicit
     #      go-ahead and never on a session's own reading of the box
@@ -5314,6 +5305,7 @@ throughout:
     #      to do"; the hand-written verdict sits above it. The note is
     #      always somebody else's and NOT RUN is its ordinary answer, so
     #      read it whole before grepping it
+    #      why: --para 'A paired run has one gate more'
     <note's LAUNCH env> ./run-gate.sh $R  # 14. only if 13 says it has not
     #      THE ENVIRONMENT IS PART OF THE COMMAND: a pair whose instrument
     #      is switched on by a variable is OFF unless the launch line sets
@@ -5348,6 +5340,7 @@ throughout:
     #      registration is not a blocker, so believing it is how the miss
     #      hides. Read the section, and the pair note names where a run
     #      put its own if it differs
+    #      why: --para 'If that line says the gate has not run'
     uptime; ps -eo pid,etime,comm | grep $R-      # 16. the ALARM, never
     #      the permission -- unsandboxed, or ps sees only this session's
     #      own processes. It runs here, after the go-ahead and before the
@@ -5400,6 +5393,7 @@ throughout:
     #      and its benchmarking lines are counted before any number is read
     #      report each long process as it finishes: exit code and bench
     #      count, not folded into a later summary
+    #      why: --para 'is that sequence as a driver'
     #  18. read ahead while the sequence runs, which costs no machine
     #      time: the last run's own file, which shapes the whole write-up
     #      and is worth little read after it has begun, and the open list
@@ -5680,9 +5674,12 @@ inputs do not cover is the dependency store. `cabal.project.freeze` pins 97
 versions and an index-state and NOT the ABI hashes, so a store rebuilt
 at unchanged versions relinks every call target and changes half of `.text`
 while every check in the list still passes, the tracked loops not having moved.
-Run 15 took all three reads after its write-up had already blamed the shim:
-the shim was emission-neutral and all 48 dependencies had been relinked
-(2026-08-17).
+The ABI hashes are read
+with `strings B | grep -oE '[A-Za-z][A-Za-z0-9-]*zm[0-9zi.]+zm[0-9a-f]{32,}'`,
+whose leading character class is the whole of the care it takes: the narrower
+`[a-z-]` silently drops `QuickCheck`, `Glob` and `text-iso8601`. Run 15 took all
+three reads after its write-up had already blamed the shim: the shim
+was emission-neutral and all 48 dependencies had been relinked (2026-08-17).
 
 Of step 10's two readings, the library one is what a two-shim pair cannot take
 on trust. No `-pgma` shim reaches a library, so a library loop that moved
@@ -5703,6 +5700,18 @@ built beside them, and the last two against `Main.hs` and this file, which open
 no binary at all. One reason the list has no room for: the `2>/dev/null`
 on `--list` is not optional, the provenance line going to stderr
 and interleaving inside a bench name without it.
+
+**What the three `check-scripts.py` steps are each for**, and what each costs.
+`--families` reads the source of every Python program here --- the shell drivers
+are outside an AST family's reach --- and is the one of the three that can name
+a site nobody has met. `--properties` withholds the reader's own stderr
+and counts it by kind because the reader warns once per run per table about rows
+a later roster dropped, which is correct and was 198 KB against six lines
+of verdict. `--changed` runs only the cases whose own script moved, and says
+so and claims nothing where none did; bare it is every case and four and a half
+minutes. And `--audit` replays each case against the code before its own fix,
+where it MUST fail --- the suite's own non-vacuity, and worth a look after
+adding one.
 
 **What the `note:` lines ARE, the list having said only that they do not stop
 you.** They are the write-up's adjudication material and nothing a preparation
@@ -5975,6 +5984,22 @@ as Run 11's is, answers it outright instead, and the pair note records the count
 on both sides. Spelled out because two readings of this paragraph have split
 on it: with membership unmoved the pass is not owed however much else changed,
 and Run 10 is such a run.
+
+**What 12b catches and what it does not**, from the walk that made it a step,
+2026-08-30: NINE defects in one preparation's own prose, every one past every
+gate in the list. It caught SIX --- a wrong kill margin, a figure attached
+to the wrong arm, a population list asserted where it had not been evaluated,
+a prediction off by a factor, an attribution to the wrong cause,
+and an interpretation smuggled into a block whose own heading says observations.
+THREE SURVIVED IT and were found a day later by another session: a figure taken
+from the wrong position of a length-ordered series (a dispatch cell quoted
+at runs-1024 that was runs-65536's), a compressed clause false as written
+(`the two tests differ in one word`, its own next clause listing two),
+and an arm count that a definition-by-definition diff had left two short,
+that diff being unable to see a CALL. The three it missed are why it is
+not a substitute for post-run step 6b's independent reader: a positional series,
+a compression and a call graph are what a session re-reading its own prose reads
+past.
 
 **A paired run has one gate more, and the first thing to do about it is read
 rather than run it. The gate belongs to the pair, not to the session**, which
@@ -6342,6 +6367,7 @@ to be sure nothing was missed, which is what they have cost.
     #      straddling loops and refused the other three, having no
     #      byte-identical copy of them, and the one it did name sits in
     #      the branch's own fill.
+    #      why: --para 'Name the fill groups'
     ./read-all.sh $R                                  # 1. gate EVERY
     #      process -- both halves of every population, which is twenty
     #      --selftest and twenty --aa, and ten is what counting by hand
@@ -6362,6 +6388,7 @@ to be sure nothing was missed, which is what they have cost.
     #      @@saturate reading inside 5% of the run's. A process outside
     #      that band measured in a state the others did not, and every
     #      other gate here is WITHIN one process and cannot see it
+    #      why: --para 'Gate every population on the correction'
     ./read-run.py $R-<half>-<pop>.log --wild          # 2. and, on an
     #      instrumented run, the per-sample stamps that log carries:
     #      allocation, mutator, collector and in-use per bench, and the
@@ -6390,6 +6417,7 @@ to be sure nothing was missed, which is what they have cost.
     #      restriction, the basis the claim was stated on;
     #      one JSON at a time, never merged; a sentence comparing
     #      populations compares their tables
+    #      why: --para 'Match bases before reading any ratio'
     ./read-run.py $R-<basis>-main.json --claims       # 4a. every claim's
     #      ordering and registered verdict in one call, in the claims
     #      section's own order -- and, after them, the README's own verdict
@@ -6413,9 +6441,14 @@ to be sure nothing was missed, which is what they have cost.
     #      paragraph from --block's VERDICTS, never from its table, one
     #      paragraph each. Use --brief on --aa and --block: no computed
     #      figure is lost. Do not write a second reader
+    #      why: --para 'The claims are part of this'
     #   5. MAKE THE RUN'S OWN FILE, `runs/$R.md`, by copying the last
     #      run's over it AND COMMITTING THAT COPY BEFORE EDITING IT --
     #      three reasons, all of them below and only one about wrapping.
+    #      NAME THE STEP IN THE COMMIT SUBJECT, here and at 6b, 6d and
+    #      7a: those four commits are the only record of which post-run
+    #      steps have run, so a session returning to an interrupted
+    #      write-up reads `git log` rather than its own memory.
     #      The file is the whole of what a run replaces -- head,
     #      Results, what the next run compares against, the claims it
     #      should test, the nine class blocks and its own Provenance --
@@ -6435,6 +6468,7 @@ to be sure nothing was missed, which is what they have cost.
     #      naming the run file AS A WHOLE; walk those and the section
     #      links both, against what the file now says. It lists the second
     #      kind nowhere, there being two dozen of them
+    #      why: --para 'COMMIT THE COPY'
     #  5a. TAKE THE MOVEMENT READING, whose window 5b closes: a
     #      "moved from X to Y" sentence compares against the figures
     #      the claims install overwrites, and after it they are in git
@@ -6452,30 +6486,24 @@ to be sure nothing was missed, which is what they have cost.
     #      installs as `?` and is filled by hand, a departed row is
     #      dropped with a warning. The cross-class summary
     #      is assembled LAST, transcribed from the class tables
+    #      why: --para 'Install the tables with'
     #   6. walk the replace list under Provenance, re-run the two sweeps it
     #      names, and map every hit to the bullet covering it -- running
     #      them is not reading them. REPLACE, do not annotate: a figure that
     #      moved inside the floor is requoted without comment. The three
     #      bullets below GOVERN the walk rather than following it, which
     #      is why they are bullets and not sub-steps; 6a and 6c ARE it
-    #      * UNWRAP BOTH DOCUMENTS FIRST, and again at the head of every
-    #        turn that edits them -- `wrap80 --unwrap -i`. The write-up is
-    #        done unwrapped and the stretch ends at every turn boundary
-    #        whether you like it or not: `wrap-restore` runs on Stop and
-    #        before any git commit, so a document unwrapped in one turn is
-    #        wrapped again in the next and every anchor spanning a line
-    #        break stops matching, a `--replace` or an exact-match edit
-    #        then reporting no match at all. A COMMIT REWRAPS THEM TOO,
-    #        and 6b, 6d and 7a each open with one, so each is followed
-    #        by an unwrap before the next edit. Never wrap by hand -- a
+    #      * WRAPPING IS NOT A PRECONDITION, since 2026-09-01: --replace,
+    #        --delete and --para match the flattened form, so an anchor
+    #        spanning a line break is found on either form and nothing is
+    #        unwrapped before editing or after a commit's re-wrap. What
+    #        still breaks on one is an EXACT-MATCH edit, which is why the
+    #        next bullet prefers the anchor. Never wrap by hand -- a
     #        hand-wrapped paragraph is the one thing --check-doc's wrap
     #        pass FAILS, where a paragraph left long is mid-edit and
-    #        passes. The rules are in
-    #        ~/.claude/rules/markdown-wrapping.md, which does not reliably
-    #        load; read it before the first edit. A precondition and not
-    #        an action, which is why it is a bullet: a session that meets
-    #        it after the edits meets it after an install has already
-    #        reported no match on a rewrapped file, as Run 22's did
+    #        passes; the rules are in
+    #        ~/.claude/rules/markdown-wrapping.md, which does not
+    #        reliably load, so read it before the first edit
     #      * REPLACE BY ANCHOR, the method for every prose edit here, and
     #        it REACHES PAST 6: 6a and 6c, the fixes at 6b, then 7's
     #        merged fix cycle and 9, 9a and 10, all of them paragraph
@@ -6503,6 +6531,7 @@ to be sure nothing was missed, which is what they have cost.
     #        step naming that it did. Split 2026-08-31, after a run wrote
     #        the two halves hours apart and could point at no step for
     #        either
+    #      why: --para 'What skipping this costs is measured'
     #  6a. THE RUN'S OWN FILE, which is that first bullet and is the bulk
     #      of the run: its head, Results and the findings under it, what
     #      the next run compares against with its hand-edited two-column
@@ -6525,26 +6554,24 @@ to be sure nothing was missed, which is what they have cost.
     #      one edit per paragraph, and no tool reduces that count. Budget
     #      the head and the nine class paragraphs as the work. FIRST, and
     #      not for tidiness: 6b's figures are requoted FROM this half
-    #  6b. COMMIT 6a'S WORK IN ONE COMMIT, and THAT COMMIT'S DIFF IS
-    #      WHAT THE AGENT WORKS ON -- not the working tree, not a range.
+    #      why: --para 'commit the binary was built from'
+    #  6b. COMMIT 6a'S WORK IN ONE COMMIT, subject naming the step as at
+    #      5, and THAT COMMIT'S DIFF IS WHAT THE AGENT WORKS ON -- not
+    #      the working tree, not a range.
     #      Then THE INDEPENDENT CHECKER, FIRST PASS, and fixing what it
     #      returns. The commit is the first action and not housekeeping:
     #      given one commit's diff the pass has a fixed object, so 6c's
     #      edits cannot move under it and you need not stop writing.
     #      PRE-AUTHORIZED by the user-scope CLAUDE.md and not a thing to
-    #      ask about; Run 20 read Claude Code's own conditional, missed
-    #      that the standing request discharges it, and asked. It is a
-    #      STEP because it is the highest-yield thing in this list: on
-    #      Run 19 it returned 22 defects that every mechanical gate here
-    #      had passed and a truth-focused read had not caught.
+    #      ask about. It is a STEP because it is the highest-yield thing
+    #      in this list.
     #      ONE AGENT, TWO PASSES: this is the first and 6d the second,
     #      on the SAME agent, which keeps its reading of this run's
     #      artifacts and pays no second bootstrap. IT READS THE RUN FILE
     #      ALONE here, 6d reads both. RUN 6c BESIDE IT -- the checker
     #      REPORTS ONLY and edits nothing, and 6c edits the other file,
-    #      so the two cannot collide. A session that waits instead idles
-    #      for the pass's whole length: Run 22 did, seventeen minutes,
-    #      having pointed it at the working tree.
+    #      so the two cannot collide; a session that waits instead idles
+    #      for the pass's whole length.
     #      FIXING IS THIS STEP'S OTHER HALF and not 6d's: a finding is
     #      not fixed by being reported, and 6d exists to read what the
     #      fixing broke.
@@ -6552,19 +6579,15 @@ to be sure nothing was missed, which is what they have cost.
     #      what makes `that commit's diff` mean anything: a run's own
     #      commits are what both passes read, and an edit to THIS
     #      chapter interleaved among them puts churn under review by
-    #      nobody into the same diff. Run 22 made twelve such commits
-    #      between its write-up and its second pass, 576 lines of
-    #      README against the write-up's 224. Do them before the run or
+    #      nobody into the same diff. Do them before the run or
     #      after it; where they have already happened, bound README's
     #      diff at the run's own last commit, which is what the brief's
     #      RUNTIP is for. The run file needs no bound, nothing but a
     #      write-up ever touching it.
     #      THE BRIEF IS `checker-brief.txt`, AND IT IS EDITED EVERY RUN
     #      BEFORE EITHER PASS IS LAUNCHED. Put that first because it is
-    #      the half that gets skipped: a STALE brief looks exactly like
-    #      a used one, carrying the previous run's box reading, window,
-    #      class counts and threshold list, and Run 20's probe went
-    #      looking for the wrong classes on one. TWO PARTS ARE EDITED,
+    #      the half that gets skipped, and a STALE brief looks exactly
+    #      like a used one. TWO PARTS ARE EDITED,
     #      and only the first announces itself. Its FIRST BLOCK: the
     #      run, the two halves, the previous run's, and the two commits
     #      the diffs are taken between -- of which one advances AGAIN
@@ -6578,15 +6601,9 @@ to be sure nothing was missed, which is what they have cost.
     #      three briefs, this pass's, 6d's and 7a's, and every fact an
     #      agent cannot derive: one starts where your session started,
     #      so the basis, the directory, the artifact set and the
-    #      no-other-repo rule are invisible to it. Run 16 wrote it out
-    #      twice, once because a rate limit killed the agent mid-pass;
-    #      Run 22 never opened it, typed its own, and left three of
-    #      seven `could not check` items checkable for want of paths
-    #      the file names.
-    #      AND CHECK ITS WORK. Run 19's said twelve arms moved past 3%
-    #      where sorting gives eleven, and Run 22's put the runs-class
-    #      crossover a length out by skipping a shape. Its report is
-    #      evidence, not verdict
+    #      no-other-repo rule are invisible to it.
+    #      AND CHECK ITS WORK: its report is evidence, not verdict
+    #      why: --para 'The four ways its inputs have been got wrong'
     #  6c. THE README SECTIONS, every other bullet: the floor table and
     #      its prose, the opening, the mutable ceiling, the Lemire
     #      shipping paragraph, the stride-class chapter, the delta chain
@@ -6598,8 +6615,8 @@ to be sure nothing was missed, which is what they have cost.
     #      agreement, so a half-done 6b FAILS that gate rather than
     #      passing quietly, which is the one place this half announces
     #      itself
-    #  6d. COMMIT 6b'S AND 6c'S WORK AS A SINGLE COMMIT, and THAT
-    #      COMMIT'S DIFF IS WHAT THE AGENT WORKS ON. One commit and not
+    #  6d. COMMIT 6b'S AND 6c'S WORK AS A SINGLE COMMIT, subject naming
+    #      the step, and THAT COMMIT'S DIFF IS WHAT THE AGENT WORKS ON. One commit and not
     #      two: the pass reads both files together, so two commits would
     #      hand it two diffs and let it read one and call the run
     #      covered. It also makes `after 6b and 6c both` checkable
@@ -6654,6 +6671,7 @@ to be sure nothing was missed, which is what they have cost.
     #      figures to agreement; the three source files are the reading's
     #      alone, nothing gating their comments, so a stale figure there
     #      survives every green run until someone opens the file.
+    #      why: --para 'Verify the write-up before deleting'
     #   7. WAIT FOR 6d AND 6e BOTH -- the one barrier in this list, and
     #      a session that starts on whichever report came back first
     #      fixes half a document twice. Then CONVERGE TO ONE WRITER and
@@ -6668,8 +6686,10 @@ to be sure nothing was missed, which is what they have cost.
     #      before these fixes existed and which nothing else re-runs: the
     #      fix cycle is the one stretch of the write-up no pass and no
     #      gate has seen.
-    #  7a. COMMIT 7'S WORK, so the probe reads a settled document and
-    #      its findings name text that still exists. Then THE
+    #      why: --para 'Verify the write-up before deleting'
+    #  7a. COMMIT 7'S WORK, subject naming the step, so the probe reads
+    #      a settled document and its findings name text that still
+    #      exists. Then THE
     #      COMPREHENSION PROBE -- which reads the finished documents
     #      rather than a diff, so the commit is a fixed point and not
     #      its input. It is HERE because its own
@@ -6696,6 +6716,7 @@ to be sure nothing was missed, which is what they have cost.
     ./read-run.py --lint          # 8. again after ANY Main.hs edit, and
     #      never rebuild the pair to satisfy it: say in the write-up that
     #      the comment-only move happened
+    #      why: --para 'Do not rebuild the pair'
     #   9. collect what this run made CHEAPER for the next, which no
     #      other step gathers and which is not a figure: the checks that
     #      would have caught each error, the computations improvised, the
@@ -6716,6 +6737,7 @@ to be sure nothing was missed, which is what they have cost.
     #      rest of it, and the open list keeps one `ANSWERED` entry per
     #      run -- the lead, a verdict in a clause, and a link to that
     #      file. Report a split as a split, arm by arm
+    #      why: --para 'Walk the open list against what this session'
     ./read-run.py $R-<basis>-main.json --deflation   # 10a. and the same
     #      on the control: the roster cell over its own alone leg, per
     #      shape, which is what the riders were run for. RAW over RAW,
@@ -6978,22 +7000,22 @@ size comes from the reader's first line;
    `--check-doc` marks its worklist hits as added by this diff by comparing
    against the committed README, so while the document is unwrapped every line
    reads as changed and the classification is worthless. Run 16 unwrapped
-   to edit --- which the wrapping rules ask for --- and thereby disabled the one
-   sweep that would have found the stale prose the replace-list walk missed,
-   being told 54 figures were new when most were untouched. A scripted rewrite
-   fails in two shapes and neither is a wrong figure. Anchored on a *prefix*,
-   it replaces the whole paragraph and drops whatever followed the part
-   its author had read; `--check-doc` catches that one, every prose paragraph
-   being required to end a sentence. Anchored on two *markers*, it deletes every
-   paragraph between them, however many that turns out to be --- and nothing
-   catches it: the survivors still end sentences, the anchors still resolve,
-   the figures still match, and every check here is a predicate over what
-   is **present**, so none can see what is gone. Measured on 2026-08-14, when
-   a paragraph recording that the regime had been confirmed in the binary
-   was removed from this file and `--lint`, `--check-doc` and the truncation
-   check all exited 0. So assert the extent in the script, echo what it is about
-   to overwrite, and read the unwrapped diff afterwards, which is the only place
-   a lost paragraph shows.
+   to edit --- which the wrapping rules asked for until the anchor modes stopped
+   needing it --- and thereby disabled the one sweep that would have found
+   the stale prose the replace-list walk missed, being told 54 figures were new
+   when most were untouched. A scripted rewrite fails in two shapes and neither
+   is a wrong figure. Anchored on a *prefix*, it replaces the whole paragraph
+   and drops whatever followed the part its author had read; `--check-doc`
+   catches that one, every prose paragraph being required to end a sentence.
+   Anchored on two *markers*, it deletes every paragraph between them, however
+   many that turns out to be --- and nothing catches it: the survivors still end
+   sentences, the anchors still resolve, the figures still match, and every
+   check here is a predicate over what is **present**, so none can see what
+   is gone. Measured on 2026-08-14, when a paragraph recording that the regime
+   had been confirmed in the binary was removed from this file and `--lint`,
+   `--check-doc` and the truncation check all exited 0. So assert the extent
+   in the script, echo what it is about to overwrite, and read the unwrapped
+   diff afterwards, which is the only place a lost paragraph shows.
 
    **A correction is a claim, and is written under exactly the conditions
    that produce bad ones.** Whatever the verification turns up gets fixed
@@ -7081,6 +7103,26 @@ size comes from the reader's first line;
    standing passages that nothing above could have seen. (The rule that a check
    must be proven able to fail governs the instruments themselves and is stated
    with them, [in the reader's section](#the-reader-read-runpy).)
+
+   **The four ways its inputs have been got wrong, each measured.** Its BRIEF:
+   Run 16 wrote `checker-brief.txt` out twice, once because a rate limit killed
+   the agent mid-pass, and Run 22 never opened it at all, typed its own,
+   and left three of seven *could not check* items checkable for want of paths
+   the file names --- while a stale brief looks exactly like a used one,
+   carrying the previous run's box reading, window, class counts and threshold
+   list, which is how Run 20's probe went looking for the wrong classes.
+   Its OBJECT: Run 22 pointed the pass at the working tree and idled seventeen
+   minutes rather than writing. Its DIFF: Run 22 made twelve chapter commits
+   between its write-up and its second pass, 576 lines of README against
+   the write-up's 224, so *that commit's diff* meant this chapter as much
+   as the run. And its AUTHORITY: Run 19's report said twelve arms moved past 3%
+   where sorting gives eleven, and Run 22's put the runs-class crossover
+   a length out by skipping a shape. What it returns when the inputs are right
+   is Run 19's 22 defects, every mechanical gate here having passed them
+   and a truth-focused read having missed them. Being asked about is a fifth:
+   the pass is pre-authorized by the user-scope `CLAUDE.md`, and Run 20 read
+   Claude Code's own conditional, missed that the standing request discharges
+   it, and asked.
 
    The checks themselves:
    1. **MEASURE, THEN WRITE THE CLAUSE --- and derive every count and ratio
@@ -9466,6 +9508,7 @@ fails the run.
 
 
 ## Provenance
+    #      why: --para 'Only then, offer the artifacts'
 
 **The half of a run's provenance that outlives the run.** A run's own --- what
 its pair was, how the sequence ran, what moved and what did not, its anchors
