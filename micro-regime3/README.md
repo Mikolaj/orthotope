@@ -4912,22 +4912,46 @@ not done, which is the whole of why this is a list and not a sentence.
          -- the OPEN entries, named
     8. Provenance's replace list and its delta bullets
          -- what this run has to replace
-    9. `read-run.py`'s docstring, this chapter's other governing document
+    9. `read-run.py`'s docstring, this chapter's other governing
+         document -- BY HALF, like the list it sits in. A PREPARATION
+         uses the Modes list, `--para`, `--section` and the two gates;
+         the statistic definitions, the A/A identity, the validation
+         history and every mode that reads a run's FIGURES are the
+         EXECUTION's, and Run 23's preparation read them all and used
+         none
          -- nothing to write down; you will know if you skipped it
     10. the PREVIOUS run's pair note, `$PREV-pair.txt`, and
          pair-note-template.txt beside it -- that note is the only copy
          of both recipes and is what this run's note is written FROM,
          and the template says what a note owes
+         SKIP THE PREVIOUS RUN'S HANDOVER, which is about a third of a
+         note and none of it yours: `ENTRY POINT`, `WHAT THE
+         PREPARATION LEARNED`, `GREEN AFTER THE LAST EDIT`, the `GATE`
+         verdict and run-gate.sh's appended block, and the fill-in
+         lines recording that run's own progress -- its sequence, its
+         counts, its gate. They are addressed to the session that RAN
+         that pair and are spent. What you are here for is the two
+         recipes, what the pair measured and why its basis was that
+         recipe, the roster, the compiler, the shim, and the fill-in
+         block's OBSERVATIONS, which are what this run's build is
+         compared against
+         A NOTE'S [SAME] AND [PAIR'S] MARKERS ARE A DIFFERENT AXIS and
+         answer a different question -- which of its blocks would be a
+         copying error to carry into your note. Notes carry them from
+         Run 23 on
          -- the two recipes, and which of their lines the pair varies
 
 **SO THIS IS TWO LISTS, and there is no case in which a session owes all ten**,
 and which ten it owes is not a judgement but a consequence of which half
 it was asked for. The numbers never move, so a reference to an item still lands.
 **The PREPARATION owes 1, 3, 7, 8's delta bullets, 9 and 10** --- of item 1,
-the pre-run list and the run list, the run list because the note's launch, rider
-and counts lines are written out of it, and NOT the post-run one. Those six
-decide the pair, the roster, the note and what this run is for, and nothing else
-does. **The EXECUTION owes 1 --- the run and post-run lists --- with 2, 4, 5, 6
+THE PRE-RUN LIST ALONE, and of items 9 and 10 the halves their own entries name.
+It used to owe the run list too, for the launch, rider and counts blocks
+the note carries; those are in `pair-note-template.txt` since 2026-09-01, where
+the note is written from anyway, so neither the run list nor the post-run one
+is owed and a preparation reads about a thousand lines fewer. Those six decide
+the pair, the roster, the note and what this run is for, and nothing else does.
+**The EXECUTION owes 1 --- the run and post-run lists --- with 2, 4, 5, 6
 and 8's replace list**, every one of which answers a question the write-up asks:
 the replace list is walked at post-run step 6 and gains nothing from being read
 hours early, which run list step 18 already says of it, and the class blocks'
@@ -5208,6 +5232,14 @@ and never as a chronology.
     #      note's), or 11 and 12 (machine time, and the pair's to inherit).
     #      Its own non-vacuity is in its header, proved on stub halves. The
     #      steps below are what it runs, and what to reach for when one FAILs
+    #      IT PRINTS IN THE ORDER IT RUNS AND THAT IS NOT SORTED: 10c goes
+    #      third, after 6, because it and 8 are the only steps that read
+    #      what this half WROTE and a fresh note is the likeliest thing to
+    #      fail. `./preflight.sh $R --note` is those two alone, seconds and
+    #      no binary, and it is what a note or a registration edited AFTER
+    #      a full pass wants -- Run 23's preparation paid two whole passes
+    #      to re-test 10c before the flag existed. It says on every run
+    #      that it is not a preflight, because it is not
     ./$R-<basis> check > <your tmp>/a.log 2>&1   # 4. every shape agrees
     ./$R-<other> check > <your tmp>/b.log 2>&1   # 5. and the other half
     cmp <your tmp>/a.log <your tmp>/b.log        #  byte-identical, or STOP
@@ -5276,8 +5308,8 @@ and never as a chronology.
     #      SOURCE looks like; where the halves differ in source the figure
     #      moves wholesale, and that movement is a registered variable to
     #      be read against what the note registered rather than against
-    #      this line -- Run 17's halves read 25.3% where Runs 14 to 16 all
-    #      read 100%. Only `--library` PRINTS an agreement figure. The
+    #      this line, the paragraph the `why:` below names banding what a
+    #      given reading means. Only `--library` PRINTS an agreement figure. The
     #      plain form lists each binary's own fills and leaves the
     #      comparison to the eye, which is a reading and not a verdict:
     #      what a sound pair shows there is the same fills at the same
@@ -5333,7 +5365,35 @@ and never as a chronology.
     #      launch from an UNSANDBOXED process list and with `args`, never
     #      `comm`, which truncates at 15 characters and shows nothing for
     #      a `preflight.sh` or a `smoke-l1.sh`
+    #      WHERE 12 IS NOT OWED, 11 IS THE LONG ONE and takes 12's place
+    #      in that arrangement: launch the smoke sweep first and run 4 to
+    #      10 under it. Run 23's preparation ran them in series for want
+    #      of this sentence, the paragraph above naming only the case
+    #      where both are due
+    #      AND WAIT ON A FILE'S CONTENTS, NEVER ON A PROCESS LIST, which
+    #      the run list says at 17 and which bites here first, this half
+    #      having two long steps to 17's one. A waiter that greps a
+    #      process list matches ITS OWN command line and never returns --
+    #      `pgrep -f`, `pkill -f` and `ps -eo args | grep` alike, the
+    #      last of which cost Run 23's preparation a hung call. Where the
+    #      harness wakes you when a job ends, set no waiter at all
     #      why: --para 'After a roster change'
+    #  12a. WRITE THE REGISTRATION, which is this half's largest product
+    #      and had no step until 2026-09-01: what this run is built to
+    #      answer, as an `OPEN` entry of the open list led `What Run N is
+    #      built to answer, registered before it runs`, numbered
+    #      questions with a prediction and A KILL CONDITION each. It goes
+    #      in the open list and NOT in the note, which names it; two
+    #      copies of a registration is one copy that goes stale. The form
+    #      is the previous run's, which post-run step 5 has since moved
+    #      into that run's own file, so read it there -- and a
+    #      preparation that PARKS OR DROPS AN ARM owes item 5 of the
+    #      reading list with it, which is what step 7 tells you
+    #      EVERY FIGURE IT QUOTES IS DERIVED HERE, from the artifact and
+    #      never from the sentence that published it. Run 23's draft took
+    #      its figures out of a prose entry and two did not survive being
+    #      taken from the JSONs instead, one of them a ratio that entry
+    #      had published
     ./read-run.py --para '<a lead you just wrote>'   # 12b. READ BACK
     #      WHAT THIS HALF WROTE, which nothing above does: 4 to 10 are
     #      predicates over structure and not one of them reads a
@@ -5344,7 +5404,19 @@ and never as a chronology.
     #      IT CAME FROM, never from the sentence beside it, and then read
     #      both back end to end. It costs minutes, and it is not a
     #      substitute for post-run step 6b's independent reader
-    #      why: --para 'What 12b catches and what it does not'
+    #      AND NAME THAT FILE WHERE YOU WRITE THE FIGURE, which is the
+    #      other half of the same rule and the half nothing said: a
+    #      published figure and a re-derivable one look identical in this
+    #      README, so the next reader either re-derives from an artifact
+    #      you named or copies you. Task 6's `41x` was copied for a day
+    #      `./preflight.sh $R --note` re-checks 10c and 8 after these
+    #      edits, in seconds, where the whole pass costs eight minutes
+    #  12c. COMMIT, which the preparation does and the run does not: the
+    #      registration on its own, tooling changes partitioned from it,
+    #      and NOTHING PUSHED without a go-ahead. Run list step 17 forbids
+    #      an edit to the tree while the sequence runs, so what this half
+    #      leaves uncommitted the other half cannot commit. The note is
+    #      gitignored and goes with the pair, so it is never in a commit
     #  that is the preparation. What wants a quiet machine is the run
     #      list below, which starts on an explicit
     #      go-ahead and never on a session's own reading of the box
@@ -5732,13 +5804,6 @@ reached look exactly like those of one whose deletion offer was declined.
 The evidence is on the disk and in the open list --- `runs/` already carries
 a file for your run, and the open list carries its registration.
 
-Every pair is two shims, each half one `cabal build` from the recipe its note
-carries --- the regime, a `-pgma` shim of its own, and whatever variable
-the pair exists to price --- and step 2 spells that build out, `-fforce-recomp`
-and fresh `--builddir` included. Write the note before building, since it
-is the only copy of both recipes; what only the build can say is transcribed
-into it afterwards.
-
 **Why the build's three rules are what they are, moved out of the list
 on 2026-08-29 because the list is read by every session and these accounts
 are read by none.** *The fills read at the build*: the pinning claim held
@@ -5883,13 +5948,23 @@ guarantee**, only whatever its two recipes give it, which is why
 self-loops the two halves put at the same offset in their line, and near-total
 agreement is what a pair built from ONE SOURCE looks like; halves that differ
 in source move it wholesale, which is a registered variable rather
-than a verdict. A note may record the same property the other way round, off
-`nm` symbol by symbol, which is the stronger reading and not this tool's output
---- so compare like with like, or read the note's own figure as the note's.
-So the pair now differs in Main's loop alignment and in nothing else an offset
-can see, and `micro-unaligned` keeps every offset the unpadded build had:
-the same fills at [3, 53, 59, 45] and [16, 0, 36, 36], the same 115 short loops
-with 50 straddling.
+than a verdict. **What a given reading means is banded here rather than carried
+forward note by note**, a per-run series being a thing every pair note copies
+by hand and every pair note takes with it when it goes: the figure reads
+near-total where the two halves are one source padded to one size and PHASE,
+which is what the two-step above arranges and what Runs 14 to 16 read at 100%;
+between a tenth and a quarter across the pairs that vary a shim or a compiler,
+Runs 17 and 19 to 22 all falling there; and lower still again where the halves
+differ in where every pad is PLACED, which is Run 23's pairing and reads
+the lowest of the three bands, as that pairing predicts. Read a pair's own
+figure against the band its recipes put it in, and record in its note
+that figure and no other. A note may record the same property the other way
+round, off `nm` symbol by symbol, which is the stronger reading and
+not this tool's output --- so compare like with like, or read the note's own
+figure as the note's. So the pair now differs in Main's loop alignment
+and in nothing else an offset can see, and `micro-unaligned` keeps every offset
+the unpadded build had: the same fills at [3, 53, 59, 45] and [16, 0, 36, 36],
+the same 115 short loops with 50 straddling.
 
 **Which two halves a pair has is a property of the pair, not of this README ---
 but how they are named is not.** A half is `$R-<tag>`, the tag naming what
@@ -6749,6 +6824,16 @@ nothing was missed, which is what they have cost.
     #      or --pair, never from a printed table, which is rounded to
     #      three figures; before re-deriving a figure a previous run
     #      published, reproduce THAT run's value with your method first.
+    #      AND A FIGURE THIS RUN WRITES NAMES THE ARTIFACT IT CAME FROM,
+    #      which is the other half of that rule and the half nothing
+    #      said. A published figure and a re-derivable one read
+    #      identically in these documents, so the next session either
+    #      re-derives from a file you named or copies you -- and copying
+    #      is cheaper, which decides it. Task 6's own ratio was copied
+    #      into Run 23's draft registration and does not reproduce from
+    #      the two JSONs the same sentence names, while the two figures
+    #      beside it in that sentence reproduce exactly -- so nothing but
+    #      a re-derivation could have told them apart
     #      A new column needs a route sharing no code with the reader --
     #      difference wall, or user AND system, at two iteration counts.
     #      Two instruments disagreeing is the finding: locate it, and

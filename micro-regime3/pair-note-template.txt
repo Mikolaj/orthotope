@@ -1,5 +1,12 @@
 TEMPLATE for $R-pair.txt. Copy it, fill it, delete this line and the two
-below it. Every pair here is hand-built and its note is the only copy of
+below it -- but KEEP EVERY [SAME] AND [PAIR'S] MARKER in the note you
+write. They cost a note nothing, and the next note is written with yours
+open: a marked note shows at a glance which of its blocks would be a
+COPYING ERROR to carry forward, which is the one thing the markers are
+for and the one thing a session cannot tell by reading. Notes carried no
+markers until 2026-09-01. What a next PREPARATION may skip is a
+different question and a different set -- the chapter's reading list
+answers it at item 10, naming the blocks by their leads. Every pair here is hand-built and its note is the only copy of
 both recipes, so the note is written BEFORE either binary exists -- which
 is also why it is a template and not a generator: what goes in it is a
 person's, and only the slots are known in advance. Run 12's note carried
@@ -122,7 +129,11 @@ next session to a section its prediction is not in.
 
 THE ROSTER [PAIR'S]: N benches, M timed arms over K shapes. Say what landed since
 the last run and what that owes -- an -L1 roster pass, a membership
-invariance read, and whether either is weak form.
+invariance read, and whether either is weak form. THE BREAKDOWN IS NOT
+YOURS TO RESTATE: which classes hold how many views is under Provenance
+in README, as a delta per run, and the run's own file carries the rest.
+What this block owes is the counts a driver checks against and what MOVED
+since the last run, which is what decides whether the roster pass is due.
 
 THE COMPILER [PAIR'S]: what `ghc --version` said at build time. The recipe below
 carries --ghc-options and not the compiler, so nothing else here records
@@ -163,6 +174,56 @@ WHAT TO READ BACK BEFORE THE EVENING [SAME]:
   ./loop-offsets.py --library $R-<basis> $R-<other>
   md5sum $R-<basis> $R-<other>
   size -A $R-<basis> | grep '^\.text'
+  RECORD THIS PAIR'S --library FIGURE AND NOT THE SERIES. What a given
+  reading means is banded once in README, at *the halves differed by more
+  than Main's alignment*; a note that copies the previous notes' figures
+  forward is maintaining, by hand, a cross-run series whose every copy
+  dies with its pair.
+
+THE NEXT THREE BLOCKS ARE THE RUN LIST'S, AND THEY ARE HERE SO THAT A
+PREPARATION NEED NOT READ IT. Steps 14, 17, 19 and 20 are the executing
+session's to run, but their launch environment, their rider legs and
+their counts loop are written into this note by the session that never
+runs them -- which is why item 1 of the reading list used to make a
+preparation read the whole run list for three blocks. Fill them from the
+previous note, which is where the pair's own environment is; the chapter
+is the authority on what they mean and is read when one surprises you.
+
+LAUNCH [SAME]: every environment switch this pair wants, on the launch
+line of BOTH the gate and the run. A pair whose instrument is switched on
+by a variable is OFF unless the launch line sets it, and nothing
+downstream notices -- the counts come out right, the gate passes, and the
+registration the pair was built to answer comes back empty.
+    <env> ./run-gate.sh $R
+    <env> ./run-major.sh $R &
+  Both drivers record what they were launched with, `launch env: ...`, in
+  the gate's output and in the wallclock log, set or unset. Say here that
+  the executor reads that line back rather than trusting the command it
+  meant to type.
+
+THE ALONE-LEG RIDERS [SAME], owed with the pair since Run 16 and out of
+the EVENING rather than the probe budget. TWO LINES IS THE FLOOR AND A
+PAIR CARRYING THE SATURATING PREAMBLE OWES EACH HALF TWICE, clean and
+`SAT=1`, which is the decomposition's pair of columns -- so write this
+pair's own four (or two) lines out, control first:
+    <env>          ./run-alonelegs.sh $R <other>
+    <env> SAT=1    ./run-alonelegs.sh $R <other>
+    <env>          ./run-alonelegs.sh $R <basis>
+    <env> SAT=1    ./run-alonelegs.sh $R <basis>
+  `SAT=` is the rider's spelling and reaches the process as SATURATE=.
+  Every leg refuses a machine above 5% non-idle, MAXBUSY overriding.
+
+THE COUNTS [SAME], owed with the pair, wanting no quiet machine, and over
+EVERY population rather than the main set alone -- the empty first
+element is the main set and the nine that follow are the classes:
+    for c in '' rev revsome bcast bcastmid reshape1 slice window \
+             scaled runs
+    do ./run-counts.sh $R <other> $c; ./run-counts.sh $R <basis> $c; done
+  Give the previous run's own totals beside it, so a slow sweep is
+  recognisable, and say what a `!!` line means. Where the pair's central
+  claim turns on counts rather than on time -- a layout pair, where an arm
+  must not move its instructions except where a pad was executed -- say so
+  here and name which registrations are read off that split.
 
 GATE: NOT RUN. run-gate.sh takes five benches over the shape set from each
 half, twice each, in a palindrome, and both passes are read. Until a line
