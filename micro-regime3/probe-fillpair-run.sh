@@ -9,7 +9,10 @@ export WILDLOG=1 SATURATE=1
 # The populations are the argument when there is one, so a stopped
 # evening resumes at the population it stopped in rather than
 # refusing over the artifacts of the ones that finished.
-for pop in "${@:-runs main slice}"; do
+# `${*:-...}` and not `"${@:-...}"`: quoted, the default is ONE word,
+# `runs main slice`, which names no population, so the wrapper ran
+# nothing and still printed COMPLETE. Found 2026-09-01 by review.
+for pop in ${*:-runs main slice}; do
   for h in A B; do
     BIN=./probe-fill$h-g912 OUT=probe-fill$h ./probe-times.sh "$pop" \
       || echo "!! probe-fill$h $pop complained"

@@ -148,24 +148,43 @@ step_8 () {
   # A probe name may not END the captured token on `.` or `-`, which is what
   # the last character class is for: `.` is in the body class, so a name at
   # the end of a SENTENCE used to be captured with the full stop attached and
-  # reported gone, and a `probe-ds-{off,on}` brace form was captured as
-  # `probe-ds-`. Both are ordinary in a note's prose and both FAILed a note
-  # whose every path was present -- Run 23's preparation met them in one
-  # call, 2026-09-01. Non-vacuity of the narrowed form, taken that day on two
-  # fixtures: a note reading `reproduces probe-ds-on-g912.` FAILs under the
-  # old regex naming `probe-ds-on-g912.` and PASSes under this one, while a
-  # note naming `probe-nosuchthing-g912` FAILs under both -- so the arm that
-  # fires on an absent path is still reachable and still names it.
+  # reported gone. A `probe-ds-{off,on}-g912` brace form is captured WHOLE,
+  # the braces being in the body class, and expanded by hand below: a body
+  # class that stopped at the brace captured `probe-ds-`, and a last class
+  # admitting `-` let that truncation through, so a note naming the form
+  # FAILed with every path present -- Run 23's preparation met both forms
+  # in one call, 2026-09-01, and the brace half was still open by review
+  # the same day. Non-vacuity, that day, on stub notes made and removed in
+  # one call beside two stub directories: `reproduces probe-zzst-a.` and
+  # `probe-zzst-{a,b}` each PASS, `probe-nosuchthing-g912` FAILs naming
+  # that path, and the brace form FAILs naming `probe-zzst-b` once that
+  # directory is removed -- so the arm that fires on an absent path is
+  # reachable through the plain form and the expanded one alike.
   if [ -f "$R-pair.txt" ]; then
-    MISSING=$(grep -oE '(probe-[A-Za-z0-9._-]*[A-Za-z0-9_-]/?|'"$R"'-[A-Za-z0-9._-]+\.(json|log|txt))' \
+    MISSING=$(grep -oE '(probe-[A-Za-z0-9._{},-]*[A-Za-z0-9_}]/?|'"$R"'-[A-Za-z0-9._-]+\.(json|log|txt))' \
                 "$R-pair.txt" | sort -u \
-              | while read -r q; do [ -e "${q%/}" ] || echo "$q"; done)
+              | while read -r q; do
+                  q=${q%/}
+                  case $q in
+                    *\{*,*\}*)  # one brace group, expanded without eval
+                      pre=${q%%\{*}; rest=${q#*\{}; post=${rest#*\}}
+                      for alt in $(printf '%s' "${rest%%\}*}" | tr ',' ' '); do
+                        [ -e "$pre$alt$post" ] || echo "$pre$alt$post"
+                      done ;;
+                    *) [ -e "$q" ] || echo "$q" ;;
+                  esac
+                done)
     if [ -z "$MISSING" ]; then
       say 10c PASS "every path $R-pair.txt names is still here"
     else
       say 10c FAIL "$R-pair.txt points at $(printf '%s\n' "$MISSING" | wc -l) \
   path(s) that are gone: $(printf '%s ' $MISSING)"
     fi
+  else
+    # An absent note used to print nothing and count nothing, so a
+    # mistyped RUN or an unwritten note read as a clean 10c, and the full
+    # pass printed nine steps for ten without a word. 2026-09-01.
+    say 10c FAIL "no $R-pair.txt -- the note is written at pre-run step 2"
   fi
 }
 if [ "$NOTE_ONLY" = 1 ]; then

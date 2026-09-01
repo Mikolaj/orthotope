@@ -17,6 +17,8 @@ for spec in "probe-bang-g912:probe-smoke-runs-bang" \
   B=${spec%%:*}; O=${spec#*:}
   echo "=== $(date -Is) start $O on $B"
   WILDLOG=1 SATURATE=1 ./"$B" classes runs- -L1 --json "$O.json" > "$O.log" 2>&1
-  echo "=== $(date -Is) done  $O rc=$? benchmarking=$(grep -c '^benchmarking ' "$O.log")"
+  rc=$?   # on its own line: inside the echo, `$?` read the `$(date)`
+          # substitution's status and logged a killed run as rc=0
+  echo "=== $(date -Is) done  $O rc=$rc benchmarking=$(grep -c '^benchmarking ' "$O.log")"
 done
 echo "=== $(date -Is) SMOKE RUNS COMPLETE"

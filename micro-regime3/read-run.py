@@ -4140,6 +4140,12 @@ def block_verdicts(cells, shapes, strategies, meta, args):
     if outside:
         print('  best outside family %-30s %.3f' % (outside[0][1],
                                                      outside[0][0]))
+    # The summary's *ceiling* cell, which had no derived line here and was
+    # picked by eye off a table printing two family arms at one figure:
+    # four of Run 22's cells named the one that trailed. 2026-09-01.
+    if led.family:
+        print('  ceiling (family)    %-30s %.3f' % (led.family[0].st,
+                                                     led.family[0].time))
     fix = next((r for r in timed if r[1] == FIX), None)
     if fix:
         print('  %-19s %-30s %.3f   worst %.3f'
@@ -4237,7 +4243,7 @@ def load_other(other, main_hs, shapes, meta):
 
 
 LEADERS = collections.namedtuple('LEADERS',
-                                 'rows needs timed outside fix')
+                                 'rows needs timed outside family fix')
 
 
 def table_leaders(cells, shapes, strategies, args):
@@ -4249,7 +4255,15 @@ def table_leaders(cells, shapes, strategies, args):
     copies would make the check disagree with the paragraph it is there
     to police, silently. Each caller keeps its own early return: the
     verdicts want a timed arm, the summary row wants the best arm outside
-    the vecdims family and `mut-odo-vecdims` besides.
+    the vecdims family, the family's own leader and `mut-odo-vecdims`
+    besides.
+
+    `family` is the *ceiling* column, which the run file defines as the
+    leading arm OF the family and not the fastest arm on the table: the
+    two coincided until outside arms overtook the family, and reading the
+    column off `timed[0]` then disagreed with all nine of Run 22's written
+    rows at once, and crowned `libunord-stage2` the fastest ceiling in
+    `--extremes`. 2026-09-01, by review.
     """
     rows, have_list = strategy_rows(cells, shapes, strategies)
     if not have_list:
@@ -4259,6 +4273,7 @@ def table_leaders(cells, shapes, strategies, args):
     timed = [r for r in rows if not is_control(r.st) and r.time == r.time]
     return LEADERS(rows, needs, timed,
                    [r for r in timed if not r.st.startswith(FAMILY)],
+                   [r for r in timed if r.st.startswith(FAMILY)],
                    next((r for r in timed if r.st == FIX), None))
 
 
@@ -4305,15 +4320,15 @@ def summary_row(cells, shapes, strategies, args, main_hs):
     led = table_leaders(cells, shapes, strategies, args)
     if led is None:
         return
-    timed, outside, fix = led.timed, led.outside, led.fix
-    if not (timed and outside and fix):
+    outside, family, fix = led.outside, led.family, led.fix
+    if not (led.timed and outside and family and fix):
         return
     aa = aa_pairs(cells, shapes, strategies)
     if not aa:
         return
     want = ['%d' % len(shapes), '%.3f' % fix.time, '%.3f' % fix.worst,
             '%s %.3f' % (outside[0].st, outside[0].time),
-            '%s %.3f' % (timed[0].st, timed[0].time),
+            '%s %.3f' % (family[0].st, family[0].time),
             '%.2f%%' % (abs(aa_floor(aa).g - 1) * 100)]
     try:
         doc = open(want_run_doc(args)).read()
@@ -4459,11 +4474,12 @@ def class_reading(path, main_hs, args):
         sys.exit('--extremes ranks the stride classes, and %s is %s'
                  % (os.path.basename(path), label))
     led = table_leaders(cells, shapes, strategies, args)
-    if led is None or not (led.timed and led.outside and led.fix):
-        sys.exit('%s: no `list` baseline, no timed arm outside `%s` or no'
-                 ' `%s` at all, so this class has no row'
+    if led is None or not (led.timed and led.outside and led.family
+                           and led.fix):
+        sys.exit('%s: no `list` baseline, no timed arm outside `%s`, none'
+                 ' in it, or no `%s` at all, so this class has no row'
                  % (os.path.basename(path), FAMILY, FIX))
-    out, ceil, fix = led.outside[0], led.timed[0], led.fix
+    out, ceil, fix = led.outside[0], led.family[0], led.fix
     m = break_margin(cells, shapes, out.st, fix.st)
     aa = aa_floor(aa_pairs(cells, shapes, strategies))
     return CLASS_READING(class_prefix(shapes), len(shapes), fix.time,
@@ -4522,6 +4538,22 @@ def extremes_table(paths, main_hs, args):
                  r.floor))
     print()
     print('extremes:')
+
+    def holder(want, key):
+        """The extreme over the rows that CARRY the figure. A `nan` -- a
+        class with no A/A report, or one whose gap could not be paired --
+        sorts wherever `min`/`max` first meet it, so the holder used to
+        follow the --classes order: the same two files gave two tightest
+        floors. 2026-09-01, by review."""
+        live = [r for r in rows if key(r) == key(r)]
+        return want(live, key=key) if live else None
+    blank = [(r.label, [n for n, v in (('floor', r.floor),
+                                        ('gap pair', r.gapp)) if v != v])
+             for r in rows]
+    blank = [(l, ks) for l, ks in blank if ks]
+    if blank:
+        print('  not ranked where the figure is missing: '
+              + ', '.join('`%s` (%s)' % (l, ', '.join(ks)) for l, ks in blank))
     # Each line names the holder AND its figure, so a sentence can be
     # written off this without going back to the table above -- which is
     # the step at which Run 15's third error was made.
@@ -4537,14 +4569,17 @@ def extremes_table(paths, main_hs, args):
             ('widest gap, column', lambda r: r.gap, max, '%.2f'),
             ('narrowest gap, paired', lambda r: r.gapp, min, '%.2f'),
             ('widest gap, paired', lambda r: r.gapp, max, '%.2f')):
-        hit = want(rows, key=key)
+        hit = holder(want, key)
+        if hit is None:
+            print('  %-26s %-11s no class carries the figure' % (what, '--'))
+            continue
         print(('  %-26s %-11s ' + fmt + '%s')
               % (what, '`%s`' % hit.label, key(hit),
                  '  on `%s`' % hit.floor_pair if 'floor' in what else ''))
     for want in (min, max):
-        by_col = want(rows, key=lambda r: r.gap)
-        by_pair = want(rows, key=lambda r: r.gapp)
-        if by_col.label != by_pair.label:
+        by_col = holder(want, lambda r: r.gap)
+        by_pair = holder(want, lambda r: r.gapp)
+        if by_col and by_pair and by_col.label != by_pair.label:
             print('  the %s gap is `%s` on the column and `%s` paired, so'
                   ' a sentence about it has to say which'
                   % ('narrowest' if want is min else 'widest',
@@ -9237,6 +9272,23 @@ def main():
         args.readme = os.path.join(here, 'README.md')
     if args.run_doc is None:
         args.run_doc = current_run_doc(here)
+        # AND THE DEFAULT IS HELD TO THE RUN NAMED. The newest file in
+        # runs/ is right for the run being written up and wrong for every
+        # other, and the refusal above fires for --readme alone: a bare
+        # `--in-place` on `run19-g912-rev.json` with run22.md newest wrote
+        # run19's block into run22.md at exit 0. install-tables.sh names
+        # its document and never met this. 2026-09-01, by review.
+        if args.in_place and args.run_doc:
+            named = {int(m.group(1))
+                     for f in [args.run] + (args.classes or []) if f
+                     for m in [re.match(r'run(\d+)-', os.path.basename(f))]
+                     if m}
+            if named and named != {run_no_of(args.run_doc)}:
+                p.error('--in-place would write %s, the newest in runs/,'
+                        ' for a run named run%s: name the document with'
+                        ' --run-doc'
+                        % (os.path.basename(args.run_doc),
+                           '/'.join(str(n) for n in sorted(named))))
 
     # The dispatch below is an if/elif over mode flags, so a flag that names
     # no reachable branch is not an error there -- it falls through and some

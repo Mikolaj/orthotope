@@ -1152,6 +1152,18 @@ INLINE_REG = ('- `%s` **What Run 99 was built to answer, registered'
               ' (1) *The knob*: **HELD.** (2) *The dial*: %s\n\n')
 
 
+def rundoc_without_across(tmp):
+    """The run file with every `Across the halves:` paragraph deleted: a
+    run that recorded one half, as install-tables.sh must meet it."""
+    paras = open(RUNDOC).read().split('\n\n')
+    kept = [p for p in paras
+            if not p.lstrip().lstrip('*').startswith('Across the halves:')]
+    if len(kept) == len(paras):
+        raise AssertionError('no `Across the halves:` paragraph in the run'
+                             ' file to delete')
+    return write_rundoc(tmp, '\n\n'.join(kept))
+
+
 def an_across_paragraph():
     """One class block's `Across the halves:` paragraph, wrapped form.
 
@@ -2622,20 +2634,6 @@ CASES = [
          ok=V(exit=2, has=['the riders were not taken']),
          bug=V(exit=2, hasnt=['the riders were not taken'])),
 
-    # ---- --counts, registration 4's reading ---------------------------
-    # No `fix` on either, so no `bug` and no --audit leg: the mode is
-    # younger than every revision here, so there is nothing to replay it
-    # against and a `bug` verdict would only assert that code predating a
-    # flag rejects the flag. Both were written before the mode existed and
-    # BOTH FAILED against the tree that lacked it -- argparse refusing
-    # `--counts` at exit 2 -- which is the same proof --audit gives, taken
-    # in the working tree because that is where it was available.
-    # ---- the wider identity check, and its scoping ------------------
-    # Both are --unit cases over synthetic documents, because the live one
-    # cannot exercise this: the check fires only where the working tree's
-    # chapter is renumbered against the committed copy, which a committed
-    # tree never is. The two documents below are one section each -- a
-    # high-churn one and a low-churn one -- holding one identical block.
     # ---- the wider identity check, and its scoping ------------------
     # Both are --unit cases over synthetic documents, because the live
     # document cannot exercise this: the check fires only where the
@@ -2673,6 +2671,14 @@ CASES = [
                + ", {{'h'}})"],
          ok=V(has=['[]'])),
 
+    # ---- --counts, registration 4's reading ---------------------------
+    # No `fix` on either, so no `bug` and no --audit leg: the mode is
+    # younger than every revision here, so there is nothing to replay it
+    # against and a `bug` verdict would only assert that code predating a
+    # flag rejects the flag. Both were written before the mode existed and
+    # BOTH FAILED against the tree that lacked it -- argparse refusing
+    # `--counts` at exit 2 -- which is the same proof --audit gives, taken
+    # in the working tree because that is where it was available.
     case('counts-refused-cell-read-as-a-zero', 'read-run.py', None,
          'a cell perf refused read as a count of zero',
          # run-counts.sh writes `!!` where perf could not count a cell, and
@@ -3206,19 +3212,32 @@ CASES = [
          ok=V(exit=0, has=['not positive', 'have NO alone leg'],
               hasnt=['Traceback'])),
 
-    case('install-says-it-skipped-the-cross-half-line',
+    case('install-refuses-a-standing-cross-half-line',
          'install-tables.sh', None,
-         'a cross-half line left standing under this run, in silence',
+         'a cross-half line left standing under this run, at exit 0',
          # An absent other-half JSON is correct for a run that recorded
          # one half and is a WRONG `OTHER` otherwise, and the two look
-         # identical -- so the skip has to say which it might be, or the
-         # previous run's cross-half line stays under this run's tables.
+         # identical. A note naming both readings was the first answer,
+         # and it left the previous run's `Across the halves:` paragraph
+         # standing under this run's tables at exit 0 -- so where the
+         # block still carries one, the install refuses. 2026-09-01.
          plant=lambda t: {'doc': edited_rundoc(t)},
-         shadow=dict(extra=whole_run(['lookrts'], prefix='zzxh',
-                                      classes=recorded_classes())),
+         shadow=dict(extra=lambda: whole_run(['lookrts'], prefix='zzxh',
+                                             classes=recorded_classes())),
          env={'DOC': '{doc}', 'BASIS': 'lookrts', 'OTHER': 'nosuchhalf'},
          argv=['zzxh'],
-         ok=V(exit=0, has=['no cross-half line is installed'])),
+         ok=V(exit=1, has=['REFUSED', 'left standing', 'OTHER=nosuchhalf'])),
+
+    case('install-notes-a-one-half-run', 'install-tables.sh', None,
+         'CONTROL: no other half and no paragraph to leave standing is a'
+         ' one-half run, noted and not refused',
+         plant=lambda t: {'doc': rundoc_without_across(t)},
+         shadow=dict(extra=lambda: whole_run(['lookrts'], prefix='zzxh',
+                                             classes=recorded_classes())),
+         env={'DOC': '{doc}', 'BASIS': 'lookrts', 'OTHER': 'nosuchhalf'},
+         argv=['zzxh'],
+         ok=V(exit=0, has=['no cross-half line is installed'],
+              hasnt=['REFUSED'])),
 
     case('install-refuses-a-block-without-item-5', 'install-tables.sh',
          None,
@@ -3232,7 +3251,7 @@ CASES = [
          # fix has a hash.
          plant=lambda t: {'doc': edited_rundoc(t, (
              '\n\n' + an_across_paragraph(), ''))},
-         shadow=dict(extra=whole_run(['lookrts', 'ovhalf'],
+         shadow=dict(extra=lambda: whole_run(['lookrts', 'ovhalf'],
                                      prefix='zzx5')),
          env={'DOC': '{doc}', 'BASIS': 'lookrts', 'OTHER': 'ovhalf'},
          argv=['zzx5'],
@@ -3925,6 +3944,22 @@ CASES = [
          # replay against, so the older reader rejects the argv rather
          # than reproducing anything. The run-file split, 2026-08-25.
          ),
+
+    case('ceiling-is-the-family-leader', 'read-run.py', None,
+         'the ceiling read as the fastest arm once outside arms led',
+         # The run file defines *ceiling* as the leading arm OF the family;
+         # the code read `timed[0]`, and the two agreed until the library
+         # arms overtook the family in Run 22, when every written row
+         # disagreed at once and --extremes crowned an outside arm. The
+         # synthetic model has an outside arm ahead of the family on its
+         # own -- the library arms' per-function work is the smaller --
+         # so nothing is skewed, and no arm is named: the fastest line
+         # must not read a family arm and the ceiling line must.
+         plant=lambda t: {'rundoc': edited_rundoc(t),
+                          'run': synth_json(t, 'slice')},
+         argv=['{run}', '--block', '--run-doc', '{rundoc}'],
+         ok=V(has=['ceiling (family)    mut-odo-vecdims'],
+              hasnt=['fastest timed arm   mut-odo-vecdims'])),
 
     case('verbose-alone', 'read-run.py', None,
          '--verbose outside the modes that drop prose said nothing',
@@ -5105,7 +5140,7 @@ CASES = [
          # else here can see it -- the process exits 0, leaves a JSON and
          # runs the count asked of it -- which is why the check is a count
          # of the line and not a reading of it.
-         shadow=dict(extra=halves('zzpl-lookrts', 'zzpl-a1g')
+         shadow=dict(extra=lambda: halves('zzpl-lookrts', 'zzpl-a1g')
                      + [('zzpl-pair.txt', 'a stand-in pair note.\n')]),
          env={'OTHER': 'a1g', 'BASIS': 'lookrts', 'SATURATE': '1'},
          argv=['zzpl'],
@@ -5124,7 +5159,7 @@ CASES = [
          # step 1b reaches for on a suspicious cell and not on every
          # process. ANY count above zero passes, unlike the plateau's
          # exactly-one: the instrument writes two stamps per sample.
-         shadow=dict(extra=halves('zzwl-lookrts', 'zzwl-a1g')
+         shadow=dict(extra=lambda: halves('zzwl-lookrts', 'zzwl-a1g')
                      + [('zzwl-pair.txt', 'a stand-in pair note.\n')]),
          env={'OTHER': 'a1g', 'BASIS': 'lookrts', 'WILDLOG': '1'},
          argv=['zzwl'],
@@ -5142,7 +5177,7 @@ CASES = [
          # commits, the dirty count and `uptime`, at its first minute.
          # The verdict is on the LOG and not the terminal, that record
          # being the thing a write-up reads back weeks later.
-         shadow=dict(extra=halves('zzle-lookrts', 'zzle-a1g')
+         shadow=dict(extra=lambda: halves('zzle-lookrts', 'zzle-a1g')
                      + [('zzle-pair.txt', 'a stand-in pair note.\n')]),
          env={'OTHER': 'a1g', 'BASIS': 'lookrts'},
          argv=['zzle'],
@@ -5502,7 +5537,7 @@ CASES = [
 
     case('smoke-sweep-runs-clean', 'smoke-sweep.sh', None,
          'CONTROL: every reader mode, both installers and its own refusals',
-         shadow=dict(extra=halves('zzsw-lookrts', 'zzsw-a1g')),
+         shadow=dict(extra=lambda: halves('zzsw-lookrts', 'zzsw-a1g')),
          # Both taken from the fixture rather than named: the sweep's own
          # defaults are chosen for how long a real -L1 process takes, which
          # a stand-in does not, and a shape the fixture does not carry
@@ -5514,7 +5549,7 @@ CASES = [
 
     case('pair-halves-must-differ', 'run-major.sh', '0431efe',
          'one name in both halves wrote nine JSONs twice and gated clean',
-         shadow=dict(extra=halves('zzhh-lookrts')
+         shadow=dict(extra=lambda: halves('zzhh-lookrts')
                      + [('zzhh-pair.txt', 'a stand-in pair note.\n')]),
          env={'OTHER': 'lookrts', 'BASIS': 'lookrts'},
          argv=['zzhh'],
@@ -5525,7 +5560,7 @@ CASES = [
          'a hyphenated class merged with the one before its hyphen',
          shadow=dict(mutate=[('run-major.sh', 'reshape1 slice window scaled runs"',
                               'reshape1 slice window scaled bcast-mid"')],
-                     extra=halves('zzhy-lookrts', 'zzhy-a1g')
+                     extra=lambda: halves('zzhy-lookrts', 'zzhy-a1g')
                      + [('zzhy-pair.txt', 'a stand-in pair note.\n')]),
          env={'OTHER': 'a1g', 'BASIS': 'lookrts'},
          argv=['zzhy'],
@@ -5543,7 +5578,7 @@ CASES = [
          shadow=dict(mutate=[('read-run.py',
                               "sys.exit('nothing left after --exclude')",
                               'sys.exit(0)')],
-                     extra=halves('zzxf-lookrts', 'zzxf-a1g')),
+                     extra=lambda: halves('zzxf-lookrts', 'zzxf-a1g')),
          env={'SHAPE': main_shapes(1)[0], 'CLASS': class_shapes('window')[0],
               'OTHER': 'a1g', 'BASIS': 'lookrts'},
          argv=['zzxf'],
@@ -5554,7 +5589,7 @@ CASES = [
 
     case('major-run-runs-clean', 'run-major.sh', None,
          'CONTROL: the whole sequence, eighteen processes, on stand-ins',
-         shadow=dict(extra=halves('zzmj-lookrts', 'zzmj-a1g')
+         shadow=dict(extra=lambda: halves('zzmj-lookrts', 'zzmj-a1g')
                      + [('zzmj-pair.txt', 'a stand-in pair note.\n')]),
          env={'OTHER': 'a1g', 'BASIS': 'lookrts'},
          argv=['zzmj'],
@@ -5568,7 +5603,7 @@ CASES = [
          # step 19 -- so a relaunch after the riders, with the major JSONs
          # moved aside, met `already has artifacts` over files it would not
          # overwrite. read-all.sh's roster skips both, one script over.
-         shadow=dict(extra=halves('zzrl-lookrts', 'zzrl-a1g')
+         shadow=dict(extra=lambda: halves('zzrl-lookrts', 'zzrl-a1g')
                      + [('zzrl-pair.txt', 'a stand-in pair note.\n'),
                         ('zzrl-al-lookrts-cnn-slice-c32-r1.json', '[]\n')]),
          env={'OTHER': 'a1g', 'BASIS': 'lookrts'},
@@ -5583,7 +5618,7 @@ CASES = [
          # The other side of the case above: a narrowed exclusion that took
          # a process's JSON with the riders' would lose the guard outright,
          # and hours would be overwritten in place with nothing said.
-         shadow=dict(extra=halves('zzrp-lookrts', 'zzrp-a1g')
+         shadow=dict(extra=lambda: halves('zzrp-lookrts', 'zzrp-a1g')
                      + [('zzrp-pair.txt', 'a stand-in pair note.\n'),
                         ('zzrp-lookrts-rev.json', '[]\n')]),
          env={'OTHER': 'a1g', 'BASIS': 'lookrts'},
@@ -5600,7 +5635,7 @@ CASES = [
          # out, so every later reading of that run failed as "the run
          # complained about itself" over eighteen clean processes. Refused
          # before the hours instead, as a missing binary is.
-         shadow=dict(extra=halves('zznn-lookrts', 'zznn-a1g')),
+         shadow=dict(extra=lambda: halves('zznn-lookrts', 'zznn-a1g')),
          env={'OTHER': 'a1g', 'BASIS': 'lookrts'},
          argv=['zznn'],
          ok=V(exit=1, has=['no zznn-pair.txt'], hasnt=['major run begins']),
@@ -5608,7 +5643,7 @@ CASES = [
 
     case('provenance-git-could-not-read', 'run-major.sh', '845c8d0',
          'a run whose git failed recorded a commitless, CLEAN-looking tree',
-         shadow=dict(extra=halves('zzmj-lookrts', 'zzmj-a1g')
+         shadow=dict(extra=lambda: halves('zzmj-lookrts', 'zzmj-a1g')
                      + [('zzmj-pair.txt', 'a stand-in pair note.\n')]),
          env={'OTHER': 'a1g', 'BASIS': 'lookrts'},
          argv=['zzmj'],
@@ -5627,9 +5662,9 @@ CASES = [
          # run dies before writing the log this case probes. Its half's
          # data comes separately, `halves` shipping only what it stands in
          # for.
-         shadow=dict(extra=[('zzmj-lookrts',
-                             UNDERPRINT.replace('@HALF@', 'lookrts')
-                                       .replace('@RUN@', SRC))]
+         shadow=dict(extra=lambda: [('zzmj-lookrts',
+                                     UNDERPRINT.replace('@HALF@', 'lookrts')
+                                               .replace('@RUN@', SRC))]
                      + halves('zzmj-a1g')
                      + whole_run(['lookrts'])
                      + [('zzmj-pair.txt', 'a stand-in pair note.\n')]),
@@ -5650,7 +5685,7 @@ CASES = [
          'a lead one pattern missed was overwritten by the block above it',
          plant=lambda t: {'doc': edited_rundoc(
              t, ('**`window` --- overlapping', '**`window` - overlapping'))},
-         shadow=dict(extra=whole_run(['lookrts'], prefix='zzit',
+         shadow=dict(extra=lambda: whole_run(['lookrts'], prefix='zzit',
                                       classes=recorded_classes())),
          env={'DOC': '{doc}', 'BASIS': 'lookrts'},
          argv=['zzit'],
@@ -5663,7 +5698,7 @@ CASES = [
     case('no-class-block-leads', 'install-tables.sh', '4086ab8',
          'the guard against a silently skipped class was itself silent',
          plant=lambda t: {'doc': rundoc_without_class_leads(t)},
-         shadow=dict(extra=whole_run(['lookrts'], prefix='zzit',
+         shadow=dict(extra=lambda: whole_run(['lookrts'], prefix='zzit',
                                       classes=recorded_classes())),
          env={'DOC': '{doc}', 'BASIS': 'lookrts'},
          argv=['zzit'],
@@ -5673,9 +5708,10 @@ CASES = [
     case('heading-between-two-class-blocks', 'install-tables.sh', None,
          "a paragraph between blocks took the block above it's figures",
          plant=lambda t: {'doc': rundoc_heading_between_blocks(t)},
-         shadow=dict(extra=whole_run(['lookrts'], prefix='zzit',
-                                      classes=recorded_classes())),
-         env={'DOC': '{doc}', 'BASIS': 'lookrts'},
+         shadow=dict(extra=lambda: whole_run(['lookrts', 'ovhalf'],
+                                             prefix='zzit',
+                                             classes=recorded_classes())),
+         env={'DOC': '{doc}', 'BASIS': 'lookrts', 'OTHER': 'ovhalf'},
          argv=['zzit'],
          probe=lambda subs: open(subs['doc']).read(),
          # No --audit: this fixture is built from the live README, which
@@ -5693,8 +5729,8 @@ CASES = [
               " max'",
               "print('**Provenance:** elapsed ___, peak of ___ MiB in use, ___"
               " MiB max'")],
-             extra=whole_run(['lookrts'], prefix='zzit')),
-         env={'DOC': '{doc}', 'BASIS': 'lookrts'},
+             extra=lambda: whole_run(['lookrts', 'ovhalf'], prefix='zzit')),
+         env={'DOC': '{doc}', 'BASIS': 'lookrts', 'OTHER': 'ovhalf'},
          argv=['zzit'],
          probe=lambda subs: open(subs['doc']).read(),
          # No --audit: this fixture is built from the live README, which
@@ -5705,7 +5741,7 @@ CASES = [
          None,
          'a two-shape class aborted AFTER eleven tables were already in',
          plant=lambda t: {'doc': edited_rundoc(t)},
-         shadow=dict(extra=whole_run(['lookrts'], prefix='zzts',
+         shadow=dict(extra=lambda: whole_run(['lookrts'], prefix='zzts',
                                      short_class='scaled')),
          env={'DOC': '{doc}', 'BASIS': 'lookrts'},
          argv=['zzts'],
@@ -5718,7 +5754,7 @@ CASES = [
     case('basis-glob-catches-no-other-half', 'install-tables.sh', '440b22d',
          'a control half named <basis>-pa was installed as the basis',
          plant=lambda t: {'doc': edited_rundoc(t)},
-         shadow=dict(extra=whole_run(['lookrts'], prefix='zzhg')
+         shadow=dict(extra=lambda: whole_run(['lookrts'], prefix='zzhg')
                      + [('zzhg-lookrts-pa-rev.json', '["criterion","x",[]]')]),
          env={'DOC': '{doc}', 'BASIS': 'lookrts'},
          argv=['zzhg'],
@@ -5737,7 +5773,7 @@ CASES = [
          # run-major.sh refuses the class.
          plant=lambda t: {'doc': edited_rundoc(
              t, ('**`bcastmid` ---', '**`bcast-mid` ---'))},
-         shadow=dict(extra=whole_run(['lookrts'], prefix='zzhl')),
+         shadow=dict(extra=lambda: whole_run(['lookrts'], prefix='zzhl')),
          env={'DOC': '{doc}', 'BASIS': 'lookrts'},
          argv=['zzhl'],
          # The old script's signature and not merely the absence of the
@@ -5750,10 +5786,14 @@ CASES = [
 
     case('install-is-idempotent', 'install-tables.sh', None,
          'CONTROL: a full pass over an untouched run file rewrites no table',
+         # Both halves, as the live procedure has them: the run file
+         # carries every class's cross-half paragraph, and a one-half
+         # install against it is the standing-line state refused above.
          plant=lambda t: {'doc': edited_rundoc(t)},
-         shadow=dict(extra=whole_run(['lookrts'], prefix='zzit',
-                                      classes=recorded_classes())),
-         env={'DOC': '{doc}', 'BASIS': 'lookrts'},
+         shadow=dict(extra=lambda: whole_run(['lookrts', 'ovhalf'],
+                                             prefix='zzit',
+                                             classes=recorded_classes())),
+         env={'DOC': '{doc}', 'BASIS': 'lookrts', 'OTHER': 'ovhalf'},
          argv=['zzit'],
          ok=V(exit=0, has=['12 table(s) installed'])),
 ]
@@ -5805,6 +5845,12 @@ def shadow_dir(tmp, prog, text, mutate=(), extra=()):
     os.remove(real)
     write(real, text)
     os.chmod(real, 0o755)
+    # A thunk where building it is slow: `whole_run` writes nine
+    # populations a half, and evaluated in the `CASES` literal it ran for
+    # every case naming one before argparse, which took `--list` from 0.1 s
+    # to 2.1 s. 2026-09-01.
+    if callable(extra):
+        extra = extra()
     for name, body in extra:
         at = os.path.join(d, name)
         if os.path.lexists(at):
@@ -6495,9 +6541,21 @@ def main():
             # tree against a commit and says nothing about a file git has
             # never seen, so a brand-new script's cases would be skipped
             # by the one mode written to find them. Ask tracking first.
-            tracked = subprocess.run(['git', 'ls-files', '--error-unmatch',
-                                      '--', at],
-                                     cwd=HERE, capture_output=True)
+            try:
+                tracked = subprocess.run(['git', 'ls-files',
+                                          '--error-unmatch', '--', at],
+                                         cwd=HERE, capture_output=True)
+            except OSError as e:
+                print('BLOCKED: git could not be run (%s), so --changed'
+                      ' cannot say which scripts moved' % e)
+                return 2
+            # 1 is untracked; 128 is git itself refusing -- no repository
+            # here -- which used to read as every script changed.
+            if tracked.returncode == 128:
+                print('BLOCKED: git cannot list %s: %s'
+                      % (prog, tracked.stderr.decode().strip()
+                         .split('\n')[0]))
+                return 2
             if tracked.returncode:
                 moved.append(prog)
                 continue

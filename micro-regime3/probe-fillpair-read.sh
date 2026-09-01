@@ -37,8 +37,11 @@ printf '%s\n' "$PAIRS" | while IFS=: read -r a b; do
        | awk '/^'"$a"' \/ /{print $4}')
   vb=$(./read-run.py "probe-fillB-$POP.json" --pair "$a" "$b" 2>/dev/null \
        | awk '/^'"$a"' \/ /{print $4}')
-  case "$va$vb" in
-    *[!0-9.]*|'') printf '%-62s %10s %10s %10s\n' "$a / $b" "${va:-?}" "${vb:-?}" "--" ;;
+  # Joined on `:` so that ONE empty side is caught: `"$va$vb"` read as
+  # a number whenever the other side was one, and python then divided
+  # by nothing. Found 2026-09-01 by review.
+  case "$va:$vb" in
+    *[!0-9.:]*|:*|*:) printf '%-62s %10s %10s %10s\n' "$a / $b" "${va:-?}" "${vb:-?}" "--" ;;
     *) printf '%-62s %10s %10s %10s\n' "$a / $b" "$va" "$vb" \
          "$(python3 -c "print('%.4f' % ($vb/$va))")" ;;
   esac

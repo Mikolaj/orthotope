@@ -40,7 +40,7 @@ R="$1"
 OTHER=${OTHER:-spot}       # the pair's two halves, as in run-major.sh,
 BASIS=${BASIS:-g912}        # run-gate.sh, preflight.sh and
                              # install-tables.sh, which carries OTHER too:
-                             # FIVE files, and pre-run step 3c is where they
+                             # FIVE files, and pre-run step 2b is where they
                              # are set together
 
 # A pair is two halves; run-major.sh says what one name in both costs. Here

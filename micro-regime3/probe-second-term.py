@@ -21,14 +21,15 @@ BOTH SIDES ARE NET AND BOTH ARE THE SAME NET.  The time side is
 `slope_net_s` out of `read-run.py --cells`, which is the reader's own
 slope minus its own correction, so this script neither re-fits nor
 re-corrects; the counted side subtracts `sum-only-early` per shape, which
-is what the counts files' own readings subtract.  What this does NOT
-reproduce is the reader's winsorizing: its geomean caps a cell at 3 MADs
-and this one does not, which on the main set's counted work is a 0.669
-against the 0.978 the ninth reading published, the difference being
-`stretch-inner1` alone, where canonicalization removes the work
-altogether.  So the per-shape column is the honest one here and the
-geomean at the foot is a plain geomean, said so rather than dressed as
-the published convention.
+is what the counts files' own readings subtract.  The foot prints three
+conventions and names each: a plain geomean, the reader's winsorized one
+(3 scaled MADs of the log, as `read-run.py`'s `winsorize`) and the
+median.  They differ where one cell has the work removed rather than
+measured: on the main set's counted work `lib-stage2` over `lib-stage1`
+reads 0.669 plain and 1.02 capped, `stretch-inner1` alone being the
+difference, where canonicalization removes the work altogether.  So the
+per-shape column is the honest one here and a figure quoted from the foot
+carries its convention with it.
 
 Exit 2 on a usage or input failure, 1 if any shape was dropped, 0 clean --
 the convention every script in this directory keeps.
@@ -40,12 +41,19 @@ import subprocess
 import sys
 
 
+def die(msg):
+    """Exit 2 -- did not run -- rather than `sys.exit(str)`'s 1, which is
+    the code a finding gets."""
+    sys.stderr.write(msg.rstrip('\n') + '\n')
+    sys.exit(2)
+
+
 def cells(path):
     """shape -> arm -> net seconds, from the reader rather than the JSON"""
     r = subprocess.run(['./read-run.py', path, '--cells'],
                        capture_output=True, text=True)
     if r.returncode != 0:
-        sys.exit('read-run.py --cells failed on %s:\n%s' % (path, r.stderr))
+        die('read-run.py --cells failed on %s:\n%s' % (path, r.stderr))
     out = collections.defaultdict(dict)
     head = None
     for ln in r.stdout.splitlines():
@@ -78,7 +86,12 @@ def counts(paths):
 def wgm(rows, i):
     logs = [math.log(r[i]) for r in rows]
     m = stats.median(logs)
-    mad = stats.median([abs(x - m) for x in logs])
+    # Scaled by 1.4826 and uncapped at a zero MAD, as read-run.py's
+    # `winsorize` is: unscaled, "3 MADs" here meant about two of the
+    # reader's. 2026-09-01.
+    mad = stats.median([abs(x - m) for x in logs]) * 1.4826
+    if mad <= 0:
+        return math.exp(sum(logs) / len(logs))
     lo, hi = m - 3 * mad, m + 3 * mad
     return math.exp(sum(min(max(x, lo), hi) for x in logs) / len(logs))
 
@@ -89,7 +102,7 @@ def med(rows, i):
 
 def main():
     if len(sys.argv) < 5:
-        sys.exit(__doc__)
+        die(__doc__)
     a, b, times = sys.argv[1], sys.argv[2], sys.argv[3]
     t, c = cells(times), counts(sys.argv[4:])
     dropped, removed = [], []

@@ -18,7 +18,8 @@ on that shape.  `cpi` is the second term as the counters read it;
 figure above 1 means A meets that hazard more often per instruction it
 executes, which is the only form in which they explain a CPI gap.
 
-Exit 2 on usage, 1 if a shape was dropped, 0 clean.
+Exit 2 on usage or an input this cannot read, 1 if a shape was dropped,
+0 clean.
 """
 import collections
 import math
@@ -27,6 +28,12 @@ import sys
 
 EVENTS = ['instructions:u', 'cycles:u', 'stalled-cycles-frontend:u',
           'branch-misses:u', 'cache-misses:u']
+FRONT, BMISS, CMISS = EVENTS[2:]
+def die(msg):
+    """Exit 2 -- did not run -- rather than `sys.exit(str)`'s 1, which is
+    the code a finding gets."""
+    sys.stderr.write(msg.rstrip('\n') + '\n')
+    sys.exit(2)
 
 
 def read(paths):
@@ -40,8 +47,8 @@ def read(paths):
                 if order is None:
                     order = seen
                 elif order != seen:
-                    sys.exit('event columns differ between files: %s vs %s'
-                             % (order, seen))
+                    die('event columns differ between files: %s vs %s'
+                        % (order, seen))
                 continue
             if ln.startswith('#') or ln.startswith('!!'):
                 continue
@@ -53,11 +60,19 @@ def read(paths):
 
 def main():
     if len(sys.argv) < 4:
-        sys.exit(__doc__)
+        die(__doc__)
     a, b = sys.argv[1], sys.argv[2]
     t, order = read(sys.argv[3:])
     if order is None:
-        sys.exit('no header line naming the events in any file given')
+        die('no header line naming the events in any file given')
+    # BY NAME, not by column: a sweep taken under another `EVENTS` puts
+    # other counters in columns 2 to 4, and a positional read labelled them
+    # front/bmiss/cmiss regardless, or crashed short. 2026-09-01.
+    missing = [e for e in EVENTS if e not in order]
+    if missing:
+        die('the header names %s, which lacks %s -- a sweep taken under'
+            ' another EVENTS, which this does not read'
+            % (' '.join(order), ', '.join(missing)))
     rows, dropped = [], []
     for sh in sorted(t):
         d = t[sh]
@@ -72,7 +87,7 @@ def main():
             continue
         cpi = [net[x]['cycles:u'] / net[x]['instructions:u'] for x in (a, b)]
         rate = lambda e: [net[x][e] / net[x]['instructions:u'] for x in (a, b)]
-        fr, bm, cm = rate(order[2]), rate(order[3]), rate(order[4])
+        fr, bm, cm = rate(FRONT), rate(BMISS), rate(CMISS)
         rows.append((sh,
                      net[a]['instructions:u'] / net[b]['instructions:u'],
                      cpi[0] / cpi[1],
@@ -93,7 +108,12 @@ def main():
             return float('nan')
         logs = [math.log(x) for x in v]
         m = stats.median(logs)
-        mad = stats.median([abs(x - m) for x in logs])
+        # Scaled by 1.4826 and uncapped at a zero MAD, as read-run.py's
+        # `winsorize` is: unscaled, "3 MADs" here meant about two of the
+        # reader's. 2026-09-01.
+        mad = stats.median([abs(x - m) for x in logs]) * 1.4826
+        if mad <= 0:
+            return math.exp(sum(logs) / len(logs))
         lo, hi = m - 3 * mad, m + 3 * mad
         return math.exp(sum(min(max(x, lo), hi) for x in logs) / len(logs))
     print('%-22s %8.4f %8.4f %8.4f %8.4f %8.4f   (geomean over %d, capped at'

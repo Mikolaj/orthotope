@@ -115,7 +115,7 @@ count() {  # count SHAPE ARM ITERS -> user instructions of one process
 # reader has to notice. Case: `counts-file-says-it-was-restricted`.
 SCOPE="full"
 [ -z "$C" ] || SCOPE="full class=$C"
-[ -z "${ONLY-}" ] || SCOPE="ONLY=$ONLY"
+[ -z "${ONLY-}" ] || SCOPE="${C:+class=$C }ONLY=$ONLY"
 [ -z "${ARMS_ENV-}" ] || SCOPE="$SCOPE ARMS=$ARMS_ENV"
 {
   echo "# $R-$H $(md5sum "$B" | cut -d' ' -f1) N=$N $(date -Is) $SCOPE"

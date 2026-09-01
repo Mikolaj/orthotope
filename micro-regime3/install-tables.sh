@@ -310,10 +310,11 @@ for n, (c, start) in enumerate(reversed(order)):
     # not owed, which is what `have_other` below then asserts.
     other_json = f'{R}-{OTHER}-{c}.json'
     have_other = os.path.exists(other_json)
-    # LOUD, because the alternative is a cross-half line left standing
-    # from the previous run under this run's tables. A wrong OTHER looks
-    # exactly like a run that recorded one half, and only this says which
-    # it is.
+    # Said, and then HELD: a wrong OTHER looks exactly like a run that
+    # recorded one half, so the skip names both readings -- and where the
+    # block still carries an `Across the halves:` paragraph the refusal
+    # below decides, this note alone having left a previous run's line
+    # standing at exit 0 (2026-09-01, by review).
     if not have_other:
         print(f'  note {c}: no {other_json}, so no cross-half line is'
               f' installed -- correct for a run that recorded one half,'
@@ -349,6 +350,14 @@ for n, (c, start) in enumerate(reversed(order)):
     if not (ctrl and prov and per):
         print(f'  REFUSED {c}: --block emitted no ' +
               ('Controls' if not ctrl else 'Provenance' if not prov else 'per-shape'))
+        sys.exit(1)
+    if not have_other and any(paras[j].lstrip().lstrip('*')
+                                  .startswith('Across the halves:')
+                              for j in range(start, end)):
+        print(f'  REFUSED {c}: no {other_json}, and the block carries an'
+              f' `Across the halves:` paragraph -- a cross-half line left'
+              f' standing from a previous run, or OTHER={OTHER} is wrong;'
+              f' delete the paragraph or set OTHER, then rerun')
         sys.exit(1)
     ctrl = ctrl.replace('Controls:** ___ (the reading is yours). ', 'Controls:** ')
     prov = (prov.replace('elapsed ___', 'elapsed ' + el)

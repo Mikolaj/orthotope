@@ -147,7 +147,7 @@ NOTE="$PREFIX-pair.txt"
 # complaint, with no carve-out, so every later reading of that run failed
 # as "the run complained about itself" over eighteen clean processes.
 # Found 2026-08-22 by review. Case: `major-run-wants-its-pair-note`.
-[ -f "$NOTE" ] || { echo "no $NOTE -- a pair's note is written at pre-run step 3b,"
+[ -f "$NOTE" ] || { echo "no $NOTE -- a pair's note is written at pre-run step 2,"
                     echo "and the gate writes its verdict into it; nothing runs"
                     echo "without one"; exit 1; }
 

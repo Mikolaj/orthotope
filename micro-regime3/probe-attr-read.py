@@ -17,11 +17,18 @@ everything else inside the same function.  `harness` is the shared
 forcing pass, which is the control: it must come out equal, both arms
 being timed through it.
 
-Exit 2 on usage or a lost anchor, 1 if a file names an arm this does not
-know, 0 clean.
+Exit 2 on usage, a lost anchor or a file with no arm sections, 1 if a file
+names an arm this does not know, 0 clean.
 """
 import re
 import sys
+
+
+def die(msg):
+    """Exit 2 -- did not run -- rather than `sys.exit(str)`'s 1, which is
+    the code a finding gets."""
+    sys.stderr.write(msg.rstrip('\n') + '\n')
+    sys.exit(2)
 
 # arm -> (the function's own name, which IS unique, then the sub-anchors
 # searched from it). The sub-anchors must NOT be required unique in the
@@ -74,7 +81,7 @@ def spans(main_hs):
     starts = {}
     for arm, name in FUNCS.items():
         if src.count(name) != 1:
-            sys.exit('%s does not name one definition in %s (%d matches)'
+            die('%s does not name one definition in %s (%d matches)'
                      % (arm, main_hs, src.count(name)))
         starts[arm] = src[:src.index(name)].count('\n')
     out = {}
@@ -88,7 +95,7 @@ def spans(main_hs):
                 hi = k + 1
                 break
         if lo is None or hi is None:
-            sys.exit('span %s/%s not found after line %d of %s'
+            die('span %s/%s not found after line %d of %s'
                      % (arm, role, i + 1, main_hs))
         out[(arm, role)] = (lo, hi)
     # Spans are trimmed against each other in ROLE order, an opening
@@ -112,21 +119,21 @@ def spans(main_hs):
                 # giving `odo` the `run` anchor, which the unbounded form
                 # passed silently.
                 if prev - lo >= 1:
-                    sys.exit('spans %s/%s and the role before it overlap by %d'
+                    die('spans %s/%s and the role before it overlap by %d'
                              ' line(s), so one of the two anchors is wrong;'
                              ' only the shared boundary line is trimmed'
                              % (arm, role, prev - lo + 1))
                 lo = prev + 1
                 out[k] = (lo, hi)
             if lo > hi:
-                sys.exit('span %s/%s is empty after trimming: %d..%d'
+                die('span %s/%s is empty after trimming: %d..%d'
                          % (arm, role, lo, hi))
             prev = hi
     seen = {}
     for (arm, role), (lo, hi) in out.items():
         for k in range(lo, hi + 1):
             if (arm, k) in seen:
-                sys.exit('line %d of %s is in both %s and %s'
+                die('line %d of %s is in both %s and %s'
                          % (k, arm, seen[(arm, k)], role))
             seen[(arm, k)] = role
     harness = [i + 1 for i, l in enumerate(lines) if HARNESS.match(l)]
@@ -135,7 +142,7 @@ def spans(main_hs):
 
 def main():
     if len(sys.argv) != 2:
-        sys.exit(__doc__)
+        die(__doc__)
     sp, harness = spans('Main.hs')
     arms, cur = {}, None
     for ln in open(sys.argv[1]):
@@ -148,7 +155,7 @@ def main():
         if m and cur:
             arms[cur][m.group(2)] = arms[cur].get(m.group(2), 0) + int(m.group(1))
     if not arms:
-        sys.exit('no arm sections in that file')
+        die('no arm sections in that file')
 
     def bucket(arm, counts):
         out = dict.fromkeys(ROLES, 0)
