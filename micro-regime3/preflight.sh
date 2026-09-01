@@ -187,8 +187,20 @@ fi
 # Paths are taken from backticked and bare mentions of this directory's own
 # artifact names. Anything outside the run's and probe's namespaces is not
 # a path this can check and is left alone.
+#
+# A probe name may not END the captured token on `.` or `-`, which is what
+# the last character class is for: `.` is in the body class, so a name at
+# the end of a SENTENCE used to be captured with the full stop attached and
+# reported gone, and a `probe-ds-{off,on}` brace form was captured as
+# `probe-ds-`. Both are ordinary in a note's prose and both FAILed a note
+# whose every path was present -- Run 23's preparation met them in one
+# call, 2026-09-01. Non-vacuity of the narrowed form, taken that day on two
+# fixtures: a note reading `reproduces probe-ds-on-g912.` FAILs under the
+# old regex naming `probe-ds-on-g912.` and PASSes under this one, while a
+# note naming `probe-nosuchthing-g912` FAILs under both -- so the arm that
+# fires on an absent path is still reachable and still names it.
 if [ -f "$R-pair.txt" ]; then
-  MISSING=$(grep -oE '(probe-[A-Za-z0-9._-]+/?|'"$R"'-[A-Za-z0-9._-]+\.(json|log|txt))' \
+  MISSING=$(grep -oE '(probe-[A-Za-z0-9._-]*[A-Za-z0-9_-]/?|'"$R"'-[A-Za-z0-9._-]+\.(json|log|txt))' \
               "$R-pair.txt" | sort -u \
             | while read -r q; do [ -e "${q%/}" ] || echo "$q"; done)
   if [ -z "$MISSING" ]; then
