@@ -551,16 +551,18 @@ How to read the columns:
 - **time** is the geomean over **every** shape of the per-shape OLS *slope*,
   less that shape's forcing term, over `list`'s slope less the same term,
   with the per-shape log-ratios *winsorized* first --- capped at the row's own
-  median plus or minus three MADs. Nothing is dropped by the estimator,
-  so winsorizing costs no row its population and a cell far enough out
-  to distort the mean has its influence bounded instead of its evidence deleted.
-  **What DOES cost a row its population on this run is the correction,
-  not the estimator**: two rows on the basis and eleven on the control carry
-  cells the shared forcing pass is not smaller than, and such a cell cannot
-  be corrected at all --- so on those rows the geomean is over 23 or 20 shapes
-  of 24, they are named in the head, and two columns are comparable everywhere
-  else. The `CI%`, `worst`, `smp` and `alloc` columns stay raw: subtracting
-  a shared term moves a point estimate, it does not make a cell better measured.
+  median plus or minus three MADs, the MAD scaled by 1.4826 so the cap
+  is in standard deviations. Nothing is dropped by the estimator, so winsorizing
+  costs no row its population and a cell far enough out to distort the mean has
+  its influence bounded instead of its evidence deleted. **What DOES cost a row
+  its population on this run is the correction, not the estimator**: two rows
+  on the basis and eleven on the control carry cells the shared forcing pass
+  is not smaller than, and such a cell cannot be corrected at all ---
+  so on those rows the geomean is over 23 or 20 shapes of 24, they are named
+  in the head, and two columns are comparable everywhere else. The `CI%`, `smp`
+  and `alloc` columns stay raw: subtracting a shared term moves a point
+  estimate, it does not make a cell better measured. `worst` is a ratio of nets,
+  as `time` is, just per shape and unwinsorized.
 
   **This replaced a trim** --- drop each strategy's single highest-CI shape ---
   and the ruling is worth keeping because the trim looks obviously right
@@ -604,7 +606,7 @@ How to read the columns:
 - **worst** is the row's largest per-shape ratio to `list` --- the shape
   on which that strategy does least well against the baseline. It is what claim
   1 is about, and it is raw rather than winsorized.
-- **CI%** is the median across shapes of the slope's confidence interval
+- **CI%** is the median across shapes of the slope's confidence half-width
   as a percentage of the slope --- "how many digits are real". 0.5% is three; 5%
   is one.
 - **smp** is the median sample count. Criterion spends a time budget, so a slow
