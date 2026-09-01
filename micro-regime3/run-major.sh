@@ -269,7 +269,7 @@ log "halves: $HALVES, in that order; $BASIS is the basis, and every class runs\
 # downstream notices either: the bench counts come out right, the gate
 # passes, the reader is happy, and the registration the pair was built to
 # answer comes back empty, discovered at the write-up if `--wild` is
-# reached for at all, which post-run step 1b says is not every process.
+# reached for at all, which post-run step 2 says is not every process.
 # This cannot stop that run, but it puts the fact in the run's own record
 # at its first minute instead of leaving it to be inferred from an absence
 # hours later. `run-alonelegs.sh` has echoed its own switches since Run 17

@@ -15,11 +15,13 @@ echo
 echo "===================== 0. the reader's own invariants, per JSON"
 for p in $POPS; do
   [ -e "probe-bangtime-$p.json" ] || { echo "-- probe-bangtime-$p.json absent"; continue; }
-  echo "--- probe-bangtime-$p"; ./read-run.py "probe-bangtime-$p.json" --selftest 2>&1 | tail -3
+  out=$(./read-run.py "probe-bangtime-$p.json" --selftest 2>&1); rc=$?
+  echo "--- probe-bangtime-$p (exit $rc)"; printf '%s\n' "$out" | tail -3
 done
 for f in probe-runlen-disp-runs probe-runlen-ghead-runs probe-runlen-nospill-runs; do
   [ -e "$f.json" ] || { echo "-- $f.json absent"; continue; }
-  echo "--- $f"; ./read-run.py "$f.json" --selftest 2>&1 | tail -3
+  out=$(./read-run.py "$f.json" --selftest 2>&1); rc=$?
+  echo "--- $f (exit $rc)"; printf '%s\n' "$out" | tail -3
 done
 echo
 echo "===================== 1. did the BOX move? the machine check"

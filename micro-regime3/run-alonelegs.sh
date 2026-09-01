@@ -12,7 +12,7 @@
 # to name Run 17's halves here, and named them the wrong way round -- Run
 # 17's basis is `wildlog` and its control `det`, where the lines above read
 # them the other way -- which cost nothing only because the pair note is
-# authoritative and was read first. Run 18's halves are above because they
+# authoritative and was read first. Run 19's halves are above because they
 # are this file's next caller; a reader of a later run substitutes.
 #
 # Run 16's own one-off rider script generalised, the run and the half as
@@ -41,8 +41,10 @@
 # with it: unset is the roster's own sprayer, `spray` the pure pinned burst.
 set -u
 cd "$(dirname "$0")" || exit 1
-R="${1:?usage: ./run-alonelegs.sh RUN HALF   # e.g. run17 det}"
-H="${2:?usage: ./run-alonelegs.sh RUN HALF   # e.g. run17 det}"
+[ $# -ge 2 ] || { echo "usage: ./run-alonelegs.sh RUN HALF   # e.g. run17 det"
+                  exit 2; }   # 2, "did not run", as every usage path here
+R="$1"
+H="$2"
 B=./$R-$H
 SUF=${SAT:+-sat}               # artifacts of saturated legs carry it
 [ -x "$B" ] || { echo "no $B here -- $R-pair.txt has the recipe"; exit 1; }

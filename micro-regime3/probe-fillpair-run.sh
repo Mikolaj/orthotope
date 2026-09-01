@@ -12,10 +12,16 @@ export WILDLOG=1 SATURATE=1
 # `${*:-...}` and not `"${@:-...}"`: quoted, the default is ONE word,
 # `runs main slice`, which names no population, so the wrapper ran
 # nothing and still printed COMPLETE. Found 2026-09-01 by review.
+BAD=0
 for pop in ${*:-runs main slice}; do
   for h in A B; do
     BIN=./probe-fill$h-g912 OUT=probe-fill$h ./probe-times.sh "$pop" \
-      || echo "!! probe-fill$h $pop complained"
+      || { echo "!! probe-fill$h $pop complained"; BAD=$((BAD + 1)); }
   done
 done
-echo "=== $(date -Is) FILL PAIR COMPLETE" | tee -a probe-fillA-wallclock.log
+# Complaints ride the COMPLETE line, as probe-evening-c's do: the line a
+# session waits on is the log's last, and a complaint on stdout alone
+# never reaches it.
+echo "=== $(date -Is) FILL PAIR COMPLETE, complaints=$BAD" \
+  | tee -a probe-fillA-wallclock.log
+exit $((BAD > 0))

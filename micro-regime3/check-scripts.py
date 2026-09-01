@@ -224,11 +224,13 @@ def _newest_run_doc():
         m = re.match(r'^run(\d+)\.md$', name)
         if m:
             got.append((int(m.group(1)), os.path.join(at, name)))
-    assert got, ('no run file in %s: the Results table, its own geomeans,'
-                 ' the'
-                 ' claims verdicts and the class blocks are all in one, so'
-                 ' every fixture that plants against them is unbuildable'
-                 % at)
+    if not got:
+        # BLOCKED at 2, not an assert: a missing corpus is "the run did
+        # not happen", and the traceback hit --list too. 2026-09-01.
+        print('BLOCKED: no runs/run<N>.md in %s -- the Results table, the'
+              ' claims verdicts and the class blocks are all in one, so'
+              ' every fixture that plants against them is unbuildable' % at)
+        raise SystemExit(2)
     return max(got)[1]
 
 
@@ -304,7 +306,8 @@ def readme_lines(rev=None):
 
     `--check-doc` resolves the `README.md#` anchors it finds in the
     READER'S OWN source, so a replayed revision carries the anchors of its
-    day -- and post-run step 5 renames four headings every write-up. Run
+    day -- and the write-up steps rename headings, four in the
+    pre-split chapters and two today. Run
     against today's README, an old reader therefore fails on dead anchors of
     its own, which is not the defect any case here is about: it is what
     took `checkdoc-without-a-roster` and `checkdoc-open-list-out-of-order`
@@ -792,7 +795,7 @@ def rundoc_stale_basis_in_results(tmp):
 
 
 def rundoc_naming_its_own_artifact(tmp):
-    """The run file citing a path step 12 offers for deletion.
+    """The run file citing a path step 11 offers for deletion.
 
     Run 20 wrote "the superseded artifacts are parked as
     `probe-run20-exposed/`" into its own file and then KEPT the directory
@@ -2610,7 +2613,7 @@ CASES = [
          # and how to get them. It said "rerun without --quiet", and plain
          # --check-doc withholds as well -- `--worklists` is what promotes
          # them -- so following the message returns the same line. Met on
-         # Run 17 at post-run step 7, the one step whose whole content is
+         # Run 17 at the worklists step (then 7, now 6e), whose content is
          # reading those lists, and read there as the tool being broken.
          # The check is the message, not the flag: the flag worked all
          # along.
@@ -3816,7 +3819,7 @@ CASES = [
          ok=V(exit=1, has=['while the file is Run'])),
 
     case('rundoc-names-an-artifact-it-outlives', 'read-run.py', None,
-         'the run file cited a directory step 12 offers for deletion',
+         'the run file cited a directory step 11 offers for deletion',
          # And the citation then decided what was KEPT, which is the
          # dependency backwards: Run 20 kept probe-run20-exposed/ because
          # its own prose named it. A past run's artifacts are history and
@@ -5156,7 +5159,7 @@ CASES = [
          # process runs UNINSTRUMENTED: it exits 0, leaves a JSON, runs
          # its benches and writes a log with no stamps in it, and the only
          # thing that would ever have said so is `--wild`, which post-run
-         # step 1b reaches for on a suspicious cell and not on every
+         # step 2 reaches for on a suspicious cell and not on every
          # process. ANY count above zero passes, unlike the plateau's
          # exactly-one: the instrument writes two stamps per sample.
          shadow=dict(extra=lambda: halves('zzwl-lookrts', 'zzwl-a1g')
@@ -5394,6 +5397,19 @@ CASES = [
          probe=lambda subs: open(os.path.join(
              subs['at'], 'zzct-counts-g912.txt')).read(),
          ok=V(has=['ONLY=shape-a ARMS=list', 'RESTRICTED'])),
+
+    case('counts-file-says-arms-alone-was-restricted', 'run-counts.sh',
+         None,
+         'an ARMS-only smoke run read as a recorded column',
+         # The scope string still opens `full` when only ARMS restricts
+         # (`full ARMS=list`), so a prefix test on the string cannot see
+         # this form; the stamp reads the variables. 2026-09-01.
+         shadow=dict(extra=[('zzct6-g912', FAKE_HALF)]),
+         env={'ARMS': 'list', 'N': '1'},
+         argv=['zzct6', 'g912'],
+         probe=lambda subs: open(os.path.join(
+             subs['at'], 'zzct6-counts-g912.txt')).read(),
+         ok=V(has=['ARMS=list', 'RESTRICTED'])),
 
     case('counts-file-says-a-full-sweep-was-full', 'run-counts.sh', None,
          'CONTROL: an unrestricted sweep says so rather than saying nothing',
@@ -6504,7 +6520,8 @@ def main():
     cases = [c for c in CASES
              if not args.pattern or args.pattern in c.name]
     if not cases:
-        sys.exit('no case matches %r' % args.pattern)
+        print('no case matches %r -- nothing was tried' % args.pattern)
+        return 2
 
     # ONLY WHAT THE EDIT OWES. 217 cases at about 1.2 s each is four and a
     # half minutes, every one of them a fresh reader over the whole

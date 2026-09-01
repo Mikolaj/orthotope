@@ -1025,9 +1025,11 @@ def strategy_table(cells, shapes, strategies, meta, args, terms):
         print('The `sum-only` rows are that term, so they read -- rather than')
         print('a figure of a different kind in the same column.')
     print('worst is the row\'s worst shape: how bad it gets, which no average')
-    print('answers. time is a winsorized geomean over every shape -- nothing')
-    print('dropped, outliers capped at %.0f MADs -- so all rows compare.'
+    print('answers. time is a winsorized geomean, outliers capped at %.0f MADs'
           % WINSOR_K)
+    print('of the log (the MAD scaled by 1.4826, so the cap is in standard')
+    print('deviations); a row drops a shape only where the correction leaves')
+    print('no work to read, and the warning above names such rows.')
     print('noise is this row\'s CI% against the median CI% of the same shape,')
     print('medianed over shapes: 1.00 is an ordinary bench, and the')
     print('outlier is the bench to suspect of disturbing whatever shares')
@@ -1043,6 +1045,27 @@ def strategy_table(cells, shapes, strategies, meta, args, terms):
 # stop finding anything and report every row as new.
 CLASS_HDR = '| strategy | time | worst | CI% | smp | alloc |'
 RESULTS_HDR = '| strategy | time | worst | CI% | smp | alloc | needs |'
+
+
+def run_doc_mismatch(args, who):
+    """Say that the JSON and the run file name different runs, and skip.
+
+    The read half of the --in-place guard: `--block` on run19's JSON with
+    run22.md newest judged one run's cells against another run's rows and
+    filed the disagreements as hand-work, at exit 0. A JSON whose name
+    carries no run number is not held -- there is nothing to compare.
+    2026-09-01, by review.
+    """
+    m = re.match(r'run(\d+)-', os.path.basename(args.run or ''))
+    now = run_no_of(want_run_doc(args))
+    if m and now is not None and int(m.group(1)) != now:
+        sys.stderr.write('%s not checked: %s is run %s\'s JSON and %s is'
+                         ' run %d\'s file -- name the right one with'
+                         ' --run-doc\n'
+                         % (who, os.path.basename(args.run), m.group(1),
+                            os.path.basename(want_run_doc(args)), now))
+        return True
+    return False
 
 
 def want_run_doc(args):
@@ -3497,8 +3520,8 @@ def fingerprint_table(cells, shapes, strategies, meta, classes=()):
 
 # The three arms the second class property names, in the claims section
 # (*The claims Run N should test*, NAMED and deliberately not anchored: that
-# heading carries the run number and post-run step 5 renames it every
-# write-up, so an anchor here goes dead at each rename -- and stays dead in
+# heading carried the run number until the run-file split and was renamed
+# every write-up, so an anchor went dead at each rename -- and stays dead in
 # every archived revision, where --audit replays this file against today's
 # README and reads its own stale anchors as a --check-doc failure).
 # Constants rather than literals
@@ -4310,6 +4333,8 @@ def summary_row(cells, shapes, strategies, args, main_hs):
     classes = {dims[s]['cls'] for s in shapes if s in dims}
     if len(classes) != 1:
         return
+    if run_doc_mismatch(args, 'summary row `%s`' % class_prefix(shapes)):
+        return
     whole = {s for s, d in dims.items() if d['cls'] in classes}
     label = class_prefix(shapes)
     if set(shapes) != whole:
@@ -4398,6 +4423,8 @@ def lead_shapes(shapes, args, main_hs):
     if len(classes) != 1:
         return
     whole = {s for s, d in dims.items() if d['cls'] in classes}
+    if run_doc_mismatch(args, 'lead `%s`' % label):
+        return
     if set(shapes) != whole:
         sys.stderr.write('lead `%s` not checked: this run carries %d of the'
                          ' class\'s %d shapes\n'
@@ -4554,10 +4581,19 @@ def extremes_table(paths, main_hs, args):
     if blank:
         print('  not ranked where the figure is missing: '
               + ', '.join('`%s` (%s)' % (l, ', '.join(ks)) for l, ks in blank))
+    def gap_size(g):
+        """A gap's SIZE is its distance from 1, |log|: while every outside
+        arm trailed the fix the raw ratio ordered the same way, and once
+        they led (Run 22) `max` of the ratio named the tightest class the
+        widest. `nan` stays `nan` for `holder`. 2026-09-01, by review."""
+        if g != g:
+            return g
+        return abs(math.log(g)) if g > 0 else float('inf')
     # Each line names the holder AND its figure, so a sentence can be
     # written off this without going back to the table above -- which is
-    # the step at which Run 15's third error was made.
-    for what, key, want, fmt in (
+    # the step at which Run 15's third error was made. The gap lines rank
+    # on `gap_size` and print the ratio.
+    for what, key, want, fmt, *show in (
             ('tightest floor', lambda r: r.floor, min, '%.2f%%'),
             ('widest floor', lambda r: r.floor, max, '%.2f%%'),
             ('best for the fix', lambda r: r.fix, min, '%.3f'),
@@ -4565,20 +4601,24 @@ def extremes_table(paths, main_hs, args):
             ('highest `worst` cell', lambda r: r.worst, max, '%.3f'),
             ('best outside the family', lambda r: r.out, min, '%.3f'),
             ('fastest ceiling', lambda r: r.ceil, min, '%.3f'),
-            ('narrowest gap, column', lambda r: r.gap, min, '%.2f'),
-            ('widest gap, column', lambda r: r.gap, max, '%.2f'),
-            ('narrowest gap, paired', lambda r: r.gapp, min, '%.2f'),
-            ('widest gap, paired', lambda r: r.gapp, max, '%.2f')):
+            ('narrowest gap, column', lambda r: gap_size(r.gap), min,
+             '%.2f', lambda r: r.gap),
+            ('widest gap, column', lambda r: gap_size(r.gap), max,
+             '%.2f', lambda r: r.gap),
+            ('narrowest gap, paired', lambda r: gap_size(r.gapp), min,
+             '%.2f', lambda r: r.gapp),
+            ('widest gap, paired', lambda r: gap_size(r.gapp), max,
+             '%.2f', lambda r: r.gapp)):
         hit = holder(want, key)
         if hit is None:
             print('  %-26s %-11s no class carries the figure' % (what, '--'))
             continue
         print(('  %-26s %-11s ' + fmt + '%s')
-              % (what, '`%s`' % hit.label, key(hit),
+              % (what, '`%s`' % hit.label, (show[0] if show else key)(hit),
                  '  on `%s`' % hit.floor_pair if 'floor' in what else ''))
     for want in (min, max):
-        by_col = holder(want, lambda r: r.gap)
-        by_pair = holder(want, lambda r: r.gapp)
+        by_col = holder(want, lambda r: gap_size(r.gap))
+        by_pair = holder(want, lambda r: gap_size(r.gapp))
         if by_col and by_pair and by_col.label != by_pair.label:
             print('  the %s gap is `%s` on the column and `%s` paired, so'
                   ' a sentence about it has to say which'
@@ -6566,8 +6606,12 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
         canon = subprocess.run(['wrap80'], input=doc, capture_output=True,
                                text=True, check=True).stdout.split('\n')
     except (OSError, subprocess.CalledProcessError):
-        note.append('wrap80 unavailable, so coverage was asked of the working'
-                    ' copy, whose answer depends on how it is wrapped')
+        # BLOCKED and not a note: the comment above forecloses exactly the
+        # wrapping-dependence this fallback reintroduces, and the sibling
+        # unwrap failure is already BLOCKED. 2026-09-01, by review.
+        bad.append('BLOCKED: wrap80 could not run, so this pass read the'
+                   ' working copy, whose answer depends on how it is'
+                   ' wrapped -- the canonical form went unchecked')
 
     # Which section each line sits in, for both the coverage check and the
     # figure sweep.
@@ -7149,7 +7193,7 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
                   ' file this is' % cur)
 
     # THE RUN FILE MUST OUTLIVE THE ARTIFACTS, which is what makes it a
-    # file: post-run step 12 offers the JSONs, the logs, the wall-clock
+    # file: post-run step 11 offers the JSONs, the logs, the wall-clock
     # file, both binaries and the pair note for deletion, so a sentence in
     # the run's own document that NAMES one of those is a promise that dies
     # with the offer. Run 20 wrote two -- "the superseded artifacts are
@@ -7168,7 +7212,7 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
             r'|run%s-[A-Za-z0-9._-]+\.(?:json|log|txt))`' % (cur, cur),
             run_text)})
         if doomed:
-            bad.append('%d artifact path(s) named in %s, which step 12 offers'
+            bad.append('%d artifact path(s) named in %s, which step 11 offers'
                        ' for deletion -- the run file outlives them, so state'
                        ' the fact rather than the file: %s'
                        % (len(doomed), os.path.basename(run_doc),
@@ -9181,7 +9225,7 @@ def main():
     p.add_argument('--quiet', action='store_true',
                    help='the default now; kept so older recipes still run')
     # Quiet is the default because the procedure says only ONE call in a
-    # whole run wants the worklists -- post-run step 7, where they are read
+    # whole run wants the worklists -- post-run step 6e, where they are read
     # and adjudicated -- and every other call is a gate whose verdict is its
     # exit code. The default was the wrong way round and Run 16 ran the loud
     # form out of habit more than once.

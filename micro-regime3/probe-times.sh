@@ -79,11 +79,17 @@ CLASS_LIST=$("$BIN" classes --list 2>/dev/null)
 BAD=0
 log () { echo "=== $(date -Is) $*" | tee -a "$LOG"; }
 
+# Asked whether git answered, as run-major.sh asks: unasked, a refusal
+# reads `tree at , Main.hs at` -- a commit nobody has. 2026-09-01.
+HEAD_AT=$(git log -1 --format=%h 2>/dev/null)
+MAIN_AT=$(git log -1 --format=%h -- Main.hs 2>/dev/null)
+GITLINE="tree at $HEAD_AT, Main.hs at $MAIN_AT"
+[ -n "$HEAD_AT" ] && [ -n "$MAIN_AT" ] \
+  || GITLINE="GIT DID NOT ANSWER, so no commit is recorded here"
 log "$OUT begins on $BIN, md5 $(md5sum "$BIN" | cut -d' ' -f1) -- THE MD5 IS\
  THE BINARY'S IDENTITY and the commits below are the TREE'S, which a probe\
- reusing an earlier binary can be several commits ahead of; tree at\
- $(git log -1 --format=%h 2>/dev/null), Main.hs at\
- $(git log -1 --format=%h -- Main.hs 2>/dev/null); populations: $*"
+ reusing an earlier binary can be several commits ahead of; $GITLINE;\
+ populations: $*"
 log "launch env: WILDLOG=${WILDLOG-unset} SATURATE=${SATURATE-unset} -- both\
  are Run 21's, and a process missing one is not comparable with it"
 uptime | tee -a "$LOG"

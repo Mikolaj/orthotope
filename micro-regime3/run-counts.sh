@@ -25,8 +25,10 @@
 # iteration; a cell perf could not count is a `!!` line and the exit status.
 set -u
 cd "$(dirname "$0")" || exit 1
-R="${1:?usage: ./run-counts.sh RUN HALF [CLASS]  # e.g. run19 g912 rev}"
-H="${2:?usage: ./run-counts.sh RUN HALF [CLASS]  # e.g. run19 g912 rev}"
+[ $# -ge 2 ] || { echo "usage: ./run-counts.sh RUN HALF [CLASS]  # e.g. run19 g912 rev"
+                  exit 2; }   # 2, "did not run", as every usage path here
+R="$1"
+H="$2"
 # THE CLASS IS OPTIONAL AND NAMES THE ARTIFACT WHEN GIVEN. Without it this
 # sweeps the main set, which is all it could do until 2026-08-25: the shape
 # list came from `--list`, which is the main roster, so the counted-work
@@ -120,12 +122,13 @@ SCOPE="full"
 {
   echo "# $R-$H $(md5sum "$B" | cut -d' ' -f1) N=$N $(date -Is) $SCOPE"
   echo "# shape arm N instructions/iter"
-  # `full*`: a class column's scope reads `full class=rev`, and `= full`
-  # stamped every recorded class column RESTRICTED. 2026-09-01.
-  case $SCOPE in full*) ;; *)
+  # OFF THE VARIABLES, not the scope string: `= full` stamped every
+  # recorded class column (scope `full class=rev`), and a prefix test
+  # missed an ARMS-only smoke run (scope `full ARMS=list`). 2026-09-01.
+  if [ -n "${ONLY-}" ] || [ -n "$ARMS_ENV" ]; then
     echo "# RESTRICTED: a smoke run of this script and NOT a recorded"\
-         "column" ;;
-  esac
+         "column"
+  fi
 } > "$OUT"
 BAD=0
 for S in $SHAPES; do

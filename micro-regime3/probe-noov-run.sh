@@ -12,8 +12,14 @@
 set -u
 cd "$(dirname "$0")" || exit 1
 export WILDLOG=1 SATURATE=1
+BAD=0
 for h in off on; do
   BIN=./probe-noov-$h-g912 OUT=probe-noov-$h ./probe-times.sh main \
-    || echo "!! probe-noov-$h complained"
+    || { echo "!! probe-noov-$h complained"; BAD=$((BAD + 1)); }
 done
-echo "=== $(date -Is) NOOVERLAP PAIR COMPLETE" | tee -a probe-noov-off-wallclock.log
+# Complaints ride the COMPLETE line, as probe-evening-c's do: the line a
+# session waits on is the log's last, and a complaint on stdout alone
+# never reaches it.
+echo "=== $(date -Is) NOOVERLAP PAIR COMPLETE, complaints=$BAD" \
+  | tee -a probe-noov-off-wallclock.log
+exit $((BAD > 0))

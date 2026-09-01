@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """Read the LLVM build's own loops for a named fill, and say whether they spill.
 
+Exit 2 on usage or an input this cannot read, 0 otherwise -- the
+convention every script in this directory keeps.
+
 The -fllvm build carries neither .debug_line nor per-worker symbols, so a
 fill cannot be found in it the way loop-offsets.py finds one in a native
 build.  What it does carry is GHC's block uniques: every basic block
@@ -30,6 +33,13 @@ own bounds are printed so a wrong one is visible rather than silent.
 """
 import re
 import sys
+
+
+def die(msg):
+    """Exit 2 -- did not run -- rather than `sys.exit(str)`'s 1, which is
+    the code a finding gets."""
+    sys.stderr.write(msg.rstrip('\n') + '\n')
+    sys.exit(2)
 
 
 WORKER = re.compile(r'\$w(fb[A-Za-z0-9]+)_')
@@ -146,14 +156,14 @@ def cycles(mine, blocks, order_asm):
 
 def main():
     if len(sys.argv) < 4:
-        sys.exit(__doc__)
+        die(__doc__)
     dump = open(sys.argv[1]).read().splitlines()
     asm = open(sys.argv[2]).read().splitlines()
     arms = sys.argv[3:]
     ranges = procs_of(dump, arms)
     missing = [a for a in arms if a not in ranges]
     if missing:
-        sys.exit('not in the dump: ' + ', '.join(missing))
+        die('not in the dump: ' + ', '.join(missing))
 
     # LLVM lowers each Cmm block to a `_blk_Q<unique>$def` symbol and then
     # cuts it into `.LBB` blocks of its own, so a loop is a .LBB block and

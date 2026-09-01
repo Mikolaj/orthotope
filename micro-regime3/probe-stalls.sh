@@ -69,6 +69,16 @@ command -v perf > /dev/null 2>&1 || { echo "!! no perf on PATH. Nothing ran."; e
 # would otherwise be silent -- field 5 is the percentage of the run the event
 # was on a counter, and anything under 100 means the figure is an
 # extrapolation. Both are refused here rather than left to a `!!` per cell.
+# A permission refusal prints prose with no commas, which the field test
+# below cannot see -- run-counts.sh's probe shape, first. 2026-09-01.
+if ! perf stat -x, -e "$EVENTS" /bin/true 2>&1 | grep -q '^[0-9]\+,'; then
+  echo "!! perf will not count anything here -- no event returned a number."
+  echo "   kernel.perf_event_paranoid reads\
+ $(cat /proc/sys/kernel/perf_event_paranoid 2>/dev/null || echo '?'), and anything above 1 is the"
+  echo "   usual cause. That is what it READ and not a diagnosis."
+  echo "   Nothing ran, no $F written."
+  exit 1
+fi
 BADEV=$(perf stat -x, -e "$EVENTS" /bin/true 2>&1 \
         | awk -F, 'NF>4 && ($1 !~ /^[0-9]+$/ || $5 != "100.00") {print $3" ("$1" at "$5"%)"}')
 if [ -n "$BADEV" ]; then

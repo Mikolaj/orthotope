@@ -423,7 +423,7 @@ def main():
 
     if args.library:
         if len(args.binary) != 2:
-            sys.exit('--library compares two binaries')
+            p.error('--library compares two binaries')
         library(*args.binary)
         return
 

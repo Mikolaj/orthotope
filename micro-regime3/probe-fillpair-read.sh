@@ -18,7 +18,8 @@
 # and reading the first without it is what this file exists to prevent.
 set -u
 cd "$(dirname "$0")" || exit 1
-POP=${1:?usage: ./probe-fillpair-read.sh POPULATION}
+[ $# -ge 1 ] || { echo "usage: ./probe-fillpair-read.sh POPULATION"; exit 2; }
+POP=$1
 U=mut-odo-vecdims-add-in-leaf-u2
 PAIRS="$U:mut-odo-vecdims-add-in-leaf-down
 $U:mut-odo-vecdims-add-in-leaf

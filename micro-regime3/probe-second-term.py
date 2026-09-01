@@ -62,6 +62,9 @@ def cells(path):
             continue
         if head is None:
             head = f
+            if 'slope_net_s' not in head:
+                die('--cells names no slope_net_s column (got: %s), so the'
+                    ' time side cannot be read' % ' '.join(head))
             continue
         try:
             out[f[0]][f[1]] = float(f[head.index('slope_net_s')])
@@ -71,16 +74,41 @@ def cells(path):
 
 
 def counts(paths):
-    """shape -> arm -> instructions an iteration, sum-only-early not removed"""
+    """shape -> arm -> instructions an iteration, sum-only-early not removed
+
+    A `!!` line is perf refusing a cell and a `NaN` field is the same
+    refusal one layer down; taken as a number, a NaN defeats the
+    removed-work test below (`min(...) <= 0` is False against NaN) and
+    prints nan in every foot. Both are dropped here and counted, as
+    `read-run.py`'s `parse_counts` drops them. 2026-09-01, by review.
+    """
     out = collections.defaultdict(dict)
+    refused = 0
     for p in paths:
         for ln in open(p):
-            if ln.startswith('#') or ln.startswith('!!'):
+            if ln.startswith('!!'):
+                refused += 1
+                continue
+            if ln.startswith('# shape arm '):
+                if ln.split() != '# shape arm N instructions/iter'.split():
+                    die('counts header is %r and this reads'
+                        ' instructions/iter' % ln.strip())
+                continue
+            if ln.startswith('#'):
                 continue
             f = ln.split()
-            if len(f) == 4:
-                out[f[0]][f[1]] = float(f[3])
-    return out
+            if len(f) != 4:
+                continue
+            try:
+                v = float(f[3])
+            except ValueError:
+                refused += 1
+                continue
+            if v == v:
+                out[f[0]][f[1]] = v
+            else:
+                refused += 1
+    return out, refused
 
 
 def wgm(rows, i):
@@ -104,7 +132,7 @@ def main():
     if len(sys.argv) < 5:
         die(__doc__)
     a, b, times = sys.argv[1], sys.argv[2], sys.argv[3]
-    t, c = cells(times), counts(sys.argv[4:])
+    t, (c, refused) = cells(times), counts(sys.argv[4:])
     dropped, removed = [], []
     rows = []
     for sh in sorted(t):
@@ -150,6 +178,9 @@ def main():
           % ('geomean, capped', wgm(rows, 1), wgm(rows, 2), wgm(rows, 3)))
     print('%-22s %10.4f %10.4f %10.4f   (median)'
           % ('median', med(rows, 1), med(rows, 2), med(rows, 3)))
+    if refused:
+        print('perf refused %d cell(s) in the counts file(s); none was'
+              ' counted' % refused)
     if dropped:
         print('dropped, absent from one side: ' + ', '.join(dropped))
     if removed:

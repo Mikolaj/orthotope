@@ -101,7 +101,7 @@ fi
 if [ "$NOTE_ONLY" = 0 ]; then
   for h in $OTHER $BASIS; do
     [ -x "./$R-$h" ] || { echo "missing ./$R-$h -- $R-pair.txt has the recipe"
-                          exit 1; }
+                          exit 2; }
   done
 fi
 
@@ -167,26 +167,32 @@ step_8 () {
     MISSING=$(grep -oE '(probe-[A-Za-z0-9._{},-]*[A-Za-z0-9_}]/?|'"$R"'-[A-Za-z0-9._-]+\.(json|log|txt))' \
                 "$R-pair.txt" | sort -u \
               | while read -r q; do
-                  q=${q%/}
-                  case $q in
-                    *\{*\}*)  # brace groups, expanded without eval, one
-                              # group a pass until none is left; `read -a`
-                              # keeps an empty alternative, `{,-x}`
-                      todo=("$q")
-                      while [ "${#todo[@]}" -gt 0 ]; do
-                        q=${todo[0]}; todo=("${todo[@]:1}")
-                        case $q in
-                          *\{*\}*)
-                            pre=${q%%\{*}; rest=${q#*\{}; post=${rest#*\}}
-                            IFS=, read -ra alts <<< "${rest%%\}*}"
-                            for alt in "${alts[@]}"; do
-                              todo+=("$pre$alt$post")
-                            done ;;
-                          *) [ -e "$q" ] || echo "$q" ;;
-                        esac
-                      done ;;
-                    *) [ -e "$q" ] || echo "$q" ;;
-                  esac
+                  # Brace groups expand without eval, one group a pass
+                  # until none is left, split by hand because `read -a`
+                  # DROPS a trailing empty alternative (`{-x,}`) while
+                  # keeping a leading one; and a bare comma joins two
+                  # names, so a comma-carrying leaf splits into paths.
+                  todo=("${q%/}")
+                  while [ "${#todo[@]}" -gt 0 ]; do
+                    q=${todo[0]}; todo=("${todo[@]:1}")
+                    case $q in
+                      *\{*\}*)
+                        pre=${q%%\{*}; rest=${q#*\{}; post=${rest#*\}}
+                        body=${rest%%\}*}
+                        while :; do
+                          case $body in
+                            *,*) todo+=("$pre${body%%,*}$post")
+                                 body=${body#*,} ;;
+                            *)   todo+=("$pre$body$post"); break ;;
+                          esac
+                        done ;;
+                      *,*)
+                        left=${q%%,*}; rest=${q#*,}
+                        [ -z "$left" ] || todo+=("$left")
+                        [ -z "$rest" ] || todo+=("$rest") ;;
+                      *) [ -e "$q" ] || echo "$q" ;;
+                    esac
+                  done
                 done)
     if [ -z "$MISSING" ]; then
       say 10c PASS "every path $R-pair.txt names is still here"
