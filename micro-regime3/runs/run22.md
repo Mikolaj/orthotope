@@ -1532,26 +1532,27 @@ a 5% band. Every table below is the **basis half**'s, which on this run
 is the 9.12 one, the half that keeps the lineage. What the second half buys
 is that a pair's variable can be read on a class, which is what settled Run 14's
 `scaled` question. **Read across the halves and the direction Runs 19, 20 and 21
-all found has broken.** Of the 441 arm-comparisons the nine classes carry, **215
-put the 9.12 half faster and 226 slower**, and the nine geomeans no longer all
-fall below 1: they run **0.9595 on `bcast` to 1.1441 on `reshape1`**, where Run
-21's nine ran 0.9749 to 0.9945 and Run 20's eight 0.9700 to 0.9952. So
-on the classes, unlike on the three runs before, GHC HEAD does not cost
-this roster everywhere. **The extreme at one end is the arm Runs 20 and 21 both
-named and it now holds eight of the nine**: `mut-odo-vecdims-add-in-leaf`
-is the low extreme in eight of the nine, `bcast` being the exception --- there
-the class's low extreme is `lib-stage2-disp` at **0.6753** and the leaf arm
-reads 0.7100. **The other end wants reading before it is quoted**, as it has
-every run: the largest figure any class reports is `lib-stage2` at **2.6120**
-on `reshape1`, and that class's canonicalizing arms return O(1) on three
-of its four shapes, so a ratio there prices dispatch and not filling ---
-`lib-stage2-lean`, `lib-stage2-short` and `lib-stage2-u4` are degenerate there
-and kept out of the extremes entirely. **And five classes disqualify their own
-cross-half line**, where Run 21 had three, two of them the same classes:
-`bcastmid` at 1.0106, `reshape1` at 0.9900, `window` at 1.0082, `scaled`
-at 0.9911 and `runs` at 1.0114 move `list` past the 0.7% bar, so their lines say
-so and are not read for the compiler --- and the main set, at 0.81%, is past
-it too for the first time in three runs.
+all found has broken.** Of the 441 arm-comparisons the nine classes carry, three
+(`reshape1`'s canonicalizing arms) sit out the vote and the geomeans
+as degenerate; **215 put the 9.12 half faster and 223 slower**, and the nine
+geomeans no longer all fall below 1: they run **0.9595 on `bcast` to 1.0928
+on `reshape1`**, where Run 21's nine ran 0.9749 to 0.9945 and Run 20's eight
+0.9700 to 0.9952. So on the classes, unlike on the three runs before, GHC HEAD
+does not cost this roster everywhere. **The extreme at one end is the arm Runs
+20 and 21 both named and it now holds eight of the nine**:
+`mut-odo-vecdims-add-in-leaf` is the low extreme in eight of the nine, `bcast`
+being the exception --- there the class's low extreme is `lib-stage2-disp`
+at **0.6753** and the leaf arm reads 0.7100. **The other end wants reading
+before it is quoted**, as it has every run: the largest figure any class reports
+is `lib-stage2` at **2.6120** on `reshape1`, and that class's canonicalizing
+arms return O(1) on three of its four shapes, so a ratio there prices dispatch
+and not filling --- `lib-stage2-lean`, `lib-stage2-short` and `lib-stage2-u4`
+are degenerate there and kept out of the extremes entirely. **And five classes
+disqualify their own cross-half line**, where Run 21 had three, two of them
+the same classes: `bcastmid` at 1.0106, `reshape1` at 0.9900, `window`
+at 1.0082, `scaled` at 0.9911 and `runs` at 1.0114 move `list` past the 0.7%
+bar, so their lines say so and are not read for the compiler --- and the main
+set, at 0.81%, is past it too for the first time in three runs.
 
 First, one table over all of them, so that an inversion is visible without
 reading every class's table. Every figure in it is transcribed from a class's
