@@ -825,7 +825,7 @@ rather than a slot in the next run, observed again:
   and `run23-spot` is `probe-ds-on-g912` --- so the run's MAIN SET is that probe
   run again on the same two binaries at the same default budget, and what
   the run adds to it is the nine classes, the gate, the A/A floors, the alone
-  legs and the counted work, none of which the probe had. Five questions, each
+  legs and the counted work, none of which the probe had. Six questions, each
   with a prediction and what kills it. Every figure below is re-derived here
   from `probe-ds-off-main.json` and `probe-ds-on-main.json`, whose own floors
   are **1.20%** and **2.19%**; each is the DEAD-SPOT half over the basis,
@@ -893,7 +893,36 @@ rather than a slot in the next run, observed again:
   arms' counts equal between the halves. Killed by a count that moved, which
   would make the movement codegen rather than placement --- and the twins
   are the reading that says whether a placement term belongs to the arm
-  or to the slot, a base and its twin sitting in different slots.
+  or to the slot, a base and its twin sitting in different slots. (6)
+  *No verdict of Run 22's is re-decided by the switch --- and the write-up NAMES
+  any that is.* Run 22's five were every one decided on the max-skip form,
+  and this pair moves where every pad sits, so an ordering between two arms
+  that carry pads differently can move with it. **HOW FAR THE SWITCH MOVES
+  ANYTHING IS THIS RUN'S TO DETERMINE AND NOT TASK 6'S**: that probe read
+  the main set on one evening, whether its magnitudes reproduce is registration
+  1's own question, and whether they reach a class is registration 3's ---
+  so predicting a verdict by rescaling it with a probe ratio would assume both.
+  What is registered instead is which verdicts are within REACH, taken from Run
+  22's OWN published margins and floors, which are settled: (1) wants `slice`
+  to lose **6.3%**, its 1.0344 against a kill at 1.10; (2) wants `u4` to gain
+  only **0.9%** to be ahead past the `runs` floor, which makes it the least
+  protected verdict of the five, where `short` wants 5.0% and `lean` 7.8%; (3)
+  wants the dispatch to gain **3.2%** to come inside its floor; (4) is out
+  of reach of any layout term, its ratios being 0.0064 to 0.0197 where
+  the one-block test fires and the firing itself structural; (5) wants `-down`
+  to gain **12.5%** on `-u2` on `scaled`, whose 0.8522 is the weakest of the ten
+  populations `-u2` led and whose floor is **4.14%**. **Which of
+  those the switch can plausibly spend is what the pads say, and that
+  is a direction and not a size**: (3)'s two arms both carry a pad, so little
+  should separate them; (2)'s `u4` carries none where `lib-stage2` does,
+  so it is expected to move AWAY from its kill rather than the 0.9% toward it;
+  and (5)'s two are the pair the pads separate most, which is why 12.5%
+  is the one reach here that looks payable. So the prediction is that four stand
+  and (5) loses `scaled`, splitting on two populations rather than one. Killed
+  by any of the other four coming out differently. **And whatever comes out,
+  the write-up names every Run 22 verdict that no longer holds
+  under the dead-spot form** --- including any this paragraph predicted would
+  and any it predicted would not.
 - `ANSWERED` **What Run 22 was built to answer, registered before it ran ---
   and what it answered.** The five registrations, their kill conditions
   and their verdicts are [in Run 22's own
