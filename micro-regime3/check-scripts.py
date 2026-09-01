@@ -1607,6 +1607,89 @@ go:
 """
 
 
+# The dead-spot form's three shapes, each with a known answer worked by
+# hand from the instruction sizes -- a case is a control only when its
+# expected directive was derived without the code under test. A head
+# reached by fall-through with a `jmp` before it: the loop is 10 B (4, 4,
+# 2) at 4 B (1, 3) past the jump, so it straddles for the pad point at
+# 51..59 and the pad those need is 5..13. A head behind an info table: the
+# loop is 9 B (4, 3, 2) at 16 B past an `.align 8`, so it straddles when
+# the align lands at 40, the pad point at 33..40, needing 24..31. A rotated
+# pair, both loops 47 B (42 + 3 + 2; 3 + 2 + 40 + 2) and 42 B apart: the
+# inner is resident for the pad point at 0..17 and the outer, which
+# `overlapped` names, at 22..39, so the inner wins at residue 0 and the
+# directive fires for 18..63, a pad of 1..46.
+ASM_HEAD_AFTER_FALLTHROUGH = """\
+\t.text
+\t.globl\tgo
+go:
+\tmovq\t%rdi, %rax
+\tjmp\t.Lgo
+\tnop
+.Lgo:
+\ttestq\t%rax, %rax
+.Lloop:
+\taddq\t$1, %rax
+\tcmpq\t$10, %rax
+\tjne\t.Lloop
+\tret
+"""
+
+ASM_HEAD_BEHIND_TABLE = """\
+\t.text
+\t.align 8
+\t.quad\t1
+\t.long\t30
+\t.long\t0
+.Lr_info:
+.Lr:
+\tmovq\t8(%rbp), %r14
+\ttestb\t$7, %bl
+\tjne\t.Lr
+\tret
+"""
+
+ASM_ROTATED_PAIR = """\
+\t.text
+.Lstart:
+\tjmp\t*(%rbp)
+.Lin:
+\t.skip\t42, 0x90
+.Lout:
+\tcmpq\t%r8, %rsi
+\tjl\t.Lin
+\t.skip\t40, 0x90
+\tjmp\t.Lout
+"""
+
+
+def asm_fallthrough(tmp):
+    return asm(tmp, ASM_HEAD_AFTER_FALLTHROUGH)
+
+
+def asm_table(tmp):
+    return asm(tmp, ASM_HEAD_BEHIND_TABLE)
+
+
+def asm_pair(tmp):
+    return asm(tmp, ASM_ROTATED_PAIR)
+
+
+def emitted(subs):
+    """Where the shim's directives landed, as one line per place worth
+    asking about: after each unconditional jump, after `.text`, before
+    each `.L` label. The verdict then names a place and what is there."""
+    lines = open(subs['asm']).read().split('\n')
+    out = []
+    for k, l in enumerate(lines[:-1]):
+        s, nxt = l.strip(), lines[k + 1].strip()
+        if s.startswith('jmp') or s == '.text':
+            out.append('after %s: %s' % (s, nxt))
+        if nxt.startswith('.L') and nxt.endswith(':'):
+            out.append('before %s %s' % (nxt, s))
+    return '\n'.join(out)
+
+
 def asm(tmp, text=ASM_HEAD_AFTER_RET):
     """A synthetic assembly, and a stand-in for the real assembler.
 
@@ -4531,6 +4614,52 @@ CASES = [
          argv=['-c', '-o', '{obj}', '{asm}'],
          ok=V(has=['objdump -t', 'not the max-skip form']),
          bug=V(exit=0, hasnt=['not the max-skip form'])),
+
+    # The dead-spot form plans from a probe, so these four hand the shim
+    # the real assembler rather than the stand-in; a machine without
+    # /usr/bin/gcc fails them loudly, which is the right verdict. The
+    # expected directives are worked by hand above the fixtures.
+    case('deadspot-pads-after-the-jump', 'align-as.py', None,
+         'the pad went in front of the head, on the fall-through path',
+         plant=asm_fallthrough, probe=emitted,
+         env={'REAL_AS': '/usr/bin/gcc', 'LOOP_DEADSPOT': '1',
+              'ALIGN_AS_VERBOSE': '1'},
+         argv=['-c', '-o', '{obj}', '{asm}'],
+         ok=V(exit=0, has=['after jmp\t.Lgo: .p2align\t6, 0x90, 13',
+                           'before .Lloop: testq\t%rax, %rax',
+                           '0 short loop(s) straddling (0 planned)'])),
+
+    case('deadspot-keeps-the-table-with-its-label', 'align-as.py', None,
+         'a head behind an info table was left where it fell',
+         plant=asm_table, probe=emitted,
+         env={'REAL_AS': '/usr/bin/gcc', 'LOOP_DEADSPOT': '1',
+              'ALIGN_AS_VERBOSE': '1'},
+         argv=['-c', '-o', '{obj}', '{asm}'],
+         ok=V(exit=0, has=['after .text: .p2align\t6, 0x90, 31',
+                           'before .Lr_info: .long\t0',
+                           'before .Lr: .Lr_info:',
+                           '1 head(s) in 1 group(s)'])),
+
+    case('deadspot-outer-of-a-rotated-pair-yields', 'align-as.py', None,
+         'the outer loop took the line and the inner one straddled',
+         plant=asm_pair, probe=emitted,
+         env={'REAL_AS': '/usr/bin/gcc', 'LOOP_DEADSPOT': '1',
+              'ALIGN_AS_VERBOSE': '1'},
+         argv=['-c', '-o', '{obj}', '{asm}'],
+         # The line before `.Lin` is the directive itself: a `.skip rho`
+         # would stand there had the outer loop won the residue.
+         ok=V(exit=0, has=['after jmp\t*(%rbp): .p2align\t6, 0x90, 46',
+                           'before .Lin: .p2align\t6, 0x90, 46',
+                           '1 short loop(s) straddling (1 planned)'])),
+
+    case('deadspot-off-is-the-at-head-form', 'align-as.py', None,
+         'the switch off changed what the max-skip form emits',
+         plant=asm_fallthrough, probe=emitted,
+         env={'REAL_AS': '/usr/bin/gcc', 'LOOP_MAXSKIP': '1'},
+         argv=['-c', '-o', '{obj}', '{asm}'],
+         ok=V(exit=0, has=['after jmp\t.Lgo: nop',
+                           'before .Lloop: .p2align\t6, 0x90, 9'],
+              hasnt=['dead-spot'])),
 
     # ---- loop-offsets.py -----------------------------------------------
     case('objdump-status', 'loop-offsets.py', '0a1bc60',

@@ -28,6 +28,14 @@ the old object code and reports nothing (README.md, same section).
                would sit on that other loop's back-edge path and be paid at
                its trip count. Ordinary nesting is untouched. A basis
                change, so off by default, as LOOP_MAXSKIP is
+  LOOP_DEADSPOT  put every pad in a dead spot -- right after an
+               unconditional jump, or at the module's text start -- rather
+               than in front of the head, so that no pad is ever executed
+               and nothing comes between an info table and its label. Every
+               head is placed; the guard, the look-through and the
+               containment test as a skip do not apply, the last serving
+               as a priority instead. Its own section below. A basis
+               change, so off by default
   PAD_BYTES    dead bytes appended after the first module's text, default 0
   REAL_AS      the real assembler, default /usr/bin/gcc
   ALIGN_AS_VERBOSE  report the budgets emitted, the heads fallen back on,
@@ -110,10 +118,56 @@ fitting loop onto a boundary, where the unconditional form relocates
 nothing -- which is why Run 11 pairs the two rather than replacing one with
 the other.
 
+**Every pad in a dead spot, `LOOP_DEADSPOT=1`** (2026-08-31). A pad in front
+of a head is executed by whatever falls through into it, and two shapes GHC
+emits make that dear. An inner loop is rotated so that its bottom test is
+where the enclosing loop enters, which puts the outer head's pad on the
+inner loop's every iteration: `lib-stage2` on `alexnet-L1-55-c3-k11` counts
+19119938 instructions an iteration under the max-skip form against 18121686
+with no shim (`perf stat -e instructions:u`, `-n 100` minus `-n 50` over
+50). And a head that is a return point sits behind its info table, which
+the INSTR guard protects by leaving the head where it fell. A pad after an
+unconditional `jmp` instead -- the only way to the byte after it being a
+label, which comes after the pad -- costs nothing at run time and precedes
+any table, so the guard is not needed and every head is placed: 1233 of
+`Main.hs`'s heads at 0add4f4 against the guard's 563, among them 119 short
+loops behind a table -- the list walk's return point, whose
+already-evaluated branch `testb $7,%bl; jne` jumps straight back to it --
+93 of which straddle under the max-skip form and none of which
+`loop-offsets.py --survey` can see, `objdump` losing sync on the table
+before them.
+
+Heads with no dead spot between them move together, so a group gets one
+directive, at a dead spot before it: `.p2align 6, 0x90, m`, and a
+`.skip rho, 0x90` after it where the group wants the spot at a residue
+other than 0. `m` fires exactly when some head of the group would
+otherwise span a line it need not: the `.align 8` before each table
+between the spot and the heads is modelled for all 64 incoming residues,
+and the assembler counts the bytes, so relaxation cannot move a head off
+its residue -- a `.skip k` predicted from the probe's addresses did, on 458
+of 504 groups, a `jmp` across the pad growing from `rel8` to `rel32`. The
+cost has one order inside a group: a head `overlapped` names is the outer
+of a rotated pair and yields, its straddle being paid once per exit of the
+inner loop where the inner's would be paid per iteration. Measured on that
+assembly, against the max-skip form: 4 short loops straddling of 285
+against 94, no pad byte executed against 2281, `.text` up 18190 bytes
+against 6096. The four are the fills' rotated pairs -- `fillStage2`,
+`fillStage2Short`, `fbMutOdoVecdimsAddInLeafU2` and its `Down` twin, named
+off a `-g3` twin -- which no residue resolves, two loops of 51 and 55 bytes
+42 apart not fitting a line, and the inner one is the resident. `check` is
+green with its log byte-identical, and the counter reads the shim-free
+figure on the fills. Timed against the basis on 2026-09-01 (README's task
+6): every arm whose fill carried a pad reads faster, `fillStage2`'s users
+0.943 to 0.945 and the `u2` leaves 0.951 and 0.955, the arms whose fills
+carried none within the floor. Off by default for the reason the other
+switches are: every figure published through this shim was measured under
+the max-skip form, and moving the basis is a run's decision.
+
 Its defects are kept as cases in `./check-scripts.py`: the switch read for
-truth, the head after a zero-operand instruction, the pad's announcement and
-the empty `PAD_BYTES`. Add one there before fixing anything here, and the
-proof outlives the commit.
+truth, the head after a zero-operand instruction, the pad's announcement,
+the empty `PAD_BYTES`, and for the dead-spot form the pad's place, the
+table kept with its label and the rotated pair's order. Add one there
+before fixing anything here, and the proof outlives the commit.
 
 The published copy of this is in horde-ad's
 `docs/ghc-issue-no-loop-alignment.md`, filed as
@@ -230,6 +284,7 @@ suite's own `check` distinguishes a working build from a broken one, so a
 green `check` here means something -- and it is the gate for the max-skip form
 too, offsets alone being what a mispadded binary still gets right.
 """
+import bisect
 import collections
 import os
 import re
@@ -279,6 +334,7 @@ ALIGN = str(number('LOOP_ALIGN', 6))
 MAXSKIP = switch('LOOP_MAXSKIP')
 LOOKTHROUGH = switch('LOOP_LOOKTHROUGH')
 NOOVERLAP = switch('LOOP_NOOVERLAP')
+DEADSPOT = switch('LOOP_DEADSPOT')
 VERBOSE = switch('ALIGN_AS_VERBOSE')
 PAD = number('PAD_BYTES', 0)
 BOUND = 1 << int(ALIGN)
@@ -313,7 +369,11 @@ JUMP = re.compile(r'^j\w*\s+(\.L\w+)\b')
 # unpacked sources under `hlint .` once.
 INSTR = re.compile(r'^[a-z][a-z0-9.]*(?:\s|$)')
 BYTELESS = re.compile(r'^(?:[\w.$]+:|\.(?:loc|file|cfi_\w+)\b.*)$')  # no bytes
+UNCOND = re.compile(r'^(?:jmp|ret|ud2|hlt)\b')      # nothing falls through
+ALIGNDIR = re.compile(r'^\.(p2)?align\s+(\d+)')
 PROBE = 'apLoop'          # apLoopHead_<line>, apLoopEnd_<line>_<k>_<n>
+DS = 'dsProbe'            # dsProbe{H,A,B,D,Q}_<line>, dsProbeE_<head>_<line>
+NEAREST = 16              # dead spots tried per group, nearest first
 
 
 def heads_of(src):
@@ -331,14 +391,14 @@ def heads_of(src):
     return heads
 
 
-def spans_of(src):
-    """head label -> (its line, its furthest backward jump's line).
+def edges_of(src):
+    """head label -> (its line, the line of every jump back to it).
 
     `heads_of` answers WHICH labels are heads and throws away where, which
-    is all the alignment needs and not enough to say whether a pad at one
-    head is paid by another loop.
+    is all the at-head alignment needs and not enough to say whether a pad
+    at one head is paid by another loop, nor to measure the loops.
     """
-    seen, back = {}, {}
+    seen, back = {}, collections.defaultdict(list)
     for i, line in enumerate(src):
         st = line.strip()
         m = LABEL.match(st)
@@ -347,9 +407,13 @@ def spans_of(src):
             continue
         m = JUMP.match(st)
         if m and m.group(1) in seen:
-            lbl = m.group(1)
-            back[lbl] = max(back.get(lbl, i), i)
-    return {h: (seen[h], j) for h, j in back.items()}
+            back[m.group(1)].append(i)
+    return {h: (seen[h], js) for h, js in back.items()}
+
+
+def spans_of(src):
+    """head label -> (its line, its furthest backward jump's line)."""
+    return {h: (i, max(js)) for h, (i, js) in edges_of(src).items()}
 
 
 def overlapped(spans):
@@ -478,42 +542,204 @@ def lengths(src, st, args, path):
     """
     if not MAXSKIP:
         return {}
+    at = dict(st)
+    back = {lab: i for i, lab in st}
+    ends = collections.defaultdict(list)
+    for j, line in enumerate(src):
+        m = JUMP.match(line.strip())
+        if m and m.group(1) in back:
+            ends[j].append(m.group(1))
+    out = []
+    for i, line in enumerate(src):
+        if i in at:
+            out.append(f'{PROBE}Head_{i}:')
+        out.append(line)
+        for k, lab in enumerate(ends.get(i, ())):
+            out.append(f'{PROBE}End_{back[lab]}_{i}_{k}:')
+    sym = probe(out, args, path, PROBE)
+    if sym is None:
+        return no_lengths(path, 'the probe copy did not assemble')
+    if not sym:
+        return no_lengths(path, 'the probe object carries no probe symbol')
+    span = {}
+    for name, a in sym.items():
+        if not name.startswith(f'{PROBE}End_'):
+            continue
+        i = name.split('_')[1]
+        h = sym.get(f'{PROBE}Head_{i}')
+        if h is None or a <= h:      # a jump that does not run backwards
+            continue
+        if i not in span or a - h < span[i]:
+            span[i] = a - h
+    return {lab: span[str(i)] for i, lab in st if str(i) in span}
+
+
+def probe(text, args, path, want):
+    """Assemble a probe copy and read its symbols: None if it did not
+    assemble, {} if it carries none with the prefix asked for."""
     with tempfile.TemporaryDirectory(prefix='align-as-') as tmp:
         ps, po = os.path.join(tmp, 'probe.s'), os.path.join(tmp, 'probe.o')
-        at = dict(st)
-        back = {lab: i for i, lab in st}
-        ends = collections.defaultdict(list)
-        for j, line in enumerate(src):
-            m = JUMP.match(line.strip())
-            if m and m.group(1) in back:
-                ends[j].append(m.group(1))
-        out = []
-        for i, line in enumerate(src):
-            if i in at:
-                out.append(f'{PROBE}Head_{i}:')
-            out.append(line)
-            for k, lab in enumerate(ends.get(i, ())):
-                out.append(f'{PROBE}End_{back[lab]}_{i}_{k}:')
         with open(ps, 'w') as f:
-            f.write('\n'.join(out))
+            f.write('\n'.join(text))
         if subprocess.call(probe_cmd(args, path, ps, po),
                            stdout=subprocess.DEVNULL,
                            stderr=subprocess.DEVNULL):
-            return no_lengths(path, 'the probe copy did not assemble')
-        sym = symbols(po, PROBE)
-        if not sym:
-            return no_lengths(path, 'the probe object carries no probe symbol')
-        span = {}
-        for name, a in sym.items():
-            if not name.startswith(f'{PROBE}End_'):
-                continue
-            i = name.split('_')[1]
-            h = sym.get(f'{PROBE}Head_{i}')
-            if h is None or a <= h:      # a jump that does not run backwards
-                continue
-            if i not in span or a - h < span[i]:
-                span[i] = a - h
-        return {lab: span[str(i)] for i, lab in st if str(i) in span}
+            return None
+        return symbols(po, want)
+
+
+def extra(p, ln):
+    """Lines a loop of length `ln` at offset `p` spans beyond its least."""
+    p %= BOUND
+    return (p + ln - 1) // BOUND - (ln - 1) // BOUND
+
+
+def dead_spots(src):
+    """-> (lines a pad may follow, {align line: its bytes}), `.text` only.
+
+    A pad after an unconditional transfer is reached by no path: the only
+    way to the byte after it is a label, which comes after the pad. The
+    first `.section .text` line is a spot too, so that a head before any
+    jump has one. An `.align` in `.data` moves no code, hence the section
+    tracking; GHC's are `.align 8` before each info table, and they are
+    what the planner has to see between a spot and a head.
+    """
+    intext, dead, aligns = False, [], {}
+    for i, line in enumerate(src):
+        st = line.strip()
+        if st.startswith('.section') or st == '.text':
+            intext = st.startswith('.section .text') or st == '.text'
+            if intext and not dead:
+                dead.append(i)
+            continue
+        if not intext:
+            continue
+        if UNCOND.match(st):
+            dead.append(i)
+        m = ALIGNDIR.match(st)
+        if m:
+            n = 1 << int(m.group(2)) if m.group(1) else int(m.group(2))
+            if n > 1:
+                aligns[i] = n
+    return dead, aligns
+
+
+def marked(src, edges, dead, aligns, ins):
+    """`src` with `ins` applied and a byte-free symbol at every place the
+    planner reasons about: each head, each back-edge's end, each dead spot
+    on both sides of its pad, each `.align` on both sides."""
+    head_at = {i: h for h, (i, _) in edges.items()}
+    end_at = collections.defaultdict(list)
+    for h, (i, js) in edges.items():
+        for j in js:
+            end_at[j].append(i)
+    deadset = set(dead)
+    out = []
+    for i, line in enumerate(src):
+        if i in head_at:
+            out.append(f'{DS}H_{i}:')
+        if i in aligns:
+            out.append(f'{DS}A_{i}:')
+        out.append(line)
+        if i in aligns:
+            out.append(f'{DS}B_{i}:')
+        for hi in end_at.get(i, ()):
+            out.append(f'{DS}E_{hi}_{i}:')
+        if i in deadset:
+            out.append(f'{DS}D_{i}:')
+            out += ins.get(i, [])
+            out.append(f'{DS}Q_{i}:')
+    return out
+
+
+def plan_dead(src, args, path):
+    """-> ({line: directives to follow it}, groups, short loops left
+    straddling), or None when the probe did not assemble.
+
+    Each group of heads with no dead spot between them gets one directive
+    at one of the spots before it, the nearest NEAREST tried: for every
+    residue `p` the spot could be at, and every `rho` the group might want
+    it moved to, the group's cost is the lines its loops would span beyond
+    their least -- short loops first, the outer of a rotated pair next, long
+    loops last -- and `m` is the largest pad that a `p` costing more than
+    `rho` does would need, so the directive fires for exactly those. The
+    `.align` between a spot and a head is applied to `p` as the assembler
+    will apply it, so no rigid-distance assumption is made across one.
+    """
+    edges = edges_of(src)
+    dead, aligns = dead_spots(src)
+    sym = probe(marked(src, edges, dead, aligns, {}), args, path, DS)
+    if not sym:
+        return None
+    L = {}
+    for h, (i, js) in edges.items():
+        a = sym[f'{DS}H_{i}']
+        ends = [sym[f'{DS}E_{i}_{j}'] - a for j in js if sym[f'{DS}E_{i}_{j}'] > a]
+        if ends:
+            L[h] = min(ends)
+    outer = overlapped(spans_of(src))
+    align_lines = sorted(aligns)
+
+    def residue(d, i, p):
+        """Head line i's offset mod BOUND when the pad after d ends at p."""
+        pos, cur = p, sym[f'{DS}Q_{d}']
+        for a in align_lines[bisect.bisect_left(align_lines, d):
+                             bisect.bisect_left(align_lines, i)]:
+            pos = (pos + sym[f'{DS}A_{a}'] - cur) % BOUND
+            pos = -(-pos // aligns[a]) * aligns[a] % BOUND
+            cur = sym[f'{DS}B_{a}']
+        return (pos + sym[f'{DS}H_{i}'] - cur) % BOUND
+
+    groups, last = [], -1
+    for h in sorted(L, key=lambda h: edges[h][0]):
+        i = edges[h][0]
+        cands = dead[bisect.bisect_right(dead, last):bisect.bisect_left(dead, i)]
+        if cands or not groups:
+            groups.append((cands[-NEAREST:], [h]))
+        else:
+            groups[-1][1].append(h)
+        last = i
+    ins, unresolved = {}, 0
+    for cands, hs in groups:
+        if not cands:
+            continue
+        hl = [(edges[h][0], L[h], h in outer) for h in hs]
+
+        def cost(d, p):
+            c = [0, 0, 0]
+            for i, ln, out in hl:
+                c[2 if ln > BOUND else 1 if out else 0] += extra(residue(d, i, p), ln)
+            return tuple(c)
+
+        best = None
+        for d in reversed(cands):
+            costs = [cost(d, p) for p in range(BOUND)]
+            for rho in range(BOUND):
+                c0 = costs[rho]
+                m = max(((BOUND - p) % BOUND for p in range(BOUND)
+                         if costs[(p + rho) % BOUND] > c0), default=-1)
+                if best is None or (c0, rho, m) < best[0]:
+                    best = ((c0, rho, m), d)
+        (c0, rho, m), d = best
+        unresolved += c0[0] + c0[1]
+        if m < 0:                        # no residue costs more than rho's
+            continue
+        ins[d] = [f'\t.p2align\t{ALIGN}, 0x90' + (f', {m}' if m < BOUND - 1 else '')]
+        if rho:
+            ins[d].append(f'\t.skip\t{rho}, 0x90')
+    if VERBOSE:
+        # The plan checked against the assembler, one more probe: what the
+        # symbol table of the padded copy says every head's residue is.
+        sym2 = probe(marked(src, edges, dead, aligns, ins), args, path, DS)
+        if sym2:
+            strad = sum(1 for h in L if L[h] <= BOUND
+                        and extra(sym2[f'{DS}H_{edges[h][0]}'], L[h]))
+            padb = sum(sym2[f'{DS}Q_{d}'] - sym2[f'{DS}D_{d}'] for d in dead)
+            print(f'align-as: {path}: {len(L)} head(s) in {len(groups)} group(s),'
+                  f' {len(ins)} dead-spot directive(s), {padb} pad byte(s);'
+                  f' verified: {strad} short loop(s) straddling'
+                  f' ({unresolved} planned)', file=sys.stderr)
+    return ins, len(groups), unresolved
 
 
 def pad_note(path):
@@ -542,6 +768,26 @@ def rewrite(path, args):
     """
     with open(path) as f:
         src = f.read().split('\n')
+
+    if DEADSPOT:
+        got = plan_dead(src, args, path)
+        if got is None:
+            print(f'align-as: {path}: the probe copy did not assemble, so no'
+                  ' head is placed -- this module is not the dead-spot form',
+                  file=sys.stderr)
+            ins, n = {}, 0
+        else:
+            ins, n, _ = got
+        out = []
+        for i, line in enumerate(src):
+            out.append(line)
+            out += ins.get(i, [])
+        if PAD:
+            out += ['\t.section .text', '\t.p2align 3', f'\t.space {PAD}, 0x90', '']
+            pad_note(path)
+        with open(path, 'w') as f:
+            f.write('\n'.join(out))
+        return n, 0, 0
 
     heads = heads_of(src)
     # Off by default and a switch for the reason LOOP_MAXSKIP is one: every
@@ -603,15 +849,20 @@ def main():
             except Exception as e:           # never break a build over this
                 print(f'align-as: {a}: {e}', file=sys.stderr)
     if VERBOSE:
-        if MAXSKIP:
+        if DEADSPOT:
+            print(f'align-as: {n} group(s) of loop heads given a dead-spot'
+                  ' directive', file=sys.stderr)
+        elif MAXSKIP:
             print(f'align-as: {n} loop head(s) given a max-skip budget, {back} '
                   f'without a measured length and so aligned unconditionally',
                   file=sys.stderr)
         else:
             print(f'align-as: aligned {back} loop head(s) unconditionally',
                   file=sys.stderr)
-        print(f'align-as: {dropped} head(s) left alone, the guard finding a '
-              f'table rather than an instruction before them', file=sys.stderr)
+        if not DEADSPOT:
+            print(f'align-as: {dropped} head(s) left alone, the guard finding'
+                  f' a table rather than an instruction before them',
+                  file=sys.stderr)
     return subprocess.call([REAL] + args)
 
 
