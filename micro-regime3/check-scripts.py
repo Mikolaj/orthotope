@@ -520,6 +520,20 @@ def readme_with_trailing_buried_action(tmp):
                    '    echo hello\n')
 
 
+def readme_with_a_pointer_and_a_buried_action(tmp):
+    """A trailing block holding one `why:` pointer and one real burial.
+
+    The pointer must be passed over and the action beside it reported, so
+    the exemption is shown to be a hole of exactly one shape rather than
+    an off switch for the sweep.
+    """
+    return write(os.path.join(tmp, 'P.md'), open(README).read()
+                 + '\n## A trailing checklist\n\n'
+                   "    #      why: --para 'Then confirm the regime'\n"
+                   '    # then run ./read-run.py --survey to see it\n'
+                   '    echo hello\n')
+
+
 def unwrapped_readme_edit(tmp, old, new, *more):
     """`edited_readme`, but against the README's UNWRAPPED form.
 
@@ -2434,6 +2448,23 @@ CASES = [
          # replay against, so the older reader rejects the argv rather
          # than reproducing anything. The run-file split, 2026-08-25.
          ),
+
+    case('why-pointer-is-not-a-buried-action', 'read-run.py', None,
+         'twenty of this sweep\'s twenty-four hits were pointer lines',
+         # A `why:` pointer names the paragraph behind its step, to be
+         # fetched when the step surprises you. It is deliberately a
+         # comment and deliberately not a line of the sequence, which is
+         # the one thing this sweep asks a hit to become -- so every one
+         # of them was an un-actionable hit, and twenty-eight of them
+         # would have taught a reader to skip the worklist. Measured
+         # 2026-09-01, the day the pointers landed: 24 hits before the
+         # exemption and 4 after. The action beside the pointer in this
+         # fixture is what keeps the exemption from being an off switch.
+         plant=lambda t: {
+             'readme': readme_with_a_pointer_and_a_buried_action(t)},
+         argv=['--check-doc', '--worklists', '--readme', '{readme}'],
+         ok=V(has=['./read-run.py --survey'],
+              hasnt=["why: --para 'Then confirm the regime'"])),
 
     case('buried-action-at-eof', 'read-run.py', None,
          'the last indented block of a document was never swept',

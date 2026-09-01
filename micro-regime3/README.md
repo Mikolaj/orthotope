@@ -5089,7 +5089,7 @@ and never as a chronology.
     #      from step 2 and everything below reads them. A wrong OTHER stops
     #      run-major.sh and run-gate.sh at a missing binary; in
     #      smoke-sweep.sh it sweeps the wrong half and looks clean
-    #      why: --para 'Name the artifacts by half'
+    #      why: --para 'Which two halves a pair has'
     md5sum $R-<basis> $R-<other>          # 3. the note's fill-in block, read
     git log -1 --format=%h -- :/micro-regime3/Main.hs   #    back: the two
     git log -1 --format=%h -- :/micro-regime3/align-as.py  #    md5s, the
@@ -5151,7 +5151,7 @@ and never as a chronology.
     #      cannot be told from one nothing searched. Get the checkout
     #      mounted and rerun, or run with it blocked and say so in the
     #      write-up -- the one thing not available is reading it as a pass
-    #      why: --para 'lines ARE'
+    #      why: --para 'What the `note:` lines ARE'
     ./check-scripts.py --families         # 8b. the defect families, over
     #      the source of every Python program here -- the one of the
     #      three that can name a site nobody has met
@@ -5393,7 +5393,7 @@ throughout:
     #      and its benchmarking lines are counted before any number is read
     #      report each long process as it finishes: exit code and bench
     #      count, not folded into a later summary
-    #      why: --para 'is that sequence as a driver'
+    #      why: --para 'run-major.sh is that sequence'
     #  18. read ahead while the sequence runs, which costs no machine
     #      time: the last run's own file, which shapes the whole write-up
     #      and is worth little read after it has begun, and the open list

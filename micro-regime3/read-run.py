@@ -4808,6 +4808,15 @@ def buried_actions(lines):
             for j, l in enumerate(block):
                 if not l.lstrip().startswith('#'):
                     continue
+                # A `why:` POINTER IS NOT A BURIED ACTION. It names the
+                # paragraph behind its step, to be fetched when the step
+                # surprises you -- so it is deliberately a comment and
+                # deliberately not a line of the sequence, which is the
+                # one thing this sweep asks a hit to become. Added with
+                # the pointers on 2026-09-01, before twenty-eight of them
+                # could teach a reader to skip this worklist.
+                if "why: --para '" in l:
+                    continue
                 for m in BURIED_RE.finditer(l):
                     if m.group(0) not in cmds:
                         out.append((first + j, l.strip()))
