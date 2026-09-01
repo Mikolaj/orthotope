@@ -2,6 +2,15 @@
 # The pre-run list's steps 4 to 10, in one call.
 #
 #     ./preflight.sh run19            # reads BASIS/OTHER as the others do
+#     ./preflight.sh run19 --note     # 10c and 8 alone, seconds
+#
+# 10c runs THIRD rather than last, ahead of every expensive step: it and 8
+# are the two that read what the preparation WROTE, and a defect in a note
+# is the likeliest thing a first pass finds. Read at minute eight it costs the
+# whole pass again; read at second five it costs nothing. `--note` is the
+# other half of that -- the same two steps alone, wanting no binary, for a
+# note or a registration edited after a full pass. It is NOT a preflight
+# and says so on every run.
 #
 # Its defaults moved to Run 23's halves at pre-run step 2b on 2026-09-01,
 # with run-major.sh's, run-gate.sh's, smoke-sweep.sh's and
@@ -45,6 +54,11 @@
 # breaks and not the stubs. On the real run17 pair it reads ten PASS and
 # exits 0, reproducing every figure the Run 17 preparation read by hand:
 # 1128 benches, byte-identical `check`, scan/mut 1.000, --library 25.3%.
+# `--note`'s own, 2026-09-01, on two stub notes made and removed in one
+# call: one naming an absent `probe-` path reads 10c FAIL and exits 1, one
+# naming a present path reads 10c PASS and exits 0, and step 8 PASSes under
+# both -- which is the control saying the FAIL was the stub and not the
+# mode.
 # Step 10's zero-fill FAIL, 2026-08-23: no stub reaches it through this
 # script, a stub answering `check` being no ELF, so its awk was fed
 # `./loop-offsets.py /bin/true run14-lookrts` -- `0 self-loops` for the
@@ -64,20 +78,32 @@ set -u
 cd "$(dirname "$0")" || exit 1
 
 if [ $# -lt 1 ]; then
-  echo "usage: ./preflight.sh RUN      # e.g. run17"
+  echo "usage: ./preflight.sh RUN [--note]   # e.g. run17"
+  echo "  --note   steps 10c and 8 alone -- the two that read what the"
+  echo "           preparation WROTE, in seconds and with no binary needed"
   exit 2
 fi
 R=$1
+NOTE_ONLY=0
+shift
+for a in "$@"; do
+  case $a in
+    --note) NOTE_ONLY=1 ;;
+    *) echo "unknown argument '$a' -- ./preflight.sh RUN [--note]"; exit 2 ;;
+  esac
+done
 OTHER=${OTHER:-spot}
 BASIS=${BASIS:-g912}
 if [ "$OTHER" = "$BASIS" ]; then
   echo "!! OTHER and BASIS are both '$BASIS' -- a pair is two halves"
   exit 2
 fi
-for h in $OTHER $BASIS; do
-  [ -x "./$R-$h" ] || { echo "missing ./$R-$h -- $R-pair.txt has the recipe"
-                        exit 1; }
-done
+if [ "$NOTE_ONLY" = 0 ]; then
+  for h in $OTHER $BASIS; do
+    [ -x "./$R-$h" ] || { echo "missing ./$R-$h -- $R-pair.txt has the recipe"
+                          exit 1; }
+  done
+fi
 
 # Scratch OUTSIDE the run's own namespace: a $R-*.json or $R-*.log here is
 # read by run-major.sh as a previous attempt and by read-all.sh as one of
@@ -91,6 +117,73 @@ say () {  # say STEP VERDICT DETAIL
   printf '  %-4s %-4s %s\n' "$1" "$2" "$3"
   [ "$2" = PASS ] || BAD=$((BAD + 1))
 }
+
+step_8 () {
+  ./read-run.py --check-doc --quiet > "$TMP/doc" 2>&1 \
+    && say 8 PASS "anchors, paths, widths, sweeps" \
+    || say 8 FAIL "--check-doc: $(grep -m1 FAIL "$TMP/doc")"
+}
+
+# THE TWO STEPS THAT READ WHAT THE PREPARATION WROTE are functions rather
+# than lines in the flow, because they are the two it re-runs. 8 reads the
+# documents and 10c the note, both in seconds, and neither wants a binary
+# -- so `--note` is them alone, and a note or a registration edited after a
+# full pass is re-checked without paying again for 8c and 8d, which read
+# this directory's Python source and its run JSONs and cannot have moved.
+# Run 23's preparation paid two whole passes to re-test 10c, 2026-09-01.
+  step_10c () {  # 10c. AND WHAT THE NOTE POINTS AT, which nothing else reads. The run
+  # file must OUTLIVE its artifacts and --check-doc now refuses one that
+  # names them; the pair note is the opposite -- it is MEANT to go with the
+  # pair -- so the rule it needs is the weaker one, that anything it cites
+  # outlives IT. That matters because the note is the entry point a later
+  # session re-enters a prepared run through, and a preparation may be days
+  # old, this chapter says so outright. A note pointing at a directory somebody
+  # tidied is a stale entry point, and the session that follows it finds out
+  # at the moment it is trusting the note most.
+  #
+  # Paths are taken from backticked and bare mentions of this directory's own
+  # artifact names. Anything outside the run's and probe's namespaces is not
+  # a path this can check and is left alone.
+  #
+  # A probe name may not END the captured token on `.` or `-`, which is what
+  # the last character class is for: `.` is in the body class, so a name at
+  # the end of a SENTENCE used to be captured with the full stop attached and
+  # reported gone, and a `probe-ds-{off,on}` brace form was captured as
+  # `probe-ds-`. Both are ordinary in a note's prose and both FAILed a note
+  # whose every path was present -- Run 23's preparation met them in one
+  # call, 2026-09-01. Non-vacuity of the narrowed form, taken that day on two
+  # fixtures: a note reading `reproduces probe-ds-on-g912.` FAILs under the
+  # old regex naming `probe-ds-on-g912.` and PASSes under this one, while a
+  # note naming `probe-nosuchthing-g912` FAILs under both -- so the arm that
+  # fires on an absent path is still reachable and still names it.
+  if [ -f "$R-pair.txt" ]; then
+    MISSING=$(grep -oE '(probe-[A-Za-z0-9._-]*[A-Za-z0-9_-]/?|'"$R"'-[A-Za-z0-9._-]+\.(json|log|txt))' \
+                "$R-pair.txt" | sort -u \
+              | while read -r q; do [ -e "${q%/}" ] || echo "$q"; done)
+    if [ -z "$MISSING" ]; then
+      say 10c PASS "every path $R-pair.txt names is still here"
+    else
+      say 10c FAIL "$R-pair.txt points at $(printf '%s\n' "$MISSING" | wc -l) \
+  path(s) that are gone: $(printf '%s ' $MISSING)"
+    fi
+  fi
+}
+if [ "$NOTE_ONLY" = 1 ]; then
+  echo "preflight for $R: the note and the documents alone"
+  echo
+  step_10c
+  step_8
+  echo
+  if [ "$BAD" -eq 0 ]; then
+    echo "the two steps that read what this half WROTE are clean. THIS IS NOT"
+    echo "A PREFLIGHT: 4 to 7, 8b to 8d, 9 and 10 did not run, so a pair is"
+    echo "not sound on this. Run ./preflight.sh $R whole before the gate."
+  else
+    echo "$BAD step(s) FAILED -- fix, then rerun this before the whole pass."
+  fi
+  exit $((BAD > 0))
+fi
+
 echo "preflight for $R: basis $BASIS, control $OTHER"
 echo
 
@@ -115,13 +208,13 @@ else
   say 6 FAIL "the halves ROSTER DIFFERENTLY -- one source built twice does not"
 fi
 
+step_10c
+
 ./read-run.py --lint > "$TMP/lint" 2>&1 \
   && say 7 PASS "roster and shape annotations" \
   || say 7 FAIL "--lint: $(grep -m1 FAIL "$TMP/lint")"
 
-./read-run.py --check-doc --quiet > "$TMP/doc" 2>&1 \
-  && say 8 PASS "anchors, paths, widths, sweeps" \
-  || say 8 FAIL "--check-doc: $(grep -m1 FAIL "$TMP/doc")"
+step_8
 
 ./check-scripts.py --families > "$TMP/fam" 2>&1 \
   && say 8b PASS "defect families over this directory's Python source" \
@@ -173,43 +266,6 @@ fi
 ./loop-offsets.py --library "$R-$BASIS" "$R-$OTHER" > "$TMP/lib" 2>&1 \
   && say 10 PASS "$(grep -m1 'same offset' "$TMP/lib" | sed 's/^ *//')" \
   || say 10 FAIL "--library refused: $(tail -1 "$TMP/lib")"
-
-# 10c. AND WHAT THE NOTE POINTS AT, which nothing else reads. The run
-# file must OUTLIVE its artifacts and --check-doc now refuses one that
-# names them; the pair note is the opposite -- it is MEANT to go with the
-# pair -- so the rule it needs is the weaker one, that anything it cites
-# outlives IT. That matters because the note is the entry point a later
-# session re-enters a prepared run through, and a preparation may be days
-# old, this chapter says so outright. A note pointing at a directory somebody
-# tidied is a stale entry point, and the session that follows it finds out
-# at the moment it is trusting the note most.
-#
-# Paths are taken from backticked and bare mentions of this directory's own
-# artifact names. Anything outside the run's and probe's namespaces is not
-# a path this can check and is left alone.
-#
-# A probe name may not END the captured token on `.` or `-`, which is what
-# the last character class is for: `.` is in the body class, so a name at
-# the end of a SENTENCE used to be captured with the full stop attached and
-# reported gone, and a `probe-ds-{off,on}` brace form was captured as
-# `probe-ds-`. Both are ordinary in a note's prose and both FAILed a note
-# whose every path was present -- Run 23's preparation met them in one
-# call, 2026-09-01. Non-vacuity of the narrowed form, taken that day on two
-# fixtures: a note reading `reproduces probe-ds-on-g912.` FAILs under the
-# old regex naming `probe-ds-on-g912.` and PASSes under this one, while a
-# note naming `probe-nosuchthing-g912` FAILs under both -- so the arm that
-# fires on an absent path is still reachable and still names it.
-if [ -f "$R-pair.txt" ]; then
-  MISSING=$(grep -oE '(probe-[A-Za-z0-9._-]*[A-Za-z0-9_-]/?|'"$R"'-[A-Za-z0-9._-]+\.(json|log|txt))' \
-              "$R-pair.txt" | sort -u \
-            | while read -r q; do [ -e "${q%/}" ] || echo "$q"; done)
-  if [ -z "$MISSING" ]; then
-    say 10c PASS "every path $R-pair.txt names is still here"
-  else
-    say 10c FAIL "$R-pair.txt points at $(printf '%s\n' "$MISSING" | wc -l) \
-path(s) that are gone: $(printf '%s ' $MISSING)"
-  fi
-fi
 
 echo
 if [ "$BAD" -eq 0 ]; then
