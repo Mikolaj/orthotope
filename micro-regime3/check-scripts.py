@@ -2701,6 +2701,44 @@ CASES = [
          argv=['{run}', '--compare', '{other}', '--counts', '{ca}', '{cb}'],
          ok=V(exit=0, has=['perf refused'], hasnt=['0.0000'])),
 
+    case('counts-alone-does-nothing', 'read-run.py', None,
+         'the counts files were read and the mode never ran',
+         # FOUND BY PROBE at Run 19's verification, on the mode that run
+         # had just added, and written after the fix rather than before
+         # it -- which is the wrong order this file asks for and is
+         # recorded rather than hidden. `--counts` names two files and is
+         # a reading OF `--compare`; given without one it fell past every
+         # arm of the dispatch to the default table, printed it, and
+         # exited 0. That is the unread-flag family exactly, and the
+         # sibling readings of --compare (--alloc, --chapter, --ci,
+         # --bridge) were all already guarded, so the mode was added
+         # beside four guards and joined none of them. It now joins both:
+         # the modifier roll call, and the one refusing two readings of
+         # --compare at once.
+         plant=lambda t: {
+             'run': synth_json(t, 'main', name='a.json'),
+             'ca': synth_counts(t, 'counts-a.txt'),
+             'cb': synth_counts(t, 'counts-b.txt')},
+         argv=['{run}', '--counts', '{ca}', '{cb}'],
+         ok=V(exit=2, has=['does nothing alone'])),
+
+    case('counts-arm-the-run-does-not-time', 'read-run.py', None,
+         'an arm in the counts and not in the run, silently folded in',
+         # The narrowing this whole file is written against, in the one
+         # place a second artifact meets a run: the counts are taken over
+         # whatever roster the binary held that day, so an arm that has
+         # since left the run is exactly what a stale pair of counts
+         # carries. Named and skipped, never quietly counted.
+         plant=lambda t: {
+             'run': synth_json(t, 'main', name='a.json'),
+             'other': synth_json(t, 'main', name='b.json'),
+             'ca': synth_counts(t, 'counts-a.txt',
+                                extra_arms=('zz-departed-arm',)),
+             'cb': synth_counts(t, 'counts-b.txt',
+                                extra_arms=('zz-departed-arm',))},
+         argv=['{run}', '--compare', '{other}', '--counts', '{ca}', '{cb}'],
+         ok=V(exit=0, has=['zz-departed-arm'])),
+
     # ---- --movers, the count a write-up takes by eye --------------------
     # No `fix`, so no `bug` and no --audit leg: the mode is younger than
     # every revision here. Both were written before it existed and BOTH
@@ -2790,44 +2828,6 @@ CASES = [
              'other': synth_json(t, 'main', name='b.json')},
          argv=['{run}', '--compare', '{other}', '--movers', '3'],
          ok=V(exit=0, has=['no arm moves past'])),
-
-    case('counts-alone-does-nothing', 'read-run.py', None,
-         'the counts files were read and the mode never ran',
-         # FOUND BY PROBE at Run 19's verification, on the mode that run
-         # had just added, and written after the fix rather than before
-         # it -- which is the wrong order this file asks for and is
-         # recorded rather than hidden. `--counts` names two files and is
-         # a reading OF `--compare`; given without one it fell past every
-         # arm of the dispatch to the default table, printed it, and
-         # exited 0. That is the unread-flag family exactly, and the
-         # sibling readings of --compare (--alloc, --chapter, --ci,
-         # --bridge) were all already guarded, so the mode was added
-         # beside four guards and joined none of them. It now joins both:
-         # the modifier roll call, and the one refusing two readings of
-         # --compare at once.
-         plant=lambda t: {
-             'run': synth_json(t, 'main', name='a.json'),
-             'ca': synth_counts(t, 'counts-a.txt'),
-             'cb': synth_counts(t, 'counts-b.txt')},
-         argv=['{run}', '--counts', '{ca}', '{cb}'],
-         ok=V(exit=2, has=['does nothing alone'])),
-
-    case('counts-arm-the-run-does-not-time', 'read-run.py', None,
-         'an arm in the counts and not in the run, silently folded in',
-         # The narrowing this whole file is written against, in the one
-         # place a second artifact meets a run: the counts are taken over
-         # whatever roster the binary held that day, so an arm that has
-         # since left the run is exactly what a stale pair of counts
-         # carries. Named and skipped, never quietly counted.
-         plant=lambda t: {
-             'run': synth_json(t, 'main', name='a.json'),
-             'other': synth_json(t, 'main', name='b.json'),
-             'ca': synth_counts(t, 'counts-a.txt',
-                                extra_arms=('zz-departed-arm',)),
-             'cb': synth_counts(t, 'counts-b.txt',
-                                extra_arms=('zz-departed-arm',))},
-         argv=['{run}', '--compare', '{other}', '--counts', '{ca}', '{cb}'],
-         ok=V(exit=0, has=['zz-departed-arm'])),
 
     case('deflation-ignores-the-saturated-legs', 'read-run.py', '9b45089',
          'both rider sets on disk and only the clean one read',
@@ -3214,51 +3214,6 @@ CASES = [
          argv=['{run}', '--deflation'],
          ok=V(exit=0, has=['not positive', 'have NO alone leg'],
               hasnt=['Traceback'])),
-
-    case('install-refuses-a-standing-cross-half-line',
-         'install-tables.sh', None,
-         'a cross-half line left standing under this run, at exit 0',
-         # An absent other-half JSON is correct for a run that recorded
-         # one half and is a WRONG `OTHER` otherwise, and the two look
-         # identical. A note naming both readings was the first answer,
-         # and it left the previous run's `Across the halves:` paragraph
-         # standing under this run's tables at exit 0 -- so where the
-         # block still carries one, the install refuses. 2026-09-01.
-         plant=lambda t: {'doc': edited_rundoc(t)},
-         shadow=dict(extra=lambda: whole_run(['lookrts'], prefix='zzxh',
-                                             classes=recorded_classes())),
-         env={'DOC': '{doc}', 'BASIS': 'lookrts', 'OTHER': 'nosuchhalf'},
-         argv=['zzxh'],
-         ok=V(exit=1, has=['REFUSED', 'left standing', 'OTHER=nosuchhalf'])),
-
-    case('install-notes-a-one-half-run', 'install-tables.sh', None,
-         'CONTROL: no other half and no paragraph to leave standing is a'
-         ' one-half run, noted and not refused',
-         plant=lambda t: {'doc': rundoc_without_across(t)},
-         shadow=dict(extra=lambda: whole_run(['lookrts'], prefix='zzxh',
-                                             classes=recorded_classes())),
-         env={'DOC': '{doc}', 'BASIS': 'lookrts', 'OTHER': 'nosuchhalf'},
-         argv=['zzxh'],
-         ok=V(exit=0, has=['no cross-half line is installed'],
-              hasnt=['REFUSED'])),
-
-    case('install-refuses-a-block-without-item-5', 'install-tables.sh',
-         None,
-         'a block with no item-5 slot, and the owed cross-half line'
-         ' dropped in silence',
-         # With the other half on disk the line is owed and --block emits
-         # it, but a block pasted from the pre-item-5 form has no
-         # paragraph to fill: the fill loop matched nothing and moved on,
-         # between the ADDED branch that repairs a missing per-shape line
-         # and the note that names a skipped line. A control until the
-         # fix has a hash.
-         plant=lambda t: {'doc': edited_rundoc(t, (
-             '\n\n' + an_across_paragraph(), ''))},
-         shadow=dict(extra=lambda: whole_run(['lookrts', 'ovhalf'],
-                                     prefix='zzx5')),
-         env={'DOC': '{doc}', 'BASIS': 'lookrts', 'OTHER': 'ovhalf'},
-         argv=['zzx5'],
-         ok=V(exit=1, has=['REFUSED', 'no `Across the halves:`'])),
 
     case('chapter-head-carries-a-previous-run', 'read-run.py', None,
          "paragraphs of the last run's chapter left standing in this one",
@@ -3675,41 +3630,6 @@ CASES = [
                '--readme', '{doc}'],
          ok=V(exit=1, has=['2-item list', 'the replacement carries 1 item'])),
 
-    case('cross-classes-aggregates-the-blocks-own-rows', 'read-run.py', None,
-         "the class section's intro figures were assembled by hand",
-         # And got wrong twice on Run 20: a population built here read 398
-         # comparisons at 272/126 where the reader's own is 376 at
-         # 259/117, and the high end was quoted from the wrong class
-         # because the first attempt excluded a class's degenerate arms
-         # wholesale instead of naming them. The intro and the eight
-         # blocks it aggregates now come from one `cross_half_rows`,
-         # which was proved output-identical on all eight blocks before
-         # this mode was written.
-         plant=lambda t: {
-             'a': synth_run(os.path.join(t, 'rev.json'),
-                            run_order_shapes('rev')),
-             'b': synth_run(os.path.join(t, 'rev2.json'),
-                            run_order_shapes('rev'))},
-         argv=['--cross-classes', '--classes', '{a}', '--others', '{b}'],
-         ok=V(exit=0, has=['class population(s)', 'arm-comparison(s)',
-                           'geomeans'])),
-
-    case('cross-classes-refuses-unpaired-lists', 'read-run.py', None,
-         'a basis list and a control list that do not pair up',
-         # Two files against one is not eight against eight with one
-         # missing: which class lost its other half is unknowable from
-         # here, so it refuses rather than zipping to the shorter.
-         plant=lambda t: {
-             'a': synth_run(os.path.join(t, 'rev.json'),
-                            run_order_shapes('rev')),
-             'b': synth_run(os.path.join(t, 'slice.json'),
-                            run_order_shapes('slice')),
-             'c': synth_run(os.path.join(t, 'rev2.json'),
-                            run_order_shapes('rev'))},
-         argv=['--cross-classes', '--classes', '{a}', '{b}',
-               '--others', '{c}'],
-         ok=V(exit=2, has=['they pair up or nothing does'])),
-
     case('section-withholds-the-tables', 'read-run.py', None,
          'the reading a run owes was enumerated and could not be taken',
          # "not its figures", "not the previous run's readings", "not the
@@ -3790,6 +3710,7 @@ CASES = [
          ok=V(exit=0, has=['Body one', 'Body two', 'Body three'],
               hasnt=['paragraph(s) whose lead matches'])),
 
+    # ---- the run file, read back -------------------------------------------
     case('retirement-epitaph-listed-as-unaccounted', 'read-run.py', None,
          'a retired claim\'s last reading listed as an unattributed figure',
          # CONTROL FIRST, below: the same figure in an ordinary sentence
@@ -3890,6 +3811,7 @@ CASES = [
          ok=V(hasnt=['class process count(s) quoted',
                      'no class process count quoted'])),
 
+    # ---- read-run.py, later reviews' cases ---------------------------------
     case('path-token-dotfile', 'read-run.py', None,
          "lstrip('./') ate the leading dot of a cited dotfile",
          plant=lambda t: {'readme': readme_citing_dotfile(t)},
@@ -3948,22 +3870,6 @@ CASES = [
          # than reproducing anything. The run-file split, 2026-08-25.
          ),
 
-    case('ceiling-is-the-family-leader', 'read-run.py', None,
-         'the ceiling read as the fastest arm once outside arms led',
-         # The run file defines *ceiling* as the leading arm OF the family;
-         # the code read `timed[0]`, and the two agreed until the library
-         # arms overtook the family in Run 22, when every written row
-         # disagreed at once and --extremes crowned an outside arm. The
-         # synthetic model has an outside arm ahead of the family on its
-         # own -- the library arms' per-function work is the smaller --
-         # so nothing is skewed, and no arm is named: the fastest line
-         # must not read a family arm and the ceiling line must.
-         plant=lambda t: {'rundoc': edited_rundoc(t),
-                          'run': synth_json(t, 'slice')},
-         argv=['{run}', '--block', '--run-doc', '{rundoc}'],
-         ok=V(has=['ceiling (family)    mut-odo-vecdims'],
-              hasnt=['fastest timed arm   mut-odo-vecdims'])),
-
     case('verbose-alone', 'read-run.py', None,
          '--verbose outside the modes that drop prose said nothing',
          # No --audit: this case now passes a flag that postdates the
@@ -3989,12 +3895,6 @@ CASES = [
     # fix, so replaying 281ad73^ raises NameError instead of printing the
     # old wording. It can still fail, which is what a control is for: say
     # `any length` again and it goes red.
-    case('len-zero-lifts-the-size-filter-not-the-cap', 'loop-offsets.py',
-         None,
-         'CONTROL: the header names the cap, not the lifted size filter',
-         argv=['--unit', 'span_label(None)'],
-         ok=V(has=["'at most 64 B'"], hasnt=['any length'])),
-
     case('fmt-abs-above-its-top-unit', 'read-run.py', '0fe535b',
          'a time past a thousand seconds wrote an exponent nothing parses',
          argv=['--unit', 'fmt_abs(1500.0)'],
@@ -4141,6 +4041,7 @@ CASES = [
          # of it cannot be run against this tree at all. 2026-08-25.
          ),
 
+    # ---- this file's own instruments ------------------------------------
     case('tree-check-that-could-not-run', 'check-scripts.py', 'ea4ab06',
          'this suite\'s one guarantee about itself passed unchecked',
          argv=['--unit', "tree_state.__doc__ and (git('rev-parse')"
@@ -4183,7 +4084,7 @@ CASES = [
                          " 'cd \"$(dirname \"$0\")\"\\n')"],
          ok=V(has=['/shadow'], hasnt=['cds to an absolute path'])),
 
-    # ---- this file's own instruments ------------------------------------
+
     case('fixture-ci-bounds-are-criterion-shaped', 'check-scripts.py', '40f7a37',
          'the fixture wrote a negative lower CI bound, which criterion never does',
          # Criterion writes both deviations positive (`confIntLDX`
@@ -4560,6 +4461,57 @@ CASES = [
                            'widest gap, paired']),
          bug=V(exit=2, hasnt=['class population(s)'])),
 
+    case('cross-classes-aggregates-the-blocks-own-rows', 'read-run.py', None,
+         "the class section's intro figures were assembled by hand",
+         # And got wrong twice on Run 20: a population built here read 398
+         # comparisons at 272/126 where the reader's own is 376 at
+         # 259/117, and the high end was quoted from the wrong class
+         # because the first attempt excluded a class's degenerate arms
+         # wholesale instead of naming them. The intro and the eight
+         # blocks it aggregates now come from one `cross_half_rows`,
+         # which was proved output-identical on all eight blocks before
+         # this mode was written.
+         plant=lambda t: {
+             'a': synth_run(os.path.join(t, 'rev.json'),
+                            run_order_shapes('rev')),
+             'b': synth_run(os.path.join(t, 'rev2.json'),
+                            run_order_shapes('rev'))},
+         argv=['--cross-classes', '--classes', '{a}', '--others', '{b}'],
+         ok=V(exit=0, has=['class population(s)', 'arm-comparison(s)',
+                           'geomeans'])),
+
+    case('cross-classes-refuses-unpaired-lists', 'read-run.py', None,
+         'a basis list and a control list that do not pair up',
+         # Two files against one is not eight against eight with one
+         # missing: which class lost its other half is unknowable from
+         # here, so it refuses rather than zipping to the shorter.
+         plant=lambda t: {
+             'a': synth_run(os.path.join(t, 'rev.json'),
+                            run_order_shapes('rev')),
+             'b': synth_run(os.path.join(t, 'slice.json'),
+                            run_order_shapes('slice')),
+             'c': synth_run(os.path.join(t, 'rev2.json'),
+                            run_order_shapes('rev'))},
+         argv=['--cross-classes', '--classes', '{a}', '{b}',
+               '--others', '{c}'],
+         ok=V(exit=2, has=['they pair up or nothing does'])),
+
+    case('ceiling-is-the-family-leader', 'read-run.py', None,
+         'the ceiling read as the fastest arm once outside arms led',
+         # The run file defines *ceiling* as the leading arm OF the family;
+         # the code read `timed[0]`, and the two agreed until the library
+         # arms overtook the family in Run 22, when every written row
+         # disagreed at once and --extremes crowned an outside arm. The
+         # synthetic model has an outside arm ahead of the family on its
+         # own -- the library arms' per-function work is the smaller --
+         # so nothing is skewed, and no arm is named: the fastest line
+         # must not read a family arm and the ceiling line must.
+         plant=lambda t: {'rundoc': edited_rundoc(t),
+                          'run': synth_json(t, 'slice')},
+         argv=['{run}', '--block', '--run-doc', '{rundoc}'],
+         ok=V(has=['ceiling (family)    mut-odo-vecdims'],
+              hasnt=['fastest timed arm   mut-odo-vecdims'])),
+
     case('extremes-counts-one-class-twice', 'read-run.py', '3596ba2',
          'the same class named twice would rank one population as two',
          plant=lambda t: {'a': synth_run(os.path.join(t, 'rev.json'),
@@ -4738,6 +4690,12 @@ CASES = [
          ok=V(has=['suppressed']),
          bug=V(has=['self-loops of 24 B'], hasnt=['suppressed'])),
 
+    case('len-zero-lifts-the-size-filter-not-the-cap', 'loop-offsets.py',
+         None,
+         'CONTROL: the header names the cap, not the lifted size filter',
+         argv=['--unit', 'span_label(None)'],
+         ok=V(has=["'at most 64 B'"], hasnt=['any length'])),
+
     # ---- read-all.sh ---------------------------------------------------
     case('aa-worst-cell-is-not-an-insitu-row', 'read-all.sh', '8ee1e5b',
          'with every twin filtered out an in-situ row was read as the A/A',
@@ -4820,6 +4778,7 @@ CASES = [
          bug=V(exit=1, has=['complaint(s) from the run itself'],
                hasnt=['every process gated clean'])),
 
+    # ---- read-run.py, beside the drivers -----------------------------------
     case('table-row-narrower-than-its-header', 'read-run.py', '0e2934c',
          'a row two cells short put its values under the wrong runs',
          plant=lambda t: {'rundoc': rundoc_with_ragged_row(t)},
@@ -4917,69 +4876,6 @@ CASES = [
          argv=['{run}', '--machine', '--run-doc', '{fp}'],
          ok=V(exit=0, has=['inside 3%'], hasnt=['BOX MOVED'])),
 
-    case('alone-leg-riders-are-not-populations', 'read-all.sh', 'bf9acf2',
-         'the riders a paired run leaves were gated as populations',
-         plant=lambda t: synthetic_run(t, riders=True),
-         argv=['{tag}'],
-         # `$R-al-*` is one bench on one shape, with no A/A pair and no
-         # sum-only: gating it says nothing and pushes the eighteen this
-         # driver counts off the top of the screen. Excluded exactly as
-         # `$R-gate-*` is, and for the same reason. Run 16 left 54 of them.
-         ok=V(exit=0, has=['every process gated clean', 'lookrts-rev'],
-              hasnt=['al-lookrts-cnn-slice-c32-r1']),
-         bug=V(exit=0, has=['al-lookrts-cnn-slice-c32-r1'])),
-
-    case('counts-refuses-a-blocked-perf', 'run-counts.sh', None,
-         'a blocked perf spent the whole sweep writing NaN',
-         # Every cell is two `perf stat` processes, so a machine that
-         # refuses the counter does not fail the sweep -- it writes a `!!`
-         # line per cell and takes a full sweep to do it. What the guard
-         # asserts is a capability at the moment of use, a counter being
-         # refusable by a container or a missing perf as much as by a
-         # setting.
-         #
-         # Both sides use a STUB perf and not the machine's, or the case
-         # would pass or fail on the box's own state -- which is the very
-         # thing the guard is there to read.
-         shadow=dict(extra=[('zzct3-g912', FAKE_HALF)]),
-         plant=lambda t: {'stub': stub_dir(t, PERF_BLOCKED)},
-         env={'PATH': '{stub}:/usr/bin:/bin', 'ONLY': 'shape-a',
-              'ARMS': 'list', 'N': '1'},
-         argv=['zzct3', 'g912'],
-         ok=V(exit=1, has=['perf will not count instructions here',
-                           'Nothing ran'])),
-
-    case('counts-refuses-an-unwritable-tmp', 'run-counts.sh', None,
-         'a broken temp path bought the same sweep-long run of NaN',
-         # The second route to an all-NaN sweep, and the quieter one:
-         # `count()` hands perf a `mktemp` file per cell, so where that
-         # fails -- a sandbox permitting only some of /tmp, which
-         # read-all.sh records having met -- perf writes nowhere, the grep
-         # reads nothing, and the cell is NaN with the path named nowhere.
-         # A perf that answers is not enough on its own, which is why this
-         # rides beside the perf guard rather than inside it.
-         shadow=dict(extra=[('zzct5-g912', FAKE_HALF)]),
-         plant=lambda t: {'stub': stub_dir(t, PERF_ANSWERS)},
-         env={'PATH': '{stub}:/usr/bin:/bin', 'TMPDIR': '/nonexistent-zz',
-              'ONLY': 'shape-a', 'ARMS': 'list', 'N': '1'},
-         argv=['zzct5', 'g912'],
-         ok=V(exit=1, has=['mktemp gives no writable file', 'Nothing ran'])),
-
-    case('counts-runs-under-a-perf-that-answers', 'run-counts.sh', None,
-         'CONTROL: the guard passes and the sweep writes its counts',
-         # The other side of both guards, and what says neither is simply
-         # a ban:
-         # with a perf that answers, the same invocation gets through and
-         # the differenced count lands in the file.
-         shadow=dict(extra=[('zzct4-g912', FAKE_HALF)]),
-         plant=lambda t: {'stub': stub_dir(t, PERF_ANSWERS)},
-         env={'PATH': '{stub}:/usr/bin:/bin', 'ONLY': 'shape-a',
-              'ARMS': 'list', 'N': '1'},
-         argv=['zzct4', 'g912'],
-         probe=lambda subs: open(os.path.join(
-             subs['at'], 'zzct4-counts-g912.txt')).read(),
-         ok=V(exit=0, has=['shape-a list 1'], hasnt=['perf could not'])),
-
     case('wild-partial-load-fields', 'read-run.py', None,
          'a foreign figure over half a bench read as the whole bench',
          # A log spanning an instrument change -- or two concatenated --
@@ -5047,6 +4943,19 @@ CASES = [
          # here would store the anchor this case was just taught to
          # derive, one line down.
          ok=V(exit=0, has=['out, first: 1.'])),
+
+    # ---- read-all.sh, the plateau gate -------------------------------------
+    case('alone-leg-riders-are-not-populations', 'read-all.sh', 'bf9acf2',
+         'the riders a paired run leaves were gated as populations',
+         plant=lambda t: synthetic_run(t, riders=True),
+         argv=['{tag}'],
+         # `$R-al-*` is one bench on one shape, with no A/A pair and no
+         # sum-only: gating it says nothing and pushes the eighteen this
+         # driver counts off the top of the screen. Excluded exactly as
+         # `$R-gate-*` is, and for the same reason. Run 16 left 54 of them.
+         ok=V(exit=0, has=['every process gated clean', 'lookrts-rev'],
+              hasnt=['al-lookrts-cnn-slice-c32-r1']),
+         bug=V(exit=0, has=['al-lookrts-cnn-slice-c32-r1'])),
 
     case('plateau-band-across-processes', 'read-all.sh', None,
          'two processes saturated to different depths and gated clean',
@@ -5134,6 +5043,7 @@ CASES = [
          bug=V(exit=0, has=['plateau: 2 process(es)',
                             'every process gated clean'])),
 
+    # ---- run-major.sh, run-gate.sh and run-alonelegs.sh --------------------
     case('plateau-counted-per-process', 'run-major.sh', None,
          'a half without the preamble joined a saturated run in silence',
          # The count, and it is the bench count's own shape: SATURATE is
@@ -5361,6 +5271,58 @@ CASES = [
          argv=[],
          ok=V(exit=1, has=['already has artifacts', 'zzac3-curve-16m.json'])),
 
+    # ---- run-counts.sh, the counted-work column ----------------------------
+    case('counts-refuses-a-blocked-perf', 'run-counts.sh', None,
+         'a blocked perf spent the whole sweep writing NaN',
+         # Every cell is two `perf stat` processes, so a machine that
+         # refuses the counter does not fail the sweep -- it writes a `!!`
+         # line per cell and takes a full sweep to do it. What the guard
+         # asserts is a capability at the moment of use, a counter being
+         # refusable by a container or a missing perf as much as by a
+         # setting.
+         #
+         # Both sides use a STUB perf and not the machine's, or the case
+         # would pass or fail on the box's own state -- which is the very
+         # thing the guard is there to read.
+         shadow=dict(extra=[('zzct3-g912', FAKE_HALF)]),
+         plant=lambda t: {'stub': stub_dir(t, PERF_BLOCKED)},
+         env={'PATH': '{stub}:/usr/bin:/bin', 'ONLY': 'shape-a',
+              'ARMS': 'list', 'N': '1'},
+         argv=['zzct3', 'g912'],
+         ok=V(exit=1, has=['perf will not count instructions here',
+                           'Nothing ran'])),
+
+    case('counts-refuses-an-unwritable-tmp', 'run-counts.sh', None,
+         'a broken temp path bought the same sweep-long run of NaN',
+         # The second route to an all-NaN sweep, and the quieter one:
+         # `count()` hands perf a `mktemp` file per cell, so where that
+         # fails -- a sandbox permitting only some of /tmp, which
+         # read-all.sh records having met -- perf writes nowhere, the grep
+         # reads nothing, and the cell is NaN with the path named nowhere.
+         # A perf that answers is not enough on its own, which is why this
+         # rides beside the perf guard rather than inside it.
+         shadow=dict(extra=[('zzct5-g912', FAKE_HALF)]),
+         plant=lambda t: {'stub': stub_dir(t, PERF_ANSWERS)},
+         env={'PATH': '{stub}:/usr/bin:/bin', 'TMPDIR': '/nonexistent-zz',
+              'ONLY': 'shape-a', 'ARMS': 'list', 'N': '1'},
+         argv=['zzct5', 'g912'],
+         ok=V(exit=1, has=['mktemp gives no writable file', 'Nothing ran'])),
+
+    case('counts-runs-under-a-perf-that-answers', 'run-counts.sh', None,
+         'CONTROL: the guard passes and the sweep writes its counts',
+         # The other side of both guards, and what says neither is simply
+         # a ban:
+         # with a perf that answers, the same invocation gets through and
+         # the differenced count lands in the file.
+         shadow=dict(extra=[('zzct4-g912', FAKE_HALF)]),
+         plant=lambda t: {'stub': stub_dir(t, PERF_ANSWERS)},
+         env={'PATH': '{stub}:/usr/bin:/bin', 'ONLY': 'shape-a',
+              'ARMS': 'list', 'N': '1'},
+         argv=['zzct4', 'g912'],
+         probe=lambda subs: open(os.path.join(
+             subs['at'], 'zzct4-counts-g912.txt')).read(),
+         ok=V(exit=0, has=['shape-a list 1'], hasnt=['perf could not'])),
+
     case('counts-sweeps-only-the-class-it-was-given', 'run-counts.sh', None,
          'a class sweep took the main set, or took every class at once',
          # `run-counts.sh` enumerated its shapes from `--list`, which is the
@@ -5423,6 +5385,7 @@ CASES = [
              subs['at'], 'zzct2-counts-g912.txt')).read(),
          ok=V(has=['N=1'], hasnt=['RESTRICTED'])),
 
+    # ---- read-run.py, figures across sites ---------------------------------
     case('six-pair-floor-disagrees-across-sites', 'read-run.py', '054f3f1',
          'the six-pair figure was quoted three ways, two in one paragraph',
          # The eighteen-pair floor has been held across its sites since
@@ -5540,6 +5503,7 @@ CASES = [
                '--run-doc', '{rundoc}'],
          ok=V(hasnt=['shape counts disagree with Main.hs'])),
 
+    # ---- the run and smoke drivers -----------------------------------------
     case('gate-arms-track-the-selection', 'run-gate.sh', 'febc2bd',
          'the expected bench count was a literal that had to equal SEL',
          shadow=dict(
@@ -5768,6 +5732,51 @@ CASES = [
          ok=V(exit=1, has=['fewer than three shapes',
                            'NOTHING HAS BEEN WRITTEN'],
               hasnt=['table(s) installed'])),
+
+    case('install-refuses-a-standing-cross-half-line',
+         'install-tables.sh', None,
+         'a cross-half line left standing under this run, at exit 0',
+         # An absent other-half JSON is correct for a run that recorded
+         # one half and is a WRONG `OTHER` otherwise, and the two look
+         # identical. A note naming both readings was the first answer,
+         # and it left the previous run's `Across the halves:` paragraph
+         # standing under this run's tables at exit 0 -- so where the
+         # block still carries one, the install refuses. 2026-09-01.
+         plant=lambda t: {'doc': edited_rundoc(t)},
+         shadow=dict(extra=lambda: whole_run(['lookrts'], prefix='zzxh',
+                                             classes=recorded_classes())),
+         env={'DOC': '{doc}', 'BASIS': 'lookrts', 'OTHER': 'nosuchhalf'},
+         argv=['zzxh'],
+         ok=V(exit=1, has=['REFUSED', 'left standing', 'OTHER=nosuchhalf'])),
+
+    case('install-notes-a-one-half-run', 'install-tables.sh', None,
+         'CONTROL: no other half and no paragraph to leave standing is a'
+         ' one-half run, noted and not refused',
+         plant=lambda t: {'doc': rundoc_without_across(t)},
+         shadow=dict(extra=lambda: whole_run(['lookrts'], prefix='zzxh',
+                                             classes=recorded_classes())),
+         env={'DOC': '{doc}', 'BASIS': 'lookrts', 'OTHER': 'nosuchhalf'},
+         argv=['zzxh'],
+         ok=V(exit=0, has=['no cross-half line is installed'],
+              hasnt=['REFUSED'])),
+
+    case('install-refuses-a-block-without-item-5', 'install-tables.sh',
+         None,
+         'a block with no item-5 slot, and the owed cross-half line'
+         ' dropped in silence',
+         # With the other half on disk the line is owed and --block emits
+         # it, but a block pasted from the pre-item-5 form has no
+         # paragraph to fill: the fill loop matched nothing and moved on,
+         # between the ADDED branch that repairs a missing per-shape line
+         # and the note that names a skipped line. A control until the
+         # fix has a hash.
+         plant=lambda t: {'doc': edited_rundoc(t, (
+             '\n\n' + an_across_paragraph(), ''))},
+         shadow=dict(extra=lambda: whole_run(['lookrts', 'ovhalf'],
+                                     prefix='zzx5')),
+         env={'DOC': '{doc}', 'BASIS': 'lookrts', 'OTHER': 'ovhalf'},
+         argv=['zzx5'],
+         ok=V(exit=1, has=['REFUSED', 'no `Across the halves:`'])),
 
     case('basis-glob-catches-no-other-half', 'install-tables.sh', '440b22d',
          'a control half named <basis>-pa was installed as the basis',
