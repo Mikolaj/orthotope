@@ -806,6 +806,94 @@ rather than a slot in the next run, observed again:
   is the third, recovering most of the corner's loss at 0.9408 against it on 22
   shapes of 24, and reproducing Run 10's reading. Recorded here because the list
   is meant to be the only home, and a session mining it walked past this one.
+- `OPEN` **What Run 23 is built to answer, registered before it runs.**
+  **Decided 2026-09-01: Run 23 is [task 6][open]'s dead-spot probe over every
+  population and under a run's own controls.** The pair is `run23-g912` against
+  `run23-spot` --- Run 22's basis recipe built twice from one source, ghc-9.12.4
+  on both halves, `-fspec-constr -fobject-determinism` on both, the shim
+  at 38bb3bb on both, `WILDLOG=1 SATURATE=1` on both, and the `spot` half alone
+  carrying `LOOP_DEADSPOT=1` in front of the shim, which puts every pad after
+  an unconditional `jmp` where no path executes it. The roster is Run 22's
+  exactly --- 55 timed arms, 1320 main-set benches and 2035 class benches
+  over 37 views in nine classes, nothing landed and nothing left ---
+  so no figure here carries a roster term, and this is the first pair since Run
+  17's `wildlog`/`det` whose halves share a compiler, Runs 18 through 22 having
+  each varied one. **AND IT IS THE REPETITION THIS FILE HAS ASKED FOR SINCE RUN
+  19, which is what lets a prediction below name a figure rather
+  than a direction**: both halves reproduce task 6's binaries by md5 ---
+  `run23-g912` is `run22-g912` and `probe-ds-off-g912` byte for byte,
+  and `run23-spot` is `probe-ds-on-g912` --- so the run's MAIN SET is that probe
+  run again on the same two binaries at the same default budget, and what
+  the run adds to it is the nine classes, the gate, the A/A floors, the alone
+  legs and the counted work, none of which the probe had. Five questions, each
+  with a prediction and what kills it. Every figure below is re-derived here
+  from `probe-ds-off-main.json` and `probe-ds-on-main.json`, whose own floors
+  are **1.20%** and **2.19%**; each is the DEAD-SPOT half over the basis,
+  over the 23 shapes that exclude `stretch-inner1`, where `lib-stage2`'s cell
+  is its own forcing term on both halves and the net ratio is 10.9x of nothing
+  --- and `run-major.sh`'s own `--compare` line runs basis over other,
+  so a verdict reads these upside down. (1) *The padded arms' win, reproduced.*
+  Nine arms are faster on the dead-spot half, and where a shim-free count exists
+  it is the pad that names them --- on `alexnet-L1-55-c3-k11`,
+  `probe-r22noshim-counts-g912.txt` against `run22-counts-g912.txt` puts
+  `lib-stage2` **+5.51%**, `lib-stage2-lean` **+5.51%** and `lib-stage2-short`
+  **+5.49%** of their instructions on the shim, and that sweep carries four
+  of the roster's arms, so the other six rest on task 6's own counting until
+  this run's does it over the whole roster: `mut-odo-vecdims-add-in-leaf-down`
+  **0.8328**, `lib-stage2-concat` **0.9433**, `lib-stage2-disp` **0.9440**,
+  `lib-stage2-lean` **0.9441**, `lib-stage2` **0.9452**,
+  `mut-odo-vecdims-add-in-leaf-u2` **0.9507**, `lib-stage1` **0.9537**,
+  `mut-odo-vecdims-add-in-leaf-u2-down` **0.9545** and `lib-stage2-short`
+  **0.9762**. Each is predicted to come back inside this run's own main-set
+  floor of the figure above. Killed by any of the nine outside it: the two
+  binaries are the probe's byte for byte, so nothing but the evening can move
+  one, and a miss prices the evening rather than the switch. (2) *The flatness
+  control: no pad, no movement.* `lib-stage2-u4` is the sharp one, being
+  `lib-stage2`'s own family and the one arm of the four whose padlessness
+  is derived rather than inherited: the same two sweeps put it **+0.00%**
+  on the shim, 16 instructions of 17.7M, where its three siblings pay five
+  and a half percent --- and it reads **0.9948** between the halves, beside
+  `bq-expand` **0.9970**, `mut-odo-vecdims` **0.9981** and `list` **0.9983**,
+  every one inside either floor. That is what makes them the control that says
+  (1) is pads and not an evening. Predicted inside this run's floor of 1 again,
+  with this run's counted work reading their instruction counts equal between
+  the halves. Killed by one of the four past the floor, and the counts
+  are then what say whether a pad or a slot moved it. (3) *The classes, which
+  the probe never ran and which no figure anywhere anticipates.* Every rostered
+  class view is a regime-3 view and runs the same fills, so the nine arms of (1)
+  are predicted to lead on all nine classes, each by a margin inside its own
+  class floor of the main set's. And one sharper, on `runs` alone, which holds
+  `l` at about 1.8M and sweeps run length from 2 to 65536: the fills' trip count
+  falls as the length rises, so the margin is predicted to shrink monotonically
+  from `runs-2` to `runs-65536`. Killed, in its first half, by a class where one
+  of the nine reads at or above 1 outside that class's floor; in its second,
+  by a `runs` margin that does not order with the length. (4)
+  *The `build`/`mut-odo` pair, which the entry headed "What is the 3%
+  that survives alignment" below has asked about since Run 10, and which the two
+  halves answer differently.* The pair reads **0.9986** on the basis, 14 of 24
+  and sign p 0.54, and **0.9558** on the dead-spot half, 17 of 24 and p 0.064.
+  So placing every head does not close a gap, it OPENS one --- and the basis
+  half's own reading says the 3% that entry names is not on today's basis
+  at all, its 0.9986 being a tie where Run 10's aligned build read 0.9685. Both
+  figures are predicted to reproduce inside their halves' floors and both sign
+  counts to stay on their own sides of 12. Killed if the two halves read within
+  a floor of each other, which would make the probe's split one evening's. (5)
+  *The placement-exposed workers, and whether a twin follows its base.*
+  `gen-unsafe` **0.8892**, `build` **0.9389** and `mut-odo` **0.9775** move
+  between the probe's halves, and task 6 attributes that to placement
+  on the ground that their instruction counts are identical --- a reading
+  no artifact on disk carries, there being no dead-spot counted sweep,
+  so this run's own is what establishes it. Each twin moved in its base's
+  direction and not to its figure: `gen-unsafe-aa-distant` **0.8920**
+  and `-aa-adjacent` **0.9135**, `build-aa-distant` **0.9093**
+  and `-aa-adjacent` **0.9226**, `mut-odo-aa-adjacent` **0.9828**
+  and `-aa-distant` **0.9888** --- spreads of up to three points within a pair,
+  which is the thing this registration is about. Every figure here is predicted
+  to reproduce inside the floor, and this run's counted work to read all three
+  arms' counts equal between the halves. Killed by a count that moved, which
+  would make the movement codegen rather than placement --- and the twins
+  are the reading that says whether a placement term belongs to the arm
+  or to the slot, a base and its twin sitting in different slots.
 - `ANSWERED` **What Run 22 was built to answer, registered before it ran ---
   and what it answered.** The five registrations, their kill conditions
   and their verdicts are [in Run 22's own
@@ -2278,7 +2366,7 @@ is planned. A scope limit belongs in the sentence that asks for the measurement.
    `list` against the kept fingerprint +0.44% and +0.35%, floors 1.20%
    and 2.19%, foreign CPU past 0.25 on 3 of 1320 cells. Read
    it with `--exclude-shape stretch-inner1`, where `lib-stage2`'s cell
-   IS its forcing term (0.308 ms both) and the net ratio is 41x of nothing,
+   IS its forcing term (0.308 ms both) and the net ratio is 10.9x of nothing,
    enough to turn the arm's geomean from 0.945 to 1.047 --- `libunord-stage2`
    is unreadable net for the same reason on most of its shapes and reads 0.998
    raw. **Every arm whose fill carried a pad is faster, and the counter names
