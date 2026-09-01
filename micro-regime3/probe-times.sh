@@ -55,7 +55,7 @@ BIN=${BIN:-./probe-bang-g912}
 OUT=${OUT:-probe-bangtime}
 LOG=$OUT-wallclock.log
 case $BIN in /*|./*) ;; *) BIN=./$BIN ;; esac
-[ -x "$BIN" ] || { echo "no $BIN here"; exit 1; }
+[ -x "$BIN" ] || { echo "no $BIN here"; exit 2; }
 case $OUT in probe-*|smoke-*) ;;
   *) echo "OUT is '$OUT': a probe's artifacts are probe-* or smoke-*, never a"
      echo "run's own prefix -- read-all.sh would read them as that run's"
@@ -68,13 +68,13 @@ esac
 for p in "$@"; do
   E=$(ls -1 "$OUT-$p.json" "$OUT-$p.log" 2>/dev/null)
   [ -z "$E" ] || { echo "$OUT-$p already has artifacts:"; printf '%s\n' "$E" | sed 's/^/  /'
-                   echo "relaunching would overwrite them. Move them aside first."; exit 1; }
+                   echo "relaunching would overwrite them. Move them aside first."; exit 2; }
 done
 
 MAIN_BENCHES=$("$BIN" --list 2>/dev/null | wc -l)
 CLASS_LIST=$("$BIN" classes --list 2>/dev/null)
-[ "$MAIN_BENCHES" -gt 0 ] || { echo "--list gave nothing; wrong binary?"; exit 1; }
-[ -n "$CLASS_LIST" ] || { echo "classes --list gave nothing; wrong binary?"; exit 1; }
+[ "$MAIN_BENCHES" -gt 0 ] || { echo "--list gave nothing; wrong binary?"; exit 2; }
+[ -n "$CLASS_LIST" ] || { echo "classes --list gave nothing; wrong binary?"; exit 2; }
 
 BAD=0
 log () { echo "=== $(date -Is) $*" | tee -a "$LOG"; }

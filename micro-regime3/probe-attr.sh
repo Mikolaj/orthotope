@@ -25,7 +25,7 @@ cd "$(dirname "$0")" || exit 1
 [ $# -ge 2 ] || { echo "usage: ./probe-attr.sh SHAPE ARM [ARM ...]"; exit 2; }
 B=${BIN:-./probe-attr-g912}
 case $B in /*|./*) ;; *) B=./$B ;; esac
-[ -x "$B" ] || { echo "no $B -- probe-attr-build.sh makes it"; exit 1; }
+[ -x "$B" ] || { echo "no $B -- probe-attr-build.sh makes it"; exit 2; }
 SH=$1; shift
 N=${N:-2000}
 # 200000 and not less: at a shorter period the kernel throttles, and a
@@ -36,7 +36,7 @@ N=${N:-2000}
 # a fifth of the truth, with `??:0` inflated from 7% to 21%. The
 # refusal below is what makes that loud rather than plausible.
 PERIOD=${PERIOD:-200000}
-command -v perf > /dev/null 2>&1 || { echo "!! no perf on PATH"; exit 1; }
+command -v perf > /dev/null 2>&1 || { echo "!! no perf on PATH"; exit 2; }
 # The shape has to be one the binary holds, or the glob selects nothing,
 # the process benchmarks nothing and every histogram below is of the
 # runtime's own startup -- which reads exactly like a measured one. Held
@@ -68,7 +68,7 @@ fi
 # code. RAISE N, never lower PERIOD -- a shorter period throttles the
 # counter and costs the scale, where more iterations cost seconds.
 OUT=probe-attr-$SH${TAG:+-$TAG}.txt
-[ -e "$OUT" ] && { echo "$OUT exists; move it aside first"; exit 1; }
+[ -e "$OUT" ] && { echo "$OUT exists; move it aside first"; exit 2; }
 BAD=0
 {
   echo "# $B $(md5sum "$B" | cut -d' ' -f1) $(date -Is) sel=${SEL:-main}"

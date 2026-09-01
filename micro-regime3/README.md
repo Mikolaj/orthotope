@@ -5442,7 +5442,8 @@ and never as a chronology.
     #      published figure and a re-derivable one look identical in this
     #      README, so the next reader either re-derives from an artifact
     #      you named or copies you. Task 6's `41x` was copied for a day
-    #      `./preflight.sh $R --note` re-checks 10c and 8 after these
+    #      `./preflight.sh $R --note` re-checks 10c, 10d and 8 after
+    #      these
     #      edits, in seconds, where the whole pass costs eight minutes
     #  12c. COMMIT, which the preparation does and the run does not: the
     #      registration on its own, tooling changes partitioned from it,

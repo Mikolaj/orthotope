@@ -2,7 +2,7 @@
 # The pre-run list's steps 4 to 10, in one call.
 #
 #     ./preflight.sh run19            # reads BASIS/OTHER as the others do
-#     ./preflight.sh run19 --note     # 10c and 8 alone, seconds
+#     ./preflight.sh run19 --note     # 10c, 10d and 8 alone, seconds
 #
 # 10c runs THIRD rather than last, ahead of every expensive step: it and 8
 # are the two that read what the preparation WROTE, and a defect in a note
@@ -79,7 +79,7 @@ cd "$(dirname "$0")" || exit 1
 
 if [ $# -lt 1 ]; then
   echo "usage: ./preflight.sh RUN [--note]   # e.g. run17"
-  echo "  --note   steps 10c and 8 alone -- the two that read what the"
+  echo "  --note   steps 10c, 10d and 8 alone -- the ones that read what the"
   echo "           preparation WROTE, in seconds and with no binary needed"
   exit 2
 fi
@@ -207,14 +207,34 @@ step_8 () {
     say 10c FAIL "no $R-pair.txt -- the note is written at pre-run step 2"
   fi
 }
+step_10d () {  # 10d. AND THAT THE NOTE NAMES THE HALVES THIS WAS LAUNCHED
+  # WITH: BASIS/OTHER come from the note, never from a half's name, and a
+  # wrong OTHER stops run-major.sh at a missing binary while smoke-sweep.sh
+  # sweeps the wrong half and looks clean (README, pre-run 2b). The note is
+  # the authority, so the variables are held to it and not it to them.
+  # Nothing to hold when the note is absent -- 10c has already FAILed.
+  # Non-vacuity 2026-09-01, on stub notes made and removed in one call: a
+  # note naming both halves PASSes, one naming only the basis FAILs naming
+  # the other's binary.
+  [ -f "$R-pair.txt" ] || return 0
+  MISS=$(for h in $BASIS $OTHER; do
+           grep -q "$R-$h" "$R-pair.txt" || echo "$R-$h"; done)
+  if [ -z "$MISS" ]; then
+    say 10d PASS "the note names both halves, $R-$BASIS and $R-$OTHER"
+  else
+    say 10d FAIL "$R-pair.txt never names: $(echo $MISS) -- BASIS/OTHER come\
+ from the note (pre-run 2/2b), so one of the two is wrong"
+  fi
+}
 if [ "$NOTE_ONLY" = 1 ]; then
   echo "preflight for $R: the note and the documents alone"
   echo
   step_10c
+  step_10d
   step_8
   echo
   if [ "$BAD" -eq 0 ]; then
-    echo "the two steps that read what this half WROTE are clean. THIS IS NOT"
+    echo "the steps that read what this half WROTE are clean. THIS IS NOT"
     echo "A PREFLIGHT: 4 to 7, 8b to 8d, 9 and 10 did not run, so a pair is"
     echo "not sound on this. Run ./preflight.sh $R whole before the gate."
   else
@@ -248,6 +268,7 @@ else
 fi
 
 step_10c
+step_10d
 
 ./read-run.py --lint > "$TMP/lint" 2>&1 \
   && say 7 PASS "roster and shape annotations" \

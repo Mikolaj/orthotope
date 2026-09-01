@@ -1003,8 +1003,10 @@ def strategy_table(cells, shapes, strategies, meta, args, terms):
         a = '%7.2fx' % alloc if alloc is not None else '      --'
         t = '     --' if time != time else '%7.3f' % time
         w = '     --' if worst != worst else '%6.3f' % worst
-        print('%-28s %s %s %6.2f %6.2f %5.0f %s%s'
-              % (st, t, w, ci, noise, smp, a, mark))
+        c = '    --' if ci != ci else '%6.2f' % ci
+        n = '    --' if noise != noise else '%6.2f' % noise
+        print('%-28s %s %s %s %s %5.0f %s%s'
+              % (st, t, w, c, n, smp, a, mark))
     if not have_list:
         print('\ntime is --: this run has no `list` bench to divide by')
     print('\n* control, not a strategy (--aa explains; --no-controls omits)')
@@ -1377,7 +1379,8 @@ def markdown_table(cells, shapes, strategies, meta, args, terms):
             style = 'italic' if is_control(st) else 'plain'
             needs = '?'
         num = ['--' if time != time else '%.3f' % time,
-               '--' if worst != worst else '%.3f' % worst, '%.2f' % ci,
+               '--' if worst != worst else '%.3f' % worst,
+               '--' if ci != ci else '%.2f' % ci,
                '%.0f' % smp, '--' if alloc is None else '%.2fx' % alloc]
         if style == 'italic':
             label_ = label_ if label_.startswith('*') else '*%s*' % label_
@@ -4613,9 +4616,17 @@ def extremes_table(paths, main_hs, args):
         if hit is None:
             print('  %-26s %-11s no class carries the figure' % (what, '--'))
             continue
-        print(('  %-26s %-11s ' + fmt + '%s')
-              % (what, '`%s`' % hit.label, (show[0] if show else key)(hit),
-                 '  on `%s`' % hit.floor_pair if 'floor' in what else ''))
+        val = (show[0] if show else key)(hit)
+        line = ('  %-26s %-11s ' + fmt) % (what, '`%s`' % hit.label, val)
+        if 'floor' in what:
+            line += '  on `%s`' % hit.floor_pair
+        # A holder at zero is the qualifier Run 22 wrote by hand ("of any
+        # non-degenerate class"): the sort stays a sort, and the sentence
+        # is told the question. 2026-09-01, by review.
+        if float((fmt % val).rstrip('%')) == 0:
+            line += ('  -- 0 at this precision: say whether the arm counts'
+                     ' before quoting')
+        print(line)
     for want in (min, max):
         by_col = holder(want, lambda r: gap_size(r.gap))
         by_pair = holder(want, lambda r: gap_size(r.gapp))
@@ -5759,13 +5770,20 @@ def cross_class_summary(basis, others, main):
     are not all positive on both halves cannot be a movement, and
     `reshape1`'s canonicalizing arms return O(1) on three of its four
     shapes.
+
+    Since 2026-09-01 they also sit out the faster/slower vote and the
+    class geomeans -- a degenerate arm's ratio is over only the shapes it
+    kept work on, one of `reshape1`'s four, the least-grounded number in
+    the table -- while the comparison COUNT stays the blocks' own, which
+    is what Run 20's wholesale exclusion broke, and the vote line says
+    how many sat out.
     """
     if len(basis) != len(others):
         sys.stderr.write('--cross-classes: %d basis file(s) against %d other'
                          ' -- they pair up or nothing does\n'
                          % (len(basis), len(others)))
         return 2
-    tot = below = 0
+    tot = voted = below = 0
     per, degenerate = [], []
     for b, o in zip(basis, others):
         cells, shapes, strategies, meta = load(b, main)
@@ -5787,12 +5805,14 @@ def cross_class_summary(basis, others, main):
         if drop:
             degenerate.append((name, sorted(drop)))
         tot += len(rows)
-        below += sum(1 for g, _ in rows if g < 1)
-        per.append((name, geomean([g for g, _ in rows]),
+        voted += len(clean)
+        below += sum(1 for g, _ in clean if g < 1)
+        per.append((name, geomean([g for g, _ in (clean or rows)]),
                     min(clean or rows), max(clean or rows), lst))
     print('cross-half, over %d class population(s)' % len(per))
-    print('  %d arm-comparison(s): %d put the first half faster, %d slower'
-          % (tot, below, tot - below))
+    print('  %d arm-comparison(s), %d degenerate and not voted: %d put the'
+          ' first half faster, %d slower'
+          % (tot, tot - voted, below, voted - below))
     lo_c = min(per, key=lambda t: t[1])
     hi_c = max(per, key=lambda t: t[1])
     print('  geomeans %.4f on %s to %.4f on %s; all below 1: %s'
@@ -5810,8 +5830,9 @@ def cross_class_summary(basis, others, main):
     print('  the low extreme is `%s` in %d of %d population(s)'
           % (top[0], len(top[1]), len(per)))
     for name, arms in degenerate:
-        print('  DEGENERATE on %s, kept out of the extremes and not a'
-              ' movement: %s' % (name, ', '.join('`%s`' % a for a in arms)))
+        print('  DEGENERATE on %s, kept out of the extremes, the vote and'
+              ' the geomeans: %s'
+              % (name, ', '.join('`%s`' % a for a in arms)))
     off = [(n, l) for n, _, _, _, l in per if l is not None
            and abs(l - 1) > 0.007]
     if off:

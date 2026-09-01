@@ -53,16 +53,16 @@ N=${N:-50}
 # the CPU and not the setting. Probed 2026-08-30, and the probe below
 # re-asks it rather than trusting this comment.
 EVENTS=${EVENTS:-instructions:u,cycles:u,stalled-cycles-frontend:u,branch-misses:u,cache-misses:u}
-[ -x "$B" ] || { echo "no $B here"; exit 1; }
+[ -x "$B" ] || { echo "no $B here"; exit 2; }
 [ -n "${ARMS:-}" ] || { echo "set ARMS: this sweep is five events a cell and is not for a whole roster"; exit 2; }
 F=$OUT${C:+-$C}.txt
-[ -e "$F" ] && { echo "$F exists; move it aside first"; exit 1; }
+[ -e "$F" ] && { echo "$F exists; move it aside first"; exit 2; }
 
 # perf first, as run-counts.sh does it and for its reason: a machine that
 # refuses the counters gives NaN for every cell and takes the whole sweep
 # to say so.  Each event is probed separately, an event this CPU does not
 # implement being the likelier refusal here than a paranoid level.
-command -v perf > /dev/null 2>&1 || { echo "!! no perf on PATH. Nothing ran."; exit 1; }
+command -v perf > /dev/null 2>&1 || { echo "!! no perf on PATH. Nothing ran."; exit 2; }
 # The whole list at once, not one event at a time: an event this CPU cannot
 # count reads `<not supported>` alone or in company, but MULTIPLEXING only
 # appears when the list is over-long, and a scaled count is the failure that
@@ -77,7 +77,7 @@ if ! perf stat -x, -e "$EVENTS" /bin/true 2>&1 | grep -q '^[0-9]\+,'; then
  $(cat /proc/sys/kernel/perf_event_paranoid 2>/dev/null || echo '?'), and anything above 1 is the"
   echo "   usual cause. That is what it READ and not a diagnosis."
   echo "   Nothing ran, no $F written."
-  exit 1
+  exit 2
 fi
 BADEV=$(perf stat -x, -e "$EVENTS" /bin/true 2>&1 \
         | awk -F, 'NF>4 && ($1 !~ /^[0-9]+$/ || $5 != "100.00") {print $3" ("$1" at "$5"%)"}')
@@ -88,21 +88,21 @@ if [ -n "$BADEV" ]; then
  $(cat /proc/sys/kernel/perf_event_paranoid 2>/dev/null || echo '?'), and an"
   echo "   event this CPU does not implement reads <not supported> instead."
   echo "   That is what it READ and not a diagnosis. Nothing ran, no $F written."
-  exit 1
+  exit 2
 fi
 _p=$(mktemp 2>/dev/null) && printf x > "$_p" 2>/dev/null || {
   echo "!! mktemp gives no writable file here (TMPDIR=${TMPDIR:-unset}), so perf"
-  echo "   would write its counts nowhere. Nothing ran, no $F written."; rm -f "$_p"; exit 1; }
+  echo "   would write its counts nowhere. Nothing ran, no $F written."; rm -f "$_p"; exit 2; }
 rm -f "$_p"
 
 EVLIST=${EVENTS//,/ }
 NEV=0; for e in $EVLIST; do NEV=$((NEV + 1)); done
 SEL=${C:+classes}
 LIST=$("$B" $SEL --list 2>/dev/null)
-[ -n "$LIST" ] || { echo "!! --list gave nothing; wrong binary?"; exit 1; }
+[ -n "$LIST" ] || { echo "!! --list gave nothing; wrong binary?"; exit 2; }
 if [ -n "$C" ]; then
   LIST=$(printf '%s\n' "$LIST" | grep "^$C-") || LIST=
-  [ -n "$LIST" ] || { echo "!! class prefix $C- matches no bench -- nothing ran, no $F written"; exit 1; }
+  [ -n "$LIST" ] || { echo "!! class prefix $C- matches no bench -- nothing ran, no $F written"; exit 2; }
 fi
 SHAPES=${ONLY:-$(printf '%s\n' "$LIST" | cut -d/ -f1 | awk '!seen[$0]++')}
 # EVERY NAME IS HELD TO THE ROSTER, which run-counts.sh does not do for its
