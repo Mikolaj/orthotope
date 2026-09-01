@@ -9283,7 +9283,8 @@ def main():
                      for f in [args.run] + (args.classes or []) if f
                      for m in [re.match(r'run(\d+)-', os.path.basename(f))]
                      if m}
-            if named and named != {run_no_of(args.run_doc)}:
+            now = run_no_of(args.run_doc)
+            if named and now is not None and named != {now}:
                 p.error('--in-place would write %s, the newest in runs/,'
                         ' for a run named run%s: name the document with'
                         ' --run-doc'

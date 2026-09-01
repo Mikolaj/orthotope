@@ -120,9 +120,12 @@ SCOPE="full"
 {
   echo "# $R-$H $(md5sum "$B" | cut -d' ' -f1) N=$N $(date -Is) $SCOPE"
   echo "# shape arm N instructions/iter"
-  [ "$SCOPE" = full ] \
-    || echo "# RESTRICTED: a smoke run of this script and NOT a recorded"\
-            "column"
+  # `full*`: a class column's scope reads `full class=rev`, and `= full`
+  # stamped every recorded class column RESTRICTED. 2026-09-01.
+  case $SCOPE in full*) ;; *)
+    echo "# RESTRICTED: a smoke run of this script and NOT a recorded"\
+         "column" ;;
+  esac
 } > "$OUT"
 BAD=0
 for S in $SHAPES; do

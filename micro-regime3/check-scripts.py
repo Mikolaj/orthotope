@@ -5376,8 +5376,10 @@ CASES = [
          argv=['zzctc', 'g912', 'rev'],
          probe=lambda subs: open(os.path.join(
              subs['at'], 'zzctc-counts-g912-rev.txt')).read(),
+         # And NOT stamped RESTRICTED: a class column is a recorded one,
+         # and the stamp's `= full` test fired on `full class=rev`.
          ok=V(has=['rev-shape-a list', 'rev-shape-b list', 'class=rev'],
-              hasnt=['other-shape-a', 'shape-c'])),
+              hasnt=['other-shape-a', 'shape-c', 'RESTRICTED'])),
 
     case('counts-file-says-it-was-restricted', 'run-counts.sh', None,
          'a smoke run left a counts file that read as a recorded column',

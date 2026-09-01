@@ -166,9 +166,11 @@ step_8 () {
               | while read -r q; do
                   q=${q%/}
                   case $q in
-                    *\{*,*\}*)  # one brace group, expanded without eval
+                    *\{*\}*)  # one brace group, expanded without eval;
+                              # `read -a` keeps an empty alternative, `{,-x}`
                       pre=${q%%\{*}; rest=${q#*\{}; post=${rest#*\}}
-                      for alt in $(printf '%s' "${rest%%\}*}" | tr ',' ' '); do
+                      IFS=, read -ra alts <<< "${rest%%\}*}"
+                      for alt in "${alts[@]}"; do
                         [ -e "$pre$alt$post" ] || echo "$pre$alt$post"
                       done ;;
                     *) [ -e "$q" ] || echo "$q" ;;
