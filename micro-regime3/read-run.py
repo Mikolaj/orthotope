@@ -4709,19 +4709,30 @@ def block_skeleton(cells, shapes, strategies, meta, args, terms):
     # all -- which on that run disqualified four of the eight and was
     # visible in no other output.
     if getattr(args, 'compare', None):
-        rows, lst = cross_half_rows(cells, shapes, strategies,
-                                    args.compare, args.main, meta)
+        rows, lst, partial = cross_half_rows(cells, shapes, strategies,
+                                             args.compare, args.main, meta)
         if rows:
-            lo = min(rows)
-            hi = max(rows)
-            below = sum(1 for g, _ in rows if g < 1)
+            # The same convention as the intro's, or the two part on the
+            # one class that has degenerate arms: reshape1's installed
+            # line read 1.1441 over all 49 while the intro read 1.0928
+            # over the 46 voting. Worded conditionally so a class with
+            # none keeps its exact installed text. 2026-09-01.
+            vote = [r for r in rows if r[1] not in partial] or rows
+            lo = min(vote)
+            hi = max(vote)
+            below = sum(1 for g, _ in vote if g < 1)
             print()
-            print('**Across the halves:** %d of the %d arms are faster'
+            print('**Across the halves:** %d of the %d%s arms are faster'
                   ' on this half and %d'
-                  % (below, len(rows), len(rows) - below))
+                  % (below, len(vote), ' voting' if partial else '',
+                     len(vote) - below))
             print('slower, at a geomean of %.4f, from `%s` at %.4f to `%s`'
-                  ' at %.4f,' % (geomean([g for g, _ in rows]), lo[1], lo[0],
+                  ' at %.4f,' % (geomean([g for g, _ in vote]), lo[1], lo[0],
                                  hi[1], hi[0]))
+            if partial:
+                print('%s sitting out as degenerate, a basis cell of'
+                      ' theirs not left positive by the correction,'
+                      % ', '.join('`%s`' % a for a in sorted(partial)))
             if lst is not None:
                 print('with `list` itself at %.4f.' % lst)
                 if abs(lst - 1) > 0.007:
@@ -5736,7 +5747,7 @@ def cross_half_rows(cells, shapes, strategies, other, main, meta):
     """
     b_cells, b_shapes, b_strategies = load_other(other, main, shapes, meta)
     both_sh = [sh for sh in shapes if sh in b_shapes]
-    rows, lst = [], None
+    rows, lst, partial = [], None, set()
     for st in strategies:
         if no_net(st) or st not in b_strategies:
             continue
@@ -5746,9 +5757,20 @@ def cross_half_rows(cells, shapes, strategies, other, main, meta):
         if rs:
             g = geomean(rs)
             rows.append((g, st))
+            # DEGENERATE: a basis cell the correction did not leave
+            # positive -- the work removed, so the arm's ratio is not a
+            # movement. The basis half alone decides, deliberately: a
+            # control-half sink narrows the ratio's coverage but does not
+            # change what the basis measured, and widening the test to
+            # both halves takes `lib-stage2` 2.6120 -- the published high
+            # extreme, read at length in Run 22's file -- out of the
+            # intro. Decided here so the intro and the block's own line
+            # are one computation. 2026-09-01.
+            if any(cells[sh][st]['net'] <= 0 for sh in both_sh):
+                partial.add(st)
             if st == 'list':
                 lst = g
-    return rows, lst
+    return rows, lst, partial
 
 
 def cross_class_summary(basis, others, main):
@@ -5766,8 +5788,8 @@ def cross_class_summary(basis, others, main):
     `offtab-aa-distant` reads 1.1133, because the first attempt had
     excluded that class's degenerate arms wholesale rather than naming
     them. So the degenerate cells are NAMED and kept out of the extremes
-    rather than silently dropped or silently included: an arm whose cells
-    are not all positive on both halves cannot be a movement, and
+    rather than silently dropped or silently included: an arm whose basis
+    cells are not all positive cannot be a movement, and
     `reshape1`'s canonicalizing arms return O(1) on three of its four
     shapes.
 
@@ -5791,17 +5813,16 @@ def cross_class_summary(basis, others, main):
         # does: `net` is the slope less that shape's forcing term, and
         # the ratios below are net over net as the blocks' are.
         apply_correction(cells, shapes, strategies, 'sumonly')
-        rows, lst = cross_half_rows(cells, shapes, strategies, o, main, meta)
+        rows, lst, partial = cross_half_rows(cells, shapes, strategies, o,
+                                             main, meta)
         if not rows:
             sys.stderr.write('--cross-classes: %s and %s share no arm\n'
                              % (os.path.basename(b), os.path.basename(o)))
             return 1
         name = population_of(shapes, meta['dims'])[1]
         full = len(shapes)
-        clean = [(g, st) for g, st in rows
-                 if sum(1 for sh in shapes
-                        if cells[sh][st]['net'] > 0) == full]
-        drop = [st for g, st in rows if (g, st) not in clean]
+        clean = [(g, st) for g, st in rows if st not in partial]
+        drop = sorted(partial)
         if drop:
             degenerate.append((name, sorted(drop)))
         tot += len(rows)

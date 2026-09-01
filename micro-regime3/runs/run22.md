@@ -2131,9 +2131,11 @@ the reader reads 55 benchmarks over 4 shapes of the reshape1 class. Anchor:
 reshape1-strided-r3):** `mut-odo-vecdims` 0.091/0.092/0.109/0.094
 `bq-scan-rem-gm-mulback` 0.074/0.073/0.093/0.075
 
-**Across the halves:** 18 of the 49 arms are faster on this half and 31 slower,
-at a geomean of 1.1441, from `mut-odo-vecdims-add-in-leaf` at 0.8057
-to `lib-stage2` at 2.6120, with `list` itself at 0.9900. **The baseline moved
+**Across the halves:** 18 of the 46 voting arms are faster on this half and 28
+slower, at a geomean of 1.0928, from `mut-odo-vecdims-add-in-leaf` at 0.8057
+to `lib-stage2` at 2.6120, `lib-stage2-lean`, `lib-stage2-short`,
+`lib-stage2-u4` sitting out as degenerate, a basis cell of theirs not left
+positive by the correction, with `list` itself at 0.9900. **The baseline moved
 1.00% between the halves, past the 0.7% that lets two columns be differenced,
 so this line is NOT read for the pair's variable.** The table above is one
 process's and stands; what goes is the comparison.
