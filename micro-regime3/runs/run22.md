@@ -764,33 +764,38 @@ in twin and timed binary, so the cache-line reading is not what separates them
 
 ## What the next run compares against
 
-**Run 23's regime, roster and basis are settled; its PAIR is the one decision
-this section leaves open, and it belongs to whoever asks for the run.**
-The regime is `-fspec-constr`, as every run since Run 8, and it is the regime
-the claims decide in; the shipped file does not set the flag ([the
-ceiling](../README.md#the-mutable-ceiling-taken)). The roster is Run 22's --- 55
-timed arms over 24 main-set shapes and 37 class views over nine classes, 1320
-benches and 2035 --- unless the tasks below add to it, and the basis
-is `run22-g912`'s recipe, ghc-9.12.4 with `-fobject-determinism`, the per-sample
-instrument and the saturating preamble, run under `WILDLOG=1 SATURATE=1`, which
-is now the same recipe six runs running. The allocation area is fixed at `-A32m`
-and no pair will vary it again. **What Run 22's results argue for, stated
-so the decision has something to weigh and not as a choice this file makes.**
-A *repetition* --- one recipe built twice, or one binary run twice --- is what
-this file has wanted for four runs and has now been refused four times, each
-roster change putting a layout term into every cross-run figure; and it
-is the pair that would answer [task 3][open], which wants one binary
-over the roster several times and no second recipe at all. **A purpose-built
-pair has the strongest candidate it has had**: `dispRun` is now demonstrably
-mis-cut, the crossover having moved from between `runs-9` and `runs-96`
-to between `runs-1024` and `runs-65536` on both compilers, so a pair varying
-nothing but that threshold would settle in one evening what registration 3 could
-only kill. A *fifth compiler reading* buys least of all: the surviving manifest
-claim has now held on 9.12, 9.14 and HEAD five times, and this run's cross-half
-geomean is carried by two degenerate arms. **What is NOT a candidate** is a pair
-varying the allocation area, closed 2026-08-21, or one varying the roster
-between its halves, refused because it would break `preflight`'s `check`
-comparison and both drivers' bench counts.
+**Run 23's regime, roster and basis are settled, and so, since 2026-09-01,
+is its PAIR: `run23-g912` against `run23-spot`, the basis recipe built twice
+from one source, the `spot` half with `LOOP_DEADSPOT=1` in front of the shim
+and nothing else varied** --- the layout pair that [task 6][open] priced
+on the main set, now over the classes and under a run's own controls,
+and the pair a basis move would rest on; the repetition and the threshold pair
+argued for below stay argued for. The regime is `-fspec-constr`, as every run
+since Run 8, and it is the regime the claims decide in; the shipped file does
+not set the flag ([the ceiling](../README.md#the-mutable-ceiling-taken)).
+The roster is Run 22's --- 55 timed arms over 24 main-set shapes and 37 class
+views over nine classes, 1320 benches and 2035 --- unless the tasks below add
+to it, and the basis is `run22-g912`'s recipe, ghc-9.12.4
+with `-fobject-determinism`, the per-sample instrument and the saturating
+preamble, run under `WILDLOG=1 SATURATE=1`, which is now the same recipe six
+runs running. The allocation area is fixed at `-A32m` and no pair will vary
+it again. **What Run 22's results argue for, stated so the decision has
+something to weigh and not as a choice this file makes.** A *repetition* --- one
+recipe built twice, or one binary run twice --- is what this file has wanted
+for four runs and has now been refused four times, each roster change putting
+a layout term into every cross-run figure; and it is the pair that would answer
+[task 3][open], which wants one binary over the roster several times
+and no second recipe at all. **A purpose-built pair has the strongest candidate
+it has had**: `dispRun` is now demonstrably mis-cut, the crossover having moved
+from between `runs-9` and `runs-96` to between `runs-1024` and `runs-65536`
+on both compilers, so a pair varying nothing but that threshold would settle
+in one evening what registration 3 could only kill. A *fifth compiler reading*
+buys least of all: the surviving manifest claim has now held on 9.12, 9.14
+and HEAD five times, and this run's cross-half geomean is carried by two
+degenerate arms. **What is NOT a candidate** is a pair varying the allocation
+area, closed 2026-08-21, or one varying the roster between its halves, refused
+because it would break `preflight`'s `check` comparison and both drivers' bench
+counts.
 
 **The ruling this section carried about compiler pairs is now spent twice over,
 and this run is the one that spends it.** Run 19 advised against another

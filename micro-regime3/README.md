@@ -2256,45 +2256,48 @@ is planned. A scope limit belongs in the sentence that asks for the measurement.
    is the within-half ordering, which is a fact about the binaries measured;
    what does not is reading it as durable, an arm that moves 18% between two
    builds of one source being the wrong thing to hold an ordering against.
-6. `OPEN` **The shim pads inside a loop wherever two cycles overlap;
-   the containment test is written, and it is REFUSED on the evidence a busy
-   machine can give --- the counter calls it a win and the alignment survey
-   calls it a loss.** [What moves
+6. `ANSWERED` **The shim pads inside a loop wherever two cycles overlap;
+   the containment test as a SKIP is refused, and the pad is moved off
+   the execution path instead --- `LOOP_DEADSPOT=1`, timed against the basis
+   on 2026-09-01 and faster on every arm whose fill carried a pad.** [What moves
    a figure](#what-moves-a-figure-when-no-strategy-changed) has the mechanism.
-   `LOOP_NOOVERLAP=1` is the test, off by default and a switch for the reason
-   `LOOP_MAXSKIP` is one: **off it reproduces the current binary byte
-   for byte**, so it is a switch and not a basis moved by accident, and `check`
-   is byte-identical with it on. **What the counter says**: the arms whose fills
-   carried a pad drop **7.2 to 7.3% of their instructions**, and the arm whose
-   head the test does not skip reads +0.00%. **What the survey says**: 18
-   self-loops straddle a cache line where NONE did, and 16 fewer sit at
-   offset 0. So it removes real padding and breaks real alignment,
-   and the counter cannot see the second --- which is exactly the failure
-   this entry was written to guard against, caught by the guard. **The rule
-   is too blunt and the reason is a quantity the shim cannot have**: whether
-   skipping a head beats padding it turns on the two loops' trip counts,
-   and an assembler shim knows neither. **What is left is one quiet EVENING
-   and not one process, which an attempt on 2026-08-30 established and threw
-   its own half away to say.** The main set was timed with the switch off,
-   cleanly, and the `on` half was stopped after eight minutes when the machine
-   was wanted; the off half was then DELETED rather than kept for a later
-   partner. The reason is that this pair, alone among the pairs here, has
-   no flatness control: every other one can point at arms the change does
-   not touch and hold them to 1.00, which is what caught `-down`'s 15 to 18%
-   displacement in [the ceiling][ceiling]'s nineteenth reading --- and a LAYOUT
-   test invalidates exactly that assumption, since it may move any arm.
-   With the effect a few percent by the counter's own reckoning, the floors 3.5
-   to 4%, and an adjacent pair still displacing an arm by 15% on this box,
-   a half-pair collected hours apart could not be read either way. So: both
-   halves, adjacent, about three and a half hours, and the controls left
-   are `list` against the kept fingerprint, the A/A twins for the floor,
-   and the arms whose heads the test does not skip. Until then the test stays
-   written, off, and unrecommended. **And one thing measured on the way, worth
-   more than the test**: the shim's padding is 7% of these arms' instructions
-   and nearly cancels in a RATIO between two of them --- `lib-stage2`
-   over `lib-stage1` moves 0.6464 to 0.6457 --- so what a counted ratio sees
-   of the shim is only the differential, one nop where two arms' pads differ,
-   which is the whole of what the `slice` residue turned out to be.
+   `LOOP_NOOVERLAP=1`, the skip, was refused on 2026-08-30 because its two
+   instruments disagree: the padded fills drop **7.2 to 7.3% of their
+   instructions** by the counter, and by the survey 18 self-loops straddle where
+   NONE did --- the skipped heads' own short loops, so no refinement of the test
+   reaches them, a shortest-cycle form and a fall-through-only form leaving 16
+   and 17 (2026-08-31). **The dead-spot form**: every pad goes right after
+   an unconditional `jmp`, where no path executes it, and the containment test
+   orders the heads of a group instead of skipping one, the outer of a rotated
+   pair yielding. `align-as.py`'s own section has the form, its readings
+   on the tip and its gates; what remains there is 4 short loops straddling
+   of 285 against the basis's 94, the four fills' rotated pairs, which
+   no residue resolves. **The pair, `probe-ds-run.sh`, main set, both halves
+   adjacent on a quiet machine, 114 minutes each**
+   (`probe-ds-{off,on}-main.json`; the off binary is Run 22's `g912` by md5):
+   `list` against the kept fingerprint +0.44% and +0.35%, floors 1.20%
+   and 2.19%, foreign CPU past 0.25 on 3 of 1320 cells. Read
+   it with `--exclude-shape stretch-inner1`, where `lib-stage2`'s cell
+   IS its forcing term (0.308 ms both) and the net ratio is 41x of nothing,
+   enough to turn the arm's geomean from 0.945 to 1.047 --- `libunord-stage2`
+   is unreadable net for the same reason on most of its shapes and reads 0.998
+   raw. **Every arm whose fill carried a pad is faster, and the counter names
+   which those are**: `fillStage2`'s four users 0.943 to 0.945, `lib-stage1`
+   0.954, the `u2` leaves 0.951 and 0.955, `lib-stage2-short` 0.976,
+   `add-in-leaf-down` 0.833 --- each with 5 to 10% fewer instructions
+   an iteration on `alexnet-L1-55-c3-k11`, the pads gone --- while
+   `lib-stage2-u4`, the same family with no pad in either build, reads 0.995
+   beside `list` 0.998, `bq-expand` 0.997 and `mut-odo-vecdims` 0.998. **What
+   a layout change is allowed to do, it did to two workers with identical
+   counts**: `gen-unsafe` 0.889 and `build` 0.939, their A/A twins agreeing,
+   so those two are placement and not the pads; no arm the basis padded reads
+   slower. Whether the basis moves is a run's decision, not this probe's.
+   **And one thing measured on the way, worth more than the skip**: the shim's
+   padding is 7% of these arms' instructions and nearly cancels in a RATIO
+   between two of them --- `lib-stage2` over `lib-stage1` moves 0.6464 to 0.6457
+   --- so what a counted ratio sees of the shim is only the differential, one
+   nop where two arms' pads differ, which is the whole of what the `slice`
+   residue turned out to be.
 
 **And one class not to repropose: work that needs an aligned build.**
 `mut-odo`'s wide interval is the live case. The dispersion is documented
@@ -2807,7 +2810,7 @@ is not paid. **And beside those, the unordered entry point joins the family**:
 `libunord-stage1` and `libunord-stage2`, each stage's `toUnorderedVectorListT`
 one-block test in front of its liblist body and one concatenation -- the third
 route the branch changes, rostered so that a shim-switch reading (Run 23's
-LOOP_NOOVERLAP among them) has its sanity readings, which no test of the branch
+LOOP_DEADSPOT among them) has its sanity readings, which no test of the branch
 alone can show until GHC itself grows such a capability. In instructions,
 shim-free and net of the sum term --- `probe-r22noshim-counts-g912.txt`
 and its `-runs` sibling, which say of themselves that they are a smoke run

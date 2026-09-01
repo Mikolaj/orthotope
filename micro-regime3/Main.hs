@@ -3205,7 +3205,7 @@ fbLibListStage2 sh (T (Strides ats) ao v) = VS.concat parts
 -- one-block test in front of that stage's list body, so the liblist
 -- arms are the fall-back halves and the pair prices the entry point end
 -- to end. Added 2026-08-30 so that a shim-switch reading on the fills
--- (Run 23's LOOP_NOOVERLAP) has these routes' sanity readings beside
+-- (Run 23's LOOP_DEADSPOT) has these routes' sanity readings beside
 -- it, which no test of the branch can show until GHC itself grows such
 -- a capability.
 --
