@@ -2488,24 +2488,23 @@ codegen rather than that it cannot be built.
   it the clock decides. What the pilot confirmed is the other half of the claim:
   counts are layout-free, every A/A pair agreeing to three digits across
   the table. So counts ride as the check of what a time change is made of, never
-  as the ordering instrument; `run-counts.sh` is the driver, and Run 18's
-  `run18-counts-g912.txt` and `run18-counts-g914.txt` are the artifacts it left
-  --- the Run 16 pilot's went with that run's artifacts on 2026-08-23.
-  **Randomised slots in per-trial processes instead of pinned ones.** Many short
-  fixed-`-n` trials per cell, each in its own process with the order drawn
-  fresh, so that position becomes noise that averages rather than bias
-  that persists, and a table stops needing comparability carried between runs,
-  being self-contained evidence. Not the reordering the roster-order entry above
-  rejected --- that varied slots inside the one shared process --- but a regime
-  that gives the shared process up. Pilot: a few arms and shapes read against
-  the published column, with the A/A pairs' spread under randomisation
-  as the method's own floor. Its precondition was the per-process floor
-  registered with Run 17's pair, read 2026-08-22: `offtab` and `build` spread 12
-  to 14% across ten single processes of one binary on a quiet machine, a mutator
-  term that clock, TLB, last-level misses, ASLR and huge pages were each
-  measured not to be, leaving physical page placement --- a term no in-process
-  control sees and one this regime would draw afresh per trial, so the pilot
-  is refused.
+  as the ordering instrument; `run-counts.sh` is the driver, and the counts
+  files it leaves go with their run's artifacts --- the Run 16 pilot's
+  on 2026-08-23, Run 18's on 2026-09-02. **Randomised slots in per-trial
+  processes instead of pinned ones.** Many short fixed-`-n` trials per cell,
+  each in its own process with the order drawn fresh, so that position becomes
+  noise that averages rather than bias that persists, and a table stops needing
+  comparability carried between runs, being self-contained evidence.
+  Not the reordering the roster-order entry above rejected --- that varied slots
+  inside the one shared process --- but a regime that gives the shared process
+  up. Pilot: a few arms and shapes read against the published column,
+  with the A/A pairs' spread under randomisation as the method's own floor.
+  Its precondition was the per-process floor registered with Run 17's pair, read
+  2026-08-22: `offtab` and `build` spread 12 to 14% across ten single processes
+  of one binary on a quiet machine, a mutator term that clock, TLB, last-level
+  misses, ASLR and huge pages were each measured not to be, leaving physical
+  page placement --- a term no in-process control sees and one this regime would
+  draw afresh per trial, so the pilot is refused.
 - `OPEN` **Render the run-scoped prose from a ledger --- speculative likewise.**
   The end state is verdicts, statuses, floors and tallies kept in one small
   machine-readable file beside the roster, `read-run.py` rendering them
@@ -2894,36 +2893,37 @@ one-block test in front of its liblist body and one concatenation -- the third
 route the branch changes, rostered so that a shim-switch reading (Run 23's
 LOOP_DEADSPOT among them) has its sanity readings, which no test of the branch
 alone can show until GHC itself grows such a capability. In instructions,
-shim-free and net of the sum term --- `probe-r22noshim-counts-g912.txt`
-and its `-runs` sibling, which say of themselves that they are a smoke run
-of `run-counts.sh` and NOT a recorded column --- the short bodies read 0.50
-at `runs-2`, 0.59 at `runs-3`, 0.61 to 0.88 on every k3 and k5 conv shape,
-and above five nothing past the per-row choice's cost, `stretch-coprime-r7`'s
-1.0208 the worst cell, while the quad loop reads 0.83 to 0.85 at long runs
-and 1.08 to 1.15 at runs of 2 and 3 --- so each moves its own end of the run
-axis and Run 22 prices the two in time, which is what those two files cannot do.
-**A ruling stands over the quad loop, 2026-08-30, and it is Mikolaj's rather
-than a measurement's: a stepping run unrolled by four is too complex
-for orthotope, so `lib-stage2-u4` prices what that feature would buy and
-is not a candidate to ship.** The measure is an intuitive estimate of complexity
-taken PER ORTHOGONAL FEATURE, not a count of lines or loops and not a total
-over a function that composes several: the shipped by-two loop is fine but close
-to the bar, so a simpler loop is preferred over it where the performance
-is close, while a function that joins that loop with further orthogonal features
---- the short bodies of `lib-stage2-short` among them --- is judged feature
-by feature, and the short bodies stand or fall on their own. The runs class
-gained `runs-4` and `runs-5` the same day -- no view in the suite had
-a canonical innermost extent of 4, so the short bodies' one unexercised branch
-was invisible even to `check` -- and `runs-256` and `runs-512`, bracketing
-`dispRun` within a factor of two. Each runs on every population, so a library
-change is read where a user would meet it, class by class, whichever of the two
-entry points the user takes, and the `runs` class is where the routes part;
-with the timed `-u2-down` the dispatch arm, the three fill candidates
-and the unordered pair the block took the roster to 1320 benches,
-and the composite arm with the six parkings and two main-set shapes
-of 2026-09-02 takes the roster to 1352 benches, eight superseded arms parked
-permanently since Run 21, `offtab`'s twins removed with it. What the next run
-is registered to answer with them is [in the open list][open].
+shim-free and net of the sum term --- a shim-free counts probe of 2026-08-30
+and its `-runs` sibling, which said of themselves that they were a smoke run
+of `run-counts.sh` and NOT a recorded column, and went with Run 22's preparation
+on 2026-09-02 --- the short bodies read 0.50 at `runs-2`, 0.59 at `runs-3`, 0.61
+to 0.88 on every k3 and k5 conv shape, and above five nothing past the per-row
+choice's cost, `stretch-coprime-r7`'s 1.0208 the worst cell, while the quad loop
+reads 0.83 to 0.85 at long runs and 1.08 to 1.15 at runs of 2 and 3 --- so each
+moves its own end of the run axis and Run 22 prices the two in time, which
+is what those two files cannot do. **A ruling stands over the quad loop,
+2026-08-30, and it is Mikolaj's rather than a measurement's: a stepping run
+unrolled by four is too complex for orthotope, so `lib-stage2-u4` prices what
+that feature would buy and is not a candidate to ship.** The measure
+is an intuitive estimate of complexity taken PER ORTHOGONAL FEATURE, not a count
+of lines or loops and not a total over a function that composes several:
+the shipped by-two loop is fine but close to the bar, so a simpler loop
+is preferred over it where the performance is close, while a function that joins
+that loop with further orthogonal features --- the short bodies
+of `lib-stage2-short` among them --- is judged feature by feature, and the short
+bodies stand or fall on their own. The runs class gained `runs-4` and `runs-5`
+the same day -- no view in the suite had a canonical innermost extent of 4,
+so the short bodies' one unexercised branch was invisible even to `check` --
+and `runs-256` and `runs-512`, bracketing `dispRun` within a factor of two. Each
+runs on every population, so a library change is read where a user would meet
+it, class by class, whichever of the two entry points the user takes,
+and the `runs` class is where the routes part; with the timed `-u2-down`
+the dispatch arm, the three fill candidates and the unordered pair the block
+took the roster to 1320 benches, and the composite arm with the six parkings
+and two main-set shapes of 2026-09-02 takes the roster to 1352 benches, eight
+superseded arms parked permanently since Run 21, `offtab`'s twins removed
+with it. What the next run is registered to answer with them is [in the open
+list][open].
 
 **What the eight are worth as instruments, read against each other for the first
 time on 2026-08-14, over Runs 10 to 13.** Per class: the median A/A deviation
@@ -4122,20 +4122,21 @@ so the instrument is the ninth reading's own and every arm sits at its Run 21
 slot; one criterion process per population at the default budget, under Run 21's
 own `WILDLOG=1 SATURATE=1`, since the saturating preamble is the block-pool
 state that run measured in. Ten processes, one a population, each at the bench
-count `--list` gives it and none complaining; `probe-times-note.txt` carries
-the preparation, and task 2's three processes are its own.) `lib-stage2` against
-`lib-stage1` now reads **0.9294 on `rev`, 1.0628 on `revsome`, 1.0811
-on `slice`, 1.0087 on `scaled`, 0.9005 on `window` and 0.7840 on the main set**,
-against the 4.0152, 4.5377, 4.0984, 4.0765, 3.7237 and 2.4323 Run 21 read. Their
-populations' floors are 4.0 to 7.4 percent on the worst A/A pair, so **`slice`
-is the one population still behind past its floor and it is behind by an eighth,
-where it was behind by four times**; every other regime-3 population is inside
-its floor or ahead of it. **About three of `slice`'s eight points turn out
-to be this benchmark's own assembler shim** and not the branch, which is [what
-moves a figure](#what-moves-a-figure-when-no-strategy-changed)'s to say,
-and the rest is the thirteenth reading's epilogue term, fixed by the fourteenth;
-both were taken after this reading, so the eight points are this run's
-and are not the branch's standing. **Two controls say the reading is the fix
+count `--list` gives it and none complaining; a probe note carried
+the preparation until it went with Run 22's preparation on 2026-09-02, and task
+2's three processes are its own.) `lib-stage2` against `lib-stage1` now reads
+**0.9294 on `rev`, 1.0628 on `revsome`, 1.0811 on `slice`, 1.0087 on `scaled`,
+0.9005 on `window` and 0.7840 on the main set**, against the 4.0152, 4.5377,
+4.0984, 4.0765, 3.7237 and 2.4323 Run 21 read. Their populations' floors are 4.0
+to 7.4 percent on the worst A/A pair, so **`slice` is the one population still
+behind past its floor and it is behind by an eighth, where it was behind by four
+times**; every other regime-3 population is inside its floor or ahead of it.
+**About three of `slice`'s eight points turn out to be this benchmark's own
+assembler shim** and not the branch, which is [what moves
+a figure](#what-moves-a-figure-when-no-strategy-changed)'s to say, and the rest
+is the thirteenth reading's epilogue term, fixed by the fourteenth; both
+were taken after this reading, so the eight points are this run's and
+are not the branch's standing. **Two controls say the reading is the fix
 and not the evening.** The box did not move --- `--machine` puts this run's
 `list` absolutes at -0.03% geomean against the kept fingerprint, worst +1.43%,
 nothing past 5% --- and `--movers 5` against Run 21 finds **one arm of 43 past
