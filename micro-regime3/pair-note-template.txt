@@ -205,8 +205,10 @@ pair's own four (or two) lines out, control first:
     <env> SAT=1    ./run-alonelegs.sh $R <other>
     <env>          ./run-alonelegs.sh $R <basis>
     <env> SAT=1    ./run-alonelegs.sh $R <basis>
-  `SAT=` is the rider's spelling and reaches the process as SATURATE=.
-  Every leg refuses a machine above 5% non-idle, MAXBUSY overriding.
+  `SAT=` is the rider's spelling and reaches the process as SATURATE=;
+  run-evening.sh strips SATURATE from the CLEAN legs' environment, so the
+  LAUNCH switches may stand in front of every line. Every leg refuses a
+  machine above 5% non-idle, MAXBUSY overriding.
   The machine form, which run-evening.sh reads: `clean`, `clean sat`, or
   `none` for a pair that owes no riders:
 RIDERS: clean sat

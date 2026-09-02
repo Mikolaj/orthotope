@@ -1737,7 +1737,8 @@ rather than a slot in the next run, observed again:
   or `perf mem` sampling, is unavailable on this machine (no IBS exposure;
   findings item 58). Answered: the added misses at `-A4m` are mutator-side,
   the collector's own symbols carrying ~1% of samples in every cell,
-  so the conceptual objection above stands measured (item 56).
+  so the conceptual objection in [the floor section][floor] stands measured
+  (item 56).
 
 - `OPEN` **`mut-odo-vecdims-add-in` leads `mut-odo-vecdims` on most populations,
   and Run 18 read the margin outside a floor on one compiler and absent
@@ -2090,10 +2091,9 @@ two evenings apart. `--wild`'s foreign-CPU column dates an intrusion to a bench
 in one call, which is what turned a machine event nobody watched
 into a disclosed pair of cells. The harness wakes a session when a background
 command of any length exits --- the gate's forty minutes and the sequence's ten
-hours both --- so no waiter was set and none was needed, where the chapter still
-describes a file-polling loop; and a sandboxed watcher's `ps` sees none
-of the run's processes, which is the process-namespace fact horde-ad's notes
-carry, met here from the other side.
+hours both --- so no waiter was set and none was needed; and a sandboxed
+watcher's `ps` sees none of the run's processes, which is the process-namespace
+fact horde-ad's notes carry, met here from the other side.
 
 **Both of Run 17's items are spent, and this heading no longer carries them.**
 Its first --- which shapes poison --- was answered 2026-08-18 and its account
@@ -2121,12 +2121,11 @@ so.** `run-counts.sh` was born at Run 18 to serve registration 4, whose question
 is the main set's, so the script took its shapes from `--list`, which
 is the main roster, and covered the main set and nothing else. **The limit
 was recorded in exactly one place: a comment in the script's own header.**
-This file names the instrument **22 times and not one of those mentions
-is within 250 characters of the words *main set***; the registration reads
-*on both halves ... per arm*, which is population-blind and therefore reads
-as covering the run. So a session writing up a run would have had to open
-the driver to find that its class populations had no counted work at all,
-and nobody did until the question was asked from outside. **It was never
+This file named the instrument many times and never beside the words *main set*;
+the registration read *on both halves ... per arm*, which is population-blind
+and therefore read as covering the run. So a session writing up a run would have
+had to open the driver to find that its class populations had no counted work
+at all, and nobody did until the question was asked from outside. **It was never
 a question of cost**: the classes hold about as many cells as the main set
 and sweep FASTER, because the cost is elements touched and not cells. The script
 now takes an optional class, names its artifact for it and refuses a class
@@ -4878,7 +4877,7 @@ the pair, the roster, the note and what this run is for, and nothing else does.
 **The EXECUTION owes 1 --- the run and post-run lists --- with 2, 4, 5, 6
 and 8's replace list**, every one of which answers a question the write-up asks:
 the replace list is walked at post-run step 6 and gains nothing from being read
-hours early, which run list step 18 already says of it, and the class blocks'
+hours early, which run list step 15 already says of it, and the class blocks'
 form is not used until a block is written. **ONE OF THOSE CROSSES BACK,
 and it is 5.** A roster change that parks or drops an arm can leave a live claim
 naming an untimed one, which `--lint` refuses at step 7 --- so the preparation
@@ -5019,12 +5018,11 @@ and never as a chronology.
     #      mode defaults to the newest file, and everything before
     #      post-run step 5 -- the gate's machine check, the claims read
     #      back -- wants the run BEHIND you and would read this run's
-    #      empty file instead. Step 5 makes it
-    #      R=runNN; REGIME=-fspec-constr -- an EMPTY regime is a plain -O1
-    #      build and nothing downstream notices. That hazard is step 2's
-    #      alone: REGIME reaches the build and nothing else.
-    #      Governing docs are this
-    #      file and read-run.py's docstring; horde-ad's CLAUDE.md is not
+    #      empty file instead; step 5 makes it. Governing docs are this
+    #      file and read-run.py's docstring, and horde-ad's CLAUDE.md is not
+    R=runNN; REGIME=-fspec-constr         # an EMPTY regime is a plain -O1
+    #      build and nothing downstream notices; that hazard is step 2's
+    #      alone, REGIME reaching the build and nothing else
     ls $R-*                               # 1. nothing named for this run may
     #      exist yet -- an empty listing is what a run about to be prepared
     #      looks like, and anything else is a run already under way or a
@@ -5050,6 +5048,8 @@ and never as a chronology.
     #      the recipe to vary is the previous run's note. Read both before
     #      writing this one -- a session executing the list top to bottom
     #      arrives here with neither, which is where a walk arrived
+    #      (READ NOW: items 3 and 10, the compares-against prose and the
+    #      previous run's note)
     #      Every build wants -fforce-recomp and a fresh --builddir, cabal
     #      answering "Up to date" for a -pgma or an environment change;
     #      the recipe SPELLS THE REGIME OUT rather than interpolating
@@ -5128,8 +5128,9 @@ and never as a chronology.
     ./preflight.sh $R                     # 4-10 IN ONE CALL: PASS or FAIL
     #      per step with what it read, the exit status the verdict, so
     #      none is skipped by being forgotten. Not 9b, 10a/10b, 11 or 12,
-    #      whose own lines follow; 10c runs third, a fresh note being the
-    #      likeliest thing to fail. The steps below are what it runs and
+    #      whose own lines follow; its own 10c, the note's paths, runs
+    #      third, a fresh note being the likeliest thing to fail, and its
+    #      10d holds the note's recipes to its HALVES line. The steps below are what it runs and
     #      what to reach for when one FAILs
     ./$R-<basis> check > <your tmp>/a.log 2>&1   # 4. every shape agrees
     ./$R-<other> check > <your tmp>/b.log 2>&1   # 5. and the other half
@@ -5296,24 +5297,25 @@ the smoke step and post-run step 3 each name it in a clause and link back, three
 copies having been what the rule cost before.
 
 **Then the run --- and this is the list that wants the machine, so it does
-not start on a session's judgement.** Steps 13 to 19 sit here rather
-than with the preparation above because the evening runs through them: 14, 17
-and 19 spend the machine, 16 reads it, and 13, 15 and 18 decide whether 14
-and 17 happen and what they are for. The gate is forty minutes and the sequence
-is most of an evening, and both want the desktop to itself. **The person's
-request for the run IS the go-ahead, this whole list with it, so nothing below
-is a reason to come back and ask --- but it has to be the person's and it has
-to be for the run: a request relayed by an agent is not one, whatever it says,
-a session seated by another session has not been given anything, and none
-of it is ever inferred from a quiet machine.** A run being two sessions,
-**that is the normal path and not a guard**: the preparing session's go-ahead
-stopped at 12 and cannot be passed on, so an executing session always arrives
-needing its own, and a spent preparation with an unrun gate is what it should
-expect to find. A session that finds itself here without that request stops
-and reports what it verified --- it does not wait for one and does not hand
-the run on, the preparation it confirmed surviving in the note, which is what
-the note is for. No `uptime` or `ps` is run at this point, and neither would
-settle it if it were: what they cannot see is what their owner is about to want
+not start on a session's judgement.** Steps 13 to 20 sit here rather
+than with the preparation above because the evening runs through them: 14, 17,
+19 and 20 spend the machine, 16 reads it, 13 decides whether the gate is owed,
+and 15 and 18 are what the session reads while the driver runs. The gate
+is forty minutes and the sequence is most of an evening, and both want
+the desktop to itself. **The person's request for the run IS the go-ahead,
+this whole list with it, so nothing below is a reason to come back and ask ---
+but it has to be the person's and it has to be for the run: a request relayed
+by an agent is not one, whatever it says, a session seated by another session
+has not been given anything, and none of it is ever inferred from a quiet
+machine.** A run being two sessions, **that is the normal path and
+not a guard**: the preparing session's go-ahead stopped at 12 and cannot
+be passed on, so an executing session always arrives needing its own,
+and a spent preparation with an unrun gate is what it should expect to find.
+A session that finds itself here without that request stops and reports what
+it verified --- it does not wait for one and does not hand the run on,
+the preparation it confirmed surviving in the note, which is what the note
+is for. No `uptime` or `ps` is run at this point, and neither would settle
+it if it were: what they cannot see is what their owner is about to want
 the machine for. Step 16's alarm is not a permission either --- it runs after
 the go-ahead and before the longest stretch, so a machine that got busy since
 stops the run short of the hours rather than after them. Execute the list,
@@ -5348,7 +5350,7 @@ a session does here is read. Unsandboxed throughout:
     #      why: --para 'run-major.sh is that sequence'
     ./run-status.sh $R                    # AND THE DONE-CONDITION, run now
     #      and whenever the run seems finished: every step of the three
-    #      lists read off the artifacts and the repository, `STATUS: all
+    #      lists an artifact or the repository can answer for, `STATUS: all
     #      done` being the one state in which a session is finished with a
     #      run, whatever it has to report. A NOT DONE line is the next step
     #  14. THE GATE, its first stage: run-gate.sh on both halves twice in a
@@ -5358,7 +5360,7 @@ a session does here is read. Unsandboxed throughout:
     #      magnitude from one. It is owed on every pair, both halves being
     #      two builds by the ruling at the head of this chapter
     #  14a. WRITE THE VERDICT by hand ABOVE the note's GATE block, from
-    #      those readings, clearing `GATE: not yet run` in the same edit --
+    #      those readings, clearing `GATE: NOT RUN` in the same edit --
     #      once the evening has landed, the driver going on without it. A
     #      gate that FAILED mechanically stopped the driver instead, and
     #      that is the apparatus: read run-gate.sh's block in the note
@@ -5372,7 +5374,7 @@ a session does here is read. Unsandboxed throughout:
     #      the replace list: it is walked at post-run step 6, gains nothing
     #      from being read six hours early, and the read is paid twice if
     #      the session does not survive the sequence
-    #      why: --para 'If that line says the gate has not run'
+    #      why: --para 'registered predictions'
     #  16. THE ALARM, its second stage: two reads of /proc/stat two seconds
     #      apart, refused above 5% non-idle, MAXBUSY overriding -- the
     #      reading the riders take. An alarm and never a permission: the
@@ -5402,8 +5404,9 @@ a session does here is read. Unsandboxed throughout:
     #      whole write-up and is worth little read after it has begun
     #      (READ NOW: item 2, its head and Results prose)
     #  19. THE RIDERS, its fourth stage: run-alonelegs.sh on each half,
-    #      control first, clean and then `SAT=1` where the note's RIDERS:
-    #      line says `sat` -- the 24 main-set `list` alone legs, one bench
+    #      control first, clean (SATURATE stripped from the launch
+    #      environment) and then `SAT=1` where the note's RIDERS: line
+    #      says `sat` -- the 24 main-set `list` alone legs, one bench
     #      per process, which turn the in-process deflation from an
     #      estimate into a per-shape measurement, so a run without them
     #      cannot check a span prediction. Each refuses a previous
@@ -5423,8 +5426,8 @@ a session does here is read. Unsandboxed throughout:
     #  THEN, WOKEN: read $R-evening.txt top to bottom -- each stage's rc
     #      and any COMPLAINT, then $R-wallclock.log's `!!` lines -- write
     #      14a's verdict, report each stage's exit and counts rather than
-    #      folding them into a later summary, and start the post-run list
-    #      at 0
+    #      folding them into a later summary, and start the post-run list,
+    #      its step 0 first
 
 **One rule for the sandbox in this directory, since half of what a run does must
 write here.** Run everything unsandboxed except the read-only checks.
@@ -5432,8 +5435,8 @@ Those are worth having cheap and are all of them safe: both `check`s, `diag`,
 `--lint`, `--check-doc`, `loop-offsets.py`, `--list`, a `grep` of the note,
 and pre-run steps 6 to 10 --- except 8c and 8d, which write `zz-` fixtures here
 and remove them. Everything that builds, benchmarks or leaves a file
-is the other kind: 2, 11, 12, 14, 17 and 19, and steps 4 and 5 too, which write
-only through their redirect and that is enough. A session starts
+is the other kind: 2, 11, 12, 14, 17, 19 and 20, and steps 4 and 5 too, which
+write only through their redirect and that is enough. A session starts
 in `~/r/horde-ad`, so its sandbox permits writes there and to its own temp
 directory and nowhere else; THIS directory is outside it, and `run-major.sh`
 moves here before doing anything. **And never write `$TMPDIR` here; spell
@@ -6219,20 +6222,6 @@ not otherwise.
     #      paragraph each. Use --brief on --aa and --block: no computed
     #      figure is lost. Do not write a second reader
     #      why: --para 'The claims are part of this'
-    ./read-run.py $R-<basis>-main.json --compare $R-<other>-main.json --predictions --counts $R-counts-<basis>.txt $R-counts-<other>.txt
-    #      5, third act, after the move: every `predict:` span of the
-    #      registration adjudicated from the JSONs, HELD or KILLED with
-    #      the figure read, and the items carrying no span named as
-    #      yours. Write each verdict beside its prediction FROM THIS
-    #      OUTPUT, quoting its figure; what it calls yours is the whole
-    #      of the adjudication left to judgement
-    ./read-run.py --move-registration     #  5, second act: this run's
-    #      OPEN registration leaves the open list for the run file's last
-    #      section, whole and under a one-line preface, and the entry
-    #      becomes the ANSWERED stub with `___` for the verdict clause;
-    #      the verdicts are then written beside each prediction where it
-    #      already stands. It refuses unless exactly one OPEN entry names
-    #      this run, so it is run once, after the copy is committed
     #   5. MAKE THE RUN'S OWN FILE, `runs/$R.md`, by copying the last
     #      run's over it AND COMMITTING THAT COPY BEFORE EDITING IT
     #      (READ NOW: item 2, that file's head and Results prose, if 18
@@ -6254,6 +6243,20 @@ not otherwise.
     #      steps have run, so a session returning to an interrupted
     #      write-up reads `git log` rather than its own memory
     #      why: --para 'COMMIT THE COPY'
+    ./read-run.py --move-registration     #  5, second act: this run's
+    #      OPEN registration leaves the open list for the run file's last
+    #      section, whole and under a one-line preface, and the entry
+    #      becomes the ANSWERED stub with `___` for the verdict clause;
+    #      the verdicts are then written beside each prediction where it
+    #      already stands. It refuses unless exactly one OPEN entry names
+    #      this run, so it is run once, after the copy is committed
+    ./read-run.py $R-<basis>-main.json --compare $R-<other>-main.json --predictions --counts $R-counts-<basis>.txt $R-counts-<other>.txt
+    #      5, third act, after the move: every `predict:` span of the
+    #      registration adjudicated from the JSONs, HELD or KILLED with
+    #      the figure read, and the items carrying no span named as
+    #      yours. Write each verdict beside its prediction FROM THIS
+    #      OUTPUT, quoting its figure; what it calls yours is the whole
+    #      of the adjudication left to judgement
     #  5a. TAKE THE MOVEMENT READING, whose window 5b closes: a
     #      "moved from X to Y" sentence compares against the figures
     #      the claims install overwrites, and after it they are in git
@@ -6465,7 +6468,8 @@ not otherwise.
     #      steps skipped, and any capability found. HALF OF IT IS THE
     #      PREPARING SESSION'S and reaches you only through the note:
     #      that session met the same four things a day earlier and is
-    #      gone, so read its 9 block before writing yours and carry both
+    #      gone, so read its WHAT THE PREPARATION LEARNED block before
+    #      writing yours and carry both
     #      halves. Run 15's durable output
     #      was four checker gaps, two corrected rules here, and the finding
     #      that a probe needs no pair; none of it is in a table. It feeds
@@ -6488,7 +6492,7 @@ not otherwise.
     #      before the mode existed, and the one place it would reach for
     #      the wrong numerator
     ./run-status.sh $R                    # 10b. THE DONE-CONDITION: every
-    #      step of the three lists off the artifacts and the repository.
+    #      step of the three lists an artifact or the repository answers for.
     #      `STATUS: all done`, with its `yours` lines done by hand, is
     #      the one state in which this run is finished; a NOT DONE line
     #      is the next step, and a summary of what remains is not one
@@ -7137,8 +7141,8 @@ without one has come back twice here already. The thirty defects of 2026-08-17
 that taught this are in the reader's docstring and the corpus's own.
 
     ./check-scripts.py                      # the scripts' own defect corpus,
-                                            # all 217 cases and four and a
-                                            # half minutes -- which is what
+                                            # every case, four and a half
+                                            # minutes -- which is what
                                             # the two below are for
     ./check-scripts.py --changed [REV]      # only the cases whose own script
                                             # differs from REV, HEAD by
@@ -7226,7 +7230,7 @@ that taught this are in the reader's docstring and the corpus's own.
                                             # a line range being unable to
                                             # skip what sits between the
                                             # paragraphs it spans.
-                                            # --with-tables is that table's
+                                            # --with-tables adds the tables
     ./read-run.py --delete ANCHOR           # delete the paragraph carrying
                                             # ANCHOR: --replace's counterpart,
                                             # refusing a list and anything
@@ -7464,16 +7468,16 @@ and not a case against it.
 Sixteen A/A controls run an existing strategy twice under a second name ---
 eight strategies, each duplicated once beside its base and once at a distance,
 so position varies within a strategy and strategy within a position. Twelve
-of them were added on 2026-08-14 --- the `offtab` and `bq-odo-gm-mulback` pairs
-for the coverage gap the wild-cell entry names and for the spread instrument's
-widest arm, and the `build`, `mut-odo`, `list` and `gen-unsafe` pairs the same
-day, the placement-sensitive pair that carries Run 14's own control,
-the denominator every ratio divides by, and the one wide arm flat against every
-shape dimension --- and were first read in Run 14. The table below is the other
-six, the ones that carry back to Run 10, which is why this README quotes
-a six-pair figure beside the sixteen-pair one and compares two rows
-of the Results table on the six. They are the only rows whose true ratio
-is known to be exactly 1 --- or were, until [the mutable
+of the eighteen there were until `offtab`'s parking came on 2026-08-14 ---
+the `offtab` and `bq-odo-gm-mulback` pairs for the coverage gap the wild-cell
+entry names and for the spread instrument's widest arm, and the `build`,
+`mut-odo`, `list` and `gen-unsafe` pairs the same day, the placement-sensitive
+pair that carries Run 14's own control, the denominator every ratio divides by,
+and the one wide arm flat against every shape dimension --- and were first read
+in Run 14. The table below is the other six, the ones that carry back to Run 10,
+which is why this README quotes a six-pair figure beside the sixteen-pair one
+and compares two rows of the Results table on the six. They are the only rows
+whose true ratio is known to be exactly 1 --- or were, until [the mutable
 ceiling](#the-mutable-ceiling-taken) turned up another by accident:
 
 | pair | span | g912 | ghead | mean per cell |
@@ -7585,9 +7589,9 @@ the parking of 2026-08-28, so one loose pair moves it more than it did
 on eighteen.
 
 **The class populations are where the factor still bites, and THESE FIGURES
-ARE RUN 21'S** --- the class half of this section was not re-taken for Run 22
+ARE RUN 21'S** --- the class half of this section has not been re-taken since
 and is stamped so rather than left to be read as current, the paragraphs either
-side of it saying *here* and meaning Run 22. The reason is arithmetic rather
+side of it saying *here* and meaning Run 23. The reason is arithmetic rather
 than noise: a two- or three-shape bootstrap gives an interval far narrower
 than the spread those shapes actually show. Run 21's largest factor is `rev`
 at **20**, with `scaled` at 12 and `revsome` at 10 behind it, where Run 20's
@@ -7719,7 +7723,7 @@ The twins run at slots 9 and 15 and the base at 14, so they bracket
 it in execution order and still agree with each other rather than with it.
 **So the reshape1 A/A spread is not allocation volume, not heap occupancy
 and not collector work**, which is every quantity the runtime can report; what
-is left is where the code sits, and step 11's named fills bear on it ---
+is left is where the code sits, and step 0's named fills bear on it ---
 `mut-odo` and `build` share one loop body at two call sites. The caveat
 is the instrument's own: this is the wildlog binary, whose patch moves `.text`,
 so it characterises the class's hazard and not that one cell. What would settle
@@ -8843,10 +8847,11 @@ the shim aligned.
 
 **And a probe has since priced the rebuild itself, which is what neither
 the twins nor that pair measure** --- the next paragraph has its figures,
-and the paragraph closing this section lists it beside the other uncertainties
-this README carries, only the smallest of which is on the table above.
-Susceptibility is a property of the arm and has been measured for three of them,
-so for the rest it is unknown; what that protects is orderings and tiers, which
+and the paragraph *Every kind of comparison this README makes wants
+an instrument*, below, lists it beside the other uncertainties this README
+carries, only the smallest of which is on the table above. Susceptibility
+is a property of the arm and has been measured for three of them, so
+for the rest it is unknown; what that protects is orderings and tiers, which
 several arms witness at once, and what it does not protect is any single arm's
 figure read across a rebuild.
 
@@ -8898,7 +8903,7 @@ slots --- to 1.13 where Run 8 read 0.86 and Run 7 1.24. Every route through
 the roster was blocked, the roster being one of the things that sets the layout,
 which is why the answer had to come from a probe that holds membership still.
 
-**And the third of those is a bias, not a floor, which is the distinction
+**And the rebuild's 18% is a bias, not a floor, which is the distinction
 to keep.** A floor is a threshold below which a margin might be noise,
 and it shrinks as samples accumulate; this does not. Each binary's figure
 is *correct for that binary* --- the four-binary rebuild probe's cells
