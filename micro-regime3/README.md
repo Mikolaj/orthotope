@@ -2490,9 +2490,9 @@ codegen rather than that it cannot be built.
   which is what a session should read, so the numeral was the wrong thing
   to keep: the sentence it sat in claims that a blocked perf costs *the same
   time a real sweep takes*, and the figure was incidental to that. Cut at all
-  four prose sites, twice in the script and twice in `check-scripts.py` ---
-  a comment and `counts-refuses-an-unwritable-tmp`'s description --- none
-  of them a matcher, so no case moved. The gate's own forty minutes elsewhere
+  four prose sites, twice in the script and twice in `defects.py` --- a comment
+  and `counts-refuses-an-unwritable-tmp`'s description --- none of them
+  a matcher, so no case moved. The gate's own forty minutes elsewhere
   in this README is a different duration and is right.
 - `ANSWERED` **Does `offtab-scan-rem` belong in the fingerprint? It does,
   and membership stopped dropping arms at all --- taken 2026-08-24.**
@@ -2526,8 +2526,8 @@ codegen rather than that it cannot be built.
   sections name the previous run's halves on purpose --- Run 16's basis
   registration is a repetition against `run15-a32m` --- so a file-wide rule
   would fail the document for saying what it means. Non-vacuity sits beside
-  the check and again as a control in `check-scripts.py`, which builds the Run
-  14 defect out of the current run file rather than spelling it out, so it keeps
+  the check and again as a control in `defects.py`, which builds the Run 14
+  defect out of the current run file rather than spelling it out, so it keeps
   working when the run number moves.
 - `ANSWERED` **Check each class lead's shape list against its run --- taken
   2026-08-22.** The five class views that gained a third shape on 2026-08-14
@@ -5157,21 +5157,23 @@ and never as a chronology.
     #      mounted and rerun, or run with it blocked and say so in the
     #      write-up -- the one thing not available is reading it as a pass
     #      why: --para 'What the `note:` lines ARE'
-    ./check-scripts.py --families         # 8b. the defect families over the
-    #      Python source here, and the two linters: pyflakes over it and
-    #      shellcheck over the shell drivers, a linter off PATH failing
-    #      the step by name
-    ./check-scripts.py --properties       # 8c. its properties, over every
+    defect-lint.py . && python3 -m pyflakes *.py && shellcheck -S warning -f gcc *.sh
+    #      8b. the defect families over the Python source here, and the
+    #      two linters: pyflakes over it and shellcheck over the shell
+    #      drivers, a linter off PATH failing the step by name -- the
+    #      three lint steps of checks.py, which `check-all .` runs with
+    #      everything else at the cost of the audit and the mutants
+    ./properties.py                       # 8c. its properties, over every
     #      run JSON here; the reader's stderr is withheld and counted by
     #      kind, a kind with a count of one being the thing to read, and
     #      `--warnings` restores it
-    ./check-scripts.py --changed <last run's commit>   # 8d. and if any
+    defect-run.py --changed <last run's commit> .   # 8d. and if any
     #      script here has changed since the last run: every defect those
     #      scripts have had, planted again and refused again. 8c and 8d
     #      write `zz-` fixtures here and remove them, so both want an
     #      unsandboxed seat; AND THEY RUN ALONE, a commit or an edit while
     #      they run reading as a case that changed the tree
-    #      why: --para 'What the three check-scripts.py steps'
+    #      why: --para 'What the three script-check steps'
     ./$R-<basis> diag                     # 9. the regime, in the binary:
     #      one row, baseOffsetsScan against baseOffsetsMut on vgg-14-c512,
     #      equal to three figures under SpecConstr and ten times apart at
@@ -5289,16 +5291,15 @@ log, a driver's own redirect --- is `probe-*` or `smoke-*` and never
 `$R-`anything. Two things read that namespace and neither can tell your file
 from a process. `run-major.sh` refuses to start over a `$R-*.json`
 or `$R-*.log`, which is loud and costs nothing. **`read-all.sh`
-and `check-scripts.py --properties` read a `$R-*.json` as one of the run's own
-processes**, which is not: on Run 17 a repetition parked
-at `run17-rep-revsome.json` while it was still being written turned eighteen
-clean gates into "2 process(es) FAILED" and failed
-`prop_selftest_over_the_corpus` with a traceback --- on a file no run produced,
-and both reading exactly like the run breaking. The loud half of
-this was already written at the smoke step; the quiet half is why it is stated
-here. **This is the one statement of the rule and the other sites point at it**:
-the smoke step and post-run step 3 each name it in a clause and link back, three
-copies having been what the rule cost before.
+and `properties.py` read a `$R-*.json` as one of the run's own processes**,
+which is not: on Run 17 a repetition parked at `run17-rep-revsome.json` while
+it was still being written turned eighteen clean gates into "2 process(es)
+FAILED" and failed `prop_selftest_over_the_corpus` with a traceback ---
+on a file no run produced, and both reading exactly like the run breaking.
+The loud half of this was already written at the smoke step; the quiet half
+is why it is stated here. **This is the one statement of the rule and the other
+sites point at it**: the smoke step and post-run step 3 each name it in a clause
+and link back, three copies having been what the rule cost before.
 
 **Then the run --- and this is the list that wants the machine, so it does
 not start on a session's judgement.** Steps 13 to 20 sit here rather
@@ -5619,17 +5620,19 @@ which open no binary at all. The `2>/dev/null` on `--list` is not optional,
 the provenance line going to stderr and interleaving inside a bench name without
 it.
 
-**What the three `check-scripts.py` steps are each for**, and what each costs.
-`--families` reads the source of every Python program here --- the shell drivers
-are outside an AST family's reach --- and is the one of the three that can name
-a site nobody has met. `--properties` withholds the reader's own stderr
-and counts it by kind because the reader warns once per run per table about rows
-a later roster dropped, which is correct and was 198 KB against six lines
-of verdict. `--changed` runs only the cases whose own script moved, and says
-so and claims nothing where none did; bare it is every case and four and a half
-minutes. And `--audit` replays each case against the code before its own fix,
-where it MUST fail --- the suite's own non-vacuity, and worth a look after
-adding one.
+**What the three script-check steps are each for**, and what each costs.
+`defect-lint.py .` reads the source of every Python program here --- the shell
+drivers are outside an AST family's reach, and shellcheck's --- and is the one
+of the three that can name a site nobody has met. `properties.py` withholds
+the reader's own stderr and counts it by kind because the reader warns once per
+run per table about rows a later roster dropped, which is correct and was 198 KB
+against six lines of verdict. `defect-run.py --changed .` runs only the cases
+whose own script moved, and says so and claims nothing where none did; bare
+it is every case and four and a half minutes. And `defect-run.py --audit .`
+replays each case against the code before its own fix, where it MUST fail ---
+the suite's own non-vacuity, and worth a look after adding one. The three tools
+are the shared ones on PATH from `~/.claude/bin`; what is this directory's
+is the corpus `defects.py`, the properties, and `checks.py`'s list of the lot.
 
 **What the `note:` lines ARE, the list having said only that they do not stop
 you.** They are the write-up's adjudication material and nothing a preparation
@@ -6508,8 +6511,8 @@ not otherwise.
     #        stretch ends -- seconds, and a paragraph left long is
     #        mid-edit and passes
     #      Main.hs, even a comment: `./read-run.py --lint`
-    #      a script here, or read-run.py: `./check-scripts.py --changed
-    #        <REV>` at the END of the stretch, in the background and
+    #      a script here, or read-run.py: `defect-run.py --changed
+    #        <REV> .` at the END of the stretch, in the background and
     #        ALONE -- no edit and no commit while it runs -- with `-k
     #        NAME` for one case while iterating; read-run.py besides
     #        wants `--selftest` on one run JSON
@@ -7140,35 +7143,40 @@ column is raw --- each cost a session to settle, and an ad-hoc script gets them
 subtly wrong. Its docstring is the reference for all of them; extend the script
 rather than starting over.
 
-**`check-scripts.py` is the one exception to that, and it is where a defect
+**`defects.py` is the one exception to that, and it is where a defect
 of the reader goes.** `--selftest` asserts a run's numbers and calls no checker,
 installer or flag guard, so the corpus drives every script here from outside,
-exit code and stderr included, and `--audit` replays each case against
-the commit BEFORE its own fix, where it must fail --- which is what makes
-a fix's proof outlive the commit. **The case comes before the fix**: a claim
-that turns out wrong costs one case rather than one implementation, and a fix
-without one has come back twice here already. The thirty defects of 2026-08-17
-that taught this are in the reader's docstring and the corpus's own.
+exit code and stderr included, and `defect-run.py --audit .` replays each case
+against the commit BEFORE its own fix, where it must fail --- which is what
+makes a fix's proof outlive the commit. The corpus is a Python module
+on the shared record form, so its fixtures stay callables that derive
+from the live documents and the story of each case stays beside it; the runner,
+the validator and the lint are the shared tools, and `check-all .` runs what
+`checks.py` lists. **The case comes before the fix**: a claim that turns out
+wrong costs one case rather than one implementation, and a fix without one has
+come back twice here already. The thirty defects of 2026-08-17 that taught
+this are in the reader's docstring and the corpus's own.
 
-    ./check-scripts.py                      # the scripts' own defect corpus,
+    defect-run.py .                         # the scripts' own defect corpus,
                                             # every case, four and a half
                                             # minutes -- which is what
                                             # the two below are for
-    ./check-scripts.py --changed [REV]      # only the cases whose own script
+    defect-run.py --changed [REV] .         # only the cases whose own script
                                             # differs from REV, HEAD by
                                             # default: what an edit owes, and
                                             # what step 8d asks for
-    ./check-scripts.py -k SUBSTRING         # the cases whose NAME matches, for
-                                            # iterating on one checker; it
-                                            # refuses a pattern matching none,
-                                            # but a pattern matching FEWER
-                                            # than you meant is yours to catch
-    ./check-scripts.py --families           # and the shapes these defects
+    defect-run.py -k SUBSTRING .            # the cases whose id or name
+                                            # matches, for iterating on one
+                                            # checker; it refuses a pattern
+                                            # matching none, but a pattern
+                                            # matching FEWER than you meant
+                                            # is yours to catch
+    defect-lint.py .                        # and the shapes these defects
                                             # keep returning in, over the
                                             # Python source: the only one
                                             # of the three that names a
                                             # site nobody has looked at
-    ./check-scripts.py --properties         # and its properties, over every
+    ./properties.py                         # and its properties, over every
                                             # run on disk rather than any
                                             # fixture: the half that can
                                             # find a defect nobody has met
@@ -9262,8 +9270,8 @@ in `reshape1`, read at `-L1` before the run was paid for. `read-run.py` drops
 such a cell from that row's geomean and from its `worst`, says on stderr which
 rows lost how many, and `--selftest` names them instead of failing the file ---
 which it did, and would have failed four of Run 20's eighteen processes through
-`read-all.sh` and every later preflight through `check-scripts.py --properties`.
-The cost is that two rows of one table can then cover different shape sets,
+`read-all.sh` and every later preflight through `properties.py`. The cost
+is that two rows of one table can then cover different shape sets,
 so a comparison between them is the reading's to make rather than the column's
 to assert, which is what the printed count is for. A sunk **baseline** cell
 is untouched by the ruling: it takes every row of its shape with it and still

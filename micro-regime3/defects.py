@@ -1,18 +1,37 @@
-#!/usr/bin/env python3
 """Every defect these scripts have had, planted again and refused again.
 
-    ./check-scripts.py              # every case against the working tree
-    ./check-scripts.py --audit      # every case against the code before its
+The records of this directory's defects, on the form `defect-cases.py`
+describes and in the Python form `defect-load.py` allows -- a module, so the
+fixtures stay callables that derive from the live documents and the story
+of each case stays beside it as a comment. The shared tools run it:
+
+    defect-cases.py .               # validate and report the records
+    defect-run.py .                 # every case against the working tree
+    defect-run.py --audit .         # every case against the code before its
                                     #   own fix, where it MUST fail
-    ./check-scripts.py -k install   # the cases whose name matches
-    ./check-scripts.py --changed    # only the cases whose own script differs
+    defect-run.py -k install .      # the cases whose id or name matches
+    defect-run.py --changed .       # only the cases whose own script differs
                                     #   from HEAD: what an edit owes, where
                                     #   the whole suite is four and a half
                                     #   minutes and one shell driver is
                                     #   fourteen cases
-    ./check-scripts.py --list       # what is covered, and by which fix
-    ./check-scripts.py --against REV  # diagnose some other revision
-    ./check-scripts.py --properties # the properties, over every run on disk
+    defect-run.py --list .          # what is covered, and by which fix
+    defect-run.py --at REV .        # diagnose some other revision
+    ./properties.py                 # the properties, over every run on disk
+    defect-lint.py .                # the defect families, over the source
+    check-all .                     # all of it, in checks.py's order
+
+The programs run HERE (`run_dir: here` in CONFIG below): both readers resolve
+Main.hs and README.md from `__file__` and both shell drivers cd to their own
+directory, so a copy run from anywhere else answers a different question --
+which is how one proof was made worthless before this file existed. The
+pre-fix program is materialised as ONE FILE beside today's neighbours
+(`materialise: file`): a driver under test still calls today's
+`./read-run.py`, exactly as the proofs did. So the suite plants files in
+this directory and MUST RUN UNSANDBOXED from a session rooted elsewhere:
+a session's sandbox permits writes under the repo it started in and nowhere
+else, and every fixture that writes here dies on `Read-only file system`,
+reported as a fixture that did not build.
 
 TWO HALVES, and they are not the same instrument. A case is MEMORY: one
 defect already found, planted again, and it can only ever re-catch that
@@ -184,20 +203,14 @@ why `read-run.py`, `README.md` and every script with a case in it point at
 it.
 """
 
-import argparse
-import ast
 import atexit
-import collections
-import contextlib
 import importlib.util
-import io
 import inspect
 import json
 import os
 import re
 import shutil
 import subprocess
-import sys
 import tempfile
 import zlib
 
@@ -267,36 +280,6 @@ atexit.register(sweep)
 def git(*args):
     return subprocess.run(('git',) + args, cwd=HERE, capture_output=True,
                           text=True)
-
-
-def tree_delta(before, after):
-    """What changed between two `git status` readings, BOTH directions.
-
-    It printed `set(after) - set(before)` -- additions only -- so a run that
-    REMOVED something tripped the comparison and then reported an empty
-    list under `!! this run changed the working tree`, which is a headline
-    with nothing beneath it and the reader left to guess what went. A
-    fixture deleted rather than left behind is exactly the direction this
-    suite errs in, so it was the likelier half. Found 2026-08-17 by a
-    walker reading the source.
-    """
-    was, now = set(before.split('\n')), set(after.split('\n'))
-    return (['   + %s' % l for l in sorted(now - was) if l.strip()]
-            + ['   - %s (gone)' % l for l in sorted(was - now) if l.strip()])
-
-
-def tree_state():
-    """What `git status` says, or None if it could not say anything.
-
-    The run ends by comparing this against what it saw at the start, and
-    the comparison read `.stdout` alone -- so a `git` that failed gave the
-    empty string both times, the two matched, and the ONE guarantee this
-    file makes about itself passed without being checked. That is the
-    empty-search defect it carries cases about, in the file that carries
-    them. Found 2026-08-17 by asking what this suite covers.
-    """
-    got = git('status', '--porcelain')
-    return None if got.returncode else got.stdout
 
 
 # ---------------------------------------------------------------- fixtures
@@ -1483,63 +1466,6 @@ exit 0
 # second carries the forms that do not -- a parse under a `try`, a helper
 # reached only from under a module-level `try`, from a lambda, or from the
 # `__main__` block, and a nested def its parent merely returns.
-ZZ_FAM_HELPER = """\
-import os
-
-
-def number(name, default):
-    return int(os.environ.get(name) or default)
-
-
-class Knobs:
-    pad = int(os.environ.get('ZZ_PAD2') or 0)
-
-
-PAD = number('ZZ_PAD', 0)
-"""
-
-ZZ_FAM_HANDLED = """\
-import os
-import sys
-
-
-def number(name, default):
-    try:
-        return int(os.environ.get(name) or default)
-    except ValueError:
-        sys.exit('no')
-
-
-def later(name):
-    return int(os.environ.get(name) or 0)
-
-
-try:
-    PAD = number('ZZ_PAD', 0)
-    PAD2 = later('ZZ_PAD2')
-except ValueError:
-    PAD = PAD2 = 0
-
-f = lambda: later('ZZ_LAMBDA')
-
-
-def outer():
-    def inner(name):
-        return int(os.environ.get(name) or 0)
-    return inner
-
-
-OUTER = outer()
-
-
-def main():
-    return later('ZZ_MAIN')
-
-
-if __name__ == '__main__':
-    main()
-"""
-
 # The fuller stand-in, and the reason it is CHECKED IN. Every claim vetted
 # by hand this week wanted a harness, and every one of those harnesses was
 # thrown away with the session that built it -- so the next reader builds
@@ -2591,13 +2517,43 @@ def staged_doc(tmp):
 
 # ------------------------------------------------------------------- cases
 
-CASE = collections.namedtuple('CASE', 'name prog fix gist plant argv env '
-                                      'ok bug probe shadow')
+
+def _takes_text(fn):
+    """Whether a shadow's `extra` wants the script's text: one required
+    positional, where a plant taking the revision has two."""
+    return len([q for q in inspect.signature(fn).parameters.values()
+                if q.default is q.empty]) == 1
+
+
+def _takes_rev(fn):
+    """Whether a plant wants the revision as well as the temp directory.
+
+    REQUIRED positionals only. Counting every parameter called `asm(tmp)`
+    and `edited_readme(t, pair=None)` rev-taking too, because their
+    optional arguments made the count two, and five fixtures stopped
+    building at once -- reported honestly as `did not build` rather than as
+    failures, which is what made it obvious rather than subtle.
+    """
+    try:
+        ps = inspect.signature(fn).parameters.values()
+    except (TypeError, ValueError):
+        return False
+    return len([p for p in ps if p.default is p.empty
+                and p.kind in (p.POSITIONAL_ONLY, p.POSITIONAL_OR_KEYWORD)]
+               ) >= 2
+
+
+def at_rev(prog, rev):
+    """`prog`'s text as of `rev`, or an error naming what could not be read."""
+    got = git('show', '%s:micro-regime3/%s' % (rev, prog))
+    if got.returncode != 0:
+        raise AssertionError('%s at %s: %s' % (prog, rev, got.stderr.strip()))
+    return got.stdout
 
 
 def case(name, prog, fix, gist, argv, ok, bug=None, plant=None, env=None,
-         probe=None, shadow=None):
-    """One defect, both ways round.
+         probe=None, shadow=None, no_audit=None):
+    """One defect, both ways round, as a record on the shared form.
 
     `probe` is for a defect whose evidence is a FILE the invocation wrote
     rather than anything it said: it returns text that is judged alongside
@@ -2610,12 +2566,66 @@ def case(name, prog, fix, gist, argv, ok, bug=None, plant=None, env=None,
     of the middle of the audit, naming no case, where the case had simply
     been written before its fix was committed. Refused at import instead,
     which is where the author is standing.
+
+    A plant taking a second parameter is handed the REVISION under test --
+    None for the live tree -- because a fixture derived from this README is
+    only right for the code of its own era. `readme_lines` says what goes
+    wrong otherwise. A shadow takes the revision under test INTO the shadow,
+    and the mutations are applied on top of it, so --audit reads the same
+    latent defect the case was written for; the shadow's program is what
+    the runner then invokes.
+
+    The tier-1 fields this form cannot fill mechanically are left null and
+    reported as gaps rather than guessed: `proved` is `ran` only where a bug
+    verdict exists, the audit having watched it. `argv=None` is a record
+    with no case, memory alone -- a defect whose program has since left this
+    tree -- and `no_audit` names why the bug direction is not replayed, from
+    the validator's vocabulary.
     """
     assert bug is None or fix, (
         '%s: a bug verdict wants the commit that fixed it, or --audit has'
         ' nothing to replay -- drop the bug to make it a control' % name)
-    return CASE(name, prog, fix, gist, plant, argv, env or {}, ok, bug,
-                probe, shadow)
+
+    def plant_py(ctx):
+        subs = {}
+        if shadow is not None:
+            subs['prog'] = os.path.join(
+                shadow_dir(str(ctx.tmp), prog, ctx.text, **shadow), prog)
+        if plant is not None:
+            got = (plant(str(ctx.tmp), ctx.rev) if _takes_rev(plant)
+                   else plant(str(ctx.tmp)))
+            subs.update(got or {})
+        return subs
+
+    rec = {'id': name, 'program': prog, 'name': gist,
+           'kind': 'defect' if fix else 'control'}
+    if fix:
+        rec.update(fix_rev=fix, family=None, trigger=None, ok=None, bug=None,
+                   proved='ran' if bug else None, harm=None, discovery=None)
+    if no_audit:
+        rec['no_audit'] = no_audit
+    if argv is None:
+        return rec
+    if plant is not None or shadow is not None:
+        rec['plant_py'] = plant_py
+    if argv[:1] == ['--unit']:
+        rec['unit'] = argv[1]
+    else:
+        rec['invoke'] = list(argv)
+    if env:
+        rec['env'] = dict(env)
+    if probe is not None:
+        rec['probe_py'] = probe
+    for key, want in (('expect', ok), ('bug', bug)):
+        if want is None:
+            continue
+        if want['exit'] is not None:
+            rec[key + '_exit'] = want['exit']
+        if want['has']:
+            rec[key + '_text'] = list(want['has'])
+        if want['hasnt']:
+            rec[key + '_absent'] = list(want['hasnt'])
+    return rec
 
 
 def V(exit=None, has=(), hasnt=()):
@@ -2623,7 +2633,7 @@ def V(exit=None, has=(), hasnt=()):
     return {'exit': exit, 'has': list(has), 'hasnt': list(hasnt)}
 
 
-CASES = [
+RECORDS = [
     # ---- read-run.py, the first review's ------------------------------
     case('install-lands-in-next-block', 'read-run.py', '045ca63',
          'a class whose own table is absent took the next class\'s',
@@ -2762,7 +2772,7 @@ CASES = [
                            'kept 0.999 prose'])
                + ', ' + doc_expr(['## H', 'old 0.333 prose',
                                   'old 0.444 prose', 'kept 0.999 prose'])
-               + ", {{'h'}})"],
+               + ", {'h'})"],
          ok=V(has=['kept 0.999 prose'])),
 
     case('held-block-in-an-untouched-section', 'read-run.py', None,
@@ -2773,7 +2783,7 @@ CASES = [
                            'new 0.999 prose'])
                + ', ' + doc_expr(['## H', 'kept 0.111 prose',
                                   'kept 0.222 prose', 'old 0.888 prose'])
-               + ", {{'h'}})"],
+               + ", {'h'})"],
          ok=V(has=['[]'])),
 
     # ---- --counts, registration 4's reading ---------------------------
@@ -4176,7 +4186,7 @@ CASES = [
          bug=V(has=['math domain error'])),
 
     case('properties-buries-its-verdict-in-the-readers-stderr',
-         'check-scripts.py', '7a68237',
+         'properties.py', '7a68237',
          'six lines of verdict under 198 KB of expected warning',
          # These properties drive the reader over every run on disk, so it
          # warns once per run per table about rows a later roster dropped.
@@ -4187,29 +4197,27 @@ CASES = [
          # is still visible as a kind with a count of one. The check is the
          # withheld line, not the size: a summary that named only a total
          # would pass this and hide a new kind.
-         argv=['--properties'],
+         argv=[],
          ok=V(exit=0, has=['line(s) of reader warning withheld',
                            'kind(s)']),
          # No --audit: the driver itself reads the split, so an older copy
          # of it cannot be run against this tree at all. 2026-08-25.
-         ),
+         no_audit='driver-reads-the-split'),
 
     # ---- this file's own instruments ------------------------------------
+    # The runner and its tree guard live in `~/.claude/bin/defect-run.py`
+    # since 2026-09-02, so these two are memory: the defects were this
+    # suite's, and the live checks are the shared runner's selftest and
+    # the control `defect-run-tree-delta` in the shared corpus.
     case('tree-check-that-could-not-run', 'check-scripts.py', 'ea4ab06',
          'this suite\'s one guarantee about itself passed unchecked',
-         argv=['--unit', "tree_state.__doc__ and (git('rev-parse')"
-                         ".returncode, tree_state() is None)"],
-         ok=V(has=['(0, False)']),
-         bug=V(has=["name 'tree_state' is not defined"],
-               hasnt=['(0, False)'])),
+         argv=None, ok=None, no_audit='program-retired'),
 
     case('tree-change-in-both-directions', 'check-scripts.py', 'ea1a3e6',
          'a file REMOVED tripped the alarm and printed nothing beneath it',
-         argv=['--unit', "tree_delta('?? a\\n?? b\\n', '?? b\\n')"],
-         ok=V(has=['gone']),
-         bug=V(has=["name 'tree_delta' is not defined"], hasnt=['gone'])),
+         argv=None, ok=None, no_audit='program-retired'),
 
-    case('shadow-refuses-an-absolute-cd', 'check-scripts.py', '77fd51b',
+    case('shadow-refuses-an-absolute-cd', 'defects.py', '77fd51b',
          'a program cd-ing to an absolute path ran for real from a shadow',
          # The overwrite of 2026-08-23, as a case: a shadow holds a program
          # only if the program stays in it, and probe-areacurve.sh's old
@@ -4222,7 +4230,7 @@ CASES = [
          ok=V(has=['cds to an absolute path']),
          bug=V(has=['/shadow'], hasnt=['cds to an absolute path'])),
 
-    case('shadow-refuses-a-quoted-absolute-cd', 'check-scripts.py', '9a51f3a',
+    case('shadow-refuses-a-quoted-absolute-cd', 'defects.py', '9a51f3a',
          'the same cd in quotes slipped the guard',
          plant=lambda t: {'tmp': t},
          argv=['--unit', "shadow_dir('{tmp}', 'probe-areacurve.sh',"
@@ -4230,7 +4238,7 @@ CASES = [
          ok=V(has=['cds to an absolute path']),
          bug=V(has=['/shadow'], hasnt=['cds to an absolute path'])),
 
-    case('shadow-holds-its-own-directory', 'check-scripts.py', None,
+    case('shadow-holds-its-own-directory', 'defects.py', None,
          'CONTROL: `cd "$(dirname "$0")"` is what a shadow can hold',
          plant=lambda t: {'tmp': t},
          argv=['--unit', "shadow_dir('{tmp}', 'probe-areacurve.sh',"
@@ -4238,7 +4246,7 @@ CASES = [
          ok=V(has=['/shadow'], hasnt=['cds to an absolute path'])),
 
 
-    case('fixture-ci-bounds-are-criterion-shaped', 'check-scripts.py', '40f7a37',
+    case('fixture-ci-bounds-are-criterion-shaped', 'defects.py', '40f7a37',
          'the fixture wrote a negative lower CI bound, which criterion never does',
          # Criterion writes both deviations positive (`confIntLDX`
          # 9.649e-11 beside `confIntUDX` 1.154e-10 in run10-aligned-main),
@@ -4271,6 +4279,10 @@ CASES = [
          argv=['{run}'],
          ok=V(exit=0, has=['1 cell(s) with no confidence interval'])),
 
+    # The families lint moved to `~/.claude/bin/defect-lint.py` on
+    # 2026-09-02, so this is memory; the control that went with it,
+    # `env-parse-under-a-handler-is-not-flagged`, and the planted files
+    # both read live in the shared corpus as `defect-lint-env-parse-*`.
     case('env-parse-through-a-helper', 'check-scripts.py', '40f7a37',
          'an import-time parse in a helper called at import went unflagged',
          # The family's guard read the line's own scope -- `at.get(n.lineno)
@@ -4279,38 +4291,9 @@ CASES = [
          # the family was counted from, passed, and the family had no live
          # site in the tree: a silent search. A helper called at import
          # parses at import.
-         plant=lambda t: {'py': write(here_file('zz-fam.py'), ZZ_FAM_HELPER)},
-         argv=['--unit', "family_lint('zz-fam.py')"],
-         # Both sites by line: the helper's parse and a class body's, the
-         # second flagged by the old lint too, which is what keeps the bug
-         # verdict from holding on a crash.
-         ok=V(has=['zz-fam.py:5 ', 'zz-fam.py:9 ']),
-         bug=V(has=['zz-fam.py:9 '], hasnt=['zz-fam.py:5 '])),
+         argv=None, ok=None, no_audit='program-retired'),
 
-    case('env-parse-under-a-handler-is-not-flagged', 'check-scripts.py',
-         None,
-         'CONTROL: under a try, or reached only from one, a lambda or main',
-         # What the family is about is a parse OUTSIDE any handler, at
-         # import: the handled form is align-as.py's own now, and a helper
-         # reached only from under a module-level try, from a lambda, or
-         # from the `__main__` block does not run at import. The control
-         # that the case above is no ban on reading the environment.
-         plant=lambda t: {'py': write(here_file('zz-fam.py'),
-                                      ZZ_FAM_HANDLED)},
-         argv=['--unit', "family_lint('zz-fam.py')"],
-         ok=V(has=['([], [])'])),
-
-    case('families-name-their-reach', 'check-scripts.py', None,
-         'CONTROL: --families says what it swept, and that it is Python only',
-         # Its ok line, the docstring, README's step 8b and preflight's
-         # step said "every program here" for an AST lint over the Python
-         # files alone, the shell scripts never touched. The one shell
-         # family this review wanted was measured and refused; `families`
-         # has the measurement.
-         argv=['--families'],
-         ok=V(exit=0, has=['Python file(s)', 'shell scripts'])),
-
-    case('properties-refuse-an-empty-corpus', 'check-scripts.py', None,
+    case('properties-refuse-an-empty-corpus', 'properties.py', None,
          'every property held over zero runs, and said so as a pass',
          # The empty-search trap this file carries cases about, in the
          # file that carries them: `runs_on_disk` over a directory with no
@@ -4321,15 +4304,15 @@ CASES = [
          # before it cannot be pointed at an empty directory at all.
          plant=empty_corpus,
          env={'CORPUS': '{corpus}'},
-         argv=['--properties'],
+         argv=[],
          ok=V(exit=1, has=['empty corpus proves nothing'],
               hasnt=['every property holds'])),
 
-    case('properties-over-one-built-run', 'check-scripts.py', None,
+    case('properties-over-one-built-run', 'properties.py', None,
          'CONTROL: a corpus of one built run holds every property',
          plant=corpus_of_one,
          env={'CORPUS': '{corpus}'},
-         argv=['--properties'],
+         argv=[],
          ok=V(exit=0, has=['every property holds', 'over 1 '])),
 
     # ---- the write-up's derived sources --------------------------------
@@ -5000,7 +4983,7 @@ CASES = [
          ),
 
     case('machine-check-tells-a-level-shift-from-a-skewed-shape',
-         'read-run.py', 'bc2f884',
+         'read-run.py', '8132e79',
          'a moved box was one verdict, so a move the shapes disagreed on'
          ' read exactly like one they agreed on',
          # The two cost different things. Shapes moving together is a single
@@ -6182,918 +6165,16 @@ def shadow_dir(tmp, prog, text, mutate=(), extra=()):
     return d
 
 
-# ---------------------------------------------------------------- families
-
-def _scopes(tree):
-    """{lineno: the innermost function it is in}, and None for module
-    scope.
-
-    Innermost, which `ast.walk` visiting the outer def first and a plain
-    assignment buy: `setdefault` kept the outer, so a nested def's parse
-    was the outer's and flagged whenever the outer ran at import, called
-    or not. Found 2026-08-23 by review; the handled control plants it.
-    """
-    at = {}
-    for fn in ast.walk(tree):
-        if isinstance(fn, (ast.FunctionDef, ast.AsyncFunctionDef)):
-            for n in ast.walk(fn):
-                at[getattr(n, 'lineno', 0)] = fn
-    return at
-
-
-def family_lint(path):
-    """The shapes these defects keep coming back in, over one file's source.
-
-    A case is memory and a property is discovery over DATA; this is
-    discovery over CODE, and it is the only one of the three that can find
-    an instance nobody has met yet. Every family below was counted rather
-    than guessed -- seven, four, three, three and two instances across the
-    three reviews of 2026-08-17 -- and each is decidable enough to be worth
-    asking of the tree on every run.
-
-    The zip LISTS rather than fails, as the sweeps in `check_doc` do,
-    because whether a positional zip is wrong is a reading.
-
-    All four broken deliberately, 2026-08-17, on a planted file carrying
-    one of each: the import-time parse, the dropped status, the unread
-    flag and the filtered zip were each named with their line. Its first
-    false positive is recorded at the site -- a helper that RETURNS a
-    completed process has handed the status on rather than dropped it.
-    The helper form of the import-time parse is a case since 2026-08-22,
-    `env-parse-through-a-helper`, with the handled form its control.
-    """
-    src = open(os.path.join(HERE, path)).read()
-    tree = ast.parse(src)
-    at, bad, note = _scopes(tree), [], []
-
-    # A helper CALLED at module scope parses at import as surely as a
-    # module-scope line does, and the guard read only the line's own
-    # scope -- so align-as.py's `number()`, the very form this family was
-    # counted from, passed, and the family had no live site in the tree: a
-    # silent search. A parse inside a `try` is under a handler and is not
-    # the family. Found 2026-08-22 by review.
-    handled = set()
-    for t in ast.walk(tree):
-        if isinstance(t, (ast.Try, getattr(ast, 'TryStar', ast.Try))):
-            handled.update(range(t.body[0].lineno,
-                                 t.body[-1].end_lineno + 1))
-    defs = {fn.name: fn for fn in ast.walk(tree)
-            if isinstance(fn, (ast.FunctionDef, ast.AsyncFunctionDef))}
-
-    def calls(node):
-        # The calls a node MAKES when it runs: not those inside a def or
-        # a lambda it merely defines, which run when called, if ever.
-        for c in ast.iter_child_nodes(node):
-            if isinstance(c, (ast.FunctionDef, ast.AsyncFunctionDef,
-                              ast.Lambda)):
-                continue
-            if isinstance(c, ast.Call):
-                yield c
-            yield from calls(c)
-
-    # What runs at import: the module's statements but its defs, and but
-    # the `if __name__ == '__main__'` block, which runs as a script and
-    # not on import -- seeded from that block too, the first cut of this
-    # put 91 of read-run.py's 102 defs at import, measured 2026-08-23 by
-    # review. A class body does run, so it seeds; its methods do not. A
-    # call made under a `try` is handled where it is made, so what it
-    # calls is not at import unhandled on that account.
-    at_import = set()
-    todo = [s for s in tree.body
-            if not isinstance(s, (ast.FunctionDef, ast.AsyncFunctionDef))
-            and not (isinstance(s, ast.If) and ast.unparse(s.test)
-                     == "__name__ == '__main__'")]
-    while todo:
-        for n in calls(todo.pop()):
-            name = getattr(n.func, 'id', None)
-            if name in defs and name not in at_import \
-                    and n.lineno not in handled:
-                at_import.add(name)
-                todo.append(defs[name])
-
-    for n in ast.walk(tree):
-        if not isinstance(n, ast.Call):
-            continue
-        called = ast.unparse(n.func)
-        if called.endswith('subprocess.run'):
-            if any(k.arg == 'check' for k in n.keywords):
-                continue
-            scope = at.get(n.lineno)
-            body = scope if scope is not None else tree
-            # A call whose result is RETURNED has not dropped anything: it
-            # has handed the status to whoever asked. `git()` here is that,
-            # and was this lint's first false positive.
-            handed = any(isinstance(x, ast.Return) and x.value is n
-                         for x in ast.walk(body))
-            if not handed and not any(
-                    isinstance(x, ast.Attribute) and x.attr == 'returncode'
-                    for x in ast.walk(body)):
-                bad.append('%s:%d a subprocess whose status is never read and'
-                           ' that has no check=True' % (path, n.lineno))
-        where = at.get(n.lineno)
-        if (getattr(n.func, 'id', None) == 'int' and n.args
-                and 'environ' in ast.unparse(n.args[0])
-                and (where is None or where.name in at_import)
-                and n.lineno not in handled):
-            bad.append('%s:%d a value parsed out of the environment at'
-                       ' import, outside any handler' % (path, n.lineno))
-        if (getattr(n.func, 'id', None) == 'zip' and len(n.args) == 2
-                and ast.unparse(n.args[1]) in ('shapes', 'strategies')):
-            first = ast.unparse(n.args[0])
-            scope = at.get(n.lineno)
-            for a in ast.walk(scope if scope is not None else tree):
-                if (isinstance(a, ast.Assign) and len(a.targets) == 1
-                        and ast.unparse(a.targets[0]) == first
-                        and isinstance(a.value, (ast.ListComp,
-                                                 ast.GeneratorExp))
-                        and any(g.ifs for g in a.value.generators)):
-                    note.append('%s:%d `%s` is zipped against `%s` and was'
-                                ' built by a FILTERED comprehension'
-                                % (path, n.lineno, first,
-                                   ast.unparse(n.args[1])))
-
-    # The fifth family -- a check reporting in one branch with no else --
-    # is NOT swept, and the ruling is measured rather than assumed. It was
-    # written, run, and came back with fifteen sites in this directory of
-    # which every one is the ordinary `if lost: bad.append(...)`, which
-    # reports on purpose. The seven real instances were all found by
-    # reading, and each was an `if` guarding a whole CHECK rather than a
-    # report -- which this shape cannot tell apart. A list that never
-    # empties is one nobody reads, and it would have cost the four families
-    # above their credibility. 2026-08-17.
-    return bad, note
-
-
-def family_flags(path):
-    """An argparse flag the program accepts and never reads.
-
-    Three of these in one review: a flag taken and ignored is a request
-    the program answers by doing something else, at exit 0.
-    """
-    src = open(os.path.join(HERE, path)).read()
-    dests = set()
-    for n in ast.walk(ast.parse(src)):
-        if isinstance(n, ast.Call) and getattr(n.func, 'attr', '') \
-                == 'add_argument':
-            named = [k.value.value for k in n.keywords if k.arg == 'dest']
-            if named:
-                dests.add(named[0])
-                continue
-            for a in n.args:
-                if isinstance(a, ast.Constant) and isinstance(a.value, str):
-                    dests.add(a.value.lstrip('-').replace('-', '_'))
-    return ['%s: --%s is accepted and never read' % (path, d)
-            for d in sorted(dests)
-            if not re.search(r'args\.%s\b|getattr\(args, .%s.' % (d, d), src)]
-
-
-def families():
-    """Every family, over every Python program here. Names the site, not
-    a count.
-
-    The shell drivers are outside its reach, the families being shapes of
-    a Python AST, and the ok line says so. The one shell family a review
-    wanted -- a `!!` complaint that sets no status, three instances in
-    three scripts on 2026-08-22 -- was measured rather than adopted: a
-    window of three lines around each `!!`, read for `BAD=`, `exit` or a
-    status assignment, missed two of the three and flagged two sound
-    sites, the word `exit` inside an echoed string counting and a refusal
-    four lines down not. Deciding it wants a shell parser, and a list that
-    never empties is one nobody reads.
-    """
-    bad, note = [], []
-    for f in sorted(os.listdir(HERE)):
-        if not f.endswith('.py') or f.startswith('zz'):
-            continue
-        b, n = family_lint(f)
-        bad += b + family_flags(f)
-        note += n
-    if note:
-        print('  note: %d site(s) of a shape worth a look, listed rather'
-              ' than failed:' % len(note))
-        for line in note:
-            print('        %s' % line)
-    # THE TWO LINTERS, standing since 2026-09-02: pyflakes over the Python
-    # here and shellcheck over the shell drivers, which the AST families
-    # cannot reach. A linter off PATH is a finding and not a skip -- a
-    # session reported pyflakes absent after one failed import while the
-    # script sat in ~/.local/bin, and the checks went unrun for a day --
-    # so `command -v` decides, and its silence fails this step by name.
-    # Proved by hand 2026-09-02: under a PATH holding python3 alone, the
-    # shellcheck line below printed and the step FAILED; with both on
-    # PATH, both linters ran and the step read ok.
-    import shutil
-    pys = sorted(f for f in os.listdir(HERE)
-                 if f.endswith('.py') and not f.startswith('zz'))
-    shs = sorted(f for f in os.listdir(HERE)
-                 if f.endswith('.sh') and not f.startswith('zz'))
-    for tool, argv, files in (
-            ('pyflakes', [sys.executable, '-m', 'pyflakes'], pys),
-            ('shellcheck', ['shellcheck', '-S', 'warning', '-f', 'gcc'], shs)):
-        if tool == 'pyflakes':
-            have = subprocess.run(argv + ['--version'], cwd=HERE,
-                                  capture_output=True).returncode == 0
-        else:
-            have = shutil.which(tool) is not None
-        if not have:
-            bad.append('%s is not on PATH (`command -v %s` finds nothing),'
-                       ' so %d file(s) went unlinted' % (tool, tool, len(files)))
-            continue
-        r = subprocess.run(argv + files, cwd=HERE, capture_output=True,
-                           text=True)
-        for line in (r.stdout + r.stderr).strip().split('\n'):
-            if line.strip():
-                bad.append('%s: %s' % (tool, line.strip()))
-    for line in bad:
-        print('  FAIL %s' % line)
-    if not bad:
-        print('  ok   no dropped status, no unread flag and no import-time'
-              ' environment parse, over the %d Python file(s) here, and'
-              ' pyflakes over them and shellcheck over the shell scripts,'
-              ' %d of them, both clean' % (len(pys), len(shs)))
-    return len(bad)
-
-
-# ------------------------------------------------------------- properties
-
-def reader():
-    """`read-run.py` as a module, which is the seam it already offers.
-
-    It guards `main()` behind `__name__`, so importing it runs nothing --
-    the first of the three seams a program can offer, and the cheapest.
-    The hyphen in the name is why this goes through `importlib` rather
-    than `import`.
-    """
-    import importlib.util
-    spec = importlib.util.spec_from_file_location(
-        'reader_under_test', os.path.join(HERE, 'read-run.py'))
-    m = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(m)
-    return m
-
-
-def runs_on_disk():
-    """Every criterion JSON here, which is the live corpus.
-
-    Live rather than pinned, for the reason the fixtures are derived: a
-    frozen corpus stops representing what the reader actually meets. The
-    properties below are quantified over this, so what they cover grows
-    with the directory and a run deleted takes its coverage with it --
-    which is why each property PRINTS what it covered. `CORPUS` in the
-    environment names another directory, which is how a case hands them
-    an empty one, or one run built for them.
-    """
-    return sorted(f for f in os.listdir(CORPUS)
-                  if f.endswith('.json') and not f.startswith('zz'))
-
-
-def prop_abs_round_trip(m):
-    """Every absolute time the reader can write, it can read back.
-
-    Metamorphic: it relates the emitter to the parser and wants no
-    expected output, so it can be asked of every figure in every run here
-    rather than of a handful of fixtures. That is the whole point --
-    `selftest` states this same property over four values chosen by hand,
-    and passed while `1e+03 us` was live, because none of the four sat at
-    the boundary where `%.3g` rolls a unit over.
-    """
-    bad, n = [], 0
-    for f in runs_on_disk():
-        try:
-            d = json.load(open(os.path.join(CORPUS, f)))
-            benches = d[2]
-        except Exception:
-            continue
-        for b in benches:
-            for r in b['reportAnalysis']['anRegress']:
-                # The TIME fit alone. Quantified over every responder this
-                # asked `fmt_abs` to write allocated BYTES as seconds and
-                # then complained that it could not read them back -- a
-                # property about something the function is not for, which
-                # is the way one of these goes wrong.
-                if r.get('regResponder') != 'time':
-                    continue
-                v = r['regCoeffs'].get('iters', {}).get('estPoint')
-                if not isinstance(v, float) or v <= 0:
-                    continue
-                n += 1
-                cell = '| `s` | 3 | 288 | %s | 0.152 |' % m.fmt_abs(v)
-                got = m.FINGERPRINT_ABS_RE.match(cell)
-                if not got:
-                    bad.append('%s: %s writes %r, which --machine cannot'
-                               ' parse' % (f, v, m.fmt_abs(v)))
-                elif abs(float(got.group(2)) * m.UNIT[got.group(3)] / v
-                         - 1) > 0.005:
-                    bad.append('%s: %s writes %r, read back as %g'
-                               % (f, v, m.fmt_abs(v),
-                                  float(got.group(2)) * m.UNIT[got.group(3)]))
-    return n, 'per-call time(s) in %d run(s)' % len(runs_on_disk()), bad[:5]
-
-
-def prop_table_reads_back(m):
-    """Every row `--markdown` writes, `readme_rows` finds again.
-
-    The emitter and the reader of one table are a seam the code names in
-    so many words -- one literal for the header, so the two cannot drift
-    -- and a drift would show as a run's rows installing as new. Relating
-    the two runs of the pair needs no expected table, so it is asked of
-    every population on disk.
-    """
-    bad, n = [], 0
-    for f in runs_on_disk():
-        try:
-            cells, shapes, strategies, meta = m.load(
-                os.path.join(CORPUS, f), MAIN)
-        except SystemExit:
-            continue
-        except Exception:
-            continue
-        # The MAIN SET's table only. A class table drops the editorial
-        # column deliberately, so that `readme_rows` does not match it and
-        # every population's table stops competing to be the one a later
-        # run copies from -- asking the read-back of a class table is
-        # asking the reader to break a rule it is keeping.
-        if m.population_of(shapes, meta['dims'])[0] != 'main':
-            continue
-        m.apply_correction(cells, shapes, strategies)
-
-        class A:                      # the reader's own argument object
-            readme, main, run = README, MAIN, f
-            # The Results table the carry-forward reads is the RUN's, and
-            # `markdown_table` refuses rather than falling back, so this
-            # stand-in has to carry it as the real argument object does.
-            run_doc = RUNDOC
-        text = m.capture(m.markdown_table, cells, shapes, strategies, meta,
-                         A, {})
-        rows = [l for l in text.split('\n') if l.startswith('| ')
-                and not l.startswith('| strategy |')]
-        n += 1
-        for line in rows:
-            name = re.sub(r'[*`]', '', line.split('|')[1]).strip()
-            name = name.replace('(baseline)', '').strip()
-            if name and name not in strategies:
-                bad.append('%s: emitted a row for %r, which is not an arm of'
-                           ' the run' % (f, name))
-        got = m.readme_rows(_as_page(text), set(strategies), set(strategies))
-        for st in strategies:
-            if st not in got:
-                bad.append('%s: `%s` was written and not read back'
-                           % (f, st))
-    return n, 'population(s) on disk', bad[:5]
-
-
-def _as_page(text):
-    """The emitted table as a README `readme_rows` can be pointed at."""
-    p = os.path.join(tempfile.gettempdir(), 'zz-prop-README.md')
-    return write(p, text)
-
-
-def prop_selftest_over_the_corpus(m):
-    """Every invariant the reader already states, asked of every run here.
-
-    The change this makes is not a new claim -- `--selftest` states
-    thirty-four, each of them a property in the same sense -- but WHAT THEY
-    ARE QUANTIFIED OVER. They are asked of whatever single file a session
-    hands in; asked of the whole directory instead they answer for eighty-
-    odd runs across five run numbers, two probes and every smoke artifact
-    still on disk, at nine seconds. That is the cheapest of these to have
-    and the last one anybody thinks of, the properties being written
-    already.
-
-    A subprocess apiece rather than a call, so what is quantified is the
-    invocation a reader actually makes: its refusals -- a ragged file, a
-    population Main.hs cannot name -- are part of what must hold.
-    """
-    bad, n = [], 0
-    for f in runs_on_disk():
-        n += 1
-        got = subprocess.run([sys.executable, os.path.join(HERE,
-                                                           'read-run.py'),
-                              os.path.join(CORPUS, f), '--selftest'],
-                             cwd=HERE, capture_output=True, text=True,
-                             timeout=300)
-        if got.returncode:
-            first = [l for l in (got.stdout + got.stderr).split('\n')
-                     if l.startswith('FAIL') or 'Traceback' in l]
-            bad.append('%s: exit %d%s' % (f, got.returncode,
-                                          ' -- ' + first[0] if first else ''))
-    return n, 'run(s) on disk, every invariant of each', bad[:5]
-
-
-PROPERTIES = [prop_abs_round_trip, prop_table_reads_back,
-              prop_selftest_over_the_corpus]
-
-# All three broken deliberately, 2026-08-17, because a property that has
-# never failed has proved nothing: labelling seconds `ns` fails the
-# round-trip on every figure it reaches, widening `readme_rows`' column
-# test by one fails the read-back on every row, and a reader that refuses
-# everything fails the third on every run. Each was green again on
-# reverting, and each named the file it failed on rather than a count.
-# The first attempt at the first proved nothing: the formatter it
-# substituted looked wrong and was arithmetically right, so the property
-# held -- a break has to break the property, not merely the code.
-#
-# Three cautions, all paid for here. The first is that these are not new
-# claims so much as old ones asked of more: `--selftest` had thirty-four
-# invariants and asked them of one file at a time, and the whole of the
-# third property is asking them of every file instead. Reach for that
-# before writing a property.
-#
-# A property has to be about what the
-# thing is FOR: quantified over every regression this asked `fmt_abs` to
-# write allocated bytes as seconds, and quantified over every population it
-# asked a class table to be read back, which the reader declines on
-# purpose. Both read as defects and neither was one. And a property gate
-# DETECTS without localising -- it named a run and a figure, and which of
-# `%.3g`'s two exponent thresholds was at fault was a question for the
-# person, not the gate.
-
-
-def properties(warnings=False):
-    """Every property, over the live corpus, naming what failed.
-
-    WITHHOLDS THE READER'S OWN STDERR BY DEFAULT, and says how much and of
-    what kinds. These properties drive `read-run.py` over every run on
-    disk, so the reader warns once per run per table about rows a later
-    roster no longer carries -- correct, expected, and on 2026-08-22
-    **198 KB over 258 lines against six lines of verdict**. A pass whose
-    signal is outnumbered thirty to one is a pass that gets piped through
-    `tail`, and a pipe throws away the exit code this whole file is.
-
-    The kinds are kept and counted rather than dropped: what is withheld
-    is the repetition, not the fact, so a warning the corpus has never
-    shown before still appears -- as a kind with a count of one. `
-    --warnings` restores them verbatim, which is the flag to reach for
-    when a kind is new or a count moves.
-
-    Nothing a property itself says is touched. Their verdicts and the
-    `off` lines behind a FAIL are stdout and print after the loop, so a
-    failure reads the same either way.
-    """
-    m = reader()
-    bad, buf = 0, io.StringIO()
-    keep = contextlib.nullcontext() if warnings else contextlib.redirect_stderr(buf)
-    with keep:
-        got = [(prop, prop(m)) for prop in PROPERTIES]
-    for prop, (n, what, off) in got:
-        if not n:
-            # An empty search proves nothing, and the guards against one
-            # in read-all.sh and install-tables.sh are cases here; this
-            # had none, and over a directory with no run in it said `every
-            # property holds` over 0. Found 2026-08-22 by review. Case:
-            # `properties-refuse-an-empty-corpus`.
-            off = ['0 %s under %s: an empty corpus proves nothing, and so'
-                   ' does one holding nothing this property reads'
-                   % (what, CORPUS)]
-        if off:
-            bad += 1
-            print('  FAIL %-28s over %d %s' % (prop.__name__, n, what))
-            for line in off:
-                print('       %s' % line)
-        else:
-            print('  ok   %-28s over %d %s' % (prop.__name__, n, what))
-    held = [l for l in buf.getvalue().split('\n') if l.strip()]
-    if held:
-        kinds = collections.Counter(
-            re.sub(r'\d+', 'N', l.split(';')[0].strip())[:96] for l in held)
-        print('\n  %d line(s) of reader warning withheld, in %d kind(s);'
-              ' --warnings for them verbatim:' % (len(held), len(kinds)))
-        for k, c in kinds.most_common():
-            print('    %5d x %s' % (c, k))
-    return bad
-
-
-# ------------------------------------------------------------------ runner
-
-UNIT = """\
-import importlib.util, sys
-spec = importlib.util.spec_from_file_location('under_test', sys.argv[1])
-m = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(m)
-print(repr(eval(sys.argv[2], vars(m))))
-"""
-
-
-def _takes_text(fn):
-    """Whether a shadow's `extra` wants the script's text: one required
-    positional, where a plant taking the revision has two."""
-    import inspect
-    return len([q for q in inspect.signature(fn).parameters.values()
-                if q.default is q.empty]) == 1
-
-
-def _takes_rev(fn):
-    """Whether a plant wants the revision as well as the temp directory.
-
-    REQUIRED positionals only. Counting every parameter called `asm(tmp)`
-    and `edited_readme(t, pair=None)` rev-taking too, because their
-    optional arguments made the count two, and five fixtures stopped
-    building at once -- reported honestly as `did not build` rather than as
-    failures, which is what made it obvious rather than subtle.
-    """
-    try:
-        ps = inspect.signature(fn).parameters.values()
-    except (TypeError, ValueError):
-        return False
-    return len([p for p in ps if p.default is p.empty
-                and p.kind in (p.POSITIONAL_ONLY, p.POSITIONAL_OR_KEYWORD)]
-               ) >= 2
-
-
-def at_rev(prog, rev):
-    """`prog`'s text as of `rev`, or an error naming what could not be read."""
-    got = git('show', '%s:micro-regime3/%s' % (rev, prog))
-    if got.returncode != 0:
-        raise AssertionError('%s at %s: %s' % (prog, rev, got.stderr.strip()))
-    return got.stdout
-
-
-def materialise(prog, rev):
-    """`prog` as of `rev`, written HERE so its own path lookups still work.
-
-    Both readers resolve Main.hs and README.md from `__file__`, and both
-    shell drivers cd to their own directory, so a copy run from anywhere
-    else answers a different question -- which is how one proof was made
-    worthless before this file existed. The substitution is one file: a
-    driver under test still calls today's `./read-run.py`, exactly as the
-    proofs did.
-    """
-    p = here_file('zz-against-' + prog)
-    write(p, at_rev(prog, rev))
-    os.chmod(p, 0o755)
-    return p
-
-
-def invoke(prog_path, c, subs):
-    argv = [a.format(**subs) for a in c.argv]
-    env = dict(os.environ)
+# What the shared runner needs to know about this directory; the docstring
+# above says why each is as it is.
+CONFIG = {
+    'run_dir': 'here',
+    'materialise': 'file',
+    'timeout': 600,
     # A session's own launch habit must not reach a case: BASIS or OTHER
     # exported in the shell makes every stub note refuse, and the switches
     # would dose or restrict a driver the case did not ask to.
-    for k in ('BASIS', 'OTHER', 'SATURATE', 'SATURATE_BY', 'WILDLOG', 'SAT',
-              'ONLY', 'ARMS', 'N', 'MAXBUSY', 'FAKE_SATURATE'):
-        env.pop(k, None)
-    env.update({k: v.format(**subs) for k, v in c.env.items()})
-    if argv[:1] == ['--unit']:
-        cmd = [sys.executable, '-c', UNIT, prog_path, argv[1]]
-    elif prog_path.endswith('.py'):
-        cmd = [sys.executable, prog_path] + argv
-    else:
-        cmd = ['bash', prog_path] + argv
-    r = subprocess.run(cmd, cwd=HERE, env=env, capture_output=True,
-                       text=True, timeout=600)
-    return r.returncode, r.stdout + r.stderr
-
-
-def judge(want, code, out):
-    off = []
-    if want['exit'] is not None and code != want['exit']:
-        off.append('exit %d, wanted %d' % (code, want['exit']))
-    for s in want['has']:
-        if s not in out:
-            off.append('did not say %r' % s)
-    for s in want['hasnt']:
-        if s in out:
-            off.append('said %r and should not' % s)
-    return off
-
-
-VERBOSE = False   # set by --verbose: print the cases that held, one a line
-
-
-def run(cases, rev, want_key):
-    """-> (failed, skipped, unbuilt), and the third is not the first.
-
-    A fixture that would not build is its own outcome. It used to be
-    counted with the failures, so `--audit` said `did NOT reproduce their
-    defect, so they prove nothing` about a case whose PLANT had raised --
-    which reads as a vacuous case where the truth is that nothing was
-    tried, and it is the audit's own value that the sentence spends. It
-    happened here on 2026-08-17, to a case stamped with an unexpanded
-    shell substitution: the revision lookup failed and the run reported a
-    defect that had not reproduced.
-
-    The distinction matters most in the audit direction, where a plant
-    derived from today's README meets a script from before the fix: an
-    anchor that moved between the two makes the plant misapply, and the
-    one thing that must not happen is for that to read as a verdict about
-    the case. THREE-VALUED, so it cannot.
-    """
-    bad = skipped = unbuilt = 0
-    for c in cases:
-        want = getattr(c, want_key)
-        if want is None:
-            if VERBOSE:
-                print('  --   %-42s control, no defect to replay' % c.name)
-            skipped += 1
-            continue
-        at = c.fix + '^' if rev == 'BEFORE' else rev
-        off = broke = None
-        try:
-            with tempfile.TemporaryDirectory(prefix='check-scripts-') as tmp:
-                if c.shadow is None:
-                    prog = (os.path.join(HERE, c.prog) if at is None
-                            else materialise(c.prog, at))
-                else:
-                    # The revision under test goes INTO the shadow, and the
-                    # mutations are applied on top of it, so `--audit` reads
-                    # the same latent defect the case was written for.
-                    text = (open(os.path.join(HERE, c.prog)).read()
-                            if at is None else at_rev(c.prog, at))
-                    prog = os.path.join(
-                        shadow_dir(tmp, c.prog, text, **c.shadow), c.prog)
-                # A plant taking a second parameter is handed the REVISION
-                # under test -- None for the live tree -- because a fixture
-                # derived from this README is only right for the code of its
-                # own era. `readme_lines` says what goes wrong otherwise.
-                subs = ({} if not c.plant else
-                        (c.plant(tmp, at) if _takes_rev(c.plant)
-                         else c.plant(tmp))) or {}
-                # Where the case runs matters to a probe: a driver writes
-                # its log beside itself, which for a shadowed case is the
-                # shadow and not this directory.
-                subs.setdefault('prog', prog)
-                subs.setdefault('at', os.path.dirname(prog))
-                code, out = invoke(prog, c, subs)
-                if c.probe:
-                    out += '\n' + c.probe(subs)
-                off = judge(want, code, out)
-        except Exception as e:
-            broke = '%s: %s' % (type(e).__name__, e)
-        finally:
-            sweep()
-        if broke is not None:
-            unbuilt += 1
-            print('  ??   %-42s FIXTURE DID NOT BUILD: %s' % (c.name, broke))
-            print('       %s -- nothing was tried, so this is no verdict'
-                  % c.gist)
-        elif off:
-            bad += 1
-            print('  FAIL %-42s %s' % (c.name, '; '.join(off)))
-            print('       %s' % c.gist)
-        elif VERBOSE:
-            print('  ok   %-42s %s' % (c.name, c.gist))
-    if not VERBOSE:
-        # THE COUNTS AND THE FAILURES, and not a line per case: two hundred
-        # `ok` lines are what a session reads three times over and what
-        # buries the one FAIL among them (Run 23's probe log). The gists
-        # are still there under --verbose, and --list prints them all.
-        print('  %d case(s) held%s; --verbose lists them'
-              % (len(cases) - bad - skipped - unbuilt,
-                 ', %d control(s) not replayed' % skipped if skipped else ''))
-    return bad, skipped, unbuilt
-
-
-def main():
-    p = argparse.ArgumentParser(description=__doc__.split('\n')[0])
-    p.add_argument('-k', dest='pattern', help='only cases matching this')
-    p.add_argument('--list', action='store_true',
-                   help='what is covered, and by which fix')
-    p.add_argument('--audit', action='store_true',
-                   help='replay each case against the commit before its own'
-                        ' fix, where it must fail')
-    p.add_argument('--against', metavar='REV',
-                   help='run every case against some other revision')
-    p.add_argument('--properties', action='store_true',
-                   help='the properties, over every run on disk rather than'
-                        ' over any fixture')
-    p.add_argument('--warnings', action='store_true',
-                   help='with --properties: the reader\'s own stderr'
-                        ' verbatim, which is withheld and counted by kind')
-    p.add_argument('--families', action='store_true',
-                   help='the shapes these defects keep returning in, over'
-                        ' the source of every Python program here')
-    p.add_argument('--changed', metavar='REV', nargs='?', const='HEAD',
-                   help='only the cases whose own script differs from REV'
-                        ' (default HEAD, so: what my edits owe)')
-    p.add_argument('--verbose', action='store_true',
-                   help='a line per case that held; the default prints the'
-                        ' failures and the counts')
-    args = p.parse_args()
-    global VERBOSE
-    VERBOSE = args.verbose
-
-    cases = [c for c in CASES
-             if not args.pattern or args.pattern in c.name]
-    if not cases:
-        print('no case matches %r -- nothing was tried' % args.pattern)
-        return 2
-
-    # ONLY WHAT THE EDIT OWES. 217 cases at about 1.2 s each is four and a
-    # half minutes, every one of them a fresh reader over the whole
-    # document set, and a round that touched one shell driver needs the
-    # dozen-odd cases aimed at it. Pre-run step 8d has always asked for
-    # this in words -- "if any script here has changed since the last run"
-    # -- and nothing enforced it, so the answer was always all 217.
-    #
-    # The scope is a case's OWN script, which every case already names.
-    # REV defaults to HEAD, which answers "what do my uncommitted edits
-    # owe"; pass the last run's commit to ask what has changed since it.
-    #
-    # AN EMPTY SELECTION IS SAID AND NOT PASSED. `every case holds` over
-    # nothing is the vacuous pass this suite exists to refuse, so a run
-    # that selects no case says which revision it compared against and
-    # exits 0 having claimed nothing. And git failing is a BLOCKED at
-    # exit 2, not a silent full run and not a silent empty one: the
-    # question was not answered.
-    if args.changed is not None:
-        # IT SELECTS CASES, so a mode that runs none is not a combination
-        # this can honour: `--properties` is quantified over the run JSONs
-        # and `--families` over the Python source, neither reading `cases`
-        # at all. Filtering to nothing and returning 0 would have reported
-        # success for work that never ran, which is the shape this suite
-        # exists to refuse -- and it did, until this refusal was written.
-        if args.properties or args.families or args.audit or args.against:
-            print('--changed selects cases, and --properties, --families,'
-                  ' --audit and --against do not run them by selection --'
-                  ' so the combination asks for nothing. Run them alone.')
-            return 2
-        progs = sorted({c.prog for c in cases})
-        moved = []
-        for prog in progs:
-            at = os.path.join(HERE, prog)
-            # UNTRACKED IS CHANGED. `git diff` compares the index and the
-            # tree against a commit and says nothing about a file git has
-            # never seen, so a brand-new script's cases would be skipped
-            # by the one mode written to find them. Ask tracking first.
-            try:
-                tracked = subprocess.run(['git', 'ls-files',
-                                          '--error-unmatch', '--', at],
-                                         cwd=HERE, capture_output=True)
-            except OSError as e:
-                print('BLOCKED: git could not be run (%s), so --changed'
-                      ' cannot say which scripts moved' % e)
-                return 2
-            # 1 is untracked; 128 is git itself refusing -- no repository
-            # here -- which used to read as every script changed.
-            if tracked.returncode == 128:
-                print('BLOCKED: git cannot list %s: %s'
-                      % (prog, tracked.stderr.decode().strip()
-                         .split('\n')[0]))
-                return 2
-            if tracked.returncode:
-                moved.append(prog)
-                continue
-            try:
-                r = subprocess.run(['git', 'diff', '--quiet', args.changed,
-                                    '--', at],
-                                   cwd=HERE, capture_output=True)
-            except OSError as e:
-                print('BLOCKED: git could not be run (%s), so --changed'
-                      ' cannot say which scripts moved' % e)
-                return 2
-            if r.returncode == 128:
-                print('BLOCKED: git cannot diff %s against %r: %s'
-                      % (prog, args.changed,
-                         r.stderr.decode().strip().split('\n')[0]))
-                return 2
-            if r.returncode:
-                moved.append(prog)
-        cases = [c for c in cases if c.prog in moved]
-        if not cases:
-            print('no script here differs from %s, so no case is owed --'
-                  ' this is not a pass over the suite, it is an empty'
-                  ' selection' % args.changed)
-            return 0
-        print('changed against %s: %s' % (args.changed, ', '.join(moved)))
-
-    if args.list:
-        for c in cases:
-            print('%-44s %-18s %-9s %s'
-                  % (c.name, c.prog, c.fix or 'control', c.gist))
-        print('\n%d case(s) over %d script(s)'
-              % (len(cases), len(set(c.prog for c in cases))))
-        return 0
-
-    # THIS SUITE PLANTS FILES IN THIS DIRECTORY, SO IT MUST RUN
-    # UNSANDBOXED. A session's sandbox permits writes under the repo it
-    # started in and nowhere else, and this directory is outside it
-    # (README.md, the one rule for the sandbox), so every fixture that
-    # writes here dies on `Read-only file system`. That is reported as
-    # FIXTURE DID NOT BUILD, which is neither a pass nor a failure --
-    # honest, and unreadable: twenty of them and a FAIL verdict looks
-    # exactly like a regression in the code under test. The README says
-    # this of pre-run steps 8c and 8d, which is where a run meets it; an
-    # ad-hoc invocation never reads that, so the refusal is here too, and
-    # it is a BLOCKED rather than a failure because nothing was tried.
-    # Probed by writing rather than by `os.access`, which answers from the
-    # mode bits and says writable under a sandbox that will refuse.
-    # --families READS the source and plants nothing, so it is the one
-    # mode a sandboxed seat may run; the probe refused it until 2026-09-02,
-    # against README's own sandbox rule, which lists it as read-only.
-    probe = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                         'zz-sandbox-probe.tmp')
-    if args.families:
-        probe = None
-    try:
-        try:
-            if probe:
-                with open(probe, 'w') as h:
-                    h.write('')
-        finally:
-            # THE UNLINK IS IN A finally, so a write that succeeded and an
-            # unlink that did not cannot leave the probe behind under a
-            # name this directory's own fixtures use. It is not reachable
-            # by the sandbox -- there the open fails and there is nothing
-            # to remove -- which is exactly why it wanted writing down
-            # rather than testing.
-            if probe and os.path.exists(probe):
-                os.unlink(probe)
-    except OSError as e:
-        print('BLOCKED: cannot write in %s (%s), and this suite plants its'
-              ' fixtures here.' % (os.path.dirname(probe) or '.', e.strerror))
-        print('         Run it unsandboxed. Nothing was tried, so this is'
-              ' no verdict about any script.')
-        return 2
-
-    before = tree_state()
-    if args.families:
-        print('the defect families, over this directory\'s Python source:')
-        bad, skipped, unbuilt = families(), 0, 0
-        verdict = '%d site(s) of a known family' % bad if bad else ''
-    elif args.properties:
-        print('properties over the live corpus:')
-        bad, skipped, unbuilt = properties(args.warnings), 0, 0
-        verdict = '%d propert(ies) FAILED' % bad if bad else ''
-    elif args.audit:
-        print('replaying %d case(s) against the code before each fix, where'
-              ' each MUST fail:' % len(cases))
-        bad, skipped, unbuilt = run(cases, 'BEFORE', 'bug')
-        verdict = ('%d case(s) did NOT reproduce their defect, so they prove'
-                   ' nothing' % bad if bad else '')
-    else:
-        rev = args.against
-        print('%d case(s) against %s:'
-              % (len(cases), rev or 'the working tree'))
-        bad, skipped, unbuilt = run(cases, rev, 'ok')
-        verdict = '%d case(s) FAILED' % bad if bad else ''
-        # The families come with the default run because they cost a tenth
-        # of a second and are the half that can name a site nobody has met.
-        # The properties do not, at fifteen seconds, so the line below is
-        # what keeps them from being forgotten.
-        if not args.pattern and rev is None:
-            print('and the families over this directory\'s Python source:')
-            fam = families()
-            if fam:
-                bad += fam
-                verdict = ((verdict + ', and ') if verdict else '') + (
-                    '%d site(s) of a known family' % fam)
-    after = tree_state()
-    if before is None or after is None:
-        print('!! `git status` did not answer, so whether this run left the'
-              ' tree as it found it was NOT checked')
-        bad += 1
-    elif after != before:
-        # It cannot know WHOSE change this is, and it said it could. The
-        # tree moved under a run on 2026-08-17 because another session
-        # committed to the same checkout while the audit was replaying, and
-        # the report accused this suite of a write it had not made. Naming
-        # both explanations costs a line and keeps the alarm worth reading:
-        # a suite that cries wolf about a colleague's commit is one whose
-        # next real leak gets waved past.
-        print('!! the working tree changed during this run. If a case did'
-              ' it, that is a defect here -- this suite must leave the tree'
-              ' as it found it. A concurrent edit to the same checkout is'
-              ' the other explanation, and the delta below says which:')
-        print('\n'.join(tree_delta(before, after)))
-        bad += 1
-    if unbuilt:
-        # Its own line and its own exit, because a fixture that would not
-        # build says nothing either way about the code it was aimed at.
-        verdict = ((verdict + ', and ') if verdict else '') + (
-            '%d fixture(s) did not build, which is neither a pass nor a'
-            ' failure: the anchor each plants against has moved, or the'
-            ' revision it wanted is not there' % unbuilt)
-    if bad or unbuilt:
-        print('\n%s' % verdict)
-        # LAST, so a run piped into `tail` still shows the answer;
-        # a pipeline exits with tail's status and not this one.
-        print('VERDICT: FAIL (exit 1)')
-        return 1
-    # SAY WHAT A FULL SWEEP COST AND WHAT WOULD HAVE COST LESS, HERE, where
-    # a session that just paid it is looking. Both narrowing modes were
-    # documented in the usage above and in README's step 8d, and a session
-    # doing an ad-hoc round reads neither: the one that ADDED `--changed`
-    # then ran this suite bare eight times in the same evening. A mode
-    # nobody meets at the moment of paying for it is a mode nobody uses.
-    if not (args.audit or args.properties or args.families or args.against
-            or args.pattern or args.changed is not None):
-        print('\n(--properties asks the reader\'s own invariants, and two'
-              ' more, of every run\n on disk rather than of any fixture:'
-              ' fifteen seconds, and not run here)')
-        print('\n(that was every case, about four and a half minutes.'
-              ' --changed [REV] runs\n only the cases whose own script'
-              ' differs from REV, HEAD by default, and\n -k SUBSTRING runs'
-              ' the cases whose name matches -- one checker is seconds)')
-    print('\nevery %s%s'
-          % ('family comes back clean' if args.families
-             else 'property holds over every run on disk' if args.properties
-             else 'case reproduced its defect' if args.audit
-             else 'case holds',
-             ', %d control(s) not replayed' % skipped if skipped else ''))
-    print('VERDICT: PASS (exit 0)')
-    return 0
-
-
-if __name__ == '__main__':
-    sys.exit(main())
+    'strip_env': ['BASIS', 'OTHER', 'SATURATE', 'SATURATE_BY', 'WILDLOG',
+                  'SAT', 'ONLY', 'ARMS', 'N', 'MAXBUSY', 'FAKE_SATURATE'],
+    'cleanup': sweep,
+}

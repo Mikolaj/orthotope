@@ -549,3 +549,18 @@ half happened to be lower". README carried it for a run after the file beside
 it had written that sentence down.
 
 2026-08-31 The containment test was refused on 2026-08-30 as too blunt; a day of simulation on the tip assembly (a scratch harness applying policies and reading the symbol table of the real assembler) showed the refinement route dead -- shortest-cycle and fall-through variants left 16 and 17 of its 18 straddlers -- and moved the pad off the execution path instead: LOOP_DEADSPOT. A single predicted `.skip k` per group was written and measured first and drifted on 458 of 504 groups from branch relaxation; the `.p2align` form, where the assembler counts, replaced it. The all-heads population, the conditional form and the containment test as an in-group priority were chosen by Mikolaj on 2026-09-01.
+
+2026-09-02
+  check-scripts.py, born 2026-08-17, retired into defects.py and the
+  shared tools in ~/.claude/bin, whose record form and runners were born
+  the same day without either side naming the other. The case list moved
+  verbatim, keyword names and all, since 40% of it is commentary and the
+  shared form's JSON has no room for that; the runner, the tree guard,
+  the families lint and the properties went to their own homes. Two of
+  the four AST families did not ship in the shared lint -- the unread
+  argparse flag and the filtered zip -- for want of a recorded instance
+  they fire on, their proof here having been a planted file. The new
+  guard that a fix commit must touch its program refused one attribution
+  here, machine-check-tells-a-level-shift-from-a-skewed-shape's bc2f884,
+  a README-only commit; the audit had passed it on a fixture. Re-pointed
+  at 8132e79, where it reproduces.
