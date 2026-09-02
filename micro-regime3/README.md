@@ -6514,6 +6514,10 @@ not otherwise.
     #      a table install: `--check-doc` recomputes the tables from the
     #        JSONs, so it is the install's check too
     #      a note or a registration: `./preflight.sh $R --note`
+    #      and any shell script here besides: `shellcheck -S warning FILE`;
+    #        any Python file: `pyflakes FILE`. Both are on PATH, and a
+    #        tool is absent only when `command -v NAME` says so -- one
+    #        failed spelling of one route is not that
     #  11. offer the artifacts for deletion -- the JSONs, the logs, the
     #      wall-clock file, and for a pair both binaries and $R-pair.txt --
     #      once, after step 7 is done AND presented, saying what keeping
