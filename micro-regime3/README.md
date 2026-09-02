@@ -5380,7 +5380,7 @@ and never as a chronology.
     #      hung call
     #      why: --para 'After a roster change'
     ./preflight.sh $R --corpus            # 8c AND 8d, DEFERRED TO HERE:
-    #      run them when 12 reports DONE and nothing is writing a JSON.
+    #      run them when 11 and 12 have both printed their verdict -- `sweep clean` and `pass clean` -- and nothing is writing a JSON.
     #      Two verdicts, and the only two of the twelve this half owes
     #      that were not read above
     #  12a. WRITE THE REGISTRATION, which is this half's largest product

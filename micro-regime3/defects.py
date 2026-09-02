@@ -1175,9 +1175,9 @@ def stub_pair_note(tmp):
 
     Written rather than taken from a real note because the real ones are
     gitignored and go with their pair: a case built on run23-pair.txt
-    would be a case that stops running the day the artifacts are offered,
-    which is the decay era_main_hs below exists to answer for a different
-    fixture. The half named `spot` inside `dead-spot`, `spot-check`,
+    would be a case that stops running the day the artifacts are offered.
+    That is the DELETION decay, answered by re-aiming; era_main_hs below
+    answers the other one, the main set growing under a captured run. The half named `spot` inside `dead-spot`, `spot-check`,
     `hotspot` and `spotless` is the point of the block: a rename bounded
     by `\\b` renames the FORM the pair varies, `-` being a word boundary.
     """
