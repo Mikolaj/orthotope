@@ -651,10 +651,14 @@ def health(cells, shapes, strategies, terms, corr='sumonly'):
             n, sh, st = min(sunk)
             rows = sorted({r for _, _, r in sunk})
             out.append('%d cell(s) whose forcing term is not smaller than the'
-                       ' cell itself, worst %s/%s -- the arm removed the work'
-                       ' there, so each reads `--` and %d row(s) are geomeans'
-                       ' over fewer shapes than the rest: %s'
-                       % (len(sunk), sh, st, len(rows),
+                       ' cell itself, worst %s/%s, all of them %s -- the arm'
+                       ' removed the work there, so each reads `--` and %d'
+                       ' row(s) are geomeans over fewer shapes than the rest:'
+                       ' %s'
+                       % (len(sunk), sh, st,
+                          ', '.join('%s/%s' % (q, r) for _, q, r in
+                                    sorted(sunk, key=lambda t: t[1:])),
+                          len(rows),
                           ', '.join(
                               '%s over %d of %d' % (r, n, len(shapes)) if n
                               else '%s not readable at all' % r
@@ -2115,7 +2119,7 @@ def wallclock_window(json_path):
 
 
 def compare_table(cells, shapes, strategies, meta, other, main_hs,
-                  brief=True):
+                  brief=True, per_shape=False):
     """One arm's figure in this run against the same arm in another.
 
     `--pair` compares two arms inside one run; this compares one arm across
@@ -2161,13 +2165,36 @@ def compare_table(cells, shapes, strategies, meta, other, main_hs,
         if rs:
             rows.append((geomean(rs), sum(1 for r in rs if r < 1),
                          len(rs), st))
-    print('\n%-34s %8s %8s %10s' % ('arm', 'ratio', 'faster', 'range'))
+    # The reciprocal is printed beside the ratio because a write-up quoting
+    # the other half's win inverts the column by hand and gets the direction
+    # or the population wrong -- Run 23 quoted `ratio - 1` as the other
+    # half's saving twice. Both columns carry the same n.
+    print('\n%-34s %8s %8s %8s %10s'
+          % ('arm', 'ratio', 'recip', 'faster', 'range'))
     for g, wins, n, st in sorted(rows):
         rs = sorted(cells[sh][st]['net'] / b_cells[sh][st]['net']
                     for sh in both_sh
                     if cells[sh][st]['net'] > 0 and b_cells[sh][st]['net'] > 0)
-        print('%-34s %8.4f %5d/%-3d %5.3f..%.3f'
-              % (st, g, wins, n, rs[0], rs[-1]))
+        print('%-34s %8.4f %8.4f %5d/%-3d %5.3f..%.3f'
+              % (st, g, 1 / g, wins, n, rs[0], rs[-1]))
+    if per_shape:
+        # One line per arm, the per-shape ratios in the run's shape order,
+        # which is what a question about ordering along a class's axis
+        # wants -- registration 3's monotone prediction over `runs` was
+        # computed from two --cells dumps for want of this (Run 23).
+        print('\nper shape, this run / other; `--` where either side has no'
+              ' positive net. The columns are the shapes, numbered:')
+        for k, sh in enumerate(both_sh, 1):
+            print('  %2d %s' % (k, sh))
+        nums = ' '.join('%7d' % k for k in range(1, len(both_sh) + 1))
+        print('%-34s %s' % ('arm', nums))
+        for _g, _w, _n, st in sorted(rows):
+            vals = []
+            for sh in both_sh:
+                a, b = cells[sh][st]['net'], b_cells[sh][st]['net']
+                vals.append('%7.4f' % (a / b) if a > 0 and b > 0
+                            else '%7s' % '--')
+            print('%-34s %s' % (st, ' '.join(vals)))
     if brief:
         return
     print('\nsum-only and -nosum arms are left out, having no corrected time'
@@ -2218,7 +2245,7 @@ def parse_counts(path):
 
 
 def counts_table(cells, shapes, strategies, meta, other, main_hs,
-                 counts_a, counts_b, brief=True):
+                 counts_a, counts_b, brief=True, per_shape=False):
     """The instruction count beside the time, per arm: registration 4.
 
     The one instrument here that owes criterion nothing. `run-counts.sh`
@@ -2296,6 +2323,24 @@ def counts_table(cells, shapes, strategies, meta, other, main_hs,
           % ('arm', 'counts', 'time', 'time/counts', 'n'))
     for cr, tr, n, st in sorted(rows, key=lambda r: r[1]):
         print('%-34s %8.4f %8.4f %12.4f %6d' % (st, cr, tr, tr / cr, n))
+    if per_shape:
+        # Per-shape count ratios, in shape order: the sInner-of-1 mechanism
+        # claim (Run 22) and the per-shape pad shares (Run 23) were both
+        # computed from the two counts files by hand for want of this.
+        sh_order = [sh for sh in shapes if sh in b_shapes]
+        print('\ncounts per shape, this run / other. The columns are the'
+              ' shapes, numbered:')
+        for k, sh in enumerate(sh_order, 1):
+            print('  %2d %s' % (k, sh))
+        nums = ' '.join('%7d' % k for k in range(1, len(sh_order) + 1))
+        print('%-34s %s' % ('arm', nums))
+        for _cr, _tr, _n, st in sorted(rows, key=lambda r: r[1]):
+            vals = []
+            for sh in sh_order:
+                ca = a_counts.get(sh, {}).get(st)
+                cb = b_counts.get(sh, {}).get(st)
+                vals.append('%7.4f' % (ca / cb) if ca and cb else '%7s' % '--')
+            print('%-34s %s' % (st, ' '.join(vals)))
 
     # THE AGGREGATE, AND BOTH POPULATIONS OF IT, BECAUSE THE MODE OWNS THE
     # DEFINITION OR TWO SESSIONS INVENT TWO. A per-class count geomean had
@@ -5324,6 +5369,28 @@ def check_paths(doc):
 # reported as not-new, which would be a lie about an unknown.
 EVERYTHING = frozenset()
 
+# The revision the freshness sweeps and the reworked-sections check read
+# the committed copies from. HEAD until check_doc finds a run file, and
+# then the commit that ADDED that file -- post-run step 5's verbatim copy
+# -- so that "added by this diff" means added by this write-up: against
+# HEAD every line of a committed write-up read as old, which is exactly
+# when step 6e reads the worklists (Run 23, 2026-09-02).
+BASE_REV = 'HEAD'
+
+
+def base_rev_for(run_doc):
+    """The commit that added `run_doc`, or None where git cannot say."""
+    at = os.path.dirname(os.path.abspath(__file__))
+    try:
+        rel = os.path.relpath(os.path.abspath(run_doc), at)
+        got = subprocess.run(['git', 'log', '--diff-filter=A', '-1',
+                              '--format=%H', '--', rel], cwd=at,
+                             capture_output=True, text=True, timeout=20)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    rev = got.stdout.strip()
+    return rev if got.returncode == 0 and rev else None
+
 
 def added_lines(*paths):
     """The stripped text of every line this working tree ADDS over HEAD.
@@ -5419,8 +5486,9 @@ def added_lines(*paths):
         added = set()
         for path in paths:
             rel = os.path.relpath(os.path.abspath(path), at)
-            was = subprocess.run(['git', 'show', 'HEAD:./' + rel], cwd=at,
-                                 capture_output=True, text=True, timeout=20)
+            was = subprocess.run(['git', 'show', BASE_REV + ':./' + rel],
+                                 cwd=at, capture_output=True, text=True,
+                                 timeout=20)
             # A REFUSAL HERE IS NOT THE SENTINEL'S CASE, because `ls-files
             # --error-unmatch` has already answered above: the file is
             # tracked, so git works and the checkout is real, and the one
@@ -5458,7 +5526,7 @@ def head_text_of(path):
                                timeout=20)
         if known.returncode != 0:
             return None
-        was = subprocess.run(['git', 'show', 'HEAD:./' + rel], cwd=at,
+        was = subprocess.run(['git', 'show', BASE_REV + ':./' + rel], cwd=at,
                              capture_output=True, text=True, timeout=20)
         return was.stdout if was.returncode == 0 else ''
     except (OSError, subprocess.SubprocessError):
@@ -5892,6 +5960,42 @@ def section(docs, name, with_tables=False):
     """
     if isinstance(docs, str):
         docs = [docs]
+    # A FILE: qualifier narrows the search to one document, for the two
+    # headings both carry -- `Provenance` -- which used to be reachable in
+    # the run file only by awk (Run 23, 2026-09-02). And `head` is the run
+    # file's untitled block above its first `##`, which no heading names:
+    # asking for the title heading printed the whole file's prose, 136 KB.
+    m = re.match(r'([^/:]+\.md):(.+)$', name)
+    if m:
+        want = [d for d in docs if os.path.basename(d) == m.group(1)]
+        if not want:
+            sys.stderr.write('--section: no document named %s among %s\n'
+                             % (m.group(1), ', '.join(os.path.basename(q)
+                                                     for q in docs)))
+            return 1
+        docs, name = want, m.group(2)
+    if name.lower() == 'head':
+        run = [d for d in docs if RUN_DOC_RE.match(os.path.basename(d))]
+        if not run:
+            sys.stderr.write('--section head: wants a run file, and none is'
+                             ' among %s\n' % ', '.join(os.path.basename(q)
+                                                      for q in docs))
+            return 1
+        try:
+            lines = open(run[-1]).read().split('\n')
+        except OSError as e:
+            sys.stderr.write('--section: %s\n' % e)
+            return 2
+        end = next((j for j, ln in enumerate(lines)
+                    if re.match(r'##\s', ln)), len(lines))
+        out = '\n'.join(lines[:end]).rstrip('\n')
+        print('%s: head, the %d paragraph(s) above its first ## -- %d KB'
+              % (os.path.basename(run[-1]),
+                 sum(1 for q in out.split('\n\n') if q.strip()),
+                 len(out) // 1024))
+        print()
+        print(out)
+        return 0
     hits = []
     for path in docs:
         try:
@@ -5934,6 +6038,102 @@ def section(docs, name, with_tables=False):
               % (held, held_bytes // 1024))
     print()
     print(out)
+    return 0
+
+
+REG_HEAD = '## What this run was built to answer, and what it answered'
+
+
+def move_registration(readme, run_doc):
+    """Move the run's registration from README's open list into the run
+    file's last section, leaving the ANSWERED stub in its place.
+
+    The registration is written into the open list before the run, where
+    a prediction has to be public, and lives in the run file after it,
+    with its verdicts -- so every write-up hand-copied six predictions
+    and their figures from one to the other, which is the two-copies
+    problem the open list's own pointer form was meant to avoid (Run 23,
+    2026-09-02). This does the move: the entry's text, less its lead,
+    becomes the section's body under a one-line preface, and the entry
+    becomes the stub every ANSWERED run entry has -- lead, pointer, and a
+    `___` where the clause of verdicts goes. It refuses unless exactly
+    one OPEN entry names this run, and prints what it moved.
+    """
+    n = run_no_of(run_doc)
+    if n is None:
+        sys.stderr.write('--move-registration: %s is not a run file\n'
+                         % run_doc)
+        return 1
+    try:
+        rd = open(readme).read()
+        doc = open(run_doc).read()
+    except OSError as e:
+        sys.stderr.write('--move-registration: %s\n' % e)
+        return 2
+    lead = ('- `OPEN` **What Run %d is built to answer, registered before'
+            ' it runs.**' % n)
+    # The open list's items are not blank-line separated, so the unit is
+    # a LINE of the unwrapped form, one item apiece; the form the file
+    # was in is restored on the way out.
+    def wrap80(text, unwrap):
+        cmd = ['wrap80', '--unwrap'] if unwrap else ['wrap80']
+        got = subprocess.run(cmd, input=text, capture_output=True,
+                             text=True)
+        if got.returncode != 0:
+            sys.exit('--move-registration: %s exited %d: %s'
+                     % (' '.join(cmd), got.returncode, got.stderr.strip()))
+        return got.stdout
+    # A wrapped document is wrap80's fixed point, so the form is read by
+    # asking the tool rather than by a line length, which a table row
+    # exceeds in either form.
+    was_wrapped = wrap80(rd, unwrap=False) == rd
+    lines = wrap80(rd, unwrap=True).split('\n')
+    hit = [i for i, q in enumerate(lines) if q.startswith(lead)]
+    if len(hit) != 1:
+        sys.stderr.write('--move-registration: %d OPEN entr%s for Run %d in'
+                         ' %s, need 1 -- the lead is %r\n'
+                         % (len(hit), 'y' if len(hit) == 1 else 'ies', n,
+                            os.path.basename(readme), lead))
+        return 1
+    body = lines[hit[0]][len(lead):].strip()
+    if REG_HEAD not in doc:
+        sys.stderr.write('--move-registration: %s has no `%s` heading\n'
+                         % (os.path.basename(run_doc), REG_HEAD))
+        return 1
+    if doc.count(REG_HEAD) != 1:
+        sys.stderr.write('--move-registration: the heading occurs %d times'
+                         ' in %s\n' % (doc.count(REG_HEAD),
+                                        os.path.basename(run_doc)))
+        return 1
+    head_at = doc.index(REG_HEAD)
+    old_tail = doc[head_at + len(REG_HEAD):]
+    preface = ('Registered in README\'s open list on the date the entry'
+               ' carries, before the run, and moved here whole at post-run'
+               ' step 5; the verdicts are the write-up\'s to add beside each'
+               ' prediction, and the summary sentence its to write.')
+    new_doc = (doc[:head_at] + REG_HEAD + '\n\n' + preface + '\n\n' + body
+               + '\n')
+    stub = ('- `ANSWERED` **What Run %d was built to answer, registered'
+            ' before it ran --- and what it answered.** The registrations,'
+            ' their kill conditions and their verdicts are [in Run %d\'s own'
+            ' file](%s/run%d.md#what-this-run-was-built-to-answer-and-what-it'
+            '-answered), where a run\'s registrations have lived since'
+            ' 2026-08-29; in a clause each: ___.' % (n, n, RUNS_DIR, n))
+    lines[hit[0]] = stub
+    out = '\n'.join(lines)
+    if was_wrapped:
+        out = wrap80(out, unwrap=False)
+    with open(run_doc, 'w') as f:
+        f.write(new_doc)
+    with open(readme, 'w') as f:
+        f.write(out)
+    print('--move-registration: %d chars moved from %s to %s'
+          % (len(body), os.path.basename(readme), os.path.basename(run_doc)))
+    print('  the run file\'s last section replaced, %d chars out, the'
+          ' registration in under a one-line preface' % len(old_tail))
+    print('  README\'s entry is the ANSWERED stub with `___` for the verdict'
+          ' clause; --check-doc holds the stub to the same word limit as'
+          ' every other')
     return 0
 
 
@@ -6909,6 +7109,13 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
     buried = [(where(i), l)
               for i, l in buried_actions(lines)]
 
+    global BASE_REV
+    base = base_rev_for(run_doc) if run_doc else None
+    if base:
+        BASE_REV = base
+        print('note: freshness is read against %s, the commit that added %s,'
+              ' so "added by this diff" means added by this write-up'
+              % (base[:7], os.path.basename(run_doc)))
     added = added_lines(*([readme, main_hs]
                           + ([run_doc] if run_doc else [])))
 
@@ -7209,6 +7416,17 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
     # THE RUN NUMBER COMES OFF THE FILE NAME, which is the only place it
     # is written now: `runs/run19.md`. It used to come off `## About the
     # last run (Run N)`, one of four headings a write-up renamed by hand.
+    # A PARAGRAPH DEFERRED UNTIL A MEASUREMENT LANDS carries `[[TODO]]`,
+    # and the token fails the document until it is written: a deferral
+    # with no marker was forgotten until an end-to-end read caught it
+    # (Run 23, the comparison section's first paragraph). Not `TODO`
+    # bare, which README's own TODO list names.
+    for path, text in docs:
+        k = len(re.findall(r'(?<!`)\[\[TODO\]\](?!`)', text))
+        if k:
+            bad.append('%d `[[TODO]]` marker(s) in %s: a deferred paragraph'
+                       ' is written before the document passes'
+                       % (k, os.path.basename(path)))
     cur = str(run_no_of(run_doc)) if run_doc else None
     start = next((i for i, ln in enumerate(lines)
                   if re.match(r'#{1,6} Results\s*$', ln)), None)
@@ -7221,8 +7439,13 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
     else:
         end = next((j for j in range(start + 1, len(lines))
                     if re.match(r'#{1,6} ', lines[j])), len(lines))
-        seen = {m for j in range(start, end)
-                for m in re.findall(r'\brun(\d+)-[a-z0-9]+', lines[j])}
+        # A REPETITION NAMES ITS PREDECESSOR'S HALF ON PURPOSE -- `is
+        # run22-g912 byte for byte` -- and that is not the stale name this
+        # catches, so a token with `byte for byte` in the eighty characters
+        # after it is exempt; Run 23 reworded to lose the artifact name.
+        sec = '\n'.join(lines[start:end])
+        seen = {m.group(1) for m in re.finditer(r'\brun(\d+)-[a-z0-9]+', sec)
+                if 'byte for byte' not in sec[m.end():m.end() + 80]}
         stale = sorted(seen - {cur}, key=int)
         if stale:
             bad.append('the Results section names run %s while the file is'
@@ -7729,9 +7952,9 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
              (r'a noise floor this run measures at ([\d.]+)%[^.]*?'
               r' and ([\d.]+)%',
               r'floor is ([\d.]+)% on the basis half and ([\d.]+)%'
-              r' on the control',
+              r' on the (?:control|other half|[a-z-]+ half)',
               r'no A/A pair further than ([\d.]+)% from 1 on the basis half'
-              r' or ([\d.]+)% on the control'),
+              r' or ([\d.]+)% on the (?:control|other half|[a-z-]+ half)'),
              (),
              'the head of the run chapter carries the measurement, so'
              ' requote the others'),
@@ -9189,7 +9412,9 @@ def main():
                         ' carries the load fields')
     p.add_argument('--per-shape', action='store_true',
                    help='with --pair, the per-shape ratios the range'
-                        ' line is a max and min of')
+                        ' line is a max and min of; with --compare or'
+                        ' --compare --counts, one line per arm of the'
+                        ' per-shape ratios in shape order')
     p.add_argument('--pair', nargs=2, action='append', default=[],
                    metavar=('A', 'B'))
     p.add_argument('--compare', metavar='OTHER.json',
@@ -9296,6 +9521,10 @@ def main():
                         ' --others for the control')
     p.add_argument('--others', nargs='+', default=[], metavar='JSON',
                    help='the control half of each --classes file, in order')
+    p.add_argument('--move-registration', action='store_true',
+                   help="move this run's OPEN registration from README's"
+                        " open list into the run file's last section,"
+                        ' leaving the ANSWERED stub; post-run step 5')
     p.add_argument('--section', metavar='NAME',
                    help="print one section's prose by heading name, without"
                         ' its tables, so the reading a run owes can be taken'
@@ -9509,6 +9738,8 @@ def main():
         sys.exit(cross_class_summary(args.classes, args.others, args.main))
     if args.section:
         sys.exit(section(docs, args.section, args.with_tables))
+    if args.move_registration:
+        sys.exit(move_registration(args.readme, want_run_doc(args)))
     if args.delete:
         sys.exit(excise(docs, args.delete, args.delete_limit))
     if args.para:
@@ -9639,7 +9870,8 @@ def main():
         # beside one, both its columns being this run over the other.
         sys.exit(counts_table(cells, shapes, strategies, meta, args.compare,
                               args.main, args.counts[0], args.counts[1],
-                              not args.verbose))
+                              not args.verbose,
+                              per_shape=args.per_shape))
     elif args.compare and args.alloc:
         compare_alloc(cells, shapes, strategies, meta, args.compare,
                       args.main)
@@ -9651,7 +9883,8 @@ def main():
                               args.main, args.band))
     elif args.compare:
         compare_table(cells, shapes, strategies, meta, args.compare,
-                      args.main, not args.verbose)
+                      args.main, not args.verbose,
+                      per_shape=args.per_shape)
     elif args.deflation:
         sys.exit(deflation_table(args.run, cells, shapes, args.main))
     elif args.machine:

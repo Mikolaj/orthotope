@@ -312,6 +312,57 @@ def survey(path, want='_Main_'):
               f'{f["len"]} B  {named.get(f["start"]) or f["sym"]}')
 
 
+def match(timed, twin, want='_Main_'):
+    """Name the timed binary's straddling loops off a -g3 twin, by BYTE
+    IDENTITY and never by address or proximity.
+
+    Post-run step 0 owes this and did it by hand for two runs: `objdump`
+    over both binaries at addresses guessed from the survey, compared by
+    eye (Run 23, 2026-09-02). The rule the step states is that a loop is
+    named from the twin only where the twin holds a byte-identical copy,
+    and refused where it holds none or fewer copies than the timed binary
+    -- which is what makes a negative honest. So: every loop the survey
+    counts as straddling in `timed` is looked up among ALL of the twin's
+    loops of any length by its bytes; a unique match is named through the
+    twin's DWARF, several matches are listed, and none is a refusal said
+    aloud. The count check is printed first, twin against timed, as the
+    survey counts them.
+    """
+    mine = [f for f in innermost(timed).values() if want in (f['sym'] or '')]
+    theirs = [f for f in innermost(twin).values() if want in (f['sym'] or '')]
+    strad = sorted((f for f in mine if f['straddles']), key=lambda f: f['start'])
+    print(f'{timed}: {len(mine)} self-loops of at most {LINE} B in '
+          f'{want}-compiled code, {len(strad)} straddling; the twin {twin} '
+          f'holds {len(theirs)}, '
+          f'{sum(1 for f in theirs if f["straddles"])} straddling')
+    if len(theirs) < len(mine):
+        print('   the twin carries FEWER loops than the timed binary, so a'
+              ' name below rests on its own byte match and the population'
+              ' comparison is refused')
+    by_bytes = collections.defaultdict(list)
+    for f in theirs:
+        by_bytes[f['bytes']].append(f)
+    named = arms(twin, sorted({f['start'] for fs in by_bytes.values()
+                               for f in fs}))
+    for f in strad:
+        hits = by_bytes.get(f['bytes'], [])
+        where = (f'0x{f["start"]:x}  mod {LINE} = {f["mod"]:2d}, '
+                 f'{f["len"]} B')
+        if not hits:
+            print(f'      {where}  NOT NAMED: the twin holds no byte-identical'
+                  f' copy')
+        elif len(hits) == 1:
+            h = hits[0]
+            print(f'      {where}  {named.get(h["start"]) or h["sym"]}  '
+                  f'(twin 0x{h["start"]:x}, mod {h["mod"]}, '
+                  f'{"straddles" if h["straddles"] else "fits"} there)')
+        else:
+            print(f'      {where}  {len(hits)} byte-identical copies in the'
+                  f' twin: '
+                  + '; '.join(f'{named.get(h["start"]) or h["sym"]} at '
+                              f'0x{h["start"]:x}' for h in hits))
+
+
 def library(a, b):
     """How much the two halves agree about where the LIBRARIES' loops sit.
 
@@ -397,6 +448,10 @@ def main():
     p.add_argument('--library', action='store_true',
                    help='how far two halves agree about where the LINKED '
                         'libraries\' loops sit, which a pair must not move')
+    p.add_argument('--match', metavar='TWIN',
+                   help='name the binary\'s straddling loops off this -g3 '
+                        'twin by byte identity, refusing where the twin '
+                        'holds no identical copy -- post-run step 0')
     args = p.parse_args()
 
     # ONE REPORT an invocation. The dispatch below is an if/return
@@ -420,6 +475,16 @@ def main():
                 ' --library it would be accepted and honoured by nobody'
                 % (' and '.join(unread),
                    'is' if len(unread) == 1 else 'are'))
+
+    if args.match and (args.survey or args.library):
+        p.error('--match is a report of its own and takes one timed binary')
+    if args.match:
+        if len(args.binary) != 1:
+            p.error('--match TWIN takes exactly one timed binary')
+        if unread:
+            p.error('%s read only by the grouped report' % ' and '.join(unread))
+        match(args.binary[0], args.match)
+        return
 
     if args.library:
         if len(args.binary) != 2:

@@ -615,6 +615,48 @@ def readme_deliberate_link_wrapped(tmp):
     return write(os.path.join(tmp, 'R.md'), text + para)
 
 
+def readme_six_pair_perturbed(tmp):
+    """A copy of README whose six-pair sentence quotes a first figure no
+    other site does, found by the sentence's shape rather than by the
+    run's figure -- `the same run gives **X% and Y%**` -- so that the
+    fixture follows the requote instead of failing to build after it."""
+    text = open(README).read()
+    flat_text = subprocess.run(['wrap80', '--unwrap'], input=text,
+                               capture_output=True, text=True,
+                               check=True).stdout
+    ms = re.findall(r'the same run gives \*\*([\d.]+)% and ([\d.]+)%\*\*',
+                    flat_text)
+    assert len(ms) == 1, ('the six-pair sentence occurs %d times, need 1'
+                          % len(ms))
+    x, y = ms[0]
+    old = 'the same run gives **%s%% and %s%%**' % (x, y)
+    new = 'the same run gives **%.2f%% and %s%%**' % (float(x) + 0.30, y)
+    return write(os.path.join(tmp, 'R.md'), flat_text.replace(old, new, 1))
+
+
+def rundoc_results_names_identical_predecessor(tmp):
+    """The run file with a sentence in Results naming the predecessor's
+    basis half as identical, `is run<N-1>-g912 byte for byte` -- the form
+    a repetition run writes on purpose and the check used to read as a
+    stale name."""
+    was = os.path.basename(RUNDOC)
+    now = int(re.match(r'run(\d+)\.md$', was).group(1))
+    text = open(RUNDOC).read()
+    old = '## Results'
+    assert text.count(old) == 1
+    new = ('## Results\n\nThis basis is run%d-g912 byte for byte, the md5'
+           ' says.\n' % (now - 1))
+    return write_rundoc(tmp, text.replace(old, new, 1))
+
+
+def rundoc_with_todo_marker(tmp):
+    """The run file with one deferred paragraph left as `[[TODO]]`."""
+    text = open(RUNDOC).read()
+    old = '## Results'
+    assert text.count(old) == 1
+    return write_rundoc(tmp, text.replace(old, '## Results\n\n[[TODO]]\n', 1))
+
+
 def rundoc_pair(tmp, held=True):
     """Two run files in one directory: this run's, and a predecessor.
 
@@ -3300,6 +3342,31 @@ CASES = [
          argv=['--check-doc', '--readme', '{readme}'],
          ok=V(hasnt=['point at a run file that is not this'])),
 
+    case('results-names-an-identical-predecessor-half', 'read-run.py',
+         None,
+         "CONTROL: a repetition's Results may say `is run<N-1>-g912 byte"
+         ' for byte`',
+         # The stale-name check read every `run<N>-half` token in Results
+         # as a name the rename missed. A repetition names its
+         # predecessor's binary there on purpose, and Run 23 reworded to
+         # lose the artifact name; `byte for byte` within eighty
+         # characters after the token is now the exemption, and the case
+         # `results-names-an-older-basis-half` stays the control that a
+         # bare stale name still fails.
+         plant=lambda t: {'rundoc': rundoc_results_names_identical_predecessor(t)},
+         argv=['--check-doc', '--quiet', '--run-doc', '{rundoc}'],
+         ok=V(hasnt=['names run'])),
+
+    case('todo-marker-fails-the-document', 'read-run.py', None,
+         'a paragraph deferred as `[[TODO]]` is refused until written',
+         # A paragraph deferred until a measurement landed carried no
+         # marker and was forgotten until an end-to-end read (Run 23).
+         # The token is `[[TODO]]` and not TODO, which README's own TODO
+         # list names in its heading.
+         plant=lambda t: {'rundoc': rundoc_with_todo_marker(t)},
+         argv=['--check-doc', '--quiet', '--run-doc', '{rundoc}'],
+         ok=V(exit=1, has=['[[TODO]]'])),
+
     case('bridge-divides-out-the-baseline', 'read-run.py', None,
          'a cross-run comparison a moved box made unreadable',
          # --compare divides one arm's net by the same arm's net in the
@@ -5435,11 +5502,12 @@ CASES = [
          # 0.54%/0.31%, which its write-up replaced. RE-AIMED AGAIN
          # 2026-08-26 off Run 20's, from 0.49%/0.29%, and the emphasis
          # markers are part of the anchor now because that write-up
-         # bolded the pair. RE-AIMED 2026-09-02 off Run 23's, from
-         # 0.37%/0.51%, at the write-up's step 8d.
-         plant=lambda t: {'readme': unwrapped_readme_edit(
-             t, 'the same run gives **0.39% and 0.40%**',
-             'the same run gives **0.69% and 0.40%**')},
+         # bolded the pair. SELF-AIMING since 2026-09-02: the anchor is
+         # read off README by the sentence's own shape, so a run's requote
+         # no longer leaves a fixture that will not build -- three re-aims
+         # in a week, the last by Run 23's write-up, each a loud failure
+         # with nothing behind it.
+         plant=lambda t: {'readme': readme_six_pair_perturbed(t)},
          argv=['--check-doc', '--readme', '{readme}'],
          ok=V(exit=1, has=['six-pair figure is quoted differently']),
          # No --audit: the fixture is built from today's document and
