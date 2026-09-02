@@ -97,17 +97,17 @@ and **1.1956** on `-add-in-leaf-down`, over the 23 shapes that exclude
 sit within a point of the nine figures task 6 published off the same two
 binaries, 0.9464 against 0.9452 on `lib-stage2` down to 0.8364 against 0.8328
 on `-add-in-leaf-down`. **Registration 1 HELD.** The instrument that names
-the cause is the counted work: those nine arms execute **4.1 to 4.2% fewer
-instructions** on the dead-spot half over the same 23 shapes --- count ratios
-of 1.0417 to 1.0418 on `lib-stage2`, `-concat`, `-disp` and `-lean`, 1.0407
-on `lib-stage1`, 1.0410 and 1.0413 on the two `-u2` arms --- 2.1% fewer
-on `lib-stage2-short` and **8.8%** fewer on `-add-in-leaf-down`, so most of each
-arm's win is the pad instructions themselves and the rest, 0.3 to 1.4% of time
-over counts on the fills and 9.9% on `-add-in-leaf-down`, is what removing them
-does to the loop's placement. Per shape the pad's share is the run's: 5.2%
-of `lib-stage2`'s instructions on `alexnet-L1-55-c3-k11`, 4.3%
-on `stretch-tab7MB`, 1.7% on `cnn-slice-c32` and none on `stretch-inner1`, where
-the view canonicalizes to a slice and the fill never runs. **The flatness
+the cause is the counted work: those nine arms execute **4.0% fewer
+instructions** on the dead-spot half over the same 23 shapes --- count ratios,
+basis over dead-spot, of 1.0417 to 1.0418 on `lib-stage2`, `-concat`, `-disp`
+and `-lean`, 1.0407 on `lib-stage1`, 1.0410 and 1.0413 on the two `-u2` arms ---
+2.1% fewer on `lib-stage2-short` and **8.1%** fewer on `-add-in-leaf-down`,
+so most of each arm's win is the pad instructions themselves and the rest, 0.3
+to 1.4% of time over counts on the fills and 9.9% on `-add-in-leaf-down`,
+is what removing them does to the loop's placement. Per shape the pad's share
+is the run's: 5.2% of `lib-stage2`'s instructions on `alexnet-L1-55-c3-k11`,
+4.3% on `stretch-tab7MB`, 1.7% on `cnn-slice-c32` and none on `stretch-inner1`,
+where the view canonicalizes to a slice and the fill never runs. **The flatness
 control is flat**: `lib-stage2-u4`, the one `lib-stage2` sibling whose fill
 carried no pad, reads 1.0043 in time at a count ratio of 1.0000 exactly,
 and `bq-expand` 0.9990, `mut-odo-vecdims` 0.9940 and `list` 1.0040, every one
@@ -162,7 +162,7 @@ executed and there is nothing for the form to remove --- while `lib-stage1`
 and the leaf arms move 17% to 40%; on `bcastmid` the fills sit within a point
 and the leaf arms move; on `runs` `lib-stage1` ties at 0.9995 and the rest move
 0.7% to 15%; and on `reshape1` the `lib-stage2` family is degenerate on one
-to three of its four shapes and the two `-u2` leaf arms are SLOWER
+or two of its four shapes and the two `-u2` leaf arms are SLOWER
 on the dead-spot half, 0.9784 and 0.9637 on 4 of 4 shapes, at count ratios
 of 1.0000 --- past the basis half's 3.09% floor and inside the dead-spot half's
 own 10.75%. **Its second half is dead outright**: the margin on `runs`
@@ -289,22 +289,23 @@ that exclude `stretch-inner1`.
 at once: the pads, and the instrument's own reproducibility.** Twenty sweeps,
 both halves over all ten populations, 165, 220, 605 or 1320 cells apiece
 and no cell perf refused anywhere in the twenty files. **Across the halves every
-class reads as the main set does**: the padded fills lose 4.0 to 4.7% of their
-instructions on `rev`, `revsome`, `slice` and `scaled`, 5.8% on `runs`, 2.2
-to 4.0% on `window`, 1.6% on `reshape1` and 0.6% on `bcastmid`, where only
-`lib-stage1` and the `-u2` arms pay the 4.8%, and on `bcast` none
-for the `lib-stage2` family, `lib-stage2`, `-short` and `-u4` reading 1.0000
-with their times inside the floor --- a broadcast's fill never executes the pad
-the form removed --- though `lib-stage1` and the two `-u2` arms lose 5.7% there;
-while `build`, `mut-odo`, `gen-unsafe` and their twins read 1.0000 in all ten
-populations, so every point those move anywhere is placement. The nine class
-geomeans over the arms with a corrected time run 1.0043 on `reshape1` to 1.0133
-on `slice`, basis over dead-spot. **Against Run 22's twenty sweeps every arm
-reads 1.0000 to four figures on the main set and on `revsome`, `bcast`,
-`reshape1`, `slice` and `scaled`, and within 0.0004 on the other four**, the two
-sweeps being one binary's --- which is what the instrument's own agreement is,
-stated for the first time, and the yardstick against which Runs 19 to 22's
-cross-compiler count ratios of 0.9340 and 0.9422 were always codegen.
+class reads as the main set does**: the padded fills' count ratios, basis
+over dead-spot, run 1.0417 to 1.0471 on `rev`, `revsome`, `slice` and `scaled`,
+1.0577 on `runs`, 1.0221 to 1.0398 on `window`, 1.0159 on `reshape1` and 1.0061
+on `bcastmid`, where only `lib-stage1` and the `-u2` arms read 1.0483,
+and on `bcast` 1.0000 for the `lib-stage2` family --- `lib-stage2`, `-short`
+and `-u4`, their times inside the floor, a broadcast's fill never executing
+the pad the form removed --- though `lib-stage1` and the two `-u2` arms read
+1.0570 there; while `build`, `mut-odo`, `gen-unsafe` and their twins read 1.0000
+in all ten populations, so every point those move anywhere is placement.
+The nine class geomeans over the arms with a corrected time run 1.0043
+on `reshape1` to 1.0133 on `slice`, basis over dead-spot. **Against Run 22's
+twenty sweeps every arm reads 1.0000 to four figures on the main set
+and on `revsome`, `bcast`, `reshape1`, `slice` and `scaled`, and within 0.0004
+on the other four**, the two sweeps being one binary's --- which is what
+the instrument's own agreement is, stated for the first time, and the yardstick
+against which Runs 19 to 22's cross-compiler count ratios of 0.9340 and 0.9422
+were always codegen.
 
 **The correction sits on the same footing in both halves, as it has on every run
 since Run 17.** The in-situ forcing term --- an arm minus its `-nosum` twin,
@@ -2653,10 +2654,10 @@ inside this run's main-set floor of task 6's figure: `-add-in-leaf-down` 0.8328,
 0.9545 and `lib-stage2-short` 0.9762. They read **0.8364, 0.9470, 0.9482,
 0.9502, 0.9464, 0.9494, 0.9527, 0.9511 and 0.9763** --- every one within 0.7
 of a point of its prediction against a 2.03% floor. **HELD.** The counted work,
-which the registration did not have, says why: the nine execute 4.1 to 4.2%
-fewer instructions on the dead-spot half (`-short` 2.1%, `-add-in-leaf-down`
-8.8%), and on `alexnet-L1-55-c3-k11` the pad is 5.2% of `lib-stage2`'s
-instructions, where the shim-free sweep the registration cited put it at 5.51%.
+which the registration did not have, says why: the nine execute 4.0% fewer
+instructions on the dead-spot half (`-short` 2.1%, `-add-in-leaf-down` 8.1%),
+and on `alexnet-L1-55-c3-k11` the pad is 5.2% of `lib-stage2`'s instructions,
+where the shim-free sweep the registration cited put it at 5.51%.
 
 (2) *The flatness control: no pad, no movement.* `lib-stage2-u4`, `bq-expand`,
 `mut-odo-vecdims` and `list` were predicted inside the floor of 1 with their

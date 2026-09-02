@@ -21,7 +21,7 @@ Substitute per run: RUN=run23  BASIS=g912  OTHER=spot  PREV=run22
                                       run file as wholly new and leave the
                                       pass no `before` to find a stale
                                       paragraph in)
-                    RUNTIP=4e5e6cf   (this run's last commit to README;
+                    RUNTIP=f89f935   (this run's last commit to README;
                                       advance it as fixes land)
 
 

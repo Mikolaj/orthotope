@@ -812,7 +812,7 @@ rather than a slot in the next run, observed again:
   file](runs/run23.md#what-this-run-was-built-to-answer-and-what-it-answered),
   where a run's registrations have lived since 2026-08-29; in a clause each: (1)
   the nine padded arms' win reproduced within 0.7 of a point, HELD,
-  and the counted work says it is the pads, 4.1 to 4.2% of their instructions
+  and the counted work says it is the pads, 4.0% of their instructions
   over the 23 readable shapes; (2) the flatness control flat at count ratios
   of 1, HELD; (3) the classes SPLIT and the `runs` monotone prediction KILLED,
   the margin ordering with nothing; (4) `build`/`mut-odo` a tie on the basis
@@ -888,8 +888,8 @@ rather than a slot in the next run, observed again:
   different populations. What would settle whether either ships
   is a registration scoped to the classes they lead rather than to the length
   sweep they were written for. **Run 23, on the same basis binary, reads
-  the same six heads but for `scaled`, where `-u4` slipped a thousandth behind
-  a vecdims sibling and `lib-stage1`, and `slice`, where `-short` is level
+  the same six heads but for `scaled`, where `-u4` slipped a thousandth to level
+  with a vecdims sibling and `lib-stage1`, and `slice`, where `-short` is level
   with a sibling --- so which candidate leads a class is stable at the third
   decimal only where the margin is wide, which is what a registration scoped
   to a class would have to clear.**
@@ -7920,35 +7920,35 @@ the roster having gained arms between those twins and their bases; the three
 adjacent spans are unchanged.
 
 **On Run 23 the floor is 2.03% on the basis half and 2.80% on the control,
-the dead-spot half, and the basis figure is the first ever read twice on one
-binary.** Both are over the **sixteen** A/A pairs this roster leaves ---
-`offtab`'s two twins went with its parking on 2026-08-28, so the eighteen-pair
-series ends at Run 20 --- against Run 22's 2.12% and 1.08% and Run 21's 2.92%
-and 2.16%, both over sixteen as this one is, and Run 20's 1.51% and 1.18%, Run
-19's 2.32% and 1.71%, Run 18's 1.36% and 1.42%, Run 17's 3.70% and 3.89% and Run
-16's 2.32% and 1.22%, every one of those five over eighteen. `build-aa-distant`
-carries the basis figure for the second run running and `gen-unsafe-aa-adjacent`
-the dead-spot half's. Read on the six pairs that carry back to Run 10 the same
-run gives **0.39% and 0.40%**, against Run 22's 0.37% and 0.51%. **What Run 19
-settled about the floor, Run 23 restates from a second repetition.** Run 19's
-basis half was Run 18's basis BINARY byte for byte and read 2.32% where
-that binary read 1.36%, a factor of 1.7 with box, roster, layout, regime
-and preamble all held still --- so the floor is a property of the RUN, re-drawn
-each evening. Run 23's basis is Run 22's basis binary byte for byte and reads
-2.03% where that binary read 2.12% two evenings earlier, on the same carrying
-pair, so the second such repetition moved the floor by a twentieth where
-the first moved it by two thirds --- the movement is not a trend, its size
-is not predictable, and nothing about it is inherited. **Where the movement
-lives is the one thing four runs now agree on.** The six-pair figure has read
-0.54%, 0.49%, 0.44%, 0.46%, 0.37% and 0.39% across six runs on the basis while
-the whole-set figure ran 1.36%, 2.32%, 1.51%, 2.92%, 2.12% and 2.03%,
-so the pairs outside the six are what move and the six are steady enough
-to compare rows with --- with Run 21's control half the one reading that strains
-it, its six-pair figure having gone from 0.28% to 0.60%. The threshold this run
-supports is therefore two figures --- *0.39% between any two rows of the table*
-on the six-pair basis, which is what carries across runs, and 2.03%
-on the sixteen --- where Run 22 supported 0.37% and 2.12%, Run 21 0.46%
-and 2.92%, Run 20 0.44% and 1.51%, Run 19 0.49% and 2.32%, Run 18 0.54%
+the dead-spot half, and the basis figure is a repetition's, read twice on one
+binary for the second time in this file's history.** Both are
+over the **sixteen** A/A pairs this roster leaves --- `offtab`'s two twins went
+with its parking on 2026-08-28, so the eighteen-pair series ends at Run 20 ---
+against Run 22's 2.12% and 1.08% and Run 21's 2.92% and 2.16%, both over sixteen
+as this one is, and Run 20's 1.51% and 1.18%, Run 19's 2.32% and 1.71%, Run 18's
+1.36% and 1.42%, Run 17's 3.70% and 3.89% and Run 16's 2.32% and 1.22%, every
+one of those five over eighteen. `build-aa-distant` carries the basis figure
+for the second run running and `gen-unsafe-aa-adjacent` the dead-spot half's.
+Read on the six pairs that carry back to Run 10 the same run gives **0.39%
+and 0.40%**, against Run 22's 0.37% and 0.51%. **What Run 19 settled about
+the floor, Run 23 restates from a second repetition.** Run 19's basis half
+was Run 18's basis BINARY byte for byte and read 2.32% where that binary read
+1.36%, a factor of 1.7 with box, roster, layout, regime and preamble all held
+still --- so the floor is a property of the RUN, re-drawn each evening. Run 23's
+basis is Run 22's basis binary byte for byte and reads 2.03% where that binary
+read 2.12% two evenings earlier, on the same carrying pair, so the second such
+repetition moved the floor by a twentieth where the first moved it by two thirds
+--- the movement is not a trend, its size is not predictable, and nothing about
+it is inherited. **Where the movement lives is the one thing four runs now agree
+on.** The six-pair figure has read 0.54%, 0.49%, 0.44%, 0.46%, 0.37% and 0.39%
+across six runs on the basis while the whole-set figure ran 1.36%, 2.32%, 1.51%,
+2.92%, 2.12% and 2.03%, so the pairs outside the six are what move and the six
+are steady enough to compare rows with --- with Run 21's control half the one
+reading that strains it, its six-pair figure having gone from 0.28% to 0.60%.
+The threshold this run supports is therefore two figures --- *0.39% between any
+two rows of the table* on the six-pair basis, which is what carries across runs,
+and 2.03% on the sixteen --- where Run 22 supported 0.37% and 2.12%, Run 21
+0.46% and 2.92%, Run 20 0.44% and 1.51%, Run 19 0.49% and 2.32%, Run 18 0.54%
 and 1.36%, Run 17 1.31% and 3.70%, Run 16 0.39% and 2.32%, Run 14 0.29%
 and 2.19%, Run 12 0.35% and 0.24%, Run 11 a quarter of a percent on its max-skip
 half and 1.21% on the other, Run 10 1.00% unaligned and 0.54% aligned, Run 9
