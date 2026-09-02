@@ -145,7 +145,13 @@ otherwise span a line it need not: the `.align 8` before each table
 between the spot and the heads is modelled for all 64 incoming residues,
 and the assembler counts the bytes, so relaxation cannot move a head off
 its residue -- a `.skip k` predicted from the probe's addresses did, on 458
-of 504 groups, a `jmp` across the pad growing from `rel8` to `rel32`. The
+of 504 groups, a `jmp` across the pad growing from `rel8` to `rel32`. And
+whatever lands upstream of a group moves it by whole lines: the first
+roster change read under this form, `run23-spot` to `run24-g912` on
+2026-09-02, kept every mod-64 offset of the tracked eight heads, two
+addresses to the byte and six on one displacement of 0x940, which is 37
+lines, where the max-skip form's two roster changes, Runs 20 and 21,
+kept none (README, the floor section's build rules). The
 cost has one order inside a group: a head `overlapped` names is the outer
 of a rotated pair and yields, its straddle being paid once per exit of the
 inner loop where the inner's would be paid per iteration. Measured on that

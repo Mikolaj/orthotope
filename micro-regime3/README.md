@@ -295,8 +295,9 @@ a gap the unboxing fix of 2026-08-29 closed to parity, so this sentence is Run
 reading). They are new functions, so Run 20 was the stronger pinning test [the
 floor section][floor] wanted, **and the claim did not survive it**: no tracked
 loop kept its address, so the claim covers additions that cost nothing to place
-and nothing wider. `reshape1` did go degenerate for the canonicalizing arms,
-whose cells there price dispatch rather than filling, and the class took
+and nothing wider, under the max-skip form; the dead-spot form's reading is [the
+floor section][floor]'s. `reshape1` did go degenerate for the canonicalizing
+arms, whose cells there price dispatch rather than filling, and the class took
 the non-collapsing sibling it wanted --- `reshape1-strided-r3`, `reshape1-r3`'s
 shape made strided, now the only cell in the class that prices the fill.
 
@@ -5673,11 +5674,24 @@ at `[0, 24, 0, 4]` becoming a six-copy group at `[0, 0, 24, 0, 0, 24]`, none
 moved by a constant --- and Run 21's build repeated the reading over a roster
 change that both adds and removes, `[0, 0, 24, 0, 0, 24]` becoming
 `[0, 0, 24, 0, 0, 8]` with no address surviving. So what the claim covers
-is additions that cost nothing to place and nothing wider. *Build both, always*:
-reusing the previous run's basis binary was refused on 2026-08-16 because
-the other half is built today, so the pair's two halves went through whatever
-the shim was on two different days --- the very effect the back-to-back rule
-exists to keep out, reached by a route that rule does not name, since nothing
+is additions that cost nothing to place and nothing wider --- under the max-skip
+form, which both builds were. **The dead-spot form read the same claim
+on 2026-09-02, over the first roster change taken under it, `run23-spot`
+to `run24-g912`, and the strong form held for the tracked heads' offsets**:
+a timed arm bringing a new function landed with three named wrappers, every
+mod-64 offset of the eight held, two addresses survived to the byte
+and the other six moved by one constant, 0x940 --- 37 lines, which
+is the arithmetic the form promises, each group's directive rounding whatever
+lands upstream of it to the next line (`run24-pair.txt`). What that reading does
+not reach is the rest of the placement term: Run 23 read `build` against
+`mut-odo` five points apart with both heads at offset 0, so a cross-run column
+still owes the counted work before a movement on a fill is called code.
+And the eight are the sample; the population reading is `--library` between
+the two builds, which the note did not take. *Build both, always*: reusing
+the previous run's basis binary was refused on 2026-08-16 because the other half
+is built today, so the pair's two halves went through whatever the shim
+was on two different days --- the very effect the back-to-back rule exists
+to keep out, reached by a route that rule does not name, since nothing
 is rebuilt BETWEEN the halves and the drift is between the RUNS. No step
 downstream can see it, and the argument reaches every way of not building two
 halves today: a probe's binary carries the same gap, a copy makes one recipe
