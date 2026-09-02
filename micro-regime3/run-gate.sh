@@ -140,12 +140,9 @@ run () {   # $1 = half, $2 = pass
 }
 
 echo "=== $(date -Is) gate begins; expecting $EXPECT benches a process"
-# THE LAUNCH ENVIRONMENT, recorded whether or not it carries anything, as
-# run-major.sh records it and for the same reason: the gate takes the same
-# switches the run will take (README's recipe, step 14 then step 17), and a
-# gate run without them proves the pair mechanically while proving nothing
-# about the instrument the evening is for. Nothing else here would say so --
-# the bench counts come out right and the verdict reads clean.
+# THE LAUNCH ENVIRONMENT, recorded set or unset as run-major.sh records it
+# and for its reason: a gate run without the switches proves the pair
+# mechanically and nothing about the instrument the evening is for.
 echo "=== $(date -Is) launch env: WILDLOG=${WILDLOG-unset}\
  SATURATE=${SATURATE-unset}; $NOTE's LAUNCH block says what this pair wants"
 run "$OTHER" a

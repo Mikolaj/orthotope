@@ -680,11 +680,8 @@ rather than a slot in the next run, observed again:
   on a susceptible arm and 0.5% on the baseline** --- the largest effect
   this README has measured that is not a strategy --- **and for a loop this size
   placement costs 1.16 to 1.19** (2026-08-10, the pad probe). Susceptibility
-  is a property of the arm: the baseline has almost none and two arms have
-  a great deal, and they are the same two the flag sets back hardest. What
-  the probe does not reach is the rest of it --- a rebuild moves more than one
-  loop's offset, and the regressions with no shared-loop counterpart have
-  no mechanism. The four binaries, the readings they explain and the graded
+  is a property of the arm, and what a rebuild moves beyond one loop's offset
+  has no mechanism; the four binaries, the readings they explain and the graded
   penalty are in [the floor section][floor].
 - `ANSWERED` **What did the queue of experiments wanting a quiet machine hold,
   and what did each buy?** Nothing in it is outstanding --- each entry was run
@@ -798,14 +795,10 @@ rather than a slot in the next run, observed again:
   a cache line, adding a *per-element* term that flattened the very correlation
   the question turns on --- so the pairing bought a mechanism here and not only
   a number. `add-both` tracks it at the same r and the corner's sub-additivity
-  says the two axes largely pay for one thing. **And the third axis is migrated
-  here, 2026-08-14, from where it was answered and left**: why the count-down
-  form pays was raised inside [the mutable ceiling][ceiling]'s own write-up,
-  which is where the answer sits too --- of the three axes FastReshape's loop
-  arithmetic ports, one is free, one costs 16%, and the count-down form
-  is the third, recovering most of the corner's loss at 0.9408 against it on 22
-  shapes of 24, and reproducing Run 10's reading. Recorded here because the list
-  is meant to be the only home, and a session mining it walked past this one.
+  says the two axes largely pay for one thing. **And the third axis is answered
+  in the same place**: why the count-down form pays, recovering most
+  of the corner's loss at 0.9408 against it on 22 shapes of 24, is in [the
+  mutable ceiling][ceiling]'s own write-up.
 - `ANSWERED` **What Run 23 was built to answer, registered before it ran ---
   and what it answered.** The six registrations, their kill conditions and their
   verdicts are [in Run 23's own
@@ -1054,27 +1047,21 @@ rather than a slot in the next run, observed again:
   the entry already said, one run more strongly --- whatever the residual is,
   it is not one quantity waiting to be attributed.
 - `ANSWERED` **Which arm owns a loop copy: answered, and the answer is
-  that a binary can carry its own names.** A `-g3` build emits a per-block
-  symbol with DWARF line info, so `loop-offsets.py` prints a copy
-  as `fbMutOdoVecdims` with its source line instead of as one worker's mangled
-  name, and a binary with no line info prints what it printed before.
-  **The ruling is that the twin's names are a per-GROUP property and
-  not a per-binary one**: count a body's copies in twin and timed binary before
-  trusting them, which the vecdims group passes four against four
-  and the `build`/`mut-odo` group fails at four against two. The named readings,
-  the refuted padding prediction and the window-matching method are in [the
-  floor section][floor].
+  that a binary can carry its own names**, a `-g3` build's per-block symbols
+  letting `loop-offsets.py` name a copy by its binding and source line.
+  **The twin's names are a per-GROUP property and not a per-binary one**: count
+  a body's copies in twin and timed binary before trusting them, which
+  the vecdims group passes and the `build`/`mut-odo` group fails. The named
+  readings, the refuted padding prediction and the method are in [the floor
+  section][floor].
 - `ANSWERED` **The shim was blind under `-g`, which is why this wanted a fix
-  and not merely a build.** Under `-g` every head follows the previous block's
-  `_end` and `_proc_end` labels rather than an instruction, so not one head
-  of a `-g3` assembly was given a directive and the build came out unaligned
-  in silence. **The ruling is the condition on the fix and not the fix**:
-  the look-through fires only where the assembly carries `.loc`, so a `-g` build
-  gets the corrected guard and every other keeps the literal one byte for byte
-  --- applied to every build it would find 27 heads more in the plain assembly
-  and re-base every figure this README has published, for a reason no strategy
-  changed. The counts, the end-to-end control and what those 27 heads cost
-  in pads are in [the floor section][floor].
+  and not merely a build**: not one head of a `-g3` assembly was given
+  a directive. **The ruling is the condition on the fix and not the fix** ---
+  the look-through fires only where the assembly carries `.loc`, every other
+  build keeping the literal guard byte for byte, since applied everywhere
+  it would re-base every figure this README has published for a reason
+  no strategy changed. The mechanism, the counts, the end-to-end control
+  and what the 27 extra heads cost in pads are in [the floor section][floor].
 - `ANSWERED` **`-g3` is a different program, and what differs is register
   allocation.** Measured on the assembly GHC hands the assembler rather
   than inferred from the binary, both sides stripped of every `.loc`, every
@@ -1092,29 +1079,21 @@ rather than a slot in the next run, observed again:
   its loop being the count-down form's 24 bytes as [the floor section][floor]'s
   table records, and `--len 24` finds it.
 - `ANSWERED` **So building everything with `-g3` is refuted, and a `-g3` build
-  is a twin to read rather than a binary to time.** The proposal was that timed
-  binaries carrying their own names would make a per-arm offset claim
-  an ordinary reading, and its own criterion was that the arms agree within
-  the run's floor. They do not: a pair differing in `-g3` alone gates at `build`
-  0.9391 to 0.9517 plain over `-g3`, four to six times the floor and one
-  direction. **And no weaker level is a way round it** --- `-g1` is the weakest
-  GHC has and changes the emitted code exactly as `-g3` does, which is what
-  horde-ad's `docs/ghc-issue-debug-changes-codegen.md` reports as GHC
-  [#27687](https://gitlab.haskell.org/ghc/ghc/-/work_items/27687). The gate's
+  is a twin to read rather than a binary to time**: its own criterion
+  was that the arms agree within the run's floor, and a pair differing in `-g3`
+  alone gates at `build` 0.9391 to 0.9517 plain over `-g3`, four to six times
+  the floor and one direction. **And no weaker level is a way round it**, `-g1`
+  changing the emitted code exactly as `-g3` does (GHC
+  [#27687](https://gitlab.haskell.org/ghc/ghc/-/work_items/27687)). The gate's
   figures and the copy census that bounds the naming are in [the floor
   section][floor].
 - `OPEN` **A recurring transient that lands on the `bq-expand` family, worth 35
   to 74%, and which no published column would show.** Not one cell: **five
   sightings in twelve runs**, moving each time, the largest of them Run 17's
   74.48%, with Run 18 clean at a worst cell of 23.03% and Run 19 clean again
-  at 19.75%. Run 8 read `bq-expand`'s distant twin 44% slow on `vgg-14-c512-k3`
-  and Run 9 41.4% on the same arm and shape; Run 10 was clean; Run 11's aligned
-  half reads `lenet-L1-28-c1-k5/bq-expand` at **1.355** of what that same binary
-  read in Run 10 --- a different shape and, this time, the arm's **own** slot
-  rather than a twin's; Runs 12 to 15 came up clean. Run 10's roster fix
-  (`sum-only-early` above `list`, so nothing is measured on an ungrown pool)
-  removed the Run 8 and Run 9 instance and was confirmed at full budget; it did
-  not remove the effect. **Decomposed on a kept instance, 2026-08-14, and
+  at 19.75%. The Run 8 to Run 11 sightings, and the roster fix that removed
+  the slot and not the susceptibility, are in [the floor section][floor]; Runs
+  12 to 15 came up clean. **Decomposed on a kept instance, 2026-08-14, and
   it is mutator time with the work identical.** Run 11's aligned half carries
   one: `lenet-L1-28-c1-k5/bq-expand` reads 56.56 us net there against 41.4
   to 41.9 across the seven other processes on disk, with `list` normal
@@ -1495,13 +1474,10 @@ rather than a slot in the next run, observed again:
   so no single-process reading of the arm means anything.
 - `ANSWERED` **What the eight stride classes are worth as instruments --- read
   against each other for the first time on 2026-08-14, over Runs 10 to 13.**
-  The ruling is that what they differ in is not a class property: in every one
-  of the eight the *distant* twin is the slower half, and that is a confound
-  in the crossed design rather than an instrument reading, every distant twin
-  having sat in its group's first dozen slots with its base later, so *distant*
-  has always also meant *earlier*. The per-class figures, the four changes
-  that followed the same day and the check that each class's shapes satisfy
-  its defining property are in [the stride classes and what they
+  What they differ in is not a class property but a confound in the crossed
+  design, *distant* having always also meant *earlier*. The per-class figures,
+  the four changes that followed the same day and the check that each class's
+  shapes satisfy its defining property are in [the stride classes and what they
   cover](#the-stride-classes-and-what-they-cover).
 - `OPEN` **`scaled`'s A/A slot is real and its size is not: six runs of seven
   find a disturbance at the `mut-odo-vecdims` slot on `scaled-super-r3`,
@@ -1744,15 +1720,11 @@ rather than a slot in the next run, observed again:
   for its shim.
 - `ANSWERED` **At a large nursery an earlier bench in the same process
   permanently slows a later one --- the condition is named SMALL-PINNED CHURN
-  and its cost the churn tax.** Churn of sub-3276-byte pinned allocations,
-  the shared-accumulator size class: Run 14's probes found it (2026-08-15/16),
-  the ladder is flat at `-A4m`, and the victim's added cost is mutator LLC
-  misses at flat instructions and dTLB, the counter signature that has held
-  through everything since. **It is not the pinned-spray pool condition of GHC
-  #27601**, by controls and by a conceptual objection that stands,
-  and everything reproduces on GHC HEAD where that issue is itself unfixed.
-  The account is in [the floor section][floor]; the measurements, their tables
-  and the recipes to re-take them
+  and its cost the churn tax.** Run 14's probes found it (2026-08-15/16),
+  its counter signature has held through everything since, **and it is
+  not the pinned-spray pool condition of GHC #27601**. The account is in [the
+  floor section][floor]; the measurements, their tables and the recipes
+  to re-take them
   are `small-pinned-churn-investigation/nursery-position-findings2.txt`'s.
 
 - `OPEN` **One residue of the small-pinned churn, one answered, neither blocking
@@ -2132,39 +2104,16 @@ and in [the add-in entry][open]. Nothing spent stays under a heading naming
 a run that is over.
 
 **The replace list's second sweep has a blind spot, and Run 19 measured both
-it and the obvious fix.** The preamble prescribes *grep them for the name
-of the run being superseded*; that grep cannot see a paragraph naming only runs
-OLDER than the superseded one, and this run met six such sites, four of them
-named here --- three closing Results, naming Runs 10 and 13 to 17 and never Run
-18 while every figure in them was Run 18's (one contradicting this run's
-headline allocation finding in three other places), and a `1.84x` in the ceiling
-ruling carried forward from **Run 11** through eight write-ups. An independent
-checker found those four by hand; every mechanical gate here passed over them.
-**The obvious repair was built and then refuted, which is why this is a note
-and not a mode.** A `--check-doc` sweep flagging paragraphs whose newest named
-run is behind the run in hand while carrying a figure returns **165** entries;
-excluding the run file and prose saying *this run* leaves 104; scoping it
-to the sections the replace list names leaves **100** --- for four that matter.
-The reason is structural rather than a tuning failure: naming an old run beside
-a figure is the NORMAL state of this document, which is full of answered entries
-and dated mechanism accounts, and *reads as current* is the discriminating
-property, which no cheap predicate has. A checker at that ratio is one nobody
-reads, which this file already knows about hint lists. **What is left
-for the next run is the honest form of the same instruction**: after
-the run-name grep, walk the replace-listed sections and ask of each
-figure-bearing paragraph *which run measured this*, which is a reading and
-not a grep --- and the sites above are what it costs to skip it. **TAKEN
-2026-08-26, ahead of Run 21 rather than during it --- and what it leaves
-is standing rather than spent, so it does not depart with this heading**:
-the walk is now the third sweep in [the replace list's own preamble][prov],
-beside the two greps it amends, which is where a run looks before walking
-and this heading is not. What the one pass cost: a mechanical shortlist of 235
-figure-bearing paragraphs behind Run 20, 92 of them naming no run and carrying
-no date, and eleven surviving the reading --- every one in the opening's
-headline ratios, the ceiling's two ruling paragraphs or the two frozen tables,
-and none in the dated mechanism accounts that made up most of the shortlist.
-The eleven are repaired and both tables regenerated from Run 20's kept JSONs,
-which wanted no machine time.
+it and the obvious fix.** The run-name grep cannot see a paragraph naming only
+runs OLDER than the superseded one, and Run 19 met six such sites past every
+mechanical gate, a `1.84x` in the ceiling ruling carried from Run 11 through
+eight write-ups among them; the checker built for it was refuted, at a hundred
+entries for the four that mattered. **TAKEN 2026-08-26, and standing rather
+than spent**: the walk is the third sweep in [the replace list's own
+preamble][prov], which carries the blind spot and the refutation, and its one
+pass repaired eleven sites, every one in the opening's headline ratios,
+the ceiling's two ruling paragraphs or the two frozen tables and none
+in the dated mechanism accounts that made up most of its shortlist.
 
 **A whole axis of the counted-work evidence was missing and no document said
 so.** `run-counts.sh` was born at Run 18 to serve registration 4, whose question
@@ -2235,9 +2184,9 @@ is planned. A scope limit belongs in the sentence that asks for the measurement.
    to its sixth.
 3. `OPEN` **Is the spread of the pairs outside the restricted six criterion's
    sampling, or something per-process on top of it?** Carried here from the Run
-   18 floor item, whose other half is answered. Across five runs the six-pair
-   figure has read 0.54%, 0.49%, 0.44%, 0.46% and 0.37% on the basis while
-   the whole-set figure ran 1.36%, 2.32%, 1.51%, 2.92% and 2.12%,
+   18 floor item, whose other half is answered. Across six runs the six-pair
+   figure has held near half a percent on the basis while the whole-set figure
+   ran between 1.4% and 2.9% ([the floor section][floor] has both series),
    so the movement is in the pairs outside the six --- now ten of sixteen,
    `offtab`'s two twins having gone with its parking. Run 22 sharpens
    the question rather than answering it: its widest pair is `build-aa-distant`,
@@ -2281,20 +2230,13 @@ is planned. A scope limit belongs in the sentence that asks for the measurement.
    read further**: `-down`, which the change does not touch and whose counted
    work is identical between the halves, moved 15.13% in time --- so nothing
    here may be read across the halves, only within them. **AMENDED the same day
-   by [the ceiling][ceiling]'s nineteenth reading, which prices the pair on two
-   more populations and splits that swing in two.** `-down` is not merely
-   displaced in `runs`: it reads 1.1841 on the main set, 1.1586 on `slice`
-   and 1.1513 on `runs` between the halves, on code the change does not touch,
-   while the other 43 arms sit inside a middle half spanning about a percent.
-   **And it is instructions and not placement**, its counted work on the shimmed
-   pair rising 15.25% and 21.65% --- the shim padding a loop that the change
-   moved, which the nineteenth reading has and got wrong once before getting
-   right. So of the 24.6% between 1.1070 and 0.8348, about thirteen points
-   are the change and about fifteen are `-down` moving under it: **the change
-   is worth a tenth to a seventh in time, not a quarter**. What stands
-   is the within-half ordering, which is a fact about the binaries measured;
-   what does not is reading it as durable, an arm that moves 18% between two
-   builds of one source being the wrong thing to hold an ordering against.
+   by [the ceiling][ceiling]'s nineteenth reading**, which prices the pair
+   on two more populations: `-down` moved fifteen to eighteen percent between
+   the halves in every population, on code the change does not touch,
+   by instructions and not placement, so of the swing about thirteen points
+   are the change and fifteen are `-down` moving under it --- **the change
+   is worth a tenth to a seventh in time, not a quarter**, and the within-half
+   ordering is a fact about the binaries measured and not a durable one.
 6. `ANSWERED` **The shim pads inside a loop wherever two cycles overlap;
    the containment test as a SKIP is refused, and the pad is moved off
    the execution path instead --- `LOOP_DEADSPOT=1`, timed against the basis
@@ -3982,19 +3924,12 @@ again here. **What would settle it**: the two arms timed against each other
 inside one spill-free binary over the `runs` class, which already sweeps run
 length from 2 to 65536. That is an arm-against-arm ratio in one process,
 so it READS such a build rather than adopting it as a regime, and it wants
-the same evening as the crossover [task 2][open] asks for. **TAKEN 2026-08-30,
-and every prediction in this paragraph is REFUTED.** In a fresh `-fllvm` binary
-`-u2` is behind `-down` at all seven lengths, 0 of 7 at sign p 0.016,
-and the native backend reads the same ordering to within a point --- so removing
-the spill did not reverse it, did not move it, and there is no run-length
-question here to be answered. Nor does the arithmetic survive a rebuild:
-that binary re-rolls `-u2`'s hand-unrolled body and pays a `cmpq` for the cursor
-bound, putting it at seven instructions an element against `-down`'s six,
-so the half-instruction this reasoning is built on has changed sign between two
-LLVM builds of one source. **What that leaves standing is the method and
-not the arithmetic**: an instruction count differenced off a dump predicts
-an ordering only where the counts hold across the builds being compared, which
-the timing here says they do not. Task 2 has the figures.
+the same evening as the crossover [task 2][open] asks for. **TAKEN 2026-08-30
+by the twelfth reading below, and every prediction in this paragraph
+is REFUTED**: removing the spill left the ordering where it was,
+and the half-instruction this arithmetic rests on changed sign between two LLVM
+builds of one source, so what stands is the method's condition and
+not the arithmetic.
 
 **A seventh reading, 2026-08-29, is the dump [task 1][open] asked for,
 and the first term is a BOXING failure and not an inlining one.** `fillStage2`'s
@@ -7192,22 +7127,14 @@ a session to settle, and an ad-hoc script gets them subtly wrong. Its docstring
 is the reference for all of them; extend the script rather than starting over.
 
 **`check-scripts.py` is the one exception to that, and it is where a defect
-of the reader goes.** `--selftest` asserts a run's numbers; the two reviews
-of 2026-08-17 found thirty defects that were not numbers at all --- a class
-table installed over the next class's, four checks whose silence read as a pass,
-a mode the dispatch dropped without a word, a subprocess status ignored ---
-and it caught none of them, calling no checker, no installer and no flag guard.
-The corpus drives every script here from outside, exit code and stderr included,
-planting each fault again into a copy of this README or of a run JSON;
-and `--audit` replays each case against the commit BEFORE its own fix, where
-it must fail. That is what makes a fix's proof outlive the commit: every proof
-made that day compared the new file against `git show HEAD:...`, which stops
-meaning anything the moment the fix is HEAD. **The case comes before the fix**
---- a claim that turns out wrong costs one case rather than one implementation,
-and a fix without one has come back twice here already. What it does NOT yet do
---- a source lint for the families these defects fall into, which is the only
-thing that would find an instance nobody has observed --- is recorded in its own
-docstring rather than re-derived.
+of the reader goes.** `--selftest` asserts a run's numbers and calls no checker,
+installer or flag guard, so the corpus drives every script here from outside,
+exit code and stderr included, and `--audit` replays each case against
+the commit BEFORE its own fix, where it must fail --- which is what makes
+a fix's proof outlive the commit. **The case comes before the fix**: a claim
+that turns out wrong costs one case rather than one implementation, and a fix
+without one has come back twice here already. The thirty defects of 2026-08-17
+that taught this are in the reader's docstring and the corpus's own.
 
     ./check-scripts.py                      # the scripts' own defect corpus,
                                             # all 217 cases and four and a
@@ -7368,9 +7295,8 @@ to be written by hand, and one that has left it is dropped with a warning.
 The arms added after Run 6 sat in exactly that state until Run 7 timed them,
 which is what the mechanism is for.
 
-**A run artifact is made when a question needs it**, which is the same moment
-the reader is wanted, so it is built to be useful on a partial run as well
-as a full one:
+**A run artifact is made when a question needs it**, and the reader is built
+for a partial run as much as a full one:
 
     micro --json RUN.json                                    # the whole thing
     micro -m glob 'cnn-slice-c32/list' 'cnn-slice-c32/bq-expand' --json x.json
@@ -8916,22 +8842,13 @@ slower than the class's leaders and whatever separates them is not the loop
 the shim aligned.
 
 **And a probe has since priced the rebuild itself, which is what neither
-the twins nor that pair measure.** Four binaries built from sources differing
-only in inert pad arms, the run filtered so the pads never execute, leave `list`
-inside 0.5% and move `mut-odo` and `offtab` by up to 18% ([the open
-list](#what-is-open) carries the figures). So this README has three
-uncertainties of quite different size and only the smallest is on the table
-above. An arm against **itself in one binary** is the A/A twins, 1.00% on Run
-10's unaligned half and 0.54% on its aligned one. Two **different arms in one
-binary** carry placement, which `build`/`mut-odo` put at 14-24% for a pair whose
-code is identical --- **until the loops were aligned, which takes it to about
-3%**, and to a tie by the sign test whenever the two copies share an offset. One
-arm across **two binaries** carries the rebuild, up to 18% on a susceptible arm
-and almost nothing on an insusceptible one. Susceptibility is a property
-of the arm and has been measured for three of them, so for the rest
-it is unknown; what that protects is orderings and tiers, which several arms
-witness at once, and what it does not protect is any single arm's figure read
-across a rebuild.
+the twins nor that pair measure** --- the next paragraph has its figures,
+and the paragraph closing this section lists it beside the other uncertainties
+this README carries, only the smallest of which is on the table above.
+Susceptibility is a property of the arm and has been measured for three of them,
+so for the rest it is unknown; what that protects is orderings and tiers, which
+several arms witness at once, and what it does not protect is any single arm's
+figure read across a rebuild.
 
 **What does code placement cost?** **A rebuild is worth up to 18%
 on a susceptible arm and 0.5% on the baseline** --- which is the size of every
