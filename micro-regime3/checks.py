@@ -5,10 +5,11 @@ directory. Ordered cheapest first, so a broken tree says so before the slow
 steps run; the case suite in both directions and the mutants are minutes
 each, and `defect-run.py --changed .` is what one edit owes. The two linters
 stand since 2026-09-02: pyflakes over the Python here and shellcheck over
-the shell drivers, which the AST families cannot reach. A linter off PATH is
-a finding and not a skip -- a session reported pyflakes absent after one
-failed import while the script sat in ~/.local/bin, and the checks went
-unrun for a day -- so `command -v` decides, and its silence fails the step
+the shell drivers, which the AST families cannot reach. An absent linter is
+a finding and not a skip, and absent means every invocation the step can
+run fails: pyflakes was once reported absent after one failed import while
+a `pyflakes` script sat on PATH, and today the script is gone while the
+module runs, so the step tries both, and their joint silence fails the step
 by name.
 """
 
