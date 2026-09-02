@@ -137,6 +137,10 @@ Modes:
                     script over --cells reaches for
   --compare O --chapter the run chapter's own arithmetic, so that writing
                     one need not begin by reading the last one
+  --compare O --predictions  adjudicate the registration's `predict:`
+                    spans from the two runs, HELD or KILLED each with the
+                    figure read, and name the items carrying no span as
+                    yours; `--counts A B` beside it for the count spans
   --claims          every claim ordering and its registered verdict in one
                     call, in the claims section's order, from a manifest
                     --lint holds to the roster
@@ -2244,6 +2248,188 @@ def parse_counts(path):
             else:
                 refused.append('%s %s' % (sh, arm))
     return counts, refused, malformed
+
+
+PREDICT_RE = re.compile(r'`predict: ([^`]+)`')
+
+
+def predictions_table(cells, shapes, strategies, meta, other, main_hs,
+                      run, run_doc, readme, counts):
+    """The registration's `predict:` spans, adjudicated from the artifacts.
+
+    A registration item states a prediction and a kill condition in prose,
+    and until 2026-09-02 the verdict beside it was a session's reading of
+    the tables -- the step of the write-up that took the most judgement
+    and the one least suited to a session prone to error. Where the
+    quantity predicted is one this reader computes, the item now carries
+    a backticked span stating it, and this prints the verdict:
+
+        `predict: cross ARM X [within P%] [excluding S1,S2]`
+            the cross-half geomean of ARM, this run over the other, as
+            --compare prints it, read as X
+        `predict: counts ARM X [within P%] [excluding S1,S2]`
+            the instruction-count ratio of ARM, this run's counts file
+            over the other's, read as X; wants --counts A B
+        `predict: pair A B X [within P%] [excluding S1,S2]`
+            the within-half --pair geomean of A over B, read as X
+
+    HELD when the figure read is within P points of X, KILLED otherwise;
+    P defaults to this run's own main-set A/A floor for cross and pair,
+    which is the tolerance the registrations have always used, and to 0.1
+    for counts, which are exact to the fourth place on a repeat. The
+    section is the run file's own last section where the registration
+    has been moved (post-run step 5), and README's OPEN entry before
+    that, so the same call answers before and after the move. An item
+    with no span -- a class ordering, a verdict about verdicts -- is
+    listed as the session's to adjudicate, by number, so that what the
+    reader did not decide is not mistaken for decided. A span it cannot
+    read is a finding about the document and exits 1; a document with
+    no span at all exits 2, nothing having been adjudicated.
+
+    The orientation is printed on every run: the registrations of Run 23
+    were written dead-spot over basis, the reciprocal of --compare, and
+    a span is written in --compare's orientation or it reads inverted.
+    """
+    text = src = None
+    if run_doc and os.path.exists(run_doc):
+        doc = open(run_doc).read()
+        i = doc.find(REG_HEAD)
+        if i >= 0:
+            j = doc.find('\n## ', i + len(REG_HEAD))
+            text, src = (doc[i:] if j < 0 else doc[i:j]), run_doc
+    m = re.match(r'run(\d+)', os.path.basename(run))
+    if text is None and m:
+        lead = 'What Run %s is built to answer' % m.group(1)
+        for para in open(readme).read().split('\n\n'):
+            if lead in ' '.join(para.split()):
+                text, src = para, readme
+                break
+    if text is None:
+        sys.stderr.write('no registration to adjudicate: %s has no `%s`'
+                         ' section and %s has no OPEN entry led `What Run N'
+                         ' is built to answer`\n'
+                         % (run_doc or 'the run file', REG_HEAD, readme))
+        return 2
+    flat = ' '.join(text.split())
+    # Items, in either house form: `(n) *lead*` inline, or `n. ` lines.
+    marks = [(mm.start(), mm.group(1))
+             for mm in re.finditer(r'\((\d+)\) \*', flat)]
+    if not marks:
+        marks = [(mm.start(), mm.group(1))
+                 for mm in re.finditer(r'(?:^| )(\d+)\. \S', flat)]
+    items = []
+    for k, (at, num) in enumerate(marks):
+        end = marks[k + 1][0] if k + 1 < len(marks) else len(flat)
+        items.append((num, flat[at:end]))
+    specs = [(num, sp) for num, body in items
+             for sp in PREDICT_RE.findall(body)]
+    stray = [sp for sp in PREDICT_RE.findall(flat)
+             if sp not in [x for _, x in specs]]
+    specs += [('?', sp) for sp in stray]
+    unspanned = [num for num, body in items if not PREDICT_RE.search(body)]
+    if not specs:
+        print('%s: no `predict:` span in the registration (%d item(s)), so'
+              ' nothing here is adjudicated; every item is yours'
+              % (os.path.basename(src), len(items)))
+        return 2
+
+    fl = aa_floor(aa_pairs(cells, shapes, strategies))
+    floor_pct = abs(fl.g - 1) * 100 if fl else None
+    print('predictions in %s, read from %s against %s' % (
+        os.path.basename(src), os.path.basename(run), os.path.basename(other)))
+    print('  cross and counts are THIS RUN over the other, as --compare'
+          ' prints; the default tolerance is this run\'s own main-set A/A'
+          ' floor, %s' % ('%.2f%%' % floor_pct if floor_pct is not None
+                          else 'unavailable (no A/A pair)'))
+    b_cells = b_shapes = b_strategies = None
+    a_counts = b_counts = None
+    held = killed = unread = 0
+    for num, spec in specs:
+        toks = spec.split()
+        kind, rest, within, excl, args_ = toks[0], toks[1:], None, [], []
+        i = 0
+        while i < len(rest):
+            if rest[i] == 'within' and i + 1 < len(rest):
+                try:
+                    within = float(rest[i + 1].rstrip('%'))
+                except ValueError:
+                    within = 'bad'
+                i += 2
+            elif rest[i] == 'excluding' and i + 1 < len(rest):
+                excl = rest[i + 1].split(',')
+                i += 2
+            else:
+                args_.append(rest[i])
+                i += 1
+        why = None
+        g = n = None
+        try:
+            if within == 'bad':
+                why = "'within' wants a number"
+            elif kind == 'cross' and len(args_) == 2:
+                arm, x = args_[0], float(args_[1])
+                if b_cells is None:
+                    b_cells, b_shapes, b_strategies = load_other(
+                        other, main_hs, shapes, meta)
+                if arm not in strategies or arm not in b_strategies:
+                    why = 'arm %s is not in both runs' % arm
+                else:
+                    rs = [cells[sh][arm]['net'] / b_cells[sh][arm]['net']
+                          for sh in shapes
+                          if sh in b_shapes and sh not in excl
+                          and cells[sh][arm]['net'] > 0
+                          and b_cells[sh][arm]['net'] > 0]
+                    g, n = (geomean(rs), len(rs)) if rs else (None, 0)
+                tol = within if within is not None else floor_pct
+            elif kind == 'counts' and len(args_) == 2:
+                arm, x = args_[0], float(args_[1])
+                if not counts:
+                    why = 'a counts span wants --counts THIS.txt OTHER.txt'
+                else:
+                    if a_counts is None:
+                        a_counts = parse_counts(counts[0])[0]
+                        b_counts = parse_counts(counts[1])[0]
+                    rs = [a_counts[sh][arm] / b_counts[sh][arm]
+                          for sh in shapes if sh not in excl
+                          and a_counts.get(sh, {}).get(arm)
+                          and b_counts.get(sh, {}).get(arm)]
+                    g, n = (geomean(rs), len(rs)) if rs else (None, 0)
+                tol = within if within is not None else 0.1
+            elif kind == 'pair' and len(args_) == 3:
+                a, b, x = args_[0], args_[1], float(args_[2])
+                if a not in strategies or b not in strategies:
+                    why = 'arm %s or %s is not in this run' % (a, b)
+                else:
+                    shs = [sh for sh in shapes if sh not in excl]
+                    _raw, rs = pair_stats(cells, shs, a, b)
+                    g, n = geomean(rs), len(rs)
+                tol = within if within is not None else floor_pct
+            else:
+                why = ('not one of cross ARM X, counts ARM X, pair A B X'
+                       ' (with optional within P% and excluding S,...)')
+        except ValueError:
+            why = 'the predicted figure is not a number'
+        if why is None and g is None:
+            why = 'no shape readable for it'
+        if why is None and tol is None:
+            why = 'no tolerance: give within P%'
+        if why is not None:
+            unread += 1
+            print('  (%s) %-44s NOT READ: %s' % (num, spec, why))
+            continue
+        off = abs(g - x) * 100
+        ok = off <= tol
+        held += ok
+        killed += not ok
+        print('  (%s) %-44s read %.4f over %d shape(s), %.2f point(s) off,'
+              ' within %.2f%%: %s'
+              % (num, spec, g, n, off, tol, 'HELD' if ok else 'KILLED'))
+    print('%d span(s): %d HELD, %d KILLED, %d not read%s'
+          % (len(specs), held, killed, unread,
+             '; item(s) with no span, yours to adjudicate: %s'
+             % ', '.join('(%s)' % u for u in unspanned) if unspanned
+             else '; every item carries a span'))
+    return 1 if unread else 0
 
 
 def counts_table(cells, shapes, strategies, meta, other, main_hs,
@@ -9529,6 +9715,10 @@ def main():
     # 16 remembered the flag on --aa and --block and forgot it on --compare,
     # which then printed 42 arms with their preamble several times over. The
     # flag is kept as a no-op so an old recipe still runs.
+    p.add_argument('--predictions', action='store_true',
+                   help="with --compare: adjudicate the registration's"
+                        ' `predict:` spans, HELD or KILLED each, and name'
+                        ' the items carrying none as yours')
     p.add_argument('--brief', action='store_true',
                    help='the default now; kept so older recipes still run')
     p.add_argument('--verbose', action='store_true',
@@ -9927,6 +10117,16 @@ def main():
     elif args.compare and args.movers is not None:
         sys.exit(movers_table(cells, shapes, strategies, meta, args.compare,
                               args.main, args.movers, not args.verbose))
+    elif args.compare and args.predictions:
+        rd = args.run_doc
+        if not rd:
+            mm = re.match(r'run\d+', os.path.basename(args.run))
+            cand = mm and os.path.join(RUNS_DIR, mm.group(0) + '.md')
+            if cand and os.path.exists(cand):
+                rd = cand
+        sys.exit(predictions_table(cells, shapes, strategies, meta,
+                                   args.compare, args.main, args.run, rd,
+                                   args.readme, args.counts))
     elif args.compare and args.counts:
         # Before the plain --compare arm below, as every other second-file
         # mode is: --counts is a reading OF a comparison and not a mode
