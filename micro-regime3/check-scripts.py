@@ -332,10 +332,24 @@ def write(path, text):
 
 
 def rundoc_lines(rev=None):
-    """The run's own file, as of `rev` when a revision is being replayed."""
+    """The run's own file, as of `rev` when a revision is being replayed.
+
+    A head paragraph opening with a bolded backticked ARM name -- Run 23's
+    file has two -- is neutralised, a space put after the two asterisks: an installer
+    from before 34dadda read every such paragraph as a class block's lead
+    and refused before reaching the defect a case planted (2026-09-02).
+    The installer of today reads the class section alone and is untouched.
+    """
+    return rundoc_text(rev).split('\n')
+
+
+def rundoc_text(rev=None):
+    """The run file's text, every fixture's one source; see rundoc_lines."""
     rel = os.path.relpath(RUNDOC, HERE)
-    return (open(RUNDOC).read() if rev is None
-            else at_rev(rel, rev)).split('\n')
+    text = open(RUNDOC).read() if rev is None else at_rev(rel, rev)
+    head, sep, rest = text.partition('\n## The stride classes, run by run')
+    head = re.sub(r'(?m)^\*\*`', '** `', head)
+    return head + sep + rest
 
 
 def write_rundoc(tmp, text, name=None):
@@ -350,7 +364,7 @@ def write_rundoc(tmp, text, name=None):
 
 def edited_rundoc(tmp, *edits, **kw):
     """`edited_readme`, against the run's own file."""
-    text = open(RUNDOC).read()
+    text = rundoc_text()
     for old, new in edits:
         k = text.count(old)
         if k != 1:
@@ -362,7 +376,7 @@ def edited_rundoc(tmp, *edits, **kw):
 
 def unwrapped_rundoc_edit(tmp, old, new):
     """`unwrapped_readme_edit`, against the run's own file."""
-    text = subprocess.run(['wrap80', '--unwrap'], input=open(RUNDOC).read(),
+    text = subprocess.run(['wrap80', '--unwrap'], input=rundoc_text(),
                           capture_output=True, text=True, check=True).stdout
     k = text.count(old)
     if k != 1:
@@ -641,7 +655,7 @@ def rundoc_results_names_identical_predecessor(tmp):
     stale name."""
     was = os.path.basename(RUNDOC)
     now = int(re.match(r'run(\d+)\.md$', was).group(1))
-    text = open(RUNDOC).read()
+    text = rundoc_text()
     old = '## Results'
     assert text.count(old) == 1
     new = ('## Results\n\nThis basis is run%d-g912 byte for byte, the md5'
@@ -651,7 +665,7 @@ def rundoc_results_names_identical_predecessor(tmp):
 
 def rundoc_with_todo_marker(tmp):
     """The run file with one deferred paragraph left as `[[TODO]]`."""
-    text = open(RUNDOC).read()
+    text = rundoc_text()
     old = '## Results'
     assert text.count(old) == 1
     return write_rundoc(tmp, text.replace(old, '## Results\n\n[[TODO]]\n', 1))
@@ -676,7 +690,7 @@ def rundoc_pair(tmp, held=True):
     """
     at = os.path.join(tmp, 'runs')
     os.makedirs(at, exist_ok=True)
-    text = open(RUNDOC).read()
+    text = rundoc_text()
     m = re.match(r'run(\d+)\.md$', os.path.basename(RUNDOC))
     assert m, 'the run file is not named run<N>.md, so it names no run'
     now = int(m.group(1))
@@ -710,7 +724,7 @@ def rundoc_current_run_sentence(tmp):
     # failed the hour the manifest shrank, and again on 2026-08-28 when
     # claim 2 retired with its arm: the sentence now names a claim-1 arm,
     # `mut-flat-gm`, so it reads as one about the claim that is left.
-    doc = open(RUNDOC).read()
+    doc = rundoc_text()
     run = re.match(r'run(\d+)\.md$', os.path.basename(RUNDOC))
     assert run, 'the run file is not named run<N>.md, so it names no run'
     paras = doc.split('\n\n')
@@ -810,7 +824,7 @@ def rundoc_retirement_sentence(tmp, retiring=True):
     correct write-up as a defective one. Without, it is the same figure
     in an ordinary sentence, which must still be listed.
     """
-    doc = subprocess.run(['wrap80', '--unwrap'], input=open(RUNDOC).read(),
+    doc = subprocess.run(['wrap80', '--unwrap'], input=rundoc_text(),
                          capture_output=True, text=True, check=True).stdout
     paras = doc.split('\n\n')
     at = [i for i, x in enumerate(paras) if x.startswith('**Claim 1 ')]
@@ -1012,7 +1026,7 @@ def rundoc_without_class_leads(tmp):
     the JSONs on disk to the README's leads, and the check was itself silent
     when its own search came back empty.
     """
-    src = open(RUNDOC).read()
+    src = rundoc_text()
     doc, n = re.subn(r'(?m)^\*\*`([a-z0-9]+)`', r'**\1', src)
     # A sweep, so it says what it swept: a plant that quietly matches
     # nothing -- or matches something else -- leaves the old script failing
@@ -1032,7 +1046,7 @@ def rundoc_heading_between_blocks(tmp):
     stops at a heading for the last block only, so anything of that shape
     standing between two blocks is inside the range of the one above it.
     """
-    paras = open(RUNDOC).read().split('\n\n')
+    paras = rundoc_text().split('\n\n')
     at = [i for i, x in enumerate(paras) if x.startswith('**`revsome`')]
     assert len(at) == 1, 'revsome lead: %d paragraph(s)' % len(at)
     paras[at[0]:at[0]] = ['### A section standing between two class blocks',
@@ -1218,7 +1232,7 @@ INLINE_REG = ('- `%s` **What Run 99 was built to answer, registered'
 def rundoc_without_across(tmp):
     """The run file with every `Across the halves:` paragraph deleted: a
     run that recorded one half, as install-tables.sh must meet it."""
-    paras = open(RUNDOC).read().split('\n\n')
+    paras = rundoc_text().split('\n\n')
     kept = [p for p in paras
             if not p.lstrip().lstrip('*').startswith('Across the halves:')]
     if len(kept) == len(paras):
@@ -1234,7 +1248,7 @@ def an_across_paragraph():
     reinstalled with every run, so a pinned copy dies at the next
     install.
     """
-    for p in open(RUNDOC).read().split('\n\n'):
+    for p in rundoc_text().split('\n\n'):
         if p.lstrip().lstrip('*').startswith('Across the halves:'):
             return p
     raise AssertionError('no `Across the halves:` paragraph in the run file'
@@ -1670,7 +1684,17 @@ UNDERPRINT = FAKE_RUN.replace(
 assert 'd[2][:-1]' in UNDERPRINT, 'the under-printing stub lost its anchor'
 
 
-def halves(*names):
+def classes_in(text):
+    """The classes a driver's own `CLASSES="..."` literal names, hyphenated
+    ones dropped (they are the defect one case plants), or None where the
+    text has no such literal, which lets `whole_run` take today's."""
+    m = re.search(r'^CLASSES="([^"]*)"', text, re.M)
+    if not m:
+        return None
+    return [c for c in m.group(1).split() if '-' not in c] or None
+
+
+def halves(*names, classes=None):
     """A stand-in per half, named as a run's binaries are, and the run it
     reads.
 
@@ -1683,7 +1707,8 @@ def halves(*names):
     """
     return [(n, FAKE_RUN.replace('@HALF@', n.split('-', 1)[1])
                         .replace('@RUN@', SRC))
-            for n in names] + whole_run([n.split('-', 1)[1] for n in names])
+            for n in names] + whole_run([n.split('-', 1)[1] for n in names],
+                                        classes=classes)
 
 ASM_HEAD_AFTER_RET = """\
 \t.text
@@ -1907,7 +1932,7 @@ def lead_of(cls):
     and asserted unique here so a fixture built on it cannot silently
     edit the wrong paragraph.
     """
-    hit = [p for p in open(RUNDOC).read().split('\n\n')
+    hit = [p for p in rundoc_text().split('\n\n')
            if p.lstrip().startswith('**`%s` ---' % cls)]
     assert len(hit) == 1, 'lead `%s`: %d paragraph(s)' % (cls, len(hit))
     return hit[0]
@@ -2075,7 +2100,7 @@ def floor_movement_para(bend=None, joiner=' to '):
     cases want.
     """
     rows = re.findall(r'^\| `([a-z0-9]+)` \|.*\| ([\d.]+)% \|$',
-                      open(RUNDOC).read(), re.M)
+                      rundoc_text(), re.M)
     assert len(rows) >= 4, 'class table floor column: %d row(s)' % len(rows)
     said = []
     for i, (cls, now) in enumerate(rows):
@@ -2154,7 +2179,7 @@ def recorded_classes():
     reads them. Found 2026-08-28, when the `runs` class landed a run
     ahead of its file.
     """
-    leads = set(re.findall(r'^\*\*`([a-z0-9]*)`', open(RUNDOC).read(),
+    leads = set(re.findall(r'^\*\*`([a-z0-9]*)`', rundoc_text(),
                            re.M))
     return [c for c in class_names() if c in leads]
 
@@ -2984,7 +3009,8 @@ CASES = [
          plant=lambda t: {'run': synth_json(t, 'main')},
          argv=['{run}', '--claims', '--exclude', 'mut-flat-gm'],
          ok=V(has=['1 arm(s) of the claims list']),
-         bug=V(has=['8 arm(s) of the claims list'])),
+         bug=V(has=['arm(s) of the claims list'],
+               hasnt=['1 arm(s) of the claims list'])),
 
     case('added-lines-over-head', 'read-run.py', None,
          'a STAGED document emptied the freshness sweeps',
@@ -3330,7 +3356,7 @@ CASES = [
          # head with nothing held.
          plant=lambda t: {'rundoc': write(
              os.path.join(_mkruns(t), os.path.basename(RUNDOC)),
-             open(RUNDOC).read())},
+             rundoc_text())},
          argv=['--check-doc', '--worklists', '--run-doc', '{rundoc}'],
          ok=V(has=['is held to no predecessor'])),
 
@@ -5180,7 +5206,7 @@ CASES = [
          # else here can see it -- the process exits 0, leaves a JSON and
          # runs the count asked of it -- which is why the check is a count
          # of the line and not a reading of it.
-         shadow=dict(extra=lambda: halves('zzpl-lookrts', 'zzpl-a1g')
+         shadow=dict(extra=lambda text: halves('zzpl-lookrts', 'zzpl-a1g', classes=classes_in(text))
                      + [('zzpl-pair.txt', NOTE_STUB)]),
          env={'OTHER': 'a1g', 'BASIS': 'lookrts', 'SATURATE': '1'},
          argv=['zzpl'],
@@ -5199,7 +5225,7 @@ CASES = [
          # step 2 reaches for on a suspicious cell and not on every
          # process. ANY count above zero passes, unlike the plateau's
          # exactly-one: the instrument writes two stamps per sample.
-         shadow=dict(extra=lambda: halves('zzwl-lookrts', 'zzwl-a1g')
+         shadow=dict(extra=lambda text: halves('zzwl-lookrts', 'zzwl-a1g', classes=classes_in(text))
                      + [('zzwl-pair.txt', NOTE_STUB)]),
          env={'OTHER': 'a1g', 'BASIS': 'lookrts', 'WILDLOG': '1'},
          argv=['zzwl'],
@@ -5217,7 +5243,7 @@ CASES = [
          # commits, the dirty count and `uptime`, at its first minute.
          # The verdict is on the LOG and not the terminal, that record
          # being the thing a write-up reads back weeks later.
-         shadow=dict(extra=lambda: halves('zzle-lookrts', 'zzle-a1g')
+         shadow=dict(extra=lambda text: halves('zzle-lookrts', 'zzle-a1g', classes=classes_in(text))
                      + [('zzle-pair.txt', NOTE_STUB)]),
          env={'OTHER': 'a1g', 'BASIS': 'lookrts'},
          argv=['zzle'],
@@ -5783,7 +5809,7 @@ CASES = [
 
     case('pair-halves-must-differ', 'run-major.sh', '0431efe',
          'one name in both halves wrote nine JSONs twice and gated clean',
-         shadow=dict(extra=lambda: halves('zzhh-lookrts')
+         shadow=dict(extra=lambda text: halves('zzhh-lookrts', classes=classes_in(text))
                      + [('zzhh-pair.txt', 'a stand-in pair note.\n'
                          'HALVES: basis=lookrts other=lookrts\n')]),
          env={'OTHER': 'lookrts', 'BASIS': 'lookrts'},
@@ -5793,9 +5819,9 @@ CASES = [
 
     case('class-name-carries-no-hyphen', 'run-major.sh', '8cb5eb7',
          'a hyphenated class merged with the one before its hyphen',
-         shadow=dict(mutate=[('run-major.sh', 'reshape1 slice window scaled runs"',
-                              'reshape1 slice window scaled bcast-mid"')],
-                     extra=lambda: halves('zzhy-lookrts', 'zzhy-a1g')
+         shadow=dict(mutate=[('run-major.sh', 'slice window scaled',
+                              'slice window scaled bcast-mid')],
+                     extra=lambda text: halves('zzhy-lookrts', 'zzhy-a1g', classes=classes_in(text))
                      + [('zzhy-pair.txt', NOTE_STUB)]),
          env={'OTHER': 'a1g', 'BASIS': 'lookrts'},
          argv=['zzhy'],
@@ -5825,7 +5851,7 @@ CASES = [
 
     case('major-run-runs-clean', 'run-major.sh', None,
          'CONTROL: the whole sequence, eighteen processes, on stand-ins',
-         shadow=dict(extra=lambda: halves('zzmj-lookrts', 'zzmj-a1g')
+         shadow=dict(extra=lambda text: halves('zzmj-lookrts', 'zzmj-a1g', classes=classes_in(text))
                      + [('zzmj-pair.txt', NOTE_STUB)]),
          env={'OTHER': 'a1g', 'BASIS': 'lookrts'},
          argv=['zzmj'],
@@ -5839,7 +5865,7 @@ CASES = [
          # step 19 -- so a relaunch after the riders, with the major JSONs
          # moved aside, met `already has artifacts` over files it would not
          # overwrite. read-all.sh's roster skips both, one script over.
-         shadow=dict(extra=lambda: halves('zzrl-lookrts', 'zzrl-a1g')
+         shadow=dict(extra=lambda text: halves('zzrl-lookrts', 'zzrl-a1g', classes=classes_in(text))
                      + [('zzrl-pair.txt', NOTE_STUB),
                         ('zzrl-al-lookrts-cnn-slice-c32-r1.json', '[]\n')]),
          env={'OTHER': 'a1g', 'BASIS': 'lookrts'},
@@ -5854,7 +5880,7 @@ CASES = [
          # The other side of the case above: a narrowed exclusion that took
          # a process's JSON with the riders' would lose the guard outright,
          # and hours would be overwritten in place with nothing said.
-         shadow=dict(extra=lambda: halves('zzrp-lookrts', 'zzrp-a1g')
+         shadow=dict(extra=lambda text: halves('zzrp-lookrts', 'zzrp-a1g', classes=classes_in(text))
                      + [('zzrp-pair.txt', NOTE_STUB),
                         ('zzrp-lookrts-rev.json', '[]\n')]),
          env={'OTHER': 'a1g', 'BASIS': 'lookrts'},
@@ -5871,7 +5897,7 @@ CASES = [
          # out, so every later reading of that run failed as "the run
          # complained about itself" over eighteen clean processes. Refused
          # before the hours instead, as a missing binary is.
-         shadow=dict(extra=lambda: halves('zznn-lookrts', 'zznn-a1g')),
+         shadow=dict(extra=lambda text: halves('zznn-lookrts', 'zznn-a1g', classes=classes_in(text))),
          env={'OTHER': 'a1g', 'BASIS': 'lookrts'},
          argv=['zznn'],
          ok=V(exit=1, has=['no zznn-pair.txt'], hasnt=['major run begins']),
@@ -5879,7 +5905,7 @@ CASES = [
 
     case('provenance-git-could-not-read', 'run-major.sh', '845c8d0',
          'a run whose git failed recorded a commitless, CLEAN-looking tree',
-         shadow=dict(extra=lambda: halves('zzmj-lookrts', 'zzmj-a1g')
+         shadow=dict(extra=lambda text: halves('zzmj-lookrts', 'zzmj-a1g', classes=classes_in(text))
                      + [('zzmj-pair.txt', NOTE_STUB)]),
          env={'OTHER': 'a1g', 'BASIS': 'lookrts'},
          argv=['zzmj'],
@@ -5898,11 +5924,11 @@ CASES = [
          # run dies before writing the log this case probes. Its half's
          # data comes separately, `halves` shipping only what it stands in
          # for.
-         shadow=dict(extra=lambda: [('zzmj-lookrts',
+         shadow=dict(extra=lambda text: [('zzmj-lookrts',
                                      UNDERPRINT.replace('@HALF@', 'lookrts')
                                                .replace('@RUN@', SRC))]
-                     + halves('zzmj-a1g')
-                     + whole_run(['lookrts'])
+                     + halves('zzmj-a1g', classes=classes_in(text))
+                     + whole_run(['lookrts'], classes=classes_in(text))
                      + [('zzmj-pair.txt', NOTE_STUB)]),
          env={'OTHER': 'a1g', 'BASIS': 'lookrts'},
          argv=['zzmj'],
@@ -6062,7 +6088,7 @@ CASES = [
          # the computed paragraphs went in across SEVEN blocks, the eighth
          # having been handed the one above it.
          ok=V(exit=1, has=['carries a hyphen'], hasnt=['table(s) installed']),
-         bug=V(exit=1, has=['REFUSED', 'across 7 class block(s)'],
+         bug=V(exit=1, has=['REFUSED', 'across %d class block(s)' % (len(recorded_classes()) - 1)],
                hasnt=['carries a hyphen'])),
 
     case('install-is-idempotent', 'install-tables.sh', None,
@@ -6131,7 +6157,13 @@ def shadow_dir(tmp, prog, text, mutate=(), extra=()):
     # every case naming one before argparse, which took `--list` from 0.1 s
     # to 2.1 s. 2026-09-01.
     if callable(extra):
-        extra = extra()
+        # An `extra` taking one argument is handed the SCRIPT'S TEXT, at the
+        # revision under test, so a stand-in can ship what that era's
+        # driver expects -- the classes its literal names, and no others.
+        # The audit replays a 2026-08-22 driver against a stand-in carrying
+        # the `runs` class added later, and the driver refused at its class
+        # check before reaching the defect (found 2026-09-02).
+        extra = extra(text) if _takes_text(extra) else extra()
     for name, body in extra:
         at = os.path.join(d, name)
         if os.path.lexists(at):
@@ -6377,8 +6409,8 @@ def families():
     if not bad:
         print('  ok   no dropped status, no unread flag and no import-time'
               ' environment parse, over the %d Python file(s) here, and'
-              ' pyflakes over them and shellcheck over the %d shell'
-              ' script(s) both clean' % (len(pys), len(shs)))
+              ' pyflakes over them and shellcheck over the shell scripts,'
+              ' %d of them, both clean' % (len(pys), len(shs)))
     return len(bad)
 
 
@@ -6640,6 +6672,14 @@ m = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(m)
 print(repr(eval(sys.argv[2], vars(m))))
 """
+
+
+def _takes_text(fn):
+    """Whether a shadow's `extra` wants the script's text: one required
+    positional, where a plant taking the revision has two."""
+    import inspect
+    return len([q for q in inspect.signature(fn).parameters.values()
+                if q.default is q.empty]) == 1
 
 
 def _takes_rev(fn):
