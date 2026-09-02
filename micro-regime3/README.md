@@ -7439,6 +7439,14 @@ which is the trade it was built to make. **The two are told apart
 by a containment test on data the shim already has**, every (head, back-edge)
 pair being how it finds heads at all: skip a head whose own cycle `(H, J)`
 overlaps another `(a, b)` with `a < H < b < J`, and leave the nested case alone.
+**The dead-spot form, `LOOP_DEADSPOT=1` ([task 6][open]), keeps that test
+and turns the skip into an order: the inner head of a rotated pair is placed
+and the outer yields, so on a dead-spot binary the fill's stepping loop sits
+at offset 0 and the loop the survey then reports straddling is the outer,
+per-run one** --- Run 23's four, `fillStage2`, `fillStage2Short` and the two
+`-u2` leaf fills, read that way off the timed binary on 2026-09-02 --- by design
+and on every dead-spot build, so a future run should expect them and price them
+as a per-run term where the pad they replace was paid per iteration.
 **Over this module's assembly that separates 840 nested heads from 331
 overlapping ones, 28.2% of 1172** --- an exposure count from a static pass
 with instruction indices standing in for addresses, so a bound on how many heads
