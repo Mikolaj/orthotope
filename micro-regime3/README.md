@@ -585,7 +585,8 @@ carries. The run-file split ended that, and the back-fill of 2026-08-29 finished
 it: `runs/` accumulates, every run from 7 on has a file, and a registration now
 sits in the file of the run that made it, with a verdict and a pointer here.
 Nothing was reduced, which is what the refusal actually forbade --- each entry
-moved whole. The length rule therefore binds this family like any other.
+moved whole. The gate still exempts the family by its lead, and nothing needs
+the exemption now: what stays here per run is a stub.
 
 **The spent run registrations are not here, and where they went is the half
 a removal owes.** Runs 10 to 16's went to `MARGINALIA` on 2026-08-23, verbatim
@@ -593,13 +594,13 @@ and whole --- Run 12's last, and only once its status was corrected, having
 been held back by a stale `OPEN` that its own third item had contradicted since
 2026-08-13. They were answered, every finding of theirs already lives
 in the topical section its entry points at, and what they still cost
-was this list: a run registration is exempt from the 500-word ceiling, so five
-of them had grown to chapter length and every grep of this section paged through
-all five. **The last two runs' stay.** A stale marker does not merely mislead,
-it exempts --- which is why `--check-doc` now holds a registration's marker
-to its own items. The rule going forward is that a registration leaves when
-it is answered and two further runs have reported --- and that `MARGINALIA`
-is write-only, so what leaves is gone from working use rather than merely moved.
+was this list: exempt from the 500-word ceiling, five of them had grown
+to chapter length and every grep of this section paged through all five.
+**The last two runs' stay.** A stale marker does not merely mislead, it exempts
+--- which is why `--check-doc` now holds a registration's marker to its own
+items. The rule going forward is that a registration leaves when it is answered
+and two further runs have reported --- and that `MARGINALIA` is write-only,
+so what leaves is gone from working use rather than merely moved.
 
 **This is the only home for an open question.** They are collected here because
 otherwise they sit one per section and get reconstructed every time ---
@@ -642,18 +643,9 @@ they calibrate --- on that roster the 41% cell reads 0.24% --- and then, for Run
 10, above `list` as well, which is the warm-up bench [the TODO list][todo] had
 been asking for and leaves nothing measured on an ungrown pool.
 
-  **It was answered the same day, and the decision it forced is kept
-  with the account** --- **and SUPERSEDED on 2026-08-20, Run 16 having moved
-  the published basis to `-A32m`**, so what follows is the reasoning that
-  held while the default area was the basis and not a live instruction:
-  keep the default area, and carry the caveat that
-  the headline ratios are partly a statement about it ([the floor
-  section][floor], which also holds the predictor for which cells the
-  setting reaches, and the nine populations it has been applied to).
-  What stays open is the size of it --- how much of a published geomean
-  moves is a run and not a probe.
+  **It was answered the same day, and the decision it forced is kept with the account** --- **and SUPERSEDED on 2026-08-20, Run 16 having moved the published basis to `-A32m`**, so what follows is the reasoning that held while the default area was the basis and not a live instruction: keep the default area, and carry the caveat that the headline ratios are partly a statement about it ([the floor section][floor], which also holds the predictor for which cells the setting reaches, and the nine populations it has been applied to). What stays open is the size of it --- how much of a published geomean moves is a run and not a probe.
 
-**Three of Run 8's were answered the same day**, each by the probe its own entry
+**Two of Run 8's were answered the same day**, each by the probe its own entry
 specified --- the rule about a discriminating measurement deserving one now
 rather than a slot in the next run, observed again:
 
@@ -1035,8 +1027,8 @@ rather than a slot in the next run, observed again:
   this pair does not contain, so it is not a contradiction --- but it
   is a reason not to carry that reading forward as though it described this one.
   And the flag moves procedure starts and the offsets they produce together,
-  exactly as [Run 12's second registered prediction](#what-is-open) records,
-  so this four-point term prices the package and does not attribute it.
+  exactly as Run 12's second registered prediction recorded, so this four-point
+  term prices the package and does not attribute it.
 
   **Across the nine populations Run 12 runs 0.9013 (`reshape1`) to 1.1644
   (`window`)**, against Run 11's 0.9215 to 1.0209 and Run 10's 0.9148 to 1.0335,
@@ -1262,7 +1254,7 @@ rather than a slot in the next run, observed again:
   no JSON at all --- measured, not read off the help text. There is no other way
   to fix the schedule from the command line, so the mechanism cannot be tested
   by pinning it, and it is recorded here dead rather than left
-  to be re-proposed. What `-n` *is* for is the next paragraph.
+  to be re-proposed. What `-n` *is* for is the paragraph after next.
 
   **The block-pool issue this project filed is the nearest precedent,
   and its methods are the ones to reach for next** ---
@@ -1742,17 +1734,18 @@ rather than a slot in the next run, observed again:
 
 - `OPEN` **`mut-odo-vecdims-add-in` leads `mut-odo-vecdims` on most populations,
   and Run 18 read the margin outside a floor on one compiler and absent
-  on the other.** Registered here 2026-08-22, out of Run 17; parked 2026-08-25,
-  the ruling being the last paragraph of this entry. The series, as Run 17's
-  write-up recorded it ([Run 17's file](runs/run17.md)): `add-in` against
-  the arm it varies read 1.0009, 0.9934, 0.9967, 1.0023 and 1.0043 across Runs
-  10 to 16, four of those five a coin flip, and Run 17 reads **0.9889 at 19
-  of 24, sign p 0.0066** on its basis and **0.9709 at 21 of 24, p 0.00028**
-  on its control. **What is new is not the margin but the agreement**: the two
-  halves differ in `.text` and in every loop offset, `add-in` is itself moved 1%
-  across them, and both put it ahead --- so the direction is not the slot, which
-  is what the four coin-flip runs could not rule out. Per population it leads
-  the main set, `rev`, `revsome`, `bcastmid`, `slice`, `window` and `scaled`,
+  on the other.** Registered here 2026-08-22, out of Run 17; parked 2026-08-25
+  and UNPARKED 2026-08-29, the probe owed and no decision, the ruling being
+  the last paragraph of this entry. The series, as Run 17's write-up recorded
+  it ([Run 17's file](runs/run17.md)): `add-in` against the arm it varies read
+  1.0009, 0.9934, 0.9967, 1.0023 and 1.0043 across Runs 10 to 16, four
+  of those five a coin flip, and Run 17 reads **0.9889 at 19 of 24, sign p
+  0.0066** on its basis and **0.9709 at 21 of 24, p 0.00028** on its control.
+  **What is new is not the margin but the agreement**: the two halves differ
+  in `.text` and in every loop offset, `add-in` is itself moved 1% across them,
+  and both put it ahead --- so the direction is not the slot, which is what
+  the four coin-flip runs could not rule out. Per population it leads the main
+  set, `rev`, `revsome`, `bcastmid`, `slice`, `window` and `scaled`,
   `mut-odo-vecdims` keeping only `bcast` and keeping it by 0.9989. **What
   it is not is decided, and the two halves disagree about that too.**
   The threshold for a margin between two arms of one run is that run's own
@@ -1846,44 +1839,7 @@ rather than a slot in the next run, observed again:
   against `mut-odo-vecdims-add-in`. If the ordering follows the offsets
   it is placement; if it survives them the arm is really faster. That is two
   twenty-second builds and a filtered probe, and it needs no run. Artifacts
-  `probe-addin-*` and `probe-addin2-*`. **DEFERRED 2026-08-22, and UNPARKED
-  2026-08-29: both halves of that deferral are spent.** The deferral was about
-  what could change the shipping choice, not about the probe's cost,
-  and it rested on two things. One: an ordering holding on 9.12 alone is
-  not the ordering the shipped code meets, so the placement half waits until
-  the consumers' compilers are measured --- GHC 9.14, which was Run 18's own
-  subject, and HEAD after it. Runs 19, 20 and 21 each ran HEAD beside 9.12,
-  so that wait is over. Two: a margin of one to three percent could not move
-  a fix that was going to be `mut-odo-vecdims`. It did not have to --- what
-  ships is `mut-odo-vecdims-add-in-leaf-u2`, an `add-in` arm,
-  `genericFillStrided` being a bang-for-bang port of it, so the sentence
-  this ruling used to end on, that the decision stands and ships
-  `mut-odo-vecdims`, describes no shipped code. **What is owed is therefore
-  the probe and not a decision**: one source, two builds a shim setting apart,
-  chosen so the two arms' offsets swap or converge, read on nothing else --- two
-  twenty-second builds and a filtered run, artifacts `probe-addin-*`.
-  It no longer chooses what ships; it says whether the family's lead is code
-  or placement, which is the same question Run 21 raised one level down when
-  `-add-in-leaf-down` came in 5 to 6% ahead of the shipped `-u2` on both
-  compilers, outside either half's floor. Answer it there and this entry answers
-  with it. What the entry is still for is that a run should not rediscover
-  the lead as a surprise, nor spend an evening on it.
-
-  **PARKED 2026-08-25: the condition that deferral named has been MET
-  and the question is retired anyway, so no run and no probe will be built
-  to answer it.** GHC 9.14 was Run 18's subject and HEAD was Run 19's, which
-  is what the deferral waited for, and both put the orderings where 9.12 does
-  --- so the placement half came due and was declined rather than deferred
-  a second time. The reason is the deferral's own and has only got stronger:
-  the margin is one to three percent, the regime 3 fix is not chosen
-  on differences that size, and no instrument of this kind will read larger,
-  so the answer cannot move the shipping choice whichever way it comes out. What
-  is given up is knowing WHY `add-in` leads -- code or slot -- and
-  that is knowingly given up. **Do not re-propose the two-shim pair, and do
-  not let a run carry it as a rider**: what the entry keeps is the reading,
-  so a later run meeting the lead again finds it recorded rather
-  than surprising, and so that a run wanting a pair for something else
-  is not told this one is owed.
+  `probe-addin-*` and `probe-addin2-*`.
 
   **RUN 18 ANSWERED THE HALF THIS ENTRY DEFERRED, and the answer is
   that the lead is the compiler's.** On one source, one shim and one roster,
@@ -1967,6 +1923,45 @@ rather than a slot in the next run, observed again:
   is the two-shim pair this entry has always described --- one compiler, one
   source, two placements --- which is now the only instrument left that could,
   the free-by-product route having been shown not to carry.
+
+  **PARKED 2026-08-25, and SUPERSEDED by the unparking below: the condition
+  that deferral named had been MET and the question was retired anyway,
+  so no run and no probe was to be built to answer it.** GHC 9.14 was Run 18's
+  subject and HEAD was Run 19's, which is what the deferral waited for, and both
+  put the orderings where 9.12 does --- so the placement half came due
+  and was declined rather than deferred a second time. The reason
+  is the deferral's own and has only got stronger: the margin is one to three
+  percent, the regime 3 fix is not chosen on differences that size,
+  and no instrument of this kind will read larger, so the answer cannot move
+  the shipping choice whichever way it comes out. What is given up is knowing
+  WHY `add-in` leads -- code or slot -- and that is knowingly given up.
+  **The ruling that the two-shim pair was not to be re-proposed nor carried
+  as a rider stood until 2026-08-29**; what the entry keeps is the reading,
+  so a later run meeting the lead again finds it recorded rather
+  than surprising, and so that a run wanting a pair for something else
+  is not told this one is owed.
+
+  **DEFERRED 2026-08-22, and UNPARKED 2026-08-29: both halves of that deferral
+  are spent.** The deferral was about what could change the shipping choice,
+  not about the probe's cost, and it rested on two things. One: an ordering
+  holding on 9.12 alone is not the ordering the shipped code meets,
+  so the placement half waits until the consumers' compilers are measured ---
+  GHC 9.14, which was Run 18's own subject, and HEAD after it. Runs 19, 20
+  and 21 each ran HEAD beside 9.12, so that wait is over. Two: a margin of one
+  to three percent could not move a fix that was going to be `mut-odo-vecdims`.
+  It did not have to --- what ships is `mut-odo-vecdims-add-in-leaf-u2`,
+  an `add-in` arm, `genericFillStrided` being a bang-for-bang port of it,
+  so the sentence this ruling used to end on, that the decision stands and ships
+  `mut-odo-vecdims`, describes no shipped code. **What is owed is therefore
+  the probe and not a decision**: one source, two builds a shim setting apart,
+  chosen so the two arms' offsets swap or converge, read on nothing else --- two
+  twenty-second builds and a filtered run, artifacts `probe-addin-*`.
+  It no longer chooses what ships; it says whether the family's lead is code
+  or placement, which is the same question Run 21 raised one level down when
+  `-add-in-leaf-down` came in 5 to 6% ahead of the shipped `-u2` on both
+  compilers, outside either half's floor. Answer it there and this entry answers
+  with it. What the entry is still for is that a run should not rediscover
+  the lead as a surprise, nor spend an evening on it.
 
 - `OPEN` **Gate 3's sign reversed three runs ago and no run has adjudicated it;
   Run 18 is the first to say so.** The gate fails when the in-situ forcing
@@ -2249,7 +2244,7 @@ is planned. A scope limit belongs in the sentence that asks for the measurement.
    and 17 (2026-08-31). **The dead-spot form**: every pad goes right after
    an unconditional `jmp`, where no path executes it, and the containment test
    orders the heads of a group instead of skipping one, the outer of a rotated
-   pair yielding. `align-as.py`'s own section has the form, its readings
+   pair yielding. `align-as.py`'s docstring has the form, its readings
    on the tip and its gates; what remains there is 4 short loops straddling
    of 285 against the basis's 94, the four fills' rotated pairs, which
    no residue resolves. **The pair, `probe-ds-run.sh`, main set, both halves
@@ -3357,9 +3352,8 @@ with `canon-vecdims` in `scaled` and the new `runs`, `mid-copy` in `bcastmid`
 and `lib-stage2-concat` in `reshape1`. Of what the decision owed, the class
 method and its instances, the suite pass and the non-vacuity break landed
 2026-08-24 ([the fix section](#the-fix-in-dataarrayinternalhs) has them);
-the claims re-read is settled, applied at Run 19's write-up; what stays owed
-is horde-ad's end-to-end re-measurement, its recorded gather figures being
-the `bq-expand` form's.
+the claims re-read is settled, applied at Run 19's write-up; and horde-ad's
+end-to-end re-measurement was taken on 2026-08-27, as its `CLAUDE.md` records.
 
 **The `bq-*` strategies still fill the result one element at a time.**
 The tightest possible shape drops to a **mutable result buffer**: allocate
@@ -3513,13 +3507,13 @@ over the corner as its control. Any close pair among them is to be read
 workers-first, per the `build` lesson above.
 
 **Run 10 priced them on a build where the loop's placement cannot
-be the answer** (the paragraph after next is what makes that true) **and Run 11
-reproduced every one of them**: against `mut-odo-vecdims`, `add-out` **1.1588**
-where Run 10 read 1.1612, `add-both` **1.1173** against 1.1184, `add-both-down`
-**1.0512** against 1.0527 at the same 7 wins of 24, and `add-in` **0.9934** (21
-of 24, sign p 0.00028) against 1.0009 at 13 of 24 --- three of the four inside
-a quarter of a percent, and the fourth the sign-test flip [the Results
-findings](runs/run23.md#results) read as the instrument rather than the arm.
+be the answer** (the paragraph *The two solo axis figures were suspended*
+is what makes that true) **and Run 11 reproduced every one of them**: against
+`mut-odo-vecdims`, `add-out` **1.1588** where Run 10 read 1.1612, `add-both`
+**1.1173** against 1.1184, `add-both-down` **1.0512** against 1.0527 at the same
+7 wins of 24, and `add-in` **0.9934** (21 of 24, sign p 0.00028) against 1.0009
+at 13 of 24 --- three of the four inside a quarter of a percent, and the fourth
+the sign-test flip Run 11's write-up read as the instrument rather than the arm.
 The corner stays sharply sub-additive --- 11.7% where the two solo losses sum
 to 15.2% --- and the count-down form still recovers most of the corner's loss,
 0.9408 against it on 22 shapes of 24 where Run 10 had 0.9412 on 24 of 24.
@@ -3533,7 +3527,7 @@ read `add-in` **1.1552** (0 wins of 24), `add-out` **1.1795** (1 of 24),
 with sign p at or below 3e-06. So all three solo-or-corner arms sat behind their
 control by more than the one-shape probe suggested, and near-unanimously across
 shapes --- which the write-up first read as the precedent's arithmetic losing
-on both axes, and which the Core reading two paragraphs down withdraws:
+on both axes, and which the Core reading in the next paragraph withdraws:
 near-unanimity across shapes is what the identical-code pair shows too,
 so it separates nothing. The corner is sharply sub-additive, 16.5% where the two
 solo losses sum to 33.5%, so the two axes are largely paying for the same thing.
@@ -3991,10 +3985,10 @@ are vacuous there; in the library nothing was strict at all, so they
 are not vacuous there, and the two files carry the same three either way.
 Nothing here touches `-u2`, whose own eighteen and four are the spill [the dead
 ideas][dead] rule on and are unchanged. **And the build's layout reading, which
-the rider in [the floor section][floor] obliges of a build that changes code,
-comes back holding**: every tracked group keeps its cache-line offsets against
-`run21-g912` --- the six-copy at `[0, 0, 24, 0, 0, 8]`, the two-copy
-at `[0, 0]`, the statistics pair at `[23, 31]` --- while every ADDRESS moves,
+the pair note's read-back block obliges of a build that changes code, comes back
+holding**: every tracked group keeps its cache-line offsets against `run21-g912`
+--- the six-copy at `[0, 0, 24, 0, 0, 8]`, the two-copy at `[0, 0]`,
+the statistics pair at `[23, 31]` --- while every ADDRESS moves,
 and the straddle survey reads 139 self-loops with 75 at offset 0 and NONE
 straddling against the pair note's 135, 71 and none. So a change confined to one
 function's body left the shim holding what a roster change did not,
@@ -5113,15 +5107,10 @@ and never as a chronology.
     #      Main.hs commit and the SHIM's, which is on the recipe's -pgma and
     #      is as much an input to the binary as the source is. The run file's
     #      Provenance records the shim's beside the compiler's
-    #      THREE COMMANDS, ONE STEP, and it stands after the build
-    #      because there is nothing to sum, and nothing to check a
-    #      transcription against, until both halves exist. It was
-    #      numbered 2, 3 and 3a until 2026-09-01, when the head was
-    #      renumbered to run in the order it is taken: the build was
-    #      3b, reading the note was 0, setting the names was 3c, and
-    #      these three stood above the build with a paragraph here
-    #      telling a session to take them out of order. An older
-    #      note's labels resolve through that map
+    #      THREE COMMANDS, ONE STEP, after the build because nothing can
+    #      be summed or checked against a transcription until both halves
+    #      exist. An older note's labels map onto these: its 0 is 2a, its
+    #      3b is 2, its 3c is 2b, and its 2, 3 and 3a are this step
     #  the :/ pathspec resolves from the repo root, so these answer the same
     #  from anywhere; a bare `-- Main.hs` run from the root prints nothing
     #  and exits 0, which reads exactly like an unmoved source
@@ -6201,11 +6190,6 @@ not otherwise.
     #      is what a stale section looks like too
     ./read-run.py $R-<basis>-$c.json --block          #    one per class
     ./read-run.py $R-<basis>-$c.json --compare $R-<other>-$c.json
-    #      READ THE BLOCKS BY THEIR LINES AND NOT WHOLE: pipe the nine
-    #      through `grep -E 'Verdicts|property|Across the halves|floor'`
-    #      -- nine blocks in one call are 90 KB, the write-up uses some
-    #      forty lines of them, and Run 23 read the persisted output of
-    #      that call three times over
     #      and one per class ACROSS the halves -- from Run 14 on, a run
     #      before that having no control-half class JSON to compare
     #      against, so these nine are skipped and the chapter says they
@@ -6213,6 +6197,11 @@ not otherwise.
     #      class on both is for and what nothing else in this list reads: a
     #      pair's variable can act on a class and not on the main set.
     #      --alloc takes the same pair where allocation is the question
+    #      READ THE BLOCKS BY THEIR LINES AND NOT WHOLE: pipe the nine
+    #      through `grep -E 'Verdicts|property|Across the halves|floor'`
+    #      -- nine blocks in one call are 90 KB, the write-up uses some
+    #      forty lines of them, and Run 23 read the persisted output of
+    #      that call three times over
     ./read-run.py $R-<basis>-main.json --compare $R-<other>-main.json --chapter
     ./read-run.py $R-<basis>-main.json --compare $R-<other>-main.json --alloc
     #      --compare takes the BASIS first and the control as its argument,
@@ -7118,17 +7107,18 @@ as a measurement of the backend.
 
 ### The reader: read-run.py
 
-Every figure below comes out of `read-run.py` in this directory, and the table
-above is *emitted* by it rather than copied from it. **Use it; do not write
-another reader.** It reads two documents --- this file and the run's own,
-`runs/run<N>.md` --- and knows which of them a mode's subject is in, so a caller
-names a paragraph and not a file. The definitions it encodes --- which cells
-the column caps, that `CI%` is a mean half-width rather than a bound,
-that `alloc` needs an `l` the JSON does not carry (it parses `Main.hs` for it),
-that the `*-aa-*`, `sum-only*` and `*-nosum` rows are controls, that every ratio
-is net of the forcing pass while every other column is raw --- each cost
-a session to settle, and an ad-hoc script gets them subtly wrong. Its docstring
-is the reference for all of them; extend the script rather than starting over.
+Every figure below comes out of `read-run.py` in this directory, and the run
+file's tables are *emitted* by it rather than copied from them. **Use it; do
+not write another reader.** It reads two documents --- this file and the run's
+own, `runs/run<N>.md` --- and knows which of them a mode's subject is in,
+so a caller names a paragraph and not a file. The definitions it encodes ---
+which cells the column caps, that `CI%` is a mean half-width rather
+than a bound, that `alloc` needs an `l` the JSON does not carry (it parses
+`Main.hs` for it), that the `*-aa-*`, `sum-only*` and `*-nosum` rows
+are controls, that every ratio is net of the forcing pass while every other
+column is raw --- each cost a session to settle, and an ad-hoc script gets them
+subtly wrong. Its docstring is the reference for all of them; extend the script
+rather than starting over.
 
 **`check-scripts.py` is the one exception to that, and it is where a defect
 of the reader goes.** `--selftest` asserts a run's numbers and calls no checker,
@@ -7215,7 +7205,7 @@ that taught this are in the reader's docstring and the corpus's own.
     ./read-run.py --cross-classes --classes A.json... --others B.json...
                                             # the class section's intro
                                             # figures, aggregated from the
-                                            # same per-class rows the eight
+                                            # same per-class rows the nine
                                             # cross-half lines print, so the
                                             # two cannot part -- counts, the
                                             # geomean range with its classes,
@@ -7325,14 +7315,15 @@ replaces it either way.
 `--lint` needs no run JSON at all, which is this directory's usual state.
 It reads `roster` out of `Main.hs` --- the one list both the benchmark
 and `check` are built from --- and asks the four things about it that go stale
-silently: is every arm named somewhere in this file; is every strategy defined
-in `Main.hs` rostered, so that none is left neither timed nor checked; does each
-A/A control run the same function as the arm its name duplicates; and is every
-control named as the reader's own control test reads it, since a renamed one
-would enter the aggregates as a strategy. An arm rostered and deliberately
-not timed is a note rather than a failure, and since the two rulings that note
-is the larger half of the strategies: it prints the split and wraps the names,
-being the one place the checked-but-untimed set is listed at all.
+silently: is every arm named somewhere in the two documents; is every strategy
+defined in `Main.hs` rostered, so that none is left neither timed nor checked;
+does each A/A control run the same function as the arm its name duplicates;
+and is every control named as the reader's own control test reads it, since
+a renamed one would enter the aggregates as a strategy. An arm rostered
+and deliberately not timed is a note rather than a failure, and since the two
+rulings that note is the larger half of the strategies: it prints the split
+and wraps the names, being the one place the checked-but-untimed set is listed
+at all.
 
 It asks a fifth about the shape lists rather than the roster: does every entry's
 `l` annotation agree with what its list's rule computes, so that a mistyped
@@ -8369,7 +8360,7 @@ worker's mangled name. A binary with no line info prints exactly what it printed
 before. Read that way on 2026-08-13, at `-fspec-constr` with `LOOP_MAXSKIP=1`,
 the four-copy vecdims group is, in address order, `mut-odo-vecdims`, `-add-in`,
 `-add-out` and `-add-both`, and the pair beside it is `mut-odo` then `build`.
-That is the order the loop table below assigns its per-arm offsets in,
+That is the order the loop table above assigns its per-arm offsets in,
 so that table's ordering is now a measurement; and a second route agrees,
 emission order tracking first reference from `roster`, which lists those four
 in exactly that order. What it bought is at Run 12's second prediction above:
@@ -8883,7 +8874,7 @@ it should have timed `build` across the four layouts and did not, a shell glob
 having eaten the arm ([the reader's section](#the-reader-read-runpy)) ---
 and what settled it instead was the pad probe done properly, eight binaries
 stepping each arm through all eight 8-byte offsets with membership fixed
-(the figures, the graded penalty and the tables are below). So the *how* is now
+(the figures, the graded penalty and the tables are above). So the *how* is now
 measured and not merely read off a binary: a straddled copy of the 28-byte fill
 costs 1.19, or 1.10 where only three bytes precede the boundary, and
 that is what the pair's 0.86-to-1.24 span across runs was made of.
@@ -8891,9 +8882,9 @@ that is what the pair's 0.86-to-1.24 span across runs was made of.
 What the probe does **not** reach is the rest of this entry. The 18% a rebuild
 is worth stands as measured, since a rebuild moves more than one loop's offset;
 `offtab`'s and `bq-gen`'s regressions have no shared-loop counterpart to be read
-this way, which is the entry below on crediting a margin to a strategy;
-and susceptibility remains a property of the arm, now with a mechanism
-for the two arms that share a loop and none for the others.
+this way, which is the standing entry in [the open list][open] on crediting
+a margin to a strategy; and susceptibility remains a property of the arm, now
+with a mechanism for the two arms that share a loop and none for the others.
 
 **Run 9 had made this the README's central question rather than a caveat
 on it**, and that is the framing the answer inherits. A membership change alone

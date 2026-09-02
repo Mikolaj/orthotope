@@ -9760,8 +9760,9 @@ def main():
                         ' adjudication -- post-run 6e wants this, no other'
                         ' does')
     p.add_argument('--para', metavar='PATTERN',
-                   help="print the README paragraph whose bolded lead"
-                        " matches, with the line it starts at; where several"
+                   help="print the paragraph, in either document, whose"
+                        " bolded lead matches, with the line it starts at;"
+                        " where several"
                         " match, print their leads and locations instead;"
                         " needs no run file")
     p.add_argument('--all', dest='all_paras', action='store_true',
@@ -9769,8 +9770,9 @@ def main():
                         ' rather than indexing them, for the reading that'
                         ' wants the set and not one of it')
     p.add_argument('--replace', metavar='ANCHOR',
-                   help='replace the README paragraph carrying ANCHOR with the'
-                        ' text in --with, without printing the old one;'
+                   help='replace the paragraph, in either document, carrying'
+                        ' ANCHOR with the text in --with, without printing the'
+                        ' old one;'
                         ' refuses unless ANCHOR occurs exactly once')
     p.add_argument('--cross-classes', action='store_true',
                    help="the class section's intro figures, aggregated from"
