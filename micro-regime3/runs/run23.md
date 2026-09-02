@@ -15,29 +15,29 @@ and the rulings a measurement does not reach.
 is worth at full budget over every population: four percent of the instructions
 and five percent of the time on the branch's fill and every arm that shares
 its loop, nothing on the arms whose fill carried no pad, and no verdict of Run
-22's re-decided by it.** Criterion, **`--ghc-options=-fspec-constr`**; Run 22's
-regime, roster, shape set and basis recipe, and **what moved is the shim's
-environment on one half and nothing else**: 1320 benches, 55 timed arms over 24
-main-set shapes, and 2035 more over 37 class views in **nine** classes, Run 22's
-roster exactly, nothing landed and nothing left. **The basis is `run23-g912`**,
-Run 22's basis recipe built again --- ghc-9.12.4 with `-fobject-determinism`,
-the max-skip shim with its look-through, the per-sample instrument
-and the saturating preamble --- from a source moved by one comment line
-and a shim moved by one commit that adds a switch this half does not set,
-**and it is Run 22's basis binary byte for byte**, md5
-`9bac6d77a913f139171430874f99b985`. **The other half is `run23-spot`**, the same
-recipe with `LOOP_DEADSPOT=1` in front of `align-as.py`, so that every pad
-the shim emits sits after an unconditional `jmp` where no path executes
-it and the containment test orders the heads of a group instead of skipping one;
-md5 `7d0ba79ed030bdcf40479b7efd4d5fa0`, `.text` 20525253 against 20512965 bytes.
-One compiler on both halves, the first pair since Run 17 whose halves share one,
-so nothing here is a compiler reading and no boot library differs; both
-under `WILDLOG=1 SATURATE=1`; `Main.hs` at `125534d`, `align-as.py`
-at `38bb3bb`, the tree at launch `c9bf086` with seven untracked scratch paths
-and nothing modified. The same desktop, Zen 3, a Ryzen 7 5800X, and the same
-BIOS Run 18 re-baselined onto. The two main processes read *1h53m48s*
-and *1h53m47s*, at *340 MiB* in use and *126 MiB* max residency on the basis
-against *341 MiB* and *126 MiB* on the dead-spot half.
+22's re-decided by the switch --- one by the repetition.** Criterion,
+**`--ghc-options=-fspec-constr`**; Run 22's regime, roster, shape set and basis
+recipe, and **what moved is the shim's environment on one half and nothing
+else**: 1320 benches, 55 timed arms over 24 main-set shapes, and 2035 more
+over 37 class views in **nine** classes, Run 22's roster exactly, nothing landed
+and nothing left. **The basis is `run23-g912`**, Run 22's basis recipe built
+again --- ghc-9.12.4 with `-fobject-determinism`, the max-skip shim
+with its look-through, the per-sample instrument and the saturating preamble ---
+from a source moved by one comment line and a shim moved by one commit that adds
+a switch this half does not set, **and it is Run 22's basis binary byte
+for byte**, md5 `9bac6d77a913f139171430874f99b985`. **The other half
+is `run23-spot`**, the same recipe with `LOOP_DEADSPOT=1` in front
+of `align-as.py`, so that every pad the shim emits sits after an unconditional
+`jmp` where no path executes it and the containment test orders the heads
+of a group instead of skipping one; md5 `7d0ba79ed030bdcf40479b7efd4d5fa0`,
+`.text` 20525253 against 20512965 bytes. One compiler on both halves, the first
+pair since Run 17 whose halves share one, so nothing here is a compiler reading
+and no boot library differs; both under `WILDLOG=1 SATURATE=1`; `Main.hs`
+at `125534d`, `align-as.py` at `38bb3bb`, the tree at launch `c9bf086`
+with seven untracked scratch paths and nothing modified. The same desktop, Zen
+3, a Ryzen 7 5800X, and the same BIOS Run 18 re-baselined onto. The two main
+processes read *1h53m48s* and *1h53m47s*, at *340 MiB* in use and *126 MiB* max
+residency on the basis against *341 MiB* and *126 MiB* on the dead-spot half.
 
 **The basis half IS a repetition, the exact one this file has asked for since
 Run 19: one binary, Run 22's, timed again two evenings later over every
@@ -58,11 +58,12 @@ and 1.0006 on `runs` against Run 22's processes, with `list` inside 0.6%
 on every one, and 0.9084 on `reshape1`, where the same degeneracy sits on nine
 arms. **So this box's day-to-day drift, for one binary, is under a point on most
 arms and about 2% at the worst non-degenerate one**, which is the band every
-cross-run figure below is read against and a third narrower than Run 11's 3.3%.
-Both halves reproduce task 6's probe as well, being its two binaries: the basis
-against `probe-ds-off-main.json` reads 43 of 49 arms within 1% and `list` 0.9913
-over those 23 shapes, the dead-spot half against `probe-ds-on-main.json` 40
-of 49 and `list` 0.9890.
+cross-run main-set geomean below is read against and a third narrower than Run
+11's 3.3%; a single class cell moves further, as the `runs` block's long-run
+cells show. Both halves reproduce task 6's probe as well, being its two
+binaries: the basis against `probe-ds-off-main.json` reads 43 of 49 arms within
+1% and `list` 0.9913 over those 23 shapes, the dead-spot half against
+`probe-ds-on-main.json` 40 of 49 and `list` 0.9890.
 
 **What holds the build to something is the repetition and two readings
 that survive a relink.** The gate's machine check reads **-0.44%** on `list`'s
@@ -212,10 +213,13 @@ so that kill holds on one half by a different cell and not on the other;
 `lib-stage2-lean`'s killing cell was the same one and is likewise unreadable,
 its 23 others putting it behind nowhere past the floor on the basis and behind
 past it on `cifar-L2-16-c64-k3` at 1.036 on the dead-spot half --- the reverse
-split. (3) The dispatch stays killed on both halves, 5.75% and 6.24% behind
-stage two at `runs-1024` against floors of 3.45% and 3.46%. (4) The unordered
-entry point stands: degenerate on `rev`, `revsome` and `reshape1` on both halves
---- `libunord-stage2` against `liblist-stage2` reading 0.0157 and 0.0200, 0.0097
+split. So of the three kills, `-u4`'s falls on the basis, and `-short`'s
+and `-lean`'s each stand on one half by a cell Run 22 did not name and fall
+on the other; none of the three stands on both halves as Run 22 read it. (3)
+The dispatch stays killed on both halves, 5.75% and 6.24% behind stage two
+at `runs-1024` against floors of 3.45% and 3.46%. (4) The unordered entry point
+stands: degenerate on `rev`, `revsome` and `reshape1` on both halves ---
+`libunord-stage2` against `liblist-stage2` reading 0.0157 and 0.0200, 0.0097
 and 0.0071, and 0.0025 on the basis with the dead-spot half's `reshape1`
 unreadable --- and inside every class's floor on the six where neither test
 fires. (5) The vecdims ordering stands and is now unconditional: `-u2` leads
@@ -265,9 +269,11 @@ At 00:42:01, forty-seven minutes into `run23-spot-main`, a Claude Code update
 installed itself. The per-sample instrument's foreign-CPU column
 over that process's 1320 benches puts 2 at or above 0.25 ---
 `cnn-L1-6x6-c1/gen-unsafe` at 0.74 and its adjacent twin at 0.71, the process's
-first shape at 23:55 and nothing to do with the update --- and nothing past 0.25
-near 00:42; the basis main set peaks at 0.18. Post-run step 3 would have rerun
-both main sets and was declined by the person who asked for the run, so
+first shape at 23:55, ninety seconds after the gate's last process ended, when
+this session's own reading of the gate and its launch checks were the only other
+thing running, and nothing to do with the update --- and nothing past 0.25 near
+00:42; the basis main set peaks at 0.18. Post-run step 3 would have rerun both
+main sets and was declined by the person who asked for the run, so
 that the machine could be handed back; the two cells it touches are in a row
 the registration already reads as not reproducing for reasons of its own.
 
@@ -329,8 +335,9 @@ rosters and two layouts have now put the basis reading between 0.5424
 and 0.5577.
 
 **This run's two columns MAY be differenced, which reverses Run 22.** `list`
-moves **0.33%** between the halves on the main set against the 0.7% bar, where
-Run 22 read 0.81% and refused; so the cross-half figures here may be read
+moves **0.33%** between the halves on the main set against the 0.7% bar ---
+over all 24 shapes; 0.40% over the 23 the registrations use --- where Run 22
+read 0.81% and refused; so the cross-half figures here may be read
 as subtractions, and the counted work carries the claim about *why*. Three
 classes are past the bar --- `revsome` at 1.0092, `bcastmid` at 1.0093
 and `runs` at 0.9894 --- where Run 22 had five, and their blocks say in their
@@ -349,8 +356,11 @@ changed](../README.md#what-moves-a-figure-when-no-strategy-changed) prices
 a straddling loop as a per-element term; here that term is outweighed by the pad
 the same form removed from the loop's path, on every one of the four.
 The basis's four straddlers are Run 22's to the address, one named
-in `fillStage2` and three the twin holds no copy of. The tracked 28-byte groups
-sit where Run 22's did on the basis, `fbMutOdoVecdims` alone at offset 24,
+in `fillStage2` and three the twin holds no copy of; these counts
+are the survey's, over what `objdump` can sync on in the timed binary, and do
+not compare with `align-as.py`'s own section, which counts over the assembly,
+nor with Run 21's recipe, whose survey read none. The tracked 28-byte groups sit
+where Run 22's did on the basis, `fbMutOdoVecdims` alone at offset 24,
 and on the dead-spot half at `[0, 0, 24, 0, 4, 24]`, `fbMutOdoVecdimsAddBoth`
 having moved from 0 to 4 and `fbBuild` and `fbMutOdo` staying at 0.
 
@@ -394,12 +404,13 @@ is [README's own Provenance](../README.md#provenance). None of it is portable:
 a run on another machine is a different measurement rather than a repetition,
 which Run 19 was in a position to be firm about, having repeated one binary
 on one box and moved its floor by 1.7x. This run repeats that demonstration
-for the second time and softens it: the same binary, the same box, two evenings
-apart, and the floor went 2.12% to 2.03%, the arms under a point on 44 of 49 ---
-so the series 2.32%, 1.51%, 2.92%, 2.12%, 2.03% over three roster changes
-and one repetition is a quantity that moves by a factor of two when the roster
-moves and by a twentieth when nothing does. A property of the evening, still,
-and not one any run inherits from the one before it.
+for the third time, after Runs 11 and 19, and softens it: the same binary,
+the same box, two evenings apart, and the floor went 2.12% to 2.03%, the arms
+under a point on 44 of 49 --- so the series 2.32%, 1.51%, 2.92%, 2.12%, 2.03%
+over three roster changes and one repetition is a quantity that moves
+by a factor of two when the roster moves and by a twentieth when nothing does.
+A property of the evening, still, and not one any run inherits from the one
+before it.
 ## Results
 
 The shared forcing pass is subtracted here, as every run since Run 6 must
@@ -409,13 +420,13 @@ are the unboxed ones the shipped code uses, as they have been since Run 7 ([the
 scratch vector flavour](../README.md#the-scratch-vector-flavour) says what
 that severed), and **this is a `-fspec-constr` table**: it is not the regime
 `Data/Array/Internal.hs` compiles under. **A row's distance from Run 22's basis
-column is drift and nothing else, for the first time in this file's history.**
-`run23-g912` is Run 22's basis binary byte for byte, and the flag, the shapes,
-the order, the allocation area, the box and the recipe are the same ones,
-so the distance is what two evenings on one binary disagree by, measured:
-over the 23 shapes that exclude `stretch-inner1`, 44 of the 49 arms read within
-1% of their Run 22 figure, and the five outside are the two `libunord` arms,
-degenerate on more cells this run than last, and three arms
+column is drift and nothing else, for the first time since Run 19, whose basis
+was Run 18's binary.** `run23-g912` is Run 22's basis binary byte for byte,
+and the flag, the shapes, the order, the allocation area, the box and the recipe
+are the same ones, so the distance is what two evenings on one binary disagree
+by, measured: over the 23 shapes that exclude `stretch-inner1`, 44 of the 49
+arms read within 1% of their Run 22 figure, and the five outside are the two
+`libunord` arms, degenerate on more cells this run than last, and three arms
 of the placement-exposed families at 1.01% to 2.08%. **This pair's halves differ
 in where the shim puts its pads and in nothing else** --- one compiler, one
 source, one store --- so a cross-half distance is layout by construction,
@@ -678,18 +689,19 @@ as every run since Run 8, and it is the regime the claims decide in; the shipped
 file does not set the flag ([the
 ceiling](../README.md#the-mutable-ceiling-taken)). The roster is Run 22's
 and Run 23's --- 55 timed arms over 24 main-set shapes and 37 class views
-over nine classes, 1320 benches and 2035 --- unless the tasks below add to it.
-**The basis question is whether the recipe moves from the max-skip shim
-to the dead-spot one**, `LOOP_DEADSPOT=1` in front of `align-as.py` and nothing
-else varied. What this run says for it: every arm whose fill carried a pad
-is five to six percent faster under it on the main set, on five of nine classes
-outright and inside the floor on the other four, and the flatness controls
-and the claims do not move. What it says against, or at least aside: `mut-odo`
-is slower under it in three classes past a floor (`scaled` 3.6%, `window` 6.5%,
-`revsome` 3.5%), the two `-u2` leaf arms are slower on `reshape1` by 2.2%
-and 3.6% against one of that class's two floors, the four straddling loops
-the form leaves are in the branch's own fills, and every figure in this README's
-lineage was measured through the max-skip recipe, so a move puts a layout term
+over nine classes, 1320 benches and 2035 --- unless [the recommended tasks after
+Run 23](../README.md#recommended-tasks-after-run-23) add to it. **The basis
+question is whether the recipe moves from the max-skip shim to the dead-spot
+one**, `LOOP_DEADSPOT=1` in front of `align-as.py` and nothing else varied. What
+this run says for it: every arm whose fill carried a pad is five to six percent
+faster under it on the main set, on five of nine classes outright and inside
+the floor on the other four, and the flatness controls and the claims do
+not move. What it says against, or at least aside: `mut-odo` is slower
+under it in three classes past a floor (`scaled` 3.6%, `window` 6.5%, `revsome`
+3.5%), the two `-u2` leaf arms are slower on `reshape1` by 2.2% and 3.6% against
+one of that class's two floors, the four straddling loops the form leaves
+are in the branch's own fills, and every figure in this README's lineage
+was measured through the max-skip recipe, so a move puts a layout term
 into the next cross-run column exactly as a roster change does. **The pair,
 if the basis stays**: the `dispRun` threshold pair the open list names
 is the cheapest decisive pair this file has been able to name in four runs ---
@@ -750,8 +762,8 @@ in having been used**: the alone legs, the counted-work sweeps over every
 population, the saturating preamble, the per-sample load fields and `--counts`
 all ran to form; the counted work was again taken outside the quiet window;
 and the exact repetition --- a basis binary identical to the previous run's ---
-was taken for the first time and priced this box's day-to-day drift at
-under a point on 44 of 49 arms. **What it inherits as a warning** is about
+was taken for the first time since Run 19 and priced this box's day-to-day drift
+at under a point on 44 of 49 arms. **What it inherits as a warning** is about
 the placement-exposed arms: a registration that predicts `gen-unsafe`
 or `mut-odo` to a figure off one evening will miss, this run's cross-half
 readings of the two landing 4.9 and 2.3 points from task 6's on the same two
@@ -810,7 +822,9 @@ back-filled to Run 7 on 2026-08-29; a comparison reaching further back
 is a chain of one-step comparisons, each recorded by the run that made it,
 and walking that chain here is what this section stopped doing. So an older run
 is read by opening its file, not by reading a column across. This run's own two
-halves, on the rows nearest the decisions:
+halves, on the rows nearest the decisions --- `+lookrts` in the column heads
+being the tag the lineage's recipe has carried since Run 15 and not a variable
+of this pair:
 
 | strategy | Run 23 (SpecConstr, max-skip +lookrts, -A32m, 9.12.4) | Run 23 (SpecConstr, dead-spot +lookrts, -A32m, 9.12.4) |
 |---|---:|---:|
@@ -1100,17 +1114,18 @@ a prevailing `-A1G` is closed, and no claim below needs qualifying by it.
 span**, which is what the last three runs bought. A roster *order* change alone
 moved arms 0.966 to 1.142 between Run 9 and Run 10, and that is what a margin
 used to have to clear; with the layout pinned, a repetition moves an arm
-by at most 3.3% and most of them by under 1.5%, so a margin above a few percent
-is now evidence of a strategy. **Run 13 is the first pair here to hold every
-tracked loop at one offset in both halves**, which is what lets its arm-by-arm
-comparison be read as the package costing nothing rather than as two terms
-cancelling. A claim resting on an arm whose own loop the shim skipped ---
-`list`'s, which is library code --- is still decidable nowhere until that loop
-is read. **And the pinning claim is measured only in its weak form**: adding
-`mut-flat-gm-nosum` left every tracked loop at the same address, but a `Force`
-arm reuses a rostered function and emits no code for emission order to move.
-The strong form wants an arm that emits its own, and until one is added
-the claim covers additions that cost nothing to place.
+by at most 3.3% on Run 11's reading and 2.1% on Run 23's, most of them
+by under a point, so a margin above a few percent is now evidence of a strategy.
+**Run 13 is the first pair here to hold every tracked loop at one offset in both
+halves**, which is what lets its arm-by-arm comparison be read as the package
+costing nothing rather than as two terms cancelling. A claim resting on an arm
+whose own loop the shim skipped --- `list`'s, which is library code --- is still
+decidable nowhere until that loop is read. **And the pinning claim is measured
+only in its weak form**: adding `mut-flat-gm-nosum` left every tracked loop
+at the same address, but a `Force` arm reuses a rostered function and emits
+no code for emission order to move. The strong form wants an arm that emits
+its own, and until one is added the claim covers additions that cost nothing
+to place.
 
 **The list did NOT need re-aiming this run, and nothing in it changed**:
 the roster is Run 22's exactly, no arm landed or left, and claim 1's four links
@@ -1303,31 +1318,31 @@ verdicts** over nine classes, the details beside each class's table:
    that catches the difference is `runs`.
 
 2. **The top of the table keeps its order**: `mut-odo-vecdims` fastest,
-   `bq-expand` behind it. **The first clause breaks in all nine CLASS
-   populations on both halves --- the main set is the tenth and is counted
-   separately throughout this section --- outright in seven of the nine and
-   to a `mut-odo-vecdims` sibling in the other two**, where Run 22 read
-   it outright in all nine on this same basis binary: `slice` and `scaled`
-   are led by `-add-in-leaf-u2-down` at 0.7526 and 0.9060 of the fix,
-   with `lib-stage2-short` and `lib-stage1` level with it at the third decimal,
-   and a sibling's lead is read as the family's until a run separates them.
-   The seven divide three ways. **Three are degenerate**: `libunord-stage2`
-   leads `rev`, `revsome` and `reshape1` at 0.0136, 0.0091 and 0.0003
-   of the fix, its one-block test firing on every view of those classes
-   and collapsing them to a single slice, so it prices dispatch and not filling.
-   **Two are the unrolled fill**: `lib-stage2-u4` leads `bcast` and `bcastmid`
-   at 0.5993 and 0.5266, margins of 40.1% and 47.3% against those populations'
-   floors of 5.87% and 2.77% --- on the dead-spot half `bcast`'s head
-   is `lib-stage2-lean` at 0.021, the four fills there sitting within two
-   thousandths. **Two are the short-body fill**: `lib-stage2-short` leads
-   `window` and `runs` at 0.3282 and 0.7654, margins of 67.2% and 23.5% against
-   4.50% and 3.45%, the second on 6 of 11 shapes at sign p 1, a lead the short
-   lengths carry alone. **So five of the six classes Run 22 found led
-   by a candidate still are**, four outright and `slice` by a candidate level
-   with a sibling, and `scaled`'s head is three arms at 0.027 --- the sibling,
-   `lib-stage1` and `lib-stage2-u4`, which led it a run ago by a thousandth.
-   The third clause reads the last candidate `bq-expand` behind
-   `mut-odo-vecdims` and holds in all nine on both halves.
+   `bq-expand` behind it. **The first clause breaks outright in seven
+   of the nine CLASS populations on both halves --- the main set is the tenth
+   and is counted separately throughout this section --- and in the other two
+   the fastest arm is a `mut-odo-vecdims` sibling, which is read as the family's
+   and not as a break**, where Run 22 read it outright in all nine on this same
+   basis binary: `slice` and `scaled` are led by `-add-in-leaf-u2-down`
+   at 0.7526 and 0.9060 of the fix, with `lib-stage2-short` and `lib-stage1`
+   level with it at the third decimal, and a sibling's lead is read
+   as the family's until a run separates them. The seven divide three ways.
+   **Three are degenerate**: `libunord-stage2` leads `rev`, `revsome`
+   and `reshape1` at 0.0136, 0.0091 and 0.0003 of the fix, its one-block test
+   firing on every view of those classes and collapsing them to a single slice,
+   so it prices dispatch and not filling. **Two are the unrolled fill**:
+   `lib-stage2-u4` leads `bcast` and `bcastmid` at 0.5993 and 0.5266, margins
+   of 40.1% and 47.3% against those populations' floors of 5.87% and 2.77% ---
+   on the dead-spot half `bcast`'s head is `lib-stage2-lean` at 0.021, the four
+   fills there sitting within two thousandths. **Two are the short-body fill**:
+   `lib-stage2-short` leads `window` and `runs` at 0.3282 and 0.7654, margins
+   of 67.2% and 23.5% against 4.50% and 3.45%, the second on 6 of 11 shapes
+   at sign p 1, a lead the short lengths carry alone. **So five of the six
+   classes Run 22 found led by a candidate still are**, four outright
+   and `slice` by a candidate level with a sibling, and `scaled`'s head is three
+   arms at 0.027 --- the sibling, `lib-stage1` and `lib-stage2-u4`, which led
+   it a run ago by a thousandth. The third clause reads the last candidate
+   `bq-expand` behind `mut-odo-vecdims` and holds in all nine on both halves.
 
 3. **The allocation tiers survive, and every level is Run 15's through Run 22's
    to the digit**: the mutable fills at the result vector, `bq-expand` between
@@ -2054,12 +2069,12 @@ and the whole `lib-stage2` family sits out the cross-half vote as degenerate.
 `-u2` leaf arms are SLOWER on the dead-spot half, `-u2` 0.9784 and `-u2-down`
 0.9637, the basis faster on 4 of 4 shapes for both, with `mut-odo-aa-distant`
 at 0.9560 beside them --- 3.6% at the widest, past the basis half's 3.09% floor
-and inside the dead-spot half's 10.75%, which is the widest floor any process
-of this run carries and is one pair's, `build-aa-distant` at 1.1075.
-Registration 3 reads that against the basis's floor and is killed on it;
-a reader holding it to the dead-spot half's own floor reads a tie. Either way,
-this is the class where the form that removed the fills' pads placed the two
-leaf loops the library ports on a cache-line boundary ---
+and inside the dead-spot half's 10.75%, which is the widest floor any
+of the run's twenty processes carries and is one pair's, `build-aa-distant`
+at 1.1075. Registration 3 reads that against the basis's floor and is killed
+on it; a reader holding it to the dead-spot half's own floor reads a tie. Either
+way, this is the class where the form that removed the fills' pads placed
+the two leaf loops the library ports on a cache-line boundary ---
 `fbMutOdoVecdimsAddInLeafU2` and `-U2Down` are two of its four straddlers ---
 and where that shows.
 
@@ -2474,11 +2489,12 @@ cell moves between two evenings --- and 0.0209 to 1.1408 on the dead-spot half.
 behind stage two at `runs-1024` on the basis and 6.24% on the dead-spot half,
 past the basis's 3.45% floor and the dead-spot half's own 3.46%, and 33.6%
 and 18.4% behind at `runs-256` and `runs-512`. **Registration 3's second half
-dies here**: the dead-spot margin on `lib-stage2` runs 0.9077, 0.9863, 0.8819,
-0.9650, 0.9335, 0.9871, 0.9800, 0.9637, 0.9841 and 0.8954 from `runs-2`
-to `runs-65536`, widest at `runs-4` and second widest at the longest run,
-ordering with nothing. `list` moved 1.06% between the halves, so the cross-half
-line is ordered and not subtracted; and the process's worst A/A cell, 39.51%
+dies here**: the dead-spot margin on `lib-stage2`, dead-spot over basis
+as the registration reads it, runs 0.9077, 0.9863, 0.8819, 0.9650, 0.9335,
+0.9871, 0.9800, 0.9637, 0.9841 and 0.8954 from `runs-2` to `runs-65536`, widest
+at `runs-4` and second widest at the longest run, ordering with nothing. `list`
+moved 1.06% between the halves, so the cross-half line is ordered
+and not subtracted; and the process's worst A/A cell, 39.51%
 on `runs-65536/bq-odo-gm-mulback-aa-adjacent` on the dead-spot half, is a level
 and not a step, `--steps` finding none past 2%.
 
@@ -2522,13 +2538,15 @@ a Claude Code update installed itself at 00:42:01, forty-seven minutes
 into `run23-spot-main`. The per-sample instrument's foreign-CPU column, read
 over all 1320 benches of that process, puts 2 benches at or above 0.25 ---
 `cnn-L1-6x6-c1/gen-unsafe` at 0.74 and its adjacent twin at 0.71, the first
-shape of the process at 23:55 and nothing to do with the update --- and nothing
-past 0.25 anywhere near 00:42; the basis main set peaks at 0.18. No population
-was rerun, at the request of whoever asked for the run, so that the machine
-could be handed back; what the two intruded cells touch is the dead-spot half's
-`gen-unsafe` row, which the last section already reads as not reproducing task
-6's figure for reasons of its own. Post-run step 3 would have owed both main
-sets a rerun by the letter, and was declined.
+shape of the process at 23:55, ninety seconds after the gate's last process
+ended and while this session read the gate and checked the launch, and nothing
+to do with the update --- and nothing past 0.25 anywhere near 00:42; the basis
+main set peaks at 0.18. No population was rerun, at the request of whoever asked
+for the run, so that the machine could be handed back; what the two intruded
+cells touch is the dead-spot half's `gen-unsafe` row, which the last section
+already reads as not reproducing task 6's figure for reasons of its own.
+Post-run step 3 would have owed both main sets a rerun by the letter,
+and was declined.
 
 **The pair's own identity, transcribed before its note goes with it.** The two
 binaries are `run23-g912`, md5 `9bac6d77a913f139171430874f99b985`,
@@ -2636,16 +2654,18 @@ compiler, one shim commit and one roster, the second half built
 with `LOOP_DEADSPOT=1` in front of `align-as.py` and nothing else varied, both
 under `WILDLOG=1 SATURATE=1`, over Run 22's roster --- 55 timed arms, 1320
 main-set benches and 2035 class benches over 37 views in nine classes. Six
-questions were registered on 2026-09-01 in README's open list with a prediction
-and a kill condition each, every figure in them re-derived
-from `probe-ds-off-main.json` and `probe-ds-on-main.json`, the two files
-this run's own main set repeats on the same two binaries; **three held, one held
-on its kill condition and not on its prediction, one split, and one was killed
---- by the repetition and not by the switch**. Every figure below is read
-over the 23 main-set shapes that exclude `stretch-inner1`, where the branch's
-cell is its own forcing term on both halves, and quoted as the registration
+questions were registered on 2026-09-01 --- in README's open list, where
+a registration is written before its run, and moved here with their verdicts
+as every run's have been since 2026-08-29 --- with a prediction and a kill
+condition each, every figure in them re-derived from `probe-ds-off-main.json`
+and `probe-ds-on-main.json`, the two files this run's own main set repeats
+on the same two binaries; **three held, one held on its kill condition
+and not on its prediction, one split, and one was killed --- by the repetition
+and not by the switch**. Every cross-half figure below is read over the 23
+main-set shapes that exclude `stretch-inner1`, where the branch's cell
+is its own forcing term on both halves, and quoted as the registration
 was written, dead-spot over basis, which is the reciprocal of what `--compare`
-prints.
+prints; (4)'s pair is a within-half `--pair` and is over all 24.
 
 (1) *The padded arms' win, reproduced.* Nine arms were predicted to come back
 inside this run's main-set floor of task 6's figure: `-add-in-leaf-down` 0.8328,
@@ -2715,4 +2735,5 @@ on one cell. The registration a horde-ad consumer should take from
 this is registration 1's: on this roster the shim's pads cost the shipped fill's
 arms four percent of their instructions and five of their time, and a form
 of the shim that places them off the path recovers it on every population
-but the bandwidth-bound one.
+but the two broadcast classes, where the fill's pad never executes, and
+at the cost of the two `-u2` leaf arms on `reshape1`.

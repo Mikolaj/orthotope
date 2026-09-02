@@ -841,9 +841,10 @@ rather than a slot in the next run, observed again:
   settles it is the cheapest pair this file has been able to name in four runs:
   one binary, one new arm per candidate threshold, over the `runs` class alone.
   It does not want an evening and it does not want a second recipe. **Run 23
-  re-read it on both halves of one compiler with the pads moved: 5.75% behind
-  stage two at `runs-1024` on the basis and 6.24% on the dead-spot half, past
-  both floors, so the threshold's failure is neither a compiler's nor a pad's.**
+  re-read it on both halves of one compiler, the pads in place on one and moved
+  on the other: 5.75% behind stage two at `runs-1024` on the basis and 6.24%
+  on the dead-spot half, past both floors, so the threshold's failure is neither
+  a compiler's nor a pad's.**
 
 - `OPEN` **A hand-edited table goes stale unchecked, and this is the second run
   running.** The run file carries two tables `--in-place` does not write ---
@@ -892,7 +893,9 @@ rather than a slot in the next run, observed again:
   with a vecdims sibling and `lib-stage1`, and `slice`, where `-short` is level
   with a sibling --- so which candidate leads a class is stable at the third
   decimal only where the margin is wide, which is what a registration scoped
-  to a class would have to clear.**
+  to a class would have to clear. And `-u4`'s `runs` kill does not repeat
+  on the same binary, 0.9530 at `runs-65536` past that class's floor,
+  so the class-and-length scoping cuts both ways.**
 
 - `ANSWERED` **What Run 21 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
@@ -1156,12 +1159,13 @@ rather than a slot in the next run, observed again:
   35--40% above their published cells on that shape while
   `bq-scan-rem-gm-mulback` and `mut-odo-vecdims` did not move at all.
   That family contains **`bq-expand`, which is what `Data/Array/Internal.hs`
-  carries today** --- though not what this README recommends since the decision
-  of 2026-08-22, which is `mut-odo-vecdims`. And **the table cannot show it**:
-  the winsorized estimator caps the cell, so the row read 0.103 against 0.102
-  and nothing looked wrong --- the only reason it was seen is that `bq-expand`
-  carries two A/A twins, which disagreed with it by 25%. An arm without twins
-  would show nothing at all, which is most of the roster.
+  carried until 2026-08-24** and survives there as the class default
+  the vector-backed instances override --- not what this README recommends since
+  the decision of 2026-08-22, which is `mut-odo-vecdims`. And **the table cannot
+  show it**: the winsorized estimator caps the cell, so the row read 0.103
+  against 0.102 and nothing looked wrong --- the only reason it was seen
+  is that `bq-expand` carries two A/A twins, which disagreed with it by 25%.
+  An arm without twins would show nothing at all, which is most of the roster.
 
   **The evidence against an intrusion is [in the floor section][floor]**: clean
   twins, time-neighbours within 1.2%, CI% 0.06 over 125 samples, `list`
@@ -1766,16 +1770,16 @@ rather than a slot in the next run, observed again:
 - `OPEN` **`mut-odo-vecdims-add-in` leads `mut-odo-vecdims` on most populations,
   and Run 18 read the margin outside a floor on one compiler and absent
   on the other.** Registered here 2026-08-22, out of Run 17; parked 2026-08-25,
-  the ruling being the last paragraph of this entry. The series is [under
-  Results](runs/run23.md#results): `add-in` against the arm it varies read
-  1.0009, 0.9934, 0.9967, 1.0023 and 1.0043 across Runs 10 to 16, four
-  of those five a coin flip, and Run 17 reads **0.9889 at 19 of 24, sign p
-  0.0066** on its basis and **0.9709 at 21 of 24, p 0.00028** on its control.
-  **What is new is not the margin but the agreement**: the two halves differ
-  in `.text` and in every loop offset, `add-in` is itself moved 1% across them,
-  and both put it ahead --- so the direction is not the slot, which is what
-  the four coin-flip runs could not rule out. Per population it leads the main
-  set, `rev`, `revsome`, `bcastmid`, `slice`, `window` and `scaled`,
+  the ruling being the last paragraph of this entry. The series, as Run 17's
+  write-up recorded it ([Run 17's file](runs/run17.md)): `add-in` against
+  the arm it varies read 1.0009, 0.9934, 0.9967, 1.0023 and 1.0043 across Runs
+  10 to 16, four of those five a coin flip, and Run 17 reads **0.9889 at 19
+  of 24, sign p 0.0066** on its basis and **0.9709 at 21 of 24, p 0.00028**
+  on its control. **What is new is not the margin but the agreement**: the two
+  halves differ in `.text` and in every loop offset, `add-in` is itself moved 1%
+  across them, and both put it ahead --- so the direction is not the slot, which
+  is what the four coin-flip runs could not rule out. Per population it leads
+  the main set, `rev`, `revsome`, `bcastmid`, `slice`, `window` and `scaled`,
   `mut-odo-vecdims` keeping only `bcast` and keeping it by 0.9989. **What
   it is not is decided, and the two halves disagree about that too.**
   The threshold for a margin between two arms of one run is that run's own
@@ -2219,16 +2223,16 @@ is planned. A scope limit belongs in the sentence that asks for the measurement.
    it and is at or below the better of the two routes at every length
    of the sweep --- BOTH CLAUSES SUPERSEDED BY RUN 22 at full budget, which puts
    the crossover between `runs-1024` and `runs-65536` and the dispatch 6.65%
-   behind stage two at `runs-1024`, past that class's floor, killing it ([its
-   file](runs/run23.md#what-this-run-was-built-to-answer-and-what-it-answered))**;
-   the account, the figures and the second compiler --- which puts HEAD's
-   crossover a step further out again, so what the class settles is a bracket
-   per compiler and not a number --- are [in the two-stage
-   plan](#the-two-stage-plan-and-the-rework-proposal). **The second half
-   is REFUTED**: `-u2` is behind `-down` at all seven lengths in a spill-free
-   binary and by the same margin the native backend reads, so there
-   is no crossover there and taking the spill out changed nothing, which is [the
-   ceiling][ceiling]'s twelfth reading and an amendment to its sixth.
+   behind stage two at `runs-1024`, past that class's floor, killing it ([Run
+   22's file](runs/run22.md))**; the account, the figures and the second
+   compiler --- which puts HEAD's crossover a step further out again, so what
+   the class settles is a bracket per compiler and not a number --- are [in
+   the two-stage plan](#the-two-stage-plan-and-the-rework-proposal).
+   **The second half is REFUTED**: `-u2` is behind `-down` at all seven lengths
+   in a spill-free binary and by the same margin the native backend reads,
+   so there is no crossover there and taking the spill out changed nothing,
+   which is [the ceiling][ceiling]'s twelfth reading and an amendment
+   to its sixth.
 3. `OPEN` **Is the spread of the pairs outside the restricted six criterion's
    sampling, or something per-process on top of it?** Carried here from the Run
    18 floor item, whose other half is answered. Across five runs the six-pair
@@ -3703,7 +3707,8 @@ the additive input offset is free, and the precomputed output stride table
 is 16% behind on a layout that cannot be blamed. So the in-tree precedent argues
 for the *shape* of a mutable fill and not for its arithmetic, and the ruling
 above is unmoved: what a new class method would buy is still `mut-odo-vecdims`,
-at the **1.79x** the ruling above prices, and none of these four adds to it.
+at the **1.83x** the ruling above prices on Run 23, and none of these four adds
+to it.
 
 **Four arms extend the decomposition for Run 20**, added 2026-08-24: the two
 mechanisms the verdict leaves unpriced solo, each over the arm it varies.
@@ -7921,42 +7926,43 @@ adjacent spans are unchanged.
 
 **On Run 23 the floor is 2.03% on the basis half and 2.80% on the control,
 the dead-spot half, and the basis figure is a repetition's, read twice on one
-binary for the second time in this file's history.** Both are
-over the **sixteen** A/A pairs this roster leaves --- `offtab`'s two twins went
-with its parking on 2026-08-28, so the eighteen-pair series ends at Run 20 ---
-against Run 22's 2.12% and 1.08% and Run 21's 2.92% and 2.16%, both over sixteen
-as this one is, and Run 20's 1.51% and 1.18%, Run 19's 2.32% and 1.71%, Run 18's
-1.36% and 1.42%, Run 17's 3.70% and 3.89% and Run 16's 2.32% and 1.22%, every
-one of those five over eighteen. `build-aa-distant` carries the basis figure
-for the second run running and `gen-unsafe-aa-adjacent` the dead-spot half's.
-Read on the six pairs that carry back to Run 10 the same run gives **0.39%
-and 0.40%**, against Run 22's 0.37% and 0.51%. **What Run 19 settled about
-the floor, Run 23 restates from a second repetition.** Run 19's basis half
-was Run 18's basis BINARY byte for byte and read 2.32% where that binary read
-1.36%, a factor of 1.7 with box, roster, layout, regime and preamble all held
-still --- so the floor is a property of the RUN, re-drawn each evening. Run 23's
-basis is Run 22's basis binary byte for byte and reads 2.03% where that binary
-read 2.12% two evenings earlier, on the same carrying pair, so the second such
-repetition moved the floor by a twentieth where the first moved it by two thirds
---- the movement is not a trend, its size is not predictable, and nothing about
-it is inherited. **Where the movement lives is the one thing four runs now agree
-on.** The six-pair figure has read 0.54%, 0.49%, 0.44%, 0.46%, 0.37% and 0.39%
-across six runs on the basis while the whole-set figure ran 1.36%, 2.32%, 1.51%,
-2.92%, 2.12% and 2.03%, so the pairs outside the six are what move and the six
-are steady enough to compare rows with --- with Run 21's control half the one
-reading that strains it, its six-pair figure having gone from 0.28% to 0.60%.
-The threshold this run supports is therefore two figures --- *0.39% between any
-two rows of the table* on the six-pair basis, which is what carries across runs,
-and 2.03% on the sixteen --- where Run 22 supported 0.37% and 2.12%, Run 21
-0.46% and 2.92%, Run 20 0.44% and 1.51%, Run 19 0.49% and 2.32%, Run 18 0.54%
-and 1.36%, Run 17 1.31% and 3.70%, Run 16 0.39% and 2.32%, Run 14 0.29%
-and 2.19%, Run 12 0.35% and 0.24%, Run 11 a quarter of a percent on its max-skip
-half and 1.21% on the other, Run 10 1.00% unaligned and 0.54% aligned, Run 9
-under 0.1% with a wild cell, Run 8 0.5% and Run 7 nearly 4%. Runs disagreeing
-several-fold on the floor is itself the caution, and one binary disagreeing
-by 1.7x with itself one day and by a twentieth another is that caution sharpened
-as far as it goes: read the floor as the run's *and the half's*, re-measured
-every time, never as a constant of the harness and never inherited.
+binary for the third time in this file's history, after Runs 11 and 19.** Both
+are over the **sixteen** A/A pairs this roster leaves --- `offtab`'s two twins
+went with its parking on 2026-08-28, so the eighteen-pair series ends at Run 20
+--- against Run 22's 2.12% and 1.08% and Run 21's 2.92% and 2.16%, both
+over sixteen as this one is, and Run 20's 1.51% and 1.18%, Run 19's 2.32%
+and 1.71%, Run 18's 1.36% and 1.42%, Run 17's 3.70% and 3.89% and Run 16's 2.32%
+and 1.22%, every one of those five over eighteen. `build-aa-distant` carries
+the basis figure for the second run running and `gen-unsafe-aa-adjacent`
+the dead-spot half's. Read on the six pairs that carry back to Run 10 the same
+run gives **0.39% and 0.40%**, against Run 22's 0.37% and 0.51%. **What Run 19
+settled about the floor, Run 23 restates from another repetition.** Run 19's
+basis half was Run 18's basis BINARY byte for byte and read 2.32% where
+that binary read 1.36%, a factor of 1.7 with box, roster, layout, regime
+and preamble all held still --- so the floor is a property of the RUN, re-drawn
+each evening. Run 23's basis is Run 22's basis binary byte for byte and reads
+2.03% where that binary read 2.12% two evenings earlier, on the same carrying
+pair, so this repetition moved the floor by a twentieth where Run 19's moved
+it by two thirds --- the movement is not a trend, its size is not predictable,
+and nothing about it is inherited. **Where the movement lives is the one thing
+four runs now agree on.** The six-pair figure has read 0.54%, 0.49%, 0.44%,
+0.46%, 0.37% and 0.39% across six runs on the basis while the whole-set figure
+ran 1.36%, 2.32%, 1.51%, 2.92%, 2.12% and 2.03%, so the pairs outside the six
+are what move and the six are steady enough to compare rows with --- with Run
+21's control half the one reading that strains it, its six-pair figure having
+gone from 0.28% to 0.60%. The threshold this run supports is therefore two
+figures --- *0.39% between any two rows of the table* on the six-pair basis,
+which is what carries across runs, and 2.03% on the sixteen --- where Run 22
+supported 0.37% and 2.12%, Run 21 0.46% and 2.92%, Run 20 0.44% and 1.51%, Run
+19 0.49% and 2.32%, Run 18 0.54% and 1.36%, Run 17 1.31% and 3.70%, Run 16 0.39%
+and 2.32%, Run 14 0.29% and 2.19%, Run 12 0.35% and 0.24%, Run 11 a quarter
+of a percent on its max-skip half and 1.21% on the other, Run 10 1.00% unaligned
+and 0.54% aligned, Run 9 under 0.1% with a wild cell, Run 8 0.5% and Run 7
+nearly 4%. Runs disagreeing several-fold on the floor is itself the caution,
+and one binary disagreeing by 1.7x with itself one day and by a twentieth
+another is that caution sharpened as far as it goes: read the floor as the run's
+*and the half's*, re-measured every time, never as a constant of the harness
+and never inherited.
 
 **The twins have now taken every side available, which is what a sign this weak
 is worth.** Run 10 read all six pairs above 1 on its unaligned half and five
@@ -8157,8 +8163,7 @@ run15-a32m, the edit moves `.text` and every loop offset, so the bridge would
 cross a layout change, and per-sample logging allocates. Run 17 puts it on ONE
 half by decision of 2026-08-21 --- `run17-wildlog`, the basis, against
 `run17-det` without it --- so the pair prices the instrument rather
-than inheriting it ([What the next run compares
-against](runs/run23.md#what-the-next-run-compares-against)). It was pointed
+than inheriting it ([Run 17's file](runs/run17.md)). It was pointed
 at the `scaled` class process, whose disturbance turns up in six runs of eight
 where a wild cell is three of eight and none in the last four --- but **a wild
 cell in Run 16's own A/A worst cell was the trigger** to spend the budget
