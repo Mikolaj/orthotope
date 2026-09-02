@@ -4873,6 +4873,20 @@ of its own: [Making a major benchmark run](#making-a-major-benchmark-run).
 
 ### Making a major benchmark run
 
+**FIRST, THE TWO COMMANDS THAT SPARE YOU MOST OF THIS CHAPTER.** The list you
+owe prints alone, and the disk says what is already done, so neither is a thing
+to reconstruct by reading:
+
+    ./read-run.py --checklist pre|run|post   # a PREPARATION owes `pre` ALONE
+    ./run-status.sh $R                       # what is done, off the artifacts
+
+Everything below is the reasons behind those lines and the readings a session
+owes; a run is prepared and executed from the lists. *Why this is the first
+block:* the pointer to `--checklist` used to sit inside the next paragraph,
+so a session arriving cold had to read the chapter to learn how not to read
+it --- Run 24's preparation read some 580 lines with `sed` before meeting it,
+200 of them the run list a preparation does not owe (2026-09-03).
+
 **A RUN IS ALWAYS TWO SESSIONS, and which one you are decides everything
 below.** One PREPARES the run, through step 12 of the pre-run list, and hands
 over `$R-pair.txt`; another EXECUTES it from step 13 and writes it up. Which
@@ -4941,7 +4955,21 @@ of why this is a list and not a sentence.
          of both recipes and is what this run's note is written FROM,
          and the template says what a note owes; where the pair wants a
          half of a kind that note never built -- a compiler it did not
-         carry -- the last note that built one holds that recipe
+         carry -- the last note that built one holds that recipe, and
+         `grep -n 'HOW EACH HALF IS BUILT' -A 70 $OLD-pair.txt` is how
+         you take one block out of a note you do not otherwise owe
+         TWO COMMANDS DO THE SKIP AND THE COPY, and neither is a thing
+         to do by eye (both added 2026-09-03, after Run 24's
+         preparation did both by hand):
+             ./read-run.py --note $PREV-pair.txt
+             ./read-run.py --note $PREV-pair.txt --draft $R \
+                           --halves <basis>,<other>
+         The first withholds the handover below and says how much; the
+         second prints the `[SAME]` blocks alone with the names carried
+         over, every substitution listed, and every `[PAIR'S]` block
+         named as still yours. READ WHAT THE SECOND EMITS: it is a copy
+         with names changed, and the template asks for those blocks to
+         be re-read rather than re-decided
          SKIP THE PREVIOUS RUN'S HANDOVER, which is about a third of a
          note and none of it yours: `ENTRY POINT`, `WHAT THE
          PREPARATION LEARNED`, `GREEN AFTER THE LAST EDIT`, the `GATE`
@@ -5118,6 +5146,11 @@ and never as a chronology.
     R=runNN; REGIME=-fspec-constr         # an EMPTY regime is a plain -O1
     #      build and nothing downstream notices; that hazard is step 2's
     #      alone, REGIME reaching the build and nothing else
+    ./run-status.sh $R                    # 0. WHAT IS ALREADY DONE, off the
+    #      artifacts and the repository rather than off this list, and it
+    #      is not always nothing: a preparation can arrive to find 12a and
+    #      12c taken, the registration having landed with the roster
+    #      commits days before the pair, which is what Run 24's found
     ls $R-*                               # 1. nothing named for this run may
     #      exist yet -- `ls` complaining of no such file is what a run
     #      about to be prepared looks like, and anything else is a run already under way or a
@@ -5132,9 +5165,8 @@ and never as a chronology.
     #      older than this run's own preparation is ever inherited
     #      why: --para 'A preparation already spent'
     #   2. BUILD BOTH HALVES -- unconditional, from the note's own
-    #      recipe. It is a STEP and a session's to run like every other line
-    #      here, not a remark and not somebody else's job; what is not
-    #      is the note, whose prose and verdicts are written by hand.
+    #      recipe. It is a STEP and a session's to run, and the note is
+    #      the part written by hand.
     #      There is no builder, every pair being two shims typed out, so
     #      write the note FIRST, from pair-note-template.txt -- it is the
     #      only copy of both recipes, and the template is what says what a note owes.
@@ -5151,10 +5183,9 @@ and never as a chronology.
     #      Every build wants -fforce-recomp and a fresh --builddir, cabal
     #      answering "Up to date" for a -pgma or an environment change;
     #      the recipe SPELLS THE REGIME OUT rather than interpolating
-    #      $REGIME, as every recorded note does, so that what the note
-    #      says is what was built and the empty-variable hazard cannot
-    #      reach a pair; $REGIME is for the ad-hoc call, and where one
-    #      is written --ghc-options="$REGIME" stays quoted. Build the halves
+    #      $REGIME, as every recorded note does. $REGIME is for the ad-hoc
+    #      call, and where one is written --ghc-options="$REGIME" stays
+    #      quoted. Build the halves
     #      back to back with nothing touched between -- about twenty
     #      seconds each here, the dependencies being in the store and only
     #      the local package recompiled -- keep both executables, delete
@@ -5168,15 +5199,14 @@ and never as a chronology.
     #      AND WHERE `--list` SHOWS A TIMED ARM THAT BRINGS A NEW FUNCTION,
     #      the fills read here are the pinning claim's only reading:
     #      compare them against the previous run's note before anything
-    #      else changes. A build either side of a roster addition is the
-    #      one moment that comparison exists -- minutes of objdump, no
-    #      quiet machine, and it cannot be taken afterwards. Every later
-    #      addition is another reading of the claim; what it covers, and
-    #      how Runs 20 and 21 killed its strong form, are in the prose
+    #      else changes, since a rebuild retires it. preflight's own step
+    #      10 reads the fills AGAIN and does not make this comparison --
+    #      it says so on the line -- so taking it here is not a duplicate.
+    #      What the claim covers, and how Runs 20 and 21 killed its
+    #      strong form, are in the prose
     #      BUILD BOTH, ALWAYS -- the ruling at the head of this chapter,
     #      whatever the source and the md5 say. ON A REPETITION THE MD5 IS
-    #      ONE-SIDED: reproducing byte for byte proves every input
-    #      unmoved, and not reproducing names no cause -- a finding and
+    #      ONE-SIDED, and an md5 that does not reproduce is a finding and
     #      not a stop, located by the three reads the prose gives
     #      why: --para 'three rules are what they are'
     cat $R-pair.txt                       # 2a. the note, quoted by steps
@@ -5212,7 +5242,14 @@ and never as a chronology.
     #  the :/ pathspec resolves from the repo root, so these answer the same
     #  from anywhere; a bare `-- Main.hs` run from the root prints nothing
     #  and exits 0, which reads exactly like an unmoved source
-    ./preflight.sh $R                     # 4-10 IN ONE CALL: PASS or FAIL
+    ./preflight.sh $R --no-corpus         # 4-10 LESS 8c AND 8d, which read
+    #      every run JSON on disk and so must not run while 11 or 12 is
+    #      WRITING one. Deferring them is what lets the roster pass -- the
+    #      longest step of this half -- start minutes sooner; `--corpus`
+    #      takes them at their own line below, once 11 and 12 have landed.
+    #      A session RE-ENTERING a spent preparation wants the plain
+    #      `./preflight.sh $R`, which is all of it and nothing to sequence
+    #      4-10 IN ONE CALL: PASS or FAIL
     #      per step with what it read, the exit status the verdict, so
     #      none is skipped by being forgotten. Not 9b, 10a/10b, 11 or 12,
     #      whose own lines follow; its own 10c, the note's paths, runs
@@ -5269,6 +5306,14 @@ and never as a chronology.
     #      write `zz-` fixtures here and remove them, so both want an
     #      unsandboxed seat; AND THEY RUN ALONE, a commit or an edit while
     #      they run reading as a case that changed the tree
+    #  8c AND 8d COME AFTER 11 AND 12, and the conflict runs BOTH ways:
+    #      these two read every run JSON on disk, and 11 and 12 write
+    #      them, so either order of overlap fails. A leg caught half
+    #      written fails prop_selftest_over_the_corpus with a traceback,
+    #      on a file no run produced and reading exactly like a defect --
+    #      which is what Run 24's preparation spent a round trip on.
+    #      `./preflight.sh $R --corpus` is these two alone; take it when
+    #      12 reports DONE and before 12b
     #      why: --para 'What the three script-check steps'
     ./$R-<basis> diag                     # 9. the regime, in the binary:
     #      one row, baseOffsetsScan against baseOffsetsMut on vgg-14-c512,
@@ -5298,9 +5343,11 @@ and never as a chronology.
     #      them: they are the only machine time in this half, neither
     #      wants a quiet box, and the registration is the long hand step,
     #      so the half is the length of its longest step and not the sum.
-    #      NOT EARLIER: 8c reads every smoke JSON on disk as part of its
-    #      corpus, and one still being written fails it with a traceback
-    #      (the prefix rule below has Run 17's instance). The sweep holds
+    #      8c AND 8d MUST NOT BE RUNNING: they read every smoke JSON on
+    #      disk, and one still being written fails them with a traceback
+    #      (the prefix rule below has Run 17's instance). Under
+    #      `--no-corpus` they have not run yet, which is the point of it.
+    #      The sweep holds
     #      each process to the arm count `--list` gives for that shape;
     #      the harness wakes you when each ends, and no waiter is set
     #      why: --para 'And one more, nearly free'
@@ -5332,6 +5379,10 @@ and never as a chronology.
     #      | grep` alike, the last of which cost Run 23's preparation a
     #      hung call
     #      why: --para 'After a roster change'
+    ./preflight.sh $R --corpus            # 8c AND 8d, DEFERRED TO HERE:
+    #      run them when 12 reports DONE and nothing is writing a JSON.
+    #      Two verdicts, and the only two of the eleven this half owes
+    #      that were not read above
     #  12a. WRITE THE REGISTRATION, which is this half's largest product
     #      -- as ONE paragraph, which post-run step 5 moves whole into the
     #      run file with `--move-registration`: what this run is built to

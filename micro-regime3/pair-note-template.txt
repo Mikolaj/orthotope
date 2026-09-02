@@ -250,6 +250,14 @@ wrong -- the shim is emission-neutral and a dependency relink was the cause.
 An md5 that fails to reproduce is an OBSERVATION; what moved is a FINDING
 and belongs where findings are checked.
 
+AND DATE EACH LINE WHEN YOU WRITE IT, NOT THE BLOCK WHEN YOU START IT. A
+preparation runs some hours and normally crosses midnight -- the build in
+the evening, the roster pass and the handover check after it -- so a date
+written once at the head is wrong for the lines added later, and nobody
+re-derives a date. Run 24's note carried three of them wrong until they
+were caught by hand; the header date below is the BUILD's, and a line
+taken on another day says so on the line.
+
 Verified when built, YYYY-MM-DD:
   Main.hs at       the commit, and whether the tree carried any other
                    change to it. Step 3 diffs against this line and the
