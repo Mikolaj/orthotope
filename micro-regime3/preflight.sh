@@ -114,6 +114,12 @@ done
 if [ "$CORPUS" = 0 ] && [ "$REST" = 0 ]; then
   echo "--no-corpus and --corpus together ask for nothing to run"; exit 2
 fi
+# --note runs neither half, so a corpus flag beside it was taken and
+# ignored: absorbed without effect is the defect family this tree counts.
+if [ "$NOTE_ONLY" = 1 ] && { [ "$CORPUS" = 0 ] || [ "$REST" = 0 ]; }; then
+  echo "--note runs 10c, 10d and 8 alone, so a corpus flag beside it means"
+  echo "nothing; drop one of them."; exit 2
+fi
 HALVES_SET=$(./pair-halves.sh "$R") || exit 2   # the note's HALVES line,
 eval "$HALVES_SET"                                # refused loudly without
 if [ "$NOTE_ONLY" = 0 ]; then

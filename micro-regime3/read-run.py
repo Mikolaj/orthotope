@@ -10216,6 +10216,16 @@ def main():
         sys.exit(cross_class_summary(args.classes, args.others, args.main))
     if args.section:
         sys.exit(section(docs, args.section, args.with_tables))
+    # Absorbed without effect is the silent-option family this tree
+    # counts, and these two flags mean nothing on their own: --draft
+    # without --note fell through to "a run file is required", naming the
+    # wrong thing, and --halves without --draft was taken and ignored.
+    if (args.draft or args.halves) and not args.note:
+        sys.exit('--draft and --halves are --note\'s; there is nothing to'
+                 ' carry over without a note to carry it from')
+    if args.halves and not args.draft:
+        sys.exit('--halves is --draft\'s: without it the note is READ and'
+                 ' not carried over, so the new names have nowhere to go')
     if args.note:
         sys.exit(pair_note(args.note, args.draft, args.halves))
     if args.checklist:
