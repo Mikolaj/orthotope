@@ -43,8 +43,9 @@
 # computed-paragraph block below, which writes its three paragraphs per
 # class as one line each where the document keeps them wrapped, so a full
 # pass now comes back word for word identical and re-wrapped -- 24
-# paragraphs on a document carrying them already, measured 2026-08-16. Close with
-# `wrap80 -i`, as after any edit; and renaming a class block's bolded lead makes that one install
+# paragraphs on a document carrying them already, measured 2026-08-16. Nothing
+# is wrapped by hand afterwards, the commit hook wrapping a tracked document
+# back; and renaming a class block's bolded lead makes that one install
 # refuse -- `0 line(s) start with '**`scaled`', need exactly one` -- which
 # this reports and exits 1 on, the other ten having landed.
 #

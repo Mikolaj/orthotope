@@ -6465,15 +6465,16 @@ def wrap_verdict(path, cur, bad, note):
                     # hand-lengthening leaves, so this cannot tell them apart
                     # and must name both remedies. Naming the formatter alone
                     # sent a session round wrap-then-edit-then-red five times
-                    # in one write-up (2026-08-16): wrapping is the fix when
-                    # the document is done, unwrapping when it is not.
+                    # in one write-up (2026-08-16), and naming `wrap80 -i` as
+                    # the done-case fix taught the next to wrap for a check:
+                    # the remedy is the unwrap, and the commit hook wraps a
+                    # tracked document back (2026-09-02).
                     bad.append('%d paragraph(s) of %s are wrapped by hand --'
-                               ' first at line %d; if the document is done,'
-                               ' `wrap80 -i %s`; if you are still editing,'
-                               ' `wrap80 --unwrap -i %s` and work there.'
-                               ' Never re-wrap a line by hand'
+                               ' first at line %d; unwrap it (`wrap80 --unwrap'
+                               ' -i %s`) and work there, the commit hook'
+                               ' wrapping it back; `wrap80 -i` is for a file'
+                               ' with no commit. Never re-wrap a line by hand'
                                % (len(hand), os.path.basename(path), at,
-                                  os.path.basename(path),
                                   os.path.basename(path)))
                 else:
                     note.append('no paragraph of %s is wrapped by'
@@ -6493,7 +6494,8 @@ def wrap_verdict(path, cur, bad, note):
                            for m in [re.match(r'@@ -(\d+)', l)] if m), '?')
                 bad.append('%s is not as wrap80 leaves it and its blocks do'
                            ' not line up with the formatter\'s (%d line(s),'
-                           ' from line %s) -- run `wrap80 -i %s`'
+                           ' from line %s) -- unwrap it (`wrap80 --unwrap -i'
+                           ' %s`) and the commit hook wraps it back'
                            % (os.path.basename(path), n, at,
                               os.path.basename(path)))
 
@@ -6971,7 +6973,7 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
 
     # The README is not checked against a width. It is checked against the
     # formatter, which is a stronger thing to ask and a cheaper one to fix:
-    # `wrap80 -i README.md` and there is nothing left to adjudicate. Asking
+    # the commit hook wraps it and there is nothing left to adjudicate. Asking
     # for a width instead is what taught readers of this check to wrap their
     # own edits line by line, which costs a great deal and does not converge,
     # since shortening one line pushes words onto the next.

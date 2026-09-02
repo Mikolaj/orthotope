@@ -5346,6 +5346,10 @@ and never as a chronology.
     #      reading against the previous pass and not a measurement, and
     #      it costs the smoke sweep the same; what it buys is the ten
     #      minutes a session otherwise spends watching. Confirm the
+    #      AND SET THE TURN-END HOLD before the first edit made while
+    #      they run -- the note, the registration -- clearing it at 12c:
+    #      every wait on them ends a turn and the Stop hook rewraps the
+    #      documents at each (~/.claude/rules/turn-end-hold.md)
     #      launch from an UNSANDBOXED process list and with `args`, never
     #      `comm`, which truncates at 15 characters and shows nothing for
     #      a `preflight.sh` or a `smoke-l1.sh`
@@ -5876,8 +5880,8 @@ mid-edit.** It asks its question per paragraph rather than of the whole file,
 so a paragraph an edit left on one line is reported as mid-edit and not failed,
 and a `FAIL:` there means a paragraph wrapped by *hand* --- neither
 the formatter's form nor one line. The gate therefore stays green on a document
-being worked on, which is what stops it demanding a `wrap80 -i` between edits:
-wrapping is owed before committing, not before checking.
+being worked on and asks for no wrapping at all: the commit hook wraps a tracked
+document back, and a check is run on whichever form is in front of you.
 
 Both halves. On the unaligned/aligned pairs this README used to build, only one
 half had its own code rewritten --- the other's shim appended dead bytes, where
@@ -7210,26 +7214,26 @@ size comes from the reader's first line;
    **That fifth pass is one mechanical read.** Unwrap both sides and diff them
    --- `wrap80 --unwrap` over the committed version and over the working one ---
    and read that diff for text that left without a replacement arriving.
-   **And run the figure sweep BEFORE unwrapping, or re-wrap to read it**:
-   `--check-doc` marks its worklist hits as added by this diff by comparing
-   against the committed README, so while the document is unwrapped every line
-   reads as changed and the classification is worthless. Run 16 unwrapped
-   to edit --- which the wrapping rules asked for until the anchor modes stopped
-   needing it --- and thereby disabled the one sweep that would have found
-   the stale prose the replace-list walk missed, being told 54 figures were new
-   when most were untouched. A scripted rewrite fails in two shapes and neither
-   is a wrong figure. Anchored on a *prefix*, it replaces the whole paragraph
-   and drops whatever followed the part its author had read; `--check-doc`
-   catches that one, every prose paragraph being required to end a sentence.
-   Anchored on two *markers*, it deletes every paragraph between them, however
-   many that turns out to be --- and nothing catches it: the survivors still end
-   sentences, the anchors still resolve, the figures still match, and every
-   check here is a predicate over what is **present**, so none can see what
-   is gone. Measured on 2026-08-14, when a paragraph recording that the regime
-   had been confirmed in the binary was removed from this file and `--lint`,
-   `--check-doc` and the truncation check all exited 0. So assert the extent
-   in the script, echo what it is about to overwrite, and read the unwrapped
-   diff afterwards, which is the only place a lost paragraph shows.
+   **The figure sweep reads the same on either form, so nothing is wrapped
+   to read it**: `--check-doc` keys a paragraph by its collapsed text when
+   it asks whether this diff added it, and since 2026-09-02 reads the committed
+   copies from the commit that added the run file. Run 16's sweep was disabled
+   by an unwrap because the check then compared lines, and it was told 54
+   figures were new when most were untouched; that is the defect the keying
+   repaired, and not a reason to wrap. A scripted rewrite fails in two shapes
+   and neither is a wrong figure. Anchored on a *prefix*, it replaces the whole
+   paragraph and drops whatever followed the part its author had read;
+   `--check-doc` catches that one, every prose paragraph being required to end
+   a sentence. Anchored on two *markers*, it deletes every paragraph between
+   them, however many that turns out to be --- and nothing catches it:
+   the survivors still end sentences, the anchors still resolve, the figures
+   still match, and every check here is a predicate over what is **present**,
+   so none can see what is gone. Measured on 2026-08-14, when a paragraph
+   recording that the regime had been confirmed in the binary was removed
+   from this file and `--lint`, `--check-doc` and the truncation check all
+   exited 0. So assert the extent in the script, echo what it is about
+   to overwrite, and read the unwrapped diff afterwards, which is the only place
+   a lost paragraph shows.
 
    **A correction is a claim, and is written under exactly the conditions
    that produce bad ones.** Whatever the verification turns up gets fixed
