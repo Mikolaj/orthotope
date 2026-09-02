@@ -94,9 +94,9 @@ SHAPES=$("$B" --list 2>/dev/null | cut -d/ -f1 | awk '!seen[$0]++')
 # away (2026-08-26). NOT A LOADAVG: the one-minute figure still carries
 # the sequence that has just ended, so it would refuse the launch the
 # procedure asks for -- riders follow the sequence -- while passing a box
-# that got busy a minute ago. Two reads of /proc/stat two seconds apart
-# measure what is running NOW and carry no history. MAXBUSY overrides in
-# percent, and an ONLY= smoke run skips it, being declared not a rider.
+# that got busy a minute ago. The reading is machine-busy.sh's, shared
+# with run-evening.sh. MAXBUSY overrides in percent, and an ONLY= smoke
+# run skips it, being declared not a rider.
 # Case: `alonelegs-refuses-a-busy-machine`.
 #
 # BROKEN ON PURPOSE 2026-08-26, on the busy box that occasioned it, and
@@ -108,12 +108,7 @@ SHAPES=$("$B" --list 2>/dev/null | cut -d/ -f1 | awk '!seen[$0]++')
 # at launch, against a 5% bar` and ran, which is the measure-but-do-not-
 # refuse branch. The driver log's own loadavg line read 2.36 beside that
 # 11.7%, which is the history contamination the paragraph above claims.
-read -r _ u1 n1 s1 i1 w1 q1 f1 t1 _ < /proc/stat
-sleep 2
-read -r _ u2 n2 s2 i2 w2 q2 f2 t2 _ < /proc/stat
-BUSY=$(awk -v a="$((u1+n1+s1+i1+w1+q1+f1+t1))" -v b="$((u2+n2+s2+i2+w2+q2+f2+t2))" \
-           -v ia="$((i1+w1))" -v ib="$((i2+w2))" \
-  'BEGIN{d=b-a; if(d<=0){print "100.0"}else{printf "%.1f",100*(d-(ib-ia))/d}}')
+BUSY=$(./machine-busy.sh)
 # MEASURED ALWAYS AND REFUSED ONLY FOR A RIDER, so that an ONLY= smoke run
 # exercises the reading itself -- the half of this that can go wrong
 # silently -- and skips only the refusal.

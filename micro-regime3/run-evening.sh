@@ -153,15 +153,10 @@ else
  to write into $NOTE (step 14a)"
 fi
 
-# 16. THE ALARM, as run-alonelegs.sh takes it: two reads of /proc/stat two
-# seconds apart, refused above MAXBUSY percent non-idle, default 5. Not a
-# loadavg, which still carries the gate that just ended.
-read -r _ u1 n1 s1 i1 w1 q1 f1 t1 _ < /proc/stat
-sleep 2
-read -r _ u2 n2 s2 i2 w2 q2 f2 t2 _ < /proc/stat
-BUSY=$(awk -v a="$((u1+n1+s1+i1+w1+q1+f1+t1))" -v b="$((u2+n2+s2+i2+w2+q2+f2+t2))" \
-           -v ia="$((i1+w1))" -v ib="$((i2+w2))" \
-  'BEGIN{d=b-a; if(d<=0){print "100.0"}else{printf "%.1f",100*(d-(ib-ia))/d}}')
+# 16. THE ALARM, the reading run-alonelegs.sh takes (machine-busy.sh says
+# why /proc/stat and not a loadavg), refused above MAXBUSY percent
+# non-idle, default 5.
+BUSY=$(./machine-busy.sh)
 if awk -v x="$BUSY" -v m="${MAXBUSY:-5}" 'BEGIN{exit !(x>m)}'; then
   stamp "EVENING STOPPED AT THE ALARM: ${BUSY}% of the CPUs non-idle over\
  two seconds, against a ${MAXBUSY:-5}% bar. The sequence is hours and it\
