@@ -4853,7 +4853,10 @@ below.** One PREPARES the run, through step 12 of the pre-run list, and hands
 over `$R-pair.txt`; another EXECUTES it from step 13 and writes it up. Which
 half you were asked for decides which of the readings below you owe, which list
 you start in, and what is already spent and not yours to redo --- so settle
-it before reading anything else.
+it before reading anything else. **And a run is finished when
+`./run-status.sh $R` says all done**, read off the artifacts and the repository
+and never off a session's sense of it: a summary of what remains is not a step
+toward it.
 
 **What a run must read, so that nothing else is read to find out --- and
 it is read BY THE PART, never whole.** This paragraph used to say the last run's
@@ -4867,9 +4870,15 @@ emits them, `--in-place` installs them, and the checker recomputes them
 from the JSONs. **`./read-run.py --section NAME` is what makes that takeable**,
 printing one section's prose without its tables and naming the size it withheld,
 since a line range cannot skip what sits between the paragraphs it spans
-and a line number does not survive a rewrap. **So, as ten items, each owing
-an artifact**: a reading that owes nothing cannot be told from a reading
-not done, which is the whole of why this is a list and not a sentence.
+and a line number does not survive a rewrap. **This README is never read
+whole**: it runs to well over a hundred thousand words and this chapter alone
+to thirty-odd thousand, which is what `--section` and `--checklist` exist for.
+**So, as ten items, each owing an artifact, and each read AT THE STEP THAT NAMES
+IT and not before**: item 1 is read now, and every other item stands
+in the lists below as a `READ NOW` line at the step whose work needs it, because
+a reading taken at the head is forgotten by the time its step arrives. A reading
+that owes nothing cannot be told from a reading not done, which is the whole
+of why this is a list and not a sentence.
 
     1. this chapter's three checklists, each printed alone by
     `./read-run.py --checklist pre|run|post`, a fifth of the chapter's lines
@@ -5166,24 +5175,31 @@ and never as a chronology.
     #      including the character class that silently drops three
     #      packages
     #      why: --para 'three rules are what they are'
+    ./smoke-sweep.sh $R &                 # 2c. START THE MACHINE STEPS NOW,
+    ./smoke-l1.sh $R [CLASS ...] &        #     12 with 11 where it is owed
+    #      (its line says when), and take 3 to 10 under them: they are
+    #      the only machine time in this half and neither wants a quiet
+    #      box, so the half is the length of its longest step and not
+    #      the sum. Their lines below say what each holds you to; the
+    #      harness wakes you when each ends, and no waiter is set
     cat $R-pair.txt                       # 2a. the note, quoted by steps
     #      here and in the run list alike -- the halves' roles, the
     #      md5s, the commit, the gate line, and any environment its LAUNCH
     #      line puts in FRONT of a command. It is WRITTEN at step 2,
     #      from pair-note-template.txt and before either binary exists;
     #      here it is read, and the steps below quote it
-    #      BASIS/OTHER come from it, never from a half's name; setting
-    #      them in the scripts is step 2b.
+    #      BASIS/OTHER come from its HALVES: line, never from a half's
+    #      name, and every script reads them there (2b).
     #      The basis runs second, and both halves run the classes
     #      why: --para 'Which two halves a pair has'
-    #  2b. SET THE HALVES' NAMES in the FIVE scripts that take them --
-    #      run-major.sh, run-gate.sh, smoke-sweep.sh, preflight.sh and
-    #      install-tables.sh, every one carrying both BASIS and OTHER;
-    #      read-all.sh is the sixth script a run passes and needs nothing
-    #      set, deriving the halves from the filenames. Here, because the names exist
-    #      from step 2 and everything below reads them. A wrong OTHER stops
-    #      run-major.sh and run-gate.sh at a missing binary; in
-    #      smoke-sweep.sh it sweeps the wrong half and looks clean
+    #  2b. THE NOTE'S THREE MACHINE LINES, written with it and read by
+    #      every script that takes a run, so that nothing is set in any
+    #      script: `HALVES: basis=<b> other=<o>`, which pair-halves.sh
+    #      reads for all of them and holds the environment to; `LAUNCH:
+    #      <NAME=value ...>` or `LAUNCH: none`; and `RIDERS: clean [sat]`
+    #      or `RIDERS: none`, the two run-evening.sh reads. Until
+    #      2026-09-02 the halves were set in five scripts by hand, the
+    #      shape of edit that gets four fifths done
     #      why: --para 'Which two halves a pair has'
     md5sum $R-<basis> $R-<other>          # 3. the note's fill-in block, read
     git log -1 --format=%h -- :/micro-regime3/Main.hs   #    back: the two
@@ -5238,6 +5254,9 @@ and never as a chronology.
     #      the BASIS's bench count -- so no pair here varies the roster,
     #      ruled 2026-08-26 after a walk of this list found all four
     ./read-run.py --lint                  # 7. roster and shape annotations
+    #      READ NOW: item 9's preparation half of read-run.py's
+    #      docstring -- the Modes list, --para, --section and the two
+    #      gates -- and nothing of its statistics
     #      why: --para 'Steps 7 and 8 are the whole'
     ./read-run.py --check-doc --quiet     # 8. anchors, paths, widths, sweeps
     #      7+8 are the WHOLE document check here; no other repo's checkers,
@@ -5335,36 +5354,20 @@ and never as a chronology.
     #  11 and 12 here, and 14 in the run list below, all belong to the
     #      PAIR: on passing, write each into $R-pair.txt, or the next
     #      session repays the hour
-    #  AND 11 AND 12 ARE THE ONLY MACHINE TIME IN THIS HALF, so the
-    #      numbering is an order and not a schedule: neither wants a
-    #      quiet machine, 12 needs only the BASIS half, and it is the
-    #      long one -- about three quarters of an hour where 4 to 10 are
-    #      eight minutes. Launch it in the background straight after the build
-    #      and run 4 to 11 under it and the half is the length of its
-    #      longest step rather than the sum. What that costs is
-    #      contention in the elapsed times 12 records, which are a sanity
-    #      reading against the previous pass and not a measurement, and
-    #      it costs the smoke sweep the same; what it buys is the ten
-    #      minutes a session otherwise spends watching. Confirm the
-    #      AND SET THE TURN-END HOLD before the first edit made while
-    #      they run -- the note, the registration -- clearing it at 12c:
+    #  11 AND 12 WERE STARTED AT 2c and ran under 3 to 10, 12 on the
+    #      BASIS half alone and the long one, about three quarters of
+    #      an hour where 4 to 10 are eight minutes; what remains here is
+    #      reading their DONE lines, the contention in the elapsed times
+    #      they record being a sanity reading and not a measurement.
+    #      SET THE TURN-END HOLD before the first edit made while they
+    #      run -- the note, the registration -- clearing it at 12c:
     #      every wait on them ends a turn and the Stop hook rewraps the
-    #      documents at each (~/.claude/rules/turn-end-hold.md)
-    #      launch from an UNSANDBOXED process list and with `args`, never
-    #      `comm`, which truncates at 15 characters and shows nothing for
-    #      a `preflight.sh` or a `smoke-l1.sh`
-    #      WHERE 12 IS NOT OWED, 11 IS THE LONG ONE and takes 12's place
-    #      in that arrangement: launch the smoke sweep first and run 4 to
-    #      10 under it. Run 23's preparation ran them in series for want
-    #      of this sentence, the paragraph above naming only the case
-    #      where both are due
-    #      AND WAIT ON A FILE'S CONTENTS, NEVER ON A PROCESS LIST, which
-    #      the run list says at 17 and which bites here first, this half
-    #      having two long steps to 17's one. A waiter that greps a
-    #      process list matches ITS OWN command line and never returns --
-    #      `pgrep -f`, `pkill -f` and `ps -eo args | grep` alike, the
-    #      last of which cost Run 23's preparation a hung call. Where the
-    #      harness wakes you when a job ends, set no waiter at all
+    #      documents at each (~/.claude/rules/turn-end-hold.md). And
+    #      wait on nothing: the harness wakes you when each ends, and a
+    #      waiter that greps a process list matches ITS OWN command line
+    #      and never returns -- `pgrep -f`, `pkill -f` and `ps -eo args
+    #      | grep` alike, the last of which cost Run 23's preparation a
+    #      hung call
     #      why: --para 'After a roster change'
     #  12a. WRITE THE REGISTRATION, which is this half's largest product
     #      -- as ONE paragraph, because post-run step 5 moves it whole
@@ -5374,7 +5377,18 @@ and never as a chronology.
     #      and had no step until 2026-09-01: what this run is built to
     #      answer, as an `OPEN` entry of the open list led `What Run N is
     #      built to answer, registered before it runs`, numbered
-    #      questions with a prediction and A KILL CONDITION each. It goes
+    #      questions with a prediction and A KILL CONDITION each, AND A
+    #      `predict:` SPAN WHERE THE QUANTITY IS ONE THE READER COMPUTES
+    #      -- `` `predict: cross ARM X` ``, `counts ARM X` or `pair A B
+    #      X`, each taking `within P%` and `excluding S,...`, written in
+    #      --compare's orientation, this run over the other -- so that
+    #      post-run step 5 reads its verdict off `--predictions` and not
+    #      off a session's reading of the tables; an item whose quantity
+    #      is none of the three carries no span and is adjudicated by
+    #      hand, named as yours by the same call. READ NOW: items 7 and
+    #      8 -- the open list by its markers, Provenance's delta bullets
+    #      -- and item 5 where this preparation parks or drops an arm.
+    #      It goes
     #      in the open list and NOT in the note, which names it; two
     #      copies of a registration is one copy that goes stale. The form
     #      is the previous run's, which post-run step 5 has since moved
@@ -5451,10 +5465,12 @@ and reports what it verified --- it does not wait for one and does not hand
 the run on, the preparation it confirmed surviving in the note, which is what
 the note is for. No `uptime` or `ps` is run at this point, and neither would
 settle it if it were: what they cannot see is what their owner is about to want
-the machine for. The `ps` at step 16 is an alarm and not a permission ---
-it runs after the go-ahead and before the longest stretch, so a machine that got
-busy since stops the run short of the hours rather than after them. Unsandboxed
-throughout:
+the machine for. Step 16's alarm is not a permission either --- it runs after
+the go-ahead and before the longest stretch, so a machine that got busy since
+stops the run short of the hours rather than after them. The list is what
+is executed and the prose around it is consulted by a step's `why:` pointer when
+that step surprises you; since 2026-09-02 its machine steps are one command,
+so what a session does here is read. Unsandboxed throughout:
 
     grep -i gate $R-pair.txt              # 13. has the gate run and passed?
     #      read UP: the newest GATE: line is the script's own "reading still
@@ -5462,162 +5478,105 @@ throughout:
     #      always somebody else's and NOT RUN is its ordinary answer, so
     #      read it whole before grepping it
     #      why: --para 'A paired run has one gate more'
-    <note's LAUNCH env> ./run-gate.sh $R  # 14. only if 13 says it has not
-    #      THE ENVIRONMENT IS PART OF THE COMMAND: a pair whose instrument
-    #      is switched on by a variable is OFF unless the launch line sets
-    #      it, and nothing downstream notices -- the bench counts come out
-    #      right, the gate passes, the reader is happy, and the
-    #      registration the pair was built to answer comes back empty.
-    #      Step 0 read it off the note; Run 17's is WILDLOG=1, on the gate
-    #      and on the sequence alike, and Run 18's is WILDLOG=1 SATURATE=1
-    #      on both. Since 2026-08-22 BOTH DRIVERS RECORD what they were
-    #      launched with, `launch env: WILDLOG=... SATURATE=...` in the
-    #      gate's output and in the wallclock log, set or unset -- so read
-    #      that line back rather than trusting the command you meant to
-    #      type. Each switch that IS set is also asserted per process,
-    #      one `@@saturate` line and at least one `@@wild` stamp; neither
-    #      assertion can see a switch left off, which is what the record
-    #      is for
-    #      -- and it is owed on every pair, both halves being two builds
-    #      by the ruling at the head of this chapter, whatever the two
-    #      recipes differ in
-    ./read-run.py $R-gate-<basis>-a.json --compare $R-gate-<other>-a.json
-    ./read-run.py $R-gate-<basis>-b.json --compare $R-gate-<other>-b.json
-    #      BOTH passes, the -a pair and the -b pair: the verdict
-    #      is the two agreeing. Write it by hand ABOVE the script's block,
-    #      clearing `GATE: not yet run` in the same edit. A gate answers
-    #      sound or not sound; never quote a magnitude from one
+    ./run-evening.sh $R &                 # 14 TO 20 IN ONE COMMAND, in the
+    #      background, so the harness wakes you when it exits and no waiter
+    #      is owed: the gate (14), the alarm (16), the sequence (17), the
+    #      riders (19) and the counts (20), in that order and under the
+    #      environment the note's LAUNCH: line names, each stage's verdict
+    #      appended to $R-evening.txt as it lands and EVENING COMPLETE as
+    #      its last line. It reads the note's HALVES:, LAUNCH: and RIDERS:
+    #      lines and refuses a note without them; it skips the gate where
+    #      the note records one mechanically clean; the gate refusing or a
+    #      busy box stops it, and nothing after that does -- a complaint
+    #      is recorded and the next stage runs. Confirm the launch by
+    #      `evening begins` in $R-evening.txt and never by the launching
+    #      shell's output, a blocked write leaving a launch that never
+    #      happened looking like one in progress. Until 2026-09-02 these
+    #      were five launch lines typed between waits, each wait a turn
+    #      end and each line a place to drop the environment or to
+    #      mis-order. The stage lines below say what each is for and what
+    #      to reach for when one complains, as preflight.sh's do for 4 to
+    #      10; 15 and 18 are yours while it runs
+    #      why: --para 'run-major.sh is that sequence'
+    ./run-status.sh $R                    # AND THE DONE-CONDITION, run now
+    #      and whenever the run seems finished: every step of the three
+    #      lists read off the artifacts and the repository, `STATUS: all
+    #      done` being the one state in which a session is finished with a
+    #      run, whatever it has to report. A NOT DONE line is the next step
+    #  14. THE GATE, its first stage: run-gate.sh on both halves twice in a
+    #      palindrome, the two --compare readings, the -a pair and the -b
+    #      pair, put in $R-evening-out.txt. The verdict is the two
+    #      agreeing, and a gate answers sound or not sound -- never quote a
+    #      magnitude from one. It is owed on every pair, both halves being
+    #      two builds by the ruling at the head of this chapter
+    #  14a. WRITE THE VERDICT by hand ABOVE the note's GATE block, from
+    #      those readings, clearing `GATE: not yet run` in the same edit --
+    #      once the evening has landed, the driver going on without it. A
+    #      gate that FAILED mechanically stopped the driver instead, and
+    #      that is the apparatus: read run-gate.sh's block in the note
+    #      why: --para 'A paired run has one gate more'
     ./read-run.py --section 'What this run was built to answer'
-    #      15. the PREVIOUS run's registered predictions and its verdicts,
-    #      in its own file, where they have lived since 2026-08-29. The
-    #      open list's entry per run is a lead, a verdict and a pointer,
-    #      so `--para 'What Run'` now reads the pointer and not the
-    #      registration -- which returns something, and an empty-looking
-    #      registration is not a blocker, so believing it is how the miss
-    #      hides. Read the section, and the pair note names where a run
-    #      put its own if it differs
+    #  15. WHILE IT RUNS, READ: the PREVIOUS run's registered predictions
+    #      and their verdicts, in its own file, where they have lived since
+    #      2026-08-29 -- `--para 'What Run'` reads the pointer and not the
+    #      registration, and an empty-looking answer is not a blocker --
+    #      and the open list by its status markers (READ NOW: item 7). NOT
+    #      the replace list: it is walked at post-run step 6, gains nothing
+    #      from being read six hours early, and the read is paid twice if
+    #      the session does not survive the sequence
     #      why: --para 'If that line says the gate has not run'
-    uptime; ps -eo pid,etime,comm | grep $R-      # 16. the ALARM, never
-    #      the permission -- unsandboxed, or ps sees only this session's
-    #      own processes. It runs here, after the go-ahead and before the
-    #      longest stretch, so a machine that got busy since stops the run
-    #      short of the hours rather than after them
-    <note's LAUNCH env> ./run-major.sh $R &    # 17. THE SEQUENCE: many
-    #      processes, several hours -- under the same environment the gate
-    #      took at 14, and for the same reason
-    ps -eo pid,etime,comm | grep $R-      # confirm from an UNSANDBOXED ps:
-    #      comm, not args, and comm truncates at 15 characters. A blocked
-    #      write leaves a launch that never happened looking like one in
-    #      progress, which is how two copies once ran at once
-    #      do NOT wait with pgrep -f, which self-matches and never
-    #      returns. THE GENERAL FORM IS: WAIT ON A FILE'S CONTENTS, NEVER
-    #      ON A PROCESS LIST -- and where the harness wakes you when a job
-    #      ends, the waiter is redundant besides. Run 18 hung a shell for
-    #      two hours on `until ! pgrep -f 'check-scripts'` waiting for a
-    #      job whose completion it was already being told about;
-    #      the sequence ENDS WITHOUT ANNOUNCING ITSELF, so arrange to be
-    #      woken by `major run complete` in $R-wallclock.log rather than
-    #      deciding to look: six hours of idle machine followed a session
-    #      that read this line as where to look and set nothing watching.
-    #      Something must be set watching, and the form is a background
-    #      waiter on the file rather than on a process --
-    #      `until grep -q 'major run complete' $R-wallclock.log; do sleep
-    #      300; done` -- since the pid cannot be polled from inside the
-    #      sandbox and the file is what the sequence actually writes.
-    #      WHERE THE HARNESS WAKES YOU WHEN A BACKGROUND COMMAND EXITS,
-    #      the driver itself launched that way is the waiter and none
-    #      is owed: Run 23 ran the gate, the sequence, the riders and the
-    #      counts so, a ten-hour command included, and set a file watcher
-    #      beside the sequence only for its per-process lines
-    #      nothing else on the machine, and no edit to the tree, until it
-    #      ends: the driver's git lines are the binary's provenance
-    #      never raise -L on a recorded run -- the figures stop being
-    #      comparable with every run before it
-    #      a process far slower than its neighbours is worth looking at:
-    #      the previous run's -wallclock.log says what each should take,
-    #      SCALED BY THE BENCH COUNT -- criterion spends its budget per
-    #      bench, so a roster that grew since makes every process slower
-    #      than its counterpart there for no reason worth chasing
-    #      no resume. If it dies mid-sequence, hand-run the class loop over
-    #      both halves, skipping a population on whether its JSON PARSES
-    #      and never on whether it exists -- criterion writes that file as
-    #      it goes, so a process killed part way leaves a truncated one
-    #      that `-e` calls done and nothing can read (measured 2026-08-30,
-    #      3.3 MB of an expected 24). `python3 -c 'import json,sys;
-    #      json.load(open(sys.argv[1]))' "$out.json" 2>/dev/null &&
-    #      continue` is the test. Check each
+    #  16. THE ALARM, its second stage: two reads of /proc/stat two seconds
+    #      apart, refused above 5% non-idle, MAXBUSY overriding -- the
+    #      reading the riders take. An alarm and never a permission: the
+    #      request for the run is the go-ahead, and this only stops a box
+    #      that got busy since short of the hours rather than after them
+    #  17. THE SEQUENCE, its third stage: run-major.sh, many processes,
+    #      several hours, its complaints recorded and not fatal. NOTHING
+    #      ELSE ON THE MACHINE, AND NO EDIT TO THE TREE, until the evening
+    #      ends: the driver's git lines are the binary's provenance. Never
+    #      raise -L on a recorded run. A process far slower than its
+    #      neighbours is worth looking at against the previous run's
+    #      -wallclock.log, SCALED BY THE BENCH COUNT, criterion spending
+    #      its budget per bench. No resume: if it dies mid-sequence,
+    #      hand-run the class loop over both halves, skipping a population
+    #      on whether its JSON PARSES and never on whether it exists --
+    #      criterion writes that file as it goes, so a killed process
+    #      leaves a truncated one (3.3 MB of an expected 24, 2026-08-30);
+    #      `python3 -c 'import json,sys; json.load(open(sys.argv[1]))'
+    #      "$out.json" 2>/dev/null && continue` is the test. Check each
     #      benchmarking count against `classes --list`, append to the same
     #      $R-wallclock.log, and say in the write-up that the populations
-    #      ran in more than one window
-    #      pre-registered probes are appended after the classes, same
-    #      evening; a filtered probe takes ONE -m MODE then its patterns,
-    #      and its benchmarking lines are counted before any number is read
-    #      report each long process as it finishes: exit code and bench
-    #      count, not folded into a later summary
-    #      why: --para 'run-major.sh is that sequence'
-    #  18. read ahead while the sequence runs, which costs no machine
-    #      time: the last run's own file, which shapes the whole write-up
-    #      and is worth little read after it has begun, and the open list
-    #      by its status markers. NOT the replace list -- it is walked and
-    #      mapped at post-run step 6, gains nothing from being read six
-    #      hours early, and the read is paid twice if the session does not
-    #      survive the sequence, nothing recording that it happened
-    <note's LAUNCH env> ./run-alonelegs.sh $R <other>  # 19. THE RIDERS,
-    <note's LAUNCH env> ./run-alonelegs.sh $R <basis>  #     control first
-    #      owed with the pair since Run 16, and out of the EVENING rather
-    #      than out of the probe budget: the 24 main-set `list` alone legs
-    #      on each half's own binary, one bench per process, after that
-    #      half's major processes. They are what turn the in-process
-    #      deflation from an estimate into a per-shape measurement, so a
-    #      run without them cannot check a span prediction. The script
-    #      refuses a previous attempt's artifacts and reads the baked line
-    #      back before anything runs
-    #      TWO LINES HERE IS THE FLOOR AND THE NOTE MAY DOUBLE IT: a pair
-    #      carrying the saturating preamble owes each half twice, clean
-    #      and `SAT=1`, which is the decomposition's pair of columns, so
-    #      read the note's own rider block rather than this pair of lines.
-    #      Run 20's owed four and Run 21's does; `SAT=` is the rider's
-    #      spelling and reaches the process as SATURATE=
-    #      AND IT REFUSES A BUSY MACHINE, which is step 16's alarm moved
-    #      into the one place that needed it and could not have it: the
-    #      riders run AFTER the sequence, hours past where a session last
-    #      looked at the box, and they are timed one bench to a process,
-    #      so a machine handed back to its owner in the meantime times the
-    #      owner. Two reads of /proc/stat two seconds apart, refused above
-    #      5% non-idle, MAXBUSY to override; a loadavg cannot do this job,
-    #      still carrying the sequence that has just ended. Added
-    #      2026-08-26, after four legs were launched onto a box that had
-    #      got busy and were thrown away
-    for c in '' rev revsome bcast bcastmid reshape1 slice window scaled runs
-    do ./run-counts.sh $R <other> $c; ./run-counts.sh $R <basis> $c; done
-    #  20. THE COUNTED WORK, over EVERY population and not the main set
-    #      alone -- the empty first element is the main set, and the nine
-    #      that follow are the classes, `$R-counts-<half>[-<class>].txt`
-    #      apiece. Instructions an iteration from two fixed-`-n` processes
-    #      a cell, differenced, which owes criterion nothing: an arm whose
-    #      time moved between the halves either moved its counts with it,
-    #      which is codegen, or did not, which is the runtime or the
-    #      memory. `--counts` reads a pair of these files beside
-    #      `--compare`.
-    #      IT WANTS NO QUIET MACHINE, an instruction count being
-    #      insensitive to load, so this is the one owed measurement that
-    #      may be taken on a working desktop and either side of the
-    #      evening. That is why it is last here rather than in the
-    #      preparation: it belongs to the pair, not to the hour.
-    #      ABOUT TWELVE MINUTES A HALF FOR THE MAIN SET AND SEVEN FOR THE
-    #      EIGHT CLASSES, measured 2026-08-25, and the classes are cheaper
-    #      DESPITE holding the same 1128 cells because the cost is elements
-    #      touched and not cells: each cell runs 150 whole iterations, so a
-    #      class of small shapes is half a minute and `bcast`, whose three
-    #      shapes include two at l = 1.8M, is two.
-    #      perf must be able to count: kernel.perf_event_paranoid at 1 or
-    #      less, which this box is set to persistently. The script probes it
-    #      on /bin/true and refuses in a millisecond rather than spending
-    #      the sweep writing `!!`
-    #      COVERED THE MAIN SET ALONE UNTIL 2026-08-25 and said so in its
-    #      own header and nowhere else -- 22 mentions of it in this file,
-    #      not one naming a population, so every one read as covering the
-    #      run. A class question asked of it had no answer at all
+    #      ran in more than one window. Pre-registered probes are appended
+    #      after the classes, same evening; a filtered probe takes ONE -m
+    #      MODE then its patterns, and its benchmarking lines are counted
+    #      before any number is read
+    #  18. WHILE IT RUNS, READ: the last run's own file, which shapes the
+    #      whole write-up and is worth little read after it has begun
+    #      (READ NOW: item 2, its head and Results prose)
+    #  19. THE RIDERS, its fourth stage: run-alonelegs.sh on each half,
+    #      control first, clean and then `SAT=1` where the note's RIDERS:
+    #      line says `sat` -- the 24 main-set `list` alone legs, one bench
+    #      per process, which turn the in-process deflation from an
+    #      estimate into a per-shape measurement, so a run without them
+    #      cannot check a span prediction. Each refuses a previous
+    #      attempt's artifacts, reads the baked RTS line back, and refuses
+    #      a busy machine as 16 does
+    #  20. THE COUNTS, its last stage: run-counts.sh over EVERY population,
+    #      the main set and each class, control then basis apiece, a
+    #      `$R-counts-<half>[-<class>].txt` each: instructions an iteration
+    #      from two fixed-`-n` processes a cell, differenced, owing
+    #      criterion nothing -- an arm whose time moved between the halves
+    #      either moved its counts with it, which is codegen, or did not,
+    #      which is the runtime or the memory; `--counts` reads a pair of
+    #      these files beside `--compare`. It wants no quiet machine, an
+    #      instruction count being insensitive to load. perf must be able
+    #      to count, kernel.perf_event_paranoid at 1 or less; the script
+    #      probes it on /bin/true and refuses in a millisecond
+    #  THEN, WOKEN: read $R-evening.txt top to bottom -- each stage's rc
+    #      and any COMPLAINT, then $R-wallclock.log's `!!` lines -- write
+    #      14a's verdict, report each stage's exit and counts rather than
+    #      folding them into a later summary, and start the post-run list
+    #      at 0
 
 **One rule for the sandbox in this directory, since half of what a run does must
 write here.** Run everything unsandboxed except the read-only checks.
@@ -5970,25 +5929,24 @@ that half *is* rather than which role it holds: `run13-maxskip`
 and `run13-lookrts`, `run14-lookrts` and `run14-a1g`. So a new pair derives
 its own names before it has a note to read them from, and step 2a's rule stands
 untouched, the tag saying what a half is and the note saying which of them
-is the basis. The names are recorded in the pair note and set in one place
-in each of the five scripts that take a run --- `run-major.sh`, `run-gate.sh`,
-`smoke-sweep.sh`, `preflight.sh` and `install-tables.sh`, every one of them
-carrying both --- as `OTHER` and `BASIS`, and each is a `${BASIS:-...}` default
-an environment variable overrides for an older pair; the basis is the half
-the expected bench counts are read from and every table is installed from,
-and it runs second; both halves run every class. **The two roles are BASIS
-and CONTROL**, which is what this README calls them where it names a role
-at all; the scripts' variable is `OTHER` and the prose often says *the other
-half*, and all three are one thing. The halves are named for what they vary ---
-Run 10's `unaligned`/`aligned`, Run 11's `maxskip`/`aligned`, Run 12's
-`maxskip`/`maxskippa` --- and which of them is the basis is a decision the pair
-note records, not something a half's name tells you. Run 12 is where the two
-would collide if this README still called the basis *the aligned half*:
-its control is `maxskippa`, the half that carries `-fproc-alignment=64`
-and so is the more aligned build of the two. Where a sentence below says
-*aligned* it is about alignment, not about a role; where it is plainly about one
-past pair --- as the paragraph on the 12 KB of `.text` is, every figure
-in it being Run 10's --- it keeps that pair's half names.
+is the basis. The names are recorded on the pair note's `HALVES:` line, which
+every script that takes a run reads through `pair-halves.sh` --- an environment
+naming them differently is refused, one repeating them allowed, and with no note
+at all the environment stands in and says so --- as `OTHER` and `BASIS`;
+the basis is the half the expected bench counts are read from and every table
+is installed from, and it runs second; both halves run every class. **The two
+roles are BASIS and CONTROL**, which is what this README calls them where
+it names a role at all; the scripts' variable is `OTHER` and the prose often
+says *the other half*, and all three are one thing. The halves are named
+for what they vary --- Run 10's `unaligned`/`aligned`, Run 11's
+`maxskip`/`aligned`, Run 12's `maxskip`/`maxskippa` --- and which of them
+is the basis is a decision the pair note records, not something a half's name
+tells you. Run 12 is where the two would collide if this README still called
+the basis *the aligned half*: its control is `maxskippa`, the half that carries
+`-fproc-alignment=64` and so is the more aligned build of the two. Where
+a sentence below says *aligned* it is about alignment, not about a role; where
+it is plainly about one past pair --- as the paragraph on the 12 KB of `.text`
+is, every figure in it being Run 10's --- it keeps that pair's half names.
 
 **Name the artifacts by half, and drive every `--in-place` from the basis
 half.** The sequence below builds every filename off `$R`, which a paired run
@@ -6501,7 +6459,9 @@ lands in both places --- which is a thing to KEEP true: renumber the list
 and the prose's items move with it, or a reader following a pointer arrives
 at the wrong reason; the prose is where the reasons live and is not replaced
 by this. What it replaces is reading those paragraphs three times to be sure
-nothing was missed, which is what they have cost.
+nothing was missed, which is what they have cost. Execute this list, and open
+a step's prose by its `why: --para` pointer when the step's rule is unclear,
+not otherwise.
 
     #   0. NAME THE FILL GROUPS off a -g3 twin, and spend the other
     #      load-independent measurements while the artifacts live --
@@ -6591,6 +6551,10 @@ nothing was missed, which is what they have cost.
     #      one JSON at a time, never merged; a sentence comparing
     #      populations compares their tables
     #      why: --para 'Match bases before reading any ratio'
+    #      READ NOW: item 9's execution half of read-run.py's docstring
+    #      -- the statistic definitions, the A/A identity and the modes
+    #      that read a run's figures -- and items 5 and 6, the claims
+    #      and the class-block form
     ./read-run.py $R-<basis>-main.json --claims       # 4a. every claim's
     #      ordering and registered verdict in one call, in the claims
     #      section's own order -- and, after them, the README's own verdict
@@ -6620,6 +6584,13 @@ nothing was missed, which is what they have cost.
     #      paragraph each. Use --brief on --aa and --block: no computed
     #      figure is lost. Do not write a second reader
     #      why: --para 'The claims are part of this'
+    ./read-run.py $R-<basis>-main.json --compare $R-<other>-main.json --predictions --counts $R-counts-<basis>.txt $R-counts-<other>.txt
+    #      5, third act, after the move: every `predict:` span of the
+    #      registration adjudicated from the JSONs, HELD or KILLED with
+    #      the figure read, and the items carrying no span named as
+    #      yours. Write each verdict beside its prediction FROM THIS
+    #      OUTPUT, quoting its figure; what it calls yours is the whole
+    #      of the adjudication left to judgement
     ./read-run.py --move-registration     #  5, second act: this run's
     #      OPEN registration leaves the open list for the run file's last
     #      section, whole and under a one-line preface, and the entry
@@ -6628,7 +6599,9 @@ nothing was missed, which is what they have cost.
     #      already stands. It refuses unless exactly one OPEN entry names
     #      this run, so it is run once, after the copy is committed
     #   5. MAKE THE RUN'S OWN FILE, `runs/$R.md`, by copying the last
-    #      run's over it AND COMMITTING THAT COPY BEFORE EDITING IT --
+    #      run's over it AND COMMITTING THAT COPY BEFORE EDITING IT
+    #      (READ NOW: item 2, that file's head and Results prose, if 18
+    #      did not) --
     #      three reasons, all of them below and only one about wrapping.
     #      The file is the whole of what a run replaces -- head,
     #      Results, what the next run compares against, the claims it
@@ -6672,7 +6645,8 @@ nothing was missed, which is what they have cost.
     #      dropped with a warning. The cross-class summary
     #      is assembled LAST, transcribed from the class tables
     #      why: --para 'Install the tables with'
-    #   6. walk the replace list under Provenance, re-run the two sweeps it
+    #   6. walk the replace list under Provenance (READ NOW: item 8, the
+    #      list itself and its delta bullets), re-run the two sweeps it
     #      names, and map every hit to the bullet covering it -- running
     #      them is not reading them. REPLACE, do not annotate: a figure that
     #      moved inside the floor is requoted without comment. The three
@@ -6725,7 +6699,8 @@ nothing was missed, which is what they have cost.
     #        the two halves hours apart and could point at no step for
     #        either
     #      why: --para 'What skipping this costs is measured'
-    #  6a. THE RUN'S OWN FILE, which is that first bullet and is the bulk
+    #  6a. THE RUN'S OWN FILE (READ NOW: item 4, the two-column table
+    #      this half hand-edits), which is that first bullet and is the bulk
     #      of the run: its head, Results and the findings under it, what
     #      the next run compares against with its hand-edited two-column
     #      table, the claims, the nine class leads and paragraphs, its
@@ -6753,7 +6728,9 @@ nothing was missed, which is what they have cost.
     #      not for tidiness: 6b's figures are requoted FROM this half
     #      why: --para 'commit the binary was built from'
     #  6b. COMMIT 6a'S WORK IN ONE COMMIT, subject naming the step as at
-    #      5, and THAT COMMIT'S DIFF IS WHAT THE AGENT WORKS ON -- not
+    #      5; START the checker's first pass on it, an agent in the
+    #      background; THEN do 6c beside it. THAT COMMIT'S DIFF IS WHAT
+    #      THE AGENT WORKS ON -- not
     #      the working tree, not a range. README's step-5 repoint and
     #      whatever of 6c is already written GO IN THE SAME COMMIT: the
     #      pass is scoped by PATH, `-- micro-regime3/runs`, so it reads
@@ -6822,7 +6799,9 @@ nothing was missed, which is what they have cost.
     #      itself
     #      why: --para 'What skipping this costs is measured'
     #  6d. COMMIT 6b'S AND 6c'S WORK AS A SINGLE COMMIT, subject naming
-    #      the step, and THAT COMMIT'S DIFF IS WHAT THE AGENT WORKS ON. One commit and not
+    #      the step; START the second pass on it AND 6e in the same
+    #      turn; THEN freeze writes to both documents until 7. THAT
+    #      COMMIT'S DIFF IS WHAT THE AGENT WORKS ON. One commit and not
     #      two: the pass reads both files together, so two commits would
     #      hand it two diffs and let it read one and call the run
     #      covered. It also makes `after 6b and 6c both` checkable
@@ -6963,6 +6942,27 @@ nothing was missed, which is what they have cost.
     #      correct with -- the one figure here a session had to hand-roll
     #      before the mode existed, and the one place it would reach for
     #      the wrong numerator
+    ./run-status.sh $R                    # 10b. THE DONE-CONDITION: every
+    #      step of the three lists off the artifacts and the repository.
+    #      `STATUS: all done`, with its `yours` lines done by hand, is
+    #      the one state in which this run is finished; a NOT DONE line
+    #      is the next step, and a summary of what remains is not one
+    #  WHICH CHECK AFTER WHICH EDIT, and no other -- an expensive check's
+    #      answer stands until what it reads changes, and a commit is
+    #      not such a change:
+    #      a paragraph of runs/$R.md or README.md: nothing between
+    #        edits, and `./read-run.py --check-doc --quiet` once the
+    #        stretch ends -- seconds, and a paragraph left long is
+    #        mid-edit and passes
+    #      Main.hs, even a comment: `./read-run.py --lint`
+    #      a script here, or read-run.py: `./check-scripts.py --changed
+    #        <REV>` at the END of the stretch, in the background and
+    #        ALONE -- no edit and no commit while it runs -- with `-k
+    #        NAME` for one case while iterating; read-run.py besides
+    #        wants `--selftest` on one run JSON
+    #      a table install: `--check-doc` recomputes the tables from the
+    #        JSONs, so it is the install's check too
+    #      a note or a registration: `./preflight.sh $R --note`
     #  11. offer the artifacts for deletion -- the JSONs, the logs, the
     #      wall-clock file, and for a pair both binaries and $R-pair.txt --
     #      once, after step 7 is done AND presented, saying what keeping
