@@ -68,10 +68,13 @@
 # names the binary it fired on. Re-aim it again whenever the pair it
 # names is offered for deletion.
 #
-# It has no ./check-scripts.py case, deliberately: this script's own steps
-# are that suite and the reader's gates, so a case would run them twice to
+# It has no case in defects.py, deliberately: this script's own steps are
+# that corpus and the reader's gates, so a case would run them twice to
 # assert what they already assert. What is unique to it -- the three
-# detections above -- is what the stub proof covers.
+# detections above -- is what the stub proof covers. The cost of that is on
+# the record: the corpus retirement of 2026-09-02 left the three calls below
+# naming ./check-scripts.py, which had gone, and nothing ran them until Run
+# 24's preparation read three FAILs saying `No such file or directory`.
 set -u
 cd "$(dirname "$0")" || exit 1
 
@@ -265,17 +268,36 @@ step_10d
 
 step_8
 
-./check-scripts.py --families > "$TMP/fam" 2>&1 \
-  && say 8b PASS "defect families over this directory's Python source" \
-  || say 8b FAIL "--families: $(tail -2 "$TMP/fam" | head -1)"
+# 8b is three lint steps and not one: the defect families over the Python
+# here and the two linters over the Python and the shell. An absent linter
+# FAILS the step by name rather than being skipped, which is checks.py's
+# rule, and absent means the invocation this step actually makes does not
+# run -- so pyflakes is tested as the module it is invoked as, while
+# `command -v` decides the shell linter, which is a command.
+(
+  command -v defect-lint.py >/dev/null \
+    || { echo "defect-lint.py is not on PATH: the families went unchecked"
+         exit 1; }
+  defect-lint.py . || exit 1
+  python3 -m pyflakes --version >/dev/null 2>&1 \
+    || { echo "pyflakes is not on PATH: the Python here went unlinted"
+         exit 1; }
+  python3 -m pyflakes ./*.py || exit 1
+  command -v shellcheck >/dev/null \
+    || { echo "shellcheck is not on PATH: the shell here went unlinted"
+         exit 1; }
+  shellcheck -S warning -f gcc ./*.sh || exit 1
+) > "$TMP/fam" 2>&1 \
+  && say 8b PASS "the families and the two linters over this directory" \
+  || say 8b FAIL "lint: $(tail -2 "$TMP/fam" | head -1)"
 
-./check-scripts.py --properties > "$TMP/prop" 2>&1 \
+./properties.py > "$TMP/prop" 2>&1 \
   && say 8c PASS "properties over every run JSON here" \
-  || say 8c FAIL "--properties: $(grep -m1 FAIL "$TMP/prop")"
+  || say 8c FAIL "properties: $(grep -m1 FAIL "$TMP/prop")"
 
-./check-scripts.py > "$TMP/cs" 2>&1 \
+defect-run.py . > "$TMP/cs" 2>&1 \
   && say 8d PASS "every planted defect refused again" \
-  || say 8d FAIL "check-scripts: $(tail -1 "$TMP/cs")"
+  || say 8d FAIL "defect-run: $(tail -1 "$TMP/cs")"
 
 # The regime, in the binary, which nothing later can confirm. Read as
 # README reads it: baseOffsetsScan against baseOffsetsMut on vgg-14-c512,
