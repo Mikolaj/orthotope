@@ -4825,13 +4825,15 @@ of why this is a list and not a sentence.
     6. the class blocks: the six numbered items of the form, and one example
        block, not the other eight
          -- the form, in your own words
-    7. the open list, by its status markers rather than end to end
+    7. the open list, by its status markers rather than end to end,
+         grepped over `wrap80 --unwrap README.md` -- a marker sits at
+         the head of an item, which the wrapped form breaks
          -- the OPEN entries, named
     8. Provenance's replace list and its delta bullets
          -- what this run has to replace
     9. `read-run.py`'s docstring, this chapter's other governing
          document -- BY HALF, like the list it sits in. A PREPARATION
-         uses the Modes list, `--para`, `--section` and the two gates;
+         uses the Modes list, `--para`, `--section` and the two gates, `--lint` and `--check-doc`;
          the statistic definitions, the A/A identity, the validation
          history and every mode that reads a run's FIGURES are the
          EXECUTION's, and Run 23's preparation read them all and used
@@ -4840,7 +4842,9 @@ of why this is a list and not a sentence.
     10. the PREVIOUS run's pair note, `$PREV-pair.txt`, and
          pair-note-template.txt beside it -- that note is the only copy
          of both recipes and is what this run's note is written FROM,
-         and the template says what a note owes
+         and the template says what a note owes; where the pair wants a
+         half of a kind that note never built -- a compiler it did not
+         carry -- the last note that built one holds that recipe
          SKIP THE PREVIOUS RUN'S HANDOVER, which is about a third of a
          note and none of it yours: `ENTRY POINT`, `WHAT THE
          PREPARATION LEARNED`, `GREEN AFTER THE LAST EDIT`, the `GATE`
@@ -5018,8 +5022,8 @@ and never as a chronology.
     #      build and nothing downstream notices; that hazard is step 2's
     #      alone, REGIME reaching the build and nothing else
     ls $R-*                               # 1. nothing named for this run may
-    #      exist yet -- an empty listing is what a run about to be prepared
-    #      looks like, and anything else is a run already under way or a
+    #      exist yet -- `ls` complaining of no such file is what a run
+    #      about to be prepared looks like, and anything else is a run already under way or a
     #      leftover to clear, never a pair to adopt
     #  IF ANYTHING FOR THIS RUN IS ALREADY HERE, step 1 has caught a
     #      preparation that is not yours to redo, and what landed says
@@ -5041,7 +5045,10 @@ and never as a chronology.
     #      template: it is settled in *What Run N compares against*, and
     #      the recipe to vary is the previous run's note. Read both before
     #      writing this one -- a session executing the list top to bottom
-    #      arrives here with neither, which is where a walk arrived
+    #      arrives here with neither, which is where a walk arrived.
+    #      WHERE THE REQUEST DIFFERS from that section, the request wins,
+    #      and the section and the open list's task recording the
+    #      decision are amended first, in a commit of their own
     #      (READ NOW: items 3 and 10, the compares-against prose and the
     #      previous run's note)
     #      Every build wants -fforce-recomp and a fresh --builddir, cabal
@@ -5075,13 +5082,6 @@ and never as a chronology.
     #      unmoved, and not reproducing names no cause -- a finding and
     #      not a stop, located by the three reads the prose gives
     #      why: --para 'three rules are what they are'
-    ./smoke-sweep.sh $R &                 # 2c. START THE MACHINE STEPS NOW,
-    ./smoke-l1.sh $R [CLASS ...] &        #     12 with 11 where it is owed
-    #      (its line says when), and take 3 to 10 under them: they are
-    #      the only machine time in this half and neither wants a quiet
-    #      box, so the half is the length of its longest step and not
-    #      the sum. Their lines below say what each holds you to; the
-    #      harness wakes you when each ends, and no waiter is set
     cat $R-pair.txt                       # 2a. the note, quoted by steps
     #      here and in the run list alike -- the halves' roles, the
     #      md5s, the commit, the gate line, and any environment its LAUNCH
@@ -5099,7 +5099,8 @@ and never as a chronology.
     #      <NAME=value ...>` or `LAUNCH: none`; and `RIDERS: clean [sat]`
     #      or `RIDERS: none`, the two run-evening.sh reads. Until
     #      2026-09-02 the halves were set in five scripts by hand, the
-    #      shape of edit that gets four fifths done
+    #      shape of edit that gets four fifths done; an older note's
+    #      `scripts set` row records that edit and is not copied forward
     #      why: --para 'Which two halves a pair has'
     md5sum $R-<basis> $R-<other>          # 3. the note's fill-in block, read
     git log -1 --format=%h -- :/micro-regime3/Main.hs   #    back: the two
@@ -5190,11 +5191,19 @@ and never as a chronology.
     ./loop-offsets.py --survey $R-<other>       # 10b. both owed, both new,
     #      and the answer goes in the note: it is the binary's, not the
     #      reading session's. What it means is below, at the pad
-    ./smoke-sweep.sh $R                   # 11. the smoke sweep, and read
-    #      its counting: it holds each process to the arm count `--list`
-    #      gives for that shape
+    ./smoke-sweep.sh $R &                 # 11. the smoke sweep, STARTED NOW
+    ./smoke-l1.sh $R [CLASS ...] &        #     in the background with 12 where
+    #      the diff at 6 says it is owed, and 12a and 12b taken under
+    #      them: they are the only machine time in this half, neither
+    #      wants a quiet box, and the registration is the long hand step,
+    #      so the half is the length of its longest step and not the sum.
+    #      NOT EARLIER: 8c reads every smoke JSON on disk as part of its
+    #      corpus, and one still being written fails it with a traceback
+    #      (the prefix rule below has Run 17's instance). The sweep holds
+    #      each process to the arm count `--list` gives for that shape;
+    #      the harness wakes you when each ends, and no waiter is set
     #      why: --para 'And one more, nearly free'
-    ./smoke-l1.sh $R [CLASS ...]          # 12. THE ROSTER PASS, owed ONLY
+    #  12. THE ROSTER PASS, owed ONLY
     #      if `--list` changed membership AND the pair note records none
     #      -- it belongs to the pair as the gate does, so grep the note
     #      first, and where the previous run's basis is still on disk diff
@@ -5208,13 +5217,12 @@ and never as a chronology.
     #  11 and 12 here, and 14 in the run list below, all belong to the
     #      PAIR: on passing, write each into $R-pair.txt, or the next
     #      session repays the hour
-    #  11 AND 12 WERE STARTED AT 2c and ran under 3 to 10, 12 on the
-    #      BASIS half alone and the long one, about three quarters of
-    #      an hour where 4 to 10 are eight minutes; what remains here is
-    #      reading their DONE lines, the contention in the elapsed times
-    #      they record being a sanity reading and not a measurement.
+    #  12 IS THE LONG ONE, about three quarters of an hour on the BASIS
+    #      half alone where 11 is minutes; what is read when each ends is
+    #      its DONE line, the contention in the elapsed times it records
+    #      being a sanity reading and not a measurement.
     #      SET THE TURN-END HOLD before the first edit made while they
-    #      run -- the note, the registration -- clearing it at 12c:
+    #      run -- the registration -- clearing it at 12c:
     #      every wait on them ends a turn and the Stop hook rewraps the
     #      documents at each (~/.claude/rules/turn-end-hold.md). And
     #      wait on nothing: the harness wakes you when each ends, and a
@@ -5232,11 +5240,15 @@ and never as a chronology.
     #      `predict:` SPAN WHERE THE QUANTITY IS ONE THE READER COMPUTES
     #      -- `` `predict: cross ARM X` ``, `counts ARM X` or `pair A B
     #      X`, each taking `within P%` and `excluding S,...`, written in
-    #      --compare's orientation, this run over the other -- so that
+    #      --compare's orientation, the basis over the control (`predict:
+    #      cross list 1.0 within 0.5%` predicts `list` level between the
+    #      halves to half a point) -- so that
     #      post-run step 5 reads its verdict off `--predictions` and not
     #      off a session's reading of the tables; an item whose quantity
     #      is none of the three carries no span and is adjudicated by
-    #      hand, named as yours by the same call. READ NOW: items 7 and
+    #      hand, named as yours by the same call. NO VERDICT WORD in the
+    #      entry -- HELD, KILLED, SPLIT and their kin -- which --check-doc
+    #      reads as an item already adjudicated. READ NOW: items 7 and
     #      8 -- the open list by its markers, Provenance's delta bullets
     #      -- and item 5 where this preparation parks or drops an arm.
     #      It goes in the open list and NOT in the note, which names it;
@@ -6505,6 +6517,7 @@ not otherwise.
     #      wall-clock file, and for a pair both binaries and $R-pair.txt --
     #      once, after step 7 is done AND presented, saying what keeping
     #      them buys. Offering is the step; deleting is not
+    #      why: --para 'Only then, offer the artifacts'
 
 Steps 1 to 4a are readings and cost only tool calls, 5a another; 5, 5b and 6's
 two halves write; 6b, 6d and 6e are what find things, and 7 is where what they
@@ -9249,9 +9262,7 @@ to assert, which is what the printed count is for. A sunk **baseline** cell
 is untouched by the ruling: it takes every row of its shape with it and still
 fails the run.
 
-
 ## Provenance
-    #      why: --para 'Only then, offer the artifacts'
 
 **The half of a run's provenance that outlives the run.** A run's own --- what
 its pair was, how the sequence ran, what moved and what did not, its anchors

@@ -6908,12 +6908,18 @@ def main():
     # it is a BLOCKED rather than a failure because nothing was tried.
     # Probed by writing rather than by `os.access`, which answers from the
     # mode bits and says writable under a sandbox that will refuse.
+    # --families READS the source and plants nothing, so it is the one
+    # mode a sandboxed seat may run; the probe refused it until 2026-09-02,
+    # against README's own sandbox rule, which lists it as read-only.
     probe = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                          'zz-sandbox-probe.tmp')
+    if args.families:
+        probe = None
     try:
         try:
-            with open(probe, 'w') as h:
-                h.write('')
+            if probe:
+                with open(probe, 'w') as h:
+                    h.write('')
         finally:
             # THE UNLINK IS IN A finally, so a write that succeeded and an
             # unlink that did not cannot leave the probe behind under a
@@ -6921,7 +6927,7 @@ def main():
             # by the sandbox -- there the open fails and there is nothing
             # to remove -- which is exactly why it wanted writing down
             # rather than testing.
-            if os.path.exists(probe):
+            if probe and os.path.exists(probe):
                 os.unlink(probe)
     except OSError as e:
         print('BLOCKED: cannot write in %s (%s), and this suite plants its'

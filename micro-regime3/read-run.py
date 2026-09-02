@@ -205,6 +205,9 @@ Modes:
                     they were edited together
   --checklist WHICH print one of the run chapter's three checklists, pre,
                     run or post, alone and sized -- no run needed
+  --section NAME    print one section's prose by its heading's words,
+                    without its tables and naming the size withheld;
+                    --with-tables adds them -- no run needed
   --para PATTERN    print the paragraphs whose bolded lead matches, from
                     either document, with the file and line each starts
                     at -- no run needed
