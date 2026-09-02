@@ -6090,7 +6090,6 @@ def cross_class_summary(basis, others, main):
                              % (os.path.basename(b), os.path.basename(o)))
             return 1
         name = population_of(shapes, meta['dims'])[1]
-        full = len(shapes)
         clean = [(g, st) for g, st in rows if st not in partial]
         drop = sorted(partial)
         if drop:
