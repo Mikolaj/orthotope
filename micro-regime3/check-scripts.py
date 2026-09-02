@@ -3367,6 +3367,19 @@ CASES = [
          argv=['--check-doc', '--quiet', '--run-doc', '{rundoc}'],
          ok=V(exit=1, has=['[[TODO]]'])),
 
+    case('checklist-prints-one-list-alone', 'read-run.py', None,
+         'CONTROL: --checklist run prints the run list and none of the'
+         ' chapter around it',
+         # The lists are what a session executes and used to be reachable
+         # only inside 2600 lines of chapter (Run 23). The run list starts
+         # at step 13 and ends at step 20's last comment; a header or a
+         # paragraph of the chapter in the output would be the mode
+         # reading past the block.
+         plant=lambda t: {'readme': edited_readme(t)},
+         argv=['--checklist', 'run', '--readme', '{readme}'],
+         ok=V(exit=0, has=['13. has the gate run and passed', 'run-counts.sh'],
+              hasnt=['## ', 'why the chapter'])),
+
     case('bridge-divides-out-the-baseline', 'read-run.py', None,
          'a cross-run comparison a moved box made unreadable',
          # --compare divides one arm's net by the same arm's net in the

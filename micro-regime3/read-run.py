@@ -199,6 +199,8 @@ Modes:
                     the class-block count and the class table's `shapes`
                     column. Sites agreeing with each other say only that
                     they were edited together
+  --checklist WHICH print one of the run chapter's three checklists, pre,
+                    run or post, alone and sized -- no run needed
   --para PATTERN    print the paragraphs whose bolded lead matches, from
                     either document, with the file and line each starts
                     at -- no run needed
@@ -6043,6 +6045,59 @@ def section(docs, name, with_tables=False):
 
 REG_HEAD = '## What this run was built to answer, and what it answered'
 
+# The run chapter's three checklists, each an indented block, found by
+# its own first line rather than by a heading or a line number: the lists
+# are what a session executes and the prose around them is the reasons,
+# so this prints one list alone, sized, the way --section prints a
+# section without its tables. Run 23 read the lists inside 2600 lines of
+# chapter for want of it (2026-09-02).
+CHECKLISTS = {
+    'pre': "# READ THIS LIST AND THE LAST RUN'S FILE, AND START.",
+    'run': 'grep -i gate $R-pair.txt',
+    'post': '#   0. NAME THE FILL GROUPS',
+}
+
+
+def checklist(readme, which):
+    """Print one of the run chapter's three checklists, and nothing else."""
+    if which not in CHECKLISTS:
+        sys.stderr.write('--checklist: one of %s, not %r\n'
+                         % ('|'.join(CHECKLISTS), which))
+        return 1
+    try:
+        lines = open(readme).read().split('\n')
+    except OSError as e:
+        sys.stderr.write('--checklist: %s\n' % e)
+        return 2
+    first = CHECKLISTS[which]
+    starts = [i for i, l in enumerate(lines)
+              if l.startswith('    ') and l.strip().startswith(first)]
+    if len(starts) != 1:
+        sys.stderr.write('--checklist %s: its first line %r occurs %d times in'
+                         ' %s, need 1\n' % (which, first, len(starts),
+                                            os.path.basename(readme)))
+        return 1
+    i = starts[0]
+    # Back up to the block's own first line, then run to its last: an
+    # indented block ends at the first line that is neither indented nor
+    # blank, and trailing blanks are not part of it.
+    while i > 0 and lines[i - 1].startswith('    '):
+        i -= 1
+    j = i
+    while j + 1 < len(lines) and (lines[j + 1].startswith('    ')
+                                  or lines[j + 1] == ''):
+        j += 1
+    while lines[j] == '':
+        j -= 1
+    block = lines[i:j + 1]
+    label = {'pre': 'pre-run', 'run': 'run', 'post': 'post-run'}[which]
+    print('%s: the %s checklist, %d lines, %d KB, README.md lines %d to %d'
+          % (os.path.basename(readme), label, len(block),
+             len('\n'.join(block)) // 1024, i + 1, j + 1))
+    print()
+    print('\n'.join(block))
+    return 0
+
 
 def move_registration(readme, run_doc):
     """Move the run's registration from README's open list into the run
@@ -9525,6 +9580,10 @@ def main():
                    help="move this run's OPEN registration from README's"
                         " open list into the run file's last section,"
                         ' leaving the ANSWERED stub; post-run step 5')
+    p.add_argument('--checklist', metavar='pre|run|post',
+                   help="print one of the run chapter's three checklists"
+                        ' alone, which is what a session executes; the'
+                        ' prose around them is the reasons')
     p.add_argument('--section', metavar='NAME',
                    help="print one section's prose by heading name, without"
                         ' its tables, so the reading a run owes can be taken'
@@ -9738,6 +9797,8 @@ def main():
         sys.exit(cross_class_summary(args.classes, args.others, args.main))
     if args.section:
         sys.exit(section(docs, args.section, args.with_tables))
+    if args.checklist:
+        sys.exit(checklist(args.readme, args.checklist))
     if args.move_registration:
         sys.exit(move_registration(args.readme, want_run_doc(args)))
     if args.delete:
