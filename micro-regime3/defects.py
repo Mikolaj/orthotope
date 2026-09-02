@@ -368,6 +368,55 @@ def unwrapped_rundoc_edit(tmp, old, new):
     return write_rundoc(tmp, text.replace(old, new, 1))
 
 
+DECLARED_AFTER_RE = re.compile(
+    r'((?:`[\w.-]+`(?:,\s+(?:and\s+)?|\s+and\s+))*`[\w.-]+`)\s+(?:was|were)'
+    r' added \d{4}-\d{2}-\d{2}, after the run')
+
+
+def plant_main_shapes_exempt(tmp):
+    """The fixture of `main-shapes-added-after-the-run-are-exempt`.
+
+    Both halves planted, and the figure derived rather than written: a
+    declaration in README of two main-set shapes never added after any
+    run, and a run file whose every `over N shapes` at the run's TRUE
+    main-set size -- Main.hs's less whatever the live README already
+    declares -- is moved down by the two planted. So the fixture builds
+    the same subject whether or not a real declaration stands, and a
+    figure in it cannot go stale under a later main-set change, which the
+    class sibling's hand-written 7 can.
+    """
+    main = open(MAIN).read()
+    names = []
+    for lst in ('convShapes', 'stretchShapes'):
+        body = main.split('\n%s =\n' % lst, 1)[1].split('\n  ]', 1)[0]
+        names += re.findall(r'\("([\w-]+)",\s*\[', body)
+    readme = subprocess.run(['wrap80', '--unwrap'], input=open(README).read(),
+                            capture_output=True, text=True, check=True).stdout
+    declared = set()
+    for m in DECLARED_AFTER_RE.finditer(readme):
+        declared |= set(re.findall(r'`([\w.-]+)`', m.group(1)))
+    real = declared & set(names)
+    fake = [n for n in ('stretch-rank12', 'stretch-inner256')
+            if n in names and n not in real]
+    assert len(fake) == 2, 'the two planted shapes must be undeclared'
+    was = len(names) - len(real)
+    now = was - len(fake)
+    doc = subprocess.run(['wrap80', '--unwrap'], input=rundoc_text(),
+                         capture_output=True, text=True, check=True).stdout
+    # README quotes the run's population too, so both documents move.
+    pat = re.compile(r'\bover (all )?%d shapes' % was, re.I)
+    assert pat.search(doc), 'the run file quotes no `over %d shapes`' % was
+    down = lambda m: 'over %s%d shapes' % (m.group(1) or '', now)  # noqa: E731
+    doc = pat.sub(down, doc)
+    readme = pat.sub(down, readme)
+    anchor = '## Provenance\n'
+    assert readme.count(anchor) == 1
+    readme = readme.replace(anchor, anchor + '\n`%s` and `%s` were added'
+                            ' 2026-09-02, after the run.\n' % tuple(fake), 1)
+    return {'readme': write(os.path.join(tmp, 'R.md'), readme),
+            'rundoc': write_rundoc(tmp, doc)}
+
+
 def edited_readme(tmp, *edits, **kw):
     """A copy of the live README with each (old, new) applied exactly once.
 
@@ -6106,6 +6155,29 @@ RECORDS = [
          argv=['--check-doc', '--quiet', '--readme', '{readme}',
                '--run-doc', '{rundoc}'],
          ok=V(hasnt=['shape counts disagree with Main.hs'])),
+
+    case('main-shapes-added-after-the-run-are-exempt', 'read-run.py', None,
+         "a main-set shape added between runs failed every `over N shapes`"
+         " the run file quotes",
+         # Two main-set shapes landed 2026-09-02 for Run 24 with Run 23's
+         # file the newest, and the population check held that file's
+         # `over 24 shapes` to Main.hs's 26, where the class-shape checks
+         # beside it already read the provenance bullet's declaration and
+         # exempted the class shapes named there. The same declaration now
+         # exempts main-set shapes from the population sizes, and the
+         # roster-size sites alone stay held to today's Main.hs, being
+         # sentences about the roster as it stands and not about a run.
+         #
+         # The fixture builds its own subject, as its sibling above does,
+         # and derives its figure: `plant_main_shapes_exempt` declares two
+         # main-set shapes never added after any run and moves every
+         # `over N shapes` the run file quotes at its true size down by
+         # two, so nothing here is a number a later main-set change can
+         # leave stale.
+         plant=plant_main_shapes_exempt,
+         argv=['--check-doc', '--quiet', '--readme', '{readme}',
+               '--run-doc', '{rundoc}'],
+         ok=V(hasnt=['match no population Main.hs defines'])),
 
     # ---- the run and smoke drivers -----------------------------------------
     case('gate-arms-track-the-selection', 'run-gate.sh', 'febc2bd',

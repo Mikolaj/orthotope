@@ -28,6 +28,23 @@ MUTANTS = [
     # round fails the first check on every shape it finds in Main.hs.
     ('read-run selftest stops checking the shape parse', 'read-run.py',
      "            if d['l'] != want:", "            if d['l'] == want:", READER),
+    # The population check's exemption for main-set shapes declared added
+    # after the run: dropped, the fixture of the case
+    # `main-shapes-added-after-the-run-are-exempt` fails on `match no
+    # population`. The judge plants that fixture itself and runs the check,
+    # rather than going through defect-run.py, which refuses a copy that
+    # is in no git repository -- this one is not.
+    ('check-doc holds the run file to today\'s main set', 'read-run.py',
+     '        main_at_run = [s for s in main_shapes if s not in added_after]',
+     '        main_at_run = main_shapes',
+     'PATH="{bin}:$PATH" python3 -c "import importlib.util, sys, tempfile, subprocess\n'
+     'spec = importlib.util.spec_from_file_location(\'d\', \'{dir}/defects.py\')\n'
+     'm = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)\n'
+     'out = m.plant_main_shapes_exempt(tempfile.mkdtemp())\n'
+     'r = subprocess.run([sys.executable, \'{file}\', \'--check-doc\', \'--quiet\','
+     ' \'--readme\', out[\'readme\'], \'--run-doc\', out[\'rundoc\']],'
+     ' capture_output=True, text=True)\n'
+     'sys.exit(1 if \'match no population\' in r.stdout + r.stderr else 0)"'),
     # The three properties, each broken as its 2026-08-17 proof did: every
     # unit labelled `ns` fails the round-trip on every figure; a reader that
     # refuses every run fails the third on every run.

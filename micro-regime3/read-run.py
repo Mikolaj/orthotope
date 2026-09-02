@@ -8520,6 +8520,15 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
         # the case agreement alone cannot see.
         dims = dims_by_shape(main_hs)[0]
         main_shapes = [s for s, d in dims.items() if d['lst'] in MAIN_LISTS]
+        # The main set as the newest run file measured it: a main-set shape
+        # the provenance bullet declares added after the run is exempt from
+        # the population sizes below, exactly as a class shape is from the
+        # class counts, since 2026-09-02 -- two main-set shapes landed for
+        # Run 24 and held Run 23's `over 24 shapes` to Main.hs's 26. The
+        # roster-size sites stay held to today's main set, being sentences
+        # about the roster as it stands. Case:
+        # `main-shapes-added-after-the-run-are-exempt`.
+        main_at_run = [s for s in main_shapes if s not in added_after]
         class_sizes = {}
         for s, d in dims.items():
             if d['cls'] != 'main' and s not in added_after:
@@ -8556,7 +8565,8 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
         # run reruns subsets of them, so requiring every figure there fails
         # right prose. Told apart 2026-08-26 by planting a subset mention
         # into each.
-        pops = {len(main_shapes)} | {len(v) for v in class_sizes.values()}
+        pops = ({len(main_shapes), len(main_at_run)}
+                | {len(v) for v in class_sizes.values()})
         quoted = {int(n) for n in re.findall(r'\bover\s+(?:all\s+)?(\d+)'
                                              r' shapes', uw, re.I)}
         if not quoted:
