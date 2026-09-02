@@ -5510,7 +5510,12 @@ throughout:
     #      waiter on the file rather than on a process --
     #      `until grep -q 'major run complete' $R-wallclock.log; do sleep
     #      300; done` -- since the pid cannot be polled from inside the
-    #      sandbox and the file is what the sequence actually writes
+    #      sandbox and the file is what the sequence actually writes.
+    #      WHERE THE HARNESS WAKES YOU WHEN A BACKGROUND COMMAND EXITS,
+    #      the driver itself launched that way is the waiter and none
+    #      is owed: Run 23 ran the gate, the sequence, the riders and the
+    #      counts so, a ten-hour command included, and set a file watcher
+    #      beside the sequence only for its per-process lines
     #      nothing else on the machine, and no edit to the tree, until it
     #      ends: the driver's git lines are the binary's provenance
     #      never raise -L on a recorded run -- the figures stop being
@@ -6642,7 +6647,13 @@ nothing was missed, which is what they have cost.
     #      * WRAPPING IS NOT A PRECONDITION, since 2026-09-01: --replace,
     #        --delete and --para match the flattened form, so an anchor
     #        spanning a line break is found on either form and nothing is
-    #        unwrapped before editing or after a commit's re-wrap. What
+    #        unwrapped before editing or after a commit's re-wrap. AND SET
+    #        THE TURN-END HOLD HERE, clearing it at 11 -- one touch of
+    #        ~/.claude/state/turn-end-hold/$CLAUDE_CODE_SESSION_ID, per
+    #        ~/.claude/rules/turn-end-hold.md: every wait on a job or an
+    #        agent below ends a turn, the Stop hook rewraps at each, and
+    #        Run 23 paid an unwrap at the head of every editing call and
+    #        two failed edit batches for want of it (2026-09-02). What
     #        still breaks on one is an EXACT-MATCH edit -- which is why
     #        the next bullet prefers the anchor, and why step 5's link
     #        repoint, a literal rename, still asks for the unwrapped
