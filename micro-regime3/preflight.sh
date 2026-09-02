@@ -79,20 +79,41 @@ set -u
 cd "$(dirname "$0")" || exit 1
 
 if [ $# -lt 1 ]; then
-  echo "usage: ./preflight.sh RUN [--note]   # e.g. run17"
-  echo "  --note   steps 10c, 10d and 8 alone -- the ones that read what the"
-  echo "           preparation WROTE, in seconds and with no binary needed"
+  echo "usage: ./preflight.sh RUN [--note|--no-corpus|--corpus]  # e.g. run17"
+  echo "  --note        steps 10c, 10d and 8 alone -- the ones that read what"
+  echo "                the preparation WROTE, in seconds and with no binary"
+  echo "  --no-corpus   everything but 8c and 8d, the two that read every run"
+  echo "                JSON on disk: run this, launch 11 and 12, and take"
+  echo "                the two afterwards with --corpus"
+  echo "  --corpus      8c and 8d alone"
   exit 2
 fi
 R=$1
 NOTE_ONLY=0
+# 8c reads every run JSON on disk and 8d plants fixtures beside them, so
+# neither may run while a sweep is WRITING one: a smoke JSON caught
+# half-written fails prop_selftest_over_the_corpus with a traceback, on a
+# file no run produced. The list keeps them before step 11 for that
+# reason, which costs the roster pass -- the pre-run half's longest step
+# -- the minutes they take. These two flags are the way out: everything
+# else first, the sweeps launched, and the corpus read when they land.
+# Split 2026-09-03, after Run 24's preparation ran 8d beside a roster
+# pass still writing its last leg and read the traceback as a defect.
+CORPUS=1
+REST=1
 shift
 for a in "$@"; do
   case $a in
     --note) NOTE_ONLY=1 ;;
-    *) echo "unknown argument '$a' -- ./preflight.sh RUN [--note]"; exit 2 ;;
+    --no-corpus) CORPUS=0 ;;
+    --corpus) REST=0 ;;
+    *) echo "unknown argument '$a' --" \
+            "./preflight.sh RUN [--note|--no-corpus|--corpus]"; exit 2 ;;
   esac
 done
+if [ "$CORPUS" = 0 ] && [ "$REST" = 0 ]; then
+  echo "--no-corpus and --corpus together ask for nothing to run"; exit 2
+fi
 HALVES_SET=$(./pair-halves.sh "$R") || exit 2   # the note's HALVES line,
 eval "$HALVES_SET"                                # refused loudly without
 if [ "$NOTE_ONLY" = 0 ]; then
@@ -238,6 +259,7 @@ fi
 echo "preflight for $R: basis $BASIS, control $OTHER"
 echo
 
+if [ "$REST" = 1 ]; then
 "./$R-$BASIS" check > "$TMP/a.log" 2>&1; ra=$?
 "./$R-$OTHER" check > "$TMP/b.log" 2>&1; rb=$?
 if [ "$ra" != 0 ] || [ "$rb" != 0 ]; then
@@ -291,14 +313,6 @@ step_8
   && say 8b PASS "the families and the two linters over this directory" \
   || say 8b FAIL "lint: $(tail -2 "$TMP/fam" | head -1)"
 
-./properties.py > "$TMP/prop" 2>&1 \
-  && say 8c PASS "properties over every run JSON here" \
-  || say 8c FAIL "properties: $(grep -m1 FAIL "$TMP/prop")"
-
-defect-run.py . > "$TMP/cs" 2>&1 \
-  && say 8d PASS "every planted defect refused again" \
-  || say 8d FAIL "defect-run: $(tail -1 "$TMP/cs")"
-
 # The regime, in the binary, which nothing later can confirm. Read as
 # README reads it: baseOffsetsScan against baseOffsetsMut on vgg-14-c512,
 # equal to three figures under SpecConstr and ten times apart at plain -O1.
@@ -337,12 +351,31 @@ fi
 ./loop-offsets.py --library "$R-$BASIS" "$R-$OTHER" > "$TMP/lib" 2>&1 \
   && say 10 PASS "$(grep -m1 'same offset' "$TMP/lib" | sed 's/^ *//')" \
   || say 10 FAIL "--library refused: $(tail -1 "$TMP/lib")"
+fi
+
+# 8c and 8d LAST, and not merely last in the printing: they are the two
+# that read every run JSON on disk, so putting them at the end is what
+# lets --no-corpus stop short of them, the sweeps run, and --corpus take
+# them afterwards. Whichever way, they never share the directory with a
+# sweep that is still writing.
+if [ "$CORPUS" = 1 ]; then
+./properties.py > "$TMP/prop" 2>&1 \
+  && say 8c PASS "properties over every run JSON here" \
+  || say 8c FAIL "properties: $(grep -m1 FAIL "$TMP/prop")"
+
+defect-run.py . > "$TMP/cs" 2>&1 \
+  && say 8d PASS "every planted defect refused again" \
+  || say 8d FAIL "defect-run: $(tail -1 "$TMP/cs")"
+fi
 
 echo
 if [ "$BAD" -eq 0 ]; then
   echo "all clear. NOT done here and still owed: 9b, the pair's own variable,"
   echo "which only $R-pair.txt can name; and 11 and 12, which the note records"
   echo "and a spent preparation inherits. Then the run list, from step 13."
+  [ "$CORPUS" = 1 ] || echo "  8c and 8d did NOT run: --corpus takes them" \
+                            "once 11 and 12 have landed."
+  [ "$REST" = 1 ] || echo "  ONLY 8c and 8d ran; this is no preflight."
 else
   echo "$BAD step(s) FAILED -- read them before anything that costs an evening."
 fi
