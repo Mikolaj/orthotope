@@ -37,11 +37,10 @@ if [ $# -lt 1 ]; then
   exit 2
 fi
 R="$1"
-OTHER=${OTHER:-spot}       # the pair's two halves, as in run-major.sh,
-BASIS=${BASIS:-g912}        # run-gate.sh, preflight.sh and
-                             # install-tables.sh, which carries OTHER too:
-                             # FIVE files, and pre-run step 2b is where they
-                             # are set together
+# The pair's two halves, from the note's `HALVES:` line through
+# pair-halves.sh, as every script here reads them since 2026-09-02.
+HALVES_SET=$(./pair-halves.sh "$R") || exit 1   # the note's HALVES
+eval "$HALVES_SET"                                # line, and nothing else
 
 # A pair is two halves; run-major.sh says what one name in both costs. Here
 # the control-half process sweeps the basis and the sweep still reads clean.

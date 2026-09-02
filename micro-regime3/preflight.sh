@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # The pre-run list's steps 4 to 10, in one call.
 #
-#     ./preflight.sh run19            # reads BASIS/OTHER as the others do
+#     ./preflight.sh run19            # the halves from the note's HALVES line
 #     ./preflight.sh run19 --note     # 10c, 10d and 8 alone, seconds
 #
 # 10c runs THIRD rather than last, ahead of every expensive step: it and 8
@@ -12,12 +12,10 @@
 # note or a registration edited after a full pass. It is NOT a preflight
 # and says so on every run.
 #
-# Its defaults moved to Run 23's halves at pre-run step 2b on 2026-09-01,
-# with run-major.sh's, run-gate.sh's, smoke-sweep.sh's and
-# install-tables.sh's -- BASIS unchanged, OTHER from ghead to spot. The
-# non-vacuity note below was taken on Run 17's pair and names its halves;
-# re-reading it wants `OTHER=det BASIS=wildlog` on the launch line, which
-# is what those two variables are for.
+# The halves come from the note's `HALVES:` line through pair-halves.sh
+# since 2026-09-02, as in every script here; there is no default to move.
+# The non-vacuity note below was taken on Run 17's pair and names its
+# halves, and re-reading it wants that pair's note.
 #
 # Eight tool calls became one. That is not the point: the point is that
 # step 8 is the one README says is skipped most often, and a script cannot
@@ -92,12 +90,8 @@ for a in "$@"; do
     *) echo "unknown argument '$a' -- ./preflight.sh RUN [--note]"; exit 2 ;;
   esac
 done
-OTHER=${OTHER:-spot}
-BASIS=${BASIS:-g912}
-if [ "$OTHER" = "$BASIS" ]; then
-  echo "!! OTHER and BASIS are both '$BASIS' -- a pair is two halves"
-  exit 2
-fi
+HALVES_SET=$(./pair-halves.sh "$R") || exit 2   # the note's HALVES line,
+eval "$HALVES_SET"                                # refused loudly without
 if [ "$NOTE_ONLY" = 0 ]; then
   for h in $OTHER $BASIS; do
     [ -x "./$R-$h" ] || { echo "missing ./$R-$h -- $R-pair.txt has the recipe"
@@ -207,24 +201,12 @@ step_8 () {
     say 10c FAIL "no $R-pair.txt -- the note is written at pre-run step 2"
   fi
 }
-step_10d () {  # 10d. AND THAT THE NOTE NAMES THE HALVES THIS WAS LAUNCHED
-  # WITH: BASIS/OTHER come from the note, never from a half's name, and a
-  # wrong OTHER stops run-major.sh at a missing binary while smoke-sweep.sh
-  # sweeps the wrong half and looks clean (README, pre-run 2b). The note is
-  # the authority, so the variables are held to it and not it to them.
-  # Nothing to hold when the note is absent -- 10c has already FAILed.
-  # Non-vacuity 2026-09-01, on stub notes made and removed in one call: a
-  # note naming both halves PASSes, one naming only the basis FAILs naming
-  # the other's binary.
-  [ -f "$R-pair.txt" ] || return 0
-  MISS=$(for h in $BASIS $OTHER; do
-           grep -q "$R-$h" "$R-pair.txt" || echo "$R-$h"; done)
-  if [ -z "$MISS" ]; then
-    say 10d PASS "the note names both halves, $R-$BASIS and $R-$OTHER"
-  else
-    say 10d FAIL "$R-pair.txt never names: $(echo $MISS) -- BASIS/OTHER come\
- from the note (pre-run 2/2b), so one of the two is wrong"
-  fi
+step_10d () {  # 10d. AND WHICH HALVES THE NOTE NAMES, read back: since
+  # 2026-09-02 every script takes them from the note's HALVES line through
+  # pair-halves.sh, which refused above if the line was absent, unparseable
+  # or contradicted by the environment -- so what is left to say here is
+  # what it read, for the operator to hold against the recipes below it.
+  say 10d PASS "HALVES line: basis=$BASIS other=$OTHER, and every script reads it"
 }
 if [ "$NOTE_ONLY" = 1 ]; then
   echo "preflight for $R: the note and the documents alone"

@@ -63,11 +63,13 @@ PREFIX="$R"                  # the binaries and their note carry the run, as
 # 10, so a run repeating that one inherits its process position. It does
 # not inherit the binary: reusing a previous basis binary was refused on
 # 2026-08-16 and every pair is built here, both halves back to back. Both halves run every class, which they did not before
-# 2026-08-14 -- the loop below says what changed and why. Change these two names per pair -- and
-# nothing else here, the counting below being what makes a wrong selection
-# loud in the log rather than at the write-up.
-OTHER=${OTHER:-spot}
-BASIS=${BASIS:-g912}
+# 2026-08-14 -- the loop below says what changed and why. The names come
+# from the note's `HALVES:` line through pair-halves.sh, which refuses an
+# environment that disagrees with it: nothing is set here, and the
+# counting below is what makes a wrong selection loud in the log rather
+# than at the write-up.
+HALVES_SET=$(./pair-halves.sh "$R") || exit 1   # the note's HALVES
+eval "$HALVES_SET"                                # line, and nothing else
 HALVES="$OTHER $BASIS"
 # A pair is two halves, and nothing downstream can tell that it is not. With
 # the two names equal, every second process writes the JSON the one before it

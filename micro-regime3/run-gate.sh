@@ -59,10 +59,10 @@ PREFIX="$1"                  # the binaries, the note and this gate's own
                              # as a previous attempt
 # The pair's two halves, as in run-major.sh and for the same reason: BASIS is
 # the half the bench count is read from and the one the run's tables come
-# from. Keep the two scripts' names in step, a gate being about the pair the
-# run will use.
-OTHER=${OTHER:-spot}
-BASIS=${BASIS:-g912}
+# from. Both come from the note's `HALVES:` line through pair-halves.sh, so
+# the gate and the run cannot name different pairs.
+HALVES_SET=$(./pair-halves.sh "$PREFIX") || exit 1   # the note's HALVES
+eval "$HALVES_SET"                                # line, and nothing else
 # A pair is two halves; run-major.sh says what one name in both costs. Here
 # the palindrome collapses to one binary read against itself.
 if [ "$OTHER" = "$BASIS" ]; then

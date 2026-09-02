@@ -79,12 +79,11 @@ WHAT THIS PAIR MEASURES [PAIR'S]: one variable, named here, and nothing else. Sa
 what the halves differ in and what they do not.
 
 THE BASIS IS $R-<basis> [PAIR'S] -- it publishes the big table, the bench counts are
-read from it, every --in-place table comes from it, and it runs second. Set
-BASIS and OTHER in all five scripts that take a run -- run-major.sh,
-run-gate.sh, smoke-sweep.sh, preflight.sh and install-tables.sh; check
-them rather than assuming, and say here that you did. The one
-that is easiest to leave is install-tables.sh, which is the one that writes
-eleven tables into the run's own file.
+read from it, every --in-place table comes from it, and it runs second. The
+line below is the ONE place the two names are set: every script that takes
+a run reads it through pair-halves.sh, and an environment that names them
+differently is refused. Nothing is set in any script.
+HALVES: basis=<basis> other=<other>
 
 NAMING THE HALVES [SAME]: neither name may begin with the other's followed by a
 hyphen. install-tables.sh finds the basis's class JSONs by globbing
@@ -196,6 +195,9 @@ downstream notices -- the counts come out right, the gate passes, and the
 registration the pair was built to answer comes back empty.
     <env> ./run-gate.sh $R
     <env> ./run-major.sh $R &
+  The machine form of <env>, which run-evening.sh puts in front of every
+  stage; `LAUNCH: none` for a pair that wants nothing:
+LAUNCH: <NAME=value ...>
   Both drivers record what they were launched with, `launch env: ...`, in
   the gate's output and in the wallclock log, set or unset. Say here that
   the executor reads that line back rather than trusting the command it
@@ -212,6 +214,9 @@ pair's own four (or two) lines out, control first:
     <env> SAT=1    ./run-alonelegs.sh $R <basis>
   `SAT=` is the rider's spelling and reaches the process as SATURATE=.
   Every leg refuses a machine above 5% non-idle, MAXBUSY overriding.
+  The machine form, which run-evening.sh reads: `clean`, `clean sat`, or
+  `none` for a pair that owes no riders:
+RIDERS: clean sat
 
 THE COUNTS [SAME], owed with the pair, wanting no quiet machine, and over
 EVERY population rather than the main set alone -- the empty first

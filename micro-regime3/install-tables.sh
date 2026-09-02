@@ -62,15 +62,12 @@ if [ $# -lt 1 ]; then
   exit 2
 fi
 R="$1"
-OTHER=${OTHER:-spot}       # the other half, for the cross-half line the
-                            # class-block form calls item 5: --block reads
-                            # it only when given the second JSON, and a run
-                            # that recorded one half has no such line owed
-BASIS=${BASIS:-g912}        # one of the five files carrying a half's name,
-                             # and it carries OTHER too, four lines up;
-                             # run-major.sh, preflight.sh,
-                             # run-gate.sh and smoke-sweep.sh are the
-                             # others, set together at pre-run step 2b
+# Both halves from the note's `HALVES:` line through pair-halves.sh: the
+# basis every table comes from, and the other half for the cross-half line
+# the class-block form calls item 5, which --block reads only when given
+# the second JSON.
+HALVES_SET=$(./pair-halves.sh "$R") || exit 1   # the note's HALVES
+eval "$HALVES_SET"                                # line, and nothing else
 # The run's own file, named after the run this driver was given -- not the
 # newest in runs/, which is what read-run.py defaults to: installing run19's
 # tables while run20.md exists is a mistake this can refuse and that one

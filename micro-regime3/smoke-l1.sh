@@ -3,7 +3,7 @@
 #
 #     ./smoke-l1.sh run22                  # main set + the scaled class
 #     ./smoke-l1.sh run22 scaled runs      # and a leg per class named
-#     BASIS=g912 ./smoke-l1.sh run22       # reads BASIS as the others do
+#     ./smoke-l1.sh run22                  # the basis from the note's HALVES line
 #
 # Step 12 is owed when `--list` changed membership and the pair note
 # records no pass. It is not a measurement: what it asks is whether the
@@ -68,7 +68,8 @@ if [ $# -lt 1 ]; then
 fi
 R=$1; shift
 CLASSES=${*:-scaled}
-BASIS=${BASIS:-g912}
+HALVES_SET=$(./pair-halves.sh "$R") || exit 1   # the note's HALVES
+eval "$HALVES_SET"                                # line, and nothing else
 BIN="./$R-$BASIS"
 
 [ -x "$BIN" ] || { echo "!! no $BIN -- wrong run, wrong BASIS, or the half is not built"; exit 2; }
