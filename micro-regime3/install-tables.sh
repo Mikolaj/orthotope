@@ -110,7 +110,19 @@ done
 # against: one bolded lead per class, and a lead with no JSON is a table
 # that will not be written. Found 2026-08-16 by withholding one class JSON
 # and watching ten tables install in silence.
-LEADS=$(grep -o '^\*\*`[a-z0-9]*`' "$DOC" | tr -d '*`' | sort)
+# READ FROM THE CLASS SECTION ALONE, since 2026-09-02: a block's lead
+# sits between `## The stride classes, run by run` and `## Provenance`,
+# and a paragraph elsewhere that opens with a bolded backticked name is
+# not one -- Run 23's head opened two with an ARM's name, `mut-odo` among
+# them, and the hyphen check below refused the whole install over a lead
+# that was never a block's. --check-doc refuses a stray CLASS name outside
+# the section; an arm's name it cannot know, so the scope is what settles it.
+CLASS_SECTION=$(sed -n '/^## The stride classes, run by run$/,/^## Provenance$/p' "$DOC")
+[ -n "$CLASS_SECTION" ] || { echo "!! no '## The stride classes, run by run'"
+  echo "   section ending at '## Provenance' in $DOC, so no class block can"
+  echo "   be found and nothing is installed"; exit 1; }
+LEADS=$(printf '%s\n' "$CLASS_SECTION" | grep -o '^\*\*`[a-z0-9]*`' \
+          | tr -d '*`' | sort)
 [ -n "$LEADS" ] || { echo "!! no class block leads in $DOC --"
   echo "   the check that a class is not silently skipped has"
   echo "   nothing to check against, so it did not run"; exit 1; }
@@ -119,8 +131,8 @@ LEADS=$(grep -o '^\*\*`[a-z0-9]*`' "$DOC" | tr -d '*`' | sort)
 # lead slipped both, they agreed, and the cross-check below could not fire
 # -- the block then ran inside the one above it and took its figures.
 # Found 2026-08-22 by review. Case: `install-refuses-a-hyphenated-lead`.
-HYPHENATED=$(grep -o '^\*\*`[a-z0-9][a-z0-9-]*`' "$DOC" | tr -d '*`' \
-               | grep -- -)
+HYPHENATED=$(printf '%s\n' "$CLASS_SECTION" \
+               | grep -o '^\*\*`[a-z0-9][a-z0-9-]*`' | tr -d '*`' | grep -- -)
 if [ -n "$HYPHENATED" ]; then
   echo "!! a class block lead in $DOC carries a hyphen, which neither pattern"
   echo "   here can find and run-major.sh refuses in a class name:"
@@ -134,13 +146,10 @@ if [ -n "$MISSING" ]; then
   echo "   $R-$BASIS-*.json, so their tables would go silently uninstalled:"
   printf '%s\n' "$MISSING" | sed 's/^/     /'
   # AND THE LINE EACH WAS FOUND ON, because the JSON is usually present and
-  # the block is not: a paragraph anywhere in the document that begins a
-  # line with a bolded class name is indistinguishable from a block's lead,
-  # so this refuses naming a file that is sitting right there. Run 20 wrote
-  # `**`reshape1` sits apart at 0.9995**` into the chapter head and lost a
-  # long evening to the message above; printing the lead ends it in one
-  # call. read-run.py --check-doc now refuses such a lead outright, and
-  # this is the other end of the same defect.
+  # the block is not. Run 20 wrote `**`reshape1` sits apart at 0.9995**`
+  # into the chapter head and lost a long evening to the message above;
+  # printing the lead ends it in one call. The class section is the only
+  # part read for leads now, so what this names is a lead inside it.
   echo "   the lead each was found on -- a block's lead sits in the class"
   echo "   section, and anything else here is a paragraph that merely"
   echo "   begins with a bolded class name:"
@@ -243,9 +252,15 @@ import os, re, subprocess, sys
 R, BASIS, DOC, LEADS = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
 OTHER = sys.argv[5]
 doc = open(DOC).read(); paras = doc.split('\n\n')
+# The class section alone, as the shell above reads it: its heading to the
+# next `## `.
+sec = next(i for i, p in enumerate(paras)
+           if '\n## The stride classes, run by run' in '\n' + p)
+sec_end = next(i for i in range(sec + 1, len(paras))
+               if '\n## ' in '\n' + paras[i])
 leads = {}
-for i, p in enumerate(paras):
-    m = re.match(r'\*\*`([a-z0-9]+)` ---', p.lstrip())
+for i in range(sec, sec_end):
+    m = re.match(r'\*\*`([a-z0-9]+)` ---', paras[i].lstrip())
     if m: leads[m.group(1)] = i
 # The class blocks are picked out twice in this one file, by the grep above
 # and by the pattern here, and this one asks for the dash the other does
