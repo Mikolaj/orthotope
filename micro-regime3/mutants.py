@@ -45,6 +45,26 @@ MUTANTS = [
      ' \'--readme\', out[\'readme\'], \'--run-doc\', out[\'rundoc\']],'
      ' capture_output=True, text=True)\n'
      'sys.exit(1 if \'match no population\' in r.stdout + r.stderr else 0)"'),
+    # era_main_hs's trim, dropped: the captured-run cases read `--claims`
+    # against a Main.hs trimmed to the run's own shapes, and untrimmed the
+    # population gate fires and suppresses every figure -- which is the
+    # state those cases were in on 2026-09-02, two red and one passing
+    # vacuously. The judge plants the control fixture and requires the
+    # figure to be listed, reaching the run through CORPUS because the
+    # copy holds tracked files alone.
+    ('era_main_hs stops trimming the main set', 'defects.py',
+     "        src = src[:i] + '\\n'.join(kept) + src[j:]",
+     "        src = src[:i] + '\\n'.join(entries) + src[j:]",
+     'python3 -c "import importlib.util, os, sys, tempfile, subprocess\n'
+     'spec = importlib.util.spec_from_file_location(\'d\', \'{dir}/defects.py\')\n'
+     'm = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)\n'
+     'run = os.path.join(os.environ[\'CORPUS\'], \'run23-g912-main.json\')\n'
+     'doc = m.rundoc_retirement_sentence(tempfile.mkdtemp(), False)\n'
+     'main = m.era_main_hs(tempfile.mkdtemp(), run)\n'
+     'r = subprocess.run([sys.executable, \'{dir}/read-run.py\', run,'
+     ' \'--claims\', \'--run-doc\', doc, \'--main\', main],'
+     ' capture_output=True, text=True)\n'
+     'sys.exit(0 if \'0.8271\' in r.stdout else 1)"'),
     # The three properties, each broken as its 2026-08-17 proof did: every
     # unit labelled `ns` fails the round-trip on every figure; a reader that
     # refuses every run fails the third on every run.

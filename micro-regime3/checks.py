@@ -36,7 +36,11 @@ STEPS = [
 UNCOVERED = {
     'preflight.sh': 'its steps are this suite and the reader\'s gates, so a '
                     'case would run them twice; what is its own is proved '
-                    'on stub halves in its header',
+                    'on stub halves in its header -- and what that costs is '
+                    'the record preflight-names-a-retired-callee, three of '
+                    'its steps having called a retired script from the '
+                    'retirement until the next preparation ran them, with '
+                    'nothing here able to see it',
     'machine-busy.sh': 'read by run-gate.sh, whose cases reach it; no case '
                        'of its own yet',
     'smoke-l1.sh': 'the reader\'s smoke sweep, driven by the run chapter; '

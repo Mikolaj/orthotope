@@ -1149,6 +1149,72 @@ def run_json(name):
     return p
 
 
+def era_main_hs(tmp, run):
+    """Main.hs with the main lists trimmed to the shapes a captured run has.
+
+    The three cases below read a CAPTURED run through `--claims`, whose
+    population gate holds the run to TODAY's main set and, when the run
+    falls short, prints a note and reads nothing back. Two main-set shapes
+    landed on 2026-09-02 for Run 24, which put every captured run on disk
+    at 24 of 26 and turned that gate on: the two `has` cases went red and
+    the `hasnt` case went VACUOUS, passing because every figure was
+    suppressed rather than because the sentence exempted one. Re-aiming
+    them at a newer run does not help -- no captured run can carry a shape
+    added after it -- so what they pass is the era's main set as far as
+    the run itself shows it, and no later addition can reach them.
+
+    Trimming only REMOVES entries, so every shape the run does carry keeps
+    its dims and its `l`. The assertion is the point: a trim that loses or
+    keeps the wrong names would leave the gate firing for a new reason and
+    the cases red for a reason nobody would look for.
+
+    AND THE LIVE GATE STAYS AS IT IS, ruled 2026-09-03: it looked as
+    though `--claims` should honour the declaration that the population
+    sizes honour since d08d6a5, and it should not. The gap cannot arise
+    where the procedure uses the mode -- post-run step 4a and
+    install-tables.sh both point it at `$R-<basis>-main.json`, this run's
+    own, built from today's Main.hs and carrying every shape by
+    construction -- so the only thing that ever tripped it was a fixture
+    aiming it at an older run, which is what this function is for. And
+    the note-and-exit-0 path is load-bearing besides: smoke-sweep.sh runs
+    `--claims` over the one-shape smoke run and wants exit 0, calling it
+    the read-back's only pre-run exercise, so making the shape gap
+    nonzero would fail the sweep. Do not re-propose it.
+    """
+    want = {r['reportName'].split('/')[0]
+            for r in json.load(open(run))[2]}
+    src = open(MAIN).read()
+    got = set()
+    for lst in MAIN_LIST_NAMES:
+        head = '\n%s =\n' % lst
+        i = src.index(head) + len(head)
+        j = src.index('\n  ]', i)
+        entries = re.split(r'\n(?=  [,\[] )', src[i:j])
+        kept = [e for e in entries
+                if (re.search(r'\("([\w-]+)",', e) or _NO).group(1) in want]
+        assert kept, '%s: the run shares no shape with %s' % (run, lst)
+        got |= {re.search(r'\("([\w-]+)",', e).group(1) for e in kept}
+        kept[0] = re.sub(r'^  , ', '  [ ', kept[0])
+        src = src[:i] + '\n'.join(kept) + src[j:]
+    assert got == want, ('trimmed main set %s the run\'s: only here %s, only'
+                         ' in the run %s' % ('is not', sorted(got - want),
+                                             sorted(want - got)))
+    return write(os.path.join(tmp, 'Main.hs'), src)
+
+
+class _NoMatch:
+    """A stand-in whose `group` is a name no shape list carries."""
+
+    @staticmethod
+    def group(_n):
+        return ''
+
+
+_NO = _NoMatch()
+
+MAIN_LIST_NAMES = ('convShapes', 'stretchShapes')
+
+
 def synth_json(tmp, pop='main', name=None, **kw):
     """One population as a file: `main`, or a class by name."""
     shapes = main_shapes() if pop == 'main' else class_shapes(pop)
@@ -2689,8 +2755,10 @@ def V(exit=None, has=(), hasnt=()):
 # reading of each case's gist, comment and verdicts against the closed
 # vocabularies of `defect-cases.py`, and merged into the record by `case()`
 # below. Kept apart from the case list so the list stays as it was written.
-# `proved` is not here: it is `ran` wherever a bug verdict exists, the
-# audit having watched it. The families that were judgement calls were read
+# `proved` is not here, with one exception: it is `ran` wherever a bug
+# verdict exists, the audit having watched it, and a record with NO CASE
+# has no audit to watch anything -- so where such a record's bug direction
+# was seen in real use, this table carries the `proved` and says why. The families that were judgement calls were read
 # a second time against their cases: two-spellings covers one quantity
 # derived two ways at two sites (`claims-arm-counted-per-registration`,
 # `ragged-gate-after-exclude`, `alloc-ceiling-over-the-named-cells`,
@@ -2705,6 +2773,25 @@ def V(exit=None, has=(), hasnt=()):
 # fired without either saying so reads as latent, and `harm_count` is given
 # only where a number is written.
 TIER1 = {
+    # ---- preflight.sh ----
+    'preflight-names-a-retired-callee': dict(
+        family='other:caller-left-behind', discovery='in-use', harm='fired',
+        trigger='pre-run steps 8b to 8d, run at any time after 27580a5',
+        ok='the three steps call defect-lint.py with the two linters,'
+           ' properties.py and defect-run.py',
+        bug='three FAILs reading `./check-scripts.py: No such file or'
+            ' directory`, so the three steps had not run since 2026-09-02',
+        # The one record that carries its own `proved`: it has no case, so
+        # no audit watches its bug direction, and what did watch it is the
+        # preparation that met the three FAILs. See the clause below.
+        proved='ran', harm_count=1,
+        notes='Watched 2026-09-02 at Run 24\'s preparation: the first'
+              ' ./preflight.sh run24 printed 8b, 8c and 8d FAILing, two of'
+              ' them quoting `./check-scripts.py: No such file or'
+              ' directory` and 8c with an empty message, its grep for FAIL'
+              ' finding none. One occurrence, that preparation, the steps'
+              ' having been dark from 27580a5 until the repair the same'
+              ' day. The three PASSed on the re-run.'),
     # ---- read-run.py, the first review's ----
     'install-lands-in-next-block': dict(family='scan-for-parse', discovery='review', harm='latent',
                       trigger='a run doc whose class block carries no table of its own',
@@ -4147,13 +4234,17 @@ RECORDS = [
          # go, this reports FIXTURE DID NOT BUILD, which is the honest
          # failure and not a false pass; re-aim it at whatever run is then
          # on disk. RE-AIMED 2026-08-23 from run14-lookrts to run18-g912,
-         # the artifacts up to Run 16 having been deleted that day. The
+         # the artifacts up to Run 16 having been deleted that day, and
+         # again 2026-09-02 to run23-g912 at Run 24's preparation, Run 18's
+         # and Run 19's having gone the same way. The
          # figure is the FIXTURE's, planted into the README copy rather
          # than read from the run, so it does not move with the run; what
          # the run has to be is CAPTURED rather than built.
          plant=lambda t: {'rundoc': rundoc_current_run_sentence(t),
-                          'run': run_json('run18-g912-main.json')},
-         argv=['{run}', '--claims', '--run-doc', '{rundoc}'],
+                          'run': run_json('run23-g912-main.json'),
+                          'main': era_main_hs(t, run_json('run23-g912-main.json'))},
+         argv=['{run}', '--claims', '--run-doc', '{rundoc}',
+               '--main', '{main}'],
          ok=V(has=['0.9312']),
          # No --audit: `--run-doc` postdates every commit this case could
          # replay against, so the older reader rejects the argv rather
@@ -4394,16 +4485,23 @@ RECORDS = [
          # CONTROL FIRST, below: the same figure in an ordinary sentence
          # is still listed, so this pair says the exemption is the word
          # `retires` and not the mode having stopped listing anything.
+         # The captured run is re-aimed as the case above is, and for the
+         # same reason: RE-AIMED 2026-09-02 from run19-g912, whose
+         # artifacts went with Run 19's.
          plant=lambda t: {'rundoc': rundoc_retirement_sentence(t),
-                          'run': run_json('run19-g912-main.json')},
-         argv=['{run}', '--claims', '--run-doc', '{rundoc}'],
+                          'run': run_json('run23-g912-main.json'),
+                          'main': era_main_hs(t, run_json('run23-g912-main.json'))},
+         argv=['{run}', '--claims', '--run-doc', '{rundoc}',
+               '--main', '{main}'],
          ok=V(hasnt=['0.8271'])),
 
     case('ordinary-sentence-still-listed', 'read-run.py', None,
          'CONTROL: an unattributed figure outside a retirement is listed',
          plant=lambda t: {'rundoc': rundoc_retirement_sentence(t, False),
-                          'run': run_json('run19-g912-main.json')},
-         argv=['{run}', '--claims', '--run-doc', '{rundoc}'],
+                          'run': run_json('run23-g912-main.json'),
+                          'main': era_main_hs(t, run_json('run23-g912-main.json'))},
+         argv=['{run}', '--claims', '--run-doc', '{rundoc}',
+               '--main', '{main}'],
          ok=V(has=['0.8271'])),
 
     case('results-names-an-older-basis-half', 'read-run.py', None,
@@ -6624,6 +6722,22 @@ RECORDS = [
          env={'DOC': '{doc}', 'BASIS': 'lookrts', 'OTHER': 'ovhalf'},
          argv=['zzit'],
          ok=V(exit=0, has=['12 table(s) installed'])),
+
+    # ---- preflight.sh, the pre-run list's steps 4 to 10 in one call -----
+    case('preflight-names-a-retired-callee', 'preflight.sh', '81876de',
+         'a retirement left preflight calling a script that had gone',
+         # NO CASE, and the reason is the one checks.py's UNCOVERED gives
+         # for the program: preflight's steps ARE this corpus and the
+         # reader's gates, so a case would run them twice. What that costs
+         # is this record. The retirement of check-scripts.py taught the
+         # README, checks.py and the reader chapter the new commands and
+         # left preflight's three calls behind, and nothing in the tree
+         # runs those calls, so the three steps were dark from 2026-09-02
+         # until Run 24's preparation ran them by hand. The bug direction
+         # was WATCHED rather than remembered -- the first
+         # `./preflight.sh run24` printed all three FAILs -- which is what
+         # `proved` says here without a case to replay it.
+         argv=None, ok=None),
 ]
 
 
