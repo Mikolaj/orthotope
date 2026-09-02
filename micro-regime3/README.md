@@ -335,10 +335,12 @@ and it is the reading rather than the threshold that was wrong**: at full budget
 BOTH halves put the crossover between `runs-1024` and `runs-65536`,
 so the difference this paragraph reads as a compiler's is the filtered sweep's
 own. A threshold read on one compiler is therefore not the other's,
-and a library taking this dispatch owes its own sweep; `dispRun` as it stands
-is cut to 9.12 and is a bracket's representative rather than a measurement.
-**And the two routes' thresholds are further apart than they were**:
-`canon-memcpy-r2` against `canon-vecdims` still crosses between `runs-3`
+and a library taking this dispatch owes its own sweep; `dispRun` as it stood
+was cut to 9.12 and was a bracket's representative rather than a measurement;
+on 2026-09-02 it was re-cut to 2048 by the one-binary probe under task 9,
+on the dead-spot binary, inside a bracket one step wide, `runs-1024`
+to `runs-4096`. **And the two routes' thresholds are further apart than they
+were**: `canon-memcpy-r2` against `canon-vecdims` still crosses between `runs-3`
 and `runs-9`, which the fix does not touch, so what Run 21 recorded as one step
 of the class between them is now two.
 
@@ -791,6 +793,43 @@ rather than a slot in the next run, observed again:
   in the same place**: why the count-down form pays, recovering most
   of the corner's loss at 0.9408 against it on 22 shapes of 24, is in [the
   mutable ceiling][ceiling]'s own write-up.
+- `OPEN` **What Run 24 is built to answer, registered before it runs ---
+  2026-09-02, on the pair [the next-run
+  section](runs/run23.md#what-the-next-run-compares-against) settles, ghc-9.12.4
+  and GHC HEAD both under `LOOP_DEADSPOT=1`, over the roster and shapes task 9
+  adds and the parkings of the same day: `lib-stage2-u4`, `lib-stage2-disp`
+  at 256, `mut-odo-vecdims-add-in-leaf`, `mut-odo-vecdims-add-in-leaf-down`
+  and `canon-memcpy-r2` to `Only`, each on a verdict Run 23 read on both
+  halves.** Each with a prediction and a kill condition, and the verdicts move
+  to Run 24's file with them. (1) *The short bodies.* `lib-stage2-short` reads
+  ahead of `lib-stage2` past each population's floor wherever the canonical
+  inner run is 2 to 5 --- the k3 and k5 main-set shapes, `window-28x28-k5`,
+  `window-224x224-k3` and `runs-2` to `runs-5` --- on both halves, and at count
+  ratio 1.0000 against it with its time inside the floor on every shape where
+  the body does not fire, `runs-7` and `window-128x128-k7` among them; killed
+  by a shape where the body fires reading it behind past the floor on both
+  halves, or by a count ratio off 1.0000 where it does not. (2) *The lean
+  dispatch.* `lib-stage2-lean` reads at or below `lib-stage2` within the floor
+  on every population, and ahead past the floor on the four smallest main-set
+  shapes, `lenet-slice-c6-k5`, `cnn-slice-c32`, `cnn-L1-6x6-c1`
+  and `cnn-L1-12x12-c1`; killed by any shape reading it behind past the floor
+  on both halves. (3) *The composite.* `lib-stage2-short-lean` reads at or below
+  the better of its two parents on every population within the floor; killed
+  by reading behind either parent past the floor on both halves. (4)
+  *The straddlers.* The survey names four straddling self-loops on each half,
+  the outer loops of `fillStage2`, `fillStage2Short` and the two `-u2` leaf
+  fills, their inner loops at offset 0, as Run 23's dead-spot half had them;
+  killed by a fill's inner loop straddling on either half. (5) *HEAD.* The HEAD
+  half reads (1) to (3) with the 9.12 half's verdicts, and Run 23's dead-spot
+  standings within two points --- `lib-stage2` against `lib-stage1` 0.95
+  on the main set and 1.01 on `slice`, `-u2` ahead of `-down` in every
+  population, the shipped route about four percent over the bare fill; killed
+  by any ordering in (1) to (3) reversing past HEAD's floor. (6)
+  *The threshold.* The dispatch arm task 9's probe picks reads at or below
+  the better of `lib-stage2` and `lib-stage2-concat` at every `runs` length
+  within that class's floor, on both halves; killed by reading behind the better
+  route past the floor at any length. The probe landed the same evening
+  and picked 2048 (task 9), so the arm is `lib-stage2-disp` re-cut to it.
 - `ANSWERED` **What Run 23 was built to answer, registered before it ran ---
   and what it answered.** The six registrations, their kill conditions and their
   verdicts are [in Run 23's own
@@ -817,19 +856,24 @@ rather than a slot in the next run, observed again:
   cost are each mis-cut. The headline is that Run 21's 2.43-to-4.54 regime-3
   regression is gone --- 0.74 to 1.03 on the same six populations.
 
-- `OPEN` **`dispRun` is now demonstrably mis-cut, and its right value
-  is a measurement rather than a guess.** The threshold was set at 256 when
-  the crossover sat between `runs-9` and `runs-96`; Run 22 puts the crossover
-  between `runs-1024` and `runs-65536` on BOTH compilers, so the slice route
-  fires three lengths too early and `lib-stage2-disp` is 6.65% behind stage two
-  at `runs-1024` on the basis and 4.22% on the control, past both floors. What
-  settles it is the cheapest pair this file has been able to name in four runs:
-  one binary, one new arm per candidate threshold, over the `runs` class alone.
+- `ANSWERED` **`dispRun` was demonstrably mis-cut, and its right value
+  is a measurement rather than a guess --- taken 2026-09-02 and re-cut
+  to 2048.** The threshold was set at 256 when the crossover sat between
+  `runs-9` and `runs-96`; Run 22 puts the crossover between `runs-1024`
+  and `runs-65536` on BOTH compilers, so the slice route fires three lengths too
+  early and `lib-stage2-disp` is 6.65% behind stage two at `runs-1024`
+  on the basis and 4.22% on the control, past both floors. What settles
+  it is the cheapest pair this file has been able to name in four runs: one
+  binary, one new arm per candidate threshold, over the `runs` class alone.
   It does not want an evening and it does not want a second recipe. **Run 23
   re-read it on both halves of one compiler, the pads in place on one and moved
   on the other: 5.75% behind stage two at `runs-1024` on the basis and 6.24%
   on the dead-spot half, past both floors, so the threshold's failure is neither
-  a compiler's nor a pad's.**
+  a compiler's nor a pad's.** **The pair ran the same day on the dead-spot
+  binary, one process over the `runs` class with an arm per candidate threshold:
+  the crossover sits between `runs-1024` and `runs-4096`, the 2048 arm
+  is nowhere behind the better route past the process's span, and `dispRun`
+  is 2048; the figures are under task 9.**
 
 - `OPEN` **A hand-edited table goes stale unchecked, and this is the second run
   running.** The run file carries two tables `--in-place` does not write ---
@@ -2309,7 +2353,33 @@ is planned. A scope limit belongs in the sentence that asks for the measurement.
    shapes, `lenet-slice-c6-k5` at 150 elements and `cnn-L1-12x12-c1` at 1296,
    where a per-call dispatch cost is a share of the call and `lib-stage2-lean`
    is predicted ahead of `lib-stage2` past the floor on both. The probe's
-   artifacts are `probe-disp2-runs.json` and its log, and its verdict goes here.
+   artifacts are `probe-disp2-runs.json` and its log. **ANSWERED the same
+   evening by that process: the crossover sits between `runs-1024`
+   and `runs-4096`, and the cut is 2048.** 812 benches, every one run,
+   the sixteen A/A pairs spanning 4.58% (`build-aa-distant`); against Run 23's
+   dead-spot `runs` process `list` reads 1.8% slower and the whole `lib-stage2`
+   family 5 to 6% slower at 0 of 11 shapes faster, a layout term of a binary
+   three arms and three views larger, so nothing here is read across to Run 23
+   and every reading is within the process. `lib-stage2` against `lib-stage1`
+   reads 0.9248 at `runs-1024`, 1.0493 at `runs-4096`, 1.1015 at `runs-16384`
+   and 1.1039 at `runs-65536`: the predicted bracket held and narrowed to one
+   step. The 2048 arm reads at or below the better of the two routes at every
+   length inside that span --- 0.9790 of `lib-stage2` at `runs-1024`,
+   then 1.0058, 1.0221 and 0.9952 of `lib-stage2-concat` at 4096, 16384
+   and 65536 --- where the 8192 arm is 5.1% and 5.7% behind the slice route
+   at 4096 and 16384, the 32768 arm 11% and 10%, both past the span, and the 256
+   arm 35.5% and 25.7% behind stage two at `runs-256` and `runs-512`, as on
+   Run 23. The allocation column is the routes' proof: the 2048 arm carries
+   the slice route's table from `runs-4096` up and the fill's nothing below,
+   exactly as its cut says, and the others likewise at theirs. The kill
+   condition did not fire, no candidate being behind the better route
+   everywhere. So `dispRun` is 2048, `lib-stage2-disp` is timed at it for Run
+   24, and the three probe arms are parked `Only`, spent. The shapes' sanity
+   readings off the same process: `lib-stage2-short` reads 1.0147
+   of `lib-stage2` on `runs-7`, level as predicted with the body not firing,
+   and 0.9128 at `runs-2`; the parked `-u4` fill 1.0980 at `runs-2` and 0.9683
+   at `runs-7`. The window and main-set shapes were outside the probe's
+   population and are Run 24's to read.
 
 **And one class not to repropose: work that needs an aligned build.**
 `mut-odo`'s wide interval is the live case. The dispersion is documented
@@ -2849,10 +2919,11 @@ was invisible even to `check` -- and `runs-256` and `runs-512`, bracketing
 change is read where a user would meet it, class by class, whichever of the two
 entry points the user takes, and the `runs` class is where the routes part;
 with the timed `-u2-down` the dispatch arm, the three fill candidates
-and the unordered pair the block takes the roster to 1320 benches, eight
-superseded arms parked permanently since Run 21, `offtab`'s twins removed
-with it. What the next run is registered to answer with them is [in the open
-list][open].
+and the unordered pair the block took the roster to 1320 benches,
+and the composite arm with the six parkings and two main-set shapes
+of 2026-09-02 takes the roster to 1352 benches, eight superseded arms parked
+permanently since Run 21, `offtab`'s twins removed with it. What the next run
+is registered to answer with them is [in the open list][open].
 
 **What the eight are worth as instruments, read against each other for the first
 time on 2026-08-14, over Runs 10 to 13.** Per class: the median A/A deviation
@@ -4577,13 +4648,14 @@ checked against the reference on every shape of every class, and not timed ---
 so the agreement net does not shrink and nothing has to be rewritten if a ruling
 is later reopened. The 23 arms the rulings dropped carry `Only` in that roster,
 each naming the bound or the multiple that disqualified it; with the controls
-the run is 55 arms, and the five library-shaped arms with the timed `-u2-down`,
+the run is 52 arms, and the five library-shaped arms with the timed `-u2-down`,
 added 2026-08-28 ([the stride
 classes](#the-stride-classes-and-what-they-cover)), less the eight parked
 permanently since Run 21 and `offtab`'s two twins removed ([its entry][open]),
-plus the six arms added 2026-08-30, takes the roster to 1320 benches. The three
-placement-family arms went to `Only` a run earlier, on 2026-08-25, so Run 20's
-1272 already excludes them and they are no part of this arithmetic.
+plus the six arms added 2026-08-30 and, on 2026-09-02, the composite arm less
+six parkings over two more main-set shapes, takes the roster to 1352 benches.
+The three placement-family arms went to `Only` a run earlier, on 2026-08-25,
+so Run 20's 1272 already excludes them and they are no part of this arithmetic.
 
 - **A strategy with a precondition is not measured.** The column allowed `none`,
   an empty cell, and `shape well-formed`, which is a condition on being a valid
@@ -9363,7 +9435,10 @@ tables and its fingerprint say so.
   process -0.40% against Run 22's fingerprint, so absolutes cross from Run 22
   freely and the boundary that stops them is still the BIOS change before
   Run 18. Its sequence ran in ONE window, all twenty processes,
-  and no population was rerun.
+  and no population was rerun. For Run 24 (task 9 and the registration beside
+  it), `runs-7`, `runs-4096`, `runs-16384` and `window-128x128-k7` were added
+  2026-09-02, after the run, and `lenet-slice-c6-k5` and `cnn-L1-12x12-c1`
+  were added 2026-09-02, after the run, to the main set.
 - Run 22 measured today's shapes, today's class views AND today's roster,
   nothing having been added since it ran, so its figures need no adjustment
   at all --- which no run before it in this chain can say. Its delta against RUN

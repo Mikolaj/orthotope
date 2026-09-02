@@ -2746,8 +2746,13 @@ fbLibStage2Concat sh (T (Strides ats) ao v)
 -- that pair selects the same route on every view this suite holds. The
 -- number is therefore a bracket's representative and not a measurement of
 -- its own, and a library taking this dispatch would want its own sweep.
+-- Cut to 256 on 2026-08-30 inside a bracket of 96 to 1024; re-cut to
+-- 2048 on 2026-09-02 by the one-binary probe README's task 9 records,
+-- which put the crossover between `runs-1024` and `runs-4096` on the
+-- dead-spot binary and read the 2048 arm nowhere behind the better route
+-- past the class's floor, where 8192 and 32768 were behind it at 4096.
 dispRun :: Int
-dispRun = 256
+dispRun = 2048
 
 -- 'fbLibStage2Concat' with the slice route taken only where the canonical
 -- run reaches 'dispRun' -- the dispatch on run length the runs class
@@ -3179,6 +3184,25 @@ fbLibStage2Lean sh (T (Strides ats) ao v)
       ([], _) -> whole
       ([_], [1]) -> whole
       (csh, cats) -> fillStage2 csh cats ao l v
+  where
+    l = product sh
+    whole | ao == 0 && VS.length v == l = v
+          | otherwise = VS.slice ao l v
+
+-- The two changes Run 23 left live, composed, added 2026-09-02 for Run
+-- 24: 'fbLibStage2Lean''s dispatch over 'fillStage2Short'. Each parent
+-- is one change over 'fbLibStage2' along its own axis, the dispatch or
+-- the fill, and stays timed as this arm's control on that axis; this is
+-- what would ship if both survive, and 'check' holds it to the reference
+-- on every view as it holds them.
+{-# NOINLINE fbLibStage2ShortLean #-}
+fbLibStage2ShortLean :: ShapeL -> T -> VS.Vector Double
+fbLibStage2ShortLean sh (T (Strides ats) ao v)
+  | l == 0 = VS.empty
+  | otherwise = case canonView sh ats of
+      ([], _) -> whole
+      ([_], [1]) -> whole
+      (csh, cats) -> fillStage2Short csh cats ao l v
   where
     l = product sh
     whole | ao == 0 && VS.length v == l = v
@@ -4136,8 +4160,12 @@ roster =
   , ("mut-odo-vecdims-down",       Only fbMutOdoVecdimsDown)
     -- not timed: the same reloads, see its definition
   , ("mut-odo-vecdims-add-in-down", Only fbMutOdoVecdimsAddInDown)
-  , ("mut-odo-vecdims-add-in-leaf", Fill fbMutOdoVecdimsAddInLeaf)
-  , ("mut-odo-vecdims-add-in-leaf-down", Fill fbMutOdoVecdimsAddInLeafDown)
+    -- Parked 'Only' 2026-09-02, after Run 23 read the ordering on both
+    -- halves: the shipped `-u2` leaf leads this one on every population
+    -- and its count-down twin in all twenty, so neither is an alternative
+    -- any more, and their slots go to Run 24's additions.
+  , ("mut-odo-vecdims-add-in-leaf", Only fbMutOdoVecdimsAddInLeaf)
+  , ("mut-odo-vecdims-add-in-leaf-down", Only fbMutOdoVecdimsAddInLeafDown)
   , ("mut-odo-vecdims-add-in-leaf-u2", Fill fbMutOdoVecdimsAddInLeafU2)
     -- Timed since 2026-08-28, parked 'Only' the day before: the
     -- lighter-loop form of the shipped arm, see its definition.
@@ -4153,7 +4181,11 @@ roster =
     -- every slot below moves by three more than the block above already
     -- carries.
   , ("canon-vecdims",              Fill fbCanonVecdims)
-  , ("canon-memcpy-r2",            Fill fbCanonMemcpyR2)
+    -- Parked 'Only' 2026-09-02: refused at Run 20, behind the arm it
+    -- varies on `window`
+    -- (README.md#the-two-stage-plan-and-the-rework-proposal), and timed
+    -- for three runs since without a question left.
+  , ("canon-memcpy-r2",            Only fbCanonMemcpyR2)
   , ("bcast-set",                  Fill fbBcastSet)
   , ("mid-copy",                   Fill fbMidCopy)
   , ("canon-full",                 Fill fbCanonFull)
@@ -4185,27 +4217,38 @@ roster =
     -- so the two are read as neighbours -- at the price that every slot
     -- below moves by one against Run 21, which any cross-run read of those
     -- slots has to carry.
+    -- Re-cut to 2048 on 2026-09-02 by the probe below, the cut at 256
+    -- having been killed by Run 22 on both compilers and by Run 23 on
+    -- both layouts; timed by Run 24 at the new cut, reasons at 'dispRun'.
   , ("lib-stage2-disp",            Fill fbLibStage2Disp)
     -- One arm per candidate threshold, added 2026-09-02 for the
     -- one-binary runs-class probe README's task 9 registers: the same
     -- dispatch with its threshold an argument ('libStage2DispAt', named
     -- per threshold beside it), cut at the three lengths between
     -- `runs-1024`, where Runs 22 and 23 read stage two ahead, and
-    -- `runs-65536`, where they read it behind. The entry above is their
-    -- control at 256, and 'lib-stage2' and 'lib-stage2-concat' the two
-    -- routes each dispatches between; every slot below moves by three.
-  , ("lib-stage2-disp-2048",       Fill fbLibStage2Disp2048)
-  , ("lib-stage2-disp-8192",       Fill fbLibStage2Disp8192)
-  , ("lib-stage2-disp-32768",      Fill fbLibStage2Disp32768)
+    -- `runs-65536`, where they read it behind, and timed beside the
+    -- entry above at 256 as their control. The probe ran the same day
+    -- (probe-disp2-runs.json) and picked 2048, which the entry above now
+    -- carries; the three are parked 'Only', spent, and stay checked.
+  , ("lib-stage2-disp-2048",       Only fbLibStage2Disp2048)
+  , ("lib-stage2-disp-8192",       Only fbLibStage2Disp8192)
+  , ("lib-stage2-disp-32768",      Only fbLibStage2Disp32768)
     -- Three candidates for the branch, added 2026-08-30 for Run 22: the
     -- run unrolled by four, a run of 2 to 5 elements written by a body
     -- of exactly that length, and the same fill under a leaner dispatch,
     -- each one change over 'lib-stage2'. Placed beside their control as
     -- the entry above is, and moving every slot below by three more;
     -- reasons at the definitions.
-  , ("lib-stage2-u4",              Fill fbLibStage2U4)
+    -- Parked 'Only' 2026-09-02: ruled out for the library at its
+    -- definition, and Run 23's dead-spot half read it behind its control
+    -- on `runs`, the one class it had a lead in.
+  , ("lib-stage2-u4",              Only fbLibStage2U4)
   , ("lib-stage2-short",           Fill fbLibStage2Short)
   , ("lib-stage2-lean",            Fill fbLibStage2Lean)
+    -- The two composed, added 2026-09-02 for Run 24, reasons at the
+    -- definition; placed beside its parents, every slot below moving by
+    -- one.
+  , ("lib-stage2-short-lean",      Fill fbLibStage2ShortLean)
     -- The list consumer under each stage, added the same day: the
     -- library's toVectorListT and one concatenation, so the pair prices
     -- the list's construction alone, reasons at the definitions.
