@@ -66,6 +66,7 @@ R="$1"
 # sum-only, so gating it asserts nothing and buries the eighteen this
 # driver exists to count -- Run 16 left 54 of them beside its 18.
 # Case: `alone-leg-riders-are-not-populations`.
+# shellcheck disable=SC2010  # the names here are the drivers' own, alphanumeric
 FILES=$(ls -1 "$R"-*.json 2>/dev/null \
           | grep -v -e "^$R-gate-" -e "^$R-al-")
 if [ -z "$FILES" ]; then
@@ -185,6 +186,7 @@ fi
 # too, indented behind its process's name, so that copy does not start the
 # line and is not counted twice here.
 PLATEAU_BAND=${PLATEAU_BAND:-5}
+# shellcheck disable=SC2010  # as above
 PLOGS=$(ls -1 "$R"-*.log 2>/dev/null \
           | grep -v -e "^$R-gate-" -e "^$R-al-" -e "^$R-wallclock\.log$")
 NPLOGS=$(printf '%s\n' "$PLOGS" | grep -c .)

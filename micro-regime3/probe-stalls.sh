@@ -127,7 +127,7 @@ done
 count() {  # count SHAPE ARM ITERS -> one field per event, comma-separated
   local f; f=$(mktemp)
   perf stat -x, -e "$EVENTS" -o "$f" "$B" $SEL -m glob "$1/$2" -n "$3" > /dev/null 2>&1
-  local out= e c
+  local out='' e c
   for e in ${EVENTS//,/ }; do
     c=$(grep ",$e," "$f" | cut -d, -f1)
     case $c in ''|*[!0-9]*) c=NaN ;; esac

@@ -6336,19 +6336,49 @@ def families():
         b, n = family_lint(f)
         bad += b + family_flags(f)
         note += n
-    for line in bad:
-        print('  FAIL %s' % line)
     if note:
         print('  note: %d site(s) of a shape worth a look, listed rather'
               ' than failed:' % len(note))
         for line in note:
             print('        %s' % line)
+    # THE TWO LINTERS, standing since 2026-09-02: pyflakes over the Python
+    # here and shellcheck over the shell drivers, which the AST families
+    # cannot reach. A linter off PATH is a finding and not a skip -- a
+    # session reported pyflakes absent after one failed import while the
+    # script sat in ~/.local/bin, and the checks went unrun for a day --
+    # so `command -v` decides, and its silence fails this step by name.
+    # Proved by hand 2026-09-02: under a PATH holding python3 alone, the
+    # shellcheck line below printed and the step FAILED; with both on
+    # PATH, both linters ran and the step read ok.
+    import shutil
+    pys = sorted(f for f in os.listdir(HERE)
+                 if f.endswith('.py') and not f.startswith('zz'))
+    shs = sorted(f for f in os.listdir(HERE)
+                 if f.endswith('.sh') and not f.startswith('zz'))
+    for tool, argv, files in (
+            ('pyflakes', [sys.executable, '-m', 'pyflakes'], pys),
+            ('shellcheck', ['shellcheck', '-S', 'warning', '-f', 'gcc'], shs)):
+        if tool == 'pyflakes':
+            have = subprocess.run(argv + ['--version'], cwd=HERE,
+                                  capture_output=True).returncode == 0
+        else:
+            have = shutil.which(tool) is not None
+        if not have:
+            bad.append('%s is not on PATH (`command -v %s` finds nothing),'
+                       ' so %d file(s) went unlinted' % (tool, tool, len(files)))
+            continue
+        r = subprocess.run(argv + files, cwd=HERE, capture_output=True,
+                           text=True)
+        for line in (r.stdout + r.stderr).strip().split('\n'):
+            if line.strip():
+                bad.append('%s: %s' % (tool, line.strip()))
+    for line in bad:
+        print('  FAIL %s' % line)
     if not bad:
         print('  ok   no dropped status, no unread flag and no import-time'
-              ' environment parse, over the %d Python file(s) here; the'
-              ' shell scripts are outside an AST family\'s reach'
-              % len([f for f in os.listdir(HERE) if f.endswith('.py')
-                     and not f.startswith('zz')]))
+              ' environment parse, over the %d Python file(s) here, and'
+              ' pyflakes over them and shellcheck over the %d shell'
+              ' script(s) both clean' % (len(pys), len(shs)))
     return len(bad)
 
 

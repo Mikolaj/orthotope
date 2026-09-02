@@ -107,6 +107,7 @@ fi
 #
 # The wall-clock log wants no operand of its own: `$R-*.log` already covers
 # it, and naming it besides listed it twice in the refusal.
+# shellcheck disable=SC2010  # the names here are the drivers' own, alphanumeric
 EXISTING=$(ls -1 "$R"-*.json "$R"-*.log 2>/dev/null \
              | grep -v -e "^$R-gate-" -e "^$R-al-")
 if [ -n "$EXISTING" ]; then

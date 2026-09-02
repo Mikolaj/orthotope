@@ -79,6 +79,7 @@ DOC=${DOC:-runs/$R.md}
 
 MAIN="$R-$BASIS-main.json"
 [ -f "$MAIN" ] || { echo "no $MAIN -- wrong run or wrong BASIS?"; exit 1; }
+# shellcheck disable=SC2010  # the names here are the drivers' own, alphanumeric
 CLASSES=$(ls -1 "$R-$BASIS"-*.json 2>/dev/null \
             | grep -v -- '-main\.json$' | grep -v "^$R-gate-")
 [ -n "$CLASSES" ] || { echo "no class JSONs for $R-$BASIS"; exit 1; }

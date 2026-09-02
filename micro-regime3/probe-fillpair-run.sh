@@ -13,7 +13,8 @@ export WILDLOG=1 SATURATE=1
 # `runs main slice`, which names no population, so the wrapper ran
 # nothing and still printed COMPLETE. Found 2026-09-01 by review.
 BAD=0
-for pop in ${*:-runs main slice}; do
+[ $# -gt 0 ] || set -- runs main slice
+for pop in "$@"; do
   for h in A B; do
     BIN=./probe-fill$h-g912 OUT=probe-fill$h ./probe-times.sh "$pop" \
       || { echo "!! probe-fill$h $pop complained"; BAD=$((BAD + 1)); }
