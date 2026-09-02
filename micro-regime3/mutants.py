@@ -12,8 +12,9 @@ reading of a check that needs a run.
 """
 
 COPY = 'tracked'
-ENV = {'CORPUS': '{root}'}
-# The properties read every run on disk, minutes at a time.
+# The properties over every run on disk are minutes a sweep and the judges
+# below sweep three times; a property is shown to fail on a run or two.
+ENV = {'CORPUS': '{root}', 'CORPUS_LIMIT': '2'}
 TIMEOUT = 900
 
 # The reader's selftest is asked of the first run on disk; the properties

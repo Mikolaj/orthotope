@@ -52,8 +52,8 @@ claim costs a line rather than a harness. Four sessions of review here
 built four harnesses and threw all four away, which is why two of these
 scripts reached this week never once executed by anything but a real run.
 The seams, in the order worth having them: `read-run.py`, `align-as.py`,
-`loop-offsets.py` and this file guard `main()` behind `__name__`, so they
-import clean and `--unit` evaluates against them (through `importlib`, the
+`loop-offsets.py` guard `main()` behind `__name__`, so they
+import clean and a record's `unit` evaluates against them (through `importlib`, the
 hyphen in the name being no module name at all -- a decision made years
 ago that decides testability). `install-tables.sh`, `read-all.sh`,
 `run-gate.sh`, `run-major.sh` and `smoke-sweep.sh` take every path and
@@ -180,7 +180,7 @@ here, to a case stamped with an unexpanded shell substitution.
 
 THREE INSTRUMENTS, and each finds what the other two cannot. A case is
 memory, over one input someone has already met. A property is discovery
-over DATA, quantified across every run on disk. `--families` is discovery
+over DATA, quantified across every run on disk. `defect-lint.py` is discovery
 over CODE: the shapes these defects keep returning in, counted rather than
 guessed -- a dropped subprocess status (four instances across the three
 reviews), an argparse flag accepted and never read (three), a value parsed

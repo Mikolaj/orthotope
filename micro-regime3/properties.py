@@ -19,10 +19,12 @@ corpus.
     ./properties.py --warnings   # with the reader's own stderr verbatim
 
 `CORPUS` in the environment names another directory of runs, which is how
-a case hands these an empty one, or one run built for them. Exit 0 when
-every property holds over something, 1 when one fails or the corpus holds
-nothing a property reads. Each property's non-vacuity is a mutant in
-`mutants.py`, replayed by `selftest-mutants.py`.
+a case hands these an empty one, or one run built for them; `CORPUS_LIMIT`
+stops each property after that many runs it read, which is how the mutants
+in `mutants.py` prove a property can fail in seconds rather than over every
+run on disk -- a bound on the proof, never on a run of the properties
+themselves. Exit 0 when every property holds over something, 1 when one
+fails or the corpus holds nothing a property reads.
 """
 
 import collections
@@ -72,6 +74,7 @@ RUNDOC = _newest_run_doc()
 # Where the properties look for runs: this directory, or what a case names,
 # which is how an empty corpus is handed to them.
 CORPUS = os.environ.get('CORPUS', HERE)
+LIMIT = int(os.environ.get('CORPUS_LIMIT') or 0)
 
 
 def write(path, text):
@@ -141,6 +144,8 @@ def prop_abs_round_trip(m):
                 if not isinstance(v, float) or v <= 0:
                     continue
                 n += 1
+                if LIMIT and n >= LIMIT:
+                    break
                 cell = '| `s` | 3 | 288 | %s | 0.152 |' % m.fmt_abs(v)
                 got = m.FINGERPRINT_ABS_RE.match(cell)
                 if not got:
@@ -179,6 +184,8 @@ def prop_table_reads_back(m):
         # asking the reader to break a rule it is keeping.
         if m.population_of(shapes, meta['dims'])[0] != 'main':
             continue
+        if LIMIT and n >= LIMIT:
+            break
         m.apply_correction(cells, shapes, strategies)
 
         class A:                      # the reader's own argument object
@@ -230,6 +237,8 @@ def prop_selftest_over_the_corpus(m):
     """
     bad, n = [], 0
     for f in runs_on_disk():
+        if LIMIT and n >= LIMIT:
+            break
         n += 1
         got = subprocess.run([sys.executable, os.path.join(HERE,
                                                            'read-run.py'),
