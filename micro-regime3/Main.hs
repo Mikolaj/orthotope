@@ -2785,6 +2785,42 @@ fbLibStage2Disp sh (T (Strides ats) ao v)
         where _ : ts = getStridesT csh
   where l = product sh
 
+-- 'fbLibStage2Disp' with the threshold an argument instead of 'dispRun',
+-- added 2026-09-02 for the one-binary runs-class probe README's task 9
+-- registers: one roster arm per candidate threshold over one copy of this
+-- code, the fill and the slice route being the same NOINLINE functions
+-- every other arm calls, so the arms differ in the number compared
+-- against and in nothing else. The body above is kept as it is rather
+-- than defined through this one, so that 'lib-stage2-disp' stays the code
+-- Run 23 timed and reads as the probe's control. Not an @fb@ name, being
+-- no arm: the three arms are the named applications below, which is the
+-- form the roster parser in read-run.py reads -- rostered as partial
+-- applications they were checked and timed and seen by no lint.
+{-# NOINLINE libStage2DispAt #-}
+libStage2DispAt :: Int -> ShapeL -> T -> VS.Vector Double
+libStage2DispAt !thr sh (T (Strides ats) ao v)
+  | l == 0 = VS.empty
+  | otherwise = case canonView sh ats of
+      (csh, cats)
+        | cats /= ts ->
+            if last cats == 1 && last csh >= thr
+            then let !n = last csh
+                 in  VS.concat
+                       [ VS.slice o n v
+                       | o <- VU.toList (baseOffsetsList ao (init csh)
+                                                         (Strides (init cats))) ]
+            else fillStage2 csh cats ao l v
+        | ao == 0 && VS.length v == l -> v
+        | otherwise -> VS.slice ao l v
+        where _ : ts = getStridesT csh
+  where l = product sh
+
+fbLibStage2Disp2048, fbLibStage2Disp8192, fbLibStage2Disp32768
+  :: ShapeL -> T -> VS.Vector Double
+fbLibStage2Disp2048 = libStage2DispAt 2048
+fbLibStage2Disp8192 = libStage2DispAt 8192
+fbLibStage2Disp32768 = libStage2DispAt 32768
+
 -- The branch's 'genericFillStrided' at Storable Double, ported
 -- bang-for-bang: 'fbMutOdoVecdimsAddInLeafU2''s odometer and unrolled
 -- run, the run body a static argument of the INLINE fused level, the
@@ -3463,11 +3499,17 @@ convShapes :: [(String, ShapeL)]
 convShapes =
   [ -- horde-ad shaped CNN (MnistCnnShaped2; kernel kh+1 = 3)
     ("cnn-L1-6x6-c1",       [6, 6, 1, 3, 3])          -- 324
+    -- Two small shapes added 2026-09-02 for Run 24, in the gap between
+    -- 324 and 4096 elements and below 288, where the set had nothing: a
+    -- per-call dispatch cost is a share of a small call and of nothing
+    -- else, and the leaner dispatch's whole constituency is here.
+  , ("cnn-L1-12x12-c1",     [12, 12, 1, 3, 3])        -- 1296
   , ("cnn-L1-24x24-c1",     [24, 24, 1, 3, 3])        -- 5184
   , ("cnn-L2-24x24-c32",    [24, 24, 32, 3, 3])       -- 165888
   , ("cnn-slice-c32",       [32, 3, 3])               -- 288  (one position)
     -- MNIST LeNet-5
   , ("lenet-L1-28-c1-k5",   [28, 28, 1, 5, 5])        -- 19600
+  , ("lenet-slice-c6-k5",   [6, 5, 5])                -- 150  (one position, k5)
     -- CIFAR-10 scale
   , ("cifar-L2-16-c64-k3",  [16, 16, 64, 3, 3])       -- 147456
     -- ImageNet scale (only the layers whose per-call cost still buys, at
@@ -3663,6 +3705,12 @@ windowShapes =
     -- innermost extent 1 under the repeated strides an overlapping window
     -- has, which is the run-of-one-element case this class never saw.
   , ("window-64x64-k1x9", [64, 64, 1, 9])    -- 32256, over 4096
+    -- A kernel one past the short bodies of 'fillStage2Short', which
+    -- write runs of 2 to 5, added 2026-09-02 for Run 24: both square
+    -- shapes above are inside that range, so the class that gave the
+    -- short-body arm its widest lead could not say where the lead ends.
+    -- The image is sized to keep the view under 'sizeCap'.
+  , ("window-128x128-k7", [128, 128, 7, 7])  -- 729316, over 16384
   ]
 
 -- Views, not shapes like its siblings: explicit strides beside the shape,
@@ -3718,6 +3766,11 @@ runsShapes =
   , ("runs-3",        [600000, 3])      -- 1800000, a k3 conv row
   , ("runs-4",        [450000, 4])      -- 1800000, a 2x2 pooling window
   , ("runs-5",        [360000, 5])      -- 1800000, a k5 conv row
+    -- One past the short bodies of 'fillStage2Short', which write runs
+    -- of 2 to 5, added 2026-09-02 for Run 24: the first length where the
+    -- stepping loop with its odd tail takes over from them, and a k7
+    -- conv row.
+  , ("runs-7",        [257142, 7])      -- 1799994, a k7 conv row
   , ("runs-9",        [200000, 9])      -- 1800000, the window probe's run
   , ("runs-96",       [18750, 96])      -- 1800000, an image row
     -- Two lengths that bracket 'dispRun' within a factor of two, added
@@ -3726,6 +3779,13 @@ runsShapes =
   , ("runs-256",      [7031, 256])      -- 1799936
   , ("runs-512",      [3515, 512])      -- 1799680
   , ("runs-1024",     [1757, 1024])     -- 1799168
+    -- Two lengths inside the 64x gap the crossover moved into, added
+    -- 2026-09-02 for Run 24: Runs 22 and 23 read stage two ahead of stage
+    -- one at 1024 and behind at 65536 on both compilers and both layouts,
+    -- so the bracket a threshold is cut to was again an order of
+    -- magnitude wide, twice over.
+  , ("runs-4096",     [439, 4096])      -- 1798144
+  , ("runs-16384",    [109, 16384])     -- 1785856
   , ("runs-65536",    [27, 65536])      -- 1769472, a few long runs
   , ("runs-r3-48x30", [1250, 48, 30])   -- 1800000, merges to runs of 1440
   ]
@@ -4126,6 +4186,17 @@ roster =
     -- below moves by one against Run 21, which any cross-run read of those
     -- slots has to carry.
   , ("lib-stage2-disp",            Fill fbLibStage2Disp)
+    -- One arm per candidate threshold, added 2026-09-02 for the
+    -- one-binary runs-class probe README's task 9 registers: the same
+    -- dispatch with its threshold an argument ('libStage2DispAt', named
+    -- per threshold beside it), cut at the three lengths between
+    -- `runs-1024`, where Runs 22 and 23 read stage two ahead, and
+    -- `runs-65536`, where they read it behind. The entry above is their
+    -- control at 256, and 'lib-stage2' and 'lib-stage2-concat' the two
+    -- routes each dispatches between; every slot below moves by three.
+  , ("lib-stage2-disp-2048",       Fill fbLibStage2Disp2048)
+  , ("lib-stage2-disp-8192",       Fill fbLibStage2Disp8192)
+  , ("lib-stage2-disp-32768",      Fill fbLibStage2Disp32768)
     -- Three candidates for the branch, added 2026-08-30 for Run 22: the
     -- run unrolled by four, a run of 2 to 5 elements written by a body
     -- of exactly that length, and the same fill under a leaner dispatch,

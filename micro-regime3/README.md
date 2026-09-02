@@ -2288,6 +2288,28 @@ is planned. A scope limit belongs in the sentence that asks for the measurement.
    22's, the shipped route among them, and claim 1's top rung still prices
    a mutating method against `mut-flat-gm`. Carried from Run 22's claims
    section, which raised it and left it to a decision.
+9. `OPEN` **The dispatch threshold by the one-binary probe the `dispRun` entry
+   names, and the shapes Run 24 adds --- registered 2026-09-02, before either
+   ran.** Three arms, `lib-stage2-disp-2048`, `lib-stage2-disp-8192`
+   and `lib-stage2-disp-32768`, the dispatch with its threshold an argument,
+   timed beside `lib-stage2-disp` at 256, `lib-stage2` and `lib-stage2-concat`
+   in one `runs` process on one binary of Run 24's basis recipe, ghc-9.12.4
+   under `LOOP_DEADSPOT=1`; the class gains `runs-4096` and `runs-16384`, inside
+   the 64x gap the crossover sits in, and `runs-7`, one past the short bodies.
+   Prediction: the crossover lies between `runs-1024` and `runs-16384`,
+   and the arm cut at or above it reads at or below the better of `lib-stage2`
+   and `lib-stage2-concat` at every length within that class's floor, where
+   the 256 arm stays 20 to 34% behind stage two at `runs-256` and `runs-512`
+   as on Run 23; killed by every candidate reading behind the better route past
+   the floor at some length, which would say no threshold is worth cutting. Run
+   24's other shapes ride the same binary and are read there for their sanity
+   alone: `window-128x128-k7`, a kernel one past the short bodies in the class
+   that gave `lib-stage2-short` its widest lead, where that arm is predicted
+   level with `lib-stage2`, the short body not firing; and two small main-set
+   shapes, `lenet-slice-c6-k5` at 150 elements and `cnn-L1-12x12-c1` at 1296,
+   where a per-call dispatch cost is a share of the call and `lib-stage2-lean`
+   is predicted ahead of `lib-stage2` past the floor on both. The probe's
+   artifacts are `probe-disp2-runs.json` and its log, and its verdict goes here.
 
 **And one class not to repropose: work that needs an aligned build.**
 `mut-odo`'s wide interval is the live case. The dispersion is documented
