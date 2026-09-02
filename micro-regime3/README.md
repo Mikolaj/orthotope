@@ -4884,8 +4884,8 @@ Everything below is the reasons behind those lines and the readings a session
 owes; a run is prepared and executed from the lists. *Why this is the first
 block:* the pointer to `--checklist` used to sit inside the next paragraph,
 so a session arriving cold had to read the chapter to learn how not to read
-it --- Run 24's preparation read some 580 lines with `sed` before meeting it,
-200 of them the run list a preparation does not owe (2026-09-03).
+it --- Run 24's preparation read hundreds of lines with `sed` before meeting it,
+the run list a preparation does not owe among them (2026-09-03).
 
 **A RUN IS ALWAYS TWO SESSIONS, and which one you are decides everything
 below.** One PREPARES the run, through step 12 of the pre-run list, and hands
@@ -5381,7 +5381,7 @@ and never as a chronology.
     #      why: --para 'After a roster change'
     ./preflight.sh $R --corpus            # 8c AND 8d, DEFERRED TO HERE:
     #      run them when 12 reports DONE and nothing is writing a JSON.
-    #      Two verdicts, and the only two of the eleven this half owes
+    #      Two verdicts, and the only two of the twelve this half owes
     #      that were not read above
     #  12a. WRITE THE REGISTRATION, which is this half's largest product
     #      -- as ONE paragraph, which post-run step 5 moves whole into the

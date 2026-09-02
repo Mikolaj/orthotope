@@ -2809,7 +2809,8 @@ def V(exit=None, has=(), hasnt=()):
 # only where a number is written.
 TIER1 = {
     'draft-renames-a-half-onto-the-other': dict(
-        family='two-spellings', discovery='review', harm='latent',
+        family='other:rewrite-feeds-the-next-rewrite',
+        discovery='review', harm='latent',
         trigger='--draft where the new basis reuses the old other name',
         ok='every rename in one pass, so nothing written is renamed again',
         bug='both halves of the carried-over note under one name, silently'),
