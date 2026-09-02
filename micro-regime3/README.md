@@ -5157,8 +5157,10 @@ and never as a chronology.
     #      mounted and rerun, or run with it blocked and say so in the
     #      write-up -- the one thing not available is reading it as a pass
     #      why: --para 'What the `note:` lines ARE'
-    ./check-scripts.py --families         # 8b. the defect families, over
-    #      the source of every Python program here
+    ./check-scripts.py --families         # 8b. the defect families over the
+    #      Python source here, and the two linters: pyflakes over it and
+    #      shellcheck over the shell drivers, a linter off PATH failing
+    #      the step by name
     ./check-scripts.py --properties       # 8c. its properties, over every
     #      run JSON here; the reader's stderr is withheld and counted by
     #      kind, a kind with a count of one being the thing to read, and
