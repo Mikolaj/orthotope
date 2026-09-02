@@ -1396,6 +1396,11 @@ def corpus_of_one(tmp):
     return {'corpus': d}
 
 
+# The stand-in pair note, carrying the one machine line every driver reads
+# since 2026-09-02: the halves, as pair-halves.sh reads them. The names are
+# the ones every `halves()` call below uses.
+NOTE_STUB = 'a stand-in pair note.\nHALVES: basis=lookrts other=a1g\n'
+
 FAKE_HALF = """\
 #!/bin/sh
 # A stand-in for `$PREFIX-$half`, answering the two questions a driver asks
@@ -1553,6 +1558,9 @@ done
 [ "$CLS" = pending ] && CLS=""
 if [ -n "$CLS" ]; then SRC="$D/@RUN@-@HALF@-$CLS.json"
 else SRC="$D/@RUN@-@HALF@-main.json"; fi
+if [ "$1" = +RTS ] && [ "$2" = --info ]; then
+  echo ' ,("Flag -with-rtsopts", "-A32m -I0 -T -M8G")'; exit 0
+fi
 if [ "$1" = classes ] && [ "$2" = --list ]; then
   exec python3 -c "
 import glob, json, os, sys
@@ -1566,16 +1574,20 @@ if [ "$1" = --list ]; then
 fi
 [ "$1" = check ] && { echo "agree=True on every shape"; exit 0; }
 [ "$1" = diag ] && { echo "diag: the regime, in the binary"; exit 0; }
-OUT=""; SHAPE=""; want=0
+OUT=""; SHAPE=""; PATS=""; want=0
 for a in "$@"; do
   [ "$want" = 1 ] && { OUT="$a"; want=0; continue; }
-  case "$a" in --json) want=1 ;; -*|classes) ;; *) SHAPE="$a" ;; esac
+  case "$a" in --json) want=1 ;; -*|classes|glob) ;;
+    *) SHAPE="$a"; PATS="$PATS $a" ;; esac
 done
-python3 - "$SRC" "$OUT" "$SHAPE" <<'ENDPY'
-import json, sys
-src, out, shape = sys.argv[1], sys.argv[2], sys.argv[3]
+python3 - "$SRC" "$OUT" "$SHAPE" "$PATS" <<'ENDPY'
+import fnmatch, json, sys
+src, out, shape, pats = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4].split()
 d = json.load(open(src))
-if shape.endswith('-'):        # a prefix over a class's shapes, not a shape
+if any('*' in p or '/' in p for p in pats):   # -m glob patterns, as the gate
+    d[2] = [b for b in d[2]                    # and the riders select
+            if any(fnmatch.fnmatch(b['reportName'], p) for p in pats)]
+elif shape.endswith('-'):      # a prefix over a class's shapes, not a shape
     pass
 elif shape:
     d[2] = [b for b in d[2] if b['reportName'].startswith(shape + '/')]
@@ -5164,7 +5176,7 @@ CASES = [
          # runs the count asked of it -- which is why the check is a count
          # of the line and not a reading of it.
          shadow=dict(extra=lambda: halves('zzpl-lookrts', 'zzpl-a1g')
-                     + [('zzpl-pair.txt', 'a stand-in pair note.\n')]),
+                     + [('zzpl-pair.txt', NOTE_STUB)]),
          env={'OTHER': 'a1g', 'BASIS': 'lookrts', 'SATURATE': '1'},
          argv=['zzpl'],
          ok=V(exit=1, has=['did not assert its state',
@@ -5183,7 +5195,7 @@ CASES = [
          # process. ANY count above zero passes, unlike the plateau's
          # exactly-one: the instrument writes two stamps per sample.
          shadow=dict(extra=lambda: halves('zzwl-lookrts', 'zzwl-a1g')
-                     + [('zzwl-pair.txt', 'a stand-in pair note.\n')]),
+                     + [('zzwl-pair.txt', NOTE_STUB)]),
          env={'OTHER': 'a1g', 'BASIS': 'lookrts', 'WILDLOG': '1'},
          argv=['zzwl'],
          ok=V(exit=1, has=['carries no @@wild stamps',
@@ -5201,7 +5213,7 @@ CASES = [
          # The verdict is on the LOG and not the terminal, that record
          # being the thing a write-up reads back weeks later.
          shadow=dict(extra=lambda: halves('zzle-lookrts', 'zzle-a1g')
-                     + [('zzle-pair.txt', 'a stand-in pair note.\n')]),
+                     + [('zzle-pair.txt', NOTE_STUB)]),
          env={'OTHER': 'a1g', 'BASIS': 'lookrts'},
          argv=['zzle'],
          probe=lambda subs: open(os.path.join(subs['at'],
@@ -5224,7 +5236,7 @@ CASES = [
          # is the form neither assertion can see.
          shadow=dict(extra=[('zzgl-a1g', FAKE_HALF),
                             ('zzgl-lookrts', FAKE_HALF),
-                            ('zzgl-pair.txt', 'a stand-in pair note.\n')]),
+                            ('zzgl-pair.txt', NOTE_STUB)]),
          env={'OTHER': 'a1g', 'BASIS': 'lookrts', 'WILDLOG': '1'},
          argv=['zzgl'],
          ok=V(has=['launch env: WILDLOG=1 SATURATE=unset',
@@ -5243,7 +5255,7 @@ CASES = [
          # either half's clean legs does.
          shadow=dict(extra=[('zzal-g912', FAKE_HALF),
                             ('zzal-al-g912-sat-cnn-slice-c32-r1.json', '[]\n'),
-                            ('zzal-pair.txt', 'a stand-in pair note.\n')]),
+                            ('zzal-pair.txt', NOTE_STUB)]),
          argv=['zzal', 'g912'],
          # MAXBUSY=100 because the load guard below the artifact one reads
          # the REAL machine, and a corpus that reads the box answers for
@@ -5280,7 +5292,7 @@ CASES = [
          # there, which is the silent-search failure this corpus exists to
          # refuse.
          shadow=dict(extra=[('zzal4-g912', FAKE_HALF),
-                            ('zzal4-pair.txt', 'a stand-in pair note.\n')]),
+                            ('zzal4-pair.txt', NOTE_STUB)]),
          argv=['zzal4', 'g912'],
          env={'MAXBUSY': '-1'},
          # Refused BEFORE the redirect, as its siblings are, so a refusal
@@ -5298,7 +5310,7 @@ CASES = [
          # exists to prevent.
          shadow=dict(extra=[('zzal2-g912', FAKE_HALF),
                             ('zzal2-al-g912-cnn-slice-c32-r1.json', '[]\n'),
-                            ('zzal2-pair.txt', 'a stand-in pair note.\n')]),
+                            ('zzal2-pair.txt', NOTE_STUB)]),
          argv=['zzal2', 'g912'],
          ok=V(exit=1, has=['already has alone-leg artifacts'])),
 
@@ -5315,7 +5327,7 @@ CASES = [
          # inside the log, which is why the probe reads the log when there
          # is one.
          shadow=dict(extra=[('zzub-g912', FAKE_HALF_UNBAKED),
-                            ('zzub-pair.txt', 'a stand-in pair note.\n')]),
+                            ('zzub-pair.txt', NOTE_STUB)]),
          argv=['zzub', 'g912'],
          probe=lambda subs: (open(os.path.join(
              subs['at'], 'zzub-al-g912-driver.log')).read()
@@ -5333,7 +5345,7 @@ CASES = [
          # attempt. Before the redirect now, on stdout, leaving nothing --
          # which the probe asks directly. Found 2026-08-23 by review.
          shadow=dict(extra=[('zzll-g912', FAKE_HALF_LISTLESS),
-                            ('zzll-pair.txt', 'a stand-in pair note.\n')]),
+                            ('zzll-pair.txt', NOTE_STUB)]),
          argv=['zzll', 'g912'],
          probe=lambda subs: 'driver log left: %s' % os.path.exists(
              os.path.join(subs['at'], 'zzll-al-g912-driver.log')),
@@ -5623,7 +5635,7 @@ CASES = [
                       "'*/sum-only-early' '*/sum-only-late')",
                       "'*/sum-only-early' '*/sum-only-late' '*/offtab')")],
              extra=[('zzgate-a1g', FAKE_HALF), ('zzgate-lookrts', FAKE_HALF),
-                    ('zzgate-pair.txt', 'a stand-in pair note.\n')]),
+                    ('zzgate-pair.txt', NOTE_STUB)]),
          env={'OTHER': 'a1g', 'BASIS': 'lookrts'},
          argv=['zzgate'],
          ok=V(has=['expecting 18 benches a process']),
@@ -5641,10 +5653,108 @@ CASES = [
          argv=['zzsw'],
          ok=V(exit=0, has=['sweep clean'], hasnt=['!!'])),
 
+    # ---- pair-halves.sh, the one place the halves are named ------------
+    case('halves-read-from-the-note', 'pair-halves.sh', None,
+         'CONTROL: the HALVES line is read and printed as two assignments',
+         shadow=dict(extra=[('zzph-pair.txt', NOTE_STUB)]),
+         argv=['zzph'],
+         ok=V(exit=0, has=['BASIS=lookrts; OTHER=a1g'])),
+
+    case('halves-refuse-a-disagreeing-environment', 'pair-halves.sh', None,
+         'CONTROL: an environment naming another half than the note is refused',
+         shadow=dict(extra=[('zzph2-pair.txt', NOTE_STUB)]),
+         env={'OTHER': 'ghead'},
+         argv=['zzph2'],
+         ok=V(exit=1, has=['the note is the authority'],
+              hasnt=['BASIS=lookrts;'])),
+
+    case('halves-refuse-a-note-without-the-line', 'pair-halves.sh', None,
+         'CONTROL: a note from before the line is refused naming it',
+         shadow=dict(extra=[('zzph3-pair.txt', 'a stand-in pair note.\n')]),
+         argv=['zzph3'],
+         ok=V(exit=1, has=["has no 'HALVES: basis=<b> other=<o>' line"])),
+
+    case('halves-fall-back-to-the-environment-without-a-note',
+         'pair-halves.sh', None,
+         'CONTROL: no note at all takes the environment, and says so',
+         env={'BASIS': 'x', 'OTHER': 'y'},
+         argv=['zzph4'],
+         ok=V(exit=0, has=['halves from the environment', 'BASIS=x; OTHER=y'])),
+
+    # ---- run-evening.sh, the run list's machine steps as one command ---
+    case('evening-chains-the-stages', 'run-evening.sh', None,
+         'CONTROL: gate inherited, alarm, sequence, riders and counts land in'
+         ' one command, and the status file ends COMPLETE',
+         # The whole evening in seconds on the stand-ins: the note records
+         # a clean gate, so that stage is inherited; the sequence runs
+         # eighteen processes off the shipped run; the riders take one leg
+         # a half (ONLY, a smoke run's restriction, keeps them to it); the
+         # counts run under the perf stand-in at N=1 over one arm.
+         shadow=dict(extra=lambda: halves('zzev-lookrts', 'zzev-a1g')
+                     + [('zzev-pair.txt', NOTE_STUB + 'LAUNCH: none\n'
+                         'RIDERS: clean\nGATE: run 2026-09-02. Mechanically'
+                         ' clean: four processes, each\n')]),
+         plant=lambda t: {'stub': stub_dir(t, PERF_ANSWERS)},
+         env={'PATH': '{stub}:/usr/bin:/bin', 'MAXBUSY': '100',
+              'ONLY': main_shapes()[0], 'ARMS': 'list', 'N': '1'},
+         argv=['zzev'],
+         probe=lambda subs: open(os.path.join(subs['at'],
+                                              'zzev-evening.txt')).read(),
+         ok=V(exit=0, has=['gate: inherited', 'alarm:', 'sequence: done, rc=0',
+                           'riders a1g clean: done, rc=0',
+                           'riders lookrts clean: done, rc=0',
+                           'counts lookrts main: done, rc=0',
+                           'EVENING COMPLETE: every stage'],
+              hasnt=['COMPLAINT', 'STOPPED'])),
+
+    case('evening-stops-at-a-refused-gate', 'run-evening.sh', None,
+         'CONTROL: a gate that fails mechanically stops the evening before'
+         ' the sequence',
+         shadow=dict(extra=[('zzeg-lookrts', FAKE_HALF), ('zzeg-a1g', FAKE_HALF),
+                            ('zzeg-pair.txt', NOTE_STUB + 'LAUNCH: none\n'
+                             'RIDERS: none\n')]),
+         argv=['zzeg'],
+         ok=V(exit=1, has=['EVENING STOPPED AT THE GATE'],
+              hasnt=['sequence: start'])),
+
+    case('evening-refuses-a-note-without-machine-lines', 'run-evening.sh',
+         None,
+         'CONTROL: a note lacking LAUNCH: or RIDERS: is refused naming them',
+         shadow=dict(extra=[('zzem-pair.txt', NOTE_STUB)]),
+         argv=['zzem'],
+         ok=V(exit=1, has=['lacks a machine line', 'LAUNCH:', 'RIDERS:'],
+              hasnt=['evening begins'])),
+
+    # ---- run-status.sh, doneness off the artifacts ---------------------
+    case('status-reads-an-unstarted-run', 'run-status.sh', None,
+         'CONTROL: with no artifact every checkable step reads NOT DONE and'
+         ' the exit is 1',
+         shadow=dict(),
+         argv=['run98'],
+         ok=V(exit=1, has=['NOT DONE', 'STATUS: '], hasnt=['all done'])),
+
+    # ---- read-run.py --predictions --------------------------------------
+    case('predictions-hold-and-kill', 'read-run.py', None,
+         'CONTROL: a span inside its tolerance reads HELD, one outside KILLED,'
+         ' and an item with no span is named as yours',
+         plant=lambda t: {
+             'run': synth_json(t, 'main'),
+             'other': synth_json(t, 'main', name='other.json', slow=1.25),
+             'doc': write(os.path.join(t, 'r.md'),
+                          '# Run 99\n\n## What this run was built to answer,'
+                          ' and what it answered\n\n(1) *a* `predict: cross'
+                          ' list 0.8 within 1%`. (2) *b* `predict: cross list'
+                          ' 1.0 within 1%`. (3) *c* nothing here.\n')},
+         argv=['{run}', '--compare', '{other}', '--predictions',
+               '--run-doc', '{doc}'],
+         ok=V(exit=0, has=['read 0.8000', 'HELD', 'KILLED',
+                           'yours to adjudicate: (3)'])),
+
     case('pair-halves-must-differ', 'run-major.sh', '0431efe',
          'one name in both halves wrote nine JSONs twice and gated clean',
          shadow=dict(extra=lambda: halves('zzhh-lookrts')
-                     + [('zzhh-pair.txt', 'a stand-in pair note.\n')]),
+                     + [('zzhh-pair.txt', 'a stand-in pair note.\n'
+                         'HALVES: basis=lookrts other=lookrts\n')]),
          env={'OTHER': 'lookrts', 'BASIS': 'lookrts'},
          argv=['zzhh'],
          ok=V(exit=1, has=['a pair is two halves']),
@@ -5655,7 +5765,7 @@ CASES = [
          shadow=dict(mutate=[('run-major.sh', 'reshape1 slice window scaled runs"',
                               'reshape1 slice window scaled bcast-mid"')],
                      extra=lambda: halves('zzhy-lookrts', 'zzhy-a1g')
-                     + [('zzhy-pair.txt', 'a stand-in pair note.\n')]),
+                     + [('zzhy-pair.txt', NOTE_STUB)]),
          env={'OTHER': 'a1g', 'BASIS': 'lookrts'},
          argv=['zzhy'],
          ok=V(exit=1, has=['carries a hyphen']),
@@ -5684,7 +5794,7 @@ CASES = [
     case('major-run-runs-clean', 'run-major.sh', None,
          'CONTROL: the whole sequence, eighteen processes, on stand-ins',
          shadow=dict(extra=lambda: halves('zzmj-lookrts', 'zzmj-a1g')
-                     + [('zzmj-pair.txt', 'a stand-in pair note.\n')]),
+                     + [('zzmj-pair.txt', NOTE_STUB)]),
          env={'OTHER': 'a1g', 'BASIS': 'lookrts'},
          argv=['zzmj'],
          ok=V(exit=0, has=['major run complete'], hasnt=['!!'])),
@@ -5698,7 +5808,7 @@ CASES = [
          # moved aside, met `already has artifacts` over files it would not
          # overwrite. read-all.sh's roster skips both, one script over.
          shadow=dict(extra=lambda: halves('zzrl-lookrts', 'zzrl-a1g')
-                     + [('zzrl-pair.txt', 'a stand-in pair note.\n'),
+                     + [('zzrl-pair.txt', NOTE_STUB),
                         ('zzrl-al-lookrts-cnn-slice-c32-r1.json', '[]\n')]),
          env={'OTHER': 'a1g', 'BASIS': 'lookrts'},
          argv=['zzrl'],
@@ -5713,7 +5823,7 @@ CASES = [
          # a process's JSON with the riders' would lose the guard outright,
          # and hours would be overwritten in place with nothing said.
          shadow=dict(extra=lambda: halves('zzrp-lookrts', 'zzrp-a1g')
-                     + [('zzrp-pair.txt', 'a stand-in pair note.\n'),
+                     + [('zzrp-pair.txt', NOTE_STUB),
                         ('zzrp-lookrts-rev.json', '[]\n')]),
          env={'OTHER': 'a1g', 'BASIS': 'lookrts'},
          argv=['zzrp'],
@@ -5738,7 +5848,7 @@ CASES = [
     case('provenance-git-could-not-read', 'run-major.sh', '845c8d0',
          'a run whose git failed recorded a commitless, CLEAN-looking tree',
          shadow=dict(extra=lambda: halves('zzmj-lookrts', 'zzmj-a1g')
-                     + [('zzmj-pair.txt', 'a stand-in pair note.\n')]),
+                     + [('zzmj-pair.txt', NOTE_STUB)]),
          env={'OTHER': 'a1g', 'BASIS': 'lookrts'},
          argv=['zzmj'],
          probe=lambda subs: open(os.path.join(subs['at'],
@@ -5761,7 +5871,7 @@ CASES = [
                                                .replace('@RUN@', SRC))]
                      + halves('zzmj-a1g')
                      + whole_run(['lookrts'])
-                     + [('zzmj-pair.txt', 'a stand-in pair note.\n')]),
+                     + [('zzmj-pair.txt', NOTE_STUB)]),
          env={'OTHER': 'a1g', 'BASIS': 'lookrts'},
          argv=['zzmj'],
          probe=lambda subs: open(os.path.join(subs['at'],
@@ -6540,6 +6650,9 @@ def judge(want, code, out):
     return off
 
 
+VERBOSE = False   # set by --verbose: print the cases that held, one a line
+
+
 def run(cases, rev, want_key):
     """-> (failed, skipped, unbuilt), and the third is not the first.
 
@@ -6562,7 +6675,8 @@ def run(cases, rev, want_key):
     for c in cases:
         want = getattr(c, want_key)
         if want is None:
-            print('  --   %-42s control, no defect to replay' % c.name)
+            if VERBOSE:
+                print('  --   %-42s control, no defect to replay' % c.name)
             skipped += 1
             continue
         at = c.fix + '^' if rev == 'BEFORE' else rev
@@ -6609,8 +6723,16 @@ def run(cases, rev, want_key):
             bad += 1
             print('  FAIL %-42s %s' % (c.name, '; '.join(off)))
             print('       %s' % c.gist)
-        else:
+        elif VERBOSE:
             print('  ok   %-42s %s' % (c.name, c.gist))
+    if not VERBOSE:
+        # THE COUNTS AND THE FAILURES, and not a line per case: two hundred
+        # `ok` lines are what a session reads three times over and what
+        # buries the one FAIL among them (Run 23's probe log). The gists
+        # are still there under --verbose, and --list prints them all.
+        print('  %d case(s) held%s; --verbose lists them'
+              % (len(cases) - bad - skipped - unbuilt,
+                 ', %d control(s) not replayed' % skipped if skipped else ''))
     return bad, skipped, unbuilt
 
 
@@ -6636,7 +6758,12 @@ def main():
     p.add_argument('--changed', metavar='REV', nargs='?', const='HEAD',
                    help='only the cases whose own script differs from REV'
                         ' (default HEAD, so: what my edits owe)')
+    p.add_argument('--verbose', action='store_true',
+                   help='a line per case that held; the default prints the'
+                        ' failures and the counts')
     args = p.parse_args()
+    global VERBOSE
+    VERBOSE = args.verbose
 
     cases = [c for c in CASES
              if not args.pattern or args.pattern in c.name]
