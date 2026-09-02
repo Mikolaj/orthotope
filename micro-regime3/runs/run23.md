@@ -172,9 +172,10 @@ reads 0.9077, 0.9863, 0.8819, 0.9650, 0.9335, 0.9871, 0.9800, 0.9637, 0.9841
 and 0.8954 dead-spot over basis from `runs-2` to `runs-65536`, widest
 at `runs-4` and second widest at the longest run. **KILLED** in its second half;
 in its first, led outright on five classes, tied inside a floor on three,
-and reversed on one class's two arms against one of that class's two floors ---
-which the registration's own wording, *at or above 1 outside that class's
-floor*, reads as a kill on the basis's floor and a tie on the dead-spot half's.
+and reversed on one class's two arms against the narrower of that class's two
+floors --- which, judged against the wider of the two as [README's floor
+section][floor] rules since 2026-09-02, is a tie and not a kill: the first half
+is a SPLIT.
 
 **`mut-odo` is the one arm the dead-spot form costs, and it costs it
 in the classes.** On the main set the arm reads 1.0020 across the halves
@@ -1534,11 +1535,13 @@ the same six things and nothing else:
    and `runs` at eleven --- so the line always prints;
 5. the cross-half reading, one line, which `--block --compare` against the other
    half's JSON now emits and `install-tables.sh` writes in with the other three
-   --- how many of the population's arms move, which way, and the spread. Both
-   halves have run every class since 2026-08-14 and this is where that is read:
-   a pair's variable can act on a class and not on the main set, which is how
-   Run 14 answered its `scaled` question. A run whose halves differ in nothing
-   a class can see says so in a clause;
+   --- how many of the population's arms move, which way, and the spread;
+   a margin on this line is judged against the WIDER of the two halves' floors
+   ([README, the floor section][floor]). Both halves have run every class since
+   2026-08-14 and this is where that is read: a pair's variable can act
+   on a class and not on the main set, which is how Run 14 answered its `scaled`
+   question. A run whose halves differ in nothing a class can see says so
+   in a clause;
 6. one paragraph of what the class says, and none where it says nothing:
    an ordering that inverted, a `worst` above 1, an allocation tier that moved,
    a mechanism showing through a single cell. A class that reproduces the main
@@ -2079,12 +2082,12 @@ and the whole `lib-stage2` family sits out the cross-half vote as degenerate.
 at 0.9560 beside them --- 3.6% at the widest, past the basis half's 3.09% floor
 and inside the dead-spot half's 10.75%, which is the widest floor any
 of the run's twenty processes carries and is one pair's, `build-aa-distant`
-at 1.1075. Registration 3 reads that against the basis's floor and is killed
-on it; a reader holding it to the dead-spot half's own floor reads a tie. Either
-way, this is the class where the form that removed the fills' pads placed
-the two leaf loops the library ports on a cache-line boundary ---
-`fbMutOdoVecdimsAddInLeafU2` and `-U2Down` are two of its four straddlers ---
-and where that shows.
+at 1.1075. Judged against the wider of the two floors, as [README's floor
+section][floor] rules, it is a tie, and registration 3's first half a split
+rather than a kill. Either way, this is the class where the form that removed
+the fills' pads placed the two leaf loops the library ports on a cache-line
+boundary --- `fbMutOdoVecdimsAddInLeafU2` and `-U2Down` are two of its four
+straddlers --- and where that shows.
 
 **`slice` --- a view of a larger source: non-zero offset, positive strides.**
 Shapes: `slice-cnn-L2-24x24-c32` (`l` 165888, `sInner` 3), `slice-primes` (`l`
@@ -2703,7 +2706,8 @@ margin that does not order with the length. They lead outright on `rev`,
 several sit inside the floor either way --- on `bcast` at count ratios
 of 1.0000, the fill's pad never executing on a broadcast --- and on `reshape1`
 the two `-u2` leaf arms are slower on the dead-spot half, 1.0221 and 1.0377 at 4
-of 4 shapes, past the basis's 3.09% and inside the dead-spot half's 10.75%.
+of 4 shapes, past the basis's 3.09% and inside the dead-spot half's 10.75%,
+the wider floor being the one a cross-half class margin is judged against.
 The `runs` margin on `lib-stage2` reads 0.9077, 0.9863, 0.8819, 0.9650, 0.9335,
 0.9871, 0.9800, 0.9637, 0.9841 and 0.8954 from `runs-2` to `runs-65536`,
 ordering with nothing. **SPLIT in its first half and KILLED in its second.**

@@ -4871,7 +4871,8 @@ and a line number does not survive a rewrap. **So, as ten items, each owing
 an artifact**: a reading that owes nothing cannot be told from a reading
 not done, which is the whole of why this is a list and not a sentence.
 
-    1. this chapter's three checklists, a fifth of its lines
+    1. this chapter's three checklists, each printed alone by
+    `./read-run.py --checklist pre|run|post`, a fifth of the chapter's lines
          -- every step of them is owed, the build included
     2. the last run's head and Results prose
          -- one sentence: what this run's own head has to answer
@@ -8115,22 +8116,29 @@ to have moved between runs on this box, Run 23's one-binary reading, where Run
 11's was 3.3%. **All three are the word *floor*, over different populations,
 and two things that are not it wear it easily.** A class's `floor` column
 is the same statistic again over that population's sixteen pairs, so it
-is a fourth member of the family and not a fourth sense. **The worst single A/A
-cell is not a floor at all** --- 15.51% on this run's basis main set and 39.51%
-on one of its class processes --- and the procedure says so where it is read;
-it is one cell where these are geomeans over a population, and quoting it as one
-overstates the instrument by an order of magnitude. Nor is the residue [the
-alignment question][open] asks about, which is an effect size that survived
-a control rather than a spread the run measured. The exceptions are `build`
-and `mut-odo`, one worker at two slots, whose cells reach 1.092 on this run's
-basis and 0.828 on its dead-spot half --- and Run 21 is the run that took
-the reading those two have always wanted: post-run step 0 named the tracked
-two-copy group off a `-g3` twin and it IS `fbBuild` and `fbMutOdo`, both
-at offset 0 in their cache line on BOTH halves, on Run 23's two as on Run 21's
-and Run 22's. So the residue the pairing cannot reach is not a cache-line
-offset; what Run 23 adds is that placing every OTHER pad off the execution path
-opens the pair from a tie to 0.9449 on the dead-spot half, and what
-it is remains [the open list][open]'s.
+is a fourth member of the family and not a fourth sense. **And a margin read
+ACROSS a pair's two halves on a class is judged against the WIDER of the two
+halves' floors, and a registration's kill condition on a class says so**:
+the narrower floor is the one that makes a kill and the wider the one that makes
+a tie honest, and a pair whose halves' floors differ threefold --- Run 23's
+`reshape1`, 3.09% on the basis and 10.75% on the dead-spot half --- is exactly
+where a reader should not get to choose. Ruled 2026-09-02, after that run's
+registration 3 was read two ways; under it that registration's first half
+is a split and not a kill. **The worst single A/A cell is not a floor at all**
+--- 15.51% on this run's basis main set and 39.51% on one of its class processes
+--- and the procedure says so where it is read; it is one cell where
+these are geomeans over a population, and quoting it as one overstates
+the instrument by an order of magnitude. Nor is the residue [the alignment
+question][open] asks about, which is an effect size that survived a control
+rather than a spread the run measured. The exceptions are `build` and `mut-odo`,
+one worker at two slots, whose cells reach 1.092 on this run's basis and 0.828
+on its dead-spot half --- and Run 21 is the run that took the reading those two
+have always wanted: post-run step 0 named the tracked two-copy group off a `-g3`
+twin and it IS `fbBuild` and `fbMutOdo`, both at offset 0 in their cache line
+on BOTH halves, on Run 23's two as on Run 21's and Run 22's. So the residue
+the pairing cannot reach is not a cache-line offset; what Run 23 adds
+is that placing every OTHER pad off the execution path opens the pair from a tie
+to 0.9449 on the dead-spot half, and what it is remains [the open list][open]'s.
 
 **And a busy machine has now been measured rather than only avoided, which
 is what says the wild cell is not one.** Run 11's sequence was launched twice;
@@ -9501,8 +9509,10 @@ say so in the sentence rather than borrowing the nearest number.
 process, so a stride-class run prices the noise of the process its own figures
 came out of --- which is the only process they can be judged in ---
 but it prices it over three cells where the main set has two dozen. Read
-a class's controls as this floor confirmed there or not, rather than
-as a threshold of that class's own, and never carry the main set's figure
+a class's floor as that class's own threshold --- which every class block,
+`--block`'s property verdicts and every registration on a class have done since
+Run 18, against a sentence here that called it a confirmation and
+not a threshold until 2026-09-02 --- and never carry the main set's figure
 into a class comparison or the other way about. Run 10's class processes
 are that ruling observed: floors from 0.16% (`rev`) up to 5.36% (`scaled`),
 a **thirty-fourfold** spread across populations of one run, where Run 9 spread
