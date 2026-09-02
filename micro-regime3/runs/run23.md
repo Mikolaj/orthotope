@@ -13,54 +13,56 @@ and the rulings a measurement does not reach.
 
 **Run 23 (SpecConstr), and what moving the shim's pads off the execution path
 is worth at full budget over every population: four percent of the instructions
-and five to six percent of the time on every arm whose fill carried one, nothing
-on the arms whose fill carried none, and no verdict of Run 22's re-decided
-by it.** Criterion, **`--ghc-options=-fspec-constr`**; Run 22's regime, roster,
-shape set and basis recipe, and **what moved is the shim's environment on one
-half and nothing else**: 1320 benches, 55 timed arms over 24 main-set shapes,
-and 2035 more over 37 class views in **nine** classes, Run 22's roster exactly,
-nothing landed and nothing left. **The basis is `run23-g912`**, Run 22's basis
-recipe built again --- ghc-9.12.4 with `-fobject-determinism`, the max-skip shim
-with its look-through, the per-sample instrument and the saturating preamble ---
-from a source moved by one comment line and a shim moved by one commit that adds
-a switch this half does not set, **and it is Run 22's basis binary byte
-for byte**, md5 `9bac6d77a913f139171430874f99b985`. **The other half
-is `run23-spot`**, the same recipe with `LOOP_DEADSPOT=1` in front
-of `align-as.py`, so that every pad the shim emits sits after an unconditional
-`jmp` where no path executes it and the containment test orders the heads
-of a group instead of skipping one; md5 `7d0ba79ed030bdcf40479b7efd4d5fa0`,
-`.text` 20525253 against 20512965 bytes. One compiler on both halves, the first
-pair since Run 17 whose halves share one, so nothing here is a compiler reading
-and no boot library differs; both under `WILDLOG=1 SATURATE=1`; `Main.hs`
-at `125534d`, `align-as.py` at `38bb3bb`, the tree at launch `c9bf086`
-with seven untracked scratch paths and nothing modified. The same desktop, Zen
-3, a Ryzen 7 5800X, and the same BIOS Run 18 re-baselined onto. The two main
-processes read *1h53m48s* and *1h53m47s*, at *340 MiB* in use and *126 MiB* max
-residency on the basis against *341 MiB* and *126 MiB* on the dead-spot half.
+and five percent of the time on the branch's fill and every arm that shares
+its loop, nothing on the arms whose fill carried no pad, and no verdict of Run
+22's re-decided by it.** Criterion, **`--ghc-options=-fspec-constr`**; Run 22's
+regime, roster, shape set and basis recipe, and **what moved is the shim's
+environment on one half and nothing else**: 1320 benches, 55 timed arms over 24
+main-set shapes, and 2035 more over 37 class views in **nine** classes, Run 22's
+roster exactly, nothing landed and nothing left. **The basis is `run23-g912`**,
+Run 22's basis recipe built again --- ghc-9.12.4 with `-fobject-determinism`,
+the max-skip shim with its look-through, the per-sample instrument
+and the saturating preamble --- from a source moved by one comment line
+and a shim moved by one commit that adds a switch this half does not set,
+**and it is Run 22's basis binary byte for byte**, md5
+`9bac6d77a913f139171430874f99b985`. **The other half is `run23-spot`**, the same
+recipe with `LOOP_DEADSPOT=1` in front of `align-as.py`, so that every pad
+the shim emits sits after an unconditional `jmp` where no path executes
+it and the containment test orders the heads of a group instead of skipping one;
+md5 `7d0ba79ed030bdcf40479b7efd4d5fa0`, `.text` 20525253 against 20512965 bytes.
+One compiler on both halves, the first pair since Run 17 whose halves share one,
+so nothing here is a compiler reading and no boot library differs; both
+under `WILDLOG=1 SATURATE=1`; `Main.hs` at `125534d`, `align-as.py`
+at `38bb3bb`, the tree at launch `c9bf086` with seven untracked scratch paths
+and nothing modified. The same desktop, Zen 3, a Ryzen 7 5800X, and the same
+BIOS Run 18 re-baselined onto. The two main processes read *1h53m48s*
+and *1h53m47s*, at *340 MiB* in use and *126 MiB* max residency on the basis
+against *341 MiB* and *126 MiB* on the dead-spot half.
 
 **The basis half IS a repetition, the exact one this file has asked for since
 Run 19: one binary, Run 22's, timed again two evenings later over every
 population.** Over the 23 main-set shapes that exclude `stretch-inner1`, **44
 of the 49 arms read within 1% of their Run 22 geomean**, and the five outside
 are the two `libunord` arms --- degenerate, a cell that is its own forcing term
-moving a hundredfold between evenings --- and three of the placement-exposed A/A
-arms, `gen-unsafe-aa-adjacent` at 1.0208, `build-aa-adjacent` at 1.0159
-and `mut-odo` at 1.0101; `list` itself reads 0.9962 over 24 with a per-shape
-scatter of 0.983 to 1.019, and the counted work reproduces on all 49 arms
-to four figures, 1.0000 apiece. With `stretch-inner1` in, the canonicalizing
-arms read 0.81 to 0.92 of Run 22 --- a ratio of nothing, that cell sitting a few
-nanoseconds above the forcing pass on both evenings and on neither side
-of it reliably. Per class the same binary reads geomeans over its arms of 0.9989
-on `rev`, 1.0076 on `revsome`, 0.9997 on `bcast`, 1.0032 on `bcastmid`, 1.0015
-on `slice`, 0.9948 on `window`, 0.9874 on `scaled` and 1.0006 on `runs` against
-Run 22's processes, with `list` inside 0.6% on every one, and 0.9084
-on `reshape1`, where the same degeneracy sits on nine arms. **So this box's
-day-to-day drift, for one binary, is under a point on most arms and about 2%
-at the worst non-degenerate one**, which is the band every cross-run figure
-below is read against and a third narrower than Run 11's 3.3%. Both halves
-reproduce task 6's probe as well, being its two binaries: the basis against
-`probe-ds-off-main.json` reads 43 of 49 arms within 1% and `list` 0.9916,
-the dead-spot half against `probe-ds-on-main.json` 40 of 49 and `list` 0.9890.
+moving a hundredfold between evenings --- and three arms
+of the placement-exposed families, `gen-unsafe-aa-adjacent` at 1.0208,
+`build-aa-adjacent` at 1.0159 and `mut-odo` at 1.0101; `list` itself reads
+0.9962 over 24 with a per-shape scatter of 0.983 to 1.019, and the counted work
+reproduces on all 49 arms to four figures, 1.0000 apiece. With `stretch-inner1`
+in, the canonicalizing arms read 0.81 to 0.92 of Run 22 --- a ratio of nothing,
+that cell sitting a few nanoseconds above the forcing pass on both evenings
+and on neither side of it reliably. Per class the same binary reads geomeans
+over its arms of 0.9989 on `rev`, 1.0076 on `revsome`, 0.9997 on `bcast`, 1.0032
+on `bcastmid`, 1.0015 on `slice`, 0.9948 on `window`, 0.9874 on `scaled`
+and 1.0006 on `runs` against Run 22's processes, with `list` inside 0.6%
+on every one, and 0.9084 on `reshape1`, where the same degeneracy sits on nine
+arms. **So this box's day-to-day drift, for one binary, is under a point on most
+arms and about 2% at the worst non-degenerate one**, which is the band every
+cross-run figure below is read against and a third narrower than Run 11's 3.3%.
+Both halves reproduce task 6's probe as well, being its two binaries: the basis
+against `probe-ds-off-main.json` reads 43 of 49 arms within 1% and `list` 0.9913
+over those 23 shapes, the dead-spot half against `probe-ds-on-main.json` 40
+of 49 and `list` 0.9890.
 
 **What holds the build to something is the repetition and two readings
 that survive a relink.** The gate's machine check reads **-0.44%** on `list`'s
@@ -95,23 +97,23 @@ and **1.1956** on `-add-in-leaf-down`, over the 23 shapes that exclude
 sit within a point of the nine figures task 6 published off the same two
 binaries, 0.9464 against 0.9452 on `lib-stage2` down to 0.8364 against 0.8328
 on `-add-in-leaf-down`. **Registration 1 HELD.** The instrument that names
-the cause is the counted work: those nine arms execute **3.9 to 4.0% fewer
-instructions** on the dead-spot half --- count ratios of 1.0399 on `lib-stage2`
-and its four padded siblings, 1.0389 on `lib-stage1`, 1.0393 and 1.0396
-on the two `-u2` arms --- 2.0% fewer on `lib-stage2-short` and **8.7%** fewer
-on `-add-in-leaf-down`, so most of each arm's win is the pad instructions
-themselves and the rest, 1.2 to 1.6% of time over counts on the fills and 11%
-on `-add-in-leaf-down`, is what removing them does to the loop's placement. Per
-shape the pad's share is the run's: 5.2% of `lib-stage2`'s instructions
-on `alexnet-L1-55-c3-k11`, 4.3% on `stretch-tab7MB`, 1.7% on `cnn-slice-c32`
-and none on `stretch-inner1`, where the view canonicalizes to a slice
-and the fill never runs. **The flatness control is flat**: `lib-stage2-u4`,
-the one `lib-stage2` sibling whose fill carried no pad, reads 1.0043 in time
-at a count ratio of 1.0000 exactly, and `bq-expand` 0.9990, `mut-odo-vecdims`
-0.9940 and `list` 1.0040, every one inside either floor, at count ratios
-of 1.0020, 1.0000 and 1.0000 --- `bq-expand`'s two thousandths of instructions
-being a pad of its own the form also removed, worth nothing in time.
-**Registration 2 HELD.**
+the cause is the counted work: those nine arms execute **4.1 to 4.2% fewer
+instructions** on the dead-spot half over the same 23 shapes --- count ratios
+of 1.0417 to 1.0418 on `lib-stage2`, `-concat`, `-disp` and `-lean`, 1.0407
+on `lib-stage1`, 1.0410 and 1.0413 on the two `-u2` arms --- 2.1% fewer
+on `lib-stage2-short` and **8.8%** fewer on `-add-in-leaf-down`, so most of each
+arm's win is the pad instructions themselves and the rest, 0.3 to 1.4% of time
+over counts on the fills and 9.9% on `-add-in-leaf-down`, is what removing them
+does to the loop's placement. Per shape the pad's share is the run's: 5.2%
+of `lib-stage2`'s instructions on `alexnet-L1-55-c3-k11`, 4.3%
+on `stretch-tab7MB`, 1.7% on `cnn-slice-c32` and none on `stretch-inner1`, where
+the view canonicalizes to a slice and the fill never runs. **The flatness
+control is flat**: `lib-stage2-u4`, the one `lib-stage2` sibling whose fill
+carried no pad, reads 1.0043 in time at a count ratio of 1.0000 exactly,
+and `bq-expand` 0.9990, `mut-odo-vecdims` 0.9940 and `list` 1.0040, every one
+inside either floor, at count ratios of 1.0021, 1.0000 and 1.0000 ---
+`bq-expand`'s two thousandths of instructions being a pad of its own the form
+also removed, worth nothing in time. **Registration 2 HELD.**
 
 **The placement-exposed workers move as far as the fills and their counts do
 not move at all --- which is what registration 5 was written to read, and what
@@ -124,7 +126,7 @@ the dead-spot form having moved every address in the binary, as `--library`'s
 and not to their figures: `build-aa-distant` 1.0835 and `-aa-adjacent` 1.0884
 beside `build`'s 1.0610, `gen-unsafe-aa-distant` 1.0874 and `-aa-adjacent`
 1.1123 beside 1.0660, `mut-odo-aa-distant` 0.9939 and `-aa-adjacent` 0.9962
-beside 0.9999 --- spreads of two to five points within a family, which
+beside 0.9999 --- spreads of up to five points within a family, which
 is the term a slot owns and its arm does not. The kill condition, a count
 that moved, did not fire; what did not reproduce is the size: task 6 read
 `gen-unsafe` at 0.8892 and `mut-odo` at 0.9775 across these same two binaries
@@ -153,40 +155,41 @@ and the form that removes every executed pad puts a larger gap in its place.
 
 **The classes split registration 3 and kill its sharper half.** The nine arms
 lead --- the dead-spot half faster --- on `rev`, `revsome`, `slice`, `window`
-and `scaled`, by 1.4% to 17%; on `bcast` five of the nine sit inside either
+and `scaled`, by 1.4% to 22%; on `bcast` five of the nine sit inside either
 floor, `lib-stage2` at 0.9918 to `lib-stage2-concat` at 1.0016, at count ratios
 of 1.0000 --- a broadcast re-reads one element per run, its fill's pad is never
 executed and there is nothing for the form to remove --- while `lib-stage1`
 and the leaf arms move 17% to 40%; on `bcastmid` the fills sit within a point
 and the leaf arms move; on `runs` `lib-stage1` ties at 0.9995 and the rest move
-0.7% to 5.4%; and on `reshape1` the `lib-stage2` family is degenerate on two
-of four shapes and the two `-u2` leaf arms are SLOWER on the dead-spot half,
-0.9784 and 0.9637 on 4 of 4 shapes, at count ratios of 1.0000 --- past the basis
-half's 3.09% floor and inside the dead-spot half's own 10.75%. **Its second half
-is dead outright**: the margin on `runs` was predicted to shrink monotonically
-with the run length, and `lib-stage2` reads 0.9077, 0.9863, 0.8819, 0.9650,
-0.9335, 0.9871, 0.9800, 0.9637, 0.9841 and 0.8954 dead-spot over basis
-from `runs-2` to `runs-65536`, widest at `runs-4` and second widest
-at the longest run. **KILLED** in its second half; in its first, led outright
-on five classes, tied inside a floor on three, and reversed on one class's two
-arms against one of that class's two floors --- which the registration's own
-wording, *at or above 1 outside that class's floor*, reads as a kill
-on the basis's floor and a tie on the dead-spot half's.
+0.7% to 15%; and on `reshape1` the `lib-stage2` family is degenerate on one
+to three of its four shapes and the two `-u2` leaf arms are SLOWER
+on the dead-spot half, 0.9784 and 0.9637 on 4 of 4 shapes, at count ratios
+of 1.0000 --- past the basis half's 3.09% floor and inside the dead-spot half's
+own 10.75%. **Its second half is dead outright**: the margin on `runs`
+was predicted to shrink monotonically with the run length, and `lib-stage2`
+reads 0.9077, 0.9863, 0.8819, 0.9650, 0.9335, 0.9871, 0.9800, 0.9637, 0.9841
+and 0.8954 dead-spot over basis from `runs-2` to `runs-65536`, widest
+at `runs-4` and second widest at the longest run. **KILLED** in its second half;
+in its first, led outright on five classes, tied inside a floor on three,
+and reversed on one class's two arms against one of that class's two floors ---
+which the registration's own wording, *at or above 1 outside that class's
+floor*, reads as a kill on the basis's floor and a tie on the dead-spot half's.
 
 **`mut-odo` is the one arm the dead-spot form costs, and it costs it
-in the classes.** On the main set the arm reads 1.0020 across the halves;
-in the classes the basis is faster on it by 2.3% on `rev`, 3.5% on `revsome`,
-6.5% on `window` and 3.6% on `scaled`, on 3 of 3 shapes each, and by 1.0%
-on `reshape1` --- past the basis's floor on `window` and `scaled`, past
-the dead-spot half's own on `revsome` and `scaled`, its adjacent twin moving
-with it on `rev`, `window` and `scaled`. Its loop sits at offset 0 on both
-halves and its count ratio is 1.0000 in every population, so this is a placement
-term the main set reads as 1.0020 and the classes as a cost, which is the one
-thing a class comparison exists to see. The cross-class aggregate, off the nine
-`--block --compare` lines: 441 arm-comparisons, nine degenerate and not voted,
-**116 with the basis faster and 316 the dead-spot half**, the nine geomeans
-0.9985 on `reshape1` to 1.0351 on `bcast`, the high extreme `-add-in-leaf-down`
-in eight of the nine and the low extreme `mut-odo` in three.
+in the classes.** On the main set the arm reads 1.0020 across the halves
+over all 24 shapes; in the classes the basis is faster on it by 2.3% on `rev`,
+3.5% on `revsome`, 6.5% on `window` and 3.6% on `scaled`, on 3 of 3 shapes each,
+and by 1.0% on `reshape1` --- past the basis's floor on `window` and `scaled`,
+past the dead-spot half's own on `revsome` and `scaled`, its adjacent twin
+moving with it on `rev`, `window` and `scaled`. Its loop sits at offset 0
+on both halves and its count ratio is 1.0000 in every population, so this
+is a placement term the main set reads as 1.0020 and the classes as a cost,
+which is the one thing a class comparison exists to see. The cross-class
+aggregate, off the nine `--block --compare` lines: 441 arm-comparisons, nine
+degenerate and not voted, **116 with the basis faster and 316 the dead-spot
+half**, the nine geomeans 0.9985 on `reshape1` to 1.0351 on `bcast`, the high
+extreme `-add-in-leaf-down` in eight of the nine and the low extreme `mut-odo`
+in three.
 
 **Run 22's five verdicts under the dead-spot form, which registration 6 owed
 by name --- one does not hold, and it is the repetition and not the switch
@@ -207,23 +210,25 @@ and over the other 23 shapes the arm is behind past the floor
 on `stretch-coprime-r7` at 1.039 on the basis and nowhere on the dead-spot half,
 so that kill holds on one half by a different cell and not on the other;
 `lib-stage2-lean`'s killing cell was the same one and is likewise unreadable,
-its 23 others putting it at or ahead everywhere on the basis and behind past
-the floor on `cifar-L2-16-c64-k3` at 1.036 on the dead-spot half --- the reverse
+its 23 others putting it behind nowhere past the floor on the basis and behind
+past it on `cifar-L2-16-c64-k3` at 1.036 on the dead-spot half --- the reverse
 split. (3) The dispatch stays killed on both halves, 5.75% and 6.24% behind
 stage two at `runs-1024` against floors of 3.45% and 3.46%. (4) The unordered
 entry point stands: degenerate on `rev`, `revsome` and `reshape1` on both halves
---- 0.0157 and 0.0200, 0.0097 and 0.0071, 0.0025 on the basis and unreadable
-on the dead-spot half's `reshape1` --- and inside every class's floor on the six
-where neither test fires. (5) The vecdims ordering stands and is now
-unconditional: `-u2` leads `-down` in all ten populations on BOTH halves, 0.6564
-to 0.8484 on the basis and 0.8365 to 0.9463 on the dead-spot half, `scaled`,
-which the registration predicted would go, reading 0.9295 at seven points past
-its 2.46%, and `bcast`, where Run 22's HEAD half split, 0.9463 at a fifth
-of a point past its 5.25% --- the form takes eight to twelve points off
-`-down`'s deficit everywhere and reverses it nowhere. **So registration 6
-is KILLED by its own terms**, (2) having come out differently, and what
-the write-up owed is named: under the dead-spot form no verdict of Run 22's
-flips; under a repetition of Run 22's own binary, `lib-stage2-u4`'s kill does.
+--- `libunord-stage2` against `liblist-stage2` reading 0.0157 and 0.0200, 0.0097
+and 0.0071, and 0.0025 on the basis with the dead-spot half's `reshape1`
+unreadable --- and inside every class's floor on the six where neither test
+fires. (5) The vecdims ordering stands and is now unconditional: `-u2` leads
+`-down` in all ten populations on BOTH halves, 0.6564 to 0.8484 on the basis
+and 0.8365 to 0.9463 on the dead-spot half, `scaled`, which the registration
+predicted would go, reading 0.9295 at seven points past its 2.46%, and `bcast`,
+where Run 22's HEAD half split, 0.9463 at an eighth of a point past its 5.25%
+--- the form takes eight to nineteen points off `-down`'s deficit everywhere,
+8.1 on `scaled` to 19.2 on `reshape1`, and reverses it nowhere.
+**So registration 6 is KILLED by its own terms**, (2) having come out
+differently, and what the write-up owed is named: under the dead-spot form
+no verdict of Run 22's flips; under a repetition of Run 22's own binary,
+`lib-stage2-u4`'s kill does.
 
 **Every one of the twenty processes gated clean**, `--selftest` and both `--aa`
 gates, so no time column here is uncorrected. **This run's floor is 2.03%
@@ -284,13 +289,15 @@ that exclude `stretch-inner1`.
 at once: the pads, and the instrument's own reproducibility.** Twenty sweeps,
 both halves over all ten populations, 165, 220, 605 or 1320 cells apiece
 and no cell perf refused anywhere in the twenty files. **Across the halves every
-class reads as the main set does**: the padded fills lose 4.0 to 4.2% of their
-instructions on `rev`, `revsome`, `slice` and `scaled`, 4.8% on `bcastmid`, 5.8%
-on `runs`, 2.2 to 4.0% on `window` and 1.6% on `reshape1`, and NONE on `bcast`,
-where `lib-stage2`, `-short` and `-u4` all read 1.0000 and their times sit
-inside the floor --- a broadcast's fill never executes the pad the form removed
---- while `build`, `mut-odo`, `gen-unsafe` and their twins read 1.0000 in all
-ten populations, so every point those move anywhere is placement. The nine class
+class reads as the main set does**: the padded fills lose 4.0 to 4.7% of their
+instructions on `rev`, `revsome`, `slice` and `scaled`, 5.8% on `runs`, 2.2
+to 4.0% on `window`, 1.6% on `reshape1` and 0.6% on `bcastmid`, where only
+`lib-stage1` and the `-u2` arms pay the 4.8%, and on `bcast` none
+for the `lib-stage2` family, `lib-stage2`, `-short` and `-u4` reading 1.0000
+with their times inside the floor --- a broadcast's fill never executes the pad
+the form removed --- though `lib-stage1` and the two `-u2` arms lose 5.7% there;
+while `build`, `mut-odo`, `gen-unsafe` and their twins read 1.0000 in all ten
+populations, so every point those move anywhere is placement. The nine class
 geomeans over the arms with a corrected time run 1.0043 on `reshape1` to 1.0133
 on `slice`, basis over dead-spot. **Against Run 22's twenty sweeps every arm
 reads 1.0000 to four figures on the main set and on `revsome`, `bcast`,
@@ -407,13 +414,13 @@ the order, the allocation area, the box and the recipe are the same ones,
 so the distance is what two evenings on one binary disagree by, measured:
 over the 23 shapes that exclude `stretch-inner1`, 44 of the 49 arms read within
 1% of their Run 22 figure, and the five outside are the two `libunord` arms,
-degenerate on more cells this run than last, and three placement-exposed A/A
-arms at 1.01% to 2.08%. **This pair's halves differ in where the shim puts
-its pads and in nothing else** --- one compiler, one source, one store ---
-so a cross-half distance is layout by construction, and the counted work is what
-separates a pad the loop executed from a slot the loop landed in: where an arm's
-instruction count moved between the halves it was a pad, and where it did
-not it was placement or the runtime.
+degenerate on more cells this run than last, and three arms
+of the placement-exposed families at 1.01% to 2.08%. **This pair's halves differ
+in where the shim puts its pads and in nothing else** --- one compiler, one
+source, one store --- so a cross-half distance is layout by construction,
+and the counted work is what separates a pad the loop executed from a slot
+the loop landed in: where an arm's instruction count moved between the halves
+it was a pad, and where it did not it was placement or the runtime.
 
 **And it is the basis half's**, `run23-g912`, as every published table here
 is from Run 11 on: the dead-spot half's column sits beside the basis one
@@ -602,7 +609,7 @@ time, on one binary, and none of it is a code change or a layout change:
 it is the band the head quotes as this box's repetition drift.
 
 **Three things in the table are the run's findings rather than its numbers.**
-**The head of the table is where Run 22 left it, to the thousandth,
+**The head of the table is where Run 22 left it, within a thousandth,
 on the binary Run 22 timed.** `mut-odo-vecdims` reads 0.055 with **nineteen**
 timed arms below it and one level --- where Run 22 printed eighteen below
 and one level from this same binary, the arm that crossed being
@@ -704,34 +711,33 @@ could have separated from codegen, both moving at once on those pairs.
 So the variable to vary next is a layout one or a threshold one,
 and the compiler stays where it is.
 
-**What Run 22 leaves the next run to read against, and the first item is
+**What Run 23 leaves the next run to read against, and the first item is
 not a figure.** **The box did not change**, its gate machine check reading
--0.87% against the fingerprint Run 21 kept and the run's own main-set process
-reading +0.08% against that same fingerprint, over 24 of 24 shapes both times,
-worst -1.66% and +1.85% and none past 5%; so absolutes cross from Run 21 to Run
-22 freely and the boundary that matters is still the BIOS change before Run 18,
-which no absolute crosses. **The floor is 2.12% on the basis and 1.08%
-on the control**, with the restricted six at 0.37% and 0.51%. A Run 23 margin
+-0.44% against the fingerprint Run 22 kept and the run's own main-set process
+reading -0.40% against that same fingerprint, over 24 of 24 shapes both times,
+worst -1.58% and +1.86% and none past 5%; so absolutes cross from Run 22 to Run
+23 freely and the boundary that matters is still the BIOS change before Run 18,
+which no absolute crosses. **The floor is 2.03% on the basis and 2.80%
+on the control**, with the restricted six at 0.39% and 0.40%. A Run 24 margin
 is judged on both and they answer different questions: the six-pair figure
 is what two rows of one table must clear, the sixteen-pair one is how far an arm
-differs from its own duplicate. **And it is not inherited**: Run 21 read 2.92%
-and 2.16% on these same two recipes and this run reads 2.12% and 1.08%, one
-roster change on, having risen from 1.51% over the previous such step ---
-so a floor moves by a factor of two in either direction for reasons no run has
-isolated, and a Run 23 margin is judged against Run 23's own, never against
-these. **The two columns below MAY NOT be differenced, which reverses Run 21**:
-`list` moved **0.81%** between the halves against the 0.7% bar, where Run 21
-read 0.64% and passed marginally and Runs 20 and 19 read 0.71% and 0.78%
-and were refused. So read them as an ordering; and note that five of the nine
-classes are past the bar too --- `bcastmid` 1.0106, `reshape1` 0.9900, `window`
-1.0082, `scaled` 0.9911 and `runs` 1.0114 --- while `rev`, which Run 21
-disqualified, is inside it here. What the columns price is a compiler,
-and the counted-work column says which movements that reaches:
-`bq-odo-gm-mulback` and `bq-scan-rem-gm-mulback` six to seven percent apart
-ON their instruction counts, `mut-odo-vecdims-add-in-leaf` ten points
-of its fifteen, and the placement-exposed arms `build`, `mut-odo`
-and `gen-unsafe` apart at count ratios of 1.0000. So a movement on one
-of those three is layout or runtime until the counts say otherwise.
+differs from its own duplicate. **And it is not inherited**: Run 22 read 2.12%
+on this very binary two evenings earlier and this run reads 2.03%, so a floor
+moves by a twentieth when nothing moves and by a factor of two when the roster
+does, and a Run 24 margin is judged against Run 24's own, never against these.
+**The two columns below MAY be differenced, which reverses Run 22**: `list`
+moved **0.33%** between the halves against the 0.7% bar, where Run 22 read 0.81%
+and was refused and Run 21 0.64%. So read them as a subtraction where one
+is wanted; and note that three of the nine classes are past the bar ---
+`revsome` 1.0092, `bcastmid` 1.0093 and `runs` 0.9894 --- while the other six
+are inside it. What the columns price is the shim's pad placement,
+and the counted-work column says which movements that reaches: the padded fills
+four percent apart ON their instruction counts and five in time,
+`-add-in-leaf-down` nine points of its twenty, and the placement-exposed arms
+`build`, `mut-odo` and `gen-unsafe` apart at count ratios of 1.0000.
+So a movement on one of those three is layout or runtime --- and this run's
+cross-run column against Run 22 carries no layout term at all, its basis being
+Run 22's binary.
 
 **Registered with the pair.** Run 23's six registrations, their kill conditions
 and their verdicts are [in this file's last
@@ -1256,7 +1262,7 @@ is under the tasks heading --- worth more than the mode, since it stops the next
 session building the same thing. A report that never empties is one nobody
 reads, which this file already knows about hints.
 
-**And for each stride class, the same three properties, now carrying Run 22's
+**And for each stride class, the same three properties, now carrying Run 23's
 verdicts** over nine classes, the details beside each class's table:
 
 1. **The regime 3 fix's `worst` stays under 1.** Held in every one of the ten
@@ -1274,15 +1280,15 @@ verdicts** over nine classes, the details beside each class's table:
    is not enough: Run 18's entry here read a floor-level figure from whichever
    half happened to be lower, which is the defect this phrasing exists
    to prevent. **What breaks it is again not a fill the library would ship.**
-   `gen-unsafe` carries a `worst` above 1 in nine populations of ten on each
-   half, from 1.035 on `bcast` to 3.429 on the main set on the basis, the one
-   exception being `runs` on the dead-spot half at 0.901 --- but it
-   is a baseline variant, and its twins and the `list` twins that cross 1
-   are the baseline's own controls. **The library-shaped arms break it on `runs`
-   alone and all at `runs-2`**, six of eleven on both halves, as Run 22 found
-   on this same basis binary: `libunord-stage1` at **1.362**, `liblist-stage1`
-   at 1.354, `lib-stage2-concat` at 1.350, `lib-stage1` --- the shipped route
-   --- at **1.333**, `liblist-stage2` at 1.167 and `libunord-stage2` at 1.161
+   `gen-unsafe` carries a `worst` above 1 in all ten populations on the basis,
+   from 1.035 on `bcast` to 3.429 on the main set, and in nine of ten
+   on the dead-spot half, `runs` reading 0.901 there --- but it is a baseline
+   variant, and its twins and the `list` twins that cross 1 are the baseline's
+   own controls. **The library-shaped arms break it on `runs` alone and all
+   at `runs-2`**, six of eleven on both halves, as Run 22 found on this same
+   basis binary: `libunord-stage1` at **1.362**, `liblist-stage1` at 1.354,
+   `lib-stage2-concat` at 1.350, `lib-stage1` --- the shipped route ---
+   at **1.333**, `liblist-stage2` at 1.167 and `libunord-stage2` at 1.161
    on the basis, and 1.375, 1.352, 1.341, 1.325, 1.154 and 1.153
    on the dead-spot half. So on 900000 runs of two elements SIX of the eleven
    library-shaped arms are slower than the `list` baseline they replace ---
@@ -1424,11 +1430,11 @@ above 1. **The high extreme is one arm in eight of the nine classes**,
 is `mut-odo` in three of the nine**, `revsome` 0.9655, `window` 0.9351
 and `scaled` 0.9636, the basis faster: the one worker the dead-spot form costs,
 and it costs it in the classes and not on the main set, where the arm reads
-1.0020. **Three classes disqualify their own cross-half line**, where Run 22 had
-five: `revsome` at 1.0092, `bcastmid` at 1.0093 and `runs` at 0.9894 move `list`
-past the 0.7% bar, so their lines say so and are not read for the pads ---
-and the main set, at 1.0033, is inside it this run, where Run 22's 0.81%
-was not.
+1.0020 over all 24 shapes. **Three classes disqualify their own cross-half
+line**, where Run 22 had five: `revsome` at 1.0092, `bcastmid` at 1.0093
+and `runs` at 0.9894 move `list` past the 0.7% bar, so their lines say
+so and are not read for the pads --- and the main set, at 1.0033, is inside
+it this run, where Run 22's 0.81% was not.
 
 First, one table over all of them, so that an inversion is visible without
 reading every class's table. Every figure in it is transcribed from a class's
@@ -1844,7 +1850,7 @@ the dead-spot half faster on all of them. **This is also the population where
 Run 22's registration 5 split**, `-down` leading `-u2` on the HEAD half;
 on this pair `-u2` leads on both halves, 0.8041 on the basis and 0.9463
 on the dead-spot half, the second past the 5.25% that half's own sixteen pairs
-span, by a fifth of a point.
+span, by an eighth of a point.
 
 **`bcastmid` --- the stretched axis in the middle instead: stride 0 on an outer
 dimension.** Shapes: `bcastmid-c32-cnn` (`l` 165888, `sInner` 3),
@@ -2145,9 +2151,10 @@ does not break here --- the best arm OUTSIDE the family is `lib-stage2-short`,
 level with it at 0.030, where Run 22 read the candidate ahead by a thousandth
 on this same binary. Properties 1 and 3 hold. Across the halves this
 is the class the pads cost most evenly: 44 of 49 arms are faster
-on the dead-spot half at a geomean of 1.0258, every padded fill by 5.6% to 6.6%
-and `lib-stage1` by 3.3%, all past the basis half's 3.11% floor; the dead-spot
-half's own is 6.47%, which only `-lean` at 6.6%, `gen-unsafe` at 12%
+on the dead-spot half at a geomean of 1.0258, the `lib-stage2` family by 5.6%
+to 6.6%, `lib-stage1` by 3.3% and the two `-u2` arms by 3.2% and 3.9%, all past
+the basis half's 3.11% floor; the dead-spot half's own is 6.47%, which only
+`-lean` at 6.6%, `gen-unsafe` at 12% with its distant twin at 7.8%,
 and `-add-in-leaf-down` at 17% clear. Registration 1's ratio, `lib-stage2` /
 `lib-stage1`, reads 1.0409 on the basis and 1.0120 on the dead-spot half ---
 the one population Run 22 read the branch behind past its floor, inside its 1.10
@@ -2242,9 +2249,10 @@ and again the widest property-2 break of any non-degenerate class. Properties 1
 and 3 hold. **Across the halves it is `mut-odo` that moves most, and the wrong
 way for the pair's story**: 0.9351 at 3 of 3, the basis faster by 6.5%, past
 the basis's 4.50% floor and inside the dead-spot half's 7.43%, its adjacent twin
-at 0.9609 with it, while the padded fills go 3.4% to 10% the other way
-and `-add-in-leaf-down` 22%. The arm's own loop sits at offset 0 on both halves,
-named off the twins, so what moved it is not its head.
+at 0.9609 with it, while the `lib-stage2` family and `lib-stage1` go 3.4% to 10%
+the other way, the `-u2` arms 2.7% and 3.7%, and `-add-in-leaf-down` 22%.
+The arm's own loop sits at offset 0 on both halves, named off the twins, so what
+moved it is not its head.
 
 **`scaled` --- superincreasing strides, none of them 1: a hand-built dilated
 view.** Shapes: `scaled-super-r3` (`l` 60000, `sInner` 30), `scaled-rank1-m1`
@@ -2333,16 +2341,18 @@ to `mut-odo-vecdims-add-in-leaf-down` at 1.1343, with `list` itself at 0.9974.
 `-add-in-leaf-u2-down` leads at 0.027, **0.9060 of the fix on 2 of 3 shapes
 at sign p 1**, 9.4% against a 1.99% floor, with `lib-stage1` the best arm
 outside the family level with it at 0.027 --- where Run 22 read `lib-stage2-u4`
-ahead of both by a thousandth on this same binary --- so property 2's first
-clause holds by the claims' own reading and the fix's `worst` here, 0.033,
-is the tightest of the ten populations. Properties 1 and 3 hold, `bq-expand`
-at 1.14x, the bottom of the range. Across the halves `mut-odo` is slower
-on the dead-spot half by 3.6% at 3 of 3, past the basis's 1.99% floor
-and the dead-spot half's own 2.46%, and every arm of the vecdims family
-with it by 1.6% to 2.0%, while the padded fills gain 1.9% to 3.7%;
-the population where the registration expected `-down` to catch `-u2` reads
-`-u2` ahead on both halves, 0.8484 and 0.9295, the second past the 2.46%
-the dead-spot half's own pairs span, threefold.
+ahead of the sibling by a thousandth and of `lib-stage1` by three on this same
+binary --- so property 2's first clause holds by the claims' own reading
+and the fix's `worst` here, 0.033, is the tightest of the ten populations.
+Properties 1 and 3 hold, `bq-expand` at 1.14x, the bottom of the range. Across
+the halves `mut-odo` is slower on the dead-spot half by 3.6% at 3 of 3, past
+the basis's 1.99% floor and the dead-spot half's own 2.46%,
+and `mut-odo-vecdims`, its twins, `-add-in` and `-add-in-leaf` with it by 0.6%
+to 2.0%, while the `lib-stage2` family gains 1.9% to 3.4%, `lib-stage1` 3.7%
+and the three other leaf arms 2.5% to 13%; the population where the registration
+expected `-down` to catch `-u2` reads `-u2` ahead on both halves, 0.8484
+and 0.9295, the second past the 2.46% the dead-spot half's own pairs span,
+threefold.
 
 **`runs` --- run length swept from 2 to 65536 with innermost stride 1
 throughout: regime 2, which the library reaches by a route of its own,
@@ -2580,11 +2590,11 @@ a whole-binary layout change reads.
 on `cifar-L2-16-c64-k3` and **38.0 ms** on `stretch-wide-2xM`, all three net
 of the forcing term and all three the basis half's; raw they read 6.10 us, 3.12
 ms and 39.1 ms. **The dead-spot half's three are 5.96 us, 3.02 ms and 37.3 ms
-net**, so the two halves' baselines sit within 0.6%, 0.2% and 1.7% of each other
+net**, so the two halves' baselines sit within 0.5%, 0.3% and 1.7% of each other
 --- the same measurement the 0.7% bar above reads as a geomean, 0.33%
 over the whole shape set, which is why that bar admits this pair. Against Run
 22's basis anchors of 5.98 us, 3.07 ms and 37.9 ms on this same binary,
-the three moved -1.0%, -1.3% and +0.2%.
+the three moved -0.9%, -1.2% and +0.1%.
 
 | shape | `l` | `list`, per call | net | dead-spot, net |
 |---|---:|---:|---:|---:|
@@ -2641,18 +2651,18 @@ inside this run's main-set floor of task 6's figure: `-add-in-leaf-down` 0.8328,
 `lib-stage2-concat` 0.9433, `lib-stage2-disp` 0.9440, `lib-stage2-lean` 0.9441,
 `lib-stage2` 0.9452, `-add-in-leaf-u2` 0.9507, `lib-stage1` 0.9537, `-u2-down`
 0.9545 and `lib-stage2-short` 0.9762. They read **0.8364, 0.9470, 0.9482,
-0.9502, 0.9464, 0.9494, 0.9527, 0.9511 and 0.9763** --- every one within 0.4
+0.9502, 0.9464, 0.9494, 0.9527, 0.9511 and 0.9763** --- every one within 0.7
 of a point of its prediction against a 2.03% floor. **HELD.** The counted work,
-which the registration did not have, says why: the nine execute 3.9 to 4.0%
-fewer instructions on the dead-spot half (`-short` 2.0%, `-add-in-leaf-down`
-8.7%), and on `alexnet-L1-55-c3-k11` the pad is 5.2% of `lib-stage2`'s
+which the registration did not have, says why: the nine execute 4.1 to 4.2%
+fewer instructions on the dead-spot half (`-short` 2.1%, `-add-in-leaf-down`
+8.8%), and on `alexnet-L1-55-c3-k11` the pad is 5.2% of `lib-stage2`'s
 instructions, where the shim-free sweep the registration cited put it at 5.51%.
 
 (2) *The flatness control: no pad, no movement.* `lib-stage2-u4`, `bq-expand`,
 `mut-odo-vecdims` and `list` were predicted inside the floor of 1 with their
 instruction counts equal between the halves, killed by one of the four past
 the floor. They read **0.9957, 1.0010, 1.0060 and 0.9960** at count ratios
-of 1.0000, 1.0020, 1.0000 and 1.0000 --- `bq-expand`'s two thousandths being
+of 1.0000, 1.0021, 1.0000 and 1.0000 --- `bq-expand`'s two thousandths being
 a pad of its own the form removed, worth nothing in time. **HELD.**
 
 (3) *The classes.* The nine arms were predicted to lead on all nine classes,
@@ -2681,9 +2691,9 @@ with their instruction counts equal, killed by a count that moved. The counts
 are equal, 1.0000 on all three and on all six twins; the figures read **0.9381,
 0.9425 and 1.0001** --- `build` reproduced, `gen-unsafe` 4.9 points off
 and `mut-odo` 2.3, both past the basis's floor --- and the twins moved in their
-bases' direction at spreads of two to five points within a family,
-as registered. **HELD on the kill condition, not on the prediction**:
-the movement is placement, as the counts say, and its size is an evening's.
+bases' direction at spreads of up to five points within a family, as registered.
+**HELD on the kill condition, not on the prediction**: the movement
+is placement, as the counts say, and its size is an evening's.
 
 (6) *No verdict of Run 22's is re-decided by the switch --- and the write-up
 names any that is.* Four were predicted to stand and (5), the vecdims ordering,

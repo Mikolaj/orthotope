@@ -811,16 +811,16 @@ rather than a slot in the next run, observed again:
   verdicts are [in Run 23's own
   file](runs/run23.md#what-this-run-was-built-to-answer-and-what-it-answered),
   where a run's registrations have lived since 2026-08-29; in a clause each: (1)
-  the nine padded arms' win reproduced within 0.4 of a point, HELD,
-  and the counted work says it is the pads, 3.9 to 4.0% of their instructions;
-  (2) the flatness control flat at count ratios of 1, HELD; (3) the classes
-  SPLIT and the `runs` monotone prediction KILLED, the margin ordering
-  with nothing; (4) `build`/`mut-odo` a tie on the basis and 0.9449
-  on the dead-spot half at counts of 1, HELD; (5) the placement-exposed workers'
-  counts equal, HELD on that and not on the size, `gen-unsafe` 4.9 points
-  from the probe's figure; (6) no Run 22 verdict re-decided by the switch,
-  and KILLED by its own terms nonetheless, the repetition of Run 22's binary
-  unseating `lib-stage2-u4`'s kill.
+  the nine padded arms' win reproduced within 0.7 of a point, HELD,
+  and the counted work says it is the pads, 4.1 to 4.2% of their instructions
+  over the 23 readable shapes; (2) the flatness control flat at count ratios
+  of 1, HELD; (3) the classes SPLIT and the `runs` monotone prediction KILLED,
+  the margin ordering with nothing; (4) `build`/`mut-odo` a tie on the basis
+  and 0.9449 on the dead-spot half at counts of 1, HELD; (5)
+  the placement-exposed workers' counts equal, HELD on that and not on the size,
+  `gen-unsafe` 4.9 points from the probe's figure; (6) no Run 22 verdict
+  re-decided by the switch, and KILLED by its own terms nonetheless,
+  the repetition of Run 22's binary unseating `lib-stage2-u4`'s kill.
 - `ANSWERED` **What Run 22 was built to answer, registered before it ran ---
   and what it answered.** The five registrations, their kill conditions
   and their verdicts are [in Run 22's own file](runs/run22.md), where a run's
