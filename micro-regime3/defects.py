@@ -2808,6 +2808,11 @@ def V(exit=None, has=(), hasnt=()):
 # fired without either saying so reads as latent, and `harm_count` is given
 # only where a number is written.
 TIER1 = {
+    'draft-renames-a-half-onto-the-other': dict(
+        family='two-spellings', discovery='review', harm='latent',
+        trigger='--draft where the new basis reuses the old other name',
+        ok='every rename in one pass, so nothing written is renamed again',
+        bug='both halves of the carried-over note under one name, silently'),
     # ---- preflight.sh ----
     'preflight-names-a-retired-callee': dict(
         family='other:caller-left-behind', discovery='in-use', harm='fired',
@@ -6790,6 +6795,23 @@ RECORDS = [
                    'HALVES: basis=g912 other=ghead',
                    'bare spot -> ghead'],
               hasnt=['dead-ghead', 'ghead-check', 'hotghead', 'gheadless'])),
+
+    case('draft-renames-a-half-onto-the-other', 'read-run.py', 'abd8ed8',
+         'renaming one half at a time fed each result to the next rename',
+         # The new BASIS reuses the old OTHER's name, which is ordinary --
+         # Run 24's own pair moved `other` from spot back to ghead. Renamed
+         # in turn, `g912` became `spot` and the second rename took that to
+         # `ghead`, so both halves of the carried-over note read `ghead`
+         # and the substitution log looked right. One pass now.
+         plant=lambda t: {'note': write(
+             os.path.join(t, 'run23-pair.txt'),
+             "hdr\n\nA [SAME]: g912 leads, spot follows; run23-g912 and"
+             " run23-spot.\nHALVES: basis=g912 other=spot\n")},
+         argv=['--note', '{note}', '--draft', 'run24', '--halves',
+               'spot,ghead'],
+         ok=V(exit=0, has=['spot leads, ghead follows'],
+              hasnt=['ghead leads, ghead follows']),
+         bug=V(exit=0, has=['ghead leads, ghead follows'])),
 
     # ---- preflight.sh, the pre-run list's steps 4 to 10 in one call -----
     case('preflight-names-a-retired-callee', 'preflight.sh', '81876de',
