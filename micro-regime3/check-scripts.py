@@ -597,6 +597,24 @@ def readme_link_to_an_older_run(tmp):
                  text.replace('runs/' + was, 'runs/run%d.md' % (now - 1)))
 
 
+def readme_deliberate_link_wrapped(tmp):
+    """A copy carrying a DELIBERATE link into the run before, whose text
+    names that run across a line break -- `[Run\n  22's file](runs/run22.md)`
+    -- which is the form the wrapped document actually holds.
+
+    The exemption for such links reads the run's name out of the text, and
+    read on the wrapped file it saw `Run` at one line's end and `22` at the
+    next's start, so a link the write-up placed on purpose failed the check
+    the moment the Stop hook rewrapped the file (Run 23, 2026-09-02).
+    """
+    was = os.path.basename(RUNDOC)
+    now = int(re.match(r'run(\d+)\.md$', was).group(1))
+    text = open(README).read()
+    para = ("\nThe account is in [Run\n  %d's own file](runs/run%d.md), kept"
+            " for good.\n" % (now - 1, now - 1))
+    return write(os.path.join(tmp, 'R.md'), text + para)
+
+
 def rundoc_pair(tmp, held=True):
     """Two run files in one directory: this run's, and a predecessor.
 
@@ -3269,6 +3287,18 @@ CASES = [
          plant=lambda t: {'readme': readme_link_to_an_older_run(t)},
          argv=['--check-doc', '--readme', '{readme}'],
          ok=V(exit=1, has=['point at a run file that is not this'])),
+
+    case('deliberate-link-into-an-older-run-survives-a-wrap', 'read-run.py',
+         None,
+         'CONTROL: a link whose text names the older run across a line'
+         ' break is the exemption and not the miss',
+         # The case above is the miss; this is the deliberate link the
+         # exemption exists for, in the shape the wrapped document gives
+         # it. The rule read `Run 22` as one token and the hook had put a
+         # newline in it.
+         plant=lambda t: {'readme': readme_deliberate_link_wrapped(t)},
+         argv=['--check-doc', '--readme', '{readme}'],
+         ok=V(hasnt=['point at a run file that is not this'])),
 
     case('bridge-divides-out-the-baseline', 'read-run.py', None,
          'a cross-run comparison a moved box made unreadable',

@@ -6586,7 +6586,7 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
                       for txt, t, n in pair.findall(text)
                       if not t.split('#')[0].endswith(
                           os.path.basename(run_doc))
-                      and not re.search(r'\bRun %s\b' % n, txt)})
+                      and not re.search(r'\bRun\s+%s\b' % n, txt)})
         if old:
             bad.append('%d link(s) point at a run file that is not this'
                        " run's: %s -- runs/ keeps every run, so a link the"
