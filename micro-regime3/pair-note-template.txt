@@ -109,17 +109,10 @@ README.md#what-is-open, while the PREVIOUS run's own file, under `What
 the next run compares against`, carries the regime, the roster, the basis
 and what the pair varies. A note that names only the second sends the
 next session to a section its prediction is not in.
-  AND A REGISTRATION MOVES HOUSE ONCE, which is why this file and
-  post-run step 10 look as though they disagree and do not. BEFORE the
-  run it is an `OPEN` entry of the open list, which is the only home it
-  can have: `runs/$R.md` does not exist yet and the pre-run list forbids
-  making it. AT THE WRITE-UP, post-run step 5 moves it whole into that
-  file, under `What this run was built to answer, and what it answered`,
-  where it gains its verdicts -- a rule of 2026-08-29 -- and the open
-  list keeps one `ANSWERED` entry per run: a lead, a verdict in a clause,
-  and a link. So `--para 'What Run'` reads the POINTER for a finished run
-  and the REGISTRATION for the one in hand, and an empty-looking answer
-  from it is not evidence that a run registered nothing.
+  A registration moves house once, at post-run step 5, from the open
+  list into `runs/$R.md`'s last section, the open list keeping an
+  `ANSWERED` pointer; so `--para 'What Run'` reads the pointer for a
+  finished run and the registration for the one in hand.
   - each prediction, with what would kill it, in the open list. NAME the
     entry here; do NOT copy it. Two copies of a registration is one copy
     that goes stale, and this note is the one nobody re-reads;
