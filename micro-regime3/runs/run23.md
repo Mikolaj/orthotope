@@ -682,39 +682,42 @@ where the counted work says which of the two executed a pad.
 
 ## What the next run compares against
 
-**Run 24's regime, roster and shape set are settled; its basis and its pair
-are not, and the first of those is a decision this run puts to whoever asked
-for it rather than one this file makes.** The regime is `-fspec-constr`,
-as every run since Run 8, and it is the regime the claims decide in; the shipped
-file does not set the flag ([the
-ceiling](../README.md#the-mutable-ceiling-taken)). The roster is Run 22's
-and Run 23's --- 55 timed arms over 24 main-set shapes and 37 class views
-over nine classes, 1320 benches and 2035 --- unless [the recommended tasks after
-Run 23](../README.md#recommended-tasks-after-run-23) add to it. **The basis
-question is whether the recipe moves from the max-skip shim to the dead-spot
-one**, `LOOP_DEADSPOT=1` in front of `align-as.py` and nothing else varied. What
-this run says for it: every arm whose fill carried a pad is five to six percent
-faster under it on the main set, on five of nine classes outright and inside
-the floor on the other four, and the flatness controls and the claims do
-not move. What it says against, or at least aside: `mut-odo` is slower
-under it in three classes past a floor (`scaled` 3.6%, `window` 6.5%, `revsome`
-3.5%), the two `-u2` leaf arms are slower on `reshape1` by 2.2% and 3.6% against
-one of that class's two floors, the four straddling loops the form leaves
-are in the branch's own fills, and every figure in this README's lineage
+**Run 24's regime and pair are settled, and its roster and shape set are not:
+decided 2026-09-02 by whoever asked for this run, Run 24's binaries are Run 23's
+dead-spot recipe built TWICE --- one source, one compiler, `LOOP_DEADSPOT=1`
+in front of `align-as.py` on both halves --- so the basis MOVES to the dead-spot
+form and its first run is the repetition this section says such a move owes.**
+The regime is `-fspec-constr`, as every run since Run 8, and it is the regime
+the claims decide in; the shipped file does not set the flag ([the
+ceiling](../README.md#the-mutable-ceiling-taken)). The roster and the shape set
+were undecided when this was written; whatever they become, [the recommended
+tasks after Run 23](../README.md#recommended-tasks-after-run-23) is where
+an addition is registered, and a roster that moves puts a layout term back
+into the cross-run column that a repetition alone would not carry. **What
+the decision weighed, kept as the record of it.** What this run said
+for the move: every arm whose fill carried a pad is five to six percent faster
+under it on the main set, on five of nine classes outright and inside the floor
+on the other four, and the flatness controls and the claims do not move. What
+it says against, or at least aside: `mut-odo` is slower under it in three
+classes past a floor (`scaled` 3.6%, `window` 6.5%, `revsome` 3.5%), the two
+`-u2` leaf arms are slower on `reshape1` by 2.2% and 3.6% against one
+of that class's two floors, the four straddling loops the form leaves are
+in the branch's own fills, and every figure in this README's lineage
 was measured through the max-skip recipe, so a move puts a layout term
-into the next cross-run column exactly as a roster change does. **The pair,
-if the basis stays**: the `dispRun` threshold pair the open list names
-is the cheapest decisive pair this file has been able to name in four runs ---
-one binary, one arm per candidate threshold, over the `runs` class alone,
-wanting no evening and no second recipe --- and Run 23 re-read the dispatch
-killed at `runs-1024` on both halves, so the question is live. **If the basis
-moves**, the first run on the dead-spot recipe is owed a repetition of it before
-anything else is varied, which is the instrument this run has just shown
-to be worth having: one binary, two evenings, 44 of 49 arms within a point.
-**What is NOT a candidate** is unchanged: a pair varying the allocation area,
-closed 2026-08-21, and one varying the roster between its halves, refused
-because it would break `preflight`'s `check` comparison and both drivers' bench
-counts.
+into the next cross-run column exactly as a roster change does. **What Run 24's
+pair buys**: the first published table on the dead-spot recipe read against
+a second build of the same recipe, which is the instrument this run has just
+shown to be worth having --- one binary, two evenings, 44 of 49 arms within
+a point --- taken this time within one evening and on the new basis before
+anything else is varied. **What waits behind it**: the `dispRun` threshold pair
+the open list names is still the cheapest decisive pair this file has been able
+to name in four runs --- one binary, one arm per candidate threshold,
+over the `runs` class alone, wanting no evening and no second recipe --- and Run
+23 re-read the dispatch killed at `runs-1024` on both halves, so the question
+stays live. **What is NOT a candidate** is unchanged: a pair varying
+the allocation area, closed 2026-08-21, and one varying the roster between
+its halves, refused because it would break `preflight`'s `check` comparison
+and both drivers' bench counts.
 
 **The compiler variable has stopped paying, and Run 23 confirms it
 from the other side.** Runs 19 to 22 each varied the compiler and the last three

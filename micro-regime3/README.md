@@ -2337,14 +2337,15 @@ is planned. A scope limit belongs in the sentence that asks for the measurement.
    --- so what a counted ratio sees of the shim is only the differential, one
    nop where two arms' pads differ, which is the whole of what the `slice`
    residue turned out to be.
-7. `OPEN` **Whether the basis moves to the dead-spot recipe**, which Run 23 puts
-   to whoever asked for it and this file does not decide: the case
-   for and against is under [What the next run compares
-   against](runs/run23.md#what-the-next-run-compares-against), the form being
-   worth four percent of the instructions and five of the time on every padded
-   fill and costing `mut-odo` a few points in three classes. What settles
-   it is a decision and not a measurement, and the first run on the new recipe
-   would owe a repetition of it before varying anything else.
+7. `ANSWERED` **Whether the basis moves to the dead-spot recipe --- it does,
+   decided 2026-09-02 by whoever asked for Run 23.** Run 24's binaries are Run
+   23's dead-spot recipe built twice, `LOOP_DEADSPOT=1` in front of the shim
+   on both halves, which is the repetition the move owed; the roster and shape
+   set were left undecided. The case the decision weighed is under [What
+   the next run compares
+   against](runs/run23.md#what-the-next-run-compares-against): four percent
+   of the instructions and five of the time on every padded fill, against
+   `mut-odo` losing a few points in three classes.
 8. `OPEN` **Re-aim claim 1 at the family's leader, or say why not**: nineteen
    arms read below `mut-odo-vecdims` on Run 23's basis as eighteen did on Run
    22's, the shipped route among them, and claim 1's top rung still prices
