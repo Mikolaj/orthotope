@@ -1513,7 +1513,12 @@ the same six things and nothing else:
    of a population;
 3. its own controls, off `--aa`: the A/A deviations with their spans, the two
    `sum-only` halves, and the in-situ term from the `-nosum` arms ---
-   this process's own floor and its own three gates, neither inherited nor lent;
+   this process's own floor and its own three gates, neither inherited nor lent
+   --- and where the paragraph quotes the OTHER half's figure, it says so
+   in the form `the other half's own sixteen pairs span N%` and never
+   with the word *floor* beside the number, which `--check-doc` holds
+   to this table's column (Run 23 was refused four times before it learned
+   the shape);
 4. its provenance and its anchor: elapsed time and the two heap peaks
    from that process's stderr line, its population's size from the reader's
    first line ([why not both from one

@@ -21,8 +21,11 @@ Substitute per run: RUN=run23  BASIS=g912  OTHER=spot  PREV=run22
                                       run file as wholly new and leave the
                                       pass no `before` to find a stale
                                       paragraph in)
-                    RUNTIP=f89f935   (this run's last commit to README;
-                                      advance it as fixes land)
+                    RUNTIP=f89f935   (the commit pass 2 READS, given in
+                                      the launch message -- the commit that
+                                      carries this line's edit cannot name
+                                      itself -- and advanced here after, as
+                                      the record and not the input)
 
 
 === THE INDEPENDENT CHECKER, PASS 1 (checklist 6b: after 6a's prose,

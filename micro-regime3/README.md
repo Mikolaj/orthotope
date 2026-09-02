@@ -5268,7 +5268,11 @@ and never as a chronology.
     #      scripts have had, planted again and refused again, and
     #      `--changed` is what makes the step the size of the edit. 8c
     #      and 8d write `zz-` fixtures here and remove them, so both want
-    #      an unsandboxed seat, and neither writes anything of record
+    #      an unsandboxed seat, and neither writes anything of record.
+    #      AND THEY RUN ALONE: the suite compares the tree before and
+    #      after, so a commit or an edit made while it runs reads as a
+    #      case that changed the tree and the run is repaid (Run 23,
+    #      four minutes)
     #      why: --para 'What the three check-scripts.py steps'
     ./$R-<basis> diag                     # 9. the regime, in the binary
     #      read one row: allocated bytes of baseOffsetsScan against
@@ -5358,6 +5362,10 @@ and never as a chronology.
     #      harness wakes you when a job ends, set no waiter at all
     #      why: --para 'After a roster change'
     #  12a. WRITE THE REGISTRATION, which is this half's largest product
+    #      -- as ONE paragraph, because post-run step 5 moves it whole
+    #      into the run file with `./read-run.py --move-registration`,
+    #      which leaves the ANSWERED stub in its place; the two-copies
+    #      hand copy that mode replaces cost Run 23 an hour
     #      and had no step until 2026-09-01: what this run is built to
     #      answer, as an `OPEN` entry of the open list led `What Run N is
     #      built to answer, registered before it runs`, numbered
@@ -6501,6 +6509,11 @@ nothing was missed, which is what they have cost.
     #      until 2026-09-01, with a paragraph in this position telling a
     #      session to take it out of order -- which is what a wrong
     #      number costs, and the reason it is 0 rather than explained.
+    #      FIRST MEANS BEFORE 11 AND NOT BEFORE 1: where step 2 may name
+    #      an intrusion and 3 a rerun, take 1 and 2 before this, its
+    #      compiles being the one thing on this list that loads the box
+    #      a rerun would want quiet. Run 23 took 1, 2 and then 0 in one
+    #      sitting, and the order cost nothing either way
     #      The naming is what the step is for and reads like
     #      housekeeping: it turns `[0, 24, 0, 4]` into four arms, and on
     #      Run 17 it collapsed two of this README's open questions into
@@ -6513,7 +6526,11 @@ nothing was missed, which is what they have cost.
     #      the NAMED fills into the note, match groups by byte identity
     #      of the loop body and never by proximity, and read the count
     #      check -- a group whose twin carries fewer copies than the
-    #      timed binary is not named from the twin at all. THAT CHECK IS
+    #      timed binary is not named from the twin at all.
+    #      `./loop-offsets.py $R-<half> --match probe-g3-<half>-$R` does
+    #      the straddlers' half of that by the same rule, naming each by
+    #      its bytes and saying NOT NAMED where the twin holds no copy;
+    #      Run 23 did it with objdump by hand before the mode existed THAT CHECK IS
     #      WHAT MAKES A NEGATIVE HONEST: Run 22's twin named one of four
     #      straddling loops and refused the other three, having no
     #      byte-identical copy of them, and the one it did name sits in
@@ -6577,6 +6594,11 @@ nothing was missed, which is what they have cost.
     #      is what a stale section looks like too
     ./read-run.py $R-<basis>-$c.json --block          #    one per class
     ./read-run.py $R-<basis>-$c.json --compare $R-<other>-$c.json
+    #      READ THE BLOCKS BY THEIR LINES AND NOT WHOLE: pipe the nine
+    #      through `grep -E 'Verdicts|property|Across the halves|floor'`
+    #      -- nine blocks in one call are 90 KB, the write-up uses some
+    #      forty lines of them, and Run 23 read the persisted output of
+    #      that call three times over
     #      and one per class ACROSS the halves -- from Run 14 on, a run
     #      before that having no control-half class JSON to compare
     #      against, so these nine are skipped and the chapter says they
@@ -6593,6 +6615,13 @@ nothing was missed, which is what they have cost.
     #      paragraph each. Use --brief on --aa and --block: no computed
     #      figure is lost. Do not write a second reader
     #      why: --para 'The claims are part of this'
+    ./read-run.py --move-registration     #  5, second act: this run's
+    #      OPEN registration leaves the open list for the run file's last
+    #      section, whole and under a one-line preface, and the entry
+    #      becomes the ANSWERED stub with `___` for the verdict clause;
+    #      the verdicts are then written beside each prediction where it
+    #      already stands. It refuses unless exactly one OPEN entry names
+    #      this run, so it is run once, after the copy is committed
     #   5. MAKE THE RUN'S OWN FILE, `runs/$R.md`, by copying the last
     #      run's over it AND COMMITTING THAT COPY BEFORE EDITING IT --
     #      three reasons, all of them below and only one about wrapping.
@@ -6711,12 +6740,20 @@ nothing was missed, which is what they have cost.
     #      size comes from the reader. The tables went in at 5b and
     #      are not touched here; what is written is the prose around them,
     #      one edit per paragraph, and no tool reduces that count. Budget
-    #      the head and the nine class paragraphs as the work. FIRST, and
+    #      the head and the nine class paragraphs as the work. A PARAGRAPH
+    #      DEFERRED until a measurement lands carries `[[TODO]]` in its
+    #      place, which --check-doc refuses until it is written -- a
+    #      deferral with no marker was forgotten until an end-to-end read
+    #      (Run 23, the comparison section's first paragraph). FIRST, and
     #      not for tidiness: 6b's figures are requoted FROM this half
     #      why: --para 'commit the binary was built from'
     #  6b. COMMIT 6a'S WORK IN ONE COMMIT, subject naming the step as at
     #      5, and THAT COMMIT'S DIFF IS WHAT THE AGENT WORKS ON -- not
-    #      the working tree, not a range.
+    #      the working tree, not a range. README's step-5 repoint and
+    #      whatever of 6c is already written GO IN THE SAME COMMIT: the
+    #      pass is scoped by PATH, `-- micro-regime3/runs`, so it reads
+    #      the run file alone whatever else the commit carries (Run 23
+    #      committed 5 to 6c together and named all three)
     #      Then THE INDEPENDENT CHECKER, FIRST PASS, and fixing what it
     #      returns. The commit is the first action and not housekeeping:
     #      given one commit's diff the pass has a fixed object, so 6c's
@@ -6741,7 +6778,11 @@ nothing was missed, which is what they have cost.
     #      nobody into the same diff. Do them before the run or
     #      after it; where they have already happened, bound README's
     #      diff at the run's own last commit, which is what the brief's
-    #      RUNTIP is for. The run file needs no bound, nothing but a
+    #      RUNTIP is for. RUNTIP IS THE COMMIT PASS 2 READS AND IS
+    #      GIVEN IN THE LAUNCH MESSAGE: the commit that carries the
+    #      brief's own edit cannot name itself, so the brief's copy is
+    #      advanced in the commit after, as a record and not an input
+    #      (Run 23). The run file needs no bound, nothing but a
     #      write-up ever touching it.
     #      THE BRIEF IS `checker-brief.txt`, AND IT IS EDITED EVERY RUN
     #      BEFORE EITHER PASS IS LAUNCHED. Put that first because it is
@@ -7323,6 +7364,10 @@ size comes from the reader's first line;
       gets wrong; two of Run 6's were wrong until recomputed. Two shapes
       of claim need naming because counting is not what they look like. **Every
       *only*, *largest*, *fastest* or *never* is a claim about the whole table**
+      --- or about this file's own HISTORY, *the first repetition*, *the widest
+      floor on record*, which is derived by walking the run files and never
+      remembered: Run 23 wrote *first* of its third such repetition, Runs 11
+      and 19 having taken the two before, and a probe caught it ---
       and is derived by sorting it, not by looking at the arms the sentence
       is about: Run 8's write-up carried four such --- "the only arm the flag
       demotes", "the largest gain of any arm" among them --- each false,
