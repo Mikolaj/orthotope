@@ -6383,40 +6383,49 @@ def pair_note(path, draft=None, halves=None):
         print(body.rstrip('\n'))
         return 0
 
-    if not halves or ',' not in halves:
-        sys.stderr.write('--draft wants --halves basis,other: the new pair\'s'
-                         ' two names, in that order\n')
+    names = [h.strip() for h in (halves or '').split(',')]
+    if len(names) != 2 or names[0] == names[1] \
+            or not all(re.fullmatch(r'\w+', h) for h in names):
+        sys.stderr.write('--draft wants --halves basis,other: exactly TWO'
+                         ' distinct names of [A-Za-z0-9_], not %r; a third'
+                         ' would otherwise be taken as part of the second\n'
+                         % (halves,))
         return 1
-    new = tuple(h.strip() for h in halves.split(',', 1))
-    if new[0] == new[1] or not all(new):
-        sys.stderr.write('--draft: two distinct half names, not %r\n'
-                         % (new,))
-        return 1
+    new = tuple(names)
     same = [b for b, keep, _ in blocks if keep and '[SAME]' in b]
     pairs = [b.lstrip('\n').split('\n', 1)[0]
              for b, keep, _ in blocks if keep and "[PAIR'S]" in b]
     body = '\n\n'.join(same)
     log = []
-    for o, n in zip(old, new):
-        for pat, rep in (('%s-%s' % (prev, o), '%s-%s' % (draft, n)),):
-            if pat == rep:
-                continue
-            if body.count(pat):
-                log.append('%s -> %s (%d)' % (pat, rep, body.count(pat)))
-            body = body.replace(pat, rep)
-    if body.count(prev):
-        log.append('%s -> %s (%d)' % (prev, draft, body.count(prev)))
-    body = body.replace(prev, draft)
-    for o, n in zip(old, new):
-        if o == n:            # a half that did not move renames nothing
-            continue
+    # ONE PASS PER FAMILY, longest pattern first, because renaming in turn
+    # feeds each result to the next rename: with old (g912, spot) and new
+    # (spot, ghead), `g912` became `spot` and the second rename took that
+    # to `ghead`, collapsing BOTH halves onto one name in a note carried
+    # over silently. Found 2026-09-03 by trying a pair that reuses a name.
+    ren = {'%s-%s' % (prev, o): '%s-%s' % (draft, n)
+           for o, n in zip(old, new)}
+    ren[prev] = draft
+    seen = {}
+    body = re.compile('|'.join(re.escape(k) for k in
+                               sorted(ren, key=len, reverse=True))).sub(
+        lambda mo: (seen.__setitem__(mo.group(0),
+                                     seen.get(mo.group(0), 0) + 1),
+                    ren[mo.group(0)])[1], body)
+    log += ['%s -> %s (%d)' % (k, ren[k], c)
+            for k, c in seen.items() if ren[k] != k]
+    bare = {o: n for o, n in zip(old, new) if o != n}
+    if bare:
         # NOT a plain word boundary: `-` is one, so a bare `spot` would
         # match inside `dead-spot` and rename the FORM the pair varies.
-        bare = re.compile(r'(?<![\w-])%s(?![\w-])' % re.escape(o))
-        hits = len(bare.findall(body))
-        if hits:
-            log.append('bare %s -> %s (%d)' % (o, n, hits))
-        body = bare.sub(n, body)
+        bseen = {}
+        body = re.compile(r'(?<![\w-])(%s)(?![\w-])'
+                          % '|'.join(re.escape(o) for o in
+                                     sorted(bare, key=len, reverse=True))).sub(
+            lambda mo: (bseen.__setitem__(mo.group(1),
+                                          bseen.get(mo.group(1), 0) + 1),
+                        bare[mo.group(1)])[1], body)
+        log += ['bare %s -> %s (%d)' % (k, bare[k], c)
+                for k, c in bseen.items()]
     body = re.sub(r'^HALVES:.*$', 'HALVES: basis=%s other=%s' % new,
                   body, flags=re.M)
     print('# DRAFT for %s-pair.txt, the [SAME] blocks of %s carried over.'

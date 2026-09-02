@@ -50,8 +50,8 @@ MUTANTS = [
     # the pair varies, inside every [SAME] block it carries forward. The
     # judge plants the stub note whose block spells the trap out.
     ('--draft renames the half with a plain word boundary', 'read-run.py',
-     "        bare = re.compile(r'(?<![\\w-])%s(?![\\w-])' % re.escape(o))",
-     "        bare = re.compile(r'\\b%s\\b' % re.escape(o))",
+     "        body = re.compile(r'(?<![\\w-])(%s)(?![\\w-])'",
+     "        body = re.compile(r'\\b(%s)\\b'",
      'python3 -c "import importlib.util, sys, tempfile, subprocess\n'
      'spec = importlib.util.spec_from_file_location(\'d\', \'{dir}/defects.py\')\n'
      'm = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)\n'
