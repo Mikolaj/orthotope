@@ -2855,8 +2855,8 @@ to resample. What a class run can decide is whether an *ordering* inverts
 under its mechanism and whether any strategy's `worst` crosses 1 there. What
 it cannot do is be compared with a main-set number, in either direction.
 **`runs` is the one exception, a sweep rather than a triple**, because
-its question is a crossover and not a mechanism: eleven views walk the run
-from 2 to 65536 at a fixed size, with one rank-3 entry whose inner dims merge
+its question is a crossover and not a mechanism: its views walk the run from 2
+to 65536 at a fixed size, with one rank-3 entry whose inner dims merge
 under canonicalization so the library's merge and not the listing sets its run.
 
 **The `runs` class and the library-shaped arms exist for regressions
