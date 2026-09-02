@@ -2275,13 +2275,14 @@ is planned. A scope limit belongs in the sentence that asks for the measurement.
    residue turned out to be.
 7. `ANSWERED` **Whether the basis moves to the dead-spot recipe --- it does,
    decided 2026-09-02 by whoever asked for Run 23.** Run 24's binaries are Run
-   23's dead-spot recipe built twice, `LOOP_DEADSPOT=1` in front of the shim
-   on both halves, which is the repetition the move owed; the roster and shape
-   set were left undecided. The case the decision weighed is under [What
-   the next run compares
-   against](runs/run23.md#what-the-next-run-compares-against): four percent
-   of the instructions and five of the time on every padded fill, against
-   `mut-odo` losing a few points in three classes.
+   22's two recipes, ghc-9.12.4 and GHC HEAD, each with `LOOP_DEADSPOT=1`
+   in front of the shim --- the 9.12 half repeating Run 23's dead-spot half
+   across evenings, which is the repetition the move owed, and the HEAD half
+   the dead-spot form's first reading on that compiler; the roster and shape set
+   were left undecided. The case the decision weighed is under [What the next
+   run compares against](runs/run23.md#what-the-next-run-compares-against): four
+   percent of the instructions and five of the time on every padded fill,
+   against `mut-odo` losing a few points in three classes.
 8. `OPEN` **Re-aim claim 1 at the family's leader, or say why not**: nineteen
    arms read below `mut-odo-vecdims` on Run 23's basis as eighteen did on Run
    22's, the shipped route among them, and claim 1's top rung still prices
