@@ -5435,10 +5435,11 @@ CASES = [
          # 0.54%/0.31%, which its write-up replaced. RE-AIMED AGAIN
          # 2026-08-26 off Run 20's, from 0.49%/0.29%, and the emphasis
          # markers are part of the anchor now because that write-up
-         # bolded the pair.
+         # bolded the pair. RE-AIMED 2026-09-02 off Run 23's, from
+         # 0.37%/0.51%, at the write-up's step 8d.
          plant=lambda t: {'readme': unwrapped_readme_edit(
-             t, 'the same run gives **0.37% and 0.51%**',
-             'the same run gives **0.69% and 0.51%**')},
+             t, 'the same run gives **0.39% and 0.40%**',
+             'the same run gives **0.69% and 0.40%**')},
          argv=['--check-doc', '--readme', '{readme}'],
          ok=V(exit=1, has=['six-pair figure is quoted differently']),
          # No --audit: the fixture is built from today's document and
