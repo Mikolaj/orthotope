@@ -1149,6 +1149,41 @@ def run_json(name):
     return p
 
 
+STUB_NOTE = """\
+The pair run23-g912 and run23-spot, Run 23's, written by hand 2026-09-01
+
+Half names [SAME]: g912 is the basis, spot the other.
+HALVES: basis=g912 other=spot
+
+ENTRY POINT FOR THE SESSION THAT RUNS THIS [PAIR'S]. Handover, not owed.
+
+A CARRIED BLOCK [SAME]: the dead-spot form, run23-spot, spot alone, a
+spot-check, hotspot and spotless.
+
+GATE VERDICT, written by hand: SOUND. Handover, not owed.
+
+Verified when built, 2026-09-01:
+  md5 g912         deadbeef, a BUILD line and owed
+  sequence         RUN in one window, which is that run's progress
+                   and its continuation line
+  --list           1320 on both, a BUILD line and owed
+"""
+
+
+def stub_pair_note(tmp):
+    """A pair note carrying one of everything --note has to tell apart.
+
+    Written rather than taken from a real note because the real ones are
+    gitignored and go with their pair: a case built on run23-pair.txt
+    would be a case that stops running the day the artifacts are offered,
+    which is the decay era_main_hs below exists to answer for a different
+    fixture. The half named `spot` inside `dead-spot`, `spot-check`,
+    `hotspot` and `spotless` is the point of the block: a rename bounded
+    by `\\b` renames the FORM the pair varies, `-` being a word boundary.
+    """
+    return {'note': write(os.path.join(tmp, 'run23-pair.txt'), STUB_NOTE)}
+
+
 def era_main_hs(tmp, run):
     """Main.hs with the main lists trimmed to the shapes a captured run has.
 
@@ -6722,6 +6757,39 @@ RECORDS = [
          env={'DOC': '{doc}', 'BASIS': 'lookrts', 'OTHER': 'ovhalf'},
          argv=['zzit'],
          ok=V(exit=0, has=['12 table(s) installed'])),
+
+    # ---- read-run.py --note, the previous pair note for the next pair ---
+    case('note-read-withholds-the-handover', 'read-run.py', None,
+         "CONTROL: --note drops the previous run's handover and keeps its"
+         ' build lines',
+         # Reading-list item 10 made executable. Both directions asserted:
+         # a filter that dropped everything would satisfy the `hasnt` half
+         # alone, and one that dropped nothing the `has` half alone.
+         plant=stub_pair_note,
+         argv=['--note', '{note}'],
+         ok=V(exit=0,
+              has=['A CARRIED BLOCK', 'md5 g912', '--list', 'handover'],
+              hasnt=['ENTRY POINT FOR THE SESSION', 'GATE VERDICT',
+                     'sequence         RUN in one window'])),
+
+    case('note-draft-spares-a-hyphenated-name', 'read-run.py', None,
+         'CONTROL: --draft renames the half and not the form it is spelled'
+         ' inside',
+         # `-` is a word boundary, so a `\\b`-bounded rename of the half
+         # `spot` also renames `dead-spot`, which is the form the pair
+         # varies rather than a half at all. mutants.py carries the proof.
+         plant=stub_pair_note,
+         argv=['--note', '{note}', '--draft', 'run24',
+               '--halves', 'g912,ghead'],
+         # `run23-spot` is NOT in the `hasnt`: the header LOGS every
+         # substitution by name, so the old name is owed there and a
+         # blanket absence check would fail on the log it wants.
+         ok=V(exit=0,
+              has=['the dead-spot form, run24-ghead, ghead alone, a',
+                   'spot-check, hotspot and spotless',
+                   'HALVES: basis=g912 other=ghead',
+                   'bare spot -> ghead'],
+              hasnt=['dead-ghead', 'ghead-check', 'hotghead', 'gheadless'])),
 
     # ---- preflight.sh, the pre-run list's steps 4 to 10 in one call -----
     case('preflight-names-a-retired-callee', 'preflight.sh', '81876de',

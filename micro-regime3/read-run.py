@@ -205,6 +205,13 @@ Modes:
                     they were edited together
   --checklist WHICH print one of the run chapter's three checklists, pre,
                     run or post, alone and sized -- no run needed
+  --note PREV       a previous pair note as the next PREPARATION owes it:
+                    the handover blocks withheld and the size said, which
+                    is reading-list item 10 made executable
+  --note PREV --draft R --halves B,O   and instead the `[SAME]` blocks
+                    alone, carried over to the new pair with the names
+                    changed, every substitution listed and every
+                    `[PAIR'S]` block named as still yours -- no run needed
   --section NAME    print one section's prose by its heading's words,
                     without its tables and naming the size withheld;
                     --with-tables adds them -- no run needed
@@ -4029,6 +4036,16 @@ def main_set_gap(shapes, main_hs):
     against a README with nothing wrong with it, and, on the install path,
     an `IndexError` out of a `best two cells` that had one -- a crash the
     caller then read as the refusal it was waiting for.
+
+    THIS COMPARES AGAINST TODAY'S MAIN SET AND NOT AGAINST THE RUN'S OWN
+    ERA, and that is deliberate at every one of its three callers. The
+    provenance bullet's `added YYYY-MM-DD, after the run` declaration
+    exempts main-set shapes from the POPULATION SIZES (d08d6a5,
+    2026-09-02) and from nothing else, the roster-size sites being
+    sentences about the roster as it stands. Each caller here reads a run
+    that carries today's shapes by construction, so the gap is a signal
+    that something else is being read -- an older run, or a filtered one
+    -- rather than a mismatch to forgive.
     """
     dims = dims_by_shape(main_hs)[0]
     whole = {s for s, d in dims.items() if d['lst'] in MAIN_LISTS}
@@ -4196,6 +4213,15 @@ def claims_in_doc(readme, cells, shapes, strategies, src, main_hs):
     """
     gone, whole = main_set_gap(shapes, main_hs)
     if gone:
+        # A NOTE AND A ZERO EXIT, and both are load-bearing. smoke-sweep.sh
+        # runs this mode over the ONE-SHAPE smoke run and wants exit 0,
+        # calling it the read-back's only pre-run exercise, so a shape gap
+        # that failed here would fail pre-run step 11. And the gap cannot
+        # arise where the procedure reads a real run: post-run step 4a and
+        # install-tables.sh both point this at `$R-<basis>-main.json`, the
+        # run's own, built from today's Main.hs. Run 24's preparation read
+        # the skip as a hole in the checking and proposed exactly that
+        # failure; the call sites are what refuted it (2026-09-03).
         print('\nnote: this run carries %d of the main set\'s %d shapes, so'
               ' the README\'s figures are not comparable with it and were not'
               ' read back. Nothing here is a finding about the README.'
@@ -6243,6 +6269,173 @@ def section(docs, name, with_tables=False):
 
 
 REG_HEAD = '## What this run was built to answer, and what it answered'
+
+# A PAIR NOTE, read for the NEXT pair rather than for the run it served.
+# Item 10 of this chapter's reading list says a preparation reads the
+# previous note MINUS its handover -- "about a third of a note and none of
+# it yours" -- and names the blocks; until 2026-09-03 that skip was a
+# sentence a session had to hold while reading the file in windows, and
+# Run 24's preparation read all of them because `sed` has no idea which
+# third it is looking at. The names below are that sentence, executable.
+NOTE_HANDOVER = (
+    'ENTRY POINT FOR THE SESSION THAT RUNS THIS',
+    'WHAT THE PREPARATION LEARNED',
+    'GREEN AFTER THE LAST EDIT',
+    'GATE VERDICT',
+)
+# `GATE: NOT RUN` is the template's own line and IS owed -- it is what
+# says the pair has no gate. `GATE: run <date>` is run-gate.sh's appended
+# block, which is that run's progress.
+NOTE_HANDOVER_PREFIX = ('GATE: run',)
+# Inside the fill-in block, the lines recording that run's own progress
+# rather than what its BUILD said. The build lines are what this run's own
+# build is compared against, which is why the block is not skipped whole.
+NOTE_PROGRESS = ('counts', 'sequence', 'riders', 'gates', 'named fills',
+                 'straddle owners')
+FILL_LABEL = re.compile(r'  (\S(?:.*?\S)?)\s{2,}\S')
+
+
+def _note_blocks(text):
+    """(paragraph, kept, why) per block, in the note's own order."""
+    out = []
+    for para in text.split('\n\n'):
+        lead = para.lstrip('\n').split('\n', 1)[0]
+        if any(lead.startswith(h) for h in NOTE_HANDOVER):
+            out.append((para, False, 'handover'))
+        elif any(lead.startswith(h) for h in NOTE_HANDOVER_PREFIX):
+            out.append((para, False, "the driver's own block"))
+        else:
+            out.append((para, True, None))
+    return out
+
+
+def _fill_trimmed(para):
+    """(kept text, characters dropped) for the fill-in block.
+
+    The count is of the TEXT removed and not of the labels naming it: the
+    size line exists so a reader can see the skip was worth taking, and a
+    label count made it read as 40 bytes.
+    """
+    kept, dropped, skipping = [], 0, False
+    for line in para.split('\n'):
+        m = FILL_LABEL.match(line)
+        if m:
+            label = m.group(1).rstrip(':').strip().lower()
+            skipping = label in NOTE_PROGRESS
+        elif not line.startswith(' ' * 3):
+            skipping = False
+        if skipping:
+            dropped += len(line) + 1
+        else:
+            kept.append(line)
+    return '\n'.join(kept), dropped
+
+
+def pair_note(path, draft=None, halves=None):
+    """A previous pair note, read as the next preparation owes it.
+
+    Two readings, and they answer different questions. Plain, this prints
+    what item 10 asks for and withholds the handover, saying how much it
+    withheld -- the size line is the point, since a skip nobody can see is
+    a skip nobody believes was taken. With `--draft`, it prints the
+    `[SAME]` blocks alone with the run and the half names carried over,
+    which is what the template means by "carried over from the previous
+    note with the names changed and re-read rather than re-decided": those
+    blocks are most of a note and retyping them is where a copying error
+    gets in. What it will NOT write is a `[PAIR'S]` block, and it lists
+    them by name instead -- those are the decisions, and the template's
+    ruling that a note is a person's is a ruling about them. A block
+    marked `[SAME in shape]` is listed as yours too, which is the safe
+    direction: its shape carries over and its CONTENT is this pair's, so
+    a draft emitting it would hand back the last pair's observations
+    under this pair's heading.
+    """
+    try:
+        text = open(path).read()
+    except OSError as e:
+        sys.stderr.write('--note: %s\n' % e)
+        return 2
+    prev = os.path.basename(path).split('-pair.txt')[0]
+    m = re.search(r'^HALVES:\s*basis=(\w+)\s+other=(\w+)', text, re.M)
+    if not m:
+        sys.stderr.write('--note: %s has no HALVES line, so neither its'
+                         ' halves nor a rename can be read from it\n' % path)
+        return 1
+    old = (m.group(1), m.group(2))
+    blocks = _note_blocks(text)
+
+    if draft is None:
+        kept, held = [], 0
+        for para, keep, _why in blocks:
+            if not keep:
+                held += len(para)
+                continue
+            if para.lstrip().startswith('Verified when built'):
+                para, dropped = _fill_trimmed(para)
+                held += dropped
+            kept.append(para)
+        body = '\n\n'.join(kept)
+        print('%s: the blocks a PREPARATION owes, %d KB of %d KB; %d KB of'
+              ' handover withheld, which item 10 names and does not owe'
+              % (os.path.basename(path), len(body) // 1024,
+                 len(text) // 1024, held // 1024))
+        print()
+        print(body.rstrip('\n'))
+        return 0
+
+    if not halves or ',' not in halves:
+        sys.stderr.write('--draft wants --halves basis,other: the new pair\'s'
+                         ' two names, in that order\n')
+        return 1
+    new = tuple(h.strip() for h in halves.split(',', 1))
+    if new[0] == new[1] or not all(new):
+        sys.stderr.write('--draft: two distinct half names, not %r\n'
+                         % (new,))
+        return 1
+    same = [b for b, keep, _ in blocks if keep and '[SAME]' in b]
+    pairs = [b.lstrip('\n').split('\n', 1)[0]
+             for b, keep, _ in blocks if keep and "[PAIR'S]" in b]
+    body = '\n\n'.join(same)
+    log = []
+    for o, n in zip(old, new):
+        for pat, rep in (('%s-%s' % (prev, o), '%s-%s' % (draft, n)),):
+            if pat == rep:
+                continue
+            if body.count(pat):
+                log.append('%s -> %s (%d)' % (pat, rep, body.count(pat)))
+            body = body.replace(pat, rep)
+    if body.count(prev):
+        log.append('%s -> %s (%d)' % (prev, draft, body.count(prev)))
+    body = body.replace(prev, draft)
+    for o, n in zip(old, new):
+        if o == n:            # a half that did not move renames nothing
+            continue
+        # NOT a plain word boundary: `-` is one, so a bare `spot` would
+        # match inside `dead-spot` and rename the FORM the pair varies.
+        bare = re.compile(r'(?<![\w-])%s(?![\w-])' % re.escape(o))
+        hits = len(bare.findall(body))
+        if hits:
+            log.append('bare %s -> %s (%d)' % (o, n, hits))
+        body = bare.sub(n, body)
+    body = re.sub(r'^HALVES:.*$', 'HALVES: basis=%s other=%s' % new,
+                  body, flags=re.M)
+    print('# DRAFT for %s-pair.txt, the [SAME] blocks of %s carried over.'
+          % (draft, os.path.basename(path)))
+    print('# READ EVERY LINE: this is a copy with names changed, and the'
+          ' template asks')
+    print('# for these blocks to be re-read rather than re-decided. A block'
+          ' that')
+    print('# differs from the last note is a FINDING and the note says why.')
+    print('#')
+    print('# Substituted: %s' % ('; '.join(log) or 'nothing'))
+    print('#')
+    print('# STILL YOURS, and not written here -- every [PAIR\'S] block:')
+    for lead in pairs:
+        print('#   %s' % lead[:72])
+    print()
+    print(body.rstrip('\n'))
+    return 0
+
 
 # The run chapter's three checklists, each an indented block, found by
 # its own first line rather than by a heading or a line number: the lists
@@ -9797,6 +9990,15 @@ def main():
                    help="move this run's OPEN registration from README's"
                         " open list into the run file's last section,"
                         ' leaving the ANSWERED stub; post-run step 5')
+    p.add_argument('--note', metavar='PREV-pair.txt',
+                   help="a previous pair note read as the NEXT preparation"
+                        ' owes it: the handover withheld and its size said')
+    p.add_argument('--draft', metavar='RUN',
+                   help="with --note: print the [SAME] blocks alone, carried"
+                        ' to RUN, which is what the next note is written'
+                        ' from; wants --halves')
+    p.add_argument('--halves', metavar='BASIS,OTHER',
+                   help="with --note --draft: the new pair's two names")
     p.add_argument('--checklist', metavar='pre|run|post',
                    help="print one of the run chapter's three checklists"
                         ' alone, which is what a session executes; the'
@@ -10014,6 +10216,8 @@ def main():
         sys.exit(cross_class_summary(args.classes, args.others, args.main))
     if args.section:
         sys.exit(section(docs, args.section, args.with_tables))
+    if args.note:
+        sys.exit(pair_note(args.note, args.draft, args.halves))
     if args.checklist:
         sys.exit(checklist(args.readme, args.checklist))
     if args.move_registration:

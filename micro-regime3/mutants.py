@@ -45,6 +45,21 @@ MUTANTS = [
      ' \'--readme\', out[\'readme\'], \'--run-doc\', out[\'rundoc\']],'
      ' capture_output=True, text=True)\n'
      'sys.exit(1 if \'match no population\' in r.stdout + r.stderr else 0)"'),
+    # --draft's half rename, loosened to a plain word boundary: `-` is one,
+    # so renaming the half `spot` then also renames `dead-spot`, the FORM
+    # the pair varies, inside every [SAME] block it carries forward. The
+    # judge plants the stub note whose block spells the trap out.
+    ('--draft renames the half with a plain word boundary', 'read-run.py',
+     "        bare = re.compile(r'(?<![\\w-])%s(?![\\w-])' % re.escape(o))",
+     "        bare = re.compile(r'\\b%s\\b' % re.escape(o))",
+     'python3 -c "import importlib.util, sys, tempfile, subprocess\n'
+     'spec = importlib.util.spec_from_file_location(\'d\', \'{dir}/defects.py\')\n'
+     'm = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)\n'
+     'out = m.stub_pair_note(tempfile.mkdtemp())\n'
+     'r = subprocess.run([sys.executable, \'{file}\', \'--note\','
+     ' out[\'note\'], \'--draft\', \'run24\', \'--halves\','
+     ' \'g912,ghead\'], capture_output=True, text=True)\n'
+     'sys.exit(0 if \'dead-spot\' in r.stdout else 1)"'),
     # era_main_hs's trim, dropped: the captured-run cases read `--claims`
     # against a Main.hs trimmed to the run's own shapes, and untrimmed the
     # population gate fires and suppresses every figure -- which is the
