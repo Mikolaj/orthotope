@@ -117,10 +117,11 @@ done
 # them, and the hyphen check below refused the whole install over a lead
 # that was never a block's. --check-doc refuses a stray CLASS name outside
 # the section; an arm's name it cannot know, so the scope is what settles it.
-CLASS_SECTION=$(sed -n '/^## The stride classes, run by run$/,/^## Provenance$/p' "$DOC")
+CLASS_SECTION=$(awk '/^## The stride classes, run by run$/ {p=1; print; next}
+                     p && /^## / {exit}  p' "$DOC")
 [ -n "$CLASS_SECTION" ] || { echo "!! no '## The stride classes, run by run'"
-  echo "   section ending at '## Provenance' in $DOC, so no class block can"
-  echo "   be found and nothing is installed"; exit 1; }
+  echo "   section in $DOC, so no class block can be found and nothing is"
+  echo "   installed"; exit 1; }
 LEADS=$(printf '%s\n' "$CLASS_SECTION" | grep -o '^\*\*`[a-z0-9]*`' \
           | tr -d '*`' | sort)
 [ -n "$LEADS" ] || { echo "!! no class block leads in $DOC --"
@@ -369,8 +370,9 @@ for n, (c, start) in enumerate(reversed(order)):
                               for j in range(start, end)):
         print(f'  REFUSED {c}: no {other_json}, and the block carries an'
               f' `Across the halves:` paragraph -- a cross-half line left'
-              f' standing from a previous run, or OTHER={OTHER} is wrong;'
-              f' delete the paragraph or set OTHER, then rerun')
+              f' standing from a previous run, or the note\'s HALVES line'
+              f' names the wrong other half ({OTHER}); delete the paragraph'
+              f' or fix the note, then rerun')
         sys.exit(1)
     ctrl = ctrl.replace('Controls:** ___ (the reading is yours). ', 'Controls:** ')
     prov = (prov.replace('elapsed ___', 'elapsed ' + el)

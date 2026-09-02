@@ -108,7 +108,8 @@ SHAPES=$("$B" --list 2>/dev/null | cut -d/ -f1 | awk '!seen[$0]++')
 # at launch, against a 5% bar` and ran, which is the measure-but-do-not-
 # refuse branch. The driver log's own loadavg line read 2.36 beside that
 # 11.7%, which is the history contamination the paragraph above claims.
-BUSY=$(./machine-busy.sh)
+BUSY=$(./machine-busy.sh) || BUSY=
+case $BUSY in ''|*[!0-9.]*) BUSY=100.0 ;; esac   # unreadable refuses
 # MEASURED ALWAYS AND REFUSED ONLY FOR A RIDER, so that an ONLY= smoke run
 # exercises the reading itself -- the half of this that can go wrong
 # silently -- and skips only the refusal.
@@ -144,6 +145,10 @@ leg() {  # leg SHAPE REP -- one process, one bench, and the count checked
   [ "$nb" = 1 ] || { echo "    !! $1 $2: expected 1 bench, got $nb"; BAD=1; }
   [ -z "$SUF" ] || grep -q '^@@saturate ' "$out.log" \
     || { echo "    !! $1 $2: no @@saturate line -- binary without it?"; BAD=1; }
+  # And the mirror: a CLEAN leg with the stamp ran under a SATURATE the
+  # launch line left in the environment, and is not the clean column.
+  [ -n "$SUF" ] || ! grep -q '^@@saturate ' "$out.log" \
+    || { echo "    !! $1 $2: @@saturate line on a CLEAN leg -- SATURATE was in the environment"; BAD=1; }
   awk -v s="$1-$2:" '/^time /{print s, $2, $3; exit}' "$out.log"
 }
 for S in $SHAPES; do leg "$S" r1; done

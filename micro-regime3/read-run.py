@@ -2277,9 +2277,10 @@ def predictions_table(cells, shapes, strategies, meta, other, main_hs,
     P defaults to this run's own main-set A/A floor for cross and pair,
     which is the tolerance the registrations have always used, and to 0.1
     for counts, which are exact to the fourth place on a repeat. The
-    section is the run file's own last section where the registration
-    has been moved (post-run step 5), and README's OPEN entry before
-    that, so the same call answers before and after the move. An item
+    registration is README's OPEN entry for this run where one exists,
+    which is the state before post-run step 5's move, and the run file's
+    last section after it -- in that order, because a run file copied
+    from the previous run's carries THAT run's section until the move. An item
     with no span -- a class ordering, a verdict about verdicts -- is
     listed as the session's to adjudicate, by number, so that what the
     reader did not decide is not mistaken for decided. A span it cannot
@@ -2291,19 +2292,28 @@ def predictions_table(cells, shapes, strategies, meta, other, main_hs,
     a span is written in --compare's orientation or it reads inverted.
     """
     text = src = None
-    if run_doc and os.path.exists(run_doc):
+    m = re.match(r'run(\d+)', os.path.basename(run))
+    if m:
+        # One unwrapped line per list item, as --move-registration reads
+        # it: the open list's items carry no blank line between them, so
+        # a blank-line paragraph would hand back the neighbours too.
+        lead = 'What Run %s is built to answer' % m.group(1)
+        try:
+            flat_readme = subprocess.run(['wrap80', '--unwrap', readme],
+                                         capture_output=True, text=True,
+                                         check=True).stdout
+        except (OSError, subprocess.CalledProcessError):
+            flat_readme = open(readme).read()
+        for line in flat_readme.split('\n'):
+            if lead in ' '.join(line.split()):
+                text, src = line, readme
+                break
+    if text is None and run_doc and os.path.exists(run_doc):
         doc = open(run_doc).read()
         i = doc.find(REG_HEAD)
         if i >= 0:
             j = doc.find('\n## ', i + len(REG_HEAD))
             text, src = (doc[i:] if j < 0 else doc[i:j]), run_doc
-    m = re.match(r'run(\d+)', os.path.basename(run))
-    if text is None and m:
-        lead = 'What Run %s is built to answer' % m.group(1)
-        for para in open(readme).read().split('\n\n'):
-            if lead in ' '.join(para.split()):
-                text, src = para, readme
-                break
     if text is None:
         sys.stderr.write('no registration to adjudicate: %s has no `%s`'
                          ' section and %s has no OPEN entry led `What Run N'
@@ -2401,8 +2411,9 @@ def predictions_table(cells, shapes, strategies, meta, other, main_hs,
                     why = 'arm %s or %s is not in this run' % (a, b)
                 else:
                     shs = [sh for sh in shapes if sh not in excl]
-                    _raw, rs = pair_stats(cells, shs, a, b)
-                    g, n = geomean(rs), len(rs)
+                    _raw, rs = (pair_stats(cells, shs, a, b) if shs
+                                else (None, []))
+                    g, n = (geomean(rs), len(rs)) if rs else (None, 0)
                 tol = within if within is not None else floor_pct
             else:
                 why = ('not one of cross ARM X, counts ARM X, pair A B X'

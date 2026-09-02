@@ -21,11 +21,12 @@
 #
 # Non-vacuity, 2026-09-02: on run23, written up and committed, every
 # checkable step reads done and it exits 0; on a run name with no artifact
-# at all every step reads NOT DONE and it exits 1; and on run23 with the
-# run file's `What this run was built to answer` heading edited out, step
-# 5 reads NOT DONE naming the heading, and 7 with it, --check-doc finding
-# the anchor dead. Re-aim the first two whenever run23's artifacts are
-# offered for deletion.
+# at all every artifact-reading step reads NOT DONE and it exits 1, the
+# two document gates alone reading done, being about the tree and not the
+# run; and on run23 with the run file's `What this run was built to
+# answer` heading edited out, step 5 reads NOT DONE naming the heading,
+# and 7 with it, --check-doc finding the anchor dead. Re-aim the first
+# two whenever run23's artifacts are offered for deletion.
 set -u
 cd "$(dirname "$0")" || exit 1
 if [ $# -ne 1 ]; then
@@ -51,6 +52,10 @@ parses () { python3 -c 'import json,sys; json.load(open(sys.argv[1]))' "$1" 2>/d
 
 echo "run status for $R, off the artifacts and the repository:"
 echo "pre-run"
+# A reader has no authority over the halves: an inherited BASIS or OTHER
+# that disagreed with the note would survive the helper's refusal and
+# every later step would be judged against the wrong name.
+unset BASIS OTHER
 if [ -f "$NOTE" ]; then
   say 2 done "$NOTE exists"
   HALVES=$(./pair-halves.sh "$R" 2>"$TMP/h") && eval "$HALVES"
@@ -75,12 +80,16 @@ if [ -n "${BASIS:-}" ]; then
 fi
 REG_LEAD="What Run $N \(is\|was\) built to answer"   # is: registered; was: moved
 REG_HEAD="## What this run was built to answer, and what it answered"
-if grep -q "$REG_LEAD" README.md || { [ -f "$DOC" ] && grep -q "^$REG_HEAD" "$DOC"; }; then
+# README is read UNWRAPPED, a lead spanning a line break matching nothing
+# in the wrapped form the tree keeps.
+wrap80 --unwrap README.md > "$TMP/readme" 2>/dev/null
+git show HEAD:micro-regime3/README.md 2>/dev/null | wrap80 --unwrap > "$TMP/readme.head" 2>/dev/null
+if grep -q "$REG_LEAD" "$TMP/readme" || { [ -f "$DOC" ] && grep -q "^$REG_HEAD" "$DOC"; }; then
   say 12a done "a registration for Run $N is in README's open list or in $DOC"
 else
   say 12a "NOT DONE" "no '$REG_LEAD' in README.md and no registration section in $DOC"
 fi
-if git show HEAD:micro-regime3/README.md 2>/dev/null | grep -q "$REG_LEAD" \
+if grep -q "$REG_LEAD" "$TMP/readme.head" \
    || { [ -f "$DOC" ] && git show "HEAD:micro-regime3/$DOC" 2>/dev/null | grep -q "^$REG_HEAD"; }; then
   say 12c done "the registration is committed"
 else
@@ -88,8 +97,8 @@ else
 fi
 
 echo "run"
-if [ -f "$NOTE" ] && grep -q '^GATE: run .*Mechanically clean' "$NOTE"; then
-  say 14 done "$NOTE records a mechanically clean gate"
+if [ -f "$NOTE" ] && grep '^GATE: run' "$NOTE" | tail -1 | grep -q 'Mechanically clean'; then
+  say 14 done "$NOTE's newest GATE block is mechanically clean"
 elif [ -n "${BASIS:-}" ] && parses "$R-gate-$BASIS-a.json" && parses "$R-gate-$BASIS-b.json" \
      && parses "$R-gate-$OTHER-a.json" && parses "$R-gate-$OTHER-b.json"; then
   say 14 done "four gate JSONs parse (the note does not record it clean; read run-gate.sh's block)"
@@ -99,7 +108,8 @@ fi
 say 14a yours "the gate's verdict above the note's GATE block is written by hand; read $NOTE"
 if [ -f "$R-wallclock.log" ] && grep -q 'major run complete' "$R-wallclock.log"; then
   C=$(grep -c '!!' "$R-wallclock.log")
-  say 17 done "$R-wallclock.log says complete, $C '!!' line(s)"
+  if [ "$C" = 0 ]; then say 17 done "$R-wallclock.log says complete, no complaint"
+  else say 17 "NOT DONE" "$R-wallclock.log says complete with $C '!!' line(s); read them before any figure"; fi
   if [ -n "${BASIS:-}" ]; then
     GOT=0; WANT=0
     for f in "$R-$BASIS"-*.json "$R-$OTHER"-*.json; do
@@ -146,8 +156,10 @@ if [ -n "${BASIS:-}" ]; then
     done; done
     [ "$GOT" = "$WANT" ] && say 20 done "$GOT counts file(s), each ended and none refused" \
       || say 20 "NOT DONE" "$GOT of $WANT counts files complete; missing or refused:$BAD"
-  else
+  elif [ -f "$DOC" ]; then
     say 20 done "binaries gone, so the populations cannot be listed; $DOC stands for the counts"
+  else
+    say 20 "NOT DONE" "no ./$R-$BASIS to list the populations from, and no $DOC"
   fi
 fi
 if [ -f "$R-evening.txt" ]; then
@@ -159,8 +171,10 @@ echo "post-run"
 if ls "$R"-*.json >/dev/null 2>&1; then
   ./read-all.sh "$R" > "$TMP/ra" 2>&1 && say 1 done "read-all.sh gates every process clean" \
     || say 1 "NOT DONE" "read-all.sh: $(tail -1 "$TMP/ra" | cut -c1-90)"
-else
+elif [ -f "$DOC" ]; then
   say 1 done "no JSONs here to gate; the write-up's floor table stands for it"
+else
+  say 1 "NOT DONE" "no JSONs here to gate and no $DOC"
 fi
 if [ -f "$DOC" ]; then
   say 5 done "$DOC exists"
@@ -185,7 +199,7 @@ if [ -f "$DOC" ]; then
       say "$s" "NOT DONE" "no commit subject naming Run $N's step $s"
     fi
   done
-  grep -q "$REG_LEAD" README.md && wrap80 --unwrap README.md | grep "$REG_LEAD" | grep -q 'ANSWERED' \
+  grep "$REG_LEAD" "$TMP/readme" | grep -q 'ANSWERED' \
     && say 10 done "README's entry for Run $N reads ANSWERED" \
     || say 10 "NOT DONE" "README's open-list entry for Run $N does not read ANSWERED"
 else

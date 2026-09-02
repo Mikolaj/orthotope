@@ -1574,6 +1574,11 @@ if [ "$1" = --list ]; then
 fi
 [ "$1" = check ] && { echo "agree=True on every shape"; exit 0; }
 [ "$1" = diag ] && { echo "diag: the regime, in the binary"; exit 0; }
+# The preamble's line, for a case standing in a binary that carries it:
+# printed when SATURATE reaches the process, as the real one prints it.
+if [ -n "${FAKE_SATURATE:-}" ] && [ -n "${SATURATE:-}" ]; then
+  echo "@@saturate dose=$SATURATE by=list sprayed=1000000 in 6.0 s"
+fi
 OUT=""; SHAPE=""; PATS=""; want=0
 for a in "$@"; do
   [ "$want" = 1 ] && { OUT="$a"; want=0; continue; }
@@ -5643,7 +5648,8 @@ CASES = [
 
     case('smoke-sweep-runs-clean', 'smoke-sweep.sh', None,
          'CONTROL: every reader mode, both installers and its own refusals',
-         shadow=dict(extra=lambda: halves('zzsw-lookrts', 'zzsw-a1g')),
+         shadow=dict(extra=lambda: halves('zzsw-lookrts', 'zzsw-a1g')
+                     + [('zzsw-pair.txt', NOTE_STUB)]),
          # Both taken from the fixture rather than named: the sweep's own
          # defaults are chosen for how long a real -L1 process takes, which
          # a stand-in does not, and a shape the fixture does not carry
@@ -5691,11 +5697,16 @@ CASES = [
          # a half (ONLY, a smoke run's restriction, keeps them to it); the
          # counts run under the perf stand-in at N=1 over one arm.
          shadow=dict(extra=lambda: halves('zzev-lookrts', 'zzev-a1g')
-                     + [('zzev-pair.txt', NOTE_STUB + 'LAUNCH: none\n'
+                     + [('zzev-pair.txt', NOTE_STUB + 'LAUNCH: SATURATE=1\n'
                          'RIDERS: clean\nGATE: run 2026-09-02. Mechanically'
                          ' clean: four processes, each\n')]),
          plant=lambda t: {'stub': stub_dir(t, PERF_ANSWERS)},
+         # SATURATE on the launch line and a stand-in that prints the
+         # preamble's line under it: the sequence's processes must carry
+         # it, the CLEAN riders must not (the driver strips it), and the
+         # counts run without the environment at all.
          env={'PATH': '{stub}:/usr/bin:/bin', 'MAXBUSY': '100',
+              'FAKE_SATURATE': '1',
               'ONLY': main_shapes()[0], 'ARMS': 'list', 'N': '1'},
          argv=['zzev'],
          probe=lambda subs: open(os.path.join(subs['at'],
@@ -5706,6 +5717,20 @@ CASES = [
                            'counts lookrts main: done, rc=0',
                            'EVENING COMPLETE: every stage'],
               hasnt=['COMPLAINT', 'STOPPED'])),
+
+    case('alonelegs-refuses-a-saturated-clean-leg', 'run-alonelegs.sh', None,
+         'CONTROL: a clean leg whose log carries the preamble line complains',
+         # The mirror of the SAT check: SATURATE reaching a clean leg from
+         # the launch environment dosed it, and nothing said so until
+         # 2026-09-02 (found by review of run-evening.sh).
+         shadow=dict(extra=lambda: halves('zzsc-lookrts')),
+         env={'ONLY': main_shapes()[0], 'MAXBUSY': '100',
+              'SATURATE': '1', 'FAKE_SATURATE': '1'},
+         argv=['zzsc', 'lookrts'],
+         probe=lambda subs: open(os.path.join(
+             subs['at'], 'zzsc-al-lookrts-driver.log')).read(),
+         ok=V(exit=1, has=['@@saturate line on a CLEAN leg',
+                           'DONE-ALONELEGS-zzsc-lookrts WITH COMPLAINTS'])),
 
     case('evening-stops-at-a-refused-gate', 'run-evening.sh', None,
          'CONTROL: a gate that fails mechanically stops the evening before'
@@ -5731,7 +5756,11 @@ CASES = [
          ' the exit is 1',
          shadow=dict(),
          argv=['run98'],
-         ok=V(exit=1, has=['NOT DONE', 'STATUS: '], hasnt=['all done'])),
+         # The two document gates read done, being about the tree; every
+         # artifact-reading step must not.
+         ok=V(exit=1, has=['NOT DONE', 'STATUS: '],
+              hasnt=['all done', '  1     done', '  17    done', '  20    done',
+                     '  5     done'])),
 
     # ---- read-run.py --predictions --------------------------------------
     case('predictions-hold-and-kill', 'read-run.py', None,
@@ -5747,7 +5776,9 @@ CASES = [
                           ' 1.0 within 1%`. (3) *c* nothing here.\n')},
          argv=['{run}', '--compare', '{other}', '--predictions',
                '--run-doc', '{doc}'],
-         ok=V(exit=0, has=['read 0.8000', 'HELD', 'KILLED',
+         ok=V(exit=0, has=['cross list 0.8 within 1%',
+                           '0.00 point(s) off, within 1.00%: HELD',
+                           '20.00 point(s) off, within 1.00%: KILLED',
                            'yours to adjudicate: (3)'])),
 
     case('pair-halves-must-differ', 'run-major.sh', '0431efe',
@@ -5782,7 +5813,8 @@ CASES = [
          shadow=dict(mutate=[('read-run.py',
                               "sys.exit('nothing left after --exclude')",
                               'sys.exit(0)')],
-                     extra=lambda: halves('zzxf-lookrts', 'zzxf-a1g')),
+                     extra=lambda: halves('zzxf-lookrts', 'zzxf-a1g')
+                     + [('zzxf-pair.txt', NOTE_STUB)]),
          env={'SHAPE': main_shapes(1)[0], 'CLASS': class_shapes('window')[0],
               'OTHER': 'a1g', 'BASIS': 'lookrts'},
          argv=['zzxf'],
@@ -6625,6 +6657,12 @@ def materialise(prog, rev):
 def invoke(prog_path, c, subs):
     argv = [a.format(**subs) for a in c.argv]
     env = dict(os.environ)
+    # A session's own launch habit must not reach a case: BASIS or OTHER
+    # exported in the shell makes every stub note refuse, and the switches
+    # would dose or restrict a driver the case did not ask to.
+    for k in ('BASIS', 'OTHER', 'SATURATE', 'SATURATE_BY', 'WILDLOG', 'SAT',
+              'ONLY', 'ARMS', 'N', 'MAXBUSY', 'FAKE_SATURATE'):
+        env.pop(k, None)
     env.update({k: v.format(**subs) for k, v in c.env.items()})
     if argv[:1] == ['--unit']:
         cmd = [sys.executable, '-c', UNIT, prog_path, argv[1]]

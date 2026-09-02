@@ -38,7 +38,10 @@ if [ $# -lt 1 ]; then
 fi
 R="$1"
 # The pair's two halves, from the note's `HALVES:` line through
-# pair-halves.sh, as every script here reads them since 2026-09-02.
+# pair-halves.sh, as every script here reads them since 2026-09-02 -- and
+# the note itself is required, an environment standing in for it being how
+# a control half went unswept while the sweep read clean.
+[ -f "$R-pair.txt" ] || { echo "no $R-pair.txt -- the note is written at pre-run step 2"; exit 1; }
 HALVES_SET=$(./pair-halves.sh "$R") || exit 1   # the note's HALVES
 eval "$HALVES_SET"                                # line, and nothing else
 

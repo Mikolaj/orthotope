@@ -195,18 +195,25 @@ step_8 () {
   path(s) that are gone: $(printf '%s ' $MISSING)"
     fi
   else
-    # An absent note used to print nothing and count nothing, so a
-    # mistyped RUN or an unwritten note read as a clean 10c, and the full
-    # pass printed nine steps for ten without a word. 2026-09-01.
+    # Unreachable since pair-halves.sh refuses a missing note at the head
+    # of this script, and kept as the loud form for the day that changes.
     say 10c FAIL "no $R-pair.txt -- the note is written at pre-run step 2"
   fi
 }
-step_10d () {  # 10d. AND WHICH HALVES THE NOTE NAMES, read back: since
-  # 2026-09-02 every script takes them from the note's HALVES line through
-  # pair-halves.sh, which refused above if the line was absent, unparseable
-  # or contradicted by the environment -- so what is left to say here is
-  # what it read, for the operator to hold against the recipes below it.
-  say 10d PASS "HALVES line: basis=$BASIS other=$OTHER, and every script reads it"
+step_10d () {  # 10d. AND THAT THE RECIPES BUILD THE HALVES THE LINE NAMES:
+  # pair-halves.sh read the HALVES line above and refused an environment
+  # disagreeing with it, but the line can name halves the recipe blocks do
+  # not build, and that is a note describing another pair. Non-vacuity
+  # 2026-09-01 on stub notes: a note naming both halves PASSes, one
+  # naming only the basis FAILs naming the other's binary.
+  [ -f "$R-pair.txt" ] || return 0
+  MISS=$(for h in $BASIS $OTHER; do
+           grep -q "$R-$h" "$R-pair.txt" || echo "$R-$h"; done)
+  if [ -z "$MISS" ]; then
+    say 10d PASS "HALVES line basis=$BASIS other=$OTHER, and the note names both binaries"
+  else
+    say 10d FAIL "$R-pair.txt never names: $(echo $MISS) -- its HALVES line and its recipes disagree"
+  fi
 }
 if [ "$NOTE_ONLY" = 1 ]; then
   echo "preflight for $R: the note and the documents alone"

@@ -112,11 +112,16 @@ stamp () { echo "=== $(date -Is) $*" | tee -a "$STATUS"; }
 # Every stage's own output goes to $OUT whole, and one line of it to the
 # status file: the status file is what a session reads, and it must stay
 # a screenful.
-stage () {   # stage LABEL cmd...   -> the command's status, recorded
+stage () {   # stage LABEL cmd...   -> the command's status, recorded.
+  # PLAIN=1 in front of the call runs the command without the launch
+  # environment: the counts want none, an instruction count being what
+  # the preamble's dose is counted into and cancelled out of, so under
+  # SATURATE every cell would spend two doses for nothing.
   local label=$1; shift
   stamp "$label: start"
   { echo; echo "##### $label"; } >> "$OUT"
-  env "${ENV[@]}" "$@" >> "$OUT" 2>&1
+  if [ -n "${PLAIN:-}" ]; then "$@" >> "$OUT" 2>&1
+  else env "${ENV[@]}" "$@" >> "$OUT" 2>&1; fi
   local rc=$?
   if [ "$rc" = 0 ]; then
     stamp "$label: done, rc=0"
@@ -134,8 +139,11 @@ stamp "evening begins for $R: basis $BASIS, control $OTHER, launch env\
 # note recording a FAILED gate gets it run again, the apparatus having
 # presumably been fixed since. Only the exit status stops the evening;
 # the machine check inside it does not gate since 2026-08-23.
-if grep -q '^GATE: run .*Mechanically clean' "$NOTE"; then
-  stamp "gate: inherited, $NOTE records a mechanically clean gate"
+# The NEWEST GATE block decides, as README's step 13 reads the note: an
+# older clean block under a later FAILED one, or from before a rebuild,
+# must not inherit.
+if grep '^GATE: run' "$NOTE" | tail -1 | grep -q 'Mechanically clean'; then
+  stamp "gate: inherited, $NOTE's newest GATE block is mechanically clean"
 else
   if ! stage gate ./run-gate.sh "$R"; then
     stamp "EVENING STOPPED AT THE GATE: it is the apparatus, and README's\
@@ -156,7 +164,10 @@ fi
 # 16. THE ALARM, the reading run-alonelegs.sh takes (machine-busy.sh says
 # why /proc/stat and not a loadavg), refused above MAXBUSY percent
 # non-idle, default 5.
-BUSY=$(./machine-busy.sh)
+BUSY=$(./machine-busy.sh) || BUSY=
+# An unreadable figure refuses: awk compares an empty string to the bar
+# and lets it through, which is the one direction this alarm must not fail.
+case $BUSY in ''|*[!0-9.]*) BUSY=100.0 ;; esac
 if awk -v x="$BUSY" -v m="${MAXBUSY:-5}" 'BEGIN{exit !(x>m)}'; then
   stamp "EVENING STOPPED AT THE ALARM: ${BUSY}% of the CPUs non-idle over\
  two seconds, against a ${MAXBUSY:-5}% bar. The sequence is hours and it\
@@ -170,10 +181,15 @@ stamp "alarm: ${BUSY}% busy, under the ${MAXBUSY:-5}% bar"
 stage sequence ./run-major.sh "$R" || true
 
 # 19. THE RIDERS, control first, clean before saturated, as the note's own
-# block spells them; `SAT=` is the rider's spelling of SATURATE=.
+# block spells them; `SAT=` is the rider's spelling of SATURATE=. A CLEAN
+# leg runs with SATURATE and SATURATE_BY unset whatever the LAUNCH line
+# carries: the pair's launch switches include SATURATE on a pair with the
+# preamble, and passed through they would dose the clean legs too, named
+# clean and complained about by nothing (found by review, 2026-09-02).
 if [ "$CLEAN" = 1 ]; then
   for h in $OTHER $BASIS; do
-    stage "riders $h clean" ./run-alonelegs.sh "$R" "$h" || true
+    stage "riders $h clean" env -u SATURATE -u SATURATE_BY \
+      ./run-alonelegs.sh "$R" "$h" || true
     if [ "$SAT" = 1 ]; then
       stage "riders $h sat" env SAT=1 ./run-alonelegs.sh "$R" "$h" || true
     fi
@@ -187,15 +203,15 @@ fi
 CLASSES=$(./"$R-$BASIS" classes --list 2>/dev/null | cut -d- -f1 | awk '!seen[$0]++')
 for c in '' $CLASSES; do
   for h in $OTHER $BASIS; do
-    stage "counts $h ${c:-main}" ./run-counts.sh "$R" "$h" $c || true
+    PLAIN=1 stage "counts $h ${c:-main}" ./run-counts.sh "$R" "$h" $c || true
   done
 done
 
 if [ "${#COMPLAINTS[@]}" -eq 0 ]; then
   stamp "EVENING COMPLETE: every stage exited 0. Read $R-wallclock.log's\
- '!!' lines anyway, then the post-run list from step 0"
+ '!!' lines anyway, then the post-run list, its step 0 first"
   exit 0
 fi
 stamp "EVENING COMPLETE WITH ${#COMPLAINTS[@]} COMPLAINT(S): $(IFS=,; echo "${COMPLAINTS[*]}")\
- -- read each in $OUT before any figure; the post-run list still starts at 0"
+ -- read each in $OUT before any figure; the post-run list's step 0 is still first"
 exit 1
