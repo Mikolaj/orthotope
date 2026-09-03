@@ -422,6 +422,25 @@ def dims_by_shape(main_hs):
 MAIN_LISTS = ('convShapes', 'stretchShapes')
 
 
+RETIRED_RE = re.compile(r'^retiredClasses\s*=\s*\[([^\]]*)\]', re.M)
+
+
+def retired_classes(main_hs):
+    """The classes Main.hs retires from timing and keeps in `check`.
+
+    `retiredClasses` there, by prefix; the shape lists stay, so
+    `dims_by_shape` still reads their shapes and a class count has to take
+    these out -- except for a run file that timed them, which README's
+    provenance bullet declares as `were retired DATE, after the run`,
+    exactly as it declares shapes added after one. Added 2026-09-04.
+    """
+    try:
+        m = RETIRED_RE.search(open(main_hs).read())
+    except OSError:
+        return set()
+    return set(re.findall(r'"([^"]+)"', m.group(1))) if m else set()
+
+
 def class_label(members):
     """A class population's name: the prefix its shapes share, which is
     also what selects it for a run (`classes rev-`)."""
@@ -8435,6 +8454,17 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
                              r'`[\w.-]+`)\s+(?:was|were) added'
                              r' \d{4}-\d{2}-\d{2}, after the run', uw):
             added_after |= set(re.findall(r'`([\w.-]+)`', m.group(1)))
+        # A class retired from timing (Main.hs `retiredClasses`) is out of
+        # the class counts likewise, unless this run file timed it, which
+        # the same bullet declares as `were retired DATE, after the run`.
+        # Added 2026-09-04. Case:
+        # `retired-classes-timed-by-the-run-are-exempt`.
+        retired_after = set()
+        for m in re.finditer(r'((?:`[\w.-]+`(?:,\s+(?:and\s+)?|\s+and\s+))*'
+                             r'`[\w.-]+`)\s+(?:was|were) retired'
+                             r' \d{4}-\d{2}-\d{2}, after the run', uw):
+            retired_after |= set(re.findall(r'`([\w.-]+)`', m.group(1)))
+        retired = retired_classes(main_hs) - retired_after
         aa = [n for n, r, _ in roster if r == 'Twin']
         controls = [n for n, r, _ in roster if r in ('Twin', 'Term', 'Force')]
         timed = [n for n, r, _ in roster if r != 'Only']
@@ -8709,10 +8739,12 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
                 cdims = dims_by_shape(main_hs)[0]
                 want = collections.Counter(
                     class_prefix([sh]) for sh, d in cdims.items()
-                    if d['lst'] not in MAIN_LISTS and sh not in added_after)
+                    if d['lst'] not in MAIN_LISTS and sh not in added_after
+                    and class_prefix([sh]) not in retired)
                 full = collections.Counter(
                     class_prefix([sh]) for sh, d in cdims.items()
-                    if d['lst'] not in MAIN_LISTS)
+                    if d['lst'] not in MAIN_LISTS
+                    and class_prefix([sh]) not in retired)
             except Exception as exc:                       # noqa: BLE001
                 want = None
                 bad.append('could not derive the classes from %s (%s), so'
@@ -8822,7 +8854,8 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
         main_at_run = [s for s in main_shapes if s not in added_after]
         class_sizes = {}
         for s, d in dims.items():
-            if d['cls'] != 'main' and s not in added_after:
+            if (d['cls'] != 'main' and s not in added_after
+                    and d['cls'] not in retired):
                 class_sizes.setdefault(d['cls'], set()).add(s)
         want = len(timed) * len(main_shapes)
         seen = [int(m) for p in (r'takes the roster to (\d+) benches',

@@ -2926,37 +2926,66 @@ them reproduces a shape already here --- a per-position slice, or a smaller conv
 the main set carries is positive and its offset is zero. The library reaches
 regime 3 through other operations too --- its two commonest inputs of that kind
 among them, a broadcast being stride 0 and `rev` negative --- and the **stride
-classes** are one population per producing operation, named by the prefix
-that selects them, two of 2026-09-03 excepted and named last: `rev` (every
-stride negated, offset at the top), `revsome` (a strict subset reversed,
-so the signs are mixed), `bcast` (an innermost stride of 0, every run re-reading
-one element), `bcastmid` (the stretched axis in the middle instead), `reshape1`
-(the `[n] -> [n, 1]` trap, innermost extent 1), `slice` (a view of a larger
-source, so a non-zero offset with positive strides), `window` (overlapping
-im2col patches --- the workload this README opens by naming, carrying
-the overlap that the main set's bijective index map drops --- stride-1
-and undilated until 2026-09-03, when a strided and a dilated k3 window joined
-it), `scaled` (superincreasing strides, none of them 1), since 2026-08-28 `runs`
-(regime 2, not 3: an innermost run of contiguous elements under a padded outer
-stride, the one population the library sends to slices rather than to the fill),
-and since 2026-09-03 `flip` (a dense array reversed whole or along its last
-axis, so the innermost stride is -1: regime 2 mirrored, and one run at stride -1
-once canonicalized), `block` (regime 2 as a sub-block of a wider array: the gap
-between runs swept from one element to a page, a rank-3 block that does
-not merge, and an offset off an 8-element boundary), `small` (one view per
-canonical regime at a few hundred elements, where a per-call cost is a share
-of the call --- the one class defined by a size and not by an operation)
-and `compose` (a zero stride combined with a second mechanism --- reversed,
-sliced to an offset, a second zero stride it cannot merge with, or every stride
-zero --- as the library composes its operations and no one operation's class
-builds: the other exception). Each is a short list in `Main.hs`, reusing
-a main-set shape where one fits so that a class figure has a positive-stride
-counterpart to stand next to; each generator's comment there says what
-it models, and the comment heading them all, above `mkRev`, carries the coverage
-argument --- a hypothesis about what a valid hand-built view can recombine,
-not a theorem --- which is not repeated here. *Class* unqualified means one
-of these; the other sense in this README always keeps its noun, *method* ---
-a `class method`, the class-method tier, or in full a `Vector`-class method.
+classes** are one population per producing operation --- three of them retired
+from timing on 2026-09-04 and kept in `check`, the ruling being the paragraph
+below --- named by the prefix that selects them, two of 2026-09-03 excepted
+and named last: `rev` (every stride negated, offset at the top), `revsome`
+(a strict subset reversed, so the signs are mixed), `bcast` (an innermost stride
+of 0, every run re-reading one element), `bcastmid` (the stretched axis
+in the middle instead), `reshape1` (the `[n] -> [n, 1]` trap, innermost extent
+1), `slice` (a view of a larger source, so a non-zero offset with positive
+strides), `window` (overlapping im2col patches --- the workload this README
+opens by naming, carrying the overlap that the main set's bijective index map
+drops --- stride-1 and undilated until 2026-09-03, when a strided and a dilated
+k3 window joined it), `scaled` (superincreasing strides, none of them 1), since
+2026-08-28 `runs` (regime 2, not 3: an innermost run of contiguous elements
+under a padded outer stride, the one population the library sends to slices
+rather than to the fill), and since 2026-09-03 `flip` (a dense array reversed
+whole or along its last axis, so the innermost stride is -1: regime 2 mirrored,
+and one run at stride -1 once canonicalized), `block` (regime 2 as a sub-block
+of a wider array: the gap between runs swept from one element to a page,
+a rank-3 block that does not merge, and an offset off an 8-element boundary),
+`small` (one view per canonical regime at a few hundred elements, where
+a per-call cost is a share of the call --- the one class defined by a size
+and not by an operation) and `compose` (a zero stride combined with a second
+mechanism --- reversed, sliced to an offset, a second zero stride it cannot
+merge with, or every stride zero --- as the library composes its operations
+and no one operation's class builds: the other exception). Each is a short list
+in `Main.hs`, reusing a main-set shape where one fits so that a class figure has
+a positive-stride counterpart to stand next to; each generator's comment there
+says what it models, and the comment heading them all, above `mkRev`, carries
+the coverage argument --- a hypothesis about what a valid hand-built view can
+recombine, not a theorem --- which is not repeated here. *Class* unqualified
+means one of these; the other sense in this README always keeps its noun,
+*method* --- a `class method`, the class-method tier, or in full
+a `Vector`-class method.
+
+**Three classes are retired from timing and kept in `check`, ruled 2026-09-04:
+`reshape1`, `revsome` and `slice`.** What a timed class has to be distinct
+in is the form the branch's fill sees, `canonView` having dropped the unit
+dimensions and merged what merges before `fillStage2` dispatches ---
+so the coverage comment above `mkRev` reads per canonical mechanism since
+that day, where it read per producing operation --- and by that test the three
+time mechanisms other populations already hold. Three of `reshape1`'s four views
+canonicalize to the regime-1 slice `stretch-inner1` and `small-flat64` time
+and its fourth to a main-set view, which is why it is the class the correction
+degenerates on, nine arms sunk on Run 24. `revsome` reproduced `rev` on every
+run it ran: its inner-reversed view is `rev`'s mechanism and its two
+outer-reversed ones are main-set views walked in another order, the fill's
+addressing being sign-agnostic, and the sign-sensitive bounds it was built
+for belong to the packed Int32 scan and are settled. `slice`'s views
+are main-set views plus a base offset the fill reads once,
+and `block-run64-off7` and `compose-slice-bcast` time the offset. Two overlaps
+stay, named where they sit in `Main.hs`: `window-64x64-k1x9` canonicalizes
+to `runs-9`'s runs of 9 and is kept for the overlap of its backing,
+and `compose-slice-bcast` is `bcast-inner8` at offset 7. Nothing is deleted:
+`check` holds every arm to the reference on the retired views still,
+`retiredClasses` in `Main.hs` is what the `classes` mode and `read-run.py`'s
+class counts read, and `run-major.sh`'s `CLASSES` omits them, held to the binary
+by its own cross-check. A retired class comes back by deleting its name
+from that list. A run file that timed a class since retired is held to the count
+that keeps it, which the provenance bullet declares as *were retired DATE, after
+the run*, exactly as it declares views added after a run.
 
 Two rulings govern how they are measured and published, both taken 2026-08-07,
 ahead of the implementation:
@@ -6716,7 +6745,7 @@ not otherwise.
     #      this half hand-edits), which is that first bullet and is the bulk
     #      of the run: its head, Results and the findings under it, what
     #      the next run compares against with its hand-edited two-column
-    #      table, the claims, the nine class leads and paragraphs, its
+    #      table, the claims, the class leads and paragraphs, its
     #      Provenance and its registrations. TWO TABLES HERE ARE
     #      HAND-EDITED and neither is installed: the two-column geomeans
     #      and the PROVENANCE ANCHORS. Run 20 forgot the first entirely
@@ -6733,7 +6762,7 @@ not otherwise.
     #      size comes from the reader. The tables went in at 5b and
     #      are not touched here; what is written is the prose around them,
     #      one edit per paragraph, and no tool reduces that count. Budget
-    #      the head and the nine class paragraphs as the work. A PARAGRAPH
+    #      the head and the class paragraphs as the work. A PARAGRAPH
     #      DEFERRED until a measurement lands carries `[[TODO]]` in its
     #      place, which --check-doc refuses until it is written -- a
     #      deferral with no marker was forgotten until an end-to-end read
@@ -9770,7 +9799,8 @@ tables and its fingerprint say so.
   `block-run64-page`, `block-run64-off7`, `block-r3-vol64`, `small-row96`,
   `small-patch-k5`, `small-bcast32`, `small-flat64`, `compose-rev-bcast`,
   `compose-slice-bcast`, `compose-zero-mid` and `compose-scalar` were added
-  2026-09-03, after the run.
+  2026-09-03, after the run. `reshape1`, `revsome` and `slice` were retired
+  2026-09-04, after the run.
 - Run 23 measured Run 22's shapes, class views and roster, nothing having moved
   between them --- 55 timed arms over 24 of today's 26 main-set shapes and 37
   of today's 41 class views in NINE classes, 1320 benches and 2035, sixteen A/A

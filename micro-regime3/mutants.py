@@ -45,6 +45,21 @@ MUTANTS = [
      ' \'--readme\', out[\'readme\'], \'--run-doc\', out[\'rundoc\']],'
      ' capture_output=True, text=True)\n'
      'sys.exit(1 if \'match no population\' in r.stdout + r.stderr else 0)"'),
+    # The class count's exemption for classes retired after the run:
+    # dropped, the fixture of `retired-classes-timed-by-the-run-are-exempt`
+    # fails on `class block(s) where Main.hs defines`, the newest run file
+    # having timed the class the fixture retires.
+    ('check-doc holds the run file to today\'s timed classes', 'read-run.py',
+     '        retired = retired_classes(main_hs) - retired_after',
+     '        retired = retired_classes(main_hs)',
+     'PATH="{bin}:$PATH" python3 -c "import importlib.util, sys, tempfile, subprocess\n'
+     'spec = importlib.util.spec_from_file_location(\'d\', \'{dir}/defects.py\')\n'
+     'm = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)\n'
+     'out = m.plant_retired_class_exempt(tempfile.mkdtemp())\n'
+     'r = subprocess.run([sys.executable, \'{file}\', \'--check-doc\', \'--quiet\','
+     ' \'--readme\', out[\'readme\'], \'--main\', out[\'main\']],'
+     ' capture_output=True, text=True)\n'
+     'sys.exit(1 if \'class block(s) where Main.hs defines\' in r.stdout + r.stderr else 0)"'),
     # --draft's half rename, loosened to a plain word boundary: `-` is one,
     # so renaming the half `spot` then also renames `dead-spot`, the FORM
     # the pair varies, inside every [SAME] block it carries forward. The

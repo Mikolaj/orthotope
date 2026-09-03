@@ -3361,6 +3361,17 @@ regimeOf sh (T (Strides ats) _ v)
 -- branch a plausible strategy contains -- the @s == 1@ and @m == 0@
 -- exits, the carry cascades, the sign-sensitive bounds -- though not
 -- every branch on every input, which no finite set can.
+--
+-- Under the branch's fill the mechanism a view exercises is its CANONICAL
+-- form: 'canonView' drops the unit dimensions and merges what merges before
+-- 'fillStage2' dispatches, so two classes whose views canonicalize alike
+-- time one mechanism twice, and a hand-built view is covered by the
+-- canonical form it reaches and not by the operation that built it.
+-- 'retiredClasses' below is that test applied to the classes here,
+-- 2026-09-04, and the coverage claim reads per canonical mechanism since:
+-- regime 1; contiguous runs by length, gap, offset and direction; the
+-- broadcast body; the block copy; the strided fill with and without a
+-- stride-1 level and with overlap; and per-call size.
 
 -- Regime-3 view as @rev@ produces it: 'mkStrided''s view with EVERY
 -- dimension reversed -- each stride negated, the offset moved to where the
@@ -3789,6 +3800,9 @@ windowShapes =
     -- neither can say what a degenerate one costs. This one is 1 by 9 --
     -- innermost extent 1 under the repeated strides an overlapping window
     -- has, which is the run-of-one-element case this class never saw.
+    -- Under 'canonView' that kernel row of 1 is dropped and the view is
+    -- runs of 9, 'runs-9''s own run, over a backing those runs overlap on;
+    -- kept for that overlap, which 'runsShapes' has none of (2026-09-04).
   , ("window-64x64-k1x9", [64, 64, 1, 9])    -- 32256, over 4096
     -- A kernel one past the short bodies of 'fillStage2Short', which
     -- write runs of 2 to 5, added 2026-09-02 for Run 24: both square
@@ -3936,7 +3950,7 @@ smallViews =
 composeViews :: [(String, ShapeL, Strides, Int)]
 composeViews =
   [ ("compose-rev-bcast",   [64, 100, 8],   Strides [-100, -1, 0], 6399)  -- 51200, bcast-inner8 reversed
-  , ("compose-slice-bcast", [64, 100, 8],   Strides [100, 1, 0],   7)     -- 51200, the hoisted read at offset 7
+  , ("compose-slice-bcast", [64, 100, 8],   Strides [100, 1, 0],   7)     -- 51200, bcast-inner8 at offset 7: the hoisted read off a base
   , ("compose-zero-mid",    [200, 90, 100], Strides [0, 1, 0],     0)     -- 1800000, zero, one, zero
   , ("compose-scalar",      [1200, 1500],   Strides [0, 0],        0)     -- 1800000, every stride 0
   ]
@@ -3958,6 +3972,42 @@ classViews =
   ++ [(n, mkBlock s e o) | (n, s, e, o) <- blockViews]
   ++ [(n, mkSmall s sts) | (n, _, s, sts) <- smallViews]
   ++ [(n, mkCompose s sts o) | (n, s, sts, o) <- composeViews]
+
+-- Classes retired from TIMING and kept in 'check', by prefix -- ruled
+-- 2026-09-04 on the canonical forms the branch's fill sees ('canonView',
+-- then 'fillStage2''s dispatch), which is what a timed class has to be
+-- distinct in. 'reshape1': three of its four views canonicalize to the
+-- regime-1 slice 'stretch-inner1' and 'small-flat64' already time, and the
+-- fourth to a main-set view -- which is why it is the class the correction
+-- degenerates on. 'revsome': reproduced 'rev' on every run it ran; its
+-- inner-reversed view is 'rev''s mechanism and its two outer-reversed ones
+-- are main-set views walked in another order, the fill's addressing being
+-- sign-agnostic and the sign-sensitive bounds it was built for belonging to
+-- the packed Int32 scan, settled. 'slice': a main-set view plus a base
+-- offset the fill reads once, the offset timed by 'block-run64-off7' and
+-- 'compose-slice-bcast' since. The lists and generators stay: 'check' holds
+-- every arm to the reference on these views still, read-run.py's older
+-- revisions parse the lists, and a class is re-timed by deleting its name
+-- here. run-major.sh's CLASSES omits them, held to `classes --list` by its
+-- own cross-check, and read-run.py reads this list for the class counts it
+-- holds a run file to (README.md#the-stride-classes-and-what-they-cover).
+retiredClasses :: [String]
+retiredClasses = ["reshape1", "revsome", "slice"]
+
+-- The class a shape name belongs to: its prefix up to the first hyphen,
+-- the derivation every driver uses (run-major.sh says why).
+classOf :: String -> String
+classOf = takeWhile (/= '-')
+
+-- Every retired name is a class, asserted in 'main' beside 'partitioned':
+-- a misspelt one would retire nothing and say nothing.
+retiredKnown :: Bool
+retiredKnown = all (`elem` map (classOf . fst) classViews) retiredClasses
+
+-- 'classViews' less the retired classes: what the @classes@ mode times.
+timedClassViews :: [(String, (ShapeL, T))]
+timedClassViews =
+  [cv | cv@(n, _) <- classViews, classOf n `notElem` retiredClasses]
 
 -- The cap that partitions the shape set: benchmarked iff @l <= sizeCap@,
 -- flagged and excluded otherwise. 'stretchShapes' is written to it exactly.
@@ -4683,7 +4733,7 @@ saturate = do
 {-# NOINLINE saturate #-}
 
 main :: IO ()
-main = assert partitioned $ do
+main = assert (partitioned && retiredKnown) $ do
   args <- getArgs
   unless (any (`elem` ["check", "diag", "--list", "-l"]) args) saturate
   if "diag" `elem` args
@@ -4889,7 +4939,7 @@ mkBench :: (String, ShapeL) -> Benchmark
 mkBench (name, normalSh) = benchView name (mkStrided normalSh)
 
 -- The stride-class populations as benchmarks, one 'bgroup' per
--- 'classViews' entry in that list's order -- reachable only through the
+-- 'timedClassViews' entry in that list's order -- reachable only through the
 -- @classes@ mode, so the default run's composition and slot order stay
 -- those of every recorded run. The recorded-run protocol for these is one
 -- population per process, selected by prefix (@classes rev-@,
@@ -4900,7 +4950,7 @@ mkBench (name, normalSh) = benchView name (mkStrided normalSh)
 -- The full sequence, which a major run includes by default:
 -- README.md#making-a-major-benchmark-run.
 classBenches :: [Benchmark]
-classBenches = [benchView n view | (n, view) <- classViews]
+classBenches = [benchView n view | (n, view) <- timedClassViews]
 
 -- The builders compared directly, not only through the strategies
 -- that consume them. End-to-end agreement hides a table that is

@@ -399,6 +399,30 @@ DECLARED_AFTER_RE = re.compile(
     r' added \d{4}-\d{2}-\d{2}, after the run')
 
 
+def plant_retired_class_exempt(tmp):
+    """The fixture of `retired-classes-timed-by-the-run-are-exempt`.
+
+    Both halves planted, on a class every run file carries: a Main.hs copy
+    retiring `rev` from timing, and a README declaring `rev` retired after
+    the run -- so the newest run file, which timed it, is held to a class
+    count that keeps it. Drop the declaration's effect and that file reads
+    one block over. The declaration goes under the Provenance heading,
+    which every README revision carries, so the anchor outlives the bullet
+    a write-up rewrites. Added 2026-09-04.
+    """
+    main = open(MAIN).read()
+    old = 'retiredClasses = ['
+    if main.count(old) != 1:
+        raise AssertionError('retiredClasses list occurs %d times, need 1'
+                             % main.count(old))
+    out = {'main': write(os.path.join(tmp, 'Main.hs'),
+                         main.replace(old, old + '"rev", ', 1))}
+    out['readme'] = unwrapped_readme_edit(
+        tmp, '\n## Provenance\n',
+        '\n## Provenance\n\n`rev` was retired 2026-09-04, after the run.\n')
+    return out
+
+
 def plant_main_shapes_exempt(tmp):
     """The fixture of `main-shapes-added-after-the-run-are-exempt`.
 
@@ -2328,8 +2352,9 @@ def _scale_arm(benches, arm, factor):
     return hit
 
 
-def class_names():
-    """The stride classes, from Main.hs rather than from a literal.
+def all_class_names():
+    """Every stride class Main.hs defines, timed or retired, from its shape
+    lists rather than from a literal.
 
     A class is a shape list that is not the main set, and its name is the
     shape prefix before the first hyphen -- the same derivation
@@ -2339,6 +2364,15 @@ def class_names():
     dims, _ = _reader().dims_by_shape(os.path.join(HERE, 'Main.hs'))
     return sorted({sh.split('-')[0] for sh, d in dims.items()
                    if d['lst'] not in ('convShapes', 'stretchShapes')})
+
+
+def class_names():
+    """The classes the binary TIMES: every class less Main.hs's
+    `retiredClasses`, which `check` keeps and `classes --list` drops --
+    so a stand-in answering that listing, and a driver's CLASSES held to
+    it, model the binary. Since 2026-09-04."""
+    retired = _reader().retired_classes(os.path.join(HERE, 'Main.hs'))
+    return [c for c in all_class_names() if c not in retired]
 
 
 def recorded_classes():
@@ -2356,7 +2390,7 @@ def recorded_classes():
     """
     leads = set(re.findall(r'^\*\*`([a-z0-9]*)`', rundoc_text(),
                            re.M))
-    return [c for c in class_names() if c in leads]
+    return [c for c in all_class_names() if c in leads]
 
 
 _WHOLE = {}
@@ -6452,6 +6486,20 @@ RECORDS = [
                '--run-doc', '{rundoc}'],
          ok=V(hasnt=['shape counts disagree with Main.hs'])),
 
+    case('retired-classes-timed-by-the-run-are-exempt', 'read-run.py', None,
+         "a class retired from timing after a run failed that run file's"
+         " class count",
+         # Main.hs retires a class from timing and keeps it in `check`, so
+         # the class counts take it out -- and the newest run file, which
+         # timed it, would then read one block over. README's provenance
+         # bullet declares the retirement as after the run, as it declares
+         # shapes added after one, and the reader keeps a declared class in
+         # what that file is held to. Both halves planted, on `rev`.
+         plant=plant_retired_class_exempt,
+         argv=['--check-doc', '--quiet', '--readme', '{readme}',
+               '--main', '{main}'],
+         ok=V(hasnt=['class block(s) where Main.hs defines'])),
+
     case('main-shapes-added-after-the-run-are-exempt', 'read-run.py', None,
          "a main-set shape added between runs failed every `over N shapes`"
          " the run file quotes",
@@ -6716,8 +6764,8 @@ RECORDS = [
 
     case('class-name-carries-no-hyphen', 'run-major.sh', '8cb5eb7',
          'a hyphenated class merged with the one before its hyphen',
-         shadow=dict(mutate=[('run-major.sh', 'slice window scaled',
-                              'slice window scaled bcast-mid')],
+         shadow=dict(mutate=[('run-major.sh', 'window scaled',
+                              'window scaled bcast-mid')],
                      extra=lambda text: halves('zzhy-lookrts', 'zzhy-a1g', classes=classes_in(text))
                      + [('zzhy-pair.txt', NOTE_STUB)]),
          env={'OTHER': 'a1g', 'BASIS': 'lookrts'},
@@ -6888,7 +6936,7 @@ RECORDS = [
               " max'",
               "print('**Provenance:** elapsed ___, peak of ___ MiB in use, ___"
               " MiB max'")],
-             extra=lambda: whole_run(['lookrts', 'ovhalf'], prefix='zzit')),
+             extra=lambda: whole_run(['lookrts', 'ovhalf'], prefix='zzit', classes=recorded_classes())),
          env={'DOC': '{doc}', 'BASIS': 'lookrts', 'OTHER': 'ovhalf'},
          argv=['zzit'],
          probe=lambda subs: open(subs['doc']).read(),
@@ -6901,7 +6949,7 @@ RECORDS = [
          'a two-shape class aborted AFTER eleven tables were already in',
          plant=lambda t: {'doc': edited_rundoc(t)},
          shadow=dict(extra=lambda: whole_run(['lookrts'], prefix='zzts',
-                                     short_class='scaled')),
+                                     short_class='scaled', classes=recorded_classes())),
          env={'DOC': '{doc}', 'BASIS': 'lookrts'},
          argv=['zzts'],
          # No --audit: this fixture is built from the live README, which
@@ -6950,7 +6998,7 @@ RECORDS = [
          plant=lambda t: {'doc': edited_rundoc(t, (
              '\n\n' + an_across_paragraph(), ''))},
          shadow=dict(extra=lambda: whole_run(['lookrts', 'ovhalf'],
-                                     prefix='zzx5')),
+                                     prefix='zzx5', classes=recorded_classes())),
          env={'DOC': '{doc}', 'BASIS': 'lookrts', 'OTHER': 'ovhalf'},
          argv=['zzx5'],
          ok=V(exit=1, has=['REFUSED', 'no `Across the halves:`'])),
@@ -6958,7 +7006,7 @@ RECORDS = [
     case('basis-glob-catches-no-other-half', 'install-tables.sh', '440b22d',
          'a control half named <basis>-pa was installed as the basis',
          plant=lambda t: {'doc': edited_rundoc(t)},
-         shadow=dict(extra=lambda: whole_run(['lookrts'], prefix='zzhg')
+         shadow=dict(extra=lambda: whole_run(['lookrts'], prefix='zzhg', classes=recorded_classes())
                      + [('zzhg-lookrts-pa-rev.json', '["criterion","x",[]]')]),
          env={'DOC': '{doc}', 'BASIS': 'lookrts'},
          argv=['zzhg'],
@@ -6977,7 +7025,7 @@ RECORDS = [
          # run-major.sh refuses the class.
          plant=lambda t: {'doc': edited_rundoc(
              t, ('**`bcastmid` ---', '**`bcast-mid` ---'))},
-         shadow=dict(extra=lambda: whole_run(['lookrts'], prefix='zzhl')),
+         shadow=dict(extra=lambda: whole_run(['lookrts'], prefix='zzhl', classes=recorded_classes())),
          env={'DOC': '{doc}', 'BASIS': 'lookrts'},
          argv=['zzhl'],
          # The old script's signature and not merely the absence of the
