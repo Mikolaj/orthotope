@@ -11,10 +11,10 @@ there since the unboxing fix of 2026-08-29, [the
 ceiling](#the-mutable-ceiling-taken)'s tenth reading): `vFillStrided`, the class
 method, its shared driver a bang-for-bang port
 of `mut-odo-vecdims-add-in-leaf-u2`; **the regime 3 fix is decided:
-on 2026-08-22 `mut-odo-vecdims` was decided as the implementation to go
-upstream, on 2026-08-24 the stride-conditioned redirect that had kept
-the decision open was dropped, and the same day the arm was refined
-to the family's `add-in-leaf-u2` form on the two paired probes recorded
+on 2026-08-22 the `mut-odo-vecdims` family was decided as the implementation
+to go upstream, on 2026-08-24 the stride-conditioned redirect that had kept
+the decision open was dropped, and the same day the member was fixed
+as the family's `add-in-leaf-u2` form on the two paired probes recorded
 in the ceiling** --- [the ceiling](#the-mutable-ceiling-taken) carries
 the decision and what it rests on, and [the two-stage
 plan](#the-two-stage-plan-and-the-rework-proposal) below carries the drop
@@ -29,7 +29,8 @@ with a `vGenerate` over a per-element `quotRem` (one division *per dimension*),
 which sped up the large, many-channel shapes but *slowed* the small, shallow,
 high-rank shapes that dominate horde-ad's convolutions (up to ~2x).
 
-The fix now in `Data/Array/Internal.hs` is **`bq-expand`**: precompute
+The fix `Data/Array/Internal.hs` carried until 2026-08-24, and keeps
+as `vFillStrided`'s class default, is **`bq-expand`**: precompute
 the base-offset of each innermost run once --- the outer-base grid is separable
 (`o0 + sum idx_d * stride_d`), so it is built by iterated `concatMap` /
 `enumFromStepN` expansion, no division and no thunk-list --- then fill
@@ -439,11 +440,12 @@ by being a thing a later session might otherwise redo.
   candidate: the decision of 2026-08-22 is [in the ceiling][ceiling].
 - **The mutable ceiling**, why a direct mutable fill was not taken for eleven
   runs, the amendment that turned that bar into a weight, and the decision
-  of 2026-08-22 that takes it --- `mut-odo-vecdims` as the upstream
-  implementation, refined on 2026-08-24 to its `add-in-leaf-u2` form and landed
-  in code the same day, alone since the drop that sent the stride-conditioned
-  redirect to [the two-stage plan](#the-two-stage-plan-and-the-rework-proposal)
-  as a rework proposal: [the ceiling][ceiling].
+  of 2026-08-22 that takes it --- the `mut-odo-vecdims` family as the upstream
+  implementation, narrowed on 2026-08-24 to its `add-in-leaf-u2` member
+  and landed in code the same day, alone since the drop that sent
+  the stride-conditioned redirect to [the two-stage
+  plan](#the-two-stage-plan-and-the-rework-proposal) as a rework proposal: [the
+  ceiling][ceiling].
 - **The class-method signature is free** --- `build` and `mut-odo` compile
   to the same worker, dumped in both regimes --- so no `vBuild` is held back
   on a figure: [the ceiling][ceiling].
@@ -1201,11 +1203,12 @@ rather than a slot in the next run, observed again:
   That family contains **`bq-expand`, which is what `Data/Array/Internal.hs`
   carried until 2026-08-24** and survives there as the class default
   the vector-backed instances override --- not what this README recommends since
-  the decision of 2026-08-22, which is `mut-odo-vecdims`. And **the table cannot
-  show it**: the winsorized estimator caps the cell, so the row read 0.103
-  against 0.102 and nothing looked wrong --- the only reason it was seen
-  is that `bq-expand` carries two A/A twins, which disagreed with it by 25%.
-  An arm without twins would show nothing at all, which is most of the roster.
+  the decision of 2026-08-22, which is the `mut-odo-vecdims` family.
+  And **the table cannot show it**: the winsorized estimator caps the cell,
+  so the row read 0.103 against 0.102 and nothing looked wrong --- the only
+  reason it was seen is that `bq-expand` carries two A/A twins, which disagreed
+  with it by 25%. An arm without twins would show nothing at all, which is most
+  of the roster.
 
   **The evidence against an intrusion is [in the floor section][floor]**: clean
   twins, time-neighbours within 1.2%, CI% 0.06 over 125 samples, `list`
@@ -2061,20 +2064,21 @@ rather than a slot in the next run, observed again:
   on 2026-08-29; a registration is that run's record and reads against
   that run's tables.
 - `ANSWERED` **Which of the `bq-expand`-centric claims retire, now that the fix
-  decided is `mut-odo-vecdims`.** **Settled 2026-08-24**: claims 3, 4, 5 and 9
-  retire, claim 1 gains `bq-scan-rem-gm-mulback` and the tie at its foot,
-  and claim 2 changes its question to where `offtab` and `bq-expand` sit ---
-  thirteen registered orderings becoming eight, and seven on 2026-08-26 when
-  claim 2's `bq-expand` link retired, its condition having been spent
-  from the settlement day itself and read back by nobody until then, and five
-  on 2026-08-28 when claims 2 and 6 retired with the parking of `offtab`
-  and `gen-quotrem`, the arm each of them turned on: a claim over a parked arm
-  cannot be installed, and neither had a question left --- `offtab`'s place
-  behind the pure yardstick and the first attempt's tie with the baseline
-  were both settled orderings a reader can take from Run 20's tables for good.
-  Each retirement's reason, and the readings the two new links were measured
-  at on both of Run 18's halves, are in the settlement paragraph at the foot
-  of [the claims](runs/run24.md#the-claims-the-next-run-should-test), which owns
+  decided is the `mut-odo-vecdims` family.** **Settled 2026-08-24**: claims 3,
+  4, 5 and 9 retire, claim 1 gains `bq-scan-rem-gm-mulback` and the tie
+  at its foot, and claim 2 changes its question to where `offtab`
+  and `bq-expand` sit --- thirteen registered orderings becoming eight,
+  and seven on 2026-08-26 when claim 2's `bq-expand` link retired, its condition
+  having been spent from the settlement day itself and read back by nobody until
+  then, and five on 2026-08-28 when claims 2 and 6 retired with the parking
+  of `offtab` and `gen-quotrem`, the arm each of them turned on: a claim
+  over a parked arm cannot be installed, and neither had a question left ---
+  `offtab`'s place behind the pure yardstick and the first attempt's tie
+  with the baseline were both settled orderings a reader can take from Run 20's
+  tables for good. Each retirement's reason, and the readings the two new links
+  were measured at on both of Run 18's halves, are in the settlement paragraph
+  at the foot of [the
+  claims](runs/run24.md#the-claims-the-next-run-should-test), which owns
   the account; the `CLAIMS` manifest in `read-run.py` took it at Run 19's
   write-up on 2026-08-25, the retiring orderings having had one last
   cross-compiler reading first, in which all four held on both halves.
@@ -2786,8 +2790,8 @@ codegen rather than that it cannot be built.
   and `install-tables.sh` calls it once, after the installs and installing
   nothing: the cross-class summary stays hand-assembled, its emphasis being
   a per-run judgement, and what a rank owes the author is the sort
-  under the sentence rather than the sentence. **The gap from the regime 3 fix
-  to the best arm outside its family is printed both ways and the mode says
+  under the sentence rather than the sentence. **The gap from the family's plain
+  arm to the best arm outside the family is printed both ways and the mode says
   where the two disagree**, which is Run 15's second error exactly: on Run 17
   the widest is `bcastmid`'s on the published column and `rev`'s paired. **What
   it does not rank is the main set**, which it refuses, that population having
@@ -3545,10 +3549,10 @@ form's.
 ### The mutable ceiling (taken)
 
 **Decided 2026-08-22: the ceiling is to be taken; the code landed 2026-08-24
-and the heading's *not taken* went with it.** `mut-odo-vecdims`, refined
-the same day to its `add-in-leaf-u2` form, becomes the upstream implementation
-of the regime-3 fallback, with the new `Vector` method it needs ---
-the signature the Core below shows is free in its callback form, and decided
+and the heading's *not taken* went with it.** The `mut-odo-vecdims` family,
+narrowed the same day to its `add-in-leaf-u2` member, becomes the upstream
+implementation of the regime-3 fallback, with the new `Vector` method it needs
+--- the signature the Core below shows is free in its callback form, and decided
 2026-08-24 as the pure-typed whole-kernel form --- and, since 2026-08-24,
 no condition on the strides: the redirect is dropped for [the two-stage
 plan](#the-two-stage-plan-and-the-rework-proposal), whose rework proposal serves
@@ -3557,29 +3561,29 @@ the decision rests on, requoted from Run 20 rather than carried forward:
 `mut-odo-vecdims` reads **0.054** of `list` on the main set with a worst shape
 of 0.125, and its worst in any class is 0.108 (`reshape1`), so it is nowhere
 slower than `list` on anything this README has measured. **What Run 20 moves
-is which member of the tier leads, not the tier.** Six arms read below the fix
-on the main set and one more is level with it --- the leaf block's
-`-add-in-leaf-down`, `-add-in-leaf` and `-add-in-leaf-u2` at 0.035, 0.036
-and 0.038, the rework's `canon-vecdims`, `canon-memcpy-r2` and `canon-full`
-at 0.049, 0.052 and 0.053, and `mut-odo-vecdims-add-in` at 0.054 --- and every
-one of the seven needs a mutating `Vector` method and nothing more, which
-is exactly what the fix needs, so none of them reopens the decision and one
-of them, `-add-in-leaf-u2`, is what the branch ports. Its family heads seven
-of the nine classes, and the two it does not are the rework's: `reshape1`, where
-`canon-memcpy-r2` reads 0.000 against `mut-odo-vecdims`'s 0.095 on cells
-that price dispatch rather than filling, and `bcastmid`, where `mid-copy` reads
-0.017 against 0.031 and leads on all four shapes. On the main set, per shape,
-the best arm outside the family beats `mut-odo-vecdims` on **18 of the 24
-shapes**, ten of them by a thousandth or less, and across the class shapes
-on **20 of 26** --- counts that moved from Run 19's 3 and 5 because
-the canonicalizing arms are rostered now and this file counts them outside
-the family. The summary table's *best outside family* column was theirs
-throughout on Run 20 and is no longer: on Run 21 the library-shaped `lib-stage1`
-holds it in `rev`, `revsome`, `bcast`, `slice` and `window`,
-with `canon-vecdims` in `scaled` and the new `runs`, `mid-copy` in `bcastmid`
-and `lib-stage2-concat` in `reshape1`. Of what the decision owed, the class
-method and its instances, the suite pass and the non-vacuity break landed
-2026-08-24 ([the fix section](#the-fix-in-dataarrayinternalhs) has them);
+is which member of the tier leads, not the tier.** Six arms read below
+`mut-odo-vecdims` on the main set and one more is level with it --- the leaf
+block's `-add-in-leaf-down`, `-add-in-leaf` and `-add-in-leaf-u2` at 0.035,
+0.036 and 0.038, the rework's `canon-vecdims`, `canon-memcpy-r2`
+and `canon-full` at 0.049, 0.052 and 0.053, and `mut-odo-vecdims-add-in`
+at 0.054 --- and every one of the seven needs a mutating `Vector` method
+and nothing more, which is exactly what the fix needs, so none of them reopens
+the decision and one of them, `-add-in-leaf-u2`, is what the branch ports.
+Its family heads seven of the nine classes, and the two it does not
+are the rework's: `reshape1`, where `canon-memcpy-r2` reads 0.000 against
+`mut-odo-vecdims`'s 0.095 on cells that price dispatch rather than filling,
+and `bcastmid`, where `mid-copy` reads 0.017 against 0.031 and leads on all four
+shapes. On the main set, per shape, the best arm outside the family beats
+`mut-odo-vecdims` on **18 of the 24 shapes**, ten of them by a thousandth
+or less, and across the class shapes on **20 of 26** --- counts that moved
+from Run 19's 3 and 5 because the canonicalizing arms are rostered now
+and this file counts them outside the family. The summary table's *best outside
+family* column was theirs throughout on Run 20 and is no longer: on Run 21
+the library-shaped `lib-stage1` holds it in `rev`, `revsome`, `bcast`, `slice`
+and `window`, with `canon-vecdims` in `scaled` and the new `runs`, `mid-copy`
+in `bcastmid` and `lib-stage2-concat` in `reshape1`. Of what the decision owed,
+the class method and its instances, the suite pass and the non-vacuity break
+landed 2026-08-24 ([the fix section](#the-fix-in-dataarrayinternalhs) has them);
 the claims re-read is settled, applied at Run 19's write-up; and horde-ad's
 end-to-end re-measurement was taken on 2026-08-27, as its `CLAUDE.md` records.
 

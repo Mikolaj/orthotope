@@ -702,18 +702,18 @@ of those 43 it is a code change rather than a movement, as the section's opening
 says. The six first readings are named in the paragraph above.
 
 **Three things in the table are the run's findings rather than its numbers.**
-**The head of the table has moved a long way from the fix, and the count
-is no longer one a sentence can carry loosely.** `mut-odo-vecdims`, the arm
-decided 2026-08-22, reads 0.054 with **eighteen** timed arms below it and one
-level --- where Run 21 had seven below and two level. The eighteen are the two
-`libunord` arms at 0.000, six `lib-stage2*` arms and `lib-stage1` between 0.028
-and 0.033, four leaf arms between 0.032 and 0.042, `canon-vecdims` and the two
-`liblist` arms between 0.049 and 0.051, and `canon-memcpy-r2` and `canon-full`
-at 0.052 and 0.053; `mut-odo-vecdims-add-in` is the one level with it. Every one
-of them needs exactly what the fix needs --- a mutating `Vector` method
-and nothing more --- so what the table shows is still not a new tier but a much
-better populated one, with the shipped library route and six candidates now
-inside it. **The ceiling reproduced on the arm the class property names**:
+**The head of the table has moved a long way from the family's plain arm,
+and the count is no longer one a sentence can carry loosely.** `mut-odo-vecdims`
+reads 0.054 with **eighteen** timed arms below it and one level --- where Run 21
+had seven below and two level. The eighteen are the two `libunord` arms
+at 0.000, six `lib-stage2*` arms and `lib-stage1` between 0.028 and 0.033, four
+leaf arms between 0.032 and 0.042, `canon-vecdims` and the two `liblist` arms
+between 0.049 and 0.051, and `canon-memcpy-r2` and `canon-full` at 0.052
+and 0.053; `mut-odo-vecdims-add-in` is the one level with it. Every one of them
+needs exactly what the fix needs --- a mutating `Vector` method and nothing more
+--- so what the table shows is still not a new tier but a much better populated
+one, with the shipped library route and six candidates now inside it.
+**The ceiling reproduced on the arm the class property names**:
 `mut-odo-vecdims` against `bq-scan-rem-gm-mulback`, the fastest arm needing
 nothing at all, reads **0.5449 at 23 wins of 24** and sign p 3e-06 on the basis,
 against Run 21's 0.5424 and Run 20's 0.5479, and **0.5184** on HEAD against Run
@@ -726,10 +726,10 @@ at all, so the ladder claim 7 carries now has a floor under its floor.
 **The leaf block's internal ordering reverses Run 21's, and it bears on what
 ships.** `genericFillStrided` in `Data/Array/Internal.hs` is a bang-for-bang
 port of `mut-odo-vecdims-add-in-leaf-u2`, and that arm's own body changed
-this run. Against the fix it is emphatic and it repeats across the compilers:
-`-u2` / `mut-odo-vecdims` reads **0.6353 at 22 of 24, sign p 3.6e-05**
-on the basis and **0.6319 at 22 of 24** on HEAD, against Run 21's 0.7098
-and 0.7043 --- so the shipped code is now some 37% ahead of the code
+this run. Against `mut-odo-vecdims` it is emphatic and it repeats across
+the compilers: `-u2` / `mut-odo-vecdims` reads **0.6353 at 22 of 24, sign p
+3.6e-05** on the basis and **0.6319 at 22 of 24** on HEAD, against Run 21's
+0.7098 and 0.7043 --- so the shipped code is now some 37% ahead of the code
 it was refined from, where it was 30% ahead a run ago. **And it now heads
 its own block, which it did not.** `mut-odo-vecdims-add-in-leaf-down` reads
 **1.2598 of it at 1 of 24, p 3e-06** on the basis and **1.0346 at 8 of 24, p
@@ -1270,7 +1270,7 @@ and three runs then read as one; claim 5, that `bq-expand` beats `bq-gen`, whose
 refutation of the generate-per-element build stands on Runs 7 and 8. **What none
 of the three could still foreclose is the point**: every one asks where
 `bq-expand` sits among arms nothing ships, on a branch whose fix
-is `mut-odo-vecdims`. The arms all stay rostered and timed, so any
+is the `mut-odo-vecdims` family. The arms all stay rostered and timed, so any
 of these orderings is one `--pair` call away.
 6. **Retired 2026-08-28** with the parking of `gen-quotrem`, the arm its only
    link turned on. What it asked: `gen-quotrem` ties `list`, the first attempt's
@@ -1377,13 +1377,13 @@ reads, which this file already knows about hints.
 **And for each stride class, the same three properties, now carrying Run 22's
 verdicts** over nine classes, the details beside each class's table:
 
-1. **The regime 3 fix's `worst` stays under 1.** Held in every one of the ten
+1. **`mut-odo-vecdims`'s `worst` stays under 1.** Held in every one of the ten
    populations, in every regime, roster and layout the README has run ---
-   so the fix was never slower than the `list` it replaced, on any shape of any
-   class the library can produce. This is the property the classes exist
-   to test, no geomean can state it, and a break would be the one result here
-   to bear on `Data/Array/Internal.hs` directly. Re-aimed 2026-08-22
-   with the decision to ship `mut-odo-vecdims`, and read for that arm since:
+   so it was never slower than the `list` it replaced, on any shape of any class
+   the library can produce. This is the property the classes exist to test,
+   no geomean can state it, and a break would be the one result here to bear
+   on `Data/Array/Internal.hs` directly. Re-aimed 2026-08-22 with the decision
+   to ship the `mut-odo-vecdims` family, and read for its plain arm since:
    **on Run 22 its worst is 0.127 on the main set and 0.109 in a class
    (`reshape1`), both read on the basis half, with the control half at 0.126
    and 0.108** --- so the property holds for the arm decided, on both compilers,
@@ -1420,21 +1420,21 @@ verdicts** over nine classes, the details beside each class's table:
    21, which broke to a sibling in seven of the nine and outright in two,
    and from Run 20, which broke to the rework's arms in all eight. The nine
    heads divide three ways. **Three are degenerate**: `libunord-stage2` leads
-   `rev`, `revsome` and `reshape1` at 0.0174, 0.0076 and 0.0008 of the fix,
-   which is its one-block test firing on every view of those classes
-   and collapsing them to a single slice, so it prices dispatch and not filling.
-   **Three are the unrolled fill**: `lib-stage2-u4` leads `bcast`, `bcastmid`
-   and `scaled` at 0.5968, 0.5258 and 0.8815, margins of 40.3%, 47.4% and 11.9%
-   against those populations' floors, every one outside. **Three
-   are the short-body fill**: `lib-stage2-short` leads `slice`, `window`
-   and `runs` at 0.7522, 0.3291 and 0.7647, margins of 24.8%, 67.1% and 23.5%,
-   likewise all outside. **So six of the nine classes are now led by a candidate
-   this run added**, and the fact sits oddly beside those candidates' own
-   registrations, which killed `-u4` for not clearing the `runs` floor at long
-   lengths and refuted `-short`'s predicted magnitudes: a registration scoped
-   to one population and a class set say different things, and both are readings
-   of the same arms. The third clause reads the last candidate `bq-expand`
-   behind `mut-odo-vecdims` and holds in all nine.
+   `rev`, `revsome` and `reshape1` at 0.0174, 0.0076 and 0.0008
+   of `mut-odo-vecdims`, which is its one-block test firing on every view
+   of those classes and collapsing them to a single slice, so it prices dispatch
+   and not filling. **Three are the unrolled fill**: `lib-stage2-u4` leads
+   `bcast`, `bcastmid` and `scaled` at 0.5968, 0.5258 and 0.8815, margins
+   of 40.3%, 47.4% and 11.9% against those populations' floors, every one
+   outside. **Three are the short-body fill**: `lib-stage2-short` leads `slice`,
+   `window` and `runs` at 0.7522, 0.3291 and 0.7647, margins of 24.8%, 67.1%
+   and 23.5%, likewise all outside. **So six of the nine classes are now led
+   by a candidate this run added**, and the fact sits oddly beside
+   those candidates' own registrations, which killed `-u4` for not clearing
+   the `runs` floor at long lengths and refuted `-short`'s predicted magnitudes:
+   a registration scoped to one population and a class set say different things,
+   and both are readings of the same arms. The third clause reads the last
+   candidate `bq-expand` behind `mut-odo-vecdims` and holds in all nine.
 
 3. **The allocation tiers survive, and every level is Run 15's through Run 21's
    to the digit**: the mutable fills at the result vector, `bq-expand` between
@@ -1759,17 +1759,18 @@ rev-primes):** `mut-odo-vecdims` 0.067/0.052/0.028 `bq-scan-rem-gm-mulback`
 at a geomean of 1.0100, from `mut-odo-vecdims-add-in-leaf` at 0.8435
 to `libunord-stage2` at 1.4348, with `list` itself at 1.0069.
 
-**What the class says:** properties 1 and 3 hold for the fix -- `worst` 0.067
-against a `list` it never loses to, and the tiers at 1.00x, 2.52x and 23.43x --
-and property 2 breaks outright, as it does in all nine classes this run. The arm
-at the top is `libunord-stage2` at 0.001, **0.0174 of the fix on 3 of 3
-shapes**, and the margin is 98% against a 2.35% floor: this is the unordered
-one-block test firing on every view of the class, exactly where
-`probe-oneblock.py` said it would, collapsing the view to a single `VS.slice`.
-So the break prices dispatch and not filling, and the honest leader among arms
-that do the work is `lib-stage1`. Nineteen cells changed level mid-bench here,
-the largest `-12.76%` on `rev-gather48-src-50/mut-odo-vecdims-nosum`; read each
-as a question rather than a verdict.
+**What the class says:** properties 1 and 3 hold for `mut-odo-vecdims` --
+`worst` 0.067 against a `list` it never loses to, and the tiers at 1.00x, 2.52x
+and 23.43x -- and property 2 breaks outright, as it does in all nine classes
+this run. The arm at the top is `libunord-stage2` at 0.001, **0.0174
+of `mut-odo-vecdims` on 3 of 3 shapes**, and the margin is 98% against a 2.35%
+floor: this is the unordered one-block test firing on every view of the class,
+exactly where `probe-oneblock.py` said it would, collapsing the view to a single
+`VS.slice`. So the break prices dispatch and not filling, and the honest leader
+among arms that do the work is `lib-stage1`. Nineteen cells changed level
+mid-bench here, the largest `-12.76%`
+on `rev-gather48-src-50/mut-odo-vecdims-nosum`; read each as a question rather
+than a verdict.
 
 **`revsome` --- a strict subset of axes reversed, so the signs are mixed.**
 Shapes: `revsome-inner-primes` (`l` 250357, `sInner` 89), `revsome-outer-g48`
@@ -1854,11 +1855,12 @@ at a geomean of 1.0129, from `mut-odo-vecdims-add-in-leaf` at 0.8321
 to `libunord-stage2` at 1.3139, with `list` itself at 1.0069.
 
 **What the class says:** the same shape as `rev` and for the same reason --
-`libunord-stage2` at 0.000, **0.0076 of the fix on 3 of 3**, 99% against a 3.31%
-floor, the one-block test firing on every view -- so property 2 breaks
-to a degenerate cell and properties 1 and 3 hold. The class's own contribution
-is that it separates the two stages' tests: stage one's does not fire here,
-and `libunord-stage1` tracks `liblist-stage1` at 1.0090, inside the floor.
+`libunord-stage2` at 0.000, **0.0076 of `mut-odo-vecdims` on 3 of 3**, 99%
+against a 3.31% floor, the one-block test firing on every view -- so property 2
+breaks to a degenerate cell and properties 1 and 3 hold. The class's own
+contribution is that it separates the two stages' tests: stage one's does
+not fire here, and `libunord-stage1` tracks `liblist-stage1` at 1.0090, inside
+the floor.
 
 **`bcast` --- an innermost stride of 0, every run re-reading one element:
 a broadcast's view.** Shapes: `bcast-inner8` (`l` 51200, `sInner` 8),
@@ -1944,14 +1946,14 @@ at a geomean of 0.9595, from `lib-stage2-disp` at 0.6753
 to `mut-odo-vecdims-add-in-leaf-down` at 1.3980, with `list` itself at 1.0038.
 
 **What the class says:** property 2 breaks to a fill that is doing the work,
-which is new. `lib-stage2-u4` leads at 0.019, **0.5968 of the fix on 3 of 3
-shapes**, a 40.3% margin against a 4.57% floor -- so on a broadcast the stepping
-run unrolled by four is worth a factor of one and two thirds over the shipped
-fill, on a class where the registration expected the unrolling to buy nothing.
-Properties 1 and 3 hold, `bq-expand` at 1.38x. **And this is the one population
-where registration 5 fails**: `-u2` against `-down` reads 1.1306 on the control
-at 0 of 3 shapes, `-down` ahead by 13% past this class's own control floor
-of 2.79%, where the basis reads 0.8042 the other way.
+which is new. `lib-stage2-u4` leads at 0.019, **0.5968 of `mut-odo-vecdims` on 3
+of 3 shapes**, a 40.3% margin against a 4.57% floor -- so on a broadcast
+the stepping run unrolled by four is worth a factor of one and two thirds
+over the shipped fill, on a class where the registration expected the unrolling
+to buy nothing. Properties 1 and 3 hold, `bq-expand` at 1.38x. **And this
+is the one population where registration 5 fails**: `-u2` against `-down` reads
+1.1306 on the control at 0 of 3 shapes, `-down` ahead by 13% past this class's
+own control floor of 2.79%, where the basis reads 0.8042 the other way.
 
 **`bcastmid` --- the stretched axis in the middle instead: stride 0 on an outer
 dimension.** Shapes: `bcastmid-c32-cnn` (`l` 165888, `sInner` 3),
@@ -2043,10 +2045,10 @@ columns be differenced, so this line is NOT read for the pair's variable.**
 The table above is one process's and stands; what goes is the comparison.
 
 **What the class says:** `lib-stage2-u4` leads again at 0.017, **0.5258
-of the fix on 4 of 4 shapes**, 47.4% against a 5.39% floor -- the widest
-of the three `-u4` classes and the clearest statement that the unrolling pays
-where the runs are long and regular. Properties 1 and 3 hold. `mid-copy`, which
-led this class on Runs 20 and 21, is no longer its head.
+of `mut-odo-vecdims` on 4 of 4 shapes**, 47.4% against a 5.39% floor --
+the widest of the three `-u4` classes and the clearest statement
+that the unrolling pays where the runs are long and regular. Properties 1 and 3
+hold. `mid-copy`, which led this class on Runs 20 and 21, is no longer its head.
 
 **`reshape1` --- the `[n] -> [n, 1]` trap: innermost extent 1 on a stride-0
 axis.** Shapes: `reshape1-500k` (`l` 500000, `sInner` 1), `reshape1-r3` (`l`
@@ -2143,12 +2145,12 @@ process's and stands; what goes is the comparison.
 **What the class says:** the class remains the one whose cells price dispatch
 rather than filling -- the canonicalizing arms return O(1) on three of its four
 shapes -- and property 2 breaks to `libunord-stage2` at 0.000, 0.0008
-of the fix, which is that degeneracy compounded by the one-block test firing
-on every view. Properties 1 and 3 hold, and property 3's `bq-expand` reads
-**4.91x**, the top of the range across all nine classes, which is this class's
-own `m` showing through exactly as the property warns. Four cells sink below
-the forcing pass here on the basis, so `lib-stage2-lean` covers 2 of 4 shapes
-and `-short` and `-u4` 3 of 4.
+of `mut-odo-vecdims`, which is that degeneracy compounded by the one-block test
+firing on every view. Properties 1 and 3 hold, and property 3's `bq-expand`
+reads **4.91x**, the top of the range across all nine classes, which
+is this class's own `m` showing through exactly as the property warns. Four
+cells sink below the forcing pass here on the basis, so `lib-stage2-lean` covers
+2 of 4 shapes and `-short` and `-u4` 3 of 4.
 
 **`slice` --- a view of a larger source: non-zero offset, positive strides.**
 Shapes: `slice-cnn-L2-24x24-c32` (`l` 165888, `sInner` 3), `slice-primes` (`l`
@@ -2232,10 +2234,10 @@ slice-coprime-r7):** `mut-odo-vecdims` 0.057/0.030/0.037
 at a geomean of 1.0055, from `mut-odo-vecdims-add-in-leaf` at 0.8535
 to `mut-odo-vecdims-add-in-leaf-down` at 1.1831, with `list` itself at 0.9964.
 
-**What the class says:** `lib-stage2-short` leads at 0.030, **0.7522 of the fix
-on 3 of 3 shapes**, 24.8% against a 3.44% floor. Properties 1 and 3 hold.
-This is one of the two classes where registration 1's ratio sits above 1 --
-`lib-stage2` / `lib-stage1` reads 1.0344 -- and it is the population
+**What the class says:** `lib-stage2-short` leads at 0.030, **0.7522
+of `mut-odo-vecdims` on 3 of 3 shapes**, 24.8% against a 3.44% floor. Properties
+1 and 3 hold. This is one of the two classes where registration 1's ratio sits
+above 1 -- `lib-stage2` / `lib-stage1` reads 1.0344 -- and it is the population
 the registration singled out as still behind past its floor on Run 21
 and predicted inside 1.05; it lands there, so the eight points that cost
 it then are gone and the three the shim accounts for remain.
@@ -2326,10 +2328,10 @@ to `mut-odo-vecdims-add-in-leaf-down` at 1.2260, with `list` itself at 1.0082.
 columns be differenced, so this line is NOT read for the pair's variable.**
 The table above is one process's and stands; what goes is the comparison.
 
-**What the class says:** `lib-stage2-short` leads at 0.020, **0.3291 of the fix
-on 3 of 3 shapes**, a 67.1% margin against a 4.77% floor -- the widest
-property-2 break of any non-degenerate class this run, and by some distance.
-Properties 1 and 3 hold. A window's runs are short and numerous, which
+**What the class says:** `lib-stage2-short` leads at 0.020, **0.3291
+of `mut-odo-vecdims` on 3 of 3 shapes**, a 67.1% margin against a 4.77% floor --
+the widest property-2 break of any non-degenerate class this run, and by some
+distance. Properties 1 and 3 hold. A window's runs are short and numerous, which
 is the condition the short-body fill was written for, so the class
 is the candidate's best case and reads like it.
 
@@ -2420,11 +2422,11 @@ columns be differenced, so this line is NOT read for the pair's variable.**
 The table above is one process's and stands; what goes is the comparison.
 
 **What the class says:** the tightest break of the nine. `lib-stage2-u4` leads
-at 0.026, **0.8815 of the fix on 2 of 3 shapes at sign p 1**, an 11.9% margin
-against a 4.14% floor -- outside it, but on a split sign test, so the class
-ranks the candidate first without separating it. Properties 1 and 3 hold,
-`bq-expand` at 1.14x, the bottom of the range across the nine and this class's
-own `m` of 1 and 2,000 showing through.
+at 0.026, **0.8815 of `mut-odo-vecdims` on 2 of 3 shapes at sign p 1**, an 11.9%
+margin against a 4.14% floor -- outside it, but on a split sign test,
+so the class ranks the candidate first without separating it. Properties 1 and 3
+hold, `bq-expand` at 1.14x, the bottom of the range across the nine
+and this class's own `m` of 1 and 2,000 showing through.
 
 **`runs` --- run length swept from 2 to 65536 with innermost stride 1
 throughout: regime 2, which the library reaches by a route of its own,
@@ -2529,17 +2531,17 @@ The table above is one process's and stands; what goes is the comparison.
 
 **What the class says:** this is the class the run was extended for
 and it answers three registrations at once. `lib-stage2-short` leads at 0.027,
-**0.7647 of the fix on 7 of 11 shapes**, 23.5% against a 3.26% floor. Properties
-1 and 3 hold. **The crossover moved**: `lib-stage2` / `lib-stage1` runs 0.0227,
-0.0274, 0.0397, 0.0437, 0.0834, 0.5202, 0.7679, 0.8170, 0.9254, 1.1485
-and 1.0364 across the eleven lengths, so the branch is the better route through
-`runs-1024` where Run 21 had it behind from `runs-96` up by factors of 2.9
-to 6.5. **And that kills the dispatch**: `lib-stage2-disp` is 6.65% behind stage
-two at `runs-1024`, past this floor, because `dispRun` is cut to 256
-and the bracket moved out from under it; at `runs-256` and `runs-512`, the two
-lengths nothing had read, it is 33.2% and 20.9% behind. The four new views earn
-their place -- `runs-4` and `runs-5` exercise the short bodies' one branch
-that nothing, `check` included, had reached.
+**0.7647 of `mut-odo-vecdims` on 7 of 11 shapes**, 23.5% against a 3.26% floor.
+Properties 1 and 3 hold. **The crossover moved**: `lib-stage2` / `lib-stage1`
+runs 0.0227, 0.0274, 0.0397, 0.0437, 0.0834, 0.5202, 0.7679, 0.8170, 0.9254,
+1.1485 and 1.0364 across the eleven lengths, so the branch is the better route
+through `runs-1024` where Run 21 had it behind from `runs-96` up by factors
+of 2.9 to 6.5. **And that kills the dispatch**: `lib-stage2-disp` is 6.65%
+behind stage two at `runs-1024`, past this floor, because `dispRun` is cut
+to 256 and the bracket moved out from under it; at `runs-256` and `runs-512`,
+the two lengths nothing had read, it is 33.2% and 20.9% behind. The four new
+views earn their place -- `runs-4` and `runs-5` exercise the short bodies' one
+branch that nothing, `check` included, had reached.
 
 
 

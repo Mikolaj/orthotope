@@ -1165,7 +1165,7 @@ and three runs then read as one; claim 5, that `bq-expand` beats `bq-gen`, whose
 refutation of the generate-per-element build stands on Runs 7 and 8. **What none
 of the three could still foreclose is the point**: every one asks where
 `bq-expand` sits among arms nothing ships, on a branch whose fix
-is `mut-odo-vecdims`. The arms all stay rostered and timed, so any
+is the `mut-odo-vecdims` family. The arms all stay rostered and timed, so any
 of these orderings is one `--pair` call away.
 6. `gen-quotrem` ties `list` --- the first attempt's arithmetic stops being
    dearer than the list's allocation once the flag takes its own allocation
@@ -1243,13 +1243,13 @@ reads, which this file already knows about hints.
 **And for each stride class, the same three properties, now carrying Run 19's
 verdicts**, the details beside each class's table:
 
-1. **The regime 3 fix's `worst` stays under 1.** Held in every one of the nine
+1. **`mut-odo-vecdims`'s `worst` stays under 1.** Held in every one of the nine
    populations, in every regime, roster and layout the README has run ---
-   so the fix was never slower than the `list` it replaced, on any shape of any
-   class the library can produce. This is the property the classes exist
-   to test, no geomean can state it, and a break would be the one result here
-   to bear on `Data/Array/Internal.hs` directly. Re-aimed 2026-08-22
-   with the decision to ship `mut-odo-vecdims` instead, and read for that arm
+   so it was never slower than the `list` it replaced, on any shape of any class
+   the library can produce. This is the property the classes exist to test,
+   no geomean can state it, and a break would be the one result here to bear
+   on `Data/Array/Internal.hs` directly. Re-aimed 2026-08-22 with the decision
+   to ship the `mut-odo-vecdims` family instead, and read for its plain arm
    since: **on Run 19 its worst is 0.126 on the main set and 0.110 in a class
    (`reshape1`), both read on the basis half, with the control half at 0.121
    and 0.109** --- so the property holds for the arm decided, on both compilers,
@@ -1763,10 +1763,11 @@ by **0.9813** paired at 2 of 3 --- a 1.87% margin inside this class's 4.79%
 floor, so a sort order and not a separation, and the same member led here on
 Run 18. The one figure of this class that is not a fill's
 is `mut-flat-gm / mut-odo-vecdims` at 1.8606, whose interval reaches **0.9990**
---- so the best arm outside the family is level with the fix at the bottom
-of its range here, where in five of the eight classes that interval stays clear
-of 1 entirely. Two go further than `bcast` does: `window` and `reshape1`, both
-of them putting that arm ahead on a unit-innermost shape.
+--- so the best arm outside the family is level with `mut-odo-vecdims`
+at the bottom of its range here, where in five of the eight classes
+that interval stays clear of 1 entirely. Two go further than `bcast` does:
+`window` and `reshape1`, both of them putting that arm ahead on a unit-innermost
+shape.
 
 **`bcastmid` --- the stretched axis in the middle instead: stride 0 on an outer
 dimension.** Shapes: `bcastmid-c32-cnn` (`l` 165888, `sInner` 3),
@@ -1941,7 +1942,7 @@ of the eight, and `bq-expand` at 5.43x the result vector where `scaled` puts
 it at 1.14x, which is `m = l` showing through exactly as that property warns.
 `bq-expand / mut-odo-vecdims` is **1.2534 on an interval reaching 0.8801, ahead
 on one shape of three**, so in this class the last candidate is not measurably
-behind the arm that ships --- the only population of the nine where
+behind the family's plain arm --- the only population of the nine where
 that is true. This population was the standing case for a stride-conditioned
 redirect from Run 16 on; the drop of 2026-08-24 sends it to [the two-stage
 plan](../README.md#the-two-stage-plan-and-the-rework-proposal) instead, whose
@@ -2110,9 +2111,9 @@ and stands; what goes is the comparison.
 
 **What the class says:** all three properties hold. The `mut-odo-vecdims` row's
 `worst` is 0.097, and the shape carrying it is `window-64x64-k1x9`,
-the unit-innermost view where the best arm outside the family beats the fix ---
-the same one-dimensional trap `reshape1` is built of, arriving here on one shape
-of three rather than on all of them, which is why
+the unit-innermost view where the best arm outside the family beats
+`mut-odo-vecdims` --- the same one-dimensional trap `reshape1` is built of,
+arriving here on one shape of three rather than on all of them, which is why
 `mut-flat-gm / mut-odo-vecdims` over the three reads **1.0877 on an interval
 from 0.4683 to 1.7647**, level on the point estimate and resolving nothing.
 `bq-expand / mut-odo-vecdims` reads 1.9282 paired, behind on all three shapes,

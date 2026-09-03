@@ -273,11 +273,11 @@ other to within 0.13, 0.06 and 0.91 of a point on `mut-odo-vecdims`,
 `canon-full` and `bq-expand`. `mut-flat-gm` is the one where they part in SIZE
 rather than direction, 1.0043 against 1.0325, and it is the arm whose in-situ
 term is noisiest on both halves --- its `mean|d|` reads 4.88% and 6.72% against
-3.03% and 3.04% on the fix. **A margin between these two halves is therefore
-not carrying a correction bias**, which rests on the term the correction
-actually subtracts rather than on the in-situ check: the two `sum-only` halves
-agree at 0.9996 on the basis and 0.9999 on the control, both intervals
-covering 1.
+3.03% and 3.04% on `mut-odo-vecdims`. **A margin between these two halves
+is therefore not carrying a correction bias**, which rests on the term
+the correction actually subtracts rather than on the in-situ check: the two
+`sum-only` halves agree at 0.9996 on the basis and 0.9999 on the control, both
+intervals covering 1.
 
 **The run's standing placement pair moved, and this time the fills say what
 it is not.** `build` against `mut-odo`, one worker at two slots, reads **0.9870
@@ -561,17 +561,17 @@ and `-nosum` controls with no corrected time to move; the six first readings
 are named in the section's own opening.
 
 **Three things in the table are the run's findings rather than its numbers.**
-**The head of the table moved further from the fix, and seven arms now read
-below it.** `mut-odo-vecdims`, the arm decided 2026-08-22, reads 0.054
-with seven arms below it --- the three leaf arms at 0.036, 0.036 and 0.038,
-`lib-stage1` at 0.039 and `mut-odo-vecdims-add-in-leaf-u2-down` at 0.039,
-and the rework's `canon-vecdims` and `canon-full` at 0.049 and 0.053 --- and two
-more level with it at 0.054, `canon-memcpy-r2` and `mut-odo-vecdims-add-in`,
-which the printed column cannot separate from it. Run 20 had six clear of
-it and a seventh level. Every one of the nine needs exactly what the fix needs
---- a mutating `Vector` method and nothing more --- so what the table shows
-is still not a new tier but a better member of the tier that already shipped,
-now with the shipped library route itself inside it. **The ceiling reproduced
+**The head of the table moved further from the family's plain arm, and seven
+arms now read below it.** `mut-odo-vecdims` reads 0.054 with seven arms below
+it --- the three leaf arms at 0.036, 0.036 and 0.038, `lib-stage1` at 0.039
+and `mut-odo-vecdims-add-in-leaf-u2-down` at 0.039, and the rework's
+`canon-vecdims` and `canon-full` at 0.049 and 0.053 --- and two more level
+with it at 0.054, `canon-memcpy-r2` and `mut-odo-vecdims-add-in`, which
+the printed column cannot separate from it. Run 20 had six clear of it
+and a seventh level. Every one of the nine needs exactly what the fix needs ---
+a mutating `Vector` method and nothing more --- so what the table shows is still
+not a new tier but a better member of the tier that already shipped, now
+with the shipped library route itself inside it. **The ceiling reproduced
 on the arm the class property names**: `mut-odo-vecdims` against
 `bq-scan-rem-gm-mulback`, the fastest arm needing nothing at all, reads **0.5424
 at 23 wins of 24** and sign p 3e-06 on the basis, against Run 20's 0.5479, Run
@@ -1126,7 +1126,7 @@ and three runs then read as one; claim 5, that `bq-expand` beats `bq-gen`, whose
 refutation of the generate-per-element build stands on Runs 7 and 8. **What none
 of the three could still foreclose is the point**: every one asks where
 `bq-expand` sits among arms nothing ships, on a branch whose fix
-is `mut-odo-vecdims`. The arms all stay rostered and timed, so any
+is the `mut-odo-vecdims` family. The arms all stay rostered and timed, so any
 of these orderings is one `--pair` call away.
 6. **Retired 2026-08-28** with the parking of `gen-quotrem`, the arm its only
    link turned on. What it asked: `gen-quotrem` ties `list`, the first attempt's
@@ -1234,13 +1234,13 @@ reads, which this file already knows about hints.
 verdicts** over nine classes rather than eight, the details beside each class's
 table:
 
-1. **The regime 3 fix's `worst` stays under 1.** Held in every one of the ten
+1. **`mut-odo-vecdims`'s `worst` stays under 1.** Held in every one of the ten
    populations, in every regime, roster and layout the README has run ---
-   so the fix was never slower than the `list` it replaced, on any shape of any
-   class the library can produce. This is the property the classes exist
-   to test, no geomean can state it, and a break would be the one result here
-   to bear on `Data/Array/Internal.hs` directly. Re-aimed 2026-08-22
-   with the decision to ship `mut-odo-vecdims`, and read for that arm since:
+   so it was never slower than the `list` it replaced, on any shape of any class
+   the library can produce. This is the property the classes exist to test,
+   no geomean can state it, and a break would be the one result here to bear
+   on `Data/Array/Internal.hs` directly. Re-aimed 2026-08-22 with the decision
+   to ship the `mut-odo-vecdims` family, and read for its plain arm since:
    **on Run 21 its worst is 0.125 on the main set and 0.108 in a class
    (`reshape1`), both read on the basis half, with the control half at 0.126
    and 0.109** --- so the property holds for the arm decided, on both compilers,
@@ -1258,9 +1258,9 @@ table:
    `lib-stage1` --- the shipped route --- at **1.335**, and `liblist-stage2`
    at 1.135. So on that shape every route the library offers is slower
    than the baseline it replaces, and the branch's fill is the only arm
-   of the four that is not. The property is stated of the fix and the fix holds;
-   that a library-shaped arm does not is this run's finding and is read
-   at the class's own block.
+   of the four that is not. The property is stated of `mut-odo-vecdims`
+   and `mut-odo-vecdims` holds; that a library-shaped arm does not is this run's
+   finding and is read at the class's own block.
 
 2. **The top of the table keeps its order**: `mut-odo-vecdims` fastest,
    `bq-expand` behind it. **The first clause breaks in all nine CLASS
@@ -1273,17 +1273,17 @@ table:
    at margins of 7.5% (`scaled`) to 47.2% (`window`) against those populations'
    own floors, every one of them outside. **In two it breaks outright, to arms
    outside the family.** `bcastmid` is led by `mid-copy` at 0.017 against
-   the fix's 0.032 --- **0.5429 paired, ahead on 4 of 4 shapes**, and within six
-   thousandths of Run 20's 0.5490 on the same pair --- and `reshape1`
-   by `lib-stage2-concat`, whose cells there are degenerate and price dispatch
-   rather than filling, so that one is a break in the sort and not in the work.
-   **What changed since Run 20 is which arm holds the outside-family slot,
-   and it is the same arm in five of the nine**: `lib-stage1` leads outside
-   the family on `rev`, `revsome`, `bcast`, `slice` and `window`,
-   `canon-vecdims` on `scaled` and `runs`, and the two outright breaks hold
-   their own slot --- where Run 20 had the rework's arms in all eight. The third
-   clause reads the last candidate `bq-expand` behind `mut-odo-vecdims`
-   and holds in all nine.
+   `mut-odo-vecdims`'s 0.032 --- **0.5429 paired, ahead on 4 of 4 shapes**,
+   and within six thousandths of Run 20's 0.5490 on the same pair ---
+   and `reshape1` by `lib-stage2-concat`, whose cells there are degenerate
+   and price dispatch rather than filling, so that one is a break in the sort
+   and not in the work. **What changed since Run 20 is which arm holds
+   the outside-family slot, and it is the same arm in five of the nine**:
+   `lib-stage1` leads outside the family on `rev`, `revsome`, `bcast`, `slice`
+   and `window`, `canon-vecdims` on `scaled` and `runs`, and the two outright
+   breaks hold their own slot --- where Run 20 had the rework's arms in all
+   eight. The third clause reads the last candidate `bq-expand` behind
+   `mut-odo-vecdims` and holds in all nine.
 
 3. **The allocation tiers survive, and every level is Run 15's through Run 20's
    to the digit**: the mutable fills at the result vector, `bq-expand` between
@@ -1686,12 +1686,12 @@ to `mut-odo-aa-adjacent` at 1.0714, with `list` itself at 1.0063.
 
 **What the class says:** all three properties hold and nothing inverts.
 `mut-odo-vecdims`'s `worst` is 0.058 and `bq-expand` trails it on every shape.
-The head is `mut-odo-vecdims-add-in-leaf-down` at 0.032 against the fix's 0.049
---- **0.6989 paired at 2 of 3 shapes, a 30.1% margin against this class's 6.97%
-floor** --- a family member, so the first clause holds. The best arm outside
-the family is `lib-stage1` at 0.032, level with the family's own head, where Run
-20 had `mid-copy` at 0.046. The floor is `mut-odo-aa-distant`'s 6.97%, against
-Run 20's 6.14%.
+The head is `mut-odo-vecdims-add-in-leaf-down` at 0.032 against
+`mut-odo-vecdims`'s 0.049 --- **0.6989 paired at 2 of 3 shapes, a 30.1% margin
+against this class's 6.97% floor** --- a family member, so the first clause
+holds. The best arm outside the family is `lib-stage1` at 0.032, level
+with the family's own head, where Run 20 had `mid-copy` at 0.046. The floor
+is `mut-odo-aa-distant`'s 6.97%, against Run 20's 6.14%.
 
 **`bcast` --- an innermost stride of 0, every run re-reading one element:
 a broadcast's view.** Shapes: `bcast-inner8` (`l` 51200, `sInner` 8),
@@ -1871,9 +1871,9 @@ of the rework's two conditions --- is the fastest timed arm at **0.017** against
 `mut-odo-vecdims`'s 0.032, **0.5429 paired and ahead on 4 of 4 shapes, a 45.7%
 margin against this class's 4.69% floor**. It is outside the vecdims family,
 so this is a break in the first clause and not a naming of rounding, and
-it is the one population where a rework condition beats the fix outright
-on its own ground. Run 20 read 0.5490 on the same pair, so the margin has
-reproduced to two figures over a roster change, 0.54 both times.
+it is the one population where a rework condition beats `mut-odo-vecdims`
+outright on its own ground. Run 20 read 0.5490 on the same pair, so the margin
+has reproduced to two figures over a roster change, 0.54 both times.
 `mut-odo-vecdims`'s `worst` is 0.058 and `bq-expand` is behind throughout.
 The floor is `build-aa-distant`'s 4.69%, against Run 20's 4.83%.
 
@@ -1963,14 +1963,14 @@ and this class's cells need reading before its table does.** Three of its four
 shapes go degenerate for the canonicalizing arms: canonicalization drops
 the unit dimension, the fill becomes a regime-1 return, and there is nothing
 per-element left for a ratio to price --- so `lib-stage2-concat` heads the table
-at 0.000 and its 0.0055 against the fix is a break in the sort and not
-in the work. **`reshape1-strided-r3` is the one cell in the class that prices
-the fill**, being strided where the others leave a contiguous run, and there
-the branch's stage two reads 0.4215 ms against stage one's 0.1153 ms --- 3.66
-times behind, which is the same regression the six genuine regime-3 classes
-report and the one figure in this block that means what it appears to mean.
-`mut-odo-vecdims` reads 0.094 with `worst` 0.108, its highest of the nine
-classes, and `bq-expand` is behind throughout. The floor
+at 0.000 and its 0.0055 against `mut-odo-vecdims` is a break in the sort
+and not in the work. **`reshape1-strided-r3` is the one cell in the class
+that prices the fill**, being strided where the others leave a contiguous run,
+and there the branch's stage two reads 0.4215 ms against stage one's 0.1153 ms
+--- 3.66 times behind, which is the same regression the six genuine regime-3
+classes report and the one figure in this block that means what it appears
+to mean. `mut-odo-vecdims` reads 0.094 with `worst` 0.108, its highest
+of the nine classes, and `bq-expand` is behind throughout. The floor
 is `mut-odo-aa-adjacent`'s 6.31%, against Run 20's 8.31%.
 
 **`slice` --- a view of a larger source: non-zero offset, positive strides.**
@@ -2323,25 +2323,26 @@ runs-65536, runs-r3-48x30):** `mut-odo-vecdims`
 at a geomean of 0.9820, from `mut-odo-vecdims-add-in-leaf` at 0.8349
 to `gen-unsafe-aa-adjacent` at 1.0676, with `list` itself at 0.9993.
 
-**What the class says:** properties 1 and 3 hold for the fix, and the class
-exists to price the library rather than the fix --- which it does, twice over.
-`mut-odo-vecdims` reads 0.032 with `worst` 0.063, that worst being `runs-2`,
-and it leads every library-shaped arm from `runs-2` to `runs-1024` ---
-but not at the top of the sweep: at `runs-65536` `lib-stage1` reads 0.0244
-of `list` against the fix's 0.0274, and at `runs-r3-48x30` 0.0269 against
-0.0296, so a long enough run is one a memcpy wins and an odometer fill does not.
-The table's own head is `mut-odo-vecdims-add-in-leaf` at 0.029, **0.8027 paired
-and ahead on 4 of 7 shapes, a 19.7% margin against this class's 3.50% floor**,
-a family member, so property 2's first clause does not break. **What the class
-was built for is the two rows near the foot.** `lib-stage2` reads 0.151
-with `worst` 0.158 --- flat, because the branch fills every run whatever
-its length --- while `lib-stage1` reads 0.124 with **`worst` 1.335**,
-and that `worst` is the class's finding: at `runs-2`, which is 900000 runs
-of two elements, the shipped slice-per-run concatenation is a third SLOWER
-than the `list` baseline it exists to beat, and `lib-stage2-concat` (1.338)
-and `liblist-stage1` (1.371) carry the same cell for the same reason. So the two
-routes cross between `runs-9` and `runs-96`, and neither is right on both sides
-of that crossing. The floor is `gen-unsafe-aa-distant`'s 3.50%.
+**What the class says:** properties 1 and 3 hold for `mut-odo-vecdims`,
+and the class exists to price the library rather than `mut-odo-vecdims` ---
+which it does, twice over. `mut-odo-vecdims` reads 0.032 with `worst` 0.063,
+that worst being `runs-2`, and it leads every library-shaped arm from `runs-2`
+to `runs-1024` --- but not at the top of the sweep: at `runs-65536` `lib-stage1`
+reads 0.0244 of `list` against `mut-odo-vecdims`'s 0.0274,
+and at `runs-r3-48x30` 0.0269 against 0.0296, so a long enough run is one
+a memcpy wins and an odometer fill does not. The table's own head
+is `mut-odo-vecdims-add-in-leaf` at 0.029, **0.8027 paired and ahead on 4 of 7
+shapes, a 19.7% margin against this class's 3.50% floor**, a family member,
+so property 2's first clause does not break. **What the class was built
+for is the two rows near the foot.** `lib-stage2` reads 0.151 with `worst` 0.158
+--- flat, because the branch fills every run whatever its length --- while
+`lib-stage1` reads 0.124 with **`worst` 1.335**, and that `worst` is the class's
+finding: at `runs-2`, which is 900000 runs of two elements, the shipped
+slice-per-run concatenation is a third SLOWER than the `list` baseline it exists
+to beat, and `lib-stage2-concat` (1.338) and `liblist-stage1` (1.371) carry
+the same cell for the same reason. So the two routes cross between `runs-9`
+and `runs-96`, and neither is right on both sides of that crossing. The floor
+is `gen-unsafe-aa-distant`'s 3.50%.
 
 
 

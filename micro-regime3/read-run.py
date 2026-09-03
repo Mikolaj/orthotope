@@ -1056,7 +1056,7 @@ def strategy_table(cells, shapes, strategies, meta, args, terms):
         share = {st: med_or_nan([terms[sh] / cells[sh][st]['slope']
                                  for sh in shapes if st in cells[sh]
                                  and cells[sh][st]['slope'] > 0])
-                 for st in ('list', FIX)}
+                 for st in ('list', PLAIN)}
         known = ' and '.join('%.1f%% of %s' % (100 * v, k)
                              for k, v in share.items() if v == v)
         print('time has the shared forcing pass subtracted from every row;')
@@ -1396,7 +1396,7 @@ def markdown_table(cells, shapes, strategies, meta, args, terms):
                          ' from.\n' % label)
         sys.exit(1)
     # A class table drops the editorial column but keeps the emphasis:
-    # which row is the fix and which leads is what a reader looks for first,
+    # which row is the plain arm and which leads is what a reader looks for,
     # and it is the same row in every population's table.
     editorial = kind != 'class'
     # Read the table by the ROSTER, not by this run's arms, so that a row the
@@ -4356,16 +4356,21 @@ def claims_in_doc(readme, cells, shapes, strategies, src, main_hs):
               % ('summary' if n is None else 'claim %d' % n, fig, sent[:92]))
 
 
-# The regime 3 fix became `mut-odo-vecdims` by the decision of 2026-08-22
-# (README, the ceiling), `bq-expand` the last candidate; the pure/impure
-# distinction retired with it, and the summary's pure slot now carries the
-# best arm OUTSIDE the vecdims family -- what the stride-conditioned
-# redirect, dropped 2026-08-24, would have taken per class.
+# The regime 3 fix became the `mut-odo-vecdims` FAMILY by the decision of
+# 2026-08-22 (README, the ceiling), narrowed 2026-08-24 to its
+# `add-in-leaf-u2` member, which is what ships; `bq-expand` the last
+# candidate. The pure/impure distinction retired with the decision, and the
+# summary's pure slot now carries the best arm OUTSIDE the vecdims family
+# -- what the stride-conditioned redirect, dropped 2026-08-24, would have
+# taken per class. `PLAIN` is the family's UNREFINED member, which every
+# ratio here is quoted against and which this file used to call `FIX` --
+# a name that read as though the plain arm were the shipped code, where it
+# is one of the several the shipped member leads.
 SUMMARY_COLS = ('shapes', 'mut-odo-vecdims', 'worst', 'best outside family',
                 'ceiling', 'floor')
 FAMILY = 'mut-odo-vecdims'
 PROP2_FASTEST = 'mut-odo-vecdims'
-FIX = 'mut-odo-vecdims'
+PLAIN = 'mut-odo-vecdims'
 LAST_CANDIDATE = 'bq-expand'
 
 
@@ -4485,17 +4490,17 @@ def block_verdicts(cells, shapes, strategies, meta, args):
     if led.family:
         print('  ceiling (family)    %-30s %.3f' % (led.family[0].st,
                                                      led.family[0].time))
-    fix = next((r for r in timed if r[1] == FIX), None)
-    if fix:
+    plain = next((r for r in timed if r[1] == PLAIN), None)
+    if plain:
         print('  %-19s %-30s %.3f   worst %.3f'
-              % (FIX, '(the fix)', fix[0], fix[6]))
+              % (PLAIN, '(the plain arm)', plain[0], plain[6]))
         print('  property 1, `worst` under 1: %s'
-              % ('HOLDS' if fix[6] < 1 else '**BREAKS**'))
+              % ('HOLDS' if plain[6] < 1 else '**BREAKS**'))
         # Priced like the others, on the one cell that breaks it: `worst`
         # is a per-shape ratio and not a pair, so what stands beside the
         # floor is its own excess over 1 rather than a geomean.
-        if not fix[6] < 1:
-            over = (fix[6] - 1) * 100
+        if not plain[6] < 1:
+            over = (plain[6] - 1) * 100
             print('     worst is %.2f%% above 1%s'
                   % (over, '' if floor is None else
                      ', against this class\'s floor of %.2f%% (`%s`), so it'
@@ -4508,15 +4513,15 @@ def block_verdicts(cells, shapes, strategies, meta, args):
         clauses.append(('fastest is `%s`, not `%s`'
                         % (timed[0][1], PROP2_FASTEST),
                         timed[0][1], PROP2_FASTEST))
-    if fix:
+    if plain:
         # The third clause since 2026-08-22: the last candidate behind
         # `mut-odo-vecdims`, which is the decision's direction read per
         # class.
         by = dict((r[1], r[0]) for r in timed)
-        if LAST_CANDIDATE in by and by[LAST_CANDIDATE] < fix[0]:
+        if LAST_CANDIDATE in by and by[LAST_CANDIDATE] < plain[0]:
             clauses.append(('the last candidate `%s` is AHEAD of `%s`'
-                            % (LAST_CANDIDATE, FIX),
-                            LAST_CANDIDATE, FIX))
+                            % (LAST_CANDIDATE, PLAIN),
+                            LAST_CANDIDATE, PLAIN))
     verdict2 = ('HOLDS' if not clauses
                 else '**BREAKS** -- ' + '; '.join(c[0] for c in clauses))
     print('  property 2, top of the table: %s' % verdict2)
@@ -4534,7 +4539,7 @@ def block_verdicts(cells, shapes, strategies, meta, args):
               ' NOT break:\n      it is read as the family\'s until a run'
               ' separates them -- README, the claims)' % PROP2_FASTEST)
     tiers = [(st, dict((r[1], r[5]) for r in rows).get(st))
-             for st in (FIX, LAST_CANDIDATE, 'list')]
+             for st in (PLAIN, LAST_CANDIDATE, 'list')]
     print('  property 3, allocation: %s'
           % ', '.join('%s %s' % (st, '--' if a is None else '%.2fx' % a)
                       for st, a in tiers))
@@ -4582,7 +4587,7 @@ def load_other(other, main_hs, shapes, meta):
 
 
 LEADERS = collections.namedtuple('LEADERS',
-                                 'rows needs timed outside family fix')
+                                 'rows needs timed outside family plain')
 
 
 def table_leaders(cells, shapes, strategies, args):
@@ -4613,7 +4618,7 @@ def table_leaders(cells, shapes, strategies, args):
     return LEADERS(rows, needs, timed,
                    [r for r in timed if not r.st.startswith(FAMILY)],
                    [r for r in timed if r.st.startswith(FAMILY)],
-                   next((r for r in timed if r.st == FIX), None))
+                   next((r for r in timed if r.st == PLAIN), None))
 
 
 def summary_row(cells, shapes, strategies, args, main_hs):
@@ -4661,13 +4666,13 @@ def summary_row(cells, shapes, strategies, args, main_hs):
     led = table_leaders(cells, shapes, strategies, args)
     if led is None:
         return
-    outside, family, fix = led.outside, led.family, led.fix
-    if not (led.timed and outside and family and fix):
+    outside, family, plain = led.outside, led.family, led.plain
+    if not (led.timed and outside and family and plain):
         return
     aa = aa_pairs(cells, shapes, strategies)
     if not aa:
         return
-    want = ['%d' % len(shapes), '%.3f' % fix.time, '%.3f' % fix.worst,
+    want = ['%d' % len(shapes), '%.3f' % plain.time, '%.3f' % plain.worst,
             '%s %.3f' % (outside[0].st, outside[0].time),
             '%s %.3f' % (family[0].st, family[0].time),
             '%.2f%%' % (abs(aa_floor(aa).g - 1) * 100)]
@@ -4795,7 +4800,7 @@ def lead_shapes(shapes, args, main_hs):
 
 
 CLASS_READING = collections.namedtuple(
-    'CLASS_READING', 'label n fix worst out_st out gap gapp '
+    'CLASS_READING', 'label n plain worst out_st out gap gapp '
                      'ceil_st ceil floor floor_pair')
 
 
@@ -4804,7 +4809,7 @@ def class_reading(path, main_hs, args):
 
     The same six figures `summary_row` checks a written row against, plus
     the two the row does not carry and a superlative about the eight
-    keeps being made on: the gap from the regime 3 fix to the best arm
+    keeps being made on: the gap from the family's plain arm to the best
     outside its family, by the published column AND paired. Run 15 called
     one class's gap the widest of the eight on the column where another's
     is wider on the pair, which is a disagreement no single number can
@@ -4818,16 +4823,16 @@ def class_reading(path, main_hs, args):
                  % (os.path.basename(path), label))
     led = table_leaders(cells, shapes, strategies, args)
     if led is None or not (led.timed and led.outside and led.family
-                           and led.fix):
+                           and led.plain):
         sys.exit('%s: no `list` baseline, no timed arm outside `%s`, none'
                  ' in it, or no `%s` at all, so this class has no row'
-                 % (os.path.basename(path), FAMILY, FIX))
-    out, ceil, fix = led.outside[0], led.family[0], led.fix
-    m = break_margin(cells, shapes, out.st, fix.st)
+                 % (os.path.basename(path), FAMILY, PLAIN))
+    out, ceil, plain = led.outside[0], led.family[0], led.plain
+    m = break_margin(cells, shapes, out.st, plain.st)
     aa = aa_floor(aa_pairs(cells, shapes, strategies))
-    return CLASS_READING(class_prefix(shapes), len(shapes), fix.time,
-                         fix.worst, out.st, out.time,
-                         out.time / fix.time,
+    return CLASS_READING(class_prefix(shapes), len(shapes), plain.time,
+                         plain.worst, out.st, out.time,
+                         out.time / plain.time,
                          float('nan') if m is None else m.g,
                          ceil.st, ceil.time,
                          float('nan') if aa is None else abs(aa.g - 1) * 100,
@@ -4866,17 +4871,17 @@ def extremes_table(paths, main_hs, args):
                     ', '.join(sorted(dup))))
     print('%d class population(s), and every superlative about them has its'
           ' source here.' % len(rows))
-    print('`gap` is `%s` over the regime 3 fix -- what the dropped'
+    print('`gap` is `%s` over the family\'s plain arm -- what the dropped'
           ' stride-conditioned redirect' % 'best outside the family')
     print('would have bought in that class -- by the published column and'
           ' then paired.')
     print()
     print('%-10s %6s %8s %7s %-26s %7s %8s %8s %7s'
-          % ('class', 'shapes', 'fix', 'worst', 'best outside family',
+          % ('class', 'shapes', 'plain', 'worst', 'best outside family',
              'gap col', 'gap pair', 'ceiling', 'floor'))
     for r in sorted(rows, key=lambda r: r.label):
         print('%-10s %6d %8.3f %7.3f %-26s %7.2f %8.2f %8.3f %6.2f%%'
-              % (r.label, r.n, r.fix, r.worst,
+              % (r.label, r.n, r.plain, r.worst,
                  '%s %.3f' % (r.out_st, r.out), r.gap, r.gapp, r.ceil,
                  r.floor))
     print()
@@ -4899,7 +4904,7 @@ def extremes_table(paths, main_hs, args):
               + ', '.join('`%s` (%s)' % (l, ', '.join(ks)) for l, ks in blank))
     def gap_size(g):
         """A gap's SIZE is its distance from 1, |log|: while every outside
-        arm trailed the fix the raw ratio ordered the same way, and once
+        arm trailed the plain arm the raw ratio ordered the same way, and
         they led (Run 22) `max` of the ratio named the tightest class the
         widest. `nan` stays `nan` for `holder`. 2026-09-01, by review."""
         if g != g:
@@ -4912,8 +4917,8 @@ def extremes_table(paths, main_hs, args):
     for what, key, want, fmt, *show in (
             ('tightest floor', lambda r: r.floor, min, '%.2f%%'),
             ('widest floor', lambda r: r.floor, max, '%.2f%%'),
-            ('best for the fix', lambda r: r.fix, min, '%.3f'),
-            ('worst for the fix', lambda r: r.fix, max, '%.3f'),
+            ('best for the plain arm', lambda r: r.plain, min, '%.3f'),
+            ('worst for the plain arm', lambda r: r.plain, max, '%.3f'),
             ('highest `worst` cell', lambda r: r.worst, max, '%.3f'),
             ('best outside the family', lambda r: r.out, min, '%.3f'),
             ('fastest ceiling', lambda r: r.ceil, min, '%.3f'),

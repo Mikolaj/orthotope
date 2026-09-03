@@ -543,30 +543,30 @@ below is a movement only on the 44 arms this run shares with Run 19; the nine
 first readings are named in the section's own opening.
 
 **Three things in the table are the run's findings rather than its numbers.**
-**The head of the table changed hands, and the fix is now eighth on it.**
-`mut-odo-vecdims`, the arm decided 2026-08-22, reads 0.054 with six arms clear
-of it and a seventh level with it: the three leaf arms at 0.035, 0.036
-and 0.038, the rework's `canon-vecdims`, `canon-memcpy-r2` and `canon-full`
-at 0.049, 0.052 and 0.053, and `mut-odo-vecdims-add-in` at 0.054, which
-is the level one --- it sorts ahead but reads 0.9945 paired, inside this half's
-floor, so it is not separated from the fix at all. Every one of the seven needs
-exactly what the fix needs --- a mutating `Vector` method and nothing more ---
-so what the table shows is not a new tier but a better member of the tier
-that already shipped. Four are `mut-odo-vecdims` variants and three
-are the rework's canonicalizing arms, which this file counts OUTSIDE the vecdims
-family wherever it says *best outside family*; the shared thing is the `needs`
-column, not the family. **The ceiling reproduced on the arm the class property
-names**: `mut-odo-vecdims` against `bq-scan-rem-gm-mulback`, the fastest arm
-needing nothing at all, reads **0.5479 at 23 wins of 24** and sign p 3e-06
-on the basis, against Run 19's 0.5572, Run 18's 0.5577, Run 17's 0.5446 and Run
-16's 0.5567 --- the figure [the ruling](../README.md#the-mutable-ceiling-taken)
-turns on, unmoved by a roster change that moved every address. On HEAD it reads
-**0.5159** at the same 23 of 24 and the same p, so the ordering
-is the compiler's to keep and the ratio is not. **And the `alloc` column is Run
-15's through Run 19's at every level, with nine rows added inside it**: every
-new arm reads 1.00x, the mutable fills' own level, so the rework and the leaf
-block buy their time without buying allocation --- which is the one column
-that would have shown a different bargain.
+**The head of the table changed hands, and the family's plain arm is now eighth
+on it.** `mut-odo-vecdims` reads 0.054 with six arms clear of it and a seventh
+level with it: the three leaf arms at 0.035, 0.036 and 0.038, the rework's
+`canon-vecdims`, `canon-memcpy-r2` and `canon-full` at 0.049, 0.052 and 0.053,
+and `mut-odo-vecdims-add-in` at 0.054, which is the level one --- it sorts ahead
+but reads 0.9945 paired, inside this half's floor, so it is not separated
+from `mut-odo-vecdims` at all. Every one of the seven needs exactly what the fix
+needs --- a mutating `Vector` method and nothing more --- so what the table
+shows is not a new tier but a better member of the tier that already shipped.
+Four are `mut-odo-vecdims` variants and three are the rework's canonicalizing
+arms, which this file counts OUTSIDE the vecdims family wherever it says *best
+outside family*; the shared thing is the `needs` column, not the family.
+**The ceiling reproduced on the arm the class property names**:
+`mut-odo-vecdims` against `bq-scan-rem-gm-mulback`, the fastest arm needing
+nothing at all, reads **0.5479 at 23 wins of 24** and sign p 3e-06 on the basis,
+against Run 19's 0.5572, Run 18's 0.5577, Run 17's 0.5446 and Run 16's 0.5567
+--- the figure [the ruling](../README.md#the-mutable-ceiling-taken) turns on,
+unmoved by a roster change that moved every address. On HEAD it reads **0.5159**
+at the same 23 of 24 and the same p, so the ordering is the compiler's to keep
+and the ratio is not. **And the `alloc` column is Run 15's through Run 19's
+at every level, with nine rows added inside it**: every new arm reads 1.00x,
+the mutable fills' own level, so the rework and the leaf block buy their time
+without buying allocation --- which is the one column that would have shown
+a different bargain.
 
 **The leaf block's internal ordering is this run's sharpest reading,
 and it bears on what ships.** `genericFillStrided` in `Data/Array/Internal.hs`
@@ -1236,7 +1236,7 @@ and three runs then read as one; claim 5, that `bq-expand` beats `bq-gen`, whose
 refutation of the generate-per-element build stands on Runs 7 and 8. **What none
 of the three could still foreclose is the point**: every one asks where
 `bq-expand` sits among arms nothing ships, on a branch whose fix
-is `mut-odo-vecdims`. The arms all stay rostered and timed, so any
+is the `mut-odo-vecdims` family. The arms all stay rostered and timed, so any
 of these orderings is one `--pair` call away.
 6. **Retired 2026-08-28** with the parking of `gen-quotrem`, the arm its only
    link turned on. What it asked: `gen-quotrem` ties `list`, the first attempt's
@@ -1338,13 +1338,13 @@ is one nobody reads, which this file already knows about hints.
 **And for each stride class, the same three properties, now carrying Run 20's
 verdicts**, the details beside each class's table:
 
-1. **The regime 3 fix's `worst` stays under 1.** Held in every one of the nine
+1. **`mut-odo-vecdims`'s `worst` stays under 1.** Held in every one of the nine
    populations, in every regime, roster and layout the README has run ---
-   so the fix was never slower than the `list` it replaced, on any shape of any
-   class the library can produce. This is the property the classes exist
-   to test, no geomean can state it, and a break would be the one result here
-   to bear on `Data/Array/Internal.hs` directly. Re-aimed 2026-08-22
-   with the decision to ship `mut-odo-vecdims`, and read for that arm since:
+   so it was never slower than the `list` it replaced, on any shape of any class
+   the library can produce. This is the property the classes exist to test,
+   no geomean can state it, and a break would be the one result here to bear
+   on `Data/Array/Internal.hs` directly. Re-aimed 2026-08-22 with the decision
+   to ship the `mut-odo-vecdims` family, and read for its plain arm since:
    **on Run 20 its worst is 0.122 on the main set and 0.109 in a class
    (`reshape1`), both read on the basis half, with the control half at 0.121
    and 0.110** --- so the property holds for the arm decided, on both compilers,
@@ -1365,21 +1365,21 @@ verdicts**, the details beside each class's table:
    (`window`) against those populations' own floors, every one of them outside.
    **In two it breaks outright, to arms outside the family, and both
    are the rework's.** `bcastmid` is led by `mid-copy` at 0.017 against
-   the fix's 0.031 --- **0.5490 paired, ahead on 4 of 4 shapes** ---
+   `mut-odo-vecdims`'s 0.031 --- **0.5490 paired, ahead on 4 of 4 shapes** ---
    and `reshape1` by `canon-memcpy-r2`, whose cells there are degenerate
    and price dispatch rather than filling, so that one is a break in the sort
    and not in the work. **What changed since Run 19 is which arm leads
    and by how much, not the direction.** Run 19 read its five SIBLING-led class
    margins inside their populations' floors, from 0.9704 on `window` to 0.9856
    on `slice`, and called the sort a naming of rounding; property 2 held
-   outright in `revsome` and `scaled`, where the fix itself led,
+   outright in `revsome` and `scaled`, where `mut-odo-vecdims` itself led,
    and its `reshape1` break was outside the family and far outside that class's
    floor, at 0.5042 against 8.11%. This run prices seven of the eight and every
    one is outside its floor, by factors rather than points --- `reshape1`
-   is the eighth and is not priced at all, its leader and the fix having
-   no positive net on the same cell --- because the arms that lead are new code
-   and not another placement of the same code. So the family clause survives
-   where the leader is a sibling, and the honest statement of it now
+   is the eighth and is not priced at all, its leader and `mut-odo-vecdims`
+   having no positive net on the same cell --- because the arms that lead
+   are new code and not another placement of the same code. So the family clause
+   survives where the leader is a sibling, and the honest statement of it now
    is that `mut-odo-vecdims` is not the fastest member of its own family on any
    population this run measured. The third clause reads the last candidate
    `bq-expand` behind `mut-odo-vecdims` and holds in all nine. The summary's
@@ -1798,17 +1798,17 @@ process's and stands; what goes is the comparison.
 
 **What the class says:** all three properties hold and nothing inverts.
 `mut-odo-vecdims`'s `worst` is 0.057 and `bq-expand` trails it on every shape.
-The table's head is `mut-odo-vecdims-add-in-leaf-u2` at 0.031 against the fix's
-0.048 --- **0.7004 paired at 2 of 3 shapes, 30.0% against a 6.14% floor** ---
-a family member again, so the first clause stands. **This is one of the two
-classes where the shipped variant leads its own block** --- `window`
-is the other --- which it does not on the main set; with three shapes
-and a floor of 6.14% that is an ordering and not a separation, and the main set
-is where the block's internal ordering is decided. The best outside the family
-is `mid-copy` at 0.046, against Run 19's `mut-flat-gm` at 0.078. The floor
-loosened from Run 19's 2.00%, which was that half's tightest, to 6.14%, third
-widest here --- so the class that looked tightest a run ago is not,
-and the floor is a property of the run.
+The table's head is `mut-odo-vecdims-add-in-leaf-u2` at 0.031 against
+`mut-odo-vecdims`'s 0.048 --- **0.7004 paired at 2 of 3 shapes, 30.0% against
+a 6.14% floor** --- a family member again, so the first clause stands.
+**This is one of the two classes where the shipped variant leads its own block**
+--- `window` is the other --- which it does not on the main set; with three
+shapes and a floor of 6.14% that is an ordering and not a separation,
+and the main set is where the block's internal ordering is decided. The best
+outside the family is `mid-copy` at 0.046, against Run 19's `mut-flat-gm`
+at 0.078. The floor loosened from Run 19's 2.00%, which was that half's
+tightest, to 6.14%, third widest here --- so the class that looked tightest
+a run ago is not, and the floor is a property of the run.
 
 **`bcast` --- an innermost stride of 0, every run re-reading one element:
 a broadcast's view.** Shapes: `bcast-inner8` (`l` 51200, `sInner` 8),
@@ -1897,11 +1897,11 @@ the others. `bcast-set`, the zero-stride condition taken solo, is **the best arm
 outside the vecdims family at 0.032**, against `build`'s 0.057 in Run 19 ---
 the registration asked only for it to be ahead of its control on `bcast`
 and it is, by a factor rather than a margin. The table's head
-is `mut-odo-vecdims-add-in-leaf-down` at 0.022 against the fix's 0.035, **0.6195
-paired at 2 of 3 shapes, 38.1% against this class's 7.15% floor**; the leader
-is a family member, so the first clause holds. `worst` is 0.062 and `bq-expand`
-is behind throughout. The floor, 7.15%, is the second widest of the eight
-and well above Run 19's 4.79%.
+is `mut-odo-vecdims-add-in-leaf-down` at 0.022 against `mut-odo-vecdims`'s
+0.035, **0.6195 paired at 2 of 3 shapes, 38.1% against this class's 7.15%
+floor**; the leader is a family member, so the first clause holds. `worst`
+is 0.062 and `bq-expand` is behind throughout. The floor, 7.15%, is the second
+widest of the eight and well above Run 19's 4.79%.
 
 **`bcastmid` --- the stretched axis in the middle instead: stride 0 on an outer
 dimension.** Shapes: `bcastmid-c32-cnn` (`l` 165888, `sInner` 3),
@@ -2001,8 +2001,9 @@ breaks here rather than being read as the family's. Its registration asked
 for `mid-copy` ahead of its control on `bcastmid` and it is, on every shape
 including the new one: `bcastmid-block150k`, the block-copy arm's best case,
 was added for exactly this reading. `worst` is 0.058 and `bq-expand` trails
-throughout, so the fix is never slower than the `list` it replaces here whatever
-leads the table. The floor is 4.83%, against Run 19's 4.16% over three shapes.
+throughout, so `mut-odo-vecdims` is never slower than the `list` it replaces
+here whatever leads the table. The floor is 4.83%, against Run 19's 4.16%
+over three shapes.
 
 **`reshape1` --- the `[n] -> [n, 1]` trap: innermost extent 1 on a stride-0
 axis.** Shapes: `reshape1-500k` (`l` 500000, `sInner` 1), `reshape1-r3` (`l`
@@ -2199,8 +2200,8 @@ and `bq-expand` is behind on every shape. The head
 is `mut-odo-vecdims-add-in-leaf-down` at 0.033, **0.8338 paired at 2 of 3
 shapes, 16.6% against this class's 5.73% floor** --- a family member,
 so the first clause holds. The best outside the family is `canon-vecdims`
-at 0.040, level with the fix itself and against `build`'s 0.065 in Run 19.
-This class has the widest gap on the column of the eight,
+at 0.040, level with `mut-odo-vecdims` itself and against `build`'s 0.065 in
+Run 19. This class has the widest gap on the column of the eight,
 its `best outside family` sitting exactly on `mut-odo-vecdims`, so a sentence
 about the narrowest or widest gap has to say whether it means the column
 or the paired reading. The floor loosened from Run 19's 2.43% to 5.73%.
@@ -2582,16 +2583,17 @@ registrations, each with what killed it or did not:
    at 0.8513, so nothing recommends it. **Of the rework's five, two held their
    registered population and one broke.** `bcast-set` is ahead of its control
    on `bcast` at **0.9230, 3 of 3**; `mid-copy` on `bcastmid` at **0.5490, 4
-   of 4**, and it takes that class's table outright at 0.017 against the fix's
-   0.031, which is property 2 breaking outside the family. `canon-memcpy-r2`
-   on `window` is **BEHIND** the arm it varies, **1.0636 at 0 of 3**, where
-   the registration asked for ahead and the scratch probe had read a factor.
-   Both conditions stay inside their controls' floors where they do not fire ---
-   on `slice`, `bcast-set` 1.0530 against a 5.73% floor and `mid-copy` 1.0074.
-   And the degenerate cells arrived as named: `reshape1`'s other three shapes
-   return O(1) for the canonicalizing arms, so `reshape1-strided-r3` is the one
-   cell of that class pricing a fill, and the reader's sunk-cell rule drops
-   the other three from those rows rather than failing the file.
+   of 4**, and it takes that class's table outright at 0.017 against
+   `mut-odo-vecdims`'s 0.031, which is property 2 breaking outside the family.
+   `canon-memcpy-r2` on `window` is **BEHIND** the arm it varies, **1.0636 at 0
+   of 3**, where the registration asked for ahead and the scratch probe had read
+   a factor. Both conditions stay inside their controls' floors where they do
+   not fire --- on `slice`, `bcast-set` 1.0530 against a 5.73% floor
+   and `mid-copy` 1.0074. And the degenerate cells arrived as named:
+   `reshape1`'s other three shapes return O(1) for the canonicalizing arms,
+   so `reshape1-strided-r3` is the one cell of that class pricing a fill,
+   and the reader's sunk-cell rule drops the other three from those rows rather
+   than failing the file.
 2. *The pinning claim, in its strong form.* **KILLED, at the build on 2026-08-26
    and not in the evening.** Not one tracked loop stayed where `run19-g912` held
    it: the four-copy group at `[0, 24, 0, 4]` became a six-copy group
