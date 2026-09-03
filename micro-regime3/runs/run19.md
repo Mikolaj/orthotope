@@ -863,44 +863,16 @@ reason it cost minutes. Name the whole row, assert it occurs exactly once,
 and read the width check's verdict afterwards.
 
 And because a geomean cannot say *where* it moved, the **fingerprint** below
-is kept so a future disagreement can be localised rather than only noticed.
-Its membership is a rule, not a habit, re-aimed 2026-08-22 and settled
-2026-08-24: `mut-odo-vecdims` and every arm that is the best outside the vecdims
-family on at least one shape of the main set or a stride class --- on Run 16
-`mut-flat-gm`, `bq-scan-rem-gm-mulback`, `build`, `mut-odo`, `bq-mut-runs`
-and `bq-mut-runs-gm-mulback`, in that order of shapes led, and `offtab-scan-rem`
-on Run 18 --- and **it only ever grows**: an arm that has earned a column keeps
-it, and no run drops one; the second table carries the same columns over every
-stride-class shape, with its class named. **One representative per family**,
-besides: where a qualifying arm is a close variant of a member and measures
-closely, the leading one keeps the column, so no strategy costs two.
-The judgement is the author's, which is why `--fingerprint` names the best
-member on the shape a newcomer leads. **Neither way of dropping an arm
-survives.** Dropping one that leads nothing this run churns on a thousandth ---
-`offtab-scan-rem` holds `reshape1-rank10` at 0.090 against 0.091 --- and gaps
-the record wherever the column went. Judging it off the fingerprint this file
-carries is worse: that table holds the members alone, so a leaver would
-be judged against the members alone where a joiner is judged against every timed
-arm --- on `reshape1-rank10` the members' own minimum
-was `bq-scan-rem-gm-mulback` at 0.091, while the arm that won the shape read
-0.090 and had no column to be seen in. The header therefore grows, and the run
-writer narrows it by hand if it gets unwieldy. An arm nothing measures cannot
-be the subject of a future disagreement to localise, and what is given up when
-one goes is the per-shape half alone, its geomean staying in the yardstick table
-above. `list`'s own net per call rides along, guarding the baseline at every
-shape where the anchors guard three, and converting any ratio beside it back
-to absolute time. Allocation stays medians-only on purpose: deterministic per
-call, so a run that raises an allocation question re-derives it within itself.
-`./read-run.py RUN.json --fingerprint --classes CLASS.json...` emits both tables
---- paste them whole, transcribing nothing by hand, since hand-carrying
-this table once left two of Run 6's cells standing under Run 7's name,
-and the first emitted paste is what caught them. The column heads shorten
-the arm names as the stretch table's do: vecdims is `mut-odo-vecdims`, flat-gm
-`mut-flat-gm`, scan-rem-gm `bq-scan-rem-gm-mulback`, mut-runs `bq-mut-runs`,
-runs-gm `bq-mut-runs-gm-mulback` and offtab-rem `offtab-scan-rem`.
-And the [stretch table][pershape] is the same kind of record for `bq-expand-b`,
-on the shapes chosen to stress orderings --- compare it the same way. It lost
-a `lemire-out` column to this same rule on the same day, and says so.
+is kept so a future disagreement can be localised rather than only noticed;
+its membership rule, the column heads and the rulings on dropping a column
+are [in the README's per-shape
+section](../README.md#per-shape-where-the-geomean-hides-the-ordering). An arm
+nothing measures cannot be the subject of a future disagreement to localise,
+and what is given up when one goes is the per-shape half alone, its geomean
+staying in the yardstick table above. And the [stretch table][pershape]
+is the same kind of record for `bq-expand-b`, on the shapes chosen to stress
+orderings --- compare it the same way. It lost a `lemire-out` column to the same
+trim, and says so.
 
 | shape | `sInner` | `l` | `list`, net | vecdims | flat-gm | scan-rem-gm | build | mut-odo | mut-runs | runs-gm | offtab-rem |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|

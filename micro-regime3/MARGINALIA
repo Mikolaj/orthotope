@@ -564,3 +564,5 @@ it had written that sentence down.
   here, machine-check-tells-a-level-shift-from-a-skewed-shape's bc2f884,
   a README-only commit; the audit had passed it on a fixture. Re-pointed
   at 8132e79, where it reproduces.
+
+2026-09-03. The fingerprint membership paragraph (lead "And because a geomean cannot say *where* it moved") had been carried verbatim in every run file from Run 19 to Run 24, about 3 KB apiece, Run 19 in its pre-2026-08-28 form. Moved to README under "Per shape, where the geomean hides the ordering"; each run file keeps one sentence pointing there plus what that run added to the columns. The count "fourteen columns now, one fewer than Run 20 published" was dropped in the move as a claim-free count; the per-run "so the fourteen stand" tails stayed in their run files.
