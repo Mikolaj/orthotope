@@ -134,7 +134,26 @@ fi
 # the run's own processes, which is how a half-written probe once turned
 # eighteen clean gates into two failures (README, the Run 17 tasks).
 TMP=$(mktemp -d "${TMPDIR:-/tmp}/preflight.XXXXXX") || exit 1
-trap 'rm -rf "$TMP"' EXIT
+# A FAILED step's raw output is KEPT rather than deleted. Every step
+# redirects into $TMP and every verdict quotes a `tail -1` or a `grep -m1`
+# of it, so deleting it at exit destroyed the evidence and kept a summary
+# of the destroyed thing: 8d failed under this script and passed standing
+# alone, and what would have said why was gone (2026-09-03). It stays in
+# the TEMP directory, which the machine wipes -- a run's scratch does not
+# belong in the checkout, and this is scratch. BUT THE PATH IS NOT ONE TO
+# HAND ON: the outer wrapper puts a tmpfs over /tmp, so a directory a
+# session keeps there is invisible from Mikolaj's own shell and from any
+# other session. Whoever ran preflight can read it; anyone else needs the
+# part that matters copied out.
+# Written as if/else and not `A && B || C`: that shape runs C when A
+# fails, which is how a fallback comes to speak for a command that never
+# ran, and this file is read as an example.
+trap 'if [ "${BAD:-0}" -gt 0 ] && [ -d "$TMP" ]; then
+        echo "  every step\047s raw output kept in $TMP -- wiped with /tmp,"
+        echo "  and readable only where this ran; copy out what you hand on"
+      else
+        rm -rf "$TMP"
+      fi' EXIT
 
 BAD=0
 say () {  # say STEP VERDICT DETAIL
