@@ -786,7 +786,7 @@ def rundoc_pair_with_address_paragraph(tmp):
         text = open(path).read()
         head, sep, rest = text.partition('\n## ')
         assert sep, '%s has no `## ` section to end its head at' % name
-        write(path, head + '\n\n' + para.rstrip('\n') + sep + rest)
+        write(path, head + '\n\n' + para.rstrip('\n') + '\n' + sep + rest)
     return made
 
 

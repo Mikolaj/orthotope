@@ -6012,7 +6012,9 @@ def splice(docs, anchor, source):
     # difference the list guards below are the second of. A run file's
     # headings are what every install and every link resolve against.
     # Case: `replace-takes-an-abutting-heading`.
-    heads = [l for l in old.split('\n') if re.match(r'#{1,6} ', l)]
+    # NOT the first line: a heading there is the block a caller named,
+    # where one BELOW the prose is the one the paragraph swallowed.
+    heads = [l for l in old.split('\n')[1:] if re.match(r'#{1,6} ', l)]
     if heads:
         sys.stderr.write('--replace: this paragraph carries the heading'
                          ' %s, which no blank line separates from it, so'

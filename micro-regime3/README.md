@@ -825,21 +825,22 @@ rather than a slot in the next run, observed again:
   fails at the preparation rather than at the write-up. The cost of not doing
   it is one prediction per run that cannot be adjudicated, and it is invisible
   until the run is over.
-- `OPEN` **`--replace` takes a following heading with the paragraph it replaces,
-  where no blank line separates them.** Run 24's write-up lost `## Results`
-  from its own file that way: in the committed copy that heading sat on the line
-  immediately after the head's last paragraph, and `--replace`'s paragraph unit
-  is blank-line separated, so the heading went with the text. It is recoverable
-  and was recovered --- the mode prints an `out, last` line naming what
-  it removed, which said `## Results` --- but the session had truncated
-  that output and met the loss two gates later,
-  as `no Results heading in run24.md`. **What would settle it**: have
-  `--replace` refuse when the paragraph it matched ends in a heading line,
-  naming it, exactly as it refuses an anchor found in both documents; a run file
-  whose headings are what every install and every link resolves against cannot
-  afford a silent one. Until then the rule is the one the run chapter already
-  states and this session did not follow: read the `out` lines and not only
-  the `in` ones.
+- `ANSWERED` **`--replace` took a following heading with the paragraph
+  it replaced, where no blank line separated them --- fixed 2026-09-03.** Run
+  24's write-up lost `## Results` from its own file that way: in the committed
+  copy that heading sat on the line immediately after the head's last paragraph,
+  and `--replace`'s paragraph unit is blank-line separated, so the heading went
+  with the text. It is recoverable and was recovered --- the mode prints
+  an `out, last` line naming what it removed, which said `## Results` ---
+  but the session had truncated that output and met the loss two gates later,
+  as `no Results heading in run24.md`. **What settled it**: `--replace` now
+  refuses when the paragraph it matched carries a heading no blank line
+  separates from it, naming that heading, as it refuses an anchor found in both
+  documents --- a run file whose headings are what every install and every link
+  resolves against cannot afford a silent one. The case
+  is `replace-takes-an-abutting-heading`. The rule it does not replace
+  is the one the run chapter already states and this session did not follow:
+  read the `out` lines and not only the `in` ones.
 - `OPEN` **`--machine` run after `install-tables.sh` compares a run with its own
   freshly installed fingerprint and reads +0.00%.** Post-run step 5b installs
   `--fingerprint` into the run's own file, and `--machine` reads the kept
@@ -2153,22 +2154,25 @@ READ caught the three stale paragraphs, which is the pass the run chapter says
 keeps finding real errors and which is the only reason they were found:
 **`--check-doc` named twenty stale head paragraphs and there
 were twenty-three**, the three it did not name carrying figures like the twenty
-it did. Why it named twenty is not established here and is worth a session's
-attention before the next run trusts that count. **THE COMPUTATION IMPROVISED**
-was the cross-run comparison on a PINNED shape set: two `--exclude-shape` flags
-naming the two main-set shapes this run added, which turns a figure over 26
-shapes into one over the 24 its predecessor had. No mode does it, and without
-it this run would have published a ceiling that had left its eight-run band
-and eight allocation rows that had moved, where both are Run 23's figures
-exactly over Run 23's population. It is the run's main methodological output
-and it belongs in a mode. **THE STEP SKIPPED: none.** The gate was launched
-twice, the first attempt stopped by hand two minutes in and its artifacts moved
-out of the tree, which is disclosed in Provenance and is not a skip.
-**THE CAPABILITY FOUND** is that same pinning, and a smaller one beside it:
-`defect-run.py .` replays a case against the live documents, so a run that moves
-a roster breaks the fixtures anchored to it --- three broke here, two of them
-silently as FIXTURE DID NOT BUILD, and the repair was to derive each anchor
-from the document rather than write the class's current size into the case.
+it did. The cause was found the same day and fixed: the check read the head
+through `FIGURE_RE`, which matches a decimal and nothing else, so a paragraph
+whose figures are a hex address, a byte count or a count spelled in words
+was invisible to it. The head is replaced whole, so it is no longer filtered
+at all. **THE COMPUTATION IMPROVISED** was the cross-run comparison on a PINNED
+shape set: two `--exclude-shape` flags naming the two main-set shapes this run
+added, which turns a figure over 26 shapes into one over the 24 its predecessor
+had. No mode does it, and without it this run would have published a ceiling
+that had left its eight-run band and eight allocation rows that had moved, where
+both are Run 23's figures exactly over Run 23's population. It is the run's main
+methodological output and it belongs in a mode. **THE STEP SKIPPED: none.**
+The gate was launched twice, the first attempt stopped by hand two minutes
+in and its artifacts moved out of the tree, which is disclosed in Provenance
+and is not a skip. **THE CAPABILITY FOUND** is that same pinning, and a smaller
+one beside it: `defect-run.py .` replays a case against the live documents,
+so a run that moves a roster breaks the fixtures anchored to it --- three broke
+here, two of them silently as FIXTURE DID NOT BUILD, and the repair
+was to derive each anchor from the document rather than write the class's
+current size into the case.
 
 **THE CAPABILITIES FOUND.** THE EXACT REPETITION IS TAKEN and it is cheap:
 a basis recipe whose inputs have not moved rebuilds byte-identical, the md5 says
