@@ -2475,8 +2475,29 @@ is planned. A scope limit belongs in the sentence that asks for the measurement.
     the `runs` order holds past the cache, the fill ahead at 96 and the slice
     route at 4096, both routes slowing alike; killed by an inversion, which
     would make `dispRun` a function of the working set and not of the run
-    length. Its artifacts are `probe-cache-runs.json` and its log,
-    and its verdict goes here.
+    length. Its artifacts are `probe-cache-runs.json` and its log. **KILLED
+    the same evening by the inversion it named, and the inversion is small.** 14
+    benches in 81 seconds, self-test green, `list` at 123.5 and 124.0 ms net
+    on the two views, 14.7 ns an element as in cache, `list` being memory-bound
+    at every size. At runs of 96 the order holds and the margin with it:
+    `lib-stage2` reads 0.5548 of `lib-stage1`, and the dispatch is the fill,
+    0.9999 of it, allocating the result alone where the slice route allocates
+    28% more. At runs of 4096 the order inverts: `lib-stage2` reads 0.9802
+    of `lib-stage1`, the fill two points ahead where `runs-4096` in cache has
+    the slice route five points ahead, and `lib-stage2-disp`, on the slice route
+    there by its allocation, reads 1.0227 of the fill and 1.0024
+    of `lib-stage1`. The process carries no A/A pair, so the inversion is judged
+    against the cells' own fit widths, 0.14 to 0.54%, which it clears,
+    and against the `runs` class's recorded floors of 3 to 4.6%, which it does
+    not. So `dispRun` is a function of the working set by the letter and
+    not in a way that costs: past the cache the two routes tie at 4096 within
+    a floor, in cache the slice route leads by five, and a cut at 2048 is wrong
+    by at most a few points on either side of the cache, which is what
+    a threshold read at one working set is worth. The cut stands. Not measured:
+    a length between 96 and 4096 past the cache, where the in-cache crossover
+    sits, which one more view would place; and the allocation multiple, which
+    the reader cannot compute for a view `Main.hs` does not list, so the routes
+    were read in bytes.
 
 **And one class not to repropose: work that needs an aligned build.**
 `mut-odo`'s wide interval is the live case. The dispersion is documented
