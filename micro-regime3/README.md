@@ -48,9 +48,10 @@ the decision of 2026-08-22 **took**, `vFillStrided` landing 2026-08-24
 ([below](#the-mutable-ceiling-taken)). Plain `mut-odo` no longer argues
 for it at all: it and `bq-expand`, which survives in `Data/Array/Internal.hs`
 only as that method's class default, the three vector-backed instances
-overriding it with the mutable fill, are a tie at 0.8754 paired, 12 shapes of 24
-and sign p 1 on an interval covering 1, where Run 7 (Harness), at -O1, had
-it 1.51x ahead.
+overriding it with the mutable fill, are a tie at 0.8906 paired, 14 shapes of 26
+and sign p 0.85 on an interval covering 1 --- and at 0.8918 on Run 24's HEAD
+half, a thousandth away, so the tie is not one compiler's --- where Run 7
+(Harness), at -O1, had it 1.51x ahead.
 
 **Several strategies measured since are faster than the last candidate,
 `bq-expand`, and need no class method --- a distinction the decision
@@ -798,8 +799,61 @@ rather than a slot in the next run, observed again:
   and what it answered.** The registrations, their kill conditions and their
   verdicts are [in Run 24's own
   file](runs/run24.md#what-this-run-was-built-to-answer-and-what-it-answered),
-  where a run's registrations have lived since 2026-08-29; in a clause each:
-  ___.
+  where a run's registrations have lived since 2026-08-29; in a clause each: (1)
+  the short bodies, SPLIT --- ahead past both floors on every k3 and k5 shape
+  and killed by its own count clause on `stretch-coprime-r7`; (2) the lean
+  dispatch, HELD; (3) the composite, HELD on every population of both halves;
+  (4) the straddlers, HELD, and named rather than counted for the first time;
+  (5) HEAD, HELD on its orderings and not on two of its figures, with one clause
+  unreadable because the arm it turned on had been parked; and (6)
+  the threshold, HELD, the re-cut dispatch now leading the `runs` class.
+- `OPEN` **A registration can name an arm the roster has parked, and nothing
+  here reads a registration --- Run 24 lost a clause of one to it.**
+  Registration 5 predicted `-u2` ahead of `-down` in every population,
+  and `mut-odo-vecdims-add-in-leaf-down`, the arm that comparison turns on,
+  was parked to `Only` by `7dd094e`, the same commit the registration
+  was written beside on 2026-09-02, so no process of Run 24 timed it
+  and the clause was unreadable before the run started. The pair that IS still
+  timed, `-u2` against `-u2-down`, is a tie in every population on both halves
+  and was a tie on Run 23's dead-spot half too, so what can be read reproduces
+  and what was registered cannot be. **The asymmetry is the point**: `--lint`
+  already refuses a live CLAIM that names a parked arm --- that check exists,
+  and its message says so --- and a registration is the same kind of object read
+  by nothing. **What would settle it**: hold the OPEN registration's backticked
+  arm names to the timed roster, in `--lint` beside the claims check
+  or in `--check-doc`, so that a registration written the same day as a parking
+  fails at the preparation rather than at the write-up. The cost of not doing
+  it is one prediction per run that cannot be adjudicated, and it is invisible
+  until the run is over.
+- `OPEN` **`--replace` takes a following heading with the paragraph it replaces,
+  where no blank line separates them.** Run 24's write-up lost `## Results`
+  from its own file that way: in the committed copy that heading sat on the line
+  immediately after the head's last paragraph, and `--replace`'s paragraph unit
+  is blank-line separated, so the heading went with the text. It is recoverable
+  and was recovered --- the mode prints an `out, last` line naming what
+  it removed, which said `## Results` --- but the session had truncated
+  that output and met the loss two gates later,
+  as `no Results heading in run24.md`. **What would settle it**: have
+  `--replace` refuse when the paragraph it matched ends in a heading line,
+  naming it, exactly as it refuses an anchor found in both documents; a run file
+  whose headings are what every install and every link resolves against cannot
+  afford a silent one. Until then the rule is the one the run chapter already
+  states and this session did not follow: read the `out` lines and not only
+  the `in` ones.
+- `OPEN` **`--machine` run after `install-tables.sh` compares a run with its own
+  freshly installed fingerprint and reads +0.00%.** Post-run step 5b installs
+  `--fingerprint` into the run's own file, and `--machine` reads the kept
+  fingerprint out of that same file, so from 5b onwards the box check is the run
+  against itself: Run 24 read `+0.00% over 26 of 26 shapes` that way, where
+  the honest reading against Run 23's kept fingerprint is -0.20% on the basis
+  and -0.39% on the control over 24 of 26, the two shapes added 2026-09-02
+  having no kept row. The vacuous form is not obviously wrong --- it prints
+  the same `inside 3%, so the box still measures as it did` verdict --- which
+  is what makes it worth an entry. **What would settle it**: either have
+  `--machine` name the file its fingerprint came from and refuse when
+  that is the run's own, or have the post-run list take the machine reading
+  before 5b. `--run-doc runs/run23.md` is the workaround and it has
+  to be remembered.
 - `ANSWERED` **What Run 23 was built to answer, registered before it ran ---
   and what it answered.** The six registrations, their kill conditions and their
   verdicts are [in Run 23's own file](runs/run23.md), where a run's
@@ -1257,8 +1311,8 @@ rather than a slot in the next run, observed again:
      and larger reason to keep it.
   4. **It gives the per-shape caution its mechanism.** [The per-shape
      table][pershape] says to trust the first digit only; a scheduling lottery
-     moving one cell by a third is why, where a geomean over 24 shapes cannot
-     move like that.
+     moving one cell by a third is why, where a geomean over a whole main set
+     cannot move like that.
 
   **And a fourth instrument died on contact, which is worth a sentence because
   it is the obvious one.** If the mechanism is allocation history, pinning
@@ -1693,26 +1747,26 @@ rather than a slot in the next run, observed again:
   this roster change made on an argument rather than a measurement:
   `list-aa-adjacent`, the single entry inserted above the distant twins,
   allocates 134261336 bytes a call against `list`'s 134261403, agreeing
-  to 1.1e-4 over all 24 shapes, where `sum-only-early` --- the bench the slot
-  rule is about --- allocates 204 bytes a call, its allocation being a one-off
-  setup vector. So the twin fills as its base does and grows no pool the way
-  that bench does. Its readings are with the pair note, and its timings go
-  nowhere, `-L1` being a rougher budget than any recorded run's. The arm's own
-  reading is [with gate 3](#what-is-open), taken filtered; Run 13 took
-  it at full budget, and its Results row's `needs` cell reads *the same,
-  on a third write pattern* --- the control convention, not the shippability
-  phrase this entry first proposed. **A return to -O1 stood behind it
-  as the second debt and is retired, its premise being false** (2026-08-14): -O1
-  is not the regime the claims are read in, `-fspec-constr` being the basis
-  every run since Run 8 has used, so Run 7's claim set is history rather
-  than a debt. The build specification that entry had accumulated goes with it,
-  a retired run having no use for one. An -O1 reading of a single ordering stays
-  available as a filtered probe, as the 2026-08-08 twin probes were; what
-  is retired is the evening. `--check-doc` enforces the run file's own
-  two-column table in the one direction it safely can: a run named aligned must
-  also be named unaligned, so dropping the unaligned half fails the check.
-  Dropping an *aligned* one cannot be checked, an unpaired run being what every
-  column before Run 10 is, and stays the reading's job.
+  to 1.1e-4 over all the 24 shapes of the time, where `sum-only-early` ---
+  the bench the slot rule is about --- allocates 204 bytes a call,
+  its allocation being a one-off setup vector. So the twin fills as its base
+  does and grows no pool the way that bench does. Its readings are with the pair
+  note, and its timings go nowhere, `-L1` being a rougher budget than any
+  recorded run's. The arm's own reading is [with gate 3](#what-is-open), taken
+  filtered; Run 13 took it at full budget, and its Results row's `needs` cell
+  reads *the same, on a third write pattern* --- the control convention,
+  not the shippability phrase this entry first proposed. **A return to -O1 stood
+  behind it as the second debt and is retired, its premise being false**
+  (2026-08-14): -O1 is not the regime the claims are read in, `-fspec-constr`
+  being the basis every run since Run 8 has used, so Run 7's claim set
+  is history rather than a debt. The build specification that entry had
+  accumulated goes with it, a retired run having no use for one. An -O1 reading
+  of a single ordering stays available as a filtered probe, as the 2026-08-08
+  twin probes were; what is retired is the evening. `--check-doc` enforces
+  the run file's own two-column table in the one direction it safely can: a run
+  named aligned must also be named unaligned, so dropping the unaligned half
+  fails the check. Dropping an *aligned* one cannot be checked, an unpaired run
+  being what every column before Run 10 is, and stays the reading's job.
 
   **Run 11 had no unaligned half, and the check was left alone rather
   than widened --- the reading is that this was right.** Its two columns
@@ -2296,14 +2350,15 @@ is planned. A scope limit belongs in the sentence that asks for the measurement.
    run compares against](runs/run24.md#what-the-next-run-compares-against): four
    percent of the instructions and five of the time on every padded fill,
    against `mut-odo` losing a few points in three classes.
-8. `OPEN` **Re-aim claim 1 at the family's leader, or say why not**: nineteen
-   arms read below `mut-odo-vecdims` on Run 23's basis as eighteen did on Run
-   22's, the shipped route among them, and claim 1's top rung still prices
-   a mutating method against `mut-flat-gm`. Carried from Run 22's claims
-   section, which raised it and left it to a decision.
-9. `OPEN` **The dispatch threshold by the one-binary probe the `dispRun` entry
-   names, and the shapes Run 24 adds --- registered 2026-09-02, before either
-   ran.** Three arms, `lib-stage2-disp-2048`, `lib-stage2-disp-8192`
+8. `OPEN` **Re-aim claim 1 at the family's leader, or say why not**: fourteen
+   arms read below `mut-odo-vecdims` on Run 24's basis with three more level,
+   where nineteen and one did on Run 23's and eighteen and one on Run 22's,
+   the shipped route among them, and claim 1's top rung still prices a mutating
+   method against `mut-flat-gm`. Carried from Run 22's claims section, which
+   raised it and left it to a decision.
+9. `ANSWERED` **The dispatch threshold by the one-binary probe the `dispRun`
+   entry names, and the shapes Run 24 adds --- registered 2026-09-02, before
+   either ran.** Three arms, `lib-stage2-disp-2048`, `lib-stage2-disp-8192`
    and `lib-stage2-disp-32768`, the dispatch with its threshold an argument,
    timed beside `lib-stage2-disp` at 256, `lib-stage2` and `lib-stage2-concat`
    in one `runs` process on one binary of Run 24's basis recipe, ghc-9.12.4
@@ -2348,7 +2403,16 @@ is planned. A scope limit belongs in the sentence that asks for the measurement.
    of `lib-stage2` on `runs-7`, level as predicted with the body not firing,
    and 0.9128 at `runs-2`; the parked `-u4` fill 1.0980 at `runs-2` and 0.9683
    at `runs-7`. The window and main-set shapes were outside the probe's
-   population and are Run 24's to read.
+   population and are Run 24's to read. **CONFIRMED AT FULL BUDGET BY RUN 24
+   ON BOTH COMPILERS, 2026-09-03**, as its registration 6, which holds
+   the account: [Run 24's own
+   file](runs/run24.md#what-this-run-was-built-to-answer-and-what-it-answered).
+   **This entry is the only copy of the one-binary probe's account and stays
+   at length for that reason**, the ruling being the one the open list already
+   applies to a spent measurement: a probe's artifacts are `probe-*`
+   and are deleted, its numbers live nowhere else, and an entry that is the only
+   copy is not shortened into a pointer to itself. What DID move out of
+   it is Run 24's half, which the run file owns.
 
 **And one class not to repropose: work that needs an aligned build.**
 `mut-odo`'s wide interval is the live case. The dispersion is documented
@@ -3145,10 +3209,10 @@ under `-fspec-constr`.** `bq-expand-lemire-out` is `bq-expand` with the shared
 `i quotRem sInner` replaced, the table build held at `baseOffsetsExpand`. At -O1
 (Run 7) it is faster than its control on 22 shapes of 24, with the published
 columns agreeing with the per-shape geomean, so no part of that rests
-on the warm-up ramp. Run 8 puts the same pair at 1.0015 over 24 shapes, 12 wins
-and sign p 1: a dead tie. The regime is the whole difference --- same arms, same
-shapes, same machine, one flag --- so what the trick buys is however much
-of the division GHC has not already dealt with, and the answer
+on the warm-up ramp. Run 8 puts the same pair at 1.0015 over its own 24 shapes,
+12 wins and sign p 1: a dead tie. The regime is the whole difference --- same
+arms, same shapes, same machine, one flag --- so what the trick buys is however
+much of the division GHC has not already dealt with, and the answer
 is regime-specific in a way nothing else in this README is. The two extremes
 survive the flip. `stretch-inner256` is still the arm's best cell (0.74
 of its control) and `stretch-square-1341` still its worst (1.25), the run's
@@ -3520,22 +3584,27 @@ the option instead of closing it. `mut-odo-vecdims` keeps the stake high rather
 than settling it: the fill's real cost was the odometer's cons-list traffic,
 not the fill itself, and Run 10 (SpecConstr) prices the class-method tier
 at 2.11x over `bq-expand` (0.4745 paired). The best pure arm is now
-`bq-scan-rem-gm-mulback` at 0.098 on Run 23, so what the class method would buy
+`bq-scan-rem-gm-mulback` at 0.101 on Run 24, so what the class method would buy
 is `mut-odo-vecdims` over that: **1.83x**, not 2.11x --- which is the figure
-the ruling turns on, and which reads **0.5466 paired at 23 wins of 24**. It has
-now read 1.80x at -O1, 1.68x on Run 8, 1.87x on Run 9, 1.85x on Run 10
-with its aligned half giving 1.84x, 1.79x on Run 18 and again on Run 19 ---
-a paired figure that moved five ten-thousandths across a REPETITION of one
-binary, Run 18's basis and Run 19's being both ghc-9.12.4 and byte-identical ---
-1.83x on Run 20, 1.84x on Run 21 and Run 22, and **1.83x** here, on a second
-repetition of one binary, Run 23's basis being Run 22's byte for byte
-and the figure moving seventeen ten-thousandths, 0.5449 to 0.5466, on the same
-23 wins of 24 Run 10's aligned half gave. Across an actual change of compiler
-it moves further, to 0.5184 on Run 22's HEAD half, which is 1.93x, where Run 21
-read 0.5164 and Run 20 0.5159 for the same 1.94x; across a change of layout
-alone it moves less than the repetition did, Run 23's dead-spot half reading
-0.5527. So the spread is a tenth or so either side of 1.8 and neither
-the pairing nor a repetition moves it. Read it as *approaching 2x and volatile
+the ruling turns on, and which reads **0.5469 paired at 23 wins of 24**
+over the 24 shapes Run 23 had. It has now read 1.80x at -O1, 1.68x on Run 8,
+1.87x on Run 9, 1.85x on Run 10 with its aligned half giving 1.84x, 1.79x on Run
+18 and again on Run 19 --- a paired figure that moved five ten-thousandths
+across a REPETITION of one binary, Run 18's basis and Run 19's being both
+ghc-9.12.4 and byte-identical --- 1.83x on Run 20, 1.84x on Run 21 and Run 22,
+1.83x on Run 23 and **1.83x** here, the figure moving three ten-thousandths
+from Run 23's 0.5466 across a roster change and a fresh build of that recipe.
+**This is the reading that shows the shape set has to be pinned before
+the figure is compared**: over Run 24's own 26 shapes the same pair reads
+0.5493, and over the 25 that exclude `stretch-inner1` 0.5312, so a run quoting
+its own population against a predecessor's would have reported a movement
+of a point and a half that is not there. Across an actual change of compiler
+it moves further, to **0.5119 on Run 24's HEAD half**, which is 1.95x,
+and 0.5184 on Run 22's HEAD half for 1.93x, where Run 21 read 0.5164 and Run 20
+0.5159 for the same 1.94x; across a change of layout alone it moves less
+than a repetition did, Run 23's dead-spot half reading 0.5527. So the spread
+is a tenth or so either side of 1.8 and neither the pairing, a repetition
+nor a roster change moves it. Read it as *approaching 2x and volatile
 at the tenth* between runs that differ, and do not reopen or close the ruling
 on a movement of that size --- Run 10 showed the volatility is not the layout's,
 and Runs 11, 19 and 23 show it is not the run's either, which leaves the roster
@@ -3584,9 +3653,9 @@ to 15.2% --- and the count-down form still recovers most of the corner's loss,
 **Run 9 had priced them differently, and the pre-run reading was right about
 the sign and wrong about the size.** That reading --- one shape, Run 8's regime
 --- put all four behind their control by +4% to +12%, the corner sub-additive
-and the count-down form recovering two thirds of its loss. Over 24 shapes Run 9
-read `add-in` **1.1552** (0 wins of 24), `add-out` **1.1795** (1 of 24),
-`add-both` **1.1645** (1 of 24), each against `mut-odo-vecdims` and each
+and the count-down form recovering two thirds of its loss. Over Run 9's own 24
+shapes it read `add-in` **1.1552** (0 wins of 24), `add-out` **1.1795** (1
+of 24), `add-both` **1.1645** (1 of 24), each against `mut-odo-vecdims` and each
 with sign p at or below 3e-06. So all three solo-or-corner arms sat behind their
 control by more than the one-shape probe suggested, and near-unanimously across
 shapes --- which the write-up first read as the precedent's arithmetic losing
@@ -7659,37 +7728,38 @@ The three distant spans grew, 3, 25 and 22 on Run 13 to 10, 41 and 37,
 the roster having gained arms between those twins and their bases; the three
 adjacent spans are unchanged.
 
-**On Run 23 the floor is 2.03% on the basis half and 2.80% on the control,
-the dead-spot half, and the basis figure is a repetition's, read twice on one
-binary for the third time in this file's history, after Runs 11 and 19.** Both
-are over the **sixteen** A/A pairs this roster leaves --- `offtab`'s two twins
-went with its parking on 2026-08-28, so the eighteen-pair series ends at Run 20
---- against Run 22's 2.12% and 1.08% and Run 21's 2.92% and 2.16%, both
-over sixteen as this one is, and Run 20's 1.51% and 1.18%, Run 19's 2.32%
-and 1.71%, Run 18's 1.36% and 1.42%, Run 17's 3.70% and 3.89% and Run 16's 2.32%
-and 1.22%, every one of those five over eighteen. `build-aa-distant` carries
-the basis figure for the second run running and `gen-unsafe-aa-adjacent`
-the dead-spot half's. Read on the six pairs that carry back to Run 10 the same
-run gives **0.39% and 0.40%**, against Run 22's 0.37% and 0.51%. **What Run 19
-settled about the floor, Run 23 restates from another repetition.** Run 19's
-basis half was Run 18's basis BINARY byte for byte and read 2.32% where
-that binary read 1.36%, a factor of 1.7 with box, roster, layout, regime
-and preamble all held still --- so the floor is a property of the RUN, re-drawn
-each evening. Run 23's basis is Run 22's basis binary byte for byte and reads
-2.03% where that binary read 2.12% two evenings earlier, on the same carrying
-pair, so this repetition moved the floor by a twentieth where Run 19's moved
-it by two thirds --- the movement is not a trend, its size is not predictable,
-and nothing about it is inherited. **Where the movement lives is the one thing
-four runs now agree on.** The six-pair figure has read 0.54%, 0.49%, 0.44%,
-0.46%, 0.37% and 0.39% across six runs on the basis while the whole-set figure
-ran 1.36%, 2.32%, 1.51%, 2.92%, 2.12% and 2.03%, so the pairs outside the six
-are what move and the six are steady enough to compare rows with --- with Run
-21's control half the one reading that strains it, its six-pair figure having
-gone from 0.28% to 0.60%. The threshold this run supports is therefore two
-figures --- *0.39% between any two rows of the table* on the six-pair basis,
-which is what carries across runs, and 2.03% on the sixteen --- where Run 22
-supported 0.37% and 2.12%, Run 21 0.46% and 2.92%, Run 20 0.44% and 1.51%, Run
-19 0.49% and 2.32%, Run 18 0.54% and 1.36%, Run 17 1.31% and 3.70%, Run 16 0.39%
+**On Run 24 the floor is 1.26% on the basis half and 2.11% on the control,
+the HEAD half, and the basis figure is the tightest this file has recorded
+on this lineage.** Both are over the **sixteen** A/A pairs this roster leaves
+--- `offtab`'s two twins went with its parking on 2026-08-28,
+so the eighteen-pair series ends at Run 20 --- against Run 23's 2.03% and 2.80%,
+Run 22's 2.12% and 1.08% and Run 21's 2.92% and 2.16%, all over sixteen
+as these are, and Run 20's 1.51% and 1.18%, Run 19's 2.32% and 1.71%, Run 18's
+1.36% and 1.42%, Run 17's 3.70% and 3.89% and Run 16's 2.32% and 1.22%, every
+one of those five over eighteen. `gen-unsafe-aa-distant` carries the basis
+figure and `build-aa-adjacent` the HEAD half's, so the pair that carried
+the basis for two runs running, `build-aa-distant`, has given it up. Read
+on the six pairs that carry back to Run 10 the same run gives **0.34%
+and 0.19%**, against Run 23's 0.39% and 0.40%. **What Run 19 settled about
+the floor, Run 24 cannot restate, and saying so is the point.** Run 19's basis
+half was Run 18's basis BINARY byte for byte and read 2.32% where that binary
+read 1.36%, a factor of 1.7 with everything held still; Run 23's basis was Run
+22's binary and moved the floor by a twentieth. This run has no repetition
+to offer --- its roster moved, so neither half reproduces an earlier binary ---
+and its 1.26% therefore carries a roster change as well as an evening. The floor
+is a property of the RUN, re-drawn each evening, and this one is re-drawn
+over a different roster besides. **Where the movement lives is the one thing
+five runs now agree on.** The six-pair figure has read 0.54%, 0.49%, 0.44%,
+0.46%, 0.37%, 0.39% and 0.34% across seven runs on the basis while the whole-set
+figure ran 1.36%, 2.32%, 1.51%, 2.92%, 2.12%, 2.03% and 1.26%, so the pairs
+outside the six are what move and the six are steady enough to compare rows
+with --- with Run 21's control half the one reading that strains it,
+its six-pair figure having gone from 0.28% to 0.60%. The threshold this run
+supports is therefore two figures --- *0.34% between any two rows of the table*
+on the six-pair basis, which is what carries across runs, and 1.26%
+on the sixteen --- where Run 23 supported 0.39% and 2.03%, Run 22 0.37%
+and 2.12%, Run 21 0.46% and 2.92%, Run 20 0.44% and 1.51%, Run 19 0.49%
+and 2.32%, Run 18 0.54% and 1.36%, Run 17 1.31% and 3.70%, Run 16 0.39%
 and 2.32%, Run 14 0.29% and 2.19%, Run 12 0.35% and 0.24%, Run 11 a quarter
 of a percent on its max-skip half and 1.21% on the other, Run 10 1.00% unaligned
 and 0.54% aligned, Run 9 under 0.1% with a wild cell, Run 8 0.5% and Run 7
@@ -7711,37 +7781,35 @@ which is the table above. Three strategies at two positions each are not six
 independent draws, and the direction is evidently not a property of the code,
 the layout or the roster order, all of which were held fixed across the flips.
 
-Those six pairs' bootstrap intervals are half-widths of 0.13-0.51% on the basis
-and 0.11-0.32% on the dead-spot half, and their `CI%` column reads 0.30-0.64%
-and 0.36-0.57%, so the interval still understates run-to-run variability:
-it measures sampling error *within* one benchmark, while two separately placed
+The six pairs' intervals still understate run-to-run variability: an interval
+measures sampling error *within* one benchmark, while two separately placed
 benchmarks also differ in code layout, cache occupancy and inherited GC state.
 The A/A is the only column that sees that, and `--aa` prints the calibration
-outright --- on Run 23, a median interval half-width of 0.44% against
-an observed spread of 2.03% on the basis half, a factor of **5**, and 0.31%
-against 2.80% on the dead-spot half, a factor of **9** --- so multiply any
-interval this reader prints by about that before believing it, where Run 22
-wanted seven and three, Run 21 nine and six, Run 20 four and two, Run 18 three
-and three, Run 17 five and five, Run 16 five and two, Run 14 three and twelve,
-Run 12 one either way, Run 11 one on its max-skip half and three on its aligned
-one, Run 10 four and one, Run 9 nine, Run 8 two and Run 7 three. **That the two
-halves DISAGREE on the factor is the ordinary case** --- five against nine here,
-seven against three on Run 22, four against two on Run 20, five against two
-on Run 16 and three against twelve on Run 14, against Run 18's three and three
-and Run 17's five and five --- and this run the larger factor sits on the half
-with the wider floor AND the narrower cells, the dead-spot half's median
-half-width being the smaller of the two, so the two do not track, as Run 20's
-did not. **The loosest cell of the run is a class's again**: the worst A/A cell
-of either main set is the BASIS's 15.51% on `cifar-L2-16-c64-k3` against
-the dead-spot half's 15.18% on `alexnet-L1-55-c3-k11`, and the widest class cell
-is **39.51%**, `runs-65536`'s on the dead-spot half's
-`bq-odo-gm-mulback-aa-adjacent`, a level and not a step by `--steps` --- where
-Run 22 had the loosest cell on its basis main set and Runs 17 to 20 on a class.
-What the basis half carries besides is six of its sixteen intervals missing 1
-against the dead-spot half's four, every one of them an arm whose two processes
-differ by less than its interval admits. It rests on sixteen pairs since
-the parking of 2026-08-28, so one loose pair moves it more than it did
-on eighteen.
+outright --- on Run 24, a median interval half-width of 0.32% against
+an observed spread of 1.26% on the basis half, a factor of **4**, and 0.34%
+against 2.11% on the HEAD half, a factor of **6** --- so multiply any interval
+this reader prints by about that before believing it, where Run 23 wanted five
+and nine, Run 22 seven and three, Run 21 nine and six, Run 20 four and two, Run
+18 three and three, Run 17 five and five, Run 16 five and two, Run 14 three
+and twelve, Run 12 one either way, Run 11 one on its max-skip half and three
+on its aligned one, Run 10 four and one, Run 9 nine, Run 8 two and Run 7 three.
+**That the two halves DISAGREE on the factor is the ordinary case** --- four
+against six here, five against nine on Run 23, seven against three on Run 22,
+four against two on Run 20, five against two on Run 16 and three against twelve
+on Run 14, against Run 18's three and three and Run 17's five and five ---
+and this run the larger factor sits on the half with the wider floor, the two
+halves' median half-widths being within two hundredths of each other, so what
+separates them is the spread and not the cells. **The loosest cell of the run
+is a class's again**: the worst A/A cell of either main set is the HEAD half's
+18.37% on `gather48-src-50` against the basis's 16.66% on `stretch-inner1`,
+and the widest class cell is **19.72%**, on the HEAD half's `bcast` process
+on `bcast-tall-Mx2` --- where Run 22 had the loosest cell on its basis main set
+and Runs 17 to 20 on a class. Fourteen of sixteen intervals cover 1 on each
+half, the two missing on the basis being `bq-expand-aa-distant`
+and `bq-odo-gm-mulback-aa-distant` and on the HEAD half `list-aa-adjacent`
+and `build-aa-adjacent`, every one of them an arm whose two processes differ
+by less than its interval admits. It rests on sixteen pairs since the parking
+of 2026-08-28, so one loose pair moves it more than it did on eighteen.
 
 **The class populations are where the factor still bites, and THESE FIGURES
 ARE RUN 21'S** --- the class half of this section has not been re-taken since
@@ -7782,11 +7850,11 @@ of the 0.902-to-1.181 band Run 10 had to quote when the roster order moved
 the layout underneath it. Two consequences worth keeping when the run file
 carrying them is replaced: a margin of a few percent between two runs is still
 not evidence, and a margin between two *arms* of one run has to clear
-the six-pair figure of the half it is read on --- 0.39% on this run's basis ---
+the six-pair figure of the half it is read on --- 0.34% on Run 24's basis ---
 which is the A/A floor above restricted to the pairs that carry, and a different
 quantity from the whole-set floor. **Three figures are in play and they answer
-three questions**: 2.03% and 2.80% are the widest an arm differs from its own
-duplicate by on each half, net and over all sixteen pairs, 0.39% and 0.40%
+three questions**: 1.26% and 2.11% are the widest an arm differs from its own
+duplicate by on each half, net and over all sixteen pairs, 0.34% and 0.19%
 are the same over the six pairs that carry back to Run 10 and so what two rows
 of one table must clear, and 2.1% is the across-run drift band an arm must clear
 to have moved between runs on this box, Run 23's one-binary reading, where Run
@@ -8242,18 +8310,18 @@ collector copying falls with the area, worth up to 1.96x, while the churn tax
 rises with it, worth +29% to +44% of the true steady state. A shape's net
 is whichever dominates, which is why no single property selected the five.
 
-**Swept over all 24 shapes, and the answer is one positive and one negative**
-(2026-08-17, `+RTS -A` at six areas from 4m to 128m, one binary, no build).
-**Only eight shapes promote heavily at all**, and they are exactly the eight
-with a finite span: `stretch-bigstride` and `stretch-tall-Mx2` at 128 MB,
-`stretch-r5-8x432` and `stretch-inner256` at 64, `vgg-14-c512-k3` at 16,
-and `stretch-pow2stride`, `alexnet-L2-27-c48-k5` and `stretch-coprime-r7` at 8.
-The other sixteen never exceed a few kilobytes per minor at any area, so they
-have nothing to win from any nursery and only ever pay its mutator cost ---
-which is the whole of why the main set's gainers are so few. **And the span
-predicts the gain**: the five that gained at 32 MB are all drawn from the six
-with a span at or under 64, the gain scaling as the area approaches it, while
-the two at 128 gain nothing there.
+**Swept over the whole main set of the time, and the answer is one positive
+and one negative** (2026-08-17, `+RTS -A` at six areas from 4m to 128m, one
+binary, no build). **Only eight shapes promote heavily at all**, and they
+are exactly the eight with a finite span: `stretch-bigstride`
+and `stretch-tall-Mx2` at 128 MB, `stretch-r5-8x432` and `stretch-inner256`
+at 64, `vgg-14-c512-k3` at 16, and `stretch-pow2stride`, `alexnet-L2-27-c48-k5`
+and `stretch-coprime-r7` at 8. The other sixteen never exceed a few kilobytes
+per minor at any area, so they have nothing to win from any nursery and only
+ever pay its mutator cost --- which is the whole of why the main set's gainers
+are so few. **And the span predicts the gain**: the five that gained at 32 MB
+are all drawn from the six with a span at or under 64, the gain scaling
+as the area approaches it, while the two at 128 gain nothing there.
 
 **What no structural property predicts is the span itself.** Size correlates
 at Spearman +0.893 and does not determine it: `stretch-pow2stride`,
@@ -8350,23 +8418,24 @@ and every ratio with it** --- which is most of the case against adopting
 the flag casually. And `build` and `mut-odo` are both predicted *unaffected*,
 so their 1.13x gap should survive `-A32m` untouched; if it collapses instead,
 this predictor is wrong and what this README calls placement is really
-the allocator. **Run 14 and Run 15 are the runs that test all of this**, over 24
-shapes rather than the one it was built on --- Run 14 at `-A1G` and Run 15
-at exactly the `-A32m` named above. **Both refute the same half of it, and both
-confirm the other.** The rule named nine arms on this roster that should move
-on no shape --- the five `mut-odo-vecdims` variants, `build`, `mut-odo`,
-`gen-quotrem` and `gen-unsafe` --- and every one of the nine moved at `-A1G`
-and moved again at `-A32m`, from `build` at 0.9775 to `gen-quotrem` at 0.7760.
-What it got right is `list`: predicted affected, and expected to carry every
-ratio with it, which is what 32 MB does. And `build` against `mut-odo`, the pair
-whose 1.13x gap the rule said would survive untouched, had already gone before
-either variable was applied --- 1.0171 on Run 14's basis and 1.0181 on Run 15's
---- so that control was ill-posed rather than a refutation of the predictor.
-**The two settings are not interchangeable tests of it**: they agree at `l` ~=
-0.9M and part company at the top of the range, where 32m turns actively harmful
-and 1G does not, so `-A1G` is the stronger test of the same predictions rather
-than a substitution for `-A32m`, and the two runs together cover the range
-the single-shape sweep found.
+the allocator. **Run 14 and Run 15 are the runs that test all of this**,
+over a whole main set rather than the one it was built on --- Run 14 at `-A1G`
+and Run 15 at exactly the `-A32m` named above. **Both refute the same half
+of it, and both confirm the other.** The rule named nine arms on this roster
+that should move on no shape --- the five `mut-odo-vecdims` variants, `build`,
+`mut-odo`, `gen-quotrem` and `gen-unsafe` --- and every one of the nine moved
+at `-A1G` and moved again at `-A32m`, from `build` at 0.9775 to `gen-quotrem`
+at 0.7760. What it got right is `list`: predicted affected, and expected
+to carry every ratio with it, which is what 32 MB does. And `build` against
+`mut-odo`, the pair whose 1.13x gap the rule said would survive untouched, had
+already gone before either variable was applied --- 1.0171 on Run 14's basis
+and 1.0181 on Run 15's --- so that control was ill-posed rather
+than a refutation of the predictor. **The two settings are not interchangeable
+tests of it**: they agree at `l` ~= 0.9M and part company at the top
+of the range, where 32m turns actively harmful and 1G does not, so `-A1G`
+is the stronger test of the same predictions rather than a substitution
+for `-A32m`, and the two runs together cover the range the single-shape sweep
+found.
 
 **And the eight class populations, which that count left out** (2026-08-09,
 the same arithmetic over the kept JSONs; it reproduces the main set's 131 of 782
@@ -8381,24 +8450,24 @@ flattered, while the three are penalised unevenly and are where a nursery A/B
 would move a table.
 
 **That second half was tested the same day and the prediction holds.** Both arms
-plus a `sum-only` half, filtered over all 24 shapes, run twice from one binary
-with the nursery as the only difference (2026-08-09): the pair reads **1.1604**
-at the default and **1.1433** at `-A32m`, each at three wins of 24 and sign p
-0.00028. The gap does not move. Nor do the arms themselves, 1.028 and 1.043
-in absolute time across the change, against the 35--40% the excess-allocating
-arms show. Two things follow. The predictor survives a test it could have
-failed, on the side where failure was cheapest to detect. And **the placement
-question is now confirmed independent of the allocator**, so the pad probe
-was unavoidable rather than possibly-subsumed: this pair's 1.16x
-is not filtering either, the full run reading 1.13x over the same shapes with 31
-benches between the two arms.
+plus a `sum-only` half, filtered over the whole main set of the time, run twice
+from one binary with the nursery as the only difference (2026-08-09): the pair
+reads **1.1604** at the default and **1.1433** at `-A32m`, each at three wins
+of 24 and sign p 0.00028. The gap does not move. Nor do the arms themselves,
+1.028 and 1.043 in absolute time across the change, against the 35--40%
+the excess-allocating arms show. Two things follow. The predictor survives
+a test it could have failed, on the side where failure was cheapest to detect.
+And **the placement question is now confirmed independent of the allocator**,
+so the pad probe was unavoidable rather than possibly-subsumed: this pair's
+1.16x is not filtering either, the full run reading 1.13x over the same shapes
+with 31 benches between the two arms.
 
 **So position reproduced after all, and much larger than the twins price it.**
 Run 7 read the distant twin above the adjacent one within every strategy
 and growing with span; Run 8 read that as not reproducing. Run 9 says both
 were looking at a summary of the wrong thing. Aggregated over shapes the effect
 is nothing --- three of Run 9's six pairs sit *below* 1 --- while on one shape
-and one family it is 35--40%, which no geomean over 24 shapes can show.
+and one family it is 35--40%, which no geomean over a whole main set can show.
 The standing advice survives and sharpens: `list` runs in the coldest slot, arms
 far down the roster are **flattered** rather than penalised, and now there
 is a measured case of by how much.
@@ -9023,13 +9092,13 @@ arms have a great deal, and they are the same two the flag sets back hardest.
 
 **Around that sit the readings it explains.** `offtab`'s own regression
 is **not** roster or noise: filtered into a five-bench process it reads 1.2236
-across the regimes over 24 shapes, slower on 24 of 24, against the full run's
-1.218 --- but that used one binary for both regimes, so it rules out everything
-except placement. `build` and `mut-odo` compile to the same worker and moved
-in *opposite* directions under the flag, 17% faster and 19% slower, which
-identical code cannot do. `bq-gen` regressed 12% with its build loop specialised
-like every other and its build allocation-free. And the flag moves 12 KiB
-of `.text` (20,349,125 bytes to 20,336,837), so every arm's address
+across the regimes over that run's 24 shapes, slower on 24 of 24, against
+the full run's 1.218 --- but that used one binary for both regimes, so it rules
+out everything except placement. `build` and `mut-odo` compile to the same
+worker and moved in *opposite* directions under the flag, 17% faster and 19%
+slower, which identical code cannot do. `bq-gen` regressed 12% with its build
+loop specialised like every other and its build allocation-free. And the flag
+moves 12 KiB of `.text` (20,349,125 bytes to 20,336,837), so every arm's address
 and alignment shift whether its code changed or not.
 
 **Answered, 2026-08-10: for a loop this size, placement costs 1.16 to 1.19.**
@@ -9062,16 +9131,16 @@ which is why the answer had to come from a probe that holds membership still.
 to keep.** A floor is a threshold below which a margin might be noise,
 and it shrinks as samples accumulate; this does not. Each binary's figure
 is *correct for that binary* --- the four-binary rebuild probe's cells
-are geomeans over 24 shapes with per-cell intervals of a fraction of a percent
---- so collecting more samples inside one build cannot reduce it, and only
-averaging over several builds would. The per-shape picture says the same: across
-rebuilds `list` scatters 2.2-2.5% per shape while its geomean holds to 0.5%,
-where the two susceptible arms scatter 5-10% per shape *and* move their
-geomeans. So do not read 18% as a new floor for this README's tables. Every
-comparison inside the Results table is two rows of one binary and is governed
-by the A/A twins as before; what the 18% governs is the sentences that cross
-a build, which in this README means the cross-regime absolute figures
-and nothing else.
+are geomeans over that probe's 24 shapes with per-cell intervals of a fraction
+of a percent --- so collecting more samples inside one build cannot reduce it,
+and only averaging over several builds would. The per-shape picture says
+the same: across rebuilds `list` scatters 2.2-2.5% per shape while its geomean
+holds to 0.5%, where the two susceptible arms scatter 5-10% per shape *and* move
+their geomeans. So do not read 18% as a new floor for this README's tables.
+Every comparison inside the Results table is two rows of one binary
+and is governed by the A/A twins as before; what the 18% governs
+is the sentences that cross a build, which in this README means the cross-regime
+absolute figures and nothing else.
 
 **Bisect a position effect by REMOVING from the full group, never by adding
 to a pair.** Six probes here searched for what warmed `bq-expand` by building
@@ -9449,14 +9518,46 @@ the record costs. **A fourth half arrives with the pairing and is not a delta
 at all**: which half of the pair a figure came from, which is why the run file's
 tables and its fingerprint say so.
 
-- Run 23 measured today's shapes, today's class views AND today's roster,
-  nothing having moved since Run 22 --- 55 timed arms over 24 main-set shapes
-  and 37 class views in NINE classes, 1320 benches and 2035, sixteen A/A pairs,
-  the `runs` class at ELEVEN --- so its delta against RUN 22 is EMPTY, and more
-  than empty: its basis half, `run23-g912`, is Run 22's basis BINARY byte
-  for byte, `Main.hs` having moved by one comment line and the shim by one
-  commit that adds a switch that half does not set, so every distance between
-  the two runs' basis columns is drift and nothing else, and it measured
+- Run 24 measured today's shapes, today's class views AND today's roster,
+  nothing having moved since it ran --- 52 timed arms over 26 main-set shapes
+  and 41 class views in NINE classes, 1352 benches and 2132, sixteen A/A pairs,
+  the `runs` class at FOURTEEN and `window` at FOUR --- so its delta against
+  a reader opening this file today is EMPTY. **Its delta against RUN 23
+  is not**, and it is a roster and a shape-set delta both:
+  `lib-stage2-short-lean` landed as a timed arm and `lib-stage2-disp` was re-cut
+  from 256 to 2048 under its own name, four arms went to `Only`
+  (`lib-stage2-u4`, `mut-odo-vecdims-add-in-leaf`, its `-down` twin
+  and `canon-memcpy-r2`) with three probe arms landing parked beside them, two
+  main-set shapes landed (`lenet-slice-c6-k5` and `cnn-L1-12x12-c1`) and four
+  class views (`runs-7`, `runs-4096`, `runs-16384`, `window-128x128-k7`), all
+  of it on 2026-09-02 in `6d7689a` and `7dd094e`. So NEITHER half reproduces
+  an earlier binary and no md5 here matches one on record: a distance from Run
+  23's columns carries a layout term as well as an evening, which the run
+  measured at 33 of 45 shared arms within 1% of `run23-spot` and the other
+  twelve the placement-exposed families. What a reader has to carry is which
+  half a figure came from: everything published in its file is `run24-g912`,
+  ghc-9.12.4, and `run24-ghead` --- the same source, shim and shim environment
+  built through `cabal.project.ghead` against the in-tree GHC HEAD stage1,
+  so the halves differ in the compiler and in the boot libraries that come
+  with it and in nothing else --- contributes the second column
+  of `runs/run24.md`. Its `list` moved 0.25% between the halves, inside the 0.7%
+  bar, so its two columns may be subtracted. The box did not move, its gate
+  machine check reading +0.56% and its two main-set processes -0.20% and -0.39%
+  against Run 23's fingerprint over 24 of 26 shapes, so absolutes cross from Run
+  23 freely and the boundary that stops them is still the BIOS change before
+  Run 18. Its sequence ran in ONE window, all twenty processes,
+  with no intrusion and no population rerun.
+- Run 23 measured Run 22's shapes, class views and roster, nothing having moved
+  between them --- 55 timed arms over 24 of today's 26 main-set shapes and 37
+  of today's 41 class views in NINE classes, 1320 benches and 2035, sixteen A/A
+  pairs, the `runs` class at ELEVEN of today's fourteen and `window` at three
+  of four --- so its delta against RUN 22 is EMPTY and its delta against TODAY
+  is Run 24's, in the bullet above: two main-set shapes and four class views
+  landed after it ran, and its figures are over the population it had. More
+  than empty against Run 22: its basis half, `run23-g912`, is Run 22's basis
+  BINARY byte for byte, `Main.hs` having moved by one comment line and the shim
+  by one commit that adds a switch that half does not set, so every distance
+  between the two runs' basis columns is drift and nothing else, and it measured
   that drift at under 1% on 44 of 49 arms over the shapes the correction leaves
   readable. What a reader has to carry is which half a figure came from:
   everything published in its file is `run23-g912`, the max-skip half,
@@ -9469,16 +9570,13 @@ tables and its fingerprint say so.
   process -0.40% against Run 22's fingerprint, so absolutes cross from Run 22
   freely and the boundary that stops them is still the BIOS change before
   Run 18. Its sequence ran in ONE window, all twenty processes,
-  and no population was rerun. For Run 24 (task 9 and the registration beside
-  it), `runs-7`, `runs-4096`, `runs-16384` and `window-128x128-k7` were added
-  2026-09-02, after the run, and `lenet-slice-c6-k5` and `cnn-L1-12x12-c1`
-  were added 2026-09-02, after the run, to the main set.
+  and no population was rerun.
 - Run 22 measured today's shapes, today's class views AND today's roster,
   nothing having been added since it ran, so its figures need no adjustment
   at all --- which no run before it in this chain can say. Its delta against RUN
-  21: 55 timed arms over 24 main-set shapes and 37 class views in NINE classes,
-  1320 benches and 2035, where Run 21 ran 49 arms and 33 views, 1176 and 1617.
-  Six timed arms landed --- `lib-stage2-disp`, `lib-stage2-u4`,
+  21: 55 timed arms over the 24 main-set shapes of the time and 37 class views
+  in NINE classes, 1320 benches and 2035, where Run 21 ran 49 arms and 33 views,
+  1176 and 1617. Six timed arms landed --- `lib-stage2-disp`, `lib-stage2-u4`,
   `lib-stage2-short`, `lib-stage2-lean`, `libunord-stage1` and `libunord-stage2`
   --- and NONE left, so all 49 of Run 21's names are still timed, the floor
   still reads over SIXTEEN pairs, and every slot below `lib-stage2-concat` moved
@@ -9502,13 +9600,13 @@ tables and its fingerprint say so.
   that boundary carries the layout term the delta against Run 20 already names.
   Its `runs` class is today's LESS FOUR: `runs-4`, `runs-5`, `runs-256`
   and `runs-512` were added 2026-08-30, after Run 21, so its seven views
-  are read against today's eleven only where a length is shared. Its delta
-  against RUN 20 is larger again: 49 timed arms over 24 main-set shapes and 33
-  class views in NINE classes, 1176 benches and 1617, where Run 20 ran 53 arms
-  and 26 views in eight classes, 1272 and 1378. Six timed arms landed
-  (`mut-odo-vecdims-add-in-leaf-u2-down`, `lib-stage1`, `lib-stage2`,
-  `lib-stage2-concat`, `liblist-stage1`, `liblist-stage2`) and ten names left
-  --- eight arms parked permanently on 2026-08-28 (`bq-expand-b`,
+  are read against today's fourteen only where a length is shared. Its delta
+  against RUN 20 is larger again: 49 timed arms over the 24 main-set shapes
+  of the time and 33 class views in NINE classes, 1176 benches and 1617, where
+  Run 20 ran 53 arms and 26 views in eight classes, 1272 and 1378. Six timed
+  arms landed (`mut-odo-vecdims-add-in-leaf-u2-down`, `lib-stage1`,
+  `lib-stage2`, `lib-stage2-concat`, `liblist-stage1`, `liblist-stage2`) and ten
+  names left --- eight arms parked permanently on 2026-08-28 (`bq-expand-b`,
   `bq-expand-qr-prim`, `bq-expand-zf`, `bq-mut`, `bq-gen`, `gen-quotrem`,
   `bq-mut-runs`, `offtab`) with `offtab`'s two A/A twins, so the floor reads
   over SIXTEEN pairs from this run on and the eighteen-pair series ends at
@@ -9527,16 +9625,16 @@ tables and its fingerprint say so.
   freely and the boundary that stops them is still the BIOS change before
   Run 18.
 - Run 20 measured today's main-set shapes but NOT today's class views --- 26
-  in eight classes, where today's are 33 in nine --- and NOT today's roster read
+  in eight classes, where today's are 41 in nine --- and NOT today's roster read
   against Run 19's: nine timed arms landed and three dropped to `Only`,
-  so its membership is 53 timed arms over 24 main-set shapes and 26 class views,
-  1272 benches and 1378, where Run 19 ran 47 and 1128 over 24 and 24,
-  and `reshape1` and `bcastmid` went to four shapes. **So the delta against Run
-  19 is a roster and it is not empty**, which every figure read across
-  that boundary carries as a layout term besides drift, Run 10 having priced
-  a reorder at 12 to 14% on the two arms whose loop the shim rescues. Which half
-  a figure came from is the other thing to carry: everything published
-  in the run's file is `run20-g912`, the 9.12 half, and `run20-ghead`
+  so its membership is 53 timed arms over the 24 main-set shapes of the time
+  and 26 class views, 1272 benches and 1378, where Run 19 ran 47 and 1128
+  over 24 and 24, and `reshape1` and `bcastmid` went to four shapes.
+  **So the delta against Run 19 is a roster and it is not empty**, which every
+  figure read across that boundary carries as a layout term besides drift, Run
+  10 having priced a reorder at 12 to 14% on the two arms whose loop the shim
+  rescues. Which half a figure came from is the other thing to carry: everything
+  published in the run's file is `run20-g912`, the 9.12 half, and `run20-ghead`
   contributes the second column of `runs/run20.md` --- and this pair's `list`
   moved 0.71% between them, past the 0.7% bar by a hair, so its two columns may
   be ordered and not subtracted. The box did not move, its machine check reading
