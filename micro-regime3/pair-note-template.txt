@@ -219,6 +219,9 @@ element is the main set and the nine that follow are the classes:
     for c in '' rev revsome bcast bcastmid reshape1 slice window \
              scaled runs
     do ./run-counts.sh $R <other> $c; ./run-counts.sh $R <basis> $c; done
+  `./run-counts-all.sh $R &` is that loop as the run list runs it, taking
+  the classes off the basis binary; the lines above are the hand form, for
+  a re-take of one population.
   Give the previous run's own totals beside it, so a slow sweep is
   recognisable, and say what a `!!` line means. Where the pair's central
   claim turns on counts rather than on time -- a layout pair, where an arm

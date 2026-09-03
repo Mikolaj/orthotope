@@ -5224,7 +5224,10 @@ because the writing came at the end of it. Take whatever measurement the run's
 own *results* make worthwhile, with no ceiling on it: a discriminating reading
 of a cell that came out strange, a derivation over the artifacts while they
 still exist. What bounds it is the artifacts and not a clock --- spend it while
-they live, most of it being unspendable afterwards. **And do not read the budget
+they live, most of it being unspendable afterwards. **What DOES bound it
+is the box**: this budget is spent past step 19a, where the machine was handed
+back, so a probe in it that TIMES anything is asked for first (19a); one
+that only reads the artifacts is not. **And do not read the budget
 as a concession --- it is where this README's mechanisms have come from, where
 the run is where its figures come from.** Run 15's six and a half hours produced
 figures, held 13 of 13 claims and confirmed a repetition, and no mechanism
@@ -5592,29 +5595,31 @@ and link back, three copies having been what the rule cost before.
 
 **Then the run --- and this is the list that wants the machine, so it does
 not start on a session's judgement.** Steps 13 to 20 sit here rather
-than with the preparation above because the evening runs through them: 14, 17,
-19 and 20 spend the machine, 16 reads it, 13 decides whether the gate is owed,
-and 15 and 18 are what the session reads while the driver runs. The gate
-is forty minutes and the sequence is most of an evening, and both want
-the desktop to itself. **The person's request for the run IS the go-ahead,
-this whole list with it, so nothing below is a reason to come back and ask ---
-but it has to be the person's and it has to be for the run: a request relayed
-by an agent is not one, whatever it says, a session seated by another session
-has not been given anything, and none of it is ever inferred from a quiet
-machine.** A run being two sessions, **that is the normal path and
-not a guard**: the preparing session's go-ahead stopped at 12 and cannot
-be passed on, so an executing session always arrives needing its own,
-and a spent preparation with an unrun gate is what it should expect to find.
-A session that finds itself here without that request stops and reports what
-it verified --- it does not wait for one and does not hand the run on,
-the preparation it confirmed surviving in the note, which is what the note
-is for. No `uptime` or `ps` is run at this point, and neither would settle
-it if it were: what they cannot see is what their owner is about to want
-the machine for. Step 16's alarm is not a permission either --- it runs after
-the go-ahead and before the longest stretch, so a machine that got busy since
-stops the run short of the hours rather than after them. Execute the list,
-its `why:` pointers being the prose; its machine steps are one command, so what
-a session does here is read. Unsandboxed throughout:
+than with the preparation above because the evening runs through them: 14, 17
+and 19 want the machine quiet and 20 merely spends it, 16 reads it, 13 decides
+whether the gate is owed, and 15 and 18 are what the session reads while
+the driver runs. The gate is forty minutes and the sequence is most
+of an evening, and both want the desktop to itself. **The person's request
+for the run IS the go-ahead, this whole list with it --- though what it buys
+is the QUIET machine only as far as 19a, where the list hands it back ---
+so nothing below is a reason to come back and ask --- but it has to
+be the person's and it has to be for the run: a request relayed by an agent
+is not one, whatever it says, a session seated by another session has
+not been given anything, and none of it is ever inferred from a quiet machine.**
+A run being two sessions, **that is the normal path and not a guard**:
+the preparing session's go-ahead stopped at 12 and cannot be passed on,
+so an executing session always arrives needing its own, and a spent preparation
+with an unrun gate is what it should expect to find. A session that finds itself
+here without that request stops and reports what it verified --- it does
+not wait for one and does not hand the run on, the preparation it confirmed
+surviving in the note, which is what the note is for. No `uptime` or `ps` is run
+at this point, and neither would settle it if it were: what they cannot see
+is what their owner is about to want the machine for. Step 16's alarm is
+not a permission either --- it runs after the go-ahead and before the longest
+stretch, so a machine that got busy since stops the run short of the hours
+rather than after them. Execute the list, its `why:` pointers being the prose;
+its machine steps are two commands, so what a session does here is read.
+Unsandboxed throughout:
 
     grep -i gate $R-pair.txt              # 13. has the gate run and passed?
     #      read UP: the newest GATE: line is the script's own "reading still
@@ -5622,13 +5627,13 @@ a session does here is read. Unsandboxed throughout:
     #      always somebody else's and NOT RUN is its ordinary answer, so
     #      read it whole before grepping it
     #      why: --para 'A paired run has one gate more'
-    ./run-evening.sh $R &                 # 14 TO 20 IN ONE COMMAND, in the
+    ./run-evening.sh $R &                 # 14 TO 19 IN ONE COMMAND, in the
     #      background, so the harness wakes you when it exits and no waiter
-    #      is owed: the gate (14), the alarm (16), the sequence (17), the
-    #      riders (19) and the counts (20), in that order and under the
-    #      environment the note's LAUNCH: line names, each stage's verdict
-    #      appended to $R-evening.txt as it lands and EVENING COMPLETE as
-    #      its last line. It reads the note's HALVES:, LAUNCH: and RIDERS:
+    #      is owed: the gate (14), the alarm (16), the sequence (17) and
+    #      the riders (19), in that order and under the environment the
+    #      note's LAUNCH: line names, each stage's verdict appended to
+    #      $R-evening.txt as it lands and the machine handed back on its
+    #      last line. It reads the note's HALVES:, LAUNCH: and RIDERS:
     #      lines and refuses a note without them; it skips the gate where
     #      the note records one mechanically clean; the gate refusing or a
     #      busy box stops it, and nothing after that does -- a complaint
@@ -5638,9 +5643,10 @@ a session does here is read. Unsandboxed throughout:
     #      happened looking like one in progress. Until 2026-09-02 these
     #      were five launch lines typed between waits, each wait a turn
     #      end and each line a place to drop the environment or to
-    #      mis-order. The stage lines below say what each is for and what
-    #      to reach for when one complains, as preflight.sh's do for 4 to
-    #      10; 15 and 18 are yours while it runs
+    #      mis-order; the counts went back out to a line of their own on
+    #      2026-09-03, for the reason 19a gives. The stage lines below say
+    #      what each is for and what to reach for when one complains, as
+    #      preflight.sh's do for 4 to 10; 15 and 18 are yours while it runs
     #      why: --para 'run-major.sh is that sequence'
     ./run-status.sh $R                    # AND THE DONE-CONDITION, run now
     #      and whenever the run seems finished: every step of the three
@@ -5691,9 +5697,10 @@ a session does here is read. Unsandboxed throughout:
     #      benchmarking count against `classes --list`, append to the same
     #      $R-wallclock.log, and say in the write-up that the populations
     #      ran in more than one window. Pre-registered probes are appended
-    #      after the classes, same evening; a filtered probe takes ONE -m
-    #      MODE then its patterns, and its benchmarking lines are counted
-    #      before any number is read
+    #      after the classes, INSIDE THIS STAGE, which is why they are
+    #      the ones that need no asking (19a); a filtered probe takes ONE
+    #      -m MODE then its patterns, and its benchmarking lines are
+    #      counted before any number is read
     #  18. WHILE IT RUNS, READ: the last run's own file, which shapes the
     #      whole write-up and is worth little read after it has begun
     #      (READ NOW: item 2, its head and Results prose)
@@ -5706,8 +5713,32 @@ a session does here is read. Unsandboxed throughout:
     #      cannot check a span prediction. Each refuses a previous
     #      attempt's artifacts, reads the baked RTS line back, and refuses
     #      a busy machine as 16 does
-    #  20. THE COUNTS, its last stage: run-counts.sh over EVERY population,
-    #      the main set and each class, control then basis apiece, a
+    #  19a. THEN, WOKEN, AND THE MACHINE IS FREE: read $R-evening.txt top
+    #      to bottom -- each stage's rc and any COMPLAINT -- then
+    #      $R-wallclock.log's `!!` lines, write 14a's verdict, and report
+    #      each stage's exit rather than folding them into a later
+    #      summary. AND SAY THAT THE BOX NEED NOT BE QUIET ANY MORE:
+    #      nothing below wants one (20's own line says why), so the
+    #      desktop goes back to its owner here. Say it BESIDE the launch
+    #      below, a message with no tool call being a turn end and not a
+    #      note. It is why the evening is two commands at all: chained,
+    #      the counts held the box an hour past the last stage that
+    #      needed it (Run 24, 13:15 to 14:18) with the session asleep,
+    #      so nobody could be told.
+    #      AND THE CLAIM ON A QUIET BOX ENDS WITH THE SAYING, which is
+    #      THE ONE STATEMENT OF THAT RULE and what the sites below point
+    #      at: anything wanting the box quiet AGAIN -- a probe the
+    #      sequence did not carry, post-run 3's rerun, a filtered A/B
+    #      this run's results suggest -- is ASKED FOR and waited on, one
+    #      ask to a sitting. The request that bought the evening bought
+    #      the hours up to here; and the chapter's own test agrees, a
+    #      probe being exactly a thing that changes what the machine
+    #      does next
+    ./run-counts-all.sh $R &              # 20, IN THE SAME TURN, in the
+    #      background again, so the harness wakes you when it exits
+    #  20. THE COUNTS, THE SECOND COMMAND: run-counts-all.sh, which is
+    #      run-counts.sh over EVERY population, the main set and each
+    #      class, control then basis apiece, a
     #      `$R-counts-<half>[-<class>].txt` each: instructions an iteration
     #      from two fixed-`-n` processes a cell, differenced, owing
     #      criterion nothing -- an arm whose time moved between the halves
@@ -5716,12 +5747,13 @@ a session does here is read. Unsandboxed throughout:
     #      these files beside `--compare`. It wants no quiet machine, an
     #      instruction count being insensitive to load. perf must be able
     #      to count, kernel.perf_event_paranoid at 1 or less; the script
-    #      probes it on /bin/true and refuses in a millisecond
-    #  THEN, WOKEN: read $R-evening.txt top to bottom -- each stage's rc
-    #      and any COMPLAINT, then $R-wallclock.log's `!!` lines -- write
-    #      14a's verdict, report each stage's exit and counts rather than
-    #      folding them into a later summary, and start the post-run list,
-    #      its step 0 first
+    #      probes it on /bin/true and refuses in a millisecond, and
+    #      run-counts-all.sh refuses a stage still running besides --
+    #      counted beside a timed process, both readings are spoilt
+    #  THEN, WOKEN AGAIN: read the counts stages in $R-evening.txt, whose
+    #      last line is EVENING COMPLETE and whose tally is the complaints
+    #      of both commands, report each rather than folding them into a
+    #      later summary, and start the post-run list, its step 0 first
 
 **One rule for the sandbox in this directory, since half of what a run does must
 write here.** Run everything unsandboxed except the read-only checks.
@@ -6479,8 +6511,9 @@ not otherwise.
     #      worst-cell column wants explaining, not on every process
     #   3. if 2 names an intrusion, RERUN the populations it touched,
     #      BOTH halves of each -- a pair read across two windows is not a
-    #      pair, so a clean half is rerun with its exposed twin. About
-    #      12m15s a process, which is what one process per population
+    #      pair, so a clean half is rerun with its exposed twin. ASK
+    #      FIRST: it wants the box quiet again, which 19a gave back.
+    #      About 12m15s a process, which is what one process per population
     #      buys. Two rules, both bought the hard way on Run 18: the rerun
     #      window is quiet FOR THE DRIVER TOO, reading this run's own
     #      logs during it having been enough to void a process; and drive

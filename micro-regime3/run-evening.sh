@@ -1,19 +1,25 @@
 #!/usr/bin/env bash
-# The run list's machine steps as one command: the gate, the busy-box
-# alarm, the sequence, the alone-leg riders and the counted work, in the
+# The run list's machine steps that want a QUIET BOX, as one command: the
+# gate, the busy-box alarm, the sequence and the alone-leg riders, in the
 # order the list gives them and under the environment the pair note
 # names, each stage's verdict appended to `$R-evening.txt` as it lands.
 #
 #     ./run-evening.sh run24 &        # the harness wakes you when it exits
+#     ./run-counts-all.sh run24 &     # then step 20, on a box back in use
+#
+# THE COUNTED WORK IS NOT HERE, and this file's last line is what that
+# buys: the machine is its owner's again the moment the riders land, and
+# the session is woken there to say so (README, run list step 19a).
 #
 # Until 2026-09-02 those were five launch lines an executing session typed
 # between waits, each wait a turn end, each line a place to mis-order, to
 # drop the environment, or to write a waiter that greps its own command
-# line. This runs them; the session starts it in the background and reads
-# `$R-evening.txt` when the harness wakes it, and `run-status.sh` reads
-# the same file. Nothing here decides anything a person decides: the
-# gate's VERDICT is still written into the note by hand (README, step
-# 14a), from the two `--compare` readings this puts in `$R-evening-out.txt`.
+# line. This runs the four that want quiet; the session starts it in the
+# background and reads `$R-evening.txt` when the harness wakes it, and
+# `run-status.sh` reads the same file. Nothing here decides anything a
+# person decides: the gate's VERDICT is still written into the note by
+# hand (README, step 14a), from the two `--compare` readings this puts in
+# `$R-evening-out.txt`.
 #
 # WHAT IT READS FROM THE NOTE, three machine lines beside the prose that
 # explains them (pair-note-template.txt):
@@ -24,15 +30,15 @@
 #
 # WHAT STOPS IT AND WHAT DOES NOT. The gate refusing (exit 1) is the
 # apparatus and stops the evening, as README's gate step says; a gate the
-# note already records as mechanically clean is not re-run. A busy box at
-# the alarm stops it, the sequence being hours. After that nothing stops
-# it: run-major.sh's complaints, a rider refused, a counts sweep that
-# could not count are each recorded as a complaint and the next stage
-# runs, eight sound populations being worth more than a stop -- and the
-# last line says COMPLETE or COMPLETE WITH COMPLAINTS, which is also the
-# exit status. It refuses to start over a previous attempt's
-# `$R-evening.txt`, as run-major.sh refuses over a previous attempt's
-# JSONs: the stages' own guards then say what an earlier attempt left.
+# note already records as mechanically clean is not re-run. A busy box
+# at the alarm stops it, the sequence being hours. After that nothing
+# stops it: run-major.sh's complaints and a refused rider are each
+# recorded as a complaint and the next stage runs, a sound sequence being
+# worth more than a stop -- and the last line hands the machine back,
+# with the complaint count where there is one, which is also the exit
+# status. It refuses to start over a previous attempt's `$R-evening.txt`,
+# as run-major.sh refuses over a previous attempt's JSONs: the stages' own
+# guards then say what an earlier attempt left.
 #
 # ARTIFACT NAMES: `$R-evening.txt` and `$R-evening-out.txt`, both `.txt`
 # so that neither is a `$R-*.log` for run-major.sh's relaunch guard or
@@ -113,15 +119,10 @@ stamp () { echo "=== $(date -Is) $*" | tee -a "$STATUS"; }
 # status file: the status file is what a session reads, and it must stay
 # a screenful.
 stage () {   # stage LABEL cmd...   -> the command's status, recorded.
-  # PLAIN=1 in front of the call runs the command without the launch
-  # environment: the counts want none, an instruction count being what
-  # the preamble's dose is counted into and cancelled out of, so under
-  # SATURATE every cell would spend two doses for nothing.
   local label=$1; shift
   stamp "$label: start"
   { echo; echo "##### $label"; } >> "$OUT"
-  if [ -n "${PLAIN:-}" ]; then "$@" >> "$OUT" 2>&1
-  else env "${ENV[@]}" "$@" >> "$OUT" 2>&1; fi
+  env "${ENV[@]}" "$@" >> "$OUT" 2>&1
   local rc=$?
   if [ "$rc" = 0 ]; then
     stamp "$label: done, rc=0"
@@ -198,20 +199,18 @@ else
   stamp "riders: none, as $NOTE says"
 fi
 
-# 20. THE COUNTED WORK, over every population: the main set and then each
-# class the basis binary lists, in its order, control then basis apiece.
-CLASSES=$(./"$R-$BASIS" classes --list 2>/dev/null | cut -d- -f1 | awk '!seen[$0]++')
-for c in '' $CLASSES; do
-  for h in $OTHER $BASIS; do
-    PLAIN=1 stage "counts $h ${c:-main}" ./run-counts.sh "$R" "$h" $c || true
-  done
-done
-
+# 19a. AND THE MACHINE IS FREE, which is the last thing this says because
+# it is the first thing the woken session owes: the counted work is
+# insensitive to load, so it is a call of its own and the box goes back to
+# its owner here rather than an hour later.
 if [ "${#COMPLAINTS[@]}" -eq 0 ]; then
-  stamp "EVENING COMPLETE: every stage exited 0. Read $R-wallclock.log's\
- '!!' lines anyway, then the post-run list, its step 0 first"
+  stamp "RIDERS DONE AND THE MACHINE IS FREE: every stage exited 0. Read\
+ $R-wallclock.log's '!!' lines anyway, say the box need not be quiet any\
+ more -- a probe that wants it quiet again is asked for from here, README\
+ 19a -- and launch the counted work in the same turn: ./run-counts-all.sh $R &"
   exit 0
 fi
-stamp "EVENING COMPLETE WITH ${#COMPLAINTS[@]} COMPLAINT(S): $(IFS=,; echo "${COMPLAINTS[*]}")\
- -- read each in $OUT before any figure; the post-run list's step 0 is still first"
+stamp "RIDERS DONE AND THE MACHINE IS FREE, WITH ${#COMPLAINTS[@]}\
+ COMPLAINT(S): $(IFS=,; echo "${COMPLAINTS[*]}") -- read each in $OUT before\
+ any figure; the counted work is still next: ./run-counts-all.sh $R &"
 exit 1

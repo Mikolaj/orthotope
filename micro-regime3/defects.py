@@ -1675,6 +1675,28 @@ FAKE_HALF_LISTLESS = re.sub(
     flags=re.S | re.M)
 assert 'shape-a' not in FAKE_HALF_LISTLESS, 'the listless stand-in kept it'
 
+# The status file run-evening.sh leaves behind, in the four states
+# run-counts-all.sh reads it in: the riders landed and the machine handed
+# back, the same with a complaint from the sequence, a stage still in
+# flight, and an evening stopped before the sequence ever ran.
+_EVENING_BEGINS = ('=== 2026-09-03T02:09:17+02:00 evening begins for the'
+                   ' stand-in run\n')
+_EVENING_HEAD = _EVENING_BEGINS + ('=== 2026-09-03T12:58:25+02:00 sequence:'
+                                   ' done, rc=0\n')
+_EVENING_FREE = ('=== 2026-09-03T13:15:02+02:00 RIDERS DONE AND THE MACHINE'
+                 ' IS FREE: every stage exited 0\n')
+EVENING_DONE = _EVENING_HEAD + _EVENING_FREE
+EVENING_DONE_SORE = _EVENING_HEAD.replace(
+    'sequence: done, rc=0',
+    "sequence: done, rc=1 -- COMPLAINT, read zz-evening-out.txt under"
+    " '##### sequence'") + _EVENING_FREE
+assert 'COMPLAINT' in EVENING_DONE_SORE, 'the sore stand-in lost its complaint'
+EVENING_MID_STAGE = _EVENING_HEAD + ('=== 2026-09-03T12:58:25+02:00 riders'
+                                     ' a1g clean: start\n')
+EVENING_STOPPED = _EVENING_BEGINS + (
+    '=== 2026-09-03T02:54:41+02:00 EVENING STOPPED AT THE ALARM: 42.0% of'
+    ' the CPUs non-idle over two seconds\n')
+
 # A stand-in that RUNS: one `benchmarking` line per bench of the gate's own
 # five-arm selection, for a driver that counts them against `--list`.
 FAKE_AREA = """\
@@ -6508,36 +6530,33 @@ RECORDS = [
          argv=['zzph4'],
          ok=V(exit=0, has=['halves from the environment', 'BASIS=x; OTHER=y'])),
 
-    # ---- run-evening.sh, the run list's machine steps as one command ---
+    # ---- run-evening.sh, the run list's quiet machine steps as one command
     case('evening-chains-the-stages', 'run-evening.sh', None,
-         'CONTROL: gate inherited, alarm, sequence, riders and counts land in'
-         ' one command, and the status file ends COMPLETE',
+         'CONTROL: gate inherited, alarm, sequence and riders land in one'
+         ' command, and the status file ends with the machine handed back',
          # The whole evening in seconds on the stand-ins: the note records
          # a clean gate, so that stage is inherited; the sequence runs
          # eighteen processes off the shipped run; the riders take one leg
-         # a half (ONLY, a smoke run's restriction, keeps them to it); the
-         # counts run under the perf stand-in at N=1 over one arm.
+         # a half (ONLY, a smoke run's restriction, keeps them to it). The
+         # counted work left this driver on 2026-09-03 and has its own
+         # cases below, which is what `counts a1g` must not appear for.
          shadow=dict(extra=lambda: halves('zzev-lookrts', 'zzev-a1g')
                      + [('zzev-pair.txt', NOTE_STUB + 'LAUNCH: SATURATE=1\n'
                          'RIDERS: clean\nGATE: run 2026-09-02. Mechanically'
                          ' clean: four processes, each\n')]),
-         plant=lambda t: {'stub': stub_dir(t, PERF_ANSWERS)},
          # SATURATE on the launch line and a stand-in that prints the
          # preamble's line under it: the sequence's processes must carry
-         # it, the CLEAN riders must not (the driver strips it), and the
-         # counts run without the environment at all.
-         env={'PATH': '{stub}:/usr/bin:/bin', 'MAXBUSY': '100',
-              'FAKE_SATURATE': '1',
-              'ONLY': main_shapes()[0], 'ARMS': 'list', 'N': '1'},
+         # it and the CLEAN riders must not, the driver stripping it.
+         env={'MAXBUSY': '100', 'FAKE_SATURATE': '1',
+              'ONLY': main_shapes()[0]},
          argv=['zzev'],
          probe=lambda subs: open(os.path.join(subs['at'],
                                               'zzev-evening.txt')).read(),
          ok=V(exit=0, has=['gate: inherited', 'alarm:', 'sequence: done, rc=0',
                            'riders a1g clean: done, rc=0',
                            'riders lookrts clean: done, rc=0',
-                           'counts lookrts main: done, rc=0',
-                           'EVENING COMPLETE: every stage'],
-              hasnt=['COMPLAINT', 'STOPPED'])),
+                           'RIDERS DONE AND THE MACHINE IS FREE'],
+              hasnt=['COMPLAINT', 'STOPPED', 'counts a1g'])),
 
     case('alonelegs-refuses-a-saturated-clean-leg', 'run-alonelegs.sh', None,
          'CONTROL: a clean leg whose log carries the preamble line complains',
@@ -6570,6 +6589,89 @@ RECORDS = [
          argv=['zzem'],
          ok=V(exit=1, has=['lacks a machine line', 'LAUNCH:', 'RIDERS:'],
               hasnt=['evening begins'])),
+
+    # ---- run-counts-all.sh, the evening's second call -------------------
+    # The counted work left run-evening.sh on 2026-09-03 so that the box
+    # could be handed back at the riders (README, run list step 19a), and
+    # these are what the split owes: every population still swept, the
+    # complaints of both calls still tallied in one place, and the one
+    # ordering error the split makes possible refused.
+    case('counts-all-sweeps-every-population', 'run-counts-all.sh', None,
+         'CONTROL: the main set and every class, control then basis apiece,'
+         ' and the status file ends COMPLETE',
+         shadow=dict(extra=[('zzca-lookrts', FAKE_HALF),
+                            ('zzca-a1g', FAKE_HALF),
+                            ('zzca-pair.txt', NOTE_STUB),
+                            ('zzca-evening.txt', EVENING_DONE)]),
+         plant=lambda t: {'stub': stub_dir(t, PERF_ANSWERS)},
+         env={'PATH': '{stub}:/usr/bin:/bin', 'ONLY': 'shape-a',
+              'ARMS': 'list', 'N': '1'},
+         argv=['zzca'],
+         probe=lambda subs: open(os.path.join(subs['at'],
+                                              'zzca-evening.txt')).read(),
+         ok=V(exit=0, has=['counts a1g main: done, rc=0',
+                           'counts lookrts main: done, rc=0',
+                           'counts a1g rev: done, rc=0',
+                           'counts lookrts other: done, rc=0',
+                           'EVENING COMPLETE: every stage of both calls'],
+              hasnt=['COMPLAINT'])),
+
+    case('counts-all-tallies-the-first-call-too', 'run-counts-all.sh', None,
+         'CONTROL: a complaint from the quiet stages survives a clean sweep'
+         ' here',
+         # The tally is read back off the status file rather than counted
+         # in this process, which is what the split costs if it is not:
+         # the two calls are one evening, and a sequence that complained
+         # would otherwise be reported COMPLETE by the call after it.
+         shadow=dict(extra=[('zzcb-lookrts', FAKE_HALF),
+                            ('zzcb-a1g', FAKE_HALF),
+                            ('zzcb-pair.txt', NOTE_STUB),
+                            ('zzcb-evening.txt', EVENING_DONE_SORE)]),
+         plant=lambda t: {'stub': stub_dir(t, PERF_ANSWERS)},
+         env={'PATH': '{stub}:/usr/bin:/bin', 'ONLY': 'shape-a',
+              'ARMS': 'list', 'N': '1'},
+         argv=['zzcb'],
+         probe=lambda subs: open(os.path.join(subs['at'],
+                                              'zzcb-evening.txt')).read(),
+         ok=V(exit=1, has=['counts a1g main: done, rc=0',
+                           'EVENING COMPLETE WITH 1 COMPLAINT(S) OVER BOTH'])),
+
+    # The two patterns of one refusal, a case each: they are matched
+    # separately, so a typo in either is invisible from the other.
+    case('counts-all-refuses-a-stage-still-running', 'run-counts-all.sh',
+         None,
+         'CONTROL: counting beside a timed process is refused, the status'
+         " file's last line saying a stage is still in flight",
+         shadow=dict(extra=[('zzcc-lookrts', FAKE_HALF),
+                            ('zzcc-a1g', FAKE_HALF),
+                            ('zzcc-pair.txt', NOTE_STUB),
+                            ('zzcc-evening.txt', EVENING_MID_STAGE)]),
+         argv=['zzcc'],
+         ok=V(exit=1, has=['does not end where the counted work begins',
+                           'Nothing ran'],
+              hasnt=['counted work begins for'])),
+
+    case('counts-all-refuses-a-stopped-evening', 'run-counts-all.sh', None,
+         'CONTROL: an evening stopped at the alarm has no run to count',
+         shadow=dict(extra=[('zzcd-lookrts', FAKE_HALF),
+                            ('zzcd-a1g', FAKE_HALF),
+                            ('zzcd-pair.txt', NOTE_STUB),
+                            ('zzcd-evening.txt', EVENING_STOPPED)]),
+         argv=['zzcd'],
+         ok=V(exit=1, has=['does not end where the counted work begins',
+                           'Nothing ran'],
+              hasnt=['counted work begins for'])),
+
+    case('counts-all-refuses-before-the-quiet-stages', 'run-counts-all.sh',
+         None,
+         'CONTROL: with no status file at all the counted work is not what'
+         ' the run owes next',
+         shadow=dict(extra=[('zzce-lookrts', FAKE_HALF),
+                            ('zzce-a1g', FAKE_HALF),
+                            ('zzce-pair.txt', NOTE_STUB)]),
+         argv=['zzce'],
+         ok=V(exit=1, has=['the quiet stages have not run', 'Nothing ran'],
+              hasnt=['counted work begins for'])),
 
     # ---- run-status.sh, doneness off the artifacts ---------------------
     case('status-reads-an-unstarted-run', 'run-status.sh', None,
