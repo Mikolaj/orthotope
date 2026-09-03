@@ -356,6 +356,11 @@ def dims_by_shape(main_hs):
         ('reshape1StridedShapes', sh_re, reshape1),
         ('slicedShapes', sh_re, strided),
         ('windowShapes', sh_re, window),
+        # Image, kernel and (stride, dilation): one dims group spanning
+        # both, so the six-entry window rule sees them. Its own list, so
+        # a reader older than the rule never meets a six-entry row.
+        ('windowStridedShapes',
+         r'(?P<dims>\[[^\]]*\],\s*\(\d+,\s*\d+\))', window),
         ('scaledViews', sh_re + r',\s*Strides\s*\[[^\]]*\]', listed),
         ('runsShapes', sh_re, runs),
         # The four classes of 2026-09-03: each lists the view shape

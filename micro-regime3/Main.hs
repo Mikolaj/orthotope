@@ -3796,14 +3796,24 @@ windowShapes =
     -- short-body arm its widest lead could not say where the lead ends.
     -- The image is sized to keep the view under 'sizeCap'.
   , ("window-128x128-k7", [128, 128, 7, 7])  -- 729316, over 16384
-    -- A strided and a dilated window over the k3 image, added 2026-09-03:
-    -- the three above and the k5 one are stride-1 and undilated, as
-    -- 'mkWindow' built every window until then, so a strided
-    -- convolution's patch view -- outer strides twice the row and 2 --
-    -- and a dilated kernel's -- taps a row and two elements apart -- had
-    -- no view. The kernel stays k3 so the short body still fires.
-  , ("window-224x224-k3-s2", [224, 224, 3, 3, 2, 1])  -- 110889, stride 2
-  , ("window-224x224-k3-d2", [224, 224, 3, 3, 1, 2])  -- 435600, dilated by 2
+  ]
+
+-- A strided and a dilated window over the k3 image, added 2026-09-03:
+-- the four above are stride-1 and undilated, as 'mkWindow' built every
+-- window until then, so a strided convolution's patch view -- outer
+-- strides twice the row and 2 -- and a dilated kernel's -- taps a row
+-- and two elements apart -- had no view. The kernel stays k3 so the
+-- short body still fires. Listed as image and kernel beside (stride,
+-- dilation), IN A LIST OF THEIR OWN rather than as six-entry rows of
+-- 'windowShapes': read-run.py's older revisions, which `defect-run.py
+-- --audit` replays against today's Main.hs, unpack that list's rows
+-- four ways and die on a longer one, and a day of six-entry rows there
+-- turned 25 audits into tracebacks (2026-09-03). A list an old reader
+-- does not name it does not read.
+windowStridedShapes :: [(String, ShapeL, (Int, Int))]
+windowStridedShapes =
+  [ ("window-224x224-k3-s2", [224, 224, 3, 3], (2, 1))  -- 110889, stride 2
+  , ("window-224x224-k3-d2", [224, 224, 3, 3], (1, 2))  -- 435600, dilated by 2
   ]
 
 -- Views, not shapes like its siblings: explicit strides beside the shape,
@@ -3941,6 +3951,7 @@ classViews =
   ++ [(n, mkReshape1Strided s) | (n, s) <- reshape1StridedShapes]
   ++ [(n, mkSliced s) | (n, s) <- slicedShapes]
   ++ [(n, mkWindow s) | (n, s) <- windowShapes]
+  ++ [(n, mkWindow (s ++ [st, d])) | (n, s, (st, d)) <- windowStridedShapes]
   ++ [(n, mkScaled s sts) | (n, s, sts) <- scaledViews]
   ++ [(n, mkRuns s) | (n, s) <- runsShapes]
   ++ [(n, mkFlip rs s) | (n, rs, s) <- flipShapes]
@@ -5007,6 +5018,7 @@ check = do
                (csh, cats) -> cats == drop 1 (getStridesT csh)) ]
   mapM_ oneSliced slicedShapes
   mapM_ oneWindow windowShapes
+  mapM_ (\(n, s, (st, d)) -> oneWindow (n, s ++ [st, d])) windowStridedShapes
   mapM_ oneScaled scaledViews
   mapM_ oneRuns runsShapes
   mapM_ oneFlip flipShapes
