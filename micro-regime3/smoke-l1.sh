@@ -78,6 +78,23 @@ BIN="./$R-$BASIS"
 # The expected counts come from the binary and never from a literal: a
 # roster that grew makes a literal wrong and the pass credit the wrong
 # number, which is the drift run-major.sh refuses for classes.
+# A reader mode's output is KEPT when it has something to say. Its
+# FINDINGS come on stderr at exit 0 -- the sunk cells, the short rows, the
+# forcing terms not smaller than their cell -- which is what this step
+# exists to surface, so an exit code alone is not its verdict and
+# `> /dev/null 2>&1` threw away the answer while reporting the question.
+# Temp, not the checkout: this is scratch and the machine wipes it. The
+# wrapper's tmpfs means the path is readable only where this ran, so copy
+# out anything handed on. Written if/else, not `A && B || C`.
+LOGDIR=$(mktemp -d "${TMPDIR:-/tmp}/smoke-l1.XXXXXX") || exit 2
+KEEPLOG=0
+trap 'if [ "$KEEPLOG" = 1 ]; then
+        echo "  reader output kept in $LOGDIR (wiped with /tmp, readable"
+        echo "  only where this ran; copy out what you hand on)"
+      else
+        rm -rf "$LOGDIR"
+      fi' EXIT
+
 EXPECT_MAIN=$("$BIN" --list 2>/dev/null | wc -l)
 [ "$EXPECT_MAIN" -gt 0 ] || { echo "!! $BIN --list is empty"; exit 2; }
 
@@ -144,14 +161,30 @@ for i in "${!LEGS[@]}"; do
     REQUIRED=("${ALWAYS[@]}" "--block" "--block --brief"); SKIPPED=("${OPTIONAL[@]}" "--machine")
   fi
   failed=""
+  warned=""
   for m in "${REQUIRED[@]}"; do
-    ./read-run.py "$f" $m > /dev/null 2>&1 || failed="$failed ${m:-(default)}(rc=$?)"
+    o=$LOGDIR/$leg-$(printf '%s' "${m:-default}" | tr -c 'A-Za-z0-9' '-')
+    if ! ./read-run.py "$f" $m > "$o.out" 2> "$o.err"; then
+      failed="$failed ${m:-(default)}(rc=$?)"
+    fi
+    if [ -s "$o.err" ]; then
+      warned="$warned ${m:-(default)}"
+    fi
   done
   refused=""
   for m in "${SKIPPED[@]}"; do
-    ./read-run.py "$f" $m > /dev/null 2>&1 || refused="$refused ${m:-(default)}"
+    o=$LOGDIR/$leg-skip-$(printf '%s' "${m:-default}" | tr -c 'A-Za-z0-9' '-')
+    if ! ./read-run.py "$f" $m > "$o.out" 2> "$o.err"; then
+      refused="$refused ${m:-(default)}"
+    fi
   done
+  if [ -n "$warned" ]; then
+    KEEPLOG=1
+    say "  $leg: mode(s) wrote to stderr ->$warned"
+    say "        that is where a structural fault shows; read them"
+  fi
   if [ -n "$failed" ]; then
+    KEEPLOG=1
     say "  $leg: !! REQUIRED mode(s) failed ->$failed"
     BAD=$((BAD + 1))
   else

@@ -86,10 +86,34 @@ run () {   # $1 = artifact, $2 = half, $3.. = args
   [ "$nb" = "$ARMS" ] || { echo "    !! expected $ARMS, got $nb -- the selection is not one shape's arms"; BAD=$((BAD + 1)); }
 }
 
+# A reader mode's output is KEPT when it has something to say. Its
+# FINDINGS come on stderr at exit 0 -- the sunk cells, the short rows, the
+# forcing terms not smaller than their cell -- which is what this step
+# exists to surface, so an exit code alone is not its verdict and
+# `> /dev/null 2>&1` threw away the answer while reporting the question.
+# Temp, not the checkout: this is scratch and the machine wipes it. The
+# wrapper's tmpfs means the path is readable only where this ran, so copy
+# out anything handed on. Written if/else, not `A && B || C`.
+LOGDIR=$(mktemp -d "${TMPDIR:-/tmp}/smoke-sweep.XXXXXX") || exit 2
+KEEPLOG=0
+trap 'if [ "$KEEPLOG" = 1 ]; then
+        echo "  reader output kept in $LOGDIR (wiped with /tmp, readable"
+        echo "  only where this ran; copy out what you hand on)"
+      else
+        rm -rf "$LOGDIR"
+      fi' EXIT
+
 mode () {  # $1 = file, $2.. = the mode
   local f=$1; shift
-  ./read-run.py "$f" "$@" >/dev/null 2>&1 \
-    || { echo "  !! BROKEN: $f $*"; BAD=$((BAD + 1)); }
+  local o
+  o=$LOGDIR/$(printf '%s' "$f $*" | tr -c 'A-Za-z0-9' '-')
+  if ! ./read-run.py "$f" "$@" > "$o.out" 2> "$o.err"; then
+    echo "  !! BROKEN: $f $*"; BAD=$((BAD + 1)); KEEPLOG=1
+  fi
+  if [ -s "$o.err" ]; then
+    echo "  note: $f $* wrote to stderr; that is where a finding comes"
+    KEEPLOG=1
+  fi
 }
 
 echo "=== $R: three -L1 processes, $ARMS arms apiece"
