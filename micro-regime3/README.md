@@ -804,7 +804,7 @@ rather than a slot in the next run, observed again:
   and killed by its own count clause on `stretch-coprime-r7`; (2) the lean
   dispatch, HELD; (3) the composite, HELD on every population of both halves;
   (4) the straddlers, HELD, and named rather than counted for the first time;
-  (5) HEAD, HELD on its orderings and not on two of its figures, with one clause
+  (5) HEAD, HELD on its orderings and not on one of its figures, with one clause
   unreadable because the arm it turned on had been parked; and (6)
   the threshold, HELD, the re-cut dispatch now leading the `runs` class.
 - `OPEN` **A registration can name an arm the roster has parked, and nothing
@@ -844,14 +844,15 @@ rather than a slot in the next run, observed again:
   freshly installed fingerprint and reads +0.00%.** Post-run step 5b installs
   `--fingerprint` into the run's own file, and `--machine` reads the kept
   fingerprint out of that same file, so from 5b onwards the box check is the run
-  against itself: Run 24 read `+0.00% over 26 of 26 shapes` that way, where
-  the honest reading against Run 23's kept fingerprint is -0.20% on the basis
-  and -0.39% on the control over 24 of 26, the two shapes added 2026-09-02
-  having no kept row. The vacuous form is not obviously wrong --- it prints
-  the same `inside 3%, so the box still measures as it did` verdict --- which
-  is what makes it worth an entry. **What would settle it**: either have
-  `--machine` name the file its fingerprint came from and refuse when
-  that is the run's own, or have the post-run list take the machine reading
+  against itself: Run 24 read `-0.03% over 26 of 26 shapes` that way ---
+  not exactly zero only because the installed fingerprint is rounded to three
+  figures --- where the honest reading against Run 23's kept fingerprint
+  is -0.20% on the basis and -0.39% on the control over 24 of 26, the two shapes
+  added 2026-09-02 having no kept row. The vacuous form is not obviously wrong
+  --- it prints the same `inside 3%, so the box still measures as it did`
+  verdict --- which is what makes it worth an entry. **What would settle it**:
+  either have `--machine` name the file its fingerprint came from and refuse
+  when that is the run's own, or have the post-run list take the machine reading
   before 5b. `--run-doc runs/run23.md` is the workaround and it has
   to be remembered.
 - `ANSWERED` **What Run 23 was built to answer, registered before it ran ---
@@ -3593,7 +3594,9 @@ over the 24 shapes Run 23 had. It has now read 1.80x at -O1, 1.68x on Run 8,
 across a REPETITION of one binary, Run 18's basis and Run 19's being both
 ghc-9.12.4 and byte-identical --- 1.83x on Run 20, 1.84x on Run 21 and Run 22,
 1.83x on Run 23 and **1.83x** here, the figure moving three ten-thousandths
-from Run 23's 0.5466 across a roster change and a fresh build of that recipe.
+from Run 23's published 0.5466 --- that column being the max-skip half's,
+so the step crosses the basis recipe as well as a roster change, where
+the previous build of THIS recipe, Run 23's dead-spot half, read 0.5527.
 **This is the reading that shows the shape set has to be pinned before
 the figure is compared**: over Run 24's own 26 shapes the same pair reads
 0.5493, and over the 25 that exclude `stretch-inner1` 0.5312, so a run quoting
@@ -3601,14 +3604,16 @@ its own population against a predecessor's would have reported a movement
 of a point and a half that is not there. Across an actual change of compiler
 it moves further, to **0.5119 on Run 24's HEAD half**, which is 1.95x,
 and 0.5184 on Run 22's HEAD half for 1.93x, where Run 21 read 0.5164 and Run 20
-0.5159 for the same 1.94x; across a change of layout alone it moves less
-than a repetition did, Run 23's dead-spot half reading 0.5527. So the spread
-is a tenth or so either side of 1.8 and neither the pairing, a repetition
-nor a roster change moves it. Read it as *approaching 2x and volatile
-at the tenth* between runs that differ, and do not reopen or close the ruling
-on a movement of that size --- Run 10 showed the volatility is not the layout's,
-and Runs 11, 19 and 23 show it is not the run's either, which leaves the roster
-and the regime as what moved it.
+0.5159 for the same 1.94x; across a change of layout alone it moves FURTHER
+than any repetition has, Run 23's dead-spot half reading 0.5527 against
+its basis's 0.5466 --- sixty-one ten-thousandths, where Run 19's repetition
+of a byte-identical binary moved five and Run 23's moved seventeen.
+So the spread is a tenth or so either side of 1.8 and neither the pairing,
+a repetition nor a roster change moves it. Read it as *approaching 2x
+and volatile at the tenth* between runs that differ, and do not reopen or close
+the ruling on a movement of that size --- Run 10 showed the volatility
+is not the layout's, and Runs 11, 19 and 23 show it is not the run's either,
+which leaves the roster and the regime as what moved it.
 
 **Amended 2026-08-07: the bar is now a weight.** The tree itself carries
 a precedent this section did not weigh: `Data/Array/Internal/FastReshape.hs`
@@ -7749,12 +7754,12 @@ to offer --- its roster moved, so neither half reproduces an earlier binary ---
 and its 1.26% therefore carries a roster change as well as an evening. The floor
 is a property of the RUN, re-drawn each evening, and this one is re-drawn
 over a different roster besides. **Where the movement lives is the one thing
-five runs now agree on.** The six-pair figure has read 0.54%, 0.49%, 0.44%,
-0.46%, 0.37%, 0.39% and 0.34% across seven runs on the basis while the whole-set
-figure ran 1.36%, 2.32%, 1.51%, 2.92%, 2.12%, 2.03% and 1.26%, so the pairs
-outside the six are what move and the six are steady enough to compare rows
-with --- with Run 21's control half the one reading that strains it,
-its six-pair figure having gone from 0.28% to 0.60%. The threshold this run
+seven runs now agree on.** The six-pair figure has read 0.54%, 0.49%, 0.44%,
+0.46%, 0.37%, 0.39% and 0.34% across those seven on the basis while
+the whole-set figure ran 1.36%, 2.32%, 1.51%, 2.92%, 2.12%, 2.03% and 1.26%,
+so the pairs outside the six are what move and the six are steady enough
+to compare rows with --- with Run 21's control half the one reading that strains
+it, its six-pair figure having gone from 0.28% to 0.60%. The threshold this run
 supports is therefore two figures --- *0.34% between any two rows of the table*
 on the six-pair basis, which is what carries across runs, and 1.26%
 on the sixteen --- where Run 23 supported 0.39% and 2.03%, Run 22 0.37%
@@ -9533,20 +9538,21 @@ tables and its fingerprint say so.
   of it on 2026-09-02 in `6d7689a` and `7dd094e`. So NEITHER half reproduces
   an earlier binary and no md5 here matches one on record: a distance from Run
   23's columns carries a layout term as well as an evening, which the run
-  measured at 33 of 45 shared arms within 1% of `run23-spot` and the other
-  twelve the placement-exposed families. What a reader has to carry is which
-  half a figure came from: everything published in its file is `run24-g912`,
-  ghc-9.12.4, and `run24-ghead` --- the same source, shim and shim environment
-  built through `cabal.project.ghead` against the in-tree GHC HEAD stage1,
-  so the halves differ in the compiler and in the boot libraries that come
-  with it and in nothing else --- contributes the second column
-  of `runs/run24.md`. Its `list` moved 0.25% between the halves, inside the 0.7%
-  bar, so its two columns may be subtracted. The box did not move, its gate
-  machine check reading +0.56% and its two main-set processes -0.20% and -0.39%
-  against Run 23's fingerprint over 24 of 26 shapes, so absolutes cross from Run
-  23 freely and the boundary that stops them is still the BIOS change before
-  Run 18. Its sequence ran in ONE window, all twenty processes,
-  with no intrusion and no population rerun.
+  measured at 33 of 45 shared arms within 1% of `run23-spot`, and of the twelve
+  outside, ten the placement-exposed families and two the degenerate `libunord`
+  pair. What a reader has to carry is which half a figure came from: everything
+  published in its file is `run24-g912`, ghc-9.12.4, and `run24-ghead` ---
+  the same source, shim and shim environment built through `cabal.project.ghead`
+  against the in-tree GHC HEAD stage1, so the halves differ in the compiler
+  and in the boot libraries that come with it and in nothing else ---
+  contributes the second column of `runs/run24.md`. Its `list` moved 0.25%
+  between the halves, inside the 0.7% bar, so its two columns may be subtracted.
+  The box did not move, its gate machine check reading +0.56% and its two
+  main-set processes -0.20% and -0.39% against Run 23's fingerprint over 24
+  of 26 shapes, so absolutes cross from Run 23 freely and the boundary
+  that stops them is still the BIOS change before Run 18. Its sequence ran
+  in ONE window, all twenty processes, with no intrusion and no population
+  rerun.
 - Run 23 measured Run 22's shapes, class views and roster, nothing having moved
   between them --- 55 timed arms over 24 of today's 26 main-set shapes and 37
   of today's 41 class views in NINE classes, 1320 benches and 2035, sixteen A/A
