@@ -12,16 +12,16 @@ PREVBASIS and PREVSAME are one half whenever the run changed no
 allocation area, which is the ordinary case: two names to hunt for and
 one to find is not an error.
 
-Substitute per run: RUN=run23  BASIS=g912  OTHER=spot  PREV=run22
-                    PREVBASIS=run22-g912  PREVSAME=run22-g912
-                    PRETIP=9a3bcba   (the COMMITTED COPY of the previous
+Substitute per run: RUN=run24  BASIS=g912  OTHER=ghead  PREV=run23
+                    PREVBASIS=run23-g912  PREVSAME=run23-spot
+                    PRETIP=812d859   (the COMMITTED COPY of the previous
                                       run's file, which is the base the
                                       write-up is diffed against -- NOT the
                                       commit before it, which would show the
                                       run file as wholly new and leave the
                                       pass no `before` to find a stale
                                       paragraph in)
-                    RUNTIP=f89f935   (the commit pass 2 READS, given in
+                    RUNTIP=___       (the commit pass 2 READS, given in
                                       the launch message -- the commit that
                                       carries this line's edit cannot name
                                       itself -- and advanced here after, as
@@ -118,54 +118,69 @@ are THIS RUN'S and are rewritten every run:
     reads the riders. The counted-work .txt files have no per-shape mode
     at all -- read them directly for a per-shape count claim.
  5. THIS RUN ONLY -- THE BOX DID NOT CHANGE between PREV and RUN. The
-    gate's machine check read -0.44% on `list`'s net over 24 of 24
-    shapes against the fingerprint PREV kept, worst `stretch-r5-8x432`
-    -1.58%, none past 5%; the run's own main-set process reads the
-    same comparison at -0.40%, worst `conv1d-24` +1.86%. Both inside
-    3%, so absolutes DO cross that boundary freely and a cross-run
-    absolute comparison is fair. (The last box event was before Run
-    18; nothing since.) NO LAYOUT TERM rides in a cross-run figure
-    this run, for the first time: RUN's basis binary IS PREV's basis
-    binary, md5 9bac6d77a913f139171430874f99b985 on both, the roster
-    identical, nothing landed and nothing left, so every distance
-    between the two basis columns is drift alone -- the write-up
-    reads it as the box's repetition band. The two HALVES differ in
-    the shim's pad placement only: same compiler (ghc-9.12.4), same
-    source, same store; the other half was built with LOOP_DEADSPOT=1
-    in front of align-as.py. Treat that disclosure as correct rather
-    than as a hedge.
+    gate's machine check read +0.56% on `list`'s net over 24 of 26
+    shapes against the fingerprint PREV kept, worst
+    `stretch-pow2stride` +2.67%, none past 5%; the run's own two
+    main-set processes read the same comparison at -0.20% (basis,
+    worst conv1d-24 -1.78%) and -0.39% (other, worst
+    alexnet-L2-27-c48-k5 -2.80%). All inside 3%, so absolutes DO
+    cross that boundary freely and a cross-run absolute comparison is
+    fair. (The last box event was before Run 18; nothing since.) It
+    is 24 OF 26 and not 26 of 26 because the fingerprint PREV kept
+    has no row for the two main-set shapes added 2026-09-02; a
+    --machine run against THIS run's own file reads 26 of 26 and
+    +0.00%, which is the freshly installed fingerprint compared with
+    itself and is not a machine check. A LAYOUT TERM DOES ride in
+    every cross-run figure this run: Main.hs moved by two commits of
+    2026-09-02, so neither half reproduces an earlier binary, no md5
+    here matches one on record, and the exact repetition Runs 19 and
+    23 could take is NOT available -- the write-up says so and reads
+    its cross-run column against run23-spot, the previous build of
+    this recipe, at 33 of 45 shared arms within 1%. The two HALVES
+    differ in the COMPILER only: same source, same shim commit, same
+    shim environment (both LOOP_DEADSPOT=1), the other half built
+    through cabal.project.ghead against the in-tree GHC HEAD stage1.
+    Treat that disclosure as correct rather than as a hedge.
  6. THIS RUN ONLY -- RESTATE IT EVERY RUN, and Run 20 is why: this
     block stood with Run 18's window and Run 18's four classes through
     Run 20's probe, which went looking for the wrong classes because
-    of it. On Run 23: ONE window, all twenty processes,
-    2026-09-01T23:55:28 to 2026-09-02T09:35:21, every one exiting 0 at
-    its roster's count, no complaint, the dead-spot half first
-    throughout. ONE INTRUSION, DISCLOSED AND NOT RERUN: a Claude Code
-    update installed at 00:42:01 during run23-spot-main; `--wild` on
-    that log puts 2 of 1320 benches at or above 0.25 foreign CPU,
-    both on cnn-L1-6x6-c1 (gen-unsafe 0.74, gen-unsafe-aa-adjacent
-    0.71), the FIRST shape at 23:55 and unrelated to the update, and
-    nothing near 00:42; post-run step 3's rerun was declined by the
-    person who asked for the run. The plateau gate reads all twenty
-    preamble victims inside a 4.63% spread against a 5% band. THREE
-    classes (revsome 1.0092, bcastmid 1.0093, runs 0.9894) have
-    cross-half baselines past the 0.7% differencing threshold and
-    their cross-half lines are explicitly not read for the pads; the
-    MAIN SET is inside it at 1.0033, so its two columns MAY be
-    differenced, which Run 22's could not. There are NINE classes and
-    `runs` has ELEVEN shapes. Cells below the shared forcing pass:
-    THREE on the basis main set (lib-stage2-short on stretch-inner1,
-    libunord-stage1 and libunord-stage2 on stretch-inner256) so three
-    rows are over 23 of 24; FIFTEEN on the dead-spot main set across
-    eleven rows (the three canon-* and six lib-stage2* arms on
-    stretch-inner1, and the two libunord arms on stretch-inner1,
-    stretch-pow2stride and alexnet-L1-55-c3-k11) so nine rows are
-    over 23 and two over 21; on reshape1 the basis half has eighteen
-    such cells across nine rows. Every registration figure is taken
-    over the 23 shapes excluding stretch-inner1 for that reason, and
-    the write-up says so. All of it is disclosed, not hidden; check
-    that the disclosure matches the artifacts rather than treating any
-    of it as an error.
+    of it. On Run 24: ONE window, all twenty processes,
+    2026-09-03T02:54:41 to 2026-09-03T12:58:25, every one exiting 0 at
+    its roster's count, no complaint and no `!!` line, the ghead half
+    first throughout. NO INTRUSION: `--wild` on both main logs puts
+    NOT ONE bench of 1352 at or above 0.25 foreign CPU, so post-run
+    step 3 did not fire and no population was rerun. What did happen
+    was BEFORE the window: the gate was launched at 02:06, stopped by
+    hand two minutes in when the machine was wanted, its four partial
+    artifacts moved out of the tree, and the recorded gate is the
+    relaunch of 02:09:17 -- the write-up discloses this and it is not
+    an error. The plateau gate reads all twenty preamble victims
+    inside a 3.08% spread against a 5% band. FIVE classes (rev
+    1.0078, revsome 1.0149, bcast 1.0124, reshape1 1.0327, runs
+    1.0104) have cross-half baselines past the 0.7% differencing
+    threshold and their cross-half lines are explicitly not read for
+    the compiler; the MAIN SET is inside it at 1.0025, so its two
+    columns MAY be differenced. There are NINE classes; `runs` has
+    FOURTEEN shapes and `window` FOUR, three and one of them added
+    2026-09-02 -- Main.hs still declares those four "added ...  after
+    the run" in README's Run 23 delta bullet, which the write-up
+    removes, so a shape count of 14 and 4 is right and a checker
+    reading 11 and 3 off that declaration is reading a stale one.
+    Cells below the shared forcing pass: FIVE on the basis main set
+    (both libunord arms on stretch-inner1 and stretch-wide-2xM,
+    libunord-stage2 on stretch-square-1341) so two rows are over 24
+    and 23 of 26; SIX on the ghead main set across three rows (the
+    two libunord arms on stretch-pow2stride and vgg-14-c512-k3,
+    libunord-stage2 on stretch-square-1341, and lib-stage2-lean alone
+    on stretch-inner1) so one row is over 25 and two over 24 and 23;
+    on reshape1 NINE arms are degenerate on each half, and the shape
+    they sink on DIFFERS BETWEEN THE HALVES -- reshape1-500k on the
+    basis, reshape1-r3 on ghead -- which is why a reshape1 family
+    reading is taken over the two shapes neither half sinks on. Every
+    main-set registration figure is taken over the 25 shapes
+    excluding stretch-inner1 for that reason, and the write-up says
+    so. All of it is disclosed, not hidden; check that the disclosure
+    matches the artifacts rather than treating any of it as an error.
 
 THE FIGURE SWEEP -- and it is a SWEEP, not a pass: `pass` in this file
 means one of the two agent invocations above, and both sweeps below are
