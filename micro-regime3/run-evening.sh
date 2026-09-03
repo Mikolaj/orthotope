@@ -38,7 +38,7 @@
 # so that neither is a `$R-*.log` for run-major.sh's relaunch guard or
 # read-all.sh's plateau glob to read as a process.
 #
-# Driven by ./check-scripts.py against stand-ins, the whole evening in
+# Driven by the cases in defects.py against stand-ins, the whole evening in
 # seconds (`evening-chains-the-stages`, and the refusals beside it). A
 # fix here wants a case there first.
 set -u

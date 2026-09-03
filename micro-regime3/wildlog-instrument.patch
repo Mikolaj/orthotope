@@ -59,7 +59,7 @@ index b663a25..78482c0 100644
 +-- everything this Benchmarkable adds is outside the timing.
 +--
 +-- The environment is read per sample rather than once at load: a top-level
-+-- read would be an import-time environment parse, which check-scripts.py
++-- read would be an import-time environment parse, which defect-lint.py
 +-- refuses as a defect family, and 'lookupEnv' walks the environment block
 +-- without a syscall, outside the clock, once per sample.
 +--

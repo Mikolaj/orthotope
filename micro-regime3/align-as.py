@@ -169,7 +169,7 @@ carried none within the floor. Off by default for the reason the other
 switches are: every figure published through this shim was measured under
 the max-skip form, and moving the basis is a run's decision.
 
-Its defects are kept as cases in `./check-scripts.py`: the switch read for
+Its defects are kept as cases in `defects.py`: the switch read for
 truth, the head after a zero-operand instruction, the pad's announcement,
 the empty `PAD_BYTES`, and for the dead-spot form the pad's place, the
 table kept with its label and the rotated pair's order. Add one there
@@ -324,7 +324,7 @@ def number(name, default):
     A value that is not a number still kills the compile, and should: the
     recipe asked for something this cannot do -- in one line naming the
     variable and its value rather than a traceback, under the handler that
-    `check-scripts.py --families` asks of a parse at import. Found
+    `defect-lint.py` asks of a parse at import. Found
     2026-08-22 by review.
     """
     try:

@@ -36,7 +36,7 @@
 # Seconds, no benchmark run, safe on a busy machine -- it only reads JSONs
 # and logs.
 #
-# Its defects are cases in ./check-scripts.py, the first two an in-situ row
+# Its defects are cases in defects.py, the first two an in-situ row
 # read as the A/A worst cell and a killed run gating what landed and calling
 # it clean. A fix here wants a case there first; it is what keeps the proof
 # alive past the commit.

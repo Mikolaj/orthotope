@@ -27,7 +27,7 @@
 # defect one stage later.
 #
 # Its defects, and the control that a full pass rewrites no table, are cases
-# in ./check-scripts.py; add one there before fixing anything here.
+# in defects.py; add one there before fixing anything here.
 #
 # WRITES THE RUN'S OWN FILE and nothing else -- every table and every
 # claim reading a run publishes is in `runs/run<N>.md`, which is why one

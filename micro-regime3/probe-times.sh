@@ -44,7 +44,7 @@
 # probe-times-selftest.log records the four.
 #
 # Artifacts $OUT-<pop>.{json,log} and $OUT-wallclock.log. NEVER a run's own
-# prefix: read-all.sh and check-scripts.py --properties read a $R-*.json as
+# prefix: read-all.sh and properties.py read a $R-*.json as
 # one of that run's processes, and a probe parked there reads exactly like
 # the run breaking.
 set -u

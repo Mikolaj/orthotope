@@ -32,7 +32,7 @@
 # at minute one rather than leaving it to be inferred hours later from an
 # absence, and only then if `--wild` is reached for at all.
 
-# Driven by ./check-scripts.py without binaries or hours: all eighteen
+# Driven by the cases in defects.py without binaries or hours: all eighteen
 # processes against stand-ins that hand back a previous run's real cells.
 # A fix here wants a case there first.
 

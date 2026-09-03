@@ -254,7 +254,7 @@ it.
 It exits 2, not 0,
 when the run file is missing: a refusal is information.
 
-**--selftest is the numeric half of that and `./check-scripts.py` is the
+**--selftest is the numeric half of that and `defects.py` is the
 other, which is where a defect of THIS FILE now goes.** Every invariant
 above is about a run's figures, and two reviews on 2026-08-17 found thirty
 defects that were not: a class table installed over the next class's, four
@@ -6739,7 +6739,7 @@ def paragraphs(docs, pattern, every=False):
         lead = LEAD_RE.search(para)
         # MATCHED WITH ITS MARKUP AND WITHOUT IT. A caller quoting a lead
         # types what it reads, and a lead carrying backticks or italics
-        # renders without them -- so `--para 'the three check-scripts.py
+        # renders without them -- so `--para 'the three script-check
         # steps'` found nothing and fell through to the body, where it
         # matched the pointer line that named it and nothing else. The
         # pattern is a regex, so it is the LEAD that is stripped rather
@@ -6960,7 +6960,7 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
     quiet pass over half the figures a run publishes.
 
     The four checks the split brought, each broken deliberately and each
-    kept as a case in `check-scripts.py` rather than as an assertion
+    kept as a case in `defects.py` rather than as an assertion
     here. A run file put beside a predecessor that is it verbatim names
     every figure-bearing paragraph of its head and exits 1
     (`chapter-head-carries-a-previous-run`), where the same file over a
@@ -7814,7 +7814,7 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
         # more, so nothing in these documents can make this branch fire and
         # the pass above is vacuous on its own. Its control is planted now,
         # `checkdoc-paired-run-aligned-with-no-counterpart` in
-        # check-scripts.py, which renames both halves of the run file's own
+        # defects.py, which renames both halves of the run file's own
         # table aligned and expects the message below; proved able to fail
         # the day it was written, by breaking its expectation. Before Run 10
         # landed it could not fire either and was exercised by hand only.
@@ -9224,7 +9224,7 @@ def lint(main_hs, readme, run_doc=None):
     # hypothetical -- the parking of 2026-08-28 retired claims 2 and 6 in
     # `CLAIMS` and left both live in the run file naming `offtab` and
     # `gen-quotrem`, claim 7's levels naming two more and claim 8's span a
-    # third, through two preflights, `--check-doc`, `check-scripts.py` and
+    # third, through two preflights, `--check-doc`, `defect-run.py` and
     # every gate here.
     #
     # A retired item is exempt by the marker it already carries, `**Retired`

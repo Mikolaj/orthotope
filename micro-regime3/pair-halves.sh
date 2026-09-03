@@ -29,7 +29,7 @@
 # and the corpus's stand-ins; every driver that spends the machine wants
 # the note itself and refuses without it.
 #
-# The check-scripts.py cases for this file are its controls: a note read,
+# The defects.py cases for this file are its controls: a note read,
 # and each refusal.
 set -u
 cd "$(dirname "$0")" || exit 1
@@ -41,7 +41,7 @@ R=$1
 NOTE="$R-pair.txt"
 # No note, and the environment names the basis: a pair whose note has
 # gone -- an install re-run after the artifacts were offered -- or a
-# stand-in in check-scripts.py. Said on stderr, so a launch that meant to
+# stand-in in defects.py. Said on stderr, so a launch that meant to
 # read a note and found none is not silent about it. OTHER may be unset
 # here, a one-half run having none; the scripts that need two check.
 if [ ! -f "$NOTE" ]; then

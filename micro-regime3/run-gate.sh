@@ -38,7 +38,7 @@
 #   ./read-run.py <run>-gate-<basis>-a.json \
 #     --compare <run>-gate-<other>-a.json
 
-# Driven by ./check-scripts.py without a binary or a run: the whole gate,
+# Driven by the cases in defects.py without a binary or a run: the whole gate,
 # four processes and its verdict, against a stand-in that answers --list.
 # A fix here wants a case there first.
 
