@@ -380,15 +380,15 @@ def runs_summary_row(tmp, shapes=None, short_by=None):
     makes it survive the next growth. Added 2026-09-03, after Run 24 took
     the class to fourteen and broke both anchors at once.
     """
+    if (shapes is None) == (short_by is None):
+        raise AssertionError('give runs_summary_row exactly one of shapes'
+                             ' and short_by')
     text = subprocess.run(['wrap80', '--unwrap'], input=rundoc_text(),
                           capture_output=True, text=True, check=True).stdout
     m = re.search(r'^\| `runs` \| (\d+) \|', text, re.M)
     if not m:
         raise AssertionError("no cross-class summary `runs` row in the run"
                              " file, so this fixture has no subject")
-    if (shapes is None) == (short_by is None):
-        raise AssertionError('give runs_summary_row exactly one of shapes'
-                             ' and short_by')
     want = shapes if shapes is not None else int(m.group(1)) - short_by
     return unwrapped_rundoc_edit(tmp, m.group(0),
                                  '| `runs` | %d |' % want)
@@ -781,7 +781,8 @@ def rundoc_pair_with_address_paragraph(tmp):
             ' address and a count.** The tracked loop sits at 0x425540'
             ' and its group at 2408930 bytes, on 23 of 24 shapes.\n\n')
     at = os.path.dirname(made['rundoc'])
-    for name in os.listdir(at):
+    for name in sorted(n for n in os.listdir(at)
+                       if re.match(r'run\d+\.md$', n)):
         path = os.path.join(at, name)
         text = open(path).read()
         head, sep, rest = text.partition('\n## ')
@@ -6399,7 +6400,7 @@ RECORDS = [
          # The table is hand-assembled and its `shapes` column was held to
          # nothing: `reshape1` and `bcastmid` went to four shapes on
          # 2026-08-25 and `runs` arrived at seven on 2026-08-28.
-         plant=lambda t: {'rundoc': runs_summary_row(t, 5)},
+         plant=lambda t: {'rundoc': runs_summary_row(t, short_by=1)},
          argv=['--check-doc', '--quiet', '--run-doc', '{rundoc}'],
          ok=V(exit=1, has=['shape counts disagree with Main.hs'])),
 
