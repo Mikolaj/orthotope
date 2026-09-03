@@ -118,7 +118,7 @@ if [ -n "$EXISTING" ]; then
   echo "wall-clock log for how far it got before deciding which."
   exit 1
 fi
-CLASSES="rev revsome bcast bcastmid reshape1 slice window scaled runs"
+CLASSES="rev revsome bcast bcastmid reshape1 slice window scaled runs flip block small compose"
 # A CLASS NAME CARRIES NO HYPHEN, and this is the one place that says so.
 # The population of a bench is derived below by cutting its name at the
 # first hyphen, while a SHAPE name carries hyphens of its own

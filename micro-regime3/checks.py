@@ -51,7 +51,8 @@ UNCOVERED = {
 # The probes: inputs to README rather than drivers, each run by hand for
 # the question it is named for, and none with a case.
 for _name in ('probe-attr-build.sh', 'probe-attrnoshim-build.sh',
-              'probe-attr-read.py', 'probe-attr.sh', 'probe-disp-build.sh',
+              'probe-attr-read.py', 'probe-attr.sh', 'probe-cache-build.sh',
+              'probe-cache-run.sh', 'probe-disp-build.sh',
               'probe-disp-ghead-build.sh', 'probe-evening-a.sh',
               'probe-evening-b.sh', 'probe-evening-chain.sh',
               'probe-evening-c.sh', 'probe-fillpair-build.sh',

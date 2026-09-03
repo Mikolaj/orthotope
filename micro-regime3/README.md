@@ -2438,6 +2438,45 @@ is planned. A scope limit belongs in the sentence that asks for the measurement.
    and are deleted, its numbers live nowhere else, and an entry that is the only
    copy is not shortened into a pointer to itself. What DID move out of
    it is Run 24's half, which the run file owns.
+10. `OPEN` **Run 25's additions, registered 2026-09-03 before any of them ran:
+    four stride classes and two window views for the canonical-form gaps
+    the classes left, and one probe past the cache.** The gaps and what each
+    addition prices are [in the classes
+    section](#the-stride-classes-and-what-they-cover); here is what each
+    is predicted to read and what kills it, every margin against
+    that population's own floor on both halves. (1) *`flip`.* The fills read
+    a reversed run at its forward speed: `lib-stage2` on `flip-last-rows` within
+    a floor of its `runs-96` cell per call, `lib-stage2` against `lib-stage1`
+    a tie on all three views, both routes being the regime-3 fill there; killed
+    by a fill reading a reversed run more than a floor slower than its forward
+    twin at the same length, which would price a reverse copy. (2) *`block`.*
+    The gap costs the slice route more than the fill, each memcpy starting
+    on a fresh line where the stepping loop's prefetch carries: `lib-stage2`
+    ahead of `lib-stage1` at every gap and by more at the page than at one
+    element, ahead by more again on the rank-3 block, and `lib-stage1` moved
+    by the offset more than `lib-stage2`; killed by the margin shrinking
+    as the gap grows. (3) *`small`.* `lib-stage2-lean` ahead of `lib-stage2`
+    past the floor on all four views, and `canon-vecdims` behind
+    `mut-odo-vecdims` past the floor on the two regime-3 views, the pass's
+    per-call cost showing where nothing hides it, while ahead on `small-flat64`,
+    which it collapses; killed by `lean` ahead nowhere. (4) *`compose`.* Each
+    composition reads within a floor of its single-mechanism twin at the same
+    size for the fill family: `compose-rev-bcast` of `bcast-inner8`,
+    `compose-zero-mid` as a broadcast and not as a `bcastmid` block copy,
+    and `compose-scalar` the fastest cell of any population; killed
+    by a composition more than a floor slower than its twin. (5) *The two
+    windows.* The short body fires on both k3 kernels, so `lib-stage2-short`
+    leads `lib-stage2` on both as it does on `window-224x224-k3`; killed
+    by either reading it behind past the floor. (6) *The past-cache probe*,
+    `probe-cache-build.sh` and `probe-cache-run.sh`: two regime-2 views of 8
+    million elements, runs of 96 and of 4096, on a scratch build of Run 24's
+    basis recipe with the cap raised for it alone, timed in one process
+    of the four route arms beside `list` and the forcing controls. Predicted:
+    the `runs` order holds past the cache, the fill ahead at 96 and the slice
+    route at 4096, both routes slowing alike; killed by an inversion, which
+    would make `dispRun` a function of the working set and not of the run
+    length. Its artifacts are `probe-cache-runs.json` and its log,
+    and its verdict goes here.
 
 **And one class not to repropose: work that needs an aligned build.**
 `mut-odo`'s wide interval is the live case. The dispersion is documented
@@ -2859,24 +2898,36 @@ the main set carries is positive and its offset is zero. The library reaches
 regime 3 through other operations too --- its two commonest inputs of that kind
 among them, a broadcast being stride 0 and `rev` negative --- and the **stride
 classes** are one population per producing operation, named by the prefix
-that selects them: `rev` (every stride negated, offset at the top), `revsome`
-(a strict subset reversed, so the signs are mixed), `bcast` (an innermost stride
-of 0, every run re-reading one element), `bcastmid` (the stretched axis
-in the middle instead), `reshape1` (the `[n] -> [n, 1]` trap, innermost extent
-1), `slice` (a view of a larger source, so a non-zero offset with positive
-strides), `window` (overlapping im2col patches --- the workload this README
-opens by naming, carrying the overlap that the main set's bijective index map
-drops) `scaled` (superincreasing strides, none of them 1) and, since 2026-08-28,
-`runs` (regime 2, not 3: an innermost run of contiguous elements under a padded
-outer stride, the one population the library sends to slices rather than
-to the fill). Each is a short list in `Main.hs`, reusing a main-set shape where
-one fits so that a class figure has a positive-stride counterpart to stand next
-to; each generator's comment there says what it models, and the comment heading
-them all, above `mkRev`, carries the coverage argument --- a hypothesis about
-what a valid hand-built view can recombine, not a theorem --- which
-is not repeated here. *Class* unqualified means one of these; the other sense
-in this README always keeps its noun, *method* --- a `class method`,
-the class-method tier, or in full a `Vector`-class method.
+that selects them, two of 2026-09-03 excepted and named last: `rev` (every
+stride negated, offset at the top), `revsome` (a strict subset reversed,
+so the signs are mixed), `bcast` (an innermost stride of 0, every run re-reading
+one element), `bcastmid` (the stretched axis in the middle instead), `reshape1`
+(the `[n] -> [n, 1]` trap, innermost extent 1), `slice` (a view of a larger
+source, so a non-zero offset with positive strides), `window` (overlapping
+im2col patches --- the workload this README opens by naming, carrying
+the overlap that the main set's bijective index map drops --- stride-1
+and undilated until 2026-09-03, when a strided and a dilated k3 window joined
+it), `scaled` (superincreasing strides, none of them 1), since 2026-08-28 `runs`
+(regime 2, not 3: an innermost run of contiguous elements under a padded outer
+stride, the one population the library sends to slices rather than to the fill),
+and since 2026-09-03 `flip` (a dense array reversed whole or along its last
+axis, so the innermost stride is -1: regime 2 mirrored, and one run at stride -1
+once canonicalized), `block` (regime 2 as a sub-block of a wider array: the gap
+between runs swept from one element to a page, a rank-3 block that does
+not merge, and an offset off an 8-element boundary), `small` (one view per
+canonical regime at a few hundred elements, where a per-call cost is a share
+of the call --- the one class defined by a size and not by an operation)
+and `compose` (a zero stride combined with a second mechanism --- reversed,
+sliced to an offset, a second zero stride it cannot merge with, or every stride
+zero --- as the library composes its operations and no one operation's class
+builds: the other exception). Each is a short list in `Main.hs`, reusing
+a main-set shape where one fits so that a class figure has a positive-stride
+counterpart to stand next to; each generator's comment there says what
+it models, and the comment heading them all, above `mkRev`, carries the coverage
+argument --- a hypothesis about what a valid hand-built view can recombine,
+not a theorem --- which is not repeated here. *Class* unqualified means one
+of these; the other sense in this README always keeps its noun, *method* ---
+a `class method`, the class-method tier, or in full a `Vector`-class method.
 
 Two rulings govern how they are measured and published, both taken 2026-08-07,
 ahead of the implementation:
@@ -9576,7 +9627,13 @@ tables and its fingerprint say so.
   of 26 shapes, so absolutes cross from Run 23 freely and the boundary
   that stops them is still the BIOS change before Run 18. Its sequence ran
   in ONE window, all twenty processes, with no intrusion and no population
-  rerun.
+  rerun. For Run 25, two window views and the four classes of that day,
+  `window-224x224-k3-s2`, `window-224x224-k3-d2`, `flip-whole-square`,
+  `flip-last-c32`, `flip-last-rows`, `block-run64-gap1`, `block-run64-gap64`,
+  `block-run64-page`, `block-run64-off7`, `block-r3-vol64`, `small-row96`,
+  `small-patch-k5`, `small-bcast32`, `small-flat64`, `compose-rev-bcast`,
+  `compose-slice-bcast`, `compose-zero-mid` and `compose-scalar` were added
+  2026-09-03, after the run.
 - Run 23 measured Run 22's shapes, class views and roster, nothing having moved
   between them --- 55 timed arms over 24 of today's 26 main-set shapes and 37
   of today's 41 class views in NINE classes, 1320 benches and 2035, sixteen A/A

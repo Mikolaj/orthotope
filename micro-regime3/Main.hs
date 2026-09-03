@@ -2195,9 +2195,10 @@ fbMutOdoVecdimsAddInLeafU2Down sh (T (Strides ats) ao v) = VS.create $ do
 -- canonicalization pass and the arms that price it and the two
 -- zero-stride conditions, each against 'fbMutOdoVecdims', the arm the
 -- fix ships and the body every one of them varies. Their figures decide
--- nothing about regimes 1 and 2: no generator here builds a view those
--- regimes accept, so what the composites price is regime-3 views that
--- CANONICALIZE into them.
+-- nothing about regime 1, which no generator here builds natively, and
+-- were read before 'mkRuns' built native regime-2 views; what the
+-- composites price on the regime-3 populations is views that CANONICALIZE
+-- into those regimes.
 
 -- Canonicalize a view for dispatch: drop unit dimensions -- a size-1
 -- dim contributes @0 * stride@ to every index whatever its stride --
@@ -3464,14 +3465,21 @@ mkSliced normalSh =
 -- output positions read the same element through distinct non-zero
 -- strides: @l@ exceeds the backing and runs overlap, which is the overlap
 -- README.md#non-urgent-todo-list records the main set as pessimistic
--- about.
+-- about. A six-entry listing adds a window stride @s@ and a kernel
+-- dilation @d@ (2026-09-03): the outer strides become @s * w@ and @s@, the
+-- kernel's @d@ and @d * w@, and the output shrinks to what the strided
+-- and dilated kernel fits, as a strided or dilated convolution's patch
+-- view has them. Four entries are @s = d = 1@.
 mkWindow :: ShapeL -> (ShapeL, T)
-mkWindow [h, w, kh, kw] =
+mkWindow [h, w, kh, kw] = mkWindow [h, w, kh, kw, 1, 1]
+mkWindow [h, w, kh, kw, s, d] =
   let v = VS.enumFromN (0 :: Double) (h * w)
-      sh = [h - kh + 1, w - kw + 1, kw, kh]
-      strides = Strides [w, 1, 1, w]
+      spanOf k = (k - 1) * d + 1
+      sh = [(h - spanOf kh) `div` s + 1, (w - spanOf kw) `div` s + 1, kw, kh]
+      strides = Strides [s * w, s, d, d * w]
   in  (sh, T strides 0 v)
-mkWindow sh = error ("mkWindow: [h, w, kh, kw] expected: " ++ show sh)
+mkWindow sh = error ("mkWindow: [h, w, kh, kw] or [h, w, kh, kw, s, d]"
+                     ++ " expected: " ++ show sh)
 
 -- Regime-3 view with NO unit stride anywhere, as @stride@ composed over
 -- @window@ and @slice@ reaches -- or as a hand-built T, the constructors
@@ -3487,6 +3495,59 @@ mkScaled sh strides@(Strides ats) =
   let n = 1 + sum (zipWith (\s t -> (s - 1) * t) sh ats)
       v = VS.enumFromN (0 :: Double) n
   in  (sh, T strides 0 v)
+
+-- Regime-3 view as @rev@ of a DENSE array produces it, whole or along
+-- its last axis: natural strides with the reversed dims negated, the
+-- offset where the reversed index map starts. The innermost stride is
+-- -1 -- regime 2 mirrored, which no other class reaches, 'mkRev' negating
+-- 'mkStrided' views whose innermost stride is never 1 -- and 'canonView'
+-- merges sign-agnostically, so the whole reversal is one run at stride
+-- -1 and a last-axis reversal is rows of them. Added 2026-09-03.
+mkFlip :: [Int] -> ShapeL -> (ShapeL, T)
+mkFlip rs sh =
+  let v = VS.enumFromN (0 :: Double) (product sh)
+      ts = drop 1 (getStridesT sh)
+      ats = [if r `elem` rs then negate t else t | (r, t) <- zip [0 ..] ts]
+      ao = sum [(n - 1) * t | (r, (n, t)) <- zip [0 ..] (zip sh ts)
+                            , r `elem` rs]
+  in  (sh, T (Strides ats) ao v)
+
+-- Regime-2 view as @slice@ of a wider array produces it: a sub-block of
+-- an enclosing dense array, every extent short of the enclosure's so
+-- 'canonView' merges nothing, listed as view shape, enclosing shape and
+-- offset. The axes 'runsShapes' fixes, swept: the gap between one run's
+-- end and the next's start, from one element to a page, which decides
+-- what each run's first read costs; a rank-3 block, so the fill's
+-- odometer runs a level deeper per run where the slice route's per-run
+-- cost is flat; and an offset off an 8-element boundary, which a memcpy
+-- per run meets and a stepping loop does not. Added 2026-09-03.
+mkBlock :: ShapeL -> ShapeL -> Int -> (ShapeL, T)
+mkBlock sh esh ao =
+  let v = VS.enumFromN (0 :: Double) (product esh)
+  in  (sh, T (Strides (drop 1 (getStridesT esh))) ao v)
+
+-- Views a few hundred elements or less, one per canonical regime, over
+-- the tightest backing their strides span: every other population is
+-- thousands of elements and up, so a per-call cost -- the dispatch,
+-- 'canonView''s O(rank) list work, the base-offsets table's allocation --
+-- is noise there and a share of the call here. Listed with the regime
+-- the view takes, the class spanning them by design. Added 2026-09-03.
+mkSmall :: ShapeL -> Strides -> (ShapeL, T)
+mkSmall = mkScaled
+
+-- Views combining mechanisms the classes above hold one at a time, as the
+-- library composes its operations and no one operation's class builds:
+-- a broadcast reversed; a broadcast sliced to a non-zero offset; a zero
+-- stride on each side of a non-zero one, which 'canonView' cannot merge,
+-- adjacent zeros being the case it does, so the hoisted read and the
+-- block copy compose in one fill; and a scalar broadcast to a whole
+-- array, every stride 0. Listed with explicit strides and offset, over
+-- the tightest backing the view spans from that offset. Added 2026-09-03.
+mkCompose :: ShapeL -> Strides -> Int -> (ShapeL, T)
+mkCompose sh strides@(Strides ats) ao =
+  let top = ao + sum [(s - 1) * t | (s, t) <- zip sh ats, t > 0]
+      v = VS.enumFromN (0 :: Double) (top + 1)
+  in  (sh, T strides ao v)
 
 -- The conv-derived shapes (grouped inline below; see
 -- README.md#the-shape-set for where they come from): a full patch tensor
@@ -3735,6 +3796,14 @@ windowShapes =
     -- short-body arm its widest lead could not say where the lead ends.
     -- The image is sized to keep the view under 'sizeCap'.
   , ("window-128x128-k7", [128, 128, 7, 7])  -- 729316, over 16384
+    -- A strided and a dilated window over the k3 image, added 2026-09-03:
+    -- the three above and the k5 one are stride-1 and undilated, as
+    -- 'mkWindow' built every window until then, so a strided
+    -- convolution's patch view -- outer strides twice the row and 2 --
+    -- and a dilated kernel's -- taps a row and two elements apart -- had
+    -- no view. The kernel stays k3 so the short body still fires.
+  , ("window-224x224-k3-s2", [224, 224, 3, 3, 2, 1])  -- 110889, stride 2
+  , ("window-224x224-k3-d2", [224, 224, 3, 3, 1, 2])  -- 435600, dilated by 2
   ]
 
 -- Views, not shapes like its siblings: explicit strides beside the shape,
@@ -3823,6 +3892,45 @@ mkRuns sh@(rows : inner) =
   in  (sh, T (Strides strides) 0 v)
 mkRuns sh = error ("mkRuns: rank 2 or more expected: " ++ show sh)
 
+-- Dims to reverse (of the dense array) beside its shape; the last dim is
+-- always among them, which the innermost-minus-one condition pins.
+flipShapes :: [(String, [Int], ShapeL)]
+flipShapes =
+  [ ("flip-whole-square", [0, 1], [1341, 1341])       -- 1798281, one run at stride -1
+  , ("flip-last-c32",     [4],    [24, 24, 32, 3, 3]) -- 165888, runs of 3, reversed
+  , ("flip-last-rows",    [1],    [18750, 96])        -- 1800000, rows of 96, reversed
+  ]
+
+-- View shape, enclosing shape and offset; every view extent stays short
+-- of the enclosure's, which the canon-rank condition pins.
+blockViews :: [(String, ShapeL, ShapeL, Int)]
+blockViews =
+  [ ("block-run64-gap1",  [2048, 64],   [2048, 65],   0)  -- 131072, one element between rows
+  , ("block-run64-gap64", [2048, 64],   [2048, 128],  0)  -- 131072, a row between rows
+  , ("block-run64-page",  [2048, 64],   [2048, 512],  0)  -- 131072, rows a page apart
+  , ("block-run64-off7",  [2048, 64],   [2048, 128],  7)  -- 131072, at offset 7
+  , ("block-r3-vol64",    [64, 64, 64], [72, 72, 72], 0)  -- 262144, rank 3 under canonView
+  ]
+
+-- The regime the view takes, its shape and its strides.
+smallViews :: [(String, Int, ShapeL, Strides)]
+smallViews =
+  [ ("small-row96",    2, [4, 96],    Strides [97, 1])     -- 384, rows of 96
+  , ("small-patch-k5", 3, [6, 5, 5],  Strides [25, 1, 5])  -- 150, lenet-slice-c6-k5's own view
+  , ("small-bcast32",  3, [8, 32],    Strides [1, 0])      -- 256, a broadcast
+  , ("small-flat64",   2, [4, 1, 64], Strides [64, 0, 1])  -- 256, collapses to regime 1
+  ]
+
+-- Shape, strides and offset; each combines a zero stride with a second
+-- mechanism, which the second-mechanism condition pins.
+composeViews :: [(String, ShapeL, Strides, Int)]
+composeViews =
+  [ ("compose-rev-bcast",   [64, 100, 8],   Strides [-100, -1, 0], 6399)  -- 51200, bcast-inner8 reversed
+  , ("compose-slice-bcast", [64, 100, 8],   Strides [100, 1, 0],   7)     -- 51200, the hoisted read at offset 7
+  , ("compose-zero-mid",    [200, 90, 100], Strides [0, 1, 0],     0)     -- 1800000, zero, one, zero
+  , ("compose-scalar",      [1200, 1500],   Strides [0, 0],        0)     -- 1800000, every stride 0
+  ]
+
 classViews :: [(String, (ShapeL, T))]
 classViews =
   [(n, mkRev s) | (n, s) <- revShapes]
@@ -3835,6 +3943,10 @@ classViews =
   ++ [(n, mkWindow s) | (n, s) <- windowShapes]
   ++ [(n, mkScaled s sts) | (n, s, sts) <- scaledViews]
   ++ [(n, mkRuns s) | (n, s) <- runsShapes]
+  ++ [(n, mkFlip rs s) | (n, rs, s) <- flipShapes]
+  ++ [(n, mkBlock s e o) | (n, s, e, o) <- blockViews]
+  ++ [(n, mkSmall s sts) | (n, _, s, sts) <- smallViews]
+  ++ [(n, mkCompose s sts o) | (n, s, sts, o) <- composeViews]
 
 -- The cap that partitions the shape set: benchmarked iff @l <= sizeCap@,
 -- flagged and excluded otherwise. 'stretchShapes' is written to it exactly.
@@ -4897,6 +5009,10 @@ check = do
   mapM_ oneWindow windowShapes
   mapM_ oneScaled scaledViews
   mapM_ oneRuns runsShapes
+  mapM_ oneFlip flipShapes
+  mapM_ oneBlock blockViews
+  mapM_ oneSmall smallViews
+  mapM_ oneCompose composeViews
   where
     one (name, normalSh) = do
       let (sh, a@(T (Strides ats) ao _)) = mkStrided normalSh
@@ -5035,16 +5151,20 @@ check = do
             [ ("offset-positive",   ao > 0)
             , ("backing-enclosing", VS.length v
                                     == product (map (+ 2) normalSh)) ]
-    -- Non-vacuity: an innermost stride of 2 in place of the duplicated one
-    -- (still in-bounds) fails dup-stride alone; shrinking the view to a
-    -- single patch fails aliasing alone.
+    -- Non-vacuity: an innermost stride of 2 in place of the row multiple
+    -- (still in-bounds) fails row-multiples alone; shrinking the view to a
+    -- single patch fails aliasing alone. The condition was dup-stride,
+    -- outer equal to innermost, until the strided and dilated windows of
+    -- 2026-09-03, whose two are @s * w@ and @d * w@.
     oneWindow (name, hwkk) =
       let (sh, a@(T (Strides ats) _ v)) = mkWindow hwkk
-          dup = case ats of t : _ -> t == last ats
-                            []    -> False
+          w = hwkk !! 1
+          rowMultiples = case ats of
+            t : _ -> t `mod` w == 0 && last ats `mod` w == 0
+            []    -> False
       in  oneView name sh a
-            [ ("aliasing",   VS.length v < product sh)
-            , ("dup-stride", dup) ]
+            [ ("aliasing",      VS.length v < product sh)
+            , ("row-multiples", rowMultiples) ]
     -- Non-vacuity: a 1 in an entry's stride list fails no-unit-stride
     -- alone -- the mistyped entry being exactly what it guards -- and five
     -- elements of backing slack fail tight-backing alone.
@@ -5064,6 +5184,57 @@ check = do
             , ("tight-backing",  VS.length v
                                  == 1 + sum (zipWith (\s t -> (s - 1) * t)
                                              sh' ats)) ]
+    -- Non-vacuity of the four below, proven at the interpreter on
+    -- 2026-09-03 over small views of each generator's own kind. flip:
+    -- leaving the last dim un-reversed (a valid partial rev) fails
+    -- innermost-minus-one and canon-minus-one together and the regime
+    -- with them, 2 where the class owes 3 -- so those two stand as the
+    -- class's definition, their space guarded by the regime check, as
+    -- bcast's stride0-inner does -- while shifting the offset by 7 over a
+    -- backing grown by 7 fails offset-rev-sum alone. block: an enclosure
+    -- equal to the view fails canon-rank and the regime together, 1 where
+    -- the class owes 2, and a backing grown by 7 fails backing-enclosing
+    -- alone; innermost-unit and offset-listed derive from the generator
+    -- and stand as its definition. small: a backing grown by 1 fails
+    -- tight-backing alone, and a view of 1152 elements fails few-hundred
+    -- alone. compose: a lone innermost zero stride at offset 0 fails
+    -- second-mechanism alone.
+    oneFlip (name, rs, sh) =
+      let (sh', a@(T (Strides ats) ao _)) = mkFlip rs sh
+          (_, cats) = canonView sh' ats
+      in  oneView name sh' a
+            [ ("innermost-minus-one", last ats == -1)
+            , ("canon-minus-one",     last cats == -1)
+            , ("offset-rev-sum", ao == sum [(n - 1) * negate t
+                                           | (n, t) <- zip sh' ats, t < 0]) ]
+    oneBlock (name, sh, esh, ao) =
+      let (sh', a@(T (Strides ats) ao' v)) = mkBlock sh esh ao
+          (csh, _) = canonView sh' ats
+      in  oneViewReg 2 name sh' a
+            [ ("innermost-unit",    last ats == 1)
+            , ("canon-rank",        length csh == length sh')
+            , ("offset-listed",     ao' == ao)
+            , ("backing-enclosing", VS.length v == product esh) ]
+    oneSmall (name, reg, sh, strides) =
+      let (sh', a@(T (Strides ats) _ v)) = mkSmall sh strides
+      in  oneViewReg reg name sh' a
+            [ ("few-hundred",   product sh' < 1000)
+            , ("tight-backing", VS.length v
+                                == 1 + sum (zipWith (\s t -> (s - 1) * t)
+                                            sh' ats)) ]
+    oneCompose (name, sh, strides, ao) =
+      let (sh', a@(T (Strides ats) ao' v)) = mkCompose sh strides ao
+          zeros = [i | (i, t) <- zip [0 :: Int ..] ats, t == 0]
+          apart = or [b - c > 1 | (c, b) <- zip zeros (drop 1 zeros)]
+          second = any (< 0) ats || ao' > 0 || length zeros == length ats
+                   || apart
+      in  oneView name sh' a
+            [ ("zero-stride",      not (null zeros))
+            , ("second-mechanism", second)
+            , ("tight-backing",    VS.length v
+                                   == 1 + ao' + sum [(s - 1) * t
+                                                    | (s, t) <- zip sh' ats
+                                                    , t > 0]) ]
 
 -- Allocation diagnostic (run with @cabal run micro -- diag@): why is
 -- 'fbBQmut' faster than 'fbBaseOffsetsQuot' when they share the same

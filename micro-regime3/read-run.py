@@ -329,9 +329,14 @@ def dims_by_shape(main_hs):
     def reshape1(ds, _):
         return math.prod(ds), 1
 
+    # four entries are image and kernel; six add the window stride and
+    # the kernel dilation, as mkWindow reads them since 2026-09-03
     def window(ds, _):
-        h, w, kh, kw = ds
-        return (h - kh + 1) * (w - kw + 1) * kh * kw, kh
+        h, w, kh, kw = ds[:4]
+        s, d = (ds[4], ds[5]) if len(ds) == 6 else (1, 1)
+        span = lambda k: (k - 1) * d + 1  # noqa: E731
+        out_h, out_w = (h - span(kh)) // s + 1, (w - span(kw)) // s + 1
+        return out_h * out_w * kh * kw, kh
 
     # the run is everything under the outer dim, merged or not
     def runs(ds, _):
@@ -353,6 +358,14 @@ def dims_by_shape(main_hs):
         ('windowShapes', sh_re, window),
         ('scaledViews', sh_re + r',\s*Strides\s*\[[^\]]*\]', listed),
         ('runsShapes', sh_re, runs),
+        # The four classes of 2026-09-03: each lists the view shape
+        # itself, beside reversed dims, an enclosing shape and offset, a
+        # regime and strides, or strides and offset.
+        ('flipShapes', r'\[[^\]]*\],\s*' + sh_re, listed),
+        ('blockViews', sh_re + r',\s*\[[^\]]*\],\s*\d+', listed),
+        ('smallViews', r'\d+,\s*' + sh_re + r',\s*Strides\s*\[[^\]]*\]',
+         listed),
+        ('composeViews', sh_re + r',\s*Strides\s*\[[^\]]*\],\s*\d+', listed),
     ]
     out, ann = {}, {}
     try:
