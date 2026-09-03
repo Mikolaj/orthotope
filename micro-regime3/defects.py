@@ -764,6 +764,56 @@ def rundoc_pair(tmp, held=True):
     return {'rundoc': write(os.path.join(at, 'run%d.md' % now), text)}
 
 
+def rundoc_pair_with_address_paragraph(tmp):
+    """`rundoc_pair` held, plus a head paragraph carrying no decimal.
+
+    The staleness check reads the head through `FIGURE_RE`, which matches
+    a decimal and nothing else -- not a hex address, not a byte count, not
+    a count spelled in words. Run 24 met that: it replaced every one of
+    the twenty paragraphs the check named and three MORE were still the
+    run before's, carrying `0x4205aa`, `2408930 bytes` and `23 of 24`
+    between them, and only the end-to-end read found them. The head is
+    replaced WHOLE every run, so nothing about it should be filtered by
+    what kind of figure a paragraph happens to carry. Added 2026-09-03.
+    """
+    made = rundoc_pair(tmp, held=True)
+    para = ('**zz-address-only, a head paragraph whose figures are an'
+            ' address and a count.** The tracked loop sits at 0x425540'
+            ' and its group at 2408930 bytes, on 23 of 24 shapes.\n\n')
+    at = os.path.dirname(made['rundoc'])
+    for name in os.listdir(at):
+        path = os.path.join(at, name)
+        text = open(path).read()
+        head, sep, rest = text.partition('\n## ')
+        assert sep, '%s has no `## ` section to end its head at' % name
+        write(path, head + '\n\n' + para.rstrip('\n') + sep + rest)
+    return made
+
+
+def rundoc_registration_with_verdicts(tmp):
+    """A registration section shaped as a written-up run leaves it.
+
+    The mode reads from the registration HEADING to the next `## `, which
+    after post-run step 5's third act holds the registration paragraph AND
+    a verdict paragraph per item -- so every item is found twice, its span
+    counted twice, and an item whose span sits in the registration is
+    listed as having none because the verdict paragraph repeating its
+    number has none. Run 24 read eleven entries for six items. The mode
+    runs before the verdicts are written, so the procedure never met it;
+    what it costs is that the mode cannot be re-run as a cross-check
+    afterwards, which is the one thing a second pass would want it for.
+    Added 2026-09-03.
+    """
+    doc = ('# Run 99 (fixture)\n\n'
+           'A head paragraph.\n\n'
+           '## What this run was built to answer, and what it answered\n\n'
+           '(1) *The first.* `predict: cross list 1.0 within 99%` and a'
+           ' kill condition. (2) *The second.* No span here.\n\n'
+           '(1) *The first.* **HELD**, the verdict paragraph.\n\n'
+           '(2) *The second.* **HELD**, the verdict paragraph.\n')
+    return {'rundoc': write_rundoc(tmp, doc, name='run99.md')}
+
+
 def rundoc_current_run_sentence(tmp):
     """A verdict sentence attributing a figure to the run in hand.
 
@@ -5168,6 +5218,57 @@ RECORDS = [
          # plants against an anchor the era's copy does not carry, so
          # the replay is a fixture that will not build. 2026-08-25.
          ),
+
+    case('predictions-enumerates-items-twice', 'read-run.py', None,
+         'each registration item counted once per paragraph naming it',
+         plant=lambda t: dict(rundoc_registration_with_verdicts(t),
+                              run=synth_json(t, 'main', name='a.json'),
+                              other=synth_json(t, 'main', name='b.json')),
+         argv=['{run}', '--compare', '{other}', '--predictions',
+               '--run-doc', '{rundoc}'],
+         # One span and one item without: the doubled form says `2 span(s)`
+         # and lists `(2), (1), (2)`.
+         ok=V(has=['1 span(s)'], hasnt=['(2), (1)'])),
+
+    case('compare-does-not-name-its-direction', 'read-run.py', None,
+         'a ratio whose direction the reader knows and does not say',
+         # `--compare` puts the BASIS first, so below 1 is the basis
+         # faster -- which the run chapter states and which a session
+         # writing prose still gets backwards, four paragraphs of Run 24's
+         # head having been written the wrong way round and caught by the
+         # PUBLISHED COLUMNS rather than by anything the mode said. The
+         # mode knows both file names and the convention; saying it costs
+         # one line and removes the whole class of error.
+         plant=lambda t: {'run': synth_json(t, 'main', name='a.json'),
+                          'other': synth_json(t, 'main', name='b.json')},
+         argv=['{run}', '--compare', '{other}'],
+         ok=V(exit=0, has=['below 1 ='])),
+
+    case('replace-takes-an-abutting-heading', 'read-run.py', None,
+         'a paragraph that abuts a heading took the heading with it',
+         # --replace's unit is blank-line separated, so a paragraph the
+         # document does not separate from the heading below it carries
+         # that heading into the replacement and the heading is gone. Run
+         # 24 lost `## Results` from its own file that way, met two gates
+         # later as `no Results heading`, and recoverable only because the
+         # mode had printed the heading on its `out, last` line. A run
+         # file's headings are what every install and every link resolve
+         # against, so this refuses instead.
+         plant=lambda t: {
+             'doc': write(os.path.join(t, 'doc.md'),
+                          '# T\n\nkeep me\n\nthe planted paragraph\n'
+                          '## zz-Heading\n\nafter\n'),
+             'readme': write(os.path.join(t, 'other.md'), '# other\n'),
+             'new': write(os.path.join(t, 'new.txt'), 'replacement\n')},
+         argv=['--replace', 'the planted paragraph', '--with', '{new}',
+               '--run-doc', '{doc}', '--readme', '{readme}'],
+         ok=V(exit=1, has=['heading'], hasnt=['chars ->'])),
+
+    case('stale-head-check-sees-only-decimals', 'read-run.py', None,
+         'three stale head paragraphs the check could not see',
+         plant=rundoc_pair_with_address_paragraph,
+         argv=['--check-doc', '--quiet', '--run-doc', '{rundoc}'],
+         ok=V(has=['zz-address-only'])),
 
     case('answered-only-copy-ruling-is-exempt', 'read-run.py', None,
          'a gate with no true way out for an answer nothing else records',

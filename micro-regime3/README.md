@@ -6886,14 +6886,25 @@ because by then the run read finished; putting it first is what retires that.
    is making its two sides one basis --- the same population, the same
    restriction, the basis a claim was stated on --- and only then reading
    figures. Run 7's first claim check ran on its 24 shapes against claims stated
-   on 22, and every pair had to be re-run. **One JSON at a time, never merged.**
-   The reader takes one file, and its geomean is that file's population ---
-   the main set's or one class's. Every mode names that population in its first
-   line, `--selftest` fails a file spanning two and `--markdown` declines
-   to emit a table for one, so a merged run is caught rather than published.
-   The class tables stand beside the main geomean, per [the
-   ruling](#the-stride-classes-and-what-they-cover), and there is no combined
-   figure to compute, so a sentence comparing populations compares their tables.
+   on 22, and every pair had to be re-run. **AND WHERE THIS RUN'S SHAPE SET
+   MOVED, PIN IT BACK BEFORE QUOTING ANY CROSS-RUN FIGURE**: `--exclude-shape`
+   the shapes this run added, once per shape, so the figure is
+   over the population its predecessor had. This is not the `alloc` column's
+   rule, though that column is where it is written down; it is every cross-run
+   figure's. Run 24 is the run that met it: it added two main-set shapes,
+   and its ceiling and eight of its `alloc` rows read as having moved out
+   of bands they had held for runs, until each was re-read
+   over its predecessor's own shapes and returned that predecessor's figure.
+   Both would have been published as movements and neither is one; [its
+   file](runs/run24.md) carries the figures. **One JSON at a time, never
+   merged.** The reader takes one file, and its geomean is that file's
+   population --- the main set's or one class's. Every mode names
+   that population in its first line, `--selftest` fails a file spanning two
+   and `--markdown` declines to emit a table for one, so a merged run is caught
+   rather than published. The class tables stand beside the main geomean, per
+   [the ruling](#the-stride-classes-and-what-they-cover), and there
+   is no combined figure to compute, so a sentence comparing populations
+   compares their tables.
 4a. Analyse with `./read-run.py`, which is where every table in this file comes
 from --- read [the reader's own section](#the-reader-read-runpy) first, and do
 not write another reader. **The claims are part of this and are the thing

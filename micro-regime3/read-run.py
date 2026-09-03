@@ -2177,6 +2177,15 @@ def compare_table(cells, shapes, strategies, meta, other, main_hs,
                + [s for s in b_shapes if s not in shapes])
     print('\nthis run / %s, per arm, over %d shared shape(s)'
           % (os.path.basename(other), len(both_sh)))
+    # THE DIRECTION, SAID RATHER THAN LEFT TO BE REMEMBERED. This run is
+    # the numerator, so below 1 is THIS run faster -- which the run
+    # chapter states and a session writing prose still gets backwards:
+    # four paragraphs of Run 24's head were written the wrong way round
+    # and were caught by the published columns, not by anything this mode
+    # said. It knows both names and the convention.
+    # Case: `compare-does-not-name-its-direction`.
+    print('  below 1 = this run faster, above 1 = %s faster'
+          % os.path.basename(other))
     if missing:
         print('  shapes in one run only, skipped: %s'
               % ', '.join(sorted(set(missing))))
@@ -2359,6 +2368,19 @@ def predictions_table(cells, shapes, strategies, meta, other, main_hs,
     for k, (at, num) in enumerate(marks):
         end = marks[k + 1][0] if k + 1 < len(marks) else len(flat)
         items.append((num, flat[at:end]))
+    # ONE ENTRY PER ITEM NUMBER, the FIRST. The section read here runs
+    # from the registration's heading to the next `## `, and after
+    # post-run step 5's third act that holds the registration AND a
+    # verdict paragraph per item -- so every item was found twice,
+    # its span counted twice, and an item whose span is in the
+    # registration was listed as having none because the verdict
+    # paragraph repeating its number has none. Run 24 read eleven
+    # entries for six items. The registration comes first, so the
+    # first occurrence is the one that carries the spans.
+    # Case: `predictions-enumerates-items-twice`.
+    seen_nums = set()
+    items = [(num, body) for num, body in items
+             if not (num in seen_nums or seen_nums.add(num))]
     specs = [(num, sp) for num, body in items
              for sp in PREDICT_RE.findall(body)]
     stray = [sp for sp in PREDICT_RE.findall(flat)
@@ -5981,6 +6003,23 @@ def splice(docs, anchor, source):
                          ' there is no one paragraph to replace\n')
         return 1
     old = paras[hit[0]]
+    # A HEADING THE DOCUMENT DID NOT SEPARATE FROM THE PARAGRAPH ABOVE IT
+    # is part of that paragraph, so replacing the paragraph deletes the
+    # heading. Run 24 lost `## Results` from its own file that way, the
+    # committed copy having no blank line before it, and met the loss two
+    # gates later as `no Results heading`. The echo below did say so on
+    # its `out, last` line, and saying so was not enough -- the same
+    # difference the list guards below are the second of. A run file's
+    # headings are what every install and every link resolve against.
+    # Case: `replace-takes-an-abutting-heading`.
+    heads = [l for l in old.split('\n') if re.match(r'#{1,6} ', l)]
+    if heads:
+        sys.stderr.write('--replace: this paragraph carries the heading'
+                         ' %s, which no blank line separates from it, so'
+                         ' replacing the paragraph would delete the'
+                         ' heading -- put a blank line above the heading'
+                         ' first, then replace\n' % heads[0].strip())
+        return 1
     # A LIST WITH NO BLANK LINES BETWEEN ITS ITEMS IS ONE PARAGRAPH, and
     # this replaces paragraphs -- so an anchor inside one item of the open
     # list's numbered tasks took all three items and wrote back one.
@@ -8210,15 +8249,28 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
     # checks this replaces had between them: the head is a handful of
     # paragraphs and every one is written from this run's numbers, while a
     # class block's form and a claim's restatement can legitimately repeat.
-    def figure_blocks(text):
+    def figure_blocks(text, figures_only=True):
+        # `figures_only` is FALSE for the HEAD, which a run replaces
+        # WHOLE: there, any paragraph the run before also had is
+        # suspect, whatever kind of figure it carries. FIGURE_RE
+        # matches a decimal and nothing else, so a paragraph whose
+        # figures are a hex address, a byte count or a count spelled
+        # in words is invisible to it -- and Run 24 replaced every
+        # one of the twenty paragraphs this named while three MORE
+        # were still Run 23's, carrying 0x4205aa, 2408930 bytes and
+        # `23 of 24` between them. Only the end-to-end read found
+        # them. The filter stays for the REST of the file, where a
+        # form or a restatement legitimately stands.
+        # Case: `stale-head-check-sees-only-decimals`.
         out = {}
         for key, ls in blocks_of(text):
             first = ls[0].lstrip()
             if (ls[0].startswith('    ') or first.startswith('|')
                     or re.match(r'#{1,6} |\[[^\]]+\]:', first)):
                 continue
-            if FIGURE_RE.search(' '.join(ls)):
-                out[key] = ls[0]
+            if figures_only and not FIGURE_RE.search(' '.join(ls)):
+                continue
+            out[key] = ls[0]
         return out
 
     def head_and_rest(text):
@@ -8236,8 +8288,20 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
         was_run = run_no_of(prev_doc)
         now_head, now_rest = head_and_rest(run_text)
         was_head, _was_rest = head_and_rest(prev_text)
-        old_head, old_all = figure_blocks(was_head), figure_blocks(prev_text)
-        stale = [l for k, l in figure_blocks(now_head).items()
+        # THE PREAMBLE IS THE ONE PARAGRAPH OF THE HEAD A RUN DOES NOT
+        # REPLACE: the paragraph under the title says what a run file
+        # IS, and it stands every run by design, so holding it to the
+        # rule below would ask each run to reword a form statement to
+        # no end. Dropped by position -- the first surviving block of
+        # the head, the title itself being skipped as a heading -- and
+        # dropped from BOTH sides, so a run that does reword it is not
+        # thereby held to the run before's.
+        def head_blocks(text):
+            got = figure_blocks(text, figures_only=False)
+            return dict(list(got.items())[1:])
+        old_head = head_blocks(was_head)
+        old_all = figure_blocks(prev_text)
+        stale = [l for k, l in head_blocks(now_head).items()
                  if k in old_head]
         if stale:
             bad.append("%d paragraph(s) of Run %s's head are unchanged from"
@@ -8247,8 +8311,8 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
                        % (len(stale), cur, was_run,
                           '; '.join(l.strip()[:60] for l in stale)))
         else:
-            print("ok:   every figure-bearing paragraph of Run %s's head is"
-                  ' new since Run %s' % (cur, was_run))
+            print("ok:   every paragraph of Run %s's head is new since"
+                  ' Run %s' % (cur, was_run))
         held = [l for k, l in figure_blocks(now_rest).items()
                 if k in old_all]
         if held:
