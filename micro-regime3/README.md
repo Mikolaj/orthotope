@@ -2097,20 +2097,19 @@ rather than a slot in the next run, observed again:
   that run's tables.
 ### Recommended tasks after Run 24
 
-**What Run 23 made cheaper for the next run, which is not a figure and no other
+**What Run 24 made cheaper for the next run, which is not a figure and no other
 step gathers --- and it is TWO sessions' worth, the preparation's reaching
 the executor only through the pair note.** **The preparing session's half**, met
-a day early and recorded in its note: pre-run 12b earned its place on its second
-outing, two of the draft registration's figures not surviving being re-derived
-from the JSONs they cited, the `41x of nothing` among them; the computations
-it improvised were whether the shim's two inert switches stay inert
-under `LOOP_DEADSPOT`, settled by reading `rewrite()`'s early return, and which
-arms' fills carried a pad, taken by differencing the two counted sweeps already
-on disk rather than trusting a prose entry; it skipped no step, step 12 being
-NOT OWED; the capability it found was a pair whose two md5s are a two-sided
-instrument, both halves reproducing task 6's binaries; and it fixed a defect
-in preflight's step 10c, which read a full stop at the end of a path as part
-of it.
+a day early and recorded in its note: pre-run 12b earned its place again,
+this note's counts paragraph having quoted four of Run 23's sweep durations
+of which two were transcribed rather than derived; the computation it improvised
+was differencing the two builds' fill address lists by hand, no mode subtracting
+them, which is what showed six of the eight tracked loops moving by ONE
+constant, 0x940, and two not moving at all; it skipped no step, step 12 being
+OWED and run; the capability it found was a reading the pinning claim had never
+had, a roster change that leaves every mod-64 offset in place; and it repaired
+two things nothing here could see, `preflight.sh` calling a script retired three
+commits earlier and three corpus fixtures aimed at deleted artifacts.
 
 **THE CHECK THAT WOULD HAVE CAUGHT THIS HALF'S ERRORS is the one
 the hand-edited-table entry now asks for in a third shape.** The paragraph
@@ -2140,11 +2139,36 @@ than by a script nobody keeps. WHICH CELLS SINK: the reader names the worst cell
 below the forcing pass and counts the rest, and the head wanted the list, which
 came from `--cells` again.
 
-**THE STEP SKIPPED: post-run step 3's rerun, declined by the person who asked
-for the run so that the machine could be handed back**, after `--wild` had put
-the one intrusion's two cells on the first shape of a process and nothing near
-the event that prompted the reading. It is disclosed at every site the two cells
-reach, and it cost nothing the write-up can name.
+**The executing session's half, and the four are these.** **THE CHECKS
+THAT WOULD HAVE CAUGHT THE ERRORS** were not the mechanical ones: `--lint`
+and `--check-doc` passed over every draft of this write-up that carried
+a reversed comparison direction, a mis-tallied verdict summary and three head
+paragraphs still holding Run 23's figures. What caught each was cheaper
+than either --- the PUBLISHED COLUMNS settle `--compare`'s direction in one
+look, basis `bq-scan-rem-gm-mulback` 0.101 against HEAD's 0.107, where the ratio
+alone is ambiguous to a reader who has not just written the flag;
+`--check-doc --worklists`' superlative sweep caught the verdict tally, being
+a list of claims to re-derive rather than a check that fires; and the END-TO-END
+READ caught the three stale paragraphs, which is the pass the run chapter says
+keeps finding real errors and which is the only reason they were found:
+**`--check-doc` named twenty stale head paragraphs and there
+were twenty-three**, the three it did not name carrying figures like the twenty
+it did. Why it named twenty is not established here and is worth a session's
+attention before the next run trusts that count. **THE COMPUTATION IMPROVISED**
+was the cross-run comparison on a PINNED shape set: two `--exclude-shape` flags
+naming the two main-set shapes this run added, which turns a figure over 26
+shapes into one over the 24 its predecessor had. No mode does it, and without
+it this run would have published a ceiling that had left its eight-run band
+and eight allocation rows that had moved, where both are Run 23's figures
+exactly over Run 23's population. It is the run's main methodological output
+and it belongs in a mode. **THE STEP SKIPPED: none.** The gate was launched
+twice, the first attempt stopped by hand two minutes in and its artifacts moved
+out of the tree, which is disclosed in Provenance and is not a skip.
+**THE CAPABILITY FOUND** is that same pinning, and a smaller one beside it:
+`defect-run.py .` replays a case against the live documents, so a run that moves
+a roster breaks the fixtures anchored to it --- three broke here, two of them
+silently as FIXTURE DID NOT BUILD, and the repair was to derive each anchor
+from the document rather than write the class's current size into the case.
 
 **THE CAPABILITIES FOUND.** THE EXACT REPETITION IS TAKEN and it is cheap:
 a basis recipe whose inputs have not moved rebuilds byte-identical, the md5 says
@@ -7819,7 +7843,7 @@ of 2026-08-28, so one loose pair moves it more than it did on eighteen.
 **The class populations are where the factor still bites, and THESE FIGURES
 ARE RUN 21'S** --- the class half of this section has not been re-taken since
 and is stamped so rather than left to be read as current, the paragraphs either
-side of it saying *here* and meaning Run 23. The reason is arithmetic rather
+side of it saying *here* and meaning Run 24. The reason is arithmetic rather
 than noise: a two- or three-shape bootstrap gives an interval far narrower
 than the spread those shapes actually show. Run 21's largest factor is `rev`
 at **20**, with `scaled` at 12 and `revsome` at 10 behind it, where Run 20's
@@ -7875,7 +7899,7 @@ a tie honest, and a pair whose halves' floors differ threefold --- Run 23's
 where a reader should not get to choose. Ruled 2026-09-02, after that run's
 registration 3 was read two ways; under it that registration's first half
 is a split and not a kill. **The worst single A/A cell is not a floor at all**
---- 15.51% on this run's basis main set and 39.51% on one of its class processes
+--- 16.66% on this run's basis main set and 19.72% on one of its class processes
 --- and the procedure says so where it is read; it is one cell where
 these are geomeans over a population, and quoting it as one overstates
 the instrument by an order of magnitude. Nor is the residue [the alignment

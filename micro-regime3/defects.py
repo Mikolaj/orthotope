@@ -368,6 +368,32 @@ def unwrapped_rundoc_edit(tmp, old, new):
     return write_rundoc(tmp, text.replace(old, new, 1))
 
 
+def runs_summary_row(tmp, shapes=None, short_by=None):
+    """The cross-class summary's `runs` row, re-cut to SHAPES shapes.
+
+    The count is DERIVED from the run file rather than written here: the
+    `runs` class has grown three times (seven views, then eleven, then
+    fourteen), and each time a fixture anchored on the old figure stopped
+    building -- which is a silent search dressed as a case, the failure
+    this file's own class-shape fixture was rebuilt in 2026-09-01 to
+    escape. Anchoring on the row's SHAPE rather than on its value is what
+    makes it survive the next growth. Added 2026-09-03, after Run 24 took
+    the class to fourteen and broke both anchors at once.
+    """
+    text = subprocess.run(['wrap80', '--unwrap'], input=rundoc_text(),
+                          capture_output=True, text=True, check=True).stdout
+    m = re.search(r'^\| `runs` \| (\d+) \|', text, re.M)
+    if not m:
+        raise AssertionError("no cross-class summary `runs` row in the run"
+                             " file, so this fixture has no subject")
+    if (shapes is None) == (short_by is None):
+        raise AssertionError('give runs_summary_row exactly one of shapes'
+                             ' and short_by')
+    want = shapes if shapes is not None else int(m.group(1)) - short_by
+    return unwrapped_rundoc_edit(tmp, m.group(0),
+                                 '| `runs` | %d |' % want)
+
+
 DECLARED_AFTER_RE = re.compile(
     r'((?:`[\w.-]+`(?:,\s+(?:and\s+)?|\s+and\s+))*`[\w.-]+`)\s+(?:was|were)'
     r' added \d{4}-\d{2}-\d{2}, after the run')
@@ -5158,7 +5184,16 @@ RECORDS = [
          # this reads and an absence would pass whether the check ran or
          # not.
          argv=['--check-doc', '--worklists', '--readme', '{readme}'],
-         ok=V(exit=0, has=['1 only-copy ruling(s)'])),
+         # COUNTED, not counted TO ONE: the count is over the whole
+         # list, so the first live ruling in README makes it 2 and a
+         # literal `1` fails on a document nobody broke. Run 24 is
+         # that run -- task 9's probe account is the only copy there
+         # is -- so this asserts the exemption line and the planted
+         # entry's absence from the bloated list, which is what its
+         # registration sibling above asserts and is what the case is
+         # about. Re-aimed 2026-09-03.
+         ok=V(exit=0, has=['only-copy ruling(s)'],
+              hasnt=['zz-planted-account'])),
 
     case('answered-registration-is-exempt', 'read-run.py', None,
          'the registrations were adjudicated by hand every run',
@@ -6263,8 +6298,7 @@ RECORDS = [
          # The table is hand-assembled and its `shapes` column was held to
          # nothing: `reshape1` and `bcastmid` went to four shapes on
          # 2026-08-25 and `runs` arrived at seven on 2026-08-28.
-         plant=lambda t: {'rundoc': unwrapped_rundoc_edit(
-             t, '| `runs` | 11 |', '| `runs` | 5 |')},
+         plant=lambda t: {'rundoc': runs_summary_row(t, 5)},
          argv=['--check-doc', '--quiet', '--run-doc', '{rundoc}'],
          ok=V(exit=1, has=['shape counts disagree with Main.hs'])),
 
@@ -6289,8 +6323,7 @@ RECORDS = [
                     ' 2026-08-30, before the run',
                  '`runs-4`, `runs-5`, `runs-256` and `runs-512` were added'
                  ' 2026-08-30, after the run'),
-             'rundoc': unwrapped_rundoc_edit(t, '| `runs` | 11 |',
-                                             '| `runs` | 7 |')},
+             'rundoc': runs_summary_row(t, short_by=4)},
          argv=['--check-doc', '--quiet', '--readme', '{readme}',
                '--run-doc', '{rundoc}'],
          ok=V(hasnt=['shape counts disagree with Main.hs'])),
