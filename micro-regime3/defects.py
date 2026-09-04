@@ -7349,13 +7349,14 @@ RECORDS = [
     # ---- the review of 2026-09-04 ----------------------------------------
     # Fifteen findings over the shell and Python here, by a reviewer reading
     # the files whole; a case for each program that can be driven, and a
-    # record alone for the four that cannot (a judge, a docstring, a probe).
+    # record alone for the four that cannot: a judge, two docstrings and a
+    # probe.
     case('gate-refuses-an-arm-its-list-lacks', 'run-gate.sh', '5ef414d',
          'SEL named two arms the prune had parked, and the count that would'
          ' say so was checked per process, after its forty minutes',
          # `build` and `mut-odo` went to `Only` in 41d3bad and the gate's
          # selection kept naming them, so every process would have come
-         # back three arms short of EXPECT and the gate failed after its
+         # back two arms short of EXPECT and the gate failed after its
          # full run. The list is read before the first process now, and a
          # name it lacks refuses there; the selection names timed arms.
          shadow=dict(mutate=[('run-gate.sh',

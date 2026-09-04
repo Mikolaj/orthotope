@@ -149,7 +149,12 @@ mode smoke.json --cells --no-controls
 # as with --exclude-shape below -- a reader ignoring the flag passes the
 # first and fails the second. Case: `smoke-exercises-the-arm-filter`.
 mapfile -t ARMLIST < <(./"$R-$BASIS" --list 2>/dev/null | grep "^$SHAPE/" | cut -d/ -f2)
-mode smoke.json --cells --exclude "${ARMLIST[0]}"
+ONE=""                       # a timed arm, not the baseline, a term or a control
+for a in "${ARMLIST[@]}"; do
+  case $a in list|sum-only-*|*-aa-*|*-nosum) ;; *) ONE=$a; break ;; esac
+done
+[ -n "$ONE" ] || { echo "  !! --list has no timed arm under $SHAPE to exclude"; exit 1; }
+mode smoke.json --cells --exclude "$ONE"
 EXCL=()
 for a in "${ARMLIST[@]}"; do EXCL+=(--exclude "$a"); done
 if ./read-run.py smoke.json --cells "${EXCL[@]}" >/dev/null 2>&1; then

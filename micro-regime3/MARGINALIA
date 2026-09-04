@@ -580,3 +580,5 @@ it had written that sentence down.
 2026-09-04, later still: lib-stage2-short and -short-lean parked on Mikolaj's ruling that a body per run length is too repetitive and so too complex, the bar the quad loop failed; recorded at fillStage2Short's definition, the roster, the README beside the u4 ruling, and Run 24's file. Asked whether the short bodies serve real arrays: yes for conv patches with k3 and k5 kernels, the main set's own shapes, and a per-row choice elsewhere read only as an instruction count.
 
 2026-09-04. The prune that parked build and mut-odo (41d3bad) left run-gate.sh, probe-areacurve.sh, probe-cache-run.sh and the smoke sweep naming them, and every check stayed green: a literal arm list is checked by nothing until a binary runs, forty minutes in. Each driver now reads its list before launching. Found by a whole-file review the same day, fifteen findings, all fixed in one stretch.
+
+2026-09-04, retracting the entry above: the smoke sweep never named build or mut-odo; its stale name was bq-expand-b, Only since 2026-08-28. Same lesson, one script fewer.

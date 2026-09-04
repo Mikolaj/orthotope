@@ -6447,7 +6447,7 @@ is how it was found.
 the evening --- but it is not part of the preparation, and a session preparing
 the run does not reach it: it spends forty minutes of quiet machine, so it lives
 in the run list behind the go-ahead with the sequence itself, as the driver's
-first stage. `run-gate.sh` checks that the basis binary lists every arm
+first stage. `run-gate.sh` checks that both binaries list every arm
 its selection names, then takes five benches over the shape set from each half,
 twice each, in a palindrome --- control, basis, basis, control --- so that drift
 over the hour cannot read as a difference between the binaries, and **both
@@ -6461,18 +6461,19 @@ it. Its selection carried `build` and `mut-odo` until the prune of 2026-09-04
 parked both, two of the three widest-spread arms in the roster ---
 the placement-sensitive pair [the floor section][floor] is written about ---
 so the term between its two passes ran past the drift band a movement is asked
-to clear; it carries `bq-expand` and `mut-odo-vecdims` since, the arms
-the shipping question is about, and a magnitude read off a gate is still
-not evidence, five benches being unable to price precision by Run 10's finding
-in the open list. Whether a five-bench process is *also* noisier than a full one
-is not separable from this with one process per binary. And the two passes
-disagreeing is not a second opinion about the binaries: their ratio
-is algebraically the ratio of the two same-binary readings, so a palindrome
-that fails to converge is reporting its own noise. Read the gate for soundness,
-and take every magnitude off the run; the verdict goes **above** the script's
-block, where reading up from the end meets it first. **The gate also answers one
-question that is not a reading at all: has the machine changed?** `run-gate.sh`
-runs `./read-run.py $R-gate-<basis>-a.json --machine` after its four processes
+to clear; it carries `bq-expand` and `mut-odo-vecdims` since, the form
+the decision of 2026-08-22 superseded and the family root, both timed from Run
+25 on, and a magnitude read off a gate is still not evidence, five benches being
+unable to price precision by Run 10's finding in the open list. Whether
+a five-bench process is *also* noisier than a full one is not separable
+from this with one process per binary. And the two passes disagreeing is
+not a second opinion about the binaries: their ratio is algebraically the ratio
+of the two same-binary readings, so a palindrome that fails to converge
+is reporting its own noise. Read the gate for soundness, and take every
+magnitude off the run; the verdict goes **above** the script's block, where
+reading up from the end meets it first. **The gate also answers one question
+that is not a reading at all: has the machine changed?** `run-gate.sh` runs
+`./read-run.py $R-gate-<basis>-a.json --machine` after its four processes
 and puts the answer in the note. It holds `list`'s net per call, shape by shape,
 to the fingerprint the last run's file keeps, so its absolutes are in `runs/`
 long after its JSONs are offered for deletion and nothing has to be kept for it;

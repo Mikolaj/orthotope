@@ -74,10 +74,10 @@ if [ "$OTHER" = "$BASIS" ]; then
   exit 1
 fi
 SEL=('-m' 'glob' '*/list' '*/bq-expand' '*/mut-odo-vecdims'
-     '*/sum-only-early' '*/sum-only-late')   # the family root and its fill,
-                             # the arms the shipping question is about;
-                             # `build` and `mut-odo` until the prune of
-                             # 2026-09-04 parked both
+     '*/sum-only-early' '*/sum-only-late')   # the form the decision of
+                             # 2026-08-22 superseded and the family root, both
+                             # timed from Run 25 on; `build` and `mut-odo`
+                             # until the prune of 2026-09-04 parked both
 ARMS=$(( ${#SEL[@]} - 2 ))   # the globs above, one bench per shape each,
                              # DERIVED because a literal drifts: run-major.sh
                              # refuses that drift for CLASSES and this had the
@@ -105,14 +105,16 @@ if [ ! -f "$NOTE" ]; then
   exit 1
 fi
 
-LISTED=$(./"$PREFIX-$BASIS" --list 2>/dev/null)
-SHAPES=$(printf '%s\n' "$LISTED" | cut -d/ -f1 | sort -u | wc -l)
+SHAPES=$(./"$PREFIX-$BASIS" --list 2>/dev/null | cut -d/ -f1 | sort -u | wc -l)
 [ "$SHAPES" -gt 0 ] || { echo "--list gave nothing; wrong binary?"; exit 1; }
-# Every arm SEL names, listed once per shape, BEFORE the machine is spent.
-# Case: `gate-refuses-an-arm-its-list-lacks`.
-for pat in "${SEL[@]:2}"; do
-  n=$(printf '%s\n' "$LISTED" | grep -c "^[^/]*/${pat#*/}\$")
-  [ "$n" = "$SHAPES" ] || { echo "!! SEL names $pat, which --list carries $n time(s) over $SHAPES shapes: an Only arm, or one renamed -- the gate would fail every process on its count after its forty minutes"; exit 1; }
+# Every arm SEL names, listed once per shape BY BOTH HALVES, before the
+# machine is spent. Case: `gate-refuses-an-arm-its-list-lacks`.
+for h in $OTHER $BASIS; do
+  LISTED=$(./"$PREFIX-$h" --list 2>/dev/null)
+  for pat in "${SEL[@]:2}"; do
+    n=$(printf '%s\n' "$LISTED" | grep -c "^[^/]*/${pat#*/}\$")
+    [ "$n" = "$SHAPES" ] || { echo "!! SEL names $pat, which $PREFIX-$h's --list carries $n time(s) over $SHAPES shapes: an Only arm, or one renamed -- the gate would fail every process on its count after its forty minutes"; exit 1; }
+  done
 done
 EXPECT=$((ARMS * SHAPES))
 # The two binaries by content, for the block below: run-evening.sh inherits

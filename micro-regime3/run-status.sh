@@ -85,13 +85,13 @@ REG_HEAD="## What this run was built to answer, and what it answered"
 # exit 2, the reading not having happened: with its status dropped, steps
 # 10, 12a and 12c were judged off an empty file. Case:
 # `status-blocks-without-wrap80`.
-command -v wrap80 >/dev/null || { echo "BLOCKED: wrap80 is not on PATH, and README.md is read through it; nothing was judged"; exit 2; }
+command -v wrap80 >/dev/null || { echo "BLOCKED: wrap80 is not on PATH, and README.md is read through it; nothing below was judged"; exit 2; }
 if ! wrap80 --unwrap README.md > "$TMP/readme"; then
-  echo "BLOCKED: wrap80 --unwrap README.md failed, so nothing was judged"; exit 2
+  echo "BLOCKED: wrap80 --unwrap README.md failed, so nothing below was judged"; exit 2
 fi
 git show HEAD:micro-regime3/README.md > "$TMP/readme.head.wrapped" 2>/dev/null
 if ! wrap80 --unwrap "$TMP/readme.head.wrapped" > "$TMP/readme.head"; then
-  echo "BLOCKED: wrap80 --unwrap failed on HEAD's README.md, so nothing was judged"; exit 2
+  echo "BLOCKED: wrap80 --unwrap failed on HEAD's README.md, so nothing below was judged"; exit 2
 fi
 if grep -q "$REG_LEAD" "$TMP/readme" || { [ -f "$DOC" ] && grep -q "^$REG_HEAD" "$DOC"; }; then
   say 12a "done" "a registration for Run $N is in README's open list or in $DOC"
