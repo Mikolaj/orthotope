@@ -5507,16 +5507,21 @@ and never as a chronology.
     #      back -- wants the run BEHIND you and would read this run's
     #      empty file instead; step 5 makes it. Governing docs are this
     #      file and read-run.py's docstring, and horde-ad's CLAUDE.md is not
-    R=runNN; REGIME=-fspec-constr         # an EMPTY regime is a plain -O1
-    #      build and nothing downstream notices; that hazard is step 2's
-    #      alone, REGIME reaching the build and nothing else
+    R=runNN; PREV=runMM; REGIME=-fspec-constr   # an EMPTY regime is a
+    #      plain -O1 build and nothing downstream notices; that hazard is
+    #      step 2's alone, REGIME reaching the build and nothing else.
+    #      PREV is the run BEHIND you, which the steps below read from --
+    #      its note, its basis binary, its fills -- and which went unset
+    #      here until 2026-09-04, when the commands that use it moved into
+    #      this list from the framing
     ./run-status.sh $R                    # 0. WHAT IS ALREADY DONE, off the
     #      artifacts and the repository rather than off this list, and it
     #      is not always nothing: a preparation can arrive to find 12a and
     #      12c taken, the registration having landed with the roster
     #      commits days before the pair, which is what Run 24's found
     #   1. NOTHING NAMED FOR THIS RUN MAY EXIST YET, and step 0 above
-    #      has already said so on its own first line -- `nothing named
+    #      has already said so, as the first line of its pre-run block --
+    #      `nothing named
     #      $R-* here` for a run about to be prepared, and a count of what
     #      it found otherwise, which is a run already under way or a
     #      leftover to clear and never a pair to adopt. No second command:
@@ -5655,11 +5660,12 @@ and never as a chronology.
     #      and $TMPDIR is unset unsandboxed
     #      AND `check` IS SPENT HERE: it runs over every shape and class
     #      view, the retired ones included, so nothing later wants it
-    #      again -- Main.hs's `retiredKnown` and `retiredShapesKnown`
-    #      assert that the retired names are names it holds, and this
-    #      step is where that is exercised. Run 25's preparation re-ran it
-    #      by hand to confirm exactly that, mid-roster-pass, and killed it
-    #      at a timeout
+    #      again. Run 25's preparation re-ran it by hand mid-roster-pass
+    #      to confirm exactly that and killed it at a timeout. What holds
+    #      the retired NAMES to the lists is Main.hs's `retiredKnown` and
+    #      `retiredShapesKnown`, asserted in `main` and so exercised by
+    #      every mode rather than by this one -- which is that file's own
+    #      note beside them, and not a thing `check` is needed for
     ./$R-<basis> --list 2>/dev/null | wc -l    # 6. roster size, then the
     diff <(./$R-<basis> --list 2>/dev/null) <(./$R-<other> --list 2>/dev/null)
     #      two halves' listings: identical is what one source built twice
@@ -5673,6 +5679,18 @@ and never as a chronology.
     #      was read out of run-gate.sh by eye, and Run 25's preparation
     #      read it out of the previous NOTE instead, on the day the prune
     #      re-cut SEL in the same commit that parked two of its five
+    ./roster-delta.py $PREV-<basis> $R-<basis>   # 6c. WHAT THE ROSTER
+    #      CHANGE WAS, off the two binaries: benches, arms in and out,
+    #      whether the survivors kept their ORDER, main-set shapes in and
+    #      out, and the class views per class. It is what the note's
+    #      roster block and Provenance's delta bullet both state in prose,
+    #      and until 2026-09-04 both were written from a `diff` of two
+    #      `--list` outputs that nothing here performed -- Run 25's
+    #      preparation got a clause of its own note wrong that way, and
+    #      improvised the per-class view count besides. ITS PER-CLASS
+    #      TALLY IS WHAT STEP 12 NAMES ITS CLASSES FROM -- a class whose
+    #      count moved is a class that pass is owed for -- so read it here
+    #      and carry the answer down
     #      more of these steps -- preflight 4,5 cmps the two `check`
     #      outputs, and run-major.sh and smoke-sweep.sh hold every half to
     #      the BASIS's bench count -- so no pair here varies the roster,
@@ -5768,23 +5786,11 @@ and never as a chronology.
     #      each process to the arm count `--list` gives for that shape;
     #      the harness wakes you when each ends, and no waiter is set
     #      why: --para 'And one more, nearly free'
-    ./roster-delta.py $PREV-<basis> $R-<basis>   # 6c. WHAT THE ROSTER
-    #      CHANGE WAS, off the two binaries: benches, arms in and out,
-    #      whether the survivors kept their ORDER, main-set shapes in and
-    #      out, and the class views per class. It is what the note's
-    #      roster block and Provenance's delta bullet both state in prose,
-    #      and until 2026-09-04 both were written from a `diff` of two
-    #      `--list` outputs that nothing here performed -- Run 25's
-    #      preparation got a clause of its own note wrong that way, and
-    #      improvised the per-class view count besides. It reads two
-    #      binaries, so it belongs beside 6 and is placed here, where the
-    #      classes it counts are the ones step 12 is about to name
     #  12. THE ROSTER PASS, owed ONLY
     #      if `--list` changed membership AND the pair note records none
     #      -- it belongs to the pair as the gate does, so grep the note
-    #      first, and where the previous run's basis is still on disk diff
-    #      the two `--list` outputs rather than reading the roster delta
-    #      under Provenance. The main set plus a leg per class named,
+    #      first, and read the membership off 6c above rather than off the
+    #      roster delta under Provenance. The main set plus a leg per class named,
     #      `scaled` by default; NAME A CLASS BESIDES whenever its
     #      population moved since the last pass. Artifacts are
     #      `smoke-l1-$R-*`, never `$R-*` (the prefix rule below), and a
