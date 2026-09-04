@@ -6197,28 +6197,21 @@ a file for your run, and the open list carries its registration.
 
 **Why the build's three rules are what they are, moved out of the list
 on 2026-08-29 because the list is read by every session and these accounts
-are read by none.** *The fills read at the build*: the pinning claim held
+are read by none.** *The fills read at the build*: the pinning claim ---
 that an addition costing nothing to place leaves the tracked loops where they
-were. Run 20's build read it in its strong form and KILLED it --- nine timed
-arms landed and no tracked loop kept its address, the four-copy group
-at `[0, 24, 0, 4]` becoming a six-copy group at `[0, 0, 24, 0, 0, 24]`, none
-moved by a constant --- and Run 21's build repeated the reading over a roster
-change that both adds and removes, `[0, 0, 24, 0, 0, 24]` becoming
-`[0, 0, 24, 0, 0, 8]` with no address surviving. So what the claim covers
-is additions that cost nothing to place and nothing wider --- under the max-skip
-form, which both builds were. **The dead-spot form read the same claim
-on 2026-09-02, over the first roster change taken under it, `run23-spot`
-to `run24-g912`, and the strong form held for the tracked heads' offsets**:
-a timed arm bringing a new function landed with three named wrappers, every
-mod-64 offset of the eight held, two addresses survived to the byte
-and the other six moved by one constant, 0x940 --- 37 lines, which
-is the arithmetic the form promises, each group's directive rounding whatever
-lands upstream of it to the next line (`run24-pair.txt`). What that reading does
-not reach is the rest of the placement term: Run 23 read `build` against
-`mut-odo` five points apart with both heads at offset 0, so a cross-run column
-still owes the counted work before a movement on a fill is called code.
-And the eight are the sample; the population reading is `--library` between
-the two builds, which the note did not take. *Build both, always*: reusing
+were --- is read at every build that brings a new function,
+by `loop-offsets.py --delta` against the previous build of the same recipe,
+because the reading costs nothing at that moment and cannot be taken afterwards.
+Its record, form by form, is [the floor section][floor]'s --- killed
+under the max-skip form at Runs 20 and 21, holding for the tracked heads'
+offsets under the dead-spot form since Run 24 --- and the numbers are each run's
+own file's; this chapter carried the readings too until 2026-09-04, and the two
+copies had come to disagree on the verdict, so it carries the pointer now. What
+the reading does not reach is the rest of the placement term: Run 23 read
+`build` against `mut-odo` five points apart with both heads at offset 0,
+so a cross-run column still owes the counted work before a movement on a fill
+is called code. And the eight are the sample; the population reading
+is `--library` between the two builds. *Build both, always*: reusing
 the previous run's basis binary was refused on 2026-08-16 because the other half
 is built today, so the pair's two halves went through whatever the shim
 was on two different days --- the very effect the back-to-back rule exists
@@ -9517,10 +9510,27 @@ and removes, six timed arms in and ten names out, and no address survives there
 either --- `[0, 0, 24, 0, 0, 8]`. So the claim covers additions that cost
 nothing to place and nothing wider, and the term Run 10 priced at 12 to 14%
 on the two arms whose loop the shim rescues rides on every figure read across
-a roster change. **Every roster addition that brings a new function is another
-reading of it** --- the fills on one build either side, before anything else
-changes --- which costs nothing at the moment the arms land and cannot be taken
-afterwards; the build step of the run list is where it is asked for.
+a roster change --- under the max-skip form, which both builds were.
+**Under the dead-spot form the strong form holds for the tracked heads' OFFSETS
+and not for their addresses, read at two builds.** Run 24's, the first roster
+change taken under that form, kept every mod-64 offset of the eight tracked
+heads, two addresses to the byte, and moved the other six by one constant ---
+the arithmetic the form promises, each group's directive rounding whatever lands
+upstream of it to the next line; Run 25's kept every offset again, no address,
+and moved the heads by two constants, the first head of each group by one
+and the other six by another. So under that form a roster change leaves
+the tracked heads' placement where it was, and the layout term a figure read
+across it carries is whatever the eight heads do not sample; what a further
+reading would have to move to reopen this is a tracked head's offset.
+The offsets, addresses and constants themselves are each run's own file's
+and its pair note's, read at the build by `loop-offsets.py --delta` against
+the previous build of the same recipe ([Run 24's](runs/run24.md));
+this paragraph carries the ruling per form and not the numbers. **Every roster
+addition that brings a new function is another reading of it** --- the fills
+on one build either side, before anything else changes --- which costs nothing
+at the moment the arms land and cannot be taken afterwards; the build step
+of the run list is where it is asked for, and this paragraph is where
+its verdict lands.
 
 **And the identical-code pair collapsed across all nine populations at once when
 the loops were aligned**, which is the strongest single result the pairing gave.
@@ -10322,6 +10332,12 @@ was reworded, which is the failure this list was rewritten to escape.
   controls now disagree about between runs, and the `build`/`mut-odo` pair read
   as a second control;
 - [the opening section][opening]'s headline ratios and its regime paragraph;
+- [Making a major benchmark run](#making-a-major-benchmark-run), whose figures
+  are worked examples of its own steps --- the anchor check's largest deviation,
+  the forcing-term arithmetic --- which a run does not requote, only reads
+  to see that each still illustrates the step it sits in; the pinning claim's
+  record is [the floor section][floor]'s and not the chapter's, since
+  2026-09-04;
 - [The stride classes and what they
   cover](#the-stride-classes-and-what-they-cover), whose figures a run does
   NOT replace: they are one reading of the eight as instruments, taken over Runs

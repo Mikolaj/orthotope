@@ -461,9 +461,10 @@ def delta(old, new, length, min_copies, want='_Main_'):
     summary line a note would copy (2026-09-04).
 
     This is a reading and not a gate. It exits 0 whatever it finds, because
-    what a given displacement MEANS is the README's to say (*Why the build's
-    three rules are what they are*), and a threshold here would be this
-    file asserting a claim the runs are still measuring.
+    what a given displacement MEANS is the README's to say -- the floor
+    section's *A shim'd build does not hold its tracked loops*, where the
+    claim's record lives form by form -- and a threshold here would be
+    this file asserting a claim the runs are still measuring.
     """
     sides = []
     left = 0

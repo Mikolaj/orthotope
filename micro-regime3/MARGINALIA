@@ -582,3 +582,24 @@ it had written that sentence down.
 2026-09-04. The prune that parked build and mut-odo (41d3bad) left run-gate.sh, probe-areacurve.sh, probe-cache-run.sh and the smoke sweep naming them, and every check stayed green: a literal arm list is checked by nothing until a binary runs, forty minutes in. Each driver now reads its list before launching. Found by a whole-file review the same day, fifteen findings, all fixed in one stretch.
 
 2026-09-04, retracting the entry above: the smoke sweep never named build or mut-odo; its stale name was bq-expand-b, Only since 2026-08-28. Same lesson, one script fewer.
+
+2026-09-04, Run 25's eve. The pinning claim's record had two homes: the
+floor section, replace-listed, carrying Runs 20 and 21 and saying killed;
+and the run chapter's *Why the build's three rules* paragraph, linked by
+no bullet, carrying those two and Run 24's dead-spot reading and saying
+held for the offsets. A report from another session found the second copy
+and blamed the write-up; the reading had in fact been recorded by Run 24's
+preparing session at the build (ef52b11), as the floor paragraph itself
+asks, and only the home was wrong. Settled by moving the rulings to the
+floor section and leaving the chapter a pointer. The coverage check had
+missed it twice over: its figure regex wanted a decimal, and its four-space
+exclusion, meant for code blocks, took every wrapped list continuation with
+it.
+
+Same day: the survey read a fifth straddling self-loop on run25-g912 that
+its -g3 twin refused, and the pair note's row said the roster's new fill
+might own it. It was the SRT word of the info table in front of `$wrun`,
+decoding as `js -40` over bytes that summed. A blanket guard against any
+unconditional transfer in a body took fourteen real loops per binary; the
+reachability guard took one to four, every one such a word. Survey totals
+recorded before this day are higher by that few.
