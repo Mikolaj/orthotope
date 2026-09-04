@@ -9354,6 +9354,81 @@ def lint(main_hs, readme, run_doc=None):
         # there would be a silent search, which this file refuses.
         print('skip: no run file, so no live claim was held to the roster')
 
+    # THE REGISTRATION, WHICH NOTHING HERE READ UNTIL 2026-09-04. The check
+    # above holds a live CLAIM to the timed roster. A REGISTRATION is the
+    # same shape of promise about the same arms -- written before the run
+    # where a claim is written after it -- and no check reached it at all,
+    # which the open list has said outright since Run 24 lost a clause of
+    # one to an arm the same commit parked. Two questions, both answerable
+    # off the document and neither needing a run:
+    #
+    #   every arm an OPEN registration names is TIMED, so its prediction can
+    #   be read on the run it was registered for; and
+    #   every `task N` it defers to RESOLVES to a numbered task under the
+    #   run-scoped tasks heading, so a deferral points at something.
+    #
+    # WHAT IT DOES NOT ASK is whether the task it resolves to still carries
+    # a prediction. Run 25's registration deferred its item (4) to task 10,
+    # whose own item for the two window views had been withdrawn that same
+    # day: the pointer resolved and the sentence around it was false. `is
+    # this still a prediction` has no cheap predicate -- the withdrawal is
+    # prose -- so it stays pre-run step 12b's, a reading, and this check
+    # names what it covers rather than implying the rest.
+    #
+    # ARMS ARE READ AS THE CLAIMS CHECK READS THEM: a backticked token that
+    # the roster carries as `Only`. A registration is thick with backticks
+    # that are not arms -- `predict: cross list 1.0 within 0.7%`,
+    # `LOOP_DEADSPOT=1`, section names -- and intersecting with the parked
+    # set is what keeps those out without a vocabulary to maintain.
+    untimed = set(names) - set(timed)
+    paras = [t for _, t, _ in unwrapped_paragraphs(doc.split('\n'))]
+    regs = [t for t in paras
+            if re.match(r'- `OPEN` \*\*What Run \d+ is built to answer', t)]
+    tasks, in_tasks = set(), False
+    for t in paras:
+        if t.startswith('### '):
+            in_tasks = t.startswith('### Recommended tasks after Run')
+        elif in_tasks:
+            m = re.match(r'(\d+)\.\s+`', t)
+            if m:
+                tasks.add(m.group(1))
+    if not regs:
+        # No OPEN registration is the normal state between runs -- the
+        # entry moves into the run's own file at post-run step 5 and the
+        # open list keeps an ANSWERED pointer -- so this is a skip and not
+        # a pass. Saying `ok` here would be the vacuous read this file
+        # refuses of every other search.
+        print('skip: no OPEN registration in %s, so none was held to the'
+              ' roster' % os.path.basename(readme))
+    else:
+        trouble = []
+        for t in regs:
+            num = re.search(r'What Run (\d+)', t).group(1)
+            gone = sorted(set(re.findall(r'`([A-Za-z][A-Za-z0-9-]*)`', t))
+                          & untimed)
+            if gone:
+                trouble.append('Run %s\'s registration names arms the roster'
+                               ' does not time: %s' % (num, ', '.join(gone)))
+            # `[Tt]ask`, because a registration opens its deferral with
+            # the word capitalised -- `Task 10's, read there` -- and the
+            # lower-case pattern this was written with found nothing on the
+            # one document it exists for. Caught by breaking it, 2026-09-04,
+            # which is the whole of why the break is taken.
+            lost = sorted({n for n in re.findall(r'\b[Tt]ask (\d+)', t)
+                           if n not in tasks})
+            if lost:
+                trouble.append("Run %s's registration defers to task(s) that"
+                               ' are not under the tasks heading: %s'
+                               % (num, ', '.join(lost)))
+        if trouble:
+            bad.append('%d problem(s) in the OPEN registration(s), which no'
+                       ' other check here reads:\n        %s'
+                       % (len(trouble), '\n        '.join(trouble)))
+        else:
+            print('ok:   every arm the OPEN registration(s) name is timed and'
+                  ' every task they defer to resolves (%d registration(s),'
+                  ' %d task(s) on offer)' % (len(regs), len(tasks)))
+
     def mirrors(entries, resolve, what):
         """Every arm here whose name promises a base it does not run.
 

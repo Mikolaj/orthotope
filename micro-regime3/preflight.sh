@@ -306,6 +306,21 @@ else
   say 6 FAIL "the halves ROSTER DIFFERENTLY -- one source built twice does not"
 fi
 
+# 6b. THE GATE'S OWN SELECTION, derived by the script that will run it rather
+# than read out of it by eye. `--show` pays for the check run-gate.sh makes
+# before its forty minutes -- every glob in SEL listed once per shape by BOTH
+# halves -- and prints the count the note's `gate arms` line owes. Both halves
+# of that earn the step: the refusal is a check, catching a gate arm the roster
+# has parked, and the printed count is what stops a note carrying the previous
+# run's globs. Run 25's preparation wrote exactly that, on 2026-09-04, the day
+# the prune parked two of the five and re-cut SEL in the same commit.
+if ./run-gate.sh "$R" --show > "$TMP/gate" 2>&1; then
+  say 6b PASS "$(grep -c '^  glob' "$TMP/gate") gate arm(s), \
+$(grep -m1 'expect ' "$TMP/gate" | sed 's/^ *expect *//')"
+else
+  say 6b FAIL "the gate refuses its own selection: $(tail -1 "$TMP/gate")"
+fi
+
 step_10c
 step_10d
 
@@ -395,9 +410,16 @@ fi
 
 echo
 if [ "$BAD" -eq 0 ]; then
-  echo "all clear. NOT done here and still owed: 9b, the pair's own variable,"
-  echo "which only $R-pair.txt can name; and 11 and 12, which the note records"
-  echo "and a spent preparation inherits. Then the run list, from step 13."
+  echo "all clear. NOT done here: 9b, the pair's own variable, which only"
+  echo "$R-pair.txt can name; and 11 and 12, the smoke sweep and the roster"
+  # `inherits` was asserted of 11 and 12 unconditionally, which is right for
+  # a session RE-ENTERING a spent preparation and wrong for the first pass,
+  # where neither has run and both are owed. The note is what says which,
+  # and this script does not read it for that -- so it names the note
+  # rather than guessing. Reworded 2026-09-04 after a first pass read
+  # `a spent preparation inherits` over two steps that had not happened.
+  echo "pass, which are the note's: OWED where its fill-in block does not"
+  echo "record them, INHERITED where it does. Then the run list, from 13."
   [ "$CORPUS" = 1 ] || echo "  8c and 8d did NOT run: --corpus takes them" \
                             "once 11 and 12 have landed."
   [ "$REST" = 1 ] || echo "  ONLY 8c and 8d ran; this is no preflight."

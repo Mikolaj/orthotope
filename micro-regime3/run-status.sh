@@ -52,6 +52,21 @@ parses () { python3 -c 'import json,sys; json.load(open(sys.argv[1]))' "$1" 2>/d
 
 echo "run status for $R, off the artifacts and the repository:"
 echo "pre-run"
+# STEP 1 FIRST, since it is the one step whose answer is a listing rather
+# than a verdict: nothing named for this run may exist yet, and `ls $R-*`
+# saying `No such file` is what a run about to be prepared looks like. The
+# checklist made a session run that `ls` and read it by eye, one call and a
+# rule to remember, where this line already had the directory open. What it
+# must NOT do is judge: a leftover is a thing to clear and a spent
+# preparation is a thing to enter, and which of the two it is comes from
+# the steps below, not from the count.
+FOUND=$(ls -d "$R"-* 2>/dev/null | wc -l)
+if [ "$FOUND" -eq 0 ]; then
+  say 1 "done" "nothing named $R-* here, which is a run about to be prepared"
+else
+  say 1 "see" "$FOUND file(s) named $R-* already: a preparation under way, or\
+ leftovers to clear -- the steps below say which"
+fi
 # A reader has no authority over the halves: an inherited BASIS or OTHER
 # that disagreed with the note would survive the helper's refusal and
 # every later step would be judged against the wrong name.

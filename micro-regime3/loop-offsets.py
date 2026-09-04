@@ -364,6 +364,91 @@ def match(timed, twin, want='_Main_'):
                               f'0x{h["start"]:x}' for h in hits))
 
 
+def delta(old, new, want, min_copies):
+    """How far a rebuild moved the tracked loops, group by group.
+
+    The pinning claim is read at every build that brings a new timed
+    function -- the fills on one build either side, before anything else
+    changes -- and reading it means answering three questions of the
+    tracked groups: are the mod-64 offsets preserved, does any address
+    survive to the byte, and do the heads move by one constant. Nothing
+    here subtracted the two address lists until 2026-09-04. Run 24's
+    preparation did that arithmetic by hand and recorded the improvisation
+    in its note; Run 25's improvised it again, which is two runs paying for
+    a subtraction, on the reading the claim's whole record rests on.
+
+    Groups are matched by the loop body's BYTES, which is the identity
+    `--match` uses and the only one that survives a relink moving every
+    address. A group on one side alone is reported as such rather than
+    dropped: that is what a change of compiler produces, and Run 24's HEAD
+    half grew a third group the basis did not have.
+
+    This is a reading and not a gate. It exits 0 whatever it finds, because
+    what a given displacement MEANS is the README's to say (*Why the build's
+    three rules are what they are*), and a threshold here would be this
+    file asserting a claim the runs are still measuring.
+    """
+    sides = []
+    for path in (old, new):
+        groups = collections.defaultdict(list)
+        for f in scan(path, want):
+            groups[f['bytes']].append(f)
+        for fs in groups.values():
+            fs.sort(key=lambda f: f['start'])
+        sides.append(groups)
+    og, ng = sides
+    span = span_label(want)
+    print(f'== {old} -> {new}: {span} loops, matched by body bytes')
+    keys = [k for k in og if len(og[k]) >= min_copies]
+    keys += [k for k in ng if len(ng[k]) >= min_copies and k not in og]
+    preserved = moved = 0
+    for k in sorted(keys, key=lambda k: -max(len(og.get(k, ())),
+                                             len(ng.get(k, ())))):
+        a, b = og.get(k, []), ng.get(k, [])
+        if not a or not b:
+            where = new if b else old
+            fs = b or a
+            print(f'   {len(fs)} copies, {fs[0]["len"]} B, '
+                  f'{fs[0]["ninsn"]} insns, offsets '
+                  f'{[f["mod"] for f in fs]} -- IN {where} ONLY')
+            continue
+        oo = [f['mod'] for f in a]
+        nn = [f['mod'] for f in b]
+        print(f'   {len(a)} -> {len(b)} copies, {a[0]["len"]} B, '
+              f'{a[0]["ninsn"]} insns')
+        if len(a) != len(b):
+            print(f'      copy COUNT moved: offsets {oo} -> {nn}')
+            continue
+        if oo == nn:
+            preserved += 1
+            print(f'      every mod-{LINE} offset preserved: {oo}')
+        else:
+            print(f'      offsets MOVED: {oo} -> {nn}')
+        kept = [f['start'] for f, g in zip(a, b) if f['start'] == g['start']]
+        disp = [g['start'] - f['start'] for f, g in zip(a, b)]
+        if kept:
+            print('      %d address(es) survive to the byte: %s'
+                  % (len(kept), ', '.join('0x%x' % v for v in kept)))
+        else:
+            print('      NO address survives to the byte')
+        # The displacement SET and not the list: what the README's readings
+        # turn on is how many constants the heads moved by, one being the
+        # weakest disturbance on record and none of them a constant the
+        # strongest.
+        uniq = sorted(set(d for d in disp if d))
+        if not uniq:
+            print('      nothing moved')
+        else:
+            moved += 1
+            print('      %d displacement(s): %s'
+                  % (len(uniq), ', '.join(
+                      '0x%x%s' % (v, '' if v % LINE == 0
+                                  else ' (NOT a whole line)')
+                      for v in uniq)))
+    print(f'   {preserved} group(s) kept every offset; '
+          f'{moved} group(s) moved at all')
+
+
 def library(a, b):
     """How much the two halves agree about where the LIBRARIES' loops sit.
 
@@ -446,6 +531,11 @@ def main():
     p.add_argument('--survey', action='store_true',
                    help='every self-loop of any length in this binary\'s own '
                         'compiled code, and how many can still straddle')
+    p.add_argument('--delta', action='store_true',
+                   help='how far a rebuild moved the tracked loops: OLD NEW,'
+                        ' matched by body bytes -- the pinning claim\'s'
+                        ' reading, which the run chapter asks for at every'
+                        ' build bringing a new timed function')
     p.add_argument('--library', action='store_true',
                    help='how far two halves agree about where the LINKED '
                         'libraries\' loops sit, which a pair must not move')
@@ -464,6 +554,18 @@ def main():
     # --library keys on the loop bytes, so under either a --len or
     # --min-copies was accepted and honoured by nobody --
     # `--survey --len 24` answered with the at-most-64 report.
+    if args.delta:
+        # Its own mode and not a flavour of the plain report: that one takes
+        # any number of binaries and prints each alone, where this one is a
+        # subtraction and wants exactly two, in the order OLD NEW.
+        if sum((args.survey, args.library, bool(args.match))):
+            sys.exit('--delta is its own mode: not with --survey, --library'
+                     ' or --match')
+        if len(args.binary) != 2:
+            sys.exit('--delta takes exactly two binaries, OLD then NEW')
+        delta(args.binary[0], args.binary[1],
+              None if args.len == 0 else args.len, args.min_copies)
+        return
     if args.survey and args.library:
         p.error('--survey and --library are two reports, not one: the'
                 ' dispatch runs --library and drops --survey without a'

@@ -224,6 +224,21 @@ fi
 
 rm -f smoke.json smoke-other.json smoke-class.json "$SMOKEDOC" \
       smoke.log smoke-other.log smoke-class.log
+# WHAT THE MODES SAID, deduped, which naming them does not: the reader emits
+# one warning once per mode that reads the file, so the `note:` lines above
+# are a dozen and the findings behind them two or three. Until 2026-09-04
+# the only way to see the findings was to open the temp directory below,
+# which is wiped with /tmp and readable only where this ran -- so a session
+# writing the pair note either walked those files by hand or wrote the
+# sweep up from the mode names. Same change as smoke-l1.sh's, same reason.
+WARN=$(cat "$LOGDIR"/*.err 2>/dev/null | grep '^warning:' | sort -u)
+if [ -n "$WARN" ]; then
+  echo "=== what the modes warned, once each rather than once per mode:"
+  # Per LINE and not per string: `printf '  %s\n' "$WARN"` indents the
+  # first warning and leaves every other one at the margin, the whole
+  # multi-line value being one argument.
+  printf '%s\n' "$WARN" | sed 's/^/  /'
+fi
 if [ "$BAD" -eq 0 ]; then
   echo "=== sweep clean; record it on the pair note, it belongs to the pair"
 else

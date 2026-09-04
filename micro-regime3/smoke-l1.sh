@@ -181,6 +181,17 @@ for i in "${!LEGS[@]}"; do
   if [ -n "$warned" ]; then
     KEEPLOG=1
     say "  $leg: mode(s) wrote to stderr ->$warned"
+    # AND WHAT THEY SAID, deduped, which naming the modes does not. The
+    # reader emits the same warning once per mode that reads the file, so
+    # the modes are a list of a dozen and the findings behind them are two
+    # or three -- and until 2026-09-04 the only way to see the findings was
+    # to open the temp directory this keeps, which is wiped with /tmp and
+    # readable only where the pass ran. Run 25's preparation read ten of
+    # those files by hand to write the note's `WHAT IT FOUND` line, and
+    # generalised the rest from their heads. The warnings ARE the product
+    # of this step, so they go where its verdict goes.
+    sort -u "$LOGDIR/$leg"-*.err 2>/dev/null | grep '^warning:' \
+      | while IFS= read -r w; do say "        $w"; done
     say "        that is where a structural fault shows; read them"
   fi
   if [ -n "$failed" ]; then

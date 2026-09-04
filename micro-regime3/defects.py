@@ -6985,9 +6985,20 @@ RECORDS = [
          argv=['run98'],
          # The two document gates read done, being about the tree; every
          # artifact-reading step must not.
-         ok=V(exit=1, has=['NOT DONE', 'STATUS: '],
-              hasnt=['all done', '  1     done', '  17    done', '  20    done',
-                     '  5     done'])),
+         #
+         # ASSERTED ON THE TEXT AND NOT THE LABEL since 2026-09-04, when
+         # pre-run step 1 -- nothing named for this run may exist yet --
+         # moved into this script: two sections each have a step 1, so
+         # `  1     done` stopped naming the post-run one, and for an
+         # UNSTARTED run the pre-run one legitimately reads done. A label
+         # was never the claim; the sentence beside it is.
+         ok=V(exit=1, has=['NOT DONE', 'STATUS: ',
+                           'nothing named run98-* here'],
+              hasnt=['all done',
+                     'read-all.sh gates every process clean',
+                     "says complete",
+                     'counts file(s) complete',
+                     'runs/run98.md exists'])),
 
     # ---- read-run.py --predictions --------------------------------------
     case('predictions-hold-and-kill', 'read-run.py', None,

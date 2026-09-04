@@ -50,7 +50,8 @@ set -u
 cd "$(dirname "$0")" || exit 1
 
 if [ $# -lt 1 ]; then
-  echo "usage: ./run-gate.sh RUN      # e.g. run12, and it names every file"
+  echo "usage: ./run-gate.sh RUN [--show]   # e.g. run12, and it names every"
+  echo "                                    # file; --show spends nothing"
   exit 2
 fi
 PREFIX="$1"                  # the binaries, the note and this gate's own
@@ -61,6 +62,23 @@ PREFIX="$1"                  # the binaries, the note and this gate's own
                              # JSONs the same way, and excludes `$R-gate-`
                              # from its relaunch guard so this does not read
                              # as a previous attempt
+# `--show` prints the selection and the count derived from it, spends no
+# machine and exits 0. The note's `gate arms` line is written by the PREPARING
+# session, hours before this script is ever run, and until 2026-09-04 the only
+# way to write it was to read SEL out of this file by eye. Run 25's preparation
+# did read it by eye and wrote the PREVIOUS run's five globs into its note --
+# `build` and `mut-odo`, parked by the prune of that same day. preflight.sh
+# calls this at its own step, so the note's line is derived from the script
+# that will run and the two cannot drift.
+SHOW=0
+if [ $# -gt 1 ]; then
+  case "$2" in
+    --show) SHOW=1 ;;
+    *) echo "./run-gate.sh: unknown argument '$2'"
+       echo "usage: ./run-gate.sh RUN [--show]"; exit 2 ;;
+  esac
+fi
+
 # The pair's two halves, as in run-major.sh and for the same reason: BASIS is
 # the half the bench count is read from and the one the run's tables come
 # from. Both come from the note's `HALVES:` line through pair-halves.sh, so
@@ -117,6 +135,17 @@ for h in $OTHER $BASIS; do
   done
 done
 EXPECT=$((ARMS * SHAPES))
+# Everything above is derivation and refusal; below is the machine. So --show
+# leaves here, having paid for the roster check the loop above just made and
+# for nothing else.
+if [ "$SHOW" = 1 ]; then
+  echo "run-gate.sh selection for $PREFIX, basis $BASIS:"
+  for pat in "${SEL[@]:2}"; do echo "  glob   $pat"; done
+  echo "  arms   $ARMS"
+  echo "  shapes $SHAPES"
+  echo "  expect $EXPECT benches a process"
+  exit 0
+fi
 # The two binaries by content, for the block below: run-evening.sh inherits
 # a clean block only for the binaries it names, so a rebuilt half gets its
 # gate run again rather than the old verdict (2026-09-04).
