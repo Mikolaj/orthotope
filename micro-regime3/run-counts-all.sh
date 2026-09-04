@@ -3,7 +3,12 @@
 # the basis binary lists, control then basis apiece -- which is the run
 # list's step 20 and the second of the evening's two calls:
 #
-#     ./run-counts-all.sh run24 &   # the harness wakes you when it exits
+#     ./run-counts-all.sh run24     # in the background, and WHICH background
+#                                   # matters: a session uses the harness's
+#                                   # own mode, which registers a task and
+#                                   # wakes it on exit; a typed `&` detaches,
+#                                   # runs, registers nothing and wakes
+#                                   # nobody (measured 2026-09-04)
 #
 # IT IS NOT INSIDE run-evening.sh: the counts want no quiet machine
 # (run-counts.sh says why) where every stage that driver chains does, so
@@ -35,7 +40,9 @@ set -u
 cd "$(dirname "$0")" || exit 1
 
 if [ $# -ne 1 ]; then
-  echo "usage: ./run-counts-all.sh RUN &     # e.g. run24"
+  echo "usage: ./run-counts-all.sh RUN       # e.g. run24, in the background"
+  echo "                                     # -- a session through the"
+  echo "                                     # harness's mode, not a typed &"
   exit 2
 fi
 R=$1
@@ -50,7 +57,7 @@ for h in $OTHER $BASIS; do
 done
 if [ ! -f "$STATUS" ]; then
   echo "no $STATUS, so the quiet stages have not run and the counted work"
-  echo "is not what $R owes next: ./run-evening.sh $R & runs them."
+  echo "is not what $R owes next: ./run-evening.sh $R runs them."
   echo "Nothing ran."
   exit 1
 fi

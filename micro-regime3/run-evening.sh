@@ -4,8 +4,15 @@
 # order the list gives them and under the environment the pair note
 # names, each stage's verdict appended to `$R-evening.txt` as it lands.
 #
-#     ./run-evening.sh run24 &        # the harness wakes you when it exits
-#     ./run-counts-all.sh run24 &     # then step 20, on a box back in use
+#     ./run-evening.sh run24          # in the background: a SESSION uses
+#     ./run-counts-all.sh run24       # the harness's own background mode,
+#                                     # which registers a task and wakes it
+#                                     # on exit, and a PERSON types `&`. A
+#                                     # session that types one gets a job
+#                                     # that detaches, runs, registers
+#                                     # nothing and wakes nobody -- measured
+#                                     # 2026-09-04. Then step 20, on a box
+#                                     # back in use
 #
 # THE COUNTED WORK IS NOT HERE, and this file's last line is what that
 # buys: the machine is its owner's again the moment the riders land, and
@@ -51,7 +58,9 @@ set -u
 cd "$(dirname "$0")" || exit 1
 
 if [ $# -ne 1 ]; then
-  echo "usage: ./run-evening.sh RUN &     # e.g. run24"
+  echo "usage: ./run-evening.sh RUN      # e.g. run24, in the background --"
+  echo "                                 # a session through the harness's"
+  echo "                                 # background mode, a person with &"
   exit 2
 fi
 R=$1
@@ -231,10 +240,11 @@ if [ "${#COMPLAINTS[@]}" -eq 0 ]; then
   stamp "RIDERS DONE AND THE MACHINE IS FREE: every stage exited 0. Read\
  $R-wallclock.log's '!!' lines anyway, say the box need not be quiet any\
  more -- a probe that wants it quiet again is asked for from here, README\
- 19a -- and launch the counted work in the same turn: ./run-counts-all.sh $R &"
+ 19a -- and launch the counted work in the same turn, backgrounded as this\
+ was: ./run-counts-all.sh $R"
   exit 0
 fi
 stamp "RIDERS DONE AND THE MACHINE IS FREE, WITH ${#COMPLAINTS[@]}\
  COMPLAINT(S): $(IFS=,; echo "${COMPLAINTS[*]}") -- read each in $OUT before\
- any figure; the counted work is still next: ./run-counts-all.sh $R &"
+ any figure; the counted work is still next: ./run-counts-all.sh $R"
 exit 1
