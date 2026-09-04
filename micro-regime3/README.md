@@ -5312,7 +5312,7 @@ of why this is a list and not a sentence.
          TWO COMMANDS DO THE SKIP AND THE COPY, and neither is a thing
          to do by eye (both added 2026-09-03, after Run 24's
          preparation did both by hand):
-             ./read-run.py --note $PREV-pair.txt
+             ./read-run.py --note $PREV-pair.txt > note-read.txt
              ./read-run.py --note $PREV-pair.txt --draft $R \
                            --halves <basis>,<other>
          The first withholds the handover below and says how much; the
@@ -5338,16 +5338,17 @@ of why this is a list and not a sentence.
          Run 23 on
          -- the two recipes, and which of their lines the pair varies
 
-**SO THIS IS TWO LISTS, and there is no case in which a session owes all ten**,
-and which ten it owes is not a judgement but a consequence of which half
-it was asked for. The numbers never move, so a reference to an item still lands.
-**The PREPARATION owes 1, 3, 7, 8's delta bullets, 9 and 10** --- of item 1,
-THE PRE-RUN LIST ALONE, and of items 9 and 10 the halves their own entries name.
-It used to owe the run list too, for the launch, rider and counts blocks
-the note carries; those are in `pair-note-template.txt` since 2026-09-01, where
-the note is written from anyway, so neither the run list nor the post-run one
-is owed and a preparation reads about a thousand lines fewer. Those six decide
-the pair, the roster, the note and what this run is for, and nothing else does.
+**SO THIS IS TWO LISTS, and there is no case in which a session owes all ten.**
+The numbers never move, so a reference to an item still lands. Each list's own
+head names the six or so its half owes, which is where a session meets
+the split; here is what each is for. **The PREPARATION owes 1, 3, 7, 8's delta
+bullets, 9 and 10** --- of item 1, THE PRE-RUN LIST ALONE, and of items 9 and 10
+the halves their own entries name. It used to owe the run list too,
+for the launch, rider and counts blocks the note carries; those
+are in `pair-note-template.txt` since 2026-09-01, where the note is written
+from anyway, so neither the run list nor the post-run one is owed
+and a preparation reads about a thousand lines fewer. Those six decide the pair,
+the roster, the note and what this run is for, and nothing else does.
 **The EXECUTION owes 1 --- the run and post-run lists --- with 2, 4, 5, 6
 and 8's replace list**, every one of which answers a question the write-up asks:
 the replace list is walked at post-run step 6 and gains nothing from being read
@@ -5408,20 +5409,20 @@ and written into the run's own file. What follows is the procedure, and
 it is written to outlive any one run.
 
 **What asking for a run asks for, since the request is one sentence and the work
-is this chapter --- and it is asked TWICE, because a run is always two
-sessions.** Each half is asked separately and each is given whole without coming
-back for permission between the steps --- the procedure is the permission, each
-step naming what it needs and what it must not do, so a question this chapter
-answers is not a reason to stop. The go-ahead does not carry across
-the boundary, which the run list's head says where it bites. **THREE parties
-appear below and this README keeps them apart.** *The preparing session* builds
-the pair and writes the note, and stops at 12. *The executing session* spends
-the machine and writes the run up; where this README says *a session*
-with no qualifier it means that one, here as in the twenty-odd other places
-it says it. *Whoever asked for the run* holds the decisions a procedure cannot
-make, and is never called *the author*: that word means the session writing
-a block --- the one whose prose an independent checker is set against ---
-and it is the executor, not the requester and not the preparer.
+is this chapter, and it is asked once per half.** Each half is asked separately
+and each is given whole without coming back for permission between the steps ---
+the procedure is the permission, each step naming what it needs and what it must
+not do, so a question this chapter answers is not a reason to stop. The go-ahead
+does not carry across the boundary, which the run list's head says where
+it bites. **THREE parties appear below and this README keeps them apart.**
+*The preparing session* builds the pair and writes the note, and stops at 12.
+*The executing session* spends the machine and writes the run up; where
+this README says *a session* with no qualifier it means that one, here as
+in the twenty-odd other places it says it. *Whoever asked for the run* holds
+the decisions a procedure cannot make, and is never called *the author*:
+that word means the session writing a block --- the one whose prose
+an independent checker is set against --- and it is the executor,
+not the requester and not the preparer.
 
 **A probe budget rides with it, and it is spent AFTER the write-up rather
 than before.** It is separate from the pre-registered questions, which
@@ -5488,6 +5489,15 @@ and never as a chronology.
     # these three lists is reasons and restates no fact you need; a step
     # that surprises you NAMES its paragraph on a `why:` line, which
     # --check-doc holds to a paragraph that is still there.
+    # YOU ARE THE PREPARATION, and this list plus its `READ NOW` lines is
+    # the whole of what you owe. Of the chapter's ten readings you owe six
+    # -- 1 (this list alone), 3, 7, 8's delta bullets, 9 and 10 -- and each
+    # is named at the step whose work needs it. A seventh, 5, is owed only
+    # where this preparation PARKS or DROPS an arm, which step 7 is what
+    # tells you. Nothing else in the chapter is owed, and reading the
+    # executing session's half is the largest avoidable spend here: Run
+    # 25's preparation read some 250 lines of the framing before meeting
+    # this line, all of it reasons.
     cd ~/r/orthotope/micro-regime3        # and re-set R and REGIME per call
     #      NN is one past the newest file in runs/, which is the run
     #      behind you, and the disk is where the number is written. DO
@@ -5505,10 +5515,14 @@ and never as a chronology.
     #      is not always nothing: a preparation can arrive to find 12a and
     #      12c taken, the registration having landed with the roster
     #      commits days before the pair, which is what Run 24's found
-    ls $R-*                               # 1. nothing named for this run may
-    #      exist yet -- `ls` complaining of no such file is what a run
-    #      about to be prepared looks like, and anything else is a run already under way or a
-    #      leftover to clear, never a pair to adopt
+    #   1. NOTHING NAMED FOR THIS RUN MAY EXIST YET, and step 0 above
+    #      has already said so on its own first line -- `nothing named
+    #      $R-* here` for a run about to be prepared, and a count of what
+    #      it found otherwise, which is a run already under way or a
+    #      leftover to clear and never a pair to adopt. No second command:
+    #      the `ls $R-*` this step used to be is what run-status.sh runs,
+    #      and reading one listing by eye was a rule to remember for an
+    #      answer already on the screen
     #  IF ANYTHING FOR THIS RUN IS ALREADY HERE, step 1 has caught a
     #      preparation that is not yours to redo, and what landed says
     #      which entry point it is: the run's own JSONs mean post-run
@@ -5524,6 +5538,20 @@ and never as a chronology.
     #      There is no builder, every pair being two shims typed out, so
     #      write the note FIRST, from pair-note-template.txt -- it is the
     #      only copy of both recipes, and the template is what says what a note owes.
+    #      TWO COMMANDS DO THE READING AND THE COPYING, and they are here
+    #      rather than only at item 10 because a preparation that meets
+    #      them in the framing has forgotten them by the time it writes:
+    #          ./read-run.py --note $PREV-pair.txt > note-read.txt
+    #          ./read-run.py --note $PREV-pair.txt --draft $R \
+    #                        --halves <basis>,<other>
+    #      The first withholds the previous run's handover and says how
+    #      much; REDIRECT IT, it runs to 30-odd KB. The second prints the
+    #      `[SAME]` blocks with the names already carried over, every
+    #      substitution listed -- so what you write by hand is the
+    #      `[PAIR'S]` blocks and nothing else. Run 25's preparation ran
+    #      the first and not the second, hand-copied every `[SAME]` block,
+    #      and carried the previous run's gate arms and its --library
+    #      figures forward in the copying
     #      WHAT THE PAIR VARIES is not in this list and not in the
     #      template: it is settled in *What Run N compares against*, and
     #      the recipe to vary is the previous run's note. Read both before
@@ -5552,8 +5580,15 @@ and never as a chronology.
     #      transcription, and steps 3, 9b and 10 are all reading it back.
     #      AND WHERE `--list` SHOWS A TIMED ARM THAT BRINGS A NEW FUNCTION,
     #      the fills read here are the pinning claim's only reading:
-    #      compare them against the previous run's note before anything
-    #      else changes, since a rebuild retires it. preflight's own step
+    #      `./loop-offsets.py --delta $PREV-<basis> $R-<basis>` is that
+    #      comparison, against the previous build of this recipe and not
+    #      against a note's transcription of it -- offsets preserved or
+    #      not, addresses surviving to the byte, and the displacement SET,
+    #      which is what the README's readings turn on. Two preparations
+    #      did that subtraction by hand and both recorded it as an
+    #      improvised computation before the mode existed (2026-09-04).
+    #      Take it before anything else changes, since a rebuild retires
+    #      it. preflight's own step
     #      10 reads the fills AGAIN and does not make this comparison --
     #      it says so on the line -- so taking it here is not a duplicate.
     #      What the claim covers, and how Runs 20 and 21 killed its
@@ -5618,16 +5653,38 @@ and never as a chronology.
     #      blocked redirect runs nothing at all. Scratch names, spelled in
     #      full: a $R-*.log here makes run-major.sh refuse hours later,
     #      and $TMPDIR is unset unsandboxed
+    #      AND `check` IS SPENT HERE: it runs over every shape and class
+    #      view, the retired ones included, so nothing later wants it
+    #      again -- Main.hs's `retiredKnown` and `retiredShapesKnown`
+    #      assert that the retired names are names it holds, and this
+    #      step is where that is exercised. Run 25's preparation re-ran it
+    #      by hand to confirm exactly that, mid-roster-pass, and killed it
+    #      at a timeout
     ./$R-<basis> --list 2>/dev/null | wc -l    # 6. roster size, then the
     diff <(./$R-<basis> --list 2>/dev/null) <(./$R-<other> --list 2>/dev/null)
     #      two halves' listings: identical is what one source built twice
     #      looks like, and the pair note asks for that half of it. A pair
     #      whose halves differ in the ROSTER would break this and three
+    #  6b. AND THE GATE'S OWN SELECTION, which preflight reads by asking
+    #      the script that will run it: `./run-gate.sh $R --show` prints
+    #      SEL's globs and the count it derives, spends nothing, and
+    #      refuses where a glob names an arm the roster has parked. That
+    #      is the note's `gate arms` line DERIVED -- before 2026-09-04 it
+    #      was read out of run-gate.sh by eye, and Run 25's preparation
+    #      read it out of the previous NOTE instead, on the day the prune
+    #      re-cut SEL in the same commit that parked two of its five
     #      more of these steps -- preflight 4,5 cmps the two `check`
     #      outputs, and run-major.sh and smoke-sweep.sh hold every half to
     #      the BASIS's bench count -- so no pair here varies the roster,
     #      ruled 2026-08-26 after a walk of this list found all four
-    ./read-run.py --lint                  # 7. roster and shape annotations
+    ./read-run.py --lint                  # 7. roster and shape annotations,
+    #      the claims, AND THE OPEN REGISTRATION, which nothing read until
+    #      2026-09-04: every arm it names must be timed and every `task N`
+    #      it defers to must resolve. What that does NOT ask is whether
+    #      the task still carries a prediction -- Run 25's item (4)
+    #      deferred to one withdrawn the same day, and the pointer
+    #      resolved while the sentence around it was false. That half is
+    #      12b's, a reading, and this is why 12b is not optional
     #      READ NOW: item 9's preparation half of read-run.py's
     #      docstring -- the Modes list, --para, --section and the two
     #      gates -- and nothing of its statistics
@@ -5667,7 +5724,13 @@ and never as a chronology.
     #      on a file no run produced and reading exactly like a defect --
     #      which is what Run 24's preparation spent a round trip on.
     #      `./preflight.sh $R --corpus` is these two alone; take it when
-    #      12 reports DONE and before 12b
+    #      12 reports DONE and BEFORE 12c, which is the commit. It used to
+    #      say `before 12b`, which cannot be done: step 11's own line has
+    #      12a and 12b taken UNDER the sweeps, so both precede 12's DONE
+    #      and neither can follow this. 12c is what must not overlap --
+    #      a commit while these two run reads as a case that changed the
+    #      tree -- so the order is 12a and 12b under the sweeps, then
+    #      --corpus alone, then 12c. Read the two ways round 2026-09-04
     #      why: --para 'What the three script-check steps'
     ./$R-<basis> diag                     # 9. the regime, in the binary:
     #      one row, baseOffsetsScan against baseOffsetsMut on vgg-14-c512,
@@ -5705,6 +5768,17 @@ and never as a chronology.
     #      each process to the arm count `--list` gives for that shape;
     #      the harness wakes you when each ends, and no waiter is set
     #      why: --para 'And one more, nearly free'
+    ./roster-delta.py $PREV-<basis> $R-<basis>   # 6c. WHAT THE ROSTER
+    #      CHANGE WAS, off the two binaries: benches, arms in and out,
+    #      whether the survivors kept their ORDER, main-set shapes in and
+    #      out, and the class views per class. It is what the note's
+    #      roster block and Provenance's delta bullet both state in prose,
+    #      and until 2026-09-04 both were written from a `diff` of two
+    #      `--list` outputs that nothing here performed -- Run 25's
+    #      preparation got a clause of its own note wrong that way, and
+    #      improvised the per-class view count besides. It reads two
+    #      binaries, so it belongs beside 6 and is placed here, where the
+    #      classes it counts are the ones step 12 is about to name
     #  12. THE ROSTER PASS, owed ONLY
     #      if `--list` changed membership AND the pair note records none
     #      -- it belongs to the pair as the gate does, so grep the note
@@ -5731,7 +5805,11 @@ and never as a chronology.
     #      waiter that greps a process list matches ITS OWN command line
     #      and never returns -- `pgrep -f`, `pkill -f` and `ps -eo args
     #      | grep` alike, the last of which cost Run 23's preparation a
-    #      hung call
+    #      hung call. AND A `tail` BETWEEN LEGS SHOWS NOTHING: each driver
+    #      prints a leg when that leg ENDS, so its output file is
+    #      unchanged for the whole of a leg while the leg's JSON grows
+    #      under it, which reads like progress and is not. Run 25's
+    #      preparation polled ten-odd times for the same two lines
     #      why: --para 'After a roster change'
     ./preflight.sh $R --corpus            # 8c AND 8d, DEFERRED TO HERE:
     #      run them when 11 and 12 have both printed their verdict -- `sweep clean` and `pass clean` -- and nothing is writing a JSON.

@@ -1,23 +1,19 @@
 TEMPLATE for $R-pair.txt. Copy it, fill it, delete this line and the two
 below it -- but KEEP EVERY [SAME] AND [PAIR'S] MARKER in the note you
-write. They cost a note nothing, and the next note is written with yours
-open: a marked note shows at a glance which of its blocks would be a
-COPYING ERROR to carry forward, which is the one thing the markers are
-for and the one thing a session cannot tell by reading. Notes carried no
-markers until 2026-09-01. What a next PREPARATION may skip is a
-different question and a different set -- the chapter's reading list
-answers it at item 10, naming the blocks by their leads. Every pair here is hand-built and its note is the only copy of
-both recipes, so the note is written BEFORE either binary exists -- which
-is also why it is a template and not a generator: what goes in it is a
-person's, and only the slots are known in advance. Run 12's note carried
-no commit and Run 14's carried none until the pair was built, both because
-each note was written from scratch and nothing listed what a note owes.
+write. A marked note shows at a glance which of its blocks would be a
+COPYING ERROR to carry forward, which is the one thing a session cannot
+tell by reading. Every pair here is hand-built and its note is the only
+copy of both recipes, so the note is written BEFORE either binary exists
+-- which is also why this is a template and not a generator: what goes in
+it is a person's, and only the slots are known in advance.
 
-BUT COPY FROM THE PREVIOUS NOTE AND NOT FROM HERE, and the ruling above
-is about the DECISIONS and not about every line. Most of a note does not
-vary from pair to pair, and a session that re-derives the invariant part
-spends its attention where nothing is at stake. The blocks below are
-marked [SAME] or [PAIR'S]:
+DO NOT COPY THE [SAME] BLOCKS BY HAND. `./read-run.py --note $PREV-pair.txt
+--draft $R --halves <basis>,<other>` prints them with the names already
+carried over and every substitution listed, which is most of a note; what
+is left is the [PAIR'S] blocks, and those are the ones worth your
+attention. Run 25's preparation hand-copied instead, and carried the
+previous run's gate arms and its --library figures forward in the copying.
+The blocks below are marked [SAME] or [PAIR'S]:
   [SAME]    carried over from the previous note with the names changed
             and re-read rather than re-decided -- the naming rule, the
             launch lines, the riders, the counts recipe, the read-back
@@ -266,17 +262,55 @@ Verified when built, YYYY-MM-DD:
                    change to it. Step 3 diffs against this line and the
                    write-up transcribes it; a note without it leaves both
                    with no source
+  shim at          align-as.py's commit, and whether it MOVED since the
+                   last pair. It is on the recipe's -pgma, so a shim that
+                   moved is a difference in the binaries no figure
+                   attributes to the shim; where it moved, say what the
+                   diff between the two commits actually touches
+  compilers        what `ghc --version` said for each half, and what each
+                   BINARY carries -- a project file naming a compiler is
+                   not a reading of one
+  baked RTS        the `-with-rtsopts` line, by `+RTS --info` and never by
+                   `strings`, on both halves
+  instruments      the @@ stamps this pair's switches need, counted in
+                   each binary
   .text            bytes, and whether the halves agree
   md5 <basis>      ...
   md5 <other>      ...
+  repetition       available or not, and why. Not owed where the source
+                   moved: no md5 can reproduce an earlier binary then, so
+                   an unequal one names nothing
   fills            the tracked loops' offsets, whether they are the ones
-                   the last pair held, and what --library reads
+                   the last pair held, and what --library reads.
+                   `./loop-offsets.py --delta PREV NOW` is the reading
+                   against the previous build of this recipe, and
+                   `--library` the one within the pair -- THIS PAIR'S
+                   FIGURE AND NOT THE SERIES
   straddle         --survey on each half: how many self-loops, how many at
                    offset 0, how many still straddling. Offsets at 0 are
                    not asked of a max-skip half
+  regime           what `diag` read on the basis, as the run chapter's
+                   step 9 reads it -- the one thing no later step can
+                   confirm
+  check            whether every shape agreed on both halves and whether
+                   the two logs are byte-identical
   --list           N benches both, and whether the two listings are
-                   identical
+                   identical; `./roster-delta.py PREV NOW` is what says
+                   how the roster moved, and its per-class counts are what
+                   the roster block above owes
   smoke sweep      ./smoke-sweep.sh $R, clean or not
   L1 ROSTER PASS:  taken or not owed, and on which roster -- a pass
                    recorded for a roster that has since moved is worse
-                   than none
+                   than none -- with WHAT IT FOUND, which the script now
+                   prints deduped rather than leaving in a temp directory
+  document checks  --lint and --check-doc, with the date each passed
+  script checks    8b, and 8c and 8d, which are taken separately and after
+                   the sweeps
+  scripts set      pre-run step 2b: normally NOTHING TO SET, the halves
+                   being read from the HALVES line above. An older note's
+                   `scripts set` row records a five-site edit that is gone
+                   and is not copied forward
+  gate arms        run-gate.sh's globs and the count it derives, from
+                   `./run-gate.sh $R --show` and never by eye: they move
+                   with the roster, and a note that transcribes the
+                   PREVIOUS run's is what Run 25's preparation wrote
