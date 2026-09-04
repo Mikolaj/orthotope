@@ -3105,6 +3105,16 @@ TIER1 = {
         ok='stops after that many runs and reports that many',
         bug='checked one figure, opened every run and reported them all'
             ' covered, so the fmt_abs mutant rested on a single figure'),
+    'properties-refuse-a-limit-that-is-not-a-count': dict(
+        family='domain-unchecked', discovery='lint', harm='latent',
+        trigger='CORPUS_LIMIT set to something that is not a whole number',
+        ok='refused under main() at exit 2, naming the variable',
+        bug='a traceback out of the import line'),
+    'properties-refuse-a-negative-limit': dict(
+        family='domain-unchecked', discovery='lint', harm='latent',
+        trigger='CORPUS_LIMIT=-1',
+        ok='refused under main() at exit 2, naming the variable',
+        bug='every property swept nothing and blamed an empty corpus'),
     'properties-name-an-unreadable-run': dict(
         family='quiet-failure', discovery='review', harm='latent',
         trigger='a JSON cut off mid-file in the corpus',
@@ -7512,6 +7522,28 @@ RECORDS = [
          ok=V(exit=0, has=['prop_abs_round_trip', 'in 1 run(s)'],
               hasnt=['in 2 run(s)']),
          bug=V(has=['in 2 run(s)'], hasnt=['in 1 run(s)'])),
+
+    case('properties-refuse-a-limit-that-is-not-a-count', 'properties.py',
+         '4ea1464',
+         'CORPUS_LIMIT was parsed at import, so a value that is not a count'
+         ' was a traceback and a negative one an empty sweep blamed on the'
+         ' corpus',
+         # The source lint's one standing question (`env-parse-at-import`),
+         # answered: the value is read under main() and refused, at exit 2
+         # naming the variable, where it is not a whole number.
+         plant=corpus_of_one,
+         env={'CORPUS': '{corpus}', 'CORPUS_LIMIT': 'x'},
+         argv=[],
+         ok=V(exit=2, has=['CORPUS_LIMIT'], hasnt=['Traceback']),
+         bug=V(exit=1, has=['Traceback'])),
+
+    case('properties-refuse-a-negative-limit', 'properties.py', '4ea1464',
+         'a negative CORPUS_LIMIT swept nothing and said the corpus was empty',
+         plant=corpus_of_one,
+         env={'CORPUS': '{corpus}', 'CORPUS_LIMIT': '-1'},
+         argv=[],
+         ok=V(exit=2, has=['CORPUS_LIMIT'], hasnt=['empty corpus']),
+         bug=V(exit=1, has=['empty corpus'], hasnt=['CORPUS_LIMIT'])),
 
     case('properties-name-an-unreadable-run', 'properties.py', 'ae6cbce',
          'a JSON that would not load was skipped and counted as covered',
