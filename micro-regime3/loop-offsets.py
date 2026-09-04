@@ -322,8 +322,9 @@ def match(timed, twin, want='_Main_'):
     named from the twin only where the twin holds a byte-identical copy,
     and refused where it holds none or fewer copies than the timed binary
     -- which is what makes a negative honest. So: every loop the survey
-    counts as straddling in `timed` is looked up among ALL of the twin's
-    loops of any length by its bytes; a unique match is named through the
+    counts as straddling in `timed` is looked up by its bytes among the
+    twin's loops as the survey counts them, at most a line long, which a
+    byte-identical copy of one always is; a unique match is named through the
     twin's DWARF, several matches are listed, and none is a refusal said
     aloud. The count check is printed first, twin against timed, as the
     survey counts them.
