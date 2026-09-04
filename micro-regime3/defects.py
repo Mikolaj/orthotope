@@ -639,6 +639,148 @@ def stub_half(tmp, name, body=None):
     return path
 
 
+# A site of a run's binary, kept as objdump's own listing of it: the binary
+# dies at the deletion offer, and a listing is the one form of a site that
+# can be tracked. This one is `run25-g912` from 0x4275c0 to 0x427640, read
+# 2026-09-04: the tail of a continuation, the info table in front of
+# `$wrun` -- `fbConcatRuns`'s `run` -- and the entry code after it. The
+# table's SRT word, `78 d8 3d 01` at 0x42761c, decodes as `js -40`, and
+# the bytes from 0x4275f6 sum to 40, so the survey read a straddling
+# self-loop there that no `-g3` twin held and that control leaves at its
+# second instruction. The window starts mid-instruction, as any window
+# into tables-next-to-code does, and objdump has re-synchronised by the
+# `mov 0x8(%rbp),%r14` that precedes the phantom's head.
+PHANTOM_LISTING = """\
+
+run25-g912:     file format elf64-x86-64
+
+
+Disassembly of section .text:
+
+00000000004275c0 <microzm0zi1zminplacezmmicro_Main_zdfNFDataT_info+0x1bc40>:
+  4275c0:\t10 48 8b             \tadc    %cl,-0x75(%rax)
+  4275c3:\t5b                   \tpop    %rbx
+  4275c4:\t18 48 89             \tsbb    %cl,-0x77(%rax)
+  4275c7:\t45 e8 48 83 c5 e0    \trex.RB call ffffffffe107f915 <_end+0xffffffffdf705cad>
+  4275cd:\tf6 c3 07             \ttest   $0x7,%bl
+  4275d0:\t75 16                \tjne    4275e8 <microzm0zi1zminplacezmmicro_Main_zdfNFDataT_info+0x1bc68>
+  4275d2:\t48 8b 03             \tmov    (%rbx),%rax
+  4275d5:\tff e0                \tjmp    *%rax
+  4275d7:\t90                   \tnop
+  4275d8:\t01 00                \tadd    %eax,(%rax)
+  4275da:\t00 00                \tadd    %al,(%rax)
+  4275dc:\t00 00                \tadd    %al,(%rax)
+  4275de:\t00 00                \tadd    %al,(%rax)
+  4275e0:\t1e                   \t(bad)
+  4275e1:\t00 00                \tadd    %al,(%rax)
+  4275e3:\t00 58 4e             \tadd    %bl,0x4e(%rax)
+  4275e6:\t3e 01 48 8d          \tds add %ecx,-0x73(%rax)
+  4275ea:\t3d 51 4e 3e 01       \tcmp    $0x13e4e51,%eax
+  4275ef:\t48 89 de             \tmov    %rbx,%rsi
+  4275f2:\t4c 8b 75 08          \tmov    0x8(%rbp),%r14
+  4275f6:\t48 83 c5 10          \tadd    $0x10,%rbp
+  4275fa:\te9 61 ff ff ff       \tjmp    427560 <microzm0zi1zminplacezmmicro_Main_zdfNFDataT_info+0x1bbe0>
+  4275ff:\t41 ff 65 f0          \tjmp    *-0x10(%r13)
+  427603:\t0f 1f 44 00 00       \tnopl   0x0(%rax,%rax,1)
+  427608:\t04 00                \tadd    $0x0,%al
+  42760a:\t00 00                \tadd    %al,(%rax)
+  42760c:\t01 00                \tadd    %eax,(%rax)
+  42760e:\t00 00                \tadd    %al,(%rax)
+  427610:\t02 00                \tadd    (%rax),%al
+  427612:\t00 00                \tadd    %al,(%rax)
+  427614:\t02 00                \tadd    (%rax),%al
+  427616:\t00 00                \tadd    %al,(%rax)
+  427618:\t08 00                \tor     %al,(%rax)
+  42761a:\t00 00                \tadd    %al,(%rax)
+  42761c:\t78 d8                \tjs     4275f6 <microzm0zi1zminplacezmmicro_Main_zdfNFDataT_info+0x1bc76>
+  42761e:\t3d 01 48 8d 45       \tcmp    $0x458d4801,%eax
+  427623:\td0 4c 39 f8          \trorb   $1,-0x8(%rcx,%rdi,1)
+  427627:\t0f 82 d2 00 00 00    \tjb     4276ff <microzm0zi1zminplacezmmicro_Main_zdfNFDataT_info+0x1bd7f>
+  42762d:\t48 c7 45 d8 90 76 42 \tmovq   $0x427690,-0x28(%rbp)
+  427634:\t00 
+  427635:\t48 8b 43 07          \tmov    0x7(%rbx),%rax
+  427639:\t48 8b 4b 17          \tmov    0x17(%rbx),%rcx
+  42763d:\t48                   \trex.W
+  42763e:\t8b                   \t.byte 0x8b
+  42763f:\t53                   \tpush   %rbx
+"""
+
+
+def phantom_listing(tmp):
+    """The saved site above, planted for `--survey`: {'dis': path}."""
+    path = os.path.join(tmp, 'run25-g912-0x4275c0.dis')
+    write(path, PHANTOM_LISTING)
+    return {'dis': path}
+
+
+# The run-fill loop this README prices, 28 bytes and eight instructions, as
+# `run25-g912` carries it at 0x434558; a second body differs in one
+# register so the two group apart. Listings built from them are what the
+# `--delta` cases subtract, a fixture needing two builds a line apart being
+# nothing a system binary can stand in for.
+LOOP_BODY = [('f2 0f 10 04 fa', 'movsd  (%rdx,%rdi,8),%xmm0'),
+             ('49 89 f1', 'mov    %rsi,%r9'),
+             ('4d 01 c1', 'add    %r8,%r9'),
+             ('f2 42 0f 11 04 c9', 'movsd  %xmm0,(%rcx,%r9,8)'),
+             ('48 01 c7', 'add    %rax,%rdi'),
+             ('49 ff c0', 'inc    %r8'),
+             ('49 39 d8', 'cmp    %rbx,%r8'),
+             ('7c e4', 'jl')]
+LOOP_BODY_B = [(b if i != 1 else '49 89 f9', t if i != 1 else 'mov    %rdi,%r9')
+               for i, (b, t) in enumerate(LOOP_BODY)]
+MAIN_SYM = 'microzm0zi1zminplacezmmicro_Main_zdfNFDataT_info'
+LIB_SYM = ('statisticszm0zi16zi5zi0zm536b490adb2e81edec0faef6e3a878a0b1ba1a1e08e'
+           '9471ff97c2975863bedae_StatisticsziQuantile_zdfOrdContParamzuzdcmax_info')
+
+
+def loop_listing(tmp, name, groups):
+    """A listing holding `groups`, each (symbol, body, heads): the body at
+    every head, under the symbol, in objdump's own form."""
+    out = ['', '%s:     file format elf64-x86-64' % name, '', '',
+           'Disassembly of section .text:', '']
+    for sym, body, heads in groups:
+        for head in sorted(heads):
+            out.append('%016x <%s>:' % (head, sym))
+            a = head
+            for raw, text in body:
+                if text == 'jl':
+                    text = 'jl     %x <%s+0x0>' % (head, sym)
+                out.append('  %x:\t%-21s\t%s' % (a, raw + ' ', text))
+                a += len(raw.split())
+            out.append('')
+    path = os.path.join(tmp, name)
+    write(path, '\n'.join(out) + '\n')
+    return path
+
+
+def delta_listings(tmp, kind):
+    """OLD and NEW listings for `--delta`: {'old': path, 'new': path}.
+
+    `grows`:   one copy of a group becomes two, the reading the default
+               threshold dropped until b39ff49;
+    `moves`:   two groups, one whose offsets move and no address survives,
+               one that keeps an address and moves the other a line;
+    `library`: a Main group beside a library one on both sides.
+    """
+    main = lambda heads, body=LOOP_BODY: (MAIN_SYM, body, heads)
+    if kind == 'grows':
+        old = [main([0x401000])]
+        new = [main([0x401000, 0x402000])]
+    elif kind == 'moves':
+        old = [main([0x401000, 0x402000]),
+               main([0x403000, 0x404000], LOOP_BODY_B)]
+        new = [main([0x401040, 0x402108]),
+               main([0x403000, 0x404040], LOOP_BODY_B)]
+    elif kind == 'library':
+        old = [main([0x401000, 0x402000]),
+               (LIB_SYM, LOOP_BODY_B, [0x501027, 0x50102f])]
+        new = [main([0x401000, 0x402000]),
+               (LIB_SYM, LOOP_BODY_B, [0x501027, 0x50102f])]
+    else:
+        raise ValueError(kind)
+    return {'old': loop_listing(tmp, 'zzdl-old', old),
+            'new': loop_listing(tmp, 'zzdl-new', new)}
+
 def parked_arm():
     """One arm the roster carries as `Only`, from Main.hs and not written
     out here: which arms are parked moves every run that prunes, and a
@@ -3705,6 +3847,25 @@ TIER1 = {
                       trigger="the note's gate-arms line written beside a SEL that moved",
                       ok='the globs and the count come from the script that will run',
                       bug='SEL was read out of run-gate.sh by eye, or out of the previous note'),
+    'survey-reads-a-saved-listing': dict(family=None, discovery='review', harm='fired', harm_count=3,
+                      trigger='a site of a binary that has since been deleted',
+                      ok='a saved objdump listing is read as the binary it came from',
+                      bug='objdump alone, so three cases pinned to run binaries rotted at a deletion offer'),
+    'survey-counts-a-data-word-as-a-loop': dict(family='scan-for-parse', discovery='in-use', harm='fired', harm_count=1, proved='ran',
+                      notes='watched by hand on run25-g912 against its -g3 twin, 2026-09-04, before the fixture was cut from it',
+                      trigger='an info-table word decoding as a backward branch whose span the bytes before it fill',
+                      ok='a closing branch no straight-line flow from the head reaches is not a loop',
+                      bug="run25-g912's survey read five straddlers where its twin and every other binary read four"),
+    'delta-sees-a-group-that-grows-past-the-threshold': dict(family='quiet-failure', discovery='review', harm='fired', harm_count=1, proved='ran',
+                      notes='watched on run24-g912 against run25-g912 at --len 0, 2026-09-04, at both thresholds',
+                      trigger='a group under --min-copies in OLD and over it in NEW',
+                      ok='either side meeting the threshold selects the group',
+                      bug='the OLD side alone was tested and `k not in og` excluded the rest'),
+    'delta-leaves-the-library-groups-to-library': dict(family='two-spellings', discovery='review', harm='fired', harm_count=2, proved='ran',
+                      notes="watched on both halves of Run 25, 2026-09-04, the pair note's fills row copying the summary",
+                      trigger="a linked library's loop group on both sides",
+                      ok='the population is Main-compiled code, as --match and --survey take it',
+                      bug='every group was read, so the statistics Quantile pair sat in the summary on both halves'),
     'delta-subtracts-two-builds': dict(family=None, discovery='in-use', harm='fired', harm_count=2,
                       trigger="two builds' tracked groups, on the pinning claim's own reading",
                       ok='offsets, surviving addresses and the displacement set, derived',
@@ -6000,6 +6161,27 @@ RECORDS = [
          argv=['--unit', 'span_label(None)'],
          ok=V(has=["'at most 64 B'"], hasnt=['any length'])),
 
+    case('survey-reads-a-saved-listing', 'loop-offsets.py', '8b4f51d',
+         'a site of a dead binary could not be held: objdump was the only'
+         ' way in, and a listing of the site was refused as no ELF',
+         plant=phantom_listing,
+         argv=['--survey', '{dis}'],
+         ok=V(exit=0, has=['self-loops of at most 64 B']),
+         bug=V(exit=1, has=['file format not recognized'])),
+
+    case('survey-counts-a-data-word-as-a-loop', 'loop-offsets.py', '8b4f51d',
+         'an info-table word decoding as a backward branch, over bytes that'
+         ' happened to sum, was counted as a straddling self-loop',
+         # NOT AUDITED: the reader before the fix takes ELF alone, and the
+         # binary this was read on dies at the deletion offer. Watched by
+         # hand on 2026-09-04, on run25-g912 against its -g3 twin: five
+         # straddling against four, the fifth refused by byte identity, and
+         # the same word reading `js -123` in run24-g912, past the cap.
+         plant=phantom_listing,
+         argv=['--survey', '{dis}'],
+         ok=V(exit=0, has=['still straddling   : 0'], hasnt=['0x4275f6']),
+         no_audit='fixture-from-a-document-the-era-lacks'),
+
     # ---- read-all.sh ---------------------------------------------------
     case('aa-worst-cell-is-not-an-insitu-row', 'read-all.sh', '8ee1e5b',
          'with every twin filtered out an in-situ row was read as the A/A',
@@ -7532,6 +7714,51 @@ RECORDS = [
          ok=V(exit=0, has=['IN /bin/sh ONLY',
                            '3 matched nothing on the other side'],
               hasnt=['group(s) moved at all'])),
+
+    case('delta-sees-a-group-that-grows-past-the-threshold',
+         'loop-offsets.py', 'b39ff49',
+         'a group under --min-copies in OLD and over it in NEW was in'
+         ' neither selection, so the one group whose copy count is the'
+         ' finding was dropped in silence',
+         # NOT AUDITED: the fixture is a listing, which the reader before
+         # 8b4f51d could not open. Watched 2026-09-04 on run24-g912 against
+         # run25-g912 at --len 0: a 34-byte group read `1 -> 2 copies` at
+         # --min-copies 1 and vanished at the default.
+         plant=lambda t: delta_listings(t, 'grows'),
+         argv=['--delta', '{old}', '{new}'],
+         ok=V(exit=0, has=['1 -> 2 copies', 'copy COUNT moved']),
+         no_audit='fixture-from-a-document-the-era-lacks'),
+
+    case('delta-reads-moved-offsets-and-displacements', 'loop-offsets.py',
+         None,
+         'CONTROL: heads moving off their offsets, an address surviving and'
+         ' the displacements are read as such -- the direction the identity'
+         ' control cannot see, so a reader reporting preservation'
+         ' unconditionally passed it',
+         plant=lambda t: delta_listings(t, 'moves'),
+         argv=['--delta', '{old}', '{new}'],
+         ok=V(exit=0, has=['offsets MOVED: [0, 0] -> [0, 8]',
+                           'NO address survives to the byte',
+                           '2 displacement(s): 0x40, 0x108 (NOT a whole'
+                           ' line)',
+                           'every mod-64 offset preserved: [0, 0]',
+                           '1 address(es) survive to the byte: 0x403000',
+                           '1 displacement(s): 0x40',
+                           'of the 2 compared: 1 kept every offset, 2 moved'
+                           ' at all'])),
+
+    case('delta-leaves-the-library-groups-to-library', 'loop-offsets.py',
+         '8b4f51d',
+         "a linked library's loops stood among the tracked groups and in the"
+         ' summary a note copies, where --match and --survey read Main alone',
+         # NOT AUDITED: a listing, which the reader before the fix could not
+         # open. Watched 2026-09-04 on both halves of Run 25: the statistics
+         # Quantile pair, [39, 47] on the basis, counted as a third group.
+         plant=lambda t: delta_listings(t, 'library'),
+         argv=['--delta', '{old}', '{new}'],
+         ok=V(exit=0, has=['1 group(s) read',
+                           '4 library loop(s) left to --library']),
+         no_audit='fixture-from-a-document-the-era-lacks'),
 
     case('roster-delta-reads-two-listings', 'roster-delta.py', None,
          'CONTROL: two identical listings move nothing, and the survivors'

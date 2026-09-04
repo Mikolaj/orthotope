@@ -167,6 +167,54 @@ MUTANTS = [
      'r = subprocess.run([sys.executable, \'{file}\', \'--lint\', \'--readme\', f],'
      ' capture_output=True, text=True)\n'
      'sys.exit(0 if \'not under the tasks heading\' in r.stdout + r.stderr else 1)"'),
+    # The survey's reachability guard, removed: the saved site's data word
+    # counts as a straddling loop again. The judge plants the listing from
+    # defects.py and asks the survey for its straddle count.
+    ('survey counts a data word as a loop again', 'loop-offsets.py',
+     '        if not reaches(insns, k, n, targets):\n            continue\n',
+     '',
+     'PATH="{bin}:$PATH" python3 -c "import importlib.util, sys, tempfile, subprocess\n'
+     'spec = importlib.util.spec_from_file_location(\'d\', \'{dir}/defects.py\')\n'
+     'm = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)\n'
+     'f = m.phantom_listing(tempfile.mkdtemp())[\'dis\']\n'
+     'r = subprocess.run([sys.executable, \'{file}\', \'--survey\', f],'
+     ' capture_output=True, text=True)\n'
+     'sys.exit(0 if \'still straddling   : 0\' in r.stdout else 1)"'),
+    # --delta's three readings, each broken on its own over the listings
+    # defects.py builds for it: preservation reported whatever moved, the
+    # selection taken of the OLD side alone again, and the libraries read
+    # into the tracked groups again.
+    ('--delta reports every offset preserved whatever moved', 'loop-offsets.py',
+     '        if oo == nn:\n            preserved += 1\n',
+     '        if True:\n            preserved += 1\n',
+     'PATH="{bin}:$PATH" python3 -c "import importlib.util, sys, tempfile, subprocess\n'
+     'spec = importlib.util.spec_from_file_location(\'d\', \'{dir}/defects.py\')\n'
+     'm = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)\n'
+     'o = m.delta_listings(tempfile.mkdtemp(), \'moves\')\n'
+     'r = subprocess.run([sys.executable, \'{file}\', \'--delta\', o[\'old\'], o[\'new\']],'
+     ' capture_output=True, text=True)\n'
+     'sys.exit(0 if \'offsets MOVED\' in r.stdout else 1)"'),
+    ('--delta selects on the OLD side alone again', 'loop-offsets.py',
+     '    keys = [k for k in og\n'
+     '            if len(og[k]) >= min_copies or len(ng.get(k, ())) >= min_copies]\n',
+     '    keys = [k for k in og if len(og[k]) >= min_copies]\n',
+     'PATH="{bin}:$PATH" python3 -c "import importlib.util, sys, tempfile, subprocess\n'
+     'spec = importlib.util.spec_from_file_location(\'d\', \'{dir}/defects.py\')\n'
+     'm = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)\n'
+     'o = m.delta_listings(tempfile.mkdtemp(), \'grows\')\n'
+     'r = subprocess.run([sys.executable, \'{file}\', \'--delta\', o[\'old\'], o[\'new\']],'
+     ' capture_output=True, text=True)\n'
+     'sys.exit(0 if \'1 -> 2 copies\' in r.stdout else 1)"'),
+    ('--delta reads the libraries into the tracked groups again', 'loop-offsets.py',
+     "            if want in (f['sym'] or ''):\n",
+     '            if True:\n',
+     'PATH="{bin}:$PATH" python3 -c "import importlib.util, sys, tempfile, subprocess\n'
+     'spec = importlib.util.spec_from_file_location(\'d\', \'{dir}/defects.py\')\n'
+     'm = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)\n'
+     'o = m.delta_listings(tempfile.mkdtemp(), \'library\')\n'
+     'r = subprocess.run([sys.executable, \'{file}\', \'--delta\', o[\'old\'], o[\'new\']],'
+     ' capture_output=True, text=True)\n'
+     'sys.exit(0 if \'1 group(s) read\' in r.stdout else 1)"'),
     ('shadow_dir holds a program that cds to an absolute path', 'defects.py',
      '''    if re.search(r'^\\s*(cd|pushd)\\s+(--\\s+)?["\\']?(/|~|\\$HOME)', text, re.M):''',
      '    if False:',
