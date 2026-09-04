@@ -399,8 +399,14 @@ def delta(old, new, want, min_copies):
     og, ng = sides
     span = span_label(want)
     print(f'== {old} -> {new}: {span} loops, matched by body bytes')
-    keys = [k for k in og if len(og[k]) >= min_copies]
-    keys += [k for k in ng if len(ng[k]) >= min_copies and k not in og]
+    # EITHER SIDE meeting the threshold is enough. Taking it of the OLD
+    # side alone dropped, in silence, exactly the group whose copy count is
+    # the finding: one that grew from a copy or two to six is below the
+    # threshold in `og` and present in it, so it failed the first test and
+    # was excluded from the second by `k not in og`.
+    keys = [k for k in og
+            if len(og[k]) >= min_copies or len(ng.get(k, ())) >= min_copies]
+    keys += [k for k in ng if k not in og and len(ng[k]) >= min_copies]
     preserved = moved = one_sided = recount = compared = 0
     for k in sorted(keys, key=lambda k: -max(len(og.get(k, ())),
                                              len(ng.get(k, ())))):

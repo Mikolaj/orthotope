@@ -9386,12 +9386,27 @@ def lint(main_hs, readme, run_doc=None):
     # that are not arms -- `predict: cross list 1.0 within 0.7%`,
     # `LOOP_DEADSPOT=1`, section names -- and intersecting with the parked
     # set is what keeps those out without a vocabulary to maintain.
-    paras = [t for _, t, _ in unwrapped_paragraphs(doc.split('\n'))]
+    # THE README ALONE, and not `doc`, which carries the run file appended
+    # to it. A registration lives in the open list while its run is in
+    # hand and MOVES INTO runs/$R.md at post-run step 5 -- so scanning the
+    # pair would hold a FINISHED run's registration to today's roster,
+    # whose whole point is that it has moved since. Run 24's own
+    # registration names arms this prune parked, and would fail this check
+    # the moment its file used the open list's form. It does not today,
+    # which is the form saving the scope rather than the scope saving
+    # itself. The skip line below names the README because the README is
+    # what was read.
+    paras = [t for _, t, _ in unwrapped_paragraphs(
+        open(readme).read().split('\n'))]
     regs = [t for t in paras
             if re.match(r'- `OPEN` \*\*What Run \d+ is built to answer', t)]
+    # ANY heading closes the tasks section, not `###` alone: the section
+    # is followed by another `###` today, so a `##` guard would have been
+    # indistinguishable from this until the day a section moved and every
+    # numbered paragraph after it counted as a task on offer.
     tasks, in_tasks = set(), False
     for t in paras:
-        if t.startswith('### '):
+        if t.startswith('#'):
             in_tasks = t.startswith('### Recommended tasks after Run')
         elif in_tasks:
             m = re.match(r'(\d+)\.\s+`', t)
