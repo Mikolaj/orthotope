@@ -115,6 +115,9 @@ and addr2line's -- and a fix here wants one there first.
     ./loop-offsets.py --len 24 BINARY    # e.g. the count-down form
     ./loop-offsets.py --survey BINARY    # every loop that could fit a line
     ./loop-offsets.py --library A B      # do the two halves move the libraries
+    ./loop-offsets.py --delta OLD NEW    # how far a rebuild moved the tracked
+                                         #   loops: the pinning claim's reading
+    ./loop-offsets.py B --match TWIN     # name B's straddlers off a -g3 twin
 """
 import argparse
 import collections
@@ -163,7 +166,23 @@ def innermost(path):
     return heads
 
 
-def scan(path, length):
+def listing(path):
+    """`objdump -d -j .text` over `path` -- or `path` itself, where it is a
+    saved listing: a text file rather than ELF, carrying objdump's own
+    `Disassembly of section` header. A run's binary dies at the deletion
+    offer, so a case that holds one of its sites holds the listing of that
+    site instead, which is the one form of it that can be tracked. Anything
+    else goes to objdump, whose refusal is the answer for a file that is
+    neither.
+    """
+    try:
+        with open(path, 'rb') as f:
+            head = f.read(4096)
+    except OSError:
+        head = b''
+    if head[:4] != b'\x7fELF' and b'Disassembly of section' in head:
+        with open(path) as f:
+            return f.read()
     # objdump's verdict and not merely its stdout. A mistyped or missing
     # binary, or one with no `.text`, left `dis` empty and every mode then
     # read it as a binary with no loops: `--survey no-such-binary` printed
@@ -178,7 +197,45 @@ def scan(path, length):
     if got.returncode != 0:
         sys.exit('%s exited %d: %s' % (' '.join(cmd), got.returncode,
                                        got.stderr.strip() or '(no stderr)'))
-    dis = got.stdout
+    return got.stdout
+
+
+def reaches(insns, k, n, targets):
+    """Whether straight-line flow from the head at `k` reaches the closing
+    branch at `n`: fall-through past anything but an unconditional
+    transfer, plus any instruction some direct branch targets.
+
+    A backward branch whose bytes sum is not yet a loop. `objdump -d`
+    sweeps tables-next-to-code linearly, so an info table decodes as
+    instructions, and a word of one can decode as a backward `js` whose
+    span the bytes before it happen to fill: `run25-g912`'s survey read
+    FIVE straddling self-loops in Main-compiled code where its `-g3` twin
+    and every other binary read four, the fifth closed by the SRT word of
+    the table in front of `$wrun` -- `0x013dd878`, low byte `0x78 0xd8`,
+    `js -40` -- over a body that was a continuation's tail, a heap-check
+    jump, a pad and twenty bytes of table, which control leaves at its
+    second instruction. Read 2026-09-04 and named by the twin refusing it.
+    Every self-loop this removes from the four real binaries and two twins
+    of that day is such a word behind a `jmp` and a pad, one to four per
+    binary; the blanket form, refusing any unconditional transfer inside
+    the body, took fourteen real loops with them, so this one follows the
+    flow instead. Survey totals recorded before 2026-09-04 are higher than
+    this reads by that few, and stand as taken.
+    """
+    live = False
+    for i in range(k, n + 1):
+        addr, _nb, _raw, mnem, _op, _sym = insns[i]
+        if i == k or addr in targets:
+            live = True
+        if i == n:
+            return live
+        if live and (mnem in ('jmp', 'jmpq') or mnem.startswith('ret')):
+            live = False
+    return False
+
+
+def scan(path, length):
+    dis = listing(path)
     cur = None
     insns = []
     for line in dis.split('\n'):
@@ -193,6 +250,12 @@ def scan(path, length):
                           m.group(4), cur))
 
     at = {i[0]: n for n, i in enumerate(insns)}
+    targets = set()
+    for _addr, _nb, _raw, mnem, op, _sym in insns:
+        if JMP.match(mnem) or mnem.startswith('call'):
+            t = TARGET.match(op.strip())
+            if t:
+                targets.add(int(t.group(1), 16))
     found = []
     for n, (addr, nb, _raw, mnem, op, _sym) in enumerate(insns):
         if not JMP.match(mnem):
@@ -216,6 +279,8 @@ def scan(path, length):
             continue
         body = ''.join(i[2] for i in insns[k:n + 1])
         if len(body) != 2 * span:     # a jump into the middle of an instruction
+            continue
+        if not reaches(insns, k, n, targets):
             continue
         found.append({'start': tgt, 'bytes': body, 'sym': insns[k][5],
                       'len': span, 'ninsn': n - k + 1, 'mod': tgt % LINE,
@@ -364,7 +429,7 @@ def match(timed, twin, want='_Main_'):
                               f'0x{h["start"]:x}' for h in hits))
 
 
-def delta(old, new, want, min_copies):
+def delta(old, new, length, min_copies, want='_Main_'):
     """How far a rebuild moved the tracked loops, group by group.
 
     The pinning claim is read at every build that brings a new timed
@@ -381,7 +446,19 @@ def delta(old, new, want, min_copies):
     `--match` uses and the only one that survives a relink moving every
     address. A group on one side alone is reported as such rather than
     dropped: that is what a change of compiler produces, and Run 24's HEAD
-    half grew a third group the basis did not have.
+    half grew a third group the basis did not have. WITHIN a group the
+    copies are paired by address order, the i-th old head with the i-th
+    new, which is what `survive to the byte` and the displacements are
+    read over: a group that keeps its count while one arm's copy leaves
+    and another's lands reads as displacements, and can read as an address
+    surviving, with nothing here to say the pairing slipped. The `-g3`
+    twins of post-run step 0 are what name a copy; this mode only counts.
+
+    The population is `want`'s, Main-compiled code as `--match` and
+    `--survey` take it, and the linked libraries' groups are left to
+    `--library`: read without the filter, the statistics Quantile pair
+    stood among the tracked groups on both halves of Run 25 and in the
+    summary line a note would copy (2026-09-04).
 
     This is a reading and not a gate. It exits 0 whatever it finds, because
     what a given displacement MEANS is the README's to say (*Why the build's
@@ -389,16 +466,21 @@ def delta(old, new, want, min_copies):
     file asserting a claim the runs are still measuring.
     """
     sides = []
+    left = 0
     for path in (old, new):
         groups = collections.defaultdict(list)
-        for f in scan(path, want):
-            groups[f['bytes']].append(f)
+        for f in scan(path, length):
+            if want in (f['sym'] or ''):
+                groups[f['bytes']].append(f)
+            else:
+                left += 1
         for fs in groups.values():
             fs.sort(key=lambda f: f['start'])
         sides.append(groups)
     og, ng = sides
-    span = span_label(want)
-    print(f'== {old} -> {new}: {span} loops, matched by body bytes')
+    span = span_label(length)
+    print(f'== {old} -> {new}: {span} loops in {want}-compiled code, '
+          f'matched by body bytes; {left} library loop(s) left to --library')
     # EITHER SIDE meeting the threshold is enough. Taking it of the OLD
     # side alone dropped, in silence, exactly the group whose copy count is
     # the finding: one that grew from a copy or two to six is below the
@@ -559,6 +641,10 @@ def main():
                         ' matched by body bytes -- the pinning claim\'s'
                         ' reading, which the run chapter asks for at every'
                         ' build bringing a new timed function')
+    p.add_argument('--code', default='_Main_', metavar='SUBSTR',
+                   help='--delta\'s population: loops in code whose symbol'
+                        ' carries SUBSTR, _Main_ by default as --survey and'
+                        ' --match take it; --code \'\' is every loop')
     p.add_argument('--library', action='store_true',
                    help='how far two halves agree about where the LINKED '
                         'libraries\' loops sit, which a pair must not move')
@@ -587,15 +673,19 @@ def main():
         if len(args.binary) != 2:
             sys.exit('--delta takes exactly two binaries, OLD then NEW')
         delta(args.binary[0], args.binary[1],
-              None if args.len == 0 else args.len, args.min_copies)
+              None if args.len == 0 else args.len, args.min_copies,
+              args.code)
         return
     if args.survey and args.library:
         p.error('--survey and --library are two reports, not one: the'
                 ' dispatch runs --library and drops --survey without a'
                 ' word')
     unread = [n for n, v, d in (('--len', args.len, 28),
-                                ('--min-copies', args.min_copies, 2))
+                                ('--min-copies', args.min_copies, 2),
+                                ('--code', args.code, '_Main_'))
               if v != d]
+    if '--code' in unread:
+        p.error('--code is read by --delta alone')
     if unread and (args.survey or args.library):
         p.error('%s %s read only by the grouped report: under --survey or'
                 ' --library it would be accepted and honoured by nobody'

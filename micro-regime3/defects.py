@@ -7514,7 +7514,9 @@ RECORDS = [
          # A system binary rather than a run's: a case pinned to `run<N>-`
          # artifacts rots at the deletion offer, which three fixtures here
          # already did once.
-         argv=['--delta', '/bin/sh', '/bin/sh', '--len', '0'],
+         # `--code ''`: a system binary has no Main-compiled code, and the
+         # population --delta reads by default is Main's (2026-09-04).
+         argv=['--delta', '/bin/sh', '/bin/sh', '--len', '0', '--code', ''],
          ok=V(exit=0, has=['nothing moved', 'every mod-64 offset preserved',
                            'survive to the byte'],
               hasnt=['offsets MOVED', 'NOT a whole line'])),
@@ -7522,7 +7524,7 @@ RECORDS = [
     case('delta-names-a-group-one-side-lacks', 'loop-offsets.py', None,
          'CONTROL: a group in one binary and not the other is named as'
          ' such rather than dropped, which is what a compiler change does',
-         argv=['--delta', '/bin/sh', '/bin/cat', '--len', '0'],
+         argv=['--delta', '/bin/sh', '/bin/cat', '--len', '0', '--code', ''],
          # AND THE SUMMARY SAYS SO. It used to count only the groups it
          # had compared, so a pair sharing no group at all read `0 group(s)
          # kept every offset; 0 group(s) moved at all` -- which is what
