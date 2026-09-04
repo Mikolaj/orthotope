@@ -3696,6 +3696,10 @@ TIER1 = {
                       trigger="a registration deferring to a task number that is not there",
                       ok='fails, names the task number',
                       bug='the deferral resolved to nothing and every gate passed'),
+    'gate-show-absorbs-a-third-argument': dict(family='silent-option', discovery='review', harm='latent',
+                      trigger='a third word after --show',
+                      ok='refuses, naming the count it got',
+                      bug='absorbed without effect and without error, printing the selection at exit 0'),
     'gate-show-derives-the-selection': dict(family='two-spellings', discovery='in-use', harm='fired', harm_count=1,
                       trigger="the note's gate-arms line written beside a SEL that moved",
                       ok='the globs and the count come from the script that will run',
@@ -7487,6 +7491,20 @@ RECORDS = [
          ok=V(exit=0, has=['glob   */list', 'arms   5', 'shapes 3',
                            'expect 15 benches a process'],
               hasnt=['expecting'])),
+
+    case('gate-show-absorbs-a-third-argument', 'run-gate.sh', None,
+         'a third word after --show was taken without effect or error',
+         # No fix_rev: the defect and its repair are the same day and the
+         # same body of work as `--show` itself, so there is no commit at
+         # which the flag exists and the refusal does not. A control, then,
+         # guarding forward -- which is what the corpus's third kind is for.
+         shadow=dict(extra=[('zzshow2-a1g', FAKE_HALF),
+                            ('zzshow2-lookrts', FAKE_HALF),
+                            ('zzshow2-pair.txt', NOTE_STUB)]),
+         env={'OTHER': 'a1g', 'BASIS': 'lookrts'},
+         argv=['zzshow2', '--show', 'nonsense'],
+         ok=V(exit=2, has=['too many arguments'],
+              hasnt=['expect 15 benches a process'])),
 
     case('delta-of-a-build-against-itself-moves-nothing', 'loop-offsets.py',
          None,

@@ -71,6 +71,15 @@ PREFIX="$1"                  # the binaries, the note and this gate's own
 # calls this at its own step, so the note's line is derived from the script
 # that will run and the two cannot drift.
 SHOW=0
+if [ $# -gt 2 ]; then
+  # An argument absorbed without effect and without error is this tree's
+  # `silent-option` family by name, and the first draft of this block read
+  # $2 alone: `./run-gate.sh run25 --show anything` printed the selection
+  # and exited 0, so a typed-wrong third word looked like a clean read.
+  # Found 2026-09-04 by reading this back.
+  echo "./run-gate.sh: too many arguments -- got $#, wanted RUN [--show]"
+  exit 2
+fi
 if [ $# -gt 1 ]; then
   case "$2" in
     --show) SHOW=1 ;;
