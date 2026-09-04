@@ -5865,7 +5865,9 @@ Unsandboxed throughout:
     #      pair, put in $R-evening-out.txt. The verdict is the two
     #      agreeing, and a gate answers sound or not sound -- never quote a
     #      magnitude from one. It is owed on every pair, both halves being
-    #      two builds by the ruling at the head of this chapter
+    #      two builds by the ruling at the head of this chapter, and again
+    #      after either half is rebuilt: run-evening.sh inherits a recorded
+    #      gate only for the binaries its block names by md5
     #  14a. WRITE THE VERDICT by hand ABOVE the note's GATE block, from
     #      those readings, clearing `GATE: NOT RUN` in the same edit --
     #      once the evening has landed, the driver going on without it. A

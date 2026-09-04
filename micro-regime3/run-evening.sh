@@ -136,15 +136,39 @@ stage () {   # stage LABEL cmd...   -> the command's status, recorded.
 stamp "evening begins for $R: basis $BASIS, control $OTHER, launch env\
  '${LAUNCH# }', riders '${RIDERS# }'"
 
-# 14. THE GATE, unless the note records it mechanically clean already; a
-# note recording a FAILED gate gets it run again, the apparatus having
-# presumably been fixed since. Only the exit status stops the evening;
-# the machine check inside it does not gate since 2026-08-23.
-# The NEWEST GATE block decides, as README's step 13 reads the note: an
-# older clean block under a later FAILED one, or from before a rebuild,
-# must not inherit.
-if grep '^GATE: run' "$NOTE" | tail -1 | grep -q 'Mechanically clean'; then
-  stamp "gate: inherited, $NOTE's newest GATE block is mechanically clean"
+# 14. THE GATE, unless the note records it mechanically clean already FOR
+# THESE BINARIES; a note recording a FAILED gate gets it run again, the
+# apparatus having presumably been fixed since. Only the exit status stops
+# the evening; the machine check inside it does not gate since 2026-08-23.
+# The NEWEST GATE block decides, as README's step 13 reads the note, and it
+# names the pair it gated by md5 (run-gate.sh's `halves md5:` line, since
+# 2026-09-04): an older clean block under a later FAILED one does not
+# inherit, and neither does a clean one naming other binaries, which is
+# what a block from before a rebuild is -- by its text alone it inherited,
+# and the evening would have run hours on a pair nobody gated. A block
+# without the line cannot be tied to anything and runs the gate too. Cases:
+# `evening-does-not-inherit-a-gate-of-other-binaries` and its untied sibling.
+BLOCK=$(awk '/^GATE: run/ { out = $0; blk = 1; next }
+             blk && /^[ \t]/ { out = out "\n" $0; next }
+             { blk = 0 }
+             END { print out }' "$NOTE")
+HALVES_MD5="$BASIS=$(md5sum "./$R-$BASIS" | cut -d' ' -f1) $OTHER=$(md5sum "./$R-$OTHER" | cut -d' ' -f1)"
+INHERIT=0
+if printf '%s\n' "$BLOCK" | head -1 | grep -q 'Mechanically clean'; then
+  if printf '%s\n' "$BLOCK" | grep -qF "halves md5: $HALVES_MD5"; then
+    INHERIT=1
+  elif printf '%s\n' "$BLOCK" | grep -q 'halves md5:'; then
+    stamp "gate: NOT inherited: $NOTE's newest clean GATE block names other\
+ binaries by md5, so it is from before a rebuild; the gate runs again"
+  else
+    stamp "gate: NOT inherited: $NOTE's newest clean GATE block has no\
+ 'halves md5:' line (run-gate.sh writes one since 2026-09-04), so it cannot\
+ be tied to these binaries; the gate runs again"
+  fi
+fi
+if [ "$INHERIT" = 1 ]; then
+  stamp "gate: inherited, $NOTE's newest GATE block is mechanically clean\
+ and names these two binaries"
 else
   if ! stage gate ./run-gate.sh "$R"; then
     stamp "EVENING STOPPED AT THE GATE: it is the apparatus, and README's\

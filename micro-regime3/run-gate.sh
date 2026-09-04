@@ -101,6 +101,10 @@ fi
 SHAPES=$(./"$PREFIX-$BASIS" --list 2>/dev/null | cut -d/ -f1 | sort -u | wc -l)
 [ "$SHAPES" -gt 0 ] || { echo "--list gave nothing; wrong binary?"; exit 1; }
 EXPECT=$((ARMS * SHAPES))
+# The two binaries by content, for the block below: run-evening.sh inherits
+# a clean block only for the binaries it names, so a rebuilt half gets its
+# gate run again rather than the old verdict (2026-09-04).
+HALVES_MD5="$BASIS=$(md5sum "./$PREFIX-$BASIS" | cut -d' ' -f1) $OTHER=$(md5sum "./$PREFIX-$OTHER" | cut -d' ' -f1)"
 
 BAD=0                        # mechanical complaints, not the reading's verdict
 PROC=0                       # of those, the ones a PROCESS raised. The line
@@ -215,6 +219,7 @@ fi
     [ "$PROC" -eq 0 ] ||
       echo "  Expected $EXPECT benches a process. Read the logs before anything else."
   fi
+  echo "    halves md5: $HALVES_MD5"
   echo "  The machine check, which is not a reading but an answer:"
   printf '%s\n' "$MACHINE" | sed 's/^/    /'
   echo "  That is exit codes and counts; the reading is still to do, with"
