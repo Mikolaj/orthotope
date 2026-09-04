@@ -823,12 +823,14 @@ rather than a slot in the next run, observed again:
   be differenced, `predict: cross list 1.0 within 0.7%`; and no ordering of Run
   24's registration (1) to (3) reverses past either half's floor; killed
   by a reversal past the floor on both halves. (4) *The additions
-  of 2026-09-03.* Task 10's, read there: the four classes and the two window
-  views, each with its own prediction and kill condition, none repeated here.
-  (5) *The retirement.* Nothing published moves for it: every class that stays
-  reads its Run 24 ordering, and the rows the retired shapes and classes leave
-  in Run 24's fingerprint are read nowhere; killed by an ordering on a kept
-  population that Run 24 read the other way past both floors, which would
+  of 2026-09-03.* Task 10's, read there: the four classes, each with its own
+  prediction and kill condition, none repeated here; the two window views landed
+  with them and their item there was withdrawn on 2026-09-04 with the arm
+  it was about, so this run times them for the other arms' sanity alone. (5)
+  *The retirement.* Nothing published moves for it: every class that stays reads
+  its Run 24 ordering, and the rows the retired shapes and classes leave in Run
+  24's fingerprint are read nowhere; killed by an ordering on a kept population
+  that Run 24 read the other way past both floors, which would
   be the population's doing and not an arm's. (6) *The prune.* Nothing published
   moves for it either: the three crossed pairs read inside Run 24's floor
   on both halves with their spans shortened, and the floor is read over six
