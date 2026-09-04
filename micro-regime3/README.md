@@ -5500,7 +5500,7 @@ and never as a chronology.
     # largest avoidable spend here: Run 25's preparation read some 250
     # lines of the framing before meeting this line, all of it reasons.
     cd ~/r/orthotope/micro-regime3        # and re-set R, PREV and REGIME
-    #                                     # per call
+    #      per call
     #      NN is one past the newest file in runs/, which is the run
     #      behind you, and the disk is where the number is written. DO
     #      NOT MAKE `runs/$R.md` YET: every
