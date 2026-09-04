@@ -33,27 +33,46 @@ the corpus carries that as a control beside the real delta of Run 24 to Run
 """
 
 import collections
+import os
 import subprocess
 import sys
 
 
+def refuse(msg):
+    """Exit 2, the tree's status for a run that did not happen.
+
+    `sys.exit(str)` prints the message and exits 1, which is this tree's
+    status for FINDINGS -- so a binary that would not answer read as a
+    report with something in it. Caught by the case that asserts the
+    status, 2026-09-04.
+    """
+    sys.stderr.write(msg + '\n')
+    raise SystemExit(2)
+
+
 def listing(path, mode):
     """`shape/arm` lines from a half, or exit 2 saying which call failed."""
-    cmd = ['./' + path] + ([mode] if mode else []) + ['--list']
+    # A bare name is this directory's, as everything here is typed --
+    # `./roster-delta.py run24-g912 run25-g912` -- and anything carrying a
+    # separator is taken as given, so a stand-in outside the tree can be
+    # named by its path. Forcing `./` on both made every such caller ask
+    # for a file in the wrong directory.
+    cmd = [path if os.sep in path else os.path.join('.', path)] \
+        + ([mode] if mode else []) + ['--list']
     try:
         got = subprocess.run(cmd, capture_output=True, text=True)
     except OSError as exc:
-        sys.exit('%s: %s' % (' '.join(cmd), exc))
+        refuse('%s: %s' % (' '.join(cmd), exc))
     if got.returncode != 0:
-        sys.exit('%s exited %d: %s' % (' '.join(cmd), got.returncode,
-                                       got.stderr.strip() or '(no stderr)'))
+        refuse('%s exited %d: %s' % (' '.join(cmd), got.returncode,
+                                     got.stderr.strip() or '(no stderr)'))
     lines = [l for l in got.stdout.split('\n') if '/' in l]
     if not lines:
         # A binary that answers nothing reads exactly like a roster with no
         # benches, and every count below would then be a true statement
         # about a file that was never really opened.
-        sys.exit('%s listed nothing -- wrong binary, or a mode it lacks'
-                 % ' '.join(cmd))
+        refuse('%s listed nothing -- wrong binary, or a mode it lacks'
+               % ' '.join(cmd))
     return lines
 
 
@@ -82,8 +101,8 @@ def names(label, gone, came):
 
 def main():
     if len(sys.argv) != 3:
-        sys.exit('usage: ./roster-delta.py OLD NEW   # two binaries,'
-                 ' OLD first')
+        refuse('usage: ./roster-delta.py OLD NEW   # two binaries,'
+               ' OLD first')
     old, new = sys.argv[1], sys.argv[2]
     print('== %s -> %s' % (old, new))
 

@@ -143,6 +143,30 @@ MUTANTS = [
      'd=$(mktemp -d); CORPUS="$d" python3 "{dir}/properties.py" >/dev/null 2>&1; test $? -eq 1'),
     # The shadow's one guard: a program cd-ing to an absolute path would run
     # for real from a shadow, and did once, overwriting a recorded run.
+    # The registration check's two arms, each broken on its own. The judge
+    # plants the synthetic registration from defects.py and requires the
+    # FAIL: the fixture appends its own OPEN entry rather than editing the
+    # live one, so neither judge depends on a registration being in hand.
+    ('--lint stops holding a registration to the timed roster', 'read-run.py',
+     "r'`([A-Za-z][A-Za-z0-9-]*)`', t))\n                          & untimed)",
+     "r'`([A-Za-z][A-Za-z0-9-]*)`', t))\n                          & set())",
+     'PATH="{bin}:$PATH" python3 -c "import importlib.util, sys, tempfile, subprocess\n'
+     'spec = importlib.util.spec_from_file_location(\'d\', \'{dir}/defects.py\')\n'
+     'm = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)\n'
+     'f = m.readme_with_a_registration(tempfile.mkdtemp(), arm=m.parked_arm())\n'
+     'r = subprocess.run([sys.executable, \'{file}\', \'--lint\', \'--readme\', f],'
+     ' capture_output=True, text=True)\n'
+     'sys.exit(0 if \'does not time\' in r.stdout + r.stderr else 1)"'),
+    ('--lint stops resolving a registration\'s task pointers', 'read-run.py',
+     "re.findall(r'\\b[Tt]ask (\\d+)', t)",
+     "re.findall(r'\\bnosuchword (\\d+)', t)",
+     'PATH="{bin}:$PATH" python3 -c "import importlib.util, sys, tempfile, subprocess\n'
+     'spec = importlib.util.spec_from_file_location(\'d\', \'{dir}/defects.py\')\n'
+     'm = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)\n'
+     'f = m.readme_with_a_registration(tempfile.mkdtemp(), task=\'999\')\n'
+     'r = subprocess.run([sys.executable, \'{file}\', \'--lint\', \'--readme\', f],'
+     ' capture_output=True, text=True)\n'
+     'sys.exit(0 if \'not under the tasks heading\' in r.stdout + r.stderr else 1)"'),
     ('shadow_dir holds a program that cds to an absolute path', 'defects.py',
      '''    if re.search(r'^\\s*(cd|pushd)\\s+(--\\s+)?["\\']?(/|~|\\$HOME)', text, re.M):''',
      '    if False:',

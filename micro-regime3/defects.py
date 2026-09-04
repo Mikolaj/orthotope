@@ -624,6 +624,56 @@ def rundoc_yardstick_renamed_with_qmark(tmp):
     return write_rundoc(tmp, '\n'.join(lines))
 
 
+def stub_half(tmp, name, body=None):
+    """A stand-in half written into `tmp` and made executable, by PATH.
+
+    The shell drivers `cd` to their own directory, so a shadow's `extra`
+    reaches them; a Python reader here takes the paths it is handed, so
+    its cases plant the stand-ins and name them. Two ways of shipping one
+    fixture, and which a case wants is decided by the program.
+    """
+    path = os.path.join(tmp, name)
+    write(path, FAKE_HALF if body is None else body)
+    os.chmod(path, 0o755)
+    return path
+
+
+def parked_arm():
+    """One arm the roster carries as `Only`, from Main.hs and not written
+    out here: which arms are parked moves every run that prunes, and a
+    fixture naming one by hand is a fixture that rots at the next prune.
+    """
+    roster = _reader().roster_of(open(os.path.join(HERE, 'Main.hs')).read())
+    parked = [n for n, r, _ in roster if r == 'Only']
+    assert parked, 'no parked arm in the roster, so this fixture has no case'
+    return parked[0]
+
+
+def readme_with_a_registration(tmp, arm=None, task=None):
+    """The README plus a synthetic OPEN registration, at the end.
+
+    SYNTHETIC and not an edit of the live one, which is the whole point:
+    a registration lives in the open list only until post-run step 5 moves
+    it into the run's own file, so a fixture that edits the live entry
+    stops building the moment the run it belongs to is written up. This
+    one appends its own, so the case answers for the CHECK rather than for
+    whichever run happens to be in hand. Run 99 is a number no run reaches.
+
+    `arm` names an arm to put in backticks -- pass `parked_arm()` for the
+    defect direction -- and `task` a task number to defer to.
+    """
+    text = subprocess.run(['wrap80', '--unwrap'], input=open(README).read(),
+                          capture_output=True, text=True, check=True).stdout
+    entry = ("- `OPEN` **What Run 99 is built to answer, registered before"
+             " it runs.** Registered for this fixture and for nothing else."
+             " (1) *The box.* `list` moves under 3%; killed by more.")
+    if arm:
+        entry += " (2) *The arm.* `%s` leads its family; killed by a loss." % arm
+    if task:
+        entry += " (3) *The additions.* Task %s's, read there." % task
+    return write(os.path.join(tmp, 'R.md'), text + '\n' + entry + '\n')
+
+
 def readme_goal_above_open(tmp, rev=None):
     """The goal section moved above the open list: nothing renamed.
 
@@ -3637,6 +3687,31 @@ TIER1 = {
                       trigger='a class lead carrying a hyphen',
                       ok='refuses by name, carries a hyphen',
                       bug='both patterns missed it, agreed, and the block above took it'),
+    # ---- what nothing read, and what nothing subtracted ----
+    'registration-arm-is-not-timed': dict(family='vacuous-check', discovery='in-use', harm='fired', harm_count=1,
+                      trigger='an OPEN registration naming an arm the roster parks',
+                      ok='fails, names the arm and the registration',
+                      bug='no check read a registration at all; Run 24 lost a clause of one to it'),
+    'registration-defers-to-a-missing-task': dict(family='vacuous-check', discovery='review', harm='latent',
+                      trigger="a registration deferring to a task number that is not there",
+                      ok='fails, names the task number',
+                      bug='the deferral resolved to nothing and every gate passed'),
+    'gate-show-derives-the-selection': dict(family='two-spellings', discovery='in-use', harm='fired', harm_count=1,
+                      trigger="the note's gate-arms line written beside a SEL that moved",
+                      ok='the globs and the count come from the script that will run',
+                      bug='SEL was read out of run-gate.sh by eye, or out of the previous note'),
+    'delta-subtracts-two-builds': dict(family=None, discovery='in-use', harm='fired', harm_count=2,
+                      trigger="two builds' tracked groups, on the pinning claim's own reading",
+                      ok='offsets, surviving addresses and the displacement set, derived',
+                      bug='two preparations subtracted the address lists by hand'),
+    'roster-delta-reads-two-listings': dict(family=None, discovery='in-use', harm='fired', harm_count=1,
+                      trigger='a roster change stated in three documents',
+                      ok='arms, shapes, views and the survivors\' order, off the binaries',
+                      bug="written from a diff nothing performed; Run 25's note miscounted the controls"),
+    'smoke-warnings-kept-only-in-a-temp-dir': dict(family='quiet-failure', discovery='in-use', harm='fired', harm_count=1,
+                      trigger='a sweep whose reader modes warn',
+                      ok='the warnings are printed, deduped, beside the verdict',
+                      bug='only the mode NAMES were printed, the findings left in a dir wiped with /tmp'),
 }
 
 
@@ -7367,6 +7442,101 @@ RECORDS = [
          bug=V(exit=0, has=['ghead leads, ghead follows'])),
 
     # ---- preflight.sh, the pre-run list's steps 4 to 10 in one call -----
+    # ---- what nothing read, and what nothing subtracted ---------------
+    # THE REGISTRATION, both arms. The fixture is SYNTHETIC and appended
+    # rather than an edit of the live entry: a registration lives in the
+    # open list only until post-run step 5 moves it into the run's own
+    # file, so a fixture editing the live one stops building the day its
+    # run is written up.
+    case('registration-arm-is-not-timed', 'read-run.py', 'f40fad2',
+         'nothing here read a registration, and Run 24 lost a clause of one',
+         plant=lambda t: {'readme': readme_with_a_registration(
+             t, arm=parked_arm())},
+         argv=['--lint', '--readme', '{readme}'],
+         ok=V(exit=1, has=['registration names arms the roster does not'
+                           ' time']),
+         # Before the fix `--lint` read no registration at all, so the
+         # planted one passed with the rest.
+         bug=V(exit=0, hasnt=['registration'])),
+
+    case('registration-defers-to-a-missing-task', 'read-run.py', 'f40fad2',
+         'a registration deferred to a task number that was not there',
+         plant=lambda t: {'readme': readme_with_a_registration(t, task='999')},
+         argv=['--lint', '--readme', '{readme}'],
+         ok=V(exit=1, has=['defers to task(s) that are not under the tasks'
+                           ' heading: 999']),
+         bug=V(exit=0, hasnt=['registration'])),
+
+    case('registration-clean-reads-ok', 'read-run.py', None,
+         'CONTROL: a registration naming a timed arm and no task passes,'
+         ' which is what says the two above failed for their planting',
+         plant=lambda t: {'readme': readme_with_a_registration(t)},
+         argv=['--lint', '--readme', '{readme}'],
+         ok=V(exit=0, has=['every arm the OPEN registration(s) name is'
+                           ' timed'])),
+
+    case('gate-show-derives-the-selection', 'run-gate.sh', None,
+         'CONTROL: --show prints SEL and the count it derives, and spends'
+         ' no machine',
+         shadow=dict(extra=[('zzshow-a1g', FAKE_HALF),
+                            ('zzshow-lookrts', FAKE_HALF),
+                            ('zzshow-pair.txt', NOTE_STUB)]),
+         env={'OTHER': 'a1g', 'BASIS': 'lookrts'},
+         argv=['zzshow', '--show'],
+         # Three shapes and five globs in the stand-in, so 15.
+         ok=V(exit=0, has=['glob   */list', 'arms   5', 'shapes 3',
+                           'expect 15 benches a process'],
+              hasnt=['expecting'])),
+
+    case('delta-of-a-build-against-itself-moves-nothing', 'loop-offsets.py',
+         None,
+         'CONTROL: --delta of one binary against itself keeps every offset'
+         ' and moves no address',
+         # A system binary rather than a run's: a case pinned to `run<N>-`
+         # artifacts rots at the deletion offer, which three fixtures here
+         # already did once.
+         argv=['--delta', '/bin/sh', '/bin/sh', '--len', '0'],
+         ok=V(exit=0, has=['nothing moved', 'every mod-64 offset preserved',
+                           'survive to the byte'],
+              hasnt=['offsets MOVED', 'NOT a whole line'])),
+
+    case('delta-names-a-group-one-side-lacks', 'loop-offsets.py', None,
+         'CONTROL: a group in one binary and not the other is named as'
+         ' such rather than dropped, which is what a compiler change does',
+         argv=['--delta', '/bin/sh', '/bin/cat', '--len', '0'],
+         ok=V(exit=0, has=['IN /bin/sh ONLY'])),
+
+    case('roster-delta-reads-two-listings', 'roster-delta.py', None,
+         'CONTROL: two identical listings move nothing, and the survivors'
+         ' keep their order',
+         plant=lambda t: {'old': stub_half(t, 'zzrd-old'),
+                          'new': stub_half(t, 'zzrd-new')},
+         argv=['{old}', '{new}'],
+         ok=V(exit=0, has=['main set: 15 -> 15 benches, 5 -> 5 arms over'
+                           ' 3 -> 3 shapes',
+                           'in the same order', 'unmoved',
+                           'views per class (2 -> 2 classes)'])),
+
+    case('roster-delta-refuses-a-listless-half', 'roster-delta.py', None,
+         'CONTROL: a binary that answers nothing exits 2 rather than'
+         ' reporting an empty roster, which reads like a true statement',
+         plant=lambda t: {
+             'a': stub_half(t, 'zzrd-mute', '#!/bin/sh\nexit 0\n'),
+             'b': stub_half(t, 'zzrd-also', '#!/bin/sh\nexit 0\n')},
+         argv=['{a}', '{b}'],
+         ok=V(exit=2, has=['listed nothing'])),
+
+    case('smoke-warnings-kept-only-in-a-temp-dir', 'smoke-l1.sh', 'f40fad2',
+         'the pass named the modes that warned and not what they warned',
+         # NO CASE: the reader warns only over a real -L1 process, and this
+         # suite's stand-ins answer --list and run no benchmark, so nothing
+         # a fixture can build reaches the branch. Verified by hand instead,
+         # 2026-09-04, on a fabricated LOGDIR: three .err files for one leg
+         # print three distinct warnings once each, and another leg's line
+         # does not appear. The sweep's own half was verified on a real
+         # sweep the same day.
+         argv=None, ok=None, no_audit='too-dangerous-to-run'),
+
     # ---- the review of 2026-09-04 ----------------------------------------
     # Fifteen findings over the shell and Python here, by a reviewer reading
     # the files whole; a case for each program that can be driven, and a
