@@ -27,9 +27,12 @@ the binaries carry and never what a document claims about them. Exit 0
 clean, 2 where a binary would not answer -- a listing that comes back empty
 is that, and not an empty roster: `scan`'s own lesson in loop-offsets.py.
 
-Non-vacuity: pointed at one binary twice it must report nothing moved, and
-the corpus carries that as a control beside the real delta of Run 24 to Run
-25, whose figures the case asserts.
+Non-vacuity: the corpus carries two controls over stand-in halves --
+identical listings must report the survivors in the same order and every
+population unmoved, and a half that answers nothing must exit 2 rather
+than report an empty roster. The second was written after the first draft
+exited 1 there, this tree's status for FINDINGS, so a listing that never
+happened read as a report with something in it.
 """
 
 import collections
@@ -106,6 +109,12 @@ def main():
     old, new = sys.argv[1], sys.argv[2]
     print('== %s -> %s' % (old, new))
 
+    # The two populations share one roster, so the arms delta came out
+    # twice and identically -- half the report, saying one thing. It is
+    # printed once and then CHECKED against the second listing rather
+    # than reprinted, so the day the two disagree is loud instead of
+    # buried in a repetition nobody reads to the end.
+    seen_arms = None
     for mode, what in ((None, 'main set'), ('classes', 'classes')):
         ol = listing(old, mode)
         nl = listing(new, mode)
@@ -115,17 +124,26 @@ def main():
         print('  %s: %d -> %d benches, %d -> %d arms over %d -> %d %ss'
               % (what, len(ol), len(nl), len(oa), len(na),
                  len(os_), len(ns), unit))
-        print('   arms')
-        names('arms', [a for a in oa if a not in na],
-              [a for a in na if a not in oa])
-        # ORDER, of the arms both carry: a delta stated in membership alone
-        # can read empty while the run is not repeatable.
-        both_old = [a for a in oa if a in na]
-        both_new = [a for a in na if a in oa]
-        print('     %d survivor(s), %s' % (
-            len(both_old),
-            'in the same order' if both_old == both_new
-            else 'REORDERED: %s -> %s' % (both_old, both_new)))
+        if seen_arms is None:
+            seen_arms = (oa, na)
+            print('   arms')
+            names('arms', [a for a in oa if a not in na],
+                  [a for a in na if a not in oa])
+            # ORDER, of the arms both carry: a delta stated in membership
+            # alone can read empty while the run is not repeatable.
+            both_old = [a for a in oa if a in na]
+            both_new = [a for a in na if a in oa]
+            print('     %d survivor(s), %s' % (
+                len(both_old),
+                'in the same order' if both_old == both_new
+                else 'REORDERED: %s -> %s' % (both_old, both_new)))
+        elif (oa, na) == seen_arms:
+            print('   arms       as the main set\'s, both sides')
+        else:
+            print('   arms       DIFFER from the main set\'s, which one'
+                  ' roster cannot do -- read both listings')
+            names('arms', [a for a in oa if a not in na],
+                  [a for a in na if a not in oa])
         print('   %ss' % unit)
         names(unit, [s for s in os_ if s not in ns],
               [s for s in ns if s not in os_])

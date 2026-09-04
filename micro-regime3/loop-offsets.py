@@ -401,13 +401,14 @@ def delta(old, new, want, min_copies):
     print(f'== {old} -> {new}: {span} loops, matched by body bytes')
     keys = [k for k in og if len(og[k]) >= min_copies]
     keys += [k for k in ng if len(ng[k]) >= min_copies and k not in og]
-    preserved = moved = 0
+    preserved = moved = one_sided = recount = 0
     for k in sorted(keys, key=lambda k: -max(len(og.get(k, ())),
                                              len(ng.get(k, ())))):
         a, b = og.get(k, []), ng.get(k, [])
         if not a or not b:
             where = new if b else old
             fs = b or a
+            one_sided += 1
             print(f'   {len(fs)} copies, {fs[0]["len"]} B, '
                   f'{fs[0]["ninsn"]} insns, offsets '
                   f'{[f["mod"] for f in fs]} -- IN {where} ONLY')
@@ -417,6 +418,7 @@ def delta(old, new, want, min_copies):
         print(f'   {len(a)} -> {len(b)} copies, {a[0]["len"]} B, '
               f'{a[0]["ninsn"]} insns')
         if len(a) != len(b):
+            recount += 1
             print(f'      copy COUNT moved: offsets {oo} -> {nn}')
             continue
         if oo == nn:
@@ -445,8 +447,14 @@ def delta(old, new, want, min_copies):
                       '0x%x%s' % (v, '' if v % LINE == 0
                                   else ' (NOT a whole line)')
                       for v in uniq)))
-    print(f'   {preserved} group(s) kept every offset; '
-          f'{moved} group(s) moved at all')
+    # THE UNMATCHED GROUPS ARE IN THE SUMMARY, because without them a run
+    # where nothing matched at all printed `0 group(s) kept every offset;
+    # 0 group(s) moved at all` -- which reads as `nothing moved` and means
+    # `nothing was compared`. Measured on /bin/sh against /bin/cat, whose
+    # every group is one-sided, 2026-09-04.
+    print(f'   of {len(keys)} group(s): {preserved} kept every offset, '
+          f'{moved} moved at all, {recount} changed copy count, '
+          f'{one_sided} matched nothing on the other side')
 
 
 def library(a, b):

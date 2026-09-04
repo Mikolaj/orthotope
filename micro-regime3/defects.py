@@ -625,7 +625,8 @@ def rundoc_yardstick_renamed_with_qmark(tmp):
 
 
 def stub_half(tmp, name, body=None):
-    """A stand-in half written into `tmp` and made executable, by PATH.
+    """A stand-in half written into `tmp` and made executable, named by
+    its path.
 
     The shell drivers `cd` to their own directory, so a shadow's `extra`
     reaches them; a Python reader here takes the paths it is handed, so
@@ -7522,7 +7523,13 @@ RECORDS = [
          'CONTROL: a group in one binary and not the other is named as'
          ' such rather than dropped, which is what a compiler change does',
          argv=['--delta', '/bin/sh', '/bin/cat', '--len', '0'],
-         ok=V(exit=0, has=['IN /bin/sh ONLY'])),
+         # AND THE SUMMARY SAYS SO. It used to count only the groups it
+         # had compared, so a pair sharing no group at all read `0 group(s)
+         # kept every offset; 0 group(s) moved at all` -- which is what
+         # `nothing moved` looks like and means `nothing was compared`.
+         ok=V(exit=0, has=['IN /bin/sh ONLY',
+                           '3 matched nothing on the other side'],
+              hasnt=['group(s) moved at all'])),
 
     case('roster-delta-reads-two-listings', 'roster-delta.py', None,
          'CONTROL: two identical listings move nothing, and the survivors'
