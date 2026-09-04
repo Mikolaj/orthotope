@@ -23,7 +23,17 @@ for arm in list sum-only-early sum-only-late \
            lib-stage1 lib-stage2 lib-stage2-disp mut-odo-vecdims; do
   SEL+=("runs-cache-*/$arm")
 done
-WANT=$(( 2 * ${#SEL[@]} ))
+# Every arm above in the binary's class list, before the machine is spent:
+# `lib-stage2` went to `Only` on 2026-09-04, and the literal WANT that stood
+# here would have failed the run on its count after it ran. WANT is what the
+# list carries.
+LISTED=$("$BIN" classes --list 2>/dev/null | grep '^runs-cache-')
+WANT=0
+for pat in "${SEL[@]}"; do
+  n=$(printf '%s\n' "$LISTED" | grep -c "/${pat#*/}\$")
+  [ "$n" -gt 0 ] || { echo "$BIN lists no ${pat#*/} under runs-cache-: an Only arm, or one renamed, so the probe cannot time it"; exit 2; }
+  WANT=$((WANT + n))
+done
 echo "=== $(date -Is) probe-cache begins on $BIN, md5 $(md5sum "$BIN" | cut -d' ' -f1), $WANT benches expected" \
   | tee probe-cache-wallclock.log
 WILDLOG=1 SATURATE=1 "$BIN" classes -m glob "${SEL[@]}" --json probe-cache-runs.json \

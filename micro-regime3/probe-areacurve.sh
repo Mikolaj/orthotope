@@ -46,8 +46,9 @@ if [ -n "$EXISTING" ]; then
   echo "relaunching would overwrite them in place. Move them aside first."
   exit 1
 fi
-SEL=('-m' 'glob' '*/list' '*/build' '*/mut-odo'
-     '*/sum-only-early' '*/sum-only-late')
+SEL=('-m' 'glob' '*/list' '*/bq-expand' '*/mut-odo-vecdims'
+     '*/sum-only-early' '*/sum-only-late')   # run-gate.sh's selection; `build`
+                             # and `mut-odo` until the prune of 2026-09-04
 ARMS=$(( ${#SEL[@]} - 2 ))
 SHAPES=$("$B" --list 2>/dev/null | cut -d/ -f1 | sort -u | wc -l)
 EXPECT=$(( ARMS * SHAPES ))

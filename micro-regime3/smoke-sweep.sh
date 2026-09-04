@@ -141,13 +141,21 @@ mode smoke.json --compare smoke-other.json
 mode smoke.json --aa --brief
 mode smoke-class.json --block --brief
 mode smoke.json --cells --no-controls
-mode smoke.json --cells --exclude bq-expand-b   # a REAL timed arm: the name
-                             # has to be one the run carries or the filter
-                             # removes nothing and the mode passes without
-                             # being exercised. `concat-runs` was the name
-                             # here until 2026-08-17 and is registered `Only
-                             # fbConcatRuns` -- checked, never timed, in no
-                             # --list and so in no run JSON, ever
+# --exclude, on arms the run CARRIES, read off its list: a name it does not
+# carry removes nothing and the mode passes unexercised, which is where
+# `concat-runs` stood until 2026-08-17 and `bq-expand-b` from c10e8cf
+# (2026-08-28) until 2026-09-04, both `Only` and so in no run JSON. One arm
+# for the mode's ordinary path; then every arm, whose refusal is the check,
+# as with --exclude-shape below -- a reader ignoring the flag passes the
+# first and fails the second. Case: `smoke-exercises-the-arm-filter`.
+mapfile -t ARMLIST < <(./"$R-$BASIS" --list 2>/dev/null | grep "^$SHAPE/" | cut -d/ -f2)
+mode smoke.json --cells --exclude "${ARMLIST[0]}"
+EXCL=()
+for a in "${ARMLIST[@]}"; do EXCL+=(--exclude "$a"); done
+if ./read-run.py smoke.json --cells "${EXCL[@]}" >/dev/null 2>&1; then
+  echo "  !! --exclude of every arm the run carries did NOT refuse"
+  BAD=$((BAD + 1))
+fi
 # --exclude-shape has no positive form here, and that is structural: this run
 # is ONE shape, so the only name that could remove anything empties it. Its
 # REFUSAL is the check, as with --claims below -- nonzero is the pass, and a

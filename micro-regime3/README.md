@@ -6447,7 +6447,8 @@ is how it was found.
 the evening --- but it is not part of the preparation, and a session preparing
 the run does not reach it: it spends forty minutes of quiet machine, so it lives
 in the run list behind the go-ahead with the sequence itself, as the driver's
-first stage. `run-gate.sh` takes five benches over the shape set from each half,
+first stage. `run-gate.sh` checks that the basis binary lists every arm
+its selection names, then takes five benches over the shape set from each half,
 twice each, in a palindrome --- control, basis, basis, control --- so that drift
 over the hour cannot read as a difference between the binaries, and **both
 passes are read, which is what the palindrome is for**: the `a` pair puts
@@ -6456,44 +6457,46 @@ is the two readings agreeing rather than one taken at a moment. What it buys
 is finding out that the basis binary is wrong before an hour of main set
 is spent on it. **What it does not buy is a first reading of the arms
 the pairing is predicted on**, which this README claimed until a run measured
-it. Its selection carries `build` and `mut-odo`, which are two of the three
-widest-spread arms in the roster --- the placement-sensitive pair [the floor
-section][floor] is written about --- so the term between its two passes runs
-past the drift band a movement is asked to clear, and a magnitude read off
-a gate is not evidence. Whether a five-bench process is *also* noisier
-than a full one is not separable from this with one process per binary,
-so the reason to distrust the figure is the selection, which is known.
-And the two passes disagreeing is not a second opinion about the binaries: their
-ratio is algebraically the ratio of the two same-binary readings,
-so a palindrome that fails to converge is reporting its own noise. Read the gate
-for soundness, and take every magnitude off the run; the verdict goes **above**
-the script's block, where reading up from the end meets it first. **The gate
-also answers one question that is not a reading at all: has the machine
-changed?** `run-gate.sh` runs `./read-run.py $R-gate-<basis>-a.json --machine`
-after its four processes and puts the answer in the note. It holds `list`'s net
-per call, shape by shape, to the fingerprint the last run's file keeps,
-so its absolutes are in `runs/` long after its JSONs are offered for deletion
-and nothing has to be kept for it; the gate's own selection carries `*/list`
-and both `sum-only` halves on every shape, which is what makes the comparison
-net against net. It reads the geomean rather than a cell, at a threshold
-the mode's own docstring derives from every kept process this README has,
-and beside it the per-shape residual about that geomean, which says whether
-the shapes moved together: inside the band a single shape ordinarily wanders
-it is a LEVEL SHIFT, one number describing the box, and every cross-run ordering
-survives it; outside, the orderings are in question along with the level.
-**Neither stops the run, at any size, in either direction.** A box that moved
-between runs cannot reach a within-run comparison, and every claim here is one;
-what it reaches is the cross-run absolute column, which re-baselines by itself,
-each write-up replacing the fingerprint it reads. So a move is recorded
-and the evening proceeds, the write-up owing a paragraph naming it and the box
-question going to a person once the machine is free: **ask whether the box
-changed** --- a kernel, a microcode update, a BIOS setting, a thermal state,
-a different machine --- none of which a run can see from inside itself, and none
-worth a night of idle machine to ask. **Run 18 is why that is written down**:
-its gate stopped on what the reading above calls a level shift, and the evening
-was spent waiting for the answer *run anyway and re-baseline*, which was never
-in doubt. What still fails the gate is a comparison the mode cannot make at all
---- no shape of this run in the fingerprint, every `list` net non-positive.
+it. Its selection carried `build` and `mut-odo` until the prune of 2026-09-04
+parked both, two of the three widest-spread arms in the roster ---
+the placement-sensitive pair [the floor section][floor] is written about ---
+so the term between its two passes ran past the drift band a movement is asked
+to clear; it carries `bq-expand` and `mut-odo-vecdims` since, the arms
+the shipping question is about, and a magnitude read off a gate is still
+not evidence, five benches being unable to price precision by Run 10's finding
+in the open list. Whether a five-bench process is *also* noisier than a full one
+is not separable from this with one process per binary. And the two passes
+disagreeing is not a second opinion about the binaries: their ratio
+is algebraically the ratio of the two same-binary readings, so a palindrome
+that fails to converge is reporting its own noise. Read the gate for soundness,
+and take every magnitude off the run; the verdict goes **above** the script's
+block, where reading up from the end meets it first. **The gate also answers one
+question that is not a reading at all: has the machine changed?** `run-gate.sh`
+runs `./read-run.py $R-gate-<basis>-a.json --machine` after its four processes
+and puts the answer in the note. It holds `list`'s net per call, shape by shape,
+to the fingerprint the last run's file keeps, so its absolutes are in `runs/`
+long after its JSONs are offered for deletion and nothing has to be kept for it;
+the gate's own selection carries `*/list` and both `sum-only` halves on every
+shape, which is what makes the comparison net against net. It reads the geomean
+rather than a cell, at a threshold the mode's own docstring derives from every
+kept process this README has, and beside it the per-shape residual about
+that geomean, which says whether the shapes moved together: inside the band
+a single shape ordinarily wanders it is a LEVEL SHIFT, one number describing
+the box, and every cross-run ordering survives it; outside, the orderings
+are in question along with the level. **Neither stops the run, at any size,
+in either direction.** A box that moved between runs cannot reach a within-run
+comparison, and every claim here is one; what it reaches is the cross-run
+absolute column, which re-baselines by itself, each write-up replacing
+the fingerprint it reads. So a move is recorded and the evening proceeds,
+the write-up owing a paragraph naming it and the box question going to a person
+once the machine is free: **ask whether the box changed** --- a kernel,
+a microcode update, a BIOS setting, a thermal state, a different machine ---
+none of which a run can see from inside itself, and none worth a night of idle
+machine to ask. **Run 18 is why that is written down**: its gate stopped on what
+the reading above calls a level shift, and the evening was spent waiting
+for the answer *run anyway and re-baseline*, which was never in doubt. What
+still fails the gate is a comparison the mode cannot make at all --- no shape
+of this run in the fingerprint, every `list` net non-positive.
 
 **The run** is one sequence --- the main set from each half, then each
 stride-class population on each half, control then basis, adjacent,

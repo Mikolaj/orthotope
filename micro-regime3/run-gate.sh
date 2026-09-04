@@ -32,7 +32,11 @@
 # `*/list` is in the selection for two reasons: it is the control that says
 # the baseline did not move, and without a baseline `--selftest` has no
 # ratios to check. The expected bench count is read from the binary, not
-# written down, so a roster change does not turn a correct run into an alarm.
+# written down, so a roster change does not turn a correct run into an alarm,
+# and every arm SEL names is checked against `--list` before the first
+# process, so a roster change that parks one -- `build` and `mut-odo`, to
+# `Only` on 2026-09-04 with SEL still naming them -- refuses here rather than
+# failing every process on its count after the forty minutes.
 #
 # About forty minutes. Read it with, for the run and the two half names,
 #   ./read-run.py <run>-gate-<basis>-a.json \
@@ -69,8 +73,11 @@ if [ "$OTHER" = "$BASIS" ]; then
   echo "!! OTHER and BASIS are both '$BASIS' -- a pair is two halves"
   exit 1
 fi
-SEL=('-m' 'glob' '*/list' '*/build' '*/mut-odo'
-     '*/sum-only-early' '*/sum-only-late')
+SEL=('-m' 'glob' '*/list' '*/bq-expand' '*/mut-odo-vecdims'
+     '*/sum-only-early' '*/sum-only-late')   # the family root and its fill,
+                             # the arms the shipping question is about;
+                             # `build` and `mut-odo` until the prune of
+                             # 2026-09-04 parked both
 ARMS=$(( ${#SEL[@]} - 2 ))   # the globs above, one bench per shape each,
                              # DERIVED because a literal drifts: run-major.sh
                              # refuses that drift for CLASSES and this had the
@@ -98,8 +105,15 @@ if [ ! -f "$NOTE" ]; then
   exit 1
 fi
 
-SHAPES=$(./"$PREFIX-$BASIS" --list 2>/dev/null | cut -d/ -f1 | sort -u | wc -l)
+LISTED=$(./"$PREFIX-$BASIS" --list 2>/dev/null)
+SHAPES=$(printf '%s\n' "$LISTED" | cut -d/ -f1 | sort -u | wc -l)
 [ "$SHAPES" -gt 0 ] || { echo "--list gave nothing; wrong binary?"; exit 1; }
+# Every arm SEL names, listed once per shape, BEFORE the machine is spent.
+# Case: `gate-refuses-an-arm-its-list-lacks`.
+for pat in "${SEL[@]:2}"; do
+  n=$(printf '%s\n' "$LISTED" | grep -c "^[^/]*/${pat#*/}\$")
+  [ "$n" = "$SHAPES" ] || { echo "!! SEL names $pat, which --list carries $n time(s) over $SHAPES shapes: an Only arm, or one renamed -- the gate would fail every process on its count after its forty minutes"; exit 1; }
+done
 EXPECT=$((ARMS * SHAPES))
 # The two binaries by content, for the block below: run-evening.sh inherits
 # a clean block only for the binaries it names, so a rebuilt half gets its
@@ -225,7 +239,7 @@ fi
   echo "  That is exit codes and counts; the reading is still to do, with"
   echo "    ./read-run.py $PREFIX-gate-$BASIS-a.json \\"
   echo "      --compare $PREFIX-gate-$OTHER-a.json"
-  echo "    ./read-run.py $PREFIX-gate-$BASIS-a.json --pair build mut-odo"
+  echo "    ./read-run.py $PREFIX-gate-$BASIS-a.json --pair bq-expand mut-odo-vecdims"
   echo "  Write its verdict above this block, where a reader looking up from"
   echo "  the end meets it first; a note carrying a 'not yet run' line loses"
   echo "  that line with the same edit."
