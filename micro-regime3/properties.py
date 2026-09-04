@@ -124,13 +124,27 @@ def prop_abs_round_trip(m):
     and passed while `1e+03 us` was live, because none of the four sat at
     the boundary where `%.3g` rolls a unit over.
     """
-    bad, n = [], 0
+    bad, n, runs = [], 0, 0
     for f in runs_on_disk():
+        # Per RUN, as the two siblings count and the docstring says: a
+        # break in the figure loop bounded nothing and reported the whole
+        # corpus. Case: `properties-limit-bounds-runs-not-figures`.
+        if LIMIT and runs >= LIMIT:
+            break
         try:
             d = json.load(open(os.path.join(CORPUS, f)))
-            benches = d[2]
-        except Exception:
+        except (OSError, ValueError) as e:
+            # A finding, not a skip: cut off mid-write is what a killed
+            # process leaves, and skipped it was counted among the runs
+            # covered. Case: `properties-name-an-unreadable-run`.
+            bad.append('%s: unreadable (%s), so it is not a run this'
+                       ' covers' % (f, str(e)[:60]))
             continue
+        try:
+            benches = d[2]
+        except (IndexError, KeyError, TypeError):
+            continue          # a JSON that is not criterion's, left alone
+        runs += 1
         for b in benches:
             for r in b['reportAnalysis']['anRegress']:
                 # The TIME fit alone. Quantified over every responder this
@@ -144,8 +158,6 @@ def prop_abs_round_trip(m):
                 if not isinstance(v, float) or v <= 0:
                     continue
                 n += 1
-                if LIMIT and n >= LIMIT:
-                    break
                 cell = '| `s` | 3 | 288 | %s | 0.152 |' % m.fmt_abs(v)
                 got = m.FINGERPRINT_ABS_RE.match(cell)
                 if not got:
@@ -156,7 +168,7 @@ def prop_abs_round_trip(m):
                     bad.append('%s: %s writes %r, read back as %g'
                                % (f, v, m.fmt_abs(v),
                                   float(got.group(2)) * m.UNIT[got.group(3)]))
-    return n, 'per-call time(s) in %d run(s)' % len(runs_on_disk()), bad[:5]
+    return n, 'per-call time(s) in %d run(s)' % runs, bad[:5]
 
 
 def prop_table_reads_back(m):
@@ -256,12 +268,8 @@ def prop_selftest_over_the_corpus(m):
 PROPERTIES = [prop_abs_round_trip, prop_table_reads_back,
               prop_selftest_over_the_corpus]
 
-# All three broken deliberately, 2026-08-17, because a property that has
-# never failed has proved nothing: labelling seconds `ns` fails the
-# round-trip on every figure it reaches, widening `readme_rows`' column
-# test by one fails the read-back on every row, and a reader that refuses
-# everything fails the third on every run. Each was green again on
-# reverting, and each named the file it failed on rather than a count.
+# Each is broken deliberately in `mutants.py`, which `selftest-mutants.py .`
+# replays, because a property that has never failed has proved nothing.
 # The first attempt at the first proved nothing: the formatter it
 # substituted looked wrong and was arithmetically right, so the property
 # held -- a break has to break the property, not merely the code.
