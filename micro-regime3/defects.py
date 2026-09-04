@@ -817,6 +817,26 @@ def readme_with_a_registration(tmp, arm=None, task=None):
     return write(os.path.join(tmp, 'R.md'), text + '\n' + entry + '\n')
 
 
+def readme_with_an_uncovered_figure(tmp, kind):
+    """The README plus a section no replace-list bullet links, carrying a
+    figure the coverage check could not see until 2026-09-04: `wrapped`,
+    a list item whose decimal wraps past its first line, where wrap80
+    indents the continuation six and the check took four as code; `hex`,
+    a paragraph whose only figures are an address and a mod-64 offset,
+    which is the pinning claim's whole vocabulary.
+    """
+    text = open(README).read()
+    if kind == 'wrapped':
+        sec = ('\n### Zz coverage probe\n\n'
+               '   1. **A step whose one figure sits past the first line of'
+               ' its item**, the largest deviation the anchor check allows'
+               ' being 4.1% on the middle anchor.\n')
+    else:
+        sec = ('\n### Zz coverage probe\n\n'
+               'The first head of each group moved by 0x3d00 and the rest by'
+               ' 0x4cc0, every mod-64 offset preserved.\n')
+    return write(os.path.join(tmp, 'R.md'), text + sec)
+
 def readme_goal_above_open(tmp, rev=None):
     """The goal section moved above the open list: nothing renamed.
 
@@ -3847,6 +3867,14 @@ TIER1 = {
                       trigger="the note's gate-arms line written beside a SEL that moved",
                       ok='the globs and the count come from the script that will run',
                       bug='SEL was read out of run-gate.sh by eye, or out of the previous note'),
+    'coverage-check-sees-a-figure-on-a-wrapped-continuation': dict(family='scan-for-parse', discovery='review', harm='fired', harm_count=1,
+                      trigger='a list item whose figure wrap80 puts on a continuation line',
+                      ok='an indented line is code only inside a block a blank line opened',
+                      bug="four spaces read as code, so the run chapter's two decimals went unseen and the chapter owed no bullet"),
+    'coverage-check-sees-an-address-as-a-figure': dict(family='vacuous-check', discovery='review', harm='fired', harm_count=1,
+                      trigger='a section whose only figures are hex addresses and mod-64 offsets',
+                      ok='an address of three hex digits or more is a figure',
+                      bug="the pinning claim's readings, a cross-run series in the run chapter, passed a check that exists to find them"),
     'survey-reads-a-saved-listing': dict(family=None, discovery='review', harm='fired', harm_count=3,
                       trigger='a site of a binary that has since been deleted',
                       ok='a saved objdump listing is read as the binary it came from',
@@ -7261,6 +7289,31 @@ RECORDS = [
                      "says complete",
                      'counts file(s) complete',
                      'runs/run98.md exists'])),
+
+    # ---- read-run.py --check-doc, the coverage check ------------------
+    case('coverage-check-sees-a-figure-on-a-wrapped-continuation',
+         'read-run.py', '320ece0',
+         'a list item whose figure wrapped past its first line was skipped'
+         ' as an indented block, so a section carrying only such figures'
+         ' read as figure-free and owed no replace-list bullet',
+         plant=lambda t: {
+             'readme': readme_with_an_uncovered_figure(t, 'wrapped')},
+         argv=['--check-doc', '--quiet', '--readme', '{readme}'],
+         ok=V(exit=1, has=['no replace-list bullet links',
+                           'Zz coverage probe']),
+         bug=V(hasnt=['Zz coverage probe'])),
+
+    case('coverage-check-sees-an-address-as-a-figure', 'read-run.py',
+         '320ece0',
+         "a section whose figures are addresses and offsets -- the pinning"
+         " claim's -- was invisible to the coverage check, which wanted a"
+         ' decimal',
+         plant=lambda t: {
+             'readme': readme_with_an_uncovered_figure(t, 'hex')},
+         argv=['--check-doc', '--quiet', '--readme', '{readme}'],
+         ok=V(exit=1, has=['no replace-list bullet links',
+                           'Zz coverage probe']),
+         bug=V(hasnt=['Zz coverage probe'])),
 
     # ---- read-run.py --predictions --------------------------------------
     case('predictions-hold-and-kill', 'read-run.py', None,

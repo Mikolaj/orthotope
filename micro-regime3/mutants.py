@@ -215,6 +215,32 @@ MUTANTS = [
      'r = subprocess.run([sys.executable, \'{file}\', \'--delta\', o[\'old\'], o[\'new\']],'
      ' capture_output=True, text=True)\n'
      'sys.exit(0 if \'1 group(s) read\' in r.stdout else 1)"'),
+    # The coverage check's two widenings of 2026-09-04, each reverted: the
+    # indented-line exclusion taking every four-space line as code again,
+    # and the figure regex wanting a decimal again. The judge plants the
+    # README with an uncovered section from defects.py and requires the gap.
+    ('check-doc takes a wrapped list continuation as code again', 'read-run.py',
+     '            if indented and prev_blank and not in_code:\n'
+     '                in_code = True\n',
+     '            if indented:\n'
+     '                in_code = True\n',
+     'PATH="{bin}:$PATH" python3 -c "import importlib.util, sys, tempfile, subprocess\n'
+     'spec = importlib.util.spec_from_file_location(\'d\', \'{dir}/defects.py\')\n'
+     'm = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)\n'
+     'f = m.readme_with_an_uncovered_figure(tempfile.mkdtemp(), \'wrapped\')\n'
+     'r = subprocess.run([sys.executable, \'{file}\', \'--check-doc\', \'--quiet\', \'--readme\', f],'
+     ' capture_output=True, text=True)\n'
+     'sys.exit(0 if any(\'Zz coverage probe\' in l and \'bullet links\' in l for l in (r.stdout + r.stderr).split(chr(10))) else 1)"'),
+    ('check-doc wants a decimal to see a figure again', 'read-run.py',
+     "                       r'|\\b0x[0-9a-f]{3,}\\b')",
+     "                       )",
+     'PATH="{bin}:$PATH" python3 -c "import importlib.util, sys, tempfile, subprocess\n'
+     'spec = importlib.util.spec_from_file_location(\'d\', \'{dir}/defects.py\')\n'
+     'm = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)\n'
+     'f = m.readme_with_an_uncovered_figure(tempfile.mkdtemp(), \'hex\')\n'
+     'r = subprocess.run([sys.executable, \'{file}\', \'--check-doc\', \'--quiet\', \'--readme\', f],'
+     ' capture_output=True, text=True)\n'
+     'sys.exit(0 if any(\'Zz coverage probe\' in l and \'bullet links\' in l for l in (r.stdout + r.stderr).split(chr(10))) else 1)"'),
     ('shadow_dir holds a program that cds to an absolute path', 'defects.py',
      '''    if re.search(r'^\\s*(cd|pushd)\\s+(--\\s+)?["\\']?(/|~|\\$HOME)', text, re.M):''',
      '    if False:',
