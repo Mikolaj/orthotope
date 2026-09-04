@@ -5339,9 +5339,10 @@ of why this is a list and not a sentence.
          -- the two recipes, and which of their lines the pair varies
 
 **SO THIS IS TWO LISTS, and there is no case in which a session owes all ten.**
-The numbers never move, so a reference to an item still lands. Each list's own
-head names the six or so its half owes, which is where a session meets
-the split; here is what each is for. **The PREPARATION owes 1, 3, 7, 8's delta
+The numbers never move, so a reference to an item still lands. The pre-run
+list's own head names the six its half owes, which is where a preparation meets
+the split; the run and post lists have no such head, so an executing session
+meets it here. What each is for: **The PREPARATION owes 1, 3, 7, 8's delta
 bullets, 9 and 10** --- of item 1, THE PRE-RUN LIST ALONE, and of items 9 and 10
 the halves their own entries name. It used to owe the run list too,
 for the launch, rider and counts blocks the note carries; those
@@ -5490,15 +5491,16 @@ and never as a chronology.
     # that surprises you NAMES its paragraph on a `why:` line, which
     # --check-doc holds to a paragraph that is still there.
     # YOU ARE THE PREPARATION, and this list plus its `READ NOW` lines is
-    # the whole of what you owe. Of the chapter's ten readings you owe six
-    # -- 1 (this list alone), 3, 7, 8's delta bullets, 9 and 10 -- and each
-    # is named at the step whose work needs it. A seventh, 5, is owed only
-    # where this preparation PARKS or DROPS an arm, which step 7 is what
-    # tells you. Nothing else in the chapter is owed, and reading the
-    # executing session's half is the largest avoidable spend here: Run
-    # 25's preparation read some 250 lines of the framing before meeting
-    # this line, all of it reasons.
-    cd ~/r/orthotope/micro-regime3        # and re-set R and REGIME per call
+    # the whole of what you owe. Of the chapter's ten readings you owe
+    # six -- 1 (this list alone), 3, 7, 8's delta bullets, 9 and 10 --
+    # and each is named at the step whose work needs it. A seventh, 5, is
+    # owed only where this preparation PARKS or DROPS an arm, and step 7
+    # is what tells you which of the two you are. Nothing else in the
+    # chapter is owed, and reading the executing session's half is the
+    # largest avoidable spend here: Run 25's preparation read some 250
+    # lines of the framing before meeting this line, all of it reasons.
+    cd ~/r/orthotope/micro-regime3        # and re-set R, PREV and REGIME
+    #                                     # per call
     #      NN is one past the newest file in runs/, which is the run
     #      behind you, and the disk is where the number is written. DO
     #      NOT MAKE `runs/$R.md` YET: every
@@ -5671,6 +5673,10 @@ and never as a chronology.
     #      two halves' listings: identical is what one source built twice
     #      looks like, and the pair note asks for that half of it. A pair
     #      whose halves differ in the ROSTER would break this and three
+    #      more of these steps -- preflight 4,5 cmps the two `check`
+    #      outputs, and run-major.sh and smoke-sweep.sh hold every half to
+    #      the BASIS's bench count -- so no pair here varies the roster,
+    #      ruled 2026-08-26 after a walk of this list found all four
     #  6b. AND THE GATE'S OWN SELECTION, which preflight reads by asking
     #      the script that will run it: `./run-gate.sh $R --show` prints
     #      SEL's globs and the count it derives, spends nothing, and
@@ -5691,10 +5697,6 @@ and never as a chronology.
     #      TALLY IS WHAT STEP 12 NAMES ITS CLASSES FROM -- a class whose
     #      count moved is a class that pass is owed for -- so read it here
     #      and carry the answer down
-    #      more of these steps -- preflight 4,5 cmps the two `check`
-    #      outputs, and run-major.sh and smoke-sweep.sh hold every half to
-    #      the BASIS's bench count -- so no pair here varies the roster,
-    #      ruled 2026-08-26 after a walk of this list found all four
     ./read-run.py --lint                  # 7. roster and shape annotations,
     #      the claims, AND THE OPEN REGISTRATION, which nothing read until
     #      2026-09-04: every arm it names must be timed and every `task N`
