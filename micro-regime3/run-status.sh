@@ -81,9 +81,18 @@ fi
 REG_LEAD="What Run $N \(is\|was\) built to answer"   # is: registered; was: moved
 REG_HEAD="## What this run was built to answer, and what it answered"
 # README is read UNWRAPPED, a lead spanning a line break matching nothing
-# in the wrapped form the tree keeps.
-wrap80 --unwrap README.md > "$TMP/readme" 2>/dev/null
-git show HEAD:micro-regime3/README.md 2>/dev/null | wrap80 --unwrap > "$TMP/readme.head" 2>/dev/null
+# in the wrapped form the tree keeps -- and a wrap80 that cannot run is
+# exit 2, the reading not having happened: with its status dropped, steps
+# 10, 12a and 12c were judged off an empty file. Case:
+# `status-blocks-without-wrap80`.
+command -v wrap80 >/dev/null || { echo "BLOCKED: wrap80 is not on PATH, and README.md is read through it; nothing was judged"; exit 2; }
+if ! wrap80 --unwrap README.md > "$TMP/readme"; then
+  echo "BLOCKED: wrap80 --unwrap README.md failed, so nothing was judged"; exit 2
+fi
+git show HEAD:micro-regime3/README.md > "$TMP/readme.head.wrapped" 2>/dev/null
+if ! wrap80 --unwrap "$TMP/readme.head.wrapped" > "$TMP/readme.head"; then
+  echo "BLOCKED: wrap80 --unwrap failed on HEAD's README.md, so nothing was judged"; exit 2
+fi
 if grep -q "$REG_LEAD" "$TMP/readme" || { [ -f "$DOC" ] && grep -q "^$REG_HEAD" "$DOC"; }; then
   say 12a "done" "a registration for Run $N is in README's open list or in $DOC"
 else
@@ -107,7 +116,10 @@ else
 fi
 say 14a yours "the gate's verdict above the note's GATE block is written by hand; read $NOTE"
 if [ -f "$R-wallclock.log" ] && grep -q 'major run complete' "$R-wallclock.log"; then
-  C=$(grep -c '!!' "$R-wallclock.log")
+  # The driver's own stamp, as read-all.sh counts it: the note it quotes
+  # is indented, and a FAILED GATE block carries `!!`. Case:
+  # `status-counts-only-stamped-complaints`.
+  C=$(grep -c '^=== .*!!' "$R-wallclock.log")
   if [ "$C" = 0 ]; then say 17 "done" "$R-wallclock.log says complete, no complaint"
   else say 17 "NOT DONE" "$R-wallclock.log says complete with $C '!!' line(s); read them before any figure"; fi
   if [ -n "${BASIS:-}" ]; then
@@ -206,9 +218,9 @@ else
   say 5 "NOT DONE" "no $DOC"
 fi
 ./read-run.py --lint > "$TMP/lint" 2>&1 && say 8 "done" "--lint passes" \
-  || say 8 "NOT DONE" "--lint: $(grep -m1 FAIL "$TMP/lint" | cut -c1-90)"
+  || say 8 "NOT DONE" "--lint: $(grep -m1 'FAIL\|BLOCKED' "$TMP/lint" | cut -c1-90)"
 ./read-run.py --check-doc --quiet > "$TMP/cd" 2>&1 && say 7 "done" "--check-doc --quiet passes" \
-  || say 7 "NOT DONE" "--check-doc: $(grep -m1 FAIL "$TMP/cd" | cut -c1-90)"
+  || say 7 "NOT DONE" "--check-doc: $(grep -m1 'FAIL\|BLOCKED' "$TMP/cd" | cut -c1-90)"
 say 11 yours "offer the artifacts for deletion, once, after 7 is presented"
 
 echo
