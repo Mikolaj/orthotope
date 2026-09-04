@@ -24,7 +24,8 @@ stops each property after that many runs it read, which is how the mutants
 in `mutants.py` prove a property can fail in seconds rather than over every
 run on disk -- a bound on the proof, never on a run of the properties
 themselves. Exit 0 when every property holds over something, 1 when one
-fails or the corpus holds nothing a property reads.
+fails or the corpus holds nothing a property reads, 2 when CORPUS_LIMIT is
+not a count.
 """
 
 import collections
@@ -74,7 +75,8 @@ RUNDOC = _newest_run_doc()
 # Where the properties look for runs: this directory, or what a case names,
 # which is how an empty corpus is handed to them.
 CORPUS = os.environ.get('CORPUS', HERE)
-LIMIT = int(os.environ.get('CORPUS_LIMIT') or 0)
+LIMIT = 0        # runs a property reads before stopping, 0 for every one;
+                 # main() sets it from CORPUS_LIMIT
 
 
 def write(path, text):
@@ -351,6 +353,17 @@ def main():
         return 0
     if args not in ([], ['--warnings']):
         sys.exit('properties.py: --warnings or nothing (see --help)')
+    # Read here and not at import, where a value that is not a count was a
+    # traceback and a negative one an empty sweep blamed on the corpus.
+    # Cases: `properties-refuse-a-limit-that-is-not-a-count`,
+    # `properties-refuse-a-negative-limit`.
+    global LIMIT
+    raw = os.environ.get('CORPUS_LIMIT') or '0'
+    if not raw.isdigit():
+        print('properties.py: CORPUS_LIMIT is %r, and it is a count of runs,'
+              ' 0 for every one' % raw, file=sys.stderr)
+        return 2
+    LIMIT = int(raw)
     print('properties over the live corpus:')
     bad = properties(warnings=bool(args))
     if bad:
