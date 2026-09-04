@@ -96,7 +96,7 @@ def split(lines):
     return shapes, arms
 
 
-def names(label, gone, came):
+def names(gone, came):
     for word, xs in (('out', gone), ('in', came)):
         if xs:
             print('     %-4s (%d): %s' % (word, len(xs), ', '.join(xs)))
@@ -130,7 +130,7 @@ def main():
         if seen_arms is None:
             seen_arms = (oa, na)
             print('   arms')
-            names('arms', [a for a in oa if a not in na],
+            names([a for a in oa if a not in na],
                   [a for a in na if a not in oa])
             # ORDER, of the arms both carry: a delta stated in membership
             # alone can read empty while the run is not repeatable.
@@ -162,7 +162,7 @@ def main():
                           % (side, len(extra), ', '.join(extra) or '-',
                              len(lack), ', '.join(lack) or '-'))
         print('   %ss' % unit)
-        names(unit, [s for s in os_ if s not in ns],
+        names([s for s in os_ if s not in ns],
               [s for s in ns if s not in os_])
         if mode == 'classes':
             # A view's class is its prefix up to the first hyphen, the

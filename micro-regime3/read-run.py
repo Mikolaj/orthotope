@@ -9385,7 +9385,10 @@ def lint(main_hs, readme, run_doc=None):
     # the roster carries as `Only`. A registration is thick with backticks
     # that are not arms -- `predict: cross list 1.0 within 0.7%`,
     # `LOOP_DEADSPOT=1`, section names -- and intersecting with the parked
-    # set is what keeps those out without a vocabulary to maintain.
+    # set is what keeps those out without a vocabulary to maintain. What it
+    # also keeps out is an arm named by its SUFFIX, `-u1` for
+    # `mut-odo-vecdims-add-in-leaf-u1`, which a registration writes once it
+    # has spelled the name out: a parked arm named that way alone passes.
     # THE README ALONE, and not `doc`, which carries the run file appended
     # to it. A registration lives in the open list while its run is in
     # hand and MOVES INTO runs/$R.md at post-run step 5 -- so scanning the
