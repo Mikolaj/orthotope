@@ -101,16 +101,20 @@ MUTANTS = [
     # had nothing to remove and this mutant survived: the judge now plants
     # a timed shape no run has into the copy's Main.hs first, which the
     # trim removes and the untrimmed gate fires on, whatever the roster.
+    # Planted into a Main.hs of the judge's own and never into the copy's:
+    # written there, nothing restored it, and every later judge read two
+    # probe entries (2026-09-04).
     ('era_main_hs stops trimming the main set', 'defects.py',
      "        src = src[:i] + '\\n'.join(kept) + src[j:]",
      "        src = src[:i] + '\\n'.join(entries) + src[j:]",
      'python3 -c "import importlib.util, os, sys, tempfile, subprocess\n'
      'spec = importlib.util.spec_from_file_location(\'d\', \'{dir}/defects.py\')\n'
      'm = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)\n'
-     'p = os.path.join(\'{dir}\', \'Main.hs\'); s = open(p).read()\n'
+     's = open(os.path.join(\'{dir}\', \'Main.hs\')).read()\n'
      'i = s.index(\'\\nstretchShapes =\\n\'); j = s.index(\'\\n  ]\', i)\n'
      's = s[:j] + \'\\n  , (\\"zz-era-probe\\", [3, 3, 3])  -- 27\' + s[j:]\n'
-     'open(p, \'w\').write(s)\n'
+     'm.MAIN = os.path.join(tempfile.mkdtemp(), \'Main.hs\')\n'
+     'open(m.MAIN, \'w\').write(s)\n'
      'run = os.path.join(os.environ[\'CORPUS\'], \'run23-g912-main.json\')\n'
      'doc = m.rundoc_retirement_sentence(tempfile.mkdtemp(), False)\n'
      'main = m.era_main_hs(tempfile.mkdtemp(), run)\n'
@@ -119,11 +123,16 @@ MUTANTS = [
      ' capture_output=True, text=True)\n'
      'sys.exit(0 if \'0.8271\' in r.stdout else 1)"'),
     # The three properties, each broken as its 2026-08-17 proof did: every
-    # unit labelled `ns` fails the round-trip on every figure; a reader that
+    # unit labelled `ns` fails the round-trip on every figure, a column test
+    # widened by one fails the read-back on every row, and a reader that
     # refuses every run fails the third on every run.
     ('fmt_abs labels every unit ns', 'read-run.py',
      "            return _fig(seconds / scale) + ' ' + unit",
      "            return _fig(seconds / scale) + ' ns'", PROPS),
+    ('readme_rows widens its column test by one', 'read-run.py',
+     '        if len(cell) != 7:\n            continue\n        bare = re.sub',
+     '        if len(cell) != 8:\n            continue\n        bare = re.sub',
+     PROPS),
     ('the reader refuses every run', 'read-run.py',
      'def load(path, main_hs):\n    """(cells, shapes, strategies, meta); orders follow the run, not\n    the file."""\n',
      'def load(path, main_hs):\n    """(cells, shapes, strategies, meta); orders follow the run, not\n    the file."""\n    raise SystemExit(3)\n', PROPS),
@@ -135,7 +144,7 @@ MUTANTS = [
     # The shadow's one guard: a program cd-ing to an absolute path would run
     # for real from a shadow, and did once, overwriting a recorded run.
     ('shadow_dir holds a program that cds to an absolute path', 'defects.py',
-     '''    if re.search(r'^\\s*cd\\s+["\\']?/', text, re.M):''',
+     '''    if re.search(r'^\\s*(cd|pushd)\\s+(--\\s+)?["\\']?(/|~|\\$HOME)', text, re.M):''',
      '    if False:',
      'python3 -c "import importlib.util, sys, tempfile\n'
      'spec = importlib.util.spec_from_file_location(\'d\', \'{file}\')\n'

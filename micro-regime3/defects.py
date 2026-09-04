@@ -7223,7 +7223,9 @@ def shadow_dir(tmp, prog, text, mutate=(), extra=()):
     # the first form of this. Found 2026-08-23 by review. Cases:
     # `shadow-refuses-an-absolute-cd`, `shadow-refuses-a-quoted-absolute-cd`
     # and `shadow-holds-its-own-directory`, asked of this function directly.
-    if re.search(r'^\s*cd\s+["\']?/', text, re.M):
+    # And `cd -- /`, `cd ~/`, `cd "$HOME/` and `pushd /` since 2026-09-04,
+    # four more escapes, each with a case; no tracked script uses them.
+    if re.search(r'^\s*(cd|pushd)\s+(--\s+)?["\']?(/|~|\$HOME)', text, re.M):
         raise AssertionError('%s cds to an absolute path, so a shadow cannot'
                              ' hold it and running it would run for real'
                              % prog)
