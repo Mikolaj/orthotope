@@ -9523,14 +9523,14 @@ the tracked heads' placement where it was, and the layout term a figure read
 across it carries is whatever the eight heads do not sample; what a further
 reading would have to move to reopen this is a tracked head's offset.
 The offsets, addresses and constants themselves are each run's own file's
-and its pair note's, read at the build by `loop-offsets.py --delta` against
-the previous build of the same recipe ([Run 24's](runs/run24.md));
-this paragraph carries the ruling per form and not the numbers. **Every roster
-addition that brings a new function is another reading of it** --- the fills
-on one build either side, before anything else changes --- which costs nothing
-at the moment the arms land and cannot be taken afterwards; the build step
-of the run list is where it is asked for, and this paragraph is where
-its verdict lands.
+and its pair note's, read at the build against the previous build of the same
+recipe, by hand until 2026-09-04 and by `loop-offsets.py --delta` since ([Run
+24's](runs/run24.md)); this paragraph carries the ruling per form and
+not the numbers. **Every roster addition that brings a new function is another
+reading of it** --- the fills on one build either side, before anything else
+changes --- which costs nothing at the moment the arms land and cannot be taken
+afterwards; the build step of the run list is where it is asked for,
+and this paragraph is where its verdict lands.
 
 **And the identical-code pair collapsed across all nine populations at once when
 the loops were aligned**, which is the strongest single result the pairing gave.
@@ -10333,10 +10333,9 @@ was reworded, which is the failure this list was rewritten to escape.
   as a second control;
 - [the opening section][opening]'s headline ratios and its regime paragraph;
 - [Making a major benchmark run](#making-a-major-benchmark-run), whose figures
-  are worked examples of its own steps --- the anchor check's largest deviation,
-  the forcing-term arithmetic --- which a run does not requote, only reads
-  to see that each still illustrates the step it sits in; the pinning claim's
-  record is [the floor section][floor]'s and not the chapter's, since
+  are worked examples inside its own steps, which a run does not requote, only
+  reads to see that each still illustrates the step it sits in; the pinning
+  claim's record is [the floor section][floor]'s and not the chapter's, since
   2026-09-04;
 - [The stride classes and what they
   cover](#the-stride-classes-and-what-they-cover), whose figures a run does

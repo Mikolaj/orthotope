@@ -211,13 +211,13 @@ def reaches(insns, k, n, targets):
     span the bytes before it happen to fill: `run25-g912`'s survey read
     FIVE straddling self-loops in Main-compiled code where its `-g3` twin
     and every other binary read four, the fifth closed by the SRT word of
-    the table in front of `$wrun` -- `0x013dd878`, low byte `0x78 0xd8`,
-    `js -40` -- over a body that was a continuation's tail, a heap-check
+    the table in front of `$wrun` -- `0x013dd878`, whose low two bytes
+    `78 d8` are `js -40` -- over a body that was a continuation's tail, a heap-check
     jump, a pad and twenty bytes of table, which control leaves at its
     second instruction. Read 2026-09-04 and named by the twin refusing it.
-    Every self-loop this removes from the four real binaries and two twins
-    of that day is such a word behind a `jmp` and a pad, one to four per
-    binary; the blanket form, refusing any unconditional transfer inside
+    It removes one to four self-loops from each of the four real binaries
+    and two twins of that day, and every one inspected, on three of the
+    six, is such a word behind a `jmp` and a pad; the blanket form, refusing any unconditional transfer inside
     the body, took fourteen real loops with them, so this one follows the
     flow instead. Survey totals recorded before 2026-09-04 are higher than
     this reads by that few, and stand as taken.
