@@ -5773,8 +5773,8 @@ and never as a chronology.
     ./loop-offsets.py --survey $R-<other>       # 10b. both owed, both new,
     #      and the answer goes in the note: it is the binary's, not the
     #      reading session's. What it means is below, at the pad
-    ./smoke-sweep.sh $R &                 # 11. the smoke sweep, STARTED NOW
-    ./smoke-l1.sh $R [CLASS ...] &        #     in the background with 12 where
+    ./smoke-sweep.sh $R                   # 11. the smoke sweep, STARTED NOW
+    ./smoke-l1.sh $R [CLASS ...]          #     in the background with 12 where
     #      the diff at 6 says it is owed, and 12a and 12b taken under
     #      them: they are the only machine time in this half, neither
     #      wants a quiet box, and the registration is the long hand step,
@@ -5784,8 +5784,16 @@ and never as a chronology.
     #      (the prefix rule below has Run 17's instance). Under
     #      `--no-corpus` they have not run yet, which is the point of it.
     #      The sweep holds
-    #      each process to the arm count `--list` gives for that shape;
-    #      the harness wakes you when each ends, and no waiter is set
+    #      each process to the arm count `--list` gives for that shape.
+    #      IN THE BACKGROUND, AND WHICH BACKGROUND MATTERS -- the command
+    #      lines above carry no `&` for that reason. A SESSION uses the
+    #      harness's own background mode, which registers a task and
+    #      wakes it as each ends; a PERSON at a terminal types `&`. What
+    #      a session must not do is type one: measured 2026-09-04, a bare
+    #      `&` detaches and runs to completion exactly as well and
+    #      registers nothing, so no notification can name it and nothing
+    #      wakes you -- and the no-waiter rule under 12 then rests on a
+    #      wake-up that will not come
     #      why: --para 'And one more, nearly free'
     #  12. THE ROSTER PASS, owed ONLY
     #      if `--list` changed membership AND the pair note records none
@@ -5809,15 +5817,14 @@ and never as a chronology.
     #      run -- the registration -- clearing it at 12c:
     #      every wait on them ends a turn and the Stop hook rewraps the
     #      documents at each (~/.claude/rules/turn-end-hold.md). And
-    #      wait on nothing: the harness wakes you when each ends, and a
+    #      wait on nothing: launched as step 11 says you are woken, and a
     #      waiter that greps a process list matches ITS OWN command line
     #      and never returns -- `pgrep -f`, `pkill -f` and `ps -eo args
     #      | grep` alike, the last of which cost Run 23's preparation a
     #      hung call. AND A `tail` BETWEEN LEGS SHOWS NOTHING: each driver
     #      prints a leg when that leg ENDS, so its output file is
     #      unchanged for the whole of a leg while the leg's JSON grows
-    #      under it, which reads like progress and is not. Run 25's
-    #      preparation polled ten-odd times for the same two lines
+    #      under it, which reads like progress and is not
     #      why: --para 'After a roster change'
     ./preflight.sh $R --corpus            # 8c AND 8d, DEFERRED TO HERE:
     #      run them when 11 and 12 have both printed their verdict -- `sweep clean` and `pass clean` -- and nothing is writing a JSON.
@@ -5922,9 +5929,10 @@ Unsandboxed throughout:
     #      always somebody else's and NOT RUN is its ordinary answer, so
     #      read it whole before grepping it
     #      why: --para 'A paired run has one gate more'
-    ./run-evening.sh $R &                 # 14 TO 19 IN ONE COMMAND, in the
-    #      background, so the harness wakes you when it exits and no waiter
-    #      is owed: the gate (14), the alarm (16), the sequence (17) and
+    ./run-evening.sh $R                   # 14 TO 19 IN ONE COMMAND, in the
+    #      harness's background mode and NOT a typed `&`, so its exit
+    #      wakes you and no waiter is owed -- a bare `&` detaches just as
+    #      well, registers no task and wakes nobody (2026-09-04): the gate (14), the alarm (16), the sequence (17) and
     #      the riders (19), in that order and under the environment the
     #      note's LAUNCH: line names, each stage's verdict appended to
     #      $R-evening.txt as it lands and the machine handed back on its
@@ -6031,8 +6039,9 @@ Unsandboxed throughout:
     #      the hours up to here; and the chapter's own test agrees, a
     #      probe being exactly a thing that changes what the machine
     #      does next
-    ./run-counts-all.sh $R &              # 20, IN THE SAME TURN, in the
-    #      background again, so the harness wakes you when it exits
+    ./run-counts-all.sh $R                # 20, IN THE SAME TURN, in the
+    #      harness's background mode again, as at 14: a typed `&` would
+    #      detach and wake nobody
     #  20. THE COUNTS, THE SECOND COMMAND: run-counts-all.sh, which is
     #      run-counts.sh over EVERY population, the main set and each
     #      class, control then basis apiece, a
