@@ -2383,8 +2383,18 @@ def predictions_table(cells, shapes, strategies, meta, other, main_hs,
             flat_readme = subprocess.run(['wrap80', '--unwrap', readme],
                                          capture_output=True, text=True,
                                          check=True).stdout
-        except (OSError, subprocess.CalledProcessError):
-            flat_readme = open(readme).read()
+        except (OSError, subprocess.CalledProcessError) as e:
+            # BLOCKED, as the file's two other wrap80 sites say: the
+            # fallback read the wrapped README, where a lead spanning a
+            # line break matches nothing, and went on to adjudicate the
+            # run file's section -- the previous run's, before post-run
+            # step 5 -- at a normal exit. Case:
+            # `predictions-block-without-wrap80`.
+            sys.stderr.write('BLOCKED: wrap80 --unwrap %s could not run (%s),'
+                             ' and the registration is read unwrapped, so'
+                             ' nothing was adjudicated\n'
+                             % (os.path.basename(readme), e))
+            return 2
         for line in flat_readme.split('\n'):
             if lead in ' '.join(line.split()):
                 text, src = line, readme
@@ -7656,8 +7666,9 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
         hit is new when a line inside it is new -- see `is_fresh` for why
         that is containment and not equality.
         """
-        fresh = [h for h in hits if is_fresh(h[1], added)]
-        old_ = [h for h in hits if not is_fresh(h[1], added)]
+        judged = [(h, is_fresh(h[1], added)) for h in hits]
+        fresh = [h for h, f in judged if f]
+        old_ = [h for h, f in judged if not f]
         if added is EVERYTHING:
             print('note: %d %s' % (len(hits), headline))
         elif fresh:
@@ -10141,7 +10152,7 @@ def main():
         return v is not None and v is not False
     for flag, needs in (('alloc', 'compare'), ('chapter', 'compare'),
                         ('counts', 'compare'), ('movers', 'compare'),
-                        ('quiet', 'check_doc')):
+                        ('predictions', 'compare'), ('quiet', 'check_doc')):
         # `is not None` and NOT truthiness: --movers takes a NUMBER, and
         # `--movers 0` is falsy, so a truth test let one value of one flag
         # through both this guard and the dispatcher -- printing the
@@ -10227,7 +10238,15 @@ def main():
     # pairwise guards this replaces covered every pair but --ci's,
     # which arrived with the same commit and missed its own roll call.
     subs = [f for f in ('chapter', 'alloc', 'ci', 'bridge', 'counts',
-                        'movers') if asked(getattr(args, f))]
+                        'movers', 'predictions') if asked(getattr(args, f))]
+    # --predictions READS --counts for its `counts` spans rather than
+    # clashing with it, so that pair is one reading. It was in none of the
+    # three roll calls until 2026-09-04: alone it was absorbed, and beside
+    # --alloc it dropped the allocation reading without a word. Cases:
+    # `predictions-alone-is-refused`,
+    # `predictions-and-alloc-are-two-readings`.
+    if sorted(subs) == ['counts', 'predictions']:
+        subs = ['predictions']
     if len(subs) > 1:
         p.error('%s are %d readings of --compare, not one: run the'
                 ' invocations README\'s checklist spells out, one at a'
