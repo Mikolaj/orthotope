@@ -797,6 +797,36 @@ rather than a slot in the next run, observed again:
   in the same place**: why the count-down form pays, recovering most
   of the corner's loss at 0.9408 against it on 22 shapes of 24, is in [the
   mutable ceiling][ceiling]'s own write-up.
+- `OPEN` **What Run 25 is built to answer, registered before it runs.**
+  Registered 2026-09-04, on the pair [the next-run
+  section](runs/run24.md#what-the-next-run-compares-against) settles --- Run
+  24's, ghc-9.12.4 against GHC HEAD, both under `LOOP_DEADSPOT=1`, decided
+  2026-09-04 by whoever asked for the run --- over the roster as the retirements
+  of the same day leave it: ten classes and eighteen main-set shapes, 936
+  benches, the three classes and eight shapes retired kept in `check` and timed
+  nowhere ([the classes section](#the-stride-classes-and-what-they-cover), [the
+  shape set](#the-shape-set)). Each with a prediction and a kill condition,
+  and the verdicts move to Run 25's file with them. (1) *The box.* The gate's
+  machine check and the run's main-set process read `list`'s net against
+  the fingerprint Run 24 kept inside 3% over the eighteen shared shapes, none
+  past 5%, so absolutes cross from Run 24; killed by either reading past 3%,
+  which re-baselines every absolute and reads nothing else. (2) *The anchors.*
+  `cnn-L2-24x24-c32`, the middle anchor since `cifar-L2-16-c64-k3` was retired,
+  reads its `list` net within that same 3% of Run 24's fingerprint row for it,
+  3.46 ms in `runs/run24.md`, so its anchor history starts continuous
+  with the per-shape record; killed by a move past 3% on that shape alone
+  with the other two anchors inside it. (3) *The pair.* `list` moves under 0.7%
+  between the halves, as it did on Run 24, so the two columns may
+  be differenced, `predict: cross list 1.0 within 0.7%`; and no ordering of Run
+  24's registration (1) to (3) reverses past either half's floor; killed
+  by a reversal past the floor on both halves. (4) *The additions
+  of 2026-09-03.* Task 10's, read there: the four classes and the two window
+  views, each with its own prediction and kill condition, none repeated here.
+  (5) *The retirement.* Nothing published moves for it: every class that stays
+  reads its Run 24 ordering, and the rows the retired shapes and classes leave
+  in Run 24's fingerprint are read nowhere; killed by an ordering on a kept
+  population that Run 24 read the other way past both floors, which would
+  be the population's doing and not an arm's.
 - `ANSWERED` **What Run 24 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
   verdicts are [in Run 24's own
