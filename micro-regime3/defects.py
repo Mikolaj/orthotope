@@ -204,6 +204,7 @@ it.
 """
 
 import atexit
+import hashlib
 import importlib.util
 import inspect
 import json
@@ -1683,6 +1684,23 @@ def corpus_of_one(tmp):
     return {'corpus': d}
 
 
+def corpus_of_two(tmp):
+    """Two built main runs, for a limit that must count runs."""
+    d = empty_corpus(tmp)['corpus']
+    synth_json(d, 'main', name='a-main.json')
+    synth_json(d, 'main', name='b-main.json')
+    return {'corpus': d}
+
+
+def corpus_with_an_unreadable_run(tmp):
+    """One built run beside a JSON cut off mid-file, as a killed process
+    leaves one."""
+    d = corpus_of_one(tmp)['corpus']
+    whole = open(os.path.join(d, 'main.json')).read()
+    write(os.path.join(d, 'truncated-main.json'), whole[:len(whole) // 2])
+    return {'corpus': d}
+
+
 # The stand-in pair note, carrying the one machine line every driver reads
 # since 2026-09-02: the halves, as pair-halves.sh reads them. The names are
 # the ones every `halves()` call below uses.
@@ -1695,7 +1713,7 @@ FAKE_HALF = """\
 # is baked in. It runs none.
 if [ "$1" = --list ]; then
   for s in shape-a shape-b shape-c; do
-    for a in list build mut-odo sum-only-early sum-only-late; do
+    for a in list bq-expand mut-odo-vecdims sum-only-early sum-only-late; do
       echo "$s/$a"
     done
   done
@@ -1705,7 +1723,7 @@ fi
 # EXCLUDED the other rather than merely to have run.
 if [ "$1" = classes ] && [ "$2" = --list ]; then
   for s in rev-shape-a rev-shape-b other-shape-a; do
-    for a in list build mut-odo sum-only-early sum-only-late; do
+    for a in list bq-expand mut-odo-vecdims sum-only-early sum-only-late; do
       echo "$s/$a"
     done
   done
@@ -1731,12 +1749,51 @@ assert 'with-rtsopts' not in FAKE_HALF_UNBAKED, 'the unbaked stand-in kept it'
 FAKE_HALF_LISTLESS = FAKE_HALF.replace(
     'if [ "$1" = --list ]; then\n'
     '  for s in shape-a shape-b shape-c; do\n'
-    '    for a in list build mut-odo sum-only-early sum-only-late; do\n'
+    '    for a in list bq-expand mut-odo-vecdims sum-only-early sum-only-late; do\n'
     '      echo "$s/$a"\n    done\n  done\nfi\n', '')
 FAKE_HALF_LISTLESS = re.sub(
     r'# The class roster.*?^fi\n', '', FAKE_HALF_LISTLESS,
     flags=re.S | re.M)
 assert 'shape-a' not in FAKE_HALF_LISTLESS, 'the listless stand-in kept it'
+
+# The stand-in listing one arm more than the gate's SEL names, for the
+# case that adds that arm to SEL: since 2026-09-04 the gate reads its list
+# before the first process, so an arm the list lacks stops it there.
+FAKE_HALF_WITH_OFFTAB = FAKE_HALF.replace('sum-only-late; do',
+                                          'sum-only-late offtab; do')
+assert FAKE_HALF_WITH_OFFTAB.count('offtab') == 2, 'the wider stand-in lost it'
+
+# A gate recorded clean, as run-gate.sh writes its block's first two lines.
+CLEAN_GATE = ('GATE: run 2026-09-02. Mechanically clean: four processes, each\n'
+              '  exit 0 with the 15 benches asked for.\n')
+
+
+def gate_md5_line(extra, run, basis='lookrts', other='a1g'):
+    """The `halves md5:` line run-gate.sh writes into its block, computed
+    over the stand-ins a case ships, so a note can carry a gate of exactly
+    those binaries -- the one kind run-evening.sh inherits."""
+    body = dict(extra)
+    return '    halves md5: %s=%s %s=%s\n' % (
+        basis, hashlib.md5(body['%s-%s' % (run, basis)].encode()).hexdigest(),
+        other, hashlib.md5(body['%s-%s' % (run, other)].encode()).hexdigest())
+
+
+def evening_fixture(run, md5=True, stale=False):
+    """An evening's stand-ins and note, the note recording a clean gate.
+
+    With `md5` the block names the stand-ins themselves, which is the
+    block run-evening.sh inherits; with `stale` it names other binaries,
+    the state a rebuild leaves; with neither it has no md5 line, as a
+    block from before 2026-09-04.
+    """
+    hs = halves('%s-lookrts' % run, '%s-a1g' % run)
+    line = ''
+    if md5:
+        line = gate_md5_line(hs, run)
+        if stale:
+            line = re.sub(r'=[0-9a-f]{32}', '=' + '0' * 32, line)
+    return hs + [('%s-pair.txt' % run, NOTE_STUB + 'LAUNCH: SATURATE=1\n'
+                  'RIDERS: clean\n' + CLEAN_GATE + line)]
 
 # The status file run-evening.sh leaves behind, in the four states
 # run-counts-all.sh reads it in: the riders landed and the machine handed
@@ -1765,7 +1822,7 @@ EVENING_STOPPED = _EVENING_BEGINS + (
 FAKE_AREA = """\
 #!/bin/sh
 for s in shape-a shape-b shape-c; do
-  for a in list build mut-odo sum-only-early sum-only-late; do
+  for a in list bq-expand mut-odo-vecdims sum-only-early sum-only-late; do
     if [ "$1" = --list ]; then echo "$s/$a"; else echo "benchmarking $s/$a"; fi
   done
 done
@@ -2991,6 +3048,120 @@ def V(exit=None, has=(), hasnt=()):
 # fired without either saying so reads as latent, and `harm_count` is given
 # only where a number is written.
 TIER1 = {
+    # ---- the review of 2026-09-04 ----
+    'gate-refuses-an-arm-its-list-lacks': dict(
+        family='guard-on-the-wrong-side', discovery='review', harm='latent',
+        trigger='SEL naming an arm --list does not carry, as build and'
+                ' mut-odo were after 41d3bad',
+        ok='refuses before the first process, naming the arm and its count',
+        bug='ran the four processes and failed each on its count, after the'
+            ' forty minutes'),
+    'evening-does-not-inherit-a-gate-of-other-binaries': dict(
+        family='unverified-state', discovery='review', harm='latent',
+        trigger='a clean GATE block, then either half rebuilt',
+        ok='runs the gate again, saying the block names other binaries',
+        bug='inherited the block by its text alone'),
+    'evening-does-not-inherit-an-untied-gate': dict(
+        family='unverified-state', discovery='review', harm='latent',
+        trigger='a clean GATE block without a halves md5 line',
+        ok='runs the gate again, saying the block is untied',
+        bug='inherited the block by its text alone'),
+    'status-blocks-without-wrap80': dict(
+        family='quiet-failure', discovery='review', harm='latent',
+        trigger='wrap80 off PATH',
+        ok='exits 2 saying BLOCKED and naming wrap80',
+        bug='judged steps 10, 12a and 12c off an empty file and printed an'
+            ' empty reason for step 7'),
+    'status-counts-only-stamped-complaints': dict(
+        family='scan-for-parse', discovery='review', harm='latent',
+        trigger='a wallclock log quoting a FAILED GATE block',
+        ok='counts the stamped `=== ... !!` lines alone',
+        bug='counted the quoted line and read step 17 NOT DONE for ever'),
+    'smoke-exercises-the-arm-filter': dict(
+        family='vacuous-check', discovery='review', harm='fired',
+        trigger='--exclude named an Only arm, bq-expand-b since c10e8cf',
+        ok='excludes an arm the run lists, then every arm, whose refusal is'
+           ' the check',
+        bug='the filter removed nothing and the mode passed unexercised'),
+    'predictions-block-without-wrap80': dict(
+        family='quiet-failure', discovery='review', harm='latent',
+        trigger='wrap80 off PATH, on a run named run<N>',
+        ok='BLOCKED at exit 2, nothing adjudicated',
+        bug='read the wrapped README, missed the lead and adjudicated the'
+            ' run file\'s section at exit 0'),
+    'predictions-alone-is-refused': dict(
+        family='silent-option', discovery='review', harm='latent',
+        trigger='--predictions without --compare',
+        ok='refused as a modifier of --compare',
+        bug='absorbed; the default table printed at exit 0'),
+    'predictions-and-alloc-are-two-readings': dict(
+        family='silent-option', discovery='review', harm='latent',
+        trigger='--compare X --predictions --alloc',
+        ok='refused as two readings of --compare',
+        bug='--alloc dropped without a word'),
+    'properties-limit-bounds-runs-not-figures': dict(
+        family='vacuous-check', discovery='review', harm='fired',
+        trigger='CORPUS_LIMIT=2, as the property mutants set it',
+        ok='stops after that many runs and reports that many',
+        bug='checked one figure, opened every run and reported them all'
+            ' covered, so the fmt_abs mutant rested on a single figure'),
+    'properties-name-an-unreadable-run': dict(
+        family='quiet-failure', discovery='review', harm='latent',
+        trigger='a JSON cut off mid-file in the corpus',
+        ok='FAIL naming it unreadable, and not counted among the runs',
+        bug='skipped silently and counted as a run covered'),
+    'shadow-refuses-a-double-dash-cd': dict(
+        family='scan-for-parse', discovery='review', harm='latent',
+        trigger='`cd -- /path` in a driver', ok='refused as absolute',
+        bug='held in a shadow, so the driver would have run for real'),
+    'shadow-refuses-a-tilde-cd': dict(
+        family='scan-for-parse', discovery='review', harm='latent',
+        trigger='`cd ~/path` in a driver', ok='refused as absolute',
+        bug='held in a shadow, so the driver would have run for real'),
+    'shadow-refuses-a-home-cd': dict(
+        family='scan-for-parse', discovery='review', harm='latent',
+        trigger='`cd "$HOME/path"` in a driver', ok='refused as absolute',
+        bug='held in a shadow, so the driver would have run for real'),
+    'shadow-refuses-a-pushd': dict(
+        family='scan-for-parse', discovery='review', harm='latent',
+        trigger='`pushd /path` in a driver', ok='refused as absolute',
+        bug='held in a shadow, so the driver would have run for real'),
+    'era-judge-writes-the-shared-copy': dict(
+        family='unverified-state', discovery='review', harm='latent',
+        trigger='selftest-mutants.py running the era_main_hs judge before'
+                ' the property judges',
+        ok='plants the probe shape into a Main.hs of its own',
+        bug='wrote the copy\'s Main.hs and restored nothing, so the later'
+            ' judges read two zz-era-probe entries',
+        # No case: a judge is driven by selftest-mutants.py alone.
+        proved='ran',
+        notes='Watched 2026-09-04: the old and the new judge each run once'
+              ' in a fresh copy of the tracked files, with CORPUS at this'
+              ' directory and CORPUS_LIMIT=2, and the copy\'s Main.hs'
+              ' counted for zz-era-probe afterwards: one entry left by the'
+              ' old, none by the new'),
+    'mutants-name-a-property-without-one': dict(
+        family='false-comment', discovery='review', harm='latent',
+        trigger='reading mutants.py against properties.py',
+        ok='a mutant per property, and properties.py points here',
+        bug='"the three properties" over mutants for two, the third proved'
+            ' by a dated sentence alone',
+        proved='asserted'),
+    'match-docstring-claims-any-length': dict(
+        family='false-comment', discovery='review', harm='latent',
+        trigger='reading --match\'s docstring against its body',
+        ok='the docstring says the twin\'s loops are the survey\'s'
+           ' population, capped at a line, which loses nothing',
+        bug='claimed loops of any length were searched',
+        proved='asserted'),
+    'probe-cache-count-is-a-literal': dict(
+        family='two-spellings', discovery='review', harm='latent',
+        trigger='lib-stage2 parked to Only on 2026-09-04 with the probe'
+                ' still naming it',
+        ok='reads the class list before launching and refuses an arm it'
+           ' lacks; WANT is what the list carries',
+        bug='WANT=14 against a 12-bench run, failed after it ran',
+        proved='asserted'),
     'draft-renames-a-half-onto-the-other': dict(
         family='other:rewrite-feeds-the-next-rewrite',
         discovery='review', harm='latent',
@@ -6604,7 +6775,11 @@ RECORDS = [
              mutate=[('run-gate.sh',
                       "'*/sum-only-early' '*/sum-only-late')",
                       "'*/sum-only-early' '*/sum-only-late' '*/offtab')")],
-             extra=[('zzgate-a1g', FAKE_HALF), ('zzgate-lookrts', FAKE_HALF),
+             # The stand-in lists the added arm too: the gate reads its
+             # list before launching since 2026-09-04, and this case is
+             # about the count, not the refusal.
+             extra=[('zzgate-a1g', FAKE_HALF_WITH_OFFTAB),
+                    ('zzgate-lookrts', FAKE_HALF_WITH_OFFTAB),
                     ('zzgate-pair.txt', NOTE_STUB)]),
          env={'OTHER': 'a1g', 'BASIS': 'lookrts'},
          argv=['zzgate'],
@@ -6662,10 +6837,7 @@ RECORDS = [
          # a half (ONLY, a smoke run's restriction, keeps them to it). The
          # counted work left this driver on 2026-09-03 and has its own
          # cases below, which is what `counts a1g` must not appear for.
-         shadow=dict(extra=lambda: halves('zzev-lookrts', 'zzev-a1g')
-                     + [('zzev-pair.txt', NOTE_STUB + 'LAUNCH: SATURATE=1\n'
-                         'RIDERS: clean\nGATE: run 2026-09-02. Mechanically'
-                         ' clean: four processes, each\n')]),
+         shadow=dict(extra=lambda: evening_fixture('zzev')),
          # SATURATE on the launch line and a stand-in that prints the
          # preamble's line under it: the sequence's processes must carry
          # it and the CLEAN riders must not, the driver stripping it.
@@ -7174,6 +7346,252 @@ RECORDS = [
          bug=V(exit=0, has=['ghead leads, ghead follows'])),
 
     # ---- preflight.sh, the pre-run list's steps 4 to 10 in one call -----
+    # ---- the review of 2026-09-04 ----------------------------------------
+    # Fifteen findings over the shell and Python here, by a reviewer reading
+    # the files whole; a case for each program that can be driven, and a
+    # record alone for the four that cannot (a judge, a docstring, a probe).
+    case('gate-refuses-an-arm-its-list-lacks', 'run-gate.sh', '5ef414d',
+         'SEL named two arms the prune had parked, and the count that would'
+         ' say so was checked per process, after its forty minutes',
+         # `build` and `mut-odo` went to `Only` in 41d3bad and the gate's
+         # selection kept naming them, so every process would have come
+         # back three arms short of EXPECT and the gate failed after its
+         # full run. The list is read before the first process now, and a
+         # name it lacks refuses there; the selection names timed arms.
+         shadow=dict(mutate=[('run-gate.sh',
+                              "'*/sum-only-early' '*/sum-only-late')",
+                              "'*/sum-only-early' '*/sum-only-late' '*/offtab')")],
+                     extra=[('zzgl-a1g', FAKE_HALF), ('zzgl-lookrts', FAKE_HALF),
+                            ('zzgl-pair.txt', NOTE_STUB)]),
+         argv=['zzgl'],
+         ok=V(exit=1, has=['!! SEL names */offtab'], hasnt=['gate begins']),
+         # `SEL names` alone is in the old per-process complaint too.
+         bug=V(has=['gate begins'], hasnt=['!! SEL names'])),
+
+    case('evening-does-not-inherit-a-gate-of-other-binaries',
+         'run-evening.sh', '465501c',
+         'a clean GATE block was inherited by its text, after a rebuild too',
+         # The block is tied to the binaries it gated by the md5 line
+         # run-gate.sh writes; a rebuilt half has another md5, so the
+         # newest clean block is of other binaries and the gate runs again.
+         # Before, the evening ran hours on a pair that was never gated.
+         shadow=dict(extra=lambda: evening_fixture('zzes', stale=True)),
+         env={'MAXBUSY': '100', 'FAKE_SATURATE': '1',
+              'ONLY': main_shapes()[0]},
+         argv=['zzes'],
+         probe=lambda subs: open(os.path.join(subs['at'],
+                                              'zzes-evening.txt')).read(),
+         ok=V(has=['gate: NOT inherited', 'other binaries', 'gate: start'],
+              hasnt=['gate: inherited']),
+         bug=V(has=['gate: inherited'], hasnt=['gate: start'])),
+
+    case('evening-does-not-inherit-an-untied-gate', 'run-evening.sh', '465501c',
+         'a clean GATE block with no halves line inherited the same way',
+         # A block from before the md5 line cannot be tied to any binary,
+         # so it is not inherited either, and the stamp says which.
+         shadow=dict(extra=lambda: evening_fixture('zzeu', md5=False)),
+         env={'MAXBUSY': '100', 'FAKE_SATURATE': '1',
+              'ONLY': main_shapes()[0]},
+         argv=['zzeu'],
+         probe=lambda subs: open(os.path.join(subs['at'],
+                                              'zzeu-evening.txt')).read(),
+         ok=V(has=['gate: NOT inherited', "no 'halves md5:' line",
+                   'gate: start'],
+              hasnt=['gate: inherited']),
+         bug=V(has=['gate: inherited'], hasnt=['gate: start'])),
+
+    case('status-blocks-without-wrap80', 'run-status.sh', '87c77f0',
+         'with wrap80 off PATH the README verdicts were read off an empty file',
+         # `wrap80 --unwrap README.md > $TMP/readme 2>/dev/null` dropped
+         # the status, so steps 10, 12a and 12c judged an empty file and
+         # step 7 printed an empty reason, --check-doc's BLOCKED line
+         # being grepped for FAIL alone. A tool the reading needs and
+         # cannot find is exit 2 here, as everywhere in this directory.
+         shadow=dict(),
+         env={'PATH': '/usr/bin:/bin'},
+         argv=['run98'],
+         ok=V(exit=2, has=['BLOCKED', 'wrap80'], hasnt=['STATUS: ']),
+         bug=V(exit=1, has=['NOT DONE', 'STATUS: '], hasnt=['wrap80'])),
+
+    case('status-counts-only-stamped-complaints', 'run-status.sh', '87c77f0',
+         'a GATE block quoted into the wallclock log counted as a complaint',
+         # run-major.sh copies the note's GATE blocks into the log, and a
+         # FAILED one carries `!!`; read-all.sh anchors its count on the
+         # driver's own stamp for exactly this reason (its case
+         # `quoted-note-block-is-not-a-run-complaint`) and step 17 did
+         # not, so a note that had once recorded a failed gate read the
+         # run NOT DONE for ever.
+         shadow=dict(extra=[('run97-wallclock.log',
+                             '=== 2026-09-04T00:00:00+02:00 major run begins\n'
+                             '      GATE: run 2026-09-03. Mechanically FAILED,'
+                             ' 1 complaint(s):\n'
+                             '          !! the machine check FAILED -- read it'
+                             ' before the evening\n'
+                             '=== 2026-09-04T01:00:00+02:00 major run complete'
+                             '\n')]),
+         argv=['run97'],
+         ok=V(has=['run97-wallclock.log says complete, no complaint'],
+              hasnt=["'!!' line(s)"]),
+         bug=V(has=["with 1 '!!' line(s)"], hasnt=['no complaint'])),
+
+    case('smoke-exercises-the-arm-filter', 'smoke-sweep.sh', '5ef414d',
+         '--exclude was exercised on an Only arm, so it removed nothing',
+         # `bq-expand-b` has been `Only` since c10e8cf, in no --list and
+         # no run JSON, and the line's own comment records the same
+         # vacuity once fixed for `concat-runs`. The arms come from the
+         # run's list now: one is excluded for the mode's ordinary path,
+         # and all of them for the refusal that is the check -- the shape
+         # filter's form, which a reader ignoring --exclude cannot pass.
+         shadow=dict(mutate=[('read-run.py',
+                              'strategies = [s for s in strategies if s not'
+                              ' in args.exclude]',
+                              'strategies = list(strategies)')],
+                     extra=lambda: halves('zzxa-lookrts', 'zzxa-a1g')
+                     + [('zzxa-pair.txt', NOTE_STUB)]),
+         env={'SHAPE': main_shapes(1)[0], 'CLASS': class_shapes('window')[0],
+              'OTHER': 'a1g', 'BASIS': 'lookrts'},
+         argv=['zzxa'],
+         ok=V(exit=1, has=['every arm', 'did NOT refuse']),
+         bug=V(exit=0, has=['sweep clean'], hasnt=['did NOT refuse'])),
+
+    case('predictions-block-without-wrap80', 'read-run.py', '690a3b5',
+         'with wrap80 off PATH --predictions read the wrapped README and'
+         " adjudicated the run file's section instead",
+         # The README is read unwrapped because a lead spanning a line
+         # break matches nothing; the fallback read the wrapped file,
+         # missed the lead, and went on to the run doc's section -- the
+         # previous run's, before post-run step 5 -- at a normal exit.
+         # The file's other two wrap80 sites say BLOCKED; so does this.
+         plant=lambda t: {
+             'run': synth_json(t, 'main', name='run99-x-main.json'),
+             'other': synth_json(t, 'main', name='other.json', slow=1.25),
+             'doc': write(os.path.join(t, 'r.md'),
+                          '# Run 99\n\n## What this run was built to answer,'
+                          ' and what it answered\n\n(1) *a* `predict: cross'
+                          ' list 0.8 within 1%`.\n')},
+         env={'PATH': '/usr/bin:/bin'},
+         argv=['{run}', '--compare', '{other}', '--predictions',
+               '--run-doc', '{doc}'],
+         ok=V(exit=2, has=['BLOCKED', 'wrap80'], hasnt=['HELD', 'KILLED']),
+         bug=V(exit=0, has=['HELD'], hasnt=['BLOCKED'])),
+
+    case('predictions-alone-is-refused', 'read-run.py', '690a3b5',
+         '--predictions without --compare was absorbed without a word',
+         # Missing from all three roll calls: the modifier loop, `modes`
+         # and `subs`. Alone it printed the default table at exit 0.
+         plant=lambda t: {'run': synth_json(t, 'main')},
+         argv=['{run}', '--predictions'],
+         ok=V(exit=2, has=['--predictions is a modifier of --compare']),
+         bug=V(exit=0, hasnt=['is a modifier'])),
+
+    case('predictions-and-alloc-are-two-readings', 'read-run.py', '690a3b5',
+         '--compare X --predictions --alloc dropped --alloc without a word',
+         # The predictions arm of the dispatch precedes the alloc one, and
+         # `subs` did not list predictions, so the second reading was
+         # never run and nothing said so. `--counts` is the one sub-flag
+         # --predictions reads rather than clashes with.
+         plant=lambda t: {
+             'run': synth_json(t, 'main'),
+             'other': synth_json(t, 'main', name='other.json', slow=1.25)},
+         argv=['{run}', '--compare', '{other}', '--predictions', '--alloc'],
+         ok=V(exit=2, has=['are 2 readings of --compare']),
+         bug=V(hasnt=['readings of --compare'])),
+
+    case('properties-limit-bounds-runs-not-figures', 'properties.py', 'ae6cbce',
+         'CORPUS_LIMIT broke the innermost loop of the round-trip, bounding'
+         ' neither the sweep nor the count it reported',
+         # The break sat after `n += 1` in the per-figure loop, so every
+         # run was still opened, one figure was checked, and the report
+         # said the whole corpus; the mutant `fmt_abs labels every unit ns`
+         # rested on that one figure. The limit counts runs, as the two
+         # siblings and the docstring have it.
+         plant=corpus_of_two,
+         env={'CORPUS': '{corpus}', 'CORPUS_LIMIT': '1'},
+         argv=[],
+         ok=V(exit=0, has=['prop_abs_round_trip', 'in 1 run(s)'],
+              hasnt=['in 2 run(s)']),
+         bug=V(has=['in 2 run(s)'], hasnt=['in 1 run(s)'])),
+
+    case('properties-name-an-unreadable-run', 'properties.py', 'ae6cbce',
+         'a JSON that would not load was skipped and counted as covered',
+         # `except Exception: continue`, and the report then counted every
+         # file in the directory. A file cut off mid-write is what a
+         # killed process leaves, and the property names it now.
+         plant=corpus_with_an_unreadable_run,
+         env={'CORPUS': '{corpus}'},
+         argv=[],
+         ok=V(exit=1, has=['truncated-main.json', 'unreadable', 'in 1 run(s)'],
+              hasnt=['in 2 run(s)']),
+         bug=V(exit=1, has=['in 2 run(s)'], hasnt=['unreadable'])),
+
+    # The shadow guard, four forms it read as relative: `--` before the
+    # path, a tilde, `$HOME`, and `pushd`. No tracked script uses them.
+    case('shadow-refuses-a-double-dash-cd', 'defects.py', '462fb1b',
+         '`cd -- /path` slipped the guard',
+         plant=lambda t: {'tmp': t},
+         argv=['--unit', "shadow_dir('{tmp}', 'probe-areacurve.sh',"
+                         " 'cd -- /nowhere-zz\\n')"],
+         ok=V(has=['cds to an absolute path']),
+         bug=V(has=['/shadow'], hasnt=['cds to an absolute path'])),
+
+    case('shadow-refuses-a-tilde-cd', 'defects.py', '462fb1b',
+         '`cd ~/path` slipped the guard',
+         plant=lambda t: {'tmp': t},
+         argv=['--unit', "shadow_dir('{tmp}', 'probe-areacurve.sh',"
+                         " 'cd ~/nowhere-zz\\n')"],
+         ok=V(has=['cds to an absolute path']),
+         bug=V(has=['/shadow'], hasnt=['cds to an absolute path'])),
+
+    case('shadow-refuses-a-home-cd', 'defects.py', '462fb1b',
+         '`cd "$HOME/path"` slipped the guard',
+         plant=lambda t: {'tmp': t},
+         argv=['--unit', "shadow_dir('{tmp}', 'probe-areacurve.sh',"
+                         " 'cd \"$HOME/nowhere-zz\"\\n')"],
+         ok=V(has=['cds to an absolute path']),
+         bug=V(has=['/shadow'], hasnt=['cds to an absolute path'])),
+
+    case('shadow-refuses-a-pushd', 'defects.py', '462fb1b',
+         '`pushd /path` slipped the guard',
+         plant=lambda t: {'tmp': t},
+         argv=['--unit', "shadow_dir('{tmp}', 'probe-areacurve.sh',"
+                         " 'pushd /nowhere-zz\\n')"],
+         ok=V(has=['cds to an absolute path']),
+         bug=V(has=['/shadow'], hasnt=['cds to an absolute path'])),
+
+    # Four records without a case: a judge, two docstrings and a probe.
+    case('era-judge-writes-the-shared-copy', 'mutants.py', '462fb1b',
+         "the era_main_hs judge planted its probe shape into the copy's"
+         ' Main.hs, which nothing restored',
+         # selftest-mutants.py restores the MUTATED file and no other, so
+         # the two runs of that judge left two `zz-era-probe` entries for
+         # every later judge to read. The judge points era_main_hs at a
+         # planted copy of its own now. No verdict moved.
+         argv=None, ok=None),
+
+    case('mutants-name-a-property-without-one', 'mutants.py', '462fb1b',
+         '"the three properties" stood over mutants for two',
+         # `prop_table_reads_back` had none, and properties.py still
+         # carried the dated 2026-08-17 sentence the docstring says was
+         # retired into this file. The mutant widens `readme_rows`'
+         # column test by one, as that proof did.
+         argv=None, ok=None),
+
+    case('match-docstring-claims-any-length', 'loop-offsets.py', 'd2ffa65',
+         "--match said it looked among the twin's loops of any length",
+         # It looks among `innermost(twin)`, capped at the line as the
+         # survey is, and loses nothing by it: a byte-identical copy has
+         # the same length, and no NOT NAMED on today's binaries is
+         # rescued by lifting the cap. The prose now says what runs.
+         argv=None, ok=None),
+
+    case('probe-cache-count-is-a-literal', 'probe-cache-run.sh', '5ef414d',
+         'WANT was a literal over an arm list that included an Only arm',
+         # `lib-stage2` went to `Only` on 2026-09-04, so the probe would
+         # have run and failed on 12 against 14. The list is read before
+         # launch now, an arm it lacks refusing there, and WANT is what
+         # the list carries. The probe's question is spent (README).
+         argv=None, ok=None),
+
     case('preflight-names-a-retired-callee', 'preflight.sh', '81876de',
          'a retirement left preflight calling a script that had gone',
          # NO CASE, and the reason is the one checks.py's UNCOVERED gives
