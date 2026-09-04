@@ -805,8 +805,8 @@ rather than a slot in the next run, observed again:
   24's, ghc-9.12.4 against GHC HEAD, both under `LOOP_DEADSPOT=1`, decided
   2026-09-04 by whoever asked for the run --- over the roster as the retirements
   and the prune of the same day leave it: ten classes and eighteen main-set
-  shapes, 26 timed arms and 468 benches, the three classes, eight shapes
-  and sixteen arms retired kept in `check` and timed nowhere ([the classes
+  shapes, 24 timed arms and 432 benches, the three classes, eight shapes
+  and eighteen arms retired kept in `check` and timed nowhere ([the classes
   section](#the-stride-classes-and-what-they-cover), [the shape
   set](#the-shape-set)). Each with a prediction and a kill condition,
   and the verdicts move to Run 25's file with them. (1) *The box.* The gate's
@@ -999,7 +999,7 @@ rather than a slot in the next run, observed again:
   where it does NOT fire --- Run 22 reads both arms inside the floor on the six
   classes where it does not, which bounds it but does not price it.
 
-- `OPEN` **A candidate can lead whole classes and still fail its own
+- `ANSWERED` **A candidate can lead whole classes and still fail its own
   registration, and Run 22 has two.** `lib-stage2-u4` was killed
   for not clearing the `runs` floor at long lengths, and leads `bcast`,
   `bcastmid` and `scaled` by 40.3%, 47.4% and 11.9%; `lib-stage2-short`
@@ -1014,7 +1014,11 @@ rather than a slot in the next run, observed again:
   decimal only where the margin is wide, which is what a registration scoped
   to a class would have to clear. And `-u4`'s `runs` kill does not repeat
   on the same binary, 0.9530 at `runs-65536` past that class's floor,
-  so the class-and-length scoping cuts both ways.**
+  so the class-and-length scoping cuts both ways.** **Both parked
+  and the question closed: `-u4` on the ruling of 2026-08-30 and the reading
+  of 2026-09-02, `-short` on the ruling of 2026-09-04 that a body per run length
+  is too repetitive and so too complex, so a registration scoped to their
+  classes is owed to nobody.**
 
 - `ANSWERED` **What Run 21 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
@@ -2546,39 +2550,38 @@ is planned. A scope limit belongs in the sentence that asks for the measurement.
     `compose-zero-mid` as a broadcast and not as a `bcastmid` block copy,
     and `compose-scalar` the fastest cell of any population; killed
     by a composition more than a floor slower than its twin. (5) *The two
-    windows.* The short body fires on both k3 kernels, so `lib-stage2-short`
-    leads `lib-stage2` on both as it does on `window-224x224-k3`; killed
-    by either reading it behind past the floor. (6) *The past-cache probe*,
-    `probe-cache-build.sh` and `probe-cache-run.sh`: two regime-2 views of 8
-    million elements, runs of 96 and of 4096, on a scratch build of Run 24's
-    basis recipe with the cap raised for it alone, timed in one process
-    of the four route arms beside `list` and the forcing controls. Predicted:
-    the `runs` order holds past the cache, the fill ahead at 96 and the slice
-    route at 4096, both routes slowing alike; killed by an inversion, which
-    would make `dispRun` a function of the working set and not of the run
-    length. Its artifacts are `probe-cache-runs.json` and its log. **KILLED
-    the same evening by the inversion it named, and the inversion is small.** 14
-    benches in 81 seconds, self-test green, `list` at 123.5 and 124.0 ms net
-    on the two views, 14.7 ns an element as in cache, `list` being memory-bound
-    at every size. At runs of 96 the order holds and the margin with it:
-    `lib-stage2` reads 0.5548 of `lib-stage1`, and the dispatch is the fill,
-    0.9999 of it, allocating the result alone where the slice route allocates
-    28% more. At runs of 4096 the order inverts: `lib-stage2` reads 0.9802
-    of `lib-stage1`, the fill two points ahead where `runs-4096` in cache has
-    the slice route five points ahead, and `lib-stage2-disp`, on the slice route
-    there by its allocation, reads 1.0227 of the fill and 1.0024
-    of `lib-stage1`. The process carries no A/A pair, so the inversion is judged
-    against the cells' own fit widths, 0.14 to 0.54%, which it clears,
-    and against the `runs` class's recorded floors of 3 to 4.6%, which it does
-    not. So `dispRun` is a function of the working set by the letter and
-    not in a way that costs: past the cache the two routes tie at 4096 within
-    a floor, in cache the slice route leads by five, and a cut at 2048 is wrong
-    by at most a few points on either side of the cache, which is what
-    a threshold read at one working set is worth. The cut stands. Not measured:
-    a length between 96 and 4096 past the cache, where the in-cache crossover
-    sits, which one more view would place; and the allocation multiple, which
-    the reader cannot compute for a view `Main.hs` does not list, so the routes
-    were read in bytes.
+    windows.* RETIRED 2026-09-04 with the ruling that parked `lib-stage2-short`,
+    the arm it was about; the views stay for the other arms' sanity. (6)
+    *The past-cache probe*, `probe-cache-build.sh` and `probe-cache-run.sh`: two
+    regime-2 views of 8 million elements, runs of 96 and of 4096, on a scratch
+    build of Run 24's basis recipe with the cap raised for it alone, timed
+    in one process of the four route arms beside `list` and the forcing
+    controls. Predicted: the `runs` order holds past the cache, the fill ahead
+    at 96 and the slice route at 4096, both routes slowing alike; killed
+    by an inversion, which would make `dispRun` a function of the working set
+    and not of the run length. Its artifacts are `probe-cache-runs.json`
+    and its log. **KILLED the same evening by the inversion it named,
+    and the inversion is small.** 14 benches in 81 seconds, self-test green,
+    `list` at 123.5 and 124.0 ms net on the two views, 14.7 ns an element
+    as in cache, `list` being memory-bound at every size. At runs of 96
+    the order holds and the margin with it: `lib-stage2` reads 0.5548
+    of `lib-stage1`, and the dispatch is the fill, 0.9999 of it, allocating
+    the result alone where the slice route allocates 28% more. At runs of 4096
+    the order inverts: `lib-stage2` reads 0.9802 of `lib-stage1`, the fill two
+    points ahead where `runs-4096` in cache has the slice route five points
+    ahead, and `lib-stage2-disp`, on the slice route there by its allocation,
+    reads 1.0227 of the fill and 1.0024 of `lib-stage1`. The process carries
+    no A/A pair, so the inversion is judged against the cells' own fit widths,
+    0.14 to 0.54%, which it clears, and against the `runs` class's recorded
+    floors of 3 to 4.6%, which it does not. So `dispRun` is a function
+    of the working set by the letter and not in a way that costs: past the cache
+    the two routes tie at 4096 within a floor, in cache the slice route leads
+    by five, and a cut at 2048 is wrong by at most a few points on either side
+    of the cache, which is what a threshold read at one working set is worth.
+    The cut stands. Not measured: a length between 96 and 4096 past the cache,
+    where the in-cache crossover sits, which one more view would place;
+    and the allocation multiple, which the reader cannot compute for a view
+    `Main.hs` does not list, so the routes were read in bytes.
 
 **And one class not to repropose: work that needs an aligned build.**
 `mut-odo`'s wide interval is the live case. The dispersion is documented
@@ -3183,24 +3186,29 @@ the shipped by-two loop is fine but close to the bar, so a simpler loop
 is preferred over it where the performance is close, while a function that joins
 that loop with further orthogonal features --- the short bodies
 of `lib-stage2-short` among them --- is judged feature by feature, and the short
-bodies stand or fall on their own. The runs class gained `runs-4` and `runs-5`
-the same day -- no view in the suite had a canonical innermost extent of 4,
-so the short bodies' one unexercised branch was invisible even to `check` --
-and `runs-256` and `runs-512`, bracketing `dispRun` within a factor of two. Each
-runs on every population, so a library change is read where a user would meet
-it, class by class, whichever of the two entry points the user takes,
-and the `runs` class is where the routes part; with the timed `-u2-down`
-the dispatch arm, the three fill candidates and the unordered pair the block
-took the roster to 1320 benches, and the composite arm with the six parkings
-and two main-set shapes of 2026-09-02 took the roster to 1352 benches,
-and the retirement of eight main-set shapes on 2026-09-04 took the roster to 936
-benches, eight superseded arms parked permanently since Run 21, `offtab`'s twins
-removed with it; the prune of the same day parks `lib-stage2`
-and `lib-stage2-concat` among sixteen arms ([what the benchmark
-does](#what-the-benchmark-does)), took the roster to 432 benches, and the `-u1`
-arm with its re-timed control, added the same day for Run 25, takes the roster
-to 468 benches. What the next run is registered to answer with them is [in
-the open list][open].
+bodies stand or fall on their own. **They fell, 2026-09-04, on the same ruling
+and by the same hand: a body per run length of 2 to 5 is too repetitive
+and so too complex for orthotope, so `lib-stage2-short`
+and `lib-stage2-short-lean` price what the bodies would buy, are not candidates
+to ship, and are parked `Only` as `lib-stage2-u4` is; their Run 24 readings
+stand in that run's file.** The runs class gained `runs-4` and `runs-5` the same
+day -- no view in the suite had a canonical innermost extent of 4, so the short
+bodies' one unexercised branch was invisible even to `check` -- and `runs-256`
+and `runs-512`, bracketing `dispRun` within a factor of two. Each runs on every
+population, so a library change is read where a user would meet it, class
+by class, whichever of the two entry points the user takes, and the `runs` class
+is where the routes part; with the timed `-u2-down` the dispatch arm, the three
+fill candidates and the unordered pair the block took the roster to 1320
+benches, and the composite arm with the six parkings and two main-set shapes
+of 2026-09-02 took the roster to 1352 benches, and the retirement of eight
+main-set shapes on 2026-09-04 took the roster to 936 benches, eight superseded
+arms parked permanently since Run 21, `offtab`'s twins removed with it;
+the prune of the same day parks `lib-stage2` and `lib-stage2-concat` among
+sixteen arms ([what the benchmark does](#what-the-benchmark-does)), took
+the roster to 432 benches, the `-u1` arm with its re-timed control, added
+the same day for Run 25, took it to 468, and the ruling on the short bodies,
+parking two, takes the roster to 432 benches. What the next run is registered
+to answer with them is [in the open list][open].
 
 **What the eight are worth as instruments, read against each other for the first
 time on 2026-08-14, over Runs 10 to 13.** Per class: the median A/A deviation
@@ -4943,10 +4951,10 @@ than absent, since that case ran benchmarks of a different scale.
 
 **Two rulings taken 2026-08-08 cut the timed roster from 38 strategies to 15,
 the arms written since brought it back to 28, and a third cut on 2026-09-04,
-the prune, takes it to fourteen with `list`, plus the two timed for Run 25
-alone** --- the 28 being the four unconditional forms the precondition ruling
-itself called for (below), the four FastReshape arms, of the five Run 20 arms
-beside them the three the probes left timed ([the mutable
+the prune, takes it to twelve with `list`, plus the two timed for Run 25 alone**
+--- the 28 being the four unconditional forms the precondition ruling itself
+called for (below), the four FastReshape arms, of the five Run 20 arms beside
+them the three the probes left timed ([the mutable
 ceiling](#the-mutable-ceiling-taken)), and the rework's five less the three
 placement-family arms parked beside them. All three cuts are about what is worth
 spending a bench on, not about what is worth keeping: every dropped strategy
@@ -4968,8 +4976,9 @@ still serves: how exactly the `mut-odo-vecdims` family is used in the library.**
 What stays timed is `list`, the reference; `bq-expand`, the class default;
 `mut-odo-vecdims` and the two forms of the shipped fill, `-add-in-leaf-u2`
 and `-u2-down`; and the library-shaped arms with a question left, `lib-stage1`,
-`lib-stage2-disp`, `lib-stage2-short`, `-lean` and `-short-lean`,
-and the `liblist` and `libunord` pairs. Sixteen arms go to `Only`
+`lib-stage2-disp` and `lib-stage2-lean`, and the `liblist` and `libunord` pairs;
+`lib-stage2-short` and `-short-lean` stayed timed until the ruling of the same
+day on the short bodies (above) parked them. Sixteen arms go to `Only`
 as the rulings' 23 did, each with the reason at its entry: the six pure arms
 the decision of 2026-08-22 retired from candidacy, `gen-unsafe`,
 `bq-mut-runs-gm-mulback`, `offtab-scan-rem`, `bq-expand-gm-mulback`,
@@ -4995,8 +5004,9 @@ twins still sit early; what the deletions change is the spans, which shorten
 as they did at the first cut. The prune took the roster to 432 benches; the same
 day `mut-odo-vecdims-add-in-leaf-u1` landed for Run 25
 with `mut-odo-vecdims-add-in-leaf` re-timed as its control ([the Run 25
-entry][open]), so with the controls the run is 26 arms, and that addition takes
-the roster to 468 benches.
+entry][open]), and the ruling on the short bodies parked two, so
+with the controls the run is 24 arms, and the day takes the roster to 432
+benches.
 
 - **A strategy with a precondition is not measured.** The column allowed `none`,
   an empty cell, and `shape well-formed`, which is a condition on being a valid
@@ -9880,10 +9890,11 @@ tables and its fingerprint say so.
   arms over 26 main-set shapes and 41 class views in NINE classes, 1352 benches
   and 2132, sixteen A/A pairs, the `runs` class at FOURTEEN and `window` at FOUR
   --- and its delta against TODAY is the prune of 2026-09-04 ([what
-  the benchmark does](#what-the-benchmark-does)): sixteen arms parked `Only`
-  and their twelve controls deleted, and two landing for Run 25,
-  `mut-odo-vecdims-add-in-leaf-u1` new and `mut-odo-vecdims-add-in-leaf`
-  re-timed, so 24 of today's 26 timed arms are among its 52 and in its order,
+  the benchmark does](#what-the-benchmark-does)): eighteen arms parked `Only`,
+  sixteen by the prune with their twelve controls deleted and `lib-stage2-short`
+  with `-short-lean` by the ruling on the short bodies, and two landing for Run
+  25, `mut-odo-vecdims-add-in-leaf-u1` new and `mut-odo-vecdims-add-in-leaf`
+  re-timed, so 22 of today's 24 timed arms are among its 52 and in its order,
   every slot from `gen-unsafe`'s down moved up by what left above it and every
   slot below `-u2-down` down by one; the shapes and classes retired the same day
   are named below. **Its delta against RUN 23** is a roster and a shape-set

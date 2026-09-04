@@ -3083,6 +3083,14 @@ fillStage2U4 sh ats !ao !l !v = VS.create $ do
 -- complexity bar recorded at 'fillStage2U4' is taken per orthogonal
 -- feature, so the short bodies are judged on their own and not with
 -- the loop beside them; nothing rules them out, and Run 22 prices them.
+-- RULED OUT FOR THE LIBRARY, 2026-09-04, by Mikolaj: a body per run
+-- length of 2 to 5 is too repetitive and so too complex for orthotope,
+-- by the bar the quad loop failed on 2026-08-30 -- taken per orthogonal
+-- feature, so it rules out the short bodies wherever they appear, in
+-- 'fbLibStage2Short' and 'fbLibStage2ShortLean' alike, and says nothing
+-- about the lean dispatch beside them. Both arms price what the bodies
+-- would buy and are not candidates to ship; the ruling is in README
+-- beside the arms' entries.
 {-# NOINLINE fillStage2Short #-}
 fillStage2Short :: ShapeL -> [Int] -> Int -> Int -> VS.Vector Double
                 -> VS.Vector Double
@@ -4480,12 +4488,16 @@ roster =
     -- definition, and Run 23's dead-spot half read it behind its control
     -- on `runs`, the one class it had a lead in.
   , ("lib-stage2-u4",              Only fbLibStage2U4)
-  , ("lib-stage2-short",           Fill fbLibStage2Short)
+    -- Parked 'Only' 2026-09-04: ruled out for the library at
+    -- 'fillStage2Short''s definition, the short bodies too repetitive and
+    -- so too complex, as the quad loop was; its Run 24 readings stand.
+  , ("lib-stage2-short",           Only fbLibStage2Short)
   , ("lib-stage2-lean",            Fill fbLibStage2Lean)
     -- The two composed, added 2026-09-02 for Run 24, reasons at the
     -- definition; placed beside its parents, every slot below moving by
-    -- one.
-  , ("lib-stage2-short-lean",      Fill fbLibStage2ShortLean)
+    -- one. Parked 'Only' 2026-09-04 with 'lib-stage2-short', the same
+    -- ruling reaching the short bodies wherever they appear.
+  , ("lib-stage2-short-lean",      Only fbLibStage2ShortLean)
     -- The list consumer under each stage, added the same day: the
     -- library's toVectorListT and one concatenation, so the pair prices
     -- the list's construction alone, reasons at the definitions.
