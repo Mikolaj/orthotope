@@ -24,8 +24,10 @@ WHAT IT ANSWERS, and each is a sentence a roster block owes:
 
 It reads `--list` and `classes --list` and nothing else, so it says what
 the binaries carry and never what a document claims about them. Exit 0
-clean, 2 where a binary would not answer -- a listing that comes back empty
-is that, and not an empty roster: `scan`'s own lesson in loop-offsets.py.
+clean, 1 where the two listings disagree about the ARMS -- one roster
+builds both, so that is a finding and not a delta -- and 2 where a binary
+would not answer: a listing that comes back empty is that, and not an
+empty roster, which is `scan`'s own lesson in loop-offsets.py.
 
 Non-vacuity: the corpus carries two controls over stand-in halves --
 identical listings must report the survivors in the same order and every
@@ -115,6 +117,7 @@ def main():
     # than reprinted, so the day the two disagree is loud instead of
     # buried in a repetition nobody reads to the end.
     seen_arms = None
+    bad = 0
     for mode, what in ((None, 'main set'), ('classes', 'classes')):
         ol = listing(old, mode)
         nl = listing(new, mode)
@@ -140,10 +143,24 @@ def main():
         elif (oa, na) == seen_arms:
             print('   arms       as the main set\'s, both sides')
         else:
+            # THE COMPARISON THE MESSAGE NAMES, which the first draft did
+            # not print: it called `names` on this population's own old
+            # and new, answering what moved between the RUNS where the
+            # complaint is about what differs between the two LISTINGS of
+            # one binary. A diagnostic that prints another question's
+            # evidence in the one case it exists for is no diagnostic.
+            bad = 1
             print('   arms       DIFFER from the main set\'s, which one'
-                  ' roster cannot do -- read both listings')
-            names('arms', [a for a in oa if a not in na],
-                  [a for a in na if a not in oa])
+                  ' roster cannot do:')
+            for side, mine, main in (('old', oa, seen_arms[0]),
+                                     ('new', na, seen_arms[1])):
+                extra = [a for a in mine if a not in main]
+                lack = [a for a in main if a not in mine]
+                if extra or lack:
+                    print('     %s: %d only in classes (%s), %d only in the'
+                          ' main set (%s)'
+                          % (side, len(extra), ', '.join(extra) or '-',
+                             len(lack), ', '.join(lack) or '-'))
         print('   %ss' % unit)
         names(unit, [s for s in os_ if s not in ns],
               [s for s in ns if s not in os_])
@@ -158,6 +175,7 @@ def main():
                 mark = '' if oc.get(c) == nc.get(c) else '   <-- moved'
                 print('     %-10s %3s -> %-3s%s'
                       % (c, oc.get(c, '-'), nc.get(c, '-'), mark))
+    raise SystemExit(bad)
 
 
 if __name__ == '__main__':

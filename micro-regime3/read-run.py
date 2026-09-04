@@ -9283,6 +9283,13 @@ def lint(main_hs, readme, run_doc=None):
         print('ok:   every arm the claims manifest names is rostered'
               ' (%d across %d claims)' % (len(claimed), len(CLAIMS)))
 
+    # ONE SITE FOR THE PARKED SET, which the claims check below and the
+    # registration check under it both ask for. It was computed twice,
+    # once in each, which is `two-spellings` in a file whose own corpus
+    # tracks that family -- harmless while the two expressions agreed and
+    # exactly the shape that stops agreeing.
+    untimed = set(names) - set(timed)
+
     # THE SAME QUESTION FOR THE CLAIMS THAT HAVE NO MANIFEST, which is the
     # half the check above cannot reach: claim 7 is prose and reaches
     # `CLAIMS` not at all -- claim 8 was too until it retired 2026-08-29 --
@@ -9319,7 +9326,6 @@ def lint(main_hs, readme, run_doc=None):
     # sentence admit it`, which is the noise-for-signal shape this file
     # refuses elsewhere.
     if run_doc:
-        untimed = set(names) - set(timed)
         items = claim_items(run_text)
         stale = []
         for num, ln, body in items:
@@ -9380,7 +9386,6 @@ def lint(main_hs, readme, run_doc=None):
     # that are not arms -- `predict: cross list 1.0 within 0.7%`,
     # `LOOP_DEADSPOT=1`, section names -- and intersecting with the parked
     # set is what keeps those out without a vocabulary to maintain.
-    untimed = set(names) - set(timed)
     paras = [t for _, t, _ in unwrapped_paragraphs(doc.split('\n'))]
     regs = [t for t in paras
             if re.match(r'- `OPEN` \*\*What Run \d+ is built to answer', t)]

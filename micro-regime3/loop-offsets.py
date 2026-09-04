@@ -401,7 +401,7 @@ def delta(old, new, want, min_copies):
     print(f'== {old} -> {new}: {span} loops, matched by body bytes')
     keys = [k for k in og if len(og[k]) >= min_copies]
     keys += [k for k in ng if len(ng[k]) >= min_copies and k not in og]
-    preserved = moved = one_sided = recount = 0
+    preserved = moved = one_sided = recount = compared = 0
     for k in sorted(keys, key=lambda k: -max(len(og.get(k, ())),
                                              len(ng.get(k, ())))):
         a, b = og.get(k, []), ng.get(k, [])
@@ -421,6 +421,7 @@ def delta(old, new, want, min_copies):
             recount += 1
             print(f'      copy COUNT moved: offsets {oo} -> {nn}')
             continue
+        compared += 1
         if oo == nn:
             preserved += 1
             print(f'      every mod-{LINE} offset preserved: {oo}')
@@ -447,14 +448,22 @@ def delta(old, new, want, min_copies):
                       '0x%x%s' % (v, '' if v % LINE == 0
                                   else ' (NOT a whole line)')
                       for v in uniq)))
-    # THE UNMATCHED GROUPS ARE IN THE SUMMARY, because without them a run
-    # where nothing matched at all printed `0 group(s) kept every offset;
-    # 0 group(s) moved at all` -- which reads as `nothing moved` and means
-    # `nothing was compared`. Measured on /bin/sh against /bin/cat, whose
-    # every group is one-sided, 2026-09-04.
-    print(f'   of {len(keys)} group(s): {preserved} kept every offset, '
-          f'{moved} moved at all, {recount} changed copy count, '
-          f'{one_sided} matched nothing on the other side')
+    # TWO LINES AND NOT ONE, because the four numbers are of two kinds and
+    # a single `of N group(s): ...` invited reading them as a partition
+    # summing to N -- which they do not, a group both keeping its offsets
+    # and moving being counted in each. The first line partitions; the
+    # second states two properties over the part it makes sense of.
+    # The unmatched groups are in the summary at all because without them
+    # a run where nothing matched printed `0 kept every offset; 0 moved at
+    # all`, which reads as `nothing moved` and means `nothing was
+    # compared` -- measured on /bin/sh against /bin/cat, whose every group
+    # is one-sided (2026-09-04, both faults).
+    print(f'   {len(keys)} group(s) read = {compared} compared + '
+          f'{recount} changed copy count + {one_sided} matched nothing '
+          f'on the other side')
+    if compared:
+        print(f'   of the {compared} compared: {preserved} kept every '
+              f'offset, {moved} moved at all')
 
 
 def library(a, b):
