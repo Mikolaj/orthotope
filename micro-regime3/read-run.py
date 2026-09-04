@@ -5076,8 +5076,15 @@ def roster_of(main):
     return out
 
 
+# An address of three hex digits or more is a figure too, since 2026-09-04:
+# the pinning claim's readings are written as addresses, mod-64 offsets and
+# constants, and a cross-run series of them sat in the run chapter, a
+# section no replace-list bullet linked, invisible to the coverage check
+# that exists to find exactly that. Case:
+# `coverage-check-sees-an-address-as-a-figure`.
 FIGURE_RE = re.compile(r'\b0\.\d{3}\b|\d+\.\d+\s*[x]\b'
-                       r'|\b\d{1,2}\.\d%|\b\d+\.\d{2,}\b')
+                       r'|\b\d{1,2}\.\d%|\b\d+\.\d{2,}\b'
+                       r'|\b0x[0-9a-f]{3,}\b')
 
 # A sentence quoting a figure this README no longer publishes. Each has to earn
 # its place -- README's own rule is that a superseded NUMBER is cut while a
@@ -7391,8 +7398,22 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
         # whole-file rule above has already covered. The second is
         # redundant rather than a hole -- a replace list that did not link
         # the run file would fail on its four other sections first.
+        # AN INDENTED LINE IS CODE ONLY INSIDE A BLOCK A BLANK LINE OPENED,
+        # which is Markdown's own rule. Taking every four-space line as code
+        # took every wrapped list continuation with it -- `canon` is the
+        # wrapped form, and wrap80 indents an item's continuation six -- so
+        # a figure past an item's first line was unseen anywhere in the
+        # README, and the run chapter's two decimals sit on such lines.
+        # Case: `coverage-check-sees-a-figure-on-a-wrapped-continuation`.
+        in_code, prev_blank = False, True
         for i, line in enumerate(canon):
-            if (line.lstrip().startswith('|') or line.startswith('    ')
+            indented = line.startswith('    ')
+            if indented and prev_blank and not in_code:
+                in_code = True
+            elif in_code and line.strip() and not indented:
+                in_code = False
+            prev_blank = not line.strip()
+            if (line.lstrip().startswith('|') or in_code
                     or sec[i] == 'Provenance'):
                 continue
             s = slug.get(sec[i])
