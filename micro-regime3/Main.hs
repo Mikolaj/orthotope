@@ -2083,9 +2083,10 @@ fbMutOdoVecdimsAddInLeafDown sh (T (Strides ats) ao v) = VS.create $ do
 -- question inside the run rather than crossing it. The dead-ideas
 -- ruling (README.md#dead-ideas) kills unrolling by the runtime @sInner@
 -- only; a fixed factor was untested until the probe of 2026-08-24
--- (README.md#the-mutable-ceiling-taken), which also refuted the
+-- (README.md#the-mutable-ceiling-taken), which also read the
 -- intermediate fused-bound form -- counter merged into the cursor,
--- six instructions, a wash -- recorded there so it is not re-derived.
+-- six instructions -- as a wash; that form is 'fbMutOdoVecdimsAddInLeafU1'
+-- below, rostered for Run 25 to re-read the wash under the shim.
 -- This is the arm the library ships: 'genericFillStrided' in
 -- Data/Array/Internal.hs is its bang-for-bang port, landed 2026-08-24.
 {-# NOINLINE fbMutOdoVecdimsAddInLeafU2 #-}
@@ -2128,6 +2129,64 @@ fbMutOdoVecdimsAddInLeafU2 sh (T (Strides ats) ao v) = VS.create $ do
         !sInner = last sh
         !tInner = last ats
         -- No doubled stride here any more; see the fill's own note.
+        !rOuter = length sh - 1
+        oshV, oatsV :: VU.Vector Int
+        !oshV  = VU.fromList (init sh)
+        !oatsV = VU.fromList (init ats)
+
+-- 'fbMutOdoVecdimsAddInLeafU2' with the fill not unrolled: the same
+-- @oEnd@ cursor bound, one element per iteration, the epilogue as the
+-- whole loop -- one change, so that arm is its control on the unroll
+-- axis, and 'fbMutOdoVecdimsAddInLeaf', which differs from this in
+-- carrying a counter beside the cursor, @j@ against @sInner@ with each
+-- write at @outPos + j@, its control on the bound. This is the
+-- intermediate fused-bound form the probe of 2026-08-24 read as a wash
+-- against the counted leaf, 0.9967 at 5 of 9,
+-- on a scratch build with no shim and so with its loop heads wherever
+-- the native backend left them; rostered 2026-09-04 for Run 25 so the
+-- two changes the shipped fill bundles are priced apart under
+-- controlled placement (README.md#the-mutable-ceiling-taken). Read on
+-- the dead-spot -g3 twin the same day: the rank-1 copy is the probe's
+-- six instructions, the run-level copy seven, reloading the source base
+-- from the stack once per element (README.md#what-is-open, the Run 25
+-- entry).
+-- Non-vacuity, 2026-09-04: dropping the @+ tInner@ from the recursive
+-- call fails @check@ at @cnn-L1-6x6-c1@, naming this arm.
+{-# NOINLINE fbMutOdoVecdimsAddInLeafU1 #-}
+fbMutOdoVecdimsAddInLeafU1 :: ShapeL -> T -> VS.Vector Double
+fbMutOdoVecdimsAddInLeafU1 sh (T (Strides ats) ao v) = VS.create $ do
+  out <- VSM.unsafeNew l
+  let writeRun !outPos !baseOff =
+        let !oEnd = outPos + sInner
+            inner !o !src
+              | o >= oEnd = return ()
+              | otherwise = do
+                  VSM.unsafeWrite out o (VS.unsafeIndex v src)
+                  inner (o + 1) (src + tInner)
+        in  inner outPos baseOff
+      go !lev !outPos !baseOff
+        | lev >= rOuter = writeRun outPos baseOff >> return (outPos + sInner)
+        | lev == rOuter - 1 =
+            let !n  = VU.unsafeIndex oshV lev
+                !st = VU.unsafeIndex oatsV lev
+                run !k !op !boff
+                  | k <= 0    = return op
+                  | otherwise = writeRun op boff
+                                >> run (k - 1) (op + sInner) (boff + st)
+            in  run n outPos baseOff
+        | otherwise =
+            let !n  = VU.unsafeIndex oshV lev
+                !st = VU.unsafeIndex oatsV lev
+                dim !k !op !boff
+                  | k <= 0    = return op
+                  | otherwise = go (lev + 1) op boff
+                                >>= \op' -> dim (k - 1) op' (boff + st)
+            in  dim n outPos baseOff
+  _ <- go 0 0 ao
+  return out
+  where l = product sh
+        !sInner = last sh
+        !tInner = last ats
         !rOuter = length sh - 1
         oshV, oatsV :: VU.Vector Int
         !oshV  = VU.fromList (init sh)
@@ -4245,8 +4304,9 @@ roster =
     -- position varies within a strategy and strategy within a position,
     -- which is the design that settled the position question
     -- (README.md#what-moves-a-figure-when-no-strategy-changed). Nine
-    -- strategies were twinned at Run 14, the scan band's pair the oldest
-    -- and in the slot above these; 'offtab''s twins went with its parking
+    -- strategies were twinned at Run 14, the scan band's pair the oldest,
+    -- its distant half once in the slot above these; 'offtab''s twins
+    -- went with its parking
     -- on 2026-08-28 and five more pairs with the prune of 2026-09-04
     -- (README.md#what-the-benchmark-does), a twin of an untimed arm
     -- pricing nothing, and the slots below stayed where they were.
@@ -4337,13 +4397,20 @@ roster =
     -- Parked 'Only' 2026-09-02, after Run 23 read the ordering on both
     -- halves: the shipped `-u2` leaf leads this one on every population
     -- and its count-down twin in all twenty, so neither is an alternative
-    -- any more, and their slots go to Run 24's additions.
-  , ("mut-odo-vecdims-add-in-leaf", Only fbMutOdoVecdimsAddInLeaf)
+    -- any more, and their slots went to Run 24's additions. Timed again
+    -- 2026-09-04 for Run 25 alone, as the bound control of the `-u1` arm
+    -- below (README.md#what-is-open, the Run 25 entry); parked again
+    -- after it.
+  , ("mut-odo-vecdims-add-in-leaf", Fill fbMutOdoVecdimsAddInLeaf)
   , ("mut-odo-vecdims-add-in-leaf-down", Only fbMutOdoVecdimsAddInLeafDown)
   , ("mut-odo-vecdims-add-in-leaf-u2", Fill fbMutOdoVecdimsAddInLeafU2)
     -- Timed since 2026-08-28, parked 'Only' the day before: the
     -- lighter-loop form of the shipped arm, see its definition.
   , ("mut-odo-vecdims-add-in-leaf-u2-down", Fill fbMutOdoVecdimsAddInLeafU2Down)
+    -- The un-unrolled form of the shipped fill, added 2026-09-04 for Run
+    -- 25 and placed beside its parents, every slot below moving by one;
+    -- reasons at its definition.
+  , ("mut-odo-vecdims-add-in-leaf-u1", Fill fbMutOdoVecdimsAddInLeafU1)
     -- The rework-proposal block, added 2026-08-25, first read in Run 20
     -- (README.md#the-two-stage-plan-and-the-rework-proposal): the
     -- canonicalizing composite, its memcpy-run form, the two

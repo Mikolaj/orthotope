@@ -3827,7 +3827,7 @@ CLAIMS = [
     # is Run 24's, in that run's file. CLAIM 10 REGISTERED THE SAME DAY in
     # its place, on the roster's question: what the leaf fusion buys over
     # the family root, the shipped fill against `mut-odo-vecdims`, read
-    # ahead on every population from Run 20 to Run 24 and at 0.6157, 25 of
+    # ahead of it by every run from Run 20 to Run 24 and at 0.6157, 25 of
     # 26, on Run 24's basis. It is the one registration, so the `tie` and
     # best-two-shapes branches below stay unexercised as they have been
     # since the foot rung went. The ladder as it was, for re-registration

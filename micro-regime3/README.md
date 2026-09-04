@@ -805,7 +805,7 @@ rather than a slot in the next run, observed again:
   24's, ghc-9.12.4 against GHC HEAD, both under `LOOP_DEADSPOT=1`, decided
   2026-09-04 by whoever asked for the run --- over the roster as the retirements
   and the prune of the same day leave it: ten classes and eighteen main-set
-  shapes, 24 timed arms and 432 benches, the three classes, eight shapes
+  shapes, 26 timed arms and 468 benches, the three classes, eight shapes
   and sixteen arms retired kept in `check` and timed nowhere ([the classes
   section](#the-stride-classes-and-what-they-cover), [the shape
   set](#the-shape-set)). Each with a prediction and a kill condition,
@@ -834,7 +834,32 @@ rather than a slot in the next run, observed again:
   on both halves with their spans shortened, and the floor is read over six
   pairs from here on; killed by a crossed pair reading past Run 24's floor
   on both halves, which would be the roster's doing, a slot having moved
-  under a control.
+  under a control. (7) *The unroll, priced apart from the bound.*
+  `mut-odo-vecdims-add-in-leaf-u1`, the shipped fill's un-unrolled form,
+  is timed with `mut-odo-vecdims-add-in-leaf` re-timed as its bound control
+  for this run alone: the probe of 2026-08-24 read the merged bound as a wash
+  against the counted leaf, 0.9967 at 5 of 9, on a scratch build with no shim,
+  and this pair reads it under the dead-spot shim on both compilers. Predicted:
+  `-u1` between `-add-in-leaf` and `-u2` on both halves, `-u2` ahead of it past
+  the floor, so the shipped fill's margin is the unrolling's and the wash
+  stands; killed by `-u1` at or ahead of `-u2` past the floor on both halves,
+  which would put the whole margin on the bound and the epilogue in the library
+  for nothing, or by `-u1` behind `-add-in-leaf` past the floor, which would
+  name the probe's wash a placement accident in the other direction. Before
+  the run, `loop-offsets.py` on a `-g3` twin and the counts read say whether
+  the body is the six instructions the probe read and whether the shim pads
+  its head; a body that is not six is codegen's answer, and the run then reads
+  nothing the dump did not. **Read the same day on the dead-spot `-g3` twin
+  of this source**: the rank-1 copy of `-u1`'s fill is the six instructions
+  the probe read, load, store, stride add, cursor increment, compare and branch,
+  its head at a cache-line start behind a dead-spot pad; the run-level copy,
+  the one every shape of rank 2 or more executes, is seven, reloading the source
+  base from the stack once per element, a spill of the kind [the
+  ceiling][ceiling] records for `-u2`'s run-level copy before that arm's own
+  fix. So the run reads a body carrying one reload per element against a shipped
+  fill carrying none, and a `-u1` lead would be in spite of it; a wash or a loss
+  says nothing about the merged bound alone until that reload is taken out,
+  which is the follow-up if the run reads one.
 - `ANSWERED` **What Run 24 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
   verdicts are [in Run 24's own
@@ -2095,7 +2120,7 @@ rather than a slot in the next run, observed again:
   has taken since the reversal: the `-nosum` arms read against `sum-only`
   on a build where the two can be compared at fixed iteration counts rather
   than through criterion, which separates a biased read from two biased arms ---
-  now with four `-nosum` arms rather than two, `mut-flat-gm-nosum`
+  then with four `-nosum` arms rather than two, `mut-flat-gm-nosum`
   and `canon-full-nosum` having been added for exactly this. Until
   then the correction stands, and a run that finds all three medians past a few
   percent on one side should say so in its chapter rather than passing the gate
@@ -3172,8 +3197,10 @@ and the retirement of eight main-set shapes on 2026-09-04 took the roster to 936
 benches, eight superseded arms parked permanently since Run 21, `offtab`'s twins
 removed with it; the prune of the same day parks `lib-stage2`
 and `lib-stage2-concat` among sixteen arms ([what the benchmark
-does](#what-the-benchmark-does)) and takes the roster to 432 benches. What
-the next run is registered to answer with them is [in the open list][open].
+does](#what-the-benchmark-does)), took the roster to 432 benches, and the `-u1`
+arm with its re-timed control, added the same day for Run 25, takes the roster
+to 468 benches. What the next run is registered to answer with them is [in
+the open list][open].
 
 **What the eight are worth as instruments, read against each other for the first
 time on 2026-08-14, over Runs 10 to 13.** Per class: the median A/A deviation
@@ -4074,12 +4101,16 @@ more strided misses in the out-of-order window. It carries no counter at all,
 the bound living on the output cursor, so it is stride-sign-agnostic
 and supersedes the up/down question inside the run. The dead-ideas ruling below
 kills unrolling by the runtime `sInner` only; a fixed factor was untested until
-this probe. **The intermediate fused-bound form is refuted as a wash and
-is not rostered, recorded here so it is not re-derived**: the falling counter
-merged into the output cursor it duplicates compiles to the promised
-six-instruction body --- the seventh, a `test` the native backend emits
-redundantly after `dec`, was never the bottleneck --- and probes 0.9967 at 5
-of 9 below 1, inside any floor. Unrolling by four was ruled out on 2026-08-27,
+this probe. **The intermediate fused-bound form was read as a wash and left
+unrostered, recorded here so it is not re-derived**: the falling counter merged
+into the output cursor it duplicates compiles to the promised six-instruction
+body --- the seventh, a `test` the native backend emits redundantly after `dec`,
+was never the bottleneck --- and probes 0.9967 at 5 of 9 below 1, inside any
+floor. **Rostered after all on 2026-09-04, as `mut-odo-vecdims-add-in-leaf-u1`,
+for Run 25 alone**: that reading was a scratch build's with no shim, so it could
+not separate the bound from its placement, and the run prices the unrolling
+and the merged bound apart under the dead-spot shim, registered as item (7)
+of [the Run 25 entry][open]. Unrolling by four was ruled out on 2026-08-27,
 for diminishing returns and the Haskell it would take, so the axis ends at two.
 
 **A third probe, 2026-08-24 late, put the whole family on GHC HEAD with every
@@ -4871,10 +4902,10 @@ controls: six A/A arms --- `bq-expand-aa-adjacent` and `bq-expand-aa-distant`,
 and `list-aa-distant`, three strategies each duplicated in both positions ---
 the `sum-only-early`/`sum-only-late` pair, and `bq-expand-nosum`
 and `mut-odo-vecdims-nosum`, each its base arm forced with one element instead
-of the sum. Sixteen A/A arms over eight strategies and four `-nosum` arms ran
-from Run 14 to Run 24; the prune of 2026-09-04 (below) took the rest
-with the arms they controlled. [The noise
-floor](#what-moves-a-figure-when-no-strategy-changed)
+of the sum. Eighteen A/A arms over nine strategies ran from Run 14 to Run 20
+and sixteen over eight from Run 21 to Run 24, with four `-nosum` arms from Run
+20; the prune of 2026-09-04 (below) took the rest with the arms they controlled.
+[The noise floor](#what-moves-a-figure-when-no-strategy-changed)
 and [sum-only](#sum-only-and-the-correction-now-applied) say what each is for.
 
 The `check` mode (below) asserts every strategy produces byte-identical vectors
@@ -4912,19 +4943,19 @@ than absent, since that case ran benchmarks of a different scale.
 
 **Two rulings taken 2026-08-08 cut the timed roster from 38 strategies to 15,
 the arms written since brought it back to 28, and a third cut on 2026-09-04,
-the prune, takes it to fourteen with `list`** --- the 28 being the four
-unconditional forms the precondition ruling itself called for (below), the four
-FastReshape arms, of the five Run 20 arms beside them the three the probes left
-timed ([the mutable ceiling](#the-mutable-ceiling-taken)), and the rework's five
-less the three placement-family arms parked beside them. All three cuts
-are about what is worth spending a bench on, not about what is worth keeping:
-every dropped strategy stays in `Main.hs` and stays in the roster
-as `concat-runs` is --- checked against the reference on every shape of every
-class, and not timed --- so the agreement net does not shrink and nothing has
-to be rewritten if a ruling is later reopened. The 23 arms the rulings dropped
-carry `Only` in that roster, each naming the bound or the multiple
-that disqualified it. The five library-shaped arms with the timed `-u2-down`,
-added 2026-08-28 ([the stride
+the prune, takes it to fourteen with `list`, plus the two timed for Run 25
+alone** --- the 28 being the four unconditional forms the precondition ruling
+itself called for (below), the four FastReshape arms, of the five Run 20 arms
+beside them the three the probes left timed ([the mutable
+ceiling](#the-mutable-ceiling-taken)), and the rework's five less the three
+placement-family arms parked beside them. All three cuts are about what is worth
+spending a bench on, not about what is worth keeping: every dropped strategy
+stays in `Main.hs` and stays in the roster as `concat-runs` is --- checked
+against the reference on every shape of every class, and not timed ---
+so the agreement net does not shrink and nothing has to be rewritten if a ruling
+is later reopened. The 23 arms the rulings dropped carry `Only` in that roster,
+each naming the bound or the multiple that disqualified it. The five
+library-shaped arms with the timed `-u2-down`, added 2026-08-28 ([the stride
 classes](#the-stride-classes-and-what-they-cover)), less the eight parked
 permanently since Run 21 and `offtab`'s two twins removed ([its entry][open]),
 plus the six arms added 2026-08-30 and, on 2026-09-02, the composite arm less
@@ -4961,8 +4992,11 @@ against the family root ([Run 24's
 claims](runs/run24.md#the-claims-the-next-run-should-test)). The slots that stay
 keep their order, so `sum-only-early` still precedes `list` and the distant
 twins still sit early; what the deletions change is the spans, which shorten
-as they did at the first cut. So with the controls the run is 24 arms,
-and the prune takes the roster to 432 benches.
+as they did at the first cut. The prune took the roster to 432 benches; the same
+day `mut-odo-vecdims-add-in-leaf-u1` landed for Run 25
+with `mut-odo-vecdims-add-in-leaf` re-timed as its control ([the Run 25
+entry][open]), so with the controls the run is 26 arms, and that addition takes
+the roster to 468 benches.
 
 - **A strategy with a precondition is not measured.** The column allowed `none`,
   an empty cell, and `shape well-formed`, which is a condition on being a valid
@@ -8004,26 +8038,25 @@ and not a case against it.
 
 Six A/A controls run an existing strategy twice under a second name --- three
 strategies, each duplicated once beside its base and once at a distance,
-so position varies within a strategy and strategy within a position. Sixteen ran
-from Run 14 to Run 24, over eight strategies: twelve of the eighteen there
-were until `offtab`'s parking came on 2026-08-14 --- the `offtab`
-and `bq-odo-gm-mulback` pairs for the coverage gap the wild-cell entry names
-and for the spread instrument's widest arm, and the `build`, `mut-odo`, `list`
-and `gen-unsafe` pairs the same day, the placement-sensitive pair that carries
-Run 14's own control, the denominator every ratio divides by, and the one wide
-arm flat against every shape dimension --- and were first read in Run 14;
-the prune of 2026-09-04 ([what the benchmark does](#what-the-benchmark-does))
-parked five of the eight strategies and deleted their ten twins,
-so the sixteen-pair series ends at Run 24 as the eighteen-pair one ended at
-Run 20. The table below is the other six, the ones that carried back to Run 10,
-which is why this README quotes a six-pair figure beside the sixteen-pair one
-and compares two rows of the Results table on the six --- and the prune breaks
-that series too, taking the `bq-scan-rem-gm-mulback` pair: from Run 25 the six
-are the `list`, `bq-expand` and `mut-odo-vecdims` pairs, four of the old six
-continuing, and a six-pair figure read across that boundary is over two
-populations. They are the only rows whose true ratio is known to be exactly 1
---- or were, until [the mutable ceiling](#the-mutable-ceiling-taken) turned up
-another by accident:
+so position varies within a strategy and strategy within a position. Eighteen
+ran from Run 14 to Run 20 and sixteen from Run 21 to Run 24: twelve
+of the eighteen came on 2026-08-14 --- the `offtab` and `bq-odo-gm-mulback`
+pairs for the coverage gap the wild-cell entry names and for the spread
+instrument's widest arm, and the `build`, `mut-odo`, `list` and `gen-unsafe`
+pairs the same day, the placement-sensitive pair that carries Run 14's own
+control, the denominator every ratio divides by, and the one wide arm flat
+against every shape dimension --- and were first read in Run 14; the prune
+of 2026-09-04 ([what the benchmark does](#what-the-benchmark-does)) parked five
+of the eight strategies and deleted their ten twins, so the sixteen-pair series
+ends at Run 24 as the eighteen-pair one ended at Run 20. The table below
+is the other six, the ones that carried back to Run 10, which is why this README
+quotes a six-pair figure beside the sixteen-pair one and compares two rows
+of the Results table on the six --- and the prune breaks that series too, taking
+the `bq-scan-rem-gm-mulback` pair: from Run 25 the six are the `list`,
+`bq-expand` and `mut-odo-vecdims` pairs, four of the old six continuing,
+and a six-pair figure read across that boundary is over two populations. They
+are the only rows whose true ratio is known to be exactly 1 --- or were, until
+[the mutable ceiling](#the-mutable-ceiling-taken) turned up another by accident:
 
 | pair | span | g912 | ghead | mean per cell |
 |---|---:|---:|---:|---:|
@@ -9765,7 +9798,7 @@ and a change of compiler. That is the control saying every run's correction
 is one correction. Each run's own span is in its file, under Provenance.
 
 **The three gates are a population's, not a run's.** Every process carries
-the `sum-only` pair and the four `-nosum` arms, so a [stride
+the `sum-only` pair and the `-nosum` arms, so a [stride
 class](#the-stride-classes-and-what-they-cover) measures its own term
 and re-passes all three on its own cells; the main set's term licenses nothing
 about a class's, in either direction. What a small population weakens is gate 2
@@ -9848,9 +9881,11 @@ tables and its fingerprint say so.
   and 2132, sixteen A/A pairs, the `runs` class at FOURTEEN and `window` at FOUR
   --- and its delta against TODAY is the prune of 2026-09-04 ([what
   the benchmark does](#what-the-benchmark-does)): sixteen arms parked `Only`
-  and their twelve controls deleted, none landing, so today's 24 timed arms
-  are all among its 52 and in its order, every slot from `gen-unsafe`'s down
-  moved up by what left above it; the shapes and classes retired the same day
+  and their twelve controls deleted, and two landing for Run 25,
+  `mut-odo-vecdims-add-in-leaf-u1` new and `mut-odo-vecdims-add-in-leaf`
+  re-timed, so 24 of today's 26 timed arms are among its 52 and in its order,
+  every slot from `gen-unsafe`'s down moved up by what left above it and every
+  slot below `-u2-down` down by one; the shapes and classes retired the same day
   are named below. **Its delta against RUN 23** is a roster and a shape-set
   delta both: `lib-stage2-short-lean` landed as a timed arm
   and `lib-stage2-disp` was re-cut from 256 to 2048 under its own name, four
