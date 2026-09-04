@@ -5522,14 +5522,13 @@ and never as a chronology.
     #      12c taken, the registration having landed with the roster
     #      commits days before the pair, which is what Run 24's found
     #   1. NOTHING NAMED FOR THIS RUN MAY EXIST YET, and step 0 above
-    #      has already said so, as the first line of its pre-run block --
-    #      `nothing named
-    #      $R-* here` for a run about to be prepared, and a count of what
-    #      it found otherwise, which is a run already under way or a
-    #      leftover to clear and never a pair to adopt. No second command:
-    #      the `ls $R-*` this step used to be is what run-status.sh runs,
-    #      and reading one listing by eye was a rule to remember for an
-    #      answer already on the screen
+    #      has already said so, as the first line of its pre-run block:
+    #      `nothing named $R-* here` for a run about to be prepared, and
+    #      a count of what it found otherwise, which is a run already
+    #      under way or a leftover to clear and never a pair to adopt. No
+    #      second command: the `ls $R-*` this step used to be is what
+    #      run-status.sh runs, and reading one listing by eye was a rule
+    #      to remember for an answer already on the screen
     #  IF ANYTHING FOR THIS RUN IS ALREADY HERE, step 1 has caught a
     #      preparation that is not yours to redo, and what landed says
     #      which entry point it is: the run's own JSONs mean post-run
@@ -5791,8 +5790,9 @@ and never as a chronology.
     #  12. THE ROSTER PASS, owed ONLY
     #      if `--list` changed membership AND the pair note records none
     #      -- it belongs to the pair as the gate does, so grep the note
-    #      first, and read the membership off 6c above rather than off the
-    #      roster delta under Provenance. The main set plus a leg per class named,
+    #      first, and read the membership off 6c above rather than off
+    #      the roster delta under Provenance. The main set plus a leg per
+    #      class named,
     #      `scaled` by default; NAME A CLASS BESIDES whenever its
     #      population moved since the last pass. Artifacts are
     #      `smoke-l1-$R-*`, never `$R-*` (the prefix rule below), and a
