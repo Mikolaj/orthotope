@@ -174,80 +174,80 @@ How to read the columns:
 
 **Two tables in this file are NOT installed and are edited by hand: the two-column one above and the cross-class summary below.** Every other table a run publishes comes from `install-tables.sh` and is replaced whole. The one above is replaced whole too, being this run's own halves and no earlier run's; the summary gains a row per run instead. A hand-edited table is edited with the whole line named, never with a prefix anchor. On Run 17 an insertion anchored on ``| `arm` | `` matched an earlier table and put two cells into the element-type probe's header and a loop-offsets row; `--check-doc`'s width pass caught it in the same call, which is the only reason it cost minutes. Name the whole row, assert it occurs exactly once, and read the width check's verdict afterwards.
 
-And because a geomean cannot say *where* it moved, the **fingerprint** below is kept so a future disagreement can be localised rather than only noticed; its membership rule, the column heads and the rulings on dropping a column are [in the README's per-shape section](../README.md#per-shape-where-the-geomean-hides-the-ordering). Run 24 adds none, and the installer's membership note names eleven candidates rather than four: `libunord-stage2` and `libunord-stage1` are best outside the family on 17 and 15 shapes, which is their one-block test returning a slice and not a fill leading anything; `lib-stage2-short-lean` on 13, `lib-stage1` on 4, `lib-stage2-lean`, `liblist-stage2`, `lib-stage2-short` and `canon-full` on 3 apiece, and `lib-stage2`, `lib-stage2-concat` and `lib-stage2-disp` on 1 each --- a spread that is itself the roster's news, the library's own family having taken the shapes the candidates used to win. Every one of them is a column the basis decision's to grant, and none is granted here, so the fourteen stand.
+And because a geomean cannot say *where* it moved, the **fingerprint** below is kept so a future disagreement can be localised rather than only noticed; its membership rule, the column heads and the rulings on dropping a column are [in the README's per-shape section](../README.md#per-shape-where-the-geomean-hides-the-ordering). The two tables below were regenerated on 2026-09-04 from this run's own JSONs in the per-shape form the README describes; the fourteen-column form they carried until then, and the installer's membership note of that day, are in this file's history.
 
-| shape | `sInner` | `l` | `list`, net | vecdims | flat-gm | scan-rem-gm | build | mut-odo | runs-gm | offtab-rem | canon-vd | mid-copy | bcast-set |
-|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| `lenet-slice-c6-k5` | 5 | 150 | 2.74 us | 0.081 | 0.152 | 0.169 | 0.134 | 0.124 | 0.158 | 0.153 | 0.147 | 0.083 | 0.086 |
-| `cnn-slice-c32` | 3 | 288 | 5.97 us | 0.084 | 0.142 | 0.154 | 0.181 | 0.176 | 0.150 | 0.168 | 0.115 | 0.085 | 0.090 |
-| `cnn-L1-6x6-c1` | 3 | 324 | 7.13 us | 0.095 | 0.181 | 0.148 | 0.205 | 0.199 | 0.188 | 0.163 | 0.104 | 0.100 | 0.098 |
-| `cnn-L1-12x12-c1` | 3 | 1296 | 28.6 us | 0.074 | 0.144 | 0.107 | 0.189 | 0.184 | 0.154 | 0.132 | 0.067 | 0.076 | 0.077 |
-| `stretch-rank12` | 2 | 4096 | 109 us | 0.094 | 0.182 | 0.134 | 0.267 | 0.273 | 0.195 | 0.171 | 0.072 | 0.102 | 0.100 |
-| `cnn-L1-24x24-c1` | 3 | 5184 | 114 us | 0.068 | 0.128 | 0.097 | 0.177 | 0.174 | 0.138 | 0.124 | 0.058 | 0.070 | 0.072 |
-| `conv1d-24` | 3 | 5184 | 99.2 us | 0.058 | 0.071 | 0.100 | 0.125 | 0.125 | 0.077 | 0.136 | 0.058 | 0.057 | 0.061 |
-| `lenet-L1-28-c1-k5` | 5 | 19600 | 364 us | 0.048 | 0.092 | 0.094 | 0.106 | 0.107 | 0.102 | 0.121 | 0.044 | 0.049 | 0.052 |
-| `gather48-src-50` | 3 | 22500 | 429 us | 0.054 | 0.067 | 0.098 | 0.118 | 0.118 | 0.076 | 0.129 | 0.053 | 0.053 | 0.057 |
-| `stretch-rank10` | 3 | 59049 | 1.27 ms | 0.066 | 0.108 | 0.105 | 0.155 | 0.164 | 0.118 | 0.138 | 0.055 | 0.066 | 0.070 |
-| `stretch-coprime-r7` | 13 | 60060 | 1 ms | 0.035 | 0.083 | 0.094 | 0.059 | 0.060 | 0.095 | 0.124 | 0.033 | 0.035 | 0.038 |
-| `cifar-L2-16-c64-k3` | 3 | 147456 | 3.06 ms | 0.058 | 0.090 | 0.099 | 0.136 | 0.144 | 0.099 | 0.128 | 0.057 | 0.058 | 0.061 |
-| `cnn-L2-24x24-c32` | 3 | 165888 | 3.46 ms | 0.058 | 0.091 | 0.100 | 0.136 | 0.135 | 0.099 | 0.128 | 0.057 | 0.058 | 0.061 |
-| `stretch-primes` | 89 | 250357 | 4 ms | 0.029 | 0.074 | 0.093 | 0.030 | 0.030 | 0.086 | 0.131 | 0.029 | 0.028 | 0.030 |
-| `stretch-inner1` | 1 | 500000 | 12.9 ms | 0.091 | 0.030 | 0.071 | 0.219 | 0.201 | 0.030 | 0.072 | 0.000 | 0.090 | 0.098 |
-| `alexnet-L2-27-c48-k5` | 5 | 874800 | 15.9 ms | 0.045 | 0.076 | 0.095 | 0.090 | 0.095 | 0.086 | 0.126 | 0.044 | 0.045 | 0.051 |
-| `vgg-14-c512-k3` | 3 | 903168 | 18.6 ms | 0.058 | 0.089 | 0.099 | 0.138 | 0.142 | 0.098 | 0.130 | 0.058 | 0.058 | 0.061 |
-| `alexnet-L1-55-c3-k11` | 11 | 1098075 | 18.4 ms | 0.035 | 0.071 | 0.090 | 0.054 | 0.055 | 0.082 | 0.131 | 0.033 | 0.035 | 0.037 |
-| `stretch-inner256` | 256 | 1750784 | 32.9 ms | 0.032 | 0.068 | 0.085 | 0.033 | 0.033 | 0.074 | 0.117 | 0.032 | 0.032 | 0.031 |
-| `stretch-pow2stride` | 64 | 1769472 | 28.3 ms | 0.125 | 0.121 | 0.147 | 0.125 | 0.126 | 0.133 | 0.222 | 0.125 | 0.125 | 0.125 |
-| `stretch-r5-8x432` | 8 | 1769472 | 33.6 ms | 0.033 | 0.061 | 0.083 | 0.055 | 0.053 | 0.069 | 0.117 | 0.032 | 0.032 | 0.034 |
-| `stretch-square-1341` | 1341 | 1798281 | 29.7 ms | 0.087 | 0.131 | 0.154 | 0.087 | 0.089 | 0.140 | 0.203 | 0.085 | 0.088 | 0.087 |
-| `stretch-bigstride` | 3 | 1800000 | 49 ms | 0.035 | 0.045 | 0.067 | 0.080 | 0.079 | 0.051 | 0.094 | 0.035 | 0.035 | 0.038 |
-| `stretch-tab7MB` | 2 | 1800000 | 37.4 ms | 0.063 | 0.063 | 0.101 | 0.142 | 0.146 | 0.070 | 0.143 | 0.063 | 0.063 | 0.068 |
-| `stretch-tall-Mx2` | 900000 | 1800000 | 39.2 ms | 0.023 | 0.051 | 0.063 | 0.023 | 0.023 | 0.058 | 0.095 | 0.023 | 0.023 | 0.023 |
-| `stretch-wide-2xM` | 2 | 1800000 | 37.6 ms | 0.063 | 0.061 | 0.099 | 0.139 | 0.154 | 0.070 | 0.140 | 0.062 | 0.062 | 0.067 |
+| shape | `sInner` | `l` | `list`, net | mut-odo-vecdims | best outside family | ceiling |
+|---|---:|---:|---:|---:|---|---|
+| `lenet-slice-c6-k5` | 5 | 150 | 2.74 us | 0.081 | `libunord-stage1` 0.068 | `mut-odo-vecdims-add-in-leaf-u2-down` 0.061 |
+| `cnn-slice-c32` | 3 | 288 | 5.97 us | 0.084 | `libunord-stage1` 0.031 | `mut-odo-vecdims-add-in-leaf-u2-down` 0.059 |
+| `cnn-L1-6x6-c1` | 3 | 324 | 7.13 us | 0.095 | `libunord-stage2` 0.047 | `mut-odo-vecdims-add-in-leaf-u2` 0.074 |
+| `cnn-L1-12x12-c1` | 3 | 1296 | 28.6 us | 0.074 | `libunord-stage2` 0.012 | `mut-odo-vecdims-add-in-leaf-u2` 0.053 |
+| `stretch-rank12` | 2 | 4096 | 109 us | 0.094 | `libunord-stage2` 0.004 | `mut-odo-vecdims-add-in-leaf-u2` 0.070 |
+| `cnn-L1-24x24-c1` | 3 | 5184 | 114 us | 0.068 | `libunord-stage2` 0.003 | `mut-odo-vecdims-add-in-leaf-u2` 0.046 |
+| `conv1d-24` | 3 | 5184 | 99.2 us | 0.058 | `libunord-stage1` 0.003 | `mut-odo-vecdims-add-in-leaf-u2` 0.025 |
+| `lenet-L1-28-c1-k5` | 5 | 19600 | 364 us | 0.048 | `libunord-stage2` 0.001 | `mut-odo-vecdims-add-in-leaf-u2` 0.030 |
+| `gather48-src-50` | 3 | 22500 | 429 us | 0.054 | `libunord-stage1` 0.001 | `mut-odo-vecdims-add-in-leaf-u2` 0.023 |
+| `stretch-rank10` | 3 | 59049 | 1.27 ms | 0.066 | `libunord-stage2` 0.001 | `mut-odo-vecdims-add-in-leaf-u2` 0.039 |
+| `stretch-coprime-r7` | 13 | 60060 | 1 ms | 0.035 | `libunord-stage2` 0.000 | `mut-odo-vecdims-add-in-leaf-u2-down` 0.025 |
+| `cifar-L2-16-c64-k3` | 3 | 147456 | 3.06 ms | 0.058 | `libunord-stage1` 0.000 | `mut-odo-vecdims-add-in-leaf-u2-down` 0.032 |
+| `cnn-L2-24x24-c32` | 3 | 165888 | 3.46 ms | 0.058 | `libunord-stage1` 0.000 | `mut-odo-vecdims-add-in-leaf-u2-down` 0.033 |
+| `stretch-primes` | 89 | 250357 | 4 ms | 0.029 | `libunord-stage1` 0.000 | `mut-odo-vecdims-add-in-leaf-u2-down` 0.024 |
+| `stretch-inner1` | 1 | 500000 | 12.9 ms | 0.091 | `lib-stage2-lean` 0.000 | `mut-odo-vecdims-add-in-leaf-u2-down` 0.020 |
+| `alexnet-L2-27-c48-k5` | 5 | 874800 | 15.9 ms | 0.045 | `libunord-stage2` 0.000 | `mut-odo-vecdims-add-in-leaf-u2-down` 0.025 |
+| `vgg-14-c512-k3` | 3 | 903168 | 18.6 ms | 0.058 | `libunord-stage1` 0.000 | `mut-odo-vecdims-add-in-leaf-u2-down` 0.033 |
+| `alexnet-L1-55-c3-k11` | 11 | 1098075 | 18.4 ms | 0.035 | `libunord-stage2` 0.000 | `mut-odo-vecdims-add-in-leaf-u2-down` 0.023 |
+| `stretch-inner256` | 256 | 1750784 | 32.9 ms | 0.032 | `libunord-stage1` 0.000 | `mut-odo-vecdims-add-in-leaf-u2` 0.028 |
+| `stretch-pow2stride` | 64 | 1769472 | 28.3 ms | 0.125 | `libunord-stage1` 0.000 | `mut-odo-vecdims` 0.125 |
+| `stretch-r5-8x432` | 8 | 1769472 | 33.6 ms | 0.033 | `libunord-stage1` 0.000 | `mut-odo-vecdims-add-in-leaf-u2` 0.022 |
+| `stretch-square-1341` | 1341 | 1798281 | 29.7 ms | 0.087 | `libunord-stage1` 0.000 | `mut-odo-vecdims-add-in-leaf-u2-down` 0.079 |
+| `stretch-bigstride` | 3 | 1800000 | 49 ms | 0.035 | `libunord-stage1` 0.000 | `mut-odo-vecdims-add-in-leaf-u2` 0.015 |
+| `stretch-tab7MB` | 2 | 1800000 | 37.4 ms | 0.063 | `libunord-stage1` 0.000 | `mut-odo-vecdims-add-in-leaf-u2` 0.025 |
+| `stretch-tall-Mx2` | 900000 | 1800000 | 39.2 ms | 0.023 | `libunord-stage1` 0.000 | `mut-odo-vecdims-add-in-leaf-u2` 0.022 |
+| `stretch-wide-2xM` | 2 | 1800000 | 37.6 ms | 0.063 | `lib-stage2-short-lean` 0.020 | `mut-odo-vecdims-add-in-leaf-u2-down` 0.023 |
 
-| shape | class | `sInner` | `l` | `list`, net | vecdims | flat-gm | scan-rem-gm | build | mut-odo | runs-gm | offtab-rem | canon-vd | mid-copy | bcast-set |
-|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| `bcast-inner8` | `bcast` | 8 | 51200 | 879 us | 0.032 | 0.066 | 0.089 | 0.060 | 0.053 | 0.080 | 0.118 | 0.032 | 0.032 | 0.030 |
-| `bcast-inner900` | `bcast` | 900 | 1800000 | 27.8 ms | 0.021 | 0.070 | 0.086 | 0.021 | 0.022 | 0.087 | 0.121 | 0.022 | 0.021 | 0.018 |
-| `bcast-tall-Mx2` | `bcast` | 2 | 1800000 | 37.1 ms | 0.063 | 0.062 | 0.099 | 0.147 | 0.149 | 0.071 | 0.139 | 0.063 | 0.062 | 0.058 |
-| `bcastmid-c32-cnn` | `bcastmid` | 3 | 165888 | 3.41 ms | 0.059 | 0.094 | 0.099 | 0.142 | 0.142 | 0.102 | 0.128 | 0.059 | 0.012 | 0.062 |
-| `bcastmid-primes` | `bcastmid` | 97 | 250357 | 3.92 ms | 0.022 | 0.070 | 0.087 | 0.023 | 0.023 | 0.087 | 0.123 | 0.022 | 0.013 | 0.024 |
-| `bcastmid-b200k` | `bcastmid` | 3 | 1800000 | 46.8 ms | 0.036 | 0.046 | 0.069 | 0.080 | 0.082 | 0.055 | 0.094 | 0.036 | 0.033 | 0.039 |
-| `bcastmid-block150k` | `bcastmid` | 300 | 1800000 | 41.6 ms | 0.023 | 0.054 | 0.067 | 0.024 | 0.024 | 0.061 | 0.090 | 0.023 | 0.019 | 0.023 |
-| `reshape1-rank10` | `reshape1` | 1 | 59049 | 1.95 ms | 0.105 | 0.122 | 0.089 | 0.295 | 0.287 | 0.124 | 0.090 | 0.000 | 0.108 | 0.100 |
-| `reshape1-r3` | `reshape1` | 1 | 180000 | 4.94 ms | 0.087 | 0.031 | 0.070 | 0.237 | 0.233 | 0.031 | 0.070 | 0.000 | 0.086 | 0.080 |
-| `reshape1-strided-r3` | `reshape1` | 1 | 180000 | 4.91 ms | 0.091 | 0.032 | 0.072 | 0.220 | 0.231 | 0.032 | 0.072 | 0.015 | 0.089 | 0.084 |
-| `reshape1-500k` | `reshape1` | 1 | 500000 | 13.5 ms | 0.086 | 0.029 | 0.069 | 0.213 | 0.219 | 0.029 | 0.069 | -- | 0.085 | 0.079 |
-| `rev-cnn-L1-24x24-c1` | `rev` | 3 | 5184 | 114 us | 0.068 | 0.128 | 0.096 | 0.167 | 0.175 | 0.135 | 0.122 | 0.056 | 0.070 | 0.073 |
-| `rev-gather48-src-50` | `rev` | 3 | 22500 | 431 us | 0.052 | 0.066 | 0.097 | 0.126 | 0.119 | 0.075 | 0.128 | 0.052 | 0.053 | 0.056 |
-| `rev-primes` | `rev` | 89 | 250357 | 3.99 ms | 0.029 | 0.073 | 0.092 | 0.031 | 0.031 | 0.085 | 0.131 | 0.029 | 0.029 | 0.030 |
-| `revsome-outer-g48` | `revsome` | 3 | 22500 | 443 us | 0.053 | 0.067 | 0.098 | 0.116 | 0.115 | 0.075 | 0.127 | 0.053 | 0.052 | 0.056 |
-| `revsome-mid-cnn-L2` | `revsome` | 3 | 165888 | 3.51 ms | 0.057 | 0.088 | 0.097 | 0.134 | 0.139 | 0.097 | 0.126 | 0.055 | 0.057 | 0.061 |
-| `revsome-inner-primes` | `revsome` | 89 | 250357 | 4.01 ms | 0.030 | 0.080 | 0.103 | 0.031 | 0.031 | 0.093 | 0.132 | 0.030 | 0.030 | 0.031 |
-| `runs-65536` | `runs` | 65536 | 1769472 | 26.1 ms | 0.027 | 0.075 | 0.093 | 0.027 | 0.027 | 0.088 | 0.134 | 0.028 | 0.027 | 0.028 |
-| `runs-16384` | `runs` | 16384 | 1785856 | 26 ms | 0.029 | 0.077 | 0.093 | 0.029 | 0.029 | 0.090 | 0.138 | 0.029 | 0.028 | 0.028 |
-| `runs-4096` | `runs` | 4096 | 1798144 | 26.6 ms | 0.028 | 0.075 | 0.091 | 0.028 | 0.028 | 0.088 | 0.135 | 0.029 | 0.028 | 0.029 |
-| `runs-1024` | `runs` | 1024 | 1799168 | 26.6 ms | 0.028 | 0.074 | 0.090 | 0.028 | 0.028 | 0.088 | 0.137 | 0.028 | 0.028 | 0.030 |
-| `runs-512` | `runs` | 512 | 1799680 | 26.6 ms | 0.029 | 0.074 | 0.090 | 0.028 | 0.029 | 0.088 | 0.134 | 0.029 | 0.028 | 0.030 |
-| `runs-256` | `runs` | 256 | 1799936 | 26.8 ms | 0.028 | 0.074 | 0.091 | 0.028 | 0.028 | 0.087 | 0.134 | 0.029 | 0.028 | 0.030 |
-| `runs-7` | `runs` | 7 | 1799994 | 29.5 ms | 0.038 | 0.071 | 0.096 | 0.064 | 0.063 | 0.082 | 0.138 | 0.038 | 0.037 | 0.041 |
-| `runs-2` | `runs` | 2 | 1800000 | 37.6 ms | 0.063 | 0.063 | 0.101 | 0.146 | 0.146 | 0.069 | 0.146 | 0.062 | 0.063 | 0.068 |
-| `runs-3` | `runs` | 3 | 1800000 | 33.9 ms | 0.052 | 0.066 | 0.099 | 0.112 | 0.114 | 0.075 | 0.142 | 0.052 | 0.052 | 0.055 |
-| `runs-4` | `runs` | 4 | 1800000 | 31.9 ms | 0.046 | 0.068 | 0.098 | 0.091 | 0.094 | 0.078 | 0.138 | 0.045 | 0.045 | 0.050 |
-| `runs-5` | `runs` | 5 | 1800000 | 31.5 ms | 0.042 | 0.068 | 0.094 | 0.078 | 0.083 | 0.077 | 0.134 | 0.042 | 0.042 | 0.045 |
-| `runs-9` | `runs` | 9 | 1800000 | 29.7 ms | 0.034 | 0.070 | 0.092 | 0.055 | 0.055 | 0.081 | 0.133 | 0.034 | 0.034 | 0.037 |
-| `runs-96` | `runs` | 96 | 1800000 | 26.8 ms | 0.028 | 0.074 | 0.091 | 0.031 | 0.031 | 0.087 | 0.139 | 0.028 | 0.029 | 0.029 |
-| `runs-r3-48x30` | `runs` | 1440 | 1800000 | 27 ms | 0.030 | 0.075 | 0.093 | 0.034 | 0.034 | 0.088 | 0.137 | 0.028 | 0.030 | 0.031 |
-| `scaled-r5` | `scaled` | 13 | 15015 | 246 us | 0.033 | 0.074 | 0.095 | 0.050 | 0.050 | 0.084 | 0.130 | 0.031 | 0.034 | 0.036 |
-| `scaled-super-r3` | `scaled` | 30 | 60000 | 959 us | 0.028 | 0.072 | 0.091 | 0.032 | 0.033 | 0.081 | 0.126 | 0.028 | 0.028 | 0.029 |
-| `scaled-rank1-m1` | `scaled` | 300000 | 300000 | 4.83 ms | 0.032 | 0.071 | 0.088 | 0.032 | 0.032 | 0.080 | 0.132 | 0.032 | 0.033 | 0.032 |
-| `slice-coprime-r7` | `slice` | 13 | 60060 | 1.02 ms | 0.036 | 0.083 | 0.095 | 0.062 | 0.061 | 0.094 | 0.127 | 0.037 | 0.036 | 0.039 |
-| `slice-cnn-L2-24x24-c32` | `slice` | 3 | 165888 | 3.53 ms | 0.058 | 0.089 | 0.098 | 0.138 | 0.142 | 0.094 | 0.129 | 0.058 | 0.059 | 0.061 |
-| `slice-primes` | `slice` | 89 | 250357 | 3.95 ms | 0.030 | 0.082 | 0.106 | 0.032 | 0.032 | 0.094 | 0.134 | 0.031 | 0.030 | 0.031 |
-| `window-28x28-k5` | `window` | 5 | 14400 | 260 us | 0.044 | 0.078 | 0.095 | 0.096 | 0.094 | 0.088 | 0.122 | 0.045 | 0.045 | 0.048 |
-| `window-64x64-k1x9` | `window` | 1 | 32256 | 884 us | 0.094 | 0.047 | 0.073 | 0.270 | 0.232 | 0.047 | 0.073 | 0.020 | 0.095 | 0.103 |
-| `window-224x224-k3` | `window` | 3 | 443556 | 9.16 ms | 0.056 | 0.087 | 0.096 | 0.150 | 0.133 | 0.098 | 0.126 | 0.057 | 0.058 | 0.061 |
-| `window-128x128-k7` | `window` | 7 | 729316 | 12.4 ms | 0.036 | 0.073 | 0.092 | 0.076 | 0.070 | 0.087 | 0.123 | 0.037 | 0.036 | 0.041 |
+| shape | class | `sInner` | `l` | `list`, net | mut-odo-vecdims | best outside family | ceiling |
+|---|---|---:|---:|---:|---:|---|---|
+| `rev-cnn-L1-24x24-c1` | `rev` | 3 | 5184 | 114 us | 0.068 | `libunord-stage2` 0.003 | `mut-odo-vecdims-add-in-leaf-u2` 0.045 |
+| `rev-gather48-src-50` | `rev` | 3 | 22500 | 431 us | 0.052 | `libunord-stage2` 0.001 | `mut-odo-vecdims-add-in-leaf-u2-down` 0.022 |
+| `rev-primes` | `rev` | 89 | 250357 | 3.99 ms | 0.029 | `libunord-stage2` 0.000 | `mut-odo-vecdims-add-in-leaf-u2` 0.024 |
+| `revsome-outer-g48` | `revsome` | 3 | 22500 | 443 us | 0.053 | `libunord-stage2` 0.001 | `mut-odo-vecdims-add-in-leaf-u2-down` 0.022 |
+| `revsome-mid-cnn-L2` | `revsome` | 3 | 165888 | 3.51 ms | 0.057 | `libunord-stage2` 0.000 | `mut-odo-vecdims-add-in-leaf-u2-down` 0.032 |
+| `revsome-inner-primes` | `revsome` | 89 | 250357 | 4.01 ms | 0.030 | `libunord-stage2` 0.000 | `mut-odo-vecdims-add-in-leaf-u2` 0.024 |
+| `bcast-inner8` | `bcast` | 8 | 51200 | 879 us | 0.032 | `lib-stage2-short-lean` 0.019 | `mut-odo-vecdims-add-in-leaf-u2` 0.019 |
+| `bcast-inner900` | `bcast` | 900 | 1800000 | 27.8 ms | 0.021 | `lib-stage2` 0.018 | `mut-odo-vecdims-add-in-leaf-u2-down` 0.021 |
+| `bcast-tall-Mx2` | `bcast` | 2 | 1800000 | 37.1 ms | 0.063 | `lib-stage1` 0.023 | `mut-odo-vecdims-add-in-leaf-u2-down` 0.023 |
+| `bcastmid-c32-cnn` | `bcastmid` | 3 | 165888 | 3.41 ms | 0.059 | `lib-stage2-short-lean` 0.011 | `mut-odo-vecdims-add-in-leaf-u2-down` 0.033 |
+| `bcastmid-primes` | `bcastmid` | 97 | 250357 | 3.92 ms | 0.022 | `mid-copy` 0.013 | `mut-odo-vecdims-add-in` 0.021 |
+| `bcastmid-b200k` | `bcastmid` | 3 | 1800000 | 46.8 ms | 0.036 | `lib-stage1` 0.015 | `mut-odo-vecdims-add-in-leaf-u2` 0.015 |
+| `bcastmid-block150k` | `bcastmid` | 300 | 1800000 | 41.6 ms | 0.023 | `lib-stage2-lean` 0.017 | `mut-odo-vecdims-add-in-leaf-u2` 0.021 |
+| `reshape1-rank10` | `reshape1` | 1 | 59049 | 1.95 ms | 0.105 | `lib-stage2-short-lean` 0.000 | `mut-odo-vecdims-add-in-leaf-u2-down` 0.056 |
+| `reshape1-r3` | `reshape1` | 1 | 180000 | 4.94 ms | 0.087 | `lib-stage2-short-lean` 0.000 | `mut-odo-vecdims-add-in-leaf-u2-down` 0.021 |
+| `reshape1-strided-r3` | `reshape1` | 1 | 180000 | 4.91 ms | 0.091 | `libunord-stage2` 0.000 | `mut-odo-vecdims-add-in-leaf-u2-down` 0.022 |
+| `reshape1-500k` | `reshape1` | 1 | 500000 | 13.5 ms | 0.086 | `liblist-stage2` 0.010 | `mut-odo-vecdims-add-in-leaf-u2-down` 0.019 |
+| `slice-coprime-r7` | `slice` | 13 | 60060 | 1.02 ms | 0.036 | `lib-stage2-short-lean` 0.030 | `mut-odo-vecdims-add-in-leaf-u2-down` 0.030 |
+| `slice-cnn-L2-24x24-c32` | `slice` | 3 | 165888 | 3.53 ms | 0.058 | `lib-stage2-short` 0.031 | `mut-odo-vecdims-add-in-leaf-u2-down` 0.034 |
+| `slice-primes` | `slice` | 89 | 250357 | 3.95 ms | 0.030 | `lib-stage2-concat` 0.025 | `mut-odo-vecdims-add-in-leaf-u2` 0.025 |
+| `window-28x28-k5` | `window` | 5 | 14400 | 260 us | 0.044 | `lib-stage2-short-lean` 0.021 | `mut-odo-vecdims-add-in-leaf-u2-down` 0.025 |
+| `window-64x64-k1x9` | `window` | 1 | 32256 | 884 us | 0.094 | `lib-stage2-short-lean` 0.012 | `mut-odo-vecdims-add-in-leaf-u2-down` 0.029 |
+| `window-224x224-k3` | `window` | 3 | 443556 | 9.16 ms | 0.056 | `lib-stage2-short-lean` 0.028 | `mut-odo-vecdims-add-in-leaf-u2-down` 0.031 |
+| `window-128x128-k7` | `window` | 7 | 729316 | 12.4 ms | 0.036 | `lib-stage1` 0.021 | `mut-odo-vecdims-add-in-leaf-u2-down` 0.021 |
+| `scaled-r5` | `scaled` | 13 | 15015 | 246 us | 0.033 | `lib-stage2-lean` 0.024 | `mut-odo-vecdims-add-in-leaf-u2` 0.024 |
+| `scaled-super-r3` | `scaled` | 30 | 60000 | 959 us | 0.028 | `lib-stage1` 0.026 | `mut-odo-vecdims-add-in-leaf-u2-down` 0.025 |
+| `scaled-rank1-m1` | `scaled` | 300000 | 300000 | 4.83 ms | 0.032 | `build` 0.032 | `mut-odo-vecdims-add-in` 0.032 |
+| `runs-65536` | `runs` | 65536 | 1769472 | 26.1 ms | 0.027 | `liblist-stage2` 0.024 | `mut-odo-vecdims-add-in` 0.027 |
+| `runs-16384` | `runs` | 16384 | 1785856 | 26 ms | 0.029 | `liblist-stage2` 0.025 | `mut-odo-vecdims-add-in` 0.028 |
+| `runs-4096` | `runs` | 4096 | 1798144 | 26.6 ms | 0.028 | `libunord-stage2` 0.026 | `mut-odo-vecdims` 0.028 |
+| `runs-1024` | `runs` | 1024 | 1799168 | 26.6 ms | 0.028 | `mid-copy` 0.028 | `mut-odo-vecdims` 0.028 |
+| `runs-512` | `runs` | 512 | 1799680 | 26.6 ms | 0.029 | `lib-stage2-disp` 0.028 | `mut-odo-vecdims-add-in` 0.028 |
+| `runs-256` | `runs` | 256 | 1799936 | 26.8 ms | 0.028 | `canon-full` 0.027 | `mut-odo-vecdims-add-in-leaf-u2` 0.028 |
+| `runs-7` | `runs` | 7 | 1799994 | 29.5 ms | 0.038 | `lib-stage2-short-lean` 0.026 | `mut-odo-vecdims-add-in-leaf-u2-down` 0.026 |
+| `runs-2` | `runs` | 2 | 1800000 | 37.6 ms | 0.063 | `lib-stage2-short-lean` 0.024 | `mut-odo-vecdims-add-in-leaf-u2` 0.027 |
+| `runs-3` | `runs` | 3 | 1800000 | 33.9 ms | 0.052 | `lib-stage2-short-lean` 0.025 | `mut-odo-vecdims-add-in-leaf-u2-down` 0.026 |
+| `runs-4` | `runs` | 4 | 1800000 | 31.9 ms | 0.046 | `lib-stage2-short-lean` 0.025 | `mut-odo-vecdims-add-in-leaf-u2-down` 0.026 |
+| `runs-5` | `runs` | 5 | 1800000 | 31.5 ms | 0.042 | `lib-stage2-short` 0.025 | `mut-odo-vecdims-add-in-leaf-u2` 0.025 |
+| `runs-9` | `runs` | 9 | 1800000 | 29.7 ms | 0.034 | `lib-stage2-short` 0.026 | `mut-odo-vecdims-add-in-leaf-u2-down` 0.025 |
+| `runs-96` | `runs` | 96 | 1800000 | 26.8 ms | 0.028 | `canon-full` 0.027 | `mut-odo-vecdims-add-in-leaf-u2-down` 0.028 |
+| `runs-r3-48x30` | `runs` | 1440 | 1800000 | 27 ms | 0.030 | `canon-full` 0.026 | `mut-odo-vecdims-add-in-leaf-u2-down` 0.028 |
 
 **One row to read first, and it is a property of the shape and not of any arm**: `stretch-inner1` has `sInner` 1, so anything special-casing a unit dimension behaves differently there by construction. **This run the correction gives out on far fewer cells than last**, and on different ones per half: five cells sink below the shared forcing pass on the basis --- both `libunord` arms on `stretch-inner1` and `stretch-wide-2xM`, and `libunord-stage2` on `stretch-square-1341` --- so two rows are geomeans over 24 and 23 shapes of 26 and every other row covers all 26, where Run 23's dead-spot half sank fifteen cells across eleven rows. On the HEAD half six sink across three rows: the two `libunord` arms on `stretch-pow2stride` and `vgg-14-c512-k3`, `libunord-stage2` on `stretch-square-1341`, and `lib-stage2-lean` alone on `stretch-inner1`. **So the `lib-stage2` family no longer sinks on `stretch-inner1` at all on the basis**, which is what a roster whose fills are all dead-spot builds looks like, and the registration figures in the last section are still taken over the 25 shapes that exclude it, so that the two halves are read over one population. The two rows this paragraph used to name are retired with the arms that derived them.
 

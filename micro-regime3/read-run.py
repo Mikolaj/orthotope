@@ -169,8 +169,8 @@ Modes:
                     six columns instead for a stride-class run, and none
                     at all for a run spanning two populations
   --fingerprint     the kept per-shape record (What the next run compares
-                    against): dims, `list`'s net per call, and the
-                    fingerprint arms' net ratios, as two tables
+                    against): dims, `list`'s net per call, and per shape
+                    the cross-class summary's three cells, as two tables
   --block           a stride-class block's mechanical parts in the form's
                     order: table, controls, provenance/anchor skeleton,
                     a three-shape population's per-shape line, and the
@@ -413,6 +413,14 @@ def dims_by_shape(main_hs):
                     ann[m.group(1)] = int(m.group('ann'))
             elif line.strip() == ']':
                 break
+    # `retired`: listed for `check` and not timed, a main shape by name
+    # and a class shape by its class (2026-09-04). Every consumer of the
+    # binary's roster reads it; a run file that timed one is exempted by
+    # the provenance bullet's declaration, in check_doc.
+    rsh, rcl = retired_shapes(main_hs), retired_classes(main_hs)
+    for sh, d in out.items():
+        d['retired'] = (sh in rsh if d['cls'] == 'main'
+                        else d['cls'] in rcl)
     return out, ann
 
 
@@ -436,6 +444,20 @@ def retired_classes(main_hs):
     """
     try:
         m = RETIRED_RE.search(open(main_hs).read())
+    except OSError:
+        return set()
+    return set(re.findall(r'"([^"]+)"', m.group(1))) if m else set()
+
+
+RETIRED_SHAPES_RE = re.compile(r'^retiredShapes\s*=\s*\[([^\]]*)\]', re.M)
+
+
+def retired_shapes(main_hs):
+    """The main-set shapes Main.hs retires from timing and keeps in
+    `check`: `retiredShapes` there, by name, the lists staying as the
+    classes' do. `dims_by_shape` marks them `retired`. Added 2026-09-04."""
+    try:
+        m = RETIRED_SHAPES_RE.search(open(main_hs).read())
     except OSError:
         return set()
     return set(re.findall(r'"([^"]+)"', m.group(1))) if m else set()
@@ -787,7 +809,10 @@ sites; before Run 17 it was derived by hand at the write-up, which is
 where it was first quoted three ways.
 """
 
-ANCHORS = ('cnn-slice-c32', 'cifar-L2-16-c64-k3', 'stretch-wide-2xM')
+# The middle anchor was `cifar-L2-16-c64-k3` through Run 24, retired
+# 2026-09-04; `cnn-L2-24x24-c32` is the same canonical pattern within a
+# tenth in run count, and its anchor history starts at Run 25.
+ANCHORS = ('cnn-slice-c32', 'cnn-L2-24x24-c32', 'stretch-wide-2xM')
 """The three shapes README keeps `list`'s absolute per call for.
 
 They guard the baseline the way the fingerprint guards it per shape, and
@@ -3633,65 +3658,17 @@ def cell_dump(cells, shapes, strategies):
                      'NA' if c['alloc'] is None else '%.4f' % c['alloc']))
 
 
-# The per-shape record a run file keeps, in the two-table form
-# `What the next run compares against` pastes whole: one table over the
-# main set, and since 2026-08-22 one over every stride-class shape with
-# the same columns, emitted together when `--classes` names the class JSONs.
-# Membership mirrors that section's rule as re-aimed that day --
-# `mut-odo-vecdims` and every arm that is the best OUTSIDE the vecdims
-# family on at least one shape of the main set or a class -- and it only
-# ever GROWS: an arm that has earned a column keeps it, no run drops
-# one, and the run writer prunes the header by hand if it gets
-# unwieldy. `offtab-scan-rem` joined 2026-08-24. Neither way of
-# dropping an arm survives and the RUN FILE says why beside the rule,
-# under `What the next run compares against` -- not README, which
-# carries no word of this rule; the
-# short of it is that this table holds the members alone, so it cannot
-# say who has stopped earning a column. ARMS GET DROPPED ALL THE SAME,
-# and have been many times -- a trim of fifteen, Run 20's three demotions
-# to `Only`, Run 21's eight parkings and two twins -- so the rule beside
-# the table in the run file is a preference and says so since 2026-08-28.
-# `bq-mut-runs` is the first COLUMN to go with an arm, taken that day: an
-# untimed arm cannot fill a cell, and the alternatives were a cell
-# nothing can compute or a rebuild of both halves. The check in
-# `lint` holds this list to the TIMED roster so the state cannot recur,
-# and the run file's tables were narrowed by hand in the same edit,
-# `install` matching a table by its whole header line. Growth is capped by one
-# representative per family: where a qualifying arm is a close variant
-# of a member and measures closely, the leading one keeps the column.
-# That is a judgement and stays the write-up's; the notice below prices
-# it by naming the best member on the shape the newcomer leads. The
-# short column heads are the stretch table's convention; the README
-# intro above the tables maps them back to full arm names. `install`
-# matches a table by its whole header line, so a narrowed emitter and a
-# wide table in the README would refuse rather than install.
-# Arm and column head are one entry, so a column cannot be added
-# without a head or vice versa.
-FINGERPRINT = [('mut-odo-vecdims', 'vecdims'),
-               ('mut-flat-gm', 'flat-gm'),
-               ('bq-scan-rem-gm-mulback', 'scan-rem-gm'),
-               ('build', 'build'),
-               ('mut-odo', 'mut-odo'),
-               ('bq-mut-runs-gm-mulback', 'runs-gm'),
-               ('offtab-scan-rem', 'offtab-rem'),
-               # Joined at Run 20, on the membership rule's own test: each
-               # is best outside the vecdims family on at least one shape,
-               # 17, 17 and 3 of them. `canon-memcpy-r2` and `canon-full`
-               # qualified too and are NOT here -- close variants of
-               # `canon-vecdims` measuring within four thousandths of it on
-               # the main set, so the leading one keeps the column, which
-               # is the one-representative-per-family half of the rule.
-               ('canon-vecdims', 'canon-vd'),
-               ('mid-copy', 'mid-copy'),
-               ('bcast-set', 'bcast-set')]
-FINGERPRINT_ARMS = [a for a, _ in FINGERPRINT]
-FINGERPRINT_HEADS = '| ' + ' | '.join(h for _, h in FINGERPRINT) + ' |'
-FINGERPRINT_TABLES = [
-    ('| shape | `sInner` | `l` | `list`, net ' + FINGERPRINT_HEADS,
-     True, FINGERPRINT_ARMS),
-]
-FINGERPRINT_CLASS_HEADER = ('| shape | class | `sInner` | `l` | `list`, net '
-                            + FINGERPRINT_HEADS)
+# The kept per-shape record's two headers, since 2026-09-04: the cross-class
+# summary's columns per shape, computed from the run alone. Until then the
+# tables carried one column per FINGERPRINT arm under a membership rule
+# (README.md#per-shape-where-the-geomean-hides-the-ordering keeps the ruling
+# and why it went); `install` matches a table by its whole header line, so
+# the run file's tables carry these lines and a change here changes both.
+FINGERPRINT_HEADER = ('| shape | `sInner` | `l` | `list`, net'
+                      ' | mut-odo-vecdims | best outside family | ceiling |')
+FINGERPRINT_CLASS_HEADER = ('| shape | class | `sInner` | `l` | `list`, net'
+                            ' | mut-odo-vecdims | best outside family'
+                            ' | ceiling |')
 
 
 def fmt_abs(seconds):
@@ -3726,112 +3703,61 @@ def _fig(v):
     return out if 'e' not in out else '%.0f' % v
 
 
-def fingerprint_table(cells, shapes, strategies, meta, classes=()):
-    """The kept per-shape record: dims, `list`'s net per call (absolute,
-    so every ratio beside it converts back and the baseline is guarded at
-    every shape), and the fingerprint arms' net ratios. Shapes sorted by
-    l then name; an arm the run does not carry prints `--`.
+def fingerprint_row(sh, sh_cells, d, label=None):
+    """One row of the kept per-shape record: dims, `list`'s net per call
+    as an absolute, and three cells read as the cross-class summary's
+    columns of those names are, per shape rather than per population --
+    `mut-odo-vecdims`'s ratio, the best arm outside the vecdims family
+    with its ratio, and the ceiling, the family's leading arm with its.
+    A sunk cell -- a net the forcing term did not leave positive -- is
+    `--` and never a candidate, as `time_of` and `worst_of` read it: a
+    negative or wild figure here outlives the run that could disprove
+    it, this table being installed every write-up."""
+    base = sh_cells['list']['net']
 
-    Born checked: pointed at a run without `list` (--exclude list) it
-    refuses with exit 1, and its first emitted paste caught two Run 6
-    cells still standing in README's hand-carried table --
-    `alexnet-L1-55-c3-k11`'s scan-packed column and `stretch-bigstride`'s
-    `bq-expand` one -- which is why the intro above the tables says to
-    transcribe nothing by hand. `classes` is what `--classes` loaded: one
-    (label, cells, shapes, dims) per class JSON, emitted as the second
-    table with a `class` column, in the order given."""
+    def ratio(st):
+        c = sh_cells.get(st)
+        return (None if not c or c['net'] <= 0 or base <= 0
+                else c['net'] / base)
+    timed = sorted((r, st) for st in sh_cells
+                   if st != 'list' and not is_control(st)
+                   for r in [ratio(st)] if r is not None)
+    outside = next((p for p in timed if not p[1].startswith(FAMILY)), None)
+    family = next((p for p in timed if p[1].startswith(FAMILY)), None)
+    plain = ratio(PLAIN)
+    row = ['`%s`' % sh] + (['`%s`' % label] if label else [])
+    row += [str(d['s_inner']), str(d['l'])] if d else ['?', '?']
+    row.append(fmt_abs(base))
+    row.append('--' if plain is None else '%.3f' % plain)
+    for p in (outside, family):
+        row.append('--' if p is None else '`%s` %.3f' % (p[1], p[0]))
+    return '| ' + ' | '.join(row) + ' |'
+
+
+def fingerprint_table(cells, shapes, strategies, meta, classes=()):
+    """The kept per-shape record, two tables: the main set's and, with a
+    `class` column, every class JSON `--classes` loaded, in the order
+    given -- one (label, cells, shapes, dims) each. Shapes sorted by l
+    then name. Every cell is this run's; nothing is carried from an
+    earlier run or from the run file, which is what lets the JSONs go
+    once it is installed. Born checked: pointed at a run without `list`
+    (--exclude list) it refuses with exit 1."""
     if 'list' not in strategies:
         sys.exit('--fingerprint needs the `list` baseline in the run')
     dims = meta['dims']
-    ordered = sorted(shapes, key=lambda sh: (
-        dims[sh]['l'] if sh in dims else float('inf'), sh))
-    for i, (header, with_dims, arms) in enumerate(FINGERPRINT_TABLES):
-        if i:
-            print()
-        print(header)
-        print('|---' + '|---:' * (header.count('|') - 2) + '|')
-        for sh in ordered:
-            d = dims.get(sh)
-            base = cells[sh]['list']['net']
-            row = ['`%s`' % sh]
-            if with_dims:
-                row += [str(d['s_inner']), str(d['l'])] if d else ['?', '?']
-                row.append(fmt_abs(base))
-            for arm in arms:
-                c = cells[sh].get(arm)
-                # `--` on a SUNK cell as well as an absent one, which is
-                # what `time_of` and `worst_of` read on the same condition:
-                # a net the forcing term did not leave positive is not a
-                # ratio, and dividing anyway publishes a negative or wild
-                # figure beside rows that correctly read `--`. It matters
-                # more here than anywhere: this table is `--in-place`
-                # installed every write-up and is the per-shape record kept
-                # once the JSONs are offered for deletion, so a sunk figure
-                # here outlives the run that could disprove it.
-                row.append('--' if not c or c['net'] <= 0 or base <= 0
-                           else '%.3f' % (c['net'] / base))
-            print('| ' + ' | '.join(row) + ' |')
+    print(FINGERPRINT_HEADER)
+    print('|---' + '|---:' * 4 + '|---' * 2 + '|')
+    for sh in sorted(shapes, key=lambda x: (
+            dims[x]['l'] if x in dims else float('inf'), x)):
+        print(fingerprint_row(sh, cells[sh], dims.get(sh)))
     if classes:
         print()
-        header = FINGERPRINT_CLASS_HEADER
-        print(header)
-        print('|---|---' + '|---:' * (header.count('|') - 3) + '|')
+        print(FINGERPRINT_CLASS_HEADER)
+        print('|---|---' + '|---:' * 4 + '|---' * 2 + '|')
         for label, c_cells, c_shapes, c_dims in classes:
             for sh in sorted(c_shapes, key=lambda x: (
                     c_dims[x]['l'] if x in c_dims else float('inf'), x)):
-                d = c_dims.get(sh)
-                base = c_cells[sh]['list']['net']
-                row = ['`%s`' % sh, '`%s`' % label]
-                row += [str(d['s_inner']), str(d['l'])] if d else ['?', '?']
-                row.append(fmt_abs(base))
-                for arm in FINGERPRINT_ARMS:
-                    c = c_cells[sh].get(arm)
-                    row.append('--' if not c or c['net'] <= 0 or base <= 0
-                               else '%.3f' % (c['net'] / base))
-                print('| ' + ' | '.join(row) + ' |')
-        # The membership rule's data half, read where the data is: every
-        # arm that is the best outside the vecdims family on some shape of
-        # the main set or a class is a fingerprint arm. There is no
-        # converse to check, membership only growing, so this asks one
-        # question and asks it of the run in hand -- no previous run is
-        # read, and none has to have survived. Said on stderr, where
-        # install-tables.sh files what a run owes by hand. The shapes
-        # are NAMED and not merely counted, with the best member beside
-        # each: the open entry this answered had to read both back off
-        # the cells by hand, the notice carrying a count alone.
-        best = collections.Counter()
-        where = collections.defaultdict(list)
-        for p_shapes, p_cells in ([(shapes, cells)]
-                                  + [(c[2], c[1]) for c in classes]):
-            for sh in p_shapes:
-                base = p_cells[sh]['list']['net']
-                cands = [(c['net'] / base, st)
-                         for st, c in p_cells[sh].items()
-                         if st != 'list' and not is_control(st)
-                         and not st.startswith(FAMILY)
-                         and c['net'] > 0 and base > 0]
-                if cands:
-                    cands.sort()
-                    best[cands[0][1]] += 1
-                    near = next((c for c in cands[1:]
-                                 if c[1] in FINGERPRINT_ARMS), None)
-                    where[cands[0][1]].append(
-                        '%s %.3f%s'
-                        % (sh, cands[0][0], '' if near is None else
-                           ' against `%s` %.3f' % (near[1], near[0])))
-        missing = [a for a in best if a not in FINGERPRINT_ARMS]
-        for a in missing:
-            sys.stderr.write('membership: `%s` is best outside the family on'
-                             ' %d shape(s) -- %s -- and is not a fingerprint'
-                             ' arm: give it a column unless a member is a'
-                             ' close variant measuring this closely, one'
-                             ' representative per family being the rule\n'
-                             % (a, best[a], '; '.join(where[a])))
-        if not missing:
-            sys.stderr.write('ok: every arm best outside the family on some'
-                             ' shape here has a fingerprint column (%s)\n'
-                             % ', '.join('%s %d' % kv
-                                         for kv in best.most_common()))
+                print(fingerprint_row(sh, c_cells[sh], c_dims.get(sh), label))
 
 
 # The three arms the second class property names, in the claims section
@@ -4107,7 +4033,8 @@ def main_set_gap(shapes, main_hs):
     -- rather than a mismatch to forgive.
     """
     dims = dims_by_shape(main_hs)[0]
-    whole = {s for s, d in dims.items() if d['lst'] in MAIN_LISTS}
+    whole = {s for s, d in dims.items()
+             if d['lst'] in MAIN_LISTS and not d['retired']}
     return len(whole - set(shapes)), len(whole)
 
 
@@ -8842,7 +8769,16 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
         # site agrees on is still wrong after a roster change, which is
         # the case agreement alone cannot see.
         dims = dims_by_shape(main_hs)[0]
-        main_shapes = [s for s, d in dims.items() if d['lst'] in MAIN_LISTS]
+        main_shapes = [s for s, d in dims.items()
+                       if d['lst'] in MAIN_LISTS and not d['retired']]
+        # A main shape retired after this run is back in the population
+        # sizes it was timed in, by the same declaration that exempts an
+        # added one; the roster-size sites stay today's. 2026-09-04. Case:
+        # `retired-shapes-timed-by-the-run-are-exempt`.
+        retired_main_after = sorted(
+            s for s in retired_after
+            if s in dims and dims[s]['lst'] in MAIN_LISTS
+            and dims[s]['retired'])
         # The main set as the newest run file measured it: a main-set shape
         # the provenance bullet declares added after the run is exempt from
         # the population sizes below, exactly as a class shape is from the
@@ -8851,7 +8787,8 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
         # roster-size sites stay held to today's main set, being sentences
         # about the roster as it stands. Case:
         # `main-shapes-added-after-the-run-are-exempt`.
-        main_at_run = [s for s in main_shapes if s not in added_after]
+        main_at_run = ([s for s in main_shapes if s not in added_after]
+                       + retired_main_after)
         class_sizes = {}
         for s, d in dims.items():
             if (d['cls'] != 'main' and s not in added_after
@@ -9321,23 +9258,6 @@ def lint(main_hs, readme, run_doc=None):
         print('ok:   every arm the claims manifest names is rostered'
               ' (%d across %d claims)' % (len(claimed), len(CLAIMS)))
 
-    # THE FINGERPRINT IS THE THIRD LIST OF ARM NAMES IN THIS FILE, and was
-    # the only one nothing held to the roster: the check above asks whether
-    # its arms are ROSTERED, which a parked arm still is, being `Only`. So
-    # a column outlived the arm that filled it -- `bq-mut-runs`, from the
-    # parking of 2026-08-28 until this check was written the same day, past
-    # two preflights and every gate here. Held to TIMED and not to rostered,
-    # which is the whole of the difference, and non-vacuous by putting the
-    # entry back: it fails naming the arm.
-    stray_fp = [a for a in FINGERPRINT_ARMS if a not in timed]
-    if stray_fp:
-        bad.append('%d fingerprint arm(s) are not timed, so `--fingerprint`'
-                   ' has a column no run can fill: %s'
-                   % (len(stray_fp), ', '.join(stray_fp)))
-    else:
-        print('ok:   every fingerprint arm is timed (%d column(s))'
-              % len(FINGERPRINT_ARMS))
-
     # THE SAME QUESTION FOR THE CLAIMS THAT HAVE NO MANIFEST, which is the
     # half the check above cannot reach: claim 7 is prose and reaches
     # `CLAIMS` not at all -- claim 8 was too until it retired 2026-08-29 --
@@ -9470,36 +9390,6 @@ def lint(main_hs, readme, run_doc=None):
     if not mislabelled and len(bases) == 1:
         print('ok:   every control is named as this reader\'s own control'
               ' test reads it, and %s alone is the reference' % bases[0])
-
-    # The fingerprint's membership has two sources -- FINGERPRINT_TABLES
-    # here, and README's rule that the Results table's bolded rows are in
-    # it -- so this holds them together: every bolded Results row is a
-    # fingerprint arm, and every fingerprint arm is rostered. The rule's
-    # data half -- every arm best outside the vecdims family on some shape,
-    # since 2026-08-22 -- needs the JSONs, and `--fingerprint --classes`
-    # reads it there; here an extra fingerprint arm is fine and a bolded
-    # row left out is not.
-    #
-    # Non-vacuity: against a scratch README with `offtab`'s row bolded it
-    # fails naming offtab; against a scratch Main.hs whose roster drops
-    # ("build", ...) it fails naming build, beside the rostered check
-    # losing fbBuild.
-    fp_arms = {a for _, _, arms in FINGERPRINT_TABLES for a in arms}
-    # The Results table is the RUN's, so the carry-forward reads the run
-    # file. Pointed at README this returned {} with a warning on stderr and
-    # `0 bolded`, which reads as a pass and checks nothing.
-    bolded = [st for st, (_, style, _) in
-              readme_rows(run_doc or readme, names).items()
-              if style == 'bold']
-    off = ([b for b in bolded if b not in fp_arms]
-           + ['%s (not rostered)' % a for a in sorted(fp_arms)
-              if a not in names])
-    if off:
-        bad.append('fingerprint membership drifted: %s' % ', '.join(off))
-    else:
-        print('ok:   every bolded Results row is among the %d fingerprint'
-              ' arms (%d bolded), and every fingerprint arm is rostered'
-              % (len(fp_arms), len(bolded)))
 
     # The l annotations, statically: each entry's leading trailing-comment
     # number must equal what its list's rule computes, so a mistyped shape

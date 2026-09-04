@@ -128,7 +128,9 @@ echo "machine: ${BUSY-skipped}% busy at launch, against a ${MAXBUSY:-5}% bar"
 echo "start: $(date -Is), loadavg: $(cat /proc/loadavg)"
 echo "WILDLOG=${WILDLOG-unset} SAT=${SAT-unset}"
 md5sum "$B"
-ANCHORS="cnn-slice-c32 cifar-L2-16-c64-k3 stretch-wide-2xM"
+# The middle anchor was cifar-L2-16-c64-k3 through Run 24, retired
+# 2026-09-04 (Main.hs retiredShapes); read-run.py's ANCHORS is the twin.
+ANCHORS="cnn-slice-c32 cnn-L2-24x24-c32 stretch-wide-2xM"
 if [ -n "${ONLY-}" ]; then
   SHAPES=$ONLY; ANCHORS=
   echo "ONLY=$ONLY: a smoke run of this script, not a rider"

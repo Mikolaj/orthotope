@@ -398,6 +398,10 @@ DECLARED_AFTER_RE = re.compile(
     r'((?:`[\w.-]+`(?:,\s+(?:and\s+)?|\s+and\s+))*`[\w.-]+`)\s+(?:was|were)'
     r' added \d{4}-\d{2}-\d{2}, after the run')
 
+DECLARED_RETIRED_RE = re.compile(
+    r'((?:`[\w.-]+`(?:,\s+(?:and\s+)?|\s+and\s+))*`[\w.-]+`)\s+(?:was|were)'
+    r' retired \d{4}-\d{2}-\d{2}, after the run')
+
 
 def plant_retired_class_exempt(tmp):
     """The fixture of `retired-classes-timed-by-the-run-are-exempt`.
@@ -423,14 +427,39 @@ def plant_retired_class_exempt(tmp):
     return out
 
 
+def plant_retired_shape_exempt(tmp):
+    """The fixture of `retired-shapes-timed-by-the-run-are-exempt`.
+
+    Both halves planted, on a shape every run file times: a Main.hs copy
+    retiring `vgg-14-c512-k3`, and a README declaring it retired after the
+    run -- so the newest run file's `over N shapes` are held to a main set
+    that keeps it. Drop the declaration's effect and every one of them
+    matches no population. Planted under the Provenance heading, as the
+    class fixture is. Added 2026-09-04.
+    """
+    main = open(MAIN).read()
+    old = 'retiredShapes =\n  [ '
+    if main.count(old) != 1:
+        raise AssertionError('retiredShapes list occurs %d times, need 1'
+                             % main.count(old))
+    out = {'main': write(os.path.join(tmp, 'Main.hs'),
+                         main.replace(old, old + '"vgg-14-c512-k3"\n  , ', 1))}
+    out['readme'] = unwrapped_readme_edit(
+        tmp, '\n## Provenance\n',
+        '\n## Provenance\n\n`vgg-14-c512-k3` was retired 2026-09-04, after'
+        ' the run.\n')
+    return out
+
+
 def plant_main_shapes_exempt(tmp):
     """The fixture of `main-shapes-added-after-the-run-are-exempt`.
 
     Both halves planted, and the figure derived rather than written: a
     declaration in README of two main-set shapes never added after any
     run, and a run file whose every `over N shapes` at the run's TRUE
-    main-set size -- Main.hs's less whatever the live README already
-    declares -- is moved down by the two planted. So the fixture builds
+    main-set size -- Main.hs's timed set less whatever the live README
+    already declares added, plus what it declares retired -- is moved
+    down by the two planted. So the fixture builds
     the same subject whether or not a real declaration stands, and a
     figure in it cannot go stale under a later main-set change, which the
     class sibling's hand-written 7 can.
@@ -445,11 +474,19 @@ def plant_main_shapes_exempt(tmp):
     declared = set()
     for m in DECLARED_AFTER_RE.finditer(readme):
         declared |= set(re.findall(r'`([\w.-]+)`', m.group(1)))
-    real = declared & set(names)
-    fake = [n for n in ('stretch-rank12', 'stretch-inner256')
-            if n in names and n not in real]
-    assert len(fake) == 2, 'the two planted shapes must be undeclared'
-    was = len(names) - len(real)
+    # The run's TRUE population as the reader derives it: the timed main
+    # set, less what README declares added after the run, plus what it
+    # declares retired after it (2026-09-04, when eight shapes were).
+    retired = _reader().retired_shapes(MAIN)
+    declared_retired = set()
+    for m in DECLARED_RETIRED_RE.finditer(readme):
+        declared_retired |= set(re.findall(r'`([\w.-]+)`', m.group(1)))
+    timed = [n for n in names if n not in retired]
+    real = declared & set(timed)
+    fake = [n for n in ('stretch-primes', 'stretch-inner256')
+            if n in timed and n not in real]
+    assert len(fake) == 2, 'the two planted shapes must be timed and undeclared'
+    was = len(timed) - len(real) + len(declared_retired & retired)
     now = was - len(fake)
     doc = subprocess.run(['wrap80', '--unwrap'], input=rundoc_text(),
                          capture_output=True, text=True, check=True).stdout
@@ -2053,9 +2090,10 @@ def main_shapes(n=None):
     # a sort: the main set is conv AND stretch shapes, the two have
     # different (l, sInner) rules, and a fixture of one kind reads as the
     # main set to every mode while being half of it.
-    conv = sorted(sh for sh, d in dims.items() if d['lst'] == 'convShapes')
+    conv = sorted(sh for sh, d in dims.items()
+                  if d['lst'] == 'convShapes' and not d.get('retired'))
     stretch = sorted(sh for sh, d in dims.items()
-                     if d['lst'] == 'stretchShapes')
+                     if d['lst'] == 'stretchShapes' and not d.get('retired'))
     ms = [sh for pair in zip(conv, stretch) for sh in pair]
     ms += [sh for sh in conv + stretch if sh not in ms]
     # ALL of it by default, because `--claims --in-place` refuses a main
@@ -6499,6 +6537,20 @@ RECORDS = [
          argv=['--check-doc', '--quiet', '--readme', '{readme}',
                '--main', '{main}'],
          ok=V(hasnt=['class block(s) where Main.hs defines'])),
+
+    case('retired-shapes-timed-by-the-run-are-exempt', 'read-run.py', None,
+         "a main shape retired from timing after a run failed that run"
+         " file's `over N shapes`",
+         # The mirror of the class case above for the main set: Main.hs
+         # retires a shape from timing and keeps it in `check`, the
+         # population sizes take it out, and the newest run file, which
+         # timed it, would then match no population. The provenance
+         # bullet's `were retired DATE, after the run` puts it back for
+         # that file. Both halves planted, on `vgg-14-c512-k3`.
+         plant=plant_retired_shape_exempt,
+         argv=['--check-doc', '--quiet', '--readme', '{readme}',
+               '--main', '{main}'],
+         ok=V(hasnt=['match no population'])),
 
     case('main-shapes-added-after-the-run-are-exempt', 'read-run.py', None,
          "a main-set shape added between runs failed every `over N shapes`"

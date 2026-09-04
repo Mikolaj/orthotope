@@ -35,14 +35,29 @@ MUTANTS = [
     # rather than going through defect-run.py, which refuses a copy that
     # is in no git repository -- this one is not.
     ('check-doc holds the run file to today\'s main set', 'read-run.py',
-     '        main_at_run = [s for s in main_shapes if s not in added_after]',
-     '        main_at_run = main_shapes',
+     '        main_at_run = ([s for s in main_shapes if s not in added_after]',
+     '        main_at_run = (main_shapes',
      'PATH="{bin}:$PATH" python3 -c "import importlib.util, sys, tempfile, subprocess\n'
      'spec = importlib.util.spec_from_file_location(\'d\', \'{dir}/defects.py\')\n'
      'm = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)\n'
      'out = m.plant_main_shapes_exempt(tempfile.mkdtemp())\n'
      'r = subprocess.run([sys.executable, \'{file}\', \'--check-doc\', \'--quiet\','
      ' \'--readme\', out[\'readme\'], \'--run-doc\', out[\'rundoc\']],'
+     ' capture_output=True, text=True)\n'
+     'sys.exit(1 if \'match no population\' in r.stdout + r.stderr else 0)"'),
+    # The population sizes' exemption for main shapes retired after the
+    # run: dropped, the fixture of `retired-shapes-timed-by-the-run-are-
+    # exempt` fails on `match no population`, the newest run file having
+    # timed the shape the fixture retires.
+    ('check-doc holds the run file to today\'s timed main set', 'read-run.py',
+     '            s for s in retired_after\n',
+     '            s for s in ()\n',
+     'PATH="{bin}:$PATH" python3 -c "import importlib.util, sys, tempfile, subprocess\n'
+     'spec = importlib.util.spec_from_file_location(\'d\', \'{dir}/defects.py\')\n'
+     'm = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)\n'
+     'out = m.plant_retired_shape_exempt(tempfile.mkdtemp())\n'
+     'r = subprocess.run([sys.executable, \'{file}\', \'--check-doc\', \'--quiet\','
+     ' \'--readme\', out[\'readme\'], \'--main\', out[\'main\']],'
      ' capture_output=True, text=True)\n'
      'sys.exit(1 if \'match no population\' in r.stdout + r.stderr else 0)"'),
     # The class count's exemption for classes retired after the run:
@@ -81,13 +96,21 @@ MUTANTS = [
     # state those cases were in on 2026-09-02, two red and one passing
     # vacuously. The judge plants the control fixture and requires the
     # figure to be listed, reaching the run through CORPUS because the
-    # copy holds tracked files alone.
+    # copy holds tracked files alone. Since the retirement of 2026-09-04
+    # every captured run carries today's whole timed main set, so the trim
+    # had nothing to remove and this mutant survived: the judge now plants
+    # a timed shape no run has into the copy's Main.hs first, which the
+    # trim removes and the untrimmed gate fires on, whatever the roster.
     ('era_main_hs stops trimming the main set', 'defects.py',
      "        src = src[:i] + '\\n'.join(kept) + src[j:]",
      "        src = src[:i] + '\\n'.join(entries) + src[j:]",
      'python3 -c "import importlib.util, os, sys, tempfile, subprocess\n'
      'spec = importlib.util.spec_from_file_location(\'d\', \'{dir}/defects.py\')\n'
      'm = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)\n'
+     'p = os.path.join(\'{dir}\', \'Main.hs\'); s = open(p).read()\n'
+     'i = s.index(\'\\nstretchShapes =\\n\'); j = s.index(\'\\n  ]\', i)\n'
+     's = s[:j] + \'\\n  , (\\"zz-era-probe\\", [3, 3, 3])  -- 27\' + s[j:]\n'
+     'open(p, \'w\').write(s)\n'
      'run = os.path.join(os.environ[\'CORPUS\'], \'run23-g912-main.json\')\n'
      'doc = m.rundoc_retirement_sentence(tempfile.mkdtemp(), False)\n'
      'main = m.era_main_hs(tempfile.mkdtemp(), run)\n'

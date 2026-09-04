@@ -3591,6 +3591,8 @@ mkCompose sh strides@(Strides ats) ao =
 -- first in run order to exercise it. Several stretch shapes differ too, so
 -- the assertion does not go vacuous without these two; what would is the
 -- conv set's own coverage of it.
+-- Retiring a shape from TIMING keeps this, @check@ reading 'allShapes' --
+-- which is how 'conv1d-24' went on 2026-09-04 ('retiredShapes').
 convShapes :: [(String, ShapeL)]
 convShapes =
   [ -- horde-ad shaped CNN (MnistCnnShaped2; kernel kh+1 = 3)
@@ -3676,7 +3678,50 @@ stretchShapes =
   ]
 
 shapes :: [(String, ShapeL)]
-shapes = convShapes ++ stretchShapes
+shapes = [s | s@(n, _) <- allShapes, n `notElem` retiredShapes]
+
+-- Every main-set shape, timed or retired: what 'check', 'partitioned' and
+-- the saturating preamble read.
+allShapes :: [(String, ShapeL)]
+allShapes = convShapes ++ stretchShapes
+
+-- Main-set shapes retired from TIMING and kept in 'check', ruled 2026-09-04
+-- on their canonical forms as the stride classes were ('retiredClasses'
+-- below): every main-set view canonicalizes to a rank-3 positive fill with a
+-- stride-1 level, or to a regime-1 slice, so what is left to differ in is
+-- the two inner extents, their strides and the run count. 'stretch-inner1'
+-- is the regime-1 slice, O(1) at any size, which 'small-flat64' times;
+-- 'lenet-slice-c6-k5' is 'small-patch-k5' to the stride; 'cnn-L1-6x6-c1',
+-- 'stretch-rank10', 'cifar-L2-16-c64-k3' and 'cnn-L1-12x12-c1' are rungs of
+-- the [A, 3, 3] ladder at strides [9, 1, 3] beside 'cnn-slice-c32',
+-- 'cnn-L1-24x24-c1', 'cnn-L2-24x24-c32' and 'vgg-14-c512-k3', the first two
+-- within a tenth in A of a kept rung and the rank-10 odometer merged away;
+-- 'conv1d-24' is runs of 3 at stride 24 beside 'gather48-src-50' at 50; and
+-- 'stretch-rank12' is runs of 2 at stride 2, its rank merged away, the third
+-- of three runs-of-2 shapes and the only small one, which the small class
+-- covers. The anchor 'cifar-L2-16-c64-k3' held moved to 'cnn-L2-24x24-c32'
+-- with it (read-run.py's ANCHORS, run-alonelegs.sh). The population moved,
+-- so a Run 25 geomean re-baselines against Run 24; the fingerprint's per-
+-- shape rows and the anchors cross. The entries stay listed so that @check@
+-- still holds every arm to the reference on them and older readers parse the
+-- lists; a shape is re-timed by deleting its name here
+-- (README.md#the-shape-set).
+retiredShapes :: [String]
+retiredShapes =
+  [ "stretch-inner1"
+  , "lenet-slice-c6-k5"
+  , "cnn-L1-6x6-c1"
+  , "cifar-L2-16-c64-k3"
+  , "stretch-rank10"
+  , "conv1d-24"
+  , "stretch-rank12"
+  , "cnn-L1-12x12-c1"
+  ]
+
+-- Every retired name is a listed shape, asserted in 'main' beside
+-- 'partitioned': a misspelt one would retire nothing and say nothing.
+retiredShapesKnown :: Bool
+retiredShapesKnown = all (`elem` map fst allShapes) retiredShapes
 
 -- Degenerate regime-3 shapes, checked but deliberately NOT benchmarked, and
 -- so kept out of 'shapes'. Both have @l == 0@: timing one would divide
@@ -4044,7 +4089,7 @@ tooBig =
 -- 1000000, where @check@, @diag@ and a benchmark run each exited 1 on
 -- AssertionFailed rather than one of them passing.
 partitioned :: Bool
-partitioned = all ((<= sizeCap) . product . snd) shapes
+partitioned = all ((<= sizeCap) . product . snd) allShapes
            && all ((> sizeCap) . product . snd) tooBig
            -- the class populations obey the same cap, on their VIEW
            -- shapes, whose product is each entry's @l@
@@ -4679,7 +4724,7 @@ saturate = do
       bySpray = by == Just "spray"
   unless (dose <= 0) $ do
     let view name = maybe (error ("saturate: no shape " ++ name)) mkStrided
-                      (lookup name shapes)
+                      (lookup name allShapes)
         (svsh, sa) = view sprayerShape
         (vsh, a) = view victimShape
     _ <- evaluate (force ((svsh, sa), (vsh, a)))
@@ -4733,7 +4778,7 @@ saturate = do
 {-# NOINLINE saturate #-}
 
 main :: IO ()
-main = assert (partitioned && retiredKnown) $ do
+main = assert (partitioned && retiredKnown && retiredShapesKnown) $ do
   args <- getArgs
   unless (any (`elem` ["check", "diag", "--list", "-l"]) args) saturate
   if "diag" `elem` args
@@ -5039,7 +5084,7 @@ check = do
   mapM_ (\(n, s) -> putStrLn $ "FLAGGED too big, excluded: " ++ n ++ " "
                                ++ show s ++ ", l=" ++ show (product s))
         tooBig
-  mapM_ one (shapes ++ degenerateShapes)
+  mapM_ one (allShapes ++ degenerateShapes)
   mapM_ oneRev revShapes
   mapM_ oneRevSome revSomeShapes
   mapM_ oneBroadcast broadcastShapes

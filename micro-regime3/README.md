@@ -2894,6 +2894,38 @@ Run 7 was read against Run 6 restricted to the surviving shapes. The ruling,
 and the two shapes that must survive any later cut for a reason unrelated
 to their workload, sit at `convShapes` in `Main.hs`, beside the list.
 
+**Eight main-set shapes are retired from timing and kept in `check`, ruled
+2026-09-04 on the same test as the three stride classes below: `stretch-inner1`,
+`lenet-slice-c6-k5`, `cnn-L1-6x6-c1`, `cifar-L2-16-c64-k3`, `stretch-rank10`,
+`conv1d-24`, `stretch-rank12` and `cnn-L1-12x12-c1`.** Under the branch's fill
+every main-set view canonicalizes to a rank-3 positive fill with a stride-1
+level, or to a regime-1 slice, so what a timed shape can differ in is its two
+inner extents, their strides and its run count, and by that reading the eight
+duplicate what stays. `stretch-inner1` is the regime-1 slice, O(1) at any size,
+which `small-flat64` times, and the main-set shape the canonicalizing arms
+return an O(1) slice on. `lenet-slice-c6-k5` is `small-patch-k5` to the stride.
+Four are rungs of one ladder, `[A, 3, 3]` at strides `[9, 1, 3]`, whose kept
+rungs are `cnn-slice-c32`, `cnn-L1-24x24-c1`, `cnn-L2-24x24-c32`
+and `vgg-14-c512-k3`: `cnn-L1-6x6-c1` and `cifar-L2-16-c64-k3` each within
+a tenth in run count of a kept rung, `stretch-rank10` a rung once its odometer
+is merged away, `cnn-L1-12x12-c1` the fifth of five. `conv1d-24` is runs of 3
+at stride 24 beside `gather48-src-50` at stride 50, which the `rev` class
+mirrors. `stretch-rank12` is runs of 2 at stride 2, its rank merged away,
+the third of three runs-of-2 shapes and the only small one, which the `small`
+class covers now. The anchor `cifar-L2-16-c64-k3` held moved
+to `cnn-L2-24x24-c32`, the same pattern within a tenth in run count, whose
+anchor history starts at Run 25. Two things follow. The population moved,
+so a Run 25 main-set geomean re-baselines against Run 24, as the halving's did,
+and only the fingerprint's per-shape rows and the anchors cross. And `check`
+still holds every arm to the reference on the eight, the entries staying listed
+in `Main.hs` under `retiredShapes`, which is what the binary's roster
+and `read-run.py`'s counts read; the run file that timed them is held to its own
+population by the provenance bullet's *were retired DATE, after the run*,
+as a class is. A shape comes back by deleting its name from that list. The size
+rung `stretch-rank10` held, the only one between 5184 and 147456 elements,
+is a size argument and not a stride one, and is the first thing to re-add
+if a size ladder is wanted.
+
 
 ### Dropping the minibatch dimension
 
@@ -3009,8 +3041,8 @@ ahead of the implementation:
   at the builder, the numbers and the argument recorded at the assert and both
   Int32 comment sites.
 
-**A class population is three shapes, or four, or seven**, against the main
-set's two dozen, which is deliberate --- the classes are there to vary
+**A class population is three shapes, or four, or seven**, against a main set
+several times the size, which is deliberate --- the classes are there to vary
 the *mechanism*, and varying size and rank within one is the main set's job ---
 but it decides how their results read. A class geomean rests on three cells,
 so it is a summary of a handful of numbers rather than a statistic
@@ -3087,10 +3119,11 @@ it, class by class, whichever of the two entry points the user takes,
 and the `runs` class is where the routes part; with the timed `-u2-down`
 the dispatch arm, the three fill candidates and the unordered pair the block
 took the roster to 1320 benches, and the composite arm with the six parkings
-and two main-set shapes of 2026-09-02 takes the roster to 1352 benches, eight
-superseded arms parked permanently since Run 21, `offtab`'s twins removed
-with it. What the next run is registered to answer with them is [in the open
-list][open].
+and two main-set shapes of 2026-09-02 took the roster to 1352 benches,
+and the retirement of eight main-set shapes on 2026-09-04 takes the roster
+to 936 benches, eight superseded arms parked permanently since Run 21,
+`offtab`'s twins removed with it. What the next run is registered to answer
+with them is [in the open list][open].
 
 **What the eight are worth as instruments, read against each other for the first
 time on 2026-08-14, over Runs 10 to 13.** Per class: the median A/A deviation
@@ -3436,69 +3469,22 @@ is the axis the orderings turn on; the fuller per-shape record is in [What
 the next run compares
 against](runs/run24.md#what-the-next-run-compares-against).
 
-**The fingerprint's membership is a rule, not a habit**, re-aimed 2026-08-22
-and settled 2026-08-24: `mut-odo-vecdims` and every arm that is the best outside
-the vecdims family on at least one shape of the main set or a stride class ---
-on Run 16 `mut-flat-gm`, `bq-scan-rem-gm-mulback`, `build`, `mut-odo`,
-`bq-mut-runs` (dropped 2026-08-28 with its parking)
-and `bq-mut-runs-gm-mulback`, in that order of shapes led, `offtab-scan-rem`
-on Run 18, and on Run 20 three of the rework's arms: `canon-vecdims`, best
-outside the family on 17 shapes, `mid-copy` on 17 and `bcast-set` on 3.
-The column heads shorten the arm names --- vecdims is `mut-odo-vecdims`, flat-gm
-`mut-flat-gm`, scan-rem-gm `bq-scan-rem-gm-mulback`, runs-gm
-`bq-mut-runs-gm-mulback`, offtab-rem `offtab-scan-rem` and canon-vd
-`canon-vecdims` --- and `read-run.py`'s `FINGERPRINT` list is where
-the membership and the heads are fixed, `--lint` holding it to the TIMED roster,
-the older check having asked only whether its arms were rostered, which a parked
-arm still is. The second table carries the same columns over every stride-class
-shape, with its class named. `list`'s own net per call rides along in both,
-guarding the baseline at every shape and converting any ratio beside it back
-to absolute time, and it is the column `--machine` reads; allocation has
-no column on purpose, being deterministic per call, so a run that raises
-an allocation question re-derives it within itself. **It only ever grows**:
-an arm that has earned a column keeps it, and no run drops one --- **which
-is a preference, not a law, and is superseded. ARMS GET DROPPED, AND HAVE
-BEEN MANY TIMES; ruled 2026-08-28.** A trim took fifteen at once; Run 20 demoted
-`mut-odo-vecdims-add-out`, `-add-both` and `-add-both-down` to `Only`
-on 2026-08-25; Run 21 parked eight permanently and removed `offtab`'s two A/A
-twins on 2026-08-28; and the table lost `bq-mut-runs` with them, the first
-column to go. What the preference buys is that a column is not churned
-on a thousandth, which is worth having and is not a proof that none can go.
-**What governs a drop is two questions**, and what follows prices the cost
-of taking one rather than forbidding it: is the arm still TIMED, an untimed one
-being unable to fill a cell at all --- keeping `bq-mut-runs` asked the installer
-for a cell nothing can compute, which `--check-doc` fails as an install `?`,
-and the only other answer was a rebuild of both halves; and is the column
-the only copy of what it holds, which it never is, a run's own figures living
-in its Results and class tables whatever the fingerprint carries. Its figures
-end at Run 20 and went from that run's two tables with the column, narrowed
-by hand in the same edit --- `install` matches a table by its whole header line,
-so a narrowed emitter and a wide table refuse each other, measured that day when
-`smoke-sweep.sh` failed on exactly that. **One representative per family**,
-besides: where a qualifying arm is a close variant of a member and measures
-closely, the leading one keeps the column, so no strategy costs two. **Run 20
-is the run that had to apply that clause, and it kept two arms out.**
-`canon-memcpy-r2` and `canon-full` both qualified --- best outside the family
-on 4 shapes and 6 --- and both are close variants of `canon-vecdims` measuring
-within four thousandths of it on the main set, 0.052 and 0.053 against 0.049.
-The installer's own membership note is what settles it rather than the judgement
-alone: on nearly every shape either of them leads, the arm it beats
-is `canon-vecdims` or `bcast-set` at the same three decimals, which is what
-*measuring this closely* means. The judgement is still the author's, which
-is why `--fingerprint` names the best member on the shape a newcomer leads.
-**Neither way of dropping an arm THAT STOPPED EARNING ITS COLUMN survives**;
-an arm PARKED out of the timed roster is the other case and is ruled on above.
-Dropping one that leads nothing this run churns on a thousandth ---
-`offtab-scan-rem` holds `reshape1-rank10` at 0.090 against 0.091 --- and gaps
-the record wherever the column went. Judging it off the fingerprint the run file
-carries is worse: that table holds the members alone, so a leaver would
-be judged against the members alone where a joiner is judged against every timed
-arm --- on `reshape1-rank10` the members' own minimum
-was `bq-scan-rem-gm-mulback` at 0.091, while the arm that won the shape read
-0.090 and had no column to be seen in. The header therefore grows, and the run
-writer narrows it by hand if it gets unwieldy; the run that adds a column should
-ask whether the table still reads. Each run file says under its tables what
-that run added and which candidates its installer note named.
+**The fingerprint is a per-shape summary computed from the run alone, since
+2026-09-04.** Two tables under the run file's *What the next run compares
+against*, the main set's and the classes' with a class column: per shape
+its `sInner` and `l`, `list`'s net per call as an absolute --- the column
+`--machine` reads, guarding the baseline at every shape and converting any ratio
+beside it back to time --- then `mut-odo-vecdims`'s ratio, the best arm outside
+the vecdims family with its ratio, and the ceiling, the family's leading arm
+with its ratio, the three read as the cross-class summary's columns
+of those names are, per shape rather than per population. A sunk cell reads
+`--`. Allocation has no column on purpose, being deterministic per call,
+so a run that raises an allocation question re-derives it within itself. **Until
+that day the tables carried one column per arm, under a membership rule
+that grew the set run by run; retired, not to be re-proposed:** a column set
+carried across runs made the table depend on every earlier run and
+on a judgement at each write-up, for cells the run's own JSON derives. Run 24's
+tables were regenerated; the older run files keep the old form.
 
 - **Which strategy wins is decided by the innermost extent (the size
   of the innermost dimension, `sInner` below) --- not by the rank, not
@@ -4894,9 +4880,11 @@ added 2026-08-28 ([the stride
 classes](#the-stride-classes-and-what-they-cover)), less the eight parked
 permanently since Run 21 and `offtab`'s two twins removed ([its entry][open]),
 plus the six arms added 2026-08-30 and, on 2026-09-02, the composite arm less
-six parkings over two more main-set shapes, takes the roster to 1352 benches.
-The three placement-family arms went to `Only` a run earlier, on 2026-08-25,
-so Run 20's 1272 already excludes them and they are no part of this arithmetic.
+six parkings over two more main-set shapes, took the roster to 1352 benches;
+the retirement of eight main-set shapes on 2026-09-04 takes the roster to 936
+benches. The three placement-family arms went to `Only` a run earlier,
+on 2026-08-25, so Run 20's 1272 already excludes them and they are no part
+of this arithmetic.
 
 - **A strategy with a precondition is not measured.** The column allowed `none`,
   an empty cell, and `shape well-formed`, which is a condition on being a valid
@@ -9800,7 +9788,9 @@ tables and its fingerprint say so.
   `small-patch-k5`, `small-bcast32`, `small-flat64`, `compose-rev-bcast`,
   `compose-slice-bcast`, `compose-zero-mid` and `compose-scalar` were added
   2026-09-03, after the run. `reshape1`, `revsome` and `slice` were retired
-  2026-09-04, after the run.
+  2026-09-04, after the run. `stretch-inner1`, `lenet-slice-c6-k5`,
+  `cnn-L1-6x6-c1`, `cifar-L2-16-c64-k3`, `stretch-rank10`, `conv1d-24`,
+  `stretch-rank12` and `cnn-L1-12x12-c1` were retired 2026-09-04, after the run.
 - Run 23 measured Run 22's shapes, class views and roster, nothing having moved
   between them --- 55 timed arms over 24 of today's 26 main-set shapes and 37
   of today's 41 class views in NINE classes, 1320 benches and 2035, sixteen A/A
