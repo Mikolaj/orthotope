@@ -506,7 +506,9 @@ by being a thing a later session might otherwise redo.
   comparability at a known point: [there][scratch].
 - **The roster is cut by two rulings** --- a size precondition disqualifies
   an arm, and so does allocating past a bar --- and a majority of the roster
-  is checked without being timed: [what the benchmark does][bench].
+  is checked without being timed: [what the benchmark does][bench]; and
+  by a third cut on 2026-09-04, the prune to the family's shipping question,
+  in the same section.
 - **The shape set was halved and is not to grow back one shape at a time**: [the
   shape set][shapeset], the ruling itself beside `convShapes` in `Main.hs`.
 - **The stride classes are separate populations**, tabled beside the main set
@@ -802,10 +804,11 @@ rather than a slot in the next run, observed again:
   section](runs/run24.md#what-the-next-run-compares-against) settles --- Run
   24's, ghc-9.12.4 against GHC HEAD, both under `LOOP_DEADSPOT=1`, decided
   2026-09-04 by whoever asked for the run --- over the roster as the retirements
-  of the same day leave it: ten classes and eighteen main-set shapes, 936
-  benches, the three classes and eight shapes retired kept in `check` and timed
-  nowhere ([the classes section](#the-stride-classes-and-what-they-cover), [the
-  shape set](#the-shape-set)). Each with a prediction and a kill condition,
+  and the prune of the same day leave it: ten classes and eighteen main-set
+  shapes, 24 timed arms and 432 benches, the three classes, eight shapes
+  and sixteen arms retired kept in `check` and timed nowhere ([the classes
+  section](#the-stride-classes-and-what-they-cover), [the shape
+  set](#the-shape-set)). Each with a prediction and a kill condition,
   and the verdicts move to Run 25's file with them. (1) *The box.* The gate's
   machine check and the run's main-set process read `list`'s net against
   the fingerprint Run 24 kept inside 3% over the eighteen shared shapes, none
@@ -826,7 +829,12 @@ rather than a slot in the next run, observed again:
   reads its Run 24 ordering, and the rows the retired shapes and classes leave
   in Run 24's fingerprint are read nowhere; killed by an ordering on a kept
   population that Run 24 read the other way past both floors, which would
-  be the population's doing and not an arm's.
+  be the population's doing and not an arm's. (6) *The prune.* Nothing published
+  moves for it either: the three crossed pairs read inside Run 24's floor
+  on both halves with their spans shortened, and the floor is read over six
+  pairs from here on; killed by a crossed pair reading past Run 24's floor
+  on both halves, which would be the roster's doing, a slot having moved
+  under a control.
 - `ANSWERED` **What Run 24 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
   verdicts are [in Run 24's own
@@ -988,7 +996,7 @@ rather than a slot in the next run, observed again:
   verdicts are [in Run 21's own file](runs/run21.md), where they were moved
   on 2026-08-29; a registration is that run's record and reads against
   that run's tables.
-- `OPEN` **What is the 3% that survives alignment on `build`/`mut-odo`?**
+- `PARKED` **What is the 3% that survives alignment on `build`/`mut-odo`?**
   With both copies of one worker at offset 0 the pair still reads 0.9685
   on the main set, tying by the sign test (16 of 24) while the interval misses
   1, and it runs 0.9148 to 1.0335 across the nine populations. The gate's
@@ -1002,7 +1010,9 @@ rather than a slot in the next run, observed again:
   and named off the twins. So the 3% is not on today's basis, and what separates
   the two slots is not their heads' cache-line offset but something the pads
   around them reach --- the counted work in [Run 23's file](runs/run23.md) says
-  whether either arm's instruction count moved with it.
+  whether either arm's instruction count moved with it. **PARKED 2026-09-04
+  with the prune: both arms are `Only`, so the residue is read on no run until
+  they are re-timed, and what is recorded above stands.**
 
   **Run 16 widens the question past that pair and excludes every mechanism
   the runtime can report** (2026-08-20, the wildlog probe on the `reshape1`
@@ -1673,20 +1683,20 @@ rather than a slot in the next run, observed again:
   goes the same way and strengthens it**, counted 2026-08-23 over its own eight
   classes: **6 of 8**, taking the running count to **24 of 32** and the sign
   test from p 0.023 to **p 0.007**. The one figure to take from a class here
-  is its FLOOR, the max over its sixteen A/A pairs, which is what `--block`
-  prints and what the class table's floor column carries --- not `read-all.sh`'s
-  A/A worst-cell column, a max over cells, which for `run18-g912-slice` reads
-  13.22% where the floor reads 6.01%. Counting this with the worst cell instead
-  gave 4 of 8 and a weakening p, twice, before the two figures were told apart.
-  Run 17 is where it is loudest: `revsome` reads **18.05%** on the basis against
-  4.87% on the control, three times its own Run 16 figure, and that movement
-  is what raised the question --- the paragraph that used to state such
-  movements under the class table was cut on 2026-08-22 for quoting the previous
-  run's, and its subject is here instead. **The measurement it registered
-  was taken 2026-08-23, wanting no quiet machine and no new run, and the first
-  branch fired.** The floor is a MAX over sixteen pairs, so a half with one wild
-  cell carries a wider one at the same dispersion; read the median A/A deviation
-  per half beside it, over the same JSONs, and the two halves are alike ---
+  is its FLOOR, the max over its A/A pairs, which is what `--block` prints
+  and what the class table's floor column carries --- not `read-all.sh`'s A/A
+  worst-cell column, a max over cells, which for `run18-g912-slice` reads 13.22%
+  where the floor reads 6.01%. Counting this with the worst cell instead gave 4
+  of 8 and a weakening p, twice, before the two figures were told apart. Run 17
+  is where it is loudest: `revsome` reads **18.05%** on the basis against 4.87%
+  on the control, three times its own Run 16 figure, and that movement is what
+  raised the question --- the paragraph that used to state such movements
+  under the class table was cut on 2026-08-22 for quoting the previous run's,
+  and its subject is here instead. **The measurement it registered was taken
+  2026-08-23, wanting no quiet machine and no new run, and the first branch
+  fired.** The floor is a MAX over sixteen pairs, so a half with one wild cell
+  carries a wider one at the same dispersion; read the median A/A deviation per
+  half beside it, over the same JSONs, and the two halves are alike ---
   the basis is wider on the median in **9 of the 24** comparisons at sign p
   0.31, against **18 of 24** at p 0.023 on the max. **So the ruling is
   that a floor is an order statistic and not a spread**, and what is asymmetric
@@ -1834,14 +1844,14 @@ rather than a slot in the next run, observed again:
   so the conceptual objection in [the floor section][floor] stands measured
   (item 56).
 
-- `OPEN` **`mut-odo-vecdims-add-in` leads `mut-odo-vecdims` on most populations,
-  and Run 18 read the margin outside a floor on one compiler and absent
-  on the other.** Registered here 2026-08-22, out of Run 17; parked 2026-08-25
-  and UNPARKED 2026-08-29, the probe owed and no decision, the ruling being
-  the last paragraph of this entry. The series, as Run 17's write-up recorded
-  it ([Run 17's file](runs/run17.md)): `add-in` against the arm it varies read
-  1.0009, 0.9934, 0.9967, 1.0023 and 1.0043 across Runs 10 to 16, four
-  of those five a coin flip, and Run 17 reads **0.9889 at 19 of 24, sign p
+- `PARKED` **`mut-odo-vecdims-add-in` leads `mut-odo-vecdims` on most
+  populations, and Run 18 read the margin outside a floor on one compiler
+  and absent on the other.** Registered here 2026-08-22, out of Run 17; parked
+  2026-08-25 and UNPARKED 2026-08-29, the probe owed and no decision, the ruling
+  being the last paragraph of this entry. The series, as Run 17's write-up
+  recorded it ([Run 17's file](runs/run17.md)): `add-in` against the arm
+  it varies read 1.0009, 0.9934, 0.9967, 1.0023 and 1.0043 across Runs 10 to 16,
+  four of those five a coin flip, and Run 17 reads **0.9889 at 19 of 24, sign p
   0.0066** on its basis and **0.9709 at 21 of 24, p 0.00028** on its control.
   **What is new is not the margin but the agreement**: the two halves differ
   in `.text` and in every loop offset, `add-in` is itself moved 1% across them,
@@ -1941,7 +1951,9 @@ rather than a slot in the next run, observed again:
   against `mut-odo-vecdims-add-in`. If the ordering follows the offsets
   it is placement; if it survives them the arm is really faster. That is two
   twenty-second builds and a filtered probe, and it needs no run. Artifacts
-  `probe-addin-*` and `probe-addin2-*`.
+  `probe-addin-*` and `probe-addin2-*`. **PARKED 2026-09-04 with the prune:
+  the arm is `Only`, and the shipped fill carries the axis it added,
+  so the question bears on nothing that ships.**
 
   **RUN 18 ANSWERED THE HALF THIS ENTRY DEFERRED, and the answer is
   that the lead is the compiler's.** On one source, one shim and one roster,
@@ -2087,7 +2099,10 @@ rather than a slot in the next run, observed again:
   and `canon-full-nosum` having been added for exactly this. Until
   then the correction stands, and a run that finds all three medians past a few
   percent on one side should say so in its chapter rather than passing the gate
-  silently, as Runs 16 and 17 did.
+  silently, as Runs 16 and 17 did. **Narrowed 2026-09-04**: the prune took
+  `mut-flat-gm-nosum` and `canon-full-nosum` with their bases,
+  so an adjudication reads the two `-nosum` arms that remain, and the third
+  shape of fill is Runs 13 to 24's record.
 - `ANSWERED` **What Run 18 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
   verdicts are [in Run 18's own file](runs/run18.md), where they were moved
@@ -2413,12 +2428,15 @@ is planned. A scope limit belongs in the sentence that asks for the measurement.
    run compares against](runs/run24.md#what-the-next-run-compares-against): four
    percent of the instructions and five of the time on every padded fill,
    against `mut-odo` losing a few points in three classes.
-8. `OPEN` **Re-aim claim 1 at the family's leader, or say why not**: fourteen
-   arms read below `mut-odo-vecdims` on Run 24's basis with three more level,
-   where nineteen and one did on Run 23's and eighteen and one on Run 22's,
-   the shipped route among them, and claim 1's top rung still prices a mutating
-   method against `mut-flat-gm`. Carried from Run 22's claims section, which
-   raised it and left it to a decision.
+8. `ANSWERED` **Re-aim claim 1 at the family's leader, or say why not**:
+   fourteen arms read below `mut-odo-vecdims` on Run 24's basis with three more
+   level, where nineteen and one did on Run 23's and eighteen and one on Run
+   22's, the shipped route among them, and claim 1's top rung still prices
+   a mutating method against `mut-flat-gm`. Carried from Run 22's claims
+   section, which raised it and left it to a decision. **ANSWERED 2026-09-04
+   by the prune: claim 1 retires rather than re-aims, every rung below its top
+   parked, and claim 10 takes its place, the shipped fill against the family
+   root; claim 1's last reading is Run 24's.**
 9. `ANSWERED` **The dispatch threshold by the one-binary probe the `dispRun`
    entry names, and the shapes Run 24 adds --- registered 2026-09-02, before
    either ran.** Three arms, `lib-stage2-disp-2048`, `lib-stage2-disp-8192`
@@ -3150,10 +3168,12 @@ and the `runs` class is where the routes part; with the timed `-u2-down`
 the dispatch arm, the three fill candidates and the unordered pair the block
 took the roster to 1320 benches, and the composite arm with the six parkings
 and two main-set shapes of 2026-09-02 took the roster to 1352 benches,
-and the retirement of eight main-set shapes on 2026-09-04 takes the roster
-to 936 benches, eight superseded arms parked permanently since Run 21,
-`offtab`'s twins removed with it. What the next run is registered to answer
-with them is [in the open list][open].
+and the retirement of eight main-set shapes on 2026-09-04 took the roster to 936
+benches, eight superseded arms parked permanently since Run 21, `offtab`'s twins
+removed with it; the prune of the same day parks `lib-stage2`
+and `lib-stage2-concat` among sixteen arms ([what the benchmark
+does](#what-the-benchmark-does)) and takes the roster to 432 benches. What
+the next run is registered to answer with them is [in the open list][open].
 
 **What the eight are worth as instruments, read against each other for the first
 time on 2026-08-14, over Runs 10 to 13.** Per class: the median A/A deviation
@@ -4845,19 +4865,16 @@ is also the order to read them in:
 The order they are *run* in is deliberately a different one, fixed by `roster`
 in `Main.hs`, where a majority of them now take no slot at all, being checked
 and not timed; the Results table below is sorted by time, a third. Sharing
-that roster with the strategies, and not strategies themselves, are twenty-two
-controls: sixteen A/A arms --- `bq-expand-aa-adjacent`
-and `bq-expand-aa-distant`, `bq-scan-rem-gm-mulback-aa-adjacent`
-and `bq-scan-rem-gm-mulback-aa-distant`, `mut-odo-vecdims-aa`
-and `mut-odo-vecdims-aa-distant`, `bq-odo-gm-mulback-aa-adjacent`
-and `bq-odo-gm-mulback-aa-distant`, and, added 2026-08-14, `build-aa-adjacent`
-and `build-aa-distant`, `mut-odo-aa-adjacent` and `mut-odo-aa-distant`,
-`list-aa-adjacent` and `list-aa-distant`, `gen-unsafe-aa-adjacent`
-and `gen-unsafe-aa-distant`, eight strategies each duplicated in both positions
---- the `sum-only-early`/`sum-only-late` pair, and `bq-expand-nosum`,
-`mut-odo-vecdims-nosum`, `mut-flat-gm-nosum` and, added 2026-08-25,
-`canon-full-nosum`, each its base arm forced with one element instead
-of the sum. [The noise floor](#what-moves-a-figure-when-no-strategy-changed)
+that roster with the strategies, and not strategies themselves, are ten
+controls: six A/A arms --- `bq-expand-aa-adjacent` and `bq-expand-aa-distant`,
+`mut-odo-vecdims-aa` and `mut-odo-vecdims-aa-distant`, `list-aa-adjacent`
+and `list-aa-distant`, three strategies each duplicated in both positions ---
+the `sum-only-early`/`sum-only-late` pair, and `bq-expand-nosum`
+and `mut-odo-vecdims-nosum`, each its base arm forced with one element instead
+of the sum. Sixteen A/A arms over eight strategies and four `-nosum` arms ran
+from Run 14 to Run 24; the prune of 2026-09-04 (below) took the rest
+with the arms they controlled. [The noise
+floor](#what-moves-a-figure-when-no-strategy-changed)
 and [sum-only](#sum-only-and-the-correction-now-applied) say what each is for.
 
 The `check` mode (below) asserts every strategy produces byte-identical vectors
@@ -4894,27 +4911,58 @@ and persisting for a whole run rather than one bench: unretired rather
 than absent, since that case ran benchmarks of a different scale.
 
 **Two rulings taken 2026-08-08 cut the timed roster from 38 strategies to 15,
-and the arms written since bring it back to 28** --- the four unconditional
-forms the precondition ruling itself called for (below), the four FastReshape
-arms, of the five Run 20 arms beside them the three the probes left timed ([the
-mutable ceiling](#the-mutable-ceiling-taken)), and the rework's five less
-the three placement-family arms parked beside them. Both rulings are about what
-is worth spending a bench on, not about what is worth keeping: every dropped
-strategy stays in `Main.hs` and stays in the roster as `concat-runs` is ---
-checked against the reference on every shape of every class, and not timed ---
-so the agreement net does not shrink and nothing has to be rewritten if a ruling
-is later reopened. The 23 arms the rulings dropped carry `Only` in that roster,
-each naming the bound or the multiple that disqualified it; with the controls
-the run is 52 arms, and the five library-shaped arms with the timed `-u2-down`,
+the arms written since brought it back to 28, and a third cut on 2026-09-04,
+the prune, takes it to fourteen with `list`** --- the 28 being the four
+unconditional forms the precondition ruling itself called for (below), the four
+FastReshape arms, of the five Run 20 arms beside them the three the probes left
+timed ([the mutable ceiling](#the-mutable-ceiling-taken)), and the rework's five
+less the three placement-family arms parked beside them. All three cuts
+are about what is worth spending a bench on, not about what is worth keeping:
+every dropped strategy stays in `Main.hs` and stays in the roster
+as `concat-runs` is --- checked against the reference on every shape of every
+class, and not timed --- so the agreement net does not shrink and nothing has
+to be rewritten if a ruling is later reopened. The 23 arms the rulings dropped
+carry `Only` in that roster, each naming the bound or the multiple
+that disqualified it. The five library-shaped arms with the timed `-u2-down`,
 added 2026-08-28 ([the stride
 classes](#the-stride-classes-and-what-they-cover)), less the eight parked
 permanently since Run 21 and `offtab`'s two twins removed ([its entry][open]),
 plus the six arms added 2026-08-30 and, on 2026-09-02, the composite arm less
-six parkings over two more main-set shapes, took the roster to 1352 benches;
-the retirement of eight main-set shapes on 2026-09-04 takes the roster to 936
-benches. The three placement-family arms went to `Only` a run earlier,
-on 2026-08-25, so Run 20's 1272 already excludes them and they are no part
-of this arithmetic.
+six parkings over two more main-set shapes, took the roster to 1352 benches,
+and the retirement of eight main-set shapes on 2026-09-04 to 936. The three
+placement-family arms went to `Only` a run earlier, on 2026-08-25, so Run 20's
+1272 already excludes them and they are no part of this arithmetic. **The prune,
+decided 2026-09-04, cuts the timed roster to the one question the benchmark
+still serves: how exactly the `mut-odo-vecdims` family is used in the library.**
+What stays timed is `list`, the reference; `bq-expand`, the class default;
+`mut-odo-vecdims` and the two forms of the shipped fill, `-add-in-leaf-u2`
+and `-u2-down`; and the library-shaped arms with a question left, `lib-stage1`,
+`lib-stage2-disp`, `lib-stage2-short`, `-lean` and `-short-lean`,
+and the `liblist` and `libunord` pairs. Sixteen arms go to `Only`
+as the rulings' 23 did, each with the reason at its entry: the six pure arms
+the decision of 2026-08-22 retired from candidacy, `gen-unsafe`,
+`bq-mut-runs-gm-mulback`, `offtab-scan-rem`, `bq-expand-gm-mulback`,
+`bq-scan-rem-gm-mulback` and `bq-odo-gm-mulback` --- no pure arm is fastest
+on almost every shape, the innermost extent deciding the winner ([per
+shape](#per-shape-where-the-geomean-hides-the-ordering)) and the two heading
+the tier tying; `build` and `mut-odo`, whose identity is settled; `mut-flat-gm`;
+and the seven fragments that have delivered their reading and vary a body
+nothing ships, `mut-odo-vecdims-add-in`, `canon-vecdims`, `bcast-set`,
+`mid-copy` and `canon-full`, each over plain `mut-odo-vecdims` where the branch
+composes over the leaf body, and `lib-stage2` and `lib-stage2-concat`,
+the halves that bracketed `dispRun`. A parked arm's A/A twins and `Force` arm
+are deleted rather than parked, a control of an untimed arm pricing nothing
+and the roster having no untimed form for one: ten twins and two `-nosum` arms
+go, so the floor is read over six pairs from Run 25 on and gate 3 over two
+shapes of fill ([sum-only](#sum-only-and-the-correction-now-applied)), and claim
+1, the ladder every rung of which but the top is parked, retires with them,
+claim 10 registered in its place on the roster's own question, the shipped fill
+against the family root ([Run 24's
+claims](runs/run24.md#the-claims-the-next-run-should-test)). The slots that stay
+keep their order, so `sum-only-early` still precedes `list` and the distant
+twins still sit early; what the deletions change is the spans, which shorten
+as they did at the first cut. So with the controls the run is 24 arms,
+and the prune takes the roster to 432 benches.
 
 - **A strategy with a precondition is not measured.** The column allowed `none`,
   an empty cell, and `shape well-formed`, which is a condition on being a valid
@@ -7022,18 +7070,18 @@ because by then the run read finished; putting it first is what retires that.
    failing invalidates the whole time column rather than merely leaving
    it uncorrected, and all have to be re-passed by every run rather
    than inherited --- by every *population* too, each process carrying its own
-   `sum-only` pair, its own sixteen A/A controls and its own `-nosum` arms ---
-   four on today's roster, and a half built on another roster carries
-   that roster's --- so a class run passes or fails the gates on its own
-   evidence and a failure there invalidates that class's column and no other.
-   **Then write this run's own floor at the head of the chapter as you draft it,
-   and keep it there.** It is published with the margins it judges rather
-   than kept where only this session can see it, it is re-measured each run,
-   and the runs have disagreed several-fold, so the previous run's figure
-   is the one you will reach for by habit and it is the wrong one. `--aa` prints
-   each pair's raw ratio and `f` beside the net one for a related reason:
-   the net figure is the floor between two published rows, where the raw one
-   is how much an arm disagrees with itself.
+   `sum-only` pair, its own A/A controls and its own `-nosum` arms --- a half
+   built on another roster carries that roster's --- so a class run passes
+   or fails the gates on its own evidence and a failure there invalidates
+   that class's column and no other. **Then write this run's own floor
+   at the head of the chapter as you draft it, and keep it there.**
+   It is published with the margins it judges rather than kept where only
+   this session can see it, it is re-measured each run, and the runs have
+   disagreed several-fold, so the previous run's figure is the one you will
+   reach for by habit and it is the wrong one. `--aa` prints each pair's raw
+   ratio and `f` beside the net one for a related reason: the net figure
+   is the floor between two published rows, where the raw one is how much an arm
+   disagrees with itself.
 4. **Match bases before reading any ratio.** The first act of a comparison
    is making its two sides one basis --- the same population, the same
    restriction, the basis a claim was stated on --- and only then reading
@@ -7766,8 +7814,9 @@ to be exactly 1, so they are the only place an interval can be held
 to an answer. `--aa` reports whether each covers 1 and how its half-width
 compares with the spread the pairs actually show, which turns the floor
 from a threshold someone chose into a factor a run measured. Read that factor
-as an order of magnitude: it rests on sixteen pairs since the parking
-of 2026-08-28, and on eighteen before it.
+as an order of magnitude: it rests on six pairs since the prune of 2026-09-04,
+on sixteen from the parking of 2026-08-28 until then, and on eighteen before
+that.
 
 `--markdown` renders the same rows the plain table does, from one shared call,
 so the published figures cannot drift from the terminal's. It reads the Results
@@ -7953,20 +8002,28 @@ creates, the other creates less and resolves nothing --- and the pair of them
 is the reading. That is the shim's standing rule restated from a new direction
 and not a case against it.
 
-Sixteen A/A controls run an existing strategy twice under a second name ---
-eight strategies, each duplicated once beside its base and once at a distance,
-so position varies within a strategy and strategy within a position. Twelve
-of the eighteen there were until `offtab`'s parking came on 2026-08-14 ---
-the `offtab` and `bq-odo-gm-mulback` pairs for the coverage gap the wild-cell
-entry names and for the spread instrument's widest arm, and the `build`,
-`mut-odo`, `list` and `gen-unsafe` pairs the same day, the placement-sensitive
-pair that carries Run 14's own control, the denominator every ratio divides by,
-and the one wide arm flat against every shape dimension --- and were first read
-in Run 14. The table below is the other six, the ones that carry back to Run 10,
+Six A/A controls run an existing strategy twice under a second name --- three
+strategies, each duplicated once beside its base and once at a distance,
+so position varies within a strategy and strategy within a position. Sixteen ran
+from Run 14 to Run 24, over eight strategies: twelve of the eighteen there
+were until `offtab`'s parking came on 2026-08-14 --- the `offtab`
+and `bq-odo-gm-mulback` pairs for the coverage gap the wild-cell entry names
+and for the spread instrument's widest arm, and the `build`, `mut-odo`, `list`
+and `gen-unsafe` pairs the same day, the placement-sensitive pair that carries
+Run 14's own control, the denominator every ratio divides by, and the one wide
+arm flat against every shape dimension --- and were first read in Run 14;
+the prune of 2026-09-04 ([what the benchmark does](#what-the-benchmark-does))
+parked five of the eight strategies and deleted their ten twins,
+so the sixteen-pair series ends at Run 24 as the eighteen-pair one ended at
+Run 20. The table below is the other six, the ones that carried back to Run 10,
 which is why this README quotes a six-pair figure beside the sixteen-pair one
-and compares two rows of the Results table on the six. They are the only rows
-whose true ratio is known to be exactly 1 --- or were, until [the mutable
-ceiling](#the-mutable-ceiling-taken) turned up another by accident:
+and compares two rows of the Results table on the six --- and the prune breaks
+that series too, taking the `bq-scan-rem-gm-mulback` pair: from Run 25 the six
+are the `list`, `bq-expand` and `mut-odo-vecdims` pairs, four of the old six
+continuing, and a six-pair figure read across that boundary is over two
+populations. They are the only rows whose true ratio is known to be exactly 1
+--- or were, until [the mutable ceiling](#the-mutable-ceiling-taken) turned up
+another by accident:
 
 | pair | span | g912 | ghead | mean per cell |
 |---|---:|---:|---:|---:|
@@ -8124,18 +8181,18 @@ of one table must clear, and 2.1% is the across-run drift band an arm must clear
 to have moved between runs on this box, Run 23's one-binary reading, where Run
 11's was 3.3%. **All three are the word *floor*, over different populations,
 and two things that are not it wear it easily.** A class's `floor` column
-is the same statistic again over that population's sixteen pairs, so it
-is a fourth member of the family and not a fourth sense. **And a margin read
-ACROSS a pair's two halves on a class is judged against the WIDER of the two
-halves' floors, and a registration's kill condition on a class says so**:
-the narrower floor is the one that makes a kill and the wider the one that makes
-a tie honest, and a pair whose halves' floors differ threefold --- Run 23's
-`reshape1`, 3.09% on the basis and 10.75% on the dead-spot half --- is exactly
-where a reader should not get to choose. Ruled 2026-09-02, after that run's
-registration 3 was read two ways; under it that registration's first half
-is a split and not a kill. **The worst single A/A cell is not a floor at all**
---- 16.66% on this run's basis main set and 19.72% on one of its class processes
---- and the procedure says so where it is read; it is one cell where
+is the same statistic again over that population's A/A pairs, so it is a fourth
+member of the family and not a fourth sense. **And a margin read ACROSS a pair's
+two halves on a class is judged against the WIDER of the two halves' floors,
+and a registration's kill condition on a class says so**: the narrower floor
+is the one that makes a kill and the wider the one that makes a tie honest,
+and a pair whose halves' floors differ threefold --- Run 23's `reshape1`, 3.09%
+on the basis and 10.75% on the dead-spot half --- is exactly where a reader
+should not get to choose. Ruled 2026-09-02, after that run's registration 3
+was read two ways; under it that registration's first half is a split and
+not a kill. **The worst single A/A cell is not a floor at all** --- 16.66%
+on this run's basis main set and 19.72% on one of its class processes ---
+and the procedure says so where it is read; it is one cell where
 these are geomeans over a population, and quoting it as one overstates
 the instrument by an order of magnitude. Nor is the residue [the alignment
 question][open] asks about, which is an effect size that survived a control
@@ -9507,7 +9564,7 @@ compares something new --- two populations, two machines, two GHC versions,
 an arm against a prediction --- ask which of these bounds it, and if none does,
 say so in the sentence rather than borrowing the nearest number.
 
-**Each population measures its own floor.** The same sixteen controls ride every
+**Each population measures its own floor.** The same six controls ride every
 process, so a stride-class run prices the noise of the process its own figures
 came out of --- which is the only process they can be judged in ---
 but it prices it over three cells where the main set has two dozen. Read
@@ -9727,6 +9784,10 @@ dispatches per shape between hoisted stores, `VS.unsafeCopy` and the stepping
 loop, so it is the first control here whose write pattern is not one pattern.
 Two arms an octave apart in speed agreeing to 1% makes that unlikely rather
 than impossible, and the arms are in the roster so every run reprices them.
+**And wider again since 2026-09-04**: the prune took `mut-flat-gm-nosum`
+and `canon-full-nosum` with their bases, so the pairs price the two arms they
+priced before Run 13, the odometer and the expansion, and the third shape
+of fill is a record, Runs 13 to 24's, rather than a control every run reprices.
 
 **And a cell the term cannot correct is a shape the row loses, not a row lost
 --- ruled 2026-08-26, when Run 20's preparation met the first arms that reach
@@ -9782,45 +9843,49 @@ the record costs. **A fourth half arrives with the pairing and is not a delta
 at all**: which half of the pair a figure came from, which is why the run file's
 tables and its fingerprint say so.
 
-- Run 24 measured today's shapes, today's class views AND today's roster,
-  nothing having moved since it ran --- 52 timed arms over 26 main-set shapes
-  and 41 class views in NINE classes, 1352 benches and 2132, sixteen A/A pairs,
-  the `runs` class at FOURTEEN and `window` at FOUR --- so its delta against
-  a reader opening this file today is EMPTY. **Its delta against RUN 23
-  is not**, and it is a roster and a shape-set delta both:
-  `lib-stage2-short-lean` landed as a timed arm and `lib-stage2-disp` was re-cut
-  from 256 to 2048 under its own name, four arms went to `Only`
-  (`lib-stage2-u4`, `mut-odo-vecdims-add-in-leaf`, its `-down` twin
-  and `canon-memcpy-r2`) with three probe arms landing parked beside them, two
-  main-set shapes landed (`lenet-slice-c6-k5` and `cnn-L1-12x12-c1`) and four
-  class views (`runs-7`, `runs-4096`, `runs-16384`, `window-128x128-k7`), all
-  of it on 2026-09-02 in `6d7689a` and `7dd094e`. So NEITHER half reproduces
-  an earlier binary and no md5 here matches one on record: a distance from Run
-  23's columns carries a layout term as well as an evening, which the run
-  measured at 33 of 45 shared arms within 1% of `run23-spot`, and of the twelve
-  outside, ten the placement-exposed families and two the degenerate `libunord`
-  pair. What a reader has to carry is which half a figure came from: everything
-  published in its file is `run24-g912`, ghc-9.12.4, and `run24-ghead` ---
-  the same source, shim and shim environment built through `cabal.project.ghead`
-  against the in-tree GHC HEAD stage1, so the halves differ in the compiler
-  and in the boot libraries that come with it and in nothing else ---
-  contributes the second column of `runs/run24.md`. Its `list` moved 0.25%
-  between the halves, inside the 0.7% bar, so its two columns may be subtracted.
-  The box did not move, its gate machine check reading +0.56% and its two
-  main-set processes -0.20% and -0.39% against Run 23's fingerprint over 24
-  of 26 shapes, so absolutes cross from Run 23 freely and the boundary
-  that stops them is still the BIOS change before Run 18. Its sequence ran
-  in ONE window, all twenty processes, with no intrusion and no population
-  rerun. For Run 25, two window views and the four classes of that day,
-  `window-224x224-k3-s2`, `window-224x224-k3-d2`, `flip-whole-square`,
-  `flip-last-c32`, `flip-last-rows`, `block-run64-gap1`, `block-run64-gap64`,
-  `block-run64-page`, `block-run64-off7`, `block-r3-vol64`, `small-row96`,
-  `small-patch-k5`, `small-bcast32`, `small-flat64`, `compose-rev-bcast`,
-  `compose-slice-bcast`, `compose-zero-mid` and `compose-scalar` were added
-  2026-09-03, after the run. `reshape1`, `revsome` and `slice` were retired
-  2026-09-04, after the run. `stretch-inner1`, `lenet-slice-c6-k5`,
-  `cnn-L1-6x6-c1`, `cifar-L2-16-c64-k3`, `stretch-rank10`, `conv1d-24`,
-  `stretch-rank12` and `cnn-L1-12x12-c1` were retired 2026-09-04, after the run.
+- Run 24 measured the shapes, class views and roster of its day --- 52 timed
+  arms over 26 main-set shapes and 41 class views in NINE classes, 1352 benches
+  and 2132, sixteen A/A pairs, the `runs` class at FOURTEEN and `window` at FOUR
+  --- and its delta against TODAY is the prune of 2026-09-04 ([what
+  the benchmark does](#what-the-benchmark-does)): sixteen arms parked `Only`
+  and their twelve controls deleted, none landing, so today's 24 timed arms
+  are all among its 52 and in its order, every slot from `gen-unsafe`'s down
+  moved up by what left above it; the shapes and classes retired the same day
+  are named below. **Its delta against RUN 23** is a roster and a shape-set
+  delta both: `lib-stage2-short-lean` landed as a timed arm
+  and `lib-stage2-disp` was re-cut from 256 to 2048 under its own name, four
+  arms went to `Only` (`lib-stage2-u4`, `mut-odo-vecdims-add-in-leaf`,
+  its `-down` twin and `canon-memcpy-r2`) with three probe arms landing parked
+  beside them, two main-set shapes landed (`lenet-slice-c6-k5`
+  and `cnn-L1-12x12-c1`) and four class views (`runs-7`, `runs-4096`,
+  `runs-16384`, `window-128x128-k7`), all of it on 2026-09-02 in `6d7689a`
+  and `7dd094e`. So NEITHER half reproduces an earlier binary and no md5 here
+  matches one on record: a distance from Run 23's columns carries a layout term
+  as well as an evening, which the run measured at 33 of 45 shared arms within
+  1% of `run23-spot`, and of the twelve outside, ten the placement-exposed
+  families and two the degenerate `libunord` pair. What a reader has to carry
+  is which half a figure came from: everything published in its file
+  is `run24-g912`, ghc-9.12.4, and `run24-ghead` --- the same source, shim
+  and shim environment built through `cabal.project.ghead` against the in-tree
+  GHC HEAD stage1, so the halves differ in the compiler and in the boot
+  libraries that come with it and in nothing else --- contributes the second
+  column of `runs/run24.md`. Its `list` moved 0.25% between the halves, inside
+  the 0.7% bar, so its two columns may be subtracted. The box did not move,
+  its gate machine check reading +0.56% and its two main-set processes -0.20%
+  and -0.39% against Run 23's fingerprint over 24 of 26 shapes, so absolutes
+  cross from Run 23 freely and the boundary that stops them is still the BIOS
+  change before Run 18. Its sequence ran in ONE window, all twenty processes,
+  with no intrusion and no population rerun. For Run 25, two window views
+  and the four classes of that day, `window-224x224-k3-s2`,
+  `window-224x224-k3-d2`, `flip-whole-square`, `flip-last-c32`,
+  `flip-last-rows`, `block-run64-gap1`, `block-run64-gap64`, `block-run64-page`,
+  `block-run64-off7`, `block-r3-vol64`, `small-row96`, `small-patch-k5`,
+  `small-bcast32`, `small-flat64`, `compose-rev-bcast`, `compose-slice-bcast`,
+  `compose-zero-mid` and `compose-scalar` were added 2026-09-03, after the run.
+  `reshape1`, `revsome` and `slice` were retired 2026-09-04, after the run.
+  `stretch-inner1`, `lenet-slice-c6-k5`, `cnn-L1-6x6-c1`, `cifar-L2-16-c64-k3`,
+  `stretch-rank10`, `conv1d-24`, `stretch-rank12` and `cnn-L1-12x12-c1`
+  were retired 2026-09-04, after the run.
 - Run 23 measured Run 22's shapes, class views and roster, nothing having moved
   between them --- 55 timed arms over 24 of today's 26 main-set shapes and 37
   of today's 41 class views in NINE classes, 1320 benches and 2035, sixteen A/A

@@ -3820,11 +3820,25 @@ CLAIMS = [
     # branches below -- in `claim_readings` and in the `--claims` printer
     # -- are unexercised by this manifest and a change to either would
     # pass every check here. Re-register a tie to exercise them.
-    (1, 'the ceiling ordering, on unconditional arms',
-     [('mut-odo-vecdims', 'mut-flat-gm', 'faster'),
-      ('mut-flat-gm', 'bq-mut-runs-gm-mulback', 'faster'),
-      ('bq-mut-runs-gm-mulback', 'bq-odo-gm-mulback', 'faster'),
-      ('bq-mut-runs-gm-mulback', 'bq-scan-rem-gm-mulback', 'faster')]),
+    # CLAIM 1 RETIRED 2026-09-04 with the prune, which parked every arm
+    # below its top rung -- `mut-flat-gm`, `bq-mut-runs-gm-mulback`,
+    # `bq-odo-gm-mulback` and `bq-scan-rem-gm-mulback` -- so no link of
+    # the ladder can be read on the roster as it stands; its last reading
+    # is Run 24's, in that run's file. CLAIM 10 REGISTERED THE SAME DAY in
+    # its place, on the roster's question: what the leaf fusion buys over
+    # the family root, the shipped fill against `mut-odo-vecdims`, read
+    # ahead on every population from Run 20 to Run 24 and at 0.6157, 25 of
+    # 26, on Run 24's basis. It is the one registration, so the `tie` and
+    # best-two-shapes branches below stay unexercised as they have been
+    # since the foot rung went. The ladder as it was, for re-registration
+    # if its arms are ever re-timed:
+    #   (1, 'the ceiling ordering, on unconditional arms',
+    #    [('mut-odo-vecdims', 'mut-flat-gm', 'faster'),
+    #     ('mut-flat-gm', 'bq-mut-runs-gm-mulback', 'faster'),
+    #     ('bq-mut-runs-gm-mulback', 'bq-odo-gm-mulback', 'faster'),
+    #     ('bq-mut-runs-gm-mulback', 'bq-scan-rem-gm-mulback', 'faster')]),
+    (10, 'the leaf fusion, on the family root',
+     [('mut-odo-vecdims-add-in-leaf-u2', 'mut-odo-vecdims', 'faster')]),
     # CLAIMS 2 AND 6 RETIRED 2026-08-28 with the parking of `offtab` and
     # `gen-quotrem`, the arm each of them turned on: a claim over a parked arm
     # cannot be installed, and both were settled orderings a reader takes

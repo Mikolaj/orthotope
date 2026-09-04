@@ -884,24 +884,26 @@ def rundoc_current_run_sentence(tmp):
     LINE, which is where this fixture started, the sentence lands inside
     another one and the figure is never reached.
     """
-    ANCHOR = '**Claim 1 '   # RE-AIMED 2026-08-28, from claim 2, retired
-    # that day with its arm parked; and 2026-08-25 from claim 3, which
-    # retired at Run 19's write-up along with 4, 5 and 9. The anchor has to
-    # be a claim the MANIFEST still carries, not merely a heading the
-    # section still shows: with the claim gone from `CLAIMS` the reader
-    # computes no reading for it, so the planted sentence is never
-    # adjudicated and the figure never appears -- which is how this case
-    # failed the hour the manifest shrank, and again on 2026-08-28 when
-    # claim 2 retired with its arm: the sentence now names a claim-1 arm,
-    # `mut-flat-gm`, so it reads as one about the claim that is left.
+    ANCHOR = '**Claim 10 '   # RE-AIMED 2026-09-04, from claim 1, retired
+    # that day by the prune with every rung below its top parked;
+    # 2026-08-28 from claim 2, retired with its arm parked; and 2026-08-25
+    # from claim 3, which retired at Run 19's write-up along with 4, 5 and
+    # 9. The anchor has to be a claim the MANIFEST still carries, not
+    # merely a heading the section still shows: with the claim gone from
+    # `CLAIMS` the reader computes no reading for it, so the planted
+    # sentence is never adjudicated and the figure never appears -- which
+    # is how this case failed the hour the manifest shrank, and again on
+    # 2026-08-28 and 2026-09-04 when a claim retired with its arms: the
+    # sentence names the live claim's arm, so it reads as one about the
+    # claim that is left.
     doc = rundoc_text()
     run = re.match(r'run(\d+)\.md$', os.path.basename(RUNDOC))
     assert run, 'the run file is not named run<N>.md, so it names no run'
     paras = doc.split('\n\n')
     at = [i for i, p in enumerate(paras) if p.startswith(ANCHOR)]
     assert len(at) == 1, '%s lead: %d paragraph(s)' % (ANCHOR, len(at))
-    paras.insert(at[0] + 1, 'In Run %s, `mut-flat-gm` reads 0.9312 against'
-                            ' it.' % run.group(1))
+    paras.insert(at[0] + 1, 'In Run %s, `mut-odo-vecdims-add-in-leaf-u2`'
+                            ' reads 0.9312 against it.' % run.group(1))
     return write_rundoc(tmp, '\n\n'.join(paras))
 
 
@@ -982,7 +984,7 @@ def readme_of_leads(tmp):
 def rundoc_retirement_sentence(tmp, retiring=True):
     """A claims paragraph quoting a figure the manifest cannot account for.
 
-    Planted under claim 2's lead, the same anchor
+    Planted under the live claim's lead, the same anchor
     `rundoc_current_run_sentence` uses and for the same reason: it is a
     claim the manifest still carries, so the paragraph is adjudicated at
     all. The figure is the fixture's and is not read from the run.
@@ -997,10 +999,10 @@ def rundoc_retirement_sentence(tmp, retiring=True):
     doc = subprocess.run(['wrap80', '--unwrap'], input=rundoc_text(),
                          capture_output=True, text=True, check=True).stdout
     paras = doc.split('\n\n')
-    at = [i for i, x in enumerate(paras) if x.startswith('**Claim 1 ')]
-    assert len(at) == 1, 'claim 1 lead: %d paragraph(s)' % len(at)
-    sent = ('Claim 1 retires here, having last read 0.8271 against it.'
-            if retiring else 'Claim 1 reads 0.8271 against it.')
+    at = [i for i, x in enumerate(paras) if x.startswith('**Claim 10 ')]
+    assert len(at) == 1, 'claim 10 lead: %d paragraph(s)' % len(at)
+    sent = ('Claim 10 retires here, having last read 0.8271 against it.'
+            if retiring else 'Claim 10 reads 0.8271 against it.')
     paras.insert(at[0] + 1, sent)
     return write_rundoc(tmp, '\n\n'.join(paras))
 
@@ -2600,10 +2602,20 @@ def synth_run(path, shapes, samples=8, no_twins=False, sunk=(), skew=(),
         # `Force` arm shares its base's function too and is kept for the
         # same reason. One `Term` half goes with them, the two halves being
         # an A/A pair of the forcing term.
+        # EXCEPT WHERE THE BASE IS A `Force` BASE TOO: an in-situ row is
+        # base minus `-nosum`, so dropping such a base takes the row with
+        # it, and since the prune of 2026-09-04 every `Force` base is a
+        # twin base -- the fixture then carried no in-situ row at all and
+        # the old code had nothing to misread, the vacuous pass above by
+        # another route. There the twin goes and the base stays: no pair
+        # forms and the row survives.
         bases = {fn for _, role, fn in timed if role == 'Twin'}
+        forced = {fn for _, role, fn in timed if role == 'Force'}
         kept, first_term = [], True
         for n, role, fn in timed:
-            if role not in ('Twin', 'Force') and fn in bases:
+            if role not in ('Twin', 'Force') and fn in bases - forced:
+                continue
+            if role == 'Twin' and fn in forced:
                 continue
             if role == 'Term':
                 if not first_term:
@@ -3718,15 +3730,15 @@ RECORDS = [
                                  skew=[(sh, arm, f)
                                        for sh in main_shapes()
                                        for arm, f in (('bq-expand', 1.10),
-                                                      ('bq-expand-gm-mulback', 1.12),
-                                                      ('mut-odo', 1.08),
-                                                      ('offtab-scan-rem', 1.01))])},
+                                                      ('lib-stage1', 1.12),
+                                                      ('lib-stage2-disp', 1.08),
+                                                      ('liblist-stage1', 1.01))])},
          argv=['{run}', '--compare', '{other}', '--movers', '3'],
          ok=V(exit=0,
               has=['3 of %d arm(s) move past 3%%' % compared_arm_count(),
-                   'in 3 group(s)', 'bq-expand', 'bq-expand-gm-mulback',
-                   'mut-odo'],
-              hasnt=['offtab-scan-rem'])),
+                   'in 3 group(s)', 'bq-expand', 'lib-stage1',
+                   'lib-stage2-disp'],
+              hasnt=['liblist-stage1'])),
 
     case('movers-alone-does-nothing', 'read-run.py', None,
          'a numeric modifier whose zero slipped a truthiness guard',
@@ -3814,7 +3826,13 @@ RECORDS = [
          # The silent branch has no case, a synthetic population breaking
          # eleven of thirteen and no cheap filter leaving none: measured
          # instead on run17-det, 13 of 13 held and the paragraph absent.
-         plant=lambda t: {'run': synth_json(t, 'main')},
+         # THE BREAK IS PLANTED since 2026-09-04: the manifest is one
+         # registration, and whether the synthetic work order breaks it is
+         # `_spread`'s accident, so the shipped fill is skewed clear past
+         # its root on every shape.
+         plant=lambda t: {'run': synth_json(t, 'main', skew=[
+             (sh, 'mut-odo-vecdims-add-in-leaf-u2', 4.0)
+             for sh in main_shapes()])},
          argv=['{run}', '--claims'],
          ok=V(has=['`CLAIMS` in this script is where that lands'])),
 
@@ -3825,13 +3843,13 @@ RECORDS = [
          # one arm, and the reader must report one arm rather than the
          # registrations it appears in. It was `bq-expand` until 2026-08-26,
          # when claim 2's second link retired and took that arm out of the
-         # manifest -- the case then filtered nothing and said `0 arm(s)`.
-         # `offtab` is its counterpart, claim 2's remaining link and in one
-         # registration; `gen-quotrem` and `mut-odo-vecdims` would serve
-         # too, and `list` would not, being the baseline every ratio
-         # divides by.
+         # manifest -- the case then filtered nothing and said `0 arm(s)`;
+         # `mut-flat-gm` until the prune of 2026-09-04 parked it with claim
+         # 1. Claim 10's shipped fill is in one registration; `list` would
+         # not serve, being the baseline every ratio divides by.
          plant=lambda t: {'run': synth_json(t, 'main')},
-         argv=['{run}', '--claims', '--exclude', 'mut-flat-gm'],
+         argv=['{run}', '--claims', '--exclude',
+               'mut-odo-vecdims-add-in-leaf-u2'],
          ok=V(has=['1 arm(s) of the claims list']),
          bug=V(has=['arm(s) of the claims list'],
                hasnt=['1 arm(s) of the claims list'])),
@@ -4096,7 +4114,7 @@ RECORDS = [
          # crashed three frames down where the sibling had been refused.
          # A control until the fix has a hash.
          plant=lambda t: {'run': doctored(t, 'main', lambda b: zero_ci(
-                              b, 'build'), 'a.json'),
+                              b, 'lib-stage1'), 'a.json'),
                           'other': synth_json(t, 'main', 'b.json')},
          argv=['{run}', '--compare', '{other}', '--ci'],
          ok=V(exit=0, has=['out of the geomean', 'wider here'],
@@ -4325,7 +4343,7 @@ RECORDS = [
          # The two sunk-baseline cases above are the same family one stage
          # later, on net rather than on slope.
          plant=lambda t: {'run': doctored(t, 'main', lambda b: scale(
-             b, main_shapes()[0] + '/build', 0.0))},
+             b, main_shapes()[0] + '/lib-stage1', 0.0))},
          argv=['{run}', '--selftest'],
          ok=V(exit=1, has=['non-positive slope'],
               hasnt=['ZeroDivisionError', 'Traceback']),
@@ -4347,11 +4365,15 @@ RECORDS = [
 
     case('fingerprint-refuses-a-sunk-cell', 'read-run.py', 'e2d6604',
          'a sunk cell was divided and INSTALLED, outliving its own run',
+         # The bug is the sunk row's NEGATIVE figure and not the absence of
+         # `--`: the pre-fix reader's fingerprint had fixed columns, three
+         # of which the prune of 2026-09-04 parked, so it writes `--` for
+         # those on today's roster and `hasnt` passed for the wrong reason.
          plant=lambda t: {'run': sunk_json(t, main_shapes(),
                                            'mut-odo-vecdims')},
          argv=['{run}', '--fingerprint'],
-         ok=V(has=['| -- |']),
-         bug=V(has=['| shape |'], hasnt=['| -- |'])),
+         ok=V(has=['| -- |'], hasnt=['| -0.']),
+         bug=V(has=['| shape |', '| -0.'])),
 
     case('block-per-shape-refuses-a-sunk-cell', 'read-run.py', 'e2d6604',
          "a sunk cell was divided into the block's installed per-shape line",
@@ -5100,7 +5122,7 @@ RECORDS = [
          # fixture reached while every bound was written; a bound written
          # null, as a starved fit leaves it, is what reaches it.
          plant=lambda t: {'run': doctored(t, 'main', lambda b: null_bound(
-             b, main_shapes()[0] + '/build'))},
+             b, main_shapes()[0] + '/lib-stage1'))},
          argv=['{run}'],
          ok=V(exit=0, has=['1 cell(s) with no confidence interval'])),
 
@@ -6447,8 +6469,8 @@ RECORDS = [
          # per-population rule -- while every class block printed
          # "N of 18". Nothing compared them.
          plant=lambda t: {'readme': edited_readme(t, (
-             'as an order of magnitude: it rests on sixteen pairs',
-             'as an order of magnitude: it rests on six pairs'))},
+             'as an order of magnitude: it rests on six pairs',
+             'as an order of magnitude: it rests on sixteen pairs'))},
          argv=['--check-doc', '--readme', '{readme}'],
          ok=V(exit=1, has=['A/A population is quoted as']),
          # No --audit: the fixture is built from today's document and
@@ -6471,9 +6493,9 @@ RECORDS = [
          # sixteen on 2026-08-28 and every site still read eighteen, in
          # agreement and wrong, through a whole write-up.
          plant=lambda t: {'readme': unwrapped_readme_edit(
-             t, 'as an order of magnitude: it rests on sixteen pairs',
+             t, 'as an order of magnitude: it rests on six pairs',
              'as an order of magnitude: it rests on eighteen pairs',
-             'The same sixteen controls ride every process',
+             'The same six controls ride every process',
              'The same eighteen controls ride every process')},
          argv=['--check-doc', '--readme', '{readme}'],
          ok=V(exit=1, has=['where the roster has'])),

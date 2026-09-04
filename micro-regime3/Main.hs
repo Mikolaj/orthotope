@@ -4237,76 +4237,34 @@ roster =
     -- bench does. It moves every later slot by one, which the roster delta
     -- records. Added 2026-08-14, first read in Run 14.
   , ("list-aa-adjacent",           Twin fbList)
-    -- A/A controls, three of them, none a strategy: each runs an
-    -- existing function twice so its true ratio is known to be exactly 1,
-    -- and what it measures instead is what two identical things differ by.
-    -- A margin narrower than they are is not a result.
-    --
-    -- They are aimed where comparisons are close, which Failed Run 6
-    -- showed is NOT the top of the table but two bands lower down. This
-    -- one duplicates 'bq-scan-rem-gm-mulback' from ~30 slots away, so it
-    -- prices the scan band -- which holds the shipping question, that arm
-    -- being the fastest pure one carrying no precondition -- and
-    -- simultaneously spans the group, keeping position monitored rather
-    -- than assumed now that SpecConstr changes code layout.
-    --
-    -- The ruling this slot paid for: a control aimed at a SECOND strategy
-    -- varies strategy and position at once, so the bias it reads can be
-    -- read neither way. The crossed twins below are what fixed that --
-    -- three strategies each in both slots, the scan band priced by its
-    -- own adjacent twin -- and the verdict they reached is at
-    -- README.md#what-moves-a-figure-when-no-strategy-changed.
-  , ("bq-scan-rem-gm-mulback-aa-distant", Twin fbBQscanRemGmMulback)
-    -- The other two distant twins, added with the time the halved shape set
-    -- freed. With these the controls are CROSSED: each twinned strategy is
-    -- duplicated once here and once beside its base, so position varies
-    -- within a strategy and strategy varies within a position -- which is
-    -- what the slot above could not do, and what settled the position
-    -- question.
+    -- The distant halves of the crossed A/A pairs, none a strategy: each
+    -- runs an existing function twice, so its true ratio is known to be
+    -- exactly 1 and what it measures is what two identical things differ
+    -- by -- a margin narrower than they are is not a result. Each twinned
+    -- strategy is duplicated once here and once beside its base, so
+    -- position varies within a strategy and strategy within a position,
+    -- which is the design that settled the position question
+    -- (README.md#what-moves-a-figure-when-no-strategy-changed). Nine
+    -- strategies were twinned at Run 14, the scan band's pair the oldest
+    -- and in the slot above these; 'offtab''s twins went with its parking
+    -- on 2026-08-28 and five more pairs with the prune of 2026-09-04
+    -- (README.md#what-the-benchmark-does), a twin of an untimed arm
+    -- pricing nothing, and the slots below stayed where they were.
   , ("bq-expand-aa-distant",       Twin fbBQexpand)
   , ("mut-odo-vecdims-aa-distant", Twin fbMutOdoVecdims)
-    -- The fourth and fifth twinned strategies, aimed at the two gaps the
-    -- crossed design left (README.md#what-is-open): 'offtab' is the widest
-    -- arm of the between-process spread instrument in every pair measured
-    -- and had no twin to separate its position from its code, and
-    -- 'bq-odo-gm-mulback' heads the pure tier while sharing the expansion
-    -- family's susceptibility to the wild cell, which the A/A worst-cell
-    -- gate could not see on it. Added 2026-08-14, first read in Run 14;
-    -- 'offtab''s twins removed 2026-08-28 with the arm's parking, so the
-    -- slot below was theirs and this comment names a pair now gone.
-  , ("bq-odo-gm-mulback-aa-distant", Twin fbBQodoGmMulback)
-    -- The sixth to ninth twinned strategies, added 2026-08-14 once the
-    -- session that worked the task list down could say what twin coverage
-    -- was hiding: both anomalies this README chases were caught only because
-    -- they landed on a twinned arm, so their apparent distribution is a
-    -- fact about the controls and not about the machine
-    -- (README.md#what-is-open). 'build' and 'mut-odo' are the
-    -- placement-sensitive pair the floor section is written about, they
-    -- carry the loop whose copies a plain build duplicates per function,
-    -- and Run 14's registered predictor names their 1.13x gap as the
-    -- control that must survive the nursery change -- with no twin, a
-    -- moved gap cannot be told from a disturbed slot, which is the one
-    -- reading that run is built to make. 'list' is the denominator of
-    -- every published ratio, so a disturbance there moves every row at
-    -- once and no per-row gate would see it. 'gen-unsafe' is the one wide
-    -- arm of the spread instrument that is flat against every shape
-    -- dimension, and a twin is what separates a noisy arm from a
-    -- disturbed slot. Crossed like the others, each in both positions
-    -- -- except that 'gen-unsafe''s distant half sits LATE, at the end of
-    -- the group rather than here, for the reason given at its slot. They
-    -- land BEFORE Run 14 rather than after it precisely because that
-    -- run's own control is among them. First read in Run 14.
-  , ("build-aa-distant",           Twin fbBuild)
-  , ("mut-odo-aa-distant",         Twin fbMutOdo)
   , ("list-aa-distant",            Twin fbList)
     -- parked 2026-08-28, permanently, by decision (README.md#what-is-open,
     -- the Run 21 entry): superseded, answering no registered question;
     -- its column in a run's own geomean table stays blank from Run 21 on
   , ("gen-quotrem",                Only fbGenQuotRem)
-  , ("gen-unsafe",                 Fill fbGenUnsafe)
-    -- The adjacent half of 'gen-unsafe''s pair; the distant half is early
-    -- with the others. Added 2026-08-14, first read in Run 14.
-  , ("gen-unsafe-aa-adjacent",     Twin fbGenUnsafe)
+    -- Parked 'Only' 2026-09-04 by the prune, with fifteen more below
+    -- marked the same way: the roster is cut to the one question left,
+    -- how the mut-odo-vecdims family is used in the library
+    -- (README.md#what-the-benchmark-does). An arm parked so stays
+    -- checked; its A/A twins and its 'Force' arm are deleted, a control
+    -- of an untimed arm pricing nothing; and its column in a run's own
+    -- geomean table stays blank from Run 25 on.
+  , ("gen-unsafe",                 Only fbGenUnsafe)
     -- not timed: 27.94x the result
   , ("unfold-add",                 Only fbUnfoldAdd)
     -- not timed: 5.19x the result
@@ -4325,10 +4283,8 @@ roster =
     -- keeps a roster entry, and with it an agreement check, but takes no
     -- slot in the run; the entry sits where the slot used to be.
   , ("concat-runs",                Only fbConcatRuns)
-  , ("mut-odo",                    Fill fbMutOdo)
-    -- The adjacent half of 'mut-odo''s pair; the distant half is early
-    -- with the others. Added 2026-08-14, first read in Run 14.
-  , ("mut-odo-aa-adjacent",        Twin fbMutOdo)
+    -- parked 2026-09-04 by the prune (README.md#what-the-benchmark-does)
+  , ("mut-odo",                    Only fbMutOdo)
   , ("mut-odo-vecdims",            Fill fbMutOdoVecdims)
     -- The second of the two 'Force' pairs, on the fastest strategy measured
     -- and so the one where the forcing term is the largest share of the
@@ -4351,14 +4307,14 @@ roster =
     -- above (README.md#the-mutable-ceiling-taken): solo input axis,
     -- solo output axis, the corner, the loop form on the corner. A block
     -- after the control's own pair, so no existing control moves.
-  , ("mut-odo-vecdims-add-in",     Fill fbMutOdoVecdimsAddIn)
+    -- parked 2026-09-04 by the prune (README.md#what-the-benchmark-does)
+  , ("mut-odo-vecdims-add-in",     Only fbMutOdoVecdimsAddIn)
     -- not timed since 2026-08-25: the decomposition is priced and
     -- spent -- the solo output axis convicted at ~16%, the corner
     -- sub-additive over it, the down form recovering the corner's loss
     -- to a tie with the shared control -- and the decision ships
     -- vecdims alone, the redirect dropped
-    -- (README.md#the-two-stage-plan-and-the-rework-proposal); 'add-in'
-    -- above stays timed for its open compiler-split entry.
+    -- (README.md#the-two-stage-plan-and-the-rework-proposal).
   , ("mut-odo-vecdims-add-out",    Only fbMutOdoVecdimsAddOut)
   , ("mut-odo-vecdims-add-both",   Only fbMutOdoVecdimsAddBoth)
   , ("mut-odo-vecdims-add-both-down", Only fbMutOdoVecdimsAddBothDown)
@@ -4398,29 +4354,22 @@ roster =
     -- six slots where the three demotions above return three, so
     -- every slot below moves by three more than the block above already
     -- carries.
-  , ("canon-vecdims",              Fill fbCanonVecdims)
+    -- parked 2026-09-04 by the prune (README.md#what-the-benchmark-does)
+  , ("canon-vecdims",              Only fbCanonVecdims)
     -- Parked 'Only' 2026-09-02: refused at Run 20, behind the arm it
     -- varies on `window`
     -- (README.md#the-two-stage-plan-and-the-rework-proposal), and timed
     -- for three runs since without a question left.
   , ("canon-memcpy-r2",            Only fbCanonMemcpyR2)
-  , ("bcast-set",                  Fill fbBcastSet)
-  , ("mid-copy",                   Fill fbMidCopy)
-  , ("canon-full",                 Fill fbCanonFull)
-    -- The fourth in-situ forcing control, added 2026-08-25 with the block
-    -- it closes. The three above price the term on element-wise fills
-    -- ('mut-odo-vecdims', 'mut-flat-gm', 'bq-expand'), which is what
-    -- README's sum-only section calls the correction's remaining hole:
-    -- a fill whose WRITE PATTERN leaves the cache in some quite different
-    -- state could still be summed at a cost 'sum-only' misses. This block
-    -- is that different pattern, and 'canon-full' is the member to hang
-    -- it on -- the solo arms' copy branches fire in one class each
-    -- ('canon-memcpy-r2' in window, 'mid-copy' in bcastmid) and share
-    -- their control's body everywhere else, where the endpoint dispatches
-    -- per shape between hoisted stores, 'VS.unsafeCopy' and the stepping
-    -- loop, so it is the only new arm whose write pattern varies across
-    -- the main set at all.
-  , ("canon-full-nosum",           Force fbCanonFull)
+    -- parked 2026-09-04 by the prune (README.md#what-the-benchmark-does)
+  , ("bcast-set",                  Only fbBcastSet)
+    -- parked 2026-09-04 by the prune (README.md#what-the-benchmark-does)
+  , ("mid-copy",                   Only fbMidCopy)
+    -- parked 2026-09-04 by the prune (README.md#what-the-benchmark-does);
+    -- its 'Force' arm, the fourth in-situ forcing control and the one
+    -- whose write pattern varied across the main set, went with it
+    -- (README.md#sum-only-and-the-correction-now-applied)
+  , ("canon-full",                 Only fbCanonFull)
     -- The library-shaped block, added 2026-08-28: what a user's
     -- toVectorT costs under stage one, under stage two, and under stage
     -- two with contiguous runs routed to slices -- each a port of the
@@ -4428,8 +4377,11 @@ roster =
     -- family block's own reason -- no existing control moves -- at
     -- three slots.
   , ("lib-stage1",                 Fill fbLibStage1)
-  , ("lib-stage2",                 Fill fbLibStage2)
-  , ("lib-stage2-concat",          Fill fbLibStage2Concat)
+    -- parked 2026-09-04 by the prune (README.md#what-the-benchmark-does):
+    -- the two halves that bracketed 'dispRun', spent once the arm below
+    -- carried its cut
+  , ("lib-stage2",                 Only fbLibStage2)
+  , ("lib-stage2-concat",          Only fbLibStage2Concat)
     -- The dispatch arm the runs class's crossover asks for, added
     -- 2026-08-30: one change over the entry above, and placed beside it
     -- so the two are read as neighbours -- at the price that every slot
@@ -4480,10 +4432,8 @@ roster =
   , ("libunord-stage2",            Fill fbLibUnordStage2)
     -- not timed: 6.20x the result
   , ("mut-offsets",                Only fbMutBaseOffsets)
-  , ("build",                      Fill fbBuild)
-    -- The adjacent half of 'build''s pair; the distant half is early with
-    -- the others. Added 2026-08-14, first read in Run 14.
-  , ("build-aa-adjacent",          Twin fbBuild)
+    -- parked 2026-09-04 by the prune (README.md#what-the-benchmark-does)
+  , ("build",                      Only fbBuild)
     -- parked 2026-08-28, permanently, by decision (README.md#what-is-open,
     -- the Run 21 entry): superseded, answering no registered question;
     -- its column in a run's own geomean table stays blank from Run 21 on
@@ -4496,19 +4446,13 @@ roster =
   , ("bq-mut-runs-mulback",        Only fbBQmutRunsMulback)
     -- not timed: l < 2^32
   , ("mut-flat",                   Only fbMutFlat)
-  , ("mut-flat-gm",                Fill fbMutFlatGm)
-    -- The third 'Force' pair, and the one that makes the other two
-    -- interpretable. Those are an odometer and an expansion, so a term that
-    -- reads the same on both is still consistent with the two arms sharing a
-    -- bias rather than the READ being unbiased; a flat fill shares neither's
-    -- inner shape -- no per-element odometer step, no expansion stream -- so
-    -- a third agreement is evidence about the read and a disagreement names
-    -- which arm. That is what gate 3 has been unable to settle
-    -- (README.md#sum-only-and-the-correction-now-applied). The slot is beside
-    -- its base, as both other pairs' are, so the difference is taken between
-    -- neighbours and carries no span of its own.
-  , ("mut-flat-gm-nosum",          Force fbMutFlatGm)
-  , ("bq-mut-runs-gm-mulback",     Fill fbBQmutRunsGmMulback)
+    -- parked 2026-09-04 by the prune (README.md#what-the-benchmark-does);
+    -- its 'Force' arm, gate 3's third shape of fill, went with it, so the
+    -- gate reads two shapes from Run 25 on
+    -- (README.md#sum-only-and-the-correction-now-applied)
+  , ("mut-flat-gm",                Only fbMutFlatGm)
+    -- parked 2026-09-04 by the prune (README.md#what-the-benchmark-does)
+  , ("bq-mut-runs-gm-mulback",     Only fbBQmutRunsGmMulback)
     -- not timed: l < 2^32
   , ("bq-mut-lemire-out",          Only fbBQmutLemireOut)
     -- not timed: l < 2^32
@@ -4524,7 +4468,8 @@ roster =
   , ("offtab32",                   Only fbOffTab32)
     -- not timed: m < 2^32, its builder's
   , ("offtab-scan",                Only fbOffTabScan)
-  , ("offtab-scan-rem",            Fill fbOffTabScanRem)
+    -- parked 2026-09-04 by the prune (README.md#what-the-benchmark-does)
+  , ("offtab-scan-rem",            Only fbOffTabScanRem)
     -- not timed: 8.27x the result
   , ("bq-unfold",                  Only fbBQunfold)
     -- parked 2026-08-28, permanently, by decision (README.md#what-is-open,
@@ -4544,7 +4489,8 @@ roster =
   , ("bq-expand-lemire-out",       Only fbBQexpandLemireOut)
     -- not timed: l < 2^32
   , ("bq-expand-lemire-mulback",   Only fbBQexpandLemireMulback)
-  , ("bq-expand-gm-mulback",       Fill fbBQexpandGmMulback)
+    -- parked 2026-09-04 by the prune (README.md#what-the-benchmark-does)
+  , ("bq-expand-gm-mulback",       Only fbBQexpandGmMulback)
     -- not timed: l < 2^32, and 'int32Fits' on the source
   , ("bq-expand32-lemire-mulback", Only fbBQexpand32LemireMulback)
     -- not timed: l < 2^32
@@ -4553,23 +4499,12 @@ roster =
   , ("bq-scan-rem-mulback",        Only fbBQscanRemMulback)
     -- not timed: m < 2^32, its builder's
   , ("bq-scan-gm-mulback",         Only fbBQscanGmMulback)
-  , ("bq-scan-rem-gm-mulback",     Fill fbBQscanRemGmMulback)
-    -- The adjacent half of 'bq-scan-rem-gm-mulback''s pair, so that strategy
-    -- has a twin in both positions exactly as 'bq-expand' does; the two
-    -- together are what separate position from strategy. Both halves aimed
-    -- at 'bq-scan-mulback' until the precondition ruling stopped timing it
-    -- (README.md#what-the-benchmark-does): a control whose base is not
-    -- measured is not a control, so they were re-pointed at the fastest
-    -- surviving pure arm, chosen for carrying no precondition. It is not
-    -- singled out by any claim: the ordering that tied it with
-    -- 'bq-odo-gm-mulback' retired 2026-08-29, so either would serve.
-  , ("bq-scan-rem-gm-mulback-aa-adjacent", Twin fbBQscanRemGmMulback)
+    -- parked 2026-09-04 by the prune (README.md#what-the-benchmark-does)
+  , ("bq-scan-rem-gm-mulback",     Only fbBQscanRemGmMulback)
     -- not timed: l < 2^32
   , ("bq-odo-mulback",             Only fbBQodoMulback)
-  , ("bq-odo-gm-mulback",          Fill fbBQodoGmMulback)
-    -- The adjacent half of 'bq-odo-gm-mulback''s pair; the distant half is
-    -- early with the others. Added 2026-08-14, first read in Run 14.
-  , ("bq-odo-gm-mulback-aa-adjacent", Twin fbBQodoGmMulback)
+    -- parked 2026-09-04 by the prune (README.md#what-the-benchmark-does)
+  , ("bq-odo-gm-mulback",          Only fbBQodoGmMulback)
     -- not timed: l < 2^32, plus its builder's m <= 2^31 and every offset
     -- in [0, 2^32)
   , ("bq-scan-packed-mulback",     Only fbBQscanPackedMulback)
@@ -4624,21 +4559,9 @@ roster =
     -- (see there). Last in the group deliberately: its 'env' materialises
     -- a second l-element vector, and nothing after it can be perturbed by
     -- that -- nothing follows.
-    -- THE ONE DISTANT TWIN THAT RUNS LATE, and it is here to break a
-    -- confound rather than for its own arm's sake. Every other distant
-    -- twin sits in the group's first dozen slots while its base sits
-    -- later, so "distant" has always also meant "earlier" -- and the A/A
-    -- readings say the distant half is the slower one in all eight stride
-    -- classes, +0.09% to +0.65% over Runs 10 to 13, one-directional,
-    -- which is what a residual cold start would produce
-    -- (README.md#what-moves-a-figure-when-no-strategy-changed). With this
-    -- one late, and 'list''s distant half late by construction, the next
-    -- run reads early-distant against late-distant and can say which of
-    -- the two it was. It began two slots from its base, which is no span
-    -- at all, so the move costs nothing. NOT after 'sum-only-late': that
-    -- bench is last on purpose, its env materialising a second l-element
-    -- vector that nothing following it should feel.
-  , ("gen-unsafe-aa-distant",      Twin fbGenUnsafe)
+    -- 'gen-unsafe-aa-distant' sat here from Run 14 to Run 24, the one
+    -- distant twin placed late so that early-distant could be read
+    -- against late-distant; deleted 2026-09-04 with its arm's parking.
   , ("sum-only-late",              Term)
   ]
 
