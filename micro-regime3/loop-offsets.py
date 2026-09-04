@@ -212,15 +212,16 @@ def reaches(insns, k, n, targets):
     FIVE straddling self-loops in Main-compiled code where its `-g3` twin
     and every other binary read four, the fifth closed by the SRT word of
     the table in front of `$wrun` -- `0x013dd878`, whose low two bytes
-    `78 d8` are `js -40` -- over a body that was a continuation's tail, a heap-check
-    jump, a pad and twenty bytes of table, which control leaves at its
-    second instruction. Read 2026-09-04 and named by the twin refusing it.
-    It removes one to four self-loops from each of the four real binaries
-    and two twins of that day, and every one inspected, on three of the
-    six, is such a word behind a `jmp` and a pad; the blanket form, refusing any unconditional transfer inside
-    the body, took fourteen real loops with them, so this one follows the
-    flow instead. Survey totals recorded before 2026-09-04 are higher than
-    this reads by that few, and stand as taken.
+    `78 d8` are `js -40` -- over a body that was a continuation's tail, a
+    heap-check jump, a pad and twenty bytes of table, which control leaves
+    at its second instruction. Read 2026-09-04 and named by the twin
+    refusing it. It removes one to four self-loops from each of the four
+    real binaries and two twins of that day, and every one inspected, on
+    three of the six, is such a word behind a `jmp` and a pad; the blanket
+    form, refusing any unconditional transfer inside the body, took
+    fourteen real loops with them, so this one follows the flow instead.
+    Survey totals recorded before 2026-09-04 are higher than this reads by
+    that few, and stand as taken.
     """
     live = False
     for i in range(k, n + 1):

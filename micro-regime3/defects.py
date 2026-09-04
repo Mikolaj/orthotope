@@ -644,7 +644,7 @@ def stub_half(tmp, name, body=None):
 # can be tracked. This one is `run25-g912` from 0x4275c0 to 0x427640, read
 # 2026-09-04: the tail of a continuation, the info table in front of
 # `$wrun` -- `fbConcatRuns`'s `run` -- and the entry code after it. The
-# table's SRT word, `78 d8 3d 01` at 0x42761c, decodes as `js -40`, and
+# table's SRT word, `78 d8 3d 01` at 0x42761c, opens with `js -40`, and
 # the bytes from 0x4275f6 sum to 40, so the survey read a straddling
 # self-loop there that no `-g3` twin held and that control leaves at its
 # second instruction. The window starts mid-instruction, as any window
@@ -726,11 +726,12 @@ LOOP_BODY = [('f2 0f 10 04 fa', 'movsd  (%rdx,%rdi,8),%xmm0'),
              ('49 ff c0', 'inc    %r8'),
              ('49 39 d8', 'cmp    %rbx,%r8'),
              ('7c e4', 'jl')]
-LOOP_BODY_B = [(b if i != 1 else '49 89 f9', t if i != 1 else 'mov    %rdi,%r9')
+LOOP_BODY_B = [(b, t) if i != 1 else ('49 89 f9', 'mov    %rdi,%r9')
                for i, (b, t) in enumerate(LOOP_BODY)]
 MAIN_SYM = 'microzm0zi1zminplacezmmicro_Main_zdfNFDataT_info'
-LIB_SYM = ('statisticszm0zi16zi5zi0zm536b490adb2e81edec0faef6e3a878a0b1ba1a1e08e'
-           '9471ff97c2975863bedae_StatisticsziQuantile_zdfOrdContParamzuzdcmax_info')
+LIB_SYM = ('statisticszm0zi16zi5zi0zm536b490adb2e81edec0faef6e3a878a0b1ba1a1e'
+           '08e9471ff97c2975863bedae_StatisticsziQuantile_zdfOrdContParamzuzdc'
+           'max_info')
 
 
 def loop_listing(tmp, name, groups):
