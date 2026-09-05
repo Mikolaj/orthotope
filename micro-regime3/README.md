@@ -2436,28 +2436,25 @@ is planned. A scope limit belongs in the sentence that asks for the measurement.
    and its time prices nothing. The same sweep reproduces the two ratios already
    on record, `-u1` over `-u2` at 1.0859 against Run 25's 1.0892 and
    over the counted leaf at 0.8497 against 0.8456, so the null is the arm's
-   and not the instrument's. It is rostered `Only` --- checked, not timed, timed
-   slots unmoved --- so the refuted shape is on the record rather
-   than re-proposed; whether the base still spills was not read, no assembly
-   of the arm having been looked at. **And the `-fllvm` route was taken the same
-   evening, which is where the question goes and where it stops.**
+   and not the instrument's. It is rostered `Only`, checked and not timed,
+   so the refuted shape stays on the record. **And the `-fllvm` route was taken
+   the same evening, which is where the question goes and where it stops.**
    In the spill-free binary of `probe-nospill-build.sh`, `check` passing
    on every view, the counted work per element on the long-run shapes is leaf
    **6.00**, `-u1` **6.00** and `-u2` **7.00** against the native 9.00, 7.00
    and 6.00, and `perf annotate` puts the leaf and `-u1` in one rolled loop
    of six instructions with no reload and `-u2`'s two-element body at fourteen
-   (located by profile: `probe-nospill-fills.py` credited each LLVM function's
-   entry region, where the rotated loop sits, to the preceding proc, so it put
-   `-u2`'s loop under `-u1` and the six-instruction loops under nothing ---
-   fixed the same evening, with its case). So the source-level unrolling
-   is not a property that survives that backend, and no build separates
-   it from the spill. What the reading gives instead is the loop's spill-free
-   floor, six an element, which native `-u2` already sits at and native `-u1`
-   sits one above --- the whole of `-u1`'s instruction excess over `-u2`
-   is the one reload, and the unrolling costs or saves no instruction
-   of its own. Its worth in TIME is the 1.0367 and 1.0479 above, spill and all;
-   a figure for the unrolling alone would want a native build that does
-   not spill, which nothing here produces.
+   (located by profile; the fills reader's attribution was a proc off, fixed
+   with its case). So the source-level unrolling is not a property that survives
+   that backend, and no build separates it from the spill. What the reading
+   gives instead is the loop's spill-free floor, six an element, which native
+   `-u2` already sits at and native `-u1` sits one above --- the whole
+   of `-u1`'s instruction excess over `-u2` is the one reload, and the unrolling
+   costs or saves no instruction of its own. Its worth in TIME is the 1.0367
+   and 1.0479 above, spill and all. The twentieth reading of [the ceiling
+   section](#the-mutable-ceiling-taken) reads the loops that run under three
+   allocators, refutes `-fregs-graph` as a stand-in for a spill fix,
+   and registers what the first pair on a patched compiler adjudicates.
 3. `ANSWERED` **A reversed innermost axis costs the regime-3 fill about twice
    the forward run at the same length, and nothing in the code says why.** Run
    25's `flip` class killed the prediction that the fills read a reversed run
@@ -4744,6 +4741,31 @@ to a seventh, not a quarter; the within-half ordering it reports is true
 of the binaries measured; and an ordering read across two builds against an arm
 that moves 18% between them is not a durable one, which is what [task 5][open]
 now says.
+
+**A twentieth reading, 2026-09-05, reads the three leaf loops that RUN,
+under three allocators, and says what a spill fix can and cannot move.** (Hot
+loops by profile rather than by the fills reader, whose report merges
+a run-level copy with its run loop: `perf record` on `stretch-tall-Mx2/ARM`
+at a fixed count, the densest user-space cluster of sample addresses after
+the sum's, disassembled. The shim-free g912 recipe, the same
+with `-fregs-graph`, and `probe-nospill-build.sh`'s `-fllvm`, `check` passing
+on all three.) **Under the linear allocator each of the three reloads the source
+base from the C stack once an iteration, `mov 0x40(%rsp)`**: `-u1` at seven
+instructions an element, `-u2` at twelve for two, the leaf at nine ---
+so the unrolling's whole instruction gain is amortising that one reload
+and the loop's own three, and with the reload gone the three read 6, 5.5 and 8.
+The ordering does not move with such a fix; the margin halves. **`-fregs-graph`
+is not a stand-in for it**: here the graph allocator spills more, three reloads
+in `-u1`'s loop and six in `-u2`'s, nine and sixteen instructions, where GHC
+#27742's own table showed it curing a `mulq`/`shrq` spill this loop does
+not have --- so whether that fix cures this spill is the patched compiler's
+to say. **Nor is `-fllvm`**: at 6, 6 and 7 it hoists what the native leaf
+reloads and grows `-u2` its own induction, and orders the two the other way.
+**Registered here for want of a run, for the first pair on a patched compiler**:
+`-u2` over `-u1` at about 0.92 in corrected instructions on the long-run shapes,
+from 0.86 today, and ahead in time by less than Run 25's 3.5 to 5 points;
+and the `0x40(%rsp)` line gone from all three loops, which the recipe above
+reads in a minute.
 
 ### The C-gap: still a deeper ceiling
 
