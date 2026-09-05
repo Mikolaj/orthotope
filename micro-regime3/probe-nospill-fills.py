@@ -87,6 +87,14 @@ ASM_LBL = re.compile(r'^(?:_blk_(Q[A-Za-z0-9]+)\$def|\.L(Q[A-Za-z0-9]+)):')
 JMP = re.compile(r'^\s+j\w+\s+(?:_blk_(Q[A-Za-z0-9]+)\$def'
                  r'|(\.LBB[0-9_]+)|\.L(Q[A-Za-z0-9]+))')
 SUB_LBL = re.compile(r'^(\.LBB[0-9_]+):')
+# A function's entry region -- everything from its `Q<unique>_info$def`
+# label to its first `_blk_` label -- belongs to that function's own
+# worker, and LLVM's loop rotation is what puts the hot loop there. It
+# is owned here by the proc's unique, which the dump carries in the
+# proc header (`..._Q<unique>_entry()`) and never as a block label.
+# Case: `fills-entry-region-goes-to-the-previous-proc`.
+FUNC_LBL = re.compile(r'^(?:[\w$]+_)?(Q[A-Za-z0-9]+)_info\$def:')
+PROC = re.compile(r'(Q[A-Za-z0-9]+)_entry\(\)')
 
 
 def cycles(mine, blocks, order_asm):
@@ -172,10 +180,11 @@ def main():
     blocks, owner, order_asm = {}, {}, []
     cur = own = None
     for ln in asm:
-        m = ASM_LBL.match(ln)
+        m = ASM_LBL.match(ln) or FUNC_LBL.match(ln)
         m2 = SUB_LBL.match(ln)
         if m:
-            own = cur = m.group(1) or m.group(2)
+            own = cur = m.group(1) or (m.group(2) if m.re is ASM_LBL
+                                        else None)
             blocks[cur] = []
             owner[cur] = own
             order_asm.append(cur)
@@ -184,7 +193,10 @@ def main():
             blocks[cur] = []
             owner[cur] = own
             order_asm.append(cur)
-        elif ln.startswith('.section') or ln.startswith('.size'):
+        elif (ln.strip().startswith(('.section', '.size'))
+              or re.match(r'^[A-Za-z_$][^\s:]*:', ln)):
+            # The directives are tab-indented, so an unstripped test never
+            # fired and ownership leaked from one function into the next.
             cur = own = None
         elif cur is not None:
             blocks[cur].append(ln)
@@ -192,6 +204,8 @@ def main():
     for a in arms:
         s, e = ranges[a]
         want = {m.group(1) for ln in dump[s:e] if (m := LBL.match(ln))}
+        want |= {m.group(1) for ln in dump[s:e]
+                 for m in PROC.finditer(ln)}
         print(f'{a}: dump lines {s + 1}..{e}, {len(want)} Cmm block(s), '
               f'{len([b for b in owner.values() if b in want])} assembly '
               f'block(s) under them')
