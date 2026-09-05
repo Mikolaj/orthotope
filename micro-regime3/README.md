@@ -803,8 +803,43 @@ rather than a slot in the next run, observed again:
   and what it answered.** The registrations, their kill conditions and their
   verdicts are [in Run 25's own
   file](runs/run25.md#what-this-run-was-built-to-answer-and-what-it-answered),
-  where a run's registrations have lived since 2026-08-29; in a clause each:
-  ___.
+  where a run's registrations have lived since 2026-08-29; in a clause each: (1)
+  the box, HELD --- -0.08% at the gate and +0.32% and -0.77% on the two main-set
+  processes against Run 24's kept fingerprint, all inside 3%; (2) the anchors,
+  HELD, `cnn-L2-24x24-c32` -1.59% of Run 24's own net for it; (3) the pair,
+  KILLED --- `list` moved 1.10% between the halves where 0.7% was allowed,
+  so the two columns are ordered and not differenced, and its second clause
+  was unreadable, all three orderings it names being stated against the parked
+  `lib-stage2`; (4) the additions of 2026-09-03, task 10's four: `flip` KILLED
+  by every fill on both halves, a reversed run costing the regime-3 fill about
+  twice its forward twin at the same length, `block` and `compose` SPLIT
+  and `small` unreadable; (5) the retirement, HELD, nothing published moving
+  for it and Run 24's basis column reading this one arm for arm once the shape
+  set is pinned; (6) the prune, HELD, the three crossed pairs inside Run 24's
+  floor on both halves with their spans shortened; and (7) the unroll, HELD
+  on both halves --- `mut-odo-vecdims-add-in-leaf-u1` between `-add-in-leaf`
+  and `-u2`, so the shipped fill's margin is the unrolling's and the merged
+  bound is worth six and a half percent rather than the wash a shimless probe
+  read. **Two of the seven lost five clauses between them to arms parked the day
+  after they were registered**, which is the entry above this one, fired again.
+- `OPEN` **The baseline moved 1.10% between two halves that differ only
+  in the compiler, and the counted work says it is not instructions.** Run 25's
+  `list` reads 1.0110 basis over control on the main set --- past the 0.7% bar,
+  so the first `-fspec-constr` pair since Run 22 whose two columns may
+  not be subtracted --- at a count ratio of **0.9967**: 9.12 executes a third
+  of a percent FEWER instructions on the baseline and is a percent slower at it,
+  a time-over-counts of 1.0144 and the largest such residual on that roster
+  ([Run 25's head](runs/run25.md)). The same variable moved `list` 0.25% on Run
+  24 over 52 arms and 0.81% on Run 22, so the magnitude is new and the roster
+  is a quarter of the size. **What makes it worth an entry rather than a shrug**
+  is that `list` is library code the shim does not place, so the two accounts
+  this file usually reaches for --- a pad on the execution path, a tracked
+  loop's cache-line offset --- are both unavailable, and the arms that used
+  to price placement directly were parked the same day. **What would settle
+  it**: `--compare --bridge`, which reads each arm as a ratio to `list`
+  in its own run and so cancels exactly this; and a `list`-only pair over one
+  roster at two lengths, which would say whether the term scales with the roster
+  or sits on the process. Both are cheap and neither needs a new evening.
 - `ANSWERED` **What Run 24 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
   verdicts are [in Run 24's own file](runs/run24.md), where a run's
@@ -816,24 +851,34 @@ rather than a slot in the next run, observed again:
   HEAD, HELD on its orderings and not on one of its figures, with one clause
   unreadable because the arm it turned on had been parked; and (6)
   the threshold, HELD, the re-cut dispatch now leading the `runs` class.
-- `OPEN` **A registration can name an arm the roster has parked, and nothing
-  here reads a registration --- Run 24 lost a clause of one to it.**
-  Registration 5 predicted `-u2` ahead of `-down` in every population,
+- `OPEN` **A registration can name an arm the roster has parked, and the check
+  written for it reaches one registration of the two a run now has --- Run 24
+  lost a clause to this and Run 25 lost four.** Run 24's registration 5
+  predicted `-u2` ahead of `-down` in every population,
   and `mut-odo-vecdims-add-in-leaf-down`, the arm that comparison turns on,
   was parked to `Only` by `7dd094e`, the same commit the registration
   was written beside on 2026-09-02, so no process of Run 24 timed it
-  and the clause was unreadable before the run started. The pair that IS still
-  timed, `-u2` against `-u2-down`, is a tie in every population on both halves
-  and was a tie on Run 23's dead-spot half too, so what can be read reproduces
-  and what was registered cannot be. **The asymmetry is the point**: `--lint`
-  already refuses a live CLAIM that names a parked arm --- that check exists,
-  and its message says so --- and a registration is the same kind of object read
-  by nothing. **What would settle it**: hold the OPEN registration's backticked
-  arm names to the timed roster, in `--lint` beside the claims check
-  or in `--check-doc`, so that a registration written the same day as a parking
-  fails at the preparation rather than at the write-up. The cost of not doing
-  it is one prediction per run that cannot be adjudicated, and it is invisible
-  until the run is over.
+  and the clause was unreadable before the run started. **`--lint` has held
+  an OPEN registration's backticked arm names to the timed roster since
+  2026-09-04**, and the four clauses Run 25 lost went past it for two reasons
+  it does not cover, both worth naming because neither is an oversight
+  in the check. **One: a registration's DEFERRAL TARGET is not read.** Run 25's
+  item (4) defers to task 10 under the run-scoped tasks heading, and `--lint`
+  checks that the pointer resolves and nothing further; three of task 10's four
+  class predictions turn on `lib-stage2` or `canon-vecdims`, which the prune
+  of 2026-09-04 parked the day after they were registered, so `flip`, `block`
+  and `small` each lost a clause as written --- `small` both of its --- and only
+  `compose` lost none. **Two: a clause can name another registration instead
+  of an arm.** Run 25's item (3) asked that no ordering of Run 24's own
+  registrations (1) to (3) reverse; all three of those are stated against
+  `lib-stage2`, and the clause names no arm at all, so no arm-name check can
+  reach it. **What would settle the first**: read the deferral's TARGET
+  paragraph as the registration is read --- the pointer already resolves,
+  so the arms are one intersection away. **The second has no cheap predicate**
+  and stays pre-run step 12b's, a reading: a registration that names another
+  registration inherits its arms, and only a reader can follow that. The cost
+  of not doing the first is what this run paid, three predictions of four in one
+  deferred item, and it is invisible until the run is over.
 - `ANSWERED` **`--replace` took a following heading with the paragraph
   it replaced, where no blank line separated them --- fixed 2026-09-03.** Run
   24's write-up lost `## Results` from its own file that way: in the committed
@@ -907,7 +952,15 @@ rather than a slot in the next run, observed again:
   binary, one process over the `runs` class with an arm per candidate threshold:
   the crossover sits between `runs-1024` and `runs-4096`, the 2048 arm
   is nowhere behind the better route past the process's span, and `dispRun`
-  is 2048; the figures are under task 9.**
+  is 2048.** Its figures were under the tasks heading until Run 25's write-up
+  cleared the spent items from it, and the account they belonged to
+  is this entry's, which is why it stays at length. **The three probe arms stay
+  in the roster, parked**: `lib-stage2-disp-2048`, `lib-stage2-disp-8192`
+  and `lib-stage2-disp-32768`, the dispatch with its threshold an argument,
+  for a run that wants to cut it finer than one binary's `runs` class can ---
+  Run 25's past-cache probe having since read the crossover moving
+  with the working set by the letter and by at most a few points ([the
+  tasks][open-tasks]).
 
 - `OPEN` **A hand-edited table goes stale unchecked, and this is the second run
   running.** The run file carries two tables `--in-place` does not write ---
@@ -1667,7 +1720,7 @@ rather than a slot in the next run, observed again:
   under the class table was cut on 2026-08-22 for quoting the previous run's,
   and its subject is here instead. **The measurement it registered was taken
   2026-08-23, wanting no quiet machine and no new run, and the first branch
-  fired.** The floor is a MAX over sixteen pairs, so a half with one wild cell
+  fired.** The floor is a MAX over the A/A pairs, so a half with one wild cell
   carries a wider one at the same dispersion; read the median A/A deviation per
   half beside it, over the same JSONs, and the two halves are alike ---
   the basis is wider on the median in **9 of the 24** comparisons at sign p
@@ -2120,93 +2173,83 @@ rather than a slot in the next run, observed again:
   that run's tables.
 ### Recommended tasks after Run 25
 
-**What Run 24 made cheaper for the next run, which is not a figure and no other
+**What Run 25 made cheaper for the next run, which is not a figure and no other
 step gathers --- and it is TWO sessions' worth, the preparation's reaching
-the executor only through the pair note.** **The preparing session's half**, met
-a day early and recorded in its note: pre-run 12b earned its place again,
-this note's counts paragraph having quoted four of Run 23's sweep durations
-of which two were transcribed rather than derived; the computation it improvised
-was differencing the two builds' fill address lists by hand, no mode subtracting
-them, which is what showed six of the eight tracked loops moving by ONE
-constant, 0x940, and two not moving at all; it skipped no step, step 12 being
-OWED and run; the capability it found was a reading the pinning claim had never
-had, a roster change that leaves every mod-64 offset in place; and it repaired
-two things nothing here could see, `preflight.sh` calling a script retired three
-commits earlier and three corpus fixtures aimed at deleted artifacts.
-
-**THE CHECK THAT WOULD HAVE CAUGHT THIS HALF'S ERRORS is the one
-the hand-edited-table entry now asks for in a third shape.** The paragraph
-under the Provenance anchors table had begun `anchors read` --- its opening
-words lost at Run 22's write-up --- and stood through `--lint`, `--check-doc`,
-two checker passes and a comprehension probe, every one of which asks whether
-a paragraph ENDS a sentence and none whether it begins one. And the class-floor
-check earned a sentence of its own this run by firing correctly on four
-paragraphs that quoted the OTHER half's floor beside the table's: the check's
-two shapes, `N% floor` and `class's floor N%`, are the phrasings a block may
-not use for a figure that is not its table's, and the write-up learned
-that by being refused rather than by reading the reader --- as it learned
-that the floor-pair agreement check reads `on the control` and nothing else
-for the second half, whatever the half is called.
-
-**THE COMPUTATIONS IMPROVISED, three, and the reader should own two of them.**
-PER-SHAPE CROSS-HALF RATIOS: registration 3's second half asks whether a margin
-orders with the run length, and `--compare` prints a range and no per-shape
-column, so the eleven `runs` cells were divided by hand from two `--cells` dumps
---- the same gap Run 22 met on the counts, one instrument over. BYTE IDENTITY
-BETWEEN TIMED BINARY AND TWIN: post-run step 0's naming rests on a straddling
-loop's bytes being the twin's, and `loop-offsets.py` groups by bytes within one
-binary and never across two, so the four dead-spot straddlers were matched
-by `objdump` over both at the twin's addresses; a `--match TWIN` that did
-the comparison would make the step's negative honest by construction rather
-than by a script nobody keeps. WHICH CELLS SINK: the reader names the worst cell
-below the forcing pass and counts the rest, and the head wanted the list, which
-came from `--cells` again.
+the executor only through the pair note.** **The preparation's half, taken
+2026-09-04.** THE CHECK THAT WOULD HAVE CAUGHT ITS ERRORS was pre-run step 12b
+again, and it caught three, all in the note and none reachable by any mechanical
+pass: `twelve A/A controls` where two of the twelve are `-nosum` forcing
+controls, a `gate arms` line naming `run-gate.sh`'s five globs as they stood
+before the prune re-cut them the same day, and a class-view delta of six where
+it is eight. Each was found by re-deriving the figure from the binary
+or the script it came from, which is what 12b asks and what nothing else does;
+two more figures were transcribed rather than derived and came out true, which
+is not the same as having been read. THE COMPUTATIONS IT IMPROVISED were two
+and both have a mode now, written the same day: the class-view count, which
+is neither `--list`'s bench total nor `classes --list`'s, and which
+`./roster-delta.py PREV NOW` prints; and the fill displacements, which
+`./loop-offsets.py --delta PREV NOW` subtracts. A STEP SKIPPED: none.
+A CAPABILITY NOT USED: `./read-run.py --note PREV --draft R --halves b,o`, which
+prints the previous note's `[SAME]` blocks with the names already substituted,
+and which that session hand-copied instead --- the gate arms and the `--library`
+figures came forward in the copying.
 
 **The executing session's half, and the four are these.** **THE CHECKS
-THAT WOULD HAVE CAUGHT THE ERRORS** were not the mechanical ones: `--lint`
-and `--check-doc` passed over every draft of this write-up that carried
-a reversed comparison direction, a mis-tallied verdict summary and three head
-paragraphs still holding Run 23's figures. What caught each was cheaper
-than either --- the PUBLISHED COLUMNS settle `--compare`'s direction in one
-look, basis `bq-scan-rem-gm-mulback` 0.101 against HEAD's 0.107, where the ratio
-alone is ambiguous to a reader who has not just written the flag;
-`--check-doc --worklists`' superlative sweep caught the verdict tally, being
-a list of claims to re-derive rather than a check that fires; and the END-TO-END
-READ caught the three stale paragraphs, which is the pass the run chapter says
-keeps finding real errors and which is the only reason they were found:
-**`--check-doc` named twenty stale head paragraphs and there
-were twenty-three**, the three it did not name carrying figures like the twenty
-it did. The cause was found the same day and fixed: the check read the head
-through `FIGURE_RE`, which matches a decimal and nothing else, so a paragraph
-whose figures are a hex address, a byte count or a count spelled in words
-was invisible to it. The head is replaced whole, so it is no longer filtered
-at all. **THE COMPUTATION IMPROVISED** was the cross-run comparison on a PINNED
-shape set: two `--exclude-shape` flags naming the two main-set shapes this run
-added, which turns a figure on 26 shapes into one on the 24 its predecessor had.
-No mode does it, and without it this run would have published a ceiling that had
-left its eight-run band and eight allocation rows that had moved, where both
-are Run 23's figures exactly over Run 23's population. It is the run's main
-methodological output and it belongs in a mode. **THE STEP SKIPPED: none.**
-The gate was launched twice, the first attempt stopped by hand two minutes
-in and its artifacts moved out of the tree, which is disclosed in Provenance
-and is not a skip. **THE CAPABILITY FOUND** is that same pinning, and a smaller
-one beside it: `defect-run.py .` replays a case against the live documents,
-so a run that moves a roster breaks the fixtures anchored to it --- three broke
-here, two of them silently as FIXTURE DID NOT BUILD, and the repair
-was to derive each anchor from the document rather than write the class's
-current size into the case.
+THAT WOULD HAVE CAUGHT THE ERRORS were mechanical this run, which is new.**
+`--check-doc` refused seven distinct classes of defect in one command
+over the course of the write-up --- a class-block count against `Main.hs`,
+a class table's shape count, six class blocks quoting the previous run's floors,
+four `[[TODO]]` markers, three dead anchors the moved registration carried,
+the floor pair disagreeing across its three sites, and two shape counts quoted
+as populations that `Main.hs` defines none of --- and every one of them
+was this session's, made and caught inside the write-up. `install-tables.sh`'s
+own summary-row check caught six wrong cells in the hand-assembled cross-class
+table before any reading did, naming the cell and the value the class's own
+cells give. **What no mechanical pass could reach were the three findings
+the run turns on**: that four registered clauses named arms the prune had
+parked, found by trying to adjudicate them; that the eight-run ceiling series
+has no successor, found because its denominator is absent from `--list`;
+and that claim 7's pinned shape set no longer exists, found by re-deriving
+the claim. All three are the reading, and all three are what post-run step 4's
+*match bases before reading any ratio* is for. **THE COMPUTATIONS IMPROVISED,
+three, and the reader should own two of them.** The WITHIN-HALF COUNTED WORK
+is task 5 above and is the one registration 7 turns on. The FASTEST CELL OF ANY
+POPULATION: a registration predicted one, and ranking net time per element
+across every view of every population is a sort no mode does, so it was written
+out --- and the prediction was refuted by it, sixth rather than first, which
+is the case for the mode rather than against it. And THE CROSS-RUN PIN, eight
+`--exclude-shape` flags naming the retired shapes, which turns Run 24's 26-shape
+column into one over this run's eighteen: Run 24's own write-up improvised
+the same thing with two flags and said so, and it is still not a mode,
+so a third run will write it out again. **A STEP SKIPPED: none**, and post-run
+step 0's naming half was spent by the preparation on an idle box the day before,
+which is where a paired run should keep it. **THE CAPABILITIES FOUND.**
+The machine half of this run cost TWO launches and two wake-ups:
+`run-evening.sh` drove the gate, the alarm, the four-hour sequence and the four
+rider invocations in one command with the session asleep,
+and `run-counts-all.sh` the twenty-two counted-work sweeps in a second, every
+stage's verdict appended as it landed and the machine handed back on the last
+line. Nothing between them was typed, nothing was waited on by a hand-rolled
+waiter, and the box was said to be free at the moment it was.
+And `--replace ANCHOR --with FILE` carried every prose edit of both documents
+--- some forty paragraphs --- at one call each, with no line number surviving
+a turn and no exact-match string to rebuild after the previous edit.
 
-**THE CAPABILITIES FOUND.** THE EXACT REPETITION IS TAKEN and it is cheap:
-a basis recipe whose inputs have not moved rebuilds byte-identical, the md5 says
-so in a second, and the previous run's JSONs then price the box's drift per arm
-with no second recipe and no probe --- 44 of 49 arms within a point on this box,
-two evenings apart. `--wild`'s foreign-CPU column dates an intrusion to a bench
-in one call, which is what turned a machine event nobody watched
-into a disclosed pair of cells. The harness wakes a session when a background
-command of any length exits --- the gate's forty minutes and the sequence's ten
-hours both --- so no waiter was set and none was needed; and a sandboxed
-watcher's `ps` sees none of the run's processes, which is the process-namespace
-fact horde-ad's notes carry, met here from the other side.
+**Run 24's nine spent items are gone from this heading and here is where each
+went**, the rule being that nothing spent stays under a heading naming a run
+that is over. `fillStage2`'s cost and the bang that took it back to parity,
+the shim's padding, and the pad moved off the execution path are all [the
+ceiling][ceiling]'s and [what moves a figure][floor]'s, which carry
+the readings; the vecdims family's re-taken ordering is the same two sections';
+the run-length condition and the dispatch threshold are the [`dispRun`
+entry][open]'s, which says of itself that it is the only copy of that probe's
+account; the move of the basis to the dead-spot recipe is a decision, recorded
+in the run chapter and in Run 24's own file; and *re-aim claim 1 at the family's
+leader* was answered by the prune of 2026-09-04, which retired claim 1 outright
+and registered claim 10 in its place --- [the
+claims](runs/run25.md#the-claims-the-next-run-should-test) carry both. The tenth
+item, Run 25's own additions, stays below as `ANSWERED` for the one thing
+in it no other document holds.
 
 **Both of Run 17's items are spent, and this heading no longer carries them.**
 Its first --- which shapes poison --- was answered 2026-08-18 and its account
@@ -2249,282 +2292,112 @@ limitation goes inert. Here the limitation was recorded accurately and went
 inert anyway, because it was recorded where the tool lives and not where the run
 is planned. A scope limit belongs in the sentence that asks for the measurement.
 
-1. `ANSWERED` **`fillStage2` WAS the branch's cost, 2.4 to 4.5 times the fill
-   it replaces, and one bang an argument took it back to parity, 2026-08-30.**
-   The whole chain is [the ceiling][ceiling]'s, four readings in two days:
-   the seventh found the fill re-scrutinising its boxed source vector on every
-   iteration where the shipped one reads through an unboxed `Addr#`, the eighth
-   unboxed it, the ninth measured the instructions gone and the tenth the TIME
-   gone. `lib-stage2` against `lib-stage1` now reads **0.78 to 1.08** across
-   the six populations that carried the regression, against the 2.43 to 4.54 Run
-   21 read, and against floors of 4.0 to 7.4 percent. **What is left is one
-   population and one mechanism, and neither of them is the fill.** `slice`
-   was the one population still behind past its floor, by an eighth where
-   it was behind by four times, and item 4 has what those eight points were:
-   about three the assembler shim's padding and the rest one instruction a run
-   in the branch's epilogue, **both since explained and the second since
-   fixed**. What `slice` reads now is 1.0344, measured at full budget by Run 22.
-   And the broadcast classes keep the second term entire --- `bcast` at 1.49
-   and `bcastmid` at 2.50 in time over counted work, unmoved from 1.48 and 2.12
-   --- which the eleventh reading names rather than leaving open:
-   it is bandwidth and not code, cache misses running 1.55x and 6.7x per
-   instruction executed, with front-end stalls and mispredicts beside them
-   on `bcastmid` alone. Those paths execute a QUARTER of stage one's
-   instructions and take longer doing it, so instructions retired is the wrong
-   currency for them and no further unboxing reaches them. **The hold this entry
-   put on the branch is discharged as a reading and is not a decision to ship**:
-   the measurement licenses the branch's fill on every regime-3 population
-   its own figures reach, `slice` excepted, and whether stage two replaces stage
-   one belongs to whoever asked for the run.
-2. `ANSWERED` **The run-length condition, both halves, 2026-08-30 --- and one
-   of them refuted.** The class was re-taken before the arm was cut, which
-   is the order this entry fixed and the reason the fix's own prediction did
-   not get to choose the threshold. **The crossover moved out one step,
-   to between `runs-96` and `runs-1024`, and `lib-stage2-disp` is cut to
-   it and is at or below the better of the two routes at every length
-   of the sweep --- BOTH CLAUSES SUPERSEDED BY RUN 22 at full budget, which puts
-   the crossover between `runs-1024` and `runs-65536` and the dispatch 6.65%
-   behind stage two at `runs-1024`, past that class's floor, killing it ([Run
-   22's file](runs/run22.md))**; the account, the figures and the second
-   compiler --- which puts HEAD's crossover a step further out again, so what
-   the class settles is a bracket per compiler and not a number --- are [in
-   the two-stage plan](#the-two-stage-plan-and-the-rework-proposal).
-   **The second half is REFUTED**: `-u2` is behind `-down` at all seven lengths
-   in a spill-free binary and by the same margin the native backend reads,
-   so there is no crossover there and taking the spill out changed nothing,
-   which is [the ceiling][ceiling]'s twelfth reading and an amendment
-   to its sixth.
-3. `OPEN` **Is the spread of the pairs outside the restricted six criterion's
-   sampling, or something per-process on top of it?** Carried here from the Run
-   18 floor item, whose other half is answered. Across six runs the six-pair
-   figure has held near half a percent on the basis while the whole-set figure
-   ran between 1.4% and 2.9% ([the floor section][floor] has both series),
-   so the movement is in the pairs outside the six --- now ten of sixteen,
-   `offtab`'s two twins having gone with its parking. Run 22 sharpens
-   the question rather than answering it: its widest pair is `build-aa-distant`,
-   whose paired figure of 2.12% IS this run's floor, while both `mut-odo` twins
-   sit ABOVE their base on the basis at 1.0059 and 1.0034 and BELOW it
-   on the control at 0.9993 and 0.9895 --- paired figures, which for this capped
-   pair carry the opposite sign to the published column, and post-run step 0 has
-   now named that base's tracked loop and put it at offset 0 on both halves ---
-   so the spread is not the cache-line offset of the tracked loop. **What would
-   settle it**: one binary run over the roster several times in one evening,
-   which needs no pair and no second recipe, and which separates per-process
-   variation from sampling inside a bench directly. It is the cheapest unspent
-   measurement this file has. **Run 23 adds the reading this task's own remedy
-   asked for, in half**: one binary --- Run 22's basis --- run over the roster
-   twice, two evenings apart rather than in one, and the floor it drew moved
-   from 2.12% to 2.03% on the same carrying pair, `build-aa-distant`, with 44
-   of 49 arms' geomeans inside a point; so between-evening variation for a whole
-   process is under the sampling inside one bench's worst cells, and the pairs
-   outside the six are still where the floor lives. The within-evening form, one
-   binary several times in one evening, stays unspent.
-4. `ANSWERED` **Task 1's residue was two things and neither was the branch's
-   code, 2026-08-30.** **The shim's padding was most of it.** The two unrolled
-   bodies are the same code and differ by one alignment nop, and a build without
-   the shim takes `slice-primes` from +5.57% to **+0.18%** --- [what moves
-   a figure](#what-moves-a-figure-when-no-strategy-changed) has that, and what
-   it costs every counted reading here. **The rest was one instruction a run
-   in the branch's odd-element epilogue**, fired by every conv gather because
-   kernel widths are odd, and it is gone: [the ceiling][ceiling]'s fourteenth
-   and fifteenth readings take a live value out of both fills, which frees
-   the register the epilogue wanted. **One term is left unseparated**: at runs
-   of 11 and 13 the branch was ahead before any of this, so something
-   of the opposite sign is there that no reading here isolates.
-5. `ANSWERED` **The vecdims family's ordering, re-taken in time 2026-08-30,
-   and both of its comparisons moved.** `-u2` against `-down` reads **0.8348**
-   in-process on `runs`, 7 wins of 7 at sign p 0.016, where the same pair
-   on the unchanged fill reads 1.1070 at 1 of 7 --- so the shipped fill goes
-   from a tenth behind to a sixth ahead, both past the class's floor. `-u2`
-   against `-u2-down` becomes a tie, 0.9981 at 2 of 7. [The ceiling][ceiling]'s
-   eighteenth reading has it, and the twelfth's verdict is refuted for the fill
-   that now exists. **What the same pair also shows, and what stops it being
-   read further**: `-down`, which the change does not touch and whose counted
-   work is identical between the halves, moved 15.13% in time --- so nothing
-   here may be read across the halves, only within them. **AMENDED the same day
-   by [the ceiling][ceiling]'s nineteenth reading**, which prices the pair
-   on two more populations: `-down` moved fifteen to eighteen percent between
-   the halves in every population, on code the change does not touch,
-   by instructions and not placement, so of the swing about thirteen points
-   are the change and fifteen are `-down` moving under it --- **the change
-   is worth a tenth to a seventh in time, not a quarter**, and the within-half
-   ordering is a fact about the binaries measured and not a durable one.
-6. `ANSWERED` **The shim pads inside a loop wherever two cycles overlap;
-   the containment test as a SKIP is refused, and the pad is moved off
-   the execution path instead --- `LOOP_DEADSPOT=1`, timed against the basis
-   on 2026-09-01 and faster on every arm whose fill carried a pad.** [What moves
-   a figure](#what-moves-a-figure-when-no-strategy-changed) has the mechanism.
-   `LOOP_NOOVERLAP=1`, the skip, was refused on 2026-08-30 because its two
-   instruments disagree: the padded fills drop **7.2 to 7.3% of their
-   instructions** by the counter, and by the survey 18 self-loops straddle where
-   NONE did --- the skipped heads' own short loops, so no refinement of the test
-   reaches them, a shortest-cycle form and a fall-through-only form leaving 16
-   and 17 (2026-08-31). **The dead-spot form**: every pad goes right after
-   an unconditional `jmp`, where no path executes it, and the containment test
-   orders the heads of a group instead of skipping one, the outer of a rotated
-   pair yielding. `align-as.py`'s docstring has the form, its readings
-   on the tip and its gates; what remains there is 4 short loops straddling
-   of 285 against the basis's 94, the four fills' rotated pairs, which
-   no residue resolves. **The pair, `probe-ds-run.sh`, main set, both halves
-   adjacent on a quiet machine, 114 minutes each**
-   (`probe-ds-{off,on}-main.json`; the off binary is Run 22's `g912` by md5):
-   `list` against the kept fingerprint +0.44% and +0.35%, floors 1.20%
-   and 2.19%, foreign CPU past 0.25 on 3 of 1320 cells. Read
-   it with `--exclude-shape stretch-inner1`, where `lib-stage2`'s cell
-   IS its forcing term (0.308 ms both) and the net ratio is 10.9x of nothing,
-   enough to turn the arm's geomean from 0.945 to 1.047 --- `libunord-stage2`
-   is unreadable net for the same reason on most of its shapes and reads 0.998
-   raw. **Every arm whose fill carried a pad is faster, and the counter names
-   which those are**: `fillStage2`'s four users 0.943 to 0.945, `lib-stage1`
-   0.954, the `u2` leaves 0.951 and 0.955, `lib-stage2-short` 0.976,
-   `add-in-leaf-down` 0.833 --- each with 5 to 10% fewer instructions
-   an iteration on `alexnet-L1-55-c3-k11`, the pads gone --- while
-   `lib-stage2-u4`, the same family with no pad in either build, reads 0.995
-   beside `list` 0.998, `bq-expand` 0.997 and `mut-odo-vecdims` 0.998. **What
-   a layout change is allowed to do, it did to two workers with identical
-   counts**: `gen-unsafe` 0.889 and `build` 0.939, their A/A twins agreeing,
-   so those two are placement and not the pads; no arm the basis padded reads
-   slower. Whether the basis moves is a run's decision, not this probe's.
-   **And one thing measured on the way, worth more than the skip**: the shim's
-   padding is 7% of these arms' instructions and nearly cancels in a RATIO
-   between two of them --- `lib-stage2` over `lib-stage1` moves 0.6464 to 0.6457
-   --- so what a counted ratio sees of the shim is only the differential, one
-   nop where two arms' pads differ, which is the whole of what the `slice`
-   residue turned out to be.
-7. `ANSWERED` **Whether the basis moves to the dead-spot recipe --- it does,
-   decided 2026-09-02 by whoever asked for Run 23.** Run 24's binaries are Run
-   22's two recipes, ghc-9.12.4 and GHC HEAD, each with `LOOP_DEADSPOT=1`
-   in front of the shim --- the 9.12 half repeating Run 23's dead-spot half
-   across evenings, which is the repetition the move owed, and the HEAD half
-   the dead-spot form's first reading on that compiler; the roster and shape set
-   were left undecided. The case the decision weighed is under [What the next
-   run compares against](runs/run25.md#what-the-next-run-compares-against): four
-   percent of the instructions and five of the time on every padded fill,
-   against `mut-odo` losing a few points in three classes.
-8. `ANSWERED` **Re-aim claim 1 at the family's leader, or say why not**:
-   fourteen arms read below `mut-odo-vecdims` on Run 24's basis with three more
-   level, where nineteen and one did on Run 23's and eighteen and one on Run
-   22's, the shipped route among them, and claim 1's top rung still prices
-   a mutating method against `mut-flat-gm`. Carried from Run 22's claims
-   section, which raised it and left it to a decision. **ANSWERED 2026-09-04
-   by the prune: claim 1 retires rather than re-aims, every rung below its top
-   parked, and claim 10 takes its place, the shipped fill against the family
-   root; claim 1's last reading is Run 24's.**
-9. `ANSWERED` **The dispatch threshold by the one-binary probe the `dispRun`
-   entry names, and the shapes Run 24 adds --- registered 2026-09-02, before
-   either ran.** Three arms, `lib-stage2-disp-2048`, `lib-stage2-disp-8192`
-   and `lib-stage2-disp-32768`, the dispatch with its threshold an argument,
-   timed beside `lib-stage2-disp` at 256, `lib-stage2` and `lib-stage2-concat`
-   in one `runs` process on one binary of Run 24's basis recipe, ghc-9.12.4
-   under `LOOP_DEADSPOT=1`; the class gains `runs-4096` and `runs-16384`, inside
-   the 64x gap the crossover sits in, and `runs-7`, one past the short bodies.
-   Prediction: the crossover lies between `runs-1024` and `runs-16384`,
-   and the arm cut at or above it reads at or below the better of `lib-stage2`
-   and `lib-stage2-concat` at every length within that class's floor, where
-   the 256 arm stays 20 to 34% behind stage two at `runs-256` and `runs-512`
-   as on Run 23; killed by every candidate reading behind the better route past
-   the floor at some length, which would say no threshold is worth cutting. Run
-   24's other shapes ride the same binary and are read there for their sanity
-   alone: `window-128x128-k7`, a kernel one past the short bodies in the class
-   that gave `lib-stage2-short` its widest lead, where that arm is predicted
-   level with `lib-stage2`, the short body not firing; and two small main-set
-   shapes, `lenet-slice-c6-k5` at 150 elements and `cnn-L1-12x12-c1` at 1296,
-   where a per-call dispatch cost is a share of the call and `lib-stage2-lean`
-   is predicted ahead of `lib-stage2` past the floor on both. The probe's
-   artifacts are `probe-disp2-runs.json` and its log. **ANSWERED the same
-   evening by that process: the crossover sits between `runs-1024`
-   and `runs-4096`, and the cut is 2048.** 812 benches, every one run,
-   the sixteen A/A pairs spanning 4.58% (`build-aa-distant`); against Run 23's
-   dead-spot `runs` process `list` reads 1.8% slower and the whole `lib-stage2`
-   family 5 to 6% slower at 0 of 11 shapes faster, a layout term of a binary
-   three arms and three views larger, so nothing here is read across to Run 23
-   and every reading is within the process. `lib-stage2` against `lib-stage1`
-   reads 0.9248 at `runs-1024`, 1.0493 at `runs-4096`, 1.1015 at `runs-16384`
-   and 1.1039 at `runs-65536`: the predicted bracket held and narrowed to one
-   step. The 2048 arm reads at or below the better of the two routes at every
-   length inside that span --- 0.9790 of `lib-stage2` at `runs-1024`,
-   then 1.0058, 1.0221 and 0.9952 of `lib-stage2-concat` at 4096, 16384
-   and 65536 --- where the 8192 arm is 5.1% and 5.7% behind the slice route
-   at 4096 and 16384, the 32768 arm 11% and 10%, both past the span, and the 256
-   arm 35.5% and 25.7% behind stage two at `runs-256` and `runs-512`, as on
-   Run 23. The allocation column is the routes' proof: the 2048 arm carries
-   the slice route's table from `runs-4096` up and the fill's nothing below,
-   exactly as its cut says, and the others likewise at theirs. The kill
-   condition did not fire, no candidate being behind the better route
-   everywhere. So `dispRun` is 2048, `lib-stage2-disp` is timed at it for Run
-   24, and the three probe arms are parked `Only`, spent. The shapes' sanity
-   readings off the same process: `lib-stage2-short` reads 1.0147
-   of `lib-stage2` on `runs-7`, level as predicted with the body not firing,
-   and 0.9128 at `runs-2`; the parked `-u4` fill 1.0980 at `runs-2` and 0.9683
-   at `runs-7`. The window and main-set shapes were outside the probe's
-   population and are Run 24's to read. **CONFIRMED AT FULL BUDGET BY RUN 24
-   ON BOTH COMPILERS, 2026-09-03**, as its registration 6, which holds
-   the account: [Run 24's own file](runs/run24.md). **This entry is the only
-   copy of the one-binary probe's account and stays at length for that reason**,
-   the ruling being the one the open list already applies to a spent
-   measurement: a probe's artifacts are `probe-*` and are deleted, its numbers
-   live nowhere else, and an entry that is the only copy is not shortened
-   into a pointer to itself. What DID move out of it is Run 24's half, which
-   the run file owns.
-10. `OPEN` **Run 25's additions, registered 2026-09-03 before any of them ran:
-    four stride classes and two window views for the canonical-form gaps
-    the classes left, and one probe past the cache.** The gaps and what each
-    addition prices are [in the classes
-    section](#the-stride-classes-and-what-they-cover); here is what each
-    is predicted to read and what kills it, every margin against
-    that population's own floor on both halves. (1) *`flip`.* The fills read
-    a reversed run at its forward speed: `lib-stage2` on `flip-last-rows` within
-    a floor of its `runs-96` cell per call, `lib-stage2` against `lib-stage1`
-    a tie on all three views, both routes being the regime-3 fill there; killed
-    by a fill reading a reversed run more than a floor slower than its forward
-    twin at the same length, which would price a reverse copy. (2) *`block`.*
-    The gap costs the slice route more than the fill, each memcpy starting
-    on a fresh line where the stepping loop's prefetch carries: `lib-stage2`
-    ahead of `lib-stage1` at every gap and by more at the page than at one
-    element, ahead by more again on the rank-3 block, and `lib-stage1` moved
-    by the offset more than `lib-stage2`; killed by the margin shrinking
-    as the gap grows. (3) *`small`.* `lib-stage2-lean` ahead of `lib-stage2`
-    past the floor on all four views, and `canon-vecdims` behind
-    `mut-odo-vecdims` past the floor on the two regime-3 views, the pass's
-    per-call cost showing where nothing hides it, while ahead on `small-flat64`,
-    which it collapses; killed by `lean` ahead nowhere. (4) *`compose`.* Each
-    composition reads within a floor of its single-mechanism twin at the same
-    size for the fill family: `compose-rev-bcast` of `bcast-inner8`,
-    `compose-zero-mid` as a broadcast and not as a `bcastmid` block copy,
-    and `compose-scalar` the fastest cell of any population; killed
-    by a composition more than a floor slower than its twin. (5) *The two
-    windows.* RETIRED 2026-09-04 with the ruling that parked `lib-stage2-short`,
-    the arm it was about; the views stay for the other arms' sanity. (6)
-    *The past-cache probe*, `probe-cache-build.sh` and `probe-cache-run.sh`: two
-    regime-2 views of 8 million elements, runs of 96 and of 4096, on a scratch
-    build of Run 24's basis recipe with the cap raised for it alone, timed
-    in one process of the four route arms beside `list` and the forcing
-    controls. Predicted: the `runs` order holds past the cache, the fill ahead
-    at 96 and the slice route at 4096, both routes slowing alike; killed
-    by an inversion, which would make `dispRun` a function of the working set
-    and not of the run length. Its artifacts are `probe-cache-runs.json`
-    and its log. **KILLED the same evening by the inversion it named,
-    and the inversion is small.** 14 benches in 81 seconds, self-test green,
-    `list` at 123.5 and 124.0 ms net on the two views, 14.7 ns an element
-    as in cache, `list` being memory-bound at every size. At runs of 96
-    the order holds and the margin with it: `lib-stage2` reads 0.5548
-    of `lib-stage1`, and the dispatch is the fill, 0.9999 of it, allocating
-    the result alone where the slice route allocates 28% more. At runs of 4096
-    the order inverts: `lib-stage2` reads 0.9802 of `lib-stage1`, the fill two
-    points ahead where `runs-4096` in cache has the slice route five points
-    ahead, and `lib-stage2-disp`, on the slice route there by its allocation,
-    reads 1.0227 of the fill and 1.0024 of `lib-stage1`. The process carries
-    no A/A pair, so the inversion is judged against the cells' own fit widths,
-    0.14 to 0.54%, which it clears, and against the `runs` class's recorded
-    floors of 3 to 4.6%, which it does not. So `dispRun` is a function
-    of the working set by the letter and not in a way that costs: past the cache
-    the two routes tie at 4096 within a floor, in cache the slice route leads
-    by five, and a cut at 2048 is wrong by at most a few points on either side
-    of the cache, which is what a threshold read at one working set is worth.
-    The cut stands. Not measured: a length between 96 and 4096 past the cache,
-    where the in-cache crossover sits, which one more view would place;
-    and the allocation multiple, which the reader cannot compute for a view
-    `Main.hs` does not list, so the routes were read in bytes.
+1. `OPEN` **Is per-process variation or sampling inside a bench what the floor
+   measures? The population the question was asked about is gone;
+   the measurement is not.** Asked here since Run 18 as *is the spread
+   of the pairs outside the restricted six criterion's sampling*,
+   and **superseded 2026-09-04**: the prune deleted ten of the sixteen A/A
+   pairs, so there are no pairs outside the six and the two series the question
+   compared are one series. What survives is the remedy, unspent and unchanged:
+   **one binary run over the roster several times in ONE evening**, which needs
+   no pair and no second recipe and separates per-process variation
+   from sampling inside a bench directly. Run 23 took its half --- one binary
+   twice, two evenings apart, the floor moving from 2.12% to 2.03% on the same
+   carrying pair with 44 of 49 arms inside a point, so between-evening variation
+   for a whole process is under the sampling inside one bench's worst cells.
+   The within-evening form is still the cheapest unspent measurement this file
+   has, and it is cheaper now: six pairs and 432 benches where it would have
+   been sixteen and 1352.
+2. `OPEN` **What the un-unrolled leaf gives up is the unrolling AND a spill,
+   and one build separates them.** Run 25 priced
+   `mut-odo-vecdims-add-in-leaf-u1` between the counted-bound leaf
+   and the unrolled one on both compilers --- 0.9360 and 0.9407
+   of `-add-in-leaf`, 1.0367 and 1.0479 of `-u2`, every reading past both
+   halves' floors, and 0.8456 and 0.8444 of `-add-in-leaf`'s corrected
+   instructions against 1.0892 and 1.0900 of `-u2`'s ([Run 25's registration
+   7](runs/run25.md#what-this-run-was-built-to-answer-and-what-it-answered)).
+   But the `-g3` twin read `-u1`'s run-level fill at seven instructions where
+   its rank-1 copy is six, a reload of the source base per element
+   that the unrolled fill does not carry, so the three and a half to five points
+   are the loop overhead and that spill together. **What would settle it**:
+   an arm that is `-u1` with the base held in a register --- one more roster
+   entry, timed beside the two it sits between, needing no pair and no new
+   recipe. Until then no figure here says what unrolling alone is worth.
+3. `OPEN` **A reversed innermost axis costs the regime-3 fill about twice
+   the forward run at the same length, and nothing in the code says why.** Run
+   25's `flip` class killed the prediction that the fills read a reversed run
+   at its forward speed: `flip-last-rows` and `runs-96` are the same `l`
+   at the same `sInner`, one reversed and one not, and per call the basis reads
+   `mut-odo-vecdims` at 2.120 of its forward cell, `-add-in-leaf-u2` at 1.683
+   and the two stage-two routes at 1.903 and 1.907, with 2.073, 1.851, 1.845
+   and 1.846 on HEAD, against a `list` that pays 1.091 and 1.076 ([the `flip`
+   block](runs/run25.md#the-stride-classes-run-by-run)). The one arm faster
+   reversed is `lib-stage1`, at 0.859 and 0.939. **What would settle it**:
+   the counted work on those two views, which this run has and no sentence has
+   read --- if the instruction counts match, the cost is the memory system
+   walking backwards and the fills can do nothing about it; if they do not,
+   it is the canonicalization taking a different route and it is the library's
+   to fix. It is an arithmetic re-derivation on files already on disk.
+4. `OPEN` **A registration's DEFERRAL TARGET is not held to the roster, and Run
+   25 lost three predictions of four to that.** `--lint` has read an OPEN
+   registration's backticked arm names against the timed roster since 2026-09-04
+   and checks that each `task N` it defers to resolves --- and nothing more. Run
+   25's item (4) deferred to task 10, whose four class predictions are stated
+   against `lib-stage2` and `canon-vecdims`, parked the day after they
+   were written, so three of them were unreadable before the machine was started
+   ([the open list][open] carries the case). **What would settle it**: read
+   the target paragraph's backticked arms as the registration's own are read;
+   the pointer already resolves, so it is one intersection away. The clause
+   that names another REGISTRATION rather than an arm has no cheap predicate
+   and stays step 12b's, a reading.
+5. `OPEN` **The reader has no within-half counted-work mode, and this run
+   improvised one.** `--counts` reads a pair of sweep files beside `--compare`,
+   so it answers *did this arm's instructions move between the halves*
+   and nothing else. Registration 7 turns on the other question --- *how many
+   instructions does this arm execute against that one, on one half* ---
+   and the write-up computed it by differencing each arm's instructions per
+   iteration against the mean of the two `sum-only` arms, shape by shape,
+   and taking the geomean over the eighteen, which is the correction the time
+   column applies. **What would settle it**: that computation as a mode,
+   `--counts FILE --pair A B`, so the next run does not invent it and cannot
+   invent it differently. It is the standing rule about hand-rolled arithmetic
+   applied to the one figure this run had to hand-roll.
+6. `ANSWERED` **Run 25's additions, registered 2026-09-03 before any of them
+   ran: four stride classes and two window views for the canonical-form gaps
+   the classes left, and one probe past the cache.** The four classes' verdicts
+   are [in Run 25's
+   file](runs/run25.md#what-this-run-was-built-to-answer-and-what-it-answered)
+   with the rest of that run's registrations --- `flip` KILLED, `block`
+   and `compose` SPLIT, `small` unreadable for the parkings above ---
+   and the two window views' item was withdrawn 2026-09-04 with the arm
+   it was about, so this run times them for the other arms' sanity alone
+   and they read as the other four views do. **This entry stays for its sixth
+   item alone, the past-cache probe, whose account is nowhere else**:
+   `probe-cache-build.sh` and `probe-cache-run.sh`, two regime-2 views of 8
+   million elements at runs of 96 and 4096 on a scratch build with the cap
+   raised, timed in one process. Predicted: the `runs` order holds past
+   the cache, the fill ahead at 96 and the slice route at 4096, both routes
+   slowing alike. **KILLED the same evening by the inversion it named,
+   and the inversion is small.** 14 benches in 81 seconds, self-test green,
+   `list` at 123.5 and 124.0 ms net on the two views, 14.7 ns an element
+   as in cache, `list` being memory-bound at every size. At runs of 96 the order
+   holds and the margin with it: `lib-stage2` reads 0.5548 of `lib-stage1`,
+   and the dispatch is the fill, 0.9999 of it, allocating the result alone where
+   the slice route allocates 28% more. At runs of 4096 the order inverts:
+   `lib-stage2` reads 0.9802 of `lib-stage1`, the fill two points ahead where
+   `runs-4096` in cache has the slice route five points ahead,
+   and `lib-stage2-disp`, on the slice route there by its allocation, reads
+   1.0227 of the fill and 1.0024 of `lib-stage1`. The process carries no A/A
+   pair, so the inversion is judged against the cells' own fit widths, 0.14
+   to 0.54%, which it clears, and against the `runs` class's recorded floors
+   of 3 to 4.6%, which it does not. So `dispRun` is a function of the working
+   set by the letter and not in a way that costs: past the cache the two routes
+   tie at 4096 within a floor, in cache the slice route leads by five, and a cut
+   at 2048 is wrong by at most a few points on either side of the cache. The cut
+   stands. Not measured: a length between 96 and 4096 past the cache, where
+   the in-cache crossover sits, which one more view would place;
+   and the allocation multiple, which the reader cannot compute for a view
+   `Main.hs` does not list, so the routes were read in bytes.
 
 **And one class not to repropose: work that needs an aligned build.**
 `mut-odo`'s wide interval is the live case. The dispersion is documented
@@ -3676,8 +3549,8 @@ and `canon-full` at 0.049, 0.052 and 0.053, and `mut-odo-vecdims-add-in`
 at 0.054 --- and every one of the seven needs a mutating `Vector` method
 and nothing more, which is exactly what the fix needs, so none of them reopens
 the decision and one of them, `-add-in-leaf-u2`, is what the branch ports.
-Its family heads seven of the nine classes, and the two it does not
-are the rework's: `reshape1`, where `canon-memcpy-r2` reads 0.000 against
+Its family heads all but two of the classes Run 20 timed, and the two it does
+not are the rework's: `reshape1`, where `canon-memcpy-r2` reads 0.000 against
 `mut-odo-vecdims`'s 0.095 on cells that price dispatch rather than filling,
 and `bcastmid`, where `mid-copy` reads 0.017 against 0.031 and leads on all four
 shapes. On the main set, per shape, the best arm outside the family beats
@@ -3804,7 +3677,7 @@ over the 24 shapes Run 23 had. It has now read 1.80x at -O1, 1.68x on Run 8,
 18 and again on Run 19 --- a paired figure that moved five ten-thousandths
 across a REPETITION of one binary, Run 18's basis and Run 19's being both
 ghc-9.12.4 and byte-identical --- 1.83x on Run 20, 1.84x on Run 21 and Run 22,
-1.83x on Run 23 and **1.83x** here, the figure moving three ten-thousandths
+1.83x on Run 23 and **1.83x** on Run 24, the figure moving three ten-thousandths
 from Run 23's published 0.5466 --- that column being the max-skip half's,
 so the step crosses the basis recipe as well as a roster change, where
 the previous build of THIS recipe, Run 23's dead-spot half, read 0.5527.
@@ -3824,7 +3697,16 @@ a repetition nor a roster change moves it. Read it as *approaching 2x
 and volatile at the tenth* between runs that differ, and do not reopen or close
 the ruling on a movement of that size --- Run 10 showed the volatility
 is not the layout's, and Runs 11, 19 and 23 show it is not the run's either,
-which leaves the roster and the regime as what moved it.
+which leaves the roster and the regime as what moved it. **The series ends
+at Run 24 and this is where a reader is told**: the prune of 2026-09-04 parked
+`bq-scan-rem-gm-mulback` with every other rung below the top of claim 1,
+so no run since times the denominator and no figure above can be extended.
+The ruling stands on what is here; a run that wants the reading back re-times
+that arm, and until one does the family's own leaf ratio ---
+`mut-odo-vecdims-add-in-leaf-u2` over `mut-odo-vecdims`, [claim
+10](runs/run25.md#the-claims-the-next-run-should-test) at 0.6394 and 0.6393
+on Run 25's two halves --- is what the roster prices in its place, which
+is a different question and not a continuation of this one.
 
 **Amended 2026-08-07: the bar is now a weight.** The tree itself carries
 a precedent this section did not weigh: `Data/Array/Internal/FastReshape.hs`
@@ -8140,39 +8022,40 @@ twin --- against Run 24's 1.26% and 2.11%, Run 23's 2.03% and 2.80%, Run 22's
 3.70% and 3.89% and Run 16's 2.32% and 1.22%, every one of those five
 over eighteen. **A max over six pairs and a max over sixteen are different
 statistics, so those older figures are not a series this one continues.**
-`list-aa-adjacent` carries the basis figure and `bq-expand-aa-distant` the HEAD
-half's. 0.40% and 0.61% read on the six pairs this roster leaves and on the four
-of them that carry back to Run 10 alike, `bq-expand-aa-distant` carrying both
-restricted figures, against Run 24's 0.34% and 0.19% over its own six ---
-so the two thresholds this file kept apart for five runs have collapsed
-into one, and one figure is quoted per half from here. **What Run 19 settled
-about the floor, Run 25 cannot restate, and saying so is the point.** Run 19's
-basis half was Run 18's basis BINARY byte for byte and read 2.32% where
-that binary read 1.36%, a factor of 1.7 with everything held still; Run 23's
-basis was Run 22's binary and moved the floor by a twentieth. This run has
-no repetition to offer --- its roster moved, so neither half reproduces
-an earlier binary --- and its 0.40% therefore carries a roster change as well
-as an evening, over a set of pairs that is not the set the older figures
-were read over. **Where the movement lives is the one thing eight runs now agree
-on.** The six-pair figure has read 0.54%, 0.49%, 0.44%, 0.46%, 0.37%, 0.39%,
-0.34% and now 0.40% across those eight on the basis while the whole-set figure
-ran 1.36%, 2.32%, 1.51%, 2.92%, 2.12%, 2.03% and 1.26% before it stopped,
-so the pairs outside the six were what moved and the six have been steady enough
-to compare rows with for eight runs --- with Run 21's control half the one
-reading that strains it, its six-pair figure having gone from 0.28% to 0.60%.
-The threshold this run supports is therefore ONE figure and no longer two ---
-*0.40% between any two rows of the table*, which is both the six-pair basis
-and the whole set --- where Run 24 supported 0.34% and 1.26%, Run 23 0.39%
-and 2.03%, Run 22 0.37% and 2.12%, Run 21 0.46% and 2.92%, Run 20 0.44%
-and 1.51%, Run 19 0.49% and 2.32%, Run 18 0.54% and 1.36%, Run 17 1.31%
-and 3.70%, Run 16 0.39% and 2.32%, Run 14 0.29% and 2.19%, Run 12 0.35%
-and 0.24%, Run 11 a quarter of a percent on its max-skip half and 1.21%
-on the other, Run 10 1.00% unaligned and 0.54% aligned, Run 9 under 0.1%
-with a wild cell, Run 8 0.5% and Run 7 nearly 4%. Runs disagreeing several-fold
-on the floor is itself the caution, and one binary disagreeing by 1.7x
-with itself one day and by a twentieth another is that caution sharpened as far
-as it goes: read the floor as the run's *and the half's*, re-measured every
-time, never as a constant of the harness and never inherited.
+`list-aa-adjacent` carries the basis figure at 0.4012%
+and `bq-expand-aa-distant` the HEAD half's. 0.40% and 0.61% read on the six
+pairs this roster leaves, and on the four of them that carry back to Run 10
+alike, `bq-expand-aa-distant` carrying the basis maximum over those four
+at 0.3993% and the control half's over either set --- against Run 24's 0.34%
+and 0.19% over its own six --- so the two thresholds this file kept apart
+for five runs have collapsed into one, and one figure is quoted per half
+from here. **What Run 19 settled about the floor, Run 25 cannot restate,
+and saying so is the point.** Run 19's basis half was Run 18's basis BINARY byte
+for byte and read 2.32% where that binary read 1.36%, a factor of 1.7
+with everything held still; Run 23's basis was Run 22's binary and moved
+the floor by a twentieth. This run has no repetition to offer --- its roster
+moved, so neither half reproduces an earlier binary --- and its 0.40% therefore
+carries a roster change as well as an evening, over a set of pairs that
+is not the set the older figures were read over. **Where the movement lives
+is the one thing eight runs now agree on.** The six-pair figure has read 0.54%,
+0.49%, 0.44%, 0.46%, 0.37%, 0.39%, 0.34% and now 0.40% across those eight
+on the basis while the whole-set figure ran 1.36%, 2.32%, 1.51%, 2.92%, 2.12%,
+2.03% and 1.26% before it stopped, so the pairs outside the six were what moved
+and the six have been steady enough to compare rows with for eight runs ---
+with Run 21's control half the one reading that strains it, its six-pair figure
+having gone from 0.28% to 0.60%. The threshold this run supports is therefore
+ONE figure and no longer two --- *0.40% between any two rows of the table*,
+which is both the six-pair basis and the whole set --- where Run 24 supported
+0.34% and 1.26%, Run 23 0.39% and 2.03%, Run 22 0.37% and 2.12%, Run 21 0.46%
+and 2.92%, Run 20 0.44% and 1.51%, Run 19 0.49% and 2.32%, Run 18 0.54%
+and 1.36%, Run 17 1.31% and 3.70%, Run 16 0.39% and 2.32%, Run 14 0.29%
+and 2.19%, Run 12 0.35% and 0.24%, Run 11 a quarter of a percent on its max-skip
+half and 1.21% on the other, Run 10 1.00% unaligned and 0.54% aligned, Run 9
+under 0.1% with a wild cell, Run 8 0.5% and Run 7 nearly 4%. Runs disagreeing
+several-fold on the floor is itself the caution, and one binary disagreeing
+by 1.7x with itself one day and by a twentieth another is that caution sharpened
+as far as it goes: read the floor as the run's *and the half's*, re-measured
+every time, never as a constant of the harness and never inherited.
 
 **The twins have now taken every side available, which is what a sign this weak
 is worth.** Run 10 read all six pairs above 1 on its unaligned half and five
@@ -8213,8 +8096,9 @@ and Runs 17 to 20 on a class. Fourteen of sixteen intervals cover 1 on each
 half, the two missing on the basis being `bq-expand-aa-distant`
 and `bq-odo-gm-mulback-aa-distant` and on the HEAD half `list-aa-adjacent`
 and `build-aa-adjacent`, every one of them an arm whose two processes differ
-by less than its interval admits. It rests on sixteen pairs since the parking
-of 2026-08-28, so one loose pair moves it more than it did on eighteen.
+by less than its interval admits. It rested on sixteen pairs from the parking
+of 2026-08-28 and rests on SIX since the prune of 2026-09-04, so one loose pair
+now moves it three times what it did then.
 
 **The class populations are where the factor still bites, and THESE FIGURES
 ARE RUN 21'S** --- the class half of this section has not been re-taken since
@@ -9945,6 +9829,39 @@ the record costs. **A fourth half arrives with the pairing and is not a delta
 at all**: which half of the pair a figure came from, which is why the run file's
 tables and its fingerprint say so.
 
+- Run 25 measured TODAY's shapes, class views and roster, being the run whose
+  file `runs/` currently publishes --- 24 timed arms over 18 main-set shapes
+  and 49 class views in TEN classes, 432 benches and 1176, SIX A/A pairs,
+  the `runs` class at FOURTEEN and `window` at SIX --- so its delta against
+  TODAY is empty. **Its delta against RUN 24** is the five roster commits
+  of 2026-09-04, which are Run 24's bullet's to name: three classes and eight
+  main-set shapes retired from timing, sixteen arms parked by the prune
+  with twelve of their controls deleted and two more parked by the ruling
+  on the short bodies, and two arms landing, `mut-odo-vecdims-add-in-leaf-u1`
+  new and `mut-odo-vecdims-add-in-leaf` re-timed as its bound control --- plus
+  the two window views and the four classes of 2026-09-03, which Run 24 could
+  not time and this run does. So NEITHER half reproduces an earlier binary,
+  no md5 here matches one on record, and a distance from Run 24's published
+  column carries a shape-set change as well as a roster one --- **which is why
+  every cross-run figure in its file is pinned to these eighteen shapes**,
+  and pinned, Run 24's basis column reads Run 25's arm for arm. What a reader
+  has to carry is which half a figure came from: everything published
+  in its file is `run25-g912`, ghc-9.12.4, and `run25-ghead` --- the same
+  source, shim and shim environment built through `cabal.project.ghead` against
+  the in-tree GHC HEAD stage1, unmoved from Run 24's, so the halves differ
+  in the compiler and in the boot libraries that come with it and in nothing
+  else --- contributes the second column of `runs/run25.md`. Its `list` moved
+  1.10% between the halves, PAST the 0.7% bar, so its two columns may be ordered
+  and not subtracted, where Run 24's could. The box did not move, its gate
+  machine check reading -0.08% and its two main-set processes +0.32% and -0.77%
+  against Run 24's fingerprint over 18 of 18 shapes, so absolutes cross from Run
+  24 freely and the boundary that stops them is still the BIOS change before
+  Run 18. Its sequence ran in ONE window, all twenty-two processes,
+  with no intrusion and no population rerun. **And its floor is a maximum
+  over SIX A/A pairs where Runs 21 to 24 read sixteen and Runs 16 to 20
+  eighteen**, the prune having deleted ten pairs with the arms they doubled,
+  so 0.40% and 0.61% are not a continuation of the 1.26%/2.11% series
+  and no figure of that series has a successor.
 - Run 24 measured the shapes, class views and roster of its day --- 52 timed
   arms over 26 main-set shapes and 41 class views in NINE classes, 1352 benches
   and 2132, sixteen A/A pairs, the `runs` class at FOURTEEN and `window` at FOUR
@@ -10388,6 +10305,7 @@ of the list above is one of the steps.
 [floor]: #what-moves-a-figure-when-no-strategy-changed
 [lemire]: #lemire-multiplicative-inverses-at-the-two-division-sites
 [open]: #what-is-open
+[open-tasks]: #recommended-tasks-after-run-25
 [opening]: #regime-3-micro-benchmark-the-regime-3-fix
 [pershape]: #per-shape-where-the-geomean-hides-the-ordering
 [pos-effect]: https://github.com/Mikolaj/horde-ad/blob/master/docs/position-effect.md

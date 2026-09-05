@@ -572,7 +572,7 @@ def rundoc_with_ragged_row(tmp):
     return write_rundoc(tmp, '\n'.join(lines))
 
 
-def rundoc_without_class_table(tmp, cls='slice'):
+def rundoc_without_class_table(tmp, cls='rev'):
     lines = rundoc_lines()
     i, j = class_table_span(lines, cls)
     del lines[i:j]
@@ -855,7 +855,7 @@ def readme_goal_above_open(tmp, rev=None):
                  '\n'.join(rest[:lo] + goal + rest[lo:]))
 
 
-def rundoc_summary_row_short(tmp, cls='slice'):
+def rundoc_summary_row_short(tmp, cls='rev'):
     lines = rundoc_lines()
     at = [i for i, l in enumerate(lines) if l.startswith('| `%s` |' % cls)]
     assert len(at) == 1, 'summary row `%s`: %d line(s)' % (cls, len(at))
@@ -966,19 +966,29 @@ def readme_deliberate_link_wrapped(tmp):
 def readme_six_pair_perturbed(tmp):
     """A copy of README whose six-pair sentence quotes a first figure no
     other site does, found by the sentence's shape rather than by the
-    run's figure -- `the same run gives **X% and Y%**` -- so that the
-    fixture follows the requote instead of failing to build after it."""
+    run's figure -- `X% and Y% read on the six pairs` -- so that the
+    fixture follows the requote instead of failing to build after it.
+
+    RE-SHAPED 2026-09-05: the anchor was `the same run gives **X% and
+    Y%**`, which Run 24's floor sentence carried inside one of the
+    check's own AGREEING sites. Run 25's prune left SIX A/A pairs in all
+    and only FOUR carrying back to Run 10, so that sentence could not say
+    `the six pairs that carry back to Run 10` truthfully any more and was
+    rewritten -- and an anchor that lands OUTSIDE an AGREEING site
+    perturbs text the check does not read, which is a fixture that builds
+    and a case that cannot fire. The shape here is one of the sites.
+    """
     text = open(README).read()
     flat_text = subprocess.run(['wrap80', '--unwrap'], input=text,
                                capture_output=True, text=True,
                                check=True).stdout
-    ms = re.findall(r'the same run gives \*\*([\d.]+)% and ([\d.]+)%\*\*',
+    ms = re.findall(r'([\d.]+)% and ([\d.]+)% read on the six pairs',
                     flat_text)
     assert len(ms) == 1, ('the six-pair sentence occurs %d times, need 1'
                           % len(ms))
     x, y = ms[0]
-    old = 'the same run gives **%s%% and %s%%**' % (x, y)
-    new = 'the same run gives **%.2f%% and %s%%**' % (float(x) + 0.30, y)
+    old = '%s%% and %s%% read on the six pairs' % (x, y)
+    new = '%.2f%% and %s%% read on the six pairs' % (float(x) + 0.30, y)
     return write(os.path.join(tmp, 'R.md'), flat_text.replace(old, new, 1))
 
 
@@ -1434,8 +1444,8 @@ def rundoc_heading_between_blocks(tmp):
     standing between two blocks is inside the range of the one above it.
     """
     paras = rundoc_text().split('\n\n')
-    at = [i for i, x in enumerate(paras) if x.startswith('**`revsome`')]
-    assert len(at) == 1, 'revsome lead: %d paragraph(s)' % len(at)
+    at = [i for i, x in enumerate(paras) if x.startswith('**`bcast` ')]
+    assert len(at) == 1, 'bcast lead: %d paragraph(s)' % len(at)
     paras[at[0]:at[0]] = ['### A section standing between two class blocks',
                           'Provenance: ZZMARKER, and this paragraph is'
                           ' nobody\'s to rewrite.']
@@ -3915,7 +3925,7 @@ RECORDS = [
     case('install-lands-in-next-block', 'read-run.py', '045ca63',
          'a class whose own table is absent took the next class\'s',
          plant=lambda t: {'rundoc': rundoc_without_class_table(t),
-                          'run': synth_json(t, 'slice')},
+                          'run': synth_json(t, 'rev')},
          argv=['{run}', '--block', '--in-place', '--run-doc', '{rundoc}'],
          ok=V(exit=1, has=['refusing to write there'],
               hasnt=['installed at']),
@@ -3927,7 +3937,7 @@ RECORDS = [
     case('block-brief-cannot-install', 'read-run.py', '045ca63',
          '--brief dropped the table --in-place had to install',
          plant=lambda t: {'rundoc': edited_rundoc(t),
-                          'run': synth_json(t, 'slice')},
+                          'run': synth_json(t, 'rev')},
          argv=['{run}', '--block', '--in-place', '--brief',
                '--run-doc', '{rundoc}'],
          ok=V(exit=0, has=['installed at']),
@@ -5323,7 +5333,7 @@ RECORDS = [
     case('summary-row-width', 'read-run.py', 'a6c32e8',
          'a row that lost a column had its tail compared against nothing',
          plant=lambda t: {'rundoc': rundoc_summary_row_short(t),
-                          'run': synth_json(t, 'slice')},
+                          'run': synth_json(t, 'rev')},
          argv=['{run}', '--block', '--run-doc', '{rundoc}'],
          ok=V(has=['not checked: it has 5 column(s)']),
          # No --audit: `--run-doc` postdates every commit this case could
@@ -5644,12 +5654,12 @@ RECORDS = [
          # per-shape line --block installs beneath them named three.
          # --block knew both all along and compared neither.
          plant=lambda t: {
-             'rundoc': relead(t, 'slice', lambda s: s.replace(
-                 ', `slice-coprime-r7` (`l` 60060, `sInner` 13)', '')),
-             'run': synth_run(os.path.join(t, 'slice.json'),
-                              run_order_shapes('slice'))},
+             'rundoc': relead(t, 'rev', lambda s: s.replace(
+                 ', `rev-primes` (`l` 250357, `sInner` 89)', '')),
+             'run': synth_run(os.path.join(t, 'rev.json'),
+                              run_order_shapes('rev'))},
          argv=['{run}', '--block', '--run-doc', '{rundoc}'],
-         ok=V(exit=0, has=['does not name `slice-coprime-r7`']),
+         ok=V(exit=0, has=['does not name `rev-primes`']),
          # No --audit: `--run-doc` postdates every commit this case could
          # replay against, so the older reader rejects the argv rather
          # than reproducing anything. The run-file split, 2026-08-25.
@@ -5662,16 +5672,16 @@ RECORDS = [
          # does not go stale -- it mislabels three live ratios, which is
          # the one of the three readings no reading of the block catches.
          plant=lambda t: {
-             'rundoc': relead(t, 'slice', lambda s: s.replace(
-                 '`slice-cnn-L2-24x24-c32` (`l` 165888, `sInner` 3),'
-                 ' `slice-primes` (`l` 250357, `sInner` 89)',
-                 '`slice-primes` (`l` 250357, `sInner` 89),'
-                 ' `slice-cnn-L2-24x24-c32` (`l` 165888, `sInner` 3)')),
-             'run': synth_run(os.path.join(t, 'slice.json'),
-                              run_order_shapes('slice'))},
+             'rundoc': relead(t, 'rev', lambda s: s.replace(
+                 '`rev-cnn-L1-24x24-c1` (`l` 5184, `sInner` 3),'
+                 ' `rev-gather48-src-50` (`l` 22500, `sInner` 3)',
+                 '`rev-gather48-src-50` (`l` 22500, `sInner` 3),'
+                 ' `rev-cnn-L1-24x24-c1` (`l` 5184, `sInner` 3)')),
+             'run': synth_run(os.path.join(t, 'rev.json'),
+                              run_order_shapes('rev'))},
          argv=['{run}', '--block', '--run-doc', '{rundoc}'],
-         ok=V(exit=0, has=['it lists them `slice-primes`,'
-                           ' `slice-cnn-L2-24x24-c32`']),
+         ok=V(exit=0, has=['it lists them `rev-gather48-src-50`,'
+                           ' `rev-cnn-L1-24x24-c1`']),
          # No --audit: `--run-doc` postdates every commit this case could
          # replay against, so the older reader rejects the argv rather
          # than reproducing anything. The run-file split, 2026-08-25.
@@ -5680,10 +5690,10 @@ RECORDS = [
     case('lead-figures-disagree-with-main-hs', 'read-run.py', '3596ba2',
          'a lead\'s hand-copied `l` had no source but the lead',
          plant=lambda t: {
-             'rundoc': relead(t, 'slice', lambda s: s.replace(
-                 '`slice-primes` (`l` 250357', '`slice-primes` (`l` 250358')),
-             'run': synth_run(os.path.join(t, 'slice.json'),
-                              run_order_shapes('slice'))},
+             'rundoc': relead(t, 'rev', lambda s: s.replace(
+                 '`rev-primes` (`l` 250357', '`rev-primes` (`l` 250358')),
+             'run': synth_run(os.path.join(t, 'rev.json'),
+                              run_order_shapes('rev'))},
          argv=['{run}', '--block', '--run-doc', '{rundoc}'],
          ok=V(exit=0, has=['is written (`l` 250358, `sInner` 89) where'
                            ' Main.hs gives (`l` 250357, `sInner` 89)']),
@@ -5697,10 +5707,10 @@ RECORDS = [
          # The three above plant into the same lead, so this is what says
          # they are firing on the plant and not on the fixture: same
          # class, same built run, the README untouched.
-         plant=lambda t: {'run': synth_run(os.path.join(t, 'slice.json'),
-                                           run_order_shapes('slice'))},
+         plant=lambda t: {'run': synth_run(os.path.join(t, 'rev.json'),
+                                           run_order_shapes('rev'))},
          argv=['{run}', '--block'],
-         ok=V(exit=0, hasnt=['lead `slice`'])),
+         ok=V(exit=0, hasnt=['lead `rev`'])),
 
     case('break-priced-against-its-population-floor', 'read-run.py', '3596ba2',
          'a class property break was reported as a sort, with no width',
@@ -6924,7 +6934,10 @@ RECORDS = [
          # read off README by the sentence's own shape, so a run's requote
          # no longer leaves a fixture that will not build -- three re-aims
          # in a week, the last by Run 23's write-up, each a loud failure
-         # with nothing behind it.
+         # with nothing behind it. RE-SHAPED 2026-09-05, the shape itself
+         # having gone with the prune: a self-aiming anchor still has to
+         # land INSIDE one of the check's own sites, and the fixture's
+         # docstring says what it cost when it did not.
          plant=lambda t: {'readme': readme_six_pair_perturbed(t)},
          argv=['--check-doc', '--readme', '{readme}'],
          ok=V(exit=1, has=['six-pair figure is quoted differently']),
@@ -7507,7 +7520,7 @@ RECORDS = [
          # No --audit: this fixture is built from the live README, which
          # the Basic Latin pass reworded under it. Removal is the handling.
          ok=V(exit=0, has=['ZZMARKER',
-                           'across 9 class block(s)'])),
+                           'across 10 class block(s)'])),
 
     case('placeholder-that-outlived-its-wording', 'install-tables.sh',
          None,
@@ -7630,7 +7643,7 @@ RECORDS = [
                                              classes=recorded_classes())),
          env={'DOC': '{doc}', 'BASIS': 'lookrts', 'OTHER': 'ovhalf'},
          argv=['zzit'],
-         ok=V(exit=0, has=['12 table(s) installed'])),
+         ok=V(exit=0, has=['13 table(s) installed'])),
 
     # ---- read-run.py --note, the previous pair note for the next pair ---
     case('note-read-withholds-the-handover', 'read-run.py', None,
