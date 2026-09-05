@@ -831,34 +831,34 @@ rather than a slot in the next run, observed again:
   the floor on both halves on any population but `runs`, which would be a slot
   and not the code. (2) *The roster change, read cross-run.* Against Run 25's
   basis column over the eighteen shared shapes, `lib-stage2-disp` reads faster
-  on `cnn-slice-c32`, the one small shape still timed, by about the gap the pair
-  read there on Run 25, 1.1719, and on every `small` view by about that class's
-  1.17 to 1.30, and within 1% on the other seventeen shapes as the rest
-  of the roster does; `liblist-stage2` moves the same way on the same views,
-  by less, the dispatch being a smaller share of a call that also builds
-  its list; `lib-stage2-lean` and every arm the ruling did not touch read within
-  1% on all eighteen. Killed by `lib-stage2-disp` inside the floor
-  on `cnn-slice-c32` and on `small`, which would say the dispatch was not what
-  that gap measured, or by an untouched arm moving past 1% on a shape, which
-  would be a layout term the prune was to have removed. This item
-  is the session's to adjudicate, no span reading a shape subset or another
-  run's column. (3) *The unordered candidate.* `libunord-stage3` reads ahead
-  of `libunord-stage2` past the population's floor on both halves wherever stage
-  two falls back to its list --- the main-set shapes where the two unordered
-  arms fill rather than slice, `compose-rev-bcast`, whose reversed axis stage
-  three walks forward, and `flip-inner-gap64`, whose reversed rows it walks
-  forward --- and inside the floor wherever both slice, on `rev`, the dense
-  `flip` views, `revsome` and the one-block main-set shapes, where the two
-  are the same slice, and on `flip-outer-gap64`, forward runs in reversed order,
-  where the direction is already forward; and it allocates 1.00x the result
-  where it fills, against the list consumer's 2.00x tier. Killed by reading
-  behind `libunord-stage2` past the floor on both halves on any view where stage
-  two fills, which would say address order is not what the `flip` finding
-  measured, or by a tie inside the floor on every such main-set shape, which
-  would say the logical order was already the address order there. The pair
-  is not one geomean over the main set, its cells on the one-block shapes being
-  the forcing pass, so this is read per shape and is the session's
-  to adjudicate.
+  on `cnn-slice-c32`, the one small shape Run 25 timed, by about the gap
+  the pair read there on Run 25, 1.1719, and on every `small` view by about
+  that class's 1.17 to 1.30, and within 1% on the other seventeen shapes
+  as the rest of the roster does; `liblist-stage2` moves the same way
+  on the same views, by less, the dispatch being a smaller share of a call
+  that also builds its list; `lib-stage2-lean` and every arm the ruling did
+  not touch read within 1% on all eighteen. Killed by `lib-stage2-disp` inside
+  the floor on `cnn-slice-c32` and on `small`, which would say the dispatch
+  was not what that gap measured, or by an untouched arm moving past 1%
+  on a shape, which would be a layout term the prune was to have removed.
+  This item is the session's to adjudicate, no span reading a shape subset
+  or another run's column. (3) *The unordered candidate.* `libunord-stage3`
+  reads ahead of `libunord-stage2` past the population's floor on both halves
+  wherever stage two falls back to its list --- the main-set shapes where
+  the two unordered arms fill rather than slice, `compose-rev-bcast`, whose
+  reversed axis stage three walks forward, and `flip-inner-gap64`, whose
+  reversed rows it walks forward --- and inside the floor wherever both slice,
+  on `rev`, the dense `flip` views, `revsome` and the one-block main-set shapes,
+  where the two are the same slice, and on `flip-outer-gap64`, forward runs
+  in reversed order, where the direction is already forward; and it allocates
+  1.00x the result where it fills, against the list consumer's 2.00x tier.
+  Killed by reading behind `libunord-stage2` past the floor on both halves
+  on any view where stage two fills, which would say address order is not what
+  the `flip` finding measured, or by a tie inside the floor on every such
+  main-set shape, which would say the logical order was already the address
+  order there. The pair is not one geomean over the main set, its cells
+  on the one-block shapes being the forcing pass, so this is read per shape
+  and is the session's to adjudicate.
 - `ANSWERED` **What Run 25 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
   verdicts are [in Run 25's own
@@ -3126,47 +3126,48 @@ so `lib-stage2-short` and `lib-stage2-short-lean` price what the bodies would
 buy, are not candidates to ship, and are parked `Only` as `lib-stage2-u4` is;
 their Run 24 readings stand in that run's file.** **The lean dispatch is taken,
 2026-09-05, for every dispatch that admits it, in the branch's `regimeT`
-and in every `canonView` arm here but `lib-stage2`, which keeps the strides
-comparison as the lean arm's control**: mainly because the merged form decides
-the regime with no stride list built, which is the simpler code, and because Run
-24 read `lib-stage2-lean` at or below `lib-stage2` on every readable population
-of both halves and ahead past both floors on the four smallest main-set shapes
-(Run 24's registration 2, whose verdict [the open list][open] keeps); the two
-shapes it read behind past one half's floor, `stretch-primes` on the basis
-and `stretch-inner256` on HEAD, execute the same corrected instructions to five
-parts in ten thousand on both halves, so neither loss is the dispatch. What does
-not admit it: the stage-one ports and `regimeOf`, which compare raw strides,
-where the invariant does not hold; the unordered one-block test, whose sort
-by absolute stride can make a rank-2 canonical view one block; and `check`'s own
-regime conditions, kept explicit so that the equivalence is checked
-and not assumed. The licence --- after canonicalization no adjacent pair
-satisfies the merge equation, and natural strides at rank 2 or more
-are that equation at every pair --- was checked against the branch's
-`canonicalizeT` the same day over 300000 random views and every view up to rank
-3 with extents to 3 and strides to 4, the control's decision equal to the lean
-one on all of them, and two deliberate breaks of it fail the check.
-`lib-stage2-short-lean`, the composite of the short bodies with this dispatch,
-is gone from `Main.hs` from here, `lib-stage2-short` having become the same
-code; its Run 24 readings stand in that run's file. The runs class gained
-`runs-4` and `runs-5` the same day -- no view in the suite had a canonical
-innermost extent of 4, so the short bodies' one unexercised branch was invisible
-even to `check` -- and `runs-256` and `runs-512`, bracketing `dispRun` within
-a factor of two. Each runs on every population, so a library change is read
-where a user would meet it, class by class, whichever of the two entry points
-the user takes, and the `runs` class is where the routes part; with the timed
-`-u2-down` the dispatch arm, the three fill candidates and the unordered pair
-the block took the roster to 1320 benches, and the composite arm with the six
-parkings and two main-set shapes of 2026-09-02 took the roster to 1352 benches,
-and the retirement of eight main-set shapes on 2026-09-04 took the roster to 936
-benches, eight superseded arms parked permanently since Run 21, `offtab`'s twins
-removed with it; the prune of the same day parks `lib-stage2`
-and `lib-stage2-concat` among sixteen arms ([what the benchmark
-does](#what-the-benchmark-does)), took the roster to 432 benches, the `-u1` arm
-with its re-timed control, added the same day for Run 25, took it to 468,
-and the ruling on the short bodies, parking two, took it back to 432;
-`libunord-stage3`, added 2026-09-05 for Run 26, makes it 450,
-and `cnn-L1-6x6-c1`, timed again the same day, takes the roster to 475 benches.
-What the next run is registered to answer with them is [in the open list][open].
+and in every natural-strides dispatch over `canonView` here but `lib-stage2`'s,
+which keeps the strides comparison as the lean arm's control**: mainly because
+the merged form decides the regime with no stride list built, which
+is the simpler code, and because Run 24 read `lib-stage2-lean` at or below
+`lib-stage2` on every readable population of both halves and ahead past both
+floors on the four smallest main-set shapes (Run 24's registration 2, whose
+verdict [the open list][open] keeps); the two shapes it read behind past one
+half's floor, `stretch-primes` on the basis and `stretch-inner256` on HEAD,
+execute the same corrected instructions to five parts in ten thousand on both
+halves, so neither loss is the dispatch. What does not admit it: the stage-one
+ports and `regimeOf`, which compare raw strides, where the invariant does
+not hold; the unordered one-block test, whose sort by absolute stride can make
+a rank-2 canonical view one block; and `check`'s own regime conditions, kept
+explicit so that the equivalence is checked and not assumed. The licence ---
+after canonicalization no adjacent pair satisfies the merge equation,
+and natural strides at rank 2 or more are that equation at every pair ---
+was checked against the branch's `canonicalizeT` the same day over 300000 random
+views and every view up to rank 3 with extents to 3 and strides to 4,
+the control's decision equal to the lean one on all of them, and two deliberate
+breaks of it fail the check. `lib-stage2-short-lean`, the composite of the short
+bodies with this dispatch, is gone from `Main.hs` from here, `lib-stage2-short`
+having become the same code; its Run 24 readings stand in that run's file.
+The runs class gained `runs-4` and `runs-5` the same day -- no view in the suite
+had a canonical innermost extent of 4, so the short bodies' one unexercised
+branch was invisible even to `check` -- and `runs-256` and `runs-512`,
+bracketing `dispRun` within a factor of two. Each runs on every population,
+so a library change is read where a user would meet it, class by class,
+whichever of the two entry points the user takes, and the `runs` class is where
+the routes part; with the timed `-u2-down` the dispatch arm, the three fill
+candidates and the unordered pair the block took the roster to 1320 benches,
+and the composite arm with the six parkings and two main-set shapes
+of 2026-09-02 took the roster to 1352 benches, and the retirement of eight
+main-set shapes on 2026-09-04 took the roster to 936 benches, eight superseded
+arms parked permanently since Run 21, `offtab`'s twins removed with it;
+the prune of the same day parks `lib-stage2` and `lib-stage2-concat` among
+sixteen arms ([what the benchmark does](#what-the-benchmark-does)), took
+the roster to 432 benches, the `-u1` arm with its re-timed control, added
+the same day for Run 25, took it to 468, and the ruling on the short bodies,
+parking two, took it back to 432; `libunord-stage3`, added 2026-09-05 for Run
+26, makes it 450, and `cnn-L1-6x6-c1`, timed again the same day, takes
+the roster to 475 benches. What the next run is registered to answer with them
+is [in the open list][open].
 
 **What the eight are worth as instruments, read against each other for the first
 time on 2026-08-14, over Runs 10 to 13.** Per class: the median A/A deviation
