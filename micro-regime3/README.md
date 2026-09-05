@@ -5121,7 +5121,7 @@ of why this is a list and not a sentence.
        reprints
          -- which claims are live, and how many
     6. the class blocks: the six numbered items of the form, and one example
-       block, not the other eight
+       block, not the rest
          -- the form, in your own words
     7. the open list, by its status markers rather than end to end,
          grepped over `wrap80 --unwrap README.md` -- a marker sits at
@@ -5967,18 +5967,19 @@ invocation per process or per claim --- a `--selftest` and an `--aa` apiece,
 the dozen-odd `--pair` lines, a `--block` per class --- goes in one call per
 kind, so steps 1 and 3 together are a handful. *One per site*: the eleven
 `--in-place` installs, three calls. *Unbatchable*: the prose, one edit per
-paragraph, and this is the bulk --- the class blocks alone are three items
-apiece, and no tool reduces the count, `--block`'s skeletons only removing
-the extraction that used to precede each. Then verification costs about what
-the prose cost, because every finding is a fix and every fix is a claim ---
-and on Run 19 it cost rather more, two checker passes returning 22 defects whose
-fixes then wanted their own re-derivation. **Budget the run file's head,
-the verification and the nine class paragraphs as the work**, in that order;
-the readings are noise beside them, and the run itself is unattended. Two
-further consequences worth having in mind before starting. Prefer analysis
-that localises --- per shape, per control --- over re-quoting figures that moved
-a few percent and changed nothing; the first is where the surprises have come
-from and the second is what has gone stale twice.
+paragraph, and this is the bulk --- the class blocks alone are one paragraph
+apiece, plus a lead wherever the roster moved one, and no tool reduces
+the count, `--block`'s skeletons only removing the extraction that used
+to precede each. Then verification costs about what the prose cost, because
+every finding is a fix and every fix is a claim --- and on Run 19 it cost rather
+more, two checker passes returning 22 defects whose fixes then wanted their own
+re-derivation. **Budget the run file's head, the verification and the class
+paragraphs as the work**, in that order; the readings are noise beside them,
+and the run itself is unattended. Two further consequences worth having in mind
+before starting. Prefer analysis that localises --- per shape, per control ---
+over re-quoting figures that moved a few percent and changed nothing; the first
+is where the surprises have come from and the second is what has gone stale
+twice.
 
 **A probe is not a lesser instrument than a major run, and the write-up is where
 the instruments get built.**, which is the sharper form of the same point. Run
@@ -6693,7 +6694,7 @@ not otherwise.
     #      class on both is for and what nothing else in this list reads: a
     #      pair's variable can act on a class and not on the main set.
     #      --alloc takes the same pair where allocation is the question
-    #      READ THE BLOCKS BY THEIR LINES AND NOT WHOLE: pipe the nine
+    #      READ THE BLOCKS BY THEIR LINES AND NOT WHOLE: pipe them
     #      through `grep -E 'Verdicts|property|Across the halves|floor'`
     #      -- every block in one call is a hundred KB, the write-up uses some
     #      forty lines of them, and Run 23 read the persisted output of
@@ -7722,7 +7723,7 @@ this are in the reader's docstring and the corpus's own.
     ./read-run.py --cross-classes --classes A.json... --others B.json...
                                             # the class section's intro
                                             # figures, aggregated from the
-                                            # same per-class rows the nine
+                                            # same per-class rows the
                                             # cross-half lines print, so the
                                             # two cannot part -- counts, the
                                             # geomean range with its classes,
