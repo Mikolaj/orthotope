@@ -2338,7 +2338,7 @@ is planned. A scope limit belongs in the sentence that asks for the measurement.
    an arm that is `-u1` with the base held in a register --- one more roster
    entry, timed beside the two it sits between, needing no pair and no new
    recipe. Until then no figure here says what unrolling alone is worth.
-3. `OPEN` **A reversed innermost axis costs the regime-3 fill about twice
+3. `ANSWERED` **A reversed innermost axis costs the regime-3 fill about twice
    the forward run at the same length, and nothing in the code says why.** Run
    25's `flip` class killed the prediction that the fills read a reversed run
    at its forward speed: `flip-last-rows` and `runs-96` are the same `l`
@@ -2347,12 +2347,20 @@ is planned. A scope limit belongs in the sentence that asks for the measurement.
    and the two stage-two routes at 1.903 and 1.907, with 2.073, 1.851, 1.845
    and 1.846 on HEAD, against a `list` that pays 1.091 and 1.076 ([the `flip`
    block](runs/run25.md#the-stride-classes-run-by-run)). The one arm faster
-   reversed is `lib-stage1`, at 0.859 and 0.939. **What would settle it**:
-   the counted work on those two views, which this run has and no sentence has
-   read --- if the instruction counts match, the cost is the memory system
-   walking backwards and the fills can do nothing about it; if they do not,
-   it is the canonicalization taking a different route and it is the library's
-   to fix. It is an arithmetic re-derivation on files already on disk.
+   reversed is `lib-stage1`, at 0.859 and 0.939. **SETTLED 2026-09-05, and
+   it is the memory system**: the counts match. On the basis `mut-odo-vecdims`
+   executes 31,506,524 instructions per iteration on `flip-last-rows` against
+   31,506,435 on `runs-96`, a difference of 89 in 31.5 million, and `-u2`,
+   `lib-stage2-lean`, `lib-stage2-disp` and `bq-expand` are the same to within
+   a hundred instructions, `list` to 4272 in 412 million, on both halves.
+   So a reversed innermost axis is walked by the same code doing the same work,
+   and the doubling is what the memory system charges for walking it backwards
+   --- nothing a fill can address. **The arms whose counts DO move are exactly
+   the ones that choose a route**: `lib-stage1` +6.4%, `libunord-stage1` +17.7%,
+   `liblist-stage1` +20.3%, `liblist-stage2` +106%, and `libunord-stage2`
+   collapsing to a slice at 0.0004 of its forward cell. For
+   those the canonicalization does take a different route and it
+   is the library's, which is the other half of what this asked.
 4. `ANSWERED` **A registration's DEFERRAL TARGET is not held to the roster,
    and Run 25 lost three predictions of four to that --- TAKEN 2026-09-05.**
    `--lint` has read an OPEN registration's backticked arm names against
