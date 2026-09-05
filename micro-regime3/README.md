@@ -4534,16 +4534,17 @@ no `.debug_line` even under `-g3`.) **Taking the spill out changed the ordering
 not at all** --- `-u2` behind at all seven lengths, 0 of 7 at sign p 0.016,
 and the native backend reading the same at 1.1117 --- where the sixth predicted
 it would REVERSE the `-down` lead on the long-run shapes. **Nor does
-the arithmetic behind that prediction survive a rebuild**: this binary re-rolls
-`-u2`'s hand-unrolled body and pays a `cmpq` for the cursor bound, putting
-it at seven instructions an element against `-down`'s six where the sixth had
-6.5 against 7.0, so the half-instruction it rested on changed sign between two
-LLVM builds of one source. **What survives is narrower than the method looked**:
-an ordering differenced off a dump predicts only where the counts hold across
-the builds compared, and here they did not. **This reading's own verdict
-is in turn refuted** --- the fifteenth reading's change moves `-u2`
-and not `-down`, and the eighteenth reads the ordering in time on the fill
-that now exists.
+the arithmetic behind that prediction survive a rebuild**, re-read 2026-09-05
+with the reader's entry-region fix: this binary keeps `-u2`'s two-element body,
+sixteen instructions against `-u2-down`'s fourteen, eight an element against
+seven where the sixth had 6.5 against 7.0 --- the seven-instruction rolled loop
+the first reading took for a re-rolled `-u2` was `-add-in-leaf-down`'s ---
+so the half-instruction it rested on still changed sign between two LLVM builds
+of one source. **What survives is narrower than the method looked**: an ordering
+differenced off a dump predicts only where the counts hold across the builds
+compared, and here they did not. **This reading's own verdict is in turn
+refuted** --- the fifteenth reading's change moves `-u2` and not `-down`,
+and the eighteenth reads the ordering in time on the fill that now exists.
 
 **A thirteenth reading, 2026-08-30, is what was left of the branch's cost once
 the shim's padding came out of the counted work: ONE INSTRUCTION A RUN, and only
@@ -4621,22 +4622,29 @@ and not a padding, and the instruction counts below are that build's rather
 than a timed one's. Every timed arm's fill, each self-looping block reported
 with its stack traffic (`probe-screen.txt`). **Twenty of the twenty-two arms
 with a findable element loop carry NO stack access in it**, at six to eleven
-instructions a loop, `-u2` and `-u2-down` among them now. **Two spill
-and neither has anything to drop.** `list` is `VS.fromListN` over `toListT`
-and has no derived constant at all --- its fourteen stack touches
-are the recursion's closure traffic, not a spilled induction variable ---
-and it is besides the denominator every ratio here divides by, so changing
-it rebases every published figure, which Run 10 did once and this file treats
-as breaking comparability with every run. `bq-expand`'s loop keeps the innermost
-extent, the innermost stride and a base-offset table, and none of the three
-is derivable from another. **The pattern itself was in three arms and all three
-are fixed**, which a grep for the doubled stride confirms rather than the screen
---- `fillStage2` first, then `-u2` and `-u2-down`; the grep behind this sentence
-ran when the first was already done and so found two, which is what it said
-until it was re-read. **What the screen cannot see, said because a silent search
-proves nothing**: it reads Main-compiled code only, so `gen-unsafe`, whose loop
-is inside `vector`'s `generate`, has no entry at all, and so would any arm
-that inlines its loop into a library function.
+instructions a loop, `-u2` and `-u2-down` among them now. **Re-read 2026-09-05
+with the reader's entry-region fix, on today's build: the same verdict on every
+arm still in the tree --- and it is the rank-1 copy's.** The smallest loop
+with a load is that copy; the run-level copy, which `perf` finds hot on a long
+run, reloads the source base from the C stack once an iteration in `-u1`, `-u2`
+and the leaf alike (`mov 0x40(%rsp)`, the spill task 2 prices), and the screen
+shows it only as the one to two `%rsp` accesses of the larger cycle that copy
+shares with its run loop. **Two spill and neither has anything to drop.** `list`
+is `VS.fromListN` over `toListT` and has no derived constant at all ---
+its fourteen stack touches are the recursion's closure traffic, not a spilled
+induction variable --- and it is besides the denominator every ratio here
+divides by, so changing it rebases every published figure, which Run 10 did once
+and this file treats as breaking comparability with every run. `bq-expand`'s
+loop keeps the innermost extent, the innermost stride and a base-offset table,
+and none of the three is derivable from another. **The pattern itself
+was in three arms and all three are fixed**, which a grep for the doubled stride
+confirms rather than the screen --- `fillStage2` first, then `-u2`
+and `-u2-down`; the grep behind this sentence ran when the first was already
+done and so found two, which is what it said until it was re-read. **What
+the screen cannot see, said because a silent search proves nothing**: it reads
+Main-compiled code only, so `gen-unsafe`, whose loop is inside `vector`'s
+`generate`, has no entry at all, and so would any arm that inlines its loop
+into a library function.
 
 **A seventeenth reading, 2026-08-30: the fifteenth's change frees a register
 in the two UNROLLED fills and in nothing else, so it re-opens an ordering three
