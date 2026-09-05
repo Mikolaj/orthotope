@@ -885,24 +885,41 @@ rather than a slot in the next run, observed again:
   six and a half percent rather than the wash a shimless probe read. **Two
   of the seven lost five clauses between them to arms parked the day after they
   were registered**, which is the entry above this one, fired again.
-- `OPEN` **The baseline moved 1.10% between two halves that differ only
+- `ANSWERED` **The baseline moved 1.10% between two halves that differ only
   in the compiler, and the counted work says it is not instructions.** Run 25's
   `list` reads 1.0110 basis over control on the main set --- past the 0.7% bar,
   so the first `-fspec-constr` pair since Run 22 whose two columns may
   not be subtracted --- at a count ratio of **0.9967**: 9.12 executes a third
   of a percent FEWER instructions on the baseline and is a percent slower at it,
   a time-over-counts of 1.0144 and the largest such residual on that roster
-  ([Run 25's head](runs/run25.md)). The same variable moved `list` 0.25% on Run
-  24 over 52 arms and 0.81% on Run 22, so the magnitude is new and the roster
-  is a quarter of the size. **What makes it worth an entry rather than a shrug**
-  is that `list` is library code the shim does not place, so the two accounts
-  this file usually reaches for --- a pad on the execution path, a tracked
-  loop's cache-line offset --- are both unavailable, and the arms that used
-  to price placement directly were parked the same day. **What would settle
-  it**: `--compare --bridge`, which reads each arm as a ratio to `list`
-  in its own run and so cancels exactly this; and a `list`-only pair over one
-  roster at two lengths, which would say whether the term scales with the roster
-  or sits on the process. Both are cheap and neither needs a new evening.
+  ([Run 25's head](runs/run25.md)). **What makes it worth an entry rather
+  than a shrug** is that `list` is library code the shim does not place,
+  so the two accounts this file usually reaches for --- a pad on the execution
+  path, a tracked loop's cache-line offset --- are both unavailable,
+  and the arms that used to price placement directly were parked the same day.
+  **BOTH TAKEN 2026-09-05, and the term is `list`'s own.** The roster-length
+  reading wanted no new run: the alone-leg riders time each shape's `list`
+  by itself, a roster of ONE against the main set's twenty-four. Cross-half
+  `list` reads **1.0104** clean and **1.0079** saturated at one bench a process
+  against 1.0107 raw at twenty-four, over the same eighteen shapes: nothing
+  about it scales with how many benches share the process. Nor is it a term
+  of the process, which is what `--compare --bridge` assumes when it divides
+  every arm by `list`: the plain `--compare` puts `mut-odo-vecdims` at 1.0003
+  and `bq-expand` at 0.9966 beside `list`'s 1.0110, and against the count ratios
+  every other arm's time-over-counts residual runs 0.978 to 1.008 where `list`'s
+  is 1.0145 (the two `libunord` arms unread, as Run 25's head says),
+  so the non-instruction term is on the baseline alone, and the bridge, taken,
+  only moved it onto seventeen arms that do not carry it; the plain `--compare`
+  stands for this pair. What sets it is narrowed and not named: `perf stat`
+  on `list` alone at two fixed iteration counts, differenced, on both binaries
+  over the eighteen shapes reads instructions at 0.9966 on every one, cycles
+  at a geomean of **1.0057** with fourteen of eighteen above 1 and elapsed
+  at 1.0062 --- half of criterion's 1.01 --- while GC is 0.0% of `list`'s time
+  on both compilers on the one shape read with `+RTS -s`, and cache misses
+  (1.064) and branch misses (1.004) move with the cycles term on no shape.
+  So it is cycles per instruction in `list`'s own code under each compiler,
+  on most shapes and by under a percent, and neither the collector, the box,
+  nor a miss these two counters see.
 - `ANSWERED` **What Run 24 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
   verdicts are [in Run 24's own file](runs/run24.md), where a run's
@@ -2181,32 +2198,39 @@ rather than a slot in the next run, observed again:
   with it. What the entry is still for is that a run should not rediscover
   the lead as a surprise, nor spend an evening on it.
 
-- `OPEN` **Gate 3's sign reversed three runs ago and no run has adjudicated it;
-  Run 18 is the first to say so.** The gate fails when the in-situ forcing
-  term's medians leave 1 *on the same side by more than a few percent*, which
-  was written when Runs 8, 9 and 10 were reading every median BELOW 1. From Run
-  16 they read above it: 1.0023/1.0001/1.0184 on Run 16, 1.0154/1.0383/1.0769
-  and 1.0002/1.0215/1.0598 on Run 17's halves, and 1.0297/1.0354/1.0600 against
-  1.0275/1.0344/1.0558 on Run 18's. **So Run 18 has all three arms on the same
-  side of 1 in both halves, by 2.8% to 6.0%** --- the letter of the failure
-  condition on the largest arm and not on the two smaller ones, which is why
-  its chapter records the gate as *at its threshold* rather than passed
-  or failed. What makes the reading ambiguous rather than simply a failure
-  is that a read bias which REVERSES direction between runs is not the stable
-  biased-read signature the condition was written to catch, and Run 9's own
-  re-pricing put the effect on published geomeans under a point. **What would
-  settle it** is the measurement the sum-only section already names and no run
-  has taken since the reversal: the `-nosum` arms read against `sum-only`
-  on a build where the two can be compared at fixed iteration counts rather
-  than through criterion, which separates a biased read from two biased arms ---
-  then with four `-nosum` arms rather than two, `mut-flat-gm-nosum`
-  and `canon-full-nosum` having been added for exactly this. Until
-  then the correction stands, and a run that finds all three medians past a few
-  percent on one side should say so in its chapter rather than passing the gate
-  silently, as Runs 16 and 17 did. **Narrowed 2026-09-04**: the prune took
-  `mut-flat-gm-nosum` and `canon-full-nosum` with their bases,
-  so an adjudication reads the two `-nosum` arms that remain, and the third
-  shape of fill is Runs 13 to 24's record.
+- `ANSWERED` **Gate 3's sign reversed three runs ago, and the reversal
+  is the arms' and not the read's; Run 18 is the first to say so.** The gate
+  fails when the in-situ forcing term's medians leave 1 *on the same side
+  by more than a few percent*, written when Runs 8, 9 and 10 read every median
+  BELOW 1. From Run 16 they read above it, and Run 18 has all three arms above 1
+  on both halves by 2.8% to 6.0% --- the letter of the condition on the largest
+  arm, which is why its chapter records the gate as *at its threshold* rather
+  than passed or failed; a read bias that REVERSES between runs is
+  not the signature the condition was written for, and Run 9's re-pricing put
+  the effect on published geomeans under a point. So the sum-only section's
+  measurement was owed and no run had taken it: the `-nosum` arms against
+  `sum-only` at fixed iteration counts rather than through criterion, which
+  separates a biased read from two biased arms, over the two `-nosum` arms
+  the 2026-09-04 prune left. **ADJUDICATED 2026-09-05, AND IT IS THE ARMS.**
+  In INSTRUCTIONS, off Run 25's counts sweeps, the in-situ term over `sum-only`
+  is a median of **1.0000** on both arms and both halves over eighteen shapes,
+  worst cell 0.974: the forcing pass does the same work in situ as alone.
+  In TIME at fixed iteration counts, `(t(2N) - t(N)) / N` off `probe-gate3.py`,
+  it sits above 1 as criterion's medians do --- **1.065** and **1.074**
+  over four shapes on the basis, 1.025 and 1.130 over two on the control, ten
+  of twelve cells above 1 and the cells scattering 0.965 to 1.238 ---
+  on an instrument that owes criterion nothing. So the read is not what
+  reversed: forcing a vector the fill has just written takes a few percent
+  longer than `sum-only` takes for the same instructions, and the correction
+  subtracts that much too little, which is under a point on published geomeans,
+  so the correction stands. What remains is the gate's wording, written
+  for a read bias and now describing an arm cost, which is a decision and
+  not a measurement. The probe's docstring records the wrong versions before it,
+  and the one to know is that criterion's `-n` mode matches a bare bench name
+  as a PREFIX: `SHAPE/mut-odo-vecdims` ran eight benches and read as a sevenfold
+  inflation, where `-m glob` selects one and the differencing then reproduces
+  criterion's slopes to within 1.3% on every arm tried, so the probe counts
+  the `benchmarking` lines and refuses any count but one.
 - `ANSWERED` **What Run 18 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
   verdicts are [in Run 18's own file](runs/run18.md), where they were moved

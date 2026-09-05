@@ -45,6 +45,7 @@ probe-*
 !probe-areacurve.sh
 !probe-rework-proposal.hs
 !probe-oneblock.py
+!probe-gate3.py
 
 # The reader's smoke sweep, which writes these and deletes them again; a
 # failed sweep can leave them behind. The .log line is not decoration:
