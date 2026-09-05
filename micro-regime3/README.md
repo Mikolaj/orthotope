@@ -2415,21 +2415,48 @@ is planned. A scope limit belongs in the sentence that asks for the measurement.
    one bench's worst cells. The within-evening form is still the cheapest
    unspent measurement this file has, and it is cheaper now: six pairs and 432
    benches where it would have been sixteen and 1352.
-2. `OPEN` **What the un-unrolled leaf gives up is the unrolling AND a spill,
-   and one build separates them.** Run 25 priced
-   `mut-odo-vecdims-add-in-leaf-u1` between the counted-bound leaf
-   and the unrolled one on both compilers --- 0.9360 and 0.9407
-   of `-add-in-leaf`, 1.0367 and 1.0479 of `-u2`, every reading past both
-   halves' floors, and 0.8456 and 0.8444 of `-add-in-leaf`'s corrected
-   instructions against 1.0892 and 1.0900 of `-u2`'s ([Run 25's registration
+2. `ANSWERED` **What the un-unrolled leaf gives up is the unrolling AND a spill,
+   and in instructions the spill is all of it; no build separates them
+   in time.** Run 25 priced `mut-odo-vecdims-add-in-leaf-u1` between
+   the counted-bound leaf and the unrolled one on both compilers --- 0.9360
+   and 0.9407 of `-add-in-leaf`, 1.0367 and 1.0479 of `-u2`, and 0.8456
+   and 0.8444 of `-add-in-leaf`'s corrected instructions against 1.0892
+   and 1.0900 of `-u2`'s ([Run 25's registration
    7](runs/run25.md#what-this-run-was-built-to-answer-and-what-it-answered)).
    But the `-g3` twin read `-u1`'s run-level fill at seven instructions where
    its rank-1 copy is six, a reload of the source base per element
    that the unrolled fill does not carry, so the three and a half to five points
-   are the loop overhead and that spill together. **What would settle it**:
-   an arm that is `-u1` with the base held in a register --- one more roster
-   entry, timed beside the two it sits between, needing no pair and no new
-   recipe. Until then no figure here says what unrolling alone is worth.
+   are the loop overhead and that spill together. **TRIED AND REFUTED
+   2026-09-05, AND IT IS NOT ONE ROSTER ENTRY**:
+   `mut-odo-vecdims-add-in-leaf-u1-base` is that fill with the source base taken
+   once through a `Ptr` and read with `peekElemOff` instead of indexed through
+   the vector, and it executes **0.9985** of `-u1`'s corrected instructions
+   over nineteen shapes --- a tenth of a percent, where losing one of the run
+   copy's seven per element would be some fourteen. So the reload is still there
+   and its time prices nothing. The same sweep reproduces the two ratios already
+   on record, `-u1` over `-u2` at 1.0859 against Run 25's 1.0892 and
+   over the counted leaf at 0.8497 against 0.8456, so the null is the arm's
+   and not the instrument's. It is rostered `Only` --- checked, not timed, timed
+   slots unmoved --- so the refuted shape is on the record rather
+   than re-proposed; whether the base still spills was not read, no assembly
+   of the arm having been looked at. **And the `-fllvm` route was taken the same
+   evening, which is where the question goes and where it stops.**
+   In the spill-free binary of `probe-nospill-build.sh`, `check` passing
+   on every view, the counted work per element on the long-run shapes is leaf
+   **6.00**, `-u1` **6.00** and `-u2` **7.00** against the native 9.00, 7.00
+   and 6.00, and `perf annotate` puts the leaf and `-u1` in one rolled loop
+   of six instructions with no reload and `-u2`'s two-element body at fourteen
+   (located by profile: `probe-nospill-fills.py` credits each LLVM function's
+   entry region, where the rotated loop sits, to the preceding proc, so it put
+   `-u2`'s loop under `-u1` and the six-instruction loops under nothing).
+   So the source-level unrolling is not a property that survives that backend,
+   and no build separates it from the spill. What the reading gives instead
+   is the loop's spill-free floor, six an element, which native `-u2` already
+   sits at and native `-u1` sits one above --- the whole of `-u1`'s instruction
+   excess over `-u2` is the one reload, and the unrolling costs or saves
+   no instruction of its own. Its worth in TIME is the 1.0367 and 1.0479 above,
+   spill and all; a figure for the unrolling alone would want a native build
+   that does not spill, which nothing here produces.
 3. `ANSWERED` **A reversed innermost axis costs the regime-3 fill about twice
    the forward run at the same length, and nothing in the code says why.** Run
    25's `flip` class killed the prediction that the fills read a reversed run

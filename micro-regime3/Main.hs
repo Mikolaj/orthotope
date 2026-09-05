@@ -37,6 +37,7 @@ import qualified Data.Vector.Storable         as VS
 import qualified Data.Vector.Storable.Mutable as VSM
 import qualified Data.Vector.Unboxed          as VU
 import qualified Data.Vector.Unboxed.Mutable  as VUM
+import           Foreign.Storable             (peekElemOff)
 import           GHC.Clock                    (getMonotonicTime)
 import           GHC.Exts                     (Int (..), Word (..), build,
                                                int2Word#, quotRemInt#,
@@ -46,6 +47,7 @@ import           GHC.Stats                    (RTSStats (allocated_bytes, elapse
 import           System.Environment           (getArgs, lookupEnv, withArgs)
 import           System.IO                    (IOMode (ReadMode), hGetLine,
                                                hPutStrLn, stderr, withFile)
+import           System.IO.Unsafe             (unsafePerformIO)
 import           System.Mem                   (performGC)
 
 type ShapeL = [Int]
@@ -2184,6 +2186,80 @@ fbMutOdoVecdimsAddInLeafU1 sh (T (Strides ats) ao v) = VS.create $ do
             in  dim n outPos baseOff
   _ <- go 0 0 ao
   return out
+  where l = product sh
+        !sInner = last sh
+        !tInner = last ats
+        !rOuter = length sh - 1
+        oshV, oatsV :: VU.Vector Int
+        !oshV  = VU.fromList (init sh)
+        !oatsV = VU.fromList (init ats)
+
+-- 'fbMutOdoVecdimsAddInLeafU1' with the source base HELD rather than
+-- reloaded. The dead-spot -g3 twin read that arm's run-level copy at
+-- seven instructions where its rank-1 copy reads six, the odd one a
+-- reload of the source base from the stack per element
+-- (README.md#what-is-open), so the three and a half to five points
+-- '-u1' gives up to '-u2' are the loop overhead and that reload
+-- together and no figure has said what the unrolling alone is worth.
+-- This takes the base ONCE, outside every loop, and reads through it:
+-- one change against '-u1' as '-u1' is one change against '-u2'.
+--
+-- It is the only arm here that reads through a 'Ptr'; every other
+-- indexes the vector, and indexing is precisely what spills. The
+-- element read is the same either way.
+--
+-- WHAT MAKES ITS TIME READABLE IS THE COUNTED WORK AND NOT THIS
+-- COMMENT: a source-level attempt at a codegen property is not a
+-- promise, so if this arm's instructions per element do not fall
+-- against '-u1', the reload did not go and its time prices nothing.
+--
+-- IT DID NOT GO, MEASURED 2026-09-05, so this is rostered 'Only'.
+-- Against '-u1' it executes 0.9985 of the corrected instructions over
+-- nineteen shapes -- a tenth of a percent, where losing one of the run
+-- copy's seven per element would be some fourteen. The same sweep
+-- reproduces the two ratios already on record, '-u1' over '-u2' at
+-- 1.0859 against Run 25's 1.0892 and over the counted leaf at 0.8497
+-- against 0.8456, so the null is the arm's and not the instrument's.
+-- Whether the base still spills was not read: no assembly of this arm
+-- has been looked at, and its loop being instruction-identical to '-u1'
+-- is all that is known. README's item 2 records where the question went
+-- next, the spill-free -fllvm build, and why it stops there; the arm is
+-- kept CHECKED so the refuted shape is on the record rather than re-
+-- proposed.
+{-# NOINLINE fbMutOdoVecdimsAddInLeafU1Base #-}
+fbMutOdoVecdimsAddInLeafU1Base :: ShapeL -> T -> VS.Vector Double
+fbMutOdoVecdimsAddInLeafU1Base sh (T (Strides ats) ao v) =
+  unsafePerformIO $ VS.unsafeWith v $ \ !base -> do
+    out <- VSM.unsafeNew l
+    let writeRun !outPos !baseOff =
+          let !oEnd = outPos + sInner
+              inner !o !src
+                | o >= oEnd = return ()
+                | otherwise = do
+                    x <- peekElemOff base src
+                    VSM.unsafeWrite out o x
+                    inner (o + 1) (src + tInner)
+          in  inner outPos baseOff
+        go !lev !outPos !baseOff
+          | lev >= rOuter = writeRun outPos baseOff >> return (outPos + sInner)
+          | lev == rOuter - 1 =
+              let !n  = VU.unsafeIndex oshV lev
+                  !st = VU.unsafeIndex oatsV lev
+                  run !k !op !boff
+                    | k <= 0    = return op
+                    | otherwise = writeRun op boff
+                                  >> run (k - 1) (op + sInner) (boff + st)
+              in  run n outPos baseOff
+          | otherwise =
+              let !n  = VU.unsafeIndex oshV lev
+                  !st = VU.unsafeIndex oatsV lev
+                  dim !k !op !boff
+                    | k <= 0    = return op
+                    | otherwise = go (lev + 1) op boff
+                                  >>= \op' -> dim (k - 1) op' (boff + st)
+              in  dim n outPos baseOff
+    _ <- go 0 0 ao
+    VS.unsafeFreeze out
   where l = product sh
         !sInner = last sh
         !tInner = last ats
@@ -4495,6 +4571,12 @@ roster =
     -- 25 and placed beside its parents, every slot below moving by one;
     -- reasons at its definition.
   , ("mut-odo-vecdims-add-in-leaf-u1", Fill fbMutOdoVecdimsAddInLeafU1)
+    -- The same fill with the source base held rather than reloaded,
+    -- added 2026-09-05 beside the arm it is one change from and parked
+    -- 'Only' the same day: it executes 0.9985 of '-u1''s instructions,
+    -- so the reload it was written to remove is still there and its
+    -- time would price nothing. Timed slots are unmoved by it.
+  , ("mut-odo-vecdims-add-in-leaf-u1-base", Only fbMutOdoVecdimsAddInLeafU1Base)
     -- The rework-proposal block, added 2026-08-25, first read in Run 20
     -- (README.md#the-two-stage-plan-and-the-rework-proposal): the
     -- canonicalizing composite, its memcpy-run form, the two
