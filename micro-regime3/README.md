@@ -817,7 +817,7 @@ rather than a slot in the next run, observed again:
   every slot below `libunord-stage2` moving by one; `cnn-L1-6x6-c1` is timed
   again, back from the retired list, and three class views landed,
   `flip-inner-gap64` and `flip-outer-gap64` in `flip` and `small-patch-r5`
-  in `small` --- so the run is 25 arms over 19 main-set shapes, 475 benches,
+  in `small` --- so the run is 27 arms over 19 main-set shapes, 513 benches,
   and its cross-run column against Run 25 is pinned to the eighteen they share.
   Each with a prediction and a kill condition, and the verdicts move to Run 26's
   file with them. (1) *The dispatch pair.* `lib-stage2-disp`
@@ -2444,17 +2444,20 @@ is planned. A scope limit belongs in the sentence that asks for the measurement.
    **6.00**, `-u1` **6.00** and `-u2` **7.00** against the native 9.00, 7.00
    and 6.00, and `perf annotate` puts the leaf and `-u1` in one rolled loop
    of six instructions with no reload and `-u2`'s two-element body at fourteen
-   (located by profile; the fills reader's attribution was a proc off, fixed
-   with its case). So the source-level unrolling is not a property that survives
-   that backend, and no build separates it from the spill. What the reading
-   gives instead is the loop's spill-free floor, six an element, which native
-   `-u2` already sits at and native `-u1` sits one above --- the whole
-   of `-u1`'s instruction excess over `-u2` is the one reload, and the unrolling
-   costs or saves no instruction of its own. Its worth in TIME is the 1.0367
-   and 1.0479 above, spill and all. The twentieth reading of [the ceiling
-   section](#the-mutable-ceiling-taken) reads the loops that run under three
-   allocators, refutes `-fregs-graph` as a stand-in for a spill fix,
-   and registers what the first pair on a patched compiler adjudicates.
+   (located by profile). So the source-level unrolling is not a property
+   that survives that backend, and no build separates it from the spill. What
+   the reading gives instead is the loop's spill-free floor, six an element,
+   which native `-u2` already sits at and native `-u1` sits one above ---
+   the whole of `-u1`'s instruction excess over `-u2` is the one reload,
+   and the unrolling costs or saves no instruction of its own. The twentieth
+   reading of [the ceiling section](#the-mutable-ceiling-taken) reads the loops
+   that run under three allocators, refutes `-fregs-graph` as a stand-in
+   for a spill fix, and registers what the first pair on a patched compiler
+   adjudicates. **And the twenty-first dodges the spill at the source**:
+   `-u1-ptr` and `-u2-ptr`, pointers at every level, execute 0.8945 and 0.8356
+   of their parents' corrected instructions with no reload, 6.00 and 4.50
+   an element on the long runs, so the unrolling alone is a quarter
+   in instructions; Run 26 reads the time.
 3. `ANSWERED` **A reversed innermost axis costs the regime-3 fill about twice
    the forward run at the same length, and nothing in the code says why.** Run
    25's `flip` class killed the prediction that the fills read a reversed run
@@ -3218,8 +3221,8 @@ the roster to 432 benches, the `-u1` arm with its re-timed control, added
 the same day for Run 25, took it to 468, and the ruling on the short bodies,
 parking two, took it back to 432; `libunord-stage3`, added 2026-09-05 for Run
 26, makes it 450, and `cnn-L1-6x6-c1`, timed again the same day, takes
-the roster to 475 benches. What the next run is registered to answer with them
-is [in the open list][open].
+it to 475, and the pointer pair of 2026-09-05 takes the roster to 513 benches.
+What the next run is registered to answer with them is [in the open list][open].
 
 **What the eight are worth as instruments, read against each other for the first
 time on 2026-08-14, over Runs 10 to 13.** Per class: the median A/A deviation
@@ -4767,6 +4770,30 @@ from 0.86 today, and ahead in time by less than Run 25's 3.5 to 5 points;
 and the `0x40(%rsp)` line gone from all three loops, which the recipe above
 reads in a minute.
 
+**A twenty-first reading, 2026-09-05, dodges the spill at the source in both
+loops, and prices the unrolling alone at a quarter.**
+`mut-odo-vecdims-add-in-leaf-u1-ptr` is `-u1` with its cursors as running
+pointers at every level, so the element loop carries two moving pointers
+and no invariant base for the allocator to spill; by profile on the shim-free
+g912 recipe its loop is six instructions with no stack access, and its run loop
+has none either. Counted on the same build it reads **0.8945** of `-u1`'s
+corrected instructions, 19 of 19 shapes below 1, and **0.9712** of `-u2`'s at 14
+of 19 --- 6.00 an element on the long runs, level with `-u2`, and ahead
+on the short ones, where `-u2` pays its epilogue. `check` passes on every view,
+and it is rostered timed beside `-u1` for Run 26, whose pair reads the time.
+The half-measure is kept `Only` as `mut-odo-vecdims-add-in-leaf-u1-ptr-leaf`:
+pointers in the leaf alone remove the reload just as well and cost
+an index-to-pointer conversion per run, four to five instructions, which
+at inner extents of two to thirteen is 1.0581 of `-u1` over the set ---
+the shape not to propose again. **`mut-odo-vecdims-add-in-leaf-u2-ptr`
+is the same change to `-u2`**, rostered timed beside it so that Run 26 compares
+the two pointer forms in one process: nine instructions per two elements,
+no stack access, **0.8356** of `-u2`'s corrected instructions at 19 of 19
+and 0.8604 of `-u1-ptr`'s at 18 of 19 --- 4.50 an element on the long runs
+against 6.00. So once the spill is gone the unrolling is worth a quarter
+of the loop in instructions, which is what task 2 could not separate
+under the allocator; whether it is worth that in time is Run 26's.
+
 ### The C-gap: still a deeper ceiling
 
 **Everything in this document lives under this ceiling.** Every strategy
@@ -5004,19 +5031,20 @@ than absent, since that case ran benchmarks of a different scale.
 
 **Two rulings taken 2026-08-08 cut the timed roster from 38 strategies to 15,
 the arms written since brought it back to 28, and a third cut on 2026-09-04,
-the prune, takes it to twelve with `list`, plus the two timed for Run 25 alone**
---- the 28 being the four unconditional forms the precondition ruling itself
-called for (below), the four FastReshape arms, of the five Run 20 arms beside
-them the three the probes left timed ([the mutable
-ceiling](#the-mutable-ceiling-taken)), and the rework's five less the three
-placement-family arms parked beside them. All three cuts are about what is worth
-spending a bench on, not about what is worth keeping: every dropped strategy
-stays in `Main.hs` and stays in the roster as `concat-runs` is --- checked
-against the reference on every shape of every class, and not timed ---
-so the agreement net does not shrink and nothing has to be rewritten if a ruling
-is later reopened. The 23 arms the rulings dropped carry `Only` in that roster,
-each naming the bound or the multiple that disqualified it. The five
-library-shaped arms with the timed `-u2-down`, added 2026-08-28 ([the stride
+the prune, takes it to twelve with `list`, plus the two timed for Run 25 alone,
+and the two pointer fills of 2026-09-05 make fourteen** --- the 28 being
+the four unconditional forms the precondition ruling itself called for (below),
+the four FastReshape arms, of the five Run 20 arms beside them the three
+the probes left timed ([the mutable ceiling](#the-mutable-ceiling-taken)),
+and the rework's five less the three placement-family arms parked beside them.
+All three cuts are about what is worth spending a bench on, not about what
+is worth keeping: every dropped strategy stays in `Main.hs` and stays
+in the roster as `concat-runs` is --- checked against the reference on every
+shape of every class, and not timed --- so the agreement net does not shrink
+and nothing has to be rewritten if a ruling is later reopened. The 23 arms
+the rulings dropped carry `Only` in that roster, each naming the bound
+or the multiple that disqualified it. The five library-shaped arms
+with the timed `-u2-down`, added 2026-08-28 ([the stride
 classes](#the-stride-classes-and-what-they-cover)), less the eight parked
 permanently since Run 21 and `offtab`'s two twins removed ([its entry][open]),
 plus the six arms added 2026-08-30 and, on 2026-09-02, the composite arm less
@@ -5061,8 +5089,9 @@ day `mut-odo-vecdims-add-in-leaf-u1` landed for Run 25
 with `mut-odo-vecdims-add-in-leaf` re-timed as its control ([the Run 25
 entry][open]), and the ruling on the short bodies parked two, the day ending
 at 432 benches; `libunord-stage3`, added 2026-09-05 for Run 26, makes it 450,
-and `cnn-L1-6x6-c1`, timed again the same day, takes the roster to 475 benches,
-so with the controls the run is 25 arms.
+and `cnn-L1-6x6-c1`, timed again the same day, takes it to 475, and the pointer
+pair of 2026-09-05 takes the roster to 513 benches, so with the controls the run
+is 27 arms.
 
 - **A strategy with a precondition is not measured.** The column allowed `none`,
   an empty cell, and `shape well-formed`, which is a condition on being a valid

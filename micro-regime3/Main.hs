@@ -37,7 +37,8 @@ import qualified Data.Vector.Storable         as VS
 import qualified Data.Vector.Storable.Mutable as VSM
 import qualified Data.Vector.Unboxed          as VU
 import qualified Data.Vector.Unboxed.Mutable  as VUM
-import           Foreign.Storable             (peekElemOff)
+import           Foreign.Ptr                  (plusPtr)
+import           Foreign.Storable             (peek, peekElemOff, poke)
 import           GHC.Clock                    (getMonotonicTime)
 import           GHC.Exts                     (Int (..), Word (..), build,
                                                int2Word#, quotRemInt#,
@@ -2267,6 +2268,188 @@ fbMutOdoVecdimsAddInLeafU1Base sh (T (Strides ats) ao v) =
         oshV, oatsV :: VU.Vector Int
         !oshV  = VU.fromList (init sh)
         !oatsV = VU.fromList (init ats)
+
+-- 'fbMutOdoVecdimsAddInLeafU1' with the innermost cursors as running
+-- pointers, added 2026-09-05 as the first attempt at the reload the
+-- twentieth reading names (README.md#the-mutable-ceiling-taken):
+-- the element loop carries two moving pointers and no base, so the
+-- allocator has no invariant to spill, and the loop comes out at six
+-- instructions with no stack access. Rostered 'Only' because the run
+-- setup it adds, an index-to-pointer conversion each side and an end
+-- pointer, costs four to five instructions a run, which at the main
+-- set's inner extents of two to thirteen is 1.0581 of '-u1''s corrected
+-- instructions over the set; 'fbMutOdoVecdimsAddInLeafU1Ptr' below
+-- carries the pointers through every level and is the timed form.
+{-# NOINLINE fbMutOdoVecdimsAddInLeafU1PtrLeaf #-}
+fbMutOdoVecdimsAddInLeafU1PtrLeaf :: ShapeL -> T -> VS.Vector Double
+fbMutOdoVecdimsAddInLeafU1PtrLeaf sh (T (Strides ats) ao v) =
+  unsafePerformIO $ VS.unsafeWith v $ \ !base -> do
+    out <- VSM.unsafeNew l
+    VSM.unsafeWith out $ \ !obase -> do
+      let !tBytes = tInner * 8
+          writeRun !outPos !baseOff =
+            let !pEnd = obase `plusPtr` ((outPos + sInner) * 8)
+                inner !p !q
+                  | p >= pEnd = return ()
+                  | otherwise = do
+                      x <- peek q
+                      poke p (x :: Double)
+                      inner (p `plusPtr` 8) (q `plusPtr` tBytes)
+            in  inner (obase `plusPtr` (outPos * 8))
+                      (base `plusPtr` (baseOff * 8))
+          go !lev !outPos !baseOff
+            | lev >= rOuter = writeRun outPos baseOff
+                              >> return (outPos + sInner)
+            | lev == rOuter - 1 =
+                let !n  = VU.unsafeIndex oshV lev
+                    !st = VU.unsafeIndex oatsV lev
+                    run !k !op !boff
+                      | k <= 0    = return op
+                      | otherwise = writeRun op boff
+                                    >> run (k - 1) (op + sInner) (boff + st)
+                in  run n outPos baseOff
+            | otherwise =
+                let !n  = VU.unsafeIndex oshV lev
+                    !st = VU.unsafeIndex oatsV lev
+                    dim !k !op !boff
+                      | k <= 0    = return op
+                      | otherwise = go (lev + 1) op boff
+                                    >>= \op' -> dim (k - 1) op' (boff + st)
+                in  dim n outPos baseOff
+      _ <- go 0 0 ao
+      return ()
+    VS.unsafeFreeze out
+  where l = product sh
+        !sInner = last sh
+        !tInner = last ats
+        !rOuter = length sh - 1
+        oshV, oatsV :: VU.Vector Int
+        !oshV  = VU.fromList (init sh)
+        !oatsV = VU.fromList (init ats)
+
+-- 'fbMutOdoVecdimsAddInLeafU1' with the cursors as running pointers
+-- at EVERY level, added 2026-09-05: each run is entered with its
+-- output and source pointers in hand and advances them by 'sBytes'
+-- and the level's stride in bytes, so the element loop carries two
+-- moving pointers and no invariant base -- the value the linear
+-- allocator spills in '-u1', '-u2' and the counted leaf alike, one
+-- reload an iteration (README.md#the-mutable-ceiling-taken, the
+-- twentieth reading). Read by profile on the shim-free g912 recipe:
+-- six instructions an element, no stack access, and none in the run
+-- loop above it. Counted on the same build: 0.8945 of '-u1''s corrected
+-- instructions over nineteen shapes, 19 of 19 below 1, and 0.9712
+-- of '-u2''s at 14 of 19 -- the un-unrolled loop without its spill
+-- executes less than the unrolled one with it. Timed from Run 26, whose
+-- pair reads the ordering against '-u2' in time.
+{-# NOINLINE fbMutOdoVecdimsAddInLeafU1Ptr #-}
+fbMutOdoVecdimsAddInLeafU1Ptr :: ShapeL -> T -> VS.Vector Double
+fbMutOdoVecdimsAddInLeafU1Ptr sh (T (Strides ats) ao v) =
+  unsafePerformIO $ VS.unsafeWith v $ \ !base -> do
+    out <- VSM.unsafeNew l
+    VSM.unsafeWith out $ \ !obase -> do
+      let !tBytes = tInner * 8
+          !sBytes = sInner * 8
+          writeRun !op !bp =
+            let !pEnd = op `plusPtr` sBytes
+                inner !p !q
+                  | p >= pEnd = return ()
+                  | otherwise = do
+                      x <- peek q
+                      poke p (x :: Double)
+                      inner (p `plusPtr` 8) (q `plusPtr` tBytes)
+            in  inner op bp
+          go !lev !op !bp
+            | lev >= rOuter = writeRun op bp >> return (op `plusPtr` sBytes)
+            | lev == rOuter - 1 =
+                let !n   = VU.unsafeIndex oshV lev
+                    !stB = VU.unsafeIndex oatsB lev
+                    run !k !p !q
+                      | k <= 0    = return p
+                      | otherwise = writeRun p q
+                                    >> run (k - 1) (p `plusPtr` sBytes)
+                                                   (q `plusPtr` stB)
+                in  run n op bp
+            | otherwise =
+                let !n   = VU.unsafeIndex oshV lev
+                    !stB = VU.unsafeIndex oatsB lev
+                    dim !k !p !q
+                      | k <= 0    = return p
+                      | otherwise = go (lev + 1) p q
+                                    >>= \p' -> dim (k - 1) p' (q `plusPtr` stB)
+                in  dim n op bp
+      _ <- go 0 obase (base `plusPtr` (ao * 8))
+      return ()
+    VS.unsafeFreeze out
+  where l = product sh
+        !sInner = last sh
+        !tInner = last ats
+        !rOuter = length sh - 1
+        oshV, oatsB :: VU.Vector Int
+        !oshV  = VU.fromList (init sh)
+        !oatsB = VU.fromList (map (* 8) (init ats))
+
+-- 'fbMutOdoVecdimsAddInLeafU2' with its cursors as running pointers
+-- at every level, the change 'fbMutOdoVecdimsAddInLeafU1Ptr' makes to
+-- '-u1', added 2026-09-05 so that Run 26 compares the two pointer forms
+-- in one process. Read by profile on the shim-free g912 recipe: nine
+-- instructions per two elements, no stack access. Counted on the same
+-- build: 0.8356 of '-u2''s corrected instructions over nineteen shapes,
+-- 19 of 19 below 1, and 0.8604 of '-u1-ptr''s at 18 of 19 -- 4.50 an
+-- element on the long runs against 6.00, so with the spill gone the
+-- unrolling alone is worth a quarter of the loop, the figure task 2
+-- could not separate under the allocator. Timed from Run 26.
+{-# NOINLINE fbMutOdoVecdimsAddInLeafU2Ptr #-}
+fbMutOdoVecdimsAddInLeafU2Ptr :: ShapeL -> T -> VS.Vector Double
+fbMutOdoVecdimsAddInLeafU2Ptr sh (T (Strides ats) ao v) =
+  unsafePerformIO $ VS.unsafeWith v $ \ !base -> do
+    out <- VSM.unsafeNew l
+    VSM.unsafeWith out $ \ !obase -> do
+      let !tBytes = tInner * 8
+          !sBytes = sInner * 8
+          writeRun !op !bp =
+            let !pEnd  = op `plusPtr` sBytes
+                !pLast = pEnd `plusPtr` (-8)
+                inner !p !q
+                  | p >= pLast =
+                      if p >= pEnd then return ()
+                      else peek q >>= \x -> poke p (x :: Double)
+                  | otherwise = do
+                      x <- peek q
+                      poke p (x :: Double)
+                      let !q' = q `plusPtr` tBytes
+                      y <- peek q'
+                      poke (p `plusPtr` 8) (y :: Double)
+                      inner (p `plusPtr` 16) (q' `plusPtr` tBytes)
+            in  inner op bp
+          go !lev !op !bp
+            | lev >= rOuter = writeRun op bp >> return (op `plusPtr` sBytes)
+            | lev == rOuter - 1 =
+                let !n   = VU.unsafeIndex oshV lev
+                    !stB = VU.unsafeIndex oatsB lev
+                    run !k !p !q
+                      | k <= 0    = return p
+                      | otherwise = writeRun p q
+                                    >> run (k - 1) (p `plusPtr` sBytes)
+                                                   (q `plusPtr` stB)
+                in  run n op bp
+            | otherwise =
+                let !n   = VU.unsafeIndex oshV lev
+                    !stB = VU.unsafeIndex oatsB lev
+                    dim !k !p !q
+                      | k <= 0    = return p
+                      | otherwise = go (lev + 1) p q
+                                    >>= \p' -> dim (k - 1) p' (q `plusPtr` stB)
+                in  dim n op bp
+      _ <- go 0 obase (base `plusPtr` (ao * 8))
+      return ()
+    VS.unsafeFreeze out
+  where l = product sh
+        !sInner = last sh
+        !tInner = last ats
+        !rOuter = length sh - 1
+        oshV, oatsB :: VU.Vector Int
+        !oshV  = VU.fromList (init sh)
+        !oatsB = VU.fromList (map (* 8) (init ats))
 
 -- 'fbMutOdoVecdimsAddInLeafU2' with the fill's bound a falling count
 -- instead of the @oEnd@ cursor bound -- one change, so that arm is its
@@ -4564,6 +4747,10 @@ roster =
   , ("mut-odo-vecdims-add-in-leaf", Fill fbMutOdoVecdimsAddInLeaf)
   , ("mut-odo-vecdims-add-in-leaf-down", Only fbMutOdoVecdimsAddInLeafDown)
   , ("mut-odo-vecdims-add-in-leaf-u2", Fill fbMutOdoVecdimsAddInLeafU2)
+    -- The unrolled loop with its cursors as pointers at every level,
+    -- added 2026-09-05 beside its parent for Run 26's comparison with
+    -- '-u1-ptr', every slot below moving by one; reasons at its definition.
+  , ("mut-odo-vecdims-add-in-leaf-u2-ptr", Fill fbMutOdoVecdimsAddInLeafU2Ptr)
     -- Timed since 2026-08-28, parked 'Only' the day before: the
     -- lighter-loop form of the shipped arm, see its definition.
   , ("mut-odo-vecdims-add-in-leaf-u2-down", Fill fbMutOdoVecdimsAddInLeafU2Down)
@@ -4571,12 +4758,20 @@ roster =
     -- 25 and placed beside its parents, every slot below moving by one;
     -- reasons at its definition.
   , ("mut-odo-vecdims-add-in-leaf-u1", Fill fbMutOdoVecdimsAddInLeafU1)
+    -- The same loop with its cursors as pointers at every level, added
+    -- 2026-09-05 beside its parent, every slot below moving by one;
+    -- reasons at its definition.
+  , ("mut-odo-vecdims-add-in-leaf-u1-ptr", Fill fbMutOdoVecdimsAddInLeafU1Ptr)
     -- The same fill with the source base held rather than reloaded,
     -- added 2026-09-05 beside the arm it is one change from and parked
     -- 'Only' the same day: it executes 0.9985 of '-u1''s instructions,
     -- so the reload it was written to remove is still there and its
     -- time would price nothing. Timed slots are unmoved by it.
   , ("mut-odo-vecdims-add-in-leaf-u1-base", Only fbMutOdoVecdimsAddInLeafU1Base)
+    -- Pointers in the leaf alone, parked 'Only' the day it was written:
+    -- its per-run setup outweighs the reload it removes; reasons at its
+    -- definition.
+  , ("mut-odo-vecdims-add-in-leaf-u1-ptr-leaf", Only fbMutOdoVecdimsAddInLeafU1PtrLeaf)
     -- The rework-proposal block, added 2026-08-25, first read in Run 20
     -- (README.md#the-two-stage-plan-and-the-rework-proposal): the
     -- canonicalizing composite, its memcpy-run form, the two
