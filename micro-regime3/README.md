@@ -809,19 +809,21 @@ rather than a slot in the next run, observed again:
   HELD, `cnn-L2-24x24-c32` -1.59% of Run 24's own net for it; (3) the pair,
   KILLED --- `list` moved 1.10% between the halves where 0.7% was allowed,
   so the two columns are ordered and not differenced, and its second clause
-  was unreadable, all three orderings it names being stated against the parked
-  `lib-stage2`; (4) the additions of 2026-09-03, task 10's four: `flip` KILLED
-  by every fill on both halves, a reversed run costing the regime-3 fill about
-  twice its forward twin at the same length, `block` and `compose` SPLIT
-  and `small` unreadable; (5) the retirement, HELD, nothing published moving
-  for it and Run 24's basis column reading this one arm for arm once the shape
-  set is pinned; (6) the prune, HELD, the three crossed pairs inside Run 24's
-  floor on both halves with their spans shortened; and (7) the unroll, HELD
-  on both halves --- `mut-odo-vecdims-add-in-leaf-u1` between `-add-in-leaf`
-  and `-u2`, so the shipped fill's margin is the unrolling's and the merged
-  bound is worth six and a half percent rather than the wash a shimless probe
-  read. **Two of the seven lost five clauses between them to arms parked the day
-  after they were registered**, which is the entry above this one, fired again.
+  was unreadable, all three orderings it names turning on an arm parked that day
+  --- two against `lib-stage2` and one stated of `lib-stage2-short-lean`; (4)
+  the additions of 2026-09-03, task 10's four: `flip` KILLED by every fill
+  on both halves, a reversed run costing the regime-3 fill about twice
+  its forward twin at the same length, `block` and `compose` SPLIT and `small`
+  unreadable; (5) the retirement, HELD, nothing published moving for it and Run
+  24's basis column giving this one's figure back on fourteen of the eighteen
+  shared arms once the shape set is pinned, a printed digit away on the other
+  four; (6) the prune, HELD, the three crossed pairs inside Run 24's floor
+  on both halves with their spans shortened; and (7) the unroll, HELD on both
+  halves --- `mut-odo-vecdims-add-in-leaf-u1` between `-add-in-leaf` and `-u2`,
+  so the shipped fill's margin is the unrolling's and the merged bound is worth
+  six and a half percent rather than the wash a shimless probe read. **Two
+  of the seven lost five clauses between them to arms parked the day after they
+  were registered**, which is the entry above this one, fired again.
 - `OPEN` **The baseline moved 1.10% between two halves that differ only
   in the compiler, and the counted work says it is not instructions.** Run 25's
   `list` reads 1.0110 basis over control on the main set --- past the 0.7% bar,
@@ -853,32 +855,36 @@ rather than a slot in the next run, observed again:
   the threshold, HELD, the re-cut dispatch now leading the `runs` class.
 - `OPEN` **A registration can name an arm the roster has parked, and the check
   written for it reaches one registration of the two a run now has --- Run 24
-  lost a clause to this and Run 25 lost four.** Run 24's registration 5
+  lost a clause to this and Run 25 lost five.** Run 24's registration 5
   predicted `-u2` ahead of `-down` in every population,
   and `mut-odo-vecdims-add-in-leaf-down`, the arm that comparison turns on,
   was parked to `Only` by `7dd094e`, the same commit the registration
   was written beside on 2026-09-02, so no process of Run 24 timed it
   and the clause was unreadable before the run started. **`--lint` has held
   an OPEN registration's backticked arm names to the timed roster since
-  2026-09-04**, and the four clauses Run 25 lost went past it for two reasons
+  2026-09-04**, and the five clauses Run 25 lost went past it for two reasons
   it does not cover, both worth naming because neither is an oversight
   in the check. **One: a registration's DEFERRAL TARGET is not read.** Run 25's
   item (4) defers to task 10 under the run-scoped tasks heading, and `--lint`
   checks that the pointer resolves and nothing further; three of task 10's four
   class predictions turn on `lib-stage2` or `canon-vecdims`, which the prune
   of 2026-09-04 parked the day after they were registered, so `flip`, `block`
-  and `small` each lost a clause as written --- `small` both of its --- and only
-  `compose` lost none. **Two: a clause can name another registration instead
-  of an arm.** Run 25's item (3) asked that no ordering of Run 24's own
-  registrations (1) to (3) reverse; all three of those are stated against
-  `lib-stage2`, and the clause names no arm at all, so no arm-name check can
-  reach it. **What would settle the first**: read the deferral's TARGET
-  paragraph as the registration is read --- the pointer already resolves,
-  so the arms are one intersection away. **The second has no cheap predicate**
-  and stays pre-run step 12b's, a reading: a registration that names another
-  registration inherits its arms, and only a reader can follow that. The cost
-  of not doing the first is what this run paid, three predictions of four in one
-  deferred item, and it is invisible until the run is over.
+  and `small` each lost a clause as written --- `small` both of its, four in all
+  --- and only `compose` lost none. Three of the four are still adjudicated,
+  through a live stand-in for the parked arm; `small`'s two are not, which
+  is why the run file calls that one UNREADABLE and the other two SPLIT. **Two:
+  a clause can name another registration instead of an arm.** Run 25's item (3)
+  asked that no ordering of Run 24's own registrations (1) to (3) reverse; two
+  of those are stated against `lib-stage2` and the third
+  of `lib-stage2-short-lean`, all three parked that day, and the clause names
+  no arm at all, so no arm-name check can reach it. **What would settle
+  the first**: read the deferral's TARGET paragraph as the registration is read
+  --- the pointer already resolves, so the arms are one intersection away.
+  **The second has no cheap predicate** and stays pre-run step 12b's, a reading:
+  a registration that names another registration inherits its arms, and only
+  a reader can follow that. The cost of not doing the first is what this run
+  paid, three predictions of four in one deferred item, and it is invisible
+  until the run is over.
 - `ANSWERED` **`--replace` took a following heading with the paragraph
   it replaced, where no blank line separated them --- fixed 2026-09-03.** Run
   24's write-up lost `## Results` from its own file that way: in the committed
@@ -2295,19 +2301,22 @@ is planned. A scope limit belongs in the sentence that asks for the measurement.
 1. `OPEN` **Is per-process variation or sampling inside a bench what the floor
    measures? The population the question was asked about is gone;
    the measurement is not.** Asked here since Run 18 as *is the spread
-   of the pairs outside the restricted six criterion's sampling*,
-   and **superseded 2026-09-04**: the prune deleted ten of the sixteen A/A
-   pairs, so there are no pairs outside the six and the two series the question
-   compared are one series. What survives is the remedy, unspent and unchanged:
-   **one binary run over the roster several times in ONE evening**, which needs
-   no pair and no second recipe and separates per-process variation
-   from sampling inside a bench directly. Run 23 took its half --- one binary
-   twice, two evenings apart, the floor moving from 2.12% to 2.03% on the same
-   carrying pair with 44 of 49 arms inside a point, so between-evening variation
-   for a whole process is under the sampling inside one bench's worst cells.
-   The within-evening form is still the cheapest unspent measurement this file
-   has, and it is cheaper now: six pairs and 432 benches where it would have
-   been sixteen and 1352.
+   of the pairs outside the restricted six criterion's sampling*, and **narrowed
+   past usefulness 2026-09-04**: the prune deleted ten of the sixteen A/A pairs,
+   and of the six that remain the four carrying back to Run 10 are `bq-expand`'s
+   and `mut-odo-vecdims`'s, so the pairs the question is about --- those outside
+   the restricted set --- are the two `list` ones and no more. Two pairs cannot
+   carry the comparison the question rests on, and the two series it set against
+   each other now differ by those two alone. What survives is the remedy,
+   unspent and unchanged: **one binary run over the roster several times in ONE
+   evening**, which needs no pair and no second recipe and separates per-process
+   variation from sampling inside a bench directly. Run 23 took its half --- one
+   binary twice, two evenings apart, the floor moving from 2.12% to 2.03%
+   on the same carrying pair with 44 of 49 arms inside a point,
+   so between-evening variation for a whole process is under the sampling inside
+   one bench's worst cells. The within-evening form is still the cheapest
+   unspent measurement this file has, and it is cheaper now: six pairs and 432
+   benches where it would have been sixteen and 1352.
 2. `OPEN` **What the un-unrolled leaf gives up is the unrolling AND a spill,
    and one build separates them.** Run 25 priced
    `mut-odo-vecdims-add-in-leaf-u1` between the counted-bound leaf
@@ -2389,15 +2398,17 @@ is planned. A scope limit belongs in the sentence that asks for the measurement.
    and `lib-stage2-disp`, on the slice route there by its allocation, reads
    1.0227 of the fill and 1.0024 of `lib-stage1`. The process carries no A/A
    pair, so the inversion is judged against the cells' own fit widths, 0.14
-   to 0.54%, which it clears, and against the `runs` class's recorded floors
-   of 3 to 4.6%, which it does not. So `dispRun` is a function of the working
-   set by the letter and not in a way that costs: past the cache the two routes
-   tie at 4096 within a floor, in cache the slice route leads by five, and a cut
-   at 2048 is wrong by at most a few points on either side of the cache. The cut
-   stands. Not measured: a length between 96 and 4096 past the cache, where
-   the in-cache crossover sits, which one more view would place;
-   and the allocation multiple, which the reader cannot compute for a view
-   `Main.hs` does not list, so the routes were read in bytes.
+   to 0.54%, which it clears, and against the `runs` class's floors as the runs
+   before it recorded them, 3 to 4.6%, which it does not --- Run 25 has since
+   read that class's floor at 2.79%, which the inversion still does not clear.
+   So `dispRun` is a function of the working set by the letter and not in a way
+   that costs: past the cache the two routes tie at 4096 within a floor,
+   in cache the slice route leads by five, and a cut at 2048 is wrong by at most
+   a few points on either side of the cache. The cut stands. Not measured:
+   a length between 96 and 4096 past the cache, where the in-cache crossover
+   sits, which one more view would place; and the allocation multiple, which
+   the reader cannot compute for a view `Main.hs` does not list, so the routes
+   were read in bytes.
 
 **And one class not to repropose: work that needs an aligned build.**
 `mut-odo`'s wide interval is the live case. The dispersion is documented
@@ -9844,8 +9855,9 @@ tables and its fingerprint say so.
   no md5 here matches one on record, and a distance from Run 24's published
   column carries a shape-set change as well as a roster one --- **which is why
   every cross-run figure in its file is pinned to these eighteen shapes**,
-  and pinned, Run 24's basis column reads Run 25's arm for arm. What a reader
-  has to carry is which half a figure came from: everything published
+  and pinned, Run 24's basis column gives Run 25's figure back on fourteen
+  of the eighteen shared arms and a printed digit away on the other four. What
+  a reader has to carry is which half a figure came from: everything published
   in its file is `run25-g912`, ghc-9.12.4, and `run25-ghead` --- the same
   source, shim and shim environment built through `cabal.project.ghead` against
   the in-tree GHC HEAD stage1, unmoved from Run 24's, so the halves differ
@@ -9907,7 +9919,8 @@ tables and its fingerprint say so.
   `lenet-slice-c6-k5`, `cnn-L1-6x6-c1`, `cifar-L2-16-c64-k3`, `stretch-rank10`,
   `conv1d-24`, `stretch-rank12` and `cnn-L1-12x12-c1`, all kept in `check`.
   Its 26 main-set shapes and nine classes are eighteen and ten today, and Run 25
-  read its basis column over those eighteen and found it its own, arm for arm.
+  read its basis column over those eighteen and found fourteen of their eighteen
+  shared arms at its own printed figure, the other four a digit away.
 - Run 23 measured Run 22's shapes, class views and roster, nothing having moved
   between them --- 55 timed arms over 24 of today's 26 main-set shapes and 37
   of today's 41 class views in NINE classes, 1320 benches and 2035, sixteen A/A
