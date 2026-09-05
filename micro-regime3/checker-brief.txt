@@ -195,10 +195,12 @@ are THIS RUN'S and are rewritten every run:
     one-block test fires, so their cell IS the forcing pass and the
     subtraction lands within two parts in a hundred thousand of zero
     -- the write-up prices it on `stretch-bigstride` and says so.
-    FOUR REGISTERED CLAUSES WERE UNREADABLE BEFORE THE RUN STARTED
-    because the prune parked `lib-stage2` and `canon-vecdims` the day
-    after they were registered; the write-up reports that as its own
-    finding, names a live stand-in where one exists, and it is not an
+    FIVE REGISTERED CLAUSES WERE UNREADABLE BEFORE THE RUN STARTED
+    because the prune and the short-bodies ruling parked `lib-stage2`,
+    `canon-vecdims` and `lib-stage2-short-lean` the day after they were
+    registered -- item (3)'s second clause and four of item (4)'s, spread
+    over TWO of the seven registrations; the write-up reports that as its
+    own finding, names a live stand-in where one exists, and it is not an
     omission to flag. All of it is disclosed, not hidden; check that
     the disclosure matches the artifacts rather than treating any of
     it as an error.
