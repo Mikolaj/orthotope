@@ -12,16 +12,16 @@ PREVBASIS and PREVSAME are one half whenever the run changed no
 allocation area, which is the ordinary case: two names to hunt for and
 one to find is not an error.
 
-Substitute per run: RUN=run24  BASIS=g912  OTHER=ghead  PREV=run23
-                    PREVBASIS=run23-g912  PREVSAME=run23-spot
-                    PRETIP=812d859   (the COMMITTED COPY of the previous
+Substitute per run: RUN=run25  BASIS=g912  OTHER=ghead  PREV=run24
+                    PREVBASIS=run24-g912  PREVSAME=run24-g912
+                    PRETIP=85ebef9   (the COMMITTED COPY of the previous
                                       run's file, which is the base the
                                       write-up is diffed against -- NOT the
                                       commit before it, which would show the
                                       run file as wholly new and leave the
                                       pass no `before` to find a stale
                                       paragraph in)
-                    RUNTIP=d86db3e   (the commit pass 2 READS, given in
+                    RUNTIP=PENDING   (the commit pass 2 READS, given in
                                       the launch message -- the commit that
                                       carries this line's edit cannot name
                                       itself -- and advanced here after, as
@@ -39,7 +39,7 @@ an orthotope checkout, NOT the horde-ad repo your session started in.
 Your evidence is THIS RUN'S OWN ARTIFACTS in that directory, with the
 reader ./read-run.py there. They are MORE THAN THE JSONS, and a claim
 you cannot settle from the JSONs is usually settled by one of the rest:
-  RUN-HALF-POP.json  the twenty timed processes; every published table
+  RUN-HALF-POP.json  the twenty-two timed processes; every published table
   RUN-HALF-POP.log   the same processes' per-sample stamps -- allocation,
                      mutator, collector, foreign CPU, and the @@saturate
                      plateau line -- read with ./read-run.py FILE --wild
@@ -69,7 +69,7 @@ Do not edit any file. Read and compute only.
 TWO DOCUMENTS, and the run's numbers are in the second: README.md is what
 stands between runs, and runs/run<N>.md is this run's write-up entire --
 its head, Results, what the next run compares against, the claims it
-should test, the NINE class blocks and its own Provenance. A run
+should test, the TEN class blocks and its own Provenance. A run
 replaces that file and edits README.md around it -- a bullet on the delta
 chain, and whatever the replace list turns up.
 
@@ -95,8 +95,10 @@ the diff is mostly character-level; ignore that and judge the substance.
 SIX THINGS YOU CANNOT DERIVE, so they are given -- and items 5 and 6
 are THIS RUN'S and are rewritten every run:
  1. The basis is RUN-BASIS and publishes every table (RUN-BASIS-main.json,
-    and RUN-BASIS-<class>.json for rev revsome bcast bcastmid reshape1
-    slice window scaled runs). The control is RUN-OTHER.
+    and RUN-BASIS-<class>.json for rev bcast bcastmid window scaled runs
+    flip block small compose -- TEN, four of them new on this run, and
+    reshape1, revsome and slice retired from timing on 2026-09-04 and
+    kept in `check`). The control is RUN-OTHER.
  2. PREV is on disk too. Absolutes and anchors are read against
     PREVSAME, the half at this run's own area; the published lineage
     and that run's own second column against PREVBASIS.
@@ -105,8 +107,10 @@ are THIS RUN'S and are rewritten every run:
     -r1.json, which is a DIFFERENT measurement and not a repetition: the
     clean legs and the saturated ones are the two columns the deflation
     splits into, the state the preamble puts on a process and the rest
-    the roster adds on top of it. Count them apart. A run has 27 legs a
-    half in each state. Probes are probe-*.json/.log.
+    the roster adds on top of it. Count them apart. This run has 21 legs
+    a half in each state, 84 in all -- 18 main-set shapes and the three
+    anchors on a second reps pass. Probes are probe-*.json/.log, and the
+    two -g3 twins beside the binaries are probe-g3-<half>-RUN.
  4. read-run.py is the only reader; start with --help. --cells gives
     TSV (slope_s raw, slope_net_s corrected); --pair (with --per-shape),
     --compare (with --chapter, --alloc, --movers, --ci, --counts), --aa,
@@ -118,76 +122,87 @@ are THIS RUN'S and are rewritten every run:
     reads the riders. The counted-work .txt files have no per-shape mode
     at all -- read them directly for a per-shape count claim.
  5. THIS RUN ONLY -- THE BOX DID NOT CHANGE between PREV and RUN. The
-    gate's machine check read +0.56% on `list`'s net over 24 of 26
+    gate's machine check read -0.08% on `list`'s net over 18 of 18
     shapes against the fingerprint PREV kept, worst
-    `stretch-pow2stride` +2.67%, none past 5%; the run's own two
-    main-set processes read the same comparison at -0.20% (basis,
-    worst conv1d-24 -1.78%) and -0.39% (other, worst
-    alexnet-L2-27-c48-k5 -2.80%). All inside 3%, so absolutes DO
-    cross that boundary freely and a cross-run absolute comparison is
-    fair. (The last box event was before Run 18; nothing since.) It
-    is 24 OF 26 and not 26 of 26 because the fingerprint PREV kept
-    has no row for the two main-set shapes added 2026-09-02; a
-    --machine run against THIS run's own file reads 26 of 26 and
-    +0.00%, which is the freshly installed fingerprint compared with
-    itself and is not a machine check. A LAYOUT TERM DOES ride in
-    every cross-run figure this run: Main.hs moved by two commits of
-    2026-09-02, so neither half reproduces an earlier binary, no md5
+    `stretch-square-1341` -1.70%, none past 5%; the run's own two
+    main-set processes read the same comparison at +0.32% (basis,
+    worst stretch-coprime-r7 +1.99%) and -0.77% (other, worst
+    stretch-square-1341 -2.82%). All inside 3%, so absolutes DO cross
+    that boundary freely and a cross-run absolute comparison is fair.
+    (The last box event was before Run 18; nothing since.) It is 18 OF
+    18 and not 26 of 26 because eight main-set shapes were RETIRED
+    from timing on 2026-09-04 -- PREV's fingerprint still has their
+    rows and this run does not time them. A LAYOUT TERM DOES ride in
+    every cross-run figure: Main.hs moved by FIVE commits of
+    2026-09-04, so neither half reproduces an earlier binary, no md5
     here matches one on record, and the exact repetition Runs 19 and
     23 could take is NOT available -- the write-up says so and reads
-    its cross-run column against run23-spot, the previous build of
-    this recipe, at 33 of 45 shared arms within 1%. The two HALVES
-    differ in the COMPILER only: same source, same shim commit, same
-    shim environment (both LOOP_DEADSPOT=1), the other half built
-    through cabal.project.ghead against the in-tree GHC HEAD stage1.
-    Treat that disclosure as correct rather than as a hedge.
+    its cross-run column against run24-g912, the previous build of
+    this recipe, at fifteen of sixteen non-degenerate shared arms
+    within 1%. **CROSS-RUN FIGURES ARE PINNED TO THIS RUN'S EIGHTEEN
+    SHAPES**: the write-up quotes Run 24's basis column read with
+    eight `--exclude-shape` flags, which is how it can say Run 24's
+    column IS this one arm for arm; a checker recomputing from Run
+    24's published 26-shape column will disagree with every such
+    figure and be reading the wrong population. The two HALVES differ
+    in the COMPILER only: same source, same shim commit, same shim
+    environment (both LOOP_DEADSPOT=1), the other half built through
+    cabal.project.ghead against the in-tree GHC HEAD stage1, whose
+    version is unmoved from Run 24. Treat that disclosure as correct
+    rather than as a hedge.
  6. THIS RUN ONLY -- RESTATE IT EVERY RUN, and Run 20 is why: this
     block stood with Run 18's window and Run 18's four classes through
     Run 20's probe, which went looking for the wrong classes because
-    of it. On Run 24: ONE window, all twenty processes,
-    2026-09-03T02:54:41 to 2026-09-03T12:58:25, every one exiting 0 at
-    its roster's count, no complaint and no `!!` line, the ghead half
-    first throughout. NO INTRUSION: `--wild` on both main logs puts
-    NOT ONE bench of 1352 at or above 0.25 foreign CPU, so post-run
-    step 3 did not fire and no population was rerun. What did happen
-    was BEFORE the window: the gate was launched at 02:06, stopped by
-    hand two minutes in when the machine was wanted, its four partial
-    artifacts moved out of the tree, and the recorded gate is the
-    relaunch of 02:09:17 -- the write-up discloses this and it is not
-    an error. The plateau gate reads all twenty preamble victims
-    inside a 3.08% spread against a 5% band. FIVE classes (rev
-    1.0078, revsome 1.0149, bcast 1.0124, reshape1 1.0327, runs
-    1.0104) have cross-half baselines past the 0.7% differencing
-    threshold and their cross-half lines are explicitly not read for
-    the compiler; the MAIN SET is inside it at 1.0025, so its two
-    columns MAY be differenced. There are NINE classes; `runs` has
-    FOURTEEN shapes and `window` FOUR, three and one of them added
-    2026-09-02 -- Main.hs still declares those four "added ...  after
-    the run" in README's Run 23 delta bullet, which the write-up
-    removes, so a shape count of 14 and 4 is right and a checker
-    reading 11 and 3 off that declaration is reading a stale one.
-    Cells below the shared forcing pass: FIVE on the basis main set
-    (both libunord arms on stretch-inner1 and stretch-wide-2xM,
-    libunord-stage2 on stretch-square-1341) so two rows are over 24
-    and 23 of 26; SIX on the ghead main set across three rows (the
-    two libunord arms on stretch-pow2stride and vgg-14-c512-k3,
-    libunord-stage2 on stretch-square-1341, and lib-stage2-lean alone
-    on stretch-inner1) so one row is over 25 and two over 24 and 23;
-    on reshape1 NINE arms are degenerate on each half, and the shape
-    they sink on DIFFERS BETWEEN THE HALVES -- reshape1-500k on the
-    basis, reshape1-r3 on ghead -- which is why a reshape1 family
-    reading is taken over the two shapes neither half sinks on. Every
-    main-set registration figure is taken over the 25 shapes
-    excluding stretch-inner1 for that reason, and the write-up says
-    so. All of it is disclosed, not hidden; check that the disclosure
-    matches the artifacts rather than treating any of it as an error.
+    of it. On Run 25: ONE window, all TWENTY-TWO processes,
+    2026-09-05T01:15:34 to 2026-09-05T05:55:57, every one exiting 0 at
+    its roster's count -- 432 twice, 336 twice, 144 twice, 120 twice,
+    96 six times and 72 eight times -- no complaint and no `!!` line,
+    the ghead half first throughout. NO INTRUSION: `--wild` on both
+    main logs and on the six class logs with the widest A/A cells puts
+    NOT ONE bench at or above 0.25 foreign CPU, so post-run step 3 did
+    not fire and no population was rerun. The gate was launched ONCE,
+    00:43:51 to 01:15:31 on a box reading 0.4% non-idle, and the alarm
+    between it and the sequence read 0.1%. The whole evening ran as
+    ONE command, run-evening.sh, and the counted work as a second,
+    run-counts-all.sh, 06:08:34 to 06:41:45, 22 sweeps with no cell
+    refused by perf. The plateau gate reads all twenty-two preamble
+    victims inside a 2.24% spread against a 5% band. **THE MAIN SET IS
+    PAST THE 0.7% DIFFERENCING THRESHOLD THIS RUN**, `list` moving
+    1.0110 between the halves, so its two columns may NOT be
+    differenced and every cross-half figure is an ORDERING -- the
+    opposite of Run 24, and the write-up says so throughout. TWO
+    classes are past it too, bcastmid 1.0175 and block 1.0088, and
+    their blocks say so; the other eight are inside. There are TEN
+    classes: `runs` has FOURTEEN shapes, `window` SIX (two added
+    2026-09-03 and timed for the first time here), `block` FIVE,
+    `bcastmid`, `small` and `compose` FOUR, and `rev`, `bcast`,
+    `scaled` and `flip` THREE. THE FLOOR IS OVER SIX A/A PAIRS, not
+    sixteen: the prune of 2026-09-04 deleted ten pairs with the arms
+    they doubled, so 0.40% and 0.61% are maxima over six and are NOT
+    comparable with the 1.26%/2.11% series, and the restricted
+    four-pair figure reads the same two numbers. Cells below the
+    shared forcing pass: FIFTEEN on the basis main set and ELEVEN on
+    the ghead one, EVERY ONE of them a `libunord` arm, so those two
+    rows are geomeans on 11 and 10 of 18 shapes on the basis and 13
+    and 12 on the other and every other row covers all 18. That count
+    is not a finding: those arms return a single slice where the
+    one-block test fires, so their cell IS the forcing pass and the
+    subtraction lands within two parts in a hundred thousand of zero
+    -- the write-up prices it on `stretch-bigstride` and says so.
+    FOUR REGISTERED CLAUSES WERE UNREADABLE BEFORE THE RUN STARTED
+    because the prune parked `lib-stage2` and `canon-vecdims` the day
+    after they were registered; the write-up reports that as its own
+    finding, names a live stand-in where one exists, and it is not an
+    omission to flag. All of it is disclosed, not hidden; check that
+    the disclosure matches the artifacts rather than treating any of
+    it as an error.
 
 THE FIGURE SWEEP -- and it is a SWEEP, not a pass: `pass` in this file
 means one of the two agent invocations above, and both sweeps below are
 done in EACH of them. Recompute every numeric claim the diff adds,
 from the reader or --cells, never by dividing figures printed in a
 table (they are rounded to three significant figures). Be exhaustive
-on the tables IN PASS 1 -- Results, the fingerprint, the nine class
+on the tables IN PASS 1 -- Results, the fingerprint, the ten class
 tables, the cross-class summary, the run's own two geomean columns --
 and say how many rows you verified and how many disagreed. Pass 2's
 scope is narrower and is stated in its own block.
