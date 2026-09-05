@@ -203,27 +203,33 @@ compareT s x y = compare (toVectorT s x) (toVectorT s y)
 getStridesT :: ShapeL -> [Int]
 getStridesT = scanr (*) 1
 
--- Convert an array to a list by indexing through all the elements.
+-- Convert an array to a list of its elements in row-major order.
 -- The first argument is the array shape.
--- XXX Copy special cases from Tensor.
+--
+-- Dispatches on 'routeT' as 'toVectorListT' does: an 'RSlice' lists its
+-- slice, an 'RRuns' each run's slice as 'runSlicesT' reaches it, and an
+-- 'RFill' its elements one by one over the canonical axes ('elemsT'),
+-- where a fill followed by 'vToList' would materialize the whole array
+-- before the first element.  So the list is lazy on every route: a
+-- consumer that stops early walks only a prefix, and the 'build' form
+-- fuses with a consumer that sees it inlined.  The run slices stay
+-- because the element walk steps the odometer once a run, which on
+-- short runs costs more than a slice header: 2.7 times the time of a
+-- fused 'sum' at runs of two.
 {-# INLINE toListT #-}
 toListT :: (Vector v, VecElem v a) => ShapeL -> T v a -> [a]
-toListT sh a@(T ss0 o0 v)
-  | isCanonicalT (getStridesT sh) a = vToList v
-  | otherwise = build $ \cons nil ->
-      -- TODO: because unScalarT uses vIndex, this has unnecessary bounds
-      -- checks.  We should expose an unchecked indexing function in the Vector
-      -- class, add top-level bounds checks to cover the full range we'll
-      -- access, and then do all accesses with the unchecked version.
-      let go []     ss o rest = cons (unScalarT (T ss o v)) rest
-          go (n:ns) ss o rest = foldr
-            (\i -> case indexT (T ss o v) i of T ss' o' _ -> go ns ss' o')
-            rest
-            [0..n-1]
-      in  go sh ss0 o0 nil
+toListT sh a@(T _ _ v)
+  | l == 0 = []
+  | otherwise = case routeT sh l a of
+      RSlice ao _ -> vToList (wholeOrSliceT ao l v)
+      RRuns axes ao _ -> build $ \cons nil ->
+        runSlicesT axes ao v (\s rest -> foldr cons rest (vToList s)) nil
+      RFill axes ao _ -> build $ \cons nil -> elemsT axes ao v cons nil
+  where !l = product sh
 
 -- | Check if the strides are canonical, i.e., if the vector have the natural layout.
--- XXX Copy special cases from Tensor.
+-- Not called in this module, 'toListT' dispatching on 'routeT'; kept as
+-- part of its surface.
 {-# INLINE isCanonicalT #-}
 isCanonicalT :: (Vector v, VecElem v a) => [Int] -> T v a -> Bool
 isCanonicalT (n:ss') (T ss o v) =
@@ -498,7 +504,7 @@ data Route
       -- ^ any other canonical view: no run longer than one element, so
       -- the view is filled as one vector of the count, from the start
 
--- | An axis as its stride and extent.  Each level of 'runSlicesT''s
+-- | An axis as its stride and extent.  Each level of 'offsetsT''s
 -- odometer holds the canonical list's own axis, shared by every state
 -- of the level, so that a step allocates the level and nothing else:
 -- copied into the level, the two cost a word a step and a fifth more
@@ -620,32 +626,8 @@ routeOfT start l t n rest = RFill (Axes t n rest) start l
 -- and nil of the 'build' the list entry points are written under, so
 -- that a consumer folding the list fuses with the walk, holds no more
 -- of the list than it has reached and, stopping early, does no more of
--- the walk.
---
--- 'go' walks the innermost outer level with a counter and a cursor, and
--- 'block' holds the levels above it, an 'Odometer' stepped only when
--- the counter runs out.  One flat loop, and not a fold per level with
--- the rest of the list passed down as a continuation: fused with a
--- consumer's fold, the level form met at every level's exit a
--- continuation it could not see and passed the accumulator to it lazily
--- and boxed, a thunk and a box per run; here every continuation is
--- 'go', 'block' or nil, all known to the compiler, so base's own left
--- folds, 'sum' among them, see a strict known call and allocate nothing
--- per run.
---
--- The odometer is a value, each level holding its own offset and its
--- axis, the canonical list's own 'Axis'.  A carry loop before it
--- collected the levels it reset, reversed them back on and undid the
--- counter's stride arithmetic; against it the value form allocates
--- 26 to 35% less on windows over an array, retires up to 3.3% fewer
--- instructions, and on one compiler executes two fewer taken branches
--- a run on views of short runs, 'go' no longer carrying the odometer.
--- Not kept: the odometer an argument of 'go', which keeps the carry's
--- run loop on that compiler; the axes as a second list beside the
--- levels, one more value live across the run loop and 4.5% more
--- instructions than the carry on a 3x3 window over 64 channels; and the
--- initial state by 'foldl'' over the reversed axes, up to 0.5% fewer
--- instructions, not attributed, for a reverse a walk.
+-- the walk.  The walk is 'offsetsT' with the innermost outer axis as
+-- its counter, a slice a position.
 --
 -- Each run that this function gives has the view's uniform run length:
 -- the run length of the coarsest partition of the view into equal runs.
@@ -690,25 +672,73 @@ runSlicesT (Axes _ n (InnerFirst outerAxes)) !start !v cons nil =
     [] -> cons (vSlice start n v) nil
       -- Currently impossible: 'routeOfT' sends a view of one run to
       -- 'RSlice', where it is the vector or one slice of it.
-    Axis sk dk : above ->
-      let block :: Int -> Odometer -> b
-          block o outer =
-            let go :: Int -> Int -> b
-                go !i !p
-                  -- TODO: 'vSlice' bounds-checks every run, tests that
-                  -- cannot fail on a view the odometer walks, @n >= 0@
-                  -- among them not even varying with the run; removing
-                  -- them wants an unchecked slice in the 'Vector' class.
-                  | i < dk = cons (vSlice p n v) (go (i + 1) (p + sk))
-                  | otherwise = case stepOdometer outer of
-                      OdoDone -> nil
-                      next@(OdoLevel oNext _ _ _) -> block oNext next
-            in  go 0 o
-      in  block start
-                (foldr (\axis@(Axis _ d) outer -> OdoLevel start d axis outer)
-                       OdoDone above)
+    axis : above ->
+      -- TODO: 'vSlice' bounds-checks every run, tests that cannot fail
+      -- on a view the odometer walks, @n >= 0@ among them not even
+      -- varying with the run; removing them wants an unchecked slice in
+      -- the 'Vector' class.
+      offsetsT axis above start (\p rest -> cons (vSlice p n v) rest) nil
 
--- The outer levels of 'runSlicesT''s odometer, innermost first, each at
+-- The elements of a non-empty canonical view in row-major order, as the
+-- cons and nil of a 'build': 'offsetsT' with the innermost axis as its
+-- counter, an element a position.  Each element is consed unevaluated,
+-- so a boxed vector's elements are forced by the consumer alone.  The
+-- vector is banged as in 'runSlicesT', every use of it likewise under
+-- the consumer's cons.
+{-# INLINE elemsT #-}
+elemsT :: forall v a b. (Vector v, VecElem v a)
+       => Axes -> Int -> v a -> (a -> b -> b) -> b -> b
+elemsT (Axes t n (InnerFirst outerAxes)) !start !v cons nil =
+  -- TODO: 'vIndex' bounds-checks every element; see 'runSlicesT'.
+  offsetsT (Axis t n) outerAxes start (\p rest -> cons (vIndex v p) rest) nil
+
+-- The offsets of a counter axis's positions under the axes outside it,
+-- in row-major order, each handed to the step as the walk reaches it:
+-- the loop 'runSlicesT' and 'elemsT' share.  The arguments are the
+-- counter axis, the axes outside it innermost first, the start offset,
+-- and the step and nil of the 'build' fold the walk is written under.
+--
+-- 'go' walks the counter axis with a counter and a cursor, and 'block'
+-- holds the levels above it, an 'Odometer' stepped only when the
+-- counter runs out.  One flat loop, and not a fold per level with
+-- the rest of the list passed down as a continuation: fused with a
+-- consumer's fold, the level form met at every level's exit a
+-- continuation it could not see and passed the accumulator to it lazily
+-- and boxed, a thunk and a box per run; here every continuation is
+-- 'go', 'block' or nil, all known to the compiler, so base's own left
+-- folds, 'sum' among them, see a strict known call and allocate nothing
+-- per run.
+--
+-- The odometer is a value, each level holding its own offset and its
+-- axis, the canonical list's own 'Axis'.  A carry loop before it
+-- collected the levels it reset, reversed them back on and undid the
+-- counter's stride arithmetic; against it the value form allocates
+-- 26 to 35% less on windows over an array, retires up to 3.3% fewer
+-- instructions, and on one compiler executes two fewer taken branches
+-- a run on views of short runs, 'go' no longer carrying the odometer.
+-- Not kept: the odometer an argument of 'go', which keeps the carry's
+-- run loop on that compiler; the axes as a second list beside the
+-- levels, one more value live across the run loop and 4.5% more
+-- instructions than the carry on a 3x3 window over 64 channels; and the
+-- initial state by 'foldl'' over the reversed axes, up to 0.5% fewer
+-- instructions, not attributed, for a reverse a walk.
+{-# INLINE offsetsT #-}
+offsetsT :: forall b. Axis -> [Axis] -> Int -> (Int -> b -> b) -> b -> b
+offsetsT (Axis sk dk) above !start step nil =
+  let block :: Int -> Odometer -> b
+      block o outer =
+        let go :: Int -> Int -> b
+            go !i !p
+              | i < dk = step p (go (i + 1) (p + sk))
+              | otherwise = case stepOdometer outer of
+                  OdoDone -> nil
+                  next@(OdoLevel oNext _ _ _) -> block oNext next
+        in  go 0 o
+  in  block start
+            (foldr (\axis@(Axis _ d) outer -> OdoLevel start d axis outer)
+                   OdoDone above)
+
+-- The outer levels of 'offsetsT''s odometer, innermost first, each at
 -- an offset, with indices left, of an 'Axis'.  A strict list,
 -- hand-rolled so that a level and its cell are one object: a list cell
 -- cannot unpack a strict record, so a list of level records took two

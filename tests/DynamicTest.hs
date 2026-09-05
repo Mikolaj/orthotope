@@ -48,6 +48,42 @@ test = testGroup "Dynamic" $
       index_5 = assertThrows ">" (index a1 2)
       toList_1 = assertEqual "1" [1,2,3,4,5,6] (toList a1)
       toList_2 = assertEqual "2" [1,4,2,5,3,6] (toList a2)
+      -- toList over views, each against its elements written out and
+      -- against toVector: a view of runs, a row at an offset, a strided
+      -- view at an offset, reversals of either axis and of both, a
+      -- broadcast outside and inside, transpositions of a rank-3 array
+      -- whose walk carries across two levels, a stride, overlapping
+      -- windows, a scalar, and empty views.
+      listV :: [Int] -> Array Int -> Assertion
+      listV l x = assertEqual "list" l (toList x)
+                  >> assertEqual "vector" l (V.toList (toVector x))
+      toList_3 = listV [1,2,4,5] (slice [(0,2),(0,2)] a1)
+      toList_4 = listV [4,5,6] (slice [(1,1),(0,3)] a1)
+      toList_5 = listV [2,5] (index a2 1)
+      toList_6 = listV [3,2,1,6,5,4] (rev [1] a1)
+                 >> listV [4,5,6,1,2,3] (rev [0] a1)
+                 >> listV [6,5,4,3,2,1] (rev [0,1] a1)
+      toList_7 = listV [7,8,9,7,8,9]
+                       (stretch [2,3] (reshape [1,3] (fromList [3] [7,8,9])))
+                 >> listV [7,7,7,8,8,8]
+                          (stretch [2,3] (reshape [2,1] (fromList [2] [7,8])))
+      toList_8 = listV [1,5,9,13,17,21,2,6,10,14,18,22,
+                        3,7,11,15,19,23,4,8,12,16,20,24]
+                       (transpose [2,0,1] a5)
+                 >> listV [1,13,5,17,9,21,2,14,6,18,10,22,
+                           3,15,7,19,11,23,4,16,8,20,12,24]
+                          (transpose [2,1,0] a5)
+      toList_9 = listV [1,3,9,11,13,15,21,23] (stride [1,2,2] a5)
+                 >> listV [1,2,4,5,2,3,5,6] (window [2,2] a1)
+      toList_10 = listV [5] a4
+                  >> listV [] (fromList [0,3] [] :: Array Int)
+                  >> listV [] (transpose [1,0] (fromList [0,3] [] :: Array Int))
+      -- A prefix of the list and its length force no element outside
+      -- the prefix, on a view walked element by element.
+      lazyV = transpose [1,0] (fromList [2,3] [1,2,3,4,undefined,6])
+                :: Array Int
+      toList_11 = assertEqual "prefix" [1,4,2] (take 3 (toList lazyV))
+                  >> assertEqual "length" 6 (length (toList lazyV))
       toVector_1 = assertEqual "1" (V.fromList [1,2,3,4,5,6]) (toVector a1)
       toVector_2 = assertEqual "2" (V.fromList [1,4,2,5,3,6]) (toVector a2)
       -- An empty view transposed so that no axis merges away: the entry
@@ -339,6 +375,15 @@ test = testGroup "Dynamic" $
         , testCase "index_5" index_5
         , testCase "toList_1" toList_1
         , testCase "toList_2" toList_2
+        , testCase "toList_3" toList_3
+        , testCase "toList_4" toList_4
+        , testCase "toList_5" toList_5
+        , testCase "toList_6" toList_6
+        , testCase "toList_7" toList_7
+        , testCase "toList_8" toList_8
+        , testCase "toList_9" toList_9
+        , testCase "toList_10" toList_10
+        , testCase "toList_11" toList_11
         , testCase "toVector_1" toVector_1
         , testCase "toVector_2" toVector_2
         , testCase "toVector_3" toVector_3
