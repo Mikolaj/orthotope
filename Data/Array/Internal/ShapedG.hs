@@ -399,6 +399,7 @@ traverseA
 traverseA f a@(A t) = A <$> traverseT (shapeL a) f t
 
 -- | Check if all elements of the array are equal.
+{-# INLINE allSameA #-}
 allSameA :: (Shape sh, Vector v, VecElem v a, Eq a) => Array sh v a -> Bool
 allSameA a@(A t) = allSameT (shapeL a) t
 
@@ -439,6 +440,7 @@ allA p a@(A t) = allT (shapeL a) p t
 -- and just replicate the data along all other dimensions.
 -- The list of dimensions indicies must have the same rank as the argument array
 -- and it must be strictly ascending.
+{-# INLINE broadcast #-}
 broadcast :: forall ds sh' sh v a .
              (Shape sh, Shape sh',
               Broadcast ds sh sh',
