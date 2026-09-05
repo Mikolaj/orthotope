@@ -345,7 +345,7 @@ stride ats (A ash (T ss o v)) = A (str ats ash) (T (zipWith (*) (ats ++ repeat 1
 -- | Rotate the array k times along the d'th dimension.
 -- E.g., if the array shape is @[2, 3, 2]@, d is 1, and k is 4,
 -- the resulting shape will be @[2, 4, 3, 2]@.
-{-# INLINABLE rotate #-}
+{-# INLINE rotate #-}
 rotate :: forall d p v a.
           (KnownNat p, KnownNat d,
           Vector v, VecElem v a,
@@ -401,7 +401,7 @@ rerank f (A sh t) =
   subArraysT osh t
   where (osh, ish) = splitAt (valueOf @n) sh
 
-{-# INLINABLE ravelOuter #-}
+{-# INLINE ravelOuter #-}
 ravelOuter :: (Vector v, VecElem v a, KnownNat m) => ShapeL -> [Array n v a] -> Array m v a
 ravelOuter _ [] = error "ravelOuter: empty list"
 ravelOuter osh as | not $ allSame shs = error $ "ravelOuter: non-conforming inner dimensions: " ++ show shs
@@ -503,7 +503,7 @@ allA p (A sh t) = allT sh p t
 -- and just replicate the data along all other dimensions.
 -- The list of dimensions indicies must have the same rank as the argument array
 -- and it must be strictly ascending.
-{-# INLINABLE broadcast #-}
+{-# INLINE broadcast #-}
 broadcast :: forall r' r v a .
              (HasCallStack, Vector v, VecElem v a, KnownNat r, KnownNat r') =>
              [Int] -> ShapeL -> Array r v a -> Array r' v a

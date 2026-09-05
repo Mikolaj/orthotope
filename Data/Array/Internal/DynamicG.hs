@@ -382,6 +382,7 @@ rerank n f (A sh t) | n < 0 || n > length sh = error "rerank: rank exceeded"
   subArraysT osh t
   where (osh, ish) = splitAt n sh
 
+{-# INLINE ravelOuter #-}
 ravelOuter :: (HasCallStack, Vector v, VecElem v a) => ShapeL -> [Array v a] -> Array v a
 ravelOuter _ [] = error "ravelOuter: empty list"
 ravelOuter osh as | not $ allSame shs = error $ "ravelOuter: non-conforming inner dimensions: " ++ show shs
@@ -435,6 +436,7 @@ traverseA
 traverseA f (A sh t) = A sh <$> traverseT sh f t
 
 -- | Check if all elements of the array are equal.
+{-# INLINE allSameA #-}
 allSameA :: (Vector v, VecElem v a, Eq a) => Array v a -> Bool
 allSameA (A sh t) = allSameT sh t
 
@@ -481,6 +483,7 @@ allA p (A sh t) = allT sh p t
 -- and just replicate the data along all other dimensions.
 -- The list of dimensions indicies must have the same rank as the argument array
 -- and it must be strictly ascending.
+{-# INLINE broadcast #-}
 broadcast :: (HasCallStack, Vector v, VecElem v a) =>
              [Int] -> ShapeL -> Array v a -> Array v a
 broadcast ds sh a | length ds /= rank a = error "broadcast: wrong number of broadcasts"
@@ -493,6 +496,7 @@ broadcast ds sh a | length ds /= rank a = error "broadcast: wrong number of broa
         ascending _        = True
 
 -- | Update the array at the specified indicies to the associated value.
+{-# INLINE update #-}
 update :: (HasCallStack, Vector v, VecElem v a) =>
           Array v a -> [([Int], a)] -> Array v a
 update (A sh t) us | all (ok . fst) us = A sh $ updateT sh t us
