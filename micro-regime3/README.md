@@ -2882,15 +2882,15 @@ and the two shapes that must survive any later cut for a reason unrelated
 to their workload, sit at `convShapes` in `Main.hs`, beside the list.
 
 **Eight main-set shapes were retired from timing on 2026-09-04, ruled
-on the same test as the three stride classes below, and seven stay retired, kept
-in `check`: `stretch-inner1`, `lenet-slice-c6-k5`, `cnn-L1-6x6-c1`,
-`cifar-L2-16-c64-k3`, `stretch-rank10`, `conv1d-24`, `stretch-rank12`
-and `cnn-L1-12x12-c1`.** Under the branch's fill every main-set view
-canonicalizes to a rank-3 positive fill with a stride-1 level, or to a regime-1
-slice, so what a timed shape can differ in is its two inner extents, their
-strides and its run count, and by that reading the eight duplicate what stays.
-`stretch-inner1` is the regime-1 slice, O(1) at any size, which `small-flat64`
-times, and the main-set shape the canonicalizing arms return an O(1) slice on.
+on the same test as the three stride classes below: `stretch-inner1`,
+`lenet-slice-c6-k5`, `cnn-L1-6x6-c1`, `cifar-L2-16-c64-k3`, `stretch-rank10`,
+`conv1d-24`, `stretch-rank12` and `cnn-L1-12x12-c1`; seven of them stay retired,
+kept in `check`.** Under the branch's fill every main-set view canonicalizes
+to a rank-3 positive fill with a stride-1 level, or to a regime-1 slice, so what
+a timed shape can differ in is its two inner extents, their strides and its run
+count, and by that reading the eight duplicate what stays. `stretch-inner1`
+is the regime-1 slice, O(1) at any size, which `small-flat64` times,
+and the main-set shape the canonicalizing arms return an O(1) slice on.
 `lenet-slice-c6-k5` is `small-patch-k5` to the stride. Four are rungs of one
 ladder, `[A, 3, 3]` at strides `[9, 1, 3]`, whose kept rungs
 are `cnn-slice-c32`, `cnn-L1-24x24-c1`, `cnn-L2-24x24-c32` and `vgg-14-c512-k3`:
