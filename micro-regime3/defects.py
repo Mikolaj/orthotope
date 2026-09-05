@@ -4931,13 +4931,17 @@ RECORDS = [
          # on disk. RE-AIMED 2026-08-23 from run14-lookrts to run18-g912,
          # the artifacts up to Run 16 having been deleted that day, and
          # again 2026-09-02 to run23-g912 at Run 24's preparation, Run 18's
-         # and Run 19's having gone the same way. The
+         # and Run 19's having gone the same way, and again 2026-09-05 to
+         # run25-g912 when Run 22's and Run 23's were deleted at Run 25's
+         # own offer -- the third re-aim in a fortnight, which is the decay
+         # `stub_pair_note` above describes and the reason this comment
+         # names the remedy rather than the run. The
          # figure is the FIXTURE's, planted into the README copy rather
          # than read from the run, so it does not move with the run; what
          # the run has to be is CAPTURED rather than built.
          plant=lambda t: {'rundoc': rundoc_current_run_sentence(t),
-                          'run': run_json('run23-g912-main.json'),
-                          'main': era_main_hs(t, run_json('run23-g912-main.json'))},
+                          'run': run_json('run25-g912-main.json'),
+                          'main': era_main_hs(t, run_json('run25-g912-main.json'))},
          argv=['{run}', '--claims', '--run-doc', '{rundoc}',
                '--main', '{main}'],
          ok=V(has=['0.9312']),
@@ -5182,10 +5186,11 @@ RECORDS = [
          # `retires` and not the mode having stopped listing anything.
          # The captured run is re-aimed as the case above is, and for the
          # same reason: RE-AIMED 2026-09-02 from run19-g912, whose
-         # artifacts went with Run 19's.
+         # artifacts went with Run 19's RE-AIMED AGAIN 2026-09-05
+         # to run25-g912, Run 23's having gone with Run 25's deletion offer.
          plant=lambda t: {'rundoc': rundoc_retirement_sentence(t),
-                          'run': run_json('run23-g912-main.json'),
-                          'main': era_main_hs(t, run_json('run23-g912-main.json'))},
+                          'run': run_json('run25-g912-main.json'),
+                          'main': era_main_hs(t, run_json('run25-g912-main.json'))},
          argv=['{run}', '--claims', '--run-doc', '{rundoc}',
                '--main', '{main}'],
          ok=V(hasnt=['0.8271'])),
@@ -5193,8 +5198,8 @@ RECORDS = [
     case('ordinary-sentence-still-listed', 'read-run.py', None,
          'CONTROL: an unattributed figure outside a retirement is listed',
          plant=lambda t: {'rundoc': rundoc_retirement_sentence(t, False),
-                          'run': run_json('run23-g912-main.json'),
-                          'main': era_main_hs(t, run_json('run23-g912-main.json'))},
+                          'run': run_json('run25-g912-main.json'),
+                          'main': era_main_hs(t, run_json('run25-g912-main.json'))},
          argv=['{run}', '--claims', '--run-doc', '{rundoc}',
                '--main', '{main}'],
          ok=V(has=['0.8271'])),

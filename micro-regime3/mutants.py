@@ -115,7 +115,7 @@ MUTANTS = [
      's = s[:j] + \'\\n  , (\\"zz-era-probe\\", [3, 3, 3])  -- 27\' + s[j:]\n'
      'm.MAIN = os.path.join(tempfile.mkdtemp(), \'Main.hs\')\n'
      'open(m.MAIN, \'w\').write(s)\n'
-     'run = os.path.join(os.environ[\'CORPUS\'], \'run23-g912-main.json\')\n'
+     'run = os.path.join(os.environ[\'CORPUS\'], \'run25-g912-main.json\')\n'
      'doc = m.rundoc_retirement_sentence(tempfile.mkdtemp(), False)\n'
      'main = m.era_main_hs(tempfile.mkdtemp(), run)\n'
      'r = subprocess.run([sys.executable, \'{dir}/read-run.py\', run,'
