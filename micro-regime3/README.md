@@ -2446,17 +2446,18 @@ is planned. A scope limit belongs in the sentence that asks for the measurement.
    **6.00**, `-u1` **6.00** and `-u2` **7.00** against the native 9.00, 7.00
    and 6.00, and `perf annotate` puts the leaf and `-u1` in one rolled loop
    of six instructions with no reload and `-u2`'s two-element body at fourteen
-   (located by profile: `probe-nospill-fills.py` credits each LLVM function's
+   (located by profile: `probe-nospill-fills.py` credited each LLVM function's
    entry region, where the rotated loop sits, to the preceding proc, so it put
-   `-u2`'s loop under `-u1` and the six-instruction loops under nothing).
-   So the source-level unrolling is not a property that survives that backend,
-   and no build separates it from the spill. What the reading gives instead
-   is the loop's spill-free floor, six an element, which native `-u2` already
-   sits at and native `-u1` sits one above --- the whole of `-u1`'s instruction
-   excess over `-u2` is the one reload, and the unrolling costs or saves
-   no instruction of its own. Its worth in TIME is the 1.0367 and 1.0479 above,
-   spill and all; a figure for the unrolling alone would want a native build
-   that does not spill, which nothing here produces.
+   `-u2`'s loop under `-u1` and the six-instruction loops under nothing ---
+   fixed the same evening, with its case). So the source-level unrolling
+   is not a property that survives that backend, and no build separates
+   it from the spill. What the reading gives instead is the loop's spill-free
+   floor, six an element, which native `-u2` already sits at and native `-u1`
+   sits one above --- the whole of `-u1`'s instruction excess over `-u2`
+   is the one reload, and the unrolling costs or saves no instruction
+   of its own. Its worth in TIME is the 1.0367 and 1.0479 above, spill and all;
+   a figure for the unrolling alone would want a native build that does
+   not spill, which nothing here produces.
 3. `ANSWERED` **A reversed innermost axis costs the regime-3 fill about twice
    the forward run at the same length, and nothing in the code says why.** Run
    25's `flip` class killed the prediction that the fills read a reversed run

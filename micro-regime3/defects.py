@@ -538,6 +538,48 @@ def plant_main_shapes_exempt(tmp):
             'rundoc': write_rundoc(tmp, doc)}
 
 
+def plant_fills_entry_region(tmp):
+    """A Cmm dump of two arms' workers and the LLVM assembly of both, with
+    the second worker's loop where LLVM's rotation leaves it: in the
+    function's entry region, before its first `_blk_` label, right after
+    the first worker's last block and a tab-indented `.size`."""
+    dump = write(os.path.join(tmp, 'fixture.dump-cmm'), (
+        '$wfbA_QaA_entry() { //  [R1]\n'
+        '     QA0: // global\n'
+        '         call $wgo_QA_info(R1) args: 8, res: 8, upd: 8;\n'
+        '}\n'
+        '$wgo_QA_entry() { //  [R1]\n'
+        '     QA1: // global\n'
+        '         call (P64[Sp])() args: 8, res: 0, upd: 8;\n'
+        '}\n'
+        '$wfbB_QbB_entry() { //  [R1]\n'
+        '     QB0: // global\n'
+        '         call $wgo_QB_info(R1) args: 8, res: 8, upd: 8;\n'
+        '}\n'
+        '$wgo_QB_entry() { //  [R1]\n'
+        '     QB1: // global\n'
+        '         call (P64[Sp])() args: 8, res: 0, upd: 8;\n'
+        '}\n'))
+    asm = write(os.path.join(tmp, 'fixture.s'), (
+        'QA_info$def:\n'
+        '\tmovq\t%rdi, %rax\n'
+        '_blk_QA1$def:\n'
+        '\tret\n'
+        '\t.size\tQA_info$def, .Lfunc_end1-QA_info$def\n'
+        'QB_info$def:\n'
+        '\tmovq\t%rdi, %rax\n'
+        '.LBB2_1:\n'
+        '\tmovsd\t(%rdi), %xmm0\n'
+        '\tmovsd\t%xmm0, (%rsi)\n'
+        '\taddq\t$8, %rsi\n'
+        '\tdecq\t%rcx\n'
+        '\tjne\t.LBB2_1\n'
+        '_blk_QB1$def:\n'
+        '\tret\n'
+        '\t.size\tQB_info$def, .Lfunc_end2-QB_info$def\n'))
+    return {'dump': dump, 'asm': asm}
+
+
 def edited_readme(tmp, *edits, **kw):
     """A copy of the live README with each (old, new) applied exactly once.
 
@@ -4032,6 +4074,10 @@ TIER1 = {
                       trigger='a roster change stated in three documents',
                       ok='arms, shapes, views and the survivors\' order, off the binaries',
                       bug="written from a diff nothing performed; Run 25's note miscounted the controls"),
+    'fills-entry-region-goes-to-the-previous-proc': dict(family='scan-for-parse', discovery='in-use', harm='fired', harm_count=1,
+                      trigger='an -fllvm function whose loop sits before its first `_blk_` label',
+                      ok='the loop is listed under the worker whose function holds it',
+                      bug='it was listed under the previous function\'s last block, so under the neighbouring arm, and under nothing for its own'),
     'smoke-warnings-kept-only-in-a-temp-dir': dict(family='quiet-failure', discovery='in-use', harm='fired', harm_count=1,
                       trigger='a sweep whose reader modes warn',
                       ok='the warnings are printed, deduped, beside the verdict',
@@ -6487,6 +6533,21 @@ RECORDS = [
          ok=V(exit=0, has=['after jmp\t.Lgo: nop',
                            'before .Lloop: .p2align\t6, 0x90, 9'],
               hasnt=['dead-spot'])),
+
+    # ---- probe-nospill-fills.py ---------------------------------------
+    case('fills-entry-region-goes-to-the-previous-proc',
+         'probe-nospill-fills.py', 'ef3085d',
+         'a loop in an LLVM function\'s entry region credited to the previous proc',
+         # A `.LBB` block inherits the last `_blk_` owner seen, and the
+         # reset on `.size` never fired, the directive being
+         # tab-indented; a function's entry label was no owner at all.
+         # LLVM rotates each worker's loop into exactly that region,
+         # so on 2026-09-05 `-u2`'s loop was read under `-u1` and the
+         # six-instruction loops under nothing.
+         plant=plant_fills_entry_region,
+         argv=['{dump}', '{asm}', 'fbA', 'fbB'],
+         ok=V(exit=0, has=['QB/.LBB2_1:'], hasnt=['QA1/.LBB2_1:']),
+         bug=V(has=['QA1/.LBB2_1:'], hasnt=['QB/.LBB2_1:'])),
 
     # ---- loop-offsets.py -----------------------------------------------
     case('objdump-status', 'loop-offsets.py', '0a1bc60',
