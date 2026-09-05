@@ -184,6 +184,29 @@ MUTANTS = [
      'r = subprocess.run([sys.executable, \'{file}\', \'--lint\', \'--readme\', f],'
      ' capture_output=True, text=True)\n'
      'sys.exit(0 if \'which names arms the roster does not time\' in r.stdout + r.stderr else 1)"'),
+    # The digest check, made unconditional: every ITEM block reads present
+    # whether or not the carrier returned one, which is the state the
+    # three steps were in before 2026-09-05 -- a delegated reading not
+    # taken reading the same as one taken. The judge asks an unstarted
+    # run, whose digest cannot exist, for the refusal.
+    ('run-status stops wanting the carrier digest', 'run-status.sh',
+     'if grep -q "^ITEM ${it}[^0-9]" "$READINGS" 2>/dev/null; then',
+     'if true; then',
+     '{file} run98 2>&1 | grep -q "no ITEM 5 block"'),
+    # The out-of-range refusal, removed: a table number past the section
+    # falls through to an index that is not there. Silence and a traceback
+    # both read like a section carrying no table, which is the reading
+    # --section exists to make visible. The judge asks for table 9 of 3.
+    ('--section stops refusing a table number past the end', 'read-run.py',
+     '    if with_tables and with_tables > len(tabs):',
+     '    if False and with_tables > len(tabs):',
+     'PATH="{bin}:$PATH" python3 -c "import importlib.util, sys, tempfile, subprocess\n'
+     'spec = importlib.util.spec_from_file_location(\'d\', \'{dir}/defects.py\')\n'
+     'm = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)\n'
+     'f = m.doc_with_a_table(tempfile.mkdtemp(), 3)\n'
+     'r = subprocess.run([sys.executable, \'{file}\', \'--section\', \'Middle\','
+     ' \'--with-tables\', \'9\', \'--readme\', f], capture_output=True, text=True)\n'
+     'sys.exit(0 if \'this section carries 3 table\' in r.stdout + r.stderr else 1)"'),
     # The survey's reachability guard, removed: the saved site's data word
     # counts as a straddling loop again. The judge plants the listing from
     # defects.py and asks the survey for its straddle count.

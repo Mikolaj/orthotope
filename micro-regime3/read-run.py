@@ -229,7 +229,8 @@ Modes:
                     `[PAIR'S]` block named as still yours -- no run needed
   --section NAME    print one section's prose by its heading's words,
                     without its tables and naming the size withheld;
-                    --with-tables adds them -- no run needed
+                    --with-tables adds them and --with-tables N takes the
+                    Nth alone, which is item 4's ONE table -- no run needed
   --para PATTERN    print the paragraphs whose bolded lead matches, from
                     either document, with the file and line each starts
                     at -- no run needed
@@ -6290,7 +6291,7 @@ def cross_class_summary(basis, others, main):
     return 0
 
 
-def section(docs, name, with_tables=False):
+def section(docs, name, with_tables=None):
     """Print one section's prose, by heading name, WITHOUT its tables.
 
     The reading a run owes is enumerated -- of the compares-against
@@ -6308,7 +6309,11 @@ def section(docs, name, with_tables=False):
     installs them, and a checker recomputes them from the JSONs. They are
     withheld with their size, so what was skipped is visible rather than
     silent, and --with-tables prints them for the one case that wants them
-    -- the run's own two-column geomeans, which are hand-edited.
+    -- the run's own two-column geomeans, which are hand-edited. A NUMBER
+    takes one of them: reading-list item 4 is "the ONE table read", and
+    all-or-nothing made that unobeyable, Run 25 taking its 36 lines of
+    prose with 82 lines of fingerprint attached. A number past the end
+    refuses, silence there reading exactly like a section with no table.
 
     Matching is on the heading TEXT, case-insensitively, across both
     documents; several matches print an index rather than all of them, as
@@ -6381,9 +6386,22 @@ def section(docs, name, with_tables=False):
     end = next((j for j in range(i + 1, len(lines))
                 if re.match(r'#{1,%d}\s' % lvl, lines[j])), len(lines))
     body = '\n'.join(lines[i:end])
+    paras = body.split('\n\n')
+    tabs = [k for k, para in enumerate(paras)
+            if para.lstrip().startswith('|')]
+    if with_tables and with_tables > len(tabs):
+        print('--with-tables %d: this section carries %d table(s)'
+              % (with_tables, len(tabs)))
+        return 1
+    if with_tables is None:
+        want = set()
+    elif with_tables == 0:
+        want = set(tabs)
+    else:
+        want = {tabs[with_tables - 1]}
     kept, held, held_bytes = [], 0, 0
-    for para in body.split('\n\n'):
-        if not with_tables and para.lstrip().startswith('|'):
+    for k, para in enumerate(paras):
+        if k in tabs and k not in want:
             held += 1
             held_bytes += len(para)
             continue
@@ -6392,9 +6410,10 @@ def section(docs, name, with_tables=False):
     print('%s: %s %s -- %d KB of prose'
           % (os.path.basename(path), '#' * lvl, text, len(out) // 1024))
     if held:
-        print('  %d table paragraph(s) withheld, %d KB -- --with-tables'
-              ' prints them, which the two-column table wants and nothing else'
-              % (held, held_bytes // 1024))
+        print('  %d table paragraph(s) withheld of %d here, %d KB --'
+              ' --with-tables prints them and --with-tables N the Nth alone,'
+              ' which is the reading list\'s ONE table'
+              % (held, len(tabs), held_bytes // 1024))
     print()
     print(out)
     return 0
@@ -10334,9 +10353,11 @@ def main():
                    help="print one section's prose by heading name, without"
                         ' its tables, so the reading a run owes can be taken'
                         ' as enumerated rather than whole')
-    p.add_argument('--with-tables', dest='with_tables', action='store_true',
-                   help='--section prints the tables too; the run''\'''s own'
-                        ' two-column geomeans are the case that wants it')
+    p.add_argument('--with-tables', dest='with_tables', nargs='?', type=int,
+                   const=0, default=None, metavar='N',
+                   help='--section prints the tables too, or with N only the'
+                        ' Nth of them; the reading list names ONE table and'
+                        ' this is how it is taken')
     p.add_argument('--delete', metavar='ANCHOR',
                    help='delete the paragraph carrying ANCHOR, refusing a'
                         ' list or anything past --delete-limit; the deletion'

@@ -5111,7 +5111,15 @@ IT and not before**: item 1 is read now, and every other item stands
 in the lists below as a `READ NOW` line at the step whose work needs it, because
 a reading taken at the head is forgotten by the time its step arrives. A reading
 that owes nothing cannot be told from a reading not done, which is the whole
-of why this is a list and not a sentence.
+of why this is a list and not a sentence. **Items 2, 4, 5 and 6 are ONE
+CARRIER'S BATCH, and its return is a file**: `run<N>-readings.txt`, written
+at the head of the post-run walk and read back a block at a time by the three
+steps that name those items. They are the previous run's prose --- its head,
+its two-column section, its claims and a class block --- read once for a verdict
+apiece and never carried whole, which is what a carrier is for. A file rather
+than a returned message because the sentence above binds a delegated reading
+too: what the carrier says is forgotten by the step that needs it unless
+it is written down.
 
     1. this chapter's three checklists, each printed alone by
     `./read-run.py --checklist pre|run|post`, a fifth of the chapter's lines
@@ -5130,6 +5138,22 @@ of why this is a list and not a sentence.
     6. the class blocks: the six numbered items of the form, and one example
        block, not the rest
          -- the form, in your own words
+         ITEMS 2, 4, 5 AND 6 ARE ONE CARRIER'S BATCH and its return is
+         `run<N>-readings.txt`, one `ITEM N` block apiece, each block the
+         artifact named on that item's own second line and each figure
+         beside the invocation that re-emits it. It is
+         `checker-brief.txt` turned around -- a page of conclusions
+         written BY an agent FOR the run where the brief is written for
+         one -- so it follows that file's form and invents nothing
+         ITS FOUR READS, so the carrier opens no file whole (P=$PREV):
+             item 2  --section Results --run-doc runs/$P.md
+             item 4  --section 'What the next run compares against' --run-doc runs/$P.md --with-tables 1
+             item 5  --section 'The claims the next run should test' --run-doc runs/$P.md
+             item 6  --section 'The stride classes, run by run' --run-doc runs/$P.md
+         The 1 is the two-column table and the other tables of that
+         section are the per-shape fingerprint, which item 4 does not
+         read -- 8 KB of it on Run 24; the withheld line names how many
+         the section carries, so a run that adds one can still find it
     7. the open list, by its status markers rather than end to end,
          grepped over `wrap80 --unwrap README.md` -- a marker sits at
          the head of an item, which the wrapped form breaks
@@ -5218,7 +5242,7 @@ the heading's own words, never the anchor those links spell, which it refuses
 by name:
 
     ./read-run.py --section 'What the next run compares against'
-    ./read-run.py --section 'What the next run compares against' --with-tables
+    ./read-run.py --section 'What the next run compares against' --with-tables 1
 
 Everything else in this file is reference, and reading it is how a write-up's
 budget goes without a figure to show for it. **The excuse to expect
@@ -5873,6 +5897,13 @@ Unsandboxed throughout:
     #  19a. THEN, WOKEN, AND THE MACHINE IS FREE: read $R-evening.txt top
     #      to bottom -- each stage's rc and any COMPLAINT -- then
     #      $R-wallclock.log's `!!` lines, write 14a's verdict, and report
+    #      READ THE CONTAINING ARTIFACT ONLY, NEVER BOTH:
+    #      $R-evening-out.txt holds $R-wallclock.log byte for byte, all
+    #      146 of its lines on Run 25, and step 14a reads the first --
+    #      so the log read here is a second copy of what that step
+    #      already had. The same goes for a file the harness persisted
+    #      out of a command's own output: it is read, and opening the
+    #      copy reads it twice
     #      each stage's exit rather than folding them into a later
     #      summary. AND SAY THAT THE BOX NEED NOT BE QUIET ANY MORE:
     #      nothing below wants one (20's own line says why), so the
@@ -6003,10 +6034,11 @@ the instruments get built.**, which is the sharper form of the same point. Run
 instruments: two checks in the reader and two rules in this chapter, every one
 of them from a mistake made while writing up rather than from anything the run
 measured. So the write-up is an instrument-building phase and not only
-a reporting one, and the four things worth watching for are the computation you
+a reporting one, and what is worth watching for is the computation you
 improvised, the check that would have caught the error, the step you skipped,
-and the capability you found --- that set is the run's other product,
-and it outlives the figures, which the next run replaces.
+the capability you found, and the reading you delegated and what it cost ---
+that set is the run's other product, and it outlives the figures, which the next
+run replaces.
 
 **Write a capability as a capability.** A fact recorded as a tool's limitation
 goes inert: this README said `run-major.sh` cannot give one binary two RTS
@@ -6702,8 +6734,8 @@ not otherwise.
     #      why: --para 'Match bases before reading any ratio'
     #      READ NOW: item 9's execution half of read-run.py's docstring
     #      -- the statistic definitions, the A/A identity and the modes
-    #      that read a run's figures -- and items 5 and 6, the claims
-    #      and the class-block form
+    #      that read a run's figures -- and, FROM THE DIGEST, items 5
+    #      and 6, the claims and the class-block form
     ./read-run.py $R-<basis>-main.json --claims       # 4a. every claim's
     #      ordering and registered verdict in one call, in the claims
     #      section's own order -- and, after them, the README's own verdict
@@ -6735,8 +6767,8 @@ not otherwise.
     #      why: --para 'The claims are part of this'
     #   5. MAKE THE RUN'S OWN FILE, `runs/$R.md`, by copying the last
     #      run's over it AND COMMITTING THAT COPY BEFORE EDITING IT
-    #      (READ NOW: item 2, that file's head and Results prose, if 18
-    #      did not) --
+    #      (FROM THE DIGEST: item 2's block, whether or not 18 read it
+    #      -- a reading taken in the run session does not reach here) --
     #      three reasons, all of them below and only one about wrapping.
     #      Every install below writes that file and no other document.
     #      TWO headings take the number: the file's title, renamed by the
@@ -6818,7 +6850,7 @@ not otherwise.
     #        session reading 6 as one walk writes a whole document with no
     #        step naming that it did
     #      why: --para 'What skipping this costs is measured'
-    #  6a. THE RUN'S OWN FILE (READ NOW: item 4, the two-column table
+    #  6a. THE RUN'S OWN FILE (FROM THE DIGEST: item 4, the two-column table
     #      this half hand-edits), which is that first bullet and is the bulk
     #      of the run: its head, Results and the findings under it, what
     #      the next run compares against with its hand-edited two-column
@@ -6995,9 +7027,10 @@ not otherwise.
     #   9. collect what this run made CHEAPER for the next, which no
     #      other step gathers and which is not a figure: the checks that
     #      would have caught each error, the computations improvised, the
-    #      steps skipped, and any capability found. HALF OF IT IS THE
+    #      steps skipped, any capability found, and the readings the
+    #      carrier took with what they cost. HALF OF IT IS THE
     #      PREPARING SESSION'S and reaches you only through the note:
-    #      that session met the same four things a day earlier and is
+    #      that session met the same list a day earlier and is
     #      gone, so read its WHAT THE PREPARATION LEARNED block before
     #      writing yours and carry both
     #      halves. Run 15's durable output
@@ -7787,7 +7820,8 @@ this are in the reader's docstring and the corpus's own.
                                             # a line range being unable to
                                             # skip what sits between the
                                             # paragraphs it spans.
-                                            # --with-tables adds the tables
+                                            # --with-tables adds them,
+                                            # --with-tables N one of them
     ./read-run.py --delete ANCHOR           # delete the paragraph carrying
                                             # ANCHOR: --replace's counterpart,
                                             # refusing a list and anything

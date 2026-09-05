@@ -1170,11 +1170,49 @@ def doc_of_a_list(tmp, items=4):
                  ' it.\n' % body)
 
 
-def doc_with_a_table(tmp):
-    """A document of three sections, the middle one carrying a table."""
+def readings_digest(run='run97'):
+    """A carrier's return for reading-list items 2, 4, 5 and 6.
+
+    One `ITEM N` block apiece, each block the artifact the list already
+    says that item owes, and each figure beside the invocation that
+    re-emits it -- a claim with no named invocation being a gap, here as
+    in the run file.
+    """
+    return ('# %s-readings.txt -- the carrier\'s return for reading-list'
+            ' items 2, 4, 5 and 6.\n\n'
+            'ITEM 2 (the last run\'s head and Results prose)\n'
+            '    what this run\'s head must answer: the last one rests on'
+            ' a repetition this one cannot take.\n'
+            '    from: ./read-run.py --section Results --run-doc'
+            ' runs/run96.md\n\n'
+            'ITEM 4 (the two-column table, the ONE table read)\n'
+            '    does it carry the last run\'s columns? yes, both.\n'
+            '    from: ./read-run.py --section \'What the next run compares'
+            ' against\' --with-tables 1\n\n'
+            'ITEM 5 (the claims, both numbered sets and the prose after)\n'
+            '    live: four of ten.\n'
+            '    from: ./read-run.py run96-main.json --claims\n\n'
+            'ITEM 6 (the class blocks)\n'
+            '    the form: six numbered items, verdicts first, the'
+            ' paragraph the author\'s.\n'
+            '    from: ./read-run.py run96-rev.json --block\n' % run)
+
+
+def doc_with_a_table(tmp, n=1):
+    """A document of three sections, the middle one carrying `n` tables.
+
+    One table is what every earlier case wants and is left byte for byte
+    as it was; several is what `--with-tables N` selects among, and those
+    are labelled so a case can say WHICH one came back.
+    """
+    if n == 1:
+        tables = '| a | b |\n|---|---|\n| 1 | 2 |\n\n'
+    else:
+        tables = ''.join('| a%d | b%d |\n|---|---|\n| %d | %d |\n\n'
+                         % (k, k, k, k) for k in range(1, n + 1))
     return write(os.path.join(tmp, 'S.md'),
                  '# T\n\n## Header one\n\nProse one.\n\n## Middle\n\n'
-                 'Prose before.\n\n| a | b |\n|---|---|\n| 1 | 2 |\n\n'
+                 'Prose before.\n\n' + tables +
                  'Prose after the table.\n\n## Tail\n\nProse three.\n')
 
 
@@ -5331,6 +5369,37 @@ RECORDS = [
          argv=['--section', 'Middle', '--with-tables', '--readme', '{doc}'],
          ok=V(exit=0, has=['| a | b |'])),
 
+    case('section-with-tables-selects-one-table', 'read-run.py', None,
+         'the reading list names ONE table and --with-tables was'
+         ' all-or-nothing, so item 4 pulled the whole fingerprint with it',
+         # Reading-list item 4 is "the two-column table under it, the ONE
+         # table read". Run 25 took it with bare --with-tables and got Run
+         # 24's per-shape fingerprint besides: 118 lines where the prose
+         # alone is 36. A number picks one and withholds the rest, so the
+         # enumeration can be obeyed rather than approximated.
+         plant=lambda t: {'doc': doc_with_a_table(t, 3)},
+         argv=['--section', 'Middle', '--with-tables', '2',
+               '--readme', '{doc}'],
+         ok=V(exit=0, has=['| a2 | b2 |', 'table paragraph(s) withheld'],
+              hasnt=['| a1 | b1 |', '| a3 | b3 |'])),
+
+    case('section-with-tables-refuses-a-number-past-the-end', 'read-run.py',
+         None,
+         'a table number past the section printed no table and exited 0,'
+         ' which reads exactly like a section carrying none',
+         plant=lambda t: {'doc': doc_with_a_table(t, 3)},
+         argv=['--section', 'Middle', '--with-tables', '9',
+               '--readme', '{doc}'],
+         ok=V(exit=1, has=['9', '3 table'])),
+
+    case('section-with-tables-bare-still-prints-every-table', 'read-run.py',
+         None,
+         'CONTROL: the number is optional and bare --with-tables is what it'
+         ' was',
+         plant=lambda t: {'doc': doc_with_a_table(t, 3)},
+         argv=['--section', 'Middle', '--with-tables', '--readme', '{doc}'],
+         ok=V(exit=0, has=['| a1 | b1 |', '| a2 | b2 |', '| a3 | b3 |'])),
+
     case('section-indexes-an-ambiguous-name', 'read-run.py', None,
          'a name matching several headings printed all of them',
          # A wrong section is a wrong READ, not a wrong line, so this
@@ -8147,6 +8216,35 @@ RECORDS = [
                    'gate: start'],
               hasnt=['gate: inherited']),
          bug=V(has=['gate: inherited'], hasnt=['gate: start'])),
+
+    case('status-wants-the-carriers-digest', 'run-status.sh', None,
+         'the three steps that read the previous run through a carrier were'
+         ' judged on nothing, so a delegated reading not taken read the same'
+         ' as one taken',
+         # Reading-list items 2, 4, 5 and 6 are one carrier's batch and its
+         # return is $R-readings.txt. The chapter's own sentence is that a
+         # reading which owes nothing cannot be told from a reading not
+         # done; post-run 4 owes items 5 and 6, step 5 item 2 and step 6a
+         # item 4, and each is judged on its block from Run 26 on.
+         shadow=dict(),
+         argv=['run98'],
+         ok=V(exit=1, has=['no ITEM 5 block', 'no ITEM 6 block',
+                           'no ITEM 2 block', 'no ITEM 4 block'])),
+
+    case('status-reads-the-carriers-digest', 'run-status.sh', None,
+         'CONTROL: with the blocks present those three steps read done',
+         shadow=dict(extra=[('run97-readings.txt', readings_digest())]),
+         argv=['run97'],
+         ok=V(has=['carries the ITEM 2 block', 'carries the ITEM 4 block',
+                   'carries the ITEM 5 block', 'carries the ITEM 6 block'],
+              hasnt=['no ITEM 2 block'])),
+
+    case('status-wants-no-digest-before-run-26', 'run-status.sh', None,
+         'CONTROL: the carrier batch is an instruction of 2026-09-05, and'
+         ' every run up to 25 read the previous run\'s file directly',
+         shadow=dict(),
+         argv=['run20'],
+         ok=V(exit=1, hasnt=['ITEM 2', 'ITEM 4', 'ITEM 5', 'ITEM 6'])),
 
     case('status-blocks-without-wrap80', 'run-status.sh', '87c77f0',
          'with wrap80 off PATH the README verdicts were read off an empty file',

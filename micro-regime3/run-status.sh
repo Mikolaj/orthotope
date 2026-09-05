@@ -203,6 +203,30 @@ elif [ -f "$DOC" ]; then
 else
   say 1 "NOT DONE" "no JSONs here to gate and no $DOC"
 fi
+# Reading-list items 2, 4, 5 and 6 are ONE carrier's batch and its return is
+# $R-readings.txt, an `ITEM N` block apiece. The chapter's own sentence is
+# that a reading which owes nothing cannot be told from a reading not done,
+# so the steps naming those items are judged on the blocks and not on a
+# session's word: post-run 4 owes items 5 and 6, step 5 item 2, step 6a item
+# 4. From Run 26, the instruction dating from 2026-09-05 -- Run 25 and every
+# run before it read the previous run's file directly, so there is no digest
+# to want and no step to fail for its absence. A run name with no number in
+# it (the `zz` fixtures) is not a run and is skipped before the arithmetic.
+READINGS="$R-readings.txt"
+case "$N" in
+  ''|*[!0-9]*) ;;
+  *) if [ "$N" -ge 26 ]; then
+       for owed in "4:5" "4:6" "5:2" "6a:4"; do
+         st=${owed%%:*}; it=${owed#*:}
+         if grep -q "^ITEM ${it}[^0-9]" "$READINGS" 2>/dev/null; then
+           say "$st" "done" "$READINGS carries the ITEM $it block"
+         else
+           say "$st" "NOT DONE" \
+             "no ITEM $it block in $READINGS (the carrier's return)"
+         fi
+       done
+     fi ;;
+esac
 if [ -f "$DOC" ]; then
   say 5 "done" "$DOC exists"
   [ -n "$(git log -1 --format=%h -- "$DOC")" ] && say 5 "done" "$DOC is committed" \
