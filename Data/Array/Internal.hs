@@ -195,25 +195,52 @@ getStridesT = scanr (*) 1
 
 -- Convert an array to a list by indexing through all the elements.
 -- The first argument is the array shape.
--- XXX Copy special cases from Tensor.
+-- Dispatches on 'regimeT' as 'toVectorT' does, and its two fast cases
+-- cannot be bettered: a view whose canonical form is the whole vector
+-- lists the vector, and one that is a contiguous slice of it lists the
+-- slice, each O(1) before the list itself, and between them they cover
+-- every dense array whatever its rank, offset, unit dimensions or
+-- mergeable dimensions.  Everything else, a view of runs or a strided
+-- one, is the indexing walk below, and the walk is not the fastest way
+-- to produce those elements: 'toVectorT' followed by 'vToList' fills them
+-- in one pass, and a slice per run lists a runs view faster than an
+-- 'indexT' per element.  Neither is harder to write than the walk; both
+-- change what it promises, which is why it stays.  The walk yields the
+-- list lazily, one element at a time in row-major order, an 'indexT'
+-- per element and one more per axis it exhausts, allocating a cons
+-- cell, the element's thunk and that index step and never a vector, so
+-- 'foldrT', 'toList' and 'showsT' consume a prefix without the array
+-- being materialized; and the 'build' form fuses with a consumer that
+-- sees it inlined.
+-- A fill materializes the whole array before the first element; a run at
+-- a time holds the runs' base-offset table for the whole traversal.
+-- Either is a different contract for the same function, and whether
+-- 'toList' should have it is a question about its consumers rather than
+-- about this code.  So the remaining cost is confined to the strided and
+-- runs regimes and is taken on purpose.
 {-# INLINE toListT #-}
 toListT :: (Vector v, VecElem v a) => ShapeL -> T v a -> [a]
 toListT sh a@(T ss0 o0 v)
-  | isCanonicalT (getStridesT sh) a = vToList v
-  | otherwise = build $ \cons nil ->
-      -- TODO: because unScalarT uses vIndex, this has unnecessary bounds
-      -- checks.  We should expose an unchecked indexing function in the Vector
-      -- class, add top-level bounds checks to cover the full range we'll
-      -- access, and then do all accesses with the unchecked version.
-      let go []     ss o rest = cons (unScalarT (T ss o v)) rest
-          go (n:ns) ss o rest = foldr
-            (\i -> case indexT (T ss o v) i of T ss' o' _ -> go ns ss' o')
-            rest
-            [0..n-1]
-      in  go sh ss0 o0 nil
+  | l == 0 = []
+  | otherwise = case regimeT sh l a of
+      Whole -> vToList v
+      Slice -> vToList (vSlice o0 l v)
+      _ -> build $ \cons nil ->
+        -- TODO: because unScalarT uses vIndex, this has unnecessary bounds
+        -- checks.  We should expose an unchecked indexing function in the
+        -- Vector class, add top-level bounds checks to cover the full range
+        -- we'll access, and then do all accesses with the unchecked version.
+        let go []     ss o rest = cons (unScalarT (T ss o v)) rest
+            go (n:ns) ss o rest = foldr
+              (\i -> case indexT (T ss o v) i of T ss' o' _ -> go ns ss' o')
+              rest
+              [0..n-1]
+        in  go sh ss0 o0 nil
+  where !l = product sh
 
 -- | Check if the strides are canonical, i.e., if the vector have the natural layout.
--- XXX Copy special cases from Tensor.
+-- Not called in this module, 'toListT' dispatching on 'regimeT'; kept as
+-- part of its surface.
 {-# INLINE isCanonicalT #-}
 isCanonicalT :: (Vector v, VecElem v a) => [Int] -> T v a -> Bool
 isCanonicalT (n:ss') (T ss o v) =
