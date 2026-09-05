@@ -414,6 +414,8 @@ the chronology of how the instructions got here.
   - [The stride classes, run
     by run](runs/run25.md#the-stride-classes-run-by-run)
   - [Provenance](runs/run25.md#provenance)
+  - [What this run was built to answer, and what it
+    answered](runs/run25.md#what-this-run-was-built-to-answer-and-what-it-answered)
 - [Provenance](#provenance), README's own
 
 
@@ -2212,7 +2214,7 @@ was this session's, made and caught inside the write-up. `install-tables.sh`'s
 own summary-row check caught six wrong cells in the hand-assembled cross-class
 table before any reading did, naming the cell and the value the class's own
 cells give. **What no mechanical pass could reach were the three findings
-the run turns on**: that four registered clauses named arms the prune had
+the run turns on**: that five registered clauses named arms the prune had
 parked, found by trying to adjudicate them; that the eight-run ceiling series
 has no successor, found because its denominator is absent from `--list`;
 and that claim 7's pinned shape set no longer exists, found by re-deriving
@@ -5943,15 +5945,15 @@ than its neighbours is worth looking at rather than waiting on, and what says
 how long each should take is the previous run's `-wallclock.log`, which stamps
 every start and finish; it costs patience and a quiet machine, nothing else.
 Everything expensive happens after it, in the write-up, and that is where
-a session's token budget is spent and where its mistakes are made. **The nine
-class blocks are NO LONGER the bulk of the typing, and this paragraph said they
+a session's token budget is spent and where its mistakes are made. **The class
+blocks are NO LONGER the bulk of the typing, and this paragraph said they
 were for four runs after they stopped being.** `install-tables.sh` writes 32
 computed paragraphs across them now --- table, controls, provenance, per-shape
 line, cross-half line --- so what is left per class is the one paragraph of what
 it says, written from the verdicts `--block` emits rather than from the table
-above it. Nine paragraphs of judgement, and nothing else. **The run file's head
-is the bulk**: every paragraph of it rewritten, and nothing installs any
-of them. **The bulk of the *cost* is adjudication rather than typing** ---
+above it. One paragraph of judgement per class, and nothing else. **The run
+file's head is the bulk**: every paragraph of it rewritten, and nothing installs
+any of them. **The bulk of the *cost* is adjudication rather than typing** ---
 deciding which run, which basis and which population a figure belongs to ---
 and it scales with how many comparisons the run invites rather than with how
 many tables it fills, so a run that is both a repetition and a pairing
@@ -5965,8 +5967,8 @@ invocation per process or per claim --- a `--selftest` and an `--aa` apiece,
 the dozen-odd `--pair` lines, a `--block` per class --- goes in one call per
 kind, so steps 1 and 3 together are a handful. *One per site*: the eleven
 `--in-place` installs, three calls. *Unbatchable*: the prose, one edit per
-paragraph, and this is the bulk --- the nine class blocks alone are some thirty
-items, and no tool reduces the count, `--block`'s skeletons only removing
+paragraph, and this is the bulk --- the class blocks alone are three items
+apiece, and no tool reduces the count, `--block`'s skeletons only removing
 the extraction that used to precede each. Then verification costs about what
 the prose cost, because every finding is a fix and every fix is a claim ---
 and on Run 19 it cost rather more, two checker passes returning 22 defects whose
@@ -6243,7 +6245,11 @@ the control is built to price.
 
 **What the other half is for**, since a run that publishes no table from it will
 otherwise be asked why it spends an hour building and timing it. That depends
-on which half it is, and the pair is chosen for it. An *unaligned* control
+on which half it is, and the pair is chosen for it. A *compiler* control ---
+the commonest kind since Run 19 --- is the reading a form about to be published
+is owed on a second codegen: it says whether the basis half's orderings are one
+compiler's accident, and its counted work is what separates the instructions
+a compiler emits from the slot it put them in. An *unaligned* control
 is the layout one, the per-arm term being measured afresh each run rather
 than inherited, and it is the yardstick for GHC itself: the native backend
 aligns no loop today ([the floor section][floor]), and when that is fixed
@@ -6682,14 +6688,14 @@ not otherwise.
     ./read-run.py $R-<basis>-$c.json --compare $R-<other>-$c.json
     #      and one per class ACROSS the halves -- from Run 14 on, a run
     #      before that having no control-half class JSON to compare
-    #      against, so these nine are skipped and the chapter says they
+    #      against, so those are skipped and the chapter says they
     #      were. Which is what running every
     #      class on both is for and what nothing else in this list reads: a
     #      pair's variable can act on a class and not on the main set.
     #      --alloc takes the same pair where allocation is the question
     #      READ THE BLOCKS BY THEIR LINES AND NOT WHOLE: pipe the nine
     #      through `grep -E 'Verdicts|property|Across the halves|floor'`
-    #      -- nine blocks in one call are 90 KB, the write-up uses some
+    #      -- every block in one call is a hundred KB, the write-up uses some
     #      forty lines of them, and Run 23 read the persisted output of
     #      that call three times over
     ./read-run.py $R-<basis>-main.json --compare $R-<other>-main.json --chapter
@@ -8099,17 +8105,17 @@ on Run 14, against Run 18's three and three and Run 17's five and five ---
 and this run the larger factor sits on the half with the wider floor, the two
 halves' median half-widths being within two hundredths of each other, so what
 separates them is the spread and not the cells. **The loosest cell of the run
-is a class's again**: the worst A/A cell of either main set is the HEAD half's
-18.37% on `gather48-src-50` against the basis's 16.66% on `stretch-inner1`,
-and the widest class cell is **19.72%**, on the HEAD half's `bcast` process
-on `bcast-tall-Mx2` --- where Run 22 had the loosest cell on its basis main set
-and Runs 17 to 20 on a class. Fourteen of sixteen intervals cover 1 on each
-half, the two missing on the basis being `bq-expand-aa-distant`
-and `bq-odo-gm-mulback-aa-distant` and on the HEAD half `list-aa-adjacent`
-and `build-aa-adjacent`, every one of them an arm whose two processes differ
-by less than its interval admits. It rested on sixteen pairs from the parking
-of 2026-08-28 and rests on SIX since the prune of 2026-09-04, so one loose pair
-now moves it three times what it did then.
+is a class's again**: on Run 24 the worst A/A cell of either main set
+was the HEAD half's 18.37% on `gather48-src-50` against the basis's 16.66%
+on `stretch-inner1`, and the widest class cell **19.72%**, on the HEAD half's
+`bcast` process on `bcast-tall-Mx2` --- where Run 22 had the loosest cell
+on its basis main set and Runs 17 to 20 on a class. Fourteen of its sixteen
+intervals covered 1 on each half, the two missing on the basis being
+`bq-expand-aa-distant` and `bq-odo-gm-mulback-aa-distant` and on the HEAD half
+`list-aa-adjacent` and `build-aa-adjacent`, every one of them an arm whose two
+processes differ by less than its interval admits. It rested on sixteen pairs
+from the parking of 2026-08-28 and rests on SIX since the prune of 2026-09-04,
+so one loose pair now moves it three times what it did then.
 
 **The class populations are where the factor still bites, and THESE FIGURES
 ARE RUN 21'S** --- the class half of this section has not been re-taken since
@@ -8153,38 +8159,40 @@ not evidence, and a margin between two *arms* of one run has to clear
 the six-pair figure of the half it is read on --- 0.40% on Run 25's basis ---
 which is the A/A floor above restricted to the pairs that carry, and
 was a different quantity from the whole-set floor until the prune of 2026-09-04
-left six pairs in all. **Two figures are in play now where three were**: 0.40%
-and 0.61% are the widest an arm differs from its own duplicate by on each half,
-and are what two rows of one table must clear --- the whole set and the four
-pairs carrying back to Run 10 giving the same figure since that prune ---
-and 2.1% is the across-run drift band an arm must clear to have moved between
-runs on this box, Run 23's one-binary reading, where Run 11's was 3.3%. **All
-three are the word *floor*, over different populations, and two things
-that are not it wear it easily.** A class's `floor` column is the same statistic
-again over that population's A/A pairs, so it is a fourth member of the family
-and not a fourth sense. **And a margin read ACROSS a pair's two halves
-on a class is judged against the WIDER of the two halves' floors,
-and a registration's kill condition on a class says so**: the narrower floor
-is the one that makes a kill and the wider the one that makes a tie honest,
-and a pair whose halves' floors differ threefold --- Run 23's `reshape1`, 3.09%
-on the basis and 10.75% on the dead-spot half --- is exactly where a reader
-should not get to choose. Ruled 2026-09-02, after that run's registration 3
-was read two ways; under it that registration's first half is a split and
-not a kill. **The worst single A/A cell is not a floor at all** --- 16.66%
-on this run's basis main set and 19.72% on one of its class processes ---
-and the procedure says so where it is read; it is one cell where
-these are geomeans over a population, and quoting it as one overstates
+left six pairs in all. **One rule is in play now where two were, and it reads
+as two numerals because there are two halves**: 0.40% and 0.61% are the widest
+an arm differs from its own duplicate by on each half, and are also what two
+rows of one table must clear --- the whole set and the four pairs carrying back
+to Run 10 giving the same figure since that prune --- and 2.1% is the across-run
+drift band an arm must clear to have moved between runs on this box, Run 23's
+one-binary reading, where Run 11's was 3.3%. **All three are the word *floor*,
+over different populations, and two things that are not it wear it easily.**
+A class's `floor` column is the same statistic again over that population's A/A
+pairs, so it is a fourth member of the family and not a fourth sense.
+**And a margin read ACROSS a pair's two halves on a class is judged against
+the WIDER of the two halves' floors, and a registration's kill condition
+on a class says so**: the narrower floor is the one that makes a kill
+and the wider the one that makes a tie honest, and a pair whose halves' floors
+differ threefold --- Run 23's `reshape1`, 3.09% on the basis and 10.75%
+on the dead-spot half --- is exactly where a reader should not get to choose.
+Ruled 2026-09-02, after that run's registration 3 was read two ways;
+under it that registration's first half is a split and not a kill. **The worst
+single A/A cell is not a floor at all** --- 16.66% on Run 24's basis main set
+and 19.72% on one of its class processes, against 2.04% and 5.48% on Run 25's
+two main sets --- and the procedure says so where it is read; it is one cell
+where these are geomeans over a population, and quoting it as one overstates
 the instrument by an order of magnitude. Nor is the residue [the alignment
 question][open] asks about, which is an effect size that survived a control
 rather than a spread the run measured. The exceptions are `build` and `mut-odo`,
-one worker at two slots, whose cells reach 1.092 on this run's basis and 0.828
-on its dead-spot half --- and Run 21 is the run that took the reading those two
-have always wanted: post-run step 0 named the tracked two-copy group off a `-g3`
-twin and it IS `fbBuild` and `fbMutOdo`, both at offset 0 in their cache line
-on BOTH halves, on Run 23's two as on Run 21's and Run 22's. So the residue
-the pairing cannot reach is not a cache-line offset; what Run 23 adds
-is that placing every OTHER pad off the execution path opens the pair from a tie
-to 0.9449 on the dead-spot half, and what it is remains [the open list][open]'s.
+one worker at two slots, whose cells reached 1.092 on Run 23's basis and 0.828
+on that run's dead-spot half --- and Run 21 is the run that took the reading
+those two have always wanted: post-run step 0 named the tracked two-copy group
+off a `-g3` twin and it IS `fbBuild` and `fbMutOdo`, both at offset 0 in their
+cache line on BOTH halves, on Run 23's two as on Run 21's and Run 22's.
+So the residue the pairing cannot reach is not a cache-line offset; what Run 23
+adds is that placing every OTHER pad off the execution path opens the pair
+from a tie to 0.9449 on the dead-spot half, and what it is remains [the open
+list][open]'s.
 
 **And a busy machine has now been measured rather than only avoided, which
 is what says the wild cell is not one.** Run 11's sequence was launched twice;
@@ -9870,7 +9878,7 @@ tables and its fingerprint say so.
   24 freely and the boundary that stops them is still the BIOS change before
   Run 18. Its sequence ran in ONE window, all twenty-two processes,
   with no intrusion and no population rerun. **And its floor is a maximum
-  over SIX A/A pairs where Runs 21 to 24 read sixteen and Runs 16 to 20
+  over SIX A/A pairs where Runs 21 to 24 read sixteen and Runs 14 to 20
   eighteen**, the prune having deleted ten pairs with the arms they doubled,
   so 0.40% and 0.61% are not a continuation of the 1.26%/2.11% series
   and no figure of that series has a successor.
@@ -10182,7 +10190,7 @@ was reworded, which is the failure this list was rewritten to escape.
   the JSON is deleted; the claims, where a run reports which held rather
   than re-deriving them; each class's own table, controls, provenance, anchor
   and paragraph; and its own Provenance, carrying what the pair was, how
-  the sequence ran, the three main-set anchors with the eight class ones,
+  the sequence ran, the three main-set anchors with the ten class ones,
   and the correction's span. The bullets that used to name those sections one
   by one are this one, and the coverage check below reads it as covering every
   heading in that file;
