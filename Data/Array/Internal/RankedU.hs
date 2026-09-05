@@ -109,6 +109,7 @@ index a = A . G.index (unA a)
 
 -- | Convert to a list with the elements in the linearization order.
 -- O(n) time.
+{-# INLINE toList #-}
 toList :: (Unbox a) => Array n a -> [a]
 toList = G.toList . unA
 
