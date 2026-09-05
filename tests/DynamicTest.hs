@@ -137,6 +137,11 @@ test = testGroup "Dynamic" $
       index_5 = assertThrows ">" (index a1 2)
       toList_1 = assertEqual "1" [1,2,3,4,5,6] (toList a1)
       toList_2 = assertEqual "2" [1,4,2,5,3,6] (toList a2)
+      -- An empty broadcast lists at once, however long its dimensions before
+      -- the empty one.
+      toList_3 = do
+        assertEqual "3" [] (toList (constant [10 ^ (12 :: Int), 0] (0 :: Int)))
+        assertEqual "3" [] (toList (mapA (+ 1) (constant [10 ^ (9 :: Int), 0, 10 ^ (9 :: Int)] (0 :: Int))))
       toVector_1 = assertEqual "1" (V.fromList [1,2,3,4,5,6]) (toVector a1)
       toVector_2 = assertEqual "2" (V.fromList [1,4,2,5,3,6]) (toVector a2)
       fromList_1 = assertThrows "sh" (fromList [] [1,2::Int])
@@ -523,6 +528,7 @@ test = testGroup "Dynamic" $
         , testCase "index_5" index_5
         , testCase "toList_1" toList_1
         , testCase "toList_2" toList_2
+        , testCase "toList_3" toList_3
         , testCase "toVector_1" toVector_1
         , testCase "toVector_2" toVector_2
         , testCase "fromList_1" fromList_1
