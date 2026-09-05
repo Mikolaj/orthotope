@@ -427,6 +427,12 @@ genericFillStrided sh ats !ao !l !v = VG.create fill
 -- reshape's appended dimensions no longer decide it.  The element count
 -- (@product sh@) is passed in because every caller already has it, as
 -- 'vFillStrided' takes it.
+-- Whether the canonical strides are the natural ones is decided by the
+-- canonical rank alone, so no stride list is built and compared: natural
+-- strides at rank 2 or more are the merge equation of 'canonicalizeT'
+-- holding at every adjacent pair, and after it no pair satisfies that
+-- equation, so a canonical view is natural only at rank 0, or at rank 1
+-- with stride 1.
 data Regime
   = Whole                  -- the canonical strides are the natural ones,
                            -- the offset 0 and the vector's length the
@@ -444,11 +450,13 @@ data Regime
 {-# INLINE regimeT #-}
 regimeT :: (Vector v, VecElem v a) => ShapeL -> Int -> T v a -> Regime
 regimeT sh l (T ats ao v) = case canonicalizeT sh ats of
+  ([], _) -> whole
+  ([_], [1]) -> whole
   (csh, cats)
-    | cats /= ts -> if last cats == 1 then Runs csh cats else Strided csh cats
-    | ao == 0 && vLength v == l -> Whole
-    | otherwise -> Slice
-    where _ : ts = getStridesT csh
+    | last cats == 1 -> Runs csh cats
+    | otherwise -> Strided csh cats
+  where whole | ao == 0 && vLength v == l = Whole
+              | otherwise = Slice
 
 -- Convert an array to a list of vectors, which together contain
 -- all the elements in the natural order.
