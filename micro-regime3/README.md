@@ -2356,15 +2356,14 @@ is planned. A scope limit belongs in the sentence that asks for the measurement.
 4. `ANSWERED` **A registration's DEFERRAL TARGET is not held to the roster,
    and Run 25 lost three predictions of four to that --- TAKEN 2026-09-05.**
    `--lint` has read an OPEN registration's backticked arm names against
-   the timed roster since 2026-09-04 and checks that each `task N` it defers
-   to resolves --- and nothing more. Run 25's item (4) deferred to task 10,
-   whose four class predictions are stated against `lib-stage2`
-   and `canon-vecdims`, parked the day after they were written, so three of them
-   were unreadable before the machine was started ([the open list][open] carries
-   the case). **What would settle it**: read the target paragraph's backticked
-   arms as the registration's own are read; the pointer already resolves,
-   so it is one intersection away. The clause that names another REGISTRATION
-   rather than an arm has no cheap predicate and stays step 12b's, a reading.
+   the timed roster since 2026-09-04 and checked only that each `task N`
+   it defers to resolves. Run 25's item (4) deferred to task 10, whose four
+   class predictions are stated against `lib-stage2` and `canon-vecdims`, parked
+   the day after they were written, so three of them were unreadable before
+   the machine was started ([the open list][open] carries the case). **It now
+   reads that target paragraph's arms as it reads the registration's own**,
+   and refuses by name. The clause that names another REGISTRATION rather
+   than an arm has no cheap predicate and stays step 12b's, a reading.
 5. `ANSWERED` **The reader has no within-half counted-work mode, and this run
    improvised one --- TAKEN 2026-09-05.** `--counts` reads a pair of sweep files
    beside `--compare`, so it answers *did this arm's instructions move between
