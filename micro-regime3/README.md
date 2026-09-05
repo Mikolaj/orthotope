@@ -6776,12 +6776,12 @@ not otherwise.
     #      assembled LAST, transcribed from the class tables
     #      why: --para 'Install the tables with'
     ./read-run.py $R-<basis>-main.json --compare $R-<other>-main.json --predictions --counts $R-counts-<basis>.txt $R-counts-<other>.txt
-    #  5c. THE REGISTRATION'S SPANS, and it comes here rather than with
-    #      the move because it READS THE COUNTS, which the run list
+    #  5c. THE REGISTRATION'S SPANS, which step 5 called its third act
+    #      until 2026-09-05, and which comes here rather than beside the
+    #      move because it READS THE COUNTS, which the run list
     #      launches at step 20 -- after the box is handed back, so on any
     #      run whose write-up starts promptly they are still being taken
-    #      while 5a and 5b are done. It stood above 5a until 2026-09-05,
-    #      where no run could follow it. Every `predict:` span of the
+    #      while 5a and 5b are done. Every `predict:` span of the
     #      registration adjudicated from the JSONs, HELD or KILLED with
     #      the figure read, and the items carrying no span named as
     #      yours. Write each verdict beside its prediction FROM THIS

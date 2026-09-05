@@ -6648,10 +6648,13 @@ def checklist(readme, which):
             return 1
         if half == 'a':
             block, j = block[:cut[0]], i + cut[0] - 1
-            steps = ', steps 0 to 5b'
         else:
             block, i = block[cut[0]:], i + cut[0]
-            steps = ', steps 6 to 11'
+        # read off the half rather than naming its ends here, a step
+        # added or renumbered otherwise leaving this label behind
+        nums = re.findall(r'(?m)^ {4}# {1,3}(\d+[a-z]?)\.', '\n'.join(block))
+        if nums:
+            steps = ', steps %s to %s' % (nums[0], nums[-1])
     print('%s: the %s checklist%s, %d lines, %d KB, README.md lines %d to %d'
           % (os.path.basename(readme), label, steps, len(block),
              len('\n'.join(block)) // 1024, i + 1, j + 1))

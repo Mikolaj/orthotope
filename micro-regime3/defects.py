@@ -4902,7 +4902,7 @@ RECORDS = [
          # on half of them, and then re-read most of them at their steps.
          plant=lambda t: {'readme': edited_readme(t)},
          argv=['--checklist', 'post-a', '--readme', '{readme}'],
-         ok=V(exit=0, has=['steps 0 to 5b', '0. NAME THE FILL GROUPS',
+         ok=V(exit=0, has=['steps 0 to 5', '0. NAME THE FILL GROUPS',
                            'install-tables.sh'],
               hasnt=['walk the replace list', 'offer the artifacts'])),
 
@@ -4936,7 +4936,7 @@ RECORDS = [
          argv=['--checklist', 'post', '--readme', '{readme}'],
          ok=V(exit=0, has=['0. NAME THE FILL GROUPS', 'walk the replace list',
                            'offer the artifacts'],
-              hasnt=['steps 0 to 5b', 'steps 6 to 11'])),
+              hasnt=['steps 0 to 5', 'steps 6 to 11'])),
 
     case('bridge-divides-out-the-baseline', 'read-run.py', None,
          'a cross-run comparison a moved box made unreadable',
