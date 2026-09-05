@@ -939,9 +939,13 @@ rather than a slot in the next run, observed again:
   here against the lean arm, which is that arm's control since the lean ruling.
   The ruling that parked it is not reopened by timing it: the short bodies
   are still too repetitive to ship, and what this run reads is what they would
-  have bought. (8) *The pointer fills, registered 2026-09-06.* The reload
-  the twentieth reading names goes in both, and the nineteenth's rate --- about
-  three quarters of an instruction saving reaching the clock --- prices it:
+  have bought. (8) *The pointer fills, registered 2026-09-06.* Both
+  are the `Ptr`-walking fill the ruling of 2026-08-29 refused for the library
+  and still refuses ([dead ideas][dead]); they are timed for the ceiling each
+  parent would reach under an allocator that spilled nothing, so the spans below
+  are ceilings and not candidates. The reload the twentieth reading names goes
+  in both, and the nineteenth's rate --- about three quarters of an instruction
+  saving reaching the clock --- prices it:
   `predict: pair mut-odo-vecdims-add-in-leaf-u1-ptr mut-odo-vecdims-add-in-leaf-u1 0.92`
   on the main set, from 0.8945 in corrected instructions;
   `predict: pair mut-odo-vecdims-add-in-leaf-u2-ptr mut-odo-vecdims-add-in-leaf-u2 0.88`,
@@ -4886,28 +4890,33 @@ and the `0x40(%rsp)` line gone from all three loops, which the recipe above
 reads in a minute.
 
 **A twenty-first reading, 2026-09-05, dodges the spill at the source in both
-loops, and prices the unrolling alone at a quarter.**
-`mut-odo-vecdims-add-in-leaf-u1-ptr` is `-u1` with its cursors as running
-pointers at every level, so the element loop carries two moving pointers
-and no invariant base for the allocator to spill; by profile on the shim-free
-g912 recipe its loop is six instructions with no stack access, and its run loop
-has none either. Counted on the same build it reads **0.8945** of `-u1`'s
-corrected instructions, 19 of 19 shapes below 1, and **0.9712** of `-u2`'s at 14
-of 19 --- 6.00 an element on the long runs, level with `-u2`, and ahead
-on the short ones, where `-u2` pays its epilogue. `check` passes on every view,
-and it is rostered timed beside `-u1` for Run 26, whose pair reads the time.
-The half-measure is kept `Only` as `mut-odo-vecdims-add-in-leaf-u1-ptr-leaf`:
-pointers in the leaf alone remove the reload just as well and cost
-an index-to-pointer conversion per run, four to five instructions, which
-at inner extents of two to thirteen is 1.0581 of `-u1` over the set ---
-the shape not to propose again. **`mut-odo-vecdims-add-in-leaf-u2-ptr`
-is the same change to `-u2`**, rostered timed beside it so that Run 26 compares
-the two pointer forms in one process: nine instructions per two elements,
-no stack access, **0.8356** of `-u2`'s corrected instructions at 19 of 19
-and 0.8604 of `-u1-ptr`'s at 18 of 19 --- 4.50 an element on the long runs
-against 6.00. So once the spill is gone the unrolling is worth a quarter
-of the loop in instructions, which is what task 2 could not separate
-under the allocator; whether it is worth that in time is Run 26's.
+loops, and prices the unrolling alone at a quarter.** **Both arms
+are the `Ptr`-walking fill the ruling of 2026-08-29 refused for the library
+([dead ideas][dead]), and the ruling stands**: they are rostered for the ceiling
+--- the time each parent would reach under a register allocator that spilled
+nothing, `-u1-ptr` for `-u1` and `-u2-ptr` for `-u2` --- and not as candidates
+to ship. `mut-odo-vecdims-add-in-leaf-u1-ptr` is `-u1` with its cursors
+as running pointers at every level, so the element loop carries two moving
+pointers and no invariant base for the allocator to spill; by profile
+on the shim-free g912 recipe its loop is six instructions with no stack access,
+and its run loop has none either. Counted on the same build it reads **0.8945**
+of `-u1`'s corrected instructions, 19 of 19 shapes below 1, and **0.9712**
+of `-u2`'s at 14 of 19 --- 6.00 an element on the long runs, level with `-u2`,
+and ahead on the short ones, where `-u2` pays its epilogue. `check` passes
+on every view, and it is rostered timed beside `-u1` for Run 26, whose pair
+reads the time. The half-measure is kept `Only`
+as `mut-odo-vecdims-add-in-leaf-u1-ptr-leaf`: pointers in the leaf alone remove
+the reload just as well and cost an index-to-pointer conversion per run, four
+to five instructions, which at inner extents of two to thirteen is 1.0581
+of `-u1` over the set --- the shape not to propose again.
+**`mut-odo-vecdims-add-in-leaf-u2-ptr` is the same change to `-u2`**, rostered
+timed beside it so that Run 26 compares the two pointer forms in one process:
+nine instructions per two elements, no stack access, **0.8356** of `-u2`'s
+corrected instructions at 19 of 19 and 0.8604 of `-u1-ptr`'s at 18 of 19 ---
+4.50 an element on the long runs against 6.00. So once the spill is gone
+the unrolling is worth a quarter of the loop in instructions, which is what task
+2 could not separate under the allocator; whether it is worth that in time
+is Run 26's.
 
 ### The C-gap: still a deeper ceiling
 
@@ -4948,7 +4957,14 @@ first, the one that did not die on paper at all:
   by anything at all, which is a report's lever and not this file's,
   and no future reading of what the fill would buy reopens it --- the refusal
   is about where the code belongs, so a larger figure argues for the report
-  and not for the fill.
+  and not for the fill. **Timed since 2026-09-05
+  as `mut-odo-vecdims-add-in-leaf-u1-ptr`
+  and `mut-odo-vecdims-add-in-leaf-u2-ptr`, and that does not reopen it**:
+  the refusal is of shipping the fill, not of measuring it, and the two arms
+  are rostered for a CEILING --- the time each parent would reach
+  under a register allocator that spilled nothing, `-u1-ptr` for `-u1`
+  and `-u2-ptr` for `-u2` --- read in [the ceiling][ceiling]'s twenty-first
+  reading and registered for Run 26 as its item (8).
 - **Delta-compressing an offset table** (storing Int8/Int16 steps, mostly
   the constant `tInner`, instead of absolute offsets) fails `vGenerate`'s
   contract: the callback is random-access, and recovering an absolute offset

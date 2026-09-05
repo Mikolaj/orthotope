@@ -2327,20 +2327,24 @@ fbMutOdoVecdimsAddInLeafU1PtrLeaf sh (T (Strides ats) ao v) =
         !oshV  = VU.fromList (init sh)
         !oatsV = VU.fromList (init ats)
 
--- 'fbMutOdoVecdimsAddInLeafU1' with the cursors as running pointers
--- at EVERY level, added 2026-09-05: each run is entered with its
--- output and source pointers in hand and advances them by 'sBytes'
--- and the level's stride in bytes, so the element loop carries two
--- moving pointers and no invariant base -- the value the linear
--- allocator spills in '-u1', '-u2' and the counted leaf alike, one
--- reload an iteration (README.md#the-mutable-ceiling-taken, the
--- twentieth reading). Read by profile on the shim-free g912 recipe:
--- six instructions an element, no stack access, and none in the run
--- loop above it. Counted on the same build: 0.8945 of '-u1''s corrected
--- instructions over nineteen shapes, 19 of 19 below 1, and 0.9712
--- of '-u2''s at 14 of 19 -- the un-unrolled loop without its spill
--- executes less than the unrolled one with it. Timed from Run 26, whose
--- pair reads the ordering against '-u2' in time.
+-- 'fbMutOdoVecdimsAddInLeafU1' with the cursors as running pointers at
+-- EVERY level, added 2026-09-05: each run is entered with its output
+-- and source pointers in hand and advances them by 'sBytes' and the
+-- level's stride in bytes, so the element loop carries two moving
+-- pointers and no invariant base -- the value the linear allocator
+-- spills in '-u1', '-u2' and the counted leaf alike, one reload an
+-- iteration (README.md#the-mutable-ceiling-taken, the twentieth
+-- reading). It is the Ptr-walking fill README's dead-ideas ruling of
+-- 2026-08-29 refused for the library, and the ruling stands: this arm
+-- is timed for the CEILING, the time '-u1' would reach under a register
+-- allocator that spilled nothing, and not as a candidate to ship. Read
+-- by profile on the shim-free g912 recipe: six instructions an element,
+-- no stack access, and none in the run loop above it. Counted on the
+-- same build: 0.8945 of '-u1''s corrected instructions over nineteen
+-- shapes, 19 of 19 below 1, and 0.9712 of '-u2''s at 14 of 19 -- the
+-- un-unrolled loop without its spill executes less than the unrolled
+-- one with it. Timed from Run 26, whose pair reads the ordering against
+-- '-u2' in time.
 {-# NOINLINE fbMutOdoVecdimsAddInLeafU1Ptr #-}
 fbMutOdoVecdimsAddInLeafU1Ptr :: ShapeL -> T -> VS.Vector Double
 fbMutOdoVecdimsAddInLeafU1Ptr sh (T (Strides ats) ao v) =
@@ -2389,15 +2393,19 @@ fbMutOdoVecdimsAddInLeafU1Ptr sh (T (Strides ats) ao v) =
         !oatsB = VU.fromList (map (* 8) (init ats))
 
 -- 'fbMutOdoVecdimsAddInLeafU2' with its cursors as running pointers
--- at every level, the change 'fbMutOdoVecdimsAddInLeafU1Ptr' makes to
--- '-u1', added 2026-09-05 so that Run 26 compares the two pointer forms
--- in one process. Read by profile on the shim-free g912 recipe: nine
--- instructions per two elements, no stack access. Counted on the same
--- build: 0.8356 of '-u2''s corrected instructions over nineteen shapes,
--- 19 of 19 below 1, and 0.8604 of '-u1-ptr''s at 18 of 19 -- 4.50 an
--- element on the long runs against 6.00, so with the spill gone the
--- unrolling alone is worth a quarter of the loop, the figure task 2
--- could not separate under the allocator. Timed from Run 26.
+-- at every level, the change 'fbMutOdoVecdimsAddInLeafU1Ptr' makes
+-- to '-u1', added 2026-09-05 so that Run 26 compares the two pointer
+-- forms in one process. Like that arm it is the Ptr-walking fill
+-- README's dead-ideas ruling refused for the library, and it is timed
+-- for the CEILING '-u2' would reach under a register allocator that
+-- spilled nothing, not as a candidate to ship. Read by profile on
+-- the shim-free g912 recipe: nine instructions per two elements, no
+-- stack access. Counted on the same build: 0.8356 of '-u2''s corrected
+-- instructions over nineteen shapes, 19 of 19 below 1, and 0.8604
+-- of '-u1-ptr''s at 18 of 19 -- 4.50 an element on the long runs
+-- against 6.00, so with the spill gone the unrolling alone is worth a
+-- quarter of the loop, the figure task 2 could not separate under the
+-- allocator. Timed from Run 26.
 {-# NOINLINE fbMutOdoVecdimsAddInLeafU2Ptr #-}
 fbMutOdoVecdimsAddInLeafU2Ptr :: ShapeL -> T -> VS.Vector Double
 fbMutOdoVecdimsAddInLeafU2Ptr sh (T (Strides ats) ao v) =
@@ -4774,7 +4782,9 @@ roster =
   , ("mut-odo-vecdims-add-in-leaf-u2", Fill fbMutOdoVecdimsAddInLeafU2)
     -- The unrolled loop with its cursors as pointers at every level,
     -- added 2026-09-05 beside its parent for Run 26's comparison with
-    -- '-u1-ptr', every slot below moving by one; reasons at its definition.
+    -- '-u1-ptr', every slot below moving by one: the ceiling '-u2' would
+    -- reach under an allocator that spilled nothing, not a candidate
+    -- (README.md#dead-ideas); reasons at its definition.
   , ("mut-odo-vecdims-add-in-leaf-u2-ptr", Fill fbMutOdoVecdimsAddInLeafU2Ptr)
     -- Timed since 2026-08-28, parked 'Only' the day before: the
     -- lighter-loop form of the shipped arm, see its definition.
@@ -4784,8 +4794,9 @@ roster =
     -- reasons at its definition.
   , ("mut-odo-vecdims-add-in-leaf-u1", Fill fbMutOdoVecdimsAddInLeafU1)
     -- The same loop with its cursors as pointers at every level, added
-    -- 2026-09-05 beside its parent, every slot below moving by one;
-    -- reasons at its definition.
+    -- 2026-09-05 beside its parent, every slot below moving by one: the
+    -- ceiling '-u1' would reach under an allocator that spilled nothing,
+    -- not a candidate (README.md#dead-ideas); reasons at its definition.
   , ("mut-odo-vecdims-add-in-leaf-u1-ptr", Fill fbMutOdoVecdimsAddInLeafU1Ptr)
     -- The same fill with the source base held rather than reloaded,
     -- added 2026-09-05 beside the arm it is one change from and parked
