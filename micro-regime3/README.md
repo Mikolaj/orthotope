@@ -939,7 +939,22 @@ rather than a slot in the next run, observed again:
   here against the lean arm, which is that arm's control since the lean ruling.
   The ruling that parked it is not reopened by timing it: the short bodies
   are still too repetitive to ship, and what this run reads is what they would
-  have bought.
+  have bought. (8) *The pointer fills, registered 2026-09-06.* The reload
+  the twentieth reading names goes in both, and the nineteenth's rate --- about
+  three quarters of an instruction saving reaching the clock --- prices it:
+  `predict: pair mut-odo-vecdims-add-in-leaf-u1-ptr mut-odo-vecdims-add-in-leaf-u1 0.92`
+  on the main set, from 0.8945 in corrected instructions;
+  `predict: pair mut-odo-vecdims-add-in-leaf-u2-ptr mut-odo-vecdims-add-in-leaf-u2 0.88`,
+  from 0.8356; and the unrolling alone,
+  `predict: pair mut-odo-vecdims-add-in-leaf-u2-ptr mut-odo-vecdims-add-in-leaf-u1-ptr 0.90`,
+  from 0.8604 --- each on both halves, Run 25 having read the leaf family within
+  a percent between the compilers. Killed by either pointer fill at or behind
+  its parent past the population's floor on both halves, which would say
+  the reload is not what the parents pay for, or by `-u2-ptr` at or behind
+  `-u1-ptr`, which would say the unrolling's quarter in instructions buys
+  no time. Both are new and have no cell in Run 25's column, so they are outside
+  item (2); and both allocate 1.00x the result, as their parents do, which
+  the run's allocation column reads.
 - `ANSWERED` **What Run 25 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
   verdicts are [in Run 25's own
