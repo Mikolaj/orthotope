@@ -184,6 +184,7 @@ reshape :: forall sh' sh v a .
            Array sh v a -> Array sh' v a
 reshape a = reshape' (shapeP (Proxy :: Proxy sh')) (shapeL a) a
 
+{-# INLINABLE reshape' #-}
 reshape' :: (Vector v, VecElem v a) =>
             ShapeL -> ShapeL -> Array sh v a -> Array sh' v a
 reshape' sh sh' (A t@(T ost oo v))
