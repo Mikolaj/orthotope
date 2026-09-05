@@ -451,6 +451,10 @@ by being a thing a later session might otherwise redo.
 - **The class-method signature is free** --- `build` and `mut-odo` compile
   to the same worker, dumped in both regimes --- so no `vBuild` is held back
   on a figure: [the ceiling][ceiling].
+- **The lean dispatch is taken**, 2026-09-05, for every dispatch that admits it,
+  `lib-stage2` alone keeping the strides comparison as its control; the ruling,
+  its grounds and what does not admit it: [the stride
+  classes](#the-stride-classes-and-what-they-cover).
 - **Code placement moves figures**, and by more than the A/A controls can see:
   the identical-code pair, the rebuild bias, the per-loop reading
   and the cache-line table are all [in the floor section][floor]. **Straddling
@@ -849,12 +853,14 @@ rather than a slot in the next run, observed again:
   verdicts are [in Run 24's own file](runs/run24.md), where a run's
   registrations have lived since 2026-08-29; in a clause each: (1) the short
   bodies, SPLIT --- ahead past both floors on every k3 and k5 shape and killed
-  by its own count clause on `stretch-coprime-r7`; (2) the lean dispatch, HELD;
-  (3) the composite, HELD on every population of both halves; (4)
-  the straddlers, HELD, and named rather than counted for the first time; (5)
-  HEAD, HELD on its orderings and not on one of its figures, with one clause
-  unreadable because the arm it turned on had been parked; and (6)
-  the threshold, HELD, the re-cut dispatch now leading the `runs` class.
+  by its own count clause on `stretch-coprime-r7`; (2) the lean dispatch, HELD,
+  and taken 2026-09-05 ([the stride
+  classes](#the-stride-classes-and-what-they-cover)); (3) the composite, HELD
+  on every population of both halves; (4) the straddlers, HELD, and named rather
+  than counted for the first time; (5) HEAD, HELD on its orderings and
+  not on one of its figures, with one clause unreadable because the arm
+  it turned on had been parked; and (6) the threshold, HELD, the re-cut dispatch
+  now leading the `runs` class.
 - `OPEN` **A registration can name an arm the roster has parked, and the check
   written for it reaches one registration of the two a run now has --- Run 24
   lost a clause to this and Run 25 lost five.** Run 24's registration 5
@@ -3042,7 +3048,29 @@ and by the same hand: a body per run length of 2 to 5 is too repetitive
 and so too complex for orthotope, so `lib-stage2-short`
 and `lib-stage2-short-lean` price what the bodies would buy, are not candidates
 to ship, and are parked `Only` as `lib-stage2-u4` is; their Run 24 readings
-stand in that run's file.** The runs class gained `runs-4` and `runs-5` the same
+stand in that run's file.** **The lean dispatch is taken, 2026-09-05, for every
+dispatch that admits it, in the branch's `regimeT` and in every `canonView` arm
+here but `lib-stage2`, which keeps the strides comparison as the lean arm's
+control**: mainly because the merged form decides the regime with no stride list
+built, which is the simpler code, and because Run 24 read `lib-stage2-lean`
+at or below `lib-stage2` on every readable population of both halves and ahead
+past both floors on the four smallest main-set shapes (Run 24's registration 2,
+whose verdict [the open list][open] keeps); the two shapes it read behind past
+one half's floor, `stretch-primes` on the basis and `stretch-inner256` on HEAD,
+execute the same corrected instructions to five parts in ten thousand on both
+halves, so neither loss is the dispatch. What does not admit it: the stage-one
+ports and `regimeOf`, which compare raw strides, where the invariant does
+not hold; the unordered one-block test, whose sort by absolute stride can make
+a rank-2 canonical view one block; and `check`'s own regime conditions, kept
+explicit so that the equivalence is checked and not assumed. The licence ---
+after canonicalization no adjacent pair satisfies the merge equation,
+and natural strides at rank 2 or more are that equation at every pair ---
+was checked against the branch's `canonicalizeT` the same day over 300000 random
+views and every view up to rank 3 with extents to 3 and strides to 4,
+the control's decision equal to the lean one on all of them, and two deliberate
+breaks of it fail the check. `lib-stage2-short-lean` and `lib-stage2-short`
+are the same code from here, both parked, the composite kept under its name
+for its Run 24 readings. The runs class gained `runs-4` and `runs-5` the same
 day -- no view in the suite had a canonical innermost extent of 4, so the short
 bodies' one unexercised branch was invisible even to `check` -- and `runs-256`
 and `runs-512`, bracketing `dispRun` within a factor of two. Each runs on every

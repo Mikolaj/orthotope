@@ -2290,7 +2290,7 @@ fbCanonVecdims sh (T (Strides ats) ao v)
   | otherwise = case canonView sh ats of
       ([], _) -> VS.replicate l (VS.unsafeIndex v ao)
       (csh, cats)
-        | cats == drop 1 (getStridesT csh) -> VS.slice ao l v
+        | cats == [1] -> VS.slice ao l v  -- lean, see 'fbLibStage2Lean'
         | otherwise -> VS.create $ do
             out <- VSM.unsafeNew l
             let !sInner = last csh
@@ -2338,7 +2338,7 @@ fbCanonMemcpyR2 sh (T (Strides ats) ao v)
   | otherwise = case canonView sh ats of
       ([], _) -> VS.replicate l (VS.unsafeIndex v ao)
       (csh, cats)
-        | cats == drop 1 (getStridesT csh) -> VS.slice ao l v
+        | cats == [1] -> VS.slice ao l v  -- lean, see 'fbLibStage2Lean'
         | otherwise -> VS.create $ do
             out <- VSM.unsafeNew l
             let !sInner = last csh
@@ -2491,7 +2491,7 @@ fbCanonFull sh (T (Strides ats) ao v)
   | otherwise = case canonView sh ats of
       ([], _) -> VS.replicate l (VS.unsafeIndex v ao)
       (csh, cats)
-        | cats == drop 1 (getStridesT csh) -> VS.slice ao l v
+        | cats == [1] -> VS.slice ao l v  -- lean, see 'fbLibStage2Lean'
         | otherwise -> VS.create $ do
             out <- VSM.unsafeNew l
             let !sInner = last csh
@@ -2762,6 +2762,10 @@ fbLibStage1 sh a@(T (Strides ats) ao v)
 -- 'fillStage2', the branch's driver. One change over 'fbLibStage1' per
 -- population: on the main set none (both fill, the same loop), on the
 -- runs class the route, on the broadcast classes the conditions.
+-- The one dispatch that keeps the strides comparison after the ruling of
+-- 2026-09-05 at 'fbLibStage2Lean', as that arm's control; every other
+-- dispatch over 'canonView' here, and the branch's 'regimeT', took the
+-- lean form.
 {-# NOINLINE fbLibStage2 #-}
 fbLibStage2 :: ShapeL -> T -> VS.Vector Double
 fbLibStage2 sh (T (Strides ats) ao v)
@@ -2777,26 +2781,27 @@ fbLibStage2 sh (T (Strides ats) ao v)
 -- 'fbLibStage2' with canonical contiguous runs sent back to one slice
 -- per run and a concatenation, stage one's route for them over stage
 -- two's dispatch -- the repair candidate if the runs class reads the
--- fill behind the memcpy at long runs. One change over 'fbLibStage2',
+-- fill behind the memcpy at long runs. One change over 'fbLibStage2Lean',
 -- so that arm is its control, and the pair is the runs class's question.
 {-# NOINLINE fbLibStage2Concat #-}
 fbLibStage2Concat :: ShapeL -> T -> VS.Vector Double
 fbLibStage2Concat sh (T (Strides ats) ao v)
   | l == 0 = VS.empty
   | otherwise = case canonView sh ats of
+      ([], _) -> whole
+      ([_], [1]) -> whole
       (csh, cats)
-        | cats /= ts ->
-            if last cats == 1
-            then let !n = last csh
-                 in  VS.concat
-                       [ VS.slice o n v
-                       | o <- VU.toList (baseOffsetsList ao (init csh)
-                                                         (Strides (init cats))) ]
-            else fillStage2 csh cats ao l v
-        | ao == 0 && VS.length v == l -> v
-        | otherwise -> VS.slice ao l v
-        where _ : ts = getStridesT csh
-  where l = product sh
+        | last cats == 1 ->
+            let !n = last csh
+            in  VS.concat
+                  [ VS.slice o n v
+                  | o <- VU.toList (baseOffsetsList ao (init csh)
+                                                    (Strides (init cats))) ]
+        | otherwise -> fillStage2 csh cats ao l v
+  where
+    l = product sh
+    whole | ao == 0 && VS.length v == l = v
+          | otherwise = VS.slice ao l v
 
 -- The run length at or above which 'fbLibStage2Disp' sends a contiguous
 -- canonical run back to one slice, and the only thing it varies over
@@ -2817,10 +2822,10 @@ dispRun = 2048
 -- 'fbLibStage2Concat' with the slice route taken only where the canonical
 -- run reaches 'dispRun' -- the dispatch on run length the runs class
 -- measured a crossover for, and ONE change over that arm, so 'lib-stage2-
--- concat' is this one's control and 'lib-stage2' the other side of what it
--- dispatches between. Below the threshold stage two's fill wins and this
--- arm is 'fbLibStage2'; at or above it one memcpy per run wins and this
--- arm is 'fbLibStage2Concat'. Nothing that stays strided after
+-- concat' is this one's control and 'lib-stage2-lean' the other side of
+-- what it dispatches between. Below the threshold stage two's fill wins
+-- and this arm is 'fbLibStage2Lean'; at or above it one memcpy per run
+-- wins and this arm is 'fbLibStage2Concat'. Nothing that stays strided after
 -- canonicalization is touched, so on every regime-3 population all three
 -- are the same code and only the runs class separates them.
 --
@@ -2836,19 +2841,20 @@ fbLibStage2Disp :: ShapeL -> T -> VS.Vector Double
 fbLibStage2Disp sh (T (Strides ats) ao v)
   | l == 0 = VS.empty
   | otherwise = case canonView sh ats of
+      ([], _) -> whole
+      ([_], [1]) -> whole
       (csh, cats)
-        | cats /= ts ->
-            if last cats == 1 && last csh >= dispRun
-            then let !n = last csh
-                 in  VS.concat
-                       [ VS.slice o n v
-                       | o <- VU.toList (baseOffsetsList ao (init csh)
-                                                         (Strides (init cats))) ]
-            else fillStage2 csh cats ao l v
-        | ao == 0 && VS.length v == l -> v
-        | otherwise -> VS.slice ao l v
-        where _ : ts = getStridesT csh
-  where l = product sh
+        | last cats == 1 && last csh >= dispRun ->
+            let !n = last csh
+            in  VS.concat
+                  [ VS.slice o n v
+                  | o <- VU.toList (baseOffsetsList ao (init csh)
+                                                    (Strides (init cats))) ]
+        | otherwise -> fillStage2 csh cats ao l v
+  where
+    l = product sh
+    whole | ao == 0 && VS.length v == l = v
+          | otherwise = VS.slice ao l v
 
 -- 'fbLibStage2Disp' with the threshold an argument instead of 'dispRun',
 -- added 2026-09-02 for the one-binary runs-class probe README's task 9
@@ -2866,19 +2872,20 @@ libStage2DispAt :: Int -> ShapeL -> T -> VS.Vector Double
 libStage2DispAt !thr sh (T (Strides ats) ao v)
   | l == 0 = VS.empty
   | otherwise = case canonView sh ats of
+      ([], _) -> whole
+      ([_], [1]) -> whole
       (csh, cats)
-        | cats /= ts ->
-            if last cats == 1 && last csh >= thr
-            then let !n = last csh
-                 in  VS.concat
-                       [ VS.slice o n v
-                       | o <- VU.toList (baseOffsetsList ao (init csh)
-                                                         (Strides (init cats))) ]
-            else fillStage2 csh cats ao l v
-        | ao == 0 && VS.length v == l -> v
-        | otherwise -> VS.slice ao l v
-        where _ : ts = getStridesT csh
-  where l = product sh
+        | last cats == 1 && last csh >= thr ->
+            let !n = last csh
+            in  VS.concat
+                  [ VS.slice o n v
+                  | o <- VU.toList (baseOffsetsList ao (init csh)
+                                                    (Strides (init cats))) ]
+        | otherwise -> fillStage2 csh cats ao l v
+  where
+    l = product sh
+    whole | ao == 0 && VS.length v == l = v
+          | otherwise = VS.slice ao l v
 
 fbLibStage2Disp2048, fbLibStage2Disp8192, fbLibStage2Disp32768
   :: ShapeL -> T -> VS.Vector Double
@@ -3200,36 +3207,40 @@ fillStage2Short sh ats !ao !l !v = VS.create $ do
         !oshV  = VU.fromList (init sh)
         !oatsV = VU.fromList (init ats)
 
--- 'fbLibStage2' over 'fillStage2U4' -- the same dispatch, the fill the
--- one change, so 'lib-stage2' is the control and every population where
--- the fill runs reads the unrolling.
+-- 'fbLibStage2Lean' over 'fillStage2U4' -- the same dispatch, the fill
+-- the one change, so 'lib-stage2-lean' is the control (since 2026-09-05;
+-- its readings were taken against 'lib-stage2') and every population
+-- where the fill runs reads the unrolling.
 {-# NOINLINE fbLibStage2U4 #-}
 fbLibStage2U4 :: ShapeL -> T -> VS.Vector Double
 fbLibStage2U4 sh (T (Strides ats) ao v)
   | l == 0 = VS.empty
   | otherwise = case canonView sh ats of
-      (csh, cats)
-        | cats /= ts -> fillStage2U4 csh cats ao l v
-        | ao == 0 && VS.length v == l -> v
-        | otherwise -> VS.slice ao l v
-        where _ : ts = getStridesT csh
-  where l = product sh
+      ([], _) -> whole
+      ([_], [1]) -> whole
+      (csh, cats) -> fillStage2U4 csh cats ao l v
+  where
+    l = product sh
+    whole | ao == 0 && VS.length v == l = v
+          | otherwise = VS.slice ao l v
 
--- 'fbLibStage2' over 'fillStage2Short' -- the same dispatch, the fill
--- the one change, so 'lib-stage2' is the control; it can move only where
--- the canonical run is 2 to 5 elements long, and every other view is the
--- control's code.
+-- 'fbLibStage2Lean' over 'fillStage2Short' -- the same dispatch, the
+-- fill the one change, so 'lib-stage2-lean' is the control (since
+-- 2026-09-05; its readings were taken against 'lib-stage2'); it can move
+-- only where the canonical run is 2 to 5 elements long, and every other
+-- view is the control's code.
 {-# NOINLINE fbLibStage2Short #-}
 fbLibStage2Short :: ShapeL -> T -> VS.Vector Double
 fbLibStage2Short sh (T (Strides ats) ao v)
   | l == 0 = VS.empty
   | otherwise = case canonView sh ats of
-      (csh, cats)
-        | cats /= ts -> fillStage2Short csh cats ao l v
-        | ao == 0 && VS.length v == l -> v
-        | otherwise -> VS.slice ao l v
-        where _ : ts = getStridesT csh
-  where l = product sh
+      ([], _) -> whole
+      ([_], [1]) -> whole
+      (csh, cats) -> fillStage2Short csh cats ao l v
+  where
+    l = product sh
+    whole | ao == 0 && VS.length v == l = v
+          | otherwise = VS.slice ao l v
 
 -- 'fbLibStage2' with the dispatch read off the merged form alone --
 -- the same 'fillStage2', so the pair prices the dispatch and nothing
@@ -3244,6 +3255,16 @@ fbLibStage2Short sh (T (Strides ats) ao v)
 -- holds the equivalence on every view. It is also the simpler form,
 -- which the complexity ruling at 'fillStage2U4' prefers where the
 -- performance is close.
+-- TAKEN 2026-09-05 for every dispatch that admits it, here and in the
+-- branch's 'regimeT' (README.md#the-stride-classes-and-what-they-cover):
+-- mainly for the simplification, no stride list built at the dispatch,
+-- and for Run 24 reading this arm at or below 'fbLibStage2' on every
+-- population of both halves. 'fbLibStage2' alone keeps the comparison,
+-- as this arm's control. What does not admit it: the stage-one ports
+-- and 'regimeOf', which compare RAW strides, where the invariant does
+-- not hold; the unordered one-block tests, whose sort by absolute stride
+-- can make a rank-2 canonical view one block; and 'check''s own regime
+-- conditions, kept explicit so the equivalence is checked, not assumed.
 {-# NOINLINE fbLibStage2Lean #-}
 fbLibStage2Lean :: ShapeL -> T -> VS.Vector Double
 fbLibStage2Lean sh (T (Strides ats) ao v)
@@ -3259,10 +3280,12 @@ fbLibStage2Lean sh (T (Strides ats) ao v)
 
 -- The two changes Run 23 left live, composed, added 2026-09-02 for Run
 -- 24: 'fbLibStage2Lean''s dispatch over 'fillStage2Short'. Each parent
--- is one change over 'fbLibStage2' along its own axis, the dispatch or
--- the fill, and stays timed as this arm's control on that axis; this is
--- what would ship if both survive, and 'check' holds it to the reference
--- on every view as it holds them.
+-- was one change over 'fbLibStage2' along its own axis, the dispatch or
+-- the fill, and was timed as this arm's control on that axis; this is
+-- what would have shipped if both survived, and 'check' holds it to the
+-- reference on every view as it holds them. Since 2026-09-05, when
+-- 'fbLibStage2Short' took the lean dispatch, the two are the same code;
+-- this one keeps its name for its Run 24 readings.
 {-# NOINLINE fbLibStage2ShortLean #-}
 fbLibStage2ShortLean :: ShapeL -> T -> VS.Vector Double
 fbLibStage2ShortLean sh (T (Strides ats) ao v)
@@ -3314,17 +3337,17 @@ fbLibListStage2 sh (T (Strides ats) ao v) = VS.concat parts
   where parts
           | l == 0 = []
           | otherwise = case canonView sh ats of
+              ([], _) -> whole
+              ([_], [1]) -> whole
               (csh, cats)
-                | cats /= ts ->
-                    if last cats == 1
-                    then let !n = last csh
-                         in  [ VS.slice o n v
-                             | o <- VU.toList (baseOffsetsExpand ao (init csh)
-                                                 (Strides (init cats))) ]
-                    else [fillStage2 csh cats ao l v]
-                | ao == 0 && VS.length v == l -> [v]
-                | otherwise -> [VS.slice ao l v]
-                where _ : ts = getStridesT csh
+                | last cats == 1 ->
+                    let !n = last csh
+                    in  [ VS.slice o n v
+                        | o <- VU.toList (baseOffsetsExpand ao (init csh)
+                                            (Strides (init cats))) ]
+                | otherwise -> [fillStage2 csh cats ao l v]
+        whole | ao == 0 && VS.length v == l = [v]
+              | otherwise = [VS.slice ao l v]
         l = product sh
 
 -- The unordered-list consumer under each stage: 'toUnorderedVectorListT'
