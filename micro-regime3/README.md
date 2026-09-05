@@ -3056,96 +3056,98 @@ those five sits `lib-stage2-disp`, which is a candidate and not a port
 of anything**, added 2026-08-30: the slice route taken only where the canonical
 run reaches `dispRun`, so it is `lib-stage2-lean` below the crossover
 and `lib-stage2-concat` above it --- its lower side was `lib-stage2` until
-the lean ruling below --- and the runs class is what cuts it to one. **Beside
-it, for Run 22, sit three fill candidates**, each a fill change under the same
-dispatch: `lib-stage2-u4`, the stepping run unrolled by four;
-`lib-stage2-short`, a canonical run of 2 to 5 elements written by a body
-of exactly that length, chosen once per row as the broadcast body is;
-and `lib-stage2-lean`, the same fill under a leaner dispatch: a canonical view
-of rank 2 or more can never carry the natural strides, the merge that made
-it canonical having consumed every natural pair, so the regimes are read off
-the merged form alone and the strides comparison the control's dispatch pays
-is not paid. **And beside those, the unordered entry point joins the family**:
-`libunord-stage1` and `libunord-stage2`, each stage's `toUnorderedVectorListT`
-one-block test in front of its liblist body and one concatenation -- the third
-route the branch changes, rostered so that a shim-switch reading (Run 23's
-LOOP_DEADSPOT among them) has its sanity readings, which no test of the branch
-alone can show until GHC itself grows such a capability. **`libunord-stage3`,
-added 2026-09-05 for Run 26, is the family's one candidate rather than a port**:
-the one-block test generalized into the dispatch, the canonical dims sorted
-by absolute stride from the lowest offset and canonicalized again, so the lean
-rank test reads one block and everything else is one fill in address order,
-every axis forward and the smallest stride innermost --- what Run 25's `flip`
-finding, a reversed run at twice its forward cost on identical instructions,
-says an unordered consumer pays today for nothing. Against `libunord-stage2`
-its margin also carries that arm's list and concatenation, which a reducing
-consumer does not pay, so the reading is the direction where stage two falls
-back to the list and the tie where both slice. In instructions, shim-free
-and net of the sum term --- a shim-free counts probe of 2026-08-30
-and its `-runs` sibling, which said of themselves that they were a smoke run
-of `run-counts.sh` and NOT a recorded column, and went with Run 22's preparation
-on 2026-09-02 --- the short bodies read 0.50 at `runs-2`, 0.59 at `runs-3`, 0.61
-to 0.88 on every k3 and k5 conv shape, and above five nothing past the per-row
-choice's cost, `stretch-coprime-r7`'s 1.0208 the worst cell, while the quad loop
-reads 0.83 to 0.85 at long runs and 1.08 to 1.15 at runs of 2 and 3 --- so each
-moves its own end of the run axis and Run 22 prices the two in time, which
-is what those two files cannot do. **A ruling stands over the quad loop,
-2026-08-30, and it is Mikolaj's rather than a measurement's: a stepping run
-unrolled by four is too complex for orthotope, so `lib-stage2-u4` prices what
-that feature would buy and is not a candidate to ship.** The measure
-is an intuitive estimate of complexity taken PER ORTHOGONAL FEATURE, not a count
-of lines or loops and not a total over a function that composes several:
-the shipped by-two loop is fine but close to the bar, so a simpler loop
-is preferred over it where the performance is close, while a function that joins
-that loop with further orthogonal features --- the short bodies
-of `lib-stage2-short` among them --- is judged feature by feature, and the short
-bodies stand or fall on their own. **They fell, 2026-09-04, on the same ruling
-and by the same hand: a body per run length of 2 to 5 is too repetitive
-and so too complex for orthotope, so `lib-stage2-short`
-and `lib-stage2-short-lean` price what the bodies would buy, are not candidates
-to ship, and are parked `Only` as `lib-stage2-u4` is; their Run 24 readings
-stand in that run's file.** **The lean dispatch is taken, 2026-09-05, for every
-dispatch that admits it, in the branch's `regimeT` and in every `canonView` arm
-here but `lib-stage2`, which keeps the strides comparison as the lean arm's
-control**: mainly because the merged form decides the regime with no stride list
-built, which is the simpler code, and because Run 24 read `lib-stage2-lean`
-at or below `lib-stage2` on every readable population of both halves and ahead
-past both floors on the four smallest main-set shapes (Run 24's registration 2,
-whose verdict [the open list][open] keeps); the two shapes it read behind past
-one half's floor, `stretch-primes` on the basis and `stretch-inner256` on HEAD,
-execute the same corrected instructions to five parts in ten thousand on both
-halves, so neither loss is the dispatch. What does not admit it: the stage-one
-ports and `regimeOf`, which compare raw strides, where the invariant does
-not hold; the unordered one-block test, whose sort by absolute stride can make
-a rank-2 canonical view one block; and `check`'s own regime conditions, kept
-explicit so that the equivalence is checked and not assumed. The licence ---
-after canonicalization no adjacent pair satisfies the merge equation,
-and natural strides at rank 2 or more are that equation at every pair ---
-was checked against the branch's `canonicalizeT` the same day over 300000 random
-views and every view up to rank 3 with extents to 3 and strides to 4,
-the control's decision equal to the lean one on all of them, and two deliberate
-breaks of it fail the check. `lib-stage2-short-lean`, the composite of the short
-bodies with this dispatch, is gone from `Main.hs` from here, `lib-stage2-short`
-having become the same code; its Run 24 readings stand in that run's file.
-The runs class gained `runs-4` and `runs-5` the same day -- no view in the suite
-had a canonical innermost extent of 4, so the short bodies' one unexercised
-branch was invisible even to `check` -- and `runs-256` and `runs-512`,
-bracketing `dispRun` within a factor of two. Each runs on every population,
-so a library change is read where a user would meet it, class by class,
-whichever of the two entry points the user takes, and the `runs` class is where
-the routes part; with the timed `-u2-down` the dispatch arm, the three fill
-candidates and the unordered pair the block took the roster to 1320 benches,
-and the composite arm with the six parkings and two main-set shapes
-of 2026-09-02 took the roster to 1352 benches, and the retirement of eight
-main-set shapes on 2026-09-04 took the roster to 936 benches, eight superseded
-arms parked permanently since Run 21, `offtab`'s twins removed with it;
-the prune of the same day parks `lib-stage2` and `lib-stage2-concat` among
-sixteen arms ([what the benchmark does](#what-the-benchmark-does)), took
-the roster to 432 benches, the `-u1` arm with its re-timed control, added
-the same day for Run 25, took it to 468, and the ruling on the short bodies,
-parking two, took it back to 432; `libunord-stage3`, added 2026-09-05 for Run
-26, takes the roster to 450 benches. What the next run is registered to answer
-with them is [in the open list][open].
+the lean ruling below --- and the runs class is what cuts it to one. On every
+other population no canonical run reaches `dispRun`, so there
+it is `lib-stage2-lean`'s code and the two arms' pair is an A/A reading, which
+[the floor section][floor] records. **Beside it, for Run 22, sit three fill
+candidates**, each a fill change under the same dispatch: `lib-stage2-u4`,
+the stepping run unrolled by four; `lib-stage2-short`, a canonical run of 2 to 5
+elements written by a body of exactly that length, chosen once per row
+as the broadcast body is; and `lib-stage2-lean`, the same fill under a leaner
+dispatch: a canonical view of rank 2 or more can never carry the natural
+strides, the merge that made it canonical having consumed every natural pair,
+so the regimes are read off the merged form alone and the strides comparison
+the control's dispatch pays is not paid. **And beside those, the unordered entry
+point joins the family**: `libunord-stage1` and `libunord-stage2`, each stage's
+`toUnorderedVectorListT` one-block test in front of its liblist body and one
+concatenation -- the third route the branch changes, rostered so
+that a shim-switch reading (Run 23's LOOP_DEADSPOT among them) has its sanity
+readings, which no test of the branch alone can show until GHC itself grows such
+a capability. **`libunord-stage3`, added 2026-09-05 for Run 26, is the family's
+one candidate rather than a port**: the one-block test generalized
+into the dispatch, the canonical dims sorted by absolute stride from the lowest
+offset and canonicalized again, so the lean rank test reads one block
+and everything else is one fill in address order, every axis forward
+and the smallest stride innermost --- what Run 25's `flip` finding, a reversed
+run at twice its forward cost on identical instructions, says an unordered
+consumer pays today for nothing. Against `libunord-stage2` its margin also
+carries that arm's list and concatenation, which a reducing consumer does
+not pay, so the reading is the direction where stage two falls back to the list
+and the tie where both slice. In instructions, shim-free and net of the sum term
+--- a shim-free counts probe of 2026-08-30 and its `-runs` sibling, which said
+of themselves that they were a smoke run of `run-counts.sh` and NOT a recorded
+column, and went with Run 22's preparation on 2026-09-02 --- the short bodies
+read 0.50 at `runs-2`, 0.59 at `runs-3`, 0.61 to 0.88 on every k3 and k5 conv
+shape, and above five nothing past the per-row choice's cost,
+`stretch-coprime-r7`'s 1.0208 the worst cell, while the quad loop reads 0.83
+to 0.85 at long runs and 1.08 to 1.15 at runs of 2 and 3 --- so each moves
+its own end of the run axis and Run 22 prices the two in time, which is what
+those two files cannot do. **A ruling stands over the quad loop, 2026-08-30,
+and it is Mikolaj's rather than a measurement's: a stepping run unrolled by four
+is too complex for orthotope, so `lib-stage2-u4` prices what that feature would
+buy and is not a candidate to ship.** The measure is an intuitive estimate
+of complexity taken PER ORTHOGONAL FEATURE, not a count of lines or loops
+and not a total over a function that composes several: the shipped by-two loop
+is fine but close to the bar, so a simpler loop is preferred over it where
+the performance is close, while a function that joins that loop with further
+orthogonal features --- the short bodies of `lib-stage2-short` among them ---
+is judged feature by feature, and the short bodies stand or fall on their own.
+**They fell, 2026-09-04, on the same ruling and by the same hand: a body per run
+length of 2 to 5 is too repetitive and so too complex for orthotope,
+so `lib-stage2-short` and `lib-stage2-short-lean` price what the bodies would
+buy, are not candidates to ship, and are parked `Only` as `lib-stage2-u4` is;
+their Run 24 readings stand in that run's file.** **The lean dispatch is taken,
+2026-09-05, for every dispatch that admits it, in the branch's `regimeT`
+and in every `canonView` arm here but `lib-stage2`, which keeps the strides
+comparison as the lean arm's control**: mainly because the merged form decides
+the regime with no stride list built, which is the simpler code, and because Run
+24 read `lib-stage2-lean` at or below `lib-stage2` on every readable population
+of both halves and ahead past both floors on the four smallest main-set shapes
+(Run 24's registration 2, whose verdict [the open list][open] keeps); the two
+shapes it read behind past one half's floor, `stretch-primes` on the basis
+and `stretch-inner256` on HEAD, execute the same corrected instructions to five
+parts in ten thousand on both halves, so neither loss is the dispatch. What does
+not admit it: the stage-one ports and `regimeOf`, which compare raw strides,
+where the invariant does not hold; the unordered one-block test, whose sort
+by absolute stride can make a rank-2 canonical view one block; and `check`'s own
+regime conditions, kept explicit so that the equivalence is checked
+and not assumed. The licence --- after canonicalization no adjacent pair
+satisfies the merge equation, and natural strides at rank 2 or more
+are that equation at every pair --- was checked against the branch's
+`canonicalizeT` the same day over 300000 random views and every view up to rank
+3 with extents to 3 and strides to 4, the control's decision equal to the lean
+one on all of them, and two deliberate breaks of it fail the check.
+`lib-stage2-short-lean`, the composite of the short bodies with this dispatch,
+is gone from `Main.hs` from here, `lib-stage2-short` having become the same
+code; its Run 24 readings stand in that run's file. The runs class gained
+`runs-4` and `runs-5` the same day -- no view in the suite had a canonical
+innermost extent of 4, so the short bodies' one unexercised branch was invisible
+even to `check` -- and `runs-256` and `runs-512`, bracketing `dispRun` within
+a factor of two. Each runs on every population, so a library change is read
+where a user would meet it, class by class, whichever of the two entry points
+the user takes, and the `runs` class is where the routes part; with the timed
+`-u2-down` the dispatch arm, the three fill candidates and the unordered pair
+the block took the roster to 1320 benches, and the composite arm with the six
+parkings and two main-set shapes of 2026-09-02 took the roster to 1352 benches,
+and the retirement of eight main-set shapes on 2026-09-04 took the roster to 936
+benches, eight superseded arms parked permanently since Run 21, `offtab`'s twins
+removed with it; the prune of the same day parks `lib-stage2`
+and `lib-stage2-concat` among sixteen arms ([what the benchmark
+does](#what-the-benchmark-does)), took the roster to 432 benches, the `-u1` arm
+with its re-timed control, added the same day for Run 25, took it to 468,
+and the ruling on the short bodies, parking two, took it back to 432;
+`libunord-stage3`, added 2026-09-05 for Run 26, takes the roster to 450 benches.
+What the next run is registered to answer with them is [in the open list][open].
 
 **What the eight are worth as instruments, read against each other for the first
 time on 2026-08-14, over Runs 10 to 13.** Per class: the median A/A deviation
@@ -8260,6 +8262,15 @@ several-fold on the floor is itself the caution, and one binary disagreeing
 by 1.7x with itself one day and by a twentieth another is that caution sharpened
 as far as it goes: read the floor as the run's *and the half's*, re-measured
 every time, never as a constant of the harness and never inherited.
+**And from 2026-09-05 a seventh pair exists that no name declares**:
+`lib-stage2-disp` is `lib-stage2-lean`'s code wherever no canonical run reaches
+`dispRun`, which is every population but `runs`, so `--pair` over the two there
+reads two placements of one strategy exactly as a twin's pair does. It is
+not in the floor --- `--aa` reads the declared twins alone, and the six-pair
+figure stays the six-pair figure --- and it differs from a twin in sitting where
+a candidate sits rather than where a control was placed; what it is good
+for is a check of the floor from outside the pairs that set it, and Run 26's
+registration (1) reads it first.
 
 **The twins have now taken every side available, which is what a sign this weak
 is worth.** Run 10 read all six pairs above 1 on its unaligned half and five
