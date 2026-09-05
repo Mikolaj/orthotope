@@ -1705,6 +1705,18 @@ def compared_arm_count():
                if role != 'Only' and not m.no_net(n))
 
 
+def timed_arm_count():
+    """How many arms `synth_run` puts in a synthetic run: the roster's timed
+    ones, controls included, which is what a population line counts. Why a
+    case derives it rather than writing it out is `compared_arm_count`'s
+    docstring; the two `pin-*` cases below pinned 24 and went red the day
+    `libunord-stage3` landed.
+    """
+    m = _reader()
+    roster = m.roster_of(open(os.path.join(HERE, 'Main.hs')).read())
+    return sum(1 for _n, role, _fn in roster if role != 'Only')
+
+
 def doc_expr(blocks):
     """A source expression for a document of `blocks`, newline-free.
 
@@ -4894,7 +4906,8 @@ RECORDS = [
          # the eight `--exclude-shape` flags it stands for gave identical
          # output on run24-g912-main.json.
          ok=V(exit=0, has=['pinned to the 6 shape(s)', 'dropping',
-                           'reading 24 of them over 6 shapes'])),
+                           'reading %d of them over 6 shapes'
+                           % timed_arm_count()])),
 
     case('pin-says-when-it-drops-nothing', 'read-run.py', None,
          'CONTROL: a pin against a run holding every shape drops none and'
@@ -4929,7 +4942,8 @@ RECORDS = [
              'run': synth_run(os.path.join(t, 'big2.json'), main_shapes())},
          argv=['{run}'] + [f for sh in main_shapes()[6:]
                            for f in ('--exclude-shape', sh)],
-         ok=V(exit=0, has=['reading 24 of them over 6 shapes'])),
+         ok=V(exit=0, has=['reading %d of them over 6 shapes'
+                           % timed_arm_count()])),
 
     case('checklist-post-a-stops-at-the-seam', 'read-run.py', None,
          'CONTROL: --checklist post-a is the post list down to step 6 and'

@@ -3333,13 +3333,13 @@ fbLibListStage2 sh (T (Strides ats) ao v) = VS.concat parts
 
 -- The unordered-list consumer under each stage: 'toUnorderedVectorListT'
 -- and one concatenation, the third entry point the branch changes and
--- the one commutative reductions take. Each arm is its stage's
--- one-block test in front of that stage's list body, so the liblist
--- arms are the fall-back halves and the pair prices the entry point end
--- to end. Added 2026-08-30 so that a shim-switch reading on the fills
--- (Run 23's LOOP_DEADSPOT) has these routes' sanity readings beside
--- it, which no test of the branch can show until GHC itself grows such
--- a capability.
+-- the one commutative reductions take. The two stage arms are each
+-- their stage's one-block test in front of that stage's list body, so
+-- the liblist arms are the fall-back halves and the pair prices the
+-- entry point end to end; the third arm, below, is a candidate. Added
+-- 2026-08-30 so that a shim-switch reading on the fills (Run 23's
+-- LOOP_DEADSPOT) has these routes' sanity readings beside it, which no
+-- test of the branch can show until GHC itself grows such a capability.
 --
 -- Stage one's test (Data/Array/Internal.hs at 0386073): sort the raw
 -- (stride, dim) pairs descending and ask whether the sorted strides
@@ -3375,6 +3375,49 @@ fbLibUnordStage2 sh a@(T (Strides ats) ao v)
                 unzip $ sortBy (flip compare) $ zip (map abs cats) csh
               _ : ts = getStridesT csh'
           in  acats == ts
+
+-- Stage three, a candidate and not a port of anything: the one-block
+-- test generalized into the dispatch. An unordered consumer owes no
+-- order, so the view is walked in ADDRESS order whatever its logical
+-- one: the canonical dims sorted by absolute stride, descending, from
+-- the lowest offset -- a reversed axis covering the same addresses from
+-- the other end -- and the sorted pairs canonicalized AGAIN, so that
+-- every adjacent pair the sort brought together merges and the lean
+-- rank test decides one block (rank 0, or rank 1 at stride 1: one
+-- slice); everything else is ONE 'fillStage2' over the sorted positive
+-- strides, every axis walked forward and the smallest stride innermost.
+-- What it prices: Run 25's flip class read a reversed run at about twice
+-- its forward cost on identical instructions, which this fill never
+-- pays, and a transposed view fills with its smallest stride innermost.
+-- Against 'fbLibUnordStage2' the margin also carries that arm's list
+-- and concatenation, which a reducing consumer does not pay, so the
+-- reading is the direction where stage two falls back to the list and
+-- the tie where both slice. 'check' holds it to the reference as a
+-- multiset, as it holds the other unordered arms.
+-- In the library this is 'toUnorderedVectorListT' with its one-block
+-- test and its fall-back to 'toVectorListT' replaced by this dispatch:
+-- 'canonicalizeT' for 'canonView', and the two branches returned as
+-- singleton lists, @[vSlice start l v]@ and @[vFillStrided ssh sats
+-- start l v]@; the commit adding this arm carries the body. The dispatch
+-- half stands on its own: the rank test over the re-canonicalized sorted
+-- pairs equals the sorted natural-strides test the library asks today,
+-- checked over 300000 random views and every view to rank 3 with extents
+-- to 3 and strides to 4, a mutant skipping the re-canonicalization
+-- failing it, so it can land as a simplification if the fill is refuted.
+{-# NOINLINE fbLibUnordStage3 #-}
+fbLibUnordStage3 :: ShapeL -> T -> VS.Vector Double
+fbLibUnordStage3 sh (T (Strides ats) ao v)
+  | l == 0 = VS.empty
+  | otherwise =
+      let (csh, cats) = canonView sh ats
+          !start = ao + sum [ (n - 1) * st | (n, st) <- zip csh cats, st < 0 ]
+          (acats, csh') =
+            unzip $ sortBy (flip compare) $ zip (map abs cats) csh
+      in  case canonView csh' acats of
+            ([], _) -> VS.slice start l v
+            ([_], [1]) -> VS.slice start l v
+            (ssh, sats) -> fillStage2 ssh sats start l v
+  where !l = product sh
 
 -- Which of toVectorListT's regimes a (shape, T) pair takes: 1 whole-vector
 -- memcpy, 2 innermost-normal per-run loop, 3 innermost-strided
@@ -4508,6 +4551,10 @@ roster =
     -- moves by two more, six in all against Run 21.
   , ("libunord-stage1",            Fill fbLibUnordStage1)
   , ("libunord-stage2",            Fill fbLibUnordStage2)
+    -- The entry point's candidate, added 2026-09-05 for Run 26: the
+    -- one-block test generalized into a fill in address order, reasons
+    -- at the definition. Every slot below moves by one.
+  , ("libunord-stage3",            Fill fbLibUnordStage3)
     -- not timed: 6.20x the result
   , ("mut-offsets",                Only fbMutBaseOffsets)
     -- parked 2026-09-04 by the prune (README.md#what-the-benchmark-does)

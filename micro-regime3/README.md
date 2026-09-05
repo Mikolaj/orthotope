@@ -808,15 +808,16 @@ rather than a slot in the next run, observed again:
 - `OPEN` **What Run 26 is built to answer, registered before it runs.**
   Registered 2026-09-05, on Run 25's pair --- ghc-9.12.4 against GHC HEAD, both
   under `LOOP_DEADSPOT=1`, the same recipe and the same shim --- over Run 25's
-  roster with one change and no arm added to or removed from timing: the lean
-  ruling of the same day ([the stride
+  roster with two changes: the lean ruling of the same day ([the stride
   classes](#the-stride-classes-and-what-they-cover)) gave every canonical
   dispatch the lean form, so `lib-stage2-disp` and `liblist-stage2` are timed
   under a dispatch Run 25 did not time them under, and the composite
-  of the short bodies left `Main.hs`. Each with a prediction and a kill
-  condition, and the verdicts move to Run 26's file with them. (1) *The dispatch
-  pair.* `lib-stage2-disp` and `lib-stage2-lean` are the same code on every
-  population but `runs`, so they read as an A/A pair there:
+  of the short bodies left `Main.hs`; and `libunord-stage3` joined the timed
+  roster, one arm added and none removed, every slot below `libunord-stage2`
+  moving by one and the run 25 arms and 450 benches. Each with a prediction
+  and a kill condition, and the verdicts move to Run 26's file with them. (1)
+  *The dispatch pair.* `lib-stage2-disp` and `lib-stage2-lean` are the same code
+  on every population but `runs`, so they read as an A/A pair there:
   `predict: pair lib-stage2-disp lib-stage2-lean 1.0` on the main set,
   and inside the population's own floor on each of the nine other classes,
   on both halves, where Run 25 read the pair at 1.0119 and 1.0140 on the main
@@ -835,7 +836,20 @@ rather than a slot in the next run, observed again:
   that gap measured, or by an untouched arm moving past 1% on a shape, which
   would be a layout term the prune was to have removed. This item
   is the session's to adjudicate, no span reading a shape subset or another
-  run's column.
+  run's column. (3) *The unordered candidate.* `libunord-stage3` reads ahead
+  of `libunord-stage2` past the population's floor on both halves wherever stage
+  two falls back to its list --- the main-set shapes where the two unordered
+  arms fill rather than slice, and `compose-rev-bcast`, whose reversed axis
+  stage three walks forward --- and inside the floor wherever both slice,
+  on `rev`, `flip`, `revsome` and the one-block main-set shapes, where the two
+  are the same slice; and it allocates 1.00x the result where it fills, against
+  the list consumer's 2.00x tier. Killed by reading behind `libunord-stage2`
+  past the floor on both halves on any view where stage two fills, which would
+  say address order is not what the `flip` finding measured, or by a tie inside
+  the floor on every such main-set shape, which would say the logical order
+  was already the address order there. The pair is not one geomean over the main
+  set, its cells on the one-block shapes being the forcing pass, so this is read
+  per shape and is the session's to adjudicate.
 - `ANSWERED` **What Run 25 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
   verdicts are [in Run 25's own
@@ -3056,8 +3070,18 @@ is not paid. **And beside those, the unordered entry point joins the family**:
 one-block test in front of its liblist body and one concatenation -- the third
 route the branch changes, rostered so that a shim-switch reading (Run 23's
 LOOP_DEADSPOT among them) has its sanity readings, which no test of the branch
-alone can show until GHC itself grows such a capability. In instructions,
-shim-free and net of the sum term --- a shim-free counts probe of 2026-08-30
+alone can show until GHC itself grows such a capability. **`libunord-stage3`,
+added 2026-09-05 for Run 26, is the family's one candidate rather than a port**:
+the one-block test generalized into the dispatch, the canonical dims sorted
+by absolute stride from the lowest offset and canonicalized again, so the lean
+rank test reads one block and everything else is one fill in address order,
+every axis forward and the smallest stride innermost --- what Run 25's `flip`
+finding, a reversed run at twice its forward cost on identical instructions,
+says an unordered consumer pays today for nothing. Against `libunord-stage2`
+its margin also carries that arm's list and concatenation, which a reducing
+consumer does not pay, so the reading is the direction where stage two falls
+back to the list and the tie where both slice. In instructions, shim-free
+and net of the sum term --- a shim-free counts probe of 2026-08-30
 and its `-runs` sibling, which said of themselves that they were a smoke run
 of `run-counts.sh` and NOT a recorded column, and went with Run 22's preparation
 on 2026-09-02 --- the short bodies read 0.50 at `runs-2`, 0.59 at `runs-3`, 0.61
@@ -3119,8 +3143,9 @@ the prune of the same day parks `lib-stage2` and `lib-stage2-concat` among
 sixteen arms ([what the benchmark does](#what-the-benchmark-does)), took
 the roster to 432 benches, the `-u1` arm with its re-timed control, added
 the same day for Run 25, took it to 468, and the ruling on the short bodies,
-parking two, takes the roster to 432 benches. What the next run is registered
-to answer with them is [in the open list][open].
+parking two, took it back to 432; `libunord-stage3`, added 2026-09-05 for Run
+26, takes the roster to 450 benches. What the next run is registered to answer
+with them is [in the open list][open].
 
 **What the eight are worth as instruments, read against each other for the first
 time on 2026-08-14, over Runs 10 to 13.** Per class: the median A/A deviation
@@ -4927,9 +4952,9 @@ twins still sit early; what the deletions change is the spans, which shorten
 as they did at the first cut. The prune took the roster to 432 benches; the same
 day `mut-odo-vecdims-add-in-leaf-u1` landed for Run 25
 with `mut-odo-vecdims-add-in-leaf` re-timed as its control ([the Run 25
-entry][open]), and the ruling on the short bodies parked two, so
-with the controls the run is 24 arms, and the day takes the roster to 432
-benches.
+entry][open]), and the ruling on the short bodies parked two, the day ending
+at 432 benches; `libunord-stage3`, added 2026-09-05 for Run 26, takes the roster
+to 450 benches, so with the controls the run is 25 arms.
 
 - **A strategy with a precondition is not measured.** The column allowed `none`,
   an empty cell, and `shape well-formed`, which is a condition on being a valid
