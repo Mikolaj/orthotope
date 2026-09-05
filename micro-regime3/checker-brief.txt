@@ -66,6 +66,12 @@ identity and the plateau -- because this paragraph used to read `JSON
 artifacts and NOTHING ELSE` and all three live in .txt and .log files.
 Do not edit any file. Read and compute only.
 
+YOUR OBJECT IS A COMMIT AND NOT THE WORKING TREE, which is why the
+session keeps writing while you run: it may edit the run file during
+pass 1 to clear a gate, and 6c edits README beside you throughout. Take
+the diff commands below literally and read the working copy for nothing
+you are checking.
+
 TWO DOCUMENTS, and the run's numbers are in the second: README.md is what
 stands between runs, and runs/run<N>.md is this run's write-up entire --
 its head, Results, what the next run compares against, the claims it
@@ -201,11 +207,22 @@ THE FIGURE SWEEP -- and it is a SWEEP, not a pass: `pass` in this file
 means one of the two agent invocations above, and both sweeps below are
 done in EACH of them. Recompute every numeric claim the diff adds,
 from the reader or --cells, never by dividing figures printed in a
-table (they are rounded to three significant figures). Be exhaustive
-on the tables IN PASS 1 -- Results, the fingerprint, the ten class
-tables, the cross-class summary, the run's own two geomean columns --
-and say how many rows you verified and how many disagreed. Pass 2's
-scope is narrower and is stated in its own block.
+table (they are rounded to three significant figures). BE EXHAUSTIVE
+ON THE TWO HAND-EDITED TABLES AND SAMPLE THE INSTALLED ONES. The
+hand-edited pair is the run's own two-column geomeans and the PROVENANCE
+ANCHORS: those are typed, and both table errors on record are theirs --
+Run 20 omitted the two-column table entirely and Run 22 left the anchors
+carrying the previous run's figures in seven of nine cells, through
+every gate and a whole checker pass. The installed tables -- Results,
+the fingerprint, the class tables, the cross-class summary, the claim
+readings -- are matched by whole line with the count asserted, and three
+passes have now recomputed them whole and found nothing: Run 16's 487
+rows, Run 18's 491 and Run 25's 352, not one wrong between them. So take
+a sample of the installed rows, enough to catch an install that landed
+in the wrong block, and spend what that saves on the PROSE, which is
+where every real finding of those three runs was. Say how many rows you
+verified, by which route, and how many disagreed. Pass 2's scope is
+narrower and is stated in its own block.
 
 THE SUPERLATIVE SWEEP -- every superlative and count. Every "only",
 "largest",

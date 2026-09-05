@@ -879,14 +879,16 @@ rather than a slot in the next run, observed again:
   asked that no ordering of Run 24's own registrations (1) to (3) reverse; two
   of those are stated against `lib-stage2` and the third
   of `lib-stage2-short-lean`, all three parked that day, and the clause names
-  no arm at all, so no arm-name check can reach it. **What would settle
-  the first**: read the deferral's TARGET paragraph as the registration is read
-  --- the pointer already resolves, so the arms are one intersection away.
-  **The second has no cheap predicate** and stays pre-run step 12b's, a reading:
-  a registration that names another registration inherits its arms, and only
-  a reader can follow that. The cost of not doing the first is what this run
-  paid, three predictions of four in one deferred item, and it is invisible
-  until the run is over.
+  no arm at all, so no arm-name check can reach it. **The first is done**:
+  `--lint` now reads the deferral's TARGET paragraph as it reads
+  the registration's own, the pointer having already resolved, and refuses
+  by name ---
+  `registration defers to task N, which names arms the roster does not time`.
+  Its case plants a task 99 under the live tasks heading naming a parked arm,
+  and it was red before the change. **The second has no cheap predicate**
+  and stays pre-run step 12b's, a reading: a registration that names another
+  registration inherits its arms, and only a reader can follow that. Step 12b
+  now says so where it is done.
 - `ANSWERED` **`--replace` took a following heading with the paragraph
   it replaced, where no blank line separated them --- fixed 2026-09-03.** Run
   24's write-up lost `## Results` from its own file that way: in the committed
@@ -2220,21 +2222,23 @@ has no successor, found because its denominator is absent from `--list`;
 and that claim 7's pinned shape set no longer exists, found by re-deriving
 the claim. All three are the reading, and all three are what post-run step 4's
 *match bases before reading any ratio* is for. **THE COMPUTATIONS IMPROVISED,
-three, and the reader should own two of them.** The WITHIN-HALF COUNTED WORK
-is task 5 above and is the one registration 7 turns on. The FASTEST CELL OF ANY
-POPULATION: a registration predicted one, and ranking net time per element
-across every view of every population is a sort no mode does, so it was written
-out --- and the prediction was refuted by it, sixth rather than first, which
-is the case for the mode rather than against it. And THE CROSS-RUN PIN, eight
+three, and the reader owns two of them since 2026-09-05.** The WITHIN-HALF
+COUNTED WORK is task 5 above, is the one registration 7 turns on,
+and is `--counts SWEEP.txt --pair A B` now. The FASTEST CELL OF ANY POPULATION:
+a registration predicted one, and ranking net time per element across every view
+of every population is a sort no mode does, so it was written out ---
+and the prediction was refuted by it, sixth rather than first, which is the case
+for the mode rather than against it. And THE CROSS-RUN PIN, eight
 `--exclude-shape` flags naming the retired shapes, which turns Run 24's 26-shape
 column into one over this run's eighteen: Run 24's own write-up improvised
-the same thing with two flags and said so, and it is still not a mode,
-so a third run will write it out again. **A STEP SKIPPED: none**, and post-run
-step 0's naming half was spent by the preparation on an idle box the day before,
-which is where a paired run should keep it. **THE CAPABILITIES FOUND.**
-The machine half of this run cost TWO launches and two wake-ups:
-`run-evening.sh` drove the gate, the alarm, the four-hour sequence and the four
-rider invocations in one command with the session asleep,
+the same thing with two flags and said so, which is two runs and the bar
+this file uses --- it is `--pin OTHER.json` since 2026-09-05, and on this run's
+artifacts the mode and the eight flags give byte-identical output. **A STEP
+SKIPPED: none**, and post-run step 0's naming half was spent by the preparation
+on an idle box the day before, which is where a paired run should keep it.
+**THE CAPABILITIES FOUND.** The machine half of this run cost TWO launches
+and two wake-ups: `run-evening.sh` drove the gate, the alarm, the four-hour
+sequence and the four rider invocations in one command with the session asleep,
 and `run-counts-all.sh` the twenty-two counted-work sweeps in a second, every
 stage's verdict appended as it landed and the machine handed back on the last
 line. Nothing between them was typed, nothing was waited on by a hand-rolled
@@ -2349,30 +2353,34 @@ is planned. A scope limit belongs in the sentence that asks for the measurement.
    walking backwards and the fills can do nothing about it; if they do not,
    it is the canonicalization taking a different route and it is the library's
    to fix. It is an arithmetic re-derivation on files already on disk.
-4. `OPEN` **A registration's DEFERRAL TARGET is not held to the roster, and Run
-   25 lost three predictions of four to that.** `--lint` has read an OPEN
-   registration's backticked arm names against the timed roster since 2026-09-04
-   and checks that each `task N` it defers to resolves --- and nothing more. Run
-   25's item (4) deferred to task 10, whose four class predictions are stated
-   against `lib-stage2` and `canon-vecdims`, parked the day after they
-   were written, so three of them were unreadable before the machine was started
-   ([the open list][open] carries the case). **What would settle it**: read
-   the target paragraph's backticked arms as the registration's own are read;
-   the pointer already resolves, so it is one intersection away. The clause
-   that names another REGISTRATION rather than an arm has no cheap predicate
-   and stays step 12b's, a reading.
-5. `OPEN` **The reader has no within-half counted-work mode, and this run
-   improvised one.** `--counts` reads a pair of sweep files beside `--compare`,
-   so it answers *did this arm's instructions move between the halves*
-   and nothing else. Registration 7 turns on the other question --- *how many
-   instructions does this arm execute against that one, on one half* ---
-   and the write-up computed it by differencing each arm's instructions per
+4. `ANSWERED` **A registration's DEFERRAL TARGET is not held to the roster,
+   and Run 25 lost three predictions of four to that --- TAKEN 2026-09-05.**
+   `--lint` has read an OPEN registration's backticked arm names against
+   the timed roster since 2026-09-04 and checks that each `task N` it defers
+   to resolves --- and nothing more. Run 25's item (4) deferred to task 10,
+   whose four class predictions are stated against `lib-stage2`
+   and `canon-vecdims`, parked the day after they were written, so three of them
+   were unreadable before the machine was started ([the open list][open] carries
+   the case). **What would settle it**: read the target paragraph's backticked
+   arms as the registration's own are read; the pointer already resolves,
+   so it is one intersection away. The clause that names another REGISTRATION
+   rather than an arm has no cheap predicate and stays step 12b's, a reading.
+5. `ANSWERED` **The reader has no within-half counted-work mode, and this run
+   improvised one --- TAKEN 2026-09-05.** `--counts` reads a pair of sweep files
+   beside `--compare`, so it answers *did this arm's instructions move between
+   the halves* and nothing else. Registration 7 turns on the other question ---
+   *how many instructions does this arm execute against that one, on one half*
+   --- and the write-up computed it by differencing each arm's instructions per
    iteration against the mean of the two `sum-only` arms, shape by shape,
    and taking the geomean over the eighteen, which is the correction the time
-   column applies. **What would settle it**: that computation as a mode,
-   `--counts FILE --pair A B`, so the next run does not invent it and cannot
-   invent it differently. It is the standing rule about hand-rolled arithmetic
-   applied to the one figure this run had to hand-roll.
+   column applies. **It is a mode now**, `--counts SWEEP.txt --pair A B`,
+   repeatable and printing the corrected figure beside the raw one ---
+   and on this run's own sweep it gives 0.8456, 1.0892, 0.7763 and 1.0134,
+   the four ratios the write-up hand-rolled, to the digit. `--counts` has two
+   arities from here, one sweep file with `--pair` and two with `--compare`,
+   each refused by name when given the other's, and it left the modifier table
+   because one `needs` cannot say both. The standing rule about hand-rolled
+   arithmetic is what it settles.
 6. `ANSWERED` **Run 25's additions, registered 2026-09-03 before any of them
    ran: four stride classes and two window views for the canonical-form gaps
    the classes left, and one probe past the cache.** The four classes' verdicts
@@ -5704,6 +5712,15 @@ and never as a chronology.
     #      AND NAME THAT FILE WHERE YOU WRITE THE FIGURE, or the next
     #      reader copies you (post-run 6e says why). `./preflight.sh $R
     #      --note` re-checks 10c, 10d and 8 after these edits, in seconds
+    #      AND WALK THE ARMS OF EVERY TASK THE REGISTRATION DEFERS TO,
+    #      not only its own: `--lint` holds the registration's backticked
+    #      arms to the timed roster and, since 2026-09-05, the arms of
+    #      the task it defers to as well, but a clause naming another
+    #      REGISTRATION rather than an arm inherits that registration's
+    #      arms and reaches no check at all -- so follow the pointer and
+    #      read what it lands on. Run 25 lost five clauses to this, one
+    #      of them to a clause naming Run 24's registrations (1) to (3),
+    #      whose three arms had all been parked the day before
     #  12c. COMMIT, which the preparation does and the run does not: the
     #      registration on its own, tooling changes partitioned from it,
     #      and NOTHING PUSHED without a go-ahead. Run list step 17 forbids
@@ -5779,11 +5796,11 @@ Unsandboxed throughout:
     #      is recorded and the next stage runs. Confirm the launch by
     #      `evening begins` in $R-evening.txt and never by the launching
     #      shell's output, a blocked write leaving a launch that never
-    #      happened looking like one in progress. Until 2026-09-02 these
-    #      were five launch lines typed between waits, each wait a turn
-    #      end and each line a place to drop the environment or to
-    #      mis-order; the counts went back out to a line of their own on
-    #      2026-09-03, for the reason 19a gives. The stage lines below say
+    #      happened looking like one in progress. What it replaced was
+    #      five launch lines typed between waits, each wait a turn end
+    #      and each line a place to drop the environment or to mis-order;
+    #      the counts stay a line of their own for the reason 19a gives.
+    #      The stage lines below say
     #      what each is for and what to reach for when one complains, as
     #      preflight.sh's do for 4 to 10; 15 and 18 are yours while it runs
     #      why: --para 'run-major.sh is that sequence'
@@ -6628,6 +6645,15 @@ not otherwise.
     #      straddling loops and refused the other three, having no
     #      byte-identical copy of them, and the one it did name sits in
     #      the branch's own fill.
+    #      WHERE THE PREPARATION SPENT THIS HALF EARLY, RE-RUN THE
+    #      `--match` OFF THE BINARIES YOU TIMED, which is two minutes and
+    #      is what turns the note's block from a transcription into
+    #      evidence: the twins are kept beside the binaries for it, the
+    #      preparation's own reading was taken on an idle box a day
+    #      before, and a note's fill-in block is where transcribed
+    #      figures live -- Run 25's said outright that two of its figures
+    #      were carried and not derived and happened to be true. Run 25
+    #      re-ran it and reproduced all four owners and both refusals.
     #      why: --para 'Name the fill groups'
     ./read-all.sh $R                                  # 1. gate EVERY
     #      process -- both halves of every population, a line apiece with
@@ -6736,13 +6762,6 @@ not otherwise.
     #      the verdicts are then written beside each prediction where it
     #      already stands. It refuses unless exactly one OPEN entry names
     #      this run, so it is run once, after the copy is committed
-    ./read-run.py $R-<basis>-main.json --compare $R-<other>-main.json --predictions --counts $R-counts-<basis>.txt $R-counts-<other>.txt
-    #      5, third act, after the move: every `predict:` span of the
-    #      registration adjudicated from the JSONs, HELD or KILLED with
-    #      the figure read, and the items carrying no span named as
-    #      yours. Write each verdict beside its prediction FROM THIS
-    #      OUTPUT, quoting its figure; what it calls yours is the whole
-    #      of the adjudication left to judgement
     #  5a. TAKE THE MOVEMENT READING, whose window 5b closes: a
     #      "moved from X to Y" sentence compares against the figures
     #      the claims install overwrites, and after it they are in git
@@ -6756,6 +6775,18 @@ not otherwise.
     #      end, the rows left to hand-fill; the cross-class summary is
     #      assembled LAST, transcribed from the class tables
     #      why: --para 'Install the tables with'
+    ./read-run.py $R-<basis>-main.json --compare $R-<other>-main.json --predictions --counts $R-counts-<basis>.txt $R-counts-<other>.txt
+    #  5c. THE REGISTRATION'S SPANS, and it comes here rather than with
+    #      the move because it READS THE COUNTS, which the run list
+    #      launches at step 20 -- after the box is handed back, so on any
+    #      run whose write-up starts promptly they are still being taken
+    #      while 5a and 5b are done. It stood above 5a until 2026-09-05,
+    #      where no run could follow it. Every `predict:` span of the
+    #      registration adjudicated from the JSONs, HELD or KILLED with
+    #      the figure read, and the items carrying no span named as
+    #      yours. Write each verdict beside its prediction FROM THIS
+    #      OUTPUT, quoting its figure; what it calls yours is the whole
+    #      of the adjudication left to judgement
     #   6. walk the replace list under Provenance (READ NOW: item 8, the
     #      list itself and its delta bullets), re-run the two sweeps it
     #      names, and map every hit to the bullet covering it -- running
@@ -6809,15 +6840,26 @@ not otherwise.
     #      size comes from the reader. The tables went in at 5b and
     #      are not touched here; what is written is the prose around them,
     #      one edit per paragraph, and no tool reduces that count. Budget
-    #      the head and the class paragraphs as the work. A PARAGRAPH
+    #      the head and the class paragraphs as the work.
+    #      WRITE EACH PARAGRAPH FROM THE READER'S OUTPUT AND NOT BY
+    #      EDITING THE PREVIOUS RUN'S, which is the prose counterpart of
+    #      `install, never paste` and bites harder: a table is replaced
+    #      whole and a paragraph is edited in place, so a clause whose
+    #      numbers you did not touch survives inside a sentence whose
+    #      other numbers you replaced. Run 25 shipped `nine of them below
+    #      1` into a sentence where six were, past three of its own
+    #      gates, and its checker found it by sorting the population. A PARAGRAPH
     #      DEFERRED until a measurement lands carries `[[TODO]]` in its
     #      place, which --check-doc refuses until it is written -- a
     #      deferral with no marker was forgotten until an end-to-end read
     #      (Run 23, the comparison section's first paragraph). FIRST, and
     #      not for tidiness: 6b's figures are requoted FROM this half
     #      why: --para 'commit the binary was built from'
-    #  6b. COMMIT 6a'S WORK IN ONE COMMIT, subject naming the step as at
-    #      5; START the checker's first pass on it, an agent in the
+    #  6b. COMMIT 6a'S WORK IN ONE COMMIT, subject naming THE STEP and
+    #      not the work it commits -- `step 6b`, which is what
+    #      run-status.sh greps the subject for, where `step 6a` names
+    #      what the commit carries and reads as not done (Run 25, caught
+    #      at 10b); START the checker's first pass on it, an agent in the
     #      background; THEN do 6c beside it. THAT COMMIT'S DIFF IS WHAT
     #      THE AGENT WORKS ON -- not
     #      the working tree, not a range. README's step-5 repoint and
@@ -6831,7 +6873,10 @@ not otherwise.
     #      ONE AGENT, TWO PASSES: this is the first and 6d the second, on
     #      the SAME agent, which keeps its reading of this run's artifacts
     #      and pays no second bootstrap; the checker REPORTS ONLY and
-    #      edits nothing, so 6c cannot collide with it. FIXING IS THIS
+    #      edits nothing, and what fixes its object is the COMMIT rather
+    #      than the tree, so neither 6c nor a gate-clearing edit to the
+    #      run file can collide with it -- the freeze is 6d's and starts
+    #      there. FIXING IS THIS
     #      STEP'S OTHER HALF and not 6d's, which exists to read what the
     #      fixing broke.
     #      KEEP CHAPTER EDITS OUT OF THE WRITE-UP'S COMMITS, which is what
@@ -7031,8 +7076,13 @@ because by then the run read finished; putting it first is what retires that.
    is a property of the binary, so once the binaries go no offset this README
    quotes can ever be tied to an arm again. Run 12's were derived this way
    on the last day they existed and refuted two accounts of its own split; Run
-   10's and Run 11's are gone unnamed. What is left over is the timing work,
-   which is what a quiet machine is for.
+   10's and Run 11's are gone unnamed. **Where a preparation spent this half
+   early, on an idle box before the pair ran, the executing session re-derives
+   it off the binaries it timed** --- two minutes, and the difference between
+   a block that was read and one that was carried, which is the distinction
+   pre-run step 12b exists to make and which a note's fill-in block cannot make
+   for itself. What is left over is the timing work, which is what a quiet
+   machine is for.
 1. **Gate every population on the correction, before reading any figure ---
    and read the A/A *worst cell*, not only the pair's geomean.** A control
    that passes its gate can still be the run's most informative measurement:
@@ -10191,7 +10241,7 @@ was reworded, which is the failure this list was rewritten to escape.
   the JSON is deleted; the claims, where a run reports which held rather
   than re-deriving them; each class's own table, controls, provenance, anchor
   and paragraph; and its own Provenance, carrying what the pair was, how
-  the sequence ran, the three main-set anchors with the ten class ones,
+  the sequence ran, the three main-set anchors with the class ones,
   and the correction's span. The bullets that used to name those sections one
   by one are this one, and the coverage check below reads it as covering every
   heading in that file;

@@ -793,7 +793,7 @@ def parked_arm():
     return parked[0]
 
 
-def readme_with_a_registration(tmp, arm=None, task=None):
+def readme_with_a_registration(tmp, arm=None, task=None, task_arm=None):
     """The README plus a synthetic OPEN registration, at the end.
 
     SYNTHETIC and not an edit of the live one, which is the whole point:
@@ -805,6 +805,14 @@ def readme_with_a_registration(tmp, arm=None, task=None):
 
     `arm` names an arm to put in backticks -- pass `parked_arm()` for the
     defect direction -- and `task` a task number to defer to.
+
+    `task_arm` is the other half of the deferral: it PLANTS a task 99
+    under the live tasks heading naming that arm, and defers to it. A
+    registration's own arms and the arms of the task it points at are
+    two populations, and until 2026-09-05 only the first was read --
+    which is how Run 25 lost three predictions of four in one deferred
+    item, every one of them stated against an arm parked the day after
+    it was written.
     """
     text = subprocess.run(['wrap80', '--unwrap'], input=open(README).read(),
                           capture_output=True, text=True, check=True).stdout
@@ -815,6 +823,22 @@ def readme_with_a_registration(tmp, arm=None, task=None):
         entry += " (2) *The arm.* `%s` leads its family; killed by a loss." % arm
     if task:
         entry += " (3) *The additions.* Task %s's, read there." % task
+    if task_arm:
+        entry += " (4) *The deferral.* Task 99's, read there."
+        # After the HEADING LINE, not by paragraph: unwrapped, the heading
+        # carries no blank line before it, so a `\n\n` split leaves it
+        # glued to the paragraph above and finds nothing. The reader's own
+        # `unwrapped_paragraphs` does isolate it, which is why the check
+        # sees the tasks that this fixture could not.
+        anchor = '\n### Recommended tasks after Run'
+        assert text.count(anchor) == 1, ('tasks heading: %d site(s)'
+                                         % text.count(anchor))
+        eol = text.index('\n', text.index(anchor) + 1)
+        text = (text[:eol + 1]
+                + "\n99. `OPEN` **A planted task, for the deferral fixture"
+                  " alone.** It predicts that `%s` leads its family; killed"
+                  " by a loss.\n" % task_arm
+                + text[eol + 1:])
     return write(os.path.join(tmp, 'R.md'), text + '\n' + entry + '\n')
 
 
@@ -1655,7 +1679,8 @@ def doc_expr(blocks):
     return '(' + sep.join(repr(b) for b in blocks) + ')'
 
 
-def synth_counts(tmp, name, ratio=1.0, refuse=(), extra_arms=(), n=50):
+def synth_counts(tmp, name, ratio=1.0, refuse=(), extra_arms=(), n=50,
+                 cheap_sum_only=False):
     """One half's `run-counts.sh` artifact, derived as `synth_run` is.
 
     The arms come from Main.hs's roster through the reader's own parser and
@@ -1666,6 +1691,15 @@ def synth_counts(tmp, name, ratio=1.0, refuse=(), extra_arms=(), n=50):
     count, written as the `!!` line the real artifact writes; `extra_arms`
     names arms the counts hold and no run times, which is the narrowing
     this file exists over.
+
+    `cheap_sum_only` gives the two `sum-only` arms a count BELOW every
+    other, which is what the real artifact holds -- the forcing pass is
+    the cheapest bench there is. The default leaves them where sorting
+    puts them, near the end and so among the dearest, which no cross-half
+    case can tell apart because it subtracts nothing; a WITHIN-half
+    reading corrects against them and sinks every cell on the default
+    fixture. Added 2026-09-05 with `--counts --pair`, whose first case
+    exited 2 on it and whose sibling below now plants that on purpose.
     """
     m = _reader()
     main_hs = os.path.join(HERE, 'Main.hs')
@@ -1686,6 +1720,8 @@ def synth_counts(tmp, name, ratio=1.0, refuse=(), extra_arms=(), n=50):
                 # A count per (shape, arm) that differs by arm, so that a
                 # mode folding two arms together cannot read as correct.
                 base = 1000000 + 1000 * i + 7 * len(sh)
+                if cheap_sum_only and arm.startswith('sum-only'):
+                    base = 1000 + 7 * len(sh)
                 f.write('%s %s %d %d\n'
                         % (sh, arm, n, int(round(base * ratio))))
     return path
@@ -4726,6 +4762,182 @@ RECORDS = [
          ok=V(exit=0, has=['13. has the gate run and passed', 'run-counts.sh'],
               hasnt=['## ', 'why the chapter'])),
 
+    case('counts-pair-reads-two-arms-on-one-half', 'read-run.py', None,
+         'a registration comparing two arms on ONE binary had no counted-work'
+         ' mode, so the write-up hand-rolled the arithmetic',
+         # `--counts` read a PAIR of sweep files beside `--compare` and
+         # answered only *did this arm move between the halves*. Run 25's
+         # registration 7 turned on the other question and there was no
+         # mode: the write-up differenced each arm against the sweep's
+         # `sum-only` mean per shape and geomeaned over the eighteen, which
+         # is the standing instruction's own definition of a defect report
+         # against this reader. The corrected column is the one comparable
+         # with a `--pair` time ratio; the raw one is what the file holds.
+         plant=lambda t: {'run': synth_json(t, 'main'),
+                          'counts': synth_counts(t, 'c.txt',
+                                                 cheap_sum_only=True)},
+         argv=['{run}', '--counts', '{counts}',
+               '--pair', 'mut-odo-vecdims', 'bq-expand'],
+         ok=V(exit=0, has=['counted work within one half',
+                           'corrected', 'raw',
+                           'mut-odo-vecdims / bq-expand'],
+              hasnt=['no shape carries both'])),
+
+    case('counts-pair-sinks-loudly', 'read-run.py', None,
+         'a within-half reading whose correction leaves no work said so'
+         ' rather than printing a ratio of two negatives',
+         # THE NON-VACUITY OF THE CASE ABOVE: on the default fixture the
+         # `sum-only` arms sort among the dearest, so the correction sinks
+         # every cell -- which is how the case above was found to need a
+         # faithful one. Here that is the planting, and the mode must name
+         # it and exit 2 rather than divide.
+         plant=lambda t: {'run': synth_json(t, 'main'),
+                          'counts': synth_counts(t, 'c.txt')},
+         argv=['{run}', '--counts', '{counts}',
+               '--pair', 'mut-odo-vecdims', 'bq-expand'],
+         ok=V(exit=2, has=['no shape carries both'])),
+
+    case('counts-pair-refuses-two-files', 'read-run.py', None,
+         'the two arities of --counts read as each other',
+         # ONE sweep file with `--pair` is the within-half reading and TWO
+         # with `--compare` is the cross-half one. Given two files and a
+         # `--pair`, the older arity is what the caller means and the
+         # newer one is what the flag now also spells, so it is refused by
+         # name rather than read as either.
+         plant=lambda t: {'run': synth_json(t, 'main'),
+                          'a': synth_counts(t, 'a.txt'),
+                          'b': synth_counts(t, 'b.txt', ratio=1.05)},
+         argv=['{run}', '--counts', '{a}', '{b}',
+               '--pair', 'mut-odo-vecdims', 'bq-expand'],
+         ok=V(exit=2, has=['takes ONE sweep file'])),
+
+    case('counts-alone-is-refused', 'read-run.py', None,
+         'CONTROL: --counts with neither owner is the unread-flag family,'
+         ' and it is refused rather than dropped',
+         # It left the modifier table when it gained a second arity, one
+         # `needs` no longer naming both owners -- so this is what says the
+         # refusal survived the move.
+         plant=lambda t: {'run': synth_json(t, 'main'),
+                          'counts': synth_counts(t, 'c.txt')},
+         argv=['{run}', '--counts', '{counts}'],
+         ok=V(exit=2, has=['does nothing alone'])),
+
+    case('counts-compare-still-takes-two', 'read-run.py', None,
+         'CONTROL: the cross-half arity is unmoved, which is what says the'
+         ' new one was added beside it and not over it',
+         plant=lambda t: {'run': synth_json(t, 'main', name='this.json'),
+                          'other': synth_json(t, 'main', name='that.json'),
+                          'a': synth_counts(t, 'a.txt'),
+                          'b': synth_counts(t, 'b.txt', ratio=1.05)},
+         argv=['{run}', '--compare', '{other}',
+               '--counts', '{a}', '{b}'],
+         ok=V(exit=0, has=['counted work, this run against'])),
+
+    case('pin-restricts-to-the-shared-shapes', 'read-run.py', None,
+         'a cross-run figure was pinned by one --exclude-shape per retired'
+         ' shape, typed out',
+         # `match bases before reading any ratio` asks every cross-run
+         # figure to be read over the shapes the two runs share, and until
+         # 2026-09-05 that was a hand-typed flag apiece. Run 24's write-up
+         # improvised it with two and filed the improvisation as a task;
+         # Run 25 improvised it with eight and needed them for every
+         # cross-run figure it published. A typed list is a place to drop a
+         # shape in silence, which is the failure this mode removes.
+         plant=lambda t: {
+             'run': synth_run(os.path.join(t, 'big.json'), main_shapes()),
+             'other': synth_run(os.path.join(t, 'small.json'),
+                                main_shapes()[:6])},
+         argv=['{run}', '--pin', '{other}'],
+         # The population line is shared with `pin-is-the-flags-it-replaces`
+         # below, which reaches it by the flags: two cases, two routes, one
+         # expected line, and that pair is the equivalence a write-up
+         # substituting one for the other relies on. Byte-for-byte on the
+         # real artifacts too, 2026-09-05: `--pin run25-g912-main.json` and
+         # the eight `--exclude-shape` flags it stands for gave identical
+         # output on run24-g912-main.json.
+         ok=V(exit=0, has=['pinned to the 6 shape(s)', 'dropping',
+                           'reading 24 of them over 6 shapes'])),
+
+    case('pin-says-when-it-drops-nothing', 'read-run.py', None,
+         'CONTROL: a pin against a run holding every shape drops none and'
+         ' says so, which is what says the case above pinned on its'
+         ' populations and not on the flag',
+         plant=lambda t: {
+             'run': synth_run(os.path.join(t, 'a.json'), main_shapes()),
+             'other': synth_run(os.path.join(t, 'b.json'), main_shapes())},
+         argv=['{run}', '--pin', '{other}'],
+         ok=V(exit=0, has=['it drops none'], hasnt=['dropping'])),
+
+    case('pin-refuses-a-disjoint-population', 'read-run.py', None,
+         'a pin against a run sharing no shape read as an empty table'
+         ' rather than as a refusal',
+         # EXIT 2 and not 1: the run did not happen, which is this
+         # directory's convention for a check that could not be made.
+         plant=lambda t: {
+             'run': synth_run(os.path.join(t, 'm.json'), main_shapes()),
+             'other': synth_json(t, 'rev')},
+         argv=['{run}', '--pin', '{other}'],
+         ok=V(exit=2, has=['share no shape'])),
+
+    case('pin-is-the-flags-it-replaces', 'read-run.py', None,
+         'CONTROL: --pin and the --exclude-shape flags it stands for read'
+         ' the same population, which is the whole of what it claims',
+         # The pair above says the mode restricts; this says it restricts
+         # to the SAME set the hand-typed form did, which is what a
+         # write-up substituting one for the other is relying on. Same
+         # planted shapes, the two routes, one expected line -- the twin is
+         # `pin-restricts-to-the-shared-shapes` above.
+         plant=lambda t: {
+             'run': synth_run(os.path.join(t, 'big2.json'), main_shapes())},
+         argv=['{run}'] + [f for sh in main_shapes()[6:]
+                           for f in ('--exclude-shape', sh)],
+         ok=V(exit=0, has=['reading 24 of them over 6 shapes'])),
+
+    case('checklist-post-a-stops-at-the-seam', 'read-run.py', None,
+         'CONTROL: --checklist post-a is the post list down to step 6 and'
+         ' no further',
+         # The post list is longer than the other two together and has a
+         # seam: nothing from step 6 on is actionable until 5b's tables are
+         # in. Run 25 read all 412 lines at once, hours before it could act
+         # on half of them, and then re-read most of them at their steps.
+         plant=lambda t: {'readme': edited_readme(t)},
+         argv=['--checklist', 'post-a', '--readme', '{readme}'],
+         ok=V(exit=0, has=['steps 0 to 5b', '0. NAME THE FILL GROUPS',
+                           'install-tables.sh'],
+              hasnt=['walk the replace list', 'offer the artifacts'])),
+
+    case('checklist-post-b-starts-at-the-seam', 'read-run.py', None,
+         'CONTROL: --checklist post-b is the post list from step 6 on, and'
+         ' with post-a it is the whole list',
+         plant=lambda t: {'readme': edited_readme(t)},
+         argv=['--checklist', 'post-b', '--readme', '{readme}'],
+         ok=V(exit=0, has=['steps 6 to 11', 'walk the replace list',
+                           'offer the artifacts'],
+              hasnt=['0. NAME THE FILL GROUPS'])),
+
+    case('checklist-post-half-refuses-a-missing-seam', 'read-run.py', None,
+         'a half of the post list cut at a line number rather than at its'
+         ' own text',
+         # THE NON-VACUITY OF THE TWO ABOVE: they would pass just as well
+         # on a mode that sliced the block at a fixed offset, and a fixed
+         # offset is what goes wrong silently the next time a step is
+         # added. Remove the seam and the mode must refuse by name rather
+         # than cut somewhere.
+         plant=lambda t: {'readme': edited_readme(t, (
+             '    #   6. walk the replace list under Provenance',
+             '    #   6. WALK the replace list under Provenance'))},
+         argv=['--checklist', 'post-a', '--readme', '{readme}'],
+         ok=V(exit=1, has=['seam', 'occurs 0 times'])),
+
+    case('checklist-post-is-still-whole', 'read-run.py', None,
+         'CONTROL: --checklist post is unsplit and carries both ends,'
+         ' which is what says the halves are cut out of it',
+         plant=lambda t: {'readme': edited_readme(t)},
+         argv=['--checklist', 'post', '--readme', '{readme}'],
+         ok=V(exit=0, has=['0. NAME THE FILL GROUPS', 'walk the replace list',
+                           'offer the artifacts'],
+              hasnt=['steps 0 to 5b', 'steps 6 to 11'])),
+
     case('bridge-divides-out-the-baseline', 'read-run.py', None,
          'a cross-run comparison a moved box made unreadable',
          # --compare divides one arm's net by the same arm's net in the
@@ -7725,6 +7937,24 @@ RECORDS = [
          ok=V(exit=1, has=['defers to task(s) that are not under the tasks'
                            ' heading: 999']),
          bug=V(exit=0, hasnt=['registration'])),
+
+    case('registration-deferral-target-arm-is-not-timed', 'read-run.py',
+         None,
+         "a registration's deferral target named a parked arm and only the"
+         ' registration itself was read',
+         # `--lint` has held an OPEN registration's own backticked arms to
+         # the timed roster since f40fad2, and checked that each `task N`
+         # it defers to RESOLVES -- and nothing about what that task then
+         # names. Run 25's item (4) deferred to task 10, three of whose
+         # four class predictions are stated against `lib-stage2` and
+         # `canon-vecdims`, parked the day after they were written: three
+         # predictions of four unreadable before the machine was started,
+         # past a check that reported the pointer good.
+         plant=lambda t: {'readme': readme_with_a_registration(
+             t, task_arm=parked_arm())},
+         argv=['--lint', '--readme', '{readme}'],
+         ok=V(exit=1, has=['defers to task 99, which names arms the roster'
+                           ' does not time'])),
 
     case('registration-clean-reads-ok', 'read-run.py', None,
          'CONTROL: a registration naming a timed arm and no task passes,'

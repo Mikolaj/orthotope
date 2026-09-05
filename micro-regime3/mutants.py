@@ -167,6 +167,23 @@ MUTANTS = [
      'r = subprocess.run([sys.executable, \'{file}\', \'--lint\', \'--readme\', f],'
      ' capture_output=True, text=True)\n'
      'sys.exit(0 if \'not under the tasks heading\' in r.stdout + r.stderr else 1)"'),
+    # The deferral target's arms, unread: the registration's own arms are
+    # still held to the roster and the task it points at is not, which is
+    # the state Run 25 lost three predictions of four to. The judge plants
+    # a task 99 naming a parked arm and defers to it.
+    ('--lint stops reading the arms of a task a registration defers to',
+     'read-run.py',
+     "away = sorted(set(re.findall(r'`([A-Za-z][A-Za-z0-9-]*)`',\n"
+     "                                             tasks[n])) & untimed)",
+     "away = sorted(set(re.findall(r'`([A-Za-z][A-Za-z0-9-]*)`',\n"
+     "                                             tasks[n])) & set())",
+     'PATH="{bin}:$PATH" python3 -c "import importlib.util, sys, tempfile, subprocess\n'
+     'spec = importlib.util.spec_from_file_location(\'d\', \'{dir}/defects.py\')\n'
+     'm = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)\n'
+     'f = m.readme_with_a_registration(tempfile.mkdtemp(), task_arm=m.parked_arm())\n'
+     'r = subprocess.run([sys.executable, \'{file}\', \'--lint\', \'--readme\', f],'
+     ' capture_output=True, text=True)\n'
+     'sys.exit(0 if \'which names arms the roster does not time\' in r.stdout + r.stderr else 1)"'),
     # The survey's reachability guard, removed: the saved site's data word
     # counts as a straddling loop again. The judge plants the listing from
     # defects.py and asks the survey for its straddle count.

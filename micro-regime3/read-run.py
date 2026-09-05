@@ -141,6 +141,12 @@ Modes:
                     spans from the two runs, HELD or KILLED each with the
                     figure read, and name the items carrying no span as
                     yours; `--counts A B` beside it for the count spans
+  --counts SWEEP.txt --pair A B   the other arity: two arms' instruction
+                    counts on ONE half, corrected against the shared
+                    forcing pass and raw beside it, which is what a
+                    registration comparing two arms on one binary turns
+                    on. Two sweep files with `--compare` is the cross-half
+                    reading and the older one
   --claims          every claim ordering and its registered verdict in one
                     call, in the claims section's order, from a manifest
                     --lint holds to the roster
@@ -183,6 +189,12 @@ Modes:
                     its block's lead, and refusing rather than guessing
   --exclude S       drop strategy S from every aggregate (repeatable)
   --exclude-shape H drop shape H likewise (repeatable)
+  --pin OTHER.json  keep only the shapes OTHER has too, which is what
+                    `match bases before reading any ratio` asks of every
+                    cross-run figure -- the predecessor's own column read
+                    over this run's population, in one flag instead of one
+                    `--exclude-shape` per retired shape. Says on stderr
+                    what it kept and what it dropped
   --corr=insitu     subtract the `-nosum` pairs' in-situ term in place of
                     `sum-only`, for a build where `sum-only` cannot be
                     subtracted at all -- an LLVM one, where it runs larger
@@ -204,7 +216,10 @@ Modes:
                     column. Sites agreeing with each other say only that
                     they were edited together
   --checklist WHICH print one of the run chapter's three checklists, pre,
-                    run or post, alone and sized -- no run needed
+                    run or post, alone and sized -- and `post-a` or
+                    `post-b` for the post list's two halves, which are cut
+                    at step 6: nothing below that is actionable until 5b's
+                    tables are in -- no run needed
   --note PREV       a previous pair note as the next PREPARATION owes it:
                     the handover blocks withheld and the size said, which
                     is reading-list item 10 made executable
@@ -2545,6 +2560,82 @@ def predictions_table(cells, shapes, strategies, meta, other, main_hs,
              % ', '.join('(%s)' % u for u in unspanned) if unspanned
              else '; every item carries a span'))
     return 1 if unread else 0
+
+
+def counts_pair(counts_a, pairs, shapes):
+    """Two arms' instruction counts on ONE half, corrected and raw.
+
+    `--counts` reads a PAIR of sweep files beside `--compare` and answers
+    *did this arm's instructions move between the halves*. Registration 7
+    turned on the other question --- *how many instructions does this arm
+    execute against that one, on one half* --- and there was no mode, so
+    Run 25 hand-rolled the arithmetic, which this file's own standing
+    instruction calls a defect report against the reader: where a write-up
+    invents the computation it will invent a wrong one, and the next run
+    will invent a different wrong one.
+
+    CORRECTED against the shared forcing pass, which is what makes it
+    comparable with the `time` column: perf counts the whole bench, so a
+    raw ratio of two fills is pulled toward 1 by the pass they both run,
+    and on this roster that is a third of a cell. The term is the mean of
+    whatever `sum-only*` arms the sweep carries, per shape, exactly as
+    `apply_correction` takes it from the JSON. Both figures print, because
+    the raw one is what the file holds and the corrected one is what the
+    sentence means.
+
+    A shape either arm is missing, or where the correction leaves either
+    arm non-positive, is DROPPED and counted in the line below the table
+    -- the same rule the time column takes, and for the same reason: a
+    cell with no work left in it does not make a ratio wrong, it destroys
+    it.
+    """
+    counts, refused, malformed = parse_counts(counts_a)
+    print('\ncounted work within one half, from %s'
+          % os.path.basename(counts_a))
+    if refused:
+        print('  %d cell(s) perf refused, dropped: %s'
+              % (len(refused), ', '.join(sorted(refused)[:6])
+                 + (', ...' if len(refused) > 6 else '')))
+    if malformed:
+        print('  %d malformed line(s)' % len(malformed))
+    print()
+    print('%-52s %9s %9s %7s' % ('A / B', 'corrected', 'raw', 'shapes'))
+    rc = 0
+    for a, b in pairs:
+        raw, net, gone = [], [], []
+        for sh in shapes:
+            arms = counts.get(sh, {})
+            if a not in arms or b not in arms:
+                gone.append(sh)
+                continue
+            terms = [v for k, v in arms.items() if k.startswith('sum-only')]
+            corr = sum(terms) / len(terms) if terms else 0.0
+            na, nb = arms[a] - corr, arms[b] - corr
+            if arms[b] <= 0 or nb <= 0 or na <= 0:
+                gone.append(sh)
+                continue
+            raw.append(arms[a] / arms[b])
+            net.append(na / nb)
+        if not net:
+            print('%-52s %s'
+                  % ('%s / %s' % (a, b),
+                     'no shape carries both with work left after the'
+                     ' correction'))
+            rc = 2
+            continue
+        print('%-52s %9.4f %9.4f %7d'
+              % ('%s / %s' % (a, b), geomean(net), geomean(raw), len(net)))
+        if gone:
+            print('  %d shape(s) dropped, either arm missing or left without'
+                  ' work by the correction: %s'
+                  % (len(gone), ', '.join(sorted(gone)[:6])
+                     + (', ...' if len(gone) > 6 else '')))
+    print()
+    print('corrected subtracts the shared forcing pass per shape, the mean')
+    print('of the sweep\'s `sum-only*` arms, which is the term the `time`')
+    print('column subtracts -- so this figure and a `--pair` time ratio are')
+    print('the same quantity on two instruments. raw is what the file holds.')
+    return rc
 
 
 def counts_table(cells, shapes, strategies, meta, other, main_hs,
@@ -6499,12 +6590,26 @@ CHECKLISTS = {
     'post': '#   0. NAME THE FILL GROUPS',
 }
 
+# The post list alone is longer than the other two together, and it has a
+# seam: nothing from step 6 on is actionable until 5b's tables are in, so a
+# session reading it whole reads half of it hours before it can act. `post-a`
+# stops where the installs end and `post-b` starts at the walk. Both are cut
+# out of the one block, so there is no second copy to keep in step, and
+# `post` still prints it entire for a reader who wants it. Added 2026-09-05,
+# after Run 25 read 412 lines at once and then re-read most of them at their
+# steps.
+POST_SPLIT = '    #   6. walk the replace list under Provenance'
+
 
 def checklist(readme, which):
     """Print one of the run chapter's three checklists, and nothing else."""
+    half = None
+    if which in ('post-a', 'post-b'):
+        which, half = 'post', which[-1]
     if which not in CHECKLISTS:
         sys.stderr.write('--checklist: one of %s, not %r\n'
-                         % ('|'.join(CHECKLISTS), which))
+                         % ('|'.join(list(CHECKLISTS) + ['post-a', 'post-b']),
+                            which))
         return 1
     try:
         lines = open(readme).read().split('\n')
@@ -6533,8 +6638,22 @@ def checklist(readme, which):
         j -= 1
     block = lines[i:j + 1]
     label = {'pre': 'pre-run', 'run': 'run', 'post': 'post-run'}[which]
-    print('%s: the %s checklist, %d lines, %d KB, README.md lines %d to %d'
-          % (os.path.basename(readme), label, len(block),
+    steps = ''
+    if half:
+        cut = [k for k, l in enumerate(block) if l.startswith(POST_SPLIT)]
+        if len(cut) != 1:
+            sys.stderr.write('--checklist post-%s: its seam %r occurs %d'
+                             ' times in the post list, need 1\n'
+                             % (half, POST_SPLIT.strip(), len(cut)))
+            return 1
+        if half == 'a':
+            block, j = block[:cut[0]], i + cut[0] - 1
+            steps = ', steps 0 to 5b'
+        else:
+            block, i = block[cut[0]:], i + cut[0]
+            steps = ', steps 6 to 11'
+    print('%s: the %s checklist%s, %d lines, %d KB, README.md lines %d to %d'
+          % (os.path.basename(readme), label, steps, len(block),
              len('\n'.join(block)) // 1024, i + 1, j + 1))
     print()
     print('\n'.join(block))
@@ -7708,7 +7827,10 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
         print('ok:   ' + line)
     if comparatives:
         sweep(comparatives, 'superseded figure(s) quoted; each has to earn'
-              ' its place by the redo test, so adjudicate rather than assume')
+              ' its place by the redo test, so adjudicate rather than assume'
+              ' -- and a NEW entry is a paragraph the working tree changed,'
+              " which step 5's repoint of every link into runs/ does to a few"
+              ' dozen carrying figures it never touched')
     if superlatives:
         sweep(superlatives, 'superlative(s) in prose; each is a claim about'
               ' the whole table, so derive it by sorting rather than from'
@@ -8497,6 +8619,17 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
         # whose patterns stop matching says so rather than passing: a
         # sweep that silently narrows is the failure this file is written
         # against, and a reworded sentence moves a pattern with it.
+        #
+        # AND A SELF-AIMING FIXTURE ANCHOR HAS TO LAND INSIDE ONE OF THESE
+        # SITES. `defects.py`'s `readme_six_pair_perturbed` finds the
+        # sentence by its own shape so a requote does not leave a fixture
+        # that will not build -- but a shape that is not one of the
+        # patterns above perturbs text this check never reads, and the
+        # case then builds, runs and cannot fire, which is the one
+        # outcome a corpus must not have. Run 25 reworded the six-pair
+        # sentence truthfully, the anchor followed it out of the site,
+        # and the case went green on a check that had seen nothing. When
+        # a pattern here moves, move that anchor with it.
         AGREEING = (
             ('floor pair',
              (r'a noise floor this run measures at ([\d.]+)%[^.]*?'
@@ -9392,7 +9525,9 @@ def lint(main_hs, readme, run_doc=None):
     #   every arm an OPEN registration names is TIMED, so its prediction can
     #   be read on the run it was registered for; and
     #   every `task N` it defers to RESOLVES to a numbered task under the
-    #   run-scoped tasks heading, so a deferral points at something.
+    #   run-scoped tasks heading, so a deferral points at something; and
+    #   THAT TASK'S OWN ARMS are timed too, since 2026-09-05, a deferral
+    #   being a second population the registration is answerable for.
     #
     # WHAT IT DOES NOT ASK is whether the task it resolves to still carries
     # a prediction. Run 25's registration deferred its item (4) to task 10,
@@ -9428,14 +9563,14 @@ def lint(main_hs, readme, run_doc=None):
     # is followed by another `###` today, so a `##` guard would have been
     # indistinguishable from this until the day a section moved and every
     # numbered paragraph after it counted as a task on offer.
-    tasks, in_tasks = set(), False
+    tasks, in_tasks = {}, False
     for t in paras:
         if t.startswith('#'):
             in_tasks = t.startswith('### Recommended tasks after Run')
         elif in_tasks:
             m = re.match(r'(\d+)\.\s+`', t)
             if m:
-                tasks.add(m.group(1))
+                tasks[m.group(1)] = t
     if not regs:
         # No OPEN registration is the normal state between runs -- the
         # entry moves into the run's own file at post-run step 5 and the
@@ -9458,20 +9593,44 @@ def lint(main_hs, readme, run_doc=None):
             # lower-case pattern this was written with found nothing on the
             # one document it exists for. Caught by breaking it, 2026-09-04,
             # which is the whole of why the break is taken.
-            lost = sorted({n for n in re.findall(r'\b[Tt]ask (\d+)', t)
-                           if n not in tasks})
+            # ONE findall, and the mutant that breaks it is why: the
+            # deferral set is read once and both checks below take their
+            # halves of it, where two copies of the pattern left
+            # `--lint stops resolving a registration's task pointers`
+            # with an anchor occurring twice and so unappliable -- a
+            # mutant that proves nothing either way, which is worse than
+            # one that fails (2026-09-05).
+            deferred = set(re.findall(r'\b[Tt]ask (\d+)', t))
+            lost = sorted(deferred - set(tasks))
             if lost:
                 trouble.append("Run %s's registration defers to task(s) that"
                                ' are not under the tasks heading: %s'
                                % (num, ', '.join(lost)))
+            # AND THE ARMS OF WHAT THE DEFERRAL LANDS ON, which is a
+            # second population and was read by nothing until
+            # 2026-09-05. Run 25's item (4) deferred to task 10, three
+            # of whose four class predictions are stated against
+            # `lib-stage2` and `canon-vecdims`, parked the day after
+            # they were written: three predictions of four unreadable
+            # before the machine was started, past a check that had
+            # reported the pointer good. Same intersection as the
+            # registration's own arms, one indirection along.
+            for n in sorted(deferred & set(tasks)):
+                away = sorted(set(re.findall(r'`([A-Za-z][A-Za-z0-9-]*)`',
+                                             tasks[n])) & untimed)
+                if away:
+                    trouble.append("Run %s's registration defers to task %s,"
+                                   ' which names arms the roster does not'
+                                   ' time: %s' % (num, n, ', '.join(away)))
         if trouble:
             bad.append('%d problem(s) in the OPEN registration(s), which no'
                        ' other check here reads:\n        %s'
                        % (len(trouble), '\n        '.join(trouble)))
         else:
-            print('ok:   every arm the OPEN registration(s) name is timed and'
-                  ' every task they defer to resolves (%d registration(s),'
-                  ' %d task(s) on offer)' % (len(regs), len(tasks)))
+            print('ok:   every arm the OPEN registration(s) name is timed,'
+                  ' and so is every arm of every task they defer to, which'
+                  ' resolves (%d registration(s), %d task(s) on offer)'
+                  % (len(regs), len(tasks)))
 
     def mirrors(entries, resolve, what):
         """Every arm here whose name promises a base it does not run.
@@ -10058,7 +10217,7 @@ def main():
                    help='with --compare: the arms whose geomean moved past'
                         ' PCT percent (default 3), counted and grouped by'
                         ' the same comparison that lists them')
-    p.add_argument('--counts', nargs=2, metavar=('THIS.txt', 'OTHER.txt'),
+    p.add_argument('--counts', nargs='+', metavar='SWEEP.txt',
                    help='with --compare: run-counts.sh\'s instruction counts'
                         ' beside the time ratio, per arm -- the count column'
                         ' owes criterion nothing, so time moving with counts'
@@ -10164,7 +10323,7 @@ def main():
                         ' from; wants --halves')
     p.add_argument('--halves', metavar='BASIS,OTHER',
                    help="with --note --draft: the new pair's two names")
-    p.add_argument('--checklist', metavar='pre|run|post',
+    p.add_argument('--checklist', metavar='pre|run|post[-a|-b]',
                    help="print one of the run chapter's three checklists"
                         ' alone, which is what a session executes; the'
                         ' prose around them is the reasons')
@@ -10208,6 +10367,9 @@ def main():
                    metavar='STRATEGY')
     p.add_argument('--exclude-shape', action='append', default=[],
                    metavar='SHAPE')
+    p.add_argument('--pin', metavar='OTHER.json',
+                   help="restrict this run's aggregates to the shapes OTHER"
+                        ' also has, which is what a cross-run figure owes')
     args = p.parse_args()
     # RESOLVED ONCE, HERE, so that every mode below reads the same run and a
     # session cannot install one run's tables while reading another's
@@ -10269,8 +10431,14 @@ def main():
     def asked(v):
         """Was this flag given? False and 0 are given; None is not."""
         return v is not None and v is not False
+    # `--counts` is NOT in this table since 2026-09-05: it has two
+    # arities and one owner apiece -- two sweep files modify `--compare`,
+    # one modifies `--pair` -- so a single `needs` here would refuse the
+    # arity it does not name. Its own pair of refusals is at the dispatch,
+    # written to say which arity was given and what that one wants, which
+    # is more than this loop can say.
     for flag, needs in (('alloc', 'compare'), ('chapter', 'compare'),
-                        ('counts', 'compare'), ('movers', 'compare'),
+                        ('movers', 'compare'),
                         ('predictions', 'compare'), ('quiet', 'check_doc')):
         # `is not None` and NOT truthiness: --movers takes a NUMBER, and
         # `--movers 0` is falsy, so a truth test let one value of one flag
@@ -10370,6 +10538,14 @@ def main():
         p.error('%s are %d readings of --compare, not one: run the'
                 ' invocations README\'s checklist spells out, one at a'
                 ' time' % (' and '.join('--' + f for f in subs), len(subs)))
+    if args.counts and not (args.compare or args.pair):
+        p.error('--counts is a modifier: ONE sweep file with `--pair A B`'
+                ' for the within-half reading, TWO with `--compare` for the'
+                ' cross-half one, and it does nothing alone')
+    if args.counts and args.compare and len(args.counts) != 2:
+        p.error('--counts with --compare is the cross-half reading and takes'
+                ' TWO sweep files, this run\'s and the other half\'s, not %d'
+                % len(args.counts))
     if args.ci and not args.compare:
         p.error('--ci is a reading ACROSS two runs: give it --compare')
     if args.bridge and not args.compare:
@@ -10442,6 +10618,45 @@ def main():
             sys.exit(2)
         sys.exit(wild_table(args.run, args.verbose))
     cells, shapes, strategies, meta = load(args.run, args.main)
+    # --pin BEFORE --exclude-shape, and both before anything reads a
+    # figure: pinning is a restriction like the other and the two compose,
+    # so `--pin` the population and `--exclude-shape` a shape inside it is
+    # the reading a run takes of a predecessor whose extra shapes are gone
+    # AND one of whose kept shapes is degenerate.
+    #
+    # WHY IT IS A MODE. A cross-run figure is read over the shapes the two
+    # runs share -- the chapter's `match bases before reading any ratio` --
+    # and until 2026-09-05 that was `--exclude-shape` once per shape, typed
+    # out. Run 24's write-up improvised it with two flags and recorded the
+    # improvisation as a task; Run 25 improvised it with EIGHT, and every
+    # cross-run figure it published needed them: the predecessor's whole
+    # column, its claim readings, its allocation levels, its correction
+    # terms. Two runs is the bar this file uses for making something a
+    # mode, and a hand-typed list is a place to drop a shape silently.
+    if args.pin:
+        try:
+            keep = set(load(args.pin, args.main)[1])
+        except (OSError, ValueError, KeyError) as e:
+            sys.stderr.write('--pin: %s: %s\n'
+                             % (os.path.basename(args.pin), e))
+            sys.exit(2)
+        dropped = [s for s in shapes if s not in keep]
+        shapes = [s for s in shapes if s in keep]
+        if not shapes:
+            sys.stderr.write('--pin: %s and %s share no shape, so there is'
+                             ' nothing to read\n'
+                             % (os.path.basename(args.run),
+                                os.path.basename(args.pin)))
+            sys.exit(2)
+        # SAID OUT LOUD, on stderr with the rest of the warnings: a pinned
+        # figure is a figure over a population the file's own head does not
+        # name, and a reader who cannot see which shapes went cannot check
+        # it. Silence here would make the mode worse than the flags it
+        # replaces, those at least being visible in the command.
+        sys.stderr.write('pinned to the %d shape(s) %s also has%s\n'
+                         % (len(shapes), os.path.basename(args.pin),
+                            (', dropping ' + ', '.join(sorted(dropped)))
+                            if dropped else ' -- it drops none'))
     shapes = [s for s in shapes if s not in args.exclude_shape]
     strategies = [s for s in strategies if s not in args.exclude]
     # Before --no-controls, so that omitting the controls from the aggregates
@@ -10506,6 +10721,19 @@ def main():
         shape_table(cells, shapes, strategies, meta)
     elif args.aa:
         aa_table(cells, shapes, strategies, terms, meta, not args.verbose)
+    elif args.pair and args.counts:
+        # BEFORE the time reading, because `--pair` names the two arms for
+        # both instruments and the sweep file is what says which was asked
+        # for. One file is the within-half count reading; two is the
+        # cross-half one and belongs to `--compare`, which is refused here
+        # rather than silently read as this.
+        if len(args.counts) != 1:
+            sys.stderr.write('--counts with `--pair` is the WITHIN-HALF'
+                             ' reading and takes ONE sweep file, not %d;'
+                             ' two files are the cross-half reading and want'
+                             ' `--compare OTHER.json`\n' % len(args.counts))
+            sys.exit(2)
+        sys.exit(counts_pair(args.counts[0], args.pair, shapes))
     elif args.pair:
         pair_table(cells, shapes, strategies, args.pair,
                    per_shape=args.per_shape)
