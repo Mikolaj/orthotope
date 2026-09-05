@@ -2764,8 +2764,8 @@ fbLibStage1 sh a@(T (Strides ats) ao v)
 -- runs class the route, on the broadcast classes the conditions.
 -- The one dispatch that keeps the strides comparison after the ruling of
 -- 2026-09-05 at 'fbLibStage2Lean', as that arm's control; every other
--- dispatch over 'canonView' here, and the branch's 'regimeT', took the
--- lean form.
+-- natural-strides dispatch over 'canonView' here, and the branch's
+-- 'regimeT', took the lean form.
 {-# NOINLINE fbLibStage2 #-}
 fbLibStage2 :: ShapeL -> T -> VS.Vector Double
 fbLibStage2 sh (T (Strides ats) ao v)
@@ -3264,9 +3264,11 @@ fbLibStage2Short sh (T (Strides ats) ao v)
 -- population of both halves. 'fbLibStage2' alone keeps the comparison,
 -- as this arm's control. What does not admit it: the stage-one ports
 -- and 'regimeOf', which compare RAW strides, where the invariant does
--- not hold; the unordered one-block tests, whose sort by absolute stride
--- can make a rank-2 canonical view one block; and 'check''s own regime
--- conditions, kept explicit so the equivalence is checked, not assumed.
+-- not hold; the two unordered ports' one-block tests, whose sort by
+-- absolute stride can make a rank-2 canonical view one block, which the
+-- candidate 'fbLibUnordStage3' answers by canonicalizing the sorted pairs
+-- again; and 'check''s own regime conditions, kept explicit so the
+-- equivalence is checked, not assumed.
 {-# NOINLINE fbLibStage2Lean #-}
 fbLibStage2Lean :: ShapeL -> T -> VS.Vector Double
 fbLibStage2Lean sh (T (Strides ats) ao v)

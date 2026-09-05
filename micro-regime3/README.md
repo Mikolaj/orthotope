@@ -808,20 +808,21 @@ rather than a slot in the next run, observed again:
 - `OPEN` **What Run 26 is built to answer, registered before it runs.**
   Registered 2026-09-05, on Run 25's pair --- ghc-9.12.4 against GHC HEAD, both
   under `LOOP_DEADSPOT=1`, the same recipe and the same shim --- over Run 25's
-  roster with two changes: the lean ruling of the same day ([the stride
-  classes](#the-stride-classes-and-what-they-cover)) gave every canonical
-  dispatch the lean form, so `lib-stage2-disp` and `liblist-stage2` are timed
-  under a dispatch Run 25 did not time them under, and the composite
-  of the short bodies left `Main.hs`; and `libunord-stage3` joined the timed
-  roster, one arm added and none removed, every slot below `libunord-stage2`
-  moving by one; `cnn-L1-6x6-c1` is timed again, back from the retired list,
-  and three class views landed, `flip-inner-gap64` and `flip-outer-gap64`
-  in `flip` and `small-patch-r5` in `small` --- so the run is 25 arms over 19
-  main-set shapes, 475 benches, and its cross-run column against Run 25
-  is pinned to the eighteen they share. Each with a prediction and a kill
-  condition, and the verdicts move to Run 26's file with them. (1) *The dispatch
-  pair.* `lib-stage2-disp` and `lib-stage2-lean` are the same code on every
-  population but `runs`, so they read as an A/A pair there:
+  roster and shape set as the day after it left them: the lean ruling
+  of that day ([the stride classes](#the-stride-classes-and-what-they-cover))
+  gave every canonical dispatch the lean form, so `lib-stage2-disp`
+  and `liblist-stage2` are timed under a dispatch Run 25 did not time them
+  under, and the composite of the short bodies left `Main.hs`;
+  and `libunord-stage3` joined the timed roster, one arm added and none removed,
+  every slot below `libunord-stage2` moving by one; `cnn-L1-6x6-c1` is timed
+  again, back from the retired list, and three class views landed,
+  `flip-inner-gap64` and `flip-outer-gap64` in `flip` and `small-patch-r5`
+  in `small` --- so the run is 25 arms over 19 main-set shapes, 475 benches,
+  and its cross-run column against Run 25 is pinned to the eighteen they share.
+  Each with a prediction and a kill condition, and the verdicts move to Run 26's
+  file with them. (1) *The dispatch pair.* `lib-stage2-disp`
+  and `lib-stage2-lean` are the same code on every population but `runs`,
+  so they read as an A/A pair there:
   `predict: pair lib-stage2-disp lib-stage2-lean 1.0` on the main set,
   and inside the population's own floor on each of the nine other classes,
   on both halves, where Run 25 read the pair at 1.0119 and 1.0140 on the main
@@ -833,7 +834,7 @@ rather than a slot in the next run, observed again:
   basis column over the eighteen shared shapes, `lib-stage2-disp` reads faster
   on `cnn-slice-c32`, the one small shape Run 25 timed, by about the gap
   the pair read there on Run 25, 1.1719, and on every `small` view by about
-  that class's 1.17 to 1.30, and within 1% on the other seventeen shapes
+  that class's 1.17 to 1.31, and within 1% on the other seventeen shapes
   as the rest of the roster does; `liblist-stage2` moves the same way
   on the same views, by less, the dispatch being a smaller share of a call
   that also builds its list; `lib-stage2-lean` and every arm the ruling did
@@ -3130,32 +3131,34 @@ and in every natural-strides dispatch over `canonView` here but `lib-stage2`'s,
 which keeps the strides comparison as the lean arm's control**: mainly because
 the merged form decides the regime with no stride list built, which
 is the simpler code, and because Run 24 read `lib-stage2-lean` at or below
-`lib-stage2` on every readable population of both halves and ahead past both
-floors on the four smallest main-set shapes (Run 24's registration 2, whose
-verdict [the open list][open] keeps); the two shapes it read behind past one
-half's floor, `stretch-primes` on the basis and `stretch-inner256` on HEAD,
-execute the same corrected instructions to five parts in ten thousand on both
-halves, so neither loss is the dispatch. What does not admit it: the stage-one
-ports and `regimeOf`, which compare raw strides, where the invariant does
-not hold; the unordered one-block test, whose sort by absolute stride can make
-a rank-2 canonical view one block; and `check`'s own regime conditions, kept
-explicit so that the equivalence is checked and not assumed. The licence ---
-after canonicalization no adjacent pair satisfies the merge equation,
-and natural strides at rank 2 or more are that equation at every pair ---
-was checked against the branch's `canonicalizeT` the same day over 300000 random
-views and every view up to rank 3 with extents to 3 and strides to 4,
-the control's decision equal to the lean one on all of them, and two deliberate
-breaks of it fail the check. `lib-stage2-short-lean`, the composite of the short
-bodies with this dispatch, is gone from `Main.hs` from here, `lib-stage2-short`
-having become the same code; its Run 24 readings stand in that run's file.
-The runs class gained `runs-4` and `runs-5` the same day -- no view in the suite
-had a canonical innermost extent of 4, so the short bodies' one unexercised
-branch was invisible even to `check` -- and `runs-256` and `runs-512`,
-bracketing `dispRun` within a factor of two. Each runs on every population,
-so a library change is read where a user would meet it, class by class,
-whichever of the two entry points the user takes, and the `runs` class is where
-the routes part; with the timed `-u2-down` the dispatch arm, the three fill
-candidates and the unordered pair the block took the roster to 1320 benches,
+`lib-stage2`, within the floor, on every readable population of both halves
+and ahead past both floors on the four smallest main-set shapes (Run 24's
+registration 2, whose verdict [the open list][open] keeps); the two shapes
+it read behind past one half's floor, `stretch-primes` on the basis
+and `stretch-inner256` on HEAD, execute the same corrected instructions to five
+parts in ten thousand on both halves, so neither loss is the dispatch. What does
+not admit it: the stage-one ports and `regimeOf`, which compare raw strides,
+where the invariant does not hold; the two unordered ports' one-block test,
+whose sort by absolute stride can make a rank-2 canonical view one block, which
+the candidate `libunord-stage3` answers by canonicalizing the sorted pairs
+again; and `check`'s own regime conditions, kept explicit so
+that the equivalence is checked and not assumed. The licence --- after
+canonicalization no adjacent pair satisfies the merge equation, and natural
+strides at rank 2 or more are that equation at every pair --- was checked
+against the branch's `canonicalizeT` the same day over 300000 random views
+and every view up to rank 3 with extents to 3 and strides to 4, the control's
+decision equal to the lean one on all of them, and two deliberate breaks
+of it fail the check. `lib-stage2-short-lean`, the composite of the short bodies
+with this dispatch, is gone from `Main.hs` from here, `lib-stage2-short` having
+become the same code; its Run 24 readings stand in that run's file. The runs
+class gained `runs-4` and `runs-5` the same day -- no view in the suite had
+a canonical innermost extent of 4, so the short bodies' one unexercised branch
+was invisible even to `check` -- and `runs-256` and `runs-512`, bracketing
+`dispRun` within a factor of two. Each runs on every population, so a library
+change is read where a user would meet it, class by class, whichever of the two
+entry points the user takes, and the `runs` class is where the routes part;
+with the timed `-u2-down` the dispatch arm, the three fill candidates
+and the unordered pair the block took the roster to 1320 benches,
 and the composite arm with the six parkings and two main-set shapes
 of 2026-09-02 took the roster to 1352 benches, and the retirement of eight
 main-set shapes on 2026-09-04 took the roster to 936 benches, eight superseded
