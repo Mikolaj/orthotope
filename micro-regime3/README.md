@@ -814,17 +814,23 @@ rather than a slot in the next run, observed again:
   under a dispatch Run 25 did not time them under, and the composite
   of the short bodies left `Main.hs`; and `libunord-stage3` joined the timed
   roster, one arm added and none removed, every slot below `libunord-stage2`
-  moving by one and the run 25 arms and 450 benches. Each with a prediction
-  and a kill condition, and the verdicts move to Run 26's file with them. (1)
-  *The dispatch pair.* `lib-stage2-disp` and `lib-stage2-lean` are the same code
-  on every population but `runs`, so they read as an A/A pair there:
+  moving by one; `cnn-L1-6x6-c1` is timed again, back from the retired list,
+  and three class views landed, `flip-inner-gap64` and `flip-outer-gap64`
+  in `flip` and `small-patch-r5` in `small` --- so the run is 25 arms over 19
+  main-set shapes, 475 benches, and its cross-run column against Run 25
+  is pinned to the eighteen they share. Each with a prediction and a kill
+  condition, and the verdicts move to Run 26's file with them. (1) *The dispatch
+  pair.* `lib-stage2-disp` and `lib-stage2-lean` are the same code on every
+  population but `runs`, so they read as an A/A pair there:
   `predict: pair lib-stage2-disp lib-stage2-lean 1.0` on the main set,
   and inside the population's own floor on each of the nine other classes,
   on both halves, where Run 25 read the pair at 1.0119 and 1.0140 on the main
-  set and 1.2274 and 1.2368 on `small`; killed by a margin past the floor
-  on both halves on any population but `runs`, which would be a slot and
-  not the code. (2) *The roster change, read cross-run.* Against Run 25's basis
-  column over the eighteen shared shapes, `lib-stage2-disp` reads faster
+  set and 1.2274 and 1.2368 on `small`; and the pair reads inside the floor
+  on `cnn-L1-6x6-c1` too, timed again for this, where Run 24 read the lean
+  dispatch 14 to 20 points ahead of the comparison one; killed by a margin past
+  the floor on both halves on any population but `runs`, which would be a slot
+  and not the code. (2) *The roster change, read cross-run.* Against Run 25's
+  basis column over the eighteen shared shapes, `lib-stage2-disp` reads faster
   on `cnn-slice-c32`, the one small shape still timed, by about the gap the pair
   read there on Run 25, 1.1719, and on every `small` view by about that class's
   1.17 to 1.30, and within 1% on the other seventeen shapes as the rest
@@ -839,17 +845,20 @@ rather than a slot in the next run, observed again:
   run's column. (3) *The unordered candidate.* `libunord-stage3` reads ahead
   of `libunord-stage2` past the population's floor on both halves wherever stage
   two falls back to its list --- the main-set shapes where the two unordered
-  arms fill rather than slice, and `compose-rev-bcast`, whose reversed axis
-  stage three walks forward --- and inside the floor wherever both slice,
-  on `rev`, `flip`, `revsome` and the one-block main-set shapes, where the two
-  are the same slice; and it allocates 1.00x the result where it fills, against
-  the list consumer's 2.00x tier. Killed by reading behind `libunord-stage2`
-  past the floor on both halves on any view where stage two fills, which would
-  say address order is not what the `flip` finding measured, or by a tie inside
-  the floor on every such main-set shape, which would say the logical order
-  was already the address order there. The pair is not one geomean over the main
-  set, its cells on the one-block shapes being the forcing pass, so this is read
-  per shape and is the session's to adjudicate.
+  arms fill rather than slice, `compose-rev-bcast`, whose reversed axis stage
+  three walks forward, and `flip-inner-gap64`, whose reversed rows it walks
+  forward --- and inside the floor wherever both slice, on `rev`, the dense
+  `flip` views, `revsome` and the one-block main-set shapes, where the two
+  are the same slice, and on `flip-outer-gap64`, forward runs in reversed order,
+  where the direction is already forward; and it allocates 1.00x the result
+  where it fills, against the list consumer's 2.00x tier. Killed by reading
+  behind `libunord-stage2` past the floor on both halves on any view where stage
+  two fills, which would say address order is not what the `flip` finding
+  measured, or by a tie inside the floor on every such main-set shape, which
+  would say the logical order was already the address order there. The pair
+  is not one geomean over the main set, its cells on the one-block shapes being
+  the forcing pass, so this is read per shape and is the session's
+  to adjudicate.
 - `ANSWERED` **What Run 25 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
   verdicts are [in Run 25's own
@@ -2872,37 +2881,41 @@ Run 7 was read against Run 6 restricted to the surviving shapes. The ruling,
 and the two shapes that must survive any later cut for a reason unrelated
 to their workload, sit at `convShapes` in `Main.hs`, beside the list.
 
-**Eight main-set shapes are retired from timing and kept in `check`, ruled
-2026-09-04 on the same test as the three stride classes below: `stretch-inner1`,
-`lenet-slice-c6-k5`, `cnn-L1-6x6-c1`, `cifar-L2-16-c64-k3`, `stretch-rank10`,
-`conv1d-24`, `stretch-rank12` and `cnn-L1-12x12-c1`.** Under the branch's fill
-every main-set view canonicalizes to a rank-3 positive fill with a stride-1
-level, or to a regime-1 slice, so what a timed shape can differ in is its two
-inner extents, their strides and its run count, and by that reading the eight
-duplicate what stays. `stretch-inner1` is the regime-1 slice, O(1) at any size,
-which `small-flat64` times, and the main-set shape the canonicalizing arms
-return an O(1) slice on. `lenet-slice-c6-k5` is `small-patch-k5` to the stride.
-Four are rungs of one ladder, `[A, 3, 3]` at strides `[9, 1, 3]`, whose kept
-rungs are `cnn-slice-c32`, `cnn-L1-24x24-c1`, `cnn-L2-24x24-c32`
-and `vgg-14-c512-k3`: `cnn-L1-6x6-c1` and `cifar-L2-16-c64-k3` each within
-a tenth in run count of a kept rung, `stretch-rank10` a rung once its odometer
-is merged away, `cnn-L1-12x12-c1` the fifth of five. `conv1d-24` is runs of 3
-at stride 24 beside `gather48-src-50` at stride 50, which the `rev` class
-mirrors. `stretch-rank12` is runs of 2 at stride 2, its rank merged away,
-the third of three runs-of-2 shapes and the only small one, which the `small`
-class covers now. The anchor `cifar-L2-16-c64-k3` held moved
-to `cnn-L2-24x24-c32`, the same pattern within a tenth in run count, whose
-anchor history starts at Run 25. Two things follow. The population moved,
-so a Run 25 main-set geomean re-baselines against Run 24, as the halving's did,
-and only the fingerprint's per-shape rows and the anchors cross. And `check`
-still holds every arm to the reference on the eight, the entries staying listed
-in `Main.hs` under `retiredShapes`, which is what the binary's roster
-and `read-run.py`'s counts read; the run file that timed them is held to its own
-population by the provenance bullet's *were retired DATE, after the run*,
-as a class is. A shape comes back by deleting its name from that list. The size
-rung `stretch-rank10` held, the only one between 5184 and 147456 elements,
-is a size argument and not a stride one, and is the first thing to re-add
-if a size ladder is wanted.
+**Eight main-set shapes were retired from timing on 2026-09-04, ruled
+on the same test as the three stride classes below, and seven stay retired, kept
+in `check`: `stretch-inner1`, `lenet-slice-c6-k5`, `cnn-L1-6x6-c1`,
+`cifar-L2-16-c64-k3`, `stretch-rank10`, `conv1d-24`, `stretch-rank12`
+and `cnn-L1-12x12-c1`.** Under the branch's fill every main-set view
+canonicalizes to a rank-3 positive fill with a stride-1 level, or to a regime-1
+slice, so what a timed shape can differ in is its two inner extents, their
+strides and its run count, and by that reading the eight duplicate what stays.
+`stretch-inner1` is the regime-1 slice, O(1) at any size, which `small-flat64`
+times, and the main-set shape the canonicalizing arms return an O(1) slice on.
+`lenet-slice-c6-k5` is `small-patch-k5` to the stride. Four are rungs of one
+ladder, `[A, 3, 3]` at strides `[9, 1, 3]`, whose kept rungs
+are `cnn-slice-c32`, `cnn-L1-24x24-c1`, `cnn-L2-24x24-c32` and `vgg-14-c512-k3`:
+`cnn-L1-6x6-c1` and `cifar-L2-16-c64-k3` each within a tenth in run count
+of a kept rung, `stretch-rank10` a rung once its odometer is merged away,
+`cnn-L1-12x12-c1` the fifth of five. `conv1d-24` is runs of 3 at stride 24
+beside `gather48-src-50` at stride 50, which the `rev` class mirrors.
+`stretch-rank12` is runs of 2 at stride 2, its rank merged away, the third
+of three runs-of-2 shapes and the only small one, which the `small` class covers
+now. The anchor `cifar-L2-16-c64-k3` held moved to `cnn-L2-24x24-c32`, the same
+pattern within a tenth in run count, whose anchor history starts at Run 25. Two
+things follow. The population moved, so a Run 25 main-set geomean re-baselines
+against Run 24, as the halving's did, and only the fingerprint's per-shape rows
+and the anchors cross. And `check` still holds every arm to the reference
+on the eight, the entries staying listed in `Main.hs` under `retiredShapes`,
+which is what the binary's roster and `read-run.py`'s counts read; the run file
+that timed them is held to its own population by the provenance bullet's
+*were retired DATE, after the run*, as a class is. A shape comes back
+by deleting its name from that list, as `cnn-L1-6x6-c1` did on 2026-09-05:
+as a rung it duplicated a kept one, but at 324 elements it is the second small
+main-set shape beside `cnn-slice-c32`, and the per-call reading the lean
+dispatch turns on, Run 26's registration (2), wants a population and not a cell.
+The size rung `stretch-rank10` held, the only one between 5184 and 147456
+elements, is a size argument and not a stride one, and is the first thing
+to re-add if a size ladder is wanted.
 
 
 ### Dropping the minibatch dimension
@@ -2952,22 +2965,27 @@ k3 window joined it), `scaled` (superincreasing strides, none of them 1), since
 under a padded outer stride, the one population the library sends to slices
 rather than to the fill), and since 2026-09-03 `flip` (a dense array reversed
 whole or along its last axis, so the innermost stride is -1: regime 2 mirrored,
-and one run at stride -1 once canonicalized), `block` (regime 2 as a sub-block
+and one run at stride -1 once canonicalized; and since 2026-09-05 a gapped
+sub-block with each row reversed, `flip-inner-gap64`, beside the same block
+with its rows in reverse order, `flip-outer-gap64`, regime 2 --- the pair
+that separates the direction of the innermost walk from the reversal as such,
+which the unordered candidate is priced on), `block` (regime 2 as a sub-block
 of a wider array: the gap between runs swept from one element to a page,
 a rank-3 block that does not merge, and an offset off an 8-element boundary),
-`small` (one view per canonical regime at a few hundred elements, where
-a per-call cost is a share of the call --- the one class defined by a size
-and not by an operation) and `compose` (a zero stride combined with a second
-mechanism --- reversed, sliced to an offset, a second zero stride it cannot
-merge with, or every stride zero --- as the library composes its operations
-and no one operation's class builds: the other exception). Each is a short list
-in `Main.hs`, reusing a main-set shape where one fits so that a class figure has
-a positive-stride counterpart to stand next to; each generator's comment there
-says what it models, and the comment heading them all, above `mkRev`, carries
-the coverage argument --- a hypothesis about what a valid hand-built view can
-recombine, not a theorem --- which is not repeated here. *Class* unqualified
-means one of these; the other sense in this README always keeps its noun,
-*method* --- a `class method`, the class-method tier, or in full
+`small` (one view per canonical regime at a few hundred elements, and since
+2026-09-05 a rank-5 im2col patch beside the rank-3 one, where a per-call cost
+is a share of the call and its O(rank) part shows --- the one class defined
+by a size and not by an operation) and `compose` (a zero stride combined
+with a second mechanism --- reversed, sliced to an offset, a second zero stride
+it cannot merge with, or every stride zero --- as the library composes
+its operations and no one operation's class builds: the other exception). Each
+is a short list in `Main.hs`, reusing a main-set shape where one fits so
+that a class figure has a positive-stride counterpart to stand next to; each
+generator's comment there says what it models, and the comment heading them all,
+above `mkRev`, carries the coverage argument --- a hypothesis about what a valid
+hand-built view can recombine, not a theorem --- which is not repeated here.
+*Class* unqualified means one of these; the other sense in this README always
+keeps its noun, *method* --- a `class method`, the class-method tier, or in full
 a `Vector`-class method.
 
 **Three classes are retired from timing and kept in `check`, ruled 2026-09-04:
@@ -3146,7 +3164,8 @@ and `lib-stage2-concat` among sixteen arms ([what the benchmark
 does](#what-the-benchmark-does)), took the roster to 432 benches, the `-u1` arm
 with its re-timed control, added the same day for Run 25, took it to 468,
 and the ruling on the short bodies, parking two, took it back to 432;
-`libunord-stage3`, added 2026-09-05 for Run 26, takes the roster to 450 benches.
+`libunord-stage3`, added 2026-09-05 for Run 26, makes it 450,
+and `cnn-L1-6x6-c1`, timed again the same day, takes the roster to 475 benches.
 What the next run is registered to answer with them is [in the open list][open].
 
 **What the eight are worth as instruments, read against each other for the first
@@ -4955,8 +4974,9 @@ as they did at the first cut. The prune took the roster to 432 benches; the same
 day `mut-odo-vecdims-add-in-leaf-u1` landed for Run 25
 with `mut-odo-vecdims-add-in-leaf` re-timed as its control ([the Run 25
 entry][open]), and the ruling on the short bodies parked two, the day ending
-at 432 benches; `libunord-stage3`, added 2026-09-05 for Run 26, takes the roster
-to 450 benches, so with the controls the run is 25 arms.
+at 432 benches; `libunord-stage3`, added 2026-09-05 for Run 26, makes it 450,
+and `cnn-L1-6x6-c1`, timed again the same day, takes the roster to 475 benches,
+so with the controls the run is 25 arms.
 
 - **A strategy with a precondition is not measured.** The column allowed `none`,
   an empty cell, and `shape well-formed`, which is a condition on being a valid
@@ -10050,7 +10070,12 @@ tables and its fingerprint say so.
   file `runs/` currently publishes --- 24 timed arms over 18 main-set shapes
   and 49 class views in TEN classes, 432 benches and 1176, SIX A/A pairs,
   the `runs` class at FOURTEEN and `window` at SIX --- so its delta against
-  TODAY is empty. **Its delta against RUN 24** is the five roster commits
+  TODAY is the day after it: `cnn-L1-6x6-c1` was added 2026-09-05, after
+  the run, back from the retired list, and `flip-inner-gap64`,
+  `flip-outer-gap64` and `small-patch-r5` were added 2026-09-05, after the run,
+  with `libunord-stage3` joining the roster the same day and the lean ruling
+  changing the dispatch of two timed arms; [the open list][open] registers all
+  of it for Run 26. **Its delta against RUN 24** is the five roster commits
   of 2026-09-04, which are Run 24's bullet's to name: three classes and eight
   main-set shapes retired from timing, sixteen arms parked by the prune
   with twelve of their controls deleted and two more parked by the ruling

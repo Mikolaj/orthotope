@@ -3629,9 +3629,22 @@ mkScaled sh strides@(Strides ats) =
 -- merges sign-agnostically, so the whole reversal is one run at stride
 -- -1 and a last-axis reversal is rows of them. Added 2026-09-03.
 mkFlip :: [Int] -> ShapeL -> (ShapeL, T)
-mkFlip rs sh =
-  let v = VS.enumFromN (0 :: Double) (product sh)
-      ts = drop 1 (getStridesT sh)
+mkFlip rs sh = mkFlipIn rs sh sh
+
+-- The same reversal of a sub-block of a wider dense array, 'mkBlock''s
+-- view with some of its axes reversed, listed as dims to reverse, view
+-- shape and enclosing shape; 'mkFlip' is the case of an enclosure equal
+-- to the view. The row gap keeps 'canonView' from merging, so the
+-- reversal is not one run: reversing the innermost axis leaves the fill
+-- a reversed run per row, the walk the 'flip' class reads at about twice
+-- its forward cost, and reversing the outer axis instead leaves forward
+-- runs in reversed order, the control that separates the direction of
+-- the innermost walk from the reversal as such. The pair is what
+-- 'fbLibUnordStage3' is priced on. Added 2026-09-05.
+mkFlipIn :: [Int] -> ShapeL -> ShapeL -> (ShapeL, T)
+mkFlipIn rs sh esh =
+  let v = VS.enumFromN (0 :: Double) (product esh)
+      ts = drop 1 (getStridesT esh)
       ats = [if r `elem` rs then negate t else t | (r, t) <- zip [0 ..] ts]
       ao = sum [(n - 1) * t | (r, (n, t)) <- zip [0 ..] (zip sh ts)
                             , r `elem` rs]
@@ -3819,12 +3832,14 @@ allShapes = convShapes ++ stretchShapes
 -- shape rows and the anchors cross. The entries stay listed so that @check@
 -- still holds every arm to the reference on them and older readers parse the
 -- lists; a shape is re-timed by deleting its name here
--- (README.md#the-shape-set).
+-- (README.md#the-shape-set), as 'cnn-L1-6x6-c1' was on 2026-09-05: a rung
+-- the ladder did not need, but at 324 elements the second small main-set
+-- shape beside 'cnn-slice-c32', and the per-call reading the lean dispatch
+-- turns on wants two.
 retiredShapes :: [String]
 retiredShapes =
   [ "stretch-inner1"
   , "lenet-slice-c6-k5"
-  , "cnn-L1-6x6-c1"
   , "cifar-L2-16-c64-k3"
   , "stretch-rank10"
   , "conv1d-24"
@@ -4084,6 +4099,16 @@ flipShapes =
   , ("flip-last-rows",    [1],    [18750, 96])        -- 1800000, rows of 96, reversed
   ]
 
+-- Regime, dims to reverse, view shape and enclosing shape; the view is
+-- short of the enclosure on its last axis, which the row-gap condition
+-- pins, so the two are the 'block' class's gap-64 rows reversed each and
+-- reversed in order.
+flipInViews :: [(String, Int, [Int], ShapeL, ShapeL)]
+flipInViews =
+  [ ("flip-inner-gap64", 3, [1], [2048, 64], [2048, 128])  -- 131072, each row reversed
+  , ("flip-outer-gap64", 2, [0], [2048, 64], [2048, 128])  -- 131072, the rows in reverse order
+  ]
+
 -- View shape, enclosing shape and offset; every view extent stays short
 -- of the enclosure's, which the canon-rank condition pins.
 blockViews :: [(String, ShapeL, ShapeL, Int)]
@@ -4102,6 +4127,7 @@ smallViews =
   , ("small-patch-k5", 3, [6, 5, 5],  Strides [25, 1, 5])  -- 150, lenet-slice-c6-k5's own view
   , ("small-bcast32",  3, [8, 32],    Strides [1, 0])      -- 256, a broadcast
   , ("small-flat64",   2, [4, 1, 64], Strides [64, 0, 1])  -- 256, collapses to regime 1
+  , ("small-patch-r5", 3, [2, 2, 4, 4, 4], Strides [20, 4, 1, 20, 4])  -- 256, a rank-5 im2col patch, canonical rank 4
   ]
 
 -- Shape, strides and offset; each combines a zero stride with a second
@@ -4128,6 +4154,7 @@ classViews =
   ++ [(n, mkScaled s sts) | (n, s, sts) <- scaledViews]
   ++ [(n, mkRuns s) | (n, s) <- runsShapes]
   ++ [(n, mkFlip rs s) | (n, rs, s) <- flipShapes]
+  ++ [(n, mkFlipIn rs s e) | (n, _, rs, s, e) <- flipInViews]
   ++ [(n, mkBlock s e o) | (n, s, e, o) <- blockViews]
   ++ [(n, mkSmall s sts) | (n, _, s, sts) <- smallViews]
   ++ [(n, mkCompose s sts o) | (n, s, sts, o) <- composeViews]
@@ -5091,7 +5118,8 @@ oneView :: String -> ShapeL -> T -> [(String, Bool)] -> IO ()
 oneView = oneViewReg 3
 
 -- 'oneView' with the regime the class owes made explicit: 3 for every
--- class but @runs@, whose views are regime 2 by definition.
+-- class but @runs@, whose views are regime 2 by definition, and the
+-- lists that carry a regime per view, 'smallViews' and 'flipInViews'.
 oneViewReg :: Int -> String -> ShapeL -> T -> [(String, Bool)] -> IO ()
 oneViewReg expReg name sh a@(T (Strides ats) ao v) conds = do
   let rList  = reference sh a
@@ -5165,6 +5193,7 @@ check = do
   mapM_ oneScaled scaledViews
   mapM_ oneRuns runsShapes
   mapM_ oneFlip flipShapes
+  mapM_ oneFlipIn flipInViews
   mapM_ oneBlock blockViews
   mapM_ oneSmall smallViews
   mapM_ oneCompose composeViews
@@ -5353,7 +5382,10 @@ check = do
     -- and stand as its definition. small: a backing grown by 1 fails
     -- tight-backing alone, and a view of 1152 elements fails few-hundred
     -- alone. compose: a lone innermost zero stride at offset 0 fails
-    -- second-mechanism alone.
+    -- second-mechanism alone. flipIn, 2026-09-05: no dim reversed fails
+    -- reversed alone; an enclosure of the view's own row length fails
+    -- row-gap alone; the offset shifted by 7 fails offset-rev-sum alone;
+    -- a backing grown by 7 fails backing-enclosing alone.
     oneFlip (name, rs, sh) =
       let (sh', a@(T (Strides ats) ao _)) = mkFlip rs sh
           (_, cats) = canonView sh' ats
@@ -5362,6 +5394,14 @@ check = do
             , ("canon-minus-one",     last cats == -1)
             , ("offset-rev-sum", ao == sum [(n - 1) * negate t
                                            | (n, t) <- zip sh' ats, t < 0]) ]
+    oneFlipIn (name, reg, rs, sh, esh) =
+      let (sh', a@(T (Strides ats) ao v)) = mkFlipIn rs sh esh
+      in  oneViewReg reg name sh' a
+            [ ("reversed",          any (< 0) ats)
+            , ("row-gap",           last esh > last sh')
+            , ("offset-rev-sum",    ao == sum [(n - 1) * negate t
+                                              | (n, t) <- zip sh' ats, t < 0])
+            , ("backing-enclosing", VS.length v == product esh) ]
     oneBlock (name, sh, esh, ao) =
       let (sh', a@(T (Strides ats) ao' v)) = mkBlock sh esh ao
           (csh, _) = canonView sh' ats

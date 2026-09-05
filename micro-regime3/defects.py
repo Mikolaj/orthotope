@@ -431,24 +431,57 @@ def plant_retired_class_exempt(tmp):
 def plant_retired_shape_exempt(tmp):
     """The fixture of `retired-shapes-timed-by-the-run-are-exempt`.
 
-    Both halves planted, on a shape every run file times: a Main.hs copy
-    retiring `vgg-14-c512-k3`, and a README declaring it retired after the
-    run -- so the newest run file's `over N shapes` are held to a main set
-    that keeps it. Drop the declaration's effect and every one of them
-    matches no population. Planted under the Provenance heading, as the
-    class fixture is. Added 2026-09-04.
+    Both halves planted: a Main.hs copy retiring timed shapes, and a README
+    declaring them retired after the run -- so the newest run file's `over
+    N shapes` are held to a main set that keeps them. Drop the
+    declaration's effect and every one of them matches no population.
+    HOW MANY it retires is derived, not one: the check also accepts a count
+    equal to today's timed set, so the fixture retires enough shapes to put
+    today's set below the run's population, else a main set one shape
+    larger than the run's lands on the run's count once one is retired and
+    the dropped exemption goes unseen -- which is how the mutant survived
+    on 2026-09-05, the day a shape was timed again. Planted under the
+    Provenance heading, as the class fixture is. Added 2026-09-04.
     """
     main = open(MAIN).read()
     old = 'retiredShapes =\n  [ '
     if main.count(old) != 1:
         raise AssertionError('retiredShapes list occurs %d times, need 1'
                              % main.count(old))
+    names = []
+    for lst in ('convShapes', 'stretchShapes'):
+        body = main.split('\n%s =\n' % lst, 1)[1].split('\n  ]', 1)[0]
+        names += re.findall(r'\("([\w-]+)",\s*\[', body)
+    readme = subprocess.run(['wrap80', '--unwrap'], input=open(README).read(),
+                            capture_output=True, text=True, check=True).stdout
+    declared = set()
+    for m in DECLARED_AFTER_RE.finditer(readme):
+        declared |= set(re.findall(r'`([\w.-]+)`', m.group(1)))
+    declared_retired = set()
+    for m in DECLARED_RETIRED_RE.finditer(readme):
+        declared_retired |= set(re.findall(r'`([\w.-]+)`', m.group(1)))
+    retired = _reader().retired_shapes(MAIN)
+    timed = [n for n in names if n not in retired]
+    # The run's population as the reader derives it, and one more retired
+    # than the gap between today's set and it.
+    was = len(timed) - len(declared & set(timed)) + len(declared_retired & retired)
+    n = max(1, len(timed) - was + 1)
+    picks = []
+    for sh in ['vgg-14-c512-k3'] + list(reversed(timed)):
+        if sh in timed and sh not in declared and sh not in picks:
+            picks.append(sh)
+    picks = picks[:n]
+    assert len(picks) == n, 'not enough undeclared timed shapes to retire'
+    entries = ''.join('"%s"\n  , ' % sh for sh in picks)
     out = {'main': write(os.path.join(tmp, 'Main.hs'),
-                         main.replace(old, old + '"vgg-14-c512-k3"\n  , ', 1))}
+                         main.replace(old, old + entries, 1))}
+    ticked = ['`%s`' % sh for sh in picks]
+    decl = (ticked[0] if n == 1
+            else ', '.join(ticked[:-1]) + ' and ' + ticked[-1])
     out['readme'] = unwrapped_readme_edit(
         tmp, '\n## Provenance\n',
-        '\n## Provenance\n\n`vgg-14-c512-k3` was retired 2026-09-04, after'
-        ' the run.\n')
+        '\n## Provenance\n\n%s %s retired 2026-09-04, after the run.\n'
+        % (decl, 'was' if n == 1 else 'were'))
     return out
 
 

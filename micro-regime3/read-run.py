@@ -388,6 +388,11 @@ def dims_by_shape(main_hs):
         ('smallViews', r'\d+,\s*' + sh_re + r',\s*Strides\s*\[[^\]]*\]',
          listed),
         ('composeViews', sh_re + r',\s*Strides\s*\[[^\]]*\],\s*\d+', listed),
+        # 2026-09-05: a regime, reversed dims, the view shape and an
+        # enclosing shape. Its own list, so a reader older than the rule
+        # never meets a five-field row.
+        ('flipInViews', r'\d+,\s*\[[^\]]*\],\s*' + sh_re + r',\s*\[[^\]]*\]',
+         listed),
     ]
     out, ann = {}, {}
     try:
