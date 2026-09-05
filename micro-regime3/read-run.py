@@ -168,7 +168,8 @@ Modes:
   --machine         this run's `list` absolutes against the fingerprint
                     README keeps, which is the one check that asks whether
                     the BOX changed rather than the code; exits nonzero
-                    when the whole baseline moved
+                    when the whole baseline moved, and refuses a run its
+                    OWN fingerprint, which post-run 5b installs
   --cells           every cell as TSV, for anything not covered above
   --markdown        the run file's Results table, numbers recomputed and
                     the editorial column carried over from the one there --
@@ -3137,7 +3138,8 @@ def step_table(path, cells, shapes, strategies, meta):
           ' iteration equal across it.')
 
 
-def machine_check(cells, shapes, readme, thresh=3.0, spread=7.0):
+def machine_check(cells, shapes, readme, thresh=3.0, spread=7.0,
+                  run=None):
     """Does the machine still measure what it measured last run?
 
     `list` is the arm to ask. It is the denominator of every published
@@ -3185,6 +3187,26 @@ def machine_check(cells, shapes, readme, thresh=3.0, spread=7.0):
     update, a BIOS setting, a different machine, a thermal state -- asked
     when the machine is free rather than while it stands waiting.
     """
+    # Post-run 5b installs --fingerprint into the run's OWN file, and the
+    # kept fingerprint is read out of whichever run file this is given --
+    # so from 5b on the default resolves to the run being read and the
+    # check becomes the run against itself. That form is not visibly
+    # wrong: it prints the same `inside 3%` verdict, Run 24 reading
+    # -0.03% and Run 25's basis +0.00%, off zero only by the installed
+    # table's rounding. Refused by NAME rather than by path, since the
+    # workaround was a --run-doc a session had to remember. Exit 2 and
+    # not 1: the reading did not happen, which is what a 2 means
+    # everywhere in this directory, and run-gate.sh words its
+    # complaint off that -- a 1 there reads as a moved box.
+    mine = re.match(r'run\d+', os.path.basename(run or ''))
+    kept = re.match(r'run\d+', os.path.basename(readme or ''))
+    if mine and kept and mine.group(0) == kept.group(0):
+        print('machine: %s carries %s\'s OWN fingerprint, which post-run 5b'
+              ' installed, so the run would be read against its own figures'
+              ' and would read about zero whatever the box did. Name the'
+              ' PREVIOUS run: --run-doc %s/run<N-1>.md'
+              % (os.path.basename(readme), mine.group(0), RUNS_DIR))
+        return 2
     want = {}
     for line in open(readme):
         m = FINGERPRINT_ABS_RE.match(line)
@@ -10815,7 +10837,8 @@ def main():
     elif args.deflation:
         sys.exit(deflation_table(args.run, cells, shapes, args.main))
     elif args.machine:
-        sys.exit(machine_check(cells, shapes, want_run_doc(args)))
+        sys.exit(machine_check(cells, shapes, want_run_doc(args),
+                               run=args.run))
     elif args.steps:
         step_table(args.run, cells, shapes, strategies, meta)
     elif args.cells:

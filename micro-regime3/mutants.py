@@ -184,6 +184,21 @@ MUTANTS = [
      'r = subprocess.run([sys.executable, \'{file}\', \'--lint\', \'--readme\', f],'
      ' capture_output=True, text=True)\n'
      'sys.exit(0 if \'which names arms the roster does not time\' in r.stdout + r.stderr else 1)"'),
+    # The self-fingerprint refusal, removed: post-run 5b installs the
+    # fingerprint into the run's own file, so from 5b the check reads the
+    # run against itself and still says the box is fine. The judge builds
+    # a run98 JSON beside a run98 fingerprint and asks for the refusal.
+    ('--machine stops refusing a run its own fingerprint', 'read-run.py',
+     '    if mine and kept and mine.group(0) == kept.group(0):',
+     '    if False:',
+     'PATH="{bin}:$PATH" python3 -c "import importlib.util, sys, tempfile, subprocess, os\n'
+     'spec = importlib.util.spec_from_file_location(\'d\', \'{dir}/defects.py\')\n'
+     'm = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)\n'
+     't = tempfile.mkdtemp(); fp = os.path.join(t, \'run98.md\')\n'
+     'j = m.synth_json(t, \'main\', name=\'run98-g-main.json\', fingerprint=fp)\n'
+     'r = subprocess.run([sys.executable, \'{file}\', j, \'--machine\','
+     ' \'--run-doc\', fp], capture_output=True, text=True)\n'
+     'sys.exit(0 if \'OWN fingerprint\' in r.stdout + r.stderr else 1)"'),
     # The digest check, made unconditional: every ITEM block reads present
     # whether or not the carrier returned one, which is the state the
     # three steps were in before 2026-09-05 -- a delegated reading not

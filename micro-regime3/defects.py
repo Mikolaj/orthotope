@@ -6687,6 +6687,38 @@ RECORDS = [
          argv=['{run}', '--machine', '--run-doc', '{fp}'],
          ok=V(exit=0, has=['inside 3%'], hasnt=['BOX MOVED'])),
 
+    case('machine-check-refuses-its-own-fingerprint', 'read-run.py', None,
+         'from post-run 5b the box check compared a run against the'
+         ' fingerprint it had just installed in its own file, and said the'
+         ' box still measures as it did',
+         # Step 5b installs --fingerprint into the run's own file and
+         # --machine reads the kept fingerprint out of that same file, so
+         # from 5b on the reading is the run against itself -- and it
+         # still prints `inside 3%, so the box still measures as it did`,
+         # which is what makes it worth a refusal rather than a sentence.
+         # Run 24 read -0.03% that way, off zero only by the installed
+         # table's rounding. Run 25's basis read +0.00% here on 2026-09-05
+         # and gave up its honest +0.32% only when handed --run-doc
+         # runs/run24.md, which is the workaround this replaces.
+         plant=lambda t: {'run': synth_json(t, 'main',
+                                            name='run98-g-main.json',
+                                            fingerprint=os.path.join(
+                                                t, 'run98.md')),
+                          'fp': os.path.join(t, 'run98.md')},
+         argv=['{run}', '--machine', '--run-doc', '{fp}'],
+         ok=V(exit=2, has=['run98', 'its own'], hasnt=['inside 3%'])),
+
+    case('machine-check-takes-another-runs-fingerprint', 'read-run.py', None,
+         'CONTROL: the refusal is on the run NAME matching, so a previous'
+         ' run\'s file still reads',
+         plant=lambda t: {'run': synth_json(t, 'main',
+                                            name='run98-g-main.json',
+                                            fingerprint=os.path.join(
+                                                t, 'run97.md')),
+                          'fp': os.path.join(t, 'run97.md')},
+         argv=['{run}', '--machine', '--run-doc', '{fp}'],
+         ok=V(exit=0, has=['inside 3%'], hasnt=['its own'])),
+
     case('wild-partial-load-fields', 'read-run.py', None,
          'a foreign figure over half a bench read as the whole bench',
          # A log spanning an instrument change -- or two concatenated --

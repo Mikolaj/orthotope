@@ -228,7 +228,15 @@ echo "=== $(date -Is) gate complete"
 MACHINE=$(./read-run.py "$PREFIX-gate-$BASIS-a.json" --machine 2>&1)
 MACHINE_RC=$?
 printf '%s\n' "$MACHINE"
-if [ "$MACHINE_RC" != 0 ]; then
+if [ "$MACHINE_RC" = 2 ]; then
+  # 2 is `did not happen`, not `the box moved`: the reading refuses when the
+  # fingerprint it would use is this run's own, which post-run 5b installs --
+  # so a gate re-run after the write-up lands here and must not read as a
+  # moved box. Still counted, since a 2 is never a pass.
+  BAD=$((BAD + 1))
+  RESULTS="$RESULTS
+      !! the machine check COULD NOT BE TAKEN -- the line above says why"
+elif [ "$MACHINE_RC" != 0 ]; then
   BAD=$((BAD + 1))
   RESULTS="$RESULTS
       !! the machine check FAILED -- read it before the evening"

@@ -905,21 +905,28 @@ rather than a slot in the next run, observed again:
   is `replace-takes-an-abutting-heading`. The rule it does not replace
   is the one the run chapter already states and this session did not follow:
   read the `out` lines and not only the `in` ones.
-- `OPEN` **`--machine` run after `install-tables.sh` compares a run with its own
-  freshly installed fingerprint and reads +0.00%.** Post-run step 5b installs
-  `--fingerprint` into the run's own file, and `--machine` reads the kept
-  fingerprint out of that same file, so from 5b onwards the box check is the run
-  against itself: Run 24 read `-0.03% over 26 of 26 shapes` that way ---
-  not exactly zero only because the installed fingerprint is rounded to three
-  figures --- where the honest reading against Run 23's kept fingerprint
-  is -0.20% on the basis and -0.39% on the control over 24 of 26, the two shapes
-  added 2026-09-02 having no kept row. The vacuous form is not obviously wrong
-  --- it prints the same `inside 3%, so the box still measures as it did`
-  verdict --- which is what makes it worth an entry. **What would settle it**:
-  either have `--machine` name the file its fingerprint came from and refuse
-  when that is the run's own, or have the post-run list take the machine reading
-  before 5b. `--run-doc runs/run23.md` is the workaround and it has
-  to be remembered.
+- `ANSWERED` **`--machine` run after `install-tables.sh` compares a run
+  with its own freshly installed fingerprint and reads +0.00%.** Post-run step
+  5b installs `--fingerprint` into the run's own file, and `--machine` reads
+  the kept fingerprint out of that same file, so from 5b onwards the box check
+  is the run against itself: Run 24 read `-0.03% over 26 of 26 shapes` that way
+  --- not exactly zero only because the installed fingerprint is rounded
+  to three figures --- where the honest reading against Run 23's kept
+  fingerprint is -0.20% on the basis and -0.39% on the control over 24 of 26,
+  the two shapes added 2026-09-02 having no kept row. The vacuous form
+  is not obviously wrong --- it prints the same
+  `inside 3%, so the box still measures as it did` verdict --- which is what
+  makes it worth an entry. **DONE 2026-09-05, the first of the two.**
+  `--machine` compares the run name in the JSON it is given with the one
+  in the run file the fingerprint came from and refuses when they are the same,
+  naming the file and telling the caller to give the PREVIOUS run ---
+  so the workaround is what the mode now asks for rather than what a session has
+  to remember. On Run 25's basis the default read `+0.00%` and now refuses;
+  `--run-doc runs/run24.md` gives the honest `+0.32%`. **The other half
+  was refused**: taking the machine reading before 5b puts the guard
+  in an ordering the post-run list has to hold, which is the same thing
+  to remember under a different name, and nothing would report it if a later run
+  reordered the steps.
 - `ANSWERED` **What Run 23 was built to answer, registered before it ran ---
   and what it answered.** The six registrations, their kill conditions and their
   verdicts are [in Run 23's own file](runs/run23.md), where a run's
