@@ -805,6 +805,37 @@ rather than a slot in the next run, observed again:
   in the same place**: why the count-down form pays, recovering most
   of the corner's loss at 0.9408 against it on 22 shapes of 24, is in [the
   mutable ceiling][ceiling]'s own write-up.
+- `OPEN` **What Run 26 is built to answer, registered before it runs.**
+  Registered 2026-09-05, on Run 25's pair --- ghc-9.12.4 against GHC HEAD, both
+  under `LOOP_DEADSPOT=1`, the same recipe and the same shim --- over Run 25's
+  roster with one change and no arm added to or removed from timing: the lean
+  ruling of the same day ([the stride
+  classes](#the-stride-classes-and-what-they-cover)) gave every canonical
+  dispatch the lean form, so `lib-stage2-disp` and `liblist-stage2` are timed
+  under a dispatch Run 25 did not time them under, and the composite
+  of the short bodies left `Main.hs`. Each with a prediction and a kill
+  condition, and the verdicts move to Run 26's file with them. (1) *The dispatch
+  pair.* `lib-stage2-disp` and `lib-stage2-lean` are the same code on every
+  population but `runs`, so they read as an A/A pair there:
+  `predict: pair lib-stage2-disp lib-stage2-lean 1.0` on the main set,
+  and inside the population's own floor on each of the nine other classes,
+  on both halves, where Run 25 read the pair at 1.0119 and 1.0140 on the main
+  set and 1.2274 and 1.2368 on `small`; killed by a margin past the floor
+  on both halves on any population but `runs`, which would be a slot and
+  not the code. (2) *The roster change, read cross-run.* Against Run 25's basis
+  column over the eighteen shared shapes, `lib-stage2-disp` reads faster
+  on `cnn-slice-c32`, the one small shape still timed, by about the gap the pair
+  read there on Run 25, 1.1719, and on every `small` view by about that class's
+  1.17 to 1.30, and within 1% on the other seventeen shapes as the rest
+  of the roster does; `liblist-stage2` moves the same way on the same views,
+  by less, the dispatch being a smaller share of a call that also builds
+  its list; `lib-stage2-lean` and every arm the ruling did not touch read within
+  1% on all eighteen. Killed by `lib-stage2-disp` inside the floor
+  on `cnn-slice-c32` and on `small`, which would say the dispatch was not what
+  that gap measured, or by an untouched arm moving past 1% on a shape, which
+  would be a layout term the prune was to have removed. This item
+  is the session's to adjudicate, no span reading a shape subset or another
+  run's column.
 - `ANSWERED` **What Run 25 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
   verdicts are [in Run 25's own
@@ -3008,11 +3039,12 @@ the list's construction alone --- stage one's slice recursion against stage
 two's base-offset table and its `VU.toList` --- in time and, exactly,
 in allocation, which is what a consumer iterating the list pays. **Beside
 those five sits `lib-stage2-disp`, which is a candidate and not a port
-of anything**, added 2026-08-30: `lib-stage2-concat` with the slice route taken
-only where the canonical run reaches `dispRun`, so it is stage two below
-the crossover and stage one above it, and the runs class is what cuts it to one.
-**Beside it, for Run 22, sit three fill candidates**, each a fill change
-under the same dispatch: `lib-stage2-u4`, the stepping run unrolled by four;
+of anything**, added 2026-08-30: the slice route taken only where the canonical
+run reaches `dispRun`, so it is `lib-stage2-lean` below the crossover
+and `lib-stage2-concat` above it --- its lower side was `lib-stage2` until
+the lean ruling below --- and the runs class is what cuts it to one. **Beside
+it, for Run 22, sit three fill candidates**, each a fill change under the same
+dispatch: `lib-stage2-u4`, the stepping run unrolled by four;
 `lib-stage2-short`, a canonical run of 2 to 5 elements written by a body
 of exactly that length, chosen once per row as the broadcast body is;
 and `lib-stage2-lean`, the same fill under a leaner dispatch: a canonical view
@@ -3068,17 +3100,18 @@ and natural strides at rank 2 or more are that equation at every pair ---
 was checked against the branch's `canonicalizeT` the same day over 300000 random
 views and every view up to rank 3 with extents to 3 and strides to 4,
 the control's decision equal to the lean one on all of them, and two deliberate
-breaks of it fail the check. `lib-stage2-short-lean` and `lib-stage2-short`
-are the same code from here, both parked, the composite kept under its name
-for its Run 24 readings. The runs class gained `runs-4` and `runs-5` the same
-day -- no view in the suite had a canonical innermost extent of 4, so the short
-bodies' one unexercised branch was invisible even to `check` -- and `runs-256`
-and `runs-512`, bracketing `dispRun` within a factor of two. Each runs on every
-population, so a library change is read where a user would meet it, class
-by class, whichever of the two entry points the user takes, and the `runs` class
-is where the routes part; with the timed `-u2-down` the dispatch arm, the three
-fill candidates and the unordered pair the block took the roster to 1320
-benches, and the composite arm with the six parkings and two main-set shapes
+breaks of it fail the check. `lib-stage2-short-lean`, the composite of the short
+bodies with this dispatch, is gone from `Main.hs` from here, `lib-stage2-short`
+having become the same code; its Run 24 readings stand in that run's file.
+The runs class gained `runs-4` and `runs-5` the same day -- no view in the suite
+had a canonical innermost extent of 4, so the short bodies' one unexercised
+branch was invisible even to `check` -- and `runs-256` and `runs-512`,
+bracketing `dispRun` within a factor of two. Each runs on every population,
+so a library change is read where a user would meet it, class by class,
+whichever of the two entry points the user takes, and the `runs` class is where
+the routes part; with the timed `-u2-down` the dispatch arm, the three fill
+candidates and the unordered pair the block took the roster to 1320 benches,
+and the composite arm with the six parkings and two main-set shapes
 of 2026-09-02 took the roster to 1352 benches, and the retirement of eight
 main-set shapes on 2026-09-04 took the roster to 936 benches, eight superseded
 arms parked permanently since Run 21, `offtab`'s twins removed with it;
@@ -4866,26 +4899,28 @@ What stays timed is `list`, the reference; `bq-expand`, the class default;
 and `-u2-down`; and the library-shaped arms with a question left, `lib-stage1`,
 `lib-stage2-disp` and `lib-stage2-lean`, and the `liblist` and `libunord` pairs;
 `lib-stage2-short` and `-short-lean` stayed timed until the ruling of the same
-day on the short bodies (above) parked them. Sixteen arms go to `Only`
-as the rulings' 23 did, each with the reason at its entry: the six pure arms
-the decision of 2026-08-22 retired from candidacy, `gen-unsafe`,
-`bq-mut-runs-gm-mulback`, `offtab-scan-rem`, `bq-expand-gm-mulback`,
-`bq-scan-rem-gm-mulback` and `bq-odo-gm-mulback` --- no pure arm is fastest
-on almost every shape, the innermost extent deciding the winner ([per
-shape](#per-shape-where-the-geomean-hides-the-ordering)) and the two heading
-the tier tying; `build` and `mut-odo`, whose identity is settled; `mut-flat-gm`;
-and the seven fragments that have delivered their reading and vary a body
-nothing ships, `mut-odo-vecdims-add-in`, `canon-vecdims`, `bcast-set`,
-`mid-copy` and `canon-full`, each over plain `mut-odo-vecdims` where the branch
-composes over the leaf body, and `lib-stage2` and `lib-stage2-concat`,
-the halves that bracketed `dispRun`. A parked arm's A/A twins and `Force` arm
-are deleted rather than parked, a control of an untimed arm pricing nothing
-and the roster having no untimed form for one: ten twins and two `-nosum` arms
-go, so the floor is read over six pairs from Run 25 on and gate 3 over two
-shapes of fill ([sum-only](#sum-only-and-the-correction-now-applied)), and claim
-1, the ladder every rung of which but the top is parked, retires with them,
-claim 10 registered in its place on the roster's own question, the shipped fill
-against the family root ([the
+day on the short bodies (above) parked them, and the composite was deleted
+on 2026-09-05, the lean ruling having made it `lib-stage2-short`'s code. Sixteen
+arms go to `Only` as the rulings' 23 did, each with the reason at its entry:
+the six pure arms the decision of 2026-08-22 retired from candidacy,
+`gen-unsafe`, `bq-mut-runs-gm-mulback`, `offtab-scan-rem`,
+`bq-expand-gm-mulback`, `bq-scan-rem-gm-mulback` and `bq-odo-gm-mulback` ---
+no pure arm is fastest on almost every shape, the innermost extent deciding
+the winner ([per shape](#per-shape-where-the-geomean-hides-the-ordering))
+and the two heading the tier tying; `build` and `mut-odo`, whose identity
+is settled; `mut-flat-gm`; and the seven fragments that have delivered their
+reading and vary a body nothing ships, `mut-odo-vecdims-add-in`,
+`canon-vecdims`, `bcast-set`, `mid-copy` and `canon-full`, each over plain
+`mut-odo-vecdims` where the branch composes over the leaf body, and `lib-stage2`
+and `lib-stage2-concat`, the halves that bracketed `dispRun`. A parked arm's A/A
+twins and `Force` arm are deleted rather than parked, a control of an untimed
+arm pricing nothing and the roster having no untimed form for one: ten twins
+and two `-nosum` arms go, so the floor is read over six pairs from Run 25
+on and gate 3 over two shapes of fill
+([sum-only](#sum-only-and-the-correction-now-applied)), and claim 1, the ladder
+every rung of which but the top is parked, retires with them, claim 10
+registered in its place on the roster's own question, the shipped fill against
+the family root ([the
 claims](runs/run25.md#the-claims-the-next-run-should-test)). The slots that stay
 keep their order, so `sum-only-early` still precedes `list` and the distant
 twins still sit early; what the deletions change is the spans, which shorten

@@ -3093,11 +3093,13 @@ fillStage2U4 sh ats !ao !l !v = VS.create $ do
 -- RULED OUT FOR THE LIBRARY, 2026-09-04, by Mikolaj: a body per run
 -- length of 2 to 5 is too repetitive and so too complex for orthotope,
 -- by the bar the quad loop failed on 2026-08-30 -- taken per orthogonal
--- feature, so it rules out the short bodies wherever they appear, in
--- 'fbLibStage2Short' and 'fbLibStage2ShortLean' alike, and says nothing
--- about the lean dispatch beside them. Both arms price what the bodies
--- would buy and are not candidates to ship; the ruling is in README
--- beside the arms' entries.
+-- feature, so it rules out the short bodies wherever they appear -- in
+-- 'fbLibStage2Short', and in the composite `lib-stage2-short-lean` that
+-- stood beside it under the lean dispatch until 2026-09-05, when this
+-- arm took that dispatch too and the composite, now the same code, was
+-- removed -- and says nothing about the lean dispatch. The arm prices
+-- what the bodies would buy and is not a candidate to ship; the ruling
+-- is in README beside the arm's entry.
 {-# NOINLINE fillStage2Short #-}
 fillStage2Short :: ShapeL -> [Int] -> Int -> Int -> VS.Vector Double
                 -> VS.Vector Double
@@ -3273,27 +3275,6 @@ fbLibStage2Lean sh (T (Strides ats) ao v)
       ([], _) -> whole
       ([_], [1]) -> whole
       (csh, cats) -> fillStage2 csh cats ao l v
-  where
-    l = product sh
-    whole | ao == 0 && VS.length v == l = v
-          | otherwise = VS.slice ao l v
-
--- The two changes Run 23 left live, composed, added 2026-09-02 for Run
--- 24: 'fbLibStage2Lean''s dispatch over 'fillStage2Short'. Each parent
--- was one change over 'fbLibStage2' along its own axis, the dispatch or
--- the fill, and was timed as this arm's control on that axis; this is
--- what would have shipped if both survived, and 'check' holds it to the
--- reference on every view as it holds them. Since 2026-09-05, when
--- 'fbLibStage2Short' took the lean dispatch, the two are the same code;
--- this one keeps its name for its Run 24 readings.
-{-# NOINLINE fbLibStage2ShortLean #-}
-fbLibStage2ShortLean :: ShapeL -> T -> VS.Vector Double
-fbLibStage2ShortLean sh (T (Strides ats) ao v)
-  | l == 0 = VS.empty
-  | otherwise = case canonView sh ats of
-      ([], _) -> whole
-      ([_], [1]) -> whole
-      (csh, cats) -> fillStage2Short csh cats ao l v
   where
     l = product sh
     whole | ao == 0 && VS.length v == l = v
@@ -4516,11 +4497,6 @@ roster =
     -- so too complex, as the quad loop was; its Run 24 readings stand.
   , ("lib-stage2-short",           Only fbLibStage2Short)
   , ("lib-stage2-lean",            Fill fbLibStage2Lean)
-    -- The two composed, added 2026-09-02 for Run 24, reasons at the
-    -- definition; placed beside its parents, every slot below moving by
-    -- one. Parked 'Only' 2026-09-04 with 'lib-stage2-short', the same
-    -- ruling reaching the short bodies wherever they appear.
-  , ("lib-stage2-short-lean",      Only fbLibStage2ShortLean)
     -- The list consumer under each stage, added the same day: the
     -- library's toVectorListT and one concatenation, so the pair prices
     -- the list's construction alone, reasons at the definitions.
