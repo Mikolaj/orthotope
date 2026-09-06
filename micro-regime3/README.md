@@ -854,12 +854,24 @@ rather than a slot in the next run, observed again:
   is not academic: Run 26's registration (8) derived three predicted time spans
   from three measured instruction ratios through the three-quarters rate, every
   one of the three instruction ratios came back to a ten-thousandth, and all
-  three time spans were killed for missing low. **What would settle
-  it** is whether the difference is the COMPARISON or the ARMS: a cross-build
-  A/B and a within-binary arm pair are different measurements, and no run here
-  has taken both on one pair of arms. Until one does, a span derived
-  from a count ratio should carry the rate it used and be read as a floor
-  on the arm's direction rather than as a prediction of its size.
+  three time spans were killed for missing low. **Read per run length
+  on 2026-09-06, from Run 26's own artifacts, the rate is not one number,
+  and its profile is the pair's rather than the run's or the compiler's**:
+  over `runs`, `-u1-ptr` over `-u1` turns a tenth to a quarter of its saving
+  into time at run lengths 2 to 9 and about three quarters of it from 256 up,
+  which is the nineteenth reading's rate; `-u2-ptr` over `-u1-ptr` turns
+  a quarter of the loop's instructions into no time at all from 256 up, 1.00
+  to 1.02 in time against 0.75 in counts, either pointer fill moving 14 MB
+  in and 14 MB out in about 670 us there, some 42 GB/s; and `-u2` over `-u1`
+  and `-u1` over `-down` read the same per-length profile on HEAD as
+  on the basis, within two and a half points of time on every `runs` view.
+  So a main-set geomean of the rate is the shape set's weighting of a profile,
+  and carries between shape sets no better than between comparisons. **What
+  would settle the rest** is whether a cross-build A/B and a within-binary arm
+  pair agree on one pair of arms, no run here having taken both. Until one does,
+  a span derived from a count ratio should carry the rate it used and be read
+  as a floor on the arm's direction rather than as a prediction of its size; Run
+  27's registration (4) reads the profile on the second codegen.
 
 - `OPEN` **`lib-stage2-disp` and `lib-stage2-lean` are NOT the same code
   at a few hundred elements, which the lean ruling was written to make them.**
@@ -926,7 +938,39 @@ rather than a slot in the next run, observed again:
   be a layout term the STG comparison cannot see, or by either pointer fill's
   basis cell past the floor on any shape, which would say the annotation
   is not a no-op on 9.12 after all. This item is adjudicated by hand,
-  on the main set.
+  on the main set. (4) *The rate at which an instruction saving reaches
+  the clock, read per run length and on the second codegen.* The open list's
+  entry on the rate, below, has five spans of the leaf family at 29% to 52%
+  over the main set where the nineteenth reading's rate is three quarters. Read
+  per shape from Run 26's own artifacts on 2026-09-06, the rate is not one
+  number: over `runs`, `-u1-ptr` over `-u1` turns a tenth to a quarter
+  of its instruction saving into time at run lengths 2 to 9 and about three
+  quarters of it from 256 up; `-u2-ptr` over `-u1-ptr` turns a quarter
+  of the loop's instructions into no time at all from 256 up, 1.00 to 1.02
+  in time against 0.75 in counts; and `-u2` over `-u1` turns about a quarter
+  at every length from 7 up --- with the two non-pointer spans reading the same
+  per-length profile on HEAD as on the basis, within two and a half points
+  of time on every `runs` view, so the profile is the pair's and the shape's
+  rather than the compiler's or the run's, and the main-set geomean is the shape
+  set's weighting of it. On the long runs either pointer fill moves its 14 MB
+  in and 14 MB out in about 670 us on the basis, some 42 GB/s, which
+  is a bandwidth figure and not an instruction one. Prediction, over `runs`
+  on both halves, the workaround having given HEAD the basis's code: `-u1-ptr`
+  over `-u1` at or below 0.91 in time on every view from `runs-256` up and
+  at or above 0.96 on `runs-2` to `runs-7`; `-u2-ptr` over `-u1-ptr` within 3%
+  of 1.00 on every view from `runs-256` up; and each of the three pointer spans
+  on the basis within 2 points of its Run 26 cell on every view from `runs-256`
+  up. Killed by HEAD's `-u1-ptr` over `-u1` above 0.94 on any view
+  from `runs-256` up, which would say the reload's cost was the codegen's
+  and not the loop's, or by `-u2-ptr` ahead of `-u1-ptr` past the class's floor
+  on both halves on any view from `runs-256` up, which would say the long-run
+  fill is not at a bound instructions cannot move. `runs-2`, where `-u2-ptr`
+  executes exactly `-u1-ptr`'s instructions and takes 1.087 of its time
+  on the basis, is read beside these for whether that term survives the roster
+  change, the counts being unable to carry it. The quantity is a ratio of two
+  ratios the reader does not compute, so this item carries no span and is read
+  by hand from `--pair --per-shape` on the `runs` JSONs and the corrected counts
+  of the `runs` sweeps.
 
 - `ANSWERED` **What Run 26 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
