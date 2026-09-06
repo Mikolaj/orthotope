@@ -849,11 +849,13 @@ rather than a slot in the next run, observed again:
   on the grounds that the comparison the two differ in cannot fire where
   no canonical run reaches `dispRun` --- every population but `runs`. Run 26's
   registration (1) read the pair as an A/A on all eleven populations
-  and it holds on nine of them and on the main set's basis half; on `small`
-  it reads **1.0171 and 1.0316** against that class's floors of 0.52% and 0.96%,
-  past them on BOTH halves, and on `cnn-L1-6x6-c1` the HEAD half reads **1.139**
-  where the basis reads 1.013. So a per-call difference survives at 150 to 384
-  elements and on the smallest main-set shape, and it is larger on GHC HEAD
+  and it holds on nine of the ten classes --- inside both halves' floors on six
+  of the nine it is an A/A pair on, `runs` being the one population where
+  the two are different code by design --- and on `small` it reads **1.0171
+  and 1.0316** against that class's floors of 0.52% and 0.96%, past them on BOTH
+  halves, and on `cnn-L1-6x6-c1` the HEAD half reads **1.139** where the basis
+  reads 1.013. So a per-call difference survives at 150 to 384 elements
+  and on the smallest main-set shape, and it is larger on GHC HEAD
   than on 9.12.4. **What would settle it** is a `-g3` read of the two arms'
   entry code on both compilers, or a counts pair over the `small` population,
   neither of which wants a run: if the instructions differ the ruling's premise
@@ -2529,14 +2531,13 @@ is planned. A scope limit belongs in the sentence that asks for the measurement.
    under three allocators, refutes `-fregs-graph` as a stand-in for a spill fix,
    and registers what the first pair on a patched compiler adjudicates.
    **And the twenty-first dodges the spill at the source**: `-u1-ptr`
-   and `-u2-ptr`, pointers at every level, execute 0.8945 and 0.8356 of their
-   parents' corrected instructions with no reload, 6.00 and 4.50 an element
-   on the long runs, so the unrolling alone is a quarter in instructions. **RUN
-   26 READ THE TIME AND THIS TASK IS DONE**: with the reload gone from both arms
-   the unrolling is still worth five and a half points, so a build does separate
-   them after all. The figures and the two rulings they move
-   are the [ceiling](#the-mutable-ceiling-taken)'s twenty-first reading, which
-   owns the account.
+   and `-u2-ptr`, pointers at every level, run at 6.00 and 4.50 instructions
+   an element on the long runs with no reload, so the unrolling alone
+   is a quarter in instructions. **RUN 26 READ THE TIME AND THIS TASK IS DONE**:
+   with the reload gone from both arms the unrolling is still worth five
+   and a half points, so a build does separate them after all. The figures
+   and the two rulings they move are the [ceiling](#the-mutable-ceiling-taken)'s
+   twenty-first reading, which owns the account.
 3. `ANSWERED` **A reversed innermost axis costs the regime-3 fill about twice
    the forward run at the same length, and nothing in the code says why.** Run
    25's `flip` class killed the prediction that the fills read a reversed run
@@ -3803,16 +3804,18 @@ Validation on this branch:
   and the break above.
 
 **Run 26 reads the parity a third time, on both compilers and with `lib-stage2`
-lifted out of parking for it.** Stage two against stage one reads **0.72
-to 1.01** across the seven populations that carry both arms --- `small` 0.7206,
-`bcastmid` 0.7846, `window` 0.8957, `compose` 0.9065, the main set 0.9714,
-`scaled` 0.9756 and `bcast` 1.0105 on the basis, and 0.7295, 0.7850, 0.8553,
-0.9050, 0.9510, 0.9757 and 1.0177 on GHC HEAD --- so stage two is at or ahead
-of stage one everywhere but `bcast`, by most where the call is small,
-and the two compilers agree within a point on five of the seven, `window`
-parting them by four points and the main set by two. Run 23 read 0.81 to 1.04
-and Run 21 read 2.43 to 4.54, so the regression the unboxing fixed has stayed
-fixed across three runs and two codegens.
+lifted out of parking for it.** Stage two against stage one reads **0.24 to 1.01
+over all eleven populations** --- `runs` 0.2352, `block` 0.4392, `flip` 0.7600,
+`small` 0.7206, `bcastmid` 0.7846, `rev` 0.8949, `window` 0.8957, `compose`
+0.9065, the main set 0.9714, `scaled` 0.9756 and `bcast` 1.0105 on the basis,
+and 0.2368, 0.4385, 0.7660, 0.7295, 0.7850, 0.8779, 0.8553, 0.9050, 0.9510,
+0.9757 and 1.0177 on GHC HEAD --- so stage two is ahead of stage one on ten
+of the eleven and behind on `bcast` alone, by most on the regime-2 populations
+where stage one takes the slice-and-concatenate route, and the two compilers
+agree within a point on eight of the eleven, `window` parting them by four
+points and the main set by two. Run 23 read 0.81 to 1.04 and Run 21 read 2.43
+to 4.54, so the regression the unboxing fixed has stayed fixed across three runs
+and two codegens.
 
 End-to-end re-measurement in horde-ad's `bench/ConvVjpBench.hs` --- wiring
 this branch's orthotope in and rebuilding ox-arrays + horde-ad --- is owed
@@ -4901,9 +4904,10 @@ of its three instruction ratios came back to a ten-thousandth. **The other half
 is a compiler finding and not a fill one**: on GHC HEAD the same two arms lose
 the saving outright, `-u2-ptr` executing 1.8842 of `-u2`'s corrected
 instructions where the basis reads 0.8357, and allocating **2.61x** the result
-vector where every other fill on both halves allocates 1.00x. So a ceiling read
-on one codegen is not a ceiling, and the `Ptr` form is the one shape
-in this family whose codegen the two compilers do not agree on.
+vector, with `-u1-ptr` at 1.41x beside it, where every fill on the basis half
+and every non-pointer fill on HEAD allocates 1.00x. So a ceiling read on one
+codegen is not a ceiling, and the `Ptr` form is the one shape in this family
+whose codegen the two compilers do not agree on.
 
 **A twenty-first reading, 2026-09-05, dodges the spill at the source in both
 loops, and prices the unrolling alone at a quarter.** **Both arms
@@ -5255,10 +5259,10 @@ their reading, and the short bodies are still too repetitive for orthotope. Each
 takes back the slot it used to hold, every slot below
 `mut-odo-vecdims-add-in-leaf` moving by one and every slot below
 `lib-stage2-short` by four; the one control span that moves with them
-is `bq-expand`'s distant pair, 22 intervening benches against the 19 the roster
-carried before today, every other pair unmoved, so the floor is read
-over the same six. While they are timed the roster is 570 benches and 30 arms,
-and Run 27's re-parking takes it to 494 and 26.
+is `bq-expand`'s distant pair, 22 intervening benches against Run 25's 16, every
+other pair unmoved, so the floor is read over the same six. While they are timed
+the roster is 570 benches and 30 arms, and Run 27's re-parking takes it to 494
+and 26.
 
 - **A strategy with a precondition is not measured.** The column allowed `none`,
   an empty cell, and `shape well-formed`, which is a condition on being a valid
@@ -8567,11 +8571,12 @@ placements of one strategy exactly as a twin's pair does. It is not in the floor
 --- `--aa` reads the declared twins alone --- and it differs from a twin
 in sitting where a candidate sits rather than where a control was placed. **Run
 26's registration (1) read it and it failed on one population**: inside
-the floor on eight of the ten classes and on the main set's basis half,
-and 1.0171 and 1.0316 on `small` against that class's 0.52% and 0.96%, past them
-on both halves. So the check from outside the declared pairs is worth having
-and it does not simply confirm them: at a few hundred elements a per-call
-difference the lean ruling was meant to have removed is still there.
+the floor on BOTH halves on six of the nine classes it is an A/A pair on,
+outside on one half only on `rev` and `window`, and 1.0171 and 1.0316 on `small`
+against that class's 0.52% and 0.96%, past them on both halves. So the check
+from outside the declared pairs is worth having and it does not simply confirm
+them: at a few hundred elements a per-call difference the lean ruling was meant
+to have removed is still there.
 
 **The twins have now taken every side available, which is what a sign this weak
 is worth.** Run 10 read all six pairs above 1 on its unaligned half and five
@@ -10376,9 +10381,11 @@ tables and its fingerprint say so.
   25's could not be either. The box did not move, its gate machine check reading
   +0.72% and its two main-set processes +0.42% and -0.91% against Run 25's
   fingerprint over 18 of 19 shapes. Its sequence ran in ONE window, all
-  twenty-two processes; one foreign-CPU episode touched two `sum-only` benches
-  of the control half and moved them less than that half's own floor,
-  so no population was rerun and the run file records the reading.
+  twenty-two processes; TWO foreign-CPU episodes touched it --- a snapd mount
+  and reload at 02:47:56 on two `sum-only` benches of the control half,
+  and `apt-daily-upgrade.service` at 06:41 on one timed cell of the basis half
+  --- and neither moved a figure past the floor of the half it was on,
+  so no population was rerun and the run file records both with their causes.
   **And its floor is a maximum over the same SIX A/A pairs Run 25 read**, 0.31%
   and 0.46%, tighter than Run 25's on both halves and still no continuation
   of the sixteen-pair series.
