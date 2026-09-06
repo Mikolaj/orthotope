@@ -4598,25 +4598,6 @@ data Arm = Base (ShapeL -> T -> VS.Vector Double)
 -- placements below are stated for the roster they were chosen in, and a
 -- placement reasoned about an arm that is now 'Only' says why the slot is
 -- there rather than what it currently measures.
---
--- FOUR PARKINGS ARE LIFTED FOR RUN 26 ALONE, AND RUN 27 TAKES ALL FOUR
--- BACK: 'mut-odo-vecdims-add-in-leaf-down', parked 2026-09-02;
--- 'canon-vecdims' and 'lib-stage2', parked by the prune of 2026-09-04;
--- and 'lib-stage2-short', parked by the ruling on the short bodies of
--- the same day. Each was parked with a registration standing on it, and
--- the parking is what left that registration unreadable -- Run 24 lost
--- a clause and Run 25 five, with the two-window item withdrawn beside
--- them, seven in all (README.md#what-is-open). Run 26 times the four so
--- those clauses are read on the arms they were written against; no
--- parking's own grounds are reopened by it, so each entry below keeps
--- the reason it carries and adds only that the arm is timed for this
--- one run. Each takes back the slot it used to hold, and
--- 'mut-odo-vecdims-add-in-leaf' went to 'Only' the same day, so the net
--- shift below the leaf block is three rather than four and every slot
--- below 'lib-stage2-short' moves by three, which the roster delta records
--- (README.md#provenance). No control changes which arm it prices,
--- and one span moves: 'bq-expand''s distant twin sits 23 intervening
--- benches from its base where the pruned roster puts it 19.
 roster :: [(String, Arm)]
 roster =
     -- The early half of the 'sum-only' pair; the late half is the last
@@ -4798,11 +4779,10 @@ roster =
     -- run and the -u1 question answered
     -- (README.md#recommended-tasks-after-run-26, item 2).
   , ("mut-odo-vecdims-add-in-leaf", Only fbMutOdoVecdimsAddInLeaf)
-    -- Timed again for Run 26 alone, with three more arms (at 'roster'
-    -- above): Run 24's registration 5 predicted '-u2' ahead of this arm
-    -- in every population and no process of that run timed it, the
-    -- parking above being the same commit's. Run 27 parks it again.
-  , ("mut-odo-vecdims-add-in-leaf-down", Fill fbMutOdoVecdimsAddInLeafDown)
+    -- Timed once more for Run 26, which read Run 24's registration 5 on
+    -- it: '-u2' ahead in all eleven populations on both halves
+    -- (runs/run26.md, item 4). 'Only' again since 2026-09-06.
+  , ("mut-odo-vecdims-add-in-leaf-down", Only fbMutOdoVecdimsAddInLeafDown)
   , ("mut-odo-vecdims-add-in-leaf-u2", Fill fbMutOdoVecdimsAddInLeafU2)
     -- The unrolled loop with its cursors as pointers at every level,
     -- added 2026-09-05 beside its parent for Run 26's comparison with
@@ -4843,12 +4823,11 @@ roster =
     -- every slot below moves by three more than the block above already
     -- carries.
     -- parked 2026-09-04 by the prune (README.md#what-the-benchmark-does)
-    -- Timed again for Run 26 alone, with three more arms (at 'roster'
-    -- above): the small class's second clause predicted this arm
-    -- behind 'mut-odo-vecdims' on the regime-3 views and ahead on
-    -- 'small-flat64', and the prune parked it the day after that was
-    -- registered, so neither half was read. Run 27 parks it again.
-  , ("canon-vecdims",              Fill fbCanonVecdims)
+    -- Timed once more for Run 26, which read the small class's second
+    -- clause on it: behind 'mut-odo-vecdims' on three regime-3 views and
+    -- collapsing 'small-flat64' (runs/run26.md, item 6). 'Only' again
+    -- since 2026-09-06.
+  , ("canon-vecdims",              Only fbCanonVecdims)
     -- Parked 'Only' 2026-09-02: refused at Run 20, behind the arm it
     -- varies on `window`
     -- (README.md#the-two-stage-plan-and-the-rework-proposal), and timed
@@ -4873,12 +4852,11 @@ roster =
     -- parked 2026-09-04 by the prune (README.md#what-the-benchmark-does):
     -- the two halves that bracketed 'dispRun', spent once the arm below
     -- carried its cut
-    -- Timed again for Run 26 alone, with three more arms (at 'roster'
-    -- above): it is the lean arm's control, so the one clause no
-    -- substitution can restate -- 'lib-stage2-lean' at or below this
-    -- arm, the small class's first clause and Run 24's registration 2
-    -- -- needs it timed. Run 27 parks it again.
-  , ("lib-stage2",                 Fill fbLibStage2)
+    -- Timed once more for Run 26 as the lean arm's control, which read
+    -- 'lib-stage2-lean' at or below this arm everywhere and ahead on the
+    -- small shapes (runs/run26.md, items 5 and 6). 'Only' again since
+    -- 2026-09-06.
+  , ("lib-stage2",                 Only fbLibStage2)
   , ("lib-stage2-concat",          Only fbLibStage2Concat)
     -- The dispatch arm the runs class's crossover asks for, added
     -- 2026-08-30: one change over the entry above, and placed beside it
@@ -4914,13 +4892,11 @@ roster =
     -- Parked 'Only' 2026-09-04: ruled out for the library at
     -- 'fillStage2Short''s definition, the short bodies too repetitive and
     -- so too complex, as the quad loop was; its Run 24 readings stand.
-    -- Timed again for Run 26 alone, with three more arms (at 'roster'
-    -- above): the two-window item was withdrawn with this parking, and
-    -- Run 25's registration 3 reaches Run 24's registrations 1 and 3
-    -- through it. The ruling that parked it stands -- what the run
-    -- reads is what the short bodies would have bought, not a candidate
-    -- to ship. Run 27 parks it again.
-  , ("lib-stage2-short",           Fill fbLibStage2Short)
+    -- Timed once more for Run 26, which read the two-window item on it:
+    -- ahead of the lean arm on all three k3 window views (runs/run26.md,
+    -- item 7), what the short bodies would have bought and not a
+    -- candidate to ship. 'Only' again since 2026-09-06.
+  , ("lib-stage2-short",           Only fbLibStage2Short)
   , ("lib-stage2-lean",            Fill fbLibStage2Lean)
     -- The list consumer under each stage, added the same day: the
     -- library's toVectorListT and one concatenation, so the pair prices

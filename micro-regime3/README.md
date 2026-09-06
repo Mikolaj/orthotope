@@ -883,6 +883,51 @@ rather than a slot in the next run, observed again:
   differ the ruling's premise is wrong, and if they do not it is a placement
   term on the one class small enough to show one.
 
+- `OPEN` **What Run 27 is built to answer, registered before it runs.**
+  Registered 2026-09-06, before the run, on Run 26's pair --- ghc-9.12.4
+  as the basis against the same in-tree HEAD stage1, `10.1.20260803`, both
+  under `LOOP_DEADSPOT=1`, the same recipe and the same shim --- over Run 26's
+  roster less the four arms it lifted out of parking: 26 timed arms over 19
+  main-set shapes, 494 benches, and the 52 class views of ten classes unmoved.
+  The one change of code is the GHC #27778 workaround, `:: Ptr Double` on every
+  bang-bound `plusPtr` result in the three pointer arms (the answered entry
+  above), which leaves the three arms' STG on 9.12.4 byte-identical and takes
+  every `Ptr` allocation out of the HEAD build's, both read off STG dumps
+  of the two builds before this run. Each item names its populations and carries
+  a prediction and a kill condition. (1) *The pointer fills on the second
+  codegen.* With the workaround, HEAD reads the two pointer fills as the basis
+  does. On the main set, on both halves:
+  `predict: pair mut-odo-vecdims-add-in-leaf-u1-ptr mut-odo-vecdims-add-in-leaf-u1 0.97 within 2%`,
+  where Run 26's basis read 0.9693 and its HEAD half 1.3084;
+  `predict: pair mut-odo-vecdims-add-in-leaf-u2-ptr mut-odo-vecdims-add-in-leaf-u1-ptr 0.94 within 2%`,
+  where Run 26 read 0.9431 and 1.9710; and
+  `predict: pair mut-odo-vecdims-add-in-leaf-u2-ptr mut-odo-vecdims-add-in-leaf-u2 0.95 within 3%`,
+  where Run 26 read 0.9479 paired at 13 of 19 and 2.6731, the wider tolerance
+  being that pair's own, its win count not having separated on the basis.
+  And both fills allocate 1.00x the result on both halves, read off
+  the allocation column, where Run 26's HEAD half read 1.41x and 2.61x. Killed
+  by either pointer fill above 1.00x on either half, which would say
+  the annotation did not reach the build timed, or by any of the three pairs
+  reversing direction on HEAD past the main set's floor, which would say the box
+  was not all HEAD lost on them. (2) *The compiler on the pointer fills,
+  in counts.* The two arms whose counts parted the compilers on Run 26, 0.6219
+  and 0.9295 basis over HEAD, read as the rest of the roster does. On the main
+  set: `predict: counts mut-odo-vecdims-add-in-leaf-u2-ptr 1.0 within 1.5%`
+  and `predict: counts mut-odo-vecdims-add-in-leaf-u1-ptr 1.0 within 1.5%`,
+  the band being where twenty-four of Run 26's twenty-six arms sat, 0.9936
+  to 1.0089. Killed by either outside 3%, which would say HEAD still emits
+  a different loop for the `Ptr` form once the box is gone. (3) *The basis half
+  against Run 26's.* The annotation changing no 9.12 code and four arms leaving
+  moving slots alone, every one of the 26 timed arms reads within 1% of its Run
+  26 basis cell at the geomean over the nineteen shared shapes, the pointer
+  fills included, `--pin` to Run 26's column; a per-shape excursion past 1%
+  on a slot that moved is what Run 26's item (2) found on every untouched arm
+  and is not this item's kill. Killed by any arm's geomean past 1%, which would
+  be a layout term the STG comparison cannot see, or by either pointer fill's
+  basis cell past the floor on any shape, which would say the annotation
+  is not a no-op on 9.12 after all. This item is adjudicated by hand,
+  on the main set.
+
 - `ANSWERED` **What Run 26 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
   verdicts are [in Run 26's own
@@ -1009,41 +1054,40 @@ rather than a slot in the next run, observed again:
   now says so where it is done. **And the seven clauses are read back,
   2026-09-06**: the four arms they turn on ---
   `mut-odo-vecdims-add-in-leaf-down`, `canon-vecdims`, `lib-stage2`
-  and `lib-stage2-short` --- are timed for Run 26 alone and parked again by Run
-  27 ([what the benchmark does](#what-the-benchmark-does)), and the clauses
-  are re-registered as items (4) to (7) of the Run 26 entry above, each naming
-  `lib-stage2-lean` where the lean arm is the same code for its purpose
-  and keeping `lib-stage2` where the pair is the clause's subject. **What
-  that buys is the five nobody could read at all**: Run 24's registration 5, Run
-  25's registration 3 --- whose (1) and (3) want `lib-stage2-short` back
-  and whose (2) wants `lib-stage2` --- `small`'s two clauses and the withdrawn
-  two-window item. The other two gain less and say so where they are registered:
-  `flip`'s and `block`'s clauses take `lib-stage2-lean` as their subject, which
-  is the stand-in Run 25 read them through, so they come back as repetitions.
-  **RUN 26 RAN AND THE WORKAROUND WORKED, which is the evidence this entry
-  was short of**: all seven clauses were readable, every one of the eight items
-  returned a verdict, and the run lost nothing where Run 24 lost one clause
-  and Run 25 five. `small`'s two clauses, unread since the day they
-  were written, both HELD --- `lib-stage2-lean` ahead of `lib-stage2` on all
-  four views and `canon-vecdims` behind `mut-odo-vecdims` on the regime-3 views
-  while collapsing `small-flat64` --- and Run 24's registration 5 HELD in all
-  eleven populations. **So the entry stays OPEN for the CHECK and not
-  for the workaround**: what worked was a preparation writing seven clauses out
-  by hand, which is a person doing what `--lint` still cannot, and the next
-  registration that defers rather than restates will fail exactly as before.
-  What would close it is `--lint` following a deferral target's arms
-  and a clause's named registration to the roster, which is the entry's own
-  proposal and is still unwritten. **PARKED 2026-09-06, and the prevention
-  is in the pre-run list rather than in a tool.** Run 26 restated seven
-  inherited clauses in their own words instead of deferring, and lost none where
-  Run 24 lost one and Run 25 five, so the cheap fix is proven and is now pre-run
-  step 12b's own instruction: do not defer, write the clause out with its arms
-  named. Writing the check --- `--lint` following a deferral target's arms
-  and a clause's named registration to the roster --- buys the same protection
-  for a tool change where a paragraph buys it for free, so it is not worth doing
-  and is not to be re-proposed. **What would reopen it** is a run that loses
-  a clause DESPITE restating, which would mean the failure is not the deferral
-  after all.
+  and `lib-stage2-short` --- were timed for Run 26 alone ([what the benchmark
+  does](#what-the-benchmark-does)), and the clauses are re-registered as items
+  (4) to (7) of the Run 26 entry above, each naming `lib-stage2-lean` where
+  the lean arm is the same code for its purpose and keeping `lib-stage2` where
+  the pair is the clause's subject. **What that buys is the five nobody could
+  read at all**: Run 24's registration 5, Run 25's registration 3 --- whose (1)
+  and (3) want `lib-stage2-short` back and whose (2) wants `lib-stage2` ---
+  `small`'s two clauses and the withdrawn two-window item. The other two gain
+  less and say so where they are registered: `flip`'s and `block`'s clauses take
+  `lib-stage2-lean` as their subject, which is the stand-in Run 25 read them
+  through, so they come back as repetitions. **RUN 26 RAN AND THE WORKAROUND
+  WORKED, which is the evidence this entry was short of**: all seven clauses
+  were readable, every one of the eight items returned a verdict, and the run
+  lost nothing where Run 24 lost one clause and Run 25 five. `small`'s two
+  clauses, unread since the day they were written, both HELD ---
+  `lib-stage2-lean` ahead of `lib-stage2` on all four views and `canon-vecdims`
+  behind `mut-odo-vecdims` on the regime-3 views while collapsing `small-flat64`
+  --- and Run 24's registration 5 HELD in all eleven populations. **So the entry
+  stays OPEN for the CHECK and not for the workaround**: what worked
+  was a preparation writing seven clauses out by hand, which is a person doing
+  what `--lint` still cannot, and the next registration that defers rather
+  than restates will fail exactly as before. What would close it is `--lint`
+  following a deferral target's arms and a clause's named registration
+  to the roster, which is the entry's own proposal and is still unwritten.
+  **PARKED 2026-09-06, and the prevention is in the pre-run list rather
+  than in a tool.** Run 26 restated seven inherited clauses in their own words
+  instead of deferring, and lost none where Run 24 lost one and Run 25 five,
+  so the cheap fix is proven and is now pre-run step 12b's own instruction: do
+  not defer, write the clause out with its arms named. Writing the check ---
+  `--lint` following a deferral target's arms and a clause's named registration
+  to the roster --- buys the same protection for a tool change where a paragraph
+  buys it for free, so it is not worth doing and is not to be re-proposed.
+  **What would reopen it** is a run that loses a clause DESPITE restating, which
+  would mean the failure is not the deferral after all.
 - `ANSWERED` **`--replace` took a following heading with the paragraph
   it replaced, where no blank line separated them --- fixed 2026-09-03.** Run
   24's write-up lost `## Results` from its own file that way: in the committed
@@ -3351,10 +3395,9 @@ is judged feature by feature, and the short bodies stand or fall on their own.
 length of 2 to 5 is too repetitive and so too complex for orthotope,
 so `lib-stage2-short` and `lib-stage2-short-lean` price what the bodies would
 buy, are not candidates to ship, and are parked `Only` as `lib-stage2-u4` is;
-their Run 24 readings stand in that run's file. `lib-stage2-short` is timed
-again for Run 26 alone, and Run 27 parks it again: what the parking withdrew
-was the two-window item registered the day before it ([the open list][open]),
-and reading that is not reopening this ruling.** **The lean dispatch is taken,
+their Run 24 readings stand in that run's file. Run 26 timed `lib-stage2-short`
+once more to read the two-window item the parking had withdrawn ([the open
+list][open]), which did not reopen this ruling.** **The lean dispatch is taken,
 2026-09-05, for every dispatch that admits it, in the branch's `regimeT`
 and in every natural-strides dispatch over `canonView` here but `lib-stage2`'s,
 which keeps the strides comparison as the lean arm's control**: mainly because
@@ -3400,10 +3443,9 @@ for Run 25, took it to 468, and the ruling on the short bodies, parking two,
 took it back to 432; `libunord-stage3`, added 2026-09-05 for Run 26, makes
 it 450, and `cnn-L1-6x6-c1`, timed again the same day, takes it to 475,
 and the pointer pair of 2026-09-05 makes it 513; parking the leaf arm whose
-bound-control run is over makes it 494, and lifting four parkings for Run 26
-alone ([what the benchmark does](#what-the-benchmark-does)) takes the roster
-to 570 benches. What the next run is registered to answer with them is [in
-the open list][open].
+bound-control run is over takes the roster to 494 benches, the four parkings Run
+26 lifted for that run alone ([what the benchmark
+does](#what-the-benchmark-does)) being back since 2026-09-06.
 
 **What the eight are worth as instruments, read against each other for the first
 time on 2026-08-14, over Runs 10 to 13.** Per class: the median A/A deviation
@@ -5076,7 +5118,10 @@ reads 0.8357, and allocating **2.61x** the result vector, with `-u1-ptr`
 at 1.41x beside it, where every fill on the basis half and every non-pointer
 fill on HEAD allocates 1.00x. So a ceiling read on one codegen is not a ceiling,
 and the `Ptr` form is the one shape in this family whose codegen the two
-compilers do not agree on.
+compilers do not agree on. The disagreement has a name and a workaround since
+2026-09-06, GHC #27778 in the open list's answered entry: the boxed value
+is the run's let-generalised end pointer, and a type annotation on it gives HEAD
+the basis's code.
 
 ### The C-gap: still a deeper ceiling
 
@@ -5328,20 +5373,19 @@ than absent, since that case ran benchmarks of a different scale.
 **Two rulings taken 2026-08-08 cut the timed roster from 38 strategies to 15,
 the arms written since brought it back to 28, and a third cut on 2026-09-04,
 the prune, takes it to twelve with `list`; the `-u1` arm timed for Run 25,
-`libunord-stage3` and the two pointer fills of 2026-09-05 make sixteen,
-and the four parkings lifted for Run 26 alone (below) twenty** --- the 28 being
-the four unconditional forms the precondition ruling itself called for (below),
-the four FastReshape arms, of the five Run 20 arms beside them the three
-the probes left timed ([the mutable ceiling](#the-mutable-ceiling-taken)),
-and the rework's five less the three placement-family arms parked beside them.
-All three cuts are about what is worth spending a bench on, not about what
-is worth keeping: every dropped strategy stays in `Main.hs` and stays
-in the roster as `concat-runs` is --- checked against the reference on every
-shape of every class, and not timed --- so the agreement net does not shrink
-and nothing has to be rewritten if a ruling is later reopened. The 23 arms
-the rulings dropped carry `Only` in that roster, each naming the bound
-or the multiple that disqualified it. The five library-shaped arms
-with the timed `-u2-down`, added 2026-08-28 ([the stride
+`libunord-stage3` and the two pointer fills of 2026-09-05 make sixteen** ---
+the 28 being the four unconditional forms the precondition ruling itself called
+for (below), the four FastReshape arms, of the five Run 20 arms beside them
+the three the probes left timed ([the mutable
+ceiling](#the-mutable-ceiling-taken)), and the rework's five less the three
+placement-family arms parked beside them. All three cuts are about what is worth
+spending a bench on, not about what is worth keeping: every dropped strategy
+stays in `Main.hs` and stays in the roster as `concat-runs` is --- checked
+against the reference on every shape of every class, and not timed ---
+so the agreement net does not shrink and nothing has to be rewritten if a ruling
+is later reopened. The 23 arms the rulings dropped carry `Only` in that roster,
+each naming the bound or the multiple that disqualified it. The five
+library-shaped arms with the timed `-u2-down`, added 2026-08-28 ([the stride
 classes](#the-stride-classes-and-what-they-cover)), less the eight parked
 permanently since Run 21 and `offtab`'s two twins removed ([its entry][open]),
 plus the six arms added 2026-08-30 and, on 2026-09-02, the composite arm less
@@ -5388,27 +5432,26 @@ entry][open]), and the ruling on the short bodies parked two, the day ending
 at 432 benches; `libunord-stage3`, added 2026-09-05 for Run 26, makes it 450,
 and `cnn-L1-6x6-c1`, timed again the same day, takes it to 475, and the pointer
 pair of 2026-09-05 makes it 513; parking the leaf arm whose bound-control run
-is over takes it to 494, and lifting four parkings for Run 26 alone took
-it to 570 benches for that run; their re-parking on 2026-09-06 takes the roster
-to 494 benches, so with the controls the run is 26 arms. **Which four, and Run
-27 takes all four back**: `mut-odo-vecdims-add-in-leaf-down`, parked 2026-09-02;
-`canon-vecdims` and `lib-stage2`, parked by this prune; and `lib-stage2-short`,
-parked by the ruling on the short bodies of the same day ([the stride
+is over takes the roster to 494 benches, so with the controls the run is 26
+arms. **Run 26 timed four parked arms for that run alone**:
+`mut-odo-vecdims-add-in-leaf-down`, parked 2026-09-02; `canon-vecdims`
+and `lib-stage2`, parked by this prune; and `lib-stage2-short`, parked
+by the ruling on the short bodies of the same day ([the stride
 classes](#the-stride-classes-and-what-they-cover)). Each was parked
 with a registration standing on it, which is what left that registration
 unreadable --- Run 24 lost a clause, Run 25 five, and the two-window item
 was withdrawn beside them, seven in all ([the open list][open]) --- so Run 26
-times the four to read the seven on the arms they were written against,
-and no parking's own grounds are reopened by it: the shipped `-u2` leaf still
+timed the four to read the seven on the arms they were written against,
+and no parking's own grounds were reopened by it: the shipped `-u2` leaf still
 leads the count-down one, the two fragments among the four have still delivered
 their reading, and the short bodies are still too repetitive for orthotope. Each
-takes back the slot it used to hold, every slot below
+took back the slot it used to hold, every slot below
 `mut-odo-vecdims-add-in-leaf` moving by one and every slot below
-`lib-stage2-short` by four; the one control span that moves with them
-is `bq-expand`'s distant pair, 22 intervening benches against Run 25's 16, every
-other pair unmoved, so the floor is read over the same six. While they are timed
-the roster is 570 benches and 30 arms, and Run 27's re-parking takes it to 494
-and 26.
+`lib-stage2-short` by four, and the one control span that moved with them
+was `bq-expand`'s distant pair, 22 intervening benches against Run 25's 16,
+every other pair unmoved, so the floor was read over the same six; that run's
+roster was 570 benches and 30 arms, and the four are `Only` again since
+2026-09-06, its verdicts at their roster entries.
 
 - **A strategy with a precondition is not measured.** The column allowed `none`,
   an empty cell, and `shape well-formed`, which is a condition on being a valid
@@ -10619,8 +10662,11 @@ tables and its fingerprint say so.
   file `runs/` currently publishes --- 30 timed arms over 19 main-set shapes
   and 52 class views in TEN classes, 570 benches and 1560, SIX A/A pairs,
   the `runs` class at FOURTEEN and `window` at SIX --- so its delta against
-  TODAY is EMPTY, `9702f20` having moved `Main.hs` by comments alone after
-  the pair was built and nothing since. **Its delta against RUN 25**
+  TODAY is the two edits of 2026-09-06 that prepare Run 27: the four lifted arms
+  parked again and the `:: Ptr Double` annotation on every bang-bound `plusPtr`
+  result in the three pointer arms, the GHC #27778 workaround ([the open
+  list][open]), which changes no 9.12 code; `9702f20` had moved `Main.hs`
+  by comments alone after the pair was built. **Its delta against RUN 25**
   is the eight commits of 2026-09-05 and 2026-09-06: the lean dispatch for every
   arm that admits it, `libunord-stage3` and the two pointer fills joining
   the timed roster, `cnn-L1-6x6-c1` back from the retired list
@@ -10628,30 +10674,28 @@ tables and its fingerprint say so.
   `mut-odo-vecdims-add-in-leaf` going to `Only`, and four arms parked after Run
   23 --- `mut-odo-vecdims-add-in-leaf-down`, `canon-vecdims`, `lib-stage2`
   and `lib-stage2-short` --- timed again for this run alone, each back
-  in its old slot. **Run 27 re-parks those four**, so its roster is 26 timed
-  arms and its delta against today will be that re-parking. So NEITHER half
-  reproduces an earlier binary and no md5 here matches one on record; a distance
-  from Run 25's published column carries one added shape as well as a roster
-  one, **which is why every cross-run figure in its file is pinned
-  to the eighteen the two runs share**. What a reader has to carry is which half
-  a figure came from: everything published in its file is `run26-g912`,
-  ghc-9.12.4, and `run26-ghead` --- the same source, shim and shim environment
-  built through `cabal.project.ghead` against the in-tree GHC HEAD stage1,
-  unmoved since Run 24, so the halves differ in the compiler and in the boot
-  libraries that come with it and in nothing else --- contributes the second
-  column of `runs/run26.md`. Its `list` moved 1.16% between the halves, PAST
-  the 0.7% bar, so its two columns may be ordered and not subtracted, as Run
-  25's could not be either. The box did not move, its gate machine check reading
-  +0.72% and its two main-set processes +0.42% and -0.91% against Run 25's
-  fingerprint over 18 of 19 shapes. Its sequence ran in ONE window, all
-  twenty-two processes; TWO foreign-CPU episodes touched it --- a snapd mount
-  and reload at 02:47:56 on two `sum-only` benches of the control half,
-  and `apt-daily-upgrade.service` at 06:41 on one timed cell of the basis half
-  --- and neither moved a figure past the floor of the half it was on,
-  so no population was rerun and the run file records both with their causes.
-  **And its floor is a maximum over the same SIX A/A pairs Run 25 read**, 0.31%
-  and 0.46%, tighter than Run 25's on both halves and still no continuation
-  of the sixteen-pair series.
+  in its old slot. So NEITHER half reproduces an earlier binary and no md5 here
+  matches one on record; a distance from Run 25's published column carries one
+  added shape as well as a roster one, **which is why every cross-run figure
+  in its file is pinned to the eighteen the two runs share**. What a reader has
+  to carry is which half a figure came from: everything published in its file
+  is `run26-g912`, ghc-9.12.4, and `run26-ghead` --- the same source, shim
+  and shim environment built through `cabal.project.ghead` against the in-tree
+  GHC HEAD stage1, unmoved since Run 24, so the halves differ in the compiler
+  and in the boot libraries that come with it and in nothing else ---
+  contributes the second column of `runs/run26.md`. Its `list` moved 1.16%
+  between the halves, PAST the 0.7% bar, so its two columns may be ordered
+  and not subtracted, as Run 25's could not be either. The box did not move,
+  its gate machine check reading +0.72% and its two main-set processes +0.42%
+  and -0.91% against Run 25's fingerprint over 18 of 19 shapes. Its sequence ran
+  in ONE window, all twenty-two processes; TWO foreign-CPU episodes touched
+  it --- a snapd mount and reload at 02:47:56 on two `sum-only` benches
+  of the control half, and `apt-daily-upgrade.service` at 06:41 on one timed
+  cell of the basis half --- and neither moved a figure past the floor
+  of the half it was on, so no population was rerun and the run file records
+  both with their causes. **And its floor is a maximum over the same SIX A/A
+  pairs Run 25 read**, 0.31% and 0.46%, tighter than Run 25's on both halves
+  and still no continuation of the sixteen-pair series.
 
 - Run 25 measured the shapes, class views and roster of its own day --- 24 timed
   arms over 18 main-set shapes and 49 class views in TEN classes, 432 benches
