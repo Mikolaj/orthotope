@@ -2817,17 +2817,25 @@ codegen rather than that it cannot be built.
   and immediate. Registered for two runs on that reasoning without anyone
   drawing the conclusion; drawn here so it is not registered for a third.
 - `OPEN` **More checks of the floor-consistency shape: one figure, several
-  sites, must agree.** The floor pair, the roster size and every population size
-  quoted as `over N shapes` are checked (the last two against Main.hs,
-  2026-08-16, since agreement alone cannot see a count that is stale
-  everywhere), and since 2026-08-22 the floor-movement sentence beside the class
-  table --- alone among them in having a truth on the page rather than only
-  agreement, its second figure being a claim about the column printed right
-  above it. **It fired on the document it was written into**: Run 17 installed
-  that column and left Run 16's paragraph standing under it, all eight movements
-  landing on the previous run's figures with `--lint`, `--check-doc` and both
-  installers green over them. The paragraph was cut rather than repaired, what
-  moved the floors having no account --- the entry for that is in [What
+  sites, must agree.** **AND THE FIRST THING SUCH A CHECK NEEDS IS THE SITES**:
+  on 2026-09-06 the floor-pair check was seeing TWO of the ten sites the run
+  file and README carry between them, because it knew three phrasings ---
+  so it passed while a wrong figure sat in a site it could not see, and an agent
+  found that site instead. It now knows seven and reads all ten, which is why
+  the duplication is left standing rather than cut: a figure repeated where
+  a checker reads every copy is cheaper than a figure stated once and pointed
+  at from five sections. Widen the patterns when a run rewords a lead. The floor
+  pair, the roster size and every population size quoted as `over N shapes`
+  are checked (the last two against Main.hs, 2026-08-16, since agreement alone
+  cannot see a count that is stale everywhere), and since 2026-08-22
+  the floor-movement sentence beside the class table --- alone among them
+  in having a truth on the page rather than only agreement, its second figure
+  being a claim about the column printed right above it. **It fired
+  on the document it was written into**: Run 17 installed that column and left
+  Run 16's paragraph standing under it, all eight movements landing
+  on the previous run's figures with `--lint`, `--check-doc` and both installers
+  green over them. The paragraph was cut rather than repaired, what moved
+  the floors having no account --- the entry for that is in [What
   is open](#what-is-open). **Of the four subjects Run 14 got wrong the process
   count is now checked, and the run window is refused --- both settled
   2026-08-26 by reading the two run files rather than by arguing about
@@ -5537,7 +5545,14 @@ owes; a run is prepared and executed from the lists. *Why this is the first
 block:* the pointer to `--checklist` used to sit inside the next paragraph,
 so a session arriving cold had to read the chapter to learn how not to read
 it --- Run 24's preparation read hundreds of lines with `sed` before meeting it,
-the run list a preparation does not owe among them (2026-09-03).
+the run list a preparation does not owe among them (2026-09-03). **RUN THOSE TWO
+LINES BEFORE READING THE NEXT PARAGRAPH.** The block being first is not enough
+on its own: Run 26 was an EXECUTION, met this block, and still read some 250
+lines of framing before starting, so the failure is not the preparation's alone
+and not fixed by placement (2026-09-06). What is NOT done, and would be the real
+fix, is moving the framing behind `--section` so the chapter opens on these two
+lines and nothing else; it was left because every `why:` line in the three lists
+points into that prose by paragraph, and moving it breaks each of them.
 
 **A RUN IS ALWAYS TWO SESSIONS, and which one you are decides everything
 below.** One PREPARES the run, through step 12 of the pre-run list, and hands
@@ -5571,13 +5586,15 @@ a reading taken at the head is forgotten by the time its step arrives. A reading
 that owes nothing cannot be told from a reading not done, which is the whole
 of why this is a list and not a sentence. **Items 2, 4, 5 and 6 are ONE
 CARRIER'S BATCH, and its return is a file**: `run<N>-readings.txt`, written
-at the head of the post-run walk and read back a block at a time by the three
-steps that name those items. They are the previous run's prose --- its head,
-its two-column section, its claims and a class block --- read once for a verdict
-apiece and never carried whole, which is what a carrier is for. A file rather
-than a returned message because the sentence above binds a delegated reading
-too: what the carrier says is forgotten by the step that needs it unless
-it is written down.
+at the head of the post-run walk --- or EARLIER, during the sequence, which
+is where Run 26 put it and where it costs nothing: the box is busy for hours,
+the carrier only reads, and the file waits. Read back a block at a time
+by the three steps that name those items. They are the previous run's prose ---
+its head, its two-column section, its claims and a class block --- read once
+for a verdict apiece and never carried whole, which is what a carrier is for.
+A file rather than a returned message because the sentence above binds
+a delegated reading too: what the carrier says is forgotten by the step
+that needs it unless it is written down.
 
     1. this chapter's three checklists, each printed alone by
     `./read-run.py --checklist pre|run|post`, a fifth of the chapter's lines
@@ -6285,7 +6302,19 @@ Unsandboxed throughout:
     #      is recorded and the next stage runs. Confirm the launch by
     #      `evening begins` in $R-evening.txt and never by the launching
     #      shell's output, a blocked write leaving a launch that never
-    #      happened looking like one in progress. What it replaced was
+    #      happened looking like one in progress.
+    #      AND ARM A MONITOR ON THAT FILE IN THE SAME TURN, `tail -f`
+    #      over $R-evening.txt, stopped when the evening ends.
+    #      Background mode wakes you at the command's EXIT, which for
+    #      this one is some seven hours after four stages and
+    #      twenty-two processes have landed silently; the monitor is
+    #      what puts each on the screen as it lands, which is what
+    #      the confirm-each-long-process rule asks for and what
+    #      background mode alone cannot give. NOT INSTEAD of it:
+    #      `tail -f` never exits, so it would never deliver the
+    #      command's status. Run 26 armed both and reported the gate,
+    #      the alarm, the sequence and all four riders as they came.
+    #      What it replaced was
     #      five launch lines typed between waits, each wait a turn end
     #      and each line a place to drop the environment or to mis-order;
     #      the counts stay a line of their own for the reason 19a gives.
@@ -7120,7 +7149,12 @@ not otherwise.
     #      FIRST MEANS BEFORE 11 AND NOT BEFORE 1: where step 2 may name
     #      an intrusion and 3 a rerun, take 1 and 2 before this, its
     #      compiles being the one thing on this list that loads the box
-    #      a rerun would want quiet. Run 23 took 1, 2 and then 0 in one
+    #      a rerun would want quiet. AND THE COMPILE MAY WAIT ON THE
+    #      COUNTS for the same reason, which is what Run 26 did: the
+    #      naming that needs no build is two minutes and takes its place
+    #      here, while the twin's build goes after step 20's sweep
+    #      rather than beside it. Nothing later than 11 is at risk from
+    #      the wait; a rerun is. Run 23 took 1, 2 and then 0 in one
     #      sitting, and the order cost nothing either way
     #      The naming is what the step is for and reads like
     #      housekeeping: it turns `[0, 24, 0, 4]` into four arms, and on
@@ -7234,7 +7268,11 @@ not otherwise.
     #   5. MAKE THE RUN'S OWN FILE, `runs/$R.md`, by copying the last
     #      run's over it AND COMMITTING THAT COPY BEFORE EDITING IT
     #      (FROM THE DIGEST: item 2's block, whether or not 18 read it
-    #      -- a reading taken in the run session does not reach here) --
+    #      -- a reading taken in the run session does not reach here.
+    #      OPEN THE FILE: the carrier's returned MESSAGE is not the file,
+    #      and working from it is the forgetting the file exists to
+    #      prevent -- Run 26 never opened items 2 and 4 at all and read
+    #      their summaries off the task notification instead) --
     #      three reasons, all of them below and only one about wrapping.
     #      Every install below writes that file and no other document.
     #      TWO headings take the number: the file's title, renamed by the
@@ -7247,6 +7285,15 @@ not otherwise.
     #      re-verifying: walk the links --check-doc lists, and the
     #      two dozen section links it does not, against what the file
     #      now says
+    #      NAME THE PATHS ON EVERY `git add`, here and at 6b, 6d and 7a:
+    #      this directory holds scores of untracked scratch files and
+    #      `git add -A .` takes every one of them. Run 26's step 7a
+    #      committed 79 of them, 176632 insertions and five 32 MB
+    #      binaries, and `git status` then read CLEAN because they had
+    #      been absorbed; only a diffstat of the commit just made showed
+    #      it. So read that diffstat, and expect exactly the paths
+    #      you named -- each of these four steps commits a different
+    #      set, so no fixed count is the check
     #      NAME THE STEP IN THE COMMIT SUBJECT, here and at 6b, 6d and
     #      7a: those four commits are the only record of which post-run
     #      steps have run, so a session returning to an interrupted
@@ -7296,14 +7343,29 @@ not otherwise.
     #        before editing or after a commit's re-wrap; an EXACT-MATCH
     #        edit and step 5's literal rename are what still want the
     #        unwrapped form. SET THE TURN-END HOLD HERE, clearing it at 11
-    #        (~/.claude/rules/turn-end-hold.md): every wait on a job or an
+    #        (~/.claude/rules/turn-end-hold.md) --- AND SET IT AGAIN for
+    #        any editing that continues past 11, a probe write-up or a
+    #        question answered in the documents among them: Run 26
+    #        cleared it at the deletion offer, kept editing, and had
+    #        every turn end rewrap README under it, so one edit replaced
+    #        a single line of a wrapped paragraph and the wrap gate
+    #        caught it: every wait on a job or an
     #        agent below ends a turn and the Stop hook rewraps at each.
     #        Never wrap by hand -- the one thing --check-doc's wrap pass
     #        FAILS; ~/.claude/rules/markdown-wrapping.md does not reliably
     #        load, so read it before the first edit
     #      * REPLACE BY ANCHOR, `--replace ANCHOR --with FILE`, for every
-    #        paragraph edit here and at 6a, 6b, 6c, 7, 9 and 10; quote
-    #        only what you are EDITING. It searches BOTH documents and
+    #        paragraph edit here and at 6a, 6b, 6c, 7, 9 and 10, AND for
+    #        a sentence-level edit too, which is a --replace of the
+    #        paragraph the sentence sits in: a script that edits inside a
+    #        paragraph must match the wrapping in force, and Run 26's
+    #        replaced one line of a wrapped paragraph and left the rest.
+    #        WHERE A SCRIPT IS USED ANYWAY, ONE SUBSTITUTION PER FILE
+    #        WRITE: a batch that asserts between substitutions prints a
+    #        success line for each and writes NOTHING when a late one
+    #        fails, which cost Run 26 seven fixes reported applied and
+    #        not applied, twice.
+    #        Quote only what you are EDITING. It searches BOTH documents and
     #        refuses an anchor found in each. READ THE `out` LINES AND NOT
     #        ONLY THE `in` ONES: the FIRST of two replacements can remove
     #        the second anchor's other occurrence, leaving it unique
