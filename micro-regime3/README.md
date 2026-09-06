@@ -2368,7 +2368,24 @@ head, and the declining is what the write-up says. A CAPABILITY FOUND AND USED:
 every within-half counted ratio this run quotes in one call apiece. A CAPABILITY
 NOT USED at first: `--cross-classes`, which exists precisely so the classes
 intro and the class blocks cannot part, and which this session reached for only
-after hand-deriving what it prints.
+after hand-deriving what it prints. **AND THE ONE THAT WAS NOT A FIGURE AT ALL,
+recorded because it is the most expensive mistake of the write-up and no gate
+here can see it**: a commit made with `git add -A micro-regime3` swallowed 79
+untracked scratch files --- 176632 insertions and five 32 MB binaries ---
+into the history, which this repository's own notes forbid in those words,
+and `git status --porcelain` then read clean because the files had
+been absorbed. It was found by nothing until a pass over the SHAPE
+of the session's diff, where 83 changed files where four were expected
+is the only tell; the check that catches it is naming the paths on every
+`git add` and reading the diffstat of the commit you just made. The history
+was rebuilt without them, the tracked content byte-identical. Two smaller ones
+of the same family: a scripted fix batch that asserts between substitutions
+writes NOTHING when it fails late, while printing a success line for each
+substitution before the failure, so seven fixes were reported applied
+and were not; and a verification keyed on an exact phrasing cannot see a second
+site that words the same claim differently, which is how two of those seven
+passed a re-check. Key such a check on the figure, and write one substitution
+per file write.
 
 **What Run 25 made cheaper for the next run, which is not a figure and no other
 step gathers --- and it is TWO sessions' worth, the preparation's reaching
