@@ -6226,7 +6226,24 @@ and never as a chronology.
     #      post-run step 5 reads its verdict off `--predictions` and not
     #      off a session's reading of the tables; an item whose quantity
     #      is none of the three carries no span and is adjudicated by
-    #      hand, named as yours by the same call. NO VERDICT WORD in the
+    #      hand, named as yours by the same call -- AND A SPAN IS READ
+    #      ON WHATEVER POPULATION IT IS HANDED: the span names none
+    #      itself, 5c reads it once per JSON, so `predict: pair A B
+    #      1.0` is a claim about EVERY population the item names and
+    #      not about the main set alone. Run 26's registration (1) is
+    #      written right and shows what one reading misses: it predicts
+    #      1.0 on the main set AND inside each other class's own floor
+    #      on both halves, killed on any population but `runs` -- and
+    #      the same span reads 1.0007 HELD on main, 1.0171 and 1.0316
+    #      KILLED on `small` against its 0.52% and 0.96%, and 0.9768
+    #      HELD on `runs`. SO EVERY ITEM NAMES THE POPULATIONS its
+    #      prediction is read on -- `on the main set`, the classes, or
+    #      both -- because that list is what tells 5c which JSONs to
+    #      run it against. WHERE AN ITEM NAMES NONE, OR SAYS ONLY
+    #      `population` OR ANY WORD THAT COULD MEAN EITHER, IT IS READ
+    #      ON THE MAIN SET AND EVERY CLASS: that is the reading that
+    #      cannot under-report, and an item meaning less than it says
+    #      so in as many words. NO VERDICT WORD in the
     #      entry -- HELD, KILLED, SPLIT and their kin -- which --check-doc
     #      reads as an item already adjudicated. READ NOW: items 7 and
     #      8 -- the open list by its markers, Provenance's delta bullets
@@ -7368,7 +7385,19 @@ not otherwise.
     #      registration adjudicated from the JSONs, HELD or KILLED with
     #      the figure read, and the items carrying no span named as
     #      yours. Write each verdict beside its prediction FROM THIS
-    #      OUTPUT, quoting its figure; what it calls yours is the whole
+    #      OUTPUT -- ONCE PER POPULATION THE ITEM NAMES, which is the
+    #      main set and every class where it names none or says only
+    #      `population` (12a): the same call takes any of the eleven
+    #      `$R-<half>-<pop>.json`, reads the spans on that file's
+    #      shapes against that file's own A/A floor, and one run of it
+    #      on main is not the item's verdict. The verdict is its KILL
+    #      CONDITION applied across those readings, and the write-up
+    #      records the reading per population, quoting each figure and
+    #      the population it came from. Run 26 read only main, so
+    #      registration (1) stands HELD in the mode and KILLED in the
+    #      `small` block, both right, with nothing saying so: 1.0007
+    #      on main, 1.0171 and 1.0316 on `small` past 0.52% and 0.96%,
+    #      0.9768 on `runs`. What it calls yours is the whole
     #      of the adjudication left to judgement
     #   6. walk the replace list under Provenance (READ NOW: item 8, the
     #      list itself and its delta bullets), re-run the two sweeps it
