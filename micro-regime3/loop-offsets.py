@@ -234,8 +234,9 @@ def reaches(insns, k, n, targets):
     can carry, is a `(bad)` mnemonic inside the body: over the four Run 26
     binaries and Runs 24's and 25's four it marks this loop, one 8-byte
     body in `run25-g912` and one in Run 26's basis twin, and nothing else.
-    Not filtered here yet: the survey totals the documents carry would
-    move by one, and the change wants a case and a mutant.
+    `scan` refuses such a body since 2026-09-06, so survey totals recorded
+    before then are higher by one on those three binaries and stand as
+    taken.
     """
     live = False
     for i in range(k, n + 1):
@@ -296,6 +297,10 @@ def scan(path, length):
         if len(body) != 2 * span:     # a jump into the middle of an instruction
             continue
         if not reaches(insns, k, n, targets):
+            continue
+        # No code GHC emits decodes as (bad): a body holding one is the
+        # sweep out of step over a table, the second site in `reaches`.
+        if any(i[3] == '(bad)' for i in insns[k:n + 1]):
             continue
         found.append({'start': tgt, 'bytes': body, 'sym': insns[k][5],
                       'len': span, 'ninsn': n - k + 1, 'mod': tgt % LINE,
