@@ -2474,9 +2474,11 @@ def predictions_table(cells, shapes, strategies, meta, other, main_hs,
     print('predictions in %s, read from %s against %s' % (
         os.path.basename(src), os.path.basename(run), os.path.basename(other)))
     print('  cross and counts are THIS RUN over the other, as --compare'
-          ' prints; the default tolerance is this run\'s own main-set A/A'
-          ' floor, %s' % ('%.2f%%' % floor_pct if floor_pct is not None
-                          else 'unavailable (no A/A pair)'))
+          ' prints; the default tolerance is the A/A floor of the'
+          ' population read, which is this file\'s and not the main'
+          ' set\'s unless this file is the main set: %s'
+          % ('%.2f%%' % floor_pct if floor_pct is not None
+             else 'unavailable (no A/A pair)'))
     b_cells = b_shapes = b_strategies = None
     a_counts = b_counts = None
     held = killed = unread = 0

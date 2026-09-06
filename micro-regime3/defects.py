@@ -6187,6 +6187,24 @@ RECORDS = [
          # and lists `(2), (1), (2)`.
          ok=V(has=['1 span(s)'], hasnt=['(2), (1)'])),
 
+    case('predictions-calls-every-floor-the-main-set-one', 'read-run.py',
+         None,
+         'the tolerance line naming the population its floor came from',
+         # The VALUE was always right -- floor_pct is derived from the
+         # JSON handed in, so 0.52% on `small` and 2.89% on `runs` -- and
+         # the label said main-set for all of them. A span read on a class
+         # then looks like a main-set verdict, which is how Run 26's
+         # registration (1) read as HELD by the mode and KILLED by the
+         # write-up, both correct, and cost a session an hour deciding
+         # they contradicted each other (2026-09-06).
+         plant=lambda t: dict(rundoc_registration_with_verdicts(t),
+                              run=synth_json(t, 'small', name='a.json'),
+                              other=synth_json(t, 'small', name='b.json')),
+         argv=['{run}', '--compare', '{other}', '--predictions',
+               '--run-doc', '{rundoc}'],
+         ok=V(has=['A/A floor of the population read'],
+              hasnt=['main-set A/A floor'])),
+
     case('compare-does-not-name-its-direction', 'read-run.py', None,
          'a ratio whose direction the reader knows and does not say',
          # `--compare` puts the BASIS first, so below 1 is the basis
