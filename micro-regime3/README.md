@@ -2571,7 +2571,7 @@ is planned. A scope limit belongs in the sentence that asks for the measurement.
    with the reload gone from both arms the unrolling is still worth five
    and a half points, so a build does separate them after all. The figures
    and the two rulings they move are the [ceiling](#the-mutable-ceiling-taken)'s
-   twenty-first reading, which owns the account.
+   twenty-second reading, which owns the account.
 3. `ANSWERED` **A reversed innermost axis costs the regime-3 fill about twice
    the forward run at the same length, and nothing in the code says why.** Run
    25's `flip` class killed the prediction that the fills read a reversed run
@@ -4946,8 +4946,11 @@ the two statistics agreeing, so that parent's spill is worth about a thirtieth
 of the fill. `-u2-ptr` reads 0.9479 of `-u2` paired but **1.0688
 in the published column** and at 13 of 19 with p 0.17 --- the `time` column
 is winsorized per row and that arm's per-shape ratios to its parent span 0.820
-to 1.186 --- so on the unrolled fill the ceiling is not established, and
-this is the first pair on this roster whose two statistics part in SIGN. **What
+to 1.186 --- so on the unrolled fill the ceiling is not established. It
+is not the only pair on this roster whose two statistics part in sign ---
+`liblist-stage1` and `liblist-stage2` against `mut-odo-vecdims` do too ---
+so what the parting marks is a row spread wide enough across shapes
+for the winsorizing to bite, not anything peculiar to the `Ptr` form. **What
 the twentieth registered was that with the reload gone the unrolling's margin
 would SHRINK** --- `-u2` over `-u1` rising to about 0.92 in corrected
 instructions from 0.86, and ahead in time by less. **Measured at source
@@ -5023,7 +5026,12 @@ first, the one that did not die on paper at all:
   are rostered for a CEILING --- the time each parent would reach
   under a register allocator that spilled nothing, `-u1-ptr` for `-u1`
   and `-u2-ptr` for `-u2` --- read in [the ceiling][ceiling]'s twenty-first
-  reading and registered for Run 26 as its item (8).
+  reading, registered for Run 26 as its item (8), and TIMED on that run ---
+  whose figures are the ceiling's twenty-second reading and are not repeated
+  here. **The refusal is unaffected and better evidenced**: the form reaches
+  a ceiling on one compiler and allocates on the other, and a ceiling
+  that exists on one codegen and not the other is a second reason not to ship
+  it rather than a reason to revisit the first.
 - **Delta-compressing an offset table** (storing Int8/Int16 steps, mostly
   the constant `tInner`, instead of absolute offsets) fails `vGenerate`'s
   contract: the callback is random-access, and recovering an absolute offset
