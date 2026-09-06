@@ -235,6 +235,18 @@ MUTANTS = [
      'r = subprocess.run([sys.executable, \'{file}\', \'--survey\', f],'
      ' capture_output=True, text=True)\n'
      'sys.exit(0 if \'still straddling   : 0\' in r.stdout else 1)"'),
+    # The `(bad)` tell dropped: the continuation the sweep decoded out of
+    # step counts as a straddling loop again, over the second listing.
+    ('survey counts a swallowed jump as a loop again', 'loop-offsets.py',
+     "        if any(i[3] == '(bad)' for i in insns[k:n + 1]):\n            continue\n",
+     '',
+     'PATH="{bin}:$PATH" python3 -c "import importlib.util, sys, tempfile, subprocess\n'
+     'spec = importlib.util.spec_from_file_location(\'d\', \'{dir}/defects.py\')\n'
+     'm = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)\n'
+     'f = m.phantom2_listing(tempfile.mkdtemp())[\'dis\']\n'
+     'r = subprocess.run([sys.executable, \'{file}\', \'--survey\', f],'
+     ' capture_output=True, text=True)\n'
+     'sys.exit(0 if \'still straddling   : 0\' in r.stdout else 1)"'),
     # --delta's three readings, each broken on its own over the listings
     # defects.py builds for it: preservation reported whatever moved, the
     # selection taken of the OLD side alone again, and the libraries read

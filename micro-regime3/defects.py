@@ -788,6 +788,76 @@ def phantom_listing(tmp):
     return {'dis': path}
 
 
+# A second site, `run26-g912` from 0x42c640 to 0x42c6c0, read 2026-09-06:
+# the tail of a continuation, the return-frame table in front of a
+# continuation of `$wfbCanonVecdims`, and that continuation, which
+# tail-jumps to a list equality. The table's SRT word, `00 73 3e 01` at
+# 0x42c66c, throws the sweep out of step for the whole continuation, so
+# the jump's opcode at 0x42c68a is swallowed into a `(bad)` and the low
+# two bytes of its displacement, `71 d3`, read as `jno -45` back to the
+# table's first byte -- a body straight-line flow reaches, the one
+# transfer in it being the swallowed jump, which is why the flow test
+# that refuses the site above passes this one and the `(bad)` inside it
+# is the tell. The window opens on the `lea` of a return sequence, so
+# objdump is in step from its first byte and out of it from the table.
+PHANTOM2_LISTING = """\
+
+run26-g912:     file format elf64-x86-64
+
+
+Disassembly of section .text:
+
+000000000042c640 <microzm0zi1zminplacezmmicro_Main_zdfNFDataT_info+0x20d00>:
+  42c640:\t49 8d 5c 24 e9       \tlea    -0x17(%r12),%rbx
+  42c645:\t48 83 c5 20          \tadd    $0x20,%rbp
+  42c649:\tff 65 00             \tjmp    *0x0(%rbp)
+  42c64c:\t49 c7 85 88 03 00 00 \tmovq   $0x20,0x388(%r13)
+  42c653:\t20 00 00 00 
+  42c657:\te9 54 54 35 01       \tjmp    1781ab0 <stg_gc_unbx_r1>
+  42c65c:\t0f 1f 40 00          \tnopl   0x0(%rax)
+  42c660:\t09 3e                \tor     %edi,(%rsi)
+  42c662:\t00 00                \tadd    %al,(%rax)
+  42c664:\t00 00                \tadd    %al,(%rax)
+  42c666:\t00 00                \tadd    %al,(%rax)
+  42c668:\t1e                   \t(bad)
+  42c669:\t00 00                \tadd    %al,(%rax)
+  42c66b:\t00 00                \tadd    %al,(%rax)
+  42c66d:\t73 3e                \tjae    42c6ad <microzm0zi1zminplacezmmicro_Main_zdfNFDataT_info+0x20d6d>
+  42c66f:\t01 48 c7             \tadd    %ecx,-0x39(%rax)
+  42c672:\t45 f8                \trex.RB clc
+  42c674:\t80 b9 42 00 48 8d 35 \tcmpb   $0x35,-0x72b7ffbe(%rcx)
+  42c67b:\t43 19 3e             \trex.XB sbb %edi,(%r14)
+  42c67e:\t01 49 89             \tadd    %ecx,-0x77(%rcx)
+  42c681:\tde 48 89             \tfimuls -0x77(%rax)
+  42c684:\t5d                   \tpop    %rbp
+  42c685:\t00 48 83             \tadd    %cl,-0x7d(%rax)
+  42c688:\tc5 f8 e9             \t(bad)
+  42c68b:\t71 d3                \tjno    42c660 <microzm0zi1zminplacezmmicro_Main_zdfNFDataT_info+0x20d20>
+  42c68d:\t32 01                \txor    (%rcx),%al
+  42c68f:\t90                   \tnop
+  42c690:\t0f 00 00             \tsldt   (%rax)
+  42c693:\t00 02                \tadd    %al,(%rdx)
+\t...
+  42c69d:\t00 00                \tadd    %al,(%rax)
+  42c69f:\t00 0e                \tadd    %cl,(%rsi)
+  42c6a1:\t00 00                \tadd    %al,(%rax)
+  42c6a3:\t00 48 73             \tadd    %cl,0x73(%rax)
+  42c6a6:\t3e 01 48 8d          \tds add %ecx,-0x73(%rax)
+  42c6aa:\t45 d0 4c 39 f8       \trex.RB rorb $1,-0x8(%r9,%rdi,1)
+  42c6af:\t0f 82 b7 00 00 00    \tjb     42c76c <microzm0zi1zminplacezmmicro_Main_zdfNFDataT_info+0x20e2c>
+  42c6b5:\t48 c7 45 f0 e8 c6 42 \tmovq   $0x42c6e8,-0x10(%rbp)
+  42c6bc:\t00 
+  42c6bd:\t48 89 f3             \tmov    %rsi,%rbx
+"""
+
+
+def phantom2_listing(tmp):
+    """The second saved site, planted for `--survey`: {'dis': path}."""
+    path = os.path.join(tmp, 'run26-g912-0x42c640.dis')
+    write(path, PHANTOM2_LISTING)
+    return {'dis': path}
+
+
 # The run-fill loop this README prices, 28 bytes and eight instructions, as
 # `run25-g912` carries it at 0x434558; a second body differs in one
 # register so the two group apart. Listings built from them are what the
@@ -4056,6 +4126,11 @@ TIER1 = {
                       trigger='an info-table word decoding as a backward branch whose span the bytes before it fill',
                       ok='a closing branch no straight-line flow from the head reaches is not a loop',
                       bug="run25-g912's survey read five straddlers where its twin and every other binary read four"),
+    'survey-counts-a-swallowed-jump-as-a-loop': dict(family='scan-for-parse', discovery='in-use', harm='fired', harm_count=1, proved='ran',
+                      notes='read on run26-g912 against its -g3 twin, 2026-09-06, after the write-up had counted it as a sixth straddler; the twin refused it by byte identity',
+                      trigger='an info-table word throwing the sweep out of step through a continuation whose own jump displacement then decodes as a backward branch',
+                      ok='a body with an undecodable instruction in it is not a loop, no code GHC emits decoding as (bad)',
+                      bug="run26-g912's survey read six straddlers where its twin read five, the sixth a return-frame table and a continuation of $wfbCanonVecdims"),
     'delta-sees-a-group-that-grows-past-the-threshold': dict(family='quiet-failure', discovery='review', harm='fired', harm_count=1, proved='ran',
                       notes='watched on run24-g912 against run25-g912 at --len 0, 2026-09-04, at both thresholds',
                       trigger='a group under --min-copies in OLD and over it in NEW',
@@ -6632,6 +6707,15 @@ RECORDS = [
          argv=['--survey', '{dis}'],
          ok=V(exit=0, has=['still straddling   : 0'], hasnt=['0x4275f6']),
          no_audit='fixture-from-a-document-the-era-lacks'),
+
+    case('survey-counts-a-swallowed-jump-as-a-loop', 'loop-offsets.py', '71fac05',
+         'a continuation the sweep decoded out of step, its own jump'
+         ' displacement reading as a backward branch, was counted as a'
+         ' straddling self-loop that straight-line flow reaches',
+         plant=phantom2_listing,
+         argv=['--survey', '{dis}'],
+         ok=V(exit=0, has=['still straddling   : 0'], hasnt=['0x42c660']),
+         bug=V(exit=0, has=['still straddling   : 1', '0x42c660'])),
 
     # ---- read-all.sh ---------------------------------------------------
     case('aa-worst-cell-is-not-an-insitu-row', 'read-all.sh', '8ee1e5b',
