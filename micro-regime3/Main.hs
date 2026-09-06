@@ -37,7 +37,7 @@ import qualified Data.Vector.Storable         as VS
 import qualified Data.Vector.Storable.Mutable as VSM
 import qualified Data.Vector.Unboxed          as VU
 import qualified Data.Vector.Unboxed.Mutable  as VUM
-import           Foreign.Ptr                  (plusPtr)
+import           Foreign.Ptr                  (Ptr, plusPtr)
 import           Foreign.Storable             (peek, peekElemOff, poke)
 import           GHC.Clock                    (getMonotonicTime)
 import           GHC.Exts                     (Int (..), Word (..), build,
@@ -2279,7 +2279,8 @@ fbMutOdoVecdimsAddInLeafU1Base sh (T (Strides ats) ao v) =
 -- pointer, costs four to five instructions a run, which at the main
 -- set's inner extents of two to thirteen is 1.0581 of '-u1''s corrected
 -- instructions over the set; 'fbMutOdoVecdimsAddInLeafU1Ptr' below
--- carries the pointers through every level and is the timed form.
+-- carries the pointers through every level and is the timed form. Its
+-- ':: Ptr Double' is the GHC #27778 workaround, explained there.
 {-# NOINLINE fbMutOdoVecdimsAddInLeafU1PtrLeaf #-}
 fbMutOdoVecdimsAddInLeafU1PtrLeaf :: ShapeL -> T -> VS.Vector Double
 fbMutOdoVecdimsAddInLeafU1PtrLeaf sh (T (Strides ats) ao v) =
@@ -2288,7 +2289,7 @@ fbMutOdoVecdimsAddInLeafU1PtrLeaf sh (T (Strides ats) ao v) =
     VSM.unsafeWith out $ \ !obase -> do
       let !tBytes = tInner * 8
           writeRun !outPos !baseOff =
-            let !pEnd = obase `plusPtr` ((outPos + sInner) * 8)
+            let !pEnd = obase `plusPtr` ((outPos + sInner) * 8) :: Ptr Double
                 inner !p !q
                   | p >= pEnd = return ()
                   | otherwise = do
@@ -2348,9 +2349,14 @@ fbMutOdoVecdimsAddInLeafU1PtrLeaf sh (T (Strides ats) ao v) =
 -- that half's 0.31% floor, so the spill is worth about a thirtieth of
 -- the fill and under a third of the instruction saving reaches the
 -- clock (README.md#the-mutable-ceiling-taken, the twenty-first
--- reading). ON GHC HEAD IT INVERTS: 1.0235 in counts, 1.3084 in time
+-- reading). ON GHC HEAD IT INVERTED: 1.0235 in counts, 1.3084 in time
 -- and 1.41x the result vector allocated where the basis allocates
--- 1.00x, which is that compiler and not this code.
+-- 1.00x, which is that compiler and not this code -- GHC #27778, found
+-- 2026-09-06: a bang-bound 'plusPtr' result let-generalises to
+-- 'forall b. Ptr b', and from 9.14 the simplifier keeps the case on that
+-- type lambda, so a 'Ptr' is allocated and taken apart on every run.
+-- The ':: Ptr Double' on every such binding in the three pointer arms
+-- is the workaround, and the 9.12 code is unchanged by it.
 {-# NOINLINE fbMutOdoVecdimsAddInLeafU1Ptr #-}
 fbMutOdoVecdimsAddInLeafU1Ptr :: ShapeL -> T -> VS.Vector Double
 fbMutOdoVecdimsAddInLeafU1Ptr sh (T (Strides ats) ao v) =
@@ -2360,7 +2366,7 @@ fbMutOdoVecdimsAddInLeafU1Ptr sh (T (Strides ats) ao v) =
       let !tBytes = tInner * 8
           !sBytes = sInner * 8
           writeRun !op !bp =
-            let !pEnd = op `plusPtr` sBytes
+            let !pEnd = op `plusPtr` sBytes :: Ptr Double
                 inner !p !q
                   | p >= pEnd = return ()
                   | otherwise = do
@@ -2419,9 +2425,11 @@ fbMutOdoVecdimsAddInLeafU1Ptr sh (T (Strides ats) ao v) =
 -- NOT established while its lead over '-u1-ptr' is. Removing the
 -- reload from both arms leaves the unrolled one further ahead, not
 -- nearer, which is the opposite of what the twentieth reading
--- registered. ON GHC HEAD it inverts
+-- registered. ON GHC HEAD it inverted
 -- hardest of any arm on the roster: 1.8842 in counts, 2.6731 in time
--- and 2.61x the result vector allocated against 1.00x here.
+-- and 2.61x the result vector allocated against 1.00x here -- GHC
+-- #27778, worked around by the ':: Ptr Double' annotations as in
+-- 'fbMutOdoVecdimsAddInLeafU1Ptr' above.
 {-# NOINLINE fbMutOdoVecdimsAddInLeafU2Ptr #-}
 fbMutOdoVecdimsAddInLeafU2Ptr :: ShapeL -> T -> VS.Vector Double
 fbMutOdoVecdimsAddInLeafU2Ptr sh (T (Strides ats) ao v) =
@@ -2431,8 +2439,8 @@ fbMutOdoVecdimsAddInLeafU2Ptr sh (T (Strides ats) ao v) =
       let !tBytes = tInner * 8
           !sBytes = sInner * 8
           writeRun !op !bp =
-            let !pEnd  = op `plusPtr` sBytes
-                !pLast = pEnd `plusPtr` (-8)
+            let !pEnd  = op `plusPtr` sBytes :: Ptr Double
+                !pLast = pEnd `plusPtr` (-8) :: Ptr Double
                 inner !p !q
                   | p >= pLast =
                       if p >= pEnd then return ()
@@ -2440,7 +2448,7 @@ fbMutOdoVecdimsAddInLeafU2Ptr sh (T (Strides ats) ao v) =
                   | otherwise = do
                       x <- peek q
                       poke p (x :: Double)
-                      let !q' = q `plusPtr` tBytes
+                      let !q' = q `plusPtr` tBytes :: Ptr Double
                       y <- peek q'
                       poke (p `plusPtr` 8) (y :: Double)
                       inner (p `plusPtr` 16) (q' `plusPtr` tBytes)

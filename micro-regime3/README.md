@@ -805,28 +805,43 @@ rather than a slot in the next run, observed again:
   in the same place**: why the count-down form pays, recovering most
   of the corner's loss at 0.9408 against it on 22 shapes of 24, is in [the
   mutable ceiling][ceiling]'s own write-up.
-- `OPEN` **GHC HEAD compiles a `Ptr`-walking fill into an allocating one,
-  and 9.12.4 does not.** Run 26 timed `mut-odo-vecdims-add-in-leaf-u1-ptr`
-  and `-u2-ptr`, the two leaf fills rewritten to walk a `Ptr`, on both halves
-  of a compiler pair. On the 9.12.4 basis they allocate **1.00x** the result
-  vector, as every other fill does, and execute 0.8944 and 0.8357 of their
-  parents' corrected instructions --- though only `-u1-ptr` is ahead
-  of its parent in time on a reading both of this file's statistics agree about.
-  On the in-tree GHC HEAD stage1, `10.1.20260803`, they allocate **1.41x
-  and 2.61x** and `-u2-ptr` executes **1.8842** of `-u2`'s instructions ---
-  so the same source, the same shim, the same flags and the same roster give
-  a fill that allocates nothing under one compiler and two and a half result
-  vectors under the other. It is the only allocation level either half
-  of that pair moves and the only pair of arms out of twenty-six whose counts
-  differ by more than a percent between the compilers. **What would settle
-  it** is a Core or Cmm diff of the two builds of one of those two functions,
-  which is a compile and wants no run; a smaller reproducer than a 570-bench
-  roster is what it would take to file, and neither has been tried. **Why
-  it is worth the entry rather than a shrug**: the `Ptr` form is refused
-  for the library ([dead ideas][dead]) and is timed only as a ceiling,
-  so nothing ships on it --- but the ceiling is what the family's remaining
-  margin is measured against, and a ceiling that exists on one codegen
-  and not the other is not a ceiling.
+- `ANSWERED` **GHC HEAD compiles a `Ptr`-walking fill into an allocating one,
+  and 9.12.4 does not --- GHC #27778, worked around 2026-09-06.** Run 26 timed
+  `mut-odo-vecdims-add-in-leaf-u1-ptr` and `-u2-ptr`, the two leaf fills
+  rewritten to walk a `Ptr`, on both halves of a compiler pair. On the 9.12.4
+  basis they allocate **1.00x** the result vector, as every other fill does,
+  and execute 0.8944 and 0.8357 of their parents' corrected instructions ---
+  though only `-u1-ptr` is ahead of its parent in time on a reading both
+  of this file's statistics agree about. On the in-tree GHC HEAD stage1,
+  `10.1.20260803`, they allocate **1.41x and 2.61x** and `-u2-ptr` executes
+  **1.8842** of `-u2`'s instructions --- so the same source, the same shim,
+  the same flags and the same roster give a fill that allocates nothing
+  under one compiler and two and a half result vectors under the other.
+  It is the only allocation level either half of that pair moves and the only
+  pair of arms out of twenty-six whose counts differ by more than a percent
+  between the compilers. **What settled it** is the Core diff of the two builds,
+  taken 2026-09-06: a bang-bound `plusPtr` result, `pEnd` in the run copy,
+  let-generalises to `forall b. Ptr b`; both compilers desugar it to a case
+  on a type lambda; 9.12.4 collapses that case in its first simplifier pass
+  and 9.14.1 and HEAD keep it, so STG allocates a `Ptr` and takes it apart
+  on every run --- one 16-byte closure per run in `-u1-ptr`, and one more per
+  two elements in `-u2-ptr`, whose `q'` is bound the same way. A lazy lifted
+  field in the boxed value does not do it and a strict or unlifted one does,
+  which ties it to the strict-worker change of 9.14, !9874. HEAD's own default
+  language hides it, MonoLocalBinds being in it; `micro.cabal`'s GHC2021 is what
+  let the HEAD half see it. Filed as GHC
+  [#27778](https://gitlab.haskell.org/ghc/ghc/-/work_items/27778)
+  with a forty-line reproducer, the record being horde-ad's
+  `docs/ghc-issue-strict-polymorphic-ptr-boxed.md`. **The workaround
+  is applied**: every such binding in the three pointer arms carries
+  `:: Ptr Double`, which leaves the three arms' STG on 9.12.4 byte-identical
+  and takes every `Ptr` allocation out of HEAD's, both read off dumps of the two
+  builds, and Run 27 reads it in time and allocation, its registration
+  for the two arms. **Why it was worth the entry rather than a shrug** stands:
+  the `Ptr` form is refused for the library ([dead ideas][dead]) and is timed
+  only as a ceiling, but the ceiling is what the family's remaining margin
+  is measured against, and a ceiling read on one codegen is not a ceiling until
+  the two agree.
 
 - `OPEN` **A saving in instructions reaches the clock at a third to a half
   within one binary, where the rate on record is three quarters.** [The
@@ -5373,12 +5388,13 @@ entry][open]), and the ruling on the short bodies parked two, the day ending
 at 432 benches; `libunord-stage3`, added 2026-09-05 for Run 26, makes it 450,
 and `cnn-L1-6x6-c1`, timed again the same day, takes it to 475, and the pointer
 pair of 2026-09-05 makes it 513; parking the leaf arm whose bound-control run
-is over takes it to 494, and lifting four parkings for Run 26 alone takes
-the roster to 570 benches, so with the controls the run is 30 arms. **Which
-four, and Run 27 takes all four back**: `mut-odo-vecdims-add-in-leaf-down`,
-parked 2026-09-02; `canon-vecdims` and `lib-stage2`, parked by this prune;
-and `lib-stage2-short`, parked by the ruling on the short bodies of the same day
-([the stride classes](#the-stride-classes-and-what-they-cover)). Each was parked
+is over takes it to 494, and lifting four parkings for Run 26 alone took
+it to 570 benches for that run; their re-parking on 2026-09-06 takes the roster
+to 494 benches, so with the controls the run is 26 arms. **Which four, and Run
+27 takes all four back**: `mut-odo-vecdims-add-in-leaf-down`, parked 2026-09-02;
+`canon-vecdims` and `lib-stage2`, parked by this prune; and `lib-stage2-short`,
+parked by the ruling on the short bodies of the same day ([the stride
+classes](#the-stride-classes-and-what-they-cover)). Each was parked
 with a registration standing on it, which is what left that registration
 unreadable --- Run 24 lost a clause, Run 25 five, and the two-window item
 was withdrawn beside them, seven in all ([the open list][open]) --- so Run 26
