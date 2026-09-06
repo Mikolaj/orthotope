@@ -2558,9 +2558,37 @@ def predictions_table(cells, shapes, strategies, meta, other, main_hs,
         ok = off <= tol
         held += ok
         killed += not ok
+        # AND THE PUBLISHED COLUMN BESIDE IT, for a `pair` span, because
+        # the two are different statistics and can part in SIGN: the
+        # `time` column is winsorized per row, so a ratio of two of its
+        # entries equals the paired figure only where neither row had a
+        # cell capped. Run 26's registration (8) was adjudicated off the
+        # paired figure alone and its write-up then read 0.9479 while the
+        # table above it gave 1.0688 on the same pair -- a reader
+        # following README's own rule for comparing two rows would have
+        # reached the opposite conclusion, and nothing here said so. The
+        # sign test goes beside it for the same reason: 0.9479 sat at 13
+        # of 19, p 0.17. Printed only where it differs enough to matter.
+        # Added 2026-09-06.
+        extra = ''
+        if kind == 'pair' and len(args_) == 3 and a in strategies \
+                and b in strategies:
+            try:
+                pub = time_of(cells, shs, a) / time_of(cells, shs, b)
+            except Exception:                              # noqa: BLE001
+                pub = None
+            if pub is not None and pub == pub:
+                wins = sum(1 for q in rs if q < 1)
+                extra = ('; published column %.4f%s, %d of %d wins'
+                         % (pub,
+                            ' -- PARTS IN SIGN from the paired figure,'
+                            ' which is the one a margin is judged on'
+                            if (g - 1) * (pub - 1) < 0 else '',
+                            wins, len(rs)))
         print('  (%s) %-44s read %.4f over %d shape(s), %.2f point(s) off,'
-              ' within %.2f%%: %s'
-              % (num, spec, g, n, off, tol, 'HELD' if ok else 'KILLED'))
+              ' within %.2f%%: %s%s'
+              % (num, spec, g, n, off, tol, 'HELD' if ok else 'KILLED',
+                 extra))
     print('%d span(s): %d HELD, %d KILLED, %d not read%s'
           % (len(specs), held, killed, unread,
              '; item(s) with no span, yours to adjudicate: %s'
@@ -8685,8 +8713,36 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
               r' and ([\d.]+)%',
               r'floor is ([\d.]+)% on the basis half and ([\d.]+)%'
               r' on the (?:control|other half|[a-z-]+ half)',
-              r'no A/A pair further than ([\d.]+)% from 1 on the basis half'
-              r' or ([\d.]+)% on the (?:control|other half|[a-z-]+ half)'),
+              r'no A/A pair further than \*{0,2}([\d.]+)%\*{0,2} from 1 on'
+              r' the basis half or \*{0,2}([\d.]+)%\*{0,2} on the'
+              r' (?:control|other half|[a-z-]+ half)',
+              # FOUR MORE PHRASINGS, added 2026-09-06 after this check saw
+              # TWO of the ten sites Run 26 carries and the pass that found
+              # the other eight was an agent's. The check is worth only the
+              # sites it can see, so a phrasing that recurs run after run
+              # belongs here rather than in a reviewer's head. Three
+              # phrasings became seven, and it now reads all TEN.
+              # NON-VACUITY, BY HAND AND NOT BY A MUTANT, 2026-09-06:
+              # planting 0.33% in README's floor lead -- a site only these
+              # four reach -- makes this report the disagreement across ten
+              # sites, and disabling all four makes it report that it found
+              # fewer than two sites and did not run. A mutant was written
+              # for that and REMOVED rather than left LOST: its judge's
+              # baseline is red inside `selftest-mutants.py`'s tracked-only
+              # copy, where this FAIL does not reproduce, and four shapes of
+              # judge (cwd set and unset, --main given and not, the plant
+              # whitespace-tolerant for the wrapped form) all failed the same
+              # way. What defeats it was not established; do not re-attempt
+              # without first finding why check-doc's floor FAIL is absent in
+              # that copy.
+              r'floor is \*{0,2}([\d.]+)%\*{0,2} on the basis(?: half)? and'
+              r' \*{0,2}([\d.]+)%\*{0,2} on the control',
+              r'\*{0,2}([\d.]+)%\*{0,2} and \*{0,2}([\d.]+)%\*{0,2} read on'
+              r' the six pairs',
+              r'\*{0,2}([\d.]+)%\*{0,2} and \*{0,2}([\d.]+)%\*{0,2} are the'
+              r' widest an arm differs',
+              r'SIX A/A pairs Run \d+ read\*{0,2}, \*{0,2}([\d.]+)%\*{0,2}'
+              r' and \*{0,2}([\d.]+)%\*{0,2}'),
              (),
              'the head of the run chapter carries the measurement, so'
              ' requote the others'),
@@ -9305,6 +9361,49 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
     print('VERDICT: %s (exit %d)' % ('FAIL' if bad else 'PASS',
                                      1 if bad else 0))
     return 1 if bad else 0
+
+
+def check_doc_loud(readme, main_hs, run_doc=None, prev_doc=None):
+    """`--check-doc --worklists`, with a tally a truncated read still sees.
+
+    The worklists are what post-run step 6e adjudicates, and a note that
+    carries one prints its count on its FIRST line and its items under it,
+    so the count leaves the screen before the items do. A session that
+    pipes this through `head` or `tail` therefore adjudicates whatever
+    survived the pipe and reads it as the whole list -- which is exactly
+    what happened on 2026-09-06, when a `tail -30` cut nine stale
+    paragraphs out of a worklist of twenty-two and the run cleared the
+    thirteen it could see. The nine were then found by a checker agent at
+    several hundred thousand tokens.
+
+    So this prints, after everything and before the verdict, one line
+    counting the indented worklist items the run emitted. It does not stop
+    anyone piping; it makes a pipe that drops items visible in the part a
+    `tail` keeps, which is the only place a warning can still be read.
+    `check_doc_quiet` has put the verdict last for the same reason since
+    2026-08-29.
+
+    Non-vacuity: delete an item from a worklist a document currently
+    carries and the tally falls by one; the tally line is the only line
+    in this output that changes.
+    """
+    out = io.StringIO()
+    with contextlib.redirect_stdout(out):
+        rc = check_doc(readme, main_hs, run_doc, prev_doc)
+    lines = out.getvalue().split('\n')
+    items = [l for l in lines if l.startswith('        ') and l.strip()]
+    verdict = [l for l in lines if l.startswith('VERDICT: ')]
+    for line in lines:
+        if line.startswith('VERDICT: '):
+            continue
+        if line or line == '':
+            print(line)
+    print('worklist tally: %d listed item(s) above, under the notes that'
+          ' carry lists -- a `head` or `tail` over this output drops some'
+          ' of them silently, so read it whole (2026-09-06)' % len(items))
+    for line in verdict:
+        print(line)
+    return rc
 
 
 def check_doc_quiet(readme, main_hs, run_doc=None, prev_doc=None):
@@ -10638,7 +10737,7 @@ def main():
         sys.exit(paragraphs(docs, args.para, args.all_paras))
     if args.check_doc:
         prev = previous_run_doc(args.run_doc)
-        sys.exit(check_doc(args.readme, args.main, args.run_doc, prev)
+        sys.exit(check_doc_loud(args.readme, args.main, args.run_doc, prev)
                  if args.worklists
                  else check_doc_quiet(args.readme, args.main, args.run_doc,
                                       prev))

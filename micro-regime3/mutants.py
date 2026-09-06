@@ -296,6 +296,24 @@ MUTANTS = [
      'r = subprocess.run([sys.executable, \'{file}\', \'--check-doc\', \'--quiet\', \'--readme\', f],'
      ' capture_output=True, text=True)\n'
      'sys.exit(0 if any(\'Zz coverage probe\' in l and \'bullet links\' in l for l in (r.stdout + r.stderr).split(chr(10))) else 1)"'),
+    # THE THREE CHECKS RUN 26 ADDED OR WIDENED, 2026-09-06.
+    # The worklist tally, which exists because a `tail -30` over
+    # `--worklists` cut nine stale paragraphs out of a list of
+    # twenty-two and the run adjudicated the remainder: count the
+    # indented items and the tally must move with them.
+    ('check-doc --worklists stops tallying its listed items', 'read-run.py',
+     "    items = [l for l in lines if l.startswith('        ') and l.strip()]",
+     "    items = []",
+     'python3 -c "import subprocess, sys\n'
+     'r = subprocess.run([sys.executable, \'{file}\', \'--check-doc\', \'--worklists\'],'
+     ' cwd=\'{dir}\', capture_output=True, text=True)\n'
+     'ok = any(l.startswith(\'worklist tally: \') and not l.startswith(\'worklist tally: 0 \')'
+     ' for l in r.stdout.split(chr(10)))\n'
+     'sys.exit(0 if ok else 1)"'),
+    # The floor-pair agreement check, widened from one phrasing to five
+    # after it saw two of the six sites Run 26 carries: drop the four
+    # added phrasings and it falls back to fewer than two sites, which
+    # is the state where it reports that it did not run.
     ('shadow_dir holds a program that cds to an absolute path', 'defects.py',
      '''    if re.search(r'^\\s*(cd|pushd)\\s+(--\\s+)?["\\']?(/|~|\\$HOME)', text, re.M):''',
      '    if False:',
