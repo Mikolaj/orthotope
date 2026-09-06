@@ -3809,9 +3809,10 @@ to 1.01** across the seven populations that carry both arms --- `small` 0.7206,
 `scaled` 0.9756 and `bcast` 1.0105 on the basis, and 0.7295, 0.7850, 0.8553,
 0.9050, 0.9510, 0.9757 and 1.0177 on GHC HEAD --- so stage two is at or ahead
 of stage one everywhere but `bcast`, by most where the call is small,
-and the two compilers agree on every one of the seven to within two points. Run
-23 read 0.81 to 1.04 and Run 21 read 2.43 to 4.54, so the regression
-the unboxing fixed has stayed fixed across three runs and two codegens.
+and the two compilers agree within a point on five of the seven, `window`
+parting them by four points and the main set by two. Run 23 read 0.81 to 1.04
+and Run 21 read 2.43 to 4.54, so the regression the unboxing fixed has stayed
+fixed across three runs and two codegens.
 
 End-to-end re-measurement in horde-ad's `bench/ConvVjpBench.hs` --- wiring
 this branch's orthotope in and rebuilding ox-arrays + horde-ad --- is owed
@@ -4876,33 +4877,33 @@ as a CEILING and are still refused for the library, [dead ideas][dead].)
 **On the basis half both reach a ceiling and the family's own ordering survives
 it**: `-u2-ptr` reads 0.9479 of `-u2` and `-u1-ptr` 0.9693 of `-u1`, both past
 that half's 0.31% floor, so the spill each parent pays is worth about
-a twentieth of the fill. **What the twentieth registered was that
-with the reload gone the unrolling's margin would SHRINK** --- `-u2` over `-u1`
-rising to about 0.92 in corrected instructions from 0.86, and ahead in time
-by less. **Measured at source it widens, on both axes**: `-u2-ptr`
-over `-u1-ptr` reads **0.8605** in corrected instructions against `-u2`
-over `-u1`'s **0.9208**, and **0.9431** in time against **0.9644**. So taking
-the reload out of BOTH arms leaves the unrolled one further ahead, not nearer;
-whether a compiler fix does the same is still the patched compiler's to say,
-a source rewrite and a register-allocator fix not being the same intervention.
-**And the RATE at which an instruction saving reaches the clock is a third
-to a half here, not three quarters.** The nineteenth reading put it at about
-three quarters, 13.1% of the instructions buying 9.7% of the time and 18.6%
-buying 13.2%, across two builds of one recipe. Within one binary, over five
-spans of the leaf family, Run 26 reads 29%, 32% and 41% on the three pointer
-spans and 52% and 45% on `-u1` over `-add-in-leaf-down` and `-u2` over `-u1`.
-The two are different comparisons --- a cross-build A/B against a within-binary
-arm pair --- and that is the finding rather than an error in either: **a span
-DERIVED from the nineteenth's rate will miss low**, which is what Run 26's
-registration (8) did three times over, its three predicted spans of 0.92, 0.88
-and 0.90 reading 0.9693, 0.9479 and 0.9431 while every one of its three
-instruction ratios came back to a ten-thousandth. **The other half is a compiler
-finding and not a fill one**: on GHC HEAD the same two arms lose the saving
-outright, `-u2-ptr` executing 1.8842 of `-u2`'s corrected instructions where
-the basis reads 0.8357, and allocating **2.61x** the result vector where every
-other fill on both halves allocates 1.00x. So a ceiling read on one codegen
-is not a ceiling, and the `Ptr` form is the one shape in this family whose
-codegen the two compilers do not agree on.
+a twentieth of the fill on `-u2` and a thirtieth on `-u1`. **What the twentieth
+registered was that with the reload gone the unrolling's margin would SHRINK**
+--- `-u2` over `-u1` rising to about 0.92 in corrected instructions from 0.86,
+and ahead in time by less. **Measured at source it widens, on both axes**:
+`-u2-ptr` over `-u1-ptr` reads **0.8605** in corrected instructions against
+`-u2` over `-u1`'s **0.9208**, and **0.9431** in time against **0.9644**.
+So taking the reload out of BOTH arms leaves the unrolled one further ahead,
+not nearer; whether a compiler fix does the same is still the patched compiler's
+to say, a source rewrite and a register-allocator fix not being the same
+intervention. **And the RATE at which an instruction saving reaches the clock
+is a third to a half here, not three quarters.** The nineteenth reading put
+it at about three quarters, 13.1% of the instructions buying 9.7% of the time
+and 18.6% buying 13.2%, across two builds of one recipe. Within one binary,
+over five spans of the leaf family, Run 26 reads 29%, 32% and 41% on the three
+pointer spans and 52% and 45% on `-u1` over `-add-in-leaf-down` and `-u2`
+over `-u1`. The two are different comparisons --- a cross-build A/B against
+a within-binary arm pair --- and that is the finding rather than an error
+in either: **a span DERIVED from the nineteenth's rate will miss low**, which
+is what Run 26's registration (8) did three times over, its three predicted
+spans of 0.92, 0.88 and 0.90 reading 0.9693, 0.9479 and 0.9431 while every one
+of its three instruction ratios came back to a ten-thousandth. **The other half
+is a compiler finding and not a fill one**: on GHC HEAD the same two arms lose
+the saving outright, `-u2-ptr` executing 1.8842 of `-u2`'s corrected
+instructions where the basis reads 0.8357, and allocating **2.61x** the result
+vector where every other fill on both halves allocates 1.00x. So a ceiling read
+on one codegen is not a ceiling, and the `Ptr` form is the one shape
+in this family whose codegen the two compilers do not agree on.
 
 **A twenty-first reading, 2026-09-05, dodges the spill at the source in both
 loops, and prices the unrolling alone at a quarter.** **Both arms
