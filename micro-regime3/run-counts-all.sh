@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 # The counted work over EVERY population -- the main set and each class
 # the basis binary lists, control then basis apiece -- which is the run
-# list's step 20 and the second of the evening's two calls:
+# list's step 20 and the second of the evening's two calls. Why every
+# population and not the main set alone, and the loop for a reader mode,
+# are one README section, greppable by its whole title on this line:
+# Which population answers a question, and how to ask all of them
 #
 #     ./run-counts-all.sh run24     # in the background, and WHICH background
 #                                   # matters: a session uses the harness's

@@ -3449,9 +3449,12 @@ line names the floor it used.
 **A question that names no population, or that says only `population` or any
 word that could mean either, is answered on the main set AND every class.**
 That is the reading that cannot under-report, and a question meaning less
-than it says so in as many words. A figure quoted anywhere says which population
-it came from; a class block quotes its own class's floor and no other, which
-`--check-doc` enforces.
+than it says so in as many words. Inside a class block the block names
+the population and `here` is enough --- and `--check-doc` holds it to that,
+refusing a block that quotes a floor which is not its own. What must name
+the population in words is a figure quoted OUTSIDE its block: in a head,
+a registration, a claim, a checker's brief, or any sentence setting two
+populations side by side.
 
 To ask all of them: `./read-all.sh $R` gates every process a run left, both
 halves; `./run-counts-all.sh` walks the main set and every class the basis
@@ -6264,9 +6267,10 @@ and never as a chronology.
     #      tells 5c which JSONs to run the span against: a span names
     #      no population itself and is read on whatever it is handed.
     #      What an item that names none means, and how to ask every
-    #      population at once, is one section and not repeated here:
-    #      --section 'Which population answers a question, and how to
-    #      ask all of them'. NO VERDICT WORD in the
+    #      population at once, is one section and not repeated here --
+    #      its title, whole, for a grep or a --section:
+    #      Which population answers a question, and how to ask all of them
+    #      NO VERDICT WORD in the
     #      entry -- HELD, KILLED, SPLIT and their kin -- which --check-doc
     #      reads as an item already adjudicated. READ NOW: items 7 and
     #      8 -- the open list by its markers, Provenance's delta bullets
@@ -7409,8 +7413,9 @@ not otherwise.
     #      the figure read, and the items carrying no span named as
     #      yours. Write each verdict beside its prediction FROM THIS
     #      OUTPUT -- ONCE PER POPULATION THE ITEM NAMES, the loop and
-    #      the default being --section 'Which population answers a
-    #      question, and how to ask all of them'. One run of it on
+    #      the default being this section, titled whole for a grep:
+    #      Which population answers a question, and how to ask all of them
+    #      One run of it on
     #      main is not the item's verdict: the verdict is its KILL
     #      CONDITION applied across those readings, and the write-up
     #      records the reading per population, quoting each figure and

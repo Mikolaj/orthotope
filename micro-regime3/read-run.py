@@ -2381,9 +2381,11 @@ def predictions_table(cells, shapes, strategies, meta, other, main_hs,
     pair -- this file's own, which is the main set's only when this file
     is the main set -- and to 0.1 for counts, which are exact to the
     fourth place on a repeat. A span names no population, so it is a
-    claim about every one its item names and is read once per JSON;
-    README's `Which population answers a question, and how to ask all of
-    them` is the rule and the loop, and post-run 5c is where it runs. The
+    claim about every one its item names and is read once per JSON. The
+    rule and the loop are one README section, whole on the next line so a
+    grep for the title finds this too:
+        Which population answers a question, and how to ask all of them
+    and post-run step 5c is where it runs. The
     registration is README's OPEN entry for this run where one exists,
     which is the state before post-run step 5's move, and the run file's
     last section after it -- in that order, because a run file copied
@@ -2569,8 +2571,9 @@ def predictions_table(cells, shapes, strategies, meta, other, main_hs,
         # `time` column is winsorized per row, so a ratio of two of its
         # entries equals the paired figure only where neither row had a
         # cell capped. Run 26's registration (8) was adjudicated off the
-        # paired figure alone and its write-up then read 0.9479 while the
-        # table above it gave 1.0688 on the same pair -- a reader
+        # paired figure alone and its write-up then read 0.9479 on the
+        # MAIN SET while the table above it gave 1.0688 on the same
+        # pair and the same population -- a reader
         # following README's own rule for comparing two rows would have
         # reached the opposite conclusion, and nothing here said so. The
         # sign test goes beside it for the same reason: 0.9479 sat at 13
