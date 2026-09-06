@@ -7315,6 +7315,9 @@ not otherwise.
     #      `./loop-offsets.py $R-<half> --match probe-g3-<half>-$R` does
     #      the straddlers' half of that by the same rule, naming each by
     #      its bytes and saying NOT NAMED where the twin holds no copy.
+    #      NOT NAMED can also mean no loop: Run 26's sixth was an info
+    #      table misread by the sweep; `reaches` in loop-offsets.py has
+    #      the tell.
     #      THAT CHECK IS WHAT MAKES A NEGATIVE HONEST: Run 22's twin named one of four
     #      straddling loops and refused the other three, having no
     #      byte-identical copy of them, and the one it did name sits in
@@ -8704,14 +8707,16 @@ and turns the skip into an order: the inner head of a rotated pair is placed
 and the outer yields, so on a dead-spot binary the fill's stepping loop sits
 at offset 0 and the loop the survey then reports straddling is the outer,
 per-run one** --- Run 23's four, `fillStage2`, `fillStage2Short` and the two
-`-u2` leaf fills, read that way off the timed binary on 2026-09-02 --- by design
-and on every dead-spot build, so a future run should expect them and price them
-as a per-run term where the pad they replace was paid per iteration.
-**Over this module's assembly that separates 840 nested heads from 331
-overlapping ones, 28.2% of 1172** --- an exposure count from a static pass
-with instruction indices standing in for addresses, so a bound on how many heads
-could be affected and not a measurement of what they cost. What it would cost
-to find out is [task 6][open]. **Read out of the timed binary itself**,
+`-u2` leaf fills, read that way off the timed binary on 2026-09-02, and Run 26's
+fifth, `-u2-ptr`'s, the same shape arriving with that arm, its inner 34 bytes
+at offset 0 and its outer 48 beginning 29 bytes on, which no residue fits ---
+by design and on every dead-spot build, so a future run should expect them
+and price them as a per-run term where the pad they replace was paid per
+iteration. **Over this module's assembly that separates 840 nested heads
+from 331 overlapping ones, 28.2% of 1172** --- an exposure count from a static
+pass with instruction indices standing in for addresses, so a bound on how many
+heads could be affected and not a measurement of what they cost. What it would
+cost to find out is [task 6][open]. **Read out of the timed binary itself**,
 at the addresses sampling it put the instructions at rather than in a twin:
 on `slice-primes` the branch's fill and the shipped fill are the SAME CODE,
 sixteen real instructions and four stack accesses per two elements each,

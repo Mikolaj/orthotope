@@ -222,6 +222,20 @@ def reaches(insns, k, n, targets):
     fourteen real loops with them, so this one follows the flow instead.
     Survey totals recorded before 2026-09-04 are higher than this reads by
     that few, and stand as taken.
+
+    A second shape this flow test cannot see, `run26-g912`'s sixth
+    straddler of 2026-09-06: the SRT word of a return-frame table in front
+    of a 29-byte continuation of `$wfbCanonVecdims` throws the sweep out of
+    step for the whole continuation, so its closing `jmp` to a list
+    equality is swallowed into a `(bad)` and the low bytes of the
+    displacement, `71 d3`, read as `jno -45` back to the table -- a body
+    with no transfer in it for the flow to leave at. The twin refused it,
+    three relocated addresses and the SRT word differing. This shape's tell, which no real loop
+    can carry, is a `(bad)` mnemonic inside the body: over the four Run 26
+    binaries and Runs 24's and 25's four it marks this loop, one 8-byte
+    body in `run25-g912` and one in Run 26's basis twin, and nothing else.
+    Not filtered here yet: the survey totals the documents carry would
+    move by one, and the change wants a case and a mutant.
     """
     live = False
     for i in range(k, n + 1):
@@ -316,6 +330,12 @@ def arms(path, addrs):
     legibility, and the mangled symbol is already the documented substitute.
     Measured 2026-08-17: no DWARF is `??:0` at exit 0, an unreadable file is
     exit 1, and an absent addr2line raises.
+
+    The source read is the WORKING TREE's, so a name is right only while
+    the file has not moved since the twin was built: at 09c7211 the Run 26
+    twin's lines named `-u2-down`'s and `-u2-ptr`'s straddlers as
+    `-u2-ptr`'s and `-u1-ptr`'s. Run `--match` at the twin's commit, or
+    read its lines against `git show COMMIT:Main.hs`.
     """
     if not addrs:
         return {}

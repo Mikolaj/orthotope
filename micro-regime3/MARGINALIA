@@ -603,3 +603,11 @@ decoding as `js -40` over bytes that summed. A blanket guard against any
 unconditional transfer in a body took fourteen real loops per binary; the
 reachability guard took one to four, every one such a word. Survey totals
 recorded before this day are higher by that few.
+
+2026-09-06  Run 26's sixth straddler was found to be a phantom by asking who
+it was, after the write-up had counted it: objdump's sweep over the timed
+binary listed 12 jumps to the list-equality symbol and the twin's 13, and the
+missing one sat at the phantom's address. Every named loop sits at +0x80 in the
+twin, which is what let the twin's DWARF name a stub the twin's own sweep never
+misread. The same evening `--match` re-run named two of the five wrongly, the
+tree's Main.hs having moved above them since the twin's commit.
