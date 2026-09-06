@@ -1,18 +1,6 @@
-The brief for a run's independent checker, and for the comprehension
-probe after it. Both are agents, both start where the session started
-and so arrive knowing none of this, and both were retyped from memory
-on Run 16 -- once because a rate limit killed the first agent mid-pass
-and the whole brief had to be written again. THREE THINGS CHANGE FROM
-RUN TO RUN: the first block, and the two items marked THIS RUN ONLY
-below. All three are EDITED HERE at the write-up rather than
-substituted in the prompt -- the file is the copy both agents are
-sent, so a value that lives only in a prompt is a value the next run
-retypes. It carries the run whose write-up is happening.
-PREVBASIS and PREVSAME are one half whenever the run changed no
-allocation area, which is the ordinary case: two names to hunt for and
-one to find is not an error.
+The brief for a run's independent checker, and for the comprehension probe after it. Both are agents, both start where the session started and so arrive knowing none of this, and both were retyped from memory on Run 16 -- once because a rate limit killed the first agent mid-pass and the whole brief had to be written again. THREE THINGS CHANGE FROM RUN TO RUN: the first block, and the two items marked THIS RUN ONLY below. All three are EDITED HERE at the write-up rather than substituted in the prompt -- the file is the copy both agents are sent, so a value that lives only in a prompt is a value the next run retypes. It carries the run whose write-up is happening. PREVBASIS and PREVSAME are one half whenever the run changed no allocation area, which is the ordinary case: two names to hunt for and one to find is not an error.
 
-Substitute per run: RUN=run26  BASIS=g912  OTHER=ghead  PREV=run25
+Substitute per run: RUN=run26 BASIS=g912 OTHER=ghead PREV=run25
                     PREVBASIS=run25-g912  PREVSAME=run25-g912
                     PRETIP=cdf10f1   (the COMMITTED COPY of the previous
                                       run's file, which is the base the
@@ -31,14 +19,9 @@ Substitute per run: RUN=run26  BASIS=g912  OTHER=ghead  PREV=run25
 === THE INDEPENDENT CHECKER, PASS 1 (checklist 6b: after 6a's prose,
     on that one commit's diff, with 6c running beside it) ===
 
-You are an independent checker for a benchmark write-up. Report
-DISCREPANCIES, not opinions or style preferences.
+You are an independent checker for a benchmark write-up. Report DISCREPANCIES, not opinions or style preferences.
 
-WHERE YOU ARE. Work in /home/mikolaj/r/orthotope/micro-regime3. That is
-an orthotope checkout, NOT the horde-ad repo your session started in.
-Your evidence is THIS RUN'S OWN ARTIFACTS in that directory, with the
-reader ./read-run.py there. They are MORE THAN THE JSONS, and a claim
-you cannot settle from the JSONs is usually settled by one of the rest:
+WHERE YOU ARE. Work in /home/mikolaj/r/orthotope/micro-regime3. That is an orthotope checkout, NOT the horde-ad repo your session started in. Your evidence is THIS RUN'S OWN ARTIFACTS in that directory, with the reader ./read-run.py there. They are MORE THAN THE JSONS, and a claim you cannot settle from the JSONs is usually settled by one of the rest:
   RUN-HALF-POP.json  the twenty-two timed processes; every published table
   RUN-HALF-POP.log   the same processes' per-sample stamps -- allocation,
                      mutator, collector, foreign CPU, and the @@saturate
@@ -56,269 +39,54 @@ you cannot settle from the JSONs is usually settled by one of the rest:
   PREV-*             the previous run's artifacts, for any cross-run
                      figure the write-up quotes
   Main.hs            the shape, class and roster definitions
-What is excluded is OTHER REPOSITORIES' tooling, not this run's own
-files: no other repository's checkers, linters or conventions come near
-these two documents -- they carry a per-repo configuration and will
-report correct names as missing. Say `could not check` only after
-looking in the list above; Run 22's checker returned seven such items
-of which THREE were checkable -- the per-shape counts, the binary
-identity and the plateau -- because this paragraph used to read `JSON
-artifacts and NOTHING ELSE` and all three live in .txt and .log files.
-Do not edit any file. Read and compute only.
+What is excluded is OTHER REPOSITORIES' tooling, not this run's own files: no other repository's checkers, linters or conventions come near these two documents -- they carry a per-repo configuration and will report correct names as missing. Say `could not check` only after looking in the list above; Run 22's checker returned seven such items of which THREE were checkable -- the per-shape counts, the binary identity and the plateau -- because this paragraph used to read `JSON artifacts and NOTHING ELSE` and all three live in .txt and .log files. Do not edit any file. Read and compute only.
 
-YOUR OBJECT IS A COMMIT AND NOT THE WORKING TREE, which is why the
-session keeps writing while you run: it may edit the run file during
-pass 1 to clear a gate, and 6c edits README beside you throughout. Take
-the diff commands below literally and read the working copy for nothing
-you are checking.
+YOUR OBJECT IS A COMMIT AND NOT THE WORKING TREE, which is why the session keeps writing while you run: it may edit the run file during pass 1 to clear a gate, and 6c edits README beside you throughout. Take the diff commands below literally and read the working copy for nothing you are checking.
 
-TWO DOCUMENTS, and the run's numbers are in the second: README.md is what
-stands between runs, and runs/run<N>.md is this run's write-up entire --
-its head, Results, what the next run compares against, the claims it
-should test, the TEN class blocks and its own Provenance. A run
-replaces that file and edits README.md around it -- a bullet on the delta
-chain, and whatever the replace list turns up.
+TWO DOCUMENTS, and the run's numbers are in the second: README.md is what stands between runs, and runs/run<N>.md is this run's write-up entire -- its head, Results, what the next run compares against, the claims it should test, the TEN class blocks and its own Provenance. A run replaces that file and edits README.md around it -- a bullet on the delta chain, and whatever the replace list turns up.
 
-THE TWO INVOCATIONS SEE DIFFERENT DOCUMENTS, and this is not a
-simplification to ignore. PASS 1 reads THE RUN FILE ALONE, because
-README's half is being written IN PARALLEL with it and may not exist
-yet; that parallelism is why pass 1 is launched where it is. PASS 2
-reads BOTH, and is the only invocation that can -- it is also the only
-place a figure quoted in both documents is checked on both sides.
+THE TWO INVOCATIONS SEE DIFFERENT DOCUMENTS, and this is not a simplification to ignore. PASS 1 reads THE RUN FILE ALONE, because README's half is being written IN PARALLEL with it and may not exist yet; that parallelism is why pass 1 is launched where it is. PASS 2 reads BOTH, and is the only invocation that can -- it is also the only place a figure quoted in both documents is checked on both sides.
 
-THE DIFF, TWO commands -- and which you run depends on which pass you
-are: PASS 1 runs the FIRST alone, PASS 2 runs BOTH. They are separate
-because the two files have different histories. The run file is touched by the write-up ALONE, so it needs no
-upper bound; README also carries edits to the run CHAPTER, which are
-procedure and not this run's figures, so it is bounded at RUNTIP:
+THE DIFF, TWO commands -- and which you run depends on which pass you are: PASS 1 runs the FIRST alone, PASS 2 runs BOTH. They are separate because the two files have different histories. The run file is touched by the write-up ALONE, so it needs no upper bound; README also carries edits to the run CHAPTER, which are procedure and not this run's figures, so it is bounded at RUNTIP:
   git -C /home/mikolaj/r/orthotope diff PRETIP..HEAD   -- micro-regime3/runs
   git -C /home/mikolaj/r/orthotope diff PRETIP..RUNTIP -- micro-regime3/README.md
-On Run 22 the unbounded form would have handed you 576 lines of README
-against the write-up's 224, most of it chapter restructuring under review
-by nobody. If either document was normalised or rewrapped in that range
-the diff is mostly character-level; ignore that and judge the substance.
+On Run 22 the unbounded form would have handed you 576 lines of README against the write-up's 224, most of it chapter restructuring under review by nobody. If either document was normalised or rewrapped in that range the diff is mostly character-level; ignore that and judge the substance.
 
-SIX THINGS YOU CANNOT DERIVE, so they are given -- and items 5 and 6
-are THIS RUN'S and are rewritten every run:
- 1. The basis is RUN-BASIS and publishes every table (RUN-BASIS-main.json,
-    and RUN-BASIS-<class>.json for rev bcast bcastmid window scaled runs
-    flip block small compose -- TEN, four of them new on this run, and
-    reshape1, revsome and slice retired from timing on 2026-09-04 and
-    kept in `check`). The control is RUN-OTHER.
- 2. PREV is on disk too. Absolutes and anchors are read against
-    PREVSAME, the half at this run's own area; the published lineage
-    and that run's own second column against PREVBASIS.
- 3. Alone-leg riders are RUN-al-<half>-<shape>-r1.json, one bench each
-    -- and HALF OF THEM CARRY A `-sat-` INFIX, RUN-al-<half>-sat-<shape>
-    -r1.json, which is a DIFFERENT measurement and not a repetition: the
-    clean legs and the saturated ones are the two columns the deflation
-    splits into, the state the preamble puts on a process and the rest
-    the roster adds on top of it. Count them apart. This run has 21 legs
-    a half in each state, 84 in all -- 18 main-set shapes and the three
-    anchors on a second reps pass. Probes are probe-*.json/.log, and the
-    two -g3 twins beside the binaries are probe-g3-<half>-RUN.
+SIX THINGS YOU CANNOT DERIVE, so they are given -- and items 5 and 6 are THIS RUN'S and are rewritten every run:
+ 1. The basis is RUN-BASIS and publishes every table (RUN-BASIS-main.json, and RUN-BASIS-<class>.json for rev bcast bcastmid window scaled runs flip block small compose -- TEN, four of them new on this run, and reshape1, revsome and slice retired from timing on 2026-09-04 and kept in `check`). The control is RUN-OTHER.
+ 2. PREV is on disk too. Absolutes and anchors are read against PREVSAME, the half at this run's own area; the published lineage and that run's own second column against PREVBASIS.
+ 3. Alone-leg riders are RUN-al-<half>-<shape>-r1.json, one bench each -- and HALF OF THEM CARRY A `-sat-` INFIX, RUN-al-<half>-sat-<shape> -r1.json, which is a DIFFERENT measurement and not a repetition: the clean legs and the saturated ones are the two columns the deflation splits into, the state the preamble puts on a process and the rest the roster adds on top of it. Count them apart. This run has 21 legs a half in each state, 84 in all -- 18 main-set shapes and the three anchors on a second reps pass. Probes are probe-*.json/.log, and the two -g3 twins beside the binaries are probe-g3-<half>-RUN.
  4a. TWO STATISTICS, and they can part in SIGN. A margin between two
-    arms is --pair's PAIRED figure, the geomean of the per-shape ratio;
-    the Results table's `time` column is winsorized per row, so a ratio
-    of two of its entries equals the paired figure only where neither
-    row had a cell capped. On Run 26 they parted on four pairs, the
-    write-up quoted the paired figure alone, and README's own rule says
-    the published column is the yardstick for comparing two rows -- so a
-    reader following it reached the opposite sign. CHECK BOTH wherever
-    the diff quotes one: --pair prints them side by side and
-    --predictions has since 2026-09-06.
- 4. read-run.py is the only reader; start with --help. --cells gives
-    TSV (slope_s raw, slope_net_s corrected); --pair (with --per-shape),
-    --compare (with --chapter, --alloc, --movers, --ci, --counts), --aa,
-    --claims, --block, --fingerprint, --machine, --cross-classes and
-    --section are the modes for the JSONs and the documents. TWO MORE
-    READ THE OTHER ARTIFACTS and are the ones a claim outside the JSONs
-    needs: --wild reads a process LOG for its per-sample stamps, which
-    is the only route to a plateau or foreign-CPU claim, and --deflation
-    reads the riders. The counted-work .txt files have no per-shape mode
-    at all -- read them directly for a per-shape count claim.
- 5. THIS RUN ONLY -- THE BOX DID NOT CHANGE between PREV and RUN. The
-    gate's machine check read +0.72% on `list`'s net over 18 of 19
-    shapes against the fingerprint PREV kept, worst
-    `stretch-square-1341` +3.43%, none past 5%; the run's own two
-    main-set processes read the same comparison at +0.42% (basis,
-    worst stretch-square-1341 +4.20%) and -0.91% (other, worst
-    stretch-bigstride -3.15%). Every geomean inside 3%, so absolutes DO
-    cross that boundary freely and a cross-run absolute comparison is
-    fair. (The last box event was before Run 18; nothing since.) It is
-    18 OF 19 and not 19 of 19 because this run times `cnn-L1-6x6-c1`
-    again, back from the retired list, and PREV's fingerprint has no
-    row for it. A LAYOUT TERM DOES ride in every cross-run figure:
-    Main.hs moved by EIGHT commits of 2026-09-05 and 2026-09-06, so
-    neither half reproduces an earlier binary, no md5 here matches one
-    on record, and the exact repetition Runs 19 and 23 could take is
-    NOT available -- the write-up says so and reads its cross-run
-    column against run25-g912, the previous build of this recipe, at
-    seventeen of nineteen comparable arms within 1%. **CROSS-RUN
-    FIGURES ARE PINNED TO THE EIGHTEEN SHAPES THE TWO RUNS SHARE**:
-    the write-up quotes Run 25's basis column read with `--pin`, which
-    is how it can say Run 25's column IS this one arm for arm; a
-    checker recomputing over this run's nineteen will disagree with
-    every such figure and be reading the wrong population. THE PAIR
-    NOTE'S COMMIT IS THE ONE TO BELIEVE: the binaries were built from
-    659d898 and the driver stamped 9702f20, the tip, which landed
-    after the build and changes only comments -- the note proves it in
-    the binary (.text identical, 142 differing bytes, none in .text).
-    The two HALVES differ in the COMPILER only: same source, same shim
-    commit (b3a1aca, unmoved from Run 25), same shim environment (both
-    LOOP_DEADSPOT=1), the other half built through cabal.project.ghead
-    against the in-tree GHC HEAD stage1, whose version is unmoved from
-    Run 24. Treat that disclosure as correct rather than as a hedge.
+    arms is --pair's PAIRED figure, the geomean of the per-shape ratio; the Results table's `time` column is winsorized per row, so a ratio of two of its entries equals the paired figure only where neither row had a cell capped. On Run 26 they parted on four pairs, the write-up quoted the paired figure alone, and README's own rule says the published column is the yardstick for comparing two rows -- so a reader following it reached the opposite sign. CHECK BOTH wherever the diff quotes one: --pair prints them side by side and --predictions has since 2026-09-06.
+ 4. read-run.py is the only reader; start with --help. --cells gives TSV (slope_s raw, slope_net_s corrected); --pair (with --per-shape), --compare (with --chapter, --alloc, --movers, --ci, --counts), --aa, --claims, --block, --fingerprint, --machine, --cross-classes and --section are the modes for the JSONs and the documents. TWO MORE READ THE OTHER ARTIFACTS and are the ones a claim outside the JSONs needs: --wild reads a process LOG for its per-sample stamps, which is the only route to a plateau or foreign-CPU claim, and --deflation reads the riders. The counted-work .txt files have no per-shape mode at all -- read them directly for a per-shape count claim.
+ 5. THIS RUN ONLY -- THE BOX DID NOT CHANGE between PREV and RUN. The gate's machine check read +0.72% on `list`'s net over 18 of 19 shapes against the fingerprint PREV kept, worst `stretch-square-1341` +3.43%, none past 5%; the run's own two main-set processes read the same comparison at +0.42% (basis, worst stretch-square-1341 +4.20%) and -0.91% (other, worst stretch-bigstride -3.15%). Every geomean inside 3%, so absolutes DO cross that boundary freely and a cross-run absolute comparison is fair. (The last box event was before Run 18; nothing since.) It is 18 OF 19 and not 19 of 19 because this run times `cnn-L1-6x6-c1` again, back from the retired list, and PREV's fingerprint has no row for it. A LAYOUT TERM DOES ride in every cross-run figure: Main.hs moved by EIGHT commits of 2026-09-05 and 2026-09-06, so neither half reproduces an earlier binary, no md5 here matches one on record, and the exact repetition Runs 19 and 23 could take is NOT available -- the write-up says so and reads its cross-run column against run25-g912, the previous build of this recipe, at seventeen of nineteen comparable arms within 1%. **CROSS-RUN FIGURES ARE PINNED TO THE EIGHTEEN SHAPES THE TWO RUNS SHARE**: the write-up quotes Run 25's basis column read with `--pin`, which is how it can say Run 25's column IS this one arm for arm; a checker recomputing over this run's nineteen will disagree with every such figure and be reading the wrong population. THE PAIR NOTE'S COMMIT IS THE ONE TO BELIEVE: the binaries were built from 659d898 and the driver stamped 9702f20, the tip, which landed after the build and changes only comments -- the note proves it in the binary (.text identical, 142 differing bytes, none in .text). The two HALVES differ in the COMPILER only: same source, same shim commit (b3a1aca, unmoved from Run 25), same shim environment (both LOOP_DEADSPOT=1), the other half built through cabal.project.ghead against the in-tree GHC HEAD stage1, whose version is unmoved from Run 24. Treat that disclosure as correct rather than as a hedge.
 
- 6. THIS RUN ONLY -- RESTATE IT EVERY RUN, and Run 20 is why: this
-    block stood with Run 18's window and Run 18's four classes through
-    Run 20's probe, which went looking for the wrong classes because
-    of it. On Run 26: ONE window, all TWENTY-TWO processes,
-    2026-09-06T02:29:46 to 2026-09-06T08:40:03, every one exiting 0 at
-    its roster's count -- 570 twice, 420 twice, 180 twice, 150 six
-    times, 120 four times and 90 six times -- no complaint and no `!!`
-    line, the ghead half first throughout. ONE FOREIGN-CPU EPISODE,
-    disclosed and adjudicated: `--wild` over all twenty-two logs puts
-    two adjacent benches of run26-ghead-main at 0.42 and 0.80 foreign
-    CPU (alexnet-L1-55-c3-k11/sum-only-late and
-    alexnet-L2-27-c48-k5/sum-only-early) against 0.01 to 0.07
-    everywhere else. Criterion's own reading of those two cells moves
-    the sum-only A/A pair by +0.09% and -0.56% where three untouched
-    shapes read -0.50%, -0.44% and +0.68%, so post-run step 3's rerun
-    was NOT taken and the write-up says why. The four A/A cells past
-    5% are wild cells, foreign CPU 0.02 to 0.05 on those processes.
-    The gate was launched ONCE, 01:56:24 to 02:29:43 on a box reading
-    0.4% non-idle, and the alarm between it and the sequence read
-    0.8%. The whole evening ran as ONE command, run-evening.sh, and the
-    counted work as a second, run-counts-all.sh, 08:55:18 to 09:32:35,
-    22 sweeps with no cell refused by perf. The plateau gate reads all
-    twenty-two preamble victims inside a 2.48% spread against a 5%
-    band. **THE MAIN SET IS PAST THE 0.7% DIFFERENCING THRESHOLD THIS
-    RUN**, `list` moving 1.0116 between the halves, so its two columns
-    may NOT be differenced and every cross-half figure is an ORDERING
-    -- as on Run 25, and the write-up says so throughout. SIX classes
-    are past it too -- rev 1.0088, window 1.0232, runs 0.9923, flip
-    1.0072, block 0.9848, small 0.9857 -- and their blocks say so; the
-    other four are inside. There are TEN classes: `runs` has FOURTEEN
-    shapes, `window` SIX, `block`, `flip` and `small` FIVE, `bcastmid`
-    and `compose` FOUR, and `rev`, `bcast` and `scaled` THREE; three
-    class views landed 2026-09-05 and are timed for the first time
-    here (flip-inner-gap64, flip-outer-gap64, small-patch-r5). THE
-    FLOOR IS OVER SIX A/A PAIRS, not sixteen: 0.31% and 0.46% are
-    maxima over six and are NOT comparable with the 1.26%/2.11%
-    series, and the restricted four-pair figure reads the same two
-    numbers. Cells below the shared forcing pass: TEN on the basis
-    main set and ELEVEN on the ghead one, EVERY ONE of them a
-    `libunord` arm, so those three rows are geomeans on 15, 16 and 16
-    of 19 shapes on the basis and 16, 15 and 15 on the other and every
-    other row covers all 19. That count is not a finding: those arms
-    return a single slice where the one-block test fires, so their
-    cell IS the forcing pass and the subtraction lands within two
-    parts in a hundred thousand of zero -- registration (3) is
-    therefore read RAW and per view, not off the corrected geomean.
-    NOT ONE REGISTERED CLAUSE WAS UNREADABLE this run, where Runs 24
-    and 25 lost five between them: items (4) to (7) are older clauses
-    re-registered in their own words for exactly that reason. THE
-    RUN'S LARGEST FINDING IS ABOUT GHC HEAD, not about the fills:
-    mut-odo-vecdims-add-in-leaf-u2-ptr reads 0.6219 in counts and
-    0.3521 in time between the halves and allocates 2.61x the result
-    vector on the ghead half against 1.00x on the basis. All of it is
-    disclosed, not hidden; check that the disclosure matches the
-    artifacts rather than treating any of it as an error.
+ 6. THIS RUN ONLY -- RESTATE IT EVERY RUN, and Run 20 is why: this block stood with Run 18's window and Run 18's four classes through Run 20's probe, which went looking for the wrong classes because of it. On Run 26: ONE window, all TWENTY-TWO processes, 2026-09-06T02:29:46 to 2026-09-06T08:40:03, every one exiting 0 at its roster's count -- 570 twice, 420 twice, 180 twice, 150 six times, 120 four times and 90 six times -- no complaint and no `!!` line, the ghead half first throughout. ONE FOREIGN-CPU EPISODE, disclosed and adjudicated: `--wild` over all twenty-two logs puts two adjacent benches of run26-ghead-main at 0.42 and 0.80 foreign CPU (alexnet-L1-55-c3-k11/sum-only-late and alexnet-L2-27-c48-k5/sum-only-early) against 0.01 to 0.07 everywhere else. Criterion's own reading of those two cells moves the sum-only A/A pair by +0.09% and -0.56% where three untouched shapes read -0.50%, -0.44% and +0.68%, so post-run step 3's rerun was NOT taken and the write-up says why. The four A/A cells past 5% are wild cells, foreign CPU 0.02 to 0.05 on those processes. The gate was launched ONCE, 01:56:24 to 02:29:43 on a box reading 0.4% non-idle, and the alarm between it and the sequence read 0.8%. The whole evening ran as ONE command, run-evening.sh, and the counted work as a second, run-counts-all.sh, 08:55:18 to 09:32:35, 22 sweeps with no cell refused by perf. The plateau gate reads all twenty-two preamble victims inside a 2.48% spread against a 5% band. **THE MAIN SET IS PAST THE 0.7% DIFFERENCING THRESHOLD THIS RUN**, `list` moving 1.0116 between the halves, so its two columns may NOT be differenced and every cross-half figure is an ORDERING -- as on Run 25, and the write-up says so throughout. SIX classes are past it too -- rev 1.0088, window 1.0232, runs 0.9923, flip 1.0072, block 0.9848, small 0.9857 -- and their blocks say so; the other four are inside. There are TEN classes: `runs` has FOURTEEN shapes, `window` SIX, `block`, `flip` and `small` FIVE, `bcastmid` and `compose` FOUR, and `rev`, `bcast` and `scaled` THREE; three class views landed 2026-09-05 and are timed for the first time here (flip-inner-gap64, flip-outer-gap64, small-patch-r5). THE FLOOR IS OVER SIX A/A PAIRS, not sixteen: 0.31% and 0.46% are maxima over six and are NOT comparable with the 1.26%/2.11% series, and the restricted four-pair figure reads the same two numbers. Cells below the shared forcing pass: TEN on the basis main set and ELEVEN on the ghead one, EVERY ONE of them a `libunord` arm, so those three rows are geomeans on 15, 16 and 16 of 19 shapes on the basis and 16, 15 and 15 on the other and every other row covers all 19. That count is not a finding: those arms return a single slice where the one-block test fires, so their cell IS the forcing pass and the subtraction lands within two parts in a hundred thousand of zero -- registration (3) is therefore read RAW and per view, not off the corrected geomean. NOT ONE REGISTERED CLAUSE WAS UNREADABLE this run, where Runs 24 and 25 lost five between them: items (4) to (7) are older clauses re-registered in their own words for exactly that reason. THE RUN'S LARGEST FINDING IS ABOUT GHC HEAD, not about the fills: mut-odo-vecdims-add-in-leaf-u2-ptr reads 0.6219 in counts and 0.3521 in time between the halves and allocates 2.61x the result vector on the ghead half against 1.00x on the basis. All of it is disclosed, not hidden; check that the disclosure matches the artifacts rather than treating any of it as an error.
 
-THE FIGURE SWEEP -- and it is a SWEEP, not a pass: `pass` in this file
-means one of the two agent invocations above, and both sweeps below are
-done in EACH of them. Recompute every numeric claim the diff adds,
-from the reader or --cells, never by dividing figures printed in a
-table (they are rounded to three significant figures). BE EXHAUSTIVE
-ON THE TWO HAND-EDITED TABLES AND SAMPLE THE INSTALLED ONES. The
-hand-edited pair is the run's own two-column geomeans and the PROVENANCE
-ANCHORS: those are typed, and both table errors on record are theirs --
-Run 20 omitted the two-column table entirely and Run 22 left the anchors
-carrying the previous run's figures in seven of nine cells, through
-every gate and a whole checker pass. The installed tables -- Results,
-the fingerprint, the class tables, the cross-class summary, the claim
-readings -- are matched by whole line with the count asserted. So take
-a sample of the installed rows -- TWENTY, spread across the main table,
-two class tables and one fingerprint, which is the number and not an
-encouragement: four passes have now recomputed 487, 491, 352 and 401
-rows and found ZERO wrong between them, and Run 26's pass spent 401 of
-them to find none while nine stale PROSE paragraphs sat in the same
-diff. Spend what that saves on the prose, which is where every real
-finding of those four runs was. Say how many rows you verified, by which
-route, and how many disagreed. Pass 2's scope is narrower and is stated
-in its own block.
+THE FIGURE SWEEP -- and it is a SWEEP, not a pass: `pass` in this file means one of the two agent invocations above, and both sweeps below are done in EACH of them. Recompute every numeric claim the diff adds, from the reader or --cells, never by dividing figures printed in a table (they are rounded to three significant figures). BE EXHAUSTIVE ON THE TWO HAND-EDITED TABLES AND SAMPLE THE INSTALLED ONES. The hand-edited pair is the run's own two-column geomeans and the PROVENANCE ANCHORS: those are typed, and both table errors on record are theirs -- Run 20 omitted the two-column table entirely and Run 22 left the anchors carrying the previous run's figures in seven of nine cells, through every gate and a whole checker pass. The installed tables -- Results, the fingerprint, the class tables, the cross-class summary, the claim readings -- are matched by whole line with the count asserted. So take a sample of the installed rows -- TWENTY, spread across the main table, two class tables and one fingerprint, which is the number and not an encouragement: four passes have now recomputed 487, 491, 352 and 401 rows and found ZERO wrong between them, and Run 26's pass spent 401 of them to find none while nine stale PROSE paragraphs sat in the same diff. Spend what that saves on the prose, which is where every real finding of those four runs was. Say how many rows you verified, by which route, and how many disagreed. Pass 2's scope is narrower and is stated in its own block.
 
-THE SUPERLATIVE SWEEP -- every superlative and count. Every "only",
-"largest",
-"widest", "highest", "lowest", "smallest", "most", "first", "never"
-and every "N of M" is a claim about a whole population: re-derive it
-BY SORTING that population, not from the arms the sentence names.
-Flag any sentence contradicting a table or another sentence.
+THE SUPERLATIVE SWEEP -- every superlative and count. Every "only", "largest", "widest", "highest", "lowest", "smallest", "most", "first", "never" and every "N of M" is a claim about a whole population: re-derive it BY SORTING that population, not from the arms the sentence names. Flag any sentence contradicting a table or another sentence.
 
-Report a numbered list of discrepancies only -- the claim as written,
-what you computed, the command you used, and the size of the
-disagreement -- plus per-sweep counts of what you verified. Say
-explicitly what you could not compute rather than guessing.
+Report a numbered list of discrepancies only -- the claim as written, what you computed, the command you used, and the size of the disagreement -- plus per-sweep counts of what you verified. Say explicitly what you could not compute rather than guessing.
 
 
 === THE SAME AGENT, PASS 2 (checklist 6d: after 6b AND 6c, over BOTH
     documents, on the single commit that carries them) ===
 
-IT READS BOTH FILES and this is the only pass that can: the run file
-with pass one's fixes in it, and README with 6c's requotes. That is
-the first moment all of a run's prose exists. A figure quoted in BOTH
--- the floor pair, the six-pair one -- is checked here on both sides
-for the first and only time.
+IT READS BOTH FILES and this is the only pass that can: the run file with pass one's fixes in it, and README with 6c's requotes. That is the first moment all of a run's prose exists. A figure quoted in BOTH -- the floor pair, the six-pair one -- is checked here on both sides for the first and only time.
 
-YOUR SCOPE IS THIS COMMIT'S DIFF AND NOTHING PASS 1 ALREADY VERIFIED.
-Do not recompute an installed table row: `--in-place` matches by whole
-line and asserts the count, and pass 1 has read every row once. Run
-16's first pass recomputed 487 rows and found not one wrong; Run 18's
-recomputed 491, also none -- and both runs' real findings were in the
-prose. What you owe on a table is the rows a FIX touched, plus the two
-figures that live in BOTH documents, which is the check only this pass
-can make.
+YOUR SCOPE IS THIS COMMIT'S DIFF AND NOTHING PASS 1 ALREADY VERIFIED. Do not recompute an installed table row: `--in-place` matches by whole line and asserts the count, and pass 1 has read every row once. Run 16's first pass recomputed 487 rows and found not one wrong; Run 18's recomputed 491, also none -- and both runs' real findings were in the prose. What you owe on a table is the rows a FIX touched, plus the two figures that live in BOTH documents, which is the check only this pass can make.
 
-Send it the fixes, not the prose again. On Runs 15 and 16 most of the
-second pass's findings existed ONLY because the first round of fixes
-had been written -- nine of thirteen on Run 16 -- so that is what it
-is hunting. List each fix you made, so it checks rather than
-rediscovers, and ask specifically for: any NEW superlative or count
-the fixes introduced, any place a fix now contradicts a neighbouring
-sentence left untouched, any figure a fix corrected whose attribution
-the correction falsified, and any cross-document figure whose two
-copies now disagree.
+Send it the fixes, not the prose again. On Runs 15 and 16 most of the second pass's findings existed ONLY because the first round of fixes had been written -- nine of thirteen on Run 16 -- so that is what it is hunting. List each fix you made, so it checks rather than rediscovers, and ask specifically for: any NEW superlative or count the fixes introduced, any place a fix now contradicts a neighbouring sentence left untouched, any figure a fix corrected whose attribution the correction falsified, and any cross-document figure whose two copies now disagree.
 
 
 === THE COMPREHENSION PROBE (checklist 7a: a DIFFERENT agent, once
     7's fixes are committed and the documents have settled) ===
 
-It must be uncontaminated: a fresh agent, never the checker, which has
-seen everything. It reads the two documents and nothing else -- no
-reader, no JSONs, no other repo -- and answers their own questions with
-citations, quoting the sentence and naming its section and its file.
+It must be uncontaminated: a fresh agent, never the checker, which has seen everything. It reads the two documents and nothing else -- no reader, no JSONs, no other repo -- and answers their own questions with citations, quoting the sentence and naming its section and its file.
 
-Ask nine-ish questions that CROSS section boundaries, since that is
-the class of defect nothing else can see. The ones that earned their
-place on Run 16: this run's floor per half with its carrying pair and
-the threshold two table rows must clear; which area the published
-tables use and which half publishes; whether a nursery pair's columns
-may be subtracted and how many such pairs exist; whether the regime 3
-fix is ever slower than what it replaced; which half of the previous
-run a figure is compared against and whether that depends on the kind
-of figure; what each probe concluded and whether it confirmed or
-refuted its registration; what a large single A/A cell should tell a
-reader; the placement-sensitive arms and what is known about why; and
-whether the machine was undisturbed.
+Ask nine-ish questions that CROSS section boundaries, since that is the class of defect nothing else can see. The ones that earned their place on Run 16: this run's floor per half with its carrying pair and the threshold two table rows must clear; which area the published tables use and which half publishes; whether a nursery pair's columns may be subtracted and how many such pairs exist; whether the regime 3 fix is ever slower than what it replaced; which half of the previous run a figure is compared against and whether that depends on the kind of figure; what each probe concluded and whether it confirmed or refuted its registration; what a large single A/A cell should tell a reader; the placement-sensitive arms and what is known about why; and whether the machine was undisturbed.
 
-THE CLOSING INSTRUCTION IS THE POINT: list every place the document
-contradicted itself, gave two answers to one question, or left the
-reader unable to answer despite clearly intending to -- quoting both
-sides with their headings -- and everything it had to read three times
-or first got wrong, saying what misled it.
+THE CLOSING INSTRUCTION IS THE POINT: list every place the document contradicted itself, gave two answers to one question, or left the reader unable to answer despite clearly intending to -- quoting both sides with their headings -- and everything it had to read three times or first got wrong, saying what misled it.
 
-AND COUNT ITS FINDINGS BEFORE ACTING ON THEM. A probe's summary is a
-reader's experience and not a census: Run 16's reported five senses of
-one word where the text had one borrowing, and acting on the summary
-would have renamed two things that were already correct.
+AND COUNT ITS FINDINGS BEFORE ACTING ON THEM. A probe's summary is a reader's experience and not a census: Run 16's reported five senses of one word where the text had one borrowing, and acting on the summary would have renamed two things that were already correct.

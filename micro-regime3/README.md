@@ -7451,6 +7451,12 @@ not otherwise.
     #      that gets skipped. It is not retyped and not summarised here:
     #      it carries all three briefs and every fact an agent starting
     #      where your session started cannot derive.
+    #      IT IS ONE LINE PER PARAGRAPH since 2026-09-06, and no tool
+    #      or hook wraps it -- wrap-restore reads only `.md` -- so an
+    #      edit REPLACES A WHOLE PARAGRAPH and never re-fills lines.
+    #      Its hand fill left a ragged 53-column line, and the same
+    #      evening's hand fill of THIS block left a 96-column one;
+    #      nothing checks either.
     #      AND CHECK ITS WORK: its report is evidence, not verdict
     #      why: --para 'The four ways its inputs have been got wrong'
     #  6c. THE README SECTIONS, every other bullet: the floor table and
