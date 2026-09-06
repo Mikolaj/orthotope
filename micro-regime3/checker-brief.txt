@@ -12,9 +12,9 @@ PREVBASIS and PREVSAME are one half whenever the run changed no
 allocation area, which is the ordinary case: two names to hunt for and
 one to find is not an error.
 
-Substitute per run: RUN=run25  BASIS=g912  OTHER=ghead  PREV=run24
-                    PREVBASIS=run24-g912  PREVSAME=run24-g912
-                    PRETIP=85ebef9   (the COMMITTED COPY of the previous
+Substitute per run: RUN=run26  BASIS=g912  OTHER=ghead  PREV=run25
+                    PREVBASIS=run25-g912  PREVSAME=run25-g912
+                    PRETIP=cdf10f1   (the COMMITTED COPY of the previous
                                       run's file, which is the base the
                                       write-up is diffed against -- NOT the
                                       commit before it, which would show the
@@ -128,82 +128,93 @@ are THIS RUN'S and are rewritten every run:
     reads the riders. The counted-work .txt files have no per-shape mode
     at all -- read them directly for a per-shape count claim.
  5. THIS RUN ONLY -- THE BOX DID NOT CHANGE between PREV and RUN. The
-    gate's machine check read -0.08% on `list`'s net over 18 of 18
+    gate's machine check read +0.72% on `list`'s net over 18 of 19
     shapes against the fingerprint PREV kept, worst
-    `stretch-square-1341` -1.70%, none past 5%; the run's own two
-    main-set processes read the same comparison at +0.32% (basis,
-    worst stretch-coprime-r7 +1.99%) and -0.77% (other, worst
-    stretch-square-1341 -2.82%). All inside 3%, so absolutes DO cross
-    that boundary freely and a cross-run absolute comparison is fair.
-    (The last box event was before Run 18; nothing since.) It is 18 OF
-    18 and not 26 of 26 because eight main-set shapes were RETIRED
-    from timing on 2026-09-04 -- PREV's fingerprint still has their
-    rows and this run does not time them. A LAYOUT TERM DOES ride in
-    every cross-run figure: Main.hs moved by FIVE commits of
-    2026-09-04, so neither half reproduces an earlier binary, no md5
-    here matches one on record, and the exact repetition Runs 19 and
-    23 could take is NOT available -- the write-up says so and reads
-    its cross-run column against run24-g912, the previous build of
-    this recipe, at fifteen of sixteen non-degenerate shared arms
-    within 1%. **CROSS-RUN FIGURES ARE PINNED TO THIS RUN'S EIGHTEEN
-    SHAPES**: the write-up quotes Run 24's basis column read with
-    eight `--exclude-shape` flags, which is how it can say Run 24's
-    column IS this one arm for arm; a checker recomputing from Run
-    24's published 26-shape column will disagree with every such
-    figure and be reading the wrong population. The two HALVES differ
-    in the COMPILER only: same source, same shim commit, same shim
-    environment (both LOOP_DEADSPOT=1), the other half built through
-    cabal.project.ghead against the in-tree GHC HEAD stage1, whose
-    version is unmoved from Run 24. Treat that disclosure as correct
-    rather than as a hedge.
+    `stretch-square-1341` +3.43%, none past 5%; the run's own two
+    main-set processes read the same comparison at +0.42% (basis,
+    worst stretch-square-1341 +4.20%) and -0.91% (other, worst
+    stretch-bigstride -3.15%). Every geomean inside 3%, so absolutes DO
+    cross that boundary freely and a cross-run absolute comparison is
+    fair. (The last box event was before Run 18; nothing since.) It is
+    18 OF 19 and not 19 of 19 because this run times `cnn-L1-6x6-c1`
+    again, back from the retired list, and PREV's fingerprint has no
+    row for it. A LAYOUT TERM DOES ride in every cross-run figure:
+    Main.hs moved by EIGHT commits of 2026-09-05 and 2026-09-06, so
+    neither half reproduces an earlier binary, no md5 here matches one
+    on record, and the exact repetition Runs 19 and 23 could take is
+    NOT available -- the write-up says so and reads its cross-run
+    column against run25-g912, the previous build of this recipe, at
+    seventeen of nineteen comparable arms within 1%. **CROSS-RUN
+    FIGURES ARE PINNED TO THE EIGHTEEN SHAPES THE TWO RUNS SHARE**:
+    the write-up quotes Run 25's basis column read with `--pin`, which
+    is how it can say Run 25's column IS this one arm for arm; a
+    checker recomputing over this run's nineteen will disagree with
+    every such figure and be reading the wrong population. THE PAIR
+    NOTE'S COMMIT IS THE ONE TO BELIEVE: the binaries were built from
+    659d898 and the driver stamped 9702f20, the tip, which landed
+    after the build and changes only comments -- the note proves it in
+    the binary (.text identical, 142 differing bytes, none in .text).
+    The two HALVES differ in the COMPILER only: same source, same shim
+    commit (b3a1aca, unmoved from Run 25), same shim environment (both
+    LOOP_DEADSPOT=1), the other half built through cabal.project.ghead
+    against the in-tree GHC HEAD stage1, whose version is unmoved from
+    Run 24. Treat that disclosure as correct rather than as a hedge.
+
  6. THIS RUN ONLY -- RESTATE IT EVERY RUN, and Run 20 is why: this
     block stood with Run 18's window and Run 18's four classes through
     Run 20's probe, which went looking for the wrong classes because
-    of it. On Run 25: ONE window, all TWENTY-TWO processes,
-    2026-09-05T01:15:34 to 2026-09-05T05:55:57, every one exiting 0 at
-    its roster's count -- 432 twice, 336 twice, 144 twice, 120 twice,
-    96 six times and 72 eight times -- no complaint and no `!!` line,
-    the ghead half first throughout. NO INTRUSION: `--wild` on both
-    main logs and on the six class logs with the widest A/A cells puts
-    NOT ONE bench at or above 0.25 foreign CPU, so post-run step 3 did
-    not fire and no population was rerun. The gate was launched ONCE,
-    00:43:51 to 01:15:31 on a box reading 0.4% non-idle, and the alarm
-    between it and the sequence read 0.1%. The whole evening ran as
-    ONE command, run-evening.sh, and the counted work as a second,
-    run-counts-all.sh, 06:08:34 to 06:41:45, 22 sweeps with no cell
-    refused by perf. The plateau gate reads all twenty-two preamble
-    victims inside a 2.24% spread against a 5% band. **THE MAIN SET IS
-    PAST THE 0.7% DIFFERENCING THRESHOLD THIS RUN**, `list` moving
-    1.0110 between the halves, so its two columns may NOT be
-    differenced and every cross-half figure is an ORDERING -- the
-    opposite of Run 24, and the write-up says so throughout. TWO
-    classes are past it too, bcastmid 1.0175 and block 1.0088, and
-    their blocks say so; the other eight are inside. There are TEN
-    classes: `runs` has FOURTEEN shapes, `window` SIX (two added
-    2026-09-03 and timed for the first time here), `block` FIVE,
-    `bcastmid`, `small` and `compose` FOUR, and `rev`, `bcast`,
-    `scaled` and `flip` THREE. THE FLOOR IS OVER SIX A/A PAIRS, not
-    sixteen: the prune of 2026-09-04 deleted ten pairs with the arms
-    they doubled, so 0.40% and 0.61% are maxima over six and are NOT
-    comparable with the 1.26%/2.11% series, and the restricted
-    four-pair figure reads the same two numbers. Cells below the
-    shared forcing pass: FIFTEEN on the basis main set and ELEVEN on
-    the ghead one, EVERY ONE of them a `libunord` arm, so those two
-    rows are geomeans on 11 and 10 of 18 shapes on the basis and 13
-    and 12 on the other and every other row covers all 18. That count
-    is not a finding: those arms return a single slice where the
-    one-block test fires, so their cell IS the forcing pass and the
-    subtraction lands within two parts in a hundred thousand of zero
-    -- the write-up prices it on `stretch-bigstride` and says so.
-    FIVE REGISTERED CLAUSES WERE UNREADABLE BEFORE THE RUN STARTED
-    because the prune and the short-bodies ruling parked `lib-stage2`,
-    `canon-vecdims` and `lib-stage2-short-lean` the day after they were
-    registered -- item (3)'s second clause and four of item (4)'s, spread
-    over TWO of the seven registrations; the write-up reports that as its
-    own finding, names a live stand-in where one exists, and it is not an
-    omission to flag. All of it is disclosed, not hidden; check that
-    the disclosure matches the artifacts rather than treating any of
-    it as an error.
+    of it. On Run 26: ONE window, all TWENTY-TWO processes,
+    2026-09-06T02:29:46 to 2026-09-06T08:40:03, every one exiting 0 at
+    its roster's count -- 570 twice, 420 twice, 180 twice, 150 six
+    times, 120 four times and 90 six times -- no complaint and no `!!`
+    line, the ghead half first throughout. ONE FOREIGN-CPU EPISODE,
+    disclosed and adjudicated: `--wild` over all twenty-two logs puts
+    two adjacent benches of run26-ghead-main at 0.42 and 0.80 foreign
+    CPU (alexnet-L1-55-c3-k11/sum-only-late and
+    alexnet-L2-27-c48-k5/sum-only-early) against 0.01 to 0.07
+    everywhere else. Criterion's own reading of those two cells moves
+    the sum-only A/A pair by +0.09% and -0.56% where three untouched
+    shapes read -0.50%, -0.44% and +0.68%, so post-run step 3's rerun
+    was NOT taken and the write-up says why. The four A/A cells past
+    5% are wild cells, foreign CPU 0.02 to 0.05 on those processes.
+    The gate was launched ONCE, 01:56:24 to 02:29:43 on a box reading
+    0.4% non-idle, and the alarm between it and the sequence read
+    0.8%. The whole evening ran as ONE command, run-evening.sh, and the
+    counted work as a second, run-counts-all.sh, 08:55:18 to 09:32:35,
+    22 sweeps with no cell refused by perf. The plateau gate reads all
+    twenty-two preamble victims inside a 2.48% spread against a 5%
+    band. **THE MAIN SET IS PAST THE 0.7% DIFFERENCING THRESHOLD THIS
+    RUN**, `list` moving 1.0116 between the halves, so its two columns
+    may NOT be differenced and every cross-half figure is an ORDERING
+    -- as on Run 25, and the write-up says so throughout. SIX classes
+    are past it too -- rev 1.0088, window 1.0232, runs 0.9923, flip
+    1.0072, block 0.9848, small 0.9857 -- and their blocks say so; the
+    other four are inside. There are TEN classes: `runs` has FOURTEEN
+    shapes, `window` SIX, `block`, `flip` and `small` FIVE, `bcastmid`
+    and `compose` FOUR, and `rev`, `bcast` and `scaled` THREE; three
+    class views landed 2026-09-05 and are timed for the first time
+    here (flip-inner-gap64, flip-outer-gap64, small-patch-r5). THE
+    FLOOR IS OVER SIX A/A PAIRS, not sixteen: 0.31% and 0.46% are
+    maxima over six and are NOT comparable with the 1.26%/2.11%
+    series, and the restricted four-pair figure reads the same two
+    numbers. Cells below the shared forcing pass: TEN on the basis
+    main set and ELEVEN on the ghead one, EVERY ONE of them a
+    `libunord` arm, so those three rows are geomeans on 15, 16 and 16
+    of 19 shapes on the basis and 16, 15 and 15 on the other and every
+    other row covers all 19. That count is not a finding: those arms
+    return a single slice where the one-block test fires, so their
+    cell IS the forcing pass and the subtraction lands within two
+    parts in a hundred thousand of zero -- registration (3) is
+    therefore read RAW and per view, not off the corrected geomean.
+    NOT ONE REGISTERED CLAUSE WAS UNREADABLE this run, where Runs 24
+    and 25 lost five between them: items (4) to (7) are older clauses
+    re-registered in their own words for exactly that reason. THE
+    RUN'S LARGEST FINDING IS ABOUT GHC HEAD, not about the fills:
+    mut-odo-vecdims-add-in-leaf-u2-ptr reads 0.6219 in counts and
+    0.3521 in time between the halves and allocates 2.61x the result
+    vector on the ghead half against 1.00x on the basis. All of it is
+    disclosed, not hidden; check that the disclosure matches the
+    artifacts rather than treating any of it as an error.
 
 THE FIGURE SWEEP -- and it is a SWEEP, not a pass: `pass` in this file
 means one of the two agent invocations above, and both sweeps below are

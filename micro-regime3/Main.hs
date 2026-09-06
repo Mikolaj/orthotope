@@ -2343,8 +2343,14 @@ fbMutOdoVecdimsAddInLeafU1PtrLeaf sh (T (Strides ats) ao v) =
 -- same build: 0.8945 of '-u1''s corrected instructions over nineteen
 -- shapes, 19 of 19 below 1, and 0.9712 of '-u2''s at 14 of 19 -- the
 -- un-unrolled loop without its spill executes less than the unrolled
--- one with it. Timed from Run 26, whose pair reads the ordering against
--- '-u2' in time.
+-- one with it. RUN 26 READ IT: on the 9.12 basis the counted ratio
+-- reproduces at 0.8944 and the arm is 0.9693 of '-u1' in TIME, past
+-- that half's 0.31% floor, so the spill is worth about a thirtieth of
+-- the fill and under a third of the instruction saving reaches the
+-- clock (README.md#the-mutable-ceiling-taken, the twenty-first
+-- reading). ON GHC HEAD IT INVERTS: 1.0235 in counts, 1.3084 in time
+-- and 1.41x the result vector allocated where the basis allocates
+-- 1.00x, which is that compiler and not this code.
 {-# NOINLINE fbMutOdoVecdimsAddInLeafU1Ptr #-}
 fbMutOdoVecdimsAddInLeafU1Ptr :: ShapeL -> T -> VS.Vector Double
 fbMutOdoVecdimsAddInLeafU1Ptr sh (T (Strides ats) ao v) =
@@ -2405,7 +2411,13 @@ fbMutOdoVecdimsAddInLeafU1Ptr sh (T (Strides ats) ao v) =
 -- of '-u1-ptr''s at 18 of 19 -- 4.50 an element on the long runs
 -- against 6.00, so with the spill gone the unrolling alone is worth a
 -- quarter of the loop, the figure task 2 could not separate under the
--- allocator. Timed from Run 26.
+-- allocator. RUN 26 READ IT: 0.8357 and 0.8605 in counts on the 9.12
+-- basis, both reproducing, and 0.9479 of '-u2' and 0.9431 of
+-- '-u1-ptr' in TIME -- so removing the reload from BOTH arms leaves
+-- the unrolled one further ahead, not nearer, which is the opposite
+-- of what the twentieth reading registered. ON GHC HEAD it inverts
+-- hardest of any arm on the roster: 1.8842 in counts, 2.6731 in time
+-- and 2.61x the result vector allocated against 1.00x here.
 {-# NOINLINE fbMutOdoVecdimsAddInLeafU2Ptr #-}
 fbMutOdoVecdimsAddInLeafU2Ptr :: ShapeL -> T -> VS.Vector Double
 fbMutOdoVecdimsAddInLeafU2Ptr sh (T (Strides ats) ao v) =
