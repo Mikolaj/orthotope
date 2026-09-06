@@ -955,7 +955,7 @@ rather than a slot in the next run, observed again:
   not on one of its figures, with one clause unreadable because the arm
   it turned on had been parked; and (6) the threshold, HELD, the re-cut dispatch
   now leading the `runs` class.
-- `OPEN` **A registration can name an arm the roster has parked, and the check
+- `PARKED` **A registration can name an arm the roster has parked, and the check
   written for it reaches one registration of the two a run now has --- Run 24
   lost a clause to this and Run 25 lost five.** Run 24's registration 5
   predicted `-u2` ahead of `-down` in every population,
@@ -1015,7 +1015,17 @@ rather than a slot in the next run, observed again:
   registration that defers rather than restates will fail exactly as before.
   What would close it is `--lint` following a deferral target's arms
   and a clause's named registration to the roster, which is the entry's own
-  proposal and is still unwritten.
+  proposal and is still unwritten. **PARKED 2026-09-06, and the prevention
+  is in the pre-run list rather than in a tool.** Run 26 restated seven
+  inherited clauses in their own words instead of deferring, and lost none where
+  Run 24 lost one and Run 25 five, so the cheap fix is proven and is now pre-run
+  step 12b's own instruction: do not defer, write the clause out with its arms
+  named. Writing the check --- `--lint` following a deferral target's arms
+  and a clause's named registration to the roster --- buys the same protection
+  for a tool change where a paragraph buys it for free, so it is not worth doing
+  and is not to be re-proposed. **What would reopen it** is a run that loses
+  a clause DESPITE restating, which would mean the failure is not the deferral
+  after all.
 - `ANSWERED` **`--replace` took a following heading with the paragraph
   it replaced, where no blank line separated them --- fixed 2026-09-03.** Run
   24's write-up lost `## Results` from its own file that way: in the committed
@@ -6160,10 +6170,18 @@ and never as a chronology.
     #      arms to the timed roster and, since 2026-09-05, the arms of
     #      the task it defers to as well, but a clause naming another
     #      REGISTRATION rather than an arm inherits that registration's
-    #      arms and reaches no check at all -- so follow the pointer and
-    #      read what it lands on. Run 25 lost five clauses to this, one
-    #      of them to a clause naming Run 24's registrations (1) to (3),
-    #      whose three arms had all been parked the day before
+    #      arms and reaches no check at all. **SO DO NOT DEFER: WRITE THE
+    #      CLAUSE OUT, WITH ITS ARMS NAMED.** A restated clause is one
+    #      `--lint` can hold to the roster; a deferral is one nothing
+    #      can. Run 24 lost a clause this way and Run 25 five, one of
+    #      them to a clause naming Run 24's registrations (1) to (3),
+    #      whose three arms had all been parked the day before -- and
+    #      Run 26's preparation restated seven inherited clauses in
+    #      their own words, with one substitution where a parked arm's
+    #      live twin is the same code for that clause's purpose, and
+    #      lost NONE. That is the whole of the fix and it costs a
+    #      paragraph; where a pointer is kept anyway, follow it and read
+    #      what it lands on
     #  12c. COMMIT, which the preparation does and the run does not: the
     #      registration on its own, tooling changes partitioned from it,
     #      and NOTHING PUSHED without a go-ahead. Run list step 17 forbids
