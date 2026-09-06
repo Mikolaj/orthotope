@@ -848,22 +848,25 @@ rather than a slot in the next run, observed again:
 
 - `OPEN` **`lib-stage2-disp` and `lib-stage2-lean` are NOT the same code
   at a few hundred elements, which the lean ruling was written to make them.**
-  The ruling of 2026-09-05 gave every canonical dispatch the lean form
-  on the grounds that the comparison the two differ in cannot fire where
-  no canonical run reaches `dispRun` --- every population but `runs`. Run 26's
-  registration (1) read the pair as an A/A on all eleven populations
-  and it holds on nine of the ten classes --- inside both halves' floors on six
-  of the nine it is an A/A pair on, `runs` being the one population where
-  the two are different code by design --- and on `small` it reads **1.0171
-  and 1.0316** against that class's floors of 0.52% and 0.96%, past them on BOTH
-  halves, and on `cnn-L1-6x6-c1` the HEAD half reads **1.139** where the basis
-  reads 1.013. So a per-call difference survives at 150 to 384 elements
-  and on the smallest main-set shape, and it is larger on GHC HEAD
-  than on 9.12.4. **What would settle it** is a `-g3` read of the two arms'
-  entry code on both compilers, or a counts pair over the `small` population,
-  neither of which wants a run: if the instructions differ the ruling's premise
-  is wrong, and if they do not it is a placement term on the one class small
-  enough to show one.
+  The ruling of 2026-09-05 --- [taken, and in the settled
+  index](#what-is-settled-and-where) --- gave every canonical dispatch the lean
+  form on the grounds that the comparison the two differ in cannot fire where
+  no canonical run reaches `dispRun`, every population but `runs`. **What
+  this entry qualifies is that premise and not the decision**: the lean form
+  is still what ships, and what is in doubt is the claim that the two arms
+  are indistinguishable off `runs`. Run 26's registration (1) read the pair
+  as an A/A on all eleven populations and it holds on nine of the ten classes
+  --- inside both halves' floors on six of the nine it is an A/A pair on, `runs`
+  being the one population where the two are different code by design ---
+  and on `small` it reads **1.0171 and 1.0316** against that class's floors
+  of 0.52% and 0.96%, past them on BOTH halves, and on `cnn-L1-6x6-c1` the HEAD
+  half reads **1.139** where the basis reads 1.013. So a per-call difference
+  survives at 150 to 384 elements and on the smallest main-set shape, and
+  it is larger on GHC HEAD than on 9.12.4. **What would settle it** is a `-g3`
+  read of the two arms' entry code on both compilers, or a counts pair
+  over the `small` population, neither of which wants a run: if the instructions
+  differ the ruling's premise is wrong, and if they do not it is a placement
+  term on the one class small enough to show one.
 
 - `ANSWERED` **What Run 26 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
