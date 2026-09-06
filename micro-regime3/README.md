@@ -3441,15 +3441,15 @@ saying so, `mkReshape1` being `mkBroadcast` of the shape with a 1 appended.
 
 **This is the one statement of the rule; everything else points here.** A run's
 populations are the main set and the stride classes above, and it leaves one
-JSON per population per half, `$R-<half>-<pop>.json`. Every mode takes any
-of them and reads THAT file's shapes against THAT file's own A/A floor, so one
-question can hold on one population and be killed on another, and the tolerance
-line names the floor it used.
+JSON per population per half, `$R-<half>-<pop>.json`. A mode takes any of them
+and reads THAT file's shapes, and where it uses a floor it uses THAT file's own
+A/A floor, so one question can hold on one population and be killed on another,
+and the tolerance line names the floor it used.
 
 **A question that names no population, or that says only `population` or any
 word that could mean either, is answered on the main set AND every class.**
 That is the reading that cannot under-report, and a question meaning less
-than it says so in as many words. Inside a class block the block names
+than that says so in as many words. Inside a class block the block names
 the population and `here` is enough --- and `--check-doc` holds it to that,
 refusing a block that quotes a floor which is not its own. What must name
 the population in words is a figure quoted OUTSIDE its block: in a head,
@@ -3459,8 +3459,9 @@ populations side by side.
 To ask all of them: `./read-all.sh $R` gates every process a run left, both
 halves; `./run-counts-all.sh` walks the main set and every class the basis
 binary lists, which is where the roster comes from rather than a list written
-here; and any reader mode loops the files, which for the registration spans
-is post-run step 5c:
+here; and any reader mode loops the files, `$CLASSES` coming from the basis
+binary as `run-counts-all.sh` derives it (`classes --list`), which
+for the registration spans is post-run step 5c:
 
     for p in main $CLASSES; do
       ./read-run.py $R-$BASIS-$p.json --compare $R-$OTHER-$p.json --predictions
@@ -7413,7 +7414,7 @@ not otherwise.
     #      the figure read, and the items carrying no span named as
     #      yours. Write each verdict beside its prediction FROM THIS
     #      OUTPUT -- ONCE PER POPULATION THE ITEM NAMES, the loop and
-    #      the default being this section, titled whole for a grep:
+    #      the default being one section, titled whole for a grep:
     #      Which population answers a question, and how to ask all of them
     #      One run of it on
     #      main is not the item's verdict: the verdict is its KILL

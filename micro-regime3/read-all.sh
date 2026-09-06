@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # The post-run list's step 1, over every process a run left: the gates
-# behind the rule in this README section, whole on one line so a grep
-# for it lands here too --
+# behind the rule in one README section, its title whole on one line so
+# a grep for it lands here too --
 # Which population answers a question, and how to ask all of them
 #
 #     ./read-all.sh run14

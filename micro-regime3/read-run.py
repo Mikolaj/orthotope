@@ -2385,7 +2385,7 @@ def predictions_table(cells, shapes, strategies, meta, other, main_hs,
     rule and the loop are one README section, whole on the next line so a
     grep for the title finds this too:
         Which population answers a question, and how to ask all of them
-    and post-run step 5c is where it runs. The
+    Post-run step 5c is where it runs. The
     registration is README's OPEN entry for this run where one exists,
     which is the state before post-run step 5's move, and the run file's
     last section after it -- in that order, because a run file copied
