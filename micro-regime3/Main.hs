@@ -4772,7 +4772,7 @@ roster =
     -- below (README.md#what-is-open, the Run 25 entry); parked again
     -- after it, 2026-09-06, the bound control having been spent on that
     -- run and the -u1 question answered
-    -- (README.md#recommended-tasks-after-run-25, item 2).
+    -- (README.md#recommended-tasks-after-run-26, item 2).
   , ("mut-odo-vecdims-add-in-leaf", Only fbMutOdoVecdimsAddInLeaf)
     -- Timed again for Run 26 alone, with three more arms (at 'roster'
     -- above): Run 24's registration 5 predicted '-u2' ahead of this arm
