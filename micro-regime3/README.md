@@ -3437,6 +3437,38 @@ is the three `reshape1` shapes satisfying `bcast`'s test, and that is the code
 saying so, `mkReshape1` being `mkBroadcast` of the shape with a 1 appended.
 
 
+### Which population answers a question, and how to ask all of them
+
+**This is the one statement of the rule; everything else points here.** A run's
+populations are the main set and the stride classes above, and it leaves one
+JSON per population per half, `$R-<half>-<pop>.json`. Every mode takes any
+of them and reads THAT file's shapes against THAT file's own A/A floor, so one
+question can hold on one population and be killed on another, and the tolerance
+line names the floor it used.
+
+**A question that names no population, or that says only `population` or any
+word that could mean either, is answered on the main set AND every class.**
+That is the reading that cannot under-report, and a question meaning less
+than it says so in as many words. A figure quoted anywhere says which population
+it came from; a class block quotes its own class's floor and no other, which
+`--check-doc` enforces.
+
+To ask all of them: `./read-all.sh $R` gates every process a run left, both
+halves; `./run-counts-all.sh` walks the main set and every class the basis
+binary lists, which is where the roster comes from rather than a list written
+here; and any reader mode loops the files, which for the registration spans
+is post-run step 5c:
+
+    for p in main $CLASSES; do
+      ./read-run.py $R-$BASIS-$p.json --compare $R-$OTHER-$p.json --predictions
+    done
+
+The case on record is Run 26's registration (1) (`runs/run26.md`), whose one
+span reads HELD on the main set and KILLED on `small` against that class's own
+floors --- both correct, and a session reading only the main set would have
+written HELD.
+
+
 ### The scratch vector flavour
 
 Every table this suite builds --- the `m`-element base-offsets of the `bq-*`
@@ -6226,24 +6258,15 @@ and never as a chronology.
     #      post-run step 5 reads its verdict off `--predictions` and not
     #      off a session's reading of the tables; an item whose quantity
     #      is none of the three carries no span and is adjudicated by
-    #      hand, named as yours by the same call -- AND A SPAN IS READ
-    #      ON WHATEVER POPULATION IT IS HANDED: the span names none
-    #      itself, 5c reads it once per JSON, so `predict: pair A B
-    #      1.0` is a claim about EVERY population the item names and
-    #      not about the main set alone. Run 26's registration (1) is
-    #      written right and shows what one reading misses: it predicts
-    #      1.0 on the main set AND inside each other class's own floor
-    #      on both halves, killed on any population but `runs` -- and
-    #      the same span reads 1.0007 HELD on main, 1.0171 and 1.0316
-    #      KILLED on `small` against its 0.52% and 0.96%, and 0.9768
-    #      HELD on `runs`. SO EVERY ITEM NAMES THE POPULATIONS its
-    #      prediction is read on -- `on the main set`, the classes, or
-    #      both -- because that list is what tells 5c which JSONs to
-    #      run it against. WHERE AN ITEM NAMES NONE, OR SAYS ONLY
-    #      `population` OR ANY WORD THAT COULD MEAN EITHER, IT IS READ
-    #      ON THE MAIN SET AND EVERY CLASS: that is the reading that
-    #      cannot under-report, and an item meaning less than it says
-    #      so in as many words. NO VERDICT WORD in the
+    #      hand, named as yours by the same call -- AND EVERY ITEM
+    #      NAMES THE POPULATIONS its prediction is read on, `on the
+    #      main set`, the classes, or both, because that list is what
+    #      tells 5c which JSONs to run the span against: a span names
+    #      no population itself and is read on whatever it is handed.
+    #      What an item that names none means, and how to ask every
+    #      population at once, is one section and not repeated here:
+    #      --section 'Which population answers a question, and how to
+    #      ask all of them'. NO VERDICT WORD in the
     #      entry -- HELD, KILLED, SPLIT and their kin -- which --check-doc
     #      reads as an item already adjudicated. READ NOW: items 7 and
     #      8 -- the open list by its markers, Provenance's delta bullets
@@ -7385,19 +7408,15 @@ not otherwise.
     #      registration adjudicated from the JSONs, HELD or KILLED with
     #      the figure read, and the items carrying no span named as
     #      yours. Write each verdict beside its prediction FROM THIS
-    #      OUTPUT -- ONCE PER POPULATION THE ITEM NAMES, which is the
-    #      main set and every class where it names none or says only
-    #      `population` (12a): the same call takes any of the eleven
-    #      `$R-<half>-<pop>.json`, reads the spans on that file's
-    #      shapes against that file's own A/A floor, and one run of it
-    #      on main is not the item's verdict. The verdict is its KILL
+    #      OUTPUT -- ONCE PER POPULATION THE ITEM NAMES, the loop and
+    #      the default being --section 'Which population answers a
+    #      question, and how to ask all of them'. One run of it on
+    #      main is not the item's verdict: the verdict is its KILL
     #      CONDITION applied across those readings, and the write-up
     #      records the reading per population, quoting each figure and
-    #      the population it came from. Run 26 read only main, so
-    #      registration (1) stands HELD in the mode and KILLED in the
-    #      `small` block, both right, with nothing saying so: 1.0007
-    #      on main, 1.0171 and 1.0316 on `small` past 0.52% and 0.96%,
-    #      0.9768 on `runs`. What it calls yours is the whole
+    #      the population it came from. Run 26 read only main, and its
+    #      registration (1) carries what that costs. What it calls
+    #      yours is the whole
     #      of the adjudication left to judgement
     #   6. walk the replace list under Provenance (READ NOW: item 8, the
     #      list itself and its delta bullets), re-run the two sweeps it

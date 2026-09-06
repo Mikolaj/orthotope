@@ -2377,9 +2377,13 @@ def predictions_table(cells, shapes, strategies, meta, other, main_hs,
             the within-half --pair geomean of A over B, read as X
 
     HELD when the figure read is within P points of X, KILLED otherwise;
-    P defaults to this run's own main-set A/A floor for cross and pair,
-    which is the tolerance the registrations have always used, and to 0.1
-    for counts, which are exact to the fourth place on a repeat. The
+    P defaults to the A/A floor of the POPULATION READ for cross and
+    pair -- this file's own, which is the main set's only when this file
+    is the main set -- and to 0.1 for counts, which are exact to the
+    fourth place on a repeat. A span names no population, so it is a
+    claim about every one its item names and is read once per JSON;
+    README's `Which population answers a question, and how to ask all of
+    them` is the rule and the loop, and post-run 5c is where it runs. The
     registration is README's OPEN entry for this run where one exists,
     which is the state before post-run step 5's move, and the run file's
     last section after it -- in that order, because a run file copied
