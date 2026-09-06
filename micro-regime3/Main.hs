@@ -2413,9 +2413,13 @@ fbMutOdoVecdimsAddInLeafU1Ptr sh (T (Strides ats) ao v) =
 -- quarter of the loop, the figure task 2 could not separate under the
 -- allocator. RUN 26 READ IT: 0.8357 and 0.8605 in counts on the 9.12
 -- basis, both reproducing, and 0.9479 of '-u2' and 0.9431 of
--- '-u1-ptr' in TIME -- so removing the reload from BOTH arms leaves
--- the unrolled one further ahead, not nearer, which is the opposite
--- of what the twentieth reading registered. ON GHC HEAD it inverts
+-- '-u1-ptr' as paired geomeans in TIME -- but 1.0688 and 1.0097 in the
+-- published column, which is winsorized per row, and 13 of 19 with
+-- sign p 0.17 against its own parent, so this arm's lead over '-u2' is
+-- NOT established while its lead over '-u1-ptr' is. Removing the
+-- reload from both arms leaves the unrolled one further ahead, not
+-- nearer, which is the opposite of what the twentieth reading
+-- registered. ON GHC HEAD it inverts
 -- hardest of any arm on the roster: 1.8842 in counts, 2.6731 in time
 -- and 2.61x the result vector allocated against 1.00x here.
 {-# NOINLINE fbMutOdoVecdimsAddInLeafU2Ptr #-}

@@ -193,17 +193,17 @@ arm correctness-gated against a naive per-element reference, on a box carrying
 about one core of foreign load; only reads past 1.5x were kept,
 and those reproduced across two processes within about 20%. **Run 20 rostered
 all five pieces --- `canon-vecdims`, `canon-memcpy-r2`, `canon-full`,
-`bcast-set` and `mid-copy`, across the main set and all eight classes
-([Results](runs/run26.md#results)) --- and its tables replace the probe's
-magnitudes wherever the roster has a shape.** What held: the regime-1 return
-is O(1), three `reshape1` shapes and `stretch-inner1` reading work removed
-rather than shrunk; `window-64x64-k1x9` reads 0.020 against `mut-odo-vecdims`'s
-0.095, and that factor is canonicalization's alone; the block copy takes
-`bcastmid` outright, `mid-copy` 0.5490 at 4 of 4; the two controls
-canonicalization cannot touch --- `stretch-primes` exactly, `cnn-L2-24x24-c32`
-up to its merge --- read ties to the thousandth, so the pass costs nothing where
-it does nothing; and every new arm allocates at the mutable fills' own 1.00x.
-What shrank: the hoisted read, `bcast-set` 0.9230 at 3 of 3 on `bcast` and a tie
+`bcast-set` and `mid-copy`, across the main set and all eight classes ([Run 20's
+file](runs/run20.md)) --- and its tables replace the probe's magnitudes wherever
+the roster has a shape.** What held: the regime-1 return is O(1), three
+`reshape1` shapes and `stretch-inner1` reading work removed rather than shrunk;
+`window-64x64-k1x9` reads 0.020 against `mut-odo-vecdims`'s 0.095,
+and that factor is canonicalization's alone; the block copy takes `bcastmid`
+outright, `mid-copy` 0.5490 at 4 of 4; the two controls canonicalization cannot
+touch --- `stretch-primes` exactly, `cnn-L2-24x24-c32` up to its merge --- read
+ties to the thousandth, so the pass costs nothing where it does nothing;
+and every new arm allocates at the mutable fills' own 1.00x. What shrank:
+the hoisted read, `bcast-set` 0.9230 at 3 of 3 on `bcast` and a tie
 on `bcast-tall-Mx2`, where the probe had read a factor. What fell
 is the run-copy branch, above. The probe's own figures stay only for the analogs
 the roster has no shape for.
@@ -810,21 +810,23 @@ rather than a slot in the next run, observed again:
   and `-u2-ptr`, the two leaf fills rewritten to walk a `Ptr`, on both halves
   of a compiler pair. On the 9.12.4 basis they allocate **1.00x** the result
   vector, as every other fill does, and execute 0.8944 and 0.8357 of their
-  parents' corrected instructions. On the in-tree GHC HEAD stage1,
-  `10.1.20260803`, they allocate **1.41x and 2.61x** and `-u2-ptr` executes
-  **1.8842** of `-u2`'s instructions --- so the same source, the same shim,
-  the same flags and the same roster give a fill that allocates nothing
-  under one compiler and two and a half result vectors under the other.
-  It is the only allocation level either half of that pair moves and the only
-  pair of arms out of twenty-six whose counts differ by more than a percent
-  between the compilers. **What would settle it** is a Core or Cmm diff
-  of the two builds of one of those two functions, which is a compile and wants
-  no run; a smaller reproducer than a 570-bench roster is what it would take
-  to file, and neither has been tried. **Why it is worth the entry rather
-  than a shrug**: the `Ptr` form is refused for the library ([dead ideas][dead])
-  and is timed only as a ceiling, so nothing ships on it --- but the ceiling
-  is what the family's remaining margin is measured against, and a ceiling
-  that exists on one codegen and not the other is not a ceiling.
+  parents' corrected instructions --- though only `-u1-ptr` is ahead
+  of its parent in time on a reading both of this file's statistics agree about.
+  On the in-tree GHC HEAD stage1, `10.1.20260803`, they allocate **1.41x
+  and 2.61x** and `-u2-ptr` executes **1.8842** of `-u2`'s instructions ---
+  so the same source, the same shim, the same flags and the same roster give
+  a fill that allocates nothing under one compiler and two and a half result
+  vectors under the other. It is the only allocation level either half
+  of that pair moves and the only pair of arms out of twenty-six whose counts
+  differ by more than a percent between the compilers. **What would settle
+  it** is a Core or Cmm diff of the two builds of one of those two functions,
+  which is a compile and wants no run; a smaller reproducer than a 570-bench
+  roster is what it would take to file, and neither has been tried. **Why
+  it is worth the entry rather than a shrug**: the `Ptr` form is refused
+  for the library ([dead ideas][dead]) and is timed only as a ceiling,
+  so nothing ships on it --- but the ceiling is what the family's remaining
+  margin is measured against, and a ceiling that exists on one codegen
+  and not the other is not a ceiling.
 
 - `OPEN` **A saving in instructions reaches the clock at a third to a half
   within one binary, where the rate on record is three quarters.** [The
@@ -832,16 +834,17 @@ rather than a slot in the next run, observed again:
   at about three quarters, measured across two builds of one recipe --- 13.1%
   of the instructions buying 9.7% of the time, and 18.6% buying 13.2%. Run 26
   reads five spans of the leaf family WITHIN one binary and gets 29%, 32%, 41%,
-  45% and 52%. The consequence is not academic: Run 26's registration (8)
-  derived three predicted time spans from three measured instruction ratios
-  through the three-quarters rate, every one of the three instruction ratios
-  came back to a ten-thousandth, and all three time spans were killed
-  for missing low. **What would settle it** is whether the difference
-  is the COMPARISON or the ARMS: a cross-build A/B and a within-binary arm pair
-  are different measurements, and no run here has taken both on one pair
-  of arms. Until one does, a span derived from a count ratio should carry
-  the rate it used and be read as a floor on the arm's direction rather
-  than as a prediction of its size.
+  45% and 52% --- the 32% resting on a paired geomean whose win count does
+  not separate, and the other four on ones that do. The consequence
+  is not academic: Run 26's registration (8) derived three predicted time spans
+  from three measured instruction ratios through the three-quarters rate, every
+  one of the three instruction ratios came back to a ten-thousandth, and all
+  three time spans were killed for missing low. **What would settle
+  it** is whether the difference is the COMPARISON or the ARMS: a cross-build
+  A/B and a within-binary arm pair are different measurements, and no run here
+  has taken both on one pair of arms. Until one does, a span derived
+  from a count ratio should carry the rate it used and be read as a floor
+  on the arm's direction rather than as a prediction of its size.
 
 - `OPEN` **`lib-stage2-disp` and `lib-stage2-lean` are NOT the same code
   at a few hundred elements, which the lean ruling was written to make them.**
@@ -872,9 +875,10 @@ rather than a slot in the next run, observed again:
   HELD, Run 24's unread clause HELD in all eleven populations, Run 25's
   orderings clause HELD, the class clauses `flip` and `block` KILLED again
   and `small` HELD at its first reading, the two window views HELD,
-  and the pointer fills' three spans KILLED with all three directions standing
-  --- and not one clause of the eight was unreadable, where Runs 24 and 25 lost
-  five between them.
+  and the pointer fills' three spans KILLED with two of their three directions
+  established and the third parting between the two statistics the run file
+  publishes --- and not one clause of the eight was unreadable, where Runs 24
+  and 25 lost five between them.
 - `ANSWERED` **What Run 25 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
   verdicts are [in Run 25's own file](runs/run25.md), where a run's
@@ -2494,7 +2498,7 @@ is planned. A scope limit belongs in the sentence that asks for the measurement.
    on the same carrying pair with 44 of 49 arms inside a point,
    so between-evening variation for a whole process is under the sampling inside
    one bench's worst cells. The within-evening form is still the cheapest
-   unspent measurement this file has, and it is cheaper now: six pairs and 432
+   unspent measurement this file has, and it is cheaper now: six pairs and 570
    benches where it would have been sixteen and 1352.
 2. `ANSWERED` **What the un-unrolled leaf gives up is the unrolling AND a spill,
    and in instructions the spill is all of it; no build separates them
@@ -4869,46 +4873,6 @@ from 0.86 today, and ahead in time by less than Run 25's 3.5 to 5 points;
 and the `0x40(%rsp)` line gone from all three loops, which the recipe above
 reads in a minute.
 
-**A twenty-first reading, Run 26, times the reload-free form instead
-of registering it --- and it moves the twentieth's prediction the other way
-while refuting the nineteenth's RATE.** (The two pointer fills,
-`mut-odo-vecdims-add-in-leaf-u1-ptr` and `-u2-ptr`, on the timed roster
-of a full paired run: the same two leaf fills rewritten to walk a `Ptr`, which
-is the source-side way to take out the `0x40(%rsp)` reload the twentieth reading
-found, and not the patched compiler that reading registered for. They are timed
-as a CEILING and are still refused for the library, [dead ideas][dead].)
-**On the basis half both reach a ceiling and the family's own ordering survives
-it**: `-u2-ptr` reads 0.9479 of `-u2` and `-u1-ptr` 0.9693 of `-u1`, both past
-that half's 0.31% floor, so the spill each parent pays is worth about
-a twentieth of the fill on `-u2` and a thirtieth on `-u1`. **What the twentieth
-registered was that with the reload gone the unrolling's margin would SHRINK**
---- `-u2` over `-u1` rising to about 0.92 in corrected instructions from 0.86,
-and ahead in time by less. **Measured at source it widens, on both axes**:
-`-u2-ptr` over `-u1-ptr` reads **0.8605** in corrected instructions against
-`-u2` over `-u1`'s **0.9208**, and **0.9431** in time against **0.9644**.
-So taking the reload out of BOTH arms leaves the unrolled one further ahead,
-not nearer; whether a compiler fix does the same is still the patched compiler's
-to say, a source rewrite and a register-allocator fix not being the same
-intervention. **And the RATE at which an instruction saving reaches the clock
-is a third to a half here, not three quarters.** The nineteenth reading put
-it at about three quarters, 13.1% of the instructions buying 9.7% of the time
-and 18.6% buying 13.2%, across two builds of one recipe. Within one binary,
-over five spans of the leaf family, Run 26 reads 29%, 32% and 41% on the three
-pointer spans and 52% and 45% on `-u1` over `-add-in-leaf-down` and `-u2`
-over `-u1`. The two are different comparisons --- a cross-build A/B against
-a within-binary arm pair --- and that is the finding rather than an error
-in either: **a span DERIVED from the nineteenth's rate will miss low**, which
-is what Run 26's registration (8) did three times over, its three predicted
-spans of 0.92, 0.88 and 0.90 reading 0.9693, 0.9479 and 0.9431 while every one
-of its three instruction ratios came back to a ten-thousandth. **The other half
-is a compiler finding and not a fill one**: on GHC HEAD the same two arms lose
-the saving outright, `-u2-ptr` executing 1.8842 of `-u2`'s corrected
-instructions where the basis reads 0.8357, and allocating **2.61x** the result
-vector, with `-u1-ptr` at 1.41x beside it, where every fill on the basis half
-and every non-pointer fill on HEAD allocates 1.00x. So a ceiling read on one
-codegen is not a ceiling, and the `Ptr` form is the one shape in this family
-whose codegen the two compilers do not agree on.
-
 **A twenty-first reading, 2026-09-05, dodges the spill at the source in both
 loops, and prices the unrolling alone at a quarter.** **Both arms
 are the `Ptr`-walking fill the ruling of 2026-08-29 refused for the library
@@ -4937,6 +4901,51 @@ corrected instructions at 19 of 19 and 0.8604 of `-u1-ptr`'s at 18 of 19 ---
 the unrolling is worth a quarter of the loop in instructions, which is what task
 2 could not separate under the allocator; whether it is worth that in time
 is Run 26's.
+
+**A twenty-second reading, Run 26, times the reload-free form instead
+of registering it --- and it moves the twentieth's prediction the other way
+while refuting the nineteenth's RATE.** (The two pointer fills,
+`mut-odo-vecdims-add-in-leaf-u1-ptr` and `-u2-ptr`, on the timed roster
+of a full paired run: the same two leaf fills rewritten to walk a `Ptr`, which
+is the source-side way to take out the `0x40(%rsp)` reload the twentieth reading
+found, and not the patched compiler that reading registered for. They are timed
+as a CEILING and are still refused for the library, [dead ideas][dead].)
+**On the basis half ONE of the two reaches a ceiling cleanly**: `-u1-ptr` reads
+0.9693 of `-u1` at 15 of 19, sign p 0.019, and 0.9635 in the published column,
+the two statistics agreeing, so that parent's spill is worth about a thirtieth
+of the fill. `-u2-ptr` reads 0.9479 of `-u2` paired but **1.0688
+in the published column** and at 13 of 19 with p 0.17 --- the `time` column
+is winsorized per row and that arm's per-shape ratios to its parent span 0.820
+to 1.186 --- so on the unrolled fill the ceiling is not established, and
+this is the first pair on this roster whose two statistics part in SIGN. **What
+the twentieth registered was that with the reload gone the unrolling's margin
+would SHRINK** --- `-u2` over `-u1` rising to about 0.92 in corrected
+instructions from 0.86, and ahead in time by less. **Measured at source
+it widens, on both axes**: `-u2-ptr` over `-u1-ptr` reads **0.8605**
+in corrected instructions against `-u2` over `-u1`'s **0.9208**, and **0.9431**
+in time against **0.9644**. So taking the reload out of BOTH arms leaves
+the unrolled one further ahead, not nearer; whether a compiler fix does the same
+is still the patched compiler's to say, a source rewrite
+and a register-allocator fix not being the same intervention. **And the RATE
+at which an instruction saving reaches the clock is a third to a half here,
+not three quarters.** The nineteenth reading put it at about three quarters,
+13.1% of the instructions buying 9.7% of the time and 18.6% buying 13.2%, across
+two builds of one recipe. Within one binary, over five spans of the leaf family,
+Run 26 reads 29%, 32% and 41% on the three pointer spans and 52% and 45%
+on `-u1` over `-add-in-leaf-down` and `-u2` over `-u1`. The two are different
+comparisons --- a cross-build A/B against a within-binary arm pair ---
+and that is the finding rather than an error in either: **a span DERIVED
+from the nineteenth's rate will miss low**, which is what Run 26's registration
+(8) did three times over, its three predicted spans of 0.92, 0.88 and 0.90
+reading 0.9693, 0.9479 and 0.9431 while every one of its three instruction
+ratios came back to a ten-thousandth. **The other half is a compiler finding
+and not a fill one**: on GHC HEAD the same two arms lose the saving outright,
+`-u2-ptr` executing 1.8842 of `-u2`'s corrected instructions where the basis
+reads 0.8357, and allocating **2.61x** the result vector, with `-u1-ptr`
+at 1.41x beside it, where every fill on the basis half and every non-pointer
+fill on HEAD allocates 1.00x. So a ceiling read on one codegen is not a ceiling,
+and the `Ptr` form is the one shape in this family whose codegen the two
+compilers do not agree on.
 
 ### The C-gap: still a deeper ceiling
 
