@@ -334,4 +334,22 @@ MUTANTS = [
      'm = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)\n'
      'try:\n    m.shadow_dir(tempfile.mkdtemp(), \'probe-areacurve.sh\', \'cd /nowhere-zz\\n\')\n'
      'except AssertionError:\n    sys.exit(0)\nsys.exit(1)"'),
+    # THE TWO PER-SHAPE PROPERTY CLAUSES OF 2026-09-06, judged on the
+    # newest main-set run on disk through the default mode, which prints
+    # them for the main set as --block does for a class. Each mutant
+    # swaps a clause's two arms, so a run on which it holds reads BREAKS.
+    ('property 1 stops reading mut-odo-vecdims against bq-expand', 'read-run.py',
+     "    clause('property 1, ahead of `bq-expand` on every shape', 'net',\n"
+     "           PLAIN, LAST_CANDIDATE, 1.0)",
+     "    clause('property 1, ahead of `bq-expand` on every shape', 'net',\n"
+     "           LAST_CANDIDATE, PLAIN, 1.0)",
+     'f=$(ls "{root}"/run[0-9]*-main.json 2>/dev/null | tail -1); test -n "$f" '
+     '&& python3 "{file}" "$f" 2>/dev/null | grep -q "property 1, ahead of .bq-expand. on every shape: HOLDS"'),
+    ('property 2 stops reading mut-odo-vecdims against list', 'read-run.py',
+     "    clause('property 2, allocation at most 1% over `list` on every shape',\n"
+     "           'alloc', PLAIN, 'list', 1.01)",
+     "    clause('property 2, allocation at most 1% over `list` on every shape',\n"
+     "           'alloc', 'list', PLAIN, 1.01)",
+     'f=$(ls "{root}"/run[0-9]*-main.json 2>/dev/null | tail -1); test -n "$f" '
+     '&& python3 "{file}" "$f" 2>/dev/null | grep -q "property 2, allocation at most 1% over .list. on every shape: HOLDS"'),
 ]

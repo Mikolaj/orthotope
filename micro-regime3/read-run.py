@@ -1098,6 +1098,51 @@ def strategy_rows(cells, shapes, strategies):
     return rows, have_list
 
 
+
+def property_clauses(cells, shapes, strategies):
+    """Properties 1 and 2 of the class blocks, read per shape.
+
+    Property 1 is `worst` under 1 and `mut-odo-vecdims` ahead of
+    `bq-expand` on every shape, property 2 the same two inequalities in
+    allocation, `mut-odo-vecdims` under `list` and under `bq-expand` on
+    every shape to within 1%, on the `alloc` multiple each cell carries;
+    the set is stated in the run file's claims section and restated there
+    on 2026-09-06, when the top-of-the-table ordering that was property 2
+    retired, and the margin dates from 2026-09-07, the strict form having
+    broken on its first reading on ties of tens of bytes per call where
+    both arms allocate one result vector and nothing else, `small-row96`
+    the widest at 1.00441. The `worst` clause is the table's own column,
+    so this prints the other three, each with its closest shape -- what
+    a write-up quotes -- and how many shapes it read, a cell with no
+    readable value being dropped as `worst` drops a sunk one. Printed by
+    `--block` for a class and by the default mode for the main set, which
+    `--block` refuses, so both kinds of population get the same reading.
+    """
+    def closest(key, a, b):
+        rs = [(cells[sh][a][key] / cells[sh][b][key], sh) for sh in shapes
+              if cells[sh].get(a, {}).get(key) is not None
+              and cells[sh].get(b, {}).get(key) is not None
+              and cells[sh][b][key] > 0 and cells[sh][a][key] >= 0]
+        return (max(rs), len(rs)) if rs else None
+
+    def clause(label, key, a, b, bound):
+        c = closest(key, a, b)
+        if c is None:
+            print('  %s: not read, no shape has a readable `%s` for both'
+                  ' `%s` and `%s`' % (label, key, a, b))
+            return
+        (r, sh), n = c
+        print('  %s: %s -- closest `%s` at %s, over %d of %d shapes'
+              % (label, 'HOLDS' if r < bound else '**BREAKS**', sh,
+                 ('%.4f' if key == 'net' else '%.5f') % r, n, len(shapes)))
+
+    clause('property 1, ahead of `bq-expand` on every shape', 'net',
+           PLAIN, LAST_CANDIDATE, 1.0)
+    clause('property 2, allocation at most 1% over `list` on every shape',
+           'alloc', PLAIN, 'list', 1.01)
+    clause('property 2, allocation at most 1% over `bq-expand` on every'
+           ' shape', 'alloc', PLAIN, LAST_CANDIDATE, 1.01)
+
 def strategy_table(cells, shapes, strategies, meta, args, terms):
     rows, have_list = strategy_rows(cells, shapes, strategies)
     print('%-28s %7s %6s %6s %6s %5s %8s'
@@ -1143,6 +1188,10 @@ def strategy_table(cells, shapes, strategies, meta, args, terms):
     if meta['known_l'] < len(shapes):
         print('alloc missing for %d shape(s) Main.hs no longer defines'
               % (len(shapes) - meta['known_l']))
+    if have_list:
+        print('\nClass properties 1 and 2 on this population, per shape'
+              ' (the `worst` column is the other clause of 1):')
+        property_clauses(cells, shapes, strategies)
 
 
 # The two headers `--markdown` emits, and the one `readme_rows` finds the
@@ -4495,7 +4544,6 @@ def claims_in_doc(readme, cells, shapes, strategies, src, main_hs):
 SUMMARY_COLS = ('shapes', 'mut-odo-vecdims', 'worst', 'best outside family',
                 'ceiling', 'floor')
 FAMILY = 'mut-odo-vecdims'
-PROP2_FASTEST = 'mut-odo-vecdims'
 PLAIN = 'mut-odo-vecdims'
 LAST_CANDIDATE = 'bq-expand'
 
@@ -4579,22 +4627,23 @@ def block_verdicts(cells, shapes, strategies, meta, args):
     no mechanism, no comparison to another run. Those are the author's, and a
     skeleton that guessed at them would be trusted for more than it knows.
 
-    Property 2 is read on the arms the claim NAMES, which is the reading the
-    claim makes; where a class's actual leaders differ, the first two lines
-    say so and the author decides. Both readings are wanted -- Run 9's
-    `reshape1` breaks the named one and holds the leaders one.
-
-    Non-vacuous: on Run 9 it says HOLDS for property 2 on `window` and names
-    a different, correct break on each of `rev`, `bcast`, `reshape1`,
-    `bcastmid` and `slice`, so it is not a constant. Since 2026-08-22 the
-    second clause is gone with the pure slot, and the third reads the last
-    candidate behind `mut-odo-vecdims`.
-
-    Every break it reports is PRICED against the population's own floor
-    (`priced_break`), which is the difference between a sort and a
-    reading: on Run 17's `revsome` the first clause breaks on two arms
-    that print 0.049 apiece and read 0.36% apart paired, where that
-    class's floor is 18.05%.
+    Properties 1 and 2 are read PER SHAPE since 2026-09-06, when the
+    top-of-the-table ordering that was property 2 retired -- broken in
+    every class by a route the class's strides favour, so it said which
+    arm led and foreclosed nothing -- and `runs/run26.md` restated the
+    set: property 1 is `worst` under 1 and `mut-odo-vecdims` ahead of
+    `bq-expand` on every shape; property 2 is the same two inequalities
+    in allocation to within 1%, `mut-odo-vecdims` at most 1% over `list`
+    and over `bq-expand` on every shape, read off the `alloc` multiple
+    each cell carries (`property_clauses` says why the margin). Each
+    clause prints its closest shape, which is what a write-up quotes, and
+    says how many shapes it read, a cell with no readable value being
+    dropped as `worst` drops a sunk one. The lead the sort finds is still
+    PRICED against the population's own floor (`priced_break`), which is
+    the difference between a sort and a reading: on Run 17's `revsome`
+    two arms that print 0.049 apiece read 0.36% apart paired, where that
+    class's floor is 18.05%. Non-vacuity is a mutant per property in
+    `mutants.py`, judged on the newest main-set run on disk.
     """
     led = table_leaders(cells, shapes, strategies, args)
     if led is None or not led.timed:
@@ -4610,6 +4659,11 @@ def block_verdicts(cells, shapes, strategies, meta, args):
     if outside:
         print('  best outside family %-30s %.3f' % (outside[0][1],
                                                      outside[0][0]))
+        lead = next((r for r in timed if r[1] == PLAIN), None)
+        if lead is not None and outside[0][0] < lead[0]:
+            for line in priced_break(cells, shapes, outside[0][1], PLAIN,
+                                     floor):
+                print(line)
     # The summary's *ceiling* cell, which had no derived line here and was
     # picked by eye off a table printing two family arms at one figure:
     # four of Run 22's cells named the one that trailed. 2026-09-01.
@@ -4634,36 +4688,7 @@ def block_verdicts(cells, shapes, strategies, meta, args):
                      % (abs(floor.g - 1) * 100, floor.a,
                         'INSIDE' if over < abs(floor.g - 1) * 100
                         else 'OUTSIDE')))
-    clauses = []
-    if timed[0][1] != PROP2_FASTEST:
-        clauses.append(('fastest is `%s`, not `%s`'
-                        % (timed[0][1], PROP2_FASTEST),
-                        timed[0][1], PROP2_FASTEST))
-    if plain:
-        # The third clause since 2026-08-22: the last candidate behind
-        # `mut-odo-vecdims`, which is the decision's direction read per
-        # class.
-        by = dict((r[1], r[0]) for r in timed)
-        if LAST_CANDIDATE in by and by[LAST_CANDIDATE] < plain[0]:
-            clauses.append(('the last candidate `%s` is AHEAD of `%s`'
-                            % (LAST_CANDIDATE, PLAIN),
-                            LAST_CANDIDATE, PLAIN))
-    verdict2 = ('HOLDS' if not clauses
-                else '**BREAKS** -- ' + '; '.join(c[0] for c in clauses))
-    print('  property 2, top of the table: %s' % verdict2)
-    for _, a, b in clauses:
-        for line in priced_break(cells, shapes, a, b, floor):
-            print(line)
-    # This verdict is mechanical and PRE-RULING, and one standing ruling
-    # overrides it: the first clause is the vecdims FAMILY's, not one arm's,
-    # so a sibling leading by a thousandth is not a break. Say so here rather
-    # than let a write-up copy six breaks out of a run that has one -- Run 10
-    # would have read as breaking property 2 in six of eight classes, where
-    # the family reading makes it one, `reshape1`.
-    if timed[0][1] != PROP2_FASTEST and timed[0][1].startswith(PROP2_FASTEST):
-        print('     (the leader is a `%s` sibling, so the first clause does'
-              ' NOT break:\n      it is read as the family\'s until a run'
-              ' separates them -- README, the claims)' % PROP2_FASTEST)
+    property_clauses(cells, shapes, strategies)
     tiers = [(st, dict((r[1], r[5]) for r in rows).get(st))
              for st in (PLAIN, LAST_CANDIDATE, 'list')]
     print('  property 3, allocation: %s'
