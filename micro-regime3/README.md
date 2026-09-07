@@ -957,12 +957,13 @@ rather than a slot in the next run, observed again:
   new code where a `Force` twin brings none, so the loop-offsets read of pre-run
   step 2, `./loop-offsets.py --delta` against Run 26's basis binary, is owed
   before the run and this item is read beside what it prints --- every one
-  of the 26 timed arms Run 26 also timed reads within 1% of its Run 26 basis
-  cell at the geomean over the nineteen shared shapes, the pointer fills
-  included, `--pin` to Run 26's column, the arms of 2026-09-07 having no cell
-  there and being outside this item; a per-shape excursion past 1% on a slot
-  that moved is what Run 26's item (2) found on every untouched arm and
-  is not this item's kill. Killed by any arm's geomean past 1%, which would
+  of the 25 timed arms Run 26 also timed
+  (`./roster-delta.py run26-g912 run27-g912` counts them) reads within 1%
+  of its Run 26 basis cell at the geomean over the nineteen shared shapes,
+  the pointer fills included, `--pin` to Run 26's column, the arms of 2026-09-07
+  having no cell there and being outside this item; a per-shape excursion past
+  1% on a slot that moved is what Run 26's item (2) found on every untouched arm
+  and is not this item's kill. Killed by any arm's geomean past 1%, which would
   be a layout term the STG comparison cannot see, or by either pointer fill's
   basis cell past the floor on any shape, which would say the annotation
   is not a no-op on 9.12 after all. This item is adjudicated by hand,
@@ -1128,27 +1129,27 @@ rather than a slot in the next run, observed again:
   `libunord-stage1` past the floor on both halves on any view that is not one
   block, which would say the concatenation costs the consumer nothing.
   The laziness gate in `check` is this run's fourth instrument on the same
-  question and needs no run: it is read at pre-run step 7, once per build. (10)
-  *The baseline between the halves.* Registered 2026-09-07, with (11) and (12).
-  `list` moved 1.10% between Run 25's halves and 1.16% between Run 26's, past
-  the 0.7% bar that lets two columns be subtracted, in time and
-  not in instructions, and no code change of this pair touches it, the roster
-  change moving the layout Run 26's head blamed. On the main set:
-  `predict: cross list 1.011 within 0.5%`, the basis over HEAD as Run 26 read
-  it. Killed by the figure inside the 0.7% bar, which would say the movement
-  was those two rosters' and not the pair's, and which reopens the subtraction
-  the last two runs refused. (11) *The dispatch pair after its answer ---
-  WITHDRAWN 2026-09-07 with the arm.* lib-stage2-disp was ruled out
-  for the library and parked that evening, code complexity at the threshold
-  and a hard-coded L1-sized constant tipping it ([dead ideas][dead]),
-  so no process times it and the span below is unreadable; the item stays
-  for what it registered. The counts pair of 2026-09-07 put lib-stage2-disp
-  at 1.0188 and 1.0180 of `lib-stage2-lean`'s corrected instructions on `small`
-  and 1.0142 and 1.0148 in time, on this run's recipe as it stood before
-  the eight arms ([the disp/lean entry][open]). The pair differs
-  in the `dispRun` comparison and has no twin among the eight arms, item (8)'s
-  `liblist-stage3` against `liblist-stage4` being the natural-strides comparison
-  under the list, which `lib-stage2-lean`'s parked control prices
+  question and needs no run: it is read at pre-run steps 4 and 5, which are what
+  run `check`, once per build. (10) *The baseline between the halves.*
+  Registered 2026-09-07, with (11) and (12). `list` moved 1.10% between Run 25's
+  halves and 1.16% between Run 26's, past the 0.7% bar that lets two columns
+  be subtracted, in time and not in instructions, and no code change
+  of this pair touches it, the roster change moving the layout Run 26's head
+  blamed. On the main set: `predict: cross list 1.011 within 0.5%`, the basis
+  over HEAD as Run 26 read it. Killed by the figure inside the 0.7% bar, which
+  would say the movement was those two rosters' and not the pair's, and which
+  reopens the subtraction the last two runs refused. (11) *The dispatch pair
+  after its answer --- WITHDRAWN 2026-09-07 with the arm.* lib-stage2-disp
+  was ruled out for the library and parked that evening, code complexity
+  at the threshold and a hard-coded L1-sized constant tipping it ([dead
+  ideas][dead]), so no process times it and the span below is unreadable;
+  the item stays for what it registered. The counts pair of 2026-09-07 put
+  lib-stage2-disp at 1.0188 and 1.0180 of `lib-stage2-lean`'s corrected
+  instructions on `small` and 1.0142 and 1.0148 in time, on this run's recipe
+  as it stood before the eight arms ([the disp/lean entry][open]). The pair
+  differs in the `dispRun` comparison and has no twin among the eight arms, item
+  (8)'s `liblist-stage3` against `liblist-stage4` being the natural-strides
+  comparison under the list, which `lib-stage2-lean`'s parked control prices
   under the fill. On `small`, both halves, the span printing a figure
   and no verdict on any other population, `runs` most of all, where the two
   are different code by design: predict pair lib-stage2-disp against
@@ -11157,23 +11158,29 @@ the record costs. **A fourth half arrives with the pairing and is not a delta
 at all**: which half of the pair a figure came from, which is why the run file's
 tables and its fingerprint say so.
 
-- Run 26 measured TODAY's shapes, class views and roster, being the run whose
-  file `runs/` currently publishes --- 30 timed arms over 19 main-set shapes
-  and 52 class views in TEN classes, 570 benches and 1560, SIX A/A pairs,
-  the `runs` class at FOURTEEN and `window` at SIX --- so its delta against
-  TODAY is the three edits that prepare Run 27: the four lifted arms parked
-  again and the `:: Ptr Double` annotation on every bang-bound `plusPtr` result
-  in the three pointer arms, the GHC #27778 workaround ([the open list][open]),
-  which changes no 9.12 code, both of 2026-09-06, and the eight arms
-  of 2026-09-07, the lazy candidates and the reducing consumers ([the stride
-  classes](#the-stride-classes-and-what-they-cover)); `9702f20` had moved
-  `Main.hs` by comments alone after the pair was built. **Its delta against RUN
-  25** is the eight commits of 2026-09-05 and 2026-09-06: the lean dispatch
-  for every arm that admits it, `libunord-stage3` and the two pointer fills
-  joining the timed roster, `cnn-L1-6x6-c1` back from the retired list
-  with `flip-inner-gap64`, `flip-outer-gap64` and `small-patch-r5`,
-  `mut-odo-vecdims-add-in-leaf` going to `Only`, and four arms parked after Run
-  23 --- `mut-odo-vecdims-add-in-leaf-down`, `canon-vecdims`, `lib-stage2`
+- Run 26 measured TODAY's shapes and class views but NOT today's roster, being
+  the run whose file `runs/` currently publishes --- 30 timed arms over 19
+  main-set shapes and 52 class views in TEN classes, 570 benches and 1560, SIX
+  A/A pairs, the `runs` class at FOURTEEN and `window` at SIX --- so its delta
+  against TODAY is the edits that prepare Run 27, none of which touches a shape
+  or a class view: the four lifted arms parked again and the `:: Ptr Double`
+  annotation on every bang-bound `plusPtr` result in the three pointer arms,
+  the GHC #27778 workaround ([the open list][open]), which changes no 9.12 code,
+  both of 2026-09-06; the ten arms of 2026-09-07 --- the lazy candidates,
+  the reducing consumers, the hoisted-bound fill and the fill not unrolled
+  under the lean dispatch ([the stride
+  classes](#the-stride-classes-and-what-they-cover)) --- with `check`'s laziness
+  gate landing beside them and `lib-stage2-disp` retired that evening, ten arms
+  in and five out; and, later the same day, that gate's byte count moved behind
+  its failure branch, which is what makes a compiler pair's two `check` outputs
+  byte-identical again. `9702f20` had moved `Main.hs` by comments alone after
+  the pair was built. **Its delta against RUN 25** is the eight commits
+  of 2026-09-05 and 2026-09-06: the lean dispatch for every arm that admits it,
+  `libunord-stage3` and the two pointer fills joining the timed roster,
+  `cnn-L1-6x6-c1` back from the retired list with `flip-inner-gap64`,
+  `flip-outer-gap64` and `small-patch-r5`, `mut-odo-vecdims-add-in-leaf` going
+  to `Only`, and four arms parked after Run 23 ---
+  `mut-odo-vecdims-add-in-leaf-down`, `canon-vecdims`, `lib-stage2`
   and `lib-stage2-short` --- timed again for this run alone, each back
   in its old slot. So NEITHER half reproduces an earlier binary and no md5 here
   matches one on record; a distance from Run 25's published column carries one
