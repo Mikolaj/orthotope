@@ -4271,8 +4271,22 @@ lazinessGate = do
         Just want -> do
           bytes <- allocOfHead (ls sh a)
           let ok = if want then bytes < bound else bytes >= bound
+          -- THE EXACT COUNT ONLY WHERE IT FAILS. A pair's two halves have
+          -- their 'check' output compared byte for byte (the run chapter's
+          -- pre-run steps 4 and 5), and an allocation figure is the one
+          -- thing in that output a second compiler moves: on Run 27's
+          -- compiler pair four of these twelve rows parted by 8 to 16
+          -- bytes with every verdict agreeing, which failed the comparison
+          -- for nothing. Which side of the bound the head fell on is the
+          -- whole of what the gate asserts, so that is what a passing row
+          -- prints; a failing one prints the count, and 'check' dies on
+          -- the next line anyway.
           putStrLn $ "laziness " ++ view ++ " " ++ n
-                     ++ ": the head of the list allocates " ++ show bytes
+                     ++ ": the head of the list allocates "
+                     ++ (if ok
+                         then (if want then "under " else "at least ")
+                              ++ show bound
+                         else show bytes)
                      ++ " bytes, " ++ (if want then "lazy" else "strict")
                      ++ " wanted" ++ (if ok then "" else " FAILED")
           unless ok $ error ("LAZINESS GATE FAILED: " ++ n ++ " on " ++ view)
