@@ -54,7 +54,15 @@ sweep, the roster pass, the counts, anything else that cost machine time
 is post-run step 9's four things met a day early -- a check that would
 have caught an error, a computation improvised, a step skipped, a
 capability found. Step 9 is the executing session's and that session was
-not here, so this block is the only route those findings have. Those
+not here, so this block is the only route those findings have OUT OF THE
+PREPARATION. It is not the only place they end up, and this note going
+with the pair loses none of them: step 9 says outright to read this block
+before writing its own and to carry BOTH halves, and it feeds step 10,
+the open list, which is committed. So the note being gitignored is not a
+leak to fix -- do not propose committing it, mirroring this block into
+the run file, or sending it to MARGINALIA. Ruled 2026-09-08, on the
+question being asked once; it is written here so it is not asked again
+every run. Those
 lists are the interface; anything true of this run and in none of them is
 lost. Then say outright whether anything here needs
 a rebuild, since the offsets any registration is written against die
