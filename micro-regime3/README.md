@@ -988,11 +988,12 @@ rather than a slot in the next run, observed again:
   in **13 of 32**, pooling to 37 of 64 ([the class-floor entry][open]).
   This run's eleven populations are eleven more of that same comparison, each
   a `--aa` floor line on a process this run writes anyway. Prediction,
-  adjudicated by hand: the basis is the wider half in **4 to 7 of the eleven**,
-  continuing the three-run absence. Killed by 9 or more, or by 2 or fewer,
-  either being past a fair coin at about 3% and either saying the asymmetry
-  is back and its three-run absence the anomaly. Two readings go beside
-  it on the same 22 processes: a process's floor against the median A/A
+  adjudicated by hand: the basis is the wider half in **3 to 8 of the eleven**,
+  continuing the three-run absence. Killed by 9 or more, or by 2 or fewer ---
+  the band and the kill are complementary on purpose, so that no count falls
+  outside both --- either being past a fair coin at about 3% and either saying
+  the asymmetry is back and its three-run absence the anomaly. Two readings go
+  beside it on the same 22 processes: a process's floor against the median A/A
   half-width beneath it, which read +0.26, +0.49 and +0.52 by run and which [the
   floor section][floor]'s order-statistic ruling expects to stay positive,
   killed by a negative correlation on this run; and its position in the evening
@@ -1986,7 +1987,25 @@ rather than a slot in the next run, observed again:
   nor the shape repeats reliably, so the ruling reverts to its older and weaker
   form, which is that this is a hazard of the class to be quoted as one
   and never as a figure. The per-sample reading stays the instrument
-  for its mechanism.
+  for its mechanism. **EIGHT PROCESSES OF THIS CLASS IN ONE SITTING PUT
+  THE DISTURBANCE AT ONE PROCESS IN EIGHT, 2026-09-07** ---
+  `probe-order-reversal.sh`'s `scaled` blocks, four on Run 26's pair and four
+  on a pair built to Run 27's recipe, run back to back rather than one to a run.
+  **It fired in exactly one of the eight**: in the first process of the Run 26
+  block the two `mut-odo-vecdims` A/A pairs read 1.0085 and 0.9630 with worst
+  cells of **3.01% and 5.04%, both on `scaled-rank1-m1`**, and that process
+  alone carries its block's 1.68% floor where the other three read 0.22%
+  to 0.26%. In the other seven the same two pairs sit between 0.9947 and 1.0083
+  with worst cells of 0.18% to 0.96%. So it is an event a process either has
+  or has not, rather than a level the slot carries --- which is what *a state
+  the process enters once and keeps* predicts and what no single-process reading
+  can see. **And the shape it fired on is `scaled-rank1-m1`**, Run 15's pairing
+  rather than `scaled-super-r3`: across the sixteen pair-readings
+  `scaled-super-r3` carries the worst cell five times and never above 0.96%.
+  The ruling is unchanged --- quote the slot as a hazard of the class and never
+  as a figure --- and what these eight add is that the hazard is intermittent
+  between processes and not only between runs. One firing in eight
+  is an incidence this sitting saw and not a rate to carry.
 - `OPEN` **The basis half carries the wider class floor, run after run,
   and no variable the pairs differ in explains it. It carries the faster level
   too, and on the one class tested both survive having the halves' order
@@ -2095,39 +2114,43 @@ rather than a slot in the next run, observed again:
   with the recipe `pair-draft-run27.txt` pins --- 26 timed arms over 19 shapes,
   494 benches, `-fspec-constr -fobject-determinism`, `LOOP_DEADSPOT=1`, the shim
   unmoved --- and kept under probe names, `probe-r27ord-g912`
-  and `probe-r27ord-ghead`, rather than `run27-*`, that being the run's own
-  namespace and one `run-major.sh` refuses to start over. The same four classes
-  then ran the same sixteen processes in the same alternating design.
-  **The first process is the wider in 4 of 8 there against 7 of 8 on Run 26's
-  pair**, and only `rev` repeats its 2 of 2: `bcast` goes 2 of 2 to **0 of 2**,
-  `scaled` 2 of 2 to 1 of 2, `bcastmid` 1 of 2 to 1 of 2. Over both probes
-  that is **11 of 16** at sign p 0.105, and pooled with the 19 of 32
-  the recorded runs give, **30 of 48** at p 0.056. **The basis half is wider
-  in 2 of those 8 and 5 of the 16**, 18 of 48 pooled, so the asymmetry
-  this entry is named for is refuted on every population reversed and leans
-  the other way if it leans at all. **So neither the half nor the position
-  explains a class floor**, and what all four blocks agree on is [the floor
-  section][floor]'s reading instead: the floor is the max of six sampling draws
-  and its size is the process's. The 7 of 8 is what a replication is for.
-  **The prune is not what removed the asymmetry**, which is the obvious
-  competing account and the one to rule out: a floor is a max over the A/A
-  pairs, Runs 15 to 18 took theirs over sixteen to eighteen and Runs 25 onward
-  over six, and a max over sixteen draws carries more tail --- which is where
-  this entry already put the effect, the basis half carrying the wilder cell.
-  But **Run 24 still read its floors over sixteen pairs and gives the basis
-  wider in 3 of its 10 populations**, the weakest of the three runs counted,
-  so the asymmetry was already gone a run before the prune reached it.
-  This entry stays `OPEN` on the Runs 15 to 18 evidence, which no reading here
-  retracts; what is now recorded beside it is that nothing since Run 24
-  reproduces it, on 48 comparisons. **Nor does the median A/A half-width follow
-  the blocks' order** --- on `rev` it reads 0.57%, 0.28%, 0.21% and 0.52% ---
-  so the floors' fall, in the blocks where it happened, was in the tail
-  the floor is a max over and not in the dispersion beneath it, which
-  is this entry's own dispersion ruling met from the other side. **The level
-  reading was taken 2026-09-07 over both pairs' artifacts, and the LEVEL FOLLOWS
-  THE HALF, as `slice` said.** Per class, basis over control at the class
-  geomean, with the basis running first and running second: on Run 26's pair
-  0.8976 and 0.9382 on `rev`, 0.9292 and 0.9277 on `bcast`, 0.9687 and 0.9506
+  and `probe-r27ord-ghead`, rather than `run27-*`, which is where Run 27's own
+  preparation writes its halves: a binary built tonight under that name is one
+  a later launch could time while its note describes another. **`run-major.sh`'s
+  relaunch guard would not catch that**, globbing `$R-*.json` and `$R-*.log`
+  and no binary at all --- it guards a run's readings against a second attempt,
+  not its recipe against a stranger's build. The same four classes then ran
+  the same sixteen processes in the same alternating design. **The first process
+  is the wider in 4 of 8 there against 7 of 8 on Run 26's pair**, and only `rev`
+  repeats its 2 of 2: `bcast` goes 2 of 2 to **0 of 2**, `scaled` 2 of 2 to 1
+  of 2, `bcastmid` 1 of 2 to 1 of 2. Over both probes that is **11 of 16**
+  at sign p 0.105, and pooled with the 19 of 32 the recorded runs give, **30
+  of 48** at p 0.056. **The basis half is wider in 2 of those 8 and 5
+  of the 16**, 18 of 48 pooled, so the asymmetry this entry is named
+  for is refuted on every population reversed and leans the other way
+  if it leans at all. **So neither the half nor the position explains a class
+  floor**, and what all four blocks agree on is [the floor section][floor]'s
+  reading instead: the floor is the max of six sampling draws and its size
+  is the process's. The 7 of 8 is what a replication is for. **The prune
+  is not what removed the asymmetry**, which is the obvious competing account
+  and the one to rule out: a floor is a max over the A/A pairs, Runs 15 to 18
+  took theirs over sixteen to eighteen and Runs 25 onward over six, and a max
+  over sixteen draws carries more tail --- which is where this entry already put
+  the effect, the basis half carrying the wilder cell. But **Run 24 still read
+  its floors over sixteen pairs and gives the basis wider in 3 of its 10
+  populations**, the weakest of the three runs counted, so the asymmetry
+  was already gone a run before the prune reached it. This entry stays `OPEN`
+  on the Runs 15 to 18 evidence, which no reading here retracts; what is now
+  recorded beside it is that nothing since Run 24 reproduces it, on 48
+  comparisons. **Nor does the median A/A half-width follow the blocks' order**
+  --- on `rev` it reads 0.57%, 0.28%, 0.21% and 0.52% --- so the floors' fall,
+  in the blocks where it happened, was in the tail the floor is a max
+  over and not in the dispersion beneath it, which is this entry's own
+  dispersion ruling met from the other side. **The level reading was taken
+  2026-09-07 over both pairs' artifacts, and the LEVEL FOLLOWS THE HALF,
+  as `slice` said.** Per class, basis over control at the class geomean,
+  with the basis running first and running second: on Run 26's pair 0.8976
+  and 0.9382 on `rev`, 0.9292 and 0.9277 on `bcast`, 0.9687 and 0.9506
   on `scaled`, 0.9399 and 0.9478 on `bcastmid`; on the Run 27 recipe 0.9988
   and 0.9538, 0.9861 and 0.9849, 1.0103 and 0.9933, 0.9972 and 0.9976.
   **The basis is the faster half in 15 of those 16 readings**, the exception
