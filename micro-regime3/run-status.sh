@@ -28,7 +28,7 @@
 # and 7 with it, --check-doc finding the anchor dead. Re-aim the first
 # two whenever run23's artifacts are offered for deletion.
 #
-# Step 3's own, 2026-09-07, on a stub note made and removed in one call: a
+# Step 2c's own, 2026-09-07, on a stub note made and removed in one call: a
 # run99-pair.txt carrying two `<yours>` rows reads NOT DONE and names both
 # labels, and the same note with the markers replaced reads done -- the
 # control that says the NOT DONE was the markers and not the stub.
@@ -88,21 +88,42 @@ if [ -f "$NOTE" ]; then
     grep -q "^$l:" "$NOTE" && say 2b "done" "$l line present" \
       || say 2b "NOT DONE" "no $l: line in $NOTE (run-evening.sh reads it)"
   done
-  # 3. THE FILL-IN BLOCK'S OWED ROWS, which nothing read until 2026-09-07:
+  # 2c. THE FILL-IN BLOCK'S OWED ROWS, which nothing read until 2026-09-07:
   # every other step here judges an ARTIFACT, and that block is the one
   # product of this half no artifact records, so a row left unwritten was
   # invisible until somebody re-read the note. `preflight.sh --fill-in`
   # prints `<yours>` for each row it cannot derive and the template carries
   # the same marker, so the count of them is the count of rows the half
   # still owes -- a line of output rather than a reading.
-  OWED=$(grep -c '<yours>' "$NOTE" || true)
+  # NUMBERED 2c AND NOT 3: every line this script prints names a step of
+  # the chapter's own lists, and the chapter's step 3 is the md5s and the
+  # two commits read BACK. The block is written at step 2, beside 2a and
+  # 2b which are the note's other lines, so a `3 done` here would have
+  # said a step was done that nobody had run.
+  # COUNTED AS SLOTS AND NOT AS FILL-IN ROWS, which is what the marker
+  # actually marks: --draft writes `<yours>` for every block it will not
+  # decide as well as for every fill-in row, so a message naming only the
+  # rows would undercount a note whose recipes were still empty -- and
+  # those are the slots that matter most.
+  # `#` LINES ARE NOT SLOTS. --draft's own header explains the marker and
+  # so contains it twice, and a session redirects that header into the
+  # note; counting those would have reported two owed slots on a note with
+  # none. The same skip covers the template scaffolding a draft leaves
+  # under each block, which quotes the marker for the same reason.
+  SLOTS=$(grep -v '^[[:space:]]*#' "$NOTE" | grep -F '<yours>' || true)
+  OWED=$(printf '%s' "$SLOTS" | grep -c . || true)
   if [ "$OWED" = 0 ]; then
-    say 3 "done" "no <yours> row left in $NOTE's fill-in block"
+    say 2c "done" "no <yours> slot left in $NOTE"
   else
-    say 3 "NOT DONE" "$OWED fill-in row(s) still <yours> in $NOTE: \
-$(grep -oE '^ +[A-Za-z0-9 .:-]+<yours>' "$NOTE" \
-  | sed 's/<yours>//; s/^ *//; s/ *$//' | grep -v '^$' \
-  | tr '\n' ';' | sed 's/;$//')"
+    # BOTH SHAPES, since both are slots: a fill-in row is indented and
+    # unlabelled past its name, a block is a title at column 0 carrying
+    # its marker. A lister for the indented shape alone named a subset of
+    # what the count counted.
+    say 2c "NOT DONE" "$OWED slot(s) still <yours> in $NOTE, fill-in rows \
+and undecided blocks alike: \
+$(printf '%s\n' "$SLOTS" \
+  | sed "s/<yours>.*//; s/\[PAIR'S\]:*//; s/^ *//; s/ *$//" \
+  | grep -v '^$' | tr '\n' ';' | sed 's/;$//')"
   fi
 else
   say 2 "NOT DONE" "no $NOTE"

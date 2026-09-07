@@ -6309,7 +6309,7 @@ and never as a chronology.
     #      it says so on the line -- so taking it here is not a duplicate.
     #      What the claim covers, and how Runs 20 and 21 killed its
     #      strong form, are in the prose
-    #      BUILD BOTH, ALWAYS -- the ruling at the head of this chapter,
+    #      BUILD BOTH, ALWAYS -- the BOTH HALVES ARE BUILT ANEW ruling,
     #      whatever the source and the md5 say. ON A REPETITION THE MD5 IS
     #      ONE-SIDED, and an md5 that does not reproduce is a finding and
     #      not a stop, located by the three reads the prose gives
@@ -6742,7 +6742,7 @@ Unsandboxed throughout:
     #      pair, put in $R-evening-out.txt. The verdict is the two
     #      agreeing, and a gate answers sound or not sound -- never quote a
     #      magnitude from one. It is owed on every pair, both halves being
-    #      two builds by the ruling at the head of this chapter, and again
+    #      two builds by the BOTH HALVES ARE BUILT ANEW ruling, and again
     #      after either half is rebuilt: run-evening.sh inherits a recorded
     #      gate only for the binaries its block names by md5
     #  14a. WRITE THE VERDICT by hand ABOVE the note's GATE block, from
@@ -6953,14 +6953,15 @@ to price a nursery that `+RTS -A` sets on any already-built binary. The same
 fact written as *any nursery question is answerable on an already-built binary;
 only a recorded run needs the driver* would have kept both out of a run
 altogether. That is where the saving was: not in skipping a pair's second build,
-which the ruling above refuses, but in not making it a pair at all. So when
-a limitation is found, write down what it still leaves possible, in the place
-a session looks before spending. On the original point: the measurements
-that closed the `sum-only` objection, established that the forcing term scales,
-and settled the floor's mechanism cost twenty minutes and, for the latter two,
-no extra machine time at all, while the major run they hang off changed
-no decision. A question with a discriminating measurement usually deserves
-a filtered run now rather than a slot in the next full one.
+which the BOTH HALVES ARE BUILT ANEW ruling refuses, but in not making it a pair
+at all. So when a limitation is found, write down what it still leaves possible,
+in the place a session looks before spending. On the original point:
+the measurements that closed the `sum-only` objection, established
+that the forcing term scales, and settled the floor's mechanism cost twenty
+minutes and, for the latter two, no extra machine time at all, while the major
+run they hang off changed no decision. A question with a discriminating
+measurement usually deserves a filtered run now rather than a slot in the next
+full one.
 
 **A preparation already spent on THIS run may be any age, and a later session
 re-enters at 13.** Nothing in the preparation wants a quiet machine, so
@@ -6975,8 +6976,8 @@ to 10 are seconds each, so re-running them costs less than deciding not to.
 The exception is the roster pass, whose own note line records it being re-taken
 the same day for exactly this reason --- a pass belongs to the roster
 it was taken on, and a roster that moved since voids it. None of this reaches
-a *previous* run's preparation, whose binaries the ruling above refuses whatever
-their age.
+a *previous* run's preparation, whose binaries the BOTH HALVES ARE BUILT ANEW
+ruling refuses whatever their age.
 
 **And before any of that, the previous run has to be finished.** Nothing
 in this list asks, and starting on top of a half-written write-up is a wrong
@@ -7010,8 +7011,8 @@ is rebuilt BETWEEN the halves and the drift is between the RUNS. No step
 downstream can see it, and the argument reaches every way of not building two
 halves today: a probe's binary carries the same gap, a copy makes one recipe
 stand for two, and one binary run twice under two sets of flags is a pair whose
-halves cannot differ in anything the compiler decided. The ruling at the head
-of this chapter refuses all four, and Run 11's basis, which was Run 10's binary,
+halves cannot differ in anything the compiler decided. The BOTH HALVES ARE BUILT
+ANEW ruling refuses all four, and Run 11's basis, which was Run 10's binary,
 is the precedent it retires. *The md5 on a repetition*: what the note's recorded
 inputs do not cover is the dependency store. `cabal.project.freeze` pins 97
 versions and an index-state and NOT the ABI hashes, so a store rebuilt
@@ -8595,22 +8596,27 @@ size comes from the reader's first line;
 
 #### The reasons behind the three lists
 
-Nothing here is operative: every fact that changes what a session DOES is in one
+No STEP is here: every fact that changes what a session does is in one
 of the three lists above, which is this chapter's own contract, and what follows
-is why those steps are what they are. It sits below the lists rather than above
-them because three preparations in a row read it on the way in --- Run 24
-with `sed`, Run 26 for some 250 lines, Run 27 for some 285 --- and the block
-at the head of the chapter, which tells you to run two commands before reading
-further, did not stop any of them. Reading order did. Take a paragraph from here
-when a step surprises you: every `why:` line in the lists names one
-by its bolded lead, which `--para` resolves wherever the paragraph sits.
+is why those steps are what they are. **One ruling is stated here rather
+than in a list, and the lists lean on it**, so it is named at the top rather
+than met by surprise: BOTH HALVES ARE BUILT ANEW, EVERY RUN, whose four refused
+shortcuts are spelled out below and whose instruction is pre-run step 2's *BUILD
+BOTH, ALWAYS*. Point at it by NAME; it has moved once already. It sits below
+the lists rather than above them because three preparations in a row read
+it on the way in --- Run 24 with `sed`, Run 26 for some 250 lines, Run 27
+for some 285 --- and the block at the head of the chapter, which tells you
+to run two commands before reading further, did not stop any of them. Reading
+order did. Take a paragraph from here when a step surprises you: every `why:`
+line in the lists names one by its bolded lead, which `--para` resolves wherever
+the paragraph sits.
 
 **A RUN IS ALWAYS TWO SESSIONS, and which one you are decides everything
-below.** One PREPARES the run, through step 12 of the pre-run list, and hands
-over `$R-pair.txt`; another EXECUTES it from step 13 and writes it up. Which
-half you were asked for decides which of the readings below you owe, which list
-you start in, and what is already spent and not yours to redo --- so settle
-it before reading anything else. **And a run is finished when
+in the three lists above.** One PREPARES the run, through step 12 of the pre-run
+list, and hands over `$R-pair.txt`; another EXECUTES it from step 13 and writes
+it up. Which half you were asked for decides which of the readings below you
+owe, which list you start in, and what is already spent and not yours to redo
+--- so settle it before reading anything else. **And a run is finished when
 `./run-status.sh $R` says all done**, read off the artifacts and the repository
 and never off a session's sense of it: a summary of what remains is not a step
 toward it.
@@ -8632,7 +8638,7 @@ whole**: it runs to well over a hundred thousand words and this chapter alone
 to thirty-odd thousand, which is what `--section` and `--checklist` exist for.
 **So, as ten items, each owing an artifact, and each read AT THE STEP THAT NAMES
 IT and not before**: item 1 is read now, and every other item stands
-in the lists below as a `READ NOW` line at the step whose work needs it, because
+in the lists above as a `READ NOW` line at the step whose work needs it, because
 a reading taken at the head is forgotten by the time its step arrives. A reading
 that owes nothing cannot be told from a reading not done, which is the whole
 of why this is a list and not a sentence. **Items 2, 4, 5 and 6 are ONE
@@ -8803,11 +8809,11 @@ and no step here can see it.
 A *major run* is the whole roster over the whole shape set at criterion's
 default budget --- the main set and, by default, **every stride-class population
 with it**: one process for the main set and one per class, or two of each where
-the run is paired, in the order of the sequence below. Asking for a major run
-asks for all of them; leaving a population out is an explicit exception
-to be stated, not a choice this README leaves open. The whole is analysed
-and written into the run's own file. What follows is the procedure, and
-it is written to outlive any one run.
+the run is paired, in the order of the sequence the run list gives. Asking
+for a major run asks for all of them; leaving a population out is an explicit
+exception to be stated, not a choice this README leaves open. The whole
+is analysed and written into the run's own file. What follows is the procedure,
+and it is written to outlive any one run.
 
 **What asking for a run asks for, since the request is one sentence and the work
 is this chapter, and it is asked once per half.** Each half is asked separately

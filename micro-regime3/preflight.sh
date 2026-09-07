@@ -514,11 +514,17 @@ and $OTHER $("./$R-$OTHER" +RTS --info 2>/dev/null \
   if [ -n "$PB" ]; then
     printf '  %-16s %s\n' '' "against $PB, the previous build of this recipe:"
     ./loop-offsets.py --delta "$PB" "./$R-$BASIS" 2>/dev/null \
-      | sed -n 's/^ *\(every mod-64\|NO address\|[0-9]* displacement\|of the\).*/                   &/p' \
-      | sed 's/^ *//; s/^/                   /'
+      | grep -E '^ +(every mod-64|NO address|[0-9]+ displacement|of the)' \
+      | sed 's/^ */                   /'
+  elif [ -n "$PN" ]; then
+    printf '  %-16s %s\n' '' "run$PN-$BASIS is not here, so the --delta \
+reading against the previous build of this recipe is not available"
   else
-    printf '  %-16s %s\n' '' "no previous basis binary here (run$PN-$BASIS), \
-so the --delta reading against it is not available"
+    # Named apart from the missing-binary case: with no earlier run file
+    # at all there is no name to miss, and the branch above would have
+    # spelled one out of an empty number as `run-$BASIS`.
+    printf '  %-16s %s\n' '' "no run file below $R in runs/, so there is no \
+previous build of this recipe to read --delta against"
   fi
   printf '  %-16s %s\n' 'straddle' "$BASIS $(srv "./$R-$BASIS")"
   printf '  %-16s %s\n' '' "$OTHER $(srv "./$R-$OTHER")"

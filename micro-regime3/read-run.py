@@ -6569,6 +6569,23 @@ def _template_blocks(near):
     return out
 
 
+def _template_gate(near):
+    """The template's `GATE: NOT RUN` paragraph, or that line alone.
+
+    Live text and not scaffolding: the note's gate line is what
+    run-status.sh reads for step 14 and what run-gate.sh appends beneath,
+    so a draft that commented it out would hand over a note with no gate.
+    """
+    try:
+        text = open(os.path.join(near or '.', 'pair-note-template.txt')).read()
+    except OSError:
+        return 'GATE: NOT RUN.'
+    for para in text.split('\n\n'):
+        if para.lstrip('\n').startswith('GATE: NOT RUN'):
+            return para.rstrip('\n')
+    return 'GATE: NOT RUN.'
+
+
 def _scaffold(para):
     """The template's guidance for a block, as `#` lines to delete.
 
@@ -6726,7 +6743,6 @@ def pair_note(path, draft=None, halves=None):
                     carried.append((kind, _note_title(
                         para.lstrip('\n').split('\n', 1)[0])))
                 continue
-            lead = para.lstrip('\n').split('\n', 1)[0]
             if para.lstrip().startswith('Verified when built'):
                 para, dropped = _fill_trimmed(para)
                 held += dropped
@@ -6781,7 +6797,7 @@ def pair_note(path, draft=None, halves=None):
     # is that copying one forward is how a note comes to describe the run
     # before it, so the title is all that crosses.
     guide = _template_blocks(os.path.dirname(os.path.abspath(path)))
-    pairs, out = [], []
+    pairs, out, gate_done = [], [], False
     for para, kind, announced in blocks:
         lead = para.lstrip('\n').split('\n', 1)[0]
         title = _note_title(lead)
@@ -6795,8 +6811,19 @@ def pair_note(path, draft=None, halves=None):
             if not announced:
                 continue
             if kind == 'gate':
-                out.append(_scaffold(guide.get('GATE'))
-                           if 'GATE' in guide else 'GATE: NOT RUN.')
+                # The template's own GATE paragraph, VERBATIM and not as
+                # scaffolding: `GATE: NOT RUN` is a live line of the note,
+                # which run-status.sh and run-gate.sh both read, so
+                # commenting it out would leave the draft's note with no
+                # gate line at all. ONCE, however many gate blocks the
+                # previous note accumulated -- Run 26's had three, its own
+                # `GATE:` line, the hand verdict and run-gate.sh's appended
+                # block, and one slot each would have given the new note
+                # three gate lines to reconcile.
+                if not gate_done:
+                    gate_done = True
+                    out.append(_template_gate(
+                        os.path.dirname(os.path.abspath(path))))
                 continue
             slot = ('ENTRY POINT FOR THE SESSION THAT RUNS THIS'
                     if kind == 'handover' else title)
@@ -6804,9 +6831,23 @@ def pair_note(path, draft=None, halves=None):
                        % (slot, _scaffold(guide.get(slot))))
             pairs.append(slot)
         elif kind == 'fill':
+            # THE GATE LINE GOES IN FRONT OF THE FILL-IN BLOCK IF NOTHING
+            # HAS EMITTED IT, which is where the template puts it. Driving
+            # it off the previous note's gate blocks alone made it
+            # conditional on that note having had one, so a previous note
+            # written before run-gate.sh ever appended -- or one whose gate
+            # line somebody removed -- would have drafted a note with NO
+            # gate at all, which is the one line run-status.sh reads for
+            # step 14 and the one that says the pair has no gate yet.
+            if not gate_done:
+                gate_done = True
+                out.append(_template_gate(
+                    os.path.dirname(os.path.abspath(path))))
             out.append(_fill_skeleton(para))
         else:
             out.append(para)          # [SAME] and the unmarked header lines
+    if not gate_done:
+        out.append(_template_gate(os.path.dirname(os.path.abspath(path))))
     body = '\n\n'.join(out)
     # The header line carries the previous run's NUMBER and its build DATE,
     # which no rename touches and which would otherwise be the one place a
