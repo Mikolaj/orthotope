@@ -149,7 +149,7 @@ TMP=$(mktemp -d "${TMPDIR:-/tmp}/preflight.XXXXXX") || exit 1
 # fails, which is how a fallback comes to speak for a command that never
 # ran, and this file is read as an example.
 trap 'if [ "${BAD:-0}" -gt 0 ] && [ -d "$TMP" ]; then
-        echo "  every step\047s raw output kept in $TMP -- wiped with /tmp,"
+        echo "  the raw output of every step kept in $TMP -- wiped with /tmp,"
         echo "  and readable only where this ran; copy out what you hand on"
       else
         rm -rf "$TMP"
