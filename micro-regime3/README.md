@@ -6289,10 +6289,12 @@ and never as a chronology.
     #      md5s, .text, the fills. DO NOT TRANSCRIBE IT -- `--fill-in`,
     #      which the preflight line at steps 4 to 10 carries, derives every
     #      one of those rows from what those steps just read and prints the
-    #      block to paste, marking `<yours>` the rows no command can give
-    #      (the sweeps, the roster pass, repetition). A hand reads the wrong column: Run
-    #      27's recorded `size -A`'s SECOND field, the load address, as
-    #      .text, and then reasoned about why it had not moved across a
+    #      block to paste, marking `<yours>` the rows this call cannot give
+    #      -- the sweeps, the roster pass, repetition, and 8c and 8d, which
+    #      `--corpus --fill-in` prints when it has run them. A hand reads
+    #      the wrong column: Run 27's recorded `size -A`'s SECOND field,
+    #      the load address, as .text, and then reasoned about why it had
+    #      not moved across a
     #      roster change. Steps 3, 9b and 10 are reading the block back.
     #      AND WHERE `--list` SHOWS A TIMED ARM THAT BRINGS A NEW FUNCTION,
     #      the fills read here are the pinning claim's only reading:
@@ -6551,7 +6553,7 @@ and never as a chronology.
     #      unchanged for the whole of a leg while the leg's JSON grows
     #      under it, which reads like progress and is not
     #      why: --para 'After a roster change'
-    ./preflight.sh $R --corpus            # 8c AND 8d, DEFERRED TO HERE:
+    ./preflight.sh $R --corpus --fill-in  # 8c AND 8d, DEFERRED TO HERE:
     #      run them when 11 and 12 have both printed their verdict -- `sweep clean` and `pass clean` -- and nothing is writing a JSON.
     #      Two verdicts, and the only two of the twelve this half owes
     #      that were not read above

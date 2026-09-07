@@ -99,7 +99,8 @@ if [ $# -lt 1 ]; then
   echo "  --corpus      8c and 8d alone"
   echo "  --fill-in     and print the note's fill-in block DERIVED from what"
   echo "                this pass read, to paste at pre-run step 2. A row it"
-  echo "                cannot derive prints <yours>"
+  echo "                cannot derive prints <yours>; beside --corpus it"
+  echo "                prints the one row THAT call fills, 8c and 8d"
   exit 2
 fi
 R=$1
@@ -128,12 +129,17 @@ for a in "$@"; do
        exit 2 ;;
   esac
 done
-# --fill-in reports what 4 to 10 read, so it means nothing beside the two
-# flags that do not run them. Refused rather than absorbed, which is the
-# defect family this tree counts.
-if [ "$FILLIN" = 1 ] && { [ "$NOTE_ONLY" = 1 ] || [ "$REST" = 0 ]; }; then
-  echo "--fill-in reports what steps 4 to 10 read, and --note and --corpus"
-  echo "do not run them; drop one of them."; exit 2
+# --fill-in reports what a pass READ, so it means nothing beside --note,
+# which runs none of what it reports. Refused rather than absorbed, which
+# is the defect family this tree counts.
+# WITH --corpus IT IS ALLOWED, and prints the script-checks row alone: the
+# pre-run list runs `--no-corpus --fill-in`, whose block marks 8c and 8d
+# `<yours>` because they have not run yet, and refusing the flag on the
+# call that DOES run them left those two rows to be written by hand --
+# which is the transcription this mode exists to remove (2026-09-08).
+if [ "$FILLIN" = 1 ] && [ "$NOTE_ONLY" = 1 ]; then
+  echo "--fill-in reports what a pass read, and --note runs none of it;"
+  echo "drop one of them."; exit 2
 fi
 if [ "$CORPUS" = 0 ] && [ "$REST" = 0 ]; then
   echo "--no-corpus and --corpus together ask for nothing to run"; exit 2
@@ -461,6 +467,18 @@ fill_in () {
     awk -F'\t' -v s="$1" '$1 == s { v = $2; d = $3 } END {
       if (v == "") print "<yours>"; else print v ": " d }' "$TMP/verdicts"
   }
+  # UNDER --corpus ONLY THE SCRIPT-CHECKS ROW EXISTS, 8c and 8d being all
+  # that ran, so that row alone is printed rather than a block of thirty
+  # `<yours>` around it. It is a REPLACEMENT for the row the earlier pass
+  # left owed, which is why it names itself.
+  if [ "$REST" = 0 ]; then
+    echo
+    echo "--- the fill-in row --corpus fills, for $R-pair.txt ---"
+    printf '  %-16s %s\n' 'script checks' \
+      "8b, and now 8c $(vd 8c); 8d $(vd 8d)"
+    echo "--- replaces the 8c/8d line the earlier pass left <yours> ---"
+    return 0
+  fi
   txt () { size -A "$1" | awk '$1 == ".text" { print $2 }'; }   # FIRST field
   ver () { strings "$1" | grep -oE 'ghc-internal-[0-9.]+' | sort -u \
              | tr '\n' ' ' | sed 's/ *$//'; }
