@@ -3531,26 +3531,28 @@ run reaches `dispRun`, so it is `lib-stage2-lean` below the crossover
 and `lib-stage2-concat` above it --- its lower side was `lib-stage2` until
 the lean ruling below --- and the runs class is what cuts it to one. On every
 other population no canonical run reaches `dispRun`, so there
-it is `lib-stage2-lean`'s code and the two arms' pair is an A/A reading, which
-[the floor section][floor] records. **Beside it, for Run 22, sit three fill
-candidates**, each a fill change under the same dispatch: `lib-stage2-u4`,
-the stepping run unrolled by four; `lib-stage2-short`, a canonical run of 2 to 5
-elements written by a body of exactly that length, chosen once per row
-as the broadcast body is; and `lib-stage2-lean`, the same fill under a leaner
-dispatch: a canonical view of rank 2 or more can never carry the natural
-strides, the merge that made it canonical having consumed every natural pair,
-so the regimes are read off the merged form alone and the strides comparison
-the control's dispatch pays is not paid. **And beside those, the unordered entry
-point joins the family**: `libunord-stage1` and `libunord-stage2`, each stage's
-`toUnorderedVectorListT` one-block test in front of its liblist body and one
-concatenation -- the third route the branch changes, rostered so
-that a shim-switch reading (Run 23's LOOP_DEADSPOT among them) has its sanity
-readings, which no test of the branch alone can show until GHC itself grows such
-a capability. **`libunord-stage3`, added 2026-09-05 for Run 26, is the family's
-one candidate rather than a port**: the one-block test generalized
-into the dispatch, the canonical dims sorted by absolute stride from the lowest
-offset and canonicalized again, so the lean rank test reads one block
-and everything else is one fill in address order, every axis forward
+it is `lib-stage2-lean`'s code and the two arms' pair reads as an A/A, which
+[the floor section][floor] records --- except on `small`, where their corrected
+instructions part by 1.9% on the basis and 1.8% on HEAD and the pair is
+not an A/A at all ([the disp/lean entry][open]). **Beside it, for Run 22, sit
+three fill candidates**, each a fill change under the same dispatch:
+`lib-stage2-u4`, the stepping run unrolled by four; `lib-stage2-short`,
+a canonical run of 2 to 5 elements written by a body of exactly that length,
+chosen once per row as the broadcast body is; and `lib-stage2-lean`, the same
+fill under a leaner dispatch: a canonical view of rank 2 or more can never carry
+the natural strides, the merge that made it canonical having consumed every
+natural pair, so the regimes are read off the merged form alone and the strides
+comparison the control's dispatch pays is not paid. **And beside those,
+the unordered entry point joins the family**: `libunord-stage1`
+and `libunord-stage2`, each stage's `toUnorderedVectorListT` one-block test
+in front of its liblist body and one concatenation -- the third route the branch
+changes, rostered so that a shim-switch reading (Run 23's LOOP_DEADSPOT among
+them) has its sanity readings, which no test of the branch alone can show until
+GHC itself grows such a capability. **`libunord-stage3`, added 2026-09-05
+for Run 26, is the family's one candidate rather than a port**: the one-block
+test generalized into the dispatch, the canonical dims sorted by absolute stride
+from the lowest offset and canonicalized again, so the lean rank test reads one
+block and everything else is one fill in address order, every axis forward
 and the smallest stride innermost --- what Run 25's `flip` finding, a reversed
 run at twice its forward cost on identical instructions, says an unordered
 consumer pays today for nothing. Against `libunord-stage2` its margin also
@@ -9031,16 +9033,19 @@ time, never as a constant of the harness and never inherited. **And the seventh
 pair that no name declares has now been read.** `lib-stage2-disp`
 is `lib-stage2-lean`'s code wherever no canonical run reaches `dispRun`, which
 is every population but `runs`, so `--pair` over the two there reads two
-placements of one strategy exactly as a twin's pair does. It is not in the floor
---- `--aa` reads the declared twins alone --- and it differs from a twin
-in sitting where a candidate sits rather than where a control was placed. **Run
-26's registration (1) read it and it failed on one population**: inside
-the floor on BOTH halves on six of the nine classes it is an A/A pair on,
-outside on one half only on `rev` and `window`, and 1.0171 and 1.0316 on `small`
-against that class's 0.52% and 0.96%, past them on both halves. So the check
-from outside the declared pairs is worth having and it does not simply confirm
-them: at a few hundred elements a per-call difference the lean ruling was meant
-to have removed is still there.
+placements of one strategy much as a twin's pair does --- **on `small` it does
+not**, the counts pair of 2026-09-07 putting their corrected instructions 1.9%
+apart on the basis and 1.8% on HEAD ([the disp/lean entry][open]), so there
+the two are not one strategy's code and the reading is not a placement one.
+The pair is not in the floor --- `--aa` reads the declared twins alone ---
+and it differs from a twin in sitting where a candidate sits rather than where
+a control was placed. **Run 26's registration (1) read it and it failed on one
+population**: inside the floor on BOTH halves on six of the nine classes
+it is an A/A pair on, outside on one half only on `rev` and `window`, and 1.0171
+and 1.0316 on `small` against that class's 0.52% and 0.96%, past them on both
+halves. So the check from outside the declared pairs is worth having and it does
+not simply confirm them: at a few hundred elements a per-call difference
+the lean ruling was meant to have removed is still there.
 
 **Four processes of ONE binary in ONE day put a number on that caution,
 2026-09-06**, which is the within-evening form the recommended tasks' item 1 had
