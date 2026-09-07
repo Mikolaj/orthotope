@@ -3153,11 +3153,12 @@ fbLibStage1 sh a@(T (Strides ats) ao v)
 -- 2026-09-05 at 'fbLibStage2Lean', as that arm's control; every other
 -- natural-strides dispatch over 'canonView' here, and the branch's
 -- 'regimeT', took the lean form.
--- RULED OUT for the library since 2026-09-07 (README.md#dead-ideas):
--- 'toVectorT' here fills contiguous runs where master concatenates the
--- lazy slice list, a pattern made less lazy rather than a move between
--- patterns. Kept as the CEILING of what filling the runs would buy over
--- the list, and as the lean arm's control.
+-- The branch's 'toVectorT' fills contiguous runs where master
+-- concatenates the slice list; the laziness ruling of 2026-09-07
+-- (README.md#dead-ideas) does not reach it, 'toVectorT' being strict
+-- whichever way it is built, and what questions the route is the runs
+-- class, where one slice per run wins from 'dispRun' up. The lean
+-- arm's control.
 {-# NOINLINE fbLibStage2 #-}
 fbLibStage2 :: ShapeL -> T -> VS.Vector Double
 fbLibStage2 sh (T (Strides ats) ao v)
@@ -3228,11 +3229,23 @@ dispRun = 2048
 -- bracketing lengths this arm reads stage two's flat multiple below the
 -- bracket and stage one's above it, which is what
 -- probe-runlen-vacuity.log records.
--- RULED OUT for the library since 2026-09-07 with 'fbLibStage2'
--- (README.md#dead-ideas): below 'dispRun' this is that arm's fill of
--- the runs, a pattern made less lazy; at or above it the list route,
--- which the ruling leaves. Kept as the CEILING of what a run-length
--- dispatch between the two would buy.
+-- The 'VS.concat' is the library's own 'vConcat', and in the library
+-- it does not fuse, read off Core dumps on 2026-09-07. Written at one
+-- site, @VS.map f (VS.concat xs)@ does fuse -- the stream/unstream
+-- rule fires and the map runs on 'fromVectors'' element stream, a read
+-- per element and no memcpy, the Either state boxed per element -- but
+-- a consumer of 'toVectorT' never meets 'unstream' directly: 'mapA'
+-- over a transposed Storable array and @VS.map@ over its 'toVector'
+-- both call the conversion's worker out of line, and inside it the
+-- concatenation sits under the case over regimes, so no rule fired for
+-- either and the concat ran its chunk stream, one memcpy per run
+-- ('copyAddrToAddrNonOverlapping#'), with the map a second loop over
+-- the result. That is the route this arm times, and what a fill's
+-- consumer pays too, a materialized vector fusing with nothing.
+-- Outside the laziness ruling of 2026-09-07 (README.md#dead-ideas), as
+-- every 'toVectorT' arm is, that function being strict whichever way it
+-- is built: a candidate for the library's 'toVectorT', the run-length
+-- dispatch the runs class cut 'dispRun' for.
 {-# NOINLINE fbLibStage2Disp #-}
 fbLibStage2Disp :: ShapeL -> T -> VS.Vector Double
 fbLibStage2Disp sh (T (Strides ats) ao v)
@@ -3666,10 +3679,9 @@ fbLibStage2Short sh (T (Strides ats) ao v)
 -- candidate 'fbLibUnordStage3' answers by canonicalizing the sorted pairs
 -- again; and 'check''s own regime conditions, kept explicit so the
 -- equivalence is checked, not assumed.
--- RULED OUT for the library since 2026-09-07 with 'fbLibStage2', its
--- route being the same fill of the runs (README.md#dead-ideas); what
--- is ruled out is the route and not the lean dispatch, which stands.
--- Kept as the CEILING of that fill under the dispatch that shipped.
+-- The fill of the runs under it is the branch's route, outside the
+-- laziness ruling of 2026-09-07 as 'fbLibStage2''s is, and the runs
+-- class is what questions it; the lean dispatch is what shipped.
 {-# NOINLINE fbLibStage2Lean #-}
 fbLibStage2Lean :: ShapeL -> T -> VS.Vector Double
 fbLibStage2Lean sh (T (Strides ats) ao v)
@@ -3683,68 +3695,6 @@ fbLibStage2Lean sh (T (Strides ats) ao v)
     whole | ao == 0 && VS.length v == l = v
           | otherwise = VS.slice ao l v
 
--- Stage three of the shipped route, kept lazy up to the exception: the
--- ordered list 'toVectorT' concatenates, built as master builds it --
--- the vector or a slice at the natural strides, a lazy list of slices
--- where the innermost canonical stride is 1, one strict fill only where
--- no run is longer than one element -- with three things master does
--- not do. 'canonView' first, so a unit or mergeable dimension moves the
--- view to a lazier pattern, the exception's case: 'runs-r3-48x30''s
--- three canonical levels merge into runs of 1440 where master reads runs
--- of 30, and 'small-flat64' is one slice where master reads 64 runs --
--- the two timed views it moves, read off a replica of the dispatches
--- over every checked view, 2026-09-07. 'lazyRuns' in place of the
--- per-level 'concat'. And 'concatKnown', one pass over the list into a
--- result allocated once, where 'VS.concat' has to learn the length from
--- the list first. The dispatch keeps the natural-strides comparison, as
--- 'fbLibStage2' does, so 'fbLibStage4' is one change over it. Priced
--- against 'fbLibStage1', the shipped route, which it should lead
--- wherever the list route is taken, and, through 'fbLibStage4', against
--- the fill of the runs the ruling refuses, its ceiling at short runs.
--- Added 2026-09-07 for Run 27.
-lsOrdStage3 :: ShapeL -> T -> [VS.Vector Double]
-lsOrdStage3 sh (T (Strides ats) ao v)
-  | l == 0 = []
-  | otherwise =
-      let (csh, cats) = canonView sh ats
-          _ : ts = getStridesT csh
-      in  if cats == ts then [whole]
-          else if last cats == 1 then lazyRuns csh cats ao v
-          else [fillStage2 csh cats ao l v]
-  where
-    !l = product sh
-    whole | ao == 0 && VS.length v == l = v
-          | otherwise = VS.slice ao l v
-
-{-# NOINLINE fbLibStage3 #-}
-fbLibStage3 :: ShapeL -> T -> VS.Vector Double
-fbLibStage3 sh a = concatKnown (product sh) (lsOrdStage3 sh a)
-
--- Stage four of the shipped route: 'lsOrdStage3' under the lean
--- dispatch, the regime read off the merged form alone and no
--- 'getStridesT' built, as 'fbLibStage2Lean' reads it. One change over
--- 'fbLibStage3', that arm its control; against 'fbLibStage2Lean' it is
--- the same code wherever no canonical run exists, an A/A pair there,
--- and the lazy list against the fill wherever one does. Added
--- 2026-09-07 for Run 27.
-lsOrdStage4 :: ShapeL -> T -> [VS.Vector Double]
-lsOrdStage4 sh (T (Strides ats) ao v)
-  | l == 0 = []
-  | otherwise = case canonView sh ats of
-      ([], _) -> [whole]
-      ([_], [1]) -> [whole]
-      (csh, cats)
-        | last cats == 1 -> lazyRuns csh cats ao v
-        | otherwise -> [fillStage2 csh cats ao l v]
-  where
-    !l = product sh
-    whole | ao == 0 && VS.length v == l = v
-          | otherwise = VS.slice ao l v
-
-{-# NOINLINE fbLibStage4 #-}
-fbLibStage4 :: ShapeL -> T -> VS.Vector Double
-fbLibStage4 sh a = concatKnown (product sh) (lsOrdStage4 sh a)
-
 -- One pass over a list of slices whose total length is known, into a
 -- result allocated once: a memcpy per slice, the list consumed as it is
 -- produced and none of it retained. A one-element list of the full
@@ -3753,11 +3703,33 @@ fbLibStage4 sh a = concatKnown (product sh) (lsOrdStage4 sh a)
 -- over 'Bundle.fromVectors', whose size is a 'foldl'' of the lengths
 -- over the whole list before the first element streams, so the list is
 -- held whole and walked twice (read in the cabal store, 2026-09-07).
+-- Restored 2026-09-07 after a day's absence, for the comparison with
+-- ox-arrays' 'ravelOuterN' (src/Data/Array/XArray.hs), which is this
+-- loop: a result allocated once with 'unsafeNew', an 'unsafeCopy' per
+-- slice, the list streamed by a fold and not held -- plus what a
+-- library owes and a benchmark does not, the count and the shapes
+-- checked as it goes, the total taken from the first element's shape,
+-- that element forced before the allocation so its memory can go, and
+-- the destination sliced with 'VSM.slice', a bounds check per run that
+-- turns a list longer than the buffer into an error where the
+-- 'unsafeSlice' here trusts @l@ and would write past it -- the source
+-- slices are checked on both sides, the arms' 'VS.slice' and the
+-- library's 'vSlice' being the same 'V.slice'. The
+-- comparison found the earlier text of this function allocating with
+-- 'VSM.new', which zeroes a Storable buffer ('storableZero') before the
+-- copies overwrite every byte, a pass 'ravelOuterN' does not pay;
+-- 'unsafeNew' since. Tried in 'fbLibStage2Disp''s slice route the same
+-- day: 0.9961 of that arm's instructions at 'runs-4096', 0.9991 at
+-- 'runs-16384' and 0.9998 at 'runs-65536', the second walk it saves
+-- being one cons and one slice header per run against a memcpy of
+-- 2048 elements or more -- so that arm keeps 'VS.concat', which is what
+-- the library's 'vConcat' is, and this function has no caller: a
+-- refuted shape kept beside its figures.
 concatKnown :: Int -> [VS.Vector Double] -> VS.Vector Double
 concatKnown !l parts = case parts of
   [p] | VS.length p == l -> p
   _ -> VS.create $ do
-    out <- VSM.new l
+    out <- VSM.unsafeNew l
     let go !_ [] = return ()
         go !o (p : ps) = do
           let !k = VS.length p
@@ -3772,6 +3744,11 @@ concatKnown !l parts = case parts of
 -- -- stage one's slice recursion against stage two's base-offset table and
 -- its 'VU.toList' -- in time and, exactly, in allocation. What a library
 -- consumer that iterates the list pays, 'reduceT' and 'padT' among them.
+-- 'VS.concat' holds the list whole: vector 0.13.2.0's 'concat' is
+-- 'unstream' over 'Bundle.fromVectors', whose size is a 'foldl'' of the
+-- lengths before the first element streams (read in the cabal store,
+-- 2026-09-07), so no liblist arm can see a list's laziness; 'check''s
+-- laziness gate does.
 --
 -- Stage one's list (Data/Array/Internal.hs at 0386073): regime 1 the
 -- vector, regime 2 the slice recursion over the normal suffix, regime 3
@@ -3816,6 +3793,67 @@ fbLibListStage2 sh (T (Strides ats) ao v) = VS.concat parts
         whole | ao == 0 && VS.length v == l = [v]
               | otherwise = [VS.slice ao l v]
         l = product sh
+
+-- Stage three of the list entry point, 'toVectorListT' kept lazy up to
+-- the exception: the ordered list built as master builds it -- the
+-- vector or a slice at the natural strides, a lazy list of slices where
+-- the innermost canonical stride is 1, one strict fill only where no
+-- run is longer than one element -- with two things master does not
+-- do. 'canonView' first, so a unit or mergeable dimension moves the
+-- view to a lazier pattern, the exception's case: 'runs-r3-48x30''s
+-- three canonical levels merge into runs of 1440 where master reads runs
+-- of 30, and 'small-flat64' is one slice where master reads 64 runs --
+-- the two timed views it moves, read off a replica of the dispatches
+-- over every checked view, 2026-09-07. And 'lazyRuns' in place of the
+-- per-level 'concat', one slice per run on demand and no table. The
+-- dispatch keeps the natural-strides comparison, as 'fbLibStage2' does,
+-- so 'fbLibListStage4' is one change over it. Timed as every liblist
+-- arm is, the list then one 'VS.concat': against 'fbLibListStage1' the
+-- pair prices the canonicalization and the odometer against master's
+-- slice recursion, and 'fbLibListStage4', under 'fbLibListStage2''s
+-- lean dispatch, prices the odometer against the strict base-offset
+-- table. Added 2026-09-07 for Run 27.
+lsListStage3 :: ShapeL -> T -> [VS.Vector Double]
+lsListStage3 sh (T (Strides ats) ao v)
+  | l == 0 = []
+  | otherwise =
+      let (csh, cats) = canonView sh ats
+          _ : ts = getStridesT csh
+      in  if cats == ts then [whole]
+          else if last cats == 1 then lazyRuns csh cats ao v
+          else [fillStage2 csh cats ao l v]
+  where
+    !l = product sh
+    whole | ao == 0 && VS.length v == l = v
+          | otherwise = VS.slice ao l v
+
+{-# NOINLINE fbLibListStage3 #-}
+fbLibListStage3 :: ShapeL -> T -> VS.Vector Double
+fbLibListStage3 sh a = VS.concat (lsListStage3 sh a)
+
+-- Stage four of the list entry point: 'lsListStage3' under the lean
+-- dispatch, the regime read off the merged form alone and no
+-- 'getStridesT' built, as 'fbLibStage2Lean' reads it. One change over
+-- 'fbLibListStage3', that arm its control, and one over
+-- 'fbLibListStage2', whose lean dispatch it shares, the list's
+-- construction. Added 2026-09-07 for Run 27.
+lsListStage4 :: ShapeL -> T -> [VS.Vector Double]
+lsListStage4 sh (T (Strides ats) ao v)
+  | l == 0 = []
+  | otherwise = case canonView sh ats of
+      ([], _) -> [whole]
+      ([_], [1]) -> [whole]
+      (csh, cats)
+        | last cats == 1 -> lazyRuns csh cats ao v
+        | otherwise -> [fillStage2 csh cats ao l v]
+  where
+    !l = product sh
+    whole | ao == 0 && VS.length v == l = v
+          | otherwise = VS.slice ao l v
+
+{-# NOINLINE fbLibListStage4 #-}
+fbLibListStage4 :: ShapeL -> T -> VS.Vector Double
+fbLibListStage4 sh a = VS.concat (lsListStage4 sh a)
 
 -- The unordered-list consumer under each stage: 'toUnorderedVectorListT'
 -- and one concatenation, the third entry point the branch changes and
@@ -4114,30 +4152,55 @@ lazinessGate = do
   let (bsh, ba) = mkBlock [200000, 20] [200000, 32] 0
       (tsh, ta) = mkCompose [20, 200000] (Strides [1, 32]) 0
       bound = 32768 :: Int64
-      lazyOnes = [ ("liblist-stage1", lsListStage1)
-                 , ("libunord-stage1", lsUnordStage1)
-                 , ("libunord-stage4", lsUnordStage4)
-                 , ("libunord-stage5", lsUnordStage5)
-                 , ("lib-stage3", lsOrdStage3)
-                 , ("lib-stage4", lsOrdStage4) ]
-      strictOnes = [ ("liblist-stage2", lsListStage2)
-                   , ("libunord-stage2", lsUnordStage2) ]
-      unordered = [ ("libunord-stage4", lsUnordStage4)
-                  , ("libunord-stage5", lsUnordStage5) ]
-      gate view sh a want (n, ls) = do
-        bytes <- allocOfHead (ls sh a)
-        let ok = if want then bytes < bound else bytes >= bound
-        putStrLn $ "laziness " ++ view ++ " " ++ n
-                   ++ ": the head of the list allocates " ++ show bytes
-                   ++ " bytes, " ++ (if want then "lazy" else "strict")
-                   ++ " wanted" ++ (if ok then "" else " FAILED")
-        unless ok $ error ("LAZINESS GATE FAILED: " ++ n ++ " on " ++ view)
+      -- One row per list producer, in family and stage order, with what
+      -- each view asks of it: @Just True@ that the head allocate under
+      -- the bound, @Just False@ that it reach the bound, either failing
+      -- 'check' when it does not; @Nothing@ forces nothing and asserts
+      -- nothing, the gate having no question there, and the reason is at
+      -- the row -- a strict reading there is the pattern's own and not a
+      -- claim this gate makes. Every cell was read
+      -- on 2026-09-07, the unasked ones included: a lazy head costs one
+      -- to two KB here, the branch's table on the block 6.4 MB en route
+      -- to its 1.6 MB, and a producer that fills 32 MB, the result.
+      rows =
+        [ -- master's ordered list: lazy in regime 2; on the transposed
+          -- block, regime 3 to it, the fill, its own pattern and not the
+          -- ruling's, so not asked
+          ("liblist-stage1", lsListStage1, Just True, Nothing)
+          -- the branch's port: the table on the block, the fill on the
+          -- transposed, strict either way and required to be
+        , ("liblist-stage2", lsListStage2, Just False, Just False)
+          -- the ordered candidates: lazy on the block; on the transposed
+          -- the fill, as master's, so not asked
+        , ("liblist-stage3", lsListStage3, Just True, Nothing)
+        , ("liblist-stage4", lsListStage4, Just True, Nothing)
+          -- master's unordered list: its one-block test fails on both
+          -- views, the gap between rows seeing to that, so it is the
+          -- ordered list and reads as liblist-stage1 does
+        , ("libunord-stage1", lsUnordStage1, Just True, Nothing)
+          -- the branch's port, as liblist-stage2
+        , ("libunord-stage2", lsUnordStage2, Just False, Just False)
+          -- libunord-stage3 has no row: a Fill arm, its fill half the
+          -- ruling forecloses and its dispatch half stage five's
+          -- the unordered candidates: lazy on both, the transposed block
+          -- being runs of 20 in address order to them, the exception's move
+        , ("libunord-stage4", lsUnordStage4, Just True, Just True)
+        , ("libunord-stage5", lsUnordStage5, Just True, Just True) ]
+      gate view sh a n ls ask = case ask of
+        Nothing -> return ()
+        Just want -> do
+          bytes <- allocOfHead (ls sh a)
+          let ok = if want then bytes < bound else bytes >= bound
+          putStrLn $ "laziness " ++ view ++ " " ++ n
+                     ++ ": the head of the list allocates " ++ show bytes
+                     ++ " bytes, " ++ (if want then "lazy" else "strict")
+                     ++ " wanted" ++ (if ok then "" else " FAILED")
+          unless ok $ error ("LAZINESS GATE FAILED: " ++ n ++ " on " ++ view)
   _ <- evaluate (force (bsh, ba))
   _ <- evaluate (force (tsh, ta))
-  mapM_ (gate "runs-block" bsh ba True) lazyOnes
-  mapM_ (gate "runs-block" bsh ba False) strictOnes
-  mapM_ (gate "transposed" tsh ta True) unordered
-  mapM_ (gate "transposed" tsh ta False) strictOnes
+  mapM_ (\(n, ls, onBlock, _) -> gate "runs-block" bsh ba n ls onBlock) rows
+  mapM_ (\(n, ls, _, onTransposed) ->
+           gate "transposed" tsh ta n ls onTransposed) rows
 
 {-# NOINLINE allocOfHead #-}
 allocOfHead :: [VS.Vector Double] -> IO Int64
@@ -5296,8 +5359,8 @@ roster =
     -- Timed once more for Run 26 as the lean arm's control, which read
     -- 'lib-stage2-lean' at or below this arm everywhere and ahead on the
     -- small shapes (runs/run26.md, items 5 and 6). 'Only' again since
-    -- 2026-09-06. RULED OUT for the library 2026-09-07 and kept as a
-    -- ceiling (README.md#dead-ideas), reasons at the definition.
+    -- 2026-09-06. Outside the laziness ruling of 2026-09-07, 'toVectorT'
+    -- being strict (README.md#dead-ideas), reasons at the definition.
   , ("lib-stage2",                 Only fbLibStage2)
   , ("lib-stage2-concat",          Only fbLibStage2Concat)
     -- The dispatch arm the runs class's crossover asks for, added
@@ -5308,8 +5371,8 @@ roster =
     -- Re-cut to 2048 on 2026-09-02 by the probe below, the cut at 256
     -- having been killed by Run 22 on both compilers and by Run 23 on
     -- both layouts; timed by Run 24 at the new cut, reasons at 'dispRun'.
-    -- RULED OUT for the library 2026-09-07 and kept as a ceiling
-    -- (README.md#dead-ideas), reasons at the definition.
+    -- Outside the laziness ruling of 2026-09-07, 'toVectorT' being
+    -- strict (README.md#dead-ideas), reasons at the definition.
   , ("lib-stage2-disp",            Fill fbLibStage2Disp)
     -- One arm per candidate threshold, added 2026-09-02 for the
     -- one-binary runs-class probe README's task 9 registers: the same
@@ -5341,21 +5404,20 @@ roster =
     -- item 7), what the short bodies would have bought and not a
     -- candidate to ship. 'Only' again since 2026-09-06.
   , ("lib-stage2-short",           Only fbLibStage2Short)
-    -- RULED OUT for the library 2026-09-07 and kept as a ceiling
-    -- (README.md#dead-ideas), reasons at the definition.
+    -- Outside the laziness ruling of 2026-09-07, 'toVectorT' being
+    -- strict (README.md#dead-ideas), reasons at the definition.
   , ("lib-stage2-lean",            Fill fbLibStage2Lean)
-    -- The lazy candidates of the shipped route, 2026-09-07, beside the
-    -- lean fill they are read against: stage three the ordered lazy list
-    -- under the natural-strides dispatch and one pass into the result,
-    -- stage four the same under the lean dispatch, reasons at the
-    -- definitions. Every slot below moves by two.
-  , ("lib-stage3",                 Fill fbLibStage3)
-  , ("lib-stage4",                 Fill fbLibStage4)
     -- The list consumer under each stage, added the same day: the
     -- library's toVectorListT and one concatenation, so the pair prices
     -- the list's construction alone, reasons at the definitions.
   , ("liblist-stage1",             Fill fbLibListStage1)
   , ("liblist-stage2",             Fill fbLibListStage2)
+    -- Stages three and four of the list entry point, 2026-09-07: the
+    -- ordered list kept lazy, canonicalized, under the natural-strides
+    -- dispatch and the lean one, reasons at the definitions. Every slot
+    -- below moves by two.
+  , ("liblist-stage3",             Fill fbLibListStage3)
+  , ("liblist-stage4",             Fill fbLibListStage4)
     -- The unordered entry point under each stage, added 2026-08-30 with
     -- the fill candidates and for the same run: one-block test in front
     -- of the liblist body, reasons at the definitions. Every slot below

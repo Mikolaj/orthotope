@@ -457,8 +457,9 @@ by being a thing a later session might otherwise redo.
   classes](#the-stride-classes-and-what-they-cover).
 - **The list `toVectorListT` and `toUnorderedVectorListT` return stays lazy**,
   2026-09-07, up to one exception, a view moved between laziness patterns
-  by canonicalization alone; the ruling, the exception and the four arms
-  it forecloses and keeps as ceilings: [dead ideas][dead].
+  by canonicalization alone; the ruling, the exception, what it forecloses
+  and what it leaves outside, `toVectorT` being strict whichever way
+  it is built: [dead ideas][dead].
 - **Code placement moves figures**, and by more than the A/A controls can see:
   the identical-code pair, the rebuild bias, the per-loop reading
   and the cache-line table are all [in the floor section][floor]. **Straddling
@@ -1060,45 +1061,46 @@ rather than a slot in the next run, observed again:
   by `libunord-stage4` ahead of `libunord-stage5` past the floor on both halves
   on any population, which would say the second canonicalization costs more
   than the stride list it replaces. (8) *The lazy ordered candidates.*
-  `lib-stage3` and `lib-stage4` are `toVectorT` over the ordered list kept lazy
-  up to the exception, canonicalized and copied in one pass,
+  `liblist-stage3` and `liblist-stage4` are `toVectorListT` kept lazy up
+  to the exception, canonicalized, one slice per run from the odometer list
+  and no table, then the one concatenation the two ports carry,
   under the natural-strides dispatch and the lean one. On every population, both
-  halves. Against the shipped route: `lib-stage3` at or ahead of `lib-stage1`
-  everywhere --- `predict: pair lib-stage3 lib-stage1 0.96 within 3%`
-  on the main set, where both fill and the dispatch is the difference,
-  as `lib-stage2-lean` read 0.9574 and 0.9361 against it on Run 26; ahead past
-  the floor on `runs`, `block`, `flip-outer-gap64`, `small-row96`
-  and `window-64x64-k1x9`, where both take the list route and the one pass saves
-  the concatenation's second, and on the two views canonicalization moves,
-  the exception's case: `runs-r3-48x30`, whose three canonical levels merge
-  into runs of 1440 where the shipped route reads runs of 30,
-  and `small-flat64`, one slice where it reads 64 runs. Against the ceiling:
-  `lib-stage4` against `lib-stage2-lean` is the same code wherever no canonical
-  run exists, `predict: pair lib-stage4 lib-stage2-lean 1.0` on the main set
-  and inside the floor on `bcast`, `bcastmid`, `scaled`, `rev`, `compose`
-  and every `window` view but `window-64x64-k1x9`; where runs exist it
-  is the lazy list against the fill of the runs, behind past the floor at short
-  runs and ahead at long, the crossover on `runs` read per view by hand
-  and expected between `runs-256` and `runs-4096`, where `dispRun` was cut.
-  And `lib-stage3` against `lib-stage4`, the natural-strides comparison alone,
-  `predict: pair lib-stage3 lib-stage4 1.0` on the main set, inside the floor
-  everywhere but `small`. The three spans are read on every population the loop
-  hands them; a class's verdict counts only where this item names that class,
-  and elsewhere the figure printed is read against the per-view predictions
-  above. Killed by `lib-stage3` behind `lib-stage1` past the floor on both
-  halves on any population, which would say canonicalization or the odometer
-  list costs more than the concatenation it saves; by `lib-stage4` ahead
-  of `lib-stage2-lean` past the floor on both halves on `runs-2` to `runs-9`,
-  which would say the fill of the runs is not a ceiling at short runs;
-  or by `lib-stage4` behind it past the floor on both halves at `runs-65536`,
-  which would say one memcpy per run never wins. (9) *The reducing consumers,
-  the ruling's own measurement.* `libunord-stage1-sum`, `libunord-stage2-sum`,
-  `libunord-stage4-sum` and `libunord-stage5-sum` are `sumT` over each stage's
-  list, one slice at a time and no concatenation, the first reading of the entry
-  point as it is used. On every population, both halves, the loop's span figures
-  first and a per-view reading where a figure falls outside the floor and
-  on the views named with no prediction; on the main set all four sum one slice
-  and their cells are the forcing pass, so the readings are the classes'.
+  halves. Against the port of the branch: `liblist-stage4` against
+  `liblist-stage2`, the same lean dispatch, is the same fill wherever
+  no canonical run exists, `predict: pair liblist-stage4 liblist-stage2 1.0`
+  on the main set and inside the floor on `bcast`, `bcastmid`, `scaled`, `rev`,
+  `compose` and every `window` view but `window-64x64-k1x9`; where runs exist
+  it is the odometer list against the strict base-offset table under the same
+  concatenation, at or ahead on `runs`, `block`, `flip-outer-gap64`,
+  `small-row96` and `window-64x64-k1x9`, read per view by hand. Against master's
+  port: `liblist-stage3` at or ahead of `liblist-stage1` everywhere ---
+  `predict: pair liblist-stage3 liblist-stage1 0.96 within 3%` on the main set,
+  where both fill and the dispatch is the difference, as `liblist-stage2` read
+  0.9656 and 0.9560 against it on Run 26 under the lean dispatch, stage three
+  paying a strides comparison over that --- and ahead past the floor on the two
+  views canonicalization moves, the exception's case: `runs-r3-48x30`, whose
+  three canonical levels merge into runs of 1440 where the shipped route reads
+  runs of 30, and `small-flat64`, one slice where it reads 64 runs.
+  And `liblist-stage3` against `liblist-stage4`, the natural-strides comparison
+  alone, `predict: pair liblist-stage3 liblist-stage4 1.0` on the main set,
+  inside the floor everywhere but `small`. The three spans are read on every
+  population the loop hands them; a class's verdict counts only where this item
+  names that class, and elsewhere the figure printed is read against
+  the per-view predictions above. Killed by `liblist-stage4` behind
+  `liblist-stage2` past the floor on both halves on any `runs` view, which would
+  say the odometer costs more than the table it replaces; by `liblist-stage3`
+  behind `liblist-stage1` past the floor on both halves on any population, which
+  would say canonicalization or the odometer costs more than the slice
+  recursion; or by `liblist-stage4` off `liblist-stage3` past the floor on both
+  halves on `small`, either way, which would say the strides comparison
+  is priced there. (9) *The reducing consumers, the ruling's own measurement.*
+  `libunord-stage1-sum`, `libunord-stage2-sum`, `libunord-stage4-sum`
+  and `libunord-stage5-sum` are `sumT` over each stage's list, one slice
+  at a time and no concatenation, the first reading of the entry point as
+  it is used. On every population, both halves, the loop's span figures first
+  and a per-view reading where a figure falls outside the floor and on the views
+  named with no prediction; on the main set all four sum one slice and their
+  cells are the forcing pass, so the readings are the classes'.
   `libunord-stage5-sum` against `libunord-stage1-sum`, master's consumer:
   the tie inside the floor wherever both sum one slice or both sum a fill,
   `predict: pair libunord-stage5-sum libunord-stage1-sum 1.0` on `bcast`,
@@ -1138,11 +1140,11 @@ rather than a slot in the next run, observed again:
   of `lib-stage2-lean`'s corrected instructions on `small` and 1.0142 and 1.0148
   in time, on this run's recipe as it stood before the eight arms ([the
   disp/lean entry][open]). The pair differs in the `dispRun` comparison and has
-  no twin among the eight arms, item (8)'s `lib-stage3` against `lib-stage4`
-  being the natural-strides comparison that `lib-stage2-lean`'s parked control
-  prices against it. On `small`, both halves, the span printing a figure
-  and no verdict on any other population, `runs` most of all, where the two
-  are different code by design:
+  no twin among the eight arms, item (8)'s `liblist-stage3` against
+  `liblist-stage4` being the natural-strides comparison under the list, which
+  `lib-stage2-lean`'s parked control prices under the fill. On `small`, both
+  halves, the span printing a figure and no verdict on any other population,
+  `runs` most of all, where the two are different code by design:
   `predict: pair lib-stage2-disp lib-stage2-lean 1.015 within 1%`. Killed
   by the pair inside the class's floor on both halves, which would say
   the counts pair's 1.9% does not reach the clock on a major run.
@@ -3695,7 +3697,8 @@ and 15.7% more allocation on horde-ad's `inp-96x96/H-exec`, whose views are rows
 of 96. So the roster carries five arms that are ports of library code
 and not strategies: `lib-stage1`, stage one's `toVectorT` whole; `lib-stage2`,
 the branch's, its driver ported bang-for-bang with both zero-stride conditions
---- ruled out for the library since 2026-09-07 and kept as a ceiling ([dead
+--- its fill of the runs outside the laziness ruling of 2026-09-07, `toVectorT`
+being strict either way, and questioned by the runs class alone ([dead
 ideas][dead]); `lib-stage2-concat`, the branch with contiguous runs sent back
 to slices and a concatenation, the repair candidate; and the list consumer
 under each stage, `liblist-stage1` and `liblist-stage2`, the library's
@@ -3707,48 +3710,48 @@ and, exactly, in allocation, which is what a consumer iterating the list pays.
 of anything**, added 2026-08-30: the slice route taken only where the canonical
 run reaches `dispRun`, so it is `lib-stage2-lean` below the crossover
 and `lib-stage2-concat` above it --- its lower side was `lib-stage2` until
-the lean ruling below --- and the runs class is what cuts it to one; its lower
-side is what the ruling of 2026-09-07 forecloses, so it is kept as a ceiling
-([dead ideas][dead]). On every other population no canonical run reaches
-`dispRun`, so there it is `lib-stage2-lean`'s code and the two arms' pair reads
-as an A/A, which [the floor section][floor] records --- except on `small`, where
-their corrected instructions part by 1.9% on the basis and 1.8% on HEAD
-and the pair is not an A/A at all ([the disp/lean entry][open]). **Beside it,
-for Run 22, sit three fill candidates**, each a fill change under the same
-dispatch: `lib-stage2-u4`, the stepping run unrolled by four;
-`lib-stage2-short`, a canonical run of 2 to 5 elements written by a body
-of exactly that length, chosen once per row as the broadcast body is;
+the lean ruling below --- and the runs class is what cuts it to one;
+the laziness ruling of 2026-09-07 does not reach it, `toVectorT` being strict
+either way ([dead ideas][dead]). On every other population no canonical run
+reaches `dispRun`, so there it is `lib-stage2-lean`'s code and the two arms'
+pair reads as an A/A, which [the floor section][floor] records --- except
+on `small`, where their corrected instructions part by 1.9% on the basis
+and 1.8% on HEAD and the pair is not an A/A at all ([the disp/lean
+entry][open]). **Beside it, for Run 22, sit three fill candidates**, each a fill
+change under the same dispatch: `lib-stage2-u4`, the stepping run unrolled
+by four; `lib-stage2-short`, a canonical run of 2 to 5 elements written
+by a body of exactly that length, chosen once per row as the broadcast body is;
 and `lib-stage2-lean`, the same fill under a leaner dispatch: a canonical view
 of rank 2 or more can never carry the natural strides, the merge that made
 it canonical having consumed every natural pair, so the regimes are read off
 the merged form alone and the strides comparison the control's dispatch pays
-is not paid --- the fill under it ruled out for the library with `lib-stage2`'s
-since 2026-09-07 and kept as a ceiling, the dispatch standing ([dead
-ideas][dead]). **`lib-stage3` and `lib-stage4`, added 2026-09-07 for Run 27,
-are the shipped route's candidates under the ruling**: `toVectorT`
-over the ordered list kept lazy up to the exception --- canonicalized, so a unit
-or mergeable dimension moves a view to a lazier pattern, its slices produced
-on demand by the odometer list, and one pass into a result allocated once where
-`VS.concat` learns the length from the list first --- stage three
-under the natural-strides dispatch and stage four under the lean one,
-so `lib-stage4` against `lib-stage2-lean` is the lazy list against the fill
-of the runs wherever a run exists and the same code wherever none does.
-**And beside those, the unordered entry point joins the family**:
-`libunord-stage1` and `libunord-stage2`, each stage's `toUnorderedVectorListT`
-one-block test in front of its liblist body and one concatenation -- the third
-route the branch changes, rostered so that a shim-switch reading (Run 23's
-LOOP_DEADSPOT among them) has its sanity readings, which no test of the branch
-alone can show until GHC itself grows such a capability. **`libunord-stage3`,
-added 2026-09-05 for Run 26, is the family's one candidate rather than a port**:
-the one-block test generalized into the dispatch, the canonical dims sorted
-by absolute stride from the lowest offset and canonicalized again, so the lean
-rank test reads one block and everything else is one fill in address order,
-every axis forward and the smallest stride innermost --- what Run 25's `flip`
-finding, a reversed run at twice its forward cost on identical instructions,
-says an unordered consumer pays today for nothing. **Its fill half is ruled out
-for the library since 2026-09-07** ([dead ideas][dead]), the list having to stay
-lazy, so the arm stays timed as the ceiling of what an address-order fill would
-buy and what can land is its dispatch. Against `libunord-stage2` its margin also
+is not paid --- the fill under it the branch's route, outside the laziness
+ruling of 2026-09-07 as `lib-stage2`'s is ([dead ideas][dead]), and the dispatch
+what shipped. **`liblist-stage3` and `liblist-stage4`, added 2026-09-07 for Run
+27, are the list entry point's candidates under the ruling**: `toVectorListT`
+kept lazy up to the exception --- canonicalized, so a unit or mergeable
+dimension moves a view to a lazier pattern, its slices produced on demand
+by the odometer list and no table built --- then the one concatenation the two
+ports carry, stage three under the natural-strides dispatch and stage four
+under the lean one, so `liblist-stage4` against `liblist-stage2`, under one lean
+dispatch, is the lazy odometer list against the strict base-offset table
+wherever a run exists and the same fill wherever none does. **And beside those,
+the unordered entry point joins the family**: `libunord-stage1`
+and `libunord-stage2`, each stage's `toUnorderedVectorListT` one-block test
+in front of its liblist body and one concatenation -- the third route the branch
+changes, rostered so that a shim-switch reading (Run 23's LOOP_DEADSPOT among
+them) has its sanity readings, which no test of the branch alone can show until
+GHC itself grows such a capability. **`libunord-stage3`, added 2026-09-05
+for Run 26, is the family's one candidate rather than a port**: the one-block
+test generalized into the dispatch, the canonical dims sorted by absolute stride
+from the lowest offset and canonicalized again, so the lean rank test reads one
+block and everything else is one fill in address order, every axis forward
+and the smallest stride innermost --- what Run 25's `flip` finding, a reversed
+run at twice its forward cost on identical instructions, says an unordered
+consumer pays today for nothing. **Its fill half is ruled out for the library
+since 2026-09-07** ([dead ideas][dead]), the list having to stay lazy,
+so the arm stays timed as the ceiling of what an address-order fill would buy
+and what can land is its dispatch. Against `libunord-stage2` its margin also
 carries that arm's list and concatenation, which a reducing consumer does
 not pay, so the reading is the direction where stage two falls back to the list
 and the tie where both slice. **`libunord-stage4` and `libunord-stage5`, added
@@ -3847,7 +3850,7 @@ and the pointer pair of 2026-09-05 makes it 513; parking the leaf arm whose
 bound-control run is over took it to 494, the four parkings Run 26 lifted
 for that run alone ([what the benchmark does](#what-the-benchmark-does)) being
 back since 2026-09-06; and the addition of 2026-09-07, eight arms --- the two
-lazy unordered candidates, the two of the shipped route and the four reducing
+lazy unordered candidates, the two lazy ordered ones and the four reducing
 consumers --- takes it to 646, and the hoisted-bound fill of the same day,
 `mut-odo-vecdims-add-in-leaf-u2-last`, takes the roster to 665 benches.
 
@@ -5595,11 +5598,13 @@ first, the two that did not die on paper at all:
   lazy list and another to a one-element list --- the laziness lost
   with the move is permitted; what is not is a pattern itself made less lazy.
   What the ruling forecloses is the fill half of `libunord-stage3`'s library
-  form, whose dispatch half stands on its own, and `lib-stage2`'s route,
-  `toVectorT` filling contiguous runs instead of concatenating the lazy list,
-  which `lib-stage2-lean` takes under the lean dispatch and `lib-stage2-disp`
-  below `dispRun` --- the route and not the lean dispatch, which stands; all
-  four arms stay rostered as ceilings, each reading what its fill would buy.
+  form, whose dispatch half stands on its own; the arm stays rostered
+  as the ceiling of what that fill would buy. What it does not reach
+  is `toVectorT`, strict whichever way it is built: the branch's fill
+  of contiguous runs there --- `lib-stage2`'s route, `lib-stage2-lean`'s
+  under the lean dispatch and `lib-stage2-disp`'s below `dispRun` --- stands
+  or falls on the runs class and not on this ruling, which a draft of this entry
+  had it under until the function's strictness was read against it the same day.
   The branch's `Runs` regime builds its base-offset table whole,
   by `runBaseOffsetsT`, before the first slice --- the same kind of step,
   on the run count rather than the size, and outside the exception, the pattern
