@@ -35,10 +35,11 @@ micro-pair*.txt
 # suffixes were an accident of which probes came first.
 #
 # BUT THE PREFIX IS NOT THE WHOLE RULE, which is why the re-includes
-# below exist: some probes ARE tracked -- shell drivers, a Haskell
-# sketch and a predicate port -- being inputs to this README rather than
-# artifacts of a run. The list below is that inventory, so it is not
-# counted here as well.
+# below exist: some probes ARE tracked, being inputs to this README
+# rather than artifacts of a run. They are MORE than the re-includes --
+# a probe tracked before this pattern was broadened stays tracked, git
+# ignoring only what is untracked -- so the list below is the ones a
+# delete would strand and not a census of them.
 # Ignoring a tracked file is harmless until someone deletes and re-adds
 # it, at which point `git add` refuses in silence -- so they are named
 # here, and a probe worth tracking in future is named beside them.

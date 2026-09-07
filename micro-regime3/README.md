@@ -900,8 +900,8 @@ rather than a slot in the next run, observed again:
   on the basis and **1.0180** on HEAD, over the class's five shapes; timed
   in those same two processes the pair reads **1.0142** and **1.0148** against
   floors of 1.05% and 0.83%. So the difference is instructions the two arms do
-  not share rather than where they landed, and it is no longer the larger
-  on HEAD, the halves agreeing here on both instruments where Run 26 read 1.0171
+  not share rather than where they landed, and the halves no longer part: 1.0142
+  and 1.0148 in time, 1.0188 and 1.0180 in counts, where Run 26 read 1.0171
   against 1.0316. The ruling itself is untouched, the lean form being what
   ships; what is now known is that its premise is false on the one class small
   enough to show it.
@@ -991,18 +991,20 @@ rather than a slot in the next run, observed again:
   adjudicated by hand: the basis is the wider half in **3 to 8 of the eleven**,
   continuing the three-run absence. Killed by 9 or more, or by 2 or fewer ---
   the band and the kill are complementary on purpose, so that no count falls
-  outside both --- either being past a fair coin at about 3% and either saying
-  the asymmetry is back and its three-run absence the anomaly. Two readings go
-  beside it on the same 22 processes: a process's floor against the median A/A
-  half-width beneath it, which read +0.26, +0.49 and +0.52 by run and which [the
-  floor section][floor]'s order-statistic ruling expects to stay positive,
-  killed by a negative correlation on this run; and its position in the evening
-  against its floor, which read -0.06, -0.04 and +0.16 and is a null this run
+  outside both, and the two tails together are the two-sided 7% sign test
+  on eleven, this file's own convention. Either tail says the asymmetry is back
+  and its three-run absence the anomaly. Two readings go beside it on the same
+  22 processes: a process's floor against the median A/A half-width beneath it,
+  which read +0.26, +0.49 and +0.52 by run and which [the floor
+  section][floor]'s order-statistic ruling expects to stay positive, killed
+  by a negative correlation on this run; and its position in the evening against
+  its floor, which read -0.06, -0.04 and +0.16 and is a null this run
   is not expected to disturb. **What this item cannot settle
-  is the within-population decay**, since no major run puts two processes of one
-  population in an evening --- four processes of one population
-  with the binaries alternating is the only instrument that has seen one,
-  and that is [the class-floor entry][open]'s probe rather than this run's.
+  is the within-population decay**, since a major run's two processes
+  of a population ARE its two halves, so position and compiler move together
+  there --- four processes of one population with the binaries alternating
+  is what saw one, and that is [the class-floor entry][open]'s probe rather
+  than this run's.
 
 - `ANSWERED` **What Run 26 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
@@ -2101,8 +2103,8 @@ rather than a slot in the next run, observed again:
   candidate and the one whose fall breaks worst. That is **10 of 12**
   consecutive steps down, **12 of 14** counting the within-evening series
   of the same afternoon, 0.47%, 0.41% and 0.36% ([the floor section][floor]),
-  and the first process is the wider in **7 of the 8** order-pairs at sign p
-  0.035. **The first two classes read 8 of 8, and the two added on 2026-09-07
+  and the first process is the wider in **7 of the 8** order-pairs, sign p
+  0.070. **The first two classes read 8 of 8, and the two added on 2026-09-07
   are what took it off that** --- which is why the unfinished half of a probe
   is not a smaller version of the finished one. `scaled`'s block is the weakest
   of the four whichever way it is read: its first process reads **1.68%** where
@@ -2124,8 +2126,8 @@ rather than a slot in the next run, observed again:
   is the wider in 4 of 8 there against 7 of 8 on Run 26's pair**, and only `rev`
   repeats its 2 of 2: `bcast` goes 2 of 2 to **0 of 2**, `scaled` 2 of 2 to 1
   of 2, `bcastmid` 1 of 2 to 1 of 2. Over both probes that is **11 of 16**
-  at sign p 0.105, and pooled with the 19 of 32 the recorded runs give, **30
-  of 48** at p 0.056. **The basis half is wider in 2 of those 8 and 5
+  at sign p 0.210, and pooled with the 19 of 32 the recorded runs give, **30
+  of 48** at p 0.111. **The basis half is wider in 2 of those 8 and 5
   of the 16**, 18 of 48 pooled, so the asymmetry this entry is named
   for is refuted on every population reversed and leans the other way
   if it leans at all. **So neither the half nor the position explains a class
@@ -2187,10 +2189,12 @@ rather than a slot in the next run, observed again:
   consecutive positions in a recorded run are different POPULATIONS, whose
   floors differ severalfold, so that correlation is a weak instrument
   for a decay WITHIN one population, and the one same-population step those runs
-  do offer --- the pair itself --- also changes compiler. Only the blocks put
-  four processes of one population in a row with the binaries alternating.
-  **And 7 of 8 is itself unsurprising under a 19-of-32 rate**, arriving about
-  one time in ten, so the blocks and the recorded runs were never in conflict.
+  do offer --- the pair itself --- also changes compiler. The blocks are four
+  processes of one population in a row with the binaries alternating, which
+  a recorded run does not offer: its two processes of a population are its two
+  halves. **And 7 of 8 is itself unsurprising under a 19-of-32 rate**, arriving
+  about one time in ten, so the blocks and the recorded runs were never
+  in conflict.
 - `OPEN` **What does the roster owe the next run?** The exact repetition
   is **taken** and is not owed again for its own sake: Run 11 inherited shapes,
   roster, order, regime and binary, and what it bought is [in the floor
@@ -2804,8 +2808,8 @@ is planned. A scope limit belongs in the sentence that asks for the measurement.
    over the sampling**: four processes of one binary in one day read floors
    of 0.31%, 0.47%, 0.41% and 0.36%, each within 1.2 to 1.7 of its own
    half-width and the three consecutive ones falling monotonically, with one
-   slot carrying every reading and the per-process term showing in one pair
-   alone. [The floor section][floor] carries the account. A fall down
+   slot carrying every reading and no per-process term that four processes
+   resolve. [The floor section][floor] carries the account. A fall down
    the sitting that the first blocks suggested beside it did not survive its own
    replication, and [the class-floor entry][open] carries that.
 2. `ANSWERED` **What the un-unrolled leaf gives up is the unrolling AND a spill,
@@ -9068,13 +9072,19 @@ beneath it correlates +0.26, +0.49 and +0.52 by run, so the order-statistic
 reading holds across runs and compilers and not only inside this one binary.
 **What the process does not move is which pair carries it.**
 `bq-expand-aa-distant` carries all four, as it carries both of Run 26's halves
-above, and misses 1 in three of the four at 1.0031, 1.0047, 1.0041 and 1.0036
---- so that slot is worth about +0.4% and repeats where its size does not.
-**The per-process term is the smallest of the three and shows in one pair**,
-`mut-odo-vecdims-aa-distant` reading 0.9985, 0.9958, 1.0006 and 0.9970, a spread
-the tightest of its own four intervals --- 0.9970 to 1.0000 --- excludes at both
-ends. So *read the floor as the run's and the half's* takes *and the process's*,
-and what survives a process is the pair order under it and not the figure.
+above: 1.0031 with its interval covering 1, then 1.0047, 1.0041 and 1.0036
+with theirs missing it --- so that slot is worth about +0.4% and repeats where
+its size does not. **A per-process term is not resolved by four processes**,
+and saying which pairs carry one depends on the test: no two of the four have
+disjoint intervals for any of the six pairs, while the tightest interval
+of a pair excludes another process's estimate for two of them. The widest
+movement is `mut-odo-vecdims-aa-distant`'s, 0.9985, 0.9958, 1.0006 and 0.9970,
+which the tightest of its own four intervals --- 0.9970 to 1.0000 --- excludes
+at both ends; `bq-expand-aa-adjacent` is excluded at one end and the other four
+at neither. So *read the floor as the run's and the half's* takes
+*and the process's*. **What survives a process is which pair carries the floor
+and not the order beneath it**: `bq-expand-aa-distant` leads all four, while
+`mut-odo-vecdims-aa-distant` ranks 3rd, 2nd, 5th and 2nd of the six across them.
 
 **The twins have now taken every side available, which is what a sign this weak
 is worth.** Run 10 read all six pairs above 1 on its unaligned half and five
