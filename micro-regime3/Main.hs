@@ -3057,6 +3057,11 @@ fbLibStage1 sh a@(T (Strides ats) ao v)
 -- 2026-09-05 at 'fbLibStage2Lean', as that arm's control; every other
 -- natural-strides dispatch over 'canonView' here, and the branch's
 -- 'regimeT', took the lean form.
+-- RULED OUT for the library since 2026-09-07 (README.md#dead-ideas):
+-- 'toVectorT' here fills contiguous runs where master concatenates the
+-- lazy slice list, a pattern made less lazy rather than a move between
+-- patterns. Kept as the CEILING of what filling the runs would buy over
+-- the list, and as the lean arm's control.
 {-# NOINLINE fbLibStage2 #-}
 fbLibStage2 :: ShapeL -> T -> VS.Vector Double
 fbLibStage2 sh (T (Strides ats) ao v)
@@ -3127,6 +3132,11 @@ dispRun = 2048
 -- bracketing lengths this arm reads stage two's flat multiple below the
 -- bracket and stage one's above it, which is what
 -- probe-runlen-vacuity.log records.
+-- RULED OUT for the library since 2026-09-07 with 'fbLibStage2'
+-- (README.md#dead-ideas): below 'dispRun' this is that arm's fill of
+-- the runs, a pattern made less lazy; at or above it the list route,
+-- which the ruling leaves. Kept as the CEILING of what a run-length
+-- dispatch between the two would buy.
 {-# NOINLINE fbLibStage2Disp #-}
 fbLibStage2Disp :: ShapeL -> T -> VS.Vector Double
 fbLibStage2Disp sh (T (Strides ats) ao v)
@@ -3560,6 +3570,10 @@ fbLibStage2Short sh (T (Strides ats) ao v)
 -- candidate 'fbLibUnordStage3' answers by canonicalizing the sorted pairs
 -- again; and 'check''s own regime conditions, kept explicit so the
 -- equivalence is checked, not assumed.
+-- RULED OUT for the library since 2026-09-07 with 'fbLibStage2', its
+-- route being the same fill of the runs (README.md#dead-ideas); what
+-- is ruled out is the route and not the lean dispatch, which stands.
+-- Kept as the CEILING of that fill under the dispatch that shipped.
 {-# NOINLINE fbLibStage2Lean #-}
 fbLibStage2Lean :: ShapeL -> T -> VS.Vector Double
 fbLibStage2Lean sh (T (Strides ats) ao v)
@@ -3669,16 +3683,18 @@ fbLibUnordStage2 sh a@(T (Strides ats) ao v)
               _ : ts = getStridesT csh'
           in  acats == ts
 
--- Stage three, a candidate and not a port of anything: the one-block
--- test generalized into the dispatch. An unordered consumer owes no
--- order, so the view is walked in ADDRESS order whatever its logical
--- one: the canonical dims sorted by absolute stride, descending, from
--- the lowest offset -- a reversed axis covering the same addresses from
--- the other end -- and the sorted pairs canonicalized AGAIN, so that
--- every adjacent pair the sort brought together merges and the lean
--- rank test decides one block (rank 0, or rank 1 at stride 1: one
--- slice); everything else is ONE 'fillStage2' over the sorted positive
--- strides, every axis walked forward and the smallest stride innermost.
+-- Stage three, RULED OUT for the library since 2026-09-07 and kept as
+-- the CEILING of an address-order fill (README.md#dead-ideas), not a
+-- port of anything: the one-block test generalized into the dispatch.
+-- An unordered consumer owes no order, so the view is walked in ADDRESS
+-- order whatever its logical one: the canonical dims sorted by absolute
+-- stride, descending, from the lowest offset -- a reversed axis covering
+-- the same addresses from the other end -- and the sorted pairs
+-- canonicalized AGAIN, so that every adjacent pair the sort brought
+-- together merges and the lean rank test decides one block (rank 0, or
+-- rank 1 at stride 1: one slice); everything else is ONE 'fillStage2'
+-- over the sorted positive strides, every axis walked forward and the
+-- smallest stride innermost.
 -- What it prices: Run 25's flip class read a reversed run at about twice
 -- its forward cost on identical instructions, which this fill never
 -- pays, and a transposed view fills with its smallest stride innermost.
@@ -3687,16 +3703,17 @@ fbLibUnordStage2 sh a@(T (Strides ats) ao v)
 -- reading is the direction where stage two falls back to the list and
 -- the tie where both slice. 'check' holds it to the reference as a
 -- multiset, as it holds the other unordered arms.
--- In the library this is 'toUnorderedVectorListT' with its one-block
--- test and its fall-back to 'toVectorListT' replaced by this dispatch:
--- 'canonicalizeT' for 'canonView', and the two branches returned as
--- singleton lists, @[vSlice start l v]@ and @[vFillStrided ssh sats
--- start l v]@; the commit adding this arm carries the body. The dispatch
--- half stands on its own: the rank test over the re-canonicalized sorted
--- pairs equals the sorted natural-strides test the library asks today,
--- checked over 300000 random views and every view to rank 3 with extents
--- to 3 and strides to 4, a mutant skipping the re-canonicalization
--- failing it, so it can land as a simplification if the fill is refuted.
+-- The library form the commit adding this arm carried -- this dispatch
+-- in place of 'toUnorderedVectorListT''s one-block test and fall-back,
+-- the fill returned as a singleton list -- is RULED OUT since 2026-09-07
+-- (README.md#dead-ideas): the list has to stay lazy, and a fill returns
+-- the whole array before the consumer sees an element. So the arm stays
+-- timed as the ceiling of what an address-order fill would buy, and only
+-- the dispatch half can land: the rank test over the re-canonicalized
+-- sorted pairs equals the sorted natural-strides test the library asks
+-- today, checked over 300000 random views and every view to rank 3 with
+-- extents to 3 and strides to 4, a mutant skipping the
+-- re-canonicalization failing it.
 {-# NOINLINE fbLibUnordStage3 #-}
 fbLibUnordStage3 :: ShapeL -> T -> VS.Vector Double
 fbLibUnordStage3 sh (T (Strides ats) ao v)
@@ -4855,7 +4872,8 @@ roster =
     -- Timed once more for Run 26 as the lean arm's control, which read
     -- 'lib-stage2-lean' at or below this arm everywhere and ahead on the
     -- small shapes (runs/run26.md, items 5 and 6). 'Only' again since
-    -- 2026-09-06.
+    -- 2026-09-06. RULED OUT for the library 2026-09-07 and kept as a
+    -- ceiling (README.md#dead-ideas), reasons at the definition.
   , ("lib-stage2",                 Only fbLibStage2)
   , ("lib-stage2-concat",          Only fbLibStage2Concat)
     -- The dispatch arm the runs class's crossover asks for, added
@@ -4866,6 +4884,8 @@ roster =
     -- Re-cut to 2048 on 2026-09-02 by the probe below, the cut at 256
     -- having been killed by Run 22 on both compilers and by Run 23 on
     -- both layouts; timed by Run 24 at the new cut, reasons at 'dispRun'.
+    -- RULED OUT for the library 2026-09-07 and kept as a ceiling
+    -- (README.md#dead-ideas), reasons at the definition.
   , ("lib-stage2-disp",            Fill fbLibStage2Disp)
     -- One arm per candidate threshold, added 2026-09-02 for the
     -- one-binary runs-class probe README's task 9 registers: the same
@@ -4897,6 +4917,8 @@ roster =
     -- item 7), what the short bodies would have bought and not a
     -- candidate to ship. 'Only' again since 2026-09-06.
   , ("lib-stage2-short",           Only fbLibStage2Short)
+    -- RULED OUT for the library 2026-09-07 and kept as a ceiling
+    -- (README.md#dead-ideas), reasons at the definition.
   , ("lib-stage2-lean",            Fill fbLibStage2Lean)
     -- The list consumer under each stage, added the same day: the
     -- library's toVectorListT and one concatenation, so the pair prices
@@ -4909,9 +4931,11 @@ roster =
     -- moves by two more, six in all against Run 21.
   , ("libunord-stage1",            Fill fbLibUnordStage1)
   , ("libunord-stage2",            Fill fbLibUnordStage2)
-    -- The entry point's candidate, added 2026-09-05 for Run 26: the
-    -- one-block test generalized into a fill in address order, reasons
-    -- at the definition. Every slot below moves by one.
+    -- Added 2026-09-05 for Run 26 as the entry point's candidate, the
+    -- one-block test generalized into a fill in address order; RULED OUT
+    -- for the library 2026-09-07 and kept as a ceiling
+    -- (README.md#dead-ideas), reasons at the definition. Every slot
+    -- below moves by one.
   , ("libunord-stage3",            Fill fbLibUnordStage3)
     -- not timed: 6.20x the result
   , ("mut-offsets",                Only fbMutBaseOffsets)

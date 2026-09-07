@@ -455,6 +455,10 @@ by being a thing a later session might otherwise redo.
   `lib-stage2` alone keeping the strides comparison as its control; the ruling,
   its grounds and what does not admit it: [the stride
   classes](#the-stride-classes-and-what-they-cover).
+- **The list `toVectorListT` and `toUnorderedVectorListT` return stays lazy**,
+  2026-09-07, up to one exception, a view moved between laziness patterns
+  by canonicalization alone; the ruling, the exception and the four arms
+  it forecloses and keeps as ceilings: [dead ideas][dead].
 - **Code placement moves figures**, and by more than the A/A controls can see:
   the identical-code pair, the rebuild bias, the per-loop reading
   and the cache-line table are all [in the floor section][floor]. **Straddling
@@ -3521,45 +3525,52 @@ per run --- was decided on a nine-element probe and then read 45% slower
 and 15.7% more allocation on horde-ad's `inp-96x96/H-exec`, whose views are rows
 of 96. So the roster carries five arms that are ports of library code
 and not strategies: `lib-stage1`, stage one's `toVectorT` whole; `lib-stage2`,
-the branch's, its driver ported bang-for-bang with both zero-stride conditions;
-`lib-stage2-concat`, the branch with contiguous runs sent back to slices
-and a concatenation, the repair candidate; and the list consumer under each
-stage, `liblist-stage1` and `liblist-stage2`, the library's `toVectorListT`
-followed by one concatenation, the same term in both, so that pair prices
-the list's construction alone --- stage one's slice recursion against stage
-two's base-offset table and its `VU.toList` --- in time and, exactly,
-in allocation, which is what a consumer iterating the list pays. **Beside
-those five sits `lib-stage2-disp`, which is a candidate and not a port
+the branch's, its driver ported bang-for-bang with both zero-stride conditions
+--- ruled out for the library since 2026-09-07 and kept as a ceiling ([dead
+ideas][dead]); `lib-stage2-concat`, the branch with contiguous runs sent back
+to slices and a concatenation, the repair candidate; and the list consumer
+under each stage, `liblist-stage1` and `liblist-stage2`, the library's
+`toVectorListT` followed by one concatenation, the same term in both,
+so that pair prices the list's construction alone --- stage one's slice
+recursion against stage two's base-offset table and its `VU.toList` --- in time
+and, exactly, in allocation, which is what a consumer iterating the list pays.
+**Beside those five sits `lib-stage2-disp`, which is a candidate and not a port
 of anything**, added 2026-08-30: the slice route taken only where the canonical
 run reaches `dispRun`, so it is `lib-stage2-lean` below the crossover
 and `lib-stage2-concat` above it --- its lower side was `lib-stage2` until
-the lean ruling below --- and the runs class is what cuts it to one. On every
-other population no canonical run reaches `dispRun`, so there
-it is `lib-stage2-lean`'s code and the two arms' pair reads as an A/A, which
-[the floor section][floor] records --- except on `small`, where their corrected
-instructions part by 1.9% on the basis and 1.8% on HEAD and the pair is
-not an A/A at all ([the disp/lean entry][open]). **Beside it, for Run 22, sit
-three fill candidates**, each a fill change under the same dispatch:
-`lib-stage2-u4`, the stepping run unrolled by four; `lib-stage2-short`,
-a canonical run of 2 to 5 elements written by a body of exactly that length,
-chosen once per row as the broadcast body is; and `lib-stage2-lean`, the same
-fill under a leaner dispatch: a canonical view of rank 2 or more can never carry
-the natural strides, the merge that made it canonical having consumed every
-natural pair, so the regimes are read off the merged form alone and the strides
-comparison the control's dispatch pays is not paid. **And beside those,
-the unordered entry point joins the family**: `libunord-stage1`
-and `libunord-stage2`, each stage's `toUnorderedVectorListT` one-block test
-in front of its liblist body and one concatenation -- the third route the branch
-changes, rostered so that a shim-switch reading (Run 23's LOOP_DEADSPOT among
-them) has its sanity readings, which no test of the branch alone can show until
-GHC itself grows such a capability. **`libunord-stage3`, added 2026-09-05
-for Run 26, is the family's one candidate rather than a port**: the one-block
-test generalized into the dispatch, the canonical dims sorted by absolute stride
-from the lowest offset and canonicalized again, so the lean rank test reads one
-block and everything else is one fill in address order, every axis forward
-and the smallest stride innermost --- what Run 25's `flip` finding, a reversed
-run at twice its forward cost on identical instructions, says an unordered
-consumer pays today for nothing. Against `libunord-stage2` its margin also
+the lean ruling below --- and the runs class is what cuts it to one; its lower
+side is what the ruling of 2026-09-07 forecloses, so it is kept as a ceiling
+([dead ideas][dead]). On every other population no canonical run reaches
+`dispRun`, so there it is `lib-stage2-lean`'s code and the two arms' pair reads
+as an A/A, which [the floor section][floor] records --- except on `small`, where
+their corrected instructions part by 1.9% on the basis and 1.8% on HEAD
+and the pair is not an A/A at all ([the disp/lean entry][open]). **Beside it,
+for Run 22, sit three fill candidates**, each a fill change under the same
+dispatch: `lib-stage2-u4`, the stepping run unrolled by four;
+`lib-stage2-short`, a canonical run of 2 to 5 elements written by a body
+of exactly that length, chosen once per row as the broadcast body is;
+and `lib-stage2-lean`, the same fill under a leaner dispatch: a canonical view
+of rank 2 or more can never carry the natural strides, the merge that made
+it canonical having consumed every natural pair, so the regimes are read off
+the merged form alone and the strides comparison the control's dispatch pays
+is not paid --- the fill under it ruled out for the library with `lib-stage2`'s
+since 2026-09-07 and kept as a ceiling, the dispatch standing ([dead
+ideas][dead]). **And beside those, the unordered entry point joins the family**:
+`libunord-stage1` and `libunord-stage2`, each stage's `toUnorderedVectorListT`
+one-block test in front of its liblist body and one concatenation -- the third
+route the branch changes, rostered so that a shim-switch reading (Run 23's
+LOOP_DEADSPOT among them) has its sanity readings, which no test of the branch
+alone can show until GHC itself grows such a capability. **`libunord-stage3`,
+added 2026-09-05 for Run 26, is the family's one candidate rather than a port**:
+the one-block test generalized into the dispatch, the canonical dims sorted
+by absolute stride from the lowest offset and canonicalized again, so the lean
+rank test reads one block and everything else is one fill in address order,
+every axis forward and the smallest stride innermost --- what Run 25's `flip`
+finding, a reversed run at twice its forward cost on identical instructions,
+says an unordered consumer pays today for nothing. **Its fill half is ruled out
+for the library since 2026-09-07** ([dead ideas][dead]), the list having to stay
+lazy, so the arm stays timed as the ceiling of what an address-order fill would
+buy and what can land is its dispatch. Against `libunord-stage2` its margin also
 carries that arm's list and concatenation, which a reducing consumer does
 not pay, so the reading is the direction where stage two falls back to the list
 and the tie where both slice. In instructions, shim-free and net of the sum term
@@ -5336,7 +5347,7 @@ in the horde-ad repo.
 ### Dead ideas
 
 Ideas that **died on paper**, recorded so they are not re-proposed --- and,
-first, the one that did not die on paper at all:
+first, the two that did not die on paper at all:
 
 - **A `Ptr`-walking fill under `unsafeWith`**, bases folded into the cursors
   so there is nothing to spill --- **it would work, and it will not be done.**
@@ -5365,6 +5376,32 @@ first, the one that did not die on paper at all:
   a ceiling on one compiler and allocates on the other, and a ceiling
   that exists on one codegen and not the other is a second reason not to ship
   it rather than a reason to revisit the first.
+- **Speeding up `toVectorListT` or `toUnorderedVectorListT` by returning a less
+  lazy list** --- the whole array filled as a singleton list, or a table built
+  before the first slice --- **it may well be faster, and it will not be done.**
+  RULED OUT 2026-09-07 on the interface rather than on a measurement: the list
+  is produced lazily always, so a consumer folds it slice by slice in memory
+  bounded by the rank, and `anyT` and `allT` stop at the first slice
+  that decides, where a fill does the whole array's work and allocation before
+  the consumer sees an element. Regime 2 on master is that lazy list,
+  a difference-list recursion consumed on demand; regime 3 never was, one vector
+  built through `toListT`, so the branch's `vFillStrided` there is not this.
+  **One exception, taken the same day**: where canonicalizing the shape
+  and strides moves a view from one of these patterns to another and nothing
+  else changes --- as master's own dispatch already sends one view to the long
+  lazy list and another to a one-element list --- the laziness lost
+  with the move is permitted; what is not is a pattern itself made less lazy.
+  What the ruling forecloses is the fill half of `libunord-stage3`'s library
+  form, whose dispatch half stands on its own, and `lib-stage2`'s route,
+  `toVectorT` filling contiguous runs instead of concatenating the lazy list,
+  which `lib-stage2-lean` takes under the lean dispatch and `lib-stage2-disp`
+  below `dispRun` --- the route and not the lean dispatch, which stands; all
+  four arms stay rostered as ceilings, each reading what its fill would buy.
+  The branch's `Runs` regime builds its base-offset table whole,
+  by `runBaseOffsetsT`, before the first slice --- the same kind of step,
+  on the run count rather than the size, and outside the exception, the pattern
+  itself changing --- and no roster arm can see either, every arm being forced
+  whole through a sum.
 - **Delta-compressing an offset table** (storing Int8/Int16 steps, mostly
   the constant `tInner`, instead of absolute offsets) fails `vGenerate`'s
   contract: the callback is random-access, and recovering an absolute offset
