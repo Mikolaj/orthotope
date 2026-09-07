@@ -3237,8 +3237,10 @@ dispRun = 2048
 -- a consumer of 'toVectorT' never meets 'unstream' directly: 'mapA'
 -- over a transposed Storable array and @VS.map@ over its 'toVector'
 -- both call the conversion's worker out of line, and inside it the
--- concatenation sits under the case over regimes, so no rule fired for
--- either and the concat ran its chunk stream, one memcpy per run
+-- concatenation sits under the conversion's own case -- on the list's
+-- shape in the checkout's library, which the dump was of, on the regime
+-- on the branch -- so no rule fired for either and the concat ran its
+-- chunk stream, one memcpy per run
 -- ('copyAddrToAddrNonOverlapping#'), with the map a second loop over
 -- the result. That is the route this arm times, and what a fill's
 -- consumer pays too, a materialized vector fusing with nothing.
@@ -3263,8 +3265,8 @@ dispRun = 2048
 -- RULED OUT for the library 2026-09-07: the code complexity sat right at
 -- the threshold, and the dependence on a hard-coded L1-sized constant
 -- tipped it. Parked 'Only' the same day, checked and not timed; its
--- figures stand in runs/run26.md and the 'dispRun' entry, and the three
--- threshold arms below stay parked with it (README.md#dead-ideas).
+-- figures stand in runs/run26.md and the 'dispRun' entry; the three
+-- threshold arms of 2026-09-02 went with it (README.md#dead-ideas).
 {-# NOINLINE fbLibStage2Disp #-}
 fbLibStage2Disp :: ShapeL -> T -> VS.Vector Double
 fbLibStage2Disp sh (T (Strides ats) ao v)
@@ -3284,43 +3286,6 @@ fbLibStage2Disp sh (T (Strides ats) ao v)
     l = product sh
     whole | ao == 0 && VS.length v == l = v
           | otherwise = VS.slice ao l v
-
--- 'fbLibStage2Disp' with the threshold an argument instead of 'dispRun',
--- added 2026-09-02 for the one-binary runs-class probe README's task 9
--- registers: one roster arm per candidate threshold over one copy of this
--- code, the fill and the slice route being the same NOINLINE functions
--- every other arm calls, so the arms differ in the number compared
--- against and in nothing else. The body above is kept as it is rather
--- than defined through this one, so that 'lib-stage2-disp' stays the code
--- Run 23 timed and reads as the probe's control. Not an @fb@ name, being
--- no arm: the three arms are the named applications below, which is the
--- form the roster parser in read-run.py reads -- rostered as partial
--- applications they were checked and timed and seen by no lint.
-{-# NOINLINE libStage2DispAt #-}
-libStage2DispAt :: Int -> ShapeL -> T -> VS.Vector Double
-libStage2DispAt !thr sh (T (Strides ats) ao v)
-  | l == 0 = VS.empty
-  | otherwise = case canonView sh ats of
-      ([], _) -> whole
-      ([_], [1]) -> whole
-      (csh, cats)
-        | last cats == 1 && last csh >= thr ->
-            let !n = last csh
-            in  VS.concat
-                  [ VS.slice o n v
-                  | o <- VU.toList (baseOffsetsList ao (init csh)
-                                                    (Strides (init cats))) ]
-        | otherwise -> fillStage2 csh cats ao l v
-  where
-    l = product sh
-    whole | ao == 0 && VS.length v == l = v
-          | otherwise = VS.slice ao l v
-
-fbLibStage2Disp2048, fbLibStage2Disp8192, fbLibStage2Disp32768
-  :: ShapeL -> T -> VS.Vector Double
-fbLibStage2Disp2048 = libStage2DispAt 2048
-fbLibStage2Disp8192 = libStage2DispAt 8192
-fbLibStage2Disp32768 = libStage2DispAt 32768
 
 -- The branch's 'genericFillStrided' at Storable Double, ported
 -- bang-for-bang: 'fbMutOdoVecdimsAddInLeafU2''s odometer and unrolled
@@ -3397,6 +3362,86 @@ fillStage2 sh ats !ao !l !v = VS.create $ do
   where !sInner = last sh
         !tInner = last ats
         -- No doubled stride here any more; see the fill's own note.
+        !rOuter = length sh - 1
+        oshV, oatsV :: VU.Vector Int
+        !oshV  = VU.fromList (init sh)
+        !oatsV = VU.fromList (init ats)
+
+-- 'fillStage2' with the stepping run not unrolled:
+-- 'fbMutOdoVecdimsAddInLeafU1''s loop in place of '-u2''s, the cursor
+-- bound and one element per iteration, everything else the driver's --
+-- one change, the run body, so the pair 'lib-stage2-lean-u1' against
+-- 'lib-stage2-lean' prices the unrolling under the dispatch that
+-- shipped, where the leaf family prices it under the arms' own
+-- odometer, '-u2' over '-u1' at 0.9644 in time and 0.9208 in counts on
+-- Run 26's main set. Added 2026-09-07 for Run 27.
+-- Non-vacuity, 2026-09-07: dropping the @+ tInner@ from the run's
+-- recursive call fails @check@ at @cnn-L1-6x6-c1@, naming
+-- lib-stage2-lean-u1 alone.
+{-# NOINLINE fillStage2U1 #-}
+fillStage2U1 :: ShapeL -> [Int] -> Int -> Int -> VS.Vector Double
+           -> VS.Vector Double
+fillStage2U1 sh ats !ao !l !v = VS.create $ do
+  out <- VSM.unsafeNew l
+  let {-# INLINE writeRunStep #-}
+      writeRunStep !outPos !baseOff =
+        let !oEnd = outPos + sInner
+            inner !o !src
+              | o >= oEnd = return ()
+              | otherwise = do
+                  VSM.unsafeWrite out o (VS.unsafeIndex v src)
+                  inner (o + 1) (src + tInner)
+        in  inner outPos baseOff
+      {-# INLINE writeRunSet #-}
+      writeRunSet !outPos !baseOff =
+        let !x = VS.unsafeIndex v baseOff
+            !oEnd = outPos + sInner
+            inner !o
+              | o >= oEnd = return ()
+              | otherwise = VSM.unsafeWrite out o x >> inner (o + 1)
+        in  inner outPos
+      copies !n !blk !src !dst
+        | n <= 1 = return dst
+        | otherwise = do
+            VSM.unsafeCopy (VSM.unsafeSlice dst blk out)
+                           (VSM.unsafeSlice src blk out)
+            copies (n - 1) blk src (dst + blk)
+      {-# INLINE runsWith #-}
+      runsWith writeRun !n !st !outPos !baseOff
+        | st == 0 = writeRun outPos baseOff
+                    >> copies n sInner outPos (outPos + sInner)
+        | otherwise =
+            let run !k !op !boff
+                  | k <= 0    = return op
+                  | otherwise = writeRun op boff
+                                >> run (k - 1) (op + sInner) (boff + st)
+            in  run n outPos baseOff
+      go !lev !outPos !baseOff
+        | lev >= rOuter =
+            (if tInner == 0 then writeRunSet else writeRunStep)
+              outPos baseOff
+            >> return (outPos + sInner)
+        | otherwise =
+            level (VU.unsafeIndex oshV lev) (VU.unsafeIndex oatsV lev)
+        where
+          level !n !st
+            | lev == rOuter - 1 =
+                if tInner == 0
+                then runsWith writeRunSet n st outPos baseOff
+                else runsWith writeRunStep n st outPos baseOff
+            | st == 0 = do
+                op' <- go (lev + 1) outPos baseOff
+                copies n (op' - outPos) outPos op'
+            | otherwise =
+                let dim !k !op !boff
+                      | k <= 0    = return op
+                      | otherwise = go (lev + 1) op boff
+                                    >>= \op' -> dim (k - 1) op' (boff + st)
+                in  dim n outPos baseOff
+  _ <- go 0 0 ao
+  return out
+  where !sInner = last sh
+        !tInner = last ats
         !rOuter = length sh - 1
         oshV, oatsV :: VU.Vector Int
         !oshV  = VU.fromList (init sh)
@@ -3714,6 +3759,22 @@ fbLibStage2Lean sh (T (Strides ats) ao v)
     whole | ao == 0 && VS.length v == l = v
           | otherwise = VS.slice ao l v
 
+-- 'fbLibStage2Lean' with 'fillStage2U1' for its fill -- one change, the
+-- run body, so that arm is its control; reasons at 'fillStage2U1'.
+-- Added 2026-09-07 for Run 27.
+{-# NOINLINE fbLibStage2LeanU1 #-}
+fbLibStage2LeanU1 :: ShapeL -> T -> VS.Vector Double
+fbLibStage2LeanU1 sh (T (Strides ats) ao v)
+  | l == 0 = VS.empty
+  | otherwise = case canonView sh ats of
+      ([], _) -> whole
+      ([_], [1]) -> whole
+      (csh, cats) -> fillStage2U1 csh cats ao l v
+  where
+    l = product sh
+    whole | ao == 0 && VS.length v == l = v
+          | otherwise = VS.slice ao l v
+
 -- One pass over a list of slices whose total length is known, into a
 -- result allocated once: a memcpy per slice, the list consumed as it is
 -- produced and none of it retained. A one-element list of the full
@@ -3722,7 +3783,7 @@ fbLibStage2Lean sh (T (Strides ats) ao v)
 -- over 'Bundle.fromVectors', whose size is a 'foldl'' of the lengths
 -- over the whole list before the first element streams, so the list is
 -- held whole and walked twice (read in the cabal store, 2026-09-07).
--- Restored 2026-09-07 after a day's absence, for the comparison with
+-- Removed and restored on 2026-09-07, for the comparison with
 -- ox-arrays' 'ravelOuterN' (src/Data/Array/XArray.hs), which is this
 -- loop: a result allocated once with 'unsafeNew', an 'unsafeCopy' per
 -- slice, the list streamed by a fold and not held -- plus what a
@@ -5387,25 +5448,13 @@ roster =
     -- so the two are read as neighbours -- at the price that every slot
     -- below moves by one against Run 21, which any cross-run read of those
     -- slots has to carry.
-    -- Re-cut to 2048 on 2026-09-02 by the probe below, the cut at 256
+    -- Re-cut to 2048 on 2026-09-02 by the one-binary probe, the cut at 256
     -- having been killed by Run 22 on both compilers and by Run 23 on
     -- both layouts; timed by Run 24 at the new cut, reasons at 'dispRun'.
     -- RULED OUT for the library 2026-09-07 and parked 'Only' the same
     -- day: code complexity at the threshold, a hard-coded L1-sized
     -- constant tipping it, reasons at the definition.
   , ("lib-stage2-disp",            Only fbLibStage2Disp)
-    -- One arm per candidate threshold, added 2026-09-02 for the
-    -- one-binary runs-class probe README's task 9 registers: the same
-    -- dispatch with its threshold an argument ('libStage2DispAt', named
-    -- per threshold beside it), cut at the three lengths between
-    -- `runs-1024`, where Runs 22 and 23 read stage two ahead, and
-    -- `runs-65536`, where they read it behind, and timed beside the
-    -- entry above at 256 as their control. The probe ran the same day
-    -- (probe-disp2-runs.json) and picked 2048, which the entry above now
-    -- carries; the three are parked 'Only', spent, and stay checked.
-  , ("lib-stage2-disp-2048",       Only fbLibStage2Disp2048)
-  , ("lib-stage2-disp-8192",       Only fbLibStage2Disp8192)
-  , ("lib-stage2-disp-32768",      Only fbLibStage2Disp32768)
     -- Three candidates for the branch, added 2026-08-30 for Run 22: the
     -- run unrolled by four, a run of 2 to 5 elements written by a body
     -- of exactly that length, and the same fill under a leaner dispatch,
@@ -5427,6 +5476,10 @@ roster =
     -- Outside the laziness ruling of 2026-09-07, 'toVectorT' being
     -- strict (README.md#dead-ideas), reasons at the definition.
   , ("lib-stage2-lean",            Fill fbLibStage2Lean)
+    -- The fill not unrolled under the lean dispatch, added 2026-09-07
+    -- beside its control for Run 27, every slot below moving by one;
+    -- reasons at 'fillStage2U1'.
+  , ("lib-stage2-lean-u1",         Fill fbLibStage2LeanU1)
     -- The list consumer under each stage, added the same day: the
     -- library's toVectorListT and one concatenation, so the pair prices
     -- the list's construction alone, reasons at the definitions.

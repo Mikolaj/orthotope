@@ -916,20 +916,21 @@ rather than a slot in the next run, observed again:
   Registered 2026-09-06, before the run, on Run 26's pair --- ghc-9.12.4
   as the basis against the same in-tree HEAD stage1, `10.1.20260803`, both
   under `LOOP_DEADSPOT=1`, the same recipe and the same shim --- over Run 26's
-  roster less the four arms it lifted out of parking and plus the nine arms
+  roster less the four arms it lifted out of parking and plus the ten arms
   of 2026-09-07 --- the lazy candidates and the reducing consumers, items (6)
-  to (9), and the hoisted-bound fill, item (13), less lib-stage2-disp, retired
-  that evening with item (11) --- 34 timed arms over 19 main-set shapes, 646
+  to (9), the hoisted-bound fill, item (13), and the fill not unrolled
+  under the lean dispatch, item (14) --- less lib-stage2-disp, retired
+  that evening with item (11) --- 35 timed arms over 19 main-set shapes, 665
   benches, and the 52 class views of ten classes unmoved. Two changes of code:
   the GHC #27778 workaround, `:: Ptr Double` on every bang-bound `plusPtr`
   result in the three pointer arms (the answered entry above), which leaves
   the three arms' STG on 9.12.4 byte-identical and takes every `Ptr` allocation
   out of the HEAD build's, both read off STG dumps of the two builds before
-  this run; and the nine arms, each landing beside its control and touching
-  no arm timed before it. Each item names its populations and carries
-  a prediction and a kill condition. (1) *The pointer fills on the second
-  codegen.* With the workaround, HEAD reads the two pointer fills as the basis
-  does. On the main set, on both halves:
+  this run; and the ten arms, each landing beside its control and touching
+  no arm timed before it, with one arm retired beside them. Each item names
+  its populations and carries a prediction and a kill condition. (1)
+  *The pointer fills on the second codegen.* With the workaround, HEAD reads
+  the two pointer fills as the basis does. On the main set, on both halves:
   `predict: pair mut-odo-vecdims-add-in-leaf-u1-ptr mut-odo-vecdims-add-in-leaf-u1 0.97 within 2%`,
   where Run 26's basis read 0.9693 and its HEAD half 1.3084;
   `predict: pair mut-odo-vecdims-add-in-leaf-u2-ptr mut-odo-vecdims-add-in-leaf-u1-ptr 0.94 within 2%`,
@@ -951,17 +952,17 @@ rather than a slot in the next run, observed again:
   the size predicted is the band twenty-four of Run 26's twenty-six arms sat in,
   0.9936 to 1.0089. Killed by either outside 3%, which would say HEAD still
   emits a different loop for the `Ptr` form once the box is gone. (3) *The basis
-  half against Run 26's.* The annotation changing no 9.12 code, and four arms
-  leaving and nine landing moving slots alone --- an assumption, the nine
-  bringing new code where a `Force` twin brings none, so the loop-offsets read
-  of pre-run step 2, `./loop-offsets.py --delta` against Run 26's basis binary,
-  is owed before the run and this item is read beside what it prints --- every
-  one of the 26 timed arms Run 26 also timed reads within 1% of its Run 26 basis
+  half against Run 26's.* The annotation changing no 9.12 code, and five arms
+  leaving and ten landing moving slots alone --- an assumption, the ten bringing
+  new code where a `Force` twin brings none, so the loop-offsets read of pre-run
+  step 2, `./loop-offsets.py --delta` against Run 26's basis binary, is owed
+  before the run and this item is read beside what it prints --- every one
+  of the 26 timed arms Run 26 also timed reads within 1% of its Run 26 basis
   cell at the geomean over the nineteen shared shapes, the pointer fills
-  included, `--pin` to Run 26's column, the eight arms of 2026-09-07 having
-  no cell there and being outside this item; a per-shape excursion past 1%
-  on a slot that moved is what Run 26's item (2) found on every untouched arm
-  and is not this item's kill. Killed by any arm's geomean past 1%, which would
+  included, `--pin` to Run 26's column, the arms of 2026-09-07 having no cell
+  there and being outside this item; a per-shape excursion past 1% on a slot
+  that moved is what Run 26's item (2) found on every untouched arm and
+  is not this item's kill. Killed by any arm's geomean past 1%, which would
   be a layout term the STG comparison cannot see, or by either pointer fill's
   basis cell past the floor on any shape, which would say the annotation
   is not a no-op on 9.12 after all. This item is adjudicated by hand,
@@ -1186,7 +1187,17 @@ rather than a slot in the next run, observed again:
   level a spill the counts did not show, or below 0.975, which would be more
   time than the instructions can buy. Read beside it, by hand and not as a span:
   on `runs` from 256 up, expected about 0.985, and on the three-wide cnn shapes
-  a tie.
+  a tie. (14) *The unroll under the library's dispatch.* `lib-stage2-lean-u1`
+  is `lib-stage2-lean` with the stepping run not unrolled, `-u1`'s loop
+  for `-u2`'s in the driver and nothing else changed. The leaf family reads
+  the unrolling at 0.9644 in time and 0.9208 in counts, `-u2` over `-u1` on Run
+  26's main set, and under the dispatch that shipped it should read the same.
+  On the main set, both halves:
+  `predict: pair lib-stage2-lean-u1 lib-stage2-lean 1.037 within 2%`. Killed
+  by the pair inside the floor on both halves, which would say the unrolling
+  buys nothing once the driver's fused level sits around the run, or above 1.06,
+  which would say that level costs the u1 loop more than the arm's odometer
+  does.
 
 - `ANSWERED` **What Run 26 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
@@ -1430,13 +1441,12 @@ rather than a slot in the next run, observed again:
   is nowhere behind the better route past the process's span, and `dispRun`
   is 2048.** Its figures were under the tasks heading until Run 25's write-up
   cleared the spent items from it, and the account they belonged to
-  is this entry's, which is why it stays at length. **The three probe arms stay
-  in the roster, parked**: `lib-stage2-disp-2048`, `lib-stage2-disp-8192`
-  and `lib-stage2-disp-32768`, the dispatch with its threshold an argument,
-  for a run that wants to cut it finer than one binary's `runs` class can ---
-  Run 25's past-cache probe having since read the crossover moving
-  with the working set by the letter and by at most a few points ([the
-  tasks][open-tasks]).
+  is this entry's, which is why it stays at length. **The three probe arms,
+  the dispatch with its threshold an argument, were removed on 2026-09-07
+  with the dispatch's retirement** ([dead ideas][dead]), a cut that will
+  not ship wanting no finer reading; Run 25's past-cache probe had read
+  the crossover moving with the working set by the letter and by at most a few
+  points.
 
 - `OPEN` **A hand-edited table goes stale unchecked, and this is the second run
   running.** The run file carries two tables `--in-place` does not write ---
@@ -2295,8 +2305,8 @@ rather than a slot in the next run, observed again:
   of the class to be quoted as one and never as a figure ([the `scaled`
   entry][open]), with margins under about 3% there unmeasured. **THE WHOLE PROBE
   WAS REPEATED ON THE RUN 27 RECIPE THE SAME NIGHT, AND POSITION DID
-  NOT REPLICATE.** Both halves were rebuilt from the tip with the recipe
-  `pair-draft-run27.txt` pins --- 26 timed arms over 19 shapes, 494 benches,
+  NOT REPLICATE.** Both halves were rebuilt from the tip on the Run 27 recipe
+  as it then stood --- 26 timed arms over 19 shapes, 494 benches,
   `-fspec-constr -fobject-determinism`, `LOOP_DEADSPOT=1`, the shim unmoved ---
   and kept under probe names, `probe-r27ord-g912` and `probe-r27ord-ghead`,
   rather than `run27-*`, which is where Run 27's own preparation writes
@@ -3860,8 +3870,9 @@ for that run alone ([what the benchmark does](#what-the-benchmark-does)) being
 back since 2026-09-06; and the addition of 2026-09-07, eight arms --- the two
 lazy unordered candidates, the two lazy ordered ones and the four reducing
 consumers --- takes it to 646, the hoisted-bound fill of the same day,
-`mut-odo-vecdims-add-in-leaf-u2-last`, to 665, and the retirement
-of lib-stage2-disp that evening takes the roster to 646 benches.
+`mut-odo-vecdims-add-in-leaf-u2-last`, to 665, the retirement of lib-stage2-disp
+that evening to 646, and `lib-stage2-lean-u1`, the fill not unrolled
+under the lean dispatch, takes the roster to 665 benches.
 
 **What the eight are worth as instruments, read against each other for the first
 time on 2026-08-14, over Runs 10 to 13.** Per class: the median A/A deviation
@@ -5576,8 +5587,8 @@ first, the two that did not die on paper at all:
   comparison priced on `small`, the real-world views that reach it --- is
   at the arm's definition in `Main.hs`, and its figures stand in Run 26's `runs`
   table and the `dispRun` entry. The arm is parked `Only`, checked
-  and not timed, with the three threshold arms beside it, and Run 27's item (11)
-  is withdrawn with it.
+  and not timed, the three threshold arms of 2026-09-02 are removed, and Run
+  27's item (11) is withdrawn with it.
 - **A `Ptr`-walking fill under `unsafeWith`**, bases folded into the cursors
   so there is nothing to spill --- **it would work, and it will not be done.**
   What it would buy is measured rather than argued: LLVM performs exactly
@@ -5836,19 +5847,19 @@ than absent, since that case ran benchmarks of a different scale.
 the arms written since brought it back to 28, and a third cut on 2026-09-04,
 the prune, takes it to twelve with `list`; the `-u1` arm timed for Run 25,
 `libunord-stage3` and the two pointer fills of 2026-09-05 make sixteen,
-and the eight of 2026-09-07 twenty-four** --- the 28 being the four
-unconditional forms the precondition ruling itself called for (below), the four
-FastReshape arms, of the five Run 20 arms beside them the three the probes left
-timed ([the mutable ceiling](#the-mutable-ceiling-taken)), and the rework's five
-less the three placement-family arms parked beside them. All three cuts
-are about what is worth spending a bench on, not about what is worth keeping:
-every dropped strategy stays in `Main.hs` and stays in the roster
-as `concat-runs` is --- checked against the reference on every shape of every
-class, and not timed --- so the agreement net does not shrink and nothing has
-to be rewritten if a ruling is later reopened. The 23 arms the rulings dropped
-carry `Only` in that roster, each naming the bound or the multiple
-that disqualified it. The five library-shaped arms with the timed `-u2-down`,
-added 2026-08-28 ([the stride
+and the ten of 2026-09-07, less `lib-stage2-disp` retired that evening,
+twenty-five** --- the 28 being the four unconditional forms the precondition
+ruling itself called for (below), the four FastReshape arms, of the five Run 20
+arms beside them the three the probes left timed ([the mutable
+ceiling](#the-mutable-ceiling-taken)), and the rework's five less the three
+placement-family arms parked beside them. All three cuts are about what is worth
+spending a bench on, not about what is worth keeping: every dropped strategy
+stays in `Main.hs` and stays in the roster as `concat-runs` is --- checked
+against the reference on every shape of every class, and not timed ---
+so the agreement net does not shrink and nothing has to be rewritten if a ruling
+is later reopened. The 23 arms the rulings dropped carry `Only` in that roster,
+each naming the bound or the multiple that disqualified it. The five
+library-shaped arms with the timed `-u2-down`, added 2026-08-28 ([the stride
 classes](#the-stride-classes-and-what-they-cover)), less the eight parked
 permanently since Run 21 and `offtab`'s two twins removed ([its entry][open]),
 plus the six arms added 2026-08-30 and, on 2026-09-02, the composite arm less
@@ -5898,9 +5909,9 @@ pair of 2026-09-05 makes it 513; parking the leaf arm whose bound-control run
 is over took it to 494, and the addition of 2026-09-07, eight arms --- the lazy
 candidates and the reducing consumers ([the stride
 classes](#the-stride-classes-and-what-they-cover)) --- takes it to 646,
-the hoisted-bound fill of the same day to 665, and the retirement
-of lib-stage2-disp that evening takes the roster to 646 benches, so
-with the controls the run is 34 arms. **Run 26 timed four parked arms
+the hoisted-bound fill of the same day to 665, the retirement of lib-stage2-disp
+that evening to 646, and `lib-stage2-lean-u1` takes the roster to 665 benches,
+so with the controls the run is 35 arms. **Run 26 timed four parked arms
 for that run alone**: `mut-odo-vecdims-add-in-leaf-down`, parked 2026-09-02;
 `canon-vecdims` and `lib-stage2`, parked by this prune; and `lib-stage2-short`,
 parked by the ruling on the short bodies of the same day ([the stride
