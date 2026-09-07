@@ -8499,6 +8499,46 @@ RECORDS = [
          argv=['run20'],
          ok=V(exit=1, hasnt=['ITEM 2', 'ITEM 4', 'ITEM 5', 'ITEM 6'])),
 
+    case('status-counts-the-slots-a-note-still-owes', 'run-status.sh', None,
+         'CONTROL: a note carrying <yours> reads NOT DONE at 2c, naming'
+         ' both slot shapes and ignoring the comment lines',
+         # Step 2c, added 2026-09-07 with `preflight.sh --fill-in`. Every
+         # other step here judges an artifact; the fill-in block is the one
+         # product of the pre-run half no artifact records, so a row left
+         # unwritten was invisible until somebody re-read the note.
+         #
+         # THREE THINGS AT ONCE, because each was wrong at some point in
+         # the hour it was written. A `[PAIR'S]` slot sits at column 0 and
+         # a fill-in row is indented, and a lister for the indented shape
+         # alone named a subset of what the count counted. And `--draft`'s
+         # own header explains the marker and so contains it twice, and a
+         # session makes its note by redirecting that header, so a count
+         # that read comment lines reported owed slots on a finished note.
+         shadow=dict(extra=[('run97-pair.txt', NOTE_STUB
+                             + '\n# a header explaining <yours>\n'
+                               '\nWHAT THIS PAIR MEASURES [PAIR\'S]: <yours>'
+                               '\n\nVerified when built, YYYY-MM-DD:\n'
+                               '  repetition       <yours>\n')]),
+         argv=['run97'],
+         ok=V(exit=1,
+              has=['2 slot(s) still <yours>',
+                   'WHAT THIS PAIR MEASURES', 'repetition'])),
+
+    case('status-clears-2c-when-the-slots-are-written', 'run-status.sh', None,
+         'CONTROL: the same note with the slots written reads done at 2c,'
+         ' the comment line notwithstanding',
+         # The other direction, and the one that says the NOT DONE above
+         # was the slots and not the stub: a note whose only remaining
+         # `<yours>` is inside a comment is a note that owes nothing.
+         shadow=dict(extra=[('run97-pair.txt', NOTE_STUB
+                             + '\n# a header explaining <yours>\n'
+                               '\nWHAT THIS PAIR MEASURES [PAIR\'S]: the'
+                               ' compiler.\n\nVerified when built,'
+                               ' 2026-09-07:\n  repetition       not owed\n')]),
+         argv=['run97'],
+         ok=V(has=['no <yours> slot left'],
+              hasnt=['slot(s) still <yours>'])),
+
     case('status-blocks-without-wrap80', 'run-status.sh', '87c77f0',
          'with wrap80 off PATH the README verdicts were read off an empty file',
          # `wrap80 --unwrap README.md > $TMP/readme 2>/dev/null` dropped

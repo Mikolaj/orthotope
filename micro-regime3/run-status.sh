@@ -28,10 +28,11 @@
 # and 7 with it, --check-doc finding the anchor dead. Re-aim the first
 # two whenever run23's artifacts are offered for deletion.
 #
-# Step 2c's own, 2026-09-07, on a stub note made and removed in one call: a
-# run99-pair.txt carrying two `<yours>` rows reads NOT DONE and names both
-# labels, and the same note with the markers replaced reads done -- the
-# control that says the NOT DONE was the markers and not the stub.
+# Step 2c is proved in defects.py and mutants.py rather than here, which
+# is where a proof outlives the code it is about: the two directions are
+# `status-counts-the-slots-a-note-still-owes` and
+# `status-clears-2c-when-the-slots-are-written`, and the break that says
+# they bite is `run-status counts a marker inside a comment`.
 set -u
 cd "$(dirname "$0")" || exit 1
 if [ $# -ne 1 ]; then

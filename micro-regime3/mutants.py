@@ -208,6 +208,19 @@ MUTANTS = [
      'if grep -q "^ITEM ${it}[^0-9]" "$READINGS" 2>/dev/null; then',
      'if true; then',
      '{file} run98 2>&1 | grep -q "no ITEM 5 block"'),
+    # Step 2c's comment skip, removed: `<yours>` inside a `#` line counts
+    # as a slot the note still owes. That is not hypothetical -- --draft's
+    # own header explains the marker and so carries it twice, and a
+    # session makes its note by redirecting that header, so without the
+    # skip every freshly drafted note reports two owed slots it does not
+    # owe. The judge plants a note whose ONLY marker is in a comment and
+    # asks for the clean verdict.
+    ('run-status counts a marker inside a comment', 'run-status.sh',
+     "SLOTS=$(grep -v '^[[:space:]]*#' \"$NOTE\" | grep -F '<yours>' || true)",
+     "SLOTS=$(grep -F '<yours>' \"$NOTE\" || true)",
+     'printf \'a stand-in pair note.\\nHALVES: basis=lookrts other=a1g\\n'
+     '# a header explaining <yours>\\n\' > "{dir}/run97-pair.txt"; '
+     '{file} run97 2>&1 | grep -q "no <yours> slot left"'),
     # The out-of-range refusal, removed: a table number past the section
     # falls through to an index that is not there. Silence and a traceback
     # both read like a section carrying no table, which is the reading

@@ -40,7 +40,13 @@ UNCOVERED = {
                     'the record preflight-names-a-retired-callee, three of '
                     'its steps having called a retired script from the '
                     'retirement until the next preparation ran them, with '
-                    'nothing here able to see it',
+                    'nothing here able to see it. THAT REASON COVERS STEPS '
+                    'AND NOT REPORTERS: --fill-in, added 2026-09-07, derives '
+                    'the pair note\'s fill-in block and runs no step of its '
+                    'own, so "a case would run them twice" says nothing '
+                    'about it; its control is in the header, every derived '
+                    'row read against the same figure taken by hand, and a '
+                    'row it gets wrong is caught by nothing else',
     'machine-busy.sh': 'read by run-gate.sh, whose cases reach it; no case '
                        'of its own yet',
     'smoke-l1.sh': 'the reader\'s smoke sweep, driven by the run chapter; '

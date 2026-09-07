@@ -6286,11 +6286,11 @@ and never as a chronology.
     #      with the note's own `strings` line before trusting either.
     #      Then the note's fill-in block, which is what only the build can
     #      say: the Main.hs and align-as.py commits, the two compilers, the
-    #      md5s, .text, the fills. DO NOT TRANSCRIBE IT --
-    #      `./preflight.sh $R --fill-in` derives every one of those rows
-    #      from what steps 4 to 10 just read and prints the block to paste,
-    #      marking `<yours>` the rows no command can give (the sweeps, the
-    #      roster pass, repetition). A hand reads the wrong column: Run
+    #      md5s, .text, the fills. DO NOT TRANSCRIBE IT -- `--fill-in`,
+    #      which the preflight line at steps 4 to 10 carries, derives every
+    #      one of those rows from what those steps just read and prints the
+    #      block to paste, marking `<yours>` the rows no command can give
+    #      (the sweeps, the roster pass, repetition). A hand reads the wrong column: Run
     #      27's recorded `size -A`'s SECOND field, the load address, as
     #      .text, and then reasoned about why it had not moved across a
     #      roster change. Steps 3, 9b and 10 are reading the block back.
@@ -6347,7 +6347,7 @@ and never as a chronology.
     #  the :/ pathspec resolves from the repo root, so these answer the same
     #  from anywhere; a bare `-- Main.hs` run from the root prints nothing
     #  and exits 0, which reads exactly like an unmoved source
-    ./preflight.sh $R --no-corpus         # 4-10 LESS 8c AND 8d, which read
+    ./preflight.sh $R --no-corpus --fill-in   # 4-10 LESS 8c AND 8d, which read
     #      every run JSON on disk and so must not run while 11 or 12 is
     #      WRITING one. Deferring them is what lets the roster pass -- the
     #      longest step of this half -- start minutes sooner; `--corpus`
