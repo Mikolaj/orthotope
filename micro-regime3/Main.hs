@@ -3246,6 +3246,25 @@ dispRun = 2048
 -- every 'toVectorT' arm is, that function being strict whichever way it
 -- is built: a candidate for the library's 'toVectorT', the run-length
 -- dispatch the runs class cut 'dispRun' for.
+--
+-- Pro: ~15% speedup on arrays up to ~L1 cache on the runs class, which is
+-- a common pattern in real world, e.g., from
+-- 1. permuting outer axes while the innermost stay in place: swapping
+--    batch and channel over image planes leaves a run per plane
+-- 2. slicing or gathering along an outer axis: a batch of rows or of
+--    whole matrices, the run being the matrix
+-- 3. broadcasting an outer axis over a contiguous block, a stride-0
+--    dimension over a matrix or a feature map
+--
+-- Against: Longer and more complex code that depends on a hard-coded L1
+-- and a slight overhead outside runs, which would sometimes reverse
+-- if VS.concat fused, but it can't
+--
+-- RULED OUT for the library 2026-09-07: the code complexity sat right at
+-- the threshold, and the dependence on a hard-coded L1-sized constant
+-- tipped it. Parked 'Only' the same day, checked and not timed; its
+-- figures stand in runs/run26.md and the 'dispRun' entry, and the three
+-- threshold arms below stay parked with it (README.md#dead-ideas).
 {-# NOINLINE fbLibStage2Disp #-}
 fbLibStage2Disp :: ShapeL -> T -> VS.Vector Double
 fbLibStage2Disp sh (T (Strides ats) ao v)
@@ -5371,9 +5390,10 @@ roster =
     -- Re-cut to 2048 on 2026-09-02 by the probe below, the cut at 256
     -- having been killed by Run 22 on both compilers and by Run 23 on
     -- both layouts; timed by Run 24 at the new cut, reasons at 'dispRun'.
-    -- Outside the laziness ruling of 2026-09-07, 'toVectorT' being
-    -- strict (README.md#dead-ideas), reasons at the definition.
-  , ("lib-stage2-disp",            Fill fbLibStage2Disp)
+    -- RULED OUT for the library 2026-09-07 and parked 'Only' the same
+    -- day: code complexity at the threshold, a hard-coded L1-sized
+    -- constant tipping it, reasons at the definition.
+  , ("lib-stage2-disp",            Only fbLibStage2Disp)
     -- One arm per candidate threshold, added 2026-09-02 for the
     -- one-binary runs-class probe README's task 9 registers: the same
     -- dispatch with its threshold an argument ('libStage2DispAt', named

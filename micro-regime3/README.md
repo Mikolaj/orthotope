@@ -918,17 +918,18 @@ rather than a slot in the next run, observed again:
   under `LOOP_DEADSPOT=1`, the same recipe and the same shim --- over Run 26's
   roster less the four arms it lifted out of parking and plus the nine arms
   of 2026-09-07 --- the lazy candidates and the reducing consumers, items (6)
-  to (9), and the hoisted-bound fill, item (13) --- 35 timed arms over 19
-  main-set shapes, 665 benches, and the 52 class views of ten classes unmoved.
-  Two changes of code: the GHC #27778 workaround, `:: Ptr Double` on every
-  bang-bound `plusPtr` result in the three pointer arms (the answered entry
-  above), which leaves the three arms' STG on 9.12.4 byte-identical and takes
-  every `Ptr` allocation out of the HEAD build's, both read off STG dumps
-  of the two builds before this run; and the nine arms, each landing beside
-  its control and touching no arm timed before it. Each item names
-  its populations and carries a prediction and a kill condition. (1)
-  *The pointer fills on the second codegen.* With the workaround, HEAD reads
-  the two pointer fills as the basis does. On the main set, on both halves:
+  to (9), and the hoisted-bound fill, item (13), less lib-stage2-disp, retired
+  that evening with item (11) --- 34 timed arms over 19 main-set shapes, 646
+  benches, and the 52 class views of ten classes unmoved. Two changes of code:
+  the GHC #27778 workaround, `:: Ptr Double` on every bang-bound `plusPtr`
+  result in the three pointer arms (the answered entry above), which leaves
+  the three arms' STG on 9.12.4 byte-identical and takes every `Ptr` allocation
+  out of the HEAD build's, both read off STG dumps of the two builds before
+  this run; and the nine arms, each landing beside its control and touching
+  no arm timed before it. Each item names its populations and carries
+  a prediction and a kill condition. (1) *The pointer fills on the second
+  codegen.* With the workaround, HEAD reads the two pointer fills as the basis
+  does. On the main set, on both halves:
   `predict: pair mut-odo-vecdims-add-in-leaf-u1-ptr mut-odo-vecdims-add-in-leaf-u1 0.97 within 2%`,
   where Run 26's basis read 0.9693 and its HEAD half 1.3084;
   `predict: pair mut-odo-vecdims-add-in-leaf-u2-ptr mut-odo-vecdims-add-in-leaf-u1-ptr 0.94 within 2%`,
@@ -1135,18 +1136,23 @@ rather than a slot in the next run, observed again:
   `predict: cross list 1.011 within 0.5%`, the basis over HEAD as Run 26 read
   it. Killed by the figure inside the 0.7% bar, which would say the movement
   was those two rosters' and not the pair's, and which reopens the subtraction
-  the last two runs refused. (11) *The dispatch pair after its answer.*
-  The counts pair of 2026-09-07 put `lib-stage2-disp` at 1.0188 and 1.0180
-  of `lib-stage2-lean`'s corrected instructions on `small` and 1.0142 and 1.0148
-  in time, on this run's recipe as it stood before the eight arms ([the
-  disp/lean entry][open]). The pair differs in the `dispRun` comparison and has
-  no twin among the eight arms, item (8)'s `liblist-stage3` against
-  `liblist-stage4` being the natural-strides comparison under the list, which
-  `lib-stage2-lean`'s parked control prices under the fill. On `small`, both
-  halves, the span printing a figure and no verdict on any other population,
-  `runs` most of all, where the two are different code by design:
-  `predict: pair lib-stage2-disp lib-stage2-lean 1.015 within 1%`. Killed
-  by the pair inside the class's floor on both halves, which would say
+  the last two runs refused. (11) *The dispatch pair after its answer ---
+  WITHDRAWN 2026-09-07 with the arm.* lib-stage2-disp was ruled out
+  for the library and parked that evening, code complexity at the threshold
+  and a hard-coded L1-sized constant tipping it ([dead ideas][dead]),
+  so no process times it and the span below is unreadable; the item stays
+  for what it registered. The counts pair of 2026-09-07 put lib-stage2-disp
+  at 1.0188 and 1.0180 of `lib-stage2-lean`'s corrected instructions on `small`
+  and 1.0142 and 1.0148 in time, on this run's recipe as it stood before
+  the eight arms ([the disp/lean entry][open]). The pair differs
+  in the `dispRun` comparison and has no twin among the eight arms, item (8)'s
+  `liblist-stage3` against `liblist-stage4` being the natural-strides comparison
+  under the list, which `lib-stage2-lean`'s parked control prices
+  under the fill. On `small`, both halves, the span printing a figure
+  and no verdict on any other population, `runs` most of all, where the two
+  are different code by design: predict pair lib-stage2-disp against
+  lib-stage2-lean 1.015 within 1%, the span unbackticked since the withdrawal.
+  Killed by the pair inside the class's floor on both halves, which would say
   the counts pair's 1.9% does not reach the clock on a major run.
   `cnn-L1-6x6-c1`, where Run 26's halves parted on this pair, 1.013 against
   1.139, is read beside it on the main set by hand, for whether the HEAD half's
@@ -3712,40 +3718,42 @@ run reaches `dispRun`, so it is `lib-stage2-lean` below the crossover
 and `lib-stage2-concat` above it --- its lower side was `lib-stage2` until
 the lean ruling below --- and the runs class is what cuts it to one;
 the laziness ruling of 2026-09-07 does not reach it, `toVectorT` being strict
-either way ([dead ideas][dead]). On every other population no canonical run
-reaches `dispRun`, so there it is `lib-stage2-lean`'s code and the two arms'
-pair reads as an A/A, which [the floor section][floor] records --- except
-on `small`, where their corrected instructions part by 1.9% on the basis
-and 1.8% on HEAD and the pair is not an A/A at all ([the disp/lean
-entry][open]). **Beside it, for Run 22, sit three fill candidates**, each a fill
-change under the same dispatch: `lib-stage2-u4`, the stepping run unrolled
-by four; `lib-stage2-short`, a canonical run of 2 to 5 elements written
-by a body of exactly that length, chosen once per row as the broadcast body is;
-and `lib-stage2-lean`, the same fill under a leaner dispatch: a canonical view
-of rank 2 or more can never carry the natural strides, the merge that made
-it canonical having consumed every natural pair, so the regimes are read off
-the merged form alone and the strides comparison the control's dispatch pays
-is not paid --- the fill under it the branch's route, outside the laziness
-ruling of 2026-09-07 as `lib-stage2`'s is ([dead ideas][dead]), and the dispatch
-what shipped. **`liblist-stage3` and `liblist-stage4`, added 2026-09-07 for Run
-27, are the list entry point's candidates under the ruling**: `toVectorListT`
-kept lazy up to the exception --- canonicalized, so a unit or mergeable
-dimension moves a view to a lazier pattern, its slices produced on demand
-by the odometer list and no table built --- then the one concatenation the two
-ports carry, stage three under the natural-strides dispatch and stage four
-under the lean one, so `liblist-stage4` against `liblist-stage2`, under one lean
-dispatch, is the lazy odometer list against the strict base-offset table
-wherever a run exists and the same fill wherever none does. **And beside those,
-the unordered entry point joins the family**: `libunord-stage1`
-and `libunord-stage2`, each stage's `toUnorderedVectorListT` one-block test
-in front of its liblist body and one concatenation -- the third route the branch
-changes, rostered so that a shim-switch reading (Run 23's LOOP_DEADSPOT among
-them) has its sanity readings, which no test of the branch alone can show until
-GHC itself grows such a capability. **`libunord-stage3`, added 2026-09-05
-for Run 26, is the family's one candidate rather than a port**: the one-block
-test generalized into the dispatch, the canonical dims sorted by absolute stride
-from the lowest offset and canonicalized again, so the lean rank test reads one
-block and everything else is one fill in address order, every axis forward
+either way --- and it was RULED OUT for the library the same evening on code
+complexity, a hard-coded L1-sized threshold tipping it, and parked ([dead
+ideas][dead]). On every other population no canonical run reaches `dispRun`,
+so there it is `lib-stage2-lean`'s code and the two arms' pair reads as an A/A,
+which [the floor section][floor] records --- except on `small`, where their
+corrected instructions part by 1.9% on the basis and 1.8% on HEAD and the pair
+is not an A/A at all ([the disp/lean entry][open]). **Beside it, for Run 22, sit
+three fill candidates**, each a fill change under the same dispatch:
+`lib-stage2-u4`, the stepping run unrolled by four; `lib-stage2-short`,
+a canonical run of 2 to 5 elements written by a body of exactly that length,
+chosen once per row as the broadcast body is; and `lib-stage2-lean`, the same
+fill under a leaner dispatch: a canonical view of rank 2 or more can never carry
+the natural strides, the merge that made it canonical having consumed every
+natural pair, so the regimes are read off the merged form alone and the strides
+comparison the control's dispatch pays is not paid --- the fill under
+it the branch's route, outside the laziness ruling of 2026-09-07
+as `lib-stage2`'s is ([dead ideas][dead]), and the dispatch what shipped.
+**`liblist-stage3` and `liblist-stage4`, added 2026-09-07 for Run 27,
+are the list entry point's candidates under the ruling**: `toVectorListT` kept
+lazy up to the exception --- canonicalized, so a unit or mergeable dimension
+moves a view to a lazier pattern, its slices produced on demand by the odometer
+list and no table built --- then the one concatenation the two ports carry,
+stage three under the natural-strides dispatch and stage four under the lean
+one, so `liblist-stage4` against `liblist-stage2`, under one lean dispatch,
+is the lazy odometer list against the strict base-offset table wherever a run
+exists and the same fill wherever none does. **And beside those, the unordered
+entry point joins the family**: `libunord-stage1` and `libunord-stage2`, each
+stage's `toUnorderedVectorListT` one-block test in front of its liblist body
+and one concatenation -- the third route the branch changes, rostered so
+that a shim-switch reading (Run 23's LOOP_DEADSPOT among them) has its sanity
+readings, which no test of the branch alone can show until GHC itself grows such
+a capability. **`libunord-stage3`, added 2026-09-05 for Run 26, is the family's
+one candidate rather than a port**: the one-block test generalized
+into the dispatch, the canonical dims sorted by absolute stride from the lowest
+offset and canonicalized again, so the lean rank test reads one block
+and everything else is one fill in address order, every axis forward
 and the smallest stride innermost --- what Run 25's `flip` finding, a reversed
 run at twice its forward cost on identical instructions, says an unordered
 consumer pays today for nothing. **Its fill half is ruled out for the library
@@ -3851,8 +3859,9 @@ bound-control run is over took it to 494, the four parkings Run 26 lifted
 for that run alone ([what the benchmark does](#what-the-benchmark-does)) being
 back since 2026-09-06; and the addition of 2026-09-07, eight arms --- the two
 lazy unordered candidates, the two lazy ordered ones and the four reducing
-consumers --- takes it to 646, and the hoisted-bound fill of the same day,
-`mut-odo-vecdims-add-in-leaf-u2-last`, takes the roster to 665 benches.
+consumers --- takes it to 646, the hoisted-bound fill of the same day,
+`mut-odo-vecdims-add-in-leaf-u2-last`, to 665, and the retirement
+of lib-stage2-disp that evening takes the roster to 646 benches.
 
 **What the eight are worth as instruments, read against each other for the first
 time on 2026-08-14, over Runs 10 to 13.** Per class: the median A/A deviation
@@ -5555,6 +5564,20 @@ in the horde-ad repo.
 Ideas that **died on paper**, recorded so they are not re-proposed --- and,
 first, the two that did not die on paper at all:
 
+- **A run-length dispatch inside `toVectorT`, one memcpy per run above
+  a threshold and the fill below it**, `lib-stage2-disp` with `dispRun` at 2048
+  --- **it works, it is 8 to 12% faster on the `runs` class at runs of 4096
+  to 65536 on a 14 MB array, and it will not be done.** RULED OUT 2026-09-07
+  on code complexity, which sat right at the threshold, with the dependence
+  on a hard-coded constant tipping it: the threshold is a run of 16 KB sized
+  to the L1 and cut on this box, a library would carry it blind,
+  and the past-cache probe read the crossover moving with the working set. What
+  the gain is worth and where --- a tie past the L3 at 64 MB, the per-call
+  comparison priced on `small`, the real-world views that reach it --- is
+  at the arm's definition in `Main.hs`, and its figures stand in Run 26's `runs`
+  table and the `dispRun` entry. The arm is parked `Only`, checked
+  and not timed, with the three threshold arms beside it, and Run 27's item (11)
+  is withdrawn with it.
 - **A `Ptr`-walking fill under `unsafeWith`**, bases folded into the cursors
   so there is nothing to spill --- **it would work, and it will not be done.**
   What it would buy is measured rather than argued: LLVM performs exactly
@@ -5874,9 +5897,10 @@ and `cnn-L1-6x6-c1`, timed again the same day, takes it to 475, and the pointer
 pair of 2026-09-05 makes it 513; parking the leaf arm whose bound-control run
 is over took it to 494, and the addition of 2026-09-07, eight arms --- the lazy
 candidates and the reducing consumers ([the stride
-classes](#the-stride-classes-and-what-they-cover)) --- takes it to 646
-and the hoisted-bound fill of the same day takes the roster to 665 benches,
-so with the controls the run is 35 arms. **Run 26 timed four parked arms
+classes](#the-stride-classes-and-what-they-cover)) --- takes it to 646,
+the hoisted-bound fill of the same day to 665, and the retirement
+of lib-stage2-disp that evening takes the roster to 646 benches, so
+with the controls the run is 34 arms. **Run 26 timed four parked arms
 for that run alone**: `mut-odo-vecdims-add-in-leaf-down`, parked 2026-09-02;
 `canon-vecdims` and `lib-stage2`, parked by this prune; and `lib-stage2-short`,
 parked by the ruling on the short bodies of the same day ([the stride

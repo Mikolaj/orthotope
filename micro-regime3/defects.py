@@ -4432,13 +4432,17 @@ RECORDS = [
                                        for sh in main_shapes()
                                        for arm, f in (('bq-expand', 1.10),
                                                       ('lib-stage1', 1.12),
-                                                      ('lib-stage2-disp', 1.08),
+                                                      ('lib-stage2-lean', 1.08),
                                                       ('liblist-stage1', 1.01))])},
+         # The third mover was lib-stage2-disp until 2026-09-07, when it
+         # was parked Only and left the synthetic run: a skewed arm has
+         # to be a timed one, and the docstring's own lesson about the
+         # denominator holds for the names.
          argv=['{run}', '--compare', '{other}', '--movers', '3'],
          ok=V(exit=0,
               has=['3 of %d arm(s) move past 3%%' % compared_arm_count(),
                    'in 3 group(s)', 'bq-expand', 'lib-stage1',
-                   'lib-stage2-disp'],
+                   'lib-stage2-lean'],
               hasnt=['liblist-stage1'])),
 
     case('movers-alone-does-nothing', 'read-run.py', None,
