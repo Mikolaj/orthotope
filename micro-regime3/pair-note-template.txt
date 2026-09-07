@@ -293,8 +293,13 @@ Verified when built, YYYY-MM-DD:
                    `--library` the one within the pair -- THIS PAIR'S
                    FIGURE AND NOT THE SERIES
   straddle         --survey on each half: how many self-loops, how many at
-                   offset 0, how many still straddling. Offsets at 0 are
-                   not asked of a max-skip half
+                   offset 0, how many still straddling. WHERE A ROW'S
+                   GUIDANCE IS CONDITIONAL IT SAYS WHAT MAKES IT APPLY,
+                   and this one applies to a MAX-SKIP half: of such a half
+                   the offsets at 0 are not asked. A pair of two dead-spot
+                   halves has no such half, and Run 27's preparation
+                   copied the clause into its note before deleting it,
+                   which is what a condition left unstated costs
   regime           what `diag` read on the basis, as the run chapter's
                    step 9 reads it -- the one thing no later step can
                    confirm

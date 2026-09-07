@@ -6153,280 +6153,21 @@ to reconstruct by reading:
     ./read-run.py --checklist pre|run|post   # a PREPARATION owes `pre` ALONE
     ./run-status.sh $R                       # what is done, off the artifacts
 
-Everything below is the reasons behind those lines and the readings a session
-owes; a run is prepared and executed from the lists. *Why this is the first
-block:* the pointer to `--checklist` used to sit inside the next paragraph,
+**What follows those two lines is the three lists themselves**, and the reasons
+behind them are at the END of this chapter, under *The reasons behind the three
+lists* --- so a session reading top to bottom meets the pre-run list and
+not a hundred lines of framing. Take a paragraph of it when a step surprises
+you; every `why:` line names one by its bolded lead. *Why the chapter is ordered
+this way:* the pointer to `--checklist` used to sit inside the framing,
 so a session arriving cold had to read the chapter to learn how not to read
-it --- Run 24's preparation read hundreds of lines with `sed` before meeting it,
-the run list a preparation does not owe among them (2026-09-03). **RUN THOSE TWO
-LINES BEFORE READING THE NEXT PARAGRAPH.** The block being first is not enough
-on its own: Run 26 was an EXECUTION, met this block, and still read some 250
-lines of framing before starting, so the failure is not the preparation's alone
-and not fixed by placement (2026-09-06). What is NOT done, and would be the real
-fix, is moving the framing behind `--section` so the chapter opens on these two
-lines and nothing else; it was left because every `why:` line in the three lists
-points into that prose by paragraph, and moving it breaks each of them.
-
-**A RUN IS ALWAYS TWO SESSIONS, and which one you are decides everything
-below.** One PREPARES the run, through step 12 of the pre-run list, and hands
-over `$R-pair.txt`; another EXECUTES it from step 13 and writes it up. Which
-half you were asked for decides which of the readings below you owe, which list
-you start in, and what is already spent and not yours to redo --- so settle
-it before reading anything else. **And a run is finished when
-`./run-status.sh $R` says all done**, read off the artifacts and the repository
-and never off a session's sense of it: a summary of what remains is not a step
-toward it.
-
-**What a run must read, so that nothing else is read to find out --- and
-it is read BY THE PART, never whole.** This paragraph used to say the last run's
-own file was *the one thing worth reading entire* and then, in its next four
-clauses, name what to skip inside it. Whole is the sentence a session acts on,
-because it governs how the file gets opened, so the clauses read as emphasis:
-Run 20 ingested 38 KB of the previous run's tables, **24% of that file**, every
-byte of it named as skippable one sentence later. The enumeration
-is the instruction and the tables are what a run does not read --- the reader
-emits them, `--in-place` installs them, and the checker recomputes them
-from the JSONs. **`./read-run.py --section NAME` is what makes that takeable**,
-printing one section's prose without its tables and naming the size it withheld,
-since a line range cannot skip what sits between the paragraphs it spans
-and a line number does not survive a rewrap. **This README is never read
-whole**: it runs to well over a hundred thousand words and this chapter alone
-to thirty-odd thousand, which is what `--section` and `--checklist` exist for.
-**So, as ten items, each owing an artifact, and each read AT THE STEP THAT NAMES
-IT and not before**: item 1 is read now, and every other item stands
-in the lists below as a `READ NOW` line at the step whose work needs it, because
-a reading taken at the head is forgotten by the time its step arrives. A reading
-that owes nothing cannot be told from a reading not done, which is the whole
-of why this is a list and not a sentence. **Items 2, 4, 5 and 6 are ONE
-CARRIER'S BATCH, and its return is a file**: `run<N>-readings.txt`, written
-at the head of the post-run walk --- or EARLIER, during the sequence, which
-is where Run 26 put it and where it costs nothing: the box is busy for hours,
-the carrier only reads, and the file waits. Read back a block at a time
-by the three steps that name those items. They are the previous run's prose ---
-its head, its two-column section, its claims and a class block --- read once
-for a verdict apiece and never carried whole, which is what a carrier is for.
-A file rather than a returned message because the sentence above binds
-a delegated reading too: what the carrier says is forgotten by the step
-that needs it unless it is written down.
-
-    1. this chapter's three checklists, each printed alone by
-    `./read-run.py --checklist pre|run|post`, a fifth of the chapter's lines
-         -- every step of them is owed, the build included
-    2. the last run's head and Results prose
-         -- one sentence: what this run's own head has to answer
-    3. What the next run compares against, its prose and not its figures
-         -- the regime, the roster and the basis, each named
-    4. the two-column table under it, the ONE table read, `--with-tables`
-         -- does it carry the last run's columns? Run 20's write-up
-            forgot to add its own, which is why this is named separately
-    5. the claims, BOTH numbered sets AND the prose after them, which is where
-       retirements are recorded -- not the readings above them, which `--claims`
-       reprints
-         -- which claims are live, and how many
-    6. the class blocks: the six numbered items of the form, and one example
-       block, not the rest
-         -- the form, in your own words
-         ITEMS 2, 4, 5 AND 6 ARE ONE CARRIER'S BATCH and its return is
-         `run<N>-readings.txt`, one `ITEM N` block apiece, each block the
-         artifact named on that item's own second line and each figure
-         beside the invocation that re-emits it. It is
-         `checker-brief.txt` turned around -- a page of conclusions
-         written BY an agent FOR the run where the brief is written for
-         one -- so it follows that file's form and invents nothing
-         ITS FOUR READS, so the carrier opens no file whole (P=$PREV):
-             item 2  --section Results --run-doc runs/$P.md
-             item 4  --section 'What the next run compares against' --run-doc runs/$P.md --with-tables 1
-             item 5  --section 'The claims the next run should test' --run-doc runs/$P.md
-             item 6  --section 'The stride classes, run by run' --run-doc runs/$P.md
-         The 1 is the two-column table and the other tables of that
-         section are the per-shape fingerprint, which item 4 does not
-         read -- 8 KB of it on Run 24; the withheld line names how many
-         the section carries, so a run that adds one can still find it
-    7. the open list, by its status markers rather than end to end,
-         grepped over `wrap80 --unwrap README.md` -- a marker sits at
-         the head of an item, which the wrapped form breaks
-         -- the OPEN entries, named
-    8. Provenance's replace list and its delta bullets
-         -- what this run has to replace
-    9. `read-run.py`'s docstring, this chapter's other governing
-         document -- BY HALF, like the list it sits in. A PREPARATION
-         uses the Modes list, `--para`, `--section` and the two gates, `--lint` and `--check-doc`;
-         the statistic definitions, the A/A identity, the validation
-         history and every mode that reads a run's FIGURES are the
-         EXECUTION's, and Run 23's preparation read them all and used
-         none
-         -- nothing to write down; you will know if you skipped it
-    10. the PREVIOUS run's pair note, `$PREV-pair.txt`, and
-         pair-note-template.txt beside it -- that note is the only copy
-         of both recipes and is what this run's note is written FROM,
-         and the template says what a note owes; where the pair wants a
-         half of a kind that note never built -- a compiler it did not
-         carry -- the last note that built one holds that recipe, and
-         `grep -n 'HOW EACH HALF IS BUILT' -A 70 $OLD-pair.txt` is how
-         you take one block out of a note you do not otherwise owe
-         TWO COMMANDS DO THE SKIP AND THE COPY, and neither is a thing
-         to do by eye (both added 2026-09-03, after Run 24's
-         preparation did both by hand):
-             ./read-run.py --note $PREV-pair.txt > note-read.txt
-             ./read-run.py --note $PREV-pair.txt --draft $R \
-                           --halves <basis>,<other>
-         The first withholds the handover below and says how much; the
-         second prints the `[SAME]` blocks alone with the names carried
-         over, every substitution listed, and every `[PAIR'S]` block
-         named as still yours. READ WHAT THE SECOND EMITS: it is a copy
-         with names changed, and the template asks for those blocks to
-         be re-read rather than re-decided
-         SKIP THE PREVIOUS RUN'S HANDOVER, which is about a third of a
-         note and none of it yours: `ENTRY POINT`, `WHAT THE
-         PREPARATION LEARNED`, `GREEN AFTER THE LAST EDIT`, the `GATE`
-         verdict and run-gate.sh's appended block, and the fill-in
-         lines recording that run's own progress -- its sequence, its
-         counts, its gate. They are addressed to the session that RAN
-         that pair and are spent. What you are here for is the two
-         recipes, what the pair measured and why its basis was that
-         recipe, the roster, the compiler, the shim, and the fill-in
-         block's OBSERVATIONS, which are what this run's build is
-         compared against
-         A NOTE'S [SAME] AND [PAIR'S] MARKERS ARE A DIFFERENT AXIS and
-         answer a different question -- which of its blocks would be a
-         copying error to carry into your note. Notes carry them from
-         Run 23 on
-         -- the two recipes, and which of their lines the pair varies
-
-**SO THIS IS TWO LISTS, and there is no case in which a session owes all ten.**
-The numbers never move, so a reference to an item still lands. The pre-run
-list's own head names the six its half owes, which is where a preparation meets
-the split; the run and post lists have no such head, so an executing session
-meets it here. What each is for: **The PREPARATION owes 1, 3, 7, 8's delta
-bullets, 9 and 10** --- of item 1, THE PRE-RUN LIST ALONE, and of items 9 and 10
-the halves their own entries name. It used to owe the run list too,
-for the launch, rider and counts blocks the note carries; those
-are in `pair-note-template.txt` since 2026-09-01, where the note is written
-from anyway, so neither the run list nor the post-run one is owed
-and a preparation reads about a thousand lines fewer. Those six decide the pair,
-the roster, the note and what this run is for, and nothing else does.
-**The EXECUTION owes 1 --- the run and post-run lists --- with 2, 4, 5, 6
-and 8's replace list**, every one of which answers a question the write-up asks:
-the replace list is walked at post-run step 6 and gains nothing from being read
-hours early, which run list step 15 already says of it, and the class blocks'
-form is not used until a block is written. **ONE OF THOSE CROSSES BACK,
-and it is 5.** A roster change that parks or drops an arm can leave a live claim
-naming an untimed one, which `--lint` refuses at step 7 --- so the preparation
-that made the change is the one that must retire or re-aim the claim,
-and it owes the claims section to do it. Run 21's preparation is the case:
-parking `offtab` and `gen-quotrem` retired claims 2 and 6 and re-aimed 8, all
-of it before that run started. A preparation that parks nothing does not owe 5,
-and step 7 is what tells it which it is. **Reading the other session's half
-is the largest avoidable spend in this chapter after the prose itself.**
-It was the shape of a preparation on 2026-08-30, which read the whole post-run
-list and an example class block and used neither, and it is a spend the split
-makes invisible: nothing in a handover shows what the session before it read
-for nothing. Items 2 to 6 are [the last run's own file](runs/run26.md#results),
-3 and 4 being [what the next run compares
-against](runs/run26.md#what-the-next-run-compares-against), 5 [the
-claims](runs/run26.md#the-claims-the-next-run-should-test) and 6 [the class
-blocks](runs/run26.md#the-stride-classes-run-by-run) --- and `--section` takes
-the heading's own words, never the anchor those links spell, which it refuses
-by name:
-
-    ./read-run.py --section 'What the next run compares against'
-    ./read-run.py --section 'What the next run compares against' --with-tables 1
-
-Everything else in this file is reference, and reading it is how a write-up's
-budget goes without a figure to show for it. **The excuse to expect
-is not laziness, and it is quoted here because the next reader will reach
-for it before inventing one.** A fresh session walked this chapter
-on 2026-08-28, told outright not to economise and with budget to spend: it read
-about 60% of the list, skipped item 2 --- the largest single input to the work
-it was about to do --- and accounted for it afterwards as *"I read what I judged
-useful and drifted."* It reported none of the four items it skipped, because
-nothing it skipped owed anything.
-
-**FIRST, THE RULING, because it decides what this chapter is: BOTH HALVES
-ARE BUILT ANEW, EVERY RUN.** A recorded run's two binaries are built during
-this preparation, back to back, from the two recipes its note carries. Four
-shortcuts are refused by name, and none of them is a judgement call:
-the previous run's binary, a binary built for a probe, one half copied to stand
-as the other, and one binary run twice under two sets of flags. So there
-is no fork and no path to be on --- the build step is unconditional and every
-run owes the whole of this chapter, however recently the last one built what
-looks like the same pair. Why a shortcut cannot be argued sound from its inputs
-is under *Why the build's three rules are what they are*: the drift it admits
-is between the RUNS, nothing is rebuilt between the halves to expose it,
-and no step here can see it.
-
-A *major run* is the whole roster over the whole shape set at criterion's
-default budget --- the main set and, by default, **every stride-class population
-with it**: one process for the main set and one per class, or two of each where
-the run is paired, in the order of the sequence below. Asking for a major run
-asks for all of them; leaving a population out is an explicit exception
-to be stated, not a choice this README leaves open. The whole is analysed
-and written into the run's own file. What follows is the procedure, and
-it is written to outlive any one run.
-
-**What asking for a run asks for, since the request is one sentence and the work
-is this chapter, and it is asked once per half.** Each half is asked separately
-and each is given whole without coming back for permission between the steps ---
-the procedure is the permission, each step naming what it needs and what it must
-not do, so a question this chapter answers is not a reason to stop. The go-ahead
-does not carry across the boundary, which the run list's head says where
-it bites. **THREE parties appear below and this README keeps them apart.**
-*The preparing session* builds the pair and writes the note, and stops at 12.
-*The executing session* spends the machine and writes the run up; where
-this README says *a session* with no qualifier it means that one, here as
-in the twenty-odd other places it says it. *Whoever asked for the run* holds
-the decisions a procedure cannot make, and is never called *the author*:
-that word means the session writing a block --- the one whose prose
-an independent checker is set against --- and it is the executor,
-not the requester and not the preparer.
-
-**A probe budget rides with it, and it is spent AFTER the write-up rather
-than before.** It is separate from the pre-registered questions, which
-are appended after the classes and were designed before the evening. What
-this ordering is for: the write-up is where a run's errors are made, it is done
-last, and a probe spent first is spent out of its attention --- Run 14 probed
-heavily and well, and shipped twenty-one prose errors past four green checkers
-because the writing came at the end of it. Take whatever measurement the run's
-own *results* make worthwhile, with no ceiling on it: a discriminating reading
-of a cell that came out strange, a derivation over the artifacts while they
-still exist. What bounds it is the artifacts and not a clock --- spend it while
-they live, most of it being unspendable afterwards. **What DOES bound it
-is the box**: this budget is spent past step 19a, where the machine was handed
-back, so a probe in it that TIMES anything is asked for first (19a); one
-that only reads the artifacts is not. **And do not read the budget
-as a concession --- it is where this README's mechanisms have come from, where
-the run is where its figures come from.** Run 15's six and a half hours produced
-figures, held 13 of 13 claims and confirmed a repetition, and no mechanism
-at all; some two hours of probes afterwards settled five standing questions,
-refuted three of that run's own published claims and found a caveat touching
-every ratio here. So a question with a discriminating measurement deserves
-a filtered run now rather than a slot in the next full one, which is a rule
-this chapter states twice and had buried both times.
-
-**Stop for two things.** No further progress --- a build that will not build,
-a gate that fails, evidence that is not on this machine --- and a decision
-that belongs to whoever asked for the run rather than to the procedure: whether
-the artifacts go, whether anything is pushed, which pair the next run takes,
-anything that publishes. Report those and wait; decide the rest. **THE TEST
-IS WHAT THE ANSWER CHANGES, NOT WHOSE THE DECISION IS: stop only where
-the answer changes what the machine does next.** Where it changes only what
-the write-up says, proceed under a stated assumption and report it where
-it bites --- the run collects the same artifacts whatever is decided. Apply
-the test and not the category: *belongs to whoever asked* cannot be applied
-from inside, since anything can be argued into it, where *changes what
-the machine does next* is answerable in a sentence and would have answered every
-stop this chapter has recorded. A preparation that leaves such a decision says
-so outright --- Run 19's put the claims-retirement decision at the head
-of the pair note in this paragraph's own vocabulary, with *before the gate
-is paid* beside it, and its first operator read it as a stop and lost the night
-(2026-08-24), where the test says plainly that a manifest edit due
-at the write-up changes nothing the evening does.
-
-**Confirm each long process on the screen as it finishes**, rather than folding
-it into a later summary. The gate, the sequence, a rebuild, any probe that takes
-a window: say that it finished, what it exited with, and whether its counts
-were what the roster asked for. They run for tens of minutes to hours, and while
-the rest is in progress their completion is the only thing a reader can act on.
+it --- Run 24's preparation read hundreds of lines with `sed` before meeting
+it (2026-09-03). Putting the two commands first was not enough on its own: Run
+26 met this block and still read some 250 lines of framing before starting,
+and Run 27 read some 285 before running either command (2026-09-07). **Three
+failures of the same shape said the fix was reading ORDER and not emphasis**,
+so the framing moved below the lists on 2026-09-07. What that move was thought
+to cost, and did not, was the `why:` pointers: they resolve by bolded lead
+through `--para` and not by position, so every one of them still lands.
 
 **The pre-run half as a list, because its actions are spread over eight hundred
 lines and every one of them earns its place separately.** **The three lists
@@ -6505,14 +6246,19 @@ and never as a chronology.
     #          ./read-run.py --note $PREV-pair.txt > note-read.txt
     #          ./read-run.py --note $PREV-pair.txt --draft $R \
     #                        --halves <basis>,<other>
-    #      The first withholds the previous run's handover and says how
-    #      much; REDIRECT IT, it runs to 30-odd KB. The second prints the
-    #      `[SAME]` blocks with the names already carried over, every
-    #      substitution listed -- so what you write by hand is the
-    #      `[PAIR'S]` blocks and nothing else. Run 25's preparation ran
-    #      the first and not the second, hand-copied every `[SAME]` block,
-    #      and carried the previous run's gate arms and its --library
-    #      figures forward in the copying
+    #      The first prints the blocks a preparation DECIDES and withholds
+    #      the rest -- the handover and the gate, spent with that run, and
+    #      the `[SAME]` blocks, which the second carries over -- saying how
+    #      much; REDIRECT IT. The second is the WHOLE note: the `[SAME]`
+    #      blocks with the names already carried over, every other slot
+    #      present and empty as `<yours>`, the template's guidance under
+    #      each as `#` scaffolding to delete. SO THE NOTE IS THAT FILE
+    #      FILLED IN, not three files assembled -- redirect it to
+    #      $R-pair.txt and edit there. Run 25's preparation ran the first
+    #      and not the second, hand-copied every `[SAME]` block, and
+    #      carried the previous run's gate arms and its --library figures
+    #      forward in the copying; Run 27's ran both and still assembled
+    #      the note by hand, which is what the second now removes
     #      WHAT THE PAIR VARIES is not in this list and not in the
     #      template: it is settled in *What Run N compares against*, and
     #      the recipe to vary is the previous run's note. Read both before
@@ -6529,16 +6275,25 @@ and never as a chronology.
     #      $REGIME, as every recorded note does. $REGIME is for the ad-hoc
     #      call, and where one is written --ghc-options="$REGIME" stays
     #      quoted. Build the halves
-    #      back to back with nothing touched between -- about twenty
+    #      back to back with nothing touched between, WHICH IS ONE CALL:
+    #      build, copy, build, copy, since a call apiece is an invitation
+    #      to put something between them and the rule is that nothing
+    #      goes there. About twenty
     #      seconds each here, the dependencies being in the store and only
     #      the local package recompiled -- keep both executables, delete
     #      each --builddir once its binary is copied out, and read the
     #      pair's variable straight out of each
     #      with the note's own `strings` line before trusting either.
-    #      Then transcribe into the note what only the build can say: the
-    #      Main.hs and align-as.py commits it was built from, the GHC, the
-    #      two md5s, .text and the fills -- the fill-in block is that
-    #      transcription, and steps 3, 9b and 10 are all reading it back.
+    #      Then the note's fill-in block, which is what only the build can
+    #      say: the Main.hs and align-as.py commits, the two compilers, the
+    #      md5s, .text, the fills. DO NOT TRANSCRIBE IT --
+    #      `./preflight.sh $R --fill-in` derives every one of those rows
+    #      from what steps 4 to 10 just read and prints the block to paste,
+    #      marking `<yours>` the rows no command can give (the sweeps, the
+    #      roster pass, repetition). A hand reads the wrong column: Run
+    #      27's recorded `size -A`'s SECOND field, the load address, as
+    #      .text, and then reasoned about why it had not moved across a
+    #      roster change. Steps 3, 9b and 10 are reading the block back.
     #      AND WHERE `--list` SHOWS A TIMED ARM THAT BRINGS A NEW FUNCTION,
     #      the fills read here are the pinning claim's only reading:
     #      `./loop-offsets.py --delta $PREV-<basis> $R-<basis>` is that
@@ -6609,6 +6364,17 @@ and never as a chronology.
     ./$R-<basis> check > <your tmp>/a.log 2>&1   # 4. every shape agrees
     ./$R-<other> check > <your tmp>/b.log 2>&1   # 5. and the other half
     cmp <your tmp>/a.log <your tmp>/b.log        #  byte-identical, or STOP
+    #  WHAT IS NOT A STOP, and it is the one reading this cmp needs: a
+    #      difference confined to an INSTRUMENT'S OWN MEASURED OUTPUT,
+    #      with every verdict word agreeing and both halves exiting 0, is
+    #      a finding about the instrument and not about the pair. Say what
+    #      it was, fix the instrument, rebuild both halves and re-run this
+    #      -- do not carry it. Run 27 is the case: the laziness gate added
+    #      the day before printed an allocation figure per row, four of
+    #      its twelve rows parted by 8 to 16 bytes between two compilers,
+    #      and the gate now prints the count only where it fails. ANY
+    #      OTHER difference is the stop this line says it is, a pair whose
+    #      halves compute differently having nothing to compare
     #      NOT /tmp/a.log, which no seat here permits sandboxed: send both
     #      to the temp directory this session actually has, since a
     #      blocked redirect runs nothing at all. Scratch names, spelled in
@@ -6768,10 +6534,14 @@ and never as a chronology.
     #      half alone where 11 is minutes; what is read when each ends is
     #      its DONE line, the contention in the elapsed times it records
     #      being a sanity reading and not a measurement.
-    #      SET THE TURN-END HOLD before the first edit made while they
-    #      run -- the registration -- clearing it at 12c:
-    #      every wait on them ends a turn and the Stop hook rewraps the
-    #      documents at each (~/.claude/rules/turn-end-hold.md). And
+    #      THE TURN-END HOLD IS SET AT THE FIRST WAIT AND NOT HERE, which
+    #      is step 2's build: every wait ends a turn and the Stop hook
+    #      rewraps the documents at each, so the hold pays from the first
+    #      backgrounded thing rather than from the first edit under these
+    #      sweeps (~/.claude/rules/turn-end-hold.md). Set that early it
+    #      costs nothing and covers the whole half; set here it covers the
+    #      registration and leaves the build's own waits uncovered. Clear
+    #      it at 12c. And
     #      wait on nothing: launched as step 11 says you are woken, and a
     #      waiter that greps a process list matches ITS OWN command line
     #      and never returns -- `pgrep -f`, `pkill -f` and `ps -eo args
@@ -6829,6 +6599,13 @@ and never as a chronology.
     #      IT CAME FROM, never from the sentence beside it, and then read
     #      both back end to end. It costs minutes, and it is not a
     #      substitute for post-run step 6b's independent reader
+    #  IN ONE PASS, not one call per figure: put the figures in a script
+    #      that checks them all against the file they came from and prints
+    #      the ones that disagree. Run 27's preparation spent a call
+    #      apiece and still proved only that each string was PRESENT
+    #      somewhere, which a citation that has slid onto another row also
+    #      passes -- read each in its ROLE, which is what one pass makes
+    #      affordable
     #      AND NAME THAT FILE WHERE YOU WRITE THE FIGURE, or the next
     #      reader copies you (post-run 6e says why). `./preflight.sh $R
     #      --note` re-checks 10c, 10d and 8 after these edits, in seconds
@@ -6849,7 +6626,18 @@ and never as a chronology.
     #      lost NONE. That is the whole of the fix and it costs a
     #      paragraph; where a pointer is kept anyway, follow it and read
     #      what it lands on
-    #  12c. COMMIT, which the preparation does and the run does not: the
+    #  12c. COMMIT, AND REVIEW BEFORE YOU DO, not after: walk what this
+    #      half wrote for errors -- 12b is the figures, this is the shape
+    #      of the changes -- and commit once at the end. A review after
+    #      12c pays a history rewrite per error found, and the whole-tree
+    #      checks again with it, since a document edit is content those
+    #      checks read: Run 27's preparation committed at 12c and then
+    #      rewrote its chain FOUR times and ran `check-all` THREE, for
+    #      corrections that one commit would have carried. This is the
+    #      user-scope rule about committing at the end of an iteration
+    #      rather than in the middle, at the one step here that can
+    #      disobey it.
+    #      What the commit itself is: the
     #      registration on its own, tooling changes partitioned from it,
     #      and NOTHING PUSHED without a go-ahead. Run list step 17 forbids
     #      an edit to the tree while the sequence runs, so what this half
@@ -8804,6 +8592,286 @@ size comes from the reader's first line;
     to be tidied and is not a blocker for the next run, whose relaunch guard
     is scoped to its own name.
 
+
+#### The reasons behind the three lists
+
+Nothing here is operative: every fact that changes what a session DOES is in one
+of the three lists above, which is this chapter's own contract, and what follows
+is why those steps are what they are. It sits below the lists rather than above
+them because three preparations in a row read it on the way in --- Run 24
+with `sed`, Run 26 for some 250 lines, Run 27 for some 285 --- and the block
+at the head of the chapter, which tells you to run two commands before reading
+further, did not stop any of them. Reading order did. Take a paragraph from here
+when a step surprises you: every `why:` line in the lists names one
+by its bolded lead, which `--para` resolves wherever the paragraph sits.
+
+**A RUN IS ALWAYS TWO SESSIONS, and which one you are decides everything
+below.** One PREPARES the run, through step 12 of the pre-run list, and hands
+over `$R-pair.txt`; another EXECUTES it from step 13 and writes it up. Which
+half you were asked for decides which of the readings below you owe, which list
+you start in, and what is already spent and not yours to redo --- so settle
+it before reading anything else. **And a run is finished when
+`./run-status.sh $R` says all done**, read off the artifacts and the repository
+and never off a session's sense of it: a summary of what remains is not a step
+toward it.
+
+**What a run must read, so that nothing else is read to find out --- and
+it is read BY THE PART, never whole.** This paragraph used to say the last run's
+own file was *the one thing worth reading entire* and then, in its next four
+clauses, name what to skip inside it. Whole is the sentence a session acts on,
+because it governs how the file gets opened, so the clauses read as emphasis:
+Run 20 ingested 38 KB of the previous run's tables, **24% of that file**, every
+byte of it named as skippable one sentence later. The enumeration
+is the instruction and the tables are what a run does not read --- the reader
+emits them, `--in-place` installs them, and the checker recomputes them
+from the JSONs. **`./read-run.py --section NAME` is what makes that takeable**,
+printing one section's prose without its tables and naming the size it withheld,
+since a line range cannot skip what sits between the paragraphs it spans
+and a line number does not survive a rewrap. **This README is never read
+whole**: it runs to well over a hundred thousand words and this chapter alone
+to thirty-odd thousand, which is what `--section` and `--checklist` exist for.
+**So, as ten items, each owing an artifact, and each read AT THE STEP THAT NAMES
+IT and not before**: item 1 is read now, and every other item stands
+in the lists below as a `READ NOW` line at the step whose work needs it, because
+a reading taken at the head is forgotten by the time its step arrives. A reading
+that owes nothing cannot be told from a reading not done, which is the whole
+of why this is a list and not a sentence. **Items 2, 4, 5 and 6 are ONE
+CARRIER'S BATCH, and its return is a file**: `run<N>-readings.txt`, written
+at the head of the post-run walk --- or EARLIER, during the sequence, which
+is where Run 26 put it and where it costs nothing: the box is busy for hours,
+the carrier only reads, and the file waits. Read back a block at a time
+by the three steps that name those items. They are the previous run's prose ---
+its head, its two-column section, its claims and a class block --- read once
+for a verdict apiece and never carried whole, which is what a carrier is for.
+A file rather than a returned message because the sentence above binds
+a delegated reading too: what the carrier says is forgotten by the step
+that needs it unless it is written down.
+
+    1. this chapter's three checklists, each printed alone by
+    `./read-run.py --checklist pre|run|post`, a fifth of the chapter's lines
+         -- every step of them is owed, the build included
+    2. the last run's head and Results prose
+         -- one sentence: what this run's own head has to answer
+    3. What the next run compares against, its prose and not its figures
+         -- the regime, the roster and the basis, each named
+    4. the two-column table under it, the ONE table read, `--with-tables`
+         -- does it carry the last run's columns? Run 20's write-up
+            forgot to add its own, which is why this is named separately
+    5. the claims, BOTH numbered sets AND the prose after them, which is where
+       retirements are recorded -- not the readings above them, which `--claims`
+       reprints
+         -- which claims are live, and how many
+    6. the class blocks: the six numbered items of the form, and one example
+       block, not the rest
+         -- the form, in your own words
+         ITEMS 2, 4, 5 AND 6 ARE ONE CARRIER'S BATCH and its return is
+         `run<N>-readings.txt`, one `ITEM N` block apiece, each block the
+         artifact named on that item's own second line and each figure
+         beside the invocation that re-emits it. It is
+         `checker-brief.txt` turned around -- a page of conclusions
+         written BY an agent FOR the run where the brief is written for
+         one -- so it follows that file's form and invents nothing
+         ITS FOUR READS, so the carrier opens no file whole (P=$PREV):
+             item 2  --section Results --run-doc runs/$P.md
+             item 4  --section 'What the next run compares against' --run-doc runs/$P.md --with-tables 1
+             item 5  --section 'The claims the next run should test' --run-doc runs/$P.md
+             item 6  --section 'The stride classes, run by run' --run-doc runs/$P.md
+         The 1 is the two-column table and the other tables of that
+         section are the per-shape fingerprint, which item 4 does not
+         read -- 8 KB of it on Run 24; the withheld line names how many
+         the section carries, so a run that adds one can still find it
+    7. the open list, by its status markers rather than end to end,
+         grepped over `wrap80 --unwrap README.md` -- a marker sits at
+         the head of an item, which the wrapped form breaks
+         -- the OPEN entries, named
+    8. Provenance's replace list and its delta bullets
+         -- what this run has to replace
+    9. `read-run.py`'s docstring, this chapter's other governing
+         document -- BY HALF, like the list it sits in. A PREPARATION
+         uses the Modes list, `--para`, `--section` and the two gates, `--lint` and `--check-doc`;
+         the statistic definitions, the A/A identity, the validation
+         history and every mode that reads a run's FIGURES are the
+         EXECUTION's, and Run 23's preparation read them all and used
+         none
+         -- NAME THE MODE YOU TOOK A FIGURE FROM, on the note's own
+            `--fill-in` row or beside the figure. This item used to owe
+            *nothing to write down; you will know if you skipped it*, and
+            Run 27's preparation skipped it and did not know: an item
+            owing no artifact cannot be told from an item not done, which
+            is the whole of why this is a list. What it cost that run was
+            a sentence committed and then refuted by the docstring's own
+            `--check-doc` paragraph
+    10. the PREVIOUS run's pair note, `$PREV-pair.txt`, and
+         pair-note-template.txt beside it -- that note is the only copy
+         of both recipes and is what this run's note is written FROM,
+         and the template says what a note owes; where the pair wants a
+         half of a kind that note never built -- a compiler it did not
+         carry -- the last note that built one holds that recipe, and
+         `grep -n 'HOW EACH HALF IS BUILT' -A 70 $OLD-pair.txt` is how
+         you take one block out of a note you do not otherwise owe
+         TWO COMMANDS DO THE SKIP AND THE COPY, and neither is a thing
+         to do by eye (both added 2026-09-03, after Run 24's
+         preparation did both by hand):
+             ./read-run.py --note $PREV-pair.txt > note-read.txt
+             ./read-run.py --note $PREV-pair.txt --draft $R \
+                           --halves <basis>,<other>
+         The first withholds the handover below and says how much; the
+         second prints the `[SAME]` blocks alone with the names carried
+         over, every substitution listed, and every `[PAIR'S]` block
+         named as still yours. READ WHAT THE SECOND EMITS: it is a copy
+         with names changed, and the template asks for those blocks to
+         be re-read rather than re-decided
+         SKIP THE PREVIOUS RUN'S HANDOVER, which is about a third of a
+         note and none of it yours: `ENTRY POINT`, `WHAT THE
+         PREPARATION LEARNED`, `GREEN AFTER THE LAST EDIT`, the `GATE`
+         verdict and run-gate.sh's appended block, and the fill-in
+         lines recording that run's own progress -- its sequence, its
+         counts, its gate. They are addressed to the session that RAN
+         that pair and are spent. What you are here for is the two
+         recipes, what the pair measured and why its basis was that
+         recipe, the roster, the compiler, the shim, and the fill-in
+         block's OBSERVATIONS, which are what this run's build is
+         compared against
+         A NOTE'S [SAME] AND [PAIR'S] MARKERS ARE A DIFFERENT AXIS and
+         answer a different question -- which of its blocks would be a
+         copying error to carry into your note. Notes carry them from
+         Run 23 on
+         -- the two recipes, and which of their lines the pair varies
+
+**SO THIS IS TWO LISTS, and there is no case in which a session owes all ten.**
+The numbers never move, so a reference to an item still lands. The pre-run
+list's own head names the six its half owes, which is where a preparation meets
+the split; the run and post lists have no such head, so an executing session
+meets it here. What each is for: **The PREPARATION owes 1, 3, 7, 8's delta
+bullets, 9 and 10** --- of item 1, THE PRE-RUN LIST ALONE, and of items 9 and 10
+the halves their own entries name. It used to owe the run list too,
+for the launch, rider and counts blocks the note carries; those
+are in `pair-note-template.txt` since 2026-09-01, where the note is written
+from anyway, so neither the run list nor the post-run one is owed
+and a preparation reads about a thousand lines fewer. Those six decide the pair,
+the roster, the note and what this run is for, and nothing else does.
+**The EXECUTION owes 1 --- the run and post-run lists --- with 2, 4, 5, 6
+and 8's replace list**, every one of which answers a question the write-up asks:
+the replace list is walked at post-run step 6 and gains nothing from being read
+hours early, which run list step 15 already says of it, and the class blocks'
+form is not used until a block is written. **ONE OF THOSE CROSSES BACK,
+and it is 5.** A roster change that parks or drops an arm can leave a live claim
+naming an untimed one, which `--lint` refuses at step 7 --- so the preparation
+that made the change is the one that must retire or re-aim the claim,
+and it owes the claims section to do it. Run 21's preparation is the case:
+parking `offtab` and `gen-quotrem` retired claims 2 and 6 and re-aimed 8, all
+of it before that run started. A preparation that parks nothing does not owe 5,
+and step 7 is what tells it which it is. **Reading the other session's half
+is the largest avoidable spend in this chapter after the prose itself.**
+It was the shape of a preparation on 2026-08-30, which read the whole post-run
+list and an example class block and used neither, and it is a spend the split
+makes invisible: nothing in a handover shows what the session before it read
+for nothing. Items 2 to 6 are [the last run's own file](runs/run26.md#results),
+3 and 4 being [what the next run compares
+against](runs/run26.md#what-the-next-run-compares-against), 5 [the
+claims](runs/run26.md#the-claims-the-next-run-should-test) and 6 [the class
+blocks](runs/run26.md#the-stride-classes-run-by-run) --- and `--section` takes
+the heading's own words, never the anchor those links spell, which it refuses
+by name:
+
+    ./read-run.py --section 'What the next run compares against'
+    ./read-run.py --section 'What the next run compares against' --with-tables 1
+
+Everything else in this file is reference, and reading it is how a write-up's
+budget goes without a figure to show for it. **The excuse to expect
+is not laziness, and it is quoted here because the next reader will reach
+for it before inventing one.** A fresh session walked this chapter
+on 2026-08-28, told outright not to economise and with budget to spend: it read
+about 60% of the list, skipped item 2 --- the largest single input to the work
+it was about to do --- and accounted for it afterwards as *"I read what I judged
+useful and drifted."* It reported none of the four items it skipped, because
+nothing it skipped owed anything.
+
+**FIRST, THE RULING, because it decides what this chapter is: BOTH HALVES
+ARE BUILT ANEW, EVERY RUN.** A recorded run's two binaries are built during
+this preparation, back to back, from the two recipes its note carries. Four
+shortcuts are refused by name, and none of them is a judgement call:
+the previous run's binary, a binary built for a probe, one half copied to stand
+as the other, and one binary run twice under two sets of flags. So there
+is no fork and no path to be on --- the build step is unconditional and every
+run owes the whole of this chapter, however recently the last one built what
+looks like the same pair. Why a shortcut cannot be argued sound from its inputs
+is under *Why the build's three rules are what they are*: the drift it admits
+is between the RUNS, nothing is rebuilt between the halves to expose it,
+and no step here can see it.
+
+A *major run* is the whole roster over the whole shape set at criterion's
+default budget --- the main set and, by default, **every stride-class population
+with it**: one process for the main set and one per class, or two of each where
+the run is paired, in the order of the sequence below. Asking for a major run
+asks for all of them; leaving a population out is an explicit exception
+to be stated, not a choice this README leaves open. The whole is analysed
+and written into the run's own file. What follows is the procedure, and
+it is written to outlive any one run.
+
+**What asking for a run asks for, since the request is one sentence and the work
+is this chapter, and it is asked once per half.** Each half is asked separately
+and each is given whole without coming back for permission between the steps ---
+the procedure is the permission, each step naming what it needs and what it must
+not do, so a question this chapter answers is not a reason to stop. The go-ahead
+does not carry across the boundary, which the run list's head says where
+it bites. **THREE parties appear below and this README keeps them apart.**
+*The preparing session* builds the pair and writes the note, and stops at 12.
+*The executing session* spends the machine and writes the run up; where
+this README says *a session* with no qualifier it means that one, here as
+in the twenty-odd other places it says it. *Whoever asked for the run* holds
+the decisions a procedure cannot make, and is never called *the author*:
+that word means the session writing a block --- the one whose prose
+an independent checker is set against --- and it is the executor,
+not the requester and not the preparer.
+
+**A probe budget rides with it, and it is spent AFTER the write-up rather
+than before.** It is separate from the pre-registered questions, which
+are appended after the classes and were designed before the evening. What
+this ordering is for: the write-up is where a run's errors are made, it is done
+last, and a probe spent first is spent out of its attention --- Run 14 probed
+heavily and well, and shipped twenty-one prose errors past four green checkers
+because the writing came at the end of it. Take whatever measurement the run's
+own *results* make worthwhile, with no ceiling on it: a discriminating reading
+of a cell that came out strange, a derivation over the artifacts while they
+still exist. What bounds it is the artifacts and not a clock --- spend it while
+they live, most of it being unspendable afterwards. **What DOES bound it
+is the box**: this budget is spent past step 19a, where the machine was handed
+back, so a probe in it that TIMES anything is asked for first (19a); one
+that only reads the artifacts is not. **And do not read the budget
+as a concession --- it is where this README's mechanisms have come from, where
+the run is where its figures come from.** Run 15's six and a half hours produced
+figures, held 13 of 13 claims and confirmed a repetition, and no mechanism
+at all; some two hours of probes afterwards settled five standing questions,
+refuted three of that run's own published claims and found a caveat touching
+every ratio here. So a question with a discriminating measurement deserves
+a filtered run now rather than a slot in the next full one, which is a rule
+this chapter states twice and had buried both times.
+
+**Stop for two things.** No further progress --- a build that will not build,
+a gate that fails, evidence that is not on this machine --- and a decision
+that belongs to whoever asked for the run rather than to the procedure: whether
+the artifacts go, whether anything is pushed, which pair the next run takes,
+anything that publishes. Report those and wait; decide the rest. **THE TEST
+IS WHAT THE ANSWER CHANGES, NOT WHOSE THE DECISION IS: stop only where
+the answer changes what the machine does next.** Where it changes only what
+the write-up says, proceed under a stated assumption and report it where
+it bites --- the run collects the same artifacts whatever is decided. Apply
+the test and not the category: *belongs to whoever asked* cannot be applied
+from inside, since anything can be argued into it, where *changes what
+the machine does next* is answerable in a sentence and would have answered every
+stop this chapter has recorded. A preparation that leaves such a decision says
+so outright --- Run 19's put the claims-retirement decision at the head
+of the pair note in this paragraph's own vocabulary, with *before the gate
+is paid* beside it, and its first operator read it as a stop and lost the night
+(2026-08-24), where the test says plainly that a manifest edit due
+at the write-up changes nothing the evening does.
+
+**Confirm each long process on the screen as it finishes**, rather than folding
+it into a later summary. The gate, the sequence, a rebuild, any probe that takes
+a window: say that it finished, what it exited with, and whether its counts
+were what the roster asked for. They run for tens of minutes to hours, and while
+the rest is in progress their completion is the only thing a reader can act on.
 
 ### Other toolchains, probed and not run
 
