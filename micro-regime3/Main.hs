@@ -2040,6 +2040,16 @@ fbMutOdoVecdimsAddInLeaf sh (T (Strides ats) ao v) = VS.create $ do
 -- Against 'add-in' it is the endpoint contrast, read directly, not
 -- summed from marginals. 'writeRun' is character-identical to
 -- 'fbMutOdoVecdimsAddBothDown''s.
+-- In the leaf family's later vocabulary this is the '-u1-down' slot:
+-- 'fbMutOdoVecdimsAddInLeafU1' with the fill's bound a falling count
+-- instead of the @oEnd@ cursor, the outer loops being '-u1''s already
+-- -- what 'fbMutOdoVecdimsAddInLeafU2Down' is to '-u2' -- so no arm of
+-- that name is wanted and the pair is read here. The count costs a
+-- third value stepped per element, the cursor form's bound being a
+-- compare of the cursor it steps anyway: Run 26 reads '-u1' at 0.9154
+-- of this arm's counted instructions, one an element, and 0.9556 in
+-- time, 18 of 19 (runs/run26.md). At unroll 2 the same change is a
+-- tie, for the reason at 'fbMutOdoVecdimsAddInLeafU2Down'.
 {-# NOINLINE fbMutOdoVecdimsAddInLeafDown #-}
 fbMutOdoVecdimsAddInLeafDown :: ShapeL -> T -> VS.Vector Double
 fbMutOdoVecdimsAddInLeafDown sh (T (Strides ats) ao v) = VS.create $ do
@@ -2092,6 +2102,8 @@ fbMutOdoVecdimsAddInLeafDown sh (T (Strides ats) ao v) = VS.create $ do
 -- intermediate fused-bound form -- counter merged into the cursor,
 -- six instructions -- as a wash; that form is 'fbMutOdoVecdimsAddInLeafU1'
 -- below, rostered for Run 25 to re-read the wash under the shim.
+-- The guard looks one element ahead, @o + 1 >= oEnd@, an add per pair
+-- that 'fbMutOdoVecdimsAddInLeafU2Last' hoists into the bound.
 -- This is the arm the library ships: 'genericFillStrided' in
 -- Data/Array/Internal.hs is its bang-for-bang port, landed 2026-08-24.
 {-# NOINLINE fbMutOdoVecdimsAddInLeafU2 #-}
@@ -2139,12 +2151,85 @@ fbMutOdoVecdimsAddInLeafU2 sh (T (Strides ats) ao v) = VS.create $ do
         !oshV  = VU.fromList (init sh)
         !oatsV = VU.fromList (init ats)
 
+-- 'fbMutOdoVecdimsAddInLeafU2' with the look-ahead hoisted out of the
+-- fill's guard: the bound held as the run's LAST output index, @oLast@,
+-- the parent's @oEnd@ less one, compared against the cursor directly,
+-- where the parent computes @o + 1@ per pair and compares that against
+-- @oEnd@ -- one change, so that arm is its control. The epilogue reads
+-- the same bound, past it the run being done and at it one element
+-- left. The live set does not grow, @oLast@ standing where @oEnd@ stood,
+-- which is what the fourteenth reading's ruling asks of a source change
+-- in this loop (README.md#the-mutable-ceiling-taken); what changes at
+-- the run level is that @op + sInner@ is no longer the fill's own bound
+-- handed on as the next cursor, the shape '-u2-down' carries at a tie.
+-- Expected from Run 26's counts: one instruction fewer per pair, where
+-- '-u2' and '-u2-down' execute the same count -- the parent's look-ahead
+-- add being the instruction that arm spends on its decrement -- so in
+-- counts this arm should part from both, and the run says whether time
+-- follows. Counted the same day on the g912 build, N=50, a smoke run and
+-- not a column: 0.9688 of '-u2' on @runs-65536@ and on @stretch-tall-Mx2@,
+-- half an instruction an element, with '-u2-down' level with '-u2'
+-- on both; 0.9837 on @runs-7@; and LEVEL on the three-wide runs of
+-- @cnn-L1-24x24-c1@ and @cnn-L1-6x6-c1@, so the odd tail gives the pair's
+-- saving back there, which the -g3 twin can read. Added 2026-09-07 for Run
+-- 27.
+-- Non-vacuity, 2026-09-07: closing the epilogue's test to @o >= oLast@,
+-- which skips the odd element, fails @check@ at @cnn-L1-6x6-c1@, naming
+-- this arm alone.
+{-# NOINLINE fbMutOdoVecdimsAddInLeafU2Last #-}
+fbMutOdoVecdimsAddInLeafU2Last :: ShapeL -> T -> VS.Vector Double
+fbMutOdoVecdimsAddInLeafU2Last sh (T (Strides ats) ao v) = VS.create $ do
+  out <- VSM.unsafeNew l
+  let writeRun !outPos !baseOff =
+        let !oLast = outPos + sInner - 1
+            inner !o !src
+              | o >= oLast =
+                  if o > oLast then return ()
+                  else VSM.unsafeWrite out o (VS.unsafeIndex v src)
+              | otherwise = do
+                  VSM.unsafeWrite out o (VS.unsafeIndex v src)
+                  let !src' = src + tInner
+                  VSM.unsafeWrite out (o + 1) (VS.unsafeIndex v src')
+                  inner (o + 2) (src' + tInner)
+        in  inner outPos baseOff
+      go !lev !outPos !baseOff
+        | lev >= rOuter = writeRun outPos baseOff >> return (outPos + sInner)
+        | lev == rOuter - 1 =
+            let !n  = VU.unsafeIndex oshV lev
+                !st = VU.unsafeIndex oatsV lev
+                run !k !op !boff
+                  | k <= 0    = return op
+                  | otherwise = writeRun op boff
+                                >> run (k - 1) (op + sInner) (boff + st)
+            in  run n outPos baseOff
+        | otherwise =
+            let !n  = VU.unsafeIndex oshV lev
+                !st = VU.unsafeIndex oatsV lev
+                dim !k !op !boff
+                  | k <= 0    = return op
+                  | otherwise = go (lev + 1) op boff
+                                >>= \op' -> dim (k - 1) op' (boff + st)
+            in  dim n outPos baseOff
+  _ <- go 0 0 ao
+  return out
+  where l = product sh
+        !sInner = last sh
+        !tInner = last ats
+        !rOuter = length sh - 1
+        oshV, oatsV :: VU.Vector Int
+        !oshV  = VU.fromList (init sh)
+        !oatsV = VU.fromList (init ats)
+
 -- 'fbMutOdoVecdimsAddInLeafU2' with the fill not unrolled: the same
 -- @oEnd@ cursor bound, one element per iteration, the epilogue as the
 -- whole loop -- one change, so that arm is its control on the unroll
--- axis, and 'fbMutOdoVecdimsAddInLeaf', which differs from this in
--- carrying a counter beside the cursor, @j@ against @sInner@ with each
--- write at @outPos + j@, its control on the bound. This is the
+-- axis, and 'fbMutOdoVecdimsAddInLeafDown', the same loops with the
+-- fill's bound a falling count, its control on the bound;
+-- 'fbMutOdoVecdimsAddInLeaf' is two changes off, carrying a counter
+-- beside the cursor, @j@ against @sInner@ with each write at
+-- @outPos + j@, AND stepping its outer loops up where these count
+-- down. What the cursor bound buys over the count at this unroll, one
+-- instruction an element, is read at that control. This is the
 -- intermediate fused-bound form the probe of 2026-08-24 read as a wash
 -- against the counted leaf, 0.9967 at 5 of 9,
 -- on a scratch build with no shim and so with its loop heads wherever
@@ -2495,7 +2580,16 @@ fbMutOdoVecdimsAddInLeafU2Ptr sh (T (Strides ats) ao v) =
 -- one for one, so the loop is a value lighter, and the same epilogue
 -- takes the odd or empty run. Rostered 'Only' on 2026-08-27 and timed
 -- from 2026-08-28. The bound is on the count and not the cursor, so it is
--- as sign-agnostic as its control. Non-vacuity, 2026-08-27: dropping
+-- as sign-agnostic as its control. What Run 21 read as this arm's loss
+-- was the doubled stride both unrolled fills then carried; with it gone
+-- (README.md#the-mutable-ceiling-taken, the fifteenth and eighteenth
+-- readings) the pair is a tie in time and equal in counts, Run 26
+-- reading the two within a rounding on @runs-65536@ -- the parent's
+-- guard computes @o + 1@ per pair, the instruction this arm spends on
+-- @d - 2@. 'fbMutOdoVecdimsAddInLeafU2Last' hoists that look-ahead and
+-- parts from both there in counts, half an instruction an element on
+-- the long runs and nothing on the three-wide ones (its definition).
+-- Non-vacuity, 2026-08-27: dropping
 -- the @+ tInner@ from the second read fails @check@ at @cnn-L1-6x6-c1@,
 -- naming this arm.
 {-# NOINLINE fbMutOdoVecdimsAddInLeafU2Down #-}
@@ -5127,6 +5221,10 @@ roster =
     -- (runs/run26.md, item 4). 'Only' again since 2026-09-06.
   , ("mut-odo-vecdims-add-in-leaf-down", Only fbMutOdoVecdimsAddInLeafDown)
   , ("mut-odo-vecdims-add-in-leaf-u2", Fill fbMutOdoVecdimsAddInLeafU2)
+    -- The unrolled loop with its look-ahead hoisted out of the guard,
+    -- added 2026-09-07 beside its parent for Run 27, every slot below
+    -- moving by one; reasons at its definition.
+  , ("mut-odo-vecdims-add-in-leaf-u2-last", Fill fbMutOdoVecdimsAddInLeafU2Last)
     -- The unrolled loop with its cursors as pointers at every level,
     -- added 2026-09-05 beside its parent for Run 26's comparison with
     -- '-u1-ptr', every slot below moving by one: the ceiling '-u2' would

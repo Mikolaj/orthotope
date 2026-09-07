@@ -915,19 +915,19 @@ rather than a slot in the next run, observed again:
   Registered 2026-09-06, before the run, on Run 26's pair --- ghc-9.12.4
   as the basis against the same in-tree HEAD stage1, `10.1.20260803`, both
   under `LOOP_DEADSPOT=1`, the same recipe and the same shim --- over Run 26's
-  roster less the four arms it lifted out of parking and plus the eight arms
+  roster less the four arms it lifted out of parking and plus the nine arms
   of 2026-09-07 --- the lazy candidates and the reducing consumers, items (6)
-  to (9) --- 34 timed arms over 19 main-set shapes, 646 benches, and the 52
-  class views of ten classes unmoved. Two changes of code: the GHC #27778
-  workaround, `:: Ptr Double` on every bang-bound `plusPtr` result in the three
-  pointer arms (the answered entry above), which leaves the three arms' STG
-  on 9.12.4 byte-identical and takes every `Ptr` allocation out of the HEAD
-  build's, both read off STG dumps of the two builds before this run;
-  and the eight arms, each landing beside its control and touching no arm timed
-  before it. Each item names its populations and carries a prediction and a kill
-  condition. (1) *The pointer fills on the second codegen.* With the workaround,
-  HEAD reads the two pointer fills as the basis does. On the main set, on both
-  halves:
+  to (9), and the hoisted-bound fill, item (13) --- 35 timed arms over 19
+  main-set shapes, 665 benches, and the 52 class views of ten classes unmoved.
+  Two changes of code: the GHC #27778 workaround, `:: Ptr Double` on every
+  bang-bound `plusPtr` result in the three pointer arms (the answered entry
+  above), which leaves the three arms' STG on 9.12.4 byte-identical and takes
+  every `Ptr` allocation out of the HEAD build's, both read off STG dumps
+  of the two builds before this run; and the nine arms, each landing beside
+  its control and touching no arm timed before it. Each item names
+  its populations and carries a prediction and a kill condition. (1)
+  *The pointer fills on the second codegen.* With the workaround, HEAD reads
+  the two pointer fills as the basis does. On the main set, on both halves:
   `predict: pair mut-odo-vecdims-add-in-leaf-u1-ptr mut-odo-vecdims-add-in-leaf-u1 0.97 within 2%`,
   where Run 26's basis read 0.9693 and its HEAD half 1.3084;
   `predict: pair mut-odo-vecdims-add-in-leaf-u2-ptr mut-odo-vecdims-add-in-leaf-u1-ptr 0.94 within 2%`,
@@ -950,7 +950,7 @@ rather than a slot in the next run, observed again:
   0.9936 to 1.0089. Killed by either outside 3%, which would say HEAD still
   emits a different loop for the `Ptr` form once the box is gone. (3) *The basis
   half against Run 26's.* The annotation changing no 9.12 code, and four arms
-  leaving and eight landing moving slots alone --- an assumption, the eight
+  leaving and nine landing moving slots alone --- an assumption, the nine
   bringing new code where a `Force` twin brings none, so the loop-offsets read
   of pre-run step 2, `./loop-offsets.py --delta` against Run 26's basis binary,
   is owed before the run and this item is read beside what it prints --- every
@@ -1161,7 +1161,24 @@ rather than a slot in the next run, observed again:
   the compiler's share out of the class level, or by all four above 1 past their
   floors, which would put the faster half on the other side. It overlaps item
   (1), the pointer fills being what moved the class geomeans, and reads
-  on the classes what (1) reads on the main set.
+  on the classes what (1) reads on the main set. (13) *The look-ahead hoisted
+  out of the shipped fill's guard.* `mut-odo-vecdims-add-in-leaf-u2-last`, added
+  2026-09-07, is `-u2` with the bound held as the run's last index, so the loop
+  compares the cursor against it directly where `-u2` computes `o + 1` per pair;
+  the live set is unchanged. Counted the same day on a 9.12.4 build, N=50
+  and not a column, it executes 0.9688 of `-u2`'s instructions on `runs-65536`
+  and `stretch-tall-Mx2`, half an instruction an element, and is level
+  with it on the three-wide cnn runs, where the odd tail gives the pair's saving
+  back; `-u2-down` is level with `-u2` on those two and under it by about
+  a percent on the short runs. At the leaf family's rate of a third to a half,
+  that is a percent or less of time on the main set and up to a point and a half
+  on the long runs. On the main set, on both halves:
+  `predict: pair mut-odo-vecdims-add-in-leaf-u2-last mut-odo-vecdims-add-in-leaf-u2 0.99 within 1.5%`.
+  Killed above 1.005 on either half, which would say the hoist cost the run
+  level a spill the counts did not show, or below 0.975, which would be more
+  time than the instructions can buy. Read beside it, by hand and not as a span:
+  on `runs` from 256 up, expected about 0.985, and on the three-wide cnn shapes
+  a tie.
 
 - `ANSWERED` **What Run 26 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
@@ -3831,7 +3848,8 @@ bound-control run is over took it to 494, the four parkings Run 26 lifted
 for that run alone ([what the benchmark does](#what-the-benchmark-does)) being
 back since 2026-09-06; and the addition of 2026-09-07, eight arms --- the two
 lazy unordered candidates, the two of the shipped route and the four reducing
-consumers --- takes the roster to 646 benches.
+consumers --- takes it to 646, and the hoisted-bound fill of the same day,
+`mut-odo-vecdims-add-in-leaf-u2-last`, takes the roster to 665 benches.
 
 **What the eight are worth as instruments, read against each other for the first
 time on 2026-08-14, over Runs 10 to 13.** Per class: the median A/A deviation
@@ -5851,12 +5869,13 @@ and `cnn-L1-6x6-c1`, timed again the same day, takes it to 475, and the pointer
 pair of 2026-09-05 makes it 513; parking the leaf arm whose bound-control run
 is over took it to 494, and the addition of 2026-09-07, eight arms --- the lazy
 candidates and the reducing consumers ([the stride
-classes](#the-stride-classes-and-what-they-cover)) --- takes the roster to 646
-benches, so with the controls the run is 34 arms. **Run 26 timed four parked
-arms for that run alone**: `mut-odo-vecdims-add-in-leaf-down`, parked
-2026-09-02; `canon-vecdims` and `lib-stage2`, parked by this prune;
-and `lib-stage2-short`, parked by the ruling on the short bodies of the same day
-([the stride classes](#the-stride-classes-and-what-they-cover)). Each was parked
+classes](#the-stride-classes-and-what-they-cover)) --- takes it to 646
+and the hoisted-bound fill of the same day takes the roster to 665 benches,
+so with the controls the run is 35 arms. **Run 26 timed four parked arms
+for that run alone**: `mut-odo-vecdims-add-in-leaf-down`, parked 2026-09-02;
+`canon-vecdims` and `lib-stage2`, parked by this prune; and `lib-stage2-short`,
+parked by the ruling on the short bodies of the same day ([the stride
+classes](#the-stride-classes-and-what-they-cover)). Each was parked
 with a registration standing on it, which is what left that registration
 unreadable --- Run 24 lost a clause, Run 25 five, and the two-window item
 was withdrawn beside them, seven in all ([the open list][open]) --- so Run 26
