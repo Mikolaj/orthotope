@@ -60,8 +60,9 @@ for _name in ('probe-attr-build.sh', 'probe-attrnoshim-build.sh',
               'probe-gate3.py',
               'probe-llvmpair.sh', 'probe-noov-build.sh', 'probe-noov-run.sh',
               'probe-noshim-build.sh', 'probe-nospill-build.sh',
-              'probe-oneblock.py',
+              'probe-oneblock.py', 'probe-order-reversal.sh',
               'probe-r23-g3-twins.sh', 'probe-read.sh', 'probe-second-term.py',
               'probe-smoke-runs.sh', 'probe-stalls-read.py', 'probe-stalls.sh',
-              'probe-tail-build.sh', 'probe-times.sh'):
+              'probe-tail-build.sh', 'probe-times.sh',
+              'probe-within-evening.sh'):
     UNCOVERED[_name] = 'a probe: an input to README, run by hand'
