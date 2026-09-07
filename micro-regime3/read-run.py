@@ -222,12 +222,20 @@ Modes:
                     at step 6: nothing below that is actionable until 5b's
                     tables are in -- no run needed
   --note PREV       a previous pair note as the next PREPARATION owes it:
-                    the handover blocks withheld and the size said, which
-                    is reading-list item 10 made executable
-  --note PREV --draft R --halves B,O   and instead the `[SAME]` blocks
-                    alone, carried over to the new pair with the names
-                    changed, every substitution listed and every
-                    `[PAIR'S]` block named as still yours -- no run needed
+                    the blocks it DECIDES, which is reading-list item 10
+                    made executable. Three kinds are withheld and the size
+                    said -- the handover and the gate, spent with that run,
+                    and the `[SAME]` blocks, which --draft carries over, so
+                    reading one here is reading a block you will not type
+  --note PREV --draft R --halves B,O   and instead the WHOLE note: the
+                    `[SAME]` blocks carried over with the names changed,
+                    every other slot present and empty, every substitution
+                    listed. A `[PAIR'S]` block gives up its TITLE and never
+                    its content, with the template's guidance beneath it as
+                    `#` scaffolding, and the fill-in block comes as labels
+                    and `<yours>` -- so a note is one file filled in rather
+                    than three assembled, and `preflight.sh R --fill-in`
+                    derives most of those rows -- no run needed
   --section NAME    print one section's prose by its heading's words,
                     without its tables and naming the size withheld;
                     --with-tables adds them and --with-tables N takes the
@@ -6535,17 +6543,108 @@ NOTE_PROGRESS = ('counts', 'sequence', 'riders', 'gates', 'named fills',
 FILL_LABEL = re.compile(r'  (\S(?:.*?\S)?)\s{2,}\S')
 
 
-def _note_blocks(text):
-    """(paragraph, kept, why) per block, in the note's own order."""
-    out = []
+def _note_title(lead):
+    """A block's name: its lead without the marker and without the sentence."""
+    t = re.split(r"\[SAME|\[PAIR'S", lead)[0].strip().rstrip(':,. ')
+    return t or lead[:40].strip()
+
+
+def _template_blocks(near):
+    """{title: paragraph} of pair-note-template.txt beside the note.
+
+    The template is the only statement of what each block owes, so a draft
+    that emits a `[PAIR'S]` slot can carry that guidance with it instead of
+    sending the writer to a third file. Absent template, absent guidance:
+    the slot still prints, which is the half that matters.
+    """
+    out = {}
+    try:
+        text = open(os.path.join(near or '.', 'pair-note-template.txt')).read()
+    except OSError:
+        return out
     for para in text.split('\n\n'):
         lead = para.lstrip('\n').split('\n', 1)[0]
-        if any(lead.startswith(h) for h in NOTE_HANDOVER):
-            out.append((para, False, 'handover'))
-        elif any(lead.startswith(h) for h in NOTE_HANDOVER_PREFIX):
-            out.append((para, False, "the driver's own block"))
-        else:
-            out.append((para, True, None))
+        if '[PAIR' in lead or '[SAME in shape' in lead:
+            out[_note_title(lead)] = para
+    return out
+
+
+def _scaffold(para):
+    """The template's guidance for a block, as `#` lines to delete.
+
+    Commented rather than plain so that scaffolding can never be mistaken
+    for the note's own prose, and so that a note still carrying it is
+    obvious at a glance rather than only to a reader who knows the
+    template by heart.
+    """
+    if not para:
+        return '#  (pair-note-template.txt has no block of this name)'
+    return '\n'.join('#  ' + l if l.strip() else '#'
+                     for l in para.rstrip('\n').split('\n'))
+
+
+def _fill_skeleton(para):
+    """The fill-in block as labels and `<yours>`, carrying no observation.
+
+    Its shape is the template's and its content is this pair's, which is
+    what `[SAME in shape, PAIR'S in content]` means: carrying a previous
+    pair's md5 or .text forward under this pair's heading is the one
+    copying error the marker exists to prevent.
+    """
+    # The lead carries the previous pair's BUILD DATE, which no rename
+    # touches; back to the template's placeholder, since the block's own
+    # rule is that each line is dated when it is written.
+    out = [re.sub(r'\d{4}-\d\d-\d\d', 'YYYY-MM-DD',
+                  para.lstrip('\n').split('\n', 1)[0])]
+    for line in para.split('\n')[1:]:
+        m = FILL_LABEL.match(line)
+        if m:
+            out.append('  %-16s <yours>' % m.group(1))
+    return '\n'.join(out)
+
+
+def _note_kind(lead):
+    """The kind a paragraph ANNOUNCES, or None where it continues one.
+
+    A note's blocks run on past their own paragraph -- ENTRY POINT carries
+    SPENT, INHERITED and STILL OWED beneath it; HOW EACH HALF IS BUILT
+    carries the two recipes; REGISTERED BEFORE IT RAN carries the item
+    clauses -- so a classification lead by lead reads only the first
+    paragraph of each and treats the rest as unmarked. That is what made
+    `--note` report "1 KB of handover withheld" of a handover the chapter
+    calls about a third of a note, and what made a whole-note `--draft`
+    carry a previous pair's recipes and its `GATE: SOUND` verdict into the
+    next note (both 2026-09-07). The state is sticky; this says where it
+    changes.
+    """
+    if any(lead.startswith(h) for h in NOTE_HANDOVER):
+        return 'handover'
+    if (any(lead.startswith(h) for h in NOTE_HANDOVER_PREFIX)
+            or lead.startswith('GATE:')
+            or lead.startswith("THE GATE'S VERDICT")):
+        return 'gate'
+    if lead.startswith('Verified when built'):
+        return 'fill'
+    if "[PAIR'S" in lead:
+        return 'pairs'
+    if '[SAME' in lead:
+        return 'same'
+    return None
+
+
+def _note_blocks(text):
+    """(paragraph, kind, announced) per block, in the note's own order."""
+    out = []
+    state, announced = 'plain', True
+    for para in text.split('\n\n'):
+        lead = para.lstrip('\n').split('\n', 1)[0]
+        k = _note_kind(lead)
+        announced = k is not None
+        if announced:
+            state = k
+        elif state == 'fill':
+            state = 'plain'       # the fill-in block is a single paragraph
+        out.append((para, state, announced))
     return out
 
 
@@ -6605,20 +6704,56 @@ def pair_note(path, draft=None, halves=None):
     blocks = _note_blocks(text)
 
     if draft is None:
-        kept, held = [], 0
-        for para, keep, _why in blocks:
-            if not keep:
+        kept, held, carried = [], 0, []
+        for para, kind, announced in blocks:
+            # What item 10 asks a preparation for is the other axis from
+            # the handover: the two recipes, what the pair measured and why
+            # its basis was that recipe, the roster, the compiler, the shim
+            # and the fill-in block's observations. That is `pairs`, `fill`
+            # and the header. The handover and the gate are spent, and a
+            # `[SAME]` block is --draft's to carry over with the names
+            # changed, so a preparation that READS one here reads a block
+            # it will never type. Withholding all three is what makes this
+            # a skip at all: until 2026-09-07 it withheld the handover's
+            # first paragraph alone and said so as "59 KB of 60 KB".
+            if kind in ('handover', 'gate', 'same'):
                 held += len(para)
+                if announced:
+                    # Named by WHY it is withheld and not in one list: a
+                    # `[SAME]` block comes back under --draft and a
+                    # handover does not, so one label over both would send
+                    # a reader looking for a block that is simply spent.
+                    carried.append((kind, _note_title(
+                        para.lstrip('\n').split('\n', 1)[0])))
                 continue
+            lead = para.lstrip('\n').split('\n', 1)[0]
             if para.lstrip().startswith('Verified when built'):
                 para, dropped = _fill_trimmed(para)
                 held += dropped
             kept.append(para)
         body = '\n\n'.join(kept)
-        print('%s: the blocks a PREPARATION owes, %d KB of %d KB; %d KB of'
-              ' handover withheld, which item 10 names and does not owe'
+        print('%s: the blocks a PREPARATION DECIDES, %d KB of %d KB; %d KB'
+              ' withheld -- the handover, which item 10 names and does not'
+              ' owe, and the [SAME] blocks, which --draft carries over'
               % (os.path.basename(path), len(body) // 1024,
                  len(text) // 1024, held // 1024))
+        # The `[SAME]` blocks are NAMED, since --draft brings each back and
+        # a reader wants to know which. The handover and the gate are
+        # counted and not named: their leads are the spent text itself, so
+        # echoing one here reprints a slice of the thing being withheld --
+        # which a case caught on 2026-09-07, `ENTRY POINT FOR THE SESSION`
+        # appearing in a mode whose whole job is to drop it.
+        got = [t for kind, t in carried if kind == 'same']
+        if got:
+            print('  carried over by --draft, not read here: %s'
+                  % '; '.join(t[:44] for t in got))
+        for k, label in (('handover', "the last run's handover"),
+                         ('gate', "that pair's gate")):
+            n = sum(1 for kind, _ in carried if kind == k)
+            if n:
+                print('  %s, spent with that run: %d block(s), unnamed here'
+                      ' so that this mode does not reprint what it drops'
+                      % (label, n))
         print()
         print(body.rstrip('\n'))
         return 0
@@ -6632,10 +6767,53 @@ def pair_note(path, draft=None, halves=None):
                          % (halves,))
         return 1
     new = tuple(names)
-    same = [b for b, keep, _ in blocks if keep and '[SAME]' in b]
-    pairs = [b.lstrip('\n').split('\n', 1)[0]
-             for b, keep, _ in blocks if keep and "[PAIR'S]" in b]
-    body = '\n\n'.join(same)
+    # THE WHOLE NOTE IN THE PREVIOUS NOTE'S OWN ORDER, since 2026-09-07,
+    # where this emitted the `[SAME]` blocks alone. A preparation then
+    # assembled its note out of three files -- this output, the template
+    # and the previous note -- and the assembling is where a block gets
+    # dropped or a heading gets typed without its content. Now every slot
+    # is present and the writing is filling them in: a `[SAME]` block is
+    # carried over, a `[PAIR'S]` block prints its TITLE and `<yours>` with
+    # the template's guidance beneath it as `#` scaffolding, and the
+    # fill-in block prints its labels with `<yours>` for
+    # `preflight.sh --fill-in` to replace or a hand to write.
+    # A `[PAIR'S]` block's CONTENT is never carried: the template's ruling
+    # is that copying one forward is how a note comes to describe the run
+    # before it, so the title is all that crosses.
+    guide = _template_blocks(os.path.dirname(os.path.abspath(path)))
+    pairs, out = [], []
+    for para, kind, announced in blocks:
+        lead = para.lstrip('\n').split('\n', 1)[0]
+        title = _note_title(lead)
+        if kind in ('handover', 'pairs', 'gate'):
+            # ONE SLOT PER BLOCK, not one per paragraph, and never its
+            # CONTENT: the template's ruling is that copying a decision
+            # forward is how a note comes to describe the run before it.
+            # The continuations are where that bites hardest -- the two
+            # recipes sit under HOW EACH HALF IS BUILT, and the previous
+            # pair's gate verdict under GATE:.
+            if not announced:
+                continue
+            if kind == 'gate':
+                out.append(_scaffold(guide.get('GATE'))
+                           if 'GATE' in guide else 'GATE: NOT RUN.')
+                continue
+            slot = ('ENTRY POINT FOR THE SESSION THAT RUNS THIS'
+                    if kind == 'handover' else title)
+            out.append('%s [PAIR\'S]: <yours>\n%s'
+                       % (slot, _scaffold(guide.get(slot))))
+            pairs.append(slot)
+        elif kind == 'fill':
+            out.append(_fill_skeleton(para))
+        else:
+            out.append(para)          # [SAME] and the unmarked header lines
+    body = '\n\n'.join(out)
+    # The header line carries the previous run's NUMBER and its build DATE,
+    # which no rename touches and which would otherwise be the one place a
+    # draft states something false about this pair. Back to the template's
+    # own placeholders, so they read as slots.
+    body = re.sub(r"Run \d+'s, written by hand \d{4}-\d\d-\d\d",
+                  "Run NN's, written by hand YYYY-MM-DD", body)
     log = []
     # ONE PASS PER FAMILY, longest pattern first, because renaming in turn
     # feeds each result to the next rename: with old (g912, spot) and new
@@ -6668,19 +6846,28 @@ def pair_note(path, draft=None, halves=None):
                 for k, c in bseen.items()]
     body = re.sub(r'^HALVES:.*$', 'HALVES: basis=%s other=%s' % new,
                   body, flags=re.M)
-    print('# DRAFT for %s-pair.txt, the [SAME] blocks of %s carried over.'
-          % (draft, os.path.basename(path)))
-    print('# READ EVERY LINE: this is a copy with names changed, and the'
-          ' template asks')
-    print('# for these blocks to be re-read rather than re-decided. A block'
-          ' that')
+    print('# DRAFT for %s-pair.txt, the WHOLE note: %s\'s [SAME] blocks'
+          ' carried over,' % (draft, os.path.basename(path)))
+    print('# every other slot present and empty. Redirect it, fill the'
+          ' <yours> lines,')
+    print('# delete the `#` scaffolding, and that is the note -- one file'
+          ' edited rather')
+    print('# than three assembled.')
+    print('# READ EVERY CARRIED LINE: it is a copy with names changed, and'
+          ' the template')
+    print('# asks for those blocks to be re-read rather than re-decided. A'
+          ' block that')
     print('# differs from the last note is a FINDING and the note says why.')
     print('#')
     print('# Substituted: %s' % ('; '.join(log) or 'nothing'))
     print('#')
-    print('# STILL YOURS, and not written here -- every [PAIR\'S] block:')
-    for lead in pairs:
-        print('#   %s' % lead[:72])
+    print('# YOURS TO WRITE, each a <yours> slot below -- the decisions,'
+          ' which no')
+    print('# draft may carry: %s'
+          % ('; '.join(p.replace(prev, draft)[:56] for p in pairs) or 'none'))
+    print('# The fill-in block is <yours> per row too, and'
+          ' `preflight.sh %s --fill-in`' % draft)
+    print('# derives most of them off the binaries once they are built.')
     print()
     print(body.rstrip('\n'))
     return 0

@@ -68,6 +68,17 @@
 # names the binary it fired on. Re-aim it again whenever the pair it
 # names is offered for deletion.
 #
+# `--fill-in`'s own, 2026-09-07, and it is a CONTROL rather than a break,
+# the mode making no verdict to break: every derived row was read against
+# the same figure taken independently by hand on the run27 pair, and all
+# agreed -- the two md5s, the two .text sizes, 665 benches with identical
+# listings, five gate arms at 95 benches, scan/mut 1.000, --library 12.8%,
+# the two surveys, both ghc-internal strings, both baked RTS lines and both
+# instrument counts. The row that earned the mode is `.text`: by hand it had
+# been read from `size -A`'s SECOND field, the load address, which is equal
+# on every build here and so looks stable across a roster change. Re-take
+# the control whenever a row is added.
+#
 # It has no case in defects.py, deliberately: this script's own steps are
 # that corpus and the reader's gates, so a case would run them twice to
 # assert what they already assert. What is unique to it -- the three
@@ -79,13 +90,16 @@ set -u
 cd "$(dirname "$0")" || exit 1
 
 if [ $# -lt 1 ]; then
-  echo "usage: ./preflight.sh RUN [--note|--no-corpus|--corpus]  # e.g. run17"
+  echo "usage: ./preflight.sh RUN [--note|--no-corpus|--corpus] [--fill-in]"
   echo "  --note        steps 10c, 10d and 8 alone -- the ones that read what"
   echo "                the preparation WROTE, in seconds and with no binary"
   echo "  --no-corpus   everything but 8c and 8d, the two that read every run"
   echo "                JSON on disk: run this, launch 11 and 12, and take"
   echo "                the two afterwards with --corpus"
   echo "  --corpus      8c and 8d alone"
+  echo "  --fill-in     and print the note's fill-in block DERIVED from what"
+  echo "                this pass read, to paste at pre-run step 2. A row it"
+  echo "                cannot derive prints <yours>"
   exit 2
 fi
 R=$1
@@ -101,16 +115,26 @@ NOTE_ONLY=0
 # pass still writing its last leg and read the traceback as a defect.
 CORPUS=1
 REST=1
+FILLIN=0
 shift
 for a in "$@"; do
   case $a in
     --note) NOTE_ONLY=1 ;;
     --no-corpus) CORPUS=0 ;;
     --corpus) REST=0 ;;
+    --fill-in) FILLIN=1 ;;
     *) echo "unknown argument '$a' --" \
-            "./preflight.sh RUN [--note|--no-corpus|--corpus]"; exit 2 ;;
+            "./preflight.sh RUN [--note|--no-corpus|--corpus] [--fill-in]"
+       exit 2 ;;
   esac
 done
+# --fill-in reports what 4 to 10 read, so it means nothing beside the two
+# flags that do not run them. Refused rather than absorbed, which is the
+# defect family this tree counts.
+if [ "$FILLIN" = 1 ] && { [ "$NOTE_ONLY" = 1 ] || [ "$REST" = 0 ]; }; then
+  echo "--fill-in reports what steps 4 to 10 read, and --note and --corpus"
+  echo "do not run them; drop one of them."; exit 2
+fi
 if [ "$CORPUS" = 0 ] && [ "$REST" = 0 ]; then
   echo "--no-corpus and --corpus together ask for nothing to run"; exit 2
 fi
@@ -158,6 +182,11 @@ trap 'if [ "${BAD:-0}" -gt 0 ] && [ -d "$TMP" ]; then
 BAD=0
 say () {  # say STEP VERDICT DETAIL
   printf '  %-4s %-4s %s\n' "$1" "$2" "$3"
+  # Every verdict is also recorded tab-separated, so --fill-in can quote a
+  # step's own reading rather than taking it again: the fill-in block is
+  # then provably the data the verdicts were given on, and not a second
+  # measurement that could disagree with them.
+  printf '%s\t%s\t%s\n' "$1" "$2" "$3" >> "$TMP/verdicts"
   [ "$2" = PASS ] || BAD=$((BAD + 1))
 }
 
@@ -290,7 +319,14 @@ if [ "$REST" = 1 ]; then
 if [ "$ra" != 0 ] || [ "$rb" != 0 ]; then
   say '4,5' FAIL "a check exited $ra/$rb -- read $TMP before it goes"
 elif cmp -s "$TMP/a.log" "$TMP/b.log"; then
-  say '4,5' PASS "both halves agree on every shape, byte-identical"
+  # The two exit statuses are on the PASS line and not the FAIL line alone,
+  # since 2026-09-07: a preparation that wants them re-ran `check` by hand
+  # to read them, which the pre-run list forbids by name and which costs
+  # minutes over the whole shape set. They are 0 and 0 here by construction
+  # -- a nonzero one takes the branch above -- and printing them is what
+  # says so without a second run.
+  say '4,5' PASS "both halves agree on every shape, byte-identical; \
+check exited $ra and $rb"
 else
   say '4,5' FAIL "the halves' check output DIFFERS -- the pair is not sound"
 fi
@@ -408,6 +444,111 @@ defect-run.py . > "$TMP/cs" 2>&1 \
   || say 8d FAIL "defect-run: $(tail -1 "$TMP/cs")"
 fi
 
+# --fill-in: THE NOTE'S FILL-IN BLOCK, DERIVED. Every row below is either a
+# step this pass has just run, quoted from its own verdict, or a cheap read
+# beside it -- so what a preparation pastes into its note is the data the
+# verdicts were given on. It exists because that block was transcribed by
+# hand until 2026-09-07, and a hand can read the wrong column: Run 27's
+# preparation recorded `size -A`'s SECOND field, the load address, as
+# `.text`, and then reasoned at length about why it had not moved across a
+# roster change. Nothing here can make that mistake twice.
+# A row this cannot derive prints `<yours>`; run-status.sh counts those, so
+# a row left unwritten is a line of output rather than a reading.
+# It is NOT the whole note: the recipes, what the pair measures and the
+# handover are a person's, and pair-note-template.txt says so.
+fill_in () {
+  vd () {  # the DETAIL of a step's verdict, and the verdict word before it
+    awk -F'\t' -v s="$1" '$1 == s { v = $2; d = $3 } END {
+      if (v == "") print "<yours>"; else print v ": " d }' "$TMP/verdicts"
+  }
+  txt () { size -A "$1" | awk '$1 == ".text" { print $2 }'; }   # FIRST field
+  ver () { strings "$1" | grep -oE 'ghc-internal-[0-9.]+' | sort -u \
+             | tr '\n' ' ' | sed 's/ *$//'; }
+  ins () { printf '%s @@wild, %s @@saturate' \
+             "$(strings "$1" | grep -c '@@wild')" \
+             "$(strings "$1" | grep -c '@@saturate')"; }
+  # The count line is taken WHOLE past its colon rather than by fields: a
+  # field slice of it read "184 self-loops of at most" and dropped the "64
+  # B" that says what a self-loop is here.
+  srv () { ./loop-offsets.py --survey "$1" 2>/dev/null \
+             | awk '/self-loops/ && !a { sub(/^[^:]*: */, ""); a = $0 }
+                    /at offset 0/{b=$NF} /still straddling/{c=$NF}
+                    END{print a", "b" at offset 0, "c" straddling"}'; }
+  # The run behind this one, for the two cross-run reads: the highest
+  # runs/run<N>.md below this N, and its basis binary if it is still here.
+  # Both degrade to a named absence rather than to silence -- an artifact
+  # offered for deletion is the normal reason, and a row that just vanished
+  # would read as a row nobody owed.
+  PN=$(ls runs/run*.md 2>/dev/null | sed 's|.*/run||; s|\.md$||' \
+       | awk -v n="${R#run}" '$0 ~ /^[0-9]+$/ && $0+0 < n+0' | sort -n | tail -1)
+  PB=""; [ -n "$PN" ] && [ -x "./run$PN-$BASIS" ] && PB="run$PN-$BASIS"
+  D=$(date +%F)
+  echo
+  echo "--- the note's fill-in block, derived; paste into $R-pair.txt ---"
+  printf 'Verified when built, %s:\n' "$D"
+  printf '  %-16s %s\n' 'Main.hs at' \
+    "$(git log -1 --format=%h -- :/micro-regime3/Main.hs), tree $(git status \
+       --porcelain -- :/micro-regime3/Main.hs | grep -q . && echo DIRTY \
+       || echo clean) against it"
+  printf '  %-16s %s\n' 'shim at' \
+    "$(git log -1 --format=%h -- :/micro-regime3/align-as.py), tree $(git status \
+       --porcelain -- :/micro-regime3/align-as.py | grep -q . && echo DIRTY \
+       || echo clean) against it"
+  printf '  %-16s %s\n' 'compilers' \
+    "on PATH $(ghc --numeric-version 2>/dev/null); in the binaries, \
+$BASIS $(ver "./$R-$BASIS") and $OTHER $(ver "./$R-$OTHER")"
+  printf '  %-16s %s\n' 'baked RTS' \
+    "$("./$R-$BASIS" +RTS --info 2>/dev/null | sed -n 's/.*"Flag -with-rtsopts", "\(.*\)").*/\1/p'), \
+and $OTHER $("./$R-$OTHER" +RTS --info 2>/dev/null \
+             | sed -n 's/.*"Flag -with-rtsopts", "\(.*\)").*/\1/p')"
+  printf '  %-16s %s\n' 'instruments' \
+    "$BASIS $(ins "./$R-$BASIS"); $OTHER $(ins "./$R-$OTHER")"
+  printf '  %-16s %s\n' '.text' \
+    "$(txt "./$R-$BASIS") bytes on $BASIS, $(txt "./$R-$OTHER") on $OTHER \
+-- the FIRST column of size -A, the second being the load address"
+  printf '  %-16s %s\n' "md5 $BASIS" "$(md5sum "./$R-$BASIS" | cut -d' ' -f1)"
+  printf '  %-16s %s\n' "md5 $OTHER" "$(md5sum "./$R-$OTHER" | cut -d' ' -f1)"
+  printf '  %-16s %s\n' 'repetition' '<yours> -- available only where the'
+  printf '  %-16s %s\n' '' 'source did not move; say which and why'
+  printf '  %-16s %s\n' 'fills' "$(vd 10)"
+  if [ -n "$PB" ]; then
+    printf '  %-16s %s\n' '' "against $PB, the previous build of this recipe:"
+    ./loop-offsets.py --delta "$PB" "./$R-$BASIS" 2>/dev/null \
+      | sed -n 's/^ *\(every mod-64\|NO address\|[0-9]* displacement\|of the\).*/                   &/p' \
+      | sed 's/^ *//; s/^/                   /'
+  else
+    printf '  %-16s %s\n' '' "no previous basis binary here (run$PN-$BASIS), \
+so the --delta reading against it is not available"
+  fi
+  printf '  %-16s %s\n' 'straddle' "$BASIS $(srv "./$R-$BASIS")"
+  printf '  %-16s %s\n' '' "$OTHER $(srv "./$R-$OTHER")"
+  printf '  %-16s %s\n' 'regime' "$(vd 9)"
+  printf '  %-16s %s\n' 'check' "$(vd '4,5')"
+  printf '  %-16s %s\n' '--list' "$(vd 6)"
+  if [ -n "$PB" ]; then
+    # The membership lines by what they SAY, not by line number: a slice of
+    # the first three printed the arms that left and not the ones that
+    # landed, which is the half a roster block is written from.
+    ./roster-delta.py "$PB" "./$R-$BASIS" 2>/dev/null \
+      | grep -E '^ +(main set:|out |in |[0-9]+ survivor)' \
+      | sed 's/^ */                   /'
+  fi
+  printf '  %-16s %s\n' 'smoke sweep' '<yours> -- step 11, and it is the pair'\''s'
+  printf '  %-16s %s\n' 'L1 ROSTER PASS:' '<yours> -- step 12: taken or not owed,'
+  printf '  %-16s %s\n' '' 'on which roster, and WHAT IT FOUND'
+  printf '  %-16s %s\n' 'document checks' "7 $(vd 7); 8 $(vd 8)"
+  printf '  %-16s %s\n' 'script checks' "8b $(vd 8b)"
+  if [ "$CORPUS" = 1 ]; then
+    printf '  %-16s %s\n' '' "8c $(vd 8c); 8d $(vd 8d)"
+  else
+    printf '  %-16s %s\n' '' '8c and 8d <yours> -- --corpus takes them'
+  fi
+  printf '  %-16s %s\n' 'scripts set' \
+    'NOTHING TO SET: the halves come from the HALVES line'
+  printf '  %-16s %s\n' 'gate arms' "$(vd 6b)"
+  echo "--- end of the derived block ---"
+}
+
 echo
 if [ "$BAD" -eq 0 ]; then
   echo "all clear. NOT done here: 9b, the pair's own variable, which only"
@@ -426,4 +567,10 @@ if [ "$BAD" -eq 0 ]; then
 else
   echo "$BAD step(s) FAILED -- read them before anything that costs an evening."
 fi
+# The block prints on a FAILING pass too, and deliberately: a pass that
+# fails 4,5 still read nine other steps, and the rows they gave are what a
+# preparation is about to re-derive by hand while it fixes the tenth. The
+# rows quote their own verdicts, so a FAIL is carried into the block rather
+# than hidden by it.
+[ "$FILLIN" = 1 ] && fill_in
 exit $((BAD > 0))

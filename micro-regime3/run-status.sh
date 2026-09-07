@@ -27,6 +27,11 @@
 # answer` heading edited out, step 5 reads NOT DONE naming the heading,
 # and 7 with it, --check-doc finding the anchor dead. Re-aim the first
 # two whenever run23's artifacts are offered for deletion.
+#
+# Step 3's own, 2026-09-07, on a stub note made and removed in one call: a
+# run99-pair.txt carrying two `<yours>` rows reads NOT DONE and names both
+# labels, and the same note with the markers replaced reads done -- the
+# control that says the NOT DONE was the markers and not the stub.
 set -u
 cd "$(dirname "$0")" || exit 1
 if [ $# -ne 1 ]; then
@@ -83,6 +88,22 @@ if [ -f "$NOTE" ]; then
     grep -q "^$l:" "$NOTE" && say 2b "done" "$l line present" \
       || say 2b "NOT DONE" "no $l: line in $NOTE (run-evening.sh reads it)"
   done
+  # 3. THE FILL-IN BLOCK'S OWED ROWS, which nothing read until 2026-09-07:
+  # every other step here judges an ARTIFACT, and that block is the one
+  # product of this half no artifact records, so a row left unwritten was
+  # invisible until somebody re-read the note. `preflight.sh --fill-in`
+  # prints `<yours>` for each row it cannot derive and the template carries
+  # the same marker, so the count of them is the count of rows the half
+  # still owes -- a line of output rather than a reading.
+  OWED=$(grep -c '<yours>' "$NOTE" || true)
+  if [ "$OWED" = 0 ]; then
+    say 3 "done" "no <yours> row left in $NOTE's fill-in block"
+  else
+    say 3 "NOT DONE" "$OWED fill-in row(s) still <yours> in $NOTE: \
+$(grep -oE '^ +[A-Za-z0-9 .:-]+<yours>' "$NOTE" \
+  | sed 's/<yours>//; s/^ *//; s/ *$//' | grep -v '^$' \
+  | tr '\n' ';' | sed 's/;$//')"
+  fi
 else
   say 2 "NOT DONE" "no $NOTE"
 fi

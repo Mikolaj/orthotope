@@ -8179,17 +8179,24 @@ RECORDS = [
 
     # ---- read-run.py --note, the previous pair note for the next pair ---
     case('note-read-withholds-the-handover', 'read-run.py', None,
-         "CONTROL: --note drops the previous run's handover and keeps its"
-         ' build lines',
+         "CONTROL: --note drops what a preparation does not decide and"
+         ' keeps its build lines',
          # Reading-list item 10 made executable. Both directions asserted:
          # a filter that dropped everything would satisfy the `hasnt` half
          # alone, and one that dropped nothing the `has` half alone.
+         # WIDENED 2026-09-07 with the mode: a `[SAME]` block is --draft's
+         # to carry over, so reading one here is reading a block you will
+         # not type, and its CONTENT now goes with the handover and the
+         # gate. Its NAME stays, --draft bringing it back. The old `has`
+         # asserted the content and would have passed on the name alone,
+         # which is the vacuity the widening removes.
          plant=stub_pair_note,
          argv=['--note', '{note}'],
          ok=V(exit=0,
               has=['A CARRIED BLOCK', 'md5 g912', '--list', 'handover'],
               hasnt=['ENTRY POINT FOR THE SESSION', 'GATE VERDICT',
-                     'sequence         RUN in one window'])),
+                     'sequence         RUN in one window',
+                     'the dead-spot form'])),
 
     case('note-draft-spares-a-hyphenated-name', 'read-run.py', None,
          'CONTROL: --draft renames the half and not the form it is spelled'
