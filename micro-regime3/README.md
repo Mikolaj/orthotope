@@ -915,16 +915,19 @@ rather than a slot in the next run, observed again:
   Registered 2026-09-06, before the run, on Run 26's pair --- ghc-9.12.4
   as the basis against the same in-tree HEAD stage1, `10.1.20260803`, both
   under `LOOP_DEADSPOT=1`, the same recipe and the same shim --- over Run 26's
-  roster less the four arms it lifted out of parking: 26 timed arms over 19
-  main-set shapes, 494 benches, and the 52 class views of ten classes unmoved.
-  The one change of code is the GHC #27778 workaround, `:: Ptr Double` on every
-  bang-bound `plusPtr` result in the three pointer arms (the answered entry
-  above), which leaves the three arms' STG on 9.12.4 byte-identical and takes
-  every `Ptr` allocation out of the HEAD build's, both read off STG dumps
-  of the two builds before this run. Each item names its populations and carries
-  a prediction and a kill condition. (1) *The pointer fills on the second
-  codegen.* With the workaround, HEAD reads the two pointer fills as the basis
-  does. On the main set, on both halves:
+  roster less the four arms it lifted out of parking and plus the eight arms
+  of 2026-09-07 --- the lazy candidates and the reducing consumers, items (6)
+  to (9) --- 34 timed arms over 19 main-set shapes, 646 benches, and the 52
+  class views of ten classes unmoved. Two changes of code: the GHC #27778
+  workaround, `:: Ptr Double` on every bang-bound `plusPtr` result in the three
+  pointer arms (the answered entry above), which leaves the three arms' STG
+  on 9.12.4 byte-identical and takes every `Ptr` allocation out of the HEAD
+  build's, both read off STG dumps of the two builds before this run;
+  and the eight arms, each landing beside its control and touching no arm timed
+  before it. Each item names its populations and carries a prediction and a kill
+  condition. (1) *The pointer fills on the second codegen.* With the workaround,
+  HEAD reads the two pointer fills as the basis does. On the main set, on both
+  halves:
   `predict: pair mut-odo-vecdims-add-in-leaf-u1-ptr mut-odo-vecdims-add-in-leaf-u1 0.97 within 2%`,
   where Run 26's basis read 0.9693 and its HEAD half 1.3084;
   `predict: pair mut-odo-vecdims-add-in-leaf-u2-ptr mut-odo-vecdims-add-in-leaf-u1-ptr 0.94 within 2%`,
@@ -945,39 +948,40 @@ rather than a slot in the next run, observed again:
   the band being where twenty-four of Run 26's twenty-six arms sat, 0.9936
   to 1.0089. Killed by either outside 3%, which would say HEAD still emits
   a different loop for the `Ptr` form once the box is gone. (3) *The basis half
-  against Run 26's.* The annotation changing no 9.12 code and four arms leaving
-  moving slots alone, every one of the 26 timed arms reads within 1% of its Run
-  26 basis cell at the geomean over the nineteen shared shapes, the pointer
-  fills included, `--pin` to Run 26's column; a per-shape excursion past 1%
-  on a slot that moved is what Run 26's item (2) found on every untouched arm
-  and is not this item's kill. Killed by any arm's geomean past 1%, which would
-  be a layout term the STG comparison cannot see, or by either pointer fill's
-  basis cell past the floor on any shape, which would say the annotation
-  is not a no-op on 9.12 after all. This item is adjudicated by hand,
-  on the main set. (4) *The rate at which an instruction saving reaches
-  the clock, read per run length and on the second codegen.* The open list's
-  entry on the rate, below, has five spans of the leaf family at 29% to 52%
-  over the main set where the nineteenth reading's rate is three quarters. Read
-  per shape from Run 26's own artifacts on 2026-09-06, the rate is not one
-  number: over `runs`, `-u1-ptr` over `-u1` turns a tenth to a quarter
-  of its instruction saving into time at run lengths 2 to 9 and about three
-  quarters of it from 256 up; `-u2-ptr` over `-u1-ptr` turns a quarter
-  of the loop's instructions into no time at all from 256 up, 1.00 to 1.02
-  in time against 0.75 in counts; and `-u2` over `-u1` turns about a quarter
-  at every length from 7 up --- with the two non-pointer spans reading the same
-  per-length profile on HEAD as on the basis, within two and a half points
-  of time on every `runs` view, so the profile is the pair's and the shape's
-  rather than the compiler's or the run's, and the main-set geomean is the shape
-  set's weighting of it. On the long runs either pointer fill moves its 14 MB
-  in and 14 MB out in about 670 us on the basis, some 42 GB/s, which
-  is a bandwidth figure and not an instruction one. Prediction, over `runs`
-  on both halves, the workaround having given HEAD the basis's code: `-u1-ptr`
-  over `-u1` at or below 0.91 in time on every view from `runs-256` up and
-  at or above 0.96 on `runs-2` to `runs-7`; `-u2-ptr` over `-u1-ptr` within 3%
-  of 1.00 on every view from `runs-256` up; and each of the three pointer spans
-  on the basis within 2 points of its Run 26 cell on every view from `runs-256`
-  up. Killed by HEAD's `-u1-ptr` over `-u1` above 0.94 on any view
-  from `runs-256` up, which would say the reload's cost was the codegen's
+  against Run 26's.* The annotation changing no 9.12 code, and four arms leaving
+  and eight landing moving slots alone, every one of the 26 timed arms Run 26
+  also timed reads within 1% of its Run 26 basis cell at the geomean
+  over the nineteen shared shapes, the pointer fills included, `--pin` to Run
+  26's column, the eight arms of 2026-09-07 having no cell there and being
+  outside this item; a per-shape excursion past 1% on a slot that moved is what
+  Run 26's item (2) found on every untouched arm and is not this item's kill.
+  Killed by any arm's geomean past 1%, which would be a layout term the STG
+  comparison cannot see, or by either pointer fill's basis cell past the floor
+  on any shape, which would say the annotation is not a no-op on 9.12 after all.
+  This item is adjudicated by hand, on the main set. (4) *The rate at which
+  an instruction saving reaches the clock, read per run length and on the second
+  codegen.* The open list's entry on the rate, below, has five spans of the leaf
+  family at 29% to 52% over the main set where the nineteenth reading's rate
+  is three quarters. Read per shape from Run 26's own artifacts on 2026-09-06,
+  the rate is not one number: over `runs`, `-u1-ptr` over `-u1` turns a tenth
+  to a quarter of its instruction saving into time at run lengths 2 to 9
+  and about three quarters of it from 256 up; `-u2-ptr` over `-u1-ptr` turns
+  a quarter of the loop's instructions into no time at all from 256 up, 1.00
+  to 1.02 in time against 0.75 in counts; and `-u2` over `-u1` turns about
+  a quarter at every length from 7 up --- with the two non-pointer spans reading
+  the same per-length profile on HEAD as on the basis, within two and a half
+  points of time on every `runs` view, so the profile is the pair's
+  and the shape's rather than the compiler's or the run's, and the main-set
+  geomean is the shape set's weighting of it. On the long runs either pointer
+  fill moves its 14 MB in and 14 MB out in about 670 us on the basis, some 42
+  GB/s, which is a bandwidth figure and not an instruction one. Prediction,
+  over `runs` on both halves, the workaround having given HEAD the basis's code:
+  `-u1-ptr` over `-u1` at or below 0.91 in time on every view from `runs-256` up
+  and at or above 0.96 on `runs-2` to `runs-7`; `-u2-ptr` over `-u1-ptr` within
+  3% of 1.00 on every view from `runs-256` up; and each of the three pointer
+  spans on the basis within 2 points of its Run 26 cell on every view
+  from `runs-256` up. Killed by HEAD's `-u1-ptr` over `-u1` above 0.94 on any
+  view from `runs-256` up, which would say the reload's cost was the codegen's
   and not the loop's, or by `-u2-ptr` ahead of `-u1-ptr` past the class's floor
   on both halves on any view from `runs-256` up, which would say the long-run
   fill is not at a bound instructions cannot move. `runs-2`, where `-u2-ptr`
@@ -1009,7 +1013,116 @@ rather than a slot in the next run, observed again:
   of a population ARE its two halves, so position and compiler move together
   there --- four processes of one population with the binaries alternating
   is what saw one, and that is [the class-floor entry][open]'s probe rather
-  than this run's.
+  than this run's. (6) *The lazy unordered candidates against their ceiling
+  and their port.* Registered 2026-09-07 with the arms. `libunord-stage4`
+  and `libunord-stage5` are the unordered list kept lazy up to the exception
+  and read in address order, a single slice or fill handed back as the ports
+  hand theirs and the runs under the ports' own `VS.concat` ([the stride
+  classes](#the-stride-classes-and-what-they-cover)), so a pair with a port
+  prices the list alone where both list. Every main-set view is a dense array
+  with its innermost two axes transposed, one block to the unordered test,
+  so there every unordered arm returns one slice and its cells are the forcing
+  pass; the readings are the classes', on both halves, by hand. Against
+  the ceiling, `libunord-stage5` is the same code as `libunord-stage3` wherever
+  the sorted view is one block or has no run --- `rev`, the dense `flip` views,
+  `bcast`, `bcastmid`, `scaled`, `compose` and the one-block `small` views ---
+  and a tie there, read raw where both slice and the cells are the forcing pass,
+  as Run 26 read its item (3); where the sorted view has runs --- `runs`,
+  `block`, `window`, the two gap views of `flip`, `small-row96`
+  and `small-patch-r5` --- it is the slice list against the fill, behind past
+  the floor at short runs and ahead at long, the crossover on `runs` read per
+  view and expected between `runs-256` and `runs-4096`, where `dispRun` was cut.
+  Against the port, `libunord-stage5` ahead of `libunord-stage2` past the floor
+  wherever stage two lists --- `runs`, `block`, `flip-outer-gap64`,
+  `window-64x64-k1x9` and `small-row96`, where its list is a base-offset table
+  built whole and this one is produced on demand --- and on `flip-inner-gap64`,
+  whose reversed rows stage two fills backwards and this one slices forward,
+  allocating less than it on all of them, read off the allocation column;
+  the tie wherever both slice; ahead by the copy stage two's port pays
+  for concatenating its one fill wherever both fill, `bcast`, `bcastmid`,
+  `scaled`, `compose` and `small-bcast32`, where stage two allocates 2.00x
+  the result and this arm 1.00x; and read per view with no prediction
+  on the other `window` views and `small-patch-r5`, where stage two fills
+  and this one lists runs of the kernel's width. Killed by `libunord-stage5`
+  ahead of `libunord-stage3` past the floor on both halves on `runs-2`
+  to `runs-9`, which would say the fill is not the ceiling of a slice list
+  at short runs; by `libunord-stage5` behind it past the floor on both halves
+  at `runs-65536`, which would say one memcpy per run never wins;
+  or by `libunord-stage5` behind `libunord-stage2` past the floor on both halves
+  on `runs` or `block`, which would say the on-demand list costs more
+  than the table. (7) *The lean trick on the unordered list.* `libunord-stage4`
+  against `libunord-stage5`, on every population and both halves: the same list
+  wherever the sorted pairs merge nothing, an A/A pair inside the floor there,
+  `predict: pair libunord-stage4 libunord-stage5 1.0` on `runs` and `block`,
+  where both list the same runs --- not on the main set, where both return one
+  slice and the cells are the forcing pass; stage five ahead past the floor
+  on `small`, where the `getStridesT` it does not build is a visible share
+  of the call. No timed view has sorted pairs that merge into a longer run,
+  the two dispatches reading the same route and the same run length on every one
+  of the sixty-three checked views, so the pair is the dispatch alone. Killed
+  by `libunord-stage4` ahead of `libunord-stage5` past the floor on both halves
+  on any population, which would say the second canonicalization costs more
+  than the stride list it replaces. (8) *The lazy ordered candidates.*
+  `lib-stage3` and `lib-stage4` are `toVectorT` over the ordered list kept lazy
+  up to the exception, canonicalized and copied in one pass,
+  under the natural-strides dispatch and the lean one. On every population, both
+  halves. Against the shipped route: `lib-stage3` at or ahead of `lib-stage1`
+  everywhere --- `predict: pair lib-stage3 lib-stage1 0.96 within 3%`
+  on the main set, where both fill and the dispatch is the difference,
+  as `lib-stage2-lean` read 0.9574 and 0.9361 against it on Run 26; ahead past
+  the floor on `runs`, `block`, `flip-outer-gap64`, `small-row96`
+  and `window-64x64-k1x9`, where both take the list route and the one pass saves
+  the concatenation's second, and on the two views canonicalization moves,
+  the exception's case: `runs-r3-48x30`, whose three canonical levels merge
+  into runs of 1440 where the shipped route reads runs of 30,
+  and `small-flat64`, one slice where it reads 64 runs. Against the ceiling:
+  `lib-stage4` against `lib-stage2-lean` is the same code wherever no canonical
+  run exists, `predict: pair lib-stage4 lib-stage2-lean 1.0` on the main set
+  and inside the floor on `bcast`, `bcastmid`, `scaled`, `rev`, `compose`
+  and every `window` view but `window-64x64-k1x9`; where runs exist it
+  is the lazy list against the fill of the runs, behind past the floor at short
+  runs and ahead at long, the crossover on `runs` read per view by hand
+  and expected between `runs-256` and `runs-4096`, where `dispRun` was cut.
+  And `lib-stage3` against `lib-stage4`, the natural-strides comparison alone,
+  `predict: pair lib-stage3 lib-stage4 1.0` on the main set, inside the floor
+  everywhere but `small`. Killed by `lib-stage3` behind `lib-stage1` past
+  the floor on both halves on any population, which would say canonicalization
+  or the odometer list costs more than the concatenation it saves;
+  by `lib-stage4` ahead of `lib-stage2-lean` past the floor on both halves
+  on `runs-2` to `runs-9`, which would say the fill of the runs is not a ceiling
+  at short runs; or by `lib-stage4` behind it past the floor on both halves
+  at `runs-65536`, which would say one memcpy per run never wins. (9)
+  *The reducing consumers, the ruling's own measurement.* `libunord-stage1-sum`,
+  `libunord-stage2-sum`, `libunord-stage4-sum` and `libunord-stage5-sum`
+  are `sumT` over each stage's list, one slice at a time and no concatenation,
+  the first reading of the entry point as it is used. On every population, both
+  halves, read per view by hand; on the main set all four sum one slice
+  and their cells are the forcing pass, so the readings are the classes'.
+  `libunord-stage5-sum` against `libunord-stage1-sum`, master's consumer:
+  the tie inside the floor wherever both sum one slice or both sum a fill,
+  `bcast`, `bcastmid`, `scaled`, `compose`, `small-bcast32`
+  and `small-patch-k5`; the tie or a small lead on `runs`, `block`,
+  `flip-outer-gap64` and `small-row96`, where both fold the same slices,
+  master's by its recursion and stage five's by the odometer; ahead past
+  the floor wherever master's raw-stride test falls to a fill that stage five
+  reads as one slice or as long runs --- `rev`, the dense `flip` views
+  and `small-flat64` for the slice, `flip-inner-gap64` and `runs-r3-48x30`
+  for the runs; and read per view with no prediction where stage five lists runs
+  of the kernel's width against master's fill, `window` and `small-patch-r5`.
+  `libunord-stage1-sum` ahead of `libunord-stage1` past the floor on every view
+  that is not one block to stage one's raw-stride test, the copy saved being
+  what every Fill arm over a list carries. And `libunord-stage5-sum` ahead
+  of `libunord-stage2-sum` past the floor wherever stage two lists, `runs`,
+  `block`, `flip-outer-gap64`, `window-64x64-k1x9` and `small-row96`,
+  and on `flip-inner-gap64`, the table and the backward fill against
+  the on-demand forward list with no concatenation to hide it. Killed
+  by `libunord-stage5-sum` behind `libunord-stage1-sum` past the floor on both
+  halves on `runs` or `block`, which would say the odometer list costs a fold
+  more than the slice recursion; or by `libunord-stage1-sum` at or behind
+  `libunord-stage1` past the floor on both halves on any view that is not one
+  block, which would say the concatenation costs the consumer nothing.
+  The laziness gate in `check` is this run's fourth instrument on the same
+  question and needs no run: it is read at pre-run step 7, once per build.
 
 - `ANSWERED` **What Run 26 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
@@ -3555,7 +3668,16 @@ it canonical having consumed every natural pair, so the regimes are read off
 the merged form alone and the strides comparison the control's dispatch pays
 is not paid --- the fill under it ruled out for the library with `lib-stage2`'s
 since 2026-09-07 and kept as a ceiling, the dispatch standing ([dead
-ideas][dead]). **And beside those, the unordered entry point joins the family**:
+ideas][dead]). **`lib-stage3` and `lib-stage4`, added 2026-09-07 for Run 27,
+are the shipped route's candidates under the ruling**: `toVectorT`
+over the ordered list kept lazy up to the exception --- canonicalized, so a unit
+or mergeable dimension moves a view to a lazier pattern, its slices produced
+on demand by the odometer list, and one pass into a result allocated once where
+`VS.concat` learns the length from the list first --- stage three
+under the natural-strides dispatch and stage four under the lean one,
+so `lib-stage4` against `lib-stage2-lean` is the lazy list against the fill
+of the runs wherever a run exists and the same code wherever none does.
+**And beside those, the unordered entry point joins the family**:
 `libunord-stage1` and `libunord-stage2`, each stage's `toUnorderedVectorListT`
 one-block test in front of its liblist body and one concatenation -- the third
 route the branch changes, rostered so that a shim-switch reading (Run 23's
@@ -3573,12 +3695,34 @@ lazy, so the arm stays timed as the ceiling of what an address-order fill would
 buy and what can land is its dispatch. Against `libunord-stage2` its margin also
 carries that arm's list and concatenation, which a reducing consumer does
 not pay, so the reading is the direction where stage two falls back to the list
-and the tie where both slice. In instructions, shim-free and net of the sum term
---- a shim-free counts probe of 2026-08-30 and its `-runs` sibling, which said
-of themselves that they were a smoke run of `run-counts.sh` and NOT a recorded
-column, and went with Run 22's preparation on 2026-09-02 --- the short bodies
-read 0.50 at `runs-2`, 0.59 at `runs-3`, 0.61 to 0.88 on every k3 and k5 conv
-shape, and above five nothing past the per-row choice's cost,
+and the tie where both slice. **`libunord-stage4` and `libunord-stage5`, added
+2026-09-07 for Run 27, are the candidates the ruling leaves**: the same sorted
+address order over the unordered list kept lazy up to the exception --- one
+slice where the sorted view is one block, a lazy list of forward runs where
+its innermost stride is 1, one fill only where no run is longer than an element
+--- stage four under the natural-strides test and stage five under the lean rank
+test with the sorted pairs canonicalized again, so no `getStridesT` is built;
+each hands a single slice or a single fill back as the ports do and concatenates
+only its runs, under the ports' own `VS.concat`, so the pair
+with `libunord-stage3` is the same code where both slice or both fill and a lazy
+list against the fill where runs exist, and the pair with `libunord-stage2`
+prices the list's construction alone where both list. **Beside them the four
+reducing consumers**, `libunord-stage1-sum`, `libunord-stage2-sum`,
+`libunord-stage4-sum` and `libunord-stage5-sum`: `sumT` as the library composes
+it over each stage's list, one slice at a time and no concatenation, returned
+as one element that `check` holds to the reference's sum --- the first reading
+of the entry point as it is used, the copy every Fill arm over a list carries
+being one the consumer never pays. **And `check` carries a laziness gate since
+the same day**: forcing the head of each list producer on 200000 runs of 20 must
+allocate under 32 KB for the lazy ones and must not for the two ports
+of the branch, whose strict base-offset table is the planted breakage
+that proves the gate bites, the unordered candidates asked again on the same
+array transposed, the exception's own move. In instructions, shim-free and net
+of the sum term --- a shim-free counts probe of 2026-08-30 and its `-runs`
+sibling, which said of themselves that they were a smoke run of `run-counts.sh`
+and NOT a recorded column, and went with Run 22's preparation on 2026-09-02 ---
+the short bodies read 0.50 at `runs-2`, 0.59 at `runs-3`, 0.61 to 0.88 on every
+k3 and k5 conv shape, and above five nothing past the per-row choice's cost,
 `stretch-coprime-r7`'s 1.0208 the worst cell, while the quad loop reads 0.83
 to 0.85 at long runs and 1.08 to 1.15 at runs of 2 and 3 --- so each moves
 its own end of the run axis and Run 22 prices the two in time, which is what
@@ -3644,9 +3788,11 @@ for Run 25, took it to 468, and the ruling on the short bodies, parking two,
 took it back to 432; `libunord-stage3`, added 2026-09-05 for Run 26, makes
 it 450, and `cnn-L1-6x6-c1`, timed again the same day, takes it to 475,
 and the pointer pair of 2026-09-05 makes it 513; parking the leaf arm whose
-bound-control run is over takes the roster to 494 benches, the four parkings Run
-26 lifted for that run alone ([what the benchmark
-does](#what-the-benchmark-does)) being back since 2026-09-06.
+bound-control run is over took it to 494, the four parkings Run 26 lifted
+for that run alone ([what the benchmark does](#what-the-benchmark-does)) being
+back since 2026-09-06; and the addition of 2026-09-07, eight arms --- the two
+lazy unordered candidates, the two of the shipped route and the four reducing
+consumers --- takes the roster to 646 benches.
 
 **What the eight are worth as instruments, read against each other for the first
 time on 2026-08-14, over Runs 10 to 13.** Per class: the median A/A deviation
@@ -5400,8 +5546,12 @@ first, the two that did not die on paper at all:
   The branch's `Runs` regime builds its base-offset table whole,
   by `runBaseOffsetsT`, before the first slice --- the same kind of step,
   on the run count rather than the size, and outside the exception, the pattern
-  itself changing --- and no roster arm can see either, every arm being forced
-  whole through a sum.
+  itself changing. No timed arm can see either, every arm being forced whole
+  through a sum; what sees it, since the same day, is `check`'s laziness gate,
+  which forces the head of each list producer on 200000 runs and requires
+  the two ports of the branch to fail it, and what prices it for the consumer
+  is the `-sum` arms ([the stride
+  classes](#the-stride-classes-and-what-they-cover)).
 - **Delta-compressing an offset table** (storing Int8/Int16 steps, mostly
   the constant `tInner`, instead of absolute offsets) fails `vGenerate`'s
   contract: the callback is random-access, and recovering an absolute offset
@@ -5600,19 +5750,20 @@ than absent, since that case ran benchmarks of a different scale.
 **Two rulings taken 2026-08-08 cut the timed roster from 38 strategies to 15,
 the arms written since brought it back to 28, and a third cut on 2026-09-04,
 the prune, takes it to twelve with `list`; the `-u1` arm timed for Run 25,
-`libunord-stage3` and the two pointer fills of 2026-09-05 make sixteen** ---
-the 28 being the four unconditional forms the precondition ruling itself called
-for (below), the four FastReshape arms, of the five Run 20 arms beside them
-the three the probes left timed ([the mutable
-ceiling](#the-mutable-ceiling-taken)), and the rework's five less the three
-placement-family arms parked beside them. All three cuts are about what is worth
-spending a bench on, not about what is worth keeping: every dropped strategy
-stays in `Main.hs` and stays in the roster as `concat-runs` is --- checked
-against the reference on every shape of every class, and not timed ---
-so the agreement net does not shrink and nothing has to be rewritten if a ruling
-is later reopened. The 23 arms the rulings dropped carry `Only` in that roster,
-each naming the bound or the multiple that disqualified it. The five
-library-shaped arms with the timed `-u2-down`, added 2026-08-28 ([the stride
+`libunord-stage3` and the two pointer fills of 2026-09-05 make sixteen,
+and the eight of 2026-09-07 twenty-four** --- the 28 being the four
+unconditional forms the precondition ruling itself called for (below), the four
+FastReshape arms, of the five Run 20 arms beside them the three the probes left
+timed ([the mutable ceiling](#the-mutable-ceiling-taken)), and the rework's five
+less the three placement-family arms parked beside them. All three cuts
+are about what is worth spending a bench on, not about what is worth keeping:
+every dropped strategy stays in `Main.hs` and stays in the roster
+as `concat-runs` is --- checked against the reference on every shape of every
+class, and not timed --- so the agreement net does not shrink and nothing has
+to be rewritten if a ruling is later reopened. The 23 arms the rulings dropped
+carry `Only` in that roster, each naming the bound or the multiple
+that disqualified it. The five library-shaped arms with the timed `-u2-down`,
+added 2026-08-28 ([the stride
 classes](#the-stride-classes-and-what-they-cover)), less the eight parked
 permanently since Run 21 and `offtab`'s two twins removed ([its entry][open]),
 plus the six arms added 2026-08-30 and, on 2026-09-02, the composite arm less
@@ -5659,12 +5810,14 @@ entry][open]), and the ruling on the short bodies parked two, the day ending
 at 432 benches; `libunord-stage3`, added 2026-09-05 for Run 26, makes it 450,
 and `cnn-L1-6x6-c1`, timed again the same day, takes it to 475, and the pointer
 pair of 2026-09-05 makes it 513; parking the leaf arm whose bound-control run
-is over takes the roster to 494 benches, so with the controls the run is 26
-arms. **Run 26 timed four parked arms for that run alone**:
-`mut-odo-vecdims-add-in-leaf-down`, parked 2026-09-02; `canon-vecdims`
-and `lib-stage2`, parked by this prune; and `lib-stage2-short`, parked
-by the ruling on the short bodies of the same day ([the stride
-classes](#the-stride-classes-and-what-they-cover)). Each was parked
+is over took it to 494, and the addition of 2026-09-07, eight arms --- the lazy
+candidates and the reducing consumers ([the stride
+classes](#the-stride-classes-and-what-they-cover)) --- takes the roster to 646
+benches, so with the controls the run is 34 arms. **Run 26 timed four parked
+arms for that run alone**: `mut-odo-vecdims-add-in-leaf-down`, parked
+2026-09-02; `canon-vecdims` and `lib-stage2`, parked by this prune;
+and `lib-stage2-short`, parked by the ruling on the short bodies of the same day
+([the stride classes](#the-stride-classes-and-what-they-cover)). Each was parked
 with a registration standing on it, which is what left that registration
 unreadable --- Run 24 lost a clause, Run 25 five, and the two-window item
 was withdrawn beside them, seven in all ([the open list][open]) --- so Run 26
@@ -10910,14 +11063,16 @@ tables and its fingerprint say so.
   file `runs/` currently publishes --- 30 timed arms over 19 main-set shapes
   and 52 class views in TEN classes, 570 benches and 1560, SIX A/A pairs,
   the `runs` class at FOURTEEN and `window` at SIX --- so its delta against
-  TODAY is the two edits of 2026-09-06 that prepare Run 27: the four lifted arms
-  parked again and the `:: Ptr Double` annotation on every bang-bound `plusPtr`
-  result in the three pointer arms, the GHC #27778 workaround ([the open
-  list][open]), which changes no 9.12 code; `9702f20` had moved `Main.hs`
-  by comments alone after the pair was built. **Its delta against RUN 25**
-  is the eight commits of 2026-09-05 and 2026-09-06: the lean dispatch for every
-  arm that admits it, `libunord-stage3` and the two pointer fills joining
-  the timed roster, `cnn-L1-6x6-c1` back from the retired list
+  TODAY is the three edits that prepare Run 27: the four lifted arms parked
+  again and the `:: Ptr Double` annotation on every bang-bound `plusPtr` result
+  in the three pointer arms, the GHC #27778 workaround ([the open list][open]),
+  which changes no 9.12 code, both of 2026-09-06, and the eight arms
+  of 2026-09-07, the lazy candidates and the reducing consumers ([the stride
+  classes](#the-stride-classes-and-what-they-cover)); `9702f20` had moved
+  `Main.hs` by comments alone after the pair was built. **Its delta against RUN
+  25** is the eight commits of 2026-09-05 and 2026-09-06: the lean dispatch
+  for every arm that admits it, `libunord-stage3` and the two pointer fills
+  joining the timed roster, `cnn-L1-6x6-c1` back from the retired list
   with `flip-inner-gap64`, `flip-outer-gap64` and `small-patch-r5`,
   `mut-odo-vecdims-add-in-leaf` going to `Only`, and four arms parked after Run
   23 --- `mut-odo-vecdims-add-in-leaf-down`, `canon-vecdims`, `lib-stage2`

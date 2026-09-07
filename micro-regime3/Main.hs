@@ -31,8 +31,8 @@ import           Criterion.Types              (Benchmarkable (..),
                                                Config (regressions))
 import           Data.Bits                    (countLeadingZeros, shiftR, (.&.))
 import           Data.Int                     (Int32, Int64)
-import           Data.List                    (foldl', isPrefixOf, sort,
-                                               sortBy)
+import           Data.List                    (foldl', isPrefixOf,
+                                               isSuffixOf, sort, sortBy)
 import qualified Data.Vector.Storable         as VS
 import qualified Data.Vector.Storable.Mutable as VSM
 import qualified Data.Vector.Unboxed          as VU
@@ -40,6 +40,8 @@ import qualified Data.Vector.Unboxed.Mutable  as VUM
 import           Foreign.Ptr                  (Ptr, plusPtr)
 import           Foreign.Storable             (peek, peekElemOff, poke)
 import           GHC.Clock                    (getMonotonicTime)
+import           GHC.Conc                     (getAllocationCounter,
+                                               setAllocationCounter)
 import           GHC.Exts                     (Int (..), Word (..), build,
                                                int2Word#, quotRemInt#,
                                                timesWord2#, word2Int#)
@@ -3587,6 +3589,89 @@ fbLibStage2Lean sh (T (Strides ats) ao v)
     whole | ao == 0 && VS.length v == l = v
           | otherwise = VS.slice ao l v
 
+-- Stage three of the shipped route, kept lazy up to the exception: the
+-- ordered list 'toVectorT' concatenates, built as master builds it --
+-- the vector or a slice at the natural strides, a lazy list of slices
+-- where the innermost canonical stride is 1, one strict fill only where
+-- no run is longer than one element -- with three things master does
+-- not do. 'canonView' first, so a unit or mergeable dimension moves the
+-- view to a lazier pattern, the exception's case: 'runs-r3-48x30''s
+-- three canonical levels merge into runs of 1440 where master reads runs
+-- of 30, and 'small-flat64' is one slice where master reads 64 runs --
+-- the two timed views it moves, read off a replica of the dispatches
+-- over every checked view, 2026-09-07. 'lazyRuns' in place of the
+-- per-level 'concat'. And 'concatKnown', one pass over the list into a
+-- result allocated once, where 'VS.concat' has to learn the length from
+-- the list first. The dispatch keeps the natural-strides comparison, as
+-- 'fbLibStage2' does, so 'fbLibStage4' is one change over it. Priced
+-- against 'fbLibStage1', the shipped route, which it should lead
+-- wherever the list route is taken, and, through 'fbLibStage4', against
+-- the fill of the runs the ruling refuses, its ceiling at short runs.
+-- Added 2026-09-07 for Run 27.
+lsOrdStage3 :: ShapeL -> T -> [VS.Vector Double]
+lsOrdStage3 sh (T (Strides ats) ao v)
+  | l == 0 = []
+  | otherwise =
+      let (csh, cats) = canonView sh ats
+          _ : ts = getStridesT csh
+      in  if cats == ts then [whole]
+          else if last cats == 1 then lazyRuns csh cats ao v
+          else [fillStage2 csh cats ao l v]
+  where
+    !l = product sh
+    whole | ao == 0 && VS.length v == l = v
+          | otherwise = VS.slice ao l v
+
+{-# NOINLINE fbLibStage3 #-}
+fbLibStage3 :: ShapeL -> T -> VS.Vector Double
+fbLibStage3 sh a = concatKnown (product sh) (lsOrdStage3 sh a)
+
+-- Stage four of the shipped route: 'lsOrdStage3' under the lean
+-- dispatch, the regime read off the merged form alone and no
+-- 'getStridesT' built, as 'fbLibStage2Lean' reads it. One change over
+-- 'fbLibStage3', that arm its control; against 'fbLibStage2Lean' it is
+-- the same code wherever no canonical run exists, an A/A pair there,
+-- and the lazy list against the fill wherever one does. Added
+-- 2026-09-07 for Run 27.
+lsOrdStage4 :: ShapeL -> T -> [VS.Vector Double]
+lsOrdStage4 sh (T (Strides ats) ao v)
+  | l == 0 = []
+  | otherwise = case canonView sh ats of
+      ([], _) -> [whole]
+      ([_], [1]) -> [whole]
+      (csh, cats)
+        | last cats == 1 -> lazyRuns csh cats ao v
+        | otherwise -> [fillStage2 csh cats ao l v]
+  where
+    !l = product sh
+    whole | ao == 0 && VS.length v == l = v
+          | otherwise = VS.slice ao l v
+
+{-# NOINLINE fbLibStage4 #-}
+fbLibStage4 :: ShapeL -> T -> VS.Vector Double
+fbLibStage4 sh a = concatKnown (product sh) (lsOrdStage4 sh a)
+
+-- One pass over a list of slices whose total length is known, into a
+-- result allocated once: a memcpy per slice, the list consumed as it is
+-- produced and none of it retained. A one-element list of the full
+-- length is handed back as it is, as 'toVectorT' hands back @[v]@.
+-- 'VS.concat' cannot do this: vector 0.13.2.0's 'concat' is 'unstream'
+-- over 'Bundle.fromVectors', whose size is a 'foldl'' of the lengths
+-- over the whole list before the first element streams, so the list is
+-- held whole and walked twice (read in the cabal store, 2026-09-07).
+concatKnown :: Int -> [VS.Vector Double] -> VS.Vector Double
+concatKnown !l parts = case parts of
+  [p] | VS.length p == l -> p
+  _ -> VS.create $ do
+    out <- VSM.new l
+    let go !_ [] = return ()
+        go !o (p : ps) = do
+          let !k = VS.length p
+          VS.unsafeCopy (VSM.unsafeSlice o k out) p
+          go (o + k) ps
+    go 0 parts
+    return out
+
 -- The list consumer under each stage: 'toVectorListT' as the library has
 -- it, then one concatenation of what it returns. The concatenation is the
 -- same term in both arms, so the pair prices what building the list costs
@@ -3728,6 +3813,247 @@ fbLibUnordStage3 sh (T (Strides ats) ao v)
             ([_], [1]) -> VS.slice start l v
             (ssh, sats) -> fillStage2 ssh sats start l v
   where !l = product sh
+
+-- The lazy odometer list, shared by every lazy candidate here: one slice
+-- per run, in address or logical order over the outer levels, produced
+-- on demand in continuation-passing form, so a consumer that folds it
+-- pays one cons cell and one slice header per run and holds no more of
+-- it than it has reached -- master's 'toVectorListT' laziness in regime
+-- 2, without its per-level list comprehension and 'concat'. The run's
+-- extent is the innermost level's; each outer level steps the base
+-- offset by its stride, negative and zero strides included. Added
+-- 2026-09-07 with the ruling that the list stays lazy
+-- (README.md#dead-ideas).
+lazyRuns :: ShapeL -> [Int] -> Int -> VS.Vector Double -> [VS.Vector Double]
+lazyRuns ssh sats !start v = go (init ssh) (init sats) start []
+  where
+    !n = last ssh
+    go [] [] !o rest = VS.slice o n v : rest
+    go (d : ds) (s : ss) !o rest =
+      foldr (\i r -> go ds ss (o + i * s) r) rest [0 .. d - 1]
+    go _ _ _ _ = error "lazyRuns: impossible"
+
+-- Stage four, the unordered list kept lazy up to the exception and read
+-- in address order: 'fbLibUnordStage2''s one-block test on the sorted
+-- canonical view, the natural-strides comparison and its 'getStridesT'
+-- kept, then runs by 'lazyRuns' where the sorted innermost stride is 1,
+-- and one 'fillStage2' only where no run is longer than one element --
+-- master's own strict pattern there. What it moves between patterns is
+-- the sort, the exception's own case: a reversed axis is walked forward
+-- and a transposed block's stride-1 axis becomes the run -- a transposed
+-- dense array, which every main-set view is, being one block to the
+-- test and one slice here. The route is one value, 'Left' a single
+-- vector -- the slice, or the fill -- and 'Right' the runs list: the
+-- Fill arm hands a single vector back as the ports hand theirs back
+-- and concatenates only the runs, so on a one-block view it is stage
+-- three's code and where it lists it carries the ports' own
+-- 'VS.concat', the pair with 'fbLibUnordStage2' pricing the list's
+-- construction alone there. A first cut concatenated the singleton
+-- too, which vector's 'concat' copies, a result-sized copy on every
+-- main-set view that the ceiling does not pay. The consumer's own
+-- reading is 'fbLibUnordStage4Sum'. Added 2026-09-07 for Run 27.
+routeUnord4 :: ShapeL -> T -> Either (VS.Vector Double) [VS.Vector Double]
+routeUnord4 sh (T (Strides ats) ao v)
+  | l == 0 = Right []
+  | otherwise =
+      let (csh, cats) = canonView sh ats
+          !start = ao + sum [ (n - 1) * st | (n, st) <- zip csh cats, st < 0 ]
+          (acats, csh') =
+            unzip $ sortBy (flip compare) $ zip (map abs cats) csh
+          _ : ts = getStridesT csh'
+      in  if acats == ts then Left (VS.slice start l v)
+          else if last acats == 1 then Right (lazyRuns csh' acats start v)
+          else Left (fillStage2 csh' acats start l v)
+  where !l = product sh
+
+lsUnordStage4 :: ShapeL -> T -> [VS.Vector Double]
+lsUnordStage4 sh a = either (: []) id (routeUnord4 sh a)
+
+{-# NOINLINE fbLibUnordStage4 #-}
+fbLibUnordStage4 :: ShapeL -> T -> VS.Vector Double
+fbLibUnordStage4 sh a = either id VS.concat (routeUnord4 sh a)
+
+-- Stage five, stage four under the lean dispatch: the sorted pairs
+-- canonicalized AGAIN, so the lean rank test decides one block and no
+-- 'getStridesT' is built anywhere -- 'fbLibUnordStage3''s dispatch, the
+-- half of that arm the ruling leaves, over 'lazyRuns' in place of its
+-- fill. The second canonicalization is what the lean test needs, and it
+-- also merges every adjacent pair the sort brought together, so a run
+-- here can be longer than stage four's; the pair with stage four prices
+-- the two together. Added 2026-09-07 for Run 27.
+routeUnord5 :: ShapeL -> T -> Either (VS.Vector Double) [VS.Vector Double]
+routeUnord5 sh (T (Strides ats) ao v)
+  | l == 0 = Right []
+  | otherwise =
+      let (csh, cats) = canonView sh ats
+          !start = ao + sum [ (n - 1) * st | (n, st) <- zip csh cats, st < 0 ]
+          (acats, csh') =
+            unzip $ sortBy (flip compare) $ zip (map abs cats) csh
+      in  case canonView csh' acats of
+            ([], _) -> Left (VS.slice start l v)
+            ([_], [1]) -> Left (VS.slice start l v)
+            (ssh, sats)
+              | last sats == 1 -> Right (lazyRuns ssh sats start v)
+              | otherwise -> Left (fillStage2 ssh sats start l v)
+  where !l = product sh
+
+lsUnordStage5 :: ShapeL -> T -> [VS.Vector Double]
+lsUnordStage5 sh a = either (: []) id (routeUnord5 sh a)
+
+{-# NOINLINE fbLibUnordStage5 #-}
+fbLibUnordStage5 :: ShapeL -> T -> VS.Vector Double
+fbLibUnordStage5 sh a = either id VS.concat (routeUnord5 sh a)
+
+-- The two ports' lists, for the reducing consumers below and for the
+-- laziness gate: 'fbLibListStage1''s and 'fbLibListStage2''s parts, and
+-- the unordered one-block tests in front of them, repeated here clause
+-- for clause rather than shared, so that the four timed ports keep the
+-- code Run 26 timed, which Run 27 reads them against; fold the ports
+-- onto these once that reading is taken.
+lsUnordStage1 :: ShapeL -> T -> [VS.Vector Double]
+lsUnordStage1 sh a@(T (Strides ats) ao v)
+  | ats' == ts' = [VS.slice ao l v]
+  | otherwise = lsListStage1 sh a
+  where (ats', sh') = unzip (sortBy (flip compare) (zip ats sh))
+        l : ts' = getStridesT sh'
+
+lsListStage1 :: ShapeL -> T -> [VS.Vector Double]
+lsListStage1 sh a@(T (Strides ats) ao v)
+  | ats == ts' && VS.length v == l = [v]
+  | null sh = [VS.slice ao 1 v]
+  | oks !! (length sh - 1) = loop oks sh ats ao
+  | otherwise = [fbMutOdoVecdimsAddInLeafU2 sh a]
+  where l : ts' = getStridesT sh
+        oks = scanr (&&) True (zipWith (==) ats ts')
+        loop (b : bs) (n : ns) (t : ts) !o
+          | b = [VS.slice o (n * t) v]
+          | otherwise = concat [loop bs ns ts (i * t + o) | i <- [0 .. n - 1]]
+        loop _ _ _ _ = error "lsListStage1: impossible"
+
+lsUnordStage2 :: ShapeL -> T -> [VS.Vector Double]
+lsUnordStage2 sh a@(T (Strides ats) ao v)
+  | l == 0 = []
+  | oneBlock =
+      let !start = ao + sum [ (n - 1) * st | (n, st) <- zip csh cats, st < 0 ]
+      in  [VS.slice start l v]
+  | otherwise = lsListStage2 sh a
+  where !l = product sh
+        (csh, cats) = canonView sh ats
+        oneBlock =
+          let (acats, csh') =
+                unzip $ sortBy (flip compare) $ zip (map abs cats) csh
+              _ : ts = getStridesT csh'
+          in  acats == ts
+
+lsListStage2 :: ShapeL -> T -> [VS.Vector Double]
+lsListStage2 sh (T (Strides ats) ao v)
+  | l == 0 = []
+  | otherwise = case canonView sh ats of
+      ([], _) -> whole
+      ([_], [1]) -> whole
+      (csh, cats)
+        | last cats == 1 ->
+            let !n = last csh
+            in  [ VS.slice o n v
+                | o <- VU.toList (baseOffsetsExpand ao (init csh)
+                                    (Strides (init cats))) ]
+        | otherwise -> [fillStage2 csh cats ao l v]
+  where whole | ao == 0 && VS.length v == l = [v]
+              | otherwise = [VS.slice ao l v]
+        l = product sh
+
+-- The reducing consumer, which is what the unordered entry point exists
+-- for: 'sumT' is @sum . map vSum . toUnorderedVectorListT@, one slice at
+-- a time and no concatenation, so what a Fill arm over the same list
+-- carries is a copy of the whole array the consumer never pays -- which
+-- is why no reading before Run 27 could price the entry point as it is
+-- used. Each of these is that consumer over one stage's list, returned
+-- as a one-element vector so the harness times it as it times every
+-- arm, the forcing sum over one element costing nothing; 'check' holds
+-- the element to the reference's sum. Read as pairs: a stage's consumer
+-- against its Fill arm prices the copy, and the stage-five consumer
+-- against the stage-one one is the ruling's own question, what the
+-- address order and the odometer list buy a fold. Added 2026-09-07 for
+-- Run 27.
+sumParts :: [VS.Vector Double] -> Double
+sumParts = go 0
+  where go !acc [] = acc
+        go !acc (p : ps) = go (acc + VS.sum p) ps
+
+{-# NOINLINE fbLibUnordStage1Sum #-}
+fbLibUnordStage1Sum :: ShapeL -> T -> VS.Vector Double
+fbLibUnordStage1Sum sh a = VS.singleton (sumParts (lsUnordStage1 sh a))
+
+{-# NOINLINE fbLibUnordStage2Sum #-}
+fbLibUnordStage2Sum :: ShapeL -> T -> VS.Vector Double
+fbLibUnordStage2Sum sh a = VS.singleton (sumParts (lsUnordStage2 sh a))
+
+{-# NOINLINE fbLibUnordStage4Sum #-}
+fbLibUnordStage4Sum :: ShapeL -> T -> VS.Vector Double
+fbLibUnordStage4Sum sh a = VS.singleton (sumParts (lsUnordStage4 sh a))
+
+{-# NOINLINE fbLibUnordStage5Sum #-}
+fbLibUnordStage5Sum :: ShapeL -> T -> VS.Vector Double
+fbLibUnordStage5Sum sh a = VS.singleton (sumParts (lsUnordStage5 sh a))
+
+-- The laziness gate, in 'check' and never timed: the ruling that the
+-- list stays lazy (README.md#dead-ideas) as a predicate. On a view of
+-- 200000 runs of 20 -- regime 2 on master -- forcing the HEAD of each
+-- list producer must allocate under 32 KB, a cons, a slice header and
+-- the odometer's frames, where a fill allocates the result first and
+-- the branch's route its base-offset table, 1.6 MB of Ints. The two
+-- ports of that branch are the planted breakage that proves the gate
+-- bites: they are REQUIRED to exceed the bound, so a gate passing them
+-- would be the vacuous one. The second view is the same block
+-- transposed, regime 3 in logical order and runs of 20 in address
+-- order, the exception's move: the unordered candidates must stay lazy
+-- there too, and the ordered lists are not asked, master's own pattern
+-- there being the strict fill. Transposed as a BLOCK and not as the
+-- whole array, because a dense array transposed is one block to the
+-- unordered test and every unordered arm returns it as one slice --
+-- which is what the first cut of this gate measured, 1552 bytes for the
+-- port it required to be strict, before the gap between rows was put
+-- in. GHC's per-thread allocation counter is the instrument, so no RTS
+-- flag is needed.
+lazinessGate :: IO ()
+lazinessGate = do
+  let (bsh, ba) = mkBlock [200000, 20] [200000, 32] 0
+      (tsh, ta) = mkCompose [20, 200000] (Strides [1, 32]) 0
+      bound = 32768 :: Int64
+      lazyOnes = [ ("liblist-stage1", lsListStage1)
+                 , ("libunord-stage1", lsUnordStage1)
+                 , ("libunord-stage4", lsUnordStage4)
+                 , ("libunord-stage5", lsUnordStage5)
+                 , ("lib-stage3", lsOrdStage3)
+                 , ("lib-stage4", lsOrdStage4) ]
+      strictOnes = [ ("liblist-stage2", lsListStage2)
+                   , ("libunord-stage2", lsUnordStage2) ]
+      unordered = [ ("libunord-stage4", lsUnordStage4)
+                  , ("libunord-stage5", lsUnordStage5) ]
+      gate view sh a want (n, ls) = do
+        bytes <- allocOfHead (ls sh a)
+        let ok = if want then bytes < bound else bytes >= bound
+        putStrLn $ "laziness " ++ view ++ " " ++ n
+                   ++ ": the head of the list allocates " ++ show bytes
+                   ++ " bytes, " ++ (if want then "lazy" else "strict")
+                   ++ " wanted" ++ (if ok then "" else " FAILED")
+        unless ok $ error ("LAZINESS GATE FAILED: " ++ n ++ " on " ++ view)
+  _ <- evaluate (force (bsh, ba))
+  _ <- evaluate (force (tsh, ta))
+  mapM_ (gate "runs-block" bsh ba True) lazyOnes
+  mapM_ (gate "runs-block" bsh ba False) strictOnes
+  mapM_ (gate "transposed" tsh ta True) unordered
+  mapM_ (gate "transposed" tsh ta False) strictOnes
+
+{-# NOINLINE allocOfHead #-}
+allocOfHead :: [VS.Vector Double] -> IO Int64
+allocOfHead parts = do
+  setAllocationCounter maxBound
+  _ <- evaluate (case parts of
+                   p : _ -> p
+                   [] -> error "allocOfHead: an empty list")
+  c <- getAllocationCounter
+  return (maxBound - c)
 
 -- Which of toVectorListT's regimes a (shape, T) pair takes: 1 whole-vector
 -- memcpy, 2 innermost-normal per-run loop, 3 innermost-strided
@@ -4920,6 +5246,13 @@ roster =
     -- RULED OUT for the library 2026-09-07 and kept as a ceiling
     -- (README.md#dead-ideas), reasons at the definition.
   , ("lib-stage2-lean",            Fill fbLibStage2Lean)
+    -- The lazy candidates of the shipped route, 2026-09-07, beside the
+    -- lean fill they are read against: stage three the ordered lazy list
+    -- under the natural-strides dispatch and one pass into the result,
+    -- stage four the same under the lean dispatch, reasons at the
+    -- definitions. Every slot below moves by two.
+  , ("lib-stage3",                 Fill fbLibStage3)
+  , ("lib-stage4",                 Fill fbLibStage4)
     -- The list consumer under each stage, added the same day: the
     -- library's toVectorListT and one concatenation, so the pair prices
     -- the list's construction alone, reasons at the definitions.
@@ -4937,6 +5270,24 @@ roster =
     -- (README.md#dead-ideas), reasons at the definition. Every slot
     -- below moves by one.
   , ("libunord-stage3",            Fill fbLibUnordStage3)
+    -- The lazy candidates of 2026-09-07, beside the ceiling they are
+    -- read against: stage four the sorted view under the natural-strides
+    -- test, stage five under the lean rank test, each handing a single
+    -- slice or fill back as the ports do and concatenating only its
+    -- runs, reasons at the definitions.
+    -- Every slot below moves by two.
+  , ("libunord-stage4",            Fill fbLibUnordStage4)
+  , ("libunord-stage5",            Fill fbLibUnordStage5)
+    -- The reducing consumer over each stage's list, added the same day:
+    -- 'sumT' as the library composes it, one slice at a time and no
+    -- concatenation, so a stage's consumer against its Fill arm above
+    -- prices the copy, and the stage-five consumer against the stage-one
+    -- one is what the lazy candidates buy a fold. Every slot below moves
+    -- by four more, eight in all with the two of the shipped route above.
+  , ("libunord-stage1-sum",        Fill fbLibUnordStage1Sum)
+  , ("libunord-stage2-sum",        Fill fbLibUnordStage2Sum)
+  , ("libunord-stage4-sum",        Fill fbLibUnordStage4Sum)
+  , ("libunord-stage5-sum",        Fill fbLibUnordStage5Sum)
     -- not timed: 6.20x the result
   , ("mut-offsets",                Only fbMutBaseOffsets)
     -- parked 2026-09-04 by the prune (README.md#what-the-benchmark-does)
@@ -5101,13 +5452,22 @@ reference sh a = case [f | (_, Base f) <- roster] of
 -- @check@ at the first shape naming @libunord-stage2@ (non-vacuity,
 -- 2026-08-30, the same breakage the elementwise chain was proven by).
 -- Every other arm stays elementwise, and an unordered arm that agrees
--- elementwise skips the sorts.
+-- elementwise skips the sorts. The second weakening, 2026-09-07: a
+-- reducing consumer, a @-sum@ arm, returns one element, its list's sum,
+-- held to the reference's sum within a relative 1e-9 -- the order of
+-- summation differs by construction, so equality is not owed -- and a
+-- wrong list still fails: dropping the first slice in 'sumParts' fails
+-- @check@ at the first shape, @cnn-L1-6x6-c1@, for all four @-sum@ arms
+-- (non-vacuity, 2026-09-07).
 agreesWithRef :: VS.Vector Double -> String -> VS.Vector Double -> Bool
 agreesWithRef rList n u
   | u == rList = True
+  | "-sum" `isSuffixOf` n =
+      VS.length u == 1 && abs (VS.head u - s) <= 1e-9 * max 1 (abs s)
   | "libunord-" `isPrefixOf` n =
       sort (VS.toList u) == sort (VS.toList rList)
   | otherwise = False
+  where s = VS.sum rList
 
 checkedArms :: [(String, ShapeL -> T -> VS.Vector Double)]
 checkedArms = [(n, f) | (n, arm) <- roster, f <- fills arm]
@@ -5552,6 +5912,11 @@ check = do
   mapM_ oneBlock blockViews
   mapM_ oneSmall smallViews
   mapM_ oneCompose composeViews
+  -- Last, the laziness gate of 2026-09-07, which asks a predicate no
+  -- view above can: whether each list producer is as lazy as master's
+  -- list, 'lazinessGate' saying which are required to be and which are
+  -- required not to be.
+  lazinessGate
   where
     one (name, normalSh) = do
       let (sh, a@(T (Strides ats) ao _)) = mkStrided normalSh
