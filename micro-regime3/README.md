@@ -943,65 +943,58 @@ rather than a slot in the next run, observed again:
   was not all HEAD lost on them. (2) *The compiler on the pointer fills,
   in counts.* The two arms whose counts parted the compilers on Run 26, 0.6219
   and 0.9295 basis over HEAD, read as the rest of the roster does. On the main
-  set: `predict: counts mut-odo-vecdims-add-in-leaf-u2-ptr 1.0 within 1.5%`
-  and `predict: counts mut-odo-vecdims-add-in-leaf-u1-ptr 1.0 within 1.5%`,
-  the band being where twenty-four of Run 26's twenty-six arms sat, 0.9936
-  to 1.0089. Killed by either outside 3%, which would say HEAD still emits
-  a different loop for the `Ptr` form once the box is gone. (3) *The basis half
-  against Run 26's.* The annotation changing no 9.12 code, and four arms leaving
-  and eight landing moving slots alone, every one of the 26 timed arms Run 26
-  also timed reads within 1% of its Run 26 basis cell at the geomean
-  over the nineteen shared shapes, the pointer fills included, `--pin` to Run
-  26's column, the eight arms of 2026-09-07 having no cell there and being
-  outside this item; a per-shape excursion past 1% on a slot that moved is what
-  Run 26's item (2) found on every untouched arm and is not this item's kill.
-  Killed by any arm's geomean past 1%, which would be a layout term the STG
-  comparison cannot see, or by either pointer fill's basis cell past the floor
-  on any shape, which would say the annotation is not a no-op on 9.12 after all.
-  This item is adjudicated by hand, on the main set. (4) *The rate at which
-  an instruction saving reaches the clock, read per run length and on the second
-  codegen.* The open list's entry on the rate, below, has five spans of the leaf
-  family at 29% to 52% over the main set where the nineteenth reading's rate
-  is three quarters. Read per shape from Run 26's own artifacts on 2026-09-06,
-  the rate is not one number: over `runs`, `-u1-ptr` over `-u1` turns a tenth
-  to a quarter of its instruction saving into time at run lengths 2 to 9
-  and about three quarters of it from 256 up; `-u2-ptr` over `-u1-ptr` turns
-  a quarter of the loop's instructions into no time at all from 256 up, 1.00
-  to 1.02 in time against 0.75 in counts; and `-u2` over `-u1` turns about
-  a quarter at every length from 7 up --- with the two non-pointer spans reading
-  the same per-length profile on HEAD as on the basis, within two and a half
-  points of time on every `runs` view, so the profile is the pair's
-  and the shape's rather than the compiler's or the run's, and the main-set
-  geomean is the shape set's weighting of it. On the long runs either pointer
-  fill moves its 14 MB in and 14 MB out in about 670 us on the basis, some 42
-  GB/s, which is a bandwidth figure and not an instruction one. Prediction,
-  over `runs` on both halves, the workaround having given HEAD the basis's code:
-  `-u1-ptr` over `-u1` at or below 0.91 in time on every view from `runs-256` up
-  and at or above 0.96 on `runs-2` to `runs-7`; `-u2-ptr` over `-u1-ptr` within
-  3% of 1.00 on every view from `runs-256` up; and each of the three pointer
-  spans on the basis within 2 points of its Run 26 cell on every view
-  from `runs-256` up. Killed by HEAD's `-u1-ptr` over `-u1` above 0.94 on any
-  view from `runs-256` up, which would say the reload's cost was the codegen's
-  and not the loop's, or by `-u2-ptr` ahead of `-u1-ptr` past the class's floor
-  on both halves on any view from `runs-256` up, which would say the long-run
-  fill is not at a bound instructions cannot move. `runs-2`, where `-u2-ptr`
-  executes exactly `-u1-ptr`'s instructions and takes 1.087 of its time
-  on the basis, is read beside these for whether that term survives the roster
-  change, the counts being unable to carry it. The quantity is a ratio of two
-  ratios the reader does not compute, so this item carries no span and is read
-  by hand from `--pair --per-shape` on the `runs` JSONs and the corrected counts
-  of the `runs` sweeps. (5) *The class-floor asymmetry, and whether it is back.*
-  Registered 2026-09-07 and costing this run nothing to answer: Runs 15 to 18
-  put the basis half's class floor wider in 24 of 32 comparisons at sign p
-  0.007, and Runs 24, 25 and 26, counted off their own artifacts, put it wider
-  in **13 of 32**, pooling to 37 of 64 ([the class-floor entry][open]).
-  This run's eleven populations are eleven more of that same comparison, each
-  a `--aa` floor line on a process this run writes anyway. Prediction,
-  adjudicated by hand: the basis is the wider half in **3 to 8 of the eleven**,
-  continuing the three-run absence. Killed by 9 or more, or by 2 or fewer ---
-  the band and the kill are complementary on purpose, so that no count falls
-  outside both, and the two tails together are the two-sided 7% sign test
-  on eleven, this file's own convention. Either tail says the asymmetry is back
+  set: `predict: counts mut-odo-vecdims-add-in-leaf-u2-ptr 1.0 within 3%`
+  and `predict: counts mut-odo-vecdims-add-in-leaf-u1-ptr 1.0 within 3%`,
+  the tolerance being the kill's so that the reader's verdict is the item's;
+  the size predicted is the band twenty-four of Run 26's twenty-six arms sat in,
+  0.9936 to 1.0089. Killed by either outside 3%, which would say HEAD still
+  emits a different loop for the `Ptr` form once the box is gone. (3) *The basis
+  half against Run 26's.* The annotation changing no 9.12 code, and four arms
+  leaving and eight landing moving slots alone --- an assumption, the eight
+  bringing new code where a `Force` twin brings none, so the loop-offsets read
+  of pre-run step 2, `./loop-offsets.py --delta` against Run 26's basis binary,
+  is owed before the run and this item is read beside what it prints --- every
+  one of the 26 timed arms Run 26 also timed reads within 1% of its Run 26 basis
+  cell at the geomean over the nineteen shared shapes, the pointer fills
+  included, `--pin` to Run 26's column, the eight arms of 2026-09-07 having
+  no cell there and being outside this item; a per-shape excursion past 1%
+  on a slot that moved is what Run 26's item (2) found on every untouched arm
+  and is not this item's kill. Killed by any arm's geomean past 1%, which would
+  be a layout term the STG comparison cannot see, or by either pointer fill's
+  basis cell past the floor on any shape, which would say the annotation
+  is not a no-op on 9.12 after all. This item is adjudicated by hand,
+  on the main set. (4) *The rate at which an instruction saving reaches
+  the clock, read per run length and on the second codegen.* Read per shape
+  from Run 26's own artifacts, the rate is a profile of run length and not one
+  number, and the profile is the pair's and the shape's rather
+  than the compiler's or the run's ([the rate entry][open] carries the reading).
+  Prediction, over `runs` on both halves, the workaround having given HEAD
+  the basis's code: `-u1-ptr` over `-u1` at or below 0.91 in time on every view
+  from `runs-256` up and at or above 0.96 on `runs-2` to `runs-7`; `-u2-ptr`
+  over `-u1-ptr` within 3% of 1.00 on every view from `runs-256` up; and each
+  of the three pointer spans on the basis within 2 points of its Run 26 cell
+  on every view from `runs-256` up. Killed by HEAD's `-u1-ptr` over `-u1` above
+  0.94 on any view from `runs-256` up, which would say the reload's cost
+  was the codegen's and not the loop's, or by `-u2-ptr` ahead of `-u1-ptr` past
+  the class's floor on both halves on any view from `runs-256` up, which would
+  say the long-run fill is not at a bound instructions cannot move. `runs-2`,
+  where `-u2-ptr` executes exactly `-u1-ptr`'s instructions and takes 1.087
+  of its time on the basis, is read beside these for whether that term survives
+  the roster change, the counts being unable to carry it. The quantity
+  is a ratio of two ratios the reader does not compute, so this item carries
+  no span and is read by hand from `--pair --per-shape` on the `runs` JSONs
+  and the corrected counts of the `runs` sweeps. (5) *The class-floor asymmetry,
+  and whether it is back.* Registered 2026-09-07 and costing this run nothing
+  to answer: the asymmetry [the class-floor entry][open] is named for held
+  on Runs 15 to 18 and has not reproduced on Runs 24 to 26 or on the probes
+  since. This run's eleven populations are eleven more of the same comparison,
+  the basis half's class floor against the other half's, each a `--aa` floor
+  line on a process this run writes anyway. Prediction, adjudicated by hand:
+  the basis is the wider half in **3 to 8 of the eleven**, continuing
+  the three-run absence. Killed by 9 or more, or by 2 or fewer --- the band
+  and the kill are complementary on purpose, so that no count falls outside
+  both, and the two tails together are the two-sided 7% sign test on eleven,
+  this file's own convention. Either tail says the asymmetry is back
   and its three-run absence the anomaly. Two readings go beside it on the same
   22 processes: a process's floor against the median A/A half-width beneath it,
   which read +0.26, +0.49 and +0.52 by run and which [the floor
@@ -1026,9 +1019,13 @@ rather than a slot in the next run, observed again:
   the ceiling, `libunord-stage5` is the same code as `libunord-stage3` wherever
   the sorted view is one block or has no run --- `rev`, the dense `flip` views,
   `bcast`, `bcastmid`, `scaled`, `compose` and the one-block `small` views ---
-  and a tie there, read raw where both slice and the cells are the forcing pass,
-  as Run 26 read its item (3); where the sorted view has runs --- `runs`,
-  `block`, `window`, the two gap views of `flip`, `small-row96`
+  and a tie there, `predict: pair libunord-stage5 libunord-stage3 1.0`
+  on those populations, read raw where both slice and the cells are the forcing
+  pass, as Run 26 read its item (3); the same span read on a population with run
+  views, `runs`, `block`, `window`, `flip` and `small`, the last two holding
+  their gap and run views in one JSON with their one-block ones, prints a figure
+  and no verdict there, the reading being per view; where the sorted view has
+  runs --- `runs`, `block`, `window`, the two gap views of `flip`, `small-row96`
   and `small-patch-r5` --- it is the slice list against the fill, behind past
   the floor at short runs and ahead at long, the crossover on `runs` read per
   view and expected between `runs-256` and `runs-4096`, where `dispRun` was cut.
@@ -1085,22 +1082,27 @@ rather than a slot in the next run, observed again:
   and expected between `runs-256` and `runs-4096`, where `dispRun` was cut.
   And `lib-stage3` against `lib-stage4`, the natural-strides comparison alone,
   `predict: pair lib-stage3 lib-stage4 1.0` on the main set, inside the floor
-  everywhere but `small`. Killed by `lib-stage3` behind `lib-stage1` past
-  the floor on both halves on any population, which would say canonicalization
-  or the odometer list costs more than the concatenation it saves;
-  by `lib-stage4` ahead of `lib-stage2-lean` past the floor on both halves
-  on `runs-2` to `runs-9`, which would say the fill of the runs is not a ceiling
-  at short runs; or by `lib-stage4` behind it past the floor on both halves
-  at `runs-65536`, which would say one memcpy per run never wins. (9)
-  *The reducing consumers, the ruling's own measurement.* `libunord-stage1-sum`,
-  `libunord-stage2-sum`, `libunord-stage4-sum` and `libunord-stage5-sum`
-  are `sumT` over each stage's list, one slice at a time and no concatenation,
-  the first reading of the entry point as it is used. On every population, both
-  halves, read per view by hand; on the main set all four sum one slice
+  everywhere but `small`. The three spans are read on every population the loop
+  hands them; a class's verdict counts only where this item names that class,
+  and elsewhere the figure printed is read against the per-view predictions
+  above. Killed by `lib-stage3` behind `lib-stage1` past the floor on both
+  halves on any population, which would say canonicalization or the odometer
+  list costs more than the concatenation it saves; by `lib-stage4` ahead
+  of `lib-stage2-lean` past the floor on both halves on `runs-2` to `runs-9`,
+  which would say the fill of the runs is not a ceiling at short runs;
+  or by `lib-stage4` behind it past the floor on both halves at `runs-65536`,
+  which would say one memcpy per run never wins. (9) *The reducing consumers,
+  the ruling's own measurement.* `libunord-stage1-sum`, `libunord-stage2-sum`,
+  `libunord-stage4-sum` and `libunord-stage5-sum` are `sumT` over each stage's
+  list, one slice at a time and no concatenation, the first reading of the entry
+  point as it is used. On every population, both halves, the loop's span figures
+  first and a per-view reading where a figure falls outside the floor and
+  on the views named with no prediction; on the main set all four sum one slice
   and their cells are the forcing pass, so the readings are the classes'.
   `libunord-stage5-sum` against `libunord-stage1-sum`, master's consumer:
   the tie inside the floor wherever both sum one slice or both sum a fill,
-  `bcast`, `bcastmid`, `scaled`, `compose`, `small-bcast32`
+  `predict: pair libunord-stage5-sum libunord-stage1-sum 1.0` on `bcast`,
+  `bcastmid`, `scaled` and `compose`, and per view on `small-bcast32`
   and `small-patch-k5`; the tie or a small lead on `runs`, `block`,
   `flip-outer-gap64` and `small-row96`, where both fold the same slices,
   master's by its recursion and stage five's by the odometer; ahead past
@@ -1122,7 +1124,44 @@ rather than a slot in the next run, observed again:
   `libunord-stage1` past the floor on both halves on any view that is not one
   block, which would say the concatenation costs the consumer nothing.
   The laziness gate in `check` is this run's fourth instrument on the same
-  question and needs no run: it is read at pre-run step 7, once per build.
+  question and needs no run: it is read at pre-run step 7, once per build. (10)
+  *The baseline between the halves.* Registered 2026-09-07, with (11) and (12).
+  `list` moved 1.10% between Run 25's halves and 1.16% between Run 26's, past
+  the 0.7% bar that lets two columns be subtracted, in time and
+  not in instructions, and no code change of this pair touches it, the roster
+  change moving the layout Run 26's head blamed. On the main set:
+  `predict: cross list 1.011 within 0.5%`, the basis over HEAD as Run 26 read
+  it. Killed by the figure inside the 0.7% bar, which would say the movement
+  was those two rosters' and not the pair's, and which reopens the subtraction
+  the last two runs refused. (11) *The dispatch pair after its answer.*
+  The counts pair of 2026-09-07 put `lib-stage2-disp` at 1.0188 and 1.0180
+  of `lib-stage2-lean`'s corrected instructions on `small` and 1.0142 and 1.0148
+  in time, on this run's recipe as it stood before the eight arms ([the
+  disp/lean entry][open]). The pair differs in the `dispRun` comparison and has
+  no twin among the eight arms, item (8)'s `lib-stage3` against `lib-stage4`
+  being the natural-strides comparison that `lib-stage2-lean`'s parked control
+  prices against it. On `small`, both halves, the span printing a figure
+  and no verdict on any other population, `runs` most of all, where the two
+  are different code by design:
+  `predict: pair lib-stage2-disp lib-stage2-lean 1.015 within 1%`. Killed
+  by the pair inside the class's floor on both halves, which would say
+  the counts pair's 1.9% does not reach the clock on a major run.
+  `cnn-L1-6x6-c1`, where Run 26's halves parted on this pair, 1.013 against
+  1.139, is read beside it on the main set by hand, for whether the HEAD half's
+  figure survives the roster change. (12) *The class-level margin on the four
+  reversed classes.* The order-reversal probe of 2026-09-07 read the basis
+  faster than HEAD in 15 of 16 class-by-order readings and most of the margin
+  as the compiler, the four classes' basis-over-control geomeans moving
+  from 0.8976 to 0.9687 on Run 26's pair to 0.9538 to 1.0103 on this run's
+  recipe as it stood before the eight arms ([the class-floor entry][open]).
+  On `rev`, `bcast`, `scaled` and `bcastmid`, the two halves being
+  the comparison, read off `--cross-classes` by hand: each class's
+  basis-over-HEAD geomean inside the probe's band, 0.95 to 1.01. Killed by any
+  of the four below 0.95, which would say the workaround did not take
+  the compiler's share out of the class level, or by all four above 1 past their
+  floors, which would put the faster half on the other side. It overlaps item
+  (1), the pointer fills being what moved the class geomeans, and reads
+  on the classes what (1) reads on the main set.
 
 - `ANSWERED` **What Run 26 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
