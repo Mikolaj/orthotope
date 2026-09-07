@@ -873,7 +873,7 @@ rather than a slot in the next run, observed again:
   as a floor on the arm's direction rather than as a prediction of its size; Run
   27's registration (4) reads the profile on the second codegen.
 
-- `OPEN` **`lib-stage2-disp` and `lib-stage2-lean` are NOT the same code
+- `ANSWERED` **`lib-stage2-disp` and `lib-stage2-lean` are NOT the same code
   at a few hundred elements, which the lean ruling was written to make them.**
   The ruling of 2026-09-05 --- [taken, and in the settled
   index](#what-is-settled-and-where) --- gave every canonical dispatch the lean
@@ -893,7 +893,18 @@ rather than a slot in the next run, observed again:
   read of the two arms' entry code on both compilers, or a counts pair
   over the `small` population, neither of which wants a run: if the instructions
   differ the ruling's premise is wrong, and if they do not it is a placement
-  term on the one class small enough to show one.
+  term on the one class small enough to show one. **TAKEN 2026-09-07,
+  and the instructions differ, so the premise is wrong and the first branch
+  fired.** A counts pair over `small` on both halves of the tip's recipe reads
+  `lib-stage2-disp` at **1.0188** of `lib-stage2-lean`'s corrected instructions
+  on the basis and **1.0180** on HEAD, over the class's five shapes; timed
+  in those same two processes the pair reads **1.0142** and **1.0148** against
+  floors of 1.05% and 0.83%. So the difference is instructions the two arms do
+  not share rather than where they landed, and it is no longer the larger
+  on HEAD, the halves agreeing here on both instruments where Run 26 read 1.0171
+  against 1.0316. The ruling itself is untouched, the lean form being what
+  ships; what is now known is that its premise is false on the one class small
+  enough to show it.
 
 - `OPEN` **What Run 27 is built to answer, registered before it runs.**
   Registered 2026-09-06, before the run, on Run 26's pair --- ghc-9.12.4
@@ -970,7 +981,27 @@ rather than a slot in the next run, observed again:
   change, the counts being unable to carry it. The quantity is a ratio of two
   ratios the reader does not compute, so this item carries no span and is read
   by hand from `--pair --per-shape` on the `runs` JSONs and the corrected counts
-  of the `runs` sweeps.
+  of the `runs` sweeps. (5) *The class-floor asymmetry, and whether it is back.*
+  Registered 2026-09-07 and costing this run nothing to answer: Runs 15 to 18
+  put the basis half's class floor wider in 24 of 32 comparisons at sign p
+  0.007, and Runs 24, 25 and 26, counted off their own artifacts, put it wider
+  in **13 of 32**, pooling to 37 of 64 ([the class-floor entry][open]).
+  This run's eleven populations are eleven more of that same comparison, each
+  a `--aa` floor line on a process this run writes anyway. Prediction,
+  adjudicated by hand: the basis is the wider half in **4 to 7 of the eleven**,
+  continuing the three-run absence. Killed by 9 or more, or by 2 or fewer,
+  either being past a fair coin at about 3% and either saying the asymmetry
+  is back and its three-run absence the anomaly. Two readings go beside
+  it on the same 22 processes: a process's floor against the median A/A
+  half-width beneath it, which read +0.26, +0.49 and +0.52 by run and which [the
+  floor section][floor]'s order-statistic ruling expects to stay positive,
+  killed by a negative correlation on this run; and its position in the evening
+  against its floor, which read -0.06, -0.04 and +0.16 and is a null this run
+  is not expected to disturb. **What this item cannot settle
+  is the within-population decay**, since no major run puts two processes of one
+  population in an evening --- four processes of one population
+  with the binaries alternating is the only instrument that has seen one,
+  and that is [the class-floor entry][open]'s probe rather than this run's.
 
 - `ANSWERED` **What Run 26 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
@@ -2021,40 +2052,122 @@ rather than a slot in the next run, observed again:
   already excluded, and the slot would join them, leaving the wider halves
   sharing nothing but having been the published one. **Read a class margin
   against its own run's column and never the previous one** --- the standing
-  rule the cut paragraph carried. **TWO MORE CLASSES WERE REVERSED, 2026-09-06,
-  and they neither confirm `slice` nor refute it: they say the floor follows
-  neither the half nor the pair's order but the process's POSITION
-  IN THE SITTING** (`probe-order-reversal.sh`, `rev` and `bcast`, four processes
-  each on Run 26's own two binaries, both orders back to back,
-  `WILDLOG=1 SATURATE=1` and a `@@saturate` assertion in every one,
-  and the starting order alternated between the two classes so that an evening
-  drift could not alias with the order). Read as this item reads `slice`,
-  the two classes split one-one apiece: on `rev` the basis carries the wider
-  floor running first, **0.79% against 0.42%**, and the control carries
-  it in the reversed order, **0.38% against 0.25%**; on `bcast` the control
-  carries it first, **0.99% against 0.78%**, and the basis in the reversed
-  order, **0.74% against 0.72%**. So the basis is the wider half in **2
-  of these 4** comparisons where `slice` gave 2 of 2, and Runs 15 to 18's
-  running count does not extend to them. **What the four processes of each class
-  agree on is their order.** The floors fall monotonically with position
-  in the block --- 0.79, 0.42, 0.38 and 0.25 on `rev`, 0.99, 0.78, 0.74 and 0.72
-  on `bcast` --- while the binaries across those same four slots alternate
-  `g912`, HEAD, HEAD, `g912` and HEAD, `g912`, `g912`, HEAD, so each half holds
-  both an extreme and a middle and no half assignment produces either sequence.
-  The within-evening series of the same afternoon falls the same way
-  over its three main-set processes, 0.47%, 0.41% and 0.36% ([the floor
-  section][floor]), which is **8 of 8** consecutive steps down over three
-  blocks. **The median A/A half-width does NOT follow position** --- on `rev`
-  it reads 0.57%, 0.28%, 0.21% and 0.52% --- so what decays over a sitting
-  is the tail the floor is a max over and not the dispersion beneath it, which
-  is this entry's own dispersion ruling met from the other side. **It
-  is a partial reading and its probe is unfinished**: `scaled` and `bcastmid`
-  were rostered for the same treatment and the machine was wanted back before
-  they ran, so this rests on the six steps two classes give and not the fourteen
-  four would have, and no level reading was taken at all. Resume
-  with `CLASSES="scaled:basis bcastmid:control" ./probe-order-reversal.sh`, some
-  seventy-five minutes; the interrupted `scaled` process's artifacts are parked
-  under a `.partial-interrupted` suffix and block nothing.
+  rule the cut paragraph carried. **FOUR CLASSES WERE REVERSED, 2026-09-06
+  and 2026-09-07: they refute the half here, and the position term they
+  suggested does not survive its own replication below**
+  (`probe-order-reversal.sh`, `rev`, `bcast`, `scaled` and `bcastmid`, four
+  processes each on Run 26's own two binaries, both orders back to back,
+  `WILDLOG=1 SATURATE=1` and a `@@saturate` assertion in every one
+  of the sixteen, and the starting order alternated between the classes
+  so that an evening drift could not alias with the order). Read as this item
+  reads `slice`, the basis is the wider half in **3 of these 8** comparisons
+  where `slice` gave 2 of 2 --- `rev` splits one-one, 0.79% against 0.42%
+  with the basis first and 0.38% against 0.25% reversed; `bcast` splits one-one
+  the other way, 0.99% against 0.78% and 0.74% against 0.72%; `scaled` splits
+  one-one, 1.68% against 0.22% and 0.26% against 0.23%; and `bcastmid` puts
+  the control wider in both, 0.59% against 0.39% and 0.32% against 1.05%,
+  the only pair of the eight whose second process is the wider. So Runs 15
+  to 18's running count does not extend to these classes, and the half
+  is refuted here as an explanation. **What the blocks agree on, less
+  than the first two of them appeared to, is their order.** The floors fall down
+  the block --- 0.79, 0.42, 0.38 and 0.25 on `rev` and 0.99, 0.78, 0.74 and 0.72
+  on `bcast`, monotonically; 1.68, 0.22, 0.26 and 0.23 on `scaled` and 0.59,
+  0.39, 0.32 and 1.05 on `bcastmid`, with one step up apiece --- while
+  the binaries across those same four slots alternate `g912`, HEAD, HEAD, `g912`
+  and HEAD, `g912`, `g912`, HEAD. On `rev`, `bcast` and `scaled` each half
+  then holds both an extreme and a middle, so no half assignment produces
+  those three sequences; **on `bcastmid` one does** --- the control's two
+  processes are that block's two widest, 1.05% and 0.59% against 0.39% and 0.32%
+  --- so it is at once the one class of the four where the half is a live
+  candidate and the one whose fall breaks worst. That is **10 of 12**
+  consecutive steps down, **12 of 14** counting the within-evening series
+  of the same afternoon, 0.47%, 0.41% and 0.36% ([the floor section][floor]),
+  and the first process is the wider in **7 of the 8** order-pairs at sign p
+  0.035. **The first two classes read 8 of 8, and the two added on 2026-09-07
+  are what took it off that** --- which is why the unfinished half of a probe
+  is not a smaller version of the finished one. `scaled`'s block is the weakest
+  of the four whichever way it is read: its first process reads **1.68%** where
+  the other three read about a quarter of a point, and that class's own A/A slot
+  is ruled a hazard of the class to be quoted as one and never as a figure ([the
+  `scaled` entry][open]), with margins under about 3% there unmeasured.
+  **THE WHOLE PROBE WAS REPEATED ON THE RUN 27 RECIPE THE SAME NIGHT,
+  AND POSITION DID NOT REPLICATE.** Both halves were rebuilt from the tip
+  with the recipe `pair-draft-run27.txt` pins --- 26 timed arms over 19 shapes,
+  494 benches, `-fspec-constr -fobject-determinism`, `LOOP_DEADSPOT=1`, the shim
+  unmoved --- and kept under probe names, `probe-r27ord-g912`
+  and `probe-r27ord-ghead`, rather than `run27-*`, that being the run's own
+  namespace and one `run-major.sh` refuses to start over. The same four classes
+  then ran the same sixteen processes in the same alternating design.
+  **The first process is the wider in 4 of 8 there against 7 of 8 on Run 26's
+  pair**, and only `rev` repeats its 2 of 2: `bcast` goes 2 of 2 to **0 of 2**,
+  `scaled` 2 of 2 to 1 of 2, `bcastmid` 1 of 2 to 1 of 2. Over both probes
+  that is **11 of 16** at sign p 0.105, and pooled with the 19 of 32
+  the recorded runs give, **30 of 48** at p 0.056. **The basis half is wider
+  in 2 of those 8 and 5 of the 16**, 18 of 48 pooled, so the asymmetry
+  this entry is named for is refuted on every population reversed and leans
+  the other way if it leans at all. **So neither the half nor the position
+  explains a class floor**, and what all four blocks agree on is [the floor
+  section][floor]'s reading instead: the floor is the max of six sampling draws
+  and its size is the process's. The 7 of 8 is what a replication is for.
+  **The prune is not what removed the asymmetry**, which is the obvious
+  competing account and the one to rule out: a floor is a max over the A/A
+  pairs, Runs 15 to 18 took theirs over sixteen to eighteen and Runs 25 onward
+  over six, and a max over sixteen draws carries more tail --- which is where
+  this entry already put the effect, the basis half carrying the wilder cell.
+  But **Run 24 still read its floors over sixteen pairs and gives the basis
+  wider in 3 of its 10 populations**, the weakest of the three runs counted,
+  so the asymmetry was already gone a run before the prune reached it.
+  This entry stays `OPEN` on the Runs 15 to 18 evidence, which no reading here
+  retracts; what is now recorded beside it is that nothing since Run 24
+  reproduces it, on 48 comparisons. **Nor does the median A/A half-width follow
+  the blocks' order** --- on `rev` it reads 0.57%, 0.28%, 0.21% and 0.52% ---
+  so the floors' fall, in the blocks where it happened, was in the tail
+  the floor is a max over and not in the dispersion beneath it, which
+  is this entry's own dispersion ruling met from the other side. **The level
+  reading was taken 2026-09-07 over both pairs' artifacts, and the LEVEL FOLLOWS
+  THE HALF, as `slice` said.** Per class, basis over control at the class
+  geomean, with the basis running first and running second: on Run 26's pair
+  0.8976 and 0.9382 on `rev`, 0.9292 and 0.9277 on `bcast`, 0.9687 and 0.9506
+  on `scaled`, 0.9399 and 0.9478 on `bcastmid`; on the Run 27 recipe 0.9988
+  and 0.9538, 0.9861 and 0.9849, 1.0103 and 0.9933, 0.9972 and 0.9976.
+  **The basis is the faster half in 15 of those 16 readings**, the exception
+  being `scaled` with the basis first on the newer pair, so reversing the order
+  neither reverses the sign nor removes the margin --- `slice`'s finding on four
+  more classes and two recipes. **Position does not explain the level either**:
+  the basis's margin is the larger running second in only 5 of the 8
+  class-by-pair comparisons. **And most of the margin is the compiler**,
+  shrinking from 0.8976--0.9687 to 0.9538--1.0103 once the GHC #27778 workaround
+  is in the build, which Run 27's item (1) adjudicates on the main set. **Read
+  this per class and not off the summary**: `--cross-classes` prints an *all
+  below 1* line that answers whether every class agrees rather than whether
+  the margin moved, and taking it for the latter says position where
+  the per-class geomeans say the half. The `scaled` process interrupted
+  on 2026-09-06 is parked under a `.partial-interrupted` suffix and is no part
+  of the above. **AND THE HEADLINE PATTERN HAS NOT CONTINUED, counted 2026-09-07
+  over Runs 24, 25 and 26 off artifacts already on disk, which wanted no machine
+  and no new run**: over those three runs' 32 population-pairs the basis
+  is the wider half in **13 of 32**, against the 24 of 32 Runs 15 to 18 gave,
+  so pooled it is 37 of 64 and the asymmetry this entry is named for has
+  been absent for three runs. **No position term is visible in them either.**
+  The control ran first in every pair of all three, so first-against-second
+  is those same 32 comparisons read the other way and the first process is wider
+  in **19 of 32**; across all 64 processes the rank correlation of a process's
+  position in its evening with its floor is **-0.06, -0.04 and +0.16** by run
+  and -0.04 pooled, and with the saturating preamble's victim reading +0.07,
+  +0.04 and +0.18, so neither the floor nor the box drifts down an evening.
+  **What those 64 processes do show is the order-statistic reading**:
+  a process's floor against the median half-width beneath it correlates **+0.26,
+  +0.49 and +0.52** by run, which is [the floor section][floor]'s within-binary
+  finding met across runs. **So the 8 of 8 is not a law, and this reading agrees
+  with the replication above rather than adding to it.** Its own caveat is why
+  the reversed classes and not this count are what decide the question:
+  consecutive positions in a recorded run are different POPULATIONS, whose
+  floors differ severalfold, so that correlation is a weak instrument
+  for a decay WITHIN one population, and the one same-population step those runs
+  do offer --- the pair itself --- also changes compiler. Only the blocks put
+  four processes of one population in a row with the binaries alternating.
+  **And 7 of 8 is itself unsurprising under a 19-of-32 rate**, arriving about
+  one time in ten, so the blocks and the recorded runs were never in conflict.
 - `OPEN` **What does the roster owe the next run?** The exact repetition
   is **taken** and is not owed again for its own sake: Run 11 inherited shapes,
   roster, order, regime and binary, and what it bought is [in the floor
@@ -2665,13 +2778,13 @@ is planned. A scope limit belongs in the sentence that asks for the measurement.
    so between-evening variation for a whole process is under the sampling inside
    one bench's worst cells. **The within-evening half is TAKEN, 2026-09-06,
    by `probe-within-evening.sh`, and the floor is an order statistic
-   over the sampling with a term that decays down the sitting**: four processes
-   of one binary in one day read floors of 0.31%, 0.47%, 0.41% and 0.36%, each
-   within 1.2 to 1.7 of its own half-width and the three consecutive ones
-   falling monotonically, with one slot carrying every reading
-   and the per-process term showing in one pair alone. [The floor
-   section][floor] carries the account; the decay is [the class-floor
-   entry][open]'s, two classes reversed the same evening having found it too.
+   over the sampling**: four processes of one binary in one day read floors
+   of 0.31%, 0.47%, 0.41% and 0.36%, each within 1.2 to 1.7 of its own
+   half-width and the three consecutive ones falling monotonically, with one
+   slot carrying every reading and the per-process term showing in one pair
+   alone. [The floor section][floor] carries the account. A fall down
+   the sitting that the first blocks suggested beside it did not survive its own
+   replication, and [the class-floor entry][open] carries that.
 2. `ANSWERED` **What the un-unrolled leaf gives up is the unrolling AND a spill,
    and in instructions the spill is all of it; no build separates them
    in time.** Run 25 priced `mut-odo-vecdims-add-in-leaf-u1` between
@@ -8918,20 +9031,27 @@ entry][open]'s *a floor is an order statistic and not a spread*, met a second
 time and inside one binary instead of across a pair's halves. **What it
 is NOT is a copy of that sampling step for step**, and the three afternoon
 processes are where the two part: they fall 0.47%, 0.41% and 0.36% where their
-own half-widths go 0.28%, 0.33% and 0.24%. That fall continues in the two
-classes reversed the same evening, which [the class-floor entry][open] carries
-as 8 of 8 consecutive steps down and reads as position in the sitting;
-so a floor is the process's figure in the sense that where the process sits
-in the evening is part of it. **What the process does not move is which pair
-carries it.** `bq-expand-aa-distant` carries all four, as it carries both of Run
-26's halves above, and misses 1 in three of the four at 1.0031, 1.0047, 1.0041
-and 1.0036 --- so that slot is worth about +0.4% and repeats where its size does
-not. **The per-process term is the smallest of the three and shows in one
-pair**, `mut-odo-vecdims-aa-distant` reading 0.9985, 0.9958, 1.0006 and 0.9970,
-a spread the tightest of its own four intervals --- 0.9970 to 1.0000 ---
-excludes at both ends. So *read the floor as the run's and the half's* takes
-*and the process's*, and what survives a process is the pair order under
-it and not the figure.
+own half-widths go 0.28%, 0.33% and 0.24%. That fall looked like a law for one
+evening --- 8 of 8 consecutive steps down over three blocks --- and did
+not survive being repeated over four classes on two recipes, which [the
+class-floor entry][open] carries. **What that fall is NOT is a general drift
+down an evening**, and the reading that says so cost nothing: over the 64
+recorded processes of Runs 24, 25 and 26 the rank correlation of a process's
+position with its floor is -0.04, and with the saturating preamble's victim
+reading about as little, so the box does not drift and neither does the figure
+([the class-floor entry][open] carries the counts). **The same 64 processes do
+confirm what this paragraph is about**: floor against the median half-width
+beneath it correlates +0.26, +0.49 and +0.52 by run, so the order-statistic
+reading holds across runs and compilers and not only inside this one binary.
+**What the process does not move is which pair carries it.**
+`bq-expand-aa-distant` carries all four, as it carries both of Run 26's halves
+above, and misses 1 in three of the four at 1.0031, 1.0047, 1.0041 and 1.0036
+--- so that slot is worth about +0.4% and repeats where its size does not.
+**The per-process term is the smallest of the three and shows in one pair**,
+`mut-odo-vecdims-aa-distant` reading 0.9985, 0.9958, 1.0006 and 0.9970, a spread
+the tightest of its own four intervals --- 0.9970 to 1.0000 --- excludes at both
+ends. So *read the floor as the run's and the half's* takes *and the process's*,
+and what survives a process is the pair order under it and not the figure.
 
 **The twins have now taken every side available, which is what a sign this weak
 is worth.** Run 10 read all six pairs above 1 on its unaligned half and five
