@@ -3539,6 +3539,16 @@ TIER1 = {
         trigger='a wallclock log quoting a FAILED GATE block',
         ok='counts the stamped `=== ... !!` lines alone',
         bug='counted the quoted line and read step 17 NOT DONE for ever'),
+    'predictions-skip-a-degenerate-pair': dict(
+        family='guard-on-the-wrong-side', discovery='in-use', harm='fired',
+        harm_count=1,
+        trigger='a registration span whose pair has a cell the forcing term'
+                ' did not leave positive on the population read, as Run 27'
+                ' item (6) has on the main set',
+        ok='records that span NOT READ, with the sunk count and the first'
+           ' cell, and adjudicates the rest',
+        bug='exit 2 out of the middle of the walk, the eight later items'
+            ' unadjudicated and stdout silent about which'),
     'status-reads-a-bare-item-header': dict(
         family='scan-for-parse', discovery='in-use', harm='fired',
         harm_count=1,
@@ -7894,6 +7904,32 @@ RECORDS = [
                            '0.00 point(s) off, within 1.00%: HELD',
                            '20.00 point(s) off, within 1.00%: KILLED',
                            'yours to adjudicate: (3)'])),
+
+    case('predictions-skip-a-degenerate-pair', 'read-run.py', 'e55f8d3',
+         'a span whose pair carries a sunk cell exited 2 out of the middle'
+         ' of the walk, so every span after it went unadjudicated',
+         # `pair_stats` refuses such a cell and exits, which is right for
+         # `--pair`, whose whole output is that pair, and wrong here: a
+         # registration reads many spans over one population, and Run 27's
+         # item (6) names a `libunord` pair whose main-set cells ARE the
+         # forcing pass by the item's own words. `break_margin` already
+         # takes the other route for the same reason.
+         plant=lambda t: {
+             'run': sunk_json(t, main_shapes(), 'lib-stage1'),
+             'other': sunk_json(t, main_shapes(), 'lib-stage1',
+                                name='other.json'),
+             'doc': write(os.path.join(t, 'r.md'),
+                          '# Run 99\n\n## What this run was built to answer,'
+                          ' and what it answered\n\n(1) *a* `predict: pair'
+                          ' lib-stage1 mut-odo-vecdims 1.0 within 1%`. (2)'
+                          ' *b* `predict: cross list 1.0 within 1%`.\n')},
+         argv=['{run}', '--compare', '{other}', '--predictions',
+               '--run-doc', '{doc}'],
+         ok=V(exit=1, has=['no positive net', 'NOT READ',
+                           'cross list 1.0 within 1%',
+                           'within 1.00%: HELD']),
+         bug=V(exit=2, hasnt=['cross list 1.0 within 1%',
+                              'within 1.00%: HELD'])),
 
     case('pair-halves-must-differ', 'run-major.sh', '0431efe',
          'one name in both halves wrote nine JSONs twice and gated clean',
