@@ -914,8 +914,8 @@ fbBQunfold sh (T (Strides ats) ao v) = VS.generate l get
         !s = last sh
         !t = last ats
         m = l `div` max 1 s
-        rosh = tail (reverse sh)
-        roats = tail (reverse ats)
+        rosh = drop 1 (reverse sh)
+        roats = drop 1 (reverse ats)
         baseOffsets :: VU.Vector Int
         !baseOffsets = VU.unfoldrExactN m step (ao, replicate (length sh - 1) 0)
           where step (!o, is) = (o, adv o is rosh roats)
