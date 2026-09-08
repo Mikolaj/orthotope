@@ -205,9 +205,19 @@ MUTANTS = [
     # taken reading the same as one taken. The judge asks an unstarted
     # run, whose digest cannot exist, for the refusal.
     ('run-status stops wanting the carrier digest', 'run-status.sh',
-     'if grep -q "^ITEM ${it}[^0-9]" "$READINGS" 2>/dev/null; then',
+     'if grep -qE "^ITEM ${it}([^0-9]|\\$)" "$READINGS" 2>/dev/null; then',
      'if true; then',
      '{file} run98 2>&1 | grep -q "no ITEM 5 block"'),
+    # The end-of-line half of that same pattern, taken back out: a header
+    # reading `ITEM N` and nothing after it stops matching, which is the
+    # form the chapter asks for and the one Run 27's carrier wrote, where
+    # Run 26's carried a title. The judge plants bare headers and asks for
+    # the present verdict.
+    ('run-status wants a title after the ITEM number', 'run-status.sh',
+     'if grep -qE "^ITEM ${it}([^0-9]|\\$)" "$READINGS" 2>/dev/null; then',
+     'if grep -q "^ITEM ${it}[^0-9]" "$READINGS" 2>/dev/null; then',
+     'printf \'ITEM 2\\nITEM 4\\nITEM 5\\nITEM 6\\n\' > "{dir}/run97-readings.txt"; '
+     '{file} run97 2>&1 | grep -q "carries the ITEM 5 block"'),
     # Step 2c's comment skip, removed: `<yours>` inside a `#` line counts
     # as a slot the note still owes. That is not hypothetical -- --draft's
     # own header explains the marker and so carries it twice, and a

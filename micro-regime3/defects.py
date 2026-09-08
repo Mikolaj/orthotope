@@ -1315,15 +1315,19 @@ def doc_of_a_list(tmp, items=4):
                  ' it.\n' % body)
 
 
-def readings_digest(run='run97'):
+def readings_digest(run='run97', bare=False):
     """A carrier's return for reading-list items 2, 4, 5 and 6.
 
     One `ITEM N` block apiece, each block the artifact the list already
     says that item owes, and each figure beside the invocation that
     re-emits it -- a claim with no named invocation being a gap, here as
     in the run file.
+
+    `bare` heads each block `ITEM N` and nothing else, which is what the
+    chapter asks for and what Run 27's carrier wrote; the titled form is
+    Run 26's, so a check reading the header has to take both.
     """
-    return ('# %s-readings.txt -- the carrier\'s return for reading-list'
+    text = ('# %s-readings.txt -- the carrier\'s return for reading-list'
             ' items 2, 4, 5 and 6.\n\n'
             'ITEM 2 (the last run\'s head and Results prose)\n'
             '    what this run\'s head must answer: the last one rests on'
@@ -1341,6 +1345,9 @@ def readings_digest(run='run97'):
             '    the form: six numbered items, verdicts first, the'
             ' paragraph the author\'s.\n'
             '    from: ./read-run.py run96-rev.json --block\n' % run)
+    if bare:
+        text = re.sub(r'^(ITEM \d+) .*$', r'\1', text, flags=re.M)
+    return text
 
 
 def doc_with_a_table(tmp, n=1):
@@ -3532,6 +3539,14 @@ TIER1 = {
         trigger='a wallclock log quoting a FAILED GATE block',
         ok='counts the stamped `=== ... !!` lines alone',
         bug='counted the quoted line and read step 17 NOT DONE for ever'),
+    'status-reads-a-bare-item-header': dict(
+        family='scan-for-parse', discovery='in-use', harm='fired',
+        harm_count=1,
+        trigger='a carrier return whose headers are the bare `ITEM N` the'
+                ' chapter asks for, as Run 27\'s was',
+        ok='reads the four blocks present',
+        bug='read all four absent, so post-run 4, 5 and 6a stood NOT DONE'
+            ' with the file written and complete'),
     'smoke-exercises-the-arm-filter': dict(
         family='vacuous-check', discovery='review', harm='fired',
         trigger='--exclude named an Only arm, bq-expand-b since c10e8cf',
@@ -8491,6 +8506,24 @@ RECORDS = [
          ok=V(has=['carries the ITEM 2 block', 'carries the ITEM 4 block',
                    'carries the ITEM 5 block', 'carries the ITEM 6 block'],
               hasnt=['no ITEM 2 block'])),
+
+    case('status-reads-a-bare-item-header', 'run-status.sh', 'e8f1c31',
+         'a block headed `ITEM N` and nothing else read as absent, so the'
+         ' carrier\'s return was owed four times over with the file there',
+         # The chapter asks for `one ITEM N block apiece` and names no
+         # title; Run 26's carrier wrote one anyway and Run 27's did not,
+         # so the header that matched was the decorated one. `[^0-9]` was
+         # there to keep ITEM 2 off ITEM 25 and took the end of the line
+         # with it.
+         shadow=dict(extra=[('run97-readings.txt',
+                             readings_digest(bare=True))]),
+         argv=['run97'],
+         ok=V(has=['carries the ITEM 2 block', 'carries the ITEM 4 block',
+                   'carries the ITEM 5 block', 'carries the ITEM 6 block'],
+              hasnt=['no ITEM 2 block']),
+         bug=V(has=['no ITEM 2 block', 'no ITEM 4 block', 'no ITEM 5 block',
+                    'no ITEM 6 block'],
+               hasnt=['carries the ITEM 2 block'])),
 
     case('status-wants-no-digest-before-run-26', 'run-status.sh', None,
          'CONTROL: the carrier batch is an instruction of 2026-09-05, and'
