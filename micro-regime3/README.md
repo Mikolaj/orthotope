@@ -879,7 +879,7 @@ rather than a slot in the next run, observed again:
   as a floor on the arm's direction rather than as a prediction of its size.
   **Run 27 read the profile on the second codegen and its registration (4)
   HELD**, neither of that item's kills firing: with the workaround in, HEAD's
-  `-u1-ptr` over `-u1` reads 0.8839 to 0.9309 on every `runs` view from 256 up,
+  `-u1-ptr` over `-u1` reads 0.8786 to 0.8904 on every `runs` view from 256 up,
   all of them below the 0.94 that would have killed it, and `-u2-ptr` is nowhere
   ahead of `-u1-ptr` past the class's floor on the basis. **The rate itself
   reads 27%, 35% and 46% on the three pointer spans that run**, against Run 26's
@@ -1238,8 +1238,8 @@ rather than a slot in the next run, observed again:
   are `sumT` over each stage's list, one slice at a time and no concatenation,
   which is the entry point as a consumer actually uses it; `libunord-stage1-sum`
   leads `libunord-stage1` past the floor in **all ten classes on both halves**,
-  from **0.0820** on `runs` to 0.7871 on `small`, so the copy a Fill arm
-  over a list pays is between a fifth and nine tenths of the call.
+  from **0.0854** on HEAD's `runs` to 0.7871 on HEAD's `small`, so the copy
+  a Fill arm over a list pays is between a fifth and nine tenths of the call.
   That is registration (9), which held. **What stays open is the other half**:
   a consumer that cannot accept a view still has to materialise, and no arm here
   times that path against the fill it would replace.
@@ -11125,13 +11125,13 @@ tables and its fingerprint say so.
   `--bridge`. Its sequence ran in one window and its `runs` class in a second:
   two intrusions by the instrument's own bar, one bench of its basis main set
   at 0.28 of a core and left as it stands, and four consecutive benches
-  of `runs-512` on its HEAD half at 0.9 to 1.0 --- `apt-daily-upgrade.service`
-  at about 06:38, three minutes from where the same timer hit Run 26 ---
-  so post-run step 3's rerun was taken on `runs`, both halves, with that timer
-  disabled, and its `runs` figures are the second window's. **And its floor
-  is a maximum over the same SIX A/A pairs Runs 25 and 26 read**, 0.83%
-  and 0.63%, WIDER than both on both halves and no continuation
-  of the sixteen-pair series.
+  of `runs-512` on its HEAD half at 0.9 to 1.0, at about 06:38 by the log's own
+  clock and three minutes from where `apt-daily-upgrade.service` hit Run 26,
+  which is the timer its owner then confirmed and disabled --- so post-run step
+  3's rerun was taken on `runs`, both halves, with that timer disabled,
+  and its `runs` figures are the second window's. **And its floor is a maximum
+  over the same SIX A/A pairs Runs 25 and 26 read**, 0.83% and 0.63%, WIDER
+  than both on both halves and no continuation of the sixteen-pair series.
 - Run 26 measured neither today's roster nor the run `runs/` currently publishes
   --- 30 timed arms over 19 main-set shapes and 52 class views in TEN classes,
   570 benches and 1560, SIX A/A pairs, the `runs` class at FOURTEEN and `window`
