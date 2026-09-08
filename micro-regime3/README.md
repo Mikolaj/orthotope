@@ -7739,9 +7739,10 @@ not otherwise.
     #      to the subjects naming the run and only then looks for the
     #      step, so `step 6b` alone is invisible to it however plainly it
     #      names the step, which is what this line used to ask for and
-    #      what Run 27 wrote at 6d and 7 -- two steps done and reported
-    #      NOT DONE. `step 6a` names what the commit carries instead of
-    #      the step it is, and reads as not done too (Run 25, caught at
+    #      what Run 27 wrote at 6d and at 7 -- and 6d is one the status
+    #      checks, so a step that was done reads NOT DONE to this day.
+    #      `step 6a` names what the commit carries instead of the step
+    #      it is, and reads as not done too (Run 25, caught at
     #      10b); START the checker's first pass on it, an agent in the
     #      background; THEN do 6c beside it. THAT COMMIT'S DIFF IS WHAT
     #      THE AGENT WORKS ON -- not
@@ -7902,10 +7903,12 @@ not otherwise.
     #      after the run. Re-resolve RUNTIP, read
     #        git -C .. diff RUNTIP..HEAD -- micro-regime3/README.md \
     #          micro-regime3/runs/$R.md
-    #      yourself, and say in the commit what it covered. Run 27 left
-    #      twelve broken references and eight stale figures in that tail,
-    #      every one of them found after both passes were over, and its
-    #      brief -- which no pass reads at all -- carried six more
+    #      yourself, and say in the commit what it covered. Run 27's tail
+    #      carried the twelve references its retirement broke, a
+    #      disclosure that reached four of the six places it had to,
+    #      and three wrong claims in the evidence that retirement
+    #      moved -- every one found after both passes were over, and
+    #      its brief, which no pass reads at all, carried six more
     ./read-run.py --lint          # 8. again after ANY Main.hs edit, and
     #      never rebuild the pair to satisfy it: say in the write-up that
     #      the comment-only move happened

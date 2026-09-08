@@ -5743,10 +5743,13 @@ def inherited(run_doc, prev_doc):
     So this is the probe's reading, mechanised: identical text, kept where
     it says `this run` or `this pair` or names a run, which is what parts
     the standing apparatus a run file re-carries every time from a claim
-    about the run in front of it. On Run 27's own write-up at step 6b the
-    filter named 34 paragraphs of the 123 carried whole and every one of
-    the five later found stale is among them. It PRINTS and never refuses:
-    which of them is a claim is a reading, and a gate that fired on the
+    about the run in front of it. On Run 27's own write-up at step 6b
+    this names 39 of the 62 paragraphs carried whole and every one of
+    the five later found stale is among them -- 62 and not the 123 a
+    first measurement counted, that one having taken a LINE for a
+    paragraph where this joins a blank-line block into one. It PRINTS
+    and never refuses: which of them is a claim is a reading, and a
+    gate that fired on the
     apparatus would be turned off by the second run.
     """
     if not prev_doc:
@@ -10937,8 +10940,8 @@ def main():
     p.add_argument('--imperative', action='store_true',
                    help="with --checklist: the imperative half --"
                         ' the step lines and the commands, without the'
-                        ' prose under them. `--steps` was taken, by a'
-                        ' mode that reads a run\'s per-shape steps')
+                        ' prose under them. `--steps` was taken, by the'
+                        ' mode that finds a change of level mid-bench')
     p.add_argument('--modes', action='store_true',
                    help="every mode `main` dispatches on, read off"
                         " this file's source: the `if` tests in the"

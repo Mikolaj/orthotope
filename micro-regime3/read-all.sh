@@ -380,9 +380,9 @@ fi
 # checker-brief.txt states this run's figures in prose for two agents who
 # arrive knowing none of them, and it is retyped every run. Run 27 retyped
 # it twice, once before its intrusion was found and once after, and left
-# four readings of the FIRST window standing in the second's block --
-# `ONE window`, `runs 0.9885`, a 2.65% plateau and an intrusion range its
-# own run file had already corrected. Every row below is a reading this
+# four readings standing in the second's block: THREE of them the FIRST
+# window's -- `ONE window`, `runs 0.9885` and a 2.65% plateau -- and one
+# an intrusion range its own run file had already corrected. Every row below is a reading this
 # driver has just taken or one line of arithmetic over the same JSONs, so
 # a figure here cannot belong to a window that was thrown away.
 # It is not the whole block: what the run MEANS, which registrations it
