@@ -3578,11 +3578,12 @@ and kept here because the class it is about is described here**:
 reversed and one not, and per call Run 25's basis read `mut-odo-vecdims`
 at 2.120 of its forward cell, `-add-in-leaf-u2` at 1.683 and the two stage-two
 routes at 1.903 and 1.907, with 2.073, 1.851, 1.845 and 1.846 on HEAD, against
-a `list` paying 1.091 and 1.076; `lib-stage1` alone is faster reversed, at 0.859
-and 0.939. **The counts say it is the memory system and not the code**:
-`mut-odo-vecdims` executes 31,506,524 instructions an iteration
-on `flip-last-rows` against 31,506,435 on `runs-96`, 89 in 31.5 million,
-with `-u2`, `lib-stage2-lean` and `bq-expand` inside a hundred instructions
+a `list` paying 1.091 and 1.076; of the twenty arms with a corrected time there
+only two read below 1, `lib-stage1` at 0.859 and 0.939 and `libunord-stage2`
+at 0.000, which is it falling to a slice. **The counts say it is the memory
+system and not the code**: `mut-odo-vecdims` executes 31,506,524 instructions
+an iteration on `flip-last-rows` against 31,506,435 on `runs-96`, 89 in 31.5
+million, with `-u2`, `lib-stage2-lean` and `bq-expand` inside 150 instructions
 and `list` inside 4272 in 412 million, on both halves --- so the same code does
 the same work and the doubling is what walking backwards costs, which no fill
 can address. **The arms whose counts DO move are the ones that choose a route**:
@@ -5432,9 +5433,10 @@ in the horde-ad repo.
 instead of indexing through the vector --- refuted 2026-09-05.**
 `mut-odo-vecdims-add-in-leaf-u1-base` is the un-unrolled leaf written that way,
 and it executes **0.9985** of `-u1`'s corrected instructions over nineteen
-shapes: a tenth of a percent, where losing one of the run copy's seven per
-element would be some fourteen. So the `0x40(%rsp)` reload is still there
-and this shape does not price it. The same sweep reproduced the two ratios
+shapes, on a counts probe whose own header calls it a smoke run and
+not a recorded column: a tenth of a percent, where losing one of the run copy's
+seven per element would be some fourteen. So the `0x40(%rsp)` reload is still
+there and this shape does not price it. The same sweep reproduced the two ratios
 already on record, `-u1` over `-u2` at 1.0859 against Run 25's 1.0892
 and over the counted leaf at 0.8497 against 0.8456, so the null is the arm's
 and not the instrument's. It stays rostered `Only`, checked and not timed,
