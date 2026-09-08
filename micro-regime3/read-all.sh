@@ -435,9 +435,15 @@ between one process finishing and the next starting $(awk \
                 { prev = $2 }
                 END { printf "%dm", (max + 0) / 60 }') -- hours mean a \
 second window"
+  # The absence again: a run whose logs carry no `@@saturate` line has no
+  # plateau to state, and a row that just vanished reads as a plateau
+  # nobody owed. Every process since the preamble landed writes one.
   if [ -n "$SAT" ]; then
     printf '  %-14s %s\n' 'plateau' \
       "$NSAT process(es), victim $LO-$HI ms/iter, spread $SPREAD%"
+  else
+    printf '  %-14s %s\n' 'plateau' \
+      "no \`@@saturate\` line in these logs, so there is none to state"
   fi
   printf '  %-14s %s\n' 'floors' \
     "$(printf '%s' "$FACTS" | awk -F'\t' -v b="$BASIS" \

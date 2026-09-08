@@ -1342,6 +1342,19 @@ def registration_to_move(tmp, n=97):
     return {'readme': readme, 'doc': doc}
 
 
+def lone_rundoc(tmp):
+    """A run file with no earlier run beside it, which is a fixture's shape.
+
+    `previous_run_doc` looks in the directory the file sits in, so a
+    fixture built alone has nothing before it -- the state a first run is
+    in, and the one a copy handed to a mode is in more often than that.
+    """
+    m = _reader()
+    d = os.path.join(tmp, m.RUNS_DIR)
+    os.makedirs(d, exist_ok=True)
+    return write(os.path.join(d, 'run1.md'), '# Run 1\n\nA head.\n')
+
+
 def brief_facts_without_halves(tmp):
     """A synthetic run whose log never says which half is the basis.
 
@@ -7255,6 +7268,13 @@ RECORDS = [
          argv=['{tag}', '--brief-facts'],
          ok=V(exit=1, has=['THIS RUN ONLY facts', 'did NOT gate clean'])),
 
+    case('brief-facts-says-when-there-is-no-plateau', 'read-all.sh', None,
+         'CONTROL: with no `@@saturate` line in any log the plateau row'
+         ' vanished, where every other absence here is a row',
+         plant=lambda t: synthetic_run(t),
+         argv=['{tag}', '--brief-facts'],
+         ok=V(has=['no `@@saturate` line in these logs'])),
+
     case('brief-facts-says-when-the-halves-are-unreadable',
          'read-all.sh', None,
          'with no `is the basis` clause in the log the derived block'
@@ -8179,6 +8199,19 @@ RECORDS = [
          argv=['--inherited', '--run-doc', '{doc}'],
          ok=V(exit=0, has=['carried whole', 'On Run 96 the floor'],
               hasnt=['The table below is installed'])),
+
+    case('inherited-refuses-a-run-with-nothing-before-it',
+         'read-run.py', None,
+         'CONTROL: with no earlier run file beside it the comparison is'
+         ' impossible, and a reading that cannot happen says so',
+         # The branch a fixture meets first: a run file in a directory of
+         # its own has no predecessor, and a mode that printed `0` there
+         # would report `nothing was carried` where the truth is that
+         # nothing was compared. Exit 2, which this tree reads as the run
+         # not happening.
+         plant=lambda t: {'doc': lone_rundoc(t)},
+         argv=['--inherited', '--run-doc', '{doc}'],
+         ok=V(exit=2, has=['no earlier run file', 'did not happen'])),
 
     case('inherited-passes-a-file-that-inherited-nothing',
          'read-run.py', None,
