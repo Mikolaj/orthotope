@@ -2595,6 +2595,8 @@ rather than a slot in the next run, observed again:
   verdicts are [in Run 20's own file](runs/run20.md), where they were moved
   on 2026-08-29; a registration is that run's record and reads against
   that run's tables.
+
+
 ### Recommended tasks after Run 27
 
 **What Run 27 made cheaper for the next run, which is not a figure and no other
@@ -5305,7 +5307,6 @@ compilers do not agree on. The disagreement has a name and a workaround since
 is the run's let-generalised end pointer, and a type annotation on it gives HEAD
 the basis's code.
 
-
 **A twenty-third reading, Run 27, times the same two arms with GHC #27778 worked
 around --- and every reading the twenty-second could take on one codegen only
 now holds on both.** The workaround is the `:: Ptr Double` annotation on each
@@ -5334,6 +5335,8 @@ costs 1.4% of the clock. Nothing in the counted work distinguishes the last
 from the first four --- its ratio reproduces a pre-run probe's 0.9688 ---
 so the rate is a property of what the loop does with the register pressure
 it frees, and a span derived from a count ratio can miss in either direction.
+
+
 ### The C-gap: still a deeper ceiling
 
 **Everything in this document lives under this ceiling.** Every strategy
