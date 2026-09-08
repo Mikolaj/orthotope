@@ -10654,11 +10654,17 @@ def main():
                         ' PCT percent (default 3), counted and grouped by'
                         ' the same comparison that lists them')
     p.add_argument('--counts', nargs='+', metavar='SWEEP.txt',
-                   help='with --compare: run-counts.sh\'s instruction counts'
-                        ' beside the time ratio, per arm -- the count column'
-                        ' owes criterion nothing, so time moving with counts'
-                        ' is codegen and time moving without them is the'
-                        ' runtime or the memory')
+                   help='TWO sweep files with --compare: run-counts.sh\'s'
+                        ' instruction counts beside the time ratio, per arm'
+                        ' -- the count column owes criterion nothing, so time'
+                        ' moving with counts is codegen and time moving'
+                        ' without them is the runtime or the memory. ONE'
+                        ' sweep file with --pair A B: the corrected'
+                        ' instruction ratio of that pair WITHIN one half,'
+                        ' beside the raw one -- which is the question a'
+                        ' registration derived from a count ratio asks, and'
+                        ' the arity a reader of this line alone has twice'
+                        ' hand-rolled instead')
     p.add_argument('--ci', action='store_true',
                    help='with --compare: each arm\'s CI%% median against'
                         ' the other run\'s, the column\'s own statistic')

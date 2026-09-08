@@ -2738,44 +2738,6 @@ def relead(tmp, cls, rewrite, name=None):
     return edited_rundoc(tmp, (old, new), name=name)
 
 
-LAST = object()   # `task_anchor(LAST)`: the list's last item, whatever
-                  # its number. A spent task leaves the subsection and
-                  # the rest renumber, so a case naming task 3 stops
-                  # building the day one goes -- which it did.
-
-
-def task_anchor(n):
-    """The opening of task `n` of `Recommended tasks after Run N`.
-
-    DERIVED, because the two `--replace` cases below stored it: they
-    quoted `1. **WHICH SHAPES POISON` and `3. **Between Run 17 and Run
-    18` as literals and both broke the day those items took status
-    tokens, which is a stored anchor into live prose and the one thing
-    the opening of this file forbids a fixture. What they are about is
-    the list's SHAPE -- that `--replace`'s unit is a paragraph and a list
-    with no blank lines is one -- so the item's own words were never the
-    subject.
-
-    Uniqueness is asserted here rather than left to `--replace`, whose
-    refusal for a repeated anchor reads the same as its refusal for a
-    missing one.
-    """
-    lines = readme_lines()
-    i = next(k for k, l in enumerate(lines)
-             if l.startswith('### Recommended tasks after Run '))
-    j = next(k for k in range(i + 1, len(lines)) if lines[k].startswith('### '))
-    if n is LAST:
-        n = max(int(re.match(r'^(\d+)\. ', l).group(1))
-                for l in lines[i:j] if re.match(r'^\d+\. ', l))
-    hit = [l for l in lines[i:j] if re.match(r'^%d\. ' % n, l)]
-    assert len(hit) == 1, 'task %d: %d line(s)' % (n, len(hit))
-    anchor = ' '.join(hit[0].split())[:44]
-    doc = '\n'.join(lines)
-    assert doc.count(anchor) == 1, ('task %d anchor %r occurs %d times'
-                                    % (n, anchor, doc.count(anchor)))
-    return anchor
-
-
 def open_list_span(lines):
     """(first, last) line indices of the open list, found its own way.
 
@@ -7042,8 +7004,8 @@ RECORDS = [
          # 1, 2 and 3 and wrote back task 3 alone, at exit 0. The echo had
          # named task 1 as what was going, which is a warning where the
          # difference between losing two paragraphs and not is a refusal.
-         plant=lambda t: {'readme': edited_readme(t),
-                          'anchor': task_anchor(LAST),
+         plant=lambda t: {'readme': doc_of_a_list(t),
+                          'anchor': '- `OPEN` **Item 4.**',
                           'with': write(os.path.join(t, 'w.txt'), 'x\n')},
          argv=['--replace', '{anchor}',
                '--with', '{with}', '--readme', '{readme}'],
@@ -7059,8 +7021,8 @@ RECORDS = [
          # The other side, and the one that says the refusal did not simply
          # ban lists: a caller replacing the whole list quotes it from the
          # start, which is what it would do anyway, and gets it.
-         plant=lambda t: {'readme': edited_readme(t),
-                          'anchor': task_anchor(1),
+         plant=lambda t: {'readme': doc_of_a_list(t),
+                          'anchor': '- `OPEN` **Item 1.**',
                           'with': write(os.path.join(t, 'w.txt'), 'x\n')},
          argv=['--replace', '{anchor}',
                '--with', '{with}', '--readme', '{readme}'],
@@ -7068,7 +7030,7 @@ RECORDS = [
          # STARTING AT ITEM 1 is the whole claim, and quoting the lead
          # here would store the anchor this case was just taught to
          # derive, one line down.
-         ok=V(exit=0, has=['out, first: 1.'])),
+         ok=V(exit=0, has=['out, first: - `OPEN` **Item 1.**'])),
 
     # ---- read-all.sh, the plateau gate -------------------------------------
     case('alone-leg-riders-are-not-populations', 'read-all.sh', 'bf9acf2',
