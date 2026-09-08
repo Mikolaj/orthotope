@@ -2789,29 +2789,36 @@ And `--replace ANCHOR --with FILE` carried every prose edit of both documents
 a turn and no exact-match string to rebuild after the previous edit.
 
 **Run 26's six spent items are gone from this heading and here is where each
-went**, retired 2026-09-08 with Run 27's write-up, each one `ANSWERED` and none
-of them leaving its account behind. Item 1, the floor as an order statistic
-over the sampling, went to [the floor section][floor], which the item itself
-named, with the fall-down-the-sitting half to [the class-floor entry][open].
-Item 2, the un-unrolled leaf's spill, to [the
-ceiling](#the-mutable-ceiling-taken)'s twenty-second reading, which it named.
-Item 3, the reversed innermost axis at twice its forward cost on identical
-instructions, to [the stride classes](#the-stride-classes-and-what-they-cover),
-where the class it is about is described and where its figures now sit ---
-it named no destination, and that is the one whose account had to be carried
-rather than merely dropped. Item 4, a registration's deferral target,
-is a change to `--lint` and its case is [in the open list][open]. Item 5
-is a mode, `--counts SWEEP.txt --pair A B`, and `--help` documents both
-of that flag's arities now, which it did not when the item was written --- Run
-27's write-up hand-rolled the computation a second time off that one-line
-summary. Item 6's verdicts are in Run 25's file and its `dispRun` cut
-in this one; the two things it says were NOT measured are carried to [the
-non-urgent TODO list](#non-urgent-todo-list), since a ruling's unmeasured edges
-outlive the task that noticed them. **Run 24's nine spent items are gone
-from this heading too, and here is where each went**, the rule being
-that nothing spent stays under a heading naming a run that is over.
-`fillStage2`'s cost and the bang that took it back to parity, the shim's
-padding, and the pad moved off the execution path are all [the
+went**, retired 2026-09-08 with Run 27's write-up, each one `ANSWERED`, and none
+of them leaving its account behind --- which two of the six would have, their
+destinations having had to be written rather than merely followed. Item 1,
+the floor as an order statistic over the sampling, went to [the floor
+section][floor], which the item itself named, with the fall-down-the-sitting
+half to [the class-floor entry][open]. Item 2 went to TWO places. Its subject,
+the un-unrolled leaf's spill, to [the ceiling](#the-mutable-ceiling-taken)'s
+twenty-second reading, which it named; and the refuted shape it carried
+in passing --- `mut-odo-vecdims-add-in-leaf-u1-base`, the same fill
+with the source base taken once through a `Ptr`, at 0.9985 of `-u1`'s
+instructions --- to [dead ideas][dead], which is where a refuted design belongs
+and which the item named not at all. That one was caught by `--lint` refusing
+a roster arm named nowhere, in the same minute the item went. Item 3,
+the reversed innermost axis at twice its forward cost on identical instructions,
+to [the stride classes](#the-stride-classes-and-what-they-cover), where
+the class it is about is described and where its figures now sit --- it named
+no destination, and it is one of the TWO whose account had to be carried rather
+than merely dropped, the other being item 2's refuted shape above. Item 4,
+a registration's deferral target, is a change to `--lint` and its case is [in
+the open list][open]. Item 5 is a mode, `--counts SWEEP.txt --pair A B`,
+and `--help` documents both of that flag's arities now, which it did not when
+the item was written --- Run 27's write-up hand-rolled the computation a second
+time off that one-line summary. Item 6's verdicts are in Run 25's file
+and its `dispRun` cut in this one; the two things it says were NOT measured
+are carried to [the non-urgent TODO list](#non-urgent-todo-list), since
+a ruling's unmeasured edges outlive the task that noticed them. **Run 24's nine
+spent items are gone from this heading too, and here is where each went**,
+the rule being that nothing spent stays under a heading naming a run
+that is over. `fillStage2`'s cost and the bang that took it back to parity,
+the shim's padding, and the pad moved off the execution path are all [the
 ceiling][ceiling]'s and [what moves a figure][floor]'s, which carry
 the readings; the vecdims family's re-taken ordering is the same two sections';
 the run-length condition and the dispatch threshold are the [`dispRun`
