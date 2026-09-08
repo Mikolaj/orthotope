@@ -1641,6 +1641,20 @@ def sign_p(k, n):
     return min(1.0, 2.0 * tail / 2 ** n)
 
 
+def pair_sunk(cells, shapes, a, b):
+    """The key a pair is read on, and the cells that stop it being read.
+
+    One test in one place because two callers want opposite things from
+    it: `pair_stats` refuses and exits, which is right for a mode whose
+    whole output is the pair, and `--predictions` records the span NOT
+    READ and walks on, a registration reading many spans over one
+    population and one degenerate pair having silenced the rest.
+    """
+    key = 'slope' if any(no_net(x) for x in (a, b)) else 'net'
+    return key, [(s, x) for s in shapes for x in (a, b)
+                 if not cells[s][x][key] > 0]
+
+
 def pair_stats(cells, shapes, a, b):
     """One pair's per-shape ratios, and whether they had to be taken raw.
 
@@ -1658,9 +1672,7 @@ def pair_stats(cells, shapes, a, b):
     2026-08-17 by review.
     """
     raw = any(no_net(x) for x in (a, b))
-    key = 'slope' if raw else 'net'
-    sunk = [(s, x) for s in shapes for x in (a, b)
-            if not cells[s][x][key] > 0]
+    key, sunk = pair_sunk(cells, shapes, a, b)
     if sunk:
         sys.stderr.write('%s / %s: %d cell(s) with no positive %s, so this'
                          ' pair is not readable and nothing here is. The'
@@ -2602,9 +2614,18 @@ def predictions_table(cells, shapes, strategies, meta, other, main_hs,
                     why = 'arm %s or %s is not in this run' % (a, b)
                 else:
                     shs = [sh for sh in shapes if sh not in excl]
-                    _raw, rs = (pair_stats(cells, shs, a, b) if shs
-                                else (None, []))
-                    g, n = (geomean(rs), len(rs)) if rs else (None, 0)
+                    key, sunk = pair_sunk(cells, shs, a, b)
+                    if sunk:
+                        why = ('%d cell(s) of `%s` or `%s` have no positive'
+                               ' %s on this population, the first %s/%s --'
+                               ' the arm removed the work there, so the'
+                               ' span is read where the item says it is'
+                               % (len(sunk), a, b, key,
+                                  sunk[0][0], sunk[0][1]))
+                    else:
+                        _raw, rs = (pair_stats(cells, shs, a, b) if shs
+                                    else (None, []))
+                        g, n = (geomean(rs), len(rs)) if rs else (None, 0)
                 tol = within if within is not None else floor_pct
             else:
                 why = ('not one of cross ARM X, counts ARM X, pair A B X'
