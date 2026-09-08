@@ -24,6 +24,16 @@ READER = ('f=$(ls "{root}"/*.json 2>/dev/null | head -1); test -n "$f" '
 PROPS = 'python3 "{dir}/properties.py"'
 
 MUTANTS = [
+    # The health line enumerating again: the cells go back in front of the
+    # count, which is the shape the cut of 2026-09-08 removed, and
+    # `prop_health_names_rows_not_cells` fails on the first run on disk
+    # that has a sunk cell -- both probe files do, so the bound of two
+    # runs the env sets is enough to show it.
+    ('the sunk-cell warning enumerates every cell again', 'read-run.py',
+     "            out.append('%d cell(s) whose forcing term is not smaller",
+     "            out.append(', '.join('%s/%s' % (q, r) for _, q, r in sunk)"
+     "\n                       + '%d cell(s) whose forcing term is not smaller",
+     PROPS),
     # The reader's own invariants: a shape parse compared the wrong way
     # round fails the first check on every shape it finds in Main.hs.
     ('read-run selftest stops checking the shape parse', 'read-run.py',

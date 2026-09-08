@@ -287,12 +287,20 @@ if [ -f "$DOC" ]; then
   SUBJ=$(git log --format=%s -- "$DOC" README.md | grep -i "run $N\b\|$R\b")
   # 6d's commit carries 6b's and 6c's work, so a subject naming both of
   # those names it too, which is how Run 23 wrote it.
-  for s in 6b 6d 7a; do
+  # 7b joins them 2026-09-08: the tail after the checker is a step
+  # like the others and reads NOT DONE until a subject names it.
+  for s in 6b 6d 7a 7b; do
     if printf '%s\n' "$SUBJ" | grep -qi "\b$s\b" \
        || { [ "$s" = 6d ] && printf '%s\n' "$SUBJ" | grep -qi '\b6b\b.*\b6c\b'; }; then
       say "$s" "done" "a commit subject names step $s"
     else
-      say "$s" "NOT DONE" "no commit subject naming Run $N's step $s"
+      # NAMES THE FORM IT WANTED, because the filter is the RUN first and
+      # the step second: a subject reading `step 6d: ...` is invisible
+      # here however plainly it names the step, and Run 27 wrote two of
+      # those and read NOT DONE over work that was done. A line that says
+      # what to write turns the verdict into a fix.
+      say "$s" "NOT DONE" \
+          "no commit subject carries both the run and step $s -- write \`Run $N step $s: ...\`"
     fi
   done
   grep "$REG_LEAD" "$TMP/readme" | grep -q 'ANSWERED' \

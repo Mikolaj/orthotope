@@ -296,6 +296,7 @@ corpus reads none, and is the exception the rule needed.
 """
 
 import argparse
+import ast
 import collections
 import contextlib
 import difflib
@@ -3790,7 +3791,12 @@ def wild_table(path, verbose=False):
     print()
     head = '%-38s %7s %13s %13s %6s' % ('bench', 'samples', 'alloc/iter',
                                         'mut/iter', 'gc%')
-    print(head + ('%8s %6s' % ('foreign', 'load') if have_load else ''))
+    # THE UNIT IN THE HEADER, because the legend that carries it sits
+    # under the last row: on a 490-bench process that is 490 lines below
+    # the column, and `gc%` next to it invites the percentage reading.
+    # Run 27's step 2 read 0.96 of a core as 0.96%, cleared the intrusion,
+    # and had the whole write-up to redo when the checker found it at 6d.
+    print(head + ('%9s %6s' % ('fgn/core', 'load') if have_load else ''))
     loud, partial = [], []
     for nm in order:
         ds = per[nm]
@@ -3821,7 +3827,7 @@ def wild_table(path, verbose=False):
                 loud.append((nm, ratio, max(d['foreign'] for d in withf)))
         row = '%-38s %7d %13.0f %13.0f %6.2f' % (nm, len(ds), alloc, mut,
                                                  gcpct)
-        print(row + ('%8s %6s' % (f_txt, l_txt) if have_load else ''))
+        print(row + ('%9s %6s' % (f_txt, l_txt) if have_load else ''))
     if partial:
         print()
         print('%d bench(es) marked * have samples WITHOUT the load fields,'
@@ -5698,6 +5704,135 @@ def previous_run_doc(run_doc):
     return best[1] if best else None
 
 
+INHERITED_RE = re.compile(r'this run|this pair|Run \d+')
+
+
+def doc_paragraphs(path):
+    """A document's blank-line paragraphs, each joined to one line.
+
+    Joined so that the comparison below does not turn on where the wrap
+    fell: two runs' files sit at the same fixed point today, and a
+    document that moved between them would otherwise read as wholly new.
+    """
+    out, cur = [], []
+    with open(path, encoding='utf-8') as h:
+        for line in h:
+            if line.strip():
+                cur.append(line.rstrip('\n'))
+            elif cur:
+                out.append(' '.join(cur))
+                cur = []
+    if cur:
+        out.append(' '.join(cur))
+    return out
+
+
+def inherited(run_doc, prev_doc):
+    """The paragraphs this run's file carried whole from the last one.
+
+    Step 5 copies the previous run's file and the write-up edits the copy,
+    so the checker's diff base IS that copy: a paragraph the write-up
+    changed shows up in the diff, and one it left alone appears nowhere at
+    all. That is the run file's characteristic defect and it is invisible
+    to both passes by construction -- Run 27 shipped nine such paragraphs
+    past them, its comprehension probe found those by reading the document
+    whole, and two survived even that, one comparing the run to the run
+    before the previous one and one dating its own tables to four days
+    before the evening.
+
+    So this is the probe's reading, mechanised: identical text, kept where
+    it says `this run` or `this pair` or names a run, which is what parts
+    the standing apparatus a run file re-carries every time from a claim
+    about the run in front of it. On Run 27's own write-up at step 6b the
+    filter named 34 paragraphs of the 123 carried whole and every one of
+    the five later found stale is among them. It PRINTS and never refuses:
+    which of them is a claim is a reading, and a gate that fired on the
+    apparatus would be turned off by the second run.
+    """
+    if not prev_doc:
+        sys.stderr.write('--inherited: no earlier run file beside %s, so'
+                         ' there is nothing to compare it with and this'
+                         ' reading did not happen\n'
+                         % os.path.basename(run_doc))
+        return 2
+    before = set(doc_paragraphs(prev_doc))
+    carried = [p for p in doc_paragraphs(run_doc)
+               if p in before and INHERITED_RE.search(p)]
+    print('%d paragraph(s) carried whole from %s that name a run or call'
+          ' themselves this run\'s, out of %d identical in all:'
+          % (len(carried), os.path.basename(prev_doc),
+             len([p for p in doc_paragraphs(run_doc) if p in before])))
+    for p in carried:
+        # The LEAD and the TRIGGER, because the stale clause is rarely
+        # the opening: this mode's own non-vacuity check was misread once
+        # by grepping a truncated print for a phrase that sat mid-
+        # paragraph. Two lines a paragraph is what a worklist of forty
+        # costs, and the paragraph itself is `--para`'s to print.
+        m = INHERITED_RE.search(p)
+        print('  %s' % (p[:110] + (' ...' if len(p) > 110 else '')))
+        print('      names: ...%s...'
+              % p[max(0, m.start() - 45):m.end() + 45])
+    print('Each is either the apparatus every run re-carries or last run\'s'
+          ' claim standing under this run\'s name, and only reading says'
+          ' which. The diff cannot: its base is the copy.')
+    return 0
+
+
+def modes_table(path=None):
+    """Every mode this reader dispatches on, read off its own source.
+
+    Written because a one-line summary drifted and cost two runs the same
+    hour: `--counts`'s help said *with --compare*, which is one of its two
+    arities, and the other -- `--counts SWEEP.txt --pair A B`, the
+    within-half instruction ratio -- was hand-rolled by Run 26's write-up
+    and again by Run 27's, each time from that summary. A table written by
+    hand would drift the same way, so nothing here is written: it is the
+    `if` tests of `main` in the order the program reads them, each with
+    what the branch calls. A flag with two dispatch sites therefore has
+    two rows, which is the fact the summary could not carry.
+    """
+    tree = ast.parse(open(path or __file__, encoding='utf-8').read())
+    fn = next((n for n in ast.walk(tree)
+               if isinstance(n, ast.FunctionDef) and n.name == 'main'), None)
+    if fn is None:
+        sys.stderr.write('--modes: no `main` in %s, so the dispatch could'
+                         ' not be read and this table is not it\n'
+                         % (path or __file__))
+        return 2
+    print('the modes `main` dispatches on, in the order it reads them,'
+          ' off this file\'s own source:')
+    n = guards = 0
+    for node in ast.walk(fn):
+        if not isinstance(node, ast.If):
+            continue
+        named = sorted({a.attr for a in ast.walk(node.test)
+                        if isinstance(a, ast.Attribute)
+                        and isinstance(a.value, ast.Name)
+                        and a.value.id == 'args'})
+        if not named:
+            continue
+        # THE BODY AND NOT THE SUBTREE: `ast.walk` takes the `orelse`
+        # with it, so the first test of an if/elif chain reported every
+        # call the whole chain makes and the column read as a mode calling
+        # eleven functions. A branch that names no function of this file
+        # is a refusal rather than a mode, and is counted apart.
+        calls = [c.func.id for b in node.body for c in ast.walk(b)
+                 if isinstance(c, ast.Call) and isinstance(c.func, ast.Name)
+                 and c.func.id not in ('len', 'print', 'sorted', 'set',
+                                       'list', 'str', 'int', 'sys')]
+        if not calls:
+            guards += 1
+            continue
+        n += 1
+        print('  L%-6d %-46s -> %s'
+              % (node.lineno, ast.unparse(node.test)[:46],
+                 ', '.join(dict.fromkeys(calls))[:46]))
+    print('%d dispatch site(s) and %d refusal(s) around them. A FLAG WITH'
+          ' TWO ROWS HAS TWO ARITIES, and its own --help line names'
+          ' whichever one was written down.' % (n, guards))
+    return 0
+
+
 def run_no_of(path):
     """The run number a run file's NAME carries, or None."""
     m = RUN_DOC_RE.match(os.path.basename(path or ''))
@@ -6966,7 +7101,7 @@ CHECKLISTS = {
 POST_SPLIT = '    #   6. walk the replace list under Provenance'
 
 
-def checklist(readme, which):
+def checklist(readme, which, steps_only=False):
     """Print one of the run chapter's three checklists, and nothing else."""
     half = None
     if which in ('post-a', 'post-b'):
@@ -7024,6 +7159,17 @@ def checklist(readme, which):
           % (os.path.basename(readme), label, steps, len(block),
              len('\n'.join(block)) // 1024, i + 1, j + 1))
     print()
+    # --steps: THE IMPERATIVE HALF. A step's own line and the commands,
+    # without the continuation prose under them. The rationale is not
+    # duplicated anywhere -- of 318 sentences over sixty characters in
+    # these blocks, none appears in README's prose -- so it cannot be
+    # cut, and a session doing the work wants the list it executes rather
+    # than the list that explains itself. The full form stays the
+    # default: this is a second reading of one text and not a second text.
+    if steps_only:
+        block = [l for l in block
+                 if re.match(r'^ {4}#? {0,3}\d+[a-z]?\.', l)
+                 or (l.startswith('    ') and not l.strip().startswith('#'))]
     print('\n'.join(block))
     return 0
 
@@ -7620,6 +7766,29 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
         else:
             note.append('every --para pointer in the checklists names one'
                         ' paragraph (%d)' % len(pointers))
+    # A GATE THE CHAPTER PIPES OR CHAINS. The chapter's recipes are what
+    # a session copies, and a pipe reports its LAST command's status: Run
+    # 27 read `check-all | tail`'s exit 0, ran the whole suite again, and
+    # then chained `--predictions` behind `&&` in the very call testing
+    # the rule it was writing about that. The rule is in the chapter now;
+    # this holds the chapter's own lines to it. A READING may be filtered
+    # and is not matched -- what is matched is the gate names, each of
+    # which carries its verdict in its status and nowhere else.
+    gate = re.compile(r'(--lint|--check-doc|check-all|defect-run\.py'
+                      r'|selftest-mutants\.py|--selftest)\b[^|&\n]*(\||&&)')
+    # COMMANDS AND NOT THE PROSE AROUND THEM: the chapter explains
+    # this rule by quoting the mistake, `check-all | tail`, and a
+    # first draft of the check failed the document on its own
+    # explanation. A `#` line is comment, whatever it contains.
+    piped = [l.strip() for l in open(readme, encoding='utf-8')
+             if l.startswith('    ') and not l.lstrip().startswith('#')
+             and gate.search(l)]
+    if piped:
+        bad.append('%d chapter line(s) pipes or chains a gate, whose'
+                   ' status is then the last command\'s: %s'
+                   % (len(piped), '; '.join(x[:60] for x in piped[:3])))
+    else:
+        note.append('no chapter recipe pipes or chains a gate')
     if run_doc is None:
         bad.append('BLOCKED: no run file in %s/, so the Results table, the'
                    ' fingerprint, the claims readings and the class blocks'
@@ -10763,6 +10932,25 @@ def main():
     p.add_argument('--selftest', action='store_true')
     p.add_argument('--lint', action='store_true')
     p.add_argument('--check-doc', action='store_true')
+    p.add_argument('--imperative', action='store_true',
+                   help="with --checklist: the imperative half --"
+                        ' the step lines and the commands, without the'
+                        ' prose under them. `--steps` was taken, by a'
+                        ' mode that reads a run\'s per-shape steps')
+    p.add_argument('--modes', action='store_true',
+                   help="every mode `main` dispatches on, read off"
+                        " this file's source: the `if` tests in the"
+                        ' order the program reads them, so a flag'
+                        ' with two arities has two rows. Needs no'
+                        ' run file')
+    p.add_argument('--inherited', action='store_true',
+                   help="the paragraphs this run's file carried"
+                        " WHOLE from the previous run's and which"
+                        ' name a run or call themselves this run\'s'
+                        ' -- the class of defect the two checker'
+                        " passes cannot see, their diff base being"
+                        ' the copy step 5 made. A reading, not a'
+                        ' gate: it never refuses')
     # The note: worklists are write-up material, adjudicated once at the
     # verification step, and they are the bulk of what --check-doc prints.
     # Every other call a run makes reads one bit off it. --quiet keeps that
@@ -11072,13 +11260,19 @@ def main():
     if args.note:
         sys.exit(pair_note(args.note, args.draft, args.halves))
     if args.checklist:
-        sys.exit(checklist(args.readme, args.checklist))
+        sys.exit(checklist(args.readme, args.checklist,
+                          args.imperative))
     if args.move_registration:
         sys.exit(move_registration(args.readme, want_run_doc(args)))
     if args.delete:
         sys.exit(excise(docs, args.delete, args.delete_limit))
     if args.para:
         sys.exit(paragraphs(docs, args.para, args.all_paras))
+    if args.modes:
+        sys.exit(modes_table())
+    if args.inherited:
+        doc = want_run_doc(args)
+        sys.exit(inherited(doc, previous_run_doc(doc)))
     if args.check_doc:
         prev = previous_run_doc(args.run_doc)
         sys.exit(check_doc_loud(args.readme, args.main, args.run_doc, prev)

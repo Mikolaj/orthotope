@@ -267,8 +267,57 @@ def prop_selftest_over_the_corpus(m):
     return n, 'run(s) on disk, every invariant of each', bad[:5]
 
 
+def prop_health_names_rows_not_cells(m):
+    """A warning states a count and the worst cell, never the whole list.
+
+    The reader warns on stderr at every call, so a line that enumerates is
+    a tax on every reading a run takes: the sunk-cell warning listed all
+    seventy `shape/arm` pairs of Run 27's basis main set, 3137 characters
+    on each of dozens of calls, where the count, the worst cell and the
+    per-row coverage beside them are what a reader acts on. Cut
+    2026-09-08; this is what stops the next enumeration arriving quietly,
+    and it is quantified over every run on disk because a line short on
+    one population is long on another -- the same warning was 2166
+    characters on the control half of the same run.
+
+    THREE is the bound because `no_ci` names up to three cells by design;
+    everything else names one. It is a count of cells and not of
+    characters: what went wrong was an enumeration, and a length bound
+    would have fired on the table warning above, which names none.
+    """
+    cell = re.compile(r'[A-Za-z0-9][\w.-]*/[A-Za-z0-9][\w.-]*')
+    bad, n = [], 0
+    for f in runs_on_disk():
+        if LIMIT and n >= LIMIT:
+            break
+        n += 1
+        got = subprocess.run([sys.executable,
+                              os.path.join(HERE, 'read-run.py'),
+                              os.path.join(CORPUS, f), '--cells'],
+                             cwd=HERE, capture_output=True, text=True,
+                             timeout=300)
+        # A REFUSAL IS NOT A CLEAN LINE. A reader that declines the file
+        # prints no warning at all, and a property reading only warnings
+        # would pass on every file it could not read -- the silent pass
+        # `read-all.sh` records paying for twice. Asked by defect-lint.py
+        # the moment this was written, which is what that lint is for.
+        if got.returncode:
+            bad.append('%s: the reader exited %d, so its warnings were not'
+                       ' read at all' % (f, got.returncode))
+            continue
+        for line in got.stderr.split('\n'):
+            if not line.startswith('warning: '):
+                continue
+            named = cell.findall(line)
+            if len(named) > 3:
+                bad.append('%s: a warning names %d cells (%s, ...): %s'
+                           % (f, len(named), named[0], line[9:60]))
+    return n, 'run(s) on disk, every warning line of each', bad[:5]
+
+
 PROPERTIES = [prop_abs_round_trip, prop_table_reads_back,
-              prop_selftest_over_the_corpus]
+              prop_selftest_over_the_corpus,
+              prop_health_names_rows_not_cells]
 
 # Each is broken deliberately in `mutants.py`, which `selftest-mutants.py .`
 # replays, because a property that has never failed has proved nothing.

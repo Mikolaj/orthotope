@@ -57,10 +57,29 @@ set -u
 cd "$(dirname "$0")" || exit 1
 
 if [ $# -lt 1 ]; then
-  echo "usage: ./read-all.sh RUN      # e.g. run14"
+  echo "usage: ./read-all.sh RUN [--brief-facts]   # e.g. run14"
+  echo "  --brief-facts  and derive, from the same readings, the facts the"
+  echo "                 checker's brief states in prose for its two agents"
   exit 2
 fi
-R="$1"
+R=""
+BRIEF=0
+# Refused rather than absorbed: an unknown flag taken and ignored is this
+# tree's silent-option family, and a `--brief-facts` swallowed as a second
+# RUN would gate nothing and say `every process gated clean`.
+for a in "$@"; do
+  case "$a" in
+    --brief-facts) BRIEF=1 ;;
+    -*) echo "read-all.sh: unknown option $a" >&2; exit 2 ;;
+    *) if [ -z "$R" ]; then R="$a"
+       else echo "read-all.sh: one run at a time, not $R and $a" >&2; exit 2
+       fi ;;
+  esac
+done
+if [ -z "$R" ]; then
+  echo "read-all.sh: name the run, e.g. ./read-all.sh run14" >&2
+  exit 2
+fi
 
 # Every JSON the run left, the gate's excluded: those are five arms over
 # the shape set and not a population, so their A/A gate is not this one.
@@ -251,6 +270,7 @@ EOF
 fi
 
 BAD=0
+FACTS=""
 printf '%-28s %-9s %s\n' process selftest 'A/A worst cell'
 for f in $FILES; do
   tag=${f#"$R"-}; tag=${tag%.json}
@@ -306,6 +326,12 @@ for f in $FILES; do
     [ -n "$worst" ] || worst='(no A/A pair in this file)'
   fi
   printf '%-28s %-9s %s\n' "$tag" "$st" "$worst"
+  # Kept for --brief-facts from the readings just taken rather than taken
+  # again: the floor is the same `--aa --brief` output the worst cell came
+  # from, and a second invocation could disagree with the line above it.
+  FACTS="$FACTS$tag	$(printf '%s\n' "$aa" \
+      | sed -n 's/.*spread of \([0-9.]*\)% (this population.*/\1/p')	$worst
+"
   # A failing selftest prints FAIL: lines, and this shows them -- unless it
   # never got that far, where showing only FAILs leaves a bare FAIL beside
   # `(no A/A pair in this file)` and no reason anywhere. A run file the
@@ -350,5 +376,88 @@ else
          echo "the top: every A/A gate below is WITHIN a process and so says"
          echo "nothing about a process that saturated somewhere else"; }
 fi
+# --brief-facts: THE BRIEF'S THIS RUN ONLY FACTS, DERIVED. Item 6 of
+# checker-brief.txt states this run's figures in prose for two agents who
+# arrive knowing none of them, and it is retyped every run. Run 27 retyped
+# it twice, once before its intrusion was found and once after, and left
+# four readings of the FIRST window standing in the second's block --
+# `ONE window`, `runs 0.9885`, a 2.65% plateau and an intrusion range its
+# own run file had already corrected. Every row below is a reading this
+# driver has just taken or one line of arithmetic over the same JSONs, so
+# a figure here cannot belong to a window that was thrown away.
+# It is not the whole block: what the run MEANS, which registrations it
+# carries and what to disbelieve are the write-up's, and the brief says so.
+brief_facts () {
+  BASIS=$(sed -n 's/.*; \([A-Za-z0-9]*\) is the basis.*/\1/p' "$LOG" \
+            | head -1)
+  echo
+  echo "--- the brief's THIS RUN ONLY facts, derived; read item 6 of"
+  echo "    checker-brief.txt against these and change what disagrees ---"
+  printf '  %-14s %s\n' 'processes' \
+    "$(printf '%s\n' $FILES | grep -c .) gated above, from $LOG"
+  # The stamp is the SECOND field: every line here opens with `===`.
+  # A SECOND WINDOW is a HOLE and not an ordering -- in any sequence every
+  # process starts after the one before it finished, which is what a first
+  # draft of this row counted and reported twenty times over on a run that
+  # had one window. So the largest hole between one process finishing and
+  # the next starting is what prints: a sequence reads in seconds and a
+  # rerun taken hours later reads in hours. `date` does the arithmetic, the
+  # stamps carrying an offset and a run being able to cross midnight.
+  printf '  %-14s %s\n' 'windows' \
+    "$(awk '$3 == "start" { print $2 }' "$LOG" | sort | head -1) to \
+$(awk '$3 == "done" { print $2 }' "$LOG" | sort | tail -1), largest hole \
+between one process finishing and the next starting $(awk \
+  '$3 == "start" { s[$4] = $2 } $3 == "done" { d[$4] = $2 }
+   END { for (p in s) if (p in d) print s[p], d[p] }' "$LOG" \
+  | sort | while read -r st dn; do
+      printf '%s %s\n' "$(date -d "$st" +%s)" "$(date -d "$dn" +%s)"
+    done | awk 'NR > 1 { g = $1 - prev; if (g > max) max = g }
+                { prev = $2 }
+                END { printf "%dm", (max + 0) / 60 }') -- hours mean a \
+second window"
+  if [ -n "$SAT" ]; then
+    printf '  %-14s %s\n' 'plateau' \
+      "$NSAT process(es), victim $LO-$HI ms/iter, spread $SPREAD%"
+  fi
+  printf '  %-14s %s\n' 'floors' \
+    "$(printf '%s' "$FACTS" | awk -F'\t' -v b="$BASIS" \
+        '{ split($1, t, "-"); half = t[1]; pop = substr($1, length(half) + 2)
+           f[pop (half == b ? " basis" : " other")] = $2 }
+         END { for (k in f) printf "%s %s%%; ", k, f[k] }')"
+  printf '  %-14s %s\n' 'A/A past 5%' \
+    "$(printf '%s' "$FACTS" | awk -F'\t' \
+        '$3 ~ /worst cell/ { split($3, w, "worst cell "); split(w[2], v, "%")
+                            if (v[1] + 0 > 5) printf "%s %s%%; ", $1, v[1] }')"
+  echo "  list vs the 0.7% bar, per population, basis over other:"
+  for pop in $(printf '%s' "$FACTS" | awk -F'\t' \
+                 '{ split($1, t, "-"); print substr($1, length(t[1]) + 2) }' \
+               | sort -u); do
+    a="$R-$BASIS-$pop.json"
+    b=$(printf '%s\n' $FILES | grep -v -- "-$BASIS-" | grep -- "-$pop\.json")
+    [ -f "$a" ] && [ -n "$b" ] || continue
+    printf '    %-12s %s\n' "$pop" \
+      "$(./read-run.py "$a" --compare "$b" 2>/dev/null \
+           | awk '$1 == "list" {
+                    d = $2 - 1; if (d < 0) d = -d
+                    if (d > 0.007)
+                      print $2, "PAST the bar -- an ordering, not a subtraction"
+                    else
+                      print $2, "inside the bar"
+                    exit }')"
+  done
+  for h in $BASIS $(printf '%s\n' $FILES | sed 's/^'"$R"'-//; s/-.*//' \
+                      | sort -u | grep -v "^$BASIS$"); do
+    m="$R-$h-main.json"
+    [ -f "$m" ] || continue
+    printf '  %-14s %s\n' "sunk $h" \
+      "$(./read-run.py "$m" --markdown 2>&1 >/dev/null \
+           | sed -n 's/^warning: \([0-9]*\) cell(s) whose forcing term.*/\1/p'
+        )$(./read-run.py "$m" --markdown 2>&1 >/dev/null \
+             | sed -n 's/.*and \([0-9]*\) row(s) are geomeans.*/ cell(s) over \1 row(s)/p')"
+  done
+}
+
+[ "$BRIEF" = 0 ] || brief_facts
+
 { [ "$BAD" -eq 0 ] && [ "$SHORT" = 0 ] && [ "$NOISY" = 0 ] \
     && [ "$WILD_PLATEAU" = 0 ]; } || exit 1

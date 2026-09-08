@@ -1342,6 +1342,37 @@ def registration_to_move(tmp, n=97):
     return {'readme': readme, 'doc': doc}
 
 
+def inherited_pair(tmp, n=97, share=True):
+    """Two consecutive runs' files, the later copied from the earlier.
+
+    Step 5 copies the previous run's file whole and the write-up edits it,
+    so a paragraph nobody touched is BOTH inherited and outside the
+    checker's diff, whose base is that copy. The fixture carries one of
+    each kind: a paragraph making a claim about the run in front of it,
+    which must be reported, and one of the standing apparatus every run
+    re-carries, which must not. `share=False` is the control, the write-up
+    having rewritten both, so the report has nothing to name.
+    """
+    m = _reader()
+    d = os.path.join(tmp, m.RUNS_DIR)
+    os.makedirs(d, exist_ok=True)
+    claim = ('**On Run %d the floor is 0.31%% on the basis half.** This run'
+             ' reads it over the six A/A pairs.\n' % (n - 1))
+    standing = ('The table below is installed by the reader and never'
+                ' edited by hand.\n')
+    write(os.path.join(d, 'run%d.md' % (n - 1)),
+          '# Run %d\n\nA head paragraph.\n\n%s\n%s' % (n - 1, claim, standing))
+    if share:
+        body = claim + '\n' + standing
+    else:
+        body = ('**On Run %d the floor is 0.44%% on the basis half.** This'
+                ' run reads it over the six A/A pairs.\n\nThe table below'
+                ' is installed by the reader, never by hand.\n' % n)
+    doc = write(os.path.join(d, 'run%d.md' % n),
+                '# Run %d\n\nA head paragraph of its own.\n\n%s' % (n, body))
+    return {'doc': doc}
+
+
 def rundoc_heading_spacing(tmp, blanks=1):
     """A run file whose second heading is preceded by `blanks` blank lines.
 
@@ -7180,6 +7211,30 @@ RECORDS = [
          bug=V(exit=0, has=['plateau: 2 process(es)',
                             'every process gated clean'])),
 
+    case('brief-facts-derives-what-the-brief-retypes', 'read-all.sh', None,
+         "the checker's brief carries a run's figures in prose typed by"
+         ' hand, and a rerun stranded four of them mid-block',
+         # Item 6 of checker-brief.txt is the run's own facts written out
+         # for two agents who cannot derive them. Run 27 rewrote that block
+         # twice -- once before its intrusion was found and once after --
+         # and left `ONE window`, the first window's `runs` baseline, the
+         # first window's plateau spread and an intrusion range the run
+         # file had already corrected. Every one of those is a reading this
+         # driver already takes or can take beside the ones it takes.
+         plant=lambda t: synthetic_run(t, plateau=[['19.0'], ['19.1']]),
+         argv=['{tag}', '--brief-facts'],
+         ok=V(exit=0, has=['THIS RUN ONLY facts', 'plateau', 'floors',
+                           'the 0.7% bar'])),
+
+    case('brief-facts-is-off-by-default', 'read-all.sh', None,
+         'CONTROL: the block is asked for, so a gate run prints what it'
+         ' always printed and no session reads a derivation it did not ask'
+         ' for',
+         plant=lambda t: synthetic_run(t, plateau=[['19.0'], ['19.1']]),
+         argv=['{tag}'],
+         ok=V(exit=0, has=['every process gated clean'],
+              hasnt=['THIS RUN ONLY facts'])),
+
     # ---- run-major.sh, run-gate.sh and run-alonelegs.sh --------------------
     case('plateau-counted-per-process', 'run-major.sh', None,
          'a half without the preamble joined a saturated run in silence',
@@ -7976,6 +8031,94 @@ RECORDS = [
               hasnt=['](#the-shape-set)']),
          bug=V(exit=0, has=['](#the-shape-set)'],
                hasnt=['](../README.md#the-shape-set)'])),
+
+    case('checklist-steps-prints-the-imperative-half', 'read-run.py', None,
+         'the post list is 556 lines of which a session executes the step'
+         ' lines, and it is read whole at every run',
+         # The rationale is not duplicated anywhere -- measured, zero of
+         # 318 sentences over sixty characters appears in README prose --
+         # so there is nothing to delete and moving it would be a
+         # rewrite. What a session wants at the moment of doing the work
+         # is the imperative half, which is derivable: the step leads and
+         # the commands, without the continuations under them.
+         argv=['--checklist', 'post', '--imperative'],
+         ok=V(exit=0, has=['./run-status.sh $R', '10b.'],
+              hasnt=['why: --para'])),
+
+    case('check-doc-refuses-a-piped-gate-in-the-chapter',
+         'read-run.py', None,
+         "the chapter's own recipes can pipe a gate, and a pipe reports the"
+         " LAST command's status, so the recipe reads as passing",
+         # Run 27 read `check-all | tail`'s exit 0 and had to run it again,
+         # then chained `--predictions` behind `&&` while writing the rule
+         # that forbids it. A rule a document states and its own examples
+         # break is worth less than the check that holds the examples to
+         # it, and this is the only place the examples live.
+         plant=lambda t: {'readme': edited_readme(
+             t, ('    ./read-run.py --check-doc --quiet',
+                 '    ./read-run.py --check-doc --quiet | tail -3'))},
+         argv=['--check-doc', '--quiet', '--readme', '{readme}'],
+         ok=V(exit=1, has=['pipes or chains a gate'])),
+
+    case('status-names-the-subject-it-looked-for', 'run-status.sh', None,
+         'a NOT DONE on a step said no subject names it, without saying'
+         ' that the run name is half of what it matched on',
+         # The filter is `run N` or `runN` FIRST and the step second, so a
+         # subject reading `step 6d: ...` is invisible however plainly it
+         # names the step. Run 27 wrote two of those and read NOT DONE
+         # over work that was done; the message now prints the form it
+         # wanted, which is the one thing that turns the line into a fix.
+         shadow=dict(),
+         argv=['run27'],
+         ok=V(has=['write `Run 27 step 6d: ...`'])),
+
+    case('wild-header-carries-the-foreign-unit', 'read-run.py', None,
+         'the `foreign` column is a ratio of ONE CORE and its neighbour is'
+         ' a percentage, so a reading of 0.96 was taken for 0.96%',
+         # The legend says it -- and sits under the last of 490 rows,
+         # where a session that reads the head of the table never meets
+         # it. Run 27's step 2 cleared an intrusion of 0.96 of a core on
+         # that reading, and the checker found it at 6d, after the whole
+         # write-up had been written against the intruded window. The unit
+         # belongs in the header, next to the number it governs.
+         plant=lambda t: {'log': write(os.path.join(t, 'w.log'),
+                                       WILD_MIXED)},
+         argv=['{log}', '--wild'],
+         ok=V(exit=0, has=['fgn/core'], hasnt=[' foreign   load'])),
+
+    case('modes-names-both-arities-of-a-flag', 'read-run.py', None,
+         "a flag's one-line help named one of its two arities, and two"
+         ' runs hand-rolled the computation the other one prints',
+         # `--counts`'s help read *with --compare*, which is the cross-half
+         # arity; the within-half one, `--counts SWEEP.txt --pair A B`, was
+         # taken 2026-09-05 and hand-rolled again by Run 26's write-up and
+         # Run 27's. A table written by hand would drift the same way, so
+         # this one is read off the dispatch's own `if` tests.
+         argv=['--modes'],
+         ok=V(exit=0, has=['dispatches on', 'args.pair and args.counts',
+                           'args.compare and args.counts'])),
+
+    case('inherited-names-a-paragraph-carried-whole', 'read-run.py', None,
+         'a paragraph left verbatim by the write-up is outside the'
+         " checker's diff, whose base is the copy step 5 made",
+         # Both passes read PRETIP..HEAD over the run file, and PRETIP is
+         # the commit that copies the previous run's file: an EDITED
+         # paragraph shows there, an untouched one produces no diff line
+         # at all. Run 27 shipped nine such paragraphs past both passes
+         # (its probe found them by reading the document whole) and two
+         # more past the probe. This mode is that reading, mechanised.
+         plant=lambda t: inherited_pair(t),
+         argv=['--inherited', '--run-doc', '{doc}'],
+         ok=V(exit=0, has=['carried whole', 'On Run 96 the floor'],
+              hasnt=['The table below is installed'])),
+
+    case('inherited-passes-a-file-that-inherited-nothing',
+         'read-run.py', None,
+         'CONTROL: a run file sharing no paragraph with the previous run'
+         ' reports none, so the report cannot be read as always firing',
+         plant=lambda t: inherited_pair(t, share=False),
+         argv=['--inherited', '--run-doc', '{doc}'],
+         ok=V(exit=0, has=['0 paragraph(s)'])),
 
     case('check-doc-holds-a-heading-to-two-blank-lines',
          'read-run.py', None,

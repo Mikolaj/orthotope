@@ -2680,27 +2680,29 @@ is a mode now*. Run against this run's own sweep it gives 0.8944, 0.8358,
 to the digit. **What went wrong is the reading**: `--help` describes `--counts`
 as *with --compare*, which is one of its two arities, and the modifier's own
 docstring names the other. A one-line summary is not the mode list,
-and the standing instruction to read the reader's docstring by half is what
-would have caught it. **AND A HAZARD THE RETIREMENT EXPOSED, which no gate here
-can see**: the tasks heading is run-scoped and renumbers, so `task N` written
-into standing prose names a different item every run --- and by 2026-09-08 four
-such links pointed at items that had never been what they meant, while
-resolving. Retiring the six broke **twelve** references to them from standing
-prose --- seven `[task N][open]` links and five plain-prose mentions, naming
-tasks 1, 2, 5 and 6 --- and the five read as live where I first filed them
-as history. Every one now names its account instead of a number, and prose
-that must point at that heading points at the heading. **All twelve were found
-by a reader asking where one account had gone, not by a gate** --- `--lint`
-and `--check-doc` were green over every one of them, before the prune and after,
-and the first count written here was eight. **AND ONE SLIP OF THE PROCEDURE'S
-OWN, worth a line because a checker cannot see it either**: post-run steps 6b,
-6d and 7a each want a commit subject naming the step, which is the only record
-of which of them ran, and `run-status.sh` finds those subjects by first
-filtering `git log` to the ones NAMING THE RUN. This session's 6d and 7 subjects
-named the step and not the run, so the status line read NOT DONE over work
-that was done. Rewriting them was refused as destructive and rightly: pass 2's
-`RUNTIP` names one of those commits, so a reword would have invalidated a record
-written an hour earlier. **The subject wants BOTH, and the next run should write
+and `./read-run.py --modes` is: it prints the `if` tests `main` dispatches on,
+off the file's own source, so a flag with two arities has two rows and neither
+can drift from the code. Built 2026-09-08 out of this record. **AND A HAZARD
+THE RETIREMENT EXPOSED, which no gate here can see**: the tasks heading
+is run-scoped and renumbers, so `task N` written into standing prose names
+a different item every run --- and by 2026-09-08 four such links pointed
+at items that had never been what they meant, while resolving. Retiring the six
+broke **twelve** references to them from standing prose --- seven
+`[task N][open]` links and five plain-prose mentions, naming tasks 1, 2, 5 and 6
+--- and the five read as live where I first filed them as history. Every one now
+names its account instead of a number, and prose that must point at that heading
+points at the heading. **All twelve were found by a reader asking where one
+account had gone, not by a gate** --- `--lint` and `--check-doc` were green
+over every one of them, before the prune and after, and the first count written
+here was eight. **AND ONE SLIP OF THE PROCEDURE'S OWN, worth a line because
+a checker cannot see it either**: post-run steps 6b, 6d and 7a each want
+a commit subject naming the step, which is the only record of which of them ran,
+and `run-status.sh` finds those subjects by first filtering `git log`
+to the ones NAMING THE RUN. This session's 6d and 7 subjects named the step
+and not the run, so the status line read NOT DONE over work that was done.
+Rewriting them was refused as destructive and rightly: pass 2's `RUNTIP` names
+one of those commits, so a reword would have invalidated a record written
+an hour earlier. **The subject wants BOTH, and the next run should write
 `Run N step 6d` rather than `step 6d`.** **AND THE RERUN FOUND A FOURTH
 DEFECT.** Post-run step 3 says to drive a rerun through `run-major.sh` rather
 than by hand, and the script could run all eleven populations or none: no way
@@ -7497,7 +7499,15 @@ not otherwise.
     #      CELL from an external intrusion -- both being a moved mutator
     #      clock at flat RTS totals, and the difference being whether
     #      anything else was running. Reach for it when a cell in step 1's
-    #      worst-cell column wants explaining, not on every process
+    #      worst-cell column wants explaining, not on every process.
+    #      THE `fgn/core` COLUMN IS A RATIO OF ONE CORE, NOT A PERCENT,
+    #      and at or above 0.25 the reader calls it an INTRUSION and
+    #      says so in one line at the foot of the table. READ THAT LINE
+    #      BEFORE STEP 5: Run 27 read 0.96 of a core as 0.96%, cleared
+    #      it, wrote the whole run up against the intruded window, and
+    #      had every figure of one class to derive again when 6d's
+    #      checker found it. A rerun costs one population's evening; a
+    #      write-up derived twice costs the session
     #   3. if 2 names an intrusion, RERUN the populations it touched,
     #      BOTH halves of each -- a pair read across two windows is not a
     #      pair, so a clean half is rerun with its exposed twin. ASK
@@ -7723,11 +7733,16 @@ not otherwise.
     #      (Run 23, the comparison section's first paragraph). FIRST, and
     #      not for tidiness: 6b's figures are requoted FROM this half
     #      why: --para 'commit the binary was built from'
-    #  6b. COMMIT 6a'S WORK IN ONE COMMIT, subject naming THE STEP and
-    #      not the work it commits -- `step 6b`, which is what
-    #      run-status.sh greps the subject for, where `step 6a` names
-    #      what the commit carries and reads as not done (Run 25, caught
-    #      at 10b); START the checker's first pass on it, an agent in the
+    #  6b. COMMIT 6a'S WORK IN ONE COMMIT, subject naming THE RUN AND THE
+    #      STEP and not the work it commits -- `Run $R step 6b: ...`.
+    #      BOTH halves are load-bearing: run-status.sh filters `git log`
+    #      to the subjects naming the run and only then looks for the
+    #      step, so `step 6b` alone is invisible to it however plainly it
+    #      names the step, which is what this line used to ask for and
+    #      what Run 27 wrote at 6d and 7 -- two steps done and reported
+    #      NOT DONE. `step 6a` names what the commit carries instead of
+    #      the step it is, and reads as not done too (Run 25, caught at
+    #      10b); START the checker's first pass on it, an agent in the
     #      background; THEN do 6c beside it. THAT COMMIT'S DIFF IS WHAT
     #      THE AGENT WORKS ON -- not
     #      the working tree, not a range. README's step-5 repoint and
@@ -7792,7 +7807,17 @@ not otherwise.
     #      the first round of fixes, and a session that stops at one pass
     #      ships them. What bounds it is the ARTIFACT: the diff of both
     #      files since the run's base commit, never README whole. 6e runs
-    #      meanwhile, producing a worklist and not an edit
+    #      meanwhile, producing a worklist and not an edit.
+    #      AND RUN `./read-run.py --inherited` IN THE SAME TURN:
+    #      it names the paragraphs this file carried WHOLE from
+    #      the last run's and which claim something about the run
+    #      in front of them, which is the one class of defect
+    #      neither pass can see -- their diff base is step 5's
+    #      copy, so an untouched paragraph produces no diff line
+    #      at all. Read each: it is the apparatus every run
+    #      re-carries, or it is last run's claim under this run's
+    #      name. Run 27 shipped nine of the second kind past both
+    #      passes and two past its probe besides
     #      why: --para 'Verify the write-up before deleting'
     #  6e. VERIFY, THE READ-ONLY HALF, run in parallel with 6d and
     #      producing a worklist rather than an edit -- which is what lets
@@ -7849,6 +7874,13 @@ not otherwise.
     #      and not before: a fresh agent, NEVER the 6b/6d one, which has
     #      read this run's JSONs and cannot be surprised by the document.
     #      ITS BRIEF IS THE THIRD BLOCK OF `checker-brief.txt`, edited
+    #      there and DERIVED where it can be: `./read-all.sh $R
+    #      --brief-facts` prints the windows, the plateau, both
+    #      floors, `list` against the bar per population, the A/A
+    #      processes past 5% and the sunk cells, and item 6 is read
+    #      against that rather than retyped -- a rerun stranded
+    #      four of Run 27's readings mid-block, each of them one of
+    #      these rows.
     #      there and not retyped. It asks whether the document can be
     #      READ, not whether it is right; what it finds is a navigation
     #      defect, which no gate here has ever caught and no figure check
@@ -7863,6 +7895,17 @@ not otherwise.
     #      defect here is not routine: it is a signal that 6d or 6e
     #      missed something, and it is read as that rather than patched.
     #      why: --para 'Verify the write-up before deleting'
+    #  7b. THE TAIL, which no pass has read. Pass 2 reads README bounded
+    #      at RUNTIP, so everything committed after it is unreviewed BY
+    #      CONSTRUCTION -- 7a's own fixes, step 9's record, step 10's open
+    #      list and its retirements, and any disclosure a person makes
+    #      after the run. Re-resolve RUNTIP, read
+    #        git -C .. diff RUNTIP..HEAD -- micro-regime3/README.md \
+    #          micro-regime3/runs/$R.md
+    #      yourself, and say in the commit what it covered. Run 27 left
+    #      twelve broken references and eight stale figures in that tail,
+    #      every one of them found after both passes were over, and its
+    #      brief -- which no pass reads at all -- carried six more
     ./read-run.py --lint          # 8. again after ANY Main.hs edit, and
     #      never rebuild the pair to satisfy it: say in the write-up that
     #      the comment-only move happened
@@ -7928,7 +7971,13 @@ not otherwise.
     #      a paragraph of runs/$R.md or README.md: nothing between
     #        edits, and `./read-run.py --check-doc --quiet` once the
     #        stretch ends -- seconds, and a paragraph left long is
-    #        mid-edit and passes
+    #        mid-edit and passes. AND check-all AFTER THE STRETCH,
+    #        which prose does owe here and looks as though it does
+    #        not: defects.py derives fixtures from BOTH documents,
+    #        `RUNDOC` being the newest run file and read at thirty
+    #        sites, so a paragraph either side can move a case.
+    #        The checker's brief is the one document it never
+    #        reads, and an edit to that alone owes nothing
     #      Main.hs, even a comment: `./read-run.py --lint`
     #      a script here, or read-run.py: `defect-run.py --changed
     #        <REV> .` at the END of the stretch, in the background and
