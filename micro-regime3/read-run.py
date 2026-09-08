@@ -7159,13 +7159,15 @@ def checklist(readme, which, steps_only=False):
           % (os.path.basename(readme), label, steps, len(block),
              len('\n'.join(block)) // 1024, i + 1, j + 1))
     print()
-    # --steps: THE IMPERATIVE HALF. A step's own line and the commands,
-    # without the continuation prose under them. The rationale is not
-    # duplicated anywhere -- of 318 sentences over sixty characters in
-    # these blocks, none appears in README's prose -- so it cannot be
-    # cut, and a session doing the work wants the list it executes rather
-    # than the list that explains itself. The full form stays the
-    # default: this is a second reading of one text and not a second text.
+    # --imperative: THE IMPERATIVE HALF. A step's own line and the
+    # commands, without the continuation prose under them. The
+    # rationale is not duplicated anywhere -- measured 2026-09-08, no
+    # sentence over sixty characters in these blocks appears in
+    # README's prose -- so it cannot be cut, and a session doing the
+    # work wants the list it executes rather than the list that
+    # explains itself. The full form stays the default: this is a
+    # second reading of one text and not a second text. The banner
+    # above carries the sizes, live, so no count is written here.
     if steps_only:
         block = [l for l in block
                  if re.match(r'^ {4}#? {0,3}\d+[a-z]?\.', l)
@@ -11171,11 +11173,15 @@ def main():
     # second mode was not refused but DROPPED: `--markdown --fingerprint
     # --in-place` installed the Results table, wrote neither fingerprint
     # table and said nothing about it. Both found 2026-08-17 by review.
+    # `inherited` and `modes` joined the roll call 2026-09-08, an hour
+    # after they were written: a mode added outside this list is exactly
+    # the silent drop the list exists to refuse, and `--inherited --lint`
+    # printed the report and said nothing of the lint it never ran.
     modes = [f for f in ('shapes', 'aa', 'pair', 'claims', 'compare',
                          'machine', 'steps', 'cells', 'markdown',
                          'fingerprint', 'block', 'selftest', 'lint',
                          'check_doc', 'para', 'wild', 'deflation',
-                         'extremes')
+                         'extremes', 'inherited', 'modes')
              if getattr(args, f)]
     # --block takes --compare as a SUB-FLAG, the way --chapter and --alloc
     # do, because item 5 of the class-block form is a cross-half line and
@@ -11257,6 +11263,13 @@ def main():
     if args.halves and not args.draft:
         sys.exit('--halves is --draft\'s: without it the note is READ and'
                  ' not carried over, so the new names have nowhere to go')
+    if args.imperative and not args.checklist:
+        # p.error, so the status is 2: this is usage, which the tree reads
+        # as `the run did not happen`. The two refusals above exit 1
+        # through sys.exit, which predates that convention.
+        p.error('--imperative is --checklist\'s: it drops the prose under'
+                ' each step, and there are no steps without a list to'
+                ' print. Taken alone it was read and ignored')
     if args.note:
         sys.exit(pair_note(args.note, args.draft, args.halves))
     if args.checklist:

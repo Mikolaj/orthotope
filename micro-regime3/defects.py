@@ -1342,6 +1342,22 @@ def registration_to_move(tmp, n=97):
     return {'readme': readme, 'doc': doc}
 
 
+def brief_facts_without_halves(tmp):
+    """A synthetic run whose log never says which half is the basis.
+
+    Runs 11 to 13 wrote that line differently and a killed run may not
+    reach it at all, so the driver has to meet a log without it. Built by
+    taking the clause out of the fixture's own log rather than by a second
+    fixture, which would drift from it.
+    """
+    out = synthetic_run(tmp, plateau=[['19.0'], ['19.1']])
+    log = here_file('%s-wallclock.log' % out['tag'])
+    text = open(log).read()
+    assert ' is the basis' in text, 'the fixture stopped naming the basis'
+    write(log, text.replace(' is the basis', ''))
+    return out
+
+
 def inherited_pair(tmp, n=97, share=True):
     """Two consecutive runs' files, the later copied from the earlier.
 
@@ -7226,6 +7242,35 @@ RECORDS = [
          ok=V(exit=0, has=['THIS RUN ONLY facts', 'plateau', 'floors',
                            'the 0.7% bar'])),
 
+    case('brief-facts-says-the-run-did-not-gate-clean', 'read-all.sh', None,
+         'the derived block printed a failed run\'s floors as facts, where'
+         ' a failed gate invalidates that population\'s whole column',
+         # The block is a reading and the gate is the verdict; printed
+         # under a FAIL with nothing said, its rows are figures from a
+         # population this driver has just refused. It prints them still
+         # -- they are what a session needs to see what went wrong -- and
+         # says at the head that they are not the run's facts yet.
+         plant=lambda t: synthetic_run(t, killed=True,
+                                       plateau=[['19.0'], ['19.1']]),
+         argv=['{tag}', '--brief-facts'],
+         ok=V(exit=1, has=['THIS RUN ONLY facts', 'did NOT gate clean'])),
+
+    case('brief-facts-says-when-the-halves-are-unreadable',
+         'read-all.sh', None,
+         'with no `is the basis` clause in the log the derived block'
+         ' labelled every floor `other` and printed no bar row at all',
+         # The halves come from the run's own log, which is the authority
+         # this driver already trusts and which outlives the pair note.
+         # A log without that clause -- Runs 11 to 13's shape -- left
+         # BASIS empty, and the rows that need it vanished in silence
+         # rather than saying the reading did not happen, which is what
+         # `--fill-in`'s `<yours>` and this driver's own BLOCKED do.
+         plant=lambda t: brief_facts_without_halves(t),
+         argv=['{tag}', '--brief-facts'],
+         ok=V(exit=0, has=['no `is the basis` clause',
+                           'THIS RUN ONLY facts'],
+              hasnt=['basis 0.'])),
+
     case('brief-facts-is-off-by-default', 'read-all.sh', None,
          'CONTROL: the block is asked for, so a gate run prints what it'
          ' always printed and no session reads a derivation it did not ask'
@@ -8033,8 +8078,8 @@ RECORDS = [
                hasnt=['](../README.md#the-shape-set)'])),
 
     case('checklist-steps-prints-the-imperative-half', 'read-run.py', None,
-         'the post list is 556 lines of which a session executes the step'
-         ' lines, and it is read whole at every run',
+         'the post list runs to hundreds of lines of which a session'
+         ' executes the step lines, and it is read whole at every run',
          # The rationale is not duplicated anywhere -- measured, zero of
          # 318 sentences over sixty characters appears in README prose --
          # so there is nothing to delete and moving it would be a
@@ -8085,6 +8130,29 @@ RECORDS = [
                                        WILD_MIXED)},
          argv=['{log}', '--wild'],
          ok=V(exit=0, has=['fgn/core'], hasnt=[' foreign   load'])),
+
+    case('new-modes-join-the-one-mode-guard', 'read-run.py', None,
+         'two modes added 2026-09-08 were outside the guard that refuses'
+         ' two at once, so the dispatch ran one and dropped the other',
+         # The guard names the modes it knows, and a mode added without
+         # joining it is the silent drop the guard exists to stop:
+         # `--inherited --lint` printed the inherited report and said
+         # nothing about the lint it did not run. Found by a shape pass
+         # over the commit that added them, an hour after it landed.
+         argv=['--inherited', '--lint'],
+         ok=V(exit=2, has=['one mode at a time', '--inherited', '--lint'])),
+
+    case('imperative-is-refused-without-the-checklist',
+         'read-run.py', None,
+         '`--imperative` means nothing on its own and was taken and'
+         ' ignored, which is this file\'s silent-option family',
+         # `--draft` and `--halves` are refused without `--note` for the
+         # same reason and by the same paragraph; this flag arrived the
+         # same day as the guard it needed and missed it.
+         plant=lambda t: {'run': synth_run(os.path.join(t, 'r.json'),
+                                           main_shapes()[:2])},
+         argv=['{run}', '--imperative'],
+         ok=V(exit=2, has=['--imperative is --checklist'])),
 
     case('modes-names-both-arities-of-a-flag', 'read-run.py', None,
          "a flag's one-line help named one of its two arities, and two"

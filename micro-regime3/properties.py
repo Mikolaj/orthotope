@@ -285,7 +285,11 @@ def prop_health_names_rows_not_cells(m):
     characters: what went wrong was an enumeration, and a length bound
     would have fired on the table warning above, which names none.
     """
-    cell = re.compile(r'[A-Za-z0-9][\w.-]*/[A-Za-z0-9][\w.-]*')
+    # NO DOTS EITHER SIDE: a shape and an arm never carry one and a
+    # path always does, so `runs/run27.md` in a warning is not a
+    # cell. Without that, a line naming four files would fail this
+    # for listing what it is supposed to list.
+    cell = re.compile(r'[A-Za-z0-9][\w-]*/[A-Za-z0-9][\w-]*')
     bad, n = [], 0
     for f in runs_on_disk():
         if LIMIT and n >= LIMIT:

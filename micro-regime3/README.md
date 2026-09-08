@@ -7874,14 +7874,14 @@ not otherwise.
     #      and not before: a fresh agent, NEVER the 6b/6d one, which has
     #      read this run's JSONs and cannot be surprised by the document.
     #      ITS BRIEF IS THE THIRD BLOCK OF `checker-brief.txt`, edited
-    #      there and DERIVED where it can be: `./read-all.sh $R
-    #      --brief-facts` prints the windows, the plateau, both
-    #      floors, `list` against the bar per population, the A/A
-    #      processes past 5% and the sunk cells, and item 6 is read
-    #      against that rather than retyped -- a rerun stranded
-    #      four of Run 27's readings mid-block, each of them one of
-    #      these rows.
-    #      there and not retyped. It asks whether the document can be
+    #      there and not retyped -- and DERIVED where it can be:
+    #      `./read-all.sh $R --brief-facts` prints the windows, the
+    #      plateau, both floors, `list` against the bar per
+    #      population, the A/A processes past 5% and the sunk cells,
+    #      so item 6 is read against that rather than typed again; a
+    #      rerun stranded four of Run 27's readings mid-block, each
+    #      of them one of these rows.
+    #      It asks whether the document can be
     #      READ, not whether it is right; what it finds is a navigation
     #      defect, which no gate here has ever caught and no figure check
     #      can.

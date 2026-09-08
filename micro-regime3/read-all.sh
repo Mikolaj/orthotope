@@ -393,8 +393,28 @@ brief_facts () {
   echo
   echo "--- the brief's THIS RUN ONLY facts, derived; read item 6 of"
   echo "    checker-brief.txt against these and change what disagrees ---"
+  # THE VERDICT ABOVE GOVERNS THESE ROWS. A failed gate invalidates that
+  # population's whole time column, a short run is a reading of what
+  # landed, and a plateau that is not flat says the processes measured in
+  # different states -- so the rows below are printed under any of those
+  # and are not the run's facts until it is fixed. Printed and not
+  # withheld: they are what shows WHAT went wrong.
+  if [ "$BAD" -ne 0 ] || [ "$SHORT" != 0 ] || [ "$NOISY" != 0 ] \
+     || [ "$WILD_PLATEAU" != 0 ]; then
+    echo "  !! this run did NOT gate clean above, so what follows is"
+    echo "     derived from processes this driver has just refused and is"
+    echo "     not yet this run's facts"
+  fi
   printf '  %-14s %s\n' 'processes' \
     "$(printf '%s\n' $FILES | grep -c .) gated above, from $LOG"
+  # THE ABSENCE IS A ROW. Without the halves the floors cannot be labelled
+  # and the bar rows cannot be built at all, and a first draft of this
+  # block printed every floor as the control's and no bar row, in silence.
+  # A log carrying no such clause is not hypothetical -- Runs 11 to 13
+  # wrote that line another way, and a killed run may never reach it.
+  [ -n "$BASIS" ] || printf '  %-14s %s\n' 'halves' \
+    "no \`is the basis\` clause in $LOG, so the floors below are labelled by
+                 half and the bar rows are NOT derived -- read them by hand"
   # The stamp is the SECOND field: every line here opens with `===`.
   # A SECOND WINDOW is a HOLE and not an ordering -- in any sequence every
   # process starts after the one before it finished, which is what a first
@@ -422,7 +442,8 @@ second window"
   printf '  %-14s %s\n' 'floors' \
     "$(printf '%s' "$FACTS" | awk -F'\t' -v b="$BASIS" \
         '{ split($1, t, "-"); half = t[1]; pop = substr($1, length(half) + 2)
-           f[pop (half == b ? " basis" : " other")] = $2 }
+           lab = (b == "") ? " " half : (half == b ? " basis" : " other")
+           f[pop lab] = $2 }
          END { for (k in f) printf "%s %s%%; ", k, f[k] }')"
   printf '  %-14s %s\n' 'A/A past 5%' \
     "$(printf '%s' "$FACTS" | awk -F'\t' \
