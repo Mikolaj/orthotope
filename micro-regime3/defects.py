@@ -5305,7 +5305,8 @@ RECORDS = [
          ok=V(has=['| -- |'], hasnt=['| -0.']),
          bug=V(has=['| shape |', '| -0.'])),
 
-    case('sunk-warning-names-the-rows-not-every-cell', 'read-run.py', None,
+    case('sunk-warning-names-the-rows-not-every-cell', 'read-run.py',
+         '2ab20a4',
          'the sunk-cell warning enumerated every cell on every call, where'
          ' the per-row coverage beside it is the finding',
          # The line already carries the count, the worst cell and how many
@@ -5319,7 +5320,14 @@ RECORDS = [
          argv=['{run}', '--markdown'],
          ok=V(has=['cell(s) whose forcing term', 'row(s) are geomeans',
                    'over 18 of 19', '--cells'],
-              hasnt=['all of them alexnet-L1-55-c3-k11/lib-stage1'])),
+              hasnt=['all of them alexnet-L1-55-c3-k11/lib-stage1']),
+         # The bug direction is what makes the `hasnt` above worth
+         # anything: a string that appears in neither direction passes it
+         # for free, and only the audit at `2ab20a4^` shows this one on
+         # the screen.
+         bug=V(has=['cell(s) whose forcing term', 'row(s) are geomeans',
+                    'all of them alexnet-L1-55-c3-k11/lib-stage1'],
+               hasnt=['--cells'])),
 
     case('sunk-warning-fires-under-every-mode', 'read-run.py', None,
          'CONTROL: shortening the line did not silence it, and it is the'

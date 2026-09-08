@@ -2674,47 +2674,47 @@ it is registered. **The other is a mode this file already records as TAKEN.**
 The within-half corrected instruction ratio for a pair --- which registrations
 (4), (13) and (14) all turn on --- was hand-rolled here from the counts files,
 and `--counts SWEEP.txt --pair A B` has printed it since 2026-09-05,
-as the retirement record above says, in the words the item itself used, *it
+as the retirement record below says, in the words the item itself used, *it
 is a mode now*. Run against this run's own sweep it gives 0.8944, 0.8358,
 0.8605, 0.9691 and 1.0878, every figure the hand computation produced,
 to the digit. **What went wrong is the reading**: `--help` describes `--counts`
 as *with --compare*, which is one of its two arities, and the modifier's own
-docstring and the task above both name the other. A one-line summary is
-not the mode list, and the standing instruction to read the reader's docstring
-by half is what would have caught it. **AND A HAZARD THE RETIREMENT EXPOSED,
-which no gate here can see**: the tasks heading is run-scoped and renumbers,
-so `task N` written into standing prose names a different item every run ---
-and by 2026-09-08 four such links pointed at items that had never been what they
-meant, while resolving. Retiring the six broke **twelve** references to them
-from standing prose --- seven `[task N][open]` links and five plain-prose
-mentions, naming tasks 1, 2, 5 and 6 --- and the five read as live where I first
-filed them as history. Every one now names its account instead of a number,
-and prose that must point at that heading points at the heading. **All twelve
-were found by a reader asking where one account had gone, not by a gate** ---
-`--lint` and `--check-doc` were green over every one of them, before the prune
-and after, and the first count written here was eight. **AND ONE SLIP
-OF THE PROCEDURE'S OWN, worth a line because a checker cannot see it either**:
-post-run steps 6b, 6d and 7a each want a commit subject naming the step, which
-is the only record of which of them ran, and `run-status.sh` finds
-those subjects by first filtering `git log` to the ones NAMING THE RUN.
-This session's 6d and 7 subjects named the step and not the run, so the status
-line read NOT DONE over work that was done. Rewriting them was refused
-as destructive and rightly: pass 2's `RUNTIP` names one of those commits,
-so a reword would have invalidated a record written an hour earlier.
-**The subject wants BOTH, and the next run should write `Run N step 6d` rather
-than `step 6d`.** **AND THE RERUN FOUND A FOURTH DEFECT.** Post-run step 3 says
-to drive a rerun through `run-major.sh` rather than by hand, and the script
-could run all eleven populations or none: no way to name one, and a relaunch
-guard refusing over every artifact of the run rather than over the ones
-the invocation would write. So the step's own instruction could not be carried
-out until `a08f92b`, which takes the populations as arguments and narrows
-the guard to what they would overwrite. **AND A THIRD DEFECT WAS FOUND AND FIXED
-BEFORE IT**: `--move-registration` moved the registration's text from README
-into the run file without repointing its README-local anchors,
-so `](#the-stride-classes-and-what-they-cover)` arrived in `runs/run27.md`
-as a dead link. `--check-doc` caught it in the same call, which is why it cost
-a minute rather than a run; the mode now rewrites `](#` to `](../README.md#`
-as it moves (`ca928dc`), and it had no case at all before this one.
+docstring names the other. A one-line summary is not the mode list,
+and the standing instruction to read the reader's docstring by half is what
+would have caught it. **AND A HAZARD THE RETIREMENT EXPOSED, which no gate here
+can see**: the tasks heading is run-scoped and renumbers, so `task N` written
+into standing prose names a different item every run --- and by 2026-09-08 four
+such links pointed at items that had never been what they meant, while
+resolving. Retiring the six broke **twelve** references to them from standing
+prose --- seven `[task N][open]` links and five plain-prose mentions, naming
+tasks 1, 2, 5 and 6 --- and the five read as live where I first filed them
+as history. Every one now names its account instead of a number, and prose
+that must point at that heading points at the heading. **All twelve were found
+by a reader asking where one account had gone, not by a gate** --- `--lint`
+and `--check-doc` were green over every one of them, before the prune and after,
+and the first count written here was eight. **AND ONE SLIP OF THE PROCEDURE'S
+OWN, worth a line because a checker cannot see it either**: post-run steps 6b,
+6d and 7a each want a commit subject naming the step, which is the only record
+of which of them ran, and `run-status.sh` finds those subjects by first
+filtering `git log` to the ones NAMING THE RUN. This session's 6d and 7 subjects
+named the step and not the run, so the status line read NOT DONE over work
+that was done. Rewriting them was refused as destructive and rightly: pass 2's
+`RUNTIP` names one of those commits, so a reword would have invalidated a record
+written an hour earlier. **The subject wants BOTH, and the next run should write
+`Run N step 6d` rather than `step 6d`.** **AND THE RERUN FOUND A FOURTH
+DEFECT.** Post-run step 3 says to drive a rerun through `run-major.sh` rather
+than by hand, and the script could run all eleven populations or none: no way
+to name one, and a relaunch guard refusing over every artifact of the run rather
+than over the ones the invocation would write. So the step's own instruction
+could not be carried out until `a08f92b`, which takes the populations
+as arguments and narrows the guard to what they would overwrite. **AND A THIRD
+DEFECT WAS FOUND AND FIXED BEFORE IT**: `--move-registration` moved
+the registration's text from README into the run file without repointing
+its README-local anchors, so `](#the-stride-classes-and-what-they-cover)`
+arrived in `runs/run27.md` as a dead link. `--check-doc` caught it in the same
+call, which is why it cost a minute rather than a run; the mode now rewrites
+`](#` to `](../README.md#` as it moves (`ca928dc`), and it had no case at all
+before this one.
 
 **What Run 26 made cheaper for the next run, which is not a figure and no other
 step gathers --- and it is TWO sessions' worth, the preparation's reaching
@@ -7500,14 +7500,19 @@ not otherwise.
     #      BOTH halves of each -- a pair read across two windows is not a
     #      pair, so a clean half is rerun with its exposed twin. ASK
     #      FIRST: it wants the box quiet again, which 19a gave back.
-    #      About 12m15s a process, which is what one process per population
-    #      buys. Two rules, both bought the hard way on Run 18: the rerun
-    #      window is quiet FOR THE DRIVER TOO, reading this run's own
-    #      logs during it having been enough to void a process; and drive
-    #      it through run-major.sh rather than by hand, whose launch line
-    #      carries WILDLOG and SATURATE and whose guards catch a process
-    #      that lost them -- 141 benches at rc=0 with no stamps in the
-    #      log looks perfect and certifies nothing. Park what it
+    #      A process costs what ITS OWN population costs, not what a main
+    #      set does: Run 27's `runs` rerun took 42 minutes a process at
+    #      490 benches, and this line's older figure had a session promise
+    #      the box back in a third of that. Two rules, both bought the
+    #      hard way on Run 18: the rerun window is quiet FOR THE DRIVER
+    #      TOO, reading this run's own logs during it having been enough
+    #      to void a process; and drive it through
+    #      `./run-major.sh $R POP...` rather than by hand -- it takes the
+    #      populations to rerun and narrows its relaunch guard to what
+    #      they would overwrite, its launch line carries WILDLOG and
+    #      SATURATE, and its guards catch a process that lost them: 141
+    #      benches at rc=0 with no stamps in the log looks perfect and
+    #      certifies nothing. Park what it
     #      supersedes as probe-*: read-all.sh globs $R-*.log for the
     #      plateau and lists by name any log it finds no reading in,
     #      so a superseded copy left in that namespace fails the gate
@@ -7543,17 +7548,12 @@ not otherwise.
     #      forty lines of them, and Run 23 read the persisted output of
     #      that call three times over
     #      THE SAME FOR THE TWO SWEEPS THAT GREW SINCE, `--predictions`
-    #      over eleven populations and `--compare --counts`: REDIRECT TO
-    #      A FILE and grep that, rather than printing the sweep whole.
-    #        ./read-run.py $R-$BASIS-$c.json --compare $R-$OTHER-$c.json \
-    #          --predictions > "$TMPDIR/pred-$c.txt" 2>&1
-    #        grep -E '^  \(|span\(s\)' "$TMPDIR/pred-$c.txt"
-    #      THE DESTINATION IS LOAD-BEARING and is NOT `$R-*`: read-all.sh
-    #      globs `$R-*.log` for the plateau and run-major.sh globs
-    #      `$R-*.json` and `$R-*.log` for its relaunch guard, so a sweep
-    #      parked in that namespace fails a gate -- which `$R-install.log`
-    #      did on 2026-08-23. The session's own temp directory has no
-    #      glob over it and is where these belong.
+    #      over eleven populations and `--compare --counts`: redirect
+    #      each to a file and grep that -- `grep -E '^  \(|span\(s\)'`
+    #      for a predictions sweep -- rather than printing it whole. The
+    #      destination is a scratch path SPELLED IN FULL, never `$TMPDIR`
+    #      and never `$R-*`, which run-major.sh globs for its relaunch
+    #      guard as read-all.sh globs it just above
     ./read-run.py $R-<basis>-main.json --compare $R-<other>-main.json --chapter
     ./read-run.py $R-<basis>-main.json --compare $R-<other>-main.json --alloc
     #      --compare takes the BASIS first and the control as its argument,
@@ -7900,27 +7900,29 @@ not otherwise.
     #      `STATUS: all done`, with its `yours` lines done by hand, is
     #      the one state in which this run is finished; a NOT DONE line
     #      is the next step, and a summary of what remains is not one
-    #  WHICH CHECK AFTER WHICH EDIT, and no other -- an expensive check's
-    #      answer stands until what it reads changes, and a commit is
-    #      not such a change:
-    #  A GATE IS NEVER FILTERED AND A READING MAY BE, which is the line
-    #      between the two lists below and the one thing to get right
-    #      about both. A GATE -- `--lint`, `--check-doc`, `check-all`,
-    #      `defect-run.py --changed .`, `selftest-mutants.py .`, a build
-    #      or a test suite
+    #  A GATE IS NEVER FILTERED AND A READING'S OUTPUT MAY BE, which is
+    #      the line between the readings above and the checks below. A
+    #      GATE -- `--lint`, `--check-doc`, `check-all`, `defect-run.py
+    #      --changed .`, `selftest-mutants.py .`, a build or a test suite
     #      -- is run bare, its status read from its own exit and never
     #      through a pipe or an `&&` chain, both of which report the LAST
     #      command's: Run 27 read `check-all | tail`'s exit 0 and had to
-    #      run it again. A READING -- `--block`, `--predictions`,
-    #      `--compare`, `--pair` -- carries no verdict in its status, so
-    #      it may be piped, redirected and grepped, and `2>/dev/null` is
-    #      legitimate on one whose warnings this session has already read
-    #      once. It is NOT legitimate on a gate, nor on a reading's first
-    #      call: the stderr a run wants is there -- the sunk-cell count,
-    #      the R2 and sample warnings, `--corr=insitu`'s notice that its
-    #      column compares to nothing in README -- and a session that
-    #      silences it by habit has bought its quiet with the one channel
-    #      that says a figure is not to be trusted
+    #      run it again. A READING is wanted for what it PRINTS, so that
+    #      may be redirected and grepped -- but the status stays its own,
+    #      and two of them use it: `--predictions` exits 1 where a span
+    #      went unread and `--pair` 2 where it refused a sunk pair. The
+    #      first of those stopped this run's own `&&` chain testing this
+    #      line, so the grep after it never ran and the recipe read as
+    #      printing nothing. `2>/dev/null` is legitimate on a reading whose
+    #      warnings this session has already read once, and on no gate and
+    #      no first call: the stderr a run wants is there -- the sunk-cell
+    #      count, the R2 and sample warnings, `--corr=insitu`'s notice
+    #      that its column compares to nothing in README -- and a session
+    #      that silences it by habit has bought its quiet with the one
+    #      channel that says a figure is not to be trusted
+    #  WHICH CHECK AFTER WHICH EDIT, and no other -- an expensive check's
+    #      answer stands until what it reads changes, and a commit is
+    #      not such a change:
     #      a paragraph of runs/$R.md or README.md: nothing between
     #        edits, and `./read-run.py --check-doc --quiet` once the
     #        stretch ends -- seconds, and a paragraph left long is
@@ -11169,13 +11171,13 @@ tables and its fingerprint say so.
   shapes, three of them past 5% and every one moving together, so no absolute
   of its crosses to Run 26 unadjusted and its cross-run column is read through
   `--bridge`. **Run 27 therefore opens a third machine era**, as the BIOS change
-  before the reboot of 2026-08-22 opened the second. Its sequence ran in one
-  window and its `runs` class in a second: two intrusions by the instrument's
-  own bar, one bench of its basis main set at 0.28 of a core and left
-  as it stands, and four consecutive benches of `runs-512` on its HEAD half
-  at 0.9 to 1.0, at about 06:38 by the log's own clock and three minutes
-  from where `apt-daily-upgrade.service` hit Run 26, which is the timer
-  its owner then confirmed and disabled --- so post-run step 3's rerun was taken
+  before Run 18 opened the second. Its sequence ran in one window and its `runs`
+  class in a second: two intrusions by the instrument's own bar, one bench
+  of its basis main set at 0.28 of a core and left as it stands, and four
+  consecutive benches of `runs-512` on its HEAD half at 0.9 to 1.0, at about
+  06:38 by the log's own clock and three minutes from where
+  `apt-daily-upgrade.service` hit Run 26, which is the timer its owner
+  then confirmed and disabled --- so post-run step 3's rerun was taken
   on `runs`, both halves, with that timer disabled, and its `runs` figures
   are the second window's. **And its floor is a maximum over the same SIX A/A
   pairs Runs 25 and 26 read**, 0.83% and 0.63%, WIDER than both on both halves
