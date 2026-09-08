@@ -40,13 +40,32 @@ set -u
 cd "$(dirname "$0")" || exit 1
 
 if [ $# -lt 1 ]; then
-  echo "usage: ./run-major.sh RUN      # e.g. run10, and it names every artifact"
+  echo "usage: ./run-major.sh RUN [POP...]   # e.g. run10, and it names every"
+  echo "artifact; with POP given, only those populations run -- \`main\` or a"
+  echo "class name -- which is what post-run step 3's rerun of an intruded"
+  echo "population asks for, both halves of each."
   echo "the prefix is the run's identity, so there is no default to fall back on:"
   echo "artifacts called run-* would not say which run made them, and the next"
   echo "run would overwrite them."
   exit 2
 fi
 R=$1
+shift
+# WHICH POPULATIONS, and the default is all of them. Post-run step 3 reruns
+# the populations an intrusion touched, both halves of each, and says to
+# drive that through this script rather than by hand -- which it could not
+# do while the only choices were eleven populations or none. Run 27 met
+# that: one intrusion on four benches of `runs` on one half, and no way to
+# ask for `runs`. The names are `main` and the class names below.
+WANTED="$*"
+# Asked for, when a list was given at all. One place, so the relaunch guard
+# and the two run loops cannot disagree about what this invocation writes.
+wanted () {
+  [ -z "$WANTED" ] && return 0
+  local w
+  for w in $WANTED; do [ "$w" = "$1" ] && return 0; done
+  return 1
+}
 PREFIX="$R"                  # the binaries and their note carry the run, as
                              # every artifact here does, so that two runs
                              # cannot write one filename however alike their
@@ -110,6 +129,22 @@ fi
 # shellcheck disable=SC2010  # the names here are the drivers' own, alphanumeric
 EXISTING=$(ls -1 "$R"-*.json "$R"-*.log 2>/dev/null \
              | grep -v -e "^$R-gate-" -e "^$R-al-")
+# NARROWED TO WHAT THIS INVOCATION WOULD WRITE, and only when a population
+# list was given: a partial rerun is asked for precisely because the run's
+# other artifacts are here and are being kept, so refusing over them would
+# refuse every rerun step 3 exists to order. With no list the set is
+# unchanged and the guard fires on the run's own artifacts as it always
+# did. The wall-clock log survives a partial rerun and is appended to, as
+# step 17 says a hand-run of the class loop must do.
+if [ -n "$WANTED" ] && [ -n "$EXISTING" ]; then
+  KEEP=""
+  for f in $EXISTING; do
+    pop=${f#"$R"-}; pop=${pop#*-}; pop=${pop%.json}; pop=${pop%.log}
+    wanted "$pop" && KEEP="$KEEP$f
+"
+  done
+  EXISTING=$(printf '%s' "$KEEP")
+fi
 if [ -n "$EXISTING" ]; then
   echo "$R already has artifacts here:"
   printf '%s\n' "$EXISTING" | sed 's/^/  /'
@@ -309,7 +344,7 @@ awk '/^GATE:/             { blk = 1; print; next }
                           { blk = 0 }' "$NOTE" \
   | sed 's/^/      /' | tee -a "$R-wallclock.log"
 
-for h in $HALVES; do run "$h" "$h-main" "$MAIN_BENCHES"; done
+if wanted main; then for h in $HALVES; do run "$h" "$h-main" "$MAIN_BENCHES"; done; fi
 # EVERY class on BOTH halves since 2026-08-14, where they used to be the
 # basis's alone. What forced it is that a pair's variable can act on a class
 # and not on the main set -- Run 14 varies the allocation area, and the
@@ -323,6 +358,7 @@ for h in $HALVES; do run "$h" "$h-main" "$MAIN_BENCHES"; done
 # mirroring the main sets above -- and each bench process being its own OS
 # process, that order carries no heap state between them.
 for c in $CLASSES; do
+  wanted "$c" || continue
   want=$(printf '%s\n' "$CLASS_LIST" | grep -c "^$c-")
   if [ "$want" -eq 0 ]; then
     log "  !! class prefix $c- matches no bench -- skipped, not run empty"
