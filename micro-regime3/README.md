@@ -881,18 +881,20 @@ rather than a slot in the next run, observed again:
   HELD**, neither of that item's kills firing: with the workaround in, HEAD's
   `-u1-ptr` over `-u1` reads 0.8786 to 0.8904 on every `runs` view from 256 up,
   all of them below the 0.94 that would have killed it, and `-u2-ptr` is nowhere
-  ahead of `-u1-ptr` past the class's floor on the basis. **The rate itself
-  reads 27%, 35% and 46% on the three pointer spans that run**, against Run 26's
-  29%, 32% and 41% --- a third to a half for the second run running, on a roster
-  five arms larger. **And Run 27 fixes the range at both ends from outside
-  the leaf family**: `lib-stage2-lean-u1` over `lib-stage2-lean` converts 59%
-  of an 8.8% instruction saving into time, the highest on record here, while
-  `mut-odo-vecdims-add-in-leaf-u2-last` over `-u2` converts a real 3.1% saving
-  into a 1.4% LOSS. So the rate is not merely smaller than three quarters
-  and not merely variable: it can be negative, and the counted work cannot tell
-  the negative case from the others --- `-u2-last`'s ratio reproduces its own
-  pre-run probe to a ten-thousandth. What is still open is the cross-build half:
-  no run has yet read one pair of arms both ways.
+  ahead of `-u1-ptr` past the class's floor on either half, which is what
+  that kill needs. **The rate itself reads 27%, 35% and 46% on the three pointer
+  spans that run**, against Run 26's 29%, 32% and 41% --- a third to a half
+  for the second run running, on a roster five arms larger. **And Run 27 fixes
+  the range at both ends from outside the leaf family**: `lib-stage2-lean-u1`
+  over `lib-stage2-lean` converts 59% of an 8.8% instruction saving into time,
+  the highest of the five spans Run 27 prices and still short of the three
+  quarters this entry is named for, while `mut-odo-vecdims-add-in-leaf-u2-last`
+  over `-u2` converts a real 3.1% saving into a 1.4% LOSS. So the rate
+  is not merely smaller than three quarters and not merely variable: it can
+  be negative, and the counted work cannot tell the negative case
+  from the others --- `-u2-last`'s ratio reproduces its own pre-run probe
+  to a ten-thousandth. What is still open is the cross-build half: no run has
+  yet read one pair of arms both ways.
 
 - `ANSWERED` **`lib-stage2-disp` and `lib-stage2-lean` are NOT the same code
   at a few hundred elements, which the lean ruling was written to make them.**
@@ -1201,6 +1203,19 @@ rather than a slot in the next run, observed again:
   the crossover moving with the working set by the letter and by at most a few
   points.
 
+- `OPEN` **The 0.7% bar that decides whether a pair's two columns may
+  be subtracted is used everywhere and defined nowhere.** It is quoted some
+  thirty times across this file and a run's, in the form *past the 0.7%
+  that lets two columns be differenced*, and it decides the readability
+  of a pair's whole second column --- the most load-bearing number either
+  document carries. No sentence says where it comes from, what it is a bound on,
+  or why the main set and the classes share one figure, so a reader can only
+  obey it. The floor by contrast has a section of its own saying
+  it is re-measured every run and never inherited. Found by Run 27's
+  comprehension probe, which could answer every other question it was set
+  and not this one. **What would settle it** is one paragraph beside
+  the floor's, saying what the bar bounds and on what evidence, and it wants
+  whoever set it rather than a measurement.
 - `OPEN` **A hand-edited table goes stale unchecked, and this is the second run
   running.** The run file carries two tables `--in-place` does not write ---
   the two-column geomeans and the Provenance anchors --- and on Run 20 the first
@@ -2622,16 +2637,25 @@ compares two RUNS --- and which registrations (4), (13) and (14) all turn on;
 and the two correlations registration (5) asks for, a process's floor against
 the median A/A half-width beneath it and against its position in the evening.
 The first was proved non-vacuous before it was believed, by reproducing Run 26's
-three published ratios to four figures on this run's own counts files.
-**AND THE RERUN FOUND A FOURTH.** Post-run step 3 says to drive a rerun through
-`run-major.sh` rather than by hand, and the script could run all eleven
-populations or none: no way to name one, and a relaunch guard refusing
-over every artifact of the run rather than over the ones the invocation would
-write. So the step's own instruction could not be carried out until `a08f92b`,
-which takes the populations as arguments and narrows the guard to what they
-would overwrite. **AND A THIRD DEFECT WAS FOUND AND FIXED BEFORE IT**:
-`--move-registration` moved the registration's text from README into the run
-file without repointing its README-local anchors,
+three published ratios to four figures on this run's own counts files. **AND ONE
+SLIP OF THE PROCEDURE'S OWN, worth a line because a checker cannot see it**:
+post-run steps 6b, 6d and 7a each want a commit subject naming the step, which
+is the only record of which of them ran, and `run-status.sh` finds
+those subjects by first filtering `git log` to the ones NAMING THE RUN.
+This session's 6d and 7 subjects named the step and not the run, so the status
+line read NOT DONE over work that was done. Rewriting them was refused
+as destructive and rightly: pass 2's `RUNTIP` names one of those commits,
+so a reword would have invalidated a record written an hour earlier.
+**The subject wants BOTH, and the next run should write `Run N step 6d` rather
+than `step 6d`.** **AND THE RERUN FOUND A FOURTH DEFECT.** Post-run step 3 says
+to drive a rerun through `run-major.sh` rather than by hand, and the script
+could run all eleven populations or none: no way to name one, and a relaunch
+guard refusing over every artifact of the run rather than over the ones
+the invocation would write. So the step's own instruction could not be carried
+out until `a08f92b`, which takes the populations as arguments and narrows
+the guard to what they would overwrite. **AND A THIRD DEFECT WAS FOUND AND FIXED
+BEFORE IT**: `--move-registration` moved the registration's text from README
+into the run file without repointing its README-local anchors,
 so `](#the-stride-classes-and-what-they-cover)` arrived in `runs/run27.md`
 as a dead link. `--check-doc` caught it in the same call, which is why it cost
 a minute rather than a run; the mode now rewrites `](#` to `](../README.md#`
@@ -9267,7 +9291,7 @@ with each other.** `mut-odo-vecdims-add-in-leaf-u2` against `-u2-down` reads
 1.0014 and 0.9991 on the main set, inside both floors, which is what
 an undeclared A/A pair should do; `libunord-stage4` against `libunord-stage5`
 was registered as one wherever the sorted pairs merge nothing and holds
-on `runs` at 1.0059 and 0.9995, but reads outside the floor on both halves
+on `runs` at 1.0000 and 0.9976, but reads outside the floor on both halves
 on `block`, `small` and `compose`, and in opposite directions on `block`.
 So the check from outside the declared pairs is still worth having and still
 does not simply confirm them.
