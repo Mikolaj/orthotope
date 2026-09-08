@@ -1315,6 +1315,33 @@ def doc_of_a_list(tmp, items=4):
                  ' it.\n' % body)
 
 
+def registration_to_move(tmp, n=97):
+    """A README with one OPEN registration, and the run file to move it to.
+
+    The registration carries a link to a README section by BARE anchor,
+    which is what a registration written in the open list naturally has
+    and what stops resolving the moment the text lands in `runs/`. Built
+    rather than borrowed: the live README's registration is this run's
+    and moves with every write-up.
+    """
+    m = _reader()
+    d = os.path.join(tmp, m.RUNS_DIR)
+    os.makedirs(d, exist_ok=True)
+    readme = write(os.path.join(tmp, 'README.md'),
+                   '# T\n\n## What is open\n\n'
+                   '- `OPEN` **What Run %d is built to answer, registered'
+                   ' before it runs.** Registered before the run. (1) *a*'
+                   ' `predict: cross list 1.0 within 1%%`, read against'
+                   ' [the shapes](#the-shape-set) and no other.\n'
+                   '- `ANSWERED` **Something else.** Its body.\n\n'
+                   '## The shape set\n\nA paragraph.\n' % n)
+    doc = write(os.path.join(d, 'run%d.md' % n),
+                '# Run %d\n\nA head paragraph.\n\n%s\n\n'
+                'The previous run\'s registration, to be replaced.\n'
+                % (n, m.REG_HEAD))
+    return {'readme': readme, 'doc': doc}
+
+
 def readings_digest(run='run97', bare=False):
     """A carrier's return for reading-list items 2, 4, 5 and 6.
 
@@ -3539,6 +3566,14 @@ TIER1 = {
         trigger='a wallclock log quoting a FAILED GATE block',
         ok='counts the stamped `=== ... !!` lines alone',
         bug='counted the quoted line and read step 17 NOT DONE for ever'),
+    'move-registration-repoints-the-anchors-it-carries': dict(
+        family='domain-unchecked', discovery='in-use', harm='fired',
+        harm_count=1,
+        trigger='a registration whose text links a README section by bare'
+                ' anchor, which is what writing it in the open list gives',
+        ok='rewrites `](#` to `](../README.md#` as it moves the text',
+        bug='moved the text a directory down with the anchors untouched, so'
+            ' every such link arrived dead'),
     'predictions-skip-a-degenerate-pair': dict(
         family='guard-on-the-wrong-side', discovery='in-use', harm='fired',
         harm_count=1,
@@ -7904,6 +7939,23 @@ RECORDS = [
                            '0.00 point(s) off, within 1.00%: HELD',
                            '20.00 point(s) off, within 1.00%: KILLED',
                            'yours to adjudicate: (3)'])),
+
+    case('move-registration-repoints-the-anchors-it-carries',
+         'read-run.py', 'ca928dc',
+         'a registration written in the open list links README sections by'
+         ' bare anchor, and the move landed those links in runs/ dead',
+         # The text is authored where `](#section)` resolves and read where
+         # it does not. --check-doc catches it, so it costs a minute rather
+         # than a run -- but it costs that minute every run, and the mode
+         # is the only thing that knows the text crossed a directory.
+         plant=lambda t: registration_to_move(t),
+         argv=['--move-registration', '--readme', '{readme}',
+               '--run-doc', '{doc}'],
+         probe=lambda subs: open(subs['doc']).read(),
+         ok=V(exit=0, has=['](../README.md#the-shape-set)'],
+              hasnt=['](#the-shape-set)']),
+         bug=V(exit=0, has=['](#the-shape-set)'],
+               hasnt=['](../README.md#the-shape-set)'])),
 
     case('predictions-skip-a-degenerate-pair', 'read-run.py', 'e55f8d3',
          'a span whose pair carries a sunk cell exited 2 out of the middle'
