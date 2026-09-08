@@ -7320,6 +7320,47 @@ def paragraphs(docs, pattern, every=False):
     return 0
 
 
+def heading_spacing_verdict(path, cur, bad, note):
+    """Is every heading of one document preceded by TWO blank lines.
+
+    The project's spacing, and a gate rather than a nicety because of
+    what NONE costs: `--replace`'s unit is a blank-line paragraph, so a
+    heading with no blank line above it belongs to the paragraph above
+    it and goes out with it. That is the defect the open list records
+    fixed on 2026-09-03, and Run 27 put it back into README with an
+    off-by-one insert -- for a whole write-up, past --lint, --check-doc,
+    every case and mutant, two independent checker passes and a
+    comprehension probe. None of them could see it: the wrap pass asks
+    about line length INSIDE a paragraph and never about what separates
+    two, and the probe reads rendered prose, where the blank line is
+    invisible. It was found by eye.
+
+    ONE EXEMPTION AND NO OTHER: a heading on the document's first line,
+    which has nothing to be preceded by. A heading directly under
+    another is not exempt -- neither document has one, and if one lands
+    it wants the same two lines as any other.
+    """
+    lines = cur.split('\n')
+    for i, line in enumerate(lines):
+        if i == 0 or not re.match(r'^#{1,6} ', line):
+            continue
+        n = 0
+        j = i - 1
+        while j >= 0 and lines[j] == '':
+            n += 1
+            j -= 1
+        if n != 2:
+            bad.append('%s:%d is preceded by %d blank line(s) and this'
+                       ' project separates a heading by two: %s%s'
+                       % (os.path.basename(path), i + 1, n, line[:60],
+                          '' if n else ' -- with none it is part of the'
+                          ' paragraph above it, which --replace would'
+                          ' take out with it'))
+            return
+    note.append('every heading of %s is preceded by two blank lines'
+                % os.path.basename(path))
+
+
 def wrap_verdict(path, cur, bad, note):
     """Is one document as `wrap80` leaves it, paragraph by paragraph.
 
@@ -7958,6 +7999,7 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
     # file unwrapped does not reach, every block being flat there.
     for _path, _text in docs:
         wrap_verdict(_path, _text, bad, note)
+        heading_spacing_verdict(_path, _text, bad, note)
 
     # A paragraph that stops mid-sentence is what a scripted rewrite leaves
     # when it replaces more text than its author read. The shape is specific:

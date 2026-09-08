@@ -8689,6 +8689,7 @@ a window: say that it finished, what it exited with, and whether its counts
 were what the roster asked for. They run for tens of minutes to hours, and while
 the rest is in progress their completion is the only thing a reader can act on.
 
+
 ### Other toolchains, probed and not run
 
 **Two of these three paragraphs are probe records and not run instructions**,
@@ -11004,6 +11005,7 @@ so a comparison between them is the reading's to make rather than the column's
 to assert, which is what the printed count is for. A sunk **baseline** cell
 is untouched by the ruling: it takes every row of its shape with it and still
 fails the run.
+
 
 ## Provenance
 

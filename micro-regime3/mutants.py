@@ -218,6 +218,18 @@ MUTANTS = [
      'if grep -q "^ITEM ${it}[^0-9]" "$READINGS" 2>/dev/null; then',
      'printf \'ITEM 2\\nITEM 4\\nITEM 5\\nITEM 6\\n\' > "{dir}/run97-readings.txt"; '
      '{file} run97 2>&1 | grep -q "carries the ITEM 5 block"'),
+    # The heading-spacing gate, made blind: `n != 2` becomes `False`, so
+    # a heading run straight into the paragraph above it passes -- the
+    # state README was in for the whole of Run 27's write-up, past every
+    # other gate, both checker passes and the comprehension probe. The
+    # judge plants a run file with one blank line before its second
+    # heading and asks for the refusal.
+    ('check-doc stops holding a heading to two blank lines', 'read-run.py',
+     '        if n != 2:', '        if False:',
+     'printf \'# Run 97\\n\\nA head paragraph.\\n\\n## Results\\n\\nA para.\\n\''
+     ' > "{dir}/run97.md"; '
+     '{file} --check-doc --quiet --run-doc "{dir}/run97.md" 2>&1'
+     ' | grep -q "is preceded by 1 blank"'),
     # Step 2c's comment skip, removed: `<yours>` inside a `#` line counts
     # as a slot the note still owes. That is not hypothetical -- --draft's
     # own header explains the marker and so carries it twice, and a

@@ -1342,6 +1342,22 @@ def registration_to_move(tmp, n=97):
     return {'readme': readme, 'doc': doc}
 
 
+def rundoc_heading_spacing(tmp, blanks=1):
+    """A run file whose second heading is preceded by `blanks` blank lines.
+
+    Two is this project's spacing and one is the shape that bites: with
+    NONE the heading joins the paragraph above it and `--replace`, whose
+    unit is a blank-line paragraph, takes the heading out with it -- the
+    defect the open list records for 2026-09-03 and which Run 27 put back
+    into README by an off-by-one insert. Built rather than borrowed: the
+    live files are the thing the check is meant to keep clean.
+    """
+    sep = '\n' * blanks
+    return write_rundoc(tmp,
+                        '# Run 97\n\nA head paragraph.\n' + sep
+                        + '## Results\n\nA paragraph under it.\n')
+
+
 def readings_digest(run='run97', bare=False):
     """A carrier's return for reading-list items 2, 4, 5 and 6.
 
@@ -7927,6 +7943,24 @@ RECORDS = [
               hasnt=['](#the-shape-set)']),
          bug=V(exit=0, has=['](#the-shape-set)'],
                hasnt=['](../README.md#the-shape-set)'])),
+
+    case('check-doc-holds-a-heading-to-two-blank-lines',
+         'read-run.py', None,
+         'a heading run into the paragraph above it passed every gate,'
+         ' and `--replace` then takes the heading with the paragraph',
+         # Run 27 reintroduced by an off-by-one insert the defect the open
+         # list records fixed on 2026-09-03, and no gate saw it: the wrap
+         # pass asks about line length INSIDE a paragraph, never about
+         # what separates two. Found by eye, from a heading looking wrong.
+         plant=lambda t: {'rundoc': rundoc_heading_spacing(t, blanks=1)},
+         argv=['--check-doc', '--quiet', '--run-doc', '{rundoc}'],
+         ok=V(exit=1, has=['blank line', '## Results'])),
+
+    case('check-doc-passes-two-blank-lines', 'read-run.py', None,
+         'CONTROL: the spacing this project uses is not reported',
+         plant=lambda t: {'rundoc': rundoc_heading_spacing(t, blanks=2)},
+         argv=['--check-doc', '--quiet', '--run-doc', '{rundoc}'],
+         ok=V(hasnt=['is preceded by'])),
 
     case('predictions-skip-a-degenerate-pair', 'read-run.py', 'e55f8d3',
          'a span whose pair carries a sunk cell exited 2 out of the middle'
