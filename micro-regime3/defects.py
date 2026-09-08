@@ -3566,6 +3566,15 @@ TIER1 = {
         trigger='a wallclock log quoting a FAILED GATE block',
         ok='counts the stamped `=== ... !!` lines alone',
         bug='counted the quoted line and read step 17 NOT DONE for ever'),
+    'major-run-takes-the-populations-to-rerun': dict(
+        family='guard-on-the-wrong-side', discovery='in-use', harm='fired',
+        harm_count=1,
+        trigger='post-run step 3, which reruns the populations an intrusion'
+                ' touched and says to drive it through this script',
+        ok='runs the populations named, both halves, and refuses only over'
+           ' what they would overwrite',
+        bug='no way to name one, and a guard refusing over every artifact of'
+            ' the run, so the step could not be carried out at all'),
     'move-registration-repoints-the-anchors-it-carries': dict(
         family='domain-unchecked', discovery='in-use', harm='fired',
         harm_count=1,
@@ -8050,6 +8059,40 @@ RECORDS = [
               hasnt=['already has artifacts']),
          bug=V(exit=1, has=['already has artifacts',
                             'zzrl-al-lookrts-cnn-slice-c32-r1.json'])),
+
+    case('major-run-takes-the-populations-to-rerun', 'run-major.sh',
+         'a08f92b',
+         'post-run step 3 says to drive a rerun through this script, and'
+         ' the script could run only all eleven populations or none',
+         # An intrusion touches one population, and step 3 reruns THAT one
+         # on both halves. The driver had no way to be told which, and its
+         # relaunch guard refused over every artifact of the run rather
+         # than over the ones the invocation would write -- so the step's
+         # own instruction could not be carried out. Run 27 met it.
+         shadow=dict(extra=lambda text: halves('zzpr-lookrts', 'zzpr-a1g', classes=classes_in(text))
+                     + [('zzpr-pair.txt', NOTE_STUB),
+                        ('zzpr-lookrts-rev.json', '[]\n'),
+                        ('zzpr-a1g-rev.json', '[]\n')]),
+         env={'OTHER': 'a1g', 'BASIS': 'lookrts'},
+         argv=['zzpr', 'runs'],
+         ok=V(exit=0, has=['major run begins', 'start zzpr-a1g-runs',
+                           'start zzpr-lookrts-runs'],
+              hasnt=['already has artifacts', 'start zzpr-lookrts-main',
+                     'start zzpr-a1g-main', 'start zzpr-a1g-bcast']),
+         bug=V(exit=1, has=['already has artifacts'],
+               hasnt=['major run begins'])),
+
+    case('major-run-still-refuses-what-it-would-overwrite', 'run-major.sh',
+         None,
+         'CONTROL: named a population whose artifacts are here, it refuses'
+         ' as it always did -- the guard is narrowed, not dropped',
+         shadow=dict(extra=lambda text: halves('zzpq-lookrts', 'zzpq-a1g', classes=classes_in(text))
+                     + [('zzpq-pair.txt', NOTE_STUB),
+                        ('zzpq-lookrts-runs.json', '[]\n')]),
+         env={'OTHER': 'a1g', 'BASIS': 'lookrts'},
+         argv=['zzpq', 'runs'],
+         ok=V(exit=1, has=['already has artifacts', 'zzpq-lookrts-runs.json'],
+              hasnt=['major run begins'])),
 
     case('major-run-refuses-a-previous-attempt', 'run-major.sh', None,
          "CONTROL: the guard still fires on the run's OWN artifacts",
