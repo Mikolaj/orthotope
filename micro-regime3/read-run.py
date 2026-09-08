@@ -7072,6 +7072,11 @@ def move_registration(readme, run_doc):
                             os.path.basename(readme), lead))
         return 1
     body = lines[hit[0]][len(lead):].strip()
+    # The registration is AUTHORED where a bare `](#section)` resolves and
+    # READ one directory down, where it does not. Nothing else knows the
+    # text crossed a directory, so the move repoints them: --check-doc
+    # catches what is left, which costs a minute a run rather than a run.
+    body = body.replace('](#', '](../%s#' % os.path.basename(readme))
     if REG_HEAD not in doc:
         sys.stderr.write('--move-registration: %s has no `%s` heading\n'
                          % (os.path.basename(run_doc), REG_HEAD))
