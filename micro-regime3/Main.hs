@@ -4116,6 +4116,39 @@ lsUnordStage5 sh a = either (: []) id (routeUnord5 sh a)
 fbLibUnordStage5 :: ShapeL -> T -> VS.Vector Double
 fbLibUnordStage5 sh a = either id VS.concat (routeUnord5 sh a)
 
+-- Stage six, stage five with the first canonicalization dropped: the
+-- RAW axes sorted by absolute stride and canonicalized once, so the
+-- lean rank test reads the same dims and one pass per call is owed
+-- rather than two. On 2026-09-09 a 'check'-mode comparison read the
+-- two dispatches' sorted canonical dims equal on all 91 checked views,
+-- so the pair with stage five prices dispatch cost alone -- the pass
+-- saved where it merged nothing ('small-patch-k5', [6, 5, 5] on
+-- strides [25, 1, 5]) against the longer sort where it collapsed the
+-- rank ('small-flat64', [4, 1, 64] on [64, 0, 1], rank one before the
+-- sort under stage five and three axes sorted here). One change over
+-- 'routeUnord5' per population. Added 2026-09-09 for Run 28; the
+-- registration is README's open list.
+routeUnord6 :: ShapeL -> T -> Either (VS.Vector Double) [VS.Vector Double]
+routeUnord6 sh (T (Strides ats) ao v)
+  | l == 0 = Right []
+  | otherwise =
+      let !start = ao + sum [ (n - 1) * st | (n, st) <- zip sh ats, st < 0 ]
+          (acats, sh') = unzip $ sortBy (flip compare) $ zip (map abs ats) sh
+      in  case canonView sh' acats of
+            ([], _) -> Left (VS.slice start l v)
+            ([_], [1]) -> Left (VS.slice start l v)
+            (ssh, sats)
+              | last sats == 1 -> Right (lazyRuns ssh sats start v)
+              | otherwise -> Left (fillStage2 ssh sats start l v)
+  where !l = product sh
+
+lsUnordStage6 :: ShapeL -> T -> [VS.Vector Double]
+lsUnordStage6 sh a = either (: []) id (routeUnord6 sh a)
+
+{-# NOINLINE fbLibUnordStage6 #-}
+fbLibUnordStage6 :: ShapeL -> T -> VS.Vector Double
+fbLibUnordStage6 sh a = either id VS.concat (routeUnord6 sh a)
+
 -- The two ports' lists, for the reducing consumers below and for the
 -- laziness gate: 'fbLibListStage1''s and 'fbLibListStage2''s parts, and
 -- the unordered one-block tests in front of them, repeated here clause
@@ -4208,6 +4241,10 @@ fbLibUnordStage4Sum sh a = VS.singleton (sumParts (lsUnordStage4 sh a))
 fbLibUnordStage5Sum :: ShapeL -> T -> VS.Vector Double
 fbLibUnordStage5Sum sh a = VS.singleton (sumParts (lsUnordStage5 sh a))
 
+{-# NOINLINE fbLibUnordStage6Sum #-}
+fbLibUnordStage6Sum :: ShapeL -> T -> VS.Vector Double
+fbLibUnordStage6Sum sh a = VS.singleton (sumParts (lsUnordStage6 sh a))
+
 -- The laziness gate, in 'check' and never timed: the ruling that the
 -- list stays lazy (README.md#dead-ideas) as a predicate. On a view of
 -- 200000 runs of 20 -- regime 2 on master -- forcing the HEAD of each
@@ -4265,7 +4302,8 @@ lazinessGate = do
           -- the unordered candidates: lazy on both, the transposed block
           -- being runs of 20 in address order to them, the exception's move
         , ("libunord-stage4", lsUnordStage4, Just True, Just True)
-        , ("libunord-stage5", lsUnordStage5, Just True, Just True) ]
+        , ("libunord-stage5", lsUnordStage5, Just True, Just True)
+        , ("libunord-stage6", lsUnordStage6, Just True, Just True) ]
       gate view sh a n ls ask = case ask of
         Nothing -> return ()
         Just want -> do
@@ -5525,6 +5563,10 @@ roster =
     -- Every slot below moves by two.
   , ("libunord-stage4",            Fill fbLibUnordStage4)
   , ("libunord-stage5",            Fill fbLibUnordStage5)
+    -- Stage six, the sort-first dispatch, added 2026-09-09 for Run 28
+    -- beside its control, every slot below moving by one; reasons at
+    -- the definition.
+  , ("libunord-stage6",            Fill fbLibUnordStage6)
     -- The reducing consumer over each stage's list, added the same day:
     -- 'sumT' as the library composes it, one slice at a time and no
     -- concatenation, so a stage's consumer against its Fill arm above
@@ -5535,6 +5577,9 @@ roster =
   , ("libunord-stage2-sum",        Fill fbLibUnordStage2Sum)
   , ("libunord-stage4-sum",        Fill fbLibUnordStage4Sum)
   , ("libunord-stage5-sum",        Fill fbLibUnordStage5Sum)
+    -- and stage six's consumer, added with it; every slot below moves
+    -- by one more.
+  , ("libunord-stage6-sum",        Fill fbLibUnordStage6Sum)
     -- not timed: 6.20x the result
   , ("mut-offsets",                Only fbMutBaseOffsets)
     -- parked 2026-09-04 by the prune (README.md#what-the-benchmark-does)

@@ -611,3 +611,14 @@ missing one sat at the phantom's address. Every named loop sits at +0x80 in the
 twin, which is what let the twin's DWARF name a stub the twin's own sweep never
 misread. The same evening `--match` re-run named two of the five wrongly, the
 tree's Main.hs having moved above them since the twin's commit.
+
+2026-09-09. The sort-first probe lived one evening. A `routeAgreement` pass in
+`check` computed stage five's sorted canonical dims twice, canonicalize-sort-
+canonicalize and sort-then-canonicalize, on the 91 checked views: all equal.
+A filtered criterion run of stages four, five and six on `small` and `compose`
+read stage six over five at 0.960 and 0.999, the consumers 0.922 and 0.997,
+`small-patch-k5` 0.786 and `small-flat64` 1.239, stddevs 1 to 3%. The pass and
+its logs were removed the same day when stage six became a Run 28 arm; the
+figures went into the registration and nowhere else. First attempt at the
+removal asserted the block's blank-line count and stopped before writing,
+while the `rm` after it ran: the logs were gone before the code was.

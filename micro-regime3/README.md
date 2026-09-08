@@ -930,6 +930,54 @@ rather than a slot in the next run, observed again:
   is untouched, the lean form being what ships; what is now known is
   that its premise is false on the one class small enough to show it.
 
+- `OPEN` **What Run 28 is built to answer, registered before it runs.**
+  Registered 2026-09-09, before the run, on Run 27's pair --- ghc-9.12.4
+  as the basis against the same in-tree HEAD stage1, `10.1.20260803`, both
+  under `LOOP_DEADSPOT=1`, the same recipe and the same shim; the pair
+  is the request's, Run 27 having closed the compiler question, and this run's
+  question is its roster --- over Run 27's roster plus two arms,
+  `libunord-stage6`, stage five with the first canonicalization dropped,
+  and `libunord-stage6-sum`, its reducing consumer: 37 timed arms over 19
+  main-set shapes, 703 benches, and the 52 class views of ten classes unmoved.
+  One change of code, the two arms, each landing beside stage five's
+  and touching no arm timed before it. Two things are known before the run
+  and are the premise rather than predictions. A `check`-mode comparison
+  of 2026-09-09 read stage five's sorted canonical dims and the sort-first
+  form's equal on all 91 checked views, so the two arms differ from stage five
+  in dispatch cost alone; the comparison was removed with its reading, `check`
+  holding the arms to the reference as it holds every arm. And a filtered probe
+  the same day on the HEAD build --- criterion means over one process, stage
+  four, five and six alone on `small` and `compose`, not a run --- read
+  `libunord-stage6` over `libunord-stage5` at 0.960 on `small` and 0.999
+  on `compose`, the consumers at 0.922 and 0.997, with `small-patch-k5` at 0.786
+  and `small-flat64` at 1.239: the pass saved where it merges nothing, [6, 5, 5]
+  on strides [25, 1, 5], against the longer sort where it collapsed the rank,
+  [4, 1, 64] on [64, 0, 1], rank one before the sort under stage five and three
+  axes sorted under stage six. Each item names its populations and carries
+  a prediction and a kill condition. (1) *The dispatch cost of the first
+  canonicalization.* On `small`, both halves:
+  `predict: pair libunord-stage6 libunord-stage5 0.96 within 3%`
+  and `predict: pair libunord-stage6-sum libunord-stage5-sum 0.92 within 4%`.
+  Read per view beside it, by hand: stage six ahead past the floor
+  on `small-row96`, `small-patch-k5` and `small-bcast32`, behind past the floor
+  on `small-flat64`, and inside the floor on `small-patch-r5`. Killed by stage
+  six behind stage five past the floor on both halves on the class, which would
+  say the longer sort costs more than the pass it saves; or by `small-flat64`
+  inside the floor on both halves, which would say the sort's length is not what
+  the probe read. (2) *The tie everywhere else.* On `rev`, `bcast`, `bcastmid`,
+  `window`, `scaled`, `runs`, `block` and `compose`, both halves:
+  `predict: pair libunord-stage6 libunord-stage5 1.0`
+  and `predict: pair libunord-stage6-sum libunord-stage5-sum 1.0`, the two
+  routes being the same code past the dispatch on every view and the probe
+  reading 0.999 and 0.997 on `compose`. The main set and `flip` are read raw
+  by hand, the unordered arms' cells being their own forcing term there, as Run
+  27's items (6) and (7) read them. Killed by either pair past the floor on both
+  halves on any of the eight, which would say the dispatch is visible at a call
+  of tens of microseconds or that the routes are not the same code after all.
+  (3) *Allocation.* `libunord-stage6` and its consumer read the same allocation
+  multiple as stage five and its consumer on every view, off the allocation
+  column, neither dispatch allocating a result-sized buffer; killed by any view
+  where the two multiples differ at the column's own precision.
 - `ANSWERED` **What Run 27 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
   verdicts are [in Run 27's own
@@ -3698,7 +3746,8 @@ lazy unordered candidates, the two lazy ordered ones and the four reducing
 consumers --- takes it to 646, the hoisted-bound fill of the same day,
 `mut-odo-vecdims-add-in-leaf-u2-last`, to 665, the retirement of lib-stage2-disp
 that evening to 646, and `lib-stage2-lean-u1`, the fill not unrolled
-under the lean dispatch, takes the roster to 665 benches.
+under the lean dispatch, to 665; `libunord-stage6` with its consumer,
+2026-09-09, takes the roster to 703 benches.
 
 **What the eight are worth as instruments, read against each other for the first
 time on 2026-08-14, over Runs 10 to 13.** Per class: the median A/A deviation
@@ -5723,7 +5772,8 @@ the arms written since brought it back to 28, and a third cut on 2026-09-04,
 the prune, takes it to twelve with `list`; the `-u1` arm timed for Run 25,
 `libunord-stage3` and the two pointer fills of 2026-09-05 make sixteen,
 and the ten of 2026-09-07, less `lib-stage2-disp` retired that evening,
-twenty-five** --- the 28 being the four unconditional forms the precondition
+twenty-five, and the sort-first stage of 2026-09-09 with its consumer,
+twenty-seven** --- the 28 being the four unconditional forms the precondition
 ruling itself called for (below), the four FastReshape arms, of the five Run 20
 arms beside them the three the probes left timed ([the mutable
 ceiling](#the-mutable-ceiling-taken)), and the rework's five less the three
@@ -5785,8 +5835,9 @@ is over took it to 494, and the addition of 2026-09-07, eight arms --- the lazy
 candidates and the reducing consumers ([the stride
 classes](#the-stride-classes-and-what-they-cover)) --- takes it to 646,
 the hoisted-bound fill of the same day to 665, the retirement of lib-stage2-disp
-that evening to 646, and `lib-stage2-lean-u1` takes the roster to 665 benches,
-so with the controls the run is 35 arms. **Run 26 timed four parked arms
+that evening to 646, and `lib-stage2-lean-u1` to 665, and `libunord-stage6`
+with its consumer, 2026-09-09, takes the roster to 703 benches, so
+with the controls the run is 37 arms. **Run 26 timed four parked arms
 for that run alone**: `mut-odo-vecdims-add-in-leaf-down`, parked 2026-09-02;
 `canon-vecdims` and `lib-stage2`, parked by this prune; and `lib-stage2-short`,
 parked by the ruling on the short bodies of the same day ([the stride
@@ -11192,13 +11243,16 @@ the record costs. **A fourth half arrives with the pairing and is not a delta
 at all**: which half of the pair a figure came from, which is why the run file's
 tables and its fingerprint say so.
 
-- Run 27 measured TODAY's shapes, class views and roster, being the run whose
-  file `runs/` currently publishes --- 35 timed arms over 19 main-set shapes
-  and 52 class views in TEN classes, 665 benches and 1820, SIX A/A pairs,
-  the `runs` class at FOURTEEN and `window` at SIX --- so its delta against
-  TODAY is empty. **Its delta against RUN 26** is the commits of 2026-09-06
-  and 2026-09-07: the four arms Run 26 lifted out of parking put back,
-  the `:: Ptr Double` annotation on every bang-bound `plusPtr` result
+- Run 27 measured TODAY's shapes and class views, being the run whose file
+  `runs/` currently publishes --- 35 timed arms over 19 main-set shapes and 52
+  class views in TEN classes, 665 benches and 1820, SIX A/A pairs, the `runs`
+  class at FOURTEEN and `window` at SIX --- and its roster is TODAY's LESS TWO:
+  `libunord-stage6` and `libunord-stage6-sum` were added 2026-09-09, after Run
+  27, so every slot below `libunord-stage5` has moved by one and every slot
+  below `libunord-stage5-sum` by two, and a figure read across that boundary
+  carries a roster term. **Its delta against RUN 26** is the commits
+  of 2026-09-06 and 2026-09-07: the four arms Run 26 lifted out of parking put
+  back, the `:: Ptr Double` annotation on every bang-bound `plusPtr` result
   in the three pointer arms, which is the GHC #27778 workaround and changes
   no 9.12 code ([the open list][open]), and then ten arms landing ---
   `libunord-stage4` and `libunord-stage5`, the four `-sum` reducing consumers,
