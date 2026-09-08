@@ -255,13 +255,15 @@ fi
 # run before it read the previous run's file directly, so there is no digest
 # to want and no step to fail for its absence. A run name with no number in
 # it (the `zz` fixtures) is not a run and is skipped before the arithmetic.
+# The header is `ITEM N` and a title is optional, so the number may end the
+# line: the `[^0-9]` that keeps ITEM 2 off ITEM 25 has to take that too.
 READINGS="$R-readings.txt"
 case "$N" in
   ''|*[!0-9]*) ;;
   *) if [ "$N" -ge 26 ]; then
        for owed in "4:5" "4:6" "5:2" "6a:4"; do
          st=${owed%%:*}; it=${owed#*:}
-         if grep -q "^ITEM ${it}[^0-9]" "$READINGS" 2>/dev/null; then
+         if grep -qE "^ITEM ${it}([^0-9]|\$)" "$READINGS" 2>/dev/null; then
            say "$st" "done" "$READINGS carries the ITEM $it block"
          else
            say "$st" "NOT DONE" \
