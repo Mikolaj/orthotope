@@ -5305,6 +5305,31 @@ RECORDS = [
          ok=V(has=['| -- |'], hasnt=['| -0.']),
          bug=V(has=['| shape |', '| -0.'])),
 
+    case('sunk-warning-names-the-rows-not-every-cell', 'read-run.py', None,
+         'the sunk-cell warning enumerated every cell on every call, where'
+         ' the per-row coverage beside it is the finding',
+         # The line already carries the count, the worst cell and how many
+         # shapes each short row covers. The enumeration between them is
+         # the same information cell by cell, and it is the bulk: on Run
+         # 27's main set it is seventy `shape/arm` pairs on every reader
+         # call. The rows are what a reader acts on; the cells are in the
+         # JSON. --verbose restores them, as it restores the standing
+         # explanation --brief drops.
+         plant=lambda t: {'run': sunk_json(t, main_shapes(), 'lib-stage1')},
+         argv=['{run}', '--markdown'],
+         ok=V(has=['cell(s) whose forcing term', 'row(s) are geomeans',
+                   'over 18 of 19', '--cells'],
+              hasnt=['all of them alexnet-L1-55-c3-k11/lib-stage1'])),
+
+    case('sunk-warning-fires-under-every-mode', 'read-run.py', None,
+         'CONTROL: shortening the line did not silence it, and it is the'
+         ' same line whichever mode asked -- the silent-option risk',
+         plant=lambda t: {'run': sunk_json(t, class_shapes('scaled'),
+                                           'lib-stage1')},
+         argv=['{run}', '--block', '--brief'],
+         ok=V(has=['cell(s) whose forcing term', 'row(s) are geomeans'],
+              hasnt=['all of them scaled-'])),
+
     case('block-per-shape-refuses-a-sunk-cell', 'read-run.py', 'e2d6604',
          "a sunk cell was divided into the block's installed per-shape line",
          plant=lambda t: {'run': sunk_json(t, class_shapes('scaled'),

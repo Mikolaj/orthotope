@@ -7542,6 +7542,18 @@ not otherwise.
     #      -- every block in one call is a hundred KB, the write-up uses some
     #      forty lines of them, and Run 23 read the persisted output of
     #      that call three times over
+    #      THE SAME FOR THE TWO SWEEPS THAT GREW SINCE, `--predictions`
+    #      over eleven populations and `--compare --counts`: REDIRECT TO
+    #      A FILE and grep that, rather than printing the sweep whole.
+    #        ./read-run.py $R-$BASIS-$c.json --compare $R-$OTHER-$c.json \
+    #          --predictions > "$TMPDIR/pred-$c.txt" 2>&1
+    #        grep -E '^  \(|span\(s\)' "$TMPDIR/pred-$c.txt"
+    #      THE DESTINATION IS LOAD-BEARING and is NOT `$R-*`: read-all.sh
+    #      globs `$R-*.log` for the plateau and run-major.sh globs
+    #      `$R-*.json` and `$R-*.log` for its relaunch guard, so a sweep
+    #      parked in that namespace fails a gate -- which `$R-install.log`
+    #      did on 2026-08-23. The session's own temp directory has no
+    #      glob over it and is where these belong.
     ./read-run.py $R-<basis>-main.json --compare $R-<other>-main.json --chapter
     ./read-run.py $R-<basis>-main.json --compare $R-<other>-main.json --alloc
     #      --compare takes the BASIS first and the control as its argument,
@@ -7891,6 +7903,24 @@ not otherwise.
     #  WHICH CHECK AFTER WHICH EDIT, and no other -- an expensive check's
     #      answer stands until what it reads changes, and a commit is
     #      not such a change:
+    #  A GATE IS NEVER FILTERED AND A READING MAY BE, which is the line
+    #      between the two lists below and the one thing to get right
+    #      about both. A GATE -- `--lint`, `--check-doc`, `check-all`,
+    #      `defect-run.py --changed .`, `selftest-mutants.py .`, a build
+    #      or a test suite
+    #      -- is run bare, its status read from its own exit and never
+    #      through a pipe or an `&&` chain, both of which report the LAST
+    #      command's: Run 27 read `check-all | tail`'s exit 0 and had to
+    #      run it again. A READING -- `--block`, `--predictions`,
+    #      `--compare`, `--pair` -- carries no verdict in its status, so
+    #      it may be piped, redirected and grepped, and `2>/dev/null` is
+    #      legitimate on one whose warnings this session has already read
+    #      once. It is NOT legitimate on a gate, nor on a reading's first
+    #      call: the stderr a run wants is there -- the sunk-cell count,
+    #      the R2 and sample warnings, `--corr=insitu`'s notice that its
+    #      column compares to nothing in README -- and a session that
+    #      silences it by habit has bought its quiet with the one channel
+    #      that says a figure is not to be trusted
     #      a paragraph of runs/$R.md or README.md: nothing between
     #        edits, and `./read-run.py --check-doc --quiet` once the
     #        stretch ends -- seconds, and a paragraph left long is

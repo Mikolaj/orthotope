@@ -755,14 +755,22 @@ def health(cells, shapes, strategies, terms, corr='sumonly'):
         if sunk:
             n, sh, st = min(sunk)
             rows = sorted({r for _, _, r in sunk})
+            # THE ROWS AND NOT EVERY CELL. This line used to enumerate
+            # each sunk `shape/arm` between the worst cell and the row
+            # coverage, which is the same information a second time and
+            # is the bulk of it -- seventy pairs on Run 27's main set, on
+            # EVERY reader call, where the coverage below is what a
+            # reader acts on and `--cells` is where a cell lives. Cut
+            # 2026-09-08; the count, the worst cell and the coverage
+            # stay, so nothing here is quieter, only shorter.
             out.append('%d cell(s) whose forcing term is not smaller than the'
-                       ' cell itself, worst %s/%s, all of them %s -- the arm'
-                       ' removed the work there, so each reads `--` and %d'
-                       ' row(s) are geomeans over fewer shapes than the rest:'
-                       ' %s'
+                       ' cell itself, worst %s/%s -- the arm removed the work'
+                       ' there, so each reads `--` and %d row(s) are geomeans'
+                       ' over fewer shapes than the rest: %s. The cells'
+                       ' themselves are `--cells`, whose net column is'
+                       ' non-positive for these and for the `sum-only` and'
+                       ' `-nosum` controls this count exempts'
                        % (len(sunk), sh, st,
-                          ', '.join('%s/%s' % (q, r) for _, q, r in
-                                    sorted(sunk, key=lambda t: t[1:])),
                           len(rows),
                           ', '.join(
                               '%s over %d of %d' % (r, n, len(shapes)) if n
