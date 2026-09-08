@@ -2630,16 +2630,24 @@ and each on a real defect: five failure kinds the moment `runs/run27.md`
 existed, the ten `?` cells the install leaves, ten class paragraphs quoting
 the previous run's floors, an artifact path named in a file that outlives it,
 a lost class-process-count site, and an ANSWERED entry my own addition had
-pushed past 500 words. Not one needed a reading to find. **TWO COMPUTATIONS
-WERE IMPROVISED AND BOTH ARE CANDIDATES FOR TOOLING**: the within-half corrected
-instruction ratio for a pair, which no reader mode prints --- `--counts`
-compares two RUNS --- and which registrations (4), (13) and (14) all turn on;
-and the two correlations registration (5) asks for, a process's floor against
-the median A/A half-width beneath it and against its position in the evening.
-The first was proved non-vacuous before it was believed, by reproducing Run 26's
-three published ratios to four figures on this run's own counts files. **AND ONE
-SLIP OF THE PROCEDURE'S OWN, worth a line because a checker cannot see it**:
-post-run steps 6b, 6d and 7a each want a commit subject naming the step, which
+pushed past 500 words. Not one needed a reading to find. **ONE COMPUTATION
+WAS IMPROVISED AND ONE WAS IMPROVISED FOR NOTHING.** The one that earns
+its place is the pair of correlations registration (5) asks for, a process's
+floor against the median A/A half-width beneath it and against its position
+in the evening: no mode emits them and the item asks for them every time
+it is registered. **The other is a mode this file already records as TAKEN.**
+The within-half corrected instruction ratio for a pair --- which registrations
+(4), (13) and (14) all turn on --- was hand-rolled here from the counts files,
+and `--counts SWEEP.txt --pair A B` has printed it since 2026-09-05, as task 5
+above says in the words *it is a mode now*. Run against this run's own sweep
+it gives 0.8944, 0.8358, 0.8605, 0.9691 and 1.0878, every figure the hand
+computation produced, to the digit. **What went wrong is the reading**: `--help`
+describes `--counts` as *with --compare*, which is one of its two arities,
+and the modifier's own docstring and the task above both name the other.
+A one-line summary is not the mode list, and the standing instruction to read
+the reader's docstring by half is what would have caught it. **AND ONE SLIP
+OF THE PROCEDURE'S OWN, worth a line because a checker cannot see it**: post-run
+steps 6b, 6d and 7a each want a commit subject naming the step, which
 is the only record of which of them ran, and `run-status.sh` finds
 those subjects by first filtering `git log` to the ones NAMING THE RUN.
 This session's 6d and 7 subjects named the step and not the run, so the status
