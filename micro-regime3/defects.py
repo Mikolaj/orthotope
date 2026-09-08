@@ -7268,6 +7268,21 @@ RECORDS = [
          argv=['{tag}', '--brief-facts'],
          ok=V(exit=1, has=['THIS RUN ONLY facts', 'did NOT gate clean'])),
 
+    case('brief-facts-names-a-population-with-one-half', 'read-all.sh',
+         None,
+         'a population timed on one half was skipped, so the rows printed'
+         ' read as the populations there are',
+         # Runs 11 to 13 ran their classes on the basis alone. A row that
+         # is not there is not an absent figure, it is an absent
+         # population -- the silent narrowing this driver refuses in the
+         # paragraph about its own roster.
+         # The fixture is already that shape: it writes the basis half of
+         # each class and no control, which is why this needed no second
+         # one -- a first attempt removed a file that was never written.
+         plant=lambda t: synthetic_run(t, plateau=[['19.0'], ['19.1']]),
+         argv=['{tag}', '--brief-facts'],
+         ok=V(has=['one half only'])),
+
     case('brief-facts-says-when-there-is-no-plateau', 'read-all.sh', None,
          'CONTROL: with no `@@saturate` line in any log the plateau row'
          ' vanished, where every other absence here is a row',

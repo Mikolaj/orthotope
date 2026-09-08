@@ -445,12 +445,15 @@ second window"
     printf '  %-14s %s\n' 'plateau' \
       "no \`@@saturate\` line in these logs, so there is none to state"
   fi
+  # SORTED, because the row exists to be read against a paragraph: awk's
+  # hash order put `rev other` before `main basis` and left the reader
+  # hunting for each population in a line of twenty-two.
   printf '  %-14s %s\n' 'floors' \
     "$(printf '%s' "$FACTS" | awk -F'\t' -v b="$BASIS" \
         '{ split($1, t, "-"); half = t[1]; pop = substr($1, length(half) + 2)
            lab = (b == "") ? " " half : (half == b ? " basis" : " other")
-           f[pop lab] = $2 }
-         END { for (k in f) printf "%s %s%%; ", k, f[k] }')"
+           printf "%s%s %s%%\n", pop, lab, $2 }' \
+       | LC_ALL=C sort | tr '\n' ';' | sed 's/;/; /g')"
   printf '  %-14s %s\n' 'A/A past 5%' \
     "$(printf '%s' "$FACTS" | awk -F'\t' \
         '$3 ~ /worst cell/ { split($3, w, "worst cell "); split(w[2], v, "%")
@@ -461,7 +464,16 @@ second window"
                | sort -u); do
     a="$R-$BASIS-$pop.json"
     b=$(printf '%s\n' $FILES | grep -v -- "-$BASIS-" | grep -- "-$pop\.json")
-    [ -f "$a" ] && [ -n "$b" ] || continue
+    # ONE HALF IS A ROW. Runs 11 to 13 ran their classes on the basis
+    # alone, and a population skipped for want of a second half left no
+    # line at all -- a reader then reads the ten rows printed as the ten
+    # populations, which is the silent narrowing this driver refuses
+    # everywhere else.
+    if [ ! -f "$a" ] || [ -z "$b" ]; then
+      printf '    %-12s %s\n' "$pop" \
+        "one half only, so there is no cross-half figure to derive"
+      continue
+    fi
     printf '    %-12s %s\n' "$pop" \
       "$(./read-run.py "$a" --compare "$b" 2>/dev/null \
            | awk '$1 == "list" {
