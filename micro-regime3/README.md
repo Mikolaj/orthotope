@@ -340,12 +340,12 @@ so the difference this paragraph reads as a compiler's is the filtered sweep's
 own. A threshold read on one compiler is therefore not the other's,
 and a library taking this dispatch owes its own sweep; `dispRun` as it stood
 was cut to 9.12 and was a bracket's representative rather than a measurement;
-on 2026-09-02 it was re-cut to 2048 by the one-binary probe under task 9,
-on the dead-spot binary, inside a bracket one step wide, `runs-1024`
-to `runs-4096`. **And the two routes' thresholds are further apart than they
-were**: `canon-memcpy-r2` against `canon-vecdims` still crosses between `runs-3`
-and `runs-9`, which the fix does not touch, so what Run 21 recorded as one step
-of the class between them is now two.
+on 2026-09-02 it was re-cut to 2048 by the one-binary probe the tasks heading
+carried then, on the dead-spot binary, inside a bracket one step wide,
+`runs-1024` to `runs-4096`. **And the two routes' thresholds are further apart
+than they were**: `canon-memcpy-r2` against `canon-vecdims` still crosses
+between `runs-3` and `runs-9`, which the fix does not touch, so what Run 21
+recorded as one step of the class between them is now two.
 
 
 ## Contents
@@ -1194,14 +1194,47 @@ rather than a slot in the next run, observed again:
   binary, one process over the `runs` class with an arm per candidate threshold:
   the crossover sits between `runs-1024` and `runs-4096`, the 2048 arm
   is nowhere behind the better route past the process's span, and `dispRun`
-  is 2048.** Its figures were under the tasks heading until Run 25's write-up
-  cleared the spent items from it, and the account they belonged to
-  is this entry's, which is why it stays at length. **The three probe arms,
-  the dispatch with its threshold an argument, were removed on 2026-09-07
-  with the dispatch's retirement** ([dead ideas][dead]), a cut that will
-  not ship wanting no finer reading; Run 25's past-cache probe had read
-  the crossover moving with the working set by the letter and by at most a few
-  points.
+  is 2048.** **This entry is the only copy of both `dispRun` probes' accounts
+  --- the in-cache one and the past-cache one --- and the ruling is
+  that it stays at length for that reason and is never trimmed to a question.**
+  Its figures were under the tasks heading until Run 25's write-up cleared
+  the spent items from it, and the past-cache half arrived the same way
+  on 2026-09-08; a `dispRun` entry that carried only the question would leave
+  two probes' evenings on disk with nothing saying what they found, which
+  is the state a retirement of the tasks heading twice nearly produced.
+  **The three probe arms, the dispatch with its threshold an argument,
+  were removed on 2026-09-07 with the dispatch's retirement** ([dead
+  ideas][dead]), a cut that will not ship wanting no finer reading; Run 25's
+  past-cache probe had read the crossover moving with the working set
+  by the letter and by at most a few points. **That probe's account is here,
+  carried 2026-09-08 from the tasks heading when Run 26's spent items
+  were retired --- it said of itself that its account was nowhere else,
+  and it was right.** `probe-cache-build.sh` and `probe-cache-run.sh` time two
+  regime-2 views of 8 million elements, at runs of 96 and 4096, on a scratch
+  build with the cap raised, in one process. Registered 2026-09-03: the `runs`
+  order holds past the cache, the fill ahead at 96 and the slice route at 4096,
+  both routes slowing alike. **KILLED the same evening by the inversion
+  it named, and the inversion is small.** 14 benches in 81 seconds, self-test
+  green, `list` at 123.5 and 124.0 ms net on the two views, 14.7 ns an element
+  as in cache, so `list` is memory-bound at every size. At runs of 96 the order
+  holds and the margin with it: `lib-stage2` reads 0.5548 of `lib-stage1`,
+  the dispatch being the fill at 0.9999 of it and allocating the result alone
+  where the slice route allocates 28% more. **At runs of 4096 the order
+  inverts**: `lib-stage2` reads 0.9802 of `lib-stage1`, the fill two points
+  ahead where `runs-4096` in cache has the slice route five points ahead,
+  and `lib-stage2-disp`, on the slice route there by its allocation, reads
+  1.0227 of the fill and 1.0024 of `lib-stage1`. The process carries no A/A
+  pair, so the inversion is judged against the cells' own fit widths, 0.14
+  to 0.54%, which it clears, and against the `runs` class's floors as the runs
+  before it recorded them, 3 to 4.6%, which it does not --- Runs 25 to 27 have
+  since read that class's floor at 2.79%, 2.89% and 3.15%, which the inversion
+  still does not clear. **So `dispRun` is a function of the working set
+  by the letter and not in a way that costs**: past the cache the two routes tie
+  at 4096 within a floor, in cache the slice route leads by five, and a cut
+  at 2048 is wrong by at most a few points on either side of the cache. The cut
+  stood, and the dispatch was retired for its own reasons on 2026-09-07. What
+  the probe did NOT measure is [in the non-urgent TODO
+  list](#non-urgent-todo-list).
 
 - `OPEN` **The 0.7% bar that decides whether a pair's two columns may
   be subtracted is used everywhere and defined nowhere.** It is quoted some
@@ -2640,16 +2673,28 @@ in the evening: no mode emits them and the item asks for them every time
 it is registered. **The other is a mode this file already records as TAKEN.**
 The within-half corrected instruction ratio for a pair --- which registrations
 (4), (13) and (14) all turn on --- was hand-rolled here from the counts files,
-and `--counts SWEEP.txt --pair A B` has printed it since 2026-09-05, as task 5
-above says in the words *it is a mode now*. Run against this run's own sweep
-it gives 0.8944, 0.8358, 0.8605, 0.9691 and 1.0878, every figure the hand
-computation produced, to the digit. **What went wrong is the reading**: `--help`
-describes `--counts` as *with --compare*, which is one of its two arities,
-and the modifier's own docstring and the task above both name the other.
-A one-line summary is not the mode list, and the standing instruction to read
-the reader's docstring by half is what would have caught it. **AND ONE SLIP
-OF THE PROCEDURE'S OWN, worth a line because a checker cannot see it**: post-run
-steps 6b, 6d and 7a each want a commit subject naming the step, which
+and `--counts SWEEP.txt --pair A B` has printed it since 2026-09-05,
+as the retirement record above says, in the words the item itself used, *it
+is a mode now*. Run against this run's own sweep it gives 0.8944, 0.8358,
+0.8605, 0.9691 and 1.0878, every figure the hand computation produced,
+to the digit. **What went wrong is the reading**: `--help` describes `--counts`
+as *with --compare*, which is one of its two arities, and the modifier's own
+docstring and the task above both name the other. A one-line summary is
+not the mode list, and the standing instruction to read the reader's docstring
+by half is what would have caught it. **AND A HAZARD THE RETIREMENT EXPOSED,
+which no gate here can see**: the tasks heading is run-scoped and renumbers,
+so `task N` written into standing prose names a different item every run ---
+and by 2026-09-08 four such links pointed at items that had never been what they
+meant, while resolving. Retiring the six broke **twelve** references to them
+from standing prose --- seven `[task N][open]` links and five plain-prose
+mentions, naming tasks 1, 2, 5 and 6 --- and the five read as live where I first
+filed them as history. Every one now names its account instead of a number,
+and prose that must point at that heading points at the heading. **All twelve
+were found by a reader asking where one account had gone, not by a gate** ---
+`--lint` and `--check-doc` were green over every one of them, before the prune
+and after, and the first count written here was eight. **AND ONE SLIP
+OF THE PROCEDURE'S OWN, worth a line because a checker cannot see it either**:
+post-run steps 6b, 6d and 7a each want a commit subject naming the step, which
 is the only record of which of them ran, and `run-status.sh` finds
 those subjects by first filtering `git log` to the ones NAMING THE RUN.
 This session's 6d and 7 subjects named the step and not the run, so the status
@@ -2764,29 +2809,29 @@ and that claim 7's pinned shape set no longer exists, found by re-deriving
 the claim. All three are the reading, and all three are what post-run step 4's
 *match bases before reading any ratio* is for. **THE COMPUTATIONS IMPROVISED,
 three, and the reader owns two of them since 2026-09-05.** The WITHIN-HALF
-COUNTED WORK is task 5 above, is the one registration 7 turns on,
-and is `--counts SWEEP.txt --pair A B` now. The FASTEST CELL OF ANY POPULATION:
-a registration predicted one, and ranking net time per element across every view
-of every population is a sort no mode does, so it was written out ---
-and the prediction was refuted by it, sixth rather than first, which is the case
-for the mode rather than against it. And THE CROSS-RUN PIN, eight
-`--exclude-shape` flags naming the retired shapes, which turns Run 24's 26-shape
-column into one over this run's eighteen: Run 24's own write-up improvised
-the same thing with two flags and said so, which is two runs and the bar
-this file uses --- it is `--pin OTHER.json` since 2026-09-05, and on this run's
-artifacts the mode and the eight flags give byte-identical output. **A STEP
-SKIPPED: none**, and post-run step 0's naming half was spent by the preparation
-on an idle box the day before, which is where a paired run should keep it.
-**THE CAPABILITIES FOUND.** The machine half of this run cost TWO launches
-and two wake-ups: `run-evening.sh` drove the gate, the alarm, the four-hour
-sequence and the four rider invocations in one command with the session asleep,
-and `run-counts-all.sh` the twenty-two counted-work sweeps in a second, every
-stage's verdict appended as it landed and the machine handed back on the last
-line. Nothing between them was typed, nothing was waited on by a hand-rolled
-waiter, and the box was said to be free at the moment it was.
-And `--replace ANCHOR --with FILE` carried every prose edit of both documents
---- some forty paragraphs --- at one call each, with no line number surviving
-a turn and no exact-match string to rebuild after the previous edit.
+COUNTED WORK was that heading's item 5, retired 2026-09-08, is the one
+registration 7 turns on, and is `--counts SWEEP.txt --pair A B` now. The FASTEST
+CELL OF ANY POPULATION: a registration predicted one, and ranking net time per
+element across every view of every population is a sort no mode does, so
+it was written out --- and the prediction was refuted by it, sixth rather
+than first, which is the case for the mode rather than against it.
+And THE CROSS-RUN PIN, eight `--exclude-shape` flags naming the retired shapes,
+which turns Run 24's 26-shape column into one over this run's eighteen: Run 24's
+own write-up improvised the same thing with two flags and said so, which is two
+runs and the bar this file uses --- it is `--pin OTHER.json` since 2026-09-05,
+and on this run's artifacts the mode and the eight flags give byte-identical
+output. **A STEP SKIPPED: none**, and post-run step 0's naming half was spent
+by the preparation on an idle box the day before, which is where a paired run
+should keep it. **THE CAPABILITIES FOUND.** The machine half of this run cost
+TWO launches and two wake-ups: `run-evening.sh` drove the gate, the alarm,
+the four-hour sequence and the four rider invocations in one command
+with the session asleep, and `run-counts-all.sh` the twenty-two counted-work
+sweeps in a second, every stage's verdict appended as it landed and the machine
+handed back on the last line. Nothing between them was typed, nothing was waited
+on by a hand-rolled waiter, and the box was said to be free at the moment
+it was. And `--replace ANCHOR --with FILE` carried every prose edit of both
+documents --- some forty paragraphs --- at one call each, with no line number
+surviving a turn and no exact-match string to rebuild after the previous edit.
 
 **Run 26's six spent items are gone from this heading and here is where each
 went**, retired 2026-09-08 with Run 27's write-up, each one `ANSWERED`, and none
@@ -2794,26 +2839,35 @@ of them leaving its account behind --- which two of the six would have, their
 destinations having had to be written rather than merely followed. Item 1,
 the floor as an order statistic over the sampling, went to [the floor
 section][floor], which the item itself named, with the fall-down-the-sitting
-half to [the class-floor entry][open]. Item 2 went to TWO places. Its subject,
-the un-unrolled leaf's spill, to [the ceiling](#the-mutable-ceiling-taken)'s
-twenty-second reading, which it named; and the refuted shape it carried
-in passing --- `mut-odo-vecdims-add-in-leaf-u1-base`, the same fill
-with the source base taken once through a `Ptr`, at 0.9985 of `-u1`'s
-instructions --- to [dead ideas][dead], which is where a refuted design belongs
-and which the item named not at all. That one was caught by `--lint` refusing
-a roster arm named nowhere, in the same minute the item went. Item 3,
-the reversed innermost axis at twice its forward cost on identical instructions,
-to [the stride classes](#the-stride-classes-and-what-they-cover), where
-the class it is about is described and where its figures now sit --- it named
-no destination, and it is one of the TWO whose account had to be carried rather
-than merely dropped, the other being item 2's refuted shape above. Item 4,
-a registration's deferral target, is a change to `--lint` and its case is [in
-the open list][open]. Item 5 is a mode, `--counts SWEEP.txt --pair A B`,
-and `--help` documents both of that flag's arities now, which it did not when
-the item was written --- Run 27's write-up hand-rolled the computation a second
-time off that one-line summary. Item 6's verdicts are in Run 25's file
-and its `dispRun` cut in this one; the two things it says were NOT measured
-are carried to [the non-urgent TODO list](#non-urgent-todo-list), since
+half to [the class-floor entry][open]. Item 2 went to TWO places,
+and its subject was ALREADY in one of them --- which is what made the retirement
+look safe and is worth saying, because the account is split. The un-unrolled
+leaf's spill is read on the instruction side by [the
+ceiling](#the-mutable-ceiling-taken)'s TWENTY-FIRST reading, which carries
+the 6.00 and 4.50 instructions an element, and on the time side
+by its twenty-second, which is the one the item named; the item's own
+contribution was the pointer between them, so retiring it left two readings
+that each hold half an account and neither says so. They say so now. Its second
+place is the refuted shape it carried in passing ---
+`mut-odo-vecdims-add-in-leaf-u1-base`, the same fill with the source base taken
+once through a `Ptr`, at 0.9985 of `-u1`'s instructions --- to [dead
+ideas][dead], which is where a refuted design belongs and which the item named
+not at all. That one was caught by `--lint` refusing a roster arm named nowhere,
+in the same minute the item went. Item 3, the reversed innermost axis at twice
+its forward cost on identical instructions, to [the stride
+classes](#the-stride-classes-and-what-they-cover), where the class it is about
+is described and where its figures now sit --- it named no destination,
+and it is one of the TWO whose account had to be carried rather than merely
+dropped, the other being item 2's refuted shape above. Item 4, a registration's
+deferral target, is a change to `--lint` and its case is [in the open
+list][open]. Item 5 is a mode, `--counts SWEEP.txt --pair A B`, and `--help`
+documents both of that flag's arities now, which it did not when the item
+was written --- Run 27's write-up hand-rolled the computation a second time off
+that one-line summary. Item 6's verdicts are in Run 25's file and its `dispRun`
+cut in this one; **its past-cache probe's account, which the item said
+was nowhere else and which a name-based sweep for a home did not find,
+is carried whole to [the `dispRun` entry][open]**, and the two things that probe
+did NOT measure to [the non-urgent TODO list](#non-urgent-todo-list), since
 a ruling's unmeasured edges outlive the task that noticed them. **Run 24's nine
 spent items are gone from this heading too, and here is where each went**,
 the rule being that nothing spent stays under a heading naming a run
@@ -2828,8 +2882,13 @@ in the run chapter and in Run 24's own file; and *re-aim claim 1 at the family's
 leader* was answered by the prune of 2026-09-04, which retired claim 1 outright
 and registered claim 10 in its place --- [the
 claims](runs/run27.md#the-claims-the-next-run-should-test) carry both. The tenth
-item, Run 25's own additions, stays below as `ANSWERED` for the one thing
-in it no other document holds.
+item, Run 25's own additions, was that heading's item 6 until 2026-09-08
+and is retired above with the other five --- its one irreplaceable part,
+the past-cache probe's account, having gone to [the `dispRun` entry][open] where
+the rest of that probe's family already lives. It said of itself
+that its account was nowhere else, and the retirement nearly proved it:
+the first sweep for a home matched the IN-CACHE probe's entry and passed,
+and what caught it was reading this sentence.
 
 **Both of Run 17's items are spent, and this heading no longer carries them.**
 Its first --- which shapes poison --- was answered 2026-08-18 and its account
@@ -4813,47 +4872,48 @@ again here. **What would settle it**: the two arms timed against each other
 inside one spill-free binary over the `runs` class, which already sweeps run
 length from 2 to 65536. That is an arm-against-arm ratio in one process,
 so it READS such a build rather than adopting it as a regime, and it wants
-the same evening as the crossover [task 2][open] asks for. **TAKEN 2026-08-30
-by the twelfth reading below, and every prediction in this paragraph
+the same evening as the crossover [the `dispRun` entry][open] asks for. **TAKEN
+2026-08-30 by the twelfth reading below, and every prediction in this paragraph
 is REFUTED**: removing the spill left the ordering where it was,
 and the half-instruction this arithmetic rests on changed sign between two LLVM
 builds of one source, so what stands is the method's condition and
 not the arithmetic.
 
-**A seventh reading, 2026-08-29, is the dump [task 1][open] asked for,
-and the first term is a BOXING failure and not an inlining one.** `fillStage2`'s
-fill re-scrutinises the source vector on every iteration --- its STG reads
-`case v of Vector _ bx1 bx2 -> readDoubleOffAddr# [bx1 ...]` INSIDE the loop,
-where the shipped fill reads through an unboxed `Addr#` it holds as a free
-variable and scrutinises nothing. So per two elements the branch's fill pushes
-an eighty-eight-byte continuation frame and writes TEN live values into it,
-tag-tests that boxed vector and enters it if untagged, unpacks two
-of its fields, pops the frame and reloads all ten, and only then does the four
-`movsd` the elements need. **Fifty instructions and twenty-three stack accesses
-per two elements, against the shipped fill's eighteen and four.** Three such
-bodies sit in the function, at frame sizes 0x58, 0x60 and 0x68, so all three
-of its run sites carry one. **The counter and the dump agree without being
-fitted to each other**: 50 over 18 is 2.78 where the counted work read **2.776**
-on `rev`, which is what says the fill and not something around it is the term.
-**The second term is not settled by this and the dump does not guess at it** ---
-what it does supply is candidates that are present rather than hypothesised,
-twenty-three stack touches an iteration with a store-to-load chain across
-the frame on each of the ten saved values, and an indirect branch per two
-elements. Whether those account for the measured 1.16 to 1.67 of time
-over instructions wants a counter reading of stalls and mispredicts, not another
-dump. **And the repair already committed for this could not have worked,
-the pragmas having fired all along**: `a29748b` of 2026-08-29 marks
-`writeRunStep` and `writeRunSet` `INLINE`, and those two and `runsWith`
-are absent from Core and from STG alike, which is what an inlined helper looks
-like; a twin rebuilt from that source with the same recipe emits `fillStage2`
-BYTE-IDENTICAL to the pre-fix twin's --- different binaries by md5, their line
-tables shifted by the pragmas' own one and two lines, so the build read
-the change and the code did not move. **What would lift it is getting the vector
-unboxed out of the fill, and no further pragma of that kind can**, which
-is worth knowing before anyone spends a second attempt on one. The 2.4 to 4.5
-stood as measured when this was written and the arm was not mended; the eighth
-reading mended it the same day and the tenth measured the time, so what
-this paragraph says about the hold is spent and the entry says where it went.
+**A seventh reading, 2026-08-29, is the dump the tasks heading asked for
+at the time, and the first term is a BOXING failure and not an inlining one.**
+`fillStage2`'s fill re-scrutinises the source vector on every iteration ---
+its STG reads `case v of Vector _ bx1 bx2 -> readDoubleOffAddr# [bx1 ...]`
+INSIDE the loop, where the shipped fill reads through an unboxed `Addr#`
+it holds as a free variable and scrutinises nothing. So per two elements
+the branch's fill pushes an eighty-eight-byte continuation frame and writes TEN
+live values into it, tag-tests that boxed vector and enters it if untagged,
+unpacks two of its fields, pops the frame and reloads all ten, and only
+then does the four `movsd` the elements need. **Fifty instructions
+and twenty-three stack accesses per two elements, against the shipped fill's
+eighteen and four.** Three such bodies sit in the function, at frame sizes 0x58,
+0x60 and 0x68, so all three of its run sites carry one. **The counter
+and the dump agree without being fitted to each other**: 50 over 18 is 2.78
+where the counted work read **2.776** on `rev`, which is what says the fill
+and not something around it is the term. **The second term is not settled
+by this and the dump does not guess at it** --- what it does supply
+is candidates that are present rather than hypothesised, twenty-three stack
+touches an iteration with a store-to-load chain across the frame on each
+of the ten saved values, and an indirect branch per two elements. Whether
+those account for the measured 1.16 to 1.67 of time over instructions wants
+a counter reading of stalls and mispredicts, not another dump. **And the repair
+already committed for this could not have worked, the pragmas having fired all
+along**: `a29748b` of 2026-08-29 marks `writeRunStep` and `writeRunSet`
+`INLINE`, and those two and `runsWith` are absent from Core and from STG alike,
+which is what an inlined helper looks like; a twin rebuilt from that source
+with the same recipe emits `fillStage2` BYTE-IDENTICAL to the pre-fix twin's ---
+different binaries by md5, their line tables shifted by the pragmas' own one
+and two lines, so the build read the change and the code did not move. **What
+would lift it is getting the vector unboxed out of the fill, and no further
+pragma of that kind can**, which is worth knowing before anyone spends a second
+attempt on one. The 2.4 to 4.5 stood as measured when this was written
+and the arm was not mended; the eighth reading mended it the same day
+and the tenth measured the time, so what this paragraph says about the hold
+is spent and the entry says where it went.
 
 **An eighth reading, 2026-08-29, takes the fix the seventh named, and it is one
 bang an argument.** `genericFillStrided` and the `vFillStrided` default beside
@@ -4914,8 +4974,9 @@ two's favour and for a reason this reading does not name --- their loops never
 scrutinised the vector, so it is the `ao` and `l` bangs or the leaf's dispatch
 and not the fill. **What none of it settles is time**, the 2.4 to 4.5 being
 a time ratio and the second term untouched; and `runs` at 1.139 is the one
-population where stage two now costs MORE in instructions, which was [task
-2][open]'s to read. Both are read the next day, in the tenth reading
+population where stage two now costs MORE in instructions, which the un-unrolled
+leaf's spill task had to read, now [the ceiling](#the-mutable-ceiling-taken)'s
+twenty-second reading. Both are read the next day, in the tenth reading
 and the eleventh.
 
 **A tenth reading, 2026-08-30, is the TIME the ninth left, and it retires
@@ -4925,16 +4986,17 @@ slot; one criterion process per population at the default budget, under Run 21's
 own `WILDLOG=1 SATURATE=1`, since the saturating preamble is the block-pool
 state that run measured in. Ten processes, one a population, each at the bench
 count `--list` gives it and none complaining; a probe note carried
-the preparation until it went with Run 22's preparation on 2026-09-02, and task
-2's three processes are its own.) `lib-stage2` against `lib-stage1` now reads
-**0.9294 on `rev`, 1.0628 on `revsome`, 1.0811 on `slice`, 1.0087 on `scaled`,
-0.9005 on `window` and 0.7840 on the main set**, against the 4.0152, 4.5377,
-4.0984, 4.0765, 3.7237 and 2.4323 Run 21 read. Their populations' floors are 4.0
-to 7.4 percent on the worst A/A pair, so **`slice` is the one population still
-behind past its floor and it is behind by an eighth, where it was behind by four
-times**; every other regime-3 population is inside its floor or ahead of it.
-**About three of `slice`'s eight points turn out to be this benchmark's own
-assembler shim** and not the branch, which is [what moves
+the preparation until it went with Run 22's preparation on 2026-09-02,
+and that heading's own probe contributed three processes of its own.)
+`lib-stage2` against `lib-stage1` now reads **0.9294 on `rev`, 1.0628
+on `revsome`, 1.0811 on `slice`, 1.0087 on `scaled`, 0.9005 on `window`
+and 0.7840 on the main set**, against the 4.0152, 4.5377, 4.0984, 4.0765, 3.7237
+and 2.4323 Run 21 read. Their populations' floors are 4.0 to 7.4 percent
+on the worst A/A pair, so **`slice` is the one population still behind past
+its floor and it is behind by an eighth, where it was behind by four times**;
+every other regime-3 population is inside its floor or ahead of it. **About
+three of `slice`'s eight points turn out to be this benchmark's own assembler
+shim** and not the branch, which is [what moves
 a figure](#what-moves-a-figure-when-no-strategy-changed)'s to say, and the rest
 is the thirteenth reading's epilogue term, fixed by the fourteenth; both
 were taken after this reading, so the eight points are this run's and
@@ -5091,24 +5153,24 @@ with the reader's entry-region fix, on today's build: the same verdict on every
 arm still in the tree --- and it is the rank-1 copy's.** The smallest loop
 with a load is that copy; the run-level copy, which `perf` finds hot on a long
 run, reloads the source base from the C stack once an iteration in `-u1`, `-u2`
-and the leaf alike (`mov 0x40(%rsp)`, the spill task 2 prices), and the screen
-shows it only as the one to two `%rsp` accesses of the larger cycle that copy
-shares with its run loop. **Two spill and neither has anything to drop.** `list`
-is `VS.fromListN` over `toListT` and has no derived constant at all ---
-its fourteen stack touches are the recursion's closure traffic, not a spilled
-induction variable --- and it is besides the denominator every ratio here
-divides by, so changing it rebases every published figure, which Run 10 did once
-and this file treats as breaking comparability with every run. `bq-expand`'s
-loop keeps the innermost extent, the innermost stride and a base-offset table,
-and none of the three is derivable from another. **The pattern itself
-was in three arms and all three are fixed**, which a grep for the doubled stride
-confirms rather than the screen --- `fillStage2` first, then `-u2`
-and `-u2-down`; the grep behind this sentence ran when the first was already
-done and so found two, which is what it said until it was re-read. **What
-the screen cannot see, said because a silent search proves nothing**: it reads
-Main-compiled code only, so `gen-unsafe`, whose loop is inside `vector`'s
-`generate`, has no entry at all, and so would any arm that inlines its loop
-into a library function.
+and the leaf alike (`mov 0x40(%rsp)`, the spill the un-unrolled leaf's task
+priced), and the screen shows it only as the one to two `%rsp` accesses
+of the larger cycle that copy shares with its run loop. **Two spill and neither
+has anything to drop.** `list` is `VS.fromListN` over `toListT` and has
+no derived constant at all --- its fourteen stack touches are the recursion's
+closure traffic, not a spilled induction variable --- and it is besides
+the denominator every ratio here divides by, so changing it rebases every
+published figure, which Run 10 did once and this file treats as breaking
+comparability with every run. `bq-expand`'s loop keeps the innermost extent,
+the innermost stride and a base-offset table, and none of the three is derivable
+from another. **The pattern itself was in three arms and all three are fixed**,
+which a grep for the doubled stride confirms rather than the screen ---
+`fillStage2` first, then `-u2` and `-u2-down`; the grep behind this sentence ran
+when the first was already done and so found two, which is what it said until
+it was re-read. **What the screen cannot see, said because a silent search
+proves nothing**: it reads Main-compiled code only, so `gen-unsafe`, whose loop
+is inside `vector`'s `generate`, has no entry at all, and so would any arm
+that inlines its loop into a library function.
 
 **A seventeenth reading, 2026-08-30: the fifteenth's change frees a register
 in the two UNROLLED fills and in nothing else, so it re-opens an ordering three
@@ -5126,25 +5188,25 @@ the fifth, sixth and twelfth readings' verdicts actually live; what this one
 is worth keeping for is that it had both directions right and both magnitudes
 too large.
 
-**An eighteenth reading, 2026-08-30, answers [task 5][open] in TIME and refutes
-the twelfth's verdict for the code that now exists.** (A pair on one recipe ---
-Run 21's basis, the max-skip shim --- whose halves differ in sixteen lines
-confined to the two unrolled fills, rosters identical so no slot moves
-and `check` byte-identical between them; the `runs` class at criterion's default
-budget on each, 350 benches apiece, clean. The orderings below are IN-PROCESS,
-which is what an ordering question wants and what the cross-half comparison
-cannot give, for the reason the next paragraph is about.) **`-u2` against
-`-down` has inverted**: 1.1070 with the fill unchanged, 1 win of 7, and **0.8348
-with it changed, 7 of 7, sign p 0.016** --- so the shipped fill goes
-from a tenth behind to a sixth ahead, both readings far past the class's 3.5
-to 3.8 percent floor. **And `-u2` against `-u2-down` has become a tie**: 0.9243
-at 7 wins of 7 becomes **0.9981 at 2 of 7 and sign p 0.45**, inside the floor
-and indistinguishable. So [the ceiling][ceiling]'s twelfth reading --- `-u2`
-behind `-down` at every one of the seven lengths --- is refuted for the current
-fill, and the fifth's account of why `-u2-down` loses is spent with it.
-The counted work predicted both directions and overstated both magnitudes,
-0.7982 against a timed 0.8348 and 1.0139 against 0.9981, which is the second
-term doing what this class makes it do.
+**An eighteenth reading, 2026-08-30, answers in TIME what the tasks heading
+asked then, and refutes the twelfth's verdict for the code that now exists.**
+(A pair on one recipe --- Run 21's basis, the max-skip shim --- whose halves
+differ in sixteen lines confined to the two unrolled fills, rosters identical
+so no slot moves and `check` byte-identical between them; the `runs` class
+at criterion's default budget on each, 350 benches apiece, clean. The orderings
+below are IN-PROCESS, which is what an ordering question wants and what
+the cross-half comparison cannot give, for the reason the next paragraph
+is about.) **`-u2` against `-down` has inverted**: 1.1070 with the fill
+unchanged, 1 win of 7, and **0.8348 with it changed, 7 of 7, sign p 0.016** ---
+so the shipped fill goes from a tenth behind to a sixth ahead, both readings far
+past the class's 3.5 to 3.8 percent floor. **And `-u2` against `-u2-down` has
+become a tie**: 0.9243 at 7 wins of 7 becomes **0.9981 at 2 of 7 and sign p
+0.45**, inside the floor and indistinguishable. So [the ceiling][ceiling]'s
+twelfth reading --- `-u2` behind `-down` at every one of the seven lengths ---
+is refuted for the current fill, and the fifth's account of why `-u2-down` loses
+is spent with it. The counted work predicted both directions and overstated both
+magnitudes, 0.7982 against a timed 0.8348 and 1.0139 against 0.9981, which
+is the second term doing what this class makes it do.
 
 **And the pair carries one datum that is not about the fill at all, worth more
 than the ordering it confounds.** `-down` is not touched by the change:
@@ -5206,8 +5268,8 @@ of its 24.6% swing against `-down`, about thirteen points are the change
 and about fifteen are `-down` moving under it. The change is worth a tenth
 to a seventh, not a quarter; the within-half ordering it reports is true
 of the binaries measured; and an ordering read across two builds against an arm
-that moves 18% between them is not a durable one, which is what [task 5][open]
-now says.
+that moves 18% between them is not a durable one, which is what [the open
+list][open] now says.
 
 **A twentieth reading, 2026-09-05, reads the three leaf loops that RUN,
 under three allocators, and says what a spill fix can and cannot move.** (Hot
@@ -5259,9 +5321,9 @@ timed beside it so that Run 26 compares the two pointer forms in one process:
 nine instructions per two elements, no stack access, **0.8356** of `-u2`'s
 corrected instructions at 19 of 19 and 0.8604 of `-u1-ptr`'s at 18 of 19 ---
 4.50 an element on the long runs against 6.00. So once the spill is gone
-the unrolling is worth a quarter of the loop in instructions, which is what task
-2 could not separate under the allocator; whether it is worth that in time
-is Run 26's.
+the unrolling is worth a quarter of the loop in instructions, which is what
+the un-unrolled leaf's task could not separate under the allocator; whether
+it is worth that in time is the twenty-second reading's, below.
 
 **A twenty-second reading, Run 26, times the reload-free form instead
 of registering it --- and it moves the twentieth's prediction the other way
@@ -9066,7 +9128,7 @@ which is the trade it was built to make. **The two are told apart
 by a containment test on data the shim already has**, every (head, back-edge)
 pair being how it finds heads at all: skip a head whose own cycle `(H, J)`
 overlaps another `(a, b)` with `a < H < b < J`, and leave the nested case alone.
-**The dead-spot form, `LOOP_DEADSPOT=1` ([task 6][open]), keeps that test
+**The dead-spot form, `LOOP_DEADSPOT=1` ([the open list][open]), keeps that test
 and turns the skip into an order: the inner head of a rotated pair is placed
 and the outer yields, so on a dead-spot binary the fill's stepping loop sits
 at offset 0 and the loop the survey then reports straddling is the outer,
@@ -9080,10 +9142,10 @@ iteration. **Over this module's assembly that separates 840 nested heads
 from 331 overlapping ones, 28.2% of 1172** --- an exposure count from a static
 pass with instruction indices standing in for addresses, so a bound on how many
 heads could be affected and not a measurement of what they cost. What it would
-cost to find out is [task 6][open]. **Read out of the timed binary itself**,
-at the addresses sampling it put the instructions at rather than in a twin:
-on `slice-primes` the branch's fill and the shipped fill are the SAME CODE,
-sixteen real instructions and four stack accesses per two elements each,
+cost to find out is in [the open list][open]. **Read out of the timed binary
+itself**, at the addresses sampling it put the instructions at rather than
+in a twin: on `slice-primes` the branch's fill and the shipped fill are the SAME
+CODE, sixteen real instructions and four stack accesses per two elements each,
 and they differ by one nop, three against two, because one body ends a byte
 earlier before the pad. That is **one retired instruction per two elements**,
 and it closes the arithmetic with the epilogue term beside it: `slice-primes`
