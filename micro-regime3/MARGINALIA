@@ -631,3 +631,9 @@ equal-stride candidate and read small-patch-r5 at 8 where the tie-break's
 sort reads 16; the arm searches every order. Stage eight was first written
 over stage seven and rebased on stage six mid-turn, on request: every
 reordering one change over the same control.
+
+2026-09-09, later still. Five class views for Run 28: two channel-carrying
+windows, the first views with an untied axis between tied pairs, and a bcast
+repeat ladder at 8, 64 and 512 source elements over 1.8 million. The reader
+learned the channel list's size rule; the ladder needed nothing, mkBroadcast's
+rule already reading the listed shape.

@@ -940,12 +940,16 @@ rather than a slot in the next run, observed again:
   reorderings of the run, each one change over stage six, `libunord-stage7`
   the tie-break, `libunord-stage8` the longest chain and `libunord-stage9`
   the zero-stride axes outermost; and the four reducing consumers, `-sum` each.
-  43 timed arms over 19 main-set shapes, 817 benches, and the 52 class views
-  of ten classes unmoved. One change of code, the eight arms, each landing
-  beside stage five's and touching no arm timed before it. Two things are known
-  before the run and are the premise rather than predictions. A `check`-mode
-  comparison of 2026-09-09 read stage five's sorted canonical dims
-  and the sort-first form's equal on all 91 checked views, so the two arms
+  43 timed arms over 19 main-set shapes, 817 benches, and 57 class views of ten
+  classes, five of them new: `window-64x64-c16-k3` and `window-32x32-c64-k3`,
+  patch views with channels, the shape the tie-break exists for;
+  and `bcast-src8`, `bcast-src64` and `bcast-src512`, an 8-, 64- and 512-element
+  source each repeated to 1.8 million elements, the ladder on which stage nine's
+  repeated slice meets the fill. One change of code, the eight arms, each
+  landing beside stage five's and touching no arm timed before it. Two things
+  are known before the run and are the premise rather than predictions.
+  A `check`-mode comparison of 2026-09-09 read stage five's sorted canonical
+  dims and the sort-first form's equal on all 91 checked views, so the two arms
   differ from stage five in dispatch cost alone; the comparison was removed
   with its reading, `check` holding the arms to the reference as it holds every
   arm. And a filtered probe the same day on the HEAD build --- criterion means
@@ -983,7 +987,7 @@ rather than a slot in the next run, observed again:
   *The tie-break where it cannot fire, stage seven over stage six.* Stage seven
   puts the larger extent innermost on equal absolute strides, so the run
   is the longest unit-stride axis. Equal absolute strides alias, so the tie
-  exists only in a self-overlapping view: of the timed views the four unstrided
+  exists only in a self-overlapping view: of the timed views the six unstrided
   `window` views and `small-patch-r5`, item (5)'s, and no other. On `rev`,
   `bcast`, `bcastmid`, `scaled`, `runs`, `block` and `compose`, both halves:
   `predict: pair libunord-stage7 libunord-stage6 1.0`
@@ -995,21 +999,24 @@ rather than a slot in the next run, observed again:
   it fires.* On `window` the runs go from the kernel's width to the image's: 3
   to 222 on `-k3`, 7 to 122 on `-k7`, 9 to 56 on `-k1x9` and 5 to 24 on `-k5`,
   with `-s2` unmoved, its stride-2 axis unable to run, and `-d2` unmoved,
-  its long axis already alone at stride 1. Read against a two-parameter account
-  fitted on Run 27's HEAD half --- about a nanosecond an element and thirty
-  a run for the fill arm, two thirds of a nanosecond and fifteen
-  for the consumer, off `window-224x224-k3` and `-d2`, whose runs of 220
-  are the control --- stage seven over stage six reads about 0.10 on `-k3`, 0.25
-  on `-k7`, 0.4 on `-k1x9` and `-k5` and 1.0 on `-s2` and `-d2`, the consumers
-  about 0.13, 0.29, 0.40 and 0.32; against the vecdims fill, stage seven's
-  consumer ahead on `-k3`, `-k7` and `-k1x9` and near level on `-k5`. As class
-  spans on `window`, both halves:
-  `predict: pair libunord-stage7 libunord-stage6 0.4 within 15%`
-  and `predict: pair libunord-stage7-sum libunord-stage6-sum 0.4 within 15%`,
+  its long axis already alone at stride 1; the two channel views added
+  for this run, `window-64x64-c16-k3` and `window-32x32-c64-k3`, go from 3 to 62
+  and from 3 to 30, the channel axis standing untied between the tied pairs.
+  Read against a two-parameter account fitted on Run 27's HEAD half --- about
+  a nanosecond an element and thirty a run for the fill arm, two thirds
+  of a nanosecond and fifteen for the consumer, off `window-224x224-k3`
+  and `-d2`, whose runs of 220 are the control --- stage seven over stage six
+  reads about 0.10 on `-k3`, 0.25 on `-k7`, 0.4 on `-k1x9` and `-k5` and 1.0
+  on `-s2` and `-d2`, the consumers about 0.13, 0.29, 0.40 and 0.32, and
+  on the channel views about 0.13 and 0.18, the consumers 0.16 and 0.20; against
+  the vecdims fill, stage seven's consumer ahead on `-k3`, `-k7` and `-k1x9`
+  and near level on `-k5`. As class spans on `window`, both halves:
+  `predict: pair libunord-stage7 libunord-stage6 0.3 within 15%`
+  and `predict: pair libunord-stage7-sum libunord-stage6-sum 0.3 within 15%`,
   printing a figure and no verdict elsewhere. `small-patch-r5`, runs of 16 for 8
   on a 256-element view, is read by hand: stage seven ahead past the floor.
   Killed by stage seven not ahead of stage six past the floor on both halves
-  on any of the four unstrided views, which would say the per-run cost
+  on any of the six unstrided views, which would say the per-run cost
   is not what the dilated control read; by stage seven off stage six past
   the floor on both halves on `-s2` or `-d2`, where the route is unchanged;
   or by stage seven behind stage six on `small-patch-r5` on both halves. (6)
@@ -1042,20 +1049,40 @@ rather than a slot in the next run, observed again:
   and `predict: pair libunord-stage9-sum libunord-stage6-sum 1.0`, the main set
   and `flip` read raw by hand. Where a zero stride exists the reading is per
   view, by hand, against item (5)'s account: stage nine ahead where the repeated
-  slice is long --- the three `bcast` views, 6400 elements eight times, 2000
-  elements 900 times and 900000 twice; the `bcastmid` views, a dense block
-  repeated; `compose-rev-bcast` and `compose-slice-bcast`, 6400 elements eight
-  times --- the consumer skipping the result's write and the fill arm
-  concatenating slices where the fill wrote runs of eight; behind
-  on `small-bcast32`, 32 runs of eight; `compose-zero-mid`, 20000 runs of 90,
-  with no prediction, the account putting the consumer near 0.9 and the fill arm
-  above 1; `compose-scalar` unchanged, every stride 0. Killed by stage nine
-  behind stage six past the floor on both halves on `bcast-inner8`
-  or `compose-slice-bcast`, which would say a slice of thousands repeated loses
-  to the fill even there; or by stage nine off stage six past the floor on both
-  halves on any population with no zero stride. Read beside it off
-  the allocation column: stage nine's consumer at 0.00x on every zero-stride
-  view where stage six's reads 1.00x, the repeated slice being the source's.
+  slice is long --- the three older `bcast` views, 6400 elements eight times,
+  2000 elements 900 times and 900000 twice; `bcastmid-c32-cnn`,
+  `bcastmid-primes` and `bcastmid-block150k`, the whole source as one slice
+  of 5184, 2813 and 450000 elements repeated 32, 89 and 4 times, the sort having
+  merged the transposed block with what stands outside the zero-stride axis;
+  `compose-rev-bcast` and `compose-slice-bcast`, 6400 elements eight times ---
+  the consumer skipping the result's write and the fill arm concatenating slices
+  where the fill wrote runs of eight; behind on `small-bcast32`, 32 runs
+  of eight, and on `bcastmid-b200k`, a 9-element block repeated 200000 times,
+  which is the ladder's bottom rung at the other end of the class;
+  `compose-zero-mid`, 20000 runs of 90, with no prediction, the account putting
+  the consumer near 0.9 and the fill arm above 1; `compose-scalar` unchanged,
+  every stride 0. The `bcast` repeat ladder added for this run, `bcast-src8`,
+  `bcast-src64` and `bcast-src512`, the same 1.8 million elements as 8 elements
+  225000 times, 64 elements 28125 times and 512 elements 3515 times, is where
+  the repeated slice meets the fill: by the account, stage nine's consumer
+  behind stage six's at 8 and ahead at 64 and 512, the fill arm behind at 8
+  and near level at 512, and the rung the crossover falls between
+  is the reading. Killed by stage nine ahead of stage six past the floor on both
+  halves on `bcast-src8`, which would say the per-run cost the window views
+  price is absent here; by stage nine behind stage six past the floor on both
+  halves on `bcast-inner8` or `compose-slice-bcast`, which would say a slice
+  of thousands repeated loses to the fill even there; or by stage nine off stage
+  six past the floor on both halves on any population with no zero stride. Read
+  beside it off the allocation column: stage nine's consumer allocates no result
+  but does allocate the list, about 150 to 180 bytes a run by Run 27's `window`
+  cells, so against stage six's 1.00x it reads near 0.00x where the slice
+  is long --- the three older `bcast` views, the three `bcastmid` views named
+  above, the two `compose` broadcasts --- about 0.3x on `bcast-src64` and 0.2x
+  on `compose-zero-mid`, and ABOVE 1.00x where the slice is short, about 2.2x
+  on `bcastmid-b200k` and 2.5x on `bcast-src8` and `small-bcast32`, twenty
+  elements a slice being where the list's bytes meet the result's; a short-slice
+  view reading under 1.00x would say the per-run allocation is not what
+  the window views read.
 - `ANSWERED` **What Run 27 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
   verdicts are [in Run 27's own
@@ -11329,39 +11356,42 @@ tables and its fingerprint say so.
   EIGHT: `libunord-stage6` to `libunord-stage9` and their four consumers
   were added 2026-09-09, after Run 27, so every slot below `libunord-stage5` has
   moved by four and every slot below `libunord-stage5-sum` by eight,
-  and a figure read across that boundary carries a roster term. **Its delta
-  against RUN 26** is the commits of 2026-09-06 and 2026-09-07: the four arms
-  Run 26 lifted out of parking put back, the `:: Ptr Double` annotation on every
-  bang-bound `plusPtr` result in the three pointer arms, which is the GHC #27778
-  workaround and changes no 9.12 code ([the open list][open]), and then ten arms
-  landing --- `libunord-stage4` and `libunord-stage5`, the four `-sum` reducing
-  consumers, `liblist-stage3` and `liblist-stage4`,
-  `mut-odo-vecdims-add-in-leaf-u2-last` and `lib-stage2-lean-u1` ---
-  with `check`'s laziness gate beside them and `lib-stage2-disp` retired
-  that evening, ten in and five out and five net, no shape and no class view
-  moving either way. `bb6d113`, the tip both halves were built from,
-  is that gate's byte count moved behind its failure branch, which is what makes
-  a compiler pair's two `check` outputs byte-identical again; `a990b2f`, which
-  the driver stamped, landed after the build. So NEITHER half reproduces
-  an earlier binary and no md5 here matches one on record; a distance from Run
-  26's published column carries a roster term of ten arms, **and the nineteen
-  main-set shapes are unmoved between the two runs, so a cross-run figure
-  is over all nineteen**. What a reader has to carry is which half a figure came
-  from: everything published in its file is `run27-g912`, ghc-9.12.4,
-  and `run27-ghead` --- the same source, shim and shim environment built through
-  `cabal.project.ghead` against the in-tree GHC HEAD stage1, unmoved since Run
-  24, so the halves differ in the compiler and in the boot libraries that come
-  with it and in nothing else --- contributes the second column
-  of `runs/run27.md`. Its `list` moved 0.33% between the halves, INSIDE the 0.7%
-  bar, so its two columns may be subtracted, which no run since Run 24 could
-  say. **The box DID move, and a BIOS change is why**, confirmed
-  by the machine's owner after the run: its gate machine check read -3.66%
-  on `list`'s net against Run 26's fingerprint, over all 19 shapes, three
-  of them past 5% and every one moving together, so no absolute of its crosses
-  to Run 26 unadjusted and its cross-run column is read through `--bridge`.
-  **Run 27 therefore opens a third machine era**, as the BIOS change before Run
-  18 opened the second. Its sequence ran in one window and its `runs` class
-  in a second: two intrusions by the instrument's own bar, one bench
+  and a figure read across that boundary carries a roster term.
+  And `window-64x64-c16-k3`, `window-32x32-c64-k3`, `bcast-src8`, `bcast-src64`
+  and `bcast-src512` were added 2026-09-09, after the run, two patch views
+  with channels in `window` and a repeat ladder in `bcast`, so its class views
+  are TODAY's LESS FIVE. **Its delta against RUN 26** is the commits
+  of 2026-09-06 and 2026-09-07: the four arms Run 26 lifted out of parking put
+  back, the `:: Ptr Double` annotation on every bang-bound `plusPtr` result
+  in the three pointer arms, which is the GHC #27778 workaround and changes
+  no 9.12 code ([the open list][open]), and then ten arms landing ---
+  `libunord-stage4` and `libunord-stage5`, the four `-sum` reducing consumers,
+  `liblist-stage3` and `liblist-stage4`, `mut-odo-vecdims-add-in-leaf-u2-last`
+  and `lib-stage2-lean-u1` --- with `check`'s laziness gate beside them
+  and `lib-stage2-disp` retired that evening, ten in and five out and five net,
+  no shape and no class view moving either way. `bb6d113`, the tip both halves
+  were built from, is that gate's byte count moved behind its failure branch,
+  which is what makes a compiler pair's two `check` outputs byte-identical
+  again; `a990b2f`, which the driver stamped, landed after the build. So NEITHER
+  half reproduces an earlier binary and no md5 here matches one on record;
+  a distance from Run 26's published column carries a roster term of ten arms,
+  **and the nineteen main-set shapes are unmoved between the two runs,
+  so a cross-run figure is over all nineteen**. What a reader has to carry
+  is which half a figure came from: everything published in its file
+  is `run27-g912`, ghc-9.12.4, and `run27-ghead` --- the same source, shim
+  and shim environment built through `cabal.project.ghead` against the in-tree
+  GHC HEAD stage1, unmoved since Run 24, so the halves differ in the compiler
+  and in the boot libraries that come with it and in nothing else ---
+  contributes the second column of `runs/run27.md`. Its `list` moved 0.33%
+  between the halves, INSIDE the 0.7% bar, so its two columns may be subtracted,
+  which no run since Run 24 could say. **The box DID move, and a BIOS change
+  is why**, confirmed by the machine's owner after the run: its gate machine
+  check read -3.66% on `list`'s net against Run 26's fingerprint, over all 19
+  shapes, three of them past 5% and every one moving together, so no absolute
+  of its crosses to Run 26 unadjusted and its cross-run column is read through
+  `--bridge`. **Run 27 therefore opens a third machine era**, as the BIOS change
+  before Run 18 opened the second. Its sequence ran in one window and its `runs`
+  class in a second: two intrusions by the instrument's own bar, one bench
   of its basis main set at 0.28 of a core and left as it stands, and four
   consecutive benches of `runs-512` on its HEAD half at 0.9 to 1.0, at about
   06:38 by the log's own clock and three minutes from where

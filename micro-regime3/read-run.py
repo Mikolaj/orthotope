@@ -327,7 +327,8 @@ def dims_by_shape(main_hs):
     'mkBroadcast' and 'mkScaled' keep the listed shape, so sInner is the
     last; 'mkBroadcastMid' inserts a stretch factor b, so l = b * product;
     'mkReshape1' appends a size-1 dim; 'mkWindow' lists image and kernel,
-    the view being neither. In every case m = l / sInner is the run count
+    the view being neither, and 'mkWindowChannels' image, channels and
+    kernel. In every case m = l / sInner is the run count
     -- the size of the base-offsets table every strategy here builds.
 
     These readings are this script's one unverifiable assumption -- no
@@ -364,6 +365,13 @@ def dims_by_shape(main_hs):
         out_h, out_w = (h - span(kh)) // s + 1, (w - span(kw)) // s + 1
         return out_h * out_w * kh * kw, kh
 
+    # image, channels and kernel, as mkWindowChannels reads them since
+    # 2026-09-09: unstrided and undilated, the channel axis between the
+    # output positions and the kernel
+    def window_channels(ds, _):
+        h, w, c, kh, kw = ds[:5]
+        return (h - kh + 1) * (w - kw + 1) * c * kh * kw, kh
+
     # the run is everything under the outer dim, merged or not
     def runs(ds, _):
         return math.prod(ds), math.prod(ds[1:])
@@ -387,6 +395,7 @@ def dims_by_shape(main_hs):
         # a reader older than the rule never meets a six-entry row.
         ('windowStridedShapes',
          r'(?P<dims>\[[^\]]*\],\s*\(\d+,\s*\d+\))', window),
+        ('windowChannelShapes', sh_re, window_channels),
         ('scaledViews', sh_re + r',\s*Strides\s*\[[^\]]*\]', listed),
         ('runsShapes', sh_re, runs),
         # The four classes of 2026-09-03: each lists the view shape

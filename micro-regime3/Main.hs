@@ -4155,8 +4155,9 @@ fbLibUnordStage6 sh a = either id VS.concat (routeUnord6 sh a)
 -- shortest. Equal absolute strides alias -- one step along either axis
 -- reads the same element -- so the tie exists only in a self-overlapping
 -- view and the change reaches nothing injective: of the timed views it
--- moves the four unstrided 'window' views, from runs of the kernel's
--- width to runs of the image's, and 'small-patch-r5', runs of 16 for 8.
+-- moves the six unstrided 'window' views, the two with channels among
+-- them, from runs of the kernel's width to runs of the image's, and
+-- 'small-patch-r5', runs of 16 for 8.
 -- One change over 'routeUnord6' per population. Added 2026-09-09 for
 -- Run 28.
 routeUnord7 :: ShapeL -> T -> Either (VS.Vector Double) [VS.Vector Double]
@@ -4682,6 +4683,20 @@ mkWindow [h, w, kh, kw, s, d] =
 mkWindow sh = error ("mkWindow: [h, w, kh, kw] or [h, w, kh, kw, s, d]"
                      ++ " expected: " ++ show sh)
 
+-- 'mkWindow' over a channels-first image: the same [oh, ow, kw, kh]
+-- order with the channel axis inserted after the output positions, at
+-- the stride of a whole image plane, so the class's row-multiples
+-- condition holds of its first and last strides as it does of
+-- 'mkWindow''s. Unstrided and undilated; added 2026-09-09.
+mkWindowChannels :: ShapeL -> (ShapeL, T)
+mkWindowChannels [h, w, c, kh, kw] =
+  let v = VS.enumFromN (0 :: Double) (c * h * w)
+      sh = [h - kh + 1, w - kw + 1, c, kw, kh]
+      strides = Strides [w, 1, h * w, 1, w]
+  in  (sh, T strides 0 v)
+mkWindowChannels sh =
+  error ("mkWindowChannels: [h, w, c, kh, kw] expected: " ++ show sh)
+
 -- Regime-3 view with NO unit stride anywhere, as @stride@ composed over
 -- @window@ and @slice@ reaches -- or as a hand-built T, the constructors
 -- being exported: explicit strides over the tightest backing they span.
@@ -4986,6 +5001,16 @@ broadcastShapes =
   [ ("bcast-inner8",   [64, 100, 8])    -- 51200, over a 6400-elem source
   , ("bcast-inner900", [50, 40, 900])   -- 1800000, long runs, tiny source
   , ("bcast-tall-Mx2", [900000, 2])     -- 1800000, 900k-run table, all hits
+    -- The repeat ladder, added 2026-09-09 for Run 28: one source length
+    -- per rung, broadcast to the same 1.8 million elements, so what
+    -- varies is how long the slice stage nine repeats and how many
+    -- times -- 8 elements 225000 times up to 512 elements 3515 times --
+    -- against a fill whose runs are the repeat count long. The two views
+    -- above bracket it at 2000 and 900000 elements; this is where the
+    -- repeated slice meets the fill.
+  , ("bcast-src8",     [8, 225000])     -- 1800000, an 8-element source
+  , ("bcast-src64",    [64, 28125])     -- 1800000, a 64-element source
+  , ("bcast-src512",   [512, 3515])     -- 1799680, a 512-element source
   ]
 
 -- The stretch factor beside the dense shape whose middle axis broadcasts.
@@ -5078,6 +5103,24 @@ windowStridedShapes :: [(String, ShapeL, (Int, Int))]
 windowStridedShapes =
   [ ("window-224x224-k3-s2", [224, 224, 3, 3], (2, 1))  -- 110889, stride 2
   , ("window-224x224-k3-d2", [224, 224, 3, 3], (1, 2))  -- 435600, dilated by 2
+  ]
+
+-- A patch view with channels, added 2026-09-09 for Run 28: the
+-- convolution's own input, an image of @c@ channels windowed by a
+-- @kh x kw@ kernel, [oh, ow, c, kw, kh] over a channels-first image.
+-- The two unit-stride axes tie as in every unstrided window, and the
+-- channel axis sits between the tied pairs at stride @h * w@, which is
+-- the shape the tie-break was written for and the one view where a
+-- third, untied axis stands between the tied ones: stages seven and
+-- eight read runs of the image's width here, 62 and 30, where stage six
+-- reads the kernel's, 3. Listed as [h, w, c, kh, kw]: image, channels
+-- and kernel, not the view shape. Two channel counts at one image size
+-- in elements, so the channel stride and the run length vary together
+-- and the view's size does not.
+windowChannelShapes :: [(String, ShapeL)]
+windowChannelShapes =
+  [ ("window-64x64-c16-k3", [64, 64, 16, 3, 3])  -- 553536, over 65536
+  , ("window-32x32-c64-k3", [32, 32, 64, 3, 3])  -- 518400, over 65536
   ]
 
 -- Views, not shapes like its siblings: explicit strides beside the shape,
@@ -5227,6 +5270,7 @@ classViews =
   ++ [(n, mkSliced s) | (n, s) <- slicedShapes]
   ++ [(n, mkWindow s) | (n, s) <- windowShapes]
   ++ [(n, mkWindow (s ++ [st, d])) | (n, s, (st, d)) <- windowStridedShapes]
+  ++ [(n, mkWindowChannels s) | (n, s) <- windowChannelShapes]
   ++ [(n, mkScaled s sts) | (n, s, sts) <- scaledViews]
   ++ [(n, mkRuns s) | (n, s) <- runsShapes]
   ++ [(n, mkFlip rs s) | (n, rs, s) <- flipShapes]
@@ -6360,6 +6404,7 @@ check = do
   mapM_ oneSliced slicedShapes
   mapM_ oneWindow windowShapes
   mapM_ (\(n, s, (st, d)) -> oneWindow (n, s ++ [st, d])) windowStridedShapes
+  mapM_ oneWindowChannels windowChannelShapes
   mapM_ oneScaled scaledViews
   mapM_ oneRuns runsShapes
   mapM_ oneFlip flipShapes
@@ -6518,6 +6563,18 @@ check = do
     oneWindow (name, hwkk) =
       let (sh, a@(T (Strides ats) _ v)) = mkWindow hwkk
           w = hwkk !! 1
+          rowMultiples = case ats of
+            t : _ -> t `mod` w == 0 && last ats `mod` w == 0
+            []    -> False
+      in  oneView name sh a
+            [ ("aliasing",      VS.length v < product sh)
+            , ("row-multiples", rowMultiples) ]
+    -- The same two conditions of a channel view, whose builder reads
+    -- [h, w, c, kh, kw]; the channel stride is a multiple of the width
+    -- too, but the condition reads the first and last strides as above.
+    oneWindowChannels (name, hwckk) =
+      let (sh, a@(T (Strides ats) _ v)) = mkWindowChannels hwckk
+          w = hwckk !! 1
           rowMultiples = case ats of
             t : _ -> t `mod` w == 0 && last ats `mod` w == 0
             []    -> False
