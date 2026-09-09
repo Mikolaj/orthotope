@@ -637,3 +637,25 @@ windows, the first views with an untied axis between tied pairs, and a bcast
 repeat ladder at 8, 64 and 512 source elements over 1.8 million. The reader
 learned the channel list's size rule; the ladder needed nothing, mkBroadcast's
 rule already reading the listed shape.
+
+2026-09-09, night. The fusion probe: four arms, nothing fused, every
+consumer at 145 or 161 bytes a run whatever its form. An isolated module of
+the same shapes fused at once, so the real Core was dumped, and there the
+fold had been floated to the top level away from the build. Second cut, two
+shapes that keep them together: 104 bytes and 14 ns a run. A loop with no
+list: none and 10 ns. Then the sweep over every class and the main set at
+three seconds a bench, an hour, and the overhaul: lazyRuns in build form,
+the routes' Either gone, the consumers folds, one loop arm kept. The first
+overhaul script dropped the loop arm's Fill function while keeping its row,
+caught by the next build; the first attempt asserted sumParts gone while a
+comment two thousand lines away still named it, and wrote nothing.
+Then the inlined copies: stage nine's consumer half again slower than stage
+six's on the same loop, stage eight's a sixth, both 8 bytes a run over; the
+Core of the two loops identical line for line. Dispatch made a value, the
+loop compiled once and shared: every stage 88 bytes and the same time, and
+the Fill arms' build-form penalty gone with it. Three rewrites of one file
+in one night, each measured before the next.
+Later: a strict application in the fused fold, to kill the thunk, unfused
+it instead, 145 bytes a run again; reverted. Routes seven to nine
+rewritten to differ from six by one line each, on request. HEAD's Core of
+the shipped loop read: the same thunk, box and partial application.

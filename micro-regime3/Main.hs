@@ -4029,21 +4029,81 @@ fbLibUnordStage3 sh (T (Strides ats) ao v)
 -- The lazy odometer list, shared by every lazy candidate here: one slice
 -- per run, in address or logical order over the outer levels, produced
 -- on demand in continuation-passing form, so a consumer that folds it
--- pays one cons cell and one slice header per run and holds no more of
--- it than it has reached -- master's 'toVectorListT' laziness in regime
--- 2, without its per-level list comprehension and 'concat'. The run's
--- extent is the innermost level's; each outer level steps the base
--- offset by its stride, negative and zero strides included. Added
--- 2026-09-07 with the ruling that the list stays lazy
--- (README.md#dead-ideas).
+-- holds no more of it than it has reached -- master's 'toVectorListT'
+-- laziness in regime 2, without its per-level list comprehension and
+-- 'concat'. The run's extent is the innermost level's; each outer level
+-- steps the base offset by its stride, negative and zero strides
+-- included. Added 2026-09-07 with the ruling that the list stays lazy
+-- (README.md#dead-ideas). In 'build' form since 2026-09-09, so that a
+-- foldr-shaped consumer applied where the list is produced fuses with
+-- it -- the cons cell and the slice header go, a thunk, a boxed
+-- accumulator and one partial application per run stay -- which the
+-- fusion probe of that day read as 88 bytes and 14 ns a run against 145
+-- and 19 (README.md#what-is-open). The fold has to sit on the list
+-- expression itself: applied to a case-bound variable, or partially
+-- applied and floated to the top level, it never meets the 'build'. A
+-- consumer that cannot fuse, 'VS.concat' under the Fill arms, pays the
+-- form nothing once compiled once ('concatLazyRuns'); inlined beside it
+-- the probe read 16 bytes a run more.
 lazyRuns :: ShapeL -> [Int] -> Int -> VS.Vector Double -> [VS.Vector Double]
-lazyRuns ssh sats !start v = go (init ssh) (init sats) start []
-  where
-    !n = last ssh
-    go [] [] !o rest = VS.slice o n v : rest
-    go (d : ds) (s : ss) !o rest =
-      foldr (\i r -> go ds ss (o + i * s) r) rest [0 .. d - 1]
-    go _ _ _ _ = error "lazyRuns: impossible"
+lazyRuns ssh sats !start v = build $ \cons nil ->
+  let !n = last ssh
+      go [] [] !o rest = cons (VS.slice o n v) rest
+      go (d : ds) (s : ss) !o rest =
+        foldr (\i r -> go ds ss (o + i * s) r) rest [0 .. d - 1]
+      go _ _ _ _ = error "lazyRuns: impossible"
+  in  go (init ssh) (init sats) start nil
+{-# INLINE lazyRuns #-}
+
+-- A lazy stage's dispatch as a value: one slice, the runs 'lazyRuns'
+-- will walk, or one fill. Three readers share it -- the list, for the
+-- laziness gate and as the library-shaped function; the Fill arm, which
+-- hands a slice or a fill back as master's 'toVectorT' does and
+-- concatenates only runs, vector's 'concat' copying a singleton too;
+-- and the sum consumer, whose fused run loop is compiled ONCE as
+-- 'sumLazyRuns' and reached by every stage through its route. That
+-- last is why the dispatch is data rather than the list itself: the
+-- fusion probe's overhaul first inlined each stage's list function
+-- into its consumer, and two of six copies of the identical loop came
+-- out 8 bytes and several ns a run dearer than the others -- the
+-- per-copy code generation the ceiling readings know -- which a pair
+-- of stages would have read as a design's cost. One loop, one code;
+-- the pair prices the dispatch alone.
+data Route = RBlock !Int !Int          -- start and length of one slice
+           | RRuns ShapeL [Int] !Int   -- sorted canonical dims, run start
+           | RFill ShapeL [Int] !Int !Int  -- dims, start, length
+
+listRoute :: Route -> VS.Vector Double -> [VS.Vector Double]
+listRoute (RBlock o l) v = [VS.slice o l v]
+listRoute (RRuns ssh sats o) v = lazyRuns ssh sats o v
+listRoute (RFill ssh sats o l) v = [fillStage2 ssh sats o l v]
+
+fillRoute :: Route -> VS.Vector Double -> VS.Vector Double
+fillRoute (RBlock o l) v = VS.slice o l v
+fillRoute (RRuns ssh sats o) v = concatLazyRuns ssh sats o v
+fillRoute (RFill ssh sats o l) v = fillStage2 ssh sats o l v
+
+sumRoute :: Route -> VS.Vector Double -> Double
+sumRoute (RBlock o l) v = VS.sum (VS.slice o l v)
+sumRoute (RRuns ssh sats o) v = sumLazyRuns ssh sats o v
+sumRoute (RFill ssh sats o l) v = VS.sum (fillStage2 ssh sats o l v)
+
+-- The fold on the list expression itself, where it fuses with the
+-- 'build'; compiled once and never inlined, so every stage runs it.
+-- 'foldl'' and not a hand-written 'foldr' with a strict application:
+-- the latter read 145 bytes a run on 9.12.4, the unfused figure, where
+-- this reads 88 (2026-09-09).
+{-# NOINLINE sumLazyRuns #-}
+sumLazyRuns :: ShapeL -> [Int] -> Int -> VS.Vector Double -> Double
+sumLazyRuns ssh sats !o v =
+  foldl' (\ !acc p -> acc + VS.sum p) 0 (lazyRuns ssh sats o v)
+
+-- 'VS.concat' is no good consumer, so this materializes the list; once
+-- for the same reason.
+{-# NOINLINE concatLazyRuns #-}
+concatLazyRuns :: ShapeL -> [Int] -> Int -> VS.Vector Double
+               -> VS.Vector Double
+concatLazyRuns ssh sats !o v = VS.concat (lazyRuns ssh sats o v)
 
 -- Stage four, the unordered list kept lazy up to the exception and read
 -- in address order: 'fbLibUnordStage2''s one-block test on the sorted
@@ -4054,36 +4114,33 @@ lazyRuns ssh sats !start v = go (init ssh) (init sats) start []
 -- the sort, the exception's own case: a reversed axis is walked forward
 -- and a transposed block's stride-1 axis becomes the run -- a transposed
 -- dense array, which every main-set view is, being one block to the
--- test and one slice here. The route is one value, 'Left' a single
--- vector -- the slice, or the fill -- and 'Right' the runs list: the
--- Fill arm hands a single vector back as the ports hand theirs back
--- and concatenates only the runs, so on a one-block view it is stage
--- three's code and where it lists it carries the ports' own
--- 'VS.concat', the pair with 'fbLibUnordStage2' pricing the list's
--- construction alone there. A first cut concatenated the singleton
--- too, which vector's 'concat' copies, a result-sized copy on every
--- main-set view that the ceiling does not pay. The consumer's own
--- reading is 'fbLibUnordStage4Sum'. Added 2026-09-07 for Run 27.
-routeUnord4 :: ShapeL -> T -> Either (VS.Vector Double) [VS.Vector Double]
-routeUnord4 sh (T (Strides ats) ao v)
-  | l == 0 = Right []
+-- test and one slice here. The dispatch is a 'Route', read by the
+-- list, the Fill arm and the sum consumer alike (the type's comment):
+-- on a one-block view the Fill arm is stage three's code, and where it
+-- lists it carries the ports' own 'VS.concat', the pair with
+-- 'fbLibUnordStage2' pricing the list's construction alone there. The
+-- consumer's own reading is 'fbLibUnordStage4Sum'. Added 2026-09-07
+-- for Run 27; a 'Route' since 2026-09-09.
+routeUnord4 :: ShapeL -> T -> Route
+routeUnord4 sh (T (Strides ats) ao _)
+  | l == 0 = RBlock 0 0
   | otherwise =
       let (csh, cats) = canonView sh ats
           !start = ao + sum [ (n - 1) * st | (n, st) <- zip csh cats, st < 0 ]
           (acats, csh') =
             unzip $ sortBy (flip compare) $ zip (map abs cats) csh
           _ : ts = getStridesT csh'
-      in  if acats == ts then Left (VS.slice start l v)
-          else if last acats == 1 then Right (lazyRuns csh' acats start v)
-          else Left (fillStage2 csh' acats start l v)
+      in  if acats == ts then RBlock start l
+          else if last acats == 1 then RRuns csh' acats start
+          else RFill csh' acats start l
   where !l = product sh
 
 lsUnordStage4 :: ShapeL -> T -> [VS.Vector Double]
-lsUnordStage4 sh a = either (: []) id (routeUnord4 sh a)
+lsUnordStage4 sh a@(T _ _ v) = listRoute (routeUnord4 sh a) v
 
 {-# NOINLINE fbLibUnordStage4 #-}
 fbLibUnordStage4 :: ShapeL -> T -> VS.Vector Double
-fbLibUnordStage4 sh a = either id VS.concat (routeUnord4 sh a)
+fbLibUnordStage4 sh a@(T _ _ v) = fillRoute (routeUnord4 sh a) v
 
 -- Stage five, stage four under the lean dispatch: the sorted pairs
 -- canonicalized AGAIN, so the lean rank test decides one block and no
@@ -4093,28 +4150,28 @@ fbLibUnordStage4 sh a = either id VS.concat (routeUnord4 sh a)
 -- also merges every adjacent pair the sort brought together, so a run
 -- here can be longer than stage four's; the pair with stage four prices
 -- the two together. Added 2026-09-07 for Run 27.
-routeUnord5 :: ShapeL -> T -> Either (VS.Vector Double) [VS.Vector Double]
-routeUnord5 sh (T (Strides ats) ao v)
-  | l == 0 = Right []
+routeUnord5 :: ShapeL -> T -> Route
+routeUnord5 sh (T (Strides ats) ao _)
+  | l == 0 = RBlock 0 0
   | otherwise =
       let (csh, cats) = canonView sh ats
           !start = ao + sum [ (n - 1) * st | (n, st) <- zip csh cats, st < 0 ]
           (acats, csh') =
             unzip $ sortBy (flip compare) $ zip (map abs cats) csh
       in  case canonView csh' acats of
-            ([], _) -> Left (VS.slice start l v)
-            ([_], [1]) -> Left (VS.slice start l v)
+            ([], _) -> RBlock start l
+            ([_], [1]) -> RBlock start l
             (ssh, sats)
-              | last sats == 1 -> Right (lazyRuns ssh sats start v)
-              | otherwise -> Left (fillStage2 ssh sats start l v)
+              | last sats == 1 -> RRuns ssh sats start
+              | otherwise -> RFill ssh sats start l
   where !l = product sh
 
 lsUnordStage5 :: ShapeL -> T -> [VS.Vector Double]
-lsUnordStage5 sh a = either (: []) id (routeUnord5 sh a)
+lsUnordStage5 sh a@(T _ _ v) = listRoute (routeUnord5 sh a) v
 
 {-# NOINLINE fbLibUnordStage5 #-}
 fbLibUnordStage5 :: ShapeL -> T -> VS.Vector Double
-fbLibUnordStage5 sh a = either id VS.concat (routeUnord5 sh a)
+fbLibUnordStage5 sh a@(T _ _ v) = fillRoute (routeUnord5 sh a) v
 
 -- Stage six, stage five with the first canonicalization dropped: the
 -- RAW axes sorted by absolute stride and canonicalized once, so the
@@ -4128,26 +4185,60 @@ fbLibUnordStage5 sh a = either id VS.concat (routeUnord5 sh a)
 -- sort under stage five and three axes sorted here). One change over
 -- 'routeUnord5' per population. Added 2026-09-09 for Run 28; the
 -- registration is README's open list.
-routeUnord6 :: ShapeL -> T -> Either (VS.Vector Double) [VS.Vector Double]
-routeUnord6 sh (T (Strides ats) ao v)
-  | l == 0 = Right []
+routeUnord6 :: ShapeL -> T -> Route
+routeUnord6 sh (T (Strides ats) ao _)
+  | l == 0 = RBlock 0 0
   | otherwise =
       let !start = ao + sum [ (n - 1) * st | (n, st) <- zip sh ats, st < 0 ]
           (acats, sh') = unzip $ sortBy (flip compare) $ zip (map abs ats) sh
       in  case canonView sh' acats of
-            ([], _) -> Left (VS.slice start l v)
-            ([_], [1]) -> Left (VS.slice start l v)
+            ([], _) -> RBlock start l
+            ([_], [1]) -> RBlock start l
             (ssh, sats)
-              | last sats == 1 -> Right (lazyRuns ssh sats start v)
-              | otherwise -> Left (fillStage2 ssh sats start l v)
+              | last sats == 1 -> RRuns ssh sats start
+              | otherwise -> RFill ssh sats start l
   where !l = product sh
 
 lsUnordStage6 :: ShapeL -> T -> [VS.Vector Double]
-lsUnordStage6 sh a = either (: []) id (routeUnord6 sh a)
+lsUnordStage6 sh a@(T _ _ v) = listRoute (routeUnord6 sh a) v
 
 {-# NOINLINE fbLibUnordStage6 #-}
 fbLibUnordStage6 :: ShapeL -> T -> VS.Vector Double
-fbLibUnordStage6 sh a = either id VS.concat (routeUnord6 sh a)
+fbLibUnordStage6 sh a@(T _ _ v) = fillRoute (routeUnord6 sh a) v
+
+-- The fold as a strict loop over the levels and no list at all, over
+-- stage six's dispatch: what a fold entry point would cost where the
+-- list interface pays a thunk, a box and a partial application per run
+-- even fused. The fusion probe of 2026-09-09 read it at 10 ns and no
+-- allocation a run against the fused list's 14 and 104 bytes
+-- (README.md#what-is-open). Timed as 'libunord-stage6-loop-sum', the
+-- interface question of the laziness ruling made an arm: the ruling
+-- keeps the list for 'anyT' and 'allT', which a strict loop cannot stop
+-- early; the pair with 'fbLibUnordStage6Sum' prices what that costs a
+-- reduction. Added 2026-09-09 for Run 28.
+foldRunsLoop :: (Double -> VS.Vector Double -> Double) -> Double -> ShapeL
+             -> [Int] -> Int -> VS.Vector Double -> Double
+foldRunsLoop f z0 ssh sats !start v = go (init ssh) (init sats) start z0
+  where
+    !n = last ssh
+    go [] [] !o !acc = f acc (VS.slice o n v)
+    go (d : ds) (s : ss) !o !acc = loop 0 acc
+      where loop !i !a | i == d = a
+                       | otherwise = loop (i + 1) (go ds ss (o + i * s) a)
+    go _ _ _ _ = error "foldRunsLoop: impossible"
+{-# INLINE foldRunsLoop #-}
+
+loopSumRoute :: Route -> VS.Vector Double -> Double
+loopSumRoute (RBlock o l) v = VS.sum (VS.slice o l v)
+loopSumRoute (RRuns ssh sats o) v =
+  foldRunsLoop (\ !acc p -> acc + VS.sum p) 0 ssh sats o v
+loopSumRoute (RFill ssh sats o l) v = VS.sum (fillStage2 ssh sats o l v)
+
+{-# NOINLINE fbLibUnordStage6LoopSum #-}
+fbLibUnordStage6LoopSum :: ShapeL -> T -> VS.Vector Double
+fbLibUnordStage6LoopSum sh a@(T _ _ v) =
+  VS.singleton (loopSumRoute (routeUnord6 sh a) v)
+
 
 -- Stage seven, stage six with the sort's tie broken the other way: on
 -- equal absolute strides the LARGER extent lands innermost, so the run
@@ -4160,32 +4251,31 @@ fbLibUnordStage6 sh a = either id VS.concat (routeUnord6 sh a)
 -- 'small-patch-r5', runs of 16 for 8.
 -- One change over 'routeUnord6' per population. Added 2026-09-09 for
 -- Run 28.
-routeUnord7 :: ShapeL -> T -> Either (VS.Vector Double) [VS.Vector Double]
-routeUnord7 sh (T (Strides ats) ao v)
-  | l == 0 = Right []
+routeUnord7 :: ShapeL -> T -> Route
+routeUnord7 sh (T (Strides ats) ao _)
+  | l == 0 = RBlock 0 0
   | otherwise =
       let !start = ao + sum [ (n - 1) * st | (n, st) <- zip sh ats, st < 0 ]
-          (acats, sh') = unzip $ sortBy byStrideThenExtent
-                               $ zip (map abs ats) sh
+          (acats, sh') = unzip $ sortBy byStrideExtent $ zip (map abs ats) sh
       in  case canonView sh' acats of
-            ([], _) -> Left (VS.slice start l v)
-            ([_], [1]) -> Left (VS.slice start l v)
+            ([], _) -> RBlock start l
+            ([_], [1]) -> RBlock start l
             (ssh, sats)
-              | last sats == 1 -> Right (lazyRuns ssh sats start v)
-              | otherwise -> Left (fillStage2 ssh sats start l v)
+              | last sats == 1 -> RRuns ssh sats start
+              | otherwise -> RFill ssh sats start l
   where !l = product sh
 
 -- Absolute stride descending, extent ascending on a tie: stage seven's
 -- order over (stride, extent) pairs.
-byStrideThenExtent :: (Int, Int) -> (Int, Int) -> Ordering
-byStrideThenExtent (s1, n1) (s2, n2) = compare s2 s1 <> compare n1 n2
+byStrideExtent :: (Int, Int) -> (Int, Int) -> Ordering
+byStrideExtent (s1, n1) (s2, n2) = compare s2 s1 <> compare n1 n2
 
 lsUnordStage7 :: ShapeL -> T -> [VS.Vector Double]
-lsUnordStage7 sh a = either (: []) id (routeUnord7 sh a)
+lsUnordStage7 sh a@(T _ _ v) = listRoute (routeUnord7 sh a) v
 
 {-# NOINLINE fbLibUnordStage7 #-}
 fbLibUnordStage7 :: ShapeL -> T -> VS.Vector Double
-fbLibUnordStage7 sh a = either id VS.concat (routeUnord7 sh a)
+fbLibUnordStage7 sh a@(T _ _ v) = fillRoute (routeUnord7 sh a) v
 
 -- Stage eight, stage six with the run chosen as the longest contiguous
 -- one rather than as the innermost sorted axis: from each unit-stride
@@ -4205,26 +4295,35 @@ fbLibUnordStage7 sh a = either id VS.concat (routeUnord7 sh a)
 -- tied on stride, the 'window' views, where this arm keeps stage six's
 -- and stage seven has the reverse, moving no run count. One change over
 -- 'routeUnord6' per population. Added 2026-09-09 for Run 28.
-routeUnord8 :: ShapeL -> T -> Either (VS.Vector Double) [VS.Vector Double]
-routeUnord8 sh a@(T (Strides ats) ao v)
-  | l == 0 = Right []
-  | 0 `elem` ats || null starts = routeUnord6 sh a
+routeUnord8 :: ShapeL -> T -> Route
+routeUnord8 sh a@(T (Strides ats) ao _)
+  | l == 0 = RBlock 0 0
+  | 0 `elem` ats || null (runStarts sh ats) = routeUnord6 sh a
   | otherwise =
       let !start = ao + sum [ (n - 1) * st | (n, st) <- zip sh ats, st < 0 ]
-          (runLen, rest) = bestOf [ chain n0 rest0 | (n0, rest0) <- starts ]
-          outer = sortBy (flip compare) rest
-          sh' = map snd outer ++ [runLen]
-          acats = map fst outer ++ [1]
+          (acats, sh') = longestRun (runStarts sh ats)
       in  case canonView sh' acats of
-            ([], _) -> Left (VS.slice start l v)
-            ([_], [1]) -> Left (VS.slice start l v)
+            ([], _) -> RBlock start l
+            ([_], [1]) -> RBlock start l
             (ssh, sats)
-              | last sats == 1 -> Right (lazyRuns ssh sats start v)
-              | otherwise -> Left (fillStage2 ssh sats start l v)
-  where
-    !l = product sh
-    axes = [ (abs st, n) | (n, st) <- zip sh ats, n /= 1 ]
-    starts = [ (n, dropAt i axes) | (i, (1, n)) <- zip [0 :: Int ..] axes ]
+              | last sats == 1 -> RRuns ssh sats start
+              | otherwise -> RFill ssh sats start l
+  where !l = product sh
+
+-- Every unit-stride axis as a run to start from, with the other axes
+-- as (stride, extent) pairs; unit dims dropped as 'canonView' drops them.
+runStarts :: ShapeL -> [Int] -> [(Int, [(Int, Int)])]
+runStarts sh ats =
+  [ (n, dropAt i axes) | (i, (1, n)) <- zip [0 :: Int ..] axes ]
+  where axes = [ (abs st, n) | (n, st) <- zip sh ats, n /= 1 ]
+
+-- The longest chain over every start and every order of absorption as
+-- the run, the axes it leaves sorted outside it in stage six's order:
+-- (strides, dims), as stage six's sort hands them.
+longestRun :: [(Int, [(Int, Int)])] -> ([Int], ShapeL)
+longestRun starts = (map fst outer ++ [1], map snd outer ++ [runLen])
+  where (runLen, rest) = bestOf [ chain n0 rest0 | (n0, rest0) <- starts ]
+        outer = sortBy (flip compare) rest
 
 -- The longest contiguous run reachable from one of length @len@ by
 -- absorbing, in any order, axes whose stride equals the run's length,
@@ -4245,11 +4344,11 @@ dropAt :: Int -> [a] -> [a]
 dropAt i xs = take i xs ++ drop (i + 1) xs
 
 lsUnordStage8 :: ShapeL -> T -> [VS.Vector Double]
-lsUnordStage8 sh a = either (: []) id (routeUnord8 sh a)
+lsUnordStage8 sh a@(T _ _ v) = listRoute (routeUnord8 sh a) v
 
 {-# NOINLINE fbLibUnordStage8 #-}
 fbLibUnordStage8 :: ShapeL -> T -> VS.Vector Double
-fbLibUnordStage8 sh a = either id VS.concat (routeUnord8 sh a)
+fbLibUnordStage8 sh a@(T _ _ v) = fillRoute (routeUnord8 sh a) v
 
 -- Stage nine, stage six with every zero-stride axis outermost on the
 -- list route: a broadcast then lists one real slice as many times as
@@ -4263,28 +4362,37 @@ fbLibUnordStage8 sh a = either id VS.concat (routeUnord8 sh a)
 -- 'small-bcast32', at slices from eight elements to a million. One
 -- change over 'routeUnord6' per population. Added 2026-09-09 for Run
 -- 28.
-routeUnord9 :: ShapeL -> T -> Either (VS.Vector Double) [VS.Vector Double]
-routeUnord9 sh a@(T (Strides ats) ao v)
-  | l == 0 = Right []
+routeUnord9 :: ShapeL -> T -> Route
+routeUnord9 sh (T (Strides ats) ao _)
+  | l == 0 = RBlock 0 0
   | otherwise =
       let !start = ao + sum [ (n - 1) * st | (n, st) <- zip sh ats, st < 0 ]
-          axes = sortBy (flip compare)
-                        [ (abs st, n) | (n, st) <- zip sh ats, n /= 1 ]
-          zeros = filter ((== 0) . fst) axes
-          (acats, sh') = unzip (zeros ++ filter ((/= 0) . fst) axes)
+          (acats, sh') = unzip $ zerosOutermost
+                               $ sortBy (flip compare) $ zip (map abs ats) sh
       in  case canonView sh' acats of
+            ([], _) -> RBlock start l
+            ([_], [1]) -> RBlock start l
             (ssh, sats)
-              | not (null zeros) && last sats == 1 ->
-                  Right (lazyRuns ssh sats start v)
-              | otherwise -> routeUnord6 sh a
+              | last sats == 1 -> RRuns ssh sats start
+              | otherwise -> RFill ssh sats start l
   where !l = product sh
 
+-- The zero-stride axes moved in front of the rest, whose order stays,
+-- where a unit-stride axis will then be innermost and the list route
+-- repeats one slice; unchanged otherwise, so the fill is stage six's,
+-- its zero strides innermost under the hoisted store.
+zerosOutermost :: [(Int, Int)] -> [(Int, Int)]
+zerosOutermost ps
+  | any (\(s, n) -> s == 1 && n /= 1) ps =
+      filter ((== 0) . fst) ps ++ filter ((/= 0) . fst) ps
+  | otherwise = ps
+
 lsUnordStage9 :: ShapeL -> T -> [VS.Vector Double]
-lsUnordStage9 sh a = either (: []) id (routeUnord9 sh a)
+lsUnordStage9 sh a@(T _ _ v) = listRoute (routeUnord9 sh a) v
 
 {-# NOINLINE fbLibUnordStage9 #-}
 fbLibUnordStage9 :: ShapeL -> T -> VS.Vector Double
-fbLibUnordStage9 sh a = either id VS.concat (routeUnord9 sh a)
+fbLibUnordStage9 sh a@(T _ _ v) = fillRoute (routeUnord9 sh a) v
 
 -- The two ports' lists, for the reducing consumers below and for the
 -- laziness gate: 'fbLibListStage1''s and 'fbLibListStage2''s parts, and
@@ -4356,43 +4464,51 @@ lsListStage2 sh (T (Strides ats) ao v)
 -- against its Fill arm prices the copy, and the stage-five consumer
 -- against the stage-one one is the ruling's own question, what the
 -- address order and the odometer list buy a fold. Added 2026-09-07 for
--- Run 27.
-sumParts :: [VS.Vector Double] -> Double
-sumParts = go 0
-  where go !acc [] = acc
-        go !acc (p : ps) = go (acc + VS.sum p) ps
+-- Run 27. In fold form since 2026-09-09: master's and the port's lists
+-- under 'sumRuns', which does not fuse with them and reads the same as
+-- the recursion did; stages four to nine through 'sumRoute', one fused
+-- loop for all (README.md#what-is-open).
+sumRuns :: [VS.Vector Double] -> Double
+sumRuns = foldl' (\ !acc p -> acc + VS.sum p) 0
+{-# INLINE sumRuns #-}
 
 {-# NOINLINE fbLibUnordStage1Sum #-}
 fbLibUnordStage1Sum :: ShapeL -> T -> VS.Vector Double
-fbLibUnordStage1Sum sh a = VS.singleton (sumParts (lsUnordStage1 sh a))
+fbLibUnordStage1Sum sh a = VS.singleton (sumRuns (lsUnordStage1 sh a))
 
 {-# NOINLINE fbLibUnordStage2Sum #-}
 fbLibUnordStage2Sum :: ShapeL -> T -> VS.Vector Double
-fbLibUnordStage2Sum sh a = VS.singleton (sumParts (lsUnordStage2 sh a))
+fbLibUnordStage2Sum sh a = VS.singleton (sumRuns (lsUnordStage2 sh a))
 
 {-# NOINLINE fbLibUnordStage4Sum #-}
 fbLibUnordStage4Sum :: ShapeL -> T -> VS.Vector Double
-fbLibUnordStage4Sum sh a = VS.singleton (sumParts (lsUnordStage4 sh a))
+fbLibUnordStage4Sum sh a@(T _ _ v) =
+  VS.singleton (sumRoute (routeUnord4 sh a) v)
 
 {-# NOINLINE fbLibUnordStage5Sum #-}
 fbLibUnordStage5Sum :: ShapeL -> T -> VS.Vector Double
-fbLibUnordStage5Sum sh a = VS.singleton (sumParts (lsUnordStage5 sh a))
+fbLibUnordStage5Sum sh a@(T _ _ v) =
+  VS.singleton (sumRoute (routeUnord5 sh a) v)
 
 {-# NOINLINE fbLibUnordStage6Sum #-}
 fbLibUnordStage6Sum :: ShapeL -> T -> VS.Vector Double
-fbLibUnordStage6Sum sh a = VS.singleton (sumParts (lsUnordStage6 sh a))
+fbLibUnordStage6Sum sh a@(T _ _ v) =
+  VS.singleton (sumRoute (routeUnord6 sh a) v)
 
 {-# NOINLINE fbLibUnordStage7Sum #-}
 fbLibUnordStage7Sum :: ShapeL -> T -> VS.Vector Double
-fbLibUnordStage7Sum sh a = VS.singleton (sumParts (lsUnordStage7 sh a))
+fbLibUnordStage7Sum sh a@(T _ _ v) =
+  VS.singleton (sumRoute (routeUnord7 sh a) v)
 
 {-# NOINLINE fbLibUnordStage8Sum #-}
 fbLibUnordStage8Sum :: ShapeL -> T -> VS.Vector Double
-fbLibUnordStage8Sum sh a = VS.singleton (sumParts (lsUnordStage8 sh a))
+fbLibUnordStage8Sum sh a@(T _ _ v) =
+  VS.singleton (sumRoute (routeUnord8 sh a) v)
 
 {-# NOINLINE fbLibUnordStage9Sum #-}
 fbLibUnordStage9Sum :: ShapeL -> T -> VS.Vector Double
-fbLibUnordStage9Sum sh a = VS.singleton (sumParts (lsUnordStage9 sh a))
+fbLibUnordStage9Sum sh a@(T _ _ v) =
+  VS.singleton (sumRoute (routeUnord9 sh a) v)
 
 -- The laziness gate, in 'check' and never timed: the ruling that the
 -- list stays lazy (README.md#dead-ideas) as a predicate. On a view of
@@ -5782,6 +5898,9 @@ roster =
     -- and stage six's consumer, added with it; every slot below moves
     -- by one more.
   , ("libunord-stage6-sum",        Fill fbLibUnordStage6Sum)
+    -- The fold entry point over stage six, added 2026-09-09 for Run 28;
+    -- reasons at the definition. Every slot below moves by one.
+  , ("libunord-stage6-loop-sum",   Fill fbLibUnordStage6LoopSum)
     -- and the three reorderings' consumers; every slot below moves by
     -- three more.
   , ("libunord-stage7-sum",        Fill fbLibUnordStage7Sum)
@@ -5955,7 +6074,7 @@ reference sh a = case [f | (_, Base f) <- roster] of
 -- reducing consumer, a @-sum@ arm, returns one element, its list's sum,
 -- held to the reference's sum within a relative 1e-9 -- the order of
 -- summation differs by construction, so equality is not owed -- and a
--- wrong list still fails: dropping the first slice in 'sumParts' fails
+-- wrong list still fails: dropping the first slice in 'sumRuns' fails
 -- @check@ at the first shape, @cnn-L1-6x6-c1@, for all four @-sum@ arms
 -- (non-vacuity, 2026-09-07).
 agreesWithRef :: VS.Vector Double -> String -> VS.Vector Double -> Bool
