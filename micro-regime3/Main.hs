@@ -3307,8 +3307,9 @@ fbLibStage2Disp sh (T (Strides ats) ao v)
 -- broadcast run is unrolled by two as the stepping run is. Both are
 -- the library's to take; until it does, every arm filling through this
 -- driver is ahead of the library by them, the parked 'lib-stage2' and
--- its siblings and the lazy stages' fill routes included, so no timed
--- arm fills a zero-stride level the library's way.
+-- its siblings and the lazy stages' fill routes included, so no arm
+-- copies a zero-stride level once per block as the branch's fill does,
+-- and only the lean twin keeps its one-per-element broadcast body.
 {-# NOINLINE fillStage2 #-}
 fillStage2 :: ShapeL -> [Int] -> Int -> Int -> VS.Vector Double
            -> VS.Vector Double
@@ -3332,6 +3333,8 @@ fillStage2 sh ats !ao !l !v = VS.create $ do
       -- at a run of 2, bcast-tall-Mx2, on Run 27. 'fillStage2U1' keeps
       -- the one-per-iteration body, so the u1 pair prices this unroll
       -- on the broadcast views as it prices the stepping one elsewhere.
+      -- Non-vacuity, 2026-09-09: dropping the second write fails @check@
+      -- at @bcast-inner8@.
       {-# INLINE writeRunSet #-}
       writeRunSet !outPos !baseOff =
         let !x = VS.unsafeIndex v baseOff
@@ -3351,6 +3354,10 @@ fillStage2 sh ats !ao !l !v = VS.create $ do
       -- read 2.3 of master's leaf fill on bcastmid-b200k, 200000 copies
       -- of 24 bytes (Run 27). The parked u4 and short fills keep the
       -- library's one copy per block, as does the library (2026-09-09).
+      -- Non-vacuity, 2026-09-09: stopping the doubling one block short
+      -- fails @check@ at @edge-bcastmid-b2@ -- and had passed it on every
+      -- timed view, none having a zero-stride outer level of extent 2 or
+      -- one more than a power of two, which is what the edge class is for.
       copies !n !blk !src _dst
         | n <= 1 = return (src + blk)
         | otherwise = grow blk
@@ -3447,6 +3454,8 @@ fillStage2U1 sh ats !ao !l !v = VS.create $ do
       -- read 2.3 of master's leaf fill on bcastmid-b200k, 200000 copies
       -- of 24 bytes (Run 27). The parked u4 and short fills keep the
       -- library's one copy per block, as does the library (2026-09-09).
+      -- The same code as 'fillStage2''s, whose non-vacuity break stands
+      -- for this one.
       copies !n !blk !src _dst
         | n <= 1 = return (src + blk)
         | otherwise = grow blk
@@ -4055,11 +4064,12 @@ fbLibUnordStage3 sh a@(T _ _ v) = fillRoute (routeUnord3 sh a) v
 -- included. Added 2026-09-07 with the ruling that the list stays lazy
 -- (README.md#dead-ideas). In 'build' form since 2026-09-09, so that a
 -- foldr-shaped consumer applied where the list is produced fuses with
--- it -- the cons cell and the slice header go, a thunk, a boxed
--- accumulator and one partial application per run stay -- which the
+-- it: the cons cell and the slice header went with the list, which the
 -- fusion probe of that day read as 104 bytes and 14 ns a run against 145
--- and 19, and 88 bytes once the loop was compiled once for every stage
--- (README.md#what-is-open). The leaf is fused, the fills' trick:
+-- and 19, and 88 bytes once the loop was compiled once for every stage;
+-- the thunk, the boxed accumulator and the partial application a run
+-- the level form still left went with the flat walker of the same day,
+-- 'lazyRunsFB' (README.md#what-is-open). The leaf is fused, the fills' trick:
 -- the innermost outer level conses its slices itself rather than
 -- calling 'go' once more per run, a quarter of the time and 8 bytes a
 -- run off on short runs, 9.3 ns and 80 bytes on the k3 window. The
@@ -4098,7 +4108,9 @@ lazyRunsFB ssh sats !start v cons nil =
   let !n = last ssh
   in  case (init ssh, init sats) of
         ([], []) -> cons (VS.slice start n v) nil
-        (dims, strs) ->
+        (dims, strs)
+          | length dims /= length strs -> error "lazyRunsFB: impossible"
+          | otherwise ->
           let !dk = last dims
               !sk = last strs
               go !i !o outer
@@ -4302,10 +4314,12 @@ fbLibUnordStage6 sh a@(T _ _ v) = fillRoute (routeUnord6 sh a) v
 -- The fold as a strict loop over the levels and no list at all, over
 -- stage six's dispatch, its leaf fused as 'lazyRuns''s is so that the
 -- pair reads the interface and not the odometer: what a fold entry
--- point would cost where the list interface pays a thunk, a box and a
--- partial application per run even fused. The fusion probe of
--- 2026-09-09 read it at 5 ns and no allocation a run against the fused
--- list's 9 and 80 bytes on the k3 window (README.md#what-is-open).
+-- point costs against the list interface. Registered while the fused
+-- list paid a thunk, a box and a partial application a run, the fusion
+-- probe of 2026-09-09 reading it at 5 ns and no allocation against the
+-- list's 9 and 80 bytes on the k3 window; since the flat walker of the
+-- same day the list allocates nothing a run either and this loop is
+-- the slower of the two, Run 28's item (8) (README.md#what-is-open).
 -- Timed as 'libunord-stage6-loop-sum', the interface question of the
 -- laziness ruling made an arm: the ruling keeps the list for 'anyT' and
 -- 'allT', which a strict loop cannot stop early; the pair with
@@ -4345,8 +4359,7 @@ fbLibUnordStage6LoopSum sh a@(T _ _ v) =
 -- which is what a producer written for base's fold has to serve: under
 -- the level-form walker it read 96 bytes a run where the harness's own
 -- consumer read 80, under the flat one none, as the harness's.
--- Added 2026-09-09; not registered until the producer question is
--- settled.
+-- Added 2026-09-09, Run 28's item (12).
 {-# NOINLINE fbLibUnordStage6ListSum #-}
 fbLibUnordStage6ListSum :: ShapeL -> T -> VS.Vector Double
 fbLibUnordStage6ListSum sh a@(T _ _ v) =
@@ -5262,6 +5275,19 @@ broadcastMidShapes =
   , ("bcastmid-block150k", 4, [3, 300, 500])  -- 1800000, 150000-elem block
   ]
 
+-- The `edge` class: 'mkBroadcastMid' views checked and never timed, in
+-- 'retiredClasses' from birth, at the extents a doubling block copy can
+-- get wrong and no timed view has --- 2, one more than a power of two,
+-- and one more than the next. A copy stopping one block short passed
+-- @check@ on every timed view on 2026-09-09, the class's extents being
+-- 4, 32, 89 and 200000; these are where it fails.
+edgeMidShapes :: [(String, Int, ShapeL)]
+edgeMidShapes =
+  [ ("edge-bcastmid-b2", 2, [3, 3])  -- 18, one copy
+  , ("edge-bcastmid-b3", 3, [3, 3])  -- 27, the clipped last pass
+  , ("edge-bcastmid-b5", 5, [3, 3])  -- 45, a doubling then the clipped pass
+  ]
+
 -- Listed shape is the dense array; the view appends the size-1 dim.
 reshape1Shapes :: [(String, ShapeL)]
 reshape1Shapes =
@@ -5493,6 +5519,7 @@ classViews =
   ++ [(n, mkRevSome rs s) | (n, rs, s) <- revSomeShapes]
   ++ [(n, mkBroadcast s) | (n, s) <- broadcastShapes]
   ++ [(n, mkBroadcastMid b s) | (n, b, s) <- broadcastMidShapes]
+  ++ [(n, mkBroadcastMid b s) | (n, b, s) <- edgeMidShapes]
   ++ [(n, mkReshape1 s) | (n, s) <- reshape1Shapes]
   ++ [(n, mkReshape1Strided s) | (n, s) <- reshape1StridedShapes]
   ++ [(n, mkSliced s) | (n, s) <- slicedShapes]
@@ -5519,14 +5546,17 @@ classViews =
 -- sign-agnostic and the sign-sensitive bounds it was built for belonging to
 -- the packed Int32 scan, settled. 'slice': a main-set view plus a base
 -- offset the fill reads once, the offset timed by 'block-run64-off7' and
--- 'compose-slice-bcast' since. The lists and generators stay: 'check' holds
+-- 'compose-slice-bcast' since. 'edge', added 2026-09-09, was never timed:
+-- three broadcast-mid views at the extents a doubling block copy can get
+-- wrong, checked for that alone ('edgeMidShapes'). The lists and
+-- generators stay: 'check' holds
 -- every arm to the reference on these views still, read-run.py's older
 -- revisions parse the lists, and a class is re-timed by deleting its name
 -- here. run-major.sh's CLASSES omits them, held to `classes --list` by its
 -- own cross-check, and read-run.py reads this list for the class counts it
 -- holds a run file to (README.md#the-stride-classes-and-what-they-cover).
 retiredClasses :: [String]
-retiredClasses = ["reshape1", "revsome", "slice"]
+retiredClasses = ["reshape1", "revsome", "slice", "edge"]
 
 -- The class a shape name belongs to: its prefix up to the first hyphen,
 -- the derivation every driver uses (run-major.sh says why).
@@ -6594,6 +6624,7 @@ check = do
   mapM_ oneRevSome revSomeShapes
   mapM_ oneBroadcast broadcastShapes
   mapM_ oneBroadcastMid broadcastMidShapes
+  mapM_ oneBroadcastMid edgeMidShapes
   mapM_ oneReshape1 reshape1Shapes
   mapM_ oneReshape1Strided reshape1StridedShapes
   -- One hand-built view, checked and never benched: the regime-1 return
