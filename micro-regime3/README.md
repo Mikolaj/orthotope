@@ -974,35 +974,39 @@ rather than a slot in the next run, observed again:
   to `-stage9`, is checked and not timed, a list concatenated being the API's
   failure mode and `toVectorT` the fill for it, and the ordered list's consumers
   `liblist-stage1-sum` to `-stage4-sum` land in their place, so the entry points
-  are timed only as they are used. 39 timed arms over 19 main-set shapes, 741
-  benches, and 58 class views of ten classes, five of them new:
-  `window-64x64-c16-k3` and `window-32x32-c64-k3`, patch views with channels,
-  the shape the tie-break exists for; and `bcast-src8`, `bcast-src64`
-  and `bcast-src512`, an 8-, 64- and 512-element source each repeated to 1.8
-  million elements, the ladder on which stage nine's repeated slice meets
-  the fill. Six changes of code: the eleven arms, each landing beside stage
-  five's, and the thirteen retired with the four ordered consumers in their
-  place; the fusion overhaul of 2026-09-09, which touches arms Run 27 timed ---
-  `lazyRuns` in build form under libunord-stage4, `-stage5`, liblist-stage3
-  and `-stage4`, and every `-sum` consumer in fold form, the lazy stages'
-  through one shared fused loop, and, later that day, `lazyRuns` one flat loop
-  in build form with the route's case inside --- so their Run 27 figures
-  are not this roster's, and the entry above this one and the fusion account
-  below carry the before and after; and the ruling of the same day that a port's
-  Fill arm no longer concatenates a one-element list, `toVectorT`'s own shape,
-  so liblist-stage1 to `-stage4` and libunord-stage1 and `-stage2` read 1.00x
-  allocation and pay no result copy on every view the library fills once, where
-  Run 27 read 2.00x --- item (9)'s premise, and the reason the lazy stages'
-  dispatch became a value read by four shared readers; and two changes
-  to `fillStage2`, the branch's fill under `lib-stage2-lean`, under every lazy
-  stage's fill route and under `liblist-stage2-sum` where its list falls
-  to a fill, and under the parked lib-stage2, lib-stage2-concat
-  and lib-stage2-disp, so no arm copies a zero-stride level once per block
-  as the branch's fill does: a doubling block copy for a zero-stride level,
-  shared with `fillStage2U1`, and the broadcast run unrolled by two, not shared
-  --- items (13) and (14), and the reason Run 27's `bcast` and `bcastmid`
-  figures for those arms are not this roster's; beside them `check` gained
-  a class it alone reads, edge, three broadcast-mid views at the extents
+  are timed only as they are used --- and plus two more, the shipped fill's own
+  A/A copies, item (15). 39 timed arms over 19 main-set shapes, 741 benches,
+  and 58 class views of ten classes, six of them new: `window-64x64-c16-k3`
+  and `window-32x32-c64-k3`, patch views with channels, the shape the tie-break
+  exists for; `bcast-src8`, `bcast-src64` and `bcast-src512`, an 8-, 64-
+  and 512-element source each repeated to 1.8 million elements, the ladder
+  on which stage nine's repeated slice meets the fill; and `flip-fwd-rows96`,
+  item (16)'s forward control. Seven changes of code: the eleven arms, each
+  landing beside stage five's, and the thirteen retired with the four ordered
+  consumers in their place; the fusion overhaul of 2026-09-09, which touches
+  arms Run 27 timed --- `lazyRuns` in build form under libunord-stage4,
+  `-stage5`, liblist-stage3 and `-stage4`, and every `-sum` consumer in fold
+  form, the lazy stages' through one shared fused loop, and, later that day,
+  `lazyRuns` one flat loop in build form with the route's case inside ---
+  so their Run 27 figures are not this roster's, and the entry above this one
+  and the fusion account below carry the before and after; and the ruling
+  of the same day that a port's Fill arm no longer concatenates a one-element
+  list, `toVectorT`'s own shape, so liblist-stage1 to `-stage4`
+  and libunord-stage1 and `-stage2` read 1.00x allocation and pay no result copy
+  on every view the library fills once, where Run 27 read 2.00x --- item (9)'s
+  premise, and the reason the lazy stages' dispatch became a value read by four
+  shared readers; and two changes to `fillStage2`, the branch's fill
+  under `lib-stage2-lean`, under every lazy stage's fill route
+  and under `liblist-stage2-sum` where its list falls to a fill, and
+  under the parked lib-stage2, lib-stage2-concat and lib-stage2-disp, so no arm
+  copies a zero-stride level once per block as the branch's fill does:
+  a doubling block copy for a zero-stride level, shared with `fillStage2U1`,
+  and the broadcast run unrolled by two, not shared --- items (13) and (14),
+  and the reason Run 27's `bcast` and `bcastmid` figures for those arms
+  are not this roster's; and the shipped fill's own A/A copies,
+  `mut-odo-vecdims-add-in-leaf-u2-aa` and `-aa-distant`, with the forward
+  control `flip-fwd-rows96`, items (15) and (16); beside all of them `check`
+  gained a class it alone reads, edge, three broadcast-mid views at the extents
   a doubling copy can get wrong, 2, 3 and 5, none of which any timed view has.
   Two things are known before the run and are the premise rather
   than predictions. A `check`-mode comparison of 2026-09-09 read stage five's
@@ -3165,43 +3169,45 @@ was preflight's 4,5, the byte-identical `check` comparison, which failed
 on the laziness gate's per-row allocation figure --- four of twelve rows parting
 by 8 to 16 bytes between the compilers with every verdict agreeing ---
 and was fixed at `bb6d113` by printing the count only where the gate fails, both
-halves rebuilt from it; ONE computation was improvised, which commits actually
-rewrote the registration, got by hashing the paragraph out of each commit's
-README, subject lines naming seven where the paragraph names ten; ONE step
-was skipped and it was a READING with no artifact, item 9's, which is exactly
-the shape the reading list says to expect; and the capability found
-was `./probe-oneblock.py --check-log FILE`, which re-derives a registration
-figure for nothing. It also recorded four document errors that no checker sees
-and that only reading found, and measured that: preflight's steps 7 and 8 both
-PASSED with all four standing. **The executing session's half, and it is four
-things.** **TWO TOOL DEFECTS FIRED ON THIS RUN'S OWN ARTIFACTS AND BOTH
-ARE FIXED, each with a case in both directions.** `run-status.sh` judged
-the carrier's return by `^ITEM ${it}[^0-9]`, which cannot match a header at end
-of line, so a complete `run27-readings.txt` read as absent four times
-over and post-run steps 4, 5 and 6a could never have cleared (`e8f1c31`;
-the mutant that had covered that line was LOST by the fix and is repaired beside
-it). `--predictions` exited 2 out of the middle of the registration walk
-on the first pair whose cells the arm empties --- item (6)'s, on the main set,
-where the item itself says the span is read on the classes --- leaving items (7)
-to (14) unadjudicated and stdout silent about which; the span is recorded
-NOT READ and the walk goes on (`e55f8d3`). **The checks that would have caught
-the errors were mechanical throughout.** `--check-doc` refused, in order
-and each on a real defect: five failure kinds the moment `runs/run27.md`
-existed, the ten `?` cells the install leaves, ten class paragraphs quoting
-the previous run's floors, an artifact path named in a file that outlives it,
-a lost class-process-count site, and an ANSWERED entry my own addition had
-pushed past 500 words. Not one needed a reading to find. **ONE COMPUTATION
-WAS IMPROVISED AND ONE WAS IMPROVISED FOR NOTHING.** The one that earns
-its place is the pair of correlations registration (5) asks for, a process's
-floor against the median A/A half-width beneath it and against its position
-in the evening: no mode emits them and the item asks for them every time
-it is registered. **The other is a mode this file already records as TAKEN.**
-The within-half corrected instruction ratio for a pair --- which registrations
-(4), (13) and (14) all turn on --- was hand-rolled here from the counts files,
-and `--counts SWEEP.txt --pair A B` has printed it since 2026-09-05,
-as the retirement record below says, in the words the item itself used, *it
-is a mode now*. Run against this run's own sweep it gives 0.8944, 0.8358,
-0.8605, 0.9691 and 1.0878, every figure the hand computation produced,
+halves rebuilt from it; ONE computation was improvised, a walk of the commits
+that rewrote the registration, and it is RULED OUT rather than kept
+(2026-09-10): no step asks which they were, and the sentence it yields is copied
+forward by every note and run file after it --- what a registration owes
+is pre-run step 12b, re-derivation from the run's own artifacts, and no history
+at all; ONE step was skipped and it was a READING with no artifact, item 9's,
+which is exactly the shape the reading list says to expect; and the capability
+found was `./probe-oneblock.py --check-log FILE`, which re-derives
+a registration figure for nothing. It also recorded four document errors
+that no checker sees and that only reading found, and measured that: preflight's
+steps 7 and 8 both PASSED with all four standing. **The executing session's
+half, and it is four things.** **TWO TOOL DEFECTS FIRED ON THIS RUN'S OWN
+ARTIFACTS AND BOTH ARE FIXED, each with a case in both directions.**
+`run-status.sh` judged the carrier's return by `^ITEM ${it}[^0-9]`, which cannot
+match a header at end of line, so a complete `run27-readings.txt` read as absent
+four times over and post-run steps 4, 5 and 6a could never have cleared
+(`e8f1c31`; the mutant that had covered that line was LOST by the fix
+and is repaired beside it). `--predictions` exited 2 out of the middle
+of the registration walk on the first pair whose cells the arm empties --- item
+(6)'s, on the main set, where the item itself says the span is read
+on the classes --- leaving items (7) to (14) unadjudicated and stdout silent
+about which; the span is recorded NOT READ and the walk goes on (`e55f8d3`).
+**The checks that would have caught the errors were mechanical throughout.**
+`--check-doc` refused, in order and each on a real defect: five failure kinds
+the moment `runs/run27.md` existed, the ten `?` cells the install leaves, ten
+class paragraphs quoting the previous run's floors, an artifact path named
+in a file that outlives it, a lost class-process-count site, and an ANSWERED
+entry my own addition had pushed past 500 words. Not one needed a reading
+to find. **ONE COMPUTATION WAS IMPROVISED AND ONE WAS IMPROVISED FOR NOTHING.**
+The one that earns its place is the pair of correlations registration (5) asks
+for, a process's floor against the median A/A half-width beneath it and against
+its position in the evening: no mode emits them and the item asks for them every
+time it is registered. **The other is a mode this file already records
+as TAKEN.** The within-half corrected instruction ratio for a pair --- which
+registrations (4), (13) and (14) all turn on --- was hand-rolled here
+from the counts files, and `--counts SWEEP.txt --pair A B` has printed it since
+2026-09-05, as the retirement record below says, in the words the item itself
+used, *it is a mode now*. Run against this run's own sweep it gives 0.8944,
+0.8358, 0.8605, 0.9691 and 1.0878, every figure the hand computation produced,
 to the digit. **What went wrong is the reading**: `--help` describes `--counts`
 as *with --compare*, which is one of its two arities, and the modifier's own
 docstring names the other. A one-line summary is not the mode list,
@@ -6731,7 +6737,7 @@ and never as a chronology.
     #      forward in the copying; Run 27's ran both and still assembled
     #      the note by hand, which is what the second now removes
     #      WHAT THE PAIR VARIES is not in this list and not in the
-    #      template: it is settled in *What Run N compares against*, and
+    #      template: it is settled in *What the next run compares against*, and
     #      the recipe to vary is the previous run's note. Read both before
     #      writing this one -- a session executing the list top to bottom
     #      arrives here with neither, which is where a walk arrived.
@@ -11799,55 +11805,58 @@ tables and its fingerprint say so.
   `runs/` currently publishes --- 35 timed arms over 19 main-set shapes and 52
   class views in TEN classes, 665 benches and 1820, SIX A/A pairs, the `runs`
   class at FOURTEEN and `window` at SIX --- and its roster is TODAY's LESS
-  ELEVEN AND PLUS NINE: `libunord-stage6-sum` to `libunord-stage9-sum`,
-  `libunord-stage6-loop-sum`, `libunord-stage6-list-sum`, `libunord-stage3-sum`
-  and `liblist-stage1-sum` to `liblist-stage4-sum` were added 2026-09-09, after
-  Run 27, and `liblist-stage1` to `liblist-stage4` and `libunord-stage1`
-  to `libunord-stage5`, which it timed, are checked and not timed since the same
-  day, as are `libunord-stage6` to `libunord-stage9`, which no run has timed,
-  so no slot below `lib-stage2-lean-u1` is where it was, and a figure read
-  across that boundary carries a roster term; the fusion overhaul of the same
-  day rewrote `lazyRuns` and every `-sum` consumer, so `libunord-stage4`,
-  `-stage5`, `liblist-stage3`, `-stage4` and the four consumers Run 27 timed
-  are not today's code either ([the fusion entry][open]); and the six list Fill
-  arms, the four ports' and the two ordered candidates', no longer concatenate
-  a one-element list, so their allocation and their time on every view
-  the library fills once are not Run 27's (Run 28's item (9)).
-  And `window-64x64-c16-k3`, `window-32x32-c64-k3`, `bcast-src8`, `bcast-src64`
-  and `bcast-src512` were added 2026-09-09, after the run, two patch views
-  with channels in `window` and a repeat ladder in `bcast`, so its class views
-  are TODAY's LESS FIVE. **Its delta against RUN 26** is the commits
-  of 2026-09-06 and 2026-09-07: the four arms Run 26 lifted out of parking put
-  back, the `:: Ptr Double` annotation on every bang-bound `plusPtr` result
-  in the three pointer arms, which is the GHC #27778 workaround and changes
-  no 9.12 code ([the open list][open]), and then ten arms landing ---
-  `libunord-stage4` and `libunord-stage5`, the four `-sum` reducing consumers,
-  `liblist-stage3` and `liblist-stage4`, `mut-odo-vecdims-add-in-leaf-u2-last`
-  and `lib-stage2-lean-u1` --- with `check`'s laziness gate beside them
-  and `lib-stage2-disp` retired that evening, ten in and five out and five net,
-  no shape and no class view moving either way. `bb6d113`, the tip both halves
-  were built from, is that gate's byte count moved behind its failure branch,
-  which is what makes a compiler pair's two `check` outputs byte-identical
-  again; `a990b2f`, which the driver stamped, landed after the build. So NEITHER
-  half reproduces an earlier binary and no md5 here matches one on record;
-  a distance from Run 26's published column carries a roster term of ten arms,
-  **and the nineteen main-set shapes are unmoved between the two runs,
-  so a cross-run figure is over all nineteen**. What a reader has to carry
-  is which half a figure came from: everything published in its file
-  is `run27-g912`, ghc-9.12.4, and `run27-ghead` --- the same source, shim
-  and shim environment built through `cabal.project.ghead` against the in-tree
-  GHC HEAD stage1, unmoved since Run 24, so the halves differ in the compiler
-  and in the boot libraries that come with it and in nothing else ---
-  contributes the second column of `runs/run27.md`. Its `list` moved 0.33%
-  between the halves, INSIDE the 0.7% bar, so its two columns may be subtracted,
-  which no run since Run 24 could say. **The box DID move, and a BIOS change
-  is why**, confirmed by the machine's owner after the run: its gate machine
-  check read -3.66% on `list`'s net against Run 26's fingerprint, over all 19
-  shapes, three of them past 5% and every one moving together, so no absolute
-  of its crosses to Run 26 unadjusted and its cross-run column is read through
-  `--bridge`. **Run 27 therefore opens a third machine era**, as the BIOS change
-  before Run 18 opened the second. Its sequence ran in one window and its `runs`
-  class in a second: two intrusions by the instrument's own bar, one bench
+  THIRTEEN AND PLUS NINE: `libunord-stage6-sum` to `libunord-stage9-sum`,
+  `libunord-stage6-loop-sum`, `libunord-stage6-list-sum`, `libunord-stage3-sum`,
+  `liblist-stage1-sum` to `liblist-stage4-sum` and the shipped fill's two A/A
+  copies, `mut-odo-vecdims-add-in-leaf-u2-aa` and `-aa-distant`, were added
+  2026-09-09, after Run 27, and `liblist-stage1` to `liblist-stage4`
+  and `libunord-stage1` to `libunord-stage5`, which it timed, are checked
+  and not timed since the same day, as are `libunord-stage6`
+  to `libunord-stage9`, which no run has timed, so no slot below
+  `lib-stage2-lean-u1` is where it was, and a figure read across that boundary
+  carries a roster term; the fusion overhaul of the same day rewrote `lazyRuns`
+  and every `-sum` consumer, so `libunord-stage4`, `-stage5`, `liblist-stage3`,
+  `-stage4` and the four consumers Run 27 timed are not today's code either
+  ([the fusion entry][open]); and the six list Fill arms, the four ports'
+  and the two ordered candidates', no longer concatenate a one-element list,
+  so their allocation and their time on every view the library fills once
+  are not Run 27's (Run 28's item (9)). And `window-64x64-c16-k3`,
+  `window-32x32-c64-k3`, `bcast-src8`, `bcast-src64`, `bcast-src512`
+  and `flip-fwd-rows96` were added 2026-09-09, after the run, two patch views
+  with channels in `window`, a repeat ladder in `bcast` and a forward control
+  in `flip`, so its class views are TODAY's LESS SIX. **Its delta against RUN
+  26** is the commits of 2026-09-06 and 2026-09-07: the four arms Run 26 lifted
+  out of parking put back, the `:: Ptr Double` annotation on every bang-bound
+  `plusPtr` result in the three pointer arms, which is the GHC #27778 workaround
+  and changes no 9.12 code ([the open list][open]), and then ten arms landing
+  --- `libunord-stage4` and `libunord-stage5`, the four `-sum` reducing
+  consumers, `liblist-stage3` and `liblist-stage4`,
+  `mut-odo-vecdims-add-in-leaf-u2-last` and `lib-stage2-lean-u1` ---
+  with `check`'s laziness gate beside them and `lib-stage2-disp` retired
+  that evening, ten in and five out and five net, no shape and no class view
+  moving either way. `bb6d113`, the tip both halves were built from,
+  is that gate's byte count moved behind its failure branch, which is what makes
+  a compiler pair's two `check` outputs byte-identical again; `a990b2f`, which
+  the driver stamped, landed after the build. So NEITHER half reproduces
+  an earlier binary and no md5 here matches one on record; a distance from Run
+  26's published column carries a roster term of ten arms, **and the nineteen
+  main-set shapes are unmoved between the two runs, so a cross-run figure
+  is over all nineteen**. What a reader has to carry is which half a figure came
+  from: everything published in its file is `run27-g912`, ghc-9.12.4,
+  and `run27-ghead` --- the same source, shim and shim environment built through
+  `cabal.project.ghead` against the in-tree GHC HEAD stage1, unmoved since Run
+  24, so the halves differ in the compiler and in the boot libraries that come
+  with it and in nothing else --- contributes the second column
+  of `runs/run27.md`. Its `list` moved 0.33% between the halves, INSIDE the 0.7%
+  bar, so its two columns may be subtracted, which no run since Run 24 could
+  say. **The box DID move, and a BIOS change is why**, confirmed
+  by the machine's owner after the run: its gate machine check read -3.66%
+  on `list`'s net against Run 26's fingerprint, over all 19 shapes, three
+  of them past 5% and every one moving together, so no absolute of its crosses
+  to Run 26 unadjusted and its cross-run column is read through `--bridge`.
+  **Run 27 therefore opens a third machine era**, as the BIOS change before Run
+  18 opened the second. Its sequence ran in one window and its `runs` class
+  in a second: two intrusions by the instrument's own bar, one bench
   of its basis main set at 0.28 of a core and left as it stands, and four
   consecutive benches of `runs-512` on its HEAD half at 0.9 to 1.0, at about
   06:38 by the log's own clock and three minutes from where
