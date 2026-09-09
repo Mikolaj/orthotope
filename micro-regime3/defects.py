@@ -7701,7 +7701,7 @@ RECORDS = [
          # per-population rule -- while every class block printed
          # "N of 18". Nothing compared them.
          plant=lambda t: {'readme': edited_readme(t, (
-             'as an order of magnitude: it rests on six pairs',
+             'as an order of magnitude: it rests on eight pairs',
              'as an order of magnitude: it rests on sixteen pairs'))},
          argv=['--check-doc', '--readme', '{readme}'],
          ok=V(exit=1, has=['A/A population is quoted as']),
@@ -7725,9 +7725,9 @@ RECORDS = [
          # sixteen on 2026-08-28 and every site still read eighteen, in
          # agreement and wrong, through a whole write-up.
          plant=lambda t: {'readme': unwrapped_readme_edit(
-             t, 'as an order of magnitude: it rests on six pairs',
+             t, 'as an order of magnitude: it rests on eight pairs',
              'as an order of magnitude: it rests on eighteen pairs',
-             'The same six controls ride every process',
+             'The same eight controls ride every process',
              'The same eighteen controls ride every process')},
          argv=['--check-doc', '--readme', '{readme}'],
          ok=V(exit=1, has=['where the roster has'])),

@@ -5437,6 +5437,18 @@ runsShapes =
   , ("runs-7",        [257142, 7])      -- 1799994, a k7 conv row
   , ("runs-9",        [200000, 9])      -- 1800000, the window probe's run
   , ("runs-96",       [18750, 96])      -- 1800000, an image row
+    -- The `flip` class's forward control, added 2026-09-09, and a `runs`
+    -- shape only in how it is built. `flip-last-rows` is the same `l` at
+    -- the same `sInner` reversed, and the class's reversal finding is the
+    -- two of them divided; until now they were in two classes and so in
+    -- two processes, each over its own `list`. `classOf` reads the class
+    -- off the name, so the name is what puts this one in `flip` while the
+    -- generator, the `check` clause and the shape-count parser stay the
+    -- ones `runsShapes` already has. It sits here rather than in
+    -- `flipShapes` because `oneFlip` asserts an innermost stride of -1 of
+    -- every member there, which is the class's definition and not a
+    -- condition to relax for a control.
+  , ("flip-fwd-rows96", [18750, 96])   -- 1800000, runs-96 under a flip name
     -- Two lengths that bracket 'dispRun' within a factor of two, added
     -- 2026-08-30: the class jumped 96 -> 1024 with the crossover inside,
     -- so the threshold was cut to a bracket an order of magnitude wide.
@@ -5869,6 +5881,12 @@ roster =
     -- (runs/run26.md, item 4). 'Only' again since 2026-09-06.
   , ("mut-odo-vecdims-add-in-leaf-down", Only fbMutOdoVecdimsAddInLeafDown)
   , ("mut-odo-vecdims-add-in-leaf-u2", Fill fbMutOdoVecdimsAddInLeafU2)
+    -- The shipped fill's near A/A copy, beside its base, added 2026-09-09
+    -- with the far one at the tail: the pair is what makes position vary
+    -- within a strategy where a lone distant twin would only have varied
+    -- strategy within a position, which is the crossed design the floor
+    -- section states and the three older A/A strategies already carry.
+  , ("mut-odo-vecdims-add-in-leaf-u2-aa", Twin fbMutOdoVecdimsAddInLeafU2)
     -- The unrolled loop with its look-ahead hoisted out of the guard,
     -- added 2026-09-07 beside its parent for Run 27; reasons at its
     -- definition.
@@ -6133,6 +6151,16 @@ roster =
     -- README.md#sum-only-and-the-correction-now-applied.
   , ("bq-expand-nosum",            Force fbBQexpand)
   , ("bq-expand-aa-adjacent",      Twin fbBQexpand)
+    -- The shipped fill's own A/A copy, at the far end of the roster from
+    -- its base, added 2026-09-09. The family lost both its placement
+    -- controls in the prune of 2026-09-04 and Run 27 read the cost of
+    -- that on `flip-last-rows`: six arms of one loop family moved 6% to
+    -- 17% between the compilers on byte-identical code at the same
+    -- cache-line offsets, and the only A/A group near them,
+    -- `mut-odo-vecdims`'s, sits three slots wide at the other end of the
+    -- process. A twin here prices a slot for the arm that shipped rather
+    -- than for the family root, which is what a clause about `-u2` needs.
+  , ("mut-odo-vecdims-add-in-leaf-u2-aa-distant", Twin fbMutOdoVecdimsAddInLeafU2)
     -- parked 2026-08-28, permanently, by decision (README.md#what-is-open,
     -- the Run 21 entry): superseded, answering no registered question;
     -- its column in a run's own geomean table stays blank from Run 21 on

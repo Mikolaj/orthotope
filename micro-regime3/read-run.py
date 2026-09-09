@@ -9322,11 +9322,17 @@ def check_doc(readme, main_hs, run_doc=None, prev_doc=None):
         # FAILs naming both; changing every site to a word outside the
         # vocabulary FAILs with the could-not-locate message; restoring
         # exits 0. So neither branch passes vacuously.
-        base = set(re.findall(r'it rests on (six|sixteen|eighteen) pairs', uw))
-        base |= set(re.findall(r'The same (six|sixteen|eighteen) controls'
-                               r' ride every process', uw))
-        base |= set(re.findall(r'\*\*(Six|Sixteen|Eighteen)\*\* A/A controls'
-                               r' run an existing strategy', uw))
+        # The vocabulary is closed on purpose: a word it does not carry
+        # makes `base` empty and stops this check biting, so it is widened
+        # in the same edit that first needs it -- `eight` on 2026-09-09,
+        # when the shipped fill's A/A pair took the population from six.
+        WORD = r'(six|eight|sixteen|eighteen)'
+        base = set(re.findall(r'it rests on ' + WORD + r' pairs', uw))
+        base |= set(re.findall(r'The same ' + WORD
+                               + r' controls ride every process', uw))
+        base |= set(re.findall(r'\*\*' + WORD.title()
+                               + r'\*\* A/A controls run an existing strategy',
+                               uw))
         base = {b.lower() for b in base}
         # AGAINST THE ROSTER, not only against each other. Agreement between
         # sites says they were edited together and nothing about whether any

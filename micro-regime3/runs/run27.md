@@ -338,6 +338,8 @@ The blocks carry no headings of their own. One per class would crowd the content
 | `small` | 5 | 0.066 | 0.094 | **`lib-stage2-lean-u1`** 0.057 | `mut-odo-vecdims-add-in-leaf-u2-down` 0.058 | 0.58% |
 | `compose` | 4 | 0.027 | 0.032 | `libunord-stage2-sum` 0.018 | **`mut-odo-vecdims-add-in-leaf-u2-ptr`** 0.017 | 0.47% |
 
+The `flip` row reads five views where `Main.hs` now defines six: `flip-fwd-rows96` was added 2026-09-09, after the run.
+
 The floor-movement paragraph that stood here was cut on 2026-08-22, having read Run 16's column against Run 15's while Run 17 installed this one over it --- the defect `--check-doc` now holds every such movement to. What moves these floors is [an open question](../README.md#what-is-open) and not a sentence under a table.
 
 The pure slot this table carried until 2026-08-22, and the paragraph that read it, retired with the pure/impure distinction when the decision shipped the mutable family's arm; the column now carries the best arm outside the family, which the table above gives per class and which is ahead of `mut-odo-vecdims` in every one of the ten --- the lead that broke the ordering property 2 carried until 2026-09-06. **On three rows --- `runs`, `block` and `compose` --- the bold sits in the CEILING column instead**, the fastest arm there being `mut-odo-vecdims-add-in-leaf-u2-ptr`: the reader's convention counts a `mut-odo-vecdims` sibling as the family's and so as no break, and this file overrides it for that arm alone, the pointer fill being the design the dead-ideas ruling refuses rather than a form the family could ship. So the table's bolding and the head's count of ten differ by convention and not by measurement, and this sentence is where the two are reconciled.

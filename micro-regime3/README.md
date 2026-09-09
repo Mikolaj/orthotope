@@ -974,8 +974,8 @@ rather than a slot in the next run, observed again:
   to `-stage9`, is checked and not timed, a list concatenated being the API's
   failure mode and `toVectorT` the fill for it, and the ordered list's consumers
   `liblist-stage1-sum` to `-stage4-sum` land in their place, so the entry points
-  are timed only as they are used. 37 timed arms over 19 main-set shapes, 703
-  benches, and 57 class views of ten classes, five of them new:
+  are timed only as they are used. 39 timed arms over 19 main-set shapes, 741
+  benches, and 58 class views of ten classes, five of them new:
   `window-64x64-c16-k3` and `window-32x32-c64-k3`, patch views with channels,
   the shape the tie-break exists for; and `bcast-src8`, `bcast-src64`
   and `bcast-src512`, an 8-, 64- and 512-element source each repeated to 1.8
@@ -3924,24 +3924,27 @@ and one run at stride -1 once canonicalized; and since 2026-09-05 a gapped
 sub-block with each row reversed, `flip-inner-gap64`, beside the same block
 with its rows in reverse order, `flip-outer-gap64`, regime 2 --- the pair
 that separates the direction of the innermost walk from the reversal as such,
-which the unordered candidate is priced on), `block` (regime 2 as a sub-block
-of a wider array: the gap between runs swept from one element to a page,
-a rank-3 block that does not merge, and an offset off an 8-element boundary),
-`small` (one view per canonical regime at a few hundred elements, and since
-2026-09-05 a rank-5 im2col patch beside the rank-3 one, where a per-call cost
-is a share of the call and its O(rank) part shows --- the one class defined
-by a size and not by an operation) and `compose` (a zero stride combined
-with a second mechanism --- reversed, sliced to an offset, a second zero stride
-it cannot merge with, or every stride zero --- as the library composes
-its operations and no one operation's class builds: the other exception). Each
-is a short list in `Main.hs`, reusing a main-set shape where one fits so
-that a class figure has a positive-stride counterpart to stand next to; each
-generator's comment there says what it models, and the comment heading them all,
-above `mkRev`, carries the coverage argument --- a hypothesis about what a valid
-hand-built view can recombine, not a theorem --- which is not repeated here.
-*Class* unqualified means one of these; the other sense in this README always
-keeps its noun, *method* --- a `class method`, the class-method tier, or in full
-a `Vector`-class method.
+which the unordered candidate is priced on; and since 2026-09-09 one member
+that is not reversed at all, `flip-fwd-rows96`, `runs-96`'s construction
+under a `flip` name, so that the class's own reversal reading is two views
+of one process where it used to be two processes divided), `block` (regime 2
+as a sub-block of a wider array: the gap between runs swept from one element
+to a page, a rank-3 block that does not merge, and an offset off an 8-element
+boundary), `small` (one view per canonical regime at a few hundred elements,
+and since 2026-09-05 a rank-5 im2col patch beside the rank-3 one, where
+a per-call cost is a share of the call and its O(rank) part shows --- the one
+class defined by a size and not by an operation) and `compose` (a zero stride
+combined with a second mechanism --- reversed, sliced to an offset, a second
+zero stride it cannot merge with, or every stride zero --- as the library
+composes its operations and no one operation's class builds: the other
+exception). Each is a short list in `Main.hs`, reusing a main-set shape where
+one fits so that a class figure has a positive-stride counterpart to stand next
+to; each generator's comment there says what it models, and the comment heading
+them all, above `mkRev`, carries the coverage argument --- a hypothesis about
+what a valid hand-built view can recombine, not a theorem --- which
+is not repeated here. *Class* unqualified means one of these; the other sense
+in this README always keeps its noun, *method* --- a `class method`,
+the class-method tier, or in full a `Vector`-class method.
 
 **Three classes are retired from timing and kept in `check`, ruled 2026-09-04:
 `reshape1`, `revsome` and `slice`.** What a timed class has to be distinct
@@ -4207,8 +4210,9 @@ that evening to 646, and `lib-stage2-lean-u1`, the fill not unrolled
 under the lean dispatch, to 665; the sort-first stage with its three
 reorderings, their consumers, the fold entry point and the ceiling's consumer,
 2026-09-09, and the same day's retirement of the thirteen arms concatenating
-a list, with the ordered list's four consumers in their place, and base's `sum`
-over stage six's list later the same day, takes the roster to 703 benches.
+a list, with the ordered list's four consumers in their place, base's `sum`
+over stage six's list later the same day, and the shipped fill's A/A pair
+of 2026-09-09, takes the roster to 741 benches.
 
 **What the eight are worth as instruments, read against each other for the first
 time on 2026-08-14, over Runs 10 to 13.** Per class: the median A/A deviation
@@ -6183,10 +6187,14 @@ is also the order to read them in:
 The order they are *run* in is deliberately a different one, fixed by `roster`
 in `Main.hs`, where a majority of them now take no slot at all, being checked
 and not timed; the Results table below is sorted by time, a third. Sharing
-that roster with the strategies, and not strategies themselves, are ten
-controls: six A/A arms --- `bq-expand-aa-adjacent` and `bq-expand-aa-distant`,
+that roster with the strategies, and not strategies themselves, are twelve
+controls: eight A/A arms --- `bq-expand-aa-adjacent` and `bq-expand-aa-distant`,
 `mut-odo-vecdims-aa` and `mut-odo-vecdims-aa-distant`, `list-aa-adjacent`
-and `list-aa-distant`, three strategies each duplicated in both positions ---
+and `list-aa-distant`, three strategies each duplicated in both positions, and,
+since 2026-09-09, `mut-odo-vecdims-add-in-leaf-u2-aa`
+and `mut-odo-vecdims-add-in-leaf-u2-aa-distant`, a fourth strategy in both
+positions, which prices a slot for the arm the library runs where the three
+pairs above price one for the family root ---
 the `sum-only-early`/`sum-only-late` pair, and `bq-expand-nosum`
 and `mut-odo-vecdims-nosum`, each its base arm forced with one element instead
 of the sum. Eighteen A/A arms over nine strategies ran from Run 14 to Run 20
@@ -6307,12 +6315,12 @@ with its three reorderings, their consumers, the fold entry point
 and the ceiling's consumer, 2026-09-09, and the same day's retirement
 of the thirteen arms concatenating a list, with the ordered list's four
 consumers in their place, and base's `sum` over stage six's list later the same
-day, takes the roster to 703 benches, so with the controls the run is 37 arms.
-**Run 26 timed four parked arms for that run alone**:
-`mut-odo-vecdims-add-in-leaf-down`, parked 2026-09-02; `canon-vecdims`
-and `lib-stage2`, parked by this prune; and `lib-stage2-short`, parked
-by the ruling on the short bodies of the same day ([the stride
-classes](#the-stride-classes-and-what-they-cover)). Each was parked
+day, and the shipped fill's A/A pair of 2026-09-09, takes the roster to 741
+benches, so with the controls the run is 39 arms. **Run 26 timed four parked
+arms for that run alone**: `mut-odo-vecdims-add-in-leaf-down`, parked
+2026-09-02; `canon-vecdims` and `lib-stage2`, parked by this prune;
+and `lib-stage2-short`, parked by the ruling on the short bodies of the same day
+([the stride classes](#the-stride-classes-and-what-they-cover)). Each was parked
 with a registration standing on it, which is what left that registration
 unreadable --- Run 24 lost a clause, Run 25 five, and the two-window item
 was withdrawn beside them, seven in all ([the open list][open]) --- so Run 26
@@ -9602,7 +9610,7 @@ to be exactly 1, so they are the only place an interval can be held
 to an answer. `--aa` reports whether each covers 1 and how its half-width
 compares with the spread the pairs actually show, which turns the floor
 from a threshold someone chose into a factor a run measured. Read that factor
-as an order of magnitude: it rests on six pairs since the prune of 2026-09-04,
+as an order of magnitude: it rests on eight pairs since the prune of 2026-09-04,
 on sixteen from the parking of 2026-08-28 until then, and on eighteen before
 that.
 
@@ -9792,7 +9800,7 @@ creates, the other creates less and resolves nothing --- and the pair of them
 is the reading. That is the shim's standing rule restated from a new direction
 and not a case against it.
 
-Six A/A controls run an existing strategy twice under a second name --- three
+Eight A/A controls run an existing strategy twice under a second name --- four
 strategies, each duplicated once beside its base and once at a distance,
 so position varies within a strategy and strategy within a position. Eighteen
 ran from Run 14 to Run 20 and sixteen from Run 21 to Run 24: twelve
@@ -11434,7 +11442,7 @@ compares something new --- two populations, two machines, two GHC versions,
 an arm against a prediction --- ask which of these bounds it, and if none does,
 say so in the sentence rather than borrowing the nearest number.
 
-**Each population measures its own floor.** The same six controls ride every
+**Each population measures its own floor.** The same eight controls ride every
 process, so a stride-class run prices the noise of the process its own figures
 came out of --- which is the only process they can be judged in ---
 but it prices it over three cells where the main set has two dozen. Read
