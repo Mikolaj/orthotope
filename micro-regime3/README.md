@@ -1401,7 +1401,40 @@ rather than a slot in the next run, observed again:
   `bcast-tall-Mx2` and with it the `bcast` class to a tie and reads this item
   the other way there; the doubling has no counterpart in the leaf,
   so `bcastmid` stays the lean fill's until the leaf gains a block copy
-  of its own.
+  of its own. (15) *The shipped fill's own A/A pair, landed 2026-09-09.*
+  `mut-odo-vecdims-add-in-leaf-u2-aa` sits beside its base and `-aa-distant`
+  at the roster's tail --- the fill family's first placement controls since
+  the prune of 2026-09-04 took both of the old ones --- so that a clause about
+  the arm the library actually runs is read against a floor measured on that arm
+  and not on `mut-odo-vecdims`, `list` or `bq-expand`, whose A/A triples sit
+  within five slots of each other while the fill family sits elsewhere
+  in the process. Both copies are their base's code on every population.
+  On the main set and on every class, both halves:
+  `predict: pair mut-odo-vecdims-add-in-leaf-u2-aa mut-odo-vecdims-add-in-leaf-u2 1.0`
+  and
+  `predict: pair mut-odo-vecdims-add-in-leaf-u2-aa-distant mut-odo-vecdims-add-in-leaf-u2 1.0`,
+  each inside the population's floor; where either falls outside it the margin
+  IS that population's floor for this arm, read as the measurement it is rather
+  than as a finding. Killed by the adjacent copy outside the floor on both
+  halves on the main set, which would say a slot two apart already costs what
+  a run reads as a strategy's margin. Read beside them by hand and
+  with no prediction: the two copies against each other on `flip-last-rows`,
+  where eighteen legs of 2026-09-09 put that view's A/A spread anywhere between
+  0.46% and 11.31% and where one run takes a single draw of it. (16)
+  *The reversal reading inside one process, `flip-fwd-rows96` landed
+  2026-09-09.* The class's own finding --- a reversed innermost axis costing
+  the regime-3 fill about twice the forward run at the same length --- has
+  been read across two processes, `flip-last-rows` in the flip run against
+  `runs-96` in the runs run, each over its own `list`; the new view
+  is `runs-96`'s construction under a `flip` name, so both sides now sit in one
+  process over one baseline. Read by hand off the two views' cells,
+  with no span, on both halves: `mut-odo-vecdims` on `flip-last-rows`
+  over the same arm on `flip-fwd-rows96` between 1.8 and 2.3, where Run 25 read
+  2.120 and 2.073 across the two processes, and the same ratio taken on `-u2`,
+  `lib-stage2-lean` and `list`, which Run 25 read at 1.683 and 1.851, 1.903
+  and 1.845, and 1.091 and 1.076. Killed by the one-process figure outside
+  that band on both halves, which would say the cross-process reading carried
+  a term the two processes contributed rather than the reversal.
 - `ANSWERED` **What Run 27 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
   verdicts are [in Run 27's own
