@@ -2940,6 +2940,12 @@ fbCanonFull sh (T (Strides ats) ao v)
 -- 'fbMutOdo' but iterating the precomputed run base-offsets list, to
 -- price what that list (a factor @sInner@ smaller than @l@) costs the
 -- odometer-free variant against its control.
+-- The 'foldM_' below has the shape that cost 'sumLazyRuns' 80 bytes a
+-- run: a left fold fused with a build-form list whose walker has
+-- levels, 'runBaseOffsets', the accumulator @outPos + sInner@ handed
+-- lazily to a continuation that at a level's exit is the outer level's
+-- and unknown, so it may be a thunk a run. Not measured (2026-09-09);
+-- 'lazyRunsFB''s flat loop is the fix if it ever matters.
 {-# NOINLINE fbMutBaseOffsets #-}
 fbMutBaseOffsets :: ShapeL -> T -> VS.Vector Double
 fbMutBaseOffsets sh (T (Strides ats) ao v) = VS.create $ do
@@ -4025,17 +4031,41 @@ lazyRuns ssh sats start v = build (lazyRunsFB ssh sats start v)
 -- 'listRoute', itself in build form, can take the runs branch inside
 -- its own 'build' and a consumer of the route's list meets one
 -- 'build' whichever branch the route takes.
+--
+-- One flat loop over the runs, and not a 'foldr' per level with the
+-- rest of the list passed down as a continuation (2026-09-09): a fold
+-- fused with the level form met, at every level's exit, a lambda-bound
+-- continuation it could not see, so it passed the accumulator to it
+-- lazily and boxed -- a thunk and a 'D#' a run under base's 'foldl'',
+-- 80 bytes, read off the Core dump under 'closure-probe/'. Here the
+-- innermost outer level is a counter and a cursor, the outer levels an
+-- odometer of (index, extent, stride) touched only on a carry, and
+-- every continuation the fused fold meets is 'go', 'carry' or 'nil',
+-- all known to the compiler, so base's own left folds -- 'sum' among
+-- them -- see a strict known call and allocate nothing a run.
 lazyRunsFB :: ShapeL -> [Int] -> Int -> VS.Vector Double
            -> (VS.Vector Double -> b -> b) -> b -> b
 lazyRunsFB ssh sats !start v cons nil =
   let !n = last ssh
-      go [] [] !o rest = cons (VS.slice o n v) rest
-      go [d] [s] !o rest =
-        foldr (\i r -> cons (VS.slice (o + i * s) n v) r) rest [0 .. d - 1]
-      go (d : ds) (s : ss) !o rest =
-        foldr (\i r -> go ds ss (o + i * s) r) rest [0 .. d - 1]
-      go _ _ _ _ = error "lazyRuns: impossible"
-  in  go (init ssh) (init sats) start nil
+  in  case (init ssh, init sats) of
+        ([], []) -> cons (VS.slice start n v) nil
+        (dims, strs) ->
+          let !dk = last dims
+              !sk = last strs
+              go !i !o outer
+                | i < dk = cons (VS.slice o n v) (go (i + 1) (o + sk) outer)
+                | otherwise = carry outer (o - dk * sk) []
+              -- The levels exhausted on the way out, reset, go back on
+              -- the front in their order; dropping them walked a view
+              -- with two levels above the counter once through its
+              -- inner one and failed 'check' on slice-cnn-L2-24x24-c32
+              -- (2026-09-09).
+              carry [] _ _ = nil
+              carry ((j, d, s) : rest) !o reset
+                | j + 1 < d =
+                    go 0 (o + s) (foldl' (flip (:)) ((j + 1, d, s) : rest) reset)
+                | otherwise = carry rest (o + s - d * s) ((0, d, s) : reset)
+          in  go 0 start (reverse (zip3 (repeat 0) (init dims) (init strs)))
 {-# INLINE lazyRunsFB #-}
 
 -- A lazy stage's dispatch as a value: one slice, the runs 'lazyRuns'
@@ -4092,9 +4122,15 @@ concatParts ps = VS.concat ps
 
 -- The fold on the list expression itself, where it fuses with the
 -- 'build'; compiled once and never inlined, so every stage runs it.
--- 'foldl'' and not a hand-written 'foldr' with a strict application:
--- the latter read 145 bytes a run on 9.12.4, the unfused figure, where
--- this reads 88 (2026-09-09).
+-- Base's 'foldl'', which hands the new accumulator to the continuation
+-- lazily: with 'lazyRunsFB' one flat loop, every continuation is a
+-- known strict call and the accumulator crosses it unboxed, none a run
+-- and 3.7 ns on 'runs-9' where the level-form walker read 80 bytes and
+-- 10.7 (9.12.4, 2026-09-09). A fold forcing the new accumulator first,
+-- a 'foldl''' written as base writes its own, took the 80 bytes out of
+-- the level form too, and over the flat walker read the same as base's
+-- to a hundredth of a nanosecond, so it is not kept: the walker is the
+-- fix, and it reaches base's own folds, 'sum' among them.
 {-# NOINLINE sumLazyRuns #-}
 sumLazyRuns :: ShapeL -> [Int] -> Int -> VS.Vector Double -> Double
 sumLazyRuns ssh sats !o v =
@@ -4257,7 +4293,9 @@ fbLibUnordStage6LoopSum sh a@(T _ _ v) =
 -- 'sum' over the list itself, no route in hand and so no 'sumLazyRuns'.
 -- Base's 'sum' is base's 'foldl'', so against 'libunord-stage6-sum' this
 -- prices what a consumer in the wild gets from the list's shape alone,
--- which is what a producer written for base's fold has to serve.
+-- which is what a producer written for base's fold has to serve: under
+-- the level-form walker it read 96 bytes a run where the harness's own
+-- consumer read 80, under the flat one none, as the harness's.
 -- Added 2026-09-09; not registered until the producer question is
 -- settled.
 {-# NOINLINE fbLibUnordStage6ListSum #-}
