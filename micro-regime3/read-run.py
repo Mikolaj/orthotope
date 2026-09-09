@@ -908,6 +908,18 @@ def insitu_ratios(cells, shapes, strategies):
     return out
 
 
+def no_forcing_pass(name):
+    """The two CONTROL families that never produce a result to force.
+
+    Held apart from `no_net` since 2026-09-10, when the reducing consumers
+    joined that predicate: nothing nets them either, but they are
+    candidates and stay in the published column, where a control does not.
+    One spelling for both callers, which is the whole point of `no_net`
+    having been named in the first place.
+    """
+    return name.startswith('sum-only') or name.endswith('-nosum')
+
+
 def no_net(name):
     """Has this arm no corrected time? It never ran the forcing pass.
 
@@ -915,15 +927,35 @@ def no_net(name):
     not spell it alike -- `health` wrote the two halves as separate `not`
     clauses and `selftest` tested membership of its own `sum-only` list --
     so a third control class, or a renamed suffix, had to be found in
-    eight places by a grep that missed two of them. Not `is_control`,
-    which is the WIDER set: it counts the `-aa` twins, which do have a
-    corrected time and are only excluded from the published column.
+    eight places by a grep that missed two of them.
+
+    THE `-sum` CONSUMERS ARE HERE SINCE 2026-09-10, by this predicate's
+    own words: a reducing consumer returns a scalar and takes the fold
+    into the walk, so it produces nothing to force and no forcing pass was
+    ever run for it. Subtracting the term measured on `sum-only`, which
+    materialises and then sums, took off them work they never did -- far
+    enough that Run 28's roster pass found five rows with EVERY cell
+    non-positive, on `bcast` and on `flip`, the arm reading faster than
+    the control whose cost was being subtracted (`flip-fwd-rows96` /
+    `libunord-stage7-sum` at 0.00074 s against `sum-only-early`'s
+    0.00108). Their spans read raw, which is what `pair_stats` does with a
+    `no_net` half, and every span the registrations write over them is a
+    pair.
     """
-    return name.startswith('sum-only') or name.endswith('-nosum')
+    return no_forcing_pass(name) or name.endswith('-sum')
 
 
 def is_control(name):
-    return '-aa' in name or no_net(name)
+    """Excluded from the published column: the A/A twins and the two
+    control families.
+
+    NOT `no_net`, which is wider since 2026-09-10. A reducing consumer has
+    no corrected time and is still a CANDIDATE; filing it here would drop
+    seventeen arms out of every table and fail `--selftest` besides, whose
+    roster check holds an arm this calls a control to a Twin, Term or
+    Force role in Main.hs, and Main.hs files them as candidates.
+    """
+    return '-aa' in name or no_forcing_pass(name)
 
 
 def twin_of(name):
@@ -3979,7 +4011,16 @@ def fingerprint_row(sh, sh_cells, d, label=None):
     A sunk cell -- a net the forcing term did not leave positive -- is
     `--` and never a candidate, as `time_of` and `worst_of` read it: a
     negative or wild figure here outlives the run that could disprove
-    it, this table being installed every write-up."""
+    it, this table being installed every write-up.
+
+    AND AN ARM WITH NO CORRECTED TIME IS NOT A CANDIDATE EITHER, which
+    this had to be told on 2026-09-10. It asked `is_control`, which until
+    that day WAS `no_net` plus the twins, so the two agreed by
+    construction; once the reducing consumers joined `no_net` alone, this
+    column went on dividing their nets and named one on every shape of
+    Run 28's main set -- `libunord-stage6-sum 0.030` beside a `time --`
+    in the same run's table, which is the disagreement the paragraph
+    above forbids."""
     base = sh_cells['list']['net']
 
     def ratio(st):
@@ -3987,7 +4028,7 @@ def fingerprint_row(sh, sh_cells, d, label=None):
         return (None if not c or c['net'] <= 0 or base <= 0
                 else c['net'] / base)
     timed = sorted((r, st) for st in sh_cells
-                   if st != 'list' and not is_control(st)
+                   if st != 'list' and not is_control(st) and not no_net(st)
                    for r in [ratio(st)] if r is not None)
     outside = next((p for p in timed if not p[1].startswith(FAMILY)), None)
     family = next((p for p in timed if p[1].startswith(FAMILY)), None)
