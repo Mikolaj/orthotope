@@ -935,27 +935,29 @@ rather than a slot in the next run, observed again:
   as the basis against the same in-tree HEAD stage1, `10.1.20260803`, both
   under `LOOP_DEADSPOT=1`, the same recipe and the same shim; the pair
   is the request's, Run 27 having closed the compiler question, and this run's
-  question is its roster --- over Run 27's roster plus two arms,
-  `libunord-stage6`, stage five with the first canonicalization dropped,
-  and `libunord-stage6-sum`, its reducing consumer: 37 timed arms over 19
-  main-set shapes, 703 benches, and the 52 class views of ten classes unmoved.
-  One change of code, the two arms, each landing beside stage five's
-  and touching no arm timed before it. Two things are known before the run
-  and are the premise rather than predictions. A `check`-mode comparison
-  of 2026-09-09 read stage five's sorted canonical dims and the sort-first
-  form's equal on all 91 checked views, so the two arms differ from stage five
-  in dispatch cost alone; the comparison was removed with its reading, `check`
-  holding the arms to the reference as it holds every arm. And a filtered probe
-  the same day on the HEAD build --- criterion means over one process, stage
-  four, five and six alone on `small` and `compose`, not a run --- read
-  `libunord-stage6` over `libunord-stage5` at 0.960 on `small` and 0.999
-  on `compose`, the consumers at 0.922 and 0.997, with `small-patch-k5` at 0.786
-  and `small-flat64` at 1.239: the pass saved where it merges nothing, [6, 5, 5]
-  on strides [25, 1, 5], against the longer sort where it collapsed the rank,
-  [4, 1, 64] on [64, 0, 1], rank one before the sort under stage five and three
-  axes sorted under stage six. Each item names its populations and carries
-  a prediction and a kill condition. (1) *The dispatch cost of the first
-  canonicalization.* On `small`, both halves:
+  question is its roster --- over Run 27's roster plus eight arms:
+  `libunord-stage6`, stage five with the first canonicalization dropped; three
+  reorderings of the run, each one change over stage six, `libunord-stage7`
+  the tie-break, `libunord-stage8` the longest chain and `libunord-stage9`
+  the zero-stride axes outermost; and the four reducing consumers, `-sum` each.
+  43 timed arms over 19 main-set shapes, 817 benches, and the 52 class views
+  of ten classes unmoved. One change of code, the eight arms, each landing
+  beside stage five's and touching no arm timed before it. Two things are known
+  before the run and are the premise rather than predictions. A `check`-mode
+  comparison of 2026-09-09 read stage five's sorted canonical dims
+  and the sort-first form's equal on all 91 checked views, so the two arms
+  differ from stage five in dispatch cost alone; the comparison was removed
+  with its reading, `check` holding the arms to the reference as it holds every
+  arm. And a filtered probe the same day on the HEAD build --- criterion means
+  over one process, stage four, five and six alone on `small` and `compose`,
+  not a run --- read `libunord-stage6` over `libunord-stage5` at 0.960
+  on `small` and 0.999 on `compose`, the consumers at 0.922 and 0.997,
+  with `small-patch-k5` at 0.786 and `small-flat64` at 1.239: the pass saved
+  where it merges nothing, [6, 5, 5] on strides [25, 1, 5], against the longer
+  sort where it collapsed the rank, [4, 1, 64] on [64, 0, 1], rank one before
+  the sort under stage five and three axes sorted under stage six. Each item
+  names its populations and carries a prediction and a kill condition. (1)
+  *The dispatch cost of the first canonicalization.* On `small`, both halves:
   `predict: pair libunord-stage6 libunord-stage5 0.96 within 3%`
   and `predict: pair libunord-stage6-sum libunord-stage5-sum 0.92 within 4%`.
   Read per view beside it, by hand: stage six ahead past the floor
@@ -977,7 +979,83 @@ rather than a slot in the next run, observed again:
   (3) *Allocation.* `libunord-stage6` and its consumer read the same allocation
   multiple as stage five and its consumer on every view, off the allocation
   column, neither dispatch allocating a result-sized buffer; killed by any view
-  where the two multiples differ at the column's own precision.
+  where the two multiples differ at the column's own precision. (4)
+  *The tie-break where it cannot fire, stage seven over stage six.* Stage seven
+  puts the larger extent innermost on equal absolute strides, so the run
+  is the longest unit-stride axis. Equal absolute strides alias, so the tie
+  exists only in a self-overlapping view: of the timed views the four unstrided
+  `window` views and `small-patch-r5`, item (5)'s, and no other. On `rev`,
+  `bcast`, `bcastmid`, `scaled`, `runs`, `block` and `compose`, both halves:
+  `predict: pair libunord-stage7 libunord-stage6 1.0`
+  and `predict: pair libunord-stage7-sum libunord-stage6-sum 1.0`; the same
+  spans print a figure and no verdict on `window` and `small`, and the main set
+  and `flip` are read raw by hand as item (2) reads them. Killed by either pair
+  past the floor on both halves on any of the seven, which would say
+  the tie-break moved a route it cannot reach. (5) *The tie-break where
+  it fires.* On `window` the runs go from the kernel's width to the image's: 3
+  to 222 on `-k3`, 7 to 122 on `-k7`, 9 to 56 on `-k1x9` and 5 to 24 on `-k5`,
+  with `-s2` unmoved, its stride-2 axis unable to run, and `-d2` unmoved,
+  its long axis already alone at stride 1. Read against a two-parameter account
+  fitted on Run 27's HEAD half --- about a nanosecond an element and thirty
+  a run for the fill arm, two thirds of a nanosecond and fifteen
+  for the consumer, off `window-224x224-k3` and `-d2`, whose runs of 220
+  are the control --- stage seven over stage six reads about 0.10 on `-k3`, 0.25
+  on `-k7`, 0.4 on `-k1x9` and `-k5` and 1.0 on `-s2` and `-d2`, the consumers
+  about 0.13, 0.29, 0.40 and 0.32; against the vecdims fill, stage seven's
+  consumer ahead on `-k3`, `-k7` and `-k1x9` and near level on `-k5`. As class
+  spans on `window`, both halves:
+  `predict: pair libunord-stage7 libunord-stage6 0.4 within 15%`
+  and `predict: pair libunord-stage7-sum libunord-stage6-sum 0.4 within 15%`,
+  printing a figure and no verdict elsewhere. `small-patch-r5`, runs of 16 for 8
+  on a 256-element view, is read by hand: stage seven ahead past the floor.
+  Killed by stage seven not ahead of stage six past the floor on both halves
+  on any of the four unstrided views, which would say the per-run cost
+  is not what the dilated control read; by stage seven off stage six past
+  the floor on both halves on `-s2` or `-d2`, where the route is unchanged;
+  or by stage seven behind stage six on `small-patch-r5` on both halves. (6)
+  *The longest chain, stage eight over stage six and over stage seven.* Stage
+  eight chooses the run as the longest contiguous one over every order
+  of absorbing axes whose stride equals the run's length, leaves the other axes
+  in stage six's order, and takes stage six's route where a stride is 0 or none
+  is 1. Against stage six it moves what stage seven moves and `small-patch-r5`
+  further, 16 for 8; against stage seven its run differs on `small-patch-r5`
+  alone, an axis with the run's length sitting away from the run after sorting
+  being impossible in an injective view, and its outer levels differ only where
+  two of them tie on stride, the `window` views, where stage eight keeps stage
+  six's order and stage seven the reverse, the run count moving on none.
+  So on `rev`, `bcast`, `bcastmid`, `scaled`, `runs`, `block`, `window`
+  and `compose`, both halves:
+  `predict: pair libunord-stage8 libunord-stage7 1.0`
+  and `predict: pair libunord-stage8-sum libunord-stage7-sum 1.0`,
+  and on `small` the class span prints a figure and no verdict, `small-patch-r5`
+  read by hand: stage eight ahead of stage seven past the floor, the runs
+  halving on a call the per-run cost dominates. Killed by stage eight off stage
+  seven past the floor on both halves on any view but `small-patch-r5`, which
+  would say the chain moved a route the argument says it cannot; or by stage
+  eight behind stage seven on `small-patch-r5` on both halves. (7) *Zero-stride
+  axes outermost, stage nine over stage six.* Stage nine moves every zero-stride
+  axis outermost on the list route, so a broadcast lists one real slice as many
+  times as the axis is long where stage six falls to the fill; the fill route
+  and every view with no zero stride are stage six's. On `rev`, `scaled`,
+  `runs`, `block` and `window`, both halves:
+  `predict: pair libunord-stage9 libunord-stage6 1.0`
+  and `predict: pair libunord-stage9-sum libunord-stage6-sum 1.0`, the main set
+  and `flip` read raw by hand. Where a zero stride exists the reading is per
+  view, by hand, against item (5)'s account: stage nine ahead where the repeated
+  slice is long --- the three `bcast` views, 6400 elements eight times, 2000
+  elements 900 times and 900000 twice; the `bcastmid` views, a dense block
+  repeated; `compose-rev-bcast` and `compose-slice-bcast`, 6400 elements eight
+  times --- the consumer skipping the result's write and the fill arm
+  concatenating slices where the fill wrote runs of eight; behind
+  on `small-bcast32`, 32 runs of eight; `compose-zero-mid`, 20000 runs of 90,
+  with no prediction, the account putting the consumer near 0.9 and the fill arm
+  above 1; `compose-scalar` unchanged, every stride 0. Killed by stage nine
+  behind stage six past the floor on both halves on `bcast-inner8`
+  or `compose-slice-bcast`, which would say a slice of thousands repeated loses
+  to the fill even there; or by stage nine off stage six past the floor on both
+  halves on any population with no zero stride. Read beside it off
+  the allocation column: stage nine's consumer at 0.00x on every zero-stride
+  view where stage six's reads 1.00x, the repeated slice being the source's.
 - `ANSWERED` **What Run 27 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
   verdicts are [in Run 27's own
@@ -3746,8 +3824,8 @@ lazy unordered candidates, the two lazy ordered ones and the four reducing
 consumers --- takes it to 646, the hoisted-bound fill of the same day,
 `mut-odo-vecdims-add-in-leaf-u2-last`, to 665, the retirement of lib-stage2-disp
 that evening to 646, and `lib-stage2-lean-u1`, the fill not unrolled
-under the lean dispatch, to 665; `libunord-stage6` with its consumer,
-2026-09-09, takes the roster to 703 benches.
+under the lean dispatch, to 665; the sort-first stage with its three reorderings
+and their consumers, 2026-09-09, takes the roster to 817 benches.
 
 **What the eight are worth as instruments, read against each other for the first
 time on 2026-08-14, over Runs 10 to 13.** Per class: the median A/A deviation
@@ -5772,19 +5850,20 @@ the arms written since brought it back to 28, and a third cut on 2026-09-04,
 the prune, takes it to twelve with `list`; the `-u1` arm timed for Run 25,
 `libunord-stage3` and the two pointer fills of 2026-09-05 make sixteen,
 and the ten of 2026-09-07, less `lib-stage2-disp` retired that evening,
-twenty-five, and the sort-first stage of 2026-09-09 with its consumer,
-twenty-seven** --- the 28 being the four unconditional forms the precondition
-ruling itself called for (below), the four FastReshape arms, of the five Run 20
-arms beside them the three the probes left timed ([the mutable
-ceiling](#the-mutable-ceiling-taken)), and the rework's five less the three
-placement-family arms parked beside them. All three cuts are about what is worth
-spending a bench on, not about what is worth keeping: every dropped strategy
-stays in `Main.hs` and stays in the roster as `concat-runs` is --- checked
-against the reference on every shape of every class, and not timed ---
-so the agreement net does not shrink and nothing has to be rewritten if a ruling
-is later reopened. The 23 arms the rulings dropped carry `Only` in that roster,
-each naming the bound or the multiple that disqualified it. The five
-library-shaped arms with the timed `-u2-down`, added 2026-08-28 ([the stride
+twenty-five, and the sort-first stage of 2026-09-09 with its three reorderings
+and their consumers, thirty-three** --- the 28 being the four unconditional
+forms the precondition ruling itself called for (below), the four FastReshape
+arms, of the five Run 20 arms beside them the three the probes left timed ([the
+mutable ceiling](#the-mutable-ceiling-taken)), and the rework's five less
+the three placement-family arms parked beside them. All three cuts are about
+what is worth spending a bench on, not about what is worth keeping: every
+dropped strategy stays in `Main.hs` and stays in the roster as `concat-runs`
+is --- checked against the reference on every shape of every class,
+and not timed --- so the agreement net does not shrink and nothing has
+to be rewritten if a ruling is later reopened. The 23 arms the rulings dropped
+carry `Only` in that roster, each naming the bound or the multiple
+that disqualified it. The five library-shaped arms with the timed `-u2-down`,
+added 2026-08-28 ([the stride
 classes](#the-stride-classes-and-what-they-cover)), less the eight parked
 permanently since Run 21 and `offtab`'s two twins removed ([its entry][open]),
 plus the six arms added 2026-08-30 and, on 2026-09-02, the composite arm less
@@ -5835,13 +5914,13 @@ is over took it to 494, and the addition of 2026-09-07, eight arms --- the lazy
 candidates and the reducing consumers ([the stride
 classes](#the-stride-classes-and-what-they-cover)) --- takes it to 646,
 the hoisted-bound fill of the same day to 665, the retirement of lib-stage2-disp
-that evening to 646, and `lib-stage2-lean-u1` to 665, and `libunord-stage6`
-with its consumer, 2026-09-09, takes the roster to 703 benches, so
-with the controls the run is 37 arms. **Run 26 timed four parked arms
-for that run alone**: `mut-odo-vecdims-add-in-leaf-down`, parked 2026-09-02;
-`canon-vecdims` and `lib-stage2`, parked by this prune; and `lib-stage2-short`,
-parked by the ruling on the short bodies of the same day ([the stride
-classes](#the-stride-classes-and-what-they-cover)). Each was parked
+that evening to 646, and `lib-stage2-lean-u1` to 665, and the sort-first stage
+with its three reorderings and their consumers, 2026-09-09, takes the roster
+to 817 benches, so with the controls the run is 43 arms. **Run 26 timed four
+parked arms for that run alone**: `mut-odo-vecdims-add-in-leaf-down`, parked
+2026-09-02; `canon-vecdims` and `lib-stage2`, parked by this prune;
+and `lib-stage2-short`, parked by the ruling on the short bodies of the same day
+([the stride classes](#the-stride-classes-and-what-they-cover)). Each was parked
 with a registration standing on it, which is what left that registration
 unreadable --- Run 24 lost a clause, Run 25 five, and the two-window item
 was withdrawn beside them, seven in all ([the open list][open]) --- so Run 26
@@ -11246,42 +11325,43 @@ tables and its fingerprint say so.
 - Run 27 measured TODAY's shapes and class views, being the run whose file
   `runs/` currently publishes --- 35 timed arms over 19 main-set shapes and 52
   class views in TEN classes, 665 benches and 1820, SIX A/A pairs, the `runs`
-  class at FOURTEEN and `window` at SIX --- and its roster is TODAY's LESS TWO:
-  `libunord-stage6` and `libunord-stage6-sum` were added 2026-09-09, after Run
-  27, so every slot below `libunord-stage5` has moved by one and every slot
-  below `libunord-stage5-sum` by two, and a figure read across that boundary
-  carries a roster term. **Its delta against RUN 26** is the commits
-  of 2026-09-06 and 2026-09-07: the four arms Run 26 lifted out of parking put
-  back, the `:: Ptr Double` annotation on every bang-bound `plusPtr` result
-  in the three pointer arms, which is the GHC #27778 workaround and changes
-  no 9.12 code ([the open list][open]), and then ten arms landing ---
-  `libunord-stage4` and `libunord-stage5`, the four `-sum` reducing consumers,
-  `liblist-stage3` and `liblist-stage4`, `mut-odo-vecdims-add-in-leaf-u2-last`
-  and `lib-stage2-lean-u1` --- with `check`'s laziness gate beside them
-  and `lib-stage2-disp` retired that evening, ten in and five out and five net,
-  no shape and no class view moving either way. `bb6d113`, the tip both halves
-  were built from, is that gate's byte count moved behind its failure branch,
-  which is what makes a compiler pair's two `check` outputs byte-identical
-  again; `a990b2f`, which the driver stamped, landed after the build. So NEITHER
-  half reproduces an earlier binary and no md5 here matches one on record;
-  a distance from Run 26's published column carries a roster term of ten arms,
-  **and the nineteen main-set shapes are unmoved between the two runs,
-  so a cross-run figure is over all nineteen**. What a reader has to carry
-  is which half a figure came from: everything published in its file
-  is `run27-g912`, ghc-9.12.4, and `run27-ghead` --- the same source, shim
-  and shim environment built through `cabal.project.ghead` against the in-tree
-  GHC HEAD stage1, unmoved since Run 24, so the halves differ in the compiler
-  and in the boot libraries that come with it and in nothing else ---
-  contributes the second column of `runs/run27.md`. Its `list` moved 0.33%
-  between the halves, INSIDE the 0.7% bar, so its two columns may be subtracted,
-  which no run since Run 24 could say. **The box DID move, and a BIOS change
-  is why**, confirmed by the machine's owner after the run: its gate machine
-  check read -3.66% on `list`'s net against Run 26's fingerprint, over all 19
-  shapes, three of them past 5% and every one moving together, so no absolute
-  of its crosses to Run 26 unadjusted and its cross-run column is read through
-  `--bridge`. **Run 27 therefore opens a third machine era**, as the BIOS change
-  before Run 18 opened the second. Its sequence ran in one window and its `runs`
-  class in a second: two intrusions by the instrument's own bar, one bench
+  class at FOURTEEN and `window` at SIX --- and its roster is TODAY's LESS
+  EIGHT: `libunord-stage6` to `libunord-stage9` and their four consumers
+  were added 2026-09-09, after Run 27, so every slot below `libunord-stage5` has
+  moved by four and every slot below `libunord-stage5-sum` by eight,
+  and a figure read across that boundary carries a roster term. **Its delta
+  against RUN 26** is the commits of 2026-09-06 and 2026-09-07: the four arms
+  Run 26 lifted out of parking put back, the `:: Ptr Double` annotation on every
+  bang-bound `plusPtr` result in the three pointer arms, which is the GHC #27778
+  workaround and changes no 9.12 code ([the open list][open]), and then ten arms
+  landing --- `libunord-stage4` and `libunord-stage5`, the four `-sum` reducing
+  consumers, `liblist-stage3` and `liblist-stage4`,
+  `mut-odo-vecdims-add-in-leaf-u2-last` and `lib-stage2-lean-u1` ---
+  with `check`'s laziness gate beside them and `lib-stage2-disp` retired
+  that evening, ten in and five out and five net, no shape and no class view
+  moving either way. `bb6d113`, the tip both halves were built from,
+  is that gate's byte count moved behind its failure branch, which is what makes
+  a compiler pair's two `check` outputs byte-identical again; `a990b2f`, which
+  the driver stamped, landed after the build. So NEITHER half reproduces
+  an earlier binary and no md5 here matches one on record; a distance from Run
+  26's published column carries a roster term of ten arms, **and the nineteen
+  main-set shapes are unmoved between the two runs, so a cross-run figure
+  is over all nineteen**. What a reader has to carry is which half a figure came
+  from: everything published in its file is `run27-g912`, ghc-9.12.4,
+  and `run27-ghead` --- the same source, shim and shim environment built through
+  `cabal.project.ghead` against the in-tree GHC HEAD stage1, unmoved since Run
+  24, so the halves differ in the compiler and in the boot libraries that come
+  with it and in nothing else --- contributes the second column
+  of `runs/run27.md`. Its `list` moved 0.33% between the halves, INSIDE the 0.7%
+  bar, so its two columns may be subtracted, which no run since Run 24 could
+  say. **The box DID move, and a BIOS change is why**, confirmed
+  by the machine's owner after the run: its gate machine check read -3.66%
+  on `list`'s net against Run 26's fingerprint, over all 19 shapes, three
+  of them past 5% and every one moving together, so no absolute of its crosses
+  to Run 26 unadjusted and its cross-run column is read through `--bridge`.
+  **Run 27 therefore opens a third machine era**, as the BIOS change before Run
+  18 opened the second. Its sequence ran in one window and its `runs` class
+  in a second: two intrusions by the instrument's own bar, one bench
   of its basis main set at 0.28 of a core and left as it stands, and four
   consecutive benches of `runs-512` on its HEAD half at 0.9 to 1.0, at about
   06:38 by the log's own clock and three minutes from where

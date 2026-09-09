@@ -622,3 +622,12 @@ its logs were removed the same day when stage six became a Run 28 arm; the
 figures went into the registration and nowhere else. First attempt at the
 removal asserted the block's blank-line count and stopped before writing,
 while the `rm` after it ran: the logs were gone before the code was.
+
+2026-09-09, later. Three reorderings of stage six's run went in as stages
+seven to nine, from a dispatch simulation over the views whose definitions
+had been read, not from a measurement: the tie-break, the longest chain, the
+zero-stride axes outermost. The first cut of the chain took the first
+equal-stride candidate and read small-patch-r5 at 8 where the tie-break's
+sort reads 16; the arm searches every order. Stage eight was first written
+over stage seven and rebased on stage six mid-turn, on request: every
+reordering one change over the same control.

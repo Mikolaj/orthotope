@@ -4149,6 +4149,142 @@ lsUnordStage6 sh a = either (: []) id (routeUnord6 sh a)
 fbLibUnordStage6 :: ShapeL -> T -> VS.Vector Double
 fbLibUnordStage6 sh a = either id VS.concat (routeUnord6 sh a)
 
+-- Stage seven, stage six with the sort's tie broken the other way: on
+-- equal absolute strides the LARGER extent lands innermost, so the run
+-- 'lazyRuns' emits is the longest unit-stride axis and not the
+-- shortest. Equal absolute strides alias -- one step along either axis
+-- reads the same element -- so the tie exists only in a self-overlapping
+-- view and the change reaches nothing injective: of the timed views it
+-- moves the four unstrided 'window' views, from runs of the kernel's
+-- width to runs of the image's, and 'small-patch-r5', runs of 16 for 8.
+-- One change over 'routeUnord6' per population. Added 2026-09-09 for
+-- Run 28.
+routeUnord7 :: ShapeL -> T -> Either (VS.Vector Double) [VS.Vector Double]
+routeUnord7 sh (T (Strides ats) ao v)
+  | l == 0 = Right []
+  | otherwise =
+      let !start = ao + sum [ (n - 1) * st | (n, st) <- zip sh ats, st < 0 ]
+          (acats, sh') = unzip $ sortBy byStrideThenExtent
+                               $ zip (map abs ats) sh
+      in  case canonView sh' acats of
+            ([], _) -> Left (VS.slice start l v)
+            ([_], [1]) -> Left (VS.slice start l v)
+            (ssh, sats)
+              | last sats == 1 -> Right (lazyRuns ssh sats start v)
+              | otherwise -> Left (fillStage2 ssh sats start l v)
+  where !l = product sh
+
+-- Absolute stride descending, extent ascending on a tie: stage seven's
+-- order over (stride, extent) pairs.
+byStrideThenExtent :: (Int, Int) -> (Int, Int) -> Ordering
+byStrideThenExtent (s1, n1) (s2, n2) = compare s2 s1 <> compare n1 n2
+
+lsUnordStage7 :: ShapeL -> T -> [VS.Vector Double]
+lsUnordStage7 sh a = either (: []) id (routeUnord7 sh a)
+
+{-# NOINLINE fbLibUnordStage7 #-}
+fbLibUnordStage7 :: ShapeL -> T -> VS.Vector Double
+fbLibUnordStage7 sh a = either id VS.concat (routeUnord7 sh a)
+
+-- Stage eight, stage six with the run chosen as the longest contiguous
+-- one rather than as the innermost sorted axis: from each unit-stride
+-- axis, any remaining axis whose absolute stride equals the run's
+-- length so far extends it -- 'canonView''s merge condition, asked of
+-- every axis rather than of the sort's neighbour -- and the longest
+-- chain over every order of absorption is the run, the axes it leaves
+-- sorted outside it in stage six's order. Where no axis has stride 1
+-- the route is stage six's, and so is it where one has stride 0, which
+-- is stage nine's question and kept out of this pair. Against stage six
+-- it moves what stage seven moves, the longest unit-stride axis being
+-- the run either way, and 'small-patch-r5' further, runs of 16 where
+-- the sort leaves 8 -- the pair with stage seven, read beside, prices
+-- the absorption alone, which parts from the sort only where an axis
+-- with the run's length sits away from the run after sorting, a thing
+-- an injective view cannot arrange -- and the order of two outer levels
+-- tied on stride, the 'window' views, where this arm keeps stage six's
+-- and stage seven has the reverse, moving no run count. One change over
+-- 'routeUnord6' per population. Added 2026-09-09 for Run 28.
+routeUnord8 :: ShapeL -> T -> Either (VS.Vector Double) [VS.Vector Double]
+routeUnord8 sh a@(T (Strides ats) ao v)
+  | l == 0 = Right []
+  | 0 `elem` ats || null starts = routeUnord6 sh a
+  | otherwise =
+      let !start = ao + sum [ (n - 1) * st | (n, st) <- zip sh ats, st < 0 ]
+          (runLen, rest) = bestOf [ chain n0 rest0 | (n0, rest0) <- starts ]
+          outer = sortBy (flip compare) rest
+          sh' = map snd outer ++ [runLen]
+          acats = map fst outer ++ [1]
+      in  case canonView sh' acats of
+            ([], _) -> Left (VS.slice start l v)
+            ([_], [1]) -> Left (VS.slice start l v)
+            (ssh, sats)
+              | last sats == 1 -> Right (lazyRuns ssh sats start v)
+              | otherwise -> Left (fillStage2 ssh sats start l v)
+  where
+    !l = product sh
+    axes = [ (abs st, n) | (n, st) <- zip sh ats, n /= 1 ]
+    starts = [ (n, dropAt i axes) | (i, (1, n)) <- zip [0 :: Int ..] axes ]
+
+-- The longest contiguous run reachable from one of length @len@ by
+-- absorbing, in any order, axes whose stride equals the run's length,
+-- and the (stride, extent) axes it leaves. The rank is small, so every
+-- order is tried: absorbing the larger of two equal-stride axes first
+-- is not always best, the smaller one's product being what a third
+-- axis's stride may equal.
+chain :: Int -> [(Int, Int)] -> (Int, [(Int, Int)])
+chain len rest =
+  case [ i | (i, (s, _)) <- zip [0 :: Int ..] rest, s == len ] of
+    [] -> (len, rest)
+    is -> bestOf [ chain (len * snd (rest !! i)) (dropAt i rest) | i <- is ]
+
+bestOf :: [(Int, a)] -> (Int, a)
+bestOf = foldr1 (\x y -> if fst x >= fst y then x else y)
+
+dropAt :: Int -> [a] -> [a]
+dropAt i xs = take i xs ++ drop (i + 1) xs
+
+lsUnordStage8 :: ShapeL -> T -> [VS.Vector Double]
+lsUnordStage8 sh a = either (: []) id (routeUnord8 sh a)
+
+{-# NOINLINE fbLibUnordStage8 #-}
+fbLibUnordStage8 :: ShapeL -> T -> VS.Vector Double
+fbLibUnordStage8 sh a = either id VS.concat (routeUnord8 sh a)
+
+-- Stage nine, stage six with every zero-stride axis outermost on the
+-- list route: a broadcast then lists one real slice as many times as
+-- the axis is long, where stage six sorts stride 0 innermost and falls
+-- to the fill -- 'bcast-inner8' as eight slices of 6400 rather than 6400
+-- runs of eight written. The multiset is the same, which is all the
+-- unordered list promises. The fill route is stage six's unchanged, so
+-- a view with no unit stride reads as stage six does, and so does one
+-- with no zero stride. What the pair prices is the fill's write against
+-- the slice's repeat, on 'bcast', 'bcastmid', 'compose' and
+-- 'small-bcast32', at slices from eight elements to a million. One
+-- change over 'routeUnord6' per population. Added 2026-09-09 for Run
+-- 28.
+routeUnord9 :: ShapeL -> T -> Either (VS.Vector Double) [VS.Vector Double]
+routeUnord9 sh a@(T (Strides ats) ao v)
+  | l == 0 = Right []
+  | otherwise =
+      let !start = ao + sum [ (n - 1) * st | (n, st) <- zip sh ats, st < 0 ]
+          axes = sortBy (flip compare)
+                        [ (abs st, n) | (n, st) <- zip sh ats, n /= 1 ]
+          zeros = filter ((== 0) . fst) axes
+          (acats, sh') = unzip (zeros ++ filter ((/= 0) . fst) axes)
+      in  case canonView sh' acats of
+            (ssh, sats)
+              | not (null zeros) && last sats == 1 ->
+                  Right (lazyRuns ssh sats start v)
+              | otherwise -> routeUnord6 sh a
+  where !l = product sh
+
+lsUnordStage9 :: ShapeL -> T -> [VS.Vector Double]
+lsUnordStage9 sh a = either (: []) id (routeUnord9 sh a)
+
+{-# NOINLINE fbLibUnordStage9 #-}
+fbLibUnordStage9 :: ShapeL -> T -> VS.Vector Double
+fbLibUnordStage9 sh a = either id VS.concat (routeUnord9 sh a)
+
 -- The two ports' lists, for the reducing consumers below and for the
 -- laziness gate: 'fbLibListStage1''s and 'fbLibListStage2''s parts, and
 -- the unordered one-block tests in front of them, repeated here clause
@@ -4245,6 +4381,18 @@ fbLibUnordStage5Sum sh a = VS.singleton (sumParts (lsUnordStage5 sh a))
 fbLibUnordStage6Sum :: ShapeL -> T -> VS.Vector Double
 fbLibUnordStage6Sum sh a = VS.singleton (sumParts (lsUnordStage6 sh a))
 
+{-# NOINLINE fbLibUnordStage7Sum #-}
+fbLibUnordStage7Sum :: ShapeL -> T -> VS.Vector Double
+fbLibUnordStage7Sum sh a = VS.singleton (sumParts (lsUnordStage7 sh a))
+
+{-# NOINLINE fbLibUnordStage8Sum #-}
+fbLibUnordStage8Sum :: ShapeL -> T -> VS.Vector Double
+fbLibUnordStage8Sum sh a = VS.singleton (sumParts (lsUnordStage8 sh a))
+
+{-# NOINLINE fbLibUnordStage9Sum #-}
+fbLibUnordStage9Sum :: ShapeL -> T -> VS.Vector Double
+fbLibUnordStage9Sum sh a = VS.singleton (sumParts (lsUnordStage9 sh a))
+
 -- The laziness gate, in 'check' and never timed: the ruling that the
 -- list stays lazy (README.md#dead-ideas) as a predicate. On a view of
 -- 200000 runs of 20 -- regime 2 on master -- forcing the HEAD of each
@@ -4303,7 +4451,10 @@ lazinessGate = do
           -- being runs of 20 in address order to them, the exception's move
         , ("libunord-stage4", lsUnordStage4, Just True, Just True)
         , ("libunord-stage5", lsUnordStage5, Just True, Just True)
-        , ("libunord-stage6", lsUnordStage6, Just True, Just True) ]
+        , ("libunord-stage6", lsUnordStage6, Just True, Just True)
+        , ("libunord-stage7", lsUnordStage7, Just True, Just True)
+        , ("libunord-stage8", lsUnordStage8, Just True, Just True)
+        , ("libunord-stage9", lsUnordStage9, Just True, Just True) ]
       gate view sh a n ls ask = case ask of
         Nothing -> return ()
         Just want -> do
@@ -5567,6 +5718,13 @@ roster =
     -- beside its control, every slot below moving by one; reasons at
     -- the definition.
   , ("libunord-stage6",            Fill fbLibUnordStage6)
+    -- The three reorderings of the run over stage six, added the same
+    -- day: seven the tie-break, eight the longest chain, nine the
+    -- zero-stride axes outermost; every slot below moving by three
+    -- more; reasons at the definitions.
+  , ("libunord-stage7",            Fill fbLibUnordStage7)
+  , ("libunord-stage8",            Fill fbLibUnordStage8)
+  , ("libunord-stage9",            Fill fbLibUnordStage9)
     -- The reducing consumer over each stage's list, added the same day:
     -- 'sumT' as the library composes it, one slice at a time and no
     -- concatenation, so a stage's consumer against its Fill arm above
@@ -5580,6 +5738,11 @@ roster =
     -- and stage six's consumer, added with it; every slot below moves
     -- by one more.
   , ("libunord-stage6-sum",        Fill fbLibUnordStage6Sum)
+    -- and the three reorderings' consumers; every slot below moves by
+    -- three more.
+  , ("libunord-stage7-sum",        Fill fbLibUnordStage7Sum)
+  , ("libunord-stage8-sum",        Fill fbLibUnordStage8Sum)
+  , ("libunord-stage9-sum",        Fill fbLibUnordStage9Sum)
     -- not timed: 6.20x the result
   , ("mut-offsets",                Only fbMutBaseOffsets)
     -- parked 2026-09-04 by the prune (README.md#what-the-benchmark-does)
