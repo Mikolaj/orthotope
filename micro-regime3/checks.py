@@ -26,8 +26,12 @@ STEPS = [
     ('shellcheck',             ['bash', '-c',
                                 'cd "{root}" && { command -v shellcheck >/dev/null || { echo "shellcheck is not on PATH (command -v shellcheck finds nothing), so the shell scripts here went unlinted"; exit 1; }; } && shellcheck -S warning -f gcc *.sh']),
     # CORPUS_RUN=newest, since 2026-09-09: the properties are quantified
-    # over every run on disk and four of them is 478 JSONs and minutes,
-    # which makes a suite meant to run often run rarely. It narrows the
+    # over every run on disk, and several written-up runs make that sweep
+    # minutes. What it buys is about a tenth of this suite's time and not
+    # a different order -- the case suites and the mutant replay are the
+    # bulk, measured after the change rather than assumed before it, and
+    # the first note here said the sweep was what made the suite rare.
+    # It narrows the
     # corpus and not the proof -- each property still sweeps everything it
     # is handed and still prints what it covered, so the narrowing is
     # visible in the output rather than silent. Ask for the wider sweep by
