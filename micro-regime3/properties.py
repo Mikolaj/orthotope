@@ -124,12 +124,16 @@ def runs_on_disk():
         return js
     # The highest run number present, by the number and not by the string:
     # `run7` sorts above `run24` lexically, so a directory holding both
-    # would have narrowed to the older one under a plain sort. A file
-    # carrying no run number is kept, being a case's own fixture rather
-    # than a run.
+    # would have narrowed to the older one under a plain sort. Searched
+    # ANYWHERE in the name and not at its head: a run's smoke sweeps and
+    # probes carry it in the middle, `smoke-l1-run24-main.json` and
+    # `probe-intruded-run27-g912-runs.json`, and anchoring at the head
+    # kept every older run's sweeps while dropping its main files, which
+    # is a narrowing that does not narrow. A file carrying no run number
+    # at all is kept, being a fixture rather than a run.
     def num(f):
-        m = re.match(r'run(\d+)[-.]', f)
-        return int(m.group(1)) if m else None
+        ns = [int(x) for x in re.findall(r'run(\d+)', f)]
+        return max(ns) if ns else None
     ns = [num(f) for f in js]
     top = max([x for x in ns if x is not None], default=None)
     if top is None:
