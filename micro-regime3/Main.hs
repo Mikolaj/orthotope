@@ -4001,7 +4001,14 @@ fbLibUnordStage3 sh a@(T _ _ v) = fillRoute (routeUnord3 sh a) v
 -- it -- the cons cell and the slice header go, a thunk, a boxed
 -- accumulator and one partial application per run stay -- which the
 -- fusion probe of that day read as 88 bytes and 14 ns a run against 145
--- and 19 (README.md#what-is-open). The fold has to sit on the list
+-- and 19 (README.md#what-is-open). The leaf is fused, the fills' trick:
+-- the innermost outer level conses its slices itself rather than
+-- calling 'go' once more per run, a quarter of the time and 8 bytes a
+-- run off on short runs, 9.3 ns and 80 bytes on the k3 window. The
+-- fills' other trick, the levels as unboxed tables indexed by level,
+-- read a further sixth, 7.8 ns, and was REFUSED 2026-09-09 on code size
+-- against how little the entry point is used and how little any of
+-- this moves most shapes. The fold has to sit on the list
 -- expression itself: applied to a case-bound variable, or partially
 -- applied and floated to the top level, it never meets the 'build'. A
 -- consumer that cannot fuse, 'VS.concat' under the Fill arms, pays the
@@ -4011,6 +4018,8 @@ lazyRuns :: ShapeL -> [Int] -> Int -> VS.Vector Double -> [VS.Vector Double]
 lazyRuns ssh sats !start v = build $ \cons nil ->
   let !n = last ssh
       go [] [] !o rest = cons (VS.slice o n v) rest
+      go [d] [s] !o rest =
+        foldr (\i r -> cons (VS.slice (o + i * s) n v) r) rest [0 .. d - 1]
       go (d : ds) (s : ss) !o rest =
         foldr (\i r -> go ds ss (o + i * s) r) rest [0 .. d - 1]
       go _ _ _ _ = error "lazyRuns: impossible"
@@ -4186,21 +4195,27 @@ fbLibUnordStage6 :: ShapeL -> T -> VS.Vector Double
 fbLibUnordStage6 sh a@(T _ _ v) = fillRoute (routeUnord6 sh a) v
 
 -- The fold as a strict loop over the levels and no list at all, over
--- stage six's dispatch: what a fold entry point would cost where the
--- list interface pays a thunk, a box and a partial application per run
--- even fused. The fusion probe of 2026-09-09 read it at 10 ns and no
--- allocation a run against the fused list's 14 and 104 bytes
--- (README.md#what-is-open). Timed as 'libunord-stage6-loop-sum', the
--- interface question of the laziness ruling made an arm: the ruling
--- keeps the list for 'anyT' and 'allT', which a strict loop cannot stop
--- early; the pair with 'fbLibUnordStage6Sum' prices what that costs a
--- reduction. Added 2026-09-09 for Run 28.
+-- stage six's dispatch, its leaf fused as 'lazyRuns''s is so that the
+-- pair reads the interface and not the odometer: what a fold entry
+-- point would cost where the list interface pays a thunk, a box and a
+-- partial application per run even fused. The fusion probe of
+-- 2026-09-09 read it at 5 ns and no allocation a run against the fused
+-- list's 9 and 80 bytes on the k3 window (README.md#what-is-open).
+-- Timed as 'libunord-stage6-loop-sum', the interface question of the
+-- laziness ruling made an arm: the ruling keeps the list for 'anyT' and
+-- 'allT', which a strict loop cannot stop early; the pair with
+-- 'fbLibUnordStage6Sum' prices what that costs a reduction. Added
+-- 2026-09-09 for Run 28.
 foldRunsLoop :: (Double -> VS.Vector Double -> Double) -> Double -> ShapeL
              -> [Int] -> Int -> VS.Vector Double -> Double
 foldRunsLoop f z0 ssh sats !start v = go (init ssh) (init sats) start z0
   where
     !n = last ssh
     go [] [] !o !acc = f acc (VS.slice o n v)
+    go [d] [s] !o !acc = leaf 0 acc
+      where leaf !i !a
+              | i == d = a
+              | otherwise = leaf (i + 1) (f a (VS.slice (o + i * s) n v))
     go (d : ds) (s : ss) !o !acc = loop 0 acc
       where loop !i !a | i == d = a
                        | otherwise = loop (i + 1) (go ds ss (o + i * s) a)

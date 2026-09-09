@@ -1044,12 +1044,26 @@ rather than a slot in the next run, observed again:
   once, `sumLazyRuns`, and reached through each stage's `Route`, at which every
   consumer reads 88 bytes a run and the same time on the same dims,
   `fusion-probe/log-probe-fusion-final.json`. Every probe build was the 9.12.4
-  basis; the fused code meets GHC HEAD for the first time in Run 28. Master's
-  list under an inlined fold gained nothing, 0.997 in time and 1.000
-  in allocation, and the port's table list gained time and no allocation, 0.87
-  on `block`. The build form costs a consumer that cannot fuse when the consumer
-  is inlined beside it: the probe's Fill arms, `VS.concat` under them, read 16
-  bytes and about 3 ns a run more, 1.025 and 1.077 on `window`; compiled once
+  basis; the fused code meets GHC HEAD for the first time in Run 28. Last, two
+  odometer tricks from the fills, each as a producer under stage six's route
+  and the fused consumer: the leaf fused, the innermost outer level consing
+  its slices itself, read 9.3 ns and 80 bytes a run on the k3 window against
+  12.9 and 88; the levels as unboxed tables indexed by level, on top of it, 7.8
+  ns, and the fused list then ahead of the loop arm as it stood, whose odometer
+  walked its levels as lists too. RULED 2026-09-09: the tables are too much code
+  for how little the entry point is used and how little any of this moves most
+  shapes; the fused leaf is borderline and taken, into `lazyRuns` and
+  into the loop arm's odometer alike, so item (8) reads the interface
+  and not the odometer. With it the fused list reads 8.8 ns and 80 bytes a run
+  on the k3 window, the loop 5.1 and none, its leaf now calling the step
+  with the accumulator unboxed, and the Fill arms, concatenating the same
+  producer, 24.7 ns and 184 bytes a run against 28.8 and 169: faster, and 16
+  bytes a run more, the one figure the leaf moved the wrong way. Master's list
+  under an inlined fold gained nothing, 0.997 in time and 1.000 in allocation,
+  and the port's table list gained time and no allocation, 0.87 on `block`.
+  The build form costs a consumer that cannot fuse when the consumer is inlined
+  beside it: the probe's Fill arms, `VS.concat` under them, read 16 bytes
+  and about 3 ns a run more, 1.025 and 1.077 on `window`; compiled once
   as `concatLazyRuns` the Fill arms read what they read before, 169 bytes a run
   on the k3 window, so the fills pay nothing for the form. The probe's JSONs
   stay under `fusion-probe/` beside this file until Run 28 is written up, out
@@ -1098,15 +1112,15 @@ rather than a slot in the next run, observed again:
   for this run, `window-64x64-c16-k3` and `window-32x32-c64-k3`, go from 3 to 62
   and from 3 to 30, the channel axis standing untied between the tied pairs.
   Read against a two-parameter account fitted on Run 27's HEAD half --- about
-  a nanosecond an element and thirty-five a run for the fill arm, two thirds
-  of a nanosecond and fourteen for the consumer, the fusion probe's medians
-  on the short-run views, `window-224x224-k3-d2`'s runs of 220 being the control
-  --- stage seven over stage six reads about 0.10 on `-k3`, 0.25 on `-k7`, 0.4
-  on `-k1x9` and `-k5` and 1.0 on `-s2` and `-d2`, the consumers about 0.13,
-  0.29, 0.40 and 0.32, and on the channel views about 0.13 and 0.18,
-  the consumers 0.16 and 0.20; against the vecdims fill, stage seven's consumer
-  ahead on `-k3`, `-k7` and `-k1x9` and near level on `-k5`. As class spans
-  on `window`, both halves:
+  a nanosecond an element and thirty a run for the fill arm, two thirds
+  of a nanosecond and nine for the consumer, the fusion probe's readings
+  on the short-run views after the leaf was fused, `window-224x224-k3-d2`'s runs
+  of 220 being the control --- stage seven over stage six reads about 0.10
+  on `-k3`, 0.25 on `-k7`, 0.4 on `-k1x9` and `-k5` and 1.0 on `-s2` and `-d2`,
+  the consumers about 0.13, 0.29, 0.40 and 0.32, and on the channel views about
+  0.13 and 0.18, the consumers 0.16 and 0.20; against the vecdims fill, stage
+  seven's consumer ahead on `-k3`, `-k7` and `-k1x9` and near level on `-k5`.
+  As class spans on `window`, both halves:
   `predict: pair libunord-stage7 libunord-stage6 0.3 within 15%`
   and `predict: pair libunord-stage7-sum libunord-stage6-sum 0.3 within 15%`,
   printing a figure and no verdict elsewhere. `small-patch-r5`, runs of 16 for 8
@@ -1170,12 +1184,12 @@ rather than a slot in the next run, observed again:
   of thousands repeated loses to the fill even there; or by stage nine off stage
   six past the floor on both halves on any population with no zero stride. Read
   beside it off the allocation column: stage nine's consumer allocates no result
-  but does allocate the list, about 88 bytes a run fused, so against stage six's
+  but does allocate the list, about 80 bytes a run fused, so against stage six's
   1.00x it reads near 0.00x where the slice is long --- the three older `bcast`
   views, the three `bcastmid` views named above, the two `compose` broadcasts
-  --- about 0.17x on `bcast-src64` and 0.12x on `compose-zero-mid`, and ABOVE
-  1.00x where the slice is short, about 1.2x on `bcastmid-b200k` and 1.4x
-  on `bcast-src8` and `small-bcast32`, eleven elements a slice being where
+  --- about 0.16x on `bcast-src64` and 0.11x on `compose-zero-mid`, and ABOVE
+  1.00x where the slice is short, about 1.1x on `bcastmid-b200k` and 1.25x
+  on `bcast-src8` and `small-bcast32`, ten elements a slice being where
   the list's bytes meet the result's; a short-slice view reading under 1.00x
   would say the per-run allocation is not what the window views read. (8)
   *The fold entry point, `libunord-stage6-loop-sum` over `libunord-stage6-sum`.*
@@ -1184,8 +1198,11 @@ rather than a slot in the next run, observed again:
   and a partial application per run: the fusion probe read the two at 10 ns
   and no allocation against 14 ns and 88 bytes a run, and as class geomeans 0.55
   on `window`, 0.77 on `runs`, 0.61 on `block`, 0.82 on `flip` and 0.87
-  on `small`, at a three-second budget on one build. On `window`, both halves:
-  `predict: pair libunord-stage6-loop-sum libunord-stage6-sum 0.55 within 10%`;
+  on `small`, at a three-second budget on one build; with the leaf fused
+  in both, 5.1 ns against 8.8 on the k3 window and 27 against 38 on `block`'s
+  runs of 64, the ratio at short runs about what it was and at long runs closer
+  to one. On `window`, both halves:
+  `predict: pair libunord-stage6-loop-sum libunord-stage6-sum 0.6 within 10%`;
   on `runs`, `block`, `flip` and `small` the same span prints a figure
   and no verdict, read against the probe's geomeans by hand. On `rev`, `bcast`,
   `bcastmid`, `scaled` and `compose`, both halves:
@@ -1195,7 +1212,7 @@ rather than a slot in the next run, observed again:
   or `block`, which would say the probe's per-run figures do not survive a full
   budget; or by the pair past the floor on both halves on any of the five fill
   classes. Read beside it off the allocation column: the loop's consumer near
-  0.00x on every runs-route view where the list's reads its 88 bytes a run. What
+  0.00x on every runs-route view where the list's reads its 80 bytes a run. What
   the arm cannot answer is the ruling's own ground, that `anyT` and `allT` stop
   at the first deciding slice, which a strict loop cannot; it prices what
   that laziness costs a reduction. (9) *The ports without the copy.* Every

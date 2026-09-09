@@ -669,3 +669,9 @@ Then the ports' Fill arms lost their singleton copy, the ruling of
 the four duplicated port bodies folded onto their lists; stages five to
 nine one line each over one lean dispatch with a named order; stage three
 the same route with runs made fills, and its consumer the ceiling's.
+Two odometer tricks from the fills probed on the lazy list: the leaf
+fused, a quarter of the per-run time; the levels as unboxed tables, a
+further sixth, and the fused list then faster than the loop arm as it
+stood. Ruling: the second is too much code for how little the entry
+point is used and how little most shapes move; the first is borderline
+and taken, into the loop arm too, so the pair reads the interface.
