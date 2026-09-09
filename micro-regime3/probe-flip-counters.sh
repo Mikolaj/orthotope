@@ -25,7 +25,7 @@
 set -euo pipefail
 
 OUT="$(cd "$(dirname "$0")" && pwd)/counters-out"
-BIN="/home/mikolaj/r/orthotope/micro-regime3"
+BIN="$(cd "$(dirname "$0")" && pwd)"
 GROUP="flip-last-rows"
 ARMS=()
 

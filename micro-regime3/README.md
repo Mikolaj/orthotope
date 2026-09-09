@@ -4153,7 +4153,8 @@ dispatch falling through to it and `fillStage2` taking `runsWith writeRunStep`;
 9.12.4 and the HEAD stage1 emit `-u2`'s loop byte for byte and `fillStage2`'s
 in the same instructions under different registers, each 51 bytes and each
 inside one cache line on both halves; and every arm's instructions on the view
-read 1.0000 between them. What does part is the memory system: per call
+read 1.0000 between them but `list`'s three, which read 1.0043 and are base's
+code rather than this suite's. What does part is the memory system: per call
 and under exact selection, `lib-stage1` reads about half the last-level misses
 on HEAD over two draws with its L1 misses level. **So a clause pricing
 `lib-stage2-lean` against `lib-stage1` on `flip-last-rows` prices that floor
@@ -11508,26 +11509,32 @@ compares something new --- two populations, two machines, two GHC versions,
 an arm against a prediction --- ask which of these bounds it, and if none does,
 say so in the sentence rather than borrowing the nearest number.
 
-**Each population measures its own floor.** The same eight controls ride every
-process, so a stride-class run prices the noise of the process its own figures
-came out of --- which is the only process they can be judged in ---
-but it prices it over three cells where the main set has two dozen. Read
-a class's floor as that class's own threshold --- which every class block,
-`--block`'s property verdicts and every registration on a class have done since
-Run 18, against a sentence here that called it a confirmation and
-not a threshold until 2026-09-02 --- and never carry the main set's figure
-into a class comparison or the other way about. Run 10's class processes
-are that ruling observed: floors from 0.16% (`rev`) up to 5.36% (`scaled`),
-a **thirty-fourfold** spread across populations of one run, where Run 9 spread
-fifteenfold and Run 8 differently again. The `mut-odo-vecdims` slot carries
-the worst pair in **five** of the eight --- `revsome`, `bcastmid`, `reshape1`,
-`window` and `scaled` --- where Run 9 put it in four and Run 8 in seven;
-`bq-expand`'s pairs take the other three and `bq-scan-rem-gm-mulback`'s take
-none. Four runs at four counts is not a pattern settling, but the amplification
-above says the slot is not neutral either: `f` is largest for the fastest fill,
-so that arm converts a given raw disagreement into a larger published one
-than any other pair in the same process. Read the recurrence as partly
-arithmetic and partly unexplained, and read a class's floor as the run's own.
+**Each population measures its own floor, and a single view inside one can
+measure a much wider one.** `./view-floor.py RUN` prints each view's own A/A
+spread beside its class's, per A/A group so that `list` does not speak
+for a clause about a fill, and stars a view whose own floor exceeds its class's
+by more than a factor; `--legs DIR` reports it as the distribution repeated legs
+of one view show it to be, which on `flip-last-rows` ran from a half a percent
+to eleven. The same eight controls ride every process, so a stride-class run
+prices the noise of the process its own figures came out of --- which
+is the only process they can be judged in --- but it prices it over three cells
+where the main set has two dozen. Read a class's floor as that class's own
+threshold --- which every class block, `--block`'s property verdicts and every
+registration on a class have done since Run 18, against a sentence here
+that called it a confirmation and not a threshold until 2026-09-02 --- and never
+carry the main set's figure into a class comparison or the other way about. Run
+10's class processes are that ruling observed: floors from 0.16% (`rev`) up
+to 5.36% (`scaled`), a **thirty-fourfold** spread across populations of one run,
+where Run 9 spread fifteenfold and Run 8 differently again.
+The `mut-odo-vecdims` slot carries the worst pair in **five** of the eight ---
+`revsome`, `bcastmid`, `reshape1`, `window` and `scaled` --- where Run 9 put
+it in four and Run 8 in seven; `bq-expand`'s pairs take the other three
+and `bq-scan-rem-gm-mulback`'s take none. Four runs at four counts is
+not a pattern settling, but the amplification above says the slot is not neutral
+either: `f` is largest for the fastest fill, so that arm converts a given raw
+disagreement into a larger published one than any other pair in the same
+process. Read the recurrence as partly arithmetic and partly unexplained,
+and read a class's floor as the run's own.
 
 
 ### R2 is the ramp detector, not the noise detector

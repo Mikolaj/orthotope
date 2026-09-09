@@ -19,7 +19,7 @@ measurement: the probe numbers its own repetitions from 1.
 import argparse, json, os, sys
 
 ap = argparse.ArgumentParser()
-ap.add_argument('-d', default='/home/mikolaj/r/orthotope/micro-regime3')
+ap.add_argument('-d', default=os.path.dirname(os.path.abspath(__file__)))
 ap.add_argument('-o', default=os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                            'reroll-fixture'))
 ap.add_argument('-g', default='flip-last-rows')

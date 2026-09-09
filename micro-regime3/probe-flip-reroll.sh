@@ -45,7 +45,7 @@ set -euo pipefail
 
 REPS=3
 OUT="$(cd "$(dirname "$0")" && pwd)/reroll-out"
-BIN="/home/mikolaj/r/orthotope/micro-regime3"
+BIN="$(cd "$(dirname "$0")" && pwd)"
 RTSLEGS=1
 GROUP="flip-last-rows"
 
