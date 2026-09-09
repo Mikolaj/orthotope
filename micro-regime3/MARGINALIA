@@ -675,3 +675,8 @@ further sixth, and the fused list then faster than the loop arm as it
 stood. Ruling: the second is too much code for how little the entry
 point is used and how little most shapes move; the first is borderline
 and taken, into the loop arm too, so the pair reads the interface.
+Then the ruling that a list concatenated is the API's failure mode: the
+thirteen Fill arms over a list retired to Only, the ordered list given its
+four consumers, stages three and four of the ordered list made routes so
+those consumers share the fused loop; the registration's Fill spans out,
+its item (9) withdrawn with its arms.

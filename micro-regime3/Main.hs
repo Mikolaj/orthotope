@@ -3873,23 +3873,22 @@ fbLibListStage2 sh a = concatParts (lsListStage2 sh a)
 -- slice recursion, and 'fbLibListStage4', under 'fbLibListStage2''s
 -- lean dispatch, prices the odometer against the strict base-offset
 -- table. Added 2026-09-07 for Run 27.
+routeList3 :: ShapeL -> T -> Route
+routeList3 sh (T (Strides ats) ao _)
+  | l == 0 = RBlock 0 0
+  | cats == ts = RBlock ao l
+  | last cats == 1 = RRuns csh cats ao
+  | otherwise = RFill csh cats ao l
+  where !l = product sh
+        (csh, cats) = canonView sh ats
+        _ : ts = getStridesT csh
+
 lsListStage3 :: ShapeL -> T -> [VS.Vector Double]
-lsListStage3 sh (T (Strides ats) ao v)
-  | l == 0 = []
-  | otherwise =
-      let (csh, cats) = canonView sh ats
-          _ : ts = getStridesT csh
-      in  if cats == ts then [whole]
-          else if last cats == 1 then lazyRuns csh cats ao v
-          else [fillStage2 csh cats ao l v]
-  where
-    !l = product sh
-    whole | ao == 0 && VS.length v == l = v
-          | otherwise = VS.slice ao l v
+lsListStage3 sh a@(T _ _ v) = listRoute (routeList3 sh a) v
 
 {-# NOINLINE fbLibListStage3 #-}
 fbLibListStage3 :: ShapeL -> T -> VS.Vector Double
-fbLibListStage3 sh a = concatParts (lsListStage3 sh a)
+fbLibListStage3 sh a@(T _ _ v) = fillRoute (routeList3 sh a) v
 
 -- Stage four of the list entry point: 'lsListStage3' under the lean
 -- dispatch, the regime read off the merged form alone and no
@@ -3897,23 +3896,23 @@ fbLibListStage3 sh a = concatParts (lsListStage3 sh a)
 -- 'fbLibListStage3', that arm its control, and one over
 -- 'fbLibListStage2', whose lean dispatch it shares, the list's
 -- construction. Added 2026-09-07 for Run 27.
-lsListStage4 :: ShapeL -> T -> [VS.Vector Double]
-lsListStage4 sh (T (Strides ats) ao v)
-  | l == 0 = []
+routeList4 :: ShapeL -> T -> Route
+routeList4 sh (T (Strides ats) ao _)
+  | l == 0 = RBlock 0 0
   | otherwise = case canonView sh ats of
-      ([], _) -> [whole]
-      ([_], [1]) -> [whole]
+      ([], _) -> RBlock ao l
+      ([_], [1]) -> RBlock ao l
       (csh, cats)
-        | last cats == 1 -> lazyRuns csh cats ao v
-        | otherwise -> [fillStage2 csh cats ao l v]
-  where
-    !l = product sh
-    whole | ao == 0 && VS.length v == l = v
-          | otherwise = VS.slice ao l v
+        | last cats == 1 -> RRuns csh cats ao
+        | otherwise -> RFill csh cats ao l
+  where !l = product sh
+
+lsListStage4 :: ShapeL -> T -> [VS.Vector Double]
+lsListStage4 sh a@(T _ _ v) = listRoute (routeList4 sh a) v
 
 {-# NOINLINE fbLibListStage4 #-}
 fbLibListStage4 :: ShapeL -> T -> VS.Vector Double
-fbLibListStage4 sh a = concatParts (lsListStage4 sh a)
+fbLibListStage4 sh a@(T _ _ v) = fillRoute (routeList4 sh a) v
 
 -- The unordered-list consumer under each stage: 'toUnorderedVectorListT'
 -- and one concatenation, the third entry point the branch changes and
@@ -4441,6 +4440,24 @@ lsListStage2 sh (T (Strides ats) ao v)
 sumRuns :: [VS.Vector Double] -> Double
 sumRuns = foldl' (\ !acc p -> acc + VS.sum p) 0
 {-# INLINE sumRuns #-}
+
+{-# NOINLINE fbLibListStage1Sum #-}
+fbLibListStage1Sum :: ShapeL -> T -> VS.Vector Double
+fbLibListStage1Sum sh a = VS.singleton (sumRuns (lsListStage1 sh a))
+
+{-# NOINLINE fbLibListStage2Sum #-}
+fbLibListStage2Sum :: ShapeL -> T -> VS.Vector Double
+fbLibListStage2Sum sh a = VS.singleton (sumRuns (lsListStage2 sh a))
+
+{-# NOINLINE fbLibListStage3Sum #-}
+fbLibListStage3Sum :: ShapeL -> T -> VS.Vector Double
+fbLibListStage3Sum sh a@(T _ _ v) =
+  VS.singleton (sumRoute (routeList3 sh a) v)
+
+{-# NOINLINE fbLibListStage4Sum #-}
+fbLibListStage4Sum :: ShapeL -> T -> VS.Vector Double
+fbLibListStage4Sum sh a@(T _ _ v) =
+  VS.singleton (sumRoute (routeList4 sh a) v)
 
 {-# NOINLINE fbLibUnordStage1Sum #-}
 fbLibUnordStage1Sum :: ShapeL -> T -> VS.Vector Double
@@ -5818,54 +5835,42 @@ roster =
     -- beside its control for Run 27, every slot below moving by one;
     -- reasons at 'fillStage2U1'.
   , ("lib-stage2-lean-u1",         Fill fbLibStage2LeanU1)
-    -- The list consumer under each stage, added the same day: the
-    -- library's toVectorListT and one concatenation, so the pair prices
-    -- the list's construction alone, reasons at the definitions.
-  , ("liblist-stage1",             Fill fbLibListStage1)
-  , ("liblist-stage2",             Fill fbLibListStage2)
-    -- Stages three and four of the list entry point, 2026-09-07: the
-    -- ordered list kept lazy, canonicalized, under the natural-strides
-    -- dispatch and the lean one, reasons at the definitions. Every slot
-    -- below moves by two.
-  , ("liblist-stage3",             Fill fbLibListStage3)
-  , ("liblist-stage4",             Fill fbLibListStage4)
-    -- The unordered entry point under each stage, added 2026-08-30 with
-    -- the fill candidates and for the same run: one-block test in front
-    -- of the liblist body, reasons at the definitions. Every slot below
-    -- moves by two more, six in all against Run 21.
-  , ("libunord-stage1",            Fill fbLibUnordStage1)
-  , ("libunord-stage2",            Fill fbLibUnordStage2)
-    -- Added 2026-09-05 for Run 26 as the entry point's candidate, the
-    -- one-block test generalized into a fill in address order; RULED OUT
-    -- for the library 2026-09-07 and kept as a ceiling
-    -- (README.md#dead-ideas), reasons at the definition. Every slot
-    -- below moves by one.
-  , ("libunord-stage3",            Fill fbLibUnordStage3)
-    -- The lazy candidates of 2026-09-07, beside the ceiling they are
-    -- read against: stage four the sorted view under the natural-strides
-    -- test, stage five under the lean rank test, each handing a single
-    -- slice or fill back as the ports do and concatenating only its
-    -- runs, reasons at the definitions.
-    -- Every slot below moves by two.
-  , ("libunord-stage4",            Fill fbLibUnordStage4)
-  , ("libunord-stage5",            Fill fbLibUnordStage5)
-    -- Stage six, the sort-first dispatch, added 2026-09-09 for Run 28
-    -- beside its control, every slot below moving by one; reasons at
-    -- the definition.
-  , ("libunord-stage6",            Fill fbLibUnordStage6)
-    -- The three reorderings of the run over stage six, added the same
-    -- day: seven the tie-break, eight the longest chain, nine the
-    -- zero-stride axes outermost; every slot below moving by three
-    -- more; reasons at the definitions.
-  , ("libunord-stage7",            Fill fbLibUnordStage7)
-  , ("libunord-stage8",            Fill fbLibUnordStage8)
-  , ("libunord-stage9",            Fill fbLibUnordStage9)
+    -- RETIRED 2026-09-09, checked and not timed: every arm that
+    -- concatenates a list the library would fold -- the list entry
+    -- points' ports and candidates, ordered and unordered. A list
+    -- concatenated is the API's failure mode, 'toVectorT' being the fill
+    -- for that, and the consumers below are what the entry points are
+    -- for; the fill candidates, 'lib-stage1' and the lean pair above,
+    -- are 'toVectorT' itself and stay timed. Reasons for each arm at
+    -- its definition. Every slot below moves up by thirteen.
+  , ("liblist-stage1",             Only fbLibListStage1)
+  , ("liblist-stage2",             Only fbLibListStage2)
+  , ("liblist-stage3",             Only fbLibListStage3)
+  , ("liblist-stage4",             Only fbLibListStage4)
+  , ("libunord-stage1",            Only fbLibUnordStage1)
+  , ("libunord-stage2",            Only fbLibUnordStage2)
+  , ("libunord-stage3",            Only fbLibUnordStage3)
+  , ("libunord-stage4",            Only fbLibUnordStage4)
+  , ("libunord-stage5",            Only fbLibUnordStage5)
+  , ("libunord-stage6",            Only fbLibUnordStage6)
+  , ("libunord-stage7",            Only fbLibUnordStage7)
+  , ("libunord-stage8",            Only fbLibUnordStage8)
+  , ("libunord-stage9",            Only fbLibUnordStage9)
+    -- The ordered list's consumers, added 2026-09-09 for Run 28 as the
+    -- thirteen above retired: 'sumT'-shaped over each stage's ordered
+    -- list, master's and the port's under 'sumRuns', stages three and
+    -- four through their routes and the shared fused loop. Every slot
+    -- below moves by four.
+  , ("liblist-stage1-sum",         Fill fbLibListStage1Sum)
+  , ("liblist-stage2-sum",         Fill fbLibListStage2Sum)
+  , ("liblist-stage3-sum",         Fill fbLibListStage3Sum)
+  , ("liblist-stage4-sum",         Fill fbLibListStage4Sum)
     -- The reducing consumer over each stage's list, added the same day:
     -- 'sumT' as the library composes it, one slice at a time and no
-    -- concatenation, so a stage's consumer against its Fill arm above
-    -- prices the copy, and the stage-five consumer against the stage-one
-    -- one is what the lazy candidates buy a fold. Every slot below moves
-    -- by four more, eight in all with the two of the shipped route above.
+    -- concatenation, the stage-five consumer against the stage-one one
+    -- being what the lazy candidates buy a fold; the Fill arms above,
+    -- once the pair pricing the copy, are checked and not timed since
+    -- 2026-09-09.
   , ("libunord-stage1-sum",        Fill fbLibUnordStage1Sum)
   , ("libunord-stage2-sum",        Fill fbLibUnordStage2Sum)
     -- The ceiling's consumer, added 2026-09-09 for Run 28: the fill
