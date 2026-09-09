@@ -25,7 +25,16 @@ STEPS = [
                                 'cd "{root}" && { command -v pyflakes >/dev/null || python3 -m pyflakes --version >/dev/null 2>&1 || { echo "pyflakes is not on PATH (command -v pyflakes finds nothing), so the Python here went unlinted"; exit 1; }; } && python3 -m pyflakes *.py']),
     ('shellcheck',             ['bash', '-c',
                                 'cd "{root}" && { command -v shellcheck >/dev/null || { echo "shellcheck is not on PATH (command -v shellcheck finds nothing), so the shell scripts here went unlinted"; exit 1; }; } && shellcheck -S warning -f gcc *.sh']),
-    ('properties',             ['python3', '{root}/properties.py']),
+    # CORPUS_RUN=newest, since 2026-09-09: the properties are quantified
+    # over every run on disk and four of them is 478 JSONs and minutes,
+    # which makes a suite meant to run often run rarely. It narrows the
+    # corpus and not the proof -- each property still sweeps everything it
+    # is handed and still prints what it covered, so the narrowing is
+    # visible in the output rather than silent. Ask for the wider sweep by
+    # hand, `./properties.py`, when a run is deleted or added.
+    ('properties',             ['bash', '-c',
+                                'cd "{root}" && CORPUS_RUN=newest'
+                                ' python3 properties.py']),
     ('cases, ok direction',    ['python3', '{bin}/defect-run.py', '{root}']),
     ('cases, bug direction',   ['python3', '{bin}/defect-run.py', '--audit', '{root}']),
     ('selftest mutants',       ['python3', '{bin}/selftest-mutants.py', '{root}']),

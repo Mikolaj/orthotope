@@ -23,7 +23,13 @@ a case hands these an empty one, or one run built for them; `CORPUS_LIMIT`
 stops each property after that many runs it read, which is how the mutants
 in `mutants.py` prove a property can fail in seconds rather than over every
 run on disk -- a bound on the proof, never on a run of the properties
-themselves. Exit 0 when every property holds over something, 1 when one
+themselves. `CORPUS_RUN=newest` is the other narrowing and it is the
+opposite kind: it drops every run but the highest-numbered one on disk,
+which is what `checks.py` asks for so that `check-all` stays a thing run
+often. It narrows the CORPUS and not the proof, so every property still
+sweeps everything it is given and still prints what it covered -- read that
+line, since under this setting it names one run and the coverage the older
+runs would have added is not taken. Exit 0 when every property holds over something, 1 when one
 fails or the corpus holds nothing a property reads, 2 when CORPUS_LIMIT is
 not a count.
 """
@@ -112,8 +118,23 @@ def runs_on_disk():
     environment names another directory, which is how a case hands them
     an empty one, or one run built for them.
     """
-    return sorted(f for f in os.listdir(CORPUS)
-                  if f.endswith('.json') and not f.startswith('zz'))
+    js = sorted(f for f in os.listdir(CORPUS)
+                if f.endswith('.json') and not f.startswith('zz'))
+    if os.environ.get('CORPUS_RUN') != 'newest':
+        return js
+    # The highest run number present, by the number and not by the string:
+    # `run7` sorts above `run24` lexically, so a directory holding both
+    # would have narrowed to the older one under a plain sort. A file
+    # carrying no run number is kept, being a case's own fixture rather
+    # than a run.
+    def num(f):
+        m = re.match(r'run(\d+)[-.]', f)
+        return int(m.group(1)) if m else None
+    ns = [num(f) for f in js]
+    top = max([x for x in ns if x is not None], default=None)
+    if top is None:
+        return js
+    return [f for f, x in zip(js, ns) if x is None or x == top]
 
 
 def prop_abs_round_trip(m):

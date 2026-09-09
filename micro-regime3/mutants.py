@@ -24,6 +24,17 @@ READER = ('f=$(ls "{root}"/*.json 2>/dev/null | head -1); test -n "$f" '
 PROPS = 'python3 "{dir}/properties.py"'
 
 MUTANTS = [
+    # `CORPUS_RUN=newest` narrows `check-all`'s corpus to one run, so a
+    # narrowing that keeps the wrong runs would put the suite back where it
+    # was while reading as narrowed. The judge asks the selection directly
+    # rather than through a sweep -- exactly one run number survives -- so
+    # it costs no minutes; LOST rather than green with no run on disk, as
+    # every corpus judge here is.
+    ('the newest-run narrowing keeps every run but the newest',
+     'properties.py',
+     "    return [f for f, x in zip(js, ns) if x is None or x == top]",
+     "    return [f for f, x in zip(js, ns) if x is None or x != top]",
+     'python3 -c "import os,re,sys,importlib.util; os.environ[\'CORPUS\']=\'{root}\'; os.environ[\'CORPUS_RUN\']=\'newest\'; spec=importlib.util.spec_from_file_location(\'p\',\'{file}\'); m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m); ns=set(int(x.group(1)) for x in (re.match(r\'run(\\\\d+)[-.]\',f) for f in m.runs_on_disk()) if x); sys.exit(0 if len(ns)==1 else 1)"'),
     # The per-view floor's whole judgement is one comparison, so inverting
     # it is a mutant of the tool. The judge greps for the finding the tool
     # was written to make -- `flip-last-rows` starred in the
