@@ -5531,7 +5531,10 @@ data Arm = Base (ShapeL -> T -> VS.Vector Double)
 -- price, the Lemire arms straddle their controls, and the @sum-only@ pair
 -- sits at both ends. Moving an entry takes a control off what it was aimed at
 -- and breaks comparability with earlier runs, so it stays put; the families
--- are expressed in the definition order above instead.
+-- are expressed in the definition order above instead. Which arms landed or
+-- left between two runs, and so how far each slot moved, is the README's
+-- delta chain's to say and not these comments', which carry a placement's
+-- reason and no count.
 --
 -- An 'Only' entry takes no slot, so what is actually run is the sublist of
 -- the rest, and every such entry still sits where its slot used to be: the
@@ -5608,8 +5611,7 @@ roster =
     -- shapes, where 'sum-only-early', the bench that rule is about,
     -- allocates 204 B a call because its allocation is a one-off setup
     -- vector. So it fills as its base does and grows no pool the way that
-    -- bench does. It moves every later slot by one, which the roster delta
-    -- records. Added 2026-08-14, first read in Run 14.
+    -- bench does. Added 2026-08-14, first read in Run 14.
   , ("list-aa-adjacent",           Twin fbList)
     -- The distant halves of the crossed A/A pairs, none a strategy: each
     -- runs an existing function twice, so its true ratio is known to be
@@ -5701,9 +5703,7 @@ roster =
     -- The count-down fill's own solo arms sit here as 'Only', refuted by
     -- codegen the day they were written, reasons at their definitions.
     -- Appended to the family block for the block's own reason -- after
-    -- the control's pair, so no existing control moves -- at the price
-    -- that every slot below moves by three against Runs 9 to 19, which
-    -- any cross-run read of those slots has to carry.
+    -- the control's pair, so no existing control moves.
     -- not timed: the down fill reloads per element at the go leaf, see
     -- its definition
   , ("mut-odo-vecdims-down",       Only fbMutOdoVecdimsDown)
@@ -5712,7 +5712,7 @@ roster =
     -- Parked 'Only' 2026-09-02, after Run 23 read the ordering on both
     -- halves: the shipped `-u2` leaf leads this one on every population
     -- and its count-down twin in all twenty, so neither is an alternative
-    -- any more, and their slots went to Run 24's additions. Timed again
+    -- any more. Timed again
     -- 2026-09-04 for Run 25 alone, as the bound control of the `-u1` arm
     -- below (README.md#what-is-open, the Run 25 entry); parked again
     -- after it, 2026-09-06, the bound control having been spent on that
@@ -5725,12 +5725,12 @@ roster =
   , ("mut-odo-vecdims-add-in-leaf-down", Only fbMutOdoVecdimsAddInLeafDown)
   , ("mut-odo-vecdims-add-in-leaf-u2", Fill fbMutOdoVecdimsAddInLeafU2)
     -- The unrolled loop with its look-ahead hoisted out of the guard,
-    -- added 2026-09-07 beside its parent for Run 27, every slot below
-    -- moving by one; reasons at its definition.
+    -- added 2026-09-07 beside its parent for Run 27; reasons at its
+    -- definition.
   , ("mut-odo-vecdims-add-in-leaf-u2-last", Fill fbMutOdoVecdimsAddInLeafU2Last)
     -- The unrolled loop with its cursors as pointers at every level,
     -- added 2026-09-05 beside its parent for Run 26's comparison with
-    -- '-u1-ptr', every slot below moving by one: the ceiling '-u2' would
+    -- '-u1-ptr': the ceiling '-u2' would
     -- reach under an allocator that spilled nothing, not a candidate
     -- (README.md#dead-ideas); reasons at its definition.
   , ("mut-odo-vecdims-add-in-leaf-u2-ptr", Fill fbMutOdoVecdimsAddInLeafU2Ptr)
@@ -5738,12 +5738,11 @@ roster =
     -- lighter-loop form of the shipped arm, see its definition.
   , ("mut-odo-vecdims-add-in-leaf-u2-down", Fill fbMutOdoVecdimsAddInLeafU2Down)
     -- The un-unrolled form of the shipped fill, added 2026-09-04 for Run
-    -- 25 and placed beside its parents, every slot below moving by one;
-    -- reasons at its definition.
+    -- 25 and placed beside its parents; reasons at its definition.
   , ("mut-odo-vecdims-add-in-leaf-u1", Fill fbMutOdoVecdimsAddInLeafU1)
     -- The same loop with its cursors as pointers at every level, added
-    -- 2026-09-05 beside its parent, every slot below moving by one: the
-    -- ceiling '-u1' would reach under an allocator that spilled nothing,
+    -- 2026-09-05 beside its parent: the ceiling '-u1' would reach under
+    -- an allocator that spilled nothing,
     -- not a candidate (README.md#dead-ideas); reasons at its definition.
   , ("mut-odo-vecdims-add-in-leaf-u1-ptr", Fill fbMutOdoVecdimsAddInLeafU1Ptr)
     -- The same fill with the source base held rather than reloaded,
@@ -5762,10 +5761,7 @@ roster =
     -- zero-stride conditions solo, and the full endpoint, each one
     -- change over 'mut-odo-vecdims' or over the previous member,
     -- reasons at the definitions. Appended after the family for the
-    -- family block's own reason -- no existing control moves -- taking
-    -- six slots where the three demotions above return three, so
-    -- every slot below moves by three more than the block above already
-    -- carries.
+    -- family block's own reason -- no existing control moves.
     -- parked 2026-09-04 by the prune (README.md#what-the-benchmark-does)
     -- Timed once more for Run 26, which read the small class's second
     -- clause on it: behind 'mut-odo-vecdims' on three regime-3 views and
@@ -5790,8 +5786,7 @@ roster =
     -- toVectorT costs under stage one, under stage two, and under stage
     -- two with contiguous runs routed to slices -- each a port of the
     -- library code, reasons at the definitions. Appended for the
-    -- family block's own reason -- no existing control moves -- at
-    -- three slots.
+    -- family block's own reason -- no existing control moves.
   , ("lib-stage1",                 Fill fbLibStage1)
     -- parked 2026-09-04 by the prune (README.md#what-the-benchmark-does):
     -- the two halves that bracketed 'dispRun', spent once the arm below
@@ -5805,9 +5800,7 @@ roster =
   , ("lib-stage2-concat",          Only fbLibStage2Concat)
     -- The dispatch arm the runs class's crossover asks for, added
     -- 2026-08-30: one change over the entry above, and placed beside it
-    -- so the two are read as neighbours -- at the price that every slot
-    -- below moves by one against Run 21, which any cross-run read of those
-    -- slots has to carry.
+    -- so the two are read as neighbours.
     -- Re-cut to 2048 on 2026-09-02 by the one-binary probe, the cut at 256
     -- having been killed by Run 22 on both compilers and by Run 23 on
     -- both layouts; timed by Run 24 at the new cut, reasons at 'dispRun'.
@@ -5819,8 +5812,7 @@ roster =
     -- run unrolled by four, a run of 2 to 5 elements written by a body
     -- of exactly that length, and the same fill under a leaner dispatch,
     -- each one change over 'lib-stage2'. Placed beside their control as
-    -- the entry above is, and moving every slot below by three more;
-    -- reasons at the definitions.
+    -- the entry above is; reasons at the definitions.
     -- Parked 'Only' 2026-09-02: ruled out for the library at its
     -- definition, and Run 23's dead-spot half read it behind its control
     -- on `runs`, the one class it had a lead in.
@@ -5837,8 +5829,7 @@ roster =
     -- strict (README.md#dead-ideas), reasons at the definition.
   , ("lib-stage2-lean",            Fill fbLibStage2Lean)
     -- The fill not unrolled under the lean dispatch, added 2026-09-07
-    -- beside its control for Run 27, every slot below moving by one;
-    -- reasons at 'fillStage2U1'.
+    -- beside its control for Run 27; reasons at 'fillStage2U1'.
   , ("lib-stage2-lean-u1",         Fill fbLibStage2LeanU1)
     -- RETIRED 2026-09-09, checked and not timed: every arm that
     -- concatenates a list the library would fold -- the list entry
@@ -5847,7 +5838,7 @@ roster =
     -- for that, and the consumers below are what the entry points are
     -- for; the fill candidates, 'lib-stage1' and the lean pair above,
     -- are 'toVectorT' itself and stay timed. Reasons for each arm at
-    -- its definition. Every slot below moves up by thirteen.
+    -- its definition.
   , ("liblist-stage1",             Only fbLibListStage1)
   , ("liblist-stage2",             Only fbLibListStage2)
   , ("liblist-stage3",             Only fbLibListStage3)
@@ -5864,8 +5855,7 @@ roster =
     -- The ordered list's consumers, added 2026-09-09 for Run 28 as the
     -- thirteen above retired: 'sumT'-shaped over each stage's ordered
     -- list, master's and the port's under 'sumRuns', stages three and
-    -- four through their routes and the shared fused loop. Every slot
-    -- below moves by four.
+    -- four through their routes and the shared fused loop.
   , ("liblist-stage1-sum",         Fill fbLibListStage1Sum)
   , ("liblist-stage2-sum",         Fill fbLibListStage2Sum)
   , ("liblist-stage3-sum",         Fill fbLibListStage3Sum)
@@ -5879,19 +5869,16 @@ roster =
   , ("libunord-stage1-sum",        Fill fbLibUnordStage1Sum)
   , ("libunord-stage2-sum",        Fill fbLibUnordStage2Sum)
     -- The ceiling's consumer, added 2026-09-09 for Run 28: the fill
-    -- summed, what stage five's list is read against; every slot below
-    -- moves by one.
+    -- summed, what stage five's list is read against.
   , ("libunord-stage3-sum",        Fill fbLibUnordStage3Sum)
   , ("libunord-stage4-sum",        Fill fbLibUnordStage4Sum)
   , ("libunord-stage5-sum",        Fill fbLibUnordStage5Sum)
-    -- and stage six's consumer, added with it; every slot below moves
-    -- by one more.
+    -- and stage six's consumer, added with it.
   , ("libunord-stage6-sum",        Fill fbLibUnordStage6Sum)
     -- The fold entry point over stage six, added 2026-09-09 for Run 28;
-    -- reasons at the definition. Every slot below moves by one.
+    -- reasons at the definition.
   , ("libunord-stage6-loop-sum",   Fill fbLibUnordStage6LoopSum)
-    -- and the three reorderings' consumers; every slot below moves by
-    -- three more.
+    -- and the three reorderings' consumers.
   , ("libunord-stage7-sum",        Fill fbLibUnordStage7Sum)
   , ("libunord-stage8-sum",        Fill fbLibUnordStage8Sum)
   , ("libunord-stage9-sum",        Fill fbLibUnordStage9Sum)
