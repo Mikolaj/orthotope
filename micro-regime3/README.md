@@ -4113,44 +4113,53 @@ an iteration on `flip-last-rows` against 31,506,435 on `runs-96`, 89 in 31.5
 million, with `-u2`, `lib-stage2-lean` and `bq-expand` inside 150 instructions
 and `list` inside 4272 in 412 million, on both halves --- so the same code does
 the same work and the doubling is what walking backwards costs, which no fill
-can address. **The arms whose counts DO move are the ones that choose a route**:
-`lib-stage1` +6.4%, `libunord-stage1` +17.7%, `liblist-stage1` +20.3%,
-`liblist-stage2` +106%, and `libunord-stage2` collapsing to a slice at 0.0004
-of its forward cell, the canonicalization taking the library's route for those.
-**Its fill half is ruled out for the library since 2026-09-07** ([dead
-ideas][dead]), the list having to stay lazy, so the arm stays timed
-as the ceiling of what an address-order fill would buy and what can land
-is its dispatch. Against `libunord-stage2` its margin also carries that arm's
-list and concatenation, which a reducing consumer does not pay, so the reading
-is the direction where stage two falls back to the list and the tie where both
-slice. **`libunord-stage4` and `libunord-stage5`, added 2026-09-07 for Run 27,
-are the candidates the ruling leaves**: the same sorted address order
-over the unordered list kept lazy up to the exception --- one slice where
-the sorted view is one block, a lazy list of forward runs where its innermost
-stride is 1, one fill only where no run is longer than an element --- stage four
-under the natural-strides test and stage five under the lean rank test
-with the sorted pairs canonicalized again, so no `getStridesT` is built; each
-hands a single slice or a single fill back as the ports do and concatenates only
-its runs, under the ports' own `VS.concat`, so the pair with `libunord-stage3`
-is the same code where both slice or both fill and a lazy list against the fill
-where runs exist, and the pair with `libunord-stage2` prices the list's
-construction alone where both list. **Beside them the four reducing consumers**,
-`libunord-stage1-sum`, `libunord-stage2-sum`, `libunord-stage4-sum`
-and `libunord-stage5-sum`: `sumT` as the library composes it over each stage's
-list, one slice at a time and no concatenation, returned as one element
-that `check` holds to the reference's sum --- the first reading of the entry
-point as it is used, the copy every Fill arm over a list carries being one
-the consumer never pays. **And `check` carries a laziness gate since the same
-day**: forcing the head of each list producer on 200000 runs of 20 must allocate
-under 32 KB for the lazy ones and must not for the two ports of the branch,
-whose strict base-offset table is the planted breakage that proves the gate
-bites, the unordered candidates asked again on the same array transposed,
-the exception's own move. In instructions, shim-free and net of the sum term ---
-a shim-free counts probe of 2026-08-30 and its `-runs` sibling, which said
-of themselves that they were a smoke run of `run-counts.sh` and NOT a recorded
-column, and went with Run 22's preparation on 2026-09-02 --- the short bodies
-read 0.50 at `runs-2`, 0.59 at `runs-3`, 0.61 to 0.88 on every k3 and k5 conv
-shape, and above five nothing past the per-row choice's cost,
+can address. **The same holds of the two COMPILERS on that view, read off
+the code and not only off the counts** (2026-09-09): both library arms reach
+the shipped fill's twelve-instruction unrolled run there, `fbLibStage1`'s
+dispatch falling through to it and `fillStage2` taking `runsWith writeRunStep`;
+9.12.4 and the HEAD stage1 emit `-u2`'s loop byte for byte and `fillStage2`'s
+in the same instructions under different registers, each 51 bytes and each
+inside one cache line on both halves; and every arm's instructions on the view
+read 1.0000 between them. What does part is the memory system: per call
+and under exact selection, `lib-stage1` reads about half the last-level misses
+on HEAD over two draws with its L1 misses level. **The arms whose counts DO move
+are the ones that choose a route**: `lib-stage1` +6.4%, `libunord-stage1`
++17.7%, `liblist-stage1` +20.3%, `liblist-stage2` +106%, and `libunord-stage2`
+collapsing to a slice at 0.0004 of its forward cell, the canonicalization taking
+the library's route for those. **Its fill half is ruled out for the library
+since 2026-09-07** ([dead ideas][dead]), the list having to stay lazy,
+so the arm stays timed as the ceiling of what an address-order fill would buy
+and what can land is its dispatch. Against `libunord-stage2` its margin also
+carries that arm's list and concatenation, which a reducing consumer does
+not pay, so the reading is the direction where stage two falls back to the list
+and the tie where both slice. **`libunord-stage4` and `libunord-stage5`, added
+2026-09-07 for Run 27, are the candidates the ruling leaves**: the same sorted
+address order over the unordered list kept lazy up to the exception --- one
+slice where the sorted view is one block, a lazy list of forward runs where
+its innermost stride is 1, one fill only where no run is longer than an element
+--- stage four under the natural-strides test and stage five under the lean rank
+test with the sorted pairs canonicalized again, so no `getStridesT` is built;
+each hands a single slice or a single fill back as the ports do and concatenates
+only its runs, under the ports' own `VS.concat`, so the pair
+with `libunord-stage3` is the same code where both slice or both fill and a lazy
+list against the fill where runs exist, and the pair with `libunord-stage2`
+prices the list's construction alone where both list. **Beside them the four
+reducing consumers**, `libunord-stage1-sum`, `libunord-stage2-sum`,
+`libunord-stage4-sum` and `libunord-stage5-sum`: `sumT` as the library composes
+it over each stage's list, one slice at a time and no concatenation, returned
+as one element that `check` holds to the reference's sum --- the first reading
+of the entry point as it is used, the copy every Fill arm over a list carries
+being one the consumer never pays. **And `check` carries a laziness gate since
+the same day**: forcing the head of each list producer on 200000 runs of 20 must
+allocate under 32 KB for the lazy ones and must not for the two ports
+of the branch, whose strict base-offset table is the planted breakage
+that proves the gate bites, the unordered candidates asked again on the same
+array transposed, the exception's own move. In instructions, shim-free and net
+of the sum term --- a shim-free counts probe of 2026-08-30 and its `-runs`
+sibling, which said of themselves that they were a smoke run of `run-counts.sh`
+and NOT a recorded column, and went with Run 22's preparation on 2026-09-02 ---
+the short bodies read 0.50 at `runs-2`, 0.59 at `runs-3`, 0.61 to 0.88 on every
+k3 and k5 conv shape, and above five nothing past the per-row choice's cost,
 `stretch-coprime-r7`'s 1.0208 the worst cell, while the quad loop reads 0.83
 to 0.85 at long runs and 1.08 to 1.15 at runs of 2 and 3 --- so each moves
 its own end of the run axis and Run 22 prices the two in time, which is what
