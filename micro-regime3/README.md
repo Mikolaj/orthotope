@@ -4122,8 +4122,16 @@ in the same instructions under different registers, each 51 bytes and each
 inside one cache line on both halves; and every arm's instructions on the view
 read 1.0000 between them. What does part is the memory system: per call
 and under exact selection, `lib-stage1` reads about half the last-level misses
-on HEAD over two draws with its L1 misses level. **The arms whose counts DO move
-are the ones that choose a route**: `lib-stage1` +6.4%, `libunord-stage1`
+on HEAD over two draws with its L1 misses level. **So a clause pricing
+`lib-stage2-lean` against `lib-stage1` on `flip-last-rows` prices that floor
+and not the two routes, and is not to be registered on that view again**: their
+corrected instructions there part by less than a hundredth of a percent,
+`fbLibStage1`'s dispatch falling through to the same fill `fillStage2` reaches,
+so the pair is an A/A control under two names. It is a comparison on the other
+two views the clause covers, where the same counts part by 8.5% and 40.8%.
+Registered over all three in Run 26's item (6) and read as a margin by Run 25
+and again by Run 27, which is what this forecloses. **The arms whose counts DO
+move are the ones that choose a route**: `lib-stage1` +6.4%, `libunord-stage1`
 +17.7%, `liblist-stage1` +20.3%, `liblist-stage2` +106%, and `libunord-stage2`
 collapsing to a slice at 0.0004 of its forward cell, the canonicalization taking
 the library's route for those. **Its fill half is ruled out for the library
