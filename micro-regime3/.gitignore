@@ -50,6 +50,18 @@ probe-*
 !probe-rework-proposal.hs
 !probe-oneblock.py
 !probe-gate3.py
+!probe-flip-reroll.sh
+!probe-flip-reroll-read.py
+!probe-flip-reroll-fixture.py
+!probe-flip-counters.sh
+!probe-flip-counters-read.py
+
+# What those two leave: a directory of legs apiece, named for the question
+# and not for a run, so the `run[0-9]*` and `probe-*` patterns miss them.
+reroll-out/
+reroll-fixture/
+counters-out*/
+smoke-out/
 
 # The reader's smoke sweep, which writes these and deletes them again; a
 # failed sweep can leave them behind. The .log line is not decoration:

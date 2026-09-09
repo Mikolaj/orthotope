@@ -67,6 +67,9 @@ UNCOVERED = {
 # the question it is named for, and none with a case.
 for _name in ('probe-attr-build.sh', 'probe-attrnoshim-build.sh',
               'probe-attr-read.py', 'probe-attr.sh', 'probe-cache-build.sh',
+              'probe-flip-counters.sh', 'probe-flip-counters-read.py',
+              'probe-flip-reroll.sh', 'probe-flip-reroll-read.py',
+              'probe-flip-reroll-fixture.py',
               'probe-cache-run.sh', 'probe-disp-build.sh',
               'probe-disp-ghead-build.sh', 'probe-evening-a.sh',
               'probe-evening-b.sh', 'probe-evening-chain.sh',
