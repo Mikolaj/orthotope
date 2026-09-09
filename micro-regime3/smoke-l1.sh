@@ -164,8 +164,16 @@ for i in "${!LEGS[@]}"; do
   warned=""
   for m in "${REQUIRED[@]}"; do
     o=$LOGDIR/$leg-$(printf '%s' "${m:-default}" | tr -c 'A-Za-z0-9' '-')
-    if ! ./read-run.py "$f" $m > "$o.out" 2> "$o.err"; then
-      failed="$failed ${m:-(default)}(rc=$?)"
+    # THE STATUS IS TAKEN BEFORE THE `if`, not inside it: `$?` in the body
+    # of `if ! cmd` is the status of the NEGATION, which is 0 exactly when
+    # the command failed. So every genuine failure printed `(rc=0)`, which
+    # is what a pass looks like -- Run 28's roster pass reported
+    # `--selftest(rc=0)` on two legs where the mode had exited 1
+    # (2026-09-10).
+    ./read-run.py "$f" $m > "$o.out" 2> "$o.err"
+    rc=$?
+    if [ "$rc" != 0 ]; then
+      failed="$failed ${m:-(default)}(rc=$rc)"
     fi
     if [ -s "$o.err" ]; then
       warned="$warned ${m:-(default)}"
