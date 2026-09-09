@@ -6809,12 +6809,21 @@ def _note_kind(lead):
     carry a previous pair's recipes and its `GATE: SOUND` verdict into the
     next note (both 2026-09-07). The state is sticky; this says where it
     changes.
+
+    THE MACHINE CHECK IS THE GATE'S, and is named here for the same reason
+    the verdict is: it is `run-gate.sh --machine`'s answer, written above
+    the gate's own block and spent with that run. Unnamed it classified as
+    nothing, so `--draft` carried it verbatim -- Run 27's reading of its
+    own box move arrived in Run 28's draft under a lead beginning AND IT
+    FIRED, in a note whose gate the same call had reset to NOT RUN
+    (2026-09-09).
     """
     if any(lead.startswith(h) for h in NOTE_HANDOVER):
         return 'handover'
     if (any(lead.startswith(h) for h in NOTE_HANDOVER_PREFIX)
             or lead.startswith('GATE:')
-            or lead.startswith("THE GATE'S VERDICT")):
+            or lead.startswith("THE GATE'S VERDICT")
+            or lead.startswith('THE MACHINE CHECK')):
         return 'gate'
     if lead.startswith('Verified when built'):
         return 'fill'

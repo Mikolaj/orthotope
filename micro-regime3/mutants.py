@@ -123,6 +123,25 @@ MUTANTS = [
      ' out[\'note\'], \'--draft\', \'run24\', \'--halves\','
      ' \'g912,ghead\'], capture_output=True, text=True)\n'
      'sys.exit(0 if \'dead-spot\' in r.stdout else 1)"'),
+    # The machine check unnamed again, which is the state Run 28's draft
+    # met: the lead classifies as nothing, the block inherits `fill` from
+    # the fill-in block above it, and `_fill_skeleton` passes a paragraph
+    # with no rows through unchanged -- so the previous run's box move
+    # arrives in the next note under a gate the same call reset to NOT RUN.
+    # The judge plants the note whose ORDER is the trap and requires the
+    # carried figure to be absent.
+    ('the machine check is no longer named as the gate\'s', 'read-run.py',
+     "            or lead.startswith(\"THE GATE'S VERDICT\")\n"
+     "            or lead.startswith('THE MACHINE CHECK')):",
+     "            or lead.startswith(\"THE GATE'S VERDICT\")):",
+     'python3 -c "import importlib.util, sys, tempfile, subprocess\n'
+     'spec = importlib.util.spec_from_file_location(\'d\', \'{dir}/defects.py\')\n'
+     'm = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)\n'
+     'out = m.stub_pair_note_machine_check(tempfile.mkdtemp())\n'
+     'r = subprocess.run([sys.executable, \'{file}\', \'--note\','
+     ' out[\'note\'], \'--draft\', \'run24\', \'--halves\','
+     ' \'g912,ghead\'], capture_output=True, text=True)\n'
+     'sys.exit(0 if \'-3.66%\' not in r.stdout else 1)"'),
     # era_main_hs's trim, dropped: the captured-run cases read `--claims`
     # against a Main.hs trimmed to the run's own shapes, and untrimmed the
     # population gate fires and suppresses every figure -- which is the
