@@ -3828,14 +3828,14 @@ concatKnown !l parts = case parts of
 -- 'unstream' over 'Bundle.fromVectors', whose size is a 'foldl'' of the
 -- lengths before the first element streams (read in the cabal store,
 -- 2026-09-07), so no liblist arm can see a list's laziness; 'check''s
--- laziness gate does. Each Fill arm is 'concatParts' over its stage's
--- list, 'lsListStage1' to 'lsListStage4' below: a one-element list's
--- element handed back as 'toVectorT' hands it, and only runs
--- concatenated. Until 2026-09-09 the arms concatenated a singleton too,
--- vector's 'concat' copying it, so every one of them read 2.00x
--- allocation and a result-sized copy on every view the library fills
--- once; on such a view a port and its fill are now the same vector,
--- and the pair prices the list where there is one.
+-- laziness gate does. The Fill arms over these lists -- 'concatParts'
+-- over 'lsListStage1' and 'lsListStage2', 'fillRoute' over stages three
+-- and four's routes -- hand a one-element list's element back as
+-- 'toVectorT' hands it and concatenate only runs; until 2026-09-09 they
+-- concatenated a singleton too, vector's 'concat' copying it, so every
+-- one read 2.00x allocation and a result-sized copy on every view the
+-- library fills once. All four are checked and not timed since that
+-- day, their consumers timed in their place.
 --
 -- Stage one's list (Data/Array/Internal.hs at 0386073): regime 1 the
 -- vector, regime 2 the slice recursion over the normal suffix, regime 3
@@ -3867,12 +3867,13 @@ fbLibListStage2 sh a = concatParts (lsListStage2 sh a)
 -- over every checked view, 2026-09-07. And 'lazyRuns' in place of the
 -- per-level 'concat', one slice per run on demand and no table. The
 -- dispatch keeps the natural-strides comparison, as 'fbLibStage2' does,
--- so 'fbLibListStage4' is one change over it. Timed as every liblist
--- arm is, the list then one 'VS.concat': against 'fbLibListStage1' the
--- pair prices the canonicalization and the odometer against master's
--- slice recursion, and 'fbLibListStage4', under 'fbLibListStage2''s
--- lean dispatch, prices the odometer against the strict base-offset
--- table. Added 2026-09-07 for Run 27.
+-- so 'fbLibListStage4' is one change over it. Checked and not timed
+-- since 2026-09-09, as every arm concatenating a list; what is timed is
+-- its consumer, 'fbLibListStage3Sum', which against master's prices the
+-- canonicalization and the odometer against the slice recursion, and
+-- 'fbLibListStage4Sum', under the lean dispatch, which prices the
+-- odometer against the strict base-offset table. Added 2026-09-07 for
+-- Run 27.
 routeList3 :: ShapeL -> T -> Route
 routeList3 sh (T (Strides ats) ao _)
   | l == 0 = RBlock 0 0
@@ -3967,9 +3968,11 @@ fbLibUnordStage2 sh a = concatParts (lsUnordStage2 sh a)
 -- in place of 'toUnorderedVectorListT''s one-block test and fall-back,
 -- the fill returned as a singleton list -- is RULED OUT since 2026-09-07
 -- (README.md#dead-ideas): the list has to stay lazy, and a fill returns
--- the whole array before the consumer sees an element. So the arm stays
--- timed as the ceiling of what an address-order fill would buy, and only
--- the dispatch half can land: the rank test over the re-canonicalized
+-- the whole array before the consumer sees an element. So the arm stayed
+-- timed as the ceiling of what an address-order fill would buy until
+-- 2026-09-09, when every arm concatenating a list went to 'Only' and its
+-- consumer took the ceiling's slot; only the dispatch half can land:
+-- the rank test over the re-canonicalized
 -- sorted pairs equals the sorted natural-strides test the library asks
 -- today, checked over 300000 random views and every view to rank 3 with
 -- extents to 3 and strides to 4, a mutant skipping the
@@ -3999,8 +4002,9 @@ fbLibUnordStage3 sh a@(T _ _ v) = fillRoute (routeUnord3 sh a) v
 -- foldr-shaped consumer applied where the list is produced fuses with
 -- it -- the cons cell and the slice header go, a thunk, a boxed
 -- accumulator and one partial application per run stay -- which the
--- fusion probe of that day read as 88 bytes and 14 ns a run against 145
--- and 19 (README.md#what-is-open). The leaf is fused, the fills' trick:
+-- fusion probe of that day read as 104 bytes and 14 ns a run against 145
+-- and 19, and 88 bytes once the loop was compiled once for every stage
+-- (README.md#what-is-open). The leaf is fused, the fills' trick:
 -- the innermost outer level conses its slices itself rather than
 -- calling 'go' once more per run, a quarter of the time and 8 bytes a
 -- run off on short runs, 9.3 ns and 80 bytes on the k3 window. The
@@ -4026,12 +4030,13 @@ lazyRuns ssh sats !start v = build $ \cons nil ->
 {-# INLINE lazyRuns #-}
 
 -- A lazy stage's dispatch as a value: one slice, the runs 'lazyRuns'
--- will walk, or one fill. Three readers share it -- the list, for the
+-- will walk, or one fill. Four readers share it -- the list, for the
 -- laziness gate and as the library-shaped function; the Fill arm, which
 -- hands a slice or a fill back as master's 'toVectorT' does and
 -- concatenates only runs, vector's 'concat' copying a singleton too;
 -- and the sum consumer, whose fused run loop is compiled ONCE as
--- 'sumLazyRuns' and reached by every stage through its route. That
+-- 'sumLazyRuns' and reached by every stage through its route; and the
+-- loop arm's fold, 'loopSumRoute', the fourth. That
 -- last is why the dispatch is data rather than the list itself: the
 -- fusion probe's overhaul first inlined each stage's list function
 -- into its consumer, and two of six copies of the identical loop came
@@ -4240,7 +4245,7 @@ fbLibUnordStage6LoopSum sh a@(T _ _ v) =
 -- reads the same element -- so the tie exists only in a self-overlapping
 -- view and the change reaches nothing injective: of the timed views it
 -- moves the six unstrided 'window' views, the two with channels among
--- them, from runs of the kernel's width to runs of the image's, and
+-- them, from runs of the kernel's width to runs of the output's, and
 -- 'small-patch-r5', runs of 16 for 8.
 -- One change over 'routeUnord6' per population. Added 2026-09-09 for
 -- Run 28.
@@ -5220,7 +5225,7 @@ windowStridedShapes =
 -- channel axis sits between the tied pairs at stride @h * w@, which is
 -- the shape the tie-break was written for and the one view where a
 -- third, untied axis stands between the tied ones: stages seven and
--- eight read runs of the image's width here, 62 and 30, where stage six
+-- eight read runs of the output's width here, 62 and 30, where stage six
 -- reads the kernel's, 3. Listed as [h, w, c, kh, kw]: image, channels
 -- and kernel, not the view shape. Two channel counts at one image size
 -- in elements, so the channel stride and the run length vary together
@@ -6058,9 +6063,11 @@ reference sh a = case [f | (_, Base f) <- roster] of
 -- reducing consumer, a @-sum@ arm, returns one element, its list's sum,
 -- held to the reference's sum within a relative 1e-9 -- the order of
 -- summation differs by construction, so equality is not owed -- and a
--- wrong list still fails: dropping the first slice in 'sumRuns' fails
--- @check@ at the first shape, @cnn-L1-6x6-c1@, for all four @-sum@ arms
--- (non-vacuity, 2026-09-07).
+-- wrong list still fails: a consumer over the list's tail, one slice
+-- dropped, fails @check@ at the first shape, @cnn-L1-6x6-c1@, for every
+-- @-sum@ arm through it (non-vacuity, 2026-09-07, on the recursive
+-- consumer the folds replaced; the same drop in 'sumRuns' or
+-- 'sumLazyRuns' is the mutation now).
 agreesWithRef :: VS.Vector Double -> String -> VS.Vector Double -> Bool
 agreesWithRef rList n u
   | u == rList = True
