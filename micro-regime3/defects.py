@@ -1866,6 +1866,36 @@ def stub_pair_note(tmp):
     return {'note': write(os.path.join(tmp, 'run23-pair.txt'), STUB_NOTE)}
 
 
+STUB_NOTE_MACHINE_CHECK = """\
+hdr
+
+A [SAME]: g912 leads, spot follows; run23-g912 and run23-spot.
+HALVES: basis=g912 other=spot
+
+Verified when built, 2026-09-01:
+  md5 g912         deadbeef, a BUILD line and owed
+
+THE MACHINE CHECK IS A SEPARATE ANSWER AND IT FIRED: `list`'s net against
+the fingerprint run22.md keeps reads a geomean of -3.66% over 19 of 19
+shapes.
+"""
+
+
+def stub_pair_note_machine_check(tmp):
+    """A note whose machine check sits where a real one does, under the fills.
+
+    THE ORDER IS THE CASE. `run-gate.sh --machine`'s answer is written
+    below the fill-in block, and a block classification is sticky, so an
+    unnamed lead there inherits `fill` and reaches `_fill_skeleton`, which
+    passes a paragraph carrying no rows through unchanged. Put the same
+    block after a `GATE:` one and it inherits `gate` and is dropped whether
+    or not its lead is named -- which is why this is a note of its own and
+    not STUB_NOTE with a block appended.
+    """
+    return {'note': write(os.path.join(tmp, 'run23-pair.txt'),
+                          STUB_NOTE_MACHINE_CHECK)}
+
+
 def era_main_hs(tmp, run):
     """Main.hs with the main lists trimmed to the shapes a captured run has.
 
@@ -3740,6 +3770,21 @@ TIER1 = {
         trigger='--draft where the new basis reuses the old other name',
         ok='every rename in one pass, so nothing written is renamed again',
         bug='both halves of the carried-over note under one name, silently'),
+    'draft-carries-the-gates-machine-check': dict(
+        family='other:unnamed-block-inherits-its-neighbour',
+        discovery='in-use', harm='fired', harm_count=1,
+        trigger="a note whose machine-check block sits under the fill-in"
+                ' block, which is where run-gate.sh leaves it',
+        ok='dropped with the pair whose gate read it, the drafted note'
+           ' carrying GATE: NOT RUN and no reading',
+        bug="the previous run's box move carried into the next note, under"
+            ' a lead beginning AND IT FIRED and above a gate reset to NOT'
+            ' RUN',
+        notes='Watched 2026-09-09 at Run 28\'s preparation, which drafted'
+              " run28-pair.txt from run27-pair.txt and found Run 27's"
+              ' -3.66% machine check in it. Nothing checks a pair note, so'
+              " what caught it was the draft's own instruction to read"
+              ' every carried line.'),
     # ---- preflight.sh ----
     'preflight-names-a-retired-callee': dict(
         family='other:caller-left-behind', discovery='in-use', harm='fired',
@@ -4264,6 +4309,22 @@ TIER1 = {
                       trigger='a sweep whose reader modes warn',
                       ok='the warnings are printed, deduped, beside the verdict',
                       bug='only the mode NAMES were printed, the findings left in a dir wiped with /tmp'),
+    'roster-pass-prints-a-failing-mode-as-rc-0': dict(
+        family='other:status-read-after-its-own-negation',
+        discovery='in-use', harm='fired', harm_count=1,
+        trigger='any required reader mode exiting non-zero on a leg',
+        ok='the status is taken before the `if`, so the line names it',
+        bug='`(rc=0)` beside every failing mode, `$?` in the body of `if !`'
+            ' being the negation\'s status',
+        proved='ran',
+        notes='Watched 2026-09-10 on Run 28\'s roster pass, which printed'
+              ' `--selftest(rc=0)` for the bcast and flip legs where the'
+              ' mode had exited 1. The verdict was never wrong -- `failed`'
+              ' is set on the same condition and the pass counted both'
+              ' findings -- but a reader who trusts the printed status'
+              ' reads a pass. The shell semantics were confirmed'
+              ' directly: `bash -c \'if ! (exit 7); then echo $?; fi\''
+              ' prints 0.'),
 }
 
 
@@ -8667,6 +8728,35 @@ RECORDS = [
          ok=V(exit=0, has=['spot leads, ghead follows'],
               hasnt=['ghead leads, ghead follows']),
          bug=V(exit=0, has=['ghead leads, ghead follows'])),
+
+    case('draft-carries-the-gates-machine-check', 'read-run.py', 'c7364e1',
+         "a spent machine-check reading rode into the next pair's note",
+         # THE ORDER IS THE CASE, which is what the fixture's docstring
+         # says: the block sits UNDER the fill-in block, so an unnamed
+         # lead inherits `fill` and `_fill_skeleton` passes a paragraph
+         # with no rows through unchanged. Put it after a `GATE:` block
+         # and it inherits `gate` and is dropped either way, which is why
+         # this is a note of its own. Found 2026-09-09 by Run 28's
+         # preparation, reading every carried line as the draft's own
+         # header asks -- nothing checks a pair note's prose.
+         plant=stub_pair_note_machine_check,
+         argv=['--note', '{note}', '--draft', 'run24',
+               '--halves', 'g912,ghead'],
+         ok=V(exit=0, has=['GATE: NOT RUN'], hasnt=['-3.66%']),
+         bug=V(exit=0, has=['-3.66%'])),
+
+    # ---- smoke-l1.sh, the roster pass ------------------------------------
+    case('roster-pass-prints-a-failing-mode-as-rc-0', 'smoke-l1.sh',
+         '11767f9',
+         'a required mode that exited non-zero was reported as rc=0',
+         # NO CASE: reaching the branch wants a real -L1 leg whose reader
+         # mode fails, and the driver refuses a previous attempt's
+         # artifacts, so a fixture would have to write such a leg's JSON
+         # into this directory -- where `properties.py` reads every run on
+         # disk and would then fail on it, which is the state Run 28's own
+         # pass left. Watched instead, on that pass; the shell semantics
+         # were confirmed directly.
+         argv=None, ok=None, no_audit='too-dangerous-to-run'),
 
     # ---- preflight.sh, the pre-run list's steps 4 to 10 in one call -----
     # ---- what nothing read, and what nothing subtracted ---------------
