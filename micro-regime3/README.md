@@ -948,11 +948,12 @@ rather than a slot in the next run, observed again:
   fold is one timed arm, `libunord-stage6-loop-sum`, for what the list interface
   costs a reduction. The probe arms are gone with their reading. Run 27's
   figures for `libunord-stage4`, `-stage5`, `liblist-stage3`, `-stage4`
-  and the four `-sum` consumers are therefore not this roster's. The account ---
-  the four probe arms, the Core that named the cause, the two fused shapes,
-  the per-class table and the per-run medians --- is the fusion premise of Run
-  28's registration below, and moves with it into Run 28's file at that run's
-  post-run step 5.
+  and the four `-sum` consumers are therefore not this roster's, nor, since
+  the same day's ruling on the singleton copy, the six port Fill arms' on any
+  view the library fills once. The account --- the four probe arms, the Core
+  that named the cause, the two fused shapes, the per-class table
+  and the per-run medians --- is the fusion premise of Run 28's registration
+  below, and moves with it into Run 28's file at that run's post-run step 5.
 - `OPEN` **What Run 28 is built to answer, registered before it runs.**
   Registered 2026-09-09, before the run, on Run 27's pair --- ghc-9.12.4
   as the basis against the same in-tree HEAD stage1, `10.1.20260803`, both
@@ -963,92 +964,99 @@ rather than a slot in the next run, observed again:
   reorderings of the run, each one change over stage six, `libunord-stage7`
   the tie-break, `libunord-stage8` the longest chain and `libunord-stage9`
   the zero-stride axes outermost; the four reducing consumers, `-sum` each;
-  and `libunord-stage6-loop-sum`, the fold entry point over stage six. 44 timed
-  arms over 19 main-set shapes, 836 benches, and 57 class views of ten classes,
-  five of them new: `window-64x64-c16-k3` and `window-32x32-c64-k3`, patch views
+  `libunord-stage6-loop-sum`, the fold entry point over stage six;
+  and `libunord-stage3-sum`, the ceiling's consumer. 45 timed arms over 19
+  main-set shapes, 855 benches, and 57 class views of ten classes, five of them
+  new: `window-64x64-c16-k3` and `window-32x32-c64-k3`, patch views
   with channels, the shape the tie-break exists for; and `bcast-src8`,
   `bcast-src64` and `bcast-src512`, an 8-, 64- and 512-element source each
   repeated to 1.8 million elements, the ladder on which stage nine's repeated
-  slice meets the fill. Two changes of code: the nine arms, each landing beside
-  stage five's; and the fusion overhaul of 2026-09-09, which touches arms Run 27
+  slice meets the fill. Three changes of code: the ten arms, each landing beside
+  stage five's; the fusion overhaul of 2026-09-09, which touches arms Run 27
   timed --- `lazyRuns` in build form under `libunord-stage4`, `-stage5`,
   `liblist-stage3` and `-stage4`, and every `-sum` consumer in fold form,
   the lazy stages' through one shared fused loop --- so their Run 27 figures
   are not this roster's, and the entry above this one carries the before
-  and after. Two things are known before the run and are the premise rather
-  than predictions. A `check`-mode comparison of 2026-09-09 read stage five's
-  sorted canonical dims and the sort-first form's equal on all 91 checked views,
-  so the two arms differ from stage five in dispatch cost alone; the comparison
-  was removed with its reading, `check` holding the arms to the reference
-  as it holds every arm. And a filtered probe the same day on the 9.12.4 build,
-  the pair's basis --- criterion means over one process, stage four, five
-  and six alone on `small` and `compose`, not a run --- read, before
-  the overhaul and with its change reaching both arms of each pair alike,
-  `libunord-stage6` over `libunord-stage5` at 0.960 on `small` and 0.999
-  on `compose`, the consumers at 0.922 and 0.997, with `small-patch-k5` at 0.786
-  and `small-flat64` at 1.239: the pass saved where it merges nothing, [6, 5, 5]
-  on strides [25, 1, 5], against the longer sort where it collapsed the rank,
-  [4, 1, 64] on [64, 0, 1], rank one before the sort under stage five and three
-  axes sorted under stage six. And the fusion probe of 2026-09-09, whose
-  decision is the entry above and whose account is this: Run 27 read the lazy
-  candidates' consumer at 145 to 183 bytes a run and master's at 24 to 56,
-  so the question was whether a fusible producer and consumer would take
-  the list's cost out. Four probe arms over stage six crossed two producers,
-  `lazyRuns` as it was and in build form, with two consumers, the harness's
-  recursive sum and `foldl'`, on `window`, `bcast`, `compose` and `small`:
-  no pair fused, every consumer reading 145 bytes a run on the old producer
-  and 161 on the build one whichever its own form. The real Core said why:
-  `foldl'` partially applied to its step and to zero is a closed expression,
-  full laziness floats it to the top level, and the rule that fuses `foldr`
-  with build never sees the two together; an isolated module of the same shapes
-  fused, which is why the dump of the real one was needed. Two shapes keep them
-  together and fused in the harness: the list returned from each branch
-  of an inlined route with the fold applied to the call, master's own shape,
-  and the fold taken into the route and applied at the producer. A third arm
-  folded as a strict loop over the levels with no list at all. Over every class
-  and the main set at a three-second budget, geomeans of each arm over stage
-  six's consumer, time then allocation, on the classes where the list route
-  fires: the fused list 0.79 and 0.72 on `window`, 0.90 and 0.73 on `runs`, 0.85
-  and 0.72 on `block`, 0.94 and 0.83 on `flip`, 0.93 and 0.89 on `small`;
-  the loop 0.55 and 0.001 on `window`, 0.77 and 0.001 on `runs`, 0.61 and 0.004
-  on `block`, 0.82 and 0.11 on `flip`, 0.87 and 0.72 on `small`; a tie within
-  a percent on the main set and on the classes that fill. Per run, medians
-  over the views with runs of nine or fewer: unfused 18.7 ns and 145 bytes,
-  fused 14.4 and 104, the loop 10.3 and none. What the fused form still pays per
-  run is a thunk for the accumulator handed to an unknown continuation,
-  its boxed result and a partial application for the next step, all three
-  inherent in a `foldr`-shaped consumer over a continuation-passing producer:
-  fusion lets the producer call the consumer's step with the rest of the list
-  as an argument, a left fold's step returns a function of the accumulator,
-  so the rest of an odometer level, resume at the next index, has to be built
-  as a value before the step can run, and the accumulator crosses it
-  as an argument to a function the compiler cannot see, hence boxed and passed
-  lazily. None of the three goes without giving up the list: forcing the run's
-  sum before the continuation, a hand-written `foldr` with a strict application,
-  did not fuse at all on 9.12.4 and read the unfused 145 bytes a run,
-  so the loop is `foldl'`. GHC HEAD's Core of the shipped loop, `10.1.20260803`
-  through `cabal.project.ghead`, has the same three objects in the same places,
-  so Run 28's HEAD half meets the same code shape. The overhaul's first form
-  inlined each stage's list function into its consumer, and two of the six
-  copies of one identical loop came out 8 bytes and several ns a run dearer
-  than the others, stage nine's by half on the k3 window --- per-copy code
-  generation, which a pair of stages would have read as a design's cost;
-  so the loop is compiled once, `sumLazyRuns`, and reached through each stage's
-  `Route`, at which every consumer reads 88 bytes a run and the same time
-  on the same dims, `fusion-probe/log-probe-fusion-final.json`. Every probe
-  build was the 9.12.4 basis; the fused code meets GHC HEAD for the first time
-  in Run 28. Master's list under an inlined fold gained nothing, 0.997 in time
-  and 1.000 in allocation, and the port's table list gained time
-  and no allocation, 0.87 on `block`. The build form costs a consumer
-  that cannot fuse when the consumer is inlined beside it: the probe's Fill
-  arms, `VS.concat` under them, read 16 bytes and about 3 ns a run more, 1.025
-  and 1.077 on `window`; compiled once as `concatLazyRuns` the Fill arms read
-  what they read before, 169 bytes a run on the k3 window, so the fills pay
-  nothing for the form. The probe's JSONs stay under `fusion-probe/` beside
-  this file until Run 28 is written up, out of the reader's corpus, which
-  is every JSON in this directory and which a filtered run fails by design. Each
-  item names its populations and carries a prediction and a kill condition. (1)
-  *The dispatch cost of the first canonicalization.* On `small`, both halves:
+  and after; and the ruling of the same day that a port's Fill arm no longer
+  concatenates a one-element list, `toVectorT`'s own shape, so `liblist-stage1`
+  to `-stage4` and `libunord-stage1` and `-stage2` read 1.00x allocation and pay
+  no result copy on every view the library fills once, where Run 27 read 2.00x
+  --- item (9)'s premise, and the reason the lazy stages' dispatch became
+  a value read by three shared readers. Two things are known before the run
+  and are the premise rather than predictions. A `check`-mode comparison
+  of 2026-09-09 read stage five's sorted canonical dims and the sort-first
+  form's equal on all 91 checked views, so the two arms differ from stage five
+  in dispatch cost alone; the comparison was removed with its reading, `check`
+  holding the arms to the reference as it holds every arm. And a filtered probe
+  the same day on the 9.12.4 build, the pair's basis --- criterion means
+  over one process, stage four, five and six alone on `small` and `compose`,
+  not a run --- read, before the overhaul and with its change reaching both arms
+  of each pair alike, `libunord-stage6` over `libunord-stage5` at 0.960
+  on `small` and 0.999 on `compose`, the consumers at 0.922 and 0.997,
+  with `small-patch-k5` at 0.786 and `small-flat64` at 1.239: the pass saved
+  where it merges nothing, [6, 5, 5] on strides [25, 1, 5], against the longer
+  sort where it collapsed the rank, [4, 1, 64] on [64, 0, 1], rank one before
+  the sort under stage five and three axes sorted under stage six.
+  And the fusion probe of 2026-09-09, whose decision is the entry above
+  and whose account is this: Run 27 read the lazy candidates' consumer at 145
+  to 183 bytes a run and master's at 24 to 56, so the question was whether
+  a fusible producer and consumer would take the list's cost out. Four probe
+  arms over stage six crossed two producers, `lazyRuns` as it was and in build
+  form, with two consumers, the harness's recursive sum and `foldl'`,
+  on `window`, `bcast`, `compose` and `small`: no pair fused, every consumer
+  reading 145 bytes a run on the old producer and 161 on the build one whichever
+  its own form. The real Core said why: `foldl'` partially applied to its step
+  and to zero is a closed expression, full laziness floats it to the top level,
+  and the rule that fuses `foldr` with build never sees the two together;
+  an isolated module of the same shapes fused, which is why the dump of the real
+  one was needed. Two shapes keep them together and fused in the harness:
+  the list returned from each branch of an inlined route with the fold applied
+  to the call, master's own shape, and the fold taken into the route and applied
+  at the producer. A third arm folded as a strict loop over the levels
+  with no list at all. Over every class and the main set at a three-second
+  budget, geomeans of each arm over stage six's consumer, time then allocation,
+  on the classes where the list route fires: the fused list 0.79 and 0.72
+  on `window`, 0.90 and 0.73 on `runs`, 0.85 and 0.72 on `block`, 0.94 and 0.83
+  on `flip`, 0.93 and 0.89 on `small`; the loop 0.55 and 0.001 on `window`, 0.77
+  and 0.001 on `runs`, 0.61 and 0.004 on `block`, 0.82 and 0.11 on `flip`, 0.87
+  and 0.72 on `small`; a tie within a percent on the main set and on the classes
+  that fill. Per run, medians over the views with runs of nine or fewer: unfused
+  18.7 ns and 145 bytes, fused 14.4 and 104, the loop 10.3 and none. What
+  the fused form still pays per run is a thunk for the accumulator handed
+  to an unknown continuation, its boxed result and a partial application
+  for the next step, all three inherent in a `foldr`-shaped consumer
+  over a continuation-passing producer: fusion lets the producer call
+  the consumer's step with the rest of the list as an argument, a left fold's
+  step returns a function of the accumulator, so the rest of an odometer level,
+  resume at the next index, has to be built as a value before the step can run,
+  and the accumulator crosses it as an argument to a function the compiler
+  cannot see, hence boxed and passed lazily. None of the three goes without
+  giving up the list: forcing the run's sum before the continuation,
+  a hand-written `foldr` with a strict application, did not fuse at all
+  on 9.12.4 and read the unfused 145 bytes a run, so the loop is `foldl'`. GHC
+  HEAD's Core of the shipped loop, `10.1.20260803` through
+  `cabal.project.ghead`, has the same three objects in the same places, so Run
+  28's HEAD half meets the same code shape. The overhaul's first form inlined
+  each stage's list function into its consumer, and two of the six copies of one
+  identical loop came out 8 bytes and several ns a run dearer than the others,
+  stage nine's by half on the k3 window --- per-copy code generation, which
+  a pair of stages would have read as a design's cost; so the loop is compiled
+  once, `sumLazyRuns`, and reached through each stage's `Route`, at which every
+  consumer reads 88 bytes a run and the same time on the same dims,
+  `fusion-probe/log-probe-fusion-final.json`. Every probe build was the 9.12.4
+  basis; the fused code meets GHC HEAD for the first time in Run 28. Master's
+  list under an inlined fold gained nothing, 0.997 in time and 1.000
+  in allocation, and the port's table list gained time and no allocation, 0.87
+  on `block`. The build form costs a consumer that cannot fuse when the consumer
+  is inlined beside it: the probe's Fill arms, `VS.concat` under them, read 16
+  bytes and about 3 ns a run more, 1.025 and 1.077 on `window`; compiled once
+  as `concatLazyRuns` the Fill arms read what they read before, 169 bytes a run
+  on the k3 window, so the fills pay nothing for the form. The probe's JSONs
+  stay under `fusion-probe/` beside this file until Run 28 is written up, out
+  of the reader's corpus, which is every JSON in this directory and which
+  a filtered run fails by design. Each item names its populations and carries
+  a prediction and a kill condition. (1) *The dispatch cost of the first
+  canonicalization.* On `small`, both halves:
   `predict: pair libunord-stage6 libunord-stage5 0.96 within 3%`
   and `predict: pair libunord-stage6-sum libunord-stage5-sum 0.92 within 4%`.
   Read per view beside it, by hand: stage six ahead past the floor
@@ -1190,7 +1198,36 @@ rather than a slot in the next run, observed again:
   0.00x on every runs-route view where the list's reads its 88 bytes a run. What
   the arm cannot answer is the ruling's own ground, that `anyT` and `allT` stop
   at the first deciding slice, which a strict loop cannot; it prices what
-  that laziness costs a reduction.
+  that laziness costs a reduction. (9) *The ports without the copy.* Every
+  port's Fill arm concatenated its list whole, a singleton included, so on every
+  view where the library fills once the arm paid a result-sized copy the library
+  does not, and its consumer's lead over it was in part that copy. Since
+  2026-09-09 a one-element list's element is handed back as `toVectorT` hands
+  it. On the main set, both halves, where both ordered ports fill:
+  `predict: pair liblist-stage1 lib-stage1 1.0`
+  and `predict: pair liblist-stage2 lib-stage2-lean 1.0`, each port now the same
+  vector as its fill --- not the unordered ports, whose one-block test fires
+  on the main set's transposed views and returns a slice, half the fill's time
+  and none of its bytes, as Run 27 read them; the same spans on `runs`, `block`,
+  `flip`, `window` and `small` print a figure and no verdict, the list's
+  concatenation being real there. Off the allocation column: the six port Fill
+  arms at 1.00x on the main set and on `rev`, `bcast`, `bcastmid`, `scaled`
+  and `compose`, where Run 27 read 2.00x. Killed by either pair past the floor
+  on both halves on the main set, which would say a port's dispatch differs
+  from its fill's in more than the list; or by any port Fill arm above 1.00x
+  on a fill class. (10) *The ceiling's consumer, `libunord-stage3-sum`
+  over `libunord-stage5-sum`.* Stage three is stage five with its runs turned
+  into fills, and its consumer sums the fill, so the pair is the fused list
+  against the fill it replaces with nothing else different. On `rev`, `bcast`,
+  `bcastmid`, `scaled` and `compose`, both halves, where both fill or both
+  return one block: `predict: pair libunord-stage5-sum libunord-stage3-sum 1.0`;
+  on `runs`, `block`, `flip`, `window` and `small` the span prints a figure
+  and no verdict, stage five's consumer ahead there by what the write
+  and the list's per-run cost differ, Run 27 having read it at 0.45
+  of the vecdims fill on `runs`, and behind where runs are short, the k5 window
+  and `small-patch-r5`, by the account of item (5). Killed by the pair past
+  the floor on both halves on any of the five fill classes, which would say
+  the fill's consumer and the ceiling are not the same code.
 - `ANSWERED` **What Run 27 was built to answer, registered before it ran ---
   and what it answered.** The registrations, their kill conditions and their
   verdicts are [in Run 27's own
@@ -1549,9 +1586,12 @@ rather than a slot in the next run, observed again:
   leads `libunord-stage1` past the floor in **all ten classes on both halves**,
   from **0.0854** on HEAD's `runs` to 0.7871 on HEAD's `small`, so the copy
   a Fill arm over a list pays is between a fifth and nine tenths of the call.
-  That is registration (9), which held. **What stays open is the other half**:
-  a consumer that cannot accept a view still has to materialise, and no arm here
-  times that path against the fill it would replace.
+  That is registration (9), which held --- read against Fill arms
+  that concatenated a singleton, so on the classes where the list is one fill
+  part of that lead was the harness's own copy, which Run 28's item (9) takes
+  out. **What stays open is the other half**: a consumer that cannot accept
+  a view still has to materialise, and no arm here times that path against
+  the fill it would replace.
 
 - `ANSWERED` **A candidate can lead whole classes and still fail its own
   registration, and Run 22 has two.** `lib-stage2-u4` was killed
@@ -3791,9 +3831,18 @@ under each stage, `liblist-stage1` and `liblist-stage2`, the library's
 so that pair prices the list's construction alone --- stage one's slice
 recursion against stage two's base-offset table and its `VU.toList` --- in time
 and, exactly, in allocation, which is what a consumer iterating the list pays.
-**Beside those five sits `lib-stage2-disp`, which is a candidate and not a port
-of anything**, added 2026-08-30: the slice route taken only where the canonical
-run reaches `dispRun`, so it is `lib-stage2-lean` below the crossover
+**SUPERSEDED 2026-09-09, on the concatenation's shape and not the pairing**:
+the ports concatenated a one-element list too, and vector's `concat` copies it,
+so every port Fill arm read 2.00x allocation and paid a result-sized copy
+on every view the library fills once, where `toVectorT` pays neither; since
+that day a port hands a one-element list's element back as `toVectorT` does
+and concatenates only runs, so on such a view a port and its fill are the same
+vector, the pair prices the list where there is one, and the allocation column
+reads what the library allocates --- Run 28's item (9), and the reason the lazy
+stages' dispatch is a value read by three shared readers. **Beside those five
+sits `lib-stage2-disp`, which is a candidate and not a port of anything**, added
+2026-08-30: the slice route taken only where the canonical run reaches
+`dispRun`, so it is `lib-stage2-lean` below the crossover
 and `lib-stage2-concat` above it --- its lower side was `lib-stage2` until
 the lean ruling below --- and the runs class is what cuts it to one;
 the laziness ruling of 2026-09-07 does not reach it, `toVectorT` being strict
@@ -3960,8 +4009,8 @@ consumers --- takes it to 646, the hoisted-bound fill of the same day,
 `mut-odo-vecdims-add-in-leaf-u2-last`, to 665, the retirement of lib-stage2-disp
 that evening to 646, and `lib-stage2-lean-u1`, the fill not unrolled
 under the lean dispatch, to 665; the sort-first stage with its three
-reorderings, their consumers and the fold entry point, 2026-09-09, takes
-the roster to 836 benches.
+reorderings, their consumers, the fold entry point and the ceiling's consumer,
+2026-09-09, takes the roster to 855 benches.
 
 **What the eight are worth as instruments, read against each other for the first
 time on 2026-08-14, over Runs 10 to 13.** Per class: the median A/A deviation
@@ -5987,19 +6036,19 @@ the prune, takes it to twelve with `list`; the `-u1` arm timed for Run 25,
 `libunord-stage3` and the two pointer fills of 2026-09-05 make sixteen,
 and the ten of 2026-09-07, less `lib-stage2-disp` retired that evening,
 twenty-five, and the sort-first stage of 2026-09-09 with its three reorderings,
-their consumers and the fold entry point, thirty-four** --- the 28 being
-the four unconditional forms the precondition ruling itself called for (below),
-the four FastReshape arms, of the five Run 20 arms beside them the three
-the probes left timed ([the mutable ceiling](#the-mutable-ceiling-taken)),
-and the rework's five less the three placement-family arms parked beside them.
-All three cuts are about what is worth spending a bench on, not about what
-is worth keeping: every dropped strategy stays in `Main.hs` and stays
-in the roster as `concat-runs` is --- checked against the reference on every
-shape of every class, and not timed --- so the agreement net does not shrink
-and nothing has to be rewritten if a ruling is later reopened. The 23 arms
-the rulings dropped carry `Only` in that roster, each naming the bound
-or the multiple that disqualified it. The five library-shaped arms
-with the timed `-u2-down`, added 2026-08-28 ([the stride
+their consumers, the fold entry point and the ceiling's consumer, thirty-five**
+--- the 28 being the four unconditional forms the precondition ruling itself
+called for (below), the four FastReshape arms, of the five Run 20 arms beside
+them the three the probes left timed ([the mutable
+ceiling](#the-mutable-ceiling-taken)), and the rework's five less the three
+placement-family arms parked beside them. All three cuts are about what is worth
+spending a bench on, not about what is worth keeping: every dropped strategy
+stays in `Main.hs` and stays in the roster as `concat-runs` is --- checked
+against the reference on every shape of every class, and not timed ---
+so the agreement net does not shrink and nothing has to be rewritten if a ruling
+is later reopened. The 23 arms the rulings dropped carry `Only` in that roster,
+each naming the bound or the multiple that disqualified it. The five
+library-shaped arms with the timed `-u2-down`, added 2026-08-28 ([the stride
 classes](#the-stride-classes-and-what-they-cover)), less the eight parked
 permanently since Run 21 and `offtab`'s two twins removed ([its entry][open]),
 plus the six arms added 2026-08-30 and, on 2026-09-02, the composite arm less
@@ -6051,12 +6100,12 @@ candidates and the reducing consumers ([the stride
 classes](#the-stride-classes-and-what-they-cover)) --- takes it to 646,
 the hoisted-bound fill of the same day to 665, the retirement of lib-stage2-disp
 that evening to 646, and `lib-stage2-lean-u1` to 665, and the sort-first stage
-with its three reorderings, their consumers and the fold entry point,
-2026-09-09, takes the roster to 836 benches, so with the controls the run is 44
-arms. **Run 26 timed four parked arms for that run alone**:
-`mut-odo-vecdims-add-in-leaf-down`, parked 2026-09-02; `canon-vecdims`
-and `lib-stage2`, parked by this prune; and `lib-stage2-short`, parked
-by the ruling on the short bodies of the same day ([the stride
+with its three reorderings, their consumers, the fold entry point
+and the ceiling's consumer, 2026-09-09, takes the roster to 855 benches,
+so with the controls the run is 45 arms. **Run 26 timed four parked arms
+for that run alone**: `mut-odo-vecdims-add-in-leaf-down`, parked 2026-09-02;
+`canon-vecdims` and `lib-stage2`, parked by this prune; and `lib-stage2-short`,
+parked by the ruling on the short bodies of the same day ([the stride
 classes](#the-stride-classes-and-what-they-cover)). Each was parked
 with a registration standing on it, which is what left that registration
 unreadable --- Run 24 lost a clause, Run 25 five, and the two-window item
@@ -11462,50 +11511,53 @@ tables and its fingerprint say so.
 - Run 27 measured TODAY's shapes and class views, being the run whose file
   `runs/` currently publishes --- 35 timed arms over 19 main-set shapes and 52
   class views in TEN classes, 665 benches and 1820, SIX A/A pairs, the `runs`
-  class at FOURTEEN and `window` at SIX --- and its roster is TODAY's LESS NINE:
-  `libunord-stage6` to `libunord-stage9`, their four consumers
-  and `libunord-stage6-loop-sum` were added 2026-09-09, after Run 27, so every
-  slot below `libunord-stage5` has moved by four and every slot below
-  `libunord-stage5-sum` by nine, and a figure read across that boundary carries
-  a roster term; and the fusion overhaul of the same day rewrote `lazyRuns`
+  class at FOURTEEN and `window` at SIX --- and its roster is TODAY's LESS TEN:
+  `libunord-stage6` to `libunord-stage9`, their four consumers,
+  `libunord-stage6-loop-sum` and `libunord-stage3-sum` were added 2026-09-09,
+  after Run 27, so every slot below `libunord-stage2-sum` has moved by one,
+  every slot below `libunord-stage5` by five and every slot below
+  `libunord-stage5-sum` by ten, and a figure read across that boundary carries
+  a roster term; the fusion overhaul of the same day rewrote `lazyRuns`
   and every `-sum` consumer, so `libunord-stage4`, `-stage5`, `liblist-stage3`,
   `-stage4` and the four consumers Run 27 timed are not today's code either
-  ([the fusion entry][open]). And `window-64x64-c16-k3`, `window-32x32-c64-k3`,
-  `bcast-src8`, `bcast-src64` and `bcast-src512` were added 2026-09-09, after
-  the run, two patch views with channels in `window` and a repeat ladder
-  in `bcast`, so its class views are TODAY's LESS FIVE. **Its delta against RUN
-  26** is the commits of 2026-09-06 and 2026-09-07: the four arms Run 26 lifted
-  out of parking put back, the `:: Ptr Double` annotation on every bang-bound
-  `plusPtr` result in the three pointer arms, which is the GHC #27778 workaround
-  and changes no 9.12 code ([the open list][open]), and then ten arms landing
-  --- `libunord-stage4` and `libunord-stage5`, the four `-sum` reducing
-  consumers, `liblist-stage3` and `liblist-stage4`,
-  `mut-odo-vecdims-add-in-leaf-u2-last` and `lib-stage2-lean-u1` ---
-  with `check`'s laziness gate beside them and `lib-stage2-disp` retired
-  that evening, ten in and five out and five net, no shape and no class view
-  moving either way. `bb6d113`, the tip both halves were built from,
-  is that gate's byte count moved behind its failure branch, which is what makes
-  a compiler pair's two `check` outputs byte-identical again; `a990b2f`, which
-  the driver stamped, landed after the build. So NEITHER half reproduces
-  an earlier binary and no md5 here matches one on record; a distance from Run
-  26's published column carries a roster term of ten arms, **and the nineteen
-  main-set shapes are unmoved between the two runs, so a cross-run figure
-  is over all nineteen**. What a reader has to carry is which half a figure came
-  from: everything published in its file is `run27-g912`, ghc-9.12.4,
-  and `run27-ghead` --- the same source, shim and shim environment built through
-  `cabal.project.ghead` against the in-tree GHC HEAD stage1, unmoved since Run
-  24, so the halves differ in the compiler and in the boot libraries that come
-  with it and in nothing else --- contributes the second column
-  of `runs/run27.md`. Its `list` moved 0.33% between the halves, INSIDE the 0.7%
-  bar, so its two columns may be subtracted, which no run since Run 24 could
-  say. **The box DID move, and a BIOS change is why**, confirmed
-  by the machine's owner after the run: its gate machine check read -3.66%
-  on `list`'s net against Run 26's fingerprint, over all 19 shapes, three
-  of them past 5% and every one moving together, so no absolute of its crosses
-  to Run 26 unadjusted and its cross-run column is read through `--bridge`.
-  **Run 27 therefore opens a third machine era**, as the BIOS change before Run
-  18 opened the second. Its sequence ran in one window and its `runs` class
-  in a second: two intrusions by the instrument's own bar, one bench
+  ([the fusion entry][open]); and the six port Fill arms no longer concatenate
+  a one-element list, so their allocation and their time on every view
+  the library fills once are not Run 27's (Run 28's item (9)).
+  And `window-64x64-c16-k3`, `window-32x32-c64-k3`, `bcast-src8`, `bcast-src64`
+  and `bcast-src512` were added 2026-09-09, after the run, two patch views
+  with channels in `window` and a repeat ladder in `bcast`, so its class views
+  are TODAY's LESS FIVE. **Its delta against RUN 26** is the commits
+  of 2026-09-06 and 2026-09-07: the four arms Run 26 lifted out of parking put
+  back, the `:: Ptr Double` annotation on every bang-bound `plusPtr` result
+  in the three pointer arms, which is the GHC #27778 workaround and changes
+  no 9.12 code ([the open list][open]), and then ten arms landing ---
+  `libunord-stage4` and `libunord-stage5`, the four `-sum` reducing consumers,
+  `liblist-stage3` and `liblist-stage4`, `mut-odo-vecdims-add-in-leaf-u2-last`
+  and `lib-stage2-lean-u1` --- with `check`'s laziness gate beside them
+  and `lib-stage2-disp` retired that evening, ten in and five out and five net,
+  no shape and no class view moving either way. `bb6d113`, the tip both halves
+  were built from, is that gate's byte count moved behind its failure branch,
+  which is what makes a compiler pair's two `check` outputs byte-identical
+  again; `a990b2f`, which the driver stamped, landed after the build. So NEITHER
+  half reproduces an earlier binary and no md5 here matches one on record;
+  a distance from Run 26's published column carries a roster term of ten arms,
+  **and the nineteen main-set shapes are unmoved between the two runs,
+  so a cross-run figure is over all nineteen**. What a reader has to carry
+  is which half a figure came from: everything published in its file
+  is `run27-g912`, ghc-9.12.4, and `run27-ghead` --- the same source, shim
+  and shim environment built through `cabal.project.ghead` against the in-tree
+  GHC HEAD stage1, unmoved since Run 24, so the halves differ in the compiler
+  and in the boot libraries that come with it and in nothing else ---
+  contributes the second column of `runs/run27.md`. Its `list` moved 0.33%
+  between the halves, INSIDE the 0.7% bar, so its two columns may be subtracted,
+  which no run since Run 24 could say. **The box DID move, and a BIOS change
+  is why**, confirmed by the machine's owner after the run: its gate machine
+  check read -3.66% on `list`'s net against Run 26's fingerprint, over all 19
+  shapes, three of them past 5% and every one moving together, so no absolute
+  of its crosses to Run 26 unadjusted and its cross-run column is read through
+  `--bridge`. **Run 27 therefore opens a third machine era**, as the BIOS change
+  before Run 18 opened the second. Its sequence ran in one window and its `runs`
+  class in a second: two intrusions by the instrument's own bar, one bench
   of its basis main set at 0.28 of a core and left as it stands, and four
   consecutive benches of `runs-512` on its HEAD half at 0.9 to 1.0, at about
   06:38 by the log's own clock and three minutes from where

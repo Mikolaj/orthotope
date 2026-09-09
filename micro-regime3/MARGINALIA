@@ -659,3 +659,13 @@ Later: a strict application in the fused fold, to kill the thunk, unfused
 it instead, 145 bytes a run again; reverted. Routes seven to nine
 rewritten to differ from six by one line each, on request. HEAD's Core of
 the shipped loop read: the same thunk, box and partial application.
+Then the ports' Fill arms lost their singleton copy, the ruling of
+2026-09-07 that they concatenate whatever the list revised on request;
+the four duplicated port bodies folded onto their lists; stages five to
+nine one line each over one lean dispatch with a named order; stage three
+the same route with runs made fills, and its consumer the ceiling's.
+Then the ports' Fill arms lost their singleton copy, the ruling of
+2026-09-07 that they concatenate whatever the list revised on request;
+the four duplicated port bodies folded onto their lists; stages five to
+nine one line each over one lean dispatch with a named order; stage three
+the same route with runs made fills, and its consumer the ceiling's.
