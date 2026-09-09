@@ -1990,6 +1990,25 @@ def compared_arm_count():
                if role != 'Only' and not m.no_net(n))
 
 
+def consumer_arms():
+    """The timed arms with no corrected time that are not controls.
+
+    Which is the reducing consumers, read through the reader's own two
+    predicates rather than by suffix here: the point of the pair is that
+    `no_net` and `is_control` stopped being the same set on 2026-09-10,
+    and a fixture spelling either out by hand is the drift that split
+    them in the first place. AN EMPTY LIST WOULD MAKE THE FINGERPRINT
+    CONTROL VACUOUS, its `hasnt` being built from this; what stops that
+    quietly is the other case, which indexes `[0]` and so raises at
+    import on a roster with no consumer, where a `hasnt` of nothing would
+    have gone on passing.
+    """
+    m = _reader()
+    roster = m.roster_of(open(os.path.join(HERE, 'Main.hs')).read())
+    return [n for n, role, _fn in roster
+            if role != 'Only' and m.no_net(n) and not m.is_control(n)]
+
+
 def timed_arm_count():
     """How many arms `synth_run` puts in a synthetic run: the roster's timed
     ones, controls included, which is what a population line counts. Why a
@@ -4309,6 +4328,18 @@ TIER1 = {
                       trigger='a sweep whose reader modes warn',
                       ok='the warnings are printed, deduped, beside the verdict',
                       bug='only the mode NAMES were printed, the findings left in a dir wiped with /tmp'),
+    'net-correction-netted-a-reducing-consumer': dict(
+        family='other:new-family-outside-a-name-keyed-predicate',
+        discovery='in-use', harm='fired', harm_count=1,
+        trigger='a `-sum` arm on a population where it beats the sum-only'
+                ' control',
+        ok='no correction, its spans read raw, and it stays a candidate',
+        bug='the term subtracted anyway, so the cell went non-positive and'
+            ' the row had no geomean at all'),
+    'fingerprint-names-an-arm-with-no-corrected-time': dict(
+        family='two-spellings', discovery='review', harm='latent',
+        trigger='an arm `no_net` covers and `is_control` does not',
+        ok='the kept per-shape table names only arms the time column reads'),
     'roster-pass-prints-a-failing-mode-as-rc-0': dict(
         family='other:status-read-after-its-own-negation',
         discovery='in-use', harm='fired', harm_count=1,
@@ -8744,6 +8775,44 @@ RECORDS = [
                '--halves', 'g912,ghead'],
          ok=V(exit=0, has=['GATE: NOT RUN'], hasnt=['-3.66%']),
          bug=V(exit=0, has=['-3.66%'])),
+
+    case('net-correction-netted-a-reducing-consumer', 'read-run.py',
+         '5ccc5d9',
+         'a `-sum` arm was netted against a forcing pass it never ran',
+         # The arm the fixture sinks is DERIVED, not named: the first the
+         # live reader calls `no_net` and not `is_control`, which is the
+         # class under test and survives a rename. Every cell of it goes
+         # non-positive, which is the state Run 28's bcast and flip legs
+         # were in on five rows at once -- the consumer reading faster
+         # than the `sum-only` control whose cost was being subtracted.
+         plant=lambda t: {'run': synth_json(
+             t, pop='flip', name='zz-consumer.json',
+             sunk=[(sh, consumer_arms()[0])
+                   for sh in class_shapes('flip')])},
+         argv=['{run}', '--selftest'],
+         ok=V(exit=0, hasnt=['no geomean to bracket']),
+         bug=V(exit=1, has=['a cell the forcing term did not leave positive,'
+                            ' so this row has no geomean to bracket'])),
+
+    case('fingerprint-names-an-arm-with-no-corrected-time', 'read-run.py',
+         None,
+         'CONTROL: the kept per-shape table names no arm the `time` column'
+         ' reads as `--`',
+         # The two columns agreed by construction while `is_control` WAS
+         # `no_net` plus the twins; once the reducing consumers joined
+         # `no_net` alone, this column went on dividing their nets. Held
+         # here rather than left to agree again by accident: the assertion
+         # is over the arm names the column prints, so it bites whenever
+         # the filter and `time_of` part.
+         plant=lambda t: {'run': synth_json(t, pop='main',
+                                            name='zz-fp.json')},
+         argv=['{run}', '--fingerprint'],
+         # The `has` is not decoration: a `hasnt` alone passes on output
+         # that says nothing at all, and this mode printing an empty table
+         # would satisfy it. The column head is what the assertion is
+         # about, so it is what anchors it.
+         ok=V(exit=0, has=['best outside family'],
+              hasnt=['`%s`' % a for a in consumer_arms()])),
 
     # ---- smoke-l1.sh, the roster pass ------------------------------------
     case('roster-pass-prints-a-failing-mode-as-rc-0', 'smoke-l1.sh',
