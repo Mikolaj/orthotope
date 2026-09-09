@@ -960,19 +960,21 @@ rather than a slot in the next run, observed again:
   as the basis against the same in-tree HEAD stage1, `10.1.20260803`, both
   under `LOOP_DEADSPOT=1`, the same recipe and the same shim; the pair
   is the request's, Run 27 having closed the compiler question, and this run's
-  question is its roster --- over Run 27's roster plus ten arms:
+  question is its roster --- over Run 27's roster plus eleven arms:
   libunord-stage6, stage five with the first canonicalization dropped; three
   reorderings of the run, each one change over stage six, libunord-stage7
   the tie-break, libunord-stage8 the longest chain and libunord-stage9
   the zero-stride axes outermost; the four reducing consumers, `-sum` each;
   `libunord-stage6-loop-sum`, the fold entry point over stage six;
+  `libunord-stage6-list-sum`, base's `sum` over stage six's list as a library
+  user writes it, added later the same day and registered under no item yet;
   and `libunord-stage3-sum`, the ceiling's consumer --- and, by the ruling
   of the same day, less thirteen and plus four: every arm that concatenates
   a list the library would fold, liblist-stage1 to `-stage4` and libunord-stage1
   to `-stage9`, is checked and not timed, a list concatenated being the API's
   failure mode and `toVectorT` the fill for it, and the ordered list's consumers
   `liblist-stage1-sum` to `-stage4-sum` land in their place, so the entry points
-  are timed only as they are used. 36 timed arms over 19 main-set shapes, 684
+  are timed only as they are used. 37 timed arms over 19 main-set shapes, 703
   benches, and 57 class views of ten classes, five of them new:
   `window-64x64-c16-k3` and `window-32x32-c64-k3`, patch views with channels,
   the shape the tie-break exists for; and `bcast-src8`, `bcast-src64`
@@ -4064,8 +4066,8 @@ that evening to 646, and `lib-stage2-lean-u1`, the fill not unrolled
 under the lean dispatch, to 665; the sort-first stage with its three
 reorderings, their consumers, the fold entry point and the ceiling's consumer,
 2026-09-09, and the same day's retirement of the thirteen arms concatenating
-a list, with the ordered list's four consumers in their place, takes the roster
-to 684 benches.
+a list, with the ordered list's four consumers in their place, and base's `sum`
+over stage six's list later the same day, takes the roster to 703 benches.
 
 **What the eight are worth as instruments, read against each other for the first
 time on 2026-08-14, over Runs 10 to 13.** Per class: the median A/A deviation
@@ -6093,15 +6095,16 @@ and the ten of 2026-09-07, less `lib-stage2-disp` retired that evening,
 twenty-five, and the sort-first stage of 2026-09-09 with its three reorderings,
 their consumers, the fold entry point and the ceiling's consumer, thirty-five,
 less the thirteen arms concatenating a list, retired the same day, and plus
-the ordered list's four consumers, twenty-six** --- the 28 being the four
-unconditional forms the precondition ruling itself called for (below), the four
-FastReshape arms, of the five Run 20 arms beside them the three the probes left
-timed ([the mutable ceiling](#the-mutable-ceiling-taken)), and the rework's five
-less the three placement-family arms parked beside them. All three cuts
-are about what is worth spending a bench on, not about what is worth keeping:
-every dropped strategy stays in `Main.hs` and stays in the roster
-as `concat-runs` is --- checked against the reference on every shape of every
-class, and not timed --- so the agreement net does not shrink and nothing has
+the ordered list's four consumers, twenty-six, and base's `sum` over stage six's
+list, later the same day, twenty-seven** --- the 28 being the four unconditional
+forms the precondition ruling itself called for (below), the four FastReshape
+arms, of the five Run 20 arms beside them the three the probes left timed ([the
+mutable ceiling](#the-mutable-ceiling-taken)), and the rework's five less
+the three placement-family arms parked beside them. All three cuts are about
+what is worth spending a bench on, not about what is worth keeping: every
+dropped strategy stays in `Main.hs` and stays in the roster as `concat-runs`
+is --- checked against the reference on every shape of every class,
+and not timed --- so the agreement net does not shrink and nothing has
 to be rewritten if a ruling is later reopened. The 23 arms the rulings dropped
 carry `Only` in that roster, each naming the bound or the multiple
 that disqualified it. The five library-shaped arms with the timed `-u2-down`,
@@ -6162,8 +6165,9 @@ that evening to 646, and `lib-stage2-lean-u1` to 665, and the sort-first stage
 with its three reorderings, their consumers, the fold entry point
 and the ceiling's consumer, 2026-09-09, and the same day's retirement
 of the thirteen arms concatenating a list, with the ordered list's four
-consumers in their place, takes the roster to 684 benches, so with the controls
-the run is 36 arms. **Run 26 timed four parked arms for that run alone**:
+consumers in their place, and base's `sum` over stage six's list later the same
+day, takes the roster to 703 benches, so with the controls the run is 37 arms.
+**Run 26 timed four parked arms for that run alone**:
 `mut-odo-vecdims-add-in-leaf-down`, parked 2026-09-02; `canon-vecdims`
 and `lib-stage2`, parked by this prune; and `lib-stage2-short`, parked
 by the ruling on the short bodies of the same day ([the stride
@@ -11573,10 +11577,10 @@ tables and its fingerprint say so.
   `runs/` currently publishes --- 35 timed arms over 19 main-set shapes and 52
   class views in TEN classes, 665 benches and 1820, SIX A/A pairs, the `runs`
   class at FOURTEEN and `window` at SIX --- and its roster is TODAY's LESS TEN
-  AND PLUS NINE: `libunord-stage6-sum` to `libunord-stage9-sum`,
-  `libunord-stage6-loop-sum`, `libunord-stage3-sum` and `liblist-stage1-sum`
-  to `liblist-stage4-sum` were added 2026-09-09, after Run 27,
-  and `liblist-stage1` to `liblist-stage4` and `libunord-stage1`
+  AND PLUS TEN: `libunord-stage6-sum` to `libunord-stage9-sum`,
+  `libunord-stage6-loop-sum`, `libunord-stage6-list-sum`, `libunord-stage3-sum`
+  and `liblist-stage1-sum` to `liblist-stage4-sum` were added 2026-09-09, after
+  Run 27, and `liblist-stage1` to `liblist-stage4` and `libunord-stage1`
   to `libunord-stage5`, which it timed, are checked and not timed since the same
   day, as are `libunord-stage6` to `libunord-stage9`, which no run has timed,
   so no slot below `lib-stage2-lean-u1` is where it was, and a figure read

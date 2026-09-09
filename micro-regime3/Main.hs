@@ -4018,7 +4018,16 @@ fbLibUnordStage3 sh a@(T _ _ v) = fillRoute (routeUnord3 sh a) v
 -- form nothing once compiled once ('concatLazyRuns'); inlined beside it
 -- the probe read 16 bytes a run more.
 lazyRuns :: ShapeL -> [Int] -> Int -> VS.Vector Double -> [VS.Vector Double]
-lazyRuns ssh sats !start v = build $ \cons nil ->
+lazyRuns ssh sats start v = build (lazyRunsFB ssh sats start v)
+{-# INLINE lazyRuns #-}
+
+-- The walker with the 'build''s 'cons' and 'nil' as arguments, so that
+-- 'listRoute', itself in build form, can take the runs branch inside
+-- its own 'build' and a consumer of the route's list meets one
+-- 'build' whichever branch the route takes.
+lazyRunsFB :: ShapeL -> [Int] -> Int -> VS.Vector Double
+           -> (VS.Vector Double -> b -> b) -> b -> b
+lazyRunsFB ssh sats !start v cons nil =
   let !n = last ssh
       go [] [] !o rest = cons (VS.slice o n v) rest
       go [d] [s] !o rest =
@@ -4027,7 +4036,7 @@ lazyRuns ssh sats !start v = build $ \cons nil ->
         foldr (\i r -> go ds ss (o + i * s) r) rest [0 .. d - 1]
       go _ _ _ _ = error "lazyRuns: impossible"
   in  go (init ssh) (init sats) start nil
-{-# INLINE lazyRuns #-}
+{-# INLINE lazyRunsFB #-}
 
 -- A lazy stage's dispatch as a value: one slice, the runs 'lazyRuns'
 -- will walk, or one fill. Four readers share it -- the list, for the
@@ -4048,10 +4057,17 @@ data Route = RBlock !Int !Int          -- start and length of one slice
            | RRuns ShapeL [Int] !Int   -- sorted canonical dims, run start
            | RFill ShapeL [Int] !Int !Int  -- dims, start, length
 
+-- In build form with the route's case INSIDE the 'build', so that a
+-- fold applied to this list meets the 'build' whichever branch the
+-- route takes: written as a case returning a list per branch, the fold
+-- stays outside the case and never fuses, which is what
+-- 'libunord-stage6-list-sum' read on 2026-09-09, 160 bytes a run.
 listRoute :: Route -> VS.Vector Double -> [VS.Vector Double]
-listRoute (RBlock o l) v = [VS.slice o l v]
-listRoute (RRuns ssh sats o) v = lazyRuns ssh sats o v
-listRoute (RFill ssh sats o l) v = [fillStage2 ssh sats o l v]
+listRoute r v = build $ \cons nil -> case r of
+  RBlock o l -> cons (VS.slice o l v) nil
+  RRuns ssh sats o -> lazyRunsFB ssh sats o v cons nil
+  RFill ssh sats o l -> cons (fillStage2 ssh sats o l v) nil
+{-# INLINE listRoute #-}
 
 fillRoute :: Route -> VS.Vector Double -> VS.Vector Double
 fillRoute (RBlock o l) v = VS.slice o l v
@@ -4236,6 +4252,18 @@ loopSumRoute (RFill ssh sats o l) v = VS.sum (fillStage2 ssh sats o l v)
 fbLibUnordStage6LoopSum :: ShapeL -> T -> VS.Vector Double
 fbLibUnordStage6LoopSum sh a@(T _ _ v) =
   VS.singleton (loopSumRoute (routeUnord6 sh a) v)
+
+-- The consumer as a user of 'toUnorderedVectorListT' writes it: base's
+-- 'sum' over the list itself, no route in hand and so no 'sumLazyRuns'.
+-- Base's 'sum' is base's 'foldl'', so against 'libunord-stage6-sum' this
+-- prices what a consumer in the wild gets from the list's shape alone,
+-- which is what a producer written for base's fold has to serve.
+-- Added 2026-09-09; not registered until the producer question is
+-- settled.
+{-# NOINLINE fbLibUnordStage6ListSum #-}
+fbLibUnordStage6ListSum :: ShapeL -> T -> VS.Vector Double
+fbLibUnordStage6ListSum sh a@(T _ _ v) =
+  VS.singleton (sum (map VS.sum (listRoute (routeUnord6 sh a) v)))
 
 
 -- Stage seven, stage six with the sort's tie broken the other way: on
@@ -5878,6 +5906,9 @@ roster =
     -- The fold entry point over stage six, added 2026-09-09 for Run 28;
     -- reasons at the definition.
   , ("libunord-stage6-loop-sum",   Fill fbLibUnordStage6LoopSum)
+    -- The same sum as a library user writes it, base's 'sum' over the
+    -- list, added 2026-09-09; reasons at the definition.
+  , ("libunord-stage6-list-sum",   Fill fbLibUnordStage6ListSum)
     -- and the three reorderings' consumers.
   , ("libunord-stage7-sum",        Fill fbLibUnordStage7Sum)
   , ("libunord-stage8-sum",        Fill fbLibUnordStage8Sum)
