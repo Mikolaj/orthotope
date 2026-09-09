@@ -2342,7 +2342,23 @@ rather than a slot in the next run, observed again:
   change, slower on **all 24 shapes** at per-shape ratios of 1.0203 to 1.0704
   with both twins slower on 23 of 24 --- a consistent 4% and not a scatter,
   on an arm the layout account does not cover. That run named it the one thing
-  a later run should re-read, and none has.
+  a later run should re-read, and none has. **And the twin this entry asked
+  for exists, 2026-09-09, with eighteen repeated legs behind it.**
+  `mut-odo-vecdims-add-in-leaf-u2` carries copies beside its base and
+  at the roster's far end, the fill family's first placement control since
+  the prune of 2026-09-04 took both of them. Eighteen legs of `flip-last-rows`
+  on Run 27's two binaries say three things about that view. **The split is per
+  arm and not per run**: `lib-stage1` reproduces at 0.8551 against that run's
+  0.8284 and `-u2` to four figures, and `-u2-last` in direction and size, 1.1138
+  against 1.1553, while `-u1`, `-u2-down` and `mut-odo-vecdims` come back near 1
+  from 1.1161, 1.1727 and 1.0625, and `-u1-ptr` spreads **30%** within ONE
+  binary at ONE setting. **The floor is a distribution and not a figure**:
+  the view's own A/A triple runs 0.46% to 11.31%, median 4.27%, so a clause
+  on it is read against the max and the run's two readings, 0.89% and 6.14%,
+  are two draws of it. **And the variable is the allocator**: `-A64m` moves nine
+  of the ten arms to 0.83 to 0.87 of their `-A32m` cells with the binary,
+  its bytes and its cache-line offsets unchanged, where the pool doses move
+  about 3%.
 
   **Run 15 adds a fifth pair, and its two readings disagree --- which is itself
   this entry's point.** Its two HALVES do *not* reproduce the finding: across
