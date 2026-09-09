@@ -1290,7 +1290,16 @@ rather than a slot in the next run, observed again:
   and the natural-strides dispatch being one route on every run view.
   On the main set, `rev`, `bcast`, `bcastmid`, `scaled` and `compose` every
   ordered list fills or is one block, so the four read as their fills do
-  and the spans print a figure and no verdict, ties by hand. Killed
+  and the spans print a figure and no verdict, ties by hand. On `window`, `flip`
+  and `small` the spans print a figure and no verdict too, read per view
+  by hand: on `window` every ordered list fills but at `window-64x64-k1x9`,
+  where canonicalization drops the unit axis and stages three and four list 4096
+  runs of 9 that master fills once --- the view Run 27 read the lazy ordered
+  fill behind master's on, 3.0 corrected on both halves, and where the consumers
+  now meet with no allocation a run; on `flip` an ordered list fills wherever
+  the innermost axis is reversed or strided and lists on `flip-outer-gap64`;
+  on `small` the dispatch is a visible share of a call under a microsecond,
+  which is what Run 27's third kill of the ordered pair priced. Killed
   by `liblist-stage3-sum` not ahead of `liblist-stage1-sum` past the floor
   on both halves on `runs` or `block`, which would say the odometer's fold does
   not beat master's recursion in logical order as it does in address order;
