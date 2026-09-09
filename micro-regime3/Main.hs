@@ -2768,7 +2768,8 @@ fbCanonMemcpyR2 sh (T (Strides ats) ao v)
 -- only the bcast class can separate the pair. No canonicalization: a
 -- zero stride is not a unit dim and survives 'canonView' unchanged.
 -- Non-vacuity, 2026-08-25: adding 1 to the hoisted read fails @check@
--- at @bcast-inner8@.
+-- at @bcast-inner8@. Retired, so not kept in step with 'fillStage2':
+-- whatever improved that driver since is not here.
 {-# NOINLINE fbBcastSet #-}
 fbBcastSet :: ShapeL -> T -> VS.Vector Double
 fbBcastSet sh (T (Strides ats) ao v) = VS.create $ do
@@ -2871,6 +2872,8 @@ fbMidCopy sh (T (Strides ats) ao v) = VS.create $ do
 -- against the solo arms above, whether their conditions compose without
 -- paying for each other. Its branches are textual copies of theirs, so
 -- the non-vacuity breaks recorded at those definitions stand for these.
+-- Retired, so not kept in step with 'fillStage2': whatever improved
+-- that driver since is not here.
 {-# NOINLINE fbCanonFull #-}
 fbCanonFull :: ShapeL -> T -> VS.Vector Double
 fbCanonFull sh (T (Strides ats) ao v)
@@ -3298,7 +3301,14 @@ fbLibStage2Disp sh (T (Strides ats) ao v)
 -- run, the run body a static argument of the INLINE fused level, the
 -- broadcast run hoisted at innermost stride 0, zero-stride outer levels
 -- filled once and block-copied. Kept in step with the library by hand;
--- 'check' holds it to the reference on every view.
+-- 'check' holds it to the reference on every view. Ahead of the library
+-- by two changes since 2026-09-09, each at its definition below: the
+-- block copy doubles instead of copying once per block, and the
+-- broadcast run is unrolled by two as the stepping run is. Both are
+-- the library's to take; until it does, every arm filling through this
+-- driver is ahead of the library by them, the parked 'lib-stage2' and
+-- its siblings and the lazy stages' fill routes included, so no timed
+-- arm fills a zero-stride level the library's way.
 {-# NOINLINE fillStage2 #-}
 fillStage2 :: ShapeL -> [Int] -> Int -> Int -> VS.Vector Double
            -> VS.Vector Double
@@ -3317,20 +3327,42 @@ fillStage2 sh ats !ao !l !v = VS.create $ do
                   VSM.unsafeWrite out (o + 1) (VS.unsafeIndex v src')
                   inner (o + 2) (src' + tInner)
         in  inner outPos baseOff
+      -- Unrolled by two as the stepping run is, since 2026-09-09: one
+      -- write and a compare per element read 1.20 of master's leaf fill
+      -- at a run of 2, bcast-tall-Mx2, on Run 27. 'fillStage2U1' keeps
+      -- the one-per-iteration body, so the u1 pair prices this unroll
+      -- on the broadcast views as it prices the stepping one elsewhere.
       {-# INLINE writeRunSet #-}
       writeRunSet !outPos !baseOff =
         let !x = VS.unsafeIndex v baseOff
             !oEnd = outPos + sInner
             inner !o
-              | o >= oEnd = return ()
-              | otherwise = VSM.unsafeWrite out o x >> inner (o + 1)
+              | o + 1 >= oEnd =
+                  if o >= oEnd then return ()
+                  else VSM.unsafeWrite out o x
+              | otherwise = do
+                  VSM.unsafeWrite out o x
+                  VSM.unsafeWrite out (o + 1) x
+                  inner (o + 2)
         in  inner outPos
-      copies !n !blk !src !dst
-        | n <= 1 = return dst
-        | otherwise = do
-            VSM.unsafeCopy (VSM.unsafeSlice dst blk out)
-                           (VSM.unsafeSlice src blk out)
-            copies (n - 1) blk src (dst + blk)
+      -- The block at src, already written, to n copies in all: each pass
+      -- copies everything written so far onto what follows, so the
+      -- length doubles and the last pass is clipped. One copy per block
+      -- read 2.3 of master's leaf fill on bcastmid-b200k, 200000 copies
+      -- of 24 bytes (Run 27). The parked u4 and short fills keep the
+      -- library's one copy per block, as does the library (2026-09-09).
+      copies !n !blk !src _dst
+        | n <= 1 = return (src + blk)
+        | otherwise = grow blk
+        where
+          !end = src + n * blk
+          grow !have
+            | src + have >= end = return end
+            | otherwise = do
+                let !len = min have (end - src - have)
+                VSM.unsafeCopy (VSM.unsafeSlice (src + have) len out)
+                               (VSM.unsafeSlice src len out)
+                grow (have + len)
       {-# INLINE runsWith #-}
       runsWith writeRun !n !st !outPos !baseOff
         | st == 0 = writeRun outPos baseOff
@@ -3373,14 +3405,17 @@ fillStage2 sh ats !ao !l !v = VS.create $ do
         !oshV  = VU.fromList (init sh)
         !oatsV = VU.fromList (init ats)
 
--- 'fillStage2' with the stepping run not unrolled:
+-- 'fillStage2' with neither run unrolled: the stepping run
 -- 'fbMutOdoVecdimsAddInLeafU1''s loop in place of '-u2''s, the cursor
--- bound and one element per iteration, everything else the driver's --
--- one change, the run body, so the pair 'lib-stage2-lean-u1' against
--- 'lib-stage2-lean' prices the unrolling under the dispatch that
--- shipped, where the leaf family prices it under the arms' own
--- odometer, '-u2' over '-u1' at 0.9644 in time and 0.9208 in counts on
--- Run 26's main set. Added 2026-09-07 for Run 27.
+-- bound and one element per iteration, and, since 2026-09-09, the
+-- broadcast run 'writeRunSet' as it was before 'fillStage2' unrolled
+-- its own; everything else the driver's, the doubling block copy
+-- included. So the pair 'lib-stage2-lean-u1' against 'lib-stage2-lean'
+-- prices the unrolling under the dispatch that shipped: the stepping
+-- run's wherever the innermost stride is not 0, the broadcast run's
+-- where it is, where the leaf family prices the first under the arms'
+-- own odometer, '-u2' over '-u1' at 0.9644 in time and 0.9208 in counts
+-- on Run 26's main set. Added 2026-09-07 for Run 27.
 -- Non-vacuity, 2026-09-07: dropping the @+ tInner@ from the run's
 -- recursive call fails @check@ at @cnn-L1-6x6-c1@, naming
 -- lib-stage2-lean-u1 alone.
@@ -3406,12 +3441,24 @@ fillStage2U1 sh ats !ao !l !v = VS.create $ do
               | o >= oEnd = return ()
               | otherwise = VSM.unsafeWrite out o x >> inner (o + 1)
         in  inner outPos
-      copies !n !blk !src !dst
-        | n <= 1 = return dst
-        | otherwise = do
-            VSM.unsafeCopy (VSM.unsafeSlice dst blk out)
-                           (VSM.unsafeSlice src blk out)
-            copies (n - 1) blk src (dst + blk)
+      -- The block at src, already written, to n copies in all: each pass
+      -- copies everything written so far onto what follows, so the
+      -- length doubles and the last pass is clipped. One copy per block
+      -- read 2.3 of master's leaf fill on bcastmid-b200k, 200000 copies
+      -- of 24 bytes (Run 27). The parked u4 and short fills keep the
+      -- library's one copy per block, as does the library (2026-09-09).
+      copies !n !blk !src _dst
+        | n <= 1 = return (src + blk)
+        | otherwise = grow blk
+        where
+          !end = src + n * blk
+          grow !have
+            | src + have >= end = return end
+            | otherwise = do
+                let !len = min have (end - src - have)
+                VSM.unsafeCopy (VSM.unsafeSlice (src + have) len out)
+                               (VSM.unsafeSlice src len out)
+                grow (have + len)
       {-# INLINE runsWith #-}
       runsWith writeRun !n !st !outPos !baseOff
         | st == 0 = writeRun outPos baseOff
@@ -3470,7 +3517,8 @@ fillStage2U1 sh ats !ao !l !v = VS.create $ do
 -- it rules out this loop wherever it appears and says nothing about
 -- the features beside it. So this arm prices
 -- what the loop would buy and is not a candidate to ship; the ruling is
--- in README beside the arm's entry.
+-- in README beside the arm's entry. Retired, so not kept in step with
+-- 'fillStage2': whatever improved that driver since is not here.
 {-# NOINLINE fillStage2U4 #-}
 fillStage2U4 :: ShapeL -> [Int] -> Int -> Int -> VS.Vector Double
              -> VS.Vector Double
@@ -3579,7 +3627,8 @@ fillStage2U4 sh ats !ao !l !v = VS.create $ do
 -- arm took that dispatch too and the composite, now the same code, was
 -- removed -- and says nothing about the lean dispatch. The arm prices
 -- what the bodies would buy and is not a candidate to ship; the ruling
--- is in README beside the arm's entry.
+-- is in README beside the arm's entry. Retired, so not kept in step
+-- with 'fillStage2': whatever improved that driver since is not here.
 {-# NOINLINE fillStage2Short #-}
 fillStage2Short :: ShapeL -> [Int] -> Int -> Int -> VS.Vector Double
                 -> VS.Vector Double
