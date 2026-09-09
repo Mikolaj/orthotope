@@ -24,6 +24,18 @@ READER = ('f=$(ls "{root}"/*.json 2>/dev/null | head -1); test -n "$f" '
 PROPS = 'python3 "{dir}/properties.py"'
 
 MUTANTS = [
+    # The per-view floor's whole judgement is one comparison, so inverting
+    # it is a mutant of the tool. The judge greps for the finding the tool
+    # was written to make -- `flip-last-rows` starred in the
+    # `mut-odo-vecdims` group on Run 27's HEAD half, 6.14% against a 0.32%
+    # class floor -- and a mutant that stops the star fails it. LOST rather
+    # than green with no run on disk, as every corpus judge here is.
+    ('the per-view floor stars a view no wider than its class',
+     'view-floor.py',
+     '                over = b in floor and sp > a.factor * floor[b]',
+     '                over = b in floor and sp < a.factor * floor[b]',
+     'python3 "{file}" run27 -d "{root}" -c flip | '
+     'grep -q "flip-last-rows.*mut-odo-vecdims 6\\."'),
     # The health line enumerating again: the cells go back in front of the
     # count, which is the shape the cut of 2026-09-08 removed, and
     # `prop_health_names_rows_not_cells` fails on the first run on disk
