@@ -90,7 +90,7 @@ set -u
 cd "$(dirname "$0")" || exit 1
 
 if [ $# -lt 1 ]; then
-  echo "usage: ./preflight.sh RUN [--note|--no-corpus|--corpus] [--fill-in]"
+  echo "usage: ./preflight.sh RUN [--note|--no-corpus|--corpus] [--figures] [--fill-in]"
   echo "  --note        steps 10c, 10d and 8 alone -- the ones that read what"
   echo "                the preparation WROTE, in seconds and with no binary"
   echo "  --no-corpus   everything but 8c and 8d, the two that read every run"
@@ -130,7 +130,7 @@ for a in "$@"; do
     --fill-in) FILLIN=1 ;;
     --figures) FIGURES=1 ;;
     *) echo "unknown argument '$a' --" \
-            "./preflight.sh RUN [--note|--no-corpus|--corpus] [--fill-in]"
+            "./preflight.sh RUN [--note|--no-corpus|--corpus] [--figures] [--fill-in]"
        exit 2 ;;
   esac
 done
@@ -142,6 +142,16 @@ done
 # `<yours>` because they have not run yet, and refusing the flag on the
 # call that DOES run them left those two rows to be written by hand --
 # which is the transcription this mode exists to remove (2026-09-08).
+# --figures RUNS NO STEP, so every other flag here selects steps it will
+# not take. REFUSED rather than absorbed, which is the family this tree
+# counts and which its own first form was an instance of: it exited early
+# and left a `--fill-in` beside it doing nothing, silently (2026-09-10).
+if [ "$FIGURES" = 1 ] \
+   && { [ "$FILLIN" = 1 ] || [ "$NOTE_ONLY" = 1 ] \
+        || [ "$CORPUS" = 0 ] || [ "$REST" = 0 ]; }; then
+  echo "--figures runs no step, and every other flag here selects which"
+  echo "steps run; take it alone."; exit 2
+fi
 if [ "$FILLIN" = 1 ] && [ "$NOTE_ONLY" = 1 ]; then
   echo "--fill-in reports what a pass read, and --note runs none of it;"
   echo "drop one of them."; exit 2

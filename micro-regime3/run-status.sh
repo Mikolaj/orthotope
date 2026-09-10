@@ -64,8 +64,8 @@ echo "run status for $R, off the artifacts and the repository:"
 # running (Runs 24, 26, 27 and 28), each arriving with a section anchor
 # and reading the framing to find it. A line here costs nothing and
 # reaches a session that never meant to read the chapter at all.
-echo "  execute from \`./read-run.py --checklist pre|run|post\`, printed"
-echo "  alone; do not read README's run chapter to find it"
+echo "  execute from \`./read-run.py --checklist pre\`, or run or post"
+echo "  for the other halves; do not read README's run chapter to find it"
 echo "pre-run"
 # STEP 1 FIRST, since it is the one step whose answer is a listing rather
 # than a verdict: nothing named for this run may exist yet, and `ls $R-*`
