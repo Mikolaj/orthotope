@@ -61,8 +61,9 @@ echo "run status for $R, off the artifacts and the repository:"
 # command a run's session runs, so it is the one place that can hand over
 # the list before README is opened -- and opening README is the failure
 # the chapter's own head block has now failed to stop four preparations
-# running (Runs 24, 26, 27 and 28), each arriving with a section anchor
-# and reading the framing to find it. A line here costs nothing and
+# it records: Runs 24, 26, 27 and 28, each arriving with a section
+# anchor and reading the framing to find it. Not consecutive -- the
+# chapter records nothing of Run 25's arrival either way. A line here costs nothing and
 # reaches a session that never meant to read the chapter at all.
 echo "  execute from \`./read-run.py --checklist pre\`, or run or post"
 echo "  for the other halves; do not read README's run chapter to find it"

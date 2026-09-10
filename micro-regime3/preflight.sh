@@ -3,6 +3,8 @@
 #
 #     ./preflight.sh run19            # the halves from the note's HALVES line
 #     ./preflight.sh run19 --note     # 10c, 10d and 8 alone, seconds
+#     ./preflight.sh run19 --figures  # step 12b: the note's fill-in
+#                                     # figures against the artifacts
 #
 # 10c runs THIRD rather than last, ahead of every expensive step: it and 8
 # are the two that read what the preparation WROTE, and a defect in a note
@@ -187,7 +189,7 @@ eval "$HALVES_SET"                                # refused loudly without
 # author threw it away, which is the shape this mode retires (2026-09-10).
 figures () {
   python3 - "$R" "$BASIS" "$OTHER" <<'PY'
-import re, subprocess, sys
+import os, re, subprocess, sys
 R, basis, other = sys.argv[1], sys.argv[2], sys.argv[3]
 def sh(c):
     return subprocess.run(c, shell=True, capture_output=True, text=True).stdout
@@ -206,14 +208,19 @@ for line in note.split('Verified when built', 1)[1].splitlines():
         label, rows[m.group(1)] = m.group(1), m.group(2)
     elif label and line.startswith('    '):
         rows[label] += ' ' + line.strip()
-want, extra = [], []
+want, extra, unchecked = [], [], []
 for half in (basis, other):
+    if not os.access('%s-%s' % (R, half), os.X_OK):
+        extra.append('%-16s ./%s-%s is not here, so its rows went unread'
+                     % ('(binary)', R, half))
+        continue
     b = '%s-%s' % (R, half)
     want.append(('md5 %s' % half, sh('md5sum %s' % b).split()[:1]))
-    want.append(('.text', sh("size -A %s | grep '^\\.text'" % b).split()[1:2]))
+    want.append(('.text', sh("size -A %s | grep '^\\.text'" % b).split()[1:2],
+                 True))
     want.append(('compilers', [sh("strings %s | grep -oE"
                                   " 'ghc-internal-[0-9.]+' | sort -u"
-                                  % b).strip()]))
+                                  % b).strip()], True))
     # THE INSTRUMENTS ROW IS A VERDICT AND NOT A FIGURE -- the note writes
     # `one @@wild and one @@saturate`, which no digit matches, and there is
     # no figure here to slide onto a neighbouring row. So the COUNT is
@@ -234,26 +241,59 @@ for lbl, path in (('Main.hs at', 'Main.hs'), ('shim at', 'align-as.py')):
                           % path).strip()]))
 n = len(sh('./%s-%s --list 2>/dev/null' % (R, basis)).split())
 want.append(('--list', ['%d benches' % n]))
+# BOTH QUANTITIES THE ROW'S LABEL IMPLIES: the bench count alone left
+# `gate arms` checking a figure the label does not name (2026-09-10).
 gate = sh('./run-gate.sh %s --show 2>/dev/null' % R)
-g = re.search(r'expect (\d+) benches', gate)
-if g:
-    want.append(('gate arms', [g.group(1)]))
-bad = list(extra)
-for lbl, figs in want:
+gf = [m.group(1) for m in
+      (re.search(r'arms\s+(\d+)', gate), re.search(r'expect (\d+) benches', gate))
+      if m]
+if gf:
+    want.append(('gate arms', gf))
+bad, checked, seen = list(extra), 0, {}
+# THE ORDER RULE IS FOR THE TWO ROWS THAT CARRY BOTH HALVES UNDER ONE
+# LABEL AND DIFFERENT FIGURES IN THEM -- `.text` and `compilers`. Applied
+# to every row it fired on `instruments`, whose halves carry the same two
+# marker names by design, which is an assertion about nothing.
+for entry in want:
+    lbl, figs = entry[0], entry[1]
+    ordered = len(entry) > 2 and entry[2]
     if lbl not in rows:
         bad.append('%-16s NO SUCH ROW in the note' % lbl); continue
     for f in figs:
-        if f and f not in rows[lbl]:
+        # AN EMPTY DERIVATION IS NOT A CHECK. `if f and ...` skipped it
+        # and the summary counted it anyway, so a git that answered
+        # nothing, or a binary that would not read, moved no number on a
+        # PASS line -- the only evidence the check bit (2026-09-10).
+        if not f:
+            unchecked.append('%-16s the artifact gave nothing to check'
+                             % lbl)
+            continue
+        at = rows[lbl].find(f)
+        if at < 0:
             bad.append('%-16s the artifact says %s; the row reads: %s'
                        % (lbl, f, rows[lbl][:60]))
+            continue
+        checked += 1
+        # AND IN THE RIGHT HALF'S PLACE. Four rows carry both halves under
+        # one label, and a presence test passes them swapped -- which is
+        # the very failure this mode exists against, one level down. The
+        # basis is written first in every such row, so its figure must
+        # come first (2026-09-10).
+        if ordered and lbl in seen and seen[lbl] > at:
+            bad.append('%-16s %s is the control\'s and stands before the'
+                       ' basis\'s in the row' % (lbl, f))
+        if ordered:
+            seen[lbl] = at
+if unchecked:
+    bad += unchecked
 if bad:
-    print('12b FAIL: %d row(s) disagree with the artifacts:' % len(bad))
+    print('12b FAIL: %d finding(s):' % len(bad))
     for b in bad:
         print('  ' + b)
     sys.exit(1)
-print('12b PASS: %d figure(s) over %d row(s) re-derived from the artifacts'
-      ' and found in their own rows'
-      % (sum(len(f) for _, f in want), len({l for l, _ in want})))
+print('12b PASS: %d figure(s) over %d row(s), each re-derived from the'
+      ' artifacts and found in its own row and its own half\'s place'
+      % (checked, len({e[0] for e in want})))
 PY
 }
 if [ "$FIGURES" = 1 ]; then
@@ -355,11 +395,19 @@ step_8 () {
   # The leading character is consumed by the match and stripped after it,
   # `grep -oE` having no lookbehind; at the head of a line nothing is
   # consumed and the first character is alphanumeric, so the strip is a
-  # no-op there. Non-vacuity that day, on the live note: with the boundary
-  # 10c PASSes where it had FAILed, and a planted `run28-nosuchthing.json`
-  # still FAILs naming that path and no other.
+  # no-op there. AND THE NAME IS TAKEN WHOLE, prefix and all: a boundary
+  # alone made the step blind to every `smoke-l1-$R-*.json` the roster
+  # pass writes and the note names, since `smoke-l1-` fails the class and
+  # the tail no longer matched on its own -- a loud false report traded
+  # for a silent gap, which is the worse of the two. Non-vacuity
+  # 2026-09-10, on one line carrying both forms: a planted
+  # `run28-nosuchthing.json` and a planted `smoke-l1-run28-nosuch.json`
+  # are each named, and a present name of either form is not. `/` is in
+  # neither class for the same reason `-` is: a path under a directory is
+  # one path, and a boundary that stopped at the slash read
+  # `smoke-legs-1/smoke-l1-$R-bcast.json` as a bare file in this one.
   if [ -f "$R-pair.txt" ]; then
-    MISSING=$(grep -oE '(^|[^A-Za-z0-9._-])(probe-[A-Za-z0-9._{},-]*[A-Za-z0-9_}]/?|'"$R"'-[A-Za-z0-9._-]+\.(json|log|txt))' \
+    MISSING=$(grep -oE '(^|[^A-Za-z0-9._/-])(probe-[A-Za-z0-9._{},-]*[A-Za-z0-9_}]/?|[A-Za-z0-9._/-]*'"$R"'-[A-Za-z0-9._-]+\.(json|log|txt))' \
                 "$R-pair.txt" | sed -E 's/^[^A-Za-z0-9]//' | sort -u \
               | while read -r q; do
                   # Brace groups expand without eval, one group a pass

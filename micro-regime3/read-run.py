@@ -35,8 +35,14 @@ Definitions, once:
           cover one population and two columns are comparable, and a wild
           cell is bounded rather than deleted. The CI%, noise, smp and alloc
           columns stay raw -- the correction shifts a point estimate, it does
-          not make a cell better measured. `sum-only*` and `*-nosum` rows
-          have no corrected time and read `--`.
+          not make a cell better measured. `sum-only*`, `*-nosum` and the
+          `*-sum` reducing consumers have no corrected time and read `--`:
+          each produces nothing to force, so the term measured on
+          `sum-only` is not theirs to subtract. The consumers joined them
+          2026-09-10, after the correction ran five of their rows entirely
+          non-positive; `no_net` is the predicate and its docstring carries
+          the case. They are CANDIDATES still, and `is_control` does not
+          reach them.
   worst   the row's worst shape as a ratio to `list`, over every shape. A
           geomean answers "typical"; this answers "how bad does it get",
           which for a library fallback is the disqualifying question, no
@@ -951,7 +957,7 @@ def is_control(name):
 
     NOT `no_net`, which is wider since 2026-09-10. A reducing consumer has
     no corrected time and is still a CANDIDATE; filing it here would drop
-    seventeen arms out of every table and fail `--selftest` besides, whose
+    every one of them out of every table and fail `--selftest` besides, whose
     roster check holds an arm this calls a control to a Twin, Term or
     Force role in Main.hs, and Main.hs files them as candidates.
     """
@@ -7125,19 +7131,28 @@ def pair_note(path, draft=None, halves=None):
     # changed: which of them is stale is the preparation's to decide,
     # a block MAY name an older run rightly, and a draft that edited
     # prose would be deciding for it (2026-09-10).
+    # PLURAL AND RANGE FORMS TOO. `[Rr]un ?(\d+)` alone reads nothing out
+    # of `as Runs 24 to 27 were`, so a block whose only older-run mention
+    # is plural went unflagged and a flagged block's list was short of
+    # what it names (2026-09-10).
+    mine = re.search(r'(\d+)', draft)
+    mine = mine.group(1) if mine else draft
     flagged = []
-    for i, para in enumerate(body.split('\n\n')):
+    for para in body.split('\n\n'):
         lead = para.lstrip('\n').split('\n', 1)[0]
         if '[SAME' not in lead:
             continue
-        old_runs = sorted({m for m in re.findall(r'[Rr]un ?(\d+)', para)
-                           if 'run%s' % m != draft and m != draft[3:]},
-                          key=int)
+        nums = set(re.findall(r'run(\d+)', para))
+        for m in re.finditer(r'[Rr]uns?\s+\d+(?:\s*(?:to|and|,|--)\s*\d+)*',
+                             para):
+            nums |= set(re.findall(r'\d+', m.group(0)))
+        old_runs = sorted({n for n in nums if n != mine}, key=int)
         if old_runs:
             flagged.append((_note_title(lead), old_runs))
     if flagged:
         marks = '\n'.join(
-            '#   %-44s names Run %s' % (t[:44], ', '.join(r))
+            '#   %-44s names %s %s'
+            % (t[:44], 'Runs' if len(r) > 1 else 'Run', ', '.join(r))
             for t, r in flagged)
         body = ('# CHECK THESE CARRIED BLOCKS: each names a run this draft'
                 ' did not rename,\n# so a figure in it may be one run too'

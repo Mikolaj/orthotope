@@ -1998,10 +1998,13 @@ def consumer_arms():
     `no_net` and `is_control` stopped being the same set on 2026-09-10,
     and a fixture spelling either out by hand is the drift that split
     them in the first place. AN EMPTY LIST WOULD MAKE THE FINGERPRINT
-    CONTROL VACUOUS, its `hasnt` being built from this; what stops that
-    quietly is the other case, which indexes `[0]` and so raises at
-    import on a roster with no consumer, where a `hasnt` of nothing would
-    have gone on passing.
+    CONTROL VACUOUS, its `hasnt` being built from this and evaluated at
+    import. What answers for that is the other case, whose `[0]` sits in
+    a plant lambda and so raises when the FIXTURE IS BUILT, reported as
+    `FIXTURE DID NOT BUILD ... nothing was tried, so this is no verdict`
+    -- loud, but not the import-time guard this claimed until 2026-09-10.
+    A roster with no reducing consumer wants both cases retired rather
+    than caught.
     """
     m = _reader()
     roster = m.roster_of(open(os.path.join(HERE, 'Main.hs')).read())
@@ -4356,7 +4359,7 @@ TIER1 = {
         ok='the kept per-shape table names only arms the time column reads'),
     'draft-carries-a-block-naming-another-run-unmarked': dict(
         family='two-spellings', discovery='in-use', harm='fired',
-        harm_count=3,
+        harm_count=1,
         trigger='a [SAME] block quoting a run older than the one renamed',
         ok='the draft heads the note with the blocks to check, and names'
            ' which run each points at'),

@@ -7022,10 +7022,12 @@ and never as a chronology.
     #      WHENEVER THE TIMED ROSTER GAINED ARMS, which the population
     #      condition does not reach: an arm lands on every class, so the
     #      classes whose VIEWS moved are not the ones at risk. Run 28
-    #      named the four its views moved in, and they held five of the
-    #      sixteen rows its new arms emptied; `block`, unmoved, held ten.
-    #      Ten legs is half an hour on top of the four's, on a roster
-    #      change that already costs three quarters of one. Artifacts are
+    #      named `scaled` and the three its views moved in, and those
+    #      three held five of the sixteen rows its new arms emptied;
+    #      `block`, unmoved, held ten. Its four-class pass ran 36 minutes
+    #      with the main leg and the six classes it had skipped 30 more,
+    #      so naming them all is half again on a change that already
+    #      costs the better part of an hour. Artifacts are
     #      `smoke-l1-$R-*`, never `$R-*` (the prefix rule below), and a
     #      previous attempt's are refused. Record it on an `L1 ROSTER
     #      PASS:` line
@@ -7107,12 +7109,15 @@ and never as a chronology.
     #      figure missing from the note's row of that label.
     #      It reads each in its ROLE and not merely
     #      as present, which a citation that has slid onto another row also
-    #      passes; Run 27's preparation spent a call apiece and proved only
-    #      presence, and Run 28's wrote this by hand as a one-off script
-    #      and threw it away. WHAT IT DOES NOT REACH is the prose: the
-    #      roster counts, the previous run's totals and every figure quoted
-    #      outside the fill-in block are still yours, in one pass and not
-    #      one call per figure
+    #      passes, and in its own half's place, which a swap also passes;
+    #      Run 27's preparation spent a call apiece and proved only
+    #      presence, and Run 28's wrote this by hand and threw it away.
+    #      WHAT IT DOES NOT REACH is HALF THE BLOCK and all the prose: the
+    #      rows a session writes from its own reading -- repetition, fills,
+    #      straddle, regime, check, the sweep, the roster pass, the two
+    #      check rows and `scripts set` -- and every figure outside the
+    #      block, the roster counts and the previous run's totals among
+    #      them. Those are yours, in one pass and not one call per figure
     #      AND NAME THAT FILE WHERE YOU WRITE THE FIGURE, or the next
     #      reader copies you (post-run 6e says why). `./preflight.sh $R
     #      --note` re-checks 10c, 10d and 8 after these edits, in seconds
@@ -9292,15 +9297,15 @@ that needs it unless it is written down.
          THAT SPLIT IS A DEFAULT AND NOT A PROHIBITION, amended
          2026-09-10: Run 28's preparation needed the definitions and
          did not read them, this list having said to read none of
-         them. Its roster brought the reducing consumers, whose
-         relation to the forcing pass no earlier arm had; the
-         correction ran five rows empty and a required mode refused
-         two legs; and which rows have no corrected time and read
-         `--` is stated in the `time` definition and in no list. So
-         go back to corr, net, time and worst the moment a figure
-         surprises you, a gate refuses a leg, or the roster brings an
-         arm whose relation to that pass is new -- which is the
-         moment the EXECUTION's half becomes a preparation's
+         them. Its roster took the reducing consumers past a bound
+         Run 27's four had approached: the correction ran five rows
+         entirely non-positive, where Run 27's read over 7 or 8 of 19
+         shapes, and a required mode refused two legs. Which rows have
+         no corrected time is stated in the `time` definition and in no
+         list. So go back to corr, net, time and worst the moment a
+         figure surprises you, a gate refuses a leg, or an arm's
+         relation to that pass is in question -- which is the moment
+         the EXECUTION's half becomes a preparation's
          -- NAME THE MODE YOU TOOK A FIGURE FROM, on the note's own
             `--fill-in` row or beside the figure. This item used to owe
             *nothing to write down; you will know if you skipped it*, and
@@ -11857,46 +11862,50 @@ tables and its fingerprint say so.
   carries a roster term; the fusion overhaul of the same day rewrote `lazyRuns`
   and every `-sum` consumer, so `libunord-stage4`, `-stage5`, `liblist-stage3`,
   `-stage4` and the four consumers Run 27 timed are not today's code either
-  ([the fusion entry][open]); and the six list Fill arms, the four ports'
-  and the two ordered candidates', no longer concatenate a one-element list,
-  so their allocation and their time on every view the library fills once
-  are not Run 27's (Run 28's item (9)). And `window-64x64-c16-k3`,
-  `window-32x32-c64-k3`, `bcast-src8`, `bcast-src64`, `bcast-src512`
-  and `flip-fwd-rows96` were added 2026-09-09, after the run, two patch views
-  with channels in `window`, a repeat ladder in `bcast` and a forward control
-  in `flip`, so its class views are TODAY's LESS SIX. **Its delta against RUN
-  26** is the commits of 2026-09-06 and 2026-09-07: the four arms Run 26 lifted
-  out of parking put back, the `:: Ptr Double` annotation on every bang-bound
-  `plusPtr` result in the three pointer arms, which is the GHC #27778 workaround
-  and changes no 9.12 code ([the open list][open]), and then ten arms landing
-  --- `libunord-stage4` and `libunord-stage5`, the four `-sum` reducing
-  consumers, `liblist-stage3` and `liblist-stage4`,
-  `mut-odo-vecdims-add-in-leaf-u2-last` and `lib-stage2-lean-u1` ---
-  with `check`'s laziness gate beside them and `lib-stage2-disp` retired
-  that evening, ten in and five out and five net, no shape and no class view
-  moving either way. `bb6d113`, the tip both halves were built from,
-  is that gate's byte count moved behind its failure branch, which is what makes
-  a compiler pair's two `check` outputs byte-identical again; `a990b2f`, which
-  the driver stamped, landed after the build. So NEITHER half reproduces
-  an earlier binary and no md5 here matches one on record; a distance from Run
-  26's published column carries a roster term of ten arms, **and the nineteen
-  main-set shapes are unmoved between the two runs, so a cross-run figure
-  is over all nineteen**. What a reader has to carry is which half a figure came
-  from: everything published in its file is `run27-g912`, ghc-9.12.4,
-  and `run27-ghead` --- the same source, shim and shim environment built through
-  `cabal.project.ghead` against the in-tree GHC HEAD stage1, unmoved since Run
-  24, so the halves differ in the compiler and in the boot libraries that come
-  with it and in nothing else --- contributes the second column
-  of `runs/run27.md`. Its `list` moved 0.33% between the halves, INSIDE the 0.7%
-  bar, so its two columns may be subtracted, which no run since Run 24 could
-  say. **The box DID move, and a BIOS change is why**, confirmed
-  by the machine's owner after the run: its gate machine check read -3.66%
-  on `list`'s net against Run 26's fingerprint, over all 19 shapes, three
-  of them past 5% and every one moving together, so no absolute of its crosses
-  to Run 26 unadjusted and its cross-run column is read through `--bridge`.
-  **Run 27 therefore opens a third machine era**, as the BIOS change before Run
-  18 opened the second. Its sequence ran in one window and its `runs` class
-  in a second: two intrusions by the instrument's own bar, one bench
+  ([the fusion entry][open]); and since 2026-09-10 no `-sum` consumer has
+  a corrected time at all, the term measured on `sum-only` having been ruled
+  inapplicable to an arm that produces nothing to force, so Run 27's `time`
+  and `worst` figures for its four have no counterpart in a later run's tables,
+  where a pair over two of them does, being read raw; and the six list Fill
+  arms, the four ports' and the two ordered candidates', no longer concatenate
+  a one-element list, so their allocation and their time on every view
+  the library fills once are not Run 27's (Run 28's item (9)).
+  And `window-64x64-c16-k3`, `window-32x32-c64-k3`, `bcast-src8`, `bcast-src64`,
+  `bcast-src512` and `flip-fwd-rows96` were added 2026-09-09, after the run, two
+  patch views with channels in `window`, a repeat ladder in `bcast`
+  and a forward control in `flip`, so its class views are TODAY's LESS SIX.
+  **Its delta against RUN 26** is the commits of 2026-09-06 and 2026-09-07:
+  the four arms Run 26 lifted out of parking put back, the `:: Ptr Double`
+  annotation on every bang-bound `plusPtr` result in the three pointer arms,
+  which is the GHC #27778 workaround and changes no 9.12 code ([the open
+  list][open]), and then ten arms landing --- `libunord-stage4`
+  and `libunord-stage5`, the four `-sum` reducing consumers, `liblist-stage3`
+  and `liblist-stage4`, `mut-odo-vecdims-add-in-leaf-u2-last`
+  and `lib-stage2-lean-u1` --- with `check`'s laziness gate beside them
+  and `lib-stage2-disp` retired that evening, ten in and five out and five net,
+  no shape and no class view moving either way. `bb6d113`, the tip both halves
+  were built from, is that gate's byte count moved behind its failure branch,
+  which is what makes a compiler pair's two `check` outputs byte-identical
+  again; `a990b2f`, which the driver stamped, landed after the build. So NEITHER
+  half reproduces an earlier binary and no md5 here matches one on record;
+  a distance from Run 26's published column carries a roster term of ten arms,
+  **and the nineteen main-set shapes are unmoved between the two runs,
+  so a cross-run figure is over all nineteen**. What a reader has to carry
+  is which half a figure came from: everything published in its file
+  is `run27-g912`, ghc-9.12.4, and `run27-ghead` --- the same source, shim
+  and shim environment built through `cabal.project.ghead` against the in-tree
+  GHC HEAD stage1, unmoved since Run 24, so the halves differ in the compiler
+  and in the boot libraries that come with it and in nothing else ---
+  contributes the second column of `runs/run27.md`. Its `list` moved 0.33%
+  between the halves, INSIDE the 0.7% bar, so its two columns may be subtracted,
+  which no run since Run 24 could say. **The box DID move, and a BIOS change
+  is why**, confirmed by the machine's owner after the run: its gate machine
+  check read -3.66% on `list`'s net against Run 26's fingerprint, over all 19
+  shapes, three of them past 5% and every one moving together, so no absolute
+  of its crosses to Run 26 unadjusted and its cross-run column is read through
+  `--bridge`. **Run 27 therefore opens a third machine era**, as the BIOS change
+  before Run 18 opened the second. Its sequence ran in one window and its `runs`
+  class in a second: two intrusions by the instrument's own bar, one bench
   of its basis main set at 0.28 of a core and left as it stands, and four
   consecutive benches of `runs-512` on its HEAD half at 0.9 to 1.0, at about
   06:38 by the log's own clock and three minutes from where

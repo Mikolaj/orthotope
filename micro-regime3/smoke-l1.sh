@@ -19,6 +19,12 @@
 # besides whenever its population moved since the last pass, as `runs`
 # had when it went from seven views to eleven: a reader mode that has
 # never seen a population is exactly what this pass is for.
+# AND NAME THEM ALL WHENEVER THE TIMED ROSTER GAINED ARMS, which the
+# population condition does not reach: an arm lands on every class, so
+# the classes whose VIEWS moved are not the ones at risk. Run 28 named
+# `scaled` and the three its views moved in, and those three held five
+# of the sixteen rows its new arms emptied -- `block`, unmoved, held ten
+# (2026-09-10). The run chapter's step 12 carries the same rule.
 #
 # WHAT IT DOES NOT DO. It does not touch the control half: step 12 is
 # the BASIS's, the bench counts being read from it. It does not gate a

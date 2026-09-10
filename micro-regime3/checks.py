@@ -59,7 +59,15 @@ UNCOVERED = {
                     'own, so "a case would run them twice" says nothing '
                     'about it; its control is in the header, every derived '
                     'row read against the same figure taken by hand, and a '
-                    'row it gets wrong is caught by nothing else',
+                    'row it gets wrong is caught by nothing else. '
+                    '--figures, added 2026-09-10, is the second reporter '
+                    'and runs no step either: it re-derives the fill-in '
+                    'rows from the artifacts and holds each figure to the '
+                    "note's row of its own label and its own half's "
+                    'place. Its control is the record '
+                    'note-figures-reads-a-row-only-as-present, and not '
+                    "the header, since it reads the two binaries and the "
+                    'mutants copy holds tracked files alone',
     'machine-busy.sh': 'read by run-gate.sh, whose cases reach it; no case '
                        'of its own yet',
     'smoke-l1.sh': 'the reader\'s smoke sweep, driven by the run chapter; '
