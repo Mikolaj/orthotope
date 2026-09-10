@@ -4354,6 +4354,16 @@ TIER1 = {
         family='two-spellings', discovery='review', harm='latent',
         trigger='an arm `no_net` covers and `is_control` does not',
         ok='the kept per-shape table names only arms the time column reads'),
+    'draft-carries-a-block-naming-another-run-unmarked': dict(
+        family='two-spellings', discovery='in-use', harm='fired',
+        harm_count=3,
+        trigger='a [SAME] block quoting a run older than the one renamed',
+        ok='the draft heads the note with the blocks to check, and names'
+           ' which run each points at'),
+    'note-figures-reads-a-row-only-as-present': dict(
+        family='vacuous-check', discovery='review', harm='latent',
+        trigger='a figure that has slid onto a neighbouring fill-in row',
+        ok='held to the row of its own label, and named with both readings'),
     'roster-pass-prints-a-failing-mode-as-rc-0': dict(
         family='other:status-read-after-its-own-negation',
         discovery='in-use', harm='fired', harm_count=1,
@@ -8827,6 +8837,43 @@ RECORDS = [
          # about, so it is what anchors it.
          ok=V(exit=0, has=['best outside family'],
               hasnt=['`%s`' % a for a in consumer_arms()])),
+
+    case('draft-carries-a-block-naming-another-run-unmarked', 'read-run.py',
+         None,
+         'CONTROL: a carried [SAME] block naming a run the rename does not'
+         ' touch is flagged, and one naming only the previous run is not',
+         # The renames map the PREVIOUS run onto this one and touch no
+         # other number, so a `[SAME]` block quoting an older run's figure
+         # comes through pointing one run too far back and reads as
+         # correctly carried, every name in it having been substituted.
+         # Both directions in one fixture: the first block names run21,
+         # which no rename reaches, and the second names run23, which is
+         # the previous run and becomes run24 -- so the notice must name
+         # the first and not the second.
+         plant=lambda t: {'note': write(
+             os.path.join(t, 'run23-pair.txt'),
+             "hdr\n\nOLD [SAME]: against run21-g912, the previous build of"
+             " this recipe.\n\nMINE [SAME]: run23-g912 leads.\n"
+             "HALVES: basis=g912 other=spot\n")},
+         argv=['--note', '{note}', '--draft', 'run24',
+               '--halves', 'g912,ghead'],
+         ok=V(exit=0, has=['CHECK THESE CARRIED BLOCKS', 'OLD',
+                           'names Run 21'],
+              hasnt=['MINE                ', 'names Run 23'])),
+
+    case('note-figures-reads-a-row-only-as-present', 'preflight.sh', None,
+         'CONTROL: --figures holds each derived figure to the note ROW of'
+         ' its own label, not to the note anywhere',
+         # NO CASE, and for a reason of its own rather than the one the
+         # record below gives preflight: --figures reads the two BINARIES,
+         # which are not tracked, and the mutants copy holds tracked files
+         # alone -- a stub half cannot answer `size -A`, having no ELF in
+         # it. Watched instead, 2026-09-10, on Run 28's own pair and note:
+         # three figures planted wrong -- one md5 digit, `.text` off by
+         # one on the control half, and `deadbee` for the shim commit --
+         # and each was named with its row and both readings, the note
+         # restored from a copy taken first. Clean before and after.
+         argv=None, ok=None, no_audit='too-dangerous-to-run'),
 
     # ---- smoke-l1.sh, the roster pass ------------------------------------
     case('roster-pass-prints-a-failing-mode-as-rc-0', 'smoke-l1.sh',

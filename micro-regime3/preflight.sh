@@ -97,6 +97,9 @@ if [ $# -lt 1 ]; then
   echo "                JSON on disk: run this, launch 11 and 12, and take"
   echo "                the two afterwards with --corpus"
   echo "  --corpus      8c and 8d alone"
+  echo "  --figures     re-derive the note's fill-in figures FROM THE"
+  echo "                ARTIFACTS and report every row that disagrees --"
+  echo "                pre-run step 12b, in seconds and running no step"
   echo "  --fill-in     and print the note's fill-in block DERIVED from what"
   echo "                this pass read, to paste at pre-run step 2. A row it"
   echo "                cannot derive prints <yours>; beside --corpus it"
@@ -117,6 +120,7 @@ NOTE_ONLY=0
 CORPUS=1
 REST=1
 FILLIN=0
+FIGURES=0
 shift
 for a in "$@"; do
   case $a in
@@ -124,6 +128,7 @@ for a in "$@"; do
     --no-corpus) CORPUS=0 ;;
     --corpus) REST=0 ;;
     --fill-in) FILLIN=1 ;;
+    --figures) FIGURES=1 ;;
     *) echo "unknown argument '$a' --" \
             "./preflight.sh RUN [--note|--no-corpus|--corpus] [--fill-in]"
        exit 2 ;;
@@ -152,6 +157,98 @@ if [ "$NOTE_ONLY" = 1 ] && { [ "$CORPUS" = 0 ] || [ "$REST" = 0 ]; }; then
 fi
 HALVES_SET=$(./pair-halves.sh "$R") || exit 2   # the note's HALVES line,
 eval "$HALVES_SET"                                # refused loudly without
+
+# --figures: PRE-RUN STEP 12b, MADE MECHANICAL. The note's fill-in rows are
+# re-derived FROM THE ARTIFACTS -- the two binaries and git -- and every
+# figure the derivation produces must appear in the note's row of the same
+# label. Not a diff of the whole block: the rows are prose a preparation
+# writes, and what must survive that writing is the FIGURES.
+#
+# It runs no step, which is what makes it a seconds-long check owed after
+# the note is filled in rather than a second preflight. Every row it reads
+# is derivable without one: md5, .text, the two compilers out of the
+# binaries, the baked RTS, the instrument counts, the two commits, the
+# bench count and the gate's selection.
+#
+# IN ITS ROLE AND NOT MERELY PRESENT, which is the whole point: 12b's own
+# text says a citation that has slid onto another row passes a presence
+# test, and Run 28's preparation wrote this check by hand as a one-off
+# script because nothing here did it. That script found two errors and its
+# author threw it away, which is the shape this mode retires (2026-09-10).
+figures () {
+  python3 - "$R" "$BASIS" "$OTHER" <<'PY'
+import re, subprocess, sys
+R, basis, other = sys.argv[1], sys.argv[2], sys.argv[3]
+def sh(c):
+    return subprocess.run(c, shell=True, capture_output=True, text=True).stdout
+try:
+    note = open('%s-pair.txt' % R).read()
+except OSError as e:
+    print('BLOCKED: %s' % e); sys.exit(2)
+if 'Verified when built' not in note:
+    print('BLOCKED: %s-pair.txt has no fill-in block to read' % R)
+    sys.exit(2)
+# The block's rows: `  LABEL   VALUE`, continuations indented past it.
+rows, label = {}, None
+for line in note.split('Verified when built', 1)[1].splitlines():
+    m = re.match(r'  (\S(?:.*?\S)?)\s{2,}(\S.*)$', line)
+    if m and not line.startswith('    '):
+        label, rows[m.group(1)] = m.group(1), m.group(2)
+    elif label and line.startswith('    '):
+        rows[label] += ' ' + line.strip()
+want, extra = [], []
+for half in (basis, other):
+    b = '%s-%s' % (R, half)
+    want.append(('md5 %s' % half, sh('md5sum %s' % b).split()[:1]))
+    want.append(('.text', sh("size -A %s | grep '^\\.text'" % b).split()[1:2]))
+    want.append(('compilers', [sh("strings %s | grep -oE"
+                                  " 'ghc-internal-[0-9.]+' | sort -u"
+                                  % b).strip()]))
+    # THE INSTRUMENTS ROW IS A VERDICT AND NOT A FIGURE -- the note writes
+    # `one @@wild and one @@saturate`, which no digit matches, and there is
+    # no figure here to slide onto a neighbouring row. So the COUNT is
+    # asserted of the binary and the ROW is held to naming both marks,
+    # which is what it is for. Found by this mode's first run against a
+    # hand-written note (2026-09-10).
+    for t in ('@@wild', '@@saturate'):
+        got = sh("strings %s | grep -c '%s'" % (b, t)).strip()
+        if got != '1':
+            extra.append('instruments      %s carries %s %s, want 1'
+                         % (b, got, t))
+    want.append(('instruments', ['@@wild', '@@saturate']))
+    rts = re.search(r'"(-A\S[^"]*)"',
+                    sh('./%s +RTS --info 2>/dev/null | grep with-rtsopts' % b))
+    want.append(('baked RTS', [rts.group(1)] if rts else ['UNREADABLE']))
+for lbl, path in (('Main.hs at', 'Main.hs'), ('shim at', 'align-as.py')):
+    want.append((lbl, [sh('git log -1 --format=%%h -- :/micro-regime3/%s'
+                          % path).strip()]))
+n = len(sh('./%s-%s --list 2>/dev/null' % (R, basis)).split())
+want.append(('--list', ['%d benches' % n]))
+gate = sh('./run-gate.sh %s --show 2>/dev/null' % R)
+g = re.search(r'expect (\d+) benches', gate)
+if g:
+    want.append(('gate arms', [g.group(1)]))
+bad = list(extra)
+for lbl, figs in want:
+    if lbl not in rows:
+        bad.append('%-16s NO SUCH ROW in the note' % lbl); continue
+    for f in figs:
+        if f and f not in rows[lbl]:
+            bad.append('%-16s the artifact says %s; the row reads: %s'
+                       % (lbl, f, rows[lbl][:60]))
+if bad:
+    print('12b FAIL: %d row(s) disagree with the artifacts:' % len(bad))
+    for b in bad:
+        print('  ' + b)
+    sys.exit(1)
+print('12b PASS: %d figure(s) over %d row(s) re-derived from the artifacts'
+      ' and found in their own rows'
+      % (sum(len(f) for _, f in want), len({l for l, _ in want})))
+PY
+}
+if [ "$FIGURES" = 1 ]; then
+  figures; exit $?
+fi
 if [ "$NOTE_ONLY" = 0 ]; then
   for h in $OTHER $BASIS; do
     [ -x "./$R-$h" ] || { echo "missing ./$R-$h -- $R-pair.txt has the recipe"
@@ -330,8 +427,18 @@ echo "preflight for $R: basis $BASIS, control $OTHER"
 echo
 
 if [ "$REST" = 1 ]; then
-"./$R-$BASIS" check > "$TMP/a.log" 2>&1; ra=$?
-"./$R-$OTHER" check > "$TMP/b.log" 2>&1; rb=$?
+# THE TWO HALVES CHECK CONCURRENTLY, which is the whole of this step's
+# cost -- `check` runs over every shape and class view, the two runs take
+# minutes apiece and nearly all of a preflight between them, and they are
+# independent: each reads its own binary and writes its own log, and the
+# assertion below is that the two logs AGREE, which no scheduling can
+# move. `check` is a correctness pass and times nothing, so contention
+# reaches no figure. Halved 2026-09-10; before it they ran one after the
+# other for no reason but the order the list writes them in.
+"./$R-$BASIS" check > "$TMP/a.log" 2>&1 & pa=$!
+"./$R-$OTHER" check > "$TMP/b.log" 2>&1 & pb=$!
+wait "$pa"; ra=$?
+wait "$pb"; rb=$?
 if [ "$ra" != 0 ] || [ "$rb" != 0 ]; then
   say '4,5' FAIL "a check exited $ra/$rb -- read $TMP before it goes"
 elif cmp -s "$TMP/a.log" "$TMP/b.log"; then

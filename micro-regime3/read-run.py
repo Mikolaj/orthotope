@@ -7113,6 +7113,36 @@ def pair_note(path, draft=None, halves=None):
                 for k, c in bseen.items()]
     body = re.sub(r'^HALVES:.*$', 'HALVES: basis=%s other=%s' % new,
                   body, flags=re.M)
+    # A CARRIED BLOCK THAT NAMES ANOTHER RUN IS FLAGGED WHERE IT SITS.
+    # The renames above map the PREVIOUS run onto this one and touch no
+    # other number, so a `[SAME]` block quoting `run26-g912` as the
+    # previous build of a recipe, or Run 26's counts totals, or the
+    # fingerprint's run, comes through pointing one run too far back --
+    # and it reads as carried-over-correctly, every name in it having
+    # been substituted. Run 28's preparation caught three that way by
+    # reading, which is what the header asks for and not what it can
+    # count on; this makes the same finding mechanical. Marked and never
+    # changed: which of them is stale is the preparation's to decide,
+    # a block MAY name an older run rightly, and a draft that edited
+    # prose would be deciding for it (2026-09-10).
+    flagged = []
+    for i, para in enumerate(body.split('\n\n')):
+        lead = para.lstrip('\n').split('\n', 1)[0]
+        if '[SAME' not in lead:
+            continue
+        old_runs = sorted({m for m in re.findall(r'[Rr]un ?(\d+)', para)
+                           if 'run%s' % m != draft and m != draft[3:]},
+                          key=int)
+        if old_runs:
+            flagged.append((_note_title(lead), old_runs))
+    if flagged:
+        marks = '\n'.join(
+            '#   %-44s names Run %s' % (t[:44], ', '.join(r))
+            for t, r in flagged)
+        body = ('# CHECK THESE CARRIED BLOCKS: each names a run this draft'
+                ' did not rename,\n# so a figure in it may be one run too'
+                ' far back. Read them against this\n# pair before deleting'
+                ' this notice.\n%s\n\n%s' % (marks, body))
     print('# DRAFT for %s-pair.txt, the WHOLE note: %s\'s [SAME] blocks'
           ' carried over,' % (draft, os.path.basename(path)))
     print('# every other slot present and empty. Redirect it, fill the'

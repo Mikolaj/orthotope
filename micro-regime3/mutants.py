@@ -130,6 +130,27 @@ MUTANTS = [
      ' out[\'note\'], \'--draft\', \'run24\', \'--halves\','
      ' \'g912,ghead\'], capture_output=True, text=True)\n'
      'sys.exit(0 if \'dead-spot\' in r.stdout else 1)"'),
+    # The carried-block flag switched off: a `[SAME]` block naming a run
+    # the rename does not touch comes through pointing one run too far
+    # back and reads as correctly carried, every name in it having been
+    # substituted. The judge plants the case's own note -- one block
+    # naming run21, which no rename reaches, and one naming run23, which
+    # becomes run24 -- and requires the notice.
+    ('--draft stops flagging a block that names another run', 'read-run.py',
+     "    if flagged:\n        marks = ",
+     "    if False and flagged:\n        marks = ",
+     'python3 -c "import importlib.util, sys, tempfile, subprocess, os\n'
+     'spec = importlib.util.spec_from_file_location(\'d\', \'{dir}/defects.py\')\n'
+     'm = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)\n'
+     'tmp = tempfile.mkdtemp()\n'
+     'note = os.path.join(tmp, \'run23-pair.txt\')\n'
+     'open(note, \'w\').write(\'hdr\\n\\nOLD [SAME]: against'
+     ' run21-g912, the previous build.\\n\\nMINE [SAME]: run23-g912'
+     ' leads.\\nHALVES: basis=g912 other=spot\\n\')\n'
+     'r = subprocess.run([sys.executable, \'{file}\', \'--note\', note,'
+     ' \'--draft\', \'run24\', \'--halves\', \'g912,ghead\'],'
+     ' capture_output=True, text=True)\n'
+     'sys.exit(0 if \'CHECK THESE CARRIED BLOCKS\' in r.stdout else 1)"'),
     # The machine check unnamed again, which is the state Run 28's draft
     # met: the lead classifies as nothing, the block inherits `fill` from
     # the fill-in block above it, and `_fill_skeleton` passes a paragraph

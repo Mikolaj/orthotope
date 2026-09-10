@@ -6989,6 +6989,18 @@ and never as a chronology.
     #      `--no-corpus` they have not run yet, which is the point of it.
     #      The sweep holds
     #      each process to the arm count `--list` gives for that shape.
+    #      AND NOT BEFORE PREFLIGHT'S 4,5, which is the one ordering here
+    #      that looks like waste and is not. Those two `check` runs are
+    #      nearly all of a preflight and sit in front of this pass, so
+    #      overlapping them buys minutes -- and 4,5 is the step whose
+    #      FAILURE retires the binaries: Run 27's failed on the laziness
+    #      gate's byte counts, both halves were rebuilt from bb6d113, and
+    #      a pass started early would have been forty-five minutes spent
+    #      on binaries that no longer existed. Minutes against an hour,
+    #      on a step that has failed once in the last four runs. RULED
+    #      2026-09-10. What IS taken is the parallelism inside 4,5: the
+    #      two halves check concurrently, which costs nothing and risks
+    #      nothing, the assertion being that their logs agree
     #      IN THE BACKGROUND, AND WHICH BACKGROUND MATTERS -- the command
     #      lines above carry no `&` for that reason. A SESSION uses the
     #      harness's own background mode, which registers a task and
@@ -7006,7 +7018,14 @@ and never as a chronology.
     #      the roster delta under Provenance. The main set plus a leg per
     #      class named,
     #      `scaled` by default; NAME A CLASS BESIDES whenever its
-    #      population moved since the last pass. Artifacts are
+    #      population moved since the last pass -- AND NAME THEM ALL
+    #      WHENEVER THE TIMED ROSTER GAINED ARMS, which the population
+    #      condition does not reach: an arm lands on every class, so the
+    #      classes whose VIEWS moved are not the ones at risk. Run 28
+    #      named the four its views moved in, and they held five of the
+    #      sixteen rows its new arms emptied; `block`, unmoved, held ten.
+    #      Ten legs is half an hour on top of the four's, on a roster
+    #      change that already costs three quarters of one. Artifacts are
     #      `smoke-l1-$R-*`, never `$R-*` (the prefix rule below), and a
     #      previous attempt's are refused. Record it on an `L1 ROSTER
     #      PASS:` line
@@ -7082,13 +7101,18 @@ and never as a chronology.
     #      IT CAME FROM, never from the sentence beside it, and then read
     #      both back end to end. It costs minutes, and it is not a
     #      substitute for post-run step 6b's independent reader
-    #  IN ONE PASS, not one call per figure: put the figures in a script
-    #      that checks them all against the file they came from and prints
-    #      the ones that disagree. Run 27's preparation spent a call
-    #      apiece and still proved only that each string was PRESENT
-    #      somewhere, which a citation that has slid onto another row also
-    #      passes -- read each in its ROLE, which is what one pass makes
-    #      affordable
+    #  `./preflight.sh $R --figures` IS THE MECHANICAL HALF and runs in
+    #      seconds, taking no step: it re-derives the fill-in rows from the
+    #      ARTIFACTS -- the two binaries and git -- and reports every
+    #      figure missing from the note's row of that label.
+    #      It reads each in its ROLE and not merely
+    #      as present, which a citation that has slid onto another row also
+    #      passes; Run 27's preparation spent a call apiece and proved only
+    #      presence, and Run 28's wrote this by hand as a one-off script
+    #      and threw it away. WHAT IT DOES NOT REACH is the prose: the
+    #      roster counts, the previous run's totals and every figure quoted
+    #      outside the fill-in block are still yours, in one pass and not
+    #      one call per figure
     #      AND NAME THAT FILE WHERE YOU WRITE THE FIGURE, or the next
     #      reader copies you (post-run 6e says why). `./preflight.sh $R
     #      --note` re-checks 10c, 10d and 8 after these edits, in seconds
