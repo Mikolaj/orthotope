@@ -3805,6 +3805,20 @@ TIER1 = {
               " what caught it was the draft's own instruction to read"
               ' every carried line.'),
     # ---- preflight.sh ----
+    'note-paths-read-a-name-that-merely-contains-the-run': dict(
+        family='scan-for-parse', discovery='in-use', harm='fired',
+        harm_count=1,
+        trigger="a note naming a file whose name contains `$R-`, which the"
+                ' roster pass writes',
+        ok='the path is read whole, a leading boundary consumed and stripped',
+        bug='its tail harvested as a path of its own and reported gone,'
+            ' with the file present',
+        proved='ran',
+        notes='Watched 2026-09-10 on Run 28\'s note, which names'
+              ' smoke-l1-run28-bcast.json and -flip.json: 10c FAILed on'
+              ' run28-bcast.json and run28-flip.json, neither of which is a'
+              ' file. The third boundary defect in that one regex; the two'
+              ' before it are in the step\'s own comment.'),
     'preflight-names-a-retired-callee': dict(
         family='other:caller-left-behind', discovery='in-use', harm='fired',
         trigger='pre-run steps 8b to 8d, run at any time after 27580a5',
@@ -9363,6 +9377,22 @@ RECORDS = [
          # launch now, an arm it lacks refusing there, and WANT is what
          # the list carries. The probe's question is spent (README).
          argv=None, ok=None),
+
+    case('note-paths-read-a-name-that-merely-contains-the-run', 'preflight.sh',
+         None,
+         "10c took the tail of `smoke-l1-run28-bcast.json` for a path of its"
+         ' own and reported it gone',
+         # NO CASE, for the reason checks.py's UNCOVERED gives preflight,
+         # and the same reason as the record below. Its own harvest regex
+         # had a right boundary and a class boundary from two earlier
+         # findings and none on the LEFT, so any name CONTAINING the run's
+         # own left its tail behind. Written into a note by the roster
+         # pass's own artifacts, which is when it fires -- the file was
+         # present and the step FAILed. The bug direction was WATCHED, on
+         # Run 28's live note, and the fix was shown to keep biting: a
+         # planted `run28-nosuchthing.json` still FAILs naming that path
+         # and no other, the note restored from a copy taken first.
+         argv=None, ok=None, no_audit='too-dangerous-to-run'),
 
     case('preflight-names-a-retired-callee', 'preflight.sh', '81876de',
          'a retirement left preflight calling a script that had gone',

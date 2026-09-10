@@ -241,9 +241,19 @@ step_8 () {
   # reachable through the plain form and the expanded one alike. The same
   # day on `probe-zzst-{a,b}-{c,d}` over four stub directories: PASS with
   # all four present, FAIL naming `probe-zzst-b-d` with that one removed.
+  # AND A THIRD BOUNDARY, on the LEFT, 2026-09-10: with none, a name that
+  # merely CONTAINS the run's own leaves its tail behind as a path of its
+  # own, so a note saying `smoke-l1-run28-bcast.json` -- which the roster
+  # pass writes and which was present -- reported `run28-bcast.json` gone.
+  # The leading character is consumed by the match and stripped after it,
+  # `grep -oE` having no lookbehind; at the head of a line nothing is
+  # consumed and the first character is alphanumeric, so the strip is a
+  # no-op there. Non-vacuity that day, on the live note: with the boundary
+  # 10c PASSes where it had FAILed, and a planted `run28-nosuchthing.json`
+  # still FAILs naming that path and no other.
   if [ -f "$R-pair.txt" ]; then
-    MISSING=$(grep -oE '(probe-[A-Za-z0-9._{},-]*[A-Za-z0-9_}]/?|'"$R"'-[A-Za-z0-9._-]+\.(json|log|txt))' \
-                "$R-pair.txt" | sort -u \
+    MISSING=$(grep -oE '(^|[^A-Za-z0-9._-])(probe-[A-Za-z0-9._{},-]*[A-Za-z0-9_}]/?|'"$R"'-[A-Za-z0-9._-]+\.(json|log|txt))' \
+                "$R-pair.txt" | sed -E 's/^[^A-Za-z0-9]//' | sort -u \
               | while read -r q; do
                   # Brace groups expand without eval, one group a pass
                   # until none is left, split by hand because `read -a`
