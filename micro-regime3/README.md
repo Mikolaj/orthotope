@@ -6906,7 +6906,11 @@ and never as a chronology.
     #      12b's, a reading, and this is why 12b is not optional
     #      READ NOW: item 9's preparation half of read-run.py's
     #      docstring -- the Modes list, --para, --section and the two
-    #      gates -- and nothing of its statistics
+    #      gates. AND GO BACK TO ITS DEFINITIONS -- corr, net, time,
+    #      worst -- THE MOMENT A FIGURE SURPRISES YOU, A GATE REFUSES A
+    #      LEG, OR THE ROSTER BRINGS AN ARM WHOSE RELATION TO THE FORCING
+    #      PASS IS NEW. Which rows have no corrected time and read `--`
+    #      is stated there and in no list
     #      why: --para 'Steps 7 and 8 are the whole'
     ./read-run.py --check-doc --quiet     # 8. anchors, paths, widths, sweeps
     #      7+8 are the WHOLE document check here; no other repo's checkers,
@@ -9260,7 +9264,19 @@ that needs it unless it is written down.
          the statistic definitions, the A/A identity, the validation
          history and every mode that reads a run's FIGURES are the
          EXECUTION's, and Run 23's preparation read them all and used
-         none
+         none.
+         THAT SPLIT IS A DEFAULT AND NOT A PROHIBITION, amended
+         2026-09-10: Run 28's preparation needed the definitions and
+         did not read them, this list having said to read none of
+         them. Its roster brought the reducing consumers, whose
+         relation to the forcing pass no earlier arm had; the
+         correction ran five rows empty and a required mode refused
+         two legs; and which rows have no corrected time and read
+         `--` is stated in the `time` definition and in no list. So
+         go back to corr, net, time and worst the moment a figure
+         surprises you, a gate refuses a leg, or the roster brings an
+         arm whose relation to that pass is new -- which is the
+         moment the EXECUTION's half becomes a preparation's
          -- NAME THE MODE YOU TOOK A FIGURE FROM, on the note's own
             `--fill-in` row or beside the figure. This item used to owe
             *nothing to write down; you will know if you skipped it*, and
