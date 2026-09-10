@@ -981,7 +981,7 @@ rather than a slot in the next run, observed again:
   exists for; `bcast-src8`, `bcast-src64` and `bcast-src512`, an 8-, 64-
   and 512-element source each repeated to 1.8 million elements, the ladder
   on which stage nine's repeated slice meets the fill; and `flip-fwd-rows96`,
-  item (16)'s forward control. Seven changes of code: the eleven arms, each
+  item (16)'s forward control. Eight changes of code: the eleven arms, each
   landing beside stage five's, and the thirteen retired with the four ordered
   consumers in their place; the fusion overhaul of 2026-09-09, which touches
   arms Run 27 timed --- `lazyRuns` in build form under libunord-stage4,
@@ -1003,12 +1003,12 @@ rather than a slot in the next run, observed again:
   a doubling block copy for a zero-stride level, shared with `fillStage2U1`,
   and the broadcast run unrolled by two, not shared --- items (13) and (14),
   and the reason Run 27's `bcast` and `bcastmid` figures for those arms
-  are not this roster's; and the shipped fill's own A/A copies,
-  `mut-odo-vecdims-add-in-leaf-u2-aa` and `-aa-distant`, with the forward
-  control `flip-fwd-rows96`, items (15) and (16); beside all of them `check`
-  gained a class it alone reads, edge, three broadcast-mid views at the extents
-  a doubling copy can get wrong, 2, 3 and 5, none of which any timed view has.
-  Two things are known before the run and are the premise rather
+  are not this roster's; and two more of 2026-09-09, the shipped fill's own A/A
+  copies, `mut-odo-vecdims-add-in-leaf-u2-aa` and `-aa-distant`, item (15),
+  and the forward control `flip-fwd-rows96`, item (16); beside all of them
+  `check` gained a class it alone reads, edge, three broadcast-mid views
+  at the extents a doubling copy can get wrong, 2, 3 and 5, none of which any
+  timed view has. Two things are known before the run and are the premise rather
   than predictions. A `check`-mode comparison of 2026-09-09 read stage five's
   sorted canonical dims and the sort-first form's equal on all 91 checked views,
   so the two arms differ from stage five in dispatch cost alone; the comparison
@@ -3172,7 +3172,7 @@ and was fixed at `bb6d113` by printing the count only where the gate fails, both
 halves rebuilt from it; ONE computation was improvised, a walk of the commits
 that rewrote the registration, and it is RULED OUT rather than kept
 (2026-09-10): no step asks which they were, and the sentence it yields is copied
-forward by every note and run file after it --- what a registration owes
+forward by the next note and into this list --- what a registration owes
 is pre-run step 12b, re-derivation from the run's own artifacts, and no history
 at all; ONE step was skipped and it was a READING with no artifact, item 9's,
 which is exactly the shape the reading list says to expect; and the capability

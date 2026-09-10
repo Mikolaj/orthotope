@@ -30,11 +30,18 @@ MUTANTS = [
     # rather than through a sweep -- exactly one run number survives -- so
     # it costs no minutes; LOST rather than green with no run on disk, as
     # every corpus judge here is.
+    # AND IT READS THE NUMBER AS properties.py DOES, anywhere in the name.
+    # Anchored at the head it found nothing whenever the newest run is
+    # represented by its smoke sweep alone -- `smoke-l1-run28-main.json`
+    # and no `run28-*` yet -- which is the state of every preparation, and
+    # the judge's own baseline went red there and took the mutant LOST
+    # with it. The narrowing it judges says why in its own comment: a run's
+    # sweeps and probes carry the number in the middle (2026-09-10).
     ('the newest-run narrowing keeps every run but the newest',
      'properties.py',
      "    return [f for f, x in zip(js, ns) if x is None or x == top]",
      "    return [f for f, x in zip(js, ns) if x is None or x != top]",
-     'python3 -c "import os,re,sys,importlib.util; os.environ[\'CORPUS\']=\'{root}\'; os.environ[\'CORPUS_RUN\']=\'newest\'; spec=importlib.util.spec_from_file_location(\'p\',\'{file}\'); m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m); ns=set(int(x.group(1)) for x in (re.match(r\'run(\\\\d+)[-.]\',f) for f in m.runs_on_disk()) if x); sys.exit(0 if len(ns)==1 else 1)"'),
+     'python3 -c "import os,re,sys,importlib.util; os.environ[\'CORPUS\']=\'{root}\'; os.environ[\'CORPUS_RUN\']=\'newest\'; spec=importlib.util.spec_from_file_location(\'p\',\'{file}\'); m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m); ns=set(int(x.group(1)) for x in (re.search(r\'run(\\\\d+)[-.]\',os.path.basename(f)) for f in m.runs_on_disk()) if x); sys.exit(0 if len(ns)==1 else 1)"'),
     # The per-view floor's whole judgement is one comparison, so inverting
     # it is a mutant of the tool. The judge greps for the finding the tool
     # was written to make -- `flip-last-rows` starred in the
