@@ -4996,10 +4996,13 @@ def lead_shapes(shapes, args, main_hs):
     two -- `--block` knew both all along.
 
     Three readings, all mechanical. WHICH shapes, the lead's set against
-    the run's. In WHAT ORDER, because the installed per-shape line labels
-    its ratios *in the lead's order* and takes that order from the run:
-    a lead listing them differently mislabels figures, which is the one
-    of the three that no reading of the block can catch. And each `l` and
+    the run's. In WHAT ORDER: the line takes its order from the RUN
+    and, since 2026-09-11, SAYS so instead of calling it the lead's. It
+    used to say the lead's while taking the run's, so a lead listing them
+    differently mislabelled figures -- which `flip` did the moment
+    `flip-fwd-rows96` landed, its lead naming the new view last where the
+    run puts it first -- and that was the one of the three readings
+    nothing could catch. And each `l` and
     `sInner`, against Main.hs, those being hand-copied numbers with no
     other source in the document.
 
@@ -5162,10 +5165,14 @@ def extremes_table(paths, main_hs, args):
           ' classes tied')
     print('at three decimals and were broken with `--pair` instead, which'
           ' put the bold on')
-    print('the wrong cell of `rev` -- the two columns here are UNROUNDED,'
-          ' so they always')
-    print('separate and the tie a session sees in the table is a rounding'
-          ' artefact.')
+    print('the wrong cell of `rev`. THE `bold` COLUMN IS THE ANSWER: the'
+          ' two columns')
+    print('beside it are printed to three decimals like the summary\'s and'
+          ' tie exactly')
+    print('as it does, while `bold` is computed on the UNROUNDED values,'
+          ' so it separates')
+    print('where what you can read does not. Follow it rather than the'
+          ' eye or `--pair`.')
     print()
     print('%-10s %6s %8s %7s %-26s %7s %8s %8s %7s %7s'
           % ('class', 'shapes', 'plain', 'worst', 'best outside family',
@@ -5298,7 +5305,8 @@ def block_skeleton(cells, shapes, strategies, meta, args, terms):
         bold = [st for st in strategies
                 if rows.get(st, ('', '', ''))[1] == 'bold']
         print()
-        print("**Per shape, in the lead's order (%s):**" % ', '.join(shapes))
+        print("**Per shape, in the run's shape order (%s):**"
+              % ', '.join(shapes))
         for st in bold:
             # `--` on a sunk cell, as the fingerprint and `time_of` do: this
             # paragraph is installed into the README by install-tables.sh, so
@@ -7514,6 +7522,118 @@ def excise(docs, anchor, limit=1500):
     return 0
 
 
+def paragraph_at(docs, where):
+    """Resolve FILE:LINE to the paragraph holding it, and print its HANDLE.
+
+    A line number into prose is perishable: the formatter rewraps at every
+    commit, an `--in-place` install moves everything under it, and a Stop
+    hook can move it between one turn and the next. A bolded lead is not,
+    which is why `--para` matches leads -- but `--para` needs a lead the
+    caller already knows, and a caller who has just grepped has a LINE
+    NUMBER and nothing else. That gap is why sessions keep pairing `grep
+    -n` with `sed -n`: not because the chapter fails to recommend `--para`
+    but because the thing in hand is not what `--para` takes. This mode is
+    the converter, and its output is the handle rather than the passage --
+    what a caller should carry forward instead of the number it arrived
+    with.
+
+    The line is counted in the file AS IT IS ON DISK, which is what a grep
+    reports, and the paragraph is what `wrap80 --unwrap` says it is, which
+    is what every sweep here reads; `spans` is the map between them and
+    already existed for placing a match.
+    """
+    if isinstance(docs, str):
+        docs = [docs]
+    m = re.match(r'(.+):(\d+)$', where)
+    if not m:
+        sys.stderr.write('--para-at wants FILE:LINE, e.g. README.md:2799;'
+                         ' got %r\n' % where)
+        return 2
+    want, no = m.group(1), int(m.group(2))
+    cands = [d for d in docs if os.path.basename(d) == os.path.basename(want)]
+    if not cands:
+        cands = [d for d in docs if want in d]
+    if len(cands) != 1:
+        sys.stderr.write('--para-at: %r names %d of the documents this'
+                         ' reads (%s)\n'
+                         % (want, len(cands), ', '.join(docs)))
+        return 2
+    path = cands[0]
+    try:
+        lines = open(path).read().split('\n')
+    except OSError as e:
+        sys.stderr.write('--para-at: %s\n' % e)
+        return 2
+    if not 1 <= no <= len(lines):
+        sys.stderr.write('--para-at: %s has %d lines, so %d is outside it\n'
+                         % (os.path.basename(path), len(lines), no))
+        return 2
+    paras_all = []
+    for d in docs:
+        try:
+            dl = open(d).read().split('\n')
+        except OSError:
+            continue
+        paras_all += [(d, f, q) for f, q, _ in unwrapped_paragraphs(dl)]
+    for first, para, spans in unwrapped_paragraphs(lines):
+        nums = [n for n, _ in spans] or [first]
+        if min(nums) <= no <= max(nums):
+            lead = LEAD_RE.search(para)
+            flat = ' '.join(lead.group(1).split()) if lead else ''
+            print('%s:%d is in the paragraph starting at line %d, which'
+                  ' spans %d line(s).' % (os.path.basename(path), no,
+                                          min(nums), len(nums)))
+            # THE HANDLE IS BUILT TO BE USED, not merely quoted: it is
+            # fed back to `--para`, which takes a REGEX, so a lead's
+            # backticks and asterisks are dropped -- `--para` strips them
+            # from the lead before matching, and left in a pattern a `*`
+            # is a quantifier -- and the trailing punctuation of a cut
+            # phrase goes with them. Then it is LENGTHENED until it
+            # matches one lead and no other, because a handle that
+            # retrieves four paragraphs has not replaced the line number
+            # it was meant to replace.
+            src = flat or para
+            words = re.sub(r'[`*]', '', src).split()
+            # STARTS AT WHAT THERE IS, not at six: a lead of three words
+            # -- and the shortest here is two -- left `short` unset and
+            # handed back `--para ''`, which matches every paragraph in
+            # both documents. An empty handle is worse than the line
+            # number it replaces, the line number at least being wrong
+            # only later.
+            short = ' '.join(words).rstrip(' ,;:.-')
+            for k in range(min(6, len(words)), min(len(words), 20) + 1):
+                short = ' '.join(words[:k]).rstrip(' ,;:.-')
+                try:
+                    rx2 = re.compile(short, re.I)
+                except re.error:
+                    continue
+                hits = 0
+                for _p, _f, q in paras_all:
+                    ld = LEAD_RE.search(q)
+                    if ld and rx2.search(' '.join(ld.group(1).split())):
+                        hits += 1
+                if hits <= 1:
+                    break
+            if flat:
+                print("  lead:   %s" % flat)
+                print("  handle: --para %r" % short)
+                print('  The handle survives a rewrap and an install; the'
+                      ' line number survives neither. Carry it instead.')
+            else:
+                print('  lead:   none -- this paragraph carries no bolded'
+                      ' lead, which many of the README\'s do not.')
+                print("  handle: --para %r" % short)
+                print('  `--para` falls back to the body when no lead'
+                      ' matches, so that pattern still retrieves it.')
+            print()
+            print(para)
+            return 0
+    sys.stderr.write('--para-at: line %d of %s is in no paragraph -- a blank'
+                     ' line, a heading or a table row, which the splitter'
+                     ' drops\n' % (no, os.path.basename(path)))
+    return 1
+
+
 def paragraphs(docs, pattern, every=False):
     r"""Print the paragraphs whose BOLDED LEAD matches, and their line numbers.
 
@@ -7525,9 +7645,12 @@ def paragraphs(docs, pattern, every=False):
     output one paragraph instead of every line that mentions a word.
 
     **The README does NOT guarantee the precondition this used to claim.**
-    It said every paragraph opens with a bolded lead; of the 868 paragraphs
-    this function's own splitter returns, 457 carry a bolded span and 411
-    carry none, and 37 of those 411 carry a figure. So a third of a percent
+    It said every paragraph opens with a bolded lead; measured once, WELL
+    OVER A THIRD carry none and dozens of those carry a figure. The four
+    numerals that stood here are gone rather than maintained: nothing
+    checks them, every run moves them -- the run written the day this
+    sentence was rewritten added a hundred-odd paragraphs to README -- and
+    the argument needs the SHARE and not the count. So a third of a percent
     of the README was not the gap -- a run's own material was. The unbolded
     ones are the opening section's continuous argument and the continuation
     paragraphs inside list entries, where the entry's lead already names the
@@ -11169,6 +11292,12 @@ def main():
                         " where several"
                         " match, print their leads and locations instead;"
                         " needs no run file")
+    p.add_argument('--para-at', metavar='FILE:LINE',
+                   help='resolve a line number in either document to the'
+                        ' paragraph holding it and print that paragraph\'s'
+                        ' bolded lead as a --para handle -- what to carry'
+                        ' forward from a grep, a line number surviving'
+                        ' neither a rewrap nor an install; needs no run file')
     p.add_argument('--all', dest='all_paras', action='store_true',
                    help='with --para: print every matching paragraph whole'
                         ' rather than indexing them, for the reading that'
@@ -11472,6 +11601,8 @@ def main():
         sys.exit(move_registration(args.readme, want_run_doc(args)))
     if args.delete:
         sys.exit(excise(docs, args.delete, args.delete_limit))
+    if args.para_at:
+        sys.exit(paragraph_at(docs, args.para_at))
     if args.para:
         sys.exit(paragraphs(docs, args.para, args.all_paras))
     if args.modes:

@@ -5901,6 +5901,26 @@ RECORDS = [
          ok=V(exit=0, has=['--delete: ']),
          probe=lambda subs: open(subs['doc']).read()),
 
+    case('para-at-hands-back-a-usable-handle', 'read-run.py', None,
+         'a grep gave a line number and `--para` wanted a lead, so sessions'
+         ' paired `grep -n` with `sed -n` instead of either',
+         # `--para` matches leads because a line number into prose does not
+         # survive a rewrap or an `--in-place` install. What it could not
+         # take was what a caller actually holds after grepping, which is
+         # the number -- so the mode recommended and the thing in hand did
+         # not meet, and the habit the mode exists to replace survived it.
+         # This asks for line 3 on purpose: its lead is THREE words, below
+         # the handle's old six-word floor, which left `short` unset and
+         # printed `--para ''` -- a handle matching every paragraph in both
+         # documents; and its first word is shared with two other leads, so
+         # the handle has to lengthen until it names one. Both ends of the
+         # same loop, in one case.
+         plant=lambda t: {'readme': readme_of_leads(t)},
+         argv=['--para-at', '{readme}:3', '--readme', '{readme}'],
+         ok=V(exit=0,
+              has=["handle: --para 'Alpha the first'", 'Body one'],
+              hasnt=["--para ''", 'Body three'])),
+
     case('para-indexes-when-several-leads-match', 'read-run.py', None,
          'several matching leads printed whole where an index was wanted',
          plant=lambda t: {'readme': readme_of_leads(t)},
@@ -6416,10 +6436,13 @@ RECORDS = [
 
     case('lead-order-mislabels-the-per-shape-line', 'read-run.py', '3596ba2',
          'a lead listed its shapes in an order the installed line is not in',
-         # The per-shape paragraph is installed IN RUN ORDER and labelled
-         # *in the lead's order*, so a lead that lists them differently
-         # does not go stale -- it mislabels three live ratios, which is
-         # the one of the three readings no reading of the block catches.
+         # The per-shape paragraph is installed IN RUN ORDER. It was
+         # LABELLED *in the lead's order* until 2026-09-11, so a lead
+         # listing them differently did not go stale, it mislabelled live
+         # ratios. The label now names the run's order, which retires the
+         # mislabelling; the notice below stays, a lead disagreeing with
+         # the run still being worth saying. It fires at exit 0, which is
+         # how Run 28 shipped `flip` disagreeing: printed, not read.
          plant=lambda t: {
              'rundoc': relead(t, 'rev', lambda s: s.replace(
                  '`rev-cnn-L1-24x24-c1` (`l` 5184, `sInner` 3),'

@@ -7,8 +7,8 @@
 #     ./run-evening.sh run24          # both in the background, and what
 #     ./run-counts-all.sh run24       # that means for a SESSION rather
 #                                     # than a person is README's run list
-#                                     # step 14, which states it once and
-#                                     # carries the measurement. Then step
+#                                     # step 14, which carries the
+#                                     # measurement. Then step
 #                                     # 20, on a box back in use
 #
 # THE COUNTED WORK IS NOT HERE, and this file's last line is what that
