@@ -2105,7 +2105,17 @@ fbMutOdoVecdimsAddInLeafDown sh (T (Strides ats) ao v) = VS.create $ do
 -- The guard looks one element ahead, @o + 1 >= oEnd@, an add per pair
 -- that 'fbMutOdoVecdimsAddInLeafU2Last' hoists into the bound.
 -- This is the arm the library ships: 'genericFillStrided' in
--- Data/Array/Internal.hs is its bang-for-bang port, landed 2026-08-24.
+-- Data/Array/Internal.hs is its bang-for-bang port, landed 2026-08-24,
+-- and behind this arm by one change since 2026-09-11: the broadcast
+-- run at innermost stride 0 read once and written unrolled by two,
+-- 'fillStage2''s 'writeRunSet' taken as it stands, which Run 28's
+-- registration (14) named as Run 29's task and which the library takes
+-- if that run reads the arm ahead. The stepping run is untouched, so
+-- no main-set figure owes anything to it; but the family's one-change
+-- controls below, '-u2-last', '-u2-ptr', '-u2-down' and '-u1', keep the
+-- stepping body at stride 0, so on a view whose innermost stride is 0
+-- each differs from this arm by two changes, and the main set has no
+-- such view.
 {-# NOINLINE fbMutOdoVecdimsAddInLeafU2 #-}
 fbMutOdoVecdimsAddInLeafU2 :: ShapeL -> T -> VS.Vector Double
 fbMutOdoVecdimsAddInLeafU2 sh (T (Strides ats) ao v) = VS.create $ do
@@ -2122,16 +2132,42 @@ fbMutOdoVecdimsAddInLeafU2 sh (T (Strides ats) ao v) = VS.create $ do
                   VSM.unsafeWrite out (o + 1) (VS.unsafeIndex v src')
                   inner (o + 2) (src' + tInner)
         in  inner outPos baseOff
+      -- The broadcast run at innermost stride 0, its one element read
+      -- once and written unrolled by two: 'fillStage2''s 'writeRunSet'
+      -- as it stands, taken 2026-09-11 for Run 29 (runs/run28.md,
+      -- registration (14)). Before it the stepping body above
+      -- served a broadcast run, reading the same element every
+      -- write. Non-vacuity, 2026-09-11: dropping the second write fails
+      -- @check@ at @bcast-inner8@.
+      writeRunSet !outPos !baseOff =
+        let !x = VS.unsafeIndex v baseOff
+            !oEnd = outPos + sInner
+            inner !o
+              | o + 1 >= oEnd =
+                  if o >= oEnd then return ()
+                  else VSM.unsafeWrite out o x
+              | otherwise = do
+                  VSM.unsafeWrite out o x
+                  VSM.unsafeWrite out (o + 1) x
+                  inner (o + 2)
+        in  inner outPos
+      {-# INLINE runs #-}
+      runs write !n !st !outPos !baseOff =
+        let run !k !op !boff
+              | k <= 0    = return op
+              | otherwise = write op boff
+                            >> run (k - 1) (op + sInner) (boff + st)
+        in  run n outPos baseOff
       go !lev !outPos !baseOff
-        | lev >= rOuter = writeRun outPos baseOff >> return (outPos + sInner)
+        | lev >= rOuter =
+            (if tInner == 0 then writeRunSet else writeRun) outPos baseOff
+            >> return (outPos + sInner)
         | lev == rOuter - 1 =
             let !n  = VU.unsafeIndex oshV lev
                 !st = VU.unsafeIndex oatsV lev
-                run !k !op !boff
-                  | k <= 0    = return op
-                  | otherwise = writeRun op boff
-                                >> run (k - 1) (op + sInner) (boff + st)
-            in  run n outPos baseOff
+            in  if tInner == 0
+                then runs writeRunSet n st outPos baseOff
+                else runs writeRun n st outPos baseOff
         | otherwise =
             let !n  = VU.unsafeIndex oshV lev
                 !st = VU.unsafeIndex oatsV lev
@@ -2176,6 +2212,9 @@ fbMutOdoVecdimsAddInLeafU2 sh (T (Strides ats) ao v) = VS.create $ do
 -- Non-vacuity, 2026-09-07: closing the epilogue's test to @o >= oLast@,
 -- which skips the odd element, fails @check@ at @cnn-L1-6x6-c1@, naming
 -- this arm alone.
+-- Not kept in step with 'fbMutOdoVecdimsAddInLeafU2' past the one
+-- change it exists to price: whatever improved that leaf since is not
+-- here.
 {-# NOINLINE fbMutOdoVecdimsAddInLeafU2Last #-}
 fbMutOdoVecdimsAddInLeafU2Last :: ShapeL -> T -> VS.Vector Double
 fbMutOdoVecdimsAddInLeafU2Last sh (T (Strides ats) ao v) = VS.create $ do
@@ -2242,6 +2281,9 @@ fbMutOdoVecdimsAddInLeafU2Last sh (T (Strides ats) ao v) = VS.create $ do
 -- entry).
 -- Non-vacuity, 2026-09-04: dropping the @+ tInner@ from the recursive
 -- call fails @check@ at @cnn-L1-6x6-c1@, naming this arm.
+-- Not kept in step with 'fbMutOdoVecdimsAddInLeafU2' past the one
+-- change it exists to price: whatever improved that leaf since is not
+-- here.
 {-# NOINLINE fbMutOdoVecdimsAddInLeafU1 #-}
 fbMutOdoVecdimsAddInLeafU1 :: ShapeL -> T -> VS.Vector Double
 fbMutOdoVecdimsAddInLeafU1 sh (T (Strides ats) ao v) = VS.create $ do
@@ -2444,6 +2486,9 @@ fbMutOdoVecdimsAddInLeafU1PtrLeaf sh (T (Strides ats) ao v) =
 -- type lambda, so a 'Ptr' is allocated and taken apart on every run.
 -- The ':: Ptr Double' on every such binding in the three pointer arms
 -- is the workaround, and the 9.12 code is unchanged by it.
+-- Not kept in step with 'fbMutOdoVecdimsAddInLeafU2' past the one
+-- change it exists to price: whatever improved that leaf since is not
+-- here.
 {-# NOINLINE fbMutOdoVecdimsAddInLeafU1Ptr #-}
 fbMutOdoVecdimsAddInLeafU1Ptr :: ShapeL -> T -> VS.Vector Double
 fbMutOdoVecdimsAddInLeafU1Ptr sh (T (Strides ats) ao v) =
@@ -2517,6 +2562,9 @@ fbMutOdoVecdimsAddInLeafU1Ptr sh (T (Strides ats) ao v) =
 -- and 2.61x the result vector allocated against 1.00x here -- GHC
 -- #27778, worked around by the ':: Ptr Double' annotations as in
 -- 'fbMutOdoVecdimsAddInLeafU1Ptr' above.
+-- Not kept in step with 'fbMutOdoVecdimsAddInLeafU2' past the one
+-- change it exists to price: whatever improved that leaf since is not
+-- here.
 {-# NOINLINE fbMutOdoVecdimsAddInLeafU2Ptr #-}
 fbMutOdoVecdimsAddInLeafU2Ptr :: ShapeL -> T -> VS.Vector Double
 fbMutOdoVecdimsAddInLeafU2Ptr sh (T (Strides ats) ao v) =
@@ -2592,6 +2640,9 @@ fbMutOdoVecdimsAddInLeafU2Ptr sh (T (Strides ats) ao v) =
 -- Non-vacuity, 2026-08-27: dropping
 -- the @+ tInner@ from the second read fails @check@ at @cnn-L1-6x6-c1@,
 -- naming this arm.
+-- Not kept in step with 'fbMutOdoVecdimsAddInLeafU2' past the one
+-- change it exists to price: whatever improved that leaf since is not
+-- here.
 {-# NOINLINE fbMutOdoVecdimsAddInLeafU2Down #-}
 fbMutOdoVecdimsAddInLeafU2Down :: ShapeL -> T -> VS.Vector Double
 fbMutOdoVecdimsAddInLeafU2Down sh (T (Strides ats) ao v) = VS.create $ do
@@ -3133,7 +3184,10 @@ mkStrided normalSh =
 -- Stage one as it shipped (Data/Array/Internal.hs at 0386073): regime 1
 -- the vector itself or a slice, regime 2 one slice per maximal normal
 -- suffix and a concatenation, regime 3 the fill 'genericFillStrided'
--- ports from 'fbMutOdoVecdimsAddInLeafU2'.
+-- ports from 'fbMutOdoVecdimsAddInLeafU2' -- which is ahead of that
+-- port by its broadcast run since 2026-09-11, so this arm is stage
+-- one plus that one change until the library takes it; the leaf's
+-- own note says what and why.
 -- Non-vacuity, 2026-08-28: dropping the regime-2 branch (so those views
 -- take the fill) leaves @check@ green, the fill being correct there --
 -- which is why the runs class prices it rather than a check; slicing
